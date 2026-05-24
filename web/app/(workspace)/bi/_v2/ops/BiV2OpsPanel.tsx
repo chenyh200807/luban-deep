@@ -19,6 +19,7 @@ import {
   type ExportJob,
   type SystemOpsTile,
 } from './data'
+import { useAuditedAction } from '../useAuditedAction'
 
 const OPS_ICON: Record<string, typeof ShieldCheck> = {
   'cost-quality': ShieldAlert,
@@ -101,6 +102,25 @@ function mapAuditLogItem(item: MemberAuditLogItem, index: number): AuditLogEntry
   }
 }
 
+function mapExportJobPayload(value: unknown): ExportJob | null {
+  if (!value || typeof value !== 'object') return null
+  const record = value as Record<string, unknown>
+  const id = String(record.id ?? '').trim()
+  const name = String(record.name ?? '').trim()
+  const status = String(record.status ?? '').trim()
+  if (!id || !name || !['queued', 'running', 'done', 'failed'].includes(status)) return null
+  return {
+    id,
+    name,
+    rows: Number(record.rows ?? 0),
+    status: status as ExportJob['status'],
+    scrubbed: Boolean(record.scrubbed),
+    rate_limit_per_hour: Number(record.rate_limit_per_hour ?? 0),
+    requested_at: String(record.requested_at ?? '—'),
+    done_at: typeof record.done_at === 'string' ? record.done_at : undefined,
+  }
+}
+
 export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
   const [auditFilter, setAuditFilter] = useState<AuditFilter>(DEFAULT_AUDIT_FILTER)
   const [composingActor, setComposingActor] = useState(false)
@@ -109,8 +129,13 @@ export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
   const [auditTotal, setAuditTotal] = useState(0)
   const [auditLoading, setAuditLoading] = useState(flagEnabled)
   const [auditError, setAuditError] = useState('')
+  const [liveExportJobs, setLiveExportJobs] = useState<ExportJob[]>([])
+  const [exportNotice, setExportNotice] = useState('')
+  const [exportError, setExportError] = useState('')
   const [selectedTile, setSelectedTile] = useState<SystemOpsTile | null>(null)
   const [selectedAudit, setSelectedAudit] = useState<AuditLogEntry | null>(null)
+  const exportRequest = useAuditedAction({ actionType: 'bi.export.request' })
+  const exportWriting = exportRequest.state.phase === 'writing'
 
   const loadAudit = useCallback(async () => {
     if (!flagEnabled) {
@@ -185,14 +210,14 @@ export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
       {
         key: 'audit-export',
         label: '导出审计',
-        status: 'warn',
-        detail: '导出任务队列数据源待接入；当前不展示 dev mock。',
+        status: exportError ? 'fail' : liveExportJobs.length > 0 ? 'ok' : 'warn',
+        detail: exportError || `导出请求写入 /api/v1/bi/export-jobs，当前队列 ${liveExportJobs.length} 个。`,
         owner: 'ops',
         trust: 'B',
-        authority: 'member_console.export_members_csv',
+        authority: 'member_console.audit_log',
       },
     ]
-  }, [auditError, auditLoading, auditTotal, flagEnabled, liveAudit.length])
+  }, [auditError, auditLoading, auditTotal, exportError, flagEnabled, liveAudit.length, liveExportJobs.length])
 
   const auditColumns = useMemo<BiTableColumn<AuditLogEntry>[]>(
     () => [
@@ -244,6 +269,43 @@ export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
     []
   )
 
+  const requestAuditExport = useCallback(async () => {
+    setExportError('')
+    setExportNotice('')
+    const result = await exportRequest.execute({
+      key: 'bi.export.request',
+      params: {},
+      body: {
+        dataset: 'member_audit_log',
+        format: 'csv',
+        filters: {
+          operator: auditFilter.actor.trim(),
+          target_user: auditFilter.target.trim(),
+          category: auditFilter.category,
+          severity: auditFilter.severity,
+        },
+      },
+    })
+    if (!result.ok) {
+      setExportError(result.error || '导出请求失败')
+      return
+    }
+    const payload = result.data as Record<string, unknown>
+    const job = mapExportJobPayload(payload.export_job)
+    if (job) {
+      setLiveExportJobs(current => [job, ...current.filter(item => item.id !== job.id)])
+    }
+    setExportNotice(`导出请求已写入 ${result.auditId || 'audit_log'}`)
+    void loadAudit()
+  }, [
+    auditFilter.actor,
+    auditFilter.category,
+    auditFilter.severity,
+    auditFilter.target,
+    exportRequest,
+    loadAudit,
+  ])
+
   return (
     <section className="space-y-5">
       {!flagEnabled ? (
@@ -255,8 +317,8 @@ export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-800">
           <span>
             BI_SYSTEM_OPS_V2_ENABLED 已开启 · 操作审计读取{' '}
-            <code className="font-mono">/api/v1/member/audit-log</code>；导出任务队列数据源待接入，
-            不展示 mock。
+            <code className="font-mono">/api/v1/member/audit-log</code>；导出请求写入{' '}
+            <code className="font-mono">/api/v1/bi/export-jobs</code> audit。
           </span>
           <button
             type="button"
@@ -441,15 +503,34 @@ export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
               大数据导出走异步任务，必须脱敏 + 限频 + audit。
             </p>
           </div>
-          <span className="text-[11px] text-slate-500">queued + running 即可见</span>
+          <button
+            type="button"
+            onClick={() => void requestAuditExport()}
+            disabled={!flagEnabled || exportWriting}
+            className="inline-flex items-center gap-1 rounded border border-slate-200 px-2 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            aria-label="申请导出当前审计筛选"
+          >
+            <Download className="h-3 w-3" aria-hidden />
+            {exportWriting ? '写入中…' : '申请导出'}
+          </button>
         </header>
+        {exportError ? (
+          <div className="border-b border-rose-200 bg-rose-50 px-4 py-2 text-xs text-rose-700">
+            {exportError}
+          </div>
+        ) : null}
+        {exportNotice ? (
+          <div className="border-b border-emerald-200 bg-emerald-50 px-4 py-2 text-xs text-emerald-700">
+            {exportNotice}
+          </div>
+        ) : null}
         <BiDataTable<ExportJob>
           columns={exportColumns}
-          rows={flagEnabled ? [] : EXPORT_JOBS}
+          rows={flagEnabled ? liveExportJobs : EXPORT_JOBS}
           rowKey={j => j.id}
-          status={flagEnabled ? 'empty' : 'ok'}
+          status={flagEnabled ? (liveExportJobs.length ? 'ok' : 'empty') : 'ok'}
           emptyTitle="暂无导出任务"
-          emptyHint="导出任务队列 endpoint 尚未存在；当前只保留脱敏导出的设计入口。"
+          emptyHint="按当前审计筛选申请导出后，系统会先写入 bi_export_request audit，再显示 queued job。"
         />
       </section>
       <OpsTileDetailPanel tile={selectedTile} onClose={() => setSelectedTile(null)} />

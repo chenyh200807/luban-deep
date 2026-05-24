@@ -1462,6 +1462,72 @@ def test_record_conversation_view_dedupes_by_idempotency_key(tmp_path: Path) -> 
     assert second.get("deduped") is True
 
 
+def test_record_bi_audit_dedupes_feedback_triage_by_idempotency_key(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    first = service.record_bi_audit(
+        action="feedback_triage",
+        target_user="student_demo",
+        operator="admin_demo",
+        reason="triaged",
+        after={"feedback_id": "fb_1", "status": "triaged"},
+        idempotency_key="feedback-key-1",
+    )
+    second = service.record_bi_audit(
+        action="feedback_triage",
+        target_user="student_demo",
+        operator="admin_demo",
+        reason="triaged",
+        after={"feedback_id": "fb_1", "status": "triaged"},
+        idempotency_key="feedback-key-1",
+    )
+
+    audit = service.list_audit_log(target_user="student_demo", action="feedback_triage")
+    assert audit["total"] == 1
+    assert first["audit_id"] == audit["items"][0]["id"]
+    assert second["audit_id"] == first["audit_id"]
+    assert second.get("deduped") is True
+
+
+def test_record_bi_audit_dedupes_bi_export_request_by_idempotency_key(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    first = service.record_bi_audit(
+        action="bi_export_request",
+        target_user="export:member_audit_log",
+        operator="admin_demo",
+        reason="member_audit_log:csv",
+        after={
+            "dataset": "member_audit_log",
+            "format": "csv",
+            "filters": {"operator": "admin_demo"},
+            "scrubbed": True,
+        },
+        idempotency_key="export-key-1",
+    )
+    second = service.record_bi_audit(
+        action="bi_export_request",
+        target_user="export:member_audit_log",
+        operator="admin_demo",
+        reason="member_audit_log:csv",
+        after={
+            "dataset": "member_audit_log",
+            "format": "csv",
+            "filters": {"operator": "admin_demo"},
+            "scrubbed": True,
+        },
+        idempotency_key="export-key-1",
+    )
+
+    audit = service.list_audit_log(target_user="export:member_audit_log", action="bi_export_request")
+    assert audit["total"] == 1
+    assert first["audit_id"] == audit["items"][0]["id"]
+    assert second["audit_id"] == first["audit_id"]
+    assert second.get("deduped") is True
+
+
 def test_record_conversation_view_dedup_is_scoped_to_operator(tmp_path: Path) -> None:
     """Round 5 B2 contract: idempotency dedup must be scoped to operator so
     Admin A's idempotency_key cannot dedupe Admin B's identical-key request.
@@ -2831,3 +2897,34 @@ def test_record_ops_action_result_writes_note_and_audit_loop(tmp_path: Path) -> 
     assert audit["items"][0]["after"]["status"] == "done"
     assert audit["items"][0]["after"]["note_id"] == result["note"]["id"]
     assert audit["items"][0]["after"]["next_follow_up_at"] == "2026-04-26"
+
+
+def test_record_ops_action_result_dedupes_by_idempotency_key(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    first = service.record_ops_action_result(
+        "student_demo",
+        status="done",
+        result="已电话联系",
+        action_title="标记已联系",
+        operator="admin_demo",
+        idempotency_key="member-action-key-1",
+    )
+    second = service.record_ops_action_result(
+        "student_demo",
+        status="done",
+        result="已电话联系",
+        action_title="标记已联系",
+        operator="admin_demo",
+        idempotency_key="member-action-key-1",
+    )
+
+    audit = service.list_audit_log(target_user="student_demo", action="ops_action_result")
+    notes = service.get_notes("student_demo")
+    ops_notes = [note for note in notes["items"] if note.get("channel") == "ops_action"]
+    assert audit["total"] == 1
+    assert len(ops_notes) == 1
+    assert first["audit_id"] == audit["items"][0]["id"]
+    assert second["audit_id"] == first["audit_id"]
+    assert second.get("deduped") is True

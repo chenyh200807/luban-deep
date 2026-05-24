@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
+import re
+from typing import Any
+
+from fastapi import APIRouter, Body, Depends, Header, HTTPException, Query, status
 
 from deeptutor.api.dependencies.auth import AuthContext, _has_metrics_token_access, resolve_auth_context
 from deeptutor.services.config import get_env_store
@@ -10,6 +13,24 @@ from deeptutor.services.bi_service import get_bi_service
 def _bi_public_enabled() -> bool:
     value = get_env_store().get("DEEPTUTOR_BI_PUBLIC_ENABLED", "").strip().lower()
     return value in {"1", "true", "yes", "on"}
+
+
+_IDEMPOTENCY_KEY_PATTERN = re.compile(r"^[A-Za-z0-9_-]{1,128}$")
+
+
+def _validate_idempotency_key(value: str | None) -> str:
+    normalized = str(value or "").strip()
+    if not normalized:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="X-Idempotency-Key header is required",
+        )
+    if not _IDEMPOTENCY_KEY_PATTERN.fullmatch(normalized):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="X-Idempotency-Key must be 1-128 chars of A-Z, a-z, 0-9, _ or -",
+        )
+    return normalized
 
 
 def require_bi_access(
@@ -200,6 +221,80 @@ async def bi_feedback(
     limit: int = Query(20, ge=1, le=100),
 ):
     return await get_bi_service().get_feedback(days=days, limit=limit)
+
+
+@router.post("/feedback/{feedback_id}/triage")
+async def bi_feedback_triage(
+    feedback_id: str,
+    payload: dict[str, Any] | None = Body(default=None),
+    idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
+    auth: AuthContext = Depends(require_bi_admin),
+):
+    key = _validate_idempotency_key(idempotency_key)
+    body = payload or {}
+    try:
+        return await get_bi_service().triage_feedback(
+            feedback_id=feedback_id,
+            status=str(body.get("status") or ""),
+            operator=auth.user_id,
+            note=str(body.get("note") or ""),
+            idempotency_key=key,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except KeyError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Feedback not found") from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+
+
+@router.post("/member/{user_id}/ops-action")
+async def bi_member_ops_action(
+    user_id: str,
+    payload: dict[str, Any] | None = Body(default=None),
+    idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
+    auth: AuthContext = Depends(require_bi_admin),
+):
+    key = _validate_idempotency_key(idempotency_key)
+    body = payload or {}
+    try:
+        return await get_bi_service().record_member_ops_action(
+            user_id=user_id,
+            status=str(body.get("status") or ""),
+            result=str(body.get("result") or ""),
+            action_title=str(body.get("action_title") or ""),
+            next_follow_up_at=str(body.get("next_follow_up_at") or ""),
+            operator=auth.user_id,
+            idempotency_key=key,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except KeyError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+
+
+@router.post("/export-jobs")
+async def bi_export_request(
+    payload: dict[str, Any] | None = Body(default=None),
+    idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
+    auth: AuthContext = Depends(require_bi_admin),
+):
+    key = _validate_idempotency_key(idempotency_key)
+    body = payload or {}
+    try:
+        return await get_bi_service().request_export_job(
+            dataset=str(body.get("dataset") or ""),
+            export_format=str(body.get("format") or "csv"),
+            filters=body.get("filters") if isinstance(body.get("filters"), dict) else {},
+            operator=auth.user_id,
+            idempotency_key=key,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
 
 
 @router.get("/invite-test/applications")

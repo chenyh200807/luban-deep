@@ -15,7 +15,13 @@ async function installAdminSession(page: import("@playwright/test").Page) {
   });
 }
 
-async function mockBiV2ReadApis(page: import("@playwright/test").Page) {
+async function mockBiV2ReadApis(
+  page: import("@playwright/test").Page,
+  options: {
+    onFeedbackTriage?: (idempotencyKey: string) => void;
+    onExportRequest?: (idempotencyKey: string) => void;
+  } = {},
+) {
   await page.route("**/api/v1/bi/overview**", (route) =>
     route.fulfill({
       status: 200,
@@ -56,8 +62,35 @@ async function mockBiV2ReadApis(page: import("@playwright/test").Page) {
       body: JSON.stringify({ items: [] }),
     }),
   );
-  await page.route("**/api/v1/bi/feedback**", (route) =>
-    route.fulfill({
+  await page.route("**/api/v1/bi/feedback**", (route) => {
+    if (route.request().method() === "POST") {
+      options.onFeedbackTriage?.(route.request().headers()["x-idempotency-key"] ?? "");
+      return route.fulfill({
+        status: 200,
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          audit_id: "audit_feedback_1",
+          deduped: false,
+          status: "triaged",
+          feedback: {
+            feedback_id: "fb_test_1",
+            id: "fb_test_1",
+            user_id: "user_1",
+            session_id: "session_1",
+            message_id: "msg_1",
+            rating: -1,
+            reason_tags: ["答非所问"],
+            comment: "学员反馈讲解不清楚",
+            feedback_source: "ai_message",
+            triage_status: "triaged",
+            triage_operator: "admin_test",
+            triage_note: "BI feedback triage",
+            created_at: "2026-05-23T10:00:00Z",
+          },
+        }),
+      });
+    }
+    return route.fulfill({
       status: 200,
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -92,8 +125,8 @@ async function mockBiV2ReadApis(page: import("@playwright/test").Page) {
           },
         ],
       }),
-    }),
-  );
+    });
+  });
   await page.route("**/api/v1/bi/invite-test/stats**", (route) =>
     route.fulfill({
       status: 200,
@@ -264,6 +297,28 @@ async function mockBiV2ReadApis(page: import("@playwright/test").Page) {
       }),
     }),
   );
+  await page.route("**/api/v1/bi/export-jobs", (route) => {
+    options.onExportRequest?.(route.request().headers()["x-idempotency-key"] ?? "");
+    return route.fulfill({
+      status: 200,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        audit_id: "audit_export_1",
+        deduped: false,
+        export_job: {
+          id: "export_audit_export_1",
+          name: "操作审计导出",
+          dataset: "member_audit_log",
+          format: "csv",
+          rows: 0,
+          status: "queued",
+          scrubbed: true,
+          rate_limit_per_hour: 2,
+          requested_at: "2026-05-23T10:05:00Z",
+        },
+      }),
+    });
+  });
   await page.route("**/api/v1/member/audit-log**", (route) =>
     route.fulfill({
       status: 200,
@@ -290,7 +345,10 @@ async function mockBiV2ReadApis(page: import("@playwright/test").Page) {
   );
 }
 
-async function mockMemberOpsApis(page: import("@playwright/test").Page) {
+async function mockMemberOpsApis(
+  page: import("@playwright/test").Page,
+  options: { onMemberOpsAction?: (idempotencyKey: string) => void } = {},
+) {
   await page.route("**/api/v1/member/dashboard**", (route) =>
     route.fulfill({
       status: 200,
@@ -375,6 +433,22 @@ async function mockMemberOpsApis(page: import("@playwright/test").Page) {
       }),
     }),
   );
+  await page.route("**/api/v1/bi/member/user_1/ops-action", (route) => {
+    options.onMemberOpsAction?.(route.request().headers()["x-idempotency-key"] ?? "");
+    return route.fulfill({
+      status: 200,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        status: "done",
+        result: "BI 标记已联系",
+        action_title: "标记已联系",
+        next_follow_up_at: "",
+        audit_id: "audit_member_action_1",
+        deduped: false,
+        note: { id: "note_ops_1", channel: "ops_action" },
+      }),
+    });
+  });
   await page.route("**/api/v1/member/user_1/conversations**", (route) => {
     if (route.request().method() === "POST") {
       return route.fulfill({
@@ -441,7 +515,16 @@ test("BI v2 route does not render the global workspace sidebar", async ({ page }
 
 test("BI v2 read-only details open for overview, feedback, and ops", async ({ page }) => {
   await installAdminSession(page);
-  await mockBiV2ReadApis(page);
+  let feedbackTriageIdempotencyKey = "";
+  let exportRequestIdempotencyKey = "";
+  await mockBiV2ReadApis(page, {
+    onFeedbackTriage: (key) => {
+      feedbackTriageIdempotencyKey = key;
+    },
+    onExportRequest: (key) => {
+      exportRequestIdempotencyKey = key;
+    },
+  });
   await page.goto("/bi");
 
   await expect(page.getByText("BI 后台需 admin 登录")).toHaveCount(0);
@@ -455,6 +538,14 @@ test("BI v2 read-only details open for overview, feedback, and ops", async ({ pa
   await expect(page.getByRole("dialog", { name: "行动项详情 · AI 反馈 negative 24h 增加" })).toBeVisible();
   await expect(page.getByText("建议处理区")).toBeVisible();
   await page.getByRole("button", { name: "关闭抽屉" }).click();
+
+  await page.getByRole("textbox", { name: "全局搜索手机号 / user_id / 订单号" }).fill("ord_real_1");
+  await page.getByRole("textbox", { name: "全局搜索手机号 / user_id / 订单号" }).press("Enter");
+  await expect(page.getByRole("heading", { name: "商品账务" })).toBeVisible();
+  await expect(page.getByText("已搜: ord_real_1")).toBeVisible();
+  await expect(page.getByText("充值记录 (1)")).toBeVisible();
+  await page.getByRole("textbox", { name: "全局搜索手机号 / user_id / 订单号" }).fill("");
+  await page.getByRole("textbox", { name: "全局搜索手机号 / user_id / 订单号" }).press("Enter");
 
   await page.getByRole("button", { name: "商品账务：套餐、充值订单、钱包流水、账务异常队列。" }).click();
   await expect(page.getByRole("heading", { name: "商品账务" })).toBeVisible();
@@ -475,6 +566,9 @@ test("BI v2 read-only details open for overview, feedback, and ops", async ({ pa
   await expect(feedbackDialog).toBeVisible();
   await expect(feedbackDialog.getByText("学员反馈讲解不清楚")).toBeVisible();
   await page.getByRole("button", { name: "关闭抽屉" }).click();
+  await page.getByRole("button", { name: "分诊反馈 fb_test_1" }).click();
+  await expect.poll(() => feedbackTriageIdempotencyKey).toMatch(/^[A-Za-z0-9_-]{1,128}$/);
+  await expect(page.getByRole("button", { name: "分诊反馈 fb_test_1" })).toBeDisabled();
 
   await page.getByRole("tab", { name: /内测申请/ }).click();
   await expect(page.getByRole("heading", { name: "内测申请池" })).toBeVisible();
@@ -492,6 +586,11 @@ test("BI v2 read-only details open for overview, feedback, and ops", async ({ pa
   await page.getByRole("button", { name: "查看审计 audit_1 详情" }).click();
   await expect(page.getByRole("dialog", { name: "审计详情 · audit_1" })).toBeVisible();
   await expect(page.getByText("客服投诉")).toBeVisible();
+  await page.getByRole("button", { name: "关闭抽屉" }).click();
+  await page.getByRole("button", { name: "申请导出当前审计筛选" }).click();
+  await expect.poll(() => exportRequestIdempotencyKey).toMatch(/^[A-Za-z0-9_-]{1,128}$/);
+  await expect(page.getByText("操作审计导出")).toBeVisible();
+  await expect(page.getByText("导出请求已写入 audit_export_1")).toBeVisible();
 });
 
 test("BI v2 member ops opens 360 and loads conversation details from the read endpoint", async ({
@@ -499,10 +598,19 @@ test("BI v2 member ops opens 360 and loads conversation details from the read en
 }) => {
   await installAdminSession(page);
   await mockBiV2ReadApis(page);
-  await mockMemberOpsApis(page);
+  let memberOpsActionIdempotencyKey = "";
+  await mockMemberOpsApis(page, {
+    onMemberOpsAction: (key) => {
+      memberOpsActionIdempotencyKey = key;
+    },
+  });
   await page.goto("/bi?tab=member-ops");
 
   await expect(page.getByRole("heading", { name: "会员运营" })).toBeVisible();
+  await page.getByRole("textbox", { name: "全局搜索手机号 / user_id / 订单号" }).fill("user_1");
+  await page.getByRole("textbox", { name: "全局搜索手机号 / user_id / 订单号" }).press("Enter");
+  await expect(page.getByRole("dialog", { name: "学员 360 · 139****0001" })).toBeVisible();
+  await page.getByRole("button", { name: "关闭抽屉" }).click();
   let unexpectedPrompt = false;
   page.on("dialog", async (dialog) => {
     unexpectedPrompt = true;
@@ -514,6 +622,9 @@ test("BI v2 member ops opens 360 and loads conversation details from the read en
 
   await page.getByRole("button", { name: "打开 user_1 学员 360" }).click();
   await expect(page.getByRole("dialog", { name: "学员 360 · 139****0001" })).toBeVisible();
+  await page.getByRole("button", { name: "标记已联系", exact: true }).click();
+  await expect.poll(() => memberOpsActionIdempotencyKey).toMatch(/^[A-Za-z0-9_-]{1,128}$/);
+  await expect(page.getByText("已标记 139****0001 为已联系")).toBeVisible();
 
   await page.getByRole("button", { name: "查看会员对话回顾" }).click();
   await expect(page.getByRole("dialog", { name: "对话回顾 · 139****0001" })).toBeVisible();

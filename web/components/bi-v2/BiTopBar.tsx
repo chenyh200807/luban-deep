@@ -17,12 +17,11 @@ export type BiTopBarProps = {
 export function BiTopBar({
   brand,
   actor,
-  // Round 3 H: removed "订单号" from the placeholder until backend exposes an
-  // order→member lookup. Showing "订单号" while filterMembers ignores it is UI
-  // deception (plan §7.4 contract). Re-add once /api/v1/bi/orders/lookup or
-  // an equivalent reverse index ships.
-  searchPlaceholder = '手机号 / user_id',
-  searchAriaLabel = '全局搜索手机号 / user_id',
+  // Global search is routed by the shell: member identity queries go to
+  // MemberOps; order / ledger-like queries go to the commerce read model.
+  // The input itself remains a thin UI control and does not interpret data.
+  searchPlaceholder = '手机号 / user_id / 订单号',
+  searchAriaLabel = '全局搜索手机号 / user_id / 订单号',
   onSubmitSearch,
   rightSlot,
   leftSlot,

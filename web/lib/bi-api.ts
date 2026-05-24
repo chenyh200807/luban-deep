@@ -184,6 +184,10 @@ export interface BiFeedbackRecord {
   requested_response_mode?: string;
   effective_response_mode?: string;
   response_mode_degrade_reason?: string;
+  triage_status?: "open" | "triaged" | "ignored" | string;
+  triage_operator?: string;
+  triage_note?: string;
+  triage_updated_at?: string;
   created_at?: string;
 }
 
@@ -1728,6 +1732,10 @@ export async function getBiFeedback(options: { days?: number; limit?: number } =
           itemRecord.response_mode_degrade_reason ?? itemRecord.responseModeDegradeReason,
           "",
         ),
+        triage_status: toString(itemRecord.triage_status ?? itemRecord.triageStatus, ""),
+        triage_operator: toString(itemRecord.triage_operator ?? itemRecord.triageOperator, ""),
+        triage_note: toString(itemRecord.triage_note ?? itemRecord.triageNote, ""),
+        triage_updated_at: toString(itemRecord.triage_updated_at ?? itemRecord.triageUpdatedAt, ""),
         created_at: toString(itemRecord.created_at ?? itemRecord.createdAt, ""),
       };
     }),

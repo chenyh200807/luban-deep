@@ -24,6 +24,10 @@ from deeptutor.services.session.sqlite_store import SQLiteSessionStore
 
 
 class _FakeMemberService:
+    def __init__(self) -> None:
+        self.audit_log: list[dict[str, object]] = []
+        self.audit_by_idempotency_key: dict[tuple[str, str, str], str] = {}
+
     def get_dashboard(self, days: int = 30) -> dict[str, int | list[str]]:
         return {
             "total_count": 2,
@@ -70,6 +74,74 @@ class _FakeMemberService:
             },
         ]
         return {"items": items, "page": page, "page_size": page_size, "pages": 1, "total": len(items)}
+
+    def record_bi_audit(
+        self,
+        *,
+        action: str,
+        target_user: str,
+        operator: str = "admin",
+        reason: str = "",
+        before: dict[str, object] | None = None,
+        after: dict[str, object] | None = None,
+        idempotency_key: str | None = None,
+    ) -> dict[str, object]:
+        normalized_key = str(idempotency_key or "").strip()
+        dedup_key = (str(action), str(operator), normalized_key)
+        if normalized_key and dedup_key in self.audit_by_idempotency_key:
+            return {
+                "audit_id": self.audit_by_idempotency_key[dedup_key],
+                "deduped": True,
+            }
+        audit_id = f"audit_feedback_{len(self.audit_log) + 1}"
+        self.audit_log.insert(
+            0,
+            {
+                "id": audit_id,
+                "action": action,
+                "target_user": target_user,
+                "operator": operator,
+                "reason": reason,
+                "before": before or {},
+                "after": after or {},
+            },
+        )
+        if normalized_key:
+            self.audit_by_idempotency_key[dedup_key] = audit_id
+        return {"audit_id": audit_id, "deduped": False}
+
+    def record_ops_action_result(
+        self,
+        user_id: str,
+        *,
+        status: str,
+        result: str,
+        action_title: str = "",
+        next_follow_up_at: str = "",
+        operator: str = "admin",
+        idempotency_key: str | None = None,
+    ) -> dict[str, object]:
+        audit = self.record_bi_audit(
+            action="ops_action_result",
+            target_user=user_id,
+            operator=operator,
+            reason=status,
+            after={
+                "status": status,
+                "result": result,
+                "action_title": action_title,
+                "next_follow_up_at": next_follow_up_at,
+            },
+            idempotency_key=idempotency_key,
+        )
+        return {
+            "status": status,
+            "result": result,
+            "action_title": action_title,
+            "next_follow_up_at": next_follow_up_at,
+            "note": {"id": "note_ops_1", "channel": "ops_action"},
+            **audit,
+        }
 
     def get_wallet(self, user_id: str) -> dict[str, object]:
         return {
@@ -175,10 +247,44 @@ def bi_service(tmp_path: Path, monkeypatch) -> BIService:
         def __init__(self, rows) -> None:
             self._rows = list(rows)
             self.is_configured = True
+            self.triage_updates: list[dict[str, object]] = []
 
         async def list_feedback(self, *, created_after: str, limit: int = 500, offset: int = 0):
             assert created_after
             return self._rows[offset : offset + limit]
+
+        async def update_feedback_triage(
+            self,
+            feedback_id: str,
+            *,
+            status: str,
+            operator: str,
+            note: str = "",
+        ):
+            for index, row in enumerate(self._rows):
+                if str(row.get("id") or "") != feedback_id:
+                    continue
+                before = dict(row)
+                metadata = dict(before.get("metadata") or {})
+                metadata["bi_triage"] = {
+                    "status": status,
+                    "operator": operator,
+                    "note": note,
+                    "updated_at": "2026-05-24T00:00:00+08:00",
+                }
+                after = dict(before)
+                after["metadata"] = metadata
+                self._rows[index] = after
+                self.triage_updates.append(
+                    {
+                        "feedback_id": feedback_id,
+                        "status": status,
+                        "operator": operator,
+                        "note": note,
+                    }
+                )
+                return {"before": before, "after": after}
+            raise KeyError(feedback_id)
 
     class _FakeBailianTelemetryClient:
         def is_configured(self) -> bool:
@@ -557,6 +663,180 @@ def test_bi_router_metrics_token_does_not_expose_invite_test_stats(
 
     assert response.status_code == 403
     assert response.json()["detail"] == "Admin access required"
+
+
+def test_bi_feedback_triage_requires_admin_idempotency_and_dedupes_audit(
+    bi_service: BIService,
+) -> None:
+    """feedback_triage is a real audited write, not a local UI status flip."""
+    app = _build_app(bi_service)
+    app.dependency_overrides[bi_router_module.require_bi_access] = (
+        lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
+    )
+    app.dependency_overrides[bi_router_module.require_bi_admin] = (
+        lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
+    )
+    feedback_id = str(bi_service._feedback_store._rows[0]["id"])  # noqa: SLF001
+
+    with TestClient(app) as client:
+        missing_key = client.post(
+            f"/api/v1/bi/feedback/{feedback_id}/triage",
+            json={"status": "triaged", "note": "转 AI 质量排查"},
+        )
+        assert missing_key.status_code == 400
+        assert "X-Idempotency-Key" in missing_key.json()["detail"]
+
+        first = client.post(
+            f"/api/v1/bi/feedback/{feedback_id}/triage",
+            headers={"X-Idempotency-Key": "feedback-key-1"},
+            json={"status": "triaged", "note": "转 AI 质量排查"},
+        )
+        assert first.status_code == 200
+        first_body = first.json()
+        assert first_body["audit_id"] == "audit_feedback_1"
+        assert first_body["deduped"] is False
+        assert first_body["feedback"]["triage_status"] == "triaged"
+        assert first_body["feedback"]["triage_operator"] == "admin_test"
+        assert first_body["feedback"]["triage_note"] == "转 AI 质量排查"
+
+        retry = client.post(
+            f"/api/v1/bi/feedback/{feedback_id}/triage",
+            headers={"X-Idempotency-Key": "feedback-key-1"},
+            json={"status": "triaged", "note": "转 AI 质量排查"},
+        )
+        assert retry.status_code == 200
+        retry_body = retry.json()
+        assert retry_body["audit_id"] == first_body["audit_id"]
+        assert retry_body["deduped"] is True
+        assert len(bi_service._member_service.audit_log) == 1  # noqa: SLF001
+
+        refreshed = client.get("/api/v1/bi/feedback?days=30&limit=10")
+        assert refreshed.status_code == 200
+        refreshed_items = refreshed.json()["recent"]
+        updated_feedback = next(item for item in refreshed_items if item["id"] == feedback_id)
+        assert updated_feedback["triage_status"] == "triaged"
+
+
+def test_bi_feedback_triage_rejects_invalid_status(bi_service: BIService) -> None:
+    app = _build_app(bi_service)
+    app.dependency_overrides[bi_router_module.require_bi_access] = (
+        lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
+    )
+    app.dependency_overrides[bi_router_module.require_bi_admin] = (
+        lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
+    )
+    feedback_id = str(bi_service._feedback_store._rows[0]["id"])  # noqa: SLF001
+
+    with TestClient(app) as client:
+        response = client.post(
+            f"/api/v1/bi/feedback/{feedback_id}/triage",
+            headers={"X-Idempotency-Key": "feedback-key-2"},
+            json={"status": "resolved"},
+        )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "status must be one of open, triaged, ignored"
+
+
+def test_bi_member_ops_action_requires_idempotency_and_dedupes_audit(
+    bi_service: BIService,
+) -> None:
+    """ops_action_result writes from BI must use the enforced audited boundary."""
+    app = _build_app(bi_service)
+    app.dependency_overrides[bi_router_module.require_bi_access] = (
+        lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
+    )
+    app.dependency_overrides[bi_router_module.require_bi_admin] = (
+        lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
+    )
+
+    with TestClient(app) as client:
+        missing_key = client.post(
+            "/api/v1/bi/member/u1/ops-action",
+            json={"status": "done", "result": "已电话联系", "action_title": "标记已联系"},
+        )
+        assert missing_key.status_code == 400
+        assert "X-Idempotency-Key" in missing_key.json()["detail"]
+
+        first = client.post(
+            "/api/v1/bi/member/u1/ops-action",
+            headers={"X-Idempotency-Key": "member-action-key-1"},
+            json={"status": "done", "result": "已电话联系", "action_title": "标记已联系"},
+        )
+        assert first.status_code == 200
+        first_body = first.json()
+        assert first_body["audit_id"] == "audit_feedback_1"
+        assert first_body["deduped"] is False
+        assert first_body["note"]["channel"] == "ops_action"
+
+        retry = client.post(
+            "/api/v1/bi/member/u1/ops-action",
+            headers={"X-Idempotency-Key": "member-action-key-1"},
+            json={"status": "done", "result": "已电话联系", "action_title": "标记已联系"},
+        )
+        assert retry.status_code == 200
+        assert retry.json()["audit_id"] == first_body["audit_id"]
+        assert retry.json()["deduped"] is True
+        assert len(bi_service._member_service.audit_log) == 1  # noqa: SLF001
+
+
+def test_bi_export_request_requires_idempotency_and_dedupes_audit(
+    bi_service: BIService,
+) -> None:
+    """bi_export_request is a real audited write before any export job is visible."""
+    app = _build_app(bi_service)
+    app.dependency_overrides[bi_router_module.require_bi_access] = (
+        lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
+    )
+    app.dependency_overrides[bi_router_module.require_bi_admin] = (
+        lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
+    )
+
+    with TestClient(app) as client:
+        missing_key = client.post(
+            "/api/v1/bi/export-jobs",
+            json={
+                "dataset": "member_audit_log",
+                "format": "csv",
+                "filters": {"operator": "admin_test", "category": "feedback"},
+            },
+        )
+        assert missing_key.status_code == 400
+        assert "X-Idempotency-Key" in missing_key.json()["detail"]
+
+        first = client.post(
+            "/api/v1/bi/export-jobs",
+            headers={"X-Idempotency-Key": "export-key-1"},
+            json={
+                "dataset": "member_audit_log",
+                "format": "csv",
+                "filters": {"operator": "admin_test", "category": "feedback"},
+            },
+        )
+        assert first.status_code == 200
+        first_body = first.json()
+        assert first_body["audit_id"] == "audit_feedback_1"
+        assert first_body["deduped"] is False
+        assert first_body["export_job"]["id"] == "export_audit_feedback_1"
+        assert first_body["export_job"]["dataset"] == "member_audit_log"
+        assert first_body["export_job"]["scrubbed"] is True
+
+        retry = client.post(
+            "/api/v1/bi/export-jobs",
+            headers={"X-Idempotency-Key": "export-key-1"},
+            json={
+                "dataset": "member_audit_log",
+                "format": "csv",
+                "filters": {"operator": "admin_test", "category": "feedback"},
+            },
+        )
+        assert retry.status_code == 200
+        assert retry.json()["audit_id"] == first_body["audit_id"]
+        assert retry.json()["deduped"] is True
+        assert len(bi_service._member_service.audit_log) == 1  # noqa: SLF001
+        audit_entry = bi_service._member_service.audit_log[0]  # noqa: SLF001
+        assert audit_entry["action"] == "bi_export_request"
+        assert audit_entry["after"]["filters"] == {"operator": "admin_test", "category": "feedback"}
 
 
 def test_bi_router_rejects_invalid_metrics_token_in_production(
