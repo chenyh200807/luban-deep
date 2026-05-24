@@ -331,3 +331,171 @@ def build_question_lifecycle_skill_context_from_legacy_scene(
         source_status=SourceStatus(complete=not missing, missing_skills=tuple(missing)),
         loader_sources=loader_sources,
     )
+
+
+# ---------------------------------------------------------------------------
+# Scene derivation (plan §5.1 Single Decider implementation point)
+# ---------------------------------------------------------------------------
+#
+# This helper is the *single derivation point* for the question lifecycle scene
+# of a turn. It is currently invoked at the deep_question / question_followup /
+# TutorBot loop entry boundaries; per plan §5.1, future work (Task 0.7) should
+# escalate the call to a single earlier point in ChatOrchestrator so that
+# downstream readers only consume ``UnifiedContext.metadata["question_lifecycle_scene"]``
+# without re-detecting.
+#
+# Best-effort free-text intent matching is intentionally narrow (a small set of
+# anchor phrases) — anything broader belongs in the semantic router. Per plan
+# §6.5 v2-5, low-confidence inputs fall through to ``None`` (chat fallback)
+# rather than being silently upgraded to a default scene.
+
+_LEARNING_EVIDENCE_PHRASES: tuple[str, ...] = (
+    "我最近哪里错",
+    "为什么我总错",
+    "我的弱点",
+    "我最近练得",
+    "学习证据",
+    "错因回顾",
+    "复盘错题",
+    "为什么总错",
+)
+
+_STUDY_ASSISTANT_PHRASES: tuple[str, ...] = (
+    "今天学什么",
+    "下一步",
+    "接下来该练",
+    "给我安排",
+    "训练建议",
+    "下一步怎么做",
+    "接下来该学什么",
+)
+
+_LEARNING_SUPPORT_PHRASES: tuple[str, ...] = (
+    "没动力",
+    "焦虑",
+    "想放弃",
+    "学不动",
+    "好累",
+    "想哭",
+    "压力好大",
+    "撑不下去",
+    "我学不动",
+    "学不下去",
+)
+
+_MCQ_QUESTION_TYPES: frozenset[str] = frozenset(
+    {
+        "single_choice",
+        "multi_choice",
+        "multiple_choice",
+        "true_false",
+        "judgment",
+        "mcq",
+    }
+)
+
+
+def derive_question_lifecycle_scene(ctx: Any) -> Optional[str]:
+    """Plan §5.1 single-decider implementation.
+
+    Reads ``ctx.user_message`` and ``ctx.metadata`` (UnifiedContext-shaped or
+    any duck-typed object with those two attributes). Returns a canonical
+    scene name from :data:`SCENE_COMPOSITION` or ``None`` if the turn does
+    not match any lifecycle scene (fallback to chat).
+
+    Priority order (active-object submission wins over free-text intent per
+    plan §6.5 v2-1 mixed-turn rule):
+
+    1. Active-object + parseable submission → ``mcq_grading`` or ``case_grading``
+       (driven by the active question's type).
+    2. Explicit practice generation intent ("再出 N 题", etc.) → ``practice_generation``.
+    3. Active-object + follow-up intent (no submission) → ``question_review``.
+    4. Narrow free-text intent matching → ``learning_evidence_story`` /
+       ``study_assistant`` / ``learning_support``.
+    5. Otherwise → ``None``.
+    """
+    # Local imports to avoid circular imports at module load.
+    from deeptutor.services.question_followup import (  # noqa: WPS433
+        extract_submission_answer,
+        looks_like_question_followup,
+        normalize_question_followup_context,
+    )
+    from deeptutor.tutorbot.teaching_modes import (  # noqa: WPS433
+        looks_like_practice_generation_request,
+    )
+
+    user_message = (getattr(ctx, "user_message", None) or "").strip()
+    if not user_message:
+        return None
+
+    metadata = getattr(ctx, "metadata", None) or {}
+    question_context = normalize_question_followup_context(
+        metadata.get("question_followup_context") if isinstance(metadata, dict) else None
+    ) or {}
+
+    # Priority 1: active-object + submission → grading scene.
+    if question_context:
+        submission = extract_submission_answer(user_message, question_context)
+        if submission:
+            # normalize_question_followup_context flattens question_type to a
+            # top-level field; MCQ-ness is also evidenced by an options dict.
+            q_type = str(question_context.get("question_type") or "").strip().lower()
+            has_options = bool(question_context.get("options"))
+            if q_type in _MCQ_QUESTION_TYPES or has_options:
+                return "mcq_grading"
+            return "case_grading"
+
+    # Priority 2: explicit practice generation intent.
+    if looks_like_practice_generation_request(user_message):
+        return "practice_generation"
+
+    # Priority 3: active object + follow-up intent (no submission).
+    if question_context and looks_like_question_followup(user_message, question_context):
+        return "question_review"
+
+    # Priority 4: narrow free-text intent matching.
+    if any(phrase in user_message for phrase in _LEARNING_SUPPORT_PHRASES):
+        return "learning_support"
+    if any(phrase in user_message for phrase in _LEARNING_EVIDENCE_PHRASES):
+        return "learning_evidence_story"
+    if any(phrase in user_message for phrase in _STUDY_ASSISTANT_PHRASES):
+        return "study_assistant"
+
+    return None
+
+
+def attach_question_lifecycle_scene_to_context(ctx: Any) -> Optional[str]:
+    """Idempotently attach the derived lifecycle scene to ``ctx.metadata``.
+
+    Idempotency note (plan §5.1): if ``ctx.metadata["question_lifecycle_scene"]``
+    is already set (e.g. by ChatOrchestrator once Task 0.7 lands), this
+    function does not overwrite it. Downstream callers can call this helper
+    safely at any number of entry points without re-deriving — the
+    earliest-decided scene wins.
+
+    Also writes ``ctx.metadata["question_lifecycle_skill_names"]`` for trace
+    attribution. Per plan §6.6 these are diagnostic-only fields; they must
+    not be injected into student-visible prompts.
+
+    Returns the scene that ended up on the context (or ``None``).
+    """
+    metadata = getattr(ctx, "metadata", None)
+    if not isinstance(metadata, dict):
+        return None
+
+    existing = metadata.get("question_lifecycle_scene")
+    if "question_lifecycle_scene" in metadata:
+        # Honor whatever the upstream decider set, even if it is explicitly None.
+        scene = existing
+    else:
+        scene = derive_question_lifecycle_scene(ctx)
+        metadata["question_lifecycle_scene"] = scene
+
+    if scene is not None:
+        # Always refresh the skill_names projection to match the (possibly
+        # orchestrator-overridden) scene.
+        metadata["question_lifecycle_skill_names"] = list(SCENE_COMPOSITION.get(scene, ()))
+    else:
+        metadata.setdefault("question_lifecycle_skill_names", [])
+
+    return scene
