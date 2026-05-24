@@ -713,6 +713,37 @@ def test_startup_and_shutdown_manage_learner_state_runtime(
     assert module.app.state.readiness_checks["learner_state_runtime_ready"] is True
 
 
+def test_startup_persists_launch_readiness_to_runtime_observability_store(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    module = _reload_main(
+        monkeypatch,
+        env={
+            "DEEPTUTOR_ENV": "local",
+            "APP_ENV": None,
+            "ENV": None,
+            "ENVIRONMENT": None,
+            "DEEPTUTOR_CORS_ALLOW_ORIGINS": None,
+            "DEEPTUTOR_OBSERVABILITY_STORE_DIR": None,
+        },
+        tmp_path=tmp_path,
+    )
+    monkeypatch.setattr(module, "validate_tool_consistency", lambda: None)
+    _install_fake_startup_dependencies(monkeypatch)
+
+    with TestClient(module.app):
+        pass
+
+    observability_module = importlib.import_module("deeptutor.services.observability")
+    store = observability_module.get_control_plane_store()
+    assert store.base_dir == (tmp_path / "data" / "runtime" / "observability" / "control_plane").resolve()
+    latest = store.latest_payload("readiness_checks")
+    assert latest is not None
+    assert latest["check_id"] == "launch_readiness"
+    assert latest["status"] == "PASS"
+
+
 def test_http_request_id_is_echoed_and_bound_to_request_state(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

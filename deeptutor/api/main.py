@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -31,7 +32,7 @@ from deeptutor.services.config import get_env_store
 from deeptutor.services.branding import get_api_title, get_api_welcome_message
 from deeptutor.services.learner_state.runtime import create_default_learner_state_runtime
 from deeptutor.services.observability import get_release_lineage_snapshot, get_surface_event_store
-from deeptutor.services.observability import get_control_plane_store
+from deeptutor.services.observability import get_control_plane_store, reset_control_plane_store
 from deeptutor.services.observability.launch_readiness import build_launch_readiness_run
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.runtime_env import env_flag, is_production_environment, runtime_environment
@@ -178,6 +179,14 @@ def _set_readiness_check(app: FastAPI, name: str, ready: bool) -> None:
     checks[name] = ready
     app.state.readiness_checks = checks
     app.state.readiness_ready = bool(checks) and all(checks.values())
+
+
+def _configure_runtime_observability_store() -> None:
+    configured_dir = str(os.getenv("DEEPTUTOR_OBSERVABILITY_STORE_DIR") or "").strip()
+    if configured_dir:
+        return
+    runtime_store_dir = get_path_service().get_runtime_dir() / "observability" / "control_plane"
+    reset_control_plane_store(base_dir=runtime_store_dir)
 
 
 def _persist_launch_readiness_check(app: FastAPI) -> None:
@@ -351,6 +360,7 @@ async def lifespan(app: FastAPI):
                 "Critical startup dependencies failed: " + "; ".join(startup_failures)
             )
 
+    _configure_runtime_observability_store()
     _persist_launch_readiness_check(app)
 
     if _assessment_form_prewarm_enabled():
