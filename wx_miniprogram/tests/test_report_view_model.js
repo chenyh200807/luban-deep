@@ -389,6 +389,33 @@ assert.ok(
   promptLikeMistakePage.mistakeHistoryCards[0].questionTitle.indexOf("我想练习") < 0,
   "mistake history should not expose training prompt text as a question title",
 );
+var promptLikePrescription = wxVm.buildLearningReportViewModel({
+  next_training: [
+    {
+      title: "那出5道题",
+      reason: "training_mode=mixed_rev",
+      intent: {
+        intent_version: 2,
+        status: "active",
+        concept_label: "那出5道题",
+        error_label: "多选错选",
+        evidence_refs: ["ev_opaque"],
+        prescription_steps: [{ phase: "repair_root", question_count: 1 }],
+      },
+    },
+  ],
+});
+var promptLikePrescriptionPage = wxVm.toReportPageData(promptLikePrescription);
+assert.strictEqual(promptLikePrescriptionPage.prescriptionStatus, "degraded");
+assert.strictEqual(promptLikePrescriptionPage.prescriptionTitle, "先来一次起步测评");
+assert.ok(
+  promptLikePrescriptionPage.prescriptionTitle.indexOf("那出5道题") < 0,
+  "prescription title should not expose prompt-like text as a training topic",
+);
+assert.ok(
+  promptLikePrescriptionPage.prescriptionReason.indexOf("training_mode") < 0,
+  "prescription reason should not expose internal mode markers",
+);
 assert.strictEqual(batchCPage.engineEvidenceSummary, "融合 10 条历史学习证据");
 assert.strictEqual(batchCPage.engineEvidenceVisible, true);
 assert.strictEqual(batchCPage.engineEvidenceSources.length, 7);

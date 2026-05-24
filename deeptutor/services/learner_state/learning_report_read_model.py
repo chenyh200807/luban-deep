@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from datetime import datetime, timedelta, timezone
 import hashlib
 import os
+import re
 from typing import Any, Callable
 
 from deeptutor.services.experiments.cohort import current_stage, is_enabled
@@ -97,6 +98,16 @@ _ERROR_LABELS = {
     "M10": "用常识替代规范判断",
 }
 _LSI_FLAG = "LEARNING_STATE_INFERENCE_V2"
+_PROMPT_TOPIC_MARKERS = (
+    "我想练习",
+    "请严格围绕",
+    "当前学习锚点",
+    "出题",
+    "training_mode",
+    "mixed_rev",
+    "那出",
+)
+_GENERIC_TRAINING_TOPICS = {"综合练习", "薄弱点", "错因", "待归因", "专项题"}
 
 
 def build_learning_report_read_model(
@@ -206,6 +217,9 @@ def build_learning_report_read_model(
         next_training=next_training,
         bookmarked_event_ids=bookmarked_event_ids,
     )
+    training_prescription = _training_prescription_payload(
+        learner_facing=learner_facing,
+    )
     truth_sections = _truth_sections(events)
     daily_target = _safe_int(legacy_today.get("daily_target")) or 30
     overview = {
@@ -289,11 +303,13 @@ def build_learning_report_read_model(
             home_dashboard=home_dashboard,
             learner_facing=learner_facing,
             next_training=next_training,
+            training_prescription=training_prescription,
         ),
         "learning_brain": learning_brain,
         "learner_facing": learner_facing,
         "truth_sections": truth_sections,
         "next_training": next_training,
+        "training_prescription": training_prescription,
         # Batch C Task 7: scoring point map projection (read-only sibling).
         "scoring_point_map": scoring_point_map,
         "prescription_outcomes": prescription_outcomes,
@@ -963,13 +979,21 @@ def _study_plan_payload(
     home_dashboard: dict[str, Any],
     learner_facing: dict[str, Any],
     next_training: list[dict[str, Any]],
+    training_prescription: dict[str, Any],
 ) -> dict[str, Any]:
     plan = _safe_dict(home_dashboard.get("study_plan"))
+    prescription_plan = _study_plan_from_prescription(training_prescription)
     if any(
         str(plan.get(key) or "").strip()
         for key in ("focus_topic", "priority_task", "study_method", "time_budget", "coach_note")
     ):
-        return plan
+        if _is_student_safe_study_plan(plan):
+            return plan
+        if prescription_plan:
+            return prescription_plan
+
+    if prescription_plan:
+        return prescription_plan
 
     next_action = _safe_dict(learner_facing.get("next_action"))
     summary = _safe_dict(learner_facing.get("summary"))
@@ -1002,6 +1026,146 @@ def _study_plan_payload(
         "coach_note": coach_note or "完成后系统会继续更新你的学情判断",
         "source": "learning_report_next_training",
     }
+
+
+def _training_prescription_payload(*, learner_facing: dict[str, Any]) -> dict[str, Any]:
+    next_action = _safe_dict(learner_facing.get("next_action"))
+    intent = _safe_dict(next_action.get("intent"))
+    topic = _student_safe_topic(
+        intent.get("concept_label") or next_action.get("concept") or ""
+    )
+    error_label = _clean_learning_text(
+        intent.get("error_label") or next_action.get("error") or ""
+    ) or "错因"
+    evidence_refs = _safe_list(intent.get("evidence_refs") or intent.get("attempt_refs"))
+    evidence_count = len([item for item in evidence_refs if str(item or "").strip()])
+    status = str(intent.get("status") or "").strip() or "degraded"
+    if not topic or evidence_count <= 0:
+        status = "degraded"
+    if status == "degraded":
+        return {
+            "status": "degraded",
+            "source": "training_intent",
+            "title": "先补一条可诊断证据",
+            "subtitle": "完成 1 题后，系统会把题目、作答和错因合成可训练主题",
+            "display_topic": "",
+            "error_label": "",
+            "why_this": "当前证据还不足以生成可靠专项训练，先用一题建立学情基线。",
+            "evidence_count": evidence_count,
+            "evidence_refs": [],
+            "estimated_minutes": 3,
+            "question_plan": [
+                {
+                    "phase": "discovery_probe",
+                    "phase_label": "起步测评",
+                    "label": "先用 1 题确认薄弱点",
+                    "question_count": 1,
+                }
+            ],
+            "success_criteria": _safe_dict(intent.get("success_criteria")),
+            "training_intent_id": str(intent.get("training_intent_id") or "").strip(),
+        }
+
+    question_plan = _prescription_question_plan(
+        steps=_safe_list(intent.get("prescription_steps")),
+        topic=topic,
+        error_label=error_label,
+    )
+    total_questions = sum(_safe_int(item.get("question_count")) for item in question_plan)
+    total_questions = total_questions or _safe_int(intent.get("question_count")) or 1
+    return {
+        "status": "active",
+        "source": "training_intent",
+        "title": f"围绕“{topic}”完成闭环训练",
+        "priority_task": str(next_action.get("title") or "").strip()
+        or f"先做 {total_questions} 道“{topic}”辨析题",
+        "subtitle": f"先修“{error_label}”，再用新题验证",
+        "display_topic": topic,
+        "error_label": error_label,
+        "why_this": f"最近 {evidence_count} 次作答暴露“{error_label}”，先围绕“{topic}”修正判断抓手。",
+        "evidence_count": evidence_count,
+        "evidence_refs": evidence_refs[:5],
+        "estimated_minutes": max(3, total_questions * 2),
+        "question_plan": question_plan,
+        "success_criteria": _safe_dict(intent.get("success_criteria")),
+        "training_intent_id": str(intent.get("training_intent_id") or "").strip(),
+    }
+
+
+def _prescription_question_plan(
+    *,
+    steps: list[Any],
+    topic: str,
+    error_label: str,
+) -> list[dict[str, Any]]:
+    if not steps:
+        steps = [{"phase": "repair_root", "question_count": 1}]
+    labels = {
+        "repair_root": f"先辨清{topic}的条件边界",
+        "expression_drill": f"说清{topic}的判断抓手",
+        "transfer_case": f"换一个场景判断{topic}",
+        "verification_probe": f"用 1 题验证不再{error_label}",
+    }
+    phase_labels = {
+        "repair_root": "补根因",
+        "expression_drill": "表达训练",
+        "transfer_case": "迁移练习",
+        "verification_probe": "验证题",
+        "discovery_probe": "起步测评",
+    }
+    plan = []
+    for index, raw in enumerate(steps):
+        step = _safe_dict(raw)
+        phase = str(step.get("phase") or f"phase-{index}").strip()
+        count = _safe_int(step.get("question_count")) or 1
+        plan.append(
+            {
+                "phase": phase,
+                "phase_label": phase_labels.get(phase, "训练"),
+                "label": labels.get(phase, f"围绕{topic}完成训练"),
+                "question_count": count,
+            }
+        )
+    return plan
+
+
+def _study_plan_from_prescription(prescription: dict[str, Any]) -> dict[str, Any]:
+    item = _safe_dict(prescription)
+    if not item:
+        return {}
+    status = str(item.get("status") or "").strip()
+    topic = _student_safe_topic(item.get("display_topic"))
+    estimated = _safe_int(item.get("estimated_minutes"))
+    if status == "active" and topic:
+        return {
+            "focus_topic": topic,
+            "priority_task": str(item.get("priority_task") or item.get("title") or "").strip(),
+            "study_method": "先辨清条件边界，再说出判断抓手，换场景练一次，最后用验证题闭环",
+            "time_budget": f"约 {estimated} 分钟" if estimated > 0 else "约 8 分钟",
+            "coach_note": str(item.get("why_this") or item.get("subtitle") or "").strip(),
+            "source": "training_prescription",
+        }
+    if status == "degraded":
+        return {
+            "focus_topic": "今天先完成一轮诊断练习",
+            "priority_task": "先做 1 题摸底，补齐可诊断证据",
+            "study_method": "先完成一题真实作答，系统再按题目、选项和错因生成专项训练",
+            "time_budget": f"约 {estimated} 分钟" if estimated > 0 else "约 3 分钟",
+            "coach_note": str(item.get("why_this") or "先用真实作答建立学情基线").strip(),
+            "source": "training_prescription",
+        }
+    return {}
+
+
+def _is_student_safe_study_plan(plan: dict[str, Any]) -> bool:
+    texts = [
+        str(plan.get(key) or "").strip()
+        for key in ("focus_topic", "priority_task", "study_method", "coach_note")
+    ]
+    if any(_looks_like_prompt_topic(text) for text in texts if text):
+        return False
+    focus = str(plan.get("focus_topic") or plan.get("focusTopic") or "").strip()
+    return not focus or bool(_student_safe_topic(focus))
 
 
 def _learner_facing_payload(
@@ -1180,10 +1344,17 @@ def _diagnosis_cards(*, events: list[Any], weak_points: list[dict[str, Any]]) ->
             continue
         payload = _safe_dict(getattr(event, "payload_json", {}))
         created_at = str(getattr(event, "created_at", "") or "")
+        question_topic = _topic_from_question_payload(payload=payload, event=event)
+        evidence_ref = _evidence_ref(event=event, payload=payload)
         for error in _safe_list(payload.get("error_events") or payload.get("errors")):
             if not isinstance(error, dict):
                 continue
-            concept = _concept_label(str(error.get("concept_tag") or _event_concept(payload) or ""))
+            concept = (
+                _student_safe_topic(
+                    _concept_label(str(error.get("concept_tag") or _event_concept(payload) or ""))
+                )
+                or question_topic
+            )
             error_code = str(error.get("error_code") or "").strip().upper()
             error_label = _error_label(error_code)
             if not concept and not error_label:
@@ -1198,15 +1369,21 @@ def _diagnosis_cards(*, events: list[Any], weak_points: list[dict[str, Any]]) ->
                     "count": 0,
                     "latest_at": "",
                     "detail": "",
+                    "evidence_refs": [],
+                    "topic_candidates": [],
                 },
             )
             item["count"] += 1
+            if evidence_ref and evidence_ref not in item["evidence_refs"]:
+                item["evidence_refs"].append(evidence_ref)
+            if question_topic and question_topic not in item["topic_candidates"]:
+                item["topic_candidates"].append(question_topic)
             if created_at > str(item.get("latest_at") or ""):
                 item["latest_at"] = created_at
                 item["detail"] = _clean_learning_text(error.get("diagnosis") or "")
 
     for weak in weak_points:
-        concept = _concept_label(str(weak.get("concept_id") or ""))
+        concept = _student_safe_topic(_concept_label(str(weak.get("concept_id") or "")))
         error = _error_label(weak.get("error_code"))
         if not concept and not error:
             continue
@@ -1220,16 +1397,24 @@ def _diagnosis_cards(*, events: list[Any], weak_points: list[dict[str, Any]]) ->
                 "count": 0,
                 "latest_at": "",
                 "detail": _clean_learning_text(weak.get("claim") or ""),
+                "evidence_refs": [],
+                "topic_candidates": [],
             },
         )
         item["count"] = max(_safe_int(item.get("count")), len(_safe_list(weak.get("supporting_event_ids"))))
+        for raw_ref in _safe_list(weak.get("supporting_event_ids")):
+            ref = _opaque_ref(raw_ref)
+            if ref and ref not in item["evidence_refs"]:
+                item["evidence_refs"].append(ref)
         if not item.get("detail"):
             item["detail"] = _clean_learning_text(weak.get("display_title") or weak.get("claim") or "")
 
     cards = []
     for item in grouped.values():
         count = _safe_int(item.get("count"))
-        concept = str(item.get("concept") or "综合练习")
+        concept = _student_safe_topic(item.get("concept")) or str(
+            (_safe_list(item.get("topic_candidates")) or ["综合练习"])[0]
+        )
         error = str(item.get("error") or "待归因")
         level_label = "需要重点补" if count >= 2 else "刚发现"
         cards.append({
@@ -1242,6 +1427,8 @@ def _diagnosis_cards(*, events: list[Any], weak_points: list[dict[str, Any]]) ->
             "detail": item.get("detail") or f"这类题先按“{error}”处理，后续练习会继续校准。",
             "action": f"先做 3 道{concept}相关辨析题",
             "count": max(count, 1),
+            "evidence_refs": _safe_list(item.get("evidence_refs"))[:5],
+            "topic_candidates": _safe_list(item.get("topic_candidates"))[:3],
         })
     return sorted(cards, key=lambda item: (_safe_int(item.get("count")), str(item.get("key") or "")), reverse=True)
 
@@ -1284,16 +1471,40 @@ def _training_loop_cards(*, attempts: list[dict[str, Any]], diagnoses: list[dict
 def _next_action_card(*, diagnoses: list[dict[str, Any]], next_training: list[dict[str, Any]]) -> dict[str, Any]:
     if diagnoses:
         top = diagnoses[0]
-        concept = str(top.get("concept") or "薄弱点")
+        candidates = [
+            top.get("concept"),
+            *(_safe_list(top.get("topic_candidates")) or []),
+        ]
+        concept = next((_student_safe_topic(item) for item in candidates if _student_safe_topic(item)), "")
         error = str(top.get("error") or "错因")
+        evidence_refs = _safe_list(top.get("evidence_refs"))
+        if not concept:
+            intent = build_learning_training_intent(
+                user_id="",
+                error_label=error,
+                question_count=3,
+                training_mode="mixed_review",
+                reason=str(top.get("meta") or ""),
+            )
+            return {
+                "title": "先补一条可诊断证据",
+                "subtitle": "完成 1 题后，系统会生成可靠训练主题",
+                "concept": "",
+                "error": error,
+                "intent": intent,
+                "cta": "去练习",
+                "estimated_minutes": 3,
+            }
         return {
             "title": f"先做 3 道“{concept}”专项题",
             "subtitle": f"目标：把“{error}”这一类错误拉回主线",
             "concept": concept,
+            "error": error,
             "intent": build_learning_training_intent(
                 user_id="",
                 concept_label=concept,
                 error_label=error,
+                evidence_refs=evidence_refs,
                 question_count=3,
                 training_mode="mixed_review",
                 reason=str(top.get("meta") or ""),
@@ -1654,6 +1865,79 @@ def _pick_focus_topic(*, weak_names: list[str], home_dashboard: dict[str, Any]) 
 
 def _concept_label(concept_id: str) -> str:
     return display_taxonomy_label(concept_id, fallback=concept_id or "")
+
+
+def _student_safe_topic(value: Any) -> str:
+    text = _clean_learning_text(value)
+    if not text or _looks_like_prompt_topic(text):
+        return ""
+    text = text.strip("「」\"'“”")
+    text = text.replace("相关的题目", "").replace("相关题目", "").strip()
+    text = re.sub(r"\s+", "", text)
+    if not text or _looks_like_prompt_topic(text):
+        return ""
+    if text in _GENERIC_TRAINING_TOPICS:
+        return ""
+    if len(text) > 24:
+        return ""
+    return text
+
+
+def _looks_like_prompt_topic(value: Any) -> bool:
+    text = str(value or "").strip()
+    if not text:
+        return False
+    lowered = text.lower()
+    if any(marker.lower() in lowered for marker in _PROMPT_TOPIC_MARKERS):
+        return True
+    if re.search(r"(先做|做|出)\s*\d+\s*道?题", text):
+        return True
+    if "题目" in text and ("练习" in text or "相关" in text):
+        return True
+    return False
+
+
+def _topic_from_question_payload(*, payload: dict[str, Any], event: Any) -> str:
+    text = _question_text(payload=payload, event=event, index=0)
+    if not text or _looks_like_prompt_topic(text):
+        return ""
+    if "防火门" in text:
+        return "防火门构造要求"
+    if "投标保证金" in text:
+        return "投标保证金法定上限"
+    if "验槽" in text:
+        return "验槽方法辨析"
+    candidate = text
+    for sep in ("，", ",", "？", "?", "。"):
+        if sep in candidate:
+            candidate = candidate.split(sep)[0]
+            break
+    candidate = candidate.removeprefix("关于").strip()
+    candidate = candidate.replace("的说法", "").replace("的做法", "").strip()
+    candidate = candidate.replace("下列哪项", "").replace("正确的是", "").strip()
+    candidate = candidate.replace("的构造要求", "构造要求")
+    return _student_safe_topic(candidate)
+
+
+def _evidence_ref(*, event: Any, payload: dict[str, Any]) -> str:
+    raw = "|".join(
+        str(value or "").strip()
+        for value in [
+            getattr(event, "event_id", ""),
+            getattr(event, "source_id", ""),
+            payload.get("question_id"),
+            getattr(event, "created_at", ""),
+        ]
+    )
+    return _opaque_ref(raw)
+
+
+def _opaque_ref(value: Any) -> str:
+    raw = str(value or "").strip()
+    if not raw:
+        return ""
+    digest = hashlib.sha1(raw.encode("utf-8")).hexdigest()[:12]
+    return f"evidence-{digest}"
 
 
 def _is_correct(payload: dict[str, Any]) -> bool:

@@ -100,7 +100,7 @@
         <text class="learning-state-section-desc" wx:if="{{prescriptionSubtitle || prescriptionReason}}">{{prescriptionSubtitle || prescriptionReason}}</text>
         <view class="learning-state-steps" wx:if="{{prescriptionSteps.length}}">
           <view class="learning-state-step" wx:for="{{prescriptionSteps}}" wx:key="key">
-            <text class="learning-state-step-text">{{item.phaseLabel || item.phase}}</text>
+            <text class="learning-state-step-text">{{item.label || item.phaseLabel || item.phase}}</text>
             <text class="learning-state-step-text">{{item.questionCount}}题</text>
           </view>
         </view>

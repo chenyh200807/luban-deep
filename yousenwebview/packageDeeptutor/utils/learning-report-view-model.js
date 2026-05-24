@@ -336,6 +336,31 @@ function compactLearningTopic(value) {
   return text || "";
 }
 
+function looksLikePromptTopic(value) {
+  var text = String(value || "").trim();
+  if (!text) return false;
+  return (
+    text.indexOf("我想练习") >= 0 ||
+    text.indexOf("请严格围绕") >= 0 ||
+    text.indexOf("当前学习锚点") >= 0 ||
+    text.indexOf("training_mode") >= 0 ||
+    text.indexOf("mixed_rev") >= 0 ||
+    text.indexOf("那出") >= 0 ||
+    /(先做|做|出)\s*\d+\s*道?题/.test(text) ||
+    (text.indexOf("题目") >= 0 &&
+      (text.indexOf("练习") >= 0 || text.indexOf("相关") >= 0))
+  );
+}
+
+function compactPrescriptionTopic(value) {
+  var raw = cleanLearningText(value).trim();
+  if (!raw || looksLikePromptTopic(raw)) return "";
+  var topic = compactLearningTopic(raw).replace(/\s+/g, "");
+  if (!topic || looksLikePromptTopic(topic)) return "";
+  if (topic.length > 24) return "";
+  return topic;
+}
+
 function mistakeQuestionTitle(value) {
   var text = cleanLearningText(value).trim();
   if (text.indexOf("我想练习") >= 0) {
@@ -704,7 +729,11 @@ function buildLearningReportViewModel(report) {
   // Batch C Task 8: three-layer learning state + scoring point map + today's prescription.
   var learningState = normalizeLearningStateBatchC(body.learning_state);
   var scoringPointMap = normalizeScoringPointMapBatchC(body.scoring_point_map);
-  var prescription = normalizePrescriptionBatchC(nextTraining, learningState);
+  var prescription = normalizePrescriptionBatchC(
+    body.training_prescription,
+    nextTraining,
+    learningState,
+  );
   var evidenceEngine = normalizeEvidenceEngineBatchC(
     body,
     learningState,
@@ -874,7 +903,69 @@ function scoringPointMapEmptyLabel(emptyState) {
   return "";
 }
 
-function normalizePrescriptionBatchC(nextTraining, learningState) {
+function normalizePrescriptionBatchC(source, nextTraining, learningState) {
+  var direct = asObject(source);
+  var directTopic = compactPrescriptionTopic(
+    direct.display_topic || direct.concept_label || "",
+  );
+  if (direct.source === "training_intent" || direct.status || direct.title) {
+    var directStatus = String(direct.status || "degraded");
+    if (!directTopic || directStatus === "degraded") directStatus = "degraded";
+    var directMeta = [
+      direct.error_label,
+      evidenceMetaLabel(direct.evidence_count || asList(direct.evidence_refs).length),
+    ]
+      .filter(Boolean)
+      .map(function (label, index) {
+        return { key: "meta-" + index, label: String(label || "") };
+      });
+    return {
+      status: directStatus,
+      title: String(direct.title || "今日处方"),
+      titleLabel:
+        directStatus === "degraded"
+          ? "先来一次起步测评"
+          : prescriptionTitleLabel(directTopic, directStatus),
+      subtitle:
+        directStatus === "degraded"
+          ? String(direct.subtitle || "")
+          : String(direct.subtitle || direct.error_label || ""),
+      reason:
+        directStatus === "degraded"
+          ? String(direct.why_this || direct.subtitle || "")
+          : String(direct.why_this || ""),
+      conceptId: String(direct.concept_id || ""),
+      conceptLabel: directTopic,
+      abilityDimension: String(direct.ability_dimension || ""),
+      abilityDimensionLabel: abilityDimensionLabel(direct.ability_dimension),
+      behaviorState: String(direct.behavior_state || ""),
+      behaviorStateLabel: stateLabel(direct.behavior_state),
+      meta: directMeta,
+      evidenceRefs:
+        directStatus === "degraded"
+          ? []
+          : asList(direct.evidence_refs).map(function (ref) {
+              return String(ref || "");
+            }),
+      steps: asList(direct.question_plan || direct.prescription_steps).map(function (
+        step,
+        index,
+      ) {
+        var src = asObject(step);
+        return {
+          key: String(src.phase || "phase-" + index),
+          phase: String(src.phase || ""),
+          phaseLabel: String(src.phase_label || "") || prescriptionPhaseLabel(src.phase),
+          label: String(src.label || "") || prescriptionPhaseLabel(src.phase),
+          questionCount: asNumber(src.question_count, 0),
+        };
+      }),
+      successCriteria: asObject(direct.success_criteria),
+      intent: asObject(direct.intent),
+      ctaLabel: directStatus === "degraded" ? "先来一次起步测评" : "开始训练",
+    };
+  }
+
   var v2 = null;
   for (var i = 0; i < nextTraining.length; i++) {
     var candidate = asObject(nextTraining[i].intent);
@@ -884,7 +975,9 @@ function normalizePrescriptionBatchC(nextTraining, learningState) {
     }
   }
   if (v2) {
-    var conceptLabel = compactLearningTopic(v2.concept_label);
+    var conceptLabel = compactPrescriptionTopic(v2.concept_label);
+    var status = String(v2.status || "active");
+    if (!conceptLabel || status === "degraded") status = "degraded";
     var behaviorMeta =
       String(v2.behavior_state || "").trim() === "recurring"
         ? "同类错误复发"
@@ -897,11 +990,14 @@ function normalizePrescriptionBatchC(nextTraining, learningState) {
       return { key: "meta-" + index, label: label };
     });
     return {
-      status: String(v2.status || "active"),
+      status: status,
       title: String(v2.concept_label || "今日处方"),
-      titleLabel: prescriptionTitleLabel(conceptLabel, v2.status),
-      subtitle: String(v2.error_label || v2.reason || ""),
-      reason: String(v2.reason || ""),
+      titleLabel:
+        status === "degraded"
+          ? "先来一次起步测评"
+          : prescriptionTitleLabel(conceptLabel, status),
+      subtitle: status === "degraded" ? "" : String(v2.error_label || v2.reason || ""),
+      reason: status === "degraded" ? "" : String(v2.reason || ""),
       conceptId: String(v2.concept_id || ""),
       conceptLabel: conceptLabel,
       abilityDimension: String(v2.ability_dimension || ""),
@@ -909,21 +1005,25 @@ function normalizePrescriptionBatchC(nextTraining, learningState) {
       behaviorState: String(v2.behavior_state || ""),
       behaviorStateLabel: stateLabel(v2.behavior_state),
       meta: meta,
-      evidenceRefs: asList(v2.evidence_refs).map(function (ref) {
-        return String(ref || "");
-      }),
+      evidenceRefs:
+        status === "degraded"
+          ? []
+          : asList(v2.evidence_refs).map(function (ref) {
+              return String(ref || "");
+            }),
       steps: asList(v2.prescription_steps).map(function (step, index) {
         var src = asObject(step);
         return {
           key: String(src.phase || "phase-" + index),
           phase: String(src.phase || ""),
           phaseLabel: prescriptionPhaseLabel(src.phase),
+          label: prescriptionPhaseLabel(src.phase),
           questionCount: asNumber(src.question_count, 0),
         };
       }),
       successCriteria: asObject(v2.success_criteria),
       intent: v2,
-      ctaLabel: v2.status === "degraded" ? "先来一次起步测评" : "开始训练",
+      ctaLabel: status === "degraded" ? "先来一次起步测评" : "开始训练",
     };
   }
   // Degraded fallback when no v2 intent is available.
@@ -1145,6 +1245,7 @@ function toReportPageData(model) {
     prescriptionSubtitle: String(asObject(vm.prescription).subtitle || ""),
     prescriptionReason: String(asObject(vm.prescription).reason || ""),
     prescriptionStatus: String(asObject(vm.prescription).status || ""),
+    prescriptionTopic: String(asObject(vm.prescription).conceptLabel || ""),
     prescriptionMeta: asList(asObject(vm.prescription).meta),
     prescriptionSteps: asList(asObject(vm.prescription).steps),
     prescriptionCtaLabel: String(asObject(vm.prescription).ctaLabel || ""),

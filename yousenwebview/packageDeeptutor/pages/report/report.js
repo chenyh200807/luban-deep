@@ -723,6 +723,14 @@ function _normalizeBattlePlan(raw) {
   if (!(focusTopic || priorityTask || studyMethod || timeBudget || coachNote)) {
     return null;
   }
+  if (
+    _looksLikeUnsafeTrainingPlanText(focusTopic) ||
+    _looksLikeUnsafeTrainingPlanText(priorityTask) ||
+    _looksLikeUnsafeTrainingPlanText(studyMethod) ||
+    _looksLikeUnsafeTrainingPlanText(coachNote)
+  ) {
+    return null;
+  }
 
   return {
     focusTopic: focusTopic || "今天先稳住基础节奏",
@@ -731,6 +739,38 @@ function _normalizeBattlePlan(raw) {
     timeBudget: timeBudget,
     coachNote: coachNote,
   };
+}
+
+function _looksLikeUnsafeTrainingPlanText(value) {
+  var text = String(value || "").trim();
+  if (!text) return false;
+  return (
+    text.indexOf("我想练习") >= 0 ||
+    text.indexOf("请严格围绕") >= 0 ||
+    text.indexOf("当前学习锚点") >= 0 ||
+    text.indexOf("training_mode") >= 0 ||
+    text.indexOf("mixed_rev") >= 0 ||
+    text.indexOf("那出") >= 0
+  );
+}
+
+function _buildBattlePlanFromPrescription(data) {
+  var source = data || {};
+  var title = String(source.prescriptionTitle || "").trim();
+  var topic = String(source.prescriptionTopic || "").trim();
+  var reason = String(source.prescriptionReason || source.prescriptionSubtitle || "").trim();
+  var status = String(source.prescriptionStatus || "").trim();
+  if (!(title || topic || reason)) return null;
+  return _normalizeBattlePlan({
+    focus_topic: topic || title,
+    priority_task: title || "先来一次起步测评",
+    study_method:
+      status === "degraded"
+        ? "先完成一题真实作答，系统再生成可靠专项训练"
+        : "先按处方顺序完成训练，再用验证题确认是否改掉",
+    time_budget: status === "degraded" ? "约 3 分钟" : "约 8 分钟",
+    coach_note: reason || "这条训练安排来自学情处方",
+  });
 }
 
 function _buildOverviewDonutStyle(score) {
@@ -1703,11 +1743,16 @@ Page({
     var progressFeedback = _normalizeProgressFeedback(
       this.data.homeProgressFeedback,
     );
+    var homeBattlePlan = _normalizeBattlePlan(this.data.homeStudyPlan);
+    var prescriptionBattlePlan = _buildBattlePlanFromPrescription(this.data);
+    var shouldUsePrescriptionPlan =
+      prescriptionBattlePlan &&
+      (!homeBattlePlan || String(this.data.prescriptionStatus || "") === "active");
 
     this.setData({
       diagnosticScore: diagnosticScore,
       battlePlan:
-        _normalizeBattlePlan(this.data.homeStudyPlan) || {
+        (shouldUsePrescriptionPlan ? prescriptionBattlePlan : homeBattlePlan) || {
           focusTopic: "",
           priorityTask: "",
           studyMethod: "",
