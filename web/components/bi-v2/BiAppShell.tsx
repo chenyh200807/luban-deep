@@ -48,7 +48,10 @@ export function BiAppShell({
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div
+      data-bi-app-shell
+      className="h-[100dvh] min-h-0 overflow-y-auto overflow-x-hidden bg-slate-50 text-slate-900 [scrollbar-gutter:stable] [-webkit-overflow-scrolling:touch]"
+    >
       {topbar(api)}
       <div className="flex">
         <aside
