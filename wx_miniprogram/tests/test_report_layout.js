@@ -43,6 +43,10 @@ function assertIncludes(source, needle, message) {
   assert(source.indexOf(needle) >= 0, message);
 }
 
+function assertNotIncludes(source, needle, message) {
+  assert(source.indexOf(needle) < 0, message);
+}
+
 function assertBefore(source, first, second, message) {
   var a = source.indexOf(first);
   var b = source.indexOf(second);
@@ -93,7 +97,8 @@ assert(
   "attempt detail should not use a modal because long conversations and explanations get clipped",
 );
 assertIncludes(attemptDetailSource, "api.getLearningAttemptDetail", "attempt detail page should call the mobile attempt-detail authority");
-assertIncludes(attemptDetailWxml, "当时对话", "attempt detail page should display the previous student-system conversation");
+assertNotIncludes(attemptDetailWxml, "当时对话", "attempt detail page should not duplicate the previous conversation transcript below the structured review");
+assertNotIncludes(attemptDetailWxml, "detail.turns", "attempt detail page should not render raw conversation turns after the structured explanation");
 assertIncludes(attemptDetailWxml, "bindtap=\"goBack\"", "attempt detail page should provide an explicit back button");
 assertIncludes(reportWxml, "{{item.timeLabel}}", "attempt card should show time");
 assertIncludes(reportWxml, "{{item.title}}", "attempt card should show question title");
