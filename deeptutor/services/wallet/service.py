@@ -237,6 +237,29 @@ class SupabaseWalletService:
             )
         return entries
 
+    def list_recent_wallet_ledger(
+        self,
+        *,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list[WalletLedgerEntry]:
+        rows = self._select_rows(
+            table="wallet_ledger",
+            params={
+                "select": (
+                    "id,user_id,event_type,delta_micros,balance_after_micros,"
+                    "frozen_after_micros,reference_type,reference_id,idempotency_key,metadata,created_at"
+                ),
+                "order": "created_at.desc,id.desc",
+                "limit": max(1, int(limit)),
+                "offset": max(0, int(offset)),
+            },
+        )
+        entries: list[WalletLedgerEntry] = []
+        for row in rows:
+            entries.append(self._build_ledger_entry(row))
+        return entries
+
     def find_wallet_ledger_by_idempotency_key(
         self,
         user_id: str,

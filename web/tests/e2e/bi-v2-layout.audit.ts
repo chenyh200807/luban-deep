@@ -166,6 +166,104 @@ async function mockBiV2ReadApis(page: import("@playwright/test").Page) {
       }),
     }),
   );
+  await page.route("**/api/v1/bi/commerce**", (route) =>
+    route.fulfill({
+      status: 200,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        status: "ready",
+        summary: {
+          member_count: 1,
+          package_count: 1,
+          recharge_count: 1,
+          ledger_count: 2,
+          anomaly_count: 1,
+          credit_points: 1200,
+          debit_points: 20,
+        },
+        authority: {
+          packages: "member_console.packages",
+          recharge_records: "wallet_ledger",
+          wallet_ledger: "wallet_ledger",
+          orders: "pending_payment_order_authority",
+          anomalies: "bi_service.commerce_rules",
+        },
+        packages: [
+          {
+            id: "advance",
+            name: "精学版",
+            tier: "vip",
+            points: 4400,
+            price_cny: 99,
+            features: ["每周稳定学习额度", "适合错题讲解"],
+            status: "active",
+            authority: "member_console.packages",
+            trust: "C",
+          },
+        ],
+        recharge_records: [
+          {
+            id: "ord_real_1",
+            user_id: "user_1",
+            points: 1200,
+            amount_cny: 99,
+            channel: "wechat",
+            status: "confirmed",
+            created_at: "2026-05-23T10:00:00+08:00",
+            ledger_event_id: "ledger_real_1",
+            idempotency_key: "order:ord_real_1",
+            authority: "wallet_ledger",
+            trust: "A",
+          },
+        ],
+        ledger: [
+          {
+            id: "ledger_real_1",
+            user_id: "user_1",
+            kind: "credit",
+            event_type: "grant",
+            amount: 1200,
+            balance_after: 1320,
+            reference_type: "order",
+            reference_id: "ord_real_1",
+            idempotency_key: "order:ord_real_1",
+            effective_at: "2026-05-23T10:00:00+08:00",
+            metadata: { channel: "wechat", amount_cny: 99 },
+            authority: "wallet_ledger",
+            trust: "A",
+          },
+          {
+            id: "ledger_real_2",
+            user_id: "user_1",
+            kind: "debit",
+            event_type: "usage",
+            amount: -20,
+            balance_after: 1300,
+            reference_type: "usage",
+            reference_id: "session_1",
+            idempotency_key: "usage:session_1",
+            effective_at: "2026-05-23T11:00:00+08:00",
+            metadata: { capability: "deep_solve" },
+            authority: "wallet_ledger",
+            trust: "A",
+          },
+        ],
+        anomalies: [
+          {
+            rule_id: "WALLET_CREDIT_WITHOUT_ORDER_AUTHORITY",
+            severity: "medium",
+            detected_at: "实时",
+            affected: 1,
+            owner: "finance",
+            status: "triaged",
+            trust: "B",
+            description: "存在入账记录但无法关联订单 authority。",
+          },
+        ],
+        warnings: [],
+      }),
+    }),
+  );
   await page.route("**/api/v1/member/audit-log**", (route) =>
     route.fulfill({
       status: 200,
@@ -357,6 +455,18 @@ test("BI v2 read-only details open for overview, feedback, and ops", async ({ pa
   await expect(page.getByRole("dialog", { name: "行动项详情 · AI 反馈 negative 24h 增加" })).toBeVisible();
   await expect(page.getByText("建议处理区")).toBeVisible();
   await page.getByRole("button", { name: "关闭抽屉" }).click();
+
+  await page.getByRole("button", { name: "商品账务：套餐、充值订单、钱包流水、账务异常队列。" }).click();
+  await expect(page.getByRole("heading", { name: "商品账务" })).toBeVisible();
+  await expect(page.getByText("BI_COMMERCE_V2_ENABLED 已开启")).toBeVisible();
+  await expect(page.getByText("充值记录 (1)")).toBeVisible();
+  await page.getByRole("button", { name: "查看充值记录 ord_real_1 详情" }).click();
+  await expect(page.getByText("authority：wallet_ledger · trust A")).toBeVisible();
+  await page.getByRole("button", { name: "钱包流水 (2)" }).click();
+  await page.getByRole("button", { name: "查看 ledger_real_1 元数据" }).click();
+  await expect(page.getByText("reference：order /")).toBeVisible();
+  await page.getByRole("button", { name: "套餐权益 (1)" }).click();
+  await expect(page.getByText("精学版")).toBeVisible();
 
   await page.getByRole("button", { name: "反馈中心：AI 消息反馈 / 内测 / 备注聚合，open / triaged / ignored。" }).click();
   await expect(page.getByText("storage=ok")).toBeVisible();

@@ -5,6 +5,7 @@ from datetime import datetime
 import importlib
 from pathlib import Path
 import sqlite3
+from types import SimpleNamespace
 
 import pytest
 
@@ -69,6 +70,57 @@ class _FakeMemberService:
             },
         ]
         return {"items": items, "page": page, "page_size": page_size, "pages": 1, "total": len(items)}
+
+    def get_wallet(self, user_id: str) -> dict[str, object]:
+        return {
+            "balance": 500 if user_id == "u1" else 40,
+            "tier": "vip" if user_id == "u1" else "trial",
+            "packages": [
+                {
+                    "id": "advance",
+                    "label": "精学版",
+                    "points": 4400,
+                    "price": "99",
+                    "per": "每周稳定学习额度",
+                    "desc": "适合日常学习、错题讲解、章节复盘",
+                }
+            ],
+        }
+
+
+class _FakeWalletService:
+    is_configured = True
+
+    def list_recent_wallet_ledger(self, *, limit: int = 100, offset: int = 0):
+        rows = [
+            SimpleNamespace(
+                id="ledger_real_1",
+                user_id="u1",
+                event_type="grant",
+                delta_micros=1_200_000_000,
+                balance_after_micros=1_700_000_000,
+                frozen_after_micros=0,
+                reference_type="order",
+                reference_id="ord_real_1",
+                idempotency_key="order:ord_real_1",
+                metadata={"channel": "wechat", "amount_cny": 99},
+                created_at="2026-04-15T10:00:00+08:00",
+            ),
+            SimpleNamespace(
+                id="ledger_real_2",
+                user_id="u1",
+                event_type="usage",
+                delta_micros=-20_000_000,
+                balance_after_micros=1_680_000_000,
+                frozen_after_micros=0,
+                reference_type="usage",
+                reference_id="session_1",
+                idempotency_key="usage:session_1",
+                metadata={"capability": "deep_solve"},
+                created_at="2026-04-15T11:00:00+08:00",
+            ),
+        ]
+        return rows[offset : offset + limit]
 
 
 def _build_app(service: BIService) -> FastAPI:
@@ -235,6 +287,7 @@ def bi_service(tmp_path: Path, monkeypatch) -> BIService:
         bailian_telemetry_client=_FakeBailianTelemetryClient(),
         bailian_billing_client=_FakeBailianBillingClient(),
         usage_ledger=_FakeUsageLedger(),
+        wallet_service=_FakeWalletService(),
     )
     monkeypatch.setattr("deeptutor.api.routers.bi.get_bi_service", lambda: service)
 
@@ -351,6 +404,7 @@ def test_bi_router_requires_admin_for_sensitive_endpoints(bi_service: BIService)
         "/api/v1/bi/overview?days=30",
         "/api/v1/bi/learner/u1?days=30",
         "/api/v1/bi/cost/reconciliation?days=30&workspace_id=ws-1&apikey_id=42&billing_cycle=2026-04",
+        "/api/v1/bi/commerce?limit=10",
         "/api/v1/bi/feedback?days=30&limit=10",
         "/api/v1/bi/invite-test/applications?days=365&limit=10",
         "/api/v1/bi/invite-test/stats?days=365",
@@ -397,6 +451,19 @@ def test_bi_router_public_flag_does_not_expose_invite_test_applications(
 
     with TestClient(_build_app(bi_service)) as client:
         response = client.get("/api/v1/bi/invite-test/applications?days=365&limit=10")
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Admin access required"
+
+
+def test_bi_router_public_flag_does_not_expose_commerce(
+    bi_service: BIService,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BI_PUBLIC_ENABLED", "1")
+
+    with TestClient(_build_app(bi_service)) as client:
+        response = client.get("/api/v1/bi/commerce?limit=10")
 
     assert response.status_code == 403
     assert response.json()["detail"] == "Admin access required"
@@ -460,6 +527,22 @@ def test_bi_router_metrics_token_does_not_expose_invite_test_applications(
     assert response.json()["detail"] == "Admin access required"
 
 
+def test_bi_router_metrics_token_does_not_expose_commerce(
+    bi_service: BIService,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_METRICS_TOKEN", "bi-read-token")
+
+    with TestClient(_build_app(bi_service)) as client:
+        response = client.get(
+            "/api/v1/bi/commerce?limit=10",
+            headers={"X-Metrics-Token": "bi-read-token"},
+        )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "Admin access required"
+
+
 def test_bi_router_metrics_token_does_not_expose_invite_test_stats(
     bi_service: BIService,
     monkeypatch,
@@ -495,6 +578,7 @@ def test_bi_router_rejects_invalid_metrics_token_in_production(
 def test_bi_router_endpoints_return_expected_shapes(bi_service: BIService) -> None:
     app = _build_app(bi_service)
     app.dependency_overrides[bi_router_module.require_bi_access] = lambda: None
+    app.dependency_overrides[bi_router_module.require_bi_admin] = lambda: SimpleNamespace(is_admin=True)
 
     with TestClient(app) as client:
         overview = client.get("/api/v1/bi/overview?days=30")
@@ -556,6 +640,19 @@ def test_bi_router_endpoints_return_expected_shapes(bi_service: BIService) -> No
         cost = client.get("/api/v1/bi/cost?days=30")
         assert cost.status_code == 200
         assert len(cost.json()["cards"]) >= 1
+
+        commerce = client.get("/api/v1/bi/commerce?limit=10")
+        assert commerce.status_code == 200
+        commerce_body = commerce.json()
+        assert commerce_body["authority"]["wallet_ledger"] == "wallet_ledger"
+        assert commerce_body["summary"]["recharge_count"] == 1
+        assert commerce_body["summary"]["ledger_count"] >= 2
+        recharge_records = _assert_non_empty_list(commerce_body["recharge_records"], "commerce.recharge_records")
+        wallet_ledger = _assert_non_empty_list(commerce_body["ledger"], "commerce.ledger")
+        packages = _assert_non_empty_list(commerce_body["packages"], "commerce.packages")
+        assert recharge_records[0]["ledger_event_id"] == "ledger_real_1"
+        assert wallet_ledger[0]["authority"] == "wallet_ledger"
+        assert packages[0]["authority"] == "member_console.packages"
 
         billing_cycle = datetime.now().strftime("%Y-%m")
         reconciliation = client.get(

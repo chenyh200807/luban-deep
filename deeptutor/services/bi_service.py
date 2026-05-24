@@ -25,6 +25,7 @@ from deeptutor.services.observability import (
     get_usage_ledger,
 )
 from deeptutor.services.session import get_sqlite_session_store
+from deeptutor.services.wallet.service import get_wallet_service
 
 logger = logging.getLogger(__name__)
 _BI_CONTEXT_ROW_LIMIT = 5000
@@ -116,6 +117,7 @@ class BIService:
         bailian_telemetry_client=None,
         bailian_billing_client=None,
         usage_ledger=None,
+        wallet_service=None,
     ) -> None:
         self._store = session_store or get_sqlite_session_store()
         self._member_service = member_service or get_member_console_service()
@@ -124,6 +126,7 @@ class BIService:
         self._bailian_telemetry_client = bailian_telemetry_client or get_bailian_telemetry_client()
         self._bailian_billing_client = bailian_billing_client or get_bailian_billing_client()
         self._usage_ledger = usage_ledger or get_usage_ledger()
+        self._wallet_service = wallet_service or get_wallet_service()
 
     def _connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self._store.db_path)
@@ -2596,6 +2599,378 @@ class BIService:
                 "billing_cost_delta_usd": billing_cost_delta,
                 "billing_cost_delta_ratio": billing_cost_delta_ratio,
             },
+            "warnings": warnings,
+        }
+
+    @staticmethod
+    def _points_from_micros(value: Any) -> float:
+        return _round(_safe_int(value) / 1_000_000, 2)
+
+    @staticmethod
+    def _commerce_ledger_kind(
+        *,
+        event_type: str,
+        amount_points: float,
+        reference_type: str,
+        idempotency_key: str,
+    ) -> str:
+        event = str(event_type or "").strip().lower()
+        reference = str(reference_type or "").strip().lower()
+        idem = str(idempotency_key or "").strip().lower()
+        if event == "refund" or reference == "refund" or idem.startswith("refund:"):
+            return "refund"
+        if event in {"admin_adjust", "manual_adjust", "manual"}:
+            return "manual"
+        if amount_points < 0 or event in {"capture", "usage", "debit"}:
+            return "debit"
+        if amount_points > 0:
+            return "credit"
+        return "manual"
+
+    @staticmethod
+    def _commerce_package_tier(package_id: str) -> str:
+        normalized = str(package_id or "").strip().lower()
+        if "sprint" in normalized or "svip" in normalized:
+            return "svip"
+        if "advance" in normalized or "vip" in normalized:
+            return "vip"
+        return "trial"
+
+    @staticmethod
+    def _commerce_ledger_sort_key(row: dict[str, Any]) -> tuple[str, str]:
+        return (
+            str(row.get("effective_at") or row.get("created_at") or ""),
+            str(row.get("id") or ""),
+        )
+
+    def _commerce_member_ids(self, member: dict[str, Any]) -> list[str]:
+        candidates = [
+            member.get("canonical_user_id"),
+            member.get("external_auth_user_id"),
+            member.get("user_id"),
+            *list(member.get("alias_user_ids") or []),
+        ]
+        seen: set[str] = set()
+        ids: list[str] = []
+        for value in candidates:
+            normalized = str(value or "").strip()
+            if not normalized or normalized in seen:
+                continue
+            seen.add(normalized)
+            ids.append(normalized)
+        return ids
+
+    def _serialize_wallet_commerce_ledger_entry(self, entry: Any) -> dict[str, Any]:
+        metadata = getattr(entry, "metadata", {})
+        if not isinstance(metadata, dict):
+            metadata = {}
+        amount_points = self._points_from_micros(getattr(entry, "delta_micros", 0))
+        reference_type = str(getattr(entry, "reference_type", "") or "").strip()
+        idempotency_key = str(getattr(entry, "idempotency_key", "") or "").strip()
+        event_type = str(getattr(entry, "event_type", "") or "").strip()
+        return {
+            "id": str(getattr(entry, "id", "") or ""),
+            "user_id": str(getattr(entry, "user_id", "") or ""),
+            "kind": self._commerce_ledger_kind(
+                event_type=event_type,
+                amount_points=amount_points,
+                reference_type=reference_type,
+                idempotency_key=idempotency_key,
+            ),
+            "event_type": event_type,
+            "amount": amount_points,
+            "balance_after": self._points_from_micros(getattr(entry, "balance_after_micros", 0)),
+            "reference_type": reference_type,
+            "reference_id": str(getattr(entry, "reference_id", "") or ""),
+            "idempotency_key": idempotency_key,
+            "effective_at": str(getattr(entry, "created_at", "") or ""),
+            "metadata": metadata,
+            "authority": "wallet_ledger",
+            "trust": "A",
+        }
+
+    def _serialize_legacy_commerce_ledger_entry(
+        self,
+        *,
+        member: dict[str, Any],
+        row: dict[str, Any],
+    ) -> dict[str, Any]:
+        amount_points = _safe_float(row.get("delta"))
+        reason = str(row.get("reason") or "").strip()
+        raw_id = str(row.get("id") or "").strip()
+        created_at = str(row.get("created_at") or "").strip()
+        user_id = str(member.get("canonical_user_id") or member.get("user_id") or "").strip()
+        legacy_id = raw_id or f"{user_id}:{created_at}:{amount_points}"
+        return {
+            "id": f"legacy:{user_id}:{legacy_id}",
+            "user_id": user_id,
+            "kind": self._commerce_ledger_kind(
+                event_type=reason,
+                amount_points=amount_points,
+                reference_type="legacy_member_console",
+                idempotency_key=f"legacy:{legacy_id}",
+            ),
+            "event_type": reason or "legacy",
+            "amount": amount_points,
+            "balance_after": None,
+            "reference_type": "legacy_member_console",
+            "reference_id": raw_id,
+            "idempotency_key": f"legacy:{legacy_id}",
+            "effective_at": created_at,
+            "metadata": {
+                "reason": reason,
+                "source": "member_console.ledger",
+                "legacy_user_id": str(member.get("user_id") or ""),
+            },
+            "authority": "member_console.ledger",
+            "trust": "C",
+        }
+
+    def _load_commerce_wallet_ledger_rows(self, *, limit: int) -> tuple[str, list[dict[str, Any]], str]:
+        if not bool(getattr(self._wallet_service, "is_configured", False)):
+            return "unconfigured", [], "Supabase wallet service is not configured"
+        list_recent = getattr(self._wallet_service, "list_recent_wallet_ledger", None)
+        if not callable(list_recent):
+            return "unsupported", [], "Wallet service has no global recent-ledger reader"
+        try:
+            entries = list_recent(limit=limit, offset=0)
+        except Exception as exc:
+            logger.warning("Failed to load commerce wallet_ledger rows", exc_info=True)
+            return "error", [], str(exc)
+        return "ok", [self._serialize_wallet_commerce_ledger_entry(entry) for entry in entries], ""
+
+    def _load_commerce_legacy_ledger_rows(
+        self,
+        members: list[dict[str, Any]],
+        *,
+        limit: int,
+    ) -> list[dict[str, Any]]:
+        rows: list[dict[str, Any]] = []
+        get_ledger = getattr(self._member_service, "get_ledger", None)
+        for member in members:
+            raw_entries = member.get("ledger") if isinstance(member.get("ledger"), list) else None
+            if raw_entries is None and callable(get_ledger):
+                member_ids = self._commerce_member_ids(member)
+                for member_id in member_ids[:2]:
+                    try:
+                        payload = get_ledger(member_id, limit=5, offset=0)
+                    except Exception:
+                        continue
+                    raw_payload_entries = payload.get("entries") if isinstance(payload, dict) else []
+                    if isinstance(raw_payload_entries, list):
+                        raw_entries = raw_payload_entries
+                        break
+            if not raw_entries:
+                continue
+            for row in raw_entries[:5]:
+                if not isinstance(row, dict):
+                    continue
+                rows.append(self._serialize_legacy_commerce_ledger_entry(member=member, row=row))
+                if len(rows) >= limit:
+                    break
+            if len(rows) >= limit:
+                break
+        rows.sort(key=self._commerce_ledger_sort_key, reverse=True)
+        return rows[:limit]
+
+    def _load_commerce_packages(self, members: list[dict[str, Any]]) -> tuple[str, list[dict[str, Any]]]:
+        packages: list[dict[str, Any]] = []
+        get_wallet = getattr(self._member_service, "get_wallet", None)
+        if callable(get_wallet):
+            for member in members[:10]:
+                for member_id in self._commerce_member_ids(member)[:2]:
+                    try:
+                        wallet = get_wallet(member_id)
+                    except Exception:
+                        continue
+                    raw_packages = wallet.get("packages") if isinstance(wallet, dict) else []
+                    if isinstance(raw_packages, list) and raw_packages:
+                        packages = [dict(item) for item in raw_packages if isinstance(item, dict)]
+                        break
+                if packages:
+                    break
+        if not packages:
+            default_packages = getattr(self._member_service, "_default_packages", None)
+            if callable(default_packages):
+                packages = [dict(item) for item in default_packages() if isinstance(item, dict)]
+        normalized = []
+        for item in packages:
+            package_id = str(item.get("id") or item.get("package_id") or "").strip()
+            price_value = item.get("price_cny", item.get("price", 0))
+            normalized.append(
+                {
+                    "id": package_id,
+                    "name": str(item.get("name") or item.get("label") or package_id or "未命名套餐"),
+                    "tier": str(item.get("tier") or self._commerce_package_tier(package_id)),
+                    "points": _safe_int(item.get("points")),
+                    "price_cny": _safe_float(price_value),
+                    "features": [
+                        str(value)
+                        for value in (item.get("features") or [item.get("per"), item.get("desc"), item.get("badge")])
+                        if str(value or "").strip()
+                    ],
+                    "status": str(item.get("status") or "active"),
+                    "authority": "member_console.packages",
+                    "trust": "C",
+                }
+            )
+        return "member_console.packages" if normalized else "missing_package_catalog", normalized
+
+    def _commerce_recharge_record(self, row: dict[str, Any]) -> dict[str, Any]:
+        metadata = row.get("metadata") if isinstance(row.get("metadata"), dict) else {}
+        reference_type = str(row.get("reference_type") or "").strip()
+        idempotency_key = str(row.get("idempotency_key") or "").strip()
+        channel = str(metadata.get("channel") or metadata.get("source") or reference_type or "unknown")
+        return {
+            "id": str(row.get("reference_id") or row.get("id") or ""),
+            "user_id": str(row.get("user_id") or ""),
+            "points": _safe_float(row.get("amount")),
+            "amount_cny": metadata.get("amount_cny"),
+            "channel": channel,
+            "status": "confirmed" if row.get("authority") == "wallet_ledger" else "legacy",
+            "created_at": str(row.get("effective_at") or ""),
+            "ledger_event_id": str(row.get("id") or ""),
+            "idempotency_key": idempotency_key,
+            "authority": str(row.get("authority") or ""),
+            "trust": str(row.get("trust") or ""),
+        }
+
+    def _build_commerce_anomalies(
+        self,
+        *,
+        members: list[dict[str, Any]],
+        ledger_rows: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        anomalies: list[dict[str, Any]] = []
+        negative_members = [
+            item for item in members if _safe_int(item.get("points_balance")) < 0
+        ]
+        if negative_members:
+            anomalies.append(
+                {
+                    "rule_id": "WALLET_NEGATIVE_BALANCE",
+                    "severity": "critical",
+                    "detected_at": "实时",
+                    "affected": len(negative_members),
+                    "owner": "wallet",
+                    "status": "new",
+                    "trust": "A",
+                    "description": "会员钱包余额小于 0，需要优先复核 wallet_ledger 投影。",
+                }
+            )
+
+        idem_index: dict[str, set[float]] = defaultdict(set)
+        for row in ledger_rows:
+            key = str(row.get("idempotency_key") or "").strip()
+            if key:
+                idem_index[key].add(_safe_float(row.get("amount")))
+        duplicate_conflicts = sum(1 for amounts in idem_index.values() if len(amounts) > 1)
+        if duplicate_conflicts:
+            anomalies.append(
+                {
+                    "rule_id": "WALLET_DUPLICATE_IDEMPOTENCY",
+                    "severity": "critical",
+                    "detected_at": "实时",
+                    "affected": duplicate_conflicts,
+                    "owner": "wallet",
+                    "status": "new",
+                    "trust": "A",
+                    "description": "同一 idempotency_key 出现不同金额，需要复核重复入账或回放。",
+                }
+            )
+
+        weak_credit_refs = [
+            row
+            for row in ledger_rows
+            if row.get("kind") == "credit"
+            and not str(row.get("idempotency_key") or "").startswith(("order:", "purchase:", "recharge:"))
+            and str(row.get("reference_type") or "") not in {"order", "purchase", "recharge", "signup_bonus"}
+        ]
+        if weak_credit_refs:
+            anomalies.append(
+                {
+                    "rule_id": "WALLET_CREDIT_WITHOUT_ORDER_AUTHORITY",
+                    "severity": "medium",
+                    "detected_at": "实时",
+                    "affected": len(weak_credit_refs),
+                    "owner": "finance",
+                    "status": "triaged",
+                    "trust": "B",
+                    "description": "存在入账记录但无法关联订单 authority；当前只读展示，不允许自动修账。",
+                }
+            )
+        return anomalies
+
+    async def get_commerce(self, limit: int = 100) -> dict[str, Any]:
+        safe_limit = max(1, min(int(limit or 100), 500))
+        members = [
+            item
+            for item in self._load_all_members()
+            if self._is_registered_member(item)
+        ]
+        package_authority, packages = self._load_commerce_packages(members)
+        wallet_status, wallet_rows, wallet_error = self._load_commerce_wallet_ledger_rows(
+            limit=safe_limit,
+        )
+        legacy_rows = self._load_commerce_legacy_ledger_rows(
+            members,
+            limit=safe_limit,
+        )
+
+        deduped: dict[tuple[str, float, str], dict[str, Any]] = {}
+        for row in [*wallet_rows, *legacy_rows]:
+            key = (
+                str(row.get("idempotency_key") or row.get("id") or ""),
+                _safe_float(row.get("amount")),
+                str(row.get("effective_at") or ""),
+            )
+            if key not in deduped or deduped[key].get("authority") != "wallet_ledger":
+                deduped[key] = row
+        ledger_rows = sorted(deduped.values(), key=self._commerce_ledger_sort_key, reverse=True)[:safe_limit]
+        recharge_records = [
+            self._commerce_recharge_record(row)
+            for row in ledger_rows
+            if _safe_float(row.get("amount")) > 0
+        ][:safe_limit]
+        anomalies = self._build_commerce_anomalies(
+            members=members,
+            ledger_rows=ledger_rows,
+        )
+        credit_points = sum(max(_safe_float(row.get("amount")), 0.0) for row in ledger_rows)
+        debit_points = abs(sum(min(_safe_float(row.get("amount")), 0.0) for row in ledger_rows))
+        ledger_authority = "wallet_ledger"
+        if wallet_status != "ok" or not wallet_rows:
+            ledger_authority = "member_console.ledger"
+        warnings = []
+        if wallet_status != "ok":
+            warnings.append(f"wallet_ledger status={wallet_status}: {wallet_error or 'unavailable'}")
+        if not wallet_rows and legacy_rows:
+            warnings.append("当前使用 member_console legacy ledger 兜底；正式财务对账以 wallet_ledger 为 A 级 authority。")
+        if not recharge_records:
+            warnings.append("未发现可展示的充值/入账记录；订单 authority 仍为只读待接入。")
+
+        return {
+            "status": "ready" if wallet_rows else ("partial" if ledger_rows or packages else "degraded"),
+            "summary": {
+                "member_count": len(members),
+                "package_count": len(packages),
+                "recharge_count": len(recharge_records),
+                "ledger_count": len(ledger_rows),
+                "anomaly_count": len(anomalies),
+                "credit_points": _round(credit_points, 2),
+                "debit_points": _round(debit_points, 2),
+            },
+            "authority": {
+                "packages": package_authority,
+                "recharge_records": ledger_authority,
+                "wallet_ledger": ledger_authority,
+                "orders": "pending_payment_order_authority",
+                "anomalies": "bi_service.commerce_rules",
+            },
+            "packages": packages,
+            "recharge_records": recharge_records,
+            "ledger": ledger_rows,
+            "anomalies": anomalies,
             "warnings": warnings,
         }
 

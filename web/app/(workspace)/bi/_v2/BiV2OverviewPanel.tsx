@@ -177,8 +177,8 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
     setSource('loading')
     const errors: string[] = []
     let overview: BiOverviewData | null = null
-    let trend: ReadonlyArray<BiTrendPoint> = MOCK_BUNDLE.trend
-    let alerts: ReadonlyArray<BiAlertItem> = MOCK_BUNDLE.alerts
+    let trend: ReadonlyArray<BiTrendPoint> = EMPTY_BUNDLE.trend
+    let alerts: ReadonlyArray<BiAlertItem> = EMPTY_BUNDLE.alerts
     try {
       overview = await getBiOverview({ days: 30 })
     } catch (err) {
@@ -208,7 +208,7 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
       })
       setSource(errors.length > 0 ? 'error' : 'live')
     } else {
-      setBundle({ ...MOCK_BUNDLE, errors, partial: true })
+      setBundle({ ...EMPTY_BUNDLE, errors, partial: true })
       setSource('error')
     }
   }, [flagEnabled])
@@ -294,7 +294,13 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
           <header className="flex items-center justify-between text-sm">
             <span className="font-medium text-slate-800">活跃 / 成本 / 学习成功趋势</span>
             <span className="text-[11px] text-slate-500">
-              {source === 'live' ? 'active-trend API' : source === 'loading' ? '加载中…' : 'mock'}
+              {source === 'live'
+                ? 'active-trend API'
+                : source === 'loading'
+                  ? '加载中…'
+                  : source === 'error'
+                    ? 'API 不可用'
+                    : 'mock'}
             </span>
           </header>
           <div className="mt-4 grid h-44 grid-cols-12 items-end gap-1" aria-label="近窗口活跃趋势">
@@ -322,7 +328,9 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
             <p className="mt-1 text-[11px] text-slate-500">
               {source === 'live'
                 ? '来自 overview.alerts + anomalies'
-                : 'mock · 真实风险接 alerts/anomalies'}
+                : source === 'error'
+                  ? 'overview/anomalies API 不可用'
+                  : 'mock · 真实风险接 alerts/anomalies'}
             </p>
           </header>
           <ul className="mt-3 space-y-1">
@@ -513,7 +521,7 @@ function DataSourceBanner({
       <div className="flex items-center gap-2">
         <ShieldAlert className="h-4 w-4" aria-hidden />
         <span>
-          overview API 不可用，已回退到 mock 数据。原因：{bundle.errors.join('; ') || '未知'}
+          overview API 不可用，未展示 mock 数据。原因：{bundle.errors.join('; ') || '未知'}
         </span>
         <button
           type="button"

@@ -375,6 +375,80 @@ export interface BiInviteTestApplicationsResponse {
   items: BiInviteTestApplication[];
 }
 
+export interface BiCommercePackage {
+  id: string;
+  name: string;
+  tier: string;
+  points: number;
+  priceCny: number;
+  features: string[];
+  status: string;
+  authority: string;
+  trust: string;
+}
+
+export interface BiCommerceRechargeRecord {
+  id: string;
+  userId: string;
+  points: number;
+  amountCny?: number | null;
+  channel: string;
+  status: string;
+  createdAt: string;
+  ledgerEventId: string;
+  idempotencyKey: string;
+  authority: string;
+  trust: string;
+}
+
+export type BiCommerceLedgerKind = "credit" | "debit" | "refund" | "manual" | string;
+
+export interface BiCommerceLedgerRow {
+  id: string;
+  userId: string;
+  kind: BiCommerceLedgerKind;
+  eventType: string;
+  amount: number;
+  balanceAfter?: number | null;
+  referenceType: string;
+  referenceId: string;
+  idempotencyKey: string;
+  effectiveAt: string;
+  metadata: Record<string, unknown>;
+  authority: string;
+  trust: string;
+}
+
+export interface BiCommerceAnomaly {
+  ruleId: string;
+  severity: "critical" | "high" | "medium" | "low" | string;
+  detectedAt: string;
+  affected: number;
+  owner: string;
+  status: string;
+  trust: string;
+  description: string;
+}
+
+export interface BiCommerceData {
+  status: string;
+  summary: {
+    memberCount: number;
+    packageCount: number;
+    rechargeCount: number;
+    ledgerCount: number;
+    anomalyCount: number;
+    creditPoints: number;
+    debitPoints: number;
+  };
+  authority: Record<string, string>;
+  packages: BiCommercePackage[];
+  rechargeRecords: BiCommerceRechargeRecord[];
+  ledger: BiCommerceLedgerRow[];
+  anomalies: BiCommerceAnomaly[];
+  warnings: string[];
+}
+
 export type BiLaunchReadinessStatus = "PASS" | "WARN" | "FAIL" | "SKIP" | "NOT_RUN" | string;
 
 export interface BiLaunchReadinessRow {
@@ -647,6 +721,76 @@ function normalizeInviteTestApplication(item: unknown): BiInviteTestApplication 
     operator_note: toString(record.operator_note ?? record.operatorNote, ""),
     submit_count: toNumber(record.submit_count ?? record.submitCount, 1),
     contact_revealed: record.contact_revealed === true || record.contactRevealed === true,
+  };
+}
+
+function normalizeCommercePackage(item: unknown): BiCommercePackage {
+  const record = asRecord(item);
+  return {
+    id: toString(record.id ?? record.package_id ?? record.packageId, ""),
+    name: toString(record.name ?? record.label, "未命名套餐"),
+    tier: toString(record.tier ?? record.plan ?? record.level, ""),
+    points: toNumber(record.points, 0),
+    priceCny: toNumber(record.price_cny ?? record.priceCny ?? record.price, 0),
+    features: toArray(record.features).map((value) => toString(value)).filter(Boolean),
+    status: toString(record.status ?? record.state, ""),
+    authority: toString(record.authority ?? record.source, ""),
+    trust: toString(record.trust ?? record.trust_level ?? record.trustLevel, ""),
+  };
+}
+
+function normalizeCommerceRechargeRecord(item: unknown): BiCommerceRechargeRecord {
+  const record = asRecord(item);
+  return {
+    id: toString(record.id ?? record.order_id ?? record.orderId, ""),
+    userId: toString(record.user_id ?? record.userId, ""),
+    points: toNumber(record.points ?? record.amount, 0),
+    amountCny: record.amount_cny === null || record.amountCny === null
+      ? null
+      : optionalNumber(record.amount_cny ?? record.amountCny),
+    channel: toString(record.channel, "unknown"),
+    status: toString(record.status ?? record.state, ""),
+    createdAt: toString(record.created_at ?? record.createdAt, ""),
+    ledgerEventId: toString(record.ledger_event_id ?? record.ledgerEventId, ""),
+    idempotencyKey: toString(record.idempotency_key ?? record.idempotencyKey, ""),
+    authority: toString(record.authority ?? record.source, ""),
+    trust: toString(record.trust ?? record.trust_level ?? record.trustLevel, ""),
+  };
+}
+
+function normalizeCommerceLedgerRow(item: unknown): BiCommerceLedgerRow {
+  const record = asRecord(item);
+  return {
+    id: toString(record.id, ""),
+    userId: toString(record.user_id ?? record.userId, ""),
+    kind: toString(record.kind ?? record.event_type ?? record.eventType, ""),
+    eventType: toString(record.event_type ?? record.eventType, ""),
+    amount: toNumber(record.amount ?? record.delta, 0),
+    balanceAfter:
+      record.balance_after === null || record.balanceAfter === null
+        ? null
+        : optionalNumber(record.balance_after ?? record.balanceAfter),
+    referenceType: toString(record.reference_type ?? record.referenceType, ""),
+    referenceId: toString(record.reference_id ?? record.referenceId, ""),
+    idempotencyKey: toString(record.idempotency_key ?? record.idempotencyKey, ""),
+    effectiveAt: toString(record.effective_at ?? record.effectiveAt ?? record.created_at ?? record.createdAt, ""),
+    metadata: asRecord(record.metadata),
+    authority: toString(record.authority ?? record.source, ""),
+    trust: toString(record.trust ?? record.trust_level ?? record.trustLevel, ""),
+  };
+}
+
+function normalizeCommerceAnomaly(item: unknown): BiCommerceAnomaly {
+  const record = asRecord(item);
+  return {
+    ruleId: toString(record.rule_id ?? record.ruleId, ""),
+    severity: toString(record.severity ?? record.level, "low"),
+    detectedAt: toString(record.detected_at ?? record.detectedAt, ""),
+    affected: toNumber(record.affected ?? record.count, 0),
+    owner: toString(record.owner, ""),
+    status: toString(record.status ?? record.state, ""),
+    trust: toString(record.trust ?? record.trust_level ?? record.trustLevel, ""),
+    description: toString(record.description ?? record.detail ?? record.note, ""),
   };
 }
 
@@ -1430,6 +1574,35 @@ export async function getBiAnomalies(options: BiFetchOptions = {}): Promise<BiAn
     items: firstArray(raw, ["items", "alerts", "warnings", "anomalies"]).map((item, index) =>
       normalizeAlert(item, `异常 ${index + 1}`),
     ),
+  };
+}
+
+export async function getBiCommerce(options: { limit?: number } = {}): Promise<BiCommerceData> {
+  const raw = unwrapPayload(await fetchBiJson("/api/v1/bi/commerce", { limit: options.limit }));
+  const record = asRecord(raw);
+  const summary = asRecord(record.summary);
+  const authority = asRecord(record.authority);
+  return {
+    status: toString(record.status, ""),
+    summary: {
+      memberCount: toNumber(summary.member_count ?? summary.memberCount, 0),
+      packageCount: toNumber(summary.package_count ?? summary.packageCount, 0),
+      rechargeCount: toNumber(summary.recharge_count ?? summary.rechargeCount, 0),
+      ledgerCount: toNumber(summary.ledger_count ?? summary.ledgerCount, 0),
+      anomalyCount: toNumber(summary.anomaly_count ?? summary.anomalyCount, 0),
+      creditPoints: toNumber(summary.credit_points ?? summary.creditPoints, 0),
+      debitPoints: toNumber(summary.debit_points ?? summary.debitPoints, 0),
+    },
+    authority: Object.fromEntries(
+      Object.entries(authority).map(([key, value]) => [key, toString(value, "")]),
+    ),
+    packages: firstArray(raw, ["packages", "package_items"]).map((item) => normalizeCommercePackage(item)),
+    rechargeRecords: firstArray(raw, ["recharge_records", "rechargeRecords", "orders"]).map((item) =>
+      normalizeCommerceRechargeRecord(item),
+    ),
+    ledger: firstArray(raw, ["ledger", "wallet_ledger", "walletLedger"]).map((item) => normalizeCommerceLedgerRow(item)),
+    anomalies: firstArray(raw, ["anomalies", "alerts", "warnings"]).map((item) => normalizeCommerceAnomaly(item)),
+    warnings: firstArray(raw, ["warnings", "notes"]).map((item) => toString(item)).filter(Boolean),
   };
 }
 
