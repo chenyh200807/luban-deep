@@ -3,6 +3,13 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+from pathlib import Path
+
+
+def test_run_learning_synthesis_bootstraps_repo_root_before_deeptutor_imports() -> None:
+    source = Path("scripts/run_learning_synthesis.py").read_text(encoding="utf-8")
+
+    assert "sys.path.insert(0, str(PROJECT_ROOT))" in source
 
 
 def test_run_learning_synthesis_dry_run_outputs_projection() -> None:

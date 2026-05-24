@@ -518,11 +518,12 @@ class LearnerStateService:
             if limit is None or limit < 0:
                 return local_events
             return local_events[-limit:]
+        remote_events: list[LearnerStateEvent] = []
         if bool(getattr(self._core_store, "is_configured", False)):
             reader = getattr(self._core_store, "read_memory_events", None)
             if callable(reader):
                 try:
-                    return [
+                    remote_events = [
                         event
                         for event in (
                             self._event_from_mapping(item, default_user_id=normalized)
@@ -534,6 +535,9 @@ class LearnerStateService:
                 except Exception:
                     if is_production_environment():
                         return []
+                else:
+                    if remote_events or is_production_environment():
+                        return remote_events
 
         events = local_events
         if limit is None or limit < 0:

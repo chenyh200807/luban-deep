@@ -16,7 +16,18 @@ from typing import Any
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 DEVTOOLS_CLI = Path("/Applications/wechatwebdevtools.app/Contents/MacOS/cli")
+
+
+def _prepare_local_user_data_dir(user_data_dir: str) -> None:
+    os.environ["DEEPTUTOR_USER_DATA_DIR"] = str(user_data_dir or "").strip()
+    from deeptutor.services.path_service import PathService
+    from deeptutor.services.learner_state import service as learner_state_service_module
+
+    PathService.reset_instance()
+    learner_state_service_module._learner_state_service = None
 
 
 def _request_json(
@@ -203,7 +214,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     os.environ.setdefault("DEEPTUTOR_ENV", "local")
     os.environ.setdefault("DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA", "1")
     os.environ.setdefault("DEEPTUTOR_ALLOW_LOCAL_WALLET_FALLBACK", "1")
-    os.environ["DEEPTUTOR_USER_DATA_DIR"] = args.user_data_dir
+    _prepare_local_user_data_dir(args.user_data_dir)
 
     run_id = str(args.code or f"dev-learning-report-e2e-{int(time.time())}").strip()
     login = _request_json(
