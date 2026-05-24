@@ -1068,12 +1068,20 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
     execution_path = ""
     exact_fast_path_hit = False
     actual_tool_rounds: int | None = None
+    question_lifecycle_scene = ""
+    skill_stack: list[str] = []
+    skill_trace: list[dict[str, Any]] = []
+    loader_source: dict[str, Any] = {}
+    skill_source_status: dict[str, Any] = {}
 
     for item in events:
         if not isinstance(item, dict):
             continue
         event_type = str(item.get("type") or "").strip()
         metadata = item.get("metadata") if isinstance(item.get("metadata"), dict) else {}
+        metadata_candidates = [metadata]
+        if isinstance(metadata.get("metadata"), dict):
+            metadata_candidates.append(metadata["metadata"])
         if event_type == "tool_call":
             tool_calls.append(
                 {
@@ -1098,8 +1106,45 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
         raw_tool_rounds = metadata.get("actual_tool_rounds")
         if isinstance(raw_tool_rounds, int):
             actual_tool_rounds = raw_tool_rounds
+        for candidate in metadata_candidates:
+            raw_scene = str(candidate.get("question_lifecycle_scene") or "").strip()
+            if raw_scene:
+                question_lifecycle_scene = raw_scene
+            raw_skill_stack = candidate.get("skill_stack")
+            if isinstance(raw_skill_stack, list):
+                for skill_name in raw_skill_stack:
+                    normalized = str(skill_name or "").strip()
+                    if normalized and normalized not in skill_stack:
+                        skill_stack.append(normalized)
+            raw_skill_trace = candidate.get("skill_trace")
+            if isinstance(raw_skill_trace, list):
+                trace_seen = {
+                    (
+                        str(trace_item.get("name") or ""),
+                        str(trace_item.get("kind") or ""),
+                        str(trace_item.get("status") or ""),
+                    )
+                    for trace_item in skill_trace
+                    if isinstance(trace_item, dict)
+                }
+                for trace_item in raw_skill_trace:
+                    if not isinstance(trace_item, dict):
+                        continue
+                    trace_key = (
+                        str(trace_item.get("name") or ""),
+                        str(trace_item.get("kind") or ""),
+                        str(trace_item.get("status") or ""),
+                    )
+                    if not trace_key[0] or trace_key in trace_seen:
+                        continue
+                    trace_seen.add(trace_key)
+                    skill_trace.append(dict(trace_item))
+            if isinstance(candidate.get("loader_source"), dict):
+                loader_source.update(dict(candidate.get("loader_source") or {}))
+            if isinstance(candidate.get("skill_source_status"), dict):
+                skill_source_status = dict(candidate.get("skill_source_status") or {})
 
-    return {
+    summary = {
         "tool_calls": tool_calls[:8],
         "actual_tool_rounds": actual_tool_rounds if actual_tool_rounds is not None else len(tool_calls),
         "sources": sources[:8],
@@ -1108,6 +1153,17 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
         "execution_path": execution_path,
         "exact_fast_path_hit": exact_fast_path_hit,
     }
+    if question_lifecycle_scene:
+        summary["question_lifecycle_scene"] = question_lifecycle_scene
+    if skill_stack:
+        summary["skill_stack"] = skill_stack
+    if skill_trace:
+        summary["skill_trace"] = skill_trace
+    if loader_source:
+        summary["loader_source"] = loader_source
+    if skill_source_status:
+        summary["skill_source_status"] = skill_source_status
+    return summary
 
 
 def _result_selected_mode(
@@ -3297,7 +3353,28 @@ class TurnRuntimeManager:
             assistant_event_summary = _summarize_assistant_events(assistant_events)
             turn_duration_ms = (time.perf_counter() - turn_started_at) * 1000.0
             surface_turn_summary = surface_event_store.get_turn_summary(turn_id)
+            skill_metadata = {
+                metadata_key: assistant_event_summary[metadata_key]
+                for metadata_key in (
+                    "question_lifecycle_scene",
+                    "skill_stack",
+                    "skill_trace",
+                    "loader_source",
+                    "skill_source_status",
+                )
+                if metadata_key in assistant_event_summary
+            }
+            for metadata_key in (
+                "question_lifecycle_scene",
+                "skill_stack",
+                "skill_trace",
+                "loader_source",
+                "skill_source_status",
+            ):
+                if metadata_key in trace_metadata and metadata_key not in skill_metadata:
+                    skill_metadata[metadata_key] = trace_metadata[metadata_key]
             return {
+                **skill_metadata,
                 **observability.summary_metadata(usage_summary),
                 **trace_metadata,
                 **assistant_event_summary,
