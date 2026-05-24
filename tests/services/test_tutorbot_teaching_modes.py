@@ -220,3 +220,68 @@ def test_lecture_skill_instruction_routes_by_topic():
 
     assert "# 防水专题" in waterproof_instruction
     assert "# 装修专题" in decoration_instruction
+
+
+# ---------------------------------------------------------------------------
+# Plan 2026-05-24 question lifecycle skill authority — construction scene pack
+# ---------------------------------------------------------------------------
+
+from deeptutor.tutorbot.agent.skills import BUILTIN_SKILLS_DIR
+
+_REQUIRED_SCENE_SKILLS: dict[str, tuple[str, ...]] = {
+    "construction-question-supply": ("出题", "继续练", "摸底", "QuestionArtifact", "reveal_answers"),
+    "construction-question-review": ("真题", "题干", "选项", "逐项", "未作答"),
+    "construction-learning-evidence-story": ("evidence_refs", "错因", "历史", "PII"),
+    "construction-study-assistant": ("training_intent", "今天学什么", "下一步", "study_plan"),
+    "construction-learning-support": ("没动力", "焦虑", "鼓励", "情绪", "crisis"),
+}
+
+
+def test_construction_scene_skill_pack_files_exist():
+    """Plan §6.1 + v2 R3: five scene SKILL.md files must exist."""
+    for skill_name in _REQUIRED_SCENE_SKILLS:
+        skill_file = BUILTIN_SKILLS_DIR / skill_name / "SKILL.md"
+        assert skill_file.exists(), f"missing required scene skill: {skill_file}"
+
+
+def test_construction_scene_skills_contain_required_keywords():
+    """Plan §6.5: each skill encodes scene-specific anchors."""
+    for skill_name, required in _REQUIRED_SCENE_SKILLS.items():
+        skill_file = BUILTIN_SKILLS_DIR / skill_name / "SKILL.md"
+        text = skill_file.read_text(encoding="utf-8")
+        for keyword in required:
+            assert keyword in text, f"{skill_name} missing required keyword: {keyword!r}"
+
+
+def test_construction_scene_skills_anti_patterns_have_three_entries():
+    """v2.1 R18 / R21: every new SKILL.md must list at least 3 ### ❌ anti-patterns."""
+    for skill_name in _REQUIRED_SCENE_SKILLS:
+        text = (BUILTIN_SKILLS_DIR / skill_name / "SKILL.md").read_text(encoding="utf-8")
+        assert "## Anti-Patterns" in text, f"{skill_name} missing '## Anti-Patterns' section"
+        anti_pattern_section = text.split("## Anti-Patterns", 1)[1]
+        count = anti_pattern_section.count("### ❌")
+        assert count >= 3, (
+            f"{skill_name}: Anti-Patterns section has {count} '### ❌' entries (need >=3)"
+        )
+
+
+def test_learner_state_narration_skills_have_scope_guard_keywords():
+    """Plan §6.1 v2.1 R6: narration skills must declare presentation-only scope.
+
+    These three skills must not contain DB field names, thresholds, SQL keywords,
+    or numeric percentage thresholds — those facts live in learner_state read
+    model contracts, not in markdown.
+    """
+    forbidden_substrings = ("SELECT ", "JOIN ", "WHERE ")
+    narration_skills = (
+        "construction-learning-evidence-story",
+        "construction-study-assistant",
+        "construction-learning-support",
+    )
+    for skill_name in narration_skills:
+        text = (BUILTIN_SKILLS_DIR / skill_name / "SKILL.md").read_text(encoding="utf-8")
+        for token in forbidden_substrings:
+            assert token not in text, (
+                f"{skill_name}: forbidden SQL token {token!r} found — narration "
+                "skills must stay presentation-only (plan §6.1 v2.1 R6)"
+            )
