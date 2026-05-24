@@ -78,6 +78,7 @@ export interface MemberConversationPreview {
   capability: string
   message_count: number
   last_message: string
+  messages?: MemberConversationMessagePreview[]
 }
 
 export interface MemberConversationViewAudit {

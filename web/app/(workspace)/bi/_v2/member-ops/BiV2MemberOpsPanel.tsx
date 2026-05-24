@@ -48,14 +48,25 @@ const TIER_TONE = {
 const SAVED_VIEWS_STORAGE_KEY = 'bi-v2-saved-views-v1'
 const SAVED_VIEWS_EVENT = 'bi-v2-saved-views-changed'
 const EMPTY_VIEWS: SavedView[] = []
+let savedViewsRawSnapshot: string | null = null
+let savedViewsSnapshot: SavedView[] = EMPTY_VIEWS
 
 function readSavedViewsClient(): SavedView[] {
   try {
     const raw = window.localStorage.getItem(SAVED_VIEWS_STORAGE_KEY)
-    if (!raw) return EMPTY_VIEWS
+    if (!raw) {
+      savedViewsRawSnapshot = null
+      savedViewsSnapshot = EMPTY_VIEWS
+      return savedViewsSnapshot
+    }
+    if (raw === savedViewsRawSnapshot) return savedViewsSnapshot
     const parsed = JSON.parse(raw) as unknown
-    return Array.isArray(parsed) ? (parsed as SavedView[]) : EMPTY_VIEWS
+    savedViewsRawSnapshot = raw
+    savedViewsSnapshot = Array.isArray(parsed) ? (parsed as SavedView[]) : EMPTY_VIEWS
+    return savedViewsSnapshot
   } catch {
+    savedViewsRawSnapshot = null
+    savedViewsSnapshot = EMPTY_VIEWS
     return EMPTY_VIEWS
   }
 }
@@ -74,8 +85,11 @@ function subscribeSavedViews(callback: () => void) {
 }
 
 function writeSavedViews(next: SavedView[]) {
+  const raw = JSON.stringify(next)
+  savedViewsRawSnapshot = raw
+  savedViewsSnapshot = next
   try {
-    window.localStorage.setItem(SAVED_VIEWS_STORAGE_KEY, JSON.stringify(next))
+    window.localStorage.setItem(SAVED_VIEWS_STORAGE_KEY, raw)
   } catch {
     // ignore quota
   }
@@ -242,8 +256,7 @@ export function BiV2MemberOpsPanel({
   }
 
   function saveView() {
-    const name = window.prompt('保存当前视图为：', `自定义视图 ${savedViews.length + 1}`)
-    if (!name) return
+    const name = `视图 ${savedViews.length + 1}`
     const view: SavedView = {
       id: `view_${Date.now()}`,
       name,

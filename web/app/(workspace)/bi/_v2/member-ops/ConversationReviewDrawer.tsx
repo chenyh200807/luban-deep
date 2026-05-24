@@ -135,9 +135,10 @@ export function ConversationReviewDrawer({
       body: { reason: fullReason },
     })
     if (result.ok) {
+      const auditedMessages = getAuditedMessages(result.data)
       setRevealedMessages(prev => ({
         ...prev,
-        [sessionId]: getAuditedMessages(result.data),
+        [sessionId]: auditedMessages.length > 0 ? auditedMessages : getPreviewMessages(sessions, sessionId),
       }))
       setExpandedId(sessionId)
     }
@@ -324,4 +325,13 @@ function getAuditedMessages(data: unknown): MemberConversationMessagePreview[] {
   if (!data || typeof data !== 'object') return []
   const messages = (data as MemberConversationViewAudit).messages
   return Array.isArray(messages) ? messages : []
+}
+
+function getPreviewMessages(
+  sessions: Array<MemberConversationPreview | { id: string; title: string; summary: string; at: string }>,
+  sessionId: string
+): MemberConversationMessagePreview[] {
+  const session = sessions.find(item => 'session_id' in item && item.session_id === sessionId)
+  if (!session || !('messages' in session)) return []
+  return Array.isArray(session.messages) ? session.messages : []
 }
