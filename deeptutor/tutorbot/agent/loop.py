@@ -1599,6 +1599,113 @@ class AgentLoop:
         return missing
 
     @staticmethod
+    def _record_skill_trace(
+        runtime_metadata: dict[str, Any],
+        skill_names: list[str] | tuple[str, ...],
+        *,
+        loader_sources: dict[str, str] | None = None,
+        kind: str,
+        status: str,
+        add_to_stack: bool = True,
+    ) -> None:
+        normalized_names: list[str] = []
+        seen_names: set[str] = set()
+        for item in skill_names:
+            name = str(item or "").strip()
+            if not name or name in seen_names:
+                continue
+            seen_names.add(name)
+            normalized_names.append(name)
+        if not normalized_names:
+            return
+
+        sources = dict(loader_sources or {})
+        existing_loader = (
+            dict(runtime_metadata.get("loader_source"))
+            if isinstance(runtime_metadata.get("loader_source"), dict)
+            else {}
+        )
+
+        if add_to_stack:
+            stack = [
+                str(item or "").strip()
+                for item in (
+                    runtime_metadata.get("skill_stack")
+                    if isinstance(runtime_metadata.get("skill_stack"), list)
+                    else []
+                )
+                if str(item or "").strip()
+            ]
+            stack_seen = set(stack)
+            for name in normalized_names:
+                if name not in stack_seen:
+                    stack_seen.add(name)
+                    stack.append(name)
+                existing_loader[name] = sources.get(name) or existing_loader.get(name) or "unknown"
+            runtime_metadata["skill_stack"] = stack
+
+        trace = [
+            dict(item)
+            for item in (
+                runtime_metadata.get("skill_trace")
+                if isinstance(runtime_metadata.get("skill_trace"), list)
+                else []
+            )
+            if isinstance(item, dict)
+        ]
+        trace_seen = {
+            (
+                str(item.get("name") or ""),
+                str(item.get("kind") or ""),
+                str(item.get("status") or ""),
+            )
+            for item in trace
+        }
+        for name in normalized_names:
+            source = sources.get(name) or existing_loader.get(name) or "unknown"
+            key = (name, kind, status)
+            if key in trace_seen:
+                continue
+            trace_seen.add(key)
+            trace.append(
+                {
+                    "name": name,
+                    "kind": kind,
+                    "status": status,
+                    "source": source,
+                }
+            )
+        runtime_metadata["skill_trace"] = trace
+        if existing_loader:
+            runtime_metadata["loader_source"] = existing_loader
+
+        if status == "unavailable":
+            source_status = (
+                dict(runtime_metadata.get("skill_source_status"))
+                if isinstance(runtime_metadata.get("skill_source_status"), dict)
+                else {}
+            )
+            missing_skills = [
+                str(item or "").strip()
+                for item in (
+                    source_status.get("missing_skills")
+                    if isinstance(source_status.get("missing_skills"), list)
+                    else []
+                )
+                if str(item or "").strip()
+            ]
+            missing_seen = set(missing_skills)
+            for name in normalized_names:
+                if name not in missing_seen:
+                    missing_seen.add(name)
+                    missing_skills.append(name)
+            runtime_metadata["skill_source_status"] = {
+                "complete": False,
+                "missing_skills": missing_skills,
+                "missing_assets": list(source_status.get("missing_assets") or []),
+            }
+
+    @staticmethod
     def _format_fast_limited_skill_instructions(skill_names: list[str]) -> str:
         if not skill_names:
             return ""
@@ -1648,6 +1755,19 @@ class AgentLoop:
             or metadata.get("requested_response_mode")
             or ""
         ).strip().lower()
+        skill_sources = {
+            str(item.get("name") or ""): str(item.get("source") or "unknown")
+            for item in self.context.skills.list_skills(filter_unavailable=False)
+        }
+        always_skill_names = self.context.skills.get_always_skills()
+        self._record_skill_trace(
+            metadata,
+            always_skill_names,
+            loader_sources=skill_sources,
+            kind="always",
+            status="always_loaded",
+            add_to_stack=False,
+        )
 
         if self._is_construction_exam_skill_context(metadata):
             from deeptutor.services.question_lifecycle_skills import (
@@ -1670,10 +1790,19 @@ class AgentLoop:
             skill_instruction = skill_context.instructions
             if skill_instruction:
                 if skill_context.scene is not None:
-                    runtime_metadata["question_lifecycle_scene"] = str(skill_context.scene)
-                runtime_metadata["skill_stack"] = list(skill_context.skill_names)
-                runtime_metadata["loader_source"] = dict(skill_context.loader_sources)
-                runtime_metadata["skill_source_status"] = {
+                    metadata["question_lifecycle_scene"] = str(skill_context.scene)
+                self._record_skill_trace(
+                    metadata,
+                    skill_context.skill_names,
+                    loader_sources=skill_context.loader_sources,
+                    kind=(
+                        "question_lifecycle"
+                        if skill_context.scene is not None
+                        else "construction_default"
+                    ),
+                    status="loaded",
+                )
+                metadata["skill_source_status"] = {
                     "complete": skill_context.source_status.complete,
                     "missing_skills": list(skill_context.source_status.missing_skills),
                     "missing_assets": list(skill_context.source_status.missing_assets),
@@ -1682,6 +1811,13 @@ class AgentLoop:
 
         lecture_instruction = get_lecture_skill_instruction(current_message)
         if lecture_instruction:
+            self._record_skill_trace(
+                metadata,
+                ("lecture-waterproof-energy-decoration",),
+                loader_sources=skill_sources,
+                kind="topic_lecture",
+                status="loaded",
+            )
             parts.append(lecture_instruction)
 
         selected_skill_names = self._select_progressive_skill_names(current_message)
@@ -1703,12 +1839,45 @@ class AgentLoop:
                 selected_skills = self.context.skills.load_skills_for_context(full_skill_names)
                 limited_instruction = self._format_fast_limited_skill_instructions(limited_skill_names)
                 if limited_instruction:
+                    self._record_skill_trace(
+                        metadata,
+                        limited_skill_names,
+                        loader_sources=skill_sources,
+                        kind="progressive",
+                        status="fast_limited",
+                        add_to_stack=False,
+                    )
                     parts.append(limited_instruction)
+                if selected_skills:
+                    self._record_skill_trace(
+                        metadata,
+                        full_skill_names,
+                        loader_sources=skill_sources,
+                        kind="progressive",
+                        status="loaded",
+                    )
             else:
-                selected_skills = self.context.skills.load_skills_for_context(
-                    [name for name in selected_skill_names if name in available_skill_names]
-                )
+                loadable_skill_names = [
+                    name for name in selected_skill_names if name in available_skill_names
+                ]
+                selected_skills = self.context.skills.load_skills_for_context(loadable_skill_names)
+                if selected_skills:
+                    self._record_skill_trace(
+                        metadata,
+                        loadable_skill_names,
+                        loader_sources=skill_sources,
+                        kind="progressive",
+                        status="loaded",
+                    )
                 if unavailable_skill_names:
+                    self._record_skill_trace(
+                        metadata,
+                        unavailable_skill_names,
+                        loader_sources=skill_sources,
+                        kind="progressive",
+                        status="unavailable",
+                        add_to_stack=False,
+                    )
                     missing = self._missing_skill_requirements(unavailable_skill_names)
                     labels = ", ".join(
                         f"{name}: {reason}"

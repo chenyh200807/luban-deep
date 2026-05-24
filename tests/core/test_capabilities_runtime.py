@@ -199,6 +199,14 @@ def test_tutorbot_progressive_skills_load_construction_scene_for_fast_and_deep(t
         assert metadata["question_lifecycle_skill_names"] == []
         assert metadata["skill_stack"] == ["construction-exam-tutor"]
         assert metadata["loader_source"]["construction-exam-tutor"] == "builtin"
+        assert any(
+            item["name"] == "construction-exam-tutor" and item["status"] == "loaded"
+            for item in metadata["skill_trace"]
+        )
+        assert any(
+            item["name"] == "memory" and item["status"] == "always_loaded"
+            for item in metadata["skill_trace"]
+        )
 
         practice_metadata = {
             "bot_id": "construction-exam-coach",
@@ -212,10 +220,21 @@ def test_tutorbot_progressive_skills_load_construction_scene_for_fast_and_deep(t
         assert "# Construction Question Supply" in practice_instruction
         assert "# Construction MCQ Grading" not in practice_instruction
         assert practice_metadata["question_lifecycle_scene"] == "practice_generation"
-        assert practice_metadata["skill_stack"] == [
+        expected_practice_stack = [
             "construction-exam-tutor",
             "construction-question-supply",
         ]
+        if response_mode == "deep":
+            expected_practice_stack.append("deep-question")
+        assert practice_metadata["skill_stack"] == expected_practice_stack
+        expected_deep_question_status = (
+            "fast_limited" if response_mode == "fast" else "loaded"
+        )
+        assert any(
+            item["name"] == "deep-question"
+            and item["status"] == expected_deep_question_status
+            for item in practice_metadata["skill_trace"]
+        )
 
 
 def test_tutorbot_progressive_skills_load_grading_scenes_for_fast_and_deep(tmp_path) -> None:
@@ -291,6 +310,11 @@ def test_tutorbot_progressive_skills_load_learning_evidence_story_scene(tmp_path
         "construction-exam-tutor",
         "construction-learning-evidence-story",
     ]
+    assert any(
+        item["name"] == "construction-learning-evidence-story"
+        and item["kind"] == "question_lifecycle"
+        for item in metadata["skill_trace"]
+    )
 
 
 def test_tutorbot_runtime_instruction_includes_learner_memory_context() -> None:
@@ -555,6 +579,67 @@ def test_tutorbot_progressive_skills_load_builtin_utility_skill_for_deep(tmp_pat
     assert "### Skill: weather" in instruction
     assert "# Weather" in instruction
     assert "### Skill: github" not in instruction
+
+
+def test_tutorbot_progressive_skill_trace_records_utility_and_topic_skills(tmp_path) -> None:
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    class FakeProvider(LLMProvider):
+        async def chat(self, *args: Any, **kwargs: Any) -> LLMResponse:
+            return LLMResponse(content="已完成")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    loop = AgentLoop(MessageBus(), FakeProvider(), tmp_path)
+    weather_metadata = {"effective_response_mode": "deep"}
+
+    loop._build_progressive_skill_instruction(
+        "今天上海天气怎么样？",
+        runtime_metadata=weather_metadata,
+    )
+
+    assert "weather" in weather_metadata["skill_stack"]
+    assert any(
+        item["name"] == "weather"
+        and item["kind"] == "progressive"
+        and item["status"] == "loaded"
+        for item in weather_metadata["skill_trace"]
+    )
+
+    fast_weather_metadata = {"effective_response_mode": "fast"}
+    loop._build_progressive_skill_instruction(
+        "今天上海天气怎么样？",
+        runtime_metadata=fast_weather_metadata,
+    )
+
+    assert "weather" not in fast_weather_metadata.get("skill_stack", [])
+    assert any(
+        item["name"] == "weather"
+        and item["kind"] == "progressive"
+        and item["status"] == "fast_limited"
+        for item in fast_weather_metadata["skill_trace"]
+    )
+
+    lecture_metadata = {
+        "bot_id": "construction-exam-coach",
+        "default_kb": "construction-exam",
+        "effective_response_mode": "deep",
+    }
+    loop._build_progressive_skill_instruction(
+        "屋面防水卷材搭接怎么记？",
+        runtime_metadata=lecture_metadata,
+    )
+
+    assert "lecture-waterproof-energy-decoration" in lecture_metadata["skill_stack"]
+    assert any(
+        item["name"] == "lecture-waterproof-energy-decoration"
+        and item["kind"] == "topic_lecture"
+        and item["status"] == "loaded"
+        for item in lecture_metadata["skill_trace"]
+    )
 
 
 def test_tutorbot_fast_uses_tool_skill_boundary_without_loading_tool_steps(tmp_path) -> None:
@@ -1802,6 +1887,22 @@ async def test_tutorbot_capability_bridges_tutorbot_manager(
             if on_content_delta is not None:
                 await on_content_delta("Tutor")
                 await on_content_delta("Bot")
+            if session_metadata is not None:
+                session_metadata["skill_stack"] = ["construction-exam-tutor"]
+                session_metadata["skill_trace"] = [
+                    {
+                        "name": "construction-exam-tutor",
+                        "kind": "question_lifecycle",
+                        "status": "loaded",
+                        "source": "builtin",
+                    }
+                ]
+                session_metadata["loader_source"] = {"construction-exam-tutor": "builtin"}
+                session_metadata["skill_source_status"] = {
+                    "complete": True,
+                    "missing_skills": [],
+                    "missing_assets": [],
+                }
             return "TutorBot"
 
     monkeypatch.setattr(
@@ -1886,6 +1987,8 @@ async def test_tutorbot_capability_bridges_tutorbot_manager(
     assert result_event.metadata["execution_engine"] == "tutorbot_runtime"
     assert result_event.metadata["selected_mode"] == "fast"
     assert result_event.metadata["execution_path"] == "tutorbot_kb_first_fast_policy"
+    assert result_event.metadata["skill_stack"] == ["construction-exam-tutor"]
+    assert result_event.metadata["skill_trace"][0]["name"] == "construction-exam-tutor"
 
 
 @pytest.mark.asyncio
