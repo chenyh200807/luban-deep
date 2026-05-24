@@ -315,7 +315,10 @@ def test_training_prescription_degrades_when_specific_topic_is_missing() -> None
     prescription = model["training_prescription"]
     assert prescription["status"] == "degraded"
     assert prescription["display_topic"] == ""
-    assert prescription["title"] == "先补一条可诊断证据"
+    assert prescription["title"] == "补一题可诊断练习"
+    assert prescription["evidence_count"] == 1
+    assert prescription["question_plan"][0]["phase_label"] == "补证据"
+    assert model["study_plan"]["priority_task"] == "补 1 题可诊断练习，确认具体薄弱点"
     assert model["study_plan"]["focus_topic"] == "今天先完成一轮诊断练习"
     rendered = str({"prescription": prescription, "study_plan": model["study_plan"]})
     assert "那出5道题" not in rendered

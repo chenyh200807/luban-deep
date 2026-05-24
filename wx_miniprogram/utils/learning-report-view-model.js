@@ -511,6 +511,18 @@ function evidenceCountLabel(count) {
   return n > 0 ? "基于 " + n + " 条学习证据" : "";
 }
 
+function degradedPrescriptionTitle(source, evidenceCount) {
+  var directTitle = compactPrescriptionTopic(asObject(source).title || "");
+  if (asNumber(evidenceCount, 0) > 0) {
+    return directTitle || "补一题可诊断练习";
+  }
+  return "先来一次起步测评";
+}
+
+function degradedPrescriptionCta(evidenceCount) {
+  return asNumber(evidenceCount, 0) > 0 ? "补一题诊断" : "先来一次起步测评";
+}
+
 function sourceValueLabel(count, unit, fallback) {
   var n = asNumber(count, 0);
   return n > 0 ? n + " " + unit : fallback || "待积累";
@@ -911,9 +923,13 @@ function normalizePrescriptionBatchC(source, nextTraining, learningState) {
   if (direct.source === "training_intent" || direct.status || direct.title) {
     var directStatus = String(direct.status || "degraded");
     if (!directTopic || directStatus === "degraded") directStatus = "degraded";
+    var directEvidenceCount = asNumber(
+      direct.evidence_count,
+      asList(direct.evidence_refs).length,
+    );
     var directMeta = [
       direct.error_label,
-      evidenceMetaLabel(direct.evidence_count || asList(direct.evidence_refs).length),
+      evidenceMetaLabel(directEvidenceCount),
     ]
       .filter(Boolean)
       .map(function (label, index) {
@@ -924,7 +940,7 @@ function normalizePrescriptionBatchC(source, nextTraining, learningState) {
       title: String(direct.title || "今日处方"),
       titleLabel:
         directStatus === "degraded"
-          ? "先来一次起步测评"
+          ? degradedPrescriptionTitle(direct, directEvidenceCount)
           : prescriptionTitleLabel(directTopic, directStatus),
       subtitle:
         directStatus === "degraded"
@@ -941,6 +957,7 @@ function normalizePrescriptionBatchC(source, nextTraining, learningState) {
       behaviorState: String(direct.behavior_state || ""),
       behaviorStateLabel: stateLabel(direct.behavior_state),
       meta: directMeta,
+      evidenceCount: directEvidenceCount,
       evidenceRefs:
         directStatus === "degraded"
           ? []
@@ -962,7 +979,7 @@ function normalizePrescriptionBatchC(source, nextTraining, learningState) {
       }),
       successCriteria: asObject(direct.success_criteria),
       intent: asObject(direct.intent),
-      ctaLabel: directStatus === "degraded" ? "先来一次起步测评" : "开始训练",
+      ctaLabel: directStatus === "degraded" ? degradedPrescriptionCta(directEvidenceCount) : "开始训练",
     };
   }
 
@@ -978,6 +995,7 @@ function normalizePrescriptionBatchC(source, nextTraining, learningState) {
     var conceptLabel = compactPrescriptionTopic(v2.concept_label);
     var status = String(v2.status || "active");
     if (!conceptLabel || status === "degraded") status = "degraded";
+    var v2EvidenceCount = asList(v2.evidence_refs).length;
     var behaviorMeta =
       String(v2.behavior_state || "").trim() === "recurring"
         ? "同类错误复发"
@@ -994,7 +1012,7 @@ function normalizePrescriptionBatchC(source, nextTraining, learningState) {
       title: String(v2.concept_label || "今日处方"),
       titleLabel:
         status === "degraded"
-          ? "先来一次起步测评"
+          ? degradedPrescriptionTitle(v2, v2EvidenceCount)
           : prescriptionTitleLabel(conceptLabel, status),
       subtitle: status === "degraded" ? "" : String(v2.error_label || v2.reason || ""),
       reason: status === "degraded" ? "" : String(v2.reason || ""),
@@ -1005,6 +1023,7 @@ function normalizePrescriptionBatchC(source, nextTraining, learningState) {
       behaviorState: String(v2.behavior_state || ""),
       behaviorStateLabel: stateLabel(v2.behavior_state),
       meta: meta,
+      evidenceCount: v2EvidenceCount,
       evidenceRefs:
         status === "degraded"
           ? []
@@ -1023,7 +1042,7 @@ function normalizePrescriptionBatchC(source, nextTraining, learningState) {
       }),
       successCriteria: asObject(v2.success_criteria),
       intent: v2,
-      ctaLabel: status === "degraded" ? "先来一次起步测评" : "开始训练",
+      ctaLabel: status === "degraded" ? degradedPrescriptionCta(v2EvidenceCount) : "开始训练",
     };
   }
   // Degraded fallback when no v2 intent is available.
@@ -1043,6 +1062,7 @@ function normalizePrescriptionBatchC(source, nextTraining, learningState) {
     abilityDimensionLabel: "",
     behaviorState: "",
     behaviorStateLabel: "",
+    evidenceCount: 0,
     evidenceRefs: [],
     meta: [],
     steps: [],
@@ -1249,6 +1269,7 @@ function toReportPageData(model) {
     prescriptionMeta: asList(asObject(vm.prescription).meta),
     prescriptionSteps: asList(asObject(vm.prescription).steps),
     prescriptionCtaLabel: String(asObject(vm.prescription).ctaLabel || ""),
+    prescriptionEvidenceCount: asNumber(asObject(vm.prescription).evidenceCount, 0),
     prescriptionEvidenceRefs: asList(asObject(vm.prescription).evidenceRefs),
     sharedLearningReportViewModel: vm,
   };
