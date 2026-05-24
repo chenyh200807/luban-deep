@@ -9,7 +9,6 @@ _CURRENT_INFO_KEYWORDS = (
     "现行",
     "当前",
     "今年",
-    "最近",
     "政策",
     "通知",
     "公告",
@@ -56,6 +55,15 @@ _CURRENT_EXAM_NAME_MARKERS = (
     "建筑师",
 )
 
+_CURRENT_INFO_RECENCY_MARKERS = (
+    "最近",
+    "近期",
+    "今年",
+    "最新",
+    "当前",
+    "202",
+)
+
 _TEXTBOOK_DELTA_MARKERS = (
     "变化",
     "变动",
@@ -66,6 +74,44 @@ _TEXTBOOK_DELTA_MARKERS = (
     "删除",
     "对比",
     "不一样",
+)
+
+_PERSONAL_LEARNING_STATE_MARKERS = (
+    "我最近学的怎么样",
+    "我最近学得怎么样",
+    "最近学习状态",
+    "最近学习情况",
+    "我的学情",
+    "学习记录",
+    "最近进度",
+    "学习进度",
+    "当前薄弱点",
+    "我的薄弱点",
+    "掌握情况",
+    "哪里错",
+    "错题",
+    "下一步学习",
+)
+
+_PUBLIC_CURRENT_INFO_CONTEXT_MARKERS = (
+    "政策",
+    "通知",
+    "公告",
+    "新规",
+    "发文",
+    "教材",
+    "考试时间",
+    "考试日期",
+    "考试安排",
+    "考试计划",
+    "考务安排",
+    "报名时间",
+    "报考时间",
+    "准考证",
+    "成绩查询",
+    "成绩公布",
+    "官方",
+    "住建部",
 )
 
 _GROUNDED_CONSTRUCTION_EXAM_KB_ALIASES = {
@@ -97,15 +143,25 @@ def normalize_query_text(query: str) -> str:
     return " ".join(str(query or "").strip().lower().split())
 
 
+def _looks_like_personal_learning_state_query(text: str) -> bool:
+    if not any(marker in text for marker in _PERSONAL_LEARNING_STATE_MARKERS):
+        return False
+    return not any(marker in text for marker in _PUBLIC_CURRENT_INFO_CONTEXT_MARKERS)
+
+
 def query_requires_current_info(query: str) -> bool:
     text = normalize_query_text(query)
     if any(marker in text for marker in _EXPLICIT_WEB_SEARCH_MARKERS):
         return True
+    if _looks_like_personal_learning_state_query(text):
+        return False
     if any(keyword in text for keyword in _CURRENT_INFO_KEYWORDS):
         return True
-    return any(marker in text for marker in _CURRENT_EXAM_SCHEDULE_MARKERS) and any(
-        marker in text for marker in _CURRENT_EXAM_NAME_MARKERS
-    )
+    if any(marker in text for marker in _CURRENT_EXAM_SCHEDULE_MARKERS):
+        return any(marker in text for marker in _CURRENT_EXAM_NAME_MARKERS) or any(
+            marker in text for marker in _CURRENT_INFO_RECENCY_MARKERS
+        )
+    return False
 
 
 def looks_like_textbook_delta_query(query: str) -> bool:

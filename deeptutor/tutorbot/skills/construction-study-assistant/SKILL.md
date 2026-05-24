@@ -102,7 +102,7 @@ always: false
   "success_criteria": "能写出专项方案审批和专家论证触发条件",
   "entrypoint": {
     "surface": "practice",
-    "scene": "question_supply"
+    "scene": "practice_generation"
   },
   "trace": {
     "question_lifecycle_scene": "study_assistant",

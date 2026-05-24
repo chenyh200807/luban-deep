@@ -68,7 +68,6 @@ class SkillContext:
 
 SCENE_COMPOSITION: dict[str, tuple[str, ...]] = {
     "practice_generation": ("construction-exam-tutor", "construction-question-supply"),
-    "question_supply": ("construction-exam-tutor", "construction-question-supply"),
     "question_review": ("construction-exam-tutor", "construction-question-review"),
     "mcq_grading": ("construction-exam-tutor", "construction-mcq-grading"),
     "case_grading": ("construction-exam-tutor", "construction-case-grading"),
@@ -89,7 +88,7 @@ _LEGACY_COMPOSITION: dict[str, tuple[str, ...]] = {
     "error_review": ("construction-exam-tutor",),
     "mcq_grading": SCENE_COMPOSITION["mcq_grading"],
     "case_grading": SCENE_COMPOSITION["case_grading"],
-    "question_supply": SCENE_COMPOSITION["question_supply"],
+    "question_supply": SCENE_COMPOSITION["practice_generation"],
     "question_review": SCENE_COMPOSITION["question_review"],
     "practice_generation": SCENE_COMPOSITION["practice_generation"],
 }
@@ -107,6 +106,7 @@ _LEGACY_SCENE_ALIASES: dict[str, str | None] = {
     "mcq_grading": "mcq_grading",
     "case_grading": "case_grading",
     "error_review": "question_review",
+    "question_supply": "practice_generation",
 }
 
 # Per-scene per-skill reference asset paths.
@@ -209,6 +209,19 @@ def build_question_lifecycle_skill_context_from_legacy_scene(
     )
 
 
+def build_default_construction_exam_skill_context(
+    *,
+    skills_loader: SkillsLoader | None = None,
+) -> SkillContext:
+    """Build the base construction tutor skill without deriving a scene."""
+    return _build_skill_context(
+        scene=None,
+        skill_names=("construction-exam-tutor",),
+        reference_scene=None,
+        skills_loader=skills_loader,
+    )
+
+
 def build_lecture_skill_instruction(
     topic: str | None,
     *,
@@ -243,9 +256,23 @@ _LEARNING_EVIDENCE_PHRASES: tuple[str, ...] = (
     "为什么我总错",
     "我的弱点",
     "我最近练得",
+    "我最近学的怎么样",
+    "我最近学得怎么样",
+    "最近学习情况",
+    "最近学习状态",
+    "我的学情",
+    "学习记录",
+    "最近进度",
+    "学习进度",
+    "当前薄弱点",
+    "我的薄弱点",
+    "学习进度怎么样",
+    "学习报告",
+    "掌握情况",
     "学习证据",
     "错因回顾",
     "复盘错题",
+    "错题",
     "为什么总错",
 )
 
@@ -281,6 +308,40 @@ _QUESTION_REVIEW_FREETEXT_PHRASES: tuple[str, ...] = (
 )
 _QUESTION_REVIEW_FREETEXT_RE = re.compile(
     r"(?:分析|讲解|解析|讲)\s*(?:一|1)?\s*(?:道|题)?[^，。！？；\n]{0,24}?真题"
+)
+
+_FREE_TEXT_CASE_GRADING_CONTEXT_MARKERS: tuple[str, ...] = (
+    "案例题",
+    "背景资料",
+)
+_FREE_TEXT_GRADING_ACTION_MARKERS: tuple[str, ...] = (
+    "我的答案",
+    "请批改",
+    "批改",
+    "估分",
+    "漏掉",
+    "采分点",
+)
+_FREE_TEXT_MCQ_GRADING_CONTEXT_MARKERS: tuple[str, ...] = (
+    "单选题",
+    "多选题",
+    "选择题",
+)
+_FREE_TEXT_MCQ_GRADING_ACTION_MARKERS: tuple[str, ...] = (
+    "我选",
+    "对吗",
+    "请批改",
+    "批改",
+    "判断",
+)
+_FREE_TEXT_MCQ_OPTION_SELECTION_RE = re.compile(
+    r"(?:我选|我选择|选|答案是|我的答案是)\s*[A-DＡ-Ｄ]",
+    re.IGNORECASE,
+)
+_FREE_TEXT_MCQ_OPTION_LIST_RE = re.compile(
+    r"(?:^|[\s，。；;：:])A[\.．、:：\s][^，。；;\n]{0,80}"
+    r"(?:[\s，。；;：:])B[\.．、:：\s]",
+    re.IGNORECASE,
 )
 
 _MCQ_QUESTION_TYPES: frozenset[str] = frozenset(
@@ -354,6 +415,11 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
     if question_context and looks_like_question_followup(user_message, question_context):
         return "question_review"
 
+    if _looks_like_free_text_case_grading(user_message):
+        return "case_grading"
+    if _looks_like_free_text_mcq_grading(user_message):
+        return "mcq_grading"
+
     if any(phrase in user_message for phrase in _LEARNING_SUPPORT_PHRASES):
         return "learning_support"
     if any(phrase in user_message for phrase in _LEARNING_EVIDENCE_PHRASES):
@@ -377,13 +443,13 @@ def attach_question_lifecycle_scene_to_context(ctx: Any) -> str | None:
         return None
 
     if "question_lifecycle_scene" in metadata:
-        scene = metadata.get("question_lifecycle_scene")
+        scene = _normalize_scene(metadata.get("question_lifecycle_scene"))
     else:
-        scene = derive_question_lifecycle_scene(ctx)
-        metadata["question_lifecycle_scene"] = scene
+        scene = _normalize_scene(derive_question_lifecycle_scene(ctx))
+    metadata["question_lifecycle_scene"] = scene
 
     if scene is not None:
-        metadata["question_lifecycle_skill_names"] = list(SCENE_COMPOSITION.get(scene, ()))
+        metadata["question_lifecycle_skill_names"] = list(SCENE_COMPOSITION[scene])
     else:
         metadata.setdefault("question_lifecycle_skill_names", [])
 
@@ -395,12 +461,31 @@ def attach_question_lifecycle_scene_to_context(ctx: Any) -> str | None:
 # ---------------------------------------------------------------------------
 
 
+def _looks_like_free_text_case_grading(user_message: str) -> bool:
+    return any(marker in user_message for marker in _FREE_TEXT_CASE_GRADING_CONTEXT_MARKERS) and any(
+        marker in user_message for marker in _FREE_TEXT_GRADING_ACTION_MARKERS
+    )
+
+
+def _looks_like_free_text_mcq_grading(user_message: str) -> bool:
+    has_question_signal = any(
+        marker in user_message for marker in _FREE_TEXT_MCQ_GRADING_CONTEXT_MARKERS
+    ) or (_FREE_TEXT_MCQ_OPTION_LIST_RE.search(user_message) is not None)
+    has_option_selection = _FREE_TEXT_MCQ_OPTION_SELECTION_RE.search(user_message) is not None
+    has_grading_action = has_option_selection or any(
+        marker in user_message
+        for marker in _FREE_TEXT_MCQ_GRADING_ACTION_MARKERS
+        if marker != "我选"
+    )
+    return has_question_signal and has_grading_action
+
+
 def _context_scene(ctx: UnifiedContext) -> str | None:
     metadata = ctx.metadata if isinstance(ctx.metadata, dict) else {}
     raw = getattr(ctx, "question_lifecycle_scene", None) or metadata.get("question_lifecycle_scene")
     if raw is None:
         return None
-    return str(raw).strip() or None
+    return _normalize_scene(str(raw).strip() or None)
 
 
 def _normalize_scene(scene: str | None) -> str | None:
@@ -423,9 +508,9 @@ def _normalize_scene(scene: str | None) -> str | None:
 
 def _build_skill_context(
     *,
-    scene: str,
+    scene: str | None,
     skill_names: tuple[str, ...],
-    reference_scene: str,
+    reference_scene: str | None,
     skills_loader: SkillsLoader | None,
 ) -> SkillContext:
     loader = skills_loader or _default_loader()

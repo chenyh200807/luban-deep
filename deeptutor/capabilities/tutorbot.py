@@ -109,6 +109,16 @@ class TutorBotCapability(BaseCapability):
         )
         if self._current_info_required(context):
             session_metadata["current_info_required"] = True
+        memory_context = str(context.memory_context or "").strip()
+        if memory_context:
+            session_metadata["memory_context"] = memory_context
+        compiled_learning_truth = (
+            context.metadata.get("compiled_learning_truth")
+            if isinstance(context.metadata, dict)
+            else None
+        )
+        if isinstance(compiled_learning_truth, dict) and compiled_learning_truth:
+            session_metadata["compiled_learning_truth"] = dict(compiled_learning_truth)
         turn_id = str((context.metadata or {}).get("turn_id") or "").strip()
         if turn_id:
             session_metadata["turn_id"] = turn_id

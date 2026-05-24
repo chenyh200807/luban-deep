@@ -32,7 +32,7 @@ skills:
   - name: construction-question-supply
     path: construction-question-supply/SKILL.md
     subject: construction_exam
-    scene: question_supply
+    scene: practice_generation
     runtime_scope: production
     authority_scope: presentation_policy
     token_budget_estimate: 1800

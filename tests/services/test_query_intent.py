@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from deeptutor.services.query_intent import (
     build_grounding_decision,
     build_grounding_decision_from_metadata,
@@ -77,6 +79,53 @@ def test_build_grounding_decision_marks_exam_schedule_queries_current_info() -> 
 
     assert decision.current_info_required is True
     assert "current_info_required" in decision.reasons
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        "当前政策有哪些变化",
+        "今年一建报名时间",
+        "最近报名时间",
+        "最近考试安排",
+        "最近住建部新规",
+        "2026年教材变化有哪些更新",
+    ],
+)
+def test_build_grounding_decision_keeps_public_current_info_queries(query: str) -> None:
+    decision = build_grounding_decision(
+        query=query,
+        rag_enabled=True,
+        tutorbot_context=True,
+    )
+
+    assert decision.current_info_required is True
+    assert "current_info_required" in decision.reasons
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        "我最近学的怎么样",
+        "我最近学得怎么样",
+        "最近学习状态怎么样",
+        "我当前薄弱点是什么",
+        "我今年学习进度怎么样",
+        "请根据我的学习记录和最近进度安排下一步学习",
+    ],
+)
+def test_build_grounding_decision_does_not_treat_personal_learning_status_as_current_info(
+    query: str,
+) -> None:
+    decision = build_grounding_decision(
+        query=query,
+        rag_enabled=True,
+        tutorbot_context=True,
+    )
+
+    assert decision.current_info_required is False
+    assert "current_info_required" not in decision.reasons
+    assert decision.should_prefetch_grounded_rag is False
 
 
 def test_build_grounding_decision_marks_explicit_web_search_command_current_info() -> None:

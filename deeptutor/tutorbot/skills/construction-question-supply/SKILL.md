@@ -113,7 +113,7 @@ always: false
     "correct_answer_hidden": true
   },
   "trace": {
-    "question_lifecycle_scene": "question_supply",
+    "question_lifecycle_scene": "practice_generation",
     "skill_stack": ["construction-question-supply", "deep-question"],
     "loader_source": "deeptutor_skill_registry"
   }
@@ -129,7 +129,7 @@ always: false
 
 ## Trace Fields
 
-- `question_lifecycle_scene=question_supply`
+- `question_lifecycle_scene=practice_generation`
 - `skill_stack`
 - `loader_source`
 - `question_supply_mode`

@@ -574,6 +574,50 @@ def test_mobile_chat_start_turn_enables_web_search_for_current_info_queries(
     assert captured["payload"]["config"]["interaction_hints"]["current_info_required"] is True
 
 
+def test_mobile_chat_start_turn_does_not_enable_web_search_for_personal_learning_status(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class FakeTurnRuntime:
+        async def start_turn(self, payload):
+            captured["payload"] = payload
+            return (
+                {
+                    "id": "session_4_learning_status",
+                    "title": "学情",
+                    "created_at": 1_700_000_040.2,
+                },
+                {
+                    "id": "turn_4_learning_status",
+                    "status": "running",
+                    "capability": "chat",
+                },
+            )
+
+    monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(mobile_module, "is_web_search_runtime_available", lambda: True)
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={
+                "query": "我最近学的怎么样",
+                "mode": "AUTO",
+                "language": "zh",
+            },
+        )
+
+    assert response.status_code == 200
+    assert "web_search" not in captured["payload"]["tools"]
+    assert "current_info_required" not in captured["payload"]["config"]["interaction_hints"]
+
+
 def test_mobile_chat_start_turn_does_not_treat_web_search_tool_as_current_info(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

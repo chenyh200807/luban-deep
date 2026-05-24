@@ -1,7 +1,11 @@
 from pathlib import Path
 
+import yaml
+
 from deeptutor.core.context import UnifiedContext
 from deeptutor.services.question_lifecycle_skills import (
+    SCENE_COMPOSITION,
+    attach_question_lifecycle_scene_to_context,
     build_question_lifecycle_skill_context,
     build_question_lifecycle_skill_context_from_legacy_scene,
     select_question_lifecycle_skill_names,
@@ -74,6 +78,10 @@ def test_select_question_lifecycle_skill_names_handles_aliases_and_ambiguous_leg
         "construction-exam-tutor",
         "construction-question-review",
     )
+    assert select_question_lifecycle_skill_names("question_supply") == (
+        "construction-exam-tutor",
+        "construction-question-supply",
+    )
 
     try:
         select_question_lifecycle_skill_names("mcq")
@@ -83,6 +91,19 @@ def test_select_question_lifecycle_skill_names_handles_aliases_and_ambiguous_leg
         raise AssertionError("mcq legacy scene should be ambiguous")
 
 
+def test_attach_question_lifecycle_scene_normalizes_legacy_alias_metadata() -> None:
+    ctx = UnifiedContext(metadata={"question_lifecycle_scene": "question_supply"})
+
+    scene = attach_question_lifecycle_scene_to_context(ctx)
+
+    assert scene == "practice_generation"
+    assert ctx.metadata["question_lifecycle_scene"] == "practice_generation"
+    assert ctx.metadata["question_lifecycle_skill_names"] == [
+        "construction-exam-tutor",
+        "construction-question-supply",
+    ]
+
+
 def test_legacy_scene_builder_preserves_reference_loading() -> None:
     mcq = build_question_lifecycle_skill_context_from_legacy_scene("mcq")
     case_grading = build_question_lifecycle_skill_context_from_legacy_scene("case_grading")
@@ -90,6 +111,22 @@ def test_legacy_scene_builder_preserves_reference_loading() -> None:
     assert "# 选择题讲解" in mcq.instructions
     assert "# Construction Case Grading" in case_grading.instructions
     assert "案例题阅卷资料利用手册" in case_grading.instructions
+
+
+def test_catalog_uses_canonical_practice_generation_scene() -> None:
+    repo_root = Path(__file__).resolve().parents[2]
+    catalog_path = repo_root / "deeptutor" / "tutorbot" / "skills" / "catalog.yaml"
+    catalog = yaml.safe_load(catalog_path.read_text(encoding="utf-8"))
+    skills = catalog["skills"]
+
+    assert "question_supply" not in SCENE_COMPOSITION
+    supply = next(item for item in skills if item["name"] == "construction-question-supply")
+    assert supply["scene"] == "practice_generation"
+    assert all(item.get("scene") != "question_supply" for item in skills)
+    for skill_doc in (repo_root / "deeptutor" / "tutorbot" / "skills").glob("construction-*/SKILL.md"):
+        content = skill_doc.read_text(encoding="utf-8")
+        assert '"scene": "question_supply"' not in content
+        assert '"question_lifecycle_scene": "question_supply"' not in content
 
 
 def test_missing_skill_degrades_without_crashing(tmp_path: Path) -> None:

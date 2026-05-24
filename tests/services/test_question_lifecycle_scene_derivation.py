@@ -68,14 +68,49 @@ def test_active_object_case_question_with_submission_returns_case_grading():
     assert derive_question_lifecycle_scene(ctx) == "case_grading"
 
 
+def test_free_text_case_answer_review_returns_case_grading():
+    ctx = _FakeContext(
+        user_message="【案例题】背景资料：施工现场临时用电。我的答案：先验收。请批改估分。"
+    )
+    assert derive_question_lifecycle_scene(ctx) == "case_grading"
+
+
+def test_free_text_mcq_answer_review_returns_mcq_grading():
+    ctx = _FakeContext(user_message="这道单选题我选B，对吗？题干：施工现场临时用电组织设计应由谁编制？")
+    assert derive_question_lifecycle_scene(ctx) == "mcq_grading"
+
+
 def test_learning_evidence_story_intent():
     ctx = _FakeContext(user_message="我最近哪里错")
+    assert derive_question_lifecycle_scene(ctx) == "learning_evidence_story"
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "我最近学的怎么样",
+        "我最近学得怎么样",
+        "最近学习情况怎么样",
+        "我的学情怎么样",
+        "我当前薄弱点是什么",
+        "我今年学习进度怎么样",
+        "请根据我的学习记录和最近进度总结掌握情况",
+        "我最近的错题集中在哪些知识点",
+    ],
+)
+def test_personal_learning_status_intent_returns_learning_evidence_story(message: str):
+    ctx = _FakeContext(user_message=message)
     assert derive_question_lifecycle_scene(ctx) == "learning_evidence_story"
 
 
 def test_study_assistant_intent():
     ctx = _FakeContext(user_message="今天学什么")
     assert derive_question_lifecycle_scene(ctx) == "study_assistant"
+
+
+def test_free_text_mcq_grading_requires_question_signal():
+    ctx = _FakeContext(user_message="我选哪个老师的课程比较合适？")
+    assert derive_question_lifecycle_scene(ctx) is None
 
 
 def test_learning_support_intent():
