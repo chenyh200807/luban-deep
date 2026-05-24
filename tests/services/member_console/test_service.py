@@ -2226,14 +2226,37 @@ def test_submit_assessment_writes_teaching_policy_and_learner_event(monkeypatch,
     payload = service.create_assessment("student_demo", count=20)
     stored = service._load()["assessment_sessions"][payload["quiz_id"]]["questions"]
     answers = {item["question_id"]: item.get("answer") or "A" for item in stored}
+    first_scored = next(item for item in stored if item.get("scored", True))
+    correct_answer = str(first_scored.get("answer") or "").upper()
+    answers[first_scored["question_id"]] = "B" if correct_answer != "B" else "A"
 
     result = service.submit_assessment("student_demo", payload["quiz_id"], answers, time_spent_seconds=180)
 
     assert result["teaching_policy_seed"]["version"] == "assessment_seed_v1"
     assert result["diagnostic_feedback"]["learner_profile"]["archetype_name"] == "动态调节型学员"
-    assert learner_events[0]["memory_kind"] == "assessment"
-    assert learner_events[0]["source_feature"] == "assessment"
-    assert learner_events[0]["payload_json"]["teaching_policy_seed"]["source_assessment"]["quiz_id"] == payload["quiz_id"]
+    learning_evidence_events = [
+        event for event in learner_events if event["memory_kind"] == "learning_evidence"
+    ]
+    assert not [event for event in learner_events if event["memory_kind"] == "assessment"]
+    assert learning_evidence_events, "assessment answers must also enter canonical learning_evidence"
+    first_evidence = learning_evidence_events[0]
+    assert first_evidence["source_feature"] == "construction_grading"
+    assert first_evidence["source_id"].startswith(f"{payload['quiz_id']}:")
+    assert first_evidence["dedupe_key"]
+    assert first_evidence["payload_json"]["event_type"] == "learning_evidence"
+    assert first_evidence["payload_json"]["source"] == "construction_grading"
+    assert first_evidence["payload_json"]["grading_mode"] == "assessment_blueprint"
+    assert first_evidence["payload_json"]["question_stem"]
+    assert first_evidence["payload_json"]["user_answer"]
+    assert first_evidence["payload_json"]["correct_answer"]
+    assert first_evidence["payload_json"]["next_training_signal"]["source"] == "assessment"
+    assert first_evidence["payload_json"]["quality"]["progress_countable"] is True
+    assert first_evidence["payload_json"]["quality"]["truth_eligible"] is True
+    assert any(event["payload_json"]["score_ratio"] == 0 for event in learning_evidence_events)
+    assert any(event["payload_json"]["score_ratio"] == 1 for event in learning_evidence_events)
+    wrong_event = next(event for event in learning_evidence_events if event["payload_json"]["score_ratio"] == 0)
+    assert wrong_event["payload_json"]["error_events"][0]["error_code"] == "unknown_error"
+    assert "摸底测评" in wrong_event["payload_json"]["error_events"][0]["diagnosis"]
     assert overlay_patches[0]["bot_id"] == "construction-exam-coach"
     assert overlay_patches[0]["patch"]["operations"][0]["field"] == "teaching_policy_override"
 

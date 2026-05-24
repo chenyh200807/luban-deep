@@ -38,6 +38,9 @@ from deeptutor.services.assessment import (
     StaticAssessmentQuestionProvider,
     SupabaseAssessmentQuestionProvider,
 )
+from deeptutor.services.assessment.learning_evidence import (
+    build_assessment_learning_evidence_batch,
+)
 from deeptutor.services.assessment.teaching_policy import build_teaching_policy_seed
 from deeptutor.services.learner_state.progress_feedback import (
     build_progress_feedback,
@@ -491,29 +494,27 @@ class MemberConsoleService:
         user_id: str,
         quiz_id: str,
         result: dict[str, Any],
+        *,
+        learning_evidence_batch: dict[str, Any] | None = None,
     ) -> None:
         seed = dict(result.get("teaching_policy_seed") or {})
-        payload = {
-            "quiz_id": quiz_id,
-            "blueprint_version": result.get("blueprint_version"),
-            "knowledge_score": result.get("knowledge_score"),
-            "measurement_confidence": result.get("measurement_confidence"),
-            "teaching_policy_seed": seed,
-            "assessment_observability": dict(result.get("assessment_observability") or {}),
-        }
         bot_id = CONSTRUCTION_EXAM_BOT_DEFAULTS.bot_ids[0]
-        try:
-            self._get_learner_state_service().append_memory_event(
-                user_id,
-                source_feature="assessment",
-                source_id=quiz_id,
-                source_bot_id=bot_id,
-                memory_kind="assessment",
-                payload_json=payload,
-                dedupe_key=f"assessment:{user_id}:{quiz_id}",
-            )
-        except Exception:
-            logger.warning("Failed to write assessment learner-state event: user_id=%s quiz_id=%s", user_id, quiz_id, exc_info=True)
+        if learning_evidence_batch:
+            try:
+                from deeptutor.services.construction_grading.writeback import (
+                    write_grading_error_events,
+                )
+
+                write_grading_error_events(
+                    learner_state_service=self._get_learner_state_service(),
+                    user_id=user_id,
+                    grading_result=learning_evidence_batch,
+                    source_id=quiz_id,
+                    source_bot_id=bot_id,
+                    include_success_events=True,
+                )
+            except Exception:
+                logger.warning("Failed to write assessment learning_evidence events: user_id=%s quiz_id=%s", user_id, quiz_id, exc_info=True)
         try:
             self._get_overlay_service().patch_overlay(
                 bot_id,
@@ -4744,7 +4745,7 @@ class MemberConsoleService:
                 stats["done"] = int(stats.get("done") or 0) + attempted
                 stats["correct"] = int(stats.get("correct") or 0) + sum(values)
                 stats["last_activity_at"] = _iso()
-            return {
+            response = {
                 "score": score_pct,
                 "knowledge_score": score_pct,
                 "level": level,
@@ -4762,9 +4763,22 @@ class MemberConsoleService:
                     "calibration_label": feedback["cognitive_insight"]["calibration_label"],
                 },
             }
+            response["_learning_evidence_batch"] = build_assessment_learning_evidence_batch(
+                quiz_id=quiz_id,
+                blueprint_version=member["last_assessment"]["blueprint_version"],
+                questions=scored_questions,
+                answers=answers,
+            )
+            return response
 
         result = self._mutate(_apply)
-        self._write_assessment_learning_signals(user_id, quiz_id, result)
+        learning_evidence_batch = result.pop("_learning_evidence_batch", None)
+        self._write_assessment_learning_signals(
+            user_id,
+            quiz_id,
+            result,
+            learning_evidence_batch=learning_evidence_batch,
+        )
         return result
 
     def _find_member_by_external_auth(
