@@ -87,6 +87,29 @@ class SkillsLoader:
 
         return None
 
+    def load_skill_asset(self, name: str, relative_path: str) -> str | None:
+        """
+        Load a bundled file from a skill directory.
+
+        Args:
+            name: Skill name.
+            relative_path: Relative path inside the skill directory.
+
+        Returns:
+            Asset content or None if not found/readable.
+        """
+        candidate = Path(relative_path)
+        if candidate.is_absolute() or ".." in candidate.parts:
+            return None
+
+        for root in (self.workspace_skills, self.builtin_skills):
+            if not root:
+                continue
+            asset_path = root / name / candidate
+            if asset_path.exists() and asset_path.is_file():
+                return self._read_skill_file(asset_path)
+        return None
+
     @staticmethod
     def _read_skill_file(path: Path) -> str | None:
         try:

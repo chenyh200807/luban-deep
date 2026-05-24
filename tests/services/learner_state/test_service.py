@@ -453,6 +453,39 @@ def test_learner_state_synthesis_reads_remote_memory_events_when_configured(tmp_
     )
 
 
+def test_learner_state_local_projection_fallback_reads_local_events_before_remote(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK", "1")
+    core_store = _CoreStoreStub()
+    service = _make_service(tmp_path, core_store=core_store)
+    service.append_memory_event(
+        "student_demo",
+        source_feature="construction_grading",
+        source_id="local-turn",
+        source_bot_id="construction-exam",
+        memory_kind="learning_evidence",
+        payload_json={
+            "event_type": "learning_evidence",
+            "turn_id": "local-turn",
+            "question_id": "local-q",
+            "question_type": "case",
+            "score_awarded": 0,
+            "max_score": 1,
+            "error_events": [
+                {"error_code": "E04", "concept_tag": "1A421000", "diagnosis": "本地事件。"}
+            ],
+            "next_training_signal": {"concept": "1A421000", "focus": "本地弱点"},
+            "quality": {"evidence_level": "L0_observed", "writeback_eligible": True},
+        },
+    )
+
+    events = service.list_memory_events("student_demo", limit=None)
+
+    assert [event.source_id for event in events] == ["local-turn"]
+
+
 def test_append_memory_event_dedupe_returns_existing_event_without_second_outbox_item(tmp_path) -> None:
     service = _make_service(tmp_path)
     first = service.append_memory_event(

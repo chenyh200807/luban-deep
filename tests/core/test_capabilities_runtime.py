@@ -141,19 +141,40 @@ def test_tutorbot_progressive_skills_load_construction_scene_for_fast_and_deep(t
     loop = AgentLoop(MessageBus(), FakeProvider(), tmp_path)
 
     for response_mode in ("fast", "deep"):
+        metadata = {
+            "bot_id": "construction-exam-coach",
+            "default_kb": "construction-exam",
+            "effective_response_mode": response_mode,
+        }
         instruction = loop._build_progressive_skill_instruction(
             "建筑构造是什么？",
-            runtime_metadata={
-                "bot_id": "construction-exam-coach",
-                "default_kb": "construction-exam",
-                "effective_response_mode": response_mode,
-            },
+            runtime_metadata=metadata,
         )
 
         assert "# Construction Exam Tutor" in instruction
         assert "# 概念讲解" in instruction
         assert "# 选择题讲解" not in instruction
         assert "本轮内部行为约束" in instruction
+        assert metadata["question_lifecycle_scene"] == "concept"
+        assert metadata["skill_stack"] == ["construction-exam-tutor"]
+        assert metadata["loader_source"]["construction-exam-tutor"] == "builtin"
+
+        practice_metadata = {
+            "bot_id": "construction-exam-coach",
+            "default_kb": "construction-exam",
+            "effective_response_mode": response_mode,
+        }
+        practice_instruction = loop._build_progressive_skill_instruction(
+            "给我出一道建筑实务选择题，先不要给答案",
+            runtime_metadata=practice_metadata,
+        )
+        assert "# Construction Question Supply" in practice_instruction
+        assert "# Construction MCQ Grading" not in practice_instruction
+        assert practice_metadata["question_lifecycle_scene"] == "question_supply"
+        assert practice_metadata["skill_stack"] == [
+            "construction-exam-tutor",
+            "construction-question-supply",
+        ]
 
 
 def test_tutorbot_progressive_skills_load_grading_scenes_for_fast_and_deep(tmp_path) -> None:

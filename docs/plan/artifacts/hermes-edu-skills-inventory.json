@@ -1,0 +1,2577 @@
+{
+  "source": "zhongweiv/hermes-edu-skills",
+  "version": "0.18.6",
+  "license": "MIT",
+  "license_obligations": {
+    "license": "MIT",
+    "policy": "Pattern-only inspiration may be recorded in frontmatter. Partial-text or verbatim derivations must preserve MIT attribution in the target skill.",
+    "required_notice_when_copying_text": "Preserve upstream copyright and permission notice for MIT-licensed text."
+  },
+  "generated_at": "2026-05-24T05:50:58Z",
+  "skill_count": 188,
+  "summary": {
+    "by_bucket": {
+      "adapt_to_construction": 6,
+      "developer_ops": 31,
+      "future_product": 54,
+      "sandbox_experiment": 7,
+      "template_only": 90
+    },
+    "by_category": {
+      "daily-practice": 26,
+      "exam-prep": 30,
+      "family-education": 7,
+      "learning-assistant": 21,
+      "preschool": 22,
+      "reading-writing": 11,
+      "teacher-tools": 31,
+      "textbook-sync": 40
+    },
+    "by_authority_risk": {
+      "high": 32,
+      "low": 69,
+      "medium": 87
+    }
+  },
+  "skills": [
+    {
+      "name": "adult-language-learning",
+      "category": "learning-assistant",
+      "upstream_path": "skills/learning-assistant/adult-language-learning/SKILL.md",
+      "description": "把成人语言学习从收藏资料变成真实场景输入、主动输出、纠错和复现。核心不是再推荐一堆资料，而是让用户今天能完成一个可检查的小成果。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-question-review"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "General learning workflow may be useful after construction-specific translation."
+    },
+    {
+      "name": "adult-vocational-certificate",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/adult-vocational-certificate/SKILL.md",
+      "description": "把职业证书备考从买课和刷题变成考纲拆解、知识框架、练习、错题和复测计划。核心不是再推荐一堆资料，而是让用户今天能完成一个可检查的小成果。",
+      "deep_tutor_bucket": "adapt_to_construction",
+      "deep_tutor_targets": [
+        "construction-study-assistant",
+        "construction-question-supply"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P0",
+      "notes": "Closest upstream exam-prep analogue for adult construction certification."
+    },
+    {
+      "name": "adult-workplace-writing",
+      "category": "reading-writing",
+      "upstream_path": "skills/reading-writing/adult-workplace-writing/SKILL.md",
+      "description": "把职场写作从漂亮话变成目标明确、对象清楚、行动可落地的沟通文本。核心不是再推荐一堆资料，而是让用户今天能完成一个可检查的小成果。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-case-grading"
+      ],
+      "authority_risk": "low",
+      "rewrite_required": "light",
+      "recommended_phase": "P2",
+      "notes": "Expression-improvement pattern can help case-answer rewrite, not scoring."
+    },
+    {
+      "name": "civil-service-aptitude",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/civil-service-aptitude/SKILL.md",
+      "description": "把公务员行测备考从“泛泛刷题”变成诊断、提分优先级、限时训练、错题复盘和下次复测的闭环，帮助用户知道现在最该抓什么、每天怎么练、怎么判断有没有进步。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "civil-service-essay",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/civil-service-essay/SKILL.md",
+      "description": "把公务员申论备考从“泛泛刷题”变成诊断、提分优先级、限时训练、错题复盘和下次复测的闭环，帮助用户知道现在最该抓什么、每天怎么练、怎么判断有没有进步。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "teacher-certification-sprint",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/teacher-certification-sprint/SKILL.md",
+      "description": "把教师资格证备考从“泛泛刷题”变成诊断、提分优先级、限时训练、错题复盘和下次复测的闭环，帮助用户知道现在最该抓什么、每天怎么练、怎么判断有没有进步。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "college-academic-writing",
+      "category": "reading-writing",
+      "upstream_path": "skills/reading-writing/college-academic-writing/SKILL.md",
+      "description": "学术写作帮助成人学习者把学术写作从零散资料堆砌变成问题、论点、证据、结构和引用意识清晰的写作过程，输出结构更清楚、证据更扎实、符合学术诚信的写作修改方案，而不是替用户一次性完成任务。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-case-grading"
+      ],
+      "authority_risk": "low",
+      "rewrite_required": "light",
+      "recommended_phase": "P2",
+      "notes": "Expression-improvement pattern can help case-answer rewrite, not scoring."
+    },
+    {
+      "name": "college-cet4-sprint",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/college-cet4-sprint/SKILL.md",
+      "description": "把大学英语四级备考从“泛泛刷题”变成诊断、提分优先级、限时训练、错题复盘和下次复测的闭环，帮助用户知道现在最该抓什么、每天怎么练、怎么判断有没有进步。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "college-cet6-sprint",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/college-cet6-sprint/SKILL.md",
+      "description": "把大学英语六级备考从“泛泛刷题”变成诊断、提分优先级、限时训练、错题复盘和下次复测的闭环，帮助用户知道现在最该抓什么、每天怎么练、怎么判断有没有进步。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "college-cs-data-structure",
+      "category": "learning-assistant",
+      "upstream_path": "skills/learning-assistant/college-cs-data-structure/SKILL.md",
+      "description": "把数据结构从抽象概念变成图示理解、手写过程、代码实现和题目迁移。核心不是再推荐一堆资料，而是让用户今天能完成一个可检查的小成果。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-question-review"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "General learning workflow may be useful after construction-specific translation."
+    },
+    {
+      "name": "college-ai-foundation",
+      "category": "learning-assistant",
+      "upstream_path": "skills/learning-assistant/college-ai-foundation/SKILL.md",
+      "description": "把 AI 基础学习从热词堆砌变成概念地图、可运行小实验、产品场景和伦理边界。核心不是再推荐一堆资料，而是让用户今天能完成一个可检查的小成果。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-question-review"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "General learning workflow may be useful after construction-specific translation."
+    },
+    {
+      "name": "college-cs-algorithm-interview",
+      "category": "learning-assistant",
+      "upstream_path": "skills/learning-assistant/college-cs-algorithm-interview/SKILL.md",
+      "description": "把算法面试准备从盲目刷题变成题型识别、思路表达、复杂度分析和复盘沉淀。核心不是再推荐一堆资料，而是让用户今天能完成一个可检查的小成果。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-case-grading"
+      ],
+      "authority_risk": "low",
+      "rewrite_required": "light",
+      "recommended_phase": "P2",
+      "notes": "Expression-improvement pattern can help case-answer rewrite, not scoring."
+    },
+    {
+      "name": "college-cs-python",
+      "category": "learning-assistant",
+      "upstream_path": "skills/learning-assistant/college-cs-python/SKILL.md",
+      "description": "把 Python 学习从“看完教程就忘”变成语法理解、小项目、调试反馈和作品沉淀。核心不是再推荐一堆资料，而是让用户今天能完成一个可检查的小成果。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-question-review"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "General learning workflow may be useful after construction-specific translation."
+    },
+    {
+      "name": "college-data-analysis",
+      "category": "learning-assistant",
+      "upstream_path": "skills/learning-assistant/college-data-analysis/SKILL.md",
+      "description": "把数据分析学习从工具教程变成业务问题、数据清洗、可视化、结论和报告表达。核心不是再推荐一堆资料，而是让用户今天能完成一个可检查的小成果。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-case-grading"
+      ],
+      "authority_risk": "low",
+      "rewrite_required": "light",
+      "recommended_phase": "P2",
+      "notes": "Expression-improvement pattern can help case-answer rewrite, not scoring."
+    },
+    {
+      "name": "ielts-prep",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/ielts-prep/SKILL.md",
+      "description": "把雅思备考从背资料变成听说读写诊断、分项训练、输出反馈和复测节奏。核心不是再推荐一堆资料，而是让用户今天能完成一个可检查的小成果。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "postgraduate-english-sprint",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/postgraduate-english-sprint/SKILL.md",
+      "description": "把考研英语备考从“泛泛刷题”变成诊断、提分优先级、限时训练、错题复盘和下次复测的闭环，帮助用户知道现在最该抓什么、每天怎么练、怎么判断有没有进步。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "toefl-prep",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/toefl-prep/SKILL.md",
+      "description": "把托福备考从材料堆积变成听说读写任务链、学术场景输入和可复测的输出反馈。核心不是再推荐一堆资料，而是让用户今天能完成一个可检查的小成果。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "junior-biology-bs-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/junior-biology-bs-textbook-sync/SKILL.md",
+      "description": "把北师大版初中生物的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。把生物教材同步做成能看图、会解释、能用证据表达的学习过程。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-case-grading"
+      ],
+      "authority_risk": "low",
+      "rewrite_required": "light",
+      "recommended_phase": "P2",
+      "notes": "Expression-improvement pattern can help case-answer rewrite, not scoring."
+    },
+    {
+      "name": "junior-biology-exam-review",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/junior-biology-exam-review/SKILL.md",
+      "description": "把初中生物考试备考从“泛泛刷题”变成诊断、提分优先级、限时训练、错题复盘和下次复测的闭环，帮助用户知道现在最该抓什么、每天怎么练、怎么判断有没有进步。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "junior-biology-quick-practice",
+      "category": "daily-practice",
+      "upstream_path": "skills/daily-practice/junior-biology-quick-practice/SKILL.md",
+      "description": "把初中生物每日打卡做成 10-15 分钟可坚持、可反馈、可复现的短训练。重点不是多刷题，而是围绕结构功能、生命过程、图表信息和实验变量形成当天闭环。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Generic short-practice cadence can inspire UX only; this skill is not a confirmed construction translation target."
+    },
+    {
+      "name": "junior-biology-rj-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/junior-biology-rj-textbook-sync/SKILL.md",
+      "description": "把人教版初中生物的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。把生物教材同步做成能看图、会解释、能用证据表达的学习过程。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-case-grading"
+      ],
+      "authority_risk": "low",
+      "rewrite_required": "light",
+      "recommended_phase": "P2",
+      "notes": "Expression-improvement pattern can help case-answer rewrite, not scoring."
+    },
+    {
+      "name": "junior-chemistry-exam-review",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/junior-chemistry-exam-review/SKILL.md",
+      "description": "把初中化学考试备考从“泛泛刷题”变成诊断、提分优先级、限时训练、错题复盘和下次复测的闭环，帮助用户知道现在最该抓什么、每天怎么练、怎么判断有没有进步。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "junior-chemistry-lk-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/junior-chemistry-lk-textbook-sync/SKILL.md",
+      "description": "把鲁科版初中化学的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。让化学同步学习不止记结论，而是能解释现象、写对符号、看懂实验。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "junior-chemistry-quick-practice",
+      "category": "daily-practice",
+      "upstream_path": "skills/daily-practice/junior-chemistry-quick-practice/SKILL.md",
+      "description": "把初中化学每日打卡做成 10-15 分钟可坚持、可反馈、可复现的短训练。重点不是多刷题，而是围绕概念辨析、实验现象、化学用语和反应规律形成当天闭环。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Generic short-practice cadence can inspire UX only; this skill is not a confirmed construction translation target."
+    },
+    {
+      "name": "junior-chemistry-rj-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/junior-chemistry-rj-textbook-sync/SKILL.md",
+      "description": "把人教版初中化学的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。让化学同步学习不止记结论，而是能解释现象、写对符号、看懂实验。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "junior-chinese-composition",
+      "category": "reading-writing",
+      "upstream_path": "skills/reading-writing/junior-chinese-composition/SKILL.md",
+      "description": "初中作文提升帮助学生把作文辅导从“代写一篇”变成审题、立意、选材、结构、语言和修改的全过程指导，输出可修改、可复盘、可继续练的阅读/写作任务，而不是替用户一次性完成任务。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-case-grading"
+      ],
+      "authority_risk": "low",
+      "rewrite_required": "light",
+      "recommended_phase": "P2",
+      "notes": "Expression-improvement pattern can help case-answer rewrite, not scoring."
+    },
+    {
+      "name": "junior-chinese-exam-review",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/junior-chinese-exam-review/SKILL.md",
+      "description": "把初中语文考试备考从“泛泛刷题”变成诊断、提分优先级、限时训练、错题复盘和下次复测的闭环，帮助用户知道现在最该抓什么、每天怎么练、怎么判断有没有进步。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "junior-chinese-modern-reading",
+      "category": "reading-writing",
+      "upstream_path": "skills/reading-writing/junior-chinese-modern-reading/SKILL.md",
+      "description": "初中现代文阅读帮助学生把阅读训练从“做题对答案”升级为读懂文本、找到依据、组织表达和迁移方法，输出可修改、可复盘、可继续练的阅读/写作任务，而不是替用户一次性完成任务。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-case-grading"
+      ],
+      "authority_risk": "low",
+      "rewrite_required": "light",
+      "recommended_phase": "P2",
+      "notes": "Expression-improvement pattern can help case-answer rewrite, not scoring."
+    },
+    {
+      "name": "junior-chinese-quick-practice",
+      "category": "daily-practice",
+      "upstream_path": "skills/daily-practice/junior-chinese-quick-practice/SKILL.md",
+      "description": "把初中语文每日打卡做成 10-15 分钟可坚持、可反馈、可复现的短训练。重点不是多刷题，而是围绕字词积累、阅读依据、表达完整度和错字订正形成当天闭环。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Generic short-practice cadence can inspire UX only; this skill is not a confirmed construction translation target."
+    },
+    {
+      "name": "junior-chinese-tongbian-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/junior-chinese-tongbian-textbook-sync/SKILL.md",
+      "description": "把统编版初中语文的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。让家长和学生知道今天这篇课文到底要学会什么、怎么练才不空泛。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-case-grading"
+      ],
+      "authority_risk": "low",
+      "rewrite_required": "light",
+      "recommended_phase": "P2",
+      "notes": "Expression-improvement pattern can help case-answer rewrite, not scoring."
+    },
+    {
+      "name": "junior-english-exam-review",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/junior-english-exam-review/SKILL.md",
+      "description": "把初中英语考试备考从“泛泛刷题”变成诊断、提分优先级、限时训练、错题复盘和下次复测的闭环，帮助用户知道现在最该抓什么、每天怎么练、怎么判断有没有进步。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "junior-english-quick-practice",
+      "category": "daily-practice",
+      "upstream_path": "skills/daily-practice/junior-english-quick-practice/SKILL.md",
+      "description": "把初中英语每日打卡做成 10-15 分钟可坚持、可反馈、可复现的短训练。重点不是多刷题，而是围绕词汇复现、语境理解、拼写准确和句子输出形成当天闭环。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Generic short-practice cadence can inspire UX only; this skill is not a confirmed construction translation target."
+    },
+    {
+      "name": "junior-english-rj-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/junior-english-rj-textbook-sync/SKILL.md",
+      "description": "把人教版初中英语的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。让英语同步学习从背单词变成会听、会读、会说、会写的短任务。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "junior-english-vocabulary-daily",
+      "category": "daily-practice",
+      "upstream_path": "skills/daily-practice/junior-english-vocabulary-daily/SKILL.md",
+      "description": "把初中英语每日打卡做成 10-15 分钟可坚持、可反馈、可复现的短训练。重点不是多刷题，而是围绕词汇复现、语境理解、拼写准确和句子输出形成当天闭环。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Generic short-practice cadence can inspire UX only; this skill is not a confirmed construction translation target."
+    },
+    {
+      "name": "junior-english-writing",
+      "category": "reading-writing",
+      "upstream_path": "skills/reading-writing/junior-english-writing/SKILL.md",
+      "description": "初中英语写作帮助英语学习者把英语写作从套模板变成任务回应、结构清楚、句子准确和表达有亮点，输出可修改、可复盘、可继续练的阅读/写作任务，而不是替用户一次性完成任务。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-case-grading"
+      ],
+      "authority_risk": "low",
+      "rewrite_required": "light",
+      "recommended_phase": "P2",
+      "notes": "Expression-improvement pattern can help case-answer rewrite, not scoring."
+    },
+    {
+      "name": "junior-english-wy-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/junior-english-wy-textbook-sync/SKILL.md",
+      "description": "把外研版初中英语的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。让英语同步学习从背单词变成会听、会读、会说、会写的短任务。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "junior-english-yl-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/junior-english-yl-textbook-sync/SKILL.md",
+      "description": "把译林版初中英语的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。让英语同步学习从背单词变成会听、会读、会说、会写的短任务。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "junior-geography-exam-review",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/junior-geography-exam-review/SKILL.md",
+      "description": "把初中地理考试备考从“泛泛刷题”变成诊断、提分优先级、限时训练、错题复盘和下次复测的闭环，帮助用户知道现在最该抓什么、每天怎么练、怎么判断有没有进步。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "junior-geography-quick-practice",
+      "category": "daily-practice",
+      "upstream_path": "skills/daily-practice/junior-geography-quick-practice/SKILL.md",
+      "description": "把初中地理每日打卡做成 10-15 分钟可坚持、可反馈、可复现的短训练。重点不是多刷题，而是围绕地图判读、区域特征、成因解释和图表信息形成当天闭环。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Generic short-practice cadence can inspire UX only; this skill is not a confirmed construction translation target."
+    },
+    {
+      "name": "junior-geography-rj-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/junior-geography-rj-textbook-sync/SKILL.md",
+      "description": "把人教版初中地理的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。让地理同步学习从背区域结论变成会读图、找证据、解释为什么。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "junior-geography-xj-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/junior-geography-xj-textbook-sync/SKILL.md",
+      "description": "把湘教版初中地理的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。让地理同步学习从背区域结论变成会读图、找证据、解释为什么。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "junior-history-exam-review",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/junior-history-exam-review/SKILL.md",
+      "description": "把初中历史考试备考从“泛泛刷题”变成诊断、提分优先级、限时训练、错题复盘和下次复测的闭环，帮助用户知道现在最该抓什么、每天怎么练、怎么判断有没有进步。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "junior-history-quick-practice",
+      "category": "daily-practice",
+      "upstream_path": "skills/daily-practice/junior-history-quick-practice/SKILL.md",
+      "description": "把初中历史每日打卡做成 10-15 分钟可坚持、可反馈、可复现的短训练。重点不是多刷题，而是围绕时间线、事件因果、材料信息和观点表达形成当天闭环。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Generic short-practice cadence can inspire UX only; this skill is not a confirmed construction translation target."
+    },
+    {
+      "name": "junior-history-tongbian-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/junior-history-tongbian-textbook-sync/SKILL.md",
+      "description": "把统编版初中历史的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。让历史同步学习从背年代结论变成会用材料说明因果和观点。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "junior-math-bs-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/junior-math-bs-textbook-sync/SKILL.md",
+      "description": "把北师大版初中数学的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。把教材单元变成今天能做、明天能复盘、错了能追练的学习闭环。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "junior-math-daily-practice",
+      "category": "daily-practice",
+      "upstream_path": "skills/daily-practice/junior-math-daily-practice/SKILL.md",
+      "description": "把初中数学每日打卡做成 10-15 分钟可坚持、可反馈、可复现的短训练。重点不是多刷题，而是围绕计算准确率、方法选择、解题步骤和错因复盘形成当天闭环。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Generic short-practice cadence can inspire UX only; this skill is not a confirmed construction translation target."
+    },
+    {
+      "name": "junior-math-exam-review",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/junior-math-exam-review/SKILL.md",
+      "description": "把初中数学考试备考从“泛泛刷题”变成诊断、提分优先级、限时训练、错题复盘和下次复测的闭环，帮助用户知道现在最该抓什么、每天怎么练、怎么判断有没有进步。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "junior-math-quick-practice",
+      "category": "daily-practice",
+      "upstream_path": "skills/daily-practice/junior-math-quick-practice/SKILL.md",
+      "description": "把初中数学每日打卡做成 10-15 分钟可坚持、可反馈、可复现的短训练。重点不是多刷题，而是围绕计算准确率、方法选择、解题步骤和错因复盘形成当天闭环。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Generic short-practice cadence can inspire UX only; this skill is not a confirmed construction translation target."
+    },
+    {
+      "name": "junior-math-rj-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/junior-math-rj-textbook-sync/SKILL.md",
+      "description": "把人教版初中数学的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。把教材单元变成今天能做、明天能复盘、错了能追练的学习闭环。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "junior-math-sj-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/junior-math-sj-textbook-sync/SKILL.md",
+      "description": "把苏教版初中数学的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。把教材单元变成今天能做、明天能复盘、错了能追练的学习闭环。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "junior-physics-exam-review",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/junior-physics-exam-review/SKILL.md",
+      "description": "把初中物理考试备考从“泛泛刷题”变成诊断、提分优先级、限时训练、错题复盘和下次复测的闭环，帮助用户知道现在最该抓什么、每天怎么练、怎么判断有没有进步。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "junior-physics-lk-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/junior-physics-lk-textbook-sync/SKILL.md",
+      "description": "把鲁科版初中物理的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。把物理教材同步变成现象-模型-证据-应用的清晰学习路径。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "junior-physics-quick-practice",
+      "category": "daily-practice",
+      "upstream_path": "skills/daily-practice/junior-physics-quick-practice/SKILL.md",
+      "description": "把初中物理每日打卡做成 10-15 分钟可坚持、可反馈、可复现的短训练。重点不是多刷题，而是围绕概念辨析、模型条件、图像/实验信息和推理步骤形成当天闭环。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Generic short-practice cadence can inspire UX only; this skill is not a confirmed construction translation target."
+    },
+    {
+      "name": "junior-physics-rj-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/junior-physics-rj-textbook-sync/SKILL.md",
+      "description": "把人教版初中物理的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。把物理教材同步变成现象-模型-证据-应用的清晰学习路径。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "junior-politics-exam-review",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/junior-politics-exam-review/SKILL.md",
+      "description": "把初中政治考试备考从“泛泛刷题”变成诊断、提分优先级、限时训练、错题复盘和下次复测的闭环，帮助用户知道现在最该抓什么、每天怎么练、怎么判断有没有进步。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "junior-politics-quick-practice",
+      "category": "daily-practice",
+      "upstream_path": "skills/daily-practice/junior-politics-quick-practice/SKILL.md",
+      "description": "把初中政治每日打卡做成 10-15 分钟可坚持、可反馈、可复现的短训练。重点不是多刷题，而是围绕概念理解、材料提取、观点组织和规范表达形成当天闭环。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Generic short-practice cadence can inspire UX only; this skill is not a confirmed construction translation target."
+    },
+    {
+      "name": "junior-politics-tongbian-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/junior-politics-tongbian-textbook-sync/SKILL.md",
+      "description": "把统编版初中政治的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。让道法/政治同步学习从背模板变成会读材料、会表达观点。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-case-grading"
+      ],
+      "authority_risk": "low",
+      "rewrite_required": "light",
+      "recommended_phase": "P2",
+      "notes": "Expression-improvement pattern can help case-answer rewrite, not scoring."
+    },
+    {
+      "name": "junior-zhongkao-sprint",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/junior-zhongkao-sprint/SKILL.md",
+      "description": "把中考备考从“泛泛刷题”变成诊断、提分优先级、限时训练、错题复盘和下次复测的闭环，帮助用户知道现在最该抓什么、每天怎么练、怎么判断有没有进步。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "preschool-attention-training",
+      "category": "preschool",
+      "upstream_path": "skills/preschool/preschool-attention-training/SKILL.md",
+      "description": "学前专注力训练 Skill把专注力做成孩子愿意参与、家长能照着做、过程可观察的专注游戏任务。重点不是提前小学化，而是在真实生活、绘本、游戏和表达里建立安全感、兴趣和基础能力。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "reject_for_now",
+      "recommended_phase": "future",
+      "notes": "Outside current construction-exam scope."
+    },
+    {
+      "name": "preschool-classroom-rules",
+      "category": "preschool",
+      "upstream_path": "skills/preschool/preschool-classroom-rules/SKILL.md",
+      "description": "学前课堂规则准备 Skill把规则感做成孩子愿意参与、家长能照着做、过程可观察的入学准备任务。重点不是提前小学化，而是在真实生活、绘本、游戏和表达里建立安全感、兴趣和基础能力。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "reject_for_now",
+      "recommended_phase": "future",
+      "notes": "Outside current construction-exam scope."
+    },
+    {
+      "name": "preschool-color-shape",
+      "category": "preschool",
+      "upstream_path": "skills/preschool/preschool-color-shape/SKILL.md",
+      "description": "学前颜色形状 Skill把颜色形状做成孩子愿意参与、家长能照着做、过程可观察的每日启蒙任务。重点不是提前小学化，而是在真实生活、绘本、游戏和表达里建立安全感、兴趣和基础能力。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "reject_for_now",
+      "recommended_phase": "future",
+      "notes": "Outside current construction-exam scope."
+    },
+    {
+      "name": "preschool-emotion-expression",
+      "category": "preschool",
+      "upstream_path": "skills/preschool/preschool-emotion-expression/SKILL.md",
+      "description": "学前情绪表达 Skill把情绪表达做成孩子愿意参与、家长能照着做、过程可观察的亲子沟通任务。重点不是提前小学化，而是在真实生活、绘本、游戏和表达里建立安全感、兴趣和基础能力。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "reject_for_now",
+      "recommended_phase": "future",
+      "notes": "Outside current construction-exam scope."
+    },
+    {
+      "name": "preschool-family-readiness",
+      "category": "preschool",
+      "upstream_path": "skills/preschool/preschool-family-readiness/SKILL.md",
+      "description": "幼小衔接家庭准备 Skill把陪学建议做成孩子愿意参与、家长能照着做、过程可观察的入学准备任务。重点不是提前小学化，而是在真实生活、绘本、游戏和表达里建立安全感、兴趣和基础能力。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "reject_for_now",
+      "recommended_phase": "future",
+      "notes": "Outside current construction-exam scope."
+    },
+    {
+      "name": "preschool-fine-motor-writing",
+      "category": "preschool",
+      "upstream_path": "skills/preschool/preschool-fine-motor-writing/SKILL.md",
+      "description": "学前控笔与书写准备 Skill把控笔做成孩子愿意参与、家长能照着做、过程可观察的入学准备任务。重点不是提前小学化，而是在真实生活、绘本、游戏和表达里建立安全感、兴趣和基础能力。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "reject_for_now",
+      "recommended_phase": "future",
+      "notes": "Outside current construction-exam scope."
+    },
+    {
+      "name": "preschool-growth-report",
+      "category": "preschool",
+      "upstream_path": "skills/preschool/preschool-growth-report/SKILL.md",
+      "description": "学前成长观察报告 Skill把成长观察做成孩子愿意参与、家长能照着做、过程可观察的成长报告任务。重点不是提前小学化，而是在真实生活、绘本、游戏和表达里建立安全感、兴趣和基础能力。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "reject_for_now",
+      "recommended_phase": "future",
+      "notes": "Outside current construction-exam scope."
+    },
+    {
+      "name": "preschool-language-expression",
+      "category": "preschool",
+      "upstream_path": "skills/preschool/preschool-language-expression/SKILL.md",
+      "description": "学前语言表达 Skill把语言表达做成孩子愿意参与、家长能照着做、过程可观察的表达训练任务。重点不是提前小学化，而是在真实生活、绘本、游戏和表达里建立安全感、兴趣和基础能力。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "reject_for_now",
+      "recommended_phase": "future",
+      "notes": "Outside current construction-exam scope."
+    },
+    {
+      "name": "preschool-life-habits",
+      "category": "preschool",
+      "upstream_path": "skills/preschool/preschool-life-habits/SKILL.md",
+      "description": "学前生活习惯 Skill把生活习惯做成孩子愿意参与、家长能照着做、过程可观察的家庭陪伴任务。重点不是提前小学化，而是在真实生活、绘本、游戏和表达里建立安全感、兴趣和基础能力。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "reject_for_now",
+      "recommended_phase": "future",
+      "notes": "Outside current construction-exam scope."
+    },
+    {
+      "name": "preschool-literacy-foundation",
+      "category": "preschool",
+      "upstream_path": "skills/preschool/preschool-literacy-foundation/SKILL.md",
+      "description": "学前识字启蒙 Skill把识字启蒙做成孩子愿意参与、家长能照着做、过程可观察的每日启蒙任务。重点不是提前小学化，而是在真实生活、绘本、游戏和表达里建立安全感、兴趣和基础能力。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "reject_for_now",
+      "recommended_phase": "future",
+      "notes": "Outside current construction-exam scope."
+    },
+    {
+      "name": "preschool-logic-thinking",
+      "category": "preschool",
+      "upstream_path": "skills/preschool/preschool-logic-thinking/SKILL.md",
+      "description": "学前逻辑规律 Skill把分类排序做成孩子愿意参与、家长能照着做、过程可观察的逻辑游戏任务。重点不是提前小学化，而是在真实生活、绘本、游戏和表达里建立安全感、兴趣和基础能力。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "reject_for_now",
+      "recommended_phase": "future",
+      "notes": "Outside current construction-exam scope."
+    },
+    {
+      "name": "preschool-memory-observation",
+      "category": "preschool",
+      "upstream_path": "skills/preschool/preschool-memory-observation/SKILL.md",
+      "description": "学前观察记忆 Skill把观察力做成孩子愿意参与、家长能照着做、过程可观察的观察游戏任务。重点不是提前小学化，而是在真实生活、绘本、游戏和表达里建立安全感、兴趣和基础能力。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "reject_for_now",
+      "recommended_phase": "future",
+      "notes": "Outside current construction-exam scope."
+    },
+    {
+      "name": "preschool-number-sense-foundation",
+      "category": "preschool",
+      "upstream_path": "skills/preschool/preschool-number-sense-foundation/SKILL.md",
+      "description": "学前数感启蒙 Skill把数感启蒙做成孩子愿意参与、家长能照着做、过程可观察的数感游戏任务。重点不是提前小学化，而是在真实生活、绘本、游戏和表达里建立安全感、兴趣和基础能力。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "reject_for_now",
+      "recommended_phase": "future",
+      "notes": "Outside current construction-exam scope."
+    },
+    {
+      "name": "preschool-parent-daily-play",
+      "category": "preschool",
+      "upstream_path": "skills/preschool/preschool-parent-daily-play/SKILL.md",
+      "description": "亲子每日启蒙 Skill把亲子陪伴做成孩子愿意参与、家长能照着做、过程可观察的每日启蒙任务。重点不是提前小学化，而是在真实生活、绘本、游戏和表达里建立安全感、兴趣和基础能力。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "reject_for_now",
+      "recommended_phase": "future",
+      "notes": "Outside current construction-exam scope."
+    },
+    {
+      "name": "preschool-picture-book-reading",
+      "category": "preschool",
+      "upstream_path": "skills/preschool/preschool-picture-book-reading/SKILL.md",
+      "description": "学前绘本共读 Skill把绘本阅读做成孩子愿意参与、家长能照着做、过程可观察的亲子共读任务。重点不是提前小学化，而是在真实生活、绘本、游戏和表达里建立安全感、兴趣和基础能力。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "reject_for_now",
+      "recommended_phase": "future",
+      "notes": "Outside current construction-exam scope."
+    },
+    {
+      "name": "preschool-pinyin-foundation",
+      "category": "preschool",
+      "upstream_path": "skills/preschool/preschool-pinyin-foundation/SKILL.md",
+      "description": "学前拼音启蒙 Skill把拼音启蒙做成孩子愿意参与、家长能照着做、过程可观察的入学准备任务。重点不是提前小学化，而是在真实生活、绘本、游戏和表达里建立安全感、兴趣和基础能力。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "reject_for_now",
+      "recommended_phase": "future",
+      "notes": "Outside current construction-exam scope."
+    },
+    {
+      "name": "preschool-school-readiness",
+      "category": "preschool",
+      "upstream_path": "skills/preschool/preschool-school-readiness/SKILL.md",
+      "description": "幼小衔接综合 Skill把入学准备做成孩子愿意参与、家长能照着做、过程可观察的入学准备任务。重点不是提前小学化，而是在真实生活、绘本、游戏和表达里建立安全感、兴趣和基础能力。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "reject_for_now",
+      "recommended_phase": "future",
+      "notes": "Outside current construction-exam scope."
+    },
+    {
+      "name": "preschool-self-care",
+      "category": "preschool",
+      "upstream_path": "skills/preschool/preschool-self-care/SKILL.md",
+      "description": "学前自理能力 Skill把自理能力做成孩子愿意参与、家长能照着做、过程可观察的家庭陪伴任务。重点不是提前小学化，而是在真实生活、绘本、游戏和表达里建立安全感、兴趣和基础能力。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "reject_for_now",
+      "recommended_phase": "future",
+      "notes": "Outside current construction-exam scope."
+    },
+    {
+      "name": "preschool-shape-space",
+      "category": "preschool",
+      "upstream_path": "skills/preschool/preschool-shape-space/SKILL.md",
+      "description": "学前图形空间 Skill把图形空间做成孩子愿意参与、家长能照着做、过程可观察的图形游戏任务。重点不是提前小学化，而是在真实生活、绘本、游戏和表达里建立安全感、兴趣和基础能力。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "reject_for_now",
+      "recommended_phase": "future",
+      "notes": "Outside current construction-exam scope."
+    },
+    {
+      "name": "preschool-social-skills",
+      "category": "preschool",
+      "upstream_path": "skills/preschool/preschool-social-skills/SKILL.md",
+      "description": "学前社交规则 Skill把同伴交往做成孩子愿意参与、家长能照着做、过程可观察的社交练习任务。重点不是提前小学化，而是在真实生活、绘本、游戏和表达里建立安全感、兴趣和基础能力。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "reject_for_now",
+      "recommended_phase": "future",
+      "notes": "Outside current construction-exam scope."
+    },
+    {
+      "name": "preschool-story-retelling",
+      "category": "preschool",
+      "upstream_path": "skills/preschool/preschool-story-retelling/SKILL.md",
+      "description": "学前故事复述 Skill把故事复述做成孩子愿意参与、家长能照着做、过程可观察的绘本复述任务。重点不是提前小学化，而是在真实生活、绘本、游戏和表达里建立安全感、兴趣和基础能力。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "reject_for_now",
+      "recommended_phase": "future",
+      "notes": "Outside current construction-exam scope."
+    },
+    {
+      "name": "preschool-task-awareness",
+      "category": "preschool",
+      "upstream_path": "skills/preschool/preschool-task-awareness/SKILL.md",
+      "description": "学前任务意识 Skill把任务意识做成孩子愿意参与、家长能照着做、过程可观察的习惯培养任务。重点不是提前小学化，而是在真实生活、绘本、游戏和表达里建立安全感、兴趣和基础能力。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "reject_for_now",
+      "recommended_phase": "future",
+      "notes": "Outside current construction-exam scope."
+    },
+    {
+      "name": "agent-parent-companion",
+      "category": "family-education",
+      "upstream_path": "skills/family-education/agent-parent-companion/SKILL.md",
+      "description": "家长陪学把家长的“我该怎么陪”变成少催促、可执行、能复盘的陪学脚本。重点不是替家长管孩子，而是把家庭学习场景拆成可沟通、可执行、可复盘的小步骤。",
+      "deep_tutor_bucket": "sandbox_experiment",
+      "deep_tutor_targets": [
+        "hermes_weixin_sandbox"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "sandbox",
+      "notes": "Family education patterns can be tested in Hermes/Weixin, not production learner state."
+    },
+    {
+      "name": "family-emotion-support",
+      "category": "family-education",
+      "upstream_path": "skills/family-education/family-emotion-support/SKILL.md",
+      "description": "学习情绪支持在学习受挫、厌学、亲子冲突时，给家长可说出口的安抚话术和下一步学习动作。重点不是替家长管孩子，而是把家庭学习场景拆成可沟通、可执行、可复盘的小步骤。",
+      "deep_tutor_bucket": "sandbox_experiment",
+      "deep_tutor_targets": [
+        "hermes_weixin_sandbox"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "sandbox",
+      "notes": "Family education patterns can be tested in Hermes/Weixin, not production learner state."
+    },
+    {
+      "name": "family-holiday-learning",
+      "category": "family-education",
+      "upstream_path": "skills/family-education/family-holiday-learning/SKILL.md",
+      "description": "假期家庭学习把寒暑假从“报很多课/放任玩”改成学习、阅读、运动和休息平衡的家庭节奏。重点不是替家长管孩子，而是把家庭学习场景拆成可沟通、可执行、可复盘的小步骤。",
+      "deep_tutor_bucket": "sandbox_experiment",
+      "deep_tutor_targets": [
+        "hermes_weixin_sandbox"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "sandbox",
+      "notes": "Family education patterns can be tested in Hermes/Weixin, not production learner state."
+    },
+    {
+      "name": "family-homework-routine",
+      "category": "family-education",
+      "upstream_path": "skills/family-education/family-homework-routine/SKILL.md",
+      "description": "家庭作业习惯帮家庭建立固定、轻量、可坚持的作业流程，让孩子知道先做什么、做到什么算完成。重点不是替家长管孩子，而是把家庭学习场景拆成可沟通、可执行、可复盘的小步骤。",
+      "deep_tutor_bucket": "sandbox_experiment",
+      "deep_tutor_targets": [
+        "hermes_weixin_sandbox"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "sandbox",
+      "notes": "Family education patterns can be tested in Hermes/Weixin, not production learner state."
+    },
+    {
+      "name": "family-reading-companion",
+      "category": "family-education",
+      "upstream_path": "skills/family-education/family-reading-companion/SKILL.md",
+      "description": "亲子阅读陪伴让亲子阅读从“读完了吗”变成有互动、有表达、有下一本书方向的陪读过程。重点不是替家长管孩子，而是把家庭学习场景拆成可沟通、可执行、可复盘的小步骤。",
+      "deep_tutor_bucket": "sandbox_experiment",
+      "deep_tutor_targets": [
+        "hermes_weixin_sandbox"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "sandbox",
+      "notes": "Family education patterns can be tested in Hermes/Weixin, not production learner state."
+    },
+    {
+      "name": "family-school-communication",
+      "category": "family-education",
+      "upstream_path": "skills/family-education/family-school-communication/SKILL.md",
+      "description": "家校沟通准备帮家长把问题说清楚、语气放稳、目标对齐，提升和老师沟通的效率。重点不是替家长管孩子，而是把家庭学习场景拆成可沟通、可执行、可复盘的小步骤。",
+      "deep_tutor_bucket": "sandbox_experiment",
+      "deep_tutor_targets": [
+        "hermes_weixin_sandbox"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "sandbox",
+      "notes": "Family education patterns can be tested in Hermes/Weixin, not production learner state."
+    },
+    {
+      "name": "family-screen-time-balance",
+      "category": "family-education",
+      "upstream_path": "skills/family-education/family-screen-time-balance/SKILL.md",
+      "description": "屏幕时间管理把屏幕时间管理从对抗变成规则共创：什么时候用、用多久、用来做什么、超时怎么办。重点不是替家长管孩子，而是把家庭学习场景拆成可沟通、可执行、可复盘的小步骤。",
+      "deep_tutor_bucket": "sandbox_experiment",
+      "deep_tutor_targets": [
+        "hermes_weixin_sandbox"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "sandbox",
+      "notes": "Family education patterns can be tested in Hermes/Weixin, not production learner state."
+    },
+    {
+      "name": "agent-study-plan",
+      "category": "learning-assistant",
+      "upstream_path": "skills/learning-assistant/agent-study-plan/SKILL.md",
+      "description": "把模糊目标拆成今天、这一周和下一轮可执行的学习安排。",
+      "deep_tutor_bucket": "adapt_to_construction",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P0",
+      "notes": "Useful plan output shape; training intent remains the recommendation authority."
+    },
+    {
+      "name": "primary-chinese-dictation-daily",
+      "category": "daily-practice",
+      "upstream_path": "skills/daily-practice/primary-chinese-dictation-daily/SKILL.md",
+      "description": "把生字词听写做成“会读、会写、会用、会订正”的每日小闭环。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Generic short-practice cadence can inspire UX only; this skill is not a confirmed construction translation target."
+    },
+    {
+      "name": "primary-chinese-reading",
+      "category": "reading-writing",
+      "upstream_path": "skills/reading-writing/primary-chinese-reading/SKILL.md",
+      "description": "小学语文阅读理解帮助学生把阅读训练从“做题对答案”升级为读懂文本、找到依据、组织表达和迁移方法，输出可修改、可复盘、可继续练的阅读/写作任务，而不是替用户一次性完成任务。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-case-grading"
+      ],
+      "authority_risk": "low",
+      "rewrite_required": "light",
+      "recommended_phase": "P2",
+      "notes": "Expression-improvement pattern can help case-answer rewrite, not scoring."
+    },
+    {
+      "name": "primary-chinese-recitation-daily",
+      "category": "daily-practice",
+      "upstream_path": "skills/daily-practice/primary-chinese-recitation-daily/SKILL.md",
+      "description": "把课文和古诗背诵拆成理解、分段、提取线索和复背检查，减少死记硬背。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Generic short-practice cadence can inspire UX only; this skill is not a confirmed construction translation target."
+    },
+    {
+      "name": "primary-chinese-tongbian-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/primary-chinese-tongbian-textbook-sync/SKILL.md",
+      "description": "把统编版小学语文的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。让家长和学生知道今天这篇课文到底要学会什么、怎么练才不空泛。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-case-grading"
+      ],
+      "authority_risk": "low",
+      "rewrite_required": "light",
+      "recommended_phase": "P2",
+      "notes": "Expression-improvement pattern can help case-answer rewrite, not scoring."
+    },
+    {
+      "name": "primary-chinese-writing",
+      "category": "reading-writing",
+      "upstream_path": "skills/reading-writing/primary-chinese-writing/SKILL.md",
+      "description": "小学作文提升帮助学生把作文辅导从“代写一篇”变成审题、立意、选材、结构、语言和修改的全过程指导，输出可修改、可复盘、可继续练的阅读/写作任务，而不是替用户一次性完成任务。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-case-grading"
+      ],
+      "authority_risk": "low",
+      "rewrite_required": "light",
+      "recommended_phase": "P2",
+      "notes": "Expression-improvement pattern can help case-answer rewrite, not scoring."
+    },
+    {
+      "name": "primary-english-pep-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/primary-english-pep-textbook-sync/SKILL.md",
+      "description": "把人教PEP版小学英语的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。让英语同步学习从背单词变成会听、会读、会说、会写的短任务。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "primary-english-reading",
+      "category": "reading-writing",
+      "upstream_path": "skills/reading-writing/primary-english-reading/SKILL.md",
+      "description": "小学英语阅读帮助英语学习者把阅读训练从“做题对答案”升级为读懂文本、找到依据、组织表达和迁移方法，输出可修改、可复盘、可继续练的阅读/写作任务，而不是替用户一次性完成任务。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-case-grading"
+      ],
+      "authority_risk": "low",
+      "rewrite_required": "light",
+      "recommended_phase": "P2",
+      "notes": "Expression-improvement pattern can help case-answer rewrite, not scoring."
+    },
+    {
+      "name": "primary-english-vocabulary-daily",
+      "category": "daily-practice",
+      "upstream_path": "skills/daily-practice/primary-english-vocabulary-daily/SKILL.md",
+      "description": "让小学英语单词练习从“背拼写”升级为音、形、义、句一起掌握。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Generic short-practice cadence can inspire UX only; this skill is not a confirmed construction translation target."
+    },
+    {
+      "name": "primary-english-wy-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/primary-english-wy-textbook-sync/SKILL.md",
+      "description": "把外研版小学英语的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。让英语同步学习从背单词变成会听、会读、会说、会写的短任务。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "primary-english-yl-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/primary-english-yl-textbook-sync/SKILL.md",
+      "description": "把译林版小学英语的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。让英语同步学习从背单词变成会听、会读、会说、会写的短任务。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "primary-final-review",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/primary-final-review/SKILL.md",
+      "description": "把小学期末备考从“泛泛刷题”变成诊断、提分优先级、限时训练、错题复盘和下次复测的闭环，帮助用户知道现在最该抓什么、每天怎么练、怎么判断有没有进步。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "primary-math-bs-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/primary-math-bs-textbook-sync/SKILL.md",
+      "description": "把北师大版小学数学的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。把教材单元变成今天能做、明天能复盘、错了能追练的学习闭环。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "primary-math-mental-arithmetic",
+      "category": "daily-practice",
+      "upstream_path": "skills/daily-practice/primary-math-mental-arithmetic/SKILL.md",
+      "description": "为小学生生成短、准、可批改的口算训练，让每天 5-10 分钟练出速度、准确率和数感。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Generic short-practice cadence can inspire UX only; this skill is not a confirmed construction translation target."
+    },
+    {
+      "name": "primary-math-rj-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/primary-math-rj-textbook-sync/SKILL.md",
+      "description": "围绕人教版小学数学教材，把年级、册别、单元和学习目标变成可执行的预习、练习、复习和错题巩固任务。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "primary-math-sj-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/primary-math-sj-textbook-sync/SKILL.md",
+      "description": "把苏教版小学数学的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。把教材单元变成今天能做、明天能复盘、错了能追练的学习闭环。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "primary-reading-daily",
+      "category": "daily-practice",
+      "upstream_path": "skills/daily-practice/primary-reading-daily/SKILL.md",
+      "description": "把小学阅读练成“读懂、找依据、会表达”的短训练，而不是泛泛问读后感。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Generic short-practice cadence can inspire UX only; this skill is not a confirmed construction translation target."
+    },
+    {
+      "name": "agent-focus-training",
+      "category": "learning-assistant",
+      "upstream_path": "skills/learning-assistant/agent-focus-training/SKILL.md",
+      "description": "把“孩子不专心”拆成可观察的学习环境、任务长度和反馈节奏，生成能立刻执行的专注训练方案。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-question-review"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "General learning workflow may be useful after construction-specific translation."
+    },
+    {
+      "name": "agent-holiday-plan",
+      "category": "learning-assistant",
+      "upstream_path": "skills/learning-assistant/agent-holiday-plan/SKILL.md",
+      "description": "把寒暑假从“报复性补课”改成有节奏的巩固、预习、阅读和休息计划。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-question-review"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "General learning workflow may be useful after construction-specific translation."
+    },
+    {
+      "name": "agent-homework-companion",
+      "category": "learning-assistant",
+      "upstream_path": "skills/learning-assistant/agent-homework-companion/SKILL.md",
+      "description": "陪学生完成作业全过程：先规划顺序，再在卡住时提示，不替写，最后做自查和订正。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-question-review"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "General learning workflow may be useful after construction-specific translation."
+    },
+    {
+      "name": "agent-learning-habit",
+      "category": "learning-assistant",
+      "upstream_path": "skills/learning-assistant/agent-learning-habit/SKILL.md",
+      "description": "把抽象的“养成学习习惯”落到固定触发、最小动作、即时反馈和家庭协作上。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-question-review"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "General learning workflow may be useful after construction-specific translation."
+    },
+    {
+      "name": "agent-learning-report",
+      "category": "learning-assistant",
+      "upstream_path": "skills/learning-assistant/agent-learning-report/SKILL.md",
+      "description": "把零散练习记录整理成家长、老师和学生都能看懂的学情判断。",
+      "deep_tutor_bucket": "adapt_to_construction",
+      "deep_tutor_targets": [
+        "construction-learning-evidence-story"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P0",
+      "notes": "Useful report narration shape; learning report read model remains the only truth source."
+    },
+    {
+      "name": "agent-memory-method",
+      "category": "learning-assistant",
+      "upstream_path": "skills/learning-assistant/agent-memory-method/SKILL.md",
+      "description": "把需要背的内容变成可提取、可复述、可间隔复习的记忆任务，而不是反复机械朗读。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-question-review"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "General learning workflow may be useful after construction-specific translation."
+    },
+    {
+      "name": "agent-mistake-review",
+      "category": "learning-assistant",
+      "upstream_path": "skills/learning-assistant/agent-mistake-review/SKILL.md",
+      "description": "把错题从改正答案升级为找到错误模式并安排复习。",
+      "deep_tutor_bucket": "adapt_to_construction",
+      "deep_tutor_targets": [
+        "construction-learning-evidence-story",
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P0",
+      "notes": "Mistake-review workflow is valuable; mistake book and learner evidence remain DeepTutor authorities."
+    },
+    {
+      "name": "agent-photo-question",
+      "category": "learning-assistant",
+      "upstream_path": "skills/learning-assistant/agent-photo-question/SKILL.md",
+      "description": "把拍照题目转成先识题、再讲思路、最后追问确认的学习过程，而不是只给答案。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-question-review"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "General learning workflow may be useful after construction-specific translation."
+    },
+    {
+      "name": "agent-preview-assistant",
+      "category": "learning-assistant",
+      "upstream_path": "skills/learning-assistant/agent-preview-assistant/SKILL.md",
+      "description": "把预习从“提前看一遍”变成带问题进入课堂：先扫知识、再标疑问、最后准备课堂关注点。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-question-review"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "General learning workflow may be useful after construction-specific translation."
+    },
+    {
+      "name": "agent-review-assistant",
+      "category": "learning-assistant",
+      "upstream_path": "skills/learning-assistant/agent-review-assistant/SKILL.md",
+      "description": "把复习从重新看笔记变成检索、纠错、归纳和再练习的闭环。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-question-review"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "General learning workflow may be useful after construction-specific translation."
+    },
+    {
+      "name": "agent-socratic-tutor",
+      "category": "learning-assistant",
+      "upstream_path": "skills/learning-assistant/agent-socratic-tutor/SKILL.md",
+      "description": "用启发式追问帮助学生自己走到答案，而不是把标准答案一次性倒出来。",
+      "deep_tutor_bucket": "adapt_to_construction",
+      "deep_tutor_targets": [
+        "construction-question-review",
+        "construction-learning-support"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P0",
+      "notes": "Socratic prompting can improve review turns; it cannot override grading or reveal policy."
+    },
+    {
+      "name": "agent-weakness-boost",
+      "category": "learning-assistant",
+      "upstream_path": "skills/learning-assistant/agent-weakness-boost/SKILL.md",
+      "description": "把“薄弱项”从模糊标签变成一个可诊断、可练习、可复测的小专题提升闭环。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-question-review"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "General learning workflow may be useful after construction-specific translation."
+    },
+    {
+      "name": "agent-weekly-review",
+      "category": "learning-assistant",
+      "upstream_path": "skills/learning-assistant/agent-weekly-review/SKILL.md",
+      "description": "把一周学习从流水账整理成进步、问题、下周行动三件事，让学生和家长都知道下一步做什么。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-question-review"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "General learning workflow may be useful after construction-specific translation."
+    },
+    {
+      "name": "teacher-biology-homework-generation",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-biology-homework-generation/SKILL.md",
+      "description": "帮助生物老师生成少而准、可批改、能反映真实掌握情况的分层作业，避免把作业变成题量堆叠。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-biology-lesson-planning",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-biology-lesson-planning/SKILL.md",
+      "description": "帮助生物老师把“这节课讲什么”升级为目标、活动、提问、练习和评价一致的课堂设计，重点围绕生命现象、结构功能、实验探究和图表信息提取。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-biology-unit-review",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-biology-unit-review/SKILL.md",
+      "description": "帮助生物老师把一个单元复习成知识结构、典型错因、主动回忆和再练习的闭环，而不是重新讲一遍。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-chemistry-homework-generation",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-chemistry-homework-generation/SKILL.md",
+      "description": "帮助化学老师生成少而准、可批改、能反映真实掌握情况的分层作业，避免把作业变成题量堆叠。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-chemistry-lesson-planning",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-chemistry-lesson-planning/SKILL.md",
+      "description": "帮助化学老师把“这节课讲什么”升级为目标、活动、提问、练习和评价一致的课堂设计，重点围绕微观解释、实验现象、化学用语和反应规律。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-chemistry-unit-review",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-chemistry-unit-review/SKILL.md",
+      "description": "帮助化学老师把一个单元复习成知识结构、典型错因、主动回忆和再练习的闭环，而不是重新讲一遍。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-chinese-homework-generation",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-chinese-homework-generation/SKILL.md",
+      "description": "帮助语文老师生成少而准、可批改、能反映真实掌握情况的分层作业，避免把作业变成题量堆叠。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-chinese-lesson-planning",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-chinese-lesson-planning/SKILL.md",
+      "description": "帮助语文老师把“这节课讲什么”升级为目标、活动、提问、练习和评价一致的课堂设计，重点围绕阅读、表达、积累和思维品质。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-chinese-unit-review",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-chinese-unit-review/SKILL.md",
+      "description": "帮助语文老师把一个单元复习成知识结构、典型错因、主动回忆和再练习的闭环，而不是重新讲一遍。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-class-analysis-lite",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-class-analysis-lite/SKILL.md",
+      "description": "把班级练习、错题和课堂观察整理成老师能立刻调整教学的学情判断，而不是只给平均分。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-english-homework-generation",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-english-homework-generation/SKILL.md",
+      "description": "帮助英语老师生成少而准、可批改、能反映真实掌握情况的分层作业，避免把作业变成题量堆叠。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-english-lesson-planning",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-english-lesson-planning/SKILL.md",
+      "description": "帮助英语老师把“这节课讲什么”升级为目标、活动、提问、练习和评价一致的课堂设计，重点围绕词汇、语篇、听说读写和真实语境使用。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-english-unit-review",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-english-unit-review/SKILL.md",
+      "description": "帮助英语老师把一个单元复习成知识结构、典型错因、主动回忆和再练习的闭环，而不是重新讲一遍。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-geography-homework-generation",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-geography-homework-generation/SKILL.md",
+      "description": "帮助地理老师生成少而准、可批改、能反映真实掌握情况的分层作业，避免把作业变成题量堆叠。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-geography-lesson-planning",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-geography-lesson-planning/SKILL.md",
+      "description": "帮助地理老师把“这节课讲什么”升级为目标、活动、提问、练习和评价一致的课堂设计，重点围绕区域认知、地图判读、综合思维、地理实践力和人地协调观。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-geography-unit-review",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-geography-unit-review/SKILL.md",
+      "description": "帮助地理老师把一个单元复习成知识结构、典型错因、主动回忆和再练习的闭环，而不是重新讲一遍。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-history-homework-generation",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-history-homework-generation/SKILL.md",
+      "description": "帮助历史老师生成少而准、可批改、能反映真实掌握情况的分层作业，避免把作业变成题量堆叠。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-history-lesson-planning",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-history-lesson-planning/SKILL.md",
+      "description": "帮助历史老师把“这节课讲什么”升级为目标、活动、提问、练习和评价一致的课堂设计，重点围绕时空观念、史料实证、历史解释、因果关系和观点表达。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-history-unit-review",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-history-unit-review/SKILL.md",
+      "description": "帮助历史老师把一个单元复习成知识结构、典型错因、主动回忆和再练习的闭环，而不是重新讲一遍。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-homework-generation",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-homework-generation/SKILL.md",
+      "description": "帮助老师生成分层、可批改、不过量的作业，而不是堆题。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-lesson-planning",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-lesson-planning/SKILL.md",
+      "description": "把备课从罗列知识点变成目标、活动、评价一致的课堂设计。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-math-homework-generation",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-math-homework-generation/SKILL.md",
+      "description": "帮助数学老师生成少而准、可批改、能反映真实掌握情况的分层作业，避免把作业变成题量堆叠。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-math-lesson-planning",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-math-lesson-planning/SKILL.md",
+      "description": "帮助数学老师把“这节课讲什么”升级为目标、活动、提问、练习和评价一致的课堂设计，重点围绕概念理解、运算方法、建模和解题表达。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-math-unit-review",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-math-unit-review/SKILL.md",
+      "description": "帮助数学老师把一个单元复习成知识结构、典型错因、主动回忆和再练习的闭环，而不是重新讲一遍。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-parent-report-lite",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-parent-report-lite/SKILL.md",
+      "description": "帮助老师把学习表现转成家长听得懂、愿意配合、不过度焦虑的反馈报告。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-physics-homework-generation",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-physics-homework-generation/SKILL.md",
+      "description": "帮助物理老师生成少而准、可批改、能反映真实掌握情况的分层作业，避免把作业变成题量堆叠。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-physics-lesson-planning",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-physics-lesson-planning/SKILL.md",
+      "description": "帮助物理老师把“这节课讲什么”升级为目标、活动、提问、练习和评价一致的课堂设计，重点围绕概念模型、实验探究、图像分析和受力/电路等推理过程。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-physics-unit-review",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-physics-unit-review/SKILL.md",
+      "description": "帮助物理老师把一个单元复习成知识结构、典型错因、主动回忆和再练习的闭环，而不是重新讲一遍。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-politics-homework-generation",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-politics-homework-generation/SKILL.md",
+      "description": "帮助政治老师生成少而准、可批改、能反映真实掌握情况的分层作业，避免把作业变成题量堆叠。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-politics-lesson-planning",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-politics-lesson-planning/SKILL.md",
+      "description": "帮助政治老师把“这节课讲什么”升级为目标、活动、提问、练习和评价一致的课堂设计，重点围绕概念理解、材料分析、价值判断、现实情境和规范表达。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "teacher-politics-unit-review",
+      "category": "teacher-tools",
+      "upstream_path": "skills/teacher-tools/teacher-politics-unit-review/SKILL.md",
+      "description": "帮助政治老师把一个单元复习成知识结构、典型错因、主动回忆和再练习的闭环，而不是重新讲一遍。",
+      "deep_tutor_bucket": "developer_ops",
+      "deep_tutor_targets": [
+        "teacher_internal_tools"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Teacher-tool workflow may boost BI or教研 surfaces, but must not become student runtime authority."
+    },
+    {
+      "name": "agent-question-explanation",
+      "category": "learning-assistant",
+      "upstream_path": "skills/learning-assistant/agent-question-explanation/SKILL.md",
+      "description": "把一道题讲到学生真正会复述思路：先定位卡点，再用年级能听懂的语言拆解，最后用变式题确认理解。",
+      "deep_tutor_bucket": "adapt_to_construction",
+      "deep_tutor_targets": [
+        "construction-question-review"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P0",
+      "notes": "Question explanation workflow is useful, but answer reveal remains product-code authority."
+    },
+    {
+      "name": "senior-biology-bs-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/senior-biology-bs-textbook-sync/SKILL.md",
+      "description": "把北师大版高中生物的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。把生物教材同步做成能看图、会解释、能用证据表达的学习过程。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-case-grading"
+      ],
+      "authority_risk": "low",
+      "rewrite_required": "light",
+      "recommended_phase": "P2",
+      "notes": "Expression-improvement pattern can help case-answer rewrite, not scoring."
+    },
+    {
+      "name": "senior-biology-exam-review",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/senior-biology-exam-review/SKILL.md",
+      "description": "把高中生物考试备考从“泛泛刷题”变成诊断、提分优先级、限时训练、错题复盘和下次复测的闭环，帮助用户知道现在最该抓什么、每天怎么练、怎么判断有没有进步。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "senior-biology-quick-practice",
+      "category": "daily-practice",
+      "upstream_path": "skills/daily-practice/senior-biology-quick-practice/SKILL.md",
+      "description": "把高中生物每日打卡做成 10-15 分钟可坚持、可反馈、可复现的短训练。重点不是多刷题，而是围绕结构功能、生命过程、图表信息和实验变量形成当天闭环。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Generic short-practice cadence can inspire UX only; this skill is not a confirmed construction translation target."
+    },
+    {
+      "name": "senior-biology-rj-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/senior-biology-rj-textbook-sync/SKILL.md",
+      "description": "把人教版高中生物的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。把生物教材同步做成能看图、会解释、能用证据表达的学习过程。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-case-grading"
+      ],
+      "authority_risk": "low",
+      "rewrite_required": "light",
+      "recommended_phase": "P2",
+      "notes": "Expression-improvement pattern can help case-answer rewrite, not scoring."
+    },
+    {
+      "name": "senior-chemistry-exam-review",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/senior-chemistry-exam-review/SKILL.md",
+      "description": "把高中化学考试备考从“泛泛刷题”变成诊断、提分优先级、限时训练、错题复盘和下次复测的闭环，帮助用户知道现在最该抓什么、每天怎么练、怎么判断有没有进步。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "senior-chemistry-lk-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/senior-chemistry-lk-textbook-sync/SKILL.md",
+      "description": "把鲁科版高中化学的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。让化学同步学习不止记结论，而是能解释现象、写对符号、看懂实验。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "senior-chemistry-quick-practice",
+      "category": "daily-practice",
+      "upstream_path": "skills/daily-practice/senior-chemistry-quick-practice/SKILL.md",
+      "description": "把高中化学每日打卡做成 10-15 分钟可坚持、可反馈、可复现的短训练。重点不是多刷题，而是围绕概念辨析、实验现象、化学用语和反应规律形成当天闭环。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Generic short-practice cadence can inspire UX only; this skill is not a confirmed construction translation target."
+    },
+    {
+      "name": "senior-chemistry-rj-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/senior-chemistry-rj-textbook-sync/SKILL.md",
+      "description": "把人教版高中化学的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。让化学同步学习不止记结论，而是能解释现象、写对符号、看懂实验。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "senior-chinese-essay",
+      "category": "reading-writing",
+      "upstream_path": "skills/reading-writing/senior-chinese-essay/SKILL.md",
+      "description": "高中作文提升帮助学生把作文辅导从“代写一篇”变成审题、立意、选材、结构、语言和修改的全过程指导，输出可修改、可复盘、可继续练的阅读/写作任务，而不是替用户一次性完成任务。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-case-grading"
+      ],
+      "authority_risk": "low",
+      "rewrite_required": "light",
+      "recommended_phase": "P2",
+      "notes": "Expression-improvement pattern can help case-answer rewrite, not scoring."
+    },
+    {
+      "name": "senior-chinese-exam-review",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/senior-chinese-exam-review/SKILL.md",
+      "description": "把高中语文考试备考从“泛泛刷题”变成诊断、提分优先级、限时训练、错题复盘和下次复测的闭环，帮助用户知道现在最该抓什么、每天怎么练、怎么判断有没有进步。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "senior-chinese-quick-practice",
+      "category": "daily-practice",
+      "upstream_path": "skills/daily-practice/senior-chinese-quick-practice/SKILL.md",
+      "description": "把高中语文每日打卡做成 10-15 分钟可坚持、可反馈、可复现的短训练。重点不是多刷题，而是围绕字词积累、阅读依据、表达完整度和错字订正形成当天闭环。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Generic short-practice cadence can inspire UX only; this skill is not a confirmed construction translation target."
+    },
+    {
+      "name": "senior-chinese-reading",
+      "category": "reading-writing",
+      "upstream_path": "skills/reading-writing/senior-chinese-reading/SKILL.md",
+      "description": "高中语文阅读帮助学生把阅读训练从“做题对答案”升级为读懂文本、找到依据、组织表达和迁移方法，输出可修改、可复盘、可继续练的阅读/写作任务，而不是替用户一次性完成任务。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-case-grading"
+      ],
+      "authority_risk": "low",
+      "rewrite_required": "light",
+      "recommended_phase": "P2",
+      "notes": "Expression-improvement pattern can help case-answer rewrite, not scoring."
+    },
+    {
+      "name": "senior-chinese-tongbian-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/senior-chinese-tongbian-textbook-sync/SKILL.md",
+      "description": "把统编版高中语文的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。让家长和学生知道今天这篇课文到底要学会什么、怎么练才不空泛。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "senior-english-exam-review",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/senior-english-exam-review/SKILL.md",
+      "description": "把高中英语考试备考从“泛泛刷题”变成诊断、提分优先级、限时训练、错题复盘和下次复测的闭环，帮助用户知道现在最该抓什么、每天怎么练、怎么判断有没有进步。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "senior-english-quick-practice",
+      "category": "daily-practice",
+      "upstream_path": "skills/daily-practice/senior-english-quick-practice/SKILL.md",
+      "description": "把高中英语每日打卡做成 10-15 分钟可坚持、可反馈、可复现的短训练。重点不是多刷题，而是围绕词汇复现、语境理解、拼写准确和句子输出形成当天闭环。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Generic short-practice cadence can inspire UX only; this skill is not a confirmed construction translation target."
+    },
+    {
+      "name": "senior-english-rj-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/senior-english-rj-textbook-sync/SKILL.md",
+      "description": "把人教版高中英语的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。让英语同步学习从背单词变成会听、会读、会说、会写的短任务。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "senior-english-vocabulary-daily",
+      "category": "daily-practice",
+      "upstream_path": "skills/daily-practice/senior-english-vocabulary-daily/SKILL.md",
+      "description": "把高中英语每日打卡做成 10-15 分钟可坚持、可反馈、可复现的短训练。重点不是多刷题，而是围绕词汇复现、语境理解、拼写准确和句子输出形成当天闭环。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Generic short-practice cadence can inspire UX only; this skill is not a confirmed construction translation target."
+    },
+    {
+      "name": "senior-english-writing",
+      "category": "reading-writing",
+      "upstream_path": "skills/reading-writing/senior-english-writing/SKILL.md",
+      "description": "高中英语写作帮助英语学习者把英语写作从套模板变成任务回应、结构清楚、句子准确和表达有亮点，输出可修改、可复盘、可继续练的阅读/写作任务，而不是替用户一次性完成任务。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-case-grading"
+      ],
+      "authority_risk": "low",
+      "rewrite_required": "light",
+      "recommended_phase": "P2",
+      "notes": "Expression-improvement pattern can help case-answer rewrite, not scoring."
+    },
+    {
+      "name": "senior-english-wy-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/senior-english-wy-textbook-sync/SKILL.md",
+      "description": "把外研版高中英语的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。让英语同步学习从背单词变成会听、会读、会说、会写的短任务。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "senior-gaokao-sprint",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/senior-gaokao-sprint/SKILL.md",
+      "description": "把高考备考从“泛泛刷题”变成诊断、提分优先级、限时训练、错题复盘和下次复测的闭环，帮助用户知道现在最该抓什么、每天怎么练、怎么判断有没有进步。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "senior-geography-exam-review",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/senior-geography-exam-review/SKILL.md",
+      "description": "把高中地理考试备考从“泛泛刷题”变成诊断、提分优先级、限时训练、错题复盘和下次复测的闭环，帮助用户知道现在最该抓什么、每天怎么练、怎么判断有没有进步。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "senior-geography-quick-practice",
+      "category": "daily-practice",
+      "upstream_path": "skills/daily-practice/senior-geography-quick-practice/SKILL.md",
+      "description": "把高中地理每日打卡做成 10-15 分钟可坚持、可反馈、可复现的短训练。重点不是多刷题，而是围绕地图判读、区域特征、成因解释和图表信息形成当天闭环。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Generic short-practice cadence can inspire UX only; this skill is not a confirmed construction translation target."
+    },
+    {
+      "name": "senior-geography-rj-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/senior-geography-rj-textbook-sync/SKILL.md",
+      "description": "把人教版高中地理的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。让地理同步学习从背区域结论变成会读图、找证据、解释为什么。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "senior-geography-xj-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/senior-geography-xj-textbook-sync/SKILL.md",
+      "description": "把湘教版高中地理的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。让地理同步学习从背区域结论变成会读图、找证据、解释为什么。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "senior-history-exam-review",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/senior-history-exam-review/SKILL.md",
+      "description": "把高中历史考试备考从“泛泛刷题”变成诊断、提分优先级、限时训练、错题复盘和下次复测的闭环，帮助用户知道现在最该抓什么、每天怎么练、怎么判断有没有进步。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "senior-history-quick-practice",
+      "category": "daily-practice",
+      "upstream_path": "skills/daily-practice/senior-history-quick-practice/SKILL.md",
+      "description": "把高中历史每日打卡做成 10-15 分钟可坚持、可反馈、可复现的短训练。重点不是多刷题，而是围绕时间线、事件因果、材料信息和观点表达形成当天闭环。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Generic short-practice cadence can inspire UX only; this skill is not a confirmed construction translation target."
+    },
+    {
+      "name": "senior-history-tongbian-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/senior-history-tongbian-textbook-sync/SKILL.md",
+      "description": "把统编版高中历史的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。让历史同步学习从背年代结论变成会用材料说明因果和观点。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "senior-math-bs-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/senior-math-bs-textbook-sync/SKILL.md",
+      "description": "把北师大版高中数学的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。把教材单元变成今天能做、明天能复盘、错了能追练的学习闭环。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "senior-math-exam-review",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/senior-math-exam-review/SKILL.md",
+      "description": "把高中数学考试备考从“泛泛刷题”变成诊断、提分优先级、限时训练、错题复盘和下次复测的闭环，帮助用户知道现在最该抓什么、每天怎么练、怎么判断有没有进步。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "senior-math-quick-practice",
+      "category": "daily-practice",
+      "upstream_path": "skills/daily-practice/senior-math-quick-practice/SKILL.md",
+      "description": "把高中数学每日打卡做成 10-15 分钟可坚持、可反馈、可复现的短训练。重点不是多刷题，而是围绕计算准确率、方法选择、解题步骤和错因复盘形成当天闭环。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Generic short-practice cadence can inspire UX only; this skill is not a confirmed construction translation target."
+    },
+    {
+      "name": "senior-math-rja-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/senior-math-rja-textbook-sync/SKILL.md",
+      "description": "把人教A版高中数学的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。把教材单元变成今天能做、明天能复盘、错了能追练的学习闭环。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "senior-math-rjb-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/senior-math-rjb-textbook-sync/SKILL.md",
+      "description": "把人教B版高中数学的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。把教材单元变成今天能做、明天能复盘、错了能追练的学习闭环。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "senior-physics-exam-review",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/senior-physics-exam-review/SKILL.md",
+      "description": "把高中物理考试备考从“泛泛刷题”变成诊断、提分优先级、限时训练、错题复盘和下次复测的闭环，帮助用户知道现在最该抓什么、每天怎么练、怎么判断有没有进步。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "senior-physics-lk-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/senior-physics-lk-textbook-sync/SKILL.md",
+      "description": "把鲁科版高中物理的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。把物理教材同步变成现象-模型-证据-应用的清晰学习路径。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "senior-physics-quick-practice",
+      "category": "daily-practice",
+      "upstream_path": "skills/daily-practice/senior-physics-quick-practice/SKILL.md",
+      "description": "把高中物理每日打卡做成 10-15 分钟可坚持、可反馈、可复现的短训练。重点不是多刷题，而是围绕概念辨析、模型条件、图像/实验信息和推理步骤形成当天闭环。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Generic short-practice cadence can inspire UX only; this skill is not a confirmed construction translation target."
+    },
+    {
+      "name": "senior-physics-rj-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/senior-physics-rj-textbook-sync/SKILL.md",
+      "description": "把人教版高中物理的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。把物理教材同步变成现象-模型-证据-应用的清晰学习路径。",
+      "deep_tutor_bucket": "future_product",
+      "deep_tutor_targets": [
+        "construction_kb_sync"
+      ],
+      "authority_risk": "high",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Textbook-sync shape is interesting, but construction KB and RAG provenance stay authoritative."
+    },
+    {
+      "name": "senior-politics-exam-review",
+      "category": "exam-prep",
+      "upstream_path": "skills/exam-prep/senior-politics-exam-review/SKILL.md",
+      "description": "把高中政治考试备考从“泛泛刷题”变成诊断、提分优先级、限时训练、错题复盘和下次复测的闭环，帮助用户知道现在最该抓什么、每天怎么练、怎么判断有没有进步。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-study-assistant"
+      ],
+      "authority_risk": "medium",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P1",
+      "notes": "Exam-prep structure may be reused, but construction exam content must be rewritten."
+    },
+    {
+      "name": "senior-politics-quick-practice",
+      "category": "daily-practice",
+      "upstream_path": "skills/daily-practice/senior-politics-quick-practice/SKILL.md",
+      "description": "把高中政治每日打卡做成 10-15 分钟可坚持、可反馈、可复现的短训练。重点不是多刷题，而是围绕概念理解、材料提取、观点组织和规范表达形成当天闭环。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [],
+      "authority_risk": "low",
+      "rewrite_required": "heavy",
+      "recommended_phase": "P2",
+      "notes": "Generic short-practice cadence can inspire UX only; this skill is not a confirmed construction translation target."
+    },
+    {
+      "name": "senior-politics-tongbian-textbook-sync",
+      "category": "textbook-sync",
+      "upstream_path": "skills/textbook-sync/senior-politics-tongbian-textbook-sync/SKILL.md",
+      "description": "把统编版高中政治的年级、册别、单元和学习场景，转成预习、同步练习、错题追练、单元复习和考前巩固等可直接执行的学习任务。让道法/政治同步学习从背模板变成会读材料、会表达观点。",
+      "deep_tutor_bucket": "template_only",
+      "deep_tutor_targets": [
+        "construction-case-grading"
+      ],
+      "authority_risk": "low",
+      "rewrite_required": "light",
+      "recommended_phase": "P2",
+      "notes": "Expression-improvement pattern can help case-answer rewrite, not scoring."
+    }
+  ]
+}

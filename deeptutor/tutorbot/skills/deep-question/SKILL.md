@@ -12,6 +12,30 @@ Use the `exec` tool to invoke DeepTutor's quiz generation pipeline (ideation →
 - 用户说“出题 / 考我 / 来一道 / 练习 / 下一题”时，只给题目，不要主动公布答案或解析。
 - 只有用户明确要求“带答案 / 附解析 / 公布答案”时，才展示答案或解析。
 
+## Authority
+
+| Business fact | Authority | This Skill responsibility |
+| --- | --- | --- |
+| Question generation pipeline | `deep_question` capability | Invoke ideation, evaluation, generation, and validation |
+| Topic and constraints | User request / runtime context | Pass language, count, difficulty, type, and grounding config |
+| Answer visibility | `answer_reveal_policy` / caller policy | Default to question-only output |
+| Domain adaptation | Caller skill such as `construction-question-supply` | Receive constraints, but do not invent domain authority |
+
+## Forbidden Authority
+
+- Do not grade user answers or produce a grading result.
+- Do not write learner state, mistake book items, reports, or long-term plans.
+- Do not decide TutorBot routing; callers choose when to invoke this skill.
+- Do not bypass validation or answer-reveal policy by exposing hidden answers by default.
+- Do not turn generated questions into official question-bank rows.
+
+## Anti-Patterns
+
+- User asks "quiz me", and the response includes the answer key without being asked.
+- The caller provides a domain authority, but this skill overrides it with generic assumptions.
+- Generated questions skip validation and are treated as production question-bank content.
+- The skill writes study progress or weakness diagnosis directly after generating a question.
+
 ## When to Use
 
 - User wants **practice questions** or **quizzes** on a topic

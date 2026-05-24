@@ -13,6 +13,7 @@ from deeptutor.services.question_followup import (
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_result_summary,
     detect_answer_reveal_preference,
+    extract_choice_result_summary_from_text,
     normalize_question_followup_context,
     resolve_submission_attempt,
 )
@@ -241,6 +242,10 @@ class TutorBotCapability(BaseCapability):
                 # submit-able MCQ presentation when the answer key came from an
                 # exact authoritative question source.
                 display_result_summary = state_result_summary
+                if display_result_summary is None and looks_like_practice_generation_request(context.user_message):
+                    # Generated practice text may still be rendered as a card,
+                    # but it must not become follow-up/grading authority.
+                    display_result_summary = extract_choice_result_summary_from_text(final_response)
             reveal_answers, reveal_explanations = self._reveal_reference_flags(context)
             visible_response = self._build_visible_response(
                 context=context,
@@ -283,6 +288,14 @@ class TutorBotCapability(BaseCapability):
                 "reveal_answers": reveal_answers,
                 "reveal_explanations": reveal_explanations,
             }
+            for metadata_key in (
+                "question_lifecycle_scene",
+                "skill_stack",
+                "loader_source",
+                "skill_source_status",
+            ):
+                if metadata_key in session_metadata:
+                    result_payload[metadata_key] = session_metadata[metadata_key]
             if display_result_summary:
                 presentation = build_canonical_presentation(
                     content=visible_response,

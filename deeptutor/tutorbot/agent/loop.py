@@ -50,7 +50,6 @@ from deeptutor.tutorbot.teaching_modes import (
     detect_construction_exam_scene,
     get_construction_exam_boundary_fact_instruction,
     get_anchor_preservation_instruction,
-    get_construction_exam_skill_instruction,
     get_lecture_skill_instruction,
     get_practice_generation_instruction,
     get_teaching_mode_instruction,
@@ -1626,8 +1625,24 @@ class AgentLoop:
                 answer_type=str(metadata.get("answer_type") or metadata.get("intent") or "").strip(),
                 followup_context=self._followup_context_from_metadata(metadata),
             )
-            skill_instruction = get_construction_exam_skill_instruction(scene)
+            from deeptutor.services.question_lifecycle_skills import (
+                build_question_lifecycle_skill_context_from_legacy_scene,
+            )
+
+            skill_context = build_question_lifecycle_skill_context_from_legacy_scene(
+                scene,
+                skills_loader=self.context.skills,
+            )
+            skill_instruction = skill_context.instructions
             if skill_instruction:
+                runtime_metadata["question_lifecycle_scene"] = str(skill_context.scene or scene)
+                runtime_metadata["skill_stack"] = list(skill_context.skill_names)
+                runtime_metadata["loader_source"] = dict(skill_context.loader_sources)
+                runtime_metadata["skill_source_status"] = {
+                    "complete": skill_context.source_status.complete,
+                    "missing_skills": list(skill_context.source_status.missing_skills),
+                    "missing_assets": list(skill_context.source_status.missing_assets),
+                }
                 parts.append(skill_instruction)
 
         lecture_instruction = get_lecture_skill_instruction(current_message)

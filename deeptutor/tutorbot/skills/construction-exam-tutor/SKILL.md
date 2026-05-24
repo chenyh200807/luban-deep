@@ -16,6 +16,31 @@ always: false
 - 优先结合知识库或检索证据，不编造条文号和精确参数
 - 收束为陈述句，不主动追加追问
 
+## Authority
+
+| 业务事实 | Authority | 本 Skill 的职责 |
+| --- | --- | --- |
+| 建筑实务教学表达 | 本 Skill + 场景 reference | 组织结论、考点、判断抓手和表达方式 |
+| 题目与答案显隐 | active question / `answer_reveal_policy` | 遵守当前题目状态，不绕过显隐策略 |
+| 知识依据 | `rag` / 题库解析 / provenance | 支撑条文、流程、数值和教材口径 |
+| 阅卷与判分 | `construction-mcq-grading` / `construction-case-grading` | 识别后转交，不自行评分 |
+| 题目生成 | `construction-question-supply` / `deep_question` | 识别后转交，不自行生成正式练题对象 |
+
+## Forbidden Authority
+
+- 不直接给用户答案打分、估分或产出正式 grading result。
+- 不写 learner state、错题本、学习报告或长期学习计划。
+- 不决定系统主路由；只在 TutorBot 已选中教学讲解场景后组织表达。
+- 不新建第二套 RAG 模式、题库来源、answer reveal 规则或教学身份。
+- 不把口诀、心得、泛知识讲义放在题目和证据之前。
+
+## Anti-Patterns
+
+- 用户提交答案问"对吗"时，本 Skill 自行判分而不是转给 grading skill。
+- 未确认 reveal policy 就直接公布标准答案、采分点或正确选项。
+- 精确规范条文、年限、数字门槛没有来源时仍然编造。
+- 把一个选择题/案例题讲成整章讲义，丢掉题干、问法和选项锚点。
+
 ## 渐进式加载
 
 先遵守本 skill 的总则，再按场景只加载一个细分 reference：

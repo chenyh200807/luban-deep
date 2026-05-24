@@ -29,7 +29,7 @@ from deeptutor.services.learner_state.learning_brain_read_model import (
 )
 from deeptutor.services.path_service import PathService, get_path_service
 from deeptutor.services.learner_state.supabase_store import LearnerStateSupabaseSyncCoreStore
-from deeptutor.services.runtime_env import is_production_environment
+from deeptutor.services.runtime_env import env_flag, is_production_environment
 
 llm_stream: Any | None = None
 logger = logging.getLogger(__name__)
@@ -509,6 +509,15 @@ class LearnerStateService:
     def list_memory_events(self, user_id: str, limit: int | None = 20) -> list[LearnerStateEvent]:
         normalized = _normalize_user_id(user_id)
         self._ensure_seed_state(normalized)
+        local_events = self._list_local_memory_events(normalized)
+        if (
+            local_events
+            and not is_production_environment()
+            and env_flag("DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK", default=False)
+        ):
+            if limit is None or limit < 0:
+                return local_events
+            return local_events[-limit:]
         if bool(getattr(self._core_store, "is_configured", False)):
             reader = getattr(self._core_store, "read_memory_events", None)
             if callable(reader):
@@ -526,7 +535,7 @@ class LearnerStateService:
                     if is_production_environment():
                         return []
 
-        events = self._list_local_memory_events(normalized)
+        events = local_events
         if limit is None or limit < 0:
             return events
         return events[-limit:]

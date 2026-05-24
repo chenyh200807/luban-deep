@@ -3,50 +3,26 @@
 from __future__ import annotations
 
 import re
-from pathlib import Path
 from typing import Any, Literal
 
 from deeptutor.tutorbot.response_mode import normalize_requested_response_mode
 
 TutorBotTeachingMode = Literal["smart", "fast", "deep"]
-ConstructionExamScene = Literal["general", "concept", "mcq", "mcq_grading", "case", "case_grading", "error_review"]
+ConstructionExamScene = Literal[
+    "general",
+    "concept",
+    "mcq",
+    "mcq_grading",
+    "case",
+    "case_grading",
+    "error_review",
+    "question_supply",
+    "question_review",
+]
 
 _SMART: TutorBotTeachingMode = "smart"
 _FAST: TutorBotTeachingMode = "fast"
 _DEEP: TutorBotTeachingMode = "deep"
-_SKILL_DIR = Path(__file__).resolve().parent / "skills" / "construction-exam-tutor"
-_SKILL_FILE = _SKILL_DIR / "SKILL.md"
-_MCQ_GRADING_SKILL_DIR = Path(__file__).resolve().parent / "skills" / "construction-mcq-grading"
-_MCQ_GRADING_SKILL_FILE = _MCQ_GRADING_SKILL_DIR / "SKILL.md"
-_CASE_GRADING_SKILL_DIR = Path(__file__).resolve().parent / "skills" / "construction-case-grading"
-_CASE_GRADING_SKILL_FILE = _CASE_GRADING_SKILL_DIR / "SKILL.md"
-_LECTURE_SKILL_DIR = Path(__file__).resolve().parent / "skills" / "lecture-waterproof-energy-decoration"
-_LECTURE_SKILL_FILE = _LECTURE_SKILL_DIR / "SKILL.md"
-_SCENE_REFERENCES: dict[ConstructionExamScene, str | None] = {
-    "general": None,
-    "concept": "references/concept-explainer.md",
-    "mcq": "references/mcq-review.md",
-    "mcq_grading": None,
-    "case": "references/case-analysis.md",
-    "case_grading": None,
-    "error_review": "references/error-review.md",
-}
-_LECTURE_TOPIC_REFERENCES = {
-    "waterproof": "references/waterproof.md",
-    "energy_saving": "references/energy-saving.md",
-    "decoration": "references/decoration.md",
-}
-_MCQ_GRADING_REFERENCES = (
-    "references/mcq-grading-protocol.md",
-    "references/mcq-error-taxonomy.md",
-    "references/mcq-source-grounding.md",
-)
-_CASE_GRADING_REFERENCES = (
-    "references/data-authority.md",
-    "references/source-grounding.md",
-    "references/grading-protocol.md",
-    "references/error-taxonomy.md",
-)
 _BUILDING_ANCHOR_RE = re.compile(
     r"([0-9一二两三四五六七八九十百]+层(?:住宅楼|办公楼|教学楼|厂房|宿舍楼|综合楼|商住楼|楼))",
     flags=re.IGNORECASE,
@@ -477,6 +453,9 @@ def detect_construction_exam_scene(
         "改成得分答案",
         "答案怎么改",
     )
+    if looks_like_practice_generation_request(user_message) and not any(marker in text for marker in grading_markers):
+        return "question_supply"
+
     case_like_question_type = str(followup.get("question_type") or answer_type or "").strip().lower() in {
         "case",
         "case_study",
@@ -535,6 +514,19 @@ def detect_construction_exam_scene(
     if any(marker in text for marker in ("错题", "复盘", "为什么错", "又错了", "我选错", "帮我复盘")):
         return "error_review"
 
+    review_markers = (
+        "分析这道",
+        "讲一下这题",
+        "讲讲这题",
+        "真题分析",
+        "考点是什么",
+        "答题思路",
+        "先别告诉我答案",
+        "逐项解析",
+    )
+    if any(marker in text for marker in review_markers) and not any(marker in text for marker in case_markers):
+        return "question_review"
+
     if any(marker in text for marker in case_markers):
         return "case"
 
@@ -549,56 +541,21 @@ def detect_construction_exam_scene(
 
 
 def get_construction_exam_skill_instruction(scene: ConstructionExamScene | str = "general") -> str:
-    parts: list[str] = []
+    """Compatibility shim over the shared question lifecycle skill builder."""
+    from deeptutor.services.question_lifecycle_skills import (
+        build_question_lifecycle_skill_context_from_legacy_scene,
+    )
 
-    skill_body = _read_skill_file(_SKILL_FILE)
-    if skill_body:
-        parts.append(skill_body)
-
-    reference_path = _SCENE_REFERENCES.get(str(scene), None)
-    if reference_path:
-        reference_body = _read_skill_file(_SKILL_DIR / reference_path)
-        if reference_body:
-            parts.append(reference_body)
-
-    if str(scene) == "mcq_grading":
-        mcq_grading_skill_body = _read_skill_file(_MCQ_GRADING_SKILL_FILE)
-        if mcq_grading_skill_body:
-            parts.append(mcq_grading_skill_body)
-        for reference_path in _MCQ_GRADING_REFERENCES:
-            reference_body = _read_skill_file(_MCQ_GRADING_SKILL_DIR / reference_path)
-            if reference_body:
-                parts.append(reference_body)
-
-    if str(scene) == "case_grading":
-        grading_skill_body = _read_skill_file(_CASE_GRADING_SKILL_FILE)
-        if grading_skill_body:
-            parts.append(grading_skill_body)
-        for reference_path in _CASE_GRADING_REFERENCES:
-            reference_body = _read_skill_file(_CASE_GRADING_SKILL_DIR / reference_path)
-            if reference_body:
-                parts.append(reference_body)
-
-    return "\n\n".join(part for part in parts if part).strip()
+    return build_question_lifecycle_skill_context_from_legacy_scene(scene).instructions
 
 
 def get_lecture_skill_instruction(user_message: str | None) -> str:
     topic = detect_lecture_topic(user_message)
     if topic is None:
         return ""
+    from deeptutor.services.question_lifecycle_skills import build_lecture_skill_instruction
 
-    parts: list[str] = []
-    skill_body = _read_skill_file(_LECTURE_SKILL_FILE)
-    if skill_body:
-        parts.append(skill_body)
-
-    reference_path = _LECTURE_TOPIC_REFERENCES.get(topic)
-    if reference_path:
-        reference_body = _read_skill_file(_LECTURE_SKILL_DIR / reference_path)
-        if reference_body:
-            parts.append(reference_body)
-
-    return "\n\n".join(part for part in parts if part).strip()
+    return build_lecture_skill_instruction(topic)
 
 
 def detect_lecture_topic(user_message: str | None) -> str | None:
@@ -612,14 +569,3 @@ def detect_lecture_topic(user_message: str | None) -> str | None:
     if any(marker in text for marker in ("装修", "装饰", "抹灰", "吊顶", "轻质隔墙", "饰面板", "涂饰", "幕墙")):
         return "decoration"
     return None
-
-
-def _read_skill_file(path: Path) -> str:
-    if not path.exists():
-        return ""
-    content = path.read_text(encoding="utf-8").strip()
-    if content.startswith("---"):
-        match = re.match(r"^---\n.*?\n---\n?", content, re.DOTALL)
-        if match:
-            content = content[match.end():].strip()
-    return content
