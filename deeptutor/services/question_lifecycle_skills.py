@@ -24,6 +24,7 @@ attach_question_lifecycle_scene_to_context).
 from __future__ import annotations
 
 import logging
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -276,6 +277,9 @@ _QUESTION_REVIEW_FREETEXT_PHRASES: tuple[str, ...] = (
     "讲一道真题",
     "解析一道真题",
 )
+_QUESTION_REVIEW_FREETEXT_RE = re.compile(
+    r"(?:分析|讲解|解析|讲)\s*(?:一|1)?\s*(?:道|题)?[^，。！？；\n]{0,24}?真题"
+)
 
 _MCQ_QUESTION_TYPES: frozenset[str] = frozenset(
     {
@@ -340,7 +344,9 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
     if looks_like_practice_generation_request(user_message):
         return "practice_generation"
 
-    if any(phrase in user_message for phrase in _QUESTION_REVIEW_FREETEXT_PHRASES):
+    if any(phrase in user_message for phrase in _QUESTION_REVIEW_FREETEXT_PHRASES) or (
+        _QUESTION_REVIEW_FREETEXT_RE.search(user_message) is not None
+    ):
         return "question_review"
 
     if question_context and looks_like_question_followup(user_message, question_context):

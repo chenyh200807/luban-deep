@@ -30,6 +30,7 @@ from deeptutor.services.question_followup import (
     build_question_followup_context_from_result_summary,
     normalize_question_followup_context,
     resolve_submission_attempt,
+    should_block_unanswered_reference_reveal,
     should_reveal_reference_material,
 )
 from deeptutor.services.render_presentation import build_canonical_presentation
@@ -2189,7 +2190,12 @@ class DeepQuestionCapability(BaseCapability):
         force_default_decision: bool = False,
     ) -> None:
         async with stream.stage("generation", source=self.name):
-            if _should_render_deterministic_reference_feedback(
+            if should_block_unanswered_reference_reveal(
+                context.user_message,
+                followup_question_context,
+            ):
+                answer = "练习阶段不公开答案；你先作答，或明确说“我放弃这题/跳过这题”后，我再展示答案和解析。"
+            elif _should_render_deterministic_reference_feedback(
                 context.user_message,
                 followup_question_context,
             ):

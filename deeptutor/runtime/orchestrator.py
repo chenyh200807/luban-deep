@@ -14,6 +14,7 @@ import logging
 import os
 import re
 import uuid
+from types import SimpleNamespace
 from typing import Any, AsyncIterator
 
 from deeptutor.core.context import UnifiedContext
@@ -30,6 +31,10 @@ from deeptutor.services.question_followup import (
     interpret_question_followup_action,
     looks_like_question_followup,
     resolve_submission_attempt,
+)
+from deeptutor.services.question_lifecycle_skills import (
+    derive_question_lifecycle_scene,
+    select_question_lifecycle_skill_names,
 )
 from deeptutor.services.semantic_router import (
     build_active_object_from_question_context,
@@ -187,6 +192,15 @@ class ChatOrchestrator:
                 str(context.active_capability or "").strip(),
             )
             return context.active_capability
+
+        if self._looks_like_free_text_question_review_request(context, routing_user_message):
+            self._prepare_free_text_question_review_context(context, routing_user_message)
+            context.metadata["semantic_router_mode"] = "question_lifecycle"
+            context.metadata["semantic_router_mode_reason"] = "free_text_question_review"
+            context.metadata["semantic_router_shadow_decision"] = {}
+            context.metadata["semantic_router_shadow_route"] = ""
+            context.metadata["semantic_router_selected_capability"] = "deep_question"
+            return "deep_question"
 
         semantic_router_enabled = self._semantic_router_enabled(context)
         semantic_router_shadow_mode = self._semantic_router_shadow_mode(context)
@@ -385,6 +399,10 @@ class ChatOrchestrator:
             self._prepare_practice_request_context(context, message)
             return "deep_question"
 
+        if self._looks_like_free_text_question_review_request(context, message):
+            self._prepare_free_text_question_review_context(context, message)
+            return "deep_question"
+
         if self._looks_like_question_followup(context, message):
             return "deep_question"
 
@@ -488,6 +506,41 @@ class ChatOrchestrator:
         if not isinstance(qctx, dict) or not qctx.get("question"):
             return False
         return looks_like_question_followup(message, qctx)
+
+    def _looks_like_free_text_question_review_request(
+        self,
+        context: UnifiedContext,
+        message: str,
+    ) -> bool:
+        qctx = question_context_from_active_object(context.metadata.get("active_object")) or (
+            context.metadata.get("question_followup_context", {}) or {}
+        )
+        if isinstance(qctx, dict) and qctx.get("question"):
+            return False
+        scene = derive_question_lifecycle_scene(
+            SimpleNamespace(user_message=message, metadata=context.metadata)
+        )
+        return scene == "question_review"
+
+    def _prepare_free_text_question_review_context(
+        self,
+        context: UnifiedContext,
+        message: str,
+    ) -> None:
+        if not isinstance(context.config_overrides, dict):
+            context.config_overrides = {}
+        context.config_overrides.setdefault("mode", "custom")
+        context.config_overrides.setdefault("topic", message)
+        context.config_overrides.setdefault("num_questions", 1)
+        context.config_overrides.setdefault("question_type", self._preferred_question_type(message))
+        context.config_overrides["force_generate_questions"] = True
+        context.config_overrides["reveal_answers"] = True
+        context.config_overrides["reveal_explanations"] = True
+        context.config_overrides.setdefault("lightweight_generation", False)
+        context.metadata["question_lifecycle_scene"] = "question_review"
+        context.metadata["question_lifecycle_skill_names"] = list(
+            select_question_lifecycle_skill_names("question_review")
+        )
 
     @staticmethod
     def _preferred_question_type(message: str) -> str:

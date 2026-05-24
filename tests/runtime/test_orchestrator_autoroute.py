@@ -164,6 +164,38 @@ async def test_orchestrator_uses_tutorbot_as_default_chat_engine_after_semantic_
 
 
 @pytest.mark.asyncio
+async def test_orchestrator_materializes_free_text_real_exam_review_before_explaining() -> None:
+    """A request like "分析一道真题" must create a question object first.
+
+    Production case 2026-05-24: routing this to TutorBot free text produced a
+    generic answer-analysis without a stem/options anchor. The question
+    lifecycle authority should route this through deep_question so the learner
+    sees the concrete question before the answer explanation.
+    """
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-real-exam-review",
+        user_message="分析一道验槽方法真题",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={},
+        language="zh",
+    )
+
+    events = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.metadata["question_lifecycle_scene"] == "question_review"
+    assert context.config_overrides["force_generate_questions"] is True
+    assert context.config_overrides["reveal_answers"] is True
+    assert context.config_overrides["reveal_explanations"] is True
+    result = next(event for event in events if event.type.value == "result")
+    assert result.metadata["capability"] == "auto"
+
+
+@pytest.mark.asyncio
 async def test_preselected_deep_question_grades_submission_before_practice_generation() -> None:
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()

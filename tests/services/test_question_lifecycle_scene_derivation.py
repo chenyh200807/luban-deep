@@ -90,6 +90,12 @@ def test_unrelated_chat_returns_none():
     assert derive_question_lifecycle_scene(ctx) is None
 
 
+def test_topic_qualified_real_exam_review_returns_question_review():
+    """Topic words between "一道" and "真题" still mean a real-question review."""
+    ctx = _FakeContext(user_message="分析一道验槽方法真题")
+    assert derive_question_lifecycle_scene(ctx) == "question_review"
+
+
 def test_mixed_turn_submission_takes_priority_over_generation_intent():
     """Plan §5.1 mixed-turn priority: active-object submission always wins."""
     ctx = _FakeContext(
