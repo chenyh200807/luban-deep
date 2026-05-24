@@ -323,6 +323,7 @@ class TutorBotCapability(BaseCapability):
             for metadata_key in (
                 "question_lifecycle_scene",
                 "skill_stack",
+                "skill_trace",
                 "loader_source",
                 "skill_source_status",
             ):

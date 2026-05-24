@@ -396,9 +396,17 @@ def test_tutorbot_manager_reads_conversations_from_sqlite(tmp_path) -> None:
 
 
 @pytest.mark.asyncio
-async def test_tutorbot_manager_send_message_reuses_outer_usage_scope_for_external_turn() -> None:
+async def test_tutorbot_manager_send_message_reuses_outer_usage_scope_for_external_turn(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     observability = get_langfuse_observability()
     manager = TutorBotManager()
+    captured_update: dict[str, object] = {}
+
+    def _capture_update_observation(*args, **kwargs) -> None:
+        captured_update["metadata"] = kwargs.get("metadata")
+
+    monkeypatch.setattr(observability, "update_observation", _capture_update_observation)
 
     class _FakeSessions:
         def __init__(self) -> None:
@@ -416,6 +424,23 @@ async def test_tutorbot_manager_send_message_reuses_outer_usage_scope_for_extern
             self.sessions = _FakeSessions()
 
         async def process_direct(self, *args, **kwargs) -> str:
+            metadata = kwargs.get("metadata")
+            if isinstance(metadata, dict):
+                metadata["skill_stack"] = ["construction-exam-tutor"]
+                metadata["skill_trace"] = [
+                    {
+                        "name": "construction-exam-tutor",
+                        "kind": "construction_default",
+                        "status": "loaded",
+                        "source": "builtin",
+                    }
+                ]
+                metadata["loader_source"] = {"construction-exam-tutor": "builtin"}
+                metadata["skill_source_status"] = {
+                    "complete": True,
+                    "missing_skills": [],
+                    "missing_assets": [],
+                }
             observability.record_usage(
                 usage_details={"input": 100.0, "output": 20.0, "total": 120.0},
                 cost_details={"input": 0.0, "output": 0.0, "total": 0.001},
@@ -462,3 +487,5 @@ async def test_tutorbot_manager_send_message_reuses_outer_usage_scope_for_extern
     assert summary["total_tokens"] == 120
     assert summary["measured_calls"] == 1
     assert summary["usage_sources"]["provider"] == 1
+    assert captured_update["metadata"]["skill_trace"][0]["name"] == "construction-exam-tutor"
+    assert captured_update["metadata"]["skill_stack"] == ["construction-exam-tutor"]
