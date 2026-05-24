@@ -1,0 +1,21 @@
+name: Hermes Upstream Sentinel
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 3 * * 1"
+
+jobs:
+  hermes-upstream:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch pinned Hermes upstream
+        run: bash scripts/fetch_hermes_upstream.sh
+
+      - name: Check upstream drift
+        run: python scripts/check_hermes_upstream.py --fail-on-drift
+
+      - name: Scan committed Hermes sandbox summaries
+        run: python scripts/scan_hermes_sandbox_transcripts.py

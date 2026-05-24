@@ -415,6 +415,7 @@ Validation:
 
 ```bash
 HERMES_EDU_SOURCE=${HERMES_EDU_SOURCE:-~/.cache/deeptutor/hermes-edu-skills}
+bash scripts/fetch_hermes_upstream.sh
 npm --prefix "$HERMES_EDU_SOURCE" run validate
 ```
 
@@ -461,6 +462,41 @@ Expected:
 - At least `agent-mistake-review`, `agent-question-explanation`, `agent-socratic-tutor`, `adult-vocational-certificate`, and `agent-learning-report` have explicit construction mappings or explicit rejection reasons.
 - `adapt_to_construction` is not a generic todo bucket. It only contains explicitly mapped skills or daily-practice skills whose metadata is construction/adult-vocational relevant.
 - Generic K12 daily-practice skills remain `template_only` or lower.
+
+### Phase 0.5: P1 Operational Guardrails
+
+Create:
+
+```text
+scripts/fetch_hermes_upstream.sh
+scripts/check_hermes_upstream.py
+scripts/scan_hermes_sandbox_transcripts.py
+.github/workflows/hermes-upstream.yml
+tests/scripts/test_fetch_hermes_upstream_script.py
+tests/scripts/test_check_hermes_upstream.py
+tests/scripts/test_scan_hermes_sandbox_transcripts.py
+```
+
+Rules:
+
+- `fetch_hermes_upstream.sh` is the only blessed bootstrap path for local/CI upstream snapshots. It uses `HERMES_EDU_SOURCE` when present and otherwise writes to `~/.cache/deeptutor/hermes-edu-skills`.
+- `check_hermes_upstream.py` compares the pinned DeepTutor inventory version with upstream `package.json` first, then `catalog.json`. Local use warns on drift; scheduled CI uses `--fail-on-drift` so the team sees upstream changes.
+- `scan_hermes_sandbox_transcripts.py` scans only sandbox files/summaries for common raw PII patterns before commit/CI. It is not a runtime redaction engine and must not be used as learner-state authority.
+- Weekly GitHub Action fetches the pinned upstream snapshot, checks drift, and scans committed Hermes sandbox summaries.
+
+Validation:
+
+```bash
+pytest tests/scripts/test_check_hermes_upstream.py tests/scripts/test_scan_hermes_sandbox_transcripts.py tests/scripts/test_fetch_hermes_upstream_script.py -q
+python scripts/check_hermes_upstream.py --source "$HERMES_EDU_SOURCE"
+python scripts/scan_hermes_sandbox_transcripts.py
+```
+
+Expected:
+
+- Version match prints `INFO`.
+- Version mismatch prints `WARN`; with `--fail-on-drift` it exits non-zero.
+- Missing `docs/sandbox` is OK; raw phone/email/openid/name-labeled transcript files fail.
 
 ### Phase 1: DeepTutor Skill Registry and Validator
 
@@ -700,9 +736,13 @@ P0 is complete only when these exist:
 
 ```bash
 HERMES_EDU_SOURCE=${HERMES_EDU_SOURCE:-~/.cache/deeptutor/hermes-edu-skills}
+bash scripts/fetch_hermes_upstream.sh
+python scripts/check_hermes_upstream.py --source "$HERMES_EDU_SOURCE"
 python scripts/hermes_edu_booster_inventory.py --source "$HERMES_EDU_SOURCE" --output docs/plan/artifacts/hermes-edu-skills-inventory.json
 python scripts/validate_tutorbot_skills.py --strict
+python scripts/scan_hermes_sandbox_transcripts.py
 pytest tests/scripts/test_hermes_edu_booster_inventory.py tests/scripts/test_validate_tutorbot_skills.py -q
+pytest tests/scripts/test_check_hermes_upstream.py tests/scripts/test_scan_hermes_sandbox_transcripts.py tests/scripts/test_fetch_hermes_upstream_script.py -q
 pytest tests/scripts/test_hermes_edu_booster_inventory.py tests/scripts/test_validate_tutorbot_skills.py tests/services/test_question_lifecycle_skills.py tests/services/test_tutorbot_teaching_modes.py tests/core/test_capabilities_runtime.py -q
 pytest tests/services/test_question_lifecycle_skills.py tests/services/test_tutorbot_teaching_modes.py tests/core/test_capabilities_runtime.py::test_tutorbot_progressive_skills_load_construction_scene_for_fast_and_deep -q
 pytest tests/core/test_capabilities_runtime.py -q
@@ -732,7 +772,7 @@ pytest tests/services/construction_grading -q
 ### 10.4 Sandbox Gates
 
 - Hermes + Weixin workflows are labeled experimental.
-- No transcript with PII enters repo.
+- No transcript with PII enters repo; `python scripts/scan_hermes_sandbox_transcripts.py` must pass before committing sandbox summaries.
 - No sandbox memory is treated as DeepTutor learner state.
 
 ## 11. Risks and Mitigations
@@ -744,7 +784,9 @@ pytest tests/services/construction_grading -q
 | Skill markdown becomes learner-state truth | Skill calculates mastery or weak points | Validator forbids table names, formulas, thresholds and prescription leakage in expression-layer skills |
 | Grading becomes prompt-only | Skill invents score without kernel | Grading skills must delegate to `construction_grading` |
 | Hidden answer leaks | Review skill reveals answer before attempt | Product code enforces reveal policy; skill only reinforces |
+| Upstream drift goes unnoticed | v0.19 changes inventory but DeepTutor still trusts v0.18.6 mappings | Weekly `hermes-upstream` sentinel fetches pinned upstream and runs `check_hermes_upstream.py --fail-on-drift` |
 | Sandbox contaminates production | Hermes Weixin transcript written to learner state | Sandbox cannot write production state |
+| Sandbox raw PII committed | Weixin/Hermes transcript lands under docs without redaction | `scan_hermes_sandbox_transcripts.py` blocks common phone/email/openid/name-labeled patterns |
 | Ecosystem export leaks private data | Internal prompts or paths exported | Export script strips private fields and runs security check |
 | Over-expansion into K12 | Product focus diffuses | P0 only construction-exam lifecycle |
 
@@ -786,6 +828,12 @@ pytest tests/services/construction_grading -q
 - [x] Add authority and anti-pattern sections.
 - [x] Run static validator and script tests.
 
+### P1 Guardrail Day
+
+- [x] Add upstream fetch script with pinned ref and commit-prefix check.
+- [x] Add upstream drift sentinel and weekly GitHub Action.
+- [x] Add Hermes sandbox PII scanner and script tests.
+
 ## 14. Decision Log
 
 | Decision | Status |
@@ -795,6 +843,7 @@ pytest tests/services/construction_grading -q
 | First runtime target is construction question lifecycle | Accepted |
 | Registry and validator come before broad skill expansion | Accepted |
 | Hermes + Weixin is sandbox only | Accepted |
+| Upstream drift is checked weekly, not every PR | Accepted |
 | Public/commercial Luban skill pack is future phase | Proposed |
 
 ## 15. Open Questions
@@ -816,6 +865,7 @@ HERMES_EDU_SOURCE=${HERMES_EDU_SOURCE:-~/.cache/deeptutor/hermes-edu-skills}
 python scripts/hermes_edu_booster_inventory.py --source "$HERMES_EDU_SOURCE" --output docs/plan/artifacts/hermes-edu-skills-inventory.json
 python scripts/validate_tutorbot_skills.py --strict
 pytest tests/scripts/test_hermes_edu_booster_inventory.py tests/scripts/test_validate_tutorbot_skills.py -q
+pytest tests/scripts/test_check_hermes_upstream.py tests/scripts/test_scan_hermes_sandbox_transcripts.py tests/scripts/test_fetch_hermes_upstream_script.py -q
 ```
 
 Results:
@@ -825,6 +875,7 @@ Results:
 - MIT license obligations are emitted in inventory and each new construction skill records `upstream_inspiration` as `pattern-only`.
 - DeepTutor TutorBot Skill Validator: 10 skills, 0 errors, 0 warnings.
 - Script tests: 14 passed.
+- P1 guardrail script tests: 7 passed.
 - Script + runtime builder + teaching mode + learner-state + TutorBot capability tests: 162 passed.
 - Orchestrator autoroute + construction grading runtime gates: 105 passed.
 - `/wechat-harness` data tests: 4 passed.
