@@ -6,6 +6,8 @@ from deeptutor.services.query_intent import (
     build_grounding_decision,
     build_grounding_decision_from_metadata,
     has_grounded_construction_exam_kb,
+    query_requires_current_info,
+    query_uses_learner_state_authority,
 )
 
 
@@ -126,6 +128,75 @@ def test_build_grounding_decision_does_not_treat_personal_learning_status_as_cur
     assert decision.current_info_required is False
     assert "current_info_required" not in decision.reasons
     assert decision.should_prefetch_grounded_rag is False
+
+
+def test_build_grounding_decision_does_not_force_retrieval_for_long_personal_learning_status() -> None:
+    decision = build_grounding_decision(
+        query="请根据我的学习记录和最近进度总结掌握情况，并给我下一步学习建议、薄弱点复盘和今天训练安排",
+        default_kb="construction-exam",
+        knowledge_bases=["construction-exam"],
+        rag_enabled=True,
+        tutorbot_context=True,
+    )
+
+    assert decision.current_info_required is False
+    assert decision.should_force_retrieval_first is False
+    assert decision.should_prefetch_grounded_rag is False
+    assert "force_retrieval_first" not in decision.reasons
+
+
+@pytest.mark.parametrize(
+    "query",
+    ["今天学什么", "下一步怎么做", "请根据我的学习记录安排今天学什么", "给我安排训练建议"],
+)
+def test_build_grounding_decision_keeps_study_assistant_internal_with_current_info_hint(
+    query: str,
+) -> None:
+    decision = build_grounding_decision(
+        query=query,
+        default_kb="construction-exam",
+        knowledge_bases=["construction-exam"],
+        rag_enabled=True,
+        tutorbot_context=True,
+        current_info_required_hint=True,
+    )
+
+    assert decision.current_info_required is False
+    assert decision.should_force_retrieval_first is False
+    assert decision.should_prefetch_grounded_rag is False
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        "给零基础学员一份一建学习建议",
+        "我想给零基础学员一份一建学习建议",
+        "我想了解2026年一建备考趋势和复习建议",
+        "请结合2026年一建备考趋势制定复习建议",
+    ],
+)
+def test_non_personal_study_advice_can_use_external_grounding_when_requested(
+    query: str,
+) -> None:
+    decision = build_grounding_decision(
+        query=query,
+        default_kb="construction-exam",
+        knowledge_bases=["construction-exam"],
+        rag_enabled=True,
+        tutorbot_context=True,
+        current_info_required_hint=True,
+    )
+
+    assert decision.current_info_required is True
+    assert decision.should_prefetch_grounded_rag is True
+    assert query_uses_learner_state_authority(query) is False
+
+
+@pytest.mark.parametrize("query", ["联网查询我的学习记录", "联网查我最近学的怎么样"])
+def test_personal_learning_status_keeps_internal_authority_even_with_web_search_words(
+    query: str,
+) -> None:
+    assert query_requires_current_info(query) is False
 
 
 def test_build_grounding_decision_marks_explicit_web_search_command_current_info() -> None:

@@ -160,7 +160,7 @@ def _build_seed_fallback(*, subject_id: str, fallback_reason: str) -> dict[str, 
         prompts = [{"prompt_type": "assessment", "text": "先做一次摸底测评", "intent": intent}]
     focus = dict(seed.get("today_focus") or {})
     if not focus:
-        focus = {"title": "先做一题，给系统第一份学习证据", "meta": "starter"}
+        focus = {"title": "先做 1 题摸底", "meta": "生成学情基线"}
     focus["prompt"] = prompts[0]["text"]
     focus["intent"] = prompts[0]["intent"]
     return {

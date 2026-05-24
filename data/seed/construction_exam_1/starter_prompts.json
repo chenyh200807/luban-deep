@@ -1,8 +1,8 @@
 {
   "subject_id": "construction_exam_1",
   "today_focus": {
-    "title": "先做一题，给系统第一份建筑实务学习证据",
-    "meta": "starter"
+    "title": "先做 1 题建筑实务摸底",
+    "meta": "生成学情基线"
   },
   "prompts": [
     {

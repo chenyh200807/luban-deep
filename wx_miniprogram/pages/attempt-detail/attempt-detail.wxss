@@ -302,36 +302,6 @@
   color: #f1f5f9;
 }
 
-.turn {
-  margin-bottom: 22rpx;
-}
-
-.turn-label {
-  display: block;
-  margin-bottom: 8rpx;
-  font-size: 22rpx;
-  font-weight: 800;
-  color: #94a3b8;
-}
-
-.turn-content {
-  display: block;
-  white-space: pre-wrap;
-  font-size: 29rpx;
-  line-height: 1.72;
-  color: #e5e7eb;
-}
-
-.turn-student .turn-content {
-  padding-left: 24rpx;
-  border-left: 4rpx solid #60a5fa;
-  color: #f8fafc;
-}
-
-.turn-system .turn-content {
-  color: #cbd5e1;
-}
-
 .detail-next {
   margin-top: 30rpx;
   padding-top: 24rpx;
