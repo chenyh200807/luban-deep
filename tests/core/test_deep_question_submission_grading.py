@@ -457,6 +457,8 @@ async def test_deep_question_reveals_objective_answer_without_followup_llm(
                 "question_type": "choice",
                 "options": {"A": "地基基础", "B": "建筑屋面", "C": "装饰装修", "D": "钢结构"},
                 "correct_answer": "D",
+                "user_answer": "C",
+                "is_correct": False,
             },
         },
     )
@@ -523,6 +525,8 @@ async def test_deep_question_reveals_written_reference_without_followup_llm(
                     "1. 应具有适应主体结构层间变形的能力；"
                     "2. 预埋件、锚固件应能承受幕墙传递的荷载和作用。"
                 ),
+                "user_answer": "连接要牢固。",
+                "is_correct": False,
                 "knowledge_context": "【GBT51231-2016 §6.4.3】幕墙与主体结构的连接设计应符合下列规定。",
             },
         },
@@ -539,6 +543,66 @@ async def test_deep_question_reveals_written_reference_without_followup_llm(
     assert "解析" in response
     assert "依据：【GBT51231-2016 §6.4.3】" in response
     assert "本题按参考答案的关键点给分" in response
+
+
+@pytest.mark.asyncio
+async def test_deep_question_blocks_unanswered_direct_answer_reveal(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("Coordinator should not be constructed for follow-up mode")
+
+    class FailingFollowupAgent:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("unanswered reveal block should not call follow-up LLM")
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.followup_agent",
+        FollowupAgent=FailingFollowupAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="直接告诉我答案",
+        language="zh",
+        metadata={
+            "turn_semantic_decision": {
+                "next_action": "route_to_followup_explainer",
+            },
+            "question_followup_action": {
+                "intent": "ask_followup",
+            },
+            "question_followup_context": {
+                "question_id": "q_unanswered_reveal",
+                "question": "验槽通常主要采用什么方法？",
+                "question_type": "choice",
+                "options": {"A": "观察法", "B": "钎探法"},
+                "correct_answer": "A",
+                "explanation": "观察法为主，钎探法为辅。",
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    response = result_event.metadata["response"]
+    assert result_event.metadata["mode"] == "followup"
+    assert "练习阶段不公开答案" in response
+    assert "观察法" not in response
+    assert "正确答案" not in response
 
 
 @pytest.mark.asyncio

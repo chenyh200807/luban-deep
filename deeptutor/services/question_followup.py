@@ -96,6 +96,17 @@ _REVEAL_ANSWER_MARKERS = (
     "讲解一下",
     "解析一下",
 )
+_ANSWER_CONCESSION_MARKERS = (
+    "我放弃",
+    "放弃这题",
+    "放弃这一题",
+    "跳过这题",
+    "跳过这一题",
+    "这题跳过",
+    "不会做",
+    "不做了",
+    "我不会",
+)
 _FOLLOWUP_MARKERS = (
     "批改",
     "判分",
@@ -671,14 +682,54 @@ def should_reveal_reference_material(
     question_context: dict[str, Any] | None,
 ) -> bool:
     preference = detect_answer_reveal_preference(message)
-    if preference is not None:
-        return preference
     normalized = normalize_question_followup_context(question_context) or {}
+    if preference is True:
+        if should_block_unanswered_reference_reveal(message, normalized):
+            return False
+        return True
+    if preference is False:
+        return False
     if normalized.get("reveal_explanations") or normalized.get("reveal_answers"):
         return True
     text = str(message or "").strip().lower()
     explicit_request_markers = ("参考答案", "标准答案", "正确答案", "答案", "解析", "讲解", "为什么", "错因")
     return any(marker in text for marker in explicit_request_markers)
+
+
+def should_block_unanswered_reference_reveal(
+    message: str,
+    question_context: dict[str, Any] | None,
+) -> bool:
+    normalized = normalize_question_followup_context(question_context) or {}
+    if not normalized:
+        return False
+    if normalized.get("reveal_explanations") or normalized.get("reveal_answers"):
+        return False
+    if _question_has_learner_attempt(normalized):
+        return False
+    return not _looks_like_answer_concession(message)
+
+
+def _question_has_learner_attempt(question_context: dict[str, Any]) -> bool:
+    if str(question_context.get("user_answer") or "").strip():
+        return True
+    if isinstance(question_context.get("is_correct"), bool):
+        return True
+    items = question_context.get("items") or []
+    if isinstance(items, list):
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            if str(item.get("user_answer") or "").strip():
+                return True
+            if isinstance(item.get("is_correct"), bool):
+                return True
+    return False
+
+
+def _looks_like_answer_concession(message: str) -> bool:
+    text = str(message or "").strip()
+    return any(marker in text for marker in _ANSWER_CONCESSION_MARKERS)
 
 
 def build_question_followup_context_from_result_summary(

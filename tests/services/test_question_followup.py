@@ -16,6 +16,7 @@ from deeptutor.services.question_followup import (
     normalize_question_followup_context,
     resolve_submission,
     resolve_submission_attempt,
+    should_reveal_reference_material,
 )
 from deeptutor.services.render_presentation import build_canonical_presentation
 
@@ -32,6 +33,45 @@ def test_detect_requested_question_type_prefers_explicit_written_case() -> None:
 def test_detect_answer_reveal_preference_respects_suppress_request() -> None:
     assert detect_answer_reveal_preference("先别给答案，只问我第1问") is False
     assert detect_answer_reveal_preference("先不要直接给答案，先给作答要求") is False
+
+
+def test_unanswered_question_does_not_reveal_answer_on_direct_answer_request() -> None:
+    question_context = {
+        "question_id": "q1",
+        "question": "验槽通常主要采用什么方法？",
+        "question_type": "choice",
+        "options": {"A": "观察法", "B": "钎探法"},
+        "correct_answer": "A",
+        "explanation": "观察法为主，钎探法为辅。",
+    }
+
+    assert should_reveal_reference_material("直接告诉我答案", question_context) is False
+
+
+def test_unanswered_question_reveals_when_learner_explicitly_concedes() -> None:
+    question_context = {
+        "question_id": "q1",
+        "question": "验槽通常主要采用什么方法？",
+        "question_type": "choice",
+        "options": {"A": "观察法", "B": "钎探法"},
+        "correct_answer": "A",
+    }
+
+    assert should_reveal_reference_material("我放弃这题，直接告诉我答案", question_context) is True
+
+
+def test_answered_question_can_reveal_reference_material() -> None:
+    question_context = {
+        "question_id": "q1",
+        "question": "验槽通常主要采用什么方法？",
+        "question_type": "choice",
+        "options": {"A": "观察法", "B": "钎探法"},
+        "correct_answer": "A",
+        "user_answer": "B",
+        "is_correct": False,
+    }
+
+    assert should_reveal_reference_material("直接告诉我答案", question_context) is True
 
 
 def test_resolve_submission_maps_judgment_text_to_option_key() -> None:
