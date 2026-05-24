@@ -56,7 +56,7 @@ def test_mcq_grading_loads_construction_mcq_grading_skill():
     ctx = _FakeContext(user_message="B", metadata={"question_followup_context": _mcq_followup_context()})
     scene = attach_question_lifecycle_scene_to_context(ctx)
     assert scene == "mcq_grading"
-    skill_ctx = build_question_lifecycle_skill_context(scene)
+    skill_ctx = build_question_lifecycle_skill_context(ctx)
     assert "construction-mcq-grading" in skill_ctx.skill_names
     assert "# Construction MCQ Grading" in skill_ctx.instructions
 
@@ -68,7 +68,7 @@ def test_case_grading_loads_construction_case_grading_skill():
     )
     scene = attach_question_lifecycle_scene_to_context(ctx)
     assert scene == "case_grading"
-    skill_ctx = build_question_lifecycle_skill_context(scene)
+    skill_ctx = build_question_lifecycle_skill_context(ctx)
     assert "construction-case-grading" in skill_ctx.skill_names
     assert "# Construction Case Grading" in skill_ctx.instructions
 
@@ -81,7 +81,7 @@ def test_pre_submission_followup_loads_question_review_skill():
     )
     scene = attach_question_lifecycle_scene_to_context(ctx)
     assert scene == "question_review"
-    skill_ctx = build_question_lifecycle_skill_context(scene)
+    skill_ctx = build_question_lifecycle_skill_context(ctx)
     assert "construction-question-review" in skill_ctx.skill_names
 
 

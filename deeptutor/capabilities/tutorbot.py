@@ -241,6 +241,7 @@ class TutorBotCapability(BaseCapability):
                 # TutorBot free text is not grading authority. Only render
                 # submit-able MCQ presentation when the answer key came from an
                 # exact authoritative question source.
+                display_result_summary = state_result_summary
             # Fix 2026-05-24 (post-merge with hermes edu-skills booster):
             # when the response is free-text MCQ-shaped but no exact_question
             # authority exists, parse the text into a presentation summary for
