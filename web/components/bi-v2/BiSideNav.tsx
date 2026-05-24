@@ -38,12 +38,15 @@ export function BiSideNav<TKey extends string>({
             <li key={item.key}>
               <button
                 type="button"
+                data-testid={`bi-sidenav-item-${String(item.key)}`}
                 onClick={() => onSelect(item.key)}
                 disabled={item.disabled}
                 aria-current={active ? 'page' : undefined}
                 aria-disabled={item.disabled ? true : undefined}
                 aria-label={`${item.label}${item.summary ? `：${item.summary}` : ''}`}
-                title={item.disabled ? `${item.label} · ${item.statusLabel ?? '待接入'}` : undefined}
+                title={
+                  item.disabled ? `${item.label} · ${item.statusLabel ?? '待接入'}` : undefined
+                }
                 className={`group flex w-full items-start gap-2 rounded px-2 py-2 text-left text-sm ${
                   item.disabled
                     ? 'cursor-not-allowed text-slate-400 opacity-70'
@@ -83,7 +86,11 @@ export function BiSideNav<TKey extends string>({
                     {item.summary ? (
                       <span
                         className={`block text-[11px] leading-tight ${
-                          item.disabled ? 'text-slate-400' : active ? 'text-slate-200' : 'text-slate-500'
+                          item.disabled
+                            ? 'text-slate-400'
+                            : active
+                              ? 'text-slate-200'
+                              : 'text-slate-500'
                         }`}
                       >
                         {item.summary}

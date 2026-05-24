@@ -1,0 +1,40 @@
+import test from 'node:test'
+import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const webRoot = resolve(__dirname, '..')
+
+async function readWeb(path: string): Promise<string> {
+  return readFile(resolve(webRoot, path), 'utf8')
+}
+
+test('BiTopBar input has stable data-testid="bi-topbar-search"', async () => {
+  const source = await readWeb('components/bi-v2/BiTopBar.tsx')
+  assert.ok(
+    source.includes('data-testid="bi-topbar-search"'),
+    'expected BiTopBar.tsx to include data-testid="bi-topbar-search" on its search input',
+  )
+})
+
+test('BiTopBar actor span has stable data-testid="bi-topbar-actor"', async () => {
+  const source = await readWeb('components/bi-v2/BiTopBar.tsx')
+  assert.ok(
+    source.includes('data-testid="bi-topbar-actor"'),
+    'expected BiTopBar.tsx to include data-testid="bi-topbar-actor" on its actor slot',
+  )
+})
+
+test('BiSideNav nav button has data-testid template `bi-sidenav-item-${key}`', async () => {
+  const source = await readWeb('components/bi-v2/BiSideNav.tsx')
+  // Match either `data-testid={`bi-sidenav-item-...`} or escaped/quoted variants.
+  const matched =
+    /data-testid=\{`bi-sidenav-item-\$\{[^}]+\}`\}/.test(source) ||
+    /data-testid=\{['"`]bi-sidenav-item-\$\{[^}]+\}['"`]\}/.test(source)
+  assert.ok(
+    matched,
+    'expected BiSideNav.tsx to include data-testid={`bi-sidenav-item-${...}`} on each nav button',
+  )
+})
