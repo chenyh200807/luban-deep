@@ -300,3 +300,6 @@ celerybeat.pid
 
 # Local runtime workspace (logs, cached envs, scratch state)
 .local-runs/
+
+# Offline compiler outputs; review artifacts must never enter git.
+/artifacts/
