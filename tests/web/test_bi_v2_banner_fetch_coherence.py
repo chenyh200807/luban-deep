@@ -26,6 +26,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 V2_ROOT = REPO_ROOT / "web" / "app" / "(workspace)" / "bi" / "_v2"
+BI_V2_COMPONENTS_ROOT = REPO_ROOT / "web" / "components" / "bi-v2"
 
 # Banner phrases that imply live backend integration. If any of these appear
 # inside a `flagEnabled` (= true) branch and the panel has zero real fetch
@@ -99,6 +100,27 @@ def test_overview_enabled_error_does_not_claim_mock_fallback() -> None:
 
     assert "overview API 不可用，已回退到 mock 数据" not in text
     assert "overview API 不可用，未展示 mock 数据" in text
+
+
+def test_panels_use_shared_data_source_banner_component() -> None:
+    """BI v2 panels should share the banner shell while keeping panel copy local."""
+    component = BI_V2_COMPONENTS_ROOT / "BiV2DataSourceBanner.tsx"
+    assert component.exists()
+
+    expected_panels = [
+        V2_ROOT / "BiV2OverviewPanel.tsx",
+        V2_ROOT / "commerce" / "BiV2CommercePanel.tsx",
+        V2_ROOT / "member-ops" / "BiV2MemberOpsPanel.tsx",
+        V2_ROOT / "feedback" / "BiV2FeedbackPanel.tsx",
+        V2_ROOT / "ops" / "BiV2OpsPanel.tsx",
+    ]
+
+    missing = [
+        path.relative_to(REPO_ROOT).as_posix()
+        for path in expected_panels
+        if "BiV2DataSourceBanner" not in path.read_text(encoding="utf-8")
+    ]
+    assert not missing, "Panels missing shared BiV2DataSourceBanner:\n" + "\n".join(missing)
 
 
 def test_flag_enabled_branches_do_not_call_mock_as_live() -> None:

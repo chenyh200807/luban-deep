@@ -14,7 +14,13 @@ import {
   XCircle,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { BiDataTable, BiSidePanel, BiStatusPill, type BiTableColumn } from '@/components/bi-v2'
+import {
+  BiDataTable,
+  BiSidePanel,
+  BiStatusPill,
+  BiV2DataSourceBanner,
+  type BiTableColumn,
+} from '@/components/bi-v2'
 import {
   getBiFeedback,
   getBiInviteTestApplications,
@@ -316,36 +322,38 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
   return (
     <section className="space-y-5">
       {!flagEnabled ? (
-        <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+        <BiV2DataSourceBanner tone="amber">
           BI_FEEDBACK_V2_ENABLED 未开启 · 当前 Batch 5 静态原型。P0 仅接 AI 消息反馈 / 内测申请 /
           运营备注；P1 再接教研 / 系统质量。
-        </div>
+        </BiV2DataSourceBanner>
       ) : (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-800">
-          <span>
+        <BiV2DataSourceBanner
+          tone="sky"
+          action={
+            <button
+              type="button"
+              onClick={() => {
+                void loadFeedback()
+                void loadInviteTest()
+              }}
+              disabled={loading || inviteLoading}
+              className="inline-flex items-center gap-1 rounded border border-sky-200 bg-white px-2 py-1 text-sky-800 disabled:opacity-50"
+              aria-label="刷新反馈中心"
+            >
+              <RefreshCw
+                className={`h-3 w-3 ${loading || inviteLoading ? 'animate-spin' : ''}`}
+                aria-hidden
+              />
+              刷新
+            </button>
+          }
+        >
             BI_FEEDBACK_V2_ENABLED 已开启 · AI 反馈读取{' '}
             <code className="font-mono">/api/v1/bi/feedback</code>
             ，内测申请读取 <code className="font-mono">/api/v1/bi/invite-test/*</code>
             {payload ? ` · storage=${payload.storage_status}` : ''}；triage 写入 feedback_triage
             audit。
-          </span>
-          <button
-            type="button"
-            onClick={() => {
-              void loadFeedback()
-              void loadInviteTest()
-            }}
-            disabled={loading || inviteLoading}
-            className="inline-flex items-center gap-1 rounded border border-sky-200 bg-white px-2 py-1 text-sky-800 disabled:opacity-50"
-            aria-label="刷新反馈中心"
-          >
-            <RefreshCw
-              className={`h-3 w-3 ${loading || inviteLoading ? 'animate-spin' : ''}`}
-              aria-hidden
-            />
-            刷新
-          </button>
-        </div>
+        </BiV2DataSourceBanner>
       )}
       {triageError ? (
         <div
