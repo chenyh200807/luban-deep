@@ -114,7 +114,7 @@
         <view class="module-onboarding-tip" wx:if="{{reportModuleHintVisible}}">
           <view>
             <text class="module-tip-title">点开卡片看具体依据</text>
-            <text class="module-tip-desc">每张卡都会进入对应二级页：证据、强弱、训练、错题或变化记录。</text>
+            <text class="module-tip-desc">证据、强弱、训练、错题和变化卡片会进入细节页；摸底测试会直接重新校准画像。</text>
           </view>
           <view class="module-tip-dismiss" bindtap="dismissReportModuleHint" hover-class="module-tip-dismiss-pressed">
             <text>知道了</text>
@@ -221,25 +221,26 @@
             </view>
           </view>
 
-          <view class="report-module-card module-recheck" data-detail="training" bindtap="openReportDetail" hover-class="report-module-card-pressed">
+          <view class="report-module-card module-assessment" wx:if="{{assessmentEnabled}}" bindtap="goAssessment" hover-class="report-module-card-pressed">
             <view class="module-card-head">
               <view>
-                <text class="module-card-kicker">验证是否真会</text>
-                <text class="module-card-title">复测清单</text>
+                <text class="module-card-kicker">重新校准画像</text>
+                <text class="module-card-title">摸底测试</text>
               </view>
               <text class="module-card-arrow">›</text>
             </view>
-            <text class="module-card-desc">{{prescriptionTitle || '用一题复测确认薄弱点是否回到主线'}}</text>
-            <view class="mini-recheck-path">
-              <view class="mini-recheck-node active"></view>
-              <view class="mini-recheck-line"></view>
-              <view class="mini-recheck-node"></view>
-              <view class="mini-recheck-line"></view>
-              <view class="mini-recheck-node done"></view>
+            <text class="module-card-desc">当处方不够具体时，用一次小测补齐稳定诊断依据</text>
+            <view class="mini-assessment-card">
+              <view class="mini-assessment-badge"><text>AI</text></view>
+              <view class="mini-assessment-copy">
+                <text>诊断</text>
+                <text>校准</text>
+                <text>生成处方</text>
+              </view>
             </view>
             <view class="module-mini-stats">
-              <text>{{prescriptionSteps.length || 1}} 步验证</text>
-              <text>{{prescriptionCtaLabel || '去复测'}}</text>
+              <text>{{prescriptionEvidenceCount || 0}} 条证据</text>
+              <text>去测评</text>
             </view>
           </view>
         </view>
@@ -719,12 +720,38 @@
         <text class="detail-hero-kicker">训练安排</text>
         <text class="detail-hero-title">{{prescriptionTitle || battlePlan.focusTopic}}</text>
         <text class="detail-hero-sub">{{prescriptionReason || battlePlan.coachNote}}</text>
+        <view class="prescription-meta training-prescription-meta" wx:if="{{prescriptionMeta.length}}">
+          <text class="prescription-meta-chip" wx:for="{{prescriptionMeta}}" wx:key="key">{{item.label}}</text>
+        </view>
         <view class="training-route">
           <view class="training-route-step active"><text>诊断</text></view>
           <view class="training-route-line"></view>
           <view class="training-route-step"><text>训练处方</text></view>
           <view class="training-route-line"></view>
           <view class="training-route-step"><text>验证</text></view>
+        </view>
+      </view>
+
+      <view class="training-loop-card glass-card">
+        <view class="training-loop-head">
+          <view>
+            <text class="training-loop-kicker">训练闭环</text>
+            <text class="training-loop-title">{{prescriptionStatus == 'degraded' ? '先补证据，再生成专项训练' : '先修根因，再做验证'}}</text>
+          </view>
+          <text class="training-loop-badge">{{prescriptionCtaLabel || '开始训练'}}</text>
+        </view>
+        <text class="training-loop-desc">{{prescriptionStatus == 'degraded' ? '这里不是重复摸底。系统已经看到你的学习记录，但还缺少稳定的题目主题或错因链，所以先用一题高质量作答校准处方。' : '按诊断、补弱、验证三步执行：先定位错因，再做同类专项，最后用新题确认是否真正回到主线。'}}</text>
+        <view class="training-loop-meter">
+          <view class="training-loop-dot active"><text>1</text></view>
+          <view class="training-loop-line"></view>
+          <view class="training-loop-dot"><text>2</text></view>
+          <view class="training-loop-line"></view>
+          <view class="training-loop-dot"><text>3</text></view>
+        </view>
+        <view class="training-loop-stats">
+          <text>{{prescriptionEvidenceCount || 0}} 条证据</text>
+          <text>{{prescriptionSteps.length || 1}} 个步骤</text>
+          <text>{{prescriptionStatus == 'degraded' ? '待校准' : '可执行'}}</text>
         </view>
       </view>
 
@@ -815,20 +842,6 @@
         </view>
       </view>
       </block>
-
-      <!-- 摸底测试入口 -->
-      <view class="assess-entry glass-card" wx:if="{{reportDetailView == 'home' && assessmentEnabled}}" bindtap="goAssessment">
-        <view class="assess-entry-left">
-          <view class="assess-entry-icon">
-            <text class="assess-entry-icon-txt">AI</text>
-          </view>
-          <view class="assess-entry-info">
-            <text class="assess-entry-title">摸底测试</text>
-            <text class="assess-entry-sub">重新评估知识掌握程度</text>
-          </view>
-        </view>
-        <text class="assess-entry-arrow">›</text>
-      </view>
 
       <!-- 底部安全距离 -->
       <view style="height: 240rpx"></view>

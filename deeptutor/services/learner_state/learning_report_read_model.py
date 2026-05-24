@@ -1043,22 +1043,31 @@ def _training_prescription_payload(*, learner_facing: dict[str, Any]) -> dict[st
     if not topic or evidence_count <= 0:
         status = "degraded"
     if status == "degraded":
+        has_existing_evidence = evidence_count > 0
         return {
             "status": "degraded",
             "source": "training_intent",
-            "title": "先补一条可诊断证据",
-            "subtitle": "完成 1 题后，系统会把题目、作答和错因合成可训练主题",
+            "title": "补一题可诊断练习" if has_existing_evidence else "先补一条可诊断证据",
+            "subtitle": (
+                f"已有 {evidence_count} 条学习证据，但还缺少稳定的题目主题"
+                if has_existing_evidence
+                else "完成 1 题后，系统会把题目、作答和错因合成可训练主题"
+            ),
             "display_topic": "",
             "error_label": "",
-            "why_this": "当前证据还不足以生成可靠专项训练，先用一题建立学情基线。",
+            "why_this": (
+                f"系统已看到 {evidence_count} 条作答记录，但题目主题或错因链还不够稳定，不能硬编专项训练。先补 1 题可诊断练习，再生成更具体的训练处方。"
+                if has_existing_evidence
+                else "当前证据还不足以生成可靠专项训练，先用一题建立学情基线。"
+            ),
             "evidence_count": evidence_count,
             "evidence_refs": [],
             "estimated_minutes": 3,
             "question_plan": [
                 {
                     "phase": "discovery_probe",
-                    "phase_label": "起步测评",
-                    "label": "先用 1 题确认薄弱点",
+                    "phase_label": "补证据" if has_existing_evidence else "起步测评",
+                    "label": "补 1 题确认具体薄弱点" if has_existing_evidence else "先用 1 题确认薄弱点",
                     "question_count": 1,
                 }
             ],
@@ -1146,10 +1155,15 @@ def _study_plan_from_prescription(prescription: dict[str, Any]) -> dict[str, Any
             "source": "training_prescription",
         }
     if status == "degraded":
+        evidence_count = _safe_int(item.get("evidence_count"))
         return {
             "focus_topic": "今天先完成一轮诊断练习",
-            "priority_task": "先做 1 题摸底，补齐可诊断证据",
-            "study_method": "先完成一题真实作答，系统再按题目、选项和错因生成专项训练",
+            "priority_task": "补 1 题可诊断练习，确认具体薄弱点" if evidence_count > 0 else "先做 1 题摸底，补齐可诊断证据",
+            "study_method": (
+                "先补一题高质量作答，系统再把题目主题、选项和错因合成专项训练"
+                if evidence_count > 0
+                else "先完成一题真实作答，系统再按题目、选项和错因生成专项训练"
+            ),
             "time_budget": f"约 {estimated} 分钟" if estimated > 0 else "约 3 分钟",
             "coach_note": str(item.get("why_this") or "先用真实作答建立学情基线").strip(),
             "source": "training_prescription",

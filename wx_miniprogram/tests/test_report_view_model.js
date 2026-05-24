@@ -407,7 +407,9 @@ var promptLikePrescription = wxVm.buildLearningReportViewModel({
 });
 var promptLikePrescriptionPage = wxVm.toReportPageData(promptLikePrescription);
 assert.strictEqual(promptLikePrescriptionPage.prescriptionStatus, "degraded");
-assert.strictEqual(promptLikePrescriptionPage.prescriptionTitle, "先来一次起步测评");
+assert.strictEqual(promptLikePrescriptionPage.prescriptionTitle, "补一题可诊断练习");
+assert.strictEqual(promptLikePrescriptionPage.prescriptionCtaLabel, "补一题诊断");
+assert.strictEqual(promptLikePrescriptionPage.prescriptionEvidenceCount, 1);
 assert.ok(
   promptLikePrescriptionPage.prescriptionTitle.indexOf("那出5道题") < 0,
   "prescription title should not expose prompt-like text as a training topic",
