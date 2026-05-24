@@ -113,6 +113,11 @@ assert(
 assertIncludes(reportWxml, "复测清单", "home module grid should include the recheck loop card");
 assertIncludes(reportWxml, "先看结论，再决定是否深入", "home page should separate conclusions from module navigation");
 assertIncludes(reportWxml, "深入查看", "home page should expose detail modules as a separate toolbox section");
+assertIncludes(reportWxml, "module-onboarding-tip", "clickable detail modules should expose a first-use affordance");
+assertIncludes(reportWxml, "点开卡片看具体依据", "first-use affordance should explain that module cards open detail pages");
+assertIncludes(reportWxml, "dismissReportModuleHint", "first-use affordance should be dismissible");
+assertIncludes(reportSource, "REPORT_MODULE_HINT_STORAGE_KEY", "module hint dismissal should be persisted for returning users");
+assertIncludes(reportSource, "_dismissReportModuleHint", "opening a module should dismiss the first-use affordance");
 assert(
   reportWxml.indexOf('class="conclusion-card conclusion-card-primary" data-detail=') < 0 &&
     reportWxml.indexOf('class="conclusion-card" data-detail=') < 0,

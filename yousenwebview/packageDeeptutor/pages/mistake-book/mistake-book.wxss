@@ -242,6 +242,20 @@
   gap: 14rpx;
 }
 
+.mb-list-hint {
+  padding: 14rpx 16rpx;
+  border-radius: 16rpx;
+  background: rgba(45, 212, 191, 0.08);
+  border: 1rpx solid rgba(45, 212, 191, 0.14);
+}
+
+.mb-list-hint text {
+  display: block;
+  font-size: 22rpx;
+  line-height: 1.35;
+  color: rgba(153, 246, 228, 0.84);
+}
+
 .chart-card {
   padding: 22rpx;
 }

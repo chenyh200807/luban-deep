@@ -79,6 +79,10 @@
       <!-- 分组对话列表 -->
       <block wx:else>
         <view wx:if="{{!editMode}}" class="history-overview">
+          <view class="history-entry-hint">
+            <text>点对话继续；右侧按钮可归档或删除。</text>
+          </view>
+
           <view class="history-search">
             <text class="search-icon">⌕</text>
             <input
