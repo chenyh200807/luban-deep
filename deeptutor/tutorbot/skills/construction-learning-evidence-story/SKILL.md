@@ -49,7 +49,7 @@ always: false
 - SQL 关键词 (大写 select / join / where)
 - 聚合口径定义 (例 近十四天 attempt 数)
 
-CI guard：`scripts/check_skill_pii.py` 自动检测；命中则 fail。
+CI guard：plan §11 v2-C3 计划的 `scripts/check_skill_pii.py` 上线后自动检测；命中则 fail。**当前 (Task 8 pending) 由 `tests/services/test_tutorbot_teaching_modes.py::test_learner_state_narration_skills_have_scope_guard_keywords` 在 pytest 中强制执行同等约束。**
 
 ## 用户可见输出
 

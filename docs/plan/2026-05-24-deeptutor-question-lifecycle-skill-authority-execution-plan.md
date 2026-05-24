@@ -1196,7 +1196,7 @@ Before calling this plan complete, a reviewer must mark every line below (8 from
 | Frontend does not infer | WeChat / yousen view models map backend fields only when touched |
 | Manual QA planned | WeChat DevTools or real-device scenarios in section 9 are run before release |
 | **v2-C1: Single skill loader** | §Task 8 Step 5 grep returns zero — no module other than `SkillsLoader` and `question_lifecycle_skill_context` reads SKILL.md files |
-| **v2-C2: Single scene decider** | `grep -rn "question_lifecycle_scene\s*=" deeptutor/` shows assignment only in `ChatOrchestrator` (and resume / replay paths reading from snapshot); no downstream re-detection |
+| **v2-C2: Single scene decider** | `grep -rn "question_lifecycle_scene\s*=" deeptutor/` shows assignment only via `attach_question_lifecycle_scene_to_context` (or, post-Task 0.7, `ChatOrchestrator` directly); no other writer. **Known deferred carve-outs (Task 0.7 follow-up; do NOT flag as v2-C2 violations until Task 0.7 ships):** `deeptutor/tutorbot/agent/loop.py:1080,1624` and `deeptutor/agents/chat/agentic_pipeline.py:2878` still call legacy `detect_construction_exam_scene` which feeds into the Task 2.5 shim, not into `question_lifecycle_scene`. |
 | **v2-C3: PII / scope CI guard live** | `scripts/check_skill_pii.py` registered in `contracts/index.yaml`; `check_contract_guard.py` fails if removed |
 | **v2-C4: Gray-release evidence captured** | `docs/qa/2026-05-24-question-lifecycle-skill-stage-evidence.md` exists with Langfuse screenshots + kill-switch drill writeup before promoting past `internal` |
 | **v2-C5: Mixed-turn / resume / adversarial manual cases green** | §9 v2-M1 / v2-M2 / v2-M3 results recorded in the stage evidence doc |

@@ -199,20 +199,27 @@ def test_single_loader_invariant_via_grep_surrogate():
         if rel in allowed_modules:
             continue
         text = py_file.read_text(encoding="utf-8", errors="ignore")
+        # File-level prefilter: only inspect files that combine a forbidden
+        # construction skill name with a raw file-read API. Plain docstring
+        # mentions in unrelated files are OK.
+        if ".read_text" not in text and "open(" not in text:
+            continue
         for needle in forbidden_substrings:
-            # Allow comments / docstring mentions; flag only Path(...).read_text-like patterns.
-            if needle in text:
-                # Heuristic: only fail if combined with .read_text or open(
-                # in the same file. Plain mentions in docstrings are OK.
-                if ".read_text" in text or "open(" in text:
-                    # Make sure the mention is on a non-comment line.
-                    for line in text.splitlines():
-                        stripped = line.strip()
-                        if needle in stripped and not stripped.startswith("#"):
-                            if "read_text" in stripped or "open(" in stripped:
-                                offenders.append(f"{rel}: {stripped[:100]}")
-                                break
-                break
+            if needle not in text:
+                continue
+            # Check every line for "<needle> ... read_text/open" co-occurrence.
+            # Each needle is checked independently (no premature break across
+            # needles); reviewer noted earlier `break` skipped remaining
+            # needles after the first match.
+            for line in text.splitlines():
+                stripped = line.strip()
+                if not stripped or stripped.startswith("#"):
+                    continue
+                if needle in stripped and (
+                    "read_text" in stripped or "open(" in stripped
+                ):
+                    offenders.append(f"{rel}: {stripped[:120]}")
+                    break  # found an offender for this needle, advance to next needle
 
     assert not offenders, (
         "Construction-scene SKILL.md files are read outside of SkillsLoader / "

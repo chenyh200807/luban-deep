@@ -58,7 +58,7 @@ always: false
 - SQL 关键词
 - 算法描述 (例 用 ARRS 算 retention)
 
-CI guard：`scripts/check_skill_pii.py` 自动检测。
+CI guard：plan §11 v2-C3 计划的 `scripts/check_skill_pii.py` 上线后自动检测。**当前 (Task 8 pending) 由 `tests/services/test_tutorbot_teaching_modes.py::test_learner_state_narration_skills_have_scope_guard_keywords` 在 pytest 中强制执行同等约束。**
 
 ## Anti-Patterns
 
