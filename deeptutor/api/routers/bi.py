@@ -169,6 +169,14 @@ async def bi_cost_reconciliation(
     )
 
 
+@router.get("/commerce")
+async def bi_commerce(
+    limit: int = Query(100, ge=1, le=500),
+    _auth: AuthContext = Depends(require_bi_admin),
+):
+    return await get_bi_service().get_commerce(limit=limit)
+
+
 @router.get("/anomalies")
 async def bi_anomalies(
     days: int = Query(30, ge=1, le=365),

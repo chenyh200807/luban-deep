@@ -90,6 +90,17 @@ def test_panel_banner_claims_match_fetch_evidence() -> None:
     )
 
 
+def test_overview_enabled_error_does_not_claim_mock_fallback() -> None:
+    """When BI_OVERVIEW_V2_ENABLED is true, API failure must be an honest
+    unavailable state, not a production-looking mock fallback.
+    """
+    overview = V2_ROOT / "BiV2OverviewPanel.tsx"
+    text = overview.read_text(encoding="utf-8")
+
+    assert "overview API 不可用，已回退到 mock 数据" not in text
+    assert "overview API 不可用，未展示 mock 数据" in text
+
+
 def test_flag_enabled_branches_do_not_call_mock_as_live() -> None:
     """A subtler trap: panel reads `if (flagEnabled) { ...real... } else { ...mock... }`
     but actually has identical code paths and just changes banner colour. Catch
