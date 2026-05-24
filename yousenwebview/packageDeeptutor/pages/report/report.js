@@ -9,6 +9,7 @@ const reportViewModel = require("../../utils/learning-report-view-model");
 const taxonomy = require("../../utils/taxonomy");
 
 const REPORT_UNIFIED_READ_TIMEOUT_MS = 8000;
+const REPORT_MODULE_HINT_STORAGE_KEY = "deeptutor.report.moduleHint.v1";
 const RADAR_SELF_SUBJECT = "self";
 const LEVEL_NAMES = {
   beginner: "入门",
@@ -1145,6 +1146,7 @@ Page({
     degradedHint: "",
     degradedSources: [],
     reportFallbackActive: false,
+    reportModuleHintVisible: true,
   },
 
   _radarRenderSeq: 0,
@@ -1159,6 +1161,7 @@ Page({
     this.setData({
       statusBarHeight: windowInfo.statusBarHeight,
       navHeight,
+      reportModuleHintVisible: this._shouldShowReportModuleHint(),
     });
   },
 
@@ -1337,7 +1340,13 @@ Page({
         : "";
     if (!detail) return;
     helpers.vibrate("light");
+    this._dismissReportModuleHint();
     this._setReportDetailView(detail);
+  },
+
+  dismissReportModuleHint() {
+    helpers.vibrate("light");
+    this._dismissReportModuleHint();
   },
 
   _setReportDetailView(view) {
@@ -1356,6 +1365,26 @@ Page({
         );
       });
     }
+  },
+
+  _shouldShowReportModuleHint() {
+    if (typeof wx === "undefined" || typeof wx.getStorageSync !== "function") {
+      return true;
+    }
+    try {
+      return wx.getStorageSync(REPORT_MODULE_HINT_STORAGE_KEY) !== "dismissed";
+    } catch (err) {
+      return true;
+    }
+  },
+
+  _dismissReportModuleHint() {
+    if (!this.data.reportModuleHintVisible) return;
+    this.setData({ reportModuleHintVisible: false });
+    if (typeof wx === "undefined" || typeof wx.setStorageSync !== "function") return;
+    try {
+      wx.setStorageSync(REPORT_MODULE_HINT_STORAGE_KEY, "dismissed");
+    } catch (err) {}
   },
 
   // ── 返回首页 ───────────────────────────────────────
@@ -1378,6 +1407,7 @@ Page({
 
   openMistakeBook() {
     helpers.vibrate("light");
+    this._dismissReportModuleHint();
     wx.navigateTo({ url: route.mistakeBook() });
   },
 

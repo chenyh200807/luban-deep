@@ -91,6 +91,7 @@
           <text class="answer-card-title">答题卡</text>
           <text class="answer-card-count">已答 {{answeredCount}} / {{questions.length}}</text>
         </view>
+        <text class="answer-card-hint">点数字可跳题，已选答案会保留。</text>
         <text class="answer-card-notice" wx:if="{{assessmentNotice}}">{{assessmentNotice}}</text>
         <view class="answer-grid">
           <view

@@ -4,8 +4,11 @@
   <!-- 自定义导航栏 -->
   <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">
     <view class="nav-content">
-      <image class="nav-logo" src="../../images/logo-white.png" mode="heightFix" bindtap="goHome" />
-      <text class="nav-title">练习中心</text>
+      <image class="nav-logo" src="../../images/logo-white.png" mode="heightFix" bindtap="goHome" hover-class="nav-logo-pressed" aria-role="button" aria-label="回到对话首页" />
+      <view class="nav-title-group">
+        <text class="nav-title">练习中心</text>
+        <text class="nav-logo-tip">点 Logo 回首页</text>
+      </view>
     </view>
   </view>
 
@@ -37,6 +40,7 @@
       <!-- ── 练习模式 2×2 ────────────────────────── -->
       <view class="section-header">
         <text class="section-title">练习模式</text>
+        <text class="section-hint">点卡片会回到对话，并生成对应训练</text>
       </view>
 
       <view class="mode-grid">

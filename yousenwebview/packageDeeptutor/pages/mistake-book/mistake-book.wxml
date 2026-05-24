@@ -111,6 +111,9 @@
         </view>
 
         <view class="mistake-list" wx:else>
+          <view class="mb-list-hint">
+            <text>点错题卡片或“看解析”，可回到当时解析依据。</text>
+          </view>
           <view class="mistake-card state-{{item.stateTone}}" wx:for="{{filteredItems}}" wx:key="key">
             <view class="mistake-card-main" data-key="{{item.key}}" bindtap="openAttemptDetail">
               <view class="mistake-head">
