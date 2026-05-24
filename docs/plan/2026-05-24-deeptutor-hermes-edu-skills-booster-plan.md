@@ -588,6 +588,7 @@ The skill pack must stay usable in real TutorBot turns, not just pass static val
 - `SKILL.md` over 200 lines is a validator warning; over 300 lines is a validator error.
 - If a skill grows past the budget, split stable reference material into `references/` and keep `SKILL.md` as the decision contract.
 - Runtime must still load only the selected skill stack; catalog discovery must not cause all skills to be concatenated.
+- `token_budget_estimate` covers `SKILL.md` only; references are lazy-loaded by selected scene and not pre-summed.
 
 ### Phase 3: Runtime Wiring Through Existing Question Lifecycle Plan
 
@@ -846,6 +847,12 @@ pytest tests/services/construction_grading -q
 - [x] Add validator coverage for explicit export eligibility.
 - [x] Add `--doctor` inventory-to-catalog gap report for `adapt_to_construction` upstream skills.
 
+### P3 Hardening Day
+
+- [x] Require `upstream_inspiration.derivation` when upstream inspiration is declared.
+- [x] Extend catalog runtime-import guard to `deeptutor/api`.
+- [x] Document references token policy as selected-scene lazy loading.
+
 ## 14. Decision Log
 
 | Decision | Status |
@@ -857,6 +864,7 @@ pytest tests/services/construction_grading -q
 | Hermes + Weixin is sandbox only | Accepted |
 | Upstream drift is checked weekly, not every PR | Accepted |
 | Export eligibility is explicit metadata, not inferred by export scripts | Accepted |
+| Skill markdown declares upstream license and derivation explicitly | Accepted |
 | Public/commercial Luban skill pack is future phase | Proposed |
 
 ## 15. Open Questions
@@ -886,7 +894,7 @@ Results:
 
 - Hermes inventory generated from upstream snapshot: 188 skills.
 - Inventory bucket distribution after P0 review: `adapt_to_construction=6`, `template_only=90`, `developer_ops=31`, `future_product=54`, `sandbox_experiment=7`.
-- MIT license obligations are emitted in inventory and each new construction skill records `upstream_inspiration` as `pattern-only`.
+- License obligations live at inventory top-level (`license_obligations`); per-skill license stays in SKILL.md `upstream_inspiration`.
 - DeepTutor TutorBot Skill Validator: 10 skills, 0 errors, 0 warnings.
 - Doctor inventory gap report: `adapt_to_construction=6`, `gaps=0`.
 - Script tests: 17 passed.
