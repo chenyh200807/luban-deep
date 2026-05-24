@@ -31,6 +31,8 @@ from deeptutor.services.config import get_env_store
 from deeptutor.services.branding import get_api_title, get_api_welcome_message
 from deeptutor.services.learner_state.runtime import create_default_learner_state_runtime
 from deeptutor.services.observability import get_release_lineage_snapshot, get_surface_event_store
+from deeptutor.services.observability import get_control_plane_store
+from deeptutor.services.observability.launch_readiness import build_launch_readiness_run
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.runtime_env import env_flag, is_production_environment, runtime_environment
 from deeptutor.utils.error_rate_tracker import get_tracker_snapshot
@@ -176,6 +178,22 @@ def _set_readiness_check(app: FastAPI, name: str, ready: bool) -> None:
     checks[name] = ready
     app.state.readiness_checks = checks
     app.state.readiness_ready = bool(checks) and all(checks.values())
+
+
+def _persist_launch_readiness_check(app: FastAPI) -> None:
+    try:
+        payload = build_launch_readiness_run(
+            checks=getattr(app.state, "readiness_checks", {}) or {},
+            release=get_release_lineage_snapshot(),
+        )
+        get_control_plane_store().write_run(
+            kind="readiness_checks",
+            run_id=str(payload.get("run_id") or ""),
+            release_id=str((payload.get("release") or {}).get("release_id") or ""),
+            payload=payload,
+        )
+    except Exception as exc:
+        logger.warning("Failed to persist launch readiness check: %s", exc, exc_info=True)
 
 
 def get_readyz_payload(app: FastAPI | None = None) -> tuple[int, dict[str, object]]:
@@ -332,6 +350,8 @@ async def lifespan(app: FastAPI):
             raise RuntimeError(
                 "Critical startup dependencies failed: " + "; ".join(startup_failures)
             )
+
+    _persist_launch_readiness_check(app)
 
     if _assessment_form_prewarm_enabled():
         app.state.assessment_form_prewarm_task = asyncio.create_task(

@@ -32,9 +32,11 @@ _LOG_LEVEL_PATTERN = re.compile(r"\[(ERROR|WARNING|WARN|CRITICAL)\s*\]|\b(ERROR|
 def _safe_latest_payload(
     store: ObservabilityControlPlaneStore,
     kind: str,
+    *,
+    fallback: bool = True,
 ) -> dict[str, Any] | None:
     try:
-        payload = store.latest_payload(kind)
+        payload = store.latest_payload(kind, fallback=fallback)
     except Exception:
         return None
     return payload if isinstance(payload, dict) else None
@@ -43,9 +45,11 @@ def _safe_latest_payload(
 def _safe_latest_run(
     store: ObservabilityControlPlaneStore,
     kind: str,
+    *,
+    fallback: bool = True,
 ) -> dict[str, Any] | None:
     try:
-        record = store.latest_run(kind)
+        record = store.latest_run(kind, fallback=fallback)
     except Exception:
         return None
     return record if isinstance(record, dict) else None
@@ -443,6 +447,8 @@ def build_observer_snapshot(
     event_days: int = 1,
     metrics_snapshot: dict[str, Any] | None = None,
     surface_snapshot: dict[str, Any] | None = None,
+    benchmark_payload: dict[str, Any] | None = None,
+    release: dict[str, Any] | None = None,
     conversation_db_path: Path | None = None,
     conversation_limit: int = 100,
     backend_log_paths: list[Path] | None = None,
@@ -454,12 +460,12 @@ def build_observer_snapshot(
     om_record = _safe_latest_run(control_store, "om_runs")
     arr_record = _safe_latest_run(control_store, "arr_runs")
     aae_record = _safe_latest_run(control_store, "aae_composite_runs")
-    benchmark_record = _safe_latest_run(control_store, "benchmark_runs")
+    benchmark_record = _safe_latest_run(control_store, "benchmark_runs", fallback=False)
     daily_trend_record = _safe_latest_run(control_store, "daily_trends")
     om_payload = _payload_from_record(om_record)
     arr_payload = _payload_from_record(arr_record)
     aae_payload = _payload_from_record(aae_record)
-    benchmark_payload = _payload_from_record(benchmark_record)
+    benchmark_payload = benchmark_payload or _payload_from_record(benchmark_record)
     daily_trend_payload = _payload_from_record(daily_trend_record)
     turn_events = turn_log.load_events_range(days=event_days)
     turn_log_stats = turn_log.stats()
@@ -480,7 +486,7 @@ def build_observer_snapshot(
     has_quality_run = bool(arr_payload or benchmark_payload)
     has_surface_coverage = bool(surface_coverage)
     has_metrics = bool(metrics_snapshot)
-    release = _release_from_sources(
+    resolved_release = dict(release or {}) or _release_from_sources(
         metrics_snapshot,
         om_payload,
         arr_payload,
@@ -628,7 +634,7 @@ def build_observer_snapshot(
     return {
         "run_id": run_id,
         "generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
-        "release": release,
+        "release": resolved_release,
         "window": {"event_days": max(int(event_days or 1), 1)},
         "data_coverage": _build_data_coverage(layers),
         "data_sources": data_sources,

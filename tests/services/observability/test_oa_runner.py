@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from deeptutor.services.observability import oa_runner as oa_runner_module
 from deeptutor.services.observability.oa_runner import build_oa_run
 
 
@@ -248,3 +249,71 @@ def test_build_oa_run_emits_causal_oa_v1_candidates_from_canonical_change_impact
         "python3.11 scripts/run_arr_lite.py --mode full"
     ]
     assert any(item["kind"] == "causal_oa_v1" for item in payload["signals"])
+
+
+def test_build_oa_run_marks_verdict_stale_when_input_release_differs_from_head(monkeypatch) -> None:
+    monkeypatch.setattr(
+        oa_runner_module,
+        "get_release_lineage_snapshot",
+        lambda: {
+            "release_id": "rel-head",
+            "git_sha": "head123",
+            "deployment_environment": "local",
+            "prompt_version": "p1",
+            "ff_snapshot_hash": "ff1",
+            "deploy_manifest_hash": "manifest1",
+        },
+    )
+
+    payload = build_oa_run(
+        mode="daily",
+        om_payload={
+            "run_id": "om-1",
+            "release": {
+                "release_id": "rel-old",
+                "git_sha": "old123",
+                "deployment_environment": "local",
+                "prompt_version": "p1",
+                "ff_snapshot_hash": "ff1",
+                "deploy_manifest_hash": "manifest1",
+            },
+            "health_summary": {"ready": True},
+        },
+        arr_payload=None,
+        aae_payload=None,
+    )
+
+    assert payload["verdict"] == "STALE"
+    assert "artifact_release_stale_vs_head" in payload["blockers"]
+
+
+def test_build_oa_run_prefers_explicit_release_override(monkeypatch) -> None:
+    monkeypatch.setattr(
+        oa_runner_module,
+        "get_release_lineage_snapshot",
+        lambda: {
+            "release_id": "rel-head",
+            "git_sha": "head123",
+            "deployment_environment": "local",
+        },
+    )
+    explicit_release = {
+        "release_id": "rel-head",
+        "git_sha": "head123",
+        "deployment_environment": "local",
+    }
+
+    payload = build_oa_run(
+        mode="daily",
+        om_payload={
+            "run_id": "om-1",
+            "release": {"release_id": "rel-old", "git_sha": "old123"},
+            "health_summary": {"ready": True},
+        },
+        arr_payload=None,
+        aae_payload=None,
+        release=explicit_release,
+    )
+
+    assert payload["release"] == explicit_release
+    assert payload["verdict"] == "STALE"

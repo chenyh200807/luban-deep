@@ -51,6 +51,43 @@ def _dedupe_blind_spots(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return deduped
 
 
+def _release_git_sha(payload: dict[str, Any] | None) -> str:
+    release = (
+        (payload or {}).get("release")
+        or (payload or {}).get("release_spine")
+        or {}
+    )
+    return str(release.get("git_sha") or "").strip()
+
+
+def _stale_input_names(
+    current_release: dict[str, Any],
+    *,
+    om_payload: dict[str, Any] | None,
+    arr_payload: dict[str, Any] | None,
+    aae_payload: dict[str, Any] | None,
+    benchmark_payload: dict[str, Any] | None,
+    observer_payload: dict[str, Any] | None,
+    change_impact_payload: dict[str, Any] | None,
+) -> list[str]:
+    current_git_sha = str((current_release or {}).get("git_sha") or "").strip()
+    if not current_git_sha or "unknown" in current_git_sha.lower():
+        return []
+    stale: list[str] = []
+    for name, payload in (
+        ("om", om_payload),
+        ("arr", arr_payload),
+        ("aae", aae_payload),
+        ("benchmark", benchmark_payload),
+        ("observer_snapshot", observer_payload),
+        ("change_impact", change_impact_payload),
+    ):
+        git_sha = _release_git_sha(payload)
+        if git_sha and git_sha != current_git_sha:
+            stale.append(name)
+    return stale
+
+
 def build_oa_run(
     *,
     mode: str,
@@ -61,11 +98,12 @@ def build_oa_run(
     observer_payload: dict[str, Any] | None = None,
     change_impact_payload: dict[str, Any] | None = None,
     feedback_payload: dict[str, Any] | None = None,
+    release: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     if mode not in {"daily", "pre-release", "incident"}:
         raise ValueError(f"Unsupported OA mode: {mode}")
 
-    release = (
+    resolved_release = dict(release or {}) or (
         (observer_payload or {}).get("release")
         or (arr_payload or {}).get("release")
         or (benchmark_payload or {}).get("release_spine")
@@ -128,7 +166,7 @@ def build_oa_run(
                     f"feedback.top_reason_tags={top_reason_tags[:5]}",
                 ],
                 affected_cohorts=["wechat_miniprogram_users", "profile_feedback", "message_feedback"],
-                suspected_change_window=str(release.get("release_id") or "unknown"),
+                suspected_change_window=str(resolved_release.get("release_id") or "unknown"),
                 next_verification_step="先查 `/api/v1/bi/feedback` 的 recent 样本，再按 feedback_source 回放用户路径。",
                 counterfactual="若 Supabase 近期无负反馈或产品反馈，则当前问题更可能来自内部评测而非真实用户输入。",
                 validation_cmds=[
@@ -190,7 +228,7 @@ def build_oa_run(
                     f"observer.turn_events.event_count={observer_turn_events.get('event_count')}",
                 ],
                 affected_cohorts=["interactive_turns"],
-                suspected_change_window=str(release.get("release_id") or "unknown"),
+                suspected_change_window=str(resolved_release.get("release_id") or "unknown"),
                 next_verification_step="读取 ObserverSnapshot 的 turn_events，再按 turn_id/trace_id 回放失败样本。",
                 counterfactual="若 turn event error_ratio < 0.05，则更可能是评测样本或表面覆盖问题。",
                 validation_cmds=[
@@ -222,7 +260,7 @@ def build_oa_run(
                     *samples,
                 ],
                 affected_cohorts=["recent_real_conversations"],
-                suspected_change_window=str(release.get("release_id") or "unknown"),
+                suspected_change_window=str(resolved_release.get("release_id") or "unknown"),
                 next_verification_step="按 recent_conversations.recent_sessions 中的 session_id/turn 状态回放失败对话，并对照后台 log 与 Langfuse trace。",
                 counterfactual="若 recent conversation failed_turn_count=0，则应优先看评测回归或观测盲区。",
                 validation_cmds=[
@@ -242,7 +280,7 @@ def build_oa_run(
                     *[str(item) for item in (backend_logs.get("error_samples") or [])[:5]],
                 ],
                 affected_cohorts=["runtime", "retrieval", "interactive_turns"],
-                suspected_change_window=str(release.get("release_id") or "unknown"),
+                suspected_change_window=str(resolved_release.get("release_id") or "unknown"),
                 next_verification_step="按 backend_logs.error_samples 的最早重复错误追到 writer-reader 断点，再回放相关 session/trace。",
                 counterfactual="若后台日志无 ERROR/CRITICAL，则当前故障更可能来自语义质量或表面体验。",
                 validation_cmds=[
@@ -292,7 +330,7 @@ def build_oa_run(
                     if isinstance(item, dict)
                 ]
                 or ["unknown"],
-                suspected_change_window=str(release.get("release_id") or "unknown"),
+                suspected_change_window=str(resolved_release.get("release_id") or "unknown"),
                 next_verification_step="先执行 ChangeImpactRun 的 required_gates，再按第一个失败信号回放对应 case。",
                 counterfactual="若 change impact risk 不高且 first_failing_signal 为 none，则本轮更可能是低风险变更或观测盲区。",
                 validation_cmds=list(change_impact_payload.get("next_commands") or []),
@@ -312,7 +350,7 @@ def build_oa_run(
                 confidence="high",
                 supporting_evidence=["om.health_summary.ready=false"],
                 affected_cohorts=["all"],
-                suspected_change_window=str(release.get("release_id") or "unknown"),
+                suspected_change_window=str(resolved_release.get("release_id") or "unknown"),
                 next_verification_step="先查 readyz checks 和关键依赖启动状态。",
                 counterfactual="若 readiness 为 true，后续失败更可能落到语义或表面链路。",
                 validation_cmds=[
@@ -334,7 +372,7 @@ def build_oa_run(
                 supporting_evidence=list(smoke_entry.get("evidence") or [])
                 or [str(health_summary.get("unified_ws_smoke_summary") or "unified_ws_smoke_failed")],
                 affected_cohorts=["all_interactive_turns"],
-                suspected_change_window=str(release.get("release_id") or "unknown"),
+                suspected_change_window=str(resolved_release.get("release_id") or "unknown"),
                 next_verification_step="先复跑 unified ws smoke，并核查 OPENAI_API_KEY / provider 配置是否为真实可用值。",
                 counterfactual="若 unified ws smoke 能完成 done，则 P0 更可能是局部 surface 或评测层问题。",
                 validation_cmds=[
@@ -375,7 +413,7 @@ def build_oa_run(
                     f"benchmark.failure_taxonomy={benchmark_payload.get('failure_taxonomy') or []}",
                 ],
                 affected_cohorts=["benchmark", "incident_replay", "regression_watch"],
-                suspected_change_window=str(release.get("release_id") or "unknown"),
+                suspected_change_window=str(resolved_release.get("release_id") or "unknown"),
                 next_verification_step="先看 benchmark case_results 中失败 case 的 origin_ref/source_suite，再回到 ARR 或真实 session 重放。",
                 counterfactual="若 benchmark 全通过且无 regressions，则当前质量问题更可能来自真实流量或观测盲区。",
                 validation_cmds=[
@@ -403,7 +441,7 @@ def build_oa_run(
                     f"arr.pass_rate_delta={baseline_diff.get('pass_rate_delta')}",
                 ],
                 affected_cohorts=["regression_tier", "gate_stable"],
-                suspected_change_window=str(release.get("release_id") or "unknown"),
+                suspected_change_window=str(resolved_release.get("release_id") or "unknown"),
                 next_verification_step="逐条回放 regression cases，并比对 release lineage 与变更窗口。",
                 counterfactual="若 baseline diff 无 regressions，则更可能是单点 infra 波动。",
                 validation_cmds=[
@@ -443,7 +481,7 @@ def build_oa_run(
                 confidence="medium",
                 supporting_evidence=[f"aae.continuity_score={continuity}"],
                 affected_cohorts=["followup", "long_dialog"],
-                suspected_change_window=str(release.get("release_id") or "unknown"),
+                suspected_change_window=str(resolved_release.get("release_id") or "unknown"),
                 next_verification_step="重点回放 context-orchestration 与 long-dialog failures。",
                 counterfactual="若 continuity_score >= 0.8，则更可能是表面体验或 grounding 问题。",
                 validation_cmds=[
@@ -496,11 +534,25 @@ def build_oa_run(
 
     run_id = f"oa-{mode}-{int(time.time())}"
     deduped_blind_spots = _dedupe_blind_spots(blind_spots)
+    stale_inputs = _stale_input_names(
+        dict(release or {}) or get_release_lineage_snapshot(),
+        om_payload=om_payload,
+        arr_payload=arr_payload,
+        aae_payload=aae_payload,
+        benchmark_payload=benchmark_payload,
+        observer_payload=observer_payload,
+        change_impact_payload=change_impact_payload,
+    )
+    verdict = "STALE" if stale_inputs else "TRUSTED"
+    blockers = ["artifact_release_stale_vs_head"] if stale_inputs else []
     return {
         "run_id": run_id,
         "generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
         "mode": mode,
-        "release": release,
+        "release": resolved_release,
+        "verdict": verdict,
+        "blockers": blockers,
+        "stale_inputs": stale_inputs,
         "health_summary": (om_payload or {}).get("health_summary") or {},
         "raw_evidence_bundle": {
             "observer_snapshot_run_id": (observer_payload or {}).get("run_id"),

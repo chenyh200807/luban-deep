@@ -149,9 +149,9 @@ class ObservabilityControlPlaneStore:
             "history_path": str(history_path),
         }
 
-    def latest_run(self, kind: str) -> dict[str, Any] | None:
+    def latest_run(self, kind: str, *, fallback: bool = True) -> dict[str, Any] | None:
         last_error: Exception | None = None
-        for candidate in self._latest_candidates(kind):
+        for candidate in self._latest_candidates(kind, fallback=fallback):
             try:
                 record = json.loads(candidate.read_text(encoding="utf-8"))
                 unwrap_payload_document(record, expected_kind=kind)
@@ -163,12 +163,14 @@ class ObservabilityControlPlaneStore:
             raise last_error
         return None
 
-    def _latest_candidates(self, kind: str) -> list[Path]:
+    def _latest_candidates(self, kind: str, *, fallback: bool = True) -> list[Path]:
         kind_dir = self._kind_dir(kind)
         latest_path = kind_dir / "latest.json"
         candidates: list[Path] = []
         if latest_path.exists():
             candidates.append(latest_path)
+        if not fallback:
+            return candidates
         candidates.extend(
             candidate
             for candidate in sorted(
@@ -180,9 +182,9 @@ class ObservabilityControlPlaneStore:
         )
         return candidates
 
-    def latest_payload(self, kind: str) -> dict[str, Any] | None:
+    def latest_payload(self, kind: str, *, fallback: bool = True) -> dict[str, Any] | None:
         last_error: Exception | None = None
-        for candidate in self._latest_candidates(kind):
+        for candidate in self._latest_candidates(kind, fallback=fallback):
             try:
                 record = json.loads(candidate.read_text(encoding="utf-8"))
                 return unwrap_payload_document(record, expected_kind=kind)

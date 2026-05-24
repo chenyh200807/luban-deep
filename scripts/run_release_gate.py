@@ -12,6 +12,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from deeptutor.services.observability import get_control_plane_store  # noqa: E402
+from deeptutor.services.observability import get_release_lineage_snapshot  # noqa: E402
 from deeptutor.services.observability.control_plane_store import load_payload_json  # noqa: E402
 from deeptutor.services.observability.release_gate import build_release_gate_report  # noqa: E402
 
@@ -20,8 +21,8 @@ def _load_json(path: str | None, *, expected_kind: str | None = None) -> dict | 
     return load_payload_json(path, expected_kind=expected_kind)
 
 
-def _load_store_payload(kind: str) -> dict | None:
-    return get_control_plane_store().latest_payload(kind)
+def _load_store_payload(kind: str, *, fallback: bool = True) -> dict | None:
+    return get_control_plane_store().latest_payload(kind, fallback=fallback)
 
 
 def _render_markdown(payload: dict) -> str:
@@ -65,17 +66,21 @@ def main() -> None:
 
     om_payload = _load_json(args.om_json, expected_kind="om_runs") or _load_store_payload("om_runs")
     arr_payload = _load_json(args.arr_json, expected_kind="arr_runs") or _load_store_payload("arr_runs")
+    benchmark_payload = _load_store_payload("benchmark_runs", fallback=False)
     aae_payload = _load_json(args.aae_json, expected_kind="aae_composite_runs") or _load_store_payload("aae_composite_runs")
     oa_payload = _load_json(args.oa_json, expected_kind="oa_runs") or _load_store_payload("oa_runs")
     change_impact_payload = _load_json(args.change_impact_json, expected_kind="change_impact_runs") or _load_store_payload("change_impact_runs")
     plan_completion_payload = _load_json(args.plan_completion_json, expected_kind="plan_completion_audits") or _load_store_payload("plan_completion_audits")
+    current_release = get_release_lineage_snapshot()
     payload = build_release_gate_report(
         om_payload=om_payload,
         arr_payload=arr_payload,
+        benchmark_payload=benchmark_payload,
         aae_payload=aae_payload,
         oa_payload=oa_payload,
         change_impact_payload=change_impact_payload,
         plan_completion_payload=plan_completion_payload,
+        release=current_release,
     )
     store_paths = get_control_plane_store().write_run(
         kind="release_gate_runs",

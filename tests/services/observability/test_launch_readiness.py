@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from deeptutor.services.observability.control_plane_store import ObservabilityControlPlaneStore
 from deeptutor.services.observability.launch_readiness import build_launch_readiness_dashboard
+from deeptutor.services.observability.launch_readiness import build_launch_readiness_run
 
 
 def _write_check(
@@ -301,3 +302,22 @@ def test_launch_readiness_uses_release_gate_as_source_for_gate_rows(tmp_path) ->
     assert rows["oa_arr_aae"]["run_id"] == "release-gate-current"
     assert payload["source_runs"]["arr_run_id"] is None
     assert payload["source_runs"]["oa_run_id"] is None
+
+
+def test_build_launch_readiness_run_records_readyz_state() -> None:
+    payload = build_launch_readiness_run(
+        checks={
+            "config_consistent": True,
+            "llm_client_ready": True,
+            "event_bus_ready": False,
+        },
+        release={
+            "release_id": "rel-1",
+            "git_sha": "abc123",
+            "deployment_environment": "local",
+        },
+    )
+
+    assert payload["check_id"] == "launch_readiness"
+    assert payload["status"] == "FAIL"
+    assert any("event_bus_ready=False" in item for item in payload["evidence"])

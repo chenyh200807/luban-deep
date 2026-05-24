@@ -85,6 +85,15 @@ async def main() -> None:
         release_id=str((payload.get("release") or {}).get("release_id") or ""),
         payload=payload,
     )
+    canonical_benchmark_payload = payload.get("canonical_benchmark_payload") or {}
+    benchmark_control_plane_paths = None
+    if isinstance(canonical_benchmark_payload, dict) and canonical_benchmark_payload.get("run_manifest"):
+        benchmark_control_plane_paths = get_control_plane_store().write_run(
+            kind="benchmark_runs",
+            run_id=str((canonical_benchmark_payload.get("run_manifest") or {}).get("run_id") or ""),
+            release_id=str((canonical_benchmark_payload.get("release_spine") or {}).get("release_id") or ""),
+            payload=canonical_benchmark_payload,
+        )
     summary = payload["summary"]
 
     print("")
@@ -139,6 +148,8 @@ async def main() -> None:
     print(f"HTML: {artifact_paths['html_path']}")
     print(f"Analysis JSON: {artifact_paths['analysis_json_path']}")
     print(f"Control plane JSON: {control_plane_paths['json_path']}")
+    if benchmark_control_plane_paths:
+        print(f"Benchmark control plane JSON: {benchmark_control_plane_paths['json_path']}")
     print("=" * 60)
     if not args.report_only and (int(summary.get("failed") or 0) > 0 or int(summary.get("skipped") or 0) > 0):
         raise SystemExit(

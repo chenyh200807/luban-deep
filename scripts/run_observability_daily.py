@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -23,6 +24,7 @@ from deeptutor.services.observability.control_plane_store import load_payload_js
 from deeptutor.services.observability.oa_runner import build_oa_run  # noqa: E402
 from deeptutor.services.observability.observer_snapshot import build_observer_snapshot  # noqa: E402
 from deeptutor.services.observability.observer_snapshot import write_observer_snapshot_artifacts  # noqa: E402
+from deeptutor.services.observability.release_lineage import get_release_lineage_snapshot  # noqa: E402
 from deeptutor.services.observability.release_gate import build_release_gate_report  # noqa: E402
 from deeptutor.services.observability.run_history import build_observability_run_history_from_dir  # noqa: E402
 
@@ -36,6 +38,53 @@ def _load_json(path: str | None, *, expected_kind: str | None = None) -> dict[st
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def _write_contract_guard_readiness(
+    *,
+    store,
+    changed_files: list[str],
+    release: dict[str, Any],
+) -> None:
+    if not changed_files:
+        return
+
+    command = [
+        sys.executable,
+        str(PROJECT_ROOT / "scripts" / "check_contract_guard.py"),
+        *changed_files,
+    ]
+    result = subprocess.run(
+        command,
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    payload = {
+        "run_id": f"contract_guard-{int(time.time())}",
+        "check_id": "contract_guard",
+        "label": "Contract Guard",
+        "status": "PASS" if result.returncode == 0 else "FAIL",
+        "required": True,
+        "summary": "contract guard command passed"
+        if result.returncode == 0
+        else f"contract guard command failed with exit_code={result.returncode}",
+        "evidence": [
+            f"command={' '.join(command)}",
+            f"exit_code={result.returncode}",
+            *(([f"stdout={(result.stdout or '').strip()[:1200]}"]) if (result.stdout or "").strip() else []),
+            *(([f"stderr={(result.stderr or '').strip()[:1200]}"]) if (result.stderr or "").strip() else []),
+        ],
+        "blockers": ["contract_guard_failed"] if result.returncode != 0 else [],
+        "release": dict(release or {}),
+    }
+    store.write_run(
+        kind="readiness_checks",
+        run_id=payload["run_id"],
+        release_id=str((release or {}).get("release_id") or ""),
+        payload=payload,
+    )
 
 
 def _render_oa_markdown(payload: dict[str, Any]) -> str:
@@ -83,12 +132,14 @@ def main() -> None:
     store = get_control_plane_store()
     output_dir = Path(args.output_dir).expanduser().resolve() if args.output_dir else store.base_dir / "_daily"
     output_dir.mkdir(parents=True, exist_ok=True)
+    current_release = get_release_lineage_snapshot()
 
     metrics_snapshot = _load_json(args.metrics_json)
     observer_payload = build_observer_snapshot(
         store=store,
         event_days=max(int(args.event_days or 1), 1),
         metrics_snapshot=metrics_snapshot,
+        release=current_release,
     )
     observer_artifacts = write_observer_snapshot_artifacts(
         observer_payload,
@@ -104,14 +155,20 @@ def main() -> None:
     changed_files = args.changed_file or collect_git_changed_files(base_ref=args.base_ref)
     om_payload = store.latest_payload("om_runs")
     arr_payload = store.latest_payload("arr_runs")
-    benchmark_payload = store.latest_payload("benchmark_runs")
+    benchmark_payload = store.latest_payload("benchmark_runs", fallback=False)
     aae_payload = store.latest_payload("aae_composite_runs")
+    _write_contract_guard_readiness(
+        store=store,
+        changed_files=changed_files,
+        release=current_release,
+    )
     change_impact_payload = build_change_impact_run(
         changed_files=changed_files,
         observer_payload=observer_payload,
         om_payload=om_payload,
         arr_payload=arr_payload,
         aae_payload=aae_payload,
+        release=current_release,
     )
     change_paths = store.write_run(
         kind="change_impact_runs",
@@ -132,6 +189,7 @@ def main() -> None:
         benchmark_payload=benchmark_payload,
         observer_payload=observer_payload,
         change_impact_payload=change_impact_payload,
+        release=current_release,
     )
     oa_paths = store.write_run(
         kind="oa_runs",
@@ -147,9 +205,11 @@ def main() -> None:
     gate_payload = build_release_gate_report(
         om_payload=om_payload,
         arr_payload=arr_payload,
+        benchmark_payload=benchmark_payload,
         aae_payload=aae_payload,
         oa_payload=oa_payload,
         change_impact_payload=change_impact_payload,
+        release=current_release,
     )
     gate_paths = store.write_run(
         kind="release_gate_runs",
@@ -165,7 +225,10 @@ def main() -> None:
     daily_payload = {
         "run_id": f"observability-daily-{int(time.time())}",
         "generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
-        "release": gate_payload.get("release") or oa_payload.get("release") or {},
+        "release": dict(current_release),
+        "verdict": "STALE"
+        if gate_payload.get("verdict") == "STALE" or oa_payload.get("verdict") == "STALE"
+        else "TRUSTED",
         "source_runs": {
             "observer_snapshot_run_id": observer_payload.get("run_id"),
             "change_impact_run_id": change_impact_payload.get("run_id"),

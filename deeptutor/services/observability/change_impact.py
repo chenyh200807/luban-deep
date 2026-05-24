@@ -336,9 +336,10 @@ def build_change_impact_run(
     om_payload: dict[str, Any] | None = None,
     arr_payload: dict[str, Any] | None = None,
     aae_payload: dict[str, Any] | None = None,
+    release: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     files = _normalize_changed_files(changed_files)
-    release = _release_from_sources(observer_payload, arr_payload, om_payload, aae_payload)
+    resolved_release = dict(release or {}) or _release_from_sources(observer_payload, arr_payload, om_payload, aae_payload)
     changed_domains = _build_changed_domains(files)
     first_signal = _first_failing_signal(
         om_payload=om_payload,
@@ -369,7 +370,7 @@ def build_change_impact_run(
     return {
         "run_id": f"change-impact-{int(time.time())}",
         "generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
-        "release": release,
+        "release": resolved_release,
         "changed_files": files,
         "changed_domains": changed_domains,
         "required_gates": required_gates,

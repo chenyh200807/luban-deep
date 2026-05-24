@@ -178,6 +178,16 @@ def run_prerelease_observability(
         release_id=str((arr_payload.get("release") or {}).get("release_id") or ""),
         payload=arr_payload,
     )
+    canonical_benchmark_payload = arr_payload.get("canonical_benchmark_payload") or {}
+    benchmark_store_paths = None
+    if isinstance(canonical_benchmark_payload, dict) and (canonical_benchmark_payload.get("run_manifest") or {}).get("run_id"):
+        benchmark_store_paths = get_control_plane_store().write_run(
+            kind="benchmark_runs",
+            run_id=str((canonical_benchmark_payload.get("run_manifest") or {}).get("run_id") or ""),
+            release_id=str((canonical_benchmark_payload.get("release_spine") or {}).get("release_id") or ""),
+            payload=canonical_benchmark_payload,
+        )
+    persisted_benchmark_payload = get_control_plane_store().latest_payload("benchmark_runs")
 
     feedback_payload = asyncio.run(_load_live_feedback())
     aae_payload = build_aae_composite_run(
@@ -201,6 +211,7 @@ def run_prerelease_observability(
     observer_payload = build_observer_snapshot(
         metrics_snapshot=metrics_snapshot,
         surface_snapshot=surface_smoke_payload,
+        benchmark_payload=persisted_benchmark_payload,
     )
     observer_artifacts = write_observer_snapshot_artifacts(
         observer_payload,
@@ -240,6 +251,7 @@ def run_prerelease_observability(
         om_payload=om_payload,
         arr_payload=arr_payload,
         aae_payload=aae_payload,
+        benchmark_payload=persisted_benchmark_payload,
         observer_payload=persisted_observer_payload,
         change_impact_payload=persisted_change_impact_payload,
         feedback_payload=feedback_payload,
@@ -261,6 +273,7 @@ def run_prerelease_observability(
     release_gate_payload = build_release_gate_report(
         om_payload=om_payload,
         arr_payload=arr_payload,
+        benchmark_payload=persisted_benchmark_payload,
         aae_payload=aae_payload,
         oa_payload=oa_payload,
         change_impact_payload=persisted_change_impact_payload,
@@ -299,6 +312,15 @@ def run_prerelease_observability(
                 "store_latest_path": arr_store_paths["latest_path"],
                 "store_history_path": arr_store_paths["history_path"],
             },
+            "benchmark": (
+                {
+                    "store_json_path": benchmark_store_paths["json_path"],
+                    "store_latest_path": benchmark_store_paths["latest_path"],
+                    "store_history_path": benchmark_store_paths["history_path"],
+                }
+                if benchmark_store_paths
+                else {}
+            ),
             "aae": aae_artifacts,
             "observer_snapshot": {
                 **observer_artifacts,

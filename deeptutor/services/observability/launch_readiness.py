@@ -38,6 +38,31 @@ _MANUAL_CHECKS = {
 }
 
 
+def build_launch_readiness_run(
+    *,
+    checks: dict[str, bool],
+    release: dict[str, Any],
+) -> dict[str, Any]:
+    normalized_checks = {
+        str(name): bool(value)
+        for name, value in sorted((checks or {}).items(), key=lambda item: item[0])
+    }
+    ready = bool(normalized_checks) and all(normalized_checks.values())
+    summary = "startup readiness checks passed" if ready else "startup readiness checks failed"
+    evidence = [f"{name}={value}" for name, value in normalized_checks.items()]
+    return {
+        "run_id": f"launch-readiness-{int(time.time())}",
+        "check_id": "launch_readiness",
+        "label": "Launch Readiness",
+        "status": _PASS if ready else _FAIL,
+        "required": True,
+        "summary": summary,
+        "evidence": evidence,
+        "blockers": [] if ready else ["launch_readiness_failed"],
+        "release": dict(release or {}),
+    }
+
+
 def _payload(record: dict[str, Any] | None) -> dict[str, Any]:
     payload = (record or {}).get("payload")
     return payload if isinstance(payload, dict) else {}

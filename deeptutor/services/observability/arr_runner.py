@@ -702,6 +702,7 @@ async def run_arr(
     payload["benchmark_failure_taxonomy"] = benchmark_payload["failure_taxonomy"]
     payload["runtime_evidence_links"] = benchmark_payload["runtime_evidence_links"]
     payload["blind_spots"] = benchmark_payload["blind_spots"]
+    payload["canonical_benchmark_payload"] = benchmark_payload
     payload["baseline_diff"] = compute_baseline_diff(
         baseline_payload=baseline_payload,
         current_payload=payload,

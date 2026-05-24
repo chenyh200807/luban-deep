@@ -4,19 +4,42 @@ from deeptutor.services.observability import release_gate as release_gate_module
 from deeptutor.services.observability.release_gate import build_release_gate_report
 
 
-def test_release_gate_report_marks_fail_and_warn_correctly() -> None:
+def _canonical_benchmark_payload(
+    *,
+    release: dict[str, str],
+    run_id: str = "benchmark-1",
+    case_results: list[dict] | None = None,
+    summary: dict | None = None,
+    baseline_diff: dict | None = None,
+) -> dict:
+    return {
+        "run_manifest": {
+            "run_id": run_id,
+            "requested_suites": ["pr_gate_core"],
+        },
+        "release_spine": release,
+        "case_results": case_results or [],
+        "summary": summary or {"pass_rate": 1.0},
+        "baseline_diff": baseline_diff or {"regressions": [], "new_failures": []},
+        "blind_spots": [],
+    }
+
+
+def test_release_gate_report_marks_fail_and_warn_correctly(monkeypatch) -> None:
+    release = {
+        "release_id": "rel-1",
+        "git_sha": "abc",
+        "deployment_environment": "prod",
+        "prompt_version": "p1",
+        "ff_snapshot_hash": "ff1",
+        "git_dirty": "false",
+        "deploy_manifest_hash": "manifest1",
+    }
+    monkeypatch.setattr(release_gate_module, "get_release_lineage_snapshot", lambda: dict(release))
     payload = build_release_gate_report(
         om_payload={
             "run_id": "om-1",
-            "release": {
-                "release_id": "rel-1",
-                "git_sha": "abc",
-                "deployment_environment": "prod",
-                "prompt_version": "p1",
-                "ff_snapshot_hash": "ff1",
-                "git_dirty": "false",
-                "deploy_manifest_hash": "manifest1",
-            },
+            "release": dict(release),
             "health_summary": {"ready": True},
             "metrics_snapshot": {"surface_events": {"coverage": []}},
         },
@@ -30,18 +53,16 @@ def test_release_gate_report_marks_fail_and_warn_correctly() -> None:
                 {"suite": "pr_gate_core", "case_id": "case_a", "status": "FAIL"}
             ],
             "blind_spots": [{"type": "benchmark_surface"}],
-            "release": {
-                "release_id": "rel-1",
-                "git_sha": "abc",
-                "deployment_environment": "prod",
-                "prompt_version": "p1",
-                "ff_snapshot_hash": "ff1",
-                "git_dirty": "false",
-                "deploy_manifest_hash": "manifest1",
-            },
+            "release": dict(release),
             "summary": {"pass_rate": 1.0},
             "baseline_diff": {"regressions": [{"case_key": "semantic-router::critical"}], "new_failures": []},
         },
+        benchmark_payload=_canonical_benchmark_payload(
+            release=release,
+            case_results=[{"suite": "pr_gate_core", "case_id": "case_a", "status": "FAIL"}],
+            summary={"pass_rate": 0.0},
+            baseline_diff={"regressions": [{"case_key": "semantic-router::critical"}], "new_failures": []},
+        ),
         aae_payload={
             "run_id": "aae-1",
             "composite": {"value": 0.92, "coverage_ratio": 0.8},
@@ -601,18 +622,20 @@ def test_release_gate_report_blocks_high_change_impact() -> None:
     assert any(item["gate"] == "P5 Change Impact" for item in payload["gate_results"])
 
 
-def test_release_gate_allows_prelaunch_aae_proxy_when_composite_is_healthy() -> None:
+def test_release_gate_allows_prelaunch_aae_proxy_when_composite_is_healthy(monkeypatch) -> None:
+    release = {
+        "release_id": "rel-1",
+        "git_sha": "abc",
+        "deployment_environment": "production",
+        "prompt_version": "p",
+        "ff_snapshot_hash": "ff",
+        "git_dirty": "false",
+        "deploy_manifest_hash": "manifest1",
+    }
+    monkeypatch.setattr(release_gate_module, "get_release_lineage_snapshot", lambda: dict(release))
     payload = build_release_gate_report(
         om_payload={
-            "release": {
-                "release_id": "rel-1",
-                "git_sha": "abc",
-                "deployment_environment": "production",
-                "prompt_version": "p",
-                "ff_snapshot_hash": "ff",
-                "git_dirty": "false",
-                "deploy_manifest_hash": "manifest1",
-            },
+            "release": dict(release),
             "health_summary": {"ready": True, "unified_ws_smoke_ok": True},
             "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
         },
@@ -623,6 +646,12 @@ def test_release_gate_allows_prelaunch_aae_proxy_when_composite_is_healthy() -> 
             "benchmark_run_manifest": {"run_id": "bench-1"},
             "blind_spots": [],
         },
+        benchmark_payload=_canonical_benchmark_payload(
+            release=release,
+            run_id="bench-1",
+            case_results=[{"suite": "semantic-router", "status": "PASS", "case_tier": "gate_stable"}],
+            summary={"pass_rate": 1.0},
+        ),
         aae_payload={
             "scorecard": {"paid_student_satisfaction_score": {"is_proxy": True}},
             "composite": {"value": 1.0, "coverage_ratio": 1.0},
@@ -774,6 +803,28 @@ def test_release_gate_fails_existing_gate_failure_without_baseline_diff() -> Non
             ],
             "benchmark_run_manifest": {"run_id": "bench-1"},
         },
+        benchmark_payload=_canonical_benchmark_payload(
+            release={
+                "release_id": "rel-1",
+                "git_sha": "abc",
+                "deployment_environment": "production",
+                "prompt_version": "p",
+                "ff_snapshot_hash": "ff",
+                "git_dirty": "false",
+                "deploy_manifest_hash": "manifest1",
+            },
+            run_id="bench-1",
+            case_results=[
+                {
+                    "suite": "semantic-router",
+                    "case_id": "critical",
+                    "status": "FAIL",
+                    "gate_eligible": True,
+                    "case_tier": "gate_stable",
+                }
+            ],
+            summary={"pass_rate": 0.95},
+        ),
         aae_payload=None,
         oa_payload=None,
     )
@@ -816,6 +867,28 @@ def test_release_gate_fails_gate_skip() -> None:
                 "suite_execution_modes": {"long-dialog-full": "live_ws"},
             },
         },
+        benchmark_payload=_canonical_benchmark_payload(
+            release={
+                "release_id": "rel-1",
+                "git_sha": "abc",
+                "deployment_environment": "production",
+                "prompt_version": "p",
+                "ff_snapshot_hash": "ff",
+                "git_dirty": "false",
+                "deploy_manifest_hash": "manifest1",
+            },
+            run_id="bench-1",
+            case_results=[
+                {
+                    "suite": "long-dialog-full",
+                    "case_id": "long-dialog-full",
+                    "status": "SKIP",
+                    "gate_eligible": True,
+                    "case_tier": "regression_tier",
+                }
+            ],
+            summary={"pass_rate": 1.0},
+        ),
         aae_payload=None,
         oa_payload=None,
     )
@@ -857,6 +930,28 @@ def test_release_gate_requires_long_dialog_live_ws() -> None:
                 "suite_execution_modes": {"long-dialog-full": "in_process_runtime"},
             },
         },
+        benchmark_payload=_canonical_benchmark_payload(
+            release={
+                "release_id": "rel-1",
+                "git_sha": "abc",
+                "deployment_environment": "production",
+                "prompt_version": "p",
+                "ff_snapshot_hash": "ff",
+                "git_dirty": "false",
+                "deploy_manifest_hash": "manifest1",
+            },
+            run_id="bench-1",
+            case_results=[
+                {
+                    "suite": "long-dialog-full",
+                    "case_id": "LD_001",
+                    "status": "PASS",
+                    "gate_eligible": True,
+                    "case_tier": "regression_tier",
+                }
+            ],
+            summary={"pass_rate": 1.0},
+        ),
         aae_payload=None,
         oa_payload=None,
     )
@@ -864,3 +959,144 @@ def test_release_gate_requires_long_dialog_live_ws() -> None:
     p2 = next(item for item in payload["gate_results"] if item["gate"] == "P2 Benchmark Regression")
     assert p2["status"] == "FAIL"
     assert "long_dialog_not_live_ws" in payload["blockers"]
+
+
+def test_release_gate_requires_canonical_benchmark_payload_for_p2_pass() -> None:
+    payload = build_release_gate_report(
+        om_payload={
+            "release": {
+                "release_id": "rel-1",
+                "git_sha": "abc",
+                "deployment_environment": "production",
+                "prompt_version": "p",
+                "ff_snapshot_hash": "ff",
+                "git_dirty": "false",
+                "deploy_manifest_hash": "manifest1",
+            },
+            "health_summary": {"ready": True, "unified_ws_smoke_ok": True},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload={
+            "summary": {"pass_rate": 1.0},
+            "baseline_diff": {"regressions": [], "new_failures": []},
+            "benchmark_case_results": [
+                {
+                    "suite": "pr_gate_core",
+                    "case_id": "case-a",
+                    "status": "PASS",
+                    "gate_eligible": True,
+                    "case_tier": "gate_stable",
+                }
+            ],
+            "benchmark_run_manifest": {"run_id": "bench-embedded", "requested_suites": ["pr_gate_core"]},
+            "execution_context": {
+                "api_base_url": "https://test2.yousenjiaoyu.com",
+                "suite_execution_modes": {},
+            },
+            "release": {
+                "release_id": "rel-1",
+                "git_sha": "abc",
+                "deployment_environment": "production",
+                "prompt_version": "p",
+                "ff_snapshot_hash": "ff",
+                "git_dirty": "false",
+                "deploy_manifest_hash": "manifest1",
+            },
+        },
+        benchmark_payload=None,
+        aae_payload=None,
+        oa_payload=None,
+    )
+
+    p2 = next(item for item in payload["gate_results"] if item["gate"] == "P2 Benchmark Regression")
+    assert p2["status"] == "FAIL"
+    assert p2["summary"] == "canonical benchmark row missing"
+    assert "canonical_benchmark_missing" in payload["blockers"]
+
+
+def test_release_gate_marks_verdict_stale_when_artifact_git_sha_lags_head(monkeypatch) -> None:
+    monkeypatch.setattr(
+        release_gate_module,
+        "get_release_lineage_snapshot",
+        lambda: {
+            "release_id": "rel-head",
+            "git_sha": "head123",
+            "deployment_environment": "local",
+            "prompt_version": "p1",
+            "ff_snapshot_hash": "ff1",
+            "git_dirty": "false",
+            "deploy_manifest_hash": "manifest1",
+        },
+    )
+
+    payload = build_release_gate_report(
+        om_payload={
+            "release": {
+                "release_id": "rel-old",
+                "git_sha": "old123",
+                "deployment_environment": "local",
+                "prompt_version": "p1",
+                "ff_snapshot_hash": "ff1",
+                "git_dirty": "false",
+                "deploy_manifest_hash": "manifest1",
+            },
+            "health_summary": {"ready": True, "unified_ws_smoke_ok": True},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload=None,
+        benchmark_payload=None,
+        aae_payload=None,
+        oa_payload=None,
+    )
+
+    assert payload["verdict"] == "STALE"
+    assert "artifact_release_stale_vs_head" in payload["blockers"]
+
+
+def test_release_gate_prefers_explicit_release_override(monkeypatch) -> None:
+    monkeypatch.setattr(
+        release_gate_module,
+        "get_release_lineage_snapshot",
+        lambda: {
+            "release_id": "rel-head",
+            "git_sha": "head123",
+            "deployment_environment": "local",
+            "prompt_version": "p1",
+            "ff_snapshot_hash": "ff1",
+            "git_dirty": "false",
+            "deploy_manifest_hash": "manifest1",
+        },
+    )
+    explicit_release = {
+        "release_id": "rel-head",
+        "git_sha": "head123",
+        "deployment_environment": "local",
+        "prompt_version": "p1",
+        "ff_snapshot_hash": "ff1",
+        "git_dirty": "false",
+        "deploy_manifest_hash": "manifest1",
+    }
+
+    payload = build_release_gate_report(
+        om_payload={
+            "release": {
+                "release_id": "rel-old",
+                "git_sha": "old123",
+                "deployment_environment": "local",
+                "prompt_version": "p1",
+                "ff_snapshot_hash": "ff1",
+                "git_dirty": "false",
+                "deploy_manifest_hash": "manifest1",
+            },
+            "health_summary": {"ready": True, "unified_ws_smoke_ok": True},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload=None,
+        benchmark_payload=None,
+        aae_payload=None,
+        oa_payload=None,
+        release=explicit_release,
+    )
+
+    assert payload["release"] == explicit_release
+    assert payload["verdict"] == "STALE"

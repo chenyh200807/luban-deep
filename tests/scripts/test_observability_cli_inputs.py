@@ -32,6 +32,7 @@ CHANGE_IMPACT_MODULE = _load_script_module("run_change_impact.py")
 DAILY_OBSERVABILITY_MODULE = _load_script_module("run_observability_daily.py")
 PLAN_COMPLETION_MODULE = _load_script_module("run_plan_completion_audit.py")
 READINESS_CHECK_MODULE = _load_script_module("run_readiness_check.py")
+BENCHMARK_MODULE = _load_script_module("run_benchmark.py")
 
 
 def test_run_aae_snapshot_load_json_accepts_control_plane_wrapper(tmp_path) -> None:
@@ -175,7 +176,7 @@ def test_run_release_gate_cli_fails_closed_without_canary(monkeypatch, tmp_path)
         ),
     )
     monkeypatch.setattr(RELEASE_GATE_MODULE, "_load_json", lambda *_args, **_kwargs: None)
-    monkeypatch.setattr(RELEASE_GATE_MODULE, "_load_store_payload", lambda _kind: None)
+    monkeypatch.setattr(RELEASE_GATE_MODULE, "_load_store_payload", lambda _kind, **_kwargs: None)
     monkeypatch.setattr(
         RELEASE_GATE_MODULE,
         "build_release_gate_report",
@@ -470,10 +471,298 @@ def test_run_observability_daily_cli_writes_end_to_end_control_plane_runs(tmp_pa
         "oa_runs",
         "release_gate_runs",
         "daily_trends",
+        "readiness_checks",
     ):
         assert (store_dir / kind / "latest.json").exists()
 
     oa_latest = json.loads((store_dir / "oa_runs" / "latest.json").read_text(encoding="utf-8"))
     assert oa_latest["payload"]["causal_candidates"]
+    readiness_latest = json.loads((store_dir / "readiness_checks" / "latest.json").read_text(encoding="utf-8"))
+    assert readiness_latest["payload"]["check_id"] == "contract_guard"
     run_history = DAILY_OBSERVABILITY_MODULE.build_daily_run_history(store_dir=store_dir)
     assert run_history["summary"]["total"] >= 4
+
+
+def test_run_benchmark_cli_writes_control_plane_latest(tmp_path) -> None:
+    store_dir = tmp_path / "control_plane"
+    env = {
+        **os.environ,
+        "DEEPTUTOR_OBSERVABILITY_STORE_DIR": str(store_dir),
+    }
+
+    proc = subprocess.run(
+        [
+            sys.executable,
+            str(Path(__file__).resolve().parents[2] / "scripts" / "run_benchmark.py"),
+            "pr_gate_core",
+        ],
+        cwd=Path(__file__).resolve().parents[2],
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+
+    assert proc.returncode == 0, proc.stderr
+    latest = json.loads((store_dir / "benchmark_runs" / "latest.json").read_text(encoding="utf-8"))
+    assert latest["kind"] == "benchmark_runs"
+    assert latest["payload"]["run_manifest"]["requested_suites"] == ["pr_gate_core"]
+
+
+def test_run_observability_daily_marks_verdict_stale_when_input_release_lags_head(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    reset_control_plane_store(base_dir=tmp_path / "control_plane")
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE.argparse.ArgumentParser,
+        "parse_args",
+        lambda _self: DAILY_OBSERVABILITY_MODULE.argparse.Namespace(
+            base_ref="HEAD~1",
+            changed_file=[],
+            metrics_json=None,
+            event_days=1,
+            output_dir=str(tmp_path / "out"),
+        ),
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "write_observer_snapshot_artifacts",
+        lambda payload, output_dir: {"json_path": str(output_dir / "observer.json")},
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "build_observer_snapshot",
+        lambda **_kwargs: {
+            "run_id": "observer-1",
+            "release": {"release_id": "rel-old", "git_sha": "old123"},
+        },
+    )
+    monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "collect_git_changed_files", lambda base_ref: [])
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "build_change_impact_run",
+        lambda **_kwargs: {
+            "run_id": "change-1",
+            "release": {"release_id": "rel-old", "git_sha": "old123"},
+            "risk_level": "low",
+        },
+    )
+    monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "render_change_impact_markdown", lambda payload: "")
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "build_oa_run",
+        lambda **_kwargs: {
+            "run_id": "oa-1",
+            "release": {"release_id": "rel-old", "git_sha": "old123"},
+            "verdict": "STALE",
+            "root_causes": [],
+            "causal_candidates": [],
+            "blind_spots": [],
+        },
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "build_release_gate_report",
+        lambda **_kwargs: {
+            "run_id": "gate-1",
+            "release": {"release_id": "rel-old", "git_sha": "old123"},
+            "verdict": "STALE",
+            "final_status": "FAIL",
+            "recommendation": "hold",
+            "gate_results": [],
+            "blockers": ["artifact_release_stale_vs_head"],
+        },
+    )
+
+    DAILY_OBSERVABILITY_MODULE.main()
+
+    latest = json.loads((tmp_path / "control_plane" / "daily_trends" / "latest.json").read_text(encoding="utf-8"))
+    assert latest["payload"]["verdict"] == "STALE"
+
+
+def test_run_observability_daily_passes_current_release_through_spine(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    reset_control_plane_store(base_dir=tmp_path / "control_plane")
+    current_release = {
+        "release_id": "rel-head",
+        "git_sha": "head123",
+        "deployment_environment": "local",
+    }
+    observed_releases: dict[str, dict[str, str]] = {}
+
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE.argparse.ArgumentParser,
+        "parse_args",
+        lambda _self: DAILY_OBSERVABILITY_MODULE.argparse.Namespace(
+            base_ref="HEAD~1",
+            changed_file=["deeptutor/services/session/turn_runtime.py"],
+            metrics_json=None,
+            event_days=1,
+            output_dir=str(tmp_path / "out"),
+        ),
+    )
+    monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "get_release_lineage_snapshot", lambda: dict(current_release))
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "write_observer_snapshot_artifacts",
+        lambda payload, output_dir: {"json_path": str(output_dir / "observer.json")},
+    )
+
+    def _build_observer_snapshot(**kwargs):
+        observed_releases["observer"] = dict(kwargs["release"])
+        return {"run_id": "observer-1", "release": dict(kwargs["release"]), "blind_spots": []}
+
+    monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "build_observer_snapshot", _build_observer_snapshot)
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "_write_contract_guard_readiness",
+        lambda **kwargs: observed_releases.setdefault("readiness", dict(kwargs["release"])),
+    )
+
+    def _build_change_impact_run(**kwargs):
+        observed_releases["change_impact"] = dict(kwargs["release"])
+        return {
+            "run_id": "change-1",
+            "release": dict(kwargs["release"]),
+            "risk_level": "low",
+            "required_gates": [],
+            "blind_spots": [],
+        }
+
+    monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "build_change_impact_run", _build_change_impact_run)
+    monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "render_change_impact_markdown", lambda payload: "")
+
+    def _build_oa_run(**kwargs):
+        observed_releases["oa"] = dict(kwargs["release"])
+        return {
+            "run_id": "oa-1",
+            "release": dict(kwargs["release"]),
+            "verdict": "TRUSTED",
+            "root_causes": [],
+            "causal_candidates": [],
+            "blind_spots": [],
+        }
+
+    monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "build_oa_run", _build_oa_run)
+
+    def _build_release_gate_report(**kwargs):
+        observed_releases["gate"] = dict(kwargs["release"])
+        return {
+            "run_id": "gate-1",
+            "release": dict(kwargs["release"]),
+            "verdict": "TRUSTED",
+            "final_status": "FAIL",
+            "recommendation": "hold",
+            "gate_results": [],
+            "blockers": [],
+        }
+
+    monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "build_release_gate_report", _build_release_gate_report)
+
+    DAILY_OBSERVABILITY_MODULE.main()
+
+    assert observed_releases == {
+        "observer": current_release,
+        "readiness": current_release,
+        "change_impact": current_release,
+        "oa": current_release,
+        "gate": current_release,
+    }
+
+
+def test_run_release_gate_cli_requires_canonical_benchmark_latest(tmp_path) -> None:
+    store_dir = tmp_path / "control_plane"
+    env = {
+        **os.environ,
+        "DEEPTUTOR_OBSERVABILITY_STORE_DIR": str(store_dir),
+    }
+
+    om_dir = store_dir / "om_runs"
+    arr_dir = store_dir / "arr_runs"
+    benchmark_dir = store_dir / "benchmark_runs"
+    for directory in (om_dir, arr_dir, benchmark_dir):
+        directory.mkdir(parents=True, exist_ok=True)
+
+    release = {
+        "release_id": "rel-1",
+        "git_sha": "abc123",
+        "deployment_environment": "production",
+        "prompt_version": "p1",
+        "ff_snapshot_hash": "ff1",
+        "git_dirty": "false",
+        "deploy_manifest_hash": "manifest1",
+    }
+    om_wrapper = {
+        "kind": "om_runs",
+        "run_id": "om-1",
+        "release_id": "rel-1",
+        "recorded_at": 1,
+        "payload": {
+            "run_id": "om-1",
+            "release": release,
+            "health_summary": {"ready": True, "unified_ws_smoke_ok": True},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+    }
+    arr_wrapper = {
+        "kind": "arr_runs",
+        "run_id": "arr-1",
+        "release_id": "rel-1",
+        "recorded_at": 2,
+        "payload": {
+            "run_id": "arr-1",
+            "release": release,
+            "summary": {"pass_rate": 1.0},
+            "baseline_diff": {"regressions": [], "new_failures": []},
+            "benchmark_run_manifest": {"run_id": "bench-embedded", "requested_suites": ["pr_gate_core"]},
+            "benchmark_case_results": [
+                {
+                    "suite": "pr_gate_core",
+                    "case_id": "case-a",
+                    "status": "PASS",
+                    "gate_eligible": True,
+                    "case_tier": "gate_stable",
+                }
+            ],
+            "execution_context": {"api_base_url": "https://test2.yousenjiaoyu.com", "suite_execution_modes": {}},
+        },
+    }
+    benchmark_wrapper = {
+        "kind": "benchmark_runs",
+        "run_id": "benchmark-1",
+        "release_id": "rel-1",
+        "recorded_at": 3,
+        "payload": {
+            "run_manifest": {"run_id": "benchmark-1", "requested_suites": ["pr_gate_core"]},
+            "release_spine": release,
+            "case_results": [],
+            "summary": {"pass_rate": 1.0},
+            "baseline_diff": {"regressions": [], "new_failures": []},
+            "blind_spots": [],
+        },
+    }
+
+    (om_dir / "latest.json").write_text(json.dumps(om_wrapper), encoding="utf-8")
+    (arr_dir / "latest.json").write_text(json.dumps(arr_wrapper), encoding="utf-8")
+    stray_benchmark_path = benchmark_dir / "benchmark-1.json"
+    stray_benchmark_path.write_text(json.dumps(benchmark_wrapper), encoding="utf-8")
+
+    proc = subprocess.run(
+        [
+            sys.executable,
+            str(Path(__file__).resolve().parents[2] / "scripts" / "run_release_gate.py"),
+            "--report-only",
+        ],
+        cwd=Path(__file__).resolve().parents[2],
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+
+    assert proc.returncode == 0, proc.stderr
+    latest = json.loads((store_dir / "release_gate_runs" / "latest.json").read_text(encoding="utf-8"))
+    p2 = next(item for item in latest["payload"]["gate_results"] if item["gate"] == "P2 Benchmark Regression")
+    assert p2["status"] == "FAIL"
+    assert p2["summary"] == "canonical benchmark row missing"

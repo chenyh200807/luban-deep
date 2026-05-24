@@ -18,6 +18,7 @@ from deeptutor.services.benchmark.runner import (  # noqa: E402
     run_benchmark,
     write_benchmark_artifacts,
 )
+from deeptutor.services.observability import get_control_plane_store  # noqa: E402
 
 CANONICAL_SUITES = ("pr_gate_core", "regression_watch", "incident_replay", "exploration_lab")
 
@@ -50,6 +51,12 @@ async def main() -> None:
         output_dir=output_dir,
     )
     artifact_paths = write_benchmark_artifacts(payload, output_dir=output_dir)
+    store_paths = get_control_plane_store().write_run(
+        kind="benchmark_runs",
+        run_id=payload["run_manifest"]["run_id"],
+        release_id=str((payload.get("release_spine") or {}).get("release_id") or ""),
+        payload=payload,
+    )
     summary = payload["summary"]
 
     print("")
@@ -72,6 +79,7 @@ async def main() -> None:
             print(f"  - {item['suite']}::{item['case_id']} -> {item['reason']}")
     print(f"JSON: {artifact_paths['json_path']}")
     print(f"MD:   {artifact_paths['md_path']}")
+    print(f"Control plane latest: {store_paths['latest_path']}")
     print("=" * 60)
 
 

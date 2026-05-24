@@ -147,23 +147,60 @@ def _release_spine_label(release: dict[str, Any]) -> str:
     return "|".join(values) or "unknown"
 
 
+def _payload_git_sha(payload: dict[str, Any] | None) -> str:
+    release = _payload_release(payload) or ((payload or {}).get("release_spine") or {})
+    return str(release.get("git_sha") or "").strip()
+
+
+def _stale_input_names(
+    *,
+    current_release: dict[str, Any],
+    om_payload: dict[str, Any] | None,
+    arr_payload: dict[str, Any] | None,
+    benchmark_payload: dict[str, Any] | None,
+    aae_payload: dict[str, Any] | None,
+    oa_payload: dict[str, Any] | None,
+    change_impact_payload: dict[str, Any] | None,
+    plan_completion_payload: dict[str, Any] | None,
+) -> list[str]:
+    current_git_sha = str((current_release or {}).get("git_sha") or "").strip()
+    if not current_git_sha or "unknown" in current_git_sha.lower():
+        return []
+    stale: list[str] = []
+    for name, payload in (
+        ("om", om_payload),
+        ("arr", arr_payload),
+        ("benchmark", benchmark_payload),
+        ("aae", aae_payload),
+        ("oa", oa_payload),
+        ("change_impact", change_impact_payload),
+        ("plan_completion", plan_completion_payload),
+    ):
+        git_sha = _payload_git_sha(payload)
+        if git_sha and git_sha != current_git_sha:
+            stale.append(name)
+    return stale
+
+
 def build_release_gate_report(
     *,
     om_payload: dict[str, Any] | None,
     arr_payload: dict[str, Any] | None,
+    benchmark_payload: dict[str, Any] | None = None,
     aae_payload: dict[str, Any] | None,
     oa_payload: dict[str, Any] | None,
     change_impact_payload: dict[str, Any] | None = None,
     plan_completion_payload: dict[str, Any] | None = None,
+    release: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     if _is_prerelease_plan_placeholder(plan_completion_payload):
         plan_completion_payload = None
-    release = _select_release_lineage(arr_payload, om_payload, aae_payload, oa_payload)
+    resolved_release = dict(release or {}) or _select_release_lineage(arr_payload, om_payload, aae_payload, oa_payload)
     gate_results: list[dict[str, Any]] = []
 
     om_health = (om_payload or {}).get("health_summary") or {}
-    release_complete = _is_complete_release_lineage(release)
-    git_dirty_value = str(release.get("git_dirty") or "").strip().lower()
+    release_complete = _is_complete_release_lineage(resolved_release)
+    git_dirty_value = str(resolved_release.get("git_dirty") or "").strip().lower()
     release_dirty = git_dirty_value in {"1", "true", "yes", "on"}
     unified_ws_smoke_ok = om_health.get("unified_ws_smoke_ok")
     ws_main_path_healthy = unified_ws_smoke_ok is not False
@@ -185,7 +222,7 @@ def build_release_gate_report(
             evidence=[
                 f"ready={om_health.get('ready')}",
                 f"release_complete={release_complete}",
-                f"git_dirty={release.get('git_dirty')}",
+                f"git_dirty={resolved_release.get('git_dirty')}",
                 f"unified_ws_smoke_ok={unified_ws_smoke_ok}",
                 f"orphaned_turns={orphaned_turns}",
             ],
@@ -208,19 +245,24 @@ def build_release_gate_report(
             summary="已看到 surface ack 覆盖" if not unknown_surface else "surface ack coverage 仍未知",
             evidence=[
                 f"surface_coverage_count={len(surface_coverages)}",
-                f"prompt_version={release.get('prompt_version')}",
-                f"ff_snapshot_hash={release.get('ff_snapshot_hash')}",
+                f"prompt_version={resolved_release.get('prompt_version')}",
+                f"ff_snapshot_hash={resolved_release.get('ff_snapshot_hash')}",
             ],
         )
     )
 
-    benchmark_case_results = (arr_payload or {}).get("benchmark_case_results") or []
-    benchmark_manifest = (arr_payload or {}).get("benchmark_run_manifest") or {}
-    benchmark_blind_spots = (arr_payload or {}).get("blind_spots") or []
+    canonical_benchmark_manifest = (benchmark_payload or {}).get("run_manifest") or {}
+    embedded_benchmark_manifest = (arr_payload or {}).get("benchmark_run_manifest") or {}
+    benchmark_manifest = canonical_benchmark_manifest or embedded_benchmark_manifest
+    benchmark_case_results = (benchmark_payload or {}).get("case_results") or (arr_payload or {}).get("benchmark_case_results") or []
+    benchmark_blind_spots = (benchmark_payload or {}).get("blind_spots") or (arr_payload or {}).get("blind_spots") or []
     arr_summary = (arr_payload or {}).get("summary") or {}
-    arr_diff = (arr_payload or {}).get("baseline_diff") or {}
-    execution_context = (arr_payload or {}).get("execution_context") or {}
+    benchmark_summary = (benchmark_payload or {}).get("summary") or {}
+    arr_diff = (benchmark_payload or {}).get("baseline_diff") or (arr_payload or {}).get("baseline_diff") or {}
+    execution_context = (benchmark_payload or {}).get("execution_context") or (arr_payload or {}).get("execution_context") or {}
     benchmark_pass_rate = _benchmark_pass_rate(benchmark_case_results) if benchmark_case_results else arr_summary.get("pass_rate")
+    if benchmark_pass_rate is None:
+        benchmark_pass_rate = benchmark_summary.get("pass_rate")
     new_critical_regressions = len(arr_diff.get("regressions") or []) + len(arr_diff.get("new_failures") or [])
     gate_failures = [
         item for item in benchmark_case_results
@@ -241,21 +283,26 @@ def build_release_gate_report(
         pass_rate = benchmark_pass_rate
         has_new_critical = new_critical_regressions > 0
         p2_blockers = []
-        p2_status = _PASS
-        p2_summary = "benchmark 当前无新增 regression"
-        if gate_failures:
+        if not canonical_benchmark_manifest.get("run_id"):
+            p2_status = _FAIL
+            p2_summary = "canonical benchmark row missing"
+            p2_blockers.append("canonical_benchmark_missing")
+        else:
+            p2_status = _PASS
+            p2_summary = "benchmark 当前无新增 regression"
+        if p2_status != _FAIL and gate_failures:
             p2_status = _FAIL
             p2_summary = "benchmark gate/regression tier 存在失败"
             p2_blockers.append("benchmark_gate_failure")
-        if gate_skips:
+        if p2_status != _FAIL and gate_skips:
             p2_status = _FAIL
             p2_summary = "benchmark gate/regression tier 存在 SKIP"
             p2_blockers.append("benchmark_gate_skip")
-        if not live_ws_ready:
+        if p2_status != _FAIL and not live_ws_ready:
             p2_status = _FAIL
             p2_summary = "long-dialog 未通过真实 /api/v1/ws 执行"
             p2_blockers.append("long_dialog_not_live_ws")
-        if has_new_critical:
+        if p2_status != _FAIL and has_new_critical:
             p2_status = _FAIL
             p2_summary = "benchmark 出现新增 regression 或 new failure"
             p2_blockers.append("new_benchmark_regression")
@@ -383,7 +430,7 @@ def build_release_gate_report(
         plan_release = _payload_release(plan_completion_payload)
         p6_blockers = []
         audit_status = str(plan_completion_payload.get("status") or "").strip().upper()
-        if not _same_release_spine(release, plan_release):
+        if not _same_release_spine(resolved_release, plan_release):
             p6_status = _FAIL
             p6_summary = "PlanCompletionAudit 不属于当前 release spine"
             p6_blockers = ["plan_completion_audit_stale_release"]
@@ -417,7 +464,7 @@ def build_release_gate_report(
                 f"unverifiable={plan_summary.get('unverifiable')}",
                 f"out_of_scope={plan_summary.get('out_of_scope')}",
                 f"warnings={(plan_completion_payload or {}).get('warnings')}",
-                f"expected_release={_release_spine_label(release)}",
+                f"expected_release={_release_spine_label(resolved_release)}",
                 f"plan_release={_release_spine_label(_payload_release(plan_completion_payload))}",
             ],
             blockers=p6_blockers,
@@ -431,18 +478,36 @@ def build_release_gate_report(
         recommendation = "canary"
     elif final_status == _WARN:
         recommendation = "hold_with_conditions"
+    stale_inputs = _stale_input_names(
+        current_release=dict(release or {}) or get_release_lineage_snapshot(),
+        om_payload=om_payload,
+        arr_payload=arr_payload,
+        benchmark_payload=benchmark_payload,
+        aae_payload=aae_payload,
+        oa_payload=oa_payload,
+        change_impact_payload=change_impact_payload,
+        plan_completion_payload=plan_completion_payload,
+    )
+    verdict = "STALE" if stale_inputs else "TRUSTED"
+    if stale_inputs:
+        blockers.append("artifact_release_stale_vs_head")
+        if final_status == _PASS:
+            final_status = _WARN
+        recommendation = "hold"
 
     return {
         "run_id": f"release-gate-{int(time.time())}",
         "generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
-        "release": release,
+        "release": resolved_release,
+        "verdict": verdict,
+        "stale_inputs": stale_inputs,
         "final_status": final_status,
         "recommendation": recommendation,
         "gate_results": gate_results,
         "blockers": blockers,
         "blind_spots": blind_spots,
         "latest_runs": {
-            "benchmark_run_id": benchmark_manifest.get("run_id"),
+            "benchmark_run_id": canonical_benchmark_manifest.get("run_id"),
             "om_run_id": (om_payload or {}).get("run_id"),
             "arr_run_id": (arr_payload or {}).get("run_id"),
             "aae_run_id": (aae_payload or {}).get("run_id"),
