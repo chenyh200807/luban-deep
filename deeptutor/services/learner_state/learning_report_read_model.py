@@ -285,7 +285,11 @@ def build_learning_report_read_model(
         "progress_feedback": progress_feedback,
         "mastery": mastery,
         "radar_dimensions": radar_dimensions,
-        "study_plan": _safe_dict(home_dashboard.get("study_plan")),
+        "study_plan": _study_plan_payload(
+            home_dashboard=home_dashboard,
+            learner_facing=learner_facing,
+            next_training=next_training,
+        ),
         "learning_brain": learning_brain,
         "learner_facing": learner_facing,
         "truth_sections": truth_sections,
@@ -952,6 +956,52 @@ def _next_training_items(learning_brain: dict[str, Any], home_dashboard: dict[st
     if focus:
         return [{"display_title": focus.get("title") or "下一步训练", "display_meta": focus.get("description") or ""}]
     return []
+
+
+def _study_plan_payload(
+    *,
+    home_dashboard: dict[str, Any],
+    learner_facing: dict[str, Any],
+    next_training: list[dict[str, Any]],
+) -> dict[str, Any]:
+    plan = _safe_dict(home_dashboard.get("study_plan"))
+    if any(
+        str(plan.get(key) or "").strip()
+        for key in ("focus_topic", "priority_task", "study_method", "time_budget", "coach_note")
+    ):
+        return plan
+
+    next_action = _safe_dict(learner_facing.get("next_action"))
+    summary = _safe_dict(learner_facing.get("summary"))
+    focus_topic = (
+        str(next_action.get("concept") or "").strip()
+        or str(summary.get("primary_focus") or "").strip()
+        or str(_safe_dict(home_dashboard.get("today_focus")).get("title") or "").strip()
+    )
+    priority_task = str(next_action.get("title") or "").strip()
+    coach_note = str(next_action.get("subtitle") or "").strip()
+    estimated_minutes = _safe_int(next_action.get("estimated_minutes"))
+
+    if not focus_topic and next_training:
+        item = _safe_dict(next_training[0])
+        focus_topic = _clean_learning_text(
+            item.get("display_title") or item.get("claim") or ""
+        )
+        coach_note = coach_note or _clean_learning_text(
+            item.get("display_meta") or item.get("display_label") or ""
+        )
+
+    if not (focus_topic or priority_task or coach_note):
+        return {}
+
+    return {
+        "focus_topic": focus_topic or "今天先完成一轮诊断练习",
+        "priority_task": priority_task or "先完成一组专项训练",
+        "study_method": "先按错因做专项题，再回看当时解析，最后用一题复测确认",
+        "time_budget": f"约 {estimated_minutes} 分钟" if estimated_minutes > 0 else "约 10 分钟",
+        "coach_note": coach_note or "完成后系统会继续更新你的学情判断",
+        "source": "learning_report_next_training",
+    }
 
 
 def _learner_facing_payload(

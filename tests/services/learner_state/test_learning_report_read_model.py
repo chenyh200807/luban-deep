@@ -124,6 +124,13 @@ class FakeMemberService:
         }
 
 
+class NoStudyPlanMemberService(FakeMemberService):
+    def get_home_dashboard(self, user_id: str) -> dict:
+        data = dict(super().get_home_dashboard(user_id))
+        data.pop("study_plan", None)
+        return data
+
+
 class PathServiceStub:
     def __init__(self, root):
         self._root = root
@@ -198,6 +205,42 @@ def test_attempt_count_treats_same_question_replay_as_two_attempts() -> None:
     assert model["study_plan"]["focus_topic"] == "建筑构造"
     assert model["study_plan"]["priority_task"] == "先围绕薄弱点速练 5 题"
     assert model["study_plan"]["source"] == "training_intent"
+
+
+def test_learning_report_derives_study_plan_from_next_training_when_home_plan_missing() -> None:
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=NoStudyPlanMemberService(),
+        learner_state_service=FakeLearnerStateService(
+            [
+                _learning_event(
+                    "evt_plan_1",
+                    days_ago=0,
+                    concept_id="建筑构造",
+                    question_id="case_001",
+                    error_code="M07",
+                    user_answer="AC",
+                    correct_answer="AB",
+                ),
+                _learning_event(
+                    "evt_plan_2",
+                    days_ago=0,
+                    concept_id="建筑构造",
+                    question_id="case_002",
+                    error_code="M07",
+                    user_answer="AC",
+                    correct_answer="AB",
+                ),
+            ]
+        ),
+        event_limit=50,
+    )
+
+    assert model["study_plan"]["focus_topic"] == "建筑构造"
+    assert model["study_plan"]["priority_task"].startswith("先做 3 道")
+    assert model["study_plan"]["study_method"]
+    assert model["study_plan"]["time_budget"] == "约 8 分钟"
+    assert model["study_plan"]["source"] == "learning_report_next_training"
 
 
 def test_learning_report_exposes_learner_facing_attempt_review_without_machine_ids() -> None:
