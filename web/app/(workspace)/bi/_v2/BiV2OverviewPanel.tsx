@@ -17,9 +17,9 @@ import {
   type BiTrendPoint,
   type BiAlertItem,
   type BiMetricCard,
-  type BiOverviewData,
 } from '@/lib/bi-api'
 import { findMetricByLabel, type BiV2MetricDef } from '@/lib/bi-v2-metric-registry.generated'
+import { reduceOverviewBundle } from './overview-bundle-reducer'
 
 type DataSource = 'mock' | 'live' | 'loading' | 'error'
 
@@ -175,42 +175,26 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
     const ctrl = new AbortController()
     inflightRef.current = ctrl
     setSource('loading')
-    const errors: string[] = []
-    let overview: BiOverviewData | null = null
-    let trend: ReadonlyArray<BiTrendPoint> = EMPTY_BUNDLE.trend
-    let alerts: ReadonlyArray<BiAlertItem> = EMPTY_BUNDLE.alerts
-    try {
-      overview = await getBiOverview({ days: 30 })
-    } catch (err) {
-      errors.push(`overview: ${(err as Error).message}`)
-    }
-    try {
-      const t = await getBiActiveTrend({ days: 30 })
-      trend = t.points
-    } catch (err) {
-      errors.push(`trend: ${(err as Error).message}`)
-    }
-    try {
-      const a = await getBiAnomalies({ days: 30 })
-      if (a.items.length > 0) alerts = a.items
-    } catch (err) {
-      errors.push(`anomalies: ${(err as Error).message}`)
-    }
+    // Round 4 follow-up (B-P2-11): the three GETs are independent reads of
+    // separate read-models; running them in parallel cuts the user-perceived
+    // refresh latency from sum-of-three to max-of-three while keeping per-fetch
+    // error isolation. Reducer logic lives in `overview-bundle-reducer.ts` for
+    // unit-testability without an `.tsx` loader.
+    const [overviewResult, trendResult, anomaliesResult] = await Promise.allSettled([
+      getBiOverview({ days: 30 }),
+      getBiActiveTrend({ days: 30 }),
+      getBiAnomalies({ days: 30 }),
+    ])
     if (ctrl.signal.aborted) return
-    if (overview) {
-      setBundle({
-        cards: overview.cards,
-        alerts: overview.alerts.length > 0 ? overview.alerts : alerts,
-        trend,
-        generatedAt: Date.now(),
-        partial: errors.length > 0,
-        errors,
-      })
-      setSource(errors.length > 0 ? 'error' : 'live')
-    } else {
-      setBundle({ ...EMPTY_BUNDLE, errors, partial: true })
-      setSource('error')
-    }
+    const { bundle: nextBundle, source: nextSource } = reduceOverviewBundle({
+      overview: overviewResult,
+      trend: trendResult,
+      anomalies: anomaliesResult,
+      now: Date.now(),
+      emptyBundle: EMPTY_BUNDLE,
+    })
+    setBundle(nextBundle)
+    setSource(nextSource)
   }, [flagEnabled])
 
   useEffect(() => {
@@ -369,14 +353,8 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
           </ul>
         </aside>
       </div>
-      <MetricDetailPanel
-        selection={selectedMetric}
-        onClose={() => setSelectedMetric(null)}
-      />
-      <AlertDetailPanel
-        selection={selectedAlert}
-        onClose={() => setSelectedAlert(null)}
-      />
+      <MetricDetailPanel selection={selectedMetric} onClose={() => setSelectedMetric(null)} />
+      <AlertDetailPanel selection={selectedAlert} onClose={() => setSelectedAlert(null)} />
     </section>
   )
 }
@@ -434,7 +412,11 @@ function AlertDetailPanel({
       open={Boolean(selection)}
       onClose={onClose}
       title={alert ? `行动项详情 · ${alert.title}` : '行动项详情'}
-      subtitle={selection ? `${selection.severity.toUpperCase()} · ${selection.target.drilldown_hash}` : undefined}
+      subtitle={
+        selection
+          ? `${selection.severity.toUpperCase()} · ${selection.target.drilldown_hash}`
+          : undefined
+      }
       width="md"
     >
       {alert && selection ? (
@@ -456,8 +438,8 @@ function AlertDetailPanel({
           <KV label="关联指标" value={selection.target.metric_id} />
           <KV label="authority" value={selection.target.authority} />
           <p className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs leading-relaxed text-amber-800">
-            当前详情只展示 canonical 读模型内容；需要创建运营任务、导出、派单时，必须先接入带
-            audit 的后端写 endpoint。
+            当前详情只展示 canonical 读模型内容；需要创建运营任务、导出、派单时，必须先接入带 audit
+            的后端写 endpoint。
           </p>
         </div>
       ) : null}
