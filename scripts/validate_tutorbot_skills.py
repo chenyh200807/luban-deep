@@ -146,6 +146,7 @@ def _has_safety_escalation(content: str) -> bool:
 def _catalog_runtime_import_findings(repo_root: Path) -> list[Finding]:
     findings: list[Finding] = []
     roots = [
+        repo_root / "deeptutor" / "api",
         repo_root / "deeptutor" / "runtime",
         repo_root / "deeptutor" / "services",
         repo_root / "deeptutor" / "capabilities",
@@ -261,6 +262,15 @@ def validate_catalog(
         upstream = frontmatter.get("upstream_inspiration") if isinstance(frontmatter, dict) else None
         if isinstance(upstream, dict):
             derivation = str(upstream.get("derivation") or "").strip()
+            if not derivation:
+                findings.append(
+                    Finding(
+                        "error",
+                        name,
+                        "missing_upstream_derivation",
+                        "upstream_inspiration requires derivation: pattern-only | partial-text | verbatim",
+                    )
+                )
             if derivation in {"partial-text", "verbatim"} and not _has_section(content, ("## Attribution",)):
                 findings.append(
                     Finding(

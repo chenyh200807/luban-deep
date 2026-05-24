@@ -242,6 +242,69 @@ def test_partial_text_derivation_requires_attribution_section(tmp_path: Path) ->
     assert {item["rule"] for item in report["findings"]} >= {"missing_attribution"}
 
 
+def test_upstream_inspiration_accepts_pattern_only_derivation(tmp_path: Path) -> None:
+    skills_root = tmp_path / "skills"
+    skills_root.mkdir()
+    skill_dir = skills_root / "construction-question-review"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "SKILL.md").write_text(
+        "\n".join(
+            [
+                "---",
+                "name: construction-question-review",
+                "description: test skill",
+                "upstream_inspiration:",
+                "  source: zhongweiv/hermes-edu-skills@v0.18.6",
+                "  skill: agent-question-explanation",
+                "  license: MIT",
+                "  derivation: pattern-only",
+                "---",
+                "",
+                "# Construction Question Review",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    catalog = tmp_path / "catalog.yaml"
+    _write_catalog(catalog, [_entry("construction-question-review")])
+
+    report = validate_catalog(catalog, skills_root=skills_root)
+
+    assert report["ok"] is True
+    assert "missing_upstream_derivation" not in {item["rule"] for item in report["findings"]}
+
+
+def test_upstream_inspiration_requires_derivation_field(tmp_path: Path) -> None:
+    skills_root = tmp_path / "skills"
+    skills_root.mkdir()
+    skill_dir = skills_root / "construction-question-review"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "SKILL.md").write_text(
+        "\n".join(
+            [
+                "---",
+                "name: construction-question-review",
+                "description: test skill",
+                "upstream_inspiration:",
+                "  source: zhongweiv/hermes-edu-skills@v0.18.6",
+                "  skill: agent-question-explanation",
+                "  license: MIT",
+                "---",
+                "",
+                "# Construction Question Review",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    catalog = tmp_path / "catalog.yaml"
+    _write_catalog(catalog, [_entry("construction-question-review")])
+
+    report = validate_catalog(catalog, skills_root=skills_root)
+
+    assert report["ok"] is False
+    assert {item["rule"] for item in report["findings"]} >= {"missing_upstream_derivation"}
+
+
 def test_runtime_catalog_import_is_rejected(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     fake_repo = tmp_path / "repo"
     runtime_dir = fake_repo / "deeptutor" / "services"
@@ -273,6 +336,45 @@ def test_runtime_catalog_import_is_rejected(tmp_path: Path, monkeypatch: pytest.
 
     assert report["ok"] is False
     assert {item["rule"] for item in report["findings"]} >= {"catalog_runtime_import"}
+
+
+def test_api_catalog_import_is_rejected_and_removal_passes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    fake_repo = tmp_path / "repo"
+    api_dir = fake_repo / "deeptutor" / "api" / "routers"
+    api_dir.mkdir(parents=True)
+    bad_router = api_dir / "bad_catalog_consumer.py"
+    bad_router.write_text('yaml.safe_load("catalog.yaml")\n', encoding="utf-8")
+    skills_root = fake_repo / "deeptutor" / "tutorbot" / "skills"
+    skills_root.mkdir(parents=True)
+    _write_skill(
+        skills_root,
+        "construction-question-review",
+        "\n".join(
+            [
+                "## Authority",
+                "Read only.",
+                "## Forbidden Authority",
+                "Do not score.",
+                "## Anti-Patterns",
+                "- Do not reveal answers.",
+                "- Do not grade.",
+                "- Do not route.",
+            ]
+        ),
+    )
+    catalog = skills_root / "catalog.yaml"
+    _write_catalog(catalog, [_entry("construction-question-review")])
+    monkeypatch.setattr(validator, "REPO_ROOT", fake_repo)
+
+    report = validate_catalog(catalog, skills_root=skills_root, strict=True)
+
+    assert report["ok"] is False
+    assert {item["rule"] for item in report["findings"]} >= {"catalog_runtime_import"}
+
+    bad_router.unlink()
+    report = validate_catalog(catalog, skills_root=skills_root, strict=True)
+
+    assert report["ok"] is True
 
 
 def test_cli_returns_nonzero_on_missing_file(tmp_path: Path) -> None:
