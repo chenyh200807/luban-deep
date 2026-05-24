@@ -250,8 +250,17 @@ class TutorBotCapability(BaseCapability):
             # authority-gated below); it only powers presentation blocks and
             # lets _build_visible_response honor reveal_explanations when the
             # answer/explanation lives inside the LLM-emitted text.
+            #
+            # Post-review HIGH guard (code-review 2026-05-24): the free-text
+            # parser must NOT run on authority responses. Authority text is
+            # canonical and should follow the pre-existing _strip_reference_sections
+            # path inside _build_visible_response. Without this gate,
+            # _render_question_only_response would rebuild authority output
+            # from a re-parsed summary and silently drop authority-emitted
+            # prefixes / framing. See
+            # test_tutorbot_authority_response_not_rebuilt_by_freetext_parser.
             free_text_render_summary: dict[str, Any] | None = None
-            if display_result_summary is None:
+            if display_result_summary is None and not turn_summary["authority_applied"]:
                 free_text_render_summary = extract_choice_result_summary_from_text(final_response)
             render_summary = display_result_summary or free_text_render_summary
             reveal_answers, reveal_explanations = self._reveal_reference_flags(context)
