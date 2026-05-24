@@ -26,6 +26,15 @@
 4. `TutorBot workspace memory` 不是学员长期真相，不能反向覆盖 learner state。
 5. Markdown 文件只能是 projection / cache / 可读视图，不能再承担唯一真相。
 
+## Member Console / BI Audit Boundary
+
+- `deeptutor/services/member_console/*` 可以记录 admin-facing 运营备注和 BI 审计流水，例如
+  `ops_action_result`、`feedback_triage`、`bi_export_request`。
+- 这些记录不是 learner state writeback，不得修改 `learner_summaries`、
+  `learner_memory_events`、profile、progress、goals、heartbeat 或 overlay 真相。
+- 如果某个运营动作需要改变 learner state，必须走 learner-state writeback / promotion
+  authority，不能通过 member-console audit helper 旁路写入。
+
 ## 第二阶段预留语义：Bot-Learner Overlay
 
 第二阶段允许在 **不改变 `user_id` 全局 learner truth** 的前提下，引入：
