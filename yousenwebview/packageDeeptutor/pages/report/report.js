@@ -1885,9 +1885,10 @@ Page({
       });
   },
 
-  // ── 跳转练习 ─────────────────────────────────────
+  // ── 学情内训练安排：练习中心还未完成体验打磨，先不跨页跳转 ─────
   goPractice() {
-    wx.navigateTo({ url: route.practice() });
+    helpers.vibrate("light");
+    this._setReportDetailView("training");
   },
 
   async openAttemptDetail(event) {

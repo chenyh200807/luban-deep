@@ -83,61 +83,151 @@
 }
 
 .overview-hero {
-  padding: 28rpx 24rpx;
+  padding: 34rpx 28rpx;
   display: flex;
   flex-direction: column;
-  gap: 18rpx;
+  gap: 24rpx;
   background:
-    radial-gradient(circle at top right, rgba(56, 189, 248, 0.16), transparent 34%),
-    linear-gradient(145deg, rgba(99, 102, 241, 0.18), rgba(15, 23, 42, 0.12));
+    radial-gradient(circle at 92% 12%, rgba(56, 189, 248, 0.18), transparent 34%),
+    linear-gradient(145deg, rgba(31, 41, 89, 0.96), rgba(20, 28, 54, 0.92));
+  border-color: rgba(96, 165, 250, 0.22);
+  box-shadow: 0 24rpx 70rpx rgba(0, 0, 0, 0.28);
 }
 
-.overview-head {
+.overview-hero-main {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 20rpx;
+  gap: 24rpx;
+}
+
+.overview-copy {
+  flex: 1;
+  min-width: 0;
 }
 
 .overview-title {
   display: block;
-  font-size: 34rpx;
-  font-weight: 700;
+  font-size: 50rpx;
+  line-height: 1.08;
+  font-weight: 900;
   color: var(--text-primary);
 }
 
 .overview-kicker {
   display: block;
-  margin-bottom: 8rpx;
-  font-size: 22rpx;
-  font-weight: 700;
-  color: #7dd3fc;
+  margin-bottom: 14rpx;
+  font-size: 25rpx;
+  font-weight: 850;
+  color: #fb923c;
 }
 
 .overview-sub {
   display: block;
-  margin-top: 8rpx;
-  font-size: 22rpx;
+  margin-top: 16rpx;
+  font-size: 25rpx;
+  line-height: 1.45;
   color: var(--text-muted);
 }
 
-.overview-score-wrap {
+.overview-action-row {
+  margin-top: 28rpx;
   display: flex;
-  align-items: baseline;
-  gap: 4rpx;
+  align-items: center;
+  gap: 18rpx;
+}
+
+.overview-primary-btn,
+.overview-secondary-btn {
+  min-height: 76rpx;
+  padding: 0 26rpx;
+  border-radius: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.overview-primary-btn {
+  flex: 1;
+  background: #5eddea;
+  box-shadow: 0 16rpx 34rpx rgba(94, 221, 234, 0.18);
+}
+
+.overview-secondary-btn {
+  min-width: 154rpx;
+  background: rgba(251, 146, 60, 0.08);
+  border: 2rpx solid rgba(251, 146, 60, 0.38);
+}
+
+.overview-primary-btn text,
+.overview-secondary-btn text {
+  font-size: 27rpx;
+  font-weight: 900;
+}
+
+.overview-primary-btn text {
+  color: #082f49;
+}
+
+.overview-secondary-btn text {
+  color: #fb923c;
+}
+
+.overview-donut {
+  position: relative;
+  flex-shrink: 0;
+  width: 154rpx;
+  height: 154rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.overview-donut-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(#15978c 0 260deg, #ffe2ba 260deg 360deg);
+}
+
+.overview-donut-cut {
+  position: absolute;
+  inset: 28rpx;
+  border-radius: 50%;
+  background: #172141;
+}
+
+.overview-donut-center {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .overview-score {
-  font-size: 72rpx;
-  font-weight: 800;
+  font-size: 44rpx;
+  font-weight: 900;
   line-height: 1;
   color: #7dd3fc;
 }
 
 .overview-score-unit {
-  font-size: 28rpx;
-  font-weight: 600;
+  margin-top: 3rpx;
+  max-width: 96rpx;
+  text-align: center;
+  font-size: 18rpx;
+  line-height: 1.15;
+  font-weight: 800;
   color: rgba(125, 211, 252, 0.8);
+}
+
+.overview-score-caption {
+  margin-top: 5rpx;
+  font-size: 16rpx;
+  line-height: 1.1;
+  font-weight: 800;
+  color: rgba(226, 232, 240, 0.62);
 }
 
 .overview-tip {
@@ -170,21 +260,23 @@
 }
 
 .overview-metrics {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12rpx;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14rpx;
 }
 
 .metric-chip {
-  width: calc(50% - 6rpx);
+  min-height: 154rpx;
   box-sizing: border-box;
-  padding: 20rpx 18rpx;
+  padding: 20rpx 18rpx 18rpx;
   border-radius: 18rpx;
   background: rgba(255, 255, 255, 0.05);
-  border: 1rpx solid rgba(255, 255, 255, 0.06);
+  border: 1rpx solid rgba(148, 163, 184, 0.18);
   display: flex;
   flex-direction: column;
-  gap: 6rpx;
+  justify-content: space-between;
+  gap: 10rpx;
+  overflow: hidden;
 }
 
 .metric-chip-warn {
@@ -206,15 +298,67 @@
 }
 
 .metric-num {
-  font-size: 34rpx;
-  font-weight: 700;
+  font-size: 38rpx;
+  line-height: 1.05;
+  font-weight: 900;
   color: var(--text-primary);
 }
 
 .metric-label {
-  font-size: 22rpx;
+  font-size: 23rpx;
+  font-weight: 800;
   color: var(--text-muted);
 }
+
+.metric-sparkline {
+  height: 34rpx;
+  display: flex;
+  align-items: flex-end;
+  gap: 6rpx;
+}
+
+.metric-spark {
+  flex: 1;
+  height: 8rpx;
+  border-radius: 99rpx;
+  background: #15978c;
+}
+
+.metric-spark.two { height: 16rpx; opacity: 0.82; }
+.metric-spark.three { height: 24rpx; opacity: 0.72; }
+
+.metric-mini-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.metric-mini-bar {
+  height: 14rpx;
+  border-radius: 99rpx;
+  background: #fb7185;
+}
+
+.metric-mini-bar.warn-one { width: 44%; }
+.metric-mini-bar.warn-two { width: 72%; background: #fb923c; }
+
+.metric-trend-bars {
+  height: 36rpx;
+  display: flex;
+  align-items: flex-end;
+  gap: 10rpx;
+}
+
+.metric-trend-bars view {
+  width: 16rpx;
+  border-radius: 5rpx;
+  background: #34d399;
+}
+
+.metric-trend-bars view:nth-child(1) { height: 12rpx; opacity: 0.58; }
+.metric-trend-bars view:nth-child(2) { height: 19rpx; opacity: 0.72; }
+.metric-trend-bars view:nth-child(3) { height: 27rpx; opacity: 0.86; }
+.metric-trend-bars view:nth-child(4) { height: 34rpx; }
 
 .primary-training-cta {
   margin-top: 2rpx;
@@ -357,6 +501,11 @@
 .module-mistake-book {
   background:
     linear-gradient(145deg, rgba(14, 165, 233, 0.22), rgba(5, 150, 105, 0.14), rgba(15, 23, 42, 0.72));
+}
+
+.module-recheck {
+  background:
+    linear-gradient(145deg, rgba(124, 58, 237, 0.22), rgba(20, 184, 166, 0.14), rgba(15, 23, 42, 0.72));
 }
 
 .module-card-head {
@@ -523,6 +672,34 @@
 .mini-mistake-line.low {
   width: 38%;
   background: rgba(251, 191, 36, 0.66);
+}
+
+.mini-recheck-path {
+  height: 46rpx;
+  display: flex;
+  align-items: center;
+}
+
+.mini-recheck-node {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: rgba(167, 139, 250, 0.56);
+}
+
+.mini-recheck-node.active {
+  background: #7dd3fc;
+  box-shadow: 0 0 0 8rpx rgba(125, 211, 252, 0.08);
+}
+
+.mini-recheck-node.done {
+  background: #34d399;
+}
+
+.mini-recheck-line {
+  flex: 1;
+  height: 3rpx;
+  background: linear-gradient(90deg, rgba(125, 211, 252, 0.45), rgba(52, 211, 153, 0.22));
 }
 
 /* ── 二级详情页头图与图表 ───────────────────── */

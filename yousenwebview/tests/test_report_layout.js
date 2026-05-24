@@ -66,22 +66,28 @@ assert(
   "host report page should render every diagnosis dimension below the radar summary",
 );
 assert(
-  reportWxml.indexOf('class="metric-chip metric-chip-progress" bindtap="goPractice"') >= 0,
-  "host report today's progress metric should open the practice page",
+  reportWxml.indexOf('class="overview-primary-btn" bindtap="goPractice"') >= 0,
+  "host report primary training CTA should open the in-report training plan",
 );
 assert(
   reportWxml.indexOf("学习大脑") < 0,
   "host report page should not expose internal Learning Brain naming in the first learner-facing surface",
 );
-assertIncludes(reportWxml, "今日学习复盘", "first viewport should be framed as a learner review");
+assertIncludes(reportWxml, "今日主线", "first viewport should be framed as a learner review");
 assertIncludes(reportWxml, "掌握可信度", "first viewport should show mastery confidence");
 assertIncludes(reportWxml, "{{overallMastery}}%", "first viewport should bind mastery from the read model");
 assertIncludes(reportWxml, "{{masteryStatusLabel}}", "first viewport should render mastery confidence status from the read model");
-assertIncludes(reportWxml, "今日", "first viewport should include today's progress");
-assertIncludes(reportWxml, "近3天", "first viewport should include recent 3 day progress");
-assertIncludes(reportWxml, "{{streakDays}}天", "first viewport should include streak");
-assertIncludes(reportWxml, "{{learningReviewSummary.primaryFocus || focusHint || '先完成一次批改'}}", "first viewport should bind current focus from the read model");
-assertIncludes(reportWxml, "bindtap=\"goPractice\"", "primary training CTA should route to practice");
+assertIncludes(reportWxml, "近 3 天", "first viewport should include recent 3 day progress");
+assertIncludes(reportWxml, "待补错因", "first viewport should include weak error reasons");
+assertIncludes(reportWxml, "掌握趋势", "first viewport should include mastery trend");
+assertIncludes(reportWxml, "{{battlePlan.focusTopic || learningReviewSummary.primaryFocus || focusHint || '先完成一轮定向训练'}}", "first viewport should bind current focus from the read model");
+assertIncludes(reportWxml, "bindtap=\"goPractice\"", "primary training CTA should keep users inside report training");
+assertIncludes(reportSource, 'this._setReportDetailView("training")', "goPractice should stay inside the report training detail");
+assert(
+  reportSource.indexOf("route.practice()") < 0,
+  "report page should not route users into the unfinished practice center",
+);
+assertIncludes(reportWxml, "复测清单", "home module grid should include the recheck loop card");
 assertIncludes(reportWxml, "真实作答证据", "attempt evidence cards should be visible before diagnostics");
 assertIncludes(reportWxml, "class=\"attempt-card attempt-{{item.tone}}\"", "attempt cards should have a dedicated visual surface");
 assertIncludes(reportWxml, "bindtap=\"openAttemptDetail\"", "attempt card should open detail on tap");

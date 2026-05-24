@@ -15,46 +15,59 @@
   <scroll-view class="page-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" scroll-top="{{reportScrollTop}}" style="top: {{navHeight}}px; bottom: 0">
     <view class="page-inner">
       <view class="overview-hero glass-card" wx:if="{{reportDetailView == 'home'}}">
-        <view class="overview-head">
-          <view>
-            <text class="overview-kicker">今日学习复盘</text>
-            <text class="overview-title">{{learnerStageTitle}}</text>
-            <text class="overview-sub">掌握可信度</text>
+        <view class="overview-hero-main">
+          <view class="overview-copy">
+            <text class="overview-kicker">今日主线</text>
+            <text class="overview-title">{{battlePlan.focusTopic || learningReviewSummary.primaryFocus || focusHint || '先完成一轮定向训练'}}</text>
+            <text class="overview-sub">{{battlePlan.timeBudget || '约 10 分钟'}} · {{learningReviewSummary.recentThreeDone || 0}} 次证据 · {{learningNextAction.title || '复测薄弱点'}}</text>
+            <view class="overview-action-row">
+              <view class="overview-primary-btn" bindtap="goPractice" hover-class="metric-chip-hover">
+                <text>开始定向训练</text>
+              </view>
+              <view class="overview-secondary-btn" data-detail="evidence" bindtap="openReportDetail" hover-class="metric-chip-hover">
+                <text>看依据</text>
+              </view>
+            </view>
           </view>
-          <view class="overview-score-wrap">
-            <text class="overview-score">{{overallMastery}}%</text>
-            <text class="overview-score-unit">{{masteryStatusLabel}}</text>
-          </view>
-        </view>
-        <view class="focus-summary">
-          <text class="focus-label">当前重点</text>
-          <text class="focus-text">{{learningReviewSummary.primaryFocus || focusHint || '先完成一次批改'}}</text>
-        </view>
-        <text class="overview-tip" wx:if="{{studyTip}}">{{studyTip}}</text>
-        <view class="overview-metrics">
-          <view class="metric-chip metric-chip-progress" bindtap="goPractice" hover-class="metric-chip-hover">
-            <text class="metric-num">{{todayDone}} / {{dailyTarget || 0}}</text>
-            <text class="metric-label">今日</text>
-          </view>
-          <view class="metric-chip">
-            <text class="metric-num">{{learningReviewSummary.recentThreeDone || 0}}</text>
-            <text class="metric-label">近3天</text>
-          </view>
-          <view class="metric-chip">
-            <text class="metric-num">{{streakDays}}天</text>
-            <text class="metric-label">连续学习</text>
-          </view>
-          <view class="metric-chip metric-chip-warn">
-            <text class="metric-num">{{learningReviewSummary.weakCount || weakNodeCount}}</text>
-            <text class="metric-label">待补错因</text>
+          <view class="overview-donut">
+            <view class="overview-donut-ring"></view>
+            <view class="overview-donut-cut"></view>
+            <view class="overview-donut-center">
+              <text class="overview-score">{{overallMastery}}%</text>
+              <text class="overview-score-caption">掌握可信度</text>
+              <text class="overview-score-unit">{{masteryStatusLabel}}</text>
+            </view>
           </view>
         </view>
-        <view class="primary-training-cta" bindtap="goPractice" hover-class="metric-chip-hover">
-          <view>
-            <text class="primary-training-title">{{learningNextAction.title || '开始今天的定向训练'}}</text>
-            <text class="primary-training-sub">{{learningNextAction.subtitle || learningReviewSummary.headline || '根据你的最近作答生成训练'}}</text>
+      </view>
+
+      <view class="overview-metrics" wx:if="{{reportDetailView == 'home'}}">
+        <view class="metric-chip metric-chip-progress" bindtap="openReportDetail" data-detail="progress" hover-class="metric-chip-hover">
+          <text class="metric-label">近 3 天</text>
+          <text class="metric-num">{{learningReviewSummary.recentThreeDone || 0}}题</text>
+          <view class="metric-sparkline">
+            <view class="metric-spark one"></view>
+            <view class="metric-spark two"></view>
+            <view class="metric-spark three"></view>
           </view>
-          <text class="primary-training-btn">{{learningNextAction.cta || '开始训练'}}</text>
+        </view>
+        <view class="metric-chip metric-chip-warn" bindtap="openReportDetail" data-detail="evidence" hover-class="metric-chip-hover">
+          <text class="metric-label">待补错因</text>
+          <text class="metric-num">{{learningReviewSummary.weakCount || weakNodeCount}}个</text>
+          <view class="metric-mini-bars">
+            <view class="metric-mini-bar warn-one"></view>
+            <view class="metric-mini-bar warn-two"></view>
+          </view>
+        </view>
+        <view class="metric-chip metric-chip-good" bindtap="openReportDetail" data-detail="map" hover-class="metric-chip-hover">
+          <text class="metric-label">掌握趋势</text>
+          <text class="metric-num">{{overallMastery}}%</text>
+          <view class="metric-trend-bars">
+            <view></view>
+            <view></view>
+            <view></view>
+            <view></view>
+          </view>
         </view>
       </view>
 
@@ -168,6 +181,28 @@
             <view class="module-mini-stats">
               <text>今日 {{todayDone}}</text>
               <text>近3天 {{learningReviewSummary.recentThreeDone || 0}}</text>
+            </view>
+          </view>
+
+          <view class="report-module-card module-recheck" data-detail="training" bindtap="openReportDetail" hover-class="report-module-card-pressed">
+            <view class="module-card-head">
+              <view>
+                <text class="module-card-kicker">确认是不是真的会了</text>
+                <text class="module-card-title">复测清单</text>
+              </view>
+              <text class="module-card-arrow">›</text>
+            </view>
+            <text class="module-card-desc">{{prescriptionTitle || '用一题复测确认薄弱点是否回到主线'}}</text>
+            <view class="mini-recheck-path">
+              <view class="mini-recheck-node active"></view>
+              <view class="mini-recheck-line"></view>
+              <view class="mini-recheck-node"></view>
+              <view class="mini-recheck-line"></view>
+              <view class="mini-recheck-node done"></view>
+            </view>
+            <view class="module-mini-stats">
+              <text>{{prescriptionSteps.length || 1}} 步验证</text>
+              <text>{{prescriptionCtaLabel || '去复测'}}</text>
             </view>
           </view>
         </view>
