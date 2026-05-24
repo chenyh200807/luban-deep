@@ -27,10 +27,12 @@ import logging
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from deeptutor.core.context import UnifiedContext
-from deeptutor.tutorbot.agent.skills import SkillsLoader
+
+if TYPE_CHECKING:
+    from deeptutor.tutorbot.agent.skills import SkillsLoader
 
 logger = logging.getLogger(__name__)
 
@@ -465,6 +467,10 @@ def _build_skill_context(
 
 
 def _default_loader() -> SkillsLoader:
+    # Lazy import keeps pure scene derivation safe for minimal server import
+    # checks, where TutorBot's optional skill-loader dependencies may be absent.
+    from deeptutor.tutorbot.agent.skills import SkillsLoader  # noqa: WPS433
+
     return SkillsLoader(Path.cwd())
 
 

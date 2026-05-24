@@ -8,6 +8,9 @@ deep_question entry / question_followup / TutorBot loop with identical semantics
 
 from __future__ import annotations
 
+import subprocess
+import sys
+import textwrap
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -94,6 +97,37 @@ def test_topic_qualified_real_exam_review_returns_question_review():
     """Topic words between "一道" and "真题" still mean a real-question review."""
     ctx = _FakeContext(user_message="分析一道验槽方法真题")
     assert derive_question_lifecycle_scene(ctx) == "question_review"
+
+
+def test_scene_derivation_import_does_not_require_skill_loader_dependency():
+    """Pure scene routing must not import TutorBot's optional skill loader."""
+    code = textwrap.dedent(
+        """
+        import builtins
+        from types import SimpleNamespace
+
+        real_import = builtins.__import__
+
+        def guarded_import(name, globals=None, locals=None, fromlist=(), level=0):
+            if name.startswith("deeptutor.tutorbot.agent."):
+                raise ModuleNotFoundError(name)
+            return real_import(name, globals, locals, fromlist, level)
+
+        builtins.__import__ = guarded_import
+
+        from deeptutor.services.question_lifecycle_skills import derive_question_lifecycle_scene
+
+        ctx = SimpleNamespace(user_message="分析一道验槽方法真题", metadata={})
+        assert derive_question_lifecycle_scene(ctx) == "question_review"
+        """
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", code],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
 
 
 def test_mixed_turn_submission_takes_priority_over_generation_intent():
