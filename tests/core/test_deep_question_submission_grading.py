@@ -118,6 +118,63 @@ async def test_deep_question_uses_deterministic_feedback_for_choice_submission(
     assert result_event.metadata["question_authority_source"] == "active_object"
 
     # plan §Phase 5 / Batch E.2 Gap 5 — progressive_disclosure payload 必须进入 result.
+
+
+@pytest.mark.asyncio
+async def test_deep_question_mixed_submission_preserves_generation_next_action(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("Coordinator should not be constructed while grading takes priority")
+
+    class FakeSubmissionGraderAgent:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("objective grading should use deterministic feedback")
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.submission_grader_agent",
+        SubmissionGraderAgent=FakeSubmissionGraderAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="我答 B 再出 3 题",
+        language="zh",
+        metadata={
+            "raw_user_message": "我答 B 再出 3 题",
+            "conversation_context_text": "用户刚做完一道选择题。",
+            "question_followup_context": {
+                "question_id": "q_5",
+                "question": "小佑题库提供什么服务？",
+                "question_type": "choice",
+                "options": {"A": "免费听课", "B": "在线刷题", "C": "售后反馈", "D": "课程表"},
+                "correct_answer": "B",
+                "explanation": "小佑题库对应在线刷题。",
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    response = result_event.metadata["response"]
+    assert result_event.metadata["mode"] == "grading"
+    assert result_event.metadata["user_answer"] == "B"
+    assert "阅卷结论" in response
+    assert "### 下一步" in response
+    assert "继续给你出 3 题" in response
     disclosure = result_event.metadata.get("progressive_disclosure")
     assert isinstance(disclosure, dict), "result must include progressive_disclosure payload"
     assert disclosure.get("verdict"), "progressive_disclosure must expose verdict"

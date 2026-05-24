@@ -105,6 +105,23 @@ _GENERATION_REQUEST_STRIP_PATTERNS = (
     r"容易的",
     r"容易",
 )
+_POST_GRADING_GENERATION_COUNT_RE = re.compile(
+    r"(?:再|继续|接着).{0,8}?([0-9]{1,2}|[一二两三四五六七八九十几])\s*(?:道|题|个题目|个小题)?"
+)
+_ZH_NUMERAL_COUNTS = {
+    "一": 1,
+    "二": 2,
+    "两": 2,
+    "三": 3,
+    "四": 4,
+    "五": 5,
+    "六": 6,
+    "七": 7,
+    "八": 8,
+    "九": 9,
+    "十": 10,
+    "几": 3,
+}
 _CURRENT_QUESTION_ANCHOR_MARKERS = (
     "这道题",
     "这题",
@@ -450,6 +467,27 @@ def _should_use_lightweight_topic_generation(
     if not _topic_needs_authoritative_anchor(raw_topic):
         return False
     return resolved_topic != _compact_text(raw_topic)
+
+
+def _requested_post_grading_question_count(message: str) -> int:
+    match = _POST_GRADING_GENERATION_COUNT_RE.search(str(message or ""))
+    if not match:
+        return 3
+    raw = str(match.group(1) or "").strip()
+    if raw.isdigit():
+        return max(1, min(int(raw), 5))
+    return max(1, min(_ZH_NUMERAL_COUNTS.get(raw, 3), 5))
+
+
+def _build_post_grading_generation_ack(message: str) -> str:
+    """Keep mixed-turn ordering clear: grade first, preserve practice as next action."""
+    if not looks_like_practice_generation_request(str(message or "")):
+        return ""
+    count = _requested_post_grading_question_count(message)
+    return (
+        "### 下一步\n"
+        f"你还说想继续练习。我已先完成批改，下一步可以继续给你出 {count} 题同类题。"
+    )
 
 
 def _grading_items(question_context: dict[str, Any] | None) -> list[dict[str, Any]]:
@@ -2033,8 +2071,21 @@ class DeepQuestionCapability(BaseCapability):
                     on_content_chunk=_content_sink,
                     trace_collector=grader_trace,
                 )
+            post_grading_next_action = _build_post_grading_generation_ack(raw_user_message)
+            if post_grading_next_action:
+                answer = (
+                    (answer or "").rstrip()
+                    + "\n\n"
+                    + post_grading_next_action
+                ).strip()
             if answer and not content_streamed:
                 await stream.content(answer, source=self.name, stage="generation")
+            elif post_grading_next_action:
+                await stream.content(
+                    "\n\n" + post_grading_next_action,
+                    source=self.name,
+                    stage="generation",
+                )
             result_active_object = build_active_object_from_question_context(
                 graded_context,
                 source_turn_id=turn_id,
@@ -2553,7 +2604,7 @@ class DeepQuestionCapability(BaseCapability):
             qid = DeepQuestionCapability._humanize_question_id(update.get("question_id", ""))
             current = update.get("current", "")
             total = update.get("total", "")
-            return f"Generating {qid} ({current}/{total})"
+            return f"正在生成{qid} ({current}/{total})"
 
         if update_type == "result":
             qid = DeepQuestionCapability._humanize_question_id(update.get("question_id", ""))
@@ -2565,7 +2616,7 @@ class DeepQuestionCapability(BaseCapability):
             ordinal = ""
             if isinstance(idx, int):
                 ordinal = f"#{idx + 1}, "
-            return f"{qid} done ({ordinal}{qt}/{diff}, success={success})"
+            return f"{qid}已生成 ({ordinal}{qt}/{diff}, success={success})"
 
         return update.get("message", update_type)
 
@@ -2574,8 +2625,8 @@ class DeepQuestionCapability(BaseCapability):
         raw = str(question_id or "").strip()
         match = re.fullmatch(r"q_(\d+)", raw.lower())
         if match:
-            return f"Question {match.group(1)}"
-        return raw or "Question"
+            return f"第 {match.group(1)} 题"
+        return raw or "题目"
 
     def _render_summary_markdown(
         self,
@@ -2595,7 +2646,7 @@ class DeepQuestionCapability(BaseCapability):
             if not question:
                 continue
 
-            lines.append(f"### Question {idx}\n")
+            lines.append(f"### 第 {idx} 题\n")
             lines.append(question)
 
             options = qa_pair.get("options", {})
@@ -2605,11 +2656,11 @@ class DeepQuestionCapability(BaseCapability):
 
             answer = qa_pair.get("correct_answer", "")
             if reveal_answers and answer:
-                lines.append(f"\n**Answer:** {answer}")
+                lines.append(f"\n**答案：** {answer}")
 
             explanation = qa_pair.get("explanation", "")
             if reveal_explanations and explanation:
-                lines.append(f"\n**Explanation:** {explanation}")
+                lines.append(f"\n**解析：** {explanation}")
 
             lines.append("")
 

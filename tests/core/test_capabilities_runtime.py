@@ -904,7 +904,7 @@ async def test_deep_question_capability_uses_user_message_as_topic(
     assert captured["topic_call"]["user_topic"] == "linear algebra fundamentals"
     assert any(event.type == StreamEventType.PROGRESS and event.stage == "ideation" for event in events)
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
-    assert "Question 1" in result_event.metadata["response"]
+    assert "第 1 题" in result_event.metadata["response"]
     assert "**Answer:**" not in result_event.metadata["response"]
     assert "**Explanation:**" not in result_event.metadata["response"]
     question = result_event.metadata["presentation"]["blocks"][0]["questions"][0]
@@ -6053,13 +6053,13 @@ async def test_deep_question_capability_uses_deterministic_feedback_for_choice_s
 
 
 def test_deep_question_capability_humanizes_question_progress_labels() -> None:
-    assert DeepQuestionCapability._humanize_question_id("q_3") == "Question 3"
+    assert DeepQuestionCapability._humanize_question_id("q_3") == "第 3 题"
     assert (
         DeepQuestionCapability._format_bridge_message(
             "question_update",
             {"question_id": "q_3", "current": 3, "total": 3},
         )
-        == "Generating Question 3 (3/3)"
+        == "正在生成第 3 题 (3/3)"
     )
     assert (
         DeepQuestionCapability._format_bridge_message(
@@ -6071,7 +6071,7 @@ def test_deep_question_capability_humanizes_question_progress_labels() -> None:
                 "success": True,
             },
         )
-        == "Question 3 done (#3, coding/hard, success=True)"
+        == "第 3 题已生成 (#3, coding/hard, success=True)"
     )
 
 
