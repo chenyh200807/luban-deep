@@ -87,6 +87,32 @@ class SkillsLoader:
 
         return None
 
+    def read_skill_asset(self, name: str, relpath: str) -> str | None:
+        """Read an arbitrary asset under a skill directory (e.g. ``references/foo.md``).
+
+        Used by ``deeptutor.services.question_lifecycle_skills`` (the only
+        non-``SkillsLoader`` module allowed to read skill files per plan
+        2026-05-24 §5.0 verification target #2) to load reference assets
+        without callers re-implementing path composition.
+
+        Args:
+            name: Skill directory name.
+            relpath: Relative path under the skill directory.
+
+        Returns:
+            File content (no frontmatter handling) or ``None`` if absent.
+        """
+        workspace_path = self.workspace_skills / name / relpath
+        if workspace_path.exists():
+            content = self._read_skill_file(workspace_path)
+            if content is not None:
+                return content
+        if self.builtin_skills:
+            builtin_path = self.builtin_skills / name / relpath
+            if builtin_path.exists():
+                return self._read_skill_file(builtin_path)
+        return None
+
     @staticmethod
     def _read_skill_file(path: Path) -> str | None:
         try:

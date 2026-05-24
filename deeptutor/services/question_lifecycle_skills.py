@@ -50,16 +50,65 @@ SCENE_COMPOSITION: dict[str, tuple[str, ...]] = {
 
 # Plan §5.2 alias map. Sentinel ``_AMBIGUOUS`` forces callers to resolve via
 # active object before the builder can map to a canonical scene.
-_AMBIGUOUS = object()
-
-_LEGACY_SCENE_ALIASES: dict[str, Optional[str] | object] = {
+# Per plan §5.2, legacy ConstructionExamScene values are mapped to canonical
+# lifecycle scenes for telemetry / trace attribution. ``general`` has no
+# canonical counterpart (it loads exam-tutor only). For the legacy *shim* path
+# (``_from_legacy_scene``), the actual skill stack is defined by
+# :data:`_LEGACY_SCENE_STACK` rather than this alias map, because legacy
+# callers expect the *legacy reference assets* (e.g. ``references/mcq-review.md``)
+# to appear in the instructions string.
+_LEGACY_SCENE_ALIASES: dict[str, Optional[str]] = {
     "general": None,
     "concept": "question_review",
-    "mcq": _AMBIGUOUS,
+    "mcq": "question_review",            # legacy mcq = MCQ explain
     "mcq_grading": "mcq_grading",
-    "case": _AMBIGUOUS,
+    "case": "question_review",           # legacy case = case explain
     "case_grading": "case_grading",
     "error_review": "question_review",
+}
+
+# Legacy shim skill stack: each legacy scene maps to (skill_names, reference_assets).
+# This mirrors what ``teaching_modes.get_construction_exam_skill_instruction``
+# used to assemble inline; we move the assembly into the single loader so the
+# scattered file-reading paths in ``teaching_modes`` can be removed.
+_LEGACY_SCENE_STACK: dict[str, tuple[tuple[str, ...], tuple[tuple[str, str], ...]]] = {
+    "general": (
+        ("construction-exam-tutor",),
+        (),
+    ),
+    "concept": (
+        ("construction-exam-tutor",),
+        (("construction-exam-tutor", "references/concept-explainer.md"),),
+    ),
+    "mcq": (
+        ("construction-exam-tutor",),
+        (("construction-exam-tutor", "references/mcq-review.md"),),
+    ),
+    "mcq_grading": (
+        ("construction-exam-tutor", "construction-mcq-grading"),
+        (
+            ("construction-mcq-grading", "references/mcq-grading-protocol.md"),
+            ("construction-mcq-grading", "references/mcq-error-taxonomy.md"),
+            ("construction-mcq-grading", "references/mcq-source-grounding.md"),
+        ),
+    ),
+    "case": (
+        ("construction-exam-tutor",),
+        (("construction-exam-tutor", "references/case-analysis.md"),),
+    ),
+    "case_grading": (
+        ("construction-exam-tutor", "construction-case-grading"),
+        (
+            ("construction-case-grading", "references/grading-protocol.md"),
+            ("construction-case-grading", "references/data-authority.md"),
+            ("construction-case-grading", "references/source-grounding.md"),
+            ("construction-case-grading", "references/error-taxonomy.md"),
+        ),
+    ),
+    "error_review": (
+        ("construction-exam-tutor",),
+        (("construction-exam-tutor", "references/error-review.md"),),
+    ),
 }
 
 
@@ -130,6 +179,11 @@ def _load_skill_text(name: str) -> Optional[str]:
     if raw is None:
         return None
     return _strip_frontmatter(raw)
+
+
+def _load_skill_asset(name: str, relpath: str) -> Optional[str]:
+    """Load an arbitrary asset (e.g. ``references/foo.md``) under a skill dir."""
+    return _default_loader().read_skill_asset(name, relpath)
 
 
 def _resolve_loader_source(name: str) -> str:
@@ -224,19 +278,56 @@ def build_question_lifecycle_skill_context_from_legacy_scene(
 ) -> SkillContext:
     """Bridge for legacy ``ConstructionExamScene`` callers (Task 2.5 shim).
 
-    Resolves the legacy alias map (§5.2) and delegates. Raises ``ValueError``
-    when the legacy value is ambiguous (``mcq`` / ``case`` collapse two
-    canonical scenes and require the caller to inspect active-object /
-    submission state before choosing).
+    Loads the legacy scene's full skill stack (skills + reference assets)
+    via :data:`_LEGACY_SCENE_STACK` so that
+    ``teaching_modes.get_construction_exam_skill_instruction`` can be reduced
+    to a one-line wrapper. The ``scene`` field on the returned ``SkillContext``
+    is set to the *canonical* alias (from :data:`_LEGACY_SCENE_ALIASES`) for
+    telemetry; ``skill_names`` reflects the legacy stack.
+
+    Unknown legacy values degrade to ``general`` (exam-tutor only) rather than
+    raising — callers using the public API still get a sensible payload.
     """
     if legacy_scene is None:
-        return build_question_lifecycle_skill_context(None)
+        legacy_key = "general"
+    else:
+        legacy_key = legacy_scene.lower()
 
-    canonical = _LEGACY_SCENE_ALIASES.get(legacy_scene.lower(), legacy_scene)
-    if canonical is _AMBIGUOUS:
-        raise ValueError(
-            f"ambiguous legacy scene {legacy_scene!r}: caller must resolve "
-            "to practice_generation or {mcq,case}_grading via active object "
-            "before invoking the lifecycle skill builder"
-        )
-    return build_question_lifecycle_skill_context(canonical)  # type: ignore[arg-type]
+    stack = _LEGACY_SCENE_STACK.get(legacy_key, _LEGACY_SCENE_STACK["general"])
+    skill_names, ref_assets = stack
+    canonical_scene = _LEGACY_SCENE_ALIASES.get(legacy_key, None)
+
+    parts: list[str] = []
+    missing: list[str] = []
+    loader_sources: dict[str, str] = {}
+
+    for name in skill_names:
+        text = _load_skill_text(name)
+        loader_sources[name] = _resolve_loader_source(name)
+        if text is None:
+            missing.append(name)
+            if name not in _WARNED_MISSING:
+                _WARNED_MISSING.add(name)
+                logger.warning(
+                    "question_lifecycle_skill_context (legacy %r): required skill "
+                    "%r missing on disk; degrading source_status.complete=False",
+                    legacy_key,
+                    name,
+                )
+            continue
+        parts.append(text)
+
+    for skill_name, relpath in ref_assets:
+        asset = _load_skill_asset(skill_name, relpath)
+        if asset is None:
+            missing.append(f"{skill_name}/{relpath}")
+            continue
+        parts.append(asset)
+
+    return SkillContext(
+        scene=canonical_scene,
+        skill_names=tuple(skill_names),
+        instructions="\n\n---\n\n".join(parts),
+        source_status=SourceStatus(complete=not missing, missing_skills=tuple(missing)),
+        loader_sources=loader_sources,
+    )

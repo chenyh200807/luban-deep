@@ -14,39 +14,26 @@ ConstructionExamScene = Literal["general", "concept", "mcq", "mcq_grading", "cas
 _SMART: TutorBotTeachingMode = "smart"
 _FAST: TutorBotTeachingMode = "fast"
 _DEEP: TutorBotTeachingMode = "deep"
-_SKILL_DIR = Path(__file__).resolve().parent / "skills" / "construction-exam-tutor"
-_SKILL_FILE = _SKILL_DIR / "SKILL.md"
-_MCQ_GRADING_SKILL_DIR = Path(__file__).resolve().parent / "skills" / "construction-mcq-grading"
-_MCQ_GRADING_SKILL_FILE = _MCQ_GRADING_SKILL_DIR / "SKILL.md"
-_CASE_GRADING_SKILL_DIR = Path(__file__).resolve().parent / "skills" / "construction-case-grading"
-_CASE_GRADING_SKILL_FILE = _CASE_GRADING_SKILL_DIR / "SKILL.md"
+# Construction exam scene skill loading was moved to
+# ``deeptutor.services.question_lifecycle_skills`` per plan 2026-05-24 Task 2.5
+# (collapse the second skill loader). The legacy ``_SKILL_DIR`` /
+# ``_MCQ_GRADING_SKILL_DIR`` / ``_CASE_GRADING_SKILL_DIR`` /
+# ``_SCENE_REFERENCES`` / ``_MCQ_GRADING_REFERENCES`` /
+# ``_CASE_GRADING_REFERENCES`` constants and the direct ``Path``-based file
+# reading they fed have been removed. See
+# ``get_construction_exam_skill_instruction`` below — it is now a thin shim.
+
+# Lecture skill loading is unrelated to the question lifecycle and is not in
+# scope for this plan; it keeps its existing direct loader. A future plan
+# may consolidate it through ``question_lifecycle_skills`` or a sibling
+# helper.
 _LECTURE_SKILL_DIR = Path(__file__).resolve().parent / "skills" / "lecture-waterproof-energy-decoration"
 _LECTURE_SKILL_FILE = _LECTURE_SKILL_DIR / "SKILL.md"
-_SCENE_REFERENCES: dict[ConstructionExamScene, str | None] = {
-    "general": None,
-    "concept": "references/concept-explainer.md",
-    "mcq": "references/mcq-review.md",
-    "mcq_grading": None,
-    "case": "references/case-analysis.md",
-    "case_grading": None,
-    "error_review": "references/error-review.md",
-}
 _LECTURE_TOPIC_REFERENCES = {
     "waterproof": "references/waterproof.md",
     "energy_saving": "references/energy-saving.md",
     "decoration": "references/decoration.md",
 }
-_MCQ_GRADING_REFERENCES = (
-    "references/mcq-grading-protocol.md",
-    "references/mcq-error-taxonomy.md",
-    "references/mcq-source-grounding.md",
-)
-_CASE_GRADING_REFERENCES = (
-    "references/data-authority.md",
-    "references/source-grounding.md",
-    "references/grading-protocol.md",
-    "references/error-taxonomy.md",
-)
 _BUILDING_ANCHOR_RE = re.compile(
     r"([0-9一二两三四五六七八九十百]+层(?:住宅楼|办公楼|教学楼|厂房|宿舍楼|综合楼|商住楼|楼))",
     flags=re.IGNORECASE,
@@ -549,37 +536,22 @@ def detect_construction_exam_scene(
 
 
 def get_construction_exam_skill_instruction(scene: ConstructionExamScene | str = "general") -> str:
-    parts: list[str] = []
+    """Legacy shim: delegates to ``question_lifecycle_skills``.
 
-    skill_body = _read_skill_file(_SKILL_FILE)
-    if skill_body:
-        parts.append(skill_body)
+    Scheduled for removal once §5.2 alias-map deletion conditions hold and all
+    callers have migrated to
+    ``deeptutor.services.question_lifecycle_skills.build_question_lifecycle_skill_context``.
+    New code MUST NOT call this function; it exists only so legacy TutorBot
+    loop / capability paths stay byte-for-byte compatible during the
+    migration window. Per plan 2026-05-24 §5.0 verification target #2, this
+    module no longer reads SKILL.md files directly.
+    """
+    # Local import to avoid a TutorBot↔services circular import at module load.
+    from deeptutor.services.question_lifecycle_skills import (
+        build_question_lifecycle_skill_context_from_legacy_scene,
+    )
 
-    reference_path = _SCENE_REFERENCES.get(str(scene), None)
-    if reference_path:
-        reference_body = _read_skill_file(_SKILL_DIR / reference_path)
-        if reference_body:
-            parts.append(reference_body)
-
-    if str(scene) == "mcq_grading":
-        mcq_grading_skill_body = _read_skill_file(_MCQ_GRADING_SKILL_FILE)
-        if mcq_grading_skill_body:
-            parts.append(mcq_grading_skill_body)
-        for reference_path in _MCQ_GRADING_REFERENCES:
-            reference_body = _read_skill_file(_MCQ_GRADING_SKILL_DIR / reference_path)
-            if reference_body:
-                parts.append(reference_body)
-
-    if str(scene) == "case_grading":
-        grading_skill_body = _read_skill_file(_CASE_GRADING_SKILL_FILE)
-        if grading_skill_body:
-            parts.append(grading_skill_body)
-        for reference_path in _CASE_GRADING_REFERENCES:
-            reference_body = _read_skill_file(_CASE_GRADING_SKILL_DIR / reference_path)
-            if reference_body:
-                parts.append(reference_body)
-
-    return "\n\n".join(part for part in parts if part).strip()
+    return build_question_lifecycle_skill_context_from_legacy_scene(str(scene)).instructions
 
 
 def get_lecture_skill_instruction(user_message: str | None) -> str:

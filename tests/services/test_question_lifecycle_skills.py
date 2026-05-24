@@ -68,12 +68,14 @@ def test_select_question_lifecycle_skill_names_none_returns_empty():
 
 
 def test_legacy_alias_concept_maps_to_question_review():
+    """Legacy 'concept' = exam-tutor + references/concept-explainer.md.
+    The canonical scene field is 'question_review' for telemetry; the skill
+    stack stays at the legacy (exam-tutor only + references) shape so legacy
+    callers see byte-compatible content."""
     ctx = build_question_lifecycle_skill_context_from_legacy_scene("concept")
     assert ctx.scene == "question_review"
-    assert ctx.skill_names == (
-        "construction-exam-tutor",
-        "construction-question-review",
-    )
+    assert ctx.skill_names == ("construction-exam-tutor",)
+    assert "# 概念讲解" in ctx.instructions  # from references/concept-explainer.md
 
 
 def test_legacy_alias_error_review_maps_to_question_review():
@@ -81,28 +83,56 @@ def test_legacy_alias_error_review_maps_to_question_review():
     assert ctx.scene == "question_review"
 
 
-def test_legacy_alias_general_maps_to_none():
+def test_legacy_alias_general_loads_exam_tutor_only():
+    """Legacy 'general' = exam-tutor SKILL.md alone, no references."""
     ctx = build_question_lifecycle_skill_context_from_legacy_scene("general")
-    assert ctx.scene is None
-    assert ctx.skill_names == ()
-    assert ctx.instructions == ""
+    assert ctx.scene is None  # no canonical match
+    assert ctx.skill_names == ("construction-exam-tutor",)
+    assert "# Construction Exam Tutor" in ctx.instructions
+    assert "渐进式加载" in ctx.instructions
 
 
 def test_legacy_alias_mcq_grading_passthrough():
     ctx = build_question_lifecycle_skill_context_from_legacy_scene("mcq_grading")
     assert ctx.scene == "mcq_grading"
+    # legacy mcq_grading stack = exam-tutor + mcq-grading SKILL.md + 3 references
+    assert ctx.skill_names == ("construction-exam-tutor", "construction-mcq-grading")
+    assert "# Construction Exam Tutor" in ctx.instructions
+    assert "# Construction MCQ Grading" in ctx.instructions
+    # references appear in instructions too
+    assert "选择题判分协议" in ctx.instructions  # from references/mcq-grading-protocol.md
 
 
-def test_legacy_alias_ambiguous_mcq_raises():
-    """v2 Task 2 test #8: legacy 'mcq' is ambiguous (supply vs grading);
-    caller must resolve via active object before calling builder."""
-    with pytest.raises(ValueError, match="ambiguous"):
-        build_question_lifecycle_skill_context_from_legacy_scene("mcq")
+def test_legacy_alias_mcq_maps_to_question_review_for_telemetry():
+    """Legacy 'mcq' = MCQ explain semantics → canonical question_review for trace;
+    skill stack stays legacy (exam-tutor + references/mcq-review.md)."""
+    ctx = build_question_lifecycle_skill_context_from_legacy_scene("mcq")
+    assert ctx.scene == "question_review"  # canonical alias
+    assert ctx.skill_names == ("construction-exam-tutor",)
+    assert "# 选择题讲解" in ctx.instructions  # from references/mcq-review.md
 
 
-def test_legacy_alias_ambiguous_case_raises():
-    with pytest.raises(ValueError, match="ambiguous"):
-        build_question_lifecycle_skill_context_from_legacy_scene("case")
+def test_legacy_alias_case_maps_to_question_review_for_telemetry():
+    ctx = build_question_lifecycle_skill_context_from_legacy_scene("case")
+    assert ctx.scene == "question_review"
+    assert ctx.skill_names == ("construction-exam-tutor",)
+    assert "# 案例题讲解" in ctx.instructions  # from references/case-analysis.md
+
+
+def test_legacy_alias_case_grading_loads_full_stack():
+    ctx = build_question_lifecycle_skill_context_from_legacy_scene("case_grading")
+    assert ctx.scene == "case_grading"
+    assert ctx.skill_names == ("construction-exam-tutor", "construction-case-grading")
+    assert "# Construction Case Grading" in ctx.instructions
+    # references appear
+    assert "案例题阅卷资料利用手册" in ctx.instructions  # from references/source-grounding.md
+
+
+def test_legacy_alias_error_review_uses_legacy_reference():
+    ctx = build_question_lifecycle_skill_context_from_legacy_scene("error_review")
+    assert ctx.scene == "question_review"
+    assert ctx.skill_names == ("construction-exam-tutor",)
+    assert "# 错题复盘" in ctx.instructions  # from references/error-review.md
 
 
 # ---------------------------------------------------------------------------
