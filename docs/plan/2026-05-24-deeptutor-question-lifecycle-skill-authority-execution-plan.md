@@ -2,10 +2,10 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` or `superpowers:executing-plans` to implement this plan task-by-task. Use `superpowers:test-driven-development` before every code change, `root-cause-debugging` when a route / answer reveal / active object regression appears, and `review` before merge.
 
-**Status:** Proposed v2.1 / Engineering-reviewed 2026-05-24
-**Created:** 2026-05-24
-**Revised:** 2026-05-24 (v2 — adds Karpathy Gate worksheet, scene authority decision, naming alias map, dual-authority收权 task, gray-release runbook; tightens learner-state skill scope) · 2026-05-24 (v2.1 — closes 8 evaluation gaps surfaced by post-v2 confirmation review: 4 new failure modes v2-6..v2-9, 3 new manual cases v2-M4..v2-M6, loader_source drift telemetry, first-deployment promotion rule, Task 4 rubric-breakdown payload tests, Task 1 mandatory Anti-Patterns sections per skill, §10 Q9 user-explicit-reveal product decision, §10 Q10–Q11 explicit out-of-scope handoffs to follow-up registry plan). See §0 Revision Log for full diff.
-**Owner surface:** `deep_question` / TutorBot runtime / `question_followup` / `construction_grading` / learner-state read models
+**Status:** Proposed v2.1 / Engineering-reviewed 2026-05-24  
+**Created:** 2026-05-24  
+**Revised:** 2026-05-24 (v2 — adds Karpathy Gate worksheet, scene authority decision, naming alias map, dual-authority收权 task, gray-release runbook; tightens learner-state skill scope) · 2026-05-24 (v2.1 — closes 8 evaluation gaps surfaced by post-v2 confirmation review: 4 new failure modes v2-6..v2-9, 3 new manual cases v2-M4..v2-M6, loader_source drift telemetry, first-deployment promotion rule, Task 4 rubric-breakdown payload tests, Task 1 mandatory Anti-Patterns sections per skill, §10 Q9 user-explicit-reveal product decision, §10 Q10–Q11 explicit out-of-scope handoffs to follow-up registry plan). See §0 Revision Log for full diff.  
+**Owner surface:** `deep_question` / TutorBot runtime / `question_followup` / `construction_grading` / learner-state read models  
 **Goal:** Make DeepTutor's native skills govern the full question lifecycle, not only TutorBot free-text replies, so generation, answering, grading, explanation, mistake review, learning-state story and study actions share one authority matrix.
 
 **Architecture:** Keep `deep_question` as the question lifecycle authority and keep TutorBot as the teaching identity/runtime. Use the existing `deeptutor/tutorbot/agent/skills.py` skill loader as the **single** runtime skill loader (Task 2.5 collapses the second loader currently sitting in `teaching_modes.get_construction_exam_skill_instruction`), then add a thin `question_lifecycle_skill_context` service so `deep_question`, TutorBot, follow-up explanation and grading consume the same scene skills through one decision point in `ChatOrchestrator` without creating a new router or a second learner-memory system.
@@ -1196,7 +1196,7 @@ Before calling this plan complete, a reviewer must mark every line below (8 from
 | Frontend does not infer | WeChat / yousen view models map backend fields only when touched |
 | Manual QA planned | WeChat DevTools or real-device scenarios in section 9 are run before release |
 | **v2-C1: Single skill loader** | §Task 8 Step 5 grep returns zero — no module other than `SkillsLoader` and `question_lifecycle_skill_context` reads SKILL.md files |
-| **v2-C2: Single scene decider** | `grep -rn "question_lifecycle_scene\s*=" deeptutor/` shows assignment only in `ChatOrchestrator` (and resume / replay paths reading from snapshot); no downstream re-detection |
+| **v2-C2: Single scene decider** | `grep -rn "question_lifecycle_scene\s*=" deeptutor/` shows assignment only via `attach_question_lifecycle_scene_to_context` (or, post-Task 0.7, `ChatOrchestrator` directly); no other writer. **Known deferred carve-outs (Task 0.7 follow-up; do NOT flag as v2-C2 violations until Task 0.7 ships):** `deeptutor/tutorbot/agent/loop.py:1080,1624` and `deeptutor/agents/chat/agentic_pipeline.py:2878` still call legacy `detect_construction_exam_scene` which feeds into the Task 2.5 shim, not into `question_lifecycle_scene`. |
 | **v2-C3: PII / scope CI guard live** | `scripts/check_skill_pii.py` registered in `contracts/index.yaml`; `check_contract_guard.py` fails if removed |
 | **v2-C4: Gray-release evidence captured** | `docs/qa/2026-05-24-question-lifecycle-skill-stage-evidence.md` exists with Langfuse screenshots + kill-switch drill writeup before promoting past `internal` |
 | **v2-C5: Mixed-turn / resume / adversarial manual cases green** | §9 v2-M1 / v2-M2 / v2-M3 results recorded in the stage evidence doc |

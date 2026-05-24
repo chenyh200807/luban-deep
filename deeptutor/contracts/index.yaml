@@ -67,6 +67,7 @@ domains:
       - deeptutor/runtime/registry/capability_registry.py
       - deeptutor/capabilities/request_contracts.py
       - deeptutor/services/exam_track.py
+      - deeptutor/services/question_lifecycle_skills.py
       - deeptutor/api/routers/chat.py
       - deeptutor/api/routers/mobile.py
       - deeptutor/api/routers/unified_ws.py
@@ -74,6 +75,7 @@ domains:
       - deeptutor/runtime/orchestrator.py
       - deeptutor/capabilities/request_contracts.py
       - deeptutor/services/exam_track.py
+      - deeptutor/services/question_lifecycle_skills.py
       - deeptutor/api/routers/unified_ws.py
       - deeptutor/api/routers/mobile.py
     test_files:
@@ -81,6 +83,9 @@ domains:
       - tests/api/test_unified_ws_turn_runtime.py
       - tests/api/test_unified_ws_public_redaction.py
       - tests/api/test_mobile_router.py
+      - tests/services/test_question_lifecycle_skills.py
+      - tests/services/test_question_lifecycle_scene_derivation.py
+      - tests/services/test_question_lifecycle_acceptance.py
     schema_files:
       - deeptutor/capabilities/request_contracts.py
 

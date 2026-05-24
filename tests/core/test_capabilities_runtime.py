@@ -2120,6 +2120,128 @@ async def test_tutorbot_capability_does_not_turn_exact_authority_answer_into_mcq
     assert "question_followup_context" not in result_event.metadata
 
 
+@pytest.mark.asyncio
+async def test_tutorbot_authority_response_not_rebuilt_by_freetext_parser(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Regression for code-review HIGH (2026-05-24).
+
+    When an authority response coincides with a practice-generation user
+    intent ("再出 N 题") and the suppress-answer-on-generate hint fires (e.g.
+    wx_miniprogram default), the visible response is built by
+    ``_build_visible_response``. The free-text MCQ parser used to enrich
+    free-text generation must NOT be invoked on authority responses, or
+    ``_render_question_only_response`` will silently rebuild the response and
+    drop the authority-emitted prefix that ``_strip_reference_sections``
+    would otherwise preserve.
+
+    Pins authority-response invariance under authority + practice-generation
+    intent + suppression conditions.
+    """
+
+    class FakeManager:
+        async def ensure_bot_running(self, bot_id: str, config=None) -> None:
+            return None
+
+        def build_chat_session_key(
+            self,
+            bot_id: str,
+            conversation_id: str,
+            user_id: str | None = None,
+        ) -> str:
+            return f"bot:{bot_id}:chat:{conversation_id}"
+
+        def _infer_conversation_title(self, text: str) -> str:
+            return text[:8]
+
+        async def send_message(
+            self,
+            *,
+            bot_id: str,
+            content: str,
+            chat_id: str = "web",
+            on_progress=None,
+            on_content_delta=None,
+            on_tool_call=None,
+            on_tool_result=None,
+            mode: str = "smart",
+            session_key: str | None = None,
+            session_metadata: dict[str, Any] | None = None,
+        ) -> str:
+            if on_tool_result is not None:
+                await on_tool_result(
+                    "rag",
+                    "题库命中原题",
+                    {
+                        "authority_applied": True,
+                        "exact_question": {
+                            "answer_kind": "mcq",
+                            "stem": "结构的可靠性包括（　　）",
+                            "question_type": "multi_choice",
+                            "correct_answer": "BCE",
+                            "analysis": "结构的可靠性包括安全性、适用性、耐久性。",
+                            "options": [
+                                {"key": "A", "value": "稳定"},
+                                {"key": "B", "value": "安全性"},
+                                {"key": "C", "value": "耐久性"},
+                                {"key": "D", "value": "经济性"},
+                                {"key": "E", "value": "适用性"},
+                            ],
+                        },
+                    },
+                )
+            return "\n".join(
+                [
+                    "题干：结构的可靠性包括（　　）",
+                    "A. 稳定",
+                    "B. 安全性",
+                    "C. 耐久性",
+                    "D. 经济性",
+                    "E. 适用性",
+                    "标准答案：BCE",
+                    "解析：结构的可靠性包括安全性、适用性、耐久性。",
+                ]
+            )
+
+    monkeypatch.setattr(
+        "deeptutor.capabilities.tutorbot.get_tutorbot_manager",
+        lambda: FakeManager(),
+    )
+
+    context = UnifiedContext(
+        session_id="session-authority-practice-intent",
+        user_message="再出 1 题",  # practice generation request
+        enabled_tools=["rag"],
+        knowledge_bases=["construction-exam"],
+        config_overrides={"bot_id": "construction-exam-coach", "chat_mode": "smart"},
+        metadata={
+            # wx_miniprogram source triggers suppress_answer_reveal_on_generate
+            # via _suppress_answer_reveal_on_generate's default branch.
+            "billing_context": {"user_id": "u1", "source": "wx_miniprogram"},
+        },
+        language="zh",
+    )
+
+    capability = TutorBotCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["authority_applied"] is True
+    response = result_event.metadata["response"]
+    # Free-text parser would rebuild as "**第1题**\n结构的可靠性..."; that
+    # marker must NOT appear in an authority response.
+    assert "**第1题**" not in response, (
+        "authority response was rebuilt via _render_question_only_response — "
+        "free-text parser leaked into authority path"
+    )
+    # The authority-emitted prefix or stem must survive the visible build.
+    assert "题干：结构的可靠性" in response or response.startswith("结构的可靠性")
+    # Presentation must remain authority-gated absent (existing invariant).
+    assert "presentation" not in result_event.metadata
+    assert "question_followup_context" not in result_event.metadata
+    assert "active_object" not in result_event.metadata
+
+
 @pytest.mark.parametrize("chat_mode", ["fast", "deep"])
 @pytest.mark.asyncio
 async def test_tutorbot_capability_hides_answers_for_practice_generation_in_visible_response(

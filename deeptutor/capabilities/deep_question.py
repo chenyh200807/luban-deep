@@ -1347,6 +1347,16 @@ class DeepQuestionCapability(BaseCapability):
         from deeptutor.agents.question.coordinator import AgentCoordinator
         from deeptutor.services.llm.config import get_llm_config
         from deeptutor.services.path_service import get_path_service
+        from deeptutor.services.question_lifecycle_skills import (
+            attach_question_lifecycle_scene_to_context,
+        )
+
+        # Plan 2026-05-24 §5.1 — single decider implementation point.
+        # Attaches question_lifecycle_scene + skill_names projection to
+        # context.metadata for trace / downstream consumers. Idempotent: if
+        # ChatOrchestrator (Task 0.7) has already set the scene, this honors
+        # it without overwriting. Does not alter capability routing.
+        attach_question_lifecycle_scene_to_context(context)
 
         llm_config = get_llm_config()
         kb_name = context.knowledge_bases[0] if context.knowledge_bases else None

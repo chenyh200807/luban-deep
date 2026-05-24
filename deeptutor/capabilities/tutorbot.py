@@ -242,15 +242,32 @@ class TutorBotCapability(BaseCapability):
                 # submit-able MCQ presentation when the answer key came from an
                 # exact authoritative question source.
                 display_result_summary = state_result_summary
-                if display_result_summary is None and looks_like_practice_generation_request(context.user_message):
-                    # Generated practice text may still be rendered as a card,
-                    # but it must not become follow-up/grading authority.
-                    display_result_summary = extract_choice_result_summary_from_text(final_response)
+            # Fix 2026-05-24 (post-merge with hermes edu-skills booster):
+            # when the response is free-text MCQ-shaped but no exact_question
+            # authority exists, parse the text into a presentation summary for
+            # *rendering only*. Per contracts/capability.md §硬约束 26 this
+            # summary MUST NOT feed question_followup_context / active_object
+            # (those stay authority-gated below); it only powers presentation
+            # blocks and lets _build_visible_response honor reveal_explanations
+            # when the answer/explanation lives inside the LLM-emitted text.
+            #
+            # Post-review HIGH guard (code-review 2026-05-24): the free-text
+            # parser MUST NOT run on authority responses. Authority text is
+            # canonical and should follow the pre-existing
+            # _strip_reference_sections path inside _build_visible_response.
+            # Without this gate, _render_question_only_response would rebuild
+            # authority output from a re-parsed summary and silently drop
+            # authority-emitted framing. See
+            # test_tutorbot_authority_response_not_rebuilt_by_freetext_parser.
+            free_text_render_summary: dict[str, Any] | None = None
+            if display_result_summary is None and not turn_summary["authority_applied"]:
+                free_text_render_summary = extract_choice_result_summary_from_text(final_response)
+            render_summary = display_result_summary or free_text_render_summary
             reveal_answers, reveal_explanations = self._reveal_reference_flags(context)
             visible_response = self._build_visible_response(
                 context=context,
                 final_response=final_response,
-                parsed_result_summary=display_result_summary,
+                parsed_result_summary=render_summary,
                 reveal_answers=reveal_answers,
                 reveal_explanations=reveal_explanations,
             )
@@ -288,6 +305,11 @@ class TutorBotCapability(BaseCapability):
                 "reveal_answers": reveal_answers,
                 "reveal_explanations": reveal_explanations,
             }
+            # Propagate hermes question-lifecycle telemetry fields out of
+            # session_metadata (set by tutorbot/agent/loop.py when the
+            # question lifecycle builder ran). Diagnostic only; per
+            # contracts/capability.md §硬约束 27 these must not feed
+            # downstream routing or be student-visible.
             for metadata_key in (
                 "question_lifecycle_scene",
                 "skill_stack",
@@ -296,33 +318,64 @@ class TutorBotCapability(BaseCapability):
             ):
                 if metadata_key in session_metadata:
                     result_payload[metadata_key] = session_metadata[metadata_key]
-            if display_result_summary:
+            # Presentation gating — three orthogonal contracts (regression
+            # matrix in tests/core/test_capabilities_runtime.py + tests/
+            # capabilities/test_tutorbot_authority.py):
+            #
+            # 1. Practice generation requests (free-text MCQ) → emit a
+            #    rendering-only presentation block; question_followup_context
+            #    and active_object stay absent because TutorBot free text is
+            #    not grading authority. See
+            #    test_tutorbot_capability_emits_structured_mcq_summary_for_plain_text_generation.
+            # 2. Non-practice chat with incidental MCQ-shaped text (e.g.
+            #    "讲一下施工缝，顺便举个选择题例子") → no presentation;
+            #    presentation would mislead the renderer into showing a
+            #    question card. See
+            #    test_tutorbot_does_not_turn_free_text_mcq_into_submitable_presentation.
+            # 3. Exact-question authority responses flow through
+            #    deep_question's main path; TutorBot must not re-render them
+            #    as a presentation here. See
+            #    test_tutorbot_capability_does_not_turn_exact_authority_answer_into_mcq_presentation.
+            #
+            # Per contracts/capability.md §硬约束 26 question_followup_context
+            # + active_object remain authority-gated even when presentation is
+            # emitted (Camp 1 above).
+            is_practice_generation_request = looks_like_practice_generation_request(
+                context.user_message
+            )
+            if (
+                render_summary
+                and is_practice_generation_request
+                and not turn_summary["authority_applied"]
+            ):
                 presentation = build_canonical_presentation(
                     content=visible_response,
-                    result_summary=display_result_summary,
+                    result_summary=render_summary,
                     reveal_answers=reveal_answers,
                     reveal_explanations=reveal_explanations,
                 )
-                if state_result_summary:
-                    result_payload["question_followup_context"] = (
-                        build_question_followup_context_from_result_summary(
-                            state_result_summary,
-                            final_response,
-                            reveal_answers=reveal_answers,
-                            reveal_explanations=reveal_explanations,
-                        )
-                    )
-                    if result_payload["question_followup_context"]:
-                        result_payload["active_object"] = (
-                            build_active_object_from_question_context(
-                                result_payload["question_followup_context"],
-                                source_turn_id=turn_id,
-                                previous_active_object=active_object,
-                            )
-                            or {}
-                        )
                 if presentation:
                     result_payload["presentation"] = presentation
+            if state_result_summary:
+                # Authority-gated: question_followup_context + active_object
+                # only emitted when exact_question authority is present.
+                result_payload["question_followup_context"] = (
+                    build_question_followup_context_from_result_summary(
+                        state_result_summary,
+                        final_response,
+                        reveal_answers=reveal_answers,
+                        reveal_explanations=reveal_explanations,
+                    )
+                )
+                if result_payload["question_followup_context"]:
+                    result_payload["active_object"] = (
+                        build_active_object_from_question_context(
+                            result_payload["question_followup_context"],
+                            source_turn_id=turn_id,
+                            previous_active_object=active_object,
+                        )
+                        or {}
+                    )
             await stream.result(result_payload, source=self.name)
 
     @staticmethod

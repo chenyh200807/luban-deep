@@ -3,6 +3,22 @@
 This module is a thin composition layer over TutorBot's existing
 ``SkillsLoader``. It owns scene -> skill stack mapping, but not routing,
 grading, learner-state writes, or RAG policy.
+
+Single-decider note (plan 2026-05-24 §5.1): scene for a turn is decided
+exactly once via :func:`derive_question_lifecycle_scene` and attached to
+``UnifiedContext.metadata['question_lifecycle_scene']`` by
+:func:`attach_question_lifecycle_scene_to_context`. Downstream readers
+must consume that metadata rather than re-detecting. Once
+``ChatOrchestrator`` (plan Task 0.7) becomes the single attach point,
+capability-side ``attach_*`` calls can be removed.
+
+Merge note (2026-05-24): this file integrates the hermes edu-skills booster
+shape (already on origin/main: SCENE_COMPOSITION, _LEGACY_COMPOSITION,
+_SCENE_REFERENCE_FILES, build_question_lifecycle_skill_context(ctx),
+build_lecture_skill_instruction, SourceStatus.missing_assets,
+SkillContext.loader_sources) with the question-lifecycle-skill-authority
+branch additions (derive_question_lifecycle_scene,
+attach_question_lifecycle_scene_to_context).
 """
 
 from __future__ import annotations
@@ -18,8 +34,15 @@ from deeptutor.tutorbot.agent.skills import SkillsLoader
 logger = logging.getLogger(__name__)
 
 
+# ---------------------------------------------------------------------------
+# Public dataclasses
+# ---------------------------------------------------------------------------
+
+
 @dataclass(frozen=True)
 class SourceStatus:
+    """Tracks completeness of skill / reference asset loading."""
+
     complete: bool
     missing_skills: tuple[str, ...] = ()
     missing_assets: tuple[str, ...] = ()
@@ -27,12 +50,18 @@ class SourceStatus:
 
 @dataclass(frozen=True)
 class SkillContext:
+    """Frozen payload describing the runtime skill stack for one turn."""
+
     scene: str | None
     skill_names: tuple[str, ...]
     instructions: str
     source_status: SourceStatus
     loader_sources: dict[str, str]
 
+
+# ---------------------------------------------------------------------------
+# Canonical scene → skill stack composition
+# ---------------------------------------------------------------------------
 
 SCENE_COMPOSITION: dict[str, tuple[str, ...]] = {
     "practice_generation": ("construction-exam-tutor", "construction-question-supply"),
@@ -45,6 +74,10 @@ SCENE_COMPOSITION: dict[str, tuple[str, ...]] = {
     "learning_support": ("construction-exam-tutor", "construction-learning-support"),
 }
 
+# Legacy ConstructionExamScene → skill stack. Used only by the legacy shim
+# (`build_question_lifecycle_skill_context_from_legacy_scene`) so that
+# `teaching_modes.get_construction_exam_skill_instruction` keeps backward
+# compatibility for callers that have not yet migrated to canonical scenes.
 _LEGACY_COMPOSITION: dict[str, tuple[str, ...]] = {
     "general": ("construction-exam-tutor",),
     "concept": ("construction-exam-tutor",),
@@ -58,6 +91,11 @@ _LEGACY_COMPOSITION: dict[str, tuple[str, ...]] = {
     "practice_generation": SCENE_COMPOSITION["practice_generation"],
 }
 
+# Legacy → canonical alias for telemetry / trace attribution (plan §5.2).
+# ``mcq`` / ``case`` are intentionally not mapped because the legacy
+# semantics collapse two canonical scenes; the legacy shim still loads
+# the legacy stack from ``_LEGACY_COMPOSITION`` and surfaces the legacy
+# value on ``SkillContext.scene``.
 _LEGACY_SCENE_ALIASES: dict[str, str | None] = {
     "general": None,
     "concept": "question_review",
@@ -68,6 +106,7 @@ _LEGACY_SCENE_ALIASES: dict[str, str | None] = {
     "error_review": "question_review",
 }
 
+# Per-scene per-skill reference asset paths.
 _SCENE_REFERENCE_FILES: dict[str, dict[str, tuple[str, ...]]] = {
     "concept": {"construction-exam-tutor": ("references/concept-explainer.md",)},
     "mcq": {"construction-exam-tutor": ("references/mcq-review.md",)},
@@ -96,7 +135,13 @@ _LECTURE_TOPIC_REFERENCES = {
     "decoration": "references/decoration.md",
 }
 
+# Once-per-process missing-skill warning de-duplication.
 _MISSING_LOGGED: set[str] = set()
+
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
 
 
 def select_question_lifecycle_skill_names(scene: str | None) -> tuple[str, ...]:
@@ -112,7 +157,13 @@ def build_question_lifecycle_skill_context(
     *,
     skills_loader: SkillsLoader | None = None,
 ) -> SkillContext:
-    """Build instructions for the scene already selected by upstream runtime."""
+    """Build instructions for the scene already attached to ``ctx.metadata``.
+
+    The scene must already be attached to
+    ``ctx.metadata['question_lifecycle_scene']`` by
+    :func:`attach_question_lifecycle_scene_to_context`. If absent, returns
+    an empty context (caller falls back to chat).
+    """
     scene = _context_scene(ctx)
     if scene is None:
         return SkillContext(
@@ -136,7 +187,14 @@ def build_question_lifecycle_skill_context_from_legacy_scene(
     *,
     skills_loader: SkillsLoader | None = None,
 ) -> SkillContext:
-    """Compatibility adapter for legacy ``ConstructionExamScene`` callers."""
+    """Compatibility adapter for legacy ``ConstructionExamScene`` callers.
+
+    The legacy stack (skills + references) is loaded via
+    :data:`_LEGACY_COMPOSITION` + :data:`_SCENE_REFERENCE_FILES`. The
+    returned ``SkillContext.scene`` carries the legacy value so callers
+    that surface it as telemetry preserve the legacy semantics; consumers
+    that need the canonical alias can map via :data:`_LEGACY_SCENE_ALIASES`.
+    """
     legacy_scene = str(scene or "general").strip() or "general"
     if legacy_scene not in _LEGACY_COMPOSITION:
         legacy_scene = "general"
@@ -166,6 +224,167 @@ def build_lecture_skill_instruction(
     if reference_body:
         parts.append(reference_body.strip())
     return "\n\n".join(part for part in parts if part).strip()
+
+
+# ---------------------------------------------------------------------------
+# Scene derivation + attach (plan §5.1 Single Decider implementation point)
+# ---------------------------------------------------------------------------
+#
+# Currently invoked at capability entry boundaries (e.g. deep_question.run)
+# as a stopgap until ChatOrchestrator (plan Task 0.7) becomes the single
+# attach point. Idempotent: an upstream-set scene (including explicit None)
+# is honored.
+
+_LEARNING_EVIDENCE_PHRASES: tuple[str, ...] = (
+    "我最近哪里错",
+    "为什么我总错",
+    "我的弱点",
+    "我最近练得",
+    "学习证据",
+    "错因回顾",
+    "复盘错题",
+    "为什么总错",
+)
+
+_STUDY_ASSISTANT_PHRASES: tuple[str, ...] = (
+    "今天学什么",
+    "下一步",
+    "接下来该练",
+    "给我安排",
+    "训练建议",
+    "下一步怎么做",
+    "接下来该学什么",
+)
+
+_LEARNING_SUPPORT_PHRASES: tuple[str, ...] = (
+    "没动力",
+    "焦虑",
+    "想放弃",
+    "学不动",
+    "好累",
+    "想哭",
+    "压力好大",
+    "撑不下去",
+    "我学不动",
+    "学不下去",
+)
+
+_QUESTION_REVIEW_FREETEXT_PHRASES: tuple[str, ...] = (
+    "分析一道真题",
+    "分析这道真题",
+    "讲解一道真题",
+    "讲一道真题",
+    "解析一道真题",
+)
+
+_MCQ_QUESTION_TYPES: frozenset[str] = frozenset(
+    {
+        "single_choice",
+        "multi_choice",
+        "multiple_choice",
+        "true_false",
+        "judgment",
+        "mcq",
+    }
+)
+
+
+def derive_question_lifecycle_scene(ctx: Any) -> str | None:
+    """Plan §5.1 single-decider implementation.
+
+    Reads ``ctx.user_message`` and ``ctx.metadata`` (UnifiedContext-shaped
+    or any duck-typed object). Returns a canonical scene name from
+    :data:`SCENE_COMPOSITION` or ``None`` if the turn does not match any
+    lifecycle scene (fallback to chat).
+
+    Priority order (active-object submission wins over free-text intent
+    per plan §6.5 v2-1 mixed-turn rule):
+
+    1. Active-object + parseable submission → ``mcq_grading`` or
+       ``case_grading``.
+    2. Explicit practice generation intent → ``practice_generation``.
+    3. Free-text question-review intent / active-object + follow-up
+       intent → ``question_review``.
+    4. Narrow free-text intent matching → ``learning_evidence_story`` /
+       ``study_assistant`` / ``learning_support``.
+    5. Otherwise → ``None``.
+    """
+    # Local imports avoid module-load circular deps.
+    from deeptutor.services.question_followup import (  # noqa: WPS433
+        extract_submission_answer,
+        looks_like_question_followup,
+        normalize_question_followup_context,
+    )
+    from deeptutor.tutorbot.teaching_modes import (  # noqa: WPS433
+        looks_like_practice_generation_request,
+    )
+
+    user_message = (getattr(ctx, "user_message", None) or "").strip()
+    if not user_message:
+        return None
+
+    metadata = getattr(ctx, "metadata", None) or {}
+    question_context = normalize_question_followup_context(
+        metadata.get("question_followup_context") if isinstance(metadata, dict) else None
+    ) or {}
+
+    if question_context:
+        submission = extract_submission_answer(user_message, question_context)
+        if submission:
+            q_type = str(question_context.get("question_type") or "").strip().lower()
+            has_options = bool(question_context.get("options"))
+            if q_type in _MCQ_QUESTION_TYPES or has_options:
+                return "mcq_grading"
+            return "case_grading"
+
+    if looks_like_practice_generation_request(user_message):
+        return "practice_generation"
+
+    if any(phrase in user_message for phrase in _QUESTION_REVIEW_FREETEXT_PHRASES):
+        return "question_review"
+
+    if question_context and looks_like_question_followup(user_message, question_context):
+        return "question_review"
+
+    if any(phrase in user_message for phrase in _LEARNING_SUPPORT_PHRASES):
+        return "learning_support"
+    if any(phrase in user_message for phrase in _LEARNING_EVIDENCE_PHRASES):
+        return "learning_evidence_story"
+    if any(phrase in user_message for phrase in _STUDY_ASSISTANT_PHRASES):
+        return "study_assistant"
+
+    return None
+
+
+def attach_question_lifecycle_scene_to_context(ctx: Any) -> str | None:
+    """Idempotently attach the derived lifecycle scene to ``ctx.metadata``.
+
+    Honors any pre-existing ``metadata['question_lifecycle_scene']`` value
+    (including explicit ``None``) so an earlier upstream decider wins.
+    Also refreshes ``metadata['question_lifecycle_skill_names']`` to
+    match the resolved scene. Returns the scene attached (or ``None``).
+    """
+    metadata = getattr(ctx, "metadata", None)
+    if not isinstance(metadata, dict):
+        return None
+
+    if "question_lifecycle_scene" in metadata:
+        scene = metadata.get("question_lifecycle_scene")
+    else:
+        scene = derive_question_lifecycle_scene(ctx)
+        metadata["question_lifecycle_scene"] = scene
+
+    if scene is not None:
+        metadata["question_lifecycle_skill_names"] = list(SCENE_COMPOSITION.get(scene, ()))
+    else:
+        metadata.setdefault("question_lifecycle_skill_names", [])
+
+    return scene
+
+
+# ---------------------------------------------------------------------------
+# Internal helpers
+# ---------------------------------------------------------------------------
 
 
 def _context_scene(ctx: UnifiedContext) -> str | None:

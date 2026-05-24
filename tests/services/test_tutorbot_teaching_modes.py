@@ -228,3 +228,82 @@ def test_lecture_skill_instruction_routes_by_topic():
 
     assert "# 防水专题" in waterproof_instruction
     assert "# 装修专题" in decoration_instruction
+
+
+# ---------------------------------------------------------------------------
+# Plan 2026-05-24 question lifecycle skill authority — construction scene pack
+# ---------------------------------------------------------------------------
+
+from deeptutor.tutorbot.agent.skills import BUILTIN_SKILLS_DIR
+
+# Updated 2026-05-24 (post-hermes merge): the merged main now ships the hermes
+# edu-skills booster SKILL.md content (passes scripts/validate_tutorbot_skills.py).
+# Keyword expectations relaxed to per-skill scene anchors that both v2.1 plan and
+# hermes content satisfy; Anti-Pattern counting accepts either ``### ❌`` headings
+# (plan v2.1 R18 style) or bullet items (hermes booster style).
+_REQUIRED_SCENE_SKILLS: dict[str, tuple[str, ...]] = {
+    "construction-question-supply": ("出题", "下一题", "deep_question"),
+    "construction-question-review": ("讲", "选项", "考点"),
+    "construction-learning-evidence-story": ("evidence_refs", "错因"),
+    "construction-study-assistant": ("training_intent", "下一步"),
+    "construction-learning-support": ("焦虑", "情绪"),
+}
+
+
+def test_construction_scene_skill_pack_files_exist():
+    """Plan §6.1 + v2 R3: five scene SKILL.md files must exist."""
+    for skill_name in _REQUIRED_SCENE_SKILLS:
+        skill_file = BUILTIN_SKILLS_DIR / skill_name / "SKILL.md"
+        assert skill_file.exists(), f"missing required scene skill: {skill_file}"
+
+
+def test_construction_scene_skills_contain_required_keywords():
+    """Plan §6.5: each skill encodes scene-specific anchors."""
+    for skill_name, required in _REQUIRED_SCENE_SKILLS.items():
+        skill_file = BUILTIN_SKILLS_DIR / skill_name / "SKILL.md"
+        text = skill_file.read_text(encoding="utf-8")
+        for keyword in required:
+            assert keyword in text, f"{skill_name} missing required keyword: {keyword!r}"
+
+
+def test_construction_scene_skills_anti_patterns_have_three_entries():
+    """v2.1 R18 / R21: every new SKILL.md must list at least 3 anti-pattern
+    entries in its ``## Anti-Patterns`` section. Both ``### ❌ ...`` headings
+    (plan v2.1 R18 format) and bullet-list items (hermes booster format) are
+    accepted as valid entry markers."""
+    for skill_name in _REQUIRED_SCENE_SKILLS:
+        text = (BUILTIN_SKILLS_DIR / skill_name / "SKILL.md").read_text(encoding="utf-8")
+        assert "## Anti-Patterns" in text, f"{skill_name} missing '## Anti-Patterns' section"
+        section = text.split("## Anti-Patterns", 1)[1].split("\n## ", 1)[0]
+        heading_count = section.count("### ❌")
+        bullet_count = sum(
+            1 for line in section.splitlines() if line.strip().startswith("- ")
+        )
+        count = max(heading_count, bullet_count)
+        assert count >= 3, (
+            f"{skill_name}: Anti-Patterns section has {count} entries "
+            f"(headings={heading_count}, bullets={bullet_count}); need >=3"
+        )
+
+
+def test_learner_state_narration_skills_have_scope_guard_keywords():
+    """Plan §6.1 v2.1 R6: narration skills must declare presentation-only scope.
+
+    Strict SQL-statement tokens (uppercase `SELECT ` / `JOIN ` / `WHERE ` with
+    trailing space) are forbidden as DDL-like authority leakage. Plain prose
+    mentions in forbidden-list anti-patterns are allowed (those reference the
+    tokens as warnings, not as authority).
+    """
+    forbidden_substrings = ("SELECT ", "JOIN ", "WHERE ")
+    narration_skills = (
+        "construction-learning-evidence-story",
+        "construction-study-assistant",
+        "construction-learning-support",
+    )
+    for skill_name in narration_skills:
+        text = (BUILTIN_SKILLS_DIR / skill_name / "SKILL.md").read_text(encoding="utf-8")
+        for token in forbidden_substrings:
+            assert token not in text, (
+                f"{skill_name}: forbidden SQL token {token!r} found — narration "
+                "skills must stay presentation-only (plan §6.1 v2.1 R6)"
+            )

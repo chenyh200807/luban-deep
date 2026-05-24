@@ -23,6 +23,14 @@ ConstructionExamScene = Literal[
 _SMART: TutorBotTeachingMode = "smart"
 _FAST: TutorBotTeachingMode = "fast"
 _DEEP: TutorBotTeachingMode = "deep"
+# Construction exam scene + lecture skill loading both moved to
+# ``deeptutor.services.question_lifecycle_skills`` per plan 2026-05-24 Task 2.5
+# (collapse the second skill loader). The legacy ``_SKILL_DIR`` /
+# ``_MCQ_GRADING_SKILL_DIR`` / ``_CASE_GRADING_SKILL_DIR`` /
+# ``_LECTURE_SKILL_DIR`` constants and the direct ``Path``-based file
+# reading they fed have been removed. See
+# ``get_construction_exam_skill_instruction`` and
+# ``get_lecture_skill_instruction`` below — they are now thin shims.
 _BUILDING_ANCHOR_RE = re.compile(
     r"([0-9一二两三四五六七八九十百]+层(?:住宅楼|办公楼|教学楼|厂房|宿舍楼|综合楼|商住楼|楼))",
     flags=re.IGNORECASE,
@@ -541,7 +549,17 @@ def detect_construction_exam_scene(
 
 
 def get_construction_exam_skill_instruction(scene: ConstructionExamScene | str = "general") -> str:
-    """Compatibility shim over the shared question lifecycle skill builder."""
+    """Legacy shim: delegates to ``question_lifecycle_skills``.
+
+    Scheduled for removal once §5.2 alias-map deletion conditions hold and
+    all callers have migrated to
+    ``deeptutor.services.question_lifecycle_skills.build_question_lifecycle_skill_context``.
+    New code MUST NOT call this function; it exists only so legacy TutorBot
+    loop / capability paths stay backward-compatible during the migration
+    window. Per plan 2026-05-24 §5.0 verification target #2, this module no
+    longer reads SKILL.md files directly.
+    """
+    # Local import avoids TutorBot↔services circular import at module load.
     from deeptutor.services.question_lifecycle_skills import (
         build_question_lifecycle_skill_context_from_legacy_scene,
     )
