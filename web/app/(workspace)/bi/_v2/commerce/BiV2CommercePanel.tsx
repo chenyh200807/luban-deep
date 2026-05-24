@@ -15,6 +15,7 @@ import {
   BiDataTable,
   BiMoneyCell,
   BiStatusPill,
+  BiV2DataSourceBanner,
   BI_SEVERITY_TONE,
   BI_TRUST_TONE,
   type BiStatusTone,
@@ -249,32 +250,34 @@ export function BiV2CommercePanel({ flagEnabled, globalQuery = '' }: BiV2Commerc
   if (!flagEnabled) {
     return (
       <section className="space-y-4">
-        <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+        <BiV2DataSourceBanner tone="amber">
           BI_COMMERCE_V2_ENABLED 未开启 · 商品账务不会展示半成品数据。开启前需完成只读 API、
           admin 鉴权、mock 边界与前端 smoke。
-        </div>
+        </BiV2DataSourceBanner>
       </section>
     )
   }
 
   return (
     <section className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-800">
-        <span>
+      <BiV2DataSourceBanner
+        tone="sky"
+        action={
+          <button
+            type="button"
+            onClick={() => void load()}
+            className="inline-flex items-center gap-1 rounded border border-sky-200 bg-white px-2 py-1 text-sky-800 hover:bg-sky-100"
+            aria-label="刷新商品账务"
+          >
+            <RefreshCw className="h-3 w-3" aria-hidden />
+            刷新
+          </button>
+        }
+      >
           BI_COMMERCE_V2_ENABLED 已开启 · 套餐读取 {data?.authority.packages ?? 'loading'}，充值/流水读取{' '}
           {data?.authority.wallet_ledger ?? 'loading'}；订单 authority 仍为{' '}
           {data?.authority.orders ?? 'pending'}，所有修账写动作禁用。
-        </span>
-        <button
-          type="button"
-          onClick={() => void load()}
-          className="inline-flex items-center gap-1 rounded border border-sky-200 bg-white px-2 py-1 text-sky-800 hover:bg-sky-100"
-          aria-label="刷新商品账务"
-        >
-          <RefreshCw className="h-3 w-3" aria-hidden />
-          刷新
-        </button>
-      </div>
+      </BiV2DataSourceBanner>
 
       {error ? (
         <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">

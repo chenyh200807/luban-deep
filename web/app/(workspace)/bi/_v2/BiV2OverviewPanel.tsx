@@ -7,6 +7,7 @@ import {
   BiSidePanel,
   BiStatusPill,
   BiMoneyCell,
+  BiV2DataSourceBanner,
   BI_TRUST_TONE,
   BI_SEVERITY_TONE,
 } from '@/components/bi-v2'
@@ -469,51 +470,60 @@ function DataSourceBanner({
 }) {
   if (!flagEnabled) {
     return (
-      <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+      <BiV2DataSourceBanner tone="amber">
         BI_OVERVIEW_V2_ENABLED 未开启 · 当前为 mock 数据。开启 flag 后 client 调用
         <code className="mx-1 font-mono">/api/v1/bi/overview</code> 与
         <code className="mx-1 font-mono">/api/v1/bi/active-trend</code>。
-      </div>
+      </BiV2DataSourceBanner>
     )
   }
   if (source === 'loading') {
     return (
-      <div className="rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-800">
+      <BiV2DataSourceBanner tone="sky" role="status">
         正在加载 overview / active-trend…
-      </div>
+      </BiV2DataSourceBanner>
     )
   }
   if (source === 'live') {
     return (
-      <div className="flex items-center justify-between rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
-        <span>实时数据 · generated_at: {new Date(bundle.generatedAt).toLocaleString('zh-CN')}</span>
-        <button
-          type="button"
-          onClick={onReload}
-          className="inline-flex items-center gap-1 text-emerald-900 hover:underline"
-          aria-label="刷新 overview"
-        >
-          <RefreshCw className="h-3 w-3" aria-hidden /> 刷新
-        </button>
-      </div>
+      <BiV2DataSourceBanner
+        tone="emerald"
+        action={
+          <button
+            type="button"
+            onClick={onReload}
+            className="inline-flex items-center gap-1 text-emerald-900 hover:underline"
+            aria-label="刷新 overview"
+          >
+            <RefreshCw className="h-3 w-3" aria-hidden /> 刷新
+          </button>
+        }
+      >
+        实时数据 · generated_at: {new Date(bundle.generatedAt).toLocaleString('zh-CN')}
+      </BiV2DataSourceBanner>
     )
   }
   return (
-    <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-800">
+    <BiV2DataSourceBanner
+      tone="rose"
+      role="alert"
+      action={
+        <button
+          type="button"
+          onClick={onReload}
+          className="inline-flex items-center gap-1 text-rose-900 hover:underline"
+          aria-label="重试加载 overview"
+        >
+          <RefreshCw className="h-3 w-3" aria-hidden /> 重试
+        </button>
+      }
+    >
       <div className="flex items-center gap-2">
         <ShieldAlert className="h-4 w-4" aria-hidden />
         <span>
           overview API 不可用，未展示 mock 数据。原因：{bundle.errors.join('; ') || '未知'}
         </span>
-        <button
-          type="button"
-          onClick={onReload}
-          className="ml-auto inline-flex items-center gap-1 text-rose-900 hover:underline"
-          aria-label="重试加载 overview"
-        >
-          <RefreshCw className="h-3 w-3" aria-hidden /> 重试
-        </button>
       </div>
-    </div>
+    </BiV2DataSourceBanner>
   )
 }

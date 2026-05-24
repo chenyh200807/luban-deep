@@ -7,6 +7,7 @@ import {
   BiDataTable,
   BiMoneyCell,
   BiStatusPill,
+  BiV2DataSourceBanner,
   BI_STATUS_PILL_TONE,
   type BiTableColumn,
 } from '@/components/bi-v2'
@@ -399,30 +400,32 @@ export function BiV2MemberOpsPanel({
   return (
     <section className="space-y-4">
       {!flagEnabled ? (
-        <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+        <BiV2DataSourceBanner tone="amber">
           BI_CRM_V2_ENABLED 未开启。当前为 Batch 2 静态原型；Batch 2.5+ 接入真实
           <code className="mx-1 font-mono">/api/v1/bi/members</code> 与
           <code className="font-mono">/api/v1/member/&lt;user_id&gt;/*</code>。
-        </div>
+        </BiV2DataSourceBanner>
       ) : (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-800">
-          <span>
+        <BiV2DataSourceBanner
+          tone="sky"
+          action={
+            <button
+              type="button"
+              onClick={() => void loadMembers()}
+              disabled={loading}
+              className="inline-flex items-center gap-1 rounded border border-sky-200 bg-white px-2 py-1 text-sky-800 disabled:opacity-50"
+              aria-label="刷新会员运营"
+            >
+              <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} aria-hidden />
+              刷新
+            </button>
+          }
+        >
             BI_CRM_V2_ENABLED 已开启 · 会员列表读取{' '}
             <code className="font-mono">/api/v1/member/list</code>，学员 360 读取{' '}
             <code className="font-mono">/api/v1/member/&lt;user_id&gt;/360</code>；低风险写动作走
             member.ops_action.record audit。
-          </span>
-          <button
-            type="button"
-            onClick={() => void loadMembers()}
-            disabled={loading}
-            className="inline-flex items-center gap-1 rounded border border-sky-200 bg-white px-2 py-1 text-sky-800 disabled:opacity-50"
-            aria-label="刷新会员运营"
-          >
-            <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} aria-hidden />
-            刷新
-          </button>
-        </div>
+        </BiV2DataSourceBanner>
       )}
       {opsActionError ? (
         <div className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-800" role="alert">

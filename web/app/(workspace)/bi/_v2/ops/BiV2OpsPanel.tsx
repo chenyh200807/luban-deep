@@ -7,6 +7,7 @@ import {
   BiDataTable,
   BiSidePanel,
   BiStatusPill,
+  BiV2DataSourceBanner,
   BI_TRUST_TONE,
   type BiTableColumn,
 } from '@/components/bi-v2'
@@ -309,28 +310,30 @@ export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
   return (
     <section className="space-y-5">
       {!flagEnabled ? (
-        <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+        <BiV2DataSourceBanner tone="amber">
           BI_SYSTEM_OPS_V2_ENABLED 未开启 · 当前 Batch 6 静态原型。审计与导出已写后端接口路径，UI
           已对齐。
-        </div>
+        </BiV2DataSourceBanner>
       ) : (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-800">
-          <span>
+        <BiV2DataSourceBanner
+          tone="sky"
+          action={
+            <button
+              type="button"
+              onClick={() => void loadAudit()}
+              disabled={auditLoading}
+              className="inline-flex items-center gap-1 rounded border border-sky-200 bg-white px-2 py-1 text-sky-800 disabled:opacity-50"
+              aria-label="刷新操作审计"
+            >
+              <RefreshCw className={`h-3 w-3 ${auditLoading ? 'animate-spin' : ''}`} aria-hidden />
+              刷新
+            </button>
+          }
+        >
             BI_SYSTEM_OPS_V2_ENABLED 已开启 · 操作审计读取{' '}
             <code className="font-mono">/api/v1/member/audit-log</code>；导出请求写入{' '}
             <code className="font-mono">/api/v1/bi/export-jobs</code> audit。
-          </span>
-          <button
-            type="button"
-            onClick={() => void loadAudit()}
-            disabled={auditLoading}
-            className="inline-flex items-center gap-1 rounded border border-sky-200 bg-white px-2 py-1 text-sky-800 disabled:opacity-50"
-            aria-label="刷新操作审计"
-          >
-            <RefreshCw className={`h-3 w-3 ${auditLoading ? 'animate-spin' : ''}`} aria-hidden />
-            刷新
-          </button>
-        </div>
+        </BiV2DataSourceBanner>
       )}
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
