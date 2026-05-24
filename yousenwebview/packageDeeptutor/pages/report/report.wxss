@@ -176,8 +176,8 @@
 .overview-donut {
   position: relative;
   flex-shrink: 0;
-  width: 154rpx;
-  height: 154rpx;
+  width: 142rpx;
+  height: 180rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -185,14 +185,20 @@
 
 .overview-donut-ring {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 142rpx;
+  height: 142rpx;
   border-radius: 50%;
-  background: conic-gradient(#15978c 0 260deg, #ffe2ba 260deg 360deg);
+  background: conic-gradient(#15978c 0 50deg, #ffe2ba 50deg 360deg);
 }
 
 .overview-donut-cut {
   position: absolute;
-  inset: 28rpx;
+  top: 26rpx;
+  left: 26rpx;
+  width: 90rpx;
+  height: 90rpx;
   border-radius: 50%;
   background: #172141;
 }
@@ -206,28 +212,34 @@
 }
 
 .overview-score {
-  font-size: 44rpx;
+  margin-top: -38rpx;
+  font-size: 40rpx;
   font-weight: 900;
   line-height: 1;
   color: #7dd3fc;
 }
 
-.overview-score-unit {
-  margin-top: 3rpx;
-  max-width: 96rpx;
+.overview-donut-label,
+.overview-donut-status {
+  position: absolute;
+  left: 0;
+  right: 0;
   text-align: center;
-  font-size: 18rpx;
-  line-height: 1.15;
   font-weight: 800;
-  color: rgba(125, 211, 252, 0.8);
 }
 
-.overview-score-caption {
-  margin-top: 5rpx;
+.overview-donut-label {
+  top: 146rpx;
   font-size: 16rpx;
-  line-height: 1.1;
-  font-weight: 800;
+  line-height: 1;
   color: rgba(226, 232, 240, 0.62);
+}
+
+.overview-donut-status {
+  top: 164rpx;
+  font-size: 18rpx;
+  line-height: 1;
+  color: rgba(125, 211, 252, 0.86);
 }
 
 .overview-tip {

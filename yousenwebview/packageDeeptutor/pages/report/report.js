@@ -732,6 +732,18 @@ function _normalizeBattlePlan(raw) {
   };
 }
 
+function _buildOverviewDonutStyle(score) {
+  var pct = Math.max(0, Math.min(100, Math.round(Number(score) || 0)));
+  var degrees = Math.max(6, Math.round((pct / 100) * 360));
+  return (
+    "background: conic-gradient(#15978c 0 " +
+    degrees +
+    "deg, #ffe2ba " +
+    degrees +
+    "deg 360deg);"
+  );
+}
+
 function _buildProgressCards(input) {
   var data = input || {};
   var todayDone = Number(data.todayDone) || 0;
@@ -1123,6 +1135,7 @@ Page({
       timeBudget: "",
       coachNote: "",
     },
+    overviewDonutStyle: _buildOverviewDonutStyle(0),
     progressSummary: "完成更多练习后，这里会出现更清晰的进步反馈",
     progressInsight: "先开始今天的练习，系统会逐步把你的变化沉淀成更清晰的反馈",
     progressCards: _buildProgressCards({}),
@@ -1671,6 +1684,7 @@ Page({
           timeBudget: "",
           coachNote: "",
         },
+      overviewDonutStyle: _buildOverviewDonutStyle(this.data.overallMastery),
       progressSummary:
         (progressFeedback && progressFeedback.summary) ||
         _buildProgressSummary(sharedInput),

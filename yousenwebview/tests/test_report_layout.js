@@ -77,6 +77,8 @@ assertIncludes(reportWxml, "今日主线", "first viewport should be framed as a
 assertIncludes(reportWxml, "掌握可信度", "first viewport should show mastery confidence");
 assertIncludes(reportWxml, "{{overallMastery}}%", "first viewport should bind mastery from the read model");
 assertIncludes(reportWxml, "{{masteryStatusLabel}}", "first viewport should render mastery confidence status from the read model");
+assertIncludes(reportWxml, 'style="{{overviewDonutStyle}}"', "hero mastery ring should bind progress to the real mastery score");
+assertIncludes(reportSource, "_buildOverviewDonutStyle", "hero mastery ring should derive a dynamic conic gradient");
 assertIncludes(reportWxml, "近 3 天", "first viewport should include recent 3 day progress");
 assertIncludes(reportWxml, "待补错因", "first viewport should include weak error reasons");
 assertIncludes(reportWxml, "掌握趋势", "first viewport should include mastery trend");
