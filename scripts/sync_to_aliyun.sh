@@ -32,6 +32,7 @@ EXCLUDES=(
     ".git.broken*"
     ".env*"
     ".secrets*"
+    "artifacts"
     "playwright-report"
     "playwright-report*"
     "test-results"
@@ -130,6 +131,7 @@ excluded_names = {
     "playwright-report",
     "test-results",
     "coverage",
+    "artifacts",
     "data",
     "dist",
     "tmp",
@@ -418,6 +420,7 @@ targets = (
     '.codex',
     '.playwright-cli',
     '.superpowers',
+    'artifacts',
     'tmp_inspect_turn.py',
     'tmp_query_hello.py',
 )

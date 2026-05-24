@@ -110,6 +110,7 @@ docker-compose*.yml
 data/user/
 data/knowledge_bases/
 run_code_workspace/
+artifacts/
 
 # ============================================
 # Development and Testing
