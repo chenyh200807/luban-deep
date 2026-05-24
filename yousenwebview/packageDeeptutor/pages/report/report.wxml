@@ -17,7 +17,7 @@
       <view class="overview-hero glass-card" wx:if="{{reportDetailView == 'home'}}">
         <view class="overview-hero-main">
           <view class="overview-copy">
-            <text class="overview-kicker">今日主线</text>
+            <text class="overview-kicker">今日处方</text>
             <text class="overview-title">{{battlePlan.focusTopic || learningReviewSummary.primaryFocus || focusHint || '先完成一轮定向训练'}}</text>
             <text class="overview-sub">{{battlePlan.timeBudget || '约 10 分钟'}} · {{learningReviewSummary.recentThreeDone || 0}} 次证据 · {{learningNextAction.title || '复测薄弱点'}}</text>
             <view class="overview-action-row">
@@ -25,7 +25,7 @@
                 <text>开始定向训练</text>
               </view>
               <view class="overview-secondary-btn" data-detail="evidence" bindtap="openReportDetail" hover-class="metric-chip-hover">
-                <text>看依据</text>
+                <text>为什么推荐</text>
               </view>
             </view>
           </view>
@@ -42,7 +42,7 @@
       </view>
 
       <view class="overview-metrics" wx:if="{{reportDetailView == 'home'}}">
-        <view class="metric-chip metric-chip-progress" bindtap="openReportDetail" data-detail="progress" hover-class="metric-chip-hover">
+        <view class="metric-chip metric-chip-progress">
           <text class="metric-label">近 3 天</text>
           <text class="metric-num">{{learningReviewSummary.recentThreeDone || 0}}题</text>
           <view class="metric-sparkline">
@@ -51,7 +51,7 @@
             <view class="metric-spark three"></view>
           </view>
         </view>
-        <view class="metric-chip metric-chip-warn" bindtap="openReportDetail" data-detail="evidence" hover-class="metric-chip-hover">
+        <view class="metric-chip metric-chip-warn">
           <text class="metric-label">待补错因</text>
           <text class="metric-num">{{learningReviewSummary.weakCount || weakNodeCount}}个</text>
           <view class="metric-mini-bars">
@@ -59,7 +59,7 @@
             <view class="metric-mini-bar warn-two"></view>
           </view>
         </view>
-        <view class="metric-chip metric-chip-good" bindtap="openReportDetail" data-detail="map" hover-class="metric-chip-hover">
+        <view class="metric-chip metric-chip-good">
           <text class="metric-label">掌握趋势</text>
           <text class="metric-num">{{overallMastery}}%</text>
           <view class="metric-trend-bars">
@@ -79,17 +79,44 @@
         <view class="home-section-head">
           <view>
             <text class="home-section-kicker">关键结论</text>
-            <text class="home-section-title">点开任一模块查看具体依据</text>
+            <text class="home-section-title">先看结论，再决定是否深入</text>
           </view>
-          <text class="home-section-note">少看结论，多看证据</text>
+          <text class="home-section-note">可点开验证</text>
+        </view>
+
+        <view class="conclusion-stack">
+          <view class="conclusion-card conclusion-card-primary">
+            <view>
+              <text class="conclusion-kicker">今天先做</text>
+              <text class="conclusion-title">{{battlePlan.priorityTask || learningNextAction.title || '完成一轮定向训练'}}</text>
+              <text class="conclusion-desc">{{battlePlan.studyMethod || '先诊断，再补弱，最后用一题复测确认。'}}</text>
+            </view>
+            <text class="conclusion-badge">处方</text>
+          </view>
+          <view class="conclusion-card">
+            <view>
+              <text class="conclusion-kicker">为什么这样判断</text>
+              <text class="conclusion-title">{{learningReviewSummary.headline || '结论来自作答、错因和采分点'}}</text>
+              <text class="conclusion-desc">{{learningAttemptCards.length || 0}} 条作答 · {{learningDiagnosisCards.length || learningBrainTruths.length || 0}} 个诊断 · {{scoringPointMapItems.length || 0}} 个采分点</text>
+            </view>
+            <text class="conclusion-badge">依据</text>
+          </view>
+        </view>
+
+        <view class="home-section-head deep-dive-head">
+          <view>
+            <text class="home-section-kicker">深入查看</text>
+            <text class="home-section-title">按问题进入细节页</text>
+          </view>
+          <text class="home-section-note">模块是工具箱</text>
         </view>
 
         <view class="report-module-grid">
           <view class="report-module-card module-evidence" data-detail="evidence" bindtap="openReportDetail" hover-class="report-module-card-pressed">
             <view class="module-card-head">
               <view>
-                <text class="module-card-kicker">为什么这样判断</text>
-                <text class="module-card-title">学情依据</text>
+                <text class="module-card-kicker">追溯证据链</text>
+                <text class="module-card-title">学情证据</text>
               </view>
               <text class="module-card-arrow">›</text>
             </view>
@@ -110,8 +137,8 @@
           <view class="report-module-card module-map" data-detail="map" bindtap="openReportDetail" hover-class="report-module-card-pressed">
             <view class="module-card-head">
               <view>
-                <text class="module-card-kicker">哪里强哪里弱</text>
-                <text class="module-card-title">{{overallMastery}}% 掌握地图</text>
+                <text class="module-card-kicker">看强弱结构</text>
+                <text class="module-card-title">掌握地图 {{overallMastery}}%</text>
               </view>
               <text class="module-card-arrow">›</text>
             </view>
@@ -131,8 +158,8 @@
           <view class="report-module-card module-training" data-detail="training" bindtap="openReportDetail" hover-class="report-module-card-pressed">
             <view class="module-card-head">
               <view>
-                <text class="module-card-kicker">今天先练什么</text>
-                <text class="module-card-title">训练安排</text>
+                <text class="module-card-kicker">执行今日处方</text>
+                <text class="module-card-title">今日训练</text>
               </view>
               <text class="module-card-arrow">›</text>
             </view>
@@ -147,8 +174,8 @@
           <view class="report-module-card module-mistake-book" bindtap="openMistakeBook" hover-class="report-module-card-pressed">
             <view class="module-card-head">
               <view>
-                <text class="module-card-kicker">把错题看清楚</text>
-                <text class="module-card-title">错题集</text>
+                <text class="module-card-kicker">按错因补弱</text>
+                <text class="module-card-title">错题归因</text>
               </view>
               <text class="module-card-arrow">›</text>
             </view>
@@ -167,8 +194,8 @@
           <view class="report-module-card module-progress" data-detail="progress" bindtap="openReportDetail" hover-class="report-module-card-pressed">
             <view class="module-card-head">
               <view>
-                <text class="module-card-kicker">这几天有没有变好</text>
-                <text class="module-card-title">进步反馈</text>
+                <text class="module-card-kicker">看最近变化</text>
+                <text class="module-card-title">变化记录</text>
               </view>
               <text class="module-card-arrow">›</text>
             </view>
@@ -187,7 +214,7 @@
           <view class="report-module-card module-recheck" data-detail="training" bindtap="openReportDetail" hover-class="report-module-card-pressed">
             <view class="module-card-head">
               <view>
-                <text class="module-card-kicker">确认是不是真的会了</text>
+                <text class="module-card-kicker">验证是否真会</text>
                 <text class="module-card-title">复测清单</text>
               </view>
               <text class="module-card-arrow">›</text>

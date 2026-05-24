@@ -55,6 +55,10 @@ function assertIncludes(source, needle, message) {
   assert(source.indexOf(needle) >= 0, message);
 }
 
+function assertNotIncludes(source, needle, message) {
+  assert(source.indexOf(needle) < 0, message);
+}
+
 function assertBefore(source, first, second, message) {
   var a = source.indexOf(first);
   var b = source.indexOf(second);
@@ -73,7 +77,8 @@ assert(
   reportWxml.indexOf("学习大脑") < 0,
   "host report page should not expose internal Learning Brain naming in the first learner-facing surface",
 );
-assertIncludes(reportWxml, "今日主线", "first viewport should be framed as a learner review");
+assertIncludes(reportWxml, "今日处方", "first viewport should be framed as a learner prescription");
+assertIncludes(reportWxml, "为什么推荐", "secondary hero action should explain the recommendation instead of duplicating module naming");
 assertIncludes(reportWxml, "掌握可信度", "first viewport should show mastery confidence");
 assertIncludes(reportWxml, "{{overallMastery}}%", "first viewport should bind mastery from the read model");
 assertIncludes(reportWxml, "{{masteryStatusLabel}}", "first viewport should render mastery confidence status from the read model");
@@ -81,7 +86,23 @@ assertIncludes(reportWxml, 'style="{{overviewDonutStyle}}"', "hero mastery ring 
 assertIncludes(reportSource, "_buildOverviewDonutStyle", "hero mastery ring should derive a dynamic conic gradient");
 assertIncludes(reportWxml, "近 3 天", "first viewport should include recent 3 day progress");
 assertIncludes(reportWxml, "待补错因", "first viewport should include weak error reasons");
-assertIncludes(reportWxml, "掌握趋势", "first viewport should include mastery trend");
+assertIncludes(reportWxml, "掌握可信度", "first viewport should include mastery confidence status");
+assertIncludes(reportWxml, "overview-metrics", "top status should keep the visual metric-card style");
+assertIncludes(reportWxml, "metric-sparkline", "recent progress metric should keep the mini chart style");
+assertIncludes(reportWxml, "metric-mini-bars", "weak reason metric should keep the mini bar style");
+assertIncludes(reportWxml, "metric-trend-bars", "mastery trend metric should keep the trend chart style");
+assert(
+  reportWxml.indexOf('class="metric-chip metric-chip-progress" bindtap=') < 0 &&
+    reportWxml.indexOf('class="metric-chip metric-chip-progress" data-detail=') < 0 &&
+    reportWxml.indexOf('class="metric-chip metric-chip-warn" bindtap=') < 0 &&
+    reportWxml.indexOf('class="metric-chip metric-chip-warn" data-detail=') < 0 &&
+    reportWxml.indexOf('class="metric-chip metric-chip-good" bindtap=') < 0 &&
+    reportWxml.indexOf('class="metric-chip metric-chip-good" data-detail=') < 0 &&
+    reportWxml.indexOf('class="metric-chip metric-chip-progress" hover-class=') < 0 &&
+    reportWxml.indexOf('class="metric-chip metric-chip-warn" hover-class=') < 0 &&
+    reportWxml.indexOf('class="metric-chip metric-chip-good" hover-class=') < 0,
+  "top metric cards should be read-only and not expose tap affordances",
+);
 assertIncludes(reportWxml, "{{battlePlan.focusTopic || learningReviewSummary.primaryFocus || focusHint || '先完成一轮定向训练'}}", "first viewport should bind current focus from the read model");
 assertIncludes(reportWxml, "bindtap=\"goPractice\"", "primary training CTA should keep users inside report training");
 assertIncludes(reportSource, 'this._setReportDetailView("training")', "goPractice should stay inside the report training detail");
@@ -90,6 +111,19 @@ assert(
   "report page should not route users into the unfinished practice center",
 );
 assertIncludes(reportWxml, "复测清单", "home module grid should include the recheck loop card");
+assertIncludes(reportWxml, "先看结论，再决定是否深入", "home page should separate conclusions from module navigation");
+assertIncludes(reportWxml, "深入查看", "home page should expose detail modules as a separate toolbox section");
+assert(
+  reportWxml.indexOf('class="conclusion-card conclusion-card-primary" data-detail=') < 0 &&
+    reportWxml.indexOf('class="conclusion-card" data-detail=') < 0,
+  "conclusion cards should be read-only and avoid duplicating module links",
+);
+assertIncludes(reportWxml, "学情证据", "evidence module should be labelled as evidence rather than another conclusion");
+assertIncludes(reportWxml, "今日训练", "training module should be distinct from the hero primary CTA");
+assertIncludes(reportWxml, "错题归因", "mistake-book module should be framed as weak-error repair");
+assertIncludes(reportWxml, "变化记录", "progress module should be framed as a history/detail view");
+assertIncludes(reportWxss, ".conclusion-stack", "home page should include dedicated conclusion-card styling");
+assertIncludes(reportWxss, ".overview-metrics", "home metric readout should keep dedicated chart-card styling");
 assertIncludes(reportWxml, "真实作答证据", "attempt evidence cards should be visible before diagnostics");
 assertIncludes(reportWxml, "class=\"attempt-card attempt-{{item.tone}}\"", "attempt cards should have a dedicated visual surface");
 assertIncludes(reportWxml, "bindtap=\"openAttemptDetail\"", "attempt card should open detail on tap");
@@ -101,7 +135,8 @@ assert(
   "host attempt detail should not use a modal because long conversations and explanations get clipped",
 );
 assertIncludes(attemptDetailSource, "api.getLearningAttemptDetail", "host attempt detail page should call the mobile attempt-detail authority");
-assertIncludes(attemptDetailWxml, "当时对话", "host attempt detail page should display the previous student-system conversation");
+assertNotIncludes(attemptDetailWxml, "当时对话", "host attempt detail page should not duplicate the previous conversation transcript below the structured review");
+assertNotIncludes(attemptDetailWxml, "detail.turns", "host attempt detail page should not render raw conversation turns after the structured explanation");
 assertIncludes(attemptDetailWxml, "bindtap=\"goBack\"", "host attempt detail page should provide an explicit back button");
 assertIncludes(reportWxml, "{{item.timeLabel}}", "attempt card should show time");
 assertIncludes(reportWxml, "{{item.title}}", "attempt card should show question title");
