@@ -47,6 +47,7 @@ export function BiTopBar({
         <Search className="h-3.5 w-3.5 text-slate-400" aria-hidden />
         <input
           type="text"
+          data-testid="bi-topbar-search"
           className="w-full bg-transparent text-xs outline-none placeholder:text-slate-400"
           placeholder={searchPlaceholder}
           aria-label={searchAriaLabel}
@@ -65,7 +66,11 @@ export function BiTopBar({
       </label>
       {rightSlot}
       {actor ? (
-        <span className="hidden text-[11px] text-slate-500 lg:inline" aria-label="actor / 环境">
+        <span
+          data-testid="bi-topbar-actor"
+          className="hidden text-[11px] text-slate-500 lg:inline"
+          aria-label="actor / 环境"
+        >
           {actor}
         </span>
       ) : null}
