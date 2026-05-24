@@ -298,7 +298,7 @@ GET /api/v1/bi/invite-test/...   code=403 bytes=34      ✓
 
 **通过**：自动化守护 (115/115 pytest + tsc + mock boundary + route budgets) + 未登录态前端 admin gate (1440/1024/390 三视口) + bundle/route 边界。
 **P1 修复完整闭环**：B-P1-0 done — commit `01b27202` → PR #25 8/8 CI green → squash merge `a25da582` → 阿里云 `/root/deeptutor` fast deploy → `DEEPTUTOR_GIT_SHA=a25da582` 与 merge commit 一致 → 公网回归 6/6 PASS（`/feedback` 从 200 变 403；`/commerce` `/invite-test/applications` 仍 403；`/bi` `/bi?tab=invite-test` `/bi?tab=member-ops` admin gate 渲染正常）。
-**未通过 / 未完成（admin token 缺）**：B-P1-1~7（5 主区 admin 实测 + 写动作公网真流量 + 全局搜索 + admin 态 mobile）。
-**Stop hook 状态**：自动化守护 + 未登录 admin gate + P1 fix 完整闭环（含线上验证）全部 done；剩余 admin-only 验证项 B-P1-1~7 明确 backlog 且仍未完成；B-P1-8（高危动作 ETag/undo_token）独立追踪，按 QA spec "不允许标完成"。**本次不宣称 BI 完整 QA 已完成**。
+**追加收口（2026-05-24 19:20 CST）**：admin-token QA 已在后续报告 [`2026-05-24-bi-admin-token-qa-closure.md`](./2026-05-24-bi-admin-token-qa-closure.md) 中完成 B-P1-1~7；PR #30-34 的线上 admin 态 runtime 验证也已补齐。
+**Stop hook 状态**：自动化守护 + 未登录 admin gate + P1 fix + admin-only B-P1-1~7 已完成；B-P1-8（高危动作 ETag/undo_token）仍独立追踪，按 QA spec "不允许标完成"。**BI 可进入非高危运营试用，但不得触碰撤销 / 补点 / 修账等高危动作。**
 
 — Claude QA, 2026-05-24

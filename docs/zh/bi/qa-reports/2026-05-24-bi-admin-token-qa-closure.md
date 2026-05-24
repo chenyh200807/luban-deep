@@ -5,7 +5,41 @@
 > **关联报告**: 公网 QA 报告 [`2026-05-24-bi-public-qa.md`](./2026-05-24-bi-public-qa.md)
 > **报告作者**: Claude（admin-token QA closure agent）
 > **范围**：B-P1-1 ~ B-P1-7 admin-token 验证；**B-P1-8 高危动作刻意未跑**
-> **凭据守则**：admin Bearer token 从 chmod 600 文件读入内存；不写仓库、不进日志、不进截图、不进证据 JSON；所有 user 标识在证据中 mask
+> **凭据守则**：admin auth credential 从 chmod 600 文件读入内存；不写仓库、不进日志、不进截图、不进证据 JSON；所有 user 标识在证据中 mask
+
+---
+
+## 0.1 追加验证：PR #30-34 线上 admin 态 runtime 闭环
+
+> 追加时间：2026-05-24 19:20 CST
+> 目标：部署 PR #30-34 后，补齐原先 "blocked by auth" 的 admin 态运行时证据。
+> 证据：`/tmp/bi_qa_evidence/admin_post_pr34_runtime_verify.redacted.json`
+
+### 覆盖范围
+
+| PR | Backlog | 线上验证结果 | 证据 |
+|---|---|---|---|
+| #30 | B-P2-8 登录按钮空字段 disable | ✅ PASS | 未登录 `/bi` 空字段下 `登录后台` button `disabled=true` |
+| #31 | B-P2-11 overview reload 并行 | ✅ PASS | `/api/v1/bi/overview`、`/active-trend`、`/anomalies` 三个请求均捕获，request start delta = `0ms` |
+| #32 | B-P2-7 feedback 窗口文案绑定真实窗口 | ✅ PASS | `GET /api/v1/bi/feedback?days=30&limit=20` 返回 `window_days=30`，页面 tile 命中 `近 30d` |
+| #33 | B-P2-12 topbar 搜索路由文案 | ✅ PASS | phone / user_id → `已搜 <masked>：跳转到 会员运营`；order → `已搜 order_12345：跳转到 商品账务` |
+| #34 | B-P2-9 admin DOM 稳定 testid | ✅ PASS | `bi-topbar-search`、`bi-topbar-actor`、5 个 `bi-sidenav-item-*` 均在 admin DOM 中出现 1 次 |
+
+### 附加 runtime smoke
+
+| 检查 | 结果 |
+|---|---|
+| admin login/profile | ✅ `login_status=200`、`profile_status=200`、`is_admin=true`、token 仅内存使用 |
+| authenticated responsive shell | ✅ desktop / tablet / mobile 均未锁定，`scrollW <= clientW + 2`，topbar search 存在 |
+| console / API 错误 | ✅ `browser_error_count=0`、`unexpected_response_count=0` |
+| secret hygiene | ✅ `/tmp/bi_qa_evidence` 扫描无 password / bearer / token 内容命中 |
+
+### 结论更新
+
+PR #31-34 不再是 "blocked by auth"：四项已完成线上 admin 态 runtime 验证。原报告中的 B-P2-4 / B-P2-5 处置建议也随之更新：
+
+- B-P2-4 mobile member-ops hydration：本次 authenticated responsive shell 在 mobile 390×844 下通过，仍建议 e2e fixture 保留 `wait-for-authenticated`，但不再构成当前线上验证缺口。
+- B-P2-5 topbar testid：PR #34 已落地并验证，原 "topbar 输入框未挂稳定 testid" backlog 关闭。
 
 ---
 
@@ -137,8 +171,8 @@ feedback triage 同 idempotency-key 重放：首发 `deduped=false` + 重放 `de
 | ID | 项 | 严重度 | 建议 |
 |---|---|---|---|
 | B-P2-3 | `git worktree add` 创建的 linked worktree 的 `config.worktree` 文件没自动写入 → 跨工具的工作树视图分裂 | P2 | 工具链层 fix；与 Conductor / Codex companion 互动相关 |
-| B-P2-4 | mobile member-ops 首次渲染偶发 admin gate（hydration 时序），longer wait 即恢复 | P2 | 在 e2e fixture 里加 wait-for-authenticated 守护 |
-| B-P2-5 | BiTopBar 输入框未挂稳定 testid，e2e 探针选择不到 | P2 | 加 `data-testid="bi-topbar-search"` 后即可用 |
+| B-P2-4 | mobile member-ops 首次渲染偶发 admin gate（hydration 时序），longer wait 即恢复；PR #34 后 authenticated mobile runtime smoke 已通过 | P2 | e2e fixture 可继续保留 wait-for-authenticated 守护；当前线上缺口已闭合 |
+| B-P2-5 | BiTopBar 输入框未挂稳定 testid，e2e 探针选择不到 | Closed | PR #34 已加 `bi-topbar-search` / `bi-topbar-actor` / `bi-sidenav-item-*`，线上 admin DOM 已验证 |
 | B-P2-6 | 订单 authority pending fallback 是 graceful 文案而非真实数据 | P2 | 等订单系统接入 `/api/v1/bi/orders/lookup`（runbook §H 已记录） |
 
 ---
