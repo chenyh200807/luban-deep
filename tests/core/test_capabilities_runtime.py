@@ -642,6 +642,46 @@ def test_tutorbot_progressive_skill_trace_records_utility_and_topic_skills(tmp_p
     )
 
 
+@pytest.mark.asyncio
+async def test_tutorbot_process_direct_exports_skill_trace_to_runtime_metadata(tmp_path) -> None:
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    class FakeProvider(LLMProvider):
+        async def chat(self, *args: Any, **kwargs: Any) -> LLMResponse:
+            return LLMResponse(content="已完成")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    metadata = {
+        "bot_id": "construction-exam-coach",
+        "default_kb": "construction-exam",
+        "effective_response_mode": "fast",
+    }
+    loop = AgentLoop(MessageBus(), FakeProvider(), tmp_path)
+
+    await loop.process_direct(
+        "我最近学的怎么样",
+        session_key="bot:construction-exam-coach:chat:test",
+        channel="web",
+        chat_id="test",
+        metadata=metadata,
+    )
+
+    assert metadata["skill_stack"] == [
+        "construction-exam-tutor",
+        "construction-learning-evidence-story",
+    ]
+    assert any(
+        item["name"] == "construction-learning-evidence-story"
+        and item["kind"] == "question_lifecycle"
+        and item["status"] == "loaded"
+        for item in metadata["skill_trace"]
+    )
+
+
 def test_tutorbot_fast_uses_tool_skill_boundary_without_loading_tool_steps(tmp_path) -> None:
     from deeptutor.tutorbot.agent.loop import AgentLoop
     from deeptutor.tutorbot.bus.queue import MessageBus

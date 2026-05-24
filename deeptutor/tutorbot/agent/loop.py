@@ -1706,6 +1706,23 @@ class AgentLoop:
             }
 
     @staticmethod
+    def _export_skill_trace_metadata(
+        runtime_metadata: dict[str, Any],
+        target_metadata: dict[str, Any] | None,
+    ) -> None:
+        if not isinstance(target_metadata, dict):
+            return
+        for metadata_key in (
+            "question_lifecycle_scene",
+            "skill_stack",
+            "skill_trace",
+            "loader_source",
+            "skill_source_status",
+        ):
+            if metadata_key in runtime_metadata:
+                target_metadata[metadata_key] = runtime_metadata[metadata_key]
+
+    @staticmethod
     def _format_fast_limited_skill_instructions(skill_names: list[str]) -> str:
         if not skill_names:
             return ""
@@ -2451,6 +2468,7 @@ class AgentLoop:
         runtime_instruction = "\n\n".join(
             part for part in runtime_instruction_parts if str(part or "").strip()
         )
+        self._export_skill_trace_metadata(runtime_metadata, msg.metadata)
         fast_path = await self._maybe_run_exact_rag_fast_path(
             current_message=current_message,
             history=history,
