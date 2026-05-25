@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
-import { loadWechatHarnessCases } from '@/lib/wechat-harness-data'
 import WechatHarnessClient from './WechatHarnessClient'
 
 export const metadata: Metadata = {
@@ -19,10 +18,11 @@ function isHarnessEnabled(): boolean {
   )
 }
 
-export default function WechatHarnessPage() {
+export default async function WechatHarnessPage() {
   if (!isHarnessEnabled()) {
     notFound()
   }
+  const { loadWechatHarnessCases } = await import('@/lib/wechat-harness-data')
   const cases = loadWechatHarnessCases()
   return <WechatHarnessClient cases={cases} />
 }
