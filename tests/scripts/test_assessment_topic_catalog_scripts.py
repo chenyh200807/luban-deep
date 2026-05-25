@@ -3,6 +3,8 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
+from scripts.smoke_assessment_flywheel import _normalize_api_base_url
+
 
 def test_seed_topic_catalog_forms_supports_dry_run_help() -> None:
     result = subprocess.run(
@@ -74,3 +76,45 @@ def test_seed_topic_catalog_forms_dry_run_writes_requested_artifacts(tmp_path: P
     assert out_md.exists()
     assert "waterproof" in out_json.read_text(encoding="utf-8")
     assert "| waterproof |" in out_md.read_text(encoding="utf-8")
+
+
+def test_assessment_flywheel_smoke_requires_token_for_live_run() -> None:
+    result = subprocess.run(
+        [
+            "python",
+            "scripts/smoke_assessment_flywheel.py",
+            "--base-url",
+            "https://test2.yousenjiaoyu.com",
+        ],
+        text=True,
+        capture_output=True,
+        timeout=10,
+        check=False,
+    )
+
+    assert result.returncode == 2
+    assert "assessment_flywheel_smoke_requires_token" in result.stderr
+
+
+def test_assessment_flywheel_smoke_help_documents_live_gate() -> None:
+    result = subprocess.run(
+        [
+            "python",
+            "scripts/smoke_assessment_flywheel.py",
+            "--help",
+        ],
+        text=True,
+        capture_output=True,
+        timeout=10,
+        check=False,
+    )
+
+    assert result.returncode == 0
+    assert "--base-url" in result.stdout
+    assert "--token" in result.stdout
+    assert "--topic-id" in result.stdout
+
+
+def test_assessment_flywheel_smoke_accepts_origin_or_api_base_url() -> None:
+    assert _normalize_api_base_url("https://test2.yousenjiaoyu.com") == "https://test2.yousenjiaoyu.com/api/v1"
+    assert _normalize_api_base_url("https://test2.yousenjiaoyu.com/api/v1") == "https://test2.yousenjiaoyu.com/api/v1"
