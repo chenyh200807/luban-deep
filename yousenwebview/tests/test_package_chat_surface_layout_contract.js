@@ -94,6 +94,11 @@ assert(
   chatWxml.indexOf("真题讲评") >= 0 &&
     chatWxml.indexOf("正确答案") >= 0 &&
     chatWxml.indexOf("解析要点") >= 0 &&
+    chatWxml.indexOf("先想一想") >= 0 &&
+    chatWxml.indexOf("逐项分析") >= 0 &&
+    chatWxml.indexOf("采分点") >= 0 &&
+    chatWxml.indexOf("易错点") >= 0 &&
+    chatWxml.indexOf("记忆口诀") >= 0 &&
     chatWxml.indexOf("已讲评") >= 0 &&
     chatWxss.indexOf(".mcq-review-notes") >= 0,
   "package question-review MCQ cards should expose learner-facing answer and explanation notes",

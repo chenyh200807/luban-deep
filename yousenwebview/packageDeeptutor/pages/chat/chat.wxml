@@ -305,7 +305,11 @@ module.exports = {
                 <text class="mcq-key" user-select>{{o.key}}</text>
                 <text class="mcq-val" user-select>{{o.text}}</text>
               </view>
-              <view class="mcq-review-notes" wx:if="{{item.mcqReviewMode && card.reviewNotes && (card.reviewNotes.displayAnswer || card.reviewNotes.analysis)}}">
+              <view class="mcq-review-notes" wx:if="{{item.mcqReviewMode && card.reviewNotes && (card.reviewNotes.displayAnswer || card.reviewNotes.analysis || card.reviewNotes.thinkPrompt || card.reviewNotes.optionAnalysis.length || card.reviewNotes.scoringPoints.length || card.reviewNotes.pitfalls.length || card.reviewNotes.mnemonic)}}">
+                <view class="mcq-review-think" wx:if="{{card.reviewNotes.thinkPrompt}}">
+                  <text class="mcq-review-label" user-select>先想一想</text>
+                  <text class="mcq-review-analysis" user-select>{{card.reviewNotes.thinkPrompt}}</text>
+                </view>
                 <view class="mcq-review-row" wx:if="{{card.reviewNotes.displayAnswer}}">
                   <text class="mcq-review-label" user-select>正确答案</text>
                   <text class="mcq-review-answer" user-select>{{card.reviewNotes.displayAnswer}}</text>
@@ -313,6 +317,29 @@ module.exports = {
                 <view class="mcq-review-row mcq-review-row-analysis" wx:if="{{card.reviewNotes.analysis}}">
                   <text class="mcq-review-label" user-select>解析要点</text>
                   <text class="mcq-review-analysis" user-select>{{card.reviewNotes.analysis}}</text>
+                </view>
+                <view class="mcq-review-block" wx:if="{{card.reviewNotes.optionAnalysis.length}}">
+                  <text class="mcq-review-label" user-select>逐项分析</text>
+                  <view class="mcq-review-option" wx:for="{{card.reviewNotes.optionAnalysis}}" wx:key="key" wx:for-item="row">
+                    <text class="mcq-review-option-key" user-select>{{row.key}}</text>
+                    <view class="mcq-review-option-body">
+                      <text class="mcq-review-option-verdict" user-select>{{row.verdict}}</text>
+                      <text class="mcq-review-option-text" user-select wx:if="{{row.text}}">{{row.text}}</text>
+                      <text class="mcq-review-option-analysis" user-select>{{row.analysis}}</text>
+                    </view>
+                  </view>
+                </view>
+                <view class="mcq-review-block" wx:if="{{card.reviewNotes.scoringPoints.length}}">
+                  <text class="mcq-review-label" user-select>采分点</text>
+                  <text class="mcq-review-chip" user-select wx:for="{{card.reviewNotes.scoringPoints}}" wx:key="*this" wx:for-item="point">{{point}}</text>
+                </view>
+                <view class="mcq-review-block" wx:if="{{card.reviewNotes.pitfalls.length}}">
+                  <text class="mcq-review-label" user-select>易错点</text>
+                  <text class="mcq-review-chip danger" user-select wx:for="{{card.reviewNotes.pitfalls}}" wx:key="*this" wx:for-item="pitfall">{{pitfall}}</text>
+                </view>
+                <view class="mcq-review-block" wx:if="{{card.reviewNotes.mnemonic}}">
+                  <text class="mcq-review-label" user-select>记忆口诀</text>
+                  <text class="mcq-review-mnemonic" user-select>{{card.reviewNotes.mnemonic}}</text>
                 </view>
               </view>
             </view>
