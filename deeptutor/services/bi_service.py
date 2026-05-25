@@ -3307,6 +3307,62 @@ class BIService:
             reveal_contact=reveal_contact,
         )
 
+    async def update_invite_test_application(
+        self,
+        *,
+        application_id: str,
+        payload: dict[str, Any],
+        operator: str,
+        idempotency_key: str = "",
+    ) -> dict[str, Any]:
+        normalized_id = str(application_id or "").strip()
+        if not normalized_id:
+            raise ValueError("application_id is required")
+        updater = getattr(self._invite_test_store, "update_application", None)
+        if not callable(updater):
+            raise RuntimeError("invite-test store does not support application updates")
+        result = await updater(normalized_id, payload)
+        before = result.get("before") or {}
+        after = result.get("after") or {}
+        normalized_operator = str(operator or "").strip() or "admin"
+
+        auditor = getattr(self._member_service, "record_bi_audit", None)
+        if not callable(auditor):
+            raise RuntimeError("member console audit service does not support BI audit writes")
+        before_record = before if isinstance(before, dict) else {}
+        after_record = after if isinstance(after, dict) else {}
+        changed_fields = sorted(
+            key
+            for key in after_record
+            if key in payload and before_record.get(key) != after_record.get(key)
+        )
+        audit = auditor(
+            action="invite_test_application_update",
+            target_user=f"invite-test:{normalized_id}",
+            operator=normalized_operator,
+            reason=str(after_record.get("status") or before_record.get("status") or "updated"),
+            before={
+                "application_id": normalized_id,
+                "status": before_record.get("status"),
+                "operator_note": before_record.get("operator_note"),
+                "accept_interview": before_record.get("accept_interview"),
+            },
+            after={
+                "application_id": normalized_id,
+                "status": after_record.get("status"),
+                "operator_note": after_record.get("operator_note"),
+                "accept_interview": after_record.get("accept_interview"),
+                "changed_fields": changed_fields,
+            },
+            idempotency_key=idempotency_key,
+        )
+        return {
+            "application": after_record,
+            "storage_status": str(result.get("storage_status") or ""),
+            "audit_id": str(audit.get("audit_id") or ""),
+            "deduped": bool(audit.get("deduped")),
+        }
+
     async def get_invite_test_stats(self, *, days: int = 365) -> dict[str, Any]:
         return await self._invite_test_store.get_stats(days=days)
 

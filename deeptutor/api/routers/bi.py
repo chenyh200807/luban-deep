@@ -317,6 +317,29 @@ async def bi_invite_test_applications(
     )
 
 
+@router.patch("/invite-test/applications/{application_id}")
+async def bi_invite_test_application_update(
+    application_id: str,
+    payload: dict[str, Any] | None = Body(default=None),
+    idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
+    auth: AuthContext = Depends(require_bi_admin),
+):
+    key = _validate_idempotency_key(idempotency_key)
+    try:
+        return await get_bi_service().update_invite_test_application(
+            application_id=application_id,
+            payload=payload or {},
+            operator=auth.user_id,
+            idempotency_key=key,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except KeyError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invite-test application not found") from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+
+
 @router.get("/invite-test/stats")
 async def bi_invite_test_stats(
     days: int = Query(365, ge=1, le=3650),

@@ -404,3 +404,63 @@ def test_normalize_invite_test_application_reads_profile_fields_from_raw_payload
     assert normalized["knowledge_foundation"] == "一般"
     assert normalized["daily_study_time"] == "1-2 小时"
     assert normalized["study_difficulties"] == "错题复盘坚持不下来。"
+
+
+@pytest.mark.asyncio
+async def test_invite_test_store_updates_local_jsonl_application(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ENV", "local")
+    jsonl_path = tmp_path / "invite-test-applications.jsonl"
+    _write_jsonl(
+        jsonl_path,
+        [
+            {
+                "id": "app-edit-1",
+                "createdAt": "2026-05-17T11:29:29.524Z",
+                "sourcePage": "invite-test",
+                "name": "张同学",
+                "phone": "13800138000",
+                "email": "qa@example.com",
+                "wechatId": "wx_old",
+                "examType": "二建建筑实务",
+                "examStage": "正在冲刺刷题",
+                "painPoint": "错题原因不清楚",
+                "weeklyTime": "10-30 分钟",
+                "currentMethod": "自己刷题",
+                "latestWrongQuestion": "案例题漏点",
+                "acceptInterview": False,
+                "consent": True,
+                "status": "submitted",
+                "operatorNote": "",
+                "rawPayload": {"province": "广东", "studyDifficulties": "旧困难"},
+            }
+        ],
+    )
+    store = InviteTestApplicationStore(jsonl_path=str(jsonl_path))
+
+    result = await store.update_application(
+        "app-edit-1",
+        {
+            "status": "contacted",
+            "operator_note": "已电话联系，愿意进入首批体验",
+            "name": "张三同学",
+            "phone": "13800138001",
+            "wechat_id": "wx_new",
+            "accept_interview": True,
+            "study_difficulties": "案例题不会组织语言",
+        },
+    )
+
+    assert result["storage_status"] == "jsonl_fallback"
+    assert result["before"]["status"] == "submitted"
+    assert result["after"]["status"] == "contacted"
+    assert result["after"]["operator_note"] == "已电话联系，愿意进入首批体验"
+    assert result["after"]["name"] == "张三同学"
+    assert result["after"]["phone"] == "13800138001"
+    assert result["after"]["wechat_id"] == "wx_new"
+    assert result["after"]["accept_interview"] is True
+    assert result["after"]["study_difficulties"] == "案例题不会组织语言"
+
+    stored = [json.loads(line) for line in jsonl_path.read_text(encoding="utf-8").splitlines()]
+    assert stored[0]["status"] == "contacted"
+    assert stored[0]["operator_note"] == "已电话联系，愿意进入首批体验"
+    assert stored[0]["raw_payload"]["studyDifficulties"] == "案例题不会组织语言"
