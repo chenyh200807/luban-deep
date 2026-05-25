@@ -453,8 +453,16 @@ async def _check_sqlite_session_db_writable() -> None:
 
 
 # Register at import time so they're available before lifespan startup.
-_register_readiness_check("llm_key_not_placeholder", _check_llm_key_present)
-_register_readiness_check("sqlite_session_db", _check_sqlite_session_db_writable)
+_register_readiness_check(
+    "llm_key_not_placeholder",
+    _check_llm_key_present,
+    replace=True,
+)
+_register_readiness_check(
+    "sqlite_session_db",
+    _check_sqlite_session_db_writable,
+    replace=True,
+)
 
 @app.middleware("http")
 async def selective_access_log(request, call_next):

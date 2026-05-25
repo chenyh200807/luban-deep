@@ -105,6 +105,20 @@ class TestReadinessRegistry:
         with pytest.raises(ValueError, match="already registered"):
             register_readiness_check("dup", _x)
 
+    @pytest.mark.asyncio
+    async def test_explicit_replace_allows_reloadable_app_checks(self) -> None:
+        async def _old() -> None:
+            raise RuntimeError("old")
+
+        async def _new() -> None:
+            return None
+
+        register_readiness_check("reloadable", _old)
+        register_readiness_check("reloadable", _new, replace=True)
+
+        result = await run_readiness_checks()
+        assert result == {"reloadable": "ok"}
+
 
 class TestExceptionEnvelope:
     def _build_app(self) -> FastAPI:

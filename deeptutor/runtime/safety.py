@@ -91,13 +91,22 @@ def spawn_task(
 _READINESS_REGISTRY: dict[str, Callable[[], Awaitable[None]]] = {}
 
 
-def register_readiness_check(name: str, check: Callable[[], Awaitable[None]]) -> None:
-    """Register at import / startup time. Order-independent; overwrite is an error.
+def register_readiness_check(
+    name: str,
+    check: Callable[[], Awaitable[None]],
+    *,
+    replace: bool = False,
+) -> None:
+    """Register at import / startup time.
+
+    Order-independent; overwrite is an error unless ``replace=True`` is
+    explicit. App modules that are deliberately reloadable in tests may replace
+    their own checks while ad-hoc duplicate names still fail closed by default.
 
     The ``check`` callable should ``raise`` on failure and return None on success.
     It will be wrapped with a 1.5s timeout by ``run_readiness_checks``.
     """
-    if name in _READINESS_REGISTRY:
+    if name in _READINESS_REGISTRY and not replace:
         raise ValueError(f"readiness check already registered: {name}")
     _READINESS_REGISTRY[name] = check
 
