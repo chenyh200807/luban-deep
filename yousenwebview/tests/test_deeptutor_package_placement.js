@@ -99,6 +99,29 @@ run("host root should not keep duplicated deeptutor theme copy", function () {
   );
 });
 
+run("legacy host group pages should not register global plugin dependency", function () {
+  var appConfig = JSON.parse(read("app.json"));
+  assert(
+    !(appConfig.plugins && appConfig.plugins.materialPlugin),
+    "app.json should not register materialPlugin because it can block the whole simulator at startup",
+  );
+
+  [
+    "packageHost/pages/getpeople/getpeople",
+    "packageHost/pages/showqrcode/showqrcode",
+    "packageHost/pages/dyforios/dyforios",
+  ].forEach(function (pagePath) {
+    assert(
+      read(pagePath + ".json").indexOf("plugin://materialPlugin") === -1,
+      pagePath + ".json should not depend on materialPlugin",
+    );
+    assert(
+      read(pagePath + ".wxml").indexOf("<cell") === -1,
+      pagePath + ".wxml should not render materialPlugin cell",
+    );
+  });
+});
+
 if (fail) {
   console.error(errors.join("\n"));
   process.exit(1);
