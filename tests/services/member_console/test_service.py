@@ -3095,6 +3095,9 @@ def test_assessment_topic_catalog_reports_form_readiness(monkeypatch: pytest.Mon
                 return 5
             return 3
 
+        def load_persisted_form_bank(self, blueprint):
+            return object()
+
     monkeypatch.setattr(member_service_module, "is_production_environment", lambda: True)
     monkeypatch.setattr(member_service_module, "SupabaseAssessmentQuestionProvider", lambda: _Provider())
 
@@ -3103,6 +3106,33 @@ def test_assessment_topic_catalog_reports_form_readiness(monkeypatch: pytest.Mon
     by_id = {item["topic_id"]: item for item in result["topics"]}
     assert by_id["waterproof"]["status"] == "stable"
     assert by_id["waterproof"]["enabled"] is True
+    assert by_id["waterproof"]["quality_status"] == "validated"
     assert by_id["decoration"]["status"] == "pilot"
+    assert by_id["decoration"]["quality_status"] == "validated"
     assert by_id["decoration"]["minimum_form_count"] == 3
     assert by_id["decoration"]["target_form_count"] == 5
+
+
+def test_assessment_topic_catalog_rejects_invalid_form_bank(monkeypatch: pytest.MonkeyPatch) -> None:
+    service = MemberConsoleService()
+
+    class _Provider:
+        def active_form_count(self, blueprint_version: str) -> int:
+            return 5 if blueprint_version == "topic_waterproof_v1" else 0
+
+        def load_persisted_form_bank(self, blueprint):
+            if blueprint.version == "topic_waterproof_v1":
+                raise member_service_module.AssessmentBlueprintUnavailable("duplicate source ids")
+            raise AssertionError("topics below the open floor must not be validated")
+
+    monkeypatch.setattr(member_service_module, "is_production_environment", lambda: True)
+    monkeypatch.setattr(member_service_module, "SupabaseAssessmentQuestionProvider", lambda: _Provider())
+
+    result = service.get_assessment_topic_catalog()
+
+    by_id = {item["topic_id"]: item for item in result["topics"]}
+    assert by_id["waterproof"]["form_count"] == 5
+    assert by_id["waterproof"]["status"] == "authoring_needed"
+    assert by_id["waterproof"]["enabled"] is False
+    assert by_id["waterproof"]["quality_status"] == "invalid_form_bank"
+    assert by_id["decoration"]["quality_status"] == "insufficient_forms"
