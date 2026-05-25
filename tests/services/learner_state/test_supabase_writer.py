@@ -120,6 +120,8 @@ def test_write_item_turn_writes_learner_memory_event_only() -> None:
     assert requests[0]["path"] == "/rest/v1/users"
     assert requests[0]["params"]["on_conflict"] == "id"
     assert requests[0]["json"][0]["id"] == "student_demo"
+    assert requests[0]["json"][0]["createdAt"]
+    assert requests[0]["json"][0]["updatedAt"]
     request = requests[1]
     assert request["path"] == "/rest/v1/learner_memory_events"
     assert request["params"]["on_conflict"] == "dedupe_key"
@@ -164,6 +166,8 @@ def test_write_item_learning_evidence_writes_learner_memory_event() -> None:
     assert result.written_tables == ("users", "learner_memory_events")
     assert requests[0]["path"] == "/rest/v1/users"
     assert requests[0]["json"][0]["id"] == "student_demo"
+    assert requests[0]["json"][0]["createdAt"]
+    assert requests[0]["json"][0]["updatedAt"]
     request = requests[1]
     assert request["path"] == "/rest/v1/learner_memory_events"
     assert request["json"][0]["memory_kind"] == "learning_evidence"

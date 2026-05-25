@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
@@ -286,6 +287,7 @@ class LearnerStateSupabaseWriter:
         normalized_user_id = str(user_id or "").strip()
         if not normalized_user_id:
             return
+        now = datetime.now(UTC).isoformat()
         await self._upsert(
             client,
             table="users",
@@ -293,6 +295,8 @@ class LearnerStateSupabaseWriter:
                 {
                     "id": normalized_user_id,
                     "identifier": normalized_user_id,
+                    "createdAt": now,
+                    "updatedAt": now,
                     "metadata": {
                         "source": "learner_state_outbox",
                         "mirror_reason": "learner_state_fk",
