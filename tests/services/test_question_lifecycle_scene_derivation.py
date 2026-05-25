@@ -18,6 +18,7 @@ import pytest
 
 from deeptutor.services.question_lifecycle_skills import (
     derive_question_lifecycle_scene,
+    is_low_information_exam_query,
     resolve_question_lifecycle_scene_decision,
 )
 
@@ -145,6 +146,53 @@ def test_topic_qualified_real_exam_review_returns_question_review():
     """Topic words between "一道" and "真题" still mean a real-question review."""
     ctx = _FakeContext(user_message="分析一道验槽方法真题")
     assert derive_question_lifecycle_scene(ctx) == "question_review"
+
+
+@pytest.mark.parametrize("message", ["分析一道2025真题", "讲解一道历年真题", "解析一道防水真题"])
+def test_explicit_real_exam_review_action_is_not_low_information_query(message: str):
+    ctx = _FakeContext(user_message=message)
+
+    assert is_low_information_exam_query(message) is False
+    assert derive_question_lifecycle_scene(ctx) == "question_review"
+
+
+@pytest.mark.parametrize("message", ["2025真题", "历年真题", "防水真题", "2025真题有哪些", "2025真题答案"])
+def test_low_information_exam_query_is_not_question_review(message: str):
+    ctx = _FakeContext(user_message=message)
+
+    assert is_low_information_exam_query(message) is True
+    assert derive_question_lifecycle_scene(ctx) is None
+
+
+@pytest.mark.asyncio
+async def test_low_information_exam_query_returns_clarification_decision(monkeypatch):
+    async def _unexpected_complete(**_kwargs):
+        raise AssertionError("low-information exam query must not ask LLM to hallucinate a scene")
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.complete", _unexpected_complete)
+
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(user_message="2025真题")
+    )
+
+    assert decision.scene is None
+    assert decision.source == "deterministic"
+    assert decision.confidence == pytest.approx(1.0)
+    assert decision.required_anchor_status == "missing_question_anchor"
+    assert decision.exact_question_blocked_reason == "low_information_exam_query"
+    assert decision.needs_clarification is True
+
+
+@pytest.mark.asyncio
+async def test_unanchored_mcq_answer_returns_clarification_decision():
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(user_message="我选B")
+    )
+
+    assert decision.scene is None
+    assert decision.required_anchor_status == "missing_active_question"
+    assert decision.exact_question_blocked_reason == "unanchored_answer_submission"
+    assert decision.needs_clarification is True
 
 
 @pytest.mark.asyncio

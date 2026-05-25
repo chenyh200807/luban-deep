@@ -54,6 +54,7 @@
 29. `stage_timings_ms` 与 `performance_policy` 只能作为 `evidence_bundle` / metadata 中的 compact retrieval telemetry，用来解释弱点复习 / 下一题训练 fast path 是否跳过 rerank 或 second pass；不得成为新的路由 authority，也不得覆盖 `retrieval_plan` 的 intent / source group 语义。
 30. TutorBot `rag` tool 可以在 `weak_point_review` / `next_training` 且 compiled truth final-source 明确启用时返回 learning fact capsule，但 capsule 只是对 `evidence_bundle.sources` 和 compiled truth source 的用户可读摘要；不得从 wrapper 内生成新的学习事实、修改 learner-state、或绕过 `RAGService` / `SupabasePipeline` 的 evidence bundle。
 31. `deep_question` 在 `deep` / `smart` 批改讲评中可以先用统一 `rag` 入口检索题库/规范依据，再交给 `SubmissionGraderAgent` 组织教学反馈；RAG 只提供解释依据，不得覆盖 `active_object / questions_bank / construction_grading_result` 已确定的标准答案、分数或正确性。
+32. exact-question fast path 必须要求强题目锚点：完整题干/选项、当前 active question、明确题目讲评请求且命中高置信题库来源，或正在批改当前题。低信息考试查询（例如"2025真题"、"历年真题"、"防水真题"、"2025真题有哪些"）只能作为目录/检索/澄清输入，不得由 `prepare_exact_question_probe` 生成 exact candidate，也不得让 TutorBot exact-first path 输出标准答案。若上游 metadata 带 `exact_question_blocked_reason`，RAG / TutorBot fast path 必须 fail closed 跳过 exact authority，并把该 reason 保留到 trace。
 
 ## 当前统一语义
 
@@ -80,6 +81,7 @@
 - `evidence_bundle.performance_policy`
 - `learning_fact_capsule`
 - `question_grading_explanation`
+- `exact_question_blocked_reason`
 
 ## 必测项
 

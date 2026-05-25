@@ -17,6 +17,7 @@ from deeptutor.services.question_followup import (
     normalize_question_followup_context,
     resolve_submission_attempt,
 )
+from deeptutor.services.question_lifecycle_skills import build_question_lifecycle_clarification_response
 from deeptutor.services.query_intent import query_requires_current_info
 from deeptutor.services.render_presentation import build_canonical_presentation
 from deeptutor.services.security.tutorbot_guardrails import guard_tutorbot_output
@@ -109,6 +110,21 @@ class TutorBotCapability(BaseCapability):
         )
         if self._current_info_required(context):
             session_metadata["current_info_required"] = True
+        for metadata_key in (
+            "question_lifecycle_decision",
+            "decision_source",
+            "scene_confidence",
+            "required_anchor_status",
+            "exact_question_blocked_reason",
+            "selected_skill_names",
+            "question_lifecycle_scene",
+            "question_lifecycle_scene_source",
+            "question_lifecycle_scene_confidence",
+            "question_lifecycle_scene_reason",
+            "question_lifecycle_skill_names",
+        ):
+            if metadata_key in context.metadata:
+                session_metadata[metadata_key] = context.metadata[metadata_key]
         memory_context = str(context.memory_context or "").strip()
         if memory_context:
             session_metadata["memory_context"] = memory_context
@@ -138,6 +154,60 @@ class TutorBotCapability(BaseCapability):
         ).strip()
         if conversation_context_text:
             session_metadata["conversation_context_text"] = conversation_context_text
+
+        clarification_response = build_question_lifecycle_clarification_response(
+            context.user_message,
+            str(context.metadata.get("exact_question_blocked_reason") or "").strip(),
+        )
+        if clarification_response:
+            async with stream.stage(
+                "responding",
+                source=self.name,
+                metadata={"execution_engine": "tutorbot_runtime", "bot_id": bot_id},
+            ):
+                await stream.content(
+                    clarification_response,
+                    source=self.name,
+                    stage="responding",
+                    metadata={
+                        "execution_engine": "tutorbot_runtime",
+                        "call_kind": "lifecycle_clarification",
+                    },
+                )
+                result_payload = {
+                    "response": clarification_response,
+                    "bot_id": bot_id,
+                    "execution_engine": "tutorbot_runtime",
+                    "authority_applied": False,
+                    "exact_question": {},
+                    "rag_rounds": [],
+                    "rag_saturation": {},
+                    "requested_response_mode": policy.requested_mode,
+                    "selected_mode": policy.selected_mode,
+                    "effective_response_mode": policy.effective_mode,
+                    "execution_path": "tutorbot_lifecycle_clarification",
+                    "exact_fast_path_hit": False,
+                    "actual_tool_rounds": 0,
+                    "reveal_answers": False,
+                    "reveal_explanations": False,
+                }
+                for metadata_key in (
+                    "question_lifecycle_decision",
+                    "decision_source",
+                    "scene_confidence",
+                    "required_anchor_status",
+                    "exact_question_blocked_reason",
+                    "selected_skill_names",
+                    "question_lifecycle_scene",
+                    "question_lifecycle_scene_source",
+                    "question_lifecycle_scene_confidence",
+                    "question_lifecycle_scene_reason",
+                    "question_lifecycle_skill_names",
+                ):
+                    if metadata_key in session_metadata:
+                        result_payload[metadata_key] = session_metadata[metadata_key]
+                await stream.result(result_payload, source=self.name)
+            return
 
         async def _on_progress(text: str) -> None:
             if not str(text or "").strip():

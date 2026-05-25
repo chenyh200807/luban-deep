@@ -464,6 +464,12 @@ def prepare_exact_question_probe(query: str) -> ExactQuestionProbe | None:
     original = str(query or "").strip()
     if not original:
         return None
+    from deeptutor.services.question_lifecycle_skills import (  # noqa: WPS433
+        is_low_information_exam_query,
+    )
+
+    if is_low_information_exam_query(original):
+        return None
 
     query_shape = classify_query_shape(original)
     normalized = normalize_query(original)

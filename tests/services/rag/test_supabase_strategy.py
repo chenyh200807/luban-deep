@@ -248,6 +248,11 @@ def test_prepare_exact_question_probe_skips_learning_strategy_prompt_with_exam_w
     )
 
 
+@pytest.mark.parametrize("query", ["2025真题", "历年真题", "防水真题", "2025真题有哪些", "2025真题答案"])
+def test_prepare_exact_question_probe_skips_low_information_exam_query(query: str) -> None:
+    assert prepare_exact_question_probe(query) is None
+
+
 def test_prepare_exact_question_probe_extracts_case_focus_query() -> None:
     query = """
 背景资料：

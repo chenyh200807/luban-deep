@@ -71,6 +71,10 @@ class QuestionLifecycleSceneDecision:
     source: str
     confidence: float
     reason: str
+    required_anchor_status: str = ""
+    exact_question_blocked_reason: str = ""
+    selected_skill_names: tuple[str, ...] = ()
+    needs_clarification: bool = False
 
 
 # ---------------------------------------------------------------------------
@@ -180,11 +184,38 @@ async def resolve_question_lifecycle_scene_decision(
 
     scene = derive_question_lifecycle_scene(ctx)
     if scene is not None:
+        skill_names = select_question_lifecycle_skill_names(scene)
         return QuestionLifecycleSceneDecision(
             scene=scene,
             source="deterministic",
             confidence=1.0,
             reason="deterministic lifecycle scene matched",
+            required_anchor_status="satisfied",
+            selected_skill_names=skill_names,
+        )
+    user_message = str(getattr(ctx, "user_message", None) or "").strip()
+    metadata = getattr(ctx, "metadata", None) or {}
+    if _looks_like_unanchored_mcq_answer_submission(user_message, metadata):
+        return QuestionLifecycleSceneDecision(
+            scene=None,
+            source="deterministic",
+            confidence=1.0,
+            reason="answer submission needs an active question",
+            required_anchor_status="missing_active_question",
+            exact_question_blocked_reason="unanchored_answer_submission",
+            selected_skill_names=(),
+            needs_clarification=True,
+        )
+    if is_low_information_exam_query(user_message):
+        return QuestionLifecycleSceneDecision(
+            scene=None,
+            source="deterministic",
+            confidence=1.0,
+            reason="low-information exam query needs clarification",
+            required_anchor_status="missing_question_anchor",
+            exact_question_blocked_reason="low_information_exam_query",
+            selected_skill_names=(),
+            needs_clarification=True,
         )
     if not enable_llm or not _should_use_llm_scene_proposal(ctx):
         return QuestionLifecycleSceneDecision(
@@ -202,6 +233,74 @@ async def resolve_question_lifecycle_scene_decision(
             reason="LLM scene proposal unavailable",
         )
     return proposal
+
+
+def is_low_information_exam_query(query: str) -> bool:
+    """Return True when the message is an exam inventory/filter query, not a question.
+
+    Examples: ``2025真题`` / ``历年真题`` / ``防水真题``. These carry a
+    subject/year/topic filter, but no concrete stem, options, active question,
+    or explicit review/generation verb. They must not unlock exact-answer
+    authority.
+    """
+
+    text = re.sub(r"\s+", "", str(query or "").strip())
+    if not text:
+        return False
+    if not any(marker in text for marker in ("真题", "试题", "题库", "试卷")):
+        return False
+    explicit_action_markers = (
+        "分析",
+        "讲解",
+        "解析",
+        "讲一",
+        "讲这",
+        "出",
+        "练",
+        "训练",
+        "测试",
+        "考我",
+        "做",
+        "批改",
+        "我选",
+        "我答",
+        "题干",
+        "选项",
+        "下列",
+        "正确的是",
+        "错误的是",
+    )
+    if any(marker in text for marker in explicit_action_markers):
+        return False
+    if _FREE_TEXT_MCQ_OPTION_LIST_RE.search(str(query or "")):
+        return False
+    catalog_markers = ("有哪些", "有吗", "目录", "列表", "哪几道", "多少道", "历年", "往年", "答案")
+    if any(marker in text for marker in catalog_markers):
+        return True
+    if re.fullmatch(r"(?:20\d{2})?[\u4e00-\u9fffA-Za-z0-9]{0,12}(?:真题|试题|题库|试卷)", text):
+        return True
+    return False
+
+
+def build_question_lifecycle_clarification_response(message: str, reason: str) -> str:
+    """Student-visible clarification for lifecycle turns missing an anchor."""
+
+    reason = str(reason or "").strip()
+    if reason == "unanchored_answer_submission":
+        return (
+            "我还不知道你要批改哪一道题。\n\n"
+            "请先发送题干和选项，或在当前题卡里提交答案；如果是刚才那道题，也可以点题卡里的选项再提交。"
+        )
+    if reason == "low_information_exam_query":
+        topic = str(message or "").strip() or "真题"
+        return (
+            f"你提到的是“{topic}”，但还没有指定要做哪件事。\n\n"
+            "你可以这样继续：\n"
+            "1. 查看这一类真题目录或考点范围\n"
+            "2. 让我出一套真题风格练习\n"
+            "3. 粘贴具体题干和选项，我按题目讲评：先展示题目，再给答案、逐项解析、易错点和记忆抓手"
+        )
+    return ""
 
 
 def build_question_lifecycle_skill_context(
@@ -596,11 +695,14 @@ async def _llm_question_lifecycle_scene_proposal(
     confidence = max(0.0, min(1.0, confidence))
     if confidence < 0.72:
         scene = None
+    skill_names = select_question_lifecycle_skill_names(scene)
     return QuestionLifecycleSceneDecision(
         scene=scene,
         source="llm",
         confidence=confidence,
         reason=str(payload.get("reason") or "").strip(),
+        required_anchor_status="satisfied" if scene else "",
+        selected_skill_names=skill_names,
     )
 
 
@@ -658,6 +760,25 @@ def _looks_like_free_text_mcq_grading(user_message: str) -> bool:
         if marker != "我选"
     )
     return has_question_signal and has_grading_action
+
+
+def _looks_like_unanchored_mcq_answer_submission(
+    user_message: str,
+    metadata: Any,
+) -> bool:
+    if not _FREE_TEXT_MCQ_OPTION_SELECTION_RE.search(user_message):
+        return False
+    if not isinstance(metadata, dict):
+        return True
+    question_context = metadata.get("question_followup_context")
+    if isinstance(question_context, dict) and question_context.get("question"):
+        return False
+    active_object = metadata.get("active_object")
+    if isinstance(active_object, dict):
+        snapshot = active_object.get("state_snapshot")
+        if isinstance(snapshot, dict) and snapshot.get("question"):
+            return False
+    return True
 
 
 def _context_scene(ctx: UnifiedContext) -> str | None:
