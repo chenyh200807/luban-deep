@@ -16,6 +16,9 @@ def run_script(args: list[str], *, env: dict[str, str] | None = None) -> subproc
     merged_env["PYTHONPATH"] = str(REPO_ROOT)
     if env:
         merged_env.update(env)
+        for key in ("DB_URL", "DATABASE_URL"):
+            if key not in env:
+                merged_env.pop(key, None)
     return subprocess.run(
         [sys.executable, *args],
         cwd=REPO_ROOT,
@@ -85,8 +88,37 @@ def test_supabase_coverage_script_rejects_missing_db_url() -> None:
     env.pop("DATABASE_URL", None)
     result = run_script(["scripts/audit_2026_compiler_supabase_coverage.py", "--run-id", "pytest"], env=env)
 
-    assert result.returncode != 0
+    assert result.returncode == 2
     assert "DB_URL or DATABASE_URL is required" in result.stderr
+
+
+def test_supabase_coverage_script_rejects_missing_env_file(tmp_path: Path) -> None:
+    result = run_script([
+        "scripts/audit_2026_compiler_supabase_coverage.py",
+        "--run-id",
+        "pytest",
+        "--env",
+        str(tmp_path / "missing.env"),
+    ])
+
+    assert result.returncode == 2
+    assert "env file not found" in result.stderr
+
+
+def test_supabase_coverage_script_env_file_without_db_url_fails_fast(tmp_path: Path) -> None:
+    env_path = tmp_path / ".env"
+    env_path.write_text("OTHER=value\n", encoding="utf-8")
+
+    result = run_script([
+        "scripts/audit_2026_compiler_supabase_coverage.py",
+        "--run-id",
+        "pytest",
+        "--env",
+        str(env_path),
+    ])
+
+    assert result.returncode == 2
+    assert "Missing DB_URL or DATABASE_URL" in result.stderr
 
 
 def test_supabase_coverage_accepts_relation_type_graph_schema() -> None:

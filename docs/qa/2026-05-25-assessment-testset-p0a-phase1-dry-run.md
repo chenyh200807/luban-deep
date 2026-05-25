@@ -161,12 +161,85 @@ Hard Gate #12 is therefore not triggered by this run.
 
 | Item | Status | Reason |
 | --- | --- | --- |
-| Supabase migration apply | Not run | v1.1 §1.3 requires explicit user approval before any DB write |
-| Supabase CLI/shadow apply | Not run | no apply approval in this milestone |
-| WeChat DevTools | Not run | requires manual simulator or real-device evidence |
-| `docs/plan/INDEX.md` link | Not changed | file is already dirty from other task lines; list as pending link rather than touching it |
+| Supabase migration apply | Applied on 2026-05-25 after explicit user approval | target guard passed, SQL applied with `psql`, table/RLS/policy/index counts verified |
+| Supabase CLI/shadow apply | Not run | direct `psql` apply was used against the guarded DeepTutor main DB |
+| WeChat DevTools | Attempted, blocked | CLI reports `wait IDE port timeout`; app is running but automation port is unavailable |
+| `docs/plan/INDEX.md` link | Updated | P0A row now points to this QA evidence |
 | Default `check_contract_guard.py` | Fails in dirty worktree | unrelated dirty protected files pollute default scan; scoped guard passes |
 | Source compiler PR-2/3 | Pending precheck | taxonomy readability determines whether the compiler track can proceed |
+
+## Supabase Migration Apply Evidence
+
+Preflight:
+
+```text
+target_guard=passed
+questions_bank_count=4638
+users_id_type=text
+assessment_sessions_regclass=(missing)
+```
+
+Apply stdout:
+
+```text
+migration_returncode=0
+BEGIN
+CREATE EXTENSION
+CREATE TABLE
+COMMENT
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+ALTER TABLE
+DROP POLICY
+CREATE POLICY
+DROP POLICY
+CREATE POLICY
+DROP POLICY
+CREATE POLICY
+GRANT
+COMMIT
+```
+
+Post-apply verification:
+
+```text
+assessment_sessions_regclass=assessment_sessions
+rls_enabled=true
+policy_count=3
+index_count=7
+column_count=29
+```
+
+Notes:
+
+- `pgcrypto` already existed.
+- Policy drops printed "does not exist, skipping" notices on first apply, as
+  expected.
+- No real learner/session rows were inserted during this verification.
+
+## WeChat DevTools Attempt
+
+Commands attempted:
+
+```bash
+/Applications/wechatwebdevtools.app/Contents/MacOS/cli open \
+  --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/yousenwebview \
+  --port 9420 --lang zh --disable-gpu
+```
+
+```text
+IDE may already started at port 30238, trying to connect
+#initialize-error: wait IDE port timeout
+```
+
+Retrying with port `30238` and `cli islogin --port 30238` produced the same
+timeout. `ps` confirms WeChat DevTools is running, but `lsof` shows no listener
+on the expected automation ports. Computer Use also timed out reading the app
+window. Manual simulator evidence therefore remains pending; avoid force-quitting
+the user's existing DevTools session without a separate confirmation.
 
 ## Source Compiler PR-2/3 Precheck
 
@@ -192,6 +265,23 @@ compile_eligibility=blocked_dataless
 readable=false
 record_count=null
 sha256=null
+```
+
+Post-approval download attempt:
+
+```text
+brctl download ".../taxonomy/FINAL_CLEANED_TAXONOMY2026.json"
+du -h ".../taxonomy/FINAL_CLEANED_TAXONOMY2026.json"
+0B
+```
+
+`ls -lO@` still reports `compressed,dataless`, and a bounded read probe did not
+materialize local bytes. This remains a physical/iCloud sync blocker.
+
+Post-download inventory rerun:
+
+```text
+blocked_dataless=106 class_book=18 class_lecture_bundle=8 class_lecture_page=327 class_question=13 class_standard=8 class_taxonomy=1 dataless=106 json_files=375 readable=269 redundant_skipped=234
 ```
 
 Decision:

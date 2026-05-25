@@ -583,8 +583,9 @@ learning evidence.
 
 ### Remaining Manual Gates
 
-- Supabase migration apply: pending explicit user approval.
-- Real RLS smoke against a shadow/main database: pending after migration review.
-- WeChat DevTools manual gate: pending user-run evidence.
-- `docs/plan/INDEX.md` link update: deferred because the file is already dirty
-  from another task line.
+- Supabase migration apply: completed on 2026-05-25 after explicit user approval.
+- Real RLS smoke with actual authenticated users: pending; table/RLS/policy/index
+  read-only verification is complete.
+- WeChat DevTools manual gate: attempted, blocked because the running IDE does
+  not expose a reachable automation port.
+- `docs/plan/INDEX.md` link update: completed with a QA evidence pointer.
