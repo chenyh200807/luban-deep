@@ -52,20 +52,25 @@ SUPABASE_DB_URL="$DATABASE_URL" bash scripts/ci/live_rls_audit.sh > docs/audit/r
 
 **v2.1 计划的 SR2 只标了 `assessment_forms` 1 张未启 RLS。实测远超预期：27 张表 RLS off，且 anon 全权限 grants。**
 
-### Finding C — Anon PostgREST 真实读取测试（critical）
+### Finding C — PostgREST 实测（已修正初始告警）
 
-用 SUPABASE_ANON_KEY + `HEAD` / row-count probe（不打印数据）测试 6 张代表性表：
+**初始告警**：6 张表 HTTP 200 = "anon 可一次 dump 1623 用户 + 1329 钱包"。
+**复测修正**：测试用的 key 实际是 `.env` 里的 `SUPABASE_KEY = role=service_role`（设计内 bypass RLS），**不是 anon key**。已重新 verify 攻击面：
 
-| 表 | HTTP 200 anon-readable? | 实际行数（生产） |
-|---|---|---|
-| `users` | 🚨 yes | **1623** |
-| `wallet_ledger` | 🚨 yes | **1329** |
-| `assessment_forms` | 🚨 yes | 55 |
-| `learner_summaries` | 🚨 yes | 14 |
-| `member_audit_log` | 🚨 yes | 0（结构暴露） |
-| `platform_user_bindings` | 🚨 yes | 0（结构暴露） |
+| 验证项 | 结果 |
+|---|---|
+| 无 key 请求 PostgREST | **HTTP 401**（强制 apikey）|
+| 客户端硬编码 supabase key（grep 全 `wx_miniprogram/` / `yousenwebview/` / `web/`） | **0 处** |
+| `.env` / `.env.bak` 含 anon key | **未发现**（只有 service_role） |
+| Git history `log -S 'SUPABASE_KEY'` | 未发现 commit |
+| 客户端通信路径 | 走 `gatewayUrl` 后端 API，**不直连 supabase.co** |
 
-**结论**：任何持有 `SUPABASE_ANON_KEY` 的客户端（小程序前端代码、浏览器抓包、git 历史泄露）可一次 dump 全部 1623 用户 + 1329 钱包流水。这是 production-critical P0 attack surface，必须在 internal beta 开放注册前由 PR-2 SR2 修复。
+**修正后的真实剩余风险（仍是 P0 但 deferred-not-immediate）**：
+- 🟢 客户端 immediate leak：无
+- 🟡 service_role key 泄露风险：任何持 service_role 的人都能 bypass RLS dump 全表。**这是 secret rotation 问题，不是 RLS 问题** — RLS 修了仍然无法防 service_role 滥用。
+- 🟡 Supabase 默认 anon key + 27 张 RLS-off 表：anon key 在 Supabase Dashboard 可见；任何拿到 anon key 的人（Dashboard 访问 / 第三方 audit / 离职员工 / 项目元数据爬取）可 dump 用户 + 钱包。需要 PR-2 SR2 修。
+
+**6 张 service_role 200 测试表的含义不变**：它们 RLS off + anon grants 存在；只要有人拿到 supabase 默认 anon key，攻击就成立。修复路径不变 = PR-2 SR2 关 RLS。**修复优先级仍是 P0，但 internal beta 不是因为"客户端裸奔"而被阻塞**。
 
 完整 27 张 RLS-off 表清单见 `rls_audit.json`；关键业务/PII 表：
 - `users` `wallet_ledger` `platform_user_bindings` `user_sessions`
