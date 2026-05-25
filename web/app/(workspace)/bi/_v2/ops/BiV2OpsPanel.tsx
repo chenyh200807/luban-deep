@@ -559,12 +559,12 @@ function OpsTileDetailPanel({
     >
       {tile ? (
         <div className="space-y-4 text-sm">
-          <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+          <div className="rounded-3xl border border-white/10 bg-white/[0.045] p-4 shadow-lg shadow-black/10">
             <div className="flex items-center gap-2">
               <BiStatusPill tone={STATUS_TONE[tile.status]} label={tile.status} />
               <BiStatusPill tone={BI_TRUST_TONE[tile.trust]} label={`${tile.trust} 级`} />
             </div>
-            <p className="mt-2 text-sm leading-relaxed text-slate-700">{tile.detail}</p>
+            <p className="mt-2 text-sm leading-relaxed text-slate-300">{tile.detail}</p>
           </div>
           <KV label="authority" value={tile.authority} />
           <KV label="owner" value={tile.owner} />
@@ -595,12 +595,12 @@ function AuditDetailPanel({
     >
       {entry ? (
         <div className="space-y-4 text-sm">
-          <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+          <div className="rounded-3xl border border-white/10 bg-white/[0.045] p-4 shadow-lg shadow-black/10">
             <div className="flex flex-wrap items-center gap-2">
               <BiStatusPill tone={SEVERITY_TONE[entry.severity]} label={entry.severity} />
-              <span className="font-medium text-slate-900">{entry.action}</span>
+              <span className="font-bold text-slate-100">{entry.action}</span>
             </div>
-            <p className="mt-2 text-xs text-slate-600">
+            <p className="mt-2 text-xs text-slate-400">
               {entry.actor} → {entry.target}
             </p>
           </div>
@@ -622,18 +622,18 @@ function AuditDetailPanel({
 
 function KV({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-slate-200 bg-white p-3">
-      <div className="text-[11px] font-medium uppercase text-slate-500">{label}</div>
-      <div className="mt-1 break-words text-sm text-slate-800">{value || '—'}</div>
+    <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-3">
+      <div className="text-[11px] font-bold uppercase text-slate-400">{label}</div>
+      <div className="mt-1 break-words text-sm text-slate-100">{value || '—'}</div>
     </div>
   )
 }
 
 function JsonBlock({ label, value }: { label: string; value?: Record<string, unknown> }) {
   return (
-    <div className="rounded-md border border-slate-200 bg-white p-3">
-      <div className="text-[11px] font-medium uppercase text-slate-500">{label}</div>
-      <pre className="mt-2 max-h-60 overflow-auto rounded bg-slate-950 p-3 text-xs leading-relaxed text-slate-100">
+    <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-3">
+      <div className="text-[11px] font-bold uppercase text-slate-400">{label}</div>
+      <pre className="mt-2 max-h-60 overflow-auto rounded-2xl border border-white/10 bg-slate-950/70 p-3 text-xs leading-relaxed text-slate-100">
         {value && Object.keys(value).length > 0 ? JSON.stringify(value, null, 2) : '—'}
       </pre>
     </div>

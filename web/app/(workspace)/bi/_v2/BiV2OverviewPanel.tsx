@@ -4,9 +4,11 @@
 import { ArrowDownRight, ArrowUpRight, Minus, RefreshCw, ShieldAlert } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
+  BiButton,
   BiSidePanel,
   BiStatusPill,
   BiMoneyCell,
+  BiNotice,
   BiV2DataSourceBanner,
   BI_TRUST_TONE,
   BI_SEVERITY_TONE,
@@ -140,9 +142,9 @@ function inferTrend(
 }
 
 function TrendIcon({ trend }: { trend: 'up' | 'down' | 'flat' }) {
-  if (trend === 'up') return <ArrowUpRight className="h-4 w-4 text-emerald-600" aria-hidden />
-  if (trend === 'down') return <ArrowDownRight className="h-4 w-4 text-rose-600" aria-hidden />
-  return <Minus className="h-4 w-4 text-slate-500" aria-hidden />
+  if (trend === 'up') return <ArrowUpRight className="h-4 w-4 text-emerald-300" aria-hidden />
+  if (trend === 'down') return <ArrowDownRight className="h-4 w-4 text-rose-300" aria-hidden />
+  return <Minus className="h-4 w-4 text-slate-400" aria-hidden />
 }
 
 const ALERT_LEVEL_TO_SEVERITY: Record<string, 'critical' | 'high' | 'medium' | 'low'> = {
@@ -156,7 +158,7 @@ function renderCardValue(card: BiMetricCard, meta: BiV2MetricDef) {
   if (typeof card.value === 'number' && meta.group === 'unit_economics') {
     return <BiMoneyCell amount={card.value} currency="CNY" trust={meta.trust} align="left" />
   }
-  return <span className="tabular-nums text-slate-900">{String(card.value)}</span>
+  return <span className="tabular-nums text-slate-50">{String(card.value)}</span>
 }
 
 export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
@@ -224,7 +226,7 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
           return (
             <article
               key={`${meta.metric_id}-${idx}`}
-              className="flex flex-col gap-2 rounded-md border border-slate-200 bg-white p-4 shadow-sm"
+              className="flex min-h-[176px] flex-col gap-3 rounded-3xl border border-white/10 bg-white/[0.045] p-4 shadow-lg shadow-black/15 transition hover:border-cyan-300/25 hover:bg-cyan-300/[0.06]"
               title={[
                 `${meta.metric_id}`,
                 `口径：${meta.definition}`,
@@ -236,49 +238,50 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
               ].join(' · ')}
               aria-label={`${card.label} 当前 ${card.value}，数据可信 ${meta.trust} 级，owner ${meta.owner}`}
             >
-              <div className="flex items-center justify-between text-xs text-slate-500">
-                <span className="font-medium text-slate-700">{card.label}</span>
+              <div className="flex items-center justify-between gap-2 text-xs text-slate-400">
+                <span className="font-bold text-slate-200">{card.label}</span>
                 <BiStatusPill tone={BI_TRUST_TONE[meta.trust]} label={`${meta.trust} 级`} />
               </div>
-              <div className="flex items-baseline justify-between gap-2 text-2xl font-semibold">
+              <div className="flex items-baseline justify-between gap-2 text-3xl font-black tracking-normal">
                 {renderCardValue(card, meta)}
                 {card.delta ? (
-                  <span className="flex items-center gap-1 text-xs tabular-nums text-slate-600">
+                  <span className="flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] px-2 py-1 text-xs tabular-nums text-slate-200">
                     <TrendIcon trend={trend} />
                     {card.delta}
                   </span>
                 ) : null}
               </div>
-              <div className="text-[11px] leading-snug text-slate-500">
+              <div className="space-y-1 text-[11px] leading-snug text-slate-400">
                 <div className="truncate">authority: {meta.authority}</div>
                 <div className="truncate">
                   owner: {meta.owner} · metric_id:{' '}
-                  <code className="font-mono text-[10px]">{meta.metric_id}</code>
+                  <code className="font-mono text-[10px] text-slate-300">{meta.metric_id}</code>
                 </div>
               </div>
               {meta.metric_id === 'unknown' ? (
-                <div className="rounded bg-amber-50 px-2 py-1 text-[10px] text-amber-700">
+                <div className="rounded-2xl border border-amber-300/25 bg-amber-300/10 px-2 py-1 text-[10px] text-amber-100">
                   指标未注册 · 请补充到 BI_V2_METRICS 或 deeptutor/services/bi_metrics.py
                 </div>
               ) : null}
-              <button
-                type="button"
+              <BiButton
                 onClick={() => setSelectedMetric({ card, meta, trend })}
-                className="mt-auto inline-flex w-fit items-center rounded border border-slate-200 px-2 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                variant="secondary"
+                size="xs"
+                className="mt-auto w-fit"
                 aria-label={`打开 ${card.label} 指标详情`}
               >
                 查看详情
-              </button>
+              </BiButton>
             </article>
           )
         })}
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="rounded-md border border-slate-200 bg-white p-4 lg:col-span-2">
+        <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-4 shadow-xl shadow-black/15 lg:col-span-2">
           <header className="flex items-center justify-between text-sm">
-            <span className="font-medium text-slate-800">活跃 / 成本 / 学习成功趋势</span>
-            <span className="text-[11px] text-slate-500">
+            <span className="font-black text-slate-100">活跃 / 成本 / 学习成功趋势</span>
+            <span className="rounded-full border border-white/10 bg-white/[0.06] px-2 py-1 text-[11px] text-slate-300">
               {source === 'live'
                 ? 'active-trend API'
                 : source === 'loading'
@@ -294,7 +297,7 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
               return (
                 <div
                   key={`${point.label}-${idx}`}
-                  className="rounded-sm bg-gradient-to-t from-slate-200 to-slate-400"
+                  className="rounded-full bg-gradient-to-t from-cyan-500/35 via-cyan-300/65 to-emerald-200 shadow-[0_0_18px_rgba(34,211,238,0.16)]"
                   style={{ height: `${h}%` }}
                   aria-hidden
                   title={`${point.label} · active=${point.active} cost=${point.cost} success=${point.successful}`}
@@ -302,15 +305,15 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
               )
             })}
           </div>
-          <p className="mt-2 text-[10px] text-slate-500">
+          <p className="mt-3 text-[10px] text-slate-400">
             authority: bi_service.get_active_trend · 收入接入由 P1 处理
           </p>
         </div>
 
-        <aside className="rounded-md border border-slate-200 bg-white p-4">
-          <header className="border-b border-slate-200 pb-2">
-            <h2 className="text-sm font-semibold text-slate-900">今日行动队列</h2>
-            <p className="mt-1 text-[11px] text-slate-500">
+        <aside className="rounded-3xl border border-white/10 bg-white/[0.04] p-4 shadow-xl shadow-black/15">
+          <header className="border-b border-white/10 pb-3">
+            <h2 className="text-sm font-black text-slate-100">今日行动队列</h2>
+            <p className="mt-1 text-[11px] text-slate-400">
               {source === 'live'
                 ? '来自 overview.alerts + anomalies'
                 : source === 'error'
@@ -327,17 +330,17 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
                   <button
                     type="button"
                     onClick={() => setSelectedAlert({ alert, severity: sev, target: linkMeta })}
-                    className="flex items-start justify-between gap-3 rounded border border-transparent px-2 py-2 hover:border-slate-200 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                    className="flex w-full items-start justify-between gap-3 rounded-2xl border border-transparent px-2 py-2 text-left transition hover:border-cyan-300/25 hover:bg-cyan-300/[0.06] focus:outline-none focus:ring-2 focus:ring-cyan-300/30"
                     aria-label={`查看 ${alert.title}`}
                   >
                     <div className="flex flex-1 items-start gap-2">
                       <BiStatusPill tone={BI_SEVERITY_TONE[sev]} label={sev.toUpperCase()} />
                       <div className="min-w-0">
-                        <div className="truncate text-sm font-medium text-slate-800">
+                        <div className="truncate text-sm font-bold text-slate-100">
                           {alert.title}
                         </div>
                         {alert.detail ? (
-                          <div className="truncate text-[11px] text-slate-500">{alert.detail}</div>
+                          <div className="truncate text-[11px] text-slate-400">{alert.detail}</div>
                         ) : null}
                       </div>
                     </div>
@@ -347,7 +350,7 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
               )
             })}
             {bundle.alerts.length === 0 ? (
-              <li className="rounded border border-dashed border-slate-200 px-2 py-3 text-center text-xs text-slate-500">
+              <li className="rounded-2xl border border-dashed border-white/15 px-2 py-8 text-center text-xs text-slate-400">
                 暂无风险项
               </li>
             ) : null}
@@ -379,13 +382,13 @@ function MetricDetailPanel({
     >
       {card && meta ? (
         <div className="space-y-4 text-sm">
-          <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
-            <div className="text-xs text-slate-500">当前值</div>
-            <div className="mt-1 text-2xl font-semibold text-slate-900">{String(card.value)}</div>
-            <div className="mt-1 text-xs text-slate-600">
+          <div className="rounded-3xl border border-white/10 bg-white/[0.045] p-4 shadow-lg shadow-black/10">
+            <div className="text-xs text-slate-400">当前值</div>
+            <div className="mt-1 text-3xl font-black text-slate-50">{String(card.value)}</div>
+            <div className="mt-1 text-xs text-slate-300">
               {card.delta || '暂无环比'} · 趋势 {selection?.trend ?? 'flat'}
             </div>
-            {card.hint ? <div className="mt-1 text-xs text-slate-500">{card.hint}</div> : null}
+            {card.hint ? <div className="mt-1 text-xs text-slate-400">{card.hint}</div> : null}
           </div>
           <KV label="指标口径" value={meta.definition} />
           <KV label="唯一 authority" value={meta.authority} />
@@ -422,15 +425,15 @@ function AlertDetailPanel({
     >
       {alert && selection ? (
         <div className="space-y-4 text-sm">
-          <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+          <div className="rounded-3xl border border-white/10 bg-white/[0.045] p-4 shadow-lg shadow-black/10">
             <div className="flex items-center gap-2">
               <BiStatusPill
                 tone={BI_SEVERITY_TONE[selection.severity]}
                 label={selection.severity.toUpperCase()}
               />
-              <span className="font-medium text-slate-900">{alert.title}</span>
+              <span className="font-bold text-slate-100">{alert.title}</span>
             </div>
-            <p className="mt-2 text-xs leading-relaxed text-slate-600">
+            <p className="mt-2 text-xs leading-relaxed text-slate-300">
               {alert.detail || '该行动项暂无更多描述。'}
             </p>
           </div>
@@ -438,10 +441,10 @@ function AlertDetailPanel({
           <KV label="建议处理区" value={selection.target.drilldown_hash} />
           <KV label="关联指标" value={selection.target.metric_id} />
           <KV label="authority" value={selection.target.authority} />
-          <p className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs leading-relaxed text-amber-800">
+          <BiNotice tone="amber">
             当前详情只展示 canonical 读模型内容；需要创建运营任务、导出、派单时，必须先接入带 audit
             的后端写 endpoint。
-          </p>
+          </BiNotice>
         </div>
       ) : null}
     </BiSidePanel>
@@ -450,9 +453,9 @@ function AlertDetailPanel({
 
 function KV({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-slate-200 bg-white p-3">
-      <div className="text-[11px] font-medium uppercase text-slate-500">{label}</div>
-      <div className="mt-1 break-words text-sm text-slate-800">{value || '—'}</div>
+    <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-3">
+      <div className="text-[11px] font-bold uppercase text-slate-400">{label}</div>
+      <div className="mt-1 break-words text-sm text-slate-100">{value || '—'}</div>
     </div>
   )
 }
@@ -489,14 +492,14 @@ function DataSourceBanner({
       <BiV2DataSourceBanner
         tone="emerald"
         action={
-          <button
-            type="button"
+          <BiButton
             onClick={onReload}
-            className="inline-flex items-center gap-1 text-emerald-900 hover:underline"
+            variant="secondary"
+            size="xs"
             aria-label="刷新 overview"
           >
             <RefreshCw className="h-3 w-3" aria-hidden /> 刷新
-          </button>
+          </BiButton>
         }
       >
         实时数据 · generated_at: {new Date(bundle.generatedAt).toLocaleString('zh-CN')}
@@ -508,14 +511,14 @@ function DataSourceBanner({
       tone="rose"
       role="alert"
       action={
-        <button
-          type="button"
+        <BiButton
           onClick={onReload}
-          className="inline-flex items-center gap-1 text-rose-900 hover:underline"
+          variant="secondary"
+          size="xs"
           aria-label="重试加载 overview"
         >
           <RefreshCw className="h-3 w-3" aria-hidden /> 重试
-        </button>
+        </BiButton>
       }
     >
       <div className="flex items-center gap-2">

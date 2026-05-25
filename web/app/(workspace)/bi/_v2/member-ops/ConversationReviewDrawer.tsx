@@ -2,7 +2,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { BiSidePanel } from '@/components/bi-v2'
+import { BiButton, BiNotice, BiSidePanel } from '@/components/bi-v2'
 import {
   listMemberConversations,
   type MemberConversationMessagePreview,
@@ -157,27 +157,21 @@ export function ConversationReviewDrawer({
         {/* Round 3 C: RequireBiAdmin 保证抽屉只在已登录 admin 下渲染，
             "未登录" 状态已在 BiV2Surface 层被拦截，此处不再重复检查。 */}
         {auditState === 'denied' && auditError ? (
-          <section
-            className="rounded border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800"
-            role="alert"
-          >
+          <BiNotice tone="rose" role="alert">
             <div className="font-medium">audit 未写入服务端，已阻止全文展开</div>
             <p className="mt-1">原因：{auditError}</p>
-          </section>
+          </BiNotice>
         ) : null}
         {auditState === 'writing' ? (
-          <section
-            className="rounded border border-sky-200 bg-sky-50 p-3 text-xs text-sky-800"
-            aria-live="polite"
-          >
+          <BiNotice tone="sky" aria-live="polite">
             正在写入 audit…
-          </section>
+          </BiNotice>
         ) : null}
-        <section className="rounded border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+        <section className="rounded-3xl border border-amber-300/25 bg-amber-300/10 p-4 text-xs text-amber-100 shadow-lg shadow-black/10">
           <div className="font-medium">查看全文必须选择原因（计划 §3.5 / §Batch 5）</div>
           <fieldset className="mt-2 space-y-1" aria-label="查看原因">
             {VIEW_REASONS.map(r => (
-              <label key={r.key} className="flex items-center gap-2 text-amber-900">
+              <label key={r.key} className="flex items-center gap-2 text-amber-100">
                 <input
                   type="radio"
                   name="reason"
@@ -194,7 +188,7 @@ export function ConversationReviewDrawer({
                 value={reasonNote}
                 onChange={e => setReasonNote(e.target.value)}
                 rows={2}
-                className="w-full rounded border border-amber-300 bg-white p-2 text-amber-900 outline-none focus:border-amber-500"
+                className="w-full rounded-2xl border border-amber-300/25 bg-slate-950/35 p-3 text-amber-50 outline-none placeholder:text-amber-200/45 focus:border-amber-300/50 focus:ring-2 focus:ring-amber-300/20"
                 placeholder="补充原因 (≥ 4 字)，将写入 audit"
                 aria-label="其他原因补充说明"
               />
@@ -203,21 +197,21 @@ export function ConversationReviewDrawer({
         </section>
 
         {loadingSessions ? (
-          <div className="rounded border border-sky-200 bg-sky-50 p-3 text-xs text-sky-800">
+          <BiNotice tone="sky">
             正在读取会员对话列表…
-          </div>
+          </BiNotice>
         ) : null}
         {sessionError ? (
-          <div className="rounded border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800">
+          <BiNotice tone="rose">
             对话列表加载失败：{sessionError}
-          </div>
+          </BiNotice>
         ) : null}
 
         {/* Round 5 B3: production MOCK_SESSIONS is []; render an explicit
             empty state so admins don't see a silently blank list under the
             reason form (frontend reviewer finding). */}
         {!loadingSessions && sessions.length === 0 ? (
-          <div className="rounded border border-dashed border-slate-300 bg-slate-50 p-4 text-center text-xs text-slate-500">
+          <div className="rounded-3xl border border-dashed border-white/15 bg-white/[0.035] p-6 text-center text-xs text-slate-400">
             暂无可展示对话。已读取{' '}
             <code className="font-mono">/api/v1/member/{member.user_id}/conversations</code>，当前会员没有
             session_store 对话记录或会话无可展示消息。
@@ -230,15 +224,14 @@ export function ConversationReviewDrawer({
             const expanded = expandedId === session.id
             const messages = revealedMessages[session.id] ?? []
             return (
-              <li key={session.id} className="rounded border border-slate-200 bg-white">
+              <li key={session.id} className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.045] shadow-lg shadow-black/10">
                 <div className="flex items-start justify-between gap-3 p-3">
                   <div className="min-w-0">
-                    <div className="truncate text-sm font-medium text-slate-800">{session.title}</div>
-                    <div className="mt-0.5 text-[11px] text-slate-500">{session.at}</div>
-                    <p className="mt-1 text-xs text-slate-700">摘要：{session.summary}</p>
+                    <div className="truncate text-sm font-black text-slate-100">{session.title}</div>
+                    <div className="mt-0.5 text-[11px] text-slate-400">{session.at}</div>
+                    <p className="mt-1 text-xs leading-5 text-slate-300">摘要：{session.summary}</p>
                   </div>
-                  <button
-                    type="button"
+                  <BiButton
                     onClick={() => {
                       void tryReveal(session.id)
                     }}
@@ -247,20 +240,21 @@ export function ConversationReviewDrawer({
                       (reason === 'other' && reasonNote.trim().length < 4) ||
                       auditState === 'writing'
                     }
-                    className="rounded border border-slate-200 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    variant="secondary"
+                    size="xs"
                     aria-label={`查看 ${session.title} 全文，将写入 audit`}
                   >
                     {expanded ? '已展开' : auditState === 'writing' ? '写入中…' : '查看全文'}
-                  </button>
+                  </BiButton>
                 </div>
                 {expanded ? (
-                  <div className="border-t border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-relaxed text-slate-700">
+                  <div className="border-t border-white/10 bg-slate-950/25 px-3 py-3 text-xs leading-relaxed text-slate-300">
                     [全文按需加载占位 · authority: session store · 仅限本次审计可见]
                     <br />
                     {messages.length > 0 ? (
                       <span className="mt-2 block space-y-1">
                         {messages.slice(0, 6).map(message => (
-                          <span key={message.id} className="block rounded bg-white px-2 py-1">
+                          <span key={message.id} className="block rounded-2xl border border-white/10 bg-white/[0.045] px-3 py-2">
                             <span className="font-semibold">{message.role}: </span>
                             {message.content}
                           </span>

@@ -32,14 +32,12 @@ const BUTTON_SIZE: Record<BiButtonSize, string> = {
   md: 'h-11 rounded-2xl px-4 text-sm',
 }
 
-export type BiNoticeProps = {
+export type BiNoticeProps = ComponentPropsWithoutRef<'div'> & {
   tone?: BiTone
   action?: ReactNode
-  className?: string
-  children: ReactNode
 }
 
-export function BiNotice({ tone = 'slate', action, className = '', children }: BiNoticeProps) {
+export function BiNotice({ tone = 'slate', action, className = '', children, ...props }: BiNoticeProps) {
   return (
     <div
       className={cx(
@@ -47,6 +45,7 @@ export function BiNotice({ tone = 'slate', action, className = '', children }: B
         NOTICE_TONE[tone],
         className
       )}
+      {...props}
     >
       <div className="min-w-0 flex-1">{children}</div>
       {action ? <div className="shrink-0">{action}</div> : null}
