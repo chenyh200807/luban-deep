@@ -1,0 +1,3924 @@
+{
+  "generated_at": "2026-05-25T08:27:54.868432+00:00",
+  "fastapi_routes_total": 257,
+  "api_endpoints_total": 252,
+  "summary": {
+    "by_classification": {
+      "secure_authed": 161,
+      "explicit_public": 14,
+      "anonymous_ratelimited_only": 0,
+      "anonymous_no_ratelimit": 77
+    },
+    "by_kind": {
+      "http": 245,
+      "websocket": 7
+    },
+    "anonymous_paths": [
+      "GET / (explicit_public)",
+      "GET /api/v1/agent-config/agents (explicit_public)",
+      "GET /api/v1/agent-config/agents/{agent_type} (explicit_public)",
+      "POST /api/v1/assessment/create (anonymous_no_ratelimit)",
+      "GET /api/v1/assessment/profile (anonymous_no_ratelimit)",
+      "GET /api/v1/assessment/topics (anonymous_no_ratelimit)",
+      "GET /api/v1/assessment/{quiz_id} (anonymous_no_ratelimit)",
+      "GET /api/v1/assessment/{quiz_id}/report (anonymous_no_ratelimit)",
+      "POST /api/v1/assessment/{quiz_id}/submit (anonymous_no_ratelimit)",
+      "POST /api/v1/auth/login (explicit_public)",
+      "GET /api/v1/auth/profile (anonymous_no_ratelimit)",
+      "PATCH /api/v1/auth/profile/settings (anonymous_no_ratelimit)",
+      "POST /api/v1/auth/refresh (explicit_public)",
+      "POST /api/v1/auth/register (explicit_public)",
+      "POST /api/v1/auth/send-code (explicit_public)",
+      "POST /api/v1/auth/verify-code (explicit_public)",
+      "POST /api/v1/billing/checkout (anonymous_no_ratelimit)",
+      "GET /api/v1/billing/ledger (anonymous_no_ratelimit)",
+      "GET /api/v1/billing/points (anonymous_no_ratelimit)",
+      "GET /api/v1/billing/usage (anonymous_no_ratelimit)",
+      "GET /api/v1/billing/wallet (anonymous_no_ratelimit)",
+      "POST /api/v1/chat/feedback (anonymous_no_ratelimit)",
+      "POST /api/v1/chat/start-turn (anonymous_no_ratelimit)",
+      "POST /api/v1/co_writer/automark (anonymous_no_ratelimit)",
+      "POST /api/v1/co_writer/edit (anonymous_no_ratelimit)",
+      "POST /api/v1/co_writer/edit_react (anonymous_no_ratelimit)",
+      "POST /api/v1/co_writer/edit_react/stream (anonymous_no_ratelimit)",
+      "POST /api/v1/co_writer/export/markdown (anonymous_no_ratelimit)",
+      "GET /api/v1/co_writer/history (anonymous_no_ratelimit)",
+      "GET /api/v1/co_writer/history/{operation_id} (anonymous_no_ratelimit)",
+      "GET /api/v1/co_writer/tool_calls/{operation_id} (anonymous_no_ratelimit)",
+      "GET /api/v1/conversations (anonymous_no_ratelimit)",
+      "POST /api/v1/conversations (anonymous_no_ratelimit)",
+      "POST /api/v1/conversations/batch (anonymous_no_ratelimit)",
+      "DELETE /api/v1/conversations/{conversation_id} (anonymous_no_ratelimit)",
+      "GET /api/v1/conversations/{conversation_id}/messages (anonymous_no_ratelimit)",
+      "POST /api/v1/guide/chat (anonymous_no_ratelimit)",
+      "POST /api/v1/guide/complete (anonymous_no_ratelimit)",
+      "POST /api/v1/guide/create_session (anonymous_no_ratelimit)",
+      "POST /api/v1/guide/fix_html (anonymous_no_ratelimit)",
+      "GET /api/v1/guide/health (anonymous_no_ratelimit)",
+      "POST /api/v1/guide/navigate (anonymous_no_ratelimit)",
+      "POST /api/v1/guide/reset (anonymous_no_ratelimit)",
+      "POST /api/v1/guide/retry_page (anonymous_no_ratelimit)",
+      "DELETE /api/v1/guide/session/{session_id} (anonymous_no_ratelimit)",
+      "GET /api/v1/guide/session/{session_id} (anonymous_no_ratelimit)",
+      "GET /api/v1/guide/session/{session_id}/html (anonymous_no_ratelimit)",
+      "GET /api/v1/guide/session/{session_id}/pages (anonymous_no_ratelimit)",
+      "GET /api/v1/guide/sessions (anonymous_no_ratelimit)",
+      "POST /api/v1/guide/start (anonymous_no_ratelimit)",
+      "WS /api/v1/guide/ws/{session_id} (anonymous_no_ratelimit)",
+      "GET /api/v1/homepage/dashboard (anonymous_no_ratelimit)",
+      "POST /api/v1/invite-test/applications (explicit_public)",
+      "GET /api/v1/knowledge/configs (anonymous_no_ratelimit)",
+      "GET /api/v1/knowledge/default (anonymous_no_ratelimit)",
+      "GET /api/v1/knowledge/health (anonymous_no_ratelimit)",
+      "GET /api/v1/knowledge/list (anonymous_no_ratelimit)",
+      "GET /api/v1/knowledge/rag-providers (anonymous_no_ratelimit)",
+      "GET /api/v1/knowledge/{kb_name} (anonymous_no_ratelimit)",
+      "GET /api/v1/knowledge/{kb_name}/config (anonymous_no_ratelimit)",
+      "GET /api/v1/knowledge/{kb_name}/progress (anonymous_no_ratelimit)",
+      "WS /api/v1/knowledge/{kb_name}/progress/ws (anonymous_no_ratelimit)",
+      "GET /api/v1/learning-brain/projection (anonymous_no_ratelimit)",
+      "GET /api/v1/mobile/learning-attempts/{attempt_ref} (anonymous_no_ratelimit)",
+      "GET /api/v1/mobile/learning-report (anonymous_no_ratelimit)",
+      "GET /api/v1/mobile/mistake-book (anonymous_no_ratelimit)",
+      "POST /api/v1/mobile/mistake-book/items (anonymous_no_ratelimit)",
+      "DELETE /api/v1/mobile/mistake-book/items/{attempt_ref} (anonymous_no_ratelimit)",
+      "POST /api/v1/mobile/mistake-book/items/{attempt_ref}/mastered (anonymous_no_ratelimit)",
+      "POST /api/v1/mobile/mistake-book/items/{attempt_ref}/review (anonymous_no_ratelimit)",
+      "POST /api/v1/observability/surface-events (anonymous_no_ratelimit)",
+      "GET /api/v1/plan/mastery-dashboard (anonymous_no_ratelimit)",
+      "GET /api/v1/practice/chapter-progress (anonymous_no_ratelimit)",
+      "GET /api/v1/practice/daily-question (anonymous_no_ratelimit)",
+      "GET /api/v1/practice/today-progress (anonymous_no_ratelimit)",
+      "GET /api/v1/profile/badges (anonymous_no_ratelimit)",
+      "WS /api/v1/question/generate (anonymous_no_ratelimit)",
+      "WS /api/v1/question/mimic (anonymous_no_ratelimit)",
+      "POST /api/v1/sessions/{session_id}/messages/{message_id}/feedback (anonymous_no_ratelimit)",
+      "WS /api/v1/solve (anonymous_no_ratelimit)",
+      "GET /api/v1/solve/sessions (anonymous_no_ratelimit)",
+      "DELETE /api/v1/solve/sessions/{session_id} (anonymous_no_ratelimit)",
+      "GET /api/v1/solve/sessions/{session_id} (anonymous_no_ratelimit)",
+      "GET /api/v1/system/public-capabilities (explicit_public)",
+      "POST /api/v1/vision/analyze (anonymous_no_ratelimit)",
+      "WS /api/v1/vision/solve (anonymous_no_ratelimit)",
+      "POST /api/v1/wechat/mp/bind-phone (explicit_public)",
+      "POST /api/v1/wechat/mp/login (explicit_public)",
+      "WS /api/v1/ws (anonymous_no_ratelimit)",
+      "GET /healthz (explicit_public)",
+      "GET /readyz (explicit_public)"
+    ],
+    "unmarked_anonymous_paths": [
+      "POST /api/v1/assessment/create",
+      "GET /api/v1/assessment/profile",
+      "GET /api/v1/assessment/topics",
+      "GET /api/v1/assessment/{quiz_id}",
+      "GET /api/v1/assessment/{quiz_id}/report",
+      "POST /api/v1/assessment/{quiz_id}/submit",
+      "GET /api/v1/auth/profile",
+      "PATCH /api/v1/auth/profile/settings",
+      "POST /api/v1/billing/checkout",
+      "GET /api/v1/billing/ledger",
+      "GET /api/v1/billing/points",
+      "GET /api/v1/billing/usage",
+      "GET /api/v1/billing/wallet",
+      "POST /api/v1/chat/feedback",
+      "POST /api/v1/chat/start-turn",
+      "POST /api/v1/co_writer/automark",
+      "POST /api/v1/co_writer/edit",
+      "POST /api/v1/co_writer/edit_react",
+      "POST /api/v1/co_writer/edit_react/stream",
+      "POST /api/v1/co_writer/export/markdown",
+      "GET /api/v1/co_writer/history",
+      "GET /api/v1/co_writer/history/{operation_id}",
+      "GET /api/v1/co_writer/tool_calls/{operation_id}",
+      "GET /api/v1/conversations",
+      "POST /api/v1/conversations",
+      "POST /api/v1/conversations/batch",
+      "DELETE /api/v1/conversations/{conversation_id}",
+      "GET /api/v1/conversations/{conversation_id}/messages",
+      "POST /api/v1/guide/chat",
+      "POST /api/v1/guide/complete",
+      "POST /api/v1/guide/create_session",
+      "POST /api/v1/guide/fix_html",
+      "GET /api/v1/guide/health",
+      "POST /api/v1/guide/navigate",
+      "POST /api/v1/guide/reset",
+      "POST /api/v1/guide/retry_page",
+      "DELETE /api/v1/guide/session/{session_id}",
+      "GET /api/v1/guide/session/{session_id}",
+      "GET /api/v1/guide/session/{session_id}/html",
+      "GET /api/v1/guide/session/{session_id}/pages",
+      "GET /api/v1/guide/sessions",
+      "POST /api/v1/guide/start",
+      "WS /api/v1/guide/ws/{session_id}",
+      "GET /api/v1/homepage/dashboard",
+      "GET /api/v1/knowledge/configs",
+      "GET /api/v1/knowledge/default",
+      "GET /api/v1/knowledge/health",
+      "GET /api/v1/knowledge/list",
+      "GET /api/v1/knowledge/rag-providers",
+      "GET /api/v1/knowledge/{kb_name}",
+      "GET /api/v1/knowledge/{kb_name}/config",
+      "GET /api/v1/knowledge/{kb_name}/progress",
+      "WS /api/v1/knowledge/{kb_name}/progress/ws",
+      "GET /api/v1/learning-brain/projection",
+      "GET /api/v1/mobile/learning-attempts/{attempt_ref}",
+      "GET /api/v1/mobile/learning-report",
+      "GET /api/v1/mobile/mistake-book",
+      "POST /api/v1/mobile/mistake-book/items",
+      "DELETE /api/v1/mobile/mistake-book/items/{attempt_ref}",
+      "POST /api/v1/mobile/mistake-book/items/{attempt_ref}/mastered",
+      "POST /api/v1/mobile/mistake-book/items/{attempt_ref}/review",
+      "POST /api/v1/observability/surface-events",
+      "GET /api/v1/plan/mastery-dashboard",
+      "GET /api/v1/practice/chapter-progress",
+      "GET /api/v1/practice/daily-question",
+      "GET /api/v1/practice/today-progress",
+      "GET /api/v1/profile/badges",
+      "WS /api/v1/question/generate",
+      "WS /api/v1/question/mimic",
+      "POST /api/v1/sessions/{session_id}/messages/{message_id}/feedback",
+      "WS /api/v1/solve",
+      "GET /api/v1/solve/sessions",
+      "DELETE /api/v1/solve/sessions/{session_id}",
+      "GET /api/v1/solve/sessions/{session_id}",
+      "POST /api/v1/vision/analyze",
+      "WS /api/v1/vision/solve",
+      "WS /api/v1/ws"
+    ]
+  },
+  "endpoints": [
+    {
+      "path": "/",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.main.root",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": true,
+      "public_reason": "welcome page (no business data)",
+      "classification": "explicit_public"
+    },
+    {
+      "path": "/api/attachments/{session_id}/{attachment_id}/{filename:path}",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.attachments.get_attachment",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/agent-config/agents",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.agent_config.get_agent_config",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": true,
+      "public_reason": "static UI agent registry",
+      "classification": "explicit_public"
+    },
+    {
+      "path": "/api/v1/agent-config/agents/{agent_type}",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.agent_config.get_single_agent_config",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": true,
+      "public_reason": "static UI agent registry",
+      "classification": "explicit_public"
+    },
+    {
+      "path": "/api/v1/assessment/create",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.assessment_create",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/assessment/profile",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.assessment_profile",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/assessment/topics",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.assessment_topics",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/assessment/{quiz_id}",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.assessment_resume",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/assessment/{quiz_id}/report",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.assessment_report",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/assessment/{quiz_id}/submit",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.assessment_submit",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/auth/login",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.auth_login",
+      "all_dependency_names": [
+        "_rate_limit_dependency"
+      ],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": true,
+      "public_reason": "anonymous login (mobile, rate-limited)",
+      "classification": "explicit_public"
+    },
+    {
+      "path": "/api/v1/auth/profile",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.auth_profile",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/auth/profile/settings",
+      "method": "PATCH",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.auth_profile_settings",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/auth/refresh",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.auth_refresh",
+      "all_dependency_names": [
+        "_rate_limit_dependency"
+      ],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": true,
+      "public_reason": "token refresh (presents old refresh token)",
+      "classification": "explicit_public"
+    },
+    {
+      "path": "/api/v1/auth/register",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.auth_register",
+      "all_dependency_names": [
+        "_rate_limit_dependency"
+      ],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": true,
+      "public_reason": "anonymous registration (mobile, rate-limited)",
+      "classification": "explicit_public"
+    },
+    {
+      "path": "/api/v1/auth/send-code",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.auth_send_code",
+      "all_dependency_names": [
+        "_rate_limit_dependency"
+      ],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": true,
+      "public_reason": "anonymous SMS code request (rate-limited)",
+      "classification": "explicit_public"
+    },
+    {
+      "path": "/api/v1/auth/verify-code",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.auth_verify_code",
+      "all_dependency_names": [
+        "_rate_limit_dependency"
+      ],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": true,
+      "public_reason": "anonymous SMS verification (rate-limited)",
+      "classification": "explicit_public"
+    },
+    {
+      "path": "/api/v1/bi/active-trend",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.bi.bi_active_trend",
+      "all_dependency_names": [
+        "require_bi_access"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "bi",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/bi/anomalies",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.bi.bi_anomalies",
+      "all_dependency_names": [
+        "require_bi_access"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "bi",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/bi/capabilities",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.bi.bi_capabilities",
+      "all_dependency_names": [
+        "require_bi_access"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "bi",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/bi/commerce",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.bi.bi_commerce",
+      "all_dependency_names": [
+        "require_bi_access",
+        "require_bi_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "bi",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/bi/cost",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.bi.bi_cost",
+      "all_dependency_names": [
+        "require_bi_access"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "bi",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/bi/cost/reconciliation",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.bi.bi_cost_reconciliation",
+      "all_dependency_names": [
+        "require_bi_access"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "bi",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/bi/export-jobs",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.bi.bi_export_request",
+      "all_dependency_names": [
+        "require_bi_access",
+        "require_bi_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "bi",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/bi/feedback",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.bi.bi_feedback",
+      "all_dependency_names": [
+        "require_bi_access",
+        "require_bi_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "bi",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/bi/feedback/{feedback_id}/triage",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.bi.bi_feedback_triage",
+      "all_dependency_names": [
+        "require_bi_access",
+        "require_bi_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "bi",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/bi/invite-test/applications",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.bi.bi_invite_test_applications",
+      "all_dependency_names": [
+        "require_bi_access",
+        "require_bi_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "bi",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/bi/invite-test/stats",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.bi.bi_invite_test_stats",
+      "all_dependency_names": [
+        "require_bi_access",
+        "require_bi_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "bi",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/bi/knowledge",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.bi.bi_knowledge",
+      "all_dependency_names": [
+        "require_bi_access"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "bi",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/bi/learner/{user_id}",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.bi.bi_learner_detail",
+      "all_dependency_names": [
+        "require_bi_access"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "bi",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/bi/member/{user_id}/ops-action",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.bi.bi_member_ops_action",
+      "all_dependency_names": [
+        "require_bi_access",
+        "require_bi_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "bi",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/bi/members",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.bi.bi_members",
+      "all_dependency_names": [
+        "require_bi_access"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "bi",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/bi/overview",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.bi.bi_overview",
+      "all_dependency_names": [
+        "require_bi_access"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "bi",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/bi/radar/{user_id}",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.bi_radar",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_self_or_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "self_or_admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/bi/retention",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.bi.bi_retention",
+      "all_dependency_names": [
+        "require_bi_access"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "bi",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/bi/tools",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.bi.bi_tools",
+      "all_dependency_names": [
+        "require_bi_access"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "bi",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/bi/tutorbots",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.bi.bi_tutorbots",
+      "all_dependency_names": [
+        "require_bi_access"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "bi",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/billing/checkout",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.billing_checkout",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/billing/ledger",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.billing_ledger",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/billing/points",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.billing_points",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/billing/usage",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.billing_usage",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/billing/wallet",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.billing_wallet",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/chat/feedback",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.chat_feedback",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/chat/start-turn",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.mobile_chat_start_turn",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/co_writer/automark",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.co_writer.auto_mark_text",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/co_writer/edit",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.co_writer.edit_text",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/co_writer/edit_react",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.co_writer.edit_text_react",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/co_writer/edit_react/stream",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.co_writer.edit_text_react_stream",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/co_writer/export/markdown",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.co_writer.export_markdown",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/co_writer/history",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.co_writer.get_history",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/co_writer/history/{operation_id}",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.co_writer.get_operation",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/co_writer/tool_calls/{operation_id}",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.co_writer.get_tool_call",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/conversations",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.list_conversations",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/conversations",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.create_conversation",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/conversations/batch",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.batch_conversations",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/conversations/{conversation_id}",
+      "method": "DELETE",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.delete_conversation",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/conversations/{conversation_id}/messages",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.get_conversation_messages",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/dashboard/recent",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.dashboard.get_recent_activities",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/dashboard/{entry_id}",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.dashboard.get_activity_entry",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/guide/chat",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.guide.chat",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/guide/complete",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.guide.complete_learning",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/guide/create_session",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.guide.create_session",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/guide/fix_html",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.guide.fix_html",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/guide/health",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.guide.health_check",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/guide/navigate",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.guide.navigate_to_knowledge",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/guide/reset",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.guide.reset_session",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/guide/retry_page",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.guide.retry_page",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/guide/session/{session_id}",
+      "method": "DELETE",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.guide.delete_session",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/guide/session/{session_id}",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.guide.get_session",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/guide/session/{session_id}/html",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.guide.get_current_html",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/guide/session/{session_id}/pages",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.guide.get_session_pages",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/guide/sessions",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.guide.list_sessions",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/guide/start",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.guide.start_learning",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/guide/ws/{session_id}",
+      "method": "WS",
+      "kind": "websocket",
+      "endpoint": "deeptutor.api.routers.guide.websocket_guide",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/homepage/dashboard",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.homepage_dashboard",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/invite-test/applications",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.invite_test.submit_invite_test_application",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": true,
+      "public_reason": "anonymous invite test form (rate-limited)",
+      "classification": "explicit_public"
+    },
+    {
+      "path": "/api/v1/knowledge/configs",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.knowledge.get_all_kb_configs",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/knowledge/configs/sync",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.knowledge.sync_configs_from_metadata",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/knowledge/create",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.knowledge.create_knowledge_base",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/knowledge/default",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.knowledge.get_default_kb",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/knowledge/default/{kb_name}",
+      "method": "PUT",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.knowledge.set_default_kb",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/knowledge/health",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.knowledge.health_check",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/knowledge/list",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.knowledge.list_knowledge_bases",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/knowledge/rag-providers",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.knowledge.get_rag_providers",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/knowledge/tasks/{task_id}/stream",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.knowledge.stream_task_logs",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/knowledge/{kb_name}",
+      "method": "DELETE",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.knowledge.delete_knowledge_base",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/knowledge/{kb_name}",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.knowledge.get_knowledge_base_details",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/knowledge/{kb_name}/config",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.knowledge.get_kb_config",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/knowledge/{kb_name}/config",
+      "method": "PUT",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.knowledge.update_kb_config",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/knowledge/{kb_name}/link-folder",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.knowledge.link_folder",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/knowledge/{kb_name}/linked-folders",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.knowledge.get_linked_folders",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/knowledge/{kb_name}/linked-folders/{folder_id}",
+      "method": "DELETE",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.knowledge.unlink_folder",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/knowledge/{kb_name}/progress",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.knowledge.get_progress",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/knowledge/{kb_name}/progress/clear",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.knowledge.clear_progress",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/knowledge/{kb_name}/progress/ws",
+      "method": "WS",
+      "kind": "websocket",
+      "endpoint": "deeptutor.api.routers.knowledge.websocket_progress",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/knowledge/{kb_name}/reindex",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.knowledge.reindex_knowledge_base",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/knowledge/{kb_name}/sync-folder/{folder_id}",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.knowledge.sync_folder",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/knowledge/{kb_name}/upload",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.knowledge.upload_files",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/learning-brain/projection",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.learning_brain_projection",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/member/audit-log",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.member.member_audit_log",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/member/batch",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.member.member_batch_action",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/member/dashboard",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.member.member_dashboard",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/member/export",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.member.member_export",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/member/grant",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.member.grant_membership",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/member/health",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.member.member_health",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/member/list",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.member.member_list",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/member/notes/{note_id}",
+      "method": "DELETE",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.member.delete_member_note",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/member/notes/{note_id}",
+      "method": "PATCH",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.member.update_member_note",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/member/revoke",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.member.revoke_membership",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/member/update",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.member.update_membership",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/member/{user_id}/360",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.member.member_360",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/member/{user_id}/conversations",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.member.member_conversations",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/member/{user_id}/conversations/{session_id}/view-audit",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.member.record_member_conversation_view",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/member/{user_id}/heartbeat-jobs",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.member.member_heartbeat_jobs",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/member/{user_id}/heartbeat-jobs/{job_id}/pause",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.member.pause_member_heartbeat_job",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/member/{user_id}/heartbeat-jobs/{job_id}/resume",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.member.resume_member_heartbeat_job",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/member/{user_id}/learner-state",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.member.member_learner_state",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/member/{user_id}/notes",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.member.member_notes",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/member/{user_id}/notes",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.member.create_member_note",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/member/{user_id}/ops-actions",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.member.record_member_ops_action",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/member/{user_id}/overlays/{bot_id}",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.member.member_overlay",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/member/{user_id}/overlays/{bot_id}",
+      "method": "PATCH",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.member.patch_member_overlay",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/member/{user_id}/overlays/{bot_id}/audit",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.member.member_overlay_audit",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/member/{user_id}/overlays/{bot_id}/events",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.member.member_overlay_events",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/member/{user_id}/overlays/{bot_id}/promotions/ack",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.member.ack_member_overlay_promotions",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/member/{user_id}/overlays/{bot_id}/promotions/apply",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.member.apply_member_overlay_promotions",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/member/{user_id}/overlays/{bot_id}/promotions/drop",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.member.drop_member_overlay_promotions",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/memory",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.memory.get_memory",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/memory",
+      "method": "PUT",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.memory.update_memory",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/memory/clear",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.memory.clear_memory",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/memory/refresh",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.memory.refresh_memory",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/mobile/learning-attempts/{attempt_ref}",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.mobile_learning_attempt_detail",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/mobile/learning-report",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.mobile_learning_report",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/mobile/mistake-book",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.mobile_mistake_book",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/mobile/mistake-book/items",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.mobile_save_mistake_book_item",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/mobile/mistake-book/items/{attempt_ref}",
+      "method": "DELETE",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.mobile_remove_mistake_book_item",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/mobile/mistake-book/items/{attempt_ref}/mastered",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.mobile_mark_mistake_book_item_mastered",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/mobile/mistake-book/items/{attempt_ref}/review",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.mobile_record_mistake_book_item_review",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/notebook/add_record",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.notebook.add_record",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/notebook/add_record_with_summary",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.notebook.add_record_with_summary",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/notebook/create",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.notebook.create_notebook",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/notebook/health",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.notebook.health_check",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/notebook/list",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.notebook.list_notebooks",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/notebook/statistics",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.notebook.get_statistics",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/notebook/{notebook_id}",
+      "method": "DELETE",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.notebook.delete_notebook",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/notebook/{notebook_id}",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.notebook.get_notebook",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/notebook/{notebook_id}",
+      "method": "PUT",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.notebook.update_notebook",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/notebook/{notebook_id}/records/{record_id}",
+      "method": "DELETE",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.notebook.remove_record",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/notebook/{notebook_id}/records/{record_id}",
+      "method": "PUT",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.notebook.update_record",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/observability/control-plane/run-history",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.observability.get_observability_run_history",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/observability/control-plane/{kind}/history",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.observability.get_control_plane_history",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/observability/control-plane/{kind}/latest",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.observability.get_control_plane_latest",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/observability/launch-readiness",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.observability.get_launch_readiness_dashboard",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/observability/surface-events",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.observability.ingest_surface_event",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/plan/mastery-dashboard",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.mastery_dashboard",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/plugins/capabilities/{capability_name}/execute-stream",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.plugins_api.execute_capability_stream",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/plugins/list",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.plugins_api.list_plugins",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/plugins/tools/{tool_name}/execute",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.plugins_api.execute_tool",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/plugins/tools/{tool_name}/execute-stream",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.plugins_api.execute_tool_stream",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/practice/chapter-progress",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.practice_chapter_progress",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/practice/daily-question",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.practice_daily_question",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/practice/today-progress",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.practice_today_progress",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/profile/badges",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.profile_badges",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/question-notebook/categories",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.question_notebook.list_categories",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/question-notebook/categories",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.question_notebook.create_category",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/question-notebook/categories/{category_id}",
+      "method": "DELETE",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.question_notebook.delete_category",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/question-notebook/categories/{category_id}",
+      "method": "PATCH",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.question_notebook.rename_category",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/question-notebook/entries",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.question_notebook.list_entries",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/question-notebook/entries/lookup/by-question",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.question_notebook.lookup_entry",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/question-notebook/entries/upsert",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.question_notebook.upsert_single_entry",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/question-notebook/entries/{entry_id}",
+      "method": "DELETE",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.question_notebook.delete_entry",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/question-notebook/entries/{entry_id}",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.question_notebook.get_entry",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/question-notebook/entries/{entry_id}",
+      "method": "PATCH",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.question_notebook.update_entry",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/question-notebook/entries/{entry_id}/categories",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.question_notebook.add_entry_to_category",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/question-notebook/entries/{entry_id}/categories/{category_id}",
+      "method": "DELETE",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.question_notebook.remove_entry_from_category",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/question/generate",
+      "method": "WS",
+      "kind": "websocket",
+      "endpoint": "deeptutor.api.routers.question.websocket_question_generate",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/question/mimic",
+      "method": "WS",
+      "kind": "websocket",
+      "endpoint": "deeptutor.api.routers.question.websocket_mimic_generate",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/sessions",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.sessions.list_sessions",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/sessions/{session_id}",
+      "method": "DELETE",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.sessions.delete_session",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/sessions/{session_id}",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.sessions.get_session",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/sessions/{session_id}",
+      "method": "PATCH",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.sessions.rename_session",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/sessions/{session_id}/messages/{message_id}/feedback",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.submit_message_feedback",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/sessions/{session_id}/quiz-results",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.sessions.record_quiz_results",
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/settings",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.settings.get_settings",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/settings/apply",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.settings.apply_catalog",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/settings/catalog",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.settings.get_catalog",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/settings/catalog",
+      "method": "PUT",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.settings.update_catalog",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/settings/language",
+      "method": "PUT",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.settings.update_language",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/settings/llm-options",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.settings.get_llm_options",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/settings/reset",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.settings.reset_settings",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/settings/sidebar",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.settings.get_sidebar_settings",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/settings/sidebar/description",
+      "method": "PUT",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.settings.update_sidebar_description",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/settings/sidebar/nav-order",
+      "method": "PUT",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.settings.update_sidebar_nav_order",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/settings/tests/{service}/start",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.settings.start_service_test",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/settings/tests/{service}/{run_id}/cancel",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.settings.cancel_service_test",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/settings/tests/{service}/{run_id}/events",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.settings.stream_service_test_events",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/settings/theme",
+      "method": "PUT",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.settings.update_theme",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/settings/themes",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.settings.get_themes",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/settings/tour/complete",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.settings.complete_tour",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/settings/tour/reopen",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.settings.reopen_tour",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/settings/tour/status",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.settings.tour_status",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/settings/ui",
+      "method": "PUT",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.settings.update_ui_settings",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/solve",
+      "method": "WS",
+      "kind": "websocket",
+      "endpoint": "deeptutor.api.routers.solve.websocket_solve",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/solve/sessions",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.solve.list_solver_sessions",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/solve/sessions/{session_id}",
+      "method": "DELETE",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.solve.delete_solver_session",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/solve/sessions/{session_id}",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.solve.get_solver_session",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/system/contracts-index",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.system.get_contracts_index",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/system/learner-state-contract",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.system.get_learner_state_contract",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/system/public-capabilities",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.system.get_public_capabilities",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": true,
+      "public_reason": "system public capability advertisement",
+      "classification": "explicit_public"
+    },
+    {
+      "path": "/api/v1/system/runtime-topology",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.system.get_runtime_topology",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/system/status",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.system.get_system_status",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/system/test/embeddings",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.system.test_embeddings_connection",
+      "all_dependency_names": [
+        "_rate_limit_dependency",
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/system/test/llm",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.system.test_llm_connection",
+      "all_dependency_names": [
+        "_rate_limit_dependency",
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/system/test/search",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.system.test_search_connection",
+      "all_dependency_names": [
+        "_rate_limit_dependency",
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/system/turn-contract",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.system.get_turn_contract",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/tutor-state/{user_id}",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.tutor_state.get_tutor_state",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_self_or_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "self_or_admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/tutor-state/{user_id}/context",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.tutor_state.get_tutor_state_context",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_self_or_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "self_or_admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/tutor-state/{user_id}/heartbeat-arbitration",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.tutor_state.get_tutor_state_heartbeat_arbitration_history",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_self_or_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "self_or_admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/tutor-state/{user_id}/heartbeat-history",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.tutor_state.get_tutor_state_heartbeat_history",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_self_or_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "self_or_admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/tutor-state/{user_id}/overlay/{bot_id}",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.tutor_state.get_tutor_state_overlay",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_self_or_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "self_or_admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/tutor-state/{user_id}/overlay/{bot_id}",
+      "method": "PATCH",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.tutor_state.patch_tutor_state_overlay",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/tutor-state/{user_id}/overlay/{bot_id}/audit",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.tutor_state.get_tutor_state_overlay_audit",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_self_or_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "self_or_admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/tutor-state/{user_id}/overlay/{bot_id}/events",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.tutor_state.get_tutor_state_overlay_events",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_self_or_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "self_or_admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/tutor-state/{user_id}/overlay/{bot_id}/promotions/ack",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.tutor_state.ack_tutor_state_overlay_promotions",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/tutor-state/{user_id}/overlay/{bot_id}/promotions/apply",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.tutor_state.apply_tutor_state_overlay_promotions",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/tutor-state/{user_id}/overlay/{bot_id}/promotions/drop",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.tutor_state.drop_tutor_state_overlay_promotions",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/tutor-state/{user_id}/overlays",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.tutor_state.get_tutor_state_overlays",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_self_or_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "self_or_admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/tutorbot",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.tutorbot.list_bots",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/tutorbot",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.tutorbot.create_and_start_bot",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/tutorbot/recent",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.tutorbot.recent_bots",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/tutorbot/souls",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.tutorbot.list_souls",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/tutorbot/souls",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.tutorbot.create_soul",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/tutorbot/souls/{soul_id}",
+      "method": "DELETE",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.tutorbot.delete_soul",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/tutorbot/souls/{soul_id}",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.tutorbot.get_soul",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/tutorbot/souls/{soul_id}",
+      "method": "PUT",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.tutorbot.update_soul",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/tutorbot/{bot_id}",
+      "method": "DELETE",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.tutorbot.stop_bot",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/tutorbot/{bot_id}",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.tutorbot.get_bot",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/tutorbot/{bot_id}",
+      "method": "PATCH",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.tutorbot.update_bot",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/tutorbot/{bot_id}/destroy",
+      "method": "DELETE",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.tutorbot.destroy_bot",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/tutorbot/{bot_id}/files",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.tutorbot.list_bot_files",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/tutorbot/{bot_id}/files/{filename}",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.tutorbot.read_bot_file",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/tutorbot/{bot_id}/files/{filename}",
+      "method": "PUT",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.tutorbot.write_bot_file",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/tutorbot/{bot_id}/history",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.tutorbot.get_bot_history",
+      "all_dependency_names": [
+        "get_current_user",
+        "require_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/vision/analyze",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.vision_solver.analyze_image",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/vision/solve",
+      "method": "WS",
+      "kind": "websocket",
+      "endpoint": "deeptutor.api.routers.vision_solver.websocket_vision_solve",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/api/v1/wechat/mp/bind-phone",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.wechat_bind_phone",
+      "all_dependency_names": [
+        "_rate_limit_dependency"
+      ],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": true,
+      "public_reason": "anonymous wechat mp phone bind (rate-limited)",
+      "classification": "explicit_public"
+    },
+    {
+      "path": "/api/v1/wechat/mp/login",
+      "method": "POST",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.mobile.wechat_login",
+      "all_dependency_names": [
+        "_rate_limit_dependency"
+      ],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": true,
+      "public_reason": "anonymous wechat mp login (rate-limited)",
+      "classification": "explicit_public"
+    },
+    {
+      "path": "/api/v1/ws",
+      "method": "WS",
+      "kind": "websocket",
+      "endpoint": "deeptutor.api.routers.unified_ws.unified_websocket",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "anonymous_no_ratelimit"
+    },
+    {
+      "path": "/healthz",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.main.healthz",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": true,
+      "public_reason": "k8s liveness probe",
+      "classification": "explicit_public"
+    },
+    {
+      "path": "/metrics",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.main.metrics",
+      "all_dependency_names": [
+        "require_metrics_access"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/metrics/prometheus",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.main.metrics_prometheus",
+      "all_dependency_names": [
+        "require_metrics_access"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "admin",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/readyz",
+      "method": "GET",
+      "kind": "http",
+      "endpoint": "deeptutor.api.main.readyz",
+      "all_dependency_names": [],
+      "has_auth_dep": false,
+      "auth_dep_kind": null,
+      "has_rate_limit_dep": false,
+      "is_public_marker": true,
+      "public_reason": "k8s readiness probe",
+      "classification": "explicit_public"
+    }
+  ]
+}
