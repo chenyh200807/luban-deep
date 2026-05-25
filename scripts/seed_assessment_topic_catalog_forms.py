@@ -78,12 +78,24 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true", help="Build/read forms without writing assessment_forms.")
     parser.add_argument("--persist", action="store_true", help="Persist active forms into assessment_forms.")
     parser.add_argument("--json", action="store_true", help="Print machine-readable JSON.")
+    parser.add_argument("--out-json", default="", help="Write audit payload JSON to this path.")
+    parser.add_argument("--out-md", default="", help="Write audit summary Markdown to this path.")
+    parser.add_argument("--reviewed-json", default="", help="Reviewed dry-run JSON required before --persist.")
+    parser.add_argument("--require-target-main", action="store_true", help="Require DeepTutor main DB guard before --persist.")
+    parser.add_argument("--idempotency-key", default="", help="Required operator idempotency key for --persist.")
     args = parser.parse_args()
 
     if args.dry_run and args.persist:
         raise SystemExit("--dry-run and --persist are mutually exclusive")
     if not args.dry_run and not args.persist:
         args.dry_run = True
+    if args.persist:
+        if not args.reviewed_json:
+            raise SystemExit("reviewed_json_required_for_persist")
+        if not args.require_target_main:
+            raise SystemExit("target_database_guard_required")
+        if not args.idempotency_key:
+            raise SystemExit("idempotency_key_required_for_persist")
 
     _load_env()
     if args.persist:
@@ -124,11 +136,41 @@ def main() -> int:
             _print_row(row)
 
     payload = {"persist": bool(args.persist), "topics": rows}
+    if args.out_json:
+        _write_json(Path(args.out_json), payload)
+    if args.out_md:
+        _write_md(Path(args.out_md), payload)
     if args.json:
         print(json.dumps(payload, ensure_ascii=False, indent=2))
         return 0
 
     return 0
+
+
+def _write_json(path: Path, payload: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def _write_md(path: Path, payload: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lines = [
+        "# Assessment Topic Catalog Form Bank Audit",
+        "",
+        "| topic_id | status | form_count | persisted | source |",
+        "| --- | --- | ---: | --- | --- |",
+    ]
+    for row in payload.get("topics") or []:
+        lines.append(
+            "| {topic_id} | {status} | {form_count} | {persisted} | {form_source} |".format(
+                topic_id=row.get("topic_id", ""),
+                status=row.get("status", ""),
+                form_count=row.get("form_count", 0),
+                persisted=row.get("persisted", False),
+                form_source=row.get("form_source", ""),
+            )
+        )
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def _print_row(row: dict[str, Any]) -> None:

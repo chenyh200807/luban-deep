@@ -335,6 +335,48 @@ function stringify(value) {
     assert(loaded.createPayloads[0].topic_ids[0] === "waterproof", "create should use selected enabled topic");
   });
 
+  await run("authoring needed topic is fail-closed even if backend sends enabled true", async function () {
+    var loaded = loadPage({
+      getAssessmentTopics: function () {
+        return Promise.resolve({
+          recommendation: {
+            recommended_mode: "topic",
+            recommended_topic_id: "safety",
+            recommended_count: 12,
+            reason: "安全管理薄弱",
+          },
+          topics: [
+            {
+              topic_id: "safety",
+              label: "安全管理",
+              status: "authoring_needed",
+              enabled: true,
+              form_count: 1,
+            },
+            {
+              topic_id: "waterproof",
+              label: "防水工程",
+              status: "stable",
+              enabled: true,
+              form_count: 5,
+            },
+          ],
+        });
+      },
+    });
+    loaded.page.onLoad();
+    await flushPromises();
+
+    var safety = loaded.page.data.topicCatalog.find(function (item) {
+      return item.topicId === "safety";
+    });
+    assert(safety.enabled === false, "authoring_needed must override backend enabled=true");
+    assert(safety.statusLabel === "待补题", "authoring_needed should show 待补题");
+    assert(loaded.page.data.assessmentMode === "diagnostic", "recommendation must not auto-enter authoring_needed topic");
+    assert(loaded.page.data.recommendedMode === "diagnostic", "recommended mode should fail closed to diagnostic");
+    assert(loaded.page.data.selectedTopicId === "waterproof", "first enabled stable topic should remain selectable");
+  });
+
   await run("P0A start uses topic diagnostic request and redacted pre-submit payload", async function () {
     var loaded = loadPage();
     loaded.page.onSelectAssessmentMode({ currentTarget: { dataset: { mode: "topic" } } });

@@ -27,6 +27,18 @@ def test_diagnostic_v1_has_20_units_with_16_scored_and_4_profile() -> None:
     assert sum(section.count for section in blueprint.sections if not section.scored) == 4
 
 
+def test_real_exam_simulation_mini_has_20_scored_items_and_safe_identity() -> None:
+    blueprint = get_assessment_blueprint("real_exam_simulation_mini_v1")
+
+    assert blueprint.version == "real_exam_simulation_mini_v1"
+    assert blueprint.assessment_type == "real_exam_simulation"
+    assert blueprint.subject_id == "construction_exam"
+    assert blueprint.requested_count == 20
+    assert blueprint.scored_count == 20
+    assert blueprint.profile_count == 0
+    assert all(section.scored for section in blueprint.sections)
+
+
 def test_calculation_is_optional_and_structured_judgment_is_fallback() -> None:
     blueprint = get_assessment_blueprint("diagnostic_v1")
     comprehensive = next(section for section in blueprint.sections if section.id == "comprehensive_application")

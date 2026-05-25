@@ -2562,6 +2562,65 @@ def test_topic_diagnostic_submit_uses_selected_topic_label(
     assert result["topic_ids"] == ["main_structure"]
 
 
+def test_assessment_deep_explanation_reads_submitted_report_without_score_mutation(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    session = service._assessment_session_repository.create_session(
+        user_id="student_demo",
+        assessment_type="topic_diagnostic",
+        subject_id="construction_exam",
+        topic_ids=["waterproof"],
+        blueprint_version="topic_waterproof_v1",
+        form_id="topic_waterproof_v1_form_1",
+        client_questions_public=[
+            {
+                "question_id": "q1",
+                "question_stem": "防水题",
+                "options": [{"key": "A", "text": "A"}, {"key": "B", "text": "B"}],
+            }
+        ],
+        session_questions_private=[
+            {
+                "question_id": "q1",
+                "source_question_id": "src_q1",
+                "question_type": "single_choice",
+                "question_stem": "防水题",
+                "chapter": "防水工程",
+                "section_id": "waterproof",
+                "section_label": "防水工程",
+                "answer": "A",
+                "scored": True,
+                "simple_explanation": "防水节点要先判断构造层次。",
+                "knowledge_points": ["地下防水"],
+                "options": [{"key": "A", "text": "A"}, {"key": "B", "text": "B"}],
+            }
+        ],
+        device_id="",
+    )
+    monkeypatch.setattr(service, "_schedule_topic_diagnostic_writeback", lambda **_kwargs: None)
+
+    report = service.submit_assessment(
+        "student_demo",
+        session["quiz_id"],
+        {"q1": "B"},
+        time_spent_seconds=30,
+    )
+    before_score = report["score_summary"]
+
+    result = service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1")
+    stored = service.get_assessment_report("student_demo", session["quiz_id"])
+
+    assert result["cache_status"] == "static_projection"
+    assert result["explanation"]["score_mutation_allowed"] is False
+    assert result["explanation"]["learner_answer"] == "B"
+    assert result["explanation"]["correct_answer"] == "A"
+    assert "构造层次" in result["explanation"]["summary"]
+    assert stored["score_summary"] == before_score
+
+
 def test_sparse_member_mastery_is_coverage_adjusted_for_report_analytics(tmp_path: Path) -> None:
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"

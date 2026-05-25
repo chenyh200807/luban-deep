@@ -43,6 +43,10 @@ from deeptutor.services.assessment import (
 from deeptutor.services.assessment.learning_evidence import (
     build_assessment_learning_evidence_batch,
 )
+from deeptutor.services.assessment.deep_explanation import (
+    build_explanation_cache_key,
+    build_static_deep_explanation,
+)
 from deeptutor.services.assessment.report_read_model import build_result_report
 from deeptutor.services.assessment.scoring import score_assessment
 from deeptutor.services.assessment.session_repository import (
@@ -5212,6 +5216,57 @@ class MemberConsoleService:
         if not report:
             raise KeyError(f"Assessment report not ready: {quiz_id}")
         return deepcopy(report)
+
+    def get_assessment_deep_explanation(self, user_id: str, quiz_id: str, question_id: str) -> dict[str, Any]:
+        try:
+            session = self._assessment_session_repository.private_session(user_id, quiz_id)
+        except AssessmentSessionError as exc:
+            raise KeyError(str(exc)) from exc
+        report = session.get("result_report_json")
+        if not report:
+            raise KeyError(f"Assessment report not ready: {quiz_id}")
+        private_questions = list(session.get("session_questions_private") or [])
+        normalized_question_id = str(question_id or "").strip()
+        report_item = {}
+        for item in list(report.get("wrong_items") or []) + list(report.get("items") or []):
+            if str(item.get("question_id") or "") == normalized_question_id:
+                report_item = dict(item)
+                break
+        question = next(
+            (
+                item
+                for item in private_questions
+                if str(item.get("question_id") or item.get("source_question_id") or "") == normalized_question_id
+            ),
+            {},
+        )
+        if question and report_item:
+            question = {**report_item, **question}
+        if not question and report_item:
+            question = dict(report_item)
+        if not question:
+            raise KeyError(f"Unknown assessment question: {question_id}")
+        learner_answer = str(question.get("learner_answer") or "")
+        correct_answer = str(question.get("correct_answer") or question.get("answer") or "")
+        explanation = build_static_deep_explanation(
+            question=question,
+            learner_answer=learner_answer,
+            correct_answer=correct_answer,
+        )
+        cache_key = build_explanation_cache_key(
+            quiz_id,
+            normalized_question_id,
+            hashlib.sha256(learner_answer.encode("utf-8")).hexdigest(),
+            hashlib.sha256(json.dumps(question, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest(),
+            "p1-v1",
+        )
+        return {
+            "quiz_id": quiz_id,
+            "question_id": normalized_question_id,
+            "cache_key": cache_key,
+            "cache_status": "static_projection",
+            "explanation": explanation,
+        }
 
     def _find_member_by_external_auth(
         self,

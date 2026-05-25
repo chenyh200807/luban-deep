@@ -3595,6 +3595,41 @@ def test_mobile_assessment_topics_routes_delegate_with_auth_user(
     assert calls == [("topics", "student_demo")]
 
 
+def test_mobile_assessment_deep_explanation_delegates_without_chat_side_effects(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[str, str, str]] = []
+
+    class FakeMemberService:
+        def get_assessment_deep_explanation(self, user_id: str, quiz_id: str, question_id: str):
+            calls.append((user_id, quiz_id, question_id))
+            return {
+                "quiz_id": quiz_id,
+                "question_id": question_id,
+                "cache_status": "miss",
+                "explanation": {"summary": "先看防水节点构造。"},
+            }
+
+    monkeypatch.setattr(mobile_module, "member_service", FakeMemberService())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "turn_runtime",
+        SimpleNamespace(start_turn=AsyncMock(side_effect=AssertionError("assessment explanation must not start a turn"))),
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post("/api/v1/assessment/quiz_1/items/q1/explain")
+
+    assert response.status_code == 200
+    assert response.json()["explanation"]["summary"] == "先看防水节点构造。"
+    assert calls == [("student_demo", "quiz_1", "q1")]
+
+
 @pytest.mark.parametrize("event_limit", [0, 501, -1])
 def test_mobile_learning_report_rejects_event_limit_out_of_range(
     event_limit: int,
