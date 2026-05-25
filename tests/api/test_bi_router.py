@@ -887,6 +887,53 @@ def test_bi_invite_test_application_update_requires_idempotency_and_dedupes_audi
         assert updated["status"] == "contacted"
 
 
+def test_bi_invite_test_application_delete_requires_idempotency_and_dedupes_audit(
+    bi_service: BIService,
+) -> None:
+    """invite_test_application_delete archives an application through the audited write gate."""
+    app = _build_app(bi_service)
+    app.dependency_overrides[bi_router_module.require_bi_access] = (
+        lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
+    )
+    app.dependency_overrides[bi_router_module.require_bi_admin] = (
+        lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
+    )
+
+    with TestClient(app) as client:
+        missing_key = client.request(
+            "DELETE",
+            "/api/v1/bi/invite-test/applications/invite-app-1",
+            json={"reason": "重复提交，运营删除"},
+        )
+        assert missing_key.status_code == 400
+        assert "X-Idempotency-Key" in missing_key.json()["detail"]
+
+        first = client.request(
+            "DELETE",
+            "/api/v1/bi/invite-test/applications/invite-app-1",
+            headers={"X-Idempotency-Key": "invite-delete-key-1"},
+            json={"reason": "重复提交，运营删除"},
+        )
+        assert first.status_code == 200
+        first_body = first.json()
+        assert first_body["audit_id"] == "audit_feedback_1"
+        assert first_body["deduped"] is False
+        assert first_body["deleted"] is True
+        assert first_body["application"]["status"] == "archived"
+
+        retry = client.request(
+            "DELETE",
+            "/api/v1/bi/invite-test/applications/invite-app-1",
+            headers={"X-Idempotency-Key": "invite-delete-key-1"},
+            json={"reason": "重复提交，运营删除"},
+        )
+        assert retry.status_code == 200
+        retry_body = retry.json()
+        assert retry_body["audit_id"] == first_body["audit_id"]
+        assert retry_body["deduped"] is True
+        assert len(bi_service._member_service.audit_log) == 1  # noqa: SLF001
+
+
 def test_bi_member_ops_action_requires_idempotency_and_dedupes_audit(
     bi_service: BIService,
 ) -> None:

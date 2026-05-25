@@ -79,8 +79,11 @@ async function mockInviteApplicationApis(
   page: import("@playwright/test").Page,
   capture: {
     patchBody?: Record<string, unknown>;
+    deleteBody?: Record<string, unknown>;
     idempotencyKey?: string;
+    deleteIdempotencyKey?: string;
     authorization?: string;
+    deleteAuthorization?: string;
   },
 ) {
   let currentApplication = { ...BASE_APPLICATION };
@@ -129,6 +132,23 @@ async function mockInviteApplicationApis(
         }),
       });
     }
+    if (request.method() === "DELETE") {
+      capture.deleteIdempotencyKey = request.headers()["x-idempotency-key"];
+      capture.deleteAuthorization = request.headers().authorization;
+      capture.deleteBody = request.postDataJSON() as Record<string, unknown>;
+      currentApplication = { ...currentApplication, status: "archived" };
+      return route.fulfill({
+        status: 200,
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          audit_id: "audit_invite_delete_1",
+          deduped: false,
+          deleted: true,
+          application: currentApplication,
+          storage_status: "ok",
+        }),
+      });
+    }
 
     return route.fulfill({
       status: 200,
@@ -136,9 +156,9 @@ async function mockInviteApplicationApis(
       body: JSON.stringify({
         window_days: 365,
         storage_status: "ok",
-        total: 1,
+        total: currentApplication.status === "archived" ? 0 : 1,
         contact_revealed: true,
-        items: [currentApplication],
+        items: currentApplication.status === "archived" ? [] : [currentApplication],
       }),
     });
   });
@@ -190,4 +210,30 @@ test("BI feedback invite-test applications can be edited through the audited end
 
   await expect(dialog.getByLabel("状态")).toHaveValue("contacted");
   await expect(dialog.getByLabel("手机号")).toHaveValue("13900005019");
+});
+
+test("BI feedback invite-test applications can be deleted through the audited endpoint", async ({
+  page,
+}) => {
+  const capture: {
+    deleteBody?: Record<string, unknown>;
+    deleteIdempotencyKey?: string;
+    deleteAuthorization?: string;
+  } = {};
+
+  await installAdminSession(page);
+  await mockFeedbackReads(page);
+  await mockInviteApplicationApis(page, capture);
+
+  await page.goto("/bi?tab=feedback&panel=invite-test");
+
+  await expect(page.getByText("Codex编辑验证")).toBeVisible();
+  await page.getByRole("button", { name: "删除内测申请 app-edit-1" }).click();
+  await page.getByRole("button", { name: "确认删除内测申请 app-edit-1" }).click();
+
+  await expect.poll(() => capture.deleteBody?.reason).toBe("admin_deleted_from_bi");
+  expect(capture.deleteIdempotencyKey).toBeTruthy();
+  expect(capture.deleteAuthorization).toBe(`Bearer ${ADMIN_SESSION.token}`);
+  await expect(page.getByText("Codex编辑验证")).toHaveCount(0);
+  await expect(page.getByText("暂无内测申请")).toBeVisible();
 });

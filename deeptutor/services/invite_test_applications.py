@@ -427,7 +427,8 @@ class InviteTestApplicationStore:
 
     async def get_stats(self, *, days: int = 365) -> dict[str, Any]:
         storage_status, rows = await self._load_rows(days=days)
-        normalized = [normalize_invite_test_application(row, reveal_contact=False) for row in rows]
+        visible_rows = self._filter_rows(rows)
+        normalized = [normalize_invite_test_application(row, reveal_contact=False) for row in visible_rows]
         status_counter = Counter(item["status"] or "submitted" for item in normalized)
         source_counter = Counter(item["source_page"] or "unknown" for item in normalized)
         exam_type_counter = Counter(item["exam_type"] or "unknown" for item in normalized)
@@ -989,7 +990,10 @@ class InviteTestApplicationStore:
         query = _text(q).lower()
         result: list[dict[str, Any]] = []
         for row in rows:
-            if status_filter and _text(_field(row, "status")).lower() != status_filter:
+            row_status = _text(_field(row, "status")).lower()
+            if not status_filter and row_status == "archived":
+                continue
+            if status_filter and row_status != status_filter:
                 continue
             if source_filter and _text(_field(row, "source_page", "sourcePage")).lower() != source_filter:
                 continue
