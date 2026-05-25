@@ -189,6 +189,8 @@ def build_topic_assessment_blueprint(topic_id: str) -> AssessmentBlueprint:
     return AssessmentBlueprint(
         version=spec.blueprint_version,
         requested_count=12,
+        assessment_type="topic_diagnostic",
+        subject_id="construction_exam",
         sections=tuple(
             AssessmentSection(
                 id=f"{spec.topic_id}_{section.id}",

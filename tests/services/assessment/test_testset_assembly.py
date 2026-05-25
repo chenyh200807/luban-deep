@@ -10,6 +10,7 @@ from deeptutor.services.assessment.blueprint_service import (
     StaticAssessmentQuestionProvider,
     SupabaseAssessmentQuestionProvider,
 )
+from deeptutor.services.assessment.blueprint import real_exam_source_policy
 
 
 def _candidate(index: int, *, stem: str | None = None, source_id: str | None = None) -> QuestionCandidate:
@@ -227,3 +228,56 @@ def test_supabase_provider_fetches_more_when_strict_topic_window_is_sparse() -> 
     assert len(candidates) == 4
     assert all("防水" in candidate.question_stem for candidate in candidates)
     assert provider.call_count >= 2
+
+
+def test_real_exam_simulation_mini_assembles_20_items_without_official_claim() -> None:
+    candidates = [
+        QuestionCandidate(
+            source_question_id=f"real_exam_{index}",
+            question_stem=f"真题样式第 {index} 题，考查建筑实务综合能力。",
+            question_type="single_choice" if index % 4 else "multi_choice",
+            chapter="建筑实务",
+            options=(("A", "正确做法"), ("B", "错误做法"), ("C", "干扰项"), ("D", "干扰项")),
+            answer="A" if index % 4 else "AB",
+            difficulty="medium",
+            source_type="REAL_EXAM",
+            source_meta={"semantic_signature": f"real_exam_sig_{index}"},
+        )
+        for index in range(120)
+    ]
+    service = AssessmentBlueprintService(
+        blueprint=get_assessment_blueprint("real_exam_simulation_mini_v1"),
+        provider=StaticAssessmentQuestionProvider(candidates),
+    )
+
+    payload = service.create_session(
+        user_id="student_demo",
+        count=20,
+        assessment_type="real_exam_simulation",
+        subject_id="construction_exam",
+    )
+
+    assert payload["assessment_type"] == "real_exam_simulation"
+    assert payload["blueprint_version"] == "real_exam_simulation_mini_v1"
+    assert payload["requested_count"] == 20
+    assert payload["delivered_count"] == 20
+    assert all(question["scored"] for question in payload["questions"])
+    assert "answer" not in payload["questions"][0]
+
+
+def test_real_exam_copy_policy_never_claims_official_without_signoff() -> None:
+    reviewed = real_exam_source_policy(
+        real_exam_share=1.0,
+        provenance_ok=True,
+        teaching_signoff=False,
+    )
+    low_share = real_exam_source_policy(
+        real_exam_share=0.2,
+        provenance_ok=True,
+        teaching_signoff=True,
+    )
+
+    assert "官方真题" not in reviewed["user_copy"]
+    assert reviewed["source_policy_label"] == "真题样式测评"
+    assert low_share["source_policy_label"] == "综合模拟测评"
+    assert "真题样式" not in low_share["user_copy"]

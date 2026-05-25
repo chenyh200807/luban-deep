@@ -27,6 +27,8 @@ class AssessmentBlueprint:
     version: str
     requested_count: int
     sections: tuple[AssessmentSection, ...]
+    assessment_type: str = "diagnostic"
+    subject_id: str = "construction_exam"
 
     @property
     def scored_count(self) -> int:
@@ -171,10 +173,96 @@ TOPIC_WATERPROOF_V1 = AssessmentBlueprint(
 )
 
 
+REAL_EXAM_SIMULATION_MINI_V1 = AssessmentBlueprint(
+    version="real_exam_simulation_mini_v1",
+    requested_count=20,
+    assessment_type="real_exam_simulation",
+    subject_id="construction_exam",
+    sections=(
+        AssessmentSection(
+            id="real_exam_foundation_structure",
+            label="地基基础 / 主体结构",
+            count=4,
+            scored=True,
+            question_types=("single_choice", "multi_choice", "case_study"),
+            fallback_question_types=("single_choice", "multi_choice", "structured_judgment"),
+            topics=("地基基础", "主体结构", "混凝土", "钢筋"),
+            minimum_multiplier=MIN_FORM_ROTATION_COUNT,
+        ),
+        AssessmentSection(
+            id="real_exam_waterproof_decoration_mep",
+            label="防水 / 装饰 / 机电",
+            count=4,
+            scored=True,
+            question_types=("single_choice", "multi_choice", "case_study"),
+            fallback_question_types=("single_choice", "multi_choice", "structured_judgment"),
+            topics=("防水", "装饰", "机电"),
+            minimum_multiplier=MIN_FORM_ROTATION_COUNT,
+        ),
+        AssessmentSection(
+            id="real_exam_formwork_safety",
+            label="模板脚手架 / 安全",
+            count=4,
+            scored=True,
+            question_types=("single_choice", "multi_choice", "case_study"),
+            fallback_question_types=("single_choice", "multi_choice", "structured_judgment"),
+            topics=("模板", "脚手架", "安全"),
+            minimum_multiplier=MIN_FORM_ROTATION_COUNT,
+        ),
+        AssessmentSection(
+            id="real_exam_schedule_claim",
+            label="进度计划 / 合同索赔",
+            count=4,
+            scored=True,
+            question_types=("single_choice", "multi_choice", "case_study"),
+            fallback_question_types=("single_choice", "multi_choice", "structured_judgment"),
+            topics=("进度计划", "网络计划", "合同", "索赔"),
+            minimum_multiplier=MIN_FORM_ROTATION_COUNT,
+        ),
+        AssessmentSection(
+            id="real_exam_quality_comprehensive",
+            label="质量验收 / 综合应用",
+            count=4,
+            scored=True,
+            question_types=("single_choice", "multi_choice", "case_study"),
+            fallback_question_types=("single_choice", "multi_choice", "structured_judgment"),
+            topics=("质量验收", "检验批", "综合案例", "计算"),
+            minimum_multiplier=MIN_FORM_ROTATION_COUNT,
+        ),
+    ),
+)
+
+
 _BLUEPRINTS = {
     DIAGNOSTIC_V1.version: DIAGNOSTIC_V1,
     TOPIC_WATERPROOF_V1.version: TOPIC_WATERPROOF_V1,
+    REAL_EXAM_SIMULATION_MINI_V1.version: REAL_EXAM_SIMULATION_MINI_V1,
 }
+
+
+def real_exam_source_policy(
+    *,
+    real_exam_share: float,
+    provenance_ok: bool = False,
+    teaching_signoff: bool = False,
+) -> dict[str, str | float | bool]:
+    share = max(0.0, min(1.0, float(real_exam_share or 0.0)))
+    if share >= 0.6:
+        label = "真题样式测评"
+        copy = "本次真题样式测评用于校准综合应用能力，不代表官方考试分数。"
+    else:
+        label = "综合模拟测评"
+        copy = "本次综合模拟测评用于校准综合应用能力，不代表官方考试分数。"
+    if share >= 0.95 and provenance_ok and teaching_signoff:
+        official_allowed = True
+    else:
+        official_allowed = False
+    return {
+        "source_policy_label": label,
+        "user_copy": copy,
+        "real_exam_share": share,
+        "official_real_exam_label_allowed": official_allowed,
+    }
 
 
 def get_assessment_blueprint(version: str = "diagnostic_v1") -> AssessmentBlueprint:

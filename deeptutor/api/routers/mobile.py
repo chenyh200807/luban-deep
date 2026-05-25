@@ -2335,6 +2335,24 @@ async def assessment_report(
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
+@router.post("/assessment/{quiz_id}/items/{question_id}/explain")
+async def assessment_deep_explanation(
+    quiz_id: str,
+    question_id: str,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    try:
+        return member_service.get_assessment_deep_explanation(
+            _resolve_authenticated_user_id(authorization),
+            quiz_id,
+            question_id,
+        )
+    except RuntimeError as exc:
+        raise HTTPException(status_code=429, detail=str(exc)) from exc
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
 @router.post("/assessment/{quiz_id}/submit")
 async def assessment_submit(
     quiz_id: str,
