@@ -138,28 +138,59 @@ class SupabaseAssessmentQuestionProvider:
             selection_seed=f"{selection_seed}:{section.id}:{','.join(question_types_tuple)}",
             offset=_selection_offset(selection_seed, section.id),
         )
-        if len(candidates) < limit:
-            for offset in (1000, 2000, 3000, 4000):
-                fallback_candidates = self._get_candidates_for_types(
-                    base_url,
-                    api_key,
-                    section,
-                    question_types=question_types_tuple,
-                    limit=pool_limit,
-                    exclude_source_ids=exclude_source_ids,
-                    selection_seed=f"{selection_seed}:{section.id}:offset:{offset}",
-                    offset=offset,
-                )
-                candidates.extend(fallback_candidates)
-                if len({item.source_question_id for item in candidates}) >= limit:
-                    break
+        selected = self._select_from_supabase_candidates(
+            candidates,
+            section=section,
+            limit=limit,
+            selection_seed=selection_seed,
+            avoid_chapters=avoid_chapters or set(),
+        )
+        if len(selected) >= limit:
+            return selected
+
+        seen_offsets = {_selection_offset(selection_seed, section.id)}
+        for offset in (0, 1000, 2000, 3000, 4000):
+            if offset in seen_offsets:
+                continue
+            seen_offsets.add(offset)
+            fallback_candidates = self._get_candidates_for_types(
+                base_url,
+                api_key,
+                section,
+                question_types=question_types_tuple,
+                limit=pool_limit,
+                exclude_source_ids=exclude_source_ids,
+                selection_seed=f"{selection_seed}:{section.id}:offset:{offset}",
+                offset=offset,
+            )
+            candidates.extend(fallback_candidates)
+            selected = self._select_from_supabase_candidates(
+                candidates,
+                section=section,
+                limit=limit,
+                selection_seed=selection_seed,
+                avoid_chapters=avoid_chapters or set(),
+            )
+            if len(selected) >= limit:
+                break
+        return selected
+
+    @staticmethod
+    def _select_from_supabase_candidates(
+        candidates: list[QuestionCandidate],
+        *,
+        section: AssessmentSection,
+        limit: int,
+        selection_seed: str,
+        avoid_chapters: set[str],
+    ) -> list[QuestionCandidate]:
         unique_candidates = list({item.source_question_id: item for item in candidates}.values())
         return _select_diagnostic_candidates(
             unique_candidates,
             section=section,
             limit=limit,
             selection_seed=selection_seed,
-            avoid_chapters=avoid_chapters or set(),
+            avoid_chapters=avoid_chapters,
         )
 
     def _get_candidates_for_types(
@@ -447,7 +478,15 @@ class AssessmentBlueprintService:
             "persisted": True,
         }
 
-    def create_session(self, *, user_id: str, count: int = 20) -> dict[str, Any]:
+    def create_session(
+        self,
+        *,
+        user_id: str,
+        count: int = 20,
+        assessment_type: str = "diagnostic",
+        subject_id: str = "construction_exam",
+        topic_ids: tuple[str, ...] | list[str] | None = None,
+    ) -> dict[str, Any]:
         requested_count = max(1, int(count or self._blueprint.requested_count))
         if requested_count != self._blueprint.requested_count:
             requested_count = self._blueprint.requested_count
@@ -506,6 +545,9 @@ class AssessmentBlueprintService:
         return {
             "quiz_id": quiz_id,
             "user_id": user_id,
+            "assessment_type": str(assessment_type or "diagnostic").strip() or "diagnostic",
+            "subject_id": str(subject_id or "construction_exam").strip() or "construction_exam",
+            "topic_ids": [str(item).strip() for item in list(topic_ids or []) if str(item).strip()],
             "questions": client_questions,
             "session_questions": session_questions,
             "blueprint_version": self._blueprint.version,
@@ -603,6 +645,7 @@ class AssessmentBlueprintService:
     def _build_form_units(self, form_index: int) -> tuple[list[_AssessmentFormUnit], bool]:
         units: list[_AssessmentFormUnit] = []
         exclude_source_ids: set[str] = set()
+        exclude_semantic_signatures: set[str] = set()
         avoid_scored_chapters: set[str] = set()
         profile_probe_iter = iter(get_profile_probes())
         fallback_used = False
@@ -613,7 +656,7 @@ class AssessmentBlueprintService:
                 try:
                     candidates = self._provider.get_candidates(
                         section,
-                        limit=section.count,
+                        limit=max(section.count * max(section.minimum_multiplier, 1), section.count),
                         exclude_source_ids=exclude_source_ids,
                         selection_seed=selection_seed,
                         avoid_chapters=avoid_scored_chapters,
@@ -626,7 +669,7 @@ class AssessmentBlueprintService:
                 if len(candidates) < section.count and self._allow_dev_fallback and self._fallback_provider:
                     fallback_candidates = self._fallback_provider.get_candidates(
                         section,
-                        limit=section.count - len(candidates),
+                        limit=max((section.count - len(candidates)) * max(section.minimum_multiplier, 1), section.count - len(candidates)),
                         exclude_source_ids=exclude_source_ids | {item.source_question_id for item in candidates},
                         selection_seed=selection_seed,
                         avoid_chapters=avoid_scored_chapters,
@@ -634,13 +677,24 @@ class AssessmentBlueprintService:
                     fallback_candidates = _supported_click_assessment_candidates(fallback_candidates)
                     candidates.extend(fallback_candidates)
                     fallback_used = True
-                if len(candidates) < section.count:
+                section_candidates: list[QuestionCandidate] = []
+                for candidate in candidates:
+                    semantic_signature = _candidate_semantic_signature(candidate)
+                    if semantic_signature and semantic_signature in exclude_semantic_signatures:
+                        continue
+                    section_candidates.append(candidate)
+                    if len(section_candidates) >= section.count:
+                        break
+                if len(section_candidates) < section.count:
                     raise AssessmentBlueprintUnavailable(
                         f"Assessment blueprint {self._blueprint.version} section {section.id} "
-                        f"requires {section.count} scored questions, found {len(candidates)}"
+                        f"requires {section.count} scored questions, found {len(section_candidates)}"
                     )
-                for candidate in candidates[: section.count]:
+                for candidate in section_candidates:
                     exclude_source_ids.add(candidate.source_question_id)
+                    semantic_signature = _candidate_semantic_signature(candidate)
+                    if semantic_signature:
+                        exclude_semantic_signatures.add(semantic_signature)
                     avoid_scored_chapters.add(_chapter_key(candidate.chapter))
                     units.append(_AssessmentFormUnit(section_id=section.id, scored=True, item=candidate))
             else:
@@ -1023,12 +1077,16 @@ def _select_diagnostic_candidates(
     selection_seed: str,
     avoid_chapters: set[str],
 ) -> list[QuestionCandidate]:
+    filtered = list(candidates)
+    if section.strict_topics:
+        filtered = [candidate for candidate in filtered if _section_topic_score(candidate, section) > 0]
     ordered = _prioritize_section_topics(
-        _stable_shuffle_candidates(candidates, selection_seed),
+        _stable_shuffle_candidates(filtered, selection_seed),
         section=section,
     )
     selected: list[QuestionCandidate] = []
     used_ids: set[str] = set()
+    used_semantic_signatures: set[str] = set()
     used_chapters = {_chapter_key(item) for item in avoid_chapters if item}
     used_difficulties: set[str] = set()
     used_question_types: set[str] = set()
@@ -1048,8 +1106,13 @@ def _select_diagnostic_candidates(
         candidate = ordered.pop(best_index)
         if candidate.source_question_id in used_ids:
             continue
+        semantic_signature = _candidate_semantic_signature(candidate)
+        if semantic_signature and semantic_signature in used_semantic_signatures:
+            continue
         selected.append(candidate)
         used_ids.add(candidate.source_question_id)
+        if semantic_signature:
+            used_semantic_signatures.add(semantic_signature)
         used_chapters.add(_chapter_key(candidate.chapter))
         used_difficulties.add(_difficulty_key(candidate.difficulty))
         used_question_types.add(candidate.question_type)
@@ -1086,6 +1149,15 @@ def _section_topic_score(candidate: QuestionCandidate, section: AssessmentSectio
         if needle and needle in haystack:
             score += 1
     return score
+
+
+def _candidate_semantic_signature(candidate: QuestionCandidate) -> str:
+    source_meta = dict(candidate.source_meta or {})
+    for key in ("semantic_signature", "source_semantic_signature"):
+        value = str(source_meta.get(key) or "").strip()
+        if value:
+            return value
+    return ""
 
 
 def _balance_rank(

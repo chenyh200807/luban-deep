@@ -10,16 +10,35 @@ from pathlib import Path
 from deeptutor.services.source_compiler.psql import PsqlRunner, assert_target_database_is_main
 
 
+class ConfigError(RuntimeError):
+    pass
+
+
 def _run_dir(run_id: str) -> Path:
     path = Path("artifacts") / "knowledge_compiler" / "2026" / run_id
     path.mkdir(parents=True, exist_ok=True)
     return path
 
 
-def _db_url() -> str:
-    value = os.environ.get("DB_URL") or os.environ.get("DATABASE_URL")
+def _read_env_file(path: str) -> dict[str, str]:
+    env_path = Path(path)
+    if not env_path.exists():
+        raise ConfigError(f"env file not found: {env_path}")
+    values: dict[str, str] = {}
+    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        values[key.strip()] = value.strip().strip('"').strip("'")
+    return values
+
+
+def _db_url(env_file: str = "") -> str:
+    values = _read_env_file(env_file) if env_file else os.environ
+    value = values.get("DB_URL") or values.get("DATABASE_URL")
     if not value:
-        raise RuntimeError("DB_URL or DATABASE_URL is required for Supabase coverage dry-run.")
+        raise ConfigError("Missing DB_URL or DATABASE_URL. DB_URL or DATABASE_URL is required for Supabase coverage dry-run.")
     return value
 
 
@@ -76,10 +95,11 @@ def _write_markdown(path: Path, rows: list[dict[str, str]]) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--run-id", required=True)
+    parser.add_argument("--env", default="", help="Optional env file containing DB_URL or DATABASE_URL")
     args = parser.parse_args()
 
     try:
-        runner = PsqlRunner(_db_url())
+        runner = PsqlRunner(_db_url(args.env))
         assert_target_database_is_main(runner)
         rows = _metrics(runner)
         run_dir = _run_dir(args.run_id)
@@ -87,6 +107,9 @@ def main() -> int:
         _write_markdown(run_dir / "supabase_coverage.md", rows)
         print(f"coverage_metrics={len(rows)} questions_bank={runner.scalar('SELECT count(*) FROM public.questions_bank')}")
         return 0
+    except ConfigError as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
     except Exception as exc:  # noqa: BLE001 - CLI should fail closed with a clear message.
         print(str(exc), file=sys.stderr)
         return 1

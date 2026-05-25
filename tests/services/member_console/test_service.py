@@ -4,6 +4,7 @@ import asyncio
 import hashlib
 import json
 import logging
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import threading
@@ -2277,6 +2278,84 @@ def test_assessment_profile_exposes_observability_and_seed(tmp_path: Path) -> No
     assert profile["teaching_policy_seed"]["measurement_confidence"] == "low"
     assert profile["assessment_observability"]["completion_rate"] == 1
     assert profile["assessment_observability"]["policy_seed_status"] == "created"
+
+
+def test_topic_diagnostic_submit_returns_report_before_writeback_finishes(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    session = service._assessment_session_repository.create_session(
+        user_id="student_demo",
+        assessment_type="topic_diagnostic",
+        subject_id="construction_exam",
+        topic_ids=["waterproof"],
+        blueprint_version="topic_waterproof_v1",
+        form_id="topic_waterproof_v1_form_1",
+        client_questions_public=[
+            {
+                "question_id": "q1",
+                "question_stem": "防水题",
+                "options": [{"key": "A", "text": "A"}, {"key": "B", "text": "B"}],
+            }
+        ],
+        session_questions_private=[
+            {
+                "question_id": "q1",
+                "source_question_id": "src_q1",
+                "question_type": "single_choice",
+                "question_stem": "防水题",
+                "chapter": "防水工程",
+                "section_id": "waterproof",
+                "section_label": "防水工程",
+                "answer": "A",
+                "scored": True,
+                "provenance": {"node_code": "1A414010"},
+                "options": [{"key": "A", "text": "A"}, {"key": "B", "text": "B"}],
+            }
+        ],
+        device_id="",
+    )
+    started = threading.Event()
+    release = threading.Event()
+
+    class _SlowWritebackService:
+        def __init__(self, **_kwargs) -> None:
+            pass
+
+        def writeback(self, **_kwargs):
+            started.set()
+            release.wait(timeout=1)
+            return {
+                "learning_event_refs": [{"event_id": "evt_1", "question_id": "q1"}],
+                "mistake_book_refs": [],
+                "writeback_status": {"learning_event_count": 1, "mistake_book_count": 0},
+            }
+
+    monkeypatch.setattr(member_service_module, "AssessmentWritebackService", _SlowWritebackService)
+
+    result = service.submit_assessment(
+        "student_demo",
+        session["quiz_id"],
+        {"q1": "A"},
+        time_spent_seconds=30,
+    )
+
+    assert result["schema_version"] == "p0a-v1"
+    assert result["writeback_status"]["status"] == "pending"
+    assert started.wait(timeout=1)
+    assert service._assessment_session_repository.private_session("student_demo", session["quiz_id"]).get(
+        "learning_event_refs"
+    ) == []
+
+    release.set()
+    for _ in range(20):
+        stored = service._assessment_session_repository.private_session("student_demo", session["quiz_id"])
+        if stored.get("learning_event_refs"):
+            break
+        time.sleep(0.01)
+    assert stored["learning_event_refs"] == [{"event_id": "evt_1", "question_id": "q1"}]
 
 
 def test_sparse_member_mastery_is_coverage_adjusted_for_report_analytics(tmp_path: Path) -> None:

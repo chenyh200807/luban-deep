@@ -98,7 +98,7 @@ Stop and report before continuing if any item below is true:
 5. Client create/resume payload contains `answer`, `answer_key`, `correct_answer`, `grading_key`, `scoring_points`, `minimal_rationale`, `rubric`, `official_answer`, or `option_reasoning` before submit.
 6. Duplicate submit can duplicate learner events, attempt refs, or mistake-book rows.
 7. Any gate fails twice consecutively.
-8. `git -C /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 rev-parse --show-toplevel` does not resolve to `/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524` before staging or commit review.
+8. `git -C /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor rev-parse --show-toplevel` does not resolve to `/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor` before staging or commit review.
 9. Any Supabase write path lacks an explicit target-database guard, reviewed SQL, and rollback/degraded-mode plan.
 10. User-facing copy implies "full exam ability", "official real exam", or "long-term mastery updated" before the corresponding authority has produced that fact.
 11. P0A authoring backlog is required (no eligible topic has ≥10 candidates) but no signed handoff owner or delivery window has been recorded.
@@ -128,15 +128,15 @@ Stop and report before continuing if any item below is true:
 Before implementation or staging:
 
 ```bash
-cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 && pwd
-git -C /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 rev-parse --show-toplevel
-git -C /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 status --short --branch
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor && pwd
+git -C /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor rev-parse --show-toplevel
+git -C /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor status --short --branch
 ```
 
 Expected top-level:
 
 ```text
-/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524
+/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor
 ```
 
 If the top-level resolves to `/private/tmp/...`, do not stage, commit, or rely on `git diff` until the worktree authority is clarified. File edits may use absolute paths only, and the milestone report must call out that git evidence is unreliable.
@@ -166,48 +166,48 @@ If steps 1-4 are out of order or any step lacks signed evidence, halt under Hard
 
 Expected new files:
 
-- `docs/qa/2026-05-24-assessment-testset-p0a-reality-check.md`  
+- `docs/qa/2026-05-24-assessment-testset-p0a-reality-check.md`
   Phase -1 audit report and no-go register.
-- `scripts/audit_assessment_testset_p0a.py`  
+- `scripts/audit_assessment_testset_p0a.py`
   Read-only coverage, payload shape, topic, and downstream audit helper.
-- `deeptutor/services/assessment/session_repository.py`  
+- `deeptutor/services/assessment/session_repository.py`
   Durable session repository interface and Supabase implementation with local/dev adapter.
-- `deeptutor/services/assessment/scoring.py`  
+- `deeptutor/services/assessment/scoring.py`
   Objective scoring and measurement-confidence helpers.
-- `deeptutor/services/assessment/writeback.py`  
+- `deeptutor/services/assessment/writeback.py`
   Aggregate assessment event, per-item learning evidence, attempt refs, and mistake-book writeback.
-- `deeptutor/services/assessment/report_read_model.py`  
+- `deeptutor/services/assessment/report_read_model.py`
   Submitted session result report for mobile result pages.
-- `tests/services/assessment/test_testset_assembly.py`  
+- `tests/services/assessment/test_testset_assembly.py`
   P0A blueprint/form/session assembly tests.
-- `tests/services/assessment/test_scoring.py`  
+- `tests/services/assessment/test_scoring.py`
   Objective scoring and confidence tests.
-- `tests/services/assessment/test_writeback.py`  
+- `tests/services/assessment/test_writeback.py`
   Per-item evidence, idempotency, attempt refs, and mistake-book tests.
-- `tests/services/assessment/test_session_repository.py`  
+- `tests/services/assessment/test_session_repository.py`
   Repository contract tests for local and Supabase-shaped rows.
-- `tests/api/test_mobile_assessment_payload_redaction.py`  
+- `tests/api/test_mobile_assessment_payload_redaction.py`
   Snapshot/recursive forbidden-key test for pre-submit payloads.
-- `yousenwebview/tests/test_assessment_testset_view_model.js`  
+- `yousenwebview/tests/test_assessment_testset_view_model.js`
   Run/result view-model contract for P0A.
-- `supabase/migrations/<timestamp>_assessment_sessions.sql`  
+- `supabase/migrations/<timestamp>_assessment_sessions.sql`
   Durable session tables and RLS, created only after design review.
 
 Expected modified files:
 
-- `docs/plan/INDEX.md`  
+- `docs/plan/INDEX.md`
   Link this execution plan.
-- `deeptutor/services/assessment/blueprint.py`  
+- `deeptutor/services/assessment/blueprint.py`
   Add approved P0A blueprint variant only after coverage/signoff.
-- `deeptutor/services/assessment/blueprint_service.py`  
+- `deeptutor/services/assessment/blueprint_service.py`
   Extend create-session inputs and redacted client payload assembly.
-- `deeptutor/services/member_console/service.py`  
+- `deeptutor/services/member_console/service.py`
   Thin compatibility wrapper around new assessment services.
-- `deeptutor/api/routers/mobile.py`  
+- `deeptutor/api/routers/mobile.py`
   Extend request/response schema while keeping router thin.
-- `deeptutor/services/learner_state/learning_synthesis.py`  
+- `deeptutor/services/learner_state/learning_synthesis.py`
   Only if audit proves assessment evidence is not consumed by the canonical read path.
-- `deeptutor/services/learner_state/learning_report_read_model.py`  
+- `deeptutor/services/learner_state/learning_report_read_model.py`
   Only if needed to expose assessment evidence through the existing read model.
 - `yousenwebview/packageDeeptutor/pages/assessment/assessment.js`
 - `yousenwebview/packageDeeptutor/pages/assessment/assessment.wxml`
@@ -347,13 +347,13 @@ Rules:
 - [ ] Run current status:
 
 ```bash
-git -C /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 status --short --branch
+git -C /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor status --short --branch
 ```
 
 - [ ] Audit route and client entrypoints:
 
 ```bash
-cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 && \
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor && \
 rg -n "assessment/(create|profile|[^/]+/submit)|createAssessment|submitAssessment|assessment_type|quiz_id" \
   deeptutor/api/routers/mobile.py \
   yousenwebview/packageDeeptutor \
@@ -380,7 +380,7 @@ Acceptance:
 - [ ] Audit current blueprint topics:
 
 ```bash
-cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 && \
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor && \
 python - <<'PY'
 from deeptutor.services.assessment.blueprint import DIAGNOSTIC_V1
 for section in DIAGNOSTIC_V1.sections:
@@ -406,12 +406,12 @@ PY
 - [ ] Run both topic audits if Supabase credentials are available:
 
 ```bash
-cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 && \
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor && \
 python scripts/audit_assessment_testset_p0a.py --run-id p0a-phase-minus-1 --topic waterproof --read-only
 ```
 
 ```bash
-cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 && \
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor && \
 python scripts/audit_assessment_testset_p0a.py --run-id p0a-phase-minus-1 --topic waterproof_decoration_mep --read-only
 ```
 
@@ -474,7 +474,7 @@ FORBIDDEN_PRE_SUBMIT_KEYS = {
 - [ ] Run:
 
 ```bash
-cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 && \
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor && \
 PYTHONPATH=. pytest tests/api/test_mobile_assessment_payload_redaction.py -q
 ```
 
@@ -497,7 +497,7 @@ Acceptance:
 - [ ] Confirm current JSON storage with code references:
 
 ```bash
-cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 && \
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor && \
 rg -n "_data_path|assessment_sessions|def create_assessment|def submit_assessment" \
   deeptutor/services/member_console/service.py
 ```
@@ -533,7 +533,7 @@ Acceptance:
 - [ ] Run:
 
 ```bash
-cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 && \
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor && \
 rg -n "last_assessment" deeptutor/ web/ wx_miniprogram/ yousenwebview/
 ```
 
@@ -545,7 +545,7 @@ rg -n "last_assessment" deeptutor/ web/ wx_miniprogram/ yousenwebview/
 - [ ] Run:
 
 ```bash
-cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 && \
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor && \
 rg -n "source_feature == .construction_grading.|memory_kind == .learning_evidence.|assessment_testset|read_learning_evidence" \
   deeptutor/services/learner_state
 ```
@@ -568,7 +568,7 @@ Acceptance:
 - [ ] Inspect mobile auth boundary:
 
 ```bash
-cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 && \
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor && \
 rg -n "_resolve_authenticated_user_id|assessment_create|assessment_submit|quiz_id" deeptutor/api/routers/mobile.py
 ```
 
@@ -608,7 +608,7 @@ Acceptance:
 - [ ] Run:
 
 ```bash
-cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 && \
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor && \
 python scripts/audit_assessment_testset_p0a.py \
   --run-id p0a-phase-0 \
   --topic <approved-topic> \
@@ -705,7 +705,7 @@ Acceptance:
 Run:
 
 ```bash
-cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 && \
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor && \
 PYTHONPATH=. pytest \
   tests/services/assessment/test_testset_assembly.py \
   tests/api/test_mobile_router.py \
@@ -766,7 +766,7 @@ Acceptance:
 Run:
 
 ```bash
-cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 && \
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor && \
 PYTHONPATH=. pytest tests/services/assessment/test_session_repository.py -q
 ```
 
@@ -805,7 +805,7 @@ Acceptance:
 Run:
 
 ```bash
-cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 && \
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor && \
 PYTHONPATH=. pytest tests/services/assessment/test_scoring.py -q
 ```
 
@@ -860,7 +860,7 @@ assessment_item:{user_id}:{quiz_id}:{question_id}
 Run:
 
 ```bash
-cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 && \
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor && \
 PYTHONPATH=. pytest tests/services/assessment/test_writeback.py -q
 ```
 
@@ -909,7 +909,7 @@ Acceptance:
 Run:
 
 ```bash
-cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 && \
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor && \
 PYTHONPATH=. pytest \
   tests/api/test_mobile_assessment_payload_redaction.py \
   tests/api/test_mobile_router.py \
@@ -957,7 +957,7 @@ Acceptance:
 Run:
 
 ```bash
-cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 && \
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor && \
 node yousenwebview/tests/test_package_assessment_contract.js && \
 node yousenwebview/tests/test_assessment_testset_view_model.js
 ```
@@ -976,7 +976,7 @@ Acceptance:
 - [ ] Run backend gates:
 
 ```bash
-cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 && \
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor && \
 PYTHONPATH=. pytest \
   tests/services/assessment/test_blueprint_coverage.py \
   tests/services/assessment/test_testset_assembly.py \
@@ -992,7 +992,7 @@ PYTHONPATH=. pytest \
 - [ ] Run frontend gates:
 
 ```bash
-cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 && \
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor && \
 node yousenwebview/tests/test_package_assessment_contract.js && \
 node yousenwebview/tests/test_assessment_testset_view_model.js
 ```
@@ -1000,14 +1000,14 @@ node yousenwebview/tests/test_assessment_testset_view_model.js
 - [ ] Run contract guard:
 
 ```bash
-cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 && \
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor && \
 python scripts/check_contract_guard.py
 ```
 
 - [ ] Run artifact safety:
 
 ```bash
-cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 && \
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor && \
 git ls-files artifacts/
 ```
 
@@ -1130,7 +1130,7 @@ After each milestone, report:
 1. Files created/modified and line counts.
 2. Full stdout for targeted pytest/Node commands.
 3. PRD §13 gates completed, blocked, or deferred with evidence.
-4. `git -C /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 status --short`.
+4. `git -C /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor status --short`.
 5. Deviations from PRD and reason.
 6. Decisions required before next milestone.
 
