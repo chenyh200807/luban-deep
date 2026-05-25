@@ -97,6 +97,14 @@ function hasAssessmentSignal(raw) {
   return Object.keys(chapterMastery).length > 0;
 }
 
+function resolveAssessmentTrainingCapability(promptIntent) {
+  var intent = promptIntent && typeof promptIntent === "object" ? promptIntent : null;
+  if (!intent) return "";
+  var signal = String(intent.learning_signal_type || "").trim();
+  if (signal !== "assessment_wrong_item_practice") return "";
+  return "deep_question";
+}
+
 function isGenericFocusQuery(query) {
   var normalized = String(query || "").replace(/\s+/g, "");
   if (!normalized) return true;
@@ -2133,6 +2141,7 @@ Page({
         structuredSubmitContext: extraOpts && extraOpts.structuredSubmitContext,
         followupQuestionContext: extraOpts && extraOpts.followupQuestionContext,
         promptIntent: sendOptions.promptIntent,
+        capability: resolveAssessmentTrainingCapability(sendOptions.promptIntent),
         persistUserMessage: sendOptions.persistUserMessage,
         inferTitleOnStart: inferTitleOnStart,
       },
