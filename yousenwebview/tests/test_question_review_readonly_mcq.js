@@ -33,8 +33,16 @@ var state = aiMessageState.deriveAiMessageRenderState({
               correct_answer: "B",
             },
             review_notes: {
+              think_prompt: "先看题干和选项，想一想再看答案和解析。",
               display_answer: "B",
               analysis: "B 更符合规范。",
+              option_analysis: [
+                { key: "A", text: "方案A", verdict: "不正确", analysis: "A 是干扰项。" },
+                { key: "B", text: "方案B", verdict: "正确", analysis: "B 对应规范。" },
+              ],
+              scoring_points: ["抓题干限定词", "核对规范要求"],
+              pitfalls: ["把常见说法当规范结论"],
+              mnemonic: "先看题干，再找规范。",
             },
           },
         ],
@@ -59,7 +67,18 @@ assertEqual(
 assertEqual(state.mcqReviewMode, true, "question review renderer should know this is a review card");
 assertEqual(
   state.mcqCards[0].reviewNotes,
-  { displayAnswer: "B", analysis: "B 更符合规范。" },
+  {
+    thinkPrompt: "先看题干和选项，想一想再看答案和解析。",
+    displayAnswer: "B",
+    analysis: "B 更符合规范。",
+    optionAnalysis: [
+      { key: "A", text: "方案A", verdict: "不正确", analysis: "A 是干扰项。" },
+      { key: "B", text: "方案B", verdict: "正确", analysis: "B 对应规范。" },
+    ],
+    scoringPoints: ["抓题干限定词", "核对规范要求"],
+    pitfalls: ["把常见说法当规范结论"],
+    mnemonic: "先看题干，再找规范。",
+  },
   "question review should show the public answer and explanation outside the original-text toggle",
 );
 

@@ -161,6 +161,7 @@ function normalizeMcqOptions(rawOptions) {
 
 function normalizeMcqReviewNotes(rawNotes) {
   var notes = rawNotes && typeof rawNotes === "object" ? rawNotes : {};
+  var thinkPrompt = _trimmedString(notes.thinkPrompt || notes.think_prompt || "");
   var displayAnswer = _trimmedString(
     notes.displayAnswer ||
       notes.display_answer ||
@@ -177,10 +178,49 @@ function normalizeMcqReviewNotes(rawNotes) {
       notes.teaching_text ||
       "",
   );
-  if (!displayAnswer && !analysis) return null;
+  var optionAnalysis = _normalizeObjectArray(
+    notes.optionAnalysis ||
+      notes.option_analysis ||
+      notes.choiceAnalysis ||
+      notes.choice_analysis,
+    function (item) {
+      var raw = item && typeof item === "object" ? item : {};
+      var key = _trimmedString(raw.key || raw.option || raw.option_key || raw.label || "").toUpperCase();
+      var row = {
+        key: key,
+        text: _trimmedString(raw.text || raw.optionText || raw.option_text || ""),
+        verdict: _trimmedString(raw.verdict || raw.status || ""),
+        analysis: _trimmedString(raw.analysis || raw.reason || raw.explanation || ""),
+      };
+      return row.key || row.analysis ? row : null;
+    },
+  );
+  var scoringPoints = _normalizeStringArray(notes.scoringPoints || notes.scoring_points);
+  var pitfalls = _normalizeStringArray(
+    notes.pitfalls ||
+      notes.easyMistakes ||
+      notes.easy_mistakes ||
+      notes.commonMistakes ||
+      notes.common_mistakes,
+  );
+  var mnemonic = _trimmedString(notes.mnemonic || notes.memoryTip || notes.memory_tip || "");
+  if (
+    !thinkPrompt &&
+    !displayAnswer &&
+    !analysis &&
+    !optionAnalysis.length &&
+    !scoringPoints.length &&
+    !pitfalls.length &&
+    !mnemonic
+  ) return null;
   return {
+    thinkPrompt: thinkPrompt,
     displayAnswer: displayAnswer,
     analysis: analysis,
+    optionAnalysis: optionAnalysis,
+    scoringPoints: scoringPoints,
+    pitfalls: pitfalls,
+    mnemonic: mnemonic,
   };
 }
 
