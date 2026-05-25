@@ -123,7 +123,10 @@ async def test_sdk_stream_requests_usage_chunk_for_dashscope(monkeypatch) -> Non
         def __init__(self, **_kwargs) -> None:
             self.chat = _FakeChat()
 
-    monkeypatch.setattr("deeptutor.services.llm.executors.AsyncOpenAI", _FakeAsyncOpenAI)
+    monkeypatch.setattr(
+        "deeptutor.services.llm.executors.make_openai_client",
+        lambda *args, **kwargs: _FakeAsyncOpenAI(),
+    )
 
     async for _ in sdk_stream(
         prompt="hello",
@@ -163,7 +166,10 @@ async def test_sdk_stream_preserves_explicit_stream_options(monkeypatch) -> None
         def __init__(self, **_kwargs) -> None:
             self.chat = _FakeChat()
 
-    monkeypatch.setattr("deeptutor.services.llm.executors.AsyncOpenAI", _FakeAsyncOpenAI)
+    monkeypatch.setattr(
+        "deeptutor.services.llm.executors.make_openai_client",
+        lambda *args, **kwargs: _FakeAsyncOpenAI(),
+    )
 
     async for _ in sdk_stream(
         prompt="hello",

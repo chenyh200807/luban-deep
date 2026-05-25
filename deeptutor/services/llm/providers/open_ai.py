@@ -5,14 +5,14 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from typing import Callable, Protocol, TypeVar, cast
 
-import openai
+import openai  # noqa: F401 — used for isinstance(client, openai.AsyncAzureOpenAI) check
 
 from deeptutor.logging import get_logger
 from deeptutor.services.observability import get_langfuse_observability
 
 from ..config import LLMConfig, get_token_limit_kwargs
 from ..exceptions import LLMConfigError
-from ..openai_http_client import openai_client_kwargs
+from ..openai_http_client import make_openai_client
 from ..registry import register_provider
 from ..telemetry import track_llm_call
 from ..types import AsyncStreamGenerator, TutorResponse, TutorStreamChunk
@@ -72,10 +72,9 @@ class OpenAIProvider(BaseLLMProvider):
 
     def __init__(self, config: LLMConfig) -> None:
         super().__init__(config)
-        self.client = openai.AsyncOpenAI(
-            api_key=self.api_key,
+        self.client = make_openai_client(
+            self.api_key,
             base_url=self.base_url or None,
-            **openai_client_kwargs(),
         )
 
     @_typed_track_llm_call("openai")
