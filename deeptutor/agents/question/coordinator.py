@@ -141,6 +141,7 @@ class AgentCoordinator:
         history_context: str = "",
         lightweight_generation: bool = False,
         require_explanation: bool = True,
+        allow_lightweight_fallback: bool = True,
     ) -> dict[str, Any]:
         self._current_batch_dir = self._create_batch_dir("custom")
         requested = max(1, int(num_questions or 1))
@@ -297,7 +298,7 @@ class AgentCoordinator:
             covered_ids = {pair.question_id for pair in bank_qa_pairs}
             remaining_templates = [t for t in templates[:requested] if t.question_id not in covered_ids]
             qa_pairs_objects = list(bank_qa_pairs)
-            if remaining_templates:
+            if remaining_templates and allow_lightweight_fallback:
                 fallback_pairs = await self._lightweight_batch_generate(
                     templates=remaining_templates,
                     user_topic=user_topic,
@@ -311,17 +312,21 @@ class AgentCoordinator:
                 for pair in qa_pairs_objects
             ]
         elif lightweight_generation:
-            qa_pair_objects = await self._lightweight_batch_generate(
-                templates=templates[:requested],
-                user_topic=user_topic,
-                preference=preference,
-                history_context=history_context,
-                counters=lightweight_trace_counters,
-            )
-            qa_pairs = [
-                {"template": _qa_pair_template_dict(pair, templates), "qa_pair": pair.__dict__, "success": True}
-                for pair in qa_pair_objects
-            ]
+            if allow_lightweight_fallback:
+                qa_pair_objects = await self._lightweight_batch_generate(
+                    templates=templates[:requested],
+                    user_topic=user_topic,
+                    preference=preference,
+                    history_context=history_context,
+                    counters=lightweight_trace_counters,
+                )
+                qa_pairs = [
+                    {"template": _qa_pair_template_dict(pair, templates), "qa_pair": pair.__dict__, "success": True}
+                    for pair in qa_pair_objects
+                ]
+            else:
+                lightweight_trace_counters["lightweight_batch_fallback"] = "disabled"
+                qa_pairs = []
         else:
             qa_pairs = await self._generation_loop(
                 templates=templates[:requested],

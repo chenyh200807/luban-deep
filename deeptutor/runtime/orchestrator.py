@@ -533,14 +533,15 @@ class ChatOrchestrator:
         context.config_overrides.setdefault("topic", message)
         context.config_overrides.setdefault("num_questions", 1)
         context.config_overrides.setdefault("question_type", self._preferred_question_type(message))
-        context.config_overrides["force_generate_questions"] = True
-        context.config_overrides["reveal_answers"] = True
-        context.config_overrides["reveal_explanations"] = True
-        context.config_overrides.setdefault("lightweight_generation", False)
         context.metadata["question_lifecycle_scene"] = "question_review"
-        context.metadata["question_lifecycle_skill_names"] = list(
-            select_question_lifecycle_skill_names("question_review")
-        )
+        skill_names = list(select_question_lifecycle_skill_names("question_review"))
+        context.metadata["question_lifecycle_skill_names"] = skill_names
+        trace_meta = context.metadata.setdefault("trace_metadata", {})
+        if isinstance(trace_meta, dict):
+            trace_meta["question_lifecycle_scene"] = "question_review"
+            trace_meta["question_lifecycle_skill_names"] = list(skill_names)
+            trace_meta["skill_stack"] = list(skill_names)
+            trace_meta["review_mode"] = "question_review"
 
     @staticmethod
     def _preferred_question_type(message: str) -> str:

@@ -1237,6 +1237,77 @@ def _render_deterministic_reference_feedback(question_context: dict[str, Any] | 
     return "\n".join(lines).strip()
 
 
+def _question_review_bank_hit(summary: dict[str, Any] | None) -> bool:
+    if not isinstance(summary, dict):
+        return False
+    counters = (
+        (summary.get("trace") or {}).get("lightweight_counters")
+        if isinstance(summary.get("trace"), dict)
+        else None
+    )
+    if isinstance(counters, dict) and int(counters.get("bank_hits") or 0) > 0:
+        return True
+    for item in list(summary.get("results") or []):
+        if not isinstance(item, dict):
+            continue
+        qa_pair = item.get("qa_pair")
+        if not isinstance(qa_pair, dict):
+            continue
+        grading_key = qa_pair.get("grading_key") if isinstance(qa_pair.get("grading_key"), dict) else {}
+        metadata = qa_pair.get("metadata") if isinstance(qa_pair.get("metadata"), dict) else {}
+        if grading_key.get("source") == "questions_bank" or metadata.get("source") == "questions_bank":
+            return True
+    return False
+
+
+def _question_review_explanation_from_qa_pair(qa_pair: dict[str, Any]) -> str:
+    explanation = str(qa_pair.get("explanation") or "").strip()
+    if explanation:
+        return explanation
+    metadata = qa_pair.get("metadata") if isinstance(qa_pair.get("metadata"), dict) else {}
+    knowledge_context = str(metadata.get("knowledge_context") or qa_pair.get("knowledge_context") or "").strip()
+    for marker in ("题库解析要点：", "【解析】", "解析："):
+        if marker not in knowledge_context:
+            continue
+        tail = knowledge_context.split(marker, 1)[1].strip()
+        if tail:
+            return tail
+    grading_key = qa_pair.get("grading_key") if isinstance(qa_pair.get("grading_key"), dict) else {}
+    return str(grading_key.get("minimal_rationale") or "").strip()
+
+
+def _promote_question_review_result(summary: dict[str, Any]) -> dict[str, Any]:
+    promoted = dict(summary)
+    results: list[dict[str, Any]] = []
+    for item in list(summary.get("results") or []):
+        if not isinstance(item, dict):
+            continue
+        row = dict(item)
+        qa_pair = dict(row.get("qa_pair") or {})
+        grading_key = qa_pair.get("grading_key") if isinstance(qa_pair.get("grading_key"), dict) else {}
+        if not str(qa_pair.get("correct_answer") or "").strip() and grading_key.get("correct_answer"):
+            qa_pair["correct_answer"] = str(grading_key.get("correct_answer") or "").strip()
+        explanation = _question_review_explanation_from_qa_pair(qa_pair)
+        if explanation and not str(qa_pair.get("explanation") or "").strip():
+            qa_pair["explanation"] = explanation
+        metadata = dict(qa_pair.get("metadata") or {})
+        metadata["question_review_mode"] = True
+        qa_pair["metadata"] = metadata
+        row["qa_pair"] = qa_pair
+        results.append(row)
+    promoted["results"] = results
+    return promoted
+
+
+def _render_missing_question_review_feedback(topic: str) -> str:
+    focus = str(topic or "").strip() or "这道题"
+    return (
+        f"我还没有定位到“{focus}”对应的原题题干和选项，不能把它伪装成真题解析。\n\n"
+        "请把完整题干和 A/B/C/D 选项发给我；我会按题目讲评模式给你拆解："
+        "题干关键词、正确答案、逐项选项分析、易错点和下一步练法。"
+    )
+
+
 def _learner_user_id_from_context(context: UnifiedContext) -> str:
     metadata = context.metadata if isinstance(context.metadata, dict) else {}
     billing_context = metadata.get("billing_context") if isinstance(metadata.get("billing_context"), dict) else {}
@@ -1395,7 +1466,7 @@ class DeepQuestionCapability(BaseCapability):
         # context.metadata for trace / downstream consumers. Idempotent: if
         # ChatOrchestrator (Task 0.7) has already set the scene, this honors
         # it without overwriting. Does not alter capability routing.
-        attach_question_lifecycle_scene_to_context(context)
+        lifecycle_scene = attach_question_lifecycle_scene_to_context(context)
 
         llm_config = get_llm_config()
         kb_name = context.knowledge_bases[0] if context.knowledge_bases else None
@@ -1429,6 +1500,19 @@ class DeepQuestionCapability(BaseCapability):
         followup_question_context = question_context_from_active_object(active_object) or (
             context.metadata.get("question_followup_context", {}) or {}
         )
+        question_review_mode = bool(overrides.get("question_review_mode")) or (
+            lifecycle_scene == "question_review"
+            and not (
+                isinstance(followup_question_context, dict)
+                and followup_question_context.get("question")
+            )
+        )
+        if question_review_mode and isinstance(context.metadata, dict):
+            trace_meta = context.metadata.setdefault("trace_metadata", {})
+            if isinstance(trace_meta, dict):
+                trace_meta["question_lifecycle_scene"] = "question_review"
+                trace_meta["review_mode"] = "question_review"
+                trace_meta["reveal_allowed"] = True
         followup_action = (
             context.metadata.get("question_followup_action")
             if isinstance(context.metadata.get("question_followup_action"), dict)
@@ -1620,6 +1704,9 @@ class DeepQuestionCapability(BaseCapability):
         preference = str(overrides.get("preference", "") or "")
         reveal_answers = bool(overrides.get("reveal_answers", False))
         reveal_explanations = bool(overrides.get("reveal_explanations", reveal_answers))
+        if question_review_mode:
+            reveal_answers = True
+            reveal_explanations = True
         lightweight_generation = bool(overrides.get("lightweight_generation", False))
         lightweight_followup_generation = _should_use_lightweight_followup_generation(
             selected_mode=selected_mode,
@@ -1643,6 +1730,7 @@ class DeepQuestionCapability(BaseCapability):
             lightweight_generation
             or lightweight_followup_generation
             or lightweight_topic_generation
+            or question_review_mode
         )
 
         # plan §Phase 5 / Batch E.1 Gap 6 — lightweight 出题入口主动消费 latest
@@ -1787,7 +1875,44 @@ class DeepQuestionCapability(BaseCapability):
                     history_context=history_context,
                     lightweight_generation=lightweight_generation,
                     require_explanation=require_explanation,
+                    allow_lightweight_fallback=not question_review_mode,
                 )
+
+        if question_review_mode:
+            if _question_review_bank_hit(result):
+                result = _promote_question_review_result(result)
+                if isinstance(context.metadata, dict):
+                    trace_meta = context.metadata.setdefault("trace_metadata", {})
+                    if isinstance(trace_meta, dict):
+                        trace_meta["question_review.bank_hit"] = True
+            else:
+                if isinstance(context.metadata, dict):
+                    trace_meta = context.metadata.setdefault("trace_metadata", {})
+                    if isinstance(trace_meta, dict):
+                        trace_meta["question_review.bank_hit"] = False
+                        trace_meta["question_review.degraded_reason"] = "missing_question_bank_hit"
+                content = _render_missing_question_review_feedback(topic)
+                await stream.content(content, source=self.name, stage="generation")
+                await stream.result(
+                    {
+                        "response": content,
+                        "mode": mode,
+                        "question_followup_context": {},
+                        "active_object": {},
+                        "turn_semantic_decision": self._default_turn_semantic_decision(
+                            next_action="route_to_followup_explainer",
+                            active_object=active_object,
+                            question_context=None,
+                            user_message=context.user_message,
+                        ),
+                        "metadata": {
+                            "question_lifecycle_scene": "question_review",
+                            "review_mode": "missing_question",
+                        },
+                    },
+                    source=self.name,
+                )
+                return
 
         # plan §Phase 0 Step 0.3 (B3) — single-writer trace 字段。
         # coordinator 在 result["trace"]["lightweight_counters"] 累加；
@@ -1820,11 +1945,17 @@ class DeepQuestionCapability(BaseCapability):
             result_summary=result,
             reveal_answers=reveal_answers,
             reveal_explanations=reveal_explanations,
+            review_mode=question_review_mode,
         )
         result_payload: dict[str, Any] = {
             "response": content or "No questions generated.",
             "mode": mode,
-            "question_followup_context": (
+        }
+        if question_review_mode:
+            result_payload["question_followup_context"] = {}
+            result_payload["active_object"] = {}
+        else:
+            result_payload["question_followup_context"] = (
                 build_question_followup_context_from_result_summary(
                     result,
                     content or "",
@@ -1838,16 +1969,15 @@ class DeepQuestionCapability(BaseCapability):
                     reveal_explanations=reveal_explanations,
                 )
                 or {}
-            ),
-        }
-        result_payload["active_object"] = (
-            build_active_object_from_question_context(
-                result_payload["question_followup_context"],
-                source_turn_id=turn_id,
-                previous_active_object=active_object,
             )
-            or {}
-        )
+            result_payload["active_object"] = (
+                build_active_object_from_question_context(
+                    result_payload["question_followup_context"],
+                    source_turn_id=turn_id,
+                    previous_active_object=active_object,
+                )
+                or {}
+            )
         if learning_training_intent:
             result_payload["active_object"] = self._attach_learning_training_intent_to_active_object(
                 result_payload["active_object"],
@@ -1855,7 +1985,7 @@ class DeepQuestionCapability(BaseCapability):
             )
             result_payload["learning_training_intent"] = dict(learning_training_intent)
         result_payload["turn_semantic_decision"] = turn_semantic_decision or self._default_turn_semantic_decision(
-            next_action="route_to_generation",
+            next_action="route_to_followup_explainer" if question_review_mode else "route_to_generation",
             active_object=result_payload["active_object"] or active_object,
             question_context=result_payload["question_followup_context"],
             user_message=context.user_message,

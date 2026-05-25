@@ -177,6 +177,47 @@ run("service presentation block becomes the primary mcq source", function () {
   assertEqual(state.hasStructuredContent, false, "mcq-only presentation should not suppress markdown fallback paths");
 });
 
+run("question review mcq presentation is read-only", function () {
+  var state = aiMessageState.deriveAiMessageRenderState({
+    content: "### 第 1 题\n关于混凝土保护层厚度，下列哪个说法是正确的？",
+    presentation: {
+      blocks: [
+        {
+          type: "mcq",
+          questions: [
+            {
+              index: 1,
+              stem: "关于混凝土保护层厚度，下列哪个说法是正确的？",
+              question_type: "single_choice",
+              options: [
+                { key: "A", text: "方案A" },
+                { key: "B", text: "方案B" },
+              ],
+              followup_context: {
+                question_id: "q_review_1",
+                correct_answer: "B",
+              },
+            },
+          ],
+          submit_hint: "题目讲评，已展示解析，不需要提交答案。",
+          review_mode: true,
+        },
+      ],
+      fallback_text: "### 第 1 题\n关于混凝土保护层厚度，下列哪个说法是正确的？",
+      meta: { streamingMode: "block_finalized" },
+    },
+    parseBlocks: false,
+  });
+
+  assert(state.mcqCards && state.mcqCards.length === 1, "question review should still render the question card");
+  assertEqual(state.mcqInteractiveReady, false, "question review cards must not be submittable");
+  assertEqual(
+    state.mcqHint,
+    "题目讲评，已展示解析，不需要提交答案。",
+    "question review hint should explain read-only state",
+  );
+});
+
 run("mcq presentation supports multiple generated choice aliases", function () {
   var state = aiMessageState.deriveAiMessageRenderState({
     content: "",

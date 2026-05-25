@@ -188,9 +188,16 @@ async def test_orchestrator_materializes_free_text_real_exam_review_before_expla
 
     assert registry.captured[0] == "deep_question"
     assert context.metadata["question_lifecycle_scene"] == "question_review"
-    assert context.config_overrides["force_generate_questions"] is True
-    assert context.config_overrides["reveal_answers"] is True
-    assert context.config_overrides["reveal_explanations"] is True
+    assert "force_generate_questions" not in context.config_overrides
+    assert "reveal_answers" not in context.config_overrides
+    assert "reveal_explanations" not in context.config_overrides
+    assert "question_review_mode" not in context.config_overrides
+    assert context.config_overrides["topic"] == "分析一道验槽方法真题"
+    assert context.metadata["question_lifecycle_skill_names"] == [
+        "construction-exam-tutor",
+        "construction-question-review",
+    ]
+    assert context.metadata["trace_metadata"]["question_lifecycle_scene"] == "question_review"
     result = next(event for event in events if event.type.value == "result")
     assert result.metadata["capability"] == "auto"
 

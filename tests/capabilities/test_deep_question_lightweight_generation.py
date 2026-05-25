@@ -289,6 +289,43 @@ def test_lightweight_bank_hit_short_circuits_llm(
     assert gk.get("correct_answer") == "A"
 
 
+def test_lightweight_question_review_without_bank_hit_disables_llm_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    coord, fake_gen = _stub_coordinator(monkeypatch)
+
+    async def _miss_rag(*_args: Any, **_kwargs: Any) -> dict[str, Any]:
+        return {"answer": "", "provider": "stub", "kb_name": "stub-kb"}
+
+    monkeypatch.setattr(
+        "deeptutor.agents.question.coordinator.rag_search",
+        _miss_rag,
+    )
+    coord.enable_idea_rag = True
+    coord.kb_name = "stub-kb"
+
+    result = asyncio.run(
+        coord.generate_from_topic(
+            user_topic="分析一道钢筋保护层的真题",
+            preference="",
+            num_questions=1,
+            difficulty="easy",
+            question_type="choice",
+            lightweight_generation=True,
+            require_explanation=False,
+            allow_lightweight_fallback=False,
+        )
+    )
+
+    assert result.get("results") == []
+    counters = (result.get("trace") or {}).get("lightweight_counters") or {}
+    assert counters.get("bank_hits") == 0
+    assert counters.get("llm_calls") == 0
+    assert counters.get("lightweight_batch_fallback") == "disabled"
+    assert fake_gen.call_count == 0
+    assert fake_gen.batch_call_count == 0
+
+
 def test_lightweight_three_questions_counters_equal_real_calls(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

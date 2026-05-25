@@ -98,6 +98,25 @@ def test_build_canonical_presentation_can_reveal_answer_context_when_requested()
     assert context["explanation"] == "B 更符合规范。"
 
 
+def test_build_canonical_presentation_marks_question_review_mcq_non_interactive() -> None:
+    presentation = build_canonical_presentation(
+        content="### 第 1 题\n某防水工程题目\n\n**答案：** B",
+        result_summary=_choice_summary(),
+        reveal_answers=True,
+        reveal_explanations=True,
+        review_mode=True,
+    )
+
+    assert presentation is not None
+    block = presentation["blocks"][0]
+    assert block["type"] == "mcq"
+    assert block["review_mode"] is True
+    assert block["submit_hint"] == "题目讲评，已展示解析，不需要提交答案。"
+    context = block["questions"][0]["followup_context"]
+    assert context["correct_answer"] == "B"
+    assert context["explanation"] == "B 更符合规范。"
+
+
 def test_build_canonical_presentation_redacts_raw_mcq_blocks_by_default() -> None:
     presentation = build_canonical_presentation(
         content="第1题",

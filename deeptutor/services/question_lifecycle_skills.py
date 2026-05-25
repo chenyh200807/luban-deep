@@ -449,7 +449,13 @@ def attach_question_lifecycle_scene_to_context(ctx: Any) -> str | None:
     metadata["question_lifecycle_scene"] = scene
 
     if scene is not None:
-        metadata["question_lifecycle_skill_names"] = list(SCENE_COMPOSITION[scene])
+        skill_names = list(SCENE_COMPOSITION[scene])
+        metadata["question_lifecycle_skill_names"] = skill_names
+        trace_meta = metadata.setdefault("trace_metadata", {})
+        if isinstance(trace_meta, dict):
+            trace_meta["question_lifecycle_scene"] = scene
+            trace_meta["question_lifecycle_skill_names"] = list(skill_names)
+            trace_meta["skill_stack"] = list(skill_names)
     else:
         metadata.setdefault("question_lifecycle_skill_names", [])
 

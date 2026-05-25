@@ -105,6 +105,7 @@ def build_mcq_block_from_result_summary(
     *,
     reveal_answers: bool = False,
     reveal_explanations: bool = False,
+    review_mode: bool = False,
 ) -> dict[str, Any] | None:
     # "result_summary" here means legacy per-message result metadata, not session compressed_summary.
     if not isinstance(result_summary, dict):
@@ -158,12 +159,16 @@ def build_mcq_block_from_result_summary(
         "schema_version": SCHEMA_VERSION,
         "questions": questions,
         "submit_hint": (
+            "题目讲评，已展示解析，不需要提交答案。"
+            if review_mode
+            else (
             "多题作答，先分别点选，再提交答案。"
             if len(questions) > 1
             else "请选择后提交答案"
+            )
         ),
         "receipt": "",
-        "review_mode": False,
+        "review_mode": bool(review_mode),
     }
 
 
@@ -269,6 +274,7 @@ def _normalize_mcq_block(
     *,
     reveal_answers: bool = False,
     reveal_explanations: bool = False,
+    review_mode: bool = False,
 ) -> dict[str, Any] | None:
     block = raw_block if isinstance(raw_block, dict) else {}
     raw_questions = block.get("questions")
@@ -287,13 +293,22 @@ def _normalize_mcq_block(
         questions.append(question)
     if not questions:
         return None
+    normalized_review_mode = bool(review_mode or block.get("review_mode") or block.get("reviewMode"))
+    raw_submit_hint = _coerce_text(block.get("submit_hint") or block.get("submitHint"))
     return {
         "type": "mcq",
         "schema_version": SCHEMA_VERSION,
         "questions": questions,
-        "submit_hint": _coerce_text(block.get("submit_hint") or block.get("submitHint") or "请选择后提交答案"),
+        "submit_hint": (
+            raw_submit_hint
+            or (
+                "题目讲评，已展示解析，不需要提交答案。"
+                if normalized_review_mode
+                else "请选择后提交答案"
+            )
+        ),
         "receipt": _coerce_text(block.get("receipt") or ""),
-        "review_mode": bool(block.get("review_mode") or block.get("reviewMode")),
+        "review_mode": normalized_review_mode,
     }
 
 
@@ -613,6 +628,7 @@ def _normalize_raw_block(
     *,
     reveal_answers: bool = False,
     reveal_explanations: bool = False,
+    review_mode: bool = False,
 ) -> dict[str, Any] | None:
     if not isinstance(raw_block, dict):
         return None
@@ -624,6 +640,7 @@ def _normalize_raw_block(
             raw_block,
             reveal_answers=reveal_answers,
             reveal_explanations=reveal_explanations,
+            review_mode=review_mode,
         )
     if block_type == "table":
         return _normalize_table_block(raw_block)
@@ -671,6 +688,7 @@ def build_canonical_presentation(
     blocks: list[dict[str, Any]] | None = None,
     reveal_answers: bool = False,
     reveal_explanations: bool = False,
+    review_mode: bool = False,
 ) -> dict[str, Any] | None:
     normalized_blocks: list[dict[str, Any]] = []
     if isinstance(blocks, list):
@@ -679,6 +697,7 @@ def build_canonical_presentation(
                 item,
                 reveal_answers=reveal_answers,
                 reveal_explanations=reveal_explanations,
+                review_mode=review_mode,
             )
             if block:
                 normalized_blocks.append(block)
@@ -686,6 +705,7 @@ def build_canonical_presentation(
         result_summary,
         reveal_answers=reveal_answers,
         reveal_explanations=reveal_explanations,
+        review_mode=review_mode,
     )
     if mcq_block and not _contains_block_type(normalized_blocks, "mcq"):
         normalized_blocks.append(mcq_block)
