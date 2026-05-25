@@ -1,3 +1,7 @@
+from pathlib import Path
+
+import pytest
+
 from deeptutor.services.assessment.blueprint import get_assessment_blueprint
 from deeptutor.services.assessment.blueprint_service import (
     AssessmentBlueprintService,
@@ -37,6 +41,23 @@ def test_real_exam_simulation_mini_has_20_scored_items_and_safe_identity() -> No
     assert blueprint.scored_count == 20
     assert blueprint.profile_count == 0
     assert all(section.scored for section in blueprint.sections)
+
+
+def test_supabase_assessment_provider_requires_service_role_key_for_form_bank(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    for name in ("SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_KEY", "SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_URL"):
+        monkeypatch.delenv(name, raising=False)
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "SUPABASE_URL=https://example.supabase.co\nSUPABASE_ANON_KEY=anon-public-key\n",
+        encoding="utf-8",
+    )
+    provider = SupabaseAssessmentQuestionProvider(env_file=env_file)
+
+    with pytest.raises(AssessmentBlueprintUnavailable, match="supabase_service_role_key_required_for_assessment_forms"):
+        provider.load_persisted_form_bank(get_assessment_blueprint("topic_waterproof_v1"))
 
 
 def test_calculation_is_optional_and_structured_judgment_is_fallback() -> None:

@@ -75,6 +75,9 @@ def main() -> int:
                 raise RuntimeError(f"assessment_create_wrong_type:{created.get('assessment_type')}")
             if str(created.get("blueprint_version") or "") != "real_exam_simulation_mini_v1":
                 raise RuntimeError(f"assessment_create_wrong_blueprint:{created.get('blueprint_version')}")
+            source_policy = _assert_real_exam_source_policy(created)
+        else:
+            source_policy = {}
         leaked = sorted(_find_forbidden_keys(created))
         if leaked:
             raise RuntimeError(f"assessment_create_payload_leaked_hidden_keys: {', '.join(leaked)}")
@@ -122,6 +125,9 @@ def main() -> int:
                 "report_ready": True,
                 "deep_explanation_ready": True,
                 "pre_submit_redaction": "passed",
+                "source_policy_label": source_policy.get("source_policy_label", ""),
+                "real_exam_share": source_policy.get("real_exam_share", None),
+                "official_real_exam_label_allowed": source_policy.get("official_real_exam_label_allowed", None),
             },
             ensure_ascii=False,
             indent=2,
@@ -179,6 +185,21 @@ def _find_forbidden_keys(value: Any) -> set[str]:
         for item in value:
             found.update(_find_forbidden_keys(item))
     return found
+
+
+def _assert_real_exam_source_policy(payload: dict[str, Any]) -> dict[str, Any]:
+    policy = payload.get("source_policy")
+    if not isinstance(policy, dict):
+        raise RuntimeError("assessment_real_exam_source_policy_missing")
+    label = str(policy.get("source_policy_label") or "")
+    copy = str(policy.get("user_copy") or "")
+    official_allowed = bool(policy.get("official_real_exam_label_allowed"))
+    if "官方真题" in label or "官方真题" in copy:
+        if not official_allowed:
+            raise RuntimeError("assessment_real_exam_copy_overclaims_official")
+    if label not in {"真题样式测评", "综合模拟测评"} and not official_allowed:
+        raise RuntimeError(f"assessment_real_exam_source_policy_unexpected_label:{label}")
+    return dict(policy)
 
 
 if __name__ == "__main__":

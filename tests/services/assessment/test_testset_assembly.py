@@ -263,6 +263,10 @@ def test_real_exam_simulation_mini_assembles_20_items_without_official_claim() -
     assert payload["delivered_count"] == 20
     assert all(question["scored"] for question in payload["questions"])
     assert "answer" not in payload["questions"][0]
+    assert payload["source_policy"]["source_policy_label"] == "真题样式测评"
+    assert payload["source_policy"]["official_real_exam_label_allowed"] is False
+    assert "官方真题" not in payload["source_policy"]["user_copy"]
+    assert payload["source_policy"]["real_exam_share"] == 1.0
 
 
 def test_real_exam_copy_policy_never_claims_official_without_signoff() -> None:

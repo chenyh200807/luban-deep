@@ -4,6 +4,7 @@ import pytest
 
 from deeptutor.services.assessment.deep_explanation import (
     DailyExplanationBudget,
+    GlobalExplanationCircuitBreaker,
     attach_deep_explanation,
     build_explanation_cache_key,
     build_static_deep_explanation,
@@ -44,6 +45,16 @@ def test_daily_explanation_budget_blocks_cache_miss_after_limit() -> None:
     assert budget.record_cache_miss("u1") == 2
     with pytest.raises(RuntimeError, match="assessment_deep_explanation_budget_exceeded"):
         budget.record_cache_miss("u1")
+
+
+def test_global_explanation_circuit_breaker_blocks_generation_when_open() -> None:
+    breaker = GlobalExplanationCircuitBreaker()
+
+    breaker.assert_available()
+    breaker.open("daily_llm_budget_exhausted")
+
+    with pytest.raises(RuntimeError, match="assessment_deep_explanation_circuit_open:daily_llm_budget_exhausted"):
+        breaker.assert_available()
 
 
 def test_static_deep_explanation_is_projection_only() -> None:

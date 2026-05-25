@@ -12,6 +12,35 @@
 
 ## 0.0 Revision Log
 
+### v1.6 PRD Completion Sweep - 2026-05-26
+
+Post-PR #71 completion audit used three subagents for docs/gates,
+backend/API/DB, and Yousen frontend/flywheel review. The implementation is now
+`PILOT_READY_WITH_MANUAL_SIGNOFF_ITEMS`, not broad-release complete.
+
+Automated gaps closed in this sweep:
+
+- `assessment_forms` service-role-only policy is now mirrored in the
+  `SupabaseAssessmentQuestionProvider` configuration guard: formal assessment
+  form-bank reads/writes must use `SUPABASE_SERVICE_ROLE_KEY` or `SUPABASE_KEY`;
+  `SUPABASE_ANON_KEY` alone fail-closes with
+  `supabase_service_role_key_required_for_assessment_forms`.
+- `real_exam_simulation_mini_v1` create payload now exposes a safe
+  `source_policy` metadata object. Production smoke fail-closes if copy or
+  source labels overclaim `官方真题` without the explicit official-label gate.
+- P1 explanation now has both per-user miss budget and global circuit-breaker
+  test coverage. The current pilot path remains `static_projection`; do not
+  market it as full LLM detailed explanation cache until a persistent cache /
+  LLM lifecycle repository is implemented and cost-tested.
+- Yousen catalog copy distinguishes `3 套试运行 / 5 套稳定`, and result item
+  review copy uses `本题讲评` instead of overclaiming `AI详细解析` when the full
+  P1 deep-explanation gate is not active.
+
+Remaining hard gates are human/production gates: real learner-token smoke for
+the full 3-question training-completion retest loop, WeChat DevTools spot-check
+before broad rollout, and source/copyright/teaching signoff for any stronger
+real-exam claim.
+
 ### v1.5 Train 0 Read-Only Storage Probe Evidence - 2026-05-25
 
 Train 0 read-only database probing confirmed that `public.assessment_forms` is not
@@ -1421,3 +1450,13 @@ Product can:
 - Track submit rate, abandon rate, wrong-item practice CTR, training completion, retest rate, and authoring-needed backlog.
 - Decide which topics to author next from real form-bank gaps.
 - Run a 14-day pilot without confusing topic score, all-subject mastery, and study-plan prescription.
+
+## 6.1 Completion Matrix - 2026-05-26
+
+| Train | Automated status | Remaining hard gate |
+| --- | --- | --- |
+| Train 0: Reality/security lock | Passed: `assessment_forms` RLS hotfix, service-role provider guard, redaction tests, QA storage probe | Re-run target DB probe for every environment before broad release |
+| Train 1: Topic catalog productionization | Passed: 10 topics, 5 forms/topic audit, stable/pilot/authoring-needed UI, personalized recommendation tests | Ongoing authoring backlog review if form counts drift |
+| Train 2: Learning flywheel | Passed: result CTA, wrong-item context, structured training intent, `training_completed` read-model retest projection | Real learner-token production smoke for `training_completed -> report retest` |
+| Train 3: P0B real-exam mini | Passed: 20-question mini blueprint, safe source policy metadata, smoke overclaim guard | Source/copyright/teaching signoff before any `官方真题` claim |
+| Train 4: P1 deep explanation | Pilot-safe: post-submit static projection, cache key, score invariance, per-user budget, global breaker | Persistent explanation cache + LLM lifecycle + cost dry-run before broad P1 release |

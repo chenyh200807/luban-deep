@@ -2616,6 +2616,73 @@ def test_real_exam_simulation_create_and_submit_use_mini_blueprint(
     assert result["score_summary"]["scored_count"] == 20
 
 
+def test_real_exam_simulation_create_uses_blueprint_source_policy(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    class _FakeBlueprintService:
+        def create_session(self, **_kwargs: object) -> dict[str, object]:
+            questions = [
+                {
+                    "question_id": f"q{i}",
+                    "question_stem": f"真题样式题 {i}",
+                    "options": [{"key": "A", "text": "A"}, {"key": "B", "text": "B"}],
+                }
+                for i in range(1, 21)
+            ]
+            session_questions = [
+                {
+                    **question,
+                    "source_question_id": f"real_{i}",
+                    "answer": "A",
+                    "scored": True,
+                    "provenance": {"source_type": "REAL_EXAM"},
+                }
+                for i, question in enumerate(questions, start=1)
+            ]
+            return {
+                "blueprint_version": "real_exam_simulation_mini_v1",
+                "form_id": "real_exam_simulation_mini_v1_form_1",
+                "questions": questions,
+                "session_questions": session_questions,
+                "sections": [],
+                "requested_count": 20,
+                "delivered_count": 20,
+                "scored_count": 20,
+                "profile_count": 0,
+                "available_count": 60,
+                "question_bank_size": 60,
+                "unique_source_question_count": 20,
+                "shortfall_count": 0,
+                "fallback_used": False,
+                "form_source": "fake_real_exam_bank",
+                "source_policy": {
+                    "source_policy_label": "真题样式测评",
+                    "user_copy": "本次真题样式测评用于校准综合应用能力，不代表官方考试分数。",
+                    "real_exam_share": 1.0,
+                    "official_real_exam_label_allowed": False,
+                },
+            }
+
+    monkeypatch.setattr(service, "_build_assessment_blueprint_service", lambda _version: _FakeBlueprintService())
+
+    payload = service.create_assessment(
+        "student_demo",
+        count=20,
+        assessment_type="real_exam_simulation",
+        subject_id="construction_exam",
+    )
+
+    assert payload["topic_label"] == "真题样式测评"
+    assert payload["source_policy"]["source_policy_label"] == "真题样式测评"
+    assert payload["source_policy"]["real_exam_share"] == 1.0
+    assert payload["source_policy"]["official_real_exam_label_allowed"] is False
+    assert "官方真题" not in payload["source_policy"]["user_copy"]
+
+
 def test_assessment_deep_explanation_reads_submitted_report_without_score_mutation(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -2673,6 +2740,58 @@ def test_assessment_deep_explanation_reads_submitted_report_without_score_mutati
     assert result["explanation"]["correct_answer"] == "A"
     assert "构造层次" in result["explanation"]["summary"]
     assert stored["score_summary"] == before_score
+
+
+def test_assessment_deep_explanation_honors_global_circuit_breaker(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    session = service._assessment_session_repository.create_session(
+        user_id="student_demo",
+        assessment_type="topic_diagnostic",
+        subject_id="construction_exam",
+        topic_ids=["waterproof"],
+        blueprint_version="topic_waterproof_v1",
+        form_id="topic_waterproof_v1_form_1",
+        client_questions_public=[
+            {
+                "question_id": "q1",
+                "question_stem": "防水题",
+                "options": [{"key": "A", "text": "A"}, {"key": "B", "text": "B"}],
+            }
+        ],
+        session_questions_private=[
+            {
+                "question_id": "q1",
+                "source_question_id": "src_q1",
+                "question_type": "single_choice",
+                "question_stem": "防水题",
+                "chapter": "防水工程",
+                "section_id": "waterproof",
+                "section_label": "防水工程",
+                "answer": "A",
+                "scored": True,
+                "simple_explanation": "防水节点要先判断构造层次。",
+                "knowledge_points": ["地下防水"],
+                "options": [{"key": "A", "text": "A"}, {"key": "B", "text": "B"}],
+            }
+        ],
+        device_id="",
+    )
+    monkeypatch.setattr(service, "_schedule_topic_diagnostic_writeback", lambda **_kwargs: None)
+
+    service.submit_assessment(
+        "student_demo",
+        session["quiz_id"],
+        {"q1": "B"},
+        time_spent_seconds=30,
+    )
+    service._assessment_deep_explanation_circuit_breaker.open("daily_llm_budget_exhausted")
+
+    with pytest.raises(RuntimeError, match="assessment_deep_explanation_circuit_open:daily_llm_budget_exhausted"):
+        service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1")
 
 
 def test_sparse_member_mastery_is_coverage_adjusted_for_report_analytics(tmp_path: Path) -> None:

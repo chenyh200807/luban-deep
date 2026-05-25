@@ -17,6 +17,7 @@ from deeptutor.services.assessment.blueprint import (
     AssessmentBlueprint,
     AssessmentSection,
     get_assessment_blueprint,
+    real_exam_source_policy,
 )
 from deeptutor.services.assessment.profile_probes import ProfileProbe, get_profile_probes
 from deeptutor.services.taxonomy.construction_taxonomy import display_taxonomy_label
@@ -316,13 +317,13 @@ class SupabaseAssessmentQuestionProvider:
         key = (
             os.getenv("SUPABASE_SERVICE_ROLE_KEY")
             or os.getenv("SUPABASE_KEY")
-            or os.getenv("SUPABASE_ANON_KEY")
             or env_file.get("SUPABASE_SERVICE_ROLE_KEY")
             or env_file.get("SUPABASE_KEY")
-            or env_file.get("SUPABASE_ANON_KEY")
             or ""
         )
         if not url or not key:
+            if os.getenv("SUPABASE_ANON_KEY") or env_file.get("SUPABASE_ANON_KEY"):
+                raise AssessmentBlueprintUnavailable("supabase_service_role_key_required_for_assessment_forms")
             raise AssessmentBlueprintUnavailable("Supabase config missing for formal assessment")
         return url, key
 
@@ -560,7 +561,7 @@ class AssessmentBlueprintService:
             )
         quiz_id = f"quiz_{uuid.uuid4().hex[:10]}"
         question_bank_size = max(form_bank.question_bank_size, delivered_count)
-        return {
+        payload = {
             "quiz_id": quiz_id,
             "user_id": user_id,
             "assessment_type": str(assessment_type or "diagnostic").strip() or "diagnostic",
@@ -584,6 +585,9 @@ class AssessmentBlueprintService:
             "form_index": form.form_index,
             "form_count": len(form_bank.forms),
         }
+        if self._blueprint.assessment_type == "real_exam_simulation":
+            payload["source_policy"] = _source_policy_for_questions(session_questions)
+        return payload
 
     def _get_or_build_form_bank(self) -> _AssessmentFormBank:
         if self._local_form_bank is not None:
@@ -957,6 +961,18 @@ def _validate_form_units(form_id: str, units: tuple[_AssessmentFormUnit, ...], b
             )
         if any(unit.scored != section.scored for unit in section_units):
             raise AssessmentBlueprintUnavailable(f"Assessment form {form_id} section {section.id} scored mismatch")
+
+
+def _source_policy_for_questions(questions: list[dict[str, Any]]) -> dict[str, str | float | bool]:
+    scored = [item for item in questions if item.get("scored")]
+    if not scored:
+        return real_exam_source_policy(real_exam_share=0.0)
+    real_exam_count = sum(
+        1
+        for item in scored
+        if str(dict(item.get("provenance") or {}).get("source_type") or "").strip() == "REAL_EXAM"
+    )
+    return real_exam_source_policy(real_exam_share=real_exam_count / max(len(scored), 1))
 
 
 def _build_scored_question(

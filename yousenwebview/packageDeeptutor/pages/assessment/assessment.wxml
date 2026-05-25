@@ -75,7 +75,7 @@
       <view class="topic-catalog" wx:if="{{assessmentMode === 'topic'}}">
         <view class="topic-head">
           <text class="topic-head-title">专题测评目录</text>
-          <text class="topic-head-sub">可开放专题均已通过 3/5 套组卷门槛</text>
+          <text class="topic-head-sub">开放专题按 3 套试运行 / 5 套稳定分级展示</text>
         </view>
         <text class="topic-catalog-error" wx:if="{{topicCatalogError}}">{{topicCatalogError}}</text>
         <view class="topic-grid">
@@ -302,13 +302,13 @@
                   <text>练 3 道同类题</text>
                 </view>
                 <view class="dr-ai-btn" bindtap="onToggleWrongDetail" data-question-id="{{item.questionId}}">
-                  <text>{{item.expanded ? '收起AI详细解析' : 'AI详细解析'}}</text>
+                  <text>{{item.expanded ? '收起本题讲评' : '展开本题讲评'}}</text>
                 </view>
               </view>
               <view class="dr-detail" wx:if="{{item.expanded}}">
                 <view class="dr-detail-head">
                   <view>
-                    <text class="dr-detail-title">AI详细解析</text>
+                    <text class="dr-detail-title">本题讲评</text>
                     <text class="dr-detail-sub">为什么错 · 原因分析 · 采分点 · 易错点 · 口诀</text>
                   </view>
                   <text class="dr-detail-status">已展开</text>

@@ -242,6 +242,8 @@ function stringify(value) {
     assert(wxml.indexOf("专题测评") >= 0, "welcome should expose topic testset mode");
     assert(wxml.indexOf("welcomeFormCount") >= 0, "welcome stats should bind five-form target");
     assert(wxml.indexOf("套轮换") >= 0, "welcome stats should explain paper rotation");
+    assert(wxml.indexOf("3 套试运行 / 5 套稳定") >= 0, "catalog copy should distinguish pilot and stable rotation");
+    assert(wxml.indexOf("可开放专题均已通过 3/5 套组卷门槛") < 0, "catalog copy must not imply every enabled topic is stable");
   });
 
   await run("default start uses comprehensive diagnostic 20-question form", async function () {
@@ -460,7 +462,7 @@ function stringify(value) {
       "utf8",
     );
     assert(wxml.indexOf('bindtap="goLearningPlan"') >= 0, "result CTA should bind to report training navigation");
-    assert(wxml.indexOf("AI详细解析") >= 0, "result should expose AI detailed review action");
+    assert(wxml.indexOf("本题讲评") >= 0, "P0B result should expose honest item review action");
     assert(
       wxml.indexOf("错题讲评") < wxml.indexOf("错因结构"),
       "wrong item review should render before issue structure",

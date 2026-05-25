@@ -44,6 +44,7 @@ from deeptutor.services.assessment.learning_evidence import (
     build_assessment_learning_evidence_batch,
 )
 from deeptutor.services.assessment.deep_explanation import (
+    GlobalExplanationCircuitBreaker,
     build_explanation_cache_key,
     build_static_deep_explanation,
 )
@@ -534,6 +535,7 @@ class MemberConsoleService:
         self._data_path.parent.mkdir(parents=True, exist_ok=True)
         self._assessment_sessions_supabase_required_but_missing = False
         self._assessment_session_repository = self._build_assessment_session_repository()
+        self._assessment_deep_explanation_circuit_breaker = GlobalExplanationCircuitBreaker()
         self._wechat_access_token: str = ""
         self._wechat_access_token_expires_at: float = 0.0
 
@@ -4908,13 +4910,13 @@ class MemberConsoleService:
             session_questions_private=list(payload.get("session_questions") or []),
             device_id=device_id,
         )
-        source_policy = real_exam_source_policy(real_exam_share=0.0)
+        source_policy = dict(payload.get("source_policy") or real_exam_source_policy(real_exam_share=0.0))
         return {
             "quiz_id": session["quiz_id"],
             "assessment_type": "real_exam_simulation",
             "subject_id": subject_id,
             "topic_ids": [],
-            "topic_label": str(source_policy.get("label") or "综合模拟测评"),
+            "topic_label": str(source_policy.get("source_policy_label") or "综合模拟测评"),
             "source_policy": source_policy,
             "status": session["status"],
             "reuse_reason": session.get("reuse_reason", ""),
@@ -5308,6 +5310,7 @@ class MemberConsoleService:
 
     def get_assessment_deep_explanation(self, user_id: str, quiz_id: str, question_id: str) -> dict[str, Any]:
         self._require_durable_assessment_sessions()
+        self._assessment_deep_explanation_circuit_breaker.assert_available()
         try:
             session = self._assessment_session_repository.private_session(user_id, quiz_id)
         except AssessmentSessionError as exc:

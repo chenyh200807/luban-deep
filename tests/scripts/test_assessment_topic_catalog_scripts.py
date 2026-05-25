@@ -3,7 +3,9 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-from scripts.smoke_assessment_flywheel import _normalize_api_base_url
+import pytest
+
+from scripts.smoke_assessment_flywheel import _assert_real_exam_source_policy, _normalize_api_base_url
 
 
 def test_seed_topic_catalog_forms_supports_dry_run_help() -> None:
@@ -118,3 +120,32 @@ def test_assessment_flywheel_smoke_help_documents_live_gate() -> None:
 def test_assessment_flywheel_smoke_accepts_origin_or_api_base_url() -> None:
     assert _normalize_api_base_url("https://test2.yousenjiaoyu.com") == "https://test2.yousenjiaoyu.com/api/v1"
     assert _normalize_api_base_url("https://test2.yousenjiaoyu.com/api/v1") == "https://test2.yousenjiaoyu.com/api/v1"
+
+
+def test_assessment_flywheel_smoke_rejects_overclaimed_official_real_exam_copy() -> None:
+    with pytest.raises(RuntimeError, match="assessment_real_exam_copy_overclaims_official"):
+        _assert_real_exam_source_policy(
+            {
+                "source_policy": {
+                    "source_policy_label": "官方真题卷",
+                    "user_copy": "官方真题卷",
+                    "official_real_exam_label_allowed": False,
+                    "real_exam_share": 1.0,
+                }
+            }
+        )
+
+
+def test_assessment_flywheel_smoke_accepts_safe_real_exam_style_copy() -> None:
+    policy = _assert_real_exam_source_policy(
+        {
+            "source_policy": {
+                "source_policy_label": "真题样式测评",
+                "user_copy": "本次真题样式测评用于校准综合应用能力，不代表官方考试分数。",
+                "official_real_exam_label_allowed": False,
+                "real_exam_share": 0.8,
+            }
+        }
+    )
+
+    assert policy["source_policy_label"] == "真题样式测评"

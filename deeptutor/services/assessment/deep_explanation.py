@@ -38,6 +38,29 @@ class DailyExplanationBudget:
         return next_count
 
 
+class GlobalExplanationCircuitBreaker:
+    def __init__(self) -> None:
+        self._open_reason = ""
+
+    @property
+    def is_open(self) -> bool:
+        return bool(self._open_reason)
+
+    @property
+    def reason(self) -> str:
+        return self._open_reason
+
+    def open(self, reason: str) -> None:
+        self._open_reason = str(reason or "global_circuit_open").strip() or "global_circuit_open"
+
+    def close(self) -> None:
+        self._open_reason = ""
+
+    def assert_available(self) -> None:
+        if self._open_reason:
+            raise RuntimeError(f"assessment_deep_explanation_circuit_open:{self._open_reason}")
+
+
 def attach_deep_explanation(
     report: dict[str, Any],
     *,

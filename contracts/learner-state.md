@@ -326,6 +326,11 @@ Overlay 必须支持：
   `quiz_id`、blueprint version、知识分、置信度、教学策略 seed 与可审计
   observability 摘要，不能绕过 learner state service 直接改 profile / summary /
   progress 主真相。
+- Assessment TestSet 的详细讲评是提交后 report 的只读 projection：可以读取
+  submitted report 与服务端私有题面生成讲评，并受全局熔断/预算控制；不得修改正式分数、
+  `result_report_json`、`learning_evidence` 或 mastery projection。
+- 真题模拟卷的 `source_policy` 只能由 blueprint/form provenance 确定并作为展示元数据返回；
+  它不得被写成官方真题声明、长期掌握度证据或 `training_intent` authority。
 
 禁止写入：
 

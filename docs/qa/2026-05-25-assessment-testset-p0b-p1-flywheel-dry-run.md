@@ -481,3 +481,70 @@ allowed remote deploy root. It is not runtime-sensitive, but it is deploy-surfac
 noise. The branch now removes it from Git and adds `.git.disabled*` to both
 `.gitignore` and `scripts/sync_to_aliyun.sh` excludes so future deploys do not
 ship local worktree pointer artifacts.
+
+## 2026-05-26 PRD Completion Sweep Addendum
+
+Execution surface:
+
+```text
+worktree=/private/tmp/deeptutor-main-release-20260526-000555
+branch=codex/assessment-prd-completion-20260526
+base=origin/main@56f7f674cc4401e4855930db929f41fa2cca2087
+```
+
+Three read-only subagents audited docs/gates, backend/API/DB, and Yousen
+frontend/flywheel. The shared conclusion is that P0B/P1 is pilot-ready after
+automated gates, while broad rollout still requires manual/production signoffs.
+
+New automated closures:
+
+```text
+assessment_forms_provider_guard=supabase_service_role_key_required_for_assessment_forms
+real_exam_source_policy_payload=present_on_real_exam_simulation_mini
+real_exam_smoke_overclaim_guard=assessment_real_exam_copy_overclaims_official
+deep_explanation_daily_budget=20_misses_per_user_per_day_default
+deep_explanation_global_circuit_breaker=assessment_deep_explanation_circuit_open:<reason>
+yousen_topic_catalog_copy=3 套试运行 / 5 套稳定
+yousen_wrong_item_review_copy=本题讲评
+```
+
+Verification:
+
+```text
+PYTHONPATH=. pytest tests/services/assessment/test_blueprint_coverage.py::test_supabase_assessment_provider_requires_service_role_key_for_form_bank tests/services/assessment/test_testset_assembly.py::test_real_exam_simulation_mini_assembles_20_items_without_official_claim tests/services/assessment/test_deep_explanation.py::test_global_explanation_circuit_breaker_blocks_generation_when_open tests/scripts/test_assessment_topic_catalog_scripts.py::test_assessment_flywheel_smoke_rejects_overclaimed_official_real_exam_copy tests/scripts/test_assessment_topic_catalog_scripts.py::test_assessment_flywheel_smoke_accepts_safe_real_exam_style_copy -q
+.....                                                                    [100%]
+5 passed in 0.21s
+
+PYTHONPATH=. pytest tests/services/assessment/test_blueprint_coverage.py tests/services/assessment/test_testset_assembly.py tests/services/assessment/test_deep_explanation.py tests/scripts/test_assessment_topic_catalog_scripts.py -q
+42 passed in 0.95s
+
+node yousenwebview/tests/test_assessment_testset_view_model.js
+PASS test_assessment_testset_view_model.js (72 assertions)
+
+PYTHONPATH=. pytest tests/services/assessment tests/scripts/test_assessment_topic_catalog_scripts.py tests/api/test_mobile_assessment_payload_redaction.py tests/api/test_mobile_router.py tests/services/member_console/test_service.py tests/services/learner_state/test_learning_report_read_model.py tests/services/learner_state/test_conversation_learning_evidence_event.py tests/supabase/test_learner_state_rls_migration.py -q
+329 passed in 11.18s
+
+node yousenwebview/tests/test_package_assessment_contract.js
+PASS test_package_assessment_contract.js (17 assertions)
+
+python scripts/check_contract_guard.py
+contract-guard: no protected contract domains changed
+error-code-guard: passed | codes=E02, E04, M02, M06, M07, unknown_error
+node-id-guard: no hard-coded knowledge_node_id literals found
+```
+
+Completion matrix:
+
+| Train | Automated status | Remaining hard gate |
+| --- | --- | --- |
+| Train 0 | Passed: storage RLS evidence, service-role provider guard, payload redaction | Re-probe every target DB before broad release |
+| Train 1 | Passed: 10-topic catalog, 5 forms/topic, authoring backlog empty, UI status copy | Keep authoring backlog owner review for content drift |
+| Train 2 | Passed locally: CTA/report training, wrong-item context, structured training evidence, retest read-model projection | Real learner-token production smoke for `training_completed -> report retest` |
+| Train 3 | Passed: 20-question mini, safe source policy metadata, smoke overclaim guard | Source/copyright/teaching signoff before any `官方真题` wording |
+| Train 4 | Pilot-safe: static projection, cache key, score invariance, daily budget, global breaker | Persistent cache + LLM lifecycle + cost dry-run before broad P1 |
+
+Verdict remains:
+
+```text
+PILOT_READY_WITH_MANUAL_SIGNOFF_ITEMS
+```
