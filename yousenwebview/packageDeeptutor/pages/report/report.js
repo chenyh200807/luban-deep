@@ -773,6 +773,52 @@ function _buildBattlePlanFromPrescription(data) {
   });
 }
 
+function _buildTrainingExecutionAction(input) {
+  var source = input || {};
+  var plan = source.battlePlan || {};
+  var status = String(source.prescriptionStatus || "").trim();
+  var topic = String(
+    source.prescriptionTopic || plan.focusTopic || source.focusHint || "当前薄弱点",
+  ).trim();
+  var task = String(plan.priorityTask || source.nextActionTitle || "").trim();
+  var method = String(plan.studyMethod || "").trim();
+  var evidenceCount = Number(source.prescriptionEvidenceCount || 0);
+  var assessmentEnabled = source.assessmentEnabled !== false;
+
+  if (status === "degraded") {
+    var degradedLabel =
+      String(source.prescriptionCtaLabel || "").trim() ||
+      (evidenceCount > 0 ? "补一题诊断" : "去做摸底测试");
+    return {
+      type: assessmentEnabled ? "assessment" : "chat",
+      label: assessmentEnabled ? degradedLabel : "去对话补一题",
+      hint: assessmentEnabled
+        ? "进入摸底测试，用 1 题补齐稳定诊断依据"
+        : "带上当前处方进入对话，让 AI 先出 1 道诊断题",
+      query:
+        "请根据我的学情处方，先出 1 道可诊断题，目标是补齐稳定的题目主题和错因链。答完后再生成下一轮专项训练。",
+    };
+  }
+
+  var activeTopic = topic || "当前薄弱点";
+  var activeTask = task || "按今日处方开始一组定向训练";
+  var activeMethod =
+    method || "先诊断错因，再做同类专项，最后用新题验证是否真正掌握。";
+  return {
+    type: "chat",
+    label: "去对话训练",
+    hint: "带上今日处方进入对话，由 AI 直接出第一组专项题",
+    query:
+      "请根据我的学情处方开始训练。当前主攻：" +
+      activeTopic +
+      "。优先任务：" +
+      activeTask +
+      "。训练顺序：" +
+      activeMethod +
+      " 请先出第一组题，并在每题后按错因给出简短反馈。",
+  };
+}
+
 function _buildOverviewDonutStyle(score) {
   var pct = Math.max(0, Math.min(100, Math.round(Number(score) || 0)));
   var degrees = Math.max(6, Math.round((pct / 100) * 360));
@@ -1162,6 +1208,12 @@ Page({
     learningDiagnosisCards: [],
     learningTrainingLoops: [],
     learningNextAction: { title: "", subtitle: "", cta: "开始训练" },
+    trainingExecutionAction: {
+      type: "chat",
+      label: "去对话训练",
+      hint: "带上今日处方进入对话，由 AI 直接出第一组专项题",
+      query: "",
+    },
     learningBrainGraphStats: {
       eventCount: 0,
       createdClaimCount: 0,
@@ -1748,17 +1800,28 @@ Page({
     var shouldUsePrescriptionPlan =
       prescriptionBattlePlan &&
       (!homeBattlePlan || String(this.data.prescriptionStatus || "") === "active");
+    var battlePlan =
+      (shouldUsePrescriptionPlan ? prescriptionBattlePlan : homeBattlePlan) || {
+        focusTopic: "",
+        priorityTask: "",
+        studyMethod: "",
+        timeBudget: "",
+        coachNote: "",
+      };
 
     this.setData({
       diagnosticScore: diagnosticScore,
-      battlePlan:
-        (shouldUsePrescriptionPlan ? prescriptionBattlePlan : homeBattlePlan) || {
-          focusTopic: "",
-          priorityTask: "",
-          studyMethod: "",
-          timeBudget: "",
-          coachNote: "",
-        },
+      battlePlan: battlePlan,
+      trainingExecutionAction: _buildTrainingExecutionAction({
+        battlePlan: battlePlan,
+        prescriptionStatus: this.data.prescriptionStatus,
+        prescriptionTopic: this.data.prescriptionTopic,
+        prescriptionCtaLabel: this.data.prescriptionCtaLabel,
+        prescriptionEvidenceCount: this.data.prescriptionEvidenceCount,
+        assessmentEnabled: this.data.assessmentEnabled,
+        nextActionTitle: this.data.learningNextAction.title,
+        focusHint: this.data.focusHint,
+      }),
       overviewDonutStyle: _buildOverviewDonutStyle(this.data.overallMastery),
       progressSummary:
         (progressFeedback && progressFeedback.summary) ||
@@ -1978,6 +2041,23 @@ Page({
   goPractice() {
     helpers.vibrate("light");
     this._setReportDetailView("training");
+  },
+
+  executeTrainingAction() {
+    var action = this.data.trainingExecutionAction || {};
+    helpers.vibrate("light");
+    if (action.type === "assessment") {
+      if (!flags.ensureFeatureEnabled("assessment")) return;
+      wx.navigateTo({ url: route.assessment() });
+      return;
+    }
+    var query = String(action.query || "").trim();
+    if (!query) {
+      query = "请根据我的学情处方开始今天的定向训练，先出第一组题。";
+    }
+    runtime.setWorkspaceBack(route.report(), "学情");
+    runtime.setPendingChatIntent(query, "AUTO");
+    wx.reLaunch({ url: route.chat() });
   },
 
   async openAttemptDetail(event) {
