@@ -110,7 +110,13 @@ assert(
   reportSource.indexOf("route.practice()") < 0,
   "report page should not route users into the unfinished practice center",
 );
-assertIncludes(reportWxml, "复测清单", "home module grid should include the recheck loop card");
+assertIncludes(reportWxml, "摸底测试", "home module grid should expose assessment as the calibration action");
+assertIncludes(reportWxml, 'bindtap="goAssessment"', "assessment module should route to the assessment flow");
+assert(
+  reportWxml.indexOf('module-recheck" data-detail="training"') < 0,
+  "assessment module should not duplicate the training detail route",
+);
+assertIncludes(reportWxml, "训练闭环", "training detail should explain the diagnosis-repair-verification loop");
 assertIncludes(reportWxml, "先看结论，再决定是否深入", "home page should separate conclusions from module navigation");
 assertIncludes(reportWxml, "深入查看", "home page should expose detail modules as a separate toolbox section");
 assertIncludes(reportWxml, "module-onboarding-tip", "clickable detail modules should expose a first-use affordance");
