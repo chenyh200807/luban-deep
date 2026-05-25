@@ -298,10 +298,10 @@
     .hero-top {
       position: relative;
       z-index: 1;
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: flex-start;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 108px;
+      gap: 14px;
+      align-items: start;
     }
 
     .kicker {
@@ -313,17 +313,26 @@
 
     .hero-title {
       margin-top: 6px;
+      max-width: 210px;
       font-size: 21px;
       line-height: 1.22;
       font-weight: 950;
+    }
+
+    .score-block {
+      display: grid;
+      justify-items: center;
+      align-self: start;
+      width: 108px;
+      padding-top: 2px;
     }
 
     .score-ring {
       position: relative;
       display: grid;
       place-items: center;
-      width: 86px;
-      height: 86px;
+      width: 100px;
+      height: 100px;
       flex: 0 0 auto;
       border-radius: 50%;
       background:
@@ -332,13 +341,13 @@
       box-shadow:
         0 0 0 1px rgba(103, 232, 249, 0.18),
         0 0 28px rgba(52, 120, 246, 0.24),
-        inset 0 0 0 8px rgba(7, 17, 31, 0.74);
+        inset 0 0 0 9px rgba(7, 17, 31, 0.74);
     }
 
     .score-ring::before {
       content: "";
       position: absolute;
-      inset: 7px;
+      inset: 8px;
       border-radius: 50%;
       border: 1px solid rgba(255, 255, 255, 0.08);
       background:
@@ -346,31 +355,13 @@
         radial-gradient(circle at 70% 20%, rgba(251, 191, 36, 0.14), transparent 34%);
     }
 
-    .score-ring::after {
-      content: "待补";
-      position: absolute;
-      right: -3px;
-      top: 4px;
-      display: grid;
-      place-items: center;
-      min-width: 34px;
-      height: 20px;
-      padding: 0 6px;
-      border: 1px solid rgba(251, 191, 36, 0.3);
-      border-radius: 999px;
-      background: rgba(251, 191, 36, 0.14);
-      color: #fde68a;
-      font-size: 9px;
-      font-weight: 950;
-    }
-
     .score-inner {
       position: relative;
       z-index: 1;
       display: grid;
       place-items: center;
-      width: 60px;
-      height: 60px;
+      width: 70px;
+      height: 70px;
       border-radius: 50%;
       background:
         radial-gradient(circle at 40% 22%, rgba(255, 255, 255, 0.1), transparent 28%),
@@ -378,7 +369,7 @@
     }
 
     .score-inner strong {
-      font-size: 26px;
+      font-size: 31px;
       line-height: 1;
       font-weight: 950;
     }
@@ -387,6 +378,22 @@
       color: var(--muted);
       font-size: 9px;
       font-weight: 850;
+    }
+
+    .score-caption {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 23px;
+      margin-top: 7px;
+      padding: 0 10px;
+      border: 1px solid rgba(251, 191, 36, 0.28);
+      border-radius: 999px;
+      background: rgba(251, 191, 36, 0.11);
+      color: #fde68a;
+      font-size: 10px;
+      font-weight: 950;
+      white-space: nowrap;
     }
 
     .hero-copy {
@@ -1137,11 +1144,14 @@
                 <div class="kicker">防水工程测试集 · 12 题 · 已完成</div>
                 <h2 class="hero-title">主要问题不是不会，而是规范条件读不全</h2>
               </div>
-              <div class="score-ring" aria-label="得分 17 分">
-                <div class="score-inner">
-                  <strong>17</strong>
-                  <span>分</span>
+              <div class="score-block" aria-label="得分 17 分，待补弱">
+                <div class="score-ring">
+                  <div class="score-inner">
+                    <strong>17</strong>
+                    <span>分</span>
+                  </div>
                 </div>
+                <span class="score-caption">待补弱</span>
               </div>
             </div>
             <p class="hero-copy">
@@ -1232,7 +1242,7 @@
                     </div>
                   </div>
                   <p class="verdict">
-                    简单解析：这题考“绿色施工措施”的完整枚举。你只选了材料控制，漏掉了节水、污染控制和成品保护。
+                    解析：这题考“绿色施工措施”的完整枚举。你只选了材料控制，漏掉了节水、污染控制和成品保护。
                   </p>
                   <div class="simple-actions">
                     <button class="same-type-btn">练 3 道同类题</button>
@@ -1355,7 +1365,7 @@
                   </div>
                 </div>
                 <p class="verdict">
-                  简单解析：机械力学性能看“受力后的表现”，拉力、延伸率、撕裂强度都属于这一类。
+                  解析：机械力学性能看“受力后的表现”，拉力、延伸率、撕裂强度都属于这一类。
                 </p>
                 <div class="simple-actions">
                   <button class="same-type-btn">练 3 道同类题</button>
@@ -1415,7 +1425,7 @@
                   </div>
                 </div>
                 <p class="verdict">
-                  简单解析：屋面隔热看反射、通风、蓄水或种植等措施，不是简单加厚防水层。
+                  解析：屋面隔热看反射、通风、蓄水或种植等措施，不是简单加厚防水层。
                 </p>
                 <div class="simple-actions">
                   <button class="same-type-btn">练 3 道同类题</button>
@@ -1520,8 +1530,8 @@
 
           <section class="section card pad" aria-label="训练处方">
             <div class="kicker">训练处方</div>
-            <h2 class="card-title">讲评 → 练题 → 验证 → 写回学情</h2>
-            <p class="card-note">报告必须直接变成训练处方，否则它只是分析，不是学习产品。</p>
+            <h2 class="card-title">接下来按这 3 步补弱</h2>
+            <p class="card-note">先看最关键的错题，再做同类题，最后用 1 道新题确认是否改掉。</p>
             <div class="prescription">
               <div class="step">
                 <span class="step-num">1</span>
@@ -1548,10 +1558,10 @@
                 <span class="step-time">2分</span>
               </div>
               <div class="step">
-                <span class="step-num">4</span>
+                <span class="step-num">✓</span>
                 <div>
-                  <div class="step-title">写回学情和错题本</div>
-                  <div class="step-desc">更新掌握地图，下次推荐不重复绕路</div>
+                  <div class="step-title">完成后自动更新学习记录</div>
+                  <div class="step-desc">错题本和掌握地图会同步刷新</div>
                 </div>
                 <span class="step-time">自动</span>
               </div>

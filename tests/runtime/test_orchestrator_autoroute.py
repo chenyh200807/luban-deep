@@ -263,6 +263,39 @@ async def test_orchestrator_uses_tutorbot_as_default_chat_engine_after_semantic_
 
 
 @pytest.mark.asyncio
+async def test_orchestrator_still_records_lifecycle_decision_with_active_context() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-active-context-support",
+        user_message="我学不动了",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={
+            "active_object": {
+                "object_type": "open_chat_topic",
+                "object_id": "topic-1",
+                "scope": {"domain": "session", "session_id": "s-active-context-support"},
+                "state_snapshot": {"title": "主体结构", "status": "idle"},
+                "version": 1,
+            }
+        },
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "tutorbot"
+    assert context.metadata["question_lifecycle_scene"] == "learning_support"
+    assert context.metadata["question_lifecycle_decision"]["scene"] == "learning_support"
+    assert context.metadata["selected_skill_names"] == [
+        "construction-exam-tutor",
+        "construction-learning-support",
+    ]
+
+
+@pytest.mark.asyncio
 async def test_orchestrator_materializes_free_text_real_exam_review_before_explaining() -> None:
     """A request like "分析一道真题" must create a question object first.
 
@@ -399,16 +432,16 @@ async def test_orchestrator_marks_low_information_exam_query_without_exact_autho
 
     assert registry.captured[0] == "tutorbot"
     assert context.metadata["question_lifecycle_scene"] is None
-    assert context.metadata["question_lifecycle_decision"] == {
+    assert context.metadata["question_lifecycle_decision"].items() >= {
         "scene": None,
-        "decision_source": "deterministic",
         "scene_confidence": 1.0,
         "reason": "low-information exam query needs clarification",
         "required_anchor_status": "missing_question_anchor",
         "exact_question_blocked_reason": "low_information_exam_query",
-        "selected_skill_names": [],
         "needs_clarification": True,
-    }
+        "business_gate_result": "blocked_low_information_exam_query",
+    }.items()
+    assert context.metadata["question_lifecycle_decision"]["selected_skill_names"] == []
     assert context.metadata["exact_question_blocked_reason"] == "low_information_exam_query"
     assert context.metadata["trace_metadata"]["exact_question_blocked_reason"] == "low_information_exam_query"
 

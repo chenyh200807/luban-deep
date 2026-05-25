@@ -202,59 +202,215 @@
     <!-- ═══ 结果页 ═══ -->
     <view class="result" wx:elif="{{stage === 'result'}}">
       <block wx:if="{{serverReportMode}}">
-        <view class="score-ring-wrap">
-          <view class="score-ring">
-            <text class="score-num">{{resultScore}}</text>
-            <text class="score-label">{{scoreTitle}}</text>
+        <view class="dr-hero">
+          <view class="dr-hero-top">
+            <view class="dr-hero-copy">
+              <text class="dr-kicker">{{topicLabel}} · {{scoredCount}} 题 · 已完成</text>
+              <text class="dr-title">{{resultDiagnosisTitle}}</text>
+            </view>
+            <view class="dr-score-block" aria-label="得分 {{resultScore}} 分">
+              <view class="dr-score-ring">
+                <view class="dr-score-inner">
+                  <text class="dr-score-num">{{resultScore}}</text>
+                  <text class="dr-score-label">分</text>
+                </view>
+              </view>
+              <text class="dr-score-caption">{{scoreStatusLabel}}</text>
+            </view>
+          </view>
+          <text class="dr-hero-desc">本次答对 {{correctCount}} / {{scoredCount}} 题。优先修 {{resultShortcoming}}，今天先完成一轮 8 分钟补弱。</text>
+          <view class="dr-conclusion-grid">
+            <view class="dr-conclusion-cell">
+              <text class="dr-cell-label">这次测了什么</text>
+              <text class="dr-cell-value">{{topicLabel}}</text>
+            </view>
+            <view class="dr-conclusion-cell">
+              <text class="dr-cell-label">诊断可信度</text>
+              <text class="dr-cell-value">{{resultConfidenceLabel}} · {{resultEvidenceCount}} 题证据</text>
+            </view>
+            <view class="dr-conclusion-cell">
+              <text class="dr-cell-label">主要短板</text>
+              <text class="dr-cell-value">{{resultShortcoming}}</text>
+            </view>
+            <view class="dr-conclusion-cell">
+              <text class="dr-cell-label">下一步先做</text>
+              <text class="dr-cell-value">8 分钟补弱训练</text>
+            </view>
+          </view>
+          <view class="dr-hero-actions">
+            <view class="dr-primary-btn" bindtap="goLearningPlan">
+              <text>开始 8 分钟补弱</text>
+            </view>
+            <view class="dr-ghost-btn">
+              <text>看依据</text>
+            </view>
           </view>
         </view>
-        <text class="topic-label">{{topicLabel}}</text>
-        <text class="score-meta">答对 {{correctCount}} / {{scoredCount}} 题，空白 {{blankCount}} 题</text>
+
+        <view class="dr-metric-row">
+          <view class="dr-metric">
+            <text class="dr-metric-value">{{scoredCount}}题</text>
+            <text class="dr-metric-label">测评证据</text>
+          </view>
+          <view class="dr-metric">
+            <text class="dr-metric-value">{{resultConfidenceLabel}}</text>
+            <text class="dr-metric-label">诊断可信度</text>
+          </view>
+          <view class="dr-metric">
+            <text class="dr-metric-value">{{resultPrescriptionStatus}}</text>
+            <text class="dr-metric-label">训练处方</text>
+          </view>
+        </view>
+
+        <view class="dr-section dr-wrong-section" wx:if="{{wrongItems.length}}">
+          <view class="dr-section-head">
+            <view>
+              <text class="dr-kicker">错题讲评</text>
+              <text class="dr-section-title">默认看讲评，不重复堆原题</text>
+            </view>
+            <view class="dr-filter-btn">
+              <text>筛选错因</text>
+            </view>
+          </view>
+
+          <view class="dr-wrong-list">
+            <view class="dr-wrong-card" wx:for="{{wrongItems}}" wx:key="questionId">
+              <view class="dr-wrong-top">
+                <text class="dr-q-num">第 {{item.index}} 题</text>
+                <text class="dr-status-badge">{{item.issueBadge}}</text>
+              </view>
+              <text class="dr-stem">{{item.stem}}</text>
+              <view class="dr-choice-list" wx:if="{{item.options.length}}">
+                <view class="dr-choice" wx:for="{{item.options}}" wx:for-item="opt" wx:key="key">
+                  <text class="dr-choice-key">{{opt.key}}</text>
+                  <text class="dr-choice-text">{{opt.text}}</text>
+                </view>
+              </view>
+              <view class="dr-answer-row">
+                <view class="dr-answer-box">
+                  <text class="dr-answer-label">你的答案</text>
+                  <text class="dr-answer-value">{{item.learnerAnswer || '未作答'}}</text>
+                </view>
+                <view class="dr-answer-box">
+                  <text class="dr-answer-label">正确答案</text>
+                  <text class="dr-answer-value">{{item.correctAnswer}}</text>
+                </view>
+              </view>
+              <text class="dr-verdict">{{item.explanation}}</text>
+              <view class="dr-simple-actions">
+                <view class="dr-same-type-btn" bindtap="onPracticeWrongItem" data-question-id="{{item.questionId}}">
+                  <text>练 3 道同类题</text>
+                </view>
+                <view class="dr-ai-btn" bindtap="onToggleWrongDetail" data-question-id="{{item.questionId}}">
+                  <text>{{item.expanded ? '收起AI详细解析' : 'AI详细解析'}}</text>
+                </view>
+              </view>
+              <view class="dr-detail" wx:if="{{item.expanded}}">
+                <view class="dr-detail-head">
+                  <view>
+                    <text class="dr-detail-title">AI详细解析</text>
+                    <text class="dr-detail-sub">为什么错 · 原因分析 · 采分点 · 易错点 · 口诀</text>
+                  </view>
+                  <text class="dr-detail-status">已展开</text>
+                </view>
+                <view class="dr-review-section">
+                  <text class="dr-review-title">题干关键词</text>
+                  <view class="dr-chip-row">
+                    <text class="dr-chip" wx:for="{{item.detail.keyTerms}}" wx:key="*this">{{item}}</text>
+                  </view>
+                </view>
+                <view class="dr-review-section">
+                  <text class="dr-review-title">为什么错</text>
+                  <text class="dr-review-text">{{item.detail.whyWrong}}</text>
+                </view>
+                <view class="dr-review-section">
+                  <text class="dr-review-title">原因分析</text>
+                  <text class="dr-review-text">{{item.detail.cause}}</text>
+                </view>
+                <view class="dr-review-section">
+                  <text class="dr-review-title">采分点</text>
+                  <text class="dr-review-text">{{item.detail.scoringPoints}}</text>
+                </view>
+                <view class="dr-review-section">
+                  <text class="dr-review-title">选项拆解</text>
+                  <view class="dr-option-review-list">
+                    <view class="dr-option-review {{opt.statusClass}}" wx:for="{{item.optionReviews}}" wx:for-item="opt" wx:key="key">
+                      <text class="dr-option-key">{{opt.key}}</text>
+                      <text class="dr-option-text">{{opt.review}}</text>
+                      <text class="dr-option-tag" wx:if="{{opt.statusLabel}}">{{opt.statusLabel}}</text>
+                    </view>
+                  </view>
+                </view>
+                <view class="dr-review-section dr-memory-section">
+                  <text class="dr-review-title">记忆口诀</text>
+                  <text class="dr-review-text">{{item.detail.mnemonic}}</text>
+                </view>
+                <view class="dr-review-section">
+                  <text class="dr-review-title">易错点</text>
+                  <text class="dr-review-text">{{item.detail.pitfall}}</text>
+                </view>
+                <view class="dr-review-section dr-source-section">
+                  <text class="dr-review-title">依据</text>
+                  <text class="dr-review-text">{{item.detail.source}}</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <view class="dr-section dr-card" wx:if="{{issueSummary.length}}">
+          <text class="dr-kicker">错因结构</text>
+          <text class="dr-section-title">把错误归成 5 类可训练问题</text>
+          <text class="dr-section-note">不是列错题，而是先告诉你主要错在什么类型；前 3 类优先训练。</text>
+          <view class="dr-issue-list">
+            <view class="dr-issue" wx:for="{{issueSummary}}" wx:key="rank">
+              <text class="dr-issue-rank">{{item.rank}}</text>
+              <view class="dr-issue-copy">
+                <text class="dr-issue-title">{{item.title}}</text>
+                <text class="dr-issue-desc">{{item.desc}}</text>
+              </view>
+              <text class="dr-issue-count">{{item.countLabel}}</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="dr-section dr-card" wx:if="{{actionKnowledgeMap.length}}">
+          <text class="dr-kicker">掌握地图</text>
+          <text class="dr-section-title">先补弱项，不平均用力</text>
+          <text class="dr-section-note">知识点表现只回答“先补哪里”，不做无行动意义的漂亮图表。</text>
+          <view class="dr-map-list">
+            <view class="dr-map-row" wx:for="{{actionKnowledgeMap}}" wx:key="name">
+              <text class="dr-map-name">{{item.name}}</text>
+              <view class="dr-map-track">
+                <view class="dr-map-fill {{item.actionClass}}" style="width:{{item.pct}}%"></view>
+              </view>
+              <text class="dr-map-action">{{item.actionLabel}}</text>
+            </view>
+          </view>
+          <view class="dr-chip-row">
+            <text class="dr-chip {{item.actionClass}}" wx:for="{{actionKnowledgeMap}}" wx:key="name">{{item.name}} {{item.correct}}/{{item.attempted}}</text>
+          </view>
+        </view>
+
+        <view class="dr-section dr-card">
+          <text class="dr-kicker">训练处方</text>
+          <text class="dr-section-title">接下来按这 3 步补弱</text>
+          <text class="dr-section-note">先看最关键的错题，再做同类题，最后用 1 道新题确认是否改掉。</text>
+          <view class="dr-step-list">
+            <view class="dr-step" wx:for="{{prescriptionSteps}}" wx:key="index">
+              <text class="dr-step-num">{{item.index}}</text>
+              <view class="dr-step-copy">
+                <text class="dr-step-title">{{item.title}}</text>
+                <text class="dr-step-desc">{{item.desc}}</text>
+              </view>
+              <text class="dr-step-time">{{item.time}}</text>
+            </view>
+          </view>
+        </view>
 
         <view class="degraded-card" wx:if="{{degradedCopy}}">
           <text class="degraded-title">同步状态</text>
           <text class="degraded-text">{{degradedCopy}}</text>
-        </view>
-
-        <text class="section-title" wx:if="{{knowledgeMap.length}}">本次知识点表现</text>
-        <view class="chapter-grid" wx:if="{{knowledgeMap.length}}">
-          <view class="chapter-item" wx:for="{{knowledgeMap}}" wx:key="name">
-            <text class="chapter-name">{{item.name}}</text>
-            <view class="chapter-bar-wrap">
-              <view class="chapter-bar {{item.pct >= 70 ? 'green' : item.pct >= 40 ? 'gold' : 'red'}}" style="width:{{item.pct}}%"></view>
-            </view>
-            <text class="chapter-pct">{{item.correct}}/{{item.attempted}}</text>
-          </view>
-        </view>
-
-        <view class="wrong-card" wx:if="{{wrongItems.length}}">
-          <text class="section-title">本次错题</text>
-          <view class="wrong-item" wx:for="{{wrongItems}}" wx:key="questionId">
-            <text class="wrong-title">{{item.index}}. {{item.stem}}</text>
-            <text class="wrong-answer">你的答案：{{item.learnerAnswer || '未作答'}}　正确答案：{{item.correctAnswer}}</text>
-            <text class="wrong-explain">{{item.explanation}}</text>
-            <view class="wrong-practice-btn" bindtap="onPracticeWrongItem" data-question-id="{{item.questionId}}">
-              <text>练 3 道同类题</text>
-            </view>
-          </view>
-        </view>
-
-        <view class="priority-card" wx:if="{{sessionLocalNextAction}}">
-          <text class="section-title">下一步</text>
-          <text class="next-action-text">{{sessionLocalNextAction}}</text>
-        </view>
-
-        <view class="deep-disabled" wx:if="{{!deepExplanationAvailable}}">
-          <text class="deep-disabled-txt">{{deepExplanationCopy}}</text>
-        </view>
-
-        <view class="result-actions">
-          <view class="result-btn primary" bindtap="goLearningPlan">
-            <text class="result-btn-txt">去学习计划查看</text>
-          </view>
-          <view class="result-btn" bindtap="onRetake">
-            <text class="result-btn-txt secondary-txt">重新测试</text>
-          </view>
         </view>
       </block>
 

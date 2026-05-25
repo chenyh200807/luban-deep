@@ -165,22 +165,29 @@ def test_low_information_exam_query_is_not_question_review(message: str):
 
 
 @pytest.mark.asyncio
-async def test_low_information_exam_query_returns_clarification_decision(monkeypatch):
-    async def _unexpected_complete(**_kwargs):
-        raise AssertionError("low-information exam query must not ask LLM to hallucinate a scene")
+async def test_low_information_exam_query_business_gate_overrides_llm_review_candidate(monkeypatch):
+    async def _fake_complete(**kwargs):
+        assert "题目生命周期语义候选" in kwargs["system_prompt"]
+        return '{"scene":"question_review","confidence":0.91,"reason":"模型误以为用户要讲评真题"}'
 
-    monkeypatch.setattr("deeptutor.services.llm.factory.complete", _unexpected_complete)
+    monkeypatch.setattr("deeptutor.services.llm.factory.complete", _fake_complete)
 
     decision = await resolve_question_lifecycle_scene_decision(
         _FakeContext(user_message="2025真题")
     )
 
     assert decision.scene is None
-    assert decision.source == "deterministic"
+    assert decision.source == "llm"
     assert decision.confidence == pytest.approx(1.0)
     assert decision.required_anchor_status == "missing_question_anchor"
     assert decision.exact_question_blocked_reason == "low_information_exam_query"
     assert decision.needs_clarification is True
+    assert decision.llm_scene_candidate == {
+        "scene": "question_review",
+        "confidence": pytest.approx(0.91),
+        "reason": "模型误以为用户要讲评真题",
+    }
+    assert decision.business_gate_result == "blocked_low_information_exam_query"
 
 
 @pytest.mark.asyncio

@@ -757,6 +757,9 @@ class AgentLoop:
         raw_stream_buffer = ""
         emitted_stream_len = 0
         effective_model = str(runtime_metadata.get("preferred_model") or self.model).strip() or self.model
+        exact_authority_override_allowed = bool(allow_exact_authority_override) and not str(
+            runtime_metadata.get("exact_question_blocked_reason") or ""
+        ).strip()
 
         def _visible_stream_text(raw_text: str) -> str:
             # Hide completed and in-progress <think> blocks before forwarding deltas.
@@ -871,7 +874,7 @@ class AgentLoop:
                         ):
                             runtime_metadata["_prefetched_exact_question"] = exact_candidate
                         if (
-                            allow_exact_authority_override
+                            exact_authority_override_allowed
                             and exact_candidate
                             and self._should_force_exact_authority(exact_candidate)
                         ):
@@ -976,7 +979,7 @@ class AgentLoop:
                 "without completing the task. You can try breaking the task into smaller steps."
             )
 
-        if allow_exact_authority_override and exact_authority:
+        if exact_authority_override_allowed and exact_authority:
             exact_response = await self._build_exact_authority_response(
                 exact_authority,
                 runtime_metadata=runtime_metadata,
@@ -2602,7 +2605,10 @@ class AgentLoop:
             on_content_delta=on_content_delta,
             on_tool_call=on_tool_call,
             on_tool_result=on_tool_result,
-            allow_exact_authority_override=prepare_exact_question_probe(current_message) is not None,
+            allow_exact_authority_override=(
+                prepare_exact_question_probe(current_message) is not None
+                and not str(runtime_metadata.get("exact_question_blocked_reason") or "").strip()
+            ),
         )
 
         if final_content is None:

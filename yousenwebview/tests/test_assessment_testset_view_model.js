@@ -417,9 +417,18 @@ function stringify(value) {
     assert(loaded.page.data.resultScore === 50, "score should come from backend report");
     assert(loaded.page.data.knowledgeMap[0].name === "地下防水", "knowledge map should come from report");
     assert(loaded.page.data.wrongItems[0].correctAnswer === "A", "wrong item should show post-submit answer");
+    assert(loaded.page.data.wrongItems[0].options.length === 2, "wrong item should reuse redacted question options after submit");
+    assert(loaded.page.data.wrongItems[0].explanation.indexOf("解析：") === 0, "wrong item default review should use learner-facing 解析 label");
+    assert(loaded.page.data.wrongItems[0].expanded === false, "AI detailed review should be collapsed by default");
+    assert(loaded.page.data.issueSummary.length === 5, "result should group mistakes into trainable issue types");
+    assert(loaded.page.data.actionKnowledgeMap[0].actionLabel === "优先补", "knowledge map should answer what to train first");
+    assert(loaded.page.data.prescriptionSteps[0].title.indexOf("错题讲评") >= 0, "result should include user-facing prescription steps");
     assert(loaded.page.data.attemptRefs[0].attempt_ref === "attempt_signed", "attempt refs should be preserved");
     assert(loaded.page.data.archetypeName === "", "P0A report must not derive learner profile locally");
     assert(loaded.page.data.responseLabel === "", "P0A report must not derive response profile locally");
+
+    loaded.page.onToggleWrongDetail({ currentTarget: { dataset: { questionId: "q2" } } });
+    assert(loaded.page.data.wrongItems[0].expanded === true, "AI detailed review should expand on demand");
   });
 
   await run("P0A copy invariants and degraded/deep explanation behavior hold", async function () {
@@ -451,6 +460,11 @@ function stringify(value) {
       "utf8",
     );
     assert(wxml.indexOf('bindtap="goLearningPlan"') >= 0, "result CTA should bind to report training navigation");
+    assert(wxml.indexOf("AI详细解析") >= 0, "result should expose AI detailed review action");
+    assert(
+      wxml.indexOf('aria-label="错题讲评"') < wxml.indexOf('aria-label="错因结构"'),
+      "wrong item review should render before issue structure",
+    );
     assert(wxml.indexOf('bindtap="goChat"') < 0, "assessment result must not route learners back to chat");
 
     var loaded = loadPage();

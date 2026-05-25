@@ -75,6 +75,8 @@ class QuestionLifecycleSceneDecision:
     exact_question_blocked_reason: str = ""
     selected_skill_names: tuple[str, ...] = ()
     needs_clarification: bool = False
+    llm_scene_candidate: dict[str, Any] | None = None
+    business_gate_result: str = ""
 
 
 # ---------------------------------------------------------------------------
@@ -175,14 +177,49 @@ async def resolve_question_lifecycle_scene_decision(
     *,
     enable_llm: bool = True,
 ) -> QuestionLifecycleSceneDecision:
-    """Resolve lifecycle scene with deterministic authority plus LLM proposal.
+    """Resolve lifecycle scene through one authoritative decision payload.
 
-    Deterministic rules remain the first authority. The LLM is only a semantic
-    candidate helper for no-hit learning/question phrasing, and its output is
-    normalized back into the canonical scene enum.
+    Deterministic helpers collect stable facts and hard safety gates. The LLM
+    may propose a semantic scene candidate, but the final decision is always
+    this function's business-gated ``QuestionLifecycleSceneDecision``.
     """
 
     scene = derive_question_lifecycle_scene(ctx)
+    user_message = str(getattr(ctx, "user_message", None) or "").strip()
+    metadata = getattr(ctx, "metadata", None) or {}
+    unanchored_submission = _looks_like_unanchored_mcq_answer_submission(user_message, metadata)
+    low_information_exam_query = is_low_information_exam_query(user_message)
+    proposal: QuestionLifecycleSceneDecision | None = None
+    if enable_llm and (low_information_exam_query or (scene is None and _should_use_llm_scene_proposal(ctx))):
+        proposal = await _llm_question_lifecycle_scene_proposal(ctx)
+    llm_candidate = _llm_candidate_payload(proposal)
+
+    if unanchored_submission:
+        return QuestionLifecycleSceneDecision(
+            scene=None,
+            source=proposal.source if proposal is not None else "deterministic",
+            confidence=1.0,
+            reason="answer submission needs an active question",
+            required_anchor_status="missing_active_question",
+            exact_question_blocked_reason="unanchored_answer_submission",
+            selected_skill_names=(),
+            needs_clarification=True,
+            llm_scene_candidate=llm_candidate,
+            business_gate_result="blocked_unanchored_answer_submission",
+        )
+    if low_information_exam_query:
+        return QuestionLifecycleSceneDecision(
+            scene=None,
+            source=proposal.source if proposal is not None else "deterministic",
+            confidence=1.0,
+            reason="low-information exam query needs clarification",
+            required_anchor_status="missing_question_anchor",
+            exact_question_blocked_reason="low_information_exam_query",
+            selected_skill_names=(),
+            needs_clarification=True,
+            llm_scene_candidate=llm_candidate,
+            business_gate_result="blocked_low_information_exam_query",
+        )
     if scene is not None:
         skill_names = select_question_lifecycle_skill_names(scene)
         return QuestionLifecycleSceneDecision(
@@ -192,30 +229,8 @@ async def resolve_question_lifecycle_scene_decision(
             reason="deterministic lifecycle scene matched",
             required_anchor_status="satisfied",
             selected_skill_names=skill_names,
-        )
-    user_message = str(getattr(ctx, "user_message", None) or "").strip()
-    metadata = getattr(ctx, "metadata", None) or {}
-    if _looks_like_unanchored_mcq_answer_submission(user_message, metadata):
-        return QuestionLifecycleSceneDecision(
-            scene=None,
-            source="deterministic",
-            confidence=1.0,
-            reason="answer submission needs an active question",
-            required_anchor_status="missing_active_question",
-            exact_question_blocked_reason="unanchored_answer_submission",
-            selected_skill_names=(),
-            needs_clarification=True,
-        )
-    if is_low_information_exam_query(user_message):
-        return QuestionLifecycleSceneDecision(
-            scene=None,
-            source="deterministic",
-            confidence=1.0,
-            reason="low-information exam query needs clarification",
-            required_anchor_status="missing_question_anchor",
-            exact_question_blocked_reason="low_information_exam_query",
-            selected_skill_names=(),
-            needs_clarification=True,
+            llm_scene_candidate=llm_candidate,
+            business_gate_result="passed",
         )
     if not enable_llm or not _should_use_llm_scene_proposal(ctx):
         return QuestionLifecycleSceneDecision(
@@ -223,14 +238,15 @@ async def resolve_question_lifecycle_scene_decision(
             source="none",
             confidence=0.0,
             reason="no deterministic scene and LLM proposal not applicable",
+            business_gate_result="no_candidate",
         )
-    proposal = await _llm_question_lifecycle_scene_proposal(ctx)
     if proposal is None:
         return QuestionLifecycleSceneDecision(
             scene=None,
             source="llm",
             confidence=0.0,
             reason="LLM scene proposal unavailable",
+            business_gate_result="llm_unavailable",
         )
     return proposal
 
@@ -673,6 +689,8 @@ async def _llm_question_lifecycle_scene_proposal(
             temperature=0,
             response_format={"type": "json_object"},
             max_tokens=300,
+            max_retries=0,
+            retry_delay=0.1,
         )
     except Exception:
         logger.debug("LLM question lifecycle scene proposal failed", exc_info=True)
@@ -703,7 +721,27 @@ async def _llm_question_lifecycle_scene_proposal(
         reason=str(payload.get("reason") or "").strip(),
         required_anchor_status="satisfied" if scene else "",
         selected_skill_names=skill_names,
+        llm_scene_candidate={
+            "scene": scene,
+            "confidence": confidence,
+            "reason": str(payload.get("reason") or "").strip(),
+        },
+        business_gate_result="passed" if scene else "llm_none_or_low_confidence",
     )
+
+
+def _llm_candidate_payload(
+    proposal: QuestionLifecycleSceneDecision | None,
+) -> dict[str, Any] | None:
+    if proposal is None:
+        return None
+    if isinstance(proposal.llm_scene_candidate, dict):
+        return dict(proposal.llm_scene_candidate)
+    return {
+        "scene": proposal.scene,
+        "confidence": proposal.confidence,
+        "reason": proposal.reason,
+    }
 
 
 def attach_question_lifecycle_scene_to_context(ctx: Any) -> str | None:

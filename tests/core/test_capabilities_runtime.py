@@ -4318,6 +4318,112 @@ async def test_tutorbot_agent_loop_forces_exact_authority_response(
 
 
 @pytest.mark.asyncio
+async def test_tutorbot_agent_loop_respects_exact_question_blocked_reason(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
+
+    class FakeProvider(LLMProvider):
+        def __init__(self) -> None:
+            super().__init__()
+            self.calls = 0
+
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            self.calls += 1
+            if self.calls == 1:
+                return LLMResponse(
+                    content="先查知识库",
+                    tool_calls=[ToolCallRequest(id="call_1", name="rag", arguments={"query": "2025真题"})],
+                )
+            return LLMResponse(content="请先补充具体题干和选项，我再讲评。")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class ExactAuthorityTool(Tool):
+        def __init__(self) -> None:
+            self._trace_metadata = {
+                "authority_applied": True,
+                "exact_question": {
+                    "answer_kind": "mcq",
+                    "correct_answer": "D",
+                    "analysis": "这是历史真题的标准答案。",
+                },
+            }
+
+        @property
+        def name(self) -> str:
+            return "rag"
+
+        @property
+        def description(self) -> str:
+            return "exact authority rag"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {"query": {"type": "string"}},
+                "required": ["query"],
+            }
+
+        async def execute(self, **kwargs: Any) -> str:
+            return "知识库返回了标准答案"
+
+        def consume_trace_metadata(self) -> dict[str, Any] | None:
+            metadata = dict(self._trace_metadata)
+            self._trace_metadata = {}
+            return metadata
+
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=FakeProvider(),
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(metadata={}, key=key),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+    loop.tools.register(ExactAuthorityTool())
+
+    final_content, _tools_used, messages = await loop._run_agent_loop(
+        [{"role": "user", "content": "2025真题"}],
+        runtime_metadata={"exact_question_blocked_reason": "low_information_exam_query"},
+        allow_exact_authority_override=True,
+    )
+
+    assert final_content == "请先补充具体题干和选项，我再讲评。"
+    assert "标准答案：D" not in final_content
+    assert messages[-1]["content"] == final_content
+
+
+@pytest.mark.asyncio
 async def test_tutorbot_agent_loop_does_not_override_general_chat_with_exact_authority(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,

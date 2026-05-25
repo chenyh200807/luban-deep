@@ -184,33 +184,31 @@ class ChatOrchestrator:
 
     async def _select_capability(self, context: UnifiedContext) -> str:
         routing_user_message = self._routing_user_message(context)
-        if not self._has_active_lifecycle_context(context):
-            lifecycle_decision = await resolve_question_lifecycle_scene_decision(
-                SimpleNamespace(user_message=routing_user_message, metadata=context.metadata)
+        lifecycle_decision = await resolve_question_lifecycle_scene_decision(
+            SimpleNamespace(user_message=routing_user_message, metadata=context.metadata)
+        )
+        self._record_lifecycle_decision(context, lifecycle_decision)
+        lifecycle_scene = lifecycle_decision.scene
+        if lifecycle_scene == "question_review":
+            self._prepare_free_text_question_review_context(context, routing_user_message)
+            context.metadata["semantic_router_mode"] = "question_lifecycle"
+            context.metadata["semantic_router_mode_reason"] = (
+                f"{lifecycle_decision.source}_question_review"
             )
-            self._record_lifecycle_decision(context, lifecycle_decision)
-            lifecycle_scene = lifecycle_decision.scene
-            if lifecycle_scene == "question_review":
-                self._prepare_free_text_question_review_context(context, routing_user_message)
-                context.metadata["semantic_router_mode"] = "question_lifecycle"
-                context.metadata["semantic_router_mode_reason"] = (
-                    f"{lifecycle_decision.source}_question_review"
-                )
-                context.metadata["semantic_router_shadow_decision"] = {}
-                context.metadata["semantic_router_shadow_route"] = ""
-                context.metadata["semantic_router_selected_capability"] = "deep_question"
-                return "deep_question"
-            if lifecycle_scene == "practice_generation":
-                self._prepare_practice_request_context(context, routing_user_message)
-                context.metadata["semantic_router_mode"] = "question_lifecycle"
-                context.metadata["semantic_router_mode_reason"] = (
-                    f"{lifecycle_decision.source}_practice_generation"
-                )
-                context.metadata["semantic_router_shadow_decision"] = {}
-                context.metadata["semantic_router_shadow_route"] = ""
-                context.metadata["semantic_router_selected_capability"] = "deep_question"
-                return "deep_question"
-
+            context.metadata["semantic_router_shadow_decision"] = {}
+            context.metadata["semantic_router_shadow_route"] = ""
+            context.metadata["semantic_router_selected_capability"] = "deep_question"
+            return "deep_question"
+        if lifecycle_scene == "practice_generation":
+            self._prepare_practice_request_context(context, routing_user_message)
+            context.metadata["semantic_router_mode"] = "question_lifecycle"
+            context.metadata["semantic_router_mode_reason"] = (
+                f"{lifecycle_decision.source}_practice_generation"
+            )
+            context.metadata["semantic_router_shadow_decision"] = {}
+            context.metadata["semantic_router_shadow_route"] = ""
+            context.metadata["semantic_router_selected_capability"] = "deep_question"
+            return "deep_question"
         if context.active_capability:
             self._prepare_preselected_capability_context(context, routing_user_message)
             context.metadata.setdefault("semantic_router_mode", "preselected")
@@ -322,12 +320,20 @@ class ChatOrchestrator:
             "exact_question_blocked_reason": decision.exact_question_blocked_reason,
             "selected_skill_names": selected_skill_names,
             "needs_clarification": decision.needs_clarification,
+            "llm_scene_candidate": (
+                dict(decision.llm_scene_candidate)
+                if isinstance(decision.llm_scene_candidate, dict)
+                else None
+            ),
+            "business_gate_result": decision.business_gate_result,
         }
         context.metadata["question_lifecycle_decision"] = decision_payload
         context.metadata["decision_source"] = decision.source
         context.metadata["scene_confidence"] = decision.confidence
         context.metadata["required_anchor_status"] = decision.required_anchor_status
         context.metadata["selected_skill_names"] = selected_skill_names
+        context.metadata["llm_scene_candidate"] = decision_payload["llm_scene_candidate"]
+        context.metadata["business_gate_result"] = decision.business_gate_result
         context.metadata["question_lifecycle_scene"] = scene
         context.metadata["question_lifecycle_scene_source"] = decision.source
         context.metadata["question_lifecycle_scene_confidence"] = decision.confidence
@@ -347,6 +353,8 @@ class ChatOrchestrator:
             trace_meta["scene_confidence"] = decision.confidence
             trace_meta["required_anchor_status"] = decision.required_anchor_status
             trace_meta["selected_skill_names"] = list(selected_skill_names)
+            trace_meta["llm_scene_candidate"] = decision_payload["llm_scene_candidate"]
+            trace_meta["business_gate_result"] = decision.business_gate_result
             trace_meta["question_lifecycle_scene"] = scene
             trace_meta["question_lifecycle_scene_source"] = decision.source
             trace_meta["question_lifecycle_scene_confidence"] = decision.confidence
