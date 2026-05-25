@@ -83,7 +83,10 @@ run("runtime state reads and writes app globalData when app is available", funct
 
   runtime.markGoHome();
   runtime.setPendingConversationId("conv_42");
-  runtime.setPendingChatIntent("继续上次的问题", "DEEP");
+  runtime.setPendingChatIntent("继续上次的问题", "DEEP", {
+    source: "assessment_result_wrong_item",
+    attempt_ref: "attempt_signed",
+  });
   runtime.setNetworkAvailable(false);
   runtime.setAuthRedirecting(true);
 
@@ -103,6 +106,11 @@ run("runtime state reads and writes app globalData when app is available", funct
   assert(
     app.globalData.pendingChatMode === "DEEP",
     "pending chat mode should sync into app globalData",
+  );
+  assert(
+    app.globalData.pendingChatPromptIntent &&
+      app.globalData.pendingChatPromptIntent.attempt_ref === "attempt_signed",
+    "pending chat prompt intent should sync into app globalData",
   );
   assert(app.globalData.networkAvailable === false, "network availability should sync into app globalData");
   assert(app.globalData._authRedirecting === true, "auth redirecting should sync into app globalData");
@@ -129,6 +137,10 @@ run("runtime state reads and writes app globalData when app is available", funct
   assert(intent.query === "继续上次的问题", "pending chat intent should preserve query");
   assert(intent.mode === "DEEP", "pending chat intent should preserve mode");
   assert(
+    intent.promptIntent && intent.promptIntent.source === "assessment_result_wrong_item",
+    "pending chat intent should preserve prompt intent",
+  );
+  assert(
     app.globalData.pendingChatQuery === "",
     "pending chat query should clear in app globalData after consume",
   );
@@ -136,6 +148,7 @@ run("runtime state reads and writes app globalData when app is available", funct
     app.globalData.pendingChatMode === "AUTO",
     "pending chat mode should reset in app globalData after consume",
   );
+  assert(app.globalData.pendingChatPromptIntent === null, "pending chat prompt intent should clear after consume");
   runtime.setWorkspaceBack("/packageDeeptutor/pages/report/report", "学情");
   assert(
     runtime.getWorkspaceBack("/packageDeeptutor/pages/chat/chat") &&
@@ -168,6 +181,7 @@ run("runtime logout clears mirrored app globalData state", function () {
       pendingConversationId: "conv_88",
       pendingChatQuery: "旧问题",
       pendingChatMode: "DEEP",
+      pendingChatPromptIntent: { source: "old" },
       networkAvailable: true,
       _authRedirecting: false,
     },
@@ -199,6 +213,7 @@ run("runtime logout clears mirrored app globalData state", function () {
   );
   assert(app.globalData.pendingChatQuery === "", "logout should clear pendingChatQuery in app globalData");
   assert(app.globalData.pendingChatMode === "AUTO", "logout should reset pendingChatMode in app globalData");
+  assert(app.globalData.pendingChatPromptIntent === null, "logout should clear pendingChatPromptIntent");
   assert(app.globalData._authRedirecting === false, "logout should release auth redirecting in app globalData");
   assert(
     redirectCalls.length === 1 && redirectCalls[0].url === "/packageDeeptutor/pages/login/login",
@@ -230,7 +245,7 @@ run("runtime pending conversation and intent still work without app fallback", f
   var runtime = loadRuntime({ token: "token_demo" });
 
   runtime.setPendingConversationId("conv_42");
-  runtime.setPendingChatIntent("继续上次的问题", "DEEP");
+  runtime.setPendingChatIntent("继续上次的问题", "DEEP", { concept_label: "地下防水" });
 
   assert(
     runtime.peekPendingConversationId() === "conv_42",
@@ -248,6 +263,7 @@ run("runtime pending conversation and intent still work without app fallback", f
   var intent = runtime.consumePendingChatIntent();
   assert(intent.query === "继续上次的问题", "pending chat intent should preserve query");
   assert(intent.mode === "DEEP", "pending chat intent should preserve mode");
+  assert(intent.promptIntent.concept_label === "地下防水", "pending chat intent should preserve prompt intent");
 
   var emptyIntent = runtime.consumePendingChatIntent();
   assert(emptyIntent.query === "", "pending chat query should clear after consume");

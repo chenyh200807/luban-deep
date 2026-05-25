@@ -159,7 +159,72 @@ function normalizeMcqOptions(rawOptions) {
   return options;
 }
 
-function normalizeMcqQuestion(rawQuestion, fallbackIndex) {
+function normalizeMcqReviewNotes(rawNotes) {
+  var notes = rawNotes && typeof rawNotes === "object" ? rawNotes : {};
+  var thinkPrompt = _trimmedString(notes.thinkPrompt || notes.think_prompt || "");
+  var displayAnswer = _trimmedString(
+    notes.displayAnswer ||
+      notes.display_answer ||
+      notes.answer ||
+      notes.answerText ||
+      notes.answer_text ||
+      "",
+  ).toUpperCase();
+  var analysis = _trimmedString(
+    notes.analysis ||
+      notes.analysisText ||
+      notes.analysis_text ||
+      notes.teachingText ||
+      notes.teaching_text ||
+      "",
+  );
+  var optionAnalysis = _normalizeObjectArray(
+    notes.optionAnalysis ||
+      notes.option_analysis ||
+      notes.choiceAnalysis ||
+      notes.choice_analysis,
+    function (item) {
+      var raw = item && typeof item === "object" ? item : {};
+      var key = _trimmedString(raw.key || raw.option || raw.option_key || raw.label || "").toUpperCase();
+      var row = {
+        key: key,
+        text: _trimmedString(raw.text || raw.optionText || raw.option_text || ""),
+        verdict: _trimmedString(raw.verdict || raw.status || ""),
+        analysis: _trimmedString(raw.analysis || raw.reason || raw.explanation || ""),
+      };
+      return row.key || row.analysis ? row : null;
+    },
+  );
+  var scoringPoints = _normalizeStringArray(notes.scoringPoints || notes.scoring_points);
+  var pitfalls = _normalizeStringArray(
+    notes.pitfalls ||
+      notes.easyMistakes ||
+      notes.easy_mistakes ||
+      notes.commonMistakes ||
+      notes.common_mistakes,
+  );
+  var mnemonic = _trimmedString(notes.mnemonic || notes.memoryTip || notes.memory_tip || "");
+  if (
+    !thinkPrompt &&
+    !displayAnswer &&
+    !analysis &&
+    !optionAnalysis.length &&
+    !scoringPoints.length &&
+    !pitfalls.length &&
+    !mnemonic
+  ) return null;
+  return {
+    thinkPrompt: thinkPrompt,
+    displayAnswer: displayAnswer,
+    analysis: analysis,
+    optionAnalysis: optionAnalysis,
+    scoringPoints: scoringPoints,
+    pitfalls: pitfalls,
+    mnemonic: mnemonic,
+  };
+}
+
+function normalizeMcqQuestion(rawQuestion, fallbackIndex, reviewMode) {
   var q = rawQuestion && typeof rawQuestion === "object" ? rawQuestion : {};
   var rawFollowup =
     q.followupContext && typeof q.followupContext === "object"
@@ -177,25 +242,26 @@ function normalizeMcqQuestion(rawQuestion, fallbackIndex) {
     index: _positiveInt(q.index, fallbackIndex),
     stem: sanitizeAuthorityText(q.stem || "请选择正确选项", "请选择正确选项"),
     hint: sanitizeAuthorityText(q.hint || "", ""),
-    questionType:
-      _normalizeEnum(
-        q.questionType || q.question_type,
-        ["single_choice", "multi_choice"],
-        "single_choice",
+    questionType: _normalizeEnum(
+      q.questionType || q.question_type,
+      ["single_choice", "multi_choice"],
+      "single_choice",
     ),
     options: normalizeMcqOptions(q.options),
     followupContext: sanitizeFollowupContext(rawFollowup),
     questionId: questionId,
     hasContext: !!questionId,
+    reviewNotes: reviewMode ? normalizeMcqReviewNotes(q.reviewNotes || q.review_notes) : null,
   };
 }
 
 function createMcqBlock(rawBlock) {
   var block = rawBlock && typeof rawBlock === "object" ? rawBlock : {};
   var rawQuestions = Array.isArray(block.questions) ? block.questions : [];
+  var reviewMode = !!(block.reviewMode || block.review_mode);
   var questions = [];
   for (var i = 0; i < rawQuestions.length; i++) {
-    var question = normalizeMcqQuestion(rawQuestions[i], i + 1);
+    var question = normalizeMcqQuestion(rawQuestions[i], i + 1, reviewMode);
     if (!question.options || question.options.length < 2) continue;
     questions.push(question);
   }
@@ -208,7 +274,7 @@ function createMcqBlock(rawBlock) {
       "请选择后提交答案",
     ),
     receipt: sanitizeAuthorityText(block.receipt || "", ""),
-    reviewMode: !!(block.reviewMode || block.review_mode),
+    reviewMode: reviewMode,
   };
 }
 
@@ -266,7 +332,11 @@ function createFormulaBlock(rawBlock) {
     BLOCK_TYPES.formula_block,
   );
   var normalizedType =
-    type === "inline" ? BLOCK_TYPES.formula_inline : type === "block" ? BLOCK_TYPES.formula_block : type;
+    type === "inline"
+      ? BLOCK_TYPES.formula_inline
+      : type === "block"
+        ? BLOCK_TYPES.formula_block
+        : type;
   var latex = _asString(block.latex || "");
   return {
     type: normalizedType,
@@ -287,18 +357,30 @@ function normalizeChartSeriesItem(rawSeries, fallbackIndex) {
       : [];
   var valueSummary = _chartSeriesValueSummary(values);
   return {
-    name: _asString(series.name || series.label || series.title || "系列" + fallbackIndex),
-    summary: _asString(series.summary || series.desc || series.description || series.value || valueSummary),
+    name: _asString(
+      series.name || series.label || series.title || "系列" + fallbackIndex,
+    ),
+    summary: _asString(
+      series.summary ||
+        series.desc ||
+        series.description ||
+        series.value ||
+        valueSummary,
+    ),
     value: _asString(series.value || ""),
     color: _asString(series.color || ""),
-    values: values.map(function (item) {
-      if (item && typeof item === "object") {
-        return _trimmedString(item.label || item.name || item.x || item.value || item.y || "");
-      }
-      return _trimmedString(item);
-    }).filter(function (item) {
-      return !!item;
-    }),
+    values: values
+      .map(function (item) {
+        if (item && typeof item === "object") {
+          return _trimmedString(
+            item.label || item.name || item.x || item.value || item.y || "",
+          );
+        }
+        return _trimmedString(item);
+      })
+      .filter(function (item) {
+        return !!item;
+      }),
   };
 }
 
@@ -320,7 +402,8 @@ function createChartBlock(rawBlock) {
     !!caption ||
     series.length > 0 ||
     legend.length > 0 ||
-    (fallbackTable && (fallbackTable.headers.length > 0 || fallbackTable.rows.length > 0));
+    (fallbackTable &&
+      (fallbackTable.headers.length > 0 || fallbackTable.rows.length > 0));
   if (!hasContent) return null;
   return {
     type: BLOCK_TYPES.chart,
@@ -334,8 +417,16 @@ function createChartBlock(rawBlock) {
     summary: summary,
     series: series,
     axes: {
-      x: _asString(block.axes && block.axes.x ? block.axes.x : block.xAxis || block.x_axis || ""),
-      y: _asString(block.axes && block.axes.y ? block.axes.y : block.yAxis || block.y_axis || ""),
+      x: _asString(
+        block.axes && block.axes.x
+          ? block.axes.x
+          : block.xAxis || block.x_axis || "",
+      ),
+      y: _asString(
+        block.axes && block.axes.y
+          ? block.axes.y
+          : block.yAxis || block.y_axis || "",
+      ),
     },
     legend: legend,
     caption: caption,
@@ -354,14 +445,22 @@ function createStepsBlock(rawBlock) {
   for (var i = 0; i < rawItems.length; i++) {
     var item = rawItems[i];
     var normalized = item && typeof item === "object" ? item : { title: item };
-    var title = _asString(normalized.title || normalized.text || normalized.label || "");
-    var detail = _asString(normalized.detail || normalized.summary || normalized.content || "");
+    var title = _asString(
+      normalized.title || normalized.text || normalized.label || "",
+    );
+    var detail = _asString(
+      normalized.detail || normalized.summary || normalized.content || "",
+    );
     if (!title && !detail) continue;
     steps.push({
       index: _positiveInt(normalized.index, i + 1),
-      title: title || ("步骤" + (i + 1)),
+      title: title || "步骤" + (i + 1),
       detail: detail,
-      status: _normalizeEnum(normalized.status, ["done", "doing", "todo"], "todo"),
+      status: _normalizeEnum(
+        normalized.status,
+        ["done", "doing", "todo"],
+        "todo",
+      ),
     });
   }
   var blockTitle = _asString(block.title || block.caption || "");
@@ -376,7 +475,9 @@ function createStepsBlock(rawBlock) {
 
 function createRecapBlock(rawBlock) {
   var block = rawBlock && typeof rawBlock === "object" ? rawBlock : {};
-  var bullets = _normalizeStringArray(block.bullets || block.points || block.items);
+  var bullets = _normalizeStringArray(
+    block.bullets || block.points || block.items,
+  );
   var title = _asString(block.title || block.heading || "");
   var summary = _asString(block.summary || block.text || block.content || "");
   if (!title && !summary && !bullets.length) return null;
@@ -407,7 +508,10 @@ function normalizeBlock(rawBlock) {
   if (!type) return null;
   if (type === BLOCK_TYPES.mcq) return createMcqBlock(rawBlock);
   if (type === BLOCK_TYPES.table) return createTableBlock(rawBlock);
-  if (type === BLOCK_TYPES.formula_inline || type === BLOCK_TYPES.formula_block) {
+  if (
+    type === BLOCK_TYPES.formula_inline ||
+    type === BLOCK_TYPES.formula_block
+  ) {
     return createFormulaBlock(rawBlock);
   }
   if (type === BLOCK_TYPES.chart) return createChartBlock(rawBlock);
@@ -450,7 +554,9 @@ function createCanonicalMessage(rawMessage) {
     schemaVersion: INTERNAL_RENDER_SCHEMAS.canonical_message.version,
     messageId: _asString(message.messageId || message.message_id || ""),
     blocks: blocks,
-    fallbackText: sanitizeAuthorityMarkdownText(message.fallbackText || message.fallback_text || ""),
+    fallbackText: sanitizeAuthorityMarkdownText(
+      message.fallbackText || message.fallback_text || "",
+    ),
     meta: {
       streamingMode: _normalizeEnum(
         message.meta && message.meta.streamingMode,
@@ -465,10 +571,18 @@ function createCanonicalMessage(rawMessage) {
 function createRenderModel(rawModel) {
   var model = rawModel && typeof rawModel === "object" ? rawModel : {};
   var renderableContent = _asString(model.renderableContent || "");
-  var plainTextFallback = _asString(model.plainTextFallback || model.plain_text_fallback || renderableContent);
+  var plainTextFallback = _asString(
+    model.plainTextFallback || model.plain_text_fallback || renderableContent,
+  );
   var rawBlocks =
-    model.blocks === null ? null : Array.isArray(model.blocks) ? model.blocks : [];
-  var visibleBlocks = Array.isArray(model.visibleBlocks) ? model.visibleBlocks : [];
+    model.blocks === null
+      ? null
+      : Array.isArray(model.blocks)
+        ? model.blocks
+        : [];
+  var visibleBlocks = Array.isArray(model.visibleBlocks)
+    ? model.visibleBlocks
+    : [];
   var mcqCards =
     model.mcqCards === null
       ? null
@@ -483,7 +597,10 @@ function createRenderModel(rawModel) {
     mcqHint: _asString(model.mcqHint || ""),
     mcqReceipt: _asString(model.mcqReceipt || ""),
     mcqInteractiveReady: !!model.mcqInteractiveReady,
-    originalContent: _asString(model.originalContent || model.original_content || ""),
+    mcqReviewMode: !!model.mcqReviewMode,
+    originalContent: _asString(
+      model.originalContent || model.original_content || "",
+    ),
     originalCollapsed: model.originalCollapsed !== false,
     visibleBlocks: visibleBlocks,
     plainTextFallback: plainTextFallback,
@@ -496,9 +613,13 @@ function createRenderModel(rawModel) {
       ["idle", "streaming", "complete"],
       "idle",
     ),
+    progressiveDisclosure: model.progressiveDisclosure || null,
   };
 }
 
+// Authority fields that must never leave the server-side trust boundary.
+// Used by both sanitizeProgressiveDisclosure (sections key filter) and
+// sanitizeFollowupContext (mcq.followup_context recursive scrub).
 var _REDACTED_AUTHORITY_KEYS = [
   "correct_answer",
   "correctAnswer",
@@ -517,10 +638,19 @@ var _REDACTED_AUTHORITY_KEYS = [
   "graderSecret",
 ];
 
+// Kept for source-level back-compat with any external reference; treat
+// as alias of _REDACTED_AUTHORITY_KEYS.
+var _HIDDEN_DISCLOSURE_KEYS = _REDACTED_AUTHORITY_KEYS;
+
 function _isAuthorityKey(key) {
   return _REDACTED_AUTHORITY_KEYS.indexOf(key) >= 0;
 }
 
+// Recursively strip grading authority keys from a followup_context value.
+// followup_context is intended for follow-up turn metadata (e.g.
+// question_id, turn_id, source, topic). It MUST NOT carry correct_answer
+// or scoring_points to the client — chat.js may persist the whole object
+// into wx state and any wxml debug view would surface it.
 function sanitizeFollowupContext(value) {
   if (value === null || value === undefined) return null;
   if (typeof value !== "object") return value;
@@ -541,6 +671,65 @@ function sanitizeFollowupContext(value) {
   return out;
 }
 
+function sanitizeProgressiveDisclosure(payload) {
+  if (!payload || typeof payload !== "object") return null;
+  var verdict = _asString(payload.verdict || "");
+  var diagnosis = _asString(
+    payload.one_line_diagnosis || payload.oneLineDiagnosis || "",
+  );
+  if (!verdict && !diagnosis) return null;
+  function sanitizeAction(action) {
+    if (!action || typeof action !== "object") return null;
+    var slug = _asString(action.slug || "");
+    var label = _asString(action.label || "");
+    var role = _asString(action.role || "secondary");
+    if (!slug || !label) return null;
+    return {
+      slug: slug,
+      label: label,
+      role: role === "primary" ? "primary" : "secondary",
+    };
+  }
+  var primary = sanitizeAction(
+    payload.primary_next_action || payload.primaryNextAction,
+  );
+  var rawSecondary = Array.isArray(
+    payload.secondary_actions || payload.secondaryActions,
+  )
+    ? payload.secondary_actions || payload.secondaryActions
+    : [];
+  var secondary = [];
+  for (var i = 0; i < rawSecondary.length && secondary.length < 2; i += 1) {
+    var chip = sanitizeAction(rawSecondary[i]);
+    if (chip) secondary.push(chip);
+  }
+  var sections = {};
+  if (payload.sections && typeof payload.sections === "object") {
+    var keys = Object.keys(payload.sections);
+    for (var k = 0; k < keys.length; k += 1) {
+      var key = keys[k];
+      if (_isAuthorityKey(key)) continue;
+      sections[key] = _asString(payload.sections[key] || "");
+    }
+  }
+  var pacing = _asString(
+    payload.difficulty_pacing || payload.difficultyPacing || "hold",
+  );
+  var allowedPacing = { hold: 1, suggest_consolidation: 1, suggest_step_up: 1 };
+  if (!allowedPacing[pacing]) pacing = "hold";
+  return {
+    verdict: verdict.slice(0, 120),
+    oneLineDiagnosis: diagnosis.slice(0, 80),
+    primaryNextAction: primary,
+    secondaryActions: secondary,
+    sections: sections,
+    difficultyPacing: pacing,
+    gradingSource: _asString(
+      payload.grading_source || payload.gradingSource || "",
+    ),
+  };
+}
+
 module.exports = {
   SCHEMA_VERSION: SCHEMA_VERSION,
   BLOCK_TYPES: BLOCK_TYPES,
@@ -553,6 +742,7 @@ module.exports = {
   normalizeBlock: normalizeBlock,
   createCanonicalMessage: createCanonicalMessage,
   createRenderModel: createRenderModel,
+  sanitizeProgressiveDisclosure: sanitizeProgressiveDisclosure,
   sanitizeFollowupContext: sanitizeFollowupContext,
   sanitizeAuthorityText: sanitizeAuthorityText,
   sanitizeAuthorityMarkdownText: sanitizeAuthorityMarkdownText,

@@ -38,6 +38,45 @@ def test_calculation_is_optional_and_structured_judgment_is_fallback() -> None:
     assert comprehensive.hard_require_calculation is False
 
 
+def test_p0a_topic_coverage_requires_three_form_minimum_and_flags_below_five_target() -> None:
+    blueprint = get_assessment_blueprint("topic_waterproof_v1")
+    rows = [
+        {
+            "section_id": section.id,
+            "candidate_count": section.count * 2,
+            "with_question_id": section.count * 2,
+            "with_source_chunk_id": section.count * 2,
+            "renderable_count": section.count * 2,
+            "calculation_count": 0,
+            "structured_judgment_count": section.count * 2,
+        }
+        for section in blueprint.sections
+    ]
+
+    report = evaluate_blueprint_coverage(blueprint, rows)
+
+    assert all(section.minimum_multiplier >= 3 for section in blueprint.sections)
+    assert report["status"] == "fail"
+    blocked_sections = {
+        issue["section_id"]
+        for issue in report["issues"]
+        if issue["code"] == "insufficient_candidates"
+    }
+    assert blocked_sections == {section.id for section in blueprint.sections}
+
+    pilot_rows = [
+        {**row, "candidate_count": section.count * 3, "with_question_id": section.count * 3, "renderable_count": section.count * 3}
+        for row, section in zip(rows, blueprint.sections)
+    ]
+    pilot_report = evaluate_blueprint_coverage(blueprint, pilot_rows)
+    assert pilot_report["status"] == "pass"
+    assert {
+        issue["section_id"]
+        for issue in pilot_report["issues"]
+        if issue["code"] == "below_stable_form_rotation_target"
+    } == {section.id for section in blueprint.sections}
+
+
 def test_coverage_passes_when_every_section_has_three_x_candidates() -> None:
     blueprint = get_assessment_blueprint("diagnostic_v1")
     rows = [

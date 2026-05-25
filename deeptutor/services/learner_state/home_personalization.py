@@ -22,11 +22,21 @@ def build_home_dashboard_learning_projection(
     subject_id: str = "construction_exam_1",
     now: datetime | None = None,
 ) -> dict[str, Any]:
-    del weak_nodes, conversation_events
+    del weak_nodes
     current_time = now or datetime.now(tz=_TZ)
     if _is_fresh_projection(projection, now=current_time):
         return _normalize_projection(projection)
     reason = "stale" if isinstance(projection, dict) else "missing"
+    recovered_projection = _projection_from_recent_learning_events(
+        conversation_events,
+        generated_at=current_time,
+    )
+    if recovered_projection:
+        source_status = dict(recovered_projection.get("source_status") or {})
+        source_status["recovered_from"] = "learner_memory_events.learning_evidence"
+        source_status["projection_state"] = reason
+        recovered_projection["source_status"] = source_status
+        return recovered_projection
     return _build_seed_fallback(subject_id=subject_id, fallback_reason=reason)
 
 
@@ -55,6 +65,7 @@ def build_home_personalization_projection_from_learning_signal(
         signal.get("focus"),
         signal.get("concept"),
         concept.get("label"),
+        _first_knowledge_point(payload),
     )
     error_label = _first_text(
         error.get("label"),
@@ -91,6 +102,14 @@ def build_home_personalization_projection_from_learning_signal(
             intent={**base_intent, "training_mode": "concept_explain", "reason": "home_projection_concept"},
         ),
     ]
+    if str(payload.get("learning_signal_type") or "").strip() == "training_completed":
+        prompts = [
+            _assessment_retest_prompt(
+                text=f"再测一次{prompt_concept}",
+                intent={**base_intent, "reason": "training_completion_retest"},
+            ),
+            *prompts[:2],
+        ]
     return {
         "generated_at": current_time.isoformat(),
         "source_status": {"fallback_used": False, "learning_report": "projection"},
@@ -199,6 +218,43 @@ def _seed_prompt_to_dashboard_prompt(item: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _projection_from_recent_learning_events(
+    events: list[dict[str, Any]] | None,
+    *,
+    generated_at: datetime,
+) -> dict[str, Any] | None:
+    for event in list(events or []):
+        payload = _payload_from_event(event)
+        if str(payload.get("event_type") or "") != "learning_evidence":
+            continue
+        if not str(payload.get("event_id") or "").strip():
+            event_id = _event_field(event, "event_id")
+            if event_id:
+                payload["event_id"] = event_id
+        projection = build_home_personalization_projection_from_learning_signal(
+            payload,
+            generated_at=generated_at,
+        )
+        if projection:
+            return projection
+    return None
+
+
+def _payload_from_event(event: Any) -> dict[str, Any]:
+    payload: Any = {}
+    if isinstance(event, dict):
+        payload = event.get("payload_json") or event.get("payload") or {}
+    else:
+        payload = getattr(event, "payload_json", None) or getattr(event, "payload", None) or {}
+    return dict(payload) if isinstance(payload, dict) else {}
+
+
+def _event_field(event: Any, key: str) -> str:
+    if isinstance(event, dict):
+        return str(event.get(key) or "").strip()
+    return str(getattr(event, key, "") or "").strip()
+
+
 def _projection_prompt(*, prompt_type: str, text: str, intent: dict[str, Any]) -> dict[str, Any]:
     evidence_refs = _normalize_refs(intent.get("evidence_refs"))
     training_intent = build_learning_training_intent(
@@ -229,6 +285,30 @@ def _projection_prompt(*, prompt_type: str, text: str, intent: dict[str, Any]) -
     }
 
 
+def _assessment_retest_prompt(*, text: str, intent: dict[str, Any]) -> dict[str, Any]:
+    evidence_refs = _normalize_refs(intent.get("evidence_refs"))
+    concept_label = str(intent.get("concept_label") or "").strip()
+    error_label = str(intent.get("error_label") or "").strip()
+    return {
+        "prompt_type": "assessment",
+        "text": text,
+        "evidence_refs": evidence_refs,
+        "learning_state_ref": str(intent.get("learning_state_ref") or "").strip(),
+        "suggested_mode": str(intent.get("suggested_mode") or "").strip(),
+        "intent": {
+            "source": "learner_state.home_personalization",
+            "reason": str(intent.get("reason") or "training_completion_retest"),
+            "learning_signal_type": "assessment",
+            "action_mode": "assessment",
+            "assessment_type": "topic_diagnostic",
+            "subject_id": str(intent.get("subject_id") or "").strip(),
+            "concept_label": concept_label,
+            "error_label": error_label,
+            "evidence_refs": evidence_refs,
+        },
+    }
+
+
 def _evidence_refs(payload: dict[str, Any]) -> list[str]:
     refs = []
     for value in list(payload.get("evidence_refs") or []):
@@ -253,6 +333,18 @@ def _first_error_label(payload: dict[str, Any]) -> str:
         label = _first_text(error.get("error_label"), error.get("error_code"), error.get("diagnosis"))
         if label:
             return label
+    for code in list(payload.get("error_codes") or []):
+        label = str(code or "").strip()
+        if label:
+            return label
+    return ""
+
+
+def _first_knowledge_point(payload: dict[str, Any]) -> str:
+    for value in list(payload.get("knowledge_points") or []):
+        text = str(value or "").strip()
+        if text:
+            return text
     return ""
 
 

@@ -11,12 +11,18 @@ import json
 import re
 import uuid
 
-from deeptutor.services.assessment.blueprint import AssessmentBlueprint, AssessmentSection, get_assessment_blueprint
+from deeptutor.services.assessment.blueprint import (
+    MIN_FORM_ROTATION_COUNT,
+    TARGET_FORM_ROTATION_COUNT,
+    AssessmentBlueprint,
+    AssessmentSection,
+    get_assessment_blueprint,
+)
 from deeptutor.services.assessment.profile_probes import ProfileProbe, get_profile_probes
 from deeptutor.services.taxonomy.construction_taxonomy import display_taxonomy_label
 
 _CHAPTER_CODE_RE = re.compile(r"^1A\d{6}$")
-_ASSESSMENT_FORM_COUNT = 5
+_ASSESSMENT_FORM_COUNT = TARGET_FORM_ROTATION_COUNT
 _FORM_CACHE_LOCK = threading.RLock()
 _FORM_CACHE: dict[str, "_AssessmentFormBank"] = {}
 _MULTI_PROMPT_STEM_RE = re.compile(r"(?:^|\n)\s*(?:【?\s*问题\s*】?\s*)?\d+\s*[\.．、:：]")
@@ -138,28 +144,54 @@ class SupabaseAssessmentQuestionProvider:
             selection_seed=f"{selection_seed}:{section.id}:{','.join(question_types_tuple)}",
             offset=_selection_offset(selection_seed, section.id),
         )
-        if len(candidates) < limit:
-            for offset in (1000, 2000, 3000, 4000):
-                fallback_candidates = self._get_candidates_for_types(
-                    base_url,
-                    api_key,
-                    section,
-                    question_types=question_types_tuple,
-                    limit=pool_limit,
-                    exclude_source_ids=exclude_source_ids,
-                    selection_seed=f"{selection_seed}:{section.id}:offset:{offset}",
-                    offset=offset,
-                )
-                candidates.extend(fallback_candidates)
-                if len({item.source_question_id for item in candidates}) >= limit:
-                    break
+        selected = self._select_from_candidate_pool(
+            candidates,
+            section=section,
+            limit=limit,
+            selection_seed=selection_seed,
+            avoid_chapters=avoid_chapters or set(),
+        )
+        if len(selected) >= limit:
+            return selected
+        for offset in (1000, 2000, 3000, 4000):
+            fallback_candidates = self._get_candidates_for_types(
+                base_url,
+                api_key,
+                section,
+                question_types=question_types_tuple,
+                limit=pool_limit,
+                exclude_source_ids=exclude_source_ids,
+                selection_seed=f"{selection_seed}:{section.id}:offset:{offset}",
+                offset=offset,
+            )
+            candidates.extend(fallback_candidates)
+            selected = self._select_from_candidate_pool(
+                candidates,
+                section=section,
+                limit=limit,
+                selection_seed=selection_seed,
+                avoid_chapters=avoid_chapters or set(),
+            )
+            if len(selected) >= limit:
+                break
+        return selected
+
+    @staticmethod
+    def _select_from_candidate_pool(
+        candidates: list[QuestionCandidate],
+        *,
+        section: AssessmentSection,
+        limit: int,
+        selection_seed: str,
+        avoid_chapters: set[str],
+    ) -> list[QuestionCandidate]:
         unique_candidates = list({item.source_question_id: item for item in candidates}.values())
         return _select_diagnostic_candidates(
             unique_candidates,
             section=section,
             limit=limit,
             selection_seed=selection_seed,
-            avoid_chapters=avoid_chapters or set(),
+            avoid_chapters=avoid_chapters,
         )
 
     def _get_candidates_for_types(
@@ -375,16 +407,33 @@ class SupabaseAssessmentQuestionProvider:
             },
         )
         forms = tuple(_form_from_persisted_row(row, blueprint) for row in rows)
-        if len(forms) < _ASSESSMENT_FORM_COUNT:
+        if len(forms) < MIN_FORM_ROTATION_COUNT:
             raise AssessmentBlueprintUnavailable(
-                f"Persisted assessment forms missing: expected {_ASSESSMENT_FORM_COUNT}, found {len(forms)}"
+                f"Persisted assessment forms missing: expected at least {MIN_FORM_ROTATION_COUNT}, found {len(forms)}"
             )
         question_bank_size = max(int(row.get("question_bank_size") or 0) for row in rows)
-        return _AssessmentFormBank(
+        form_bank = _AssessmentFormBank(
             forms=forms,
             question_bank_size=question_bank_size,
             form_source="supabase_persisted",
         )
+        _validate_form_bank_rotation(form_bank, blueprint)
+        return form_bank
+
+    def active_form_count(self, blueprint_version: str) -> int:
+        base_url, api_key = self._supabase_config()
+        rows = self._rest_get(
+            base_url,
+            api_key,
+            "assessment_forms",
+            {
+                "select": "form_id",
+                "blueprint_version": f"eq.{blueprint_version}",
+                "status": "eq.active",
+                "limit": str(_ASSESSMENT_FORM_COUNT),
+            },
+        )
+        return len(rows)
 
     def save_form_bank(self, blueprint: AssessmentBlueprint, form_bank: _AssessmentFormBank) -> None:
         base_url, api_key = self._supabase_config()
@@ -584,8 +633,23 @@ class AssessmentBlueprintService:
     def _build_form_bank(self) -> _AssessmentFormBank:
         forms: list[_AssessmentForm] = []
         bank_fallback_used = False
+        bank_exclude_source_ids: set[str] = set()
+        bank_exclude_semantic_signatures: set[str] = set()
+        requires_rotation = _requires_form_bank_scored_rotation(self._blueprint)
         for form_index in range(1, _ASSESSMENT_FORM_COUNT + 1):
-            units, fallback_used = self._build_form_units(form_index)
+            try:
+                units, fallback_used, used_source_ids, used_semantic_signatures = self._build_form_units(
+                    form_index,
+                    bank_exclude_source_ids=bank_exclude_source_ids if requires_rotation else set(),
+                    bank_exclude_semantic_signatures=bank_exclude_semantic_signatures if requires_rotation else set(),
+                )
+            except AssessmentBlueprintUnavailable:
+                if requires_rotation and len(forms) >= MIN_FORM_ROTATION_COUNT:
+                    break
+                raise
+            if requires_rotation:
+                bank_exclude_source_ids.update(used_source_ids)
+                bank_exclude_semantic_signatures.update(used_semantic_signatures)
             bank_fallback_used = bank_fallback_used or fallback_used
             if len(units) != self._blueprint.requested_count:
                 raise AssessmentBlueprintUnavailable(
@@ -605,19 +669,29 @@ class AssessmentBlueprintService:
         form_source = _built_form_source(self._provider)
         if bank_fallback_used and self._fallback_provider is not None:
             form_source = _built_form_source(self._fallback_provider)
-        return _AssessmentFormBank(
+        form_bank = _AssessmentFormBank(
             forms=tuple(forms),
             question_bank_size=question_bank_size,
             form_source=form_source,
         )
+        _validate_form_bank_rotation(form_bank, self._blueprint)
+        return form_bank
 
-    def _build_form_units(self, form_index: int) -> tuple[list[_AssessmentFormUnit], bool]:
+    def _build_form_units(
+        self,
+        form_index: int,
+        *,
+        bank_exclude_source_ids: set[str] | None = None,
+        bank_exclude_semantic_signatures: set[str] | None = None,
+    ) -> tuple[list[_AssessmentFormUnit], bool, set[str], set[str]]:
         units: list[_AssessmentFormUnit] = []
-        exclude_source_ids: set[str] = set()
-        exclude_semantic_signatures: set[str] = set()
+        exclude_source_ids: set[str] = set(bank_exclude_source_ids or set())
+        exclude_semantic_signatures: set[str] = set(bank_exclude_semantic_signatures or set())
         avoid_scored_chapters: set[str] = set()
         profile_probe_iter = iter(get_profile_probes())
         fallback_used = False
+        used_source_ids: set[str] = set()
+        used_semantic_signatures: set[str] = set()
         selection_seed = f"{self._blueprint.version}:assessment_form:{form_index}"
 
         for section in self._blueprint.sections:
@@ -661,9 +735,11 @@ class AssessmentBlueprintService:
                     )
                 for candidate in section_candidates:
                     exclude_source_ids.add(candidate.source_question_id)
+                    used_source_ids.add(candidate.source_question_id)
                     semantic_signature = _candidate_semantic_signature(candidate)
                     if semantic_signature:
                         exclude_semantic_signatures.add(semantic_signature)
+                        used_semantic_signatures.add(semantic_signature)
                     avoid_scored_chapters.add(_chapter_key(candidate.chapter))
                     units.append(_AssessmentFormUnit(section_id=section.id, scored=True, item=candidate))
             else:
@@ -673,7 +749,7 @@ class AssessmentBlueprintService:
                     except StopIteration as exc:
                         raise AssessmentBlueprintUnavailable("Not enough built-in profile probes") from exc
                     units.append(_AssessmentFormUnit(section_id=section.id, scored=False, item=probe))
-        return units, fallback_used
+        return units, fallback_used, used_source_ids, used_semantic_signatures
 
 
 def _make_question_id(source_id: str, index: int) -> str:
@@ -778,6 +854,38 @@ def _form_from_persisted_row(row: dict[str, Any], blueprint: AssessmentBlueprint
         units=units,
         fallback_used=bool(row.get("fallback_used")),
     )
+
+
+def _requires_form_bank_scored_rotation(blueprint: AssessmentBlueprint) -> bool:
+    return blueprint.version.startswith("topic_")
+
+
+def _validate_form_bank_rotation(form_bank: _AssessmentFormBank, blueprint: AssessmentBlueprint) -> None:
+    if len(form_bank.forms) < MIN_FORM_ROTATION_COUNT:
+        raise AssessmentBlueprintUnavailable(
+            f"Assessment blueprint {blueprint.version} requires at least {MIN_FORM_ROTATION_COUNT} forms, "
+            f"found {len(form_bank.forms)}"
+        )
+    if not _requires_form_bank_scored_rotation(blueprint):
+        return
+    source_ids: list[str] = []
+    semantic_signatures: list[str] = []
+    for form in form_bank.forms:
+        for unit in form.units:
+            if not unit.scored or not isinstance(unit.item, QuestionCandidate):
+                continue
+            source_ids.append(unit.item.source_question_id)
+            semantic_signature = _candidate_semantic_signature(unit.item)
+            if semantic_signature:
+                semantic_signatures.append(semantic_signature)
+    if len(source_ids) != len(set(source_ids)):
+        raise AssessmentBlueprintUnavailable(
+            f"Assessment blueprint {blueprint.version} form bank repeats scored source_question_id"
+        )
+    if len(semantic_signatures) != len(set(semantic_signatures)):
+        raise AssessmentBlueprintUnavailable(
+            f"Assessment blueprint {blueprint.version} form bank repeats semantic_signature"
+        )
 
 
 def _form_unit_from_json(item: dict[str, Any]) -> _AssessmentFormUnit:

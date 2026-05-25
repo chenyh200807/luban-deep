@@ -101,7 +101,7 @@ Stop and report before continuing if any item below is true:
 8. `git -C /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor rev-parse --show-toplevel` does not resolve to `/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor` before staging or commit review.
 9. Any Supabase write path lacks an explicit target-database guard, reviewed SQL, and rollback/degraded-mode plan.
 10. User-facing copy implies "full exam ability", "official real exam", or "long-term mastery updated" before the corresponding authority has produced that fact.
-11. P0A authoring backlog is required (no eligible topic has ≥10 candidates) but no signed handoff owner or delivery window has been recorded.
+11. P0A authoring backlog is required (approved topic cannot produce at least 3 non-overlapping forms, or cannot reach the signed 5-form stable target) but no signed handoff owner or delivery window has been recorded.
 12. A new `error_codes` value is needed before a contract registry PR has landed.
 13. P0A `result_report_json` is written without a `schema_version` field; future report readers cannot distinguish P0A and P0B/P1 shapes.
 
@@ -110,6 +110,7 @@ Stop and report before continuing if any item below is true:
 | Uncertainty | Validation | Default if validation fails |
 | --- | --- | --- |
 | Whether independent `waterproof` has enough eligible questions | Phase -1/0 read-only coverage audit with exact filters and candidate IDs | Pivot copy to `waterproof_decoration_mep`, reduce to 8-10 items, or block with authoring backlog |
+| Whether a topic can support repeated attempts without memorization | Coverage audit must prove at least 3 non-overlapping forms; stable recommendation requires 5 forms with cross-form `source_question_id` / `semantic_signature` dedupe | Mark topic as blocked or minimum pilot; never expose a single-form formal TestSet |
 | Whether `assessment_testset` learning evidence is consumed by learning-report/synthesis | `rg` audit plus a focused learner-state test that writes an assessment evidence event and reads the report | Add the narrowest read-model/synthesis support; do not write `training_intent` from submit |
 | Whether durable session migration can be applied safely in current environment | Reviewed SQL, local/shadow apply where available, RLS owner tests, target DB guard | Keep P0A blocked for production; allow local demo only with explicit non-production copy |
 | Whether simple explanation fields are available for all candidates | Coverage audit checks `analysis`, option reasoning, grading keywords, or source rationale | Show correct answer plus "详细解析下个版本上线"; do not fabricate simple explanation with LLM in P0A |
@@ -420,7 +421,7 @@ Acceptance:
 - Report recommends exactly one of:
   - split independent `waterproof`, or
   - pivot P0A copy to `waterproof_decoration_mep`.
-- If neither topic has at least 10 eligible items, P0A is blocked and Task 2.5 authoring backlog handoff becomes a Phase -1 exit gate.
+- If neither topic can produce at least 3 non-overlapping forms, P0A is blocked and Task 2.5 authoring backlog handoff becomes a Phase -1 exit gate. A 12-item stable P0A target requires 5 forms / 60 unique eligible scored candidates, with section floors satisfied.
 - Coverage report records, per candidate, whether the stem contains figure refs, table refs, or exceeds the mobile-safe stem length threshold; items failing mobile rendering are excluded with explicit reason.
 - Coverage report deduplicates candidates by `source_question_id` and (if available) by `semantic_signature`; cross-year repeats are surfaced for manual selection rather than auto-included.
 
@@ -430,13 +431,13 @@ Acceptance:
 
 - Modify: `docs/qa/2026-05-24-assessment-testset-p0a-reality-check.md`
 
-Trigger: Task 2 acceptance shows both `waterproof` and `waterproof_decoration_mep` candidate pools below the P0A floor (10 delivered + 2x candidate buffer).
+Trigger: Task 2 acceptance shows both `waterproof` and `waterproof_decoration_mep` candidate pools below the P0A rotation floor (at least 3 non-overlapping forms) or below the signed stable target (prefer 5 non-overlapping forms).
 
 - [ ] Record in the QA report:
   - exact eligible candidate counts per topic
   - shortfall against P0A delivery target
   - named teaching/authoring owner
-  - target candidate count to unblock (delivered count × 2 minimum, × 3 if three weekly forms are promised)
+  - target candidate count to unblock (`delivered_count × 3` minimum pilot, `delivered_count × 5` stable target; section floors also required)
   - delivery window with explicit calendar date
   - escalation contact if window slips
 - [ ] Until the handoff is signed (owner + date + window present), Phase 0 must not start. The plan does **not** auto-degrade to generic construction questions.
@@ -619,6 +620,7 @@ python scripts/audit_assessment_testset_p0a.py \
 Acceptance:
 
 - Exact P0A delivered count is recommended as 12, 10, 8, or blocked.
+- Exact P0A form rotation status is recommended as blocked, 3-form minimum pilot, or 5-form stable.
 - Report has enough candidate detail for teaching review.
 
 ### Task 7: Teaching Signoff Packet
@@ -639,6 +641,82 @@ Acceptance:
 Acceptance:
 
 - Phase 1 does not start until signoff status is recorded.
+
+### Task 7.5: P0A+ Topic TestSet Catalog And Form Bank
+
+**Files:**
+
+- Create: `deeptutor/services/assessment/topic_catalog.py`
+- Create: `scripts/seed_assessment_topic_catalog_forms.py`
+- Create: `tests/services/assessment/test_topic_catalog.py`
+- Create: `tests/scripts/test_assessment_topic_catalog_scripts.py`
+- Modify: `deeptutor/services/assessment/blueprint.py`
+- Modify: `deeptutor/services/assessment/blueprint_service.py`
+- Modify: `deeptutor/services/member_console/service.py`
+- Modify: `deeptutor/api/routers/mobile.py`
+- Modify: `yousenwebview/packageDeeptutor/pages/assessment/assessment.{js,wxml,wxss}`
+- Modify: `yousenwebview/tests/test_assessment_testset_view_model.js`
+
+Scope: this is a P0A+ closeout task after the waterproof P0A path works. It expands the entry from one topic to a governed catalog; it does not add CAT, teacher authoring UI, P1 deep explanations, or new learner mastery authority.
+
+- [ ] Define the required topic catalog:
+  - `waterproof`
+  - `decoration`
+  - `mep`
+  - `foundation`
+  - `main_structure`
+  - `formwork_scaffold`
+  - `safety`
+  - `schedule`
+  - `contract_claim`
+  - `quality_acceptance`
+- [ ] Each topic blueprint delivers 12 scored items through 3 section specs × 4 items, with strict topic filters and section-level rotation floors.
+- [ ] Run coverage/form-bank gate for every topic:
+  - `stable`: at least 5 active persisted forms
+  - `pilot`: 3-4 active persisted forms
+  - `authoring_needed`: fewer than 3 active persisted forms
+- [ ] Runtime catalog status must validate persisted form bank quality before enabling a topic; a topic with 5 active rows but duplicate/bad items is `authoring_needed`, not `stable`.
+- [ ] Persist stable/pilot form banks into `assessment_forms` only after dry-run, target-database guard, and reviewed candidate output.
+- [ ] Add `GET /api/v1/assessment/topics` as a non-chat, non-streaming HTTP adapter; it reads catalog status only and must not start a turn.
+- [ ] Add a separate `recommendation` read model beside the catalog:
+  - insufficient learning signal -> recommend `diagnostic_v1` / 20-question comprehensive diagnostic
+  - weak enabled topic signal -> recommend that topic TestSet
+  - never recommend `authoring_needed`
+  - never write `training_intent`
+- [ ] Update Yousen assessment page to show a “专题测评目录”; disabled topics show maintenance state and cannot start a formal TestSet.
+- [ ] `create_assessment(assessment_type=topic_diagnostic, topic_ids=[...])` must resolve the selected topic blueprint instead of hard-coding waterproof.
+- [ ] If a topic is `authoring_needed`, block opening the formal assessment and hand off to Task 2.5 authoring backlog.
+
+Run:
+
+```bash
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor && \
+PYTHONPATH=. pytest \
+  tests/services/assessment/test_topic_catalog.py \
+  tests/scripts/test_assessment_topic_catalog_scripts.py \
+  tests/api/test_mobile_assessment_payload_redaction.py \
+  tests/api/test_mobile_router.py \
+  tests/services/member_console/test_service.py \
+  -q && \
+node yousenwebview/tests/test_assessment_testset_view_model.js
+```
+
+Supabase pre-generation:
+
+```bash
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor && \
+PYTHONPATH=. python scripts/seed_assessment_topic_catalog_forms.py --dry-run
+
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor && \
+PYTHONPATH=. python scripts/seed_assessment_topic_catalog_forms.py --persist
+```
+
+Acceptance:
+
+- Every catalog topic is classified from persisted form count, not frontend constants.
+- Stable topics have 5 forms × 12 items, with 60 scored items and 60 unique scored source IDs.
+- Mini-program first screen exposes the catalog, and `开始诊断` sends the selected topic id.
+- No single-form topic is exposed as a formal TestSet.
 
 ### Task 8: Phase 0 Exit Gate / Phase 1 Entry Lock
 

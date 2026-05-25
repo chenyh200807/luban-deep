@@ -2,6 +2,7 @@
 
 var api = require("../../utils/api");
 var route = require("../../utils/route");
+var runtime = require("../../utils/runtime");
 var taxonomy = require("../../utils/taxonomy");
 
 var LEVEL_NAMES = {
@@ -96,6 +97,42 @@ var ASSESSMENT_I18N_KEYS = {
   },
   readOnlyOtherDevice: "这份测评正在另一台设备作答，本机仅可查看。",
 };
+
+var DEFAULT_TOPIC_CATALOG = [
+  {
+    topic_id: "waterproof",
+    label: "防水工程",
+    short_label: "防水",
+    description: "材料构造、施工节点、质量验收",
+    status: "stable",
+    enabled: true,
+    form_count: 5,
+  },
+];
+
+function buildWelcomeModeState(mode, topicLabel, topicFormCount) {
+  var normalizedMode = mode === "topic" ? "topic" : "diagnostic";
+  if (normalizedMode === "topic") {
+    return {
+      assessmentMode: "topic",
+      welcomeTitle: String(topicLabel || "专题") + "专题测评",
+      welcomeSub: "一口气完成专题卷，提交后统一查看得分和错题",
+      welcomeQuestionCount: 12,
+      welcomeQuestionLabel: "专题题目",
+      welcomeDuration: 8,
+      welcomeFormCount: Number(topicFormCount || 5) || 5,
+    };
+  }
+  return {
+    assessmentMode: "diagnostic",
+    welcomeTitle: "综合摸底",
+    welcomeSub: "20 题综合校准，提交后统一查看能力结构和错题",
+    welcomeQuestionCount: 20,
+    welcomeQuestionLabel: "综合题目",
+    welcomeDuration: 12,
+    welcomeFormCount: 5,
+  };
+}
 
 
 var helpers = require("../../utils/helpers");
@@ -212,6 +249,51 @@ function learnerSafeDegradedCopy(reason) {
   return ASSESSMENT_I18N_KEYS.degraded[key] || ASSESSMENT_I18N_KEYS.degraded.unknown;
 }
 
+function normalizeTopicCatalog(items) {
+  var topics = (items || []).map(function (item) {
+    var status = String(item.status || "authoring_needed");
+    var formCount = Number(item.form_count || 0) || 0;
+    return {
+      topicId: String(item.topic_id || ""),
+      label: String(item.label || item.short_label || "专题测评"),
+      shortLabel: String(item.short_label || item.label || "专题"),
+      description: String(item.description || ""),
+      status: status,
+      enabled: item.enabled === true || status === "stable" || status === "pilot",
+      formCount: formCount,
+      statusLabel:
+        status === "stable"
+          ? formCount + " 套稳定"
+          : status === "pilot"
+            ? formCount + " 套试运行"
+            : "题库维护中",
+    };
+  });
+  if (!topics.length) topics = normalizeTopicCatalog(DEFAULT_TOPIC_CATALOG);
+  return topics;
+}
+
+function markRecommendedTopic(catalog, topicId) {
+  return (catalog || []).map(function (item) {
+    return Object.assign({}, item, {
+      recommended: !!topicId && item.topicId === topicId,
+    });
+  });
+}
+
+function normalizeAssessmentRecommendation(value) {
+  var rec = value || {};
+  var mode = String(rec.recommended_mode || "diagnostic");
+  return {
+    recommendedMode: mode === "topic" ? "topic" : "diagnostic",
+    recommendedTopicId: String(rec.recommended_topic_id || ""),
+    recommendedCount: Number(rec.recommended_count || (mode === "topic" ? 12 : 20)) || 20,
+    reason: String(rec.reason || ""),
+    source: String(rec.source || ""),
+    confidence: String(rec.confidence || ""),
+  };
+}
+
 function normalizeKnowledgeMap(items) {
   return (items || []).map(function (item) {
     return {
@@ -223,17 +305,29 @@ function normalizeKnowledgeMap(items) {
   });
 }
 
-function normalizeWrongItems(items) {
+function attemptRefByQuestion(attemptRefs) {
+  var map = {};
+  (attemptRefs || []).forEach(function (item) {
+    if (!item || !item.question_id) return;
+    map[String(item.question_id)] = String(item.attempt_ref || "");
+  });
+  return map;
+}
+
+function normalizeWrongItems(items, attemptRefs) {
+  var refMap = attemptRefByQuestion(attemptRefs);
   return (items || []).map(function (item, index) {
+    var questionId = String(item.question_id || "");
     return {
       index: index + 1,
-      questionId: String(item.question_id || ""),
+      questionId: questionId,
       stem: String(item.question_stem || item.stem || "错题 " + (index + 1)),
       learnerAnswer: String(item.learner_answer || ""),
       correctAnswer: String(item.correct_answer || ""),
       explanation: String(item.simple_explanation || ""),
       knowledgePoints: item.knowledge_points || [],
       errorCodes: item.error_codes || [],
+      attemptRef: String(item.attempt_ref || refMap[questionId] || ""),
     };
   });
 }
@@ -244,6 +338,7 @@ function buildP0AResultModel(report) {
   var degradedReason = String(report.degraded_reason || "");
   var writeback = report.writeback_status || {};
   if (!degradedReason && writeback.status === "degraded") degradedReason = String(writeback.reason || "");
+  var attemptRefs = report.attempt_refs || [];
   return {
     serverReportMode: true,
     reportSchemaVersion: String(report.schema_version || ""),
@@ -256,8 +351,8 @@ function buildP0AResultModel(report) {
     blankCount: Number(summary.blank_count || 0),
     measurementConfidence: report.measurement_confidence || {},
     knowledgeMap: normalizeKnowledgeMap(report.knowledge_map || []),
-    wrongItems: normalizeWrongItems(report.wrong_items || []),
-    attemptRefs: report.attempt_refs || [],
+    wrongItems: normalizeWrongItems(report.wrong_items || [], attemptRefs),
+    attemptRefs: attemptRefs,
     sessionLocalNextAction:
       (report.session_local_next_action && report.session_local_next_action.copy) ||
       ASSESSMENT_I18N_KEYS.resultNextActionFallback,
@@ -303,6 +398,22 @@ Page({
     availableCount: 0,
     shortfallCount: 0,
     assessmentNotice: "",
+    assessmentMode: "diagnostic",
+    welcomeTitle: "综合摸底",
+    welcomeSub: "20 题综合校准，提交后统一查看能力结构和错题",
+    welcomeQuestionCount: 20,
+    welcomeQuestionLabel: "综合题目",
+    welcomeDuration: 12,
+    welcomeFormCount: 5,
+    topicCatalog: normalizeTopicCatalog(DEFAULT_TOPIC_CATALOG),
+    selectedTopicId: "waterproof",
+    selectedTopicLabel: "防水工程",
+    selectedTopicStatus: "stable",
+    selectedTopicFormCount: 5,
+    topicCatalogError: "",
+    recommendedMode: "diagnostic",
+    recommendedTopicId: "",
+    assessmentRecommendationReason: "",
     serverReportMode: false,
     reportSchemaVersion: "",
     scoreTitle: ASSESSMENT_I18N_KEYS.scoreTitle,
@@ -354,27 +465,122 @@ Page({
       isDark: helpers.isDark(),
       enableOrbs: helpers.getAnimConfig().enableBreathingOrbs,
     });
+    this.loadTopicCatalog();
   },
 
   onShow: function () {
     this.setData({ isDark: helpers.isDark() });
   },
 
+  loadTopicCatalog: function () {
+    var self = this;
+    if (!api.getAssessmentTopics) return;
+    api
+      .getAssessmentTopics({ noRetry: true })
+      .then(function (resp) {
+        var payload = resp.data || resp || {};
+        var recommendation = normalizeAssessmentRecommendation(payload.recommendation || {});
+        var catalog = markRecommendedTopic(
+          normalizeTopicCatalog(payload.topics || []),
+          recommendation.recommendedTopicId,
+        );
+        var selected =
+          catalog.find(function (item) {
+            return item.enabled && item.topicId === recommendation.recommendedTopicId;
+          }) ||
+          catalog.find(function (item) {
+            return item.enabled;
+          }) ||
+          catalog[0];
+        var recommendedMode =
+          recommendation.recommendedMode === "topic" && selected && selected.topicId === recommendation.recommendedTopicId
+            ? "topic"
+            : "diagnostic";
+        self.setData(
+          Object.assign(
+            {
+              topicCatalog: catalog,
+              selectedTopicId: selected.topicId,
+              selectedTopicLabel: selected.label,
+              selectedTopicStatus: selected.status,
+              selectedTopicFormCount: selected.formCount,
+              topicCatalogError: "",
+              recommendedMode: recommendation.recommendedMode,
+              recommendedTopicId: recommendation.recommendedTopicId,
+              assessmentRecommendationReason: recommendation.reason,
+            },
+            buildWelcomeModeState(recommendedMode, selected.label, selected.formCount),
+          ),
+        );
+      })
+      .catch(function () {
+        self.setData({
+          topicCatalog: normalizeTopicCatalog([]),
+          topicCatalogError: "专题目录暂时不可用",
+        });
+      });
+  },
+
+  onSelectTopic: function (e) {
+    var topicId = String((e.currentTarget.dataset || {}).topicId || "");
+    var catalog = this.data.topicCatalog || [];
+    var selected = catalog.find(function (item) {
+      return item.topicId === topicId;
+    });
+    if (!selected || !selected.enabled) {
+      wx.showToast({ title: "该专题题库维护中", icon: "none" });
+      return;
+    }
+    this.setData(
+      Object.assign(
+        {
+          selectedTopicId: selected.topicId,
+          selectedTopicLabel: selected.label,
+          selectedTopicStatus: selected.status,
+          selectedTopicFormCount: selected.formCount,
+        },
+        buildWelcomeModeState(this.data.assessmentMode, selected.label, selected.formCount),
+      ),
+    );
+  },
+
+  onSelectAssessmentMode: function (e) {
+    var mode = String((e.currentTarget.dataset || {}).mode || "diagnostic");
+    this.setData(buildWelcomeModeState(mode, this.data.selectedTopicLabel, this.data.selectedTopicFormCount));
+  },
+
   // ── 开始测试 ──────────────────────────────────
   onStart: function () {
     if (this.data.starting) return;
+    var assessmentMode = String(this.data.assessmentMode || "diagnostic");
+    var selectedTopic = String(this.data.selectedTopicId || "waterproof");
+    var selectedTopicStatus = String(this.data.selectedTopicStatus || "authoring_needed");
+    if (assessmentMode === "topic" && selectedTopicStatus === "authoring_needed") {
+      wx.showToast({ title: "该专题题库维护中", icon: "none" });
+      return;
+    }
     var self = this;
     helpers.vibrate("medium");
     self.setData({ stage: "loading", starting: true });
 
+    var requestPayload =
+      assessmentMode === "topic"
+        ? {
+            assessment_type: "topic_diagnostic",
+            subject_id: "construction_exam",
+            topic_ids: [selectedTopic],
+            count: 12,
+            duration_policy: { mode: "one_shot" },
+          }
+        : {
+            assessment_type: "diagnostic",
+            subject_id: "construction_exam",
+            count: 20,
+            duration_policy: { mode: "one_shot" },
+          };
+
     api
-      .createAssessment({
-        assessment_type: "topic_diagnostic",
-        subject_id: "construction_exam",
-        topic_ids: ["waterproof"],
-        count: 12,
-        duration_policy: { mode: "one_shot" },
-      })
+      .createAssessment(requestPayload)
       .then(function (resp) {
         // 兼容两种返回格式: {questions, quiz_id} 或 {data: {questions, quiz_id}}
         var payload = resp.data || resp;
@@ -424,7 +630,7 @@ Page({
           scoredCount: scoredCount,
           profileCount: profileCount,
           blueprintVersion: payload.blueprint_version || "",
-          topicLabel: payload.topic_label || ASSESSMENT_I18N_KEYS.topicLabel,
+          topicLabel: payload.topic_label || self.data.welcomeTitle || ASSESSMENT_I18N_KEYS.topicLabel,
           readOnlyBanner: payload.lease_holder_other_device ? ASSESSMENT_I18N_KEYS.readOnlyOtherDevice : "",
           availableCount: availableCount,
           shortfallCount: shortfallCount,
@@ -776,7 +982,37 @@ Page({
     });
   },
 
-  goChat: function () {
+  goLearningPlan: function () {
+    wx.reLaunch({ url: route.report({ detail: "training" }) });
+  },
+
+  onPracticeWrongItem: function (event) {
+    var questionId =
+      event && event.currentTarget && event.currentTarget.dataset
+        ? String(event.currentTarget.dataset.questionId || "")
+        : "";
+    var item = (this.data.wrongItems || []).find(function (candidate) {
+      return String(candidate.questionId || "") === questionId;
+    });
+    if (!item) return;
+    var knowledgePoint = String((item.knowledgePoints || [])[0] || "本题知识点");
+    var errorCode = String((item.errorCodes || [])[0] || "错因");
+    var prompt =
+      "请围绕我刚才错的“" +
+      knowledgePoint +
+      "”，出 3 道同类选择题训练我。先只出题，不要提前给答案和解析。";
+    runtime.setWorkspaceBack(route.report({ detail: "training" }), "学情训练");
+    runtime.setPendingChatIntent(prompt, "AUTO", {
+      source: "assessment_result_wrong_item",
+      learning_signal_type: "assessment_wrong_item_practice",
+      subject_id: "construction_exam",
+      concept_label: knowledgePoint,
+      error_label: errorCode,
+      attempt_ref: String(item.attemptRef || ""),
+      evidence_refs: [String(item.attemptRef || "")].filter(Boolean),
+      question_count: 3,
+      training_mode: "same_type_repair",
+    });
     wx.reLaunch({ url: route.chat() });
   },
 

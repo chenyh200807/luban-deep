@@ -125,24 +125,15 @@ function extractFocusTopic(title) {
 
 function buildFocusDisplayTitle(focus, title) {
   var payload = focus && typeof focus === "object" ? focus : {};
-  var text = String(title || "").replace(/^今日焦点[:：]\s*/, "").replace(/\s+/g, " ").trim();
-  if (/第一份.*学习证据/.test(text) || /给系统.*学习证据/.test(text)) return "先做 1 题摸底";
-  if (/^先做\s*1\s*题/.test(text)) return text;
-  var topic = String(payload.topic || payload.focus_topic || "").trim();
-  if (topic && /^推进.+下一步学习$/.test(text)) return "推进" + topic;
-  if (text && text !== "保持节奏，继续推进" && text !== "按当前状态推进建筑实务") return text;
-  text = extractFocusTopic(title);
+  var topic = String(payload.topic || payload.focus_topic || "").trim() || extractFocusTopic(title);
+  if (topic && topic !== "建筑实务") return topic;
+  var text = extractFocusTopic(title);
   if (!text || text === "建筑实务") return "今日推进";
-  return text.length > 12 ? text.slice(0, 12) : text;
+  return text.length > 10 ? text.slice(0, 10) : text;
 }
 
 function buildFocusDisplayMeta(focus, meta) {
-  var payload = focus && typeof focus === "object" ? focus : {};
-  var text = String(meta || payload.meta || "").replace(/\s+/g, " ").trim();
-  if (!text) return "";
-  if (text === "starter") return "生成学情基线";
-  if (/learner_state\.home_personalization/.test(text)) return "来自学情更新";
-  return text.length > 8 ? "" : text;
+  return "";
 }
 
 function normalizeAnswerMode(value) {
@@ -481,7 +472,12 @@ Page({
         var pendingIntent = runtime.consumePendingChatIntent();
         if (pendingIntent.query && !self.data.isStreaming) {
           self.setData({ answerMode: pendingIntent.mode || "AUTO" });
-          self._send(pendingIntent.query);
+          if (pendingIntent.promptIntent) {
+            self._activeAssessmentTrainingIntent = pendingIntent.promptIntent;
+          }
+          self._send(pendingIntent.query, {
+            promptIntent: pendingIntent.promptIntent || null,
+          });
         }
       })
       .catch(function (e) {
@@ -667,6 +663,7 @@ Page({
         mcqHint: "",
         mcqReceipt: "",
         mcqInteractiveReady: false,
+        mcqReviewMode: false,
         originalContent: "",
         originalExpanded: false,
         thinkingStatus: "",
@@ -703,6 +700,7 @@ Page({
         msg.mcqHint = derived.mcqHint;
         msg.mcqReceipt = derived.mcqReceipt;
         msg.mcqInteractiveReady = derived.mcqInteractiveReady;
+        msg.mcqReviewMode = derived.mcqReviewMode;
         msg.originalContent = derived.originalContent || "";
         msg.originalExpanded = derived.originalCollapsed === false;
       }
@@ -778,6 +776,7 @@ Page({
       mcqHint: "",
       mcqReceipt: "",
       mcqInteractiveReady: false,
+      mcqReviewMode: false,
       originalContent: "",
       originalExpanded: false,
       thinkingStatus: "",
@@ -1472,6 +1471,7 @@ Page({
     updates["messages[" + idx + "].mcqHint"] = state.mcqHint;
     updates["messages[" + idx + "].mcqReceipt"] = state.mcqReceipt;
     updates["messages[" + idx + "].mcqInteractiveReady"] = state.mcqInteractiveReady;
+    updates["messages[" + idx + "].mcqReviewMode"] = state.mcqReviewMode;
     updates["messages[" + idx + "].originalContent"] = state.originalContent || "";
     updates["messages[" + idx + "].originalExpanded"] = state.originalCollapsed === false;
     updates["messages[" + idx + "].hasStructuredContent"] = !!state.hasStructuredContent;
@@ -2037,6 +2037,7 @@ Page({
       mcqHint: "",
       mcqReceipt: "",
       mcqInteractiveReady: false,
+      mcqReviewMode: false,
       originalContent: "",
       originalExpanded: false,
       thinkingStatus: "AI 正在分析你的问题...",
@@ -2353,6 +2354,12 @@ Page({
       for (var i = 0; i < questions.length; i++) {
         questions[i].receipt = msg.mcqReceipt;
       }
+    }
+    if (this._activeAssessmentTrainingIntent && payload.structuredSubmitContext) {
+      payload.promptIntent = Object.assign({}, this._activeAssessmentTrainingIntent, {
+        learning_signal_type: "training_completed",
+        completed_question_count: (payload.structuredSubmitContext.answers || []).length,
+      });
     }
     this._send(payload.text, payload);
   },

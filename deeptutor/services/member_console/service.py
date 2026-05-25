@@ -48,6 +48,14 @@ from deeptutor.services.assessment.session_repository import (
     SupabaseAssessmentSessionRepository,
 )
 from deeptutor.services.assessment.teaching_policy import build_teaching_policy_seed
+from deeptutor.services.assessment.topic_catalog import (
+    TopicTestSetUnavailable,
+    build_topic_assessment_blueprint,
+    classify_topic_form_count,
+    get_topic_testset_catalog,
+    recommend_assessment_entry,
+    resolve_topic_testset_spec,
+)
 from deeptutor.services.assessment.writeback import AssessmentWritebackService
 from deeptutor.services.learner_state.mistake_book import MistakeBookService
 from deeptutor.services.learner_state.progress_feedback import (
@@ -555,7 +563,7 @@ class MemberConsoleService:
             default=False,
         )
         candidates = _assessment_bank_candidates()
-        if blueprint_version == "topic_waterproof_v1":
+        if blueprint_version.startswith("topic_"):
             candidates = [*candidates, *_topic_waterproof_dev_candidates()]
         fallback_provider = StaticAssessmentQuestionProvider(candidates)
         use_supabase = is_production_environment() or env_flag(
@@ -574,6 +582,83 @@ class MemberConsoleService:
 
     def generate_and_persist_assessment_forms(self) -> dict[str, Any]:
         return self._build_assessment_blueprint_service().generate_and_persist_forms()
+
+    def get_assessment_topic_catalog(self, user_id: str = "") -> dict[str, Any]:
+        provider = SupabaseAssessmentQuestionProvider()
+        use_supabase = is_production_environment() or env_flag(
+            "ASSESSMENT_USE_SUPABASE",
+            default=False,
+        )
+        topics: list[dict[str, Any]] = []
+        for spec in get_topic_testset_catalog():
+            form_count = 0
+            quality_status = "not_checked"
+            if use_supabase:
+                try:
+                    form_count = provider.active_form_count(spec.blueprint_version)
+                    quality_status = "insufficient_forms"
+                    if classify_topic_form_count(form_count) in {"stable", "pilot"}:
+                        provider.load_persisted_form_bank(build_topic_assessment_blueprint(spec.topic_id))
+                        quality_status = "validated"
+                except Exception:
+                    logger.warning(
+                        "Assessment topic form bank unavailable: topic_id=%s blueprint=%s",
+                        spec.topic_id,
+                        spec.blueprint_version,
+                        exc_info=True,
+                    )
+                    quality_status = "invalid_form_bank"
+            status = classify_topic_form_count(form_count)
+            if quality_status == "invalid_form_bank":
+                status = "authoring_needed"
+            topics.append(
+                {
+                    "topic_id": spec.topic_id,
+                    "label": spec.label,
+                    "short_label": spec.short_label,
+                    "description": spec.description,
+                    "blueprint_version": spec.blueprint_version,
+                    "status": status,
+                    "enabled": status in {"stable", "pilot"},
+                    "form_count": form_count,
+                    "minimum_form_count": 3,
+                    "target_form_count": 5,
+                    "quality_status": quality_status,
+                }
+            )
+        weak_nodes, has_assessment_history = self._assessment_recommendation_signals(user_id)
+        return {
+            "recommendation": recommend_assessment_entry(
+                topics,
+                weak_nodes=weak_nodes,
+                has_assessment_history=has_assessment_history,
+            ),
+            "topics": topics,
+        }
+
+    def _assessment_recommendation_signals(self, user_id: str) -> tuple[list[dict[str, Any]], bool]:
+        if not str(user_id or "").strip():
+            return [], False
+        try:
+            member = self._load_member_snapshot(user_id)["member"]
+        except Exception:
+            logger.warning("Assessment recommendation signals unavailable: user_id=%s", user_id, exc_info=True)
+            return [], False
+        last_assessment_items = self._last_assessment_mastery_items(member)
+        if last_assessment_items:
+            weak_nodes = [
+                {"name": str(item.get("name") or ""), "mastery": int(item.get("mastery") or 0)}
+                for item in last_assessment_items
+                if int(item.get("mastery") or 0) < 60
+            ]
+            return weak_nodes, True
+        progress_items = self._chapter_mastery_items(member)
+        weak_nodes = [
+            {"name": str(item.get("name") or ""), "mastery": int(item.get("mastery") or 0)}
+            for item in progress_items
+            if int(item.get("mastery") or 0) < 60
+        ]
+        return weak_nodes, False
 
     def _write_assessment_learning_signals(
         self,
@@ -3971,6 +4056,9 @@ class MemberConsoleService:
 
             return build_home_dashboard_learning_projection(
                 projection=self._home_personalization_projection_from_snapshot(snapshot),
+                conversation_events=list(getattr(snapshot, "memory_events", []) or [])
+                if snapshot is not None
+                else [],
                 subject_id=self._home_subject_id(snapshot=snapshot, member=member),
             )
         except Exception:
@@ -4726,7 +4814,12 @@ class MemberConsoleService:
         normalized_topics = [str(item).strip() for item in list(topic_ids or ["waterproof"]) if str(item).strip()]
         if not normalized_topics:
             normalized_topics = ["waterproof"]
-        blueprint_version = "topic_waterproof_v1"
+        try:
+            topic_spec = resolve_topic_testset_spec(normalized_topics)
+        except TopicTestSetUnavailable as exc:
+            raise AssessmentBlueprintUnavailable(str(exc)) from exc
+        normalized_topics = [topic_spec.topic_id]
+        blueprint_version = topic_spec.blueprint_version
         payload = self._build_assessment_blueprint_service(blueprint_version).create_session(
             user_id=user_id,
             count=count,
@@ -4750,7 +4843,7 @@ class MemberConsoleService:
             "assessment_type": "topic_diagnostic",
             "subject_id": subject_id,
             "topic_ids": normalized_topics,
-            "topic_label": "防水专题测评",
+            "topic_label": f"{topic_spec.label}专题测评",
             "status": session["status"],
             "reuse_reason": session.get("reuse_reason", ""),
             "questions": deepcopy(session["client_questions_public"]),
@@ -4961,12 +5054,18 @@ class MemberConsoleService:
             answers,
             time_spent_seconds=time_spent_seconds,
         )
+        topic_ids = list(session.get("topic_ids") or ["waterproof"])
+        try:
+            topic_spec = resolve_topic_testset_spec(topic_ids)
+            topic_label = f"{topic_spec.label}专题测评"
+        except TopicTestSetUnavailable:
+            topic_label = "专题测评"
         report = build_result_report(
             quiz_id=quiz_id,
             assessment_type="topic_diagnostic",
             subject_id=str(session.get("subject_id") or "construction_exam"),
-            topic_ids=list(session.get("topic_ids") or ["waterproof"]),
-            topic_label="防水专题测评",
+            topic_ids=topic_ids,
+            topic_label=topic_label,
             blueprint_version=str(session.get("blueprint_version") or "topic_waterproof_v1"),
             form_id=str(session.get("form_id") or ""),
             scored_result=scored_result,

@@ -347,6 +347,30 @@ profile / progress 主真相。它必须满足：
 5. `overall_mastery` 必须从实际章节 mastery 聚合得出；0 分章节必须保留为 0，
    不能被展示层过滤成全满分。
 
+### Assessment Topic Catalog Read Model
+
+专题测评目录是 TestSet 启动前的可用性 read model，不是 learner-state mastery /
+training-intent writer。它必须满足：
+
+1. Catalog authority 来自 `deeptutor.services.assessment.topic_catalog` 定义的 topic
+   清单，以及 `assessment_forms` 中每个 `blueprint_version` 的 active form count。
+2. 状态只能按 form bank 覆盖分类，且达到 3/5 门槛的 topic 必须先通过 persisted
+   form-bank validator（跨 form `source_question_id` / `semantic_signature` 去重、
+   每套题量与 section floor）：
+   - `stable`: active forms >= 5
+   - `pilot`: active forms >= 3 and < 5
+   - `authoring_needed`: active forms < 3
+3. `authoring_needed` topic 可以在前端展示维护态，但不得开放正式测评。
+4. catalog status 不读取、不写入 `training_intent`、`last_assessment` 或 learner
+   mastery；学员个人情况只影响独立的 `recommendation` read model 和后续
+   result/report/synthesis，不影响 topic 是否有题。
+5. 批量预生成/持久化 `assessment_forms` 前必须 dry-run，并通过目标库 guard；不能让首个
+   学员点击时承担全专题冷启动成本。
+6. `recommendation` 可以读取 learner-state/member-console 已有 projection 来预选
+   “综合摸底”或某个 enabled topic，但只能作为展示建议；它不得创建
+   `training_intent`，不得覆盖 study-plan 处方 authority，也不得推荐
+   `authoring_needed` topic。
+
 ### Assessment TestSet P0A Evidence Contract
 
 P0A TestSet 的学情写回只允许走 `assessment_sessions -> AssessmentWritebackService

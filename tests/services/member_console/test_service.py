@@ -1240,6 +1240,101 @@ def test_create_assessment_uses_unique_question_ids_per_quiz(tmp_path: Path, cap
     assert "form_source=local_static_fallback" in caplog.text
 
 
+def test_assessment_topic_catalog_is_fail_closed_without_form_bank(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.delenv("ASSESSMENT_USE_SUPABASE", raising=False)
+    monkeypatch.setenv("DEEPTUTOR_ENV", "local")
+
+    catalog = service.get_assessment_topic_catalog()
+
+    topic_ids = [item["topic_id"] for item in catalog["topics"]]
+    assert topic_ids == [
+        "waterproof",
+        "decoration",
+        "mep",
+        "foundation",
+        "main_structure",
+        "formwork_scaffold",
+        "safety",
+        "schedule",
+        "contract_claim",
+        "quality_acceptance",
+    ]
+    assert all(item["status"] == "authoring_needed" for item in catalog["topics"])
+    assert all(item["enabled"] is False for item in catalog["topics"])
+    assert all(item["form_count"] == 0 for item in catalog["topics"])
+    assert {item["target_form_count"] for item in catalog["topics"]} == {5}
+
+
+def test_assessment_topic_catalog_validates_persisted_form_bank_before_enabling(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setenv("ASSESSMENT_USE_SUPABASE", "true")
+
+    class _InvalidFormProvider:
+        def active_form_count(self, blueprint_version: str) -> int:
+            return 5 if blueprint_version == "topic_waterproof_v1" else 0
+
+        def load_persisted_form_bank(self, blueprint):
+            if blueprint.version == "topic_waterproof_v1":
+                raise AssessmentBlueprintUnavailable("duplicate source ids")
+            raise AssertionError("catalog should not validate topics below the open floor")
+
+    monkeypatch.setattr(member_service_module, "SupabaseAssessmentQuestionProvider", _InvalidFormProvider)
+
+    catalog = service.get_assessment_topic_catalog()
+    waterproof = next(item for item in catalog["topics"] if item["topic_id"] == "waterproof")
+
+    assert waterproof["form_count"] == 5
+    assert waterproof["status"] == "authoring_needed"
+    assert waterproof["enabled"] is False
+    assert waterproof["quality_status"] == "invalid_form_bank"
+
+
+def test_assessment_topic_catalog_recommends_weak_enabled_topic(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setenv("ASSESSMENT_USE_SUPABASE", "true")
+
+    class _ValidFormProvider:
+        def active_form_count(self, blueprint_version: str) -> int:
+            return 5
+
+        def load_persisted_form_bank(self, blueprint):
+            return object()
+
+    monkeypatch.setattr(member_service_module, "SupabaseAssessmentQuestionProvider", _ValidFormProvider)
+
+    def _seed(data: dict[str, object]) -> None:
+        member = service._ensure_member(data, "student_demo")
+        member["last_assessment"] = {
+            "chapter_mastery": {
+                "主体结构": {"name": "主体结构施工缝", "mastery": 25},
+                "防水工程": {"name": "防水工程", "mastery": 80},
+            }
+        }
+
+    service._mutate(_seed)
+
+    catalog = service.get_assessment_topic_catalog("student_demo")
+    recommendation = catalog["recommendation"]
+
+    assert recommendation["recommended_mode"] == "topic"
+    assert recommendation["recommended_topic_id"] == "main_structure"
+    assert recommendation["recommended_count"] == 12
+    assert recommendation["source"] == "learner_state_weak_node"
+
+
 def test_member_360_includes_learner_state_heartbeat_and_bot_overlays(tmp_path: Path) -> None:
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
@@ -2333,6 +2428,56 @@ def test_topic_diagnostic_submit_returns_report_before_writeback_finishes(
             break
         time.sleep(0.01)
     assert stored["learning_event_refs"] == [{"event_id": "evt_1", "question_id": "q1"}]
+
+
+def test_topic_diagnostic_submit_uses_selected_topic_label(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    session = service._assessment_session_repository.create_session(
+        user_id="student_demo",
+        assessment_type="topic_diagnostic",
+        subject_id="construction_exam",
+        topic_ids=["main_structure"],
+        blueprint_version="topic_main_structure_v1",
+        form_id="topic_main_structure_v1_form_1",
+        client_questions_public=[
+            {
+                "question_id": "q1",
+                "question_stem": "主体结构题",
+                "options": [{"key": "A", "text": "A"}, {"key": "B", "text": "B"}],
+            }
+        ],
+        session_questions_private=[
+            {
+                "question_id": "q1",
+                "source_question_id": "src_q1",
+                "question_type": "single_choice",
+                "question_stem": "主体结构题",
+                "chapter": "主体结构",
+                "section_id": "main_structure",
+                "section_label": "主体结构",
+                "answer": "A",
+                "scored": True,
+                "provenance": {"node_code": "1A414020"},
+                "options": [{"key": "A", "text": "A"}, {"key": "B", "text": "B"}],
+            }
+        ],
+        device_id="",
+    )
+    monkeypatch.setattr(service, "_schedule_topic_diagnostic_writeback", lambda **_kwargs: None)
+
+    result = service.submit_assessment(
+        "student_demo",
+        session["quiz_id"],
+        {"q1": "A"},
+        time_spent_seconds=30,
+    )
+
+    assert result["topic_label"] == "主体结构专题测评"
+    assert result["topic_ids"] == ["main_structure"]
 
 
 def test_sparse_member_mastery_is_coverage_adjusted_for_report_analytics(tmp_path: Path) -> None:

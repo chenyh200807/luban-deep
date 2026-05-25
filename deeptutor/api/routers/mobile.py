@@ -2275,6 +2275,12 @@ async def assessment_profile(authorization: str | None = Header(default=None)) -
     return member_service.get_assessment_profile(_resolve_authenticated_user_id(authorization))
 
 
+@router.get("/assessment/topics")
+async def assessment_topics(authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    user_id = _resolve_authenticated_user_id(authorization)
+    return member_service.get_assessment_topic_catalog(user_id)
+
+
 @router.post("/assessment/create")
 async def assessment_create(
     body: AssessmentCreateRequest,

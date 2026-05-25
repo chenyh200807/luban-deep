@@ -8,6 +8,7 @@ from deeptutor.services.assessment.blueprint_service import (
     AssessmentBlueprintUnavailable,
     QuestionCandidate,
     StaticAssessmentQuestionProvider,
+    SupabaseAssessmentQuestionProvider,
 )
 
 
@@ -29,7 +30,7 @@ def _candidate(index: int, *, stem: str | None = None, source_id: str | None = N
 def test_p0a_blueprint_delivers_exact_signed_off_count() -> None:
     service = AssessmentBlueprintService(
         blueprint=get_assessment_blueprint("topic_waterproof_v1"),
-        provider=StaticAssessmentQuestionProvider([_candidate(index) for index in range(30)]),
+        provider=StaticAssessmentQuestionProvider([_candidate(index) for index in range(80)]),
     )
 
     payload = service.create_session(
@@ -51,6 +52,46 @@ def test_p0a_blueprint_delivers_exact_signed_off_count() -> None:
     assert all(question["scored"] for question in payload["questions"])
     assert "answer" not in payload["questions"][0]
     assert "answer" in payload["session_questions"][0]
+
+
+def test_p0a_form_bank_rotates_unique_scored_items_across_five_forms() -> None:
+    blueprint = get_assessment_blueprint("topic_waterproof_v1")
+    service = AssessmentBlueprintService(
+        blueprint=blueprint,
+        provider=StaticAssessmentQuestionProvider([_candidate(index) for index in range(80)]),
+    )
+
+    form_bank = service._get_or_build_form_bank()
+
+    scored_source_ids = [
+        unit.item.source_question_id
+        for form in form_bank.forms
+        for unit in form.units
+        if unit.scored
+    ]
+    assert len(form_bank.forms) == 5
+    assert len(scored_source_ids) == blueprint.scored_count * 5
+    assert len(scored_source_ids) == len(set(scored_source_ids))
+
+
+def test_p0a_form_bank_can_ship_three_form_minimum_when_five_form_target_is_short() -> None:
+    blueprint = get_assessment_blueprint("topic_waterproof_v1")
+    service = AssessmentBlueprintService(
+        blueprint=blueprint,
+        provider=StaticAssessmentQuestionProvider([_candidate(index) for index in range(36)]),
+    )
+
+    form_bank = service._get_or_build_form_bank()
+
+    scored_source_ids = [
+        unit.item.source_question_id
+        for form in form_bank.forms
+        for unit in form.units
+        if unit.scored
+    ]
+    assert len(form_bank.forms) == 3
+    assert len(scored_source_ids) == blueprint.scored_count * 3
+    assert len(scored_source_ids) == len(set(scored_source_ids))
 
 
 def test_p0a_blueprint_fails_closed_when_topic_candidates_short() -> None:
@@ -101,7 +142,7 @@ def test_p0a_does_not_silently_use_generic_topic_candidates() -> None:
 
 
 def test_p0a_dedupes_semantic_signature_when_available() -> None:
-    candidates = [_candidate(index, source_id=f"same_semantic_{index}") for index in range(20)]
+    candidates = [_candidate(index, source_id=f"same_semantic_{index}") for index in range(80)]
     candidates[1] = _candidate(1, source_id="same_semantic_duplicate")
     candidates[1].source_meta["semantic_signature"] = candidates[0].source_meta["semantic_signature"]
     service = AssessmentBlueprintService(
@@ -122,3 +163,67 @@ def test_p0a_dedupes_semantic_signature_when_available() -> None:
         for question in payload["session_questions"]
     ]
     assert len(signatures) == len(set(signatures))
+
+
+class SparseStrictTopicSupabaseProvider(SupabaseAssessmentQuestionProvider):
+    def __init__(self) -> None:
+        super().__init__()
+        self.call_count = 0
+
+    def _supabase_config(self) -> tuple[str, str]:
+        return "https://example.supabase.co", "test-key"
+
+    def _get_candidates_for_types(self, *args, **kwargs) -> list[QuestionCandidate]:
+        self.call_count += 1
+        limit = int(kwargs["limit"])
+        if self.call_count == 1:
+            return [
+                QuestionCandidate(
+                    source_question_id=f"generic_{index}",
+                    question_stem=f"主体结构第 {index} 题，关于混凝土浇筑的正确做法是？",
+                    question_type="single_choice",
+                    chapter="主体结构",
+                    options=(("A", "正确做法"), ("B", "错误做法"), ("C", "干扰项"), ("D", "干扰项")),
+                    answer="A",
+                    difficulty="medium",
+                    source_type="REAL_EXAM",
+                    node_code="1A413000",
+                    source_meta={"topic": "主体结构"},
+                )
+                for index in range(limit)
+            ]
+        return [
+            QuestionCandidate(
+                source_question_id=f"waterproof_extra_{index}",
+                question_stem=f"防水施工第 {index} 题，关于施工缝和节点处理的正确做法是？",
+                question_type="single_choice",
+                chapter="防水施工",
+                options=(("A", "正确做法"), ("B", "错误做法"), ("C", "干扰项"), ("D", "干扰项")),
+                answer="A",
+                difficulty="medium",
+                source_type="REAL_EXAM",
+                node_code="1A414010",
+                source_meta={"topic": "防水"},
+            )
+            for index in range(limit)
+        ]
+
+
+def test_supabase_provider_fetches_more_when_strict_topic_window_is_sparse() -> None:
+    section = next(
+        section
+        for section in get_assessment_blueprint("topic_waterproof_v1").sections
+        if section.id == "waterproof_construction"
+    )
+    provider = SparseStrictTopicSupabaseProvider()
+
+    candidates = provider.get_candidates(
+        section,
+        limit=4,
+        exclude_source_ids=set(),
+        selection_seed="strict-topic-window",
+    )
+
+    assert len(candidates) == 4
+    assert all("防水" in candidate.question_stem for candidate in candidates)
+    assert provider.call_count >= 2

@@ -13,6 +13,7 @@ from deeptutor.services.learner_state.mistake_book import InMemoryMistakeBookSto
 class _LearnerState:
     def __init__(self) -> None:
         self.events = []
+        self.progress_patches = []
 
     def append_memory_event(self, user_id, **kwargs):
         dedupe_key = kwargs.get("dedupe_key")
@@ -31,6 +32,10 @@ class _LearnerState:
         )()
         self.events.append(event)
         return event
+
+    def merge_progress(self, user_id, patch):
+        self.progress_patches.append({"user_id": user_id, "patch": patch})
+        return patch
 
 
 def _scored_result() -> dict:
@@ -88,6 +93,30 @@ def test_submit_writes_one_learning_evidence_event_per_scored_item(monkeypatch: 
     assert refs["learning_event_refs"][0]["event_id"] == "evt_1"
     assert learner.events[0].source_feature == "assessment_testset"
     assert learner.events[0].payload_json["event_type"] == "learning_evidence"
+
+
+def test_assessment_writeback_updates_home_personalization_projection(monkeypatch: pytest.MonkeyPatch) -> None:
+    service, learner, _mistake_book = _service(monkeypatch)
+
+    refs = service.writeback(
+        user_id="student_demo",
+        quiz_id="quiz_1",
+        form_id="form_1",
+        assessment_type="topic_diagnostic",
+        subject_id="construction_exam_1",
+        scored_result=_scored_result(),
+    )
+
+    assert len(learner.progress_patches) == 1
+    projection = learner.progress_patches[0]["patch"]["home_personalization"]
+    assert projection["today_focus"]["title"] == "今日焦点：防水工程"
+    assert projection["today_focus"]["prompt"] == "用 3 道题训练防水工程"
+    assert projection["recommended_prompts"][0]["prompt_type"] == "practice_prompt"
+    assert projection["recommended_prompts"][0]["intent"]["evidence_refs"] == [
+        "evt_2",
+        refs["learning_event_refs"][1]["attempt_ref"],
+    ]
+    assert projection["source_status"]["learning_report"] == "projection"
 
 
 def test_submit_duplicate_does_not_duplicate_learning_events(monkeypatch: pytest.MonkeyPatch) -> None:

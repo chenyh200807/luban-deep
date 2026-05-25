@@ -3048,6 +3048,57 @@ def test_mobile_learning_report_uses_learning_evidence_for_recent_progress(
     assert body["freshness"]["unknown_date_count"] == 0
 
 
+def test_mobile_assessment_topics_returns_catalog_without_chat_side_effects(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class _Member:
+        def get_assessment_topic_catalog(self, user_id):
+            captured["user_id"] = user_id
+            captured["catalog_called"] = True
+            return {
+                "recommendation": {
+                    "recommended_mode": "topic",
+                    "recommended_topic_id": "waterproof",
+                    "recommended_count": 12,
+                    "reason": "建议先测防水工程",
+                },
+                "topics": [
+                    {
+                        "topic_id": "waterproof",
+                        "label": "防水工程",
+                        "blueprint_version": "topic_waterproof_v1",
+                        "status": "stable",
+                        "enabled": True,
+                        "form_count": 5,
+                        "minimum_form_count": 3,
+                        "target_form_count": 5,
+                    }
+                ]
+            }
+
+    monkeypatch.setattr(mobile_module, "_resolve_authenticated_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(mobile_module, "member_service", _Member())
+    monkeypatch.setattr(
+        mobile_module,
+        "turn_runtime",
+        SimpleNamespace(start_turn=AsyncMock(side_effect=AssertionError("assessment topics must not start a turn"))),
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/assessment/topics")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert captured["catalog_called"] is True
+    assert captured["user_id"] == "student_demo"
+    assert body["recommendation"]["recommended_topic_id"] == "waterproof"
+    assert body["topics"][0]["topic_id"] == "waterproof"
+    assert body["topics"][0]["status"] == "stable"
+    assert body["topics"][0]["form_count"] == 5
+
+
 def test_mobile_learning_report_dual_emits_v2_without_breaking_v1_fields(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

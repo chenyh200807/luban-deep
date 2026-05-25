@@ -41,6 +41,8 @@ function loadPage(apiOverrides) {
   var pageDef = null;
   var modalCalls = [];
   var createPayloads = [];
+  var reLaunchCalls = [];
+  var pendingChatIntents = [];
   var apiMock = Object.assign(
     {
       createAssessment: function (payload) {
@@ -73,6 +75,31 @@ function loadPage(apiOverrides) {
                 { key: "A", text: "先凿毛清理再处理" },
                 { key: "B", text: "直接浇筑" },
               ],
+            },
+          ],
+        });
+      },
+      getAssessmentTopics: function () {
+        return Promise.resolve({
+          recommendation: {
+            recommended_mode: "diagnostic",
+            recommended_count: 20,
+            reason: "先用综合摸底校准全科能力结构",
+          },
+          topics: [
+            {
+              topic_id: "waterproof",
+              label: "防水工程",
+              status: "stable",
+              enabled: true,
+              form_count: 5,
+            },
+            {
+              topic_id: "decoration",
+              label: "装饰装修",
+              status: "authoring_needed",
+              enabled: false,
+              form_count: 0,
             },
           ],
         });
@@ -126,7 +153,26 @@ function loadPage(apiOverrides) {
     require: function (request) {
       if (request === "../../utils/api") return apiMock;
       if (request === "../../utils/route") {
-        return { chat: function () { return "/packageDeeptutor/pages/chat/chat"; } };
+        return {
+          chat: function () { return "/packageDeeptutor/pages/chat/chat"; },
+          report: function (query) {
+            var url = "/packageDeeptutor/pages/report/report";
+            if (query && query.detail) url += "?detail=" + encodeURIComponent(query.detail);
+            return url;
+          },
+        };
+      }
+      if (request === "../../utils/runtime") {
+        return {
+          setWorkspaceBack: function () {},
+          setPendingChatIntent: function (query, mode, promptIntent) {
+            pendingChatIntents.push({
+              query: query,
+              mode: mode,
+              promptIntent: promptIntent || {},
+            });
+          },
+        };
       }
       if (request === "../../utils/helpers") {
         return {
@@ -145,7 +191,7 @@ function loadPage(apiOverrides) {
       showToast: function () {},
       showModal: function (options) { modalCalls.push(options || {}); },
       setStorageSync: function () {},
-      reLaunch: function () {},
+      reLaunch: function (options) { reLaunchCalls.push(options || {}); },
       navigateBack: function () {},
     },
     Page: function (def) {
@@ -167,7 +213,13 @@ function loadPage(apiOverrides) {
     if (key === "data") return;
     page[key] = pageDef[key];
   });
-  return { page: page, modalCalls: modalCalls, createPayloads: createPayloads };
+  return {
+    page: page,
+    modalCalls: modalCalls,
+    createPayloads: createPayloads,
+    reLaunchCalls: reLaunchCalls,
+    pendingChatIntents: pendingChatIntents,
+  };
 }
 
 function stringify(value) {
@@ -175,8 +227,117 @@ function stringify(value) {
 }
 
 (async function main() {
+  await run("welcome copy communicates multi-form rotation", async function () {
+    var wxml = fs.readFileSync(
+      path.join(__dirname, "../packageDeeptutor/pages/assessment/assessment.wxml"),
+      "utf8",
+    );
+    assert(wxml.indexOf("综合摸底") >= 0, "welcome should expose comprehensive diagnostic mode");
+    assert(wxml.indexOf("专题测评") >= 0, "welcome should expose topic testset mode");
+    assert(wxml.indexOf("welcomeFormCount") >= 0, "welcome stats should bind five-form target");
+    assert(wxml.indexOf("套轮换") >= 0, "welcome stats should explain paper rotation");
+  });
+
+  await run("default start uses comprehensive diagnostic 20-question form", async function () {
+    var loaded = loadPage();
+    loaded.page.onStart();
+    await flushPromises();
+
+    var createPayload = loaded.createPayloads[0] || {};
+    assert(loaded.page.data.assessmentMode === "diagnostic", "default mode should be comprehensive diagnostic");
+    assert(createPayload.assessment_type === "diagnostic", "default create should request diagnostic");
+    assert(createPayload.count === 20, "diagnostic mode should request the 20-question form");
+    assert(!createPayload.topic_ids, "diagnostic mode should not send topic_ids");
+    assert(loaded.page.data.welcomeTitle === "综合摸底", "default title should name the 20-question diagnostic");
+  });
+
+  await run("diagnostic response without topic label keeps comprehensive label", async function () {
+    var loaded = loadPage({
+      createAssessment: function (payload) {
+        loaded.createPayloads.push(payload);
+        return Promise.resolve({
+          quiz_id: "quiz_diag",
+          assessment_type: "diagnostic",
+          blueprint_version: "diagnostic_v1",
+          requested_count: 20,
+          delivered_count: 1,
+          scored_count: 1,
+          profile_count: 0,
+          questions: [
+            {
+              question_id: "q1",
+              question_stem: "综合摸底题",
+              question_type: "single_choice",
+              options: [{ key: "A", text: "A" }],
+            },
+          ],
+        });
+      },
+    });
+    loaded.page.onStart();
+    await flushPromises();
+    assert(loaded.page.data.topicLabel === "综合摸底", "diagnostic fallback label should not say waterproof");
+  });
+
+  await run("personalized recommendation preselects enabled topic", async function () {
+    var loaded = loadPage({
+      getAssessmentTopics: function () {
+        return Promise.resolve({
+          recommendation: {
+            recommended_mode: "topic",
+            recommended_topic_id: "main_structure",
+            recommended_count: 12,
+            reason: "近期主体结构错题集中，建议先做专题测评。",
+          },
+          topics: [
+            {
+              topic_id: "waterproof",
+              label: "防水工程",
+              status: "stable",
+              enabled: true,
+              form_count: 5,
+            },
+            {
+              topic_id: "main_structure",
+              label: "主体结构",
+              status: "stable",
+              enabled: true,
+              form_count: 5,
+            },
+          ],
+        });
+      },
+    });
+    loaded.page.onLoad();
+    await flushPromises();
+
+    assert(loaded.page.data.assessmentMode === "topic", "recommended topic should preselect topic mode");
+    assert(loaded.page.data.selectedTopicId === "main_structure", "recommended enabled topic should be selected");
+    assert(loaded.page.data.welcomeTitle === "主体结构专题测评", "recommended title should follow selected topic");
+    assert(loaded.page.data.assessmentRecommendationReason.indexOf("主体结构") >= 0, "recommendation reason should be visible");
+    assert(loaded.page.data.topicCatalog[1].recommended === true, "recommended topic should be marked");
+  });
+
+  await run("welcome renders topic catalog and create uses selected topic", async function () {
+    var loaded = loadPage();
+    loaded.page.onLoad();
+    await flushPromises();
+    assert(loaded.page.data.topicCatalog.length === 2, "welcome should load topic catalog");
+    assert(loaded.page.data.topicCatalog[0].topicId === "waterproof", "waterproof should be first catalog topic");
+    assert(loaded.page.data.topicCatalog[1].enabled === false, "authoring_needed topic should be disabled");
+
+    loaded.page.onSelectAssessmentMode({ currentTarget: { dataset: { mode: "topic" } } });
+    assert(loaded.page.data.welcomeTitle === "防水工程专题测评", "topic title should follow selected topic");
+    loaded.page.onSelectTopic({ currentTarget: { dataset: { topicId: "decoration" } } });
+    assert(loaded.page.data.selectedTopicId === "waterproof", "disabled topic should not become selected");
+    loaded.page.onStart();
+    await flushPromises();
+    assert(loaded.createPayloads[0].topic_ids[0] === "waterproof", "create should use selected enabled topic");
+  });
+
   await run("P0A start uses topic diagnostic request and redacted pre-submit payload", async function () {
     var loaded = loadPage();
+    loaded.page.onSelectAssessmentMode({ currentTarget: { dataset: { mode: "topic" } } });
     loaded.page.onStart();
     await flushPromises();
 
@@ -191,6 +352,7 @@ function stringify(value) {
 
   await run("P0A submit renders backend report as display authority", async function () {
     var loaded = loadPage();
+    loaded.page.onSelectAssessmentMode({ currentTarget: { dataset: { mode: "topic" } } });
     loaded.page.onStart();
     await flushPromises();
 
@@ -214,6 +376,7 @@ function stringify(value) {
 
   await run("P0A copy invariants and degraded/deep explanation behavior hold", async function () {
     var loaded = loadPage();
+    loaded.page.onSelectAssessmentMode({ currentTarget: { dataset: { mode: "topic" } } });
     loaded.page.onStart();
     await flushPromises();
     loaded.page.setData({
@@ -232,6 +395,49 @@ function stringify(value) {
     assert(loaded.page.data.deepExplanationCopy === "详细解析下个版本上线", "deep explanation disabled copy should be fixed");
     assert(loaded.page.data.degradedCopy.indexOf("writeback_failed") < 0, "raw degraded reason should not leak to learner copy");
     assert(loaded.page.data.degradedCopy.length > 0, "degraded result should render learner-safe copy");
+  });
+
+  await run("result CTA returns to report training view instead of chat", async function () {
+    var wxml = fs.readFileSync(
+      path.join(__dirname, "../packageDeeptutor/pages/assessment/assessment.wxml"),
+      "utf8",
+    );
+    assert(wxml.indexOf('bindtap="goLearningPlan"') >= 0, "result CTA should bind to report training navigation");
+    assert(wxml.indexOf('bindtap="goChat"') < 0, "assessment result must not route learners back to chat");
+
+    var loaded = loadPage();
+    loaded.page.goLearningPlan();
+
+    assert(
+      loaded.reLaunchCalls[0] && loaded.reLaunchCalls[0].url === "/packageDeeptutor/pages/report/report?detail=training",
+      "result CTA should relaunch report training detail",
+    );
+  });
+
+  await run("wrong item practice carries attempt and error context to training intent", async function () {
+    var loaded = loadPage();
+    loaded.page.onSelectAssessmentMode({ currentTarget: { dataset: { mode: "topic" } } });
+    loaded.page.onStart();
+    await flushPromises();
+    loaded.page.setData({
+      selectedKeys: { q1: "A", q2: "B" },
+      answeredCount: 2,
+      unansweredCount: 0,
+    });
+    loaded.page.onSubmit();
+    await flushPromises();
+
+    loaded.page.onPracticeWrongItem({ currentTarget: { dataset: { questionId: "q2" } } });
+
+    var pending = loaded.pendingChatIntents[0] || {};
+    var intent = pending.promptIntent || {};
+    assert(pending.query.indexOf("3 道") >= 0, "practice prompt should request three similar questions");
+    assert(intent.source === "assessment_result_wrong_item", "intent source should be the assessment wrong item");
+    assert(intent.attempt_ref === "attempt_signed", "intent should carry attempt_ref");
+    assert(intent.concept_label === "地下防水", "intent should carry knowledge point");
+    assert(intent.error_label === "M01", "intent should carry error code");
+    assert(intent.question_count === 3, "intent should request three questions");
+    assert(loaded.reLaunchCalls[0].url === "/packageDeeptutor/pages/chat/chat", "wrong item practice should open chat training");
   });
 
   await run("second-device lease banner is user-facing", async function () {
@@ -260,6 +466,7 @@ function stringify(value) {
       },
     });
     var loadedCreatePayload = null;
+    loaded.page.onSelectAssessmentMode({ currentTarget: { dataset: { mode: "topic" } } });
     loaded.page.onStart();
     await flushPromises();
     assert(loadedCreatePayload.assessment_type === "topic_diagnostic", "override should still receive P0A payload");

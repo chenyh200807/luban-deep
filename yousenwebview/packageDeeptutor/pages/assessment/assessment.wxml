@@ -34,27 +34,68 @@
         <view class="hero-icon-ring">
           <text class="hero-icon-txt">AI</text>
         </view>
-        <text class="welcome-title">防水专题测评</text>
-        <text class="welcome-sub">一口气完成整卷，提交后统一查看得分和错题</text>
+        <text class="welcome-title">{{welcomeTitle}}</text>
+        <text class="welcome-sub">{{welcomeSub}}</text>
       </view>
 
       <!-- 数据卡片 -->
       <view class="stats-row">
         <view class="stat-card">
-          <text class="stat-num">12</text>
-          <text class="stat-label">精选题目</text>
+          <text class="stat-num">{{welcomeQuestionCount}}</text>
+          <text class="stat-label">{{welcomeQuestionLabel}}</text>
         </view>
         <view class="stat-card">
-          <text class="stat-num">8</text>
+          <text class="stat-num">{{welcomeDuration}}</text>
           <text class="stat-label">分钟</text>
         </view>
         <view class="stat-card">
-          <text class="stat-num">1</text>
-          <text class="stat-label">防水专题</text>
+          <text class="stat-num">{{welcomeFormCount}}</text>
+          <text class="stat-label">套轮换</text>
         </view>
       </view>
 
-      <!-- 特性列表 -->
+      <view class="mode-switch">
+        <view class="mode-card {{assessmentMode === 'diagnostic' ? 'selected' : ''}}" bindtap="onSelectAssessmentMode" data-mode="diagnostic">
+          <view class="mode-title-row">
+            <text class="mode-title">综合摸底</text>
+            <text class="recommend-badge" wx:if="{{recommendedMode === 'diagnostic'}}">推荐</text>
+          </view>
+          <text class="mode-desc">20 题 · 全科校准</text>
+        </view>
+        <view class="mode-card {{assessmentMode === 'topic' ? 'selected' : ''}}" bindtap="onSelectAssessmentMode" data-mode="topic">
+          <view class="mode-title-row">
+            <text class="mode-title">专题测评</text>
+            <text class="recommend-badge" wx:if="{{recommendedMode === 'topic'}}">推荐</text>
+          </view>
+          <text class="mode-desc">12 题 · 选择知识模块</text>
+        </view>
+      </view>
+      <text class="recommend-reason" wx:if="{{assessmentRecommendationReason}}">{{assessmentRecommendationReason}}</text>
+
+      <view class="topic-catalog" wx:if="{{assessmentMode === 'topic'}}">
+        <view class="topic-head">
+          <text class="topic-head-title">专题测评目录</text>
+          <text class="topic-head-sub">可开放专题均已通过 3/5 套组卷门槛</text>
+        </view>
+        <text class="topic-catalog-error" wx:if="{{topicCatalogError}}">{{topicCatalogError}}</text>
+        <view class="topic-grid">
+          <view
+            class="topic-card {{item.topicId === selectedTopicId ? 'selected' : ''}} {{item.enabled ? '' : 'disabled'}}"
+            wx:for="{{topicCatalog}}"
+            wx:key="topicId"
+            bindtap="onSelectTopic"
+            data-topic-id="{{item.topicId}}"
+          >
+            <text class="topic-name">{{item.label}}</text>
+            <text class="topic-desc">{{item.description}}</text>
+            <view class="topic-status-row">
+              <text class="topic-status">{{item.statusLabel}}</text>
+              <text class="recommend-badge small" wx:if="{{item.recommended}}">推荐</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
       <view class="welcome-features">
         <view class="feature-item">
           <view class="feature-dot"></view>
@@ -192,6 +233,9 @@
             <text class="wrong-title">{{item.index}}. {{item.stem}}</text>
             <text class="wrong-answer">你的答案：{{item.learnerAnswer || '未作答'}}　正确答案：{{item.correctAnswer}}</text>
             <text class="wrong-explain">{{item.explanation}}</text>
+            <view class="wrong-practice-btn" bindtap="onPracticeWrongItem" data-question-id="{{item.questionId}}">
+              <text>练 3 道同类题</text>
+            </view>
           </view>
         </view>
 
@@ -205,7 +249,7 @@
         </view>
 
         <view class="result-actions">
-          <view class="result-btn primary" bindtap="goChat">
+          <view class="result-btn primary" bindtap="goLearningPlan">
             <text class="result-btn-txt">去学习计划查看</text>
           </view>
           <view class="result-btn" bindtap="onRetake">
@@ -290,8 +334,8 @@
 
       <!-- 6. 操作 -->
       <view class="result-actions">
-        <view class="result-btn primary" bindtap="goChat">
-          <text class="result-btn-txt">开始学习</text>
+        <view class="result-btn primary" bindtap="goLearningPlan">
+          <text class="result-btn-txt">去学习计划查看</text>
         </view>
         <view class="result-btn" bindtap="onRetake">
           <text class="result-btn-txt secondary-txt">重新测试</text>

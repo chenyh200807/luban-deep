@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from deeptutor.services.assessment.blueprint import AssessmentBlueprint
+from deeptutor.services.assessment.blueprint import TARGET_FORM_ROTATION_COUNT, AssessmentBlueprint
 
 
 @dataclass(frozen=True)
@@ -41,6 +41,21 @@ def evaluate_blueprint_coverage(
                     message=f"{section.label} requires {required_candidates} candidates, found {candidate_count}",
                 )
             )
+        elif blueprint.version.startswith("topic_"):
+            stable_candidates = section.count * TARGET_FORM_ROTATION_COUNT
+            if candidate_count < stable_candidates:
+                issues.append(
+                    AssessmentCoverageIssue(
+                        section_id=section.id,
+                        severity="warning",
+                        code="below_stable_form_rotation_target",
+                        message=(
+                            f"{section.label} supports minimum rotation but not stable "
+                            f"{TARGET_FORM_ROTATION_COUNT}-form target: requires {stable_candidates}, "
+                            f"found {candidate_count}"
+                        ),
+                    )
+                )
 
         if with_question_id < required_candidates:
             issues.append(
@@ -103,6 +118,9 @@ def evaluate_blueprint_coverage(
                 "label": section.label,
                 "required_units": section.count,
                 "required_candidates": required_candidates,
+                "stable_target_candidates": section.count * TARGET_FORM_ROTATION_COUNT
+                if blueprint.version.startswith("topic_")
+                else required_candidates,
                 "candidate_count": candidate_count,
                 "with_question_id": with_question_id,
                 "with_source_chunk_id": with_source_chunk_id,
