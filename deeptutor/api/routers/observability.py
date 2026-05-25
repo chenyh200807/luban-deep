@@ -1,16 +1,24 @@
 from __future__ import annotations
 
+import json
 from typing import Any
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
-from pydantic import BaseModel, ConfigDict, Field
+from fastapi import Depends, HTTPException, status
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from deeptutor.api.dependencies import require_admin, resolve_auth_context
+from deeptutor.api._secure_router import secure_router
+from deeptutor.api.dependencies import AuthContext, get_current_user, require_admin
+from deeptutor.api.dependencies.rate_limit import route_rate_limit
 from deeptutor.services.observability import get_control_plane_store, get_surface_event_store
 from deeptutor.services.observability.launch_readiness import build_launch_readiness_dashboard
 from deeptutor.services.observability.run_history import build_observability_run_history
 
-router = APIRouter()
+# SR1 PR-1b: surface-events used to accept anonymous writes → A4 P0.
+# secure_router enforces auth at router level; admin endpoints stack require_admin on top.
+router = secure_router(tags=["observability"])
+
+# Cap metadata blob size — codex review hinted at "刷爆 control_plane 磁盘 / 注入误导事件"
+_SURFACE_EVENT_METADATA_MAX_BYTES = 8 * 1024  # 8 KB
 
 
 class SurfaceEventIngestRequest(BaseModel):
@@ -25,17 +33,40 @@ class SurfaceEventIngestRequest(BaseModel):
     sent_at_ms: int | None = Field(default=None, ge=0)
     metadata: dict[str, Any] | None = None
 
+    @field_validator("metadata")
+    @classmethod
+    def _metadata_size_cap(cls, v: dict[str, Any] | None) -> dict[str, Any] | None:
+        if v is None:
+            return v
+        size = len(json.dumps(v, ensure_ascii=False).encode("utf-8"))
+        if size > _SURFACE_EVENT_METADATA_MAX_BYTES:
+            raise ValueError(
+                f"metadata too large ({size} B > {_SURFACE_EVENT_METADATA_MAX_BYTES} B)"
+            )
+        return v
 
-@router.post("/surface-events", status_code=status.HTTP_202_ACCEPTED)
+
+@router.post(
+    "/surface-events",
+    status_code=status.HTTP_202_ACCEPTED,
+    dependencies=[
+        Depends(
+            route_rate_limit(
+                "observability_surface_events",
+                default_max_requests=120,
+                default_window_seconds=60.0,
+            )
+        )
+    ],
+)
 async def ingest_surface_event(
     payload: SurfaceEventIngestRequest,
-    authorization: str | None = Header(default=None),
+    current_user: AuthContext = Depends(get_current_user),
 ) -> dict[str, Any]:
     try:
-        auth_context = resolve_auth_context(authorization)
         normalized_payload = payload.model_dump(exclude_none=True)
-        if auth_context is not None:
-            normalized_payload["user_id"] = auth_context.user_id
+        # SR1 PR-1b: current_user is non-None now (secure_router 401 if missing).
+        normalized_payload["user_id"] = current_user.user_id
         result = get_surface_event_store().ingest(normalized_payload)
         return {
             "ok": True,

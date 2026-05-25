@@ -6,10 +6,12 @@ WebSocket endpoint for real-time image analysis with GeoGebra visualization.
 import asyncio
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import Depends, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
 from deeptutor.agents.vision_solver import VisionSolverAgent
+from deeptutor.api._secure_router import secure_router, secure_ws_endpoint
+from deeptutor.api.dependencies.rate_limit import route_rate_limit
 from deeptutor.logging import get_logger
 from deeptutor.services.llm import get_llm_config
 from deeptutor.services.settings.interface_settings import get_ui_language
@@ -17,7 +19,9 @@ from deeptutor.tools.vision import ImageError, resolve_image_input
 
 logger = get_logger("VisionSolverAPI", level="INFO")
 
-router = APIRouter()
+# SR1 PR-1b: vision endpoints used to be anonymous + un-rate-limited → A1 P0.
+# secure_router enforces auth at router level; rate_limit is per-endpoint below.
+router = secure_router(tags=["vision"])
 
 
 # ==================== Request/Response Models ====================
@@ -45,7 +49,18 @@ class VisionAnalyzeResponse(BaseModel):
 # ==================== REST Endpoints ====================
 
 
-@router.post("/vision/analyze")
+@router.post(
+    "/vision/analyze",
+    dependencies=[
+        Depends(
+            route_rate_limit(
+                "vision_analyze",
+                default_max_requests=10,
+                default_window_seconds=60.0,
+            )
+        )
+    ],
+)
 async def analyze_image(request: VisionAnalyzeRequest) -> VisionAnalyzeResponse:
     """Analyze a math problem image and return GeoGebra commands.
 
@@ -144,7 +159,15 @@ async def websocket_vision_solve(websocket: WebSocket):
        - {"type": "text", "content": "..."}
        - {"type": "done"}
     """
-    await websocket.accept()
+    # SR1 PR-1b: rate-limit + auth handshake before accept (replaces bare ws.accept()).
+    auth = await secure_ws_endpoint(
+        websocket,
+        rate_limit_scope="vision_solve_ws",
+        rate_limit_max=10,
+        rate_limit_window_seconds=60.0,
+    )
+    if auth is None:
+        return  # ws already closed (4401 or 1013)
 
     connection_closed = asyncio.Event()
 
