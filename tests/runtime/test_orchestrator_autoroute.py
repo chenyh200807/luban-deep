@@ -752,6 +752,7 @@ async def test_orchestrator_autoroutes_batch_submission_to_deep_question() -> No
     _ = [event async for event in orchestrator.handle(context)]
 
     assert registry.captured[0] == "deep_question"
+    assert context.metadata["question_lifecycle_scene"] == "mcq_grading"
     graded = context.metadata["question_followup_context"]
     assert graded["items"][0]["user_answer"] == "C"
     assert graded["items"][0]["is_correct"] is True

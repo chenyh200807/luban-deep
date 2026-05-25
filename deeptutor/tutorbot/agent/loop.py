@@ -1097,12 +1097,7 @@ class AgentLoop:
         if practice_generation_request:
             return decision.current_info_required or decision.textbook_delta_query
 
-        from deeptutor.services.question_lifecycle_skills import (  # noqa: WPS433
-            attach_question_lifecycle_scene_to_context,
-        )
-
-        lifecycle_context = SimpleNamespace(user_message=current_message, metadata=metadata)
-        scene = attach_question_lifecycle_scene_to_context(lifecycle_context)
+        scene = str(metadata.get("question_lifecycle_scene") or "").strip() or None
         if (
             cls._construction_scene_uses_learner_state_authority(scene)
             and query_uses_learner_state_authority(current_message)
@@ -1791,13 +1786,12 @@ class AgentLoop:
 
         if self._is_construction_exam_skill_context(metadata):
             from deeptutor.services.question_lifecycle_skills import (
-                attach_question_lifecycle_scene_to_context,
                 build_default_construction_exam_skill_context,
                 build_question_lifecycle_skill_context,
             )
 
             lifecycle_context = SimpleNamespace(user_message=current_message, metadata=metadata)
-            scene = attach_question_lifecycle_scene_to_context(lifecycle_context)
+            scene = str(metadata.get("question_lifecycle_scene") or "").strip() or None
             if scene:
                 skill_context = build_question_lifecycle_skill_context(
                     lifecycle_context,

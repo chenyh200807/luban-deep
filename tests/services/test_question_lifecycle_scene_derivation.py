@@ -61,6 +61,26 @@ def test_active_object_with_submission_returns_mcq_grading():
     assert derive_question_lifecycle_scene(ctx) == "mcq_grading"
 
 
+def test_active_question_set_with_batch_submission_returns_mcq_grading():
+    ctx = _FakeContext(
+        user_message="第1题：C；第2题：A；第3题：B",
+        metadata={
+            "question_followup_context": {
+                "question_id": "quiz_batch",
+                "question": "第1题...\n第2题...\n第3题...",
+                "question_type": "choice",
+                "items": [
+                    {"question_id": "q_1", "question": "题1", "question_type": "choice", "correct_answer": "C"},
+                    {"question_id": "q_2", "question": "题2", "question_type": "choice", "correct_answer": "A"},
+                    {"question_id": "q_3", "question": "题3", "question_type": "choice", "correct_answer": "D"},
+                ],
+            }
+        },
+    )
+
+    assert derive_question_lifecycle_scene(ctx) == "mcq_grading"
+
+
 def test_active_object_without_submission_returns_question_review():
     ctx = _FakeContext(
         user_message="这道题怎么做",

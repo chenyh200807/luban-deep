@@ -226,3 +226,15 @@ def test_single_loader_invariant_via_grep_surrogate():
         "question_lifecycle_skills (violates plan §5.0 verification target #2):\n"
         + "\n".join(offenders)
     )
+
+
+def test_tutorbot_loop_does_not_redetect_lifecycle_scene():
+    """TutorBot is an executor, not the question lifecycle scene authority."""
+    import pathlib
+
+    repo_root = pathlib.Path(__file__).resolve().parents[2]
+    loop_path = repo_root / "deeptutor" / "tutorbot" / "agent" / "loop.py"
+    text = loop_path.read_text(encoding="utf-8")
+
+    assert "attach_question_lifecycle_scene_to_context" not in text
+    assert "derive_question_lifecycle_scene" not in text

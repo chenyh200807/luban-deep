@@ -38,7 +38,7 @@ function loadReportPage(stubs) {
     "utf8",
   );
   var pageDef = null;
-  var storage = {};
+  var storage = Object.assign({}, (stubs && stubs.storageSeed) || {});
   var storageWrites = [];
   var toastCalls = [];
   var sandbox = {
@@ -191,6 +191,80 @@ function createPageInstance(pageDef) {
     assert(
       String(page.data.battlePlan.coachNote || "").indexOf("training_mode") < 0,
       "unsafe legacy study_plan coach note must not leak internal markers",
+    );
+  });
+
+  await run("assessment wrong-item training action is preserved when executing report training", async function () {
+    var pendingIntent = {
+      source: "assessment_result_wrong_item",
+      learning_signal_type: "assessment_wrong_item_practice",
+      subject_id: "construction_exam",
+      concept_label: "地下防水卷材搭接",
+      error_label: "M02",
+      attempt_ref: "attempt_signed",
+      evidence_refs: ["attempt_signed"],
+      question_count: 3,
+      training_mode: "same_type_repair",
+      prompt: "请围绕我刚才错的“地下防水卷材搭接”，出 3 道同类选择题训练我。",
+    };
+    var capturedIntent = null;
+    var capturedQuery = "";
+    var pageDef = loadReportPage({
+      storageSeed: {
+        "deeptutor.report.pendingTrainingAction": pendingIntent,
+      },
+      api: {},
+      auth: {},
+      helpers: {
+        getWindowInfo: function () {
+          return { statusBarHeight: 0 };
+        },
+        vibrate: function () {},
+      },
+      runtime: {
+        setWorkspaceBack: function () {},
+        setPendingChatIntent: function (query, mode, promptIntent) {
+          capturedQuery = query;
+          capturedIntent = promptIntent;
+        },
+      },
+      route: {
+        report: function () {
+          return "/packageDeeptutor/pages/report/report";
+        },
+        chat: function () {
+          return "/packageDeeptutor/pages/chat/chat";
+        },
+      },
+      flags: {
+        ensureFeatureEnabled: function () {
+          return true;
+        },
+        isFeatureEnabled: function () {
+          return true;
+        },
+      },
+    });
+    var page = createPageInstance(pageDef);
+    page.onLoad({ detail: "training" });
+    page._syncExperienceSections();
+    page.executeTrainingAction();
+
+    assert(
+      capturedQuery.indexOf("3 道同类选择题") >= 0,
+      "report training execution should use the assessment wrong-item practice prompt",
+    );
+    assert(
+      capturedIntent && capturedIntent.attempt_ref === "attempt_signed",
+      "report training execution should preserve signed assessment attempt_ref",
+    );
+    assert(
+      capturedIntent && capturedIntent.question_count === 3,
+      "report training execution should preserve three-question training count",
+    );
+    assert(
+      capturedIntent && capturedIntent.learning_signal_type === "assessment_wrong_item_practice",
+      "report training execution should preserve assessment practice signal until chat submit marks training_completed",
     );
   });
 

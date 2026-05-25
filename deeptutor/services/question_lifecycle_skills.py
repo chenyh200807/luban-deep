@@ -4,13 +4,12 @@ This module is a thin composition layer over TutorBot's existing
 ``SkillsLoader``. It owns scene -> skill stack mapping, but not routing,
 grading, learner-state writes, or RAG policy.
 
-Single-decider note (plan 2026-05-24 §5.1): scene for a turn is decided
-exactly once via :func:`derive_question_lifecycle_scene` and attached to
-``UnifiedContext.metadata['question_lifecycle_scene']`` by
-:func:`attach_question_lifecycle_scene_to_context`. Downstream readers
-must consume that metadata rather than re-detecting. Once
-``ChatOrchestrator`` (plan Task 0.7) becomes the single attach point,
-capability-side ``attach_*`` calls can be removed.
+Single-authority note (plan 2026-05-24 §5.1): the orchestrator records one
+``QuestionLifecycleSceneDecision`` per turn. Deterministic helpers collect
+stable facts / hard gates; the LLM only proposes a semantic candidate; this
+module's business-gated decision is the final scene authority. Downstream
+readers must consume ``UnifiedContext.metadata['question_lifecycle_scene']``
+rather than re-detecting.
 
 Merge note (2026-05-24): this file integrates the hermes edu-skills booster
 shape (already on origin/main: SCENE_COMPOSITION, _LEGACY_COMPOSITION,
@@ -515,6 +514,7 @@ _MCQ_QUESTION_TYPES: frozenset[str] = frozenset(
         "multiple_choice",
         "true_false",
         "judgment",
+        "choice",
         "mcq",
     }
 )
@@ -542,9 +542,9 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
     """
     # Local imports avoid module-load circular deps.
     from deeptutor.services.question_followup import (  # noqa: WPS433
-        extract_submission_answer,
         looks_like_question_followup,
         normalize_question_followup_context,
+        resolve_submission_attempt,
     )
     from deeptutor.tutorbot.teaching_modes import (  # noqa: WPS433
         looks_like_practice_generation_request,
@@ -560,11 +560,12 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
     ) or {}
 
     if question_context:
-        submission = extract_submission_answer(user_message, question_context)
+        _target_context, submission = resolve_submission_attempt(user_message, question_context)
         if submission:
             q_type = str(question_context.get("question_type") or "").strip().lower()
             has_options = bool(question_context.get("options"))
-            if q_type in _MCQ_QUESTION_TYPES or has_options:
+            has_items = bool(question_context.get("items"))
+            if q_type in _MCQ_QUESTION_TYPES or has_options or has_items:
                 return "mcq_grading"
             return "case_grading"
 

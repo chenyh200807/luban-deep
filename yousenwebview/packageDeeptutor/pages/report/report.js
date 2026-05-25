@@ -10,6 +10,7 @@ const taxonomy = require("../../utils/taxonomy");
 
 const REPORT_UNIFIED_READ_TIMEOUT_MS = 8000;
 const REPORT_MODULE_HINT_STORAGE_KEY = "deeptutor.report.moduleHint.v1";
+const ASSESSMENT_PENDING_TRAINING_ACTION_KEY = "deeptutor.report.pendingTrainingAction";
 const RADAR_SELF_SUBJECT = "self";
 const LEVEL_NAMES = {
   beginner: "入门",
@@ -775,6 +776,30 @@ function _buildBattlePlanFromPrescription(data) {
 
 function _buildTrainingExecutionAction(input) {
   var source = input || {};
+  var assessmentAction =
+    source.assessmentTrainingAction && typeof source.assessmentTrainingAction === "object"
+      ? source.assessmentTrainingAction
+      : null;
+  if (assessmentAction) {
+    var concept = String(assessmentAction.concept_label || "本次错题").trim();
+    var count = Math.max(1, Number(assessmentAction.question_count) || 3);
+    var query = String(assessmentAction.prompt || "").trim();
+    if (!query) {
+      query =
+        "请围绕我刚才错的“" +
+        concept +
+        "”，出 " +
+        count +
+        " 道同类选择题训练我。先只出题，不要提前给答案和解析。";
+    }
+    return {
+      type: "chat",
+      label: "练 " + count + " 道同类题",
+      hint: "带上本次错题、错因和 attempt_ref 进入结构化训练",
+      query: query,
+      promptIntent: assessmentAction,
+    };
+  }
   var plan = source.battlePlan || {};
   var status = String(source.prescriptionStatus || "").trim();
   var topic = String(
@@ -1213,7 +1238,9 @@ Page({
       label: "去对话训练",
       hint: "带上今日处方进入对话，由 AI 直接出第一组专项题",
       query: "",
+      promptIntent: null,
     },
+    assessmentTrainingAction: null,
     learningBrainGraphStats: {
       eventCount: 0,
       createdClaimCount: 0,
@@ -1251,13 +1278,45 @@ Page({
     const windowInfo = helpers.getWindowInfo();
     const navHeight = windowInfo.statusBarHeight + 44;
     const requestedDetail = options && options.detail ? String(options.detail) : "";
+    const assessmentTrainingAction =
+      requestedDetail === "training" ? this._readPendingAssessmentTrainingAction(options) : null;
     this.setData({
       statusBarHeight: windowInfo.statusBarHeight,
       navHeight,
       reportDetailView: REPORT_DETAIL_TITLES[requestedDetail] ? requestedDetail : this.data.reportDetailView,
       reportDetailTitle: REPORT_DETAIL_TITLES[requestedDetail] || this.data.reportDetailTitle,
       reportModuleHintVisible: this._shouldShowReportModuleHint(),
+      assessmentTrainingAction: assessmentTrainingAction,
     });
+  },
+
+  _readPendingAssessmentTrainingAction(options) {
+    var stored = null;
+    try {
+      stored =
+        typeof wx !== "undefined" && typeof wx.getStorageSync === "function"
+          ? wx.getStorageSync(ASSESSMENT_PENDING_TRAINING_ACTION_KEY)
+          : null;
+    } catch (_) {
+      stored = null;
+    }
+    var intent = stored && typeof stored === "object" ? Object.assign({}, stored) : {};
+    var attemptRef = String(intent.attempt_ref || (options && options.attempt_ref) || "").trim();
+    var concept = String(intent.concept_label || (options && options.knowledge_point) || "").trim();
+    var error = String(intent.error_label || (options && options.error_code) || "").trim();
+    if (!attemptRef && !concept && !error) return null;
+    if (attemptRef) intent.attempt_ref = attemptRef;
+    if (concept) intent.concept_label = concept;
+    if (error) intent.error_label = error;
+    intent.source = String(intent.source || "assessment_result_wrong_item");
+    intent.learning_signal_type = String(intent.learning_signal_type || "assessment_wrong_item_practice");
+    intent.subject_id = String(intent.subject_id || "construction_exam");
+    intent.question_count = Math.max(1, Number(intent.question_count) || 3);
+    intent.training_mode = String(intent.training_mode || "same_type_repair");
+    if (!Array.isArray(intent.evidence_refs)) {
+      intent.evidence_refs = attemptRef ? [attemptRef] : [];
+    }
+    return intent;
   },
 
   onShow() {
@@ -1824,6 +1883,7 @@ Page({
         assessmentEnabled: this.data.assessmentEnabled,
         nextActionTitle: this.data.learningNextAction.title,
         focusHint: this.data.focusHint,
+        assessmentTrainingAction: this.data.assessmentTrainingAction,
       }),
       overviewDonutStyle: _buildOverviewDonutStyle(this.data.overallMastery),
       progressSummary:
@@ -2059,7 +2119,7 @@ Page({
       query = "请根据我的学情处方开始今天的定向训练，先出第一组题。";
     }
     runtime.setWorkspaceBack(route.report(), "学情");
-    runtime.setPendingChatIntent(query, "AUTO");
+    runtime.setPendingChatIntent(query, "AUTO", action.promptIntent || null);
     wx.reLaunch({ url: route.chat() });
   },
 

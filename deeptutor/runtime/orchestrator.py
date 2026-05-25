@@ -31,9 +31,9 @@ from deeptutor.services.question_followup import (
     interpret_question_followup_action,
     looks_like_question_followup,
     resolve_submission_attempt,
+    reset_question_submission_state,
 )
 from deeptutor.services.question_lifecycle_skills import (
-    derive_question_lifecycle_scene,
     resolve_question_lifecycle_scene_decision,
     select_question_lifecycle_skill_names,
 )
@@ -189,7 +189,7 @@ class ChatOrchestrator:
         )
         self._record_lifecycle_decision(context, lifecycle_decision)
         lifecycle_scene = lifecycle_decision.scene
-        if lifecycle_scene == "question_review":
+        if lifecycle_scene == "question_review" and not self._has_active_lifecycle_context(context):
             self._prepare_free_text_question_review_context(context, routing_user_message)
             context.metadata["semantic_router_mode"] = "question_lifecycle"
             context.metadata["semantic_router_mode_reason"] = (
@@ -200,6 +200,8 @@ class ChatOrchestrator:
             context.metadata["semantic_router_selected_capability"] = "deep_question"
             return "deep_question"
         if lifecycle_scene == "practice_generation":
+            if self._has_active_lifecycle_context(context):
+                await self._resolve_turn_semantic_decision(context, routing_user_message)
             self._prepare_practice_request_context(context, routing_user_message)
             context.metadata["semantic_router_mode"] = "question_lifecycle"
             context.metadata["semantic_router_mode_reason"] = (
@@ -599,10 +601,7 @@ class ChatOrchestrator:
         )
         if isinstance(qctx, dict) and qctx.get("question"):
             return False
-        scene = derive_question_lifecycle_scene(
-            SimpleNamespace(user_message=message, metadata=context.metadata)
-        )
-        return scene == "question_review"
+        return context.metadata.get("question_lifecycle_scene") == "question_review"
 
     def _prepare_free_text_question_review_context(
         self,
@@ -660,6 +659,36 @@ class ChatOrchestrator:
     def _prepare_practice_request_context(self, context: UnifiedContext, message: str) -> None:
         if not isinstance(context.config_overrides, dict):
             context.config_overrides = {}
+        qctx = question_context_from_active_object(context.metadata.get("active_object")) or (
+            context.metadata.get("question_followup_context", {}) or {}
+        )
+        if isinstance(qctx, dict) and qctx.get("question"):
+            reset_context = reset_question_submission_state(qctx) or qctx
+            context.metadata["question_followup_context"] = reset_context
+            active_object = build_active_object_from_question_context(
+                reset_context,
+                source_turn_id=str(context.metadata.get("turn_id") or "").strip(),
+                previous_active_object=normalize_active_object(context.metadata.get("active_object")),
+            )
+            if active_object is not None:
+                context.metadata["active_object"] = active_object
+            context.metadata.setdefault(
+                "question_followup_action",
+                {
+                    "intent": "generate_more_questions",
+                    "confidence": 1.0,
+                    "answers": [],
+                    "reason": "question lifecycle routed this turn to practice generation",
+                },
+            )
+            context.metadata.setdefault(
+                "turn_semantic_decision",
+                {
+                    "next_action": "route_to_generation",
+                    "confidence": 1.0,
+                    "reason": "question lifecycle routed this turn to practice generation",
+                },
+            )
         context.metadata["question_lifecycle_scene"] = "practice_generation"
         skill_names = list(select_question_lifecycle_skill_names("practice_generation"))
         context.metadata["question_lifecycle_skill_names"] = skill_names
