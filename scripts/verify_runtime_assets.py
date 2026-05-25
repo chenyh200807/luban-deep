@@ -30,24 +30,48 @@ def validate_runtime_assets(repo_root: Path) -> list[str]:
     errors: list[str] = []
 
     compose_path = repo_root / "docker-compose.yml"
+    compose_ghcr_path = repo_root / "docker-compose.ghcr.yml"
+    dockerfile_path = repo_root / "Dockerfile"
     scrape_path = repo_root / "deployment" / "observability" / "prometheus.scrape.example.yml"
     alerts_path = repo_root / "deployment" / "observability" / "prometheus.alerts.example.yml"
     backup_doc = repo_root / "docs" / "zh" / "guide" / "runtime-backup-restore.md"
     observability_doc = repo_root / "docs" / "zh" / "guide" / "runtime-observability.md"
 
-    if not compose_path.exists():
-        errors.append(f"missing compose file: {compose_path}")
-    else:
+    # SR5 PR-3: healthcheck path consistency across 3 deploy artifacts.
+    # All MUST probe /readyz (not / which returns the welcome page).
+    for compose_target in (compose_path, compose_ghcr_path):
+        if not compose_target.exists():
+            errors.append(f"missing compose file: {compose_target}")
+            continue
         try:
-            compose = _load_yaml(compose_path)
+            compose = _load_yaml(compose_target)
             deeptutor = (compose.get("services") or {}).get("deeptutor") or {}
             healthcheck = deeptutor.get("healthcheck") or {}
             test_command = healthcheck.get("test") or []
-            flat_command = " ".join(test_command) if isinstance(test_command, list) else str(test_command)
+            flat_command = (
+                " ".join(test_command) if isinstance(test_command, list) else str(test_command)
+            )
             if "/readyz" not in flat_command:
-                errors.append("docker-compose.yml healthcheck must probe /readyz")
+                errors.append(f"{compose_target.name} healthcheck must probe /readyz")
         except Exception as exc:
-            errors.append(f"failed to parse docker-compose.yml: {exc}")
+            errors.append(f"failed to parse {compose_target.name}: {exc}")
+
+    if not dockerfile_path.exists():
+        errors.append(f"missing Dockerfile: {dockerfile_path}")
+    else:
+        try:
+            dockerfile_text = _load_text(dockerfile_path)
+            # Locate HEALTHCHECK CMD line(s) — the line containing 'CMD curl ...'.
+            healthcheck_lines = [
+                line for line in dockerfile_text.splitlines()
+                if "CMD" in line and "curl" in line and "localhost" in line
+            ]
+            if not healthcheck_lines:
+                errors.append("Dockerfile HEALTHCHECK CMD curl line not found")
+            elif not any("/readyz" in line for line in healthcheck_lines):
+                errors.append("Dockerfile HEALTHCHECK must probe /readyz")
+        except Exception as exc:
+            errors.append(f"failed to parse Dockerfile: {exc}")
 
     if not scrape_path.exists():
         errors.append(f"missing prometheus scrape example: {scrape_path}")

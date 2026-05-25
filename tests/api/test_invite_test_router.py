@@ -11,6 +11,7 @@ FastAPI = pytest.importorskip("fastapi").FastAPI
 TestClient = pytest.importorskip("fastapi.testclient").TestClient
 
 from deeptutor.api.routers import invite_test as invite_test_router
+from deeptutor.api.dependencies import rate_limit as rate_limit_module
 
 
 def _build_app() -> FastAPI:
@@ -48,7 +49,7 @@ def test_invite_test_application_public_post_writes_visible_record(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    invite_test_router._RATE_LIMIT_BUCKETS.clear()
+    rate_limit_module.clear_rate_limit_state()
     jsonl_path = tmp_path / "invite-test-applications.jsonl"
     monkeypatch.setenv("DEEPTUTOR_ENV", "local")
     monkeypatch.setenv("INVITE_TEST_APPLICATIONS_PATH", str(jsonl_path))
@@ -75,7 +76,7 @@ def test_invite_test_application_public_post_writes_visible_record(
 def test_invite_test_application_public_post_rejects_invalid_payload(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    invite_test_router._RATE_LIMIT_BUCKETS.clear()
+    rate_limit_module.clear_rate_limit_state()
     monkeypatch.setenv("DEEPTUTOR_ENV", "local")
 
     payload = _valid_payload()
@@ -90,7 +91,7 @@ def test_invite_test_application_public_post_rejects_invalid_payload(
 def test_invite_test_application_public_post_requires_wechat_id(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    invite_test_router._RATE_LIMIT_BUCKETS.clear()
+    rate_limit_module.clear_rate_limit_state()
     monkeypatch.setenv("DEEPTUTOR_ENV", "local")
 
     payload = _valid_payload()

@@ -1,16 +1,16 @@
 {
-  "generated_at": "2026-05-25T08:27:54.868432+00:00",
-  "fastapi_routes_total": 257,
-  "api_endpoints_total": 252,
+  "generated_at": "2026-05-25T09:40:56.082725+00:00",
+  "fastapi_routes_total": 259,
+  "api_endpoints_total": 254,
   "summary": {
     "by_classification": {
-      "secure_authed": 161,
+      "secure_authed": 166,
       "explicit_public": 14,
       "anonymous_ratelimited_only": 0,
-      "anonymous_no_ratelimit": 77
+      "anonymous_no_ratelimit": 74
     },
     "by_kind": {
-      "http": 245,
+      "http": 247,
       "websocket": 7
     },
     "anonymous_paths": [
@@ -84,7 +84,6 @@
       "DELETE /api/v1/mobile/mistake-book/items/{attempt_ref} (anonymous_no_ratelimit)",
       "POST /api/v1/mobile/mistake-book/items/{attempt_ref}/mastered (anonymous_no_ratelimit)",
       "POST /api/v1/mobile/mistake-book/items/{attempt_ref}/review (anonymous_no_ratelimit)",
-      "POST /api/v1/observability/surface-events (anonymous_no_ratelimit)",
       "GET /api/v1/plan/mastery-dashboard (anonymous_no_ratelimit)",
       "GET /api/v1/practice/chapter-progress (anonymous_no_ratelimit)",
       "GET /api/v1/practice/daily-question (anonymous_no_ratelimit)",
@@ -98,8 +97,6 @@
       "DELETE /api/v1/solve/sessions/{session_id} (anonymous_no_ratelimit)",
       "GET /api/v1/solve/sessions/{session_id} (anonymous_no_ratelimit)",
       "GET /api/v1/system/public-capabilities (explicit_public)",
-      "POST /api/v1/vision/analyze (anonymous_no_ratelimit)",
-      "WS /api/v1/vision/solve (anonymous_no_ratelimit)",
       "POST /api/v1/wechat/mp/bind-phone (explicit_public)",
       "POST /api/v1/wechat/mp/login (explicit_public)",
       "WS /api/v1/ws (anonymous_no_ratelimit)",
@@ -168,7 +165,6 @@
       "DELETE /api/v1/mobile/mistake-book/items/{attempt_ref}",
       "POST /api/v1/mobile/mistake-book/items/{attempt_ref}/mastered",
       "POST /api/v1/mobile/mistake-book/items/{attempt_ref}/review",
-      "POST /api/v1/observability/surface-events",
       "GET /api/v1/plan/mastery-dashboard",
       "GET /api/v1/practice/chapter-progress",
       "GET /api/v1/practice/daily-question",
@@ -181,8 +177,6 @@
       "GET /api/v1/solve/sessions",
       "DELETE /api/v1/solve/sessions/{session_id}",
       "GET /api/v1/solve/sessions/{session_id}",
-      "POST /api/v1/vision/analyze",
-      "WS /api/v1/vision/solve",
       "WS /api/v1/ws"
     ]
   },
@@ -564,6 +558,38 @@
       "method": "GET",
       "kind": "http",
       "endpoint": "deeptutor.api.routers.bi.bi_invite_test_applications",
+      "all_dependency_names": [
+        "require_bi_access",
+        "require_bi_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "bi",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/bi/invite-test/applications/{application_id}",
+      "method": "DELETE",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.bi.bi_invite_test_application_delete",
+      "all_dependency_names": [
+        "require_bi_access",
+        "require_bi_admin"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "bi",
+      "has_rate_limit_dep": false,
+      "is_public_marker": false,
+      "public_reason": null,
+      "classification": "secure_authed"
+    },
+    {
+      "path": "/api/v1/bi/invite-test/applications/{application_id}",
+      "method": "PATCH",
+      "kind": "http",
+      "endpoint": "deeptutor.api.routers.bi.bi_invite_test_application_update",
       "all_dependency_names": [
         "require_bi_access",
         "require_bi_admin"
@@ -1233,7 +1259,9 @@
       "method": "POST",
       "kind": "http",
       "endpoint": "deeptutor.api.routers.invite_test.submit_invite_test_application",
-      "all_dependency_names": [],
+      "all_dependency_names": [
+        "_rate_limit_dependency"
+      ],
       "has_auth_dep": false,
       "auth_dep_kind": null,
       "has_rate_limit_dep": false,
@@ -2416,13 +2444,16 @@
       "method": "POST",
       "kind": "http",
       "endpoint": "deeptutor.api.routers.observability.ingest_surface_event",
-      "all_dependency_names": [],
-      "has_auth_dep": false,
-      "auth_dep_kind": null,
+      "all_dependency_names": [
+        "_rate_limit_dependency",
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
       "has_rate_limit_dep": false,
       "is_public_marker": false,
       "public_reason": null,
-      "classification": "anonymous_no_ratelimit"
+      "classification": "secure_authed"
     },
     {
       "path": "/api/v1/plan/mastery-dashboard",
@@ -3800,26 +3831,31 @@
       "method": "POST",
       "kind": "http",
       "endpoint": "deeptutor.api.routers.vision_solver.analyze_image",
-      "all_dependency_names": [],
-      "has_auth_dep": false,
-      "auth_dep_kind": null,
+      "all_dependency_names": [
+        "_rate_limit_dependency",
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
       "has_rate_limit_dep": false,
       "is_public_marker": false,
       "public_reason": null,
-      "classification": "anonymous_no_ratelimit"
+      "classification": "secure_authed"
     },
     {
       "path": "/api/v1/vision/solve",
       "method": "WS",
       "kind": "websocket",
       "endpoint": "deeptutor.api.routers.vision_solver.websocket_vision_solve",
-      "all_dependency_names": [],
-      "has_auth_dep": false,
-      "auth_dep_kind": null,
+      "all_dependency_names": [
+        "get_current_user"
+      ],
+      "has_auth_dep": true,
+      "auth_dep_kind": "user",
       "has_rate_limit_dep": false,
       "is_public_marker": false,
       "public_reason": null,
-      "classification": "anonymous_no_ratelimit"
+      "classification": "secure_authed"
     },
     {
       "path": "/api/v1/wechat/mp/bind-phone",
