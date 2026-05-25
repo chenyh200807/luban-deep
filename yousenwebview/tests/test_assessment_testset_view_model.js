@@ -157,7 +157,11 @@ function loadPage(apiOverrides) {
           chat: function () { return "/packageDeeptutor/pages/chat/chat"; },
           report: function (query) {
             var url = "/packageDeeptutor/pages/report/report";
-            if (query && query.detail) url += "?detail=" + encodeURIComponent(query.detail);
+            var parts = [];
+            Object.keys(query || {}).forEach(function (key) {
+              parts.push(encodeURIComponent(key) + "=" + encodeURIComponent(query[key]));
+            });
+            if (parts.length) url += "?" + parts.join("&");
             return url;
           },
         };
@@ -190,10 +194,11 @@ function loadPage(apiOverrides) {
     wx: {
       showToast: function () {},
       showModal: function (options) { modalCalls.push(options || {}); },
-      setStorageSync: function () {},
+      setStorageSync: function (key, value) { sandbox.__storage[key] = value; },
       reLaunch: function (options) { reLaunchCalls.push(options || {}); },
       navigateBack: function () {},
     },
+    __storage: {},
     Page: function (def) {
       pageDef = def;
     },
@@ -219,6 +224,7 @@ function loadPage(apiOverrides) {
     createPayloads: createPayloads,
     reLaunchCalls: reLaunchCalls,
     pendingChatIntents: pendingChatIntents,
+    storage: sandbox.__storage,
   };
 }
 
@@ -456,7 +462,7 @@ function stringify(value) {
     );
   });
 
-  await run("wrong item practice carries attempt and error context to training intent", async function () {
+  await run("wrong item practice carries attempt and error context to report training", async function () {
     var loaded = loadPage();
     loaded.page.onSelectAssessmentMode({ currentTarget: { dataset: { mode: "topic" } } });
     loaded.page.onStart();
@@ -471,15 +477,20 @@ function stringify(value) {
 
     loaded.page.onPracticeWrongItem({ currentTarget: { dataset: { questionId: "q2" } } });
 
-    var pending = loaded.pendingChatIntents[0] || {};
-    var intent = pending.promptIntent || {};
-    assert(pending.query.indexOf("3 道") >= 0, "practice prompt should request three similar questions");
-    assert(intent.source === "assessment_result_wrong_item", "intent source should be the assessment wrong item");
-    assert(intent.attempt_ref === "attempt_signed", "intent should carry attempt_ref");
-    assert(intent.concept_label === "地下防水", "intent should carry knowledge point");
-    assert(intent.error_label === "M01", "intent should carry error code");
-    assert(intent.question_count === 3, "intent should request three questions");
-    assert(loaded.reLaunchCalls[0].url === "/packageDeeptutor/pages/chat/chat", "wrong item practice should open chat training");
+    assert(loaded.pendingChatIntents.length === 0, "wrong item practice should not open chat training");
+    var storedIntent = loaded.storage && loaded.storage["deeptutor.report.pendingTrainingAction"];
+    assert(storedIntent.prompt.indexOf("3 道") >= 0, "practice prompt should request three similar questions");
+    assert(storedIntent.source === "assessment_result_wrong_item", "stored intent source should be the assessment wrong item");
+    assert(storedIntent.attempt_ref === "attempt_signed", "stored intent should carry attempt_ref");
+    assert(storedIntent.concept_label === "地下防水", "stored intent should carry knowledge point");
+    assert(storedIntent.error_label === "M01", "stored intent should carry error code");
+    assert(storedIntent.question_count === 3, "stored intent should request three questions");
+    assert(
+      loaded.reLaunchCalls[0].url.indexOf("/packageDeeptutor/pages/report/report?") === 0 &&
+        loaded.reLaunchCalls[0].url.indexOf("detail=training") >= 0 &&
+        loaded.reLaunchCalls[0].url.indexOf("attempt_ref=attempt_signed") >= 0,
+      "wrong item practice should open report training with signed attempt context",
+    );
   });
 
   await run("second-device lease banner is user-facing", async function () {

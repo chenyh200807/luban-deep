@@ -27,6 +27,12 @@ def main() -> int:
     parser.add_argument("--base-url", required=True, help="API origin, for example https://test2.yousenjiaoyu.com")
     parser.add_argument("--token", default="", help="Bearer token for an existing learner account.")
     parser.add_argument("--topic-id", default="waterproof", help="Topic TestSet id to smoke.")
+    parser.add_argument(
+        "--assessment-type",
+        default="topic_diagnostic",
+        choices=("topic_diagnostic", "real_exam_simulation"),
+        help="Assessment TestSet type to smoke.",
+    )
     parser.add_argument("--timeout", type=int, default=20, help="HTTP timeout seconds.")
     args = parser.parse_args()
 
@@ -42,22 +48,33 @@ def main() -> int:
         topics = _request_json("GET", f"{api_base_url}/assessment/topics", headers=headers, timeout=args.timeout)
         _assert_json(topics, "topics")
 
+        assessment_type = str(args.assessment_type or "topic_diagnostic").strip()
+        expected_count = 20 if assessment_type == "real_exam_simulation" else 12
+        create_body: dict[str, Any] = {
+            "assessment_type": assessment_type,
+            "subject_id": "construction_exam",
+            "count": expected_count,
+        }
+        if assessment_type == "topic_diagnostic":
+            create_body["topic_ids"] = [str(args.topic_id or "").strip() or "waterproof"]
         created = _request_json(
             "POST",
             f"{api_base_url}/assessment/create",
             headers=headers,
             timeout=args.timeout,
-            body={
-                "assessment_type": "topic_diagnostic",
-                "subject_id": "construction_exam",
-                "topic_ids": [str(args.topic_id or "").strip() or "waterproof"],
-                "count": 12,
-            },
+            body=create_body,
         )
         quiz_id = str(created.get("quiz_id") or "").strip()
         questions = list(created.get("questions") or [])
         if not quiz_id or not questions:
             raise RuntimeError("assessment_create_missing_quiz_or_questions")
+        if len(questions) != expected_count:
+            raise RuntimeError(f"assessment_create_unexpected_question_count:{len(questions)}")
+        if assessment_type == "real_exam_simulation":
+            if str(created.get("assessment_type") or "") != "real_exam_simulation":
+                raise RuntimeError(f"assessment_create_wrong_type:{created.get('assessment_type')}")
+            if str(created.get("blueprint_version") or "") != "real_exam_simulation_mini_v1":
+                raise RuntimeError(f"assessment_create_wrong_blueprint:{created.get('blueprint_version')}")
         leaked = sorted(_find_forbidden_keys(created))
         if leaked:
             raise RuntimeError(f"assessment_create_payload_leaked_hidden_keys: {', '.join(leaked)}")
@@ -100,6 +117,8 @@ def main() -> int:
                 "ok": True,
                 "quiz_id": quiz_id,
                 "question_count": len(questions),
+                "assessment_type": assessment_type,
+                "blueprint_version": created.get("blueprint_version"),
                 "report_ready": True,
                 "deep_explanation_ready": True,
                 "pre_submit_redaction": "passed",

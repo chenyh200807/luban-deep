@@ -1,0 +1,1577 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>诊断报告目标态 · 鲁班智考</title>
+  <style>
+    :root {
+      --page: #07111f;
+      --phone: #07101f;
+      --panel: rgba(18, 31, 52, 0.78);
+      --panel-strong: rgba(24, 39, 64, 0.94);
+      --panel-soft: rgba(255, 255, 255, 0.055);
+      --line: rgba(157, 179, 216, 0.18);
+      --line-blue: rgba(116, 178, 255, 0.34);
+      --text: #f6f9ff;
+      --text-2: rgba(224, 234, 250, 0.8);
+      --muted: rgba(202, 215, 236, 0.58);
+      --blue: #3478f6;
+      --blue-2: #77b7ff;
+      --cyan: #67e8f9;
+      --green: #34d399;
+      --gold: #fbbf24;
+      --orange: #fb923c;
+      --rose: #fb7185;
+      --purple: #a78bfa;
+      --shadow: 0 30px 90px rgba(0, 0, 0, 0.44);
+      --font: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-width: 320px;
+      min-height: 100%;
+      background: var(--page);
+      color: var(--text);
+      font-family: var(--font);
+      letter-spacing: 0;
+      line-height: 1.45;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background:
+        radial-gradient(circle at 84% 8%, rgba(52, 120, 246, 0.24), transparent 26%),
+        radial-gradient(circle at 18% 12%, rgba(103, 232, 249, 0.14), transparent 28%),
+        radial-gradient(circle at 78% 58%, rgba(251, 191, 36, 0.08), transparent 30%),
+        linear-gradient(180deg, #07111f 0%, #0b1628 48%, #070d19 100%);
+    }
+
+    button {
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      font: inherit;
+      cursor: default;
+    }
+
+    button:focus-visible {
+      outline: 3px solid rgba(103, 232, 249, 0.36);
+      outline-offset: 2px;
+    }
+
+    .stage {
+      width: min(430px, calc(100vw - 32px));
+      margin: 24px auto 54px;
+    }
+
+    .stage-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 24px;
+      align-items: end;
+      margin-bottom: 18px;
+    }
+
+    .stage-kicker {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 0 12px;
+      border: 1px solid rgba(103, 232, 249, 0.24);
+      border-radius: 999px;
+      background: rgba(103, 232, 249, 0.08);
+      color: var(--cyan);
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    .stage h1 {
+      max-width: 780px;
+      margin-top: 12px;
+      font-size: clamp(28px, 4vw, 48px);
+      line-height: 1.08;
+      font-weight: 950;
+    }
+
+    .stage-desc {
+      max-width: 790px;
+      margin-top: 10px;
+      color: var(--text-2);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .stage-pills {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+      max-width: 420px;
+    }
+
+    .stage-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 30px;
+      padding: 0 11px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-2);
+      font-size: 12px;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+
+    .stage-pill.blue {
+      border-color: rgba(116, 178, 255, 0.28);
+      background: rgba(52, 120, 246, 0.12);
+      color: #bfdbfe;
+    }
+
+    .stage-pill.green {
+      border-color: rgba(52, 211, 153, 0.24);
+      background: rgba(52, 211, 153, 0.1);
+      color: #bbf7d0;
+    }
+
+    .stage-pill.gold {
+      border-color: rgba(251, 191, 36, 0.28);
+      background: rgba(251, 191, 36, 0.1);
+      color: #fde68a;
+    }
+
+    .stage-pill.rose {
+      border-color: rgba(251, 113, 133, 0.28);
+      background: rgba(251, 113, 133, 0.1);
+      color: #fecdd3;
+    }
+
+    .showcase {
+      display: grid;
+      place-items: start center;
+      padding: 18px;
+      border: 1px solid rgba(157, 179, 216, 0.18);
+      border-radius: 32px;
+      background:
+        linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(8, 17, 31, 0.84)),
+        radial-gradient(circle at 72% 8%, rgba(52, 120, 246, 0.2), transparent 30%);
+      box-shadow: var(--shadow);
+    }
+
+    .phone {
+      position: sticky;
+      top: 20px;
+      width: 390px;
+      min-height: 842px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 44px;
+      background:
+        linear-gradient(180deg, rgba(5, 11, 22, 0.98) 0%, rgba(9, 20, 38, 0.98) 46%, rgba(6, 11, 21, 0.98) 100%);
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.5);
+    }
+
+    .phone::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 50%;
+      z-index: 5;
+      width: 176px;
+      height: 34px;
+      transform: translateX(-50%);
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      border-top: 0;
+      border-radius: 0 0 24px 24px;
+      background: #030712;
+    }
+
+    .phone-status {
+      display: flex;
+      justify-content: space-between;
+      height: 46px;
+      padding: 13px 18px 0;
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .phone-nav {
+      display: grid;
+      grid-template-columns: 34px 1fr 34px;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 18px 10px;
+    }
+
+    .icon-btn {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      min-height: 34px;
+      padding: 0;
+      border-radius: 17px;
+      background: rgba(255, 255, 255, 0.075);
+      color: #dbeafe;
+      font-size: 20px;
+      font-weight: 950;
+    }
+
+    .nav-title {
+      text-align: center;
+      font-size: 15px;
+      font-weight: 950;
+    }
+
+    .phone-scroll {
+      height: 748px;
+      overflow-y: auto;
+      padding: 0 16px 28px;
+      scrollbar-width: none;
+    }
+
+    .phone-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .section {
+      margin-top: 13px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 18px;
+      border: 1px solid rgba(125, 211, 252, 0.22);
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at 95% 12%, rgba(52, 211, 153, 0.18), transparent 30%),
+        radial-gradient(circle at 10% 0%, rgba(59, 130, 246, 0.28), transparent 38%),
+        linear-gradient(135deg, rgba(19, 45, 98, 0.9), rgba(30, 26, 68, 0.5) 48%, rgba(11, 30, 45, 0.96));
+      box-shadow: 0 20px 44px rgba(0, 0, 0, 0.28);
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      top: 0;
+      height: 3px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--cyan), var(--blue-2), var(--gold), var(--rose));
+      opacity: 0.78;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -28px;
+      bottom: -42px;
+      width: 150px;
+      height: 150px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      background:
+        radial-gradient(circle, rgba(103, 232, 249, 0.15), transparent 64%),
+        conic-gradient(from 40deg, rgba(251, 191, 36, 0.12), rgba(52, 211, 153, 0.08), rgba(251, 113, 133, 0.1), rgba(251, 191, 36, 0.12));
+    }
+
+    .hero-top {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .kicker {
+      color: #93c5fd;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+    }
+
+    .hero-title {
+      margin-top: 6px;
+      font-size: 21px;
+      line-height: 1.22;
+      font-weight: 950;
+    }
+
+    .score-ring {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 86px;
+      height: 86px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 38% 30%, rgba(255, 255, 255, 0.12), transparent 26%),
+        conic-gradient(from 210deg, var(--rose) 0deg 42deg, var(--orange) 42deg 74deg, var(--gold) 74deg 106deg, rgba(103, 232, 249, 0.18) 106deg 360deg);
+      box-shadow:
+        0 0 0 1px rgba(103, 232, 249, 0.18),
+        0 0 28px rgba(52, 120, 246, 0.24),
+        inset 0 0 0 8px rgba(7, 17, 31, 0.74);
+    }
+
+    .score-ring::before {
+      content: "";
+      position: absolute;
+      inset: 7px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background:
+        linear-gradient(135deg, rgba(52, 120, 246, 0.24), rgba(103, 232, 249, 0.07)),
+        radial-gradient(circle at 70% 20%, rgba(251, 191, 36, 0.14), transparent 34%);
+    }
+
+    .score-ring::after {
+      content: "待补";
+      position: absolute;
+      right: -3px;
+      top: 4px;
+      display: grid;
+      place-items: center;
+      min-width: 34px;
+      height: 20px;
+      padding: 0 6px;
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      border-radius: 999px;
+      background: rgba(251, 191, 36, 0.14);
+      color: #fde68a;
+      font-size: 9px;
+      font-weight: 950;
+    }
+
+    .score-inner {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      place-items: center;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 40% 22%, rgba(255, 255, 255, 0.1), transparent 28%),
+        rgba(8, 17, 31, 0.9);
+    }
+
+    .score-inner strong {
+      font-size: 26px;
+      line-height: 1;
+      font-weight: 950;
+    }
+
+    .score-inner span {
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 850;
+    }
+
+    .hero-copy {
+      position: relative;
+      z-index: 1;
+      margin-top: 14px;
+      color: var(--text-2);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .hero-copy strong {
+      color: #fef3c7;
+      font-weight: 950;
+    }
+
+    .hero-actions {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .conclusion-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .conclusion-cell {
+      min-height: 62px;
+      padding: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      background: rgba(255, 255, 255, 0.055);
+    }
+
+    .conclusion-cell:nth-child(1) {
+      border-color: rgba(103, 232, 249, 0.18);
+      background: rgba(103, 232, 249, 0.075);
+    }
+
+    .conclusion-cell:nth-child(2) {
+      border-color: rgba(52, 211, 153, 0.18);
+      background: rgba(52, 211, 153, 0.075);
+    }
+
+    .conclusion-cell:nth-child(3) {
+      border-color: rgba(251, 191, 36, 0.2);
+      background: rgba(251, 191, 36, 0.075);
+    }
+
+    .conclusion-cell:nth-child(4) {
+      border-color: rgba(167, 139, 250, 0.2);
+      background: rgba(167, 139, 250, 0.08);
+    }
+
+    .conclusion-cell span {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 850;
+    }
+
+    .conclusion-cell strong {
+      display: block;
+      margin-top: 5px;
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.3;
+      font-weight: 950;
+    }
+
+    .primary-btn {
+      border: 0;
+      background: linear-gradient(135deg, #2f6bff, #45c2ff 58%, #5eead4);
+      box-shadow: 0 12px 28px rgba(47, 107, 255, 0.34);
+      font-size: 13px;
+      font-weight: 950;
+    }
+
+    .ghost-btn {
+      min-width: 88px;
+      border-color: rgba(116, 178, 255, 0.24);
+      background: rgba(116, 178, 255, 0.1);
+      color: #bfdbfe;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 9px;
+      margin-top: 12px;
+    }
+
+    .metric {
+      position: relative;
+      overflow: hidden;
+      min-height: 72px;
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.055);
+    }
+
+    .metric::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 3px;
+      background: var(--blue-2);
+      opacity: 0.9;
+    }
+
+    .metric:nth-child(2)::before { background: var(--green); }
+    .metric:nth-child(3)::before { background: var(--gold); }
+
+    .metric strong {
+      display: block;
+      font-size: 18px;
+      line-height: 1;
+      font-weight: 950;
+    }
+
+    .metric span {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.35;
+      font-weight: 800;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--panel);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22);
+      backdrop-filter: blur(18px);
+    }
+
+    .card.pad {
+      padding: 15px;
+    }
+
+    .card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 15px 15px 0;
+    }
+
+    .card-title {
+      margin-top: 4px;
+      font-size: 16px;
+      line-height: 1.35;
+      font-weight: 950;
+    }
+
+    .card-note {
+      margin-top: 6px;
+      color: var(--text-2);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .tiny-btn {
+      min-height: 28px;
+      padding: 0 10px;
+      border-color: rgba(116, 178, 255, 0.3);
+      border-radius: 999px;
+      color: #bfdbfe;
+      font-size: 11px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .card .chip-row {
+      padding: 12px 15px 15px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 27px;
+      padding: 0 9px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.055);
+      color: var(--text-2);
+      font-size: 11px;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+
+    .chip.risk {
+      border-color: rgba(251, 113, 133, 0.28);
+      background: rgba(251, 113, 133, 0.1);
+      color: #fecdd3;
+    }
+
+    .chip.good {
+      border-color: rgba(52, 211, 153, 0.24);
+      background: rgba(52, 211, 153, 0.1);
+      color: #bbf7d0;
+    }
+
+    .chip.gold {
+      border-color: rgba(251, 191, 36, 0.28);
+      background: rgba(251, 191, 36, 0.1);
+      color: #fde68a;
+    }
+
+    .issue-list {
+      display: grid;
+      gap: 9px;
+      margin-top: 12px;
+    }
+
+    .issue {
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      padding: 11px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.045);
+    }
+
+    .issue-rank {
+      display: grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 13px;
+      background: rgba(52, 120, 246, 0.16);
+      color: #bfdbfe;
+      font-size: 13px;
+      font-weight: 950;
+    }
+
+    .issue:nth-child(2) .issue-rank { background: rgba(251, 191, 36, 0.16); color: #fde68a; }
+    .issue:nth-child(3) .issue-rank { background: rgba(167, 139, 250, 0.16); color: #ddd6fe; }
+    .issue:nth-child(4) .issue-rank { background: rgba(103, 232, 249, 0.14); color: #a5f3fc; }
+    .issue:nth-child(5) .issue-rank { background: rgba(251, 113, 133, 0.15); color: #fecdd3; }
+
+    .issue-title {
+      font-size: 13px;
+      font-weight: 950;
+    }
+
+    .issue-desc {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.4;
+    }
+
+    .issue-count {
+      color: #fecdd3;
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .map-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .map-row {
+      display: grid;
+      grid-template-columns: 82px minmax(0, 1fr) 48px;
+      gap: 8px;
+      align-items: center;
+      color: var(--text-2);
+      font-size: 11px;
+      font-weight: 850;
+    }
+
+    .map-action {
+      color: #fde68a;
+      font-size: 10px;
+      font-weight: 950;
+      text-align: right;
+    }
+
+    .bar-track {
+      height: 8px;
+      overflow: hidden;
+      border-radius: 99px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--rose), var(--gold));
+    }
+
+    .bar-fill.good {
+      background: linear-gradient(90deg, var(--green), var(--cyan));
+    }
+
+    .wrong-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .wrong-card {
+      overflow: hidden;
+      border: 1px solid rgba(103, 232, 249, 0.2);
+      border-radius: 22px;
+      background:
+        radial-gradient(circle at 100% 0%, rgba(251, 191, 36, 0.08), transparent 32%),
+        linear-gradient(135deg, rgba(21, 43, 74, 0.9), rgba(29, 35, 68, 0.86));
+    }
+
+    .wrong-summary {
+      padding: 14px;
+    }
+
+    .wrong-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .q-num {
+      display: inline-grid;
+      place-items: center;
+      min-width: 45px;
+      height: 28px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(52, 120, 246, 0.26), rgba(103, 232, 249, 0.13));
+      color: #dbeafe;
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(251, 191, 36, 0.2);
+      background: rgba(251, 191, 36, 0.11);
+      color: #fde68a;
+      font-size: 11px;
+      font-weight: 950;
+    }
+
+    .stem {
+      margin-top: 11px;
+      font-size: 15px;
+      line-height: 1.58;
+      font-weight: 900;
+    }
+
+    .answer-delta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .answer-box {
+      padding: 9px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.055);
+    }
+
+    .answer-box span {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 850;
+    }
+
+    .answer-box strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 15px;
+      font-weight: 950;
+    }
+
+    .choice-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .choice {
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr);
+      gap: 9px;
+      align-items: start;
+      padding: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.045);
+      color: var(--text-2);
+      font-size: 12px;
+      line-height: 1.52;
+      font-weight: 760;
+    }
+
+    .choice-key {
+      display: grid;
+      place-items: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #dbeafe;
+      font-weight: 950;
+    }
+
+    .verdict {
+      margin-top: 10px;
+      padding: 11px;
+      border: 1px solid rgba(251, 191, 36, 0.24);
+      border-radius: 15px;
+      background: rgba(251, 191, 36, 0.08);
+      color: #fde68a;
+      font-size: 12px;
+      line-height: 1.6;
+      font-weight: 820;
+    }
+
+    .simple-actions {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      margin-top: 10px;
+      align-items: center;
+    }
+
+    .ai-detail-btn {
+      min-height: 38px;
+      padding: 0 12px;
+      border-color: rgba(103, 232, 249, 0.28);
+      background: linear-gradient(135deg, rgba(52, 120, 246, 0.2), rgba(103, 232, 249, 0.12));
+      color: #dff8ff;
+      font-size: 12px;
+      font-weight: 950;
+      white-space: nowrap;
+    }
+
+    .same-type-btn {
+      min-height: 38px;
+      border-color: rgba(251, 191, 36, 0.22);
+      background: rgba(251, 191, 36, 0.08);
+      color: #fde68a;
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .review-body {
+      display: grid;
+      gap: 10px;
+      padding: 0 14px 14px;
+    }
+
+    .review-body[hidden] {
+      display: none;
+    }
+
+    .detail-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      padding: 12px;
+      border: 1px solid rgba(103, 232, 249, 0.18);
+      border-radius: 17px;
+      background: rgba(103, 232, 249, 0.065);
+    }
+
+    .detail-head h3 {
+      color: #e0f7ff;
+      font-size: 13px;
+      font-weight: 950;
+    }
+
+    .detail-head span {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 850;
+    }
+
+    .review-section {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      background: rgba(255, 255, 255, 0.045);
+    }
+
+    .review-section h3 {
+      color: #bfdbfe;
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .review-section p {
+      margin-top: 7px;
+      color: var(--text-2);
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    .option-list {
+      display: grid;
+      gap: 7px;
+      margin-top: 10px;
+    }
+
+    .option {
+      display: grid;
+      grid-template-columns: 26px minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: start;
+      padding: 9px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 13px;
+      background: rgba(8, 17, 31, 0.38);
+      color: var(--text-2);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .option-key {
+      display: grid;
+      place-items: center;
+      width: 25px;
+      height: 25px;
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #dbeafe;
+      font-weight: 950;
+    }
+
+    .option-tag {
+      min-width: 40px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 900;
+      text-align: right;
+    }
+
+    .option.missed {
+      border-color: rgba(251, 191, 36, 0.24);
+      background: rgba(251, 191, 36, 0.07);
+    }
+
+    .option.correct {
+      border-color: rgba(52, 211, 153, 0.22);
+      background: rgba(52, 211, 153, 0.07);
+    }
+
+    .memory {
+      border-color: rgba(167, 139, 250, 0.26);
+      background: linear-gradient(135deg, rgba(88, 28, 135, 0.24), rgba(52, 211, 153, 0.06), rgba(255, 255, 255, 0.045));
+    }
+
+    .source {
+      border-color: rgba(103, 232, 249, 0.2);
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .mini-action {
+      min-height: 38px;
+      border-radius: 12px;
+      background: rgba(52, 120, 246, 0.12);
+      color: #bfdbfe;
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .collapsed {
+      padding: 14px;
+    }
+
+    .collapsed .chip-row {
+      margin-top: 10px;
+    }
+
+    .prescription {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      padding: 11px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.045);
+    }
+
+    .step-num {
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 11px;
+      background: rgba(52, 120, 246, 0.16);
+      color: #bfdbfe;
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .step-title {
+      font-size: 13px;
+      font-weight: 950;
+    }
+
+    .step-desc {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.4;
+    }
+
+    .step-time {
+      color: #a5f3fc;
+      font-size: 11px;
+      font-weight: 950;
+    }
+
+    .sticky-cta {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 16px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      padding: 10px;
+      border: 1px solid rgba(116, 178, 255, 0.2);
+      border-radius: 22px;
+      background: rgba(8, 17, 31, 0.9);
+      box-shadow: 0 -14px 40px rgba(0, 0, 0, 0.34);
+      backdrop-filter: blur(20px);
+    }
+
+    .sticky-cta button {
+      min-height: 44px;
+    }
+
+    .sticky-secondary {
+      width: 84px;
+      border-radius: 15px;
+      color: #bfdbfe;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    @media (max-width: 980px) {
+      .stage-head,
+      .showcase {
+        grid-template-columns: 1fr;
+      }
+
+      .stage-pills {
+        justify-content: flex-start;
+      }
+
+      .phone {
+        position: relative;
+        top: auto;
+        width: min(390px, 100%);
+        margin: 0 auto;
+      }
+    }
+
+    @media (max-width: 460px) {
+      .stage {
+        width: 100%;
+        margin: 0;
+      }
+
+      .stage-head {
+        padding: 18px;
+      }
+
+      .showcase {
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+      }
+
+      .phone {
+        border-radius: 0;
+        border-left: 0;
+        border-right: 0;
+      }
+
+    }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <section class="showcase">
+      <section class="phone" aria-label="小程序诊断报告目标态">
+        <div class="phone-status">
+          <span>19:42</span>
+          <span>5G 82%</span>
+        </div>
+        <nav class="phone-nav" aria-label="页面导航">
+          <button class="icon-btn" aria-label="返回">‹</button>
+          <div class="nav-title">诊断报告</div>
+          <button class="icon-btn" aria-label="更多">⋯</button>
+        </nav>
+
+        <div class="phone-scroll">
+          <section class="hero" aria-label="诊断结论">
+            <div class="hero-top">
+              <div>
+                <div class="kicker">防水工程测试集 · 12 题 · 已完成</div>
+                <h2 class="hero-title">主要问题不是不会，而是规范条件读不全</h2>
+              </div>
+              <div class="score-ring" aria-label="得分 17 分">
+                <div class="score-inner">
+                  <strong>17</strong>
+                  <span>分</span>
+                </div>
+              </div>
+            </div>
+            <p class="hero-copy">
+              本次答对 2 / 12 题。优先修 <strong>多选漏选</strong> 和 <strong>防水节点条件判断</strong>，今天先完成一轮 8 分钟补弱。
+            </p>
+            <div class="conclusion-grid" aria-label="首屏结论四要素">
+              <div class="conclusion-cell">
+                <span>这次测了什么</span>
+                <strong>防水工程测试集</strong>
+              </div>
+              <div class="conclusion-cell">
+                <span>诊断可信度</span>
+                <strong>中等 · 12 题证据</strong>
+              </div>
+              <div class="conclusion-cell">
+                <span>主要短板</span>
+                <strong>多选漏选 + 条件漏读</strong>
+              </div>
+              <div class="conclusion-cell">
+                <span>下一步先做</span>
+                <strong>8 分钟补弱训练</strong>
+              </div>
+            </div>
+            <div class="hero-actions">
+              <button class="primary-btn">开始 8 分钟补弱</button>
+              <button class="ghost-btn">看依据</button>
+            </div>
+          </section>
+
+          <div class="metric-row" aria-label="测评摘要">
+            <div class="metric">
+              <strong>12题</strong>
+              <span>测评证据</span>
+            </div>
+            <div class="metric">
+              <strong>中等</strong>
+              <span>诊断可信度</span>
+            </div>
+            <div class="metric">
+              <strong>可执行</strong>
+              <span>训练处方</span>
+            </div>
+          </div>
+
+          <section class="section" aria-label="错题讲评">
+            <div class="card-head" style="padding: 0 2px 10px">
+              <div>
+                <div class="kicker">错题讲评</div>
+                <h2 class="card-title">默认看讲评，不重复堆原题</h2>
+              </div>
+              <button class="tiny-btn">筛选错因</button>
+            </div>
+
+            <div class="wrong-list">
+              <article class="wrong-card">
+                <div class="wrong-summary">
+                  <div class="wrong-top">
+                    <span class="q-num">第 1 题</span>
+                    <span class="status-badge">漏选 B/C/D</span>
+                  </div>
+                  <h2 class="stem">防水层施工采取绿色施工措施，正确说法有哪些？</h2>
+                  <div class="choice-list">
+                    <div class="choice">
+                      <span class="choice-key">A</span>
+                      <span>采用符合要求的防水材料，并控制现场材料损耗。</span>
+                    </div>
+                    <div class="choice">
+                      <span class="choice-key">B</span>
+                      <span>施工过程采取节水措施，废水按要求收集和处理。</span>
+                    </div>
+                    <div class="choice">
+                      <span class="choice-key">C</span>
+                      <span>控制扬尘、噪声和有害挥发物，减少环境影响。</span>
+                    </div>
+                    <div class="choice">
+                      <span class="choice-key">D</span>
+                      <span>加强成品保护，减少返工和材料浪费。</span>
+                    </div>
+                  </div>
+                  <div class="answer-delta">
+                    <div class="answer-box">
+                      <span>你的答案</span>
+                      <strong>A</strong>
+                    </div>
+                    <div class="answer-box">
+                      <span>正确答案</span>
+                      <strong>ABCD</strong>
+                    </div>
+                  </div>
+                  <p class="verdict">
+                    简单解析：这题考“绿色施工措施”的完整枚举。你只选了材料控制，漏掉了节水、污染控制和成品保护。
+                  </p>
+                  <div class="simple-actions">
+                    <button class="same-type-btn">练 3 道同类题</button>
+                    <button class="ai-detail-btn" data-target="detail-q1">AI详细解析</button>
+                  </div>
+                </div>
+
+                <div class="review-body" id="detail-q1" hidden>
+                  <div class="detail-head">
+                    <div>
+                      <h3>AI详细解析</h3>
+                      <span>为什么错 · 原因分析 · 采分点 · 易错点 · 口诀</span>
+                    </div>
+                    <span>已展开</span>
+                  </div>
+                  <section class="review-section">
+                    <h3>题干关键词</h3>
+                    <div class="chip-row" style="margin-top: 9px">
+                      <span class="chip">防水层施工</span>
+                      <span class="chip">绿色施工措施</span>
+                      <span class="chip">规定的说法</span>
+                    </div>
+                  </section>
+
+                  <section class="review-section">
+                    <h3>为什么错</h3>
+                    <p>你的判断停在“防水材料是否绿色”，但题干问的是“防水层施工采取绿色施工措施”。绿色施工覆盖材料、用水、污染控制、成品保护和减少返工，范围比单一材料更大。</p>
+                  </section>
+
+                  <section class="review-section">
+                    <h3>原因分析</h3>
+                    <p>这类多选题容易漏选，是因为每个选项看起来都不是“唯一核心”。正确做法是先把题干限定词圈出来，再判断每个选项是否属于同一类措施。</p>
+                  </section>
+
+                  <section class="review-section">
+                    <h3>采分点</h3>
+                    <p>采分点不是背一个词，而是能完整识别：节材、节水、污染控制、成品保护、减少返工都属于施工阶段绿色措施。</p>
+                  </section>
+
+                  <section class="review-section">
+                    <h3>选项拆解</h3>
+                    <div class="option-list">
+                      <div class="option correct">
+                        <span class="option-key">A</span>
+                        <span>你选对了：属于材料与施工过程控制。</span>
+                        <span class="option-tag">已选</span>
+                      </div>
+                      <div class="option missed">
+                        <span class="option-key">B</span>
+                        <span>漏选：节水和施工废水控制同样属于绿色施工。</span>
+                        <span class="option-tag">漏选</span>
+                      </div>
+                      <div class="option missed">
+                        <span class="option-key">C</span>
+                        <span>漏选：扬尘、噪声、污染控制不是口号，是施工措施。</span>
+                        <span class="option-tag">漏选</span>
+                      </div>
+                      <div class="option missed">
+                        <span class="option-key">D</span>
+                        <span>漏选：成品保护可减少返工和材料浪费。</span>
+                        <span class="option-tag">漏选</span>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section class="review-section memory">
+                    <h3>记忆口诀</h3>
+                    <p>绿色施工看“四节一环保”：节材、节水、节能、节地，再看扬尘、废水、噪声控制。</p>
+                  </section>
+
+                  <section class="review-section">
+                    <h3>易错点</h3>
+                    <p>多选题不要只找最像关键词的选项。凡是能减少资源消耗、污染和返工的措施，都可能是正确项。</p>
+                  </section>
+
+                  <section class="review-section source">
+                    <h3>依据</h3>
+                    <p>来源：防水工程施工相关规范与题库解析。正式实现时这里回链到知识卡、规范条文或教材段落。</p>
+                  </section>
+
+                  <div class="actions">
+                    <button class="mini-action">查看原题</button>
+                    <button class="mini-action">加入错题本</button>
+                  </div>
+                </div>
+              </article>
+
+              <article class="wrong-card collapsed">
+                <div class="wrong-top">
+                  <span class="q-num">第 2 题</span>
+                  <span class="status-badge">概念混淆</span>
+                </div>
+                <h2 class="stem">卷材机械力学性能指标包括哪些？</h2>
+                <div class="choice-list">
+                  <div class="choice">
+                    <span class="choice-key">A</span>
+                    <span>拉力</span>
+                  </div>
+                  <div class="choice">
+                    <span class="choice-key">B</span>
+                    <span>延伸率</span>
+                  </div>
+                  <div class="choice">
+                    <span class="choice-key">C</span>
+                    <span>耐热性</span>
+                  </div>
+                  <div class="choice">
+                    <span class="choice-key">D</span>
+                    <span>撕裂强度</span>
+                  </div>
+                </div>
+                <div class="answer-delta">
+                  <div class="answer-box">
+                    <span>你的答案</span>
+                    <strong>A</strong>
+                  </div>
+                  <div class="answer-box">
+                    <span>正确答案</span>
+                    <strong>ABD</strong>
+                  </div>
+                </div>
+                <p class="verdict">
+                  简单解析：机械力学性能看“受力后的表现”，拉力、延伸率、撕裂强度都属于这一类。
+                </p>
+                <div class="simple-actions">
+                  <button class="same-type-btn">练 3 道同类题</button>
+                  <button class="ai-detail-btn" data-target="detail-q2">AI详细解析</button>
+                </div>
+                <div class="review-body" id="detail-q2" hidden>
+                  <div class="detail-head">
+                    <div>
+                      <h3>AI详细解析</h3>
+                      <span>概念边界 · 采分点 · 口诀</span>
+                    </div>
+                    <span>已展开</span>
+                  </div>
+                  <section class="review-section">
+                    <h3>为什么错</h3>
+                    <p>你只抓到了“拉力”这个显性力学词，漏掉了延伸率和撕裂强度。它们都描述材料受力后的变形或破坏能力。</p>
+                  </section>
+                  <section class="review-section memory">
+                    <h3>记忆口诀</h3>
+                    <p>卷材力学性能先记“拉、延、撕”：拉力、延伸率、撕裂强度。</p>
+                  </section>
+                </div>
+              </article>
+
+              <article class="wrong-card collapsed">
+                <div class="wrong-top">
+                  <span class="q-num">第 3 题</span>
+                  <span class="status-badge">条件漏读</span>
+                </div>
+                <h2 class="stem">屋面隔热可采取哪些措施？</h2>
+                <div class="choice-list">
+                  <div class="choice">
+                    <span class="choice-key">A</span>
+                    <span>只增加防水层厚度</span>
+                  </div>
+                  <div class="choice">
+                    <span class="choice-key">B</span>
+                    <span>采用浅色或反射隔热材料</span>
+                  </div>
+                  <div class="choice">
+                    <span class="choice-key">C</span>
+                    <span>设置通风隔热层</span>
+                  </div>
+                  <div class="choice">
+                    <span class="choice-key">D</span>
+                    <span>采用蓄水屋面或种植屋面</span>
+                  </div>
+                </div>
+                <div class="answer-delta">
+                  <div class="answer-box">
+                    <span>你的答案</span>
+                    <strong>A</strong>
+                  </div>
+                  <div class="answer-box">
+                    <span>正确答案</span>
+                    <strong>BCD</strong>
+                  </div>
+                </div>
+                <p class="verdict">
+                  简单解析：屋面隔热看反射、通风、蓄水或种植等措施，不是简单加厚防水层。
+                </p>
+                <div class="simple-actions">
+                  <button class="same-type-btn">练 3 道同类题</button>
+                  <button class="ai-detail-btn" data-target="detail-q3">AI详细解析</button>
+                </div>
+                <div class="review-body" id="detail-q3" hidden>
+                  <div class="detail-head">
+                    <div>
+                      <h3>AI详细解析</h3>
+                      <span>条件识别 · 易错点 · 口诀</span>
+                    </div>
+                    <span>已展开</span>
+                  </div>
+                  <section class="review-section">
+                    <h3>易错点</h3>
+                    <p>题干问的是“可采取的措施”，不是问防水构造本身。看到“隔热措施”，先想降低吸热、增强通风、利用蓄水或绿化。</p>
+                  </section>
+                  <section class="review-section memory">
+                    <h3>记忆口诀</h3>
+                    <p>屋面隔热记“反、通、蓄、植”：反射、通风、蓄水、种植。</p>
+                  </section>
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <section class="section card pad" aria-label="错因结构">
+            <div class="kicker">错因结构</div>
+            <h2 class="card-title">把错误归成 5 类可训练问题</h2>
+            <p class="card-note">不是列 10 道错题，而是先告诉你主要错在什么类型；前 3 类优先训练。</p>
+            <div class="issue-list">
+              <div class="issue">
+                <span class="issue-rank">1</span>
+                <div>
+                  <div class="issue-title">多选题漏选</div>
+                  <div class="issue-desc">只选最确定选项，漏掉并列条件</div>
+                </div>
+                <span class="issue-count">5题</span>
+              </div>
+              <div class="issue">
+                <span class="issue-rank">2</span>
+                <div>
+                  <div class="issue-title">规范条件读不全</div>
+                  <div class="issue-desc">忽略“高度、部位、材料、施工阶段”限定</div>
+                </div>
+                <span class="issue-count">4题</span>
+              </div>
+              <div class="issue">
+                <span class="issue-rank">3</span>
+                <div>
+                  <div class="issue-title">材料性能分类混淆</div>
+                  <div class="issue-desc">力学性能、耐久性能、施工性能边界不清</div>
+                </div>
+                <span class="issue-count">2题</span>
+              </div>
+              <div class="issue">
+                <span class="issue-rank">4</span>
+                <div>
+                  <div class="issue-title">题干关键词没抓住</div>
+                  <div class="issue-desc">没有先圈“部位、阶段、性能、规范限定”</div>
+                </div>
+                <span class="issue-count">3题</span>
+              </div>
+              <div class="issue">
+                <span class="issue-rank">5</span>
+                <div>
+                  <div class="issue-title">相似概念边界不清</div>
+                  <div class="issue-desc">把施工性能、材料性能、验收要求混在一起</div>
+                </div>
+                <span class="issue-count">2题</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="section card pad" aria-label="知识掌握地图">
+            <div class="kicker">掌握地图</div>
+            <h2 class="card-title">先补弱项，不平均用力</h2>
+            <p class="card-note">知识点表现只回答“先补哪里”，不做无行动意义的漂亮图表。</p>
+            <div class="map-list">
+              <div class="map-row">
+                <span>防水施工节点</span>
+                <div class="bar-track"><div class="bar-fill" style="width: 8%"></div></div>
+                <span class="map-action">优先补</span>
+              </div>
+              <div class="map-row">
+                <span>材料与构造</span>
+                <div class="bar-track"><div class="bar-fill" style="width: 25%"></div></div>
+                <span class="map-action">次优先</span>
+              </div>
+              <div class="map-row">
+                <span>质量与验收</span>
+                <div class="bar-track"><div class="bar-fill good" style="width: 72%"></div></div>
+                <span class="map-action">暂保持</span>
+              </div>
+            </div>
+            <div class="chip-row" style="margin-top: 12px">
+              <span class="chip risk">防水施工节点 0/4</span>
+              <span class="chip gold">材料与构造 1/4</span>
+              <span class="chip good">质量与验收 1/1</span>
+            </div>
+          </section>
+
+          <section class="section card pad" aria-label="训练处方">
+            <div class="kicker">训练处方</div>
+            <h2 class="card-title">讲评 → 练题 → 验证 → 写回学情</h2>
+            <p class="card-note">报告必须直接变成训练处方，否则它只是分析，不是学习产品。</p>
+            <div class="prescription">
+              <div class="step">
+                <span class="step-num">1</span>
+                <div>
+                  <div class="step-title">看 2 道代表错题讲评</div>
+                  <div class="step-desc">重点看漏选和条件判断</div>
+                </div>
+                <span class="step-time">2分</span>
+              </div>
+              <div class="step">
+                <span class="step-num">2</span>
+                <div>
+                  <div class="step-title">练 3 道同类多选题</div>
+                  <div class="step-desc">只练防水节点和材料构造</div>
+                </div>
+                <span class="step-time">4分</span>
+              </div>
+              <div class="step">
+                <span class="step-num">3</span>
+                <div>
+                  <div class="step-title">做 1 道验证题</div>
+                  <div class="step-desc">确认是否还会漏选</div>
+                </div>
+                <span class="step-time">2分</span>
+              </div>
+              <div class="step">
+                <span class="step-num">4</span>
+                <div>
+                  <div class="step-title">写回学情和错题本</div>
+                  <div class="step-desc">更新掌握地图，下次推荐不重复绕路</div>
+                </div>
+                <span class="step-time">自动</span>
+              </div>
+            </div>
+          </section>
+        </div>
+
+      </section>
+    </section>
+  </main>
+  <script>
+    document.querySelectorAll(".ai-detail-btn").forEach(function (button) {
+      button.addEventListener("click", function () {
+        var target = document.getElementById(button.dataset.target);
+        if (!target) return;
+        var willOpen = target.hasAttribute("hidden");
+        target.toggleAttribute("hidden", !willOpen);
+        button.textContent = willOpen ? "收起AI详细解析" : "AI详细解析";
+      });
+    });
+  </script>
+</body>
+</html>

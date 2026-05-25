@@ -32,7 +32,7 @@ except ImportError:  # pragma: no cover - non-Unix fallback
     fcntl = None
 
 from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAULTS
-from deeptutor.services.assessment.blueprint import get_assessment_blueprint
+from deeptutor.services.assessment.blueprint import get_assessment_blueprint, real_exam_source_policy
 from deeptutor.services.assessment import (
     AssessmentBlueprintService,
     AssessmentBlueprintUnavailable,
@@ -4727,6 +4727,13 @@ class MemberConsoleService:
                 topic_ids=topic_ids or ["waterproof"],
                 device_id=device_id,
             )
+        if normalized_assessment_type == "real_exam_simulation":
+            return self._create_real_exam_simulation_assessment(
+                user_id,
+                count=count,
+                subject_id=subject_id,
+                device_id=device_id,
+            )
 
         def _apply(data: dict[str, Any]) -> dict[str, Any]:
             try:
@@ -4868,13 +4875,66 @@ class MemberConsoleService:
             "form_source": str(payload.get("form_source") or "unknown"),
         }
 
+    def _create_real_exam_simulation_assessment(
+        self,
+        user_id: str,
+        *,
+        count: int,
+        subject_id: str,
+        device_id: str = "",
+    ) -> dict[str, Any]:
+        blueprint_version = "real_exam_simulation_mini_v1"
+        payload = self._build_assessment_blueprint_service(blueprint_version).create_session(
+            user_id=user_id,
+            count=count,
+            assessment_type="real_exam_simulation",
+            subject_id=subject_id,
+            topic_ids=[],
+        )
+        session = self._assessment_session_repository.create_session(
+            user_id=user_id,
+            assessment_type="real_exam_simulation",
+            subject_id=subject_id,
+            topic_ids=[],
+            blueprint_version=payload["blueprint_version"],
+            form_id=str(payload.get("form_id") or ""),
+            client_questions_public=list(payload.get("questions") or []),
+            session_questions_private=list(payload.get("session_questions") or []),
+            device_id=device_id,
+        )
+        source_policy = real_exam_source_policy(real_exam_share=0.0)
+        return {
+            "quiz_id": session["quiz_id"],
+            "assessment_type": "real_exam_simulation",
+            "subject_id": subject_id,
+            "topic_ids": [],
+            "topic_label": str(source_policy.get("label") or "综合模拟测评"),
+            "source_policy": source_policy,
+            "status": session["status"],
+            "reuse_reason": session.get("reuse_reason", ""),
+            "questions": deepcopy(session["client_questions_public"]),
+            "blueprint_version": session["blueprint_version"],
+            "form_id": session["form_id"],
+            "sections": payload["sections"],
+            "requested_count": payload["requested_count"],
+            "delivered_count": payload["delivered_count"],
+            "scored_count": payload["scored_count"],
+            "profile_count": payload["profile_count"],
+            "available_count": payload["available_count"],
+            "question_bank_size": payload["question_bank_size"],
+            "unique_source_question_count": payload["unique_source_question_count"],
+            "shortfall_count": payload["shortfall_count"],
+            "fallback_used": bool(payload.get("fallback_used")),
+            "form_source": str(payload.get("form_source") or "unknown"),
+        }
+
     def submit_assessment(self, user_id: str, quiz_id: str, answers: dict[str, str], time_spent_seconds: int) -> dict[str, Any]:
         try:
             p0a_session = self._assessment_session_repository.private_session(user_id, quiz_id)
         except AssessmentSessionError:
             p0a_session = None
-        if p0a_session and p0a_session.get("assessment_type") == "topic_diagnostic":
-            return self._submit_topic_diagnostic_assessment(
+        if p0a_session and p0a_session.get("assessment_type") in {"topic_diagnostic", "real_exam_simulation"}:
+            return self._submit_durable_assessment(
                 user_id,
                 quiz_id,
                 answers=answers,
@@ -5057,7 +5117,7 @@ class MemberConsoleService:
         )
         return result
 
-    def _submit_topic_diagnostic_assessment(
+    def _submit_durable_assessment(
         self,
         user_id: str,
         quiz_id: str,
@@ -5073,15 +5133,20 @@ class MemberConsoleService:
             answers,
             time_spent_seconds=time_spent_seconds,
         )
+        assessment_type = str(session.get("assessment_type") or "topic_diagnostic")
         topic_ids = list(session.get("topic_ids") or ["waterproof"])
-        try:
-            topic_spec = resolve_topic_testset_spec(topic_ids)
-            topic_label = f"{topic_spec.label}专题测评"
-        except TopicTestSetUnavailable:
-            topic_label = "专题测评"
+        if assessment_type == "real_exam_simulation":
+            topic_ids = []
+            topic_label = str(real_exam_source_policy(real_exam_share=0.0).get("label") or "综合模拟测评")
+        else:
+            try:
+                topic_spec = resolve_topic_testset_spec(topic_ids)
+                topic_label = f"{topic_spec.label}专题测评"
+            except TopicTestSetUnavailable:
+                topic_label = "专题测评"
         report = build_result_report(
             quiz_id=quiz_id,
-            assessment_type="topic_diagnostic",
+            assessment_type=assessment_type,
             subject_id=str(session.get("subject_id") or "construction_exam"),
             topic_ids=topic_ids,
             topic_label=topic_label,
@@ -5106,6 +5171,21 @@ class MemberConsoleService:
             scored_result=scored_result,
         )
         return deepcopy(submitted.get("result_report_json") or report)
+
+    def _submit_topic_diagnostic_assessment(
+        self,
+        user_id: str,
+        quiz_id: str,
+        *,
+        answers: dict[str, str],
+        time_spent_seconds: int,
+    ) -> dict[str, Any]:
+        return self._submit_durable_assessment(
+            user_id,
+            quiz_id,
+            answers=answers,
+            time_spent_seconds=time_spent_seconds,
+        )
 
     def _schedule_topic_diagnostic_writeback(
         self,
@@ -5147,7 +5227,7 @@ class MemberConsoleService:
                 user_id=user_id,
                 quiz_id=quiz_id,
                 form_id=str(session.get("form_id") or ""),
-                assessment_type="topic_diagnostic",
+                assessment_type=str(session.get("assessment_type") or "topic_diagnostic"),
                 subject_id=str(session.get("subject_id") or "construction_exam"),
                 scored_result=scored_result,
             )
@@ -5167,7 +5247,7 @@ class MemberConsoleService:
 
     def retry_assessment_writeback(self, user_id: str, quiz_id: str) -> dict[str, Any]:
         session = self._assessment_session_repository.private_session(user_id, quiz_id)
-        if session.get("assessment_type") != "topic_diagnostic":
+        if session.get("assessment_type") not in {"topic_diagnostic", "real_exam_simulation"}:
             raise KeyError(f"Unknown quiz: {quiz_id}")
         if not session.get("submitted_answer_snapshot"):
             raise KeyError(f"Assessment not submitted: {quiz_id}")
@@ -5183,7 +5263,7 @@ class MemberConsoleService:
             user_id=user_id,
             quiz_id=quiz_id,
             form_id=str(session.get("form_id") or ""),
-            assessment_type="topic_diagnostic",
+            assessment_type=str(session.get("assessment_type") or "topic_diagnostic"),
             subject_id=str(session.get("subject_id") or "construction_exam"),
             scored_result=scored_result,
         )

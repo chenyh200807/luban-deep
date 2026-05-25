@@ -2562,6 +2562,41 @@ def test_topic_diagnostic_submit_uses_selected_topic_label(
     assert result["topic_ids"] == ["main_structure"]
 
 
+def test_real_exam_simulation_create_and_submit_use_mini_blueprint(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setattr(service, "_schedule_topic_diagnostic_writeback", lambda **_kwargs: None)
+
+    payload = service.create_assessment(
+        "student_demo",
+        count=20,
+        assessment_type="real_exam_simulation",
+        subject_id="construction_exam",
+    )
+
+    assert payload["assessment_type"] == "real_exam_simulation"
+    assert payload["blueprint_version"] == "real_exam_simulation_mini_v1"
+    assert payload["topic_label"] == "综合模拟测评"
+    assert len(payload["questions"]) == 20
+    assert all("answer" not in question for question in payload["questions"])
+
+    result = service.submit_assessment(
+        "student_demo",
+        payload["quiz_id"],
+        {question["question_id"]: "A" for question in payload["questions"]},
+        time_spent_seconds=1200,
+    )
+
+    assert result["schema_version"] == "p0a-v1"
+    assert result["assessment_type"] == "real_exam_simulation"
+    assert result["blueprint_version"] == "real_exam_simulation_mini_v1"
+    assert result["topic_label"] == "综合模拟测评"
+    assert result["score_summary"]["scored_count"] == 20
+
+
 def test_assessment_deep_explanation_reads_submitted_report_without_score_mutation(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
