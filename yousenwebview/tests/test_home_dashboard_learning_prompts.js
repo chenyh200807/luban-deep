@@ -55,6 +55,41 @@ var assessmentLessonModel = vm.buildLearningHomeViewModel({
 assert.strictEqual(assessmentLessonModel.focusActionType, "prompt");
 assert.strictEqual(assessmentLessonModel.recommendedPrompts.length, 1);
 
+var legacyThreePromptModel = vm.buildLearningHomeViewModel({
+  recommended_prompts: [
+    {
+      text: "用 3 道题训练项目质量计划管理",
+      prompt_type: "practice_prompt",
+      intent: { concept_label: "项目质量计划管理" },
+    },
+    {
+      text: "复盘项目质量计划管理里的错因",
+      prompt_type: "mistake_review",
+      intent: { concept_label: "项目质量计划管理" },
+    },
+    {
+      text: "讲清楚项目质量计划管理的关键判断",
+      prompt_type: "concept_explain",
+      intent: { concept_label: "项目质量计划管理" },
+    },
+  ],
+});
+assert.deepStrictEqual(
+  legacyThreePromptModel.recommendedPrompts.map(function (item) { return item.promptType; }),
+  [
+    "practice_prompt",
+    "mistake_review",
+    "concept_explain",
+    "exam_transfer",
+    "knowledge_map",
+    "quick_check",
+  ],
+);
+assert.deepStrictEqual(
+  legacyThreePromptModel.recommendedPrompts.map(function (item) { return item.displayTitle; }),
+  ["专项训练", "错题复盘", "关键判断", "真题迁移", "考点梳理", "自测验证"],
+);
+
 var sixPromptModel = vm.buildLearningHomeViewModel({
   recommended_prompts: [
     { text: "用 3 道题训练项目质量计划管理", prompt_type: "practice_prompt" },
