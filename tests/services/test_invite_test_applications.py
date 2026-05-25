@@ -464,3 +464,52 @@ async def test_invite_test_store_updates_local_jsonl_application(tmp_path: Path,
     assert stored[0]["status"] == "contacted"
     assert stored[0]["operator_note"] == "已电话联系，愿意进入首批体验"
     assert stored[0]["raw_payload"]["studyDifficulties"] == "案例题不会组织语言"
+
+
+@pytest.mark.asyncio
+async def test_invite_test_store_hides_archived_rows_by_default(tmp_path: Path) -> None:
+    jsonl_path = tmp_path / "invite-test-applications.jsonl"
+    _write_jsonl(
+        jsonl_path,
+        [
+            {
+                "id": "app-visible",
+                "createdAt": "2026-05-17T11:29:29.524Z",
+                "sourcePage": "invite-test",
+                "name": "可见学员",
+                "phone": "13800138000",
+                "email": "visible@example.com",
+                "wechatId": "wx_visible",
+                "examType": "二建建筑实务",
+                "examStage": "正在冲刺刷题",
+                "painPoint": "错题原因不清楚",
+                "weeklyTime": "10-30 分钟",
+                "consent": True,
+                "status": "submitted",
+            },
+            {
+                "id": "app-archived",
+                "createdAt": "2026-05-17T11:30:29.524Z",
+                "sourcePage": "invite-test",
+                "name": "已删学员",
+                "phone": "13900139000",
+                "email": "archived@example.com",
+                "wechatId": "wx_archived",
+                "examType": "一建建筑实务",
+                "examStage": "刚开始学建筑实务",
+                "painPoint": "案例题不会写",
+                "weeklyTime": "10-30 分钟",
+                "consent": True,
+                "status": "archived",
+            },
+        ],
+    )
+    store = InviteTestApplicationStore(jsonl_path=str(jsonl_path))
+
+    default_listing = await store.list_applications(days=30, reveal_contact=True)
+    archived_listing = await store.list_applications(days=30, status="archived", reveal_contact=True)
+    stats = await store.get_stats(days=30)
+
+    assert [item["id"] for item in default_listing["items"]] == ["app-visible"]
+    assert [item["id"] for item in archived_listing["items"]] == ["app-archived"]
+    assert stats["summary"]["total_applications"] == 1

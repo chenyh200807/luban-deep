@@ -11,6 +11,7 @@ import {
   Phone,
   RefreshCw,
   Search,
+  Trash2,
   UserRound,
   XCircle,
 } from 'lucide-react'
@@ -128,12 +129,16 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
   const [inviteLoading, setInviteLoading] = useState(flagEnabled)
   const [inviteError, setInviteError] = useState('')
   const [selectedInvite, setSelectedInvite] = useState<BiInviteTestApplication | null>(null)
+  const [pendingInviteDeleteId, setPendingInviteDeleteId] = useState('')
   const [feedbackStatusOverrides, setFeedbackStatusOverrides] = useState<
     Record<string, FeedbackStatus>
   >({})
   const feedbackTriage = useAuditedAction({ actionType: 'feedback.ai.triage' })
   const inviteApplicationUpdate = useAuditedAction({
     actionType: 'feedback.invite_test.update',
+  })
+  const inviteApplicationDelete = useAuditedAction({
+    actionType: 'feedback.invite_test.delete',
   })
   const triageWriting = feedbackTriage.state.phase === 'writing'
   const triageError =
@@ -143,6 +148,7 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
     inviteApplicationUpdate.state.phase === 'denied'
       ? (inviteApplicationUpdate.state.result.error ?? '')
       : ''
+  const inviteDeleting = inviteApplicationDelete.state.phase === 'writing'
 
   const loadFeedback = useCallback(async () => {
     if (!flagEnabled) {
@@ -373,6 +379,28 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
     void loadInviteTest()
   }
 
+  async function handleInviteApplicationDelete(item: BiInviteTestApplication) {
+    if (!flagEnabled || inviteDeleting || !item.id) return
+    if (pendingInviteDeleteId !== item.id) {
+      setPendingInviteDeleteId(item.id)
+      return
+    }
+    setPendingInviteDeleteId('')
+    const result = await inviteApplicationDelete.execute({
+      key: 'feedback.invite_test.delete',
+      params: { application_id: item.id },
+      body: { reason: 'admin_deleted_from_bi' },
+    })
+    if (!result.ok) {
+      setInviteError(result.error || '删除内测申请失败')
+      return
+    }
+    setInviteApplications(prev => prev.filter(candidate => candidate.id !== item.id))
+    setInviteTotal(prev => Math.max(0, prev - 1))
+    if (selectedInvite?.id === item.id) setSelectedInvite(null)
+    void loadInviteTest()
+  }
+
   return (
     <section className="space-y-5">
       {!flagEnabled ? (
@@ -600,6 +628,9 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
           onFilterChange={(field, value) => setInviteFilter(prev => ({ ...prev, [field]: value }))}
           onRefresh={() => void loadInviteTest()}
           onOpenApplication={setSelectedInvite}
+          onDeleteApplication={handleInviteApplicationDelete}
+          deleting={inviteDeleting}
+          pendingDeleteId={pendingInviteDeleteId}
         />
       )}
       <FeedbackDetailPanel item={selectedFeedback} onClose={() => setSelectedFeedback(null)} />
@@ -740,6 +771,9 @@ function InviteTestPanel({
   onFilterChange,
   onRefresh,
   onOpenApplication,
+  onDeleteApplication,
+  deleting,
+  pendingDeleteId,
 }: {
   stats: BiInviteTestStats | null
   applications: BiInviteTestApplication[]
@@ -750,6 +784,9 @@ function InviteTestPanel({
   onFilterChange: (field: keyof InviteTestFilter, value: string) => void
   onRefresh: () => void
   onOpenApplication: (item: BiInviteTestApplication) => void
+  onDeleteApplication: (item: BiInviteTestApplication) => void
+  deleting: boolean
+  pendingDeleteId: string
 }) {
   const summary = stats?.summary
   const columns = useMemo<BiTableColumn<BiInviteTestApplication>[]>(
@@ -898,6 +935,7 @@ function InviteTestPanel({
             <option value="contacted">已联系</option>
             <option value="accepted">已入选</option>
             <option value="rejected">未入选</option>
+            <option value="archived">已删除</option>
           </select>
           <input
             value={filters.source_page}
@@ -925,17 +963,37 @@ function InviteTestPanel({
         errorMessage={error}
         emptyTitle="暂无内测申请"
         emptyHint="当前筛选下没有申请记录，或内测申请存储暂未返回数据。"
-        rowAction={item => (
-          <button
-            type="button"
-            onClick={() => onOpenApplication(item)}
-            className="inline-flex items-center gap-1 rounded border border-slate-200 px-2 py-1 text-[11px] text-slate-700 hover:bg-slate-50"
-            aria-label={`编辑内测申请 ${item.id || item.phone}`}
-          >
-            <Pencil className="h-3 w-3" aria-hidden />
-            编辑
-          </button>
-        )}
+        rowAction={item => {
+          const rowId = item.id || item.phone
+          const pending = pendingDeleteId === item.id
+          return (
+            <div className="flex items-center justify-end gap-1">
+              <button
+                type="button"
+                onClick={() => onOpenApplication(item)}
+                className="inline-flex items-center gap-1 rounded border border-slate-200 px-2 py-1 text-[11px] text-slate-700 hover:bg-slate-50"
+                aria-label={`编辑内测申请 ${rowId}`}
+              >
+                <Pencil className="h-3 w-3" aria-hidden />
+                编辑
+              </button>
+              <button
+                type="button"
+                onClick={() => onDeleteApplication(item)}
+                disabled={deleting}
+                className={`inline-flex items-center gap-1 rounded border px-2 py-1 text-[11px] disabled:cursor-not-allowed disabled:text-rose-300 ${
+                  pending
+                    ? 'border-rose-600 bg-rose-600 text-white hover:bg-rose-700'
+                    : 'border-rose-200 text-rose-700 hover:bg-rose-50'
+                }`}
+                aria-label={`${pending ? '确认删除' : '删除'}内测申请 ${rowId}`}
+              >
+                <Trash2 className="h-3 w-3" aria-hidden />
+                {pending ? '确认删除' : '删除'}
+              </button>
+            </div>
+          )
+        }}
         pageSize={50}
         cursorFooter={
           <span>
