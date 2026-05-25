@@ -3478,6 +3478,158 @@ def test_mobile_mistake_book_mastered_and_review(
         assert mastered_response.json()["mastered_at"]
 
 
+def test_mobile_assessment_testset_routes_delegate_with_auth_user(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[str, str, object]] = []
+
+    class _Member:
+        def create_assessment(self, user_id, **kwargs):
+            calls.append(("create", user_id, kwargs))
+            return {
+                "quiz_id": "quiz_p0a",
+                "assessment_type": kwargs["assessment_type"],
+                "topic_ids": kwargs["topic_ids"],
+                "questions": [],
+            }
+
+        def get_assessment_session(self, user_id, quiz_id):
+            calls.append(("resume", user_id, quiz_id))
+            return {"quiz_id": quiz_id, "status": "in_progress", "questions": []}
+
+        def get_assessment_report(self, user_id, quiz_id):
+            calls.append(("report", user_id, quiz_id))
+            return {"schema_version": "p0a-v1", "quiz_id": quiz_id}
+
+        def submit_assessment(self, user_id, quiz_id, *, answers, time_spent_seconds):
+            calls.append(
+                (
+                    "submit",
+                    user_id,
+                    {
+                        "quiz_id": quiz_id,
+                        "answers": answers,
+                        "time_spent_seconds": time_spent_seconds,
+                    },
+                )
+            )
+            return {
+                "schema_version": "p0a-v1",
+                "quiz_id": quiz_id,
+                "score_summary": {"score_pct": 50},
+            }
+
+    monkeypatch.setattr(mobile_module, "member_service", _Member())
+    monkeypatch.setattr(mobile_module, "_resolve_authenticated_user_id", lambda *_args, **_kwargs: "student_demo")
+
+    with TestClient(_build_app()) as client:
+        created = client.post(
+            "/api/v1/assessment/create",
+            json={
+                "assessment_type": "topic_diagnostic",
+                "subject_id": "construction_exam",
+                "topic_ids": ["waterproof"],
+                "count": 12,
+            },
+        )
+        resumed = client.get("/api/v1/assessment/quiz_p0a")
+        submitted = client.post(
+            "/api/v1/assessment/quiz_p0a/submit",
+            json={"answers": {"q1": "A"}, "time_spent_seconds": 90},
+        )
+        report = client.get("/api/v1/assessment/quiz_p0a/report")
+
+    assert created.status_code == 200
+    assert resumed.status_code == 200
+    assert submitted.status_code == 200
+    assert report.status_code == 200
+    assert calls[0] == (
+        "create",
+        "student_demo",
+        {
+            "assessment_type": "topic_diagnostic",
+            "subject_id": "construction_exam",
+            "topic_ids": ["waterproof"],
+            "count": 12,
+            "duration_policy": {},
+        },
+    )
+    assert calls[1] == ("resume", "student_demo", "quiz_p0a")
+    assert calls[2] == (
+        "submit",
+        "student_demo",
+        {"quiz_id": "quiz_p0a", "answers": {"q1": "A"}, "time_spent_seconds": 90},
+    )
+    assert calls[3] == ("report", "student_demo", "quiz_p0a")
+
+
+def test_mobile_assessment_topics_routes_delegate_with_auth_user(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[str, str]] = []
+
+    class _Member:
+        def get_assessment_topic_catalog(self, user_id):
+            calls.append(("topics", "student_demo"))
+            return {
+                "topics": [
+                    {
+                        "topic_id": "waterproof",
+                        "label": "防水工程",
+                        "blueprint_version": "topic_waterproof_v1",
+                        "status": "stable",
+                        "enabled": True,
+                        "form_count": 5,
+                    }
+                ]
+            }
+
+    monkeypatch.setattr(mobile_module, "member_service", _Member())
+    monkeypatch.setattr(mobile_module, "_resolve_authenticated_user_id", lambda *_args, **_kwargs: "student_demo")
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/assessment/topics")
+
+    assert response.status_code == 200
+    assert response.json()["topics"][0]["topic_id"] == "waterproof"
+    assert calls == [("topics", "student_demo")]
+
+
+def test_mobile_assessment_deep_explanation_delegates_without_chat_side_effects(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[str, str, str]] = []
+
+    class FakeMemberService:
+        def get_assessment_deep_explanation(self, user_id: str, quiz_id: str, question_id: str):
+            calls.append((user_id, quiz_id, question_id))
+            return {
+                "quiz_id": quiz_id,
+                "question_id": question_id,
+                "cache_status": "miss",
+                "explanation": {"summary": "先看防水节点构造。"},
+            }
+
+    monkeypatch.setattr(mobile_module, "member_service", FakeMemberService())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "turn_runtime",
+        SimpleNamespace(start_turn=AsyncMock(side_effect=AssertionError("assessment explanation must not start a turn"))),
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post("/api/v1/assessment/quiz_1/items/q1/explain")
+
+    assert response.status_code == 200
+    assert response.json()["explanation"]["summary"] == "先看防水节点构造。"
+    assert calls == [("student_demo", "quiz_1", "q1")]
+
+
 @pytest.mark.parametrize("event_limit", [0, 501, -1])
 def test_mobile_learning_report_rejects_event_limit_out_of_range(
     event_limit: int,

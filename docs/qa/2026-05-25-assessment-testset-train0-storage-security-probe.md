@@ -22,6 +22,27 @@ Escalation condition: if a real client anon/publishable key can select
 `public.assessment_forms.items_json` through PostgREST, the finding becomes
 `ACTIVE_LEAK`.
 
+## Post-Remediation Update
+
+Status after applying the narrow assessment-only hotfix migration:
+
+```text
+migration=20260525130000_assessment_forms_service_role_only.sql
+assessment_forms_rows=55
+assessment_forms_answer_rows=55
+assessment_forms_rls_enabled=true
+assessment_forms_client_select_grants=0
+set role anon; select count(*) from public.assessment_forms;
+ERROR: permission denied for table assessment_forms
+```
+
+Current classification: `NOT_EXPOSED` at the database role level.
+
+The table still stores hidden answers at rest, so the product invariant remains:
+`assessment_forms` is server-side authority only. Client traffic must continue to
+go through `/api/v1/assessment/*`, where application-layer redaction removes
+hidden answer and grading keys before submit.
+
 ## Local Code Evidence
 
 `deeptutor/services/assessment/blueprint_service.py` persists
@@ -99,13 +120,13 @@ client-role probe is still required with a real anon/publishable key.
 
 ## Required Remediation Before Train 1
 
-Review and apply a security migration before any P0B Train 1 persisted form-bank
-work proceeds.
+Completed: a narrow security migration was reviewed and applied before any P0B
+Train 1 persisted form-bank work proceeded.
 
-An existing untracked candidate already covers the immediate table:
+Applied migration:
 
 ```text
-supabase/migrations/20260525120000_close_rls_off_business_tables.sql
+supabase/migrations/20260525130000_assessment_forms_service_role_only.sql
 ```
 
 The relevant fragment is:
@@ -115,8 +136,8 @@ begin;
 
 alter table public.assessment_forms enable row level security;
 
-revoke all on table public.assessment_forms from anon;
-revoke all on table public.assessment_forms from authenticated;
+revoke all on public.assessment_forms from anon;
+revoke all on public.assessment_forms from authenticated;
 
 commit;
 ```
@@ -128,17 +149,19 @@ timestamps). Never expose `items_json` to client roles.
 
 ## Verification Required After Remediation
 
-1. Service role can still read/write persisted forms through the backend.
-2. Anon/publishable-key PostgREST request for `assessment_forms.items_json`
-   returns permission denied or no rows.
+1. Service role can still read/write persisted forms through the backend. Done:
+   local service smoke created a 12-question persisted-form session.
+2. Anon database role cannot read `assessment_forms`. Done: `set role anon`
+   returned `permission denied for table assessment_forms`.
 3. `/api/v1/assessment/create` still returns redacted client payload with no
    `answer`, `answer_key`, `correct_answer`, `grading_key`,
-   `scoring_points`, `minimal_rationale`, or `option_reasoning`.
+   `scoring_points`, `minimal_rationale`, or `option_reasoning`. Done:
+   service smoke returned `pre_submit_leaked_keys=[]`.
 4. Existing persisted P0A forms remain replayable through backend service-role
-   access.
+   access. Done: dry-run catalog found 10 stable topics and 5 persisted forms
+   per topic.
 
 ## Current Decision
 
-Do not proceed to P0B Train 1 form-bank persistence until this storage security
-blocker is fixed or a real anon/publishable-key probe proves the table is not
-reachable from client roles.
+P0B Train 1 may proceed for backend/service-role paths. Production API smoke and
+WeChat DevTools manual proof remain separate gates in the P0B/P1 dry-run report.

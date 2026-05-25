@@ -134,7 +134,6 @@ function buildWelcomeModeState(mode, topicLabel, topicFormCount) {
   };
 }
 
-
 var helpers = require("../../utils/helpers");
 
 function buildAnswerState(questions, selectedKeys, currentIndex) {
@@ -259,14 +258,14 @@ function normalizeTopicCatalog(items) {
       shortLabel: String(item.short_label || item.label || "专题"),
       description: String(item.description || ""),
       status: status,
-      enabled: item.enabled === true || status === "stable" || status === "pilot",
+      enabled: status === "authoring_needed" ? false : item.enabled === true || status === "stable" || status === "pilot",
       formCount: formCount,
       statusLabel:
         status === "stable"
           ? formCount + " 套稳定"
           : status === "pilot"
             ? formCount + " 套试运行"
-            : "题库维护中",
+            : "待补题",
     };
   });
   if (!topics.length) topics = normalizeTopicCatalog(DEFAULT_TOPIC_CATALOG);
@@ -505,7 +504,7 @@ Page({
               selectedTopicStatus: selected.status,
               selectedTopicFormCount: selected.formCount,
               topicCatalogError: "",
-              recommendedMode: recommendation.recommendedMode,
+              recommendedMode: recommendedMode,
               recommendedTopicId: recommendation.recommendedTopicId,
               assessmentRecommendationReason: recommendation.reason,
             },
