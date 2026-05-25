@@ -545,16 +545,17 @@ test("BI v2 read-only details open for overview, feedback, and ops", async ({ pa
   await page.getByRole("textbox", { name: "全局搜索手机号 / user_id / 订单号" }).fill("ord_real_1");
   await page.getByRole("textbox", { name: "全局搜索手机号 / user_id / 订单号" }).press("Enter");
   await expect(page.getByRole("heading", { name: "商品账务" })).toBeVisible();
-  await expect(page.getByText("已搜: ord_real_1")).toBeVisible();
-  await expect(page.getByText("充值记录 (1)")).toBeVisible();
+  await expect(page.getByText("全局搜索：")).toBeVisible();
+  await expect(page.locator("code").filter({ hasText: "ord_real_1" }).first()).toBeVisible();
+  await expect(page.getByText("入账流水 (1)")).toBeVisible();
   await page.getByRole("textbox", { name: "全局搜索手机号 / user_id / 订单号" }).fill("");
   await page.getByRole("textbox", { name: "全局搜索手机号 / user_id / 订单号" }).press("Enter");
 
-  await page.getByRole("button", { name: "商品账务：套餐、充值订单、钱包流水、账务异常队列。" }).click();
+  await page.getByRole("button", { name: "商品账务：套餐权益、入账流水、钱包流水、账务异常队列。" }).click();
   await expect(page.getByRole("heading", { name: "商品账务" })).toBeVisible();
   await expect(page.getByText("BI_COMMERCE_V2_ENABLED 已开启")).toBeVisible();
-  await expect(page.getByText("充值记录 (1)")).toBeVisible();
-  await page.getByRole("button", { name: "查看充值记录 ord_real_1 详情" }).click();
+  await expect(page.getByText("入账流水 (1)")).toBeVisible();
+  await page.getByRole("button", { name: "查看入账流水 ord_real_1 详情" }).click();
   await expect(page.getByText("authority：wallet_ledger · trust A")).toBeVisible();
   await page.getByRole("button", { name: "钱包流水 (2)" }).click();
   await page.getByRole("button", { name: "查看 ledger_real_1 元数据" }).click();
@@ -562,23 +563,24 @@ test("BI v2 read-only details open for overview, feedback, and ops", async ({ pa
   await page.getByRole("button", { name: "套餐权益 (1)" }).click();
   await expect(page.getByText("精学版")).toBeVisible();
 
-  await page.getByRole("button", { name: "反馈中心：AI 消息反馈 / 内测 / 备注聚合，open / triaged / ignored。" }).click();
+  await page.getByRole("button", { name: "反馈中心：AI 消息反馈与内测申请池，标记已看 / 忽略 / 归档。" }).click();
   await expect(page.getByText("storage=ok")).toBeVisible();
   await page.getByRole("button", { name: "查看反馈 fb_test_1 详情" }).click();
   const feedbackDialog = page.getByRole("dialog", { name: "反馈详情 · fb_test_1" });
   await expect(feedbackDialog).toBeVisible();
   await expect(feedbackDialog.getByText("学员反馈讲解不清楚")).toBeVisible();
   await page.getByRole("button", { name: "关闭抽屉" }).click();
-  await page.getByRole("button", { name: "分诊反馈 fb_test_1" }).click();
+  await page.getByRole("button", { name: "标记已看反馈 fb_test_1" }).click();
   await expect.poll(() => feedbackTriageIdempotencyKey).toMatch(/^[A-Za-z0-9_-]{1,128}$/);
-  await expect(page.getByRole("button", { name: "分诊反馈 fb_test_1" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "标记已看反馈 fb_test_1" })).toBeDisabled();
 
   await page.getByRole("tab", { name: /内测申请/ }).click();
   await expect(page.getByRole("heading", { name: "内测申请池" })).toBeVisible();
   await expect(page.getByText("张同学")).toBeVisible();
-  await page.getByRole("button", { name: "查看内测申请 invite_1 详情" }).click();
-  await expect(page.getByRole("dialog", { name: "内测申请 · 张同学" })).toBeVisible();
-  await expect(page.getByText("优先回访")).toBeVisible();
+  await page.getByRole("button", { name: "编辑内测申请 invite_1" }).click();
+  const inviteDialog = page.getByRole("dialog", { name: "编辑内测申请 · 张同学" });
+  await expect(inviteDialog).toBeVisible();
+  await expect(inviteDialog.getByLabel("愿意回访且可联系")).toBeVisible();
   await page.getByRole("button", { name: "关闭抽屉" }).click();
 
   await page.getByRole("button", { name: "系统运维：成本质量、数据可信、操作审计、权限审计、上线面板。" }).click();

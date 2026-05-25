@@ -130,6 +130,10 @@ Overlay 必须支持：
 
 - 学员长期 progress 主表
 - 承接 mastery、weak points、diagnosis、活跃度信号
+- 首页个性化推荐的 durable projection 只能保存在
+  `user_stats.knowledge_map.projections.home_personalization`。服务层读回时可暴露为
+  `progress.home_personalization` 以便页面消费，但不得把同一 projection 放入平行表、
+  本地 JSON 或 member-console cache 作为第二套权威。
 
 必须真实接入：
 
@@ -181,16 +185,19 @@ Overlay 必须支持：
 - 建筑实务阅卷产生的 `learning_evidence` 必须作为
   `memory_kind="learning_evidence"` 写入本事件流；不得新增平行 memory 表。
 - 当 Supabase core store 已配置时，nightly synthesis / online read model 读取
-  `learner_memory_events` 必须 remote-first；本地 JSONL 只能作为 dev / dry-run 缓存，
-  不能在生产环境与 Supabase 竞争事件流权威。
-- remote-first 不等于在所有环境 fail-closed 到空事件：生产环境如果 remote read 返回空或失败，
-  必须以 remote 结果为准，不得读取本地 JSONL；非生产环境（local / dev / dry-run /
-  automation gate）如果 remote read 为空或不可用，允许 `LearnerStateService` 回落读取同一
-  `user_id` 下的本地 JSONL 缓存，以验证 writer / reader continuity。该回落只属于
-  `LearnerStateService` 的本地 projection 行为，不得被 mobile router、learning-report read model
-  或脚本各自实现成第二套 reader。
+  `learner_memory_events` 必须 remote-first；本地 JSONL 只允许作为
+  `LearnerStateService` 写入后的 durable write-ahead ledger，不能由 mobile router、
+  learning-report read model 或脚本各自实现成第二套 reader。
+- remote-first 不等于在生产环境丢弃尚未 flush 的本地写入：`LearnerStateService`
+  读取事件列表时必须合并 Supabase 事件与同一 `user_id` 下的本地 write-ahead JSONL，
+  按 event_id / dedupe_key 去重并按时间裁剪。这样 assessment submit 后即使 outbox
+  尚未完成远端写回，首页、学情和 report 仍能 read-your-writes；本地 JSONL 只能通过
+  `LearnerStateService` 参与该合并，不能绕过 Supabase 成为平行长期权威。
 - `dedupe_key` 命中已有事件时必须返回原事件，不能重新生成 event_id 或再次写入 outbox。
   重复作答若要形成 L1/L2 证据，dedupe_key 必须包含 turn/session/attempt 级输入边界。
+- `dedupe_key` 命中已有本地 JSONL 事件时，`LearnerStateService` 仍必须确保同一事件存在
+  durable outbox 行。已有事件不能因为本地去重而跳过 remote writeback；否则生产 remote-first
+  reader 会长期读不到这条证据。
 - 单条 evidence 详情读取必须走 indexed reader：
   `LearnerStateService.read_learning_evidence_event(user_id, event_id)`。Supabase core store
   必须按 `user_id + event_id + memory_kind=learning_evidence` 直读；只有本地 dev store
@@ -203,12 +210,24 @@ Overlay 必须支持：
 - 兼容历史 construction grading 事件：早期 `memory_kind="learning_evidence"` 但缺少
   `payload.event_type` 的 `source_feature="construction_grading"` 事件仍应被 read model
   读取；新写入事件必须带 `payload.event_type="learning_evidence"`。
-- Home dashboard 个性化只能读取 learner-state projection 或 starter pool。`member_console`
+- Home dashboard 个性化只能读取 learner-state projection、同一 learner snapshot
+  内最近的 canonical `learning_evidence`，或 starter pool。`member_console`
   请求路径不得同步运行完整 learning report，也不得根据 weak point 现场重新推导
-  recommended prompts；只能读取 learner snapshot / profile / progress 中的
-  `home_personalization` projection。projection 缺失或 stale 时降级到
-  `data/seed/<subject_id>/starter_prompts.json`，该 starter pool 是 fallback projection，
-  不是第二套推荐 authority。
+  recommended prompts；优先读取 learner snapshot / profile / progress 中的
+  `home_personalization` projection。projection 缺失或 stale 时，允许从最近的
+  `learner_memory_events.learning_evidence` 恢复一次同形态 projection；若没有有效证据，
+  再降级到 `data/seed/<subject_id>/starter_prompts.json`。该 starter pool 是 fallback
+  projection，不是第二套推荐 authority。
+- 生产 Supabase 写入任何 learner-state 外键表（包括 `learner_memory_events`、
+  `learner_summaries`、`learning_plans`、`learning_plan_pages`、`heartbeat_jobs` 和
+  overlay 表）前，writeback pipeline 必须先确保同一个 canonical `user_id` 已存在于
+  `public.users`，且该镜像行必须满足现有 `users` schema 的必填列（当前线上必填为
+  `createdAt`；不得写入 schema 不存在的 `updatedAt`）。移动端生成的 `user_6508` 这类 learner id 不能只停留在本地 JSONL
+  或 outbox；否则 remote-first reader 会读不到证据并反复降级到 starter focus。
+- Home dashboard、heartbeat context 和 learner-facing projections 如果先经过
+  member identity 合并，后续 learner-state reader 必须使用合并后的 canonical
+  `member.user_id`。`user_2008` 等 legacy alias 只允许作为入口查询键，不得在
+  reconciliation 后继续作为 learner snapshot / heartbeat / personalization 的读键。
 
 #### `learning_plans`
 
@@ -360,12 +379,12 @@ training-intent writer。它必须满足：
 
 1. Catalog authority 来自 `deeptutor.services.assessment.topic_catalog` 定义的 topic
    清单，以及 `assessment_forms` 中每个 `blueprint_version` 的 active form count。
-2. 状态只能按 form bank 覆盖分类，且达到 3/5 门槛的 topic 必须先通过 persisted
-   form-bank validator（跨 form `source_question_id` / `semantic_signature` 去重、
-   每套题量与 section floor）：
-   - `stable`: active forms >= 5
-   - `pilot`: active forms >= 3 and < 5
-   - `authoring_needed`: active forms < 3
+2. 状态只能按 form bank 覆盖与质量校验分类，且达到 3/5 门槛的 topic 必须先通过
+   persisted form-bank validator（跨 form `source_question_id` / `semantic_signature`
+   去重、每套题量与 section floor）：
+   - `stable`: active forms >= 5 且 validator 通过
+   - `pilot`: active forms >= 3 and < 5 且 validator 通过
+   - `authoring_needed`: active forms < 3，或 validator 不通过
 3. `authoring_needed` topic 可以在前端展示维护态，但不得开放正式测评。
 4. catalog status 不读取、不写入 `training_intent`、`last_assessment` 或 learner
    mastery；学员个人情况只影响独立的 `recommendation` read model 和后续

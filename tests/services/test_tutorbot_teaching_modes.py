@@ -88,6 +88,8 @@ def test_looks_like_practice_generation_request_accepts_natural_one_question_phr
     assert looks_like_practice_generation_request("生成3道防水工程选择题") is True
     assert looks_like_practice_generation_request("我想练习建筑构造相关的题目") is True
     assert looks_like_practice_generation_request("我想练习防水工程相关简答题") is True
+    assert looks_like_practice_generation_request("用 3 道题训练项目质量计划管理") is True
+    assert looks_like_practice_generation_request("项目质量计划管理这个点，帮我检验一下掌握情况") is True
     assert looks_like_practice_generation_request("先做一次摸底测评") is True
     assert looks_like_practice_generation_request("帮我做一次入门摸底测试") is True
     assert looks_like_practice_generation_request("开始一轮小测") is True

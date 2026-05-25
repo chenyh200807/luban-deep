@@ -11,7 +11,7 @@ import anthropic
 from deeptutor.services.observability import get_langfuse_observability
 
 from ..config import LLMConfig
-from ..http_client import get_shared_http_client
+from ..openai_http_client import make_anthropic_client
 from ..registry import register_provider
 from ..telemetry import track_llm_call
 from ..types import AsyncStreamGenerator, TutorResponse, TutorStreamChunk
@@ -144,11 +144,10 @@ class AnthropicProvider(BaseLLMProvider):
         if self.client is None:
             async with self._client_lock:
                 if self.client is None:
-                    http_client = await get_shared_http_client()
-                    self.client = anthropic.AsyncAnthropic(
-                        api_key=self.api_key,
-                        http_client=http_client,
-                    )
+                    # SR4 PR-4: was `from ..http_client import get_shared_http_client`
+                    # which referred to a non-existent module — dead import P0.
+                    # Now uses the SR4 single-authority factory with sane timeouts.
+                    self.client = make_anthropic_client(api_key=self.api_key)
         return self.client
 
     @_typed_track_llm_call("anthropic")

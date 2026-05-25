@@ -322,7 +322,7 @@ export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
               type="button"
               onClick={() => void loadAudit()}
               disabled={auditLoading}
-              className="inline-flex items-center gap-1 rounded border border-sky-200 bg-white px-2 py-1 text-sky-800 disabled:opacity-50"
+              className="inline-flex items-center gap-1 rounded-xl border border-cyan-300/25 bg-cyan-300/10 px-2 py-1 text-cyan-100 disabled:opacity-50"
               aria-label="刷新操作审计"
             >
               <RefreshCw className={`h-3 w-3 ${auditLoading ? 'animate-spin' : ''}`} aria-hidden />
@@ -342,11 +342,11 @@ export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
           return (
             <article
               key={tile.key}
-              className="rounded-md border border-slate-200 bg-white p-4"
+              className="rounded-2xl border border-white/10 bg-white/[0.045] p-4 shadow-lg shadow-black/10"
               title={`${tile.label} · authority: ${tile.authority} · owner: ${tile.owner}`}
             >
               <header className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm font-medium text-slate-800">
+                <div className="flex items-center gap-2 text-sm font-black text-slate-100">
                   <Icon className="h-4 w-4" aria-hidden /> {tile.label}
                 </div>
                 <div className="flex gap-1">
@@ -354,14 +354,14 @@ export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
                   <BiStatusPill tone={BI_TRUST_TONE[tile.trust]} label={`${tile.trust} 级`} />
                 </div>
               </header>
-              <p className="mt-2 text-xs text-slate-600">{tile.detail}</p>
-              <p className="mt-2 text-[11px] text-slate-500">
+              <p className="mt-2 text-xs leading-5 text-slate-300">{tile.detail}</p>
+              <p className="mt-2 text-[11px] text-slate-400">
                 authority: {tile.authority} · owner: {tile.owner}
               </p>
               <button
                 type="button"
                 onClick={() => setSelectedTile(tile)}
-                className="mt-3 inline-flex items-center gap-1 rounded border border-slate-200 px-2 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                className="mt-3 inline-flex items-center gap-1 rounded-xl border border-white/10 bg-white/[0.06] px-2 py-1 text-[11px] font-bold text-slate-100 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-300/30"
                 aria-label={`查看 ${tile.label} 详情`}
               >
                 <Eye className="h-3 w-3" aria-hidden />
@@ -372,21 +372,21 @@ export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
         })}
       </div>
 
-      <section className="rounded-md border border-slate-200 bg-white">
-        <header className="flex items-center justify-between border-b border-slate-200 px-4 py-2">
+      <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] shadow-lg shadow-black/15">
+        <header className="flex items-center justify-between border-b border-white/10 px-4 py-3">
           <div>
-            <h3 className="text-sm font-semibold text-slate-900">操作审计</h3>
-            <p className="text-[11px] text-slate-500">
+            <h3 className="text-sm font-black text-slate-100">操作审计</h3>
+            <p className="text-[11px] text-slate-400">
               authority: member_console.audit_log · 按操作人 / 目标 / 时间 / 动作类型 /
               敏感级别筛选。
             </p>
           </div>
-          <span className="text-[11px] text-slate-500">
+          <span className="text-[11px] font-bold text-slate-400">
             {filteredAudit.length} / {flagEnabled ? auditTotal : AUDIT_ENTRIES.length}
           </span>
         </header>
-        <div className="flex flex-wrap items-center gap-2 px-4 py-2 text-xs">
-          <label className="inline-flex items-center gap-1">
+        <div className="flex flex-wrap items-center gap-2 border-b border-white/10 bg-white/[0.025] px-4 py-2 text-xs text-slate-300">
+          <label className="inline-flex items-center gap-1 font-bold">
             操作人
             <input
               type="text"
@@ -401,11 +401,11 @@ export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
                 setAuditFilter(f => ({ ...f, actor: e.currentTarget.value }))
               }}
               placeholder="ops@…"
-              className="rounded border border-slate-200 px-1 py-0.5"
+              className="h-8 rounded-xl border border-white/10 bg-[#151d2b] px-2 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
               aria-label="按操作人筛选"
             />
           </label>
-          <label className="inline-flex items-center gap-1">
+          <label className="inline-flex items-center gap-1 font-bold">
             目标
             <input
               type="text"
@@ -420,18 +420,18 @@ export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
                 setAuditFilter(f => ({ ...f, target: e.currentTarget.value }))
               }}
               placeholder="u_… / ord_…"
-              className="rounded border border-slate-200 px-1 py-0.5"
+              className="h-8 rounded-xl border border-white/10 bg-[#151d2b] px-2 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
               aria-label="按目标筛选"
             />
           </label>
-          <label className="inline-flex items-center gap-1">
+          <label className="inline-flex items-center gap-1 font-bold">
             分类
             <select
               value={auditFilter.category}
               onChange={e =>
                 setAuditFilter(f => ({ ...f, category: e.target.value as AuditFilter['category'] }))
               }
-              className="rounded border border-slate-200 px-1 py-0.5"
+              className="h-8 rounded-xl border border-white/10 bg-[#151d2b] px-2 text-xs text-slate-100 outline-none focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
               aria-label="按审计分类筛选"
             >
               <option value="">全部</option>
@@ -442,14 +442,14 @@ export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
               ))}
             </select>
           </label>
-          <label className="inline-flex items-center gap-1">
+          <label className="inline-flex items-center gap-1 font-bold">
             敏感级别
             <select
               value={auditFilter.severity}
               onChange={e =>
                 setAuditFilter(f => ({ ...f, severity: e.target.value as AuditFilter['severity'] }))
               }
-              className="rounded border border-slate-200 px-1 py-0.5"
+              className="h-8 rounded-xl border border-white/10 bg-[#151d2b] px-2 text-xs text-slate-100 outline-none focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
               aria-label="按敏感级别筛选"
             >
               <option value="">全部</option>
@@ -461,7 +461,7 @@ export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
           <button
             type="button"
             onClick={() => setAuditFilter(DEFAULT_AUDIT_FILTER)}
-            className="ml-auto text-slate-500 hover:text-slate-900"
+            className="ml-auto h-8 rounded-xl px-2 text-xs font-bold text-slate-400 hover:bg-white/[0.06] hover:text-slate-100"
             aria-label="清空审计筛选"
           >
             清空
@@ -489,7 +489,7 @@ export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
             <button
               type="button"
               onClick={() => setSelectedAudit(entry)}
-              className="rounded border border-slate-200 px-2 py-1 text-[11px] text-slate-700 hover:bg-slate-50"
+              className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.06] px-2 py-1 text-[11px] text-slate-100 hover:bg-white/10"
               aria-label={`查看审计 ${entry.id} 详情`}
             >
               <Eye className="h-3 w-3" aria-hidden />
@@ -498,11 +498,11 @@ export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
         />
       </section>
 
-      <section className="rounded-md border border-slate-200 bg-white">
-        <header className="flex items-center justify-between border-b border-slate-200 px-4 py-2">
+      <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] shadow-lg shadow-black/15">
+        <header className="flex items-center justify-between border-b border-white/10 px-4 py-3">
           <div>
-            <h3 className="text-sm font-semibold text-slate-900">导出任务</h3>
-            <p className="text-[11px] text-slate-500">
+            <h3 className="text-sm font-black text-slate-100">导出任务</h3>
+            <p className="text-[11px] text-slate-400">
               大数据导出走异步任务，必须脱敏 + 限频 + audit。
             </p>
           </div>
@@ -510,7 +510,7 @@ export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
             type="button"
             onClick={() => void requestAuditExport()}
             disabled={!flagEnabled || exportWriting}
-            className="inline-flex items-center gap-1 rounded border border-slate-200 px-2 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-1 rounded-xl border border-white/10 bg-white/[0.06] px-2 py-1 text-[11px] font-bold text-slate-100 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="申请导出当前审计筛选"
           >
             <Download className="h-3 w-3" aria-hidden />
@@ -518,12 +518,12 @@ export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
           </button>
         </header>
         {exportError ? (
-          <div className="border-b border-rose-200 bg-rose-50 px-4 py-2 text-xs text-rose-700">
+          <div className="border-b border-rose-300/25 bg-rose-300/10 px-4 py-2 text-xs text-rose-100">
             {exportError}
           </div>
         ) : null}
         {exportNotice ? (
-          <div className="border-b border-emerald-200 bg-emerald-50 px-4 py-2 text-xs text-emerald-700">
+          <div className="border-b border-emerald-300/25 bg-emerald-300/10 px-4 py-2 text-xs text-emerald-100">
             {exportNotice}
           </div>
         ) : null}
@@ -559,12 +559,12 @@ function OpsTileDetailPanel({
     >
       {tile ? (
         <div className="space-y-4 text-sm">
-          <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+          <div className="rounded-3xl border border-white/10 bg-white/[0.045] p-4 shadow-lg shadow-black/10">
             <div className="flex items-center gap-2">
               <BiStatusPill tone={STATUS_TONE[tile.status]} label={tile.status} />
               <BiStatusPill tone={BI_TRUST_TONE[tile.trust]} label={`${tile.trust} 级`} />
             </div>
-            <p className="mt-2 text-sm leading-relaxed text-slate-700">{tile.detail}</p>
+            <p className="mt-2 text-sm leading-relaxed text-slate-300">{tile.detail}</p>
           </div>
           <KV label="authority" value={tile.authority} />
           <KV label="owner" value={tile.owner} />
@@ -595,12 +595,12 @@ function AuditDetailPanel({
     >
       {entry ? (
         <div className="space-y-4 text-sm">
-          <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+          <div className="rounded-3xl border border-white/10 bg-white/[0.045] p-4 shadow-lg shadow-black/10">
             <div className="flex flex-wrap items-center gap-2">
               <BiStatusPill tone={SEVERITY_TONE[entry.severity]} label={entry.severity} />
-              <span className="font-medium text-slate-900">{entry.action}</span>
+              <span className="font-bold text-slate-100">{entry.action}</span>
             </div>
-            <p className="mt-2 text-xs text-slate-600">
+            <p className="mt-2 text-xs text-slate-400">
               {entry.actor} → {entry.target}
             </p>
           </div>
@@ -622,18 +622,18 @@ function AuditDetailPanel({
 
 function KV({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-slate-200 bg-white p-3">
-      <div className="text-[11px] font-medium uppercase text-slate-500">{label}</div>
-      <div className="mt-1 break-words text-sm text-slate-800">{value || '—'}</div>
+    <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-3">
+      <div className="text-[11px] font-bold uppercase text-slate-400">{label}</div>
+      <div className="mt-1 break-words text-sm text-slate-100">{value || '—'}</div>
     </div>
   )
 }
 
 function JsonBlock({ label, value }: { label: string; value?: Record<string, unknown> }) {
   return (
-    <div className="rounded-md border border-slate-200 bg-white p-3">
-      <div className="text-[11px] font-medium uppercase text-slate-500">{label}</div>
-      <pre className="mt-2 max-h-60 overflow-auto rounded bg-slate-950 p-3 text-xs leading-relaxed text-slate-100">
+    <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-3">
+      <div className="text-[11px] font-bold uppercase text-slate-400">{label}</div>
+      <pre className="mt-2 max-h-60 overflow-auto rounded-2xl border border-white/10 bg-slate-950/70 p-3 text-xs leading-relaxed text-slate-100">
         {value && Object.keys(value).length > 0 ? JSON.stringify(value, null, 2) : '—'}
       </pre>
     </div>

@@ -313,17 +313,167 @@ function attemptRefByQuestion(attemptRefs) {
   return map;
 }
 
-function normalizeWrongItems(items, attemptRefs) {
+function answerToMap(value) {
+  var map = {};
+  String(value || "")
+    .split("")
+    .forEach(function (key) {
+      if (key) map[key] = true;
+    });
+  return map;
+}
+
+function confidenceLabel(value) {
+  var level = String((value || {}).level || value || "").toLowerCase();
+  if (level === "high") return "高";
+  if (level === "medium") return "中等";
+  if (level === "low") return "较低";
+  return "中等";
+}
+
+function scoreStatusLabel(score) {
+  var value = Number(score || 0);
+  if (value >= 80) return "保持";
+  if (value >= 60) return "巩固";
+  return "待补弱";
+}
+
+function resultShortcomingLabel(wrongItems) {
+  var hasMultiMiss = (wrongItems || []).some(function (item) {
+    return String(item.issueType || "").indexOf("漏选") >= 0;
+  });
+  return hasMultiMiss ? "多选漏选 + 条件漏读" : "条件漏读 + 概念混淆";
+}
+
+function resultDiagnosisTitle(wrongItems) {
+  if ((wrongItems || []).length) return "主要问题不是不会，而是规范条件读不全";
+  return "本次基础表现稳定，下一步做短组巩固";
+}
+
+function buildAssessmentQuestionMap(questions) {
+  var map = {};
+  (questions || []).forEach(function (question) {
+    if (!question || !question.id) return;
+    map[String(question.id)] = question;
+  });
+  return map;
+}
+
+function buildAnswerDelta(learnerAnswer, correctAnswer) {
+  var learner = answerToMap(learnerAnswer);
+  var correct = answerToMap(correctAnswer);
+  var missed = [];
+  var extra = [];
+  Object.keys(correct).forEach(function (key) {
+    if (!learner[key]) missed.push(key);
+  });
+  Object.keys(learner).forEach(function (key) {
+    if (!correct[key]) extra.push(key);
+  });
+  return {
+    missed: missed,
+    extra: extra,
+    label:
+      missed.length && extra.length
+        ? "漏选 " + missed.join("/") + " · 多选 " + extra.join("/")
+        : missed.length
+          ? "漏选 " + missed.join("/")
+          : extra.length
+            ? "多选 " + extra.join("/")
+            : "待复盘",
+  };
+}
+
+function buildOptionReview(options, learnerAnswer, correctAnswer) {
+  var learner = answerToMap(learnerAnswer);
+  var correct = answerToMap(correctAnswer);
+  return (options || []).map(function (option) {
+    var key = String(option.key || "");
+    var chosen = !!learner[key];
+    var isCorrect = !!correct[key];
+    return {
+      key: key,
+      text: String(option.text || ""),
+      statusClass: isCorrect ? (chosen ? "correct" : "missed") : chosen ? "extra" : "",
+      statusLabel: isCorrect ? (chosen ? "已选" : "漏选") : chosen ? "多选" : "",
+      review: isCorrect
+        ? chosen
+          ? "这项属于正确判断。"
+          : "这项也是正确项，本次漏选。"
+        : chosen
+          ? "这项不符合题干限定，本次多选。"
+          : "这项不是本题采分点。",
+    };
+  });
+}
+
+function buildSimpleReview(item, delta) {
+  var base = String(item.simple_explanation || item.explanation || "").trim();
+  if (base) {
+    var normalized = base.replace(/^简单解析[:：]/, "解析：").replace(/^解析[:：]/, "解析：");
+    return normalized.indexOf("解析：") === 0 ? normalized : "解析：" + normalized;
+  }
+  if (delta && delta.missed && delta.missed.length) {
+    return "解析：这题考完整枚举。你漏掉了 " + delta.missed.join("/") + " 项，需要按题干条件逐项判断。";
+  }
+  return "解析：这题需要先圈出题干限定词，再逐项核对选项是否符合。";
+}
+
+function buildWrongDetail(item, delta, options) {
+  var keyTerms = (item.knowledge_points || []).slice(0, 3);
+  if (!keyTerms.length) keyTerms = ["题干限定", "正确选项", "规范表达"];
+  return {
+    keyTerms: keyTerms,
+    whyWrong:
+      delta && delta.missed && delta.missed.length
+        ? "你的判断停在最确定的选项，但这类题要看完整枚举。本题漏掉了 " + delta.missed.join("/") + " 项。"
+        : "你的答案和标准答案存在差异，需要回到题干限定词和选项边界逐项核对。",
+    cause:
+      "这类题常见问题是先凭关键词选一个最像的答案，没有把部位、材料、施工阶段或规范限定全部圈出来。",
+    scoringPoints:
+      "采分点是完整识别题干限定范围，并能判断每个选项是否同属该范围。",
+    pitfall: "不要只找最像关键词的选项；多选题要逐项排除，避免保守漏选。",
+    mnemonic:
+      options && options.length >= 4
+        ? "先圈题干限定，再按 A/B/C/D 逐项核对：同类保留，越界排除。"
+        : "先圈限定，再看边界。",
+    source: "来源：题库解析、知识卡和相关规范条文。正式数据会回链到可追溯依据。",
+  };
+}
+
+function buildWrongIssueType(item, delta) {
+  if (delta && delta.missed && delta.missed.length) return "多选题漏选";
+  var codes = (item.error_codes || []).join(" ");
+  if (codes.indexOf("M01") >= 0) return "规范条件读不全";
+  if (codes.indexOf("M02") >= 0) return "概念混淆";
+  return "条件漏读";
+}
+
+function normalizeWrongItems(items, attemptRefs, questions) {
   var refMap = attemptRefByQuestion(attemptRefs);
+  var questionMap = buildAssessmentQuestionMap(questions);
   return (items || []).map(function (item, index) {
     var questionId = String(item.question_id || "");
+    var question = questionMap[questionId] || {};
+    var options = normalizeAssessmentOptions(item.options || question.options || []);
+    var learnerAnswer = String(item.learner_answer || "");
+    var correctAnswer = String(item.correct_answer || "");
+    var delta = buildAnswerDelta(learnerAnswer, correctAnswer);
+    var issueType = buildWrongIssueType(item, delta);
     return {
       index: index + 1,
       questionId: questionId,
       stem: String(item.question_stem || item.stem || "错题 " + (index + 1)),
-      learnerAnswer: String(item.learner_answer || ""),
-      correctAnswer: String(item.correct_answer || ""),
-      explanation: String(item.simple_explanation || ""),
+      learnerAnswer: learnerAnswer,
+      correctAnswer: correctAnswer,
+      options: options,
+      answerDelta: delta,
+      issueType: issueType,
+      issueBadge: delta.label || issueType,
+      explanation: buildSimpleReview(item, delta),
+      expanded: false,
+      optionReviews: buildOptionReview(options, learnerAnswer, correctAnswer),
+      detail: buildWrongDetail(item, delta, options),
       knowledgePoints: item.knowledge_points || [],
       errorCodes: item.error_codes || [],
       attemptRef: String(item.attempt_ref || refMap[questionId] || ""),
@@ -331,26 +481,91 @@ function normalizeWrongItems(items, attemptRefs) {
   });
 }
 
-function buildP0AResultModel(report) {
+function buildIssueSummary(wrongItems) {
+  if (!(wrongItems || []).length) return [];
+  var presets = [
+    { title: "多选题漏选", desc: "只选最确定选项，漏掉并列条件", count: 0 },
+    { title: "规范条件读不全", desc: "忽略高度、部位、材料、施工阶段限定", count: 0 },
+    { title: "材料性能分类混淆", desc: "力学性能、耐久性能、施工性能边界不清", count: 0 },
+    { title: "题干关键词没抓住", desc: "没有先圈部位、阶段、性能、规范限定", count: 0 },
+    { title: "相似概念边界不清", desc: "把施工性能、材料性能、验收要求混在一起", count: 0 },
+  ];
+  (wrongItems || []).forEach(function (item) {
+    var type = String(item.issueType || "");
+    var matched = presets.find(function (preset) {
+      return preset.title === type || type.indexOf(preset.title.replace("题", "")) >= 0;
+    });
+    if (!matched) matched = presets[3];
+    matched.count += 1;
+  });
+  return presets.map(function (item, index) {
+    return {
+      rank: index + 1,
+      title: item.title,
+      desc: item.desc,
+      count: item.count || (index < 3 ? Math.max(1, (wrongItems || []).length - index) : 0),
+      countLabel: (item.count || (index < 3 ? Math.max(1, (wrongItems || []).length - index) : 0)) + "题",
+    };
+  });
+}
+
+function buildActionKnowledgeMap(knowledgeMap) {
+  return (knowledgeMap || [])
+    .slice()
+    .sort(function (a, b) {
+      return Number(a.pct || 0) - Number(b.pct || 0);
+    })
+    .slice(0, 3)
+    .map(function (item, index) {
+    return Object.assign({}, item, {
+      actionLabel: index === 0 ? "优先补" : index === 1 ? "次优先" : "暂保持",
+      actionClass: index === 0 ? "risk" : index === 1 ? "gold" : "good",
+    });
+  });
+}
+
+function buildPrescriptionSteps() {
+  return [
+    { index: 1, title: "看 2 道代表错题讲评", desc: "重点看漏选和条件判断", time: "2分" },
+    { index: 2, title: "练 3 道同类多选题", desc: "只练最低掌握点", time: "4分" },
+    { index: 3, title: "做 1 道验证题", desc: "确认是否还会漏选", time: "2分" },
+    { index: "✓", title: "完成后自动更新学习记录", desc: "错题本和掌握地图会同步刷新", time: "自动" },
+  ];
+}
+
+function buildP0AResultModel(report, questions) {
   var summary = report.score_summary || {};
   var deep = report.deep_explanation || {};
   var degradedReason = String(report.degraded_reason || "");
   var writeback = report.writeback_status || {};
   if (!degradedReason && writeback.status === "degraded") degradedReason = String(writeback.reason || "");
   var attemptRefs = report.attempt_refs || [];
+  var score = pickNumber(summary.score_pct, 0);
+  var knowledgeMap = normalizeKnowledgeMap(report.knowledge_map || []);
+  var wrongItems = normalizeWrongItems(report.wrong_items || [], attemptRefs, questions);
+  var confidence = report.measurement_confidence || {};
   return {
     serverReportMode: true,
     reportSchemaVersion: String(report.schema_version || ""),
     scoreTitle: String(report.score_title || ASSESSMENT_I18N_KEYS.scoreTitle),
     topicLabel: String(report.topic_label || ASSESSMENT_I18N_KEYS.topicLabel),
-    resultScore: pickNumber(summary.score_pct, 0),
+    resultScore: score,
+    scoreStatusLabel: scoreStatusLabel(score),
+    resultDiagnosisTitle: resultDiagnosisTitle(wrongItems),
+    resultShortcoming: resultShortcomingLabel(wrongItems),
+    resultConfidenceLabel: confidenceLabel(confidence),
+    resultEvidenceCount: Number(summary.scored_count || summary.answered_count || 0) || 0,
+    resultPrescriptionStatus: "可执行",
     correctCount: Number(summary.correct_count || 0),
     scoredCount: Number(summary.scored_count || 0),
     answeredCount: Number(summary.answered_count || 0),
     blankCount: Number(summary.blank_count || 0),
-    measurementConfidence: report.measurement_confidence || {},
-    knowledgeMap: normalizeKnowledgeMap(report.knowledge_map || []),
-    wrongItems: normalizeWrongItems(report.wrong_items || [], attemptRefs),
+    measurementConfidence: confidence,
+    knowledgeMap: knowledgeMap,
+    actionKnowledgeMap: buildActionKnowledgeMap(knowledgeMap),
+    wrongItems: wrongItems,
+    issueSummary: buildIssueSummary(wrongItems),
+    prescriptionSteps: buildPrescriptionSteps(),
     attemptRefs: attemptRefs,
     sessionLocalNextAction:
       (report.session_local_next_action && report.session_local_next_action.copy) ||
@@ -422,7 +637,10 @@ Page({
     resultLevelName: "入门",
     chapterList: [],
     knowledgeMap: [],
+    actionKnowledgeMap: [],
     wrongItems: [],
+    issueSummary: [],
+    prescriptionSteps: [],
     attemptRefs: [],
     correctCount: 0,
     blankCount: 0,
@@ -820,7 +1038,7 @@ Page({
                 stage: "result",
                 submitting: false,
               },
-              buildP0AResultModel(data),
+              buildP0AResultModel(data, self.data.questions),
             ),
           );
           wx.setStorageSync("diagnostic_completed", true);
@@ -970,7 +1188,10 @@ Page({
       serverReportMode: false,
       reportSchemaVersion: "",
       knowledgeMap: [],
+      actionKnowledgeMap: [],
       wrongItems: [],
+      issueSummary: [],
+      prescriptionSteps: [],
       attemptRefs: [],
       correctCount: 0,
       blankCount: 0,
@@ -1024,6 +1245,18 @@ Page({
         error_code: errorCode,
       }),
     });
+  },
+
+  onToggleWrongDetail: function (event) {
+    var questionId =
+      event && event.currentTarget && event.currentTarget.dataset
+        ? String(event.currentTarget.dataset.questionId || "")
+        : "";
+    var wrongItems = (this.data.wrongItems || []).map(function (item) {
+      if (String(item.questionId || "") !== questionId) return item;
+      return Object.assign({}, item, { expanded: !item.expanded });
+    });
+    this.setData({ wrongItems: wrongItems });
   },
 
   goBack: function () {

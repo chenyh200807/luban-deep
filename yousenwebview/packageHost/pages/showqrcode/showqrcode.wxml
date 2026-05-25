@@ -8,7 +8,7 @@
         <image class="course-logo" src="https://www.yousenjiaoyu.com/static/default/wxcss/images/%E4%BA%8C%E5%BB%BA.png"></image>
         <view style="border-bottom:  1px solid #c1b5b5;"></view>
         <view class="buttonqrcode">
-          <cell bind:startmessage='startmessage' bind:completemessage="completemessage" url='{{wxqrcodeurl}}' />
+          <button bindtap="copyGroupLink">复制入群链接</button>
         </view>
       </view>
     </view>

@@ -7,9 +7,8 @@ import uuid
 from collections.abc import AsyncGenerator
 from typing import Any
 
-from openai import AsyncOpenAI
-
 from deeptutor.logging import get_logger
+from deeptutor.services.llm.openai_http_client import make_openai_client
 from deeptutor.services.llm.provider_registry import find_by_name, strip_provider_prefix
 
 from .config import get_token_limit_kwargs
@@ -118,11 +117,10 @@ async def sdk_complete(
     if extra_headers:
         default_headers.update(extra_headers)
 
-    client = AsyncOpenAI(
-        api_key=effective_key or "no-key",
+    client = make_openai_client(
+        effective_key,
         base_url=effective_base,
         default_headers=default_headers,
-        max_retries=0,
     )
 
     max_tokens_val = int(kwargs.pop("max_tokens", 4096))
@@ -200,11 +198,10 @@ async def sdk_stream(
     if extra_headers:
         default_headers.update(extra_headers)
 
-    client = AsyncOpenAI(
-        api_key=effective_key or "no-key",
+    client = make_openai_client(
+        effective_key,
         base_url=effective_base,
         default_headers=default_headers,
-        max_retries=0,
     )
 
     max_tokens_val = int(kwargs.pop("max_tokens", 4096))

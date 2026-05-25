@@ -1,6 +1,7 @@
 Page({
   data: {
-    imageUrl: 'https://cnd.yousenjiaoyu.com/e1/69fc86507b31f310f3b5a66d31c685.png'
+    imageUrl: 'https://cnd.yousenjiaoyu.com/e1/69fc86507b31f310f3b5a66d31c685.png',
+    groupLink: 'https://work.weixin.qq.com/gm/e94fe429a2159d6326260f292b4d98d5'
   },
 
   previewImage() {
@@ -10,8 +11,15 @@ Page({
   },
 
   show() {
-    wx.openUrl({
-      url: 'https://work.weixin.qq.com/gm/e94fe429a2159d6326260f292b4d98d5'
+    this.copyGroupLink();
+  },
+
+  copyGroupLink() {
+    wx.setClipboardData({
+      data: this.data.groupLink,
+      success() {
+        wx.showToast({ title: '已复制入群链接', icon: 'none' });
+      }
     });
   }
 });

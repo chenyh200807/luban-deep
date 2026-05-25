@@ -14,5 +14,13 @@ Page({
   onUnload() {},
   onPullDownRefresh() {},
   onReachBottom() {},
+  copyGroupLink() {
+    wx.setClipboardData({
+      data: this.data.wxqrcodeurl,
+      success() {
+        wx.showToast({ title: '已复制入群链接', icon: 'none' });
+      }
+    });
+  },
   onShareAppMessage() {}
 });

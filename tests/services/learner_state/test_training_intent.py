@@ -4,6 +4,9 @@ from deeptutor.services.learner_state.training_intent import (
     build_learning_training_intent,
     prioritize_training_intents,
 )
+from deeptutor.services.learner_state.home_personalization import (
+    build_home_personalization_projection_from_learning_signal,
+)
 
 
 def test_training_intent_contains_concept_error_attempt_and_question_count() -> None:
@@ -96,6 +99,104 @@ def test_training_intent_v2_preserves_v1_compat_fields() -> None:
     # v2 additive.
     assert intent["intent_version"] == 2
     assert intent["evidence_refs"] == ["attempt_1"]
+
+
+def test_home_projection_v1_consumer_derives_intent_from_assessment_evidence() -> None:
+    """Assessment evidence does not emit next_training_signal; the home
+    projection still needs a valid v1 training intent from canonical evidence.
+    """
+    projection = build_home_personalization_projection_from_learning_signal(
+        {
+            "event_type": "learning_evidence",
+            "knowledge_points": ["防水工程"],
+            "error_codes": ["M01"],
+            "event_id": "evt_assessment_1",
+            "attempt_ref": "attempt_ref_1",
+            "subject_id": "construction_exam_1",
+        }
+    )
+
+    assert projection is not None
+    assert projection["today_focus"]["title"] == "今日焦点：防水工程"
+    intent = projection["recommended_prompts"][0]["intent"]
+    assert intent["concept_label"] == "防水工程"
+    assert intent["error_label"] == "M01"
+    assert intent["evidence_refs"] == ["evt_assessment_1", "attempt_ref_1"]
+
+
+def test_home_projection_surfaces_six_distinct_next_learning_actions() -> None:
+    projection = build_home_personalization_projection_from_learning_signal(
+        {
+            "event_type": "learning_evidence",
+            "knowledge_points": ["项目质量计划管理"],
+            "error_codes": ["质量计划和质量保证混淆"],
+            "event_id": "evt_quality_plan",
+            "subject_id": "construction_exam_1",
+        }
+    )
+
+    assert projection is not None
+    assert [item["prompt_type"] for item in projection["recommended_prompts"]] == [
+        "practice_prompt",
+        "mistake_review",
+        "concept_explain",
+        "exam_transfer",
+        "knowledge_map",
+        "quick_check",
+    ]
+    assert projection["recommended_prompts"][5]["text"] == (
+        "用 1 个小问题验证项目质量计划管理是否真会了"
+    )
+
+
+def test_fresh_legacy_home_projection_is_upgraded_by_reader() -> None:
+    from datetime import datetime, timedelta, timezone
+
+    from deeptutor.services.learner_state.home_personalization import (
+        build_home_dashboard_learning_projection,
+    )
+
+    tz = timezone(timedelta(hours=8))
+    dashboard = build_home_dashboard_learning_projection(
+        projection={
+            "generated_at": datetime(2026, 5, 21, 9, 0, tzinfo=tz).isoformat(),
+            "source_status": {"fallback_used": False, "learning_report": "projection"},
+            "today_focus": {"title": "今日焦点：项目质量计划管理"},
+            "recommended_prompts": [
+                {
+                    "prompt_type": "practice_prompt",
+                    "text": "用 3 道题训练项目质量计划管理",
+                    "intent": {
+                        "source": "home_dashboard",
+                        "concept_label": "项目质量计划管理",
+                        "error_label": "质量计划和质量保证混淆",
+                    },
+                },
+                {
+                    "prompt_type": "mistake_review",
+                    "text": "复盘项目质量计划管理里的质量计划和质量保证混淆",
+                    "intent": {
+                        "source": "home_dashboard",
+                        "concept_label": "项目质量计划管理",
+                        "error_label": "质量计划和质量保证混淆",
+                    },
+                },
+                {
+                    "prompt_type": "concept_explain",
+                    "text": "讲清楚项目质量计划管理的关键判断",
+                    "intent": {
+                        "source": "home_dashboard",
+                        "concept_label": "项目质量计划管理",
+                        "error_label": "质量计划和质量保证混淆",
+                    },
+                },
+            ],
+        },
+        now=datetime(2026, 5, 21, 10, 0, tzinfo=tz),
+    )
+
+    assert len(dashboard["recommended_prompts"]) == 6
+    assert dashboard["recommended_prompts"][4]["prompt_type"] == "knowledge_map"
 
 
 def test_training_intent_v2_degrades_when_evidence_refs_empty() -> None:

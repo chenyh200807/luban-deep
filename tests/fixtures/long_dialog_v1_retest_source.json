@@ -1,0 +1,14 @@
+{
+  "session_full_conversations": {
+    "eval_gate_ld_001": [
+      {
+        "turn": 1,
+        "user_query": "流水施工一直搞不懂，你用盖一栋6层住宅楼举个例子讲讲。"
+      },
+      {
+        "turn": 2,
+        "user_query": "刚才这个例子里，流水步距到底看什么？"
+      }
+    ]
+  }
+}

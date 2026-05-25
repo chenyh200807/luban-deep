@@ -77,6 +77,33 @@ WRITE_ENDPOINTS: tuple[WriteEndpoint, ...] = (
         audit_action="feedback_triage",
     ),
     WriteEndpoint(
+        key="feedback.invite_test.update",
+        method="PATCH",
+        path_template="/api/v1/bi/invite-test/applications/{application_id}",
+        requires_idempotency=True,
+        description=(
+            "Invite-test application edit: growth ops updates applicant "
+            "status, contact/profile corrections, callback preference, and "
+            "operator note. Backend updates invite_test_applications and "
+            "records invite_test_application_update audit with idempotency "
+            "dedup."
+        ),
+        audit_action="invite_test_application_update",
+    ),
+    WriteEndpoint(
+        key="feedback.invite_test.delete",
+        method="DELETE",
+        path_template="/api/v1/bi/invite-test/applications/{application_id}",
+        requires_idempotency=True,
+        description=(
+            "Invite-test application delete: growth ops soft-deletes an "
+            "application by archiving it. Backend hides archived applications "
+            "from the default pool and records invite_test_application_delete "
+            "audit with idempotency dedup."
+        ),
+        audit_action="invite_test_application_delete",
+    ),
+    WriteEndpoint(
         key="member.ops_action.record",
         method="POST",
         path_template="/api/v1/bi/member/{user_id}/ops-action",

@@ -141,6 +141,40 @@
   .muted-chip {
     @apply rounded-full bg-[var(--muted)] px-3 py-1 text-xs text-[var(--muted-foreground)];
   }
+
+  .bi-v2-dark-scope .bg-white {
+    background-color: rgba(15, 23, 42, 0.82) !important;
+  }
+
+  .bi-v2-dark-scope .bg-slate-50,
+  .bi-v2-dark-scope .bg-slate-100 {
+    background-color: rgba(15, 23, 42, 0.58) !important;
+  }
+
+  .bi-v2-dark-scope .border-slate-100,
+  .bi-v2-dark-scope .border-slate-200,
+  .bi-v2-dark-scope .border-slate-300 {
+    border-color: rgba(255, 255, 255, 0.12) !important;
+  }
+
+  .bi-v2-dark-scope .text-slate-900,
+  .bi-v2-dark-scope .text-slate-800,
+  .bi-v2-dark-scope .text-slate-700 {
+    color: rgb(241, 245, 249) !important;
+  }
+
+  .bi-v2-dark-scope .text-slate-600 {
+    color: rgb(203, 213, 225) !important;
+  }
+
+  .bi-v2-dark-scope .text-slate-500 {
+    color: rgb(148, 163, 184) !important;
+  }
+
+  .bi-v2-dark-scope .hover\:bg-slate-50:hover,
+  .bi-v2-dark-scope .hover\:bg-slate-100:hover {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+  }
 }
 
 @layer utilities {

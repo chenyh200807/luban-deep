@@ -192,6 +192,19 @@ assert(
   "personalized recommended prompts should have a dedicated learner-facing card style",
 );
 assert(
+  chatWxml.indexOf("真题讲评") >= 0 &&
+    chatWxml.indexOf("正确答案") >= 0 &&
+    chatWxml.indexOf("解析要点") >= 0 &&
+    chatWxml.indexOf("先想一想") >= 0 &&
+    chatWxml.indexOf("逐项分析") >= 0 &&
+    chatWxml.indexOf("采分点") >= 0 &&
+    chatWxml.indexOf("易错点") >= 0 &&
+    chatWxml.indexOf("记忆口诀") >= 0 &&
+    chatWxml.indexOf("已讲评") >= 0 &&
+    chatWxss.indexOf(".mcq-review-notes") >= 0,
+  "question-review MCQ cards should expose learner-facing answer and explanation notes",
+);
+assert(
   chatWxml.indexOf("class=\"row-icon-btn\" bindtap=\"onToggleTheme\"") < 0 &&
     chatWxml.indexOf("class=\"row-icon-btn\" bindtap=\"goRecharge\"") < 0 &&
     chatWxml.indexOf("class=\"avatar\" bindtap=\"goProfile\"") < 0,
@@ -230,7 +243,7 @@ assert(
 assert(
   chatWxml.indexOf('class="original-toggle"') >= 0 &&
     chatWxml.indexOf('bindtap="onToggleOriginalContent"') >= 0 &&
-    chatWxml.indexOf("{{item.originalExpanded ? '收起原文' : '查看原文'}}") >= 0,
+    chatWxml.indexOf("item.mcqReviewMode ? '查看完整解析' : '查看原文'") >= 0,
   "mcq messages should expose a compact original-text toggle instead of rendering duplicate question text",
 );
 assert(
@@ -253,6 +266,12 @@ assert(
   chatJs.indexOf("originalContent") >= 0 &&
     chatJs.indexOf("onToggleOriginalContent") >= 0,
   "chat state should carry collapsed original text and a toggle handler",
+);
+assert(
+  chatJs.indexOf("mcqReviewMode: false") >= 0 &&
+    chatJs.indexOf("msg.mcqReviewMode = derived.mcqReviewMode") >= 0 &&
+    chatJs.indexOf('updates["messages[" + idx + "].mcqReviewMode"] = state.mcqReviewMode') >= 0,
+  "chat state must preserve review-mode from the canonical presentation so review cards render",
 );
 assert(
   chatWxml.indexOf('class="mcq" wx:if="{{item.mcqCards') >= 0 &&

@@ -757,6 +757,9 @@ class AgentLoop:
         raw_stream_buffer = ""
         emitted_stream_len = 0
         effective_model = str(runtime_metadata.get("preferred_model") or self.model).strip() or self.model
+        exact_authority_override_allowed = bool(allow_exact_authority_override) and not str(
+            runtime_metadata.get("exact_question_blocked_reason") or ""
+        ).strip()
 
         def _visible_stream_text(raw_text: str) -> str:
             # Hide completed and in-progress <think> blocks before forwarding deltas.
@@ -871,7 +874,7 @@ class AgentLoop:
                         ):
                             runtime_metadata["_prefetched_exact_question"] = exact_candidate
                         if (
-                            allow_exact_authority_override
+                            exact_authority_override_allowed
                             and exact_candidate
                             and self._should_force_exact_authority(exact_candidate)
                         ):
@@ -976,7 +979,7 @@ class AgentLoop:
                 "without completing the task. You can try breaking the task into smaller steps."
             )
 
-        if allow_exact_authority_override and exact_authority:
+        if exact_authority_override_allowed and exact_authority:
             exact_response = await self._build_exact_authority_response(
                 exact_authority,
                 runtime_metadata=runtime_metadata,
@@ -1094,12 +1097,7 @@ class AgentLoop:
         if practice_generation_request:
             return decision.current_info_required or decision.textbook_delta_query
 
-        from deeptutor.services.question_lifecycle_skills import (  # noqa: WPS433
-            attach_question_lifecycle_scene_to_context,
-        )
-
-        lifecycle_context = SimpleNamespace(user_message=current_message, metadata=metadata)
-        scene = attach_question_lifecycle_scene_to_context(lifecycle_context)
+        scene = str(metadata.get("question_lifecycle_scene") or "").strip() or None
         if (
             cls._construction_scene_uses_learner_state_authority(scene)
             and query_uses_learner_state_authority(current_message)
@@ -1706,6 +1704,23 @@ class AgentLoop:
             }
 
     @staticmethod
+    def _export_skill_trace_metadata(
+        runtime_metadata: dict[str, Any],
+        target_metadata: dict[str, Any] | None,
+    ) -> None:
+        if not isinstance(target_metadata, dict):
+            return
+        for metadata_key in (
+            "question_lifecycle_scene",
+            "skill_stack",
+            "skill_trace",
+            "loader_source",
+            "skill_source_status",
+        ):
+            if metadata_key in runtime_metadata:
+                target_metadata[metadata_key] = runtime_metadata[metadata_key]
+
+    @staticmethod
     def _format_fast_limited_skill_instructions(skill_names: list[str]) -> str:
         if not skill_names:
             return ""
@@ -1771,13 +1786,12 @@ class AgentLoop:
 
         if self._is_construction_exam_skill_context(metadata):
             from deeptutor.services.question_lifecycle_skills import (
-                attach_question_lifecycle_scene_to_context,
                 build_default_construction_exam_skill_context,
                 build_question_lifecycle_skill_context,
             )
 
             lifecycle_context = SimpleNamespace(user_message=current_message, metadata=metadata)
-            scene = attach_question_lifecycle_scene_to_context(lifecycle_context)
+            scene = str(metadata.get("question_lifecycle_scene") or "").strip() or None
             if scene:
                 skill_context = build_question_lifecycle_skill_context(
                     lifecycle_context,
@@ -1941,6 +1955,8 @@ class AgentLoop:
     ) -> tuple[str, list[dict[str, Any]], dict[str, Any] | None] | None:
         rag_tool = self.tools.get("rag")
         if rag_tool is None:
+            return None
+        if str((runtime_metadata or {}).get("exact_question_blocked_reason") or "").strip():
             return None
         exact_probe = prepare_exact_question_probe(current_message)
         practice_generation_request = looks_like_practice_generation_request(current_message)
@@ -2451,6 +2467,7 @@ class AgentLoop:
         runtime_instruction = "\n\n".join(
             part for part in runtime_instruction_parts if str(part or "").strip()
         )
+        self._export_skill_trace_metadata(runtime_metadata, msg.metadata)
         fast_path = await self._maybe_run_exact_rag_fast_path(
             current_message=current_message,
             history=history,
@@ -2582,7 +2599,10 @@ class AgentLoop:
             on_content_delta=on_content_delta,
             on_tool_call=on_tool_call,
             on_tool_result=on_tool_result,
-            allow_exact_authority_override=prepare_exact_question_probe(current_message) is not None,
+            allow_exact_authority_override=(
+                prepare_exact_question_probe(current_message) is not None
+                and not str(runtime_metadata.get("exact_question_blocked_reason") or "").strip()
+            ),
         )
 
         if final_content is None:
@@ -2669,12 +2689,13 @@ class AgentLoop:
     ) -> str:
         """Process a message directly (for CLI or cron usage)."""
         await self._connect_mcp()
+        msg_metadata = metadata if isinstance(metadata, dict) else {}
         msg = InboundMessage(
             channel=channel,
             sender_id="user",
             chat_id=chat_id,
             content=content,
-            metadata=metadata or {},
+            metadata=msg_metadata,
         )
         response = await self._process_message(
             msg,
@@ -2684,4 +2705,10 @@ class AgentLoop:
             on_tool_call=on_tool_call,
             on_tool_result=on_tool_result,
         )
+        if (
+            isinstance(metadata, dict)
+            and response is not None
+            and isinstance(response.metadata, dict)
+        ):
+            metadata.update(response.metadata)
         return response.content if response else ""

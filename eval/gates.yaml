@@ -10,6 +10,8 @@ gates:
   ws_mobile_turn_runtime:
     description: "Unified /api/v1/ws turn runtime and mobile router contract."
     category: quick
+    timeout_seconds: 900
+    slow_seconds: 300
     command:
       - "pytest"
       - "tests/api/test_unified_ws_turn_runtime.py"
@@ -61,12 +63,14 @@ gates:
     command: ["npm", "run", "test:wechat-harness:data"]
 
   web_wechat_harness_e2e:
-    description: "Full Playwright /wechat-harness e2e, only when dependencies are installed."
+    description: "Full Playwright /wechat-harness e2e with deterministic install check."
     category: quick
     workdir: "web"
+    timeout_seconds: 420
+    slow_seconds: 180
     required_paths:
-      - "web/node_modules/.bin/playwright"
-    command: ["npm", "run", "test:wechat-harness:e2e"]
+      - "web/package-lock.json"
+    command: ["npm", "run", "test:wechat-harness:e2e:ci"]
 
   semantic_router_deep:
     description: "Standalone semantic-router eval for active object and route continuity."
@@ -101,25 +105,42 @@ gates:
       - "--report-only"
 
   long_dialog_v1_retest:
-    description: "Long-dialog replay requires an explicit historical source artifact."
+    description: "Long-dialog replay with stable eval fixture source artifact."
     category: deep
-    deferred_reason: "requires --source-json historical artifact; do not fail core eval gate when absent"
+    timeout_seconds: 240
+    slow_seconds: 120
+    required_paths:
+      - "tests/fixtures/long_dialog_v1_retest_source.json"
     command:
       - "python"
       - "scripts/run_long_dialog_v1_retest.py"
+      - "--source-json"
+      - "tests/fixtures/long_dialog_v1_retest_source.json"
       - "--output-dir"
       - "{artifact_dir}/long-dialog"
       - "--max-cases"
       - "1"
       - "--turn-mode"
       - "focus"
+      - "--per-turn-timeout"
+      - "60"
+      - "--fail-on-hard-errors"
 
   learning_report_read_model_e2e:
-    description: "Learning-report e2e requires a running local API server."
+    description: "Learning-report e2e with managed local API server."
     category: deep
-    deferred_reason: "requires local API server and isolated user-data dir"
+    timeout_seconds: 180
+    slow_seconds: 90
     command:
       - "python"
       - "scripts/run_learning_report_read_model_e2e.py"
+      - "--base-url"
+      - "http://127.0.0.1:8123"
+      - "--start-local-api"
+      - "--server-startup-timeout"
+      - "45"
+      - "--write-before-first-report"
+      - "--server-log-path"
+      - "{artifact_dir}/learning-report-api.log"
       - "--user-data-dir"
       - "{artifact_dir}/learning-report-user-data"

@@ -159,7 +159,72 @@ function normalizeMcqOptions(rawOptions) {
   return options;
 }
 
-function normalizeMcqQuestion(rawQuestion, fallbackIndex) {
+function normalizeMcqReviewNotes(rawNotes) {
+  var notes = rawNotes && typeof rawNotes === "object" ? rawNotes : {};
+  var thinkPrompt = _trimmedString(notes.thinkPrompt || notes.think_prompt || "");
+  var displayAnswer = _trimmedString(
+    notes.displayAnswer ||
+      notes.display_answer ||
+      notes.answer ||
+      notes.answerText ||
+      notes.answer_text ||
+      "",
+  ).toUpperCase();
+  var analysis = _trimmedString(
+    notes.analysis ||
+      notes.analysisText ||
+      notes.analysis_text ||
+      notes.teachingText ||
+      notes.teaching_text ||
+      "",
+  );
+  var optionAnalysis = _normalizeObjectArray(
+    notes.optionAnalysis ||
+      notes.option_analysis ||
+      notes.choiceAnalysis ||
+      notes.choice_analysis,
+    function (item) {
+      var raw = item && typeof item === "object" ? item : {};
+      var key = _trimmedString(raw.key || raw.option || raw.option_key || raw.label || "").toUpperCase();
+      var row = {
+        key: key,
+        text: _trimmedString(raw.text || raw.optionText || raw.option_text || ""),
+        verdict: _trimmedString(raw.verdict || raw.status || ""),
+        analysis: _trimmedString(raw.analysis || raw.reason || raw.explanation || ""),
+      };
+      return row.key || row.analysis ? row : null;
+    },
+  );
+  var scoringPoints = _normalizeStringArray(notes.scoringPoints || notes.scoring_points);
+  var pitfalls = _normalizeStringArray(
+    notes.pitfalls ||
+      notes.easyMistakes ||
+      notes.easy_mistakes ||
+      notes.commonMistakes ||
+      notes.common_mistakes,
+  );
+  var mnemonic = _trimmedString(notes.mnemonic || notes.memoryTip || notes.memory_tip || "");
+  if (
+    !thinkPrompt &&
+    !displayAnswer &&
+    !analysis &&
+    !optionAnalysis.length &&
+    !scoringPoints.length &&
+    !pitfalls.length &&
+    !mnemonic
+  ) return null;
+  return {
+    thinkPrompt: thinkPrompt,
+    displayAnswer: displayAnswer,
+    analysis: analysis,
+    optionAnalysis: optionAnalysis,
+    scoringPoints: scoringPoints,
+    pitfalls: pitfalls,
+    mnemonic: mnemonic,
+  };
+}
+
+function normalizeMcqQuestion(rawQuestion, fallbackIndex, reviewMode) {
   var q = rawQuestion && typeof rawQuestion === "object" ? rawQuestion : {};
   var rawFollowup =
     q.followupContext && typeof q.followupContext === "object"
@@ -186,15 +251,17 @@ function normalizeMcqQuestion(rawQuestion, fallbackIndex) {
     followupContext: sanitizeFollowupContext(rawFollowup),
     questionId: questionId,
     hasContext: !!questionId,
+    reviewNotes: reviewMode ? normalizeMcqReviewNotes(q.reviewNotes || q.review_notes) : null,
   };
 }
 
 function createMcqBlock(rawBlock) {
   var block = rawBlock && typeof rawBlock === "object" ? rawBlock : {};
   var rawQuestions = Array.isArray(block.questions) ? block.questions : [];
+  var reviewMode = !!(block.reviewMode || block.review_mode);
   var questions = [];
   for (var i = 0; i < rawQuestions.length; i++) {
-    var question = normalizeMcqQuestion(rawQuestions[i], i + 1);
+    var question = normalizeMcqQuestion(rawQuestions[i], i + 1, reviewMode);
     if (!question.options || question.options.length < 2) continue;
     questions.push(question);
   }
@@ -207,7 +274,7 @@ function createMcqBlock(rawBlock) {
       "请选择后提交答案",
     ),
     receipt: sanitizeAuthorityText(block.receipt || "", ""),
-    reviewMode: !!(block.reviewMode || block.review_mode),
+    reviewMode: reviewMode,
   };
 }
 
@@ -530,6 +597,7 @@ function createRenderModel(rawModel) {
     mcqHint: _asString(model.mcqHint || ""),
     mcqReceipt: _asString(model.mcqReceipt || ""),
     mcqInteractiveReady: !!model.mcqInteractiveReady,
+    mcqReviewMode: !!model.mcqReviewMode,
     originalContent: _asString(
       model.originalContent || model.original_content || "",
     ),

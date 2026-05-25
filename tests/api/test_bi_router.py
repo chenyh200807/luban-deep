@@ -286,6 +286,76 @@ def bi_service(tmp_path: Path, monkeypatch) -> BIService:
                 return {"before": before, "after": after}
             raise KeyError(feedback_id)
 
+    class _FakeInviteTestStore:
+        def __init__(self) -> None:
+            self._rows = [
+                {
+                    "id": "invite-app-1",
+                    "created_at": "2026-05-17T11:29:29.524Z",
+                    "source_page": "invite-test",
+                    "name": "张同学",
+                    "phone": "13800138000",
+                    "email": "qa@example.com",
+                    "wechat_id": "wx_old",
+                    "exam_type": "二建建筑实务",
+                    "exam_stage": "正在冲刺刷题",
+                    "pain_point": "错题原因不清楚",
+                    "weekly_time": "10-30 分钟",
+                    "current_method": "自己刷题",
+                    "latest_wrong_question": "案例题漏点",
+                    "accept_interview": False,
+                    "consent": True,
+                    "status": "submitted",
+                    "operator_note": "",
+                    "submit_count": 1,
+                    "raw_payload": {"studyDifficulties": "旧困难"},
+                }
+            ]
+
+        async def list_applications(self, **_: object) -> dict[str, object]:
+            return {
+                "window_days": 365,
+                "storage_status": "fake",
+                "total": len(self._rows),
+                "contact_revealed": True,
+                "items": list(self._rows),
+            }
+
+        async def get_stats(self, **_: object) -> dict[str, object]:
+            return {
+                "window_days": 365,
+                "storage_status": "fake",
+                "summary": {
+                    "total_applications": len(self._rows),
+                    "unique_contacts": len(self._rows),
+                    "accept_interview_count": 0,
+                    "accept_interview_rate": 0,
+                    "with_wrong_question_count": 1,
+                    "with_wrong_question_rate": 1,
+                    "consented_count": len(self._rows),
+                },
+                "status_breakdown": [{"status": "submitted", "count": len(self._rows)}],
+                "source_breakdown": [{"source_page": "invite-test", "count": len(self._rows)}],
+                "exam_type_breakdown": [{"exam_type": "二建建筑实务", "count": len(self._rows)}],
+                "exam_stage_breakdown": [{"exam_stage": "正在冲刺刷题", "count": len(self._rows)}],
+                "pain_point_breakdown": [{"pain_point": "错题原因不清楚", "count": len(self._rows)}],
+                "weekly_time_breakdown": [{"weekly_time": "10-30 分钟", "count": len(self._rows)}],
+            }
+
+        async def update_application(self, application_id: str, patch: dict[str, object]) -> dict[str, object]:
+            for index, row in enumerate(self._rows):
+                if str(row.get("id")) != application_id:
+                    continue
+                before = dict(row)
+                after = {**before, **patch}
+                raw_payload = dict(before.get("raw_payload") or {})
+                if "study_difficulties" in patch:
+                    raw_payload["studyDifficulties"] = patch["study_difficulties"]
+                after["raw_payload"] = raw_payload
+                self._rows[index] = after
+                return {"storage_status": "fake", "before": before, "after": after}
+            raise KeyError(application_id)
+
     class _FakeBailianTelemetryClient:
         def is_configured(self) -> bool:
             return True
@@ -390,6 +460,7 @@ def bi_service(tmp_path: Path, monkeypatch) -> BIService:
         session_store=store,
         member_service=_FakeMemberService(),
         feedback_store=_FakeFeedbackStore(feedback_rows),
+        invite_test_store=_FakeInviteTestStore(),
         bailian_telemetry_client=_FakeBailianTelemetryClient(),
         bailian_billing_client=_FakeBailianBillingClient(),
         usage_ledger=_FakeUsageLedger(),
@@ -753,6 +824,114 @@ def test_bi_feedback_triage_rejects_invalid_status(bi_service: BIService) -> Non
 
     assert response.status_code == 400
     assert response.json()["detail"] == "status must be one of open, triaged, ignored"
+
+
+def test_bi_invite_test_application_update_requires_idempotency_and_dedupes_audit(
+    bi_service: BIService,
+) -> None:
+    """invite_test_application_update is a real audited write for growth ops."""
+    app = _build_app(bi_service)
+    app.dependency_overrides[bi_router_module.require_bi_access] = (
+        lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
+    )
+    app.dependency_overrides[bi_router_module.require_bi_admin] = (
+        lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
+    )
+
+    with TestClient(app) as client:
+        missing_key = client.patch(
+            "/api/v1/bi/invite-test/applications/invite-app-1",
+            json={"status": "contacted", "operator_note": "已电话联系"},
+        )
+        assert missing_key.status_code == 400
+        assert "X-Idempotency-Key" in missing_key.json()["detail"]
+
+        first = client.patch(
+            "/api/v1/bi/invite-test/applications/invite-app-1",
+            headers={"X-Idempotency-Key": "invite-key-1"},
+            json={
+                "status": "contacted",
+                "operator_note": "已电话联系",
+                "study_difficulties": "案例题不会组织语言",
+                "accept_interview": True,
+            },
+        )
+        assert first.status_code == 200
+        first_body = first.json()
+        assert first_body["audit_id"] == "audit_feedback_1"
+        assert first_body["deduped"] is False
+        assert first_body["application"]["status"] == "contacted"
+        assert first_body["application"]["operator_note"] == "已电话联系"
+        assert first_body["application"]["study_difficulties"] == "案例题不会组织语言"
+        assert first_body["application"]["accept_interview"] is True
+
+        retry = client.patch(
+            "/api/v1/bi/invite-test/applications/invite-app-1",
+            headers={"X-Idempotency-Key": "invite-key-1"},
+            json={
+                "status": "contacted",
+                "operator_note": "已电话联系",
+                "study_difficulties": "案例题不会组织语言",
+                "accept_interview": True,
+            },
+        )
+        assert retry.status_code == 200
+        retry_body = retry.json()
+        assert retry_body["audit_id"] == first_body["audit_id"]
+        assert retry_body["deduped"] is True
+        assert len(bi_service._member_service.audit_log) == 1  # noqa: SLF001
+
+        refreshed = client.get("/api/v1/bi/invite-test/applications?days=365&limit=10")
+        assert refreshed.status_code == 200
+        updated = refreshed.json()["items"][0]
+        assert updated["status"] == "contacted"
+
+
+def test_bi_invite_test_application_delete_requires_idempotency_and_dedupes_audit(
+    bi_service: BIService,
+) -> None:
+    """invite_test_application_delete archives an application through the audited write gate."""
+    app = _build_app(bi_service)
+    app.dependency_overrides[bi_router_module.require_bi_access] = (
+        lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
+    )
+    app.dependency_overrides[bi_router_module.require_bi_admin] = (
+        lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
+    )
+
+    with TestClient(app) as client:
+        missing_key = client.request(
+            "DELETE",
+            "/api/v1/bi/invite-test/applications/invite-app-1",
+            json={"reason": "重复提交，运营删除"},
+        )
+        assert missing_key.status_code == 400
+        assert "X-Idempotency-Key" in missing_key.json()["detail"]
+
+        first = client.request(
+            "DELETE",
+            "/api/v1/bi/invite-test/applications/invite-app-1",
+            headers={"X-Idempotency-Key": "invite-delete-key-1"},
+            json={"reason": "重复提交，运营删除"},
+        )
+        assert first.status_code == 200
+        first_body = first.json()
+        assert first_body["audit_id"] == "audit_feedback_1"
+        assert first_body["deduped"] is False
+        assert first_body["deleted"] is True
+        assert first_body["application"]["status"] == "archived"
+
+        retry = client.request(
+            "DELETE",
+            "/api/v1/bi/invite-test/applications/invite-app-1",
+            headers={"X-Idempotency-Key": "invite-delete-key-1"},
+            json={"reason": "重复提交，运营删除"},
+        )
+        assert retry.status_code == 200
+        retry_body = retry.json()
+        assert retry_body["audit_id"] == first_body["audit_id"]
+        assert retry_body["deduped"] is True
+        assert len(bi_service._member_service.audit_log) == 1  # noqa: SLF001
 
 
 def test_bi_member_ops_action_requires_idempotency_and_dedupes_audit(

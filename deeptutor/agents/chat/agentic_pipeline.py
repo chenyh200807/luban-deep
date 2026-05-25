@@ -9,7 +9,10 @@ import logging
 import re
 from typing import Any
 
-from openai import AsyncAzureOpenAI, AsyncOpenAI
+from deeptutor.services.llm.openai_http_client import (
+    make_azure_openai_client,
+    make_openai_client,
+)
 
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream_bus import StreamBus
@@ -1487,14 +1490,14 @@ class AgenticChatPipeline:
         if self.extra_headers:
             client_kwargs["default_headers"] = self.extra_headers
         if self.binding == "azure_openai" or (self.binding == "openai" and self.api_version):
-            return AsyncAzureOpenAI(
-                api_key=self.api_key or "sk-no-key-required",
+            return make_azure_openai_client(
+                self.api_key or "sk-no-key-required",
                 azure_endpoint=self.base_url,
                 api_version=self.api_version,
                 **client_kwargs,
             )
-        return AsyncOpenAI(
-            api_key=self.api_key or "sk-no-key-required",
+        return make_openai_client(
+            self.api_key or "sk-no-key-required",
             base_url=self.base_url or None,
             **client_kwargs,
         )

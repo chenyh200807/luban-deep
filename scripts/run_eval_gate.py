@@ -37,6 +37,7 @@ class Gate:
     required_paths: list[Path]
     deferred_reason: str
     timeout_seconds: float | None
+    slow_seconds: float | None
 
 
 def _load_yaml(path: Path) -> dict[str, Any]:
@@ -75,6 +76,7 @@ def load_gates(path: Path) -> list[Gate]:
             for item in _as_string_list(raw_gate.get("required_paths", []), field_name=f"{name}.required_paths")
         ]
         timeout_raw = raw_gate.get("timeout_seconds")
+        slow_raw = raw_gate.get("slow_seconds")
         gates.append(
             Gate(
                 name=name,
@@ -85,6 +87,7 @@ def load_gates(path: Path) -> list[Gate]:
                 required_paths=required_paths,
                 deferred_reason=str(raw_gate.get("deferred_reason") or ""),
                 timeout_seconds=float(timeout_raw) if timeout_raw is not None else None,
+                slow_seconds=float(slow_raw) if slow_raw is not None else None,
             )
         )
     return gates
@@ -149,26 +152,51 @@ def run_gate(gate: Gate, *, artifact_dir: Path) -> dict[str, Any]:
         }
 
     command = _command_for_runtime(gate.command, artifact_dir)
-    completed = subprocess.run(
-        command,
-        cwd=gate.workdir,
-        env=_env_with_project_root(),
-        text=True,
-        capture_output=True,
-        check=False,
-        timeout=gate.timeout_seconds,
-    )
+    try:
+        completed = subprocess.run(
+            command,
+            cwd=gate.workdir,
+            env=_env_with_project_root(),
+            text=True,
+            capture_output=True,
+            check=False,
+            timeout=gate.timeout_seconds,
+        )
+    except subprocess.TimeoutExpired as exc:
+        duration_s = round(time.monotonic() - started, 3)
+        stdout = exc.stdout.decode("utf-8", errors="replace") if isinstance(exc.stdout, bytes) else (exc.stdout or "")
+        stderr = exc.stderr.decode("utf-8", errors="replace") if isinstance(exc.stderr, bytes) else (exc.stderr or "")
+        reason = f"timeout after {gate.timeout_seconds:g}s"
+        _write_log(log_path, stdout=f"TIMEOUT: {reason}\n{stdout}".rstrip(), stderr=stderr)
+        return {
+            "name": gate.name,
+            "description": gate.description,
+            "category": gate.category,
+            "status": "FAIL",
+            "exit_code": None,
+            "duration_s": duration_s,
+            "command": command,
+            "workdir": str(gate.workdir),
+            "reason": reason,
+            "failure_signature": "gate_timeout",
+            "log_path": str(log_path),
+        }
+
+    duration_s = round(time.monotonic() - started, 3)
     _write_log(log_path, stdout=completed.stdout, stderr=completed.stderr)
+    slow_threshold = gate.slow_seconds
+    slow = slow_threshold is not None and duration_s >= slow_threshold
     return {
         "name": gate.name,
         "description": gate.description,
         "category": gate.category,
         "status": "PASS" if completed.returncode == 0 else "FAIL",
         "exit_code": completed.returncode,
-        "duration_s": round(time.monotonic() - started, 3),
+        "duration_s": duration_s,
         "command": command,
         "workdir": str(gate.workdir),
         "log_path": str(log_path),
+        **({"slow": True, "slow_threshold_s": slow_threshold} if slow else {}),
     }
 
 
@@ -177,7 +205,18 @@ def _build_summary(results: list[dict[str, Any]], *, gates_path: Path, artifact_
         "passed": sum(1 for item in results if item["status"] == "PASS"),
         "failed": sum(1 for item in results if item["status"] == "FAIL"),
         "deferred": sum(1 for item in results if item["status"] == "DEFERRED"),
+        "slow": sum(1 for item in results if item.get("slow")),
     }
+    slow_gates = [
+        {
+            "name": item["name"],
+            "duration_s": item["duration_s"],
+            "slow_threshold_s": item.get("slow_threshold_s"),
+            "status": item["status"],
+        }
+        for item in results
+        if item.get("slow")
+    ]
     verdict = "FAIL" if counts["failed"] else "PASS"
     return {
         "run_id": artifact_dir.name,
@@ -187,6 +226,7 @@ def _build_summary(results: list[dict[str, Any]], *, gates_path: Path, artifact_
         "artifact_dir": str(artifact_dir),
         "verdict": verdict,
         "summary": counts,
+        "slow_gates": slow_gates,
         "gates": results,
     }
 
@@ -205,6 +245,7 @@ def _write_markdown(summary: dict[str, Any], path: Path) -> None:
         f"- passed: {summary['summary']['passed']}",
         f"- failed: {summary['summary']['failed']}",
         f"- deferred: {summary['summary']['deferred']}",
+        f"- slow: {summary['summary'].get('slow', 0)}",
         "",
         "## Gates",
         "",
@@ -215,6 +256,13 @@ def _write_markdown(summary: dict[str, Any], path: Path) -> None:
             f"- `{gate['name']}` => `{gate['status']}`"
             f" | exit={gate.get('exit_code')} | {gate['duration_s']}s | {gate['log_path']}{suffix}"
         )
+    if summary.get("slow_gates"):
+        lines.extend(["", "## Slow Gates", ""])
+        for gate in summary["slow_gates"]:
+            lines.append(
+                f"- `{gate['name']}`: {gate['duration_s']}s"
+                f" >= {gate.get('slow_threshold_s')}s | status={gate['status']}"
+            )
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 

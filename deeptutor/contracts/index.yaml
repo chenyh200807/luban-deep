@@ -2,7 +2,7 @@ version: 1
 entrypoint: CONTRACT.md
 domains:
   turn:
-    summary: Unified turn, stream, replay, session, trace boundary.
+    summary: Unified turn, stream, replay, session, trace boundary, and mobile assessment HTTP bridges.
     contract_files:
       - CONTRACT.md
       - contracts/turn.md
@@ -66,6 +66,9 @@ domains:
       - deeptutor/runtime/orchestrator.py
       - deeptutor/runtime/registry/capability_registry.py
       - deeptutor/capabilities/request_contracts.py
+      - deeptutor/capabilities/deep_question.py
+      - deeptutor/agents/question/coordinator.py
+      - deeptutor/services/render_presentation.py
       - deeptutor/services/exam_track.py
       - deeptutor/services/question_lifecycle_skills.py
       - deeptutor/api/routers/chat.py
@@ -86,6 +89,11 @@ domains:
       - tests/services/test_question_lifecycle_skills.py
       - tests/services/test_question_lifecycle_scene_derivation.py
       - tests/services/test_question_lifecycle_acceptance.py
+      - tests/capabilities/test_deep_question_question_review.py
+      - tests/capabilities/test_deep_question_lightweight_generation.py
+      - tests/services/test_render_presentation.py
+      - wx_miniprogram/tests/test_ai_message_state.js
+      - yousenwebview/tests/test_question_review_readonly_mcq.js
     schema_files:
       - deeptutor/capabilities/request_contracts.py
 
@@ -238,6 +246,7 @@ learning_state_inference:
   allowed_evidence_sources:
     - construction_grading
     - conversation_synthesis
+    - assessment_testset
   projections:
     - knowledge_state
     - ability_state

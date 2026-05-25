@@ -1954,6 +1954,27 @@ async def test_supabase_search_projects_teaching_metadata_into_answer(
     assert "支架立柱不得混用" in result["answer"]
 
 
+def test_exact_question_review_notes_project_numeric_pitfalls() -> None:
+    from deeptutor.services.rag.exact_authority import build_mcq_review_notes_from_exact_question
+
+    notes = build_mcq_review_notes_from_exact_question(
+        {
+            "answer_kind": "mcq",
+            "stem": "一般环境中，直接接触土体浇筑的构件，其钢筋的混凝土保护层厚度不应小于（ ）mm。",
+            "options": {"A": "55", "B": "60", "C": "65", "D": "70"},
+            "correct_answer": "D",
+            "analysis": "直接接触土体浇筑的构件，其混凝土保护层厚度不应小于70mm。",
+        }
+    )
+
+    assert notes["option_analysis"][0]["analysis"] == "55 低于标准值 70，不能满足题干中的“不应小于”要求。"
+    assert notes["option_analysis"][-1]["analysis"] == (
+        "70 对应题库标准答案；直接接触土体浇筑的构件，其混凝土保护层厚度不应小于70mm。"
+    )
+    assert "抓住标准答案对应的规范数值：D. 70。" in notes["scoring_points"]
+    assert notes["mnemonic"] == "直接接土先加厚，保护层记 70。"
+
+
 @pytest.mark.asyncio
 async def test_supabase_pipeline_embedding_cache_reuses_same_query_embedding(
     monkeypatch: pytest.MonkeyPatch,

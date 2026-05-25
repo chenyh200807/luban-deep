@@ -16,7 +16,11 @@ from typing import Any
 
 import pytest
 
-from deeptutor.services.question_lifecycle_skills import derive_question_lifecycle_scene
+from deeptutor.services.question_lifecycle_skills import (
+    derive_question_lifecycle_scene,
+    is_low_information_exam_query,
+    resolve_question_lifecycle_scene_decision,
+)
 
 
 @dataclass
@@ -39,11 +43,41 @@ def test_no_active_object_practice_intent_returns_practice_generation():
     assert derive_question_lifecycle_scene(ctx) == "practice_generation"
 
 
+def test_training_by_question_count_returns_practice_generation():
+    ctx = _FakeContext(user_message="用 3 道题训练项目质量计划管理")
+    assert derive_question_lifecycle_scene(ctx) == "practice_generation"
+
+
+def test_mastery_check_training_intent_wins_over_learning_report_phrase():
+    ctx = _FakeContext(user_message="项目质量计划管理这个点，帮我检验一下掌握情况")
+    assert derive_question_lifecycle_scene(ctx) == "practice_generation"
+
+
 def test_active_object_with_submission_returns_mcq_grading():
     ctx = _FakeContext(
         user_message="B",
         metadata={"question_followup_context": _mcq_followup_context()},
     )
+    assert derive_question_lifecycle_scene(ctx) == "mcq_grading"
+
+
+def test_active_question_set_with_batch_submission_returns_mcq_grading():
+    ctx = _FakeContext(
+        user_message="第1题：C；第2题：A；第3题：B",
+        metadata={
+            "question_followup_context": {
+                "question_id": "quiz_batch",
+                "question": "第1题...\n第2题...\n第3题...",
+                "question_type": "choice",
+                "items": [
+                    {"question_id": "q_1", "question": "题1", "question_type": "choice", "correct_answer": "C"},
+                    {"question_id": "q_2", "question": "题2", "question_type": "choice", "correct_answer": "A"},
+                    {"question_id": "q_3", "question": "题3", "question_type": "choice", "correct_answer": "D"},
+                ],
+            }
+        },
+    )
+
     assert derive_question_lifecycle_scene(ctx) == "mcq_grading"
 
 
@@ -132,6 +166,95 @@ def test_topic_qualified_real_exam_review_returns_question_review():
     """Topic words between "一道" and "真题" still mean a real-question review."""
     ctx = _FakeContext(user_message="分析一道验槽方法真题")
     assert derive_question_lifecycle_scene(ctx) == "question_review"
+
+
+@pytest.mark.parametrize("message", ["分析一道2025真题", "讲解一道历年真题", "解析一道防水真题"])
+def test_explicit_real_exam_review_action_is_not_low_information_query(message: str):
+    ctx = _FakeContext(user_message=message)
+
+    assert is_low_information_exam_query(message) is False
+    assert derive_question_lifecycle_scene(ctx) == "question_review"
+
+
+@pytest.mark.parametrize("message", ["2025真题", "历年真题", "防水真题", "2025真题有哪些", "2025真题答案"])
+def test_low_information_exam_query_is_not_question_review(message: str):
+    ctx = _FakeContext(user_message=message)
+
+    assert is_low_information_exam_query(message) is True
+    assert derive_question_lifecycle_scene(ctx) is None
+
+
+@pytest.mark.asyncio
+async def test_low_information_exam_query_business_gate_overrides_llm_review_candidate(monkeypatch):
+    async def _fake_complete(**kwargs):
+        assert "题目生命周期语义候选" in kwargs["system_prompt"]
+        return '{"scene":"question_review","confidence":0.91,"reason":"模型误以为用户要讲评真题"}'
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.complete", _fake_complete)
+
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(user_message="2025真题")
+    )
+
+    assert decision.scene is None
+    assert decision.source == "llm"
+    assert decision.confidence == pytest.approx(1.0)
+    assert decision.required_anchor_status == "missing_question_anchor"
+    assert decision.exact_question_blocked_reason == "low_information_exam_query"
+    assert decision.needs_clarification is True
+    assert decision.llm_scene_candidate == {
+        "scene": "question_review",
+        "confidence": pytest.approx(0.91),
+        "reason": "模型误以为用户要讲评真题",
+    }
+    assert decision.business_gate_result == "blocked_low_information_exam_query"
+
+
+@pytest.mark.asyncio
+async def test_unanchored_mcq_answer_returns_clarification_decision():
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(user_message="我选B")
+    )
+
+    assert decision.scene is None
+    assert decision.required_anchor_status == "missing_active_question"
+    assert decision.exact_question_blocked_reason == "unanchored_answer_submission"
+    assert decision.needs_clarification is True
+
+
+@pytest.mark.asyncio
+async def test_llm_scene_proposal_fills_semantic_practice_generation_gap(monkeypatch):
+    async def _fake_complete(**kwargs):
+        assert "scene" in kwargs["prompt"]
+        return '{"scene":"practice_generation","confidence":0.91,"reason":"用户想通过练习检验掌握"}'
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.complete", _fake_complete)
+
+    ctx = _FakeContext(user_message="项目质量计划管理这个点，帮我练到会")
+
+    assert derive_question_lifecycle_scene(ctx) is None
+    decision = await resolve_question_lifecycle_scene_decision(ctx)
+
+    assert decision.scene == "practice_generation"
+    assert decision.source == "llm"
+    assert decision.confidence == pytest.approx(0.91)
+
+
+@pytest.mark.asyncio
+async def test_llm_scene_proposal_fills_semantic_question_review_gap(monkeypatch):
+    async def _fake_complete(**kwargs):
+        assert "allowed_scenes" in kwargs["prompt"]
+        return '{"scene":"question_review","confidence":0.88,"reason":"用户想讲解一道已有题"}'
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.complete", _fake_complete)
+
+    ctx = _FakeContext(user_message="拿一道钢筋保护层题给我讲透")
+
+    assert derive_question_lifecycle_scene(ctx) is None
+    decision = await resolve_question_lifecycle_scene_decision(ctx)
+
+    assert decision.scene == "question_review"
+    assert decision.source == "llm"
 
 
 def test_scene_derivation_import_does_not_require_skill_loader_dependency():

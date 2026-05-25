@@ -64,6 +64,19 @@ langfuse_url = env_values.get('LANGFUSE_BASE_URL', '')
 if langfuse_enabled:
     if not langfuse_url:
         raise SystemExit('LANGFUSE_ENABLED=true 但缺少 LANGFUSE_BASE_URL。')
+    compose_ps = subprocess.run(
+        ['docker', 'compose', 'ps', '-q', 'deeptutor'],
+        cwd=str(remote_dir),
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
+        timeout=12,
+    )
+    container_id = compose_ps.stdout.strip().splitlines()[0] if compose_ps.stdout.strip() else ''
+    if not container_id:
+        details = (compose_ps.stderr or compose_ps.stdout or '').strip()
+        raise SystemExit(f'无法解析 deeptutor 容器 ID: {details}')
     probe = textwrap.dedent(
         f'''
         import socket
@@ -82,7 +95,7 @@ if langfuse_enabled:
         '''
     )
     result = subprocess.run(
-        ['docker', 'exec', 'deeptutor', 'python3', '-c', probe],
+        ['docker', 'exec', container_id, 'python3', '-c', probe],
         check=False,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,

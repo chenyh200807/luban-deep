@@ -303,6 +303,120 @@ def _build_mcq_pitfall_section(
     )
 
 
+def _numeric_value(text: str) -> int | None:
+    match = re.search(r"\d+", str(text or ""))
+    if not match:
+        return None
+    try:
+        return int(match.group(0))
+    except ValueError:
+        return None
+
+
+def _mcq_review_option_rows(
+    *,
+    normalized_answer: str,
+    option_values: dict[str, str],
+    option_analysis: dict[str, str],
+    summary: str,
+) -> list[dict[str, str]]:
+    correct_numbers = [
+        _numeric_value(option_values.get(letter, ""))
+        for letter in normalized_answer
+        if option_values.get(letter)
+    ]
+    correct_numbers = [value for value in correct_numbers if value is not None]
+    target_number = correct_numbers[0] if len(correct_numbers) == 1 else None
+    rows: list[dict[str, str]] = []
+    for letter in sorted(option_values):
+        option_text = option_values[letter]
+        is_correct = letter in normalized_answer
+        source_reason = option_analysis.get(letter, "").strip()
+        if source_reason:
+            analysis = source_reason
+        elif is_correct:
+            analysis = f"{option_text} 对应题库标准答案；{_sentence(summary)}"
+        else:
+            option_number = _numeric_value(option_text)
+            if target_number is not None and option_number is not None:
+                relation = "低于" if option_number < target_number else "高于"
+                analysis = (
+                    f"{option_text} {relation}标准值 {target_number}，"
+                    "不能满足题干中的“不应小于”要求。"
+                )
+            else:
+                analysis = f"{option_text} 与题库标准答案 {normalized_answer} 不一致，不能作为本题结论。"
+        rows.append(
+            {
+                "key": letter,
+                "verdict": "正确" if is_correct else "不正确",
+                "analysis": analysis,
+            }
+        )
+    return rows
+
+
+def build_mcq_review_notes_from_exact_question(exact_question: dict[str, Any]) -> dict[str, Any]:
+    """Project exact-question facts into the structured question-review payload.
+
+    This is a read projection of qbank/RAG authority. It does not decide scoring
+    truth; it only prevents the UI from inventing generic option explanations.
+    """
+
+    answer = str(exact_question.get("correct_answer") or "").strip()
+    normalized_answer = _normalize_mcq_answer_letters(answer)
+    option_values = _mcq_option_value_map(exact_question.get("options"))
+    analysis = _clean_exact_analysis_for_display(exact_question.get("analysis"))
+    summary, option_analysis = _split_mcq_analysis(analysis)
+    if not normalized_answer or not option_values:
+        return {}
+
+    correct_labels = [
+        f"{letter}. {option_values[letter]}"
+        for letter in normalized_answer
+        if option_values.get(letter)
+    ]
+    correct_text = "、".join(correct_labels) if correct_labels else normalized_answer
+    question = normalize_exact_authority_display_text(
+        exact_question.get("stem") or exact_question.get("question") or ""
+    )
+    scoring_subject = _sentence(question or "本题题干")
+    scoring_points = [
+        f"圈出题干对象：{scoring_subject}",
+        f"抓住标准答案对应的规范数值：{correct_text}。",
+        "逐项排除相近但不符合题库解析的干扰数值。",
+    ]
+
+    object_hint = "题干限定对象"
+    if "直接接触土体" in question or "直接接触土体" in summary:
+        object_hint = "直接接触土体浇筑的构件"
+    pitfalls = [
+        "把相近数值当成规范要求，忽略题干对象。",
+        f"只记住保护层厚度这一考点，没有锁定“{object_hint}”。",
+    ]
+
+    memory_value = ""
+    if len(normalized_answer) == 1 and option_values.get(normalized_answer):
+        memory_value = option_values[normalized_answer]
+    mnemonic = (
+        f"直接接土先加厚，保护层记 {memory_value}。"
+        if object_hint == "直接接触土体浇筑的构件" and memory_value
+        else f"先圈对象，再锁答案：{correct_text}。"
+    )
+
+    return {
+        "option_analysis": _mcq_review_option_rows(
+            normalized_answer=normalized_answer,
+            option_values=option_values,
+            option_analysis=option_analysis,
+            summary=summary,
+        ),
+        "scoring_points": scoring_points,
+        "pitfalls": pitfalls,
+        "mnemonic": mnemonic,
+    }
+
+
 def build_exact_authority_response(exact_question: dict[str, Any]) -> str:
     answer_kind = str(exact_question.get("answer_kind") or "").strip().lower()
     if answer_kind == "mcq":

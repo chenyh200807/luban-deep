@@ -7,6 +7,20 @@ export { BiSidePanel, type BiSidePanelProps } from "./BiSidePanel";
 export { BiStatusPill, type BiStatusPillProps } from "./BiStatusPill";
 export { BiMoneyCell, type BiMoneyCellProps } from "./BiMoneyCell";
 export {
+  BiButton,
+  BiDateTime,
+  BiIdToken,
+  BiNotice,
+  BiSelect,
+  compactBiToken,
+  formatBiDateTime,
+  type BiButtonProps,
+  type BiDateTimeProps,
+  type BiIdTokenProps,
+  type BiNoticeProps,
+  type BiSelectProps,
+} from "./BiPrimitives";
+export {
   BI_DENSITY,
   BI_STATUS_PILL_TONE,
   BI_SEVERITY_TONE,

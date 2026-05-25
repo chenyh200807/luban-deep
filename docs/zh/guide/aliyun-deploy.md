@@ -17,6 +17,7 @@
 - Observability 默认不走公网暴露；阿里云生产环境统一通过 SSH/localhost 抓取 `/metrics` 与 `/metrics/prometheus`。
 - 发布前必须先判断改动类型。只改 Python 后端、Prompt、YAML、路由且不涉及依赖时，优先走 `redeploy_aliyun_fast.sh`；不要手工在远端直接跑 `docker compose up -d --build deeptutor`。
 - 如果本地当前工作区很脏，但要发布的是已经提交并 push 的特定 commit，先从目标 commit 创建干净临时 worktree，再从该 worktree 执行同步/发布；不要在脏 `main` 上靠 `ALLOW_DIRTY_DEPLOY=1` 把无关文件一起带上阿里云。
+- `git status` 干净、`DEEPTUTOR_GIT_DIRTY=false` 只证明 Git tracked surface 干净，不证明发布面干净。任何本地 dry-run、审计、测试生成的 ignored 目录，例如 `artifacts/`、`.gstack/`、`.local-runs/`，必须同时被 `sync_to_aliyun.sh`、deploy manifest hash 和 `.dockerignore` 排除；否则仍可能被 `rsync` 或 Docker build context 带到 `/root/deeptutor`。
 - 紧急绕过护栏必须显式设置：
   - `ALLOW_DIRTY_DEPLOY=1`
   - `ALLOW_MAIN_BRANCH_DEPLOY=1`
@@ -27,6 +28,7 @@
 ```bash
 git branch --show-current
 git status --short
+git ls-files artifacts/
 python scripts/check_contract_guard.py
 python scripts/verify_runtime_assets.py
 ```
@@ -122,9 +124,10 @@ bash scripts/sync_to_aliyun.sh once
 - 目标目录固定为 `/root/deeptutor`
 - 默认目标主机固定为 `Aliyun-ECS-2`
 - dirty tree 或 `main` 会被脚本直接拒绝
-- 会排除 `.env`、`data/`、`.git`、`.github`、`.gstack`、`.local-runs`、`.venv`、`node_modules`、`dist`、测试报告和缓存目录
+- 会排除 `.env`、`data/`、`.git`、`.github`、`.gstack`、`.local-runs`、`.venv`、`node_modules`、`dist`、`artifacts`、测试报告和缓存目录
 - 这样不会覆盖服务器上已经生成的数据和密钥
-- 如果同步日志里出现本地代理状态目录、QA 运行目录或构建产物目录，例如 `.gstack`、`.local-runs`、`dist`，不要把它们留在 `/root/deeptutor`；先补 `sync_to_aliyun.sh` 的排除清单和 manifest hash 排除口径，再只在 `/root/deeptutor` 内清理误传目录。
+- 同步使用 checksum 比对，必须纠正远端源码漂移；不能只依赖时间戳判断文件是否需要覆盖。
+- 如果同步日志里出现本地代理状态目录、QA 运行目录、dry-run 产物或构建产物目录，例如 `.gstack`、`.local-runs`、`artifacts`、`dist`，不要把它们留在 `/root/deeptutor`；先补 `sync_to_aliyun.sh` 的排除清单、manifest hash 排除口径和 `.dockerignore`，再只在 `/root/deeptutor` 内清理误传目录。
 
 如果你想开发时持续同步：
 
@@ -202,6 +205,12 @@ Observability 验收不要打公网 `/metrics`。改用：
 
 ```bash
 bash scripts/verify_aliyun_observability.sh
+```
+
+如果本次发布前本地生成过 ignored 产物，还要确认它们没有进入远端发布面：
+
+```bash
+ssh Aliyun-ECS-2 'test ! -e /root/deeptutor/artifacts && echo remote_artifacts_absent'
 ```
 
 三条路径的区别：
@@ -544,39 +553,34 @@ PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/verify_aliyun_public
 bash scripts/verify_aliyun_observability.sh
 ```
 
-### 10. 2026-05-25 候选分支发布与 release lineage 对齐记录
+### 10. 2026-05-25 ignored artifacts 误入发布面
 
-这次从干净临时 clone 的候选分支 `codex/assessment-submit-writeback` 发布到阿里云。过程中出现过一次容易误判的状态：运行中容器已经是新镜像、新 `DEEPTUTOR_GIT_SHA`，但宿主机 `/root/deeptutor/.env` 一度显示旧的 `origin/main` SHA。原因不是服务未重启，而是发布后又发生了一次源码同步/lineage 写回，把宿主机 `.env` 的 release 字段覆盖回旧提交。以后汇报“已上线”前，不能只看容器 healthy，也不能只看宿主机 `.env`，必须同时核对两边。
+这次在干净候选分支发布 `99a5183bd680f1292c12f749f2c6c9b32c4cb7a4` 时，本地 `artifacts/assessment_testset/...` 是 gitignored 的审计产物，`git status` 仍然干净，远端 `.env` 也显示 `DEEPTUTOR_GIT_DIRTY=false`。但发布脚本当时只排除了 Git 和常见缓存目录，没有排除 `artifacts/`，所以第一次同步把这些本地审计产物带进了 `/root/deeptutor/artifacts`，Docker build context 也随之增大。
 
-必须同时核对：
+根因不是某个 assessment 目录本身，而是发布链路把“Git clean”误当成“release surface clean”。Git 是否跟踪、rsync 是否上传、Docker build context 是否包含，是三套边界，必须同时收口。
+
+已采取的脚本侧修复：
+
+- `scripts/sync_to_aliyun.sh` 的 `EXCLUDES` 增加 `artifacts`。
+- deploy manifest hash 的 `excluded_names` 增加 `artifacts`，避免 ignored 产物影响发布清单。
+- `clean_remote_deploy_noise()` 增加 `artifacts`，只在 `/root/deeptutor` 内清理历史误传目录。
+- `.dockerignore` 增加 `artifacts/`，避免审计产物进入 Docker build context。
+
+下次遇到同类情况，先做这组判断：
 
 ```bash
-# 宿主机源码副本的 release lineage
-ssh Aliyun-ECS-2 "cd /root/deeptutor && grep -E '^DEEPTUTOR_(GIT_SHA|RELEASE_ID|GIT_DIRTY)=' .env"
-
-# 当前运行容器真正加载的 release lineage
-ssh Aliyun-ECS-2 "docker inspect deeptutor --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -E '^DEEPTUTOR_(GIT_SHA|RELEASE_ID|GIT_DIRTY)='"
-
-# 容器健康与公网/观测验收
-ssh Aliyun-ECS-2 "cd /root/deeptutor && docker compose ps deeptutor"
-PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/verify_aliyun_public_endpoints.sh
-bash scripts/verify_aliyun_observability.sh
+git status --short --untracked-files=all
+git ls-files artifacts/
+git check-ignore artifacts 2>/dev/null || true
+ssh Aliyun-ECS-2 'test ! -e /root/deeptutor/artifacts && echo remote_artifacts_absent'
 ```
 
 判断规则：
 
-| 信号 | 是否阻断 | 判断 | 下次处理 |
-| --- | --- | --- | --- |
-| 容器 env 是目标 SHA，但宿主机 `.env` 仍是旧 SHA | 阻断发布结论，不一定阻断线上服务 | 当前运行态可能已是新代码，但下一次 reload/rebuild 会被旧 release lineage 误导 | 先回到干净候选分支，重新执行 `bash scripts/sync_to_aliyun.sh once`，再跑 `validate_aliyun_release_env.sh`、公网 endpoint、observability；不要直接宣称完成 |
-| 宿主机 `.env` 是目标 SHA，但容器 env 是旧 SHA | 阻断 | 源码副本已同步，但运行容器没有加载新镜像或没有重启成功 | 继续执行 `redeploy_aliyun_fast.sh` 或 `deploy_aliyun.sh`，直到容器 env、公网和 observability 全部一致 |
-| `docker compose ps` 显示 `healthy`，但 release SHA 不一致 | 阻断发布结论 | healthy 只表示服务活着，不表示运行的是目标版本 | 以 `DEEPTUTOR_GIT_SHA` 双向一致作为版本事实，再看公网/观测 |
-| `rsync` 同步成功，但容器内代码没有目标特征 | 阻断 | `/root/deeptutor` 不是容器 `/app` 的 bind mount，同步源码不等于运行态已更新 | 必须重建/重启容器，必要时用只读 `docker exec grep` 核对目标代码特征 |
-
-本次还暴露出三个构建/数据层经验：
-
-- Next.js 16 在远端 Linux/x64 生产构建中可能因缺少 Turbopack native binding 失败。生产 Docker build 应使用 `next build --webpack`；如果只是本地 dev 能跑，不能推断远端 Docker build 能过。
-- Web harness、测试 fixture、Node-only helper 不应在生产静态页面收集阶段被顶层 import。需要在确认 harness 启用后再动态 import，否则远端 `next build` 可能因为测试 fixture 解析失败而中断。
-- 部署脚本只同步代码、重建容器和验收公网/观测，不会自动执行 Supabase migration。若某个功能新增表并由 env flag 打开，例如 `ASSESSMENT_SESSIONS_USE_SUPABASE`，发布报告必须单独说明 migration 是否已 apply；不要把“migration 文件已同步到 `/root/deeptutor`”等同于“生产库已迁移”。
+- `git ls-files artifacts/` 必须为空；如果不为空，说明产物已经进入 Git tracked surface，必须先停下处理。
+- `git check-ignore artifacts` 只能证明 Git 会忽略它，不能证明发布脚本会忽略它。
+- 如果远端已经出现 `/root/deeptutor/artifacts`，清理命令只能写 `/root/deeptutor` 内；不得为了临时中转或备份写 `/tmp`、`/root/luban`、`/var` 或系统目录。
+- 清理后必须重新发布并确认 Docker build context 回落到合理体量；不要只删远端目录后直接宣布上线完成。
 
 ## 回滚步骤
 

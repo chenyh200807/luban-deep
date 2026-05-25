@@ -32,13 +32,13 @@ const SECTIONS: BiSideNavItem<BiV2Section>[] = [
   {
     key: 'commerce',
     label: '商品账务',
-    summary: '套餐、充值订单、钱包流水、账务异常队列。',
+    summary: '套餐权益、入账流水、钱包流水、账务异常队列。',
     icon: ShoppingBag,
   },
   {
     key: 'feedback',
     label: '反馈中心',
-    summary: 'AI 消息反馈 / 内测 / 备注聚合，open / triaged / ignored。',
+    summary: 'AI 消息反馈与内测申请池，标记已看 / 忽略 / 归档。',
     icon: MessageSquareWarning,
   },
   {
@@ -205,10 +205,10 @@ function BiV2AuthenticatedSurface({
             leftSlot={api.hamburger}
             brand={
               <>
-                <span className="rounded bg-slate-900 px-1.5 py-0.5 text-[10px] text-white">
+                <span className="rounded-lg bg-white px-1.5 py-0.5 text-[10px] font-black text-slate-950">
                   BI v2
                 </span>
-                <span className="hidden text-slate-700 sm:inline">会员经营后台</span>
+                <span className="hidden text-slate-100 sm:inline">会员经营后台</span>
               </>
             }
             actor={currentSearchActor ?? `actor: ${identity.displayName} · admin`}
@@ -224,15 +224,18 @@ function BiV2AuthenticatedSurface({
               if (isSectionEnabled(key, flags)) api.closeNav()
             }}
             footer={
-              <div className="rounded bg-amber-50 px-2 py-1.5 text-[11px] leading-snug text-amber-800 ring-1 ring-amber-200">
-                BI v2 Shell · 仅可用模块允许进入，待接入模块不会展示半成品数据。
+              <div className="rounded-2xl border border-amber-300/20 bg-amber-300/10 px-3 py-3 text-[11px] leading-snug text-amber-100">
+                <span className="font-semibold">BI v2 Shell</span>
+                <span className="mt-0.5 block">
+                  仅可用模块允许进入，待接入模块不会展示半成品数据。
+                </span>
               </div>
             }
           />
         )}
         pageTitle={current.label}
         pageSummary={current.summary}
-        footer="一级导航固定 5 主区 · 对话回顾归入会员运营 · 账务异常归入商品账务行动条 · 关闭 BI_BACKOFFICE_V2_SHELL_ENABLED 后回到旧 /bi。"
+        footer="一级导航固定 5 主区 · 当前仅展示已接入的真实读模型，技术口径在模块详情中查看。"
       >
         {panel}
       </BiAppShell>

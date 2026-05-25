@@ -82,6 +82,105 @@ async def test_orchestrator_autoroutes_natural_one_question_phrase_to_deep_quest
 
 
 @pytest.mark.asyncio
+async def test_orchestrator_routes_training_by_question_count_as_practice_generation() -> None:
+    """`用 3 道题训练 X` is a test-me request, not a question-review request."""
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-training-by-count",
+        user_message="用 3 道题训练项目质量计划管理",
+        config_overrides={"mode": "deep"},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.metadata["question_lifecycle_scene"] == "practice_generation"
+    assert context.metadata["question_lifecycle_skill_names"] == [
+        "construction-exam-tutor",
+        "construction-question-supply",
+    ]
+    assert context.config_overrides["force_generate_questions"] is True
+    assert context.config_overrides["num_questions"] == 3
+    assert context.config_overrides["reveal_answers"] is False
+    assert context.config_overrides["reveal_explanations"] is False
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_uses_llm_scene_proposal_for_semantic_practice_request(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    async def _fake_complete(**kwargs):
+        assert "题目生命周期语义候选" in kwargs["system_prompt"]
+        return '{"scene":"practice_generation","confidence":0.89,"reason":"语义上是练题请求"}'
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.complete", _fake_complete)
+
+    context = UnifiedContext(
+        session_id="s-llm-scene-practice",
+        user_message="项目质量计划管理这个点，帮我练到会",
+        config_overrides={},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.metadata["question_lifecycle_scene"] == "practice_generation"
+    assert context.metadata["question_lifecycle_scene_source"] == "llm"
+    assert context.metadata["question_lifecycle_skill_names"] == [
+        "construction-exam-tutor",
+        "construction-question-supply",
+    ]
+    assert context.config_overrides["force_generate_questions"] is True
+    assert context.config_overrides["reveal_answers"] is False
+    assert context.config_overrides["reveal_explanations"] is False
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_uses_llm_scene_proposal_for_semantic_question_review(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    async def _fake_complete(**kwargs):
+        assert "题目生命周期语义候选" in kwargs["system_prompt"]
+        return '{"scene":"question_review","confidence":0.9,"reason":"语义上是题目讲评请求"}'
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.complete", _fake_complete)
+
+    context = UnifiedContext(
+        session_id="s-llm-scene-review",
+        user_message="拿一道钢筋保护层题给我讲透",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.metadata["question_lifecycle_scene"] == "question_review"
+    assert context.metadata["question_lifecycle_scene_source"] == "llm"
+    assert context.metadata["question_lifecycle_skill_names"] == [
+        "construction-exam-tutor",
+        "construction-question-review",
+    ]
+    assert "force_generate_questions" not in context.config_overrides
+
+
+@pytest.mark.asyncio
 async def test_orchestrator_routes_short_acceptance_of_recent_practice_offer_to_deep_question() -> None:
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()
@@ -164,6 +263,39 @@ async def test_orchestrator_uses_tutorbot_as_default_chat_engine_after_semantic_
 
 
 @pytest.mark.asyncio
+async def test_orchestrator_still_records_lifecycle_decision_with_active_context() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-active-context-support",
+        user_message="我学不动了",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={
+            "active_object": {
+                "object_type": "open_chat_topic",
+                "object_id": "topic-1",
+                "scope": {"domain": "session", "session_id": "s-active-context-support"},
+                "state_snapshot": {"title": "主体结构", "status": "idle"},
+                "version": 1,
+            }
+        },
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "tutorbot"
+    assert context.metadata["question_lifecycle_scene"] == "learning_support"
+    assert context.metadata["question_lifecycle_decision"]["scene"] == "learning_support"
+    assert context.metadata["selected_skill_names"] == [
+        "construction-exam-tutor",
+        "construction-learning-support",
+    ]
+
+
+@pytest.mark.asyncio
 async def test_orchestrator_materializes_free_text_real_exam_review_before_explaining() -> None:
     """A request like "分析一道真题" must create a question object first.
 
@@ -188,11 +320,130 @@ async def test_orchestrator_materializes_free_text_real_exam_review_before_expla
 
     assert registry.captured[0] == "deep_question"
     assert context.metadata["question_lifecycle_scene"] == "question_review"
-    assert context.config_overrides["force_generate_questions"] is True
-    assert context.config_overrides["reveal_answers"] is True
-    assert context.config_overrides["reveal_explanations"] is True
+    assert "force_generate_questions" not in context.config_overrides
+    assert "reveal_answers" not in context.config_overrides
+    assert "reveal_explanations" not in context.config_overrides
+    assert "question_review_mode" not in context.config_overrides
+    assert context.config_overrides["topic"] == "分析一道验槽方法真题"
+    assert context.metadata["question_lifecycle_skill_names"] == [
+        "construction-exam-tutor",
+        "construction-question-review",
+    ]
+    assert context.metadata["trace_metadata"]["question_lifecycle_scene"] == "question_review"
     result = next(event for event in events if event.type.value == "result")
     assert result.metadata["capability"] == "auto"
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_lifecycle_runs_before_preselected_tutorbot_for_question_review() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-preselected-tutorbot-review",
+        active_capability="tutorbot",
+        user_message="分析一道钢筋保护层真题",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.metadata["question_lifecycle_scene"] == "question_review"
+    assert context.metadata["question_lifecycle_decision"]["decision_source"] == "deterministic"
+    assert context.metadata["selected_skill_names"] == [
+        "construction-exam-tutor",
+        "construction-question-review",
+    ]
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_allows_explicit_year_real_exam_review_after_low_info_gate() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-year-real-exam-review",
+        active_capability="tutorbot",
+        user_message="分析一道2025真题",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.metadata["question_lifecycle_scene"] == "question_review"
+    assert context.metadata["required_anchor_status"] == "satisfied"
+    assert context.metadata.get("exact_question_blocked_reason") is None
+    assert context.metadata["selected_skill_names"] == [
+        "construction-exam-tutor",
+        "construction-question-review",
+    ]
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_clears_stale_exact_question_block_when_anchor_is_present() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-clear-stale-block",
+        active_capability="tutorbot",
+        user_message="分析一道钢筋保护层真题",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={
+            "exact_question_blocked_reason": "low_information_exam_query",
+            "trace_metadata": {"exact_question_blocked_reason": "low_information_exam_query"},
+        },
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.metadata["question_lifecycle_scene"] == "question_review"
+    assert "exact_question_blocked_reason" not in context.metadata
+    assert "exact_question_blocked_reason" not in context.metadata["trace_metadata"]
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_marks_low_information_exam_query_without_exact_authority() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-low-info-exam-query",
+        active_capability="tutorbot",
+        user_message="2025真题",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "tutorbot"
+    assert context.metadata["question_lifecycle_scene"] is None
+    assert context.metadata["question_lifecycle_decision"].items() >= {
+        "scene": None,
+        "scene_confidence": 1.0,
+        "reason": "low-information exam query needs clarification",
+        "required_anchor_status": "missing_question_anchor",
+        "exact_question_blocked_reason": "low_information_exam_query",
+        "needs_clarification": True,
+        "business_gate_result": "blocked_low_information_exam_query",
+    }.items()
+    assert context.metadata["question_lifecycle_decision"]["selected_skill_names"] == []
+    assert context.metadata["exact_question_blocked_reason"] == "low_information_exam_query"
+    assert context.metadata["trace_metadata"]["exact_question_blocked_reason"] == "low_information_exam_query"
 
 
 @pytest.mark.asyncio
@@ -501,6 +752,7 @@ async def test_orchestrator_autoroutes_batch_submission_to_deep_question() -> No
     _ = [event async for event in orchestrator.handle(context)]
 
     assert registry.captured[0] == "deep_question"
+    assert context.metadata["question_lifecycle_scene"] == "mcq_grading"
     graded = context.metadata["question_followup_context"]
     assert graded["items"][0]["user_answer"] == "C"
     assert graded["items"][0]["is_correct"] is True

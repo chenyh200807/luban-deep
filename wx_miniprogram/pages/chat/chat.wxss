@@ -1246,6 +1246,115 @@
 }
 .mcq-opt.sel .mcq-key { background: #3b82f6; color: #fff; }
 .mcq-val { font-size: 27rpx; color: rgba(226,232,240,0.85); line-height: 1.5; }
+.mcq-review-notes {
+  margin-top: 6rpx;
+  padding: 18rpx;
+  border-radius: 18rpx;
+  background: rgba(34,197,94,0.08);
+  border: 1rpx solid rgba(34,197,94,0.22);
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+}
+.mcq-review-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14rpx;
+}
+.mcq-review-row-analysis {
+  flex-direction: column;
+  gap: 8rpx;
+}
+.mcq-review-think,
+.mcq-review-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+.mcq-review-label {
+  flex-shrink: 0;
+  font-size: 22rpx;
+  font-weight: 800;
+  color: #7dd3fc;
+}
+.mcq-review-answer {
+  font-size: 28rpx;
+  font-weight: 900;
+  color: #bbf7d0;
+  line-height: 1.45;
+}
+.mcq-review-analysis {
+  font-size: 25rpx;
+  font-weight: 650;
+  color: rgba(226,232,240,0.92);
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+.mcq-review-option {
+  display: flex;
+  gap: 12rpx;
+  padding: 12rpx;
+  border-radius: 14rpx;
+  background: rgba(15,23,42,0.34);
+  border: 1rpx solid rgba(148,163,184,0.14);
+}
+.mcq-review-option-key {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 12rpx;
+  background: rgba(96,165,250,0.16);
+  color: #bfdbfe;
+  font-size: 24rpx;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.mcq-review-option-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+.mcq-review-option-verdict {
+  font-size: 24rpx;
+  font-weight: 850;
+  color: #bbf7d0;
+}
+.mcq-review-option-text {
+  font-size: 23rpx;
+  color: rgba(226,232,240,0.72);
+  line-height: 1.45;
+}
+.mcq-review-option-analysis {
+  font-size: 24rpx;
+  color: rgba(226,232,240,0.9);
+  line-height: 1.55;
+}
+.mcq-review-chip {
+  display: block;
+  padding: 10rpx 12rpx;
+  border-radius: 12rpx;
+  background: rgba(14,165,233,0.13);
+  color: #bae6fd;
+  font-size: 24rpx;
+  line-height: 1.45;
+}
+.mcq-review-chip.danger {
+  background: rgba(251,113,133,0.12);
+  color: #fecdd3;
+}
+.mcq-review-mnemonic {
+  padding: 14rpx;
+  border-radius: 14rpx;
+  background: rgba(250,204,21,0.12);
+  color: #fde68a;
+  font-size: 26rpx;
+  font-weight: 850;
+  line-height: 1.5;
+}
 .mcq-submit {
   margin-top: 4rpx; padding: 18rpx 24rpx; border-radius: 16rpx;
   background: linear-gradient(135deg, rgba(37,99,235,0.92), rgba(59,130,246,0.92));
@@ -1732,6 +1841,36 @@
 .page.light .mcq-opt.sel { border-color: #2f6bff; background: #eef4ff; }
 .page.light .mcq-opt.sel .mcq-key { background: #2f6bff; color: #fff; }
 .page.light .mcq-val { color: #334155; }
+.page.light .mcq-review-notes {
+  background: #ecfdf5;
+  border-color: #bbf7d0;
+}
+.page.light .mcq-review-label { color: #0369a1; }
+.page.light .mcq-review-answer { color: #047857; }
+.page.light .mcq-review-analysis { color: #334155; }
+.page.light .mcq-review-option {
+  background: #f8fafc;
+  border-color: #dbe6f5;
+}
+.page.light .mcq-review-option-key {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+.page.light .mcq-review-option-verdict { color: #047857; }
+.page.light .mcq-review-option-text { color: #64748b; }
+.page.light .mcq-review-option-analysis { color: #334155; }
+.page.light .mcq-review-chip {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+.page.light .mcq-review-chip.danger {
+  background: #ffe4e6;
+  color: #be123c;
+}
+.page.light .mcq-review-mnemonic {
+  background: #fef3c7;
+  color: #92400e;
+}
 .page.light .mcq-submit {
   background: linear-gradient(135deg, #2f6bff, #4f86ff);
   box-shadow: 0 12rpx 28rpx rgba(47,107,255,0.18);

@@ -7,6 +7,7 @@ from deeptutor.services.observability.turn_event_log import TurnEventLog
 from deeptutor.services.session.turn_runtime import (
     _append_trace_link_event,
     _build_terminal_turn_observation_event,
+    _summarize_assistant_events,
 )
 
 
@@ -85,6 +86,46 @@ def test_trace_link_event_persists_turn_trace_identity_for_feedback() -> None:
             "visibility": "internal",
         }
     ]
+
+
+def test_assistant_event_summary_keeps_skill_observability_metadata() -> None:
+    summary = _summarize_assistant_events(
+        [
+            {
+                "type": "result",
+                "metadata": {
+                    "question_lifecycle_scene": "learning_summary",
+                    "skill_stack": [
+                        "construction-exam-tutor",
+                        "construction-learning-evidence-story",
+                    ],
+                    "skill_trace": [
+                        {
+                            "name": "construction-learning-evidence-story",
+                            "kind": "question_lifecycle",
+                            "status": "loaded",
+                            "source": "workspace",
+                        }
+                    ],
+                    "loader_source": {"construction-learning-evidence-story": "workspace"},
+                    "skill_source_status": {
+                        "complete": True,
+                        "missing_skills": [],
+                        "missing_assets": [],
+                    },
+                },
+            }
+        ]
+    )
+
+    assert summary["question_lifecycle_scene"] == "learning_summary"
+    assert summary["skill_stack"] == [
+        "construction-exam-tutor",
+        "construction-learning-evidence-story",
+    ]
+    assert summary["skill_trace"][0]["name"] == "construction-learning-evidence-story"
+    assert summary["loader_source"]["construction-learning-evidence-story"] == "workspace"
+    assert summary["skill_source_status"]["complete"] is True
 
 
 def test_terminal_turn_event_flows_to_snapshot_and_oa_via_persisted_latest(tmp_path) -> None:

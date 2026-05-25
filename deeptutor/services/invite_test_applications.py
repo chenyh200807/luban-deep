@@ -27,6 +27,34 @@ _SELECT_COLUMNS = (
     "submit_count,raw_payload"
 )
 _REQUIRED_FIELDS = ("name", "phone", "email", "wechat_id", "exam_type", "exam_stage", "pain_point", "weekly_time")
+_EDITABLE_COLUMN_FIELDS = {
+    "name",
+    "phone",
+    "email",
+    "wechat_id",
+    "exam_type",
+    "exam_stage",
+    "pain_point",
+    "weekly_time",
+    "current_method",
+    "latest_wrong_question",
+    "is_yousen_member",
+    "exam_date",
+    "accept_interview",
+    "status",
+    "operator_note",
+}
+_EDITABLE_RAW_FIELDS = {
+    "province",
+    "age_range",
+    "education",
+    "occupation",
+    "preparation_years",
+    "knowledge_foundation",
+    "daily_study_time",
+    "study_difficulties",
+}
+_STATUS_VALUES = {"submitted", "contacted", "accepted", "rejected", "waitlisted", "archived"}
 _MAX_LENGTHS = {
     "name": 80,
     "phone": 24,
@@ -51,6 +79,7 @@ _MAX_LENGTHS = {
     "source_page": 120,
     "utm_source": 120,
     "utm_campaign": 120,
+    "operator_note": 1000,
 }
 _CAMEL_KEYS = {
     "source_page": "sourcePage",
@@ -221,6 +250,41 @@ def build_invite_test_application_record(payload: Mapping[str, Any]) -> dict[str
     return record
 
 
+def normalize_invite_test_application_update(payload: Mapping[str, Any]) -> dict[str, Any]:
+    patch: dict[str, Any] = {}
+    editable = _EDITABLE_COLUMN_FIELDS | _EDITABLE_RAW_FIELDS
+    for key in editable:
+        value = _payload_value(payload, key)
+        if value is None:
+            continue
+        if key == "accept_interview":
+            patch[key] = _bool(value)
+            continue
+        if key == "status":
+            normalized_status = _clean_string(value, 40).lower()
+            if normalized_status not in _STATUS_VALUES:
+                allowed = ", ".join(sorted(_STATUS_VALUES))
+                raise InviteTestApplicationValidationError(f"status must be one of {allowed}")
+            patch[key] = normalized_status
+            continue
+        max_length = _MAX_LENGTHS.get(key, 500)
+        cleaned = _clean_string(value, max_length)
+        if key in _REQUIRED_FIELDS and not cleaned:
+            raise InviteTestApplicationValidationError(f"{_CAMEL_KEYS.get(key, key)} cannot be empty")
+        if key == "phone":
+            cleaned = cleaned.replace(" ", "")
+            if not cleaned.isdigit() or len(cleaned) != 11 or not cleaned.startswith("1"):
+                raise InviteTestApplicationValidationError("手机号格式不正确。")
+        if key == "email":
+            cleaned = cleaned.lower()
+            if "@" not in cleaned or "." not in cleaned.rsplit("@", 1)[-1]:
+                raise InviteTestApplicationValidationError("邮箱格式不正确。")
+        patch[key] = cleaned
+    if not patch:
+        raise InviteTestApplicationValidationError("No editable invite-test application fields supplied")
+    return patch
+
+
 def _parse_created_at(value: Any) -> datetime | None:
     text = _text(value)
     if not text:
@@ -363,7 +427,8 @@ class InviteTestApplicationStore:
 
     async def get_stats(self, *, days: int = 365) -> dict[str, Any]:
         storage_status, rows = await self._load_rows(days=days)
-        normalized = [normalize_invite_test_application(row, reveal_contact=False) for row in rows]
+        visible_rows = self._filter_rows(rows)
+        normalized = [normalize_invite_test_application(row, reveal_contact=False) for row in visible_rows]
         status_counter = Counter(item["status"] or "submitted" for item in normalized)
         source_counter = Counter(item["source_page"] or "unknown" for item in normalized)
         exam_type_counter = Counter(item["exam_type"] or "unknown" for item in normalized)
@@ -432,6 +497,55 @@ class InviteTestApplicationStore:
         if last_error is not None:
             raise RuntimeError("申请提交通道暂时不可用，请稍后再试。") from last_error
         raise RuntimeError("申请提交通道未配置，请稍后再试。")
+
+    async def update_application(self, application_id: str, payload: Mapping[str, Any]) -> dict[str, Any]:
+        normalized_id = _text(application_id)
+        if not normalized_id:
+            raise InviteTestApplicationValidationError("application_id is required")
+        patch = normalize_invite_test_application_update(payload)
+        attempted: list[str] = []
+        last_error: Exception | None = None
+        if self.is_supabase_configured:
+            attempted.append("supabase")
+            try:
+                result = await self._update_supabase_record(normalized_id, patch)
+                return {"storage_status": "supabase", **result}
+            except KeyError:
+                raise
+            except Exception as exc:
+                last_error = exc
+        if self.is_database_configured:
+            attempted.append("database")
+            try:
+                result = await self._update_database_record(normalized_id, patch)
+                storage_status = "database"
+                if attempted and attempted[0] == "supabase":
+                    storage_status = "supabase_error_database_fallback"
+                return {"storage_status": storage_status, **result}
+            except KeyError:
+                raise
+            except Exception as exc:
+                last_error = exc
+        try:
+            result = self._update_jsonl_record(normalized_id, patch)
+            if attempted == ["supabase", "database"]:
+                storage_status = "supabase_database_error_jsonl_fallback"
+            elif attempted == ["supabase"]:
+                storage_status = "supabase_error_jsonl_fallback"
+            elif attempted == ["database"]:
+                storage_status = "database_error_jsonl_fallback"
+            else:
+                storage_status = "jsonl_fallback"
+            return {"storage_status": storage_status, **result}
+        except KeyError:
+            if attempted and last_error is not None:
+                raise RuntimeError("内测申请更新通道暂时不可用，请稍后再试。") from last_error
+            raise
+        except Exception as exc:
+            last_error = exc
+        if last_error is not None:
+            raise RuntimeError("内测申请更新通道暂时不可用，请稍后再试。") from last_error
+        raise RuntimeError("内测申请更新通道未配置，请稍后再试。")
 
     async def _load_rows(self, *, days: int) -> tuple[str, list[dict[str, Any]]]:
         safe_days = max(1, min(int(days or 365), 3650))
@@ -504,12 +618,51 @@ class InviteTestApplicationStore:
         payload = response.json()
         return len(payload) if isinstance(payload, list) else 0
 
+    async def _load_supabase_row_by_id(self, application_id: str) -> dict[str, Any]:
+        client = await self._get_client()
+        response = await client.get(
+            f"{self._base_url.rstrip('/')}/rest/v1/invite_test_applications",
+            headers=_supabase_rest_headers(self._service_key),
+            params={"select": _SELECT_COLUMNS, "id": f"eq.{application_id}", "limit": "1"},
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if not isinstance(payload, list) or not payload:
+            raise KeyError(application_id)
+        item = payload[0]
+        if not isinstance(item, dict):
+            raise KeyError(application_id)
+        return dict(item)
+
+    async def _update_supabase_record(self, application_id: str, patch: Mapping[str, Any]) -> dict[str, Any]:
+        before = await self._load_supabase_row_by_id(application_id)
+        storage_patch = self._storage_patch(before, patch)
+        client = await self._get_client()
+        response = await client.patch(
+            f"{self._base_url.rstrip('/')}/rest/v1/invite_test_applications",
+            headers=_supabase_rest_headers(self._service_key, prefer="return=representation"),
+            params={"id": f"eq.{application_id}", "select": _SELECT_COLUMNS},
+            json=storage_patch,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if not isinstance(payload, list) or not payload or not isinstance(payload[0], dict):
+            raise KeyError(application_id)
+        after = dict(payload[0])
+        return {
+            "before": normalize_invite_test_application(before, reveal_contact=True),
+            "after": normalize_invite_test_application(after, reveal_contact=True),
+        }
+
     async def _load_database_rows(self, *, days: int) -> list[dict[str, Any]]:
         created_after = datetime.now(timezone.utc) - timedelta(days=days)
         return await asyncio.to_thread(self._load_database_rows_sync, created_after)
 
     async def _save_database_record(self, record: dict[str, Any]) -> None:
         await asyncio.to_thread(self._save_database_record_sync, record)
+
+    async def _update_database_record(self, application_id: str, patch: Mapping[str, Any]) -> dict[str, Any]:
+        return await asyncio.to_thread(self._update_database_record_sync, application_id, patch)
 
     def _load_database_rows_sync(self, created_after: datetime) -> list[dict[str, Any]]:
         try:
@@ -597,6 +750,99 @@ class InviteTestApplicationStore:
         finally:
             conn.close()
 
+    def _update_database_record_sync(self, application_id: str, patch: Mapping[str, Any]) -> dict[str, Any]:
+        try:
+            import psycopg
+            from psycopg.rows import dict_row
+        except ImportError:
+            return self._update_database_record_sync_psycopg2(application_id, patch)
+
+        with psycopg.connect(
+            self._database_url,
+            row_factory=dict_row,
+            connect_timeout=max(1, int(self._timeout_s)),
+        ) as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    f"select {_SELECT_COLUMNS} from public.invite_test_applications where id = %s",
+                    (application_id,),
+                )
+                before = cursor.fetchone()
+                if not before:
+                    raise KeyError(application_id)
+                storage_patch = self._storage_patch(dict(before), patch)
+                assignments = [
+                    f"{key} = %s::jsonb" if key == "raw_payload" else f"{key} = %s"
+                    for key in storage_patch
+                ]
+                values = [
+                    json.dumps(value, ensure_ascii=False) if key == "raw_payload" else value
+                    for key, value in storage_patch.items()
+                ]
+                cursor.execute(
+                    f"""
+                    update public.invite_test_applications
+                    set {", ".join(assignments)}
+                    where id = %s
+                    returning {_SELECT_COLUMNS}
+                    """,
+                    (*values, application_id),
+                )
+                after = cursor.fetchone()
+            conn.commit()
+        if not after:
+            raise KeyError(application_id)
+        return {
+            "before": normalize_invite_test_application(dict(before), reveal_contact=True),
+            "after": normalize_invite_test_application(dict(after), reveal_contact=True),
+        }
+
+    def _update_database_record_sync_psycopg2(self, application_id: str, patch: Mapping[str, Any]) -> dict[str, Any]:
+        try:
+            import psycopg2
+            from psycopg2.extras import RealDictCursor
+        except ImportError as exc:
+            raise RuntimeError("psycopg is required for invite-test DB URL writes") from exc
+
+        conn = psycopg2.connect(self._database_url, connect_timeout=max(1, int(self._timeout_s)))
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(
+                    f"select {_SELECT_COLUMNS} from public.invite_test_applications where id = %s",
+                    (application_id,),
+                )
+                before = cursor.fetchone()
+                if not before:
+                    raise KeyError(application_id)
+                storage_patch = self._storage_patch(dict(before), patch)
+                assignments = [
+                    f"{key} = %s::jsonb" if key == "raw_payload" else f"{key} = %s"
+                    for key in storage_patch
+                ]
+                values = [
+                    json.dumps(value, ensure_ascii=False) if key == "raw_payload" else value
+                    for key, value in storage_patch.items()
+                ]
+                cursor.execute(
+                    f"""
+                    update public.invite_test_applications
+                    set {", ".join(assignments)}
+                    where id = %s
+                    returning {_SELECT_COLUMNS}
+                    """,
+                    (*values, application_id),
+                )
+                after = cursor.fetchone()
+            conn.commit()
+        finally:
+            conn.close()
+        if not after:
+            raise KeyError(application_id)
+        return {
+            "before": normalize_invite_test_application(dict(before), reveal_contact=True),
+            "after": normalize_invite_test_application(dict(after), reveal_contact=True),
+        }
+
     @staticmethod
     def _insert_sql() -> str:
         return """
@@ -669,6 +915,63 @@ class InviteTestApplicationStore:
             handle.write(json.dumps(record, ensure_ascii=False) + "\n")
         return True
 
+    def _update_jsonl_record(self, application_id: str, patch: Mapping[str, Any]) -> dict[str, Any]:
+        if is_production_environment() and not self._jsonl_path:
+            raise RuntimeError("JSONL invite-test updates are disabled in production")
+        for path in self._candidate_jsonl_paths():
+            if not path.exists():
+                continue
+            rows: list[dict[str, Any]] = []
+            before: dict[str, Any] | None = None
+            after: dict[str, Any] | None = None
+            for line in path.read_text(encoding="utf-8").splitlines():
+                try:
+                    item = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if not isinstance(item, dict):
+                    continue
+                if _text(_field(item, "id")) == application_id:
+                    before = dict(item)
+                    after = self._apply_patch_to_row(item, patch)
+                    rows.append(after)
+                else:
+                    rows.append(item)
+            if before is None or after is None:
+                continue
+            path.write_text(
+                "\n".join(json.dumps(row, ensure_ascii=False) for row in rows) + "\n",
+                encoding="utf-8",
+            )
+            return {
+                "before": normalize_invite_test_application(before, reveal_contact=True),
+                "after": normalize_invite_test_application(after, reveal_contact=True),
+            }
+        raise KeyError(application_id)
+
+    @staticmethod
+    def _apply_patch_to_row(row: Mapping[str, Any], patch: Mapping[str, Any]) -> dict[str, Any]:
+        updated = dict(row)
+        raw_payload = dict(_raw_payload(row))
+        for key, value in patch.items():
+            if key in _EDITABLE_COLUMN_FIELDS:
+                updated[key] = value
+            if key in _EDITABLE_COLUMN_FIELDS or key in _EDITABLE_RAW_FIELDS:
+                raw_payload[_CAMEL_KEYS.get(key, key)] = value
+        updated["raw_payload"] = raw_payload
+        updated.pop("rawPayload", None)
+        return updated
+
+    def _storage_patch(self, before: Mapping[str, Any], patch: Mapping[str, Any]) -> dict[str, Any]:
+        updated = self._apply_patch_to_row(before, patch)
+        storage_patch = {
+            key: updated[key]
+            for key in _EDITABLE_COLUMN_FIELDS
+            if key in patch and key in updated
+        }
+        storage_patch["raw_payload"] = dict(_raw_payload(updated))
+        return storage_patch
+
     def _candidate_jsonl_paths(self) -> list[Path]:
         if self._jsonl_path:
             return [Path(self._jsonl_path)]
@@ -687,7 +990,10 @@ class InviteTestApplicationStore:
         query = _text(q).lower()
         result: list[dict[str, Any]] = []
         for row in rows:
-            if status_filter and _text(_field(row, "status")).lower() != status_filter:
+            row_status = _text(_field(row, "status")).lower()
+            if not status_filter and row_status == "archived":
+                continue
+            if status_filter and row_status != status_filter:
                 continue
             if source_filter and _text(_field(row, "source_page", "sourcePage")).lower() != source_filter:
                 continue

@@ -1,12 +1,28 @@
 /* eslint-disable i18n/no-literal-ui-text */
 'use client'
 
-import { ArrowDownRight, ArrowUpRight, Minus, RefreshCw, ShieldAlert } from 'lucide-react'
+import {
+  ArrowDownRight,
+  ArrowRight,
+  ArrowUpRight,
+  CircleDollarSign,
+  ClipboardCheck,
+  LineChart,
+  Minus,
+  Radar,
+  RefreshCw,
+  ShieldAlert,
+  Target,
+  Users,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
+  BiButton,
   BiSidePanel,
   BiStatusPill,
   BiMoneyCell,
+  BiNotice,
   BiV2DataSourceBanner,
   BI_TRUST_TONE,
   BI_SEVERITY_TONE,
@@ -140,9 +156,9 @@ function inferTrend(
 }
 
 function TrendIcon({ trend }: { trend: 'up' | 'down' | 'flat' }) {
-  if (trend === 'up') return <ArrowUpRight className="h-4 w-4 text-emerald-600" aria-hidden />
-  if (trend === 'down') return <ArrowDownRight className="h-4 w-4 text-rose-600" aria-hidden />
-  return <Minus className="h-4 w-4 text-slate-500" aria-hidden />
+  if (trend === 'up') return <ArrowUpRight className="h-4 w-4 text-emerald-300" aria-hidden />
+  if (trend === 'down') return <ArrowDownRight className="h-4 w-4 text-rose-300" aria-hidden />
+  return <Minus className="h-4 w-4 text-slate-400" aria-hidden />
 }
 
 const ALERT_LEVEL_TO_SEVERITY: Record<string, 'critical' | 'high' | 'medium' | 'low'> = {
@@ -156,7 +172,91 @@ function renderCardValue(card: BiMetricCard, meta: BiV2MetricDef) {
   if (typeof card.value === 'number' && meta.group === 'unit_economics') {
     return <BiMoneyCell amount={card.value} currency="CNY" trust={meta.trust} align="left" />
   }
-  return <span className="tabular-nums text-slate-900">{String(card.value)}</span>
+  return <span className="tabular-nums text-slate-50">{String(card.value)}</span>
+}
+
+function metricText(card?: BiMetricCard) {
+  if (!card) return '--'
+  return typeof card.value === 'number' ? card.value.toLocaleString('zh-CN') : String(card.value)
+}
+
+function parsePercent(value?: string | number) {
+  if (typeof value === 'number') return Math.max(0, Math.min(100, value))
+  if (!value) return null
+  const parsed = Number(value.replace('%', '').trim())
+  return Number.isFinite(parsed) ? Math.max(0, Math.min(100, parsed)) : null
+}
+
+function findCard(cards: ReadonlyArray<BiMetricCard>, patterns: ReadonlyArray<string>) {
+  return cards.find(card => patterns.some(pattern => card.label.includes(pattern)))
+}
+
+function sourceLabel(source: DataSource) {
+  if (source === 'live') return '实时读模型'
+  if (source === 'loading') return '正在同步'
+  if (source === 'error') return '读模型异常'
+  return '开发 mock'
+}
+
+type OverviewModule = {
+  title: string
+  kicker: string
+  desc: string
+  href: string
+  icon: LucideIcon
+  tone: string
+  stats: [string, string]
+}
+
+function buildOverviewModules({
+  activeCard,
+  costCard,
+  successCard,
+  alertCount,
+}: {
+  activeCard?: BiMetricCard
+  costCard?: BiMetricCard
+  successCard?: BiMetricCard
+  alertCount: number
+}): OverviewModule[] {
+  return [
+    {
+      title: '会员运营',
+      kicker: '看人群和续费',
+      desc: '从活跃、到期、风险和 360 证据进入跟进。',
+      href: '/bi?tab=member-ops',
+      icon: Users,
+      tone: 'from-cyan-300/20 to-sky-500/10 border-cyan-300/20',
+      stats: [metricText(activeCard), '活跃'],
+    },
+    {
+      title: '商品账务',
+      kicker: '看套餐和流水',
+      desc: '把收入、余额、充值和账务异常放在同一条链路。',
+      href: '/bi?tab=commerce',
+      icon: CircleDollarSign,
+      tone: 'from-amber-300/20 to-orange-500/10 border-amber-300/20',
+      stats: [metricText(costCard), '成本'],
+    },
+    {
+      title: '反馈中心',
+      kicker: '看满意度和内测',
+      desc: '负反馈、文字反馈和内测申请进入增长闭环。',
+      href: '/bi?tab=feedback&panel=invite-test',
+      icon: ClipboardCheck,
+      tone: 'from-emerald-300/20 to-teal-500/10 border-emerald-300/20',
+      stats: [metricText(successCard), '成功率'],
+    },
+    {
+      title: '系统运维',
+      kicker: '看可信和审计',
+      desc: '数据可信、操作审计、权限审计和上线状态集中排查。',
+      href: '/bi?tab=ops',
+      icon: Radar,
+      tone: 'from-indigo-300/20 to-blue-500/10 border-indigo-300/20',
+      stats: [String(alertCount), '风险项'],
+    },
+  ]
 }
 
 export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
@@ -207,14 +307,49 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
   }, [loadLive])
 
   const trendMax = Math.max(...bundle.trend.map(p => p.active), 1)
+  const activeCard = findCard(bundle.cards, ['活跃学习会话', '活跃学习者', '活跃'])
+  const successCard = findCard(bundle.cards, ['成功率', '回合成功'])
+  const costCard = findCard(bundle.cards, ['总成本', '成本'])
+  const commandScore = parsePercent(successCard?.value) ?? (source === 'live' ? 82 : 0)
+  const primaryAlert = bundle.alerts[0]
+  const primaryMetric = bundle.cards[0]
+  const modules = buildOverviewModules({
+    activeCard,
+    costCard,
+    successCard,
+    alertCount: bundle.alerts.length,
+  })
+  const topTrendPoints = bundle.trend.slice(-12)
 
   return (
     <section className="space-y-5">
+      <OverviewCommandHero
+        source={source}
+        generatedAt={bundle.generatedAt}
+        commandScore={commandScore}
+        primaryMetric={primaryMetric}
+        primaryAlert={primaryAlert}
+        onReload={loadLive}
+      />
+
       <DataSourceBanner
         source={source}
         bundle={bundle}
         flagEnabled={flagEnabled}
         onReload={loadLive}
+      />
+
+      <OverviewSignalChips
+        activeCard={activeCard}
+        successCard={successCard}
+        costCard={costCard}
+        alertCount={bundle.alerts.length}
+      />
+
+      <OverviewConclusionStack
+        primaryMetric={primaryMetric}
+        primaryAlert={primaryAlert}
+        source={source}
       />
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -224,7 +359,7 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
           return (
             <article
               key={`${meta.metric_id}-${idx}`}
-              className="flex flex-col gap-2 rounded-md border border-slate-200 bg-white p-4 shadow-sm"
+              className="flex min-h-[176px] flex-col gap-3 rounded-3xl border border-white/10 bg-white/[0.045] p-4 shadow-lg shadow-black/15 transition hover:border-cyan-300/25 hover:bg-cyan-300/[0.06]"
               title={[
                 `${meta.metric_id}`,
                 `口径：${meta.definition}`,
@@ -236,81 +371,100 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
               ].join(' · ')}
               aria-label={`${card.label} 当前 ${card.value}，数据可信 ${meta.trust} 级，owner ${meta.owner}`}
             >
-              <div className="flex items-center justify-between text-xs text-slate-500">
-                <span className="font-medium text-slate-700">{card.label}</span>
+              <div className="flex items-center justify-between gap-2 text-xs text-slate-400">
+                <span className="font-bold text-slate-200">{card.label}</span>
                 <BiStatusPill tone={BI_TRUST_TONE[meta.trust]} label={`${meta.trust} 级`} />
               </div>
-              <div className="flex items-baseline justify-between gap-2 text-2xl font-semibold">
+              <div className="flex items-baseline justify-between gap-2 text-3xl font-black tracking-normal">
                 {renderCardValue(card, meta)}
                 {card.delta ? (
-                  <span className="flex items-center gap-1 text-xs tabular-nums text-slate-600">
+                  <span className="flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] px-2 py-1 text-xs tabular-nums text-slate-200">
                     <TrendIcon trend={trend} />
                     {card.delta}
                   </span>
                 ) : null}
               </div>
-              <div className="text-[11px] leading-snug text-slate-500">
+              <div className="space-y-1 text-[11px] leading-snug text-slate-400">
                 <div className="truncate">authority: {meta.authority}</div>
                 <div className="truncate">
                   owner: {meta.owner} · metric_id:{' '}
-                  <code className="font-mono text-[10px]">{meta.metric_id}</code>
+                  <code className="font-mono text-[10px] text-slate-300">{meta.metric_id}</code>
                 </div>
               </div>
               {meta.metric_id === 'unknown' ? (
-                <div className="rounded bg-amber-50 px-2 py-1 text-[10px] text-amber-700">
+                <div className="rounded-2xl border border-amber-300/25 bg-amber-300/10 px-2 py-1 text-[10px] text-amber-100">
                   指标未注册 · 请补充到 BI_V2_METRICS 或 deeptutor/services/bi_metrics.py
                 </div>
               ) : null}
-              <button
-                type="button"
+              <BiButton
                 onClick={() => setSelectedMetric({ card, meta, trend })}
-                className="mt-auto inline-flex w-fit items-center rounded border border-slate-200 px-2 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                variant="secondary"
+                size="xs"
+                className="mt-auto w-fit"
                 aria-label={`打开 ${card.label} 指标详情`}
               >
                 查看详情
-              </button>
+              </BiButton>
             </article>
           )
         })}
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="rounded-md border border-slate-200 bg-white p-4 lg:col-span-2">
+        <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-4 shadow-xl shadow-black/15 lg:col-span-2">
           <header className="flex items-center justify-between text-sm">
-            <span className="font-medium text-slate-800">活跃 / 成本 / 学习成功趋势</span>
-            <span className="text-[11px] text-slate-500">
+            <span className="font-black text-slate-100">活跃 / 成本 / 学习成功趋势</span>
+            <span className="rounded-full border border-white/10 bg-white/[0.06] px-2 py-1 text-[11px] text-slate-300">
               {source === 'live'
                 ? 'active-trend API'
                 : source === 'loading'
                   ? '加载中…'
                   : source === 'error'
                     ? 'API 不可用'
-                    : 'mock'}
+              : 'mock'}
             </span>
           </header>
-          <div className="mt-4 grid h-44 grid-cols-12 items-end gap-1" aria-label="近窗口活跃趋势">
-            {bundle.trend.slice(0, 24).map((point, idx) => {
-              const h = Math.max(10, Math.round((point.active / trendMax) * 100))
-              return (
-                <div
-                  key={`${point.label}-${idx}`}
-                  className="rounded-sm bg-gradient-to-t from-slate-200 to-slate-400"
-                  style={{ height: `${h}%` }}
-                  aria-hidden
-                  title={`${point.label} · active=${point.active} cost=${point.cost} success=${point.successful}`}
-                />
-              )
-            })}
+          <div className="mt-4 rounded-3xl border border-white/10 bg-slate-950/20 p-4">
+            <div className="grid h-44 grid-cols-12 items-end gap-1" aria-label="近窗口活跃趋势">
+              {topTrendPoints.map((point, idx) => {
+                const h = Math.max(10, Math.round((point.active / trendMax) * 100))
+                return (
+                  <div key={`${point.label}-${idx}`} className="flex h-full flex-col justify-end gap-1">
+                    <div
+                      className="rounded-full bg-gradient-to-t from-cyan-500/35 via-cyan-300/65 to-emerald-200 shadow-[0_0_18px_rgba(34,211,238,0.16)]"
+                      style={{ height: `${h}%` }}
+                      aria-hidden
+                      title={`${point.label} · active=${point.active} cost=${point.cost} success=${point.successful}`}
+                    />
+                    <div className="h-1 rounded-full bg-white/10" aria-hidden />
+                  </div>
+                )
+              })}
+            </div>
+            <div className="mt-4 grid grid-cols-3 gap-2 text-[11px] text-slate-400">
+              <div className="rounded-2xl border border-cyan-300/15 bg-cyan-300/10 px-3 py-2">
+                <span className="block font-bold text-cyan-100">活跃峰值</span>
+                <span className="tabular-nums">{trendMax.toLocaleString('zh-CN')}</span>
+              </div>
+              <div className="rounded-2xl border border-emerald-300/15 bg-emerald-300/10 px-3 py-2">
+                <span className="block font-bold text-emerald-100">成功口径</span>
+                <span>{metricText(successCard)}</span>
+              </div>
+              <div className="rounded-2xl border border-amber-300/15 bg-amber-300/10 px-3 py-2">
+                <span className="block font-bold text-amber-100">成本口径</span>
+                <span>{metricText(costCard)}</span>
+              </div>
+            </div>
           </div>
-          <p className="mt-2 text-[10px] text-slate-500">
+          <p className="mt-3 text-[10px] text-slate-400">
             authority: bi_service.get_active_trend · 收入接入由 P1 处理
           </p>
         </div>
 
-        <aside className="rounded-md border border-slate-200 bg-white p-4">
-          <header className="border-b border-slate-200 pb-2">
-            <h2 className="text-sm font-semibold text-slate-900">今日行动队列</h2>
-            <p className="mt-1 text-[11px] text-slate-500">
+        <aside className="rounded-3xl border border-white/10 bg-white/[0.04] p-4 shadow-xl shadow-black/15">
+          <header className="border-b border-white/10 pb-3">
+            <h2 className="text-sm font-black text-slate-100">今日行动队列</h2>
+            <p className="mt-1 text-[11px] text-slate-400">
               {source === 'live'
                 ? '来自 overview.alerts + anomalies'
                 : source === 'error'
@@ -318,7 +472,7 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
                   : 'mock · 真实风险接 alerts/anomalies'}
             </p>
           </header>
-          <ul className="mt-3 space-y-1">
+          <ul className="mt-3 space-y-2">
             {bundle.alerts.slice(0, 6).map((alert, idx) => {
               const sev = ALERT_LEVEL_TO_SEVERITY[alert.level ?? 'info'] ?? 'low'
               const linkMeta = findMetricByLabel(alert.title)
@@ -327,36 +481,297 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
                   <button
                     type="button"
                     onClick={() => setSelectedAlert({ alert, severity: sev, target: linkMeta })}
-                    className="flex items-start justify-between gap-3 rounded border border-transparent px-2 py-2 hover:border-slate-200 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                    className="group flex w-full items-start gap-3 rounded-3xl border border-white/10 bg-slate-950/20 p-3 text-left transition hover:border-cyan-300/30 hover:bg-cyan-300/[0.06] focus:outline-none focus:ring-2 focus:ring-cyan-300/30"
                     aria-label={`查看 ${alert.title}`}
                   >
-                    <div className="flex flex-1 items-start gap-2">
-                      <BiStatusPill tone={BI_SEVERITY_TONE[sev]} label={sev.toUpperCase()} />
-                      <div className="min-w-0">
-                        <div className="truncate text-sm font-medium text-slate-800">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] text-xs font-black text-cyan-100">
+                      {idx + 1}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-center gap-2">
+                        <BiStatusPill tone={BI_SEVERITY_TONE[sev]} label={sev.toUpperCase()} />
+                        <span className="truncate text-sm font-bold text-slate-100">
                           {alert.title}
-                        </div>
-                        {alert.detail ? (
-                          <div className="truncate text-[11px] text-slate-500">{alert.detail}</div>
-                        ) : null}
-                      </div>
-                    </div>
-                    <span className="text-[11px] text-slate-500">→ {linkMeta.drilldown_hash}</span>
+                        </span>
+                      </span>
+                      {alert.detail ? (
+                        <span className="mt-1 block truncate text-[11px] text-slate-400">
+                          {alert.detail}
+                        </span>
+                      ) : null}
+                      <span className="mt-2 flex items-center gap-1 text-[11px] font-bold text-cyan-200/100">
+                        下钻 {linkMeta.drilldown_hash}
+                        <ArrowRight className="h-3 w-3 transition group-hover:translate-x-0.5" />
+                      </span>
+                    </span>
                   </button>
                 </li>
               )
             })}
             {bundle.alerts.length === 0 ? (
-              <li className="rounded border border-dashed border-slate-200 px-2 py-3 text-center text-xs text-slate-500">
+              <li className="rounded-3xl border border-dashed border-white/15 px-2 py-8 text-center text-xs text-slate-400">
                 暂无风险项
               </li>
             ) : null}
           </ul>
         </aside>
       </div>
+
+      <OverviewModuleGrid modules={modules} />
+
       <MetricDetailPanel selection={selectedMetric} onClose={() => setSelectedMetric(null)} />
       <AlertDetailPanel selection={selectedAlert} onClose={() => setSelectedAlert(null)} />
     </section>
+  )
+}
+
+function OverviewCommandHero({
+  source,
+  generatedAt,
+  commandScore,
+  primaryMetric,
+  primaryAlert,
+  onReload,
+}: {
+  source: DataSource
+  generatedAt: number
+  commandScore: number
+  primaryMetric?: BiMetricCard
+  primaryAlert?: BiAlertItem
+  onReload: () => void
+}) {
+  const generatedLabel = generatedAt
+    ? new Date(generatedAt).toLocaleString('zh-CN')
+    : source === 'loading'
+      ? '正在生成'
+      : '暂无实时生成时间'
+  return (
+    <div className="relative overflow-hidden rounded-[2rem] border border-cyan-300/20 bg-[#152341] p-4 shadow-2xl shadow-black/25 sm:p-5">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-90"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle at 86% 16%, rgba(94,221,234,0.22), transparent 28%), radial-gradient(circle at 12% 22%, rgba(251,146,60,0.14), transparent 24%), linear-gradient(145deg, rgba(31,41,89,0.94), rgba(15,23,42,0.86))',
+        }}
+        aria-hidden
+      />
+      <div className="relative grid gap-5 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-center">
+        <div className="min-w-0">
+          <div className="text-[11px] font-black uppercase tracking-normal text-amber-200">
+            今日经营处方
+          </div>
+          <h2 className="mt-2 max-w-3xl text-2xl font-black leading-tight text-white sm:text-4xl">
+            {primaryAlert?.title || primaryMetric?.label || '先看北极星，再处理高价值动作'}
+          </h2>
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">
+            {primaryAlert?.detail ||
+              primaryMetric?.hint ||
+              '把活跃、付费、留存、成本和风险压缩成今天可执行的经营判断。'}
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2">
+            <span className="rounded-2xl border border-cyan-300/25 bg-cyan-300/10 px-3 py-2 text-xs font-black text-cyan-100">
+              {sourceLabel(source)}
+            </span>
+            <span className="rounded-2xl border border-emerald-300/25 bg-emerald-300/10 px-3 py-2 text-xs font-black text-emerald-100">
+              audit 写动作受控
+            </span>
+            <button
+              type="button"
+              onClick={onReload}
+              className="inline-flex items-center gap-1 rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-2 text-xs font-black text-slate-100 transition hover:bg-white/10"
+            >
+              <RefreshCw className="h-3.5 w-3.5" aria-hidden /> 刷新处方
+            </button>
+          </div>
+          <div className="mt-5 rounded-3xl border border-white/10 bg-slate-950/20 p-3 text-xs text-slate-300">
+            <span className="font-bold text-cyan-100">generated_at</span>
+            <span className="mx-2 text-slate-500">/</span>
+            <span>{generatedLabel}</span>
+          </div>
+        </div>
+        <div className="relative mx-auto flex h-48 w-48 items-center justify-center lg:mx-0">
+          <div
+            className="absolute inset-0 rounded-full shadow-[0_0_42px_rgba(94,221,234,0.2)]"
+            style={{
+              background: `conic-gradient(#5eddea 0 ${commandScore * 3.6}deg, rgba(255,255,255,0.12) ${commandScore * 3.6}deg 360deg)`,
+            }}
+            aria-hidden
+          />
+          <div className="absolute inset-7 rounded-full bg-[#152341] shadow-inner shadow-black/40" />
+          <div className="relative text-center">
+            <div className="text-4xl font-black tabular-nums text-cyan-100">{commandScore}%</div>
+            <div className="mt-1 text-[11px] font-bold text-slate-400">经营健康度</div>
+            <div className="mt-2 rounded-full border border-amber-300/25 bg-amber-300/10 px-3 py-1 text-[11px] font-black text-amber-100">
+              可追溯
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function OverviewSignalChips({
+  activeCard,
+  successCard,
+  costCard,
+  alertCount,
+}: {
+  activeCard?: BiMetricCard
+  successCard?: BiMetricCard
+  costCard?: BiMetricCard
+  alertCount: number
+}) {
+  const chips = [
+    {
+      label: '活跃势能',
+      value: metricText(activeCard),
+      helper: activeCard?.delta || activeCard?.hint || '近窗口学习会话',
+      className: 'border-cyan-300/20 bg-cyan-300/10',
+      icon: LineChart,
+    },
+    {
+      label: '成功质量',
+      value: metricText(successCard),
+      helper: successCard?.delta || successCard?.hint || '回合成功率',
+      className: 'border-emerald-300/20 bg-emerald-300/10',
+      icon: Target,
+    },
+    {
+      label: '成本压力',
+      value: metricText(costCard),
+      helper: costCard?.delta || costCard?.hint || '单位经济口径',
+      className: 'border-amber-300/20 bg-amber-300/10',
+      icon: CircleDollarSign,
+    },
+    {
+      label: '待处理风险',
+      value: String(alertCount),
+      helper: alertCount ? '进入今日行动队列' : '当前无风险项',
+      className: 'border-rose-300/20 bg-rose-300/10',
+      icon: ShieldAlert,
+    },
+  ]
+  return (
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {chips.map(chip => {
+        const Icon = chip.icon
+        return (
+          <div
+            key={chip.label}
+            className={`min-h-[9.5rem] overflow-hidden rounded-3xl border p-4 shadow-lg shadow-black/10 ${chip.className}`}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black text-slate-300">{chip.label}</span>
+              <span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] text-cyan-100">
+                <Icon className="h-4 w-4" aria-hidden />
+              </span>
+            </div>
+            <div className="mt-4 text-3xl font-black tabular-nums text-white">{chip.value}</div>
+            <div className="mt-2 text-[11px] leading-5 text-slate-400">{chip.helper}</div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function OverviewConclusionStack({
+  primaryMetric,
+  primaryAlert,
+  source,
+}: {
+  primaryMetric?: BiMetricCard
+  primaryAlert?: BiAlertItem
+  source: DataSource
+}) {
+  return (
+    <div className="grid gap-3 lg:grid-cols-2">
+      <div className="rounded-3xl border border-amber-300/20 bg-amber-300/10 p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="text-[11px] font-black uppercase text-amber-100">先处理什么</div>
+            <div className="mt-2 text-lg font-black text-white">
+              {primaryAlert?.title || primaryMetric?.label || '等待经营读模型返回'}
+            </div>
+            <p className="mt-2 text-sm leading-6 text-slate-300">
+              {primaryAlert?.detail ||
+                primaryMetric?.hint ||
+                '当前没有明确风险项，优先检查活跃、付费和成本三条主线。'}
+            </p>
+          </div>
+          <span className="rounded-2xl border border-amber-300/25 bg-amber-300/10 px-3 py-1 text-xs font-black text-amber-100">
+            处方
+          </span>
+        </div>
+      </div>
+      <div className="rounded-3xl border border-cyan-300/20 bg-cyan-300/10 p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="text-[11px] font-black uppercase text-cyan-100">为什么可信</div>
+            <div className="mt-2 text-lg font-black text-white">
+              {sourceLabel(source)} · 指标 registry · 可下钻
+            </div>
+            <p className="mt-2 text-sm leading-6 text-slate-300">
+              每张指标卡保留 metric_id、owner、authority 和可信等级；行动项进入详情后只展示 canonical
+              读模型，不制造第二套业务事实。
+            </p>
+          </div>
+          <span className="rounded-2xl border border-cyan-300/25 bg-cyan-300/10 px-3 py-1 text-xs font-black text-cyan-100">
+            依据
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function OverviewModuleGrid({ modules }: { modules: ReadonlyArray<OverviewModule> }) {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-end justify-between gap-3">
+        <div>
+          <div className="text-[11px] font-black uppercase text-cyan-300">深入查看</div>
+          <h2 className="mt-1 text-lg font-black text-white">像学情页一样按问题进入细节</h2>
+        </div>
+        <span className="hidden text-xs font-bold text-slate-400 sm:inline">模块是经营工具箱</span>
+      </div>
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+        {modules.map(module => {
+          const Icon = module.icon
+          return (
+            <a
+              key={module.title}
+              href={module.href}
+              className={`group min-h-[12rem] overflow-hidden rounded-3xl border bg-gradient-to-br p-4 shadow-xl shadow-black/15 transition hover:-translate-y-0.5 hover:shadow-black/25 ${module.tone}`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-[11px] font-black text-slate-400">{module.kicker}</div>
+                  <div className="mt-1 text-lg font-black text-white">{module.title}</div>
+                </div>
+                <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] text-cyan-100">
+                  <Icon className="h-4 w-4" aria-hidden />
+                </span>
+              </div>
+              <p className="mt-3 min-h-[3rem] text-sm leading-6 text-slate-300">{module.desc}</p>
+              <div className="mt-4 flex items-center justify-between gap-2 border-t border-white/10 pt-3 text-xs">
+                <span>
+                  <span className="block text-xl font-black tabular-nums text-white">
+                    {module.stats[0]}
+                  </span>
+                  <span className="text-slate-400">{module.stats[1]}</span>
+                </span>
+                <span className="inline-flex items-center gap-1 font-black text-cyan-100">
+                  进入
+                  <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+                </span>
+              </div>
+            </a>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 
@@ -379,13 +794,13 @@ function MetricDetailPanel({
     >
       {card && meta ? (
         <div className="space-y-4 text-sm">
-          <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
-            <div className="text-xs text-slate-500">当前值</div>
-            <div className="mt-1 text-2xl font-semibold text-slate-900">{String(card.value)}</div>
-            <div className="mt-1 text-xs text-slate-600">
+          <div className="rounded-3xl border border-white/10 bg-white/[0.045] p-4 shadow-lg shadow-black/10">
+            <div className="text-xs text-slate-400">当前值</div>
+            <div className="mt-1 text-3xl font-black text-slate-50">{String(card.value)}</div>
+            <div className="mt-1 text-xs text-slate-300">
               {card.delta || '暂无环比'} · 趋势 {selection?.trend ?? 'flat'}
             </div>
-            {card.hint ? <div className="mt-1 text-xs text-slate-500">{card.hint}</div> : null}
+            {card.hint ? <div className="mt-1 text-xs text-slate-400">{card.hint}</div> : null}
           </div>
           <KV label="指标口径" value={meta.definition} />
           <KV label="唯一 authority" value={meta.authority} />
@@ -422,15 +837,15 @@ function AlertDetailPanel({
     >
       {alert && selection ? (
         <div className="space-y-4 text-sm">
-          <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+          <div className="rounded-3xl border border-white/10 bg-white/[0.045] p-4 shadow-lg shadow-black/10">
             <div className="flex items-center gap-2">
               <BiStatusPill
                 tone={BI_SEVERITY_TONE[selection.severity]}
                 label={selection.severity.toUpperCase()}
               />
-              <span className="font-medium text-slate-900">{alert.title}</span>
+              <span className="font-bold text-slate-100">{alert.title}</span>
             </div>
-            <p className="mt-2 text-xs leading-relaxed text-slate-600">
+            <p className="mt-2 text-xs leading-relaxed text-slate-300">
               {alert.detail || '该行动项暂无更多描述。'}
             </p>
           </div>
@@ -438,10 +853,10 @@ function AlertDetailPanel({
           <KV label="建议处理区" value={selection.target.drilldown_hash} />
           <KV label="关联指标" value={selection.target.metric_id} />
           <KV label="authority" value={selection.target.authority} />
-          <p className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs leading-relaxed text-amber-800">
+          <BiNotice tone="amber">
             当前详情只展示 canonical 读模型内容；需要创建运营任务、导出、派单时，必须先接入带 audit
             的后端写 endpoint。
-          </p>
+          </BiNotice>
         </div>
       ) : null}
     </BiSidePanel>
@@ -450,9 +865,9 @@ function AlertDetailPanel({
 
 function KV({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-slate-200 bg-white p-3">
-      <div className="text-[11px] font-medium uppercase text-slate-500">{label}</div>
-      <div className="mt-1 break-words text-sm text-slate-800">{value || '—'}</div>
+    <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-3">
+      <div className="text-[11px] font-bold uppercase text-slate-400">{label}</div>
+      <div className="mt-1 break-words text-sm text-slate-100">{value || '—'}</div>
     </div>
   )
 }
@@ -489,14 +904,14 @@ function DataSourceBanner({
       <BiV2DataSourceBanner
         tone="emerald"
         action={
-          <button
-            type="button"
+          <BiButton
             onClick={onReload}
-            className="inline-flex items-center gap-1 text-emerald-900 hover:underline"
+            variant="secondary"
+            size="xs"
             aria-label="刷新 overview"
           >
             <RefreshCw className="h-3 w-3" aria-hidden /> 刷新
-          </button>
+          </BiButton>
         }
       >
         实时数据 · generated_at: {new Date(bundle.generatedAt).toLocaleString('zh-CN')}
@@ -508,14 +923,14 @@ function DataSourceBanner({
       tone="rose"
       role="alert"
       action={
-        <button
-          type="button"
+        <BiButton
           onClick={onReload}
-          className="inline-flex items-center gap-1 text-rose-900 hover:underline"
+          variant="secondary"
+          size="xs"
           aria-label="重试加载 overview"
         >
           <RefreshCw className="h-3 w-3" aria-hidden /> 重试
-        </button>
+        </BiButton>
       }
     >
       <div className="flex items-center gap-2">

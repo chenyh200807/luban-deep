@@ -73,6 +73,34 @@ run("pure mcq content no longer becomes interactive without presentation", funct
   assertEqual(state.mcqInteractiveReady, false, "text-only choice content should stay non-interactive");
 });
 
+run("question review prose with options stays markdown without service presentation", function () {
+  var text = [
+    "### 真题讲评",
+    "一般环境中，直接接触土体浇筑的构件，其钢筋的混凝土保护层厚度不应小于（ ）mm。",
+    "A. 55",
+    "B. 60",
+    "C. 65",
+    "D. 70",
+    "",
+    "正确答案：C",
+    "解析：直接接触土体浇筑的构件应重点看规范下限。",
+    "逐项分析：A、B 偏小，D 不是本题下限。",
+  ].join("\n");
+
+  var state = aiMessageState.deriveAiMessageRenderState({
+    content: text,
+    parseBlocks: true,
+  });
+
+  assertEqual(state.mcqCards, null, "plain review prose must not become an auto MCQ card");
+  assertEqual(state.mcqInteractiveReady, false, "plain review prose must remain non-interactive");
+  assert(state.blocks && state.blocks.length > 0, "plain review prose should stay in markdown flow");
+  assert(
+    state.renderableContent.indexOf("逐项分析") >= 0,
+    "plain review prose should stay visible as normal explanation text",
+  );
+});
+
 run("plain text without mcq strips receipt but keeps body", function () {
   var text = [
     "屋面防水等级应结合建筑性质、使用功能和重要程度综合确定。",
@@ -175,6 +203,118 @@ run("service presentation block becomes the primary mcq source", function () {
   assertEqual(state.mcqReceipt, "", "presentation path should not be polluted by text-detect receipts");
   assertEqual(state.renderableContent, "", "pure mcq presentation should not duplicate the card text");
   assertEqual(state.hasStructuredContent, false, "mcq-only presentation should not suppress markdown fallback paths");
+});
+
+run("question review mcq presentation is read-only", function () {
+  var state = aiMessageState.deriveAiMessageRenderState({
+    content: "### 第 1 题\n关于混凝土保护层厚度，下列哪个说法是正确的？",
+    presentation: {
+      blocks: [
+        {
+          type: "mcq",
+          questions: [
+            {
+              index: 1,
+              stem: "关于混凝土保护层厚度，下列哪个说法是正确的？",
+              question_type: "single_choice",
+              options: [
+                { key: "A", text: "方案A" },
+                { key: "B", text: "方案B" },
+              ],
+              followup_context: {
+                question_id: "q_review_1",
+                correct_answer: "B",
+              },
+              review_notes: {
+                think_prompt: "先看题干和选项，想一想再看答案和解析。",
+                display_answer: "B",
+                analysis: "B 更符合规范。",
+                option_analysis: [
+                  { key: "A", text: "方案A", verdict: "不正确", analysis: "A 是干扰项。" },
+                  { key: "B", text: "方案B", verdict: "正确", analysis: "B 对应规范。" },
+                ],
+                scoring_points: ["抓题干限定词", "核对规范要求"],
+                pitfalls: ["把常见说法当规范结论"],
+                mnemonic: "先看题干，再找规范。",
+              },
+            },
+          ],
+          submit_hint: "题目讲评，已展示解析，不需要提交答案。",
+          review_mode: true,
+        },
+      ],
+      fallback_text: "### 第 1 题\n关于混凝土保护层厚度，下列哪个说法是正确的？",
+      meta: { streamingMode: "block_finalized" },
+    },
+    parseBlocks: false,
+  });
+
+  assert(state.mcqCards && state.mcqCards.length === 1, "question review should still render the question card");
+  assertEqual(state.mcqInteractiveReady, false, "question review cards must not be submittable");
+  assertEqual(
+    state.mcqHint,
+    "题目讲评，已展示解析，不需要提交答案。",
+    "question review hint should explain read-only state",
+  );
+  assertEqual(state.mcqReviewMode, true, "question review should expose review mode for the renderer");
+  assertEqual(
+    state.mcqCards[0].reviewNotes,
+    {
+      thinkPrompt: "先看题干和选项，想一想再看答案和解析。",
+      displayAnswer: "B",
+      analysis: "B 更符合规范。",
+      optionAnalysis: [
+        { key: "A", text: "方案A", verdict: "不正确", analysis: "A 是干扰项。" },
+        { key: "B", text: "方案B", verdict: "正确", analysis: "B 对应规范。" },
+      ],
+      scoringPoints: ["抓题干限定词", "核对规范要求"],
+      pitfalls: ["把常见说法当规范结论"],
+      mnemonic: "先看题干，再找规范。",
+    },
+    "question review should expose public teaching notes without requiring original-text expansion",
+  );
+});
+
+run("ordinary mcq presentation drops accidental review notes from state", function () {
+  var state = aiMessageState.deriveAiMessageRenderState({
+    content: "",
+    presentation: {
+      blocks: [
+        {
+          type: "mcq",
+          questions: [
+            {
+              index: 1,
+              stem: "普通作答题",
+              question_type: "single_choice",
+              options: [
+                { key: "A", text: "方案A" },
+                { key: "B", text: "方案B" },
+              ],
+              followup_context: { question_id: "q_live" },
+              review_notes: {
+                display_answer: "B",
+                analysis: "这里不应该进入普通作答卡。",
+                scoring_points: ["隐藏采分点"],
+              },
+            },
+          ],
+          submit_hint: "请选择后提交答案",
+          review_mode: false,
+        },
+      ],
+      fallback_text: "",
+    },
+    parseBlocks: false,
+  });
+
+  assertEqual(state.mcqReviewMode, false, "ordinary mcq should not be review mode");
+  assertEqual(state.mcqInteractiveReady, true, "ordinary mcq should stay interactive");
+  assertEqual(
+    state.mcqCards[0].reviewNotes,
+    null,
+    "ordinary mcq state must not carry hidden answer or scoring-point review notes",
+  );
 });
 
 run("mcq presentation supports multiple generated choice aliases", function () {

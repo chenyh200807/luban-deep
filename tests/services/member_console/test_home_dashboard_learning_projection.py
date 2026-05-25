@@ -47,6 +47,67 @@ def test_home_dashboard_uses_fresh_home_personalization_projection() -> None:
     assert dashboard["source_status"]["learning_report"] == "projection"
 
 
+def test_fresh_legacy_three_prompt_projection_upgrades_to_six_actions() -> None:
+    generated_at = datetime(2026, 5, 21, 9, 0, tzinfo=_TZ).isoformat()
+    projection = {
+        "generated_at": generated_at,
+        "source_status": {"fallback_used": False, "learning_report": "projection"},
+        "today_focus": {
+            "title": "今日焦点：项目质量计划管理",
+            "meta": "来自 learner_state.home_personalization",
+        },
+        "recommended_prompts": [
+            {
+                "prompt_type": "practice_prompt",
+                "text": "用 3 道题训练项目质量计划管理",
+                "intent": {
+                    "source": "home_dashboard",
+                    "concept_label": "项目质量计划管理",
+                    "error_label": "质量计划和质量保证混淆",
+                    "evidence_refs": ["evt-quality-plan"],
+                },
+            },
+            {
+                "prompt_type": "mistake_review",
+                "text": "复盘项目质量计划管理里的质量计划和质量保证混淆",
+                "intent": {
+                    "source": "home_dashboard",
+                    "concept_label": "项目质量计划管理",
+                    "error_label": "质量计划和质量保证混淆",
+                    "evidence_refs": ["evt-quality-plan"],
+                },
+            },
+            {
+                "prompt_type": "concept_explain",
+                "text": "讲清楚项目质量计划管理的关键判断",
+                "intent": {
+                    "source": "home_dashboard",
+                    "concept_label": "项目质量计划管理",
+                    "error_label": "质量计划和质量保证混淆",
+                    "evidence_refs": ["evt-quality-plan"],
+                },
+            },
+        ],
+    }
+
+    dashboard = build_home_dashboard_learning_projection(
+        projection=projection,
+        subject_id="construction_exam_1",
+        now=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
+    )
+
+    assert [item["prompt_type"] for item in dashboard["recommended_prompts"]] == [
+        "practice_prompt",
+        "mistake_review",
+        "concept_explain",
+        "exam_transfer",
+        "knowledge_map",
+        "quick_check",
+    ]
+    assert dashboard["recommended_prompts"][3]["text"] == "用一道真题场景理解项目质量计划管理"
+    assert dashboard["source_status"]["upgraded_from"] == "legacy_home_projection"
+
+
 def test_learning_signal_projection_makes_today_focus_clickable() -> None:
     projection = build_home_personalization_projection_from_learning_signal(
         {
@@ -70,6 +131,37 @@ def test_learning_signal_projection_makes_today_focus_clickable() -> None:
     assert first_prompt["learning_state_ref"] == "knowledge:1A432000"
     assert first_prompt["suggested_mode"] == "deep"
     assert first_prompt["intent"]["evidence_refs"] == ["evt-home-1", "attempt-ref-1"]
+
+
+def test_learning_signal_projection_generates_six_actionable_prompt_types() -> None:
+    projection = build_home_personalization_projection_from_learning_signal(
+        {
+            "subject_id": "construction_exam_1",
+            "concept": {"label": "项目质量计划管理"},
+            "error": {"label": "质量计划和质量保证混淆"},
+            "event_id": "evt-quality-plan",
+        },
+        generated_at=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
+    )
+
+    assert projection is not None
+    prompt_types = [item["prompt_type"] for item in projection["recommended_prompts"]]
+    assert prompt_types == [
+        "practice_prompt",
+        "mistake_review",
+        "concept_explain",
+        "exam_transfer",
+        "knowledge_map",
+        "quick_check",
+    ]
+    assert [item["text"] for item in projection["recommended_prompts"]] == [
+        "用 3 道题训练项目质量计划管理",
+        "复盘项目质量计划管理里的质量计划和质量保证混淆",
+        "讲清楚项目质量计划管理的关键判断",
+        "用一道真题场景理解项目质量计划管理",
+        "梳理项目质量计划管理的高频考点",
+        "用 1 个小问题验证项目质量计划管理是否真会了",
+    ]
 
 
 def test_stale_or_missing_projection_falls_back_to_seed_starters() -> None:
@@ -100,7 +192,20 @@ def test_stale_or_missing_projection_falls_back_to_seed_starters() -> None:
 
 
 def test_missing_projection_recovers_from_assessment_learning_evidence() -> None:
-    event = SimpleNamespace(
+    older_event = SimpleNamespace(
+        event_id="evt_assessment_old",
+        memory_kind="learning_evidence",
+        source_feature="assessment_testset",
+        payload_json={
+            "event_type": "learning_evidence",
+            "assessment_type": "topic_diagnostic",
+            "question_id": "q0",
+            "knowledge_points": ["旧摸底"],
+            "error_codes": ["M00"],
+            "attempt_ref": "attempt-ref-old",
+        },
+    )
+    latest_event = SimpleNamespace(
         event_id="evt_assessment_1",
         memory_kind="learning_evidence",
         source_feature="assessment_testset",
@@ -116,7 +221,7 @@ def test_missing_projection_recovers_from_assessment_learning_evidence() -> None
 
     dashboard = build_home_dashboard_learning_projection(
         projection=None,
-        conversation_events=[event],
+        conversation_events=[older_event, latest_event],
         subject_id="construction_exam_1",
         now=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
     )
@@ -336,6 +441,70 @@ def test_dashboard_recovers_projection_from_assessment_learning_evidence(
     assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练防水工程"
     assert dashboard["recommended_prompts"][0]["prompt_type"] == "practice_prompt"
     assert dashboard["home_projection"]["source_status"]["recovered_from"] == "learner_memory_events.learning_evidence"
+
+
+def test_home_dashboard_reads_canonical_learner_state_for_merged_member(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_HOME_PERSONALIZATION_ENABLED", "true")
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    canonical_user_id = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+
+    def _seed(data: dict[str, object]) -> None:
+        data["members"] = [
+            service._build_default_member(canonical_user_id),
+            {
+                **service._build_default_member("user_2008"),
+                "user_id": "user_2008",
+                "display_name": "chenyh2008",
+                "external_auth_user_id": canonical_user_id,
+                "merged_into": canonical_user_id,
+            },
+        ]
+
+    service._mutate(_seed)
+    event = SimpleNamespace(
+        event_id="evt_canonical_assessment_1",
+        memory_kind="learning_evidence",
+        source_feature="assessment_testset",
+        payload_json={
+            "event_type": "learning_evidence",
+            "assessment_type": "topic_diagnostic",
+            "knowledge_points": ["招投标与合同"],
+            "error_codes": [],
+        },
+    )
+    requested_snapshot_users: list[str] = []
+    requested_heartbeat_users: list[str] = []
+
+    class _FakeLearnerStateService:
+        def read_snapshot(self, user_id: str, *, event_limit: int = 5):
+            requested_snapshot_users.append(user_id)
+            return SimpleNamespace(
+                profile={},
+                progress={},
+                summary="",
+                memory_events=[event],
+            )
+
+        def list_heartbeat_jobs(self, user_id: str):
+            requested_heartbeat_users.append(user_id)
+            return []
+
+        def list_heartbeat_history(self, user_id: str, limit: int = 3):
+            requested_heartbeat_users.append(user_id)
+            return []
+
+    service._get_learner_state_service = lambda: _FakeLearnerStateService()  # type: ignore[method-assign]
+
+    dashboard = service.get_home_dashboard("user_2008")
+
+    assert requested_snapshot_users == [canonical_user_id]
+    assert requested_heartbeat_users == [canonical_user_id, canonical_user_id]
+    assert dashboard["today_focus"]["title"] == "今日焦点：招投标与合同"
+    assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练招投标与合同"
 
 
 def test_dashboard_seed_fallback_uses_subject_from_learner_snapshot(

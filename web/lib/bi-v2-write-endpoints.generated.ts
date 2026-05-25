@@ -35,6 +35,22 @@ export const WRITE_ENDPOINTS = {
     description: "AI feedback triage: admin marks a feedback item open, triaged, or ignored. Backend updates ai_feedback metadata and appends feedback_triage to member_console audit_log with idempotency dedup.",
     audit_action: "feedback_triage",
   },
+  ["feedback.invite_test.update"]: {
+    key: "feedback.invite_test.update",
+    method: "PATCH",
+    path_template: "/api/v1/bi/invite-test/applications/{application_id}",
+    requires_idempotency: true,
+    description: "Invite-test application edit: growth ops updates applicant status, contact/profile corrections, callback preference, and operator note. Backend updates invite_test_applications and records invite_test_application_update audit with idempotency dedup.",
+    audit_action: "invite_test_application_update",
+  },
+  ["feedback.invite_test.delete"]: {
+    key: "feedback.invite_test.delete",
+    method: "DELETE",
+    path_template: "/api/v1/bi/invite-test/applications/{application_id}",
+    requires_idempotency: true,
+    description: "Invite-test application delete: growth ops soft-deletes an application by archiving it. Backend hides archived applications from the default pool and records invite_test_application_delete audit with idempotency dedup.",
+    audit_action: "invite_test_application_delete",
+  },
   ["member.ops_action.record"]: {
     key: "member.ops_action.record",
     method: "POST",
@@ -53,11 +69,13 @@ export const WRITE_ENDPOINTS = {
   },
 } as const satisfies Record<string, BiV2WriteEndpoint>;
 
-export type BiV2WriteEndpointKey = "member.conversation.view_full" | "feedback.ai.triage" | "member.ops_action.record" | "bi.export.request";
+export type BiV2WriteEndpointKey = "member.conversation.view_full" | "feedback.ai.triage" | "feedback.invite_test.update" | "feedback.invite_test.delete" | "member.ops_action.record" | "bi.export.request";
 
 export const ALL_BI_V2_WRITE_KEYS: BiV2WriteEndpointKey[] = [
   "member.conversation.view_full",
   "feedback.ai.triage",
+  "feedback.invite_test.update",
+  "feedback.invite_test.delete",
   "member.ops_action.record",
   "bi.export.request",
 ];
@@ -80,6 +98,22 @@ export const WRITE_ENDPOINT_LIST: readonly BiV2WriteEndpoint[] = [
     requires_idempotency: true,
     description: "AI feedback triage: admin marks a feedback item open, triaged, or ignored. Backend updates ai_feedback metadata and appends feedback_triage to member_console audit_log with idempotency dedup.",
     audit_action: "feedback_triage",
+  },
+  {
+    key: "feedback.invite_test.update",
+    method: "PATCH",
+    path_template: "/api/v1/bi/invite-test/applications/{application_id}",
+    requires_idempotency: true,
+    description: "Invite-test application edit: growth ops updates applicant status, contact/profile corrections, callback preference, and operator note. Backend updates invite_test_applications and records invite_test_application_update audit with idempotency dedup.",
+    audit_action: "invite_test_application_update",
+  },
+  {
+    key: "feedback.invite_test.delete",
+    method: "DELETE",
+    path_template: "/api/v1/bi/invite-test/applications/{application_id}",
+    requires_idempotency: true,
+    description: "Invite-test application delete: growth ops soft-deletes an application by archiving it. Backend hides archived applications from the default pool and records invite_test_application_delete audit with idempotency dedup.",
+    audit_action: "invite_test_application_delete",
   },
   {
     key: "member.ops_action.record",

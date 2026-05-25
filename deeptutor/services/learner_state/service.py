@@ -536,8 +536,15 @@ class LearnerStateService:
                     if is_production_environment():
                         return []
                 else:
-                    if remote_events or is_production_environment():
-                        return remote_events
+                    if remote_events:
+                        events = _dedupe_events_by_id([*remote_events, *local_events])
+                        if limit is None or limit < 0:
+                            return events
+                        return events[-max(int(limit), 0):]
+                    if is_production_environment():
+                        if limit is None or limit < 0:
+                            return local_events
+                        return local_events[-max(int(limit), 0):]
 
         events = local_events
         if limit is None or limit < 0:
@@ -604,9 +611,6 @@ class LearnerStateService:
                 except Exception:
                     if is_production_environment():
                         return []
-            if is_production_environment():
-                return events
-
         events = _dedupe_events_by_id([*events, *local_events])
         if limit is None or limit < 0:
             return events
@@ -750,10 +754,15 @@ class LearnerStateService:
         path.parent.mkdir(parents=True, exist_ok=True)
         existing_event = self._find_event_by_dedupe_key(path, event.dedupe_key, default_user_id=normalized)
         if existing_event is not None:
+            self._enqueue_memory_event_outbox(existing_event)
             return existing_event
         if not self._event_dedupe_exists(path, event.dedupe_key):
             with path.open("a", encoding="utf-8") as handle:
                 handle.write(_json_dump(self._event_to_dict(event)) + "\n")
+        self._enqueue_memory_event_outbox(event)
+        return event
+
+    def _enqueue_memory_event_outbox(self, event: LearnerStateEvent) -> None:
         self._outbox_service.enqueue(
             id=event.event_id,
             user_id=event.user_id,
@@ -770,7 +779,6 @@ class LearnerStateService:
             dedupe_key=event.dedupe_key,
             created_at=event.created_at,
         )
-        return event
 
     def synthesize_learning_truth(
         self,

@@ -98,6 +98,73 @@ def test_build_canonical_presentation_can_reveal_answer_context_when_requested()
     assert context["explanation"] == "B 更符合规范。"
 
 
+def test_build_canonical_presentation_marks_question_review_mcq_non_interactive() -> None:
+    summary = _choice_summary()
+    summary["results"][0]["qa_pair"]["metadata"] = {
+        "option_analysis": [
+            {"key": "A", "verdict": "不正确", "analysis": "A 只是常见干扰项。"},
+            {"key": "B", "verdict": "正确", "analysis": "B 对应规范原文。"},
+        ],
+        "scoring_points": ["先识别题干限定词", "再核对规范要求"],
+        "pitfalls": ["把常见施工说法误当成规范结论"],
+        "mnemonic": "先看题干，再找规范。",
+    }
+    presentation = build_canonical_presentation(
+        content="### 第 1 题\n某防水工程题目\n\n**答案：** B",
+        result_summary=summary,
+        reveal_answers=True,
+        reveal_explanations=True,
+        review_mode=True,
+    )
+
+    assert presentation is not None
+    block = presentation["blocks"][0]
+    assert block["type"] == "mcq"
+    assert block["review_mode"] is True
+    assert block["submit_hint"] == "题目讲评，已展示解析，不需要提交答案。"
+    context = block["questions"][0]["followup_context"]
+    assert context["correct_answer"] == "B"
+    assert context["explanation"] == "B 更符合规范。"
+    assert block["questions"][0]["review_notes"] == {
+        "think_prompt": "先看题干和选项，想一想再看答案和解析。",
+        "display_answer": "B",
+        "analysis": "B 更符合规范。",
+        "option_analysis": [
+            {"key": "A", "text": "方案A", "verdict": "不正确", "analysis": "A 只是常见干扰项。"},
+            {"key": "B", "text": "方案B", "verdict": "正确", "analysis": "B 对应规范原文。"},
+        ],
+        "scoring_points": ["先识别题干限定词", "再核对规范要求"],
+        "pitfalls": ["把常见施工说法误当成规范结论"],
+        "mnemonic": "先看题干，再找规范。",
+    }
+
+
+def test_question_review_answer_only_does_not_leak_explanation_sections() -> None:
+    summary = _choice_summary()
+    summary["results"][0]["qa_pair"]["metadata"] = {
+        "option_analysis": [{"key": "A", "analysis": "A 是错因。"}],
+        "scoring_points": ["核对规范要求"],
+        "pitfalls": ["把施工经验当规范"],
+        "mnemonic": "先规范，后经验。",
+    }
+
+    presentation = build_canonical_presentation(
+        content="### 第 1 题\n某防水工程题目\n\n**答案：** B",
+        result_summary=summary,
+        reveal_answers=True,
+        reveal_explanations=False,
+        review_mode=True,
+    )
+
+    assert presentation is not None
+    review_notes = presentation["blocks"][0]["questions"][0]["review_notes"]
+    assert review_notes == {
+        "think_prompt": "先看题干和选项，想一想再看答案和解析。",
+        "display_answer": "B",
+        "analysis": "",
+    }
+
+
 def test_build_canonical_presentation_redacts_raw_mcq_blocks_by_default() -> None:
     presentation = build_canonical_presentation(
         content="第1题",

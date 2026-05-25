@@ -4,13 +4,12 @@ This module is a thin composition layer over TutorBot's existing
 ``SkillsLoader``. It owns scene -> skill stack mapping, but not routing,
 grading, learner-state writes, or RAG policy.
 
-Single-decider note (plan 2026-05-24 §5.1): scene for a turn is decided
-exactly once via :func:`derive_question_lifecycle_scene` and attached to
-``UnifiedContext.metadata['question_lifecycle_scene']`` by
-:func:`attach_question_lifecycle_scene_to_context`. Downstream readers
-must consume that metadata rather than re-detecting. Once
-``ChatOrchestrator`` (plan Task 0.7) becomes the single attach point,
-capability-side ``attach_*`` calls can be removed.
+Single-authority note (plan 2026-05-24 §5.1): the orchestrator records one
+``QuestionLifecycleSceneDecision`` per turn. Deterministic helpers collect
+stable facts / hard gates; the LLM only proposes a semantic candidate; this
+module's business-gated decision is the final scene authority. Downstream
+readers must consume ``UnifiedContext.metadata['question_lifecycle_scene']``
+rather than re-detecting.
 
 Merge note (2026-05-24): this file integrates the hermes edu-skills booster
 shape (already on origin/main: SCENE_COMPOSITION, _LEGACY_COMPOSITION,
@@ -23,6 +22,7 @@ attach_question_lifecycle_scene_to_context).
 
 from __future__ import annotations
 
+import json
 import logging
 import re
 from dataclasses import dataclass
@@ -60,6 +60,22 @@ class SkillContext:
     instructions: str
     source_status: SourceStatus
     loader_sources: dict[str, str]
+
+
+@dataclass(frozen=True)
+class QuestionLifecycleSceneDecision:
+    """Resolved lifecycle scene plus decision provenance."""
+
+    scene: str | None
+    source: str
+    confidence: float
+    reason: str
+    required_anchor_status: str = ""
+    exact_question_blocked_reason: str = ""
+    selected_skill_names: tuple[str, ...] = ()
+    needs_clarification: bool = False
+    llm_scene_candidate: dict[str, Any] | None = None
+    business_gate_result: str = ""
 
 
 # ---------------------------------------------------------------------------
@@ -153,6 +169,153 @@ def select_question_lifecycle_skill_names(scene: str | None) -> tuple[str, ...]:
     if normalized is None:
         return ()
     return SCENE_COMPOSITION[normalized]
+
+
+async def resolve_question_lifecycle_scene_decision(
+    ctx: Any,
+    *,
+    enable_llm: bool = True,
+) -> QuestionLifecycleSceneDecision:
+    """Resolve lifecycle scene through one authoritative decision payload.
+
+    Deterministic helpers collect stable facts and hard safety gates. The LLM
+    may propose a semantic scene candidate, but the final decision is always
+    this function's business-gated ``QuestionLifecycleSceneDecision``.
+    """
+
+    scene = derive_question_lifecycle_scene(ctx)
+    user_message = str(getattr(ctx, "user_message", None) or "").strip()
+    metadata = getattr(ctx, "metadata", None) or {}
+    unanchored_submission = _looks_like_unanchored_mcq_answer_submission(user_message, metadata)
+    low_information_exam_query = is_low_information_exam_query(user_message)
+    proposal: QuestionLifecycleSceneDecision | None = None
+    if enable_llm and (low_information_exam_query or (scene is None and _should_use_llm_scene_proposal(ctx))):
+        proposal = await _llm_question_lifecycle_scene_proposal(ctx)
+    llm_candidate = _llm_candidate_payload(proposal)
+
+    if unanchored_submission:
+        return QuestionLifecycleSceneDecision(
+            scene=None,
+            source=proposal.source if proposal is not None else "deterministic",
+            confidence=1.0,
+            reason="answer submission needs an active question",
+            required_anchor_status="missing_active_question",
+            exact_question_blocked_reason="unanchored_answer_submission",
+            selected_skill_names=(),
+            needs_clarification=True,
+            llm_scene_candidate=llm_candidate,
+            business_gate_result="blocked_unanchored_answer_submission",
+        )
+    if low_information_exam_query:
+        return QuestionLifecycleSceneDecision(
+            scene=None,
+            source=proposal.source if proposal is not None else "deterministic",
+            confidence=1.0,
+            reason="low-information exam query needs clarification",
+            required_anchor_status="missing_question_anchor",
+            exact_question_blocked_reason="low_information_exam_query",
+            selected_skill_names=(),
+            needs_clarification=True,
+            llm_scene_candidate=llm_candidate,
+            business_gate_result="blocked_low_information_exam_query",
+        )
+    if scene is not None:
+        skill_names = select_question_lifecycle_skill_names(scene)
+        return QuestionLifecycleSceneDecision(
+            scene=scene,
+            source="deterministic",
+            confidence=1.0,
+            reason="deterministic lifecycle scene matched",
+            required_anchor_status="satisfied",
+            selected_skill_names=skill_names,
+            llm_scene_candidate=llm_candidate,
+            business_gate_result="passed",
+        )
+    if not enable_llm or not _should_use_llm_scene_proposal(ctx):
+        return QuestionLifecycleSceneDecision(
+            scene=None,
+            source="none",
+            confidence=0.0,
+            reason="no deterministic scene and LLM proposal not applicable",
+            business_gate_result="no_candidate",
+        )
+    if proposal is None:
+        return QuestionLifecycleSceneDecision(
+            scene=None,
+            source="llm",
+            confidence=0.0,
+            reason="LLM scene proposal unavailable",
+            business_gate_result="llm_unavailable",
+        )
+    return proposal
+
+
+def is_low_information_exam_query(query: str) -> bool:
+    """Return True when the message is an exam inventory/filter query, not a question.
+
+    Examples: ``2025真题`` / ``历年真题`` / ``防水真题``. These carry a
+    subject/year/topic filter, but no concrete stem, options, active question,
+    or explicit review/generation verb. They must not unlock exact-answer
+    authority.
+    """
+
+    text = re.sub(r"\s+", "", str(query or "").strip())
+    if not text:
+        return False
+    if not any(marker in text for marker in ("真题", "试题", "题库", "试卷")):
+        return False
+    explicit_action_markers = (
+        "分析",
+        "讲解",
+        "解析",
+        "讲一",
+        "讲这",
+        "出",
+        "练",
+        "训练",
+        "测试",
+        "考我",
+        "做",
+        "批改",
+        "我选",
+        "我答",
+        "题干",
+        "选项",
+        "下列",
+        "正确的是",
+        "错误的是",
+    )
+    if any(marker in text for marker in explicit_action_markers):
+        return False
+    if _FREE_TEXT_MCQ_OPTION_LIST_RE.search(str(query or "")):
+        return False
+    catalog_markers = ("有哪些", "有吗", "目录", "列表", "哪几道", "多少道", "历年", "往年", "答案")
+    if any(marker in text for marker in catalog_markers):
+        return True
+    if re.fullmatch(r"(?:20\d{2})?[\u4e00-\u9fffA-Za-z0-9]{0,12}(?:真题|试题|题库|试卷)", text):
+        return True
+    return False
+
+
+def build_question_lifecycle_clarification_response(message: str, reason: str) -> str:
+    """Student-visible clarification for lifecycle turns missing an anchor."""
+
+    reason = str(reason or "").strip()
+    if reason == "unanchored_answer_submission":
+        return (
+            "我还不知道你要批改哪一道题。\n\n"
+            "请先发送题干和选项，或在当前题卡里提交答案；如果是刚才那道题，也可以点题卡里的选项再提交。"
+        )
+    if reason == "low_information_exam_query":
+        topic = str(message or "").strip() or "真题"
+        return (
+            f"你提到的是“{topic}”，但还没有指定要做哪件事。\n\n"
+            "你可以这样继续：\n"
+            "1. 查看这一类真题目录或考点范围\n"
+            "2. 让我出一套真题风格练习\n"
+            "3. 粘贴具体题干和选项，我按题目讲评：先展示题目，再给答案、逐项解析、易错点和记忆抓手"
+        )
+    return ""
 
 
 def build_question_lifecycle_skill_context(
@@ -351,6 +514,7 @@ _MCQ_QUESTION_TYPES: frozenset[str] = frozenset(
         "multiple_choice",
         "true_false",
         "judgment",
+        "choice",
         "mcq",
     }
 )
@@ -378,9 +542,9 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
     """
     # Local imports avoid module-load circular deps.
     from deeptutor.services.question_followup import (  # noqa: WPS433
-        extract_submission_answer,
         looks_like_question_followup,
         normalize_question_followup_context,
+        resolve_submission_attempt,
     )
     from deeptutor.tutorbot.teaching_modes import (  # noqa: WPS433
         looks_like_practice_generation_request,
@@ -396,11 +560,12 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
     ) or {}
 
     if question_context:
-        submission = extract_submission_answer(user_message, question_context)
+        _target_context, submission = resolve_submission_attempt(user_message, question_context)
         if submission:
             q_type = str(question_context.get("question_type") or "").strip().lower()
             has_options = bool(question_context.get("options"))
-            if q_type in _MCQ_QUESTION_TYPES or has_options:
+            has_items = bool(question_context.get("items"))
+            if q_type in _MCQ_QUESTION_TYPES or has_options or has_items:
                 return "mcq_grading"
             return "case_grading"
 
@@ -430,6 +595,156 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
     return None
 
 
+def _should_use_llm_scene_proposal(ctx: Any) -> bool:
+    user_message = str(getattr(ctx, "user_message", None) or "").strip()
+    if not user_message:
+        return False
+    metadata = getattr(ctx, "metadata", None) or {}
+    if isinstance(metadata, dict):
+        if metadata.get("question_followup_context") or metadata.get("active_object"):
+            return False
+    hints = (
+        "题",
+        "真题",
+        "练",
+        "训练",
+        "测",
+        "测试",
+        "考",
+        "解析",
+        "讲评",
+        "讲解",
+        "错题",
+        "掌握",
+        "学情",
+        "今天学什么",
+        "学不动",
+        "没动力",
+    )
+    return any(hint in user_message for hint in hints)
+
+
+def _parse_llm_scene_payload(raw: Any) -> dict[str, Any] | None:
+    text = str(raw or "").strip()
+    if not text:
+        return None
+    try:
+        payload = json.loads(text)
+    except json.JSONDecodeError:
+        match = re.search(r"\{.*\}", text, re.DOTALL)
+        if not match:
+            return None
+        try:
+            payload = json.loads(match.group(0))
+        except json.JSONDecodeError:
+            return None
+    return payload if isinstance(payload, dict) else None
+
+
+async def _llm_question_lifecycle_scene_proposal(
+    ctx: Any,
+) -> QuestionLifecycleSceneDecision | None:
+    from deeptutor.services.llm import factory as llm_factory  # noqa: WPS433
+
+    user_message = str(getattr(ctx, "user_message", None) or "").strip()
+    metadata = getattr(ctx, "metadata", None) or {}
+    history_context = (
+        str(metadata.get("conversation_context_text") or "").strip()
+        if isinstance(metadata, dict)
+        else ""
+    )
+    prompt_payload = {
+        "user_message": user_message,
+        "history_context": history_context[:800],
+        "allowed_scenes": [
+            "practice_generation",
+            "question_review",
+            "mcq_grading",
+            "case_grading",
+            "learning_evidence_story",
+            "study_assistant",
+            "learning_support",
+            "none",
+        ],
+        "rules": [
+            "用户要求系统出题、练题、测试、检验掌握情况 -> practice_generation",
+            "用户要求分析/讲解/解析一道已有题、真题或题库题 -> question_review",
+            "用户给出自己的选择或答案并要求批改 -> mcq_grading 或 case_grading",
+            "用户问最近哪里错、学得怎么样 -> learning_evidence_story",
+            "用户问今天学什么、下一步学什么 -> study_assistant",
+            "用户表达没动力、焦虑、学不动 -> learning_support",
+            "无法判断或不是学习题目生命周期场景 -> none",
+        ],
+    }
+    try:
+        raw = await llm_factory.complete(
+            prompt=(
+                "请只输出 JSON 对象，字段固定为 scene, confidence, reason。\n"
+                "scene 必须来自 allowed_scenes。confidence 是 0 到 1 的数字。\n"
+                f"{json.dumps(prompt_payload, ensure_ascii=False)}"
+            ),
+            system_prompt=(
+                "你是鲁班智考的题目生命周期语义候选建议器。"
+                "你只提出 scene 候选，不执行出题、不批改、不生成解析。"
+            ),
+            temperature=0,
+            response_format={"type": "json_object"},
+            max_tokens=300,
+            max_retries=0,
+            retry_delay=0.1,
+        )
+    except Exception:
+        logger.debug("LLM question lifecycle scene proposal failed", exc_info=True)
+        return None
+    payload = _parse_llm_scene_payload(raw)
+    if payload is None:
+        return None
+    raw_scene = str(payload.get("scene") or "").strip()
+    if raw_scene == "none":
+        scene = None
+    else:
+        try:
+            scene = _normalize_scene(raw_scene)
+        except ValueError:
+            return None
+    try:
+        confidence = float(payload.get("confidence") or 0.0)
+    except (TypeError, ValueError):
+        confidence = 0.0
+    confidence = max(0.0, min(1.0, confidence))
+    if confidence < 0.72:
+        scene = None
+    skill_names = select_question_lifecycle_skill_names(scene)
+    return QuestionLifecycleSceneDecision(
+        scene=scene,
+        source="llm",
+        confidence=confidence,
+        reason=str(payload.get("reason") or "").strip(),
+        required_anchor_status="satisfied" if scene else "",
+        selected_skill_names=skill_names,
+        llm_scene_candidate={
+            "scene": scene,
+            "confidence": confidence,
+            "reason": str(payload.get("reason") or "").strip(),
+        },
+        business_gate_result="passed" if scene else "llm_none_or_low_confidence",
+    )
+
+
+def _llm_candidate_payload(
+    proposal: QuestionLifecycleSceneDecision | None,
+) -> dict[str, Any] | None:
+    if proposal is None:
+        return None
+    if isinstance(proposal.llm_scene_candidate, dict):
+        return dict(proposal.llm_scene_candidate)
+    return {
+        "scene": proposal.scene,
+        "confidence": proposal.confidence,
+        "reason": proposal.reason,
+    }
+
+
 def attach_question_lifecycle_scene_to_context(ctx: Any) -> str | None:
     """Idempotently attach the derived lifecycle scene to ``ctx.metadata``.
 
@@ -449,7 +764,13 @@ def attach_question_lifecycle_scene_to_context(ctx: Any) -> str | None:
     metadata["question_lifecycle_scene"] = scene
 
     if scene is not None:
-        metadata["question_lifecycle_skill_names"] = list(SCENE_COMPOSITION[scene])
+        skill_names = list(SCENE_COMPOSITION[scene])
+        metadata["question_lifecycle_skill_names"] = skill_names
+        trace_meta = metadata.setdefault("trace_metadata", {})
+        if isinstance(trace_meta, dict):
+            trace_meta["question_lifecycle_scene"] = scene
+            trace_meta["question_lifecycle_skill_names"] = list(skill_names)
+            trace_meta["skill_stack"] = list(skill_names)
     else:
         metadata.setdefault("question_lifecycle_skill_names", [])
 
@@ -478,6 +799,25 @@ def _looks_like_free_text_mcq_grading(user_message: str) -> bool:
         if marker != "我选"
     )
     return has_question_signal and has_grading_action
+
+
+def _looks_like_unanchored_mcq_answer_submission(
+    user_message: str,
+    metadata: Any,
+) -> bool:
+    if not _FREE_TEXT_MCQ_OPTION_SELECTION_RE.search(user_message):
+        return False
+    if not isinstance(metadata, dict):
+        return True
+    question_context = metadata.get("question_followup_context")
+    if isinstance(question_context, dict) and question_context.get("question"):
+        return False
+    active_object = metadata.get("active_object")
+    if isinstance(active_object, dict):
+        snapshot = active_object.get("state_snapshot")
+        if isinstance(snapshot, dict) and snapshot.get("question"):
+            return False
+    return True
 
 
 def _context_scene(ctx: UnifiedContext) -> str | None:

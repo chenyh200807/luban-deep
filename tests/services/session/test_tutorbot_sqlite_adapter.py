@@ -487,5 +487,8 @@ async def test_tutorbot_manager_send_message_reuses_outer_usage_scope_for_extern
     assert summary["total_tokens"] == 120
     assert summary["measured_calls"] == 1
     assert summary["usage_sources"]["provider"] == 1
+    metadata_keys = list(captured_update["metadata"].keys())
+    assert metadata_keys.index("skill_stack") < 20
+    assert metadata_keys.index("skill_trace") < 20
     assert captured_update["metadata"]["skill_trace"][0]["name"] == "construction-exam-tutor"
     assert captured_update["metadata"]["skill_stack"] == ["construction-exam-tutor"]

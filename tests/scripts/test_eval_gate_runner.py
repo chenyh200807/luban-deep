@@ -101,6 +101,77 @@ gates:
     assert (artifact_dir / "logs" / "pythonpath_gate.log").read_text(encoding="utf-8").strip() == "ok"
 
 
+def test_eval_gate_runner_records_timeout_as_failed_gate(tmp_path: Path) -> None:
+    gates_path = tmp_path / "gates.yaml"
+    artifact_dir = tmp_path / "artifacts"
+    gates_path.write_text(
+        """
+version: 1
+gates:
+  timeout_gate:
+    command: ["python", "-c", "import time; time.sleep(2)"]
+    timeout_seconds: 0.05
+""",
+        encoding="utf-8",
+    )
+
+    result = _run_eval_gate(
+        "--gates-path",
+        str(gates_path),
+        "--artifact-dir",
+        str(artifact_dir),
+    )
+
+    assert result.returncode == 1
+    summary = json.loads((artifact_dir / "summary.json").read_text(encoding="utf-8"))
+    gate = summary["gates"][0]
+    assert summary["summary"]["failed"] == 1
+    assert gate["status"] == "FAIL"
+    assert gate["failure_signature"] == "gate_timeout"
+    assert "timeout after 0.05s" in gate["reason"]
+    assert "TIMEOUT" in (artifact_dir / "logs" / "timeout_gate.log").read_text(encoding="utf-8")
+
+
+def test_eval_gate_runner_reports_slow_gates(tmp_path: Path) -> None:
+    gates_path = tmp_path / "gates.yaml"
+    artifact_dir = tmp_path / "artifacts"
+    gates_path.write_text(
+        """
+version: 1
+gates:
+  slow_gate:
+    command: ["python", "-c", "print('ok')"]
+    slow_seconds: 0
+""",
+        encoding="utf-8",
+    )
+
+    result = _run_eval_gate(
+        "--gates-path",
+        str(gates_path),
+        "--artifact-dir",
+        str(artifact_dir),
+    )
+
+    assert result.returncode == 0, result.stderr
+    summary = json.loads((artifact_dir / "summary.json").read_text(encoding="utf-8"))
+    assert summary["summary"]["slow"] == 1
+    assert summary["slow_gates"][0]["name"] == "slow_gate"
+    assert "## Slow Gates" in (artifact_dir / "summary.md").read_text(encoding="utf-8")
+
+
+def test_eval_gate_yaml_turns_coverage_gaps_into_runnable_gates() -> None:
+    gates = (PROJECT_ROOT / "eval" / "gates.yaml").read_text(encoding="utf-8")
+
+    assert "required_paths:\n      - \"web/package-lock.json\"" in gates
+    assert "test:wechat-harness:e2e:ci" in gates
+    assert "tests/fixtures/long_dialog_v1_retest_source.json" in gates
+    assert "--start-local-api" in gates
+    assert "web/node_modules/.bin/playwright" not in gates
+    assert "requires --source-json historical artifact" not in gates
+    assert "requires local API server" not in gates
+
+
 def test_standalone_deep_scripts_resolve_repo_checkout_without_external_pythonpath() -> None:
     env = dict(os.environ)
     env.pop("PYTHONPATH", None)

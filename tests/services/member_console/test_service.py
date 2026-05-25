@@ -897,6 +897,11 @@ def test_login_with_password_does_not_fail_when_wallet_bootstrap_is_unavailable(
         def ensure_wallet_seeded(**_kwargs):
             raise RuntimeError("wallet quota unavailable")
 
+    monkeypatch.setattr(
+        member_service_module,
+        "SupabaseAssessmentSessionRepository",
+        lambda: SimpleNamespace(is_configured=True),
+    )
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
     monkeypatch.setattr(service, "_get_wallet_service", lambda: _FailingWalletService())
@@ -1030,6 +1035,60 @@ def test_canonical_member_snapshot_merges_legacy_external_auth_learning_state(
     assert foundation_progress["done"] == 2
     assert foundation_progress["total"] == 2
     assert foundation_progress["daily_target"] == 30
+
+
+def test_home_dashboard_uses_canonical_learner_state_for_merged_legacy_user(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_HOME_PERSONALIZATION_ENABLED", "true")
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    canonical_user_id = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+
+    def _seed(data: dict[str, object]) -> None:
+        data["members"] = [
+            service._build_default_member(canonical_user_id),
+            {
+                **service._build_default_member("user_2008"),
+                "user_id": "user_2008",
+                "display_name": "chenyh2008",
+                "external_auth_user_id": canonical_user_id,
+                "merged_into": canonical_user_id,
+            },
+        ]
+
+    service._mutate(_seed)
+    event = SimpleNamespace(
+        event_id="evt_home_legacy_token",
+        memory_kind="learning_evidence",
+        source_feature="assessment_testset",
+        payload_json={
+            "event_type": "learning_evidence",
+            "knowledge_points": ["招投标与合同"],
+            "error_codes": [],
+        },
+    )
+    snapshot_user_ids: list[str] = []
+
+    class _FakeLearnerStateService:
+        def read_snapshot(self, user_id: str, *, event_limit: int = 5):
+            snapshot_user_ids.append(user_id)
+            return SimpleNamespace(profile={}, progress={}, summary="", memory_events=[event])
+
+        def list_heartbeat_jobs(self, user_id: str):
+            return []
+
+        def list_heartbeat_history(self, user_id: str, limit: int = 3):
+            return []
+
+    service._get_learner_state_service = lambda: _FakeLearnerStateService()  # type: ignore[method-assign]
+
+    dashboard = service.get_home_dashboard("user_2008")
+
+    assert snapshot_user_ids == [canonical_user_id]
+    assert dashboard["today_focus"]["title"] == "今日焦点：招投标与合同"
+    assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练招投标与合同"
 
 
 def test_register_with_external_auth_creates_external_user_and_member(
@@ -2341,14 +2400,37 @@ def test_submit_assessment_writes_teaching_policy_and_learner_event(monkeypatch,
     payload = service.create_assessment("student_demo", count=20)
     stored = service._load()["assessment_sessions"][payload["quiz_id"]]["questions"]
     answers = {item["question_id"]: item.get("answer") or "A" for item in stored}
+    first_scored = next(item for item in stored if item.get("scored", True))
+    correct_answer = str(first_scored.get("answer") or "").upper()
+    answers[first_scored["question_id"]] = "B" if correct_answer != "B" else "A"
 
     result = service.submit_assessment("student_demo", payload["quiz_id"], answers, time_spent_seconds=180)
 
     assert result["teaching_policy_seed"]["version"] == "assessment_seed_v1"
     assert result["diagnostic_feedback"]["learner_profile"]["archetype_name"] == "动态调节型学员"
-    assert learner_events[0]["memory_kind"] == "assessment"
-    assert learner_events[0]["source_feature"] == "assessment"
-    assert learner_events[0]["payload_json"]["teaching_policy_seed"]["source_assessment"]["quiz_id"] == payload["quiz_id"]
+    learning_evidence_events = [
+        event for event in learner_events if event["memory_kind"] == "learning_evidence"
+    ]
+    assert not [event for event in learner_events if event["memory_kind"] == "assessment"]
+    assert learning_evidence_events, "assessment answers must also enter canonical learning_evidence"
+    first_evidence = learning_evidence_events[0]
+    assert first_evidence["source_feature"] == "construction_grading"
+    assert first_evidence["source_id"].startswith(f"{payload['quiz_id']}:")
+    assert first_evidence["dedupe_key"]
+    assert first_evidence["payload_json"]["event_type"] == "learning_evidence"
+    assert first_evidence["payload_json"]["source"] == "construction_grading"
+    assert first_evidence["payload_json"]["grading_mode"] == "assessment_blueprint"
+    assert first_evidence["payload_json"]["question_stem"]
+    assert first_evidence["payload_json"]["user_answer"]
+    assert first_evidence["payload_json"]["correct_answer"]
+    assert first_evidence["payload_json"]["next_training_signal"]["source"] == "assessment"
+    assert first_evidence["payload_json"]["quality"]["progress_countable"] is True
+    assert first_evidence["payload_json"]["quality"]["truth_eligible"] is True
+    assert any(event["payload_json"]["score_ratio"] == 0 for event in learning_evidence_events)
+    assert any(event["payload_json"]["score_ratio"] == 1 for event in learning_evidence_events)
+    wrong_event = next(event for event in learning_evidence_events if event["payload_json"]["score_ratio"] == 0)
+    assert wrong_event["payload_json"]["error_events"][0]["error_code"] == "unknown_error"
+    assert "摸底测评" in wrong_event["payload_json"]["error_events"][0]["diagnosis"]
     assert overlay_patches[0]["bot_id"] == "construction-exam-coach"
     assert overlay_patches[0]["patch"]["operations"][0]["field"] == "teaching_policy_override"
 
@@ -3265,3 +3347,55 @@ def test_record_ops_action_result_dedupes_by_idempotency_key(tmp_path: Path) -> 
     assert first["audit_id"] == audit["items"][0]["id"]
     assert second["audit_id"] == first["audit_id"]
     assert second.get("deduped") is True
+
+
+def test_assessment_topic_catalog_reports_form_readiness(monkeypatch: pytest.MonkeyPatch) -> None:
+    service = MemberConsoleService()
+
+    class _Provider:
+        def active_form_count(self, blueprint_version: str) -> int:
+            if blueprint_version == "topic_waterproof_v1":
+                return 5
+            return 3
+
+        def load_persisted_form_bank(self, blueprint):
+            return object()
+
+    monkeypatch.setattr(member_service_module, "is_production_environment", lambda: True)
+    monkeypatch.setattr(member_service_module, "SupabaseAssessmentQuestionProvider", lambda: _Provider())
+
+    result = service.get_assessment_topic_catalog()
+
+    by_id = {item["topic_id"]: item for item in result["topics"]}
+    assert by_id["waterproof"]["status"] == "stable"
+    assert by_id["waterproof"]["enabled"] is True
+    assert by_id["waterproof"]["quality_status"] == "validated"
+    assert by_id["decoration"]["status"] == "pilot"
+    assert by_id["decoration"]["quality_status"] == "validated"
+    assert by_id["decoration"]["minimum_form_count"] == 3
+    assert by_id["decoration"]["target_form_count"] == 5
+
+
+def test_assessment_topic_catalog_rejects_invalid_form_bank(monkeypatch: pytest.MonkeyPatch) -> None:
+    service = MemberConsoleService()
+
+    class _Provider:
+        def active_form_count(self, blueprint_version: str) -> int:
+            return 5 if blueprint_version == "topic_waterproof_v1" else 0
+
+        def load_persisted_form_bank(self, blueprint):
+            if blueprint.version == "topic_waterproof_v1":
+                raise member_service_module.AssessmentBlueprintUnavailable("duplicate source ids")
+            raise AssertionError("topics below the open floor must not be validated")
+
+    monkeypatch.setattr(member_service_module, "is_production_environment", lambda: True)
+    monkeypatch.setattr(member_service_module, "SupabaseAssessmentQuestionProvider", lambda: _Provider())
+
+    result = service.get_assessment_topic_catalog()
+
+    by_id = {item["topic_id"]: item for item in result["topics"]}
+    assert by_id["waterproof"]["form_count"] == 5
+    assert by_id["waterproof"]["status"] == "authoring_needed"
+    assert by_id["waterproof"]["enabled"] is False
+    assert by_id["waterproof"]["quality_status"] == "invalid_form_bank"
+    assert by_id["decoration"]["quality_status"] == "insufficient_forms"

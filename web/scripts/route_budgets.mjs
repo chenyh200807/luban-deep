@@ -71,6 +71,27 @@ function collectLayoutChunkPaths(entryFiles) {
   );
 }
 
+function collectWebpackClientChunkPaths(clientModules) {
+  if (!clientModules || typeof clientModules !== "object") {
+    return [];
+  }
+  return uniqueChunkPaths(
+    Object.values(clientModules)
+      .flatMap((moduleRef) => (moduleRef && Array.isArray(moduleRef.chunks) ? moduleRef.chunks : []))
+      .filter((chunkPath) => typeof chunkPath === "string" && chunkPath.startsWith("static/")),
+  );
+}
+
+function collectWebpackLayoutChunkPaths(chunkPaths) {
+  return chunkPaths.filter(
+    (chunkPath) =>
+      chunkPath.includes("/layout-") ||
+      chunkPath.includes("/error-") ||
+      chunkPath.includes("/loading-") ||
+      chunkPath.includes("/global-error-"),
+  );
+}
+
 if (!fs.existsSync(APP_SERVER_DIR)) {
   console.error("Missing .next/server/app. Run `npm run build` before `npm run perf:check`.");
   process.exit(1);
@@ -87,27 +108,44 @@ for (const manifestFile of manifestFiles) {
   const { manifestKey, manifest } = evaluateManifest(manifestFile);
   const route = normalizePublicRoute(manifestKey);
   const entryFiles = manifest.entryJSFiles;
+  const comparableBudget = entryFiles && typeof entryFiles === "object";
+  let chunkPaths = [];
 
-  const rootLayoutFiles = entryFiles["[project]/app/layout"] || [];
-  if (!rootShellSize && rootLayoutFiles.length > 0) {
-    rootShellSize = sumChunkSizes(rootLayoutFiles);
+  if (comparableBudget) {
+    const rootLayoutFiles = entryFiles["[project]/app/layout"] || [];
+    if (!rootShellSize && rootLayoutFiles.length > 0) {
+      rootShellSize = sumChunkSizes(rootLayoutFiles);
+    }
+
+    const routeEntryKey = Object.keys(entryFiles).find(
+      (key) => key.startsWith("[project]/app/") && key.endsWith("/page") && !key.includes("/layout"),
+    );
+    if (!routeEntryKey) {
+      continue;
+    }
+
+    const layoutChunkPaths = new Set(collectLayoutChunkPaths(entryFiles));
+    chunkPaths = uniqueChunkPaths(entryFiles[routeEntryKey] || []).filter(
+      (chunkPath) => !layoutChunkPaths.has(chunkPath),
+    );
+  } else {
+    const clientChunkPaths = collectWebpackClientChunkPaths(manifest.clientModules);
+    const layoutChunkPaths = new Set(collectWebpackLayoutChunkPaths(clientChunkPaths));
+    if (!rootShellSize && layoutChunkPaths.size > 0) {
+      rootShellSize = sumChunkSizes(Array.from(layoutChunkPaths));
+    }
+    chunkPaths = clientChunkPaths.filter((chunkPath) => !layoutChunkPaths.has(chunkPath));
   }
 
-  const routeEntryKey = Object.keys(entryFiles).find(
-    (key) => key.startsWith("[project]/app/") && key.endsWith("/page") && !key.includes("/layout"),
-  );
-  if (!routeEntryKey) {
+  if (!chunkPaths.length) {
     continue;
   }
 
-  const layoutChunkPaths = new Set(collectLayoutChunkPaths(entryFiles));
-  const chunkPaths = uniqueChunkPaths(entryFiles[routeEntryKey] || []).filter(
-    (chunkPath) => !layoutChunkPaths.has(chunkPath),
-  );
   routeRows.push({
     route,
     sizeBytes: sumChunkSizes(chunkPaths),
     chunks: chunkPaths.map((chunkPath) => path.basename(chunkPath)),
+    comparableBudget,
   });
 }
 
@@ -117,13 +155,13 @@ console.log("Route budgets:");
 for (const row of routeRows) {
   const sizeKb = Math.round(row.sizeBytes / 1024);
   const budget = ROUTE_BUDGETS_KB[row.route];
-  const status = budget && sizeKb > budget ? "FAIL" : "OK";
+  const status = budget && row.comparableBudget && sizeKb > budget ? "FAIL" : "OK";
   if (status === "FAIL") {
     hasFailure = true;
   }
   console.log(
     `${status.padEnd(4)} ${row.route.padEnd(12)} ${String(sizeKb).padStart(4)}KB` +
-      (budget ? ` / budget ${budget}KB` : ""),
+      (budget ? ` / budget ${budget}KB${row.comparableBudget ? "" : " (estimated webpack)"}` : ""),
   );
 }
 

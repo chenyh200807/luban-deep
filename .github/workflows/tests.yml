@@ -172,6 +172,10 @@ jobs:
             tests/services/test_app_facade.py \
             tests/services/test_model_catalog.py \
             tests/services/test_path_service.py \
+            tests/runtime/test_orchestrator_autoroute.py \
+            tests/capabilities/test_deep_question_question_review.py \
+            tests/capabilities/test_deep_question_lightweight_generation.py \
+            tests/services/test_render_presentation.py \
             tests/services/memory \
             tests/services/session \
             tests/security \
@@ -230,6 +234,7 @@ jobs:
           node wx_miniprogram/tests/test_markdown.js
           node wx_miniprogram/tests/test_progressive_disclosure_render.js
           node wx_miniprogram/tests/test_answer_leak_attack.js
+          node wx_miniprogram/tests/test_ai_message_state.js
           node wx_miniprogram/tests/test_ws_stream_pure_contract.js
           node wx_miniprogram/tests/test_stream_token_boundary.js
 

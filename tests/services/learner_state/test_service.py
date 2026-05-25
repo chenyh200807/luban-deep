@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import asyncio
 import json
+import sqlite3
 
 import pytest
 
+import deeptutor.services.learner_state.service as learner_state_service_module
 from deeptutor.services.learner_state.learning_brain_read_model import build_learning_brain_read_model
 from deeptutor.services.learner_state.service import LearnerStateEvent, LearnerStateOutboxService, LearnerStateService
 
@@ -92,6 +94,18 @@ class _CoreStoreStub:
 
     def read_memory_events(self, _user_id: str, limit: int | None = 20):
         rows = [dict(item) for item in self.memory_events]
+        if limit is None or limit < 0:
+            return rows
+        return rows[-int(limit):]
+
+    def read_learning_evidence_events(self, user_id: str, limit: int | None = 100, since: str | None = None):
+        rows = [
+            dict(item)
+            for item in self.memory_events
+            if item.get("user_id") == user_id and item.get("memory_kind") == "learning_evidence"
+        ]
+        if since:
+            rows = [item for item in rows if str(item.get("created_at") or "") >= since]
         if limit is None or limit < 0:
             return rows
         return rows[-int(limit):]
@@ -243,6 +257,120 @@ def test_learner_state_context_renders_learning_evidence_events(tmp_path) -> Non
         "行政法规与部门规章辨析" in str(candidate.get("content") or "")
         for candidate in candidates.get("candidates", [])
     )
+
+
+def test_append_memory_event_dedupe_recreates_missing_outbox_row(tmp_path) -> None:
+    service = _make_service(tmp_path)
+    first = service.append_memory_event(
+        "student_demo",
+        source_feature="assessment_testset",
+        source_id="quiz_1:q_1",
+        source_bot_id="construction-exam-coach",
+        memory_kind="learning_evidence",
+        payload_json={
+            "event_type": "learning_evidence",
+            "question_id": "q_1",
+            "knowledge_points": ["防水工程"],
+            "is_correct": False,
+        },
+        dedupe_key="assessment_item:student_demo:quiz_1:q_1",
+    )
+    with sqlite3.connect(service.outbox_service.db_path) as conn:
+        conn.execute(
+            "delete from learner_state_outbox where dedupe_key = ?",
+            ("assessment_item:student_demo:quiz_1:q_1",),
+        )
+
+    second = service.append_memory_event(
+        "student_demo",
+        source_feature="assessment_testset",
+        source_id="quiz_1:q_1",
+        source_bot_id="construction-exam-coach",
+        memory_kind="learning_evidence",
+        payload_json={
+            "event_type": "learning_evidence",
+            "question_id": "q_1",
+            "knowledge_points": ["防水工程"],
+            "is_correct": False,
+        },
+        dedupe_key="assessment_item:student_demo:quiz_1:q_1",
+    )
+
+    assert second.event_id == first.event_id
+    pending = service.outbox_service.list_pending(user_id="student_demo", limit=10)
+    assert len(pending) == 1
+    assert pending[0].id == first.event_id
+    assert pending[0].dedupe_key == "assessment_item:student_demo:quiz_1:q_1"
+
+
+def test_list_memory_events_merges_local_write_ahead_in_production(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(learner_state_service_module, "is_production_environment", lambda: True)
+    store = _CoreStoreStub()
+    store.memory_events = [
+        {
+            "event_id": "evt_remote_turn",
+            "user_id": "student_demo",
+            "source_feature": "turn",
+            "source_id": "turn:remote",
+            "source_bot_id": "construction-exam-coach",
+            "memory_kind": "turn",
+            "payload_json": {"user_message": "分析一道真题"},
+            "dedupe_key": "evt_remote_turn",
+            "created_at": "2026-05-25T07:03:00+00:00",
+        }
+    ]
+    service = _make_service(tmp_path, core_store=store)
+
+    local = service.append_memory_event(
+        "student_demo",
+        source_feature="assessment_testset",
+        source_id="quiz_1:q_1",
+        source_bot_id="construction-exam-coach",
+        memory_kind="learning_evidence",
+        payload_json={
+            "event_type": "learning_evidence",
+            "question_id": "q_1",
+            "knowledge_points": ["防水工程"],
+            "is_correct": False,
+        },
+        dedupe_key="assessment_item:student_demo:quiz_1:q_1",
+    )
+
+    events = service.list_memory_events("student_demo", limit=20)
+
+    assert [event.event_id for event in events] == ["evt_remote_turn", local.event_id]
+    assert events[-1].source_feature == "assessment_testset"
+
+
+def test_list_learning_evidence_events_merges_local_write_ahead_in_production(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(learner_state_service_module, "is_production_environment", lambda: True)
+    service = _make_service(tmp_path, core_store=_CoreStoreStub())
+
+    local = service.append_memory_event(
+        "student_demo",
+        source_feature="assessment_testset",
+        source_id="quiz_1:q_1",
+        source_bot_id="construction-exam-coach",
+        memory_kind="learning_evidence",
+        payload_json={
+            "event_type": "learning_evidence",
+            "question_id": "q_1",
+            "knowledge_points": ["防水工程"],
+            "is_correct": False,
+        },
+        dedupe_key="assessment_item:student_demo:quiz_1:q_1",
+    )
+
+    events = service.list_learning_evidence_events("student_demo", limit=20)
+
+    assert [event.event_id for event in events] == [local.event_id]
+    assert events[0].source_feature == "assessment_testset"
 
 
 def test_read_learning_evidence_event_local_hit_miss_and_cache(tmp_path) -> None:
