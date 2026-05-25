@@ -5,7 +5,7 @@ create extension if not exists pgcrypto;
 create table if not exists public.assessment_sessions (
   session_id uuid primary key default gen_random_uuid(),
   quiz_id text not null default ('quiz_' || replace(gen_random_uuid()::text, '-', '')),
-  user_id text not null references public.users(id) on delete cascade,
+  user_id text not null,
   assessment_type text not null,
   subject_id text not null,
   topic_ids text[] not null default array[]::text[],
