@@ -433,8 +433,10 @@ session / evidence truth。
 2. 真题样式 mini 卷的用户文案默认只能叫“综合模拟测评”或“真题样式测评”；没有
    provenance + 教研签字时不得声明“官方真题”。
 3. P1 deep explanation 是基于已提交 report 和 hidden grading artifact 的 projection：
-   可以返回 `cache_key`、`cache_status` 和题级解析，但必须
-   `score_mutation_allowed=false`，不得回写或重算正式得分。
+   可以返回 `cache_key`、`cache_status`、题级解析和 wallet/billing capture 摘要。
+   解析文本可以由非流式 LLM 生成，但必须 `score_mutation_allowed=false`，不得回写或
+   重算正式得分，不得写 learner-state / training_intent / mastery，也不得修改
+   `assessment_sessions` 中的评分 truth。
 4. 错题卡“练 3 道同类题”必须把 `attempt_ref`、knowledge point 和 error code 带回
    report training surface；它可以触发后续训练入口，但不得绕过 report / learner-state
    authority 直接跳到 chat 生成第二套处方。

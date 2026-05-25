@@ -2,7 +2,20 @@ from __future__ import annotations
 
 from copy import deepcopy
 import hashlib
+import json
+import math
+import re
 from typing import Any
+
+from deeptutor.services.observability import get_langfuse_observability
+
+PROMPT_VERSION = "assessment-deep-explanation-llm-v1"
+_MINIMUM_EXPLANATION_POINTS = 20
+_COST_POINT_SCALE = 1000
+
+
+def minimum_explanation_points() -> int:
+    return _MINIMUM_EXPLANATION_POINTS
 
 
 def build_explanation_cache_key(
@@ -74,3 +87,185 @@ def build_static_deep_explanation(
         "score_mutation_allowed": False,
         "source": "assessment_deep_explanation_projection",
     }
+
+
+def billable_points_from_usage_summary(usage_summary: dict[str, Any] | None) -> tuple[int, dict[str, Any]]:
+    if not isinstance(usage_summary, dict):
+        return _MINIMUM_EXPLANATION_POINTS, {
+            "billing_amount_source": "fallback_minimum",
+            "billing_cost_source": "missing_usage_summary",
+            "billing_cost_point_scale": _COST_POINT_SCALE,
+            "billing_minimum_points": _MINIMUM_EXPLANATION_POINTS,
+        }
+    measured_cost = _safe_float(usage_summary.get("total_cost_usd"))
+    estimated_cost = _safe_float(usage_summary.get("estimated_total_cost_usd"))
+    billable_cost = measured_cost + estimated_cost
+    cost_points = int(math.ceil(billable_cost * _COST_POINT_SCALE)) if billable_cost > 0 else 0
+    amount_points = max(_MINIMUM_EXPLANATION_POINTS, cost_points)
+    if measured_cost > 0 and estimated_cost > 0:
+        cost_source = "mixed_cost"
+    elif measured_cost > 0:
+        cost_source = "measured_cost"
+    elif estimated_cost > 0:
+        cost_source = "estimated_cost"
+    else:
+        cost_source = "missing_cost"
+    return amount_points, {
+        "billing_amount_source": cost_source if cost_points >= _MINIMUM_EXPLANATION_POINTS else "fallback_minimum",
+        "billing_cost_source": cost_source,
+        "billing_cost_point_scale": _COST_POINT_SCALE,
+        "billing_minimum_points": _MINIMUM_EXPLANATION_POINTS,
+        "billing_measured_cost": round(measured_cost, 8),
+        "billing_estimated_cost": round(estimated_cost, 8),
+        "billing_billable_cost": round(billable_cost, 8),
+        "billing_cost_points": int(cost_points),
+        "usage_accuracy": str(usage_summary.get("usage_accuracy") or "").strip(),
+        "usage_total_input_tokens": int(usage_summary.get("total_input_tokens") or 0),
+        "usage_total_output_tokens": int(usage_summary.get("total_output_tokens") or 0),
+        "usage_total_tokens": int(usage_summary.get("total_tokens") or 0),
+        "usage_estimated_input_tokens": int(usage_summary.get("estimated_input_tokens") or 0),
+        "usage_estimated_output_tokens": int(usage_summary.get("estimated_output_tokens") or 0),
+        "usage_estimated_total_tokens": int(usage_summary.get("estimated_total_tokens") or 0),
+    }
+
+
+async def generate_llm_deep_explanation(
+    *,
+    question: dict[str, Any],
+    learner_answer: str,
+    correct_answer: str,
+    quiz_id: str,
+    question_id: str,
+) -> dict[str, Any]:
+    from deeptutor.services.llm import complete
+
+    system_prompt = (
+        "你是一建建筑实务老师。只基于题干、选项、标准答案和已给依据讲解，"
+        "不要改分，不要编造规范条文编号。输出严格 JSON。"
+    )
+    prompt = _build_prompt(
+        question=question,
+        learner_answer=learner_answer,
+        correct_answer=correct_answer,
+    )
+    observability = get_langfuse_observability()
+    with observability.usage_scope(
+        scope_id=f"assessment_explanation:{quiz_id}:{question_id}",
+        session_id=str(quiz_id or ""),
+        turn_id=str(question_id or ""),
+        capability="assessment_deep_explanation",
+    ):
+        raw = await complete(
+            prompt,
+            system_prompt=system_prompt,
+            temperature=0.2,
+            max_tokens=1200,
+            max_retries=2,
+        )
+        usage_summary = observability.get_current_usage_summary()
+    parsed = _parse_llm_json(raw)
+    return {
+        "summary": _text(parsed.get("summary"))
+        or _text(question.get("simple_explanation"))
+        or "本题需要回到题干限定词和选项边界逐项核对。",
+        "learner_answer": str(learner_answer or ""),
+        "correct_answer": str(correct_answer or ""),
+        "key_terms": _string_list(parsed.get("key_terms"))[:6],
+        "why_wrong": _text(parsed.get("why_wrong")),
+        "cause_analysis": _text(parsed.get("cause_analysis") or parsed.get("cause")),
+        "scoring_points": _text(parsed.get("scoring_points")),
+        "option_reviews": _option_reviews(parsed.get("option_reviews")),
+        "pitfall": _text(parsed.get("pitfall") or parsed.get("pitfalls")),
+        "mnemonic": _text(parsed.get("mnemonic")),
+        "source_basis": _text(parsed.get("source_basis") or parsed.get("source")),
+        "next_action": _text(parsed.get("next_action")),
+        "knowledge_points": _string_list(question.get("knowledge_points") or question.get("knowledge_nodes")),
+        "score_mutation_allowed": False,
+        "source": "assessment_deep_explanation_llm",
+        "prompt_version": PROMPT_VERSION,
+        "usage_summary": usage_summary,
+    }
+
+
+def _build_prompt(*, question: dict[str, Any], learner_answer: str, correct_answer: str) -> str:
+    payload = {
+        "question_id": question.get("question_id") or question.get("source_question_id") or "",
+        "question_stem": question.get("question_stem") or question.get("stem") or "",
+        "question_type": question.get("question_type") or "",
+        "options": question.get("options") or [],
+        "learner_answer": learner_answer,
+        "correct_answer": correct_answer,
+        "simple_explanation": question.get("simple_explanation") or question.get("explanation") or question.get("analysis") or "",
+        "knowledge_points": question.get("knowledge_points") or question.get("knowledge_nodes") or [],
+        "error_codes": question.get("error_codes") or [],
+        "grading_key": question.get("grading_key") or {},
+    }
+    return (
+        "请为学员生成一次付费 AI 详细解析。要求：\n"
+        "1. 先说明本题考什么，以及学员为什么错。\n"
+        "2. 逐项解释选项为什么对/错，特别指出漏选、错选、多选。\n"
+        "3. 给出采分点、易错点、记忆口诀和下一步练习建议。\n"
+        "4. 不要说空话；每句话都要落到题干、选项或答案差异。\n"
+        "5. 严格输出 JSON，字段为 summary, key_terms, why_wrong, cause_analysis, "
+        "scoring_points, option_reviews, pitfall, mnemonic, source_basis, next_action。\n"
+        "option_reviews 每项字段为 key, status, status_label, review。\n\n"
+        "题目信息：\n"
+        + json.dumps(payload, ensure_ascii=False, sort_keys=True)
+    )
+
+
+def _parse_llm_json(raw: Any) -> dict[str, Any]:
+    text = str(raw or "").strip()
+    if not text:
+        return {}
+    try:
+        parsed = json.loads(text)
+        return parsed if isinstance(parsed, dict) else {}
+    except json.JSONDecodeError:
+        pass
+    match = re.search(r"\{.*\}", text, flags=re.S)
+    if not match:
+        return {}
+    try:
+        parsed = json.loads(match.group(0))
+    except json.JSONDecodeError:
+        return {}
+    return parsed if isinstance(parsed, dict) else {}
+
+
+def _option_reviews(value: Any) -> list[dict[str, str]]:
+    rows = value if isinstance(value, list) else []
+    result: list[dict[str, str]] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        key = _text(row.get("key")).upper()
+        review = _text(row.get("review"))
+        if not key or not review:
+            continue
+        result.append(
+            {
+                "key": key[:4],
+                "status": _text(row.get("status")) or "neutral",
+                "status_label": _text(row.get("status_label")),
+                "review": review,
+            }
+        )
+    return result[:8]
+
+
+def _safe_float(value: Any) -> float:
+    try:
+        return max(float(value or 0.0), 0.0)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _text(value: Any) -> str:
+    return str(value or "").strip()
+
+
+def _string_list(value: Any) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return [str(item).strip() for item in value if str(item or "").strip()]

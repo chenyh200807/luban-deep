@@ -770,6 +770,14 @@ function getAssessmentReport(quizId) {
   return requestStateGet("/api/v1/assessment/" + quizId + "/report");
 }
 
+/** 摸底测试 — 生成 AI 详细解析 */
+function requestAssessmentDeepExplanation(quizId, questionId) {
+  return request({
+    url: "/api/v1/assessment/" + quizId + "/items/" + questionId + "/explain",
+    method: "POST",
+  });
+}
+
 module.exports = {
   request: request,
   ensureFreshAuthToken: ensureFreshAuthToken,
@@ -816,4 +824,5 @@ module.exports = {
   getAssessmentSession: getAssessmentSession,
   getAssessmentReport: getAssessmentReport,
   submitAssessment: submitAssessment,
+  requestAssessmentDeepExplanation: requestAssessmentDeepExplanation,
 };

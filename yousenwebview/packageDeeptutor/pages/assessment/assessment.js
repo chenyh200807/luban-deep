@@ -441,6 +441,59 @@ function buildWrongDetail(item, delta, options) {
   };
 }
 
+function normalizeGeneratedOptionReviews(rows, fallbackRows) {
+  var list = Array.isArray(rows) ? rows : [];
+  var normalized = list
+    .map(function (row) {
+      var key = String(row && row.key ? row.key : "").toUpperCase();
+      var status = String(row && row.status ? row.status : "");
+      return {
+        key: key,
+        text: "",
+        statusClass:
+          status.indexOf("miss") >= 0 || status.indexOf("漏") >= 0
+            ? "missed"
+            : status.indexOf("extra") >= 0 || status.indexOf("错") >= 0 || status.indexOf("多") >= 0
+              ? "extra"
+              : status.indexOf("correct") >= 0 || status.indexOf("对") >= 0
+                ? "correct"
+                : "",
+        statusLabel: String((row && (row.status_label || row.statusLabel)) || ""),
+        review: String(row && row.review ? row.review : ""),
+      };
+    })
+    .filter(function (row) {
+      return row.key && row.review;
+    });
+  return normalized.length ? normalized : fallbackRows || [];
+}
+
+function normalizeGeneratedDetail(payload, fallbackItem) {
+  var explanation = payload && payload.explanation ? payload.explanation : {};
+  var fallbackDetail = fallbackItem && fallbackItem.detail ? fallbackItem.detail : {};
+  var keyTerms = Array.isArray(explanation.key_terms)
+    ? explanation.key_terms
+    : Array.isArray(explanation.knowledge_points)
+      ? explanation.knowledge_points
+      : fallbackDetail.keyTerms || [];
+  var billing = payload && payload.billing ? payload.billing : {};
+  var capturedPoints = Number(billing.captured_points || billing.amount_points || 0);
+  return {
+    detail: {
+      keyTerms: keyTerms.filter(function (item) { return String(item || "").trim(); }).slice(0, 6),
+      whyWrong: String(explanation.why_wrong || fallbackDetail.whyWrong || "AI 已生成解析，但本题没有返回明确错因。"),
+      cause: String(explanation.cause_analysis || fallbackDetail.cause || ""),
+      scoringPoints: String(explanation.scoring_points || fallbackDetail.scoringPoints || ""),
+      pitfall: String(explanation.pitfall || fallbackDetail.pitfall || ""),
+      mnemonic: String(explanation.mnemonic || fallbackDetail.mnemonic || ""),
+      source: String(explanation.source_basis || fallbackDetail.source || ""),
+    },
+    explanation: explanation.summary ? "解析：" + String(explanation.summary).replace(/^解析[:：]/, "") : fallbackItem.explanation,
+    optionReviews: normalizeGeneratedOptionReviews(explanation.option_reviews, fallbackItem.optionReviews),
+    detailBilling: capturedPoints > 0 ? "本次消耗 " + capturedPoints + " 点" : "",
+  };
+}
+
 function buildWrongIssueType(item, delta) {
   if (delta && delta.missed && delta.missed.length) return "多选题漏选";
   var codes = (item.error_codes || []).join(" ");
@@ -472,6 +525,10 @@ function normalizeWrongItems(items, attemptRefs, questions) {
       issueBadge: delta.label || issueType,
       explanation: buildSimpleReview(item, delta),
       expanded: false,
+      detailStatus: "idle",
+      detailStatusText: "点击后生成",
+      detailError: "",
+      detailBilling: "",
       optionReviews: buildOptionReview(options, learnerAnswer, correctAnswer),
       detail: buildWrongDetail(item, delta, options),
       knowledgePoints: item.knowledge_points || [],
@@ -1248,15 +1305,74 @@ Page({
   },
 
   onToggleWrongDetail: function (event) {
+    var self = this;
     var questionId =
       event && event.currentTarget && event.currentTarget.dataset
         ? String(event.currentTarget.dataset.questionId || "")
         : "";
-    var wrongItems = (this.data.wrongItems || []).map(function (item) {
-      if (String(item.questionId || "") !== questionId) return item;
-      return Object.assign({}, item, { expanded: !item.expanded });
+    var target = (this.data.wrongItems || []).find(function (item) {
+      return String(item.questionId || "") === questionId;
     });
-    this.setData({ wrongItems: wrongItems });
+    if (!target) return;
+    if (target.expanded) {
+      this.setData({
+        wrongItems: (this.data.wrongItems || []).map(function (item) {
+          if (String(item.questionId || "") !== questionId) return item;
+          return Object.assign({}, item, { expanded: false });
+        }),
+      });
+      return;
+    }
+    if (target.detailStatus === "ready") {
+      this.setData({
+        wrongItems: (this.data.wrongItems || []).map(function (item) {
+          if (String(item.questionId || "") !== questionId) return item;
+          return Object.assign({}, item, { expanded: true, detailStatusText: item.detailBilling || "已生成" });
+        }),
+      });
+      return;
+    }
+    var loadingItems = (this.data.wrongItems || []).map(function (item) {
+      if (String(item.questionId || "") !== questionId) return item;
+      return Object.assign({}, item, {
+        expanded: true,
+        detailStatus: "loading",
+        detailStatusText: "正在生成解析",
+        detailError: "",
+      });
+    });
+    this.setData({ wrongItems: loadingItems });
+    api
+      .requestAssessmentDeepExplanation(this._quizId, questionId)
+      .then(function (payload) {
+        var readyItems = (self.data.wrongItems || []).map(function (item) {
+          if (String(item.questionId || "") !== questionId) return item;
+          var generated = normalizeGeneratedDetail(payload, item);
+          return Object.assign({}, item, generated, {
+            expanded: true,
+            detailStatus: "ready",
+            detailStatusText: generated.detailBilling || "已生成",
+            detailError: "",
+          });
+        });
+        self.setData({ wrongItems: readyItems });
+      })
+      .catch(function (err) {
+        var message =
+          api.describeRequestError && typeof api.describeRequestError === "function"
+            ? api.describeRequestError(err, "AI详细解析生成失败")
+            : "AI详细解析生成失败";
+        var errorItems = (self.data.wrongItems || []).map(function (item) {
+          if (String(item.questionId || "") !== questionId) return item;
+          return Object.assign({}, item, {
+            expanded: true,
+            detailStatus: "error",
+            detailStatusText: "生成失败",
+            detailError: message,
+          });
+        });
+        self.setData({ wrongItems: errorItems });
+      });
   },
 
   goBack: function () {

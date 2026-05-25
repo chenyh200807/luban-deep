@@ -44,8 +44,11 @@ from deeptutor.services.assessment.learning_evidence import (
     build_assessment_learning_evidence_batch,
 )
 from deeptutor.services.assessment.deep_explanation import (
+    PROMPT_VERSION,
+    billable_points_from_usage_summary,
     build_explanation_cache_key,
-    build_static_deep_explanation,
+    generate_llm_deep_explanation,
+    minimum_explanation_points,
 )
 from deeptutor.services.assessment.report_read_model import build_result_report
 from deeptutor.services.assessment.scoring import score_assessment
@@ -5306,7 +5309,7 @@ class MemberConsoleService:
             raise KeyError(f"Assessment report not ready: {quiz_id}")
         return deepcopy(report)
 
-    def get_assessment_deep_explanation(self, user_id: str, quiz_id: str, question_id: str) -> dict[str, Any]:
+    async def get_assessment_deep_explanation(self, user_id: str, quiz_id: str, question_id: str) -> dict[str, Any]:
         self._require_durable_assessment_sessions()
         try:
             session = self._assessment_session_repository.private_session(user_id, quiz_id)
@@ -5338,24 +5341,127 @@ class MemberConsoleService:
             raise KeyError(f"Unknown assessment question: {question_id}")
         learner_answer = str(question.get("learner_answer") or "")
         correct_answer = str(question.get("correct_answer") or question.get("answer") or "")
-        explanation = build_static_deep_explanation(
-            question=question,
-            learner_answer=learner_answer,
-            correct_answer=correct_answer,
-        )
         cache_key = build_explanation_cache_key(
             quiz_id,
             normalized_question_id,
             hashlib.sha256(learner_answer.encode("utf-8")).hexdigest(),
             hashlib.sha256(json.dumps(question, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest(),
-            "p1-v1",
+            PROMPT_VERSION,
+        )
+        self._ensure_assessment_explanation_balance(
+            user_id=user_id,
+            cache_key=cache_key,
+            minimum_points=minimum_explanation_points(),
+        )
+        explanation = await generate_llm_deep_explanation(
+            question=question,
+            learner_answer=learner_answer,
+            correct_answer=correct_answer,
+            quiz_id=quiz_id,
+            question_id=normalized_question_id,
+        )
+        usage_summary = explanation.pop("usage_summary", None)
+        amount_points, billing_metadata = billable_points_from_usage_summary(usage_summary)
+        billing = self._capture_assessment_explanation_points(
+            user_id=user_id,
+            quiz_id=quiz_id,
+            question_id=normalized_question_id,
+            cache_key=cache_key,
+            amount_points=amount_points,
+            metadata=billing_metadata,
         )
         return {
             "quiz_id": quiz_id,
             "question_id": normalized_question_id,
             "cache_key": cache_key,
-            "cache_status": "static_projection",
+            "cache_status": "generated",
+            "workflow_status": "completed",
+            "billing": billing,
             "explanation": explanation,
+        }
+
+    def _ensure_assessment_explanation_balance(
+        self,
+        *,
+        user_id: str,
+        cache_key: str,
+        minimum_points: int,
+    ) -> None:
+        idempotency_key = f"assessment_ai_explanation:{cache_key}"
+        wallet_service = self._get_wallet_service()
+        if getattr(wallet_service, "is_configured", False):
+            existing_entry = wallet_service.find_wallet_ledger_by_idempotency_key(
+                user_id,
+                idempotency_key=idempotency_key,
+            )
+            if existing_entry is not None:
+                return
+            snapshot = wallet_service.get_wallet(user_id)
+            balance_points = int((getattr(snapshot, "balance_micros", 0) or 0) / 1_000_000) if snapshot else 0
+        else:
+            wallet = self.get_wallet(user_id)
+            balance_points = int(wallet.get("balance") or 0)
+        if balance_points < int(minimum_points):
+            raise RuntimeError("assessment_deep_explanation_insufficient_balance")
+
+    def _capture_assessment_explanation_points(
+        self,
+        *,
+        user_id: str,
+        quiz_id: str,
+        question_id: str,
+        cache_key: str,
+        amount_points: int,
+        metadata: dict[str, Any],
+    ) -> dict[str, Any]:
+        idempotency_key = f"assessment_ai_explanation:{cache_key}"
+        payload_metadata = {
+            "source": "assessment_deep_explanation",
+            "quiz_id": str(quiz_id or "").strip(),
+            "question_id": str(question_id or "").strip(),
+            **dict(metadata or {}),
+        }
+        wallet_service = self._get_wallet_service()
+        if getattr(wallet_service, "is_configured", False):
+            try:
+                result = wallet_service.capture_points(
+                    user_id=user_id,
+                    amount_points=amount_points,
+                    idempotency_key=idempotency_key,
+                    reference_id=str(question_id or quiz_id or "").strip(),
+                    reference_type="assessment_ai_explanation",
+                    reason="assessment_ai_explanation",
+                    metadata=payload_metadata,
+                )
+            except Exception as exc:
+                logging.getLogger(__name__).warning(
+                    "assessment deep explanation wallet capture failed: user_id=%s quiz_id=%s question_id=%s error=%s",
+                    user_id,
+                    quiz_id,
+                    question_id,
+                    exc,
+                    exc_info=True,
+                )
+                raise RuntimeError("assessment_deep_explanation_billing_failed") from exc
+            return {
+                "status": "captured",
+                "amount_points": int(amount_points),
+                "captured_points": int(round(int(getattr(result, "captured_micros", 0) or 0) / 1_000_000)),
+                "balance_after_points": int(round(int(getattr(result, "balance_after_micros", 0) or 0) / 1_000_000)),
+                "idempotency_key": idempotency_key,
+                **payload_metadata,
+            }
+
+        local_result = self.capture_points(user_id, amount=int(amount_points), reason="assessment_ai_explanation")
+        if int(local_result.get("captured") or 0) < int(amount_points):
+            raise RuntimeError("assessment_deep_explanation_insufficient_balance")
+        return {
+            "status": "captured",
+            "amount_points": int(amount_points),
+            "captured_points": int(local_result.get("captured") or 0),
+            "balance_after_points": int(local_result.get("balance") or 0),
+            "idempotency_key": idempotency_key,
+            **payload_metadata,
         }
 
     def _find_member_by_external_auth(

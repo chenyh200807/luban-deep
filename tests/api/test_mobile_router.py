@@ -3601,12 +3601,13 @@ def test_mobile_assessment_deep_explanation_delegates_without_chat_side_effects(
     calls: list[tuple[str, str, str]] = []
 
     class FakeMemberService:
-        def get_assessment_deep_explanation(self, user_id: str, quiz_id: str, question_id: str):
+        async def get_assessment_deep_explanation(self, user_id: str, quiz_id: str, question_id: str):
             calls.append((user_id, quiz_id, question_id))
             return {
                 "quiz_id": quiz_id,
                 "question_id": question_id,
-                "cache_status": "miss",
+                "cache_status": "generated",
+                "billing": {"status": "captured", "amount_points": 20},
                 "explanation": {"summary": "先看防水节点构造。"},
             }
 
@@ -3628,6 +3629,27 @@ def test_mobile_assessment_deep_explanation_delegates_without_chat_side_effects(
     assert response.status_code == 200
     assert response.json()["explanation"]["summary"] == "先看防水节点构造。"
     assert calls == [("student_demo", "quiz_1", "q1")]
+
+
+def test_mobile_assessment_deep_explanation_maps_billing_failures_to_402(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeMemberService:
+        async def get_assessment_deep_explanation(self, user_id: str, quiz_id: str, question_id: str):
+            raise RuntimeError("assessment_deep_explanation_insufficient_balance")
+
+    monkeypatch.setattr(mobile_module, "member_service", FakeMemberService())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post("/api/v1/assessment/quiz_1/items/q1/explain")
+
+    assert response.status_code == 402
+    assert response.json()["detail"] == "assessment_deep_explanation_insufficient_balance"
 
 
 @pytest.mark.parametrize("event_limit", [0, 501, -1])

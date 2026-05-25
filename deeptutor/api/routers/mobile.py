@@ -2342,13 +2342,15 @@ async def assessment_deep_explanation(
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
     try:
-        return member_service.get_assessment_deep_explanation(
+        return await member_service.get_assessment_deep_explanation(
             _resolve_authenticated_user_id(authorization),
             quiz_id,
             question_id,
         )
     except RuntimeError as exc:
-        raise HTTPException(status_code=429, detail=str(exc)) from exc
+        detail = str(exc)
+        status_code = 402 if "billing" in detail or "wallet" in detail or "balance" in detail else 429
+        raise HTTPException(status_code=status_code, detail=detail) from exc
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 

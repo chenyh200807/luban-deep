@@ -142,6 +142,26 @@ function loadPage(apiOverrides) {
           degraded_reason: "writeback_failed",
         });
       },
+      requestAssessmentDeepExplanation: function () {
+        return Promise.resolve({
+          workflow_status: "completed",
+          billing: { status: "captured", captured_points: 20 },
+          explanation: {
+            summary: "本题考施工缝节点处理，B 错在没有先处理基层。",
+            key_terms: ["施工缝", "基层处理"],
+            why_wrong: "你选了直接浇筑，漏掉了凿毛清理这一前置条件。",
+            cause_analysis: "题干问正确做法，应先确认施工缝处理顺序。",
+            scoring_points: "识别施工缝处理的前置步骤。",
+            option_reviews: [
+              { key: "A", status: "correct", status_label: "正确", review: "A 符合先处理再浇筑。" },
+              { key: "B", status: "extra", status_label: "错选", review: "B 跳过基层处理。" },
+            ],
+            pitfall: "不要把后续浇筑当成完整施工缝处理。",
+            mnemonic: "先清理，再处理，后浇筑。",
+            source_basis: "题库解析和知识卡。",
+          },
+        });
+      },
     },
     apiOverrides || {},
   );
@@ -429,6 +449,14 @@ function stringify(value) {
 
     loaded.page.onToggleWrongDetail({ currentTarget: { dataset: { questionId: "q2" } } });
     assert(loaded.page.data.wrongItems[0].expanded === true, "AI detailed review should expand on demand");
+    assert(loaded.page.data.wrongItems[0].detailStatus === "loading", "AI detailed review should show generation workflow status");
+    await flushPromises();
+    assert(loaded.page.data.wrongItems[0].detailStatus === "ready", "AI detailed review should resolve from backend LLM endpoint");
+    assert(loaded.page.data.wrongItems[0].detailBilling === "本次消耗 20 点", "AI detailed review should show captured point cost");
+    assert(
+      loaded.page.data.wrongItems[0].detail.whyWrong.indexOf("凿毛清理") >= 0,
+      "AI detailed review should use generated explanation, not static projection",
+    );
   });
 
   await run("P0A copy invariants and degraded/deep explanation behavior hold", async function () {

@@ -302,7 +302,7 @@
                   <text>练 3 道同类题</text>
                 </view>
                 <view class="dr-ai-btn" bindtap="onToggleWrongDetail" data-question-id="{{item.questionId}}">
-                  <text>{{item.expanded ? '收起AI详细解析' : 'AI详细解析'}}</text>
+                  <text>{{item.detailStatus === 'loading' ? '生成中...' : (item.expanded ? '收起AI详细解析' : 'AI详细解析')}}</text>
                 </view>
               </view>
               <view class="dr-detail" wx:if="{{item.expanded}}">
@@ -311,8 +311,17 @@
                     <text class="dr-detail-title">AI详细解析</text>
                     <text class="dr-detail-sub">为什么错 · 原因分析 · 采分点 · 易错点 · 口诀</text>
                   </view>
-                  <text class="dr-detail-status">已展开</text>
+                  <text class="dr-detail-status">{{item.detailStatusText}}</text>
                 </view>
+                <view class="dr-review-section dr-generating" wx:if="{{item.detailStatus === 'loading'}}">
+                  <text class="dr-review-title">生成状态</text>
+                  <text class="dr-review-text">正在调用 AI 生成扣点解析，请稍等。</text>
+                </view>
+                <view class="dr-review-section dr-error" wx:elif="{{item.detailStatus === 'error'}}">
+                  <text class="dr-review-title">生成失败</text>
+                  <text class="dr-review-text">{{item.detailError}}</text>
+                </view>
+                <block wx:else>
                 <view class="dr-review-section">
                   <text class="dr-review-title">题干关键词</text>
                   <view class="dr-chip-row">
@@ -352,7 +361,9 @@
                 <view class="dr-review-section dr-source-section">
                   <text class="dr-review-title">依据</text>
                   <text class="dr-review-text">{{item.detail.source}}</text>
+                  <text class="dr-detail-status" wx:if="{{item.detailBilling}}">{{item.detailBilling}}</text>
                 </view>
+                </block>
               </view>
             </view>
           </view>

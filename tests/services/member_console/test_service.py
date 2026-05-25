@@ -2664,15 +2664,104 @@ def test_assessment_deep_explanation_reads_submitted_report_without_score_mutati
     )
     before_score = report["score_summary"]
 
-    result = service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1")
+    async def _fake_generate_llm_deep_explanation(**kwargs: object) -> dict[str, object]:
+        return {
+            "summary": "本题考地下防水构造层次。你选 B，错在没有扣住节点处理要求。",
+            "learner_answer": kwargs["learner_answer"],
+            "correct_answer": kwargs["correct_answer"],
+            "key_terms": ["地下防水", "节点处理"],
+            "why_wrong": "B 没有体现规范做法。",
+            "cause_analysis": "题干限定是防水构造，不是泛泛施工。",
+            "scoring_points": "能判断节点处理符合规范。",
+            "option_reviews": [{"key": "A", "status": "correct", "status_label": "正确", "review": "A 符合题干。"}],
+            "pitfall": "不要只看防水二字。",
+            "mnemonic": "先看部位，再看节点。",
+            "source_basis": "题库解析和知识卡。",
+            "next_action": "练 3 道同类题。",
+            "score_mutation_allowed": False,
+            "source": "assessment_deep_explanation_llm",
+            "prompt_version": "assessment-deep-explanation-llm-v1",
+            "usage_summary": {
+                "estimated_total_cost_usd": 0.001,
+                "estimated_input_tokens": 100,
+                "estimated_output_tokens": 120,
+                "estimated_total_tokens": 220,
+                "usage_accuracy": "estimated",
+            },
+        }
+
+    monkeypatch.setattr(
+        member_service_module,
+        "generate_llm_deep_explanation",
+        _fake_generate_llm_deep_explanation,
+    )
+
+    result = asyncio.run(service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1"))
     stored = service.get_assessment_report("student_demo", session["quiz_id"])
 
-    assert result["cache_status"] == "static_projection"
+    assert result["cache_status"] == "generated"
+    assert result["billing"]["status"] == "captured"
+    assert result["billing"]["amount_points"] == 20
     assert result["explanation"]["score_mutation_allowed"] is False
     assert result["explanation"]["learner_answer"] == "B"
     assert result["explanation"]["correct_answer"] == "A"
     assert "构造层次" in result["explanation"]["summary"]
+    assert result["explanation"]["source"] == "assessment_deep_explanation_llm"
     assert stored["score_summary"] == before_score
+
+
+def test_assessment_deep_explanation_checks_balance_before_llm_generation(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    session = service._assessment_session_repository.create_session(
+        user_id="student_demo",
+        assessment_type="topic_diagnostic",
+        subject_id="construction_exam",
+        topic_ids=["waterproof"],
+        blueprint_version="topic_waterproof_v1",
+        form_id="topic_waterproof_v1_form_1",
+        client_questions_public=[
+            {
+                "question_id": "q1",
+                "question_stem": "防水题",
+                "options": [{"key": "A", "text": "A"}, {"key": "B", "text": "B"}],
+            }
+        ],
+        session_questions_private=[
+            {
+                "question_id": "q1",
+                "question_type": "single_choice",
+                "question_stem": "防水题",
+                "answer": "A",
+                "simple_explanation": "防水节点要先判断构造层次。",
+                "options": [{"key": "A", "text": "A"}, {"key": "B", "text": "B"}],
+            }
+        ],
+        device_id="",
+    )
+    monkeypatch.setattr(service, "_schedule_topic_diagnostic_writeback", lambda **_kwargs: None)
+    service.submit_assessment("student_demo", session["quiz_id"], {"q1": "B"}, time_spent_seconds=30)
+
+    def _empty_wallet(data: dict[str, object]) -> None:
+        member = service._ensure_member(data, "student_demo")
+        member["points_balance"] = 0
+
+    service._mutate(_empty_wallet)
+
+    async def _fail_if_called(**_kwargs: object) -> dict[str, object]:
+        raise AssertionError("LLM generation must not run without minimum balance")
+
+    monkeypatch.setattr(
+        member_service_module,
+        "generate_llm_deep_explanation",
+        _fail_if_called,
+    )
+
+    with pytest.raises(RuntimeError, match="assessment_deep_explanation_insufficient_balance"):
+        asyncio.run(service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1"))
 
 
 def test_sparse_member_mastery_is_coverage_adjusted_for_report_analytics(tmp_path: Path) -> None:

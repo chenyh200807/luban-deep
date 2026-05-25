@@ -903,6 +903,16 @@
   background: rgba(255, 255, 255, 0.045);
 }
 
+.dr-generating {
+  border-color: rgba(96, 165, 250, 0.28);
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.14), rgba(103, 232, 249, 0.08));
+}
+
+.dr-error {
+  border-color: rgba(251, 113, 133, 0.3);
+  background: rgba(251, 113, 133, 0.08);
+}
+
 .dr-detail-head {
   display: flex;
   justify-content: space-between;
