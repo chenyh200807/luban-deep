@@ -434,6 +434,26 @@ def test_question_review_builds_qapair_from_matching_evidence_bundle(
     assert (qa_pair.get("grading_key") or {}).get("correct_answer") == "D"
     assert (qa_pair.get("metadata") or {}).get("source") == "questions_bank"
     assert (qa_pair.get("metadata") or {}).get("source_group") == "TEXTBOOK"
+    metadata = qa_pair.get("metadata") or {}
+    assert metadata.get("scoring_points") == [
+        "圈出题干对象：一般环境中，直接接触土体浇筑的构件，其钢筋的混凝土保护层厚度不应小于（ ）mm。",
+        "抓住标准答案对应的规范数值：D. 70。",
+        "逐项排除相近但不符合题库解析的干扰数值。",
+    ]
+    assert metadata.get("pitfalls") == [
+        "把相近数值当成规范要求，忽略题干对象。",
+        "只记住保护层厚度这一考点，没有锁定“直接接触土体浇筑的构件”。",
+    ]
+    assert metadata.get("mnemonic") == "直接接土先加厚，保护层记 70。"
+    option_analysis = metadata.get("option_analysis") or []
+    assert len(option_analysis) == 4
+    assert option_analysis[0]["key"] == "A"
+    assert "低于标准值 70" in option_analysis[0]["analysis"]
+    assert option_analysis[-1] == {
+        "key": "D",
+        "verdict": "正确",
+        "analysis": "70 对应题库标准答案；直接接触土体浇筑的构件，其混凝土保护层厚度不应小于70mm。",
+    }
 
 
 def test_question_review_does_not_build_qapair_from_unrelated_evidence_bundle(

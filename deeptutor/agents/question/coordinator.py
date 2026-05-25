@@ -25,6 +25,7 @@ from deeptutor.logging import Logger, get_logger
 from deeptutor.services.config import PROJECT_ROOT, load_config_with_main
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.question_followup import normalize_question_followup_context
+from deeptutor.services.rag.exact_authority import build_mcq_review_notes_from_exact_question
 from deeptutor.services.search import is_web_search_runtime_available
 from deeptutor.tools.rag_tool import rag_search
 from deeptutor.tools.question.pdf_parser import parse_pdf_with_mineru
@@ -579,10 +580,19 @@ class AgentCoordinator:
             return []
         template = templates[0]
         analysis = str(payload.get("analysis") or "").strip()
+        review_notes = build_mcq_review_notes_from_exact_question(
+            {
+                "answer_kind": "mcq",
+                "stem": reference_question,
+                "options": options,
+                "correct_answer": reference_answer,
+                "analysis": analysis,
+            }
+        )
         grading_key = {
             "correct_answer": reference_answer,
-            "scoring_points": [],
-            "common_traps": [],
+            "scoring_points": review_notes.get("scoring_points") or [],
+            "common_traps": review_notes.get("pitfalls") or [],
             "minimal_rationale": analysis or "题库精确命中，参考答案与解析来自 questions_bank。",
             "source": "questions_bank",
         }
@@ -607,6 +617,7 @@ class AgentCoordinator:
                     "knowledge_context": knowledge_context,
                     "lightweight_generation": True,
                     "evidence_refs": evidence_refs,
+                    **review_notes,
                 },
                 grading_key=grading_key,
             )

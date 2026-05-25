@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from deeptutor.services.rag.exact_authority import (
     build_exact_authority_response,
+    build_mcq_review_notes_from_exact_question,
     exact_authority_response_matches,
     extract_exact_question_authority_from_metadata,
     normalize_exact_authority_display_text,
@@ -119,6 +120,39 @@ def test_build_exact_authority_response_strips_internal_analysis_markers() -> No
     assert "标准答案：B（B. 安全性）" in response
     assert "结构的可靠性包括安全性。" in response
     assert "| A. 稳定 | 稳定是安全性的一部分 |" in response
+
+
+def test_build_mcq_review_notes_projects_exact_question_teaching_payload() -> None:
+    notes = build_mcq_review_notes_from_exact_question(
+        {
+            "answer_kind": "mcq",
+            "stem": "一般环境中，直接接触土体浇筑的构件，其钢筋的混凝土保护层厚度不应小于（ ）mm。",
+            "options": {"A": "55", "B": "60", "C": "65", "D": "70"},
+            "correct_answer": "D",
+            "analysis": "直接接触土体浇筑的构件，其混凝土保护层厚度不应小于70mm。",
+        }
+    )
+
+    assert notes["scoring_points"] == [
+        "圈出题干对象：一般环境中，直接接触土体浇筑的构件，其钢筋的混凝土保护层厚度不应小于（ ）mm。",
+        "抓住标准答案对应的规范数值：D. 70。",
+        "逐项排除相近但不符合题库解析的干扰数值。",
+    ]
+    assert notes["pitfalls"] == [
+        "把相近数值当成规范要求，忽略题干对象。",
+        "只记住保护层厚度这一考点，没有锁定“直接接触土体浇筑的构件”。",
+    ]
+    assert notes["mnemonic"] == "直接接土先加厚，保护层记 70。"
+    assert notes["option_analysis"][0] == {
+        "key": "A",
+        "verdict": "不正确",
+        "analysis": "55 低于标准值 70，不能满足题干中的“不应小于”要求。",
+    }
+    assert notes["option_analysis"][-1] == {
+        "key": "D",
+        "verdict": "正确",
+        "analysis": "70 对应题库标准答案；直接接触土体浇筑的构件，其混凝土保护层厚度不应小于70mm。",
+    }
 
 
 def test_normalize_exact_authority_display_text_unescapes_literal_newlines() -> None:

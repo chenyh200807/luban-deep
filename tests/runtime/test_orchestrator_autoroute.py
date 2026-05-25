@@ -82,6 +82,105 @@ async def test_orchestrator_autoroutes_natural_one_question_phrase_to_deep_quest
 
 
 @pytest.mark.asyncio
+async def test_orchestrator_routes_training_by_question_count_as_practice_generation() -> None:
+    """`用 3 道题训练 X` is a test-me request, not a question-review request."""
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-training-by-count",
+        user_message="用 3 道题训练项目质量计划管理",
+        config_overrides={"mode": "deep"},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.metadata["question_lifecycle_scene"] == "practice_generation"
+    assert context.metadata["question_lifecycle_skill_names"] == [
+        "construction-exam-tutor",
+        "construction-question-supply",
+    ]
+    assert context.config_overrides["force_generate_questions"] is True
+    assert context.config_overrides["num_questions"] == 3
+    assert context.config_overrides["reveal_answers"] is False
+    assert context.config_overrides["reveal_explanations"] is False
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_uses_llm_scene_proposal_for_semantic_practice_request(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    async def _fake_complete(**kwargs):
+        assert "题目生命周期语义候选" in kwargs["system_prompt"]
+        return '{"scene":"practice_generation","confidence":0.89,"reason":"语义上是练题请求"}'
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.complete", _fake_complete)
+
+    context = UnifiedContext(
+        session_id="s-llm-scene-practice",
+        user_message="项目质量计划管理这个点，帮我练到会",
+        config_overrides={},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.metadata["question_lifecycle_scene"] == "practice_generation"
+    assert context.metadata["question_lifecycle_scene_source"] == "llm"
+    assert context.metadata["question_lifecycle_skill_names"] == [
+        "construction-exam-tutor",
+        "construction-question-supply",
+    ]
+    assert context.config_overrides["force_generate_questions"] is True
+    assert context.config_overrides["reveal_answers"] is False
+    assert context.config_overrides["reveal_explanations"] is False
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_uses_llm_scene_proposal_for_semantic_question_review(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    async def _fake_complete(**kwargs):
+        assert "题目生命周期语义候选" in kwargs["system_prompt"]
+        return '{"scene":"question_review","confidence":0.9,"reason":"语义上是题目讲评请求"}'
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.complete", _fake_complete)
+
+    context = UnifiedContext(
+        session_id="s-llm-scene-review",
+        user_message="拿一道钢筋保护层题给我讲透",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.metadata["question_lifecycle_scene"] == "question_review"
+    assert context.metadata["question_lifecycle_scene_source"] == "llm"
+    assert context.metadata["question_lifecycle_skill_names"] == [
+        "construction-exam-tutor",
+        "construction-question-review",
+    ]
+    assert "force_generate_questions" not in context.config_overrides
+
+
+@pytest.mark.asyncio
 async def test_orchestrator_routes_short_acceptance_of_recent_practice_offer_to_deep_question() -> None:
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()

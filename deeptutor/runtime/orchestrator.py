@@ -34,6 +34,7 @@ from deeptutor.services.question_followup import (
 )
 from deeptutor.services.question_lifecycle_skills import (
     derive_question_lifecycle_scene,
+    resolve_question_lifecycle_scene_decision,
     select_question_lifecycle_skill_names,
 )
 from deeptutor.services.semantic_router import (
@@ -193,14 +194,40 @@ class ChatOrchestrator:
             )
             return context.active_capability
 
-        if self._looks_like_free_text_question_review_request(context, routing_user_message):
-            self._prepare_free_text_question_review_context(context, routing_user_message)
-            context.metadata["semantic_router_mode"] = "question_lifecycle"
-            context.metadata["semantic_router_mode_reason"] = "free_text_question_review"
-            context.metadata["semantic_router_shadow_decision"] = {}
-            context.metadata["semantic_router_shadow_route"] = ""
-            context.metadata["semantic_router_selected_capability"] = "deep_question"
-            return "deep_question"
+        if not self._has_active_lifecycle_context(context):
+            lifecycle_decision = await resolve_question_lifecycle_scene_decision(
+                SimpleNamespace(user_message=routing_user_message, metadata=context.metadata)
+            )
+            lifecycle_scene = lifecycle_decision.scene
+            if lifecycle_scene in {"question_review", "practice_generation"}:
+                trace_meta = context.metadata.setdefault("trace_metadata", {})
+                if isinstance(trace_meta, dict):
+                    trace_meta["question_lifecycle_scene_source"] = lifecycle_decision.source
+                    trace_meta["question_lifecycle_scene_confidence"] = lifecycle_decision.confidence
+                    trace_meta["question_lifecycle_scene_reason"] = lifecycle_decision.reason
+                context.metadata["question_lifecycle_scene_source"] = lifecycle_decision.source
+                context.metadata["question_lifecycle_scene_confidence"] = lifecycle_decision.confidence
+                context.metadata["question_lifecycle_scene_reason"] = lifecycle_decision.reason
+            if lifecycle_scene == "question_review":
+                self._prepare_free_text_question_review_context(context, routing_user_message)
+                context.metadata["semantic_router_mode"] = "question_lifecycle"
+                context.metadata["semantic_router_mode_reason"] = (
+                    f"{lifecycle_decision.source}_question_review"
+                )
+                context.metadata["semantic_router_shadow_decision"] = {}
+                context.metadata["semantic_router_shadow_route"] = ""
+                context.metadata["semantic_router_selected_capability"] = "deep_question"
+                return "deep_question"
+            if lifecycle_scene == "practice_generation":
+                self._prepare_practice_request_context(context, routing_user_message)
+                context.metadata["semantic_router_mode"] = "question_lifecycle"
+                context.metadata["semantic_router_mode_reason"] = (
+                    f"{lifecycle_decision.source}_practice_generation"
+                )
+                context.metadata["semantic_router_shadow_decision"] = {}
+                context.metadata["semantic_router_shadow_route"] = ""
+                context.metadata["semantic_router_selected_capability"] = "deep_question"
+                return "deep_question"
 
         semantic_router_enabled = self._semantic_router_enabled(context)
         semantic_router_shadow_mode = self._semantic_router_shadow_mode(context)
@@ -286,6 +313,11 @@ class ChatOrchestrator:
             return
         if looks_like_practice_generation_request(message):
             self._prepare_practice_request_context(context, message)
+
+    @staticmethod
+    def _has_active_lifecycle_context(context: UnifiedContext) -> bool:
+        metadata = context.metadata if isinstance(context.metadata, dict) else {}
+        return bool(metadata.get("active_object") or metadata.get("question_followup_context"))
 
     @staticmethod
     def _semantic_router_enabled(context: UnifiedContext) -> bool:
@@ -578,6 +610,9 @@ class ChatOrchestrator:
     def _prepare_practice_request_context(self, context: UnifiedContext, message: str) -> None:
         if not isinstance(context.config_overrides, dict):
             context.config_overrides = {}
+        context.metadata["question_lifecycle_scene"] = "practice_generation"
+        skill_names = list(select_question_lifecycle_skill_names("practice_generation"))
+        context.metadata["question_lifecycle_skill_names"] = skill_names
         interaction_hints = (
             context.metadata.get("interaction_hints", {})
             if isinstance(context.metadata, dict)
@@ -665,6 +700,9 @@ class ChatOrchestrator:
         if isinstance(context.metadata, dict):
             trace_meta = context.metadata.setdefault("trace_metadata", {})
             if isinstance(trace_meta, dict):
+                trace_meta["question_lifecycle_scene"] = "practice_generation"
+                trace_meta["question_lifecycle_skill_names"] = list(skill_names)
+                trace_meta["skill_stack"] = list(skill_names)
                 trace_meta["practice_generation.strategy"] = strategy
                 trace_meta["practice_generation.question_count"] = int(effective_count)
 

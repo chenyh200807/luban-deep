@@ -23,6 +23,7 @@ attach_question_lifecycle_scene_to_context).
 
 from __future__ import annotations
 
+import json
 import logging
 import re
 from dataclasses import dataclass
@@ -60,6 +61,16 @@ class SkillContext:
     instructions: str
     source_status: SourceStatus
     loader_sources: dict[str, str]
+
+
+@dataclass(frozen=True)
+class QuestionLifecycleSceneDecision:
+    """Resolved lifecycle scene plus decision provenance."""
+
+    scene: str | None
+    source: str
+    confidence: float
+    reason: str
 
 
 # ---------------------------------------------------------------------------
@@ -153,6 +164,44 @@ def select_question_lifecycle_skill_names(scene: str | None) -> tuple[str, ...]:
     if normalized is None:
         return ()
     return SCENE_COMPOSITION[normalized]
+
+
+async def resolve_question_lifecycle_scene_decision(
+    ctx: Any,
+    *,
+    enable_llm: bool = True,
+) -> QuestionLifecycleSceneDecision:
+    """Resolve lifecycle scene with deterministic authority plus LLM proposal.
+
+    Deterministic rules remain the first authority. The LLM is only a semantic
+    candidate helper for no-hit learning/question phrasing, and its output is
+    normalized back into the canonical scene enum.
+    """
+
+    scene = derive_question_lifecycle_scene(ctx)
+    if scene is not None:
+        return QuestionLifecycleSceneDecision(
+            scene=scene,
+            source="deterministic",
+            confidence=1.0,
+            reason="deterministic lifecycle scene matched",
+        )
+    if not enable_llm or not _should_use_llm_scene_proposal(ctx):
+        return QuestionLifecycleSceneDecision(
+            scene=None,
+            source="none",
+            confidence=0.0,
+            reason="no deterministic scene and LLM proposal not applicable",
+        )
+    proposal = await _llm_question_lifecycle_scene_proposal(ctx)
+    if proposal is None:
+        return QuestionLifecycleSceneDecision(
+            scene=None,
+            source="llm",
+            confidence=0.0,
+            reason="LLM scene proposal unavailable",
+        )
+    return proposal
 
 
 def build_question_lifecycle_skill_context(
@@ -428,6 +477,131 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
         return "study_assistant"
 
     return None
+
+
+def _should_use_llm_scene_proposal(ctx: Any) -> bool:
+    user_message = str(getattr(ctx, "user_message", None) or "").strip()
+    if not user_message:
+        return False
+    metadata = getattr(ctx, "metadata", None) or {}
+    if isinstance(metadata, dict):
+        if metadata.get("question_followup_context") or metadata.get("active_object"):
+            return False
+    hints = (
+        "题",
+        "真题",
+        "练",
+        "训练",
+        "测",
+        "测试",
+        "考",
+        "解析",
+        "讲评",
+        "讲解",
+        "错题",
+        "掌握",
+        "学情",
+        "今天学什么",
+        "学不动",
+        "没动力",
+    )
+    return any(hint in user_message for hint in hints)
+
+
+def _parse_llm_scene_payload(raw: Any) -> dict[str, Any] | None:
+    text = str(raw or "").strip()
+    if not text:
+        return None
+    try:
+        payload = json.loads(text)
+    except json.JSONDecodeError:
+        match = re.search(r"\{.*\}", text, re.DOTALL)
+        if not match:
+            return None
+        try:
+            payload = json.loads(match.group(0))
+        except json.JSONDecodeError:
+            return None
+    return payload if isinstance(payload, dict) else None
+
+
+async def _llm_question_lifecycle_scene_proposal(
+    ctx: Any,
+) -> QuestionLifecycleSceneDecision | None:
+    from deeptutor.services.llm import factory as llm_factory  # noqa: WPS433
+
+    user_message = str(getattr(ctx, "user_message", None) or "").strip()
+    metadata = getattr(ctx, "metadata", None) or {}
+    history_context = (
+        str(metadata.get("conversation_context_text") or "").strip()
+        if isinstance(metadata, dict)
+        else ""
+    )
+    prompt_payload = {
+        "user_message": user_message,
+        "history_context": history_context[:800],
+        "allowed_scenes": [
+            "practice_generation",
+            "question_review",
+            "mcq_grading",
+            "case_grading",
+            "learning_evidence_story",
+            "study_assistant",
+            "learning_support",
+            "none",
+        ],
+        "rules": [
+            "用户要求系统出题、练题、测试、检验掌握情况 -> practice_generation",
+            "用户要求分析/讲解/解析一道已有题、真题或题库题 -> question_review",
+            "用户给出自己的选择或答案并要求批改 -> mcq_grading 或 case_grading",
+            "用户问最近哪里错、学得怎么样 -> learning_evidence_story",
+            "用户问今天学什么、下一步学什么 -> study_assistant",
+            "用户表达没动力、焦虑、学不动 -> learning_support",
+            "无法判断或不是学习题目生命周期场景 -> none",
+        ],
+    }
+    try:
+        raw = await llm_factory.complete(
+            prompt=(
+                "请只输出 JSON 对象，字段固定为 scene, confidence, reason。\n"
+                "scene 必须来自 allowed_scenes。confidence 是 0 到 1 的数字。\n"
+                f"{json.dumps(prompt_payload, ensure_ascii=False)}"
+            ),
+            system_prompt=(
+                "你是鲁班智考的题目生命周期语义候选建议器。"
+                "你只提出 scene 候选，不执行出题、不批改、不生成解析。"
+            ),
+            temperature=0,
+            response_format={"type": "json_object"},
+            max_tokens=300,
+        )
+    except Exception:
+        logger.debug("LLM question lifecycle scene proposal failed", exc_info=True)
+        return None
+    payload = _parse_llm_scene_payload(raw)
+    if payload is None:
+        return None
+    raw_scene = str(payload.get("scene") or "").strip()
+    if raw_scene == "none":
+        scene = None
+    else:
+        try:
+            scene = _normalize_scene(raw_scene)
+        except ValueError:
+            return None
+    try:
+        confidence = float(payload.get("confidence") or 0.0)
+    except (TypeError, ValueError):
+        confidence = 0.0
+    confidence = max(0.0, min(1.0, confidence))
+    if confidence < 0.72:
+        scene = None
+    return QuestionLifecycleSceneDecision(
+        scene=scene,
+        source="llm",
+        confidence=confidence,
+        reason=str(payload.get("reason") or "").strip(),
+    )
 
 
 def attach_question_lifecycle_scene_to_context(ctx: Any) -> str | None:

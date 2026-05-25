@@ -16,7 +16,10 @@ from typing import Any
 
 import pytest
 
-from deeptutor.services.question_lifecycle_skills import derive_question_lifecycle_scene
+from deeptutor.services.question_lifecycle_skills import (
+    derive_question_lifecycle_scene,
+    resolve_question_lifecycle_scene_decision,
+)
 
 
 @dataclass
@@ -36,6 +39,16 @@ def _mcq_followup_context(answered: bool = False) -> dict[str, Any]:
 
 def test_no_active_object_practice_intent_returns_practice_generation():
     ctx = _FakeContext(user_message="再出 3 题")
+    assert derive_question_lifecycle_scene(ctx) == "practice_generation"
+
+
+def test_training_by_question_count_returns_practice_generation():
+    ctx = _FakeContext(user_message="用 3 道题训练项目质量计划管理")
+    assert derive_question_lifecycle_scene(ctx) == "practice_generation"
+
+
+def test_mastery_check_training_intent_wins_over_learning_report_phrase():
+    ctx = _FakeContext(user_message="项目质量计划管理这个点，帮我检验一下掌握情况")
     assert derive_question_lifecycle_scene(ctx) == "practice_generation"
 
 
@@ -132,6 +145,41 @@ def test_topic_qualified_real_exam_review_returns_question_review():
     """Topic words between "一道" and "真题" still mean a real-question review."""
     ctx = _FakeContext(user_message="分析一道验槽方法真题")
     assert derive_question_lifecycle_scene(ctx) == "question_review"
+
+
+@pytest.mark.asyncio
+async def test_llm_scene_proposal_fills_semantic_practice_generation_gap(monkeypatch):
+    async def _fake_complete(**kwargs):
+        assert "scene" in kwargs["prompt"]
+        return '{"scene":"practice_generation","confidence":0.91,"reason":"用户想通过练习检验掌握"}'
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.complete", _fake_complete)
+
+    ctx = _FakeContext(user_message="项目质量计划管理这个点，帮我练到会")
+
+    assert derive_question_lifecycle_scene(ctx) is None
+    decision = await resolve_question_lifecycle_scene_decision(ctx)
+
+    assert decision.scene == "practice_generation"
+    assert decision.source == "llm"
+    assert decision.confidence == pytest.approx(0.91)
+
+
+@pytest.mark.asyncio
+async def test_llm_scene_proposal_fills_semantic_question_review_gap(monkeypatch):
+    async def _fake_complete(**kwargs):
+        assert "allowed_scenes" in kwargs["prompt"]
+        return '{"scene":"question_review","confidence":0.88,"reason":"用户想讲解一道已有题"}'
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.complete", _fake_complete)
+
+    ctx = _FakeContext(user_message="拿一道钢筋保护层题给我讲透")
+
+    assert derive_question_lifecycle_scene(ctx) is None
+    decision = await resolve_question_lifecycle_scene_decision(ctx)
+
+    assert decision.scene == "question_review"
+    assert decision.source == "llm"
 
 
 def test_scene_derivation_import_does_not_require_skill_loader_dependency():
