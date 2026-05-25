@@ -48,6 +48,7 @@
 - guided plan continuity 也必须进入统一 `active_object`；`active_plan_id / plan_id / guide_session_id / learning_plan_id` 只允许作为入口兼容 alias，在 runtime 入口立即归一化，不得继续作为并行 authority。
 - 通用对话连续性也应收敛到 session-scoped 的 `open_chat_topic`；它只是当前 session 的 canonical 投影，不是第二套 topic 抽取器，也不得被误当成 guided plan / active plan anchor。
 - `question_followup_context / question_followup_action / active_question_context` 现在只允许作为 question-domain 的兼容 alias 或 result adapter；它们不得再独立决定 capability 路由或覆盖 `turn_semantic_decision`。
+- 当 `turn_runtime` 从入口请求、TutorBot mirror session、stored active object 或 interaction hints 中恢复到 question-domain evidence 时，它只能把 `question_followup_context / question_followup_action / entry_capability_hint` 写入 `UnifiedContext.metadata` / `active_capability` 作为 orchestrator 的输入证据；不得根据 action route 自行清空、改写或最终决定 canonical capability。`chat` / `tutorbot` 入口身份只是 hint，最终 capability 必须由 `ChatOrchestrator` / `QuestionLifecycleDecision` 统一裁定并写回 turn 真相。
 - `turn_runtime` 可以把 question-domain action 适配成 `turn_semantic_decision`，但决策形状必须复用 `semantic_router.build_turn_semantic_decision` 的 canonical schema；不得在 runtime 内维护第二套 relation / next_action / allowed_patch 枚举或结果结构。
 - `presentation / fallback_text / response` 是用户可见 read model，不得被 `turn_runtime` 反向解析成新的 `question_followup_context` 或 `active_object`。需要承接批改的 capability 必须显式产出 canonical `question_followup_context` / `active_object`。
 - TutorBot 普通文本题目解析只能作为 display-only presentation，用于隐藏答案或改善展示；不得由此生成 canonical `question_followup_context` / `active_object`。能进入后续批改状态的题目必须来自 `deep_question` 或 exact-question 结构化 authority。

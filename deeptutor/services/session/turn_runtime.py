@@ -2957,12 +2957,28 @@ class TurnRuntimeManager:
             explicit_action=runtime_followup_action,
             candidate_contexts=candidate_followup_contexts,
         )
+        entry_capability_hint = (
+            requested_capability
+            if requested_capability in {"chat", "tutorbot"}
+            else None
+        )
+        if entry_capability_hint is None and (
+            _normalize_interaction_profile_name(runtime_only_config.get("interaction_profile") or "")
+            == "tutorbot"
+            or str((runtime_interaction_hints or {}).get("profile") or "").strip().lower()
+            == "tutorbot"
+            or str((runtime_interaction_hints or {}).get("entry_role") or "").strip().lower()
+            == "tutorbot"
+        ):
+            entry_capability_hint = "tutorbot"
         has_question_lifecycle_evidence = (
             runtime_followup_question_context is not None
             or runtime_followup_action is not None
         )
-        if requested_capability in {"chat", "tutorbot"} and has_question_lifecycle_evidence:
-            runtime_only_config["_entry_capability_hint"] = requested_capability
+        if (
+            requested_capability in {"chat", "tutorbot"} or entry_capability_hint
+        ) and has_question_lifecycle_evidence:
+            runtime_only_config["_entry_capability_hint"] = entry_capability_hint or ""
             requested_capability = None
             capability = ""
             config_capability = "chat"
@@ -3488,6 +3504,7 @@ class TurnRuntimeManager:
 
             request_config = dict(payload.get("config", {}) or {})
             raw_user_content = str(payload.get("content", "") or "")
+            entry_capability_hint = str(request_config.pop("_entry_capability_hint", "") or "").strip()
             notebook_references = payload.get("notebook_references", []) or []
             history_references = payload.get("history_references", []) or []
             question_notebook_references = payload.get("question_notebook_references", []) or []
@@ -4178,7 +4195,8 @@ class TurnRuntimeManager:
                     enabled_tools=payload.get("tools"),
                     active_capability=(
                         payload.get("capability")
-                        or request_config.get("_entry_capability_hint")
+                        or entry_capability_hint
+                        or None
                     ),
                     knowledge_bases=payload.get("knowledge_bases", []),
                     attachments=attachments,
@@ -4203,7 +4221,7 @@ class TurnRuntimeManager:
                             payload.get("config", {}).get("interaction_profile", "") or ""
                         ).strip(),
                         "entry_capability_hint": str(
-                            request_config.get("_entry_capability_hint") or ""
+                            entry_capability_hint
                         ).strip(),
                         "requested_response_mode": str(
                             (interaction_hints or {}).get("requested_response_mode") or ""

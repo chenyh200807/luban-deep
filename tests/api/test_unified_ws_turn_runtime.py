@@ -493,6 +493,7 @@ async def test_start_turn_merges_redacted_public_submission_with_stored_active_q
 
         async def handle(self, context):
             captured["capability"] = context.active_capability
+            captured["config_overrides"] = dict(context.config_overrides)
             captured["question_followup_context"] = dict(
                 context.metadata.get("question_followup_context", {}) or {}
             )
@@ -577,6 +578,7 @@ async def test_start_turn_merges_redacted_public_submission_with_stored_active_q
     resolved = captured["question_followup_context"]
     assert captured["selector_active_capability"] == "tutorbot"
     assert captured["capability"] == "deep_question"
+    assert "_entry_capability_hint" not in captured["config_overrides"]
     assert resolved["question_id"] == "q_2"
     assert resolved["correct_answer"] == "B"
     assert resolved["user_answer"] == "B"
@@ -4357,7 +4359,7 @@ async def test_turn_runtime_recovers_tutorbot_mirror_question_set_for_batch_subm
         pass
 
     assert turn["capability"] == "deep_question"
-    assert captured["active_capability"] is None
+    assert captured["active_capability"] == "tutorbot"
     resolved = captured["question_followup_context"]
     assert resolved["question_id"] == "quiz_mirror"
     action = captured["question_followup_action"]
