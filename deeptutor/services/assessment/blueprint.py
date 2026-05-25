@@ -15,6 +15,7 @@ class AssessmentSection:
     topics: tuple[str, ...] = ()
     minimum_multiplier: int = 3
     hard_require_calculation: bool = False
+    strict_topics: bool = False
 
 
 @dataclass(frozen=True)
@@ -125,7 +126,51 @@ DIAGNOSTIC_V1 = AssessmentBlueprint(
 )
 
 
-_BLUEPRINTS = {DIAGNOSTIC_V1.version: DIAGNOSTIC_V1}
+TOPIC_WATERPROOF_V1 = AssessmentBlueprint(
+    version="topic_waterproof_v1",
+    requested_count=12,
+    sections=(
+        AssessmentSection(
+            id="waterproof_materials",
+            label="防水材料与构造",
+            count=4,
+            scored=True,
+            question_types=("single_choice", "multi_choice"),
+            fallback_question_types=("single_choice", "multi_choice", "case_study"),
+            topics=("防水", "卷材", "涂膜", "屋面"),
+            minimum_multiplier=2,
+            strict_topics=True,
+        ),
+        AssessmentSection(
+            id="waterproof_construction",
+            label="防水施工与节点",
+            count=4,
+            scored=True,
+            question_types=("single_choice", "multi_choice"),
+            fallback_question_types=("single_choice", "multi_choice", "case_study"),
+            topics=("防水", "施工缝", "后浇带", "搭接", "节点"),
+            minimum_multiplier=2,
+            strict_topics=True,
+        ),
+        AssessmentSection(
+            id="waterproof_quality",
+            label="防水质量与验收",
+            count=4,
+            scored=True,
+            question_types=("single_choice", "multi_choice"),
+            fallback_question_types=("single_choice", "multi_choice", "case_study"),
+            topics=("防水", "渗漏", "蓄水", "验收", "质量"),
+            minimum_multiplier=2,
+            strict_topics=True,
+        ),
+    ),
+)
+
+
+_BLUEPRINTS = {
+    DIAGNOSTIC_V1.version: DIAGNOSTIC_V1,
+    TOPIC_WATERPROOF_V1.version: TOPIC_WATERPROOF_V1,
+}
 
 
 def get_assessment_blueprint(version: str = "diagnostic_v1") -> AssessmentBlueprint:

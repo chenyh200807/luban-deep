@@ -238,6 +238,7 @@ learning_state_inference:
   allowed_evidence_sources:
     - construction_grading
     - conversation_synthesis
+    - assessment_testset
   projections:
     - knowledge_state
     - ability_state

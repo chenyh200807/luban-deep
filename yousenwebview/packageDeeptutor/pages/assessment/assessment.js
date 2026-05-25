@@ -83,6 +83,20 @@ var ARCHETYPE_TIPS = {
   policy_seeded: "建议按当前诊断结果先补薄弱章节，再用短组练习和固定复盘巩固。",
 };
 
+var ASSESSMENT_I18N_KEYS = {
+  scoreTitle: "本次专题测评得分",
+  topicLabel: "防水专题测评",
+  deepExplanationUnavailable: "详细解析下个版本上线",
+  resultNextActionFallback: "根据本次测评更新训练计划中，前往学习计划查看。",
+  degraded: {
+    writeback_failed: "本次得分已生成，错题写入学习记录时遇到问题，系统会稍后重试。",
+    scoring_partial: "本次报告生成不完整，请稍后刷新查看。",
+    source_redaction_failed: "本次题目数据校验未通过，报告暂不可作为正式结果。",
+    unknown: "本次报告有部分信息未完成同步，请稍后刷新查看。",
+  },
+  readOnlyOtherDevice: "这份测评正在另一台设备作答，本机仅可查看。",
+};
+
 
 var helpers = require("../../utils/helpers");
 
@@ -193,6 +207,80 @@ function pickNumber(primary, fallback) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function learnerSafeDegradedCopy(reason) {
+  var key = String(reason || "").trim();
+  return ASSESSMENT_I18N_KEYS.degraded[key] || ASSESSMENT_I18N_KEYS.degraded.unknown;
+}
+
+function normalizeKnowledgeMap(items) {
+  return (items || []).map(function (item) {
+    return {
+      name: String(item.knowledge_point || item.name || "综合能力"),
+      attempted: Number(item.attempted || 0),
+      correct: Number(item.correct || 0),
+      pct: Math.max(0, Math.min(100, Number(item.score_pct || item.pct || 0))),
+    };
+  });
+}
+
+function normalizeWrongItems(items) {
+  return (items || []).map(function (item, index) {
+    return {
+      index: index + 1,
+      questionId: String(item.question_id || ""),
+      stem: String(item.question_stem || item.stem || "错题 " + (index + 1)),
+      learnerAnswer: String(item.learner_answer || ""),
+      correctAnswer: String(item.correct_answer || ""),
+      explanation: String(item.simple_explanation || ""),
+      knowledgePoints: item.knowledge_points || [],
+      errorCodes: item.error_codes || [],
+    };
+  });
+}
+
+function buildP0AResultModel(report) {
+  var summary = report.score_summary || {};
+  var deep = report.deep_explanation || {};
+  var degradedReason = String(report.degraded_reason || "");
+  var writeback = report.writeback_status || {};
+  if (!degradedReason && writeback.status === "degraded") degradedReason = String(writeback.reason || "");
+  return {
+    serverReportMode: true,
+    reportSchemaVersion: String(report.schema_version || ""),
+    scoreTitle: String(report.score_title || ASSESSMENT_I18N_KEYS.scoreTitle),
+    topicLabel: String(report.topic_label || ASSESSMENT_I18N_KEYS.topicLabel),
+    resultScore: pickNumber(summary.score_pct, 0),
+    correctCount: Number(summary.correct_count || 0),
+    scoredCount: Number(summary.scored_count || 0),
+    answeredCount: Number(summary.answered_count || 0),
+    blankCount: Number(summary.blank_count || 0),
+    measurementConfidence: report.measurement_confidence || {},
+    knowledgeMap: normalizeKnowledgeMap(report.knowledge_map || []),
+    wrongItems: normalizeWrongItems(report.wrong_items || []),
+    attemptRefs: report.attempt_refs || [],
+    sessionLocalNextAction:
+      (report.session_local_next_action && report.session_local_next_action.copy) ||
+      ASSESSMENT_I18N_KEYS.resultNextActionFallback,
+    deepExplanationAvailable: !!deep.available,
+    deepExplanationCopy: String(deep.copy || ASSESSMENT_I18N_KEYS.deepExplanationUnavailable),
+    degradedReason: degradedReason,
+    degradedCopy: degradedReason ? learnerSafeDegradedCopy(degradedReason) : "",
+    archetype: "",
+    archetypeName: "",
+    archetypeDesc: "",
+    archetypeTraits: [],
+    archetypeTip: "",
+    responseLabel: "",
+    responseDesc: "",
+    calibrationLabel: "",
+    errorPattern: "",
+    errorPatternName: "",
+    chapterList: [],
+    priorityChapters: [],
+    planStrategy: "",
+  };
+}
+
 Page({
   data: {
     statusBarHeight: 0,
@@ -215,10 +303,26 @@ Page({
     availableCount: 0,
     shortfallCount: 0,
     assessmentNotice: "",
+    serverReportMode: false,
+    reportSchemaVersion: "",
+    scoreTitle: ASSESSMENT_I18N_KEYS.scoreTitle,
+    topicLabel: ASSESSMENT_I18N_KEYS.topicLabel,
     resultScore: 0,
     resultLevel: "beginner",
     resultLevelName: "入门",
     chapterList: [],
+    knowledgeMap: [],
+    wrongItems: [],
+    attemptRefs: [],
+    correctCount: 0,
+    blankCount: 0,
+    measurementConfidence: {},
+    sessionLocalNextAction: "",
+    deepExplanationAvailable: false,
+    deepExplanationCopy: ASSESSMENT_I18N_KEYS.deepExplanationUnavailable,
+    degradedReason: "",
+    degradedCopy: "",
+    readOnlyBanner: "",
     // 学员画像
     archetype: "",
     archetypeName: "",
@@ -264,7 +368,13 @@ Page({
     self.setData({ stage: "loading", starting: true });
 
     api
-      .createAssessment("diagnostic", 20)
+      .createAssessment({
+        assessment_type: "topic_diagnostic",
+        subject_id: "construction_exam",
+        topic_ids: ["waterproof"],
+        count: 12,
+        duration_policy: { mode: "one_shot" },
+      })
       .then(function (resp) {
         // 兼容两种返回格式: {questions, quiz_id} 或 {data: {questions, quiz_id}}
         var payload = resp.data || resp;
@@ -314,6 +424,8 @@ Page({
           scoredCount: scoredCount,
           profileCount: profileCount,
           blueprintVersion: payload.blueprint_version || "",
+          topicLabel: payload.topic_label || ASSESSMENT_I18N_KEYS.topicLabel,
+          readOnlyBanner: payload.lease_holder_other_device ? ASSESSMENT_I18N_KEYS.readOnlyOtherDevice : "",
           availableCount: availableCount,
           shortfallCount: shortfallCount,
           assessmentNotice:
@@ -496,6 +608,20 @@ Page({
       .submitAssessment(self._quizId, answers, timeSpent)
       .then(function (resp) {
         var data = resp.data || resp;
+        if (data && data.schema_version === "p0a-v1") {
+          self.setData(
+            Object.assign(
+              {
+                stage: "result",
+                submitting: false,
+              },
+              buildP0AResultModel(data),
+            ),
+          );
+          wx.setStorageSync("diagnostic_completed", true);
+          helpers.vibrate("heavy");
+          return;
+        }
         // 响应已收到
         var fb = data.diagnostic_feedback || data.feedback || {};
         var ao = fb.ability_overview || {};
@@ -636,6 +762,17 @@ Page({
       answeredCount: 0,
       unansweredCount: 0,
       currentIndex: 0,
+      serverReportMode: false,
+      reportSchemaVersion: "",
+      knowledgeMap: [],
+      wrongItems: [],
+      attemptRefs: [],
+      correctCount: 0,
+      blankCount: 0,
+      sessionLocalNextAction: "",
+      degradedReason: "",
+      degradedCopy: "",
+      readOnlyBanner: "",
     });
   },
 

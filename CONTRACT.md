@@ -110,6 +110,7 @@ DeepTutor 必须优先保证：
 - `rag / retrieval / exact-question / authority`
 - `tutorbot business identity / default knowledge chain`
 - `learner state / summary / profile / guided learning writeback / heartbeat`
+- `assessment TestSet / deferred feedback / per-item learning evidence`
 - `config runtime / provider resolution / env semantics`
 
 工作顺序固定：
