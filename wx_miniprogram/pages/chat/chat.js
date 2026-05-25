@@ -121,15 +121,24 @@ function extractFocusTopic(title) {
 
 function buildFocusDisplayTitle(focus, title) {
   var payload = focus && typeof focus === "object" ? focus : {};
-  var topic = String(payload.topic || payload.focus_topic || "").trim() || extractFocusTopic(title);
-  if (topic && topic !== "建筑实务") return topic;
-  var text = extractFocusTopic(title);
+  var text = String(title || "").replace(/^今日焦点[:：]\s*/, "").replace(/\s+/g, " ").trim();
+  if (/第一份.*学习证据/.test(text) || /给系统.*学习证据/.test(text)) return "先做 1 题摸底";
+  if (/^先做\s*1\s*题/.test(text)) return text;
+  var topic = String(payload.topic || payload.focus_topic || "").trim();
+  if (topic && /^推进.+下一步学习$/.test(text)) return "推进" + topic;
+  if (text && text !== "保持节奏，继续推进" && text !== "按当前状态推进建筑实务") return text;
+  text = extractFocusTopic(title);
   if (!text || text === "建筑实务") return "今日推进";
-  return text.length > 10 ? text.slice(0, 10) : text;
+  return text.length > 12 ? text.slice(0, 12) : text;
 }
 
 function buildFocusDisplayMeta(focus, meta) {
-  return "";
+  var payload = focus && typeof focus === "object" ? focus : {};
+  var text = String(meta || payload.meta || "").replace(/\s+/g, " ").trim();
+  if (!text) return "";
+  if (text === "starter") return "生成学情基线";
+  if (/learner_state\.home_personalization/.test(text)) return "来自学情更新";
+  return text.length > 8 ? "" : text;
 }
 
 function normalizeAnswerMode(value) {

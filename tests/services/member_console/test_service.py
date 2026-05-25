@@ -915,6 +915,25 @@ def test_login_with_password_does_not_fail_when_wallet_bootstrap_is_unavailable(
     assert claims["canonical_uid"] == canonical_uid
 
 
+def test_production_without_supabase_sessions_only_blocks_assessment_paths(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.delenv("SUPABASE_URL", raising=False)
+    monkeypatch.delenv("SUPABASE_SERVICE_ROLE_KEY", raising=False)
+    monkeypatch.delenv("SUPABASE_KEY", raising=False)
+
+    service = MemberConsoleService()
+
+    assert service._assessment_sessions_supabase_required_but_missing is True
+    with pytest.raises(RuntimeError, match="assessment_sessions_supabase_not_configured"):
+        service.create_assessment(
+            "student_demo",
+            assessment_type="topic_diagnostic",
+            topic_ids=["waterproof"],
+        )
+
+
 def test_login_with_password_rejects_unknown_or_invalid_external_password(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

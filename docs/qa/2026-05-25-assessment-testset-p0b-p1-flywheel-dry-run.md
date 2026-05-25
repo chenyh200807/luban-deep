@@ -360,3 +360,124 @@ Gate D status after this addendum:
 | Wrong-item training generates 3 submit-able MCQs | DevTools `mcq_found.count=3 interactive=true` | Passed |
 | Training submit writes through structured MCQ path | DevTools submit terminal assistant feedback | Passed |
 | Retest recommendation after `training_completed` | read-model regression test | Passed locally; requires deploy/prod re-smoke |
+
+## 2026-05-25 Contract Guard Closure Addendum
+
+This addendum closes two production-readiness regressions found while re-running
+the P0B/P1 automated gates after the flywheel closure:
+
+- `assessment` evidence refs emitted by Assessment TestSet writeback must
+  survive canonical learning-evidence normalization as `source_type=assessment`,
+  not fall back to `active_question`.
+- Production member-console initialization must not fail every auth/admin path
+  just because Supabase `assessment_sessions` is not configured; instead,
+  assessment create/resume/report/explanation/writeback-retry paths fail closed
+  with `assessment_sessions_supabase_not_configured`.
+- `assessment_sessions.user_id` must not require a mirror row in `public.users`;
+  the durable assessment authority identifies the learner by text `user_id` and
+  is protected by its own RLS / owner checks.
+
+Verification:
+
+```text
+PYTHONPATH=. pytest tests/services/assessment/test_learning_evidence.py::test_assessment_ref_survives_canonical_learning_evidence_normalization tests/services/member_console/test_service.py::test_login_with_password_does_not_fail_when_wallet_bootstrap_is_unavailable tests/services/member_console/test_service.py::test_production_without_supabase_sessions_only_blocks_assessment_paths tests/supabase/test_learner_state_rls_migration.py::test_assessment_sessions_do_not_require_public_users_mirror_row -q
+....                                                                     [100%]
+4 passed in 1.39s
+```
+
+Full automated gate:
+
+```text
+PYTHONPATH=. pytest tests/services/assessment tests/scripts/test_assessment_topic_catalog_scripts.py tests/api/test_mobile_assessment_payload_redaction.py tests/api/test_mobile_router.py tests/services/member_console/test_service.py tests/services/learner_state/test_learning_report_read_model.py tests/services/learner_state/test_conversation_learning_evidence_event.py tests/supabase/test_learner_state_rls_migration.py -q
+322 passed in 9.28s
+```
+
+Frontend and contract gates:
+
+```text
+PASS test_report_snapshot_dedupe.js (67 assertions)
+PASS test_ws_stream_auth_refresh.js (21 assertions)
+PASS test_package_chat_surface_layout_contract.js (17 assertions)
+PASS test_report_layout.js (90 assertions)
+PASS test_assessment_testset_view_model.js (61 assertions)
+
+contract-guard: passed
+[learner_state] passed | protected=deeptutor/services/member_console/service.py | tests=tests/services/member_console/test_service.py | contract=contracts/learner-state.md
+error-code-guard: passed | codes=E02, E04, M02, M06, M07, unknown_error
+node-id-guard: no hard-coded knowledge_node_id literals found
+```
+
+## 2026-05-25 Production Deploy Addendum
+
+Deployment target: `Aliyun-ECS-2:/root/deeptutor`
+
+```text
+git_push=passed
+branch=codex/assessment-flywheel-hardening-20260525
+remote_head=1135aaece98deb68832599289e64d3c67926ae12
+```
+
+Supabase migration:
+
+```text
+env_source=heuristic_jackson_env
+target_guard=passed
+questions_bank_count=4638
+assessment_sessions_regclass=assessment_sessions
+fk_before=0
+migration=applied
+fk_after=0
+```
+
+The migration was idempotent in the probed target database: the
+`assessment_sessions_user_id_fkey` constraint was already absent before apply
+and remained absent after apply.
+
+Aliyun fast redeploy:
+
+```text
+DEEPTUTOR_RELEASE_ID=1.0.0+1135aaece98deb68832599289e64d3c67926ae12+production
+DEEPTUTOR_GIT_SHA=1135aaece98deb68832599289e64d3c67926ae12
+DEEPTUTOR_GIT_DIRTY=false
+DEEPTUTOR_DEPLOY_MANIFEST_HASH=8ea978607e60f8b6
+public_frontend=https://test2.yousenjiaoyu.com/
+public_healthz=https://test2.yousenjiaoyu.com/healthz passed
+public_readyz=https://test2.yousenjiaoyu.com/readyz passed
+observability=passed
+langfuse_connectivity=jgzk-langfuse:3000 reachable
+```
+
+Production assessment smoke:
+
+```text
+auth_register=passed
+auth_user_id=auth_1e16f2000f274146a22ebb0d
+
+assessment_type=topic_diagnostic
+quiz_id=quiz_4fc72a8293ac
+question_count=12
+blueprint_version=topic_waterproof_v1
+report_ready=true
+deep_explanation_ready=true
+pre_submit_redaction=passed
+
+assessment_type=real_exam_simulation
+quiz_id=quiz_0482172fafd6
+question_count=20
+blueprint_version=real_exam_simulation_mini_v1
+report_ready=true
+deep_explanation_ready=true
+pre_submit_redaction=passed
+```
+
+Deployment hygiene note:
+
+```text
+tracked_git_disabled=found_before_cleanup
+```
+
+`.git.disabled` was discovered as a tracked repo file and had been synced to the
+allowed remote deploy root. It is not runtime-sensitive, but it is deploy-surface
+noise. The branch now removes it from Git and adds `.git.disabled*` to both
+`.gitignore` and `scripts/sync_to_aliyun.sh` excludes so future deploys do not
+ship local worktree pointer artifacts.

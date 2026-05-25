@@ -1,8 +1,8 @@
 {
   "subject_id": "construction_exam_2",
   "today_focus": {
-    "title": "先做一题，给系统第一份二建建筑学习证据",
-    "meta": "starter"
+    "title": "先做 1 题二建建筑摸底",
+    "meta": "生成学情基线"
   },
   "prompts": [
     {

@@ -532,6 +532,7 @@ class MemberConsoleService:
         self._store = get_sqlite_session_store()
         self._data_path = self._path_service.get_settings_file("member_console")
         self._data_path.parent.mkdir(parents=True, exist_ok=True)
+        self._assessment_sessions_supabase_required_but_missing = False
         self._assessment_session_repository = self._build_assessment_session_repository()
         self._wechat_access_token: str = ""
         self._wechat_access_token_expires_at: float = 0.0
@@ -546,8 +547,12 @@ class MemberConsoleService:
             if repository.is_configured:
                 return repository
             if is_production_environment():
-                raise RuntimeError("assessment_sessions_supabase_not_configured")
+                self._assessment_sessions_supabase_required_but_missing = True
         return InMemoryAssessmentSessionRepository()
+
+    def _require_durable_assessment_sessions(self) -> None:
+        if self._assessment_sessions_supabase_required_but_missing:
+            raise RuntimeError("assessment_sessions_supabase_not_configured")
 
     def _get_learner_state_service(self):
         from deeptutor.services.learner_state import get_learner_state_service
@@ -4718,6 +4723,7 @@ class MemberConsoleService:
         duration_policy: dict[str, Any] | None = None,
         device_id: str = "",
     ) -> dict[str, Any]:
+        self._require_durable_assessment_sessions()
         normalized_assessment_type = str(assessment_type or "diagnostic").strip() or "diagnostic"
         if normalized_assessment_type == "topic_diagnostic":
             return self._create_topic_diagnostic_assessment(
@@ -5246,6 +5252,7 @@ class MemberConsoleService:
             )
 
     def retry_assessment_writeback(self, user_id: str, quiz_id: str) -> dict[str, Any]:
+        self._require_durable_assessment_sessions()
         session = self._assessment_session_repository.private_session(user_id, quiz_id)
         if session.get("assessment_type") not in {"topic_diagnostic", "real_exam_simulation"}:
             raise KeyError(f"Unknown quiz: {quiz_id}")
@@ -5282,12 +5289,14 @@ class MemberConsoleService:
         return deepcopy(stored.get("result_report_json") or {})
 
     def get_assessment_session(self, user_id: str, quiz_id: str, *, device_id: str = "") -> dict[str, Any]:
+        self._require_durable_assessment_sessions()
         try:
             return self._assessment_session_repository.get_session_for_resume(user_id, quiz_id, device_id=device_id)
         except AssessmentSessionError as exc:
             raise KeyError(str(exc)) from exc
 
     def get_assessment_report(self, user_id: str, quiz_id: str) -> dict[str, Any]:
+        self._require_durable_assessment_sessions()
         try:
             session = self._assessment_session_repository.private_session(user_id, quiz_id)
         except AssessmentSessionError as exc:
@@ -5298,6 +5307,7 @@ class MemberConsoleService:
         return deepcopy(report)
 
     def get_assessment_deep_explanation(self, user_id: str, quiz_id: str, question_id: str) -> dict[str, Any]:
+        self._require_durable_assessment_sessions()
         try:
             session = self._assessment_session_repository.private_session(user_id, quiz_id)
         except AssessmentSessionError as exc:

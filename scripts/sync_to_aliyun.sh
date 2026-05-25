@@ -16,6 +16,7 @@ ALLOW_MAIN_BRANCH_DEPLOY="${ALLOW_MAIN_BRANCH_DEPLOY:-0}"
 EXCLUDES=(
     ".git"
     ".github"
+    ".git.disabled*"
     ".codex"
     ".gstack"
     ".local-runs"
@@ -140,6 +141,7 @@ excluded_names = {
 }
 excluded_patterns = (
     ".env*",
+    ".git.disabled*",
     ".git.broken*",
     ".secrets*",
     "playwright-report*",
