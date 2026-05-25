@@ -101,6 +101,21 @@ def build_home_personalization_projection_from_learning_signal(
             text=f"讲清楚{prompt_concept}的关键判断",
             intent={**base_intent, "training_mode": "concept_explain", "reason": "home_projection_concept"},
         ),
+        _projection_prompt(
+            prompt_type="exam_transfer",
+            text=f"用一道真题场景理解{prompt_concept}",
+            intent={**base_intent, "training_mode": "case_repair", "reason": "home_projection_exam_transfer"},
+        ),
+        _projection_prompt(
+            prompt_type="knowledge_map",
+            text=f"梳理{prompt_concept}的高频考点",
+            intent={**base_intent, "training_mode": "rubric_recall", "reason": "home_projection_knowledge_map"},
+        ),
+        _projection_prompt(
+            prompt_type="quick_check",
+            text=f"用 1 个小问题验证{prompt_concept}是否真会了",
+            intent={**base_intent, "training_mode": "mcq_discrimination", "reason": "home_projection_quick_check"},
+        ),
     ]
     return {
         "generated_at": current_time.isoformat(),

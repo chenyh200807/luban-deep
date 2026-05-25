@@ -205,10 +205,10 @@ function BiV2AuthenticatedSurface({
             leftSlot={api.hamburger}
             brand={
               <>
-                <span className="rounded bg-slate-900 px-1.5 py-0.5 text-[10px] text-white">
+                <span className="rounded-lg bg-white px-1.5 py-0.5 text-[10px] font-black text-slate-950">
                   BI v2
                 </span>
-                <span className="hidden text-slate-700 sm:inline">会员经营后台</span>
+                <span className="hidden text-slate-100 sm:inline">会员经营后台</span>
               </>
             }
             actor={currentSearchActor ?? `actor: ${identity.displayName} · admin`}
@@ -224,8 +224,11 @@ function BiV2AuthenticatedSurface({
               if (isSectionEnabled(key, flags)) api.closeNav()
             }}
             footer={
-              <div className="rounded bg-amber-50 px-2 py-1.5 text-[11px] leading-snug text-amber-800 ring-1 ring-amber-200">
-                BI v2 Shell · 仅可用模块允许进入，待接入模块不会展示半成品数据。
+              <div className="rounded-2xl border border-amber-300/20 bg-amber-300/10 px-3 py-3 text-[11px] leading-snug text-amber-100">
+                <span className="font-semibold">BI v2 Shell</span>
+                <span className="mt-0.5 block">
+                  仅可用模块允许进入，待接入模块不会展示半成品数据。
+                </span>
               </div>
             }
           />

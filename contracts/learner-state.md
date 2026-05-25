@@ -179,14 +179,14 @@ Overlay 必须支持：
 - 建筑实务阅卷产生的 `learning_evidence` 必须作为
   `memory_kind="learning_evidence"` 写入本事件流；不得新增平行 memory 表。
 - 当 Supabase core store 已配置时，nightly synthesis / online read model 读取
-  `learner_memory_events` 必须 remote-first；本地 JSONL 只能作为 dev / dry-run 缓存，
-  不能在生产环境与 Supabase 竞争事件流权威。
-- remote-first 不等于在所有环境 fail-closed 到空事件：生产环境如果 remote read 返回空或失败，
-  必须以 remote 结果为准，不得读取本地 JSONL；非生产环境（local / dev / dry-run /
-  automation gate）如果 remote read 为空或不可用，允许 `LearnerStateService` 回落读取同一
-  `user_id` 下的本地 JSONL 缓存，以验证 writer / reader continuity。该回落只属于
-  `LearnerStateService` 的本地 projection 行为，不得被 mobile router、learning-report read model
-  或脚本各自实现成第二套 reader。
+  `learner_memory_events` 必须 remote-first；本地 JSONL 只允许作为
+  `LearnerStateService` 写入后的 durable write-ahead ledger，不能由 mobile router、
+  learning-report read model 或脚本各自实现成第二套 reader。
+- remote-first 不等于在生产环境丢弃尚未 flush 的本地写入：`LearnerStateService`
+  读取事件列表时必须合并 Supabase 事件与同一 `user_id` 下的本地 write-ahead JSONL，
+  按 event_id / dedupe_key 去重并按时间裁剪。这样 assessment submit 后即使 outbox
+  尚未完成远端写回，首页、学情和 report 仍能 read-your-writes；本地 JSONL 只能通过
+  `LearnerStateService` 参与该合并，不能绕过 Supabase 成为平行长期权威。
 - `dedupe_key` 命中已有事件时必须返回原事件，不能重新生成 event_id 或再次写入 outbox。
   重复作答若要形成 L1/L2 证据，dedupe_key 必须包含 turn/session/attempt 级输入边界。
 - `dedupe_key` 命中已有本地 JSONL 事件时，`LearnerStateService` 仍必须确保同一事件存在

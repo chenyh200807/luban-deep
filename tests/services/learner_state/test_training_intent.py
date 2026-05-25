@@ -124,6 +124,31 @@ def test_home_projection_v1_consumer_derives_intent_from_assessment_evidence() -
     assert intent["evidence_refs"] == ["evt_assessment_1", "attempt_ref_1"]
 
 
+def test_home_projection_surfaces_six_distinct_next_learning_actions() -> None:
+    projection = build_home_personalization_projection_from_learning_signal(
+        {
+            "event_type": "learning_evidence",
+            "knowledge_points": ["项目质量计划管理"],
+            "error_codes": ["质量计划和质量保证混淆"],
+            "event_id": "evt_quality_plan",
+            "subject_id": "construction_exam_1",
+        }
+    )
+
+    assert projection is not None
+    assert [item["prompt_type"] for item in projection["recommended_prompts"]] == [
+        "practice_prompt",
+        "mistake_review",
+        "concept_explain",
+        "exam_transfer",
+        "knowledge_map",
+        "quick_check",
+    ]
+    assert projection["recommended_prompts"][5]["text"] == (
+        "用 1 个小问题验证项目质量计划管理是否真会了"
+    )
+
+
 def test_training_intent_v2_degrades_when_evidence_refs_empty() -> None:
     """Hard rule from the brief: evidence_refs 为空时不生成强处方，只生成
     degraded/pending action. The intent must still be valid v2 shape but

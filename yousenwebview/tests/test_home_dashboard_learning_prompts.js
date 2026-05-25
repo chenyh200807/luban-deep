@@ -55,6 +55,23 @@ var assessmentLessonModel = vm.buildLearningHomeViewModel({
 assert.strictEqual(assessmentLessonModel.focusActionType, "prompt");
 assert.strictEqual(assessmentLessonModel.recommendedPrompts.length, 1);
 
+var sixPromptModel = vm.buildLearningHomeViewModel({
+  recommended_prompts: [
+    { text: "用 3 道题训练项目质量计划管理", prompt_type: "practice_prompt" },
+    { text: "复盘项目质量计划管理里的错因", prompt_type: "mistake_review" },
+    { text: "讲清楚项目质量计划管理的关键判断", prompt_type: "concept_explain" },
+    { text: "用一道真题场景理解项目质量计划管理", prompt_type: "exam_transfer" },
+    { text: "梳理项目质量计划管理的高频考点", prompt_type: "knowledge_map" },
+    { text: "用 1 个小问题验证项目质量计划管理是否真会了", prompt_type: "quick_check" },
+    { text: "第七条不应该展示", prompt_type: "learning_prompt" },
+  ],
+});
+assert.strictEqual(sixPromptModel.recommendedPrompts.length, 6);
+assert.deepStrictEqual(
+  sixPromptModel.recommendedPrompts.map(function (item) { return item.displayTitle; }),
+  ["专项训练", "错题复盘", "关键判断", "真题迁移", "考点梳理", "自测验证"],
+);
+
 var chatSource = fs.readFileSync(chatSourcePath, "utf8");
 var chatWxml = fs.readFileSync(chatWxmlPath, "utf8");
 var wsSource = fs.readFileSync(wsSourcePath, "utf8");

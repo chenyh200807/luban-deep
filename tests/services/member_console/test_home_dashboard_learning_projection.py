@@ -72,6 +72,37 @@ def test_learning_signal_projection_makes_today_focus_clickable() -> None:
     assert first_prompt["intent"]["evidence_refs"] == ["evt-home-1", "attempt-ref-1"]
 
 
+def test_learning_signal_projection_generates_six_actionable_prompt_types() -> None:
+    projection = build_home_personalization_projection_from_learning_signal(
+        {
+            "subject_id": "construction_exam_1",
+            "concept": {"label": "项目质量计划管理"},
+            "error": {"label": "质量计划和质量保证混淆"},
+            "event_id": "evt-quality-plan",
+        },
+        generated_at=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
+    )
+
+    assert projection is not None
+    prompt_types = [item["prompt_type"] for item in projection["recommended_prompts"]]
+    assert prompt_types == [
+        "practice_prompt",
+        "mistake_review",
+        "concept_explain",
+        "exam_transfer",
+        "knowledge_map",
+        "quick_check",
+    ]
+    assert [item["text"] for item in projection["recommended_prompts"]] == [
+        "用 3 道题训练项目质量计划管理",
+        "复盘项目质量计划管理里的质量计划和质量保证混淆",
+        "讲清楚项目质量计划管理的关键判断",
+        "用一道真题场景理解项目质量计划管理",
+        "梳理项目质量计划管理的高频考点",
+        "用 1 个小问题验证项目质量计划管理是否真会了",
+    ]
+
+
 def test_stale_or_missing_projection_falls_back_to_seed_starters() -> None:
     stale_projection = {
         "generated_at": datetime(2026, 5, 21, 2, 0, tzinfo=_TZ).isoformat(),

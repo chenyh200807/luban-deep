@@ -36,14 +36,14 @@ export function BiMoneyCell({
       }`}
       aria-label={ariaLabel ?? `${CURRENCY_PREFIX[currency]}${value}${CURRENCY_SUFFIX[currency]}`}
     >
-      <span className="text-slate-900">
+      <span className="text-slate-100">
         {CURRENCY_PREFIX[currency]}
         {value}
         {CURRENCY_SUFFIX[currency]}
       </span>
       {trust && trust !== "A" ? (
         <span
-          className="rounded bg-slate-100 px-1 text-[10px] font-medium text-slate-600"
+          className="rounded bg-white/10 px-1 text-[10px] font-medium text-slate-300"
           aria-label={`数据可信等级 ${trust}`}
           title={`数据可信等级 ${trust}`}
         >

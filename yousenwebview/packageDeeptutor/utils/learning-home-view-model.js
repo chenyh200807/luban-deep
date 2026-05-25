@@ -20,16 +20,106 @@ function isAssessmentPrompt(source, text) {
   return /^(?:先|立即|开始|去)?\s*(?:做|完成|来)?\s*(?:一次)?\s*(?:摸底测试|摸底测评|起步测评|模拟测评|诊断测试)/.test(copy);
 }
 
+function getPromptVisual(promptType, index) {
+  var key = compactText(promptType).toLowerCase();
+  var palette = [
+    {
+      icon: "▧",
+      title: "专项训练",
+      bgDark: "rgba(245,158,11,0.16)",
+      fgDark: "#fbbf24",
+      bgLight: "#fff4e0",
+      fgLight: "#c88a2b",
+    },
+    {
+      icon: "○",
+      title: "错题复盘",
+      bgDark: "rgba(59,130,246,0.16)",
+      fgDark: "#93c5fd",
+      bgLight: "#e9f1ff",
+      fgLight: "#4c72d4",
+    },
+    {
+      icon: "△",
+      title: "关键判断",
+      bgDark: "rgba(96,165,250,0.12)",
+      fgDark: "#7dd3fc",
+      bgLight: "#edf4ff",
+      fgLight: "#3b82f6",
+    },
+    {
+      icon: "☆",
+      title: "真题迁移",
+      bgDark: "rgba(59,130,246,0.16)",
+      fgDark: "#93c5fd",
+      bgLight: "#e9f1ff",
+      fgLight: "#4c72d4",
+    },
+    {
+      icon: "▤",
+      title: "考点梳理",
+      bgDark: "rgba(16,185,129,0.14)",
+      fgDark: "#5eead4",
+      bgLight: "#e4fbf4",
+      fgLight: "#0f9f7a",
+    },
+    {
+      icon: "✓",
+      title: "自测验证",
+      bgDark: "rgba(168,85,247,0.14)",
+      fgDark: "#c4b5fd",
+      bgLight: "#f3edff",
+      fgLight: "#7c3aed",
+    },
+  ];
+  if (key === "practice_prompt" || key === "learning_prompt") return palette[0];
+  if (key === "mistake_review" || key === "wrong_item_review") return palette[1];
+  if (key === "concept_explain" || key === "concept_review") return palette[2];
+  if (key === "exam_transfer") return palette[3];
+  if (key === "knowledge_map") return palette[4];
+  if (key === "quick_check") return palette[5];
+  return palette[index % palette.length];
+}
+
+function getPromptTopic(source, text) {
+  var intent = asObject(source.intent || source.prompt_intent);
+  var topic = compactText(
+    intent.concept_label ||
+      intent.error_label ||
+      source.concept_label ||
+      source.topic ||
+      source.focus_topic,
+  );
+  if (topic) return topic;
+  return compactText(text)
+    .replace(/^用\s*\d+\s*道题训练/, "")
+    .replace(/^复盘/, "")
+    .replace(/^讲清楚/, "")
+    .replace(/^用一道真题场景理解/, "")
+    .replace(/^梳理/, "")
+    .replace(/^用\s*1\s*个小问题验证/, "")
+    .replace(/的?(?:关键判断|高频考点|是否真会了)$/, "");
+}
+
 function normalizePrompt(item, index) {
   var source = asObject(item);
   var text = compactText(source.text || source.title || source.query || source.prompt);
   if (!text) return null;
   if (isAssessmentPrompt(source, text)) return null;
   var promptType = compactText(source.prompt_type || source.type || "learning_prompt");
+  var visual = getPromptVisual(promptType, index);
+  var displayDesc = getPromptTopic(source, text) || "学情推荐";
   return {
     key: compactText(source.key || promptType + "-" + index),
     text: text,
     title: compactText(source.title || text),
+    displayTitle: visual.title,
+    displayDesc: displayDesc,
+    icon: visual.icon,
+    bgDark: visual.bgDark,
+    fgDark: visual.fgDark,
+    bgLight: visual.bgLight,
+    fgLight: visual.fgLight,
     promptType: promptType,
     evidenceRefs: asList(source.evidence_refs || source.evidenceRefs),
     learningStateRef: compactText(source.learning_state_ref || source.learningStateRef),
@@ -50,7 +140,7 @@ function buildLearningHomeViewModel(dashboard) {
   var prompts = asList(body.recommended_prompts)
     .map(normalizePrompt)
     .filter(Boolean)
-    .slice(0, 4);
+    .slice(0, 6);
   var rawPrompts = asList(body.recommended_prompts);
   var assessmentAction = rawPrompts.some(function (item) {
     return isAssessmentPrompt(item);
