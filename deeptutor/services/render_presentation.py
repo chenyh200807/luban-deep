@@ -100,6 +100,32 @@ def _build_choice_followup_context(
     }
 
 
+def _build_choice_review_notes(
+    qa_pair: dict[str, Any],
+    *,
+    reveal_answers: bool = False,
+    reveal_explanations: bool = False,
+) -> dict[str, str] | None:
+    metadata = qa_pair.get("metadata") if isinstance(qa_pair.get("metadata"), dict) else {}
+    display_answer = _coerce_text(qa_pair.get("correct_answer")).upper() if reveal_answers else ""
+    analysis = (
+        _coerce_text(
+            qa_pair.get("explanation")
+            or qa_pair.get("knowledge_context")
+            or metadata.get("knowledge_context")
+            or ""
+        )
+        if reveal_explanations
+        else ""
+    )
+    if not display_answer and not analysis:
+        return None
+    return {
+        "display_answer": display_answer,
+        "analysis": analysis,
+    }
+
+
 def build_mcq_block_from_result_summary(
     result_summary: dict[str, Any] | None,
     *,
@@ -133,23 +159,33 @@ def build_mcq_block_from_result_summary(
             reveal_answers=reveal_answers,
             reveal_explanations=reveal_explanations,
         )
+        review_notes = (
+            _build_choice_review_notes(
+                qa_pair,
+                reveal_answers=reveal_answers,
+                reveal_explanations=reveal_explanations,
+            )
+            if review_mode
+            else None
+        )
         correct_answer = _coerce_text(qa_pair.get("correct_answer")).upper()
         multi_select = (
             qa_pair.get("multi_select") is True
             or question_type == "multi_choice"
             or len(correct_answer) > 1
         )
-        questions.append(
-            {
-                "index": index,
-                "stem": _coerce_text(qa_pair.get("question") or "") or "请选择正确选项",
-                "hint": "",
-                "question_type": "multi_choice" if multi_select else "single_choice",
-                "options": options,
-                "followup_context": followup_context,
-                "question_id": followup_context["question_id"],
-            }
-        )
+        question = {
+            "index": index,
+            "stem": _coerce_text(qa_pair.get("question") or "") or "请选择正确选项",
+            "hint": "",
+            "question_type": "multi_choice" if multi_select else "single_choice",
+            "options": options,
+            "followup_context": followup_context,
+            "question_id": followup_context["question_id"],
+        }
+        if review_notes:
+            question["review_notes"] = review_notes
+        questions.append(question)
 
     if not questions:
         return None
@@ -205,6 +241,46 @@ def _redact_mcq_followup_context(
     return normalized
 
 
+def _normalize_review_notes(
+    raw_notes: Any,
+    *,
+    reveal_answers: bool = False,
+    reveal_explanations: bool = False,
+) -> dict[str, str] | None:
+    if not isinstance(raw_notes, dict):
+        return None
+    display_answer = (
+        _coerce_text(
+            raw_notes.get("display_answer")
+            or raw_notes.get("displayAnswer")
+            or raw_notes.get("answer")
+            or raw_notes.get("answer_text")
+            or raw_notes.get("answerText")
+            or ""
+        ).upper()
+        if reveal_answers
+        else ""
+    )
+    analysis = (
+        _coerce_text(
+            raw_notes.get("analysis")
+            or raw_notes.get("analysis_text")
+            or raw_notes.get("analysisText")
+            or raw_notes.get("teaching_text")
+            or raw_notes.get("teachingText")
+            or ""
+        )
+        if reveal_explanations
+        else ""
+    )
+    if not display_answer and not analysis:
+        return None
+    return {
+        "display_answer": display_answer,
+        "analysis": analysis,
+    }
+
+
 def _normalize_mcq_question(
     raw_question: Any,
     fallback_index: int,
@@ -258,7 +334,7 @@ def _normalize_mcq_question(
     if raw_index.isdigit():
         index = max(int(raw_index), fallback_index)
 
-    return {
+    question = {
         "index": index,
         "stem": _coerce_text(raw_question.get("stem") or raw_question.get("question") or "") or "请选择正确选项",
         "hint": _coerce_text(raw_question.get("hint") or ""),
@@ -267,6 +343,14 @@ def _normalize_mcq_question(
         "followup_context": followup_context,
         "question_id": question_id,
     }
+    review_notes = _normalize_review_notes(
+        raw_question.get("review_notes") or raw_question.get("reviewNotes"),
+        reveal_answers=reveal_answers,
+        reveal_explanations=reveal_explanations,
+    )
+    if review_notes:
+        question["review_notes"] = review_notes
+    return question
 
 
 def _normalize_mcq_block(

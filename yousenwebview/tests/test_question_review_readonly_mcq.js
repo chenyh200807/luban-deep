@@ -32,6 +32,10 @@ var state = aiMessageState.deriveAiMessageRenderState({
               question_id: "q_review_1",
               correct_answer: "B",
             },
+            review_notes: {
+              display_answer: "B",
+              analysis: "B 更符合规范。",
+            },
           },
         ],
         submit_hint: "题目讲评，已展示解析，不需要提交答案。",
@@ -51,6 +55,12 @@ assertEqual(
   state.mcqHint,
   "题目讲评，已展示解析，不需要提交答案。",
   "question review hint should describe read-only mode",
+);
+assertEqual(state.mcqReviewMode, true, "question review renderer should know this is a review card");
+assertEqual(
+  state.mcqCards[0].reviewNotes,
+  { displayAnswer: "B", analysis: "B 更符合规范。" },
+  "question review should show the public answer and explanation outside the original-text toggle",
 );
 
 console.log("PASS test_question_review_readonly_mcq.js");

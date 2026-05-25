@@ -197,6 +197,10 @@ run("question review mcq presentation is read-only", function () {
                 question_id: "q_review_1",
                 correct_answer: "B",
               },
+              review_notes: {
+                display_answer: "B",
+                analysis: "B 更符合规范。",
+              },
             },
           ],
           submit_hint: "题目讲评，已展示解析，不需要提交答案。",
@@ -215,6 +219,12 @@ run("question review mcq presentation is read-only", function () {
     state.mcqHint,
     "题目讲评，已展示解析，不需要提交答案。",
     "question review hint should explain read-only state",
+  );
+  assertEqual(state.mcqReviewMode, true, "question review should expose review mode for the renderer");
+  assertEqual(
+    state.mcqCards[0].reviewNotes,
+    { displayAnswer: "B", analysis: "B 更符合规范。" },
+    "question review should expose public teaching notes without requiring original-text expansion",
   );
 });
 

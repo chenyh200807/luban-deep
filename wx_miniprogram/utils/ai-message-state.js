@@ -198,6 +198,7 @@ function buildPresentationState(presentation) {
     hint: mcqBlock ? mcqBlock.submitHint || "请选择后提交答案" : "",
     receipt: mcqBlock ? mcqBlock.receipt || "" : "",
     interactiveReady: mcqBlock ? mcqBlock.reviewMode !== true : false,
+    reviewMode: !!(mcqBlock && mcqBlock.reviewMode),
     hasStructuredContent: blocks.length > 0,
     hasNonMcqStructuredContent: renderBlocks.length > 0,
     hasOnlyMcqContent: !!mcqBlock && renderBlocks.length === 0,
@@ -430,6 +431,7 @@ function deriveAiMessageRenderState(input) {
     mcqInteractiveReady: presentationState
       ? presentationState.interactiveReady
       : false,
+    mcqReviewMode: presentationState ? presentationState.reviewMode : false,
     originalContent: shouldFoldOriginal ? normalizedFallbackContent : "",
     originalCollapsed: true,
     visibleBlocks: canonicalMessage.blocks,

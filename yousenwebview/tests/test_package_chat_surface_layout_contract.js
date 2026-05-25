@@ -90,6 +90,14 @@ assert(
     chatWxml.indexOf("完整后台") === -1,
   "package chat workflow summary should not render raw backend trace containers or wording",
 );
+assert(
+  chatWxml.indexOf("真题讲评") >= 0 &&
+    chatWxml.indexOf("正确答案") >= 0 &&
+    chatWxml.indexOf("解析要点") >= 0 &&
+    chatWxml.indexOf("已讲评") >= 0 &&
+    chatWxss.indexOf(".mcq-review-notes") >= 0,
+  "package question-review MCQ cards should expose learner-facing answer and explanation notes",
+);
 
 if (fail) {
   console.error(errors.join("\n"));

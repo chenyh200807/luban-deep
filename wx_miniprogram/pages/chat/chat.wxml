@@ -297,11 +297,11 @@ module.exports = {
           <!-- MCQ：结构化题卡优先显示，原文仅在用户点击后展开 -->
           <view class="mcq" wx:if="{{item.mcqCards && item.mcqCards.length}}">
             <view class="mcq-head">
-              <text class="mcq-head-title" user-select>{{item.mcqInteractiveReady ? '交互式作答' : '题目回看'}}</text>
+              <text class="mcq-head-title" user-select>{{item.mcqReviewMode ? '真题讲评' : (item.mcqInteractiveReady ? '交互式作答' : '题目回看')}}</text>
               <view class="mcq-head-side">
                 <text class="mcq-head-hint" user-select>{{item.mcqHint ? item.mcqHint : '点击选项后提交答案'}}</text>
-                <view class="original-toggle" wx:if="{{item.originalContent}}" bindtap="onToggleOriginalContent" data-msgid="{{item.id}}" aria-role="button" aria-label="{{item.originalExpanded ? '收起原文' : '查看原文'}}">
-                  <text class="original-toggle-text">{{item.originalExpanded ? '收起原文' : '查看原文'}}</text>
+                <view class="original-toggle" wx:if="{{item.originalContent}}" bindtap="onToggleOriginalContent" data-msgid="{{item.id}}" aria-role="button" aria-label="{{item.originalExpanded ? '收起原文' : (item.mcqReviewMode ? '查看完整解析' : '查看原文')}}">
+                  <text class="original-toggle-text">{{item.originalExpanded ? '收起原文' : (item.mcqReviewMode ? '查看完整解析' : '查看原文')}}</text>
                   <text class="original-toggle-arrow">{{item.originalExpanded ? '⌃' : '⌄'}}</text>
                 </view>
               </view>
@@ -325,12 +325,22 @@ module.exports = {
                 <text class="mcq-key" user-select>{{o.key}}</text>
                 <text class="mcq-val" user-select>{{o.text}}</text>
               </view>
+              <view class="mcq-review-notes" wx:if="{{item.mcqReviewMode && card.reviewNotes && (card.reviewNotes.displayAnswer || card.reviewNotes.analysis)}}">
+                <view class="mcq-review-row" wx:if="{{card.reviewNotes.displayAnswer}}">
+                  <text class="mcq-review-label" user-select>正确答案</text>
+                  <text class="mcq-review-answer" user-select>{{card.reviewNotes.displayAnswer}}</text>
+                </view>
+                <view class="mcq-review-row mcq-review-row-analysis" wx:if="{{card.reviewNotes.analysis}}">
+                  <text class="mcq-review-label" user-select>解析要点</text>
+                  <text class="mcq-review-analysis" user-select>{{card.reviewNotes.analysis}}</text>
+                </view>
+              </view>
             </view>
             <view wx:if="{{item.mcqInteractiveReady}}" class="mcq-submit" bindtap="onMcqSubmit" data-msgid="{{item.id}}" aria-role="button" aria-label="提交答案">
               <text class="mcq-submit-txt">提交答案</text>
             </view>
             <view wx:else class="mcq-submit disabled" aria-role="note" aria-label="当前题卡仅供查看">
-              <text class="mcq-submit-txt">仅供查看</text>
+              <text class="mcq-submit-txt">{{item.mcqReviewMode ? '已讲评' : '仅供查看'}}</text>
             </view>
           </view>
 

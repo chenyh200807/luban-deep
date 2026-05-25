@@ -159,6 +159,31 @@ function normalizeMcqOptions(rawOptions) {
   return options;
 }
 
+function normalizeMcqReviewNotes(rawNotes) {
+  var notes = rawNotes && typeof rawNotes === "object" ? rawNotes : {};
+  var displayAnswer = _trimmedString(
+    notes.displayAnswer ||
+      notes.display_answer ||
+      notes.answer ||
+      notes.answerText ||
+      notes.answer_text ||
+      "",
+  ).toUpperCase();
+  var analysis = _trimmedString(
+    notes.analysis ||
+      notes.analysisText ||
+      notes.analysis_text ||
+      notes.teachingText ||
+      notes.teaching_text ||
+      "",
+  );
+  if (!displayAnswer && !analysis) return null;
+  return {
+    displayAnswer: displayAnswer,
+    analysis: analysis,
+  };
+}
+
 function normalizeMcqQuestion(rawQuestion, fallbackIndex) {
   var q = rawQuestion && typeof rawQuestion === "object" ? rawQuestion : {};
   var rawFollowup =
@@ -186,6 +211,7 @@ function normalizeMcqQuestion(rawQuestion, fallbackIndex) {
     followupContext: sanitizeFollowupContext(rawFollowup),
     questionId: questionId,
     hasContext: !!questionId,
+    reviewNotes: normalizeMcqReviewNotes(q.reviewNotes || q.review_notes),
   };
 }
 
@@ -530,6 +556,7 @@ function createRenderModel(rawModel) {
     mcqHint: _asString(model.mcqHint || ""),
     mcqReceipt: _asString(model.mcqReceipt || ""),
     mcqInteractiveReady: !!model.mcqInteractiveReady,
+    mcqReviewMode: !!model.mcqReviewMode,
     originalContent: _asString(
       model.originalContent || model.original_content || "",
     ),

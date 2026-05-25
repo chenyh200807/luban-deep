@@ -115,6 +115,10 @@ def test_build_canonical_presentation_marks_question_review_mcq_non_interactive(
     context = block["questions"][0]["followup_context"]
     assert context["correct_answer"] == "B"
     assert context["explanation"] == "B 更符合规范。"
+    assert block["questions"][0]["review_notes"] == {
+        "display_answer": "B",
+        "analysis": "B 更符合规范。",
+    }
 
 
 def test_build_canonical_presentation_redacts_raw_mcq_blocks_by_default() -> None:
