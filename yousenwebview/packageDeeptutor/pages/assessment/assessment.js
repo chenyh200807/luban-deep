@@ -1000,8 +1000,7 @@ Page({
       "请围绕我刚才错的“" +
       knowledgePoint +
       "”，出 3 道同类选择题训练我。先只出题，不要提前给答案和解析。";
-    runtime.setWorkspaceBack(route.report({ detail: "training" }), "学情训练");
-    runtime.setPendingChatIntent(prompt, "AUTO", {
+    var intent = {
       source: "assessment_result_wrong_item",
       learning_signal_type: "assessment_wrong_item_practice",
       subject_id: "construction_exam",
@@ -1011,8 +1010,20 @@ Page({
       evidence_refs: [String(item.attemptRef || "")].filter(Boolean),
       question_count: 3,
       training_mode: "same_type_repair",
+      prompt: prompt,
+    };
+    if (typeof wx !== "undefined" && typeof wx.setStorageSync === "function") {
+      wx.setStorageSync("deeptutor.report.pendingTrainingAction", intent);
+    }
+    wx.reLaunch({
+      url: route.report({
+        detail: "training",
+        source: "assessment_wrong_item",
+        attempt_ref: String(item.attemptRef || ""),
+        knowledge_point: knowledgePoint,
+        error_code: errorCode,
+      }),
     });
-    wx.reLaunch({ url: route.chat() });
   },
 
   goBack: function () {

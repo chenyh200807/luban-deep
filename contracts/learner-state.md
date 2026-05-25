@@ -396,6 +396,24 @@ P0A TestSet 的学情写回只允许走 `assessment_sessions -> AssessmentWriteb
 7. 错题集写回必须使用云端 mistake-book authority 与 signed attempt ref；写回失败时
    session 进入 `degraded` 并保留可重试状态，不伪装成完整成功。
 
+### Assessment TestSet P0B/P1 Extension Contract
+
+P0B/P1 只能扩展同一条 TestSet authority，不得为模拟卷、错题训练或深解再建第二套
+session / evidence truth。
+
+1. `real_exam_simulation` mini 卷必须复用 `assessment_sessions` durable session
+   authority，使用 `real_exam_simulation_mini_v1` blueprint，返回 20 题 redacted
+   public payload，并在 `result_report_json.assessment_type` 中保留
+   `real_exam_simulation`。
+2. 真题样式 mini 卷的用户文案默认只能叫“综合模拟测评”或“真题样式测评”；没有
+   provenance + 教研签字时不得声明“官方真题”。
+3. P1 deep explanation 是基于已提交 report 和 hidden grading artifact 的 projection：
+   可以返回 `cache_key`、`cache_status` 和题级解析，但必须
+   `score_mutation_allowed=false`，不得回写或重算正式得分。
+4. 错题卡“练 3 道同类题”必须把 `attempt_ref`、knowledge point 和 error code 带回
+   report training surface；它可以触发后续训练入口，但不得绕过 report / learner-state
+   authority 直接跳到 chat 生成第二套处方。
+
 ## 写回与冲突规则
 
 1. 明确设置优先于模型推断。
