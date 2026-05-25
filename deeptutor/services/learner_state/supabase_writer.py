@@ -296,7 +296,6 @@ class LearnerStateSupabaseWriter:
                     "id": normalized_user_id,
                     "identifier": normalized_user_id,
                     "createdAt": now,
-                    "updatedAt": now,
                     "metadata": {
                         "source": "learner_state_outbox",
                         "mirror_reason": "learner_state_fk",
