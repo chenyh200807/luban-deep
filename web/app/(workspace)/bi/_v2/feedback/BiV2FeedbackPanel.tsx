@@ -7,6 +7,7 @@ import {
   Eye,
   Mail,
   MessageSquareWarning,
+  Pencil,
   Phone,
   RefreshCw,
   Search,
@@ -58,6 +59,32 @@ type InviteTestFilter = {
   source_page: string
 }
 
+type InviteApplicationFormState = {
+  status: string
+  operator_note: string
+  name: string
+  phone: string
+  email: string
+  wechat_id: string
+  exam_type: string
+  exam_stage: string
+  pain_point: string
+  weekly_time: string
+  current_method: string
+  study_difficulties: string
+  latest_wrong_question: string
+  is_yousen_member: string
+  exam_date: string
+  accept_interview: boolean
+  province: string
+  age_range: string
+  education: string
+  occupation: string
+  preparation_years: string
+  knowledge_foundation: string
+  daily_study_time: string
+}
+
 const DEFAULT_INVITE_FILTER: InviteTestFilter = { q: '', status: '', source_page: '' }
 const INVITE_TEST_WINDOW_DAYS = 365
 
@@ -105,9 +132,17 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
     Record<string, FeedbackStatus>
   >({})
   const feedbackTriage = useAuditedAction({ actionType: 'feedback.ai.triage' })
+  const inviteApplicationUpdate = useAuditedAction({
+    actionType: 'feedback.invite_test.update',
+  })
   const triageWriting = feedbackTriage.state.phase === 'writing'
   const triageError =
     feedbackTriage.state.phase === 'denied' ? (feedbackTriage.state.result.error ?? '') : ''
+  const inviteWriting = inviteApplicationUpdate.state.phase === 'writing'
+  const inviteWriteError =
+    inviteApplicationUpdate.state.phase === 'denied'
+      ? (inviteApplicationUpdate.state.result.error ?? '')
+      : ''
 
   const loadFeedback = useCallback(async () => {
     if (!flagEnabled) {
@@ -319,6 +354,25 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
     )
   }
 
+  async function handleInviteApplicationSave(
+    item: BiInviteTestApplication,
+    patch: InviteApplicationFormState
+  ) {
+    if (!flagEnabled || inviteWriting || !item.id) return
+    const result = await inviteApplicationUpdate.execute({
+      key: 'feedback.invite_test.update',
+      params: { application_id: item.id },
+      body: patch,
+    })
+    if (!result.ok) return
+    const updated = extractInviteApplicationFromUpdate(result.data, item)
+    setInviteApplications(prev =>
+      prev.map(candidate => (candidate.id === item.id ? updated : candidate))
+    )
+    setSelectedInvite(updated)
+    void loadInviteTest()
+  }
+
   return (
     <section className="space-y-5">
       {!flagEnabled ? (
@@ -369,6 +423,22 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
           aria-live="polite"
         >
           正在写入反馈处理 audit…
+        </div>
+      ) : null}
+      {inviteWriteError ? (
+        <div
+          className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-800"
+          role="alert"
+        >
+          内测申请未保存：{inviteWriteError}
+        </div>
+      ) : null}
+      {inviteWriting ? (
+        <div
+          className="rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-800"
+          aria-live="polite"
+        >
+          正在保存内测申请并写入 audit…
         </div>
       ) : null}
 
@@ -533,7 +603,18 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
         />
       )}
       <FeedbackDetailPanel item={selectedFeedback} onClose={() => setSelectedFeedback(null)} />
-      <InviteApplicationDetailPanel item={selectedInvite} onClose={() => setSelectedInvite(null)} />
+      <InviteApplicationDetailPanel
+        key={
+          selectedInvite
+            ? `${selectedInvite.id}:${selectedInvite.status}:${selectedInvite.operator_note}`
+            : 'invite-application-empty'
+        }
+        item={selectedInvite}
+        saving={inviteWriting}
+        saveError={inviteWriteError}
+        onClose={() => setSelectedInvite(null)}
+        onSave={handleInviteApplicationSave}
+      />
     </section>
   )
 }
@@ -848,10 +929,11 @@ function InviteTestPanel({
           <button
             type="button"
             onClick={() => onOpenApplication(item)}
-            className="rounded border border-slate-200 px-2 py-1 text-[11px] text-slate-700 hover:bg-slate-50"
-            aria-label={`查看内测申请 ${item.id || item.phone} 详情`}
+            className="inline-flex items-center gap-1 rounded border border-slate-200 px-2 py-1 text-[11px] text-slate-700 hover:bg-slate-50"
+            aria-label={`编辑内测申请 ${item.id || item.phone}`}
           >
-            <Eye className="h-3 w-3" aria-hidden />
+            <Pencil className="h-3 w-3" aria-hidden />
+            编辑
           </button>
         )}
         pageSize={50}
@@ -884,23 +966,48 @@ function InviteTestPanel({
 
 function InviteApplicationDetailPanel({
   item,
+  saving,
+  saveError,
   onClose,
+  onSave,
 }: {
   item: BiInviteTestApplication | null
+  saving: boolean
+  saveError: string
   onClose: () => void
+  onSave: (item: BiInviteTestApplication, patch: InviteApplicationFormState) => Promise<void>
 }) {
+  const [form, setForm] = useState<InviteApplicationFormState>(() =>
+    item ? formFromInviteApplication(item) : emptyInviteApplicationForm()
+  )
+
+  function updateField<K extends keyof InviteApplicationFormState>(
+    field: K,
+    value: InviteApplicationFormState[K]
+  ) {
+    setForm(prev => ({ ...prev, [field]: value }))
+  }
+
   return (
     <BiSidePanel
       open={Boolean(item)}
       onClose={onClose}
-      title={item ? `内测申请 · ${item.name || item.phone || item.id}` : '内测申请'}
+      title={item ? `编辑内测申请 · ${item.name || item.phone || item.id}` : '编辑内测申请'}
       subtitle={
-        item ? `${item.status || 'submitted'} · ${formatBiDate(item.created_at)}` : undefined
+        item
+          ? `${item.status || 'submitted'} · ${formatBiDate(item.created_at)} · 保存写入 audit`
+          : undefined
       }
       width="lg"
     >
       {item ? (
-        <div className="space-y-4 text-sm">
+        <form
+          className="space-y-4 text-sm"
+          onSubmit={event => {
+            event.preventDefault()
+            void onSave(item, form)
+          }}
+        >
           <section className="rounded-md border border-slate-200 bg-slate-50 p-3">
             <div className="flex flex-wrap items-center gap-2">
               <BiStatusPill tone="amber" label="内测申请" />
@@ -922,29 +1029,166 @@ function InviteApplicationDetailPanel({
                 '未填写补充材料'}
             </p>
           </section>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <KV label="姓名" value={item.name || '—'} />
-            <KV label="手机号" value={item.phone || '—'} />
-            <KV label="邮箱" value={item.email || '—'} />
-            <KV label="微信" value={item.wechat_id || '—'} />
-            <KV label="来源页" value={item.source_page || '—'} />
-            <KV label="UTM" value={joinNonEmpty([item.utm_source, item.utm_campaign]) || '—'} />
-            <KV label="考试类型" value={item.exam_type || '—'} />
-            <KV label="备考阶段" value={item.exam_stage || '—'} />
-            <KV label="每周时间" value={item.weekly_time || '—'} />
-            <KV label="每日学习" value={item.daily_study_time || '—'} />
-            <KV label="知识基础" value={item.knowledge_foundation || '—'} />
-            <KV label="考试日期" value={item.exam_date || '—'} />
+
+          <section className="space-y-3 rounded-md border border-slate-200 bg-white p-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              处理状态
+            </h3>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <label className="space-y-1 text-xs font-medium text-slate-600">
+                状态
+                <select
+                  value={form.status}
+                  onChange={event => updateField('status', event.target.value)}
+                  className="w-full rounded border border-slate-200 px-2 py-1.5 text-sm text-slate-900 outline-none focus:border-slate-400"
+                >
+                  <option value="submitted">已提交</option>
+                  <option value="contacted">已联系</option>
+                  <option value="accepted">已入选</option>
+                  <option value="rejected">未入选</option>
+                  <option value="waitlisted">候补</option>
+                  <option value="archived">归档</option>
+                </select>
+              </label>
+              <label className="flex items-center gap-2 self-end rounded border border-slate-200 px-2 py-2 text-xs text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={form.accept_interview}
+                  onChange={event => updateField('accept_interview', event.target.checked)}
+                  className="h-4 w-4 rounded border-slate-300"
+                />
+                愿意回访
+              </label>
+            </div>
+            <label className="space-y-1 text-xs font-medium text-slate-600">
+              运营备注
+              <textarea
+                value={form.operator_note}
+                onChange={event => updateField('operator_note', event.target.value)}
+                rows={3}
+                maxLength={1000}
+                className="w-full resize-y rounded border border-slate-200 px-2 py-1.5 text-sm text-slate-900 outline-none focus:border-slate-400"
+                placeholder="记录联系结果、下次跟进时间、是否进入首批体验"
+              />
+            </label>
+          </section>
+
+          <section className="space-y-3 rounded-md border border-slate-200 bg-white p-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              申请人与联系方式
+            </h3>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <TextField label="姓名" value={form.name} onChange={value => updateField('name', value)} />
+              <TextField label="手机号" value={form.phone} onChange={value => updateField('phone', value)} />
+              <TextField label="邮箱" value={form.email} onChange={value => updateField('email', value)} />
+              <TextField label="微信" value={form.wechat_id} onChange={value => updateField('wechat_id', value)} />
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <KV label="来源页" value={item.source_page || '—'} />
+              <KV label="UTM" value={joinNonEmpty([item.utm_source, item.utm_campaign]) || '—'} />
+            </div>
+          </section>
+
+          <section className="space-y-3 rounded-md border border-slate-200 bg-white p-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              备考画像
+            </h3>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <TextField label="考试类型" value={form.exam_type} onChange={value => updateField('exam_type', value)} />
+              <TextField label="备考阶段" value={form.exam_stage} onChange={value => updateField('exam_stage', value)} />
+              <TextField label="每周学习时间" value={form.weekly_time} onChange={value => updateField('weekly_time', value)} />
+              <TextField label="每日学习时间" value={form.daily_study_time} onChange={value => updateField('daily_study_time', value)} />
+              <TextField label="是否佑森会员" value={form.is_yousen_member} onChange={value => updateField('is_yousen_member', value)} />
+              <TextField label="考试日期" value={form.exam_date} onChange={value => updateField('exam_date', value)} />
+              <TextField label="省份" value={form.province} onChange={value => updateField('province', value)} />
+              <TextField label="年龄段" value={form.age_range} onChange={value => updateField('age_range', value)} />
+              <TextField label="学历" value={form.education} onChange={value => updateField('education', value)} />
+              <TextField label="职业" value={form.occupation} onChange={value => updateField('occupation', value)} />
+              <TextField label="备考年限" value={form.preparation_years} onChange={value => updateField('preparation_years', value)} />
+              <TextField label="知识基础" value={form.knowledge_foundation} onChange={value => updateField('knowledge_foundation', value)} />
+            </div>
+          </section>
+
+          <section className="space-y-3 rounded-md border border-slate-200 bg-white p-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              学习痛点
+            </h3>
+            <TextField label="主要痛点" value={form.pain_point} onChange={value => updateField('pain_point', value)} />
+            <TextAreaField label="当前学习方法" value={form.current_method} onChange={value => updateField('current_method', value)} rows={3} />
+            <TextAreaField label="学习困难" value={form.study_difficulties} onChange={value => updateField('study_difficulties', value)} rows={3} />
+            <TextAreaField label="最近错题 / 样本" value={form.latest_wrong_question} onChange={value => updateField('latest_wrong_question', value)} rows={4} />
+          </section>
+
+          {saveError ? (
+            <p className="rounded-md border border-rose-200 bg-rose-50 p-3 text-xs text-rose-800">
+              {saveError}
+            </p>
+          ) : null}
+
+          <div className="sticky bottom-0 flex items-center justify-end gap-2 border-t border-slate-200 bg-white/95 py-3 backdrop-blur">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded border border-slate-200 px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50"
+            >
+              关闭
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="rounded bg-slate-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+            >
+              {saving ? '保存中…' : '保存并审计'}
+            </button>
           </div>
-          <KV label="最近错题 / 样本" value={item.latest_wrong_question || '—'} />
-          <KV label="当前方法" value={item.current_method || '—'} />
-          <KV label="运营备注" value={item.operator_note || '—'} />
-          <p className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs leading-relaxed text-amber-800">
-            当前 v2 恢复只读申请池。联系、入选、拒绝等写动作必须后续注册 audited endpoint 后启用。
-          </p>
-        </div>
+        </form>
       ) : null}
     </BiSidePanel>
+  )
+}
+
+function TextField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+}) {
+  return (
+    <label className="space-y-1 text-xs font-medium text-slate-600">
+      {label}
+      <input
+        value={value}
+        onChange={event => onChange(event.target.value)}
+        className="w-full rounded border border-slate-200 px-2 py-1.5 text-sm text-slate-900 outline-none focus:border-slate-400"
+      />
+    </label>
+  )
+}
+
+function TextAreaField({
+  label,
+  value,
+  onChange,
+  rows,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  rows: number
+}) {
+  return (
+    <label className="space-y-1 text-xs font-medium text-slate-600">
+      {label}
+      <textarea
+        value={value}
+        onChange={event => onChange(event.target.value)}
+        rows={rows}
+        className="w-full resize-y rounded border border-slate-200 px-2 py-1.5 text-sm text-slate-900 outline-none focus:border-slate-400"
+      />
+    </label>
   )
 }
 
@@ -1021,6 +1265,145 @@ function asObject(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : {}
+}
+
+function stringValue(value: unknown, fallback = ''): string {
+  if (typeof value === 'string') return value
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value)
+  if (typeof value === 'boolean') return value ? 'true' : 'false'
+  return fallback
+}
+
+function boolValue(value: unknown, fallback = false): boolean {
+  if (typeof value === 'boolean') return value
+  if (typeof value === 'string') return ['1', 'true', 'yes', 'on'].includes(value.toLowerCase())
+  return fallback
+}
+
+function emptyInviteApplicationForm(): InviteApplicationFormState {
+  return {
+    status: 'submitted',
+    operator_note: '',
+    name: '',
+    phone: '',
+    email: '',
+    wechat_id: '',
+    exam_type: '',
+    exam_stage: '',
+    pain_point: '',
+    weekly_time: '',
+    current_method: '',
+    study_difficulties: '',
+    latest_wrong_question: '',
+    is_yousen_member: '',
+    exam_date: '',
+    accept_interview: false,
+    province: '',
+    age_range: '',
+    education: '',
+    occupation: '',
+    preparation_years: '',
+    knowledge_foundation: '',
+    daily_study_time: '',
+  }
+}
+
+function formFromInviteApplication(item: BiInviteTestApplication): InviteApplicationFormState {
+  return {
+    status: item.status || 'submitted',
+    operator_note: item.operator_note || '',
+    name: item.name || '',
+    phone: item.phone || '',
+    email: item.email || '',
+    wechat_id: item.wechat_id || '',
+    exam_type: item.exam_type || '',
+    exam_stage: item.exam_stage || '',
+    pain_point: item.pain_point || '',
+    weekly_time: item.weekly_time || '',
+    current_method: item.current_method || '',
+    study_difficulties: item.study_difficulties || '',
+    latest_wrong_question: item.latest_wrong_question || '',
+    is_yousen_member: item.is_yousen_member || '',
+    exam_date: item.exam_date || '',
+    accept_interview: item.accept_interview,
+    province: item.province || '',
+    age_range: item.age_range || '',
+    education: item.education || '',
+    occupation: item.occupation || '',
+    preparation_years: item.preparation_years || '',
+    knowledge_foundation: item.knowledge_foundation || '',
+    daily_study_time: item.daily_study_time || '',
+  }
+}
+
+function extractInviteApplicationFromUpdate(
+  data: unknown,
+  fallback: BiInviteTestApplication
+): BiInviteTestApplication {
+  const root = asObject(data)
+  const application = asObject(root.application)
+  if (!Object.keys(application).length) return fallback
+  return {
+    ...fallback,
+    id: stringValue(application.id, fallback.id),
+    created_at: stringValue(application.created_at ?? application.createdAt, fallback.created_at),
+    source_page: stringValue(application.source_page ?? application.sourcePage, fallback.source_page),
+    utm_source: stringValue(application.utm_source ?? application.utmSource, fallback.utm_source),
+    utm_campaign: stringValue(application.utm_campaign ?? application.utmCampaign, fallback.utm_campaign),
+    name: stringValue(application.name, fallback.name),
+    phone: stringValue(application.phone, fallback.phone),
+    email: stringValue(application.email, fallback.email),
+    province: stringValue(application.province, fallback.province),
+    age_range: stringValue(application.age_range ?? application.ageRange, fallback.age_range),
+    education: stringValue(application.education, fallback.education),
+    occupation: stringValue(application.occupation, fallback.occupation),
+    wechat_id: stringValue(application.wechat_id ?? application.wechatId, fallback.wechat_id),
+    exam_type: stringValue(application.exam_type ?? application.examType, fallback.exam_type),
+    exam_stage: stringValue(application.exam_stage ?? application.examStage, fallback.exam_stage),
+    preparation_years: stringValue(
+      application.preparation_years ?? application.preparationYears,
+      fallback.preparation_years
+    ),
+    knowledge_foundation: stringValue(
+      application.knowledge_foundation ?? application.knowledgeFoundation,
+      fallback.knowledge_foundation
+    ),
+    pain_point: stringValue(application.pain_point ?? application.painPoint, fallback.pain_point),
+    weekly_time: stringValue(application.weekly_time ?? application.weeklyTime, fallback.weekly_time),
+    daily_study_time: stringValue(
+      application.daily_study_time ?? application.dailyStudyTime,
+      fallback.daily_study_time
+    ),
+    current_method: stringValue(
+      application.current_method ?? application.currentMethod,
+      fallback.current_method
+    ),
+    study_difficulties: stringValue(
+      application.study_difficulties ?? application.studyDifficulties,
+      fallback.study_difficulties
+    ),
+    latest_wrong_question: stringValue(
+      application.latest_wrong_question ?? application.latestWrongQuestion,
+      fallback.latest_wrong_question
+    ),
+    is_yousen_member: stringValue(
+      application.is_yousen_member ?? application.isYousenMember,
+      fallback.is_yousen_member
+    ),
+    exam_date: stringValue(application.exam_date ?? application.examDate, fallback.exam_date),
+    accept_interview: boolValue(
+      application.accept_interview ?? application.acceptInterview,
+      fallback.accept_interview
+    ),
+    consent: boolValue(application.consent, fallback.consent),
+    status: stringValue(application.status, fallback.status),
+    operator_note: stringValue(application.operator_note ?? application.operatorNote, fallback.operator_note),
+    submit_count: Number(application.submit_count ?? application.submitCount ?? fallback.submit_count),
+    contact_revealed: boolValue(
+      application.contact_revealed ?? application.contactRevealed,
+      fallback.contact_revealed
+    ),
+  }
 }
 
 function extractFeedbackTriageStatus(data: unknown): Exclude<FeedbackStatus, 'open'> | null {
