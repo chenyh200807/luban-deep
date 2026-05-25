@@ -82,3 +82,18 @@ def test_learner_mistake_book_migration_enables_rls_and_subject_bot_isolation() 
         assert f'create policy "{policy_name}"' in sql
 
     assert "auth.uid()::text = user_id" in sql
+
+
+def test_assessment_sessions_do_not_require_public_users_mirror_row() -> None:
+    migration_root = Path(__file__).resolve().parents[2] / "supabase" / "migrations"
+    create_sql = (migration_root / "20260524000100_assessment_sessions.sql").read_text(
+        encoding="utf-8"
+    ).lower()
+    hotfix_sql = (
+        migration_root / "20260525000100_assessment_sessions_user_id_no_fk.sql"
+    ).read_text(encoding="utf-8").lower()
+
+    assert "user_id text not null" in create_sql
+    assert "user_id text not null references public.users" not in create_sql
+    assert "drop constraint if exists assessment_sessions_user_id_fkey" in hotfix_sql
+    assert "auth.uid()::text = user_id" in create_sql
