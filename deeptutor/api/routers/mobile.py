@@ -29,6 +29,7 @@ from deeptutor.services.learner_state.learning_brain_read_model import build_lea
 from deeptutor.services.learner_state.learning_report_read_model import build_learning_report_read_model
 from deeptutor.services.learner_state.mistake_book import MistakeBookConflict, MistakeBookService
 from deeptutor.services.member_console import get_member_console_service
+from deeptutor.services.assessment import AssessmentBlueprintUnavailable
 from deeptutor.services.query_intent import (
     build_grounding_decision,
 )
@@ -2280,14 +2281,24 @@ async def assessment_create(
     body: AssessmentCreateRequest,
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
-    return member_service.create_assessment(
-        _resolve_authenticated_user_id(authorization),
-        assessment_type=body.assessment_type,
-        subject_id=body.subject_id,
-        topic_ids=body.topic_ids,
-        count=body.count,
-        duration_policy=body.duration_policy,
-    )
+    try:
+        return member_service.create_assessment(
+            _resolve_authenticated_user_id(authorization),
+            assessment_type=body.assessment_type,
+            subject_id=body.subject_id,
+            topic_ids=body.topic_ids,
+            count=body.count,
+            duration_policy=body.duration_policy,
+        )
+    except AssessmentBlueprintUnavailable as exc:
+        logger.warning("Assessment blueprint unavailable for mobile create: %s", exc)
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "error": "assessment_blueprint_unavailable",
+                "message": "当前题库暂不足以生成本次专题测评，请稍后再试。",
+            },
+        ) from exc
 
 
 @router.get("/assessment/{quiz_id}")

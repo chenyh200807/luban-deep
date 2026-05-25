@@ -138,28 +138,59 @@ class SupabaseAssessmentQuestionProvider:
             selection_seed=f"{selection_seed}:{section.id}:{','.join(question_types_tuple)}",
             offset=_selection_offset(selection_seed, section.id),
         )
-        if len(candidates) < limit:
-            for offset in (1000, 2000, 3000, 4000):
-                fallback_candidates = self._get_candidates_for_types(
-                    base_url,
-                    api_key,
-                    section,
-                    question_types=question_types_tuple,
-                    limit=pool_limit,
-                    exclude_source_ids=exclude_source_ids,
-                    selection_seed=f"{selection_seed}:{section.id}:offset:{offset}",
-                    offset=offset,
-                )
-                candidates.extend(fallback_candidates)
-                if len({item.source_question_id for item in candidates}) >= limit:
-                    break
+        selected = self._select_from_supabase_candidates(
+            candidates,
+            section=section,
+            limit=limit,
+            selection_seed=selection_seed,
+            avoid_chapters=avoid_chapters or set(),
+        )
+        if len(selected) >= limit:
+            return selected
+
+        seen_offsets = {_selection_offset(selection_seed, section.id)}
+        for offset in (0, 1000, 2000, 3000, 4000):
+            if offset in seen_offsets:
+                continue
+            seen_offsets.add(offset)
+            fallback_candidates = self._get_candidates_for_types(
+                base_url,
+                api_key,
+                section,
+                question_types=question_types_tuple,
+                limit=pool_limit,
+                exclude_source_ids=exclude_source_ids,
+                selection_seed=f"{selection_seed}:{section.id}:offset:{offset}",
+                offset=offset,
+            )
+            candidates.extend(fallback_candidates)
+            selected = self._select_from_supabase_candidates(
+                candidates,
+                section=section,
+                limit=limit,
+                selection_seed=selection_seed,
+                avoid_chapters=avoid_chapters or set(),
+            )
+            if len(selected) >= limit:
+                break
+        return selected
+
+    @staticmethod
+    def _select_from_supabase_candidates(
+        candidates: list[QuestionCandidate],
+        *,
+        section: AssessmentSection,
+        limit: int,
+        selection_seed: str,
+        avoid_chapters: set[str],
+    ) -> list[QuestionCandidate]:
         unique_candidates = list({item.source_question_id: item for item in candidates}.values())
         return _select_diagnostic_candidates(
             unique_candidates,
             section=section,
             limit=limit,
             selection_seed=selection_seed,
-            avoid_chapters=avoid_chapters or set(),
+            avoid_chapters=avoid_chapters,
         )
 
     def _get_candidates_for_types(

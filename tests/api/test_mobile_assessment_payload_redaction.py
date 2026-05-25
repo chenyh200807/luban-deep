@@ -15,6 +15,7 @@ TestClient = pytest.importorskip("fastapi.testclient").TestClient
 
 from deeptutor.services.member_console.service import MemberConsoleService
 from deeptutor.services.path_service import PathService
+from deeptutor.services.assessment import AssessmentBlueprintUnavailable
 
 
 FORBIDDEN_PRE_SUBMIT_KEYS = {
@@ -166,6 +167,31 @@ def test_mobile_create_accepts_topic_diagnostic_fields(monkeypatch: pytest.Monke
     assert captured["subject_id"] == "construction_exam"
     assert captured["topic_ids"] == ["waterproof"]
     assert captured["count"] == 12
+
+
+def test_mobile_create_maps_unavailable_blueprint_to_controlled_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    mobile_module = importlib.import_module("deeptutor.api.routers.mobile")
+
+    class _Member:
+        def create_assessment(self, user_id: str, **kwargs):
+            raise AssessmentBlueprintUnavailable("requires 4 scored questions, found 3")
+
+    monkeypatch.setattr(mobile_module, "member_service", _Member())
+    monkeypatch.setattr(mobile_module, "_resolve_authenticated_user_id", lambda *_args, **_kwargs: "student_demo")
+
+    with TestClient(_build_mobile_app()) as client:
+        response = client.post(
+            "/api/v1/assessment/create",
+            json={
+                "assessment_type": "topic_diagnostic",
+                "subject_id": "construction_exam",
+                "topic_ids": ["waterproof"],
+                "count": 12,
+            },
+        )
+
+    assert response.status_code == 409
+    assert response.json()["detail"]["error"] == "assessment_blueprint_unavailable"
 
 
 def test_mobile_resume_payload_is_redacted_before_submit(monkeypatch: pytest.MonkeyPatch) -> None:

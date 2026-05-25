@@ -8,6 +8,7 @@ from deeptutor.services.assessment.blueprint_service import (
     AssessmentBlueprintUnavailable,
     QuestionCandidate,
     StaticAssessmentQuestionProvider,
+    SupabaseAssessmentQuestionProvider,
 )
 
 
@@ -122,3 +123,49 @@ def test_p0a_dedupes_semantic_signature_when_available() -> None:
         for question in payload["session_questions"]
     ]
     assert len(signatures) == len(set(signatures))
+
+
+class _StrictTopicSparsePageProvider(SupabaseAssessmentQuestionProvider):
+    def _supabase_config(self) -> tuple[str, str]:
+        return ("https://example.supabase.co", "test-key")
+
+    def _query(self, base_url: str, api_key: str, filters: dict[str, str]) -> list[dict[str, object]]:
+        offset = int(filters.get("offset") or 1000)
+        if offset == 2000:
+            return [_supabase_row(2000 + index, stem=f"防水施工缝节点补采题 {index}") for index in range(4)]
+        rows = [
+            _supabase_row(1000 + index, stem=f"主体结构普通题 {index}", node_code="1A413040")
+            for index in range(20)
+        ]
+        rows.extend(_supabase_row(1200 + index, stem=f"防水施工缝节点题 {index}") for index in range(3))
+        return rows
+
+
+def _supabase_row(source_id: int, *, stem: str, node_code: str = "1A413050") -> dict[str, object]:
+    return {
+        "id": str(source_id),
+        "question_stem": stem,
+        "question_type": "single_choice",
+        "source_type": "REAL_EXAM",
+        "node_code": node_code,
+        "options": {"A": "正确做法", "B": "错误做法", "C": "干扰项", "D": "干扰项"},
+        "correct_answer": "A",
+        "difficulty": "medium",
+        "source_meta": {},
+    }
+
+
+def test_supabase_provider_backfills_after_strict_topic_filtering() -> None:
+    section = get_assessment_blueprint("topic_waterproof_v1").sections[1]
+    provider = _StrictTopicSparsePageProvider()
+
+    candidates = provider.get_candidates(
+        section,
+        limit=4,
+        exclude_source_ids=set(),
+        selection_seed="",
+        avoid_chapters=set(),
+    )
+
+    assert len(candidates) == 4
+    assert all("防水" in candidate.question_stem for candidate in candidates)
