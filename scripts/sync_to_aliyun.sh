@@ -32,6 +32,7 @@ EXCLUDES=(
     ".git.broken*"
     ".env*"
     ".secrets*"
+    "artifacts"
     "playwright-report"
     "playwright-report*"
     "test-results"
@@ -130,6 +131,7 @@ excluded_names = {
     "playwright-report",
     "test-results",
     "coverage",
+    "artifacts",
     "data",
     "dist",
     "tmp",
@@ -418,6 +420,7 @@ targets = (
     '.codex',
     '.playwright-cli',
     '.superpowers',
+    'artifacts',
     'tmp_inspect_turn.py',
     'tmp_query_hello.py',
 )
@@ -454,7 +457,7 @@ sync_once() {
     echo "同步到 ${resolved_host}:${REMOTE_DIR}"
     ssh "${resolved_host}" "mkdir -p '${REMOTE_DIR}'"
     snapshot_remote_release
-    rsync -avz --delete --stats --no-owner --no-group --chmod=ugo+rX \
+    rsync -avzc --delete --stats --no-owner --no-group --chmod=ugo+rX \
         "${exclude_args[@]}" \
         "${REPO_ROOT}/" "${resolved_host}:${REMOTE_DIR}/"
     clean_remote_deploy_noise
