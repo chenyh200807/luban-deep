@@ -40,16 +40,13 @@ class AnthropicProvider(LLMProvider):
         self.default_model = default_model
         self.extra_headers = extra_headers or {}
 
-        from anthropic import AsyncAnthropic
+        from deeptutor.services.llm.openai_http_client import make_anthropic_client
 
-        client_kw: dict[str, Any] = {"max_retries": 0}
-        if api_key:
-            client_kw["api_key"] = api_key
-        if api_base:
-            client_kw["base_url"] = api_base
-        if extra_headers:
-            client_kw["default_headers"] = extra_headers
-        self._client = AsyncAnthropic(**client_kw)
+        self._client = make_anthropic_client(
+            api_key=api_key,
+            base_url=api_base,
+            default_headers=extra_headers if extra_headers else None,
+        )
 
     @classmethod
     def _handle_error(cls, e: Exception) -> LLMResponse:
