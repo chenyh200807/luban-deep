@@ -457,7 +457,7 @@ sync_once() {
     echo "同步到 ${resolved_host}:${REMOTE_DIR}"
     ssh "${resolved_host}" "mkdir -p '${REMOTE_DIR}'"
     snapshot_remote_release
-    rsync -avz --delete --stats --no-owner --no-group --chmod=ugo+rX \
+    rsync -avzc --delete --stats --no-owner --no-group --chmod=ugo+rX \
         "${exclude_args[@]}" \
         "${REPO_ROOT}/" "${resolved_host}:${REMOTE_DIR}/"
     clean_remote_deploy_noise

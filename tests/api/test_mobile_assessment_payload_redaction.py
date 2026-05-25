@@ -169,6 +169,26 @@ def test_mobile_create_accepts_topic_diagnostic_fields(monkeypatch: pytest.Monke
     assert captured["count"] == 12
 
 
+def test_mobile_assessment_topics_route_is_not_captured_by_quiz_resume(monkeypatch: pytest.MonkeyPatch) -> None:
+    mobile_module = importlib.import_module("deeptutor.api.routers.mobile")
+
+    class _Member:
+        def get_assessment_topic_catalog(self):
+            return {"topics": [{"topic_id": "waterproof", "status": "stable", "enabled": True}]}
+
+        def get_assessment_session(self, user_id: str, quiz_id: str):
+            raise AssertionError(f"topics route was captured as quiz_id={quiz_id}")
+
+    monkeypatch.setattr(mobile_module, "member_service", _Member())
+    monkeypatch.setattr(mobile_module, "_resolve_authenticated_user_id", lambda *_args, **_kwargs: "student_demo")
+
+    with TestClient(_build_mobile_app()) as client:
+        response = client.get("/api/v1/assessment/topics")
+
+    assert response.status_code == 200
+    assert response.json()["topics"][0]["topic_id"] == "waterproof"
+
+
 def test_mobile_create_maps_unavailable_blueprint_to_controlled_error(monkeypatch: pytest.MonkeyPatch) -> None:
     mobile_module = importlib.import_module("deeptutor.api.routers.mobile")
 

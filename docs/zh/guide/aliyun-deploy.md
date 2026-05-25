@@ -126,6 +126,7 @@ bash scripts/sync_to_aliyun.sh once
 - dirty tree 或 `main` 会被脚本直接拒绝
 - 会排除 `.env`、`data/`、`.git`、`.github`、`.gstack`、`.local-runs`、`.venv`、`node_modules`、`dist`、`artifacts`、测试报告和缓存目录
 - 这样不会覆盖服务器上已经生成的数据和密钥
+- 同步使用 checksum 比对，必须纠正远端源码漂移；不能只依赖时间戳判断文件是否需要覆盖。
 - 如果同步日志里出现本地代理状态目录、QA 运行目录、dry-run 产物或构建产物目录，例如 `.gstack`、`.local-runs`、`artifacts`、`dist`，不要把它们留在 `/root/deeptutor`；先补 `sync_to_aliyun.sh` 的排除清单、manifest hash 排除口径和 `.dockerignore`，再只在 `/root/deeptutor` 内清理误传目录。
 
 如果你想开发时持续同步：
