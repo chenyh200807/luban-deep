@@ -5,13 +5,13 @@ export const BI_DENSITY = {
 } as const;
 
 export const BI_STATUS_PILL_TONE = {
-  emerald: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
-  sky: "bg-sky-50 text-sky-700 ring-1 ring-sky-200",
-  amber: "bg-amber-50 text-amber-800 ring-1 ring-amber-200",
-  rose: "bg-rose-50 text-rose-700 ring-1 ring-rose-200",
-  red: "bg-red-50 text-red-700 ring-1 ring-red-200",
-  orange: "bg-orange-50 text-orange-700 ring-1 ring-orange-200",
-  slate: "bg-slate-100 text-slate-700 ring-1 ring-slate-200",
+  emerald: "bg-emerald-300/10 text-emerald-100 ring-1 ring-emerald-300/25",
+  sky: "bg-cyan-300/10 text-cyan-100 ring-1 ring-cyan-300/25",
+  amber: "bg-amber-300/10 text-amber-100 ring-1 ring-amber-300/25",
+  rose: "bg-rose-300/10 text-rose-100 ring-1 ring-rose-300/25",
+  red: "bg-red-300/10 text-red-100 ring-1 ring-red-300/25",
+  orange: "bg-orange-300/10 text-orange-100 ring-1 ring-orange-300/25",
+  slate: "bg-white/10 text-slate-200 ring-1 ring-white/15",
 } as const;
 
 export type BiStatusTone = keyof typeof BI_STATUS_PILL_TONE;
@@ -31,8 +31,8 @@ export const BI_TRUST_TONE: Record<"A" | "B" | "C" | "D", BiStatusTone> = {
 };
 
 export const BI_CONTAINER = {
-  page: "min-h-screen bg-slate-50 text-slate-900",
-  panel: "rounded-md border border-slate-200 bg-white",
-  panelPad: "rounded-md border border-slate-200 bg-white p-4",
+  page: "min-h-screen bg-[#101622] text-slate-100",
+  panel: "rounded-2xl border border-white/10 bg-white/[0.04]",
+  panelPad: "rounded-2xl border border-white/10 bg-white/[0.04] p-4",
   section: "space-y-4",
 } as const;

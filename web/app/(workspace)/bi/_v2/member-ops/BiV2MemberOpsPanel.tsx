@@ -720,13 +720,16 @@ function AdvancedFilters({
   onChange: (next: MemberFilters) => void
 }) {
   return (
-    <div id="bi-v2-advanced-filters" className="rounded border border-slate-200 bg-white p-3">
-      <h4 className="text-xs font-semibold text-slate-700">高级筛选</h4>
+    <div
+      id="bi-v2-advanced-filters"
+      className="rounded-2xl border border-white/10 bg-white/[0.04] p-3"
+    >
+      <h4 className="text-xs font-black text-slate-200">高级筛选</h4>
       <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-3">
-        <label className="text-xs text-slate-600">
+        <label className="text-xs font-bold text-slate-300">
           状态
           <select
-            className="ml-2 rounded border border-slate-200 px-1 py-0.5"
+            className="ml-2 rounded-xl border border-white/10 bg-[#151d2b] px-2 py-1 text-slate-100 outline-none focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
             value={filters.status}
             onChange={e =>
               onChange({ ...filters, status: e.target.value as MemberFilters['status'] })
@@ -740,7 +743,7 @@ function AdvancedFilters({
             <option value="paused">paused</option>
           </select>
         </label>
-        <label className="text-xs text-slate-600">
+        <label className="text-xs font-bold text-slate-300">
           风险阈值
           <input
             type="number"
@@ -749,11 +752,11 @@ function AdvancedFilters({
             max={1}
             value={filters.riskMin}
             onChange={e => onChange({ ...filters, riskMin: Number(e.target.value) })}
-            className="ml-2 w-20 rounded border border-slate-200 px-1 py-0.5"
+            className="ml-2 w-20 rounded-xl border border-white/10 bg-white/[0.06] px-2 py-1 text-slate-100 outline-none focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
             aria-label="风险阈值"
           />
         </label>
-        <label className="text-xs text-slate-600">
+        <label className="text-xs font-bold text-slate-300">
           到期天数（0 = 不限）
           <input
             type="number"
@@ -761,7 +764,7 @@ function AdvancedFilters({
             max={365}
             value={filters.expiringDays}
             onChange={e => onChange({ ...filters, expiringDays: Number(e.target.value) })}
-            className="ml-2 w-20 rounded border border-slate-200 px-1 py-0.5"
+            className="ml-2 w-20 rounded-xl border border-white/10 bg-white/[0.06] px-2 py-1 text-slate-100 outline-none focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
             aria-label="到期天数阈值"
           />
         </label>
@@ -778,13 +781,16 @@ function ColumnPicker({
   onToggle: (key: MemberColumnKey) => void
 }) {
   return (
-    <div id="bi-v2-column-picker" className="rounded border border-slate-200 bg-white p-3">
-      <h4 className="text-xs font-semibold text-slate-700">列设置</h4>
+    <div
+      id="bi-v2-column-picker"
+      className="rounded-2xl border border-white/10 bg-white/[0.04] p-3"
+    >
+      <h4 className="text-xs font-black text-slate-200">列设置</h4>
       <div className="mt-2 grid grid-cols-2 gap-1 md:grid-cols-3">
         {ALL_COLUMNS.map(c => {
           const checked = columns.includes(c.key)
           return (
-            <label key={c.key} className="flex items-center gap-2 text-xs text-slate-700">
+            <label key={c.key} className="flex items-center gap-2 text-xs font-bold text-slate-300">
               <input
                 type="checkbox"
                 checked={checked}
@@ -796,7 +802,7 @@ function ColumnPicker({
           )
         })}
       </div>
-      <p className="mt-2 text-[10px] text-slate-500">
+      <p className="mt-2 text-[10px] text-slate-400">
         最少保留 3 列。设置保存在私有视图（保存视图按钮）。
       </p>
     </div>

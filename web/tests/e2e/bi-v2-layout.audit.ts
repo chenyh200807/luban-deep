@@ -545,7 +545,8 @@ test("BI v2 read-only details open for overview, feedback, and ops", async ({ pa
   await page.getByRole("textbox", { name: "全局搜索手机号 / user_id / 订单号" }).fill("ord_real_1");
   await page.getByRole("textbox", { name: "全局搜索手机号 / user_id / 订单号" }).press("Enter");
   await expect(page.getByRole("heading", { name: "商品账务" })).toBeVisible();
-  await expect(page.getByText("已搜: ord_real_1")).toBeVisible();
+  await expect(page.getByText("全局搜索：")).toBeVisible();
+  await expect(page.locator("code").filter({ hasText: "ord_real_1" }).first()).toBeVisible();
   await expect(page.getByText("充值记录 (1)")).toBeVisible();
   await page.getByRole("textbox", { name: "全局搜索手机号 / user_id / 订单号" }).fill("");
   await page.getByRole("textbox", { name: "全局搜索手机号 / user_id / 订单号" }).press("Enter");
@@ -576,9 +577,10 @@ test("BI v2 read-only details open for overview, feedback, and ops", async ({ pa
   await page.getByRole("tab", { name: /内测申请/ }).click();
   await expect(page.getByRole("heading", { name: "内测申请池" })).toBeVisible();
   await expect(page.getByText("张同学")).toBeVisible();
-  await page.getByRole("button", { name: "查看内测申请 invite_1 详情" }).click();
-  await expect(page.getByRole("dialog", { name: "内测申请 · 张同学" })).toBeVisible();
-  await expect(page.getByText("优先回访")).toBeVisible();
+  await page.getByRole("button", { name: "编辑内测申请 invite_1" }).click();
+  const inviteDialog = page.getByRole("dialog", { name: "编辑内测申请 · 张同学" });
+  await expect(inviteDialog).toBeVisible();
+  await expect(inviteDialog.getByLabel("愿意回访且可联系")).toBeVisible();
   await page.getByRole("button", { name: "关闭抽屉" }).click();
 
   await page.getByRole("button", { name: "系统运维：成本质量、数据可信、操作审计、权限审计、上线面板。" }).click();
