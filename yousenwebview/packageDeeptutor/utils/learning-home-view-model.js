@@ -49,16 +49,35 @@ function getPromptVisual(promptType, index) {
     },
     {
       icon: "☆",
-      title: "学情推荐",
+      title: "真题迁移",
       bgDark: "rgba(59,130,246,0.16)",
       fgDark: "#93c5fd",
       bgLight: "#e9f1ff",
       fgLight: "#4c72d4",
     },
+    {
+      icon: "▤",
+      title: "考点梳理",
+      bgDark: "rgba(16,185,129,0.14)",
+      fgDark: "#5eead4",
+      bgLight: "#e4fbf4",
+      fgLight: "#0f9f7a",
+    },
+    {
+      icon: "✓",
+      title: "自测验证",
+      bgDark: "rgba(168,85,247,0.14)",
+      fgDark: "#c4b5fd",
+      bgLight: "#f3edff",
+      fgLight: "#7c3aed",
+    },
   ];
   if (key === "practice_prompt" || key === "learning_prompt") return palette[0];
   if (key === "mistake_review" || key === "wrong_item_review") return palette[1];
   if (key === "concept_explain" || key === "concept_review") return palette[2];
+  if (key === "exam_transfer") return palette[3];
+  if (key === "knowledge_map") return palette[4];
+  if (key === "quick_check") return palette[5];
   return palette[index % palette.length];
 }
 
@@ -72,7 +91,14 @@ function getPromptTopic(source, text) {
       source.focus_topic,
   );
   if (topic) return topic;
-  return compactText(text).replace(/^用\s*\d+\s*道题训练/, "").replace(/^复盘/, "").replace(/^讲清楚/, "");
+  return compactText(text)
+    .replace(/^用\s*\d+\s*道题训练/, "")
+    .replace(/^复盘/, "")
+    .replace(/^讲清楚/, "")
+    .replace(/^用一道真题场景理解/, "")
+    .replace(/^梳理/, "")
+    .replace(/^用\s*1\s*个小问题验证/, "")
+    .replace(/的?(?:关键判断|高频考点|是否真会了)$/, "");
 }
 
 function normalizePrompt(item, index) {
@@ -114,7 +140,7 @@ function buildLearningHomeViewModel(dashboard) {
   var prompts = asList(body.recommended_prompts)
     .map(normalizePrompt)
     .filter(Boolean)
-    .slice(0, 4);
+    .slice(0, 6);
   var rawPrompts = asList(body.recommended_prompts);
   var assessmentAction = rawPrompts.some(function (item) {
     return isAssessmentPrompt(item);
