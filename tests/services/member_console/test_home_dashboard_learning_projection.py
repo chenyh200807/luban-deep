@@ -133,6 +133,8 @@ def test_seed_starter_files_exist_and_are_used() -> None:
         )
         assert dashboard["recommended_prompts"][0]["text"] == payload["prompts"][0]["text"]
         assert dashboard["today_focus"]["prompt"] == payload["prompts"][0]["text"]
+        assert "给系统" not in dashboard["today_focus"]["title"]
+        assert dashboard["today_focus"]["meta"] == "生成学情基线"
 
 
 def test_home_dashboard_keeps_v1_shape_when_home_personalization_flag_off(

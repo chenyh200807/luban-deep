@@ -149,14 +149,14 @@ assert(
 );
 assert(
   chatJs.indexOf('function buildFocusDisplayMeta(focus, meta)') >= 0 &&
-    chatJs.indexOf('return "";') >= 0 &&
+    chatJs.indexOf("生成学情基线") >= 0 &&
     chatWxss.indexOf(".focus-copy {\n  flex: 1; min-width: 0; display: flex; align-items: center; gap: 0;") >= 0 &&
     chatWxss.indexOf("font-size: 26rpx; color: rgba(251,191,36,0.92);") >= 0 &&
     chatWxss.indexOf("font-size: 26rpx; line-height: 1.2;") >= 0 &&
-    chatWxss.indexOf("flex: 1; min-width: 0;") >= 0 &&
+    chatWxss.indexOf("border-left: 1rpx solid rgba(251,191,36,0.24);") >= 0 &&
     chatWxss.indexOf("color: #fbbf24") >= 0 &&
     chatWxss.indexOf("rgba(251,191,36,0.92)") >= 0,
-  "today focus card should read as one sentence with consistent yellow typography",
+  "today focus card should surface a short user-facing reason with consistent yellow typography",
 );
 assert(
   chatWxml.indexOf("class=\"hero-more-btn\"") >= 0 &&

@@ -544,6 +544,40 @@ PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/verify_aliyun_public
 bash scripts/verify_aliyun_observability.sh
 ```
 
+### 10. 2026-05-25 候选分支发布与 release lineage 对齐记录
+
+这次从干净临时 clone 的候选分支 `codex/assessment-submit-writeback` 发布到阿里云。过程中出现过一次容易误判的状态：运行中容器已经是新镜像、新 `DEEPTUTOR_GIT_SHA`，但宿主机 `/root/deeptutor/.env` 一度显示旧的 `origin/main` SHA。原因不是服务未重启，而是发布后又发生了一次源码同步/lineage 写回，把宿主机 `.env` 的 release 字段覆盖回旧提交。以后汇报“已上线”前，不能只看容器 healthy，也不能只看宿主机 `.env`，必须同时核对两边。
+
+必须同时核对：
+
+```bash
+# 宿主机源码副本的 release lineage
+ssh Aliyun-ECS-2 "cd /root/deeptutor && grep -E '^DEEPTUTOR_(GIT_SHA|RELEASE_ID|GIT_DIRTY)=' .env"
+
+# 当前运行容器真正加载的 release lineage
+ssh Aliyun-ECS-2 "docker inspect deeptutor --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -E '^DEEPTUTOR_(GIT_SHA|RELEASE_ID|GIT_DIRTY)='"
+
+# 容器健康与公网/观测验收
+ssh Aliyun-ECS-2 "cd /root/deeptutor && docker compose ps deeptutor"
+PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/verify_aliyun_public_endpoints.sh
+bash scripts/verify_aliyun_observability.sh
+```
+
+判断规则：
+
+| 信号 | 是否阻断 | 判断 | 下次处理 |
+| --- | --- | --- | --- |
+| 容器 env 是目标 SHA，但宿主机 `.env` 仍是旧 SHA | 阻断发布结论，不一定阻断线上服务 | 当前运行态可能已是新代码，但下一次 reload/rebuild 会被旧 release lineage 误导 | 先回到干净候选分支，重新执行 `bash scripts/sync_to_aliyun.sh once`，再跑 `validate_aliyun_release_env.sh`、公网 endpoint、observability；不要直接宣称完成 |
+| 宿主机 `.env` 是目标 SHA，但容器 env 是旧 SHA | 阻断 | 源码副本已同步，但运行容器没有加载新镜像或没有重启成功 | 继续执行 `redeploy_aliyun_fast.sh` 或 `deploy_aliyun.sh`，直到容器 env、公网和 observability 全部一致 |
+| `docker compose ps` 显示 `healthy`，但 release SHA 不一致 | 阻断发布结论 | healthy 只表示服务活着，不表示运行的是目标版本 | 以 `DEEPTUTOR_GIT_SHA` 双向一致作为版本事实，再看公网/观测 |
+| `rsync` 同步成功，但容器内代码没有目标特征 | 阻断 | `/root/deeptutor` 不是容器 `/app` 的 bind mount，同步源码不等于运行态已更新 | 必须重建/重启容器，必要时用只读 `docker exec grep` 核对目标代码特征 |
+
+本次还暴露出三个构建/数据层经验：
+
+- Next.js 16 在远端 Linux/x64 生产构建中可能因缺少 Turbopack native binding 失败。生产 Docker build 应使用 `next build --webpack`；如果只是本地 dev 能跑，不能推断远端 Docker build 能过。
+- Web harness、测试 fixture、Node-only helper 不应在生产静态页面收集阶段被顶层 import。需要在确认 harness 启用后再动态 import，否则远端 `next build` 可能因为测试 fixture 解析失败而中断。
+- 部署脚本只同步代码、重建容器和验收公网/观测，不会自动执行 Supabase migration。若某个功能新增表并由 env flag 打开，例如 `ASSESSMENT_SESSIONS_USE_SUPABASE`，发布报告必须单独说明 migration 是否已 apply；不要把“migration 文件已同步到 `/root/deeptutor`”等同于“生产库已迁移”。
+
 ## 回滚步骤
 
 如果发布后出现问题，先判断是“代码/镜像问题”还是“运行态数据问题”。

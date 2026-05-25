@@ -44,6 +44,8 @@ var assessmentModel = vm.buildLearningHomeViewModel({
   ],
 });
 assert.strictEqual(assessmentModel.focusActionType, "assessment");
+assert.strictEqual(assessmentModel.focusTitle, "先做 1 题摸底");
+assert.strictEqual(assessmentModel.focusMeta, "生成学情基线");
 assert.strictEqual(assessmentModel.focusQuery, "");
 assert.strictEqual(assessmentModel.recommendedPrompts.length, 0);
 
