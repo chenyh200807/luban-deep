@@ -248,5 +248,13 @@ assert.ok(
   yousenWxml.indexOf("md-table-card") >= 0,
   "yousen attempt detail should render compact table cards on mobile",
 );
+assert.ok(
+  wxWxml.indexOf("当时对话") >= 0,
+  "wx attempt detail should render the recovered conversation turns",
+);
+assert.ok(
+  yousenWxml.indexOf("当时对话") >= 0,
+  "yousen attempt detail should render the recovered conversation turns",
+);
 
 console.log("PASS test_attempt_detail_view_model.js");

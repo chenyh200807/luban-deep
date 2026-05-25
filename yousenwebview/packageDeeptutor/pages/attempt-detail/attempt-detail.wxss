@@ -302,6 +302,44 @@
   color: #f1f5f9;
 }
 
+.conversation-section {
+  margin-top: 30rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx solid rgba(148, 163, 184, 0.14);
+}
+
+.turn {
+  margin-top: 18rpx;
+  padding: 22rpx;
+  border: 1rpx solid rgba(148, 163, 184, 0.14);
+  border-radius: 20rpx;
+  background: rgba(15, 23, 42, 0.42);
+}
+
+.turn-label {
+  display: block;
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #93c5fd;
+}
+
+.turn-content {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 26rpx;
+  line-height: 1.62;
+  white-space: pre-wrap;
+  color: #dbeafe;
+}
+
+.turn-student .turn-content {
+  color: #fef3c7;
+}
+
+.turn-system .turn-content {
+  color: #e0f2fe;
+}
+
 .detail-next {
   margin-top: 30rpx;
   padding-top: 24rpx;

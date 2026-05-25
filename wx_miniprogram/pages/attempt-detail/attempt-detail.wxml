@@ -76,6 +76,14 @@
         </view>
       </view>
 
+      <view class="conversation-section" wx:if="{{detail.turns && detail.turns.length}}">
+        <text class="section-kicker">当时对话</text>
+        <view class="turn turn-{{item.role}}" wx:for="{{detail.turns}}" wx:key="index">
+          <text class="turn-label">{{item.label}}</text>
+          <text class="turn-content">{{item.content}}</text>
+        </view>
+      </view>
+
       <view class="detail-next" wx:if="{{detail.nextTraining}}">
         <text class="section-kicker">下一步训练</text>
         <text class="next-text">{{detail.nextTraining}}</text>
