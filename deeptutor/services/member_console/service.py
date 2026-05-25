@@ -53,6 +53,7 @@ from deeptutor.services.assessment.session_repository import (
 from deeptutor.services.assessment.teaching_policy import build_teaching_policy_seed
 from deeptutor.services.assessment.topic_catalog import (
     TopicTestSetUnavailable,
+    build_topic_assessment_blueprint,
     classify_topic_form_count,
     get_topic_testset_catalog,
     resolve_topic_testset_spec,
@@ -593,18 +594,25 @@ class MemberConsoleService:
         topics: list[dict[str, Any]] = []
         for spec in get_topic_testset_catalog():
             form_count = 0
+            quality_status = "not_checked"
             if use_supabase:
                 try:
                     form_count = provider.active_form_count(spec.blueprint_version)
+                    quality_status = "insufficient_forms"
+                    if classify_topic_form_count(form_count) in {"stable", "pilot"}:
+                        provider.load_persisted_form_bank(build_topic_assessment_blueprint(spec.topic_id))
+                        quality_status = "validated"
                 except Exception:
                     logger.warning(
-                        "Assessment topic form count unavailable: topic_id=%s blueprint=%s",
+                        "Assessment topic form bank unavailable: topic_id=%s blueprint=%s",
                         spec.topic_id,
                         spec.blueprint_version,
                         exc_info=True,
                     )
-                    form_count = 0
+                    quality_status = "invalid_form_bank" if form_count else "unavailable"
             status = classify_topic_form_count(form_count)
+            if quality_status == "invalid_form_bank":
+                status = "authoring_needed"
             topics.append(
                 {
                     "topic_id": spec.topic_id,
@@ -617,6 +625,7 @@ class MemberConsoleService:
                     "form_count": form_count,
                     "minimum_form_count": 3,
                     "target_form_count": 5,
+                    "quality_status": quality_status,
                 }
             )
         return {"topics": topics}
