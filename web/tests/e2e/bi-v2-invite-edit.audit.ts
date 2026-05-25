@@ -165,6 +165,11 @@ test("BI feedback invite-test applications can be edited through the audited end
   await page.getByRole("button", { name: "编辑内测申请 app-edit-1" }).click();
   const dialog = page.getByRole("dialog", { name: "编辑内测申请 · Codex编辑验证" });
   await expect(dialog).toBeVisible();
+  await expect(dialog.getByLabel("姓名")).toHaveValue("Codex编辑验证");
+  await expect(dialog.getByLabel("手机号")).toHaveValue("13900005018");
+  await expect(dialog.getByLabel("邮箱")).toHaveValue("codex-edit@example.com");
+  await expect(dialog.getByLabel("微信")).toHaveValue("wx_codex_edit");
+  await expect(dialog.getByLabel("主要痛点")).toHaveValue("案例题不会写");
 
   await dialog.getByLabel("状态").selectOption("contacted");
   await dialog.getByLabel("运营备注").fill("已电话联系，安排 5 月 26 日回访");
