@@ -316,7 +316,12 @@ def render_learning_truth_summary_md(projection: dict[str, Any]) -> str:
 
 
 def _is_learning_evidence(event: LearnerStateEvent) -> bool:
-    return event.source_feature == "construction_grading" and event.memory_kind == "learning_evidence"
+    payload = dict(event.payload_json or {})
+    return (
+        event.memory_kind == "learning_evidence"
+        and event.source_feature in {"construction_grading", "assessment_testset"}
+        and (event.source_feature == "construction_grading" or payload.get("event_type") == "learning_evidence")
+    )
 
 
 def _is_manual_correction(event: LearnerStateEvent) -> bool:

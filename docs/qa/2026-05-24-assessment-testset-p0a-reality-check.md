@@ -1,9 +1,9 @@
 # Assessment TestSet P0A Reality Check
 
-**Date:** 2026-05-24  
-**Mode:** Phase -1 only; read-only audit plus local test gate.  
-**Canonical PRD:** `docs/plan/2026-05-24-luban-assessment-testset-module-prd.md`  
-**Execution plan:** `docs/plan/2026-05-24-luban-assessment-testset-p0a-execution-plan.md`  
+**Date:** 2026-05-24
+**Mode:** Phase -1 only; read-only audit plus local test gate.
+**Canonical PRD:** `docs/plan/2026-05-24-luban-assessment-testset-module-prd.md`
+**Execution plan:** `docs/plan/2026-05-24-luban-assessment-testset-p0a-execution-plan.md`
 **Decision:** P0A must not enter Phase 1 yet. Phase -1 found real authority blockers that need explicit design resolution.
 
 ## Karpathy Gate
@@ -27,17 +27,14 @@
 
 **Change Boundary**
 
-- Created Phase -1 audit/test files and worktree-authority docs:
-  - `MIGRATION.md`
-  - `docs/plan/2026-05-24-luban-assessment-testset-p0a-execution-plan.md`
-  - `docs/plan/INDEX.md`
+- Created only Phase -1 audit/test files:
   - `scripts/audit_assessment_testset_p0a.py`
   - `tests/api/test_mobile_assessment_payload_redaction.py`
   - this QA report
 - No runtime feature code was changed.
 - No Supabase writes were performed.
 - No migration file was created.
-- `docs/plan/INDEX.md` was updated after the worktree authority was moved to the independent clean clone.
+- No `docs/plan/INDEX.md` change was made because the worktree authority is currently unsafe.
 
 **Verification Target**
 
@@ -52,26 +49,36 @@
 Command:
 
 ```bash
-cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 && pwd
-git -C /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 rev-parse --show-toplevel
-git -C /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524 status --short --branch
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor && pwd
+git -C /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor rev-parse --show-toplevel
+git -C /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor status --short --branch
 ```
 
 Observed:
 
 ```text
-/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524
-/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524
-## codex/p0a-assessment-testset-migration-20260524...origin/main
- M docs/plan/INDEX.md
-?? MIGRATION.md
-?? docs/plan/2026-05-24-luban-assessment-testset-p0a-execution-plan.md
-?? docs/qa/2026-05-24-assessment-testset-p0a-reality-check.md
-?? scripts/audit_assessment_testset_p0a.py
-?? tests/api/test_mobile_assessment_payload_redaction.py
+/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor
+/private/tmp/deeptutor-report-donut-deploy-20260524203637
+## main...origin/main [ahead 1, behind 1]
+ M contracts/capability.md
+ M deeptutor/capabilities/tutorbot.py
+ M deeptutor/services/query_intent.py
+ M deeptutor/services/question_lifecycle_skills.py
+ M deeptutor/tutorbot/agent/loop.py
+ M deeptutor/tutorbot/skills/catalog.yaml
+ M deeptutor/tutorbot/skills/construction-question-supply/SKILL.md
+ M deeptutor/tutorbot/skills/construction-study-assistant/SKILL.md
+ M tests/api/test_mobile_router.py
+ M tests/core/test_capabilities_runtime.py
+ M tests/services/test_query_intent.py
+ M tests/services/test_question_lifecycle_scene_derivation.py
+ M tests/services/test_question_lifecycle_skills.py
+ M yousenwebview/packageDeeptutor/pages/report/report.wxml
+ M yousenwebview/packageDeeptutor/pages/report/report.wxss
+ M yousenwebview/tests/test_report_layout.js
 ```
 
-**Finding:** Hard Gate #8 is cleared only in the independent clean clone. The old `/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor` directory remains disabled for Git commands and must not be used for staging, commit, or deploy.
+**Finding:** Hard Gate #8 is active for staging/commit. File edits in `$DT` used absolute paths, but git evidence is unreliable because `rev-parse --show-toplevel` resolves to `/private/tmp/...`.
 
 ## Task 1: Current Surface Audit
 
@@ -133,8 +140,8 @@ python scripts/audit_assessment_testset_p0a.py --run-id p0a-phase-minus-1 --topi
 Stdout:
 
 ```text
-topic=waterproof candidates=391 eligible=159 recommendation=12 out=/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524/artifacts/assessment_testset/p0a/p0a-phase-minus-1
-topic=waterproof_decoration_mep candidates=744 eligible=285 recommendation=12 out=/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524/artifacts/assessment_testset/p0a/p0a-phase-minus-1
+topic=waterproof candidates=391 eligible=159 recommendation=12 out=/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/artifacts/assessment_testset/p0a/p0a-phase-minus-1
+topic=waterproof_decoration_mep candidates=744 eligible=285 recommendation=12 out=/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/artifacts/assessment_testset/p0a/p0a-phase-minus-1
 ```
 
 Artifacts:
@@ -370,7 +377,7 @@ python scripts/audit_assessment_testset_p0a.py \
 Stdout:
 
 ```text
-topic=waterproof candidates=391 eligible=159 recommendation=12 out=/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor-clean-main-20260524/artifacts/assessment_testset/p0a/p0a-phase-0
+topic=waterproof candidates=391 eligible=159 recommendation=12 out=/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/artifacts/assessment_testset/p0a/p0a-phase-0
 ```
 
 Artifacts:
@@ -445,3 +452,139 @@ Phase 1 remains blocked until the following are explicitly approved:
 - No deep explanation implementation in P0A.
 - No `training_intent` mutation from assessment submit.
 - No client payload may include hidden answer/grading artifacts before submit.
+
+## 2026-05-25 Update: Phase 1 Implementation Evidence
+
+This section preserves the original Phase -1/0 findings above and records the
+later implementation pass. Phase 1 code was implemented after user approval, but
+the production database migration is still **not applied**.
+
+### Worktree Authority Recheck
+
+The lost `.git` pointer was restored to the existing gitdir:
+
+```text
+gitdir: /Users/yehongchen/.gitdirs/deeptutor-documents.git
+```
+
+Current explicit git root check:
+
+```text
+/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor
+```
+
+Staging/commit remains blocked until user review because the worktree still
+contains unrelated dirty files from other task lines.
+
+### Migration Ownership Chain Status
+
+The migration file now exists:
+
+- `supabase/migrations/20260524000100_assessment_sessions.sql`
+
+Apply status:
+
+- **not applied**
+- **requires explicit user approval before any `psql`, `supabase db push`, or
+  equivalent write command**
+
+Schema coverage against plan §2.1:
+
+| Plan field | SQL evidence |
+| --- | --- |
+| `session_id` / `quiz_id` | `session_id uuid primary key`, `quiz_id text unique` |
+| owner boundary | `user_id text not null references public.users(id)` |
+| assessment identity | `assessment_type`, `subject_id`, `topic_ids`, `blueprint_version`, `form_id` |
+| state | `status`, `created_at`, `submitted_at`, `scored_at`, `expires_at`, `updated_at` |
+| versioning | `schema_version = 'assessment_session_v1'`, report check for `p0a-v1` |
+| public/private split | `client_questions_public`, `session_questions_private` |
+| draft/submit snapshots | `draft_answer_snapshot`, `submitted_answer_snapshot` |
+| idempotency | partial unique index on `submit_idempotency_key` |
+| report replay | `result_report_json`, `result_report_hash` |
+| writeback refs | `learning_event_refs`, `mistake_book_refs`, `degraded_reason` |
+| lease | `device_id`, `lease_expires_at`, `lease_history` |
+| observability | `created_trace_id` |
+
+RLS and index evidence:
+
+- RLS enabled on `public.assessment_sessions`.
+- Owner policies created for select, insert, and update.
+- No delete policy is created.
+- Grants are limited to `select`, `insert`, and `update` for `authenticated`.
+- Indexes include `(user_id, status, created_at desc)`,
+  `(user_id, assessment_type, blueprint_version)`, `expires_at` partial index,
+  submit-idempotency partial unique index, and active formal-session partial
+  unique index.
+
+### Authority Blockers Resolved For P0A Path
+
+The original audit correctly identified two blockers:
+
+1. legacy diagnostic submit promoted aggregate result into
+   `member["chapter_mastery"]` / `last_assessment`;
+2. `learning_synthesis.py` only consumed `construction_grading` learning
+   evidence.
+
+Phase 1 resolved these for the P0A path:
+
+- P0A scoring/writeback uses `AssessmentWritebackService` and emits per-item
+  `learning_evidence` with `source_feature="assessment_testset"`.
+- `learning_synthesis.py` now accepts canonical `assessment_testset`
+  `learning_evidence` while preserving provenance.
+- P0A submit does not mutate `training_intent`.
+- Result-page next action remains session-local and deterministic.
+- Legacy diagnostic behavior remains compatibility behavior and is not the P0A
+  long-term mastery authority.
+
+### Owner, Lease, Idempotency, And Degraded Coverage
+
+Repository contract tests now cover:
+
+- public/private artifact separation;
+- redacted resume payload;
+- duplicate submit returns the original result;
+- different submit body on the same `quiz_id` raises conflict;
+- cross-device lease conflict;
+- 24h expiry;
+- heartbeat renewal;
+- idle lease claim after 30 minutes;
+- explicit take-over audit in `lease_history`;
+- server-wins draft behavior;
+- owner read/submit checks;
+- degraded status recording and writeback recovery.
+
+### Automated Gate Summary
+
+Fresh run on 2026-05-25:
+
+```text
+217 passed in 14.70s
+PASS test_package_assessment_contract.js (17 assertions)
+PASS test_assessment_testset_view_model.js (24 assertions)
+```
+
+Default `scripts/check_contract_guard.py` still fails in the dirty worktree
+because unrelated protected files are dirty. A scoped guard over the P0A and
+source-compiler touched files passes:
+
+```text
+contract-guard: passed
+[turn] passed | protected=deeptutor/api/routers/mobile.py | tests=tests/api/test_mobile_router.py | contract=CONTRACT.md, contracts/index.yaml, contracts/turn.md
+[capability] passed | protected=deeptutor/api/routers/mobile.py | tests=tests/api/test_mobile_router.py | contract=CONTRACT.md, contracts/index.yaml
+[learner_state] passed | protected=deeptutor/services/learner_state/learning_synthesis.py, deeptutor/services/member_console/service.py | tests=tests/services/learner_state/test_learning_report_read_model.py | contract=CONTRACT.md, contracts/index.yaml, contracts/learner-state.md
+error-code-guard: passed | codes=E02, E04, M02, M06, M07, unknown_error
+node-id-guard: no hard-coded knowledge_node_id literals found
+```
+
+`unknown_error` is present in the existing registry/guard scan as an internal
+fallback. P0A writeback emits registered `M0X` codes through
+`AssessmentScoringService` and rejects unregistered codes before writing
+learning evidence.
+
+### Remaining Manual Gates
+
+- Supabase migration apply: pending explicit user approval.
+- Real RLS smoke against a shadow/main database: pending after migration review.
+- WeChat DevTools manual gate: pending user-run evidence.
+- `docs/plan/INDEX.md` link update: deferred because the file is already dirty
+  from another task line.

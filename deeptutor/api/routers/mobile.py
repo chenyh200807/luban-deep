@@ -1728,7 +1728,10 @@ class ChatFeedbackRequest(BaseModel):
 
 class AssessmentCreateRequest(BaseModel):
     assessment_type: str = "diagnostic"
+    subject_id: str = "construction_exam"
+    topic_ids: list[str] = Field(default_factory=list)
     count: int = Field(default=20, ge=1, le=50)
+    duration_policy: dict[str, Any] = Field(default_factory=dict)
 
 
 class AssessmentSubmitRequest(BaseModel):
@@ -2277,7 +2280,42 @@ async def assessment_create(
     body: AssessmentCreateRequest,
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
-    return member_service.create_assessment(_resolve_authenticated_user_id(authorization), count=body.count)
+    return member_service.create_assessment(
+        _resolve_authenticated_user_id(authorization),
+        assessment_type=body.assessment_type,
+        subject_id=body.subject_id,
+        topic_ids=body.topic_ids,
+        count=body.count,
+        duration_policy=body.duration_policy,
+    )
+
+
+@router.get("/assessment/{quiz_id}")
+async def assessment_resume(
+    quiz_id: str,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    try:
+        return member_service.get_assessment_session(
+            _resolve_authenticated_user_id(authorization),
+            quiz_id,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get("/assessment/{quiz_id}/report")
+async def assessment_report(
+    quiz_id: str,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    try:
+        return member_service.get_assessment_report(
+            _resolve_authenticated_user_id(authorization),
+            quiz_id,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 @router.post("/assessment/{quiz_id}/submit")

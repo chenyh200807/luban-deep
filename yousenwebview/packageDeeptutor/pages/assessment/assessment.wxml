@@ -34,14 +34,14 @@
         <view class="hero-icon-ring">
           <text class="hero-icon-txt">AI</text>
         </view>
-        <text class="welcome-title">智能学习诊断</text>
-        <text class="welcome-sub">精准定位知识薄弱点，量身定制学习路径</text>
+        <text class="welcome-title">防水专题测评</text>
+        <text class="welcome-sub">一口气完成整卷，提交后统一查看得分和错题</text>
       </view>
 
       <!-- 数据卡片 -->
       <view class="stats-row">
         <view class="stat-card">
-          <text class="stat-num">20</text>
+          <text class="stat-num">12</text>
           <text class="stat-label">精选题目</text>
         </view>
         <view class="stat-card">
@@ -49,8 +49,8 @@
           <text class="stat-label">分钟</text>
         </view>
         <view class="stat-card">
-          <text class="stat-num">14</text>
-          <text class="stat-label">章节覆盖</text>
+          <text class="stat-num">1</text>
+          <text class="stat-label">防水专题</text>
         </view>
       </view>
 
@@ -58,15 +58,15 @@
       <view class="welcome-features">
         <view class="feature-item">
           <view class="feature-dot"></view>
-          <text class="feature-txt">AI 智能分析知识掌握程度</text>
+          <text class="feature-txt">整卷提交后统一出分</text>
         </view>
         <view class="feature-item">
           <view class="feature-dot"></view>
-          <text class="feature-txt">定位薄弱章节，精准补强</text>
+          <text class="feature-txt">定位本次错题和知识点</text>
         </view>
         <view class="feature-item">
           <view class="feature-dot"></view>
-          <text class="feature-txt">生成个性化学习路径</text>
+          <text class="feature-txt">记录到学情和错题本</text>
         </view>
       </view>
 
@@ -87,6 +87,9 @@
 
       <!-- 答题卡 -->
       <view class="answer-card">
+        <view class="readonly-banner" wx:if="{{readOnlyBanner}}">
+          <text class="readonly-banner-txt">{{readOnlyBanner}}</text>
+        </view>
         <view class="answer-card-meta">
           <text class="answer-card-title">答题卡</text>
           <text class="answer-card-count">已答 {{answeredCount}} / {{questions.length}}</text>
@@ -152,11 +155,66 @@
     <view class="loading-view" wx:elif="{{stage === 'loading'}}">
       <view class="loading-spinner"></view>
       <text class="loading-txt">正在分析答题数据...</text>
-      <text class="loading-sub">AI 正在评估 14 个章节的掌握程度</text>
+      <text class="loading-sub">正在生成本次专题测评报告</text>
     </view>
 
     <!-- ═══ 结果页 ═══ -->
     <view class="result" wx:elif="{{stage === 'result'}}">
+      <block wx:if="{{serverReportMode}}">
+        <view class="score-ring-wrap">
+          <view class="score-ring">
+            <text class="score-num">{{resultScore}}</text>
+            <text class="score-label">{{scoreTitle}}</text>
+          </view>
+        </view>
+        <text class="topic-label">{{topicLabel}}</text>
+        <text class="score-meta">答对 {{correctCount}} / {{scoredCount}} 题，空白 {{blankCount}} 题</text>
+
+        <view class="degraded-card" wx:if="{{degradedCopy}}">
+          <text class="degraded-title">同步状态</text>
+          <text class="degraded-text">{{degradedCopy}}</text>
+        </view>
+
+        <text class="section-title" wx:if="{{knowledgeMap.length}}">本次知识点表现</text>
+        <view class="chapter-grid" wx:if="{{knowledgeMap.length}}">
+          <view class="chapter-item" wx:for="{{knowledgeMap}}" wx:key="name">
+            <text class="chapter-name">{{item.name}}</text>
+            <view class="chapter-bar-wrap">
+              <view class="chapter-bar {{item.pct >= 70 ? 'green' : item.pct >= 40 ? 'gold' : 'red'}}" style="width:{{item.pct}}%"></view>
+            </view>
+            <text class="chapter-pct">{{item.correct}}/{{item.attempted}}</text>
+          </view>
+        </view>
+
+        <view class="wrong-card" wx:if="{{wrongItems.length}}">
+          <text class="section-title">本次错题</text>
+          <view class="wrong-item" wx:for="{{wrongItems}}" wx:key="questionId">
+            <text class="wrong-title">{{item.index}}. {{item.stem}}</text>
+            <text class="wrong-answer">你的答案：{{item.learnerAnswer || '未作答'}}　正确答案：{{item.correctAnswer}}</text>
+            <text class="wrong-explain">{{item.explanation}}</text>
+          </view>
+        </view>
+
+        <view class="priority-card" wx:if="{{sessionLocalNextAction}}">
+          <text class="section-title">下一步</text>
+          <text class="next-action-text">{{sessionLocalNextAction}}</text>
+        </view>
+
+        <view class="deep-disabled" wx:if="{{!deepExplanationAvailable}}">
+          <text class="deep-disabled-txt">{{deepExplanationCopy}}</text>
+        </view>
+
+        <view class="result-actions">
+          <view class="result-btn primary" bindtap="goChat">
+            <text class="result-btn-txt">去学习计划查看</text>
+          </view>
+          <view class="result-btn" bindtap="onRetake">
+            <text class="result-btn-txt secondary-txt">重新测试</text>
+          </view>
+        </view>
+      </block>
+
+      <block wx:else>
 
       <!-- 1. 分数 + 等级 -->
       <view class="score-ring-wrap">
@@ -239,6 +297,7 @@
           <text class="result-btn-txt secondary-txt">重新测试</text>
         </view>
       </view>
+      </block>
 
       <view style="height:120rpx"></view>
     </view>

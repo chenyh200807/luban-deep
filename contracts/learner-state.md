@@ -347,6 +347,31 @@ profile / progress 主真相。它必须满足：
 5. `overall_mastery` 必须从实际章节 mastery 聚合得出；0 分章节必须保留为 0，
    不能被展示层过滤成全满分。
 
+### Assessment TestSet P0A Evidence Contract
+
+P0A TestSet 的学情写回只允许走 `assessment_sessions -> AssessmentWritebackService
+-> learner_memory_events(memory_kind=learning_evidence)`。它不是第二套
+`training_intent` writer，也不能让 `last_assessment.score` 重新成为 mastery truth。
+
+1. `assessment_sessions` 是一次答卷的唯一 session authority：保存 redacted public
+   payload、hidden grading artifact、submit idempotency key、versioned
+   `result_report_json`、attempt refs、writeback status 与 degraded reason。
+2. 提交前客户端 payload 禁止包含 `answer`、`answer_key`、`correct_answer`、
+   `grading_key`、`scoring_points`、`minimal_rationale`、`rubric`、
+   `official_answer`、`option_reasoning` 及其嵌套变体。
+3. P0A deferred feedback：客户端必须一口气提交整卷后才能看到正确答案、简单解析、
+   错题和知识点表现。逐题深解属于后续 Phase，不能改变本次正式得分。
+4. 每道已评分题写一条 `source_feature=assessment_testset`、
+   `memory_kind=learning_evidence` 的 learner event，dedupe key 固定为
+   `assessment_item:{user_id}:{quiz_id}:{question_id}`。
+5. P0A evidence 可以进入 `learning_synthesis` 的 observed candidates；是否升级为
+   stable weak point 仍由 synthesis 的证据等级和重复性规则决定，不能由 result page
+   直接声明“已掌握”或“长期学习计划已更新”。
+6. Result page 的下一步建议是 session-local deterministic projection；submit 不直接写
+   `training_intent`。Study plan 后续只读取 canonical learner-state projection。
+7. 错题集写回必须使用云端 mistake-book authority 与 signed attempt ref；写回失败时
+   session 进入 `degraded` 并保留可重试状态，不伪装成完整成功。
+
 ## 写回与冲突规则
 
 1. 明确设置优先于模型推断。

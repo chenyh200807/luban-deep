@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 import csv
 import hashlib
@@ -31,6 +32,7 @@ except ImportError:  # pragma: no cover - non-Unix fallback
     fcntl = None
 
 from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAULTS
+from deeptutor.services.assessment.blueprint import get_assessment_blueprint
 from deeptutor.services.assessment import (
     AssessmentBlueprintService,
     AssessmentBlueprintUnavailable,
@@ -41,7 +43,16 @@ from deeptutor.services.assessment import (
 from deeptutor.services.assessment.learning_evidence import (
     build_assessment_learning_evidence_batch,
 )
+from deeptutor.services.assessment.report_read_model import build_result_report
+from deeptutor.services.assessment.scoring import score_assessment
+from deeptutor.services.assessment.session_repository import (
+    AssessmentSessionError,
+    InMemoryAssessmentSessionRepository,
+    SupabaseAssessmentSessionRepository,
+)
 from deeptutor.services.assessment.teaching_policy import build_teaching_policy_seed
+from deeptutor.services.assessment.writeback import AssessmentWritebackService
+from deeptutor.services.learner_state.mistake_book import MistakeBookService
 from deeptutor.services.learner_state.progress_feedback import (
     build_progress_feedback,
     build_progress_feedback_from_learner_snapshot,
@@ -65,6 +76,19 @@ from deeptutor.services.wallet.identity import is_uuid_like
 _TZ = timezone(timedelta(hours=8))
 logger = logging.getLogger(__name__)
 _HOME_PERSONALIZATION_ENABLED = "DEEPTUTOR_HOME_PERSONALIZATION_ENABLED"
+
+
+def _assessment_writeback_worker_count() -> int:
+    try:
+        return max(int(os.getenv("ASSESSMENT_WRITEBACK_WORKERS", "2") or 2), 1)
+    except (TypeError, ValueError):
+        return 2
+
+
+_ASSESSMENT_WRITEBACK_EXECUTOR = ThreadPoolExecutor(
+    max_workers=_assessment_writeback_worker_count(),
+    thread_name_prefix="assessment-writeback",
+)
 
 
 def _now() -> datetime:
@@ -384,6 +408,53 @@ def _assessment_bank_candidates() -> list[QuestionCandidate]:
     ]
 
 
+def _topic_waterproof_dev_candidates() -> list[QuestionCandidate]:
+    stems = [
+        "屋面卷材防水施工前，基层处理的正确要求是？",
+        "地下防水工程施工缝处最应优先控制的质量风险是？",
+        "防水卷材搭接施工中，最符合质量控制要求的是？",
+        "涂膜防水施工时，胎体增强材料铺贴应注意什么？",
+        "有防水要求的房间蓄水试验，最核心的验收关注点是？",
+        "后浇带防水节点施工，正确的管理要求是？",
+        "屋面细部构造防水处理，最容易造成渗漏的做法是？",
+        "地下室外墙防水保护层施工，正确的顺序控制是？",
+        "防水工程隐蔽验收前，施工单位应重点核查什么？",
+        "卷材防水层空鼓、翘边的常见原因是什么？",
+        "穿墙管防水节点处理，正确做法是什么？",
+        "卫生间防水施工完成后，交付前应如何验证质量？",
+        "防水基层含水率不满足要求时，直接铺贴卷材的后果是？",
+        "防水材料进场验收时，最关键的资料核查是？",
+        "屋面泛水部位防水高度控制，主要防止哪类问题？",
+    ]
+    candidates: list[QuestionCandidate] = []
+    for index, stem in enumerate(stems, start=1):
+        answer = "A" if index % 4 else "AB"
+        qtype = "multi_choice" if index % 4 == 0 else "single_choice"
+        candidates.append(
+            QuestionCandidate(
+                source_question_id=f"dev_waterproof_{index}",
+                question_stem=stem,
+                question_type=qtype,
+                chapter="防水工程",
+                options=(
+                    ("A", "按规范和方案要求处理并验收"),
+                    ("B", "跳过验收直接进入下道工序"),
+                    ("C", "仅凭经验判断即可"),
+                    ("D", "用后续装饰层掩盖缺陷"),
+                ),
+                answer=answer,
+                source_type="DEV_FALLBACK",
+                node_code="1A414010",
+                source_meta={
+                    "topic": "防水",
+                    "semantic_signature": f"dev_waterproof_sig_{index}",
+                    "simple_explanation": "防水题应围绕基层、节点、搭接、蓄水或隐蔽验收等关键质量控制点判断。",
+                },
+            )
+        )
+    return candidates
+
+
 def _provenance_summary(questions: list[dict[str, Any]]) -> dict[str, Any]:
     scored = [item for item in questions if item.get("scored", True)]
     with_question_id = sum(1 for item in scored if dict(item.get("provenance") or {}).get("question_id"))
@@ -449,8 +520,22 @@ class MemberConsoleService:
         self._store = get_sqlite_session_store()
         self._data_path = self._path_service.get_settings_file("member_console")
         self._data_path.parent.mkdir(parents=True, exist_ok=True)
+        self._assessment_session_repository = self._build_assessment_session_repository()
         self._wechat_access_token: str = ""
         self._wechat_access_token_expires_at: float = 0.0
+
+    def _build_assessment_session_repository(self):
+        use_supabase = is_production_environment() or env_flag(
+            "ASSESSMENT_SESSIONS_USE_SUPABASE",
+            default=False,
+        )
+        if use_supabase:
+            repository = SupabaseAssessmentSessionRepository()
+            if repository.is_configured:
+                return repository
+            if is_production_environment():
+                raise RuntimeError("assessment_sessions_supabase_not_configured")
+        return InMemoryAssessmentSessionRepository()
 
     def _get_learner_state_service(self):
         from deeptutor.services.learner_state import get_learner_state_service
@@ -467,17 +552,21 @@ class MemberConsoleService:
 
         return get_wallet_service()
 
-    def _build_assessment_blueprint_service(self) -> AssessmentBlueprintService:
+    def _build_assessment_blueprint_service(self, blueprint_version: str = "diagnostic_v1") -> AssessmentBlueprintService:
         allow_dev_fallback = env_flag(
             "ASSESSMENT_ALLOW_DEV_FALLBACK",
             default=False,
         )
-        fallback_provider = StaticAssessmentQuestionProvider(_assessment_bank_candidates())
+        candidates = _assessment_bank_candidates()
+        if blueprint_version == "topic_waterproof_v1":
+            candidates = [*candidates, *_topic_waterproof_dev_candidates()]
+        fallback_provider = StaticAssessmentQuestionProvider(candidates)
         use_supabase = is_production_environment() or env_flag(
             "ASSESSMENT_USE_SUPABASE",
             default=False,
         )
         return AssessmentBlueprintService(
+            blueprint=get_assessment_blueprint(blueprint_version),
             provider=SupabaseAssessmentQuestionProvider() if use_supabase else fallback_provider,
             fallback_provider=fallback_provider,
             allow_dev_fallback=allow_dev_fallback,
@@ -4525,7 +4614,27 @@ class MemberConsoleService:
             },
         }
 
-    def create_assessment(self, user_id: str, count: int = 20) -> dict[str, Any]:
+    def create_assessment(
+        self,
+        user_id: str,
+        count: int = 20,
+        *,
+        assessment_type: str = "diagnostic",
+        subject_id: str = "construction_exam",
+        topic_ids: list[str] | None = None,
+        duration_policy: dict[str, Any] | None = None,
+        device_id: str = "",
+    ) -> dict[str, Any]:
+        normalized_assessment_type = str(assessment_type or "diagnostic").strip() or "diagnostic"
+        if normalized_assessment_type == "topic_diagnostic":
+            return self._create_topic_diagnostic_assessment(
+                user_id,
+                count=count,
+                subject_id=subject_id,
+                topic_ids=topic_ids or ["waterproof"],
+                device_id=device_id,
+            )
+
         def _apply(data: dict[str, Any]) -> dict[str, Any]:
             try:
                 payload = self._build_assessment_blueprint_service().create_session(
@@ -4606,10 +4715,79 @@ class MemberConsoleService:
 
         return self._mutate(_apply)
 
+    def _create_topic_diagnostic_assessment(
+        self,
+        user_id: str,
+        *,
+        count: int,
+        subject_id: str,
+        topic_ids: list[str],
+        device_id: str = "",
+    ) -> dict[str, Any]:
+        normalized_topics = [str(item).strip() for item in list(topic_ids or ["waterproof"]) if str(item).strip()]
+        if not normalized_topics:
+            normalized_topics = ["waterproof"]
+        blueprint_version = "topic_waterproof_v1"
+        payload = self._build_assessment_blueprint_service(blueprint_version).create_session(
+            user_id=user_id,
+            count=count,
+            assessment_type="topic_diagnostic",
+            subject_id=subject_id,
+            topic_ids=normalized_topics,
+        )
+        session = self._assessment_session_repository.create_session(
+            user_id=user_id,
+            assessment_type="topic_diagnostic",
+            subject_id=subject_id,
+            topic_ids=normalized_topics,
+            blueprint_version=payload["blueprint_version"],
+            form_id=str(payload.get("form_id") or ""),
+            client_questions_public=list(payload.get("questions") or []),
+            session_questions_private=list(payload.get("session_questions") or []),
+            device_id=device_id,
+        )
+        return {
+            "quiz_id": session["quiz_id"],
+            "assessment_type": "topic_diagnostic",
+            "subject_id": subject_id,
+            "topic_ids": normalized_topics,
+            "topic_label": "防水专题测评",
+            "status": session["status"],
+            "reuse_reason": session.get("reuse_reason", ""),
+            "questions": deepcopy(session["client_questions_public"]),
+            "blueprint_version": session["blueprint_version"],
+            "form_id": session["form_id"],
+            "sections": payload["sections"],
+            "requested_count": payload["requested_count"],
+            "delivered_count": payload["delivered_count"],
+            "scored_count": payload["scored_count"],
+            "profile_count": payload["profile_count"],
+            "available_count": payload["available_count"],
+            "question_bank_size": payload["question_bank_size"],
+            "unique_source_question_count": payload["unique_source_question_count"],
+            "shortfall_count": payload["shortfall_count"],
+            "fallback_used": bool(payload.get("fallback_used")),
+            "form_source": str(payload.get("form_source") or "unknown"),
+        }
+
     def submit_assessment(self, user_id: str, quiz_id: str, answers: dict[str, str], time_spent_seconds: int) -> dict[str, Any]:
+        try:
+            p0a_session = self._assessment_session_repository.private_session(user_id, quiz_id)
+        except AssessmentSessionError:
+            p0a_session = None
+        if p0a_session and p0a_session.get("assessment_type") == "topic_diagnostic":
+            return self._submit_topic_diagnostic_assessment(
+                user_id,
+                quiz_id,
+                answers=answers,
+                time_spent_seconds=time_spent_seconds,
+            )
+
         def _apply(data: dict[str, Any]) -> dict[str, Any]:
             session = data.get("assessment_sessions", {}).get(quiz_id)
             if not session:
+                raise KeyError(f"Unknown quiz: {quiz_id}")
+            if str(session.get("user_id") or "") != str(user_id):
                 raise KeyError(f"Unknown quiz: {quiz_id}")
             questions = session.get("questions", [])
             scored_questions = [question for question in questions if question.get("scored", True)]
@@ -4780,6 +4958,160 @@ class MemberConsoleService:
             learning_evidence_batch=learning_evidence_batch,
         )
         return result
+
+    def _submit_topic_diagnostic_assessment(
+        self,
+        user_id: str,
+        quiz_id: str,
+        *,
+        answers: dict[str, str],
+        time_spent_seconds: int,
+    ) -> dict[str, Any]:
+        session = self._assessment_session_repository.private_session(user_id, quiz_id)
+        if session.get("submitted_answer_snapshot") is not None and session.get("result_report_json"):
+            return deepcopy(session["result_report_json"])
+        scored_result = score_assessment(
+            list(session.get("session_questions_private") or []),
+            answers,
+            time_spent_seconds=time_spent_seconds,
+        )
+        report = build_result_report(
+            quiz_id=quiz_id,
+            assessment_type="topic_diagnostic",
+            subject_id=str(session.get("subject_id") or "construction_exam"),
+            topic_ids=list(session.get("topic_ids") or ["waterproof"]),
+            topic_label="防水专题测评",
+            blueprint_version=str(session.get("blueprint_version") or "topic_waterproof_v1"),
+            form_id=str(session.get("form_id") or ""),
+            scored_result=scored_result,
+            writeback_refs={"writeback_status": {"status": "pending"}},
+        )
+        submitted = self._assessment_session_repository.mark_submitted_once(
+            user_id,
+            quiz_id,
+            submitted_answer_snapshot=dict(answers or {}),
+            result_report_json=report,
+            device_id=str(session.get("device_id") or ""),
+        )
+        if submitted.get("learning_event_refs"):
+            return deepcopy(submitted.get("result_report_json") or report)
+        self._schedule_topic_diagnostic_writeback(
+            user_id=user_id,
+            quiz_id=quiz_id,
+            session=session,
+            scored_result=scored_result,
+        )
+        return deepcopy(submitted.get("result_report_json") or report)
+
+    def _schedule_topic_diagnostic_writeback(
+        self,
+        *,
+        user_id: str,
+        quiz_id: str,
+        session: dict[str, Any],
+        scored_result: dict[str, Any],
+    ) -> None:
+        future = _ASSESSMENT_WRITEBACK_EXECUTOR.submit(
+            self._complete_topic_diagnostic_writeback,
+            user_id=user_id,
+            quiz_id=quiz_id,
+            session=deepcopy(session),
+            scored_result=deepcopy(scored_result),
+        )
+        future.add_done_callback(
+            lambda item: logger.error(
+                "assessment_writeback_background_failed",
+                exc_info=(type(item.exception()), item.exception(), item.exception().__traceback__),
+            )
+            if item.exception() is not None
+            else None
+        )
+
+    def _complete_topic_diagnostic_writeback(
+        self,
+        *,
+        user_id: str,
+        quiz_id: str,
+        session: dict[str, Any],
+        scored_result: dict[str, Any],
+    ) -> None:
+        try:
+            writeback_refs = AssessmentWritebackService(
+                learner_state_service=self._get_learner_state_service(),
+                mistake_book_service=MistakeBookService(),
+            ).writeback(
+                user_id=user_id,
+                quiz_id=quiz_id,
+                form_id=str(session.get("form_id") or ""),
+                assessment_type="topic_diagnostic",
+                subject_id=str(session.get("subject_id") or "construction_exam"),
+                scored_result=scored_result,
+            )
+            self._assessment_session_repository.attach_writeback_refs(
+                user_id,
+                quiz_id,
+                learning_event_refs=list(writeback_refs.get("learning_event_refs") or []),
+                mistake_book_refs=list(writeback_refs.get("mistake_book_refs") or []),
+                mark_scored=True,
+            )
+        except Exception:
+            self._assessment_session_repository.record_degraded(
+                user_id,
+                quiz_id,
+                reason="writeback_failed",
+            )
+
+    def retry_assessment_writeback(self, user_id: str, quiz_id: str) -> dict[str, Any]:
+        session = self._assessment_session_repository.private_session(user_id, quiz_id)
+        if session.get("assessment_type") != "topic_diagnostic":
+            raise KeyError(f"Unknown quiz: {quiz_id}")
+        if not session.get("submitted_answer_snapshot"):
+            raise KeyError(f"Assessment not submitted: {quiz_id}")
+        scored_result = score_assessment(
+            list(session.get("session_questions_private") or []),
+            dict(session.get("submitted_answer_snapshot") or {}),
+            time_spent_seconds=0,
+        )
+        writeback_refs = AssessmentWritebackService(
+            learner_state_service=self._get_learner_state_service(),
+            mistake_book_service=MistakeBookService(),
+        ).writeback(
+            user_id=user_id,
+            quiz_id=quiz_id,
+            form_id=str(session.get("form_id") or ""),
+            assessment_type="topic_diagnostic",
+            subject_id=str(session.get("subject_id") or "construction_exam"),
+            scored_result=scored_result,
+        )
+        stored = self._assessment_session_repository.attach_writeback_refs(
+            user_id,
+            quiz_id,
+            learning_event_refs=list(writeback_refs.get("learning_event_refs") or []),
+            mistake_book_refs=list(writeback_refs.get("mistake_book_refs") or []),
+            mark_scored=True,
+        )
+        logger.info(
+            "assessment_writeback_retry_succeeded quiz_id=%s assessment_type=%s",
+            quiz_id,
+            session.get("assessment_type"),
+        )
+        return deepcopy(stored.get("result_report_json") or {})
+
+    def get_assessment_session(self, user_id: str, quiz_id: str, *, device_id: str = "") -> dict[str, Any]:
+        try:
+            return self._assessment_session_repository.get_session_for_resume(user_id, quiz_id, device_id=device_id)
+        except AssessmentSessionError as exc:
+            raise KeyError(str(exc)) from exc
+
+    def get_assessment_report(self, user_id: str, quiz_id: str) -> dict[str, Any]:
+        try:
+            session = self._assessment_session_repository.private_session(user_id, quiz_id)
+        except AssessmentSessionError as exc:
+            raise KeyError(str(exc)) from exc
+        report = session.get("result_report_json")
+        if not report:
+            raise KeyError(f"Assessment report not ready: {quiz_id}")
+        return deepcopy(report)
 
     def _find_member_by_external_auth(
         self,

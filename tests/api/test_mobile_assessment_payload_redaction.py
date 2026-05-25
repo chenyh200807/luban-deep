@@ -127,3 +127,92 @@ def test_redaction_guard_fails_on_structural_grading_fixture() -> None:
                 ]
             }
         )
+
+
+def test_mobile_create_accepts_topic_diagnostic_fields(monkeypatch: pytest.MonkeyPatch) -> None:
+    mobile_module = importlib.import_module("deeptutor.api.routers.mobile")
+    captured: dict[str, Any] = {}
+
+    class _Member:
+        def create_assessment(self, user_id: str, **kwargs):
+            captured["user_id"] = user_id
+            captured.update(kwargs)
+            return {
+                "quiz_id": "quiz_p0a",
+                "assessment_type": kwargs["assessment_type"],
+                "subject_id": kwargs["subject_id"],
+                "topic_ids": kwargs["topic_ids"],
+                "blueprint_version": "topic_waterproof_v1",
+                "questions": [],
+            }
+
+    monkeypatch.setattr(mobile_module, "member_service", _Member())
+    monkeypatch.setattr(mobile_module, "_resolve_authenticated_user_id", lambda *_args, **_kwargs: "student_demo")
+
+    with TestClient(_build_mobile_app()) as client:
+        response = client.post(
+            "/api/v1/assessment/create",
+            json={
+                "assessment_type": "topic_diagnostic",
+                "subject_id": "construction_exam",
+                "topic_ids": ["waterproof"],
+                "count": 12,
+                "duration_policy": {"mode": "one_shot"},
+            },
+        )
+
+    assert response.status_code == 200
+    assert captured["assessment_type"] == "topic_diagnostic"
+    assert captured["subject_id"] == "construction_exam"
+    assert captured["topic_ids"] == ["waterproof"]
+    assert captured["count"] == 12
+
+
+def test_mobile_resume_payload_is_redacted_before_submit(monkeypatch: pytest.MonkeyPatch) -> None:
+    mobile_module = importlib.import_module("deeptutor.api.routers.mobile")
+
+    class _Member:
+        def get_assessment_session(self, user_id: str, quiz_id: str, **kwargs):
+            return {
+                "quiz_id": quiz_id,
+                "status": "in_progress",
+                "questions": [{"question_id": "q1", "question_stem": "防水题"}],
+            }
+
+    monkeypatch.setattr(mobile_module, "member_service", _Member())
+    monkeypatch.setattr(mobile_module, "_resolve_authenticated_user_id", lambda *_args, **_kwargs: "student_demo")
+
+    with TestClient(_build_mobile_app()) as client:
+        response = client.get("/api/v1/assessment/quiz_p0a")
+
+    assert response.status_code == 200
+    _assert_no_forbidden_pre_submit_keys(response.json())
+
+
+def test_mobile_report_endpoint_replays_submitted_report(monkeypatch: pytest.MonkeyPatch) -> None:
+    mobile_module = importlib.import_module("deeptutor.api.routers.mobile")
+
+    class _Member:
+        def get_assessment_report(self, user_id: str, quiz_id: str):
+            return {
+                "schema_version": "p0a-v1",
+                "quiz_id": quiz_id,
+                "score_title": "本次专题测评得分",
+                "score_summary": {"score_pct": 50},
+                "wrong_items": [{"question_id": "q2", "correct_answer": "A"}],
+                "session_local_next_action": {"authority": "session_local_deterministic"},
+                "deep_explanation": {"available": False},
+            }
+
+    monkeypatch.setattr(mobile_module, "member_service", _Member())
+    monkeypatch.setattr(mobile_module, "_resolve_authenticated_user_id", lambda *_args, **_kwargs: "student_demo")
+
+    with TestClient(_build_mobile_app()) as client:
+        response = client.get("/api/v1/assessment/quiz_p0a/report")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["schema_version"] == "p0a-v1"
+    assert body["score_title"].startswith("本次")
+    assert body["session_local_next_action"]["authority"] == "session_local_deterministic"
+    assert body["deep_explanation"]["available"] is False

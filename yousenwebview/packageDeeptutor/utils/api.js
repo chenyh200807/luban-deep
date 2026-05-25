@@ -735,10 +735,14 @@ function getAssessmentProfile(opts) {
 
 /** 摸底测试 — 创建测试 */
 function createAssessment(type, count) {
+  var payload =
+    type && typeof type === "object"
+      ? Object.assign({}, type)
+      : { assessment_type: type || "diagnostic", count: count || 20 };
   return request({
     url: "/api/v1/assessment/create",
     method: "POST",
-    data: { assessment_type: type || "diagnostic", count: count || 20 },
+    data: payload,
   });
 }
 
@@ -749,6 +753,16 @@ function submitAssessment(quizId, answers, timeSpent) {
     method: "POST",
     data: { answers: answers, time_spent_seconds: timeSpent },
   });
+}
+
+/** 摸底测试 — 恢复答题 */
+function getAssessmentSession(quizId) {
+  return requestStateGet("/api/v1/assessment/" + quizId);
+}
+
+/** 摸底测试 — 获取报告 */
+function getAssessmentReport(quizId) {
+  return requestStateGet("/api/v1/assessment/" + quizId + "/report");
 }
 
 module.exports = {
@@ -793,5 +807,7 @@ module.exports = {
   getHomeDashboard: getHomeDashboard,
   getAssessmentProfile: getAssessmentProfile,
   createAssessment: createAssessment,
+  getAssessmentSession: getAssessmentSession,
+  getAssessmentReport: getAssessmentReport,
   submitAssessment: submitAssessment,
 };

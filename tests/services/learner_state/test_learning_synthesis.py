@@ -103,6 +103,23 @@ def _manual_correction(event_id: str = "fix1") -> LearnerStateEvent:
     )
 
 
+def test_assessment_testset_learning_evidence_is_consumed_by_synthesis() -> None:
+    projection = synthesize_learning_truth([
+        _learning_event(
+            "assessment_evt1",
+            source_feature="assessment_testset",
+            question_id="assessment_q1",
+            error_code="M01",
+        )
+    ])
+
+    assert projection["synthesis_run"]["input_event_count"] == 1
+    assert projection["weak_points"] == []
+    assert projection["observed_candidates"][0]["error_code"] == "M01"
+    assert projection["observed_candidates"][0]["supporting_event_ids"] == ["assessment_evt1"]
+    assert "error:1A432000:M01" in projection["compiled_objects"]
+
+
 def _manual_confirmation(event_id: str = "confirm1") -> LearnerStateEvent:
     return LearnerStateEvent(
         event_id=event_id,
