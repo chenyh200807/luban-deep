@@ -302,3 +302,58 @@ GET /api/v1/bi/invite-test/...   code=403 bytes=34      ✓
 **Stop hook 状态**：自动化守护 + 未登录 admin gate + P1 fix + admin-only B-P1-1~7 已完成；B-P1-8（高危动作 ETag/undo_token）仍独立追踪，按 QA spec "不允许标完成"。**BI 可进入非高危运营试用，但不得触碰撤销 / 补点 / 修账等高危动作。**
 
 — Claude QA, 2026-05-24
+
+---
+
+## 10. 2026-05-24 19:05 CST 再部署复核
+
+> 本节记录 PR #25 安全修复在 `origin/main` 继续前进后的再部署事实。此前文中
+> `a25da582d33cea94e90b427fb1492d1ee77d8082` 仍是 PR #25 的 squash merge
+> commit；当前线上 release 已更新为包含该 commit 的最新 `main`。
+
+### 当前线上 release
+
+- 当前部署 worktree：`/private/tmp/deeptutor-pr25-security-deploy-20260524185934`
+- 当前部署分支：`deploy/pr25-security-72c3f591`
+- 当前部署 HEAD：`72c3f591cf112d033cf095e82f275f9463bd52c0`
+- 包含 PR #25 merge commit：`a25da582d33cea94e90b427fb1492d1ee77d8082`
+- 阿里云 release env：
+  - `DEEPTUTOR_GIT_SHA=72c3f591cf112d033cf095e82f275f9463bd52c0`
+  - `DEEPTUTOR_GIT_DIRTY=false`
+  - `DEEPTUTOR_RELEASE_ID=1.0.0+72c3f591cf112d033cf095e82f275f9463bd52c0+production`
+
+### 公网无 token 安全回归
+
+| Probe | 期望 | 实际 |
+|---|---:|---:|
+| `GET /api/v1/bi/feedback?days=30&limit=10` | 403 | **403** |
+| `GET /api/v1/bi/commerce` | 403 | **403** |
+| `GET /api/v1/bi/invite-test/applications` | 403 | **403** |
+| `GET /healthz` | 200 | **200** |
+| `GET /readyz` | 200 | **200** |
+| `/openapi.json` contains `/api/v1/bi/feedback` | present | **present** |
+| `/openapi.json` contains `/api/v1/bi/commerce` | present | **present** |
+| `/openapi.json` contains `/api/v1/bi/invite-test/applications` | present | **present** |
+
+### 页面级无 token smoke
+
+Playwright no-token context, viewport `390x844`:
+
+| Route | HTTP | Expected surface | Result |
+|---|---:|---|---|
+| `/bi` | 200 | admin gate, no BI shell, no sensitive panel | **PASS** |
+| `/bi?tab=invite-test` | 200 | admin gate, no BI shell, no sensitive panel | **PASS** |
+| `/bi?tab=member-ops` | 200 | admin gate, no BI shell, no sensitive panel | **PASS** |
+
+截图：
+
+- `/tmp/bi_pr25_canary/bi.png`
+- `/tmp/bi_pr25_canary/bi_tab_invite_test.png`
+- `/tmp/bi_pr25_canary/bi_tab_member_ops.png`
+
+### 结论覆盖
+
+B-P1-0 仍保持 **merged + deployed + public 403 verified**。当前线上 SHA 不是
+PR #25 的 `a25da582`，而是包含 PR #25 的最新 `main`：`72c3f591`。B-P1-1~7
+的 admin-token QA 结论以 `2026-05-24-bi-admin-token-qa-closure.md` 为历史证据；
+B-P1-8 高危动作仍未完成，不允许标为 done。
