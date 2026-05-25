@@ -19,7 +19,11 @@ import {
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
+  BiButton,
   BiDataTable,
+  BiDateTime,
+  BiIdToken,
+  BiSelect,
   BiSidePanel,
   BiStatusPill,
   BiV2DataSourceBanner,
@@ -281,7 +285,7 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
       {
         key: 'member',
         label: '关联会员',
-        render: i => <code className="font-mono">{i.member}</code>,
+        render: i => <BiIdToken value={i.member} head={8} tail={5} />,
       },
       {
         key: 'status',
@@ -297,7 +301,7 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
       {
         key: 'at',
         label: '时间',
-        render: i => <span className="text-slate-400">{i.created_at}</span>,
+        render: i => <BiDateTime value={i.created_at} />,
       },
     ],
     []
@@ -331,34 +335,37 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
   function renderFeedbackActions(item: FeedbackItem) {
     return (
       <div className="flex justify-end gap-1">
-        <button
-          type="button"
+        <BiButton
           onClick={() => setSelectedFeedback(item)}
-          className="rounded-xl border border-white/10 bg-white/[0.06] px-2 py-1 text-[11px] text-slate-100 hover:bg-white/10"
+          variant="secondary"
+          size="xs"
           aria-label={`查看反馈 ${item.id} 详情`}
         >
           <Eye className="h-3 w-3" aria-hidden />
-        </button>
-        <button
-          type="button"
+          查看
+        </BiButton>
+        <BiButton
           disabled={!flagEnabled || triageWriting || item.status === 'triaged'}
-          title="写入 feedback_triage audit"
+          title="写入 feedback_triage audit；完整派单工作流待接入"
           onClick={() => void handleFeedbackTriage(item, 'triaged')}
-          className="rounded-xl border border-white/10 bg-white/[0.06] px-2 py-1 text-[11px] text-slate-100 hover:bg-white/10 disabled:cursor-not-allowed disabled:text-slate-500"
-          aria-label={`分诊反馈 ${item.id}`}
+          variant="secondary"
+          size="xs"
+          aria-label={`标记已看反馈 ${item.id}`}
         >
           <CheckCircle2 className="h-3 w-3" aria-hidden />
-        </button>
-        <button
-          type="button"
+          已看
+        </BiButton>
+        <BiButton
           disabled={!flagEnabled || triageWriting || item.status === 'ignored'}
           title="写入 feedback_triage audit"
           onClick={() => void handleFeedbackTriage(item, 'ignored')}
-          className="rounded-xl border border-white/10 bg-white/[0.06] px-2 py-1 text-[11px] text-slate-100 hover:bg-white/10 disabled:cursor-not-allowed disabled:text-slate-500"
+          variant="secondary"
+          size="xs"
           aria-label={`忽略反馈 ${item.id}`}
         >
           <XCircle className="h-3 w-3" aria-hidden />
-        </button>
+          忽略
+        </BiButton>
       </div>
     )
   }
@@ -395,7 +402,7 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
       body: { reason: 'admin_deleted_from_bi' },
     })
     if (!result.ok) {
-      setInviteError(result.error || '删除内测申请失败')
+      setInviteError(result.error || '归档内测申请失败')
       return
     }
     setInviteApplications(prev => prev.filter(candidate => candidate.id !== item.id))
@@ -415,14 +422,14 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
         <BiV2DataSourceBanner
           tone="sky"
           action={
-            <button
-              type="button"
+            <BiButton
               onClick={() => {
                 void loadFeedback()
                 void loadInviteTest()
               }}
               disabled={loading || inviteLoading}
-              className="inline-flex items-center gap-1 rounded-xl border border-cyan-300/25 bg-cyan-300/10 px-2 py-1 text-cyan-100 disabled:opacity-50"
+              variant="primary"
+              size="xs"
               aria-label="刷新反馈中心"
             >
               <RefreshCw
@@ -430,14 +437,11 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
                 aria-hidden
               />
               刷新
-            </button>
+            </BiButton>
           }
         >
-          BI_FEEDBACK_V2_ENABLED 已开启 · AI 反馈读取{' '}
-          <code className="font-mono">/api/v1/bi/feedback</code>
-          ，内测申请读取 <code className="font-mono">/api/v1/bi/invite-test/*</code>
-          {payload ? ` · storage=${payload.storage_status}` : ''}；triage 写入 feedback_triage
-          audit。
+          反馈中心已接入真实读模型 · AI 消息反馈与内测申请池分区管理
+          {payload ? ` · storage=${payload.storage_status}` : ''}；已看 / 忽略 / 归档写入审计。
         </BiV2DataSourceBanner>
       )}
       {triageError ? (
@@ -485,45 +489,45 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
           <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
             <Tile label="全部" value={counts.total} hint={feedbackWindowHint()} />
             <Tile label="待处理" value={counts.open} tone="amber" hint="P0 优先处理" />
-            <Tile label="已分诊" value={counts.triaged} tone="sky" hint="已转 owner" />
+            <Tile label="已看" value={counts.triaged} tone="sky" hint="派单工作流待接入" />
             <Tile label="已忽略" value={counts.ignored} tone="slate" hint="带 audit 说明" />
           </div>
 
           <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.035] p-2 text-xs text-slate-300">
             <label className="inline-flex items-center gap-1 font-bold">
               状态
-              <select
+              <BiSelect
                 value={filter.status}
                 onChange={e => setFilter({ ...filter, status: e.target.value as Filter['status'] })}
-                className="h-8 rounded-xl border border-white/10 bg-[#151d2b] px-2 text-xs text-slate-100 outline-none focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
+                className="h-8"
                 aria-label="按状态筛选反馈"
               >
                 <option value="">全部</option>
                 <option value="open">待处理</option>
-                <option value="triaged">已分诊</option>
+                <option value="triaged">已看</option>
                 <option value="ignored">已忽略</option>
-              </select>
+              </BiSelect>
             </label>
             <label className="inline-flex items-center gap-1 font-bold">
               来源
-              <select
+              <BiSelect
                 value={filter.source}
                 onChange={e => setFilter({ ...filter, source: e.target.value as Filter['source'] })}
-                className="h-8 rounded-xl border border-white/10 bg-[#151d2b] px-2 text-xs text-slate-100 outline-none focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
+                className="h-8"
                 aria-label="按来源筛选反馈"
               >
                 <option value="">全部</option>
                 <option value="ai_message">AI 消息反馈</option>
                 <option value="invite_test">内测申请</option>
                 <option value="member_note">运营备注</option>
-              </select>
+              </BiSelect>
             </label>
             <label className="inline-flex items-center gap-1 font-bold">
               owner
-              <select
+              <BiSelect
                 value={filter.owner}
                 onChange={e => setFilter({ ...filter, owner: e.target.value as Filter['owner'] })}
-                className="h-8 rounded-xl border border-white/10 bg-[#151d2b] px-2 text-xs text-slate-100 outline-none focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
+                className="h-8"
                 aria-label="按 owner 筛选反馈"
               >
                 <option value="">全部</option>
@@ -531,7 +535,7 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
                 <option value="growth">增长</option>
                 <option value="ops">运营</option>
                 <option value="product">产品</option>
-              </select>
+              </BiSelect>
             </label>
             <button
               type="button"
@@ -794,15 +798,15 @@ function InviteTestPanel({
   deleting: boolean
   pendingDeleteId: string
 }) {
-  const summary = stats?.summary
   const priorityCount = countPriorityInviteApplications(applications)
+  const currentStats = summarizeVisibleInviteApplications(applications)
 
   return (
     <div className="space-y-4">
       <InvitePrescriptionHero
         priorityCount={priorityCount}
-        total={summary?.total_applications ?? total}
-        acceptInterviewCount={summary?.accept_interview_count ?? 0}
+        total={total}
+        acceptInterviewCount={currentStats.acceptInterviewCount}
         painPoint={topInvitePainPoint(stats)}
         onStartQueue={() => {
           onFilterChange('status', 'submitted')
@@ -819,21 +823,21 @@ function InviteTestPanel({
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
         <Tile
           label="申请总数"
-          value={summary?.total_applications ?? total}
-          hint={`近 ${INVITE_TEST_WINDOW_DAYS}d`}
+          value={total}
+          hint={`当前筛选 · 近 ${INVITE_TEST_WINDOW_DAYS}d`}
         />
-        <Tile label="可联系人数" value={summary?.unique_contacts ?? 0} hint="去重联系方式" />
+        <Tile label="可联系人数" value={currentStats.uniqueContacts} hint="当前筛选去重联系方式" />
         <Tile
           label="愿意回访"
-          value={summary?.accept_interview_count ?? 0}
+          value={currentStats.acceptInterviewCount}
           tone="sky"
-          hint={formatRate(summary?.accept_interview_rate)}
+          hint={formatRate(currentStats.acceptInterviewRate)}
         />
         <Tile
           label="带错题样本"
-          value={summary?.with_wrong_question_count ?? 0}
+          value={currentStats.wrongQuestionCount}
           tone="amber"
-          hint={formatRate(summary?.with_wrong_question_rate)}
+          hint={formatRate(currentStats.wrongQuestionRate)}
         />
       </div>
 
@@ -849,7 +853,7 @@ function InviteTestPanel({
                 <h3 className="mt-2 text-xl font-black text-white">内测申请池</h3>
                 <p className="mt-1 text-xs leading-5 text-slate-400">
                   authority: <code className="font-mono">public.invite_test_applications</code> ·
-                  从卡片进入编辑、删除、归档和回访，不再只有查看按钮。
+                  从卡片进入编辑、归档和回访，不再只有查看按钮。
                 </p>
               </div>
               <button
@@ -878,10 +882,10 @@ function InviteTestPanel({
                   aria-label="搜索内测申请"
                 />
               </label>
-              <select
+              <BiSelect
                 value={filters.status}
                 onChange={event => onFilterChange('status', event.target.value)}
-                className="h-11 rounded-xl border border-white/10 bg-[#151d2b] px-2 text-xs text-slate-100 outline-none focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
+                className="h-11"
                 aria-label="按内测申请状态筛选"
               >
                 <option value="">全部状态</option>
@@ -889,8 +893,8 @@ function InviteTestPanel({
                 <option value="contacted">已联系</option>
                 <option value="accepted">已入选</option>
                 <option value="rejected">未入选</option>
-                <option value="archived">已删除</option>
-              </select>
+                <option value="archived">已归档</option>
+              </BiSelect>
               <input
                 value={filters.source_page}
                 onChange={event => onFilterChange('source_page', event.target.value)}
@@ -1002,12 +1006,12 @@ function InvitePrescriptionHero({
   onStartQueue: () => void
   onExplain: () => void
 }) {
-  const confidence =
+  const queueStrength =
     total > 0 ? Math.min(92, Math.max(54, Math.round((priorityCount / total) * 100 + 52))) : 54
   return (
     <section className="grid gap-5 rounded-3xl border border-sky-300/20 bg-gradient-to-br from-[#1f2959]/90 to-[#141c36]/95 p-5 shadow-xl shadow-black/20 md:grid-cols-[minmax(0,1fr)_170px] md:p-7">
       <div className="min-w-0">
-        <div className="text-xs font-black text-orange-300">今日运营处方</div>
+        <div className="text-xs font-black text-orange-300">当前筛选提示</div>
         <h3 className="mt-2 max-w-4xl text-3xl font-black leading-tight tracking-normal text-white md:text-4xl">
           优先回访「{painPoint || '案例题不会写'}」的高意向申请人
         </h3>
@@ -1036,16 +1040,16 @@ function InvitePrescriptionHero({
         <div
           className="grid h-36 w-36 place-items-center rounded-full shadow-[0_0_0_14px_rgba(125,211,252,0.04)]"
           style={{
-            background: `conic-gradient(#34d399 0 ${confidence * 3.6}deg, rgba(255,226,186,0.9) ${confidence * 3.6}deg 360deg)`,
+            background: `conic-gradient(#34d399 0 ${queueStrength * 3.6}deg, rgba(255,226,186,0.9) ${queueStrength * 3.6}deg 360deg)`,
           }}
-          aria-label={`增长可信度 ${confidence}%`}
+          aria-label={`队列强度 ${queueStrength}%`}
         >
           <div className="grid h-24 w-24 place-items-center rounded-full bg-[#172141]">
-            <span className="text-4xl font-black text-cyan-200">{confidence}</span>
+            <span className="text-4xl font-black text-cyan-200">{queueStrength}</span>
           </div>
         </div>
         <div className="absolute bottom-0 text-center text-[11px] font-black text-slate-300/70">
-          增长可信度 · 高
+          队列强度 · 前端筛选
         </div>
       </div>
     </section>
@@ -1118,10 +1122,10 @@ function InviteApplicationCard({
               ? 'border-rose-300/60 bg-rose-500 text-white'
               : 'border-rose-300/25 bg-rose-300/10 text-rose-100 hover:bg-rose-300/15'
           }`}
-          aria-label={`${pending ? '确认删除' : '删除'}内测申请 ${rowId}`}
+          aria-label={`${pending ? '确认归档' : '归档'}内测申请 ${rowId}`}
         >
           <Trash2 className="h-3.5 w-3.5" aria-hidden />
-          {pending ? '确认删除' : '删除'}
+          {pending ? '确认归档' : '归档'}
         </button>
       </div>
     </article>
@@ -1144,7 +1148,7 @@ function InviteOpsPlaybook() {
           2. 看证据：痛点、阶段、来源页
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-3 py-2">
-          3. 执行动作：编辑、入队、删除归档
+          3. 执行动作：编辑、入队、归档
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-3 py-2">
           4. 回看审计：actor + idempotency
@@ -1170,6 +1174,7 @@ function InviteApplicationDetailPanel({
   const [form, setForm] = useState<InviteApplicationFormState>(() =>
     item ? formFromInviteApplication(item) : emptyInviteApplicationForm()
   )
+  const formId = 'bi-invite-edit-form'
 
   function updateField<K extends keyof InviteApplicationFormState>(
     field: K,
@@ -1189,9 +1194,28 @@ function InviteApplicationDetailPanel({
           : undefined
       }
       width="lg"
+      footer={
+        item ? (
+          <div className="flex items-center justify-end gap-2">
+            <BiButton onClick={onClose} variant="secondary" size="sm">
+              关闭
+            </BiButton>
+            <BiButton
+              type="submit"
+              form={formId}
+              disabled={saving}
+              variant="primary"
+              size="sm"
+            >
+              {saving ? '保存中…' : '保存并审计'}
+            </BiButton>
+          </div>
+        ) : undefined
+      }
     >
       {item ? (
         <form
+          id={formId}
           className="space-y-4 text-sm"
           onSubmit={event => {
             event.preventDefault()
@@ -1232,10 +1256,11 @@ function InviteApplicationDetailPanel({
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="space-y-1 text-xs font-bold text-slate-300">
                 状态
-                <select
+                <BiSelect
                   value={form.status}
                   onChange={event => updateField('status', event.target.value)}
-                  className="h-10 w-full rounded-xl border border-white/10 bg-[#151d2b] px-2 text-sm text-slate-100 outline-none focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
+                  className="h-10 w-full text-sm"
+                  wrapperClassName="w-full"
                 >
                   <option value="submitted">已提交</option>
                   <option value="contacted">已联系</option>
@@ -1243,7 +1268,7 @@ function InviteApplicationDetailPanel({
                   <option value="rejected">未入选</option>
                   <option value="waitlisted">候补</option>
                   <option value="archived">归档</option>
-                </select>
+                </BiSelect>
               </label>
               <label className="flex min-h-10 items-center gap-2 self-end rounded-xl border border-white/10 bg-white/[0.035] px-2 py-2 text-xs font-bold text-slate-200">
                 <input
@@ -1396,23 +1421,6 @@ function InviteApplicationDetailPanel({
               {saveError}
             </p>
           ) : null}
-
-          <div className="sticky bottom-0 flex items-center justify-end gap-2 border-t border-white/10 bg-[#101622]/95 py-3 backdrop-blur">
-            <button
-              type="button"
-              onClick={onClose}
-              className="inline-flex h-10 items-center rounded-xl border border-white/10 px-3 text-xs font-bold text-slate-200 hover:bg-white/10"
-            >
-              关闭
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="inline-flex h-10 items-center rounded-xl bg-cyan-300 px-3 text-xs font-black text-sky-950 hover:bg-cyan-200 disabled:cursor-not-allowed disabled:bg-slate-500"
-            >
-              {saving ? '保存中…' : '保存并审计'}
-            </button>
-          </div>
         </form>
       ) : null}
     </BiSidePanel>
@@ -1840,6 +1848,30 @@ function countPriorityInviteApplications(applications: BiInviteTestApplication[]
       ['submitted', 'waitlisted', 'contacted'].includes(item.status || 'submitted')
     )
   }).length
+}
+
+function summarizeVisibleInviteApplications(applications: BiInviteTestApplication[]) {
+  const contacts = new Set<string>()
+  let acceptInterviewCount = 0
+  let wrongQuestionCount = 0
+
+  for (const item of applications) {
+    const contact = [item.phone, item.email, item.wechat_id]
+      .map(value => value.trim().toLowerCase())
+      .find(Boolean)
+    if (contact) contacts.add(contact)
+    if (item.accept_interview) acceptInterviewCount += 1
+    if (item.latest_wrong_question.trim()) wrongQuestionCount += 1
+  }
+
+  const total = applications.length
+  return {
+    uniqueContacts: contacts.size,
+    acceptInterviewCount,
+    wrongQuestionCount,
+    acceptInterviewRate: total > 0 ? acceptInterviewCount / total : undefined,
+    wrongQuestionRate: total > 0 ? wrongQuestionCount / total : undefined,
+  }
 }
 
 function topInviteSource(stats: BiInviteTestStats | null): string {

@@ -179,7 +179,7 @@ test("BI feedback invite-test applications can be edited through the audited end
 
   await page.goto("/bi?tab=feedback&panel=invite-test");
 
-  await expect(page.getByText("内测申请池")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "内测申请池" })).toBeVisible();
   await expect(page.getByText("Codex编辑验证")).toBeVisible();
 
   await page.getByRole("button", { name: "编辑内测申请 app-edit-1" }).click();
@@ -228,8 +228,8 @@ test("BI feedback invite-test applications can be deleted through the audited en
   await page.goto("/bi?tab=feedback&panel=invite-test");
 
   await expect(page.getByText("Codex编辑验证")).toBeVisible();
-  await page.getByRole("button", { name: "删除内测申请 app-edit-1" }).click();
-  await page.getByRole("button", { name: "确认删除内测申请 app-edit-1" }).click();
+  await page.getByRole("button", { name: "归档内测申请 app-edit-1" }).click();
+  await page.getByRole("button", { name: "确认归档内测申请 app-edit-1" }).click();
 
   await expect.poll(() => capture.deleteBody?.reason).toBe("admin_deleted_from_bi");
   expect(capture.deleteIdempotencyKey).toBeTruthy();

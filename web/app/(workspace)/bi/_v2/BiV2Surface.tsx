@@ -32,13 +32,13 @@ const SECTIONS: BiSideNavItem<BiV2Section>[] = [
   {
     key: 'commerce',
     label: '商品账务',
-    summary: '套餐、充值订单、钱包流水、账务异常队列。',
+    summary: '套餐权益、入账流水、钱包流水、账务异常队列。',
     icon: ShoppingBag,
   },
   {
     key: 'feedback',
     label: '反馈中心',
-    summary: 'AI 消息反馈 / 内测 / 备注聚合，open / triaged / ignored。',
+    summary: 'AI 消息反馈与内测申请池，标记已看 / 忽略 / 归档。',
     icon: MessageSquareWarning,
   },
   {
@@ -235,7 +235,7 @@ function BiV2AuthenticatedSurface({
         )}
         pageTitle={current.label}
         pageSummary={current.summary}
-        footer="一级导航固定 5 主区 · 对话回顾归入会员运营 · 账务异常归入商品账务行动条 · 关闭 BI_BACKOFFICE_V2_SHELL_ENABLED 后回到旧 /bi。"
+        footer="一级导航固定 5 主区 · 当前仅展示已接入的真实读模型，技术口径在模块详情中查看。"
       >
         {panel}
       </BiAppShell>

@@ -57,7 +57,7 @@ export function BiSidePanel({
         aria-modal="true"
         aria-label={typeof title === 'string' ? title : '侧栏抽屉'}
         tabIndex={-1}
-        className={`flex h-full w-full flex-col border-l border-white/10 bg-[#101622] text-slate-100 shadow-2xl shadow-black/40 outline-none ${WIDTH_CLASS[width]}`}
+        className={`flex h-full w-full min-w-0 flex-col overflow-hidden border-l border-white/10 bg-[#101622] text-slate-100 shadow-2xl shadow-black/40 outline-none ${WIDTH_CLASS[width]}`}
       >
         <header className="flex items-start justify-between gap-3 border-b border-white/10 bg-white/[0.04] px-4 py-3">
           <div className="min-w-0">
@@ -75,7 +75,9 @@ export function BiSidePanel({
             <X className="h-4 w-4" aria-hidden />
           </button>
         </header>
-        <div className="flex-1 overflow-y-auto bg-[#101622] px-4 py-3 text-sm">{children}</div>
+        <div className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto break-words bg-[#101622] px-4 py-3 text-sm">
+          {children}
+        </div>
         {footer ? (
           <footer className="border-t border-white/10 bg-[#101622] px-4 py-3">{footer}</footer>
         ) : null}
