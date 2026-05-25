@@ -380,10 +380,15 @@ training-intent writer。它必须满足：
    - `pilot`: active forms >= 3 and < 5 且 validator 通过
    - `authoring_needed`: active forms < 3，或 validator 不通过
 3. `authoring_needed` topic 可以在前端展示维护态，但不得开放正式测评。
-4. catalog read 不读取、不写入 `training_intent`、`last_assessment` 或 learner
-   mastery；学员个人情况只影响后续 result/report/synthesis，不影响 topic 是否有题。
+4. catalog status 不读取、不写入 `training_intent`、`last_assessment` 或 learner
+   mastery；学员个人情况只影响独立的 `recommendation` read model 和后续
+   result/report/synthesis，不影响 topic 是否有题。
 5. 批量预生成/持久化 `assessment_forms` 前必须 dry-run，并通过目标库 guard；不能让首个
    学员点击时承担全专题冷启动成本。
+6. `recommendation` 可以读取 learner-state/member-console 已有 projection 来预选
+   “综合摸底”或某个 enabled topic，但只能作为展示建议；它不得创建
+   `training_intent`，不得覆盖 study-plan 处方 authority，也不得推荐
+   `authoring_needed` topic。
 
 ### Assessment TestSet P0A Evidence Contract
 

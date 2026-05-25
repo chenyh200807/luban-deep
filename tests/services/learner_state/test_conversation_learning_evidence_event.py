@@ -81,6 +81,35 @@ def test_home_prompt_click_carries_intent_without_new_event_type() -> None:
     assert "[REDACTED_PHONE]" in event["user_question"]
 
 
+def test_training_completion_carries_assessment_attempt_context() -> None:
+    event = build_learning_evidence_from_conversation_turn(
+        user_id="u1",
+        turn_ref="turn_training_done",
+        user_question="我完成了这 3 道同类题，帮我判断。",
+        assistant_answer={"summary": "地下防水同类训练已完成，施工缝节点仍需复盘。"},
+        prompt_intent={
+            "source": "assessment_result_wrong_item",
+            "learning_signal_type": "training_completed",
+            "subject_id": "construction_exam",
+            "concept_label": "地下防水",
+            "error_label": "M01",
+            "attempt_ref": "attempt_signed",
+            "evidence_refs": ["attempt_signed"],
+            "question_count": 3,
+        },
+    )
+
+    assert event is not None
+    payload = event["payload_json"]
+    assert payload["learning_signal_type"] == "training_completed"
+    assert payload["subject_id"] == "construction_exam"
+    assert payload["concept"]["label"] == "地下防水"
+    assert payload["error"]["label"] == "M01"
+    assert payload["attempt_ref"] == "attempt_signed"
+    assert payload["evidence_refs"] == ["attempt_signed"]
+    assert payload["training_question_count"] == 3
+
+
 def test_supabase_writer_does_not_require_conversation_event_type_whitelist() -> None:
     from deeptutor.services.learner_state.supabase_writer import LearnerStateSupabaseWriter
 

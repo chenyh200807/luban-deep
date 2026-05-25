@@ -169,12 +169,41 @@ def test_mobile_create_accepts_topic_diagnostic_fields(monkeypatch: pytest.Monke
     assert captured["count"] == 12
 
 
-def test_mobile_assessment_topics_route_is_not_captured_by_quiz_resume(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_mobile_assessment_topics_exposes_catalog_status(monkeypatch: pytest.MonkeyPatch) -> None:
     mobile_module = importlib.import_module("deeptutor.api.routers.mobile")
 
     class _Member:
-        def get_assessment_topic_catalog(self):
-            return {"topics": [{"topic_id": "waterproof", "status": "stable", "enabled": True}]}
+        def get_assessment_topic_catalog(self, user_id: str):
+            assert user_id == "student_demo"
+            return {
+                "recommendation": {
+                    "recommended_mode": "diagnostic",
+                    "recommended_topic_id": "",
+                    "recommended_label": "综合摸底",
+                    "recommended_count": 20,
+                    "reason": "当前专题证据还不够稳定，建议先做 20 题综合摸底校准能力结构。",
+                    "source": "insufficient_learning_signal",
+                    "confidence": "low",
+                },
+                "topics": [
+                    {
+                        "topic_id": "waterproof",
+                        "label": "防水工程",
+                        "blueprint_version": "topic_waterproof_v1",
+                        "status": "stable",
+                        "enabled": True,
+                        "form_count": 5,
+                    },
+                    {
+                        "topic_id": "decoration",
+                        "label": "装饰装修",
+                        "blueprint_version": "topic_decoration_v1",
+                        "status": "authoring_needed",
+                        "enabled": False,
+                        "form_count": 0,
+                    },
+                ]
+            }
 
         def get_assessment_session(self, user_id: str, quiz_id: str):
             raise AssertionError(f"topics route was captured as quiz_id={quiz_id}")
@@ -186,7 +215,12 @@ def test_mobile_assessment_topics_route_is_not_captured_by_quiz_resume(monkeypat
         response = client.get("/api/v1/assessment/topics")
 
     assert response.status_code == 200
-    assert response.json()["topics"][0]["topic_id"] == "waterproof"
+    body = response.json()
+    assert body["topics"][0]["topic_id"] == "waterproof"
+    assert body["topics"][0]["status"] == "stable"
+    assert body["topics"][0]["enabled"] is True
+    assert body["topics"][1]["topic_id"] == "decoration"
+    assert body["topics"][1]["enabled"] is False
 
 
 def test_mobile_create_maps_unavailable_blueprint_to_controlled_error(monkeypatch: pytest.MonkeyPatch) -> None:

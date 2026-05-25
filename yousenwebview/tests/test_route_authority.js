@@ -27,6 +27,10 @@ assert(
   "package report returnTo should be preserved",
 );
 assert(
+  route.report({ detail: "training" }) === "/packageDeeptutor/pages/report/report?detail=training",
+  "report route helper should preserve detail query",
+);
+assert(
   route.resolveInternalUrl("/pages/report/report?from=profile", fallback) ===
     "/packageDeeptutor/pages/report/report?from=profile",
   "known deeptutor main-page alias should be normalized into package route",

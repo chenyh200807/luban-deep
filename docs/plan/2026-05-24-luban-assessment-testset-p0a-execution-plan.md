@@ -642,6 +642,82 @@ Acceptance:
 
 - Phase 1 does not start until signoff status is recorded.
 
+### Task 7.5: P0A+ Topic TestSet Catalog And Form Bank
+
+**Files:**
+
+- Create: `deeptutor/services/assessment/topic_catalog.py`
+- Create: `scripts/seed_assessment_topic_catalog_forms.py`
+- Create: `tests/services/assessment/test_topic_catalog.py`
+- Create: `tests/scripts/test_assessment_topic_catalog_scripts.py`
+- Modify: `deeptutor/services/assessment/blueprint.py`
+- Modify: `deeptutor/services/assessment/blueprint_service.py`
+- Modify: `deeptutor/services/member_console/service.py`
+- Modify: `deeptutor/api/routers/mobile.py`
+- Modify: `yousenwebview/packageDeeptutor/pages/assessment/assessment.{js,wxml,wxss}`
+- Modify: `yousenwebview/tests/test_assessment_testset_view_model.js`
+
+Scope: this is a P0A+ closeout task after the waterproof P0A path works. It expands the entry from one topic to a governed catalog; it does not add CAT, teacher authoring UI, P1 deep explanations, or new learner mastery authority.
+
+- [ ] Define the required topic catalog:
+  - `waterproof`
+  - `decoration`
+  - `mep`
+  - `foundation`
+  - `main_structure`
+  - `formwork_scaffold`
+  - `safety`
+  - `schedule`
+  - `contract_claim`
+  - `quality_acceptance`
+- [ ] Each topic blueprint delivers 12 scored items through 3 section specs × 4 items, with strict topic filters and section-level rotation floors.
+- [ ] Run coverage/form-bank gate for every topic:
+  - `stable`: at least 5 active persisted forms
+  - `pilot`: 3-4 active persisted forms
+  - `authoring_needed`: fewer than 3 active persisted forms
+- [ ] Runtime catalog status must validate persisted form bank quality before enabling a topic; a topic with 5 active rows but duplicate/bad items is `authoring_needed`, not `stable`.
+- [ ] Persist stable/pilot form banks into `assessment_forms` only after dry-run, target-database guard, and reviewed candidate output.
+- [ ] Add `GET /api/v1/assessment/topics` as a non-chat, non-streaming HTTP adapter; it reads catalog status only and must not start a turn.
+- [ ] Add a separate `recommendation` read model beside the catalog:
+  - insufficient learning signal -> recommend `diagnostic_v1` / 20-question comprehensive diagnostic
+  - weak enabled topic signal -> recommend that topic TestSet
+  - never recommend `authoring_needed`
+  - never write `training_intent`
+- [ ] Update Yousen assessment page to show a “专题测评目录”; disabled topics show maintenance state and cannot start a formal TestSet.
+- [ ] `create_assessment(assessment_type=topic_diagnostic, topic_ids=[...])` must resolve the selected topic blueprint instead of hard-coding waterproof.
+- [ ] If a topic is `authoring_needed`, block opening the formal assessment and hand off to Task 2.5 authoring backlog.
+
+Run:
+
+```bash
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor && \
+PYTHONPATH=. pytest \
+  tests/services/assessment/test_topic_catalog.py \
+  tests/scripts/test_assessment_topic_catalog_scripts.py \
+  tests/api/test_mobile_assessment_payload_redaction.py \
+  tests/api/test_mobile_router.py \
+  tests/services/member_console/test_service.py \
+  -q && \
+node yousenwebview/tests/test_assessment_testset_view_model.js
+```
+
+Supabase pre-generation:
+
+```bash
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor && \
+PYTHONPATH=. python scripts/seed_assessment_topic_catalog_forms.py --dry-run
+
+cd /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor && \
+PYTHONPATH=. python scripts/seed_assessment_topic_catalog_forms.py --persist
+```
+
+Acceptance:
+
+- Every catalog topic is classified from persisted form count, not frontend constants.
+- Stable topics have 5 forms × 12 items, with 60 scored items and 60 unique scored source IDs.
+- Mini-program first screen exposes the catalog, and `开始诊断` sends the selected topic id.
+- No single-form topic is exposed as a formal TestSet.
+
 ### Task 8: Phase 0 Exit Gate / Phase 1 Entry Lock
 
 **Files:**

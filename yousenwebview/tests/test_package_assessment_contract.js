@@ -113,6 +113,15 @@ function loadPage(apiOverrides) {
           chat: function () {
             return "/packageDeeptutor/pages/chat/chat";
           },
+          report: function () {
+            return "/packageDeeptutor/pages/report/report";
+          },
+        };
+      }
+      if (request === "../../utils/runtime") {
+        return {
+          setWorkspaceBack: function () {},
+          setPendingChatIntent: function () {},
         };
       }
       if (request === "../../utils/helpers") {

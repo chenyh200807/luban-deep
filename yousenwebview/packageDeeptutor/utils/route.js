@@ -87,8 +87,8 @@ module.exports = {
   history: function () {
     return resolve("pages/history/history");
   },
-  report: function () {
-    return resolve("pages/report/report");
+  report: function (query) {
+    return withQuery("pages/report/report", query);
   },
   mistakeBook: function () {
     return resolve("pages/mistake-book/mistake-book");

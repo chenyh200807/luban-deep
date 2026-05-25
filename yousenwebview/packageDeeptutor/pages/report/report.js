@@ -1247,12 +1247,15 @@ Page({
   _radarSignature: "",
   _reportSnapshot: null,
 
-  onLoad() {
+  onLoad(options) {
     const windowInfo = helpers.getWindowInfo();
     const navHeight = windowInfo.statusBarHeight + 44;
+    const requestedDetail = options && options.detail ? String(options.detail) : "";
     this.setData({
       statusBarHeight: windowInfo.statusBarHeight,
       navHeight,
+      reportDetailView: REPORT_DETAIL_TITLES[requestedDetail] ? requestedDetail : this.data.reportDetailView,
+      reportDetailTitle: REPORT_DETAIL_TITLES[requestedDetail] || this.data.reportDetailTitle,
       reportModuleHintVisible: this._shouldShowReportModuleHint(),
     });
   },

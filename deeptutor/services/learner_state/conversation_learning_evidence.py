@@ -13,6 +13,8 @@ _SIGNAL_TYPES = {
     "mistake_explain",
     "still_confused",
     "home_prompt_clicked",
+    "assessment_wrong_item_practice",
+    "training_completed",
 }
 _NON_LEARNING_RE = re.compile(
     r"(你好|您好|早上好|晚上好|谢谢|再见|登录|支付|会员|余额|订单|页面|按钮|打不开|系统繁忙|稍后再试|网络异常)"
@@ -65,6 +67,11 @@ def build_learning_evidence_from_conversation_turn(
         "learning_signal_type": signal_type,
         "subject_id": normalized_subject_id,
         "training_intent_id": normalized_training_intent_id or None,
+        "attempt_ref": str(intent.get("attempt_ref") or "").strip(),
+        "evidence_refs": _intent_evidence_refs(intent),
+        "training_question_count": _positive_int(
+            intent.get("completed_question_count") or intent.get("question_count"),
+        ),
         "conversation_turn_ref": str(turn_ref or "").strip(),
         "user_question": redacted_question,
         "user_question_redacted": redacted,
@@ -185,6 +192,9 @@ def _learning_signal_type(
     explicit_signal = str(explicit or "").strip()
     if explicit_signal in _SIGNAL_TYPES:
         return explicit_signal
+    intent_signal = str(prompt_intent.get("learning_signal_type") or "").strip()
+    if intent_signal in _SIGNAL_TYPES:
+        return intent_signal
     if prompt_intent:
         return "home_prompt_clicked"
     if _STILL_CONFUSED_RE.search(text):
@@ -252,6 +262,26 @@ def _source_refs(*, assistant: dict[str, Any], explicit: list[dict[str, Any]] | 
             if isinstance(item, dict):
                 refs.append(dict(item))
     return refs[:8]
+
+
+def _intent_evidence_refs(intent: dict[str, Any]) -> list[str]:
+    refs: list[str] = []
+    for value in list(intent.get("evidence_refs") or []):
+        text = str(value or "").strip()
+        if text and text not in refs:
+            refs.append(text)
+    attempt_ref = str(intent.get("attempt_ref") or "").strip()
+    if attempt_ref and attempt_ref not in refs:
+        refs.append(attempt_ref)
+    return refs[:5]
+
+
+def _positive_int(value: Any) -> int:
+    try:
+        number = int(value or 0)
+    except (TypeError, ValueError):
+        return 0
+    return max(0, number)
 
 
 def _concept_from_refs(refs: list[dict[str, Any]]) -> str:

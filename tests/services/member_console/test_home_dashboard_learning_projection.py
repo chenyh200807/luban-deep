@@ -237,6 +237,29 @@ def test_missing_projection_recovers_from_assessment_learning_evidence() -> None
     assert dashboard["source_status"]["recovered_from"] == "learner_memory_events.learning_evidence"
 
 
+def test_training_completion_projection_recommends_topic_retest() -> None:
+    projection = build_home_personalization_projection_from_learning_signal(
+        {
+            "event_type": "learning_evidence",
+            "learning_signal_type": "training_completed",
+            "subject_id": "construction_exam",
+            "concept": {"label": "地下防水"},
+            "error": {"label": "M01"},
+            "attempt_ref": "attempt_signed",
+            "evidence_refs": ["attempt_signed"],
+        },
+        generated_at=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
+    )
+
+    assert projection is not None
+    first_prompt = projection["recommended_prompts"][0]
+    assert first_prompt["prompt_type"] == "assessment"
+    assert first_prompt["text"] == "再测一次地下防水"
+    assert first_prompt["intent"]["learning_signal_type"] == "assessment"
+    assert first_prompt["intent"]["concept_label"] == "地下防水"
+    assert first_prompt["intent"]["evidence_refs"] == ["attempt_signed"]
+
+
 def test_malformed_projection_falls_back_instead_of_leaking_bad_shape() -> None:
     malformed_projection = {
         "generated_at": datetime(2026, 5, 21, 9, 0, tzinfo=_TZ).isoformat(),
