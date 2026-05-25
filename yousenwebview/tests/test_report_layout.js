@@ -117,6 +117,13 @@ assert(
   "assessment module should not duplicate the training detail route",
 );
 assertIncludes(reportWxml, "训练闭环", "training detail should explain the diagnosis-repair-verification loop");
+assertIncludes(reportWxml, "training-action-card", "training detail should expose a one-tap execution action");
+assertIncludes(reportWxml, "battle-plan-action", "training prescription should repeat the execution action near the concrete plan");
+assertIncludes(reportWxml, "bindtap=\"executeTrainingAction\"", "training execution CTA should have a concrete tap handler");
+assertIncludes(reportSource, "_buildTrainingExecutionAction", "report page should derive execution action from the existing prescription");
+assertIncludes(reportSource, "runtime.setPendingChatIntent", "active prescription execution should route into chat with a training prompt");
+assertIncludes(reportSource, "route.assessment()", "degraded prescription execution should route into the assessment flow");
+assertIncludes(reportSource, "route.chat()", "active prescription execution should route to the chat workspace");
 assertIncludes(reportWxml, "先看结论，再决定是否深入", "home page should separate conclusions from module navigation");
 assertIncludes(reportWxml, "深入查看", "home page should expose detail modules as a separate toolbox section");
 assertIncludes(reportWxml, "module-onboarding-tip", "clickable detail modules should expose a first-use affordance");

@@ -753,6 +753,13 @@
           <text>{{prescriptionSteps.length || 1}} 个步骤</text>
           <text>{{prescriptionStatus == 'degraded' ? '待校准' : '可执行'}}</text>
         </view>
+        <view class="training-action-card" bindtap="executeTrainingAction" hover-class="training-action-card-pressed">
+          <view>
+            <text class="training-action-title">{{trainingExecutionAction.label}}</text>
+            <text class="training-action-desc">{{trainingExecutionAction.hint}}</text>
+          </view>
+          <text class="training-action-arrow">›</text>
+        </view>
       </view>
 
       <view class="section-header">
@@ -790,6 +797,10 @@
             <text class="battle-plan-label">建议投入</text>
             <text class="battle-plan-value">{{battlePlan.timeBudget}}</text>
           </view>
+        </view>
+        <view class="battle-plan-action" bindtap="executeTrainingAction" hover-class="battle-plan-action-pressed">
+          <text>{{trainingExecutionAction.label}}</text>
+          <text>{{trainingExecutionAction.type == 'assessment' ? '去测评' : '去对话'}}</text>
         </view>
       </view>
       </block>
