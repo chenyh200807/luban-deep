@@ -189,6 +189,9 @@ Overlay 必须支持：
   或脚本各自实现成第二套 reader。
 - `dedupe_key` 命中已有事件时必须返回原事件，不能重新生成 event_id 或再次写入 outbox。
   重复作答若要形成 L1/L2 证据，dedupe_key 必须包含 turn/session/attempt 级输入边界。
+- `dedupe_key` 命中已有本地 JSONL 事件时，`LearnerStateService` 仍必须确保同一事件存在
+  durable outbox 行。已有事件不能因为本地去重而跳过 remote writeback；否则生产 remote-first
+  reader 会长期读不到这条证据。
 - 单条 evidence 详情读取必须走 indexed reader：
   `LearnerStateService.read_learning_evidence_event(user_id, event_id)`。Supabase core store
   必须按 `user_id + event_id + memory_kind=learning_evidence` 直读；只有本地 dev store

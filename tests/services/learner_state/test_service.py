@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import sqlite3
 
 import pytest
 
@@ -243,6 +244,50 @@ def test_learner_state_context_renders_learning_evidence_events(tmp_path) -> Non
         "行政法规与部门规章辨析" in str(candidate.get("content") or "")
         for candidate in candidates.get("candidates", [])
     )
+
+
+def test_append_memory_event_dedupe_recreates_missing_outbox_row(tmp_path) -> None:
+    service = _make_service(tmp_path)
+    first = service.append_memory_event(
+        "student_demo",
+        source_feature="assessment_testset",
+        source_id="quiz_1:q_1",
+        source_bot_id="construction-exam-coach",
+        memory_kind="learning_evidence",
+        payload_json={
+            "event_type": "learning_evidence",
+            "question_id": "q_1",
+            "knowledge_points": ["防水工程"],
+            "is_correct": False,
+        },
+        dedupe_key="assessment_item:student_demo:quiz_1:q_1",
+    )
+    with sqlite3.connect(service.outbox_service.db_path) as conn:
+        conn.execute(
+            "delete from learner_state_outbox where dedupe_key = ?",
+            ("assessment_item:student_demo:quiz_1:q_1",),
+        )
+
+    second = service.append_memory_event(
+        "student_demo",
+        source_feature="assessment_testset",
+        source_id="quiz_1:q_1",
+        source_bot_id="construction-exam-coach",
+        memory_kind="learning_evidence",
+        payload_json={
+            "event_type": "learning_evidence",
+            "question_id": "q_1",
+            "knowledge_points": ["防水工程"],
+            "is_correct": False,
+        },
+        dedupe_key="assessment_item:student_demo:quiz_1:q_1",
+    )
+
+    assert second.event_id == first.event_id
+    pending = service.outbox_service.list_pending(user_id="student_demo", limit=10)
+    assert len(pending) == 1
+    assert pending[0].id == first.event_id
+    assert pending[0].dedupe_key == "assessment_item:student_demo:quiz_1:q_1"
 
 
 def test_read_learning_evidence_event_local_hit_miss_and_cache(tmp_path) -> None:
