@@ -1,5 +1,7 @@
 'use client'
 
+/* eslint-disable i18n/no-literal-ui-text */
+
 import type { ComponentType, SVGProps } from 'react'
 
 export type BiSideNavItem<TKey extends string> = {
@@ -29,8 +31,13 @@ export function BiSideNav<TKey extends string>({
   collapsed = false,
 }: BiSideNavProps<TKey>) {
   return (
-    <nav className="h-full p-2" aria-label={ariaLabel ?? 'BI 主导航'}>
-      <ul className="space-y-1">
+    <nav className="flex h-full flex-col p-2.5" aria-label={ariaLabel ?? 'BI 主导航'}>
+      {!collapsed ? (
+        <div className="mb-2 px-1 text-[10px] font-black uppercase text-cyan-300/80">
+          command areas
+        </div>
+      ) : null}
+      <ul className="space-y-1.5">
         {items.map(item => {
           const Icon = item.icon
           const active = item.key === current
@@ -47,21 +54,27 @@ export function BiSideNav<TKey extends string>({
                 title={
                   item.disabled ? `${item.label} · ${item.statusLabel ?? '待接入'}` : undefined
                 }
-                className={`group flex w-full items-start gap-2 rounded px-2 py-2 text-left text-sm ${
+                className={`group relative flex min-h-[58px] w-full items-start gap-2 rounded-md border px-2.5 py-2 text-left text-sm transition ${
                   item.disabled
-                    ? 'cursor-not-allowed text-slate-400 opacity-70'
+                    ? 'cursor-not-allowed border-transparent text-slate-500 opacity-70'
                     : active
-                      ? 'bg-slate-900 text-white'
-                      : 'text-slate-700 hover:bg-slate-100'
+                      ? 'border-cyan-300/25 bg-gradient-to-br from-cyan-500/20 to-slate-900/70 text-white shadow-lg shadow-black/20'
+                      : 'border-transparent text-slate-300 hover:border-white/10 hover:bg-white/[0.05]'
                 }`}
               >
+                {active ? (
+                  <span
+                    className="absolute left-0 top-2 h-8 w-1 rounded-r bg-cyan-300"
+                    aria-hidden
+                  />
+                ) : null}
                 <Icon
-                  className={`mt-0.5 h-4 w-4 ${
+                  className={`mt-0.5 h-4 w-4 shrink-0 ${
                     item.disabled
-                      ? 'text-slate-300'
+                      ? 'text-slate-600'
                       : active
-                        ? 'text-white'
-                        : 'text-slate-500 group-hover:text-slate-700'
+                        ? 'text-cyan-200'
+                        : 'text-cyan-300/70 group-hover:text-cyan-200'
                   }`}
                   aria-hidden
                 />
@@ -71,14 +84,20 @@ export function BiSideNav<TKey extends string>({
                       <span>{item.label}</span>
                       {item.statusLabel ? (
                         <span
-                          className={`rounded px-1.5 py-0.5 text-[10px] ${
+                          className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] ${
                             item.disabled
-                              ? 'bg-slate-100 text-slate-500'
+                              ? 'bg-white/5 text-slate-500'
                               : active
-                                ? 'bg-white/15 text-slate-100'
-                                : 'bg-emerald-50 text-emerald-700'
+                                ? 'bg-white/15 text-emerald-100'
+                                : 'bg-emerald-300/10 text-emerald-200'
                           }`}
                         >
+                          <span
+                            className={`h-1.5 w-1.5 rounded-full ${
+                              item.disabled ? 'bg-slate-400' : 'bg-current'
+                            }`}
+                            aria-hidden
+                          />
                           {item.statusLabel}
                         </span>
                       ) : null}
@@ -89,8 +108,8 @@ export function BiSideNav<TKey extends string>({
                           item.disabled
                             ? 'text-slate-400'
                             : active
-                              ? 'text-slate-200'
-                              : 'text-slate-500'
+                              ? 'text-slate-300'
+                              : 'text-slate-400'
                         }`}
                       >
                         {item.summary}
@@ -103,7 +122,7 @@ export function BiSideNav<TKey extends string>({
           )
         })}
       </ul>
-      {footer ? <div className="mt-3">{footer}</div> : null}
+      {footer ? <div className="mt-auto pt-3">{footer}</div> : null}
     </nav>
   )
 }

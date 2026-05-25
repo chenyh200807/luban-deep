@@ -128,24 +128,25 @@ export function BiDataTable<T>({
     selectable && visibleRows.length > 0 && visibleRows.every(r => selectedKeys?.has(rowKey(r)))
 
   return (
-    <div className="overflow-hidden rounded-md border border-slate-200 bg-white">
+    <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0e1624] shadow-lg shadow-black/20">
       {staleNote && status === 'stale' ? (
-        <div className="border-b border-amber-200 bg-amber-50 px-3 py-2 text-[11px] text-amber-800">
+        <div className="border-b border-amber-300/25 bg-amber-300/10 px-3 py-2 text-[11px] text-amber-100">
           {staleNote}
         </div>
       ) : null}
       <div className="relative overflow-x-auto">
-        <table className="w-full text-xs">
+        <table className="w-full min-w-[760px] border-separate border-spacing-0 bg-[#0e1624] text-xs text-slate-200">
           {caption ? <caption className="sr-only">{caption}</caption> : null}
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50 text-left text-[11px] uppercase tracking-wide text-slate-500">
+            <tr className="text-left text-[11px] uppercase text-slate-400">
               {selectable ? (
-                <th className="px-3 py-2">
+                <th className="sticky top-0 z-[1] border-b border-white/10 bg-[#151d2b] px-3 py-2">
                   <input
                     type="checkbox"
                     aria-label="全选当前页"
                     checked={allSelected}
                     onChange={() => onToggleAll?.(!allSelected)}
+                    className="h-4 w-4 rounded border-slate-300"
                   />
                 </th>
               ) : null}
@@ -154,7 +155,7 @@ export function BiDataTable<T>({
                 return (
                   <th
                     key={c.key}
-                    className={`px-3 py-2 font-medium ${
+                    className={`sticky top-0 z-[1] border-b border-white/10 bg-[#151d2b] px-3 py-2 font-bold ${
                       c.align === 'right'
                         ? 'text-right'
                         : c.align === 'center'
@@ -167,7 +168,7 @@ export function BiDataTable<T>({
                       <button
                         type="button"
                         onClick={() => onSort(c.key)}
-                        className="inline-flex items-center gap-1 hover:text-slate-900"
+                        className="inline-flex items-center gap-1 hover:text-cyan-200"
                         aria-label={`按 ${c.label} ${sorted && sortDir === 'asc' ? '降序' : '升序'} 排序`}
                       >
                         {c.label}
@@ -185,7 +186,11 @@ export function BiDataTable<T>({
                   </th>
                 )
               })}
-              {rowAction ? <th className="px-3 py-2 text-right">动作</th> : null}
+              {rowAction ? (
+                <th className="sticky right-0 top-0 z-[2] border-b border-l border-white/10 bg-[#151d2b] px-3 py-2 text-right font-bold">
+                  动作
+                </th>
+              ) : null}
             </tr>
           </thead>
           <tbody>
@@ -217,22 +222,23 @@ export function BiDataTable<T>({
                 return (
                   <tr
                     key={key}
-                    className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
+                    className="group border-b border-white/5 bg-[#0e1624] last:border-0 hover:bg-cyan-300/[0.06]"
                   >
                     {selectable ? (
-                      <td className="px-3 py-2">
+                      <td className="border-b border-white/5 bg-[#0e1624] px-3 py-2 align-top group-hover:bg-cyan-300/[0.04]">
                         <input
                           type="checkbox"
                           aria-label={`选择 ${key}`}
                           checked={selectedKeys?.has(key) ?? false}
                           onChange={() => onToggleRow?.(key)}
+                          className="h-4 w-4 rounded border-slate-300"
                         />
                       </td>
                     ) : null}
                     {columns.map(c => (
                       <td
                         key={c.key}
-                        className={`px-3 py-2 ${
+                        className={`border-b border-white/5 bg-[#0e1624] px-3 py-2 align-top text-slate-200 group-hover:bg-cyan-300/[0.04] ${
                           c.align === 'right'
                             ? 'text-right'
                             : c.align === 'center'
@@ -243,7 +249,11 @@ export function BiDataTable<T>({
                         {c.render(row)}
                       </td>
                     ))}
-                    {rowAction ? <td className="px-3 py-2 text-right">{rowAction(row)}</td> : null}
+                    {rowAction ? (
+                      <td className="sticky right-0 border-b border-l border-white/10 bg-[#101622] px-3 py-2 text-right align-top group-hover:bg-[#102035]">
+                        {rowAction(row)}
+                      </td>
+                    ) : null}
                   </tr>
                 )
               })}
@@ -252,7 +262,7 @@ export function BiDataTable<T>({
               <tr ref={sentinelRef} aria-hidden data-bi-table-sentinel>
                 <td
                   colSpan={columns.length + (selectable ? 1 : 0) + (rowAction ? 1 : 0)}
-                  className="px-3 py-2 text-center text-[11px] text-slate-500"
+                  className="px-3 py-2 text-center text-[11px] text-slate-400"
                 >
                   {cursor?.loading ? '正在加载下一页…' : '滚动到底自动加载下一页'}
                 </td>
@@ -263,7 +273,7 @@ export function BiDataTable<T>({
       </div>
       {(status === 'ok' || status === 'stale') &&
       (rows.length > pageSize || cursor?.hasMore || cursorFooter) ? (
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 bg-slate-50 px-3 py-2 text-[11px] text-slate-600">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 bg-white/[0.03] px-3 py-2 text-[11px] text-slate-400">
           <span>
             显示 {visibleRows.length} / {cursor?.total ?? rows.length}
             {rows.length >= LARGE_SET_WARNING_THRESHOLD ? (
@@ -278,7 +288,7 @@ export function BiDataTable<T>({
               <button
                 type="button"
                 onClick={() => setVisibleCount(prev => Math.min(prev + pageSize, rows.length))}
-                className="rounded border border-slate-200 bg-white px-2 py-0.5 text-slate-700 hover:bg-slate-100"
+                className="rounded-lg border border-white/10 bg-white/[0.06] px-2 py-0.5 text-slate-200 hover:bg-white/10"
                 aria-label={`加载下一页 (${pageSize} 行)`}
               >
                 加载下一页
@@ -289,7 +299,7 @@ export function BiDataTable<T>({
                 type="button"
                 disabled={cursor.loading}
                 onClick={() => cursor.onLoadMore()}
-                className="rounded border border-slate-200 bg-white px-2 py-0.5 text-slate-700 hover:bg-slate-100 disabled:opacity-50"
+                className="rounded-lg border border-white/10 bg-white/[0.06] px-2 py-0.5 text-slate-200 hover:bg-white/10 disabled:opacity-50"
                 aria-label="从服务端加载下一页"
               >
                 {cursor.loading ? '加载中…' : '加载下一页'}
@@ -305,7 +315,7 @@ export function BiDataTable<T>({
 function LoadingRow({ span }: { span: number }) {
   return (
     <tr>
-      <td className="px-3 py-10 text-center text-slate-500" colSpan={span}>
+      <td className="px-3 py-10 text-center text-slate-400" colSpan={span}>
         <span className="inline-flex items-center gap-2">
           <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
           加载中…
@@ -318,7 +328,7 @@ function LoadingRow({ span }: { span: number }) {
 function ErrorRow({ span, message }: { span: number; message?: ReactNode }) {
   return (
     <tr>
-      <td className="px-3 py-10 text-center text-rose-700" colSpan={span}>
+      <td className="bg-[#0e1624] px-3 py-10 text-center text-rose-200" colSpan={span}>
         <span className="inline-flex items-center gap-2">
           <AlertCircle className="h-4 w-4" aria-hidden />
           {message ?? '数据加载失败，请重试。'}
@@ -331,11 +341,11 @@ function ErrorRow({ span, message }: { span: number; message?: ReactNode }) {
 function EmptyRow({ span, title, hint }: { span: number; title: string; hint?: ReactNode }) {
   return (
     <tr>
-      <td className="px-3 py-10 text-center text-slate-500" colSpan={span}>
+      <td className="px-3 py-10 text-center text-slate-400" colSpan={span}>
         <div className="inline-flex flex-col items-center gap-1">
           <Inbox className="h-5 w-5" aria-hidden />
-          <span className="font-medium text-slate-700">{title}</span>
-          {hint ? <span className="text-[11px] text-slate-500">{hint}</span> : null}
+          <span className="font-medium text-slate-200">{title}</span>
+          {hint ? <span className="text-[11px] text-slate-400">{hint}</span> : null}
         </div>
       </td>
     </tr>
@@ -345,10 +355,10 @@ function EmptyRow({ span, title, hint }: { span: number; title: string; hint?: R
 function NoResultsRow({ span, hint }: { span: number; hint?: ReactNode }) {
   return (
     <tr>
-      <td className="px-3 py-10 text-center text-slate-500" colSpan={span}>
+      <td className="px-3 py-10 text-center text-slate-400" colSpan={span}>
         <div className="inline-flex flex-col items-center gap-1">
-          <span className="font-medium text-slate-700">当前筛选无结果</span>
-          {hint ?? <span className="text-[11px] text-slate-500">尝试放宽条件或清除筛选。</span>}
+          <span className="font-medium text-slate-200">当前筛选无结果</span>
+          {hint ?? <span className="text-[11px] text-slate-400">尝试放宽条件或清除筛选。</span>}
         </div>
       </td>
     </tr>

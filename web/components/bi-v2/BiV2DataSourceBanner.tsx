@@ -10,10 +10,10 @@ export type BiV2DataSourceBannerProps = {
 }
 
 const TONE_CLASS: Record<BiV2DataSourceBannerTone, string> = {
-  amber: 'border-amber-200 bg-amber-50 text-amber-800',
-  sky: 'border-sky-200 bg-sky-50 text-sky-800',
-  emerald: 'border-emerald-200 bg-emerald-50 text-emerald-800',
-  rose: 'border-rose-200 bg-rose-50 text-rose-800',
+  amber: 'border-amber-300/25 bg-amber-300/10 text-amber-100',
+  sky: 'border-cyan-300/25 bg-cyan-300/10 text-cyan-100',
+  emerald: 'border-emerald-300/25 bg-emerald-300/10 text-emerald-100',
+  rose: 'border-rose-300/25 bg-rose-300/10 text-rose-100',
 }
 
 export function BiV2DataSourceBanner({
@@ -24,7 +24,7 @@ export function BiV2DataSourceBanner({
 }: BiV2DataSourceBannerProps) {
   return (
     <div
-      className={`flex flex-wrap items-center justify-between gap-2 rounded-md border px-3 py-2 text-xs ${TONE_CLASS[tone]}`}
+      className={`flex flex-wrap items-center justify-between gap-2 rounded-2xl border px-3 py-2 text-xs shadow-sm shadow-black/10 ${TONE_CLASS[tone]}`}
       role={role}
     >
       <div className="min-w-0 flex-1 leading-relaxed">{children}</div>
