@@ -536,8 +536,15 @@ class LearnerStateService:
                     if is_production_environment():
                         return []
                 else:
-                    if remote_events or is_production_environment():
-                        return remote_events
+                    if remote_events:
+                        events = _dedupe_events_by_id([*remote_events, *local_events])
+                        if limit is None or limit < 0:
+                            return events
+                        return events[-max(int(limit), 0):]
+                    if is_production_environment():
+                        if limit is None or limit < 0:
+                            return local_events
+                        return local_events[-max(int(limit), 0):]
 
         events = local_events
         if limit is None or limit < 0:
@@ -604,9 +611,6 @@ class LearnerStateService:
                 except Exception:
                     if is_production_environment():
                         return []
-            if is_production_environment():
-                return events
-
         events = _dedupe_events_by_id([*events, *local_events])
         if limit is None or limit < 0:
             return events
