@@ -85,6 +85,47 @@
 .stat-num { font-size: 44rpx; font-weight: 800; color: #60a5fa; }
 .stat-label { font-size: 22rpx; color: rgba(255,255,255,0.4); }
 
+.mode-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16rpx;
+  margin-bottom: 28rpx;
+}
+.mode-card {
+  min-height: 112rpx;
+  padding: 22rpx;
+  border-radius: 16rpx;
+  background: rgba(255,255,255,0.04);
+  border: 2rpx solid rgba(255,255,255,0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8rpx;
+}
+.mode-card.selected {
+  border-color: rgba(96,165,250,0.86);
+  background: rgba(37,99,235,0.18);
+}
+.mode-title-row { display: flex; align-items: center; gap: 10rpx; }
+.mode-title { font-size: 28rpx; font-weight: 800; color: #fff; }
+.mode-desc { font-size: 21rpx; color: rgba(255,255,255,0.5); }
+.recommend-badge {
+  padding: 4rpx 10rpx;
+  border-radius: 999rpx;
+  background: rgba(34,197,94,0.18);
+  color: #86efac;
+  font-size: 19rpx;
+  font-weight: 700;
+}
+.recommend-badge.small { font-size: 18rpx; padding: 3rpx 8rpx; }
+.recommend-reason {
+  display: block;
+  margin: -8rpx 0 24rpx;
+  font-size: 23rpx;
+  line-height: 1.5;
+  color: rgba(191,219,254,0.82);
+}
+
 .topic-catalog {
   margin-bottom: 36rpx;
 }
@@ -107,7 +148,8 @@
 .topic-card.disabled { opacity: 0.48; }
 .topic-name { font-size: 26rpx; font-weight: 700; color: #fff; }
 .topic-desc { font-size: 21rpx; line-height: 1.35; color: rgba(255,255,255,0.52); }
-.topic-status { margin-top: auto; font-size: 21rpx; color: rgba(191,219,254,0.82); }
+.topic-status-row { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 10rpx; }
+.topic-status { font-size: 21rpx; color: rgba(191,219,254,0.82); }
 
 /* 特性列表 */
 .welcome-features { margin-bottom: 48rpx; padding: 0 8rpx; }
@@ -380,6 +422,18 @@
 }
 .assess-page.light .stat-num { color: #2563eb; }
 .assess-page.light .stat-label { color: #666; }
+.assess-page.light .mode-card {
+  background: rgba(255,255,255,0.9);
+  border-color: #e5e5e5;
+}
+.assess-page.light .mode-card.selected {
+  background: rgba(37,99,235,0.08);
+  border-color: rgba(37,99,235,0.42);
+}
+.assess-page.light .mode-title { color: #0f172a; }
+.assess-page.light .mode-desc { color: #64748b; }
+.assess-page.light .recommend-reason { color: #2563eb; }
+.assess-page.light .recommend-badge { background: rgba(22, 163, 74, 0.12); color: #15803d; }
 
 /* 特性列表 */
 .assess-page.light .feature-txt { color: #333; }
@@ -577,6 +631,28 @@
   margin-top: 8rpx;
 }
 
+.wrong-practice-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56rpx;
+  margin-top: 16rpx;
+  padding: 0 22rpx;
+  border-radius: 8rpx;
+  background: rgba(59, 130, 246, 0.18);
+  border: 1rpx solid rgba(96, 165, 250, 0.34);
+}
+
+.wrong-practice-btn text {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: #bfdbfe;
+}
+
+.wrong-practice-btn:active {
+  opacity: 0.82;
+}
+
 .deep-disabled {
   text-align: center;
   background: rgba(100, 116, 139, 0.14);
@@ -604,4 +680,13 @@
 .assess-page.light .degraded-title,
 .assess-page.light .wrong-title {
   color: #0f172a;
+}
+
+.assess-page.light .wrong-practice-btn {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.assess-page.light .wrong-practice-btn text {
+  color: #1d4ed8;
 }

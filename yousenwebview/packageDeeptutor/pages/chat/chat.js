@@ -472,7 +472,12 @@ Page({
         var pendingIntent = runtime.consumePendingChatIntent();
         if (pendingIntent.query && !self.data.isStreaming) {
           self.setData({ answerMode: pendingIntent.mode || "AUTO" });
-          self._send(pendingIntent.query);
+          if (pendingIntent.promptIntent) {
+            self._activeAssessmentTrainingIntent = pendingIntent.promptIntent;
+          }
+          self._send(pendingIntent.query, {
+            promptIntent: pendingIntent.promptIntent || null,
+          });
         }
       })
       .catch(function (e) {
@@ -2349,6 +2354,12 @@ Page({
       for (var i = 0; i < questions.length; i++) {
         questions[i].receipt = msg.mcqReceipt;
       }
+    }
+    if (this._activeAssessmentTrainingIntent && payload.structuredSubmitContext) {
+      payload.promptIntent = Object.assign({}, this._activeAssessmentTrainingIntent, {
+        learning_signal_type: "training_completed",
+        completed_question_count: (payload.structuredSubmitContext.answers || []).length,
+      });
     }
     this._send(payload.text, payload);
   },

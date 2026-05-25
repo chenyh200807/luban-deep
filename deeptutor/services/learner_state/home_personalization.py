@@ -102,6 +102,14 @@ def build_home_personalization_projection_from_learning_signal(
             intent={**base_intent, "training_mode": "concept_explain", "reason": "home_projection_concept"},
         ),
     ]
+    if str(payload.get("learning_signal_type") or "").strip() == "training_completed":
+        prompts = [
+            _assessment_retest_prompt(
+                text=f"再测一次{prompt_concept}",
+                intent={**base_intent, "reason": "training_completion_retest"},
+            ),
+            *prompts[:2],
+        ]
     return {
         "generated_at": current_time.isoformat(),
         "source_status": {"fallback_used": False, "learning_report": "projection"},
@@ -277,6 +285,30 @@ def _projection_prompt(*, prompt_type: str, text: str, intent: dict[str, Any]) -
             "source_training_intent_id": intent.get("training_intent_id"),
             "learning_state_ref": learning_state_ref,
             "suggested_mode": suggested_mode,
+        },
+    }
+
+
+def _assessment_retest_prompt(*, text: str, intent: dict[str, Any]) -> dict[str, Any]:
+    evidence_refs = _normalize_refs(intent.get("evidence_refs"))
+    concept_label = str(intent.get("concept_label") or "").strip()
+    error_label = str(intent.get("error_label") or "").strip()
+    return {
+        "prompt_type": "assessment",
+        "text": text,
+        "evidence_refs": evidence_refs,
+        "learning_state_ref": str(intent.get("learning_state_ref") or "").strip(),
+        "suggested_mode": str(intent.get("suggested_mode") or "").strip(),
+        "intent": {
+            "source": "learner_state.home_personalization",
+            "reason": str(intent.get("reason") or "training_completion_retest"),
+            "learning_signal_type": "assessment",
+            "action_mode": "assessment",
+            "assessment_type": "topic_diagnostic",
+            "subject_id": str(intent.get("subject_id") or "").strip(),
+            "concept_label": concept_label,
+            "error_label": error_label,
+            "evidence_refs": evidence_refs,
         },
     }
 

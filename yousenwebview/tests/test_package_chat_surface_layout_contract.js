@@ -103,6 +103,16 @@ assert(
     chatWxss.indexOf(".mcq-review-notes") >= 0,
   "package question-review MCQ cards should expose learner-facing answer and explanation notes",
 );
+assert(
+  chatJs.indexOf("pendingIntent.promptIntent") >= 0 &&
+    chatJs.indexOf("_activeAssessmentTrainingIntent") >= 0,
+  "chat should preserve assessment wrong-item training context from pending intent",
+);
+assert(
+  chatJs.indexOf('learning_signal_type: "training_completed"') >= 0 &&
+    chatJs.indexOf("completed_question_count") >= 0,
+  "chat MCQ submit should mark assessment training completion for learning evidence",
+);
 
 if (fail) {
   console.error(errors.join("\n"));

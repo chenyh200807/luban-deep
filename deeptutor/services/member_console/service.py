@@ -56,6 +56,7 @@ from deeptutor.services.assessment.topic_catalog import (
     build_topic_assessment_blueprint,
     classify_topic_form_count,
     get_topic_testset_catalog,
+    recommend_assessment_entry,
     resolve_topic_testset_spec,
 )
 from deeptutor.services.assessment.writeback import AssessmentWritebackService
@@ -585,7 +586,7 @@ class MemberConsoleService:
     def generate_and_persist_assessment_forms(self) -> dict[str, Any]:
         return self._build_assessment_blueprint_service().generate_and_persist_forms()
 
-    def get_assessment_topic_catalog(self) -> dict[str, Any]:
+    def get_assessment_topic_catalog(self, user_id: str = "") -> dict[str, Any]:
         provider = SupabaseAssessmentQuestionProvider()
         use_supabase = is_production_environment() or env_flag(
             "ASSESSMENT_USE_SUPABASE",
@@ -628,7 +629,39 @@ class MemberConsoleService:
                     "quality_status": quality_status,
                 }
             )
-        return {"topics": topics}
+        weak_nodes, has_assessment_history = self._assessment_recommendation_signals(user_id)
+        return {
+            "recommendation": recommend_assessment_entry(
+                topics,
+                weak_nodes=weak_nodes,
+                has_assessment_history=has_assessment_history,
+            ),
+            "topics": topics,
+        }
+
+    def _assessment_recommendation_signals(self, user_id: str) -> tuple[list[dict[str, Any]], bool]:
+        if not str(user_id or "").strip():
+            return [], False
+        try:
+            member = self._load_member_snapshot(user_id)["member"]
+        except Exception:
+            logger.warning("Assessment recommendation signals unavailable: user_id=%s", user_id, exc_info=True)
+            return [], False
+        last_assessment_items = self._last_assessment_mastery_items(member)
+        if last_assessment_items:
+            weak_nodes = [
+                {"name": str(item.get("name") or ""), "mastery": int(item.get("mastery") or 0)}
+                for item in last_assessment_items
+                if int(item.get("mastery") or 0) < 60
+            ]
+            return weak_nodes, True
+        progress_items = self._chapter_mastery_items(member)
+        weak_nodes = [
+            {"name": str(item.get("name") or ""), "mastery": int(item.get("mastery") or 0)}
+            for item in progress_items
+            if int(item.get("mastery") or 0) < 60
+        ]
+        return weak_nodes, False
 
     def _write_assessment_learning_signals(
         self,
@@ -5036,12 +5069,18 @@ class MemberConsoleService:
             answers,
             time_spent_seconds=time_spent_seconds,
         )
+        topic_ids = list(session.get("topic_ids") or ["waterproof"])
+        try:
+            topic_spec = resolve_topic_testset_spec(topic_ids)
+            topic_label = f"{topic_spec.label}专题测评"
+        except TopicTestSetUnavailable:
+            topic_label = "专题测评"
         report = build_result_report(
             quiz_id=quiz_id,
             assessment_type="topic_diagnostic",
             subject_id=str(session.get("subject_id") or "construction_exam"),
-            topic_ids=list(session.get("topic_ids") or ["waterproof"]),
-            topic_label="防水专题测评",
+            topic_ids=topic_ids,
+            topic_label=topic_label,
             blueprint_version=str(session.get("blueprint_version") or "topic_waterproof_v1"),
             form_id=str(session.get("form_id") or ""),
             scored_result=scored_result,

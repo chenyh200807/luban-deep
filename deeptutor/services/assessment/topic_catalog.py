@@ -222,5 +222,64 @@ def classify_topic_form_count(form_count: int) -> TopicTestSetStatus:
     return "authoring_needed"
 
 
+def recommend_assessment_entry(
+    topics: list[dict[str, object]],
+    *,
+    weak_nodes: list[dict[str, object]],
+    has_assessment_history: bool,
+) -> dict[str, object]:
+    enabled_topic_ids = {
+        str(item.get("topic_id") or "")
+        for item in topics
+        if item.get("enabled") is True and str(item.get("topic_id") or "")
+    }
+    sorted_weak_nodes = sorted(
+        list(weak_nodes or []),
+        key=lambda item: int(item.get("mastery") or 0),
+    )
+    for weak_node in sorted_weak_nodes:
+        topic_id = _topic_id_from_learning_label(str(weak_node.get("name") or ""))
+        if topic_id and topic_id in enabled_topic_ids:
+            spec = get_topic_testset_spec(topic_id)
+            return {
+                "recommended_mode": "topic",
+                "recommended_topic_id": topic_id,
+                "recommended_label": f"{spec.label}专题测评",
+                "recommended_count": 12,
+                "reason": f"近期 {spec.short_label} 相关证据偏弱，建议先做一次专题测评。",
+                "source": "learner_state_weak_node",
+                "confidence": "medium" if has_assessment_history else "low",
+            }
+    return {
+        "recommended_mode": "diagnostic",
+        "recommended_topic_id": "",
+        "recommended_label": "综合摸底",
+        "recommended_count": 20,
+        "reason": "当前专题证据还不够稳定，建议先做 20 题综合摸底校准能力结构。",
+        "source": "insufficient_learning_signal",
+        "confidence": "low",
+    }
+
+
 def _normalize_topic_id(value: str) -> str:
     return str(value or "").strip().lower().replace("-", "_")
+
+
+def _topic_id_from_learning_label(label: str) -> str:
+    text = str(label or "")
+    aliases: tuple[tuple[str, tuple[str, ...]], ...] = (
+        ("waterproof", ("防水", "卷材", "涂膜", "屋面")),
+        ("decoration", ("装饰", "装修", "抹灰", "饰面", "吊顶", "幕墙", "门窗")),
+        ("mep", ("机电", "电气", "给排水", "通风", "空调", "设备")),
+        ("foundation", ("地基", "基础", "基坑", "桩", "土方", "验槽")),
+        ("main_structure", ("主体", "主体结构", "混凝土", "钢筋", "砌体", "施工缝")),
+        ("formwork_scaffold", ("模板", "脚手架", "脚手", "专项方案", "专家论证")),
+        ("safety", ("安全", "临时用电", "文明施工", "事故", "隐患")),
+        ("schedule", ("进度", "网络计划", "流水施工", "工期", "关键线路", "时差")),
+        ("contract_claim", ("合同", "索赔", "变更", "签证", "结算", "价款")),
+        ("quality_acceptance", ("质量验收", "检验批", "复验", "见证取样", "整改", "质量")),
+    )
+    for topic_id, keywords in aliases:
+        if any(keyword in text for keyword in keywords):
+            return topic_id
+    return ""

@@ -465,8 +465,10 @@ Catalog status rules:
 1. `stable`: 该专题已持久化至少 5 套 active `assessment_forms`，每套 12 题，scored `source_question_id` 跨 form 去重。
 2. `pilot`: 该专题已持久化 3-4 套 active forms；可开放，但前端和 QA 必须标记为试运行覆盖。
 3. `authoring_needed`: 少于 3 套 active forms；前端目录可展示维护态，但不得开放正式测评。
-4. Topic catalog 是 TestSet 启动前的 read model；它只读取 `assessment_forms` / blueprint coverage，不读取或推断 learner mastery。
-5. 批量预生成脚本必须先 dry-run，再在 `assert_target_database_is_main()` 通过后 persist；不允许第一个学员点击“开始诊断”时在线冷启动构建全专题 form bank。
+4. Runtime catalog 不能只数 active rows；达到 3/5 门槛后必须调用 persisted form-bank validator，确认题量、section floor、跨 form 去重均成立。验证失败时即使 active rows=5，也必须标记 `authoring_needed`。
+5. Topic catalog 是 TestSet 启动前的可用性 read model；它只读取 `assessment_forms` / blueprint coverage，不读取或推断 learner mastery。
+6. 个性化推荐必须作为 catalog 旁边的独立 `recommendation` read model：证据不足推荐 `diagnostic_v1` 20 题综合摸底；已有弱点且对应专题 enabled 时推荐该专题；不得推荐 `authoring_needed`；不得写 `training_intent` 或覆盖 study-plan 处方 authority。
+7. 批量预生成脚本必须先 dry-run，再在 `assert_target_database_is_main()` 通过后 persist；不允许第一个学员点击“开始诊断”时在线冷启动构建全专题 form bank。
 
 ### 6.2 Real exam simulation
 

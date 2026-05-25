@@ -9,6 +9,7 @@ from deeptutor.services.assessment.topic_catalog import (
     build_topic_assessment_blueprint,
     classify_topic_form_count,
     get_topic_testset_catalog,
+    recommend_assessment_entry,
     resolve_topic_testset_spec,
 )
 
@@ -53,3 +54,31 @@ def test_form_count_classification_is_fail_closed() -> None:
 def test_unknown_topic_is_not_mapped_to_waterproof() -> None:
     with pytest.raises(TopicTestSetUnavailable):
         resolve_topic_testset_spec(["unknown_topic"])
+
+
+def test_recommendation_defaults_to_diagnostic_when_learning_signal_is_insufficient() -> None:
+    recommendation = recommend_assessment_entry(
+        [{"topic_id": "main_structure", "status": "stable", "enabled": True, "label": "主体结构"}],
+        weak_nodes=[],
+        has_assessment_history=False,
+    )
+
+    assert recommendation["recommended_mode"] == "diagnostic"
+    assert recommendation["recommended_count"] == 20
+    assert recommendation["source"] == "insufficient_learning_signal"
+
+
+def test_recommendation_selects_enabled_topic_from_weak_node() -> None:
+    recommendation = recommend_assessment_entry(
+        [
+            {"topic_id": "waterproof", "status": "stable", "enabled": True, "label": "防水工程"},
+            {"topic_id": "main_structure", "status": "stable", "enabled": True, "label": "主体结构"},
+        ],
+        weak_nodes=[{"name": "主体结构施工缝", "mastery": 25}],
+        has_assessment_history=True,
+    )
+
+    assert recommendation["recommended_mode"] == "topic"
+    assert recommendation["recommended_topic_id"] == "main_structure"
+    assert recommendation["recommended_count"] == 12
+    assert recommendation["source"] == "learner_state_weak_node"
