@@ -182,11 +182,20 @@ Wrong-item cards: show user's answer, correct answer, simple rationale, and "练
 Report update: 今日处方 changed to 防水材料与构造, 约 8 分钟, 12 次证据, 先做 3 道“防水材料与构造”专项题.
 ```
 
-The "练 3 道同类题" buttons were verified as visible CTAs on wrong-item cards.
-They were not clicked through by coordinate automation because the DevTools
-accessibility bridge exposed no safe button click primitive in this run. Backend
-service smoke above already verified the corresponding writeback and report
-projection path.
+The "练 3 道同类题" buttons were verified as visible CTAs on wrong-item cards,
+then clicked through with WeChat DevTools automation after the route fix.
+
+```text
+DevTools automation ws=127.0.0.1:9421
+before_path=packageDeeptutor/pages/assessment/assessment
+after_path=packageDeeptutor/pages/report/report
+after_query.detail=training
+after_query.source=assessment_wrong_item
+after_query.attempt_ref=attempt_smoke_devtools_001
+storage.deeptutor.report.pendingTrainingAction.question_count=3
+storage.deeptutor.report.pendingTrainingAction.training_mode=same_type_repair
+assertion: not_chat=true
+```
 
 ## Automated Gates
 
@@ -237,10 +246,56 @@ node-id-guard: no hard-coded knowledge_node_id literals found
 - The result report remains `schema_version=p0a-v1` because the implemented P1
   explanation is returned out-of-band and does not alter stored report shape.
 
+## 2026-05-25 Final Production Smoke Addendum
+
+Production endpoint: `https://test2.yousenjiaoyu.com/api/v1`
+
+```text
+release_id=1.0.0+a7d2ee7aa12aca0946516e3e7218f5bf29554c27+production
+auth.register=true
+token_sha256_12=1fd8c3de3e9d
+profile_user_id=e75f5b70-145f-4176-91d9-997a89434602
+topics.topic_count=10
+```
+
+Topic diagnostic smoke:
+
+```text
+assessment_type=topic_diagnostic
+blueprint_version=topic_waterproof_v1
+form_source=supabase_persisted
+question_count=12
+submit_has_score=true
+score_pct=17
+report_quiz_match=true
+wrong_count=10
+deep_explanation_ready=true
+score_mutation_allowed=false
+pre_submit_redaction=passed
+```
+
+20-question mini simulation smoke:
+
+```text
+assessment_type=real_exam_simulation
+blueprint_version=real_exam_simulation_mini_v1
+form_source=supabase_questions_bank
+question_count=20
+submit_has_score=true
+score_pct=15
+report_quiz_match=true
+wrong_count=17
+deep_explanation_ready=true
+score_mutation_allowed=false
+pre_submit_redaction=passed
+```
+
 ## Release Readiness Verdict
 
-Current verdict: `AUTOMATED_READY_WITH_PROD_SMOKE_TOKEN_PENDING`.
+Current verdict: `PILOT_READY_WITH_MANUAL_SIGNOFF_ITEMS`.
 
-Automated backend, local service gates, RLS safety, and the WeChat DevTools
-visible loop are ready for pilot evidence. Remaining external gate: production
-HTTP smoke needs a real learner bearer token.
+Automated backend, production learner-token smoke, RLS safety, 20-question mini
+simulation, and WeChat DevTools wrong-item training click-through are now
+verified. Remaining non-automated items are product/ops signoffs: production
+migration governance for future schema changes, ongoing content authoring
+backlog review, and human spot-checks before broad rollout.
