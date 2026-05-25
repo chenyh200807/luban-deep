@@ -51,6 +51,12 @@ from deeptutor.services.assessment.session_repository import (
     SupabaseAssessmentSessionRepository,
 )
 from deeptutor.services.assessment.teaching_policy import build_teaching_policy_seed
+from deeptutor.services.assessment.topic_catalog import (
+    TopicTestSetUnavailable,
+    classify_topic_form_count,
+    get_topic_testset_catalog,
+    resolve_topic_testset_spec,
+)
 from deeptutor.services.assessment.writeback import AssessmentWritebackService
 from deeptutor.services.learner_state.mistake_book import MistakeBookService
 from deeptutor.services.learner_state.progress_feedback import (
@@ -558,7 +564,7 @@ class MemberConsoleService:
             default=False,
         )
         candidates = _assessment_bank_candidates()
-        if blueprint_version == "topic_waterproof_v1":
+        if blueprint_version.startswith("topic_"):
             candidates = [*candidates, *_topic_waterproof_dev_candidates()]
         fallback_provider = StaticAssessmentQuestionProvider(candidates)
         use_supabase = is_production_environment() or env_flag(
@@ -577,6 +583,43 @@ class MemberConsoleService:
 
     def generate_and_persist_assessment_forms(self) -> dict[str, Any]:
         return self._build_assessment_blueprint_service().generate_and_persist_forms()
+
+    def get_assessment_topic_catalog(self) -> dict[str, Any]:
+        provider = SupabaseAssessmentQuestionProvider()
+        use_supabase = is_production_environment() or env_flag(
+            "ASSESSMENT_USE_SUPABASE",
+            default=False,
+        )
+        topics: list[dict[str, Any]] = []
+        for spec in get_topic_testset_catalog():
+            form_count = 0
+            if use_supabase:
+                try:
+                    form_count = provider.active_form_count(spec.blueprint_version)
+                except Exception:
+                    logger.warning(
+                        "Assessment topic form count unavailable: topic_id=%s blueprint=%s",
+                        spec.topic_id,
+                        spec.blueprint_version,
+                        exc_info=True,
+                    )
+                    form_count = 0
+            status = classify_topic_form_count(form_count)
+            topics.append(
+                {
+                    "topic_id": spec.topic_id,
+                    "label": spec.label,
+                    "short_label": spec.short_label,
+                    "description": spec.description,
+                    "blueprint_version": spec.blueprint_version,
+                    "status": status,
+                    "enabled": status in {"stable", "pilot"},
+                    "form_count": form_count,
+                    "minimum_form_count": 3,
+                    "target_form_count": 5,
+                }
+            )
+        return {"topics": topics}
 
     def _write_assessment_learning_signals(
         self,
@@ -4730,7 +4773,12 @@ class MemberConsoleService:
         normalized_topics = [str(item).strip() for item in list(topic_ids or ["waterproof"]) if str(item).strip()]
         if not normalized_topics:
             normalized_topics = ["waterproof"]
-        blueprint_version = "topic_waterproof_v1"
+        try:
+            topic_spec = resolve_topic_testset_spec(normalized_topics)
+        except TopicTestSetUnavailable as exc:
+            raise AssessmentBlueprintUnavailable(str(exc)) from exc
+        normalized_topics = [topic_spec.topic_id]
+        blueprint_version = topic_spec.blueprint_version
         payload = self._build_assessment_blueprint_service(blueprint_version).create_session(
             user_id=user_id,
             count=count,
@@ -4754,7 +4802,7 @@ class MemberConsoleService:
             "assessment_type": "topic_diagnostic",
             "subject_id": subject_id,
             "topic_ids": normalized_topics,
-            "topic_label": "防水专题测评",
+            "topic_label": f"{topic_spec.label}专题测评",
             "status": session["status"],
             "reuse_reason": session.get("reuse_reason", ""),
             "questions": deepcopy(session["client_questions_public"]),

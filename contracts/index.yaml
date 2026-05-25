@@ -2,7 +2,7 @@ version: 1
 entrypoint: CONTRACT.md
 domains:
   turn:
-    summary: Unified turn, stream, replay, session, trace boundary.
+    summary: Unified turn, stream, replay, session, trace boundary, and mobile assessment HTTP bridges.
     contract_files:
       - CONTRACT.md
       - contracts/turn.md

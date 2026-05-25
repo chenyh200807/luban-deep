@@ -3512,6 +3512,38 @@ def test_mobile_assessment_testset_routes_delegate_with_auth_user(
     assert calls[3] == ("report", "student_demo", "quiz_p0a")
 
 
+def test_mobile_assessment_topics_routes_delegate_with_auth_user(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[str, str]] = []
+
+    class _Member:
+        def get_assessment_topic_catalog(self):
+            calls.append(("topics", "student_demo"))
+            return {
+                "topics": [
+                    {
+                        "topic_id": "waterproof",
+                        "label": "防水工程",
+                        "blueprint_version": "topic_waterproof_v1",
+                        "status": "stable",
+                        "enabled": True,
+                        "form_count": 5,
+                    }
+                ]
+            }
+
+    monkeypatch.setattr(mobile_module, "member_service", _Member())
+    monkeypatch.setattr(mobile_module, "_resolve_authenticated_user_id", lambda *_args, **_kwargs: "student_demo")
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/assessment/topics")
+
+    assert response.status_code == 200
+    assert response.json()["topics"][0]["topic_id"] == "waterproof"
+    assert calls == [("topics", "student_demo")]
+
+
 @pytest.mark.parametrize("event_limit", [0, 501, -1])
 def test_mobile_learning_report_rejects_event_limit_out_of_range(
     event_limit: int,

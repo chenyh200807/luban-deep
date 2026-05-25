@@ -101,7 +101,7 @@ Stop and report before continuing if any item below is true:
 8. `git -C /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor rev-parse --show-toplevel` does not resolve to `/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor` before staging or commit review.
 9. Any Supabase write path lacks an explicit target-database guard, reviewed SQL, and rollback/degraded-mode plan.
 10. User-facing copy implies "full exam ability", "official real exam", or "long-term mastery updated" before the corresponding authority has produced that fact.
-11. P0A authoring backlog is required (no eligible topic has ≥10 candidates) but no signed handoff owner or delivery window has been recorded.
+11. P0A authoring backlog is required (approved topic cannot produce at least 3 non-overlapping forms, or cannot reach the signed 5-form stable target) but no signed handoff owner or delivery window has been recorded.
 12. A new `error_codes` value is needed before a contract registry PR has landed.
 13. P0A `result_report_json` is written without a `schema_version` field; future report readers cannot distinguish P0A and P0B/P1 shapes.
 
@@ -110,6 +110,7 @@ Stop and report before continuing if any item below is true:
 | Uncertainty | Validation | Default if validation fails |
 | --- | --- | --- |
 | Whether independent `waterproof` has enough eligible questions | Phase -1/0 read-only coverage audit with exact filters and candidate IDs | Pivot copy to `waterproof_decoration_mep`, reduce to 8-10 items, or block with authoring backlog |
+| Whether a topic can support repeated attempts without memorization | Coverage audit must prove at least 3 non-overlapping forms; stable recommendation requires 5 forms with cross-form `source_question_id` / `semantic_signature` dedupe | Mark topic as blocked or minimum pilot; never expose a single-form formal TestSet |
 | Whether `assessment_testset` learning evidence is consumed by learning-report/synthesis | `rg` audit plus a focused learner-state test that writes an assessment evidence event and reads the report | Add the narrowest read-model/synthesis support; do not write `training_intent` from submit |
 | Whether durable session migration can be applied safely in current environment | Reviewed SQL, local/shadow apply where available, RLS owner tests, target DB guard | Keep P0A blocked for production; allow local demo only with explicit non-production copy |
 | Whether simple explanation fields are available for all candidates | Coverage audit checks `analysis`, option reasoning, grading keywords, or source rationale | Show correct answer plus "详细解析下个版本上线"; do not fabricate simple explanation with LLM in P0A |
@@ -420,7 +421,7 @@ Acceptance:
 - Report recommends exactly one of:
   - split independent `waterproof`, or
   - pivot P0A copy to `waterproof_decoration_mep`.
-- If neither topic has at least 10 eligible items, P0A is blocked and Task 2.5 authoring backlog handoff becomes a Phase -1 exit gate.
+- If neither topic can produce at least 3 non-overlapping forms, P0A is blocked and Task 2.5 authoring backlog handoff becomes a Phase -1 exit gate. A 12-item stable P0A target requires 5 forms / 60 unique eligible scored candidates, with section floors satisfied.
 - Coverage report records, per candidate, whether the stem contains figure refs, table refs, or exceeds the mobile-safe stem length threshold; items failing mobile rendering are excluded with explicit reason.
 - Coverage report deduplicates candidates by `source_question_id` and (if available) by `semantic_signature`; cross-year repeats are surfaced for manual selection rather than auto-included.
 
@@ -430,13 +431,13 @@ Acceptance:
 
 - Modify: `docs/qa/2026-05-24-assessment-testset-p0a-reality-check.md`
 
-Trigger: Task 2 acceptance shows both `waterproof` and `waterproof_decoration_mep` candidate pools below the P0A floor (10 delivered + 2x candidate buffer).
+Trigger: Task 2 acceptance shows both `waterproof` and `waterproof_decoration_mep` candidate pools below the P0A rotation floor (at least 3 non-overlapping forms) or below the signed stable target (prefer 5 non-overlapping forms).
 
 - [ ] Record in the QA report:
   - exact eligible candidate counts per topic
   - shortfall against P0A delivery target
   - named teaching/authoring owner
-  - target candidate count to unblock (delivered count × 2 minimum, × 3 if three weekly forms are promised)
+  - target candidate count to unblock (`delivered_count × 3` minimum pilot, `delivered_count × 5` stable target; section floors also required)
   - delivery window with explicit calendar date
   - escalation contact if window slips
 - [ ] Until the handoff is signed (owner + date + window present), Phase 0 must not start. The plan does **not** auto-degrade to generic construction questions.
@@ -619,6 +620,7 @@ python scripts/audit_assessment_testset_p0a.py \
 Acceptance:
 
 - Exact P0A delivered count is recommended as 12, 10, 8, or blocked.
+- Exact P0A form rotation status is recommended as blocked, 3-form minimum pilot, or 5-form stable.
 - Report has enough candidate detail for teaching review.
 
 ### Task 7: Teaching Signoff Packet

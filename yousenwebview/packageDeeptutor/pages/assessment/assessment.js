@@ -97,6 +97,18 @@ var ASSESSMENT_I18N_KEYS = {
   readOnlyOtherDevice: "这份测评正在另一台设备作答，本机仅可查看。",
 };
 
+var DEFAULT_TOPIC_CATALOG = [
+  {
+    topic_id: "waterproof",
+    label: "防水工程",
+    short_label: "防水",
+    description: "材料构造、施工节点、质量验收",
+    status: "stable",
+    enabled: true,
+    form_count: 5,
+  },
+];
+
 
 var helpers = require("../../utils/helpers");
 
@@ -212,6 +224,30 @@ function learnerSafeDegradedCopy(reason) {
   return ASSESSMENT_I18N_KEYS.degraded[key] || ASSESSMENT_I18N_KEYS.degraded.unknown;
 }
 
+function normalizeTopicCatalog(items) {
+  var topics = (items || []).map(function (item) {
+    var status = String(item.status || "authoring_needed");
+    var formCount = Number(item.form_count || 0) || 0;
+    return {
+      topicId: String(item.topic_id || ""),
+      label: String(item.label || item.short_label || "专题测评"),
+      shortLabel: String(item.short_label || item.label || "专题"),
+      description: String(item.description || ""),
+      status: status,
+      enabled: item.enabled === true || status === "stable" || status === "pilot",
+      formCount: formCount,
+      statusLabel:
+        status === "stable"
+          ? formCount + " 套稳定"
+          : status === "pilot"
+            ? formCount + " 套试运行"
+            : "题库维护中",
+    };
+  });
+  if (!topics.length) topics = normalizeTopicCatalog(DEFAULT_TOPIC_CATALOG);
+  return topics;
+}
+
 function normalizeKnowledgeMap(items) {
   return (items || []).map(function (item) {
     return {
@@ -303,6 +339,12 @@ Page({
     availableCount: 0,
     shortfallCount: 0,
     assessmentNotice: "",
+    topicCatalog: normalizeTopicCatalog(DEFAULT_TOPIC_CATALOG),
+    selectedTopicId: "waterproof",
+    selectedTopicLabel: "防水工程",
+    selectedTopicStatus: "stable",
+    selectedTopicFormCount: 5,
+    topicCatalogError: "",
     serverReportMode: false,
     reportSchemaVersion: "",
     scoreTitle: ASSESSMENT_I18N_KEYS.scoreTitle,
@@ -354,15 +396,68 @@ Page({
       isDark: helpers.isDark(),
       enableOrbs: helpers.getAnimConfig().enableBreathingOrbs,
     });
+    this.loadTopicCatalog();
   },
 
   onShow: function () {
     this.setData({ isDark: helpers.isDark() });
   },
 
+  loadTopicCatalog: function () {
+    var self = this;
+    if (!api.getAssessmentTopics) return;
+    api
+      .getAssessmentTopics({ noRetry: true })
+      .then(function (resp) {
+        var payload = resp.data || resp || {};
+        var catalog = normalizeTopicCatalog(payload.topics || []);
+        var selected = catalog.find(function (item) {
+          return item.enabled;
+        }) || catalog[0];
+        self.setData({
+          topicCatalog: catalog,
+          selectedTopicId: selected.topicId,
+          selectedTopicLabel: selected.label,
+          selectedTopicStatus: selected.status,
+          selectedTopicFormCount: selected.formCount,
+          topicCatalogError: "",
+        });
+      })
+      .catch(function () {
+        self.setData({
+          topicCatalog: normalizeTopicCatalog([]),
+          topicCatalogError: "专题目录暂时不可用",
+        });
+      });
+  },
+
+  onSelectTopic: function (e) {
+    var topicId = String((e.currentTarget.dataset || {}).topicId || "");
+    var catalog = this.data.topicCatalog || [];
+    var selected = catalog.find(function (item) {
+      return item.topicId === topicId;
+    });
+    if (!selected || !selected.enabled) {
+      wx.showToast({ title: "该专题题库维护中", icon: "none" });
+      return;
+    }
+    this.setData({
+      selectedTopicId: selected.topicId,
+      selectedTopicLabel: selected.label,
+      selectedTopicStatus: selected.status,
+      selectedTopicFormCount: selected.formCount,
+    });
+  },
+
   // ── 开始测试 ──────────────────────────────────
   onStart: function () {
     if (this.data.starting) return;
+    var selectedTopic = String(this.data.selectedTopicId || "waterproof");
+    var selectedTopicStatus = String(this.data.selectedTopicStatus || "authoring_needed");
+    if (selectedTopicStatus === "authoring_needed") {
+      wx.showToast({ title: "该专题题库维护中", icon: "none" });
+      return;
+    }
     var self = this;
     helpers.vibrate("medium");
     self.setData({ stage: "loading", starting: true });
@@ -371,7 +466,7 @@ Page({
       .createAssessment({
         assessment_type: "topic_diagnostic",
         subject_id: "construction_exam",
-        topic_ids: ["waterproof"],
+        topic_ids: [selectedTopic],
         count: 12,
         duration_policy: { mode: "one_shot" },
       })

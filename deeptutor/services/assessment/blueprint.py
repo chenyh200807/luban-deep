@@ -3,6 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 
+MIN_FORM_ROTATION_COUNT = 3
+TARGET_FORM_ROTATION_COUNT = 5
+
+
 @dataclass(frozen=True)
 class AssessmentSection:
     id: str
@@ -138,7 +142,7 @@ TOPIC_WATERPROOF_V1 = AssessmentBlueprint(
             question_types=("single_choice", "multi_choice"),
             fallback_question_types=("single_choice", "multi_choice", "case_study"),
             topics=("防水", "卷材", "涂膜", "屋面"),
-            minimum_multiplier=2,
+            minimum_multiplier=MIN_FORM_ROTATION_COUNT,
             strict_topics=True,
         ),
         AssessmentSection(
@@ -149,7 +153,7 @@ TOPIC_WATERPROOF_V1 = AssessmentBlueprint(
             question_types=("single_choice", "multi_choice"),
             fallback_question_types=("single_choice", "multi_choice", "case_study"),
             topics=("防水", "施工缝", "后浇带", "搭接", "节点"),
-            minimum_multiplier=2,
+            minimum_multiplier=MIN_FORM_ROTATION_COUNT,
             strict_topics=True,
         ),
         AssessmentSection(
@@ -160,7 +164,7 @@ TOPIC_WATERPROOF_V1 = AssessmentBlueprint(
             question_types=("single_choice", "multi_choice"),
             fallback_question_types=("single_choice", "multi_choice", "case_study"),
             topics=("防水", "渗漏", "蓄水", "验收", "质量"),
-            minimum_multiplier=2,
+            minimum_multiplier=MIN_FORM_ROTATION_COUNT,
             strict_topics=True,
         ),
     ),
@@ -177,4 +181,12 @@ def get_assessment_blueprint(version: str = "diagnostic_v1") -> AssessmentBluepr
     try:
         return _BLUEPRINTS[version]
     except KeyError as exc:
-        raise ValueError(f"Unknown assessment blueprint: {version}") from exc
+        try:
+            from deeptutor.services.assessment.topic_catalog import (
+                build_topic_assessment_blueprint,
+                topic_id_from_blueprint_version,
+            )
+
+            return build_topic_assessment_blueprint(topic_id_from_blueprint_version(version))
+        except ValueError:
+            raise ValueError(f"Unknown assessment blueprint: {version}") from exc

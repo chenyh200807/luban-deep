@@ -3030,3 +3030,25 @@ def test_record_ops_action_result_dedupes_by_idempotency_key(tmp_path: Path) -> 
     assert first["audit_id"] == audit["items"][0]["id"]
     assert second["audit_id"] == first["audit_id"]
     assert second.get("deduped") is True
+
+
+def test_assessment_topic_catalog_reports_form_readiness(monkeypatch: pytest.MonkeyPatch) -> None:
+    service = MemberConsoleService()
+
+    class _Provider:
+        def active_form_count(self, blueprint_version: str) -> int:
+            if blueprint_version == "topic_waterproof_v1":
+                return 5
+            return 3
+
+    monkeypatch.setattr(member_service_module, "is_production_environment", lambda: True)
+    monkeypatch.setattr(member_service_module, "SupabaseAssessmentQuestionProvider", lambda: _Provider())
+
+    result = service.get_assessment_topic_catalog()
+
+    by_id = {item["topic_id"]: item for item in result["topics"]}
+    assert by_id["waterproof"]["status"] == "stable"
+    assert by_id["waterproof"]["enabled"] is True
+    assert by_id["decoration"]["status"] == "pilot"
+    assert by_id["decoration"]["minimum_form_count"] == 3
+    assert by_id["decoration"]["target_form_count"] == 5
