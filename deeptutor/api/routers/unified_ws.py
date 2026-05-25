@@ -15,8 +15,9 @@ from typing import Any
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import ValidationError
 
+from deeptutor.api._secure_router import secure_ws_endpoint
+from deeptutor.api.dependencies import AuthContext, enforce_websocket_rate_limit
 from deeptutor.api.runtime_metrics import get_turn_runtime_metrics
-from deeptutor.api.dependencies import AuthContext, enforce_websocket_rate_limit, resolve_auth_context
 from deeptutor.services.question_followup import redact_question_followup_context_for_public
 from deeptutor.contracts.unified_turn import (
     UnifiedTurnCancelMessage,
@@ -80,27 +81,33 @@ def _public_validation_message(message_type: str) -> str:
 
 async def _authorize_session_access(
     session_id: str,
-    current_user: AuthContext | None,
+    current_user: AuthContext,
 ) -> None:
+    """SR1 PR-1b: strict mode — A2 owner_key bypass removed.
+
+    `current_user` is guaranteed non-None by `secure_ws_endpoint` at the WS
+    handshake; the previous "owner_key 缺失 + anon 放行" branch is dead code
+    and removed. Real legacy sessions with empty owner_key are backfilled by
+    PR-α (`scripts/migrations/pr_alpha_session_owner_key_backfill.py`).
+    """
     from deeptutor.services.session import build_user_owner_key, get_sqlite_session_store
 
+    if current_user.is_admin:
+        return
     store = get_sqlite_session_store()
     owner_key = await store.get_session_owner_key(session_id)
     if not owner_key:
-        if current_user is None or current_user.is_admin:
-            return
+        # Pre-PR-α legacy session — strict: deny. Admin override above.
         raise PermissionError("Session not found")
-    if current_user and (
-        current_user.is_admin or owner_key == build_user_owner_key(current_user.user_id)
-    ):
-        return
-    raise PermissionError("Session not found")
+    if owner_key != build_user_owner_key(current_user.user_id):
+        raise PermissionError("Session not found")
 
 
 async def _authorize_turn_access(
     turn_id: str,
-    current_user: AuthContext | None,
+    current_user: AuthContext,
 ) -> str:
+    """SR1 PR-1b: current_user must be non-None (enforced at WS handshake)."""
     from deeptutor.services.session import get_sqlite_session_store
 
     store = get_sqlite_session_store()
@@ -312,18 +319,18 @@ def _redact_event_for_public(event: dict[str, Any]) -> dict[str, Any]:
 
 @router.websocket("/ws")
 async def unified_websocket(ws: WebSocket) -> None:
-    if not await enforce_websocket_rate_limit(
+    # SR1 PR-1b: A2 closed — anonymous WS connections now reject 4401 (was: pass-through).
+    current_user = await secure_ws_endpoint(
         ws,
-        "unified_ws_connect",
-        default_max_requests=60,
-        default_window_seconds=60.0,
-    ):
-        return
-    await ws.accept()
+        rate_limit_scope="unified_ws_connect",
+        rate_limit_max=60,
+        rate_limit_window_seconds=60.0,
+    )
+    if current_user is None:
+        return  # ws already closed (4401 or 1013)
     get_turn_runtime_metrics().record_ws_open()
     closed = False
     subscription_tasks: dict[str, asyncio.Task[None]] = {}
-    current_user = resolve_auth_context(ws.headers.get("authorization"))
 
     async def safe_send(data: dict[str, Any]) -> None:
         nonlocal closed
@@ -379,6 +386,18 @@ async def unified_websocket(ws: WebSocket) -> None:
             msg_type = msg.get("type")
 
             if msg_type in {"message", "start_turn"}:
+                # SR3 PR-3: per-connection start_turn rate limit (v2.1 P1-S3 promoted to P0).
+                # Stops a single authenticated client from flooding LLM with start_turn spam.
+                if not await enforce_websocket_rate_limit(
+                    ws,
+                    "ws_start_turn",
+                    default_max_requests=10,
+                    default_window_seconds=60.0,
+                ):
+                    # ws.close(1013) already called; main loop must end.
+                    closed = True
+                    return
+
                 from deeptutor.services.session import get_turn_runtime_manager
 
                 runtime = get_turn_runtime_manager()

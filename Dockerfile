@@ -412,7 +412,7 @@ EXPOSE 8001 3782
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:${BACKEND_PORT:-8001}/ || exit 1
+    CMD curl -fsS http://localhost:${BACKEND_PORT:-8001}/readyz || exit 1
 
 # Set entrypoint
 USER deeptutor
