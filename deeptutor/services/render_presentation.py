@@ -32,6 +32,27 @@ def _normalize_string_array(items: Any) -> list[str]:
     return out
 
 
+def _first_text(*values: Any) -> str:
+    for value in values:
+        text = _coerce_text(value)
+        if text:
+            return text
+    return ""
+
+
+def _first_string_array(*values: Any) -> list[str]:
+    for value in values:
+        items = _normalize_string_array(value)
+        if items:
+            return items
+    return []
+
+
+def _answer_key_set(value: Any) -> set[str]:
+    raw = _coerce_text(value).upper()
+    return {char for char in raw if "A" <= char <= "Z"}
+
+
 def _coerce_positive_int(value: Any, fallback: int) -> int:
     try:
         number = int(value)
@@ -100,12 +121,106 @@ def _build_choice_followup_context(
     }
 
 
+def _index_option_review_entries(raw_entries: Any) -> dict[str, dict[str, str]]:
+    indexed: dict[str, dict[str, str]] = {}
+    if isinstance(raw_entries, dict):
+        iterator = raw_entries.items()
+        for raw_key, raw_value in iterator:
+            key = _coerce_text(raw_key).upper()
+            if not key:
+                continue
+            if isinstance(raw_value, dict):
+                indexed[key] = {
+                    "text": _first_text(raw_value.get("option_text"), raw_value.get("optionText")),
+                    "verdict": _first_text(raw_value.get("verdict"), raw_value.get("status")),
+                    "analysis": _first_text(
+                        raw_value.get("analysis"),
+                        raw_value.get("reason"),
+                        raw_value.get("explanation"),
+                        raw_value.get("text"),
+                    ),
+                }
+            else:
+                indexed[key] = {"text": "", "verdict": "", "analysis": _coerce_text(raw_value)}
+        return indexed
+    if not isinstance(raw_entries, list):
+        return indexed
+    for raw_entry in raw_entries:
+        if not isinstance(raw_entry, dict):
+            continue
+        key = _coerce_text(
+            raw_entry.get("key")
+            or raw_entry.get("option")
+            or raw_entry.get("option_key")
+            or raw_entry.get("label")
+            or ""
+        ).upper()
+        if not key:
+            continue
+        indexed[key] = {
+            "text": _first_text(raw_entry.get("option_text"), raw_entry.get("optionText"), raw_entry.get("text")),
+            "verdict": _first_text(raw_entry.get("verdict"), raw_entry.get("status")),
+            "analysis": _first_text(
+                raw_entry.get("analysis"),
+                raw_entry.get("reason"),
+                raw_entry.get("explanation"),
+                raw_entry.get("text"),
+            ),
+        }
+    return indexed
+
+
+def _normalize_option_review_rows(raw_entries: Any) -> list[dict[str, str]]:
+    rows: list[dict[str, str]] = []
+    indexed = _index_option_review_entries(raw_entries)
+    for key in sorted(indexed.keys()):
+        entry = indexed[key]
+        analysis = _first_text(entry.get("analysis"))
+        if not analysis:
+            continue
+        row = {
+            "key": key,
+            "text": _first_text(entry.get("text")),
+            "verdict": _first_text(entry.get("verdict")),
+            "analysis": analysis,
+        }
+        rows.append(row)
+    return rows
+
+
+def _build_option_review_rows(
+    *,
+    option_map: dict[str, str],
+    correct_answer: Any,
+    raw_entries: Any,
+) -> list[dict[str, str]]:
+    indexed = _index_option_review_entries(raw_entries)
+    correct_keys = _answer_key_set(correct_answer)
+    rows: list[dict[str, str]] = []
+    for key in sorted(option_map.keys()):
+        is_correct = key in correct_keys
+        entry = indexed.get(key, {})
+        analysis = _first_text(entry.get("analysis"))
+        if not analysis:
+            analysis = "本题答案。" if is_correct else "不是本题答案，详细原因见解析要点。"
+        rows.append(
+            {
+                "key": key,
+                "text": option_map[key],
+                "verdict": _first_text(entry.get("verdict")) or ("正确" if is_correct else "不正确"),
+                "analysis": analysis,
+            }
+        )
+    return rows
+
+
 def _build_choice_review_notes(
     qa_pair: dict[str, Any],
     *,
+    option_map: dict[str, str] | None = None,
     reveal_answers: bool = False,
     reveal_explanations: bool = False,
-) -> dict[str, str] | None:
+) -> dict[str, Any] | None:
     metadata = qa_pair.get("metadata") if isinstance(qa_pair.get("metadata"), dict) else {}
     display_answer = _coerce_text(qa_pair.get("correct_answer")).upper() if reveal_answers else ""
     analysis = (
@@ -120,10 +235,66 @@ def _build_choice_review_notes(
     )
     if not display_answer and not analysis:
         return None
-    return {
+    option_map = option_map or {}
+    notes: dict[str, Any] = {
+        "think_prompt": _first_text(
+            qa_pair.get("think_prompt"),
+            qa_pair.get("thinkPrompt"),
+            metadata.get("think_prompt"),
+            metadata.get("thinkPrompt"),
+        )
+        or "先看题干和选项，想一想再看答案和解析。",
         "display_answer": display_answer,
         "analysis": analysis,
     }
+    if not reveal_explanations:
+        return notes
+    option_rows = _build_option_review_rows(
+        option_map=option_map,
+        correct_answer=qa_pair.get("correct_answer"),
+        raw_entries=metadata.get("option_analysis")
+        or metadata.get("optionAnalysis")
+        or metadata.get("choice_analysis")
+        or metadata.get("choiceAnalysis")
+        or qa_pair.get("option_analysis")
+        or qa_pair.get("optionAnalysis"),
+    )
+    if option_rows:
+        notes["option_analysis"] = option_rows
+    scoring_points = _first_string_array(
+        qa_pair.get("scoring_points"),
+        qa_pair.get("scoringPoints"),
+        metadata.get("scoring_points"),
+        metadata.get("scoringPoints"),
+        (metadata.get("rubric") or {}).get("scoring_points") if isinstance(metadata.get("rubric"), dict) else None,
+    )
+    if scoring_points:
+        notes["scoring_points"] = scoring_points
+    pitfalls = _first_string_array(
+        qa_pair.get("pitfalls"),
+        qa_pair.get("common_mistakes"),
+        qa_pair.get("commonMistakes"),
+        qa_pair.get("easy_mistakes"),
+        qa_pair.get("easyMistakes"),
+        metadata.get("pitfalls"),
+        metadata.get("common_mistakes"),
+        metadata.get("commonMistakes"),
+        metadata.get("easy_mistakes"),
+        metadata.get("easyMistakes"),
+    )
+    if pitfalls:
+        notes["pitfalls"] = pitfalls
+    mnemonic = _first_text(
+        qa_pair.get("mnemonic"),
+        qa_pair.get("memory_tip"),
+        qa_pair.get("memoryTip"),
+        metadata.get("mnemonic"),
+        metadata.get("memory_tip"),
+        metadata.get("memoryTip"),
+    )
+    if mnemonic:
+        notes["mnemonic"] = mnemonic
+    return notes
 
 
 def build_mcq_block_from_result_summary(
@@ -162,6 +333,7 @@ def build_mcq_block_from_result_summary(
         review_notes = (
             _build_choice_review_notes(
                 qa_pair,
+                option_map=option_map,
                 reveal_answers=reveal_answers,
                 reveal_explanations=reveal_explanations,
             )
@@ -246,7 +418,7 @@ def _normalize_review_notes(
     *,
     reveal_answers: bool = False,
     reveal_explanations: bool = False,
-) -> dict[str, str] | None:
+) -> dict[str, Any] | None:
     if not isinstance(raw_notes, dict):
         return None
     display_answer = (
@@ -275,10 +447,48 @@ def _normalize_review_notes(
     )
     if not display_answer and not analysis:
         return None
-    return {
+    notes: dict[str, Any] = {
+        "think_prompt": _first_text(
+            raw_notes.get("think_prompt"),
+            raw_notes.get("thinkPrompt"),
+        )
+        or "先看题干和选项，想一想再看答案和解析。",
         "display_answer": display_answer,
         "analysis": analysis,
     }
+    if not reveal_explanations:
+        return notes
+    option_rows = _normalize_option_review_rows(
+        raw_notes.get("option_analysis")
+        or raw_notes.get("optionAnalysis")
+        or raw_notes.get("choice_analysis")
+        or raw_notes.get("choiceAnalysis")
+    )
+    if option_rows:
+        notes["option_analysis"] = option_rows
+    scoring_points = _first_string_array(
+        raw_notes.get("scoring_points"),
+        raw_notes.get("scoringPoints"),
+    )
+    if scoring_points:
+        notes["scoring_points"] = scoring_points
+    pitfalls = _first_string_array(
+        raw_notes.get("pitfalls"),
+        raw_notes.get("common_mistakes"),
+        raw_notes.get("commonMistakes"),
+        raw_notes.get("easy_mistakes"),
+        raw_notes.get("easyMistakes"),
+    )
+    if pitfalls:
+        notes["pitfalls"] = pitfalls
+    mnemonic = _first_text(
+        raw_notes.get("mnemonic"),
+        raw_notes.get("memory_tip"),
+        raw_notes.get("memoryTip"),
+    )
+    if mnemonic:
+        notes["mnemonic"] = mnemonic
+    return notes
 
 
 def _normalize_mcq_question(

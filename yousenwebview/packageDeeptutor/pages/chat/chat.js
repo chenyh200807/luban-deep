@@ -658,6 +658,7 @@ Page({
         mcqHint: "",
         mcqReceipt: "",
         mcqInteractiveReady: false,
+        mcqReviewMode: false,
         originalContent: "",
         originalExpanded: false,
         thinkingStatus: "",
@@ -694,6 +695,7 @@ Page({
         msg.mcqHint = derived.mcqHint;
         msg.mcqReceipt = derived.mcqReceipt;
         msg.mcqInteractiveReady = derived.mcqInteractiveReady;
+        msg.mcqReviewMode = derived.mcqReviewMode;
         msg.originalContent = derived.originalContent || "";
         msg.originalExpanded = derived.originalCollapsed === false;
       }
@@ -769,6 +771,7 @@ Page({
       mcqHint: "",
       mcqReceipt: "",
       mcqInteractiveReady: false,
+      mcqReviewMode: false,
       originalContent: "",
       originalExpanded: false,
       thinkingStatus: "",
@@ -1463,6 +1466,7 @@ Page({
     updates["messages[" + idx + "].mcqHint"] = state.mcqHint;
     updates["messages[" + idx + "].mcqReceipt"] = state.mcqReceipt;
     updates["messages[" + idx + "].mcqInteractiveReady"] = state.mcqInteractiveReady;
+    updates["messages[" + idx + "].mcqReviewMode"] = state.mcqReviewMode;
     updates["messages[" + idx + "].originalContent"] = state.originalContent || "";
     updates["messages[" + idx + "].originalExpanded"] = state.originalCollapsed === false;
     updates["messages[" + idx + "].hasStructuredContent"] = !!state.hasStructuredContent;
@@ -2028,6 +2032,7 @@ Page({
       mcqHint: "",
       mcqReceipt: "",
       mcqInteractiveReady: false,
+      mcqReviewMode: false,
       originalContent: "",
       originalExpanded: false,
       thinkingStatus: "AI 正在分析你的问题...",

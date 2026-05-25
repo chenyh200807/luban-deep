@@ -224,7 +224,7 @@ function normalizeMcqReviewNotes(rawNotes) {
   };
 }
 
-function normalizeMcqQuestion(rawQuestion, fallbackIndex) {
+function normalizeMcqQuestion(rawQuestion, fallbackIndex, reviewMode) {
   var q = rawQuestion && typeof rawQuestion === "object" ? rawQuestion : {};
   var rawFollowup =
     q.followupContext && typeof q.followupContext === "object"
@@ -242,26 +242,26 @@ function normalizeMcqQuestion(rawQuestion, fallbackIndex) {
     index: _positiveInt(q.index, fallbackIndex),
     stem: sanitizeAuthorityText(q.stem || "请选择正确选项", "请选择正确选项"),
     hint: sanitizeAuthorityText(q.hint || "", ""),
-    questionType:
-      _normalizeEnum(
-        q.questionType || q.question_type,
-        ["single_choice", "multi_choice"],
-        "single_choice",
+    questionType: _normalizeEnum(
+      q.questionType || q.question_type,
+      ["single_choice", "multi_choice"],
+      "single_choice",
     ),
     options: normalizeMcqOptions(q.options),
     followupContext: sanitizeFollowupContext(rawFollowup),
     questionId: questionId,
     hasContext: !!questionId,
-    reviewNotes: normalizeMcqReviewNotes(q.reviewNotes || q.review_notes),
+    reviewNotes: reviewMode ? normalizeMcqReviewNotes(q.reviewNotes || q.review_notes) : null,
   };
 }
 
 function createMcqBlock(rawBlock) {
   var block = rawBlock && typeof rawBlock === "object" ? rawBlock : {};
   var rawQuestions = Array.isArray(block.questions) ? block.questions : [];
+  var reviewMode = !!(block.reviewMode || block.review_mode);
   var questions = [];
   for (var i = 0; i < rawQuestions.length; i++) {
-    var question = normalizeMcqQuestion(rawQuestions[i], i + 1);
+    var question = normalizeMcqQuestion(rawQuestions[i], i + 1, reviewMode);
     if (!question.options || question.options.length < 2) continue;
     questions.push(question);
   }
@@ -274,7 +274,7 @@ function createMcqBlock(rawBlock) {
       "请选择后提交答案",
     ),
     receipt: sanitizeAuthorityText(block.receipt || "", ""),
-    reviewMode: !!(block.reviewMode || block.review_mode),
+    reviewMode: reviewMode,
   };
 }
 
@@ -332,7 +332,11 @@ function createFormulaBlock(rawBlock) {
     BLOCK_TYPES.formula_block,
   );
   var normalizedType =
-    type === "inline" ? BLOCK_TYPES.formula_inline : type === "block" ? BLOCK_TYPES.formula_block : type;
+    type === "inline"
+      ? BLOCK_TYPES.formula_inline
+      : type === "block"
+        ? BLOCK_TYPES.formula_block
+        : type;
   var latex = _asString(block.latex || "");
   return {
     type: normalizedType,
@@ -353,18 +357,30 @@ function normalizeChartSeriesItem(rawSeries, fallbackIndex) {
       : [];
   var valueSummary = _chartSeriesValueSummary(values);
   return {
-    name: _asString(series.name || series.label || series.title || "系列" + fallbackIndex),
-    summary: _asString(series.summary || series.desc || series.description || series.value || valueSummary),
+    name: _asString(
+      series.name || series.label || series.title || "系列" + fallbackIndex,
+    ),
+    summary: _asString(
+      series.summary ||
+        series.desc ||
+        series.description ||
+        series.value ||
+        valueSummary,
+    ),
     value: _asString(series.value || ""),
     color: _asString(series.color || ""),
-    values: values.map(function (item) {
-      if (item && typeof item === "object") {
-        return _trimmedString(item.label || item.name || item.x || item.value || item.y || "");
-      }
-      return _trimmedString(item);
-    }).filter(function (item) {
-      return !!item;
-    }),
+    values: values
+      .map(function (item) {
+        if (item && typeof item === "object") {
+          return _trimmedString(
+            item.label || item.name || item.x || item.value || item.y || "",
+          );
+        }
+        return _trimmedString(item);
+      })
+      .filter(function (item) {
+        return !!item;
+      }),
   };
 }
 
@@ -386,7 +402,8 @@ function createChartBlock(rawBlock) {
     !!caption ||
     series.length > 0 ||
     legend.length > 0 ||
-    (fallbackTable && (fallbackTable.headers.length > 0 || fallbackTable.rows.length > 0));
+    (fallbackTable &&
+      (fallbackTable.headers.length > 0 || fallbackTable.rows.length > 0));
   if (!hasContent) return null;
   return {
     type: BLOCK_TYPES.chart,
@@ -400,8 +417,16 @@ function createChartBlock(rawBlock) {
     summary: summary,
     series: series,
     axes: {
-      x: _asString(block.axes && block.axes.x ? block.axes.x : block.xAxis || block.x_axis || ""),
-      y: _asString(block.axes && block.axes.y ? block.axes.y : block.yAxis || block.y_axis || ""),
+      x: _asString(
+        block.axes && block.axes.x
+          ? block.axes.x
+          : block.xAxis || block.x_axis || "",
+      ),
+      y: _asString(
+        block.axes && block.axes.y
+          ? block.axes.y
+          : block.yAxis || block.y_axis || "",
+      ),
     },
     legend: legend,
     caption: caption,
@@ -420,14 +445,22 @@ function createStepsBlock(rawBlock) {
   for (var i = 0; i < rawItems.length; i++) {
     var item = rawItems[i];
     var normalized = item && typeof item === "object" ? item : { title: item };
-    var title = _asString(normalized.title || normalized.text || normalized.label || "");
-    var detail = _asString(normalized.detail || normalized.summary || normalized.content || "");
+    var title = _asString(
+      normalized.title || normalized.text || normalized.label || "",
+    );
+    var detail = _asString(
+      normalized.detail || normalized.summary || normalized.content || "",
+    );
     if (!title && !detail) continue;
     steps.push({
       index: _positiveInt(normalized.index, i + 1),
-      title: title || ("步骤" + (i + 1)),
+      title: title || "步骤" + (i + 1),
       detail: detail,
-      status: _normalizeEnum(normalized.status, ["done", "doing", "todo"], "todo"),
+      status: _normalizeEnum(
+        normalized.status,
+        ["done", "doing", "todo"],
+        "todo",
+      ),
     });
   }
   var blockTitle = _asString(block.title || block.caption || "");
@@ -442,7 +475,9 @@ function createStepsBlock(rawBlock) {
 
 function createRecapBlock(rawBlock) {
   var block = rawBlock && typeof rawBlock === "object" ? rawBlock : {};
-  var bullets = _normalizeStringArray(block.bullets || block.points || block.items);
+  var bullets = _normalizeStringArray(
+    block.bullets || block.points || block.items,
+  );
   var title = _asString(block.title || block.heading || "");
   var summary = _asString(block.summary || block.text || block.content || "");
   if (!title && !summary && !bullets.length) return null;
@@ -473,7 +508,10 @@ function normalizeBlock(rawBlock) {
   if (!type) return null;
   if (type === BLOCK_TYPES.mcq) return createMcqBlock(rawBlock);
   if (type === BLOCK_TYPES.table) return createTableBlock(rawBlock);
-  if (type === BLOCK_TYPES.formula_inline || type === BLOCK_TYPES.formula_block) {
+  if (
+    type === BLOCK_TYPES.formula_inline ||
+    type === BLOCK_TYPES.formula_block
+  ) {
     return createFormulaBlock(rawBlock);
   }
   if (type === BLOCK_TYPES.chart) return createChartBlock(rawBlock);
@@ -516,7 +554,9 @@ function createCanonicalMessage(rawMessage) {
     schemaVersion: INTERNAL_RENDER_SCHEMAS.canonical_message.version,
     messageId: _asString(message.messageId || message.message_id || ""),
     blocks: blocks,
-    fallbackText: sanitizeAuthorityMarkdownText(message.fallbackText || message.fallback_text || ""),
+    fallbackText: sanitizeAuthorityMarkdownText(
+      message.fallbackText || message.fallback_text || "",
+    ),
     meta: {
       streamingMode: _normalizeEnum(
         message.meta && message.meta.streamingMode,
@@ -531,10 +571,18 @@ function createCanonicalMessage(rawMessage) {
 function createRenderModel(rawModel) {
   var model = rawModel && typeof rawModel === "object" ? rawModel : {};
   var renderableContent = _asString(model.renderableContent || "");
-  var plainTextFallback = _asString(model.plainTextFallback || model.plain_text_fallback || renderableContent);
+  var plainTextFallback = _asString(
+    model.plainTextFallback || model.plain_text_fallback || renderableContent,
+  );
   var rawBlocks =
-    model.blocks === null ? null : Array.isArray(model.blocks) ? model.blocks : [];
-  var visibleBlocks = Array.isArray(model.visibleBlocks) ? model.visibleBlocks : [];
+    model.blocks === null
+      ? null
+      : Array.isArray(model.blocks)
+        ? model.blocks
+        : [];
+  var visibleBlocks = Array.isArray(model.visibleBlocks)
+    ? model.visibleBlocks
+    : [];
   var mcqCards =
     model.mcqCards === null
       ? null
@@ -550,7 +598,9 @@ function createRenderModel(rawModel) {
     mcqReceipt: _asString(model.mcqReceipt || ""),
     mcqInteractiveReady: !!model.mcqInteractiveReady,
     mcqReviewMode: !!model.mcqReviewMode,
-    originalContent: _asString(model.originalContent || model.original_content || ""),
+    originalContent: _asString(
+      model.originalContent || model.original_content || "",
+    ),
     originalCollapsed: model.originalCollapsed !== false,
     visibleBlocks: visibleBlocks,
     plainTextFallback: plainTextFallback,
@@ -567,6 +617,9 @@ function createRenderModel(rawModel) {
   };
 }
 
+// Authority fields that must never leave the server-side trust boundary.
+// Used by both sanitizeProgressiveDisclosure (sections key filter) and
+// sanitizeFollowupContext (mcq.followup_context recursive scrub).
 var _REDACTED_AUTHORITY_KEYS = [
   "correct_answer",
   "correctAnswer",
@@ -585,10 +638,19 @@ var _REDACTED_AUTHORITY_KEYS = [
   "graderSecret",
 ];
 
+// Kept for source-level back-compat with any external reference; treat
+// as alias of _REDACTED_AUTHORITY_KEYS.
+var _HIDDEN_DISCLOSURE_KEYS = _REDACTED_AUTHORITY_KEYS;
+
 function _isAuthorityKey(key) {
   return _REDACTED_AUTHORITY_KEYS.indexOf(key) >= 0;
 }
 
+// Recursively strip grading authority keys from a followup_context value.
+// followup_context is intended for follow-up turn metadata (e.g.
+// question_id, turn_id, source, topic). It MUST NOT carry correct_answer
+// or scoring_points to the client — chat.js may persist the whole object
+// into wx state and any wxml debug view would surface it.
 function sanitizeFollowupContext(value) {
   if (value === null || value === undefined) return null;
   if (typeof value !== "object") return value;
