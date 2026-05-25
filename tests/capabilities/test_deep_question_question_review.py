@@ -175,3 +175,87 @@ async def test_question_review_bank_miss_does_not_fallback_to_generated_question
     assert result.metadata["active_object"] == {}
     assert result.metadata["question_followup_context"] == {}
     assert "presentation" not in result.metadata
+
+
+@pytest.mark.asyncio
+async def test_question_review_evidence_bundle_renders_when_bank_hit_has_no_results(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Production trace 85363: retriever hit templates but results stayed empty."""
+
+    calls: list[dict[str, Any]] = []
+
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            pass
+
+        def set_ws_callback(self, _callback) -> None:
+            pass
+
+        def set_trace_callback(self, _callback) -> None:
+            pass
+
+        async def generate_from_topic(self, **kwargs: Any) -> dict[str, Any]:
+            calls.append(dict(kwargs))
+            return {
+                "success": False,
+                "requested": 1,
+                "completed": 0,
+                "templates": [
+                    {
+                        "question_id": "q_1",
+                        "concentration": "分析一道钢筋保护层的真题",
+                        "question_type": "choice",
+                        "reference_question": "不利于提高框架结构抗震性能的措施是（　　）。",
+                        "reference_answer": "B",
+                        "metadata": {
+                            "evidence_refs": [
+                                {
+                                    "source": "evidence_bundle",
+                                    "field": "TEXTBOOK",
+                                    "content": {
+                                        "source_group": "TEXTBOOK",
+                                        "source_id": "question-14576",
+                                        "content": (
+                                            "【题目】一般环境中，直接接触土体浇筑的构件，"
+                                            "其钢筋的混凝土保护层厚度不应小于（ ）mm。\n"
+                                            "【选项】[\"A. 55\", \"B. 60\", \"C. 65\", \"D. 70\"]\n"
+                                            "【答案】D\n"
+                                            "【解析】直接接触土体浇筑的构件，其混凝土保护层厚度不应小于70mm。"
+                                        ),
+                                    },
+                                }
+                            ]
+                        },
+                    }
+                ],
+                "results": [],
+                "trace": {
+                    "lightweight_counters": {
+                        "bank_hits": 1,
+                        "llm_calls": 0,
+                        "retriever_calls": 1,
+                        "lightweight_batch_fallback": "disabled",
+                    }
+                },
+            }
+
+    monkeypatch.setattr("deeptutor.agents.question.coordinator.AgentCoordinator", FakeCoordinator)
+    _patch_llm_config(monkeypatch)
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(_review_context(), bus))
+
+    assert calls
+    assert calls[0]["allow_lightweight_fallback"] is False
+    result = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result.metadata["response"] != "No questions generated."
+    assert "直接接触土体" in result.metadata["response"]
+    assert result.metadata["active_object"] == {}
+    assert result.metadata["question_followup_context"] == {}
+    block = result.metadata["presentation"]["blocks"][0]
+    assert block["review_mode"] is True
+    question = block["questions"][0]
+    assert "混凝土保护层厚度" in question["stem"]
+    assert question["followup_context"]["correct_answer"] == "D"
+    assert question["followup_context"]["options"]["D"] == "70"
