@@ -10,6 +10,25 @@ function compactText(value) {
   return String(value || "").replace(/\s+/g, " ").trim();
 }
 
+function isStarterFocusTitle(value) {
+  var text = compactText(value);
+  return /第一份.*学习证据/.test(text) || /给系统.*学习证据/.test(text);
+}
+
+function normalizeFocusTitle(value, assessmentAction) {
+  var title = compactText(value).replace(/^今日焦点[:：]\s*/, "");
+  if (isStarterFocusTitle(title)) return "先做 1 题摸底";
+  if (assessmentAction && (!title || title === "今日焦点")) return "先做 1 题摸底";
+  return title;
+}
+
+function normalizeFocusMeta(value, title, assessmentAction) {
+  var meta = compactText(value);
+  if (meta === "starter" || isStarterFocusTitle(title) || assessmentAction) return "生成学情基线";
+  if (/learner_state\.home_personalization/.test(meta)) return "来自学情更新";
+  return meta;
+}
+
 var LEGACY_PROMPT_TYPES = ["practice_prompt", "mistake_review", "concept_explain"];
 
 function copyObject(value) {
@@ -185,10 +204,6 @@ function buildLearningHomeViewModel(dashboard) {
   var today = asObject(body.today);
   var focus = asObject(body.today_focus || today.focus);
   var rawPrompts = upgradeLegacyThreePrompts(body.recommended_prompts);
-  var focusTitle = compactText(focus.title || today.hint || "按当前状态推进建筑实务").replace(
-    /^今日焦点[:：]\s*/,
-    "",
-  );
   var prompts = rawPrompts
     .map(normalizePrompt)
     .filter(Boolean)
@@ -196,6 +211,8 @@ function buildLearningHomeViewModel(dashboard) {
   var assessmentAction = rawPrompts.some(function (item) {
     return isAssessmentPrompt(item);
   });
+  var rawFocusTitle = compactText(focus.title || today.hint || "按当前状态推进建筑实务");
+  var focusTitle = normalizeFocusTitle(rawFocusTitle, assessmentAction);
   var primaryPrompt = prompts[0] || {};
   var focusQuery = assessmentAction
     ? ""
@@ -205,7 +222,7 @@ function buildLearningHomeViewModel(dashboard) {
     focusLabel: compactText(focus.label || "今日焦点"),
     focusTone: compactText(focus.tone || "plan"),
     focusTitle: focusTitle,
-    focusMeta: compactText(focus.meta || ""),
+    focusMeta: normalizeFocusMeta(focus.meta || "", rawFocusTitle, assessmentAction),
     focusText: focusTitle,
     focusQuery: focusQuery,
     focusActionType: assessmentAction ? "assessment" : focusQuery ? "prompt" : "",
