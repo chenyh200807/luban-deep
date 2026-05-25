@@ -1959,6 +1959,8 @@ class AgentLoop:
         rag_tool = self.tools.get("rag")
         if rag_tool is None:
             return None
+        if str((runtime_metadata or {}).get("exact_question_blocked_reason") or "").strip():
+            return None
         exact_probe = prepare_exact_question_probe(current_message)
         practice_generation_request = looks_like_practice_generation_request(current_message)
         if bool(runtime_metadata.get("suppress_answer_reveal_on_generate")) and practice_generation_request:

@@ -184,30 +184,12 @@ class ChatOrchestrator:
 
     async def _select_capability(self, context: UnifiedContext) -> str:
         routing_user_message = self._routing_user_message(context)
-        if context.active_capability:
-            self._prepare_preselected_capability_context(context, routing_user_message)
-            context.metadata.setdefault("semantic_router_mode", "preselected")
-            context.metadata.setdefault("semantic_router_mode_reason", "preselected_capability")
-            context.metadata.setdefault(
-                "semantic_router_selected_capability",
-                str(context.active_capability or "").strip(),
-            )
-            return context.active_capability
-
         if not self._has_active_lifecycle_context(context):
             lifecycle_decision = await resolve_question_lifecycle_scene_decision(
                 SimpleNamespace(user_message=routing_user_message, metadata=context.metadata)
             )
+            self._record_lifecycle_decision(context, lifecycle_decision)
             lifecycle_scene = lifecycle_decision.scene
-            if lifecycle_scene in {"question_review", "practice_generation"}:
-                trace_meta = context.metadata.setdefault("trace_metadata", {})
-                if isinstance(trace_meta, dict):
-                    trace_meta["question_lifecycle_scene_source"] = lifecycle_decision.source
-                    trace_meta["question_lifecycle_scene_confidence"] = lifecycle_decision.confidence
-                    trace_meta["question_lifecycle_scene_reason"] = lifecycle_decision.reason
-                context.metadata["question_lifecycle_scene_source"] = lifecycle_decision.source
-                context.metadata["question_lifecycle_scene_confidence"] = lifecycle_decision.confidence
-                context.metadata["question_lifecycle_scene_reason"] = lifecycle_decision.reason
             if lifecycle_scene == "question_review":
                 self._prepare_free_text_question_review_context(context, routing_user_message)
                 context.metadata["semantic_router_mode"] = "question_lifecycle"
@@ -228,6 +210,16 @@ class ChatOrchestrator:
                 context.metadata["semantic_router_shadow_route"] = ""
                 context.metadata["semantic_router_selected_capability"] = "deep_question"
                 return "deep_question"
+
+        if context.active_capability:
+            self._prepare_preselected_capability_context(context, routing_user_message)
+            context.metadata.setdefault("semantic_router_mode", "preselected")
+            context.metadata.setdefault("semantic_router_mode_reason", "preselected_capability")
+            context.metadata.setdefault(
+                "semantic_router_selected_capability",
+                str(context.active_capability or "").strip(),
+            )
+            return context.active_capability
 
         semantic_router_enabled = self._semantic_router_enabled(context)
         semantic_router_shadow_mode = self._semantic_router_shadow_mode(context)
@@ -313,6 +305,56 @@ class ChatOrchestrator:
             return
         if looks_like_practice_generation_request(message):
             self._prepare_practice_request_context(context, message)
+
+    @staticmethod
+    def _record_lifecycle_decision(
+        context: UnifiedContext,
+        decision: Any,
+    ) -> None:
+        scene = decision.scene
+        selected_skill_names = list(decision.selected_skill_names or ())
+        decision_payload = {
+            "scene": scene,
+            "decision_source": decision.source,
+            "scene_confidence": decision.confidence,
+            "reason": decision.reason,
+            "required_anchor_status": decision.required_anchor_status,
+            "exact_question_blocked_reason": decision.exact_question_blocked_reason,
+            "selected_skill_names": selected_skill_names,
+            "needs_clarification": decision.needs_clarification,
+        }
+        context.metadata["question_lifecycle_decision"] = decision_payload
+        context.metadata["decision_source"] = decision.source
+        context.metadata["scene_confidence"] = decision.confidence
+        context.metadata["required_anchor_status"] = decision.required_anchor_status
+        context.metadata["selected_skill_names"] = selected_skill_names
+        context.metadata["question_lifecycle_scene"] = scene
+        context.metadata["question_lifecycle_scene_source"] = decision.source
+        context.metadata["question_lifecycle_scene_confidence"] = decision.confidence
+        context.metadata["question_lifecycle_scene_reason"] = decision.reason
+        if scene is not None:
+            context.metadata["question_lifecycle_skill_names"] = selected_skill_names
+        else:
+            context.metadata.setdefault("question_lifecycle_skill_names", [])
+        if decision.exact_question_blocked_reason:
+            context.metadata["exact_question_blocked_reason"] = decision.exact_question_blocked_reason
+        else:
+            context.metadata.pop("exact_question_blocked_reason", None)
+        trace_meta = context.metadata.setdefault("trace_metadata", {})
+        if isinstance(trace_meta, dict):
+            trace_meta["question_lifecycle_decision"] = dict(decision_payload)
+            trace_meta["decision_source"] = decision.source
+            trace_meta["scene_confidence"] = decision.confidence
+            trace_meta["required_anchor_status"] = decision.required_anchor_status
+            trace_meta["selected_skill_names"] = list(selected_skill_names)
+            trace_meta["question_lifecycle_scene"] = scene
+            trace_meta["question_lifecycle_scene_source"] = decision.source
+            trace_meta["question_lifecycle_scene_confidence"] = decision.confidence
+            trace_meta["question_lifecycle_scene_reason"] = decision.reason
+            if decision.exact_question_blocked_reason:
+                trace_meta["exact_question_blocked_reason"] = decision.exact_question_blocked_reason
+            else:
+                trace_meta.pop("exact_question_blocked_reason", None)
 
     @staticmethod
     def _has_active_lifecycle_context(context: UnifiedContext) -> bool:

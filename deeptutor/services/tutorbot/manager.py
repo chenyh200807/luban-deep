@@ -923,7 +923,17 @@ class TutorBotManager:
             skill_metadata = {
                 metadata_key: trace_metadata[metadata_key]
                 for metadata_key in (
+                    "question_lifecycle_decision",
+                    "decision_source",
+                    "scene_confidence",
+                    "required_anchor_status",
+                    "exact_question_blocked_reason",
+                    "selected_skill_names",
                     "question_lifecycle_scene",
+                    "question_lifecycle_scene_source",
+                    "question_lifecycle_scene_confidence",
+                    "question_lifecycle_scene_reason",
+                    "question_lifecycle_skill_names",
                     "skill_stack",
                     "skill_trace",
                     "loader_source",
@@ -1041,7 +1051,17 @@ class TutorBotManager:
                             "actual_tool_rounds": len(tool_trace_summary["tool_calls"]),
                         }
                         for metadata_key in (
+                            "question_lifecycle_decision",
+                            "decision_source",
+                            "scene_confidence",
+                            "required_anchor_status",
+                            "exact_question_blocked_reason",
+                            "selected_skill_names",
                             "question_lifecycle_scene",
+                            "question_lifecycle_scene_source",
+                            "question_lifecycle_scene_confidence",
+                            "question_lifecycle_scene_reason",
+                            "question_lifecycle_skill_names",
                             "skill_stack",
                             "skill_trace",
                             "loader_source",

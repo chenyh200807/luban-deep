@@ -302,6 +302,118 @@ async def test_orchestrator_materializes_free_text_real_exam_review_before_expla
 
 
 @pytest.mark.asyncio
+async def test_orchestrator_lifecycle_runs_before_preselected_tutorbot_for_question_review() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-preselected-tutorbot-review",
+        active_capability="tutorbot",
+        user_message="分析一道钢筋保护层真题",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.metadata["question_lifecycle_scene"] == "question_review"
+    assert context.metadata["question_lifecycle_decision"]["decision_source"] == "deterministic"
+    assert context.metadata["selected_skill_names"] == [
+        "construction-exam-tutor",
+        "construction-question-review",
+    ]
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_allows_explicit_year_real_exam_review_after_low_info_gate() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-year-real-exam-review",
+        active_capability="tutorbot",
+        user_message="分析一道2025真题",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.metadata["question_lifecycle_scene"] == "question_review"
+    assert context.metadata["required_anchor_status"] == "satisfied"
+    assert context.metadata.get("exact_question_blocked_reason") is None
+    assert context.metadata["selected_skill_names"] == [
+        "construction-exam-tutor",
+        "construction-question-review",
+    ]
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_clears_stale_exact_question_block_when_anchor_is_present() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-clear-stale-block",
+        active_capability="tutorbot",
+        user_message="分析一道钢筋保护层真题",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={
+            "exact_question_blocked_reason": "low_information_exam_query",
+            "trace_metadata": {"exact_question_blocked_reason": "low_information_exam_query"},
+        },
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.metadata["question_lifecycle_scene"] == "question_review"
+    assert "exact_question_blocked_reason" not in context.metadata
+    assert "exact_question_blocked_reason" not in context.metadata["trace_metadata"]
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_marks_low_information_exam_query_without_exact_authority() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-low-info-exam-query",
+        active_capability="tutorbot",
+        user_message="2025真题",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "tutorbot"
+    assert context.metadata["question_lifecycle_scene"] is None
+    assert context.metadata["question_lifecycle_decision"] == {
+        "scene": None,
+        "decision_source": "deterministic",
+        "scene_confidence": 1.0,
+        "reason": "low-information exam query needs clarification",
+        "required_anchor_status": "missing_question_anchor",
+        "exact_question_blocked_reason": "low_information_exam_query",
+        "selected_skill_names": [],
+        "needs_clarification": True,
+    }
+    assert context.metadata["exact_question_blocked_reason"] == "low_information_exam_query"
+    assert context.metadata["trace_metadata"]["exact_question_blocked_reason"] == "low_information_exam_query"
+
+
+@pytest.mark.asyncio
 async def test_preselected_deep_question_grades_submission_before_practice_generation() -> None:
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()

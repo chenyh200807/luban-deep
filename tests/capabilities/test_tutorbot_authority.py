@@ -10,6 +10,8 @@ from deeptutor.core.stream_bus import StreamBus
 
 
 class _FakeTutorBotManager:
+    sent_messages = 0
+
     def build_chat_session_key(self, bot_id: str, conversation_id: str, *, user_id: str | None = None) -> str:
         return f"{bot_id}:{conversation_id}:{user_id or 'anon'}"
 
@@ -20,6 +22,7 @@ class _FakeTutorBotManager:
         return None
 
     async def send_message(self, **kwargs) -> str:
+        self.sent_messages += 1
         return (
             "第1题：下列关于施工缝处理正确的是？\n"
             "A. 任意留设\n"
@@ -60,3 +63,51 @@ async def test_tutorbot_does_not_turn_free_text_mcq_into_submitable_presentation
     assert "presentation" not in result_metadata
     assert "question_followup_context" not in result_metadata
     assert "active_object" not in result_metadata
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_low_information_exam_query_returns_clarification(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    manager = _FakeTutorBotManager()
+    monkeypatch.setattr(
+        tutorbot_capability,
+        "get_tutorbot_manager",
+        lambda: manager,
+    )
+
+    stream = StreamBus()
+    context = UnifiedContext(
+        session_id="s-low-info-exam-query",
+        user_message="2025真题",
+        config_overrides={
+            "bot_id": "construction-exam-coach",
+            "chat_mode": "fast",
+        },
+        metadata={
+            "exact_question_blocked_reason": "low_information_exam_query",
+            "question_lifecycle_decision": {
+                "scene": None,
+                "decision_source": "deterministic",
+                "scene_confidence": 1.0,
+                "reason": "low-information exam query needs clarification",
+                "required_anchor_status": "missing_question_anchor",
+                "exact_question_blocked_reason": "low_information_exam_query",
+                "selected_skill_names": [],
+                "needs_clarification": True,
+            },
+        },
+        language="zh",
+    )
+
+    await TutorBotCapability().run(context, stream)
+
+    result_events = [event for event in stream._history if event.type == StreamEventType.RESULT]
+    assert result_events
+    result_payload = result_events[-1].metadata
+    assert "2025真题" in result_payload["response"]
+    assert "查看这一类真题目录" in result_payload["response"]
+    assert "标准答案" not in result_payload["response"]
+    assert result_payload["exact_question_blocked_reason"] == "low_information_exam_query"
+    assert result_payload["exact_fast_path_hit"] is False
+    assert manager.sent_messages == 0
