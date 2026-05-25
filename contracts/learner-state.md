@@ -34,6 +34,12 @@
   `learner_memory_events`、profile、progress、goals、heartbeat 或 overlay 真相。
 - 如果某个运营动作需要改变 learner state，必须走 learner-state writeback / promotion
   authority，不能通过 member-console audit helper 旁路写入。
+- Assessment TestSet session durability belongs to the assessment authority. In production,
+  if Supabase `assessment_sessions` is required but not configured, member-console
+  initialization and non-assessment auth/admin paths may still load, but assessment
+  create/resume/report/explanation/writeback-retry paths must fail closed with
+  `assessment_sessions_supabase_not_configured`; they must not silently use JSON or
+  in-memory sessions as production authority.
 
 ## 第二阶段预留语义：Bot-Learner Overlay
 
