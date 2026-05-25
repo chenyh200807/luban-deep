@@ -2957,10 +2957,12 @@ class TurnRuntimeManager:
             explicit_action=runtime_followup_action,
             candidate_contexts=candidate_followup_contexts,
         )
-        if (
-            requested_capability in {"chat", "tutorbot"}
-            and followup_action_route(runtime_followup_action) in {"submission", "followup", "practice_generation"}
-        ):
+        has_question_lifecycle_evidence = (
+            runtime_followup_question_context is not None
+            or runtime_followup_action is not None
+        )
+        if requested_capability in {"chat", "tutorbot"} and has_question_lifecycle_evidence:
+            runtime_only_config["_entry_capability_hint"] = requested_capability
             requested_capability = None
             capability = ""
             config_capability = "chat"
@@ -4174,7 +4176,10 @@ class TurnRuntimeManager:
                     user_message=effective_user_message,
                     conversation_history=conversation_history,
                     enabled_tools=payload.get("tools"),
-                    active_capability=payload.get("capability"),
+                    active_capability=(
+                        payload.get("capability")
+                        or request_config.get("_entry_capability_hint")
+                    ),
                     knowledge_bases=payload.get("knowledge_bases", []),
                     attachments=attachments,
                     config_overrides=request_config,
@@ -4196,6 +4201,9 @@ class TurnRuntimeManager:
                         "source": str((billing_context or {}).get("source", "") or "").strip(),
                         "interaction_profile": str(
                             payload.get("config", {}).get("interaction_profile", "") or ""
+                        ).strip(),
+                        "entry_capability_hint": str(
+                            request_config.get("_entry_capability_hint") or ""
                         ).strip(),
                         "requested_response_mode": str(
                             (interaction_hints or {}).get("requested_response_mode") or ""

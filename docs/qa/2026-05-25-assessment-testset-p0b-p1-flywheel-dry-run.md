@@ -299,3 +299,64 @@ simulation, and WeChat DevTools wrong-item training click-through are now
 verified. Remaining non-automated items are product/ops signoffs: production
 migration governance for future schema changes, ongoing content authoring
 backlog review, and human spot-checks before broad rollout.
+
+## 2026-05-25 P0B Flywheel Closure Addendum
+
+This addendum closes the remaining Gate D gap between wrong-item CTA and
+structured training completion.
+
+```text
+DevTools automation ws=127.0.0.1:9421
+project=/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/yousenwebview
+report_path=packageDeeptutor/pages/report/report
+report_query_detail=training
+training_label=练 3 道同类题
+training_query=请围绕我刚才错的“地下防水卷材搭接”，出 3 道同类选择题训练我。先只出题，不要提前给答案和解析。
+intent_attempt_ref=attempt_devtools_full_001
+intent_signal=assessment_wrong_item_practice
+intent_question_count=3
+after_path=packageDeeptutor/pages/chat/chat
+chat_message_count=2
+chat_contains_training_prompt=true
+```
+
+The first DevTools run exposed a Gate D.5 failure: report correctly routed to
+chat with the assessment intent, but the default chat route produced free-form
+text instead of submit-able training cards. The fix is to keep report/chat as
+thin surfaces and route only `assessment_wrong_item_practice` first-generation
+turns through the existing `deep_question` authority.
+
+```text
+DevTools automation ws=127.0.0.1:9421
+report_path=packageDeeptutor/pages/report/report
+training_label=练 3 道同类题
+after_path=packageDeeptutor/pages/chat/chat
+mcq_found={"cards":[{"count":3,"interactive":true,"stems":["地下防水卷材施工时，卷材搭接长度的最小值是多少？","地下防水卷材相邻搭接缝的错开宽度应符合什么要求？","地下防水卷材铺贴时，最多允许的叠层（层数）是？"]}]}
+submit_called=true
+submit_done=true
+message_count_after_submit=4
+last_role=ai
+last_content=### 阅卷结论 你答了第1题C、第2题C、第3题C；正确答案分别是第1题C、第2题B、第3题B；得分1/3分。
+```
+
+The same run showed a read-model gap after submit: the learner report still
+preferred a generic training prescription instead of a retest CTA. A regression
+test now locks the intended authority: `training_completed` conversation
+evidence remains non-mastery / non-attempt-countable, but it can drive
+`learner_facing.next_action = 再测一次<专题>`.
+
+```text
+PYTHONPATH=. pytest tests/services/learner_state/test_learning_report_read_model.py::test_training_completed_conversation_recommends_topic_retest_without_mastery_claim -q
+.                                                                        [100%]
+1 passed in 0.93s
+```
+
+Gate D status after this addendum:
+
+| Step | Evidence | Status |
+| --- | --- | --- |
+| Result CTA returns to report training area | Existing DevTools route evidence | Passed |
+| Report training action preserves attempt_ref / wrong-item intent | `test_report_snapshot_dedupe.js` + DevTools output | Passed |
+| Wrong-item training generates 3 submit-able MCQs | DevTools `mcq_found.count=3 interactive=true` | Passed |
+| Training submit writes through structured MCQ path | DevTools submit terminal assistant feedback | Passed |
+| Retest recommendation after `training_completed` | read-model regression test | Passed locally; requires deploy/prod re-smoke |
