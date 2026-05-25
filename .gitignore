@@ -57,6 +57,7 @@ MANIFEST
 .env.*.local
 *.env
 !.env.example
+.git.disabled*
 web/.env.local
 web/.env.*.local
 env/

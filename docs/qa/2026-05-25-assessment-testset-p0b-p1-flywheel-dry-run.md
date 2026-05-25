@@ -406,3 +406,78 @@ contract-guard: passed
 error-code-guard: passed | codes=E02, E04, M02, M06, M07, unknown_error
 node-id-guard: no hard-coded knowledge_node_id literals found
 ```
+
+## 2026-05-25 Production Deploy Addendum
+
+Deployment target: `Aliyun-ECS-2:/root/deeptutor`
+
+```text
+git_push=passed
+branch=codex/assessment-flywheel-hardening-20260525
+remote_head=1135aaece98deb68832599289e64d3c67926ae12
+```
+
+Supabase migration:
+
+```text
+env_source=heuristic_jackson_env
+target_guard=passed
+questions_bank_count=4638
+assessment_sessions_regclass=assessment_sessions
+fk_before=0
+migration=applied
+fk_after=0
+```
+
+The migration was idempotent in the probed target database: the
+`assessment_sessions_user_id_fkey` constraint was already absent before apply
+and remained absent after apply.
+
+Aliyun fast redeploy:
+
+```text
+DEEPTUTOR_RELEASE_ID=1.0.0+1135aaece98deb68832599289e64d3c67926ae12+production
+DEEPTUTOR_GIT_SHA=1135aaece98deb68832599289e64d3c67926ae12
+DEEPTUTOR_GIT_DIRTY=false
+DEEPTUTOR_DEPLOY_MANIFEST_HASH=8ea978607e60f8b6
+public_frontend=https://test2.yousenjiaoyu.com/
+public_healthz=https://test2.yousenjiaoyu.com/healthz passed
+public_readyz=https://test2.yousenjiaoyu.com/readyz passed
+observability=passed
+langfuse_connectivity=jgzk-langfuse:3000 reachable
+```
+
+Production assessment smoke:
+
+```text
+auth_register=passed
+auth_user_id=auth_1e16f2000f274146a22ebb0d
+
+assessment_type=topic_diagnostic
+quiz_id=quiz_4fc72a8293ac
+question_count=12
+blueprint_version=topic_waterproof_v1
+report_ready=true
+deep_explanation_ready=true
+pre_submit_redaction=passed
+
+assessment_type=real_exam_simulation
+quiz_id=quiz_0482172fafd6
+question_count=20
+blueprint_version=real_exam_simulation_mini_v1
+report_ready=true
+deep_explanation_ready=true
+pre_submit_redaction=passed
+```
+
+Deployment hygiene note:
+
+```text
+tracked_git_disabled=found_before_cleanup
+```
+
+`.git.disabled` was discovered as a tracked repo file and had been synced to the
+allowed remote deploy root. It is not runtime-sensitive, but it is deploy-surface
+noise. The branch now removes it from Git and adds `.git.disabled*` to both
+`.gitignore` and `scripts/sync_to_aliyun.sh` excludes so future deploys do not
+ship local worktree pointer artifacts.
