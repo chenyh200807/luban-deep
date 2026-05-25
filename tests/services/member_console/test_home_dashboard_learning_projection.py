@@ -99,6 +99,52 @@ def test_stale_or_missing_projection_falls_back_to_seed_starters() -> None:
     assert len({item["prompt_type"] for item in missing_dashboard["recommended_prompts"]}) >= 3
 
 
+def test_missing_projection_recovers_from_assessment_learning_evidence() -> None:
+    older_event = SimpleNamespace(
+        event_id="evt_assessment_old",
+        memory_kind="learning_evidence",
+        source_feature="assessment_testset",
+        payload_json={
+            "event_type": "learning_evidence",
+            "assessment_type": "topic_diagnostic",
+            "question_id": "q0",
+            "knowledge_points": ["旧摸底"],
+            "error_codes": ["M00"],
+            "attempt_ref": "attempt-ref-old",
+        },
+    )
+    latest_event = SimpleNamespace(
+        event_id="evt_assessment_1",
+        memory_kind="learning_evidence",
+        source_feature="assessment_testset",
+        payload_json={
+            "event_type": "learning_evidence",
+            "assessment_type": "topic_diagnostic",
+            "question_id": "q1",
+            "knowledge_points": ["防水工程"],
+            "error_codes": ["M01"],
+            "attempt_ref": "attempt-ref-1",
+        },
+    )
+
+    dashboard = build_home_dashboard_learning_projection(
+        projection=None,
+        conversation_events=[older_event, latest_event],
+        subject_id="construction_exam_1",
+        now=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
+    )
+
+    assert dashboard["today_focus"]["title"] == "今日焦点：防水工程"
+    assert dashboard["today_focus"]["meta"] == "来自 learner_state.home_personalization"
+    assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练防水工程"
+    assert dashboard["recommended_prompts"][0]["intent"]["evidence_refs"] == [
+        "evt_assessment_1",
+        "attempt-ref-1",
+    ]
+    assert dashboard["source_status"]["fallback_used"] is False
+    assert dashboard["source_status"]["recovered_from"] == "learner_memory_events.learning_evidence"
+
+
 def test_malformed_projection_falls_back_instead_of_leaking_bad_shape() -> None:
     malformed_projection = {
         "generated_at": datetime(2026, 5, 21, 9, 0, tzinfo=_TZ).isoformat(),
@@ -230,6 +276,54 @@ def test_dashboard_reads_projection_from_learner_snapshot_not_weak_nodes(
     assert dashboard["home_projection"]["today_focus"]["title"] == "今日焦点：施工进度索赔"
     assert dashboard["home_projection"]["recommended_prompts"][0]["text"] == "用案例题练施工进度索赔"
     assert dashboard["home_projection"]["recommended_prompts"][0]["prompt_type"] == "practice_prompt"
+
+
+def test_dashboard_recovers_projection_from_assessment_learning_evidence(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_HOME_PERSONALIZATION_ENABLED", "true")
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service.get_profile("assessment_projection_user")
+
+    event = SimpleNamespace(
+        event_id="evt_assessment_1",
+        memory_kind="learning_evidence",
+        source_feature="assessment_testset",
+        payload_json={
+            "event_type": "learning_evidence",
+            "assessment_type": "topic_diagnostic",
+            "question_id": "q1",
+            "knowledge_points": ["防水工程"],
+            "error_codes": ["M01"],
+        },
+    )
+
+    class _FakeLearnerStateService:
+        def read_snapshot(self, user_id: str, *, event_limit: int = 5):
+            assert user_id == "assessment_projection_user"
+            return SimpleNamespace(
+                profile={},
+                progress={},
+                summary="",
+                memory_events=[event],
+            )
+
+        def list_heartbeat_jobs(self, user_id: str):
+            return []
+
+        def list_heartbeat_history(self, user_id: str, limit: int = 3):
+            return []
+
+    service._get_learner_state_service = lambda: _FakeLearnerStateService()  # type: ignore[method-assign]
+
+    dashboard = service.get_home_dashboard("assessment_projection_user")
+
+    assert dashboard["today_focus"]["title"] == "今日焦点：防水工程"
+    assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练防水工程"
+    assert dashboard["recommended_prompts"][0]["prompt_type"] == "practice_prompt"
+    assert dashboard["home_projection"]["source_status"]["recovered_from"] == "learner_memory_events.learning_evidence"
 
 
 def test_dashboard_seed_fallback_uses_subject_from_learner_snapshot(

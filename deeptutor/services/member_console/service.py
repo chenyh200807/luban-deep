@@ -3972,6 +3972,9 @@ class MemberConsoleService:
 
             return build_home_dashboard_learning_projection(
                 projection=self._home_personalization_projection_from_snapshot(snapshot),
+                conversation_events=list(getattr(snapshot, "memory_events", []) or [])
+                if snapshot is not None
+                else [],
                 subject_id=self._home_subject_id(snapshot=snapshot, member=member),
             )
         except Exception:

@@ -4,6 +4,9 @@ from deeptutor.services.learner_state.training_intent import (
     build_learning_training_intent,
     prioritize_training_intents,
 )
+from deeptutor.services.learner_state.home_personalization import (
+    build_home_personalization_projection_from_learning_signal,
+)
 
 
 def test_training_intent_contains_concept_error_attempt_and_question_count() -> None:
@@ -96,6 +99,29 @@ def test_training_intent_v2_preserves_v1_compat_fields() -> None:
     # v2 additive.
     assert intent["intent_version"] == 2
     assert intent["evidence_refs"] == ["attempt_1"]
+
+
+def test_home_projection_v1_consumer_derives_intent_from_assessment_evidence() -> None:
+    """Assessment evidence does not emit next_training_signal; the home
+    projection still needs a valid v1 training intent from canonical evidence.
+    """
+    projection = build_home_personalization_projection_from_learning_signal(
+        {
+            "event_type": "learning_evidence",
+            "knowledge_points": ["防水工程"],
+            "error_codes": ["M01"],
+            "event_id": "evt_assessment_1",
+            "attempt_ref": "attempt_ref_1",
+            "subject_id": "construction_exam_1",
+        }
+    )
+
+    assert projection is not None
+    assert projection["today_focus"]["title"] == "今日焦点：防水工程"
+    intent = projection["recommended_prompts"][0]["intent"]
+    assert intent["concept_label"] == "防水工程"
+    assert intent["error_label"] == "M01"
+    assert intent["evidence_refs"] == ["evt_assessment_1", "attempt_ref_1"]
 
 
 def test_training_intent_v2_degrades_when_evidence_refs_empty() -> None:
