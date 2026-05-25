@@ -124,6 +124,10 @@ Overlay 必须支持：
 
 - 学员长期 progress 主表
 - 承接 mastery、weak points、diagnosis、活跃度信号
+- 首页个性化推荐的 durable projection 只能保存在
+  `user_stats.knowledge_map.projections.home_personalization`。服务层读回时可暴露为
+  `progress.home_personalization` 以便页面消费，但不得把同一 projection 放入平行表、
+  本地 JSON 或 member-console cache 作为第二套权威。
 
 必须真实接入：
 
@@ -205,6 +209,11 @@ Overlay 必须支持：
   `learner_memory_events.learning_evidence` 恢复一次同形态 projection；若没有有效证据，
   再降级到 `data/seed/<subject_id>/starter_prompts.json`。该 starter pool 是 fallback
   projection，不是第二套推荐 authority。
+- 生产 Supabase 写入任何 learner-state 外键表（包括 `learner_memory_events`、
+  `learner_summaries`、`learning_plans`、`learning_plan_pages`、`heartbeat_jobs` 和
+  overlay 表）前，writeback pipeline 必须先确保同一个 canonical `user_id` 已存在于
+  `public.users`。移动端生成的 `user_6508` 这类 learner id 不能只停留在本地 JSONL 或
+  outbox；否则 remote-first reader 会读不到证据并反复降级到 starter focus。
 - Home dashboard、heartbeat context 和 learner-facing projections 如果先经过
   member identity 合并，后续 learner-state reader 必须使用合并后的 canonical
   `member.user_id`。`user_2008` 等 legacy alias 只允许作为入口查询键，不得在

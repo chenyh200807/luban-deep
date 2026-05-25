@@ -115,9 +115,12 @@ def test_write_item_turn_writes_learner_memory_event_only() -> None:
     result = asyncio.run(writer.write_item(item))
 
     assert result.ok is True
-    assert result.written_tables == ("learner_memory_events",)
-    assert len(requests) == 1
-    request = requests[0]
+    assert result.written_tables == ("users", "learner_memory_events")
+    assert len(requests) == 2
+    assert requests[0]["path"] == "/rest/v1/users"
+    assert requests[0]["params"]["on_conflict"] == "id"
+    assert requests[0]["json"][0]["id"] == "student_demo"
+    request = requests[1]
     assert request["path"] == "/rest/v1/learner_memory_events"
     assert request["params"]["on_conflict"] == "dedupe_key"
     assert request["headers"]["apikey"] == "service-key"
@@ -158,8 +161,10 @@ def test_write_item_learning_evidence_writes_learner_memory_event() -> None:
     result = asyncio.run(writer.write_item(item))
 
     assert result.ok is True
-    assert result.written_tables == ("learner_memory_events",)
-    request = requests[0]
+    assert result.written_tables == ("users", "learner_memory_events")
+    assert requests[0]["path"] == "/rest/v1/users"
+    assert requests[0]["json"][0]["id"] == "student_demo"
+    request = requests[1]
     assert request["path"] == "/rest/v1/learner_memory_events"
     assert request["json"][0]["memory_kind"] == "learning_evidence"
     assert request["json"][0]["payload_json"]["error_events"][0]["error_code"] == "E02"
@@ -241,6 +246,7 @@ def test_write_item_guide_completion_writes_summary_and_plan(tmp_path) -> None:
 
     assert result.ok is True
     assert result.written_tables == (
+        "users",
         "learner_memory_events",
         "learner_summaries",
         "learning_plans",
@@ -248,14 +254,15 @@ def test_write_item_guide_completion_writes_summary_and_plan(tmp_path) -> None:
     )
     post_requests = [request for request in requests if request["method"] == "POST"]
     assert [request["path"] for request in post_requests] == [
+        "/rest/v1/users",
         "/rest/v1/learner_memory_events",
         "/rest/v1/learner_summaries",
         "/rest/v1/learning_plans",
         "/rest/v1/learning_plan_pages",
     ]
-    summary_body = post_requests[1]["json"][0]
-    plan_body = post_requests[2]["json"][0]
-    page_rows = post_requests[3]["json"]
+    summary_body = post_requests[2]["json"][0]
+    plan_body = post_requests[3]["json"][0]
+    page_rows = post_requests[4]["json"]
 
     assert summary_body["user_id"] == "student_demo"
     assert summary_body["summary_md"].startswith("## 完成总结")
@@ -336,13 +343,14 @@ def test_write_item_learning_plan_page_syncs_single_page_and_parent_plan(tmp_pat
     result = asyncio.run(writer.write_item(item))
 
     assert result.ok is True
-    assert result.written_tables == ("learning_plans", "learning_plan_pages")
+    assert result.written_tables == ("users", "learning_plans", "learning_plan_pages")
     assert [request["path"] for request in requests] == [
+        "/rest/v1/users",
         "/rest/v1/learning_plans",
         "/rest/v1/learning_plan_pages",
     ]
-    plan_body = requests[0]["json"][0]
-    page_body = requests[1]["json"][0]
+    plan_body = requests[1]["json"][0]
+    page_body = requests[2]["json"][0]
     assert plan_body["plan_id"] == "guide_42"
     assert plan_body["status"] == "learning"
     assert page_body["plan_id"] == "guide_42"
@@ -386,9 +394,10 @@ def test_write_item_heartbeat_job_writes_heartbeat_jobs_only(tmp_path) -> None:
     result = asyncio.run(writer.write_item(item))
 
     assert result.ok is True
-    assert result.written_tables == ("heartbeat_jobs",)
-    assert len(requests) == 1
-    request = requests[0]
+    assert result.written_tables == ("users", "heartbeat_jobs")
+    assert len(requests) == 2
+    assert requests[0]["path"] == "/rest/v1/users"
+    request = requests[1]
     assert request["path"] == "/rest/v1/heartbeat_jobs"
     assert request["params"]["on_conflict"] == "user_id,bot_id,channel"
     body = request["json"][0]
@@ -441,7 +450,7 @@ def test_write_item_heartbeat_job_preserves_structured_last_result_json(tmp_path
     result = asyncio.run(writer.write_item(item))
 
     assert result.ok is True
-    body = requests[0]["json"][0]
+    body = requests[1]["json"][0]
     assert body["last_result_json"]["success"] is True
     assert body["last_result_json"]["delivery"]["state"] == "sent"
     assert body["last_result_json"]["audit"]["status"] == "ok"
@@ -473,9 +482,10 @@ def test_write_item_summary_refresh_writes_summary_only() -> None:
     result = asyncio.run(writer.write_item(item))
 
     assert result.ok is True
-    assert result.written_tables == ("learner_summaries",)
-    assert len(requests) == 1
-    request = requests[0]
+    assert result.written_tables == ("users", "learner_summaries")
+    assert len(requests) == 2
+    assert requests[0]["path"] == "/rest/v1/users"
+    request = requests[1]
     assert request["path"] == "/rest/v1/learner_summaries"
     assert request["json"][0]["summary_md"].startswith("## 当前学习概览")
     assert request["json"][0]["last_refreshed_from_feature"] == "chat"
@@ -714,20 +724,22 @@ def test_write_item_overlay_patch_writes_overlay_tables_and_event_stream() -> No
 
     assert result.ok is True
     assert result.written_tables == (
+        "users",
         "learner_memory_events",
         "bot_learner_overlays",
         "bot_learner_overlay_events",
         "bot_learner_overlay_audit",
     )
     assert [request["path"] for request in requests] == [
+        "/rest/v1/users",
         "/rest/v1/learner_memory_events",
         "/rest/v1/bot_learner_overlays",
         "/rest/v1/bot_learner_overlay_events",
         "/rest/v1/bot_learner_overlay_audit",
     ]
-    overlay_body = requests[1]["json"][0]
-    event_body = requests[2]["json"][0]
-    audit_body = requests[3]["json"][0]
+    overlay_body = requests[2]["json"][0]
+    event_body = requests[3]["json"][0]
+    audit_body = requests[4]["json"][0]
     assert overlay_body["bot_id"] == "bot_alpha"
     assert overlay_body["active_plan_id"] == "plan_1"
     assert overlay_body["working_memory_projection_md"] == "继续当前计划"

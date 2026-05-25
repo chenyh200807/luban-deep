@@ -169,6 +169,52 @@ def test_stats_read_write_and_merge_uses_user_id_filter() -> None:
     asyncio.run(transport_client.aclose())
 
 
+def test_stats_preserves_home_personalization_projection_inside_knowledge_map() -> None:
+    requests: list[dict[str, object]] = []
+    state = {
+        "user_profiles": {},
+        "user_stats": {},
+        "user_goals": [],
+        "learner_summaries": {},
+    }
+    transport_client = _make_client(requests, state)
+    client = LearnerStateSupabaseClient(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=transport_client,
+    )
+    store = LearnerStateSupabaseCoreStore(client=client)
+    projection = {
+        "today_focus": {"title": "今日焦点：防水工程"},
+        "recommended_prompts": [{"text": "用 3 道题训练防水工程", "intent": {"source": "home"}}],
+    }
+
+    async def _run() -> None:
+        saved = await store.upsert_stats(
+            "student_demo",
+            {
+                "mastery_level": 2,
+                "knowledge_map": {"weak_points": ["防水工程"]},
+                "home_personalization": projection,
+            },
+        )
+        assert saved["home_personalization"]["today_focus"]["title"] == "今日焦点：防水工程"
+
+        read_back = await store.read_stats("student_demo")
+        assert read_back["home_personalization"]["today_focus"]["title"] == "今日焦点：防水工程"
+        assert read_back["projections"]["home_personalization"]["recommended_prompts"][0]["text"] == (
+            "用 3 道题训练防水工程"
+        )
+
+    asyncio.run(_run())
+    row = state["user_stats"]["student_demo"]
+    assert row["knowledge_map"]["projections"]["home_personalization"]["today_focus"]["title"] == (
+        "今日焦点：防水工程"
+    )
+
+    asyncio.run(transport_client.aclose())
+
+
 def test_goals_list_upsert_and_delete_use_goal_primary_key() -> None:
     requests: list[dict[str, object]] = []
     state = {

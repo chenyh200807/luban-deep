@@ -136,6 +136,16 @@ class LearnerStateSupabaseWriter:
 
         try:
             written_tables: list[str] = []
+            if self._needs_user_row(
+                memory_event_row=memory_event_row,
+                summary_row=summary_row,
+                guide_rows=guide_rows,
+                heartbeat_job_row=heartbeat_job_row,
+                learning_plan_page_rows=learning_plan_page_rows,
+                overlay_rows=overlay_rows,
+            ):
+                await self._ensure_user_row(client, str(item.user_id).strip())
+                written_tables.append("users")
             if memory_event_row is not None:
                 await self._upsert(
                     client,
@@ -271,6 +281,48 @@ class LearnerStateSupabaseWriter:
             json=rows,
         )
         response.raise_for_status()
+
+    async def _ensure_user_row(self, client: httpx.AsyncClient, user_id: str) -> None:
+        normalized_user_id = str(user_id or "").strip()
+        if not normalized_user_id:
+            return
+        await self._upsert(
+            client,
+            table="users",
+            rows=[
+                {
+                    "id": normalized_user_id,
+                    "identifier": normalized_user_id,
+                    "metadata": {
+                        "source": "learner_state_outbox",
+                        "mirror_reason": "learner_state_fk",
+                    },
+                }
+            ],
+            on_conflict="id",
+        )
+
+    @staticmethod
+    def _needs_user_row(
+        *,
+        memory_event_row: dict[str, Any] | None,
+        summary_row: dict[str, Any] | None,
+        guide_rows: tuple[dict[str, Any], dict[str, Any], list[dict[str, Any]]] | None,
+        heartbeat_job_row: dict[str, Any] | None,
+        learning_plan_page_rows: tuple[dict[str, Any], dict[str, Any]] | None,
+        overlay_rows: tuple[dict[str, Any] | None, dict[str, Any], dict[str, Any]] | None,
+    ) -> bool:
+        return any(
+            item is not None
+            for item in (
+                memory_event_row,
+                summary_row,
+                guide_rows,
+                heartbeat_job_row,
+                learning_plan_page_rows,
+                overlay_rows,
+            )
+        )
 
     async def _merge_summary_structured_json(
         self,
