@@ -74,4 +74,3 @@ def build_static_deep_explanation(
         "score_mutation_allowed": False,
         "source": "assessment_deep_explanation_projection",
     }
-

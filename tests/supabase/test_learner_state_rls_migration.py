@@ -97,3 +97,30 @@ def test_assessment_sessions_do_not_require_public_users_mirror_row() -> None:
     assert "user_id text not null references public.users" not in create_sql
     assert "drop constraint if exists assessment_sessions_user_id_fkey" in hotfix_sql
     assert "auth.uid()::text = user_id" in create_sql
+
+
+def test_assessment_forms_security_hotfix_is_narrow_service_role_only() -> None:
+    migration_path = (
+        Path(__file__).resolve().parents[2]
+        / "supabase"
+        / "migrations"
+        / "20260525130000_assessment_forms_service_role_only.sql"
+    )
+    sql = migration_path.read_text(encoding="utf-8").lower()
+
+    assert "alter table public.assessment_forms enable row level security;" in sql
+    assert "revoke all on public.assessment_forms from anon;" in sql
+    assert "revoke all on public.assessment_forms from authenticated;" in sql
+    assert "items_json" in sql
+    assert "assessment_forms_public" in sql
+    assert "question_bank_size" in sql
+    assert "fallback_used" in sql
+    assert "source_fingerprint" not in sql
+    assert "created_at" not in sql
+
+    touched_tables = {
+        line.split("public.", 1)[1].split()[0].strip(";")
+        for line in sql.splitlines()
+        if " public." in line
+    }
+    assert touched_tables == {"assessment_forms", "assessment_forms_public"}
