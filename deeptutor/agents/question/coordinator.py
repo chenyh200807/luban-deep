@@ -179,8 +179,6 @@ class AgentCoordinator:
             )
             # retriever_calls 计数：调过 rag_search 即算一次（成功/失败都计入）。
             lightweight_trace_counters["retriever_calls"] = 1
-            if retrieval_trace.get("exact_question"):
-                lightweight_trace_counters["bank_hits"] = 1
             templates = self._build_lightweight_topic_templates(
                 user_topic=user_topic,
                 requested=requested,
@@ -195,6 +193,7 @@ class AgentCoordinator:
                 templates=templates,
                 question_type=target_question_type or "choice",
             )
+            lightweight_trace_counters["bank_hits"] = len(bank_qa_pairs)
             batch_trace.append(
                 {
                     "mode": "lightweight_topic_generation",
@@ -561,7 +560,12 @@ class AgentCoordinator:
         """
         payload = dict(anchor_payload or {})
         anchor_source = str(payload.get("anchor_source") or "").strip().lower()
-        if anchor_source != "exact_question":
+        if anchor_source not in {
+            "exact_question",
+            "question_exact_text",
+            "question_evidence_bundle",
+            "rag_answer_bundle",
+        }:
             return []
         reference_question = str(payload.get("reference_question") or "").strip()
         reference_answer = str(payload.get("reference_answer") or "").strip()
@@ -574,11 +578,12 @@ class AgentCoordinator:
         if not options or len(options) < 2:
             return []
         template = templates[0]
+        analysis = str(payload.get("analysis") or "").strip()
         grading_key = {
             "correct_answer": reference_answer,
             "scoring_points": [],
             "common_traps": [],
-            "minimal_rationale": "题库精确命中，参考答案与解析来自 questions_bank。",
+            "minimal_rationale": analysis or "题库精确命中，参考答案与解析来自 questions_bank。",
             "source": "questions_bank",
         }
         knowledge_context = str(payload.get("knowledge_context") or "").strip()
@@ -588,7 +593,7 @@ class AgentCoordinator:
                 question_id=template.question_id,
                 question=reference_question,
                 correct_answer="",  # public string-form correct_answer 不写入；grading 走 grading_key
-                explanation="",
+                explanation=analysis,
                 question_type=question_type or "choice",
                 options=dict(options),
                 concentration=template.concentration,
@@ -596,6 +601,8 @@ class AgentCoordinator:
                 validation={"schema_ok": True, "source": "questions_bank_short_circuit"},
                 metadata={
                     "source": "questions_bank",
+                    "source_group": str(payload.get("source_group") or anchor_source).strip(),
+                    "source_id": str(payload.get("source_id") or "").strip(),
                     "reference_question": reference_question,
                     "knowledge_context": knowledge_context,
                     "lightweight_generation": True,
@@ -608,6 +615,9 @@ class AgentCoordinator:
     @staticmethod
     def _extract_bank_options_from_payload(payload: dict[str, Any]) -> dict[str, str]:
         """Best-effort extract options dict from anchor evidence_refs."""
+        direct_options = AgentCoordinator._parse_reference_options(payload.get("options"))
+        if direct_options:
+            return direct_options
         for ref in list(payload.get("evidence_refs") or []):
             if not isinstance(ref, dict):
                 continue
@@ -801,9 +811,7 @@ class AgentCoordinator:
             )
         except Exception as exc:
             self.logger.warning(
-                "Lightweight topic RAG anchor failed for '%s': %s",
-                user_topic,
-                exc,
+                f"Lightweight topic RAG anchor failed for '{user_topic}': {exc}"
             )
             trace["error"] = str(exc)
             return fallback, trace
@@ -851,6 +859,41 @@ class AgentCoordinator:
         correct_answer = str(exact_question.get("correct_answer") or "").strip()
         options = exact_question.get("options")
 
+        evidence_anchor = AgentCoordinator._extract_structured_anchor_from_evidence_bundle(
+            user_topic=user_topic,
+            result=result,
+        )
+        if evidence_anchor:
+            evidence_parts: list[str] = [base["knowledge_context"]]
+            evidence_parts.append(f"题库参考题目：{evidence_anchor['reference_question']}")
+            evidence_option_lines = AgentCoordinator._format_reference_options(
+                evidence_anchor.get("options")
+            )
+            if evidence_option_lines:
+                evidence_parts.append("题库选项风格参考：\n" + "\n".join(evidence_option_lines[:5]))
+            if evidence_anchor.get("reference_answer"):
+                evidence_parts.append(
+                    f"题库参考答案（仅内部生成锚点）：{evidence_anchor['reference_answer']}"
+                )
+            if evidence_anchor.get("analysis"):
+                clipped_analysis = evidence_anchor["analysis"][:280] + (
+                    "..." if len(evidence_anchor["analysis"]) > 280 else ""
+                )
+                evidence_parts.append(f"题库解析要点：{clipped_analysis}")
+            evidence_ref = evidence_anchor.get("evidence_ref")
+            return {
+                "knowledge_context": "\n".join(evidence_parts),
+                "concentration": anchor_label or evidence_anchor["reference_question"][:32] or "当前学习主题",
+                "reference_question": evidence_anchor["reference_question"],
+                "reference_answer": evidence_anchor.get("reference_answer"),
+                "analysis": evidence_anchor.get("analysis"),
+                "options": evidence_anchor.get("options"),
+                "anchor_source": "question_evidence_bundle",
+                "source_group": evidence_anchor.get("source_group"),
+                "source_id": evidence_anchor.get("source_id"),
+                "evidence_refs": [evidence_ref] if isinstance(evidence_ref, dict) else evidence_refs,
+            }
+
         parts: list[str] = [base["knowledge_context"]]
         if stem:
             parts.append(f"题库参考题目：{stem}")
@@ -868,6 +911,8 @@ class AgentCoordinator:
                 "concentration": anchor_label or stem or "当前学习主题",
                 "reference_question": stem,
                 "reference_answer": correct_answer,
+                "analysis": analysis,
+                "options": AgentCoordinator._parse_reference_options(options),
                 "anchor_source": str(exact_question.get("source_group") or "").strip() or "exact_question",
                 "anchor_confidence": exact_question.get("confidence"),
                 "evidence_refs": evidence_refs,
@@ -900,6 +945,8 @@ class AgentCoordinator:
                 "concentration": anchor_label or parsed_bundle["reference_question"][:32] or "当前学习主题",
                 "reference_question": parsed_bundle["reference_question"],
                 "reference_answer": parsed_bundle.get("reference_answer"),
+                "analysis": parsed_bundle.get("analysis"),
+                "options": parsed_bundle.get("options"),
                 "anchor_source": "rag_answer_bundle",
                 "evidence_refs": evidence_refs,
             }
@@ -955,6 +1002,85 @@ class AgentCoordinator:
         return [{"source": "evidence_bundle", "field": "content_blocks", "content": value}]
 
     @staticmethod
+    def _extract_structured_anchor_from_evidence_bundle(
+        *,
+        user_topic: str,
+        result: dict[str, Any],
+    ) -> dict[str, Any] | None:
+        bundle = result.get("evidence_bundle") if isinstance(result.get("evidence_bundle"), dict) else {}
+        for source in list(bundle.get("sources") or [])[:5]:
+            if not isinstance(source, dict):
+                continue
+            raw = (
+                source.get("content")
+                or source.get("text")
+                or source.get("answer")
+                or source.get("stem")
+                or ""
+            )
+            parsed = AgentCoordinator._extract_structured_anchor_from_answer(str(raw or ""))
+            if not parsed:
+                continue
+            searchable = "\n".join(
+                str(parsed.get(key) or "") for key in ("reference_question", "analysis")
+            )
+            if not AgentCoordinator._structured_anchor_matches_topic(user_topic, searchable):
+                continue
+            source_group = str(
+                source.get("_source_group")
+                or source.get("source_group")
+                or source.get("_source_table")
+                or source.get("source_type")
+                or "retrieval"
+            ).strip()
+            source_id = str(source.get("chunk_id") or source.get("id") or source.get("question_id") or "").strip()
+            evidence_ref = {
+                "source": "evidence_bundle",
+                "field": source_group or "source",
+                "content": {
+                    "source_group": source_group,
+                    "source_id": source_id,
+                    "content": str(raw or "")[:500],
+                },
+            }
+            return {
+                **parsed,
+                "source_group": source_group,
+                "source_id": source_id,
+                "evidence_ref": evidence_ref,
+            }
+        return None
+
+    @staticmethod
+    def _structured_anchor_matches_topic(user_topic: str, content: str) -> bool:
+        text = re.sub(r"\s+", "", str(user_topic or ""))
+        haystack = str(content or "")
+        known_terms = (
+            "钢筋",
+            "保护层",
+            "混凝土",
+            "验槽",
+            "防火门",
+            "防水",
+            "保温",
+            "脚手架",
+            "模板",
+            "进度",
+            "流水",
+        )
+        terms = [term for term in known_terms if term in text]
+        if terms:
+            if "保护层" in terms and "保护层" not in haystack:
+                return False
+            matched = sum(1 for term in terms if term in haystack)
+            return matched >= min(2, len(terms))
+        cleaned = re.sub(r"(分析|讲解|解析|讲|一道|一题|真题|题目|的|请|帮我|一下|关于)", " ", text)
+        loose_terms = [part for part in re.split(r"[\s，。！？、,.;；:：]+", cleaned) if len(part) >= 2]
+        if not loose_terms:
+            return False
+        return any(term in haystack for term in loose_terms[:3])
+
+    @staticmethod
     def _derive_lightweight_anchor_label(
         *,
         user_topic: str,
@@ -996,20 +1122,45 @@ class AgentCoordinator:
         )
         if not match:
             return None
-        stem = str(match.group("stem") or "").strip()
+        stem, inline_options = AgentCoordinator._split_reference_question_and_inline_options(
+            str(match.group("stem") or "").strip()
+        )
         if not stem:
             return None
         reference_answer = re.sub(r"\s+", " ", str(match.group("answer") or "")).strip() or None
         analysis = re.sub(r"\s+", " ", str(match.group("analysis") or "")).strip()
+        options = (
+            AgentCoordinator._parse_reference_options(match.group("options"))
+            or AgentCoordinator._parse_reference_options(inline_options)
+        )
         return {
             "reference_question": stem,
             "reference_answer": reference_answer,
             "analysis": analysis,
-            "options": AgentCoordinator._parse_reference_options(match.group("options")),
+            "options": options,
         }
 
     @staticmethod
+    def _split_reference_question_and_inline_options(stem: str) -> tuple[str, str]:
+        text = str(stem or "").strip()
+        if not text:
+            return "", ""
+        match = re.search(r"(?:^|\n)\s*A[\.\):、]\s+", text)
+        if not match:
+            return text, ""
+        question = text[: match.start()].strip()
+        inline_options = text[match.start() :].strip()
+        return question, inline_options
+
+    @staticmethod
     def _parse_reference_options(raw_options: Any) -> dict[str, str] | None:
+        if isinstance(raw_options, dict):
+            options = {
+                str(key or "").strip().upper()[:1]: str(value or "").strip()
+                for key, value in raw_options.items()
+                if str(key or "").strip() and str(value or "").strip()
+            }
+            return options or None
         raw_text = str(raw_options or "").strip()
         if not raw_text:
             return None
@@ -1030,15 +1181,21 @@ class AgentCoordinator:
         if isinstance(parsed, list):
             options: dict[str, str] = {}
             for item in parsed:
-                if not isinstance(item, dict):
-                    continue
-                key = str(item.get("key") or item.get("label") or "").strip().upper()[:1]
-                value = str(item.get("value") or item.get("text") or "").strip()
+                if isinstance(item, dict):
+                    key = str(item.get("key") or item.get("label") or "").strip().upper()[:1]
+                    value = str(item.get("value") or item.get("text") or item.get("content") or "").strip()
+                else:
+                    match = re.match(r"^([A-E])[\.\):、]?\s*(.+)$", str(item or "").strip(), flags=re.IGNORECASE)
+                    if not match:
+                        continue
+                    key = match.group(1).upper()
+                    value = match.group(2).strip()
                 if key and value:
                     options[key] = value
             return options or None
 
-        matches = re.findall(r"([A-D])[\.\):、]\s*([^\n]+)", raw_text, flags=re.IGNORECASE)
+        option_text = re.split(r"【答案】|【解析】|【题目】", raw_text, maxsplit=1)[0]
+        matches = re.findall(r"([A-E])[\.\):、]\s*([^\n]+)", option_text, flags=re.IGNORECASE)
         if not matches:
             return None
         return {

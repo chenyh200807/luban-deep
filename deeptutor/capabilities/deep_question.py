@@ -8,9 +8,7 @@ Wraps the existing ``AgentCoordinator``.
 
 from __future__ import annotations
 
-import ast
 import base64
-import json
 import re
 import tempfile
 from typing import Any
@@ -1317,197 +1315,6 @@ def _promote_question_review_result(summary: dict[str, Any]) -> dict[str, Any]:
     return promoted
 
 
-def _promote_question_review_evidence_result(
-    summary: dict[str, Any],
-    *,
-    topic: str,
-) -> dict[str, Any]:
-    promoted = dict(summary)
-    promoted["results"] = []
-    for template in list(summary.get("templates") or []):
-        if not isinstance(template, dict):
-            continue
-        qa_pair = _question_review_qa_pair_from_template_evidence(template, topic=topic)
-        if not qa_pair:
-            continue
-        promoted["results"] = [
-            {
-                "success": True,
-                "template": template,
-                "qa_pair": qa_pair,
-            }
-        ]
-        return _promote_question_review_result(promoted)
-    return promoted
-
-
-def _question_review_qa_pair_from_template_evidence(
-    template: dict[str, Any],
-    *,
-    topic: str,
-) -> dict[str, Any] | None:
-    metadata = template.get("metadata") if isinstance(template.get("metadata"), dict) else {}
-    evidence_refs = list(metadata.get("evidence_refs") or [])
-    for ref in evidence_refs:
-        if not isinstance(ref, dict):
-            continue
-        parsed = _parse_question_review_evidence_ref(ref)
-        if not parsed:
-            continue
-        searchable = "\n".join(
-            str(parsed.get(key) or "") for key in ("question", "analysis", "source_group")
-        )
-        if not _question_review_evidence_matches_topic(topic, searchable):
-            continue
-        source_id = str(parsed.get("source_id") or template.get("question_id") or "question_review").strip()
-        source_group = str(parsed.get("source_group") or "questions_bank").strip()
-        analysis = str(parsed.get("analysis") or "").strip()
-        correct_answer = str(parsed.get("correct_answer") or "").strip()
-        grading_key = {
-            "correct_answer": correct_answer,
-            "scoring_points": [],
-            "common_traps": [],
-            "minimal_rationale": analysis or "答案来自题库证据，请结合题干和选项理解。",
-            "source": "questions_bank",
-        }
-        return {
-            "question_id": source_id,
-            "question": str(parsed.get("question") or "").strip(),
-            "question_type": "choice",
-            "options": dict(parsed.get("options") or {}),
-            "correct_answer": "",
-            "explanation": analysis,
-            "difficulty": str(template.get("difficulty") or "").strip(),
-            "concentration": str(template.get("concentration") or topic or "").strip(),
-            "multi_select": len(correct_answer) > 1,
-            "grading_key": grading_key,
-            "metadata": {
-                "source": "questions_bank",
-                "source_group": source_group,
-                "knowledge_context": analysis,
-                "question_review_mode": True,
-                "evidence_refs": [ref],
-            },
-        }
-    return None
-
-
-def _parse_question_review_evidence_ref(ref: dict[str, Any]) -> dict[str, Any] | None:
-    content = ref.get("content")
-    if isinstance(content, dict):
-        raw = str(content.get("content") or "").strip()
-        source_group = str(content.get("source_group") or ref.get("field") or "").strip()
-        source_id = str(content.get("source_id") or "").strip()
-    else:
-        raw = str(content or "").strip()
-        source_group = str(ref.get("field") or "").strip()
-        source_id = ""
-    if not raw:
-        return None
-
-    question = _extract_marker_section(raw, "题目", stop_markers=("选项", "答案", "解析"))
-    answer = _extract_marker_section(raw, "答案", stop_markers=("解析", "题目"))
-    analysis = _extract_marker_section(raw, "解析", stop_markers=("题目",))
-    raw_options = _extract_marker_section(raw, "选项", stop_markers=("答案", "解析", "题目"))
-    options = _parse_question_review_options(raw_options) or _parse_question_review_options(raw)
-    correct_answer = "".join(re.findall(r"[A-E]", answer.upper()))
-    if not question or not options or len(options) < 2 or not correct_answer:
-        return None
-    return {
-        "question": question,
-        "options": options,
-        "correct_answer": correct_answer,
-        "analysis": analysis,
-        "source_group": source_group,
-        "source_id": source_id,
-    }
-
-
-def _extract_marker_section(
-    text: str,
-    marker: str,
-    *,
-    stop_markers: tuple[str, ...],
-) -> str:
-    pattern = rf"【{re.escape(marker)}】(?P<body>.*?)(?=" + "|".join(
-        rf"【{re.escape(stop)}】" for stop in stop_markers
-    ) + r"|$)"
-    match = re.search(pattern, text, flags=re.DOTALL)
-    if not match:
-        return ""
-    return re.sub(r"\s+", " ", str(match.group("body") or "")).strip()
-
-
-def _parse_question_review_options(raw_options: Any) -> dict[str, str]:
-    raw = str(raw_options or "").strip()
-    if not raw:
-        return {}
-    parsed: Any = None
-    for loader in (json.loads, ast.literal_eval):
-        try:
-            parsed = loader(raw)
-            break
-        except Exception:
-            continue
-    normalized = _normalize_question_review_options(parsed)
-    if normalized:
-        return normalized
-    options: dict[str, str] = {}
-    for match in re.finditer(
-        r"(?:^|[\s，。；;])([A-E])[\.\、:：]\s*(.*?)(?=(?:\s+[A-E][\.\、:：])|$)",
-        raw,
-        flags=re.DOTALL,
-    ):
-        key = match.group(1).upper()
-        value = re.sub(r"\s+", " ", match.group(2)).strip()
-        if value:
-            options[key] = value[:200]
-    return options
-
-
-def _normalize_question_review_options(parsed: Any) -> dict[str, str]:
-    if isinstance(parsed, dict):
-        return {
-            str(key or "").strip().upper()[:1]: str(value or "").strip()
-            for key, value in parsed.items()
-            if str(key or "").strip() and str(value or "").strip()
-        }
-    if isinstance(parsed, list):
-        options: dict[str, str] = {}
-        for item in parsed:
-            if isinstance(item, dict):
-                key = str(item.get("key") or item.get("label") or "").strip().upper()[:1]
-                value = str(item.get("value") or item.get("text") or "").strip()
-            else:
-                text = str(item or "").strip()
-                match = re.match(r"^([A-E])[\.\、:：]?\s*(.+)$", text, flags=re.IGNORECASE)
-                if not match:
-                    continue
-                key = match.group(1).upper()
-                value = match.group(2).strip()
-            if key and value:
-                options[key] = value
-        return options
-    return {}
-
-
-def _question_review_evidence_matches_topic(topic: str, content: str) -> bool:
-    terms = _question_review_topic_terms(topic)
-    if not terms:
-        return True
-    return any(term in content for term in terms)
-
-
-def _question_review_topic_terms(topic: str) -> tuple[str, ...]:
-    text = str(topic or "")
-    candidates = ("钢筋", "保护层", "混凝土", "验槽", "防火门", "防水", "保温", "脚手架", "模板", "进度", "流水")
-    terms = [term for term in candidates if term in text]
-    if terms:
-        return tuple(terms)
-    cleaned = re.sub(r"(分析|讲解|解析|讲|一道|一题|真题|题目|的|请|帮我|一下)", " ", text)
-    return tuple(part for part in re.split(r"[\s，。！？、,.;；:：]+", cleaned) if len(part) >= 2)[:3]
-
-
 def _render_missing_question_review_feedback(topic: str) -> str:
     focus = str(topic or "").strip() or "这道题"
     return (
@@ -2089,8 +1896,6 @@ class DeepQuestionCapability(BaseCapability):
 
         if question_review_mode:
             result = _promote_question_review_result(result)
-            if not _question_review_renderable(result):
-                result = _promote_question_review_evidence_result(result, topic=topic)
             if _question_review_renderable(result):
                 if isinstance(context.metadata, dict):
                     trace_meta = context.metadata.setdefault("trace_metadata", {})
