@@ -482,6 +482,7 @@ function normalizeWrongItems(items, attemptRefs, questions) {
 }
 
 function buildIssueSummary(wrongItems) {
+  if (!(wrongItems || []).length) return [];
   var presets = [
     { title: "多选题漏选", desc: "只选最确定选项，漏掉并列条件", count: 0 },
     { title: "规范条件读不全", desc: "忽略高度、部位、材料、施工阶段限定", count: 0 },
@@ -509,7 +510,13 @@ function buildIssueSummary(wrongItems) {
 }
 
 function buildActionKnowledgeMap(knowledgeMap) {
-  return (knowledgeMap || []).slice(0, 3).map(function (item, index) {
+  return (knowledgeMap || [])
+    .slice()
+    .sort(function (a, b) {
+      return Number(a.pct || 0) - Number(b.pct || 0);
+    })
+    .slice(0, 3)
+    .map(function (item, index) {
     return Object.assign({}, item, {
       actionLabel: index === 0 ? "优先补" : index === 1 ? "次优先" : "暂保持",
       actionClass: index === 0 ? "risk" : index === 1 ? "gold" : "good",

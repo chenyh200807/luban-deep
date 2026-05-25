@@ -462,7 +462,7 @@ function stringify(value) {
     assert(wxml.indexOf('bindtap="goLearningPlan"') >= 0, "result CTA should bind to report training navigation");
     assert(wxml.indexOf("AI详细解析") >= 0, "result should expose AI detailed review action");
     assert(
-      wxml.indexOf('aria-label="错题讲评"') < wxml.indexOf('aria-label="错因结构"'),
+      wxml.indexOf("错题讲评") < wxml.indexOf("错因结构"),
       "wrong item review should render before issue structure",
     );
     assert(wxml.indexOf('bindtap="goChat"') < 0, "assessment result must not route learners back to chat");
