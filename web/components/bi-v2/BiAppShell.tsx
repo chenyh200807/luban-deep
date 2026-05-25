@@ -76,27 +76,37 @@ export function BiAppShell({
         <main className="min-w-0 flex-1 px-3 py-4 md:px-6 md:py-5 xl:px-8">
           <div className="mx-auto max-w-[1680px] space-y-4">
             {pageTitle ? (
-              <div className="flex flex-col gap-3 border-b border-white/10 pb-4 lg:flex-row lg:items-end lg:justify-between">
-                <div className="min-w-0">
-                  <div className="text-[11px] font-black uppercase text-cyan-300">
-                    learning-report style · BI command workspace
+              <div className="relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/[0.045] p-4 shadow-xl shadow-black/15 lg:p-5">
+                <div
+                  className="pointer-events-none absolute inset-0 opacity-80"
+                  style={{
+                    backgroundImage:
+                      'radial-gradient(circle at 88% 18%, rgba(94,221,234,0.16), transparent 26%), radial-gradient(circle at 12% 8%, rgba(251,146,60,0.10), transparent 24%)',
+                  }}
+                  aria-hidden
+                />
+                <div className="relative flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+                  <div className="min-w-0">
+                    <div className="text-[11px] font-black uppercase tracking-normal text-cyan-300">
+                      实时经营指挥台 · BI COMMAND WORKSPACE
+                    </div>
+                    <h1 className="mt-1 text-2xl font-black tracking-normal text-white">
+                      {pageTitle}
+                    </h1>
+                    {pageSummary ? (
+                      <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-300/80">
+                        {pageSummary}
+                      </p>
+                    ) : null}
                   </div>
-                  <h1 className="mt-1 text-2xl font-black tracking-normal text-white">
-                    {pageTitle}
-                  </h1>
-                  {pageSummary ? (
-                    <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-300/80">
-                      {pageSummary}
-                    </p>
-                  ) : null}
-                </div>
-                <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-300">
-                  <span className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-2 py-1 font-bold text-emerald-200">
-                    admin-only
-                  </span>
-                  <span className="rounded-full border border-cyan-300/25 bg-cyan-300/10 px-2 py-1 font-bold text-cyan-200">
-                    audit writes
-                  </span>
+                  <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-300">
+                    <span className="rounded-full border border-emerald-300/25 bg-emerald-300/10 px-3 py-1.5 font-bold text-emerald-200">
+                      admin-only
+                    </span>
+                    <span className="rounded-full border border-cyan-300/25 bg-cyan-300/10 px-3 py-1.5 font-bold text-cyan-200">
+                      audit writes
+                    </span>
+                  </div>
                 </div>
               </div>
             ) : null}
