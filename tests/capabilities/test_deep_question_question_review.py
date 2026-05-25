@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
@@ -10,6 +11,9 @@ from deeptutor.capabilities.deep_question import DeepQuestionCapability
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.core.stream_bus import StreamBus
+
+
+ROOT = Path(__file__).resolve().parents[2]
 
 
 async def _collect_events(run_coro) -> list[StreamEvent]:
@@ -177,11 +181,24 @@ async def test_question_review_bank_miss_does_not_fallback_to_generated_question
     assert "presentation" not in result.metadata
 
 
+def test_deep_question_does_not_contain_question_review_evidence_parser() -> None:
+    source = (ROOT / "deeptutor/capabilities/deep_question.py").read_text(encoding="utf-8")
+    forbidden = (
+        "_parse_question_review_evidence_ref",
+        "_parse_question_review_options",
+        "_promote_question_review_evidence_result",
+        "_question_review_qa_pair_from_template_evidence",
+        "_question_review_evidence_matches_topic",
+    )
+    for needle in forbidden:
+        assert needle not in source
+
+
 @pytest.mark.asyncio
-async def test_question_review_evidence_bundle_renders_when_bank_hit_has_no_results(
+async def test_question_review_missing_canonical_result_does_not_parse_template_evidence(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Production trace 85363: retriever hit templates but results stayed empty."""
+    """deep_question is a wrapper; qbank/evidence parsing belongs in the coordinator."""
 
     calls: list[dict[str, Any]] = []
 
@@ -249,13 +266,8 @@ async def test_question_review_evidence_bundle_renders_when_bank_hit_has_no_resu
     assert calls
     assert calls[0]["allow_lightweight_fallback"] is False
     result = next(event for event in events if event.type == StreamEventType.RESULT)
-    assert result.metadata["response"] != "No questions generated."
-    assert "直接接触土体" in result.metadata["response"]
+    assert "还没有定位到" in result.metadata["response"]
+    assert "请把完整题干" in result.metadata["response"]
     assert result.metadata["active_object"] == {}
     assert result.metadata["question_followup_context"] == {}
-    block = result.metadata["presentation"]["blocks"][0]
-    assert block["review_mode"] is True
-    question = block["questions"][0]
-    assert "混凝土保护层厚度" in question["stem"]
-    assert question["followup_context"]["correct_answer"] == "D"
-    assert question["followup_context"]["options"]["D"] == "70"
+    assert "presentation" not in result.metadata

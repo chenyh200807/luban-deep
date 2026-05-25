@@ -326,6 +326,194 @@ def test_lightweight_question_review_without_bank_hit_disables_llm_fallback(
     assert fake_gen.batch_call_count == 0
 
 
+def test_lightweight_topic_rag_error_degrades_without_crashing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    coord, fake_gen = _stub_coordinator(monkeypatch)
+
+    async def _broken_rag(*_args: Any, **_kwargs: Any) -> dict[str, Any]:
+        raise RuntimeError("embedding config missing")
+
+    monkeypatch.setattr(
+        "deeptutor.agents.question.coordinator.rag_search",
+        _broken_rag,
+    )
+    coord.enable_idea_rag = True
+    coord.kb_name = "stub-kb"
+
+    result = asyncio.run(
+        coord.generate_from_topic(
+            user_topic="分析一道钢筋保护层的真题",
+            preference="",
+            num_questions=1,
+            difficulty="easy",
+            question_type="choice",
+            lightweight_generation=True,
+            require_explanation=False,
+            allow_lightweight_fallback=False,
+        )
+    )
+
+    assert result.get("results") == []
+    counters = (result.get("trace") or {}).get("lightweight_counters") or {}
+    assert counters.get("bank_hits") == 0
+    assert counters.get("llm_calls") == 0
+    assert counters.get("lightweight_batch_fallback") == "disabled"
+    retrieval = ((result.get("trace") or {}).get("batches") or [{}])[0].get("retrieval") or {}
+    assert retrieval.get("error") == "embedding config missing"
+    assert fake_gen.call_count == 0
+    assert fake_gen.batch_call_count == 0
+
+
+def test_question_review_builds_qapair_from_matching_evidence_bundle(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Trace 85363 shape: exact_question can drift, but qbank evidence has the real MCQ."""
+    coord, fake_gen = _stub_coordinator(monkeypatch)
+
+    async def _hit_rag(*_args: Any, **_kwargs: Any) -> dict[str, Any]:
+        return {
+            "answer": "",
+            "provider": "stub",
+            "kb_name": "stub-kb",
+            "exact_question": {
+                "stem": "不利于提高框架结构抗震性能的措施是（　　）。",
+                "options": {"A": "加强梁柱节点", "B": "采用短柱"},
+                "correct_answer": "B",
+                "analysis": "这是一个不相关的检索命中，不能作为本轮讲评题。",
+                "source_group": "question_exact_text",
+            },
+            "evidence_bundle": {
+                "sources": [
+                    {
+                        "_source_group": "TEXTBOOK",
+                        "chunk_id": "question-14576",
+                        "content": (
+                            "【题目】一般环境中，直接接触土体浇筑的构件，"
+                            "其钢筋的混凝土保护层厚度不应小于（ ）mm。\n"
+                            "【选项】[\"A. 55\", \"B. 60\", \"C. 65\", \"D. 70\"]\n"
+                            "【答案】D\n"
+                            "【解析】直接接触土体浇筑的构件，其混凝土保护层厚度不应小于70mm。"
+                        ),
+                    }
+                ]
+            },
+        }
+
+    monkeypatch.setattr(
+        "deeptutor.agents.question.coordinator.rag_search",
+        _hit_rag,
+    )
+    coord.enable_idea_rag = True
+    coord.kb_name = "stub-kb"
+
+    result = asyncio.run(
+        coord.generate_from_topic(
+            user_topic="分析一道钢筋保护层的真题",
+            preference="",
+            num_questions=1,
+            difficulty="easy",
+            question_type="choice",
+            lightweight_generation=True,
+            require_explanation=False,
+            allow_lightweight_fallback=False,
+        )
+    )
+
+    counters = (result.get("trace") or {}).get("lightweight_counters") or {}
+    assert counters.get("bank_hits") == 1
+    assert counters.get("llm_calls") == 0
+    assert fake_gen.call_count == 0
+    assert fake_gen.batch_call_count == 0
+    items = result.get("results") or []
+    assert len(items) == 1
+    qa_pair = items[0].get("qa_pair") or {}
+    assert "混凝土保护层厚度" in qa_pair.get("question", "")
+    assert qa_pair.get("options") == {"A": "55", "B": "60", "C": "65", "D": "70"}
+    assert qa_pair.get("explanation") == "直接接触土体浇筑的构件，其混凝土保护层厚度不应小于70mm。"
+    assert (qa_pair.get("grading_key") or {}).get("correct_answer") == "D"
+    assert (qa_pair.get("metadata") or {}).get("source") == "questions_bank"
+    assert (qa_pair.get("metadata") or {}).get("source_group") == "TEXTBOOK"
+
+
+def test_question_review_does_not_build_qapair_from_unrelated_evidence_bundle(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    coord, fake_gen = _stub_coordinator(monkeypatch)
+
+    async def _hit_rag(*_args: Any, **_kwargs: Any) -> dict[str, Any]:
+        return {
+            "answer": "",
+            "provider": "stub",
+            "kb_name": "stub-kb",
+            "exact_question": {},
+            "evidence_bundle": {
+                "sources": [
+                    {
+                        "_source_group": "TEXTBOOK",
+                        "chunk_id": "question-unrelated",
+                        "content": (
+                            "【题目】不利于提高钢筋混凝土框架结构抗震性能的措施是（　　）。\n"
+                            "【选项】[\"A. 加强梁柱节点\", \"B. 采用短柱\", \"C. 提高延性\", \"D. 合理布置抗侧力构件\"]\n"
+                            "【答案】B\n"
+                            "【解析】短柱延性差，不利于抗震。"
+                        ),
+                    }
+                ]
+            },
+        }
+
+    monkeypatch.setattr(
+        "deeptutor.agents.question.coordinator.rag_search",
+        _hit_rag,
+    )
+    coord.enable_idea_rag = True
+    coord.kb_name = "stub-kb"
+
+    result = asyncio.run(
+        coord.generate_from_topic(
+            user_topic="分析一道钢筋保护层的真题",
+            preference="",
+            num_questions=1,
+            difficulty="easy",
+            question_type="choice",
+            lightweight_generation=True,
+            require_explanation=False,
+            allow_lightweight_fallback=False,
+        )
+    )
+
+    assert result.get("results") == []
+    counters = (result.get("trace") or {}).get("lightweight_counters") or {}
+    assert counters.get("bank_hits") == 0
+    assert counters.get("llm_calls") == 0
+    assert fake_gen.call_count == 0
+    assert fake_gen.batch_call_count == 0
+
+
+def test_structured_anchor_parser_handles_inline_options_without_swallowing_answer() -> None:
+    parsed = AgentCoordinator._extract_structured_anchor_from_answer(
+        "【题目】验槽通常主要采用什么方法？\n"
+        "A. 观察法\n"
+        "B. 钎探法\n"
+        "C. 洛阳铲法\n"
+        "D. 钻探法\n"
+        "【答案】A\n"
+        "【解析】验槽通常主要采用观察法，钎探法是辅助方法。"
+    )
+
+    assert parsed is not None
+    assert parsed["reference_question"] == "验槽通常主要采用什么方法？"
+    assert parsed["reference_answer"] == "A"
+    assert parsed["options"] == {
+        "A": "观察法",
+        "B": "钎探法",
+        "C": "洛阳铲法",
+        "D": "钻探法",
+    }
+    assert parsed["analysis"] == "验槽通常主要采用观察法，钎探法是辅助方法。"
+
+
 def test_lightweight_three_questions_counters_equal_real_calls(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
