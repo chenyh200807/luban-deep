@@ -17,6 +17,7 @@
 - Observability 默认不走公网暴露；阿里云生产环境统一通过 SSH/localhost 抓取 `/metrics` 与 `/metrics/prometheus`。
 - 发布前必须先判断改动类型。只改 Python 后端、Prompt、YAML、路由且不涉及依赖时，优先走 `redeploy_aliyun_fast.sh`；不要手工在远端直接跑 `docker compose up -d --build deeptutor`。
 - 如果本地当前工作区很脏，但要发布的是已经提交并 push 的特定 commit，先从目标 commit 创建干净临时 worktree，再从该 worktree 执行同步/发布；不要在脏 `main` 上靠 `ALLOW_DIRTY_DEPLOY=1` 把无关文件一起带上阿里云。
+- `git status` 干净、`DEEPTUTOR_GIT_DIRTY=false` 只证明 Git tracked surface 干净，不证明发布面干净。任何本地 dry-run、审计、测试生成的 ignored 目录，例如 `artifacts/`、`.gstack/`、`.local-runs/`，必须同时被 `sync_to_aliyun.sh`、deploy manifest hash 和 `.dockerignore` 排除；否则仍可能被 `rsync` 或 Docker build context 带到 `/root/deeptutor`。
 - 紧急绕过护栏必须显式设置：
   - `ALLOW_DIRTY_DEPLOY=1`
   - `ALLOW_MAIN_BRANCH_DEPLOY=1`
@@ -27,6 +28,7 @@
 ```bash
 git branch --show-current
 git status --short
+git ls-files artifacts/
 python scripts/check_contract_guard.py
 python scripts/verify_runtime_assets.py
 ```
@@ -122,9 +124,9 @@ bash scripts/sync_to_aliyun.sh once
 - 目标目录固定为 `/root/deeptutor`
 - 默认目标主机固定为 `Aliyun-ECS-2`
 - dirty tree 或 `main` 会被脚本直接拒绝
-- 会排除 `.env`、`data/`、`.git`、`.github`、`.gstack`、`.local-runs`、`.venv`、`node_modules`、`dist`、测试报告和缓存目录
+- 会排除 `.env`、`data/`、`.git`、`.github`、`.gstack`、`.local-runs`、`.venv`、`node_modules`、`dist`、`artifacts`、测试报告和缓存目录
 - 这样不会覆盖服务器上已经生成的数据和密钥
-- 如果同步日志里出现本地代理状态目录、QA 运行目录或构建产物目录，例如 `.gstack`、`.local-runs`、`dist`，不要把它们留在 `/root/deeptutor`；先补 `sync_to_aliyun.sh` 的排除清单和 manifest hash 排除口径，再只在 `/root/deeptutor` 内清理误传目录。
+- 如果同步日志里出现本地代理状态目录、QA 运行目录、dry-run 产物或构建产物目录，例如 `.gstack`、`.local-runs`、`artifacts`、`dist`，不要把它们留在 `/root/deeptutor`；先补 `sync_to_aliyun.sh` 的排除清单、manifest hash 排除口径和 `.dockerignore`，再只在 `/root/deeptutor` 内清理误传目录。
 
 如果你想开发时持续同步：
 
@@ -202,6 +204,12 @@ Observability 验收不要打公网 `/metrics`。改用：
 
 ```bash
 bash scripts/verify_aliyun_observability.sh
+```
+
+如果本次发布前本地生成过 ignored 产物，还要确认它们没有进入远端发布面：
+
+```bash
+ssh Aliyun-ECS-2 'test ! -e /root/deeptutor/artifacts && echo remote_artifacts_absent'
 ```
 
 三条路径的区别：
@@ -543,6 +551,35 @@ ssh Aliyun-ECS-2 "cd /root/deeptutor && docker compose ps deeptutor"
 PUBLIC_BASE_URL=https://test2.yousenjiaoyu.com bash scripts/verify_aliyun_public_endpoints.sh
 bash scripts/verify_aliyun_observability.sh
 ```
+
+### 10. 2026-05-25 ignored artifacts 误入发布面
+
+这次在干净候选分支发布 `99a5183bd680f1292c12f749f2c6c9b32c4cb7a4` 时，本地 `artifacts/assessment_testset/...` 是 gitignored 的审计产物，`git status` 仍然干净，远端 `.env` 也显示 `DEEPTUTOR_GIT_DIRTY=false`。但发布脚本当时只排除了 Git 和常见缓存目录，没有排除 `artifacts/`，所以第一次同步把这些本地审计产物带进了 `/root/deeptutor/artifacts`，Docker build context 也随之增大。
+
+根因不是某个 assessment 目录本身，而是发布链路把“Git clean”误当成“release surface clean”。Git 是否跟踪、rsync 是否上传、Docker build context 是否包含，是三套边界，必须同时收口。
+
+已采取的脚本侧修复：
+
+- `scripts/sync_to_aliyun.sh` 的 `EXCLUDES` 增加 `artifacts`。
+- deploy manifest hash 的 `excluded_names` 增加 `artifacts`，避免 ignored 产物影响发布清单。
+- `clean_remote_deploy_noise()` 增加 `artifacts`，只在 `/root/deeptutor` 内清理历史误传目录。
+- `.dockerignore` 增加 `artifacts/`，避免审计产物进入 Docker build context。
+
+下次遇到同类情况，先做这组判断：
+
+```bash
+git status --short --untracked-files=all
+git ls-files artifacts/
+git check-ignore artifacts 2>/dev/null || true
+ssh Aliyun-ECS-2 'test ! -e /root/deeptutor/artifacts && echo remote_artifacts_absent'
+```
+
+判断规则：
+
+- `git ls-files artifacts/` 必须为空；如果不为空，说明产物已经进入 Git tracked surface，必须先停下处理。
+- `git check-ignore artifacts` 只能证明 Git 会忽略它，不能证明发布脚本会忽略它。
+- 如果远端已经出现 `/root/deeptutor/artifacts`，清理命令只能写 `/root/deeptutor` 内；不得为了临时中转或备份写 `/tmp`、`/root/luban`、`/var` 或系统目录。
+- 清理后必须重新发布并确认 Docker build context 回落到合理体量；不要只删远端目录后直接宣布上线完成。
 
 ## 回滚步骤
 
