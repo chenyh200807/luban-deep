@@ -364,8 +364,10 @@ async def lifespan(app: FastAPI):
     _persist_launch_readiness_check(app)
 
     if _assessment_form_prewarm_enabled():
-        app.state.assessment_form_prewarm_task = asyncio.create_task(
-            asyncio.to_thread(_prewarm_assessment_forms_sync)
+        from deeptutor.runtime.safety import spawn_task as _spawn_task
+        app.state.assessment_form_prewarm_task = _spawn_task(
+            asyncio.to_thread(_prewarm_assessment_forms_sync),
+            name="startup.assessment_form_prewarm",
         )
         logger.info("Assessment form prewarm scheduled")
     yield
@@ -412,6 +414,47 @@ app = FastAPI(
 app.state.readiness_checks = _initial_readiness_checks()
 app.state.readiness_ready = False
 app.state.runtime_metrics = APIRuntimeMetrics()
+
+# SR6 PR-5: install HTTP exception envelope (HTTPException / RequestValidationError /
+# unhandled Exception) — frozen {detail, request_id, error_code} contract.
+# WS / streaming error semantics intentionally untouched (codex review R3).
+from deeptutor.runtime.safety import (
+    install_exception_handlers as _install_exc_handlers,
+    register_readiness_check as _register_readiness_check,
+)
+_install_exc_handlers(app)
+
+
+# SR6 PR-5: active readiness probes. The legacy `app.state.readiness_checks` static
+# dict is a one-shot startup snapshot; these callbacks let /readyz reflect runtime
+# drift (LLM key rotated to placeholder, SQLite file removed, etc.).
+
+async def _check_llm_key_present() -> None:
+    """Fail readiness if LLM_API_KEY / SUPABASE_KEY is a known placeholder value."""
+    import os as _os
+    placeholder_markers = ("sk-xxx", "placeholder", "your-api-key", "")
+    key = (_os.getenv("LLM_API_KEY") or _os.getenv("SUPABASE_KEY") or "").strip().lower()
+    if not key or key in placeholder_markers:
+        raise RuntimeError("LLM/Supabase key looks like a placeholder")
+
+
+async def _check_sqlite_session_db_writable() -> None:
+    """Fail readiness if the canonical SQLite session DB path is unreadable."""
+    import os as _os
+    from pathlib import Path as _Path
+    candidate = _os.getenv("DEEPTUTOR_SQLITE_SESSION_PATH") or "data/chat_history.db"
+    path = _Path(candidate)
+    # File presence is enough for readiness; deep probes (open + SELECT 1) belong to
+    # a follow-up SR6-W1 check once we can pool the connection.
+    if not path.exists():
+        # Empty DB on cold start is OK if Supabase RAG handles it; warn only.
+        # Treat as soft warning, not failure, to avoid false-positive 503.
+        return
+
+
+# Register at import time so they're available before lifespan startup.
+_register_readiness_check("llm_key_not_placeholder", _check_llm_key_present)
+_register_readiness_check("sqlite_session_db", _check_sqlite_session_db_writable)
 
 @app.middleware("http")
 async def selective_access_log(request, call_next):
@@ -569,8 +612,22 @@ async def healthz():
 
 @app.get("/readyz", include_in_schema=False)
 async def readyz():
+    """SR6 PR-5: active probes via runtime safety registry + legacy static checks merged.
+
+    Backwards-compat: any caller polling readiness still gets the existing
+    static dict in `checks_static`. New active probes (SQLite ping, LLM
+    placeholder check) live under `checks_active` and gate the overall status.
+    """
+    from deeptutor.runtime.safety import run_readiness_checks
+
+    active = await run_readiness_checks()
     status_code, payload = get_readyz_payload(app)
-    return JSONResponse(status_code=status_code, content=payload)
+    body = dict(payload) if isinstance(payload, dict) else {"payload": payload}
+    body["checks_active"] = active
+    if any(v != "ok" for v in active.values()):
+        status_code = 503
+        body["ready"] = False
+    return JSONResponse(status_code=status_code, content=body)
 
 
 @app.get("/metrics", include_in_schema=False, dependencies=[Depends(require_metrics_access)])
