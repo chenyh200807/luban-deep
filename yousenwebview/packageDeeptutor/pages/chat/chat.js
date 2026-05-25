@@ -141,7 +141,12 @@ function buildFocusDisplayTitle(focus, title) {
 }
 
 function buildFocusDisplayMeta(focus, meta) {
-  return "";
+  var payload = focus && typeof focus === "object" ? focus : {};
+  var text = String(meta || payload.meta || "").replace(/\s+/g, " ").trim();
+  if (!text) return "";
+  if (text === "starter") return "生成学情基线";
+  if (/learner_state\.home_personalization/.test(text)) return "来自学情更新";
+  return text.length > 8 ? "" : text;
 }
 
 function normalizeAnswerMode(value) {
