@@ -149,6 +149,56 @@ def test_home_projection_surfaces_six_distinct_next_learning_actions() -> None:
     )
 
 
+def test_fresh_legacy_home_projection_is_upgraded_by_reader() -> None:
+    from datetime import datetime, timedelta, timezone
+
+    from deeptutor.services.learner_state.home_personalization import (
+        build_home_dashboard_learning_projection,
+    )
+
+    tz = timezone(timedelta(hours=8))
+    dashboard = build_home_dashboard_learning_projection(
+        projection={
+            "generated_at": datetime(2026, 5, 21, 9, 0, tzinfo=tz).isoformat(),
+            "source_status": {"fallback_used": False, "learning_report": "projection"},
+            "today_focus": {"title": "今日焦点：项目质量计划管理"},
+            "recommended_prompts": [
+                {
+                    "prompt_type": "practice_prompt",
+                    "text": "用 3 道题训练项目质量计划管理",
+                    "intent": {
+                        "source": "home_dashboard",
+                        "concept_label": "项目质量计划管理",
+                        "error_label": "质量计划和质量保证混淆",
+                    },
+                },
+                {
+                    "prompt_type": "mistake_review",
+                    "text": "复盘项目质量计划管理里的质量计划和质量保证混淆",
+                    "intent": {
+                        "source": "home_dashboard",
+                        "concept_label": "项目质量计划管理",
+                        "error_label": "质量计划和质量保证混淆",
+                    },
+                },
+                {
+                    "prompt_type": "concept_explain",
+                    "text": "讲清楚项目质量计划管理的关键判断",
+                    "intent": {
+                        "source": "home_dashboard",
+                        "concept_label": "项目质量计划管理",
+                        "error_label": "质量计划和质量保证混淆",
+                    },
+                },
+            ],
+        },
+        now=datetime(2026, 5, 21, 10, 0, tzinfo=tz),
+    )
+
+    assert len(dashboard["recommended_prompts"]) == 6
+    assert dashboard["recommended_prompts"][4]["prompt_type"] == "knowledge_map"
+
+
 def test_training_intent_v2_degrades_when_evidence_refs_empty() -> None:
     """Hard rule from the brief: evidence_refs 为空时不生成强处方，只生成
     degraded/pending action. The intent must still be valid v2 shape but

@@ -47,6 +47,67 @@ def test_home_dashboard_uses_fresh_home_personalization_projection() -> None:
     assert dashboard["source_status"]["learning_report"] == "projection"
 
 
+def test_fresh_legacy_three_prompt_projection_upgrades_to_six_actions() -> None:
+    generated_at = datetime(2026, 5, 21, 9, 0, tzinfo=_TZ).isoformat()
+    projection = {
+        "generated_at": generated_at,
+        "source_status": {"fallback_used": False, "learning_report": "projection"},
+        "today_focus": {
+            "title": "今日焦点：项目质量计划管理",
+            "meta": "来自 learner_state.home_personalization",
+        },
+        "recommended_prompts": [
+            {
+                "prompt_type": "practice_prompt",
+                "text": "用 3 道题训练项目质量计划管理",
+                "intent": {
+                    "source": "home_dashboard",
+                    "concept_label": "项目质量计划管理",
+                    "error_label": "质量计划和质量保证混淆",
+                    "evidence_refs": ["evt-quality-plan"],
+                },
+            },
+            {
+                "prompt_type": "mistake_review",
+                "text": "复盘项目质量计划管理里的质量计划和质量保证混淆",
+                "intent": {
+                    "source": "home_dashboard",
+                    "concept_label": "项目质量计划管理",
+                    "error_label": "质量计划和质量保证混淆",
+                    "evidence_refs": ["evt-quality-plan"],
+                },
+            },
+            {
+                "prompt_type": "concept_explain",
+                "text": "讲清楚项目质量计划管理的关键判断",
+                "intent": {
+                    "source": "home_dashboard",
+                    "concept_label": "项目质量计划管理",
+                    "error_label": "质量计划和质量保证混淆",
+                    "evidence_refs": ["evt-quality-plan"],
+                },
+            },
+        ],
+    }
+
+    dashboard = build_home_dashboard_learning_projection(
+        projection=projection,
+        subject_id="construction_exam_1",
+        now=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
+    )
+
+    assert [item["prompt_type"] for item in dashboard["recommended_prompts"]] == [
+        "practice_prompt",
+        "mistake_review",
+        "concept_explain",
+        "exam_transfer",
+        "knowledge_map",
+        "quick_check",
+    ]
+    assert dashboard["recommended_prompts"][3]["text"] == "用一道真题场景理解项目质量计划管理"
+    assert dashboard["source_status"]["upgraded_from"] == "legacy_home_projection"
+
+
 def test_learning_signal_projection_makes_today_focus_clickable() -> None:
     projection = build_home_personalization_projection_from_learning_signal(
         {

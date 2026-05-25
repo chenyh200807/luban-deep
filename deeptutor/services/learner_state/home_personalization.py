@@ -12,6 +12,14 @@ from deeptutor.services.learner_state.training_intent import build_learning_trai
 _TZ = timezone(timedelta(hours=8))
 _PROJECTION_TTL = timedelta(hours=6)
 _SEED_ROOT = Path(__file__).resolve().parents[3] / "data" / "seed"
+_SIX_ACTION_PROMPT_TYPES = {
+    "practice_prompt",
+    "mistake_review",
+    "concept_explain",
+    "exam_transfer",
+    "knowledge_map",
+    "quick_check",
+}
 
 
 def build_home_dashboard_learning_projection(
@@ -147,11 +155,110 @@ def write_home_personalization_projection(
 
 def _normalize_projection(projection: dict[str, Any] | None) -> dict[str, Any]:
     payload = deepcopy(projection or {})
+    upgraded = _upgrade_legacy_home_projection(payload)
+    if upgraded is not None:
+        payload = upgraded
     source_status = dict(payload.get("source_status") or {})
     source_status.setdefault("fallback_used", False)
     source_status.setdefault("learning_report", "projection")
     payload["source_status"] = source_status
     return payload
+
+
+def _upgrade_legacy_home_projection(projection: dict[str, Any]) -> dict[str, Any] | None:
+    prompts = [item for item in list(projection.get("recommended_prompts") or []) if isinstance(item, dict)]
+    prompt_types = {str(item.get("prompt_type") or "").strip() for item in prompts}
+    if _SIX_ACTION_PROMPT_TYPES.issubset(prompt_types):
+        return None
+    if not {"practice_prompt", "mistake_review", "concept_explain"}.issubset(prompt_types):
+        return None
+
+    focus = projection.get("today_focus") if isinstance(projection.get("today_focus"), dict) else {}
+    concept_label = _first_text(
+        _projection_intent_value(prompts, "concept_label"),
+        _projection_intent_value([focus], "concept_label"),
+        _topic_from_focus_title(str(focus.get("title") or "")),
+        _topic_from_prompt_text(str(prompts[0].get("text") or "")) if prompts else "",
+    )
+    error_label = _first_text(
+        _projection_intent_value(prompts, "error_label"),
+        _projection_intent_value([focus], "error_label"),
+    )
+    if not concept_label:
+        return None
+
+    generated_at = _parse_time(str(projection.get("generated_at") or ""))
+    upgraded = build_home_personalization_projection_from_learning_signal(
+        {
+            "subject_id": _projection_intent_value(prompts + [focus], "subject_id"),
+            "concept": {"label": concept_label},
+            "error": {"label": error_label},
+            "training_intent_id": _projection_intent_value(prompts + [focus], "training_intent_id"),
+            "evidence_refs": _projection_evidence_refs(prompts + [focus]),
+            "learning_state_ref": _projection_intent_value(prompts + [focus], "learning_state_ref"),
+            "suggested_mode": _projection_intent_value(prompts + [focus], "suggested_mode"),
+        },
+        generated_at=generated_at,
+    )
+    if not upgraded:
+        return None
+    source_status = dict(projection.get("source_status") or {})
+    source_status.setdefault("fallback_used", False)
+    source_status.setdefault("learning_report", "projection")
+    source_status["upgraded_from"] = "legacy_home_projection"
+    upgraded["source_status"] = source_status
+    return upgraded
+
+
+def _projection_intent_value(items: list[dict[str, Any]], key: str) -> str:
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        for source in (
+            item.get("intent"),
+            item.get("prompt_intent"),
+            item,
+        ):
+            if not isinstance(source, dict):
+                continue
+            text = str(source.get(key) or "").strip()
+            if text:
+                return text
+    return ""
+
+
+def _projection_evidence_refs(items: list[dict[str, Any]]) -> list[str]:
+    refs: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        for source in (item.get("intent"), item.get("prompt_intent"), item):
+            if not isinstance(source, dict):
+                continue
+            for value in list(source.get("evidence_refs") or []):
+                text = str(value or "").strip()
+                if text and text not in refs:
+                    refs.append(text)
+    return refs[:5]
+
+
+def _topic_from_focus_title(value: str) -> str:
+    text = str(value or "").strip()
+    for prefix in ("今日焦点：", "今日焦点:"):
+        if text.startswith(prefix):
+            return text[len(prefix):].strip()
+    return text
+
+
+def _topic_from_prompt_text(value: str) -> str:
+    text = str(value or "").strip()
+    if text.startswith("用 3 道题训练"):
+        return text.replace("用 3 道题训练", "", 1).strip()
+    if text.startswith("复盘") and "里的" in text:
+        return text.replace("复盘", "", 1).split("里的", 1)[0].strip()
+    if text.startswith("讲清楚") and text.endswith("的关键判断"):
+        return text.replace("讲清楚", "", 1).removesuffix("的关键判断").strip()
+    return ""
 
 
 def _valid_focus(value: Any) -> bool:
