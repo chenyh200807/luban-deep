@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation'
 
 import WechatHarnessClient from './WechatHarnessClient'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: '微信小程序影子测试 | 鲁班智考',
   description: 'Replay mini-program rendering contracts in a Web test harness.',

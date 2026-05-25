@@ -5,8 +5,8 @@
   "scripts": {
     "dev": "node --max-old-space-size=4096 ./node_modules/next/dist/bin/next dev",
     "dev:turbo": "node --max-old-space-size=6144 ./node_modules/next/dist/bin/next dev --turbopack",
-    "build": "next build --webpack",
-    "start": "next start",
+    "build": "next build --webpack && node ./scripts/standalone_runtime.mjs --stage",
+    "start": "node ./scripts/standalone_runtime.mjs --start",
     "lint": "eslint .",
     "perf:check": "node ./scripts/route_budgets.mjs",
     "build:perf": "npm run build && npm run perf:check",

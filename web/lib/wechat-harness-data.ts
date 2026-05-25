@@ -34,8 +34,26 @@ type RenderSchemaModule = {
   createRenderModel(input: Partial<HarnessRenderState>): HarnessRenderState
 }
 
-const repoRoot = path.resolve(process.cwd(), '..')
-const wxRequire = createRequire(path.join(repoRoot, 'wx_miniprogram/utils/render-schema.js'))
+declare const __non_webpack_require__: NodeJS.Require | undefined
+
+function resolveWebRoot(): string {
+  const explicit = String(process.env.DEEPTUTOR_WEB_ROOT || '').trim()
+  if (explicit) return explicit
+
+  const cwd = process.cwd()
+  const standaloneSuffix = `${path.sep}.next${path.sep}standalone`
+  if (cwd.endsWith(standaloneSuffix)) {
+    return path.resolve(cwd, '..', '..')
+  }
+  return cwd
+}
+
+const webRoot = resolveWebRoot()
+const repoRoot = path.resolve(webRoot, '..')
+const wxRequire =
+  typeof __non_webpack_require__ === 'function'
+    ? __non_webpack_require__
+    : createRequire(import.meta.url)
 const aiMessageState = wxRequire(
   path.join(repoRoot, 'wx_miniprogram/utils/ai-message-state.js')
 ) as AiMessageStateModule
