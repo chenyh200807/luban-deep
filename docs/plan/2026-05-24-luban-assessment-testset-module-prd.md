@@ -414,16 +414,19 @@ Rules:
 1. P0 题量默认 10-12 题；用户可选 10 / 20 只在 coverage audit 通过后开放。
 2. 每个 scored item 必须有 `source_question_id`、knowledge node、answer key。
 3. 每套卷不得重复同一 `source_question_id`。
-4. 近期做过的题默认避让，除非 mode 为 `mastery_check`。
-5. 如果某 topic 覆盖不足，fail closed，并显示“该专题题库正在维护”，不静默换成泛题。
-6. 12 题 section distribution 必须经教研签字；PRD 中的 `3/4/3/2` 未经教研评审, pending §17 sign-off，不是最终蓝图。
+4. 正式专题测评不得只有 1 套卷。每个开放专题至少准备 3 套不重复 scored 题源的等价 form；稳定推荐专题目标为 5 套 form。
+5. 同一专题 form bank 内 scored `source_question_id` 和可用 `semantic_signature` 必须跨 form 去重；不能只换题序伪装成新卷。
+6. 近期做过的题默认避让，除非 mode 为 `mastery_check`。
+7. 如果某 topic 覆盖不足，fail closed，并显示“该专题题库正在维护”，不静默换成泛题。
+8. 12 题 section distribution 必须经教研签字；PRD 中的 `3/4/3/2` 未经教研评审, pending §17 sign-off，不是最终蓝图。
 
 P0A 防水专题 hard gate:
 
 | Gate | Minimum |
 | --- | --- |
 | topic granularity decision | independent `waterproof` split or explicit composite `waterproof_decoration_mep` pivot |
-| available source candidates | TBD after Phase -1 coverage audit; 3:1 rationale = 3 weekly form rotations |
+| form rotation | minimum 3 non-overlapping forms; target 5 forms for stable recommendation |
+| available source candidates | for 12-item P0A: minimum 36 unique eligible scored candidates to open; target 60 unique eligible candidates for stable 5-form rotation; section-level floor = section count × target form count |
 | REAL_EXAM/TEXTBOOK_ASSESSMENT share | >= 50% if available; otherwise product copy must say "专项练习测评" not "真题样式" |
 | answer key coverage | 100% |
 | knowledge node coverage | 100% via `node_code/tags/attributes/source_meta` projection |
@@ -435,9 +438,35 @@ If any hard gate fails, P0A must not silently degrade to generic construction qu
 
 Candidate-pool rationale:
 
-1. `2:1` is the absolute minimum for a pilot with limited form rotation.
-2. `3:1` is required only when P0A promises roughly three non-overlapping weekly forms.
-3. The coverage audit result decides whether P0A ships 12 items, ships 8-10 items, or pivots to the composite topic. Do not hard-code `36` before the audit.
+1. `1:1` / single-form topics are not formal TestSet; they are practice drills and must not feed stable assessment claims.
+2. `3:1` is the minimum to open a topic because it supports three non-overlapping forms and basic retake freshness.
+3. `5:1` is the stable recommendation target because it supports repeated learner attempts without turning score gains into memorization artifacts.
+4. For 12-item P0A, `36` unique candidates is the launch floor and `60` unique candidates is the stable target. If section-level floors fail, block or author more items rather than silently mixing generic topics.
+
+P0A+ Topic TestSet Catalog:
+
+P0A 防水卷打通后，正式入口不能停留在单一“防水”按钮。系统必须提供专题测评目录，并对每个专题执行同一套 form-bank gate。
+
+| Topic id | User-facing topic |
+| --- | --- |
+| `waterproof` | 防水工程 |
+| `decoration` | 装饰装修 |
+| `mep` | 建筑机电 |
+| `foundation` | 地基基础 |
+| `main_structure` | 主体结构 |
+| `formwork_scaffold` | 模板脚手架 |
+| `safety` | 安全管理 |
+| `schedule` | 进度计划 |
+| `contract_claim` | 合同索赔 |
+| `quality_acceptance` | 质量验收 |
+
+Catalog status rules:
+
+1. `stable`: 该专题已持久化至少 5 套 active `assessment_forms`，每套 12 题，scored `source_question_id` 跨 form 去重。
+2. `pilot`: 该专题已持久化 3-4 套 active forms；可开放，但前端和 QA 必须标记为试运行覆盖。
+3. `authoring_needed`: 少于 3 套 active forms；前端目录可展示维护态，但不得开放正式测评。
+4. Topic catalog 是 TestSet 启动前的 read model；它只读取 `assessment_forms` / blueprint coverage，不读取或推断 learner mastery。
+5. 批量预生成脚本必须先 dry-run，再在 `assert_target_database_is_main()` 通过后 persist；不允许第一个学员点击“开始诊断”时在线冷启动构建全专题 form bank。
 
 ### 6.2 Real exam simulation
 
@@ -1222,7 +1251,7 @@ Baselines tracked in `2026-05-18-deeptutor-launch-readiness-dashboard-implementa
 
 7. 防水专题题库覆盖是否足够支撑 10-12 题？
    - Uncertainty: 总题量足够不代表防水 eligible candidates 足够。
-   - Verification: dry-run coverage report with exact filters; if <36 eligible candidates, reduce P0A count to 8 or create authoring backlog.
+   - Verification: dry-run coverage report with exact filters, section-level form rotation and cross-form dedupe. If <36 unique eligible candidates, block P0A or create authoring backlog; if 36-59, mark as minimum pilot only; if >=60 with section floors satisfied, mark stable.
 
 8. P0A 是否需要 deep explanation？
    - Recommendation: 不作为 P0A blocker。P0A 必须有 simple report + attempt refs；deep explanation is Phase 2 unless existing question lifecycle wiring is already green.
@@ -1249,7 +1278,7 @@ Baselines tracked in `2026-05-18-deeptutor-launch-readiness-dashboard-implementa
 - [ ] Read current `AssessmentBlueprintService` and `MemberConsoleService.create_assessment/submit_assessment`.
 - [ ] Design durable Supabase `assessment_sessions` schema — entry gate, not audit.
 - [ ] Dry-run `topic_diagnostic_v1` for 防水工程.
-- [ ] Decide P0A count from real waterproof eligible candidates: prefer 12, allow 8 if coverage is short.
+- [ ] Decide P0A count and rotation from real waterproof eligible candidates: prefer 12 items × 5 non-overlapping forms; allow 12 × 3 only as minimum pilot with explicit sign-off; block if <3 forms.
 - [ ] 教研签字 P0A blueprint 题型分布.
 - [ ] Phase -1 audit: `rg -n 'last_assessment' deeptutor/ web/ wx_miniprogram/ yousenwebview/` — 下游必须切到 `learning_report_read_model.get_assessment_evidence()`.
 - [ ] Add request schema fields without breaking existing diagnostic clients.

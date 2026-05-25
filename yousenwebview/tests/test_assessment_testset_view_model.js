@@ -77,6 +77,26 @@ function loadPage(apiOverrides) {
           ],
         });
       },
+      getAssessmentTopics: function () {
+        return Promise.resolve({
+          topics: [
+            {
+              topic_id: "waterproof",
+              label: "防水工程",
+              status: "stable",
+              enabled: true,
+              form_count: 5,
+            },
+            {
+              topic_id: "decoration",
+              label: "装饰装修",
+              status: "authoring_needed",
+              enabled: false,
+              form_count: 0,
+            },
+          ],
+        });
+      },
       submitAssessment: function () {
         return Promise.resolve({
           schema_version: "p0a-v1",
@@ -175,6 +195,30 @@ function stringify(value) {
 }
 
 (async function main() {
+  await run("welcome copy communicates multi-form rotation", async function () {
+    var wxml = fs.readFileSync(
+      path.join(__dirname, "../packageDeeptutor/pages/assessment/assessment.wxml"),
+      "utf8",
+    );
+    assert(wxml.indexOf(">5<") >= 0, "welcome stats should show five-form target");
+    assert(wxml.indexOf("套轮换") >= 0, "welcome stats should explain paper rotation");
+  });
+
+  await run("welcome renders topic catalog and create uses selected topic", async function () {
+    var loaded = loadPage();
+    loaded.page.onLoad();
+    await flushPromises();
+    assert(loaded.page.data.topicCatalog.length === 2, "welcome should load topic catalog");
+    assert(loaded.page.data.topicCatalog[0].topicId === "waterproof", "waterproof should be first catalog topic");
+    assert(loaded.page.data.topicCatalog[1].enabled === false, "authoring_needed topic should be disabled");
+
+    loaded.page.onSelectTopic({ currentTarget: { dataset: { topicId: "decoration" } } });
+    assert(loaded.page.data.selectedTopicId === "waterproof", "disabled topic should not become selected");
+    loaded.page.onStart();
+    await flushPromises();
+    assert(loaded.createPayloads[0].topic_ids[0] === "waterproof", "create should use selected enabled topic");
+  });
+
   await run("P0A start uses topic diagnostic request and redacted pre-submit payload", async function () {
     var loaded = loadPage();
     loaded.page.onStart();

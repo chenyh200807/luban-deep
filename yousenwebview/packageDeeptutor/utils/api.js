@@ -733,6 +733,11 @@ function getAssessmentProfile(opts) {
   return requestStateGet("/api/v1/assessment/profile", opts);
 }
 
+/** 摸底测试 — 获取专题目录 */
+function getAssessmentTopics(opts) {
+  return requestStateGet("/api/v1/assessment/topics", opts);
+}
+
 /** 摸底测试 — 创建测试 */
 function createAssessment(type, count) {
   var payload =
@@ -806,6 +811,7 @@ module.exports = {
   submitFeedback: submitFeedback,
   getHomeDashboard: getHomeDashboard,
   getAssessmentProfile: getAssessmentProfile,
+  getAssessmentTopics: getAssessmentTopics,
   createAssessment: createAssessment,
   getAssessmentSession: getAssessmentSession,
   getAssessmentReport: getAssessmentReport,
