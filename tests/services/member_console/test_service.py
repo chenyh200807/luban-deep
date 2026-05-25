@@ -1013,6 +1013,60 @@ def test_canonical_member_snapshot_merges_legacy_external_auth_learning_state(
     assert foundation_progress["daily_target"] == 30
 
 
+def test_home_dashboard_uses_canonical_learner_state_for_merged_legacy_user(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_HOME_PERSONALIZATION_ENABLED", "true")
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    canonical_user_id = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+
+    def _seed(data: dict[str, object]) -> None:
+        data["members"] = [
+            service._build_default_member(canonical_user_id),
+            {
+                **service._build_default_member("user_2008"),
+                "user_id": "user_2008",
+                "display_name": "chenyh2008",
+                "external_auth_user_id": canonical_user_id,
+                "merged_into": canonical_user_id,
+            },
+        ]
+
+    service._mutate(_seed)
+    event = SimpleNamespace(
+        event_id="evt_home_legacy_token",
+        memory_kind="learning_evidence",
+        source_feature="assessment_testset",
+        payload_json={
+            "event_type": "learning_evidence",
+            "knowledge_points": ["招投标与合同"],
+            "error_codes": [],
+        },
+    )
+    snapshot_user_ids: list[str] = []
+
+    class _FakeLearnerStateService:
+        def read_snapshot(self, user_id: str, *, event_limit: int = 5):
+            snapshot_user_ids.append(user_id)
+            return SimpleNamespace(profile={}, progress={}, summary="", memory_events=[event])
+
+        def list_heartbeat_jobs(self, user_id: str):
+            return []
+
+        def list_heartbeat_history(self, user_id: str, limit: int = 3):
+            return []
+
+    service._get_learner_state_service = lambda: _FakeLearnerStateService()  # type: ignore[method-assign]
+
+    dashboard = service.get_home_dashboard("user_2008")
+
+    assert snapshot_user_ids == [canonical_user_id]
+    assert dashboard["today_focus"]["title"] == "今日焦点：招投标与合同"
+    assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练招投标与合同"
+
+
 def test_register_with_external_auth_creates_external_user_and_member(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

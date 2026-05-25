@@ -205,6 +205,10 @@ Overlay 必须支持：
   `learner_memory_events.learning_evidence` 恢复一次同形态 projection；若没有有效证据，
   再降级到 `data/seed/<subject_id>/starter_prompts.json`。该 starter pool 是 fallback
   projection，不是第二套推荐 authority。
+- Home dashboard、heartbeat context 和 learner-facing projections 如果先经过
+  member identity 合并，后续 learner-state reader 必须使用合并后的 canonical
+  `member.user_id`。`user_2008` 等 legacy alias 只允许作为入口查询键，不得在
+  reconciliation 后继续作为 learner snapshot / heartbeat / personalization 的读键。
 
 #### `learning_plans`
 

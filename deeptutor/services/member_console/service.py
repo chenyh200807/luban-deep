@@ -3901,6 +3901,7 @@ class MemberConsoleService:
 
     def get_home_dashboard(self, user_id: str) -> dict[str, Any]:
         member = self._load_member_snapshot(user_id)["member"]
+        learner_user_id = str(member.get("user_id") or user_id or "").strip()
         learning = self._ensure_learning_profile(member)
         mastery_items = self._report_mastery_items(member)
         weak_nodes = [
@@ -3913,8 +3914,8 @@ class MemberConsoleService:
             "overdue": max(0, member["review_due"] - 1),
             "due_today": 1 if member["review_due"] else 0,
         }
-        snapshot = self._read_learner_snapshot(user_id, event_limit=20)
-        heartbeat_context = self._read_home_heartbeat_context(user_id)
+        snapshot = self._read_learner_snapshot(learner_user_id, event_limit=20)
+        heartbeat_context = self._read_home_heartbeat_context(learner_user_id)
         study_plan = self._build_home_study_plan(
             member,
             weak_nodes=weak_nodes,
