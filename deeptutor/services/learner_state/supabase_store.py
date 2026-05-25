@@ -69,6 +69,12 @@ def _goal_from_row(row: dict[str, Any]) -> dict[str, Any]:
 
 def _progress_from_row(row: dict[str, Any]) -> dict[str, Any]:
     knowledge_map = dict(row.get("knowledge_map") or {})
+    projections = dict(knowledge_map.get("projections") or {})
+    home_personalization = (
+        projections.get("home_personalization")
+        if isinstance(projections.get("home_personalization"), dict)
+        else knowledge_map.get("home_personalization")
+    )
     progress = {
         "user_id": str(row.get("user_id") or "").strip(),
         "mastery_level": row.get("mastery_level", 0),
@@ -85,6 +91,12 @@ def _progress_from_row(row: dict[str, Any]) -> dict[str, Any]:
         progress["today"] = dict(knowledge_map["today"])
     if isinstance(knowledge_map.get("chapters"), list):
         progress["chapters"] = list(knowledge_map["chapters"])
+    if isinstance(home_personalization, dict):
+        progress["home_personalization"] = dict(home_personalization)
+        progress["projections"] = {
+            **dict(progress.get("projections") or {}),
+            "home_personalization": dict(home_personalization),
+        }
     return progress
 
 
@@ -94,6 +106,18 @@ def _progress_to_row(user_id: str, progress: dict[str, Any]) -> dict[str, Any]:
         knowledge_map["today"] = dict(progress["today"])
     if isinstance(progress.get("chapters"), list):
         knowledge_map["chapters"] = list(progress["chapters"])
+    home_personalization = progress.get("home_personalization")
+    if not isinstance(home_personalization, dict):
+        projections = progress.get("projections") if isinstance(progress.get("projections"), dict) else {}
+        home_personalization = (
+            projections.get("home_personalization")
+            if isinstance(projections.get("home_personalization"), dict)
+            else None
+        )
+    if isinstance(home_personalization, dict):
+        projections = dict(knowledge_map.get("projections") or {})
+        projections["home_personalization"] = dict(home_personalization)
+        knowledge_map["projections"] = projections
     return {
         "user_id": user_id,
         "mastery_level": progress.get("mastery_level", 0),
