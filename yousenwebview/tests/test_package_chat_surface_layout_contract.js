@@ -24,6 +24,7 @@ function read(rel) {
 var chatWxml = read("pages/chat/chat.wxml");
 var chatWxss = read("pages/chat/chat.wxss");
 var chatJs = read("pages/chat/chat.js");
+var wsStreamJs = read("utils/ws-stream.js");
 var historyWxml = read("pages/history/history.wxml");
 var historyWxss = read("pages/history/history.wxss");
 var historyJs = read("pages/history/history.js");
@@ -112,6 +113,16 @@ assert(
   chatJs.indexOf('learning_signal_type: "training_completed"') >= 0 &&
     chatJs.indexOf("completed_question_count") >= 0,
   "chat MCQ submit should mark assessment training completion for learning evidence",
+);
+assert(
+  chatJs.indexOf("resolveAssessmentTrainingCapability") >= 0 &&
+    chatJs.indexOf("assessment_wrong_item_practice") >= 0 &&
+    chatJs.indexOf('capability: resolveAssessmentTrainingCapability(sendOptions.promptIntent)') >= 0,
+  "assessment wrong-item practice should route first training generation through deep_question authority",
+);
+assert(
+  wsStreamJs.indexOf("startTurnPayload.capability = opts.capability") >= 0,
+  "ws stream should forward explicit capability to the backend start-turn contract",
 );
 
 if (fail) {

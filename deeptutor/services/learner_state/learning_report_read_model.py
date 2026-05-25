@@ -1194,7 +1194,7 @@ def _learner_facing_payload(
     diagnoses = _diagnosis_cards(events=events, weak_points=weak_points)
     timeline = _evidence_timeline(attempts)
     loops = _training_loop_cards(attempts=attempts, diagnoses=diagnoses)
-    next_action = _next_action_card(diagnoses=diagnoses, next_training=next_training)
+    next_action = _next_action_card(diagnoses=diagnoses, next_training=next_training, events=events)
     primary_focus = str(next_action.get("concept") or "").strip()
     if not primary_focus and diagnoses:
         primary_focus = str(diagnoses[0].get("concept") or "").strip()
@@ -1482,7 +1482,58 @@ def _training_loop_cards(*, attempts: list[dict[str, Any]], diagnoses: list[dict
     return cards
 
 
-def _next_action_card(*, diagnoses: list[dict[str, Any]], next_training: list[dict[str, Any]]) -> dict[str, Any]:
+def _latest_training_completed_action(events: list[Any]) -> dict[str, Any] | None:
+    ordered = sorted(
+        list(events or []),
+        key=lambda event: str(getattr(event, "created_at", "") or ""),
+        reverse=True,
+    )
+    for event in ordered:
+        payload = _safe_dict(getattr(event, "payload_json", {}))
+        if str(payload.get("learning_signal_type") or "").strip() != "training_completed":
+            continue
+        concept = _student_safe_topic(
+            _concept_label(_event_concept(payload))
+            or _safe_dict(payload.get("concept")).get("label")
+            or payload.get("concept_label")
+            or ""
+        )
+        if not concept:
+            continue
+        attempt_ref = str(payload.get("attempt_ref") or "").strip()
+        evidence_refs = _safe_list(payload.get("evidence_refs"))
+        return {
+            "title": f"再测一次{concept}",
+            "subtitle": "刚完成同类训练，用一套新题确认是否真正回到主线",
+            "concept": concept,
+            "error": str(
+                _safe_dict(payload.get("error")).get("label")
+                or payload.get("error_label")
+                or ""
+            ).strip(),
+            "intent": {
+                "source": "learning_report",
+                "learning_signal_type": "assessment",
+                "concept_label": concept,
+                "attempt_ref": attempt_ref,
+                "evidence_refs": evidence_refs or ([attempt_ref] if attempt_ref else []),
+                "reason": "training_completion_retest",
+            },
+            "cta": "去测评",
+            "estimated_minutes": 8,
+        }
+    return None
+
+
+def _next_action_card(
+    *,
+    diagnoses: list[dict[str, Any]],
+    next_training: list[dict[str, Any]],
+    events: list[Any],
+) -> dict[str, Any]:
+    training_completed = _latest_training_completed_action(events)
+    if training_completed:
+        return training_completed
     if diagnoses:
         top = diagnoses[0]
         candidates = [

@@ -279,6 +279,39 @@ function loadWsStream(config) {
     );
   });
 
+  await run("start-turn payload should preserve explicit generation capability", async function () {
+    var loaded = loadWsStream({
+      tokens: ["fresh-token-1"],
+    });
+
+    loaded.wsStream.streamChat(
+      {
+        query: "请出 3 道同类选择题",
+        sessionId: "conv_1",
+        capability: "deep_question",
+        promptIntent: {
+          learning_signal_type: "assessment_wrong_item_practice",
+          attempt_ref: "attempt_signed",
+        },
+      },
+      { onError: function () {} },
+    );
+
+    await flushPromises();
+    await flushPromises();
+
+    assert(
+      loaded.startPayloads[0] && loaded.startPayloads[0].capability === "deep_question",
+      "wrong-item practice should reach backend deep_question authority instead of default chat",
+    );
+    assert(
+      loaded.startPayloads[0] &&
+        loaded.startPayloads[0].prompt_intent &&
+        loaded.startPayloads[0].prompt_intent.attempt_ref === "attempt_signed",
+      "explicit generation capability should not drop assessment prompt intent",
+    );
+  });
+
   await run("idle timeout should cancel the authoritative turn before surfacing timeout", async function () {
     var loaded = loadWsStream({
       tokens: ["fresh-token-1"],

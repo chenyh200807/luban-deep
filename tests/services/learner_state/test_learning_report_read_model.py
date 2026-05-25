@@ -509,6 +509,51 @@ def test_conversation_evidence_does_not_mark_mastered() -> None:
     assert model["learner_facing"]["summary"]["recent_three_done"] == 0
 
 
+def test_training_completed_conversation_recommends_topic_retest_without_mastery_claim() -> None:
+    from deeptutor.services.learner_state.service import LearnerStateEvent
+
+    event = LearnerStateEvent(
+        event_id="evt_training_completed",
+        user_id="student_demo",
+        source_feature="conversation_synthesis",
+        source_id="turn-training",
+        source_bot_id=None,
+        memory_kind="learning_evidence",
+        dedupe_key="evt_training_completed",
+        created_at=_iso(0),
+        payload_json={
+            "event_type": "learning_evidence",
+            "evidence_source": "conversation_synthesis",
+            "learning_signal_type": "training_completed",
+            "subject_id": "construction_exam",
+            "attempt_ref": "attempt_signed",
+            "evidence_refs": ["attempt_signed"],
+            "concept": {"label": "地下防水"},
+            "error": {"label": "M02"},
+            "quality": {
+                "detail_ready": True,
+                "progress_countable": False,
+                "truth_eligible": False,
+                "stable_truth_eligible": False,
+            },
+        },
+    )
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([event]),
+        event_limit=50,
+    )
+
+    next_action = model["learner_facing"]["next_action"]
+    assert next_action["title"] == "再测一次地下防水"
+    assert next_action["cta"] == "去测评"
+    assert next_action["intent"]["learning_signal_type"] == "assessment"
+    assert next_action["intent"]["attempt_ref"] == "attempt_signed"
+    assert model["overview"]["attempt_count"] == 0
+    assert model["truth_sections"]["stable_truths"] == []
+
+
 def test_v2_mastery_uses_evidence_sufficiency_not_conversation_only_legacy_score() -> None:
     class OverconfidentMember(FakeMemberService):
         def get_assessment_profile(self, user_id: str) -> dict:

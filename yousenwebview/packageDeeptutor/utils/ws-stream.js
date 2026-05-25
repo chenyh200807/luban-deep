@@ -527,6 +527,9 @@ function streamChat(opts, callbacks) {
   if (clientTurnId) {
     startTurnPayload.client_turn_id = clientTurnId;
   }
+  if (opts && opts.capability) {
+    startTurnPayload.capability = opts.capability;
+  }
   if (Array.isArray(opts && opts.tools) && opts.tools.length) {
     startTurnPayload.tools = opts.tools.slice();
   }
