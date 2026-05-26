@@ -5,6 +5,7 @@ import json
 import pytest
 
 from deeptutor.services.question_followup import (
+    annotate_batch_submission_context,
     apply_followup_action_to_context,
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_presentation,
@@ -272,6 +273,54 @@ def test_resolve_submission_attempt_supports_renderer_generated_batch_submission
     assert submission["kind"] == "batch"
     assert [item["question_id"] for item in submission["answers"]] == ["q_1", "q_2"]
     assert [item["user_answer"] for item in submission["answers"]] == ["B", "B"]
+
+
+def test_resolve_submission_attempt_keeps_unmatched_numbered_batch_refs_explicit() -> None:
+    question_set = {
+        "question_id": "quiz_unmatched",
+        "question": "第1题...\n第2题...\n第3题...",
+        "question_type": "choice",
+        "items": [
+            {
+                "question_id": "q_1",
+                "question": "题1",
+                "question_type": "single_choice",
+                "options": {"A": "A1", "B": "B1", "C": "C1", "D": "D1"},
+                "correct_answer": "A",
+            },
+            {
+                "question_id": "q_2",
+                "question": "题2",
+                "question_type": "single_choice",
+                "options": {"A": "A2", "B": "B2", "C": "C2", "D": "D2"},
+                "correct_answer": "B",
+            },
+            {
+                "question_id": "q_3",
+                "question": "题3",
+                "question_type": "single_choice",
+                "options": {"A": "A3", "B": "B3", "C": "C3", "D": "D3"},
+                "correct_answer": "C",
+            },
+        ],
+    }
+
+    target, submission = resolve_submission_attempt("q1 A, q3 C, q5 B", question_set)
+
+    assert target is not None
+    assert submission is not None
+    assert submission["kind"] == "batch"
+    assert submission["answers"] == [
+        {"index": 1, "question_id": "q_1", "user_answer": "A"},
+        {"index": 3, "question_id": "q_3", "user_answer": "C"},
+        {"index": 5, "question_id": "", "user_answer": "B", "unmatched": True},
+    ]
+    graded = annotate_batch_submission_context(question_set, submission["answers"])
+    assert graded is not None
+    assert [item.get("user_answer", "") for item in graded["items"]] == ["A", "", "C"]
+    assert graded["unmatched_answer_refs"] == [
+        {"index": 5, "question_id": "", "user_answer": "B"}
+    ]
 
 
 def test_resolve_submission_attempt_supports_positional_batch_submission_variants() -> None:

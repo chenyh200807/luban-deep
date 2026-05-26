@@ -126,6 +126,15 @@ async def test_question_review_bank_hit_renders_non_interactive_review_card(
     assert calls[0]["lightweight_generation"] is True
     assert calls[0]["allow_lightweight_fallback"] is False
     result = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert "### 第 1 题" in result.metadata["response"]
+    assert "关于混凝土保护层厚度" in result.metadata["response"]
+    assert "A. I-A环境中" in result.metadata["response"]
+    assert "B. 直接接触土体" in result.metadata["response"]
+    assert "正确答案" in result.metadata["response"]
+    assert "解析要点" in result.metadata["response"]
+    assert "采分点" in result.metadata["response"]
+    assert "易错点" in result.metadata["response"]
+    assert "记忆口诀" in result.metadata["response"]
     assert result.metadata["active_object"] == {}
     assert result.metadata["question_followup_context"] == {}
     block = result.metadata["presentation"]["blocks"][0]

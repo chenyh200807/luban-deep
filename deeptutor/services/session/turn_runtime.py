@@ -1073,6 +1073,17 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
     skill_trace: list[dict[str, Any]] = []
     loader_source: dict[str, Any] = {}
     skill_source_status: dict[str, Any] = {}
+    lifecycle_metadata: dict[str, Any] = {}
+    lifecycle_metadata_keys = (
+        "question_lifecycle_decision",
+        "decision_source",
+        "scene_confidence",
+        "required_anchor_status",
+        "exact_question_blocked_reason",
+        "selected_skill_names",
+        "llm_scene_candidate",
+        "business_gate_result",
+    )
 
     for item in events:
         if not isinstance(item, dict):
@@ -1110,6 +1121,9 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
             raw_scene = str(candidate.get("question_lifecycle_scene") or "").strip()
             if raw_scene:
                 question_lifecycle_scene = raw_scene
+            for metadata_key in lifecycle_metadata_keys:
+                if metadata_key in candidate and metadata_key not in lifecycle_metadata:
+                    lifecycle_metadata[metadata_key] = candidate[metadata_key]
             raw_skill_stack = candidate.get("skill_stack")
             if isinstance(raw_skill_stack, list):
                 for skill_name in raw_skill_stack:
@@ -1155,6 +1169,8 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
     }
     if question_lifecycle_scene:
         summary["question_lifecycle_scene"] = question_lifecycle_scene
+    if lifecycle_metadata:
+        summary.update(lifecycle_metadata)
     if skill_stack:
         summary["skill_stack"] = skill_stack
     if skill_trace:

@@ -145,7 +145,7 @@ _NUMBERED_SUBMISSION_RE = re.compile(
 )
 _NUMBERED_BATCH_MARKER_RE = re.compile(
     r"(?:(?<=^)|(?<=[\s；;，,\n]))"
-    r"(?:第\s*([0-9一二两三四五六七八九十]+)\s*(?:题|问)?|([0-9]+)\s*(?:题|问)?)"
+    r"(?:第\s*([0-9一二两三四五六七八九十]+)\s*(?:题|问)?|([0-9]+)\s*(?:题|问)?|[Qq]\s*([0-9]+)\s*(?:题|问)?)"
     r"\s*(?:[:：、.)）．]|(?=\s*[A-Ea-e对错正确错误√×TFtf]))",
     re.IGNORECASE,
 )
@@ -257,6 +257,9 @@ def normalize_question_followup_context(raw: dict[str, Any] | None) -> dict[str,
         "reveal_explanations": bool(raw.get("reveal_explanations", False)),
         "items": items,
     }
+    unmatched_refs = _normalize_unmatched_answer_refs(raw.get("unmatched_answer_refs"))
+    if unmatched_refs:
+        normalized["unmatched_answer_refs"] = unmatched_refs
     evidence_refs = _normalize_followup_evidence_refs(raw.get("evidence_refs"))
     if evidence_refs:
         normalized["evidence_refs"] = evidence_refs
@@ -288,6 +291,32 @@ def _normalize_followup_evidence_refs(raw: Any) -> list[dict[str, Any]]:
         refs.append({"source": source, "field": field, "content": content})
         if len(refs) >= 8:
             break
+    return refs
+
+
+def _normalize_unmatched_answer_refs(raw: Any) -> list[dict[str, Any]]:
+    if not isinstance(raw, list):
+        return []
+    refs: list[dict[str, Any]] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        try:
+            index = int(item.get("index"))
+        except (TypeError, ValueError):
+            continue
+        if index < 1:
+            continue
+        user_answer = str(item.get("user_answer") or "").strip()
+        if not user_answer:
+            continue
+        refs.append(
+            {
+                "index": index,
+                "question_id": str(item.get("question_id") or "").strip(),
+                "user_answer": user_answer,
+            }
+        )
     return refs
 
 
@@ -609,14 +638,24 @@ def annotate_batch_submission_context(
         return None
 
     answer_map: dict[int, dict[str, Any]] = {}
+    unmatched_refs: list[dict[str, Any]] = []
     for answer in answers:
         if not isinstance(answer, dict):
             continue
         index = answer.get("index")
         if isinstance(index, int) and index >= 1:
-            answer_map[index] = answer
+            if bool(answer.get("unmatched")) or index > len(items):
+                unmatched_refs.append(
+                    {
+                        "index": index,
+                        "question_id": str(answer.get("question_id") or "").strip(),
+                        "user_answer": str(answer.get("user_answer") or "").strip(),
+                    }
+                )
+            else:
+                answer_map[index] = answer
 
-    if not answer_map:
+    if not answer_map and not unmatched_refs:
         return None
 
     graded_items: list[dict[str, Any]] = []
@@ -643,6 +682,8 @@ def annotate_batch_submission_context(
     graded_context["items"] = graded_items
     graded_context["user_answer"] = "；".join(user_answer_parts)
     graded_context["is_correct"] = bool(graded_items) and correct_count == len(graded_items)
+    if unmatched_refs:
+        graded_context["unmatched_answer_refs"] = unmatched_refs
     return graded_context
 
 
@@ -1121,16 +1162,28 @@ def _parse_numbered_batch_submission(
     answers: list[dict[str, Any]] = []
     seen_indexes: set[int] = set()
     for idx, match in enumerate(matches):
-        raw_index = match.group(1) or match.group(2) or ""
+        raw_index = match.group(1) or match.group(2) or match.group(3) or ""
         item_index = _parse_small_zh_number(raw_index)
-        if item_index is None or item_index < 1 or item_index > len(items):
-            return None
         if item_index in seen_indexes:
             return None
         next_start = matches[idx + 1].start() if idx + 1 < len(matches) else len(text)
         fragment = text[match.end() : next_start].strip(" \t\r\n；;，,。.!！?")
         if not fragment:
             return None
+        if item_index is None or item_index < 1 or item_index > len(items):
+            answer = _extract_unmatched_batch_answer(fragment)
+            if answer is None or item_index is None:
+                return None
+            seen_indexes.add(item_index)
+            answers.append(
+                {
+                    "index": item_index,
+                    "question_id": "",
+                    "user_answer": answer,
+                    "unmatched": True,
+                }
+            )
+            continue
         answer = _extract_single_submission(fragment, items[item_index - 1])
         if answer is None:
             return None
@@ -1154,7 +1207,7 @@ def _parse_compact_numbered_batch_submission(
         return None
 
     marker_re = re.compile(
-        r"(?:第\s*([0-9一二两三四五六七八九十]+)\s*(?:题|问)?|([0-9]+)\s*(?:题|问)?|([一二两三四五六七八九十])(?=[A-Ea-e]))",
+        r"(?:第\s*([0-9一二两三四五六七八九十]+)\s*(?:题|问)?|([0-9]+)\s*(?:题|问)?|[Qq]\s*([0-9]+)\s*(?:题|问)?|([一二两三四五六七八九十])(?=[A-Ea-e]))",
         re.IGNORECASE,
     )
     matches = list(marker_re.finditer(text))
@@ -1164,16 +1217,28 @@ def _parse_compact_numbered_batch_submission(
     answers: list[dict[str, Any]] = []
     seen_indexes: set[int] = set()
     for idx, match in enumerate(matches):
-        raw_index = match.group(1) or match.group(2) or match.group(3) or ""
+        raw_index = match.group(1) or match.group(2) or match.group(3) or match.group(4) or ""
         item_index = _parse_small_zh_number(raw_index)
-        if item_index is None or item_index < 1 or item_index > len(items):
-            return None
         if item_index in seen_indexes:
             return None
         next_start = matches[idx + 1].start() if idx + 1 < len(matches) else len(text)
         fragment = text[match.end() : next_start].strip(" \t\r\n；;，,。.!！?：:、")
         if not fragment:
             return None
+        if item_index is None or item_index < 1 or item_index > len(items):
+            answer = _extract_unmatched_batch_answer(fragment)
+            if answer is None or item_index is None:
+                return None
+            seen_indexes.add(item_index)
+            answers.append(
+                {
+                    "index": item_index,
+                    "question_id": "",
+                    "user_answer": answer,
+                    "unmatched": True,
+                }
+            )
+            continue
         answer = _extract_single_submission(fragment, items[item_index - 1])
         if answer is None:
             return None
@@ -1186,6 +1251,15 @@ def _parse_compact_numbered_batch_submission(
             }
         )
     return answers or None
+
+
+def _extract_unmatched_batch_answer(fragment: str) -> str | None:
+    text = _strip_submission_prefix(fragment).strip(" \t\r\n；;，,。.!！?：:、")
+    compact = re.sub(r"\s+", "", text).upper()
+    match = re.fullmatch(r"[A-E](?:[、，,/／]*[A-E])*", compact)
+    if not match:
+        return None
+    return _normalize_option_answer(compact, {"question_type": "choice", "options": {key: key for key in "ABCDE"}})
 
 
 def _parse_batch_correction_submission(

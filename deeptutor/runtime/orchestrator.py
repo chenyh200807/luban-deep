@@ -184,12 +184,21 @@ class ChatOrchestrator:
 
     async def _select_capability(self, context: UnifiedContext) -> str:
         routing_user_message = self._routing_user_message(context)
+        if not self._question_lifecycle_decision_authority_enabled(context):
+            context.metadata["question_lifecycle_decision_authority_disabled"] = True
+            return await self._select_capability_after_lifecycle(context, routing_user_message)
+
         lifecycle_decision = await resolve_question_lifecycle_scene_decision(
             SimpleNamespace(user_message=routing_user_message, metadata=context.metadata)
         )
         self._record_lifecycle_decision(context, lifecycle_decision)
         lifecycle_scene = lifecycle_decision.scene
-        if lifecycle_scene == "question_review" and not self._has_active_lifecycle_context(context):
+        if lifecycle_scene == "question_review":
+            if self._should_replace_active_context_for_question_review(
+                context,
+                routing_user_message,
+            ):
+                self._suspend_active_lifecycle_context(context)
             self._prepare_free_text_question_review_context(context, routing_user_message)
             context.metadata["semantic_router_mode"] = "question_lifecycle"
             context.metadata["semantic_router_mode_reason"] = (
@@ -211,6 +220,33 @@ class ChatOrchestrator:
             context.metadata["semantic_router_shadow_route"] = ""
             context.metadata["semantic_router_selected_capability"] = "deep_question"
             return "deep_question"
+        if lifecycle_scene in {"learning_evidence_story", "study_assistant", "learning_support"}:
+            cap_name = self._default_chat_capability(context)
+            context.metadata["semantic_router_mode"] = "question_lifecycle"
+            context.metadata["semantic_router_mode_reason"] = (
+                f"{lifecycle_decision.source}_{lifecycle_scene}"
+            )
+            context.metadata["semantic_router_shadow_decision"] = {}
+            context.metadata["semantic_router_shadow_route"] = ""
+            context.metadata["semantic_router_selected_capability"] = cap_name
+            return cap_name
+        if lifecycle_decision.needs_clarification:
+            cap_name = self._default_chat_capability(context)
+            context.metadata["semantic_router_mode"] = "question_lifecycle"
+            context.metadata["semantic_router_mode_reason"] = (
+                lifecycle_decision.business_gate_result or "needs_clarification"
+            )
+            context.metadata["semantic_router_shadow_decision"] = {}
+            context.metadata["semantic_router_shadow_route"] = ""
+            context.metadata["semantic_router_selected_capability"] = cap_name
+            return cap_name
+        return await self._select_capability_after_lifecycle(context, routing_user_message)
+
+    async def _select_capability_after_lifecycle(
+        self,
+        context: UnifiedContext,
+        routing_user_message: str,
+    ) -> str:
         if context.active_capability:
             self._prepare_preselected_capability_context(context, routing_user_message)
             context.metadata.setdefault("semantic_router_mode", "preselected")
@@ -281,6 +317,15 @@ class ChatOrchestrator:
         cap_name = self._select_legacy_capability(context, routing_user_message)
         context.metadata["semantic_router_selected_capability"] = cap_name
         return cap_name
+
+    @staticmethod
+    def _question_lifecycle_decision_authority_enabled(context: UnifiedContext) -> bool:
+        override = _coerce_flag(
+            context.config_overrides.get("question_lifecycle_decision_authority")
+        )
+        if override is not None:
+            return override
+        return env_flag("QUESTION_LIFECYCLE_DECISION_AUTHORITY", default=True)
 
     def _prepare_preselected_capability_context(
         self,
@@ -370,6 +415,53 @@ class ChatOrchestrator:
     def _has_active_lifecycle_context(context: UnifiedContext) -> bool:
         metadata = context.metadata if isinstance(context.metadata, dict) else {}
         return bool(metadata.get("active_object") or metadata.get("question_followup_context"))
+
+    def _should_replace_active_context_for_question_review(
+        self,
+        context: UnifiedContext,
+        message: str,
+    ) -> bool:
+        if not self._has_active_lifecycle_context(context):
+            return True
+        if self._looks_like_question_submission(context, message):
+            return False
+        if self._looks_like_current_question_followup(message):
+            return False
+        return True
+
+    @staticmethod
+    def _looks_like_current_question_followup(message: str) -> bool:
+        text = str(message or "").strip()
+        if not text:
+            return False
+        current_markers = (
+            "这题",
+            "这道题",
+            "本题",
+            "上一题",
+            "刚才这题",
+            "刚刚这题",
+            "当前题",
+            "为什么",
+            "错在哪",
+            "哪里错",
+        )
+        return any(marker in text for marker in current_markers)
+
+    @staticmethod
+    def _suspend_active_lifecycle_context(context: UnifiedContext) -> None:
+        metadata = context.metadata if isinstance(context.metadata, dict) else {}
+        existing_stack = metadata.get("suspended_object_stack")
+        suspended_stack = list(existing_stack) if isinstance(existing_stack, list) else []
+        active_object = normalize_active_object(metadata.get("active_object"))
+        if active_object is not None:
+            suspended_stack.append(active_object)
+        metadata.pop("active_object", None)
+        metadata.pop("question_followup_context", None)
+        metadata.pop("question_followup_action", None)
+        metadata.pop("turn_semantic_decision", None)
+        metadata["suspended_object_stack"] = suspended_stack
+        metadata["question_review_replaces_active_object"] = True
 
     @staticmethod
     def _semantic_router_enabled(context: UnifiedContext) -> bool:
@@ -544,6 +636,23 @@ class ChatOrchestrator:
         )
         action_context = apply_followup_action_to_context(qctx, action)
         if action_context:
+            target_context, submission = resolve_submission_attempt(context.user_message, qctx)
+            if target_context and submission and submission.get("kind") == "batch":
+                fallback_context = apply_followup_action_to_context(
+                    target_context,
+                    {
+                        "intent": "answer_questions",
+                        "answers": submission.get("answers"),
+                        "preserve_other_answers": False,
+                    },
+                )
+                unmatched_refs = (
+                    fallback_context.get("unmatched_answer_refs")
+                    if isinstance(fallback_context, dict)
+                    else None
+                )
+                if unmatched_refs:
+                    action_context["unmatched_answer_refs"] = unmatched_refs
             context.metadata["question_followup_context"] = action_context
             active_object = build_active_object_from_question_context(
                 action_context,
@@ -614,12 +723,10 @@ class ChatOrchestrator:
         context.config_overrides.setdefault("topic", message)
         context.config_overrides.setdefault("num_questions", 1)
         context.config_overrides.setdefault("question_type", self._preferred_question_type(message))
-        context.metadata["question_lifecycle_scene"] = "question_review"
         skill_names = list(select_question_lifecycle_skill_names("question_review"))
         context.metadata["question_lifecycle_skill_names"] = skill_names
         trace_meta = context.metadata.setdefault("trace_metadata", {})
         if isinstance(trace_meta, dict):
-            trace_meta["question_lifecycle_scene"] = "question_review"
             trace_meta["question_lifecycle_skill_names"] = list(skill_names)
             trace_meta["skill_stack"] = list(skill_names)
             trace_meta["review_mode"] = "question_review"
@@ -689,7 +796,6 @@ class ChatOrchestrator:
                     "reason": "question lifecycle routed this turn to practice generation",
                 },
             )
-        context.metadata["question_lifecycle_scene"] = "practice_generation"
         skill_names = list(select_question_lifecycle_skill_names("practice_generation"))
         context.metadata["question_lifecycle_skill_names"] = skill_names
         interaction_hints = (
@@ -779,7 +885,6 @@ class ChatOrchestrator:
         if isinstance(context.metadata, dict):
             trace_meta = context.metadata.setdefault("trace_metadata", {})
             if isinstance(trace_meta, dict):
-                trace_meta["question_lifecycle_scene"] = "practice_generation"
                 trace_meta["question_lifecycle_skill_names"] = list(skill_names)
                 trace_meta["skill_stack"] = list(skill_names)
                 trace_meta["practice_generation.strategy"] = strategy

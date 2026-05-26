@@ -759,7 +759,7 @@ class AgentLoop:
         effective_model = str(runtime_metadata.get("preferred_model") or self.model).strip() or self.model
         exact_authority_override_allowed = bool(allow_exact_authority_override) and not str(
             runtime_metadata.get("exact_question_blocked_reason") or ""
-        ).strip()
+        ).strip() and not self._is_question_review_scene(runtime_metadata)
 
         def _visible_stream_text(raw_text: str) -> str:
             # Hide completed and in-progress <think> blocks before forwarding deltas.
@@ -994,6 +994,10 @@ class AgentLoop:
             self._replace_last_assistant_message(messages, case_fallback)
 
         return final_content, tools_used, messages
+
+    @staticmethod
+    def _is_question_review_scene(runtime_metadata: dict[str, Any] | None) -> bool:
+        return str((runtime_metadata or {}).get("question_lifecycle_scene") or "").strip() == "question_review"
 
     @staticmethod
     def _should_force_exact_authority(exact_question: dict[str, Any]) -> bool:
@@ -1803,8 +1807,6 @@ class AgentLoop:
                 )
             skill_instruction = skill_context.instructions
             if skill_instruction:
-                if skill_context.scene is not None:
-                    metadata["question_lifecycle_scene"] = str(skill_context.scene)
                 self._record_skill_trace(
                     metadata,
                     skill_context.skill_names,
@@ -1957,6 +1959,8 @@ class AgentLoop:
         if rag_tool is None:
             return None
         if str((runtime_metadata or {}).get("exact_question_blocked_reason") or "").strip():
+            return None
+        if self._is_question_review_scene(runtime_metadata):
             return None
         exact_probe = prepare_exact_question_probe(current_message)
         practice_generation_request = looks_like_practice_generation_request(current_message)
@@ -2602,6 +2606,7 @@ class AgentLoop:
             allow_exact_authority_override=(
                 prepare_exact_question_probe(current_message) is not None
                 and not str(runtime_metadata.get("exact_question_blocked_reason") or "").strip()
+                and not self._is_question_review_scene(runtime_metadata)
             ),
         )
 
