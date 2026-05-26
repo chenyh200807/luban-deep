@@ -292,7 +292,10 @@ def is_low_information_exam_query(query: str) -> bool:
     catalog_markers = ("有哪些", "有吗", "目录", "列表", "哪几道", "多少道", "历年", "往年", "答案")
     if any(marker in text for marker in catalog_markers):
         return True
-    if re.fullmatch(r"(?:20\d{2})?[\u4e00-\u9fffA-Za-z0-9]{0,12}(?:真题|试题|题库|试卷)", text):
+    if re.fullmatch(
+        r"(?:20\d{2})?[\u4e00-\u9fffA-Za-z0-9]{0,12}(?:真题|试题|题库|试卷)(?:第?[0-9一二两三四五六七八九十]+题)?",
+        text,
+    ):
         return True
     return False
 
@@ -763,6 +766,38 @@ def attach_question_lifecycle_scene_to_context(ctx: Any) -> str | None:
         scene = _normalize_scene(derive_question_lifecycle_scene(ctx))
     metadata["question_lifecycle_scene"] = scene
 
+    if scene is not None:
+        skill_names = list(SCENE_COMPOSITION[scene])
+        metadata["question_lifecycle_skill_names"] = skill_names
+        trace_meta = metadata.setdefault("trace_metadata", {})
+        if isinstance(trace_meta, dict):
+            trace_meta["question_lifecycle_scene"] = scene
+            trace_meta["question_lifecycle_skill_names"] = list(skill_names)
+            trace_meta["skill_stack"] = list(skill_names)
+    else:
+        metadata.setdefault("question_lifecycle_skill_names", [])
+
+    return scene
+
+
+def project_question_lifecycle_scene_from_metadata(ctx: Any) -> str | None:
+    """Project an already authoritative lifecycle scene into skill metadata.
+
+    This helper is for downstream executors such as ``deep_question``. It
+    intentionally does **not** call :func:`derive_question_lifecycle_scene` and
+    does not create ``metadata['question_lifecycle_scene']`` when the
+    orchestrator has not written one. That keeps capabilities as readers of
+    the front-door decision, not competing scene authorities.
+    """
+    metadata = getattr(ctx, "metadata", None)
+    if not isinstance(metadata, dict):
+        return None
+
+    if "question_lifecycle_scene" not in metadata:
+        metadata.setdefault("question_lifecycle_skill_names", [])
+        return None
+
+    scene = _normalize_scene(metadata.get("question_lifecycle_scene"))
     if scene is not None:
         skill_names = list(SCENE_COMPOSITION[scene])
         metadata["question_lifecycle_skill_names"] = skill_names

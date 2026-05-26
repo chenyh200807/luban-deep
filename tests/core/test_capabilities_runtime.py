@@ -195,8 +195,8 @@ def test_tutorbot_progressive_skills_load_construction_scene_for_fast_and_deep(t
         assert "# Construction Exam Tutor" in instruction
         assert "# 选择题讲解" not in instruction
         assert "本轮内部行为约束" in instruction
-        assert metadata["question_lifecycle_scene"] is None
-        assert metadata["question_lifecycle_skill_names"] == []
+        assert metadata.get("question_lifecycle_scene") is None
+        assert metadata.get("question_lifecycle_skill_names", []) == []
         assert metadata["skill_stack"] == ["construction-exam-tutor"]
         assert metadata["loader_source"]["construction-exam-tutor"] == "builtin"
         assert any(
@@ -212,6 +212,7 @@ def test_tutorbot_progressive_skills_load_construction_scene_for_fast_and_deep(t
             "bot_id": "construction-exam-coach",
             "default_kb": "construction-exam",
             "effective_response_mode": response_mode,
+            "question_lifecycle_scene": "practice_generation",
         }
         practice_instruction = loop._build_progressive_skill_instruction(
             "给我出一道建筑实务选择题，先不要给答案",
@@ -256,11 +257,13 @@ def test_tutorbot_progressive_skills_load_grading_scenes_for_fast_and_deep(tmp_p
             "bot_id": "construction-exam-coach",
             "default_kb": "construction-exam",
             "effective_response_mode": response_mode,
+            "question_lifecycle_scene": "case_grading",
         }
         mcq_metadata = {
             "bot_id": "construction-exam-coach",
             "default_kb": "construction-exam",
             "effective_response_mode": response_mode,
+            "question_lifecycle_scene": "mcq_grading",
         }
         case_instruction = loop._build_progressive_skill_instruction(
             "【案例题】背景资料：施工现场临时用电。我的答案：先验收。请批改估分，指出漏掉的采分点。",
@@ -296,6 +299,7 @@ def test_tutorbot_progressive_skills_load_learning_evidence_story_scene(tmp_path
         "bot_id": "construction-exam-coach",
         "default_kb": "construction-exam",
         "effective_response_mode": "deep",
+        "question_lifecycle_scene": "learning_evidence_story",
     }
 
     instruction = loop._build_progressive_skill_instruction(
@@ -382,6 +386,7 @@ def test_tutorbot_fast_rag_prefetch_ignores_general_chat_and_product_questions()
         "default_kb": "construction-exam",
         "knowledge_bases": ["construction-exam"],
         "effective_response_mode": "fast",
+        "question_lifecycle_scene": "learning_evidence_story",
     }
 
     for user_message in ("你好", "你是谁", "谢谢", "今天学习什么", "功能有哪些", "价格怎么收费", "登录流程是什么"):
@@ -403,6 +408,7 @@ def test_tutorbot_fast_rag_prefetch_does_not_treat_learning_state_as_kb_lookup()
         "default_kb": "construction-exam",
         "knowledge_bases": ["construction-exam"],
         "effective_response_mode": "fast",
+        "question_lifecycle_scene": "learning_evidence_story",
     }
 
     assert (
@@ -428,6 +434,7 @@ def test_tutorbot_fast_rag_prefetch_keeps_study_assistant_out_of_kb_lookup(
         "knowledge_bases": ["construction-exam"],
         "effective_response_mode": "fast",
         "current_info_required": True,
+        "question_lifecycle_scene": "study_assistant",
     }
 
     assert (
@@ -450,6 +457,7 @@ def test_tutorbot_fast_rag_prefetch_allows_external_grounding_for_non_personal_s
         "knowledge_bases": ["construction-exam"],
         "effective_response_mode": "fast",
         "current_info_required": True,
+        "question_lifecycle_scene": "study_assistant",
     }
 
     assert (
@@ -475,6 +483,7 @@ def test_tutorbot_fast_rag_prefetch_keeps_learning_support_out_of_kb_lookup(
         "knowledge_bases": ["construction-exam"],
         "effective_response_mode": "fast",
         "current_info_required": True,
+        "question_lifecycle_scene": "learning_support",
     }
 
     assert (
@@ -496,6 +505,7 @@ def test_tutorbot_fast_rag_prefetch_does_not_treat_long_learning_status_as_kb_lo
         "default_kb": "construction-exam",
         "knowledge_bases": ["construction-exam"],
         "effective_response_mode": "fast",
+        "question_lifecycle_scene": "learning_evidence_story",
     }
 
     assert (
@@ -509,15 +519,16 @@ def test_tutorbot_fast_rag_prefetch_does_not_treat_long_learning_status_as_kb_lo
 
 
 @pytest.mark.parametrize(
-    "user_message",
+    ("user_message", "scene"),
     [
-        "这道单选题我选B，对吗？题干：施工现场临时用电组织设计应由谁编制？",
-        "【案例题】背景资料：施工现场临时用电。我的答案：先验收。请批改估分。",
-        "分析一道验槽方法真题",
+        ("这道单选题我选B，对吗？题干：施工现场临时用电组织设计应由谁编制？", "mcq_grading"),
+        ("【案例题】背景资料：施工现场临时用电。我的答案：先验收。请批改估分。", "case_grading"),
+        ("分析一道验槽方法真题", "question_review"),
     ],
 )
 def test_tutorbot_fast_rag_prefetch_keeps_question_authority_scenes(
     user_message: str,
+    scene: str,
 ) -> None:
     from deeptutor.tutorbot.agent.loop import AgentLoop
 
@@ -527,6 +538,7 @@ def test_tutorbot_fast_rag_prefetch_keeps_question_authority_scenes(
         "default_kb": "construction-exam",
         "knowledge_bases": ["construction-exam"],
         "effective_response_mode": "fast",
+        "question_lifecycle_scene": scene,
     }
 
     assert (
@@ -659,6 +671,7 @@ async def test_tutorbot_process_direct_exports_skill_trace_to_runtime_metadata(t
         "bot_id": "construction-exam-coach",
         "default_kb": "construction-exam",
         "effective_response_mode": "fast",
+        "question_lifecycle_scene": "learning_evidence_story",
     }
     loop = AgentLoop(MessageBus(), FakeProvider(), tmp_path)
 
@@ -4315,6 +4328,208 @@ async def test_tutorbot_agent_loop_forces_exact_authority_response(
     assert "## 🧐 解析" in final_content
     assert "这是历史真题的标准答案。" in final_content
     assert messages[-1]["content"] == final_content
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_agent_loop_does_not_exact_override_question_review(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
+
+    class FakeProvider(LLMProvider):
+        def __init__(self) -> None:
+            super().__init__()
+            self.calls = 0
+
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            self.calls += 1
+            if self.calls == 1:
+                return LLMResponse(
+                    content="先查知识库",
+                    tool_calls=[ToolCallRequest(id="call_1", name="rag", arguments={"query": "钢筋保护层真题"})],
+                )
+            return LLMResponse(content="题干：这里先展示题干和选项，再做讲评。")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class ExactAuthorityTool(Tool):
+        def __init__(self) -> None:
+            self._trace_metadata = {
+                "authority_applied": True,
+                "exact_question": {
+                    "answer_kind": "mcq",
+                    "correct_answer": "D",
+                    "analysis": "这是历史真题的标准答案。",
+                },
+            }
+
+        @property
+        def name(self) -> str:
+            return "rag"
+
+        @property
+        def description(self) -> str:
+            return "exact authority rag"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {"query": {"type": "string"}},
+                "required": ["query"],
+            }
+
+        async def execute(self, **kwargs: Any) -> str:
+            return "知识库返回了标准答案"
+
+        def consume_trace_metadata(self) -> dict[str, Any] | None:
+            metadata = dict(self._trace_metadata)
+            self._trace_metadata = {}
+            return metadata
+
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=FakeProvider(),
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(metadata={}, key=key),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+    loop.tools.register(ExactAuthorityTool())
+
+    final_content, _tools_used, messages = await loop._run_agent_loop(
+        [{"role": "user", "content": "分析一道钢筋保护层真题"}],
+        runtime_metadata={"question_lifecycle_scene": "question_review"},
+        allow_exact_authority_override=True,
+    )
+
+    assert final_content == "题干：这里先展示题干和选项，再做讲评。"
+    assert "## 📊 阅卷结论" not in final_content
+    assert "标准答案：D" not in final_content
+    assert messages[-1]["content"] == final_content
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_fast_path_skips_exact_authority_for_question_review(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent import loop as loop_module
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    monkeypatch.setattr(
+        loop_module,
+        "prepare_exact_question_probe",
+        lambda _message: SimpleNamespace(allowed_question_types=["single"]),
+    )
+
+    class FakeProvider(LLMProvider):
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            return LLMResponse(content="不会走到这里")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class ExactAuthorityTool(Tool):
+        def __init__(self) -> None:
+            self.calls = 0
+
+        @property
+        def name(self) -> str:
+            return "rag"
+
+        @property
+        def description(self) -> str:
+            return "exact authority rag"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {"type": "object", "properties": {}}
+
+        async def execute(self, **kwargs: Any) -> str:
+            self.calls += 1
+            return "知识库返回了标准答案"
+
+    rag_tool = ExactAuthorityTool()
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=FakeProvider(),
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(metadata={}, key=key),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+    loop.tools.register(rag_tool)
+
+    result = await loop._maybe_run_exact_rag_fast_path(
+        current_message="分析一道钢筋保护层真题",
+        history=[],
+        media=None,
+        channel="wechat",
+        chat_id="chat-1",
+        runtime_instruction=None,
+        runtime_metadata={
+            "bot_id": "construction-exam-coach",
+            "question_lifecycle_scene": "question_review",
+        },
+    )
+
+    assert result is None
+    assert rag_tool.calls == 0
 
 
 @pytest.mark.asyncio

@@ -176,7 +176,17 @@ def test_explicit_real_exam_review_action_is_not_low_information_query(message: 
     assert derive_question_lifecycle_scene(ctx) == "question_review"
 
 
-@pytest.mark.parametrize("message", ["2025真题", "历年真题", "防水真题", "2025真题有哪些", "2025真题答案"])
+@pytest.mark.parametrize(
+    "message",
+    [
+        "2025真题",
+        "历年真题",
+        "防水真题",
+        "2025真题有哪些",
+        "2025真题答案",
+        "2025真题第15题",
+    ],
+)
 def test_low_information_exam_query_is_not_question_review(message: str):
     ctx = _FakeContext(user_message=message)
 
@@ -220,6 +230,42 @@ async def test_unanchored_mcq_answer_returns_clarification_decision():
     assert decision.required_anchor_status == "missing_active_question"
     assert decision.exact_question_blocked_reason == "unanchored_answer_submission"
     assert decision.needs_clarification is True
+
+
+@pytest.mark.asyncio
+async def test_llm_scene_proposal_failure_degrades_without_blocking(monkeypatch):
+    async def _fake_complete(**_kwargs):
+        raise RuntimeError("llm unavailable")
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.complete", _fake_complete)
+
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(user_message="拿一道钢筋保护层题给我讲透")
+    )
+
+    assert decision.scene is None
+    assert decision.source == "llm"
+    assert decision.business_gate_result == "llm_unavailable"
+    assert decision.confidence == pytest.approx(0.0)
+
+
+@pytest.mark.asyncio
+async def test_deterministic_active_submission_suppresses_llm_candidate(monkeypatch):
+    async def _fake_complete(**_kwargs):
+        raise AssertionError("LLM must not run when active submission evidence is sufficient")
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.complete", _fake_complete)
+
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(
+            user_message="我选B",
+            metadata={"question_followup_context": _mcq_followup_context()},
+        )
+    )
+
+    assert decision.scene == "mcq_grading"
+    assert decision.source == "deterministic"
+    assert decision.business_gate_result == "passed"
 
 
 @pytest.mark.asyncio

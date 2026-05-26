@@ -8,6 +8,7 @@ from deeptutor.services.question_lifecycle_skills import (
     attach_question_lifecycle_scene_to_context,
     build_question_lifecycle_skill_context,
     build_question_lifecycle_skill_context_from_legacy_scene,
+    project_question_lifecycle_scene_from_metadata,
     select_question_lifecycle_skill_names,
 )
 from deeptutor.tutorbot.agent.skills import SkillsLoader
@@ -102,6 +103,35 @@ def test_attach_question_lifecycle_scene_normalizes_legacy_alias_metadata() -> N
         "construction-exam-tutor",
         "construction-question-supply",
     ]
+
+
+def test_project_lifecycle_scene_from_metadata_does_not_derive_scene() -> None:
+    ctx = UnifiedContext(user_message="再出3题", metadata={})
+
+    scene = project_question_lifecycle_scene_from_metadata(ctx)
+
+    assert scene is None
+    assert "question_lifecycle_scene" not in ctx.metadata
+    assert ctx.metadata["question_lifecycle_skill_names"] == []
+
+
+def test_project_lifecycle_scene_from_metadata_preserves_authoritative_scene() -> None:
+    ctx = UnifiedContext(
+        metadata={
+            "question_lifecycle_scene": "question_review",
+            "trace_metadata": {},
+        }
+    )
+
+    scene = project_question_lifecycle_scene_from_metadata(ctx)
+
+    assert scene == "question_review"
+    assert ctx.metadata["question_lifecycle_scene"] == "question_review"
+    assert ctx.metadata["question_lifecycle_skill_names"] == [
+        "construction-exam-tutor",
+        "construction-question-review",
+    ]
+    assert ctx.metadata["trace_metadata"]["question_lifecycle_scene"] == "question_review"
 
 
 def test_legacy_scene_builder_preserves_reference_loading() -> None:

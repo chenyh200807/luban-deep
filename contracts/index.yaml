@@ -49,6 +49,7 @@ domains:
       - tests/services/learner_state/test_conversation_learning_evidence_event.py
       - tests/services/learner_state/test_learning_evidence_quality_gate.py
       - tests/services/member_console/test_home_dashboard_learning_projection.py
+      - tests/services/observability/test_turn_runtime_observer_event.py
     schema_files:
       - deeptutor/contracts/unified_turn.py
       - deeptutor/contracts/bot_runtime_defaults.py

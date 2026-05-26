@@ -45,6 +45,27 @@ _NODE_ID_SCAN_PATHS: tuple[str, ...] = (
 )
 _NODE_ID_LITERAL_RE = re.compile(r'"(1A4\d{4,5})"')
 
+# Question lifecycle authority guard. The orchestrator is the only runtime
+# route authority. A few downstream files may mirror the canonical scene into
+# trace / observer payloads, but executors must not call the legacy attach or
+# derive helpers to decide a scene on their own.
+_QUESTION_LIFECYCLE_APPROVED_SCENE_WRITERS: frozenset[str] = frozenset(
+    {
+        "deeptutor/runtime/orchestrator.py",
+        "deeptutor/services/question_lifecycle_skills.py",
+        "deeptutor/capabilities/deep_question.py",
+        "deeptutor/services/session/turn_runtime.py",
+    }
+)
+_QUESTION_LIFECYCLE_SERVICE_PATH = "deeptutor/services/question_lifecycle_skills.py"
+_QUESTION_LIFECYCLE_SCENE_WRITE_RE = re.compile(
+    r"(?:metadata|context\.metadata|trace_meta|summary)\[['\"]question_lifecycle_scene['\"]\]\s*="
+)
+_QUESTION_LIFECYCLE_FORBIDDEN_CALLS: tuple[str, ...] = (
+    "attach_question_lifecycle_scene_to_context",
+    "derive_question_lifecycle_scene",
+)
+
 
 def load_contract_index() -> dict[str, Any]:
     payload = yaml.safe_load(INDEX_PATH.read_text(encoding="utf-8")) or {}
@@ -225,6 +246,51 @@ def evaluate_emitted_node_ids() -> tuple[bool, str]:
     return True, f"node-id-guard: passed | node_ids={', '.join(node_ids)}"
 
 
+def _iter_question_lifecycle_python_files(repo_root: Path) -> list[Path]:
+    source_root = repo_root / "deeptutor"
+    if not source_root.exists():
+        return []
+    return sorted(path for path in source_root.rglob("*.py") if path.is_file())
+
+
+def evaluate_question_lifecycle_authority(repo_root: Path = REPO_ROOT) -> tuple[bool, str]:
+    """Fail when production code introduces a competing lifecycle authority."""
+
+    failures: list[str] = []
+    scene_write_count = 0
+    for path in _iter_question_lifecycle_python_files(repo_root):
+        relative = path.relative_to(repo_root).as_posix()
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        for lineno, line in enumerate(text.splitlines(), start=1):
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#"):
+                continue
+            if _QUESTION_LIFECYCLE_SCENE_WRITE_RE.search(stripped):
+                scene_write_count += 1
+                if relative not in _QUESTION_LIFECYCLE_APPROVED_SCENE_WRITERS:
+                    failures.append(
+                        f"{relative}:{lineno}: question_lifecycle_scene writer outside authority: {stripped[:140]}"
+                    )
+            for call_name in _QUESTION_LIFECYCLE_FORBIDDEN_CALLS:
+                call_token = f"{call_name}("
+                if call_token not in stripped:
+                    continue
+                if stripped.startswith(f"def {call_name}("):
+                    continue
+                if relative == _QUESTION_LIFECYCLE_SERVICE_PATH:
+                    continue
+                failures.append(
+                    f"{relative}:{lineno}: competing lifecycle call {call_name}: {stripped[:140]}"
+                )
+
+    if failures:
+        return False, "question-lifecycle-authority-guard: failed\n" + "\n".join(failures)
+    return True, (
+        "question-lifecycle-authority-guard: passed | "
+        f"approved_scene_writes={scene_write_count}"
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Fail CI when protected contract boundaries change without docs/tests coverage."
@@ -252,7 +318,11 @@ def main(argv: list[str] | None = None) -> int:
     node_stream = sys.stdout if node_ok else sys.stderr
     print(node_message, file=node_stream)
 
-    return 0 if (ok and code_ok and node_ok) else 1
+    lifecycle_ok, lifecycle_message = evaluate_question_lifecycle_authority()
+    lifecycle_stream = sys.stdout if lifecycle_ok else sys.stderr
+    print(lifecycle_message, file=lifecycle_stream)
+
+    return 0 if (ok and code_ok and node_ok and lifecycle_ok) else 1
 
 
 if __name__ == "__main__":

@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import subprocess
 
-from scripts.check_contract_guard import evaluate_changed_files, resolve_changed_files
+from scripts.check_contract_guard import (
+    evaluate_changed_files,
+    evaluate_question_lifecycle_authority,
+    resolve_changed_files,
+)
 
 
 def test_guard_allows_non_protected_changes() -> None:
@@ -50,6 +54,68 @@ def test_guard_accepts_config_runtime_change_with_contract_and_tests() -> None:
     )
     assert ok is True
     assert "[config_runtime] passed" in message
+
+
+def test_question_lifecycle_guard_rejects_competing_attach_call(tmp_path) -> None:
+    offender = tmp_path / "deeptutor" / "capabilities" / "deep_question.py"
+    offender.parent.mkdir(parents=True)
+    offender.write_text(
+        "def run(ctx):\n"
+        "    attach_question_lifecycle_scene_to_context(ctx)\n",
+        encoding="utf-8",
+    )
+
+    ok, message = evaluate_question_lifecycle_authority(tmp_path)
+
+    assert ok is False
+    assert "attach_question_lifecycle_scene_to_context" in message
+    assert "deep_question.py" in message
+
+
+def test_question_lifecycle_guard_rejects_loop_scene_writer(tmp_path) -> None:
+    offender = tmp_path / "deeptutor" / "tutorbot" / "agent" / "loop.py"
+    offender.parent.mkdir(parents=True)
+    offender.write_text(
+        "def run(metadata):\n"
+        "    metadata['question_lifecycle_scene'] = 'question_review'\n",
+        encoding="utf-8",
+    )
+
+    ok, message = evaluate_question_lifecycle_authority(tmp_path)
+
+    assert ok is False
+    assert "question_lifecycle_scene writer" in message
+    assert "loop.py" in message
+
+
+def test_question_lifecycle_guard_allows_approved_projection_points(tmp_path) -> None:
+    orchestrator = tmp_path / "deeptutor" / "runtime" / "orchestrator.py"
+    service = tmp_path / "deeptutor" / "services" / "question_lifecycle_skills.py"
+    observer = tmp_path / "deeptutor" / "services" / "session" / "turn_runtime.py"
+    for path in (orchestrator, service, observer):
+        path.parent.mkdir(parents=True, exist_ok=True)
+    orchestrator.write_text(
+        "def record(context):\n"
+        "    context.metadata['question_lifecycle_scene'] = 'question_review'\n",
+        encoding="utf-8",
+    )
+    service.write_text(
+        "def attach_question_lifecycle_scene_to_context(ctx):\n"
+        "    metadata['question_lifecycle_scene'] = scene\n"
+        "def derive_question_lifecycle_scene(ctx):\n"
+        "    return None\n",
+        encoding="utf-8",
+    )
+    observer.write_text(
+        "def summarize(summary):\n"
+        "    summary['question_lifecycle_scene'] = 'question_review'\n",
+        encoding="utf-8",
+    )
+
+    ok, message = evaluate_question_lifecycle_authority(tmp_path)
+
+    assert ok is True
+    assert "question-lifecycle-authority-guard: passed" in message
 
 
 def test_resolve_changed_files_defaults_to_current_candidate(monkeypatch) -> None:
