@@ -98,6 +98,7 @@ outputs/
 **/output/
 **/outputs/
 tmp/benchmark/
+tmp/eval-gate/
 tmp/observability/
 tmp/arr_*/
 tmp/prelaunch-audit-*/

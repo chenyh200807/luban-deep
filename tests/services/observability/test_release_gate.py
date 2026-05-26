@@ -271,6 +271,48 @@ def test_release_gate_blocks_missing_plan_completion_audit() -> None:
     assert "plan_completion_audit_missing" in payload["blockers"]
 
 
+def test_release_gate_accepts_canonical_benchmark_without_arr_payload() -> None:
+    release = {
+        "release_id": "rel-1",
+        "git_sha": "abc",
+        "deployment_environment": "prod",
+        "prompt_version": "p1",
+        "ff_snapshot_hash": "ff1",
+        "git_dirty": "false",
+        "deploy_manifest_hash": "manifest1",
+    }
+    payload = build_release_gate_report(
+        om_payload={
+            "run_id": "om-1",
+            "release": dict(release),
+            "health_summary": {"ready": True, "unified_ws_smoke_ok": True},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload=None,
+        benchmark_payload=_canonical_benchmark_payload(
+            release=release,
+            case_results=[
+                {
+                    "suite": "pr_gate_core",
+                    "case_id": "case-a",
+                    "status": "PASS",
+                    "case_tier": "gate_stable",
+                    "gate_eligible": True,
+                }
+            ],
+            summary={"pass_rate": 1.0},
+            baseline_diff={"regressions": [], "new_failures": []},
+        ),
+        aae_payload=None,
+        oa_payload=None,
+    )
+
+    p2 = next(item for item in payload["gate_results"] if item["gate"] == "P2 Benchmark Regression")
+    assert p2["status"] == "PASS"
+    assert p2["summary"] == "benchmark 当前无新增 regression"
+    assert "missing_benchmark_arr" not in payload["blockers"]
+
+
 def test_release_gate_treats_prerelease_plan_placeholder_as_missing() -> None:
     payload = build_release_gate_report(
         om_payload={

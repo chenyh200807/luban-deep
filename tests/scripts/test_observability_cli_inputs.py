@@ -103,6 +103,64 @@ def test_run_release_gate_load_json_accepts_plan_completion_wrapper(tmp_path) ->
     assert RELEASE_GATE_MODULE._load_json(str(target), expected_kind="plan_completion_audits") == payload
 
 
+def test_run_release_gate_report_only_preserves_explicit_plan_completion_json(tmp_path, monkeypatch) -> None:
+    reset_control_plane_store(base_dir=tmp_path / "control_plane")
+    current_release = {
+        "release_id": "rel-current",
+        "git_sha": "abc123",
+        "deployment_environment": "eval",
+        "prompt_version": "prompt-current",
+        "ff_snapshot_hash": "ff-current",
+        "git_dirty": "false",
+        "deploy_manifest_hash": "manifest-current",
+    }
+    explicit_payload = {
+        "run_id": "plan-completion-explicit",
+        "release": {"release_id": "rel-explicit", "git_sha": "oldsha"},
+        "scope_mode": "report_only",
+        "status": "WARN",
+        "summary": {"total": 0},
+        "warnings": ["plan_completion_report_only_placeholder"],
+    }
+    target = tmp_path / "plan-completion.json"
+    target.write_text(
+        json.dumps(
+            {
+                "kind": "plan_completion_audits",
+                "run_id": "plan-completion-explicit",
+                "release_id": "rel-explicit",
+                "recorded_at": 1,
+                "payload": explicit_payload,
+            }
+        ),
+        encoding="utf-8",
+    )
+    captured = {}
+
+    def _fail_if_auto_placeholder(**kwargs):
+        raise AssertionError("explicit plan completion JSON must not be replaced")
+
+    def _fake_build_release_gate_report(**kwargs):
+        captured["plan_completion_payload"] = kwargs["plan_completion_payload"]
+        return {
+            "run_id": "release-gate-test",
+            "release": current_release,
+            "final_status": "WARN",
+            "recommendation": "hold",
+            "gate_results": [],
+            "blockers": [],
+        }
+
+    monkeypatch.setattr(RELEASE_GATE_MODULE, "get_release_lineage_snapshot", lambda: dict(current_release))
+    monkeypatch.setattr(RELEASE_GATE_MODULE, "_ensure_report_only_plan_completion_payload", _fail_if_auto_placeholder)
+    monkeypatch.setattr(RELEASE_GATE_MODULE, "build_release_gate_report", _fake_build_release_gate_report)
+    monkeypatch.setattr(sys, "argv", ["run_release_gate.py", "--report-only", "--plan-completion-json", str(target)])
+
+    RELEASE_GATE_MODULE.main()
+
+    assert captured["plan_completion_payload"] == explicit_payload
+
+
 def test_run_release_gate_store_fallback_rejects_malformed_latest_wrapper(tmp_path) -> None:
     reset_control_plane_store(base_dir=tmp_path / "control_plane")
     latest_path = tmp_path / "control_plane" / "oa_runs" / "latest.json"
@@ -466,7 +524,9 @@ def test_run_observability_daily_cli_writes_end_to_end_control_plane_runs(tmp_pa
 
     assert proc.returncode == 0, proc.stderr
     for kind in (
+        "benchmark_runs",
         "observer_snapshots",
+        "om_runs",
         "change_impact_runs",
         "oa_runs",
         "release_gate_runs",
@@ -477,8 +537,16 @@ def test_run_observability_daily_cli_writes_end_to_end_control_plane_runs(tmp_pa
 
     oa_latest = json.loads((store_dir / "oa_runs" / "latest.json").read_text(encoding="utf-8"))
     assert oa_latest["payload"]["causal_candidates"]
+    benchmark_latest = json.loads((store_dir / "benchmark_runs" / "latest.json").read_text(encoding="utf-8"))
+    assert benchmark_latest["payload"]["run_manifest"]["requested_suites"] == ["pr_gate_core"]
+    om_latest = json.loads((store_dir / "om_runs" / "latest.json").read_text(encoding="utf-8"))
+    assert om_latest["payload"]["run_id"].startswith("om-")
     readiness_latest = json.loads((store_dir / "readiness_checks" / "latest.json").read_text(encoding="utf-8"))
     assert readiness_latest["payload"]["check_id"] == "contract_guard"
+    readiness_history = (store_dir / "readiness_checks" / "history.jsonl").read_text(encoding="utf-8").splitlines()
+    readiness_payloads = [json.loads(line)["payload"] for line in readiness_history if line.strip()]
+    assert any(item["check_id"] == "playwright" for item in readiness_payloads)
+    assert any(item["check_id"] == "wechat_devtools" for item in readiness_payloads)
     run_history = DAILY_OBSERVABILITY_MODULE.build_daily_run_history(store_dir=store_dir)
     assert run_history["summary"]["total"] >= 4
 
@@ -520,10 +588,31 @@ def test_run_observability_daily_marks_verdict_stale_when_input_release_lags_hea
             base_ref="HEAD~1",
             changed_file=[],
             metrics_json=None,
+            api_base_url="http://127.0.0.1:8001",
             event_days=1,
             output_dir=str(tmp_path / "out"),
         ),
     )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "_ensure_om_payload",
+        lambda **_kwargs: {
+            "run_id": "om-1",
+            "metrics_snapshot": {},
+            "health_summary": {},
+            "release": {"release_id": "rel-old", "git_sha": "old123"},
+        },
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "_ensure_benchmark_payload",
+        lambda **_kwargs: {
+            "run_manifest": {"run_id": "benchmark-1"},
+            "summary": {"pass_rate": 1.0},
+            "release_spine": {"release_id": "rel-old", "git_sha": "old123"},
+        },
+    )
+    monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "_ensure_surface_readiness_rows", lambda **_kwargs: None)
     monkeypatch.setattr(
         DAILY_OBSERVABILITY_MODULE,
         "write_observer_snapshot_artifacts",
@@ -599,11 +688,37 @@ def test_run_observability_daily_passes_current_release_through_spine(
             base_ref="HEAD~1",
             changed_file=["deeptutor/services/session/turn_runtime.py"],
             metrics_json=None,
+            api_base_url="http://127.0.0.1:8001",
             event_days=1,
             output_dir=str(tmp_path / "out"),
         ),
     )
     monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "get_release_lineage_snapshot", lambda: dict(current_release))
+
+    def _ensure_om_payload(**kwargs):
+        observed_releases["om"] = dict(kwargs["release"])
+        return {
+            "run_id": "om-1",
+            "metrics_snapshot": {},
+            "health_summary": {},
+            "release": dict(kwargs["release"]),
+        }
+
+    def _ensure_benchmark_payload(**kwargs):
+        observed_releases["benchmark"] = dict(kwargs["release"])
+        return {
+            "run_manifest": {"run_id": "benchmark-1"},
+            "summary": {"pass_rate": 1.0},
+            "release_spine": dict(kwargs["release"]),
+        }
+
+    monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "_ensure_om_payload", _ensure_om_payload)
+    monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "_ensure_benchmark_payload", _ensure_benchmark_payload)
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "_ensure_surface_readiness_rows",
+        lambda **kwargs: observed_releases.setdefault("surface_readiness", dict(kwargs["release"])),
+    )
     monkeypatch.setattr(
         DAILY_OBSERVABILITY_MODULE,
         "write_observer_snapshot_artifacts",
@@ -664,6 +779,9 @@ def test_run_observability_daily_passes_current_release_through_spine(
     DAILY_OBSERVABILITY_MODULE.main()
 
     assert observed_releases == {
+        "om": current_release,
+        "benchmark": current_release,
+        "surface_readiness": current_release,
         "observer": current_release,
         "readiness": current_release,
         "change_impact": current_release,
@@ -766,3 +884,129 @@ def test_run_release_gate_cli_requires_canonical_benchmark_latest(tmp_path) -> N
     p2 = next(item for item in latest["payload"]["gate_results"] if item["gate"] == "P2 Benchmark Regression")
     assert p2["status"] == "FAIL"
     assert p2["summary"] == "canonical benchmark row missing"
+
+
+def test_run_release_gate_report_only_writes_plan_completion_placeholder(tmp_path) -> None:
+    store_dir = tmp_path / "control_plane"
+    env = {
+        **os.environ,
+        "DEEPTUTOR_OBSERVABILITY_STORE_DIR": str(store_dir),
+        "DEEPTUTOR_RELEASE_ID": "rel-eval",
+        "DEEPTUTOR_GIT_SHA": "abc123",
+        "DEEPTUTOR_ENV": "eval",
+        "DEEPTUTOR_PROMPT_VERSION": "prompt-eval",
+        "DEEPTUTOR_FF_SNAPSHOT_HASH": "ff-eval",
+        "DEEPTUTOR_GIT_DIRTY": "false",
+        "DEEPTUTOR_DEPLOY_MANIFEST_HASH": "manifest-eval",
+    }
+    release = {
+        "release_id": "rel-eval",
+        "git_sha": "abc123",
+        "deployment_environment": "eval",
+        "prompt_version": "prompt-eval",
+        "ff_snapshot_hash": "ff-eval",
+        "git_dirty": "false",
+        "deploy_manifest_hash": "manifest-eval",
+    }
+    benchmark_dir = store_dir / "benchmark_runs"
+    om_dir = store_dir / "om_runs"
+    plan_completion_dir = store_dir / "plan_completion_audits"
+    benchmark_dir.mkdir(parents=True, exist_ok=True)
+    om_dir.mkdir(parents=True, exist_ok=True)
+    plan_completion_dir.mkdir(parents=True, exist_ok=True)
+    (benchmark_dir / "latest.json").write_text(
+        json.dumps(
+            {
+                "kind": "benchmark_runs",
+                "run_id": "benchmark-1",
+                "release_id": "rel-eval",
+                "recorded_at": 1,
+                "payload": {
+                    "run_manifest": {"run_id": "benchmark-1", "requested_suites": ["pr_gate_core"]},
+                    "release_spine": release,
+                    "case_results": [
+                        {
+                            "suite": "pr_gate_core",
+                            "case_id": "case-a",
+                            "status": "PASS",
+                            "gate_eligible": True,
+                            "case_tier": "gate_stable",
+                        }
+                    ],
+                    "summary": {"pass_rate": 1.0},
+                    "baseline_diff": {"regressions": [], "new_failures": []},
+                    "blind_spots": [],
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    (om_dir / "latest.json").write_text(
+        json.dumps(
+            {
+                "kind": "om_runs",
+                "run_id": "om-1",
+                "release_id": "rel-eval",
+                "recorded_at": 1,
+                "payload": {
+                    "run_id": "om-1",
+                    "release": release,
+                    "health_summary": {"ready": True, "unified_ws_smoke_ok": True},
+                    "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    (plan_completion_dir / "latest.json").write_text(
+        json.dumps(
+            {
+                "kind": "plan_completion_audits",
+                "run_id": "plan-completion-report-only-stale",
+                "release_id": "rel-old",
+                "recorded_at": 1,
+                "payload": {
+                    "run_id": "plan-completion-report-only-stale",
+                    "release": {
+                        **release,
+                        "release_id": "rel-old",
+                        "git_sha": "oldsha",
+                    },
+                    "scope_mode": "report_only",
+                    "status": "WARN",
+                    "summary": {"total": 0},
+                    "blockers": [],
+                    "warnings": ["plan_completion_report_only_placeholder"],
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    proc = subprocess.run(
+        [
+            sys.executable,
+            str(Path(__file__).resolve().parents[2] / "scripts" / "run_release_gate.py"),
+            "--report-only",
+        ],
+        cwd=Path(__file__).resolve().parents[2],
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+
+    assert proc.returncode == 0, proc.stderr
+    latest = json.loads((store_dir / "release_gate_runs" / "latest.json").read_text(encoding="utf-8"))
+    payload = latest["payload"]
+    assert payload["final_status"] == "WARN"
+    assert payload["recommendation"] == "hold_with_conditions"
+    assert "runtime_or_release_lineage_incomplete" not in payload["blockers"]
+    assert "plan_completion_audit_missing" not in payload["blockers"]
+    assert "plan_completion_audit_stale_release" not in payload["blockers"]
+    assert payload["latest_runs"]["plan_completion_run_id"].startswith("plan-completion-report-only-")
+    assert payload["latest_runs"]["plan_completion_run_id"] != "plan-completion-report-only-stale"
+    plan_latest = json.loads((store_dir / "plan_completion_audits" / "latest.json").read_text(encoding="utf-8"))
+    assert plan_latest["payload"]["status"] == "WARN"
+    assert plan_latest["payload"]["release"]["release_id"] == "rel-eval"
+    assert plan_latest["payload"]["release"]["git_sha"] == "abc123"
+    assert "plan_completion_report_only_placeholder" in plan_latest["payload"]["warnings"]

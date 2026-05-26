@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 import json
 import subprocess
 import sys
@@ -11,16 +12,21 @@ import time
 from pathlib import Path
 from typing import Any
 
+import httpx
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from deeptutor.services.benchmark.runner import run_benchmark  # noqa: E402
+from deeptutor.services.benchmark.runner import write_benchmark_artifacts  # noqa: E402
 from deeptutor.services.observability import get_control_plane_store  # noqa: E402
 from deeptutor.services.observability.change_impact import DEFAULT_CHANGE_IMPACT_BASE_REF  # noqa: E402
 from deeptutor.services.observability.change_impact import build_change_impact_run  # noqa: E402
 from deeptutor.services.observability.change_impact import collect_git_changed_files  # noqa: E402
 from deeptutor.services.observability.change_impact import render_change_impact_markdown  # noqa: E402
 from deeptutor.services.observability.control_plane_store import load_payload_json  # noqa: E402
+from deeptutor.services.observability.om_snapshot import build_om_run  # noqa: E402
 from deeptutor.services.observability.oa_runner import build_oa_run  # noqa: E402
 from deeptutor.services.observability.observer_snapshot import build_observer_snapshot  # noqa: E402
 from deeptutor.services.observability.observer_snapshot import write_observer_snapshot_artifacts  # noqa: E402
@@ -29,6 +35,12 @@ from deeptutor.services.observability.release_gate import build_release_gate_rep
 from deeptutor.services.observability.run_history import build_observability_run_history_from_dir  # noqa: E402
 
 DEFAULT_BASE_REF = DEFAULT_CHANGE_IMPACT_BASE_REF
+DEFAULT_API_BASE_URL = "http://127.0.0.1:8001"
+DEFAULT_BENCHMARK_SUITES = ("pr_gate_core",)
+SURFACE_READINESS_CHECKS = (
+    ("playwright", "Playwright"),
+    ("wechat_devtools", "微信 DevTools"),
+)
 
 
 def _load_json(path: str | None, *, expected_kind: str | None = None) -> dict[str, Any] | None:
@@ -38,6 +50,176 @@ def _load_json(path: str | None, *, expected_kind: str | None = None) -> dict[st
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def _payload_release(payload: dict[str, Any] | None) -> dict[str, Any]:
+    if not isinstance(payload, dict):
+        return {}
+    release = payload.get("release")
+    if isinstance(release, dict) and release:
+        return release
+    release_spine = payload.get("release_spine")
+    return release_spine if isinstance(release_spine, dict) else {}
+
+
+def _same_release(expected: dict[str, Any], actual: dict[str, Any]) -> bool:
+    expected_release_id = str((expected or {}).get("release_id") or "").strip()
+    expected_git_sha = str((expected or {}).get("git_sha") or "").strip()
+    actual_release_id = str((actual or {}).get("release_id") or "").strip()
+    actual_git_sha = str((actual or {}).get("git_sha") or "").strip()
+    if expected_git_sha and actual_git_sha:
+        return expected_git_sha == actual_git_sha
+    if expected_release_id and actual_release_id:
+        return expected_release_id == actual_release_id
+    return False
+
+
+def _current_release_payload(store, kind: str, *, release: dict[str, Any]) -> dict[str, Any] | None:
+    try:
+        records = store.list_runs(kind, limit=100)
+    except (FileNotFoundError, TypeError, ValueError):
+        records = []
+    for record in records:
+        payload = (record or {}).get("payload")
+        if isinstance(payload, dict) and _same_release(release, _payload_release(payload)):
+            return payload
+    latest_payload = store.latest_payload(kind, fallback=False)
+    if isinstance(latest_payload, dict) and _same_release(release, _payload_release(latest_payload)):
+        return latest_payload
+    return None
+
+
+def _load_metrics_snapshot(*, api_base_url: str, metrics_json: str | None) -> dict[str, Any]:
+    if metrics_json:
+        payload = _load_json(metrics_json)
+        if not isinstance(payload, dict):
+            raise TypeError("metrics snapshot must be a JSON object")
+        return payload
+
+    try:
+        with httpx.Client(timeout=5.0, trust_env=False) as client:
+            response = client.get(f"{api_base_url.rstrip('/')}/metrics")
+            response.raise_for_status()
+            payload = response.json()
+        if not isinstance(payload, dict):
+            raise TypeError("metrics endpoint must return JSON object")
+        return payload
+    except Exception:
+        from fastapi.testclient import TestClient
+
+        from deeptutor.api.main import app
+        from deeptutor.api.main import get_circuit_breaker_snapshot
+        from deeptutor.api.main import get_readyz_payload
+        from deeptutor.api.main import get_release_lineage_snapshot as get_app_release_snapshot
+        from deeptutor.api.main import get_surface_event_store
+        from deeptutor.api.main import get_tracker_snapshot
+        from deeptutor.api.main import get_turn_runtime_metrics
+
+        with TestClient(app) as client:
+            client.get("/healthz").raise_for_status()
+            payload = {
+                "release": get_app_release_snapshot(),
+                "http": app.state.runtime_metrics.snapshot(),
+                "turn_runtime": get_turn_runtime_metrics().snapshot(),
+                "surface_events": get_surface_event_store().snapshot(),
+                "readiness": get_readyz_payload(app)[1],
+                "providers": {
+                    "error_rates": get_tracker_snapshot(),
+                    "circuit_breakers": get_circuit_breaker_snapshot(),
+                },
+            }
+        return payload
+
+
+def _ensure_om_payload(
+    *,
+    store,
+    release: dict[str, Any],
+    metrics_json: str | None,
+    api_base_url: str,
+) -> dict[str, Any] | None:
+    existing = _current_release_payload(store, "om_runs", release=release)
+    if isinstance(existing, dict):
+        return existing
+
+    metrics_snapshot = _load_metrics_snapshot(api_base_url=api_base_url, metrics_json=metrics_json)
+    payload = build_om_run(metrics_snapshot=metrics_snapshot, stack_health=[])
+    store.write_run(
+        kind="om_runs",
+        run_id=payload["run_id"],
+        release_id=str((_payload_release(payload) or {}).get("release_id") or ""),
+        payload=payload,
+    )
+    return payload
+
+
+def _ensure_benchmark_payload(
+    *,
+    store,
+    release: dict[str, Any],
+    output_dir: Path,
+) -> dict[str, Any] | None:
+    existing = _current_release_payload(store, "benchmark_runs", release=release)
+    if isinstance(existing, dict):
+        return existing
+
+    payload = asyncio.run(
+        run_benchmark(
+            suite_names=DEFAULT_BENCHMARK_SUITES,
+            output_dir=output_dir / "benchmark",
+        )
+    )
+    write_benchmark_artifacts(payload, output_dir=output_dir / "benchmark")
+    store.write_run(
+        kind="benchmark_runs",
+        run_id=str((payload.get("run_manifest") or {}).get("run_id") or ""),
+        release_id=str((_payload_release(payload) or {}).get("release_id") or ""),
+        payload=payload,
+    )
+    return payload
+
+
+def _ensure_surface_readiness_rows(
+    *,
+    store,
+    release: dict[str, Any],
+    changed_files: list[str],
+) -> None:
+    changed_preview = ", ".join(changed_files[:8]) if changed_files else "none"
+    for check_id, label in SURFACE_READINESS_CHECKS:
+        existing = _current_release_payload(store, "readiness_checks", release=release)
+        if isinstance(existing, dict) and str(existing.get("check_id") or "").strip() == check_id:
+            continue
+        for record in store.list_runs("readiness_checks", limit=100):
+            payload = (record or {}).get("payload")
+            if not isinstance(payload, dict):
+                continue
+            if str(payload.get("check_id") or "").strip() != check_id:
+                continue
+            if _same_release(release, _payload_release(payload)):
+                break
+        else:
+            payload = {
+                "run_id": f"{check_id}-{int(time.time())}",
+                "check_id": check_id,
+                "label": label,
+                "status": "FAIL",
+                "required": True,
+                "summary": f"{label} readiness evidence missing for current release",
+                "evidence": [
+                    "source=daily_observability_fallback",
+                    "reason=no current-release readiness row existed",
+                    f"changed_files={changed_preview}",
+                ],
+                "blockers": [f"{check_id}_failed"],
+                "release": dict(release or {}),
+            }
+            store.write_run(
+                kind="readiness_checks",
+                run_id=payload["run_id"],
+                release_id=str((release or {}).get("release_id") or ""),
+                payload=payload,
+            )
 
 
 def _write_contract_guard_readiness(
@@ -125,6 +307,7 @@ def main() -> None:
     parser.add_argument("--base-ref", default=DEFAULT_BASE_REF)
     parser.add_argument("--changed-file", action="append", default=[])
     parser.add_argument("--metrics-json")
+    parser.add_argument("--api-base-url", default=DEFAULT_API_BASE_URL)
     parser.add_argument("--event-days", type=int, default=1)
     parser.add_argument("--output-dir")
     args = parser.parse_args()
@@ -133,12 +316,31 @@ def main() -> None:
     output_dir = Path(args.output_dir).expanduser().resolve() if args.output_dir else store.base_dir / "_daily"
     output_dir.mkdir(parents=True, exist_ok=True)
     current_release = get_release_lineage_snapshot()
+    changed_files = args.changed_file or collect_git_changed_files(base_ref=args.base_ref)
 
-    metrics_snapshot = _load_json(args.metrics_json)
+    om_payload = _ensure_om_payload(
+        store=store,
+        release=current_release,
+        metrics_json=args.metrics_json,
+        api_base_url=args.api_base_url,
+    )
+    benchmark_payload = _ensure_benchmark_payload(
+        store=store,
+        release=current_release,
+        output_dir=output_dir,
+    )
+    _ensure_surface_readiness_rows(
+        store=store,
+        release=current_release,
+        changed_files=changed_files,
+    )
+
+    metrics_snapshot = (om_payload or {}).get("metrics_snapshot") or _load_json(args.metrics_json)
     observer_payload = build_observer_snapshot(
         store=store,
         event_days=max(int(args.event_days or 1), 1),
         metrics_snapshot=metrics_snapshot,
+        benchmark_payload=benchmark_payload,
         release=current_release,
     )
     observer_artifacts = write_observer_snapshot_artifacts(
@@ -152,10 +354,7 @@ def main() -> None:
         payload=observer_payload,
     )
 
-    changed_files = args.changed_file or collect_git_changed_files(base_ref=args.base_ref)
-    om_payload = store.latest_payload("om_runs")
     arr_payload = store.latest_payload("arr_runs")
-    benchmark_payload = store.latest_payload("benchmark_runs", fallback=False)
     aae_payload = store.latest_payload("aae_composite_runs")
     _write_contract_guard_readiness(
         store=store,
@@ -234,12 +433,17 @@ def main() -> None:
             "change_impact_run_id": change_impact_payload.get("run_id"),
             "oa_run_id": oa_payload.get("run_id"),
             "release_gate_run_id": gate_payload.get("run_id"),
+            "om_run_id": (om_payload or {}).get("run_id"),
+            "benchmark_run_id": ((benchmark_payload or {}).get("run_manifest") or {}).get("run_id")
+            or (benchmark_payload or {}).get("run_id"),
         },
         "metrics": {
             "change_impact_risk_level": change_impact_payload.get("risk_level"),
             "oa_root_cause_count": len(oa_payload.get("root_causes") or []),
             "oa_causal_candidate_count": len(oa_payload.get("causal_candidates") or []),
             "release_gate_status": gate_payload.get("final_status"),
+            "om_ready": ((om_payload or {}).get("health_summary") or {}).get("ready"),
+            "benchmark_pass_rate": (benchmark_payload or {}).get("summary", {}).get("pass_rate"),
         },
     }
     daily_paths = store.write_run(

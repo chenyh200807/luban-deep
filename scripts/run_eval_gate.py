@@ -33,6 +33,7 @@ class Gate:
     description: str
     category: str
     command: list[str]
+    env: dict[str, str]
     workdir: Path
     required_paths: list[Path]
     deferred_reason: str
@@ -52,6 +53,12 @@ def _as_string_list(value: Any, *, field_name: str) -> list[str]:
     if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
         raise ValueError(f"{field_name} must be a list of strings")
     return list(value)
+
+
+def _as_string_dict(value: Any, *, field_name: str) -> dict[str, str]:
+    if not isinstance(value, dict) or not all(isinstance(key, str) and isinstance(item, str) for key, item in value.items()):
+        raise ValueError(f"{field_name} must be a mapping of strings")
+    return dict(value)
 
 
 def _resolve_project_path(path_text: str) -> Path:
@@ -83,6 +90,7 @@ def load_gates(path: Path) -> list[Gate]:
                 description=str(raw_gate.get("description") or ""),
                 category=str(raw_gate.get("category") or "quick"),
                 command=command,
+                env=_as_string_dict(raw_gate.get("env", {}), field_name=f"{name}.env"),
                 workdir=workdir,
                 required_paths=required_paths,
                 deferred_reason=str(raw_gate.get("deferred_reason") or ""),
@@ -110,6 +118,17 @@ def _env_with_project_root() -> dict[str, str]:
     return env
 
 
+def _env_for_gate(gate: Gate, *, artifact_dir: Path) -> dict[str, str]:
+    env = _env_with_project_root()
+    format_values = {
+        "artifact_dir": str(artifact_dir),
+        "artifact_dir_name": artifact_dir.name,
+        "project_root": str(PROJECT_ROOT),
+    }
+    env.update({key: value.format(**format_values) for key, value in gate.env.items()})
+    return env
+
+
 def _deferred_reason(gate: Gate) -> str:
     if gate.deferred_reason:
         return gate.deferred_reason
@@ -129,6 +148,49 @@ def _write_log(path: Path, *, stdout: str = "", stderr: str = "") -> None:
         parts.append("[stderr]")
         parts.append(stderr.rstrip())
     path.write_text("\n".join(parts).rstrip() + ("\n" if parts else ""), encoding="utf-8")
+
+
+def _release_gate_payload_path(stdout: str) -> Path | None:
+    for line in stdout.splitlines():
+        if line.startswith("JSON:"):
+            path_text = line.split(":", 1)[1].strip()
+            return Path(path_text) if path_text else None
+    return None
+
+
+def _release_gate_payload_failure(stdout: str) -> dict[str, Any] | None:
+    payload_path = _release_gate_payload_path(stdout)
+    if payload_path is None:
+        return None
+    try:
+        raw_payload = json.loads(payload_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        return {
+            "status": "FAIL",
+            "reason": f"release gate payload unreadable: {exc}",
+            "failure_signature": "release_gate_report_only_payload_unreadable",
+        }
+
+    payload = raw_payload.get("payload") if isinstance(raw_payload.get("payload"), dict) else raw_payload
+    final_status = str(payload.get("final_status") or "").upper()
+    if final_status != "FAIL":
+        return None
+    recommendation = str(payload.get("recommendation") or "")
+    blockers = [str(item) for item in payload.get("blockers") or []]
+    reason_parts = [f"release gate final_status={final_status}"]
+    if recommendation:
+        reason_parts.append(f"recommendation={recommendation}")
+    if blockers:
+        reason_parts.append("blockers=" + ",".join(blockers))
+    return {
+        "status": "FAIL",
+        "reason": "; ".join(reason_parts),
+        "failure_signature": "release_gate_report_only_hold",
+        "release_gate_final_status": final_status,
+        "release_gate_recommendation": recommendation,
+        "release_gate_blockers": blockers,
+        "release_gate_json_path": str(payload_path),
+    }
 
 
 def run_gate(gate: Gate, *, artifact_dir: Path) -> dict[str, Any]:
@@ -156,7 +218,7 @@ def run_gate(gate: Gate, *, artifact_dir: Path) -> dict[str, Any]:
         completed = subprocess.run(
             command,
             cwd=gate.workdir,
-            env=_env_with_project_root(),
+            env=_env_for_gate(gate, artifact_dir=artifact_dir),
             text=True,
             capture_output=True,
             check=False,
@@ -186,16 +248,22 @@ def run_gate(gate: Gate, *, artifact_dir: Path) -> dict[str, Any]:
     _write_log(log_path, stdout=completed.stdout, stderr=completed.stderr)
     slow_threshold = gate.slow_seconds
     slow = slow_threshold is not None and duration_s >= slow_threshold
+    payload_failure = (
+        _release_gate_payload_failure(completed.stdout)
+        if gate.name == "release_gate_report_only" and completed.returncode == 0
+        else None
+    )
     return {
         "name": gate.name,
         "description": gate.description,
         "category": gate.category,
-        "status": "PASS" if completed.returncode == 0 else "FAIL",
+        "status": payload_failure["status"] if payload_failure else ("PASS" if completed.returncode == 0 else "FAIL"),
         "exit_code": completed.returncode,
         "duration_s": duration_s,
         "command": command,
         "workdir": str(gate.workdir),
         "log_path": str(log_path),
+        **(payload_failure or {}),
         **({"slow": True, "slow_threshold_s": slow_threshold} if slow else {}),
     }
 

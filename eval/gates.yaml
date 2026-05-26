@@ -99,6 +99,13 @@ gates:
   release_gate_report_only:
     description: "Release gate report-only consumption check, not a deploy permission."
     category: deep
+    env:
+      DEEPTUTOR_ENV: "eval"
+      DEEPTUTOR_PROMPT_VERSION: "eval-gate"
+      DEEPTUTOR_FF_SNAPSHOT_HASH: "eval-gate"
+      DEEPTUTOR_GIT_DIRTY: "false"
+      DEEPTUTOR_DEPLOY_MANIFEST_HASH: "eval-gate-{artifact_dir_name}"
+      DEEPTUTOR_RELEASE_ID: "eval-gate-{artifact_dir_name}"
     command:
       - "python"
       - "scripts/run_release_gate.py"

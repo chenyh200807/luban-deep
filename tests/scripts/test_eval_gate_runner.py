@@ -101,6 +101,39 @@ gates:
     assert (artifact_dir / "logs" / "pythonpath_gate.log").read_text(encoding="utf-8").strip() == "ok"
 
 
+def test_eval_gate_runner_passes_gate_env_overrides(tmp_path: Path) -> None:
+    gates_path = tmp_path / "gates.yaml"
+    artifact_dir = tmp_path / "artifacts"
+    gates_path.write_text(
+        """
+version: 1
+gates:
+  env_gate:
+    env:
+      DEEPTUTOR_ENV: "eval"
+      DEEPTUTOR_DEPLOY_MANIFEST_HASH: "manifest-{artifact_dir_name}"
+    command:
+      - "python"
+      - "-c"
+      - "import os; print(os.environ['DEEPTUTOR_ENV']); print(os.environ['DEEPTUTOR_DEPLOY_MANIFEST_HASH'])"
+""",
+        encoding="utf-8",
+    )
+
+    result = _run_eval_gate(
+        "--gates-path",
+        str(gates_path),
+        "--artifact-dir",
+        str(artifact_dir),
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert (artifact_dir / "logs" / "env_gate.log").read_text(encoding="utf-8").splitlines() == [
+        "eval",
+        f"manifest-{artifact_dir.name}",
+    ]
+
+
 def test_eval_gate_runner_records_timeout_as_failed_gate(tmp_path: Path) -> None:
     gates_path = tmp_path / "gates.yaml"
     artifact_dir = tmp_path / "artifacts"
@@ -158,6 +191,55 @@ gates:
     assert summary["summary"]["slow"] == 1
     assert summary["slow_gates"][0]["name"] == "slow_gate"
     assert "## Slow Gates" in (artifact_dir / "summary.md").read_text(encoding="utf-8")
+
+
+def test_eval_gate_runner_fails_release_report_only_when_payload_holds(tmp_path: Path) -> None:
+    gates_path = tmp_path / "gates.yaml"
+    artifact_dir = tmp_path / "artifacts"
+    release_payload = tmp_path / "release_gate.json"
+    release_payload.write_text(
+        json.dumps(
+            {
+                "kind": "release_gate_runs",
+                "payload": {
+                    "final_status": "FAIL",
+                    "recommendation": "hold",
+                    "blockers": ["plan_completion_audit_missing"],
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    gates_path.write_text(
+        f"""
+version: 1
+gates:
+  release_gate_report_only:
+    command:
+      - "python"
+      - "-c"
+      - "print('Final status: FAIL'); print('Recommendation: hold'); print('JSON: {release_payload}')"
+""",
+        encoding="utf-8",
+    )
+
+    result = _run_eval_gate(
+        "--gates-path",
+        str(gates_path),
+        "--artifact-dir",
+        str(artifact_dir),
+    )
+
+    assert result.returncode == 1
+    summary = json.loads((artifact_dir / "summary.json").read_text(encoding="utf-8"))
+    gate = summary["gates"][0]
+    assert summary["verdict"] == "FAIL"
+    assert summary["summary"]["failed"] == 1
+    assert gate["status"] == "FAIL"
+    assert gate["failure_signature"] == "release_gate_report_only_hold"
+    assert gate["release_gate_final_status"] == "FAIL"
+    assert gate["release_gate_recommendation"] == "hold"
+    assert "plan_completion_audit_missing" in gate["reason"]
 
 
 def test_eval_gate_yaml_turns_coverage_gaps_into_runnable_gates() -> None:
