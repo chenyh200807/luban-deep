@@ -548,3 +548,86 @@ Verdict remains:
 ```text
 PILOT_READY_WITH_MANUAL_SIGNOFF_ITEMS
 ```
+
+## 2026-05-26 Production Smoke Harness Extension
+
+This addendum closes an automation gap found during the PRD completion audit:
+`scripts/smoke_assessment_flywheel.py` previously stopped at
+`assessment create -> submit -> report -> explain`. It now has an optional
+flywheel layer that verifies a production learner token can also start the
+wrong-item training turn through the real mobile API.
+
+New script flags:
+
+```text
+--verify-training-loop
+  After report, GET /api/v1/homepage/dashboard, find the first 3-question
+  practice_prompt, then POST /api/v1/chat/start-turn with capability=deep_question
+  and the prompt_intent from the dashboard.
+
+--expect-retest-recommendation
+  After the training-loop start check, GET /api/v1/homepage/dashboard again and
+  require an assessment/retest prompt such as "再测一次<topic>". This flag is only
+  valid after a real training_completed writeback already exists.
+```
+
+The harness deliberately does **not** fabricate training completion. The full
+closed-loop production gate still needs a real learner token plus an actual
+training submission path before `training_completed -> report retest` can be
+claimed as broad-release evidence.
+
+Fresh targeted verification:
+
+```text
+PYTHONPATH=. pytest tests/scripts/test_assessment_topic_catalog_scripts.py::test_assessment_flywheel_smoke_can_verify_training_loop_start tests/scripts/test_assessment_topic_catalog_scripts.py::test_assessment_flywheel_smoke_can_verify_retest_recommendation_after_training_completion -q
+..                                                                       [100%]
+2 passed in 0.03s
+```
+
+## 2026-05-26 Production And DevTools Gate Update
+
+Production learner-token smoke was re-run against `https://test2.yousenjiaoyu.com`
+with a newly registered learner account. The bearer token is intentionally not
+recorded.
+
+```text
+auth_register=passed
+auth_user_id=auth_8fe3f3cd3dc4474c89f58a5b
+token_present=true
+
+PYTHONPATH=. python scripts/smoke_assessment_flywheel.py --base-url https://test2.yousenjiaoyu.com --token <redacted> --topic-id waterproof --verify-training-loop --timeout 30
+{
+  "ok": true,
+  "quiz_id": "quiz_6998b62a92c2",
+  "question_count": 12,
+  "assessment_type": "topic_diagnostic",
+  "blueprint_version": "topic_waterproof_v1",
+  "report_ready": true,
+  "deep_explanation_ready": true,
+  "pre_submit_redaction": "passed",
+  "training_start_ready": true,
+  "training_turn_id": "turn_1779757441572_1ac0fb489d",
+  "retest_recommendation_ready": false
+}
+```
+
+Interpretation: the production HTTP smoke now proves
+`assessment -> report -> homepage practice prompt -> deep_question training turn
+start`. It still does not claim `training_completed -> retest` because the
+script does not fabricate a training submission.
+
+Computer Use / WeChat DevTools spot-check:
+
+```text
+app=WeChat DevTools Stable v2.01.2510290
+project=/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/yousenwebview
+path=packageDeeptutor/pages/report/report
+visible_tab=学情
+visible_copy=约 3 分钟 · 84 次证据 · 再测一次地下防水卷材搭接
+visible_cta=开始定向训练
+visible_cards=今日训练 / 错题归因 / 摸底测试
+```
+
+This spot-check confirms the learner-facing report surface is showing the
+retest recommendation after prior training evidence. It complements, but does
+not replace, source/copyright/teaching signoff for stronger exam-copy claims.

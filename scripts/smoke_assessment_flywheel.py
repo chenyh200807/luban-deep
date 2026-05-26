@@ -33,8 +33,20 @@ def main() -> int:
         choices=("topic_diagnostic", "real_exam_simulation"),
         help="Assessment TestSet type to smoke.",
     )
+    parser.add_argument(
+        "--verify-training-loop",
+        action="store_true",
+        help="After assessment report, verify homepage practice prompt can start a deep_question training turn.",
+    )
+    parser.add_argument(
+        "--expect-retest-recommendation",
+        action="store_true",
+        help="After training-loop verification, require homepage to expose a retest recommendation.",
+    )
     parser.add_argument("--timeout", type=int, default=20, help="HTTP timeout seconds.")
     args = parser.parse_args()
+    if args.expect_retest_recommendation and not args.verify_training_loop:
+        parser.error("--expect-retest-recommendation requires --verify-training-loop")
 
     token = str(args.token or "").strip()
     if not token:
@@ -110,6 +122,34 @@ def main() -> int:
         )
         if explanation.get("explanation", {}).get("score_mutation_allowed") is not False:
             raise RuntimeError("assessment_explanation_score_mutation_not_forbidden")
+
+        training_turn_id = ""
+        retest_recommendation_ready = False
+        if args.verify_training_loop:
+            dashboard = _request_json(
+                "GET",
+                f"{api_base_url}/homepage/dashboard",
+                headers=headers,
+                timeout=args.timeout,
+            )
+            practice_prompt = _select_practice_prompt(dashboard)
+            training_started = _request_json(
+                "POST",
+                f"{api_base_url}/chat/start-turn",
+                headers=headers,
+                timeout=args.timeout,
+                body=_build_training_start_body(practice_prompt),
+            )
+            training_turn_id = _assert_training_start_response(training_started)
+            if args.expect_retest_recommendation:
+                retest_dashboard = _request_json(
+                    "GET",
+                    f"{api_base_url}/homepage/dashboard",
+                    headers=headers,
+                    timeout=args.timeout,
+                )
+                _select_retest_prompt(retest_dashboard)
+                retest_recommendation_ready = True
     except RuntimeError as exc:
         print(str(exc), file=sys.stderr)
         return 1
@@ -125,6 +165,9 @@ def main() -> int:
                 "report_ready": True,
                 "deep_explanation_ready": True,
                 "pre_submit_redaction": "passed",
+                "training_start_ready": bool(args.verify_training_loop),
+                "training_turn_id": training_turn_id if args.verify_training_loop else "",
+                "retest_recommendation_ready": retest_recommendation_ready,
                 "source_policy_label": source_policy.get("source_policy_label", ""),
                 "real_exam_share": source_policy.get("real_exam_share", None),
                 "official_real_exam_label_allowed": source_policy.get("official_real_exam_label_allowed", None),
@@ -185,6 +228,72 @@ def _find_forbidden_keys(value: Any) -> set[str]:
         for item in value:
             found.update(_find_forbidden_keys(item))
     return found
+
+
+def _recommended_prompts(payload: dict[str, Any]) -> list[dict[str, Any]]:
+    candidates = []
+    for source in (
+        payload.get("recommended_prompts"),
+        (payload.get("home_projection") or {}).get("recommended_prompts")
+        if isinstance(payload.get("home_projection"), dict)
+        else None,
+    ):
+        if isinstance(source, list):
+            candidates.extend([item for item in source if isinstance(item, dict)])
+    return candidates
+
+
+def _select_practice_prompt(payload: dict[str, Any]) -> dict[str, Any]:
+    for prompt in _recommended_prompts(payload):
+        intent = prompt.get("intent") if isinstance(prompt.get("intent"), dict) else {}
+        prompt_type = str(prompt.get("prompt_type") or "").strip()
+        text = str(prompt.get("text") or "").strip()
+        question_count = int(intent.get("question_count") or prompt.get("question_count") or 0)
+        if prompt_type == "practice_prompt" and intent and (question_count in {0, 3} or "3 道" in text):
+            return dict(prompt)
+    raise RuntimeError("assessment_training_practice_prompt_missing")
+
+
+def _build_training_start_body(prompt: dict[str, Any]) -> dict[str, Any]:
+    intent = prompt.get("intent") if isinstance(prompt.get("intent"), dict) else {}
+    if not intent:
+        raise RuntimeError("assessment_training_prompt_intent_missing")
+    intent.setdefault("question_count", 3)
+    query = str(prompt.get("text") or intent.get("text") or "练 3 道同类题").strip()
+    return {
+        "query": query,
+        "capability": "deep_question",
+        "mode": "AUTO",
+        "language": "zh",
+        "prompt_intent": dict(intent),
+    }
+
+
+def _assert_training_start_response(payload: dict[str, Any]) -> str:
+    turn = payload.get("turn") if isinstance(payload.get("turn"), dict) else {}
+    turn_id = str(turn.get("id") or "").strip()
+    capability = str(turn.get("capability") or "").strip()
+    if not turn_id:
+        raise RuntimeError("assessment_training_start_missing_turn_id")
+    if capability != "deep_question":
+        raise RuntimeError(f"assessment_training_start_wrong_capability:{capability or 'empty'}")
+    stream = payload.get("stream") if isinstance(payload.get("stream"), dict) else {}
+    if str(stream.get("url") or "").strip() != "/api/v1/ws":
+        raise RuntimeError("assessment_training_start_missing_ws_stream")
+    return turn_id
+
+
+def _select_retest_prompt(payload: dict[str, Any]) -> dict[str, Any]:
+    for prompt in _recommended_prompts(payload):
+        intent = prompt.get("intent") if isinstance(prompt.get("intent"), dict) else {}
+        prompt_type = str(prompt.get("prompt_type") or "").strip()
+        text = str(prompt.get("text") or "").strip()
+        if prompt_type == "assessment" and (
+            str(intent.get("learning_signal_type") or "").strip() == "assessment"
+            or text.startswith("再测一次")
+        ):
+            return dict(prompt)
+    raise RuntimeError("assessment_retest_recommendation_missing")
 
 
 def _assert_real_exam_source_policy(payload: dict[str, Any]) -> dict[str, Any]:

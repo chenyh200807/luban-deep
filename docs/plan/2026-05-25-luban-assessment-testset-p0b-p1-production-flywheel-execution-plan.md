@@ -1457,6 +1457,6 @@ Product can:
 | --- | --- | --- |
 | Train 0: Reality/security lock | Passed: `assessment_forms` RLS hotfix, service-role provider guard, redaction tests, QA storage probe | Re-run target DB probe for every environment before broad release |
 | Train 1: Topic catalog productionization | Passed: 10 topics, 5 forms/topic audit, stable/pilot/authoring-needed UI, personalized recommendation tests | Ongoing authoring backlog review if form counts drift |
-| Train 2: Learning flywheel | Passed: result CTA, wrong-item context, structured training intent, `training_completed` read-model retest projection | Real learner-token production smoke for `training_completed -> report retest` |
+| Train 2: Learning flywheel | Passed: result CTA, wrong-item context, structured training intent, real learner-token smoke starts 3-question `deep_question` training, DevTools report surface shows retest recommendation, `training_completed` read-model retest projection | Full production smoke with an actual training submission remains the broad-rollout proof for `training_completed -> report retest` |
 | Train 3: P0B real-exam mini | Passed: 20-question mini blueprint, safe source policy metadata, smoke overclaim guard | Source/copyright/teaching signoff before any `官方真题` claim |
 | Train 4: P1 deep explanation | Pilot-safe: post-submit static projection, cache key, score invariance, per-user budget, global breaker | Persistent explanation cache + LLM lifecycle + cost dry-run before broad P1 release |
