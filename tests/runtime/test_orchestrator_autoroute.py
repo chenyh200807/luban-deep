@@ -461,7 +461,7 @@ async def test_orchestrator_new_review_request_replaces_stale_active_question() 
 
 
 @pytest.mark.asyncio
-async def test_orchestrator_allows_explicit_year_real_exam_review_after_low_info_gate() -> None:
+async def test_orchestrator_blocks_explicit_year_only_real_exam_review_without_anchor() -> None:
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()
     orchestrator._cap_registry = registry  # type: ignore[attr-defined]
@@ -477,14 +477,15 @@ async def test_orchestrator_allows_explicit_year_real_exam_review_after_low_info
 
     _ = [event async for event in orchestrator.handle(context)]
 
-    assert registry.captured[0] == "deep_question"
-    assert context.metadata["question_lifecycle_scene"] == "question_review"
-    assert context.metadata["required_anchor_status"] == "satisfied"
-    assert context.metadata.get("exact_question_blocked_reason") is None
-    assert context.metadata["selected_skill_names"] == [
-        "construction-exam-tutor",
-        "construction-question-review",
-    ]
+    assert registry.captured[0] == "tutorbot"
+    assert context.metadata["question_lifecycle_scene"] is None
+    assert context.metadata["question_lifecycle_decision"].items() >= {
+        "required_anchor_status": "missing_question_anchor",
+        "exact_question_blocked_reason": "low_information_exam_query",
+        "needs_clarification": True,
+        "business_gate_result": "blocked_low_information_exam_query",
+    }.items()
+    assert context.metadata["selected_skill_names"] == []
 
 
 @pytest.mark.asyncio

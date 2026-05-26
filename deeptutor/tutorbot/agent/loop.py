@@ -788,6 +788,8 @@ class AgentLoop:
             tool_defs = self._resolve_tool_definitions(runtime_metadata)
             if self._prefetched_case_exact_question_can_answer(runtime_metadata):
                 tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
+            elif self._should_disable_rag_for_active_question_flow(runtime_metadata):
+                tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
             elif rag_saturation:
                 tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
 
@@ -1054,6 +1056,28 @@ class AgentLoop:
         }
 
     @staticmethod
+    def _has_active_question_flow(runtime_metadata: dict[str, Any] | None) -> bool:
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        return bool(
+            metadata.get("question_followup_context")
+            or metadata.get("followup_question_context")
+            or metadata.get("active_object")
+        )
+
+    @classmethod
+    def _should_disable_rag_for_active_question_flow(
+        cls,
+        runtime_metadata: dict[str, Any] | None,
+    ) -> bool:
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        scene = str(metadata.get("question_lifecycle_scene") or "").strip()
+        return (
+            scene in {"mcq_grading", "case_grading", "question_review"}
+            and cls._has_active_question_flow(metadata)
+            and not cls._runtime_current_info_required(metadata)
+        )
+
+    @staticmethod
     def _is_exact_question_probe_for_grounding(exact_probe: Any | None) -> bool:
         if exact_probe is None:
             return False
@@ -1102,6 +1126,8 @@ class AgentLoop:
             return decision.current_info_required or decision.textbook_delta_query
 
         scene = str(metadata.get("question_lifecycle_scene") or "").strip() or None
+        if cls._should_disable_rag_for_active_question_flow(metadata):
+            return False
         if (
             cls._construction_scene_uses_learner_state_authority(scene)
             and query_uses_learner_state_authority(current_message)
@@ -1715,6 +1741,14 @@ class AgentLoop:
         if not isinstance(target_metadata, dict):
             return
         for metadata_key in (
+            "question_lifecycle_decision",
+            "decision_source",
+            "scene_confidence",
+            "required_anchor_status",
+            "exact_question_blocked_reason",
+            "selected_skill_names",
+            "llm_scene_candidate",
+            "business_gate_result",
             "question_lifecycle_scene",
             "skill_stack",
             "skill_trace",

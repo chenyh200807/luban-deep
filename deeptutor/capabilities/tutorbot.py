@@ -117,6 +117,8 @@ class TutorBotCapability(BaseCapability):
             "required_anchor_status",
             "exact_question_blocked_reason",
             "selected_skill_names",
+            "llm_scene_candidate",
+            "business_gate_result",
             "question_lifecycle_scene",
             "question_lifecycle_scene_source",
             "question_lifecycle_scene_confidence",
@@ -198,6 +200,8 @@ class TutorBotCapability(BaseCapability):
                     "required_anchor_status",
                     "exact_question_blocked_reason",
                     "selected_skill_names",
+                    "llm_scene_candidate",
+                    "business_gate_result",
                     "question_lifecycle_scene",
                     "question_lifecycle_scene_source",
                     "question_lifecycle_scene_confidence",
@@ -391,6 +395,14 @@ class TutorBotCapability(BaseCapability):
             # contracts/capability.md §硬约束 27 these must not feed
             # downstream routing or be student-visible.
             for metadata_key in (
+                "question_lifecycle_decision",
+                "decision_source",
+                "scene_confidence",
+                "required_anchor_status",
+                "exact_question_blocked_reason",
+                "selected_skill_names",
+                "llm_scene_candidate",
+                "business_gate_result",
                 "question_lifecycle_scene",
                 "skill_stack",
                 "skill_trace",
