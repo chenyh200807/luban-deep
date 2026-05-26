@@ -139,12 +139,22 @@ async def member_conversations(
     user_id: str,
     limit: int = Query(default=20, ge=1, le=100),
     message_limit: int = Query(default=12, ge=1, le=50),
+    q: str = Query(default=""),
+    source: str = Query(default=""),
+    capability: str = Query(default=""),
+    sort: str = Query(default="updated_at"),
+    order: str = Query(default="desc"),
 ) -> dict[str, Any]:
     try:
         return service.list_member_conversations(
             user_id,
             limit=limit,
             message_limit=message_limit,
+            q=q,
+            source=source,
+            capability=capability,
+            sort=sort,
+            order=order,
         )
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
