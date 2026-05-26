@@ -847,7 +847,7 @@ Page({
             duration_policy: { mode: "one_shot" },
           }
         : {
-            assessment_type: "diagnostic",
+            assessment_type: "real_exam_simulation",
             subject_id: "construction_exam",
             count: 20,
             duration_policy: { mode: "one_shot" },

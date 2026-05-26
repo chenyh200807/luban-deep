@@ -264,15 +264,15 @@ function stringify(value) {
     assert(wxml.indexOf("套轮换") >= 0, "welcome stats should explain paper rotation");
   });
 
-  await run("default start uses comprehensive diagnostic 20-question form", async function () {
+  await run("default start uses durable comprehensive 20-question form", async function () {
     var loaded = loadPage();
     loaded.page.onStart();
     await flushPromises();
 
     var createPayload = loaded.createPayloads[0] || {};
     assert(loaded.page.data.assessmentMode === "diagnostic", "default mode should be comprehensive diagnostic");
-    assert(createPayload.assessment_type === "diagnostic", "default create should request diagnostic");
-    assert(createPayload.count === 20, "diagnostic mode should request the 20-question form");
+    assert(createPayload.assessment_type === "real_exam_simulation", "default create should request durable comprehensive form");
+    assert(createPayload.count === 20, "comprehensive mode should request the 20-question form");
     assert(!createPayload.topic_ids, "diagnostic mode should not send topic_ids");
     assert(loaded.page.data.welcomeTitle === "综合摸底", "default title should name the 20-question diagnostic");
   });

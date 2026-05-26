@@ -92,9 +92,9 @@ def _prewarm_assessment_forms_sync() -> None:
         from deeptutor.services.member_console import get_member_console_service
 
         result = get_member_console_service().prewarm_assessment_forms()
-        logger.info("Assessment forms prewarmed: %s", result)
+        logger.info(f"Assessment forms prewarmed: {result}")
     except Exception as exc:
-        logger.warning("Failed to prewarm assessment forms: %s", exc, exc_info=True)
+        logger.warning(f"Failed to prewarm assessment forms: {exc}", exc_info=True)
 
 
 class SafeOutputStaticFiles(StaticFiles):

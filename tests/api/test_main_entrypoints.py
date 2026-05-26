@@ -280,6 +280,26 @@ def _cors_middleware_options(app: FastAPI) -> dict[str, object]:
     raise AssertionError("CORS middleware not configured")
 
 
+def test_assessment_form_prewarm_logging_does_not_fail_startup_task(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    main_module = _reload_main(
+        monkeypatch,
+        env={"SERVICE_ENV": "local"},
+        tmp_path=tmp_path,
+    )
+    member_console_module = importlib.import_module("deeptutor.services.member_console")
+
+    class _MemberConsole:
+        def prewarm_assessment_forms(self) -> dict[str, object]:
+            return {"prewarmed": 1}
+
+    monkeypatch.setattr(member_console_module, "get_member_console_service", lambda: _MemberConsole())
+
+    main_module._prewarm_assessment_forms_sync()
+
+
 def _route_paths(app: FastAPI) -> set[str]:
     return {str(getattr(route, "path", "") or "") for route in app.routes}
 
