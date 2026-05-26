@@ -330,6 +330,39 @@ async def test_redacted_batch_followup_context_uses_hidden_grading_key_authority
 
 
 @pytest.mark.asyncio
+async def test_ambiguous_multi_question_single_letter_is_not_promoted_to_answer_action() -> None:
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message="我选B",
+        explicit_context={
+            "question_id": "question_set",
+            "question": "两道建筑实务选择题",
+            "question_type": "choice",
+            "items": [
+                {
+                    "question_id": "q_1",
+                    "question": "第1题",
+                    "question_type": "single_choice",
+                    "options": {"A": "A1", "B": "B1"},
+                    "correct_answer": "A",
+                },
+                {
+                    "question_id": "q_2",
+                    "question": "第2题",
+                    "question_type": "single_choice",
+                    "options": {"A": "A2", "B": "B2"},
+                    "correct_answer": "B",
+                },
+            ],
+        },
+        explicit_action=None,
+        candidate_contexts=[],
+    )
+
+    assert resolved_context is not None
+    assert resolved_action is None
+
+
+@pytest.mark.asyncio
 async def test_answered_active_question_can_generate_related_questions_without_regrading() -> None:
     resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
         user_message="再给我相关的五道题，不要给答案，等我作答后再批改",

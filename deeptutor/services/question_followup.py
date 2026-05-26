@@ -115,6 +115,8 @@ _FOLLOWUP_MARKERS = (
     "解析",
     "为什么",
     "错在哪",
+    "答案是什么",
+    "正确答案是什么",
     "这题",
     "这道题",
     "上一题",
@@ -141,6 +143,10 @@ _TRAILING_GRADING_REQUEST_RE = re.compile(
 )
 _NUMBERED_SUBMISSION_RE = re.compile(
     r"^第?\s*([0-9一二两三四五六七八九十]+)\s*[题问][：:,.，、 ]*(.+)$",
+    re.IGNORECASE | re.DOTALL,
+)
+_Q_NUMBERED_SUBMISSION_RE = re.compile(
+    r"^[Qq]\s*([0-9]+)\s*(?:题|问)?[：:,.，、 ]*(.+)$",
     re.IGNORECASE | re.DOTALL,
 )
 _NUMBERED_BATCH_MARKER_RE = re.compile(
@@ -566,7 +572,8 @@ def looks_like_question_followup(message: str, question_context: dict[str, Any] 
     normalized = normalize_question_followup_context(question_context)
     if not normalized:
         return False
-    if resolve_submission_attempt(message, normalized)[1] is not None:
+    submission = resolve_submission_attempt(message, normalized)[1]
+    if submission is not None and submission.get("kind") != "ambiguous":
         return True
     text = str(message or "").strip().lower()
     if not text:
@@ -598,6 +605,8 @@ def resolve_submission_attempt(
         if 1 <= item_index <= len(items):
             narrowed = normalize_question_followup_context(items[item_index - 1])
             if narrowed:
+                if _numbered_tail_looks_like_followup_question(item_message):
+                    return narrowed, None
                 answer = _extract_single_submission(item_message, narrowed)
                 if answer is not None:
                     return narrowed, {
@@ -605,6 +614,15 @@ def resolve_submission_attempt(
                         "answer": answer,
                         "question_id": narrowed.get("question_id", ""),
                     }
+
+    if len(items) > 1:
+        answer = _extract_single_submission(message, normalized)
+        if answer is not None:
+            return normalized, {
+                "kind": "ambiguous",
+                "answer": answer,
+                "requires_question_index": True,
+            }
 
     answer = _extract_single_submission(message, normalized)
     if answer is None:
@@ -1123,13 +1141,35 @@ def _parse_numbered_submission(message: str) -> tuple[int, str] | None:
     text = str(message or "").strip()
     if not text:
         return None
-    match = _NUMBERED_SUBMISSION_RE.fullmatch(text)
+    match = _Q_NUMBERED_SUBMISSION_RE.fullmatch(text) or _NUMBERED_SUBMISSION_RE.fullmatch(text)
     if not match:
         return None
     value = _parse_small_zh_number(match.group(1))
     if value is None:
         return None
     return value, match.group(2).strip()
+
+
+def _numbered_tail_looks_like_followup_question(value: str) -> bool:
+    text = str(value or "").strip()
+    if not text:
+        return False
+    markers = (
+        "为什么",
+        "为啥",
+        "原因是什么",
+        "错在哪",
+        "哪里错",
+        "不对",
+        "答案是什么",
+        "正确答案是什么",
+        "解析",
+        "讲解",
+        "讲讲",
+        "怎么理解",
+        "什么意思",
+    )
+    return any(marker in text for marker in markers)
 
 
 def _parse_batch_submission(
@@ -1145,6 +1185,8 @@ def _parse_batch_submission(
     compact_numbered = _parse_compact_numbered_batch_submission(message, items)
     if compact_numbered:
         return compact_numbered
+    if _parse_numbered_submission(message):
+        return None
     return _parse_positional_batch_submission(message, items)
 
 

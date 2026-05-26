@@ -781,6 +781,8 @@ def _submission_action_for_user_message(
         return normalized_context, None
     if not target_context or not submission:
         return normalized_context, None
+    if submission.get("kind") == "ambiguous":
+        return target_context, None
     if submission.get("kind") == "batch":
         return target_context, {
             "intent": "answer_questions",
@@ -799,6 +801,17 @@ def _submission_action_for_user_message(
         ],
         "reason": "用户消息包含当前题目的可解析答案，优先进入批改。",
     }
+
+
+def _has_ambiguous_submission_attempt(
+    user_message: str,
+    question_context: dict[str, Any] | None,
+) -> bool:
+    normalized_context = normalize_question_followup_context(question_context)
+    if normalized_context is None:
+        return False
+    _target_context, submission = resolve_submission_attempt(user_message, normalized_context)
+    return isinstance(submission, dict) and submission.get("kind") == "ambiguous"
 
 
 async def _resolve_question_followup_context_and_action(
@@ -833,6 +846,8 @@ async def _resolve_question_followup_context_and_action(
         )
         if submission_action is not None:
             return submission_context or normalized_explicit, submission_action
+        if _has_ambiguous_submission_attempt(user_message, normalized_explicit):
+            return normalized_explicit, None
         if normalized_action is None:
             practice_action = _practice_generation_action_for_explicit_request(
                 user_message,
@@ -866,6 +881,8 @@ async def _resolve_question_followup_context_and_action(
         )
         if submission_action is not None:
             return submission_context or normalized_candidate, submission_action
+        if _has_ambiguous_submission_attempt(user_message, normalized_candidate):
+            return normalized_candidate, None
         practice_action = _practice_generation_action_for_explicit_request(
             user_message,
             normalized_candidate,

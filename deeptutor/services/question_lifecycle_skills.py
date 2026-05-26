@@ -187,6 +187,10 @@ async def resolve_question_lifecycle_scene_decision(
     user_message = str(getattr(ctx, "user_message", None) or "").strip()
     metadata = getattr(ctx, "metadata", None) or {}
     unanchored_submission = _looks_like_unanchored_mcq_answer_submission(user_message, metadata)
+    ambiguous_multi_submission = _looks_like_ambiguous_multi_question_submission(
+        user_message,
+        metadata,
+    )
     low_information_exam_query = is_low_information_exam_query(user_message)
     proposal: QuestionLifecycleSceneDecision | None = None
     if enable_llm and (low_information_exam_query or (scene is None and _should_use_llm_scene_proposal(ctx))):
@@ -205,6 +209,19 @@ async def resolve_question_lifecycle_scene_decision(
             needs_clarification=True,
             llm_scene_candidate=llm_candidate,
             business_gate_result="blocked_unanchored_answer_submission",
+        )
+    if ambiguous_multi_submission:
+        return QuestionLifecycleSceneDecision(
+            scene=None,
+            source=proposal.source if proposal is not None else "deterministic",
+            confidence=1.0,
+            reason="answer submission must name the question number",
+            required_anchor_status="ambiguous_question_anchor",
+            exact_question_blocked_reason="ambiguous_multi_question_answer_submission",
+            selected_skill_names=(),
+            needs_clarification=True,
+            llm_scene_candidate=llm_candidate,
+            business_gate_result="blocked_ambiguous_multi_question_answer_submission",
         )
     if low_information_exam_query:
         return QuestionLifecycleSceneDecision(
@@ -264,6 +281,8 @@ def is_low_information_exam_query(query: str) -> bool:
         return False
     if not any(marker in text for marker in ("真题", "试题", "题库", "试卷")):
         return False
+    if _looks_like_year_only_exam_review_query(text):
+        return True
     explicit_action_markers = (
         "分析",
         "讲解",
@@ -308,6 +327,11 @@ def build_question_lifecycle_clarification_response(message: str, reason: str) -
         return (
             "我还不知道你要批改哪一道题。\n\n"
             "请先发送题干和选项，或在当前题卡里提交答案；如果是刚才那道题，也可以点题卡里的选项再提交。"
+        )
+    if reason == "ambiguous_multi_question_answer_submission":
+        return (
+            "你这轮有多道题，我还不能确定要批改哪一题。\n\n"
+            "请带上题号发送，例如：第1题选B、q2 选C，或一次性写成：q1 A，q2 C，q3 B。"
         )
     if reason == "low_information_exam_query":
         topic = str(message or "").strip() or "真题"
@@ -556,6 +580,8 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
     user_message = (getattr(ctx, "user_message", None) or "").strip()
     if not user_message:
         return None
+    if is_low_information_exam_query(user_message):
+        return None
 
     metadata = getattr(ctx, "metadata", None) or {}
     question_context = normalize_question_followup_context(
@@ -565,6 +591,8 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
     if question_context:
         _target_context, submission = resolve_submission_attempt(user_message, question_context)
         if submission:
+            if submission.get("kind") == "ambiguous":
+                return None
             q_type = str(question_context.get("question_type") or "").strip().lower()
             has_options = bool(question_context.get("options"))
             has_items = bool(question_context.get("items"))
@@ -853,6 +881,50 @@ def _looks_like_unanchored_mcq_answer_submission(
         if isinstance(snapshot, dict) and snapshot.get("question"):
             return False
     return True
+
+
+def _looks_like_ambiguous_multi_question_submission(
+    user_message: str,
+    metadata: Any,
+) -> bool:
+    if not isinstance(metadata, dict):
+        return False
+    try:
+        from deeptutor.services.question_followup import (  # noqa: WPS433
+            normalize_question_followup_context,
+            resolve_submission_attempt,
+        )
+        from deeptutor.services.semantic_router import (  # noqa: WPS433
+            question_context_from_active_object,
+        )
+    except Exception:
+        return False
+    question_context = question_context_from_active_object(metadata.get("active_object")) or (
+        metadata.get("question_followup_context")
+        if isinstance(metadata.get("question_followup_context"), dict)
+        else None
+    )
+    normalized = normalize_question_followup_context(question_context)
+    if not normalized or len(normalized.get("items") or []) <= 1:
+        return False
+    _target, submission = resolve_submission_attempt(user_message, normalized)
+    return isinstance(submission, dict) and submission.get("kind") == "ambiguous"
+
+
+def _looks_like_year_only_exam_review_query(text: str) -> bool:
+    compact = re.sub(
+        r"(?:请|帮我|麻烦|分析|讲解|解析|讲评|讲|看|看看|一道|一套|一个|一下|下|的)",
+        "",
+        text,
+    )
+    compact = re.sub(r"\s+", "", compact)
+    return bool(
+        re.fullmatch(
+            r"(?:20\d{2}年?|历年|往年)(?:真题|试题|题库|试卷)"
+            r"(?:第?[0-9一二两三四五六七八九十]+题)?(?:带?答案|解析|详解)?",
+            compact,
+        )
+    )
 
 
 def _context_scene(ctx: UnifiedContext) -> str | None:

@@ -168,7 +168,7 @@ def test_topic_qualified_real_exam_review_returns_question_review():
     assert derive_question_lifecycle_scene(ctx) == "question_review"
 
 
-@pytest.mark.parametrize("message", ["分析一道2025真题", "讲解一道历年真题", "解析一道防水真题"])
+@pytest.mark.parametrize("message", ["解析一道防水真题", "分析一道钢筋保护层真题"])
 def test_explicit_real_exam_review_action_is_not_low_information_query(message: str):
     ctx = _FakeContext(user_message=message)
 
@@ -184,7 +184,14 @@ def test_explicit_real_exam_review_action_is_not_low_information_query(message: 
         "防水真题",
         "2025真题有哪些",
         "2025真题答案",
+        "2025真题带答案",
+        "讲解2025年真题",
+        "讲解2025真题答案",
         "2025真题第15题",
+        "解析2025年真题第15题",
+        "分析一道2025真题",
+        "讲解一道历年真题",
+        "解析2025真题第15题",
     ],
 )
 def test_low_information_exam_query_is_not_question_review(message: str):

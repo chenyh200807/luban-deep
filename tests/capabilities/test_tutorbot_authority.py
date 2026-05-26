@@ -111,3 +111,76 @@ async def test_tutorbot_low_information_exam_query_returns_clarification(
     assert result_payload["exact_question_blocked_reason"] == "low_information_exam_query"
     assert result_payload["exact_fast_path_hit"] is False
     assert manager.sent_messages == 0
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_regular_result_exports_lifecycle_decision_metadata(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    manager = _FakeTutorBotManager()
+    monkeypatch.setattr(
+        tutorbot_capability,
+        "get_tutorbot_manager",
+        lambda: manager,
+    )
+
+    stream = StreamBus()
+    context = UnifiedContext(
+        session_id="s-lifecycle-regular",
+        user_message="我最近哪里错",
+        config_overrides={
+            "bot_id": "construction-exam-coach",
+            "chat_mode": "fast",
+        },
+        metadata={
+            "question_lifecycle_scene": "learning_evidence_story",
+            "decision_source": "deterministic",
+            "scene_confidence": 1.0,
+            "required_anchor_status": "satisfied",
+            "selected_skill_names": [
+                "construction-exam-tutor",
+                "construction-learning-evidence-story",
+            ],
+            "question_lifecycle_decision": {
+                "scene": "learning_evidence_story",
+                "decision_source": "deterministic",
+                "scene_confidence": 1.0,
+                "required_anchor_status": "satisfied",
+                "selected_skill_names": [
+                    "construction-exam-tutor",
+                    "construction-learning-evidence-story",
+                ],
+                "llm_scene_candidate": {
+                    "scene": "learning_evidence_story",
+                    "confidence": 0.82,
+                },
+                "business_gate_result": "passed",
+            },
+            "llm_scene_candidate": {
+                "scene": "learning_evidence_story",
+                "confidence": 0.82,
+            },
+            "business_gate_result": "passed",
+        },
+        language="zh",
+    )
+
+    await TutorBotCapability().run(context, stream)
+
+    result_events = [event for event in stream._history if event.type == StreamEventType.RESULT]
+    assert result_events
+    result_payload = result_events[-1].metadata
+    assert result_payload["question_lifecycle_scene"] == "learning_evidence_story"
+    assert result_payload["question_lifecycle_decision"]["scene"] == "learning_evidence_story"
+    assert result_payload["decision_source"] == "deterministic"
+    assert result_payload["required_anchor_status"] == "satisfied"
+    assert result_payload["selected_skill_names"] == [
+        "construction-exam-tutor",
+        "construction-learning-evidence-story",
+    ]
+    assert result_payload["llm_scene_candidate"] == {
+        "scene": "learning_evidence_story",
+        "confidence": 0.82,
+    }
+    assert result_payload["business_gate_result"] == "passed"
+    assert manager.sent_messages == 1

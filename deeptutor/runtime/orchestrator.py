@@ -623,7 +623,7 @@ class ChatOrchestrator:
         if not isinstance(qctx, dict) or not qctx.get("question"):
             return False
         _target_context, submission = resolve_submission_attempt(message, qctx)
-        return submission is not None
+        return submission is not None and submission.get("kind") != "ambiguous"
 
     def _prepare_question_submission_context(
         self,
@@ -664,7 +664,7 @@ class ChatOrchestrator:
             return
 
         target_context, submission = resolve_submission_attempt(context.user_message, qctx)
-        if not target_context or not submission:
+        if not target_context or not submission or submission.get("kind") == "ambiguous":
             return
         fallback_action = {
             "intent": "answer_questions",
