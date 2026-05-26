@@ -1,7 +1,7 @@
 /* eslint-disable i18n/no-literal-ui-text */
 'use client'
 
-import { Filter, RefreshCw, Save, Settings2 } from 'lucide-react'
+import { Filter, MessageSquareText, RefreshCw, Save, Settings2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import {
   BiButton,
@@ -186,6 +186,7 @@ export function BiV2MemberOpsPanel({
   const [detailLoading, setDetailLoading] = useState(false)
   const [detailError, setDetailError] = useState('')
   const [drawer, setDrawer] = useState<'none' | 'member360' | 'conversation'>('none')
+  const [conversationReturnTo, setConversationReturnTo] = useState<'none' | 'member360'>('member360')
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set())
   const [liveRows, setLiveRows] = useState<MemberRow[]>([])
   const [dashboard, setDashboard] = useState<MemberDashboard | null>(null)
@@ -311,7 +312,15 @@ export function BiV2MemberOpsPanel({
     void openMember360(rows[0])
   }, [flagEnabled, globalQuery, loading, openMember360, rows])
 
-  function openConversation() {
+  function openConversation(row?: MemberRow) {
+    if (row) {
+      setSelectedMember(row)
+      setSelectedDetail(null)
+      setDetailError('')
+      setConversationReturnTo('none')
+    } else {
+      setConversationReturnTo('member360')
+    }
     setDrawer('conversation')
   }
 
@@ -452,6 +461,20 @@ export function BiV2MemberOpsPanel({
 
       <CommonFilters filters={filters} onChange={setFilters} />
 
+      <section className="flex flex-wrap items-center justify-between gap-3 rounded-[26px] border border-cyan-300/20 bg-cyan-300/[0.08] px-4 py-3 text-sm text-cyan-50 shadow-lg shadow-black/10">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-cyan-200/25 bg-cyan-200/10 text-cyan-100">
+            <MessageSquareText className="h-4 w-4" aria-hidden />
+          </span>
+          <div className="min-w-0">
+            <div className="font-black">对话工作台已放到首屏</div>
+            <div className="mt-0.5 text-xs text-cyan-100/75">
+              每行直接点“对话”查看会话线索、筛选排序；查看全文仍会写入 audit。
+            </div>
+          </div>
+        </div>
+      </section>
+
       <div className="flex items-center justify-between text-xs text-slate-500">
         <BiButton
           onClick={() => setAdvancedOpen(v => !v)}
@@ -510,7 +533,16 @@ export function BiV2MemberOpsPanel({
           else setSelectedRows(new Set(rows.map(r => r.user_id)))
         }}
         rowAction={row => (
-          <div className="flex justify-end gap-1">
+          <div className="flex justify-end gap-1.5">
+            <BiButton
+              onClick={() => openConversation(row)}
+              variant="primary"
+              size="xs"
+              aria-label={`打开 ${row.user_id} 会员对话工作台`}
+            >
+              <MessageSquareText className="h-3 w-3" aria-hidden />
+              对话
+            </BiButton>
             <BiButton
               onClick={() => {
                 void openMember360(row)
@@ -560,7 +592,7 @@ export function BiV2MemberOpsPanel({
         open={drawer === 'conversation'}
         member={selectedMember}
         detail={selectedDetail}
-        onClose={() => setDrawer('member360')}
+        onClose={() => setDrawer(conversationReturnTo)}
       />
     </section>
   )
