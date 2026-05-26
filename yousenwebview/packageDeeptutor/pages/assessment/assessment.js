@@ -647,6 +647,47 @@ function buildP0AResultModel(report, questions) {
   };
 }
 
+function buildSubmitSuccessFallbackModel(data) {
+  var payload = data || {};
+  var summary = payload.score_summary || {};
+  var feedback = payload.diagnostic_feedback || payload.feedback || {};
+  var ability = feedback.ability_overview || {};
+  var actionPlan = feedback.action_plan || {};
+  var score = pickNumber(summary.score_pct, pickNumber(ability.score_pct, payload.score));
+  var level = String(payload.suggested_level || payload.level || "beginner");
+  var plan = String(actionPlan.plan_strategy || "");
+  return {
+    serverReportMode: false,
+    reportSchemaVersion: String(payload.schema_version || payload.blueprint_version || ""),
+    scoreTitle: String(payload.score_title || ASSESSMENT_I18N_KEYS.scoreTitle),
+    topicLabel: String(payload.topic_label || "综合摸底"),
+    resultScore: score,
+    resultLevel: level,
+    resultLevelName: LEVEL_NAMES[level] || level,
+    chapterList: [],
+    knowledgeMap: [],
+    actionKnowledgeMap: [],
+    wrongItems: [],
+    issueSummary: [],
+    prescriptionSteps: [],
+    priorityChapters: [],
+    archetype: "",
+    archetypeName: "动态调节型学员",
+    archetypeDesc: "",
+    archetypeTraits: [],
+    archetypeTip: "",
+    responseLabel: "待继续观察",
+    responseDesc: "",
+    calibrationLabel: "",
+    errorPattern: "",
+    errorPatternName: "待继续观察",
+    degradedCopy: "本次已成功提交，学情和错题记录已同步；结果展示暂时简化，请稍后从学情页查看完整记录。",
+    planStrategy:
+      "本次已成功提交，学情和错题记录已同步。" +
+      (plan ? " " + plan : " 结果展示暂时简化，请稍后从学情页查看完整记录。"),
+  };
+}
+
 Page({
   data: {
     statusBarHeight: 0,
@@ -1088,141 +1129,157 @@ Page({
       .submitAssessment(self._quizId, answers, timeSpent)
       .then(function (resp) {
         var data = resp.data || resp;
-        if (data && data.schema_version === "p0a-v1") {
+        try {
+          if (data && data.schema_version === "p0a-v1") {
+            self.setData(
+              Object.assign(
+                {
+                  stage: "result",
+                  submitting: false,
+                },
+                buildP0AResultModel(data, self.data.questions),
+              ),
+            );
+            wx.setStorageSync("diagnostic_completed", true);
+            helpers.vibrate("heavy");
+            return;
+          }
+          // 响应已收到
+          var fb = data.diagnostic_feedback || data.feedback || {};
+          var ao = fb.ability_overview || {};
+          var ci = fb.cognitive_insight || {};
+          var lp = fb.learner_profile || {};
+          var ap = fb.action_plan || {};
+          var diag = data.diagnostic || data.diagnostic_profile || {};
+
+          var score = pickNumber(ao.score_pct, data.score);
+          var level = data.suggested_level || data.level || "beginner";
+
+          // 章节掌握度
+          var mastery = ao.chapter_mastery || data.chapter_mastery || {};
+          var chapterList = Object.keys(mastery)
+            .map(function (ch) {
+              var v = mastery[ch];
+              var name = typeof v === "object" ? v.name || ch : ch;
+              var pct =
+                typeof v === "object"
+                  ? Math.round(pickNumber(v.mastery, v.pct))
+                  : Math.round(v * 100);
+              return { name: displayChapterName(name), pct: pct };
+            })
+            .sort(function (a, b) {
+              return b.pct - a.pct;
+            });
+
+          // ── 客户端 fallback 画像生成 ──────────────
+          var archetype = lp.archetype || diag.learner_archetype || "";
+          var archetypeName = lp.archetype_name || "";
+          var archetypeDesc = lp.description || "";
+          var archetypeTraits = lp.traits || [];
+          var archetypeTip = lp.study_tip || "";
+          var rp = ci.response_profile || diag.response_profile || "";
+          var cal = ci.calibration_label || diag.calibration_label || "";
+          var ep = ao.error_pattern || diag.error_pattern || "";
+
+          // 如果后端没返回画像，根据分数和答题时间本地生成
+          if (!archetype) {
+            var avgTime = timeSpent / self.data.questions.length;
+            if (score >= 70) {
+              archetype = avgTime < 20 ? "strategist" : "explorer";
+            } else if (score >= 40) {
+              archetype = avgTime < 25 ? "sprinter" : "builder";
+            } else {
+              archetype = avgTime < 20 ? "sprinter" : "builder";
+            }
+          }
+          if (!archetypeName)
+            archetypeName = ARCHETYPE_NAMES[archetype] || archetype;
+          if (!archetypeDesc) archetypeDesc = ARCHETYPE_DESCS[archetype] || "";
+          if (!archetypeTraits.length)
+            archetypeTraits = ARCHETYPE_TRAITS[archetype] || [];
+          if (!archetypeTip) archetypeTip = ARCHETYPE_TIPS[archetype] || "";
+
+          // 认知风格 fallback
+          if (!rp) {
+            var avgT = timeSpent / self.data.questions.length;
+            var correct = Object.keys(answers).length > 0 ? score / 100 : 0;
+            if (correct >= 0.6 && avgT < 25) rp = "fluent";
+            else if (correct >= 0.6) rp = "deliberate";
+            else if (avgT < 20) rp = "impulsive";
+            else rp = "struggling";
+          }
+
+          // 错误模式 fallback
+          if (!ep)
+            ep =
+              score >= 60
+                ? "slip_dominant"
+                : score >= 30
+                  ? "mixed"
+                  : "gap_dominant";
+          var epNames = {
+            slip_dominant: "粗心型",
+            gap_dominant: "知识盲区型",
+            confusion_dominant: "概念混淆型",
+            mixed: "综合型",
+          };
+
+          // 优先攻克：掌握度最低的 5 个章节
+          var priority = (ap.priority_chapters || []).map(function (c) {
+            return displayChapterName(typeof c === "object" ? c.name || c.code || "" : c);
+          });
+          if (!priority.length && chapterList.length) {
+            priority = chapterList
+              .slice()
+              .sort(function (a, b) {
+                return a.pct - b.pct;
+              })
+              .slice(0, 5)
+              .map(function (c) {
+                return c.name;
+              });
+          }
+
+          self.setData({
+            stage: "result",
+            submitting: false,
+            resultScore: score,
+            resultLevel: level,
+            resultLevelName: LEVEL_NAMES[level] || level,
+            chapterList: chapterList,
+            archetype: archetype,
+            archetypeName: archetypeName || "动态调节型学员",
+            archetypeDesc: archetypeDesc,
+            archetypeTraits: archetypeTraits,
+            archetypeTip: archetypeTip,
+            archetypeColor: ARCHETYPE_COLORS[archetype] || "#3b82f6",
+            archetypeIcon: ARCHETYPE_ICONS[archetype] || "?",
+            responseLabel: RESPONSE_LABELS[rp] || "待继续观察",
+            responseDesc: RESPONSE_DESCS[rp] || "",
+            calibrationLabel: CALIBRATION_LABELS[cal] || (cal ? "待继续观察" : ""),
+            errorPattern: ep,
+            errorPatternName: epNames[ep] || "待继续观察",
+            priorityChapters: priority.slice(0, 5),
+            planStrategy: ap.plan_strategy || "",
+          });
+
+          wx.setStorageSync("diagnostic_completed", true);
+          helpers.vibrate("heavy");
+        } catch (renderErr) {
+          console.error("[Assessment] submit succeeded but result render failed", renderErr);
           self.setData(
             Object.assign(
               {
                 stage: "result",
                 submitting: false,
               },
-              buildP0AResultModel(data, self.data.questions),
+              buildSubmitSuccessFallbackModel(data),
             ),
           );
           wx.setStorageSync("diagnostic_completed", true);
           helpers.vibrate("heavy");
-          return;
+          wx.showToast({ title: "已提交", icon: "success" });
         }
-        // 响应已收到
-        var fb = data.diagnostic_feedback || data.feedback || {};
-        var ao = fb.ability_overview || {};
-        var ci = fb.cognitive_insight || {};
-        var lp = fb.learner_profile || {};
-        var ap = fb.action_plan || {};
-        var diag = data.diagnostic || data.diagnostic_profile || {};
-
-        var score = pickNumber(ao.score_pct, data.score);
-        var level = data.suggested_level || data.level || "beginner";
-
-        // 章节掌握度
-        var mastery = ao.chapter_mastery || data.chapter_mastery || {};
-        var chapterList = Object.keys(mastery)
-          .map(function (ch) {
-            var v = mastery[ch];
-            var name = typeof v === "object" ? v.name || ch : ch;
-            var pct =
-              typeof v === "object"
-                ? Math.round(pickNumber(v.mastery, v.pct))
-                : Math.round(v * 100);
-            return { name: displayChapterName(name), pct: pct };
-          })
-          .sort(function (a, b) {
-            return b.pct - a.pct;
-          });
-
-        // ── 客户端 fallback 画像生成 ──────────────
-        var archetype = lp.archetype || diag.learner_archetype || "";
-        var archetypeName = lp.archetype_name || "";
-        var archetypeDesc = lp.description || "";
-        var archetypeTraits = lp.traits || [];
-        var archetypeTip = lp.study_tip || "";
-        var rp = ci.response_profile || diag.response_profile || "";
-        var cal = ci.calibration_label || diag.calibration_label || "";
-        var ep = ao.error_pattern || diag.error_pattern || "";
-
-        // 如果后端没返回画像，根据分数和答题时间本地生成
-        if (!archetype) {
-          var avgTime = timeSpent / self.data.questions.length;
-          if (score >= 70) {
-            archetype = avgTime < 20 ? "strategist" : "explorer";
-          } else if (score >= 40) {
-            archetype = avgTime < 25 ? "sprinter" : "builder";
-          } else {
-            archetype = avgTime < 20 ? "sprinter" : "builder";
-          }
-        }
-        if (!archetypeName)
-          archetypeName = ARCHETYPE_NAMES[archetype] || archetype;
-        if (!archetypeDesc) archetypeDesc = ARCHETYPE_DESCS[archetype] || "";
-        if (!archetypeTraits.length)
-          archetypeTraits = ARCHETYPE_TRAITS[archetype] || [];
-        if (!archetypeTip) archetypeTip = ARCHETYPE_TIPS[archetype] || "";
-
-        // 认知风格 fallback
-        if (!rp) {
-          var avgT = timeSpent / self.data.questions.length;
-          var correct = Object.keys(answers).length > 0 ? score / 100 : 0;
-          if (correct >= 0.6 && avgT < 25) rp = "fluent";
-          else if (correct >= 0.6) rp = "deliberate";
-          else if (avgT < 20) rp = "impulsive";
-          else rp = "struggling";
-        }
-
-        // 错误模式 fallback
-        if (!ep)
-          ep =
-            score >= 60
-              ? "slip_dominant"
-              : score >= 30
-                ? "mixed"
-                : "gap_dominant";
-        var epNames = {
-          slip_dominant: "粗心型",
-          gap_dominant: "知识盲区型",
-          confusion_dominant: "概念混淆型",
-          mixed: "综合型",
-        };
-
-        // 优先攻克：掌握度最低的 5 个章节
-        var priority = (ap.priority_chapters || []).map(function (c) {
-          return displayChapterName(typeof c === "object" ? c.name || c.code || "" : c);
-        });
-        if (!priority.length && chapterList.length) {
-          priority = chapterList
-            .slice()
-            .sort(function (a, b) {
-              return a.pct - b.pct;
-            })
-            .slice(0, 5)
-            .map(function (c) {
-              return c.name;
-            });
-        }
-
-        self.setData({
-          stage: "result",
-          submitting: false,
-          resultScore: score,
-          resultLevel: level,
-          resultLevelName: LEVEL_NAMES[level] || level,
-          chapterList: chapterList,
-          archetype: archetype,
-          archetypeName: archetypeName || "动态调节型学员",
-          archetypeDesc: archetypeDesc,
-          archetypeTraits: archetypeTraits,
-          archetypeTip: archetypeTip,
-          archetypeColor: ARCHETYPE_COLORS[archetype] || "#3b82f6",
-          archetypeIcon: ARCHETYPE_ICONS[archetype] || "?",
-          responseLabel: RESPONSE_LABELS[rp] || "待继续观察",
-          responseDesc: RESPONSE_DESCS[rp] || "",
-          calibrationLabel: CALIBRATION_LABELS[cal] || (cal ? "待继续观察" : ""),
-          errorPattern: ep,
-          errorPatternName: epNames[ep] || "待继续观察",
-          priorityChapters: priority.slice(0, 5),
-          planStrategy: ap.plan_strategy || "",
-        });
-
-        wx.setStorageSync("diagnostic_completed", true);
-        helpers.vibrate("heavy");
       })
       .catch(function (e) {
         // 提交失败已通过 toast 展示

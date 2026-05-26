@@ -40,6 +40,7 @@ function loadPage(apiOverrides) {
   );
   var pageDef = null;
   var modalCalls = [];
+  var toastCalls = [];
   var createPayloads = [];
   var reLaunchCalls = [];
   var pendingChatIntents = [];
@@ -212,7 +213,7 @@ function loadPage(apiOverrides) {
       throw new Error("unexpected require: " + request);
     },
     wx: {
-      showToast: function () {},
+      showToast: function (options) { toastCalls.push(options || {}); },
       showModal: function (options) { modalCalls.push(options || {}); },
       setStorageSync: function (key, value) { sandbox.__storage[key] = value; },
       reLaunch: function (options) { reLaunchCalls.push(options || {}); },
@@ -241,6 +242,7 @@ function loadPage(apiOverrides) {
   return {
     page: page,
     modalCalls: modalCalls,
+    toastCalls: toastCalls,
     createPayloads: createPayloads,
     reLaunchCalls: reLaunchCalls,
     pendingChatIntents: pendingChatIntents,
@@ -456,6 +458,62 @@ function stringify(value) {
     assert(
       loaded.page.data.wrongItems[0].detail.whyWrong.indexOf("凿毛清理") >= 0,
       "AI detailed review should use generated explanation, not static projection",
+    );
+  });
+
+  await run("successful legacy diagnostic submit is not reported as submit failure when render data is irregular", async function () {
+    var loaded = loadPage({
+      createAssessment: function (payload) {
+        loaded.createPayloads.push(payload);
+        return Promise.resolve({
+          quiz_id: "quiz_legacy",
+          assessment_type: "diagnostic",
+          blueprint_version: "diagnostic_v1",
+          requested_count: 20,
+          delivered_count: 1,
+          scored_count: 1,
+          profile_count: 0,
+          questions: [
+            {
+              question_id: "q1",
+              question_stem: "综合摸底旧卷题",
+              question_type: "single_choice",
+              options: [{ key: "A", text: "A" }],
+            },
+          ],
+        });
+      },
+      submitAssessment: function () {
+        return Promise.resolve({
+          score: 12,
+          level: "beginner",
+          diagnostic_feedback: {
+            ability_overview: { score_pct: 12, chapter_mastery: {} },
+            action_plan: {
+              priority_chapters: { name: "建筑实务综合" },
+              plan_strategy: "先补最薄弱知识点。",
+            },
+          },
+        });
+      },
+    });
+    loaded.page.onStart();
+    await flushPromises();
+    loaded.page.setData({
+      selectedKeys: { q1: "A" },
+      answeredCount: 1,
+      unansweredCount: 0,
+    });
+    loaded.page.onSubmit();
+    await flushPromises();
+
+    var toastText = loaded.toastCalls.map(function (item) { return item.title || ""; }).join("|");
+    assert(toastText.indexOf("提交失败") < 0, "successful submit must not show submit failure for render-only errors");
+    assert(loaded.page.data.stage === "result", "successful submit should still land on result stage");
+    assert(loaded.page.data.resultScore === 12, "fallback result should preserve server score");
+    assert(
+      loaded.page.data.planStrategy.indexOf("已成功提交") >= 0,
+      "fallback result should explain success with simplified display",
     );
   });
 
