@@ -1,5 +1,6 @@
 var api = require("../../utils/api");
 var auth = require("../../utils/auth");
+var brand = require("../../utils/brand");
 var helpers = require("../../utils/helpers");
 
 function showSmsSentFeedback(message) {
@@ -20,6 +21,7 @@ Page({
     safeBottom: 0,
     loading: false,
     errorMsg: "",
+    brandName: brand.APP_BRAND_NAME,
     username: "",
     password: "",
     showPassword: false,

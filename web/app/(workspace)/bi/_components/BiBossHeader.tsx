@@ -1,6 +1,7 @@
 "use client";
 
 import { CalendarDays, ChevronDown, Download, Funnel, RefreshCw, ShieldAlert } from "lucide-react";
+import { resolveBrandCopy } from "@/lib/brand";
 
 type BiBossHeaderProps = {
   days: 7 | 30 | 90;
@@ -33,6 +34,7 @@ export function BiBossHeader({
   heroIssue,
   heroIssueTitle = "经营提醒",
 }: BiBossHeaderProps) {
+  const { biTitle } = resolveBrandCopy();
   return (
     <section className="surface-card border border-[var(--border)]/70 bg-white/88 px-5 py-4 shadow-[0_14px_32px_rgba(45,33,25,0.06)] backdrop-blur">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
@@ -43,7 +45,7 @@ export function BiBossHeader({
             </span>
             <span className="text-xs text-[var(--muted-foreground)]">最近同步：{lastUpdatedLabel}</span>
           </div>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--foreground)]">DeepTutor BI 工作台</h1>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--foreground)]">{biTitle}</h1>
           <p className="mt-1 text-sm text-[var(--muted-foreground)]">
             经营、质量、会员、TutorBot 四条主线的轻量总览入口。
           </p>

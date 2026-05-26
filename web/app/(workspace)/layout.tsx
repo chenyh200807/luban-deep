@@ -1,6 +1,7 @@
 import WorkspaceFrame from "./WorkspaceFrame";
+import { resolveBrandCopy } from "@/lib/brand";
 
-const brandName = process.env.NEXT_PUBLIC_APP_BRAND_NAME || "鲁班智考";
+const { brandName } = resolveBrandCopy();
 
 export default function WorkspaceLayout({
   children,

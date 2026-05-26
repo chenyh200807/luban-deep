@@ -3,8 +3,11 @@
 const api = require("../../utils/api");
 const helpers = require("../../utils/helpers");
 const reportViewModel = require("../../utils/learning-report-view-model");
+const reportSyncAuthority = require("../../utils/report-sync-authority") || {};
 
 const taxonomy = require("../../utils/taxonomy");
+const REPORT_UNIFIED_READ_TIMEOUT_MS =
+  reportSyncAuthority.REPORT_UNIFIED_READ_TIMEOUT_MS || 8000;
 const RADAR_SELF_SUBJECT = "self";
 const LEVEL_NAMES = {
   beginner: "入门",

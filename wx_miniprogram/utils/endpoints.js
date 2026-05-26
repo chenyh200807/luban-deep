@@ -1,44 +1,11 @@
 // utils/endpoints.js — 小程序 API 地址解析与回退
 
+var hostRuntime = require("./host-runtime");
 var DEFAULT_REMOTE_BASES = ["https://test2.yousenjiaoyu.com"];
 var DEFAULT_LOCAL_BASES = ["http://127.0.0.1:8001", "http://127.0.0.1:8012"];
 var ENV_VERSION =
   (typeof __wxConfig !== "undefined" && __wxConfig.envVersion) || "release";
 var IS_DEVELOP = ENV_VERSION === "develop";
-
-function getAppSafe() {
-  try {
-    return getApp();
-  } catch (_) {
-    return null;
-  }
-}
-
-function getRuntimeBaseConfig(useGateway) {
-  var app = getAppSafe();
-  if (!app || !app.globalData || typeof app.globalData !== "object") {
-    return { primary: "", candidates: [] };
-  }
-  var primary = useGateway ? app.globalData.gatewayUrl : app.globalData.apiUrl;
-  var candidates = useGateway
-    ? app.globalData.gatewayCandidates || []
-    : app.globalData.apiCandidates || [];
-  return {
-    primary: String(primary || "").trim(),
-    candidates: Array.isArray(candidates) ? candidates.slice() : [],
-  };
-}
-
-function rememberRuntimeBaseUrl(baseUrl, useGateway) {
-  var app = getAppSafe();
-  var normalized = String(baseUrl || "").trim();
-  if (!app || !app.globalData || !normalized) return;
-  if (useGateway) {
-    app.globalData.gatewayUrl = normalized;
-  } else {
-    app.globalData.apiUrl = normalized;
-  }
-}
 
 function uniq(list) {
   var seen = {};
@@ -59,7 +26,7 @@ function isLocalBase(url) {
 }
 
 function getConfiguredBases(useGateway) {
-  var config = getRuntimeBaseConfig(!!useGateway);
+  var config = hostRuntime.getRuntimeBaseConfig(!!useGateway);
   if (config.primary || config.candidates.length) {
     return uniq([config.primary].concat(config.candidates || []));
   }
@@ -82,7 +49,7 @@ function getPrimaryBaseUrl(useGateway) {
 }
 
 function rememberWorkingBaseUrl(baseUrl, useGateway) {
-  rememberRuntimeBaseUrl(baseUrl, !!useGateway);
+  hostRuntime.rememberWorkingBaseUrl(baseUrl, !!useGateway);
 }
 
 function toSocketBaseUrl(baseUrl) {

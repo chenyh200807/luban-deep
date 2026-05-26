@@ -56,6 +56,42 @@ function loadEndpointsModule(options) {
     getApp: function () {
       return appState;
     },
+    require: function (request) {
+      if (request === "./host-runtime") {
+        return {
+          getRuntimeBaseConfig: function (useGateway) {
+            var primaryKey = useGateway ? "gatewayUrl" : "apiUrl";
+            var candidatesKey = useGateway
+              ? "gatewayCandidates"
+              : "apiCandidates";
+            return {
+              primary: String(appState.globalData[primaryKey] || "").trim(),
+              candidates: Array.isArray(appState.globalData[candidatesKey])
+                ? appState.globalData[candidatesKey].slice()
+                : [],
+            };
+          },
+          rememberWorkingBaseUrl: function (baseUrl, useGateway) {
+            var primaryKey = useGateway ? "gatewayUrl" : "apiUrl";
+            var candidatesKey = useGateway
+              ? "gatewayCandidates"
+              : "apiCandidates";
+            var normalized = String(baseUrl || "").trim();
+            if (!normalized) return;
+            appState.globalData[primaryKey] = normalized;
+            var candidates = Array.isArray(appState.globalData[candidatesKey])
+              ? appState.globalData[candidatesKey].slice()
+              : [];
+            appState.globalData[candidatesKey] = [normalized]
+              .concat(candidates)
+              .filter(function (item, index, list) {
+                return item && list.indexOf(item) === index;
+              });
+          },
+        };
+      }
+      throw new Error("Unexpected require: " + request);
+    },
     module: { exports: {} },
     exports: {},
   };

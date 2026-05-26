@@ -6,11 +6,17 @@ const runtime = require("../../utils/runtime");
 const route = require("../../utils/route");
 const flags = require("../../utils/flags");
 const reportViewModel = require("../../utils/learning-report-view-model");
+const reportSyncAuthority = require("../../utils/report-sync-authority") || {};
 const taxonomy = require("../../utils/taxonomy");
 
-const REPORT_UNIFIED_READ_TIMEOUT_MS = 8000;
-const REPORT_MODULE_HINT_STORAGE_KEY = "deeptutor.report.moduleHint.v1";
-const ASSESSMENT_PENDING_TRAINING_ACTION_KEY = "deeptutor.report.pendingTrainingAction";
+const REPORT_UNIFIED_READ_TIMEOUT_MS =
+  reportSyncAuthority.REPORT_UNIFIED_READ_TIMEOUT_MS || 8000;
+const REPORT_MODULE_HINT_STORAGE_KEY =
+  reportSyncAuthority.REPORT_MODULE_HINT_STORAGE_KEY ||
+  "deeptutor.report.moduleHint.v1";
+const ASSESSMENT_PENDING_TRAINING_ACTION_KEY =
+  reportSyncAuthority.ASSESSMENT_PENDING_TRAINING_ACTION_KEY ||
+  "deeptutor.report.pendingTrainingAction";
 const RADAR_SELF_SUBJECT = "self";
 const LEVEL_NAMES = {
   beginner: "入门",
@@ -28,7 +34,7 @@ const LEARNING_BRAIN_LEVEL_LABELS = {
 const LEARNING_BRAIN_SUBJECT_LABELS = {
   construction_exam_learning_truth: "建筑实务学习事实",
 };
-const REPORT_DETAIL_TITLES = {
+const REPORT_DETAIL_TITLES = reportSyncAuthority.REPORT_DETAIL_TITLES || {
   home: "学情",
   evidence: "学情依据",
   map: "掌握地图",

@@ -1,4 +1,7 @@
 import { BI_API_TOKEN, apiUrl, withAdminAuthorization, withBiApiToken } from "@/lib/api";
+import { resolveBrandCopy } from "@/lib/brand";
+
+const { biTitle } = resolveBrandCopy();
 
 export interface BiMetricCard {
   label: string;
@@ -550,7 +553,7 @@ export interface BiFetchOptions {
 
 const DEFAULT_DATA: BiWorkbenchData = {
   overview: {
-    title: "DeepTutor BI 工作台",
+    title: biTitle,
     subtitle: "加载后端 BI 接口后即可查看经营、学习、能力、知识库与会员的统一视图。",
     cards: [],
     highlights: [],
@@ -1342,7 +1345,7 @@ function parseBiOverviewBundle(raw: unknown): BiOverviewBundle {
     normalizeAlert(item, `告警 ${index + 1}`),
   );
   const overview: BiOverviewData = {
-    title: toString(record.title ?? record.name, "DeepTutor BI 工作台"),
+    title: toString(record.title ?? record.name, biTitle),
     subtitle: toString(
       record.subtitle ?? record.description ?? record.summary,
       "加载后端 BI 接口后即可查看经营、学习、能力、知识库与会员的统一视图。",

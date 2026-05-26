@@ -22,6 +22,7 @@ import {
 import { useTranslation } from "react-i18next";
 import SessionList from "@/components/SessionList";
 import { TutorBotRecent } from "@/components/sidebar/TutorBotRecent";
+import { resolveBrandCopy } from "@/lib/brand";
 import type { SessionSummary } from "@/lib/session-api";
 import { allowsLegacyWebSurfaces, requiresWebAuth } from "@/lib/web-access";
 
@@ -43,7 +44,7 @@ const PRIMARY_NAV: NavEntry[] = [
 ];
 
 const SECONDARY_NAV: NavEntry[] = [{ href: "/settings", label: "Settings", icon: Settings }];
-const brandName = process.env.NEXT_PUBLIC_APP_BRAND_NAME || "鲁班智考";
+const { brandName } = resolveBrandCopy();
 const DEFAULT_SESSION_VIEWPORT_CLASS_NAME = "max-h-[112px]";
 
 interface SidebarShellProps {

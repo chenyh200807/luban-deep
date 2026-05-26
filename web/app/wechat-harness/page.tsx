@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
+import { isWechatHarnessEnabled } from '@/lib/wechat-harness-gate'
 import WechatHarnessClient from './WechatHarnessClient'
 
 export const metadata: Metadata = {
@@ -8,18 +9,13 @@ export const metadata: Metadata = {
   description: 'Replay mini-program rendering contracts in a Web test harness.',
 }
 
-// Harness is a fixture-replay test surface. It must never default-open in
-// production builds; only enable when explicitly flagged via server env.
-function isHarnessEnabled(): boolean {
-  if (process.env.NODE_ENV !== 'production') return true
-  return (
-    process.env.DEEPTUTOR_ENABLE_WECHAT_HARNESS === 'true' ||
-    process.env.NEXT_PUBLIC_ENABLE_WECHAT_HARNESS === 'true'
-  )
-}
-
 export default async function WechatHarnessPage() {
-  if (!isHarnessEnabled()) {
+  if (
+    !isWechatHarnessEnabled({
+      nodeEnv: process.env.NODE_ENV,
+      enableWechatHarness: process.env.DEEPTUTOR_ENABLE_WECHAT_HARNESS,
+    })
+  ) {
     notFound()
   }
   const { loadWechatHarnessCases } = await import('@/lib/wechat-harness-data')

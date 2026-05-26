@@ -1,5 +1,6 @@
 var api = require("../../utils/api");
 var auth = require("../../utils/auth");
+var brand = require("../../utils/brand");
 var helpers = require("../../utils/helpers");
 var route = require("../../utils/route");
 var analytics = require("../../utils/analytics");
@@ -23,6 +24,8 @@ Page({
     loading: false,
     wechatLoading: false,
     errorMsg: "",
+    brandKicker: brand.LOGIN_KICKER,
+    brandName: brand.APP_BRAND_NAME,
     username: "",
     password: "",
     showPassword: false,

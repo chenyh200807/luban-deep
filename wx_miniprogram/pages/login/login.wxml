@@ -12,11 +12,11 @@
     <scroll-view class="body" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" style="padding-top:{{statusBarHeight}}px">
       <view class="hero-stage">
         <view class="hero-block">
-          <text class="hero-kicker">Luban AI Tutor</text>
+          <text class="hero-kicker">{{brandKicker}}</text>
 
           <view class="brand-row">
             <image class="brand-mark" src="/images/logo-mark-white.png" mode="heightFix" />
-            <text class="brand-name">鲁班智考</text>
+            <text class="brand-name">{{brandName}}</text>
           </view>
 
           <view class="hero-copy">

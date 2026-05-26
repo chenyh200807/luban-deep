@@ -36,6 +36,11 @@ function flush() {
   });
 }
 
+async function settleSocketStartup() {
+  await flush();
+  await flush();
+}
+
 global.getApp = function () {
   return { globalData: {} };
 };
@@ -118,6 +123,9 @@ api.startChatTurn = function () {
 api.unwrapResponse = function (raw) {
   return raw;
 };
+api.ensureFreshAuthToken = function () {
+  return Promise.resolve("");
+};
 endpoints.getPrimaryBaseUrl = function () {
   return "https://example.com";
 };
@@ -164,7 +172,7 @@ Promise.resolve(
       },
     );
 
-    await flush();
+    await settleSocketStartup();
     if (socketState.handlers.open) {
       socketState.handlers.open();
     }
@@ -224,7 +232,7 @@ Promise.resolve(
       );
 
       abort({ cancelTurn: true });
-      await flush();
+      await settleSocketStartup();
       if (socketState.handlers.open) {
         socketState.handlers.open();
       }
@@ -279,7 +287,7 @@ Promise.resolve(
         },
       );
 
-      await flush();
+      await settleSocketStartup();
       if (socketState.handlers.open) {
         socketState.handlers.open();
       }
@@ -338,7 +346,7 @@ Promise.resolve(
         },
       );
 
-      await flush();
+      await settleSocketStartup();
       if (socketState.handlers.open) {
         socketState.handlers.open();
       }
@@ -391,7 +399,7 @@ Promise.resolve(
         },
       );
 
-      await flush();
+      await settleSocketStartup();
       if (socketState.handlers.open) {
         socketState.handlers.open();
       }
@@ -466,7 +474,7 @@ Promise.resolve(
         },
       );
 
-      await flush();
+      await settleSocketStartup();
       if (socketState.handlers.open) {
         socketState.handlers.open();
       }
@@ -528,7 +536,7 @@ Promise.resolve(
         },
       );
 
-      await flush();
+      await settleSocketStartup();
       if (socketState.handlers.open) {
         socketState.handlers.open();
       }

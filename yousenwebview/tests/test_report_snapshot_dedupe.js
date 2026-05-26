@@ -119,7 +119,7 @@ function createPageInstance(pageDef) {
     "yousen report page must accept learning-report schema v1 and v2 payloads",
   );
   assert(
-    reportSource.indexOf("REPORT_UNIFIED_READ_TIMEOUT_MS = 8000") >= 0 &&
+    reportSource.indexOf("reportSyncAuthority.REPORT_UNIFIED_READ_TIMEOUT_MS") >= 0 &&
       reportSource.indexOf(
         "_reportOptionalRead(api.getLearningReport(100, optionalReadOpts), REPORT_UNIFIED_READ_TIMEOUT_MS)",
       ) >= 0,

@@ -4,6 +4,7 @@ import "./globals.css";
 import ThemeScript from "@/components/ThemeScript";
 import { AppShellProvider } from "@/context/AppShellContext";
 import { I18nClientBridge } from "@/i18n/I18nClientBridge";
+import { resolveBrandCopy } from "@/lib/brand";
 
 const fontSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -17,7 +18,7 @@ const fontSerif = Lora({
   variable: "--font-serif",
 });
 
-const brandName = process.env.NEXT_PUBLIC_APP_BRAND_NAME || "鲁班智考";
+const { brandName } = resolveBrandCopy();
 
 export const metadata: Metadata = {
   title: brandName,

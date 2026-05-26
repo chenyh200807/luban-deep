@@ -13,7 +13,7 @@
       <view class="hero">
         <view class="title-row">
           <image class="title-logo" src="/images/logo-mark-white.png" mode="heightFix" />
-          <text class="title-main">Luban AI Tutor</text>
+          <text class="title-main">{{brandName}}</text>
         </view>
         <text class="hero-title">其他登录方式</text>
         <text class="hero-sub">手机号验证码或账号密码登录，用于备用登录与账号找回。</text>
