@@ -307,6 +307,40 @@ function stringify(value) {
     assert(loaded.page.data.topicLabel === "综合摸底", "diagnostic fallback label should not say waterproof");
   });
 
+  await run("successful create skips invalid question rows instead of reporting load failure", async function () {
+    var loaded = loadPage({
+      createAssessment: function (payload) {
+        loaded.createPayloads.push(payload);
+        return Promise.resolve({
+          quiz_id: "quiz_diag_sparse",
+          assessment_type: "real_exam_simulation",
+          blueprint_version: "real_exam_simulation_mini_v1",
+          requested_count: 20,
+          delivered_count: 2,
+          scored_count: 1,
+          profile_count: 0,
+          questions: [
+            null,
+            {
+              question_id: "q_good",
+              question_stem: "综合摸底可用题",
+              question_type: "single_choice",
+              options: [{ key: "A", text: "A" }],
+            },
+          ],
+        });
+      },
+    });
+    loaded.page.onStart();
+    await flushPromises();
+
+    var toastText = loaded.toastCalls.map(function (item) { return item.title || ""; }).join("|");
+    assert(toastText.indexOf("加载题目失败") < 0, "successful create must not be reported as load failure for sparse rows");
+    assert(loaded.page.data.stage === "quiz", "successful create should enter quiz when usable questions remain");
+    assert(loaded.page.data.questions.length === 1, "invalid question rows should be skipped");
+    assert(loaded.page.data.currentQ.id === "q_good", "first usable question should become current question");
+  });
+
   await run("personalized recommendation preselects enabled topic", async function () {
     var loaded = loadPage({
       getAssessmentTopics: function () {

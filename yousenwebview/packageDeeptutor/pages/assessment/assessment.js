@@ -229,6 +229,29 @@ function normalizeAssessmentOptions(rawOptions) {
     });
 }
 
+function normalizeAssessmentQuestions(rawQuestions) {
+  var rows = Array.isArray(rawQuestions) ? rawQuestions : [];
+  return rows
+    .map(function (q, idx) {
+      if (!q || typeof q !== "object") return null;
+      var opts = normalizeAssessmentOptions(q.options || []);
+      var stem = q.question_stem || q.stem || q.text || q.content || "";
+      return {
+        id: q.question_id || q.id || "q_" + (idx + 1),
+        question_stem: stripInlineOptionsFromStem(stem, opts),
+        options: opts,
+        question_type: q.question_type || "single_choice",
+        difficulty: q.difficulty || "",
+        section_id: q.section_id || "",
+        section_label: q.section_label || "",
+        scored: q.scored !== false,
+      };
+    })
+    .filter(function (q) {
+      return !!(q && q.id && q.question_stem);
+    });
+}
+
 function displayChapterName(value) {
   return taxonomy.displayChapterName(value, "综合能力");
 }
@@ -897,68 +920,59 @@ Page({
     api
       .createAssessment(requestPayload)
       .then(function (resp) {
-        // 兼容两种返回格式: {questions, quiz_id} 或 {data: {questions, quiz_id}}
-        var payload = resp.data || resp;
-        var questions = payload.questions || [];
-        if (!questions.length) {
-          wx.showToast({ title: "暂无题目", icon: "none" });
+        try {
+          // 兼容两种返回格式: {questions, quiz_id} 或 {data: {questions, quiz_id}}
+          var payload = (resp && resp.data) || resp || {};
+          var questions = normalizeAssessmentQuestions(payload.questions);
+          if (!questions.length) {
+            wx.showToast({ title: "暂无题目", icon: "none" });
+            self.setData({ stage: "welcome", starting: false });
+            return;
+          }
+          var answerState = buildAnswerState(questions, {}, 0);
+          var requestedCount = Number(payload.requested_count || questions.length) || questions.length;
+          var deliveredCount = Number(payload.delivered_count || questions.length) || questions.length;
+          var scoredCount = Number(payload.scored_count || 0) || 0;
+          var profileCount = Number(payload.profile_count || 0) || 0;
+          var availableCount = Number(payload.available_count || deliveredCount) || deliveredCount;
+          var shortfallCount = Math.max(0, Number(payload.shortfall_count || 0) || 0);
+          self._quizId = payload.quiz_id;
+          self._startTime = Date.now();
+          self.setData({
+            stage: "quiz",
+            starting: false,
+            questions: questions,
+            currentIndex: 0,
+            currentQ: questions[0],
+            selMap: {},
+            selectedKeys: {},
+            answerSheet: answerState.answerSheet,
+            answeredCount: answerState.answeredCount,
+            unansweredCount: answerState.unansweredCount,
+            requestedCount: requestedCount,
+            deliveredCount: deliveredCount,
+            scoredCount: scoredCount,
+            profileCount: profileCount,
+            blueprintVersion: payload.blueprint_version || "",
+            topicLabel: payload.topic_label || self.data.welcomeTitle || ASSESSMENT_I18N_KEYS.topicLabel,
+            readOnlyBanner: payload.lease_holder_other_device ? ASSESSMENT_I18N_KEYS.readOnlyOtherDevice : "",
+            availableCount: availableCount,
+            shortfallCount: shortfallCount,
+            assessmentNotice:
+              shortfallCount > 0
+                ? "题库当前可用 " + availableCount + " 题，本次先完成 " + deliveredCount + " 题。"
+                : scoredCount && profileCount
+                ? "本次 " + scoredCount + " 道知识题 + " + profileCount + " 道学习画像题。"
+                : "",
+          });
+        } catch (renderErr) {
+          console.error("[Assessment] create succeeded but quiz render failed", renderErr);
+          wx.showToast({ title: "题目数据异常", icon: "none" });
           self.setData({ stage: "welcome", starting: false });
-          return;
         }
-        // 标准化字段名
-        questions = questions.map(function (q, idx) {
-          var opts = normalizeAssessmentOptions(q.options || []);
-          var stem = q.question_stem || q.stem || q.text || q.content || "";
-          return {
-            id: q.question_id || q.id || "q_" + (idx + 1),
-            question_stem: stripInlineOptionsFromStem(stem, opts),
-            options: opts,
-            question_type: q.question_type || "single_choice",
-            difficulty: q.difficulty || "",
-            section_id: q.section_id || "",
-            section_label: q.section_label || "",
-            scored: q.scored !== false,
-          };
-        });
-        var answerState = buildAnswerState(questions, {}, 0);
-        var requestedCount = Number(payload.requested_count || questions.length) || questions.length;
-        var deliveredCount = Number(payload.delivered_count || questions.length) || questions.length;
-        var scoredCount = Number(payload.scored_count || 0) || 0;
-        var profileCount = Number(payload.profile_count || 0) || 0;
-        var availableCount = Number(payload.available_count || deliveredCount) || deliveredCount;
-        var shortfallCount = Math.max(0, Number(payload.shortfall_count || 0) || 0);
-        self._quizId = payload.quiz_id;
-        self._startTime = Date.now();
-        self.setData({
-          stage: "quiz",
-          starting: false,
-          questions: questions,
-          currentIndex: 0,
-          currentQ: questions[0],
-          selMap: {},
-          selectedKeys: {},
-          answerSheet: answerState.answerSheet,
-          answeredCount: answerState.answeredCount,
-          unansweredCount: answerState.unansweredCount,
-          requestedCount: requestedCount,
-          deliveredCount: deliveredCount,
-          scoredCount: scoredCount,
-          profileCount: profileCount,
-          blueprintVersion: payload.blueprint_version || "",
-          topicLabel: payload.topic_label || self.data.welcomeTitle || ASSESSMENT_I18N_KEYS.topicLabel,
-          readOnlyBanner: payload.lease_holder_other_device ? ASSESSMENT_I18N_KEYS.readOnlyOtherDevice : "",
-          availableCount: availableCount,
-          shortfallCount: shortfallCount,
-          assessmentNotice:
-            shortfallCount > 0
-              ? "题库当前可用 " + availableCount + " 题，本次先完成 " + deliveredCount + " 题。"
-              : scoredCount && profileCount
-              ? "本次 " + scoredCount + " 道知识题 + " + profileCount + " 道学习画像题。"
-              : "",
-        });
       })
       .catch(function (e) {
-        // 创建失败已通过 toast 展示
+        console.error("[Assessment] create request failed", e);
         wx.showToast({ title: "加载题目失败", icon: "none" });
         self.setData({ stage: "welcome", starting: false });
       });

@@ -220,6 +220,37 @@ function loadPage(relativePath, apiOverrides) {
     );
   });
 
+  await run("successful create skips invalid question rows instead of reporting load failure", async function () {
+    var loaded = loadPage("pages/assessment/assessment.js", {
+      createAssessment: function () {
+        return Promise.resolve({
+          quiz_id: "quiz_sparse",
+          blueprint_version: "diagnostic_v1",
+          requested_count: 20,
+          delivered_count: 2,
+          scored_count: 1,
+          profile_count: 0,
+          questions: [
+            null,
+            {
+              question_id: "q_good",
+              question_stem: "综合摸底可用题",
+              options: { A: "对", B: "错" },
+            },
+          ],
+        });
+      },
+    });
+    loaded.page.onStart();
+    await flushPromises();
+
+    var toastText = loaded.toastCalls.map(function (item) { return item.title || ""; }).join("|");
+    assert(toastText.indexOf("加载题目失败") < 0, "successful create must not be reported as load failure for sparse rows");
+    assert(loaded.page.data.stage === "quiz", "successful create should enter quiz when usable questions remain");
+    assert(loaded.page.data.questions.length === 1, "invalid question rows should be skipped");
+    assert(loaded.page.data.currentQ.id === "q_good", "first usable question should become current question");
+  });
+
   await run("assessment answer card should stay in sync with selected answers", async function () {
     var loaded = loadPage("pages/assessment/assessment.js");
     loaded.page.onStart();
