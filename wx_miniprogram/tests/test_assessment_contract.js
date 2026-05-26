@@ -37,6 +37,7 @@ function loadPage(relativePath, apiOverrides) {
   var source = fs.readFileSync(path.join(__dirname, "..", relativePath), "utf8");
   var pageDef = null;
   var modalCalls = [];
+  var toastCalls = [];
   var apiMock = Object.assign({
     createAssessment: function () {
       return Promise.resolve({
@@ -137,7 +138,7 @@ function loadPage(relativePath, apiOverrides) {
       throw new Error("unexpected require: " + request);
     },
     wx: {
-      showToast: function () {},
+      showToast: function (options) { toastCalls.push(options || {}); },
       showModal: function (options) {
         modalCalls.push(options || {});
       },
@@ -167,6 +168,7 @@ function loadPage(relativePath, apiOverrides) {
   return {
     page: page,
     modalCalls: modalCalls,
+    toastCalls: toastCalls,
   };
 }
 
@@ -290,6 +292,43 @@ function loadPage(relativePath, apiOverrides) {
       loaded.page.data.chapterList[0].name.indexOf("1A") < 0 &&
         loaded.page.data.priorityChapters[0].indexOf("1A") < 0,
       "result should translate textbook chapter codes into user-facing Chinese labels",
+    );
+  });
+
+  await run("successful submit should not be reported as failed when result render data is irregular", async function () {
+    var loaded = loadPage("pages/assessment/assessment.js", {
+      submitAssessment: function () {
+        return Promise.resolve({
+          score: 12,
+          level: "beginner",
+          diagnostic_feedback: {
+            ability_overview: { score_pct: 12, chapter_mastery: {} },
+            action_plan: {
+              priority_chapters: { name: "建筑实务综合" },
+              plan_strategy: "先补最薄弱知识点。",
+            },
+          },
+        });
+      },
+    });
+    loaded.page.onStart();
+    await flushPromises();
+
+    loaded.page.setData({
+      selectedKeys: { q_1: "A", q_2: "A", q_3: "A" },
+      answeredCount: 3,
+      unansweredCount: 0,
+    });
+    loaded.page.onSubmit();
+    await flushPromises();
+
+    var toastText = loaded.toastCalls.map(function (item) { return item.title || ""; }).join("|");
+    assert(toastText.indexOf("提交失败") < 0, "successful submit must not show submit failure for render-only errors");
+    assert(loaded.page.data.stage === "result", "successful submit should land on result stage");
+    assert(loaded.page.data.resultScore === 12, "fallback result should preserve server score");
+    assert(
+      loaded.page.data.planStrategy.indexOf("已成功提交") >= 0,
+      "fallback result should explain success with simplified display",
     );
   });
 
