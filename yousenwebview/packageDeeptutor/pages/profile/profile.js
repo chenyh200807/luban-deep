@@ -393,36 +393,9 @@ Page({
     wx.navigateTo({ url: route.billing() });
   },
 
-  submitProductFeedback: function () {
+  openFeedbackPage: function () {
     helpers.vibrate("light");
-    wx.showModal({
-      title: "意见反馈",
-      editable: true,
-      placeholderText: "请描述你遇到的问题或建议",
-      confirmText: "提交",
-      success: function (res) {
-        if (!res.confirm) return;
-        var comment = String(res.content || "").trim();
-        if (!comment) {
-          wx.showToast({ title: "请先填写反馈内容", icon: "none" });
-          return;
-        }
-        api
-          .submitFeedback({
-            rating: -1,
-            reason_tags: ["产品反馈"],
-            comment: comment,
-            answer_mode: "AUTO",
-            feedback_source: "yousenwebview_profile_feedback",
-          })
-          .then(function () {
-            wx.showToast({ title: "感谢反馈", icon: "success" });
-          })
-          .catch(function () {
-            wx.showToast({ title: "提交失败，请稍后重试", icon: "none" });
-          });
-      },
-    });
+    wx.navigateTo({ url: route.feedback({ source: "profile" }) });
   },
 
   openLink: function (e) {
@@ -438,7 +411,7 @@ Page({
     } else if (id === "membership") {
       wx.navigateTo({ url: route.billing() });
     } else if (id === "feedback") {
-      this.submitProductFeedback();
+      this.openFeedbackPage();
     } else if (id === "terms") {
       wx.navigateTo({ url: route.terms() });
     }

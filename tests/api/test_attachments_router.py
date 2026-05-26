@@ -134,6 +134,56 @@ def test_attachment_router_allows_admin(monkeypatch, tmp_path: Path) -> None:
     assert response.text == "hello"
 
 
+def test_attachment_router_serves_feedback_attachment_to_owner_and_admin(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    client, store, _session_store = _build_app(
+        monkeypatch,
+        tmp_path,
+        current_user=_ctx("student_demo"),
+    )
+    _write_attachment(store.root, "feedback-student_demo", "fb-a_screen.png")
+
+    with client:
+        owner_response = client.get("/api/attachments/feedback-student_demo/fb-a/screen.png")
+
+    assert owner_response.status_code == 200
+    assert owner_response.text == "hello"
+
+    admin_client, admin_store, _admin_session_store = _build_app(
+        monkeypatch,
+        tmp_path,
+        current_user=_ctx("admin_demo", is_admin=True),
+    )
+    _write_attachment(admin_store.root, "feedback-student_other", "fb-a_screen.png")
+
+    with admin_client:
+        admin_response = admin_client.get(
+            "/api/attachments/feedback-student_other/fb-a/screen.png"
+        )
+
+    assert admin_response.status_code == 200
+    assert admin_response.text == "hello"
+
+
+def test_attachment_router_rejects_feedback_attachment_non_owner(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    client, store, _session_store = _build_app(
+        monkeypatch,
+        tmp_path,
+        current_user=_ctx("student_demo"),
+    )
+    _write_attachment(store.root, "feedback-student_other", "fb-a_screen.png")
+
+    with client:
+        response = client.get("/api/attachments/feedback-student_other/fb-a/screen.png")
+
+    assert response.status_code == 403
+
+
 def test_attachment_router_rejects_path_traversal_even_when_basename_exists(
     monkeypatch,
     tmp_path: Path,

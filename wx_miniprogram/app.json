@@ -6,6 +6,7 @@
     "pages/history/history",
     "pages/report/report",
     "pages/attempt-detail/attempt-detail",
+    "pages/feedback/feedback",
     "pages/profile/profile"
   ],
   "subpackages": [

@@ -11,6 +11,7 @@ from fastapi.responses import FileResponse
 from deeptutor.api.dependencies import AuthContext, get_current_user
 from deeptutor.services.session import build_user_owner_key, get_sqlite_session_store
 from deeptutor.services.storage import LocalDiskAttachmentStore, get_attachment_store
+from deeptutor.tutorbot.utils.helpers import safe_filename
 
 router = APIRouter()
 
@@ -31,6 +32,14 @@ async def _authorize_session_attachment_access(
     session_id: str,
     current_user: AuthContext,
 ) -> None:
+    if session_id.startswith("feedback-"):
+        if current_user.is_admin:
+            return
+        expected = f"feedback-{safe_filename(str(current_user.user_id or '').strip())}"
+        if expected and session_id == expected:
+            return
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+
     store = get_sqlite_session_store()
     owner_key = await store.get_session_owner_key(session_id)
     if owner_key:

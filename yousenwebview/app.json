@@ -25,6 +25,7 @@
         "pages/report/report",
         "pages/mistake-book/mistake-book",
         "pages/attempt-detail/attempt-detail",
+        "pages/feedback/feedback",
         "pages/profile/profile",
         "pages/login/login",
         "pages/login/manual",

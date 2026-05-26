@@ -1,0 +1,969 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>鲁班智考意见反馈模块系统优化方案</title>
+  <style>
+    :root {
+      --bg: #080f1d;
+      --bg-2: #0b1424;
+      --panel: rgba(16, 28, 49, 0.86);
+      --panel-2: rgba(20, 34, 58, 0.92);
+      --line: rgba(148, 163, 184, 0.16);
+      --text: #f5f9ff;
+      --muted: #95a7bf;
+      --soft: #cbd7e8;
+      --cyan: #7dd3fc;
+      --blue: #60a5fa;
+      --green: #34d399;
+      --orange: #fbbf24;
+      --red: #fb7185;
+      --purple: #a78bfa;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 78% 0%, rgba(96, 165, 250, .19), transparent 30%),
+        radial-gradient(circle at 12% 16%, rgba(52, 211, 153, .08), transparent 30%),
+        linear-gradient(180deg, #050910 0%, var(--bg) 24%, #07101e 100%);
+      line-height: 1.58;
+    }
+
+    a { color: var(--cyan); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      min-height: 520px;
+      padding: 46px 28px 58px;
+      display: grid;
+      align-items: end;
+      border-bottom: 1px solid var(--line);
+      background:
+        radial-gradient(circle at 82% 16%, rgba(125, 211, 252, .2), transparent 26%),
+        linear-gradient(145deg, rgba(11, 25, 47, .96), rgba(11, 20, 36, .82));
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0;
+      height: 180px;
+      background: linear-gradient(180deg, transparent, rgba(8, 15, 29, .88));
+      pointer-events: none;
+    }
+
+    .hero-inner {
+      position: relative;
+      z-index: 1;
+      width: min(1180px, 100%);
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 11px;
+      border: 1px solid rgba(125, 211, 252, .24);
+      border-radius: 999px;
+      background: rgba(125, 211, 252, .09);
+      color: var(--cyan);
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    h1 {
+      max-width: 880px;
+      margin: 22px 0 14px;
+      font-size: clamp(34px, 6vw, 68px);
+      line-height: 1.04;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      max-width: 790px;
+      margin: 0;
+      color: #c8d7ea;
+      font-size: 18px;
+    }
+
+    .hero-grid {
+      margin-top: 32px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      max-width: 980px;
+    }
+
+    .hero-stat {
+      min-height: 92px;
+      padding: 16px;
+      border: 1px solid rgba(148, 163, 184, .18);
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(255,255,255,.085), rgba(255,255,255,.04));
+      box-shadow: 0 18px 44px rgba(0, 0, 0, .24);
+      backdrop-filter: blur(18px);
+    }
+
+    .hero-stat strong {
+      display: block;
+      color: #fff;
+      font-size: 25px;
+      line-height: 1;
+    }
+
+    .hero-stat span {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    main {
+      width: min(1180px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 36px 0 82px;
+    }
+
+    .band {
+      position: relative;
+      margin-top: 24px;
+      padding: 26px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,.074), rgba(255,255,255,.035));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      overflow: hidden;
+    }
+
+    .band::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 4px;
+      background: linear-gradient(var(--cyan), var(--blue), var(--green));
+      opacity: .88;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 27px;
+      line-height: 1.16;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 0 0 9px;
+      font-size: 17px;
+      line-height: 1.22;
+      letter-spacing: 0;
+    }
+
+    .muted,
+    .section-head p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 5px 9px;
+      border: 1px solid rgba(125, 211, 252, .18);
+      border-radius: 999px;
+      background: rgba(125, 211, 252, .09);
+      color: var(--cyan);
+      font-size: 12px;
+      font-weight: 760;
+      white-space: nowrap;
+    }
+
+    .tag.green { border-color: rgba(52, 211, 153, .2); background: rgba(52, 211, 153, .1); color: var(--green); }
+    .tag.amber { border-color: rgba(251, 191, 36, .2); background: rgba(251, 191, 36, .1); color: var(--orange); }
+    .tag.red { border-color: rgba(251, 113, 133, .2); background: rgba(251, 113, 133, .1); color: var(--red); }
+    .tag.blue { color: var(--blue); }
+
+    .grid-2,
+    .grid-3,
+    .grid-4 {
+      display: grid;
+      gap: 14px;
+    }
+
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .card {
+      padding: 17px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, .052);
+    }
+
+    .card.dark {
+      background:
+        radial-gradient(circle at top right, rgba(96, 165, 250, .15), transparent 40%),
+        rgba(9, 18, 33, .78);
+    }
+
+    .research-list {
+      display: grid;
+      gap: 11px;
+    }
+
+    .research-row {
+      display: grid;
+      grid-template-columns: 170px 1fr 1fr;
+      gap: 14px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255,255,255,.052);
+    }
+
+    .research-row strong {
+      display: block;
+      margin-bottom: 7px;
+      color: #f8fbff;
+    }
+
+    .diagnosis,
+    .phone-row {
+      display: grid;
+      gap: 18px;
+    }
+
+    .diagnosis { grid-template-columns: .95fr 1.05fr; }
+    .phone-row { grid-template-columns: 336px 1fr; align-items: start; }
+
+    .bad-list,
+    .good-list,
+    .check-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 10px;
+    }
+
+    .bad-list li,
+    .good-list li,
+    .check-list li {
+      position: relative;
+      padding-left: 22px;
+      color: #d7e3f4;
+    }
+
+    .bad-list li::before,
+    .good-list li::before,
+    .check-list li::before {
+      position: absolute;
+      left: 0;
+      top: 0;
+      font-weight: 850;
+    }
+
+    .bad-list li::before { content: "!"; color: var(--red); }
+    .good-list li::before { content: "+"; color: var(--green); }
+    .check-list li::before { content: "✓"; color: var(--cyan); }
+
+    .phone {
+      width: min(336px, 100%);
+      margin: 0 auto;
+      border-radius: 34px;
+      padding: 10px;
+      border: 1px solid rgba(125, 211, 252, .16);
+      background: #030810;
+      box-shadow: 0 26px 72px rgba(0, 0, 0, .48);
+    }
+
+    .phone-screen {
+      min-height: 686px;
+      overflow: hidden;
+      border-radius: 26px;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 84% 8%, rgba(96, 165, 250, .18), transparent 30%),
+        var(--bg);
+    }
+
+    .phone-top {
+      padding: 18px 18px 14px;
+      border-bottom: 1px solid rgba(148, 163, 184, .13);
+      background:
+        radial-gradient(circle at top right, rgba(125,211,252,.17), transparent 40%),
+        rgba(7, 17, 31, .9);
+    }
+
+    .phone-top small {
+      color: var(--cyan);
+      font-weight: 780;
+    }
+
+    .phone-top h3 {
+      margin: 9px 0 5px;
+      font-size: 23px;
+      line-height: 1.15;
+    }
+
+    .phone-body { padding: 15px; }
+
+    .quick-choice {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+      margin-bottom: 14px;
+    }
+
+    .choice {
+      min-height: 79px;
+      padding: 10px;
+      border-radius: 15px;
+      border: 1px solid rgba(148, 163, 184, .17);
+      background: rgba(255,255,255,.052);
+    }
+
+    .choice b {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+
+    .choice span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.4;
+    }
+
+    .choice.active {
+      border-color: rgba(125, 211, 252, .52);
+      background: rgba(96, 165, 250, .15);
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0 14px;
+    }
+
+    .chip {
+      padding: 7px 10px;
+      border: 1px solid rgba(148, 163, 184, .18);
+      border-radius: 999px;
+      background: rgba(255,255,255,.052);
+      color: #dbeafe;
+      font-size: 12px;
+      font-weight: 720;
+    }
+
+    .chip.on {
+      border-color: transparent;
+      background: rgba(96, 165, 250, .25);
+      color: #eef8ff;
+    }
+
+    .textarea {
+      min-height: 110px;
+      padding: 12px;
+      border: 1px solid rgba(148, 163, 184, .18);
+      border-radius: 15px;
+      background: rgba(255,255,255,.052);
+      color: #b8c7dc;
+      font-size: 13px;
+    }
+
+    .attachment-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .attach {
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      border: 1px dashed rgba(148, 163, 184, .3);
+      border-radius: 13px;
+      background: rgba(255,255,255,.045);
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.3;
+    }
+
+    .auto-box {
+      padding: 10px;
+      border: 1px solid rgba(52, 211, 153, .2);
+      border-radius: 14px;
+      background: rgba(52, 211, 153, .075);
+      color: #c8f7df;
+      font-size: 12px;
+    }
+
+    .primary-btn,
+    .secondary-btn {
+      display: grid;
+      place-items: center;
+      border-radius: 15px;
+      font-weight: 820;
+    }
+
+    .primary-btn {
+      margin-top: 14px;
+      height: 48px;
+      background: linear-gradient(135deg, #2563eb, #60a5fa);
+      color: #fff;
+      box-shadow: 0 14px 30px rgba(37, 99, 235, .32);
+    }
+
+    .secondary-btn {
+      margin-top: 10px;
+      height: 42px;
+      background: rgba(255,255,255,.07);
+      color: #dbeafe;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      counter-reset: step;
+    }
+
+    .flow-step {
+      min-height: 142px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255,255,255,.052);
+    }
+
+    .flow-step::before {
+      counter-increment: step;
+      content: counter(step);
+      width: 28px;
+      height: 28px;
+      display: inline-grid;
+      place-items: center;
+      margin-bottom: 12px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--cyan), #2563eb);
+      color: #fff;
+      font-weight: 850;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 16px;
+      background: rgba(255,255,255,.035);
+    }
+
+    .table th,
+    .table td {
+      padding: 12px;
+      border: 1px solid rgba(148, 163, 184, .16);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .table th {
+      color: #dff4ff;
+      background: rgba(96, 165, 250, .12);
+      font-size: 13px;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 12px;
+    }
+
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 112px 1fr;
+      gap: 14px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255,255,255,.052);
+    }
+
+    .source-list {
+      columns: 2;
+      column-gap: 24px;
+      margin: 0;
+      padding-left: 18px;
+      color: #d7e3f4;
+    }
+
+    .source-list li {
+      break-inside: avoid;
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 920px) {
+      .hero { min-height: 520px; padding: 36px 20px 42px; }
+      .hero-grid,
+      .grid-2,
+      .grid-3,
+      .grid-4,
+      .research-row,
+      .diagnosis,
+      .phone-row,
+      .flow,
+      .timeline-item {
+        grid-template-columns: 1fr;
+      }
+      .source-list { columns: 1; }
+      main { width: min(100% - 28px, 1180px); }
+      .band { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow">微信小程序意见反馈 · 学情模块同款视觉</div>
+      <h1>把“意见反馈”从一个输入框升级成产品质量闭环</h1>
+      <p>
+        当前“我的 → 意见反馈”只有一个文本弹窗，用户难以说明问题，团队也难以定位根因。
+        新方案保留轻量入口，同时补齐问题类型、图片/视频附件、自动上下文、追问引导、后台分诊和质量回流。
+      </p>
+      <div class="hero-grid">
+        <div class="hero-stat"><strong>20 秒</strong><span>普通用户完成一次有效反馈</span></div>
+        <div class="hero-stat"><strong>3 步</strong><span>选择问题 → 补证据 → 提交</span></div>
+        <div class="hero-stat"><strong>1 个 intake</strong><span>用户侧统一入口，后台保留来源</span></div>
+        <div class="hero-stat"><strong>0 重复真相</strong><span>不让前端或 BI 变成反馈 authority</span></div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="band">
+      <div class="section-head">
+        <div>
+          <h2>执行边界</h2>
+          <p>本页是评审方案，不是生产实现。它应挂在现有“鲁班智考反馈 Top10 修复 / BI 反馈中心”主线下。</p>
+        </div>
+        <span class="tag blue">Design Proposal</span>
+      </div>
+      <div class="grid-4">
+        <div class="card">
+          <h3>Assumptions</h3>
+          <p class="muted">首要场景是微信小程序“我的”页反馈；其次覆盖聊天消息点踩、学情/测评/支付等上下文反馈。</p>
+        </div>
+        <div class="card">
+          <h3>Simplest Path</h3>
+          <p class="muted">先做一个全屏反馈页和附件能力，不重做客服系统、不新建聊天入口、不把所有反馈混成一张无来源大表。</p>
+        </div>
+        <div class="card">
+          <h3>Change Boundary</h3>
+          <p class="muted">触碰用户反馈入口、反馈提交 payload、附件 sidecar、BI 反馈中心读模型；不改 TutorBot 主链路。</p>
+        </div>
+        <div class="card">
+          <h3>Verification Target</h3>
+          <p class="muted">WeChat DevTools 可上传图片并提交；Supabase/后台可看到结构化字段、附件、页面上下文和处理状态。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="band">
+      <div class="section-head">
+        <div>
+          <h2>外部调研结论</h2>
+          <p>顶尖产品不是让用户写作文，而是让用户用最少动作给出可定位证据。</p>
+        </div>
+        <span class="tag green">Research-backed</span>
+      </div>
+      <div class="research-list">
+        <div class="research-row">
+          <div><strong>Apple Feedback Assistant</strong><span class="tag blue">诊断 + 附件</span></div>
+          <p class="muted">强调尽早提交、一个报告只讲一个问题、标题要包含平台/版本/关键信息；UI 问题应附截图或录屏，并自动收集诊断信息。</p>
+          <p><strong>可借鉴：</strong>自动带上页面、版本、网络、trace；引导“实际结果 / 期望结果 / 复现步骤”，但只在需要时展开。</p>
+        </div>
+        <div class="research-row">
+          <div><strong>Discord Bug Report</strong><span class="tag amber">结构化表单</span></div>
+          <p class="muted">把问题拆成描述、复现步骤、期望结果、实际结果、客户端信息、debug logs、附件。</p>
+          <p><strong>可借鉴：</strong>对“系统出错”类反馈启用结构化追问；对普通建议保持轻量。</p>
+        </div>
+        <div class="research-row">
+          <div><strong>Slack Troubleshooting</strong><span class="tag green">自动日志</span></div>
+          <p class="muted">用户只写简短摘要，日志在提交时自动附上，降低用户负担，同时提高工程定位效率。</p>
+          <p><strong>可借鉴：</strong>小程序提交时自动附 recent route、last request ids、网络状态、客户端版本，而不是要求用户手动说明。</p>
+        </div>
+        <div class="research-row">
+          <div><strong>Luciq / Instabug</strong><span class="tag blue">选择题优先</span></div>
+          <p class="muted">建议用互斥选项、具体问题、先问最重要的问题，并允许 Other / 不确定，避免笼统开放题。</p>
+          <p><strong>可借鉴：</strong>第一屏先让用户选问题类型和症状标签，文本说明变成可选增强，不作为唯一入口。</p>
+        </div>
+        <div class="research-row">
+          <div><strong>FeedAIde 研究</strong><span class="tag red">上下文追问</span></div>
+          <p class="muted">上下文感知追问能让反馈更完整；研究中用户认为它比简单表单更容易、更有帮助。</p>
+          <p><strong>可借鉴：</strong>P2 增加“智能补问”：只在反馈信息不足时问 1 个问题，不让 AI 接管分诊 authority。</p>
+        </div>
+        <div class="research-row">
+          <div><strong>微信小程序能力</strong><span class="tag amber">图片 / 视频</span></div>
+          <p class="muted">微信生态可用 chooseMedia 选图片/视频，再上传到云存储；审核版本需要声明 chooseMedia 隐私权限。</p>
+          <p><strong>可借鉴：</strong>支持最多 3 张图或 1 段短视频，默认压缩，明确隐私提示和删除按钮。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="band">
+      <div class="section-head">
+        <div>
+          <h2>现状诊断</h2>
+          <p>仓库现状说明：消息点踩已有标签，Profile 反馈仍是一个 modal 输入框，后台已有 ai_feedback 与 BI 反馈中心基础。</p>
+        </div>
+        <span class="tag red">Current Gap</span>
+      </div>
+      <div class="diagnosis">
+        <div class="card">
+          <h3>现在的问题</h3>
+          <ul class="bad-list">
+            <li>“我的 → 意见反馈”打开的是 `wx.showModal editable`，只能写一段文本。</li>
+            <li>不能选择问题类型：登录、支付、AI 答案、题目答案、页面显示、加载慢等被混成“产品反馈”。</li>
+            <li>不能上传照片或录屏，UI 问题需要用户自行描述，丢失最关键证据。</li>
+            <li>Profile 反馈没有页面上下文、设备、网络、最近接口、trace 的明确采集协议。</li>
+            <li>聊天消息点踩和全局反馈是两套体验：前者有标签，后者没有；后台聚合会有噪声。</li>
+          </ul>
+        </div>
+        <div class="card dark">
+          <h3>真正坏掉的一等业务事实</h3>
+          <p class="muted">
+            不是“缺一个好看的表单”，而是“用户遇到的问题事实没有被完整、结构化、可追踪地写入反馈系统”。
+            这会导致运营看到情绪，工程看不到上下文，教研看不到题目证据，产品看不到优先级。
+          </p>
+          <div class="chip-row">
+            <span class="tag red">缺证据</span>
+            <span class="tag amber">缺分类</span>
+            <span class="tag blue">缺上下文</span>
+            <span class="tag green">缺闭环</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="band">
+      <div class="section-head">
+        <div>
+          <h2>推荐方案：轻入口，重证据，后台闭环</h2>
+          <p>用户侧只看到简单流程；系统侧自动收集足够定位问题的上下文。</p>
+        </div>
+        <span class="tag green">Recommended</span>
+      </div>
+      <div class="phone-row">
+        <div class="phone" aria-label="手机端反馈页原型">
+          <div class="phone-screen">
+            <div class="phone-top">
+              <small>我的 / 意见反馈</small>
+              <h3>帮我们定位问题</h3>
+              <p class="muted">选一下类型，能截图就更好。提交后可在“我的反馈”查看处理状态。</p>
+            </div>
+            <div class="phone-body">
+              <div class="quick-choice">
+                <div class="choice active"><b>系统出错</b><span>闪退、卡住、打不开、加载慢</span></div>
+                <div class="choice"><b>答案有问题</b><span>事实错、解析错、题目错</span></div>
+                <div class="choice"><b>体验建议</b><span>不好用、不方便、想要功能</span></div>
+                <div class="choice"><b>支付会员</b><span>充值、权益、订单异常</span></div>
+              </div>
+
+              <b>出现了什么？</b>
+              <div class="chip-row">
+                <span class="chip on">页面显示错乱</span>
+                <span class="chip">一直加载</span>
+                <span class="chip">按钮点了没反应</span>
+                <span class="chip">登录异常</span>
+                <span class="chip">其他</span>
+              </div>
+
+              <b>补充说明</b>
+              <div class="textarea">例如：在“我的”页点意见反馈后，只能写文字，没法上传截图。希望能选择问题类型并附图。</div>
+
+              <b>附件</b>
+              <div class="attachment-grid">
+                <div class="attach">+<br />截图</div>
+                <div class="attach">+<br />拍照</div>
+                <div class="attach">+<br />录屏</div>
+                <div class="attach">最多 3 张</div>
+              </div>
+
+              <div class="auto-box">
+                已自动附上：当前页面、账号匿名 ID、客户端版本、网络状态、最近 5 个接口请求 ID。提交前可关闭。
+              </div>
+              <div class="primary-btn">提交反馈</div>
+              <div class="secondary-btn">查看我的反馈进度</div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="grid-2">
+            <div class="card">
+              <h3>用户侧原则</h3>
+              <ul class="good-list">
+                <li>默认 3 步完成：类型、症状、提交。</li>
+                <li>文本可选，但“建议”和“题目错误”场景会鼓励补充。</li>
+                <li>图片/视频入口显眼，支持删除和预览。</li>
+                <li>提交后给反馈编号和进度，不只说“感谢”。</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>团队侧原则</h3>
+              <ul class="good-list">
+                <li>每条反馈带 source、surface、route、problem_type、symptom_tags。</li>
+                <li>附件与日志是 evidence，不进入文本 comment 混存。</li>
+                <li>BI 反馈中心按 owner 分流：产品、工程、教研、运营。</li>
+                <li>处理结果写 audit，可回看、可复盘、可统计 SLA。</li>
+              </ul>
+            </div>
+          </div>
+          <div class="card" style="margin-top:14px">
+            <h3>关键取舍</h3>
+            <p class="muted">
+              不建议把反馈入口做成“在线客服聊天”。第一阶段用户需要的是低摩擦提交，团队需要的是证据完整。
+              客服对话可以作为后续处理通道，但不应该替代结构化 intake。
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="band">
+      <div class="section-head">
+        <div>
+          <h2>信息架构</h2>
+          <p>反馈不是单表单，而是一条从用户问题到产品修复的链路。</p>
+        </div>
+      </div>
+      <div class="flow">
+        <div class="flow-step">
+          <h3>入口</h3>
+          <p class="muted">我的页、聊天点踩、错误态按钮、学情/测评页面的“报告问题”。</p>
+        </div>
+        <div class="flow-step">
+          <h3>分类</h3>
+          <p class="muted">系统问题、答案问题、题目/教研问题、体验建议、支付会员。</p>
+        </div>
+        <div class="flow-step">
+          <h3>证据</h3>
+          <p class="muted">截图、录屏、页面 route、trace/request id、设备网络、关联题目/消息。</p>
+        </div>
+        <div class="flow-step">
+          <h3>分诊</h3>
+          <p class="muted">自动 owner 建议 + 人工确认；去重、优先级、SLA、状态。</p>
+        </div>
+        <div class="flow-step">
+          <h3>闭环</h3>
+          <p class="muted">用户进度、BI 统计、Top10 问题域、修复证据、回归验证。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="band">
+      <div class="section-head">
+        <div>
+          <h2>字段与单一 authority</h2>
+          <p>避免“前端一套、BI 一套、运营备注一套”的反馈真相漂移。</p>
+        </div>
+        <span class="tag amber">Authority Design</span>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>业务事实</th>
+            <th>唯一写入/读取建议</th>
+            <th>必须字段</th>
+            <th>不要做</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>用户提交了一条问题反馈</td>
+            <td>`FeedbackIntakeService` 统一归一化；消息反馈继续兼容现有 `ai_feedback`，全局问题走反馈 report authority。</td>
+            <td>feedback_id、user_id、source、surface、route、problem_type、symptom_tags、comment、created_at。</td>
+            <td>不要让 profile modal 直接拼接无结构 comment；不要让 BI 前端写业务真相。</td>
+          </tr>
+          <tr>
+            <td>用户提供了可定位证据</td>
+            <td>`feedback_attachments` sidecar；文件存储只保存 file id / hash / mime / size / width / height。</td>
+            <td>attachment_id、feedback_id、kind、storage_key、thumb_url、redaction_status、upload_status。</td>
+            <td>不要把图片 base64 塞进反馈表；不要公开永久 URL。</td>
+          </tr>
+          <tr>
+            <td>系统自动采集上下文</td>
+            <td>`feedback_context_snapshot` 随 intake 写入，只保存必要调试字段。</td>
+            <td>app_version、route、network_type、device_model、last_request_ids、trace_id、session_id、message_id。</td>
+            <td>不要采集通讯录、相册列表、隐私文本；不要把日志采集做成默认全量录屏。</td>
+          </tr>
+          <tr>
+            <td>团队处理了反馈</td>
+            <td>BI 反馈中心写 `feedback_triage` audit；状态变更必须有 owner、reason、idempotency key。</td>
+            <td>status、priority、owner_team、resolution、linked_issue、handled_by、handled_at。</td>
+            <td>不要用本地状态覆盖后端状态；不要忽略冲突写入。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="band">
+      <div class="section-head">
+        <div>
+          <h2>问题类型设计</h2>
+          <p>让用户容易选，也让后台可以分派到真正的 owner。</p>
+        </div>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <span class="tag red">工程</span>
+          <h3>系统出错</h3>
+          <p class="muted">打不开、卡住、加载慢、按钮无响应、登录异常、上传失败、页面显示错乱。</p>
+        </div>
+        <div class="card">
+          <span class="tag amber">教研 + 模型</span>
+          <h3>答案 / 题目有问题</h3>
+          <p class="muted">事实错误、解析看不懂、标准答案不一致、题目选项错误、没有引用依据。</p>
+        </div>
+        <div class="card">
+          <span class="tag blue">产品</span>
+          <h3>体验建议</h3>
+          <p class="muted">不好找、流程麻烦、希望增加功能、视觉看不清、操作路径不符合预期。</p>
+        </div>
+        <div class="card">
+          <span class="tag green">运营</span>
+          <h3>支付 / 会员</h3>
+          <p class="muted">充值失败、权益未到账、余额异常、套餐说明不清、发票/订单问题。</p>
+        </div>
+        <div class="card">
+          <span class="tag blue">学情</span>
+          <h3>学习记录问题</h3>
+          <p class="muted">错题没记录、报告不准、训练推荐不对、历史对话找不到、进度异常。</p>
+        </div>
+        <div class="card">
+          <span class="tag amber">兜底</span>
+          <h3>其他 / 不确定</h3>
+          <p class="muted">允许用户不知道问题属于哪里，但后台必须再分诊，不让“其他”成为垃圾桶。</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="band">
+      <div class="section-head">
+        <div>
+          <h2>落地阶段</h2>
+          <p>先让用户能提交高质量证据，再做智能追问和跨模块质量闭环。</p>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div><span class="tag green">P0 / 2-3 天</span></div>
+          <div>
+            <h3>替换 Profile 单输入框为全屏反馈页</h3>
+            <ul class="check-list">
+              <li>新增问题类型、症状 chips、可选描述、最多 3 张图片或 1 段短视频。</li>
+              <li>自动上下文 snapshot：route、app version、network、last request ids、user anonymous id。</li>
+              <li>提交成功返回 feedback_id；失败保留草稿并支持重试。</li>
+              <li>WeChat DevTools 验证 chooseMedia 隐私配置、上传、删除、弱网失败态。</li>
+            </ul>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div><span class="tag blue">P1 / 4-6 天</span></div>
+          <div>
+            <h3>统一消息点踩与全局反馈的字段协议</h3>
+            <ul class="check-list">
+              <li>聊天点踩继续轻量，但补齐 problem_type 和 context_snapshot。</li>
+              <li>BI 反馈中心展示附件、页面、owner、状态、SLA 和处理记录。</li>
+              <li>Top10 issue register 从反馈中心生成候选问题域，人工确认后进入修复队列。</li>
+            </ul>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div><span class="tag amber">P2 / 1-2 周</span></div>
+          <div>
+            <h3>智能补问与去重聚类</h3>
+            <ul class="check-list">
+              <li>仅当缺少关键字段时补问一个问题，例如“这个问题能稳定复现吗？”</li>
+              <li>用上下文和截图摘要做相似反馈聚类，降低重复 triage 成本。</li>
+              <li>向用户显示“已有类似问题，已合并跟进”，但保留个人反馈编号。</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="band">
+      <div class="section-head">
+        <div>
+          <h2>验收清单</h2>
+          <p>这个模块上线前不能只看页面能点，要证明“证据被正确写入并可处理”。</p>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>用户体验 Gate</h3>
+          <ul class="check-list">
+            <li>不写长文本也能提交一个可分诊反馈。</li>
+            <li>照片/录屏可添加、预览、删除、失败重试。</li>
+            <li>弱网/上传失败不丢草稿。</li>
+            <li>提交后能看到反馈编号和处理状态入口。</li>
+            <li>页面文案不要求用户懂“trace / request id / authority”。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>后台闭环 Gate</h3>
+          <ul class="check-list">
+            <li>Supabase/存储能查到结构化字段、附件 sidecar、上下文 snapshot。</li>
+            <li>BI 反馈中心能按 problem_type、owner、status、source 过滤。</li>
+            <li>反馈状态变更写 audit，重复提交可幂等处理。</li>
+            <li>敏感信息脱敏：手机号、token、完整日志、相册路径不得裸露。</li>
+            <li>能从一条反馈跳回相关页面、消息、题目或订单证据。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="band">
+      <div class="section-head">
+        <div>
+          <h2>参考来源</h2>
+          <p>本方案参考了移动端反馈、bug report、in-app survey 与小程序上传能力资料。</p>
+        </div>
+      </div>
+      <ol class="source-list">
+        <li><a href="https://developer.apple.com/feedback-assistant/">Apple Feedback Assistant</a>：诊断信息、一个问题一份报告、截图/录屏、状态与相似报告。</li>
+        <li><a href="https://support.discord.com/hc/en-us/articles/1500006052822-How-to-Report-a-Bug">Discord: How to Report a Bug</a>：描述、复现、期望/实际结果、日志与附件。</li>
+        <li><a href="https://slack.com/help/articles/360001559367-Troubleshoot-Slack-notifications">Slack Troubleshooting</a>：报告问题时自动附加日志。</li>
+        <li><a href="https://www.luciq.ai/blog/in-app-surveys">Luciq / Instabug In-app Surveys</a>：选择题优先、具体问题、允许 Other。</li>
+        <li><a href="https://m2.material.io/components/text-fields">Material Design Text Fields</a>：输入字段应清晰、可发现、便于纠错。</li>
+        <li><a href="https://arxiv.org/abs/2603.04244">FeedAIde</a>：上下文感知追问提升反馈完整度。</li>
+        <li><a href="https://docs.cloudbase.net/recipes/add-file-upload-wechat-miniprogram">CloudBase 微信小程序文件上传</a>：chooseMedia、上传、隐私权限配置。</li>
+      </ol>
+    </section>
+  </main>
+</body>
+</html>

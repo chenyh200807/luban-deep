@@ -121,6 +121,25 @@ async function mockBiV2ReadApis(
             feedback_source: "ai_message",
             answer_mode: "deep",
             effective_response_mode: "deep",
+            problem_type: "learning_report",
+            symptom_tags: ["data_wrong", "card_tap_failed"],
+            attachment_count: 1,
+            attachments: [
+              {
+                id: "fb-att-1",
+                kind: "image",
+                filename: "screen.png",
+                mime_type: "image/png",
+                size: 2048,
+                url: "/api/attachments/feedback-user_1/fb-att-1/screen.png",
+              },
+            ],
+            context_snapshot: {
+              route: "packageDeeptutor/pages/profile/profile",
+              network_type: "wifi",
+              device_model: "iPhone",
+              system: "iOS 17",
+            },
             created_at: "2026-05-23T10:00:00Z",
           },
         ],
@@ -569,6 +588,10 @@ test("BI v2 read-only details open for overview, feedback, and ops", async ({ pa
   const feedbackDialog = page.getByRole("dialog", { name: "反馈详情 · fb_test_1" });
   await expect(feedbackDialog).toBeVisible();
   await expect(feedbackDialog.getByText("学员反馈讲解不清楚")).toBeVisible();
+  await expect(feedbackDialog.getByText("学情模块")).toBeVisible();
+  await expect(feedbackDialog.getByText("数据不对")).toBeVisible();
+  await expect(feedbackDialog.getByText("screen.png")).toBeVisible();
+  await expect(feedbackDialog.getByText("页面：packageDeeptutor/pages/profile/profile")).toBeVisible();
   await page.getByRole("button", { name: "关闭抽屉" }).click();
   await page.getByRole("button", { name: "标记已看反馈 fb_test_1" }).click();
   await expect.poll(() => feedbackTriageIdempotencyKey).toMatch(/^[A-Za-z0-9_-]{1,128}$/);

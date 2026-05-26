@@ -35,6 +35,7 @@ function loadProfilePage(submitFeedback) {
   var pageDef = null;
   var toasts = [];
   var modals = [];
+  var navigations = [];
   var sandbox = {
     console: console,
     Set: Set,
@@ -80,7 +81,9 @@ function loadProfilePage(submitFeedback) {
       showToast: function (payload) {
         toasts.push(payload);
       },
-      navigateTo: function () {},
+      navigateTo: function (payload) {
+        navigations.push(payload);
+      },
       switchTab: function () {},
       getStorageSync: function () {
         return "";
@@ -102,7 +105,7 @@ function loadProfilePage(submitFeedback) {
   Object.keys(pageDef || {}).forEach(function (key) {
     if (key !== "data") page[key] = pageDef[key];
   });
-  return { page: page, toasts: toasts, modals: modals };
+  return { page: page, toasts: toasts, modals: modals, navigations: navigations };
 }
 
 assert(
@@ -121,9 +124,9 @@ assert(
   "profile should not keep native button styles that shift feedback alignment",
 );
 assert(
-  profileJs.indexOf("submitProductFeedback") >= 0 &&
-    profileJs.indexOf('feedback_source: "wx_miniprogram_profile_feedback"') >= 0,
-  "profile feedback should submit to the DeepTutor feedback pipeline with a distinct source",
+  profileJs.indexOf("openFeedbackPage") >= 0 &&
+    profileJs.indexOf("/pages/feedback/feedback") >= 0,
+  "profile feedback should navigate to the dedicated feedback page",
 );
 
 (async function run() {
@@ -135,15 +138,12 @@ assert(
   loaded.page.openLink({ currentTarget: { dataset: { id: "feedback" } } });
   await flush();
 
-  assert(loaded.modals.length === 1, "feedback row should open an editable feedback modal");
-  assert(calls.length === 1, "feedback row should submit once");
-  assert(calls[0].rating === -1, "profile feedback should be treated as actionable negative feedback");
-  assert(calls[0].reason_tags[0] === "产品反馈", "profile feedback should carry product feedback reason tag");
-  assert(calls[0].comment === "意见反馈入口排版不齐", "profile feedback should trim submitted content");
+  assert(loaded.modals.length === 0, "feedback row should not open the old editable modal");
+  assert(calls.length === 0, "profile row should not submit feedback before the dedicated page form");
+  assert(loaded.navigations.length === 1, "feedback row should navigate once");
   assert(
-    calls[0].feedback_source === "wx_miniprogram_profile_feedback",
-    "profile feedback should be identifiable for BI/OA scans",
+    loaded.navigations[0].url === "/pages/feedback/feedback?source=profile",
+    "feedback row should open the dedicated feedback page with a source hint",
   );
-  assert(loaded.toasts[0].title === "感谢反馈", "successful profile feedback should acknowledge submission");
   console.log("PASS test_profile_feedback_entry_contract.js");
 })();

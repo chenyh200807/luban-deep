@@ -6,7 +6,9 @@ import {
   ClipboardList,
   Filter,
   Eye,
+  Image as ImageIcon,
   Mail,
+  MapPin,
   MessageSquareWarning,
   Pencil,
   Phone,
@@ -39,6 +41,7 @@ import {
   type BiInviteTestApplication,
   type BiInviteTestStats,
 } from '@/lib/bi-api'
+import { apiUrl } from '@/lib/api'
 import { useAuditedAction } from '../useAuditedAction'
 import {
   FEEDBACK_ITEMS,
@@ -274,11 +277,14 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
       },
       {
         key: 'reason',
-        label: '原因 / 内容',
+        label: '定位 / 内容',
         render: i => (
           <div className="min-w-0">
             <div className="truncate text-slate-100">{i.reason}</div>
-            <div className="truncate text-[11px] text-slate-400">{i.detail}</div>
+            <div className="truncate text-[11px] text-slate-400">
+              {i.detail}
+              {i.attachment_count ? ` · ${i.attachment_count} 个截图/录屏` : ''}
+            </div>
           </div>
         ),
       },
@@ -668,6 +674,9 @@ function mapFeedbackRecord(record: BiFeedbackRecord, index: number): FeedbackIte
   const negative = rating < 0
   const positive = rating > 0
   const triageStatus = normalizeFeedbackStatus(record.triage_status)
+  const problemLabel = feedbackProblemLabel(record.problem_type)
+  const symptomLabels = (record.symptom_tags ?? []).map(feedbackSymptomLabel).filter(Boolean)
+  const attachmentCount = record.attachment_count ?? record.attachments?.length ?? 0
   return {
     id:
       record.feedback_id ||
@@ -676,7 +685,9 @@ function mapFeedbackRecord(record: BiFeedbackRecord, index: number): FeedbackIte
       `${record.session_id || 'feedback'}-${record.created_at || index}`,
     source,
     rating,
-    reason: tags.length > 0 ? tags.join(' / ') : renderRating(rating),
+    reason:
+      [problemLabel, symptomLabels.slice(0, 2).join(' / ')].filter(Boolean).join(' · ') ||
+      (tags.length > 0 ? tags.join(' / ') : renderRating(rating)),
     detail:
       comment ||
       [record.effective_response_mode || record.answer_mode, record.response_mode_degrade_reason]
@@ -691,8 +702,13 @@ function mapFeedbackRecord(record: BiFeedbackRecord, index: number): FeedbackIte
     effective_response_mode: record.effective_response_mode,
     response_mode_degrade_reason: record.response_mode_degrade_reason,
     reason_tags: tags,
+    problem_type: record.problem_type,
+    symptom_tags: record.symptom_tags,
+    attachment_count: attachmentCount,
+    attachments: record.attachments,
+    context_snapshot: record.context_snapshot,
     status: triageStatus ?? (negative || comment ? 'open' : positive ? 'ignored' : 'triaged'),
-    owner: inferOwner(source, tags, comment, negative),
+    owner: inferOwner(source, [...tags, record.problem_type ?? '', ...(record.symptom_tags ?? [])], comment, negative),
     created_at: record.created_at || '—',
     sla_target_hours: negative ? 24 : comment ? 72 : 0,
   }
@@ -1515,6 +1531,38 @@ function FeedbackDetailPanel({
             <KV label="answer_mode" value={item.answer_mode || '—'} />
             <KV label="effective_mode" value={item.effective_response_mode || '—'} />
           </div>
+          <section className="rounded-3xl border border-cyan-300/20 bg-cyan-300/10 p-4">
+            <div className="flex items-center gap-2 text-xs font-black text-cyan-100">
+              <MapPin className="h-4 w-4" aria-hidden />
+              小程序问题定位
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span className="rounded-xl border border-white/10 bg-white/10 px-2.5 py-1 text-xs font-bold text-white">
+                {feedbackProblemLabel(item.problem_type) || '未选择模块'}
+              </span>
+              {(item.symptom_tags ?? []).length > 0 ? (
+                item.symptom_tags?.map(tag => (
+                  <span
+                    key={tag}
+                    className="rounded-xl border border-white/10 bg-slate-950/30 px-2.5 py-1 text-xs text-slate-200"
+                  >
+                    {feedbackSymptomLabel(tag)}
+                  </span>
+                ))
+              ) : (
+                <span className="rounded-xl border border-white/10 bg-slate-950/30 px-2.5 py-1 text-xs text-slate-400">
+                  未选择具体现象
+                </span>
+              )}
+            </div>
+            <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-slate-300 sm:grid-cols-2">
+              <span>页面：{item.context_snapshot?.route || '—'}</span>
+              <span>网络：{item.context_snapshot?.network_type || '—'}</span>
+              <span>设备：{item.context_snapshot?.device_model || '—'}</span>
+              <span>系统：{item.context_snapshot?.system || item.context_snapshot?.platform || '—'}</span>
+            </div>
+          </section>
+          <FeedbackAttachmentGrid attachments={item.attachments ?? []} />
           <KV label="reason_tags" value={(item.reason_tags ?? []).join(' / ') || '—'} />
           <KV label="degrade_reason" value={item.response_mode_degrade_reason || '—'} />
           <p className="rounded-2xl border border-amber-300/25 bg-amber-300/10 p-3 text-xs leading-relaxed text-amber-100">
@@ -1525,6 +1573,149 @@ function FeedbackDetailPanel({
       ) : null}
     </BiSidePanel>
   )
+}
+
+function FeedbackAttachmentGrid({ attachments }: { attachments: NonNullable<FeedbackItem['attachments']> }) {
+  if (attachments.length === 0) {
+    return (
+      <section className="rounded-3xl border border-white/10 bg-white/[0.035] p-4 text-xs text-slate-400">
+        <div className="flex items-center gap-2 font-black text-slate-200">
+          <ImageIcon className="h-4 w-4" aria-hidden />
+          截图 / 录屏
+        </div>
+        <p className="mt-2">这条反馈没有可查看附件。</p>
+      </section>
+    )
+  }
+  return (
+    <section className="rounded-3xl border border-emerald-300/20 bg-emerald-300/10 p-4">
+      <div className="flex items-center gap-2 text-xs font-black text-emerald-100">
+        <ImageIcon className="h-4 w-4" aria-hidden />
+        截图 / 录屏 · {attachments.length}
+      </div>
+      <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {attachments.map((attachment, index) => {
+          const href = resolveFeedbackAttachmentUrl(attachment.url)
+          const isImage =
+            (attachment.kind || '').toLowerCase() === 'image' ||
+            (attachment.mime_type || '').startsWith('image/')
+          return (
+            <a
+              key={attachment.id || attachment.url || index}
+              href={href || undefined}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`查看反馈附件 ${attachment.filename || index + 1}`}
+              className="group overflow-hidden rounded-2xl border border-white/10 bg-slate-950/35 text-left transition hover:border-emerald-200/40 hover:bg-emerald-300/10"
+            >
+              <div className="grid aspect-[4/3] place-items-center bg-slate-950/50">
+                {href && isImage ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={href}
+                    alt={attachment.filename || '反馈截图'}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center gap-2 text-slate-300">
+                    <ImageIcon className="h-7 w-7" aria-hidden />
+                    <span className="text-xs font-bold">
+                      {(attachment.kind || '附件').toUpperCase()}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="space-y-1 p-3">
+                <div className="truncate text-xs font-black text-white">
+                  {attachment.filename || attachment.id || '未命名附件'}
+                </div>
+                <div className="text-[11px] text-slate-400">
+                  {formatAttachmentSize(attachment.size)} · {href ? '可打开' : '缺少可访问 URL'}
+                </div>
+              </div>
+            </a>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
+function resolveFeedbackAttachmentUrl(url: string | undefined): string {
+  const normalized = (url ?? '').trim()
+  if (!normalized) return ''
+  if (/^https?:\/\//.test(normalized)) return normalized
+  if (normalized.startsWith('/api/')) return apiUrl(normalized)
+  return normalized
+}
+
+function formatAttachmentSize(value: number | undefined): string {
+  const bytes = Number(value || 0)
+  if (!Number.isFinite(bytes) || bytes <= 0) return '未知大小'
+  if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`
+  if (bytes >= 1024) return `${Math.round(bytes / 1024)} KB`
+  return `${bytes} B`
+}
+
+function feedbackProblemLabel(value: string | undefined): string {
+  const labels: Record<string, string> = {
+    chat: '对话答疑',
+    learning_report: '学情模块',
+    assessment: '摸底测试',
+    diagnostic_report: '摸底报告',
+    history: '历史记录',
+    billing: '会员额度',
+    profile: '我的/登录',
+    content: '题目/答案',
+    system: '系统问题',
+  }
+  return labels[(value ?? '').trim()] ?? (value ?? '').trim()
+}
+
+function feedbackSymptomLabel(value: string | undefined): string {
+  const labels: Record<string, string> = {
+    no_response: '没有回复',
+    stream_stuck: '回复卡住',
+    answer_quality: '答非所问',
+    format_broken: '排版错乱',
+    copy_failed: '复制失败',
+    data_wrong: '数据不对',
+    missing_evidence: '证据缺失',
+    prescription_wrong: '今日处方不准',
+    trend_wrong: '掌握趋势异常',
+    card_tap_failed: '卡片点不开',
+    question_wrong: '题目不合适',
+    submit_failed: '提交失败',
+    result_missing: '结果没生成',
+    timer_problem: '计时异常',
+    page_stuck: '页面卡住',
+    conclusion_wrong: '结论不准',
+    weakness_wrong: '薄弱点不准',
+    reason_unclear: '依据不清',
+    report_missing: '报告丢失',
+    layout_broken: '展示错乱',
+    record_missing: '记录丢失',
+    record_open_failed: '打不开',
+    sync_delay: '同步延迟',
+    wrong_order: '顺序不对',
+    delete_failed: '删除失败',
+    balance_wrong: '余额不对',
+    pay_failed: '支付失败',
+    benefit_missing: '权益没到账',
+    order_missing: '订单缺失',
+    quota_wrong: '扣费异常',
+    login_failed: '登录异常',
+    profile_save_failed: '资料保存失败',
+    feedback_failed: '反馈提交失败',
+    navigation_wrong: '入口跳错',
+    avatar_failed: '头像失败',
+    answer_wrong: '答案错误',
+    explanation_wrong: '解析错误',
+    source_unclear: '依据不清',
+    stem_wrong: '题干错误',
+    image_missing: '图片缺失',
+  }
+  return labels[(value ?? '').trim()] ?? (value ?? '').trim()
 }
 
 function normalizeSource(value: string | undefined): FeedbackItem['source'] {

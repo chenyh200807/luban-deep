@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import mimetypes
 import os
 import re
 from datetime import datetime, timedelta
@@ -10,7 +11,7 @@ from uuid import uuid4
 from zoneinfo import ZoneInfo
 
 import httpx
-from fastapi import APIRouter, Depends, Header, HTTPException, Query
+from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, Query, UploadFile, status
 from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel, Field
 
@@ -45,6 +46,8 @@ from deeptutor.services.session import (
     get_sqlite_session_store,
     get_turn_runtime_manager,
 )
+from deeptutor.services.storage import get_attachment_store
+from deeptutor.tutorbot.utils.helpers import safe_filename
 from deeptutor.services.wallet import WalletLedgerEntry, WalletSnapshot, get_wallet_service
 from deeptutor.tutorbot.response_mode import normalize_requested_response_mode
 
@@ -63,6 +66,7 @@ _MOBILE_TUTORBOT_DESCRIPTION = "微信小程序主聊天默认建筑实务 Tutor
 _MOBILE_PLACEHOLDER_TITLES = {"", "new conversation", "新对话"}
 _MOBILE_CONVERSATION_LOOKUP_PAGE_SIZE = 500
 MobileFeedbackSupabaseClient = SupabaseFeedbackStore
+_FEEDBACK_ATTACHMENT_MAX_BYTES = 20 * 1024 * 1024
 
 _BILLING_USAGE_TZ = ZoneInfo("Asia/Shanghai")
 _BILLING_USAGE_LEDGER_WINDOW = 500
@@ -136,6 +140,13 @@ def _resolve_authenticated_user_id(authorization: str | None) -> str:
     if current_user is None or not str(current_user.user_id or "").strip():
         raise HTTPException(status_code=401, detail="Authentication required")
     return str(current_user.user_id).strip()
+
+
+def feedback_attachment_session_id(user_id: str) -> str:
+    normalized = safe_filename(str(user_id or "").strip())
+    if not normalized:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    return f"feedback-{normalized}"
 
 
 def _resolve_wallet_lookup_user_id(authorization: str | None) -> str:
@@ -1224,6 +1235,10 @@ async def _persist_mobile_feedback(
         comment=body.comment,
         answer_mode=body.answer_mode,
         feedback_source=body.feedback_source,
+        problem_type=body.problem_type,
+        symptom_tags=body.symptom_tags,
+        attachments=body.attachments,
+        context_snapshot=body.context_snapshot,
         requested_response_mode=str(feedback_context.get("requested_response_mode") or ""),
         effective_response_mode=str(feedback_context.get("effective_response_mode") or ""),
         response_mode_degrade_reason=str(
@@ -1725,6 +1740,10 @@ class ChatFeedbackRequest(BaseModel):
     comment: str = ""
     answer_mode: str = "AUTO"
     feedback_source: str = "wx_miniprogram_message_actions"
+    problem_type: str = ""
+    symptom_tags: list[str] = Field(default_factory=list)
+    attachments: list[dict[str, Any]] = Field(default_factory=list)
+    context_snapshot: dict[str, Any] = Field(default_factory=dict)
 
 
 class AssessmentCreateRequest(BaseModel):
@@ -2547,6 +2566,56 @@ async def chat_feedback(body: ChatFeedbackRequest, authorization: str | None = H
         body=body,
         authorization=authorization,
     )
+
+
+@router.post("/chat/feedback/attachments")
+async def upload_chat_feedback_attachment(
+    file: UploadFile = File(...),
+    kind: str = Form(default=""),
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    user_id = _resolve_authenticated_user_id(authorization)
+    data = await file.read(_FEEDBACK_ATTACHMENT_MAX_BYTES + 1)
+    if not data:
+        raise HTTPException(status_code=400, detail="Attachment file is empty")
+    if len(data) > _FEEDBACK_ATTACHMENT_MAX_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="Attachment file is too large",
+        )
+
+    filename = safe_filename(file.filename or "")
+    if not filename:
+        ext = ".mp4" if str(kind or "").lower() == "video" else ".jpg"
+        filename = f"feedback{ext}"
+    mime_type = str(file.content_type or "").strip()
+    guessed_mime, _ = mimetypes.guess_type(filename)
+    normalized_kind = str(kind or "").strip().lower()
+    if normalized_kind not in {"image", "video"}:
+        normalized_kind = "video" if (mime_type or guessed_mime or "").startswith("video/") else "image"
+    attachment_id = f"fb-{uuid4().hex}"
+    session_id = feedback_attachment_session_id(user_id)
+    try:
+        url = await get_attachment_store().put(
+            session_id=session_id,
+            attachment_id=attachment_id,
+            filename=filename,
+            data=data,
+            mime_type=mime_type or guessed_mime or "",
+        )
+    except Exception as exc:
+        logger.warning("Feedback attachment upload failed", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to persist attachment") from exc
+    return {
+        "attachment": {
+            "id": attachment_id,
+            "kind": normalized_kind,
+            "filename": filename,
+            "mime_type": mime_type or guessed_mime or "",
+            "size": len(data),
+            "url": url,
+        }
+    }
 
 
 @router.post("/chat/start-turn")

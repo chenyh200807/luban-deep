@@ -35,6 +35,7 @@ function loadProfilePage(submitFeedback) {
   var pageDef = null;
   var toasts = [];
   var modals = [];
+  var navigations = [];
   var sandbox = {
     console: console,
     Set: Set,
@@ -94,6 +95,10 @@ function loadProfilePage(submitFeedback) {
           billing: function () {
             return "/packageDeeptutor/pages/billing/billing";
           },
+          feedback: function (query) {
+            var suffix = query && query.source ? "?source=" + query.source : "";
+            return "/packageDeeptutor/pages/feedback/feedback" + suffix;
+          },
           terms: function () {
             return "/packageDeeptutor/pages/legal/terms";
           },
@@ -122,7 +127,9 @@ function loadProfilePage(submitFeedback) {
       showToast: function (payload) {
         toasts.push(payload);
       },
-      navigateTo: function () {},
+      navigateTo: function (payload) {
+        navigations.push(payload);
+      },
       reLaunch: function () {},
       getStorageSync: function () {
         return "";
@@ -144,7 +151,7 @@ function loadProfilePage(submitFeedback) {
   Object.keys(pageDef || {}).forEach(function (key) {
     if (key !== "data") page[key] = pageDef[key];
   });
-  return { page: page, toasts: toasts, modals: modals };
+  return { page: page, toasts: toasts, modals: modals, navigations: navigations };
 }
 
 assert(
@@ -163,9 +170,9 @@ assert(
   "package profile should not keep native button styles that shift feedback alignment",
 );
 assert(
-  profileJs.indexOf("submitProductFeedback") >= 0 &&
-    profileJs.indexOf('feedback_source: "yousenwebview_profile_feedback"') >= 0,
-  "package profile feedback should submit to the DeepTutor feedback pipeline with a distinct source",
+  profileJs.indexOf("openFeedbackPage") >= 0 &&
+    profileJs.indexOf("route.feedback") >= 0,
+  "package profile feedback should navigate to the dedicated feedback page",
 );
 
 (async function run() {
@@ -177,15 +184,12 @@ assert(
   loaded.page.openLink({ currentTarget: { dataset: { id: "feedback" } } });
   await flush();
 
-  assert(loaded.modals.length === 1, "package feedback row should open an editable feedback modal");
-  assert(calls.length === 1, "package feedback row should submit once");
-  assert(calls[0].rating === -1, "package profile feedback should be actionable negative feedback");
-  assert(calls[0].reason_tags[0] === "产品反馈", "package profile feedback should carry product feedback reason tag");
-  assert(calls[0].comment === "意见反馈入口排版不齐", "package profile feedback should trim submitted content");
+  assert(loaded.modals.length === 0, "package feedback row should not open the old editable modal");
+  assert(calls.length === 0, "package profile row should not submit feedback before the dedicated page form");
+  assert(loaded.navigations.length === 1, "package feedback row should navigate once");
   assert(
-    calls[0].feedback_source === "yousenwebview_profile_feedback",
-    "package profile feedback should be identifiable for BI/OA scans",
+    loaded.navigations[0].url === "/packageDeeptutor/pages/feedback/feedback?source=profile",
+    "package feedback row should open the dedicated feedback page with a source hint",
   );
-  assert(loaded.toasts[0].title === "感谢反馈", "successful package profile feedback should acknowledge submission");
   console.log("PASS test_package_profile_feedback_entry_contract.js");
 })();

@@ -587,6 +587,55 @@ function submitFeedback(data) {
   });
 }
 
+/** 上传意见反馈截图/录屏，返回可被 BI 打开的附件 URL */
+function uploadFeedbackAttachment(file) {
+  var input = file || {};
+  var filePath = String(input.temp_path || input.tempFilePath || input.path || "").trim();
+  if (!filePath) {
+    return Promise.reject(new Error("ATTACHMENT_FILE_REQUIRED"));
+  }
+  var baseUrl = getBaseUrl(false);
+  var token = auth.getToken();
+  return new Promise(function (resolve, reject) {
+    wx.uploadFile({
+      url: baseUrl + "/api/v1/chat/feedback/attachments",
+      filePath: filePath,
+      name: "file",
+      formData: {
+        kind: String(input.kind || input.fileType || "image"),
+      },
+      header: token
+        ? {
+            Authorization: "Bearer " + token,
+            "ngrok-skip-browser-warning": "true",
+          }
+        : {
+            "ngrok-skip-browser-warning": "true",
+          },
+      timeout: REQUEST_TIMEOUT,
+      success: function (res) {
+        if (res.statusCode < 200 || res.statusCode >= 300) {
+          reject(createHttpError(res.statusCode));
+          return;
+        }
+        var body = res.data;
+        if (typeof body === "string") {
+          try {
+            body = JSON.parse(body);
+          } catch (err) {
+            reject(new Error("INVALID_UPLOAD_RESPONSE"));
+            return;
+          }
+        }
+        resolve((body && body.attachment) || body || {});
+      },
+      fail: function (err) {
+        reject(err || new Error("UPLOAD_FAILED"));
+      },
+    });
+  });
+}
+
 /** 获取首页仪表盘（问候/复习/薄弱点） */
 function getHomeDashboard() {
   return request({ url: "/api/v1/homepage/dashboard", method: "GET" });
@@ -646,6 +695,7 @@ module.exports = {
   getLedger: getLedger,
   createBillingCheckout: createBillingCheckout,
   submitFeedback: submitFeedback,
+  uploadFeedbackAttachment: uploadFeedbackAttachment,
   getHomeDashboard: getHomeDashboard,
   getAssessmentProfile: getAssessmentProfile,
   createAssessment: createAssessment,

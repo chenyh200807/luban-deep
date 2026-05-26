@@ -1,0 +1,180 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - region "底部导航先定边界，再谈页面美术" [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - img [ref=e6]
+          - text: 微信小程序信息架构重设计
+        - heading "底部导航先定边界，再谈页面美术" [level=1] [ref=e8]
+        - paragraph [ref=e9]: 这一版不再把“今日”做成独立模块。TabBar 改为：学习、笔记、对话、学情、我的。中心“对话”作为放大的圆形主入口，保留鲁班最核心的 AI 交互心智；其他四个 Tab 分别承接行动、资产、诊断、账户服务。
+        - generic "一级导航边界" [ref=e10]:
+          - generic [ref=e11]:
+            - generic [ref=e12]: 学习
+            - generic [ref=e13]: 今天做什么，练题、摸底、本周目标都在这里。
+          - generic [ref=e14]:
+            - generic [ref=e15]: 笔记
+            - generic [ref=e16]: 学员 100% 主控，AI 推荐只是待确认内容。
+          - generic [ref=e17]:
+            - generic [ref=e18]: 对话
+            - generic [ref=e19]: 中间主入口：答疑、拍题、批改、历史聊天。
+          - generic [ref=e20]:
+            - generic [ref=e21]: 学情
+            - generic [ref=e22]: 系统判断、报告、错因、成就和证据链。
+          - generic [ref=e23]:
+            - generic [ref=e24]: 我的
+            - generic [ref=e25]: 充值、设置、个人信息、反馈和权益。
+      - complementary [ref=e26]:
+        - generic [ref=e27]:
+          - generic [ref=e28]: 本版评审重点
+          - generic [ref=e29]: 结构优先
+        - generic [ref=e30]:
+          - generic [ref=e31]:
+            - img [ref=e32]
+            - generic [ref=e34]: “今日”降级为学习页首屏，不再占 Tab。
+          - generic [ref=e35]:
+            - img [ref=e36]
+            - generic [ref=e38]: “对话”居中放大，符合 AI 产品主入口习惯。
+          - generic [ref=e39]:
+            - img [ref=e40]
+            - generic [ref=e42]: 历史聊天回到“对话”里；充值、设置回到“我的”。
+          - generic [ref=e43]:
+            - img [ref=e44]
+            - generic [ref=e46]: 整体视觉贴近现有学情页：深底、玻璃卡、青蓝主 CTA。
+    - generic [ref=e47]:
+      - generic "小程序主框架" [ref=e48]:
+        - generic [ref=e49]:
+          - generic [ref=e50]:
+            - generic [ref=e51]: 9:41
+            - generic [ref=e52]: 5G 88%
+          - generic [ref=e53]:
+            - button "‹ 返回" [ref=e54] [cursor=pointer]
+            - generic [ref=e55]: 学习
+            - generic [ref=e56]: 今日处方
+          - generic [ref=e58]:
+            - generic [ref=e59]:
+              - generic [ref=e60]:
+                - generic [ref=e61]:
+                  - generic [ref=e62]: 今日处方
+                  - generic [ref=e63]: 先补案例题采分表达
+                  - generic [ref=e64]: 约 33 分钟 · 3 个任务 · 来自最近 5 次作答证据
+                - generic "掌握可信度 62%" [ref=e65]:
+                  - generic [ref=e68]: 62%
+                  - generic [ref=e69]: 可信度
+              - generic [ref=e70]:
+                - button "开始定向训练" [ref=e71] [cursor=pointer]
+                - button "为什么推荐" [ref=e72] [cursor=pointer]
+            - generic [ref=e73]:
+              - generic [ref=e74]:
+                - generic [ref=e75]: 行动入口
+                - generic [ref=e76]: 今天只给 3 件事
+              - generic [ref=e77]: 不做信息总表
+            - generic [ref=e78]:
+              - button "1 练 1 道质量问题处理案例题 重点检查责任主体、处理标准、复查验收。 高优" [ref=e79] [cursor=pointer]:
+                - generic [ref=e80]: "1"
+                - generic [ref=e81]:
+                  - generic [ref=e82]: 练 1 道质量问题处理案例题
+                  - generic [ref=e83]: 重点检查责任主体、处理标准、复查验收。
+                - generic [ref=e84]: 高优
+              - button "2 复习专项施工方案审批链 你上次能说出专项方案，但审批责任主体不稳定。 8 分钟" [ref=e85] [cursor=pointer]:
+                - generic [ref=e86]: "2"
+                - generic [ref=e87]:
+                  - generic [ref=e88]: 复习专项施工方案审批链
+                  - generic [ref=e89]: 你上次能说出专项方案，但审批责任主体不稳定。
+                - generic [ref=e90]: 8 分钟
+              - button "3 改写昨日错题答案 把“加强管理”改成可得分的主体、标准、记录闭环。 改写" [ref=e91] [cursor=pointer]:
+                - generic [ref=e92]: "3"
+                - generic [ref=e93]:
+                  - generic [ref=e94]: 改写昨日错题答案
+                  - generic [ref=e95]: 把“加强管理”改成可得分的主体、标准、记录闭环。
+                - generic [ref=e96]: 改写
+            - generic [ref=e98]:
+              - generic [ref=e99]: 已有模块
+              - generic [ref=e100]: 学习页承接行动类入口
+            - generic [ref=e101]:
+              - button "低证据状态 摸底测试 重新校准学情画像，不混进普通对话推荐。" [ref=e102] [cursor=pointer]:
+                - generic [ref=e103]: 低证据状态
+                - generic [ref=e104]: 摸底测试
+                - generic [ref=e105]: 重新校准学情画像，不混进普通对话推荐。
+              - button "训练入口 专项练题 按错因、知识点和采分点进入训练。" [ref=e110] [cursor=pointer]:
+                - generic [ref=e111]: 训练入口
+                - generic [ref=e112]: 专项练题
+                - generic [ref=e113]: 按错因、知识点和采分点进入训练。
+              - button "计划 本周目标：质量管理案例题 4 分到 6 分 P0A 是 projection，用户自建日程放 P0B。 查看" [ref=e118] [cursor=pointer]:
+                - generic [ref=e119]:
+                  - generic [ref=e120]: 计划
+                  - generic [ref=e121]: 本周目标：质量管理案例题 4 分到 6 分
+                  - generic [ref=e122]: P0A 是 projection，用户自建日程放 P0B。
+                - generic [ref=e123]: 查看
+          - navigation "底部导航" [ref=e124]:
+            - generic [ref=e125]:
+              - button "学习" [ref=e126] [cursor=pointer]:
+                - img [ref=e127]
+                - generic [ref=e129]: 学习
+              - button "笔记" [ref=e130] [cursor=pointer]:
+                - img [ref=e131]
+                - generic [ref=e133]: 笔记
+              - generic [ref=e134]:
+                - button "对话" [ref=e135] [cursor=pointer]:
+                  - img [ref=e136]
+                - generic [ref=e138]: 对话
+              - button "学情" [ref=e139] [cursor=pointer]:
+                - img [ref=e140]
+                - generic [ref=e142]: 学情
+              - button "我的" [ref=e143] [cursor=pointer]:
+                - img [ref=e144]
+                - generic [ref=e146]: 我的
+      - complementary [ref=e147]:
+        - generic [ref=e148]:
+          - generic [ref=e149]:
+            - generic [ref=e150]: 为什么“对话”放中间
+            - generic [ref=e151]: 主操作
+          - generic [ref=e153]:
+            - generic [ref=e154]:
+              - generic [ref=e155]: 心智更清楚
+              - text: 鲁班最核心的能力是问答、拍题、批改；中间凸起代表随时发起互动。
+            - generic [ref=e156]:
+              - generic [ref=e157]: 不挤占内容
+              - text: 历史聊天、拍照识题、案例批改都收进对话页，避免历史单独占 Tab。
+            - generic [ref=e158]:
+              - generic [ref=e159]: 符合小程序习惯
+              - text: 中间圆形按钮适合主动作，但旁边四个 Tab 仍保持信息架构稳定。
+            - generic [ref=e160]:
+              - generic [ref=e161]: 降低混乱
+              - text: 学习管行动，笔记管资产，学情管判断，我的管账户。
+        - generic [ref=e162]:
+          - generic [ref=e163]:
+            - generic [ref=e164]: 模块归属表
+            - generic [ref=e165]: 不丢现有能力
+          - generic [ref=e167]:
+            - generic [ref=e168]:
+              - generic [ref=e169]: 学习
+              - generic [ref=e170]: 今日任务、继续学习、摸底测试、专项练题、本周/月目标、笔记转来的待复习。
+            - generic [ref=e171]:
+              - generic [ref=e172]: 笔记
+              - generic [ref=e173]: 手动笔记、收藏、采分点手册、AI 推荐待确认、待复习笔记。
+            - generic [ref=e174]:
+              - generic [ref=e175]: 对话
+              - generic [ref=e176]: 新对话、拍照识题、案例批改、最近聊天、历史搜索、答疑后保存。
+            - generic [ref=e177]:
+              - generic [ref=e178]: 学情
+              - generic [ref=e179]: 学情总览、测试报告、错因地图、能力图谱、学习时间线、我的成就、证据链。
+            - generic [ref=e180]:
+              - generic [ref=e181]: 我的
+              - generic [ref=e182]: 充值会员、余额、学习设置、账号信息、意见反馈、客服、协议、数据设置。
+        - generic [ref=e183]:
+          - generic [ref=e184]:
+            - generic [ref=e185]: 下一步 UI 审查问题
+            - generic [ref=e186]: 待拍板
+          - generic [ref=e188]:
+            - generic [ref=e189]:
+              - img [ref=e190]
+              - generic [ref=e193]: 学习页首屏是“今日处方”还是“继续上次学习”优先？
+            - generic [ref=e194]:
+              - img [ref=e195]
+              - generic [ref=e197]: 笔记页是否默认只看“手动笔记”，AI 推荐放右上角待确认角标？
+            - generic [ref=e198]:
+              - img [ref=e199]
+              - generic [ref=e201]: 我的成就是放学情主入口，还是我的页也保留摘要入口？
+  - status [ref=e202]:
+    - img [ref=e203]
+    - generic [ref=e205]: 已切换

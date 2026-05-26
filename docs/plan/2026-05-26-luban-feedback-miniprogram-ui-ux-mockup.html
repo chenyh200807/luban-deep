@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>鲁班智考意见反馈模块微信小程序 UI/UX</title>
+  <style>
+    :root {
+      --bg: #07111f;
+      --card: rgba(18, 31, 52, 0.84);
+      --card-2: rgba(15, 26, 45, 0.94);
+      --line: rgba(148, 163, 184, 0.17);
+      --text: #f5f9ff;
+      --sub: #93a4bb;
+      --blue: #60a5fa;
+      --cyan: #7dd3fc;
+      --green: #34d399;
+      --red: #fb7185;
+      --orange: #fbbf24;
+      --shadow: 0 24px 72px rgba(0, 0, 0, 0.36);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 16% 0%, rgba(96, 165, 250, .14), transparent 34%),
+        radial-gradient(circle at 88% 8%, rgba(52, 211, 153, .08), transparent 30%),
+        linear-gradient(180deg, #0a1322 0%, #07111f 58%, #050b14 100%);
+    }
+
+    .wrap {
+      width: min(1180px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 38px 0 70px;
+    }
+
+    .top {
+      margin-bottom: 24px;
+    }
+
+    .kicker {
+      display: inline-flex;
+      padding: 7px 11px;
+      border-radius: 999px;
+      border: 1px solid rgba(125, 211, 252, .25);
+      background: rgba(125, 211, 252, .08);
+      color: var(--cyan);
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    h1 {
+      max-width: 760px;
+      margin: 16px 0 10px;
+      font-size: clamp(30px, 4vw, 50px);
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .top p {
+      max-width: 760px;
+      margin: 0;
+      color: var(--sub);
+      font-size: 16px;
+      line-height: 1.65;
+    }
+
+    .principles {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: 22px 0 26px;
+    }
+
+    .principle {
+      padding: 15px;
+      min-height: 98px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(255,255,255,.075), rgba(255,255,255,.035));
+      box-shadow: var(--shadow);
+    }
+
+    .principle b {
+      display: block;
+      margin-bottom: 7px;
+      font-size: 15px;
+    }
+
+    .principle span {
+      display: block;
+      color: var(--sub);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .phones {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 24px;
+      align-items: start;
+    }
+
+    .phone {
+      width: min(370px, 100%);
+      margin: 0 auto;
+      padding: 10px;
+      border-radius: 36px;
+      background: #030810;
+      border: 1px solid rgba(125, 211, 252, .16);
+      box-shadow: 0 30px 82px rgba(0,0,0,.48);
+    }
+
+    .screen {
+      position: relative;
+      height: 760px;
+      overflow: hidden;
+      border-radius: 28px;
+      background:
+        radial-gradient(circle at 82% 8%, rgba(96, 165, 250, .16), transparent 30%),
+        #07111f;
+    }
+
+    .status {
+      height: 31px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      color: rgba(255,255,255,.86);
+      font-size: 12px;
+      font-weight: 740;
+    }
+
+    .capsule {
+      width: 76px;
+      height: 27px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.15);
+      display: grid;
+      place-items: center;
+    }
+
+    .dots {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #dbeafe;
+      box-shadow: 10px 0 #dbeafe, 20px 0 #dbeafe;
+    }
+
+    .nav {
+      height: 49px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 18px;
+      background: rgba(6, 12, 22, .68);
+      border-bottom: 1px solid rgba(148,163,184,.12);
+      backdrop-filter: blur(16px);
+    }
+
+    .back {
+      min-width: 60px;
+      color: #8ea7ff;
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .nav-title {
+      flex: 1;
+      text-align: center;
+      transform: translateX(-22px);
+      font-size: 17px;
+      font-weight: 780;
+    }
+
+    .scroll {
+      height: calc(100% - 80px);
+      overflow: hidden;
+      padding: 16px 16px 92px;
+    }
+
+    .glass {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+      box-shadow: 0 18px 44px rgba(0,0,0,.22);
+      backdrop-filter: blur(18px);
+    }
+
+    .hero {
+      padding: 17px;
+      margin-bottom: 14px;
+      background:
+        radial-gradient(circle at top right, rgba(125, 211, 252, .18), transparent 40%),
+        linear-gradient(145deg, rgba(96,165,250,.14), rgba(15,23,42,.18));
+    }
+
+    .eyebrow {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--cyan);
+      font-size: 12px;
+      font-weight: 780;
+    }
+
+    .hero h2 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.18;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      margin: 8px 0 0;
+      color: var(--sub);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .section-title {
+      display: block;
+      margin: 15px 2px 9px;
+      font-size: 15px;
+      font-weight: 780;
+      color: #e8f2ff;
+    }
+
+    .entry-list {
+      overflow: hidden;
+    }
+
+    .entry {
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 14px;
+      border-bottom: 1px solid rgba(148,163,184,.1);
+    }
+
+    .entry:last-child { border-bottom: 0; }
+
+    .entry.active {
+      background: linear-gradient(90deg, rgba(96,165,250,.13), rgba(52,211,153,.06));
+    }
+
+    .icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      color: var(--cyan);
+      background: rgba(96,165,250,.12);
+      flex: none;
+    }
+
+    .entry-main {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .entry-main b {
+      display: block;
+      color: #f8fbff;
+      font-size: 15px;
+    }
+
+    .entry-main span {
+      display: block;
+      margin-top: 3px;
+      color: var(--sub);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .arrow { color: rgba(226,232,240,.42); font-size: 22px; }
+
+    .type-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .type {
+      min-height: 94px;
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(148,163,184,.16);
+      background: rgba(255,255,255,.05);
+    }
+
+    .type.selected {
+      border-color: rgba(125,211,252,.52);
+      background: linear-gradient(145deg, rgba(96,165,250,.17), rgba(255,255,255,.05));
+    }
+
+    .type b {
+      display: block;
+      margin: 9px 0 4px;
+      font-size: 14px;
+      color: #f8fbff;
+    }
+
+    .type span {
+      color: var(--sub);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,.18);
+      background: rgba(255,255,255,.05);
+      color: #dbeafe;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .chip.selected {
+      border-color: transparent;
+      background: rgba(96,165,250,.22);
+      color: #e6f7ff;
+    }
+
+    .field {
+      min-height: 108px;
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(148,163,184,.17);
+      background: rgba(255,255,255,.05);
+      color: #b7c6da;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .media {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .media-box {
+      aspect-ratio: 1;
+      border-radius: 14px;
+      border: 1px dashed rgba(148,163,184,.3);
+      background: rgba(255,255,255,.04);
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--sub);
+      font-size: 11px;
+      line-height: 1.3;
+    }
+
+    .media-box.filled {
+      border-style: solid;
+      border-color: rgba(96,165,250,.3);
+      color: #eff6ff;
+      font-weight: 800;
+      background: linear-gradient(135deg, rgba(96,165,250,.24), rgba(15,23,42,.28));
+    }
+
+    .context {
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(52,211,153,.2);
+      background: rgba(52,211,153,.075);
+      color: #c7f7df;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .bottom-action {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 12px 16px 18px;
+      background: linear-gradient(180deg, rgba(7,17,31,0), rgba(7,17,31,.96) 22%, #07111f);
+    }
+
+    .button {
+      height: 52px;
+      display: grid;
+      place-items: center;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #2563eb, #60a5fa);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 820;
+      box-shadow: 0 16px 34px rgba(37,99,235,.34);
+    }
+
+    .success {
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 14px;
+    }
+
+    .success-mark {
+      width: 68px;
+      height: 68px;
+      display: grid;
+      place-items: center;
+      margin: 6px auto 14px;
+      border-radius: 23px;
+      color: #dcfff1;
+      border: 1px solid rgba(52,211,153,.28);
+      background: linear-gradient(135deg, rgba(52,211,153,.32), rgba(96,165,250,.14));
+    }
+
+    .success h2 { margin: 0; font-size: 22px; }
+    .success p { margin: 8px 0 0; color: var(--sub); font-size: 13px; line-height: 1.55; }
+
+    .ticket {
+      display: inline-flex;
+      margin-top: 13px;
+      padding: 8px 11px;
+      border-radius: 999px;
+      background: rgba(125,211,252,.1);
+      color: #a7e7ff;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 10px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 30px 1fr auto;
+      gap: 10px;
+      align-items: start;
+      padding: 13px;
+      border-radius: 16px;
+      border: 1px solid rgba(148,163,184,.14);
+      background: rgba(255,255,255,.05);
+    }
+
+    .num {
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: rgba(96,165,250,.14);
+      color: var(--cyan);
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .step b {
+      display: block;
+      font-size: 14px;
+    }
+
+    .step span {
+      display: block;
+      margin-top: 3px;
+      color: var(--sub);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .state {
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: rgba(52,211,153,.11);
+      color: #a7f3d0;
+      font-size: 10px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .tabs {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 74px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding: 8px 10px 10px;
+      border-top: 1px solid rgba(148,163,184,.15);
+      background: rgba(8,17,31,.94);
+      backdrop-filter: blur(18px);
+    }
+
+    .tab {
+      display: grid;
+      place-items: center;
+      gap: 4px;
+      color: #8ea0b9;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .tab.active { color: var(--blue); }
+    svg { display: block; }
+
+    .note {
+      margin-top: 22px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255,255,255,.05);
+      color: var(--sub);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    @media (max-width: 1160px) {
+      .phones { grid-template-columns: 1fr; }
+      .phone { width: min(390px, 100%); }
+      .principles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 560px) {
+      .wrap { width: min(100% - 22px, 420px); padding-top: 22px; }
+      .principles { grid-template-columns: 1fr; }
+      h1 { font-size: 30px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="top">
+      <span class="kicker">微信小程序端 · 意见反馈模块</span>
+      <h1>UI 风格跟学情一致，内容只围绕意见反馈</h1>
+      <p>
+        这版只设计反馈模块：入口怎么呈现、用户怎么选择问题、怎么补充截图/录屏、系统自动带哪些上下文、提交后怎么看到处理进度。
+        学情模块只作为视觉语言参考，不把反馈包装成“处方”或“学习引擎”。
+      </p>
+    </header>
+
+    <section class="principles">
+      <div class="principle"><b>入口清楚</b><span>从“我的”页进入，但文案直接说明能附图、选类型、看进度。</span></div>
+      <div class="principle"><b>问题先分类</b><span>用户先选问题类型和症状标签，减少自由输入压力。</span></div>
+      <div class="principle"><b>证据可补充</b><span>截图、拍照、录屏是一级入口，不藏在文本之后。</span></div>
+      <div class="principle"><b>提交有回音</b><span>提交后展示编号和处理状态，不只弹“感谢反馈”。</span></div>
+    </section>
+
+    <section class="phones">
+      <article class="phone">
+        <div class="screen">
+          <div class="status"><span>12:46</span><div class="capsule"><span class="dots"></span></div></div>
+          <div class="nav"><div class="back">‹ 对话</div><div class="nav-title">我的</div></div>
+          <div class="scroll">
+            <section class="hero glass">
+              <span class="eyebrow">意见反馈</span>
+              <h2>遇到问题，直接发给我们</h2>
+              <p>可以选择问题类型、附上截图或录屏。系统会自动带上当前页面和网络信息，方便我们定位。</p>
+            </section>
+
+            <span class="section-title">常用功能</span>
+            <section class="entry-list glass">
+              <div class="entry"><div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 19V5m0 14h16M8 16V9m4 7V6m4 10v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div><div class="entry-main"><b>摸底测试</b><span>重新评估当前知识掌握</span></div><span class="arrow">›</span></div>
+              <div class="entry"><div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 5h16M4 12h16M4 19h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div><div class="entry-main"><b>摸底报告</b><span>查看学习报告和错题复盘</span></div><span class="arrow">›</span></div>
+              <div class="entry active"><div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></div><div class="entry-main"><b>意见反馈</b><span>问题类型、截图/录屏、处理进度</span></div><span class="arrow">›</span></div>
+              <div class="entry"><div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 7h12v14H6V7Zm3 0a3 3 0 0 1 6 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div><div class="entry-main"><b>会员额度</b><span>查看剩余额度和会员权益</span></div><span class="arrow">›</span></div>
+            </section>
+          </div>
+          <nav class="tabs">
+            <div class="tab">对话</div><div class="tab">历史</div><div class="tab">学情</div><div class="tab active">我的</div>
+          </nav>
+        </div>
+      </article>
+
+      <article class="phone">
+        <div class="screen">
+          <div class="status"><span>12:47</span><div class="capsule"><span class="dots"></span></div></div>
+          <div class="nav"><div class="back">‹ 我的</div><div class="nav-title">意见反馈</div></div>
+          <div class="scroll">
+            <section class="hero glass">
+              <span class="eyebrow">填写反馈</span>
+              <h2>先选问题类型</h2>
+              <p>选择越具体，我们越容易复现和修复。文字可以简单写，截图通常更有用。</p>
+            </section>
+
+            <span class="section-title">问题类型</span>
+            <section class="type-grid">
+              <div class="type selected"><svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 9v4m0 4h.01M10.3 3.9 2.5 18a2 2 0 0 0 1.8 3h15.4a2 2 0 0 0 1.8-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke="#7dd3fc" stroke-width="2" stroke-linecap="round"/></svg><b>系统出错</b><span>卡住、打不开、按钮没反应</span></div>
+              <div class="type"><svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M4 19.5V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-1.5Zm4-12h6m-6 4h8m-8 4h5" stroke="#93c5fd" stroke-width="2" stroke-linecap="round"/></svg><b>答案/题目</b><span>解析错、题目错、依据不清</span></div>
+              <div class="type"><svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="#93c5fd" stroke-width="2" stroke-linejoin="round"/></svg><b>体验建议</b><span>不好用、找不到、想加功能</span></div>
+              <div class="type"><svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M6 7h12v14H6V7Zm3 0a3 3 0 0 1 6 0" stroke="#93c5fd" stroke-width="2" stroke-linecap="round"/></svg><b>支付会员</b><span>充值、权益、订单、余额</span></div>
+            </section>
+
+            <span class="section-title">出现了什么？</span>
+            <div class="chips">
+              <span class="chip selected">页面显示错乱</span>
+              <span class="chip selected">按钮点了没反应</span>
+              <span class="chip">一直加载</span>
+              <span class="chip">登录异常</span>
+              <span class="chip">其他</span>
+            </div>
+
+            <span class="section-title">补充说明</span>
+            <div class="field">例如：在“我的”页点意见反馈后，希望可以附截图并选择问题类型。当前只写文字不够方便。</div>
+
+            <span class="section-title">截图或录屏</span>
+            <div class="media">
+              <div class="media-box filled">截图<br />已添加</div>
+              <div class="media-box">+<br />拍照</div>
+              <div class="media-box">+<br />录屏</div>
+              <div class="media-box">最多<br />3 个</div>
+            </div>
+
+            <span class="section-title">自动附带的信息</span>
+            <div class="context">当前页面、客户端版本、网络状态、最近请求 ID、匿名用户 ID。可关闭，不会上传相册列表或隐私内容。</div>
+          </div>
+          <div class="bottom-action"><div class="button">提交反馈</div></div>
+        </div>
+      </article>
+
+      <article class="phone">
+        <div class="screen">
+          <div class="status"><span>12:48</span><div class="capsule"><span class="dots"></span></div></div>
+          <div class="nav"><div class="back">‹ 反馈</div><div class="nav-title">处理进度</div></div>
+          <div class="scroll">
+            <section class="success glass">
+              <div class="success-mark">
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <h2>反馈已提交</h2>
+              <p>我们已收到你的问题和截图。你可以稍后在这里查看处理进度。</p>
+              <div class="ticket">反馈编号 FB-0526-1842</div>
+            </section>
+
+            <span class="section-title">处理状态</span>
+            <section class="timeline">
+              <div class="step"><div class="num">1</div><div><b>已收到</b><span>问题类型、截图和上下文已保存</span></div><div class="state">完成</div></div>
+              <div class="step"><div class="num">2</div><div><b>正在分诊</b><span>系统出错 / 我的页 / 页面显示错乱</span></div><div class="state">进行中</div></div>
+              <div class="step"><div class="num">3</div><div><b>进入修复队列</b><span>确认后会合并到对应问题域</span></div><div class="state">待处理</div></div>
+              <div class="step"><div class="num">4</div><div><b>修复后通知</b><span>上线后展示处理结果和版本</span></div><div class="state">待处理</div></div>
+            </section>
+
+            <span class="section-title">继续补充</span>
+            <section class="entry-list glass">
+              <div class="entry"><div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div><div class="entry-main"><b>追加截图或说明</b><span>问题复现时可以继续补充证据</span></div><span class="arrow">›</span></div>
+              <div class="entry"><div class="icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v12H7l-3 3V4Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></div><div class="entry-main"><b>查看我的反馈</b><span>历史反馈和处理状态都在这里</span></div><span class="arrow">›</span></div>
+            </section>
+          </div>
+          <nav class="tabs">
+            <div class="tab">对话</div><div class="tab">历史</div><div class="tab">学情</div><div class="tab active">我的</div>
+          </nav>
+        </div>
+      </article>
+    </section>
+
+    <aside class="note">
+      这版的边界：视觉上沿用学情模块的暗色、玻璃卡和紧凑信息层级；内容上只服务意见反馈模块。
+      后续真正落小程序时，主改动应集中在 `profile` 反馈入口、独立反馈页、附件上传、反馈状态页和 `submitFeedback` payload，不顺手改学情业务。
+    </aside>
+  </main>
+</body>
+</html>

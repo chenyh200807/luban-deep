@@ -1,0 +1,113 @@
+<!-- pages/feedback/feedback.wxml — 结构化意见反馈 -->
+<view class="feedback-page {{isDark?'':'light'}}">
+  <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">
+    <view class="nav-content">
+      <view class="nav-back" bindtap="goBack">
+        <text class="nav-back-arrow">‹</text>
+        <text class="nav-back-txt">我的</text>
+      </view>
+      <text class="nav-title">意见反馈</text>
+    </view>
+  </view>
+
+  <scroll-view class="page-scroll" scroll-y enhanced="{{true}}" bounces="{{true}}" show-scrollbar="{{false}}" style="top: {{navHeight}}px; bottom: 0">
+    <view class="page-inner">
+      <view class="feedback-hero glass-card">
+        <text class="hero-kicker">反馈入口</text>
+        <text class="hero-title">把问题定位清楚</text>
+        <text class="hero-sub">先选模块，再选现象；截图或录屏会让我们更快复现。</text>
+        <view class="hero-pills">
+          <text class="hero-pill">8 个模块</text>
+          <text class="hero-pill">多选现象</text>
+          <text class="hero-pill">自动上下文</text>
+        </view>
+      </view>
+
+      <view class="locate-strip glass-card">
+        <view>
+          <text class="locate-kicker">当前定位</text>
+          <text class="locate-title">{{currentProblemLabel}}</text>
+        </view>
+        <text class="locate-count">{{selectedIssueCount}} 个现象</text>
+      </view>
+
+      <view class="section-head">
+        <text class="section-title">问题定位</text>
+        <text class="section-hint">选模块</text>
+      </view>
+      <view class="type-grid">
+        <view
+          class="type-card {{selectedProblemType === item.key ? 'type-card-active' : ''}}"
+          wx:for="{{problemTypes}}"
+          wx:key="key"
+          bindtap="onProblemTypeTap"
+          data-key="{{item.key}}"
+        >
+          <text class="type-mark">{{item.mark}}</text>
+          <text class="type-title">{{item.label}}</text>
+          <text class="type-desc">{{item.desc}}</text>
+        </view>
+      </view>
+
+      <view class="section-head">
+        <text class="section-title">出现了什么？</text>
+        <text class="section-hint">可多选</text>
+      </view>
+      <view class="symptom-row">
+        <view
+          class="symptom-chip {{item.selected ? 'symptom-chip-active' : ''}}"
+          wx:for="{{issueOptions}}"
+          wx:key="key"
+          bindtap="onSymptomTap"
+          data-key="{{item.key}}"
+        >
+          <text class="symptom-dot"></text>
+          <text class="symptom-text">{{item.label}}</text>
+        </view>
+      </view>
+
+      <view class="section-head">
+        <text class="section-title">补充说明</text>
+        <text class="section-hint">可选</text>
+      </view>
+      <textarea
+        class="feedback-input glass-card"
+        value="{{comment}}"
+        maxlength="500"
+        placeholder="例如：在“我的”页点意见反馈后，只能写文字，没法上传截图。"
+        placeholder-class="feedback-placeholder"
+        bindinput="onFeedbackInput"
+      />
+
+      <view class="section-head">
+        <text class="section-title">截图或录屏</text>
+        <text class="section-hint">最多 3 个</text>
+      </view>
+      <view class="attachment-grid">
+        <view
+          class="attachment-item attachment-filled"
+          wx:for="{{attachments}}"
+          wx:key="id"
+          bindtap="onRemoveAttachment"
+          data-index="{{index}}"
+        >
+          <text class="attachment-title">{{item.kind === 'video' ? '录屏' : '截图'}}</text>
+          <text class="attachment-sub">点击移除</text>
+        </view>
+        <view class="attachment-item" wx:if="{{attachments.length < 3}}" bindtap="onChooseMedia">
+          <text class="attachment-plus">+</text>
+          <text class="attachment-sub">添加附件</text>
+        </view>
+      </view>
+
+      <view class="context-box glass-card">
+        <text class="context-title">自动附带的信息</text>
+        <text class="context-text">当前页面、客户端版本、网络状态、设备类型和匿名用户信息。不会上传相册列表或隐私内容。</text>
+      </view>
+
+      <view class="submit-btn {{submitting ? 'submit-btn-disabled' : ''}}" bindtap="onSubmitFeedback">
+        <text class="submit-btn-text">{{submitting ? '提交中...' : '提交反馈'}}</text>
+      </view>
+    </view>
+  </scroll-view>
+</view>

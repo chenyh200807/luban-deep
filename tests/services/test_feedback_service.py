@@ -73,6 +73,59 @@ def test_build_mobile_feedback_row_accepts_profile_feedback_source() -> None:
     assert row["metadata"]["source"] == "wx_miniprogram"
 
 
+def test_build_mobile_feedback_row_preserves_structured_feedback_context() -> None:
+    row = build_mobile_feedback_row(
+        user_id="student_demo",
+        rating=-1,
+        reason_tags=["系统出错", "页面显示错乱"],
+        comment="按钮点了没反应",
+        feedback_source="wx_miniprogram_profile_feedback",
+        problem_type="system",
+        symptom_tags=["display", "tap"],
+        attachments=[
+            {
+                "id": "fb-a",
+                "kind": "image",
+                "filename": "a.png",
+                "mime_type": "image/png",
+                "size": 1200,
+                "url": "/api/attachments/feedback-user/fb-a/a.png",
+                "temp_path": "tmp/a.png",
+            },
+            {"kind": "video", "size": 3400, "temp_path": "tmp/b.mp4"},
+        ],
+        context_snapshot={
+            "route": "pages/profile/profile",
+            "network_type": "wifi",
+            "device_model": "iPhone",
+        },
+    )
+
+    assert row["metadata"]["problem_type"] == "system"
+    assert row["metadata"]["symptom_tags"] == ["display", "tap"]
+    assert row["metadata"]["attachment_count"] == 2
+    assert row["metadata"]["attachments"][0]["id"] == "fb-a"
+    assert row["metadata"]["attachments"][0]["kind"] == "image"
+    assert row["metadata"]["attachments"][0]["url"] == "/api/attachments/feedback-user/fb-a/a.png"
+    assert row["metadata"]["attachments"][0]["temp_path"] == "tmp/a.png"
+    assert row["metadata"]["context_snapshot"]["route"] == "pages/profile/profile"
+
+
+def test_build_mobile_feedback_row_ignores_invalid_attachment_sizes() -> None:
+    row = build_mobile_feedback_row(
+        user_id="student_demo",
+        rating=-1,
+        attachments=[
+            {"kind": "image", "size": "bad-size", "temp_path": "tmp/a.png"},
+            {"kind": "image", "size": -5, "temp_path": "tmp/b.png"},
+        ],
+    )
+
+    assert row["metadata"]["attachment_count"] == 2
+    assert row["metadata"]["attachments"][0]["size"] == 0
+    assert row["metadata"]["attachments"][1]["size"] == 0
+
+
 def test_normalize_feedback_record_prefers_top_level_ids_then_metadata_fallback() -> None:
     record = normalize_feedback_record(
         {
@@ -139,3 +192,38 @@ def test_normalize_feedback_record_reads_response_mode_fields_from_metadata() ->
     assert record["effective_response_mode"] == "FAST"
     assert record["response_mode_degrade_reason"] == "tool_budget"
     assert record["actual_tool_rounds"] == 3
+
+
+def test_normalize_feedback_record_exposes_structured_feedback_for_bi() -> None:
+    record = normalize_feedback_record(
+        {
+            "id": "feedback_3",
+            "created_at": "2026-05-26T10:00:00+08:00",
+            "rating": -1,
+            "metadata": {
+                "problem_type": "learning_report",
+                "symptom_tags": ["data_wrong", "card_tap_failed"],
+                "attachments": [
+                    {
+                        "id": "fb-a",
+                        "kind": "image",
+                        "filename": "screen.png",
+                        "mime_type": "image/png",
+                        "size": 2048,
+                        "url": "/api/attachments/feedback-user/fb-a/screen.png",
+                    }
+                ],
+                "context_snapshot": {
+                    "route": "packageDeeptutor/pages/profile/profile",
+                    "network_type": "wifi",
+                    "device_model": "iPhone",
+                },
+            },
+        }
+    )
+
+    assert record["problem_type"] == "learning_report"
+    assert record["symptom_tags"] == ["data_wrong", "card_tap_failed"]
+    assert record["attachment_count"] == 1
+    assert record["attachments"][0]["url"] == "/api/attachments/feedback-user/fb-a/screen.png"
+    assert record["context_snapshot"]["route"] == "packageDeeptutor/pages/profile/profile"

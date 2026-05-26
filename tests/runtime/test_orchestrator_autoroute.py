@@ -111,6 +111,63 @@ async def test_orchestrator_routes_training_by_question_count_as_practice_genera
 
 
 @pytest.mark.asyncio
+async def test_orchestrator_blocks_topic_only_real_exam_query_before_exact_authority() -> None:
+    """Topic-only exam queries need a choice, not an arbitrary exact-question answer."""
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-topic-only-real-exam",
+        user_message="防水真题",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "tutorbot"
+    assert context.metadata["question_lifecycle_scene"] is None
+    assert context.metadata["question_lifecycle_decision"].items() >= {
+        "required_anchor_status": "missing_question_anchor",
+        "exact_question_blocked_reason": "low_information_exam_query",
+        "needs_clarification": True,
+        "business_gate_result": "blocked_low_information_exam_query",
+    }.items()
+    assert context.metadata["selected_skill_names"] == []
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_routes_topic_qualified_more_practice_to_generation() -> None:
+    """`再出3题练地下防水` is practice generation, not real-question review."""
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-topic-qualified-more-practice",
+        user_message="再出3题练地下防水",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.metadata["question_lifecycle_scene"] == "practice_generation"
+    assert context.metadata["selected_skill_names"] == [
+        "construction-exam-tutor",
+        "construction-question-supply",
+    ]
+    assert context.config_overrides["num_questions"] == 3
+    assert context.config_overrides["topic"] == "再出3题练地下防水"
+    assert context.config_overrides["reveal_answers"] is False
+    assert context.config_overrides["reveal_explanations"] is False
+
+
+@pytest.mark.asyncio
 async def test_orchestrator_uses_llm_scene_proposal_for_semantic_practice_request(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -501,6 +558,32 @@ async def test_orchestrator_keeps_learning_strategy_request_in_chat_even_if_effe
 
 
 @pytest.mark.asyncio
+async def test_orchestrator_keeps_ordinary_concept_comparison_out_of_question_lifecycle() -> None:
+    """Plain concept explanation should stay TutorBot/general chat, not question flow."""
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-ordinary-concept-comparison",
+        user_message="横道图和网络图有什么区别",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "tutorbot"
+    assert context.metadata["question_lifecycle_scene"] is None
+    assert context.metadata["question_lifecycle_decision"].items() >= {
+        "reason": "no deterministic scene and LLM proposal not applicable",
+        "business_gate_result": "no_candidate",
+    }.items()
+    assert context.metadata["selected_skill_names"] == []
+
+
+@pytest.mark.asyncio
 async def test_orchestrator_respects_interaction_hint_for_question_type() -> None:
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()
@@ -650,6 +733,106 @@ async def test_orchestrator_autoroutes_choice_submission_to_deep_question() -> N
     result = next(event for event in events if event.type.value == "result")
     assert result.metadata["user_answer"] == "B"
     assert result.metadata["is_correct"] is True
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_requires_active_question_for_short_answer_submission() -> None:
+    """A bare `我选B` without a current card cannot be graded out of thin air."""
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-short-answer-without-active-question",
+        user_message="我选B",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "tutorbot"
+    assert context.metadata["question_lifecycle_scene"] is None
+    assert context.metadata["question_lifecycle_decision"].items() >= {
+        "required_anchor_status": "missing_active_question",
+        "exact_question_blocked_reason": "unanchored_answer_submission",
+        "needs_clarification": True,
+        "business_gate_result": "blocked_unanchored_answer_submission",
+    }.items()
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_grades_before_generation_in_mixed_answer_then_more_practice() -> None:
+    """`我答B，再出3题` must grade first; follow-up generation is a later action."""
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-answer-then-more-practice",
+        user_message="我答B，再出3题",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={
+            "question_followup_context": {
+                "question_id": "q_1",
+                "question": "地下防水工程卷材搭接宽度应符合哪项要求？",
+                "question_type": "choice",
+                "options": {"A": "50mm", "B": "80mm", "C": "100mm", "D": "150mm"},
+                "correct_answer": "C",
+            }
+        },
+        language="zh",
+    )
+
+    events = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.metadata["question_lifecycle_scene"] == "mcq_grading"
+    assert context.metadata["selected_skill_names"] == [
+        "construction-exam-tutor",
+        "construction-mcq-grading",
+    ]
+    assert "force_generate_questions" not in context.config_overrides
+    result = next(event for event in events if event.type.value == "result")
+    assert result.metadata["user_answer"] == "B"
+    assert result.metadata["is_correct"] is False
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_keeps_numbered_batch_answers_as_grading() -> None:
+    """Numbered answers like `q1 A, q3 C, q5 B` are batch grading submissions."""
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-numbered-batch-answers",
+        user_message="q1 A, q3 C, q5 B",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={
+            "question_followup_context": {
+                "question_id": "quiz_batch",
+                "question": "第1题...\n第3题...\n第5题...",
+                "question_type": "choice",
+                "items": [
+                    {"question_id": "q1", "question": "题1", "question_type": "choice", "correct_answer": "A"},
+                    {"question_id": "q3", "question": "题3", "question_type": "choice", "correct_answer": "D"},
+                    {"question_id": "q5", "question": "题5", "question_type": "choice", "correct_answer": "B"},
+                ],
+            }
+        },
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.metadata["question_lifecycle_scene"] == "mcq_grading"
+    assert context.metadata["selected_skill_names"] == [
+        "construction-exam-tutor",
+        "construction-mcq-grading",
+    ]
 
 
 @pytest.mark.asyncio

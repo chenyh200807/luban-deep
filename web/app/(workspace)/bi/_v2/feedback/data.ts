@@ -18,6 +18,26 @@ export type FeedbackItem = {
   effective_response_mode?: string
   response_mode_degrade_reason?: string
   reason_tags?: string[]
+  problem_type?: string
+  symptom_tags?: string[]
+  attachment_count?: number
+  attachments?: Array<{
+    id?: string
+    kind?: string
+    filename?: string
+    mime_type?: string
+    size?: number
+    url?: string
+    temp_path?: string
+  }>
+  context_snapshot?: {
+    route?: string
+    network_type?: string
+    device_model?: string
+    platform?: string
+    system?: string
+    wechat_version?: string
+  }
   status: FeedbackStatus
   owner: FeedbackOwner
   created_at: string

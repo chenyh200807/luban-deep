@@ -1,0 +1,320 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - region "鲁班学情工作台" [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - img [ref=e6]
+          - text: 微信小程序高保真原型
+        - heading "鲁班学情工作台" [level=1] [ref=e8]
+        - paragraph [ref=e9]: 这个原型把“AI 自动学习档案、用户手动笔记、错因地图、采分点手册、今日任务”合到一个小程序体验里。首屏不做百科和图谱，先回答：今天做什么、为什么做、做完如何进入证据闭环。
+      - complementary "设计检查点" [ref=e10]:
+        - generic [ref=e11]:
+          - generic [ref=e12]: 审查重点
+          - generic [ref=e13]: P0A 边界
+        - generic [ref=e14]:
+          - generic [ref=e15]:
+            - img [ref=e16]
+            - generic [ref=e18]: 首屏是行动入口，不是信息总表；最多 3 个今日任务。
+          - generic [ref=e19]:
+            - img [ref=e20]
+            - generic [ref=e22]: 手动笔记代表主观关注，不能写 mastery；“我会了”进入复测。
+          - generic [ref=e23]:
+            - img [ref=e24]
+            - generic [ref=e26]: 任务是 read model projection，不在 P0A 做用户自建日程。
+          - generic [ref=e27]:
+            - img [ref=e28]
+            - generic [ref=e30]: 每个判断都能点开证据，不让 AI 自说自话。
+    - region "小程序页面原型" [ref=e31]:
+      - article [ref=e32]:
+        - generic [ref=e33]:
+          - generic [ref=e34]: 1. 今日工作台：首页首屏
+          - generic [ref=e35]: P0A
+        - generic [ref=e37]:
+          - generic [ref=e38]:
+            - generic [ref=e39]: 9:41
+            - generic [ref=e40]:
+              - img [ref=e41]
+              - text: 88%
+          - generic [ref=e43]:
+            - generic [ref=e44]: 今日
+            - generic "微信菜单" [ref=e45]:
+              - img [ref=e46]
+          - generic [ref=e50]:
+            - generic [ref=e51]:
+              - generic [ref=e52]:
+                - generic [ref=e53]: 今天最该做
+                - generic [ref=e54]:
+                  - img [ref=e55]
+                  - text: 约 33 分钟
+              - paragraph [ref=e57]: 你不是知识点完全不会，主要是案例题采分点表达不稳定。今天先处理“责任主体 + 复查验收”。
+              - generic [ref=e58]:
+                - button "开始今日训练" [ref=e59] [cursor=pointer]:
+                  - img [ref=e60]
+                  - text: 开始今日训练
+                - button "时间少" [ref=e62] [cursor=pointer]
+            - generic [ref=e63]:
+              - generic [ref=e64]: 今日 3 个任务
+              - button "查看依据" [ref=e65] [cursor=pointer]
+            - generic [ref=e66]:
+              - generic [ref=e67]:
+                - generic [ref=e68]: "1"
+                - generic [ref=e69]:
+                  - generic [ref=e70]: 练 1 道质量问题处理案例题
+                  - paragraph [ref=e71]: 重点看你有没有写出责任主体、处理动作、复查验收。
+                - generic [ref=e72]: 高优
+              - generic [ref=e73]:
+                - generic [ref=e74]: "2"
+                - generic [ref=e75]:
+                  - generic [ref=e76]: 复习专项施工方案审批链
+                  - paragraph [ref=e77]: 上次作答能说出专项方案，但审批责任主体不稳定。
+                - generic [ref=e78]: 8 分钟
+              - generic [ref=e79]:
+                - generic [ref=e80]: "3"
+                - generic [ref=e81]:
+                  - generic [ref=e82]: 改写昨日错题答案
+                  - paragraph [ref=e83]: 把“加强管理”改成可得分的主体、标准、记录闭环。
+                - generic [ref=e84]: 10 分钟
+            - generic [ref=e85]:
+              - generic [ref=e86]: 为什么这样安排
+              - generic [ref=e87]: 证据可追溯
+            - generic [ref=e88]:
+              - generic [ref=e89]: 近 5 次案例题中，3 次漏写责任主体
+              - paragraph [ref=e90]: 系统判断你当前最该练的不是继续背新知识，而是把已会内容写成采分点表达。
+            - generic [ref=e91]:
+              - generic [ref=e92]: 我的学习资产
+              - generic [ref=e93]: 本周
+            - generic [ref=e94]:
+              - generic [ref=e95]:
+                - generic [ref=e96]: "32"
+                - generic [ref=e97]: 手动笔记
+              - generic [ref=e98]:
+                - generic [ref=e99]: "18"
+                - generic [ref=e100]: AI整理
+              - generic [ref=e101]:
+                - generic [ref=e102]: "12"
+                - generic [ref=e103]: 采分点
+              - generic [ref=e104]:
+                - generic [ref=e105]: "5"
+                - generic [ref=e106]: 高频错因
+          - navigation "底部导航" [ref=e107]:
+            - button "问鲁班" [ref=e108] [cursor=pointer]:
+              - img [ref=e109]
+              - text: 问鲁班
+            - button "今日" [ref=e111] [cursor=pointer]:
+              - img [ref=e112]
+              - text: 今日
+            - button "笔记" [ref=e114] [cursor=pointer]:
+              - img [ref=e115]
+              - text: 笔记
+            - button "学情" [ref=e117] [cursor=pointer]:
+              - img [ref=e118]
+              - text: 学情
+      - article [ref=e120]:
+        - generic [ref=e121]:
+          - generic [ref=e122]: 2. 答疑后沉淀：不让用户写笔记
+          - generic [ref=e123]: P0A
+        - generic [ref=e125]:
+          - generic [ref=e126]:
+            - generic [ref=e127]: 9:41
+            - generic [ref=e128]: 88%
+          - generic [ref=e129]:
+            - generic [ref=e130]: 问鲁班
+            - generic "微信菜单" [ref=e131]:
+              - img [ref=e132]
+          - generic [ref=e136]:
+            - paragraph [ref=e138]: 大体积混凝土温控措施到底怎么写才像采分点？
+            - generic [ref=e139]:
+              - generic [ref=e140]: 鲁班
+              - paragraph [ref=e141]: 这类题不要只写“加强养护”。可以按“原材降温、控制入模温度、分层浇筑、保温保湿、测温监控、异常处理”组织答案。
+            - generic [ref=e142]:
+              - generic [ref=e143]: 采分表达
+              - paragraph [ref=e144]: 施工单位应控制混凝土入模温度，分层连续浇筑，采取保温保湿养护，设置测温点并记录内外温差，发现异常及时调整养护和降温措施。
+            - generic [ref=e145]:
+              - generic [ref=e146]: 学习档案更新
+              - generic [ref=e147]: 待你确认
+            - generic [ref=e148]:
+              - generic [ref=e149]:
+                - generic [ref=e150]: AI 建议保存
+                - generic [ref=e151]: 不写 mastery
+              - heading "大体积混凝土温控措施" [level=3] [ref=e152]
+              - generic [ref=e153]:
+                - generic [ref=e154]:
+                  - generic [ref=e155]: 已掌握
+                  - generic [ref=e156]: 能识别温控属于质量控制考点。
+                - generic [ref=e157]:
+                  - generic [ref=e158]: 仍需加强
+                  - generic [ref=e159]: 答案容易少“测温监控”和“异常处理”。
+                - generic [ref=e160]:
+                  - generic [ref=e161]: 下一步
+                  - generic [ref=e162]: 马上做 1 道同类短案例，只练采分点表达。
+              - generic [ref=e163]:
+                - button "保存" [ref=e164] [cursor=pointer]
+                - button "马上练" [ref=e165] [cursor=pointer]
+                - button "不准确" [ref=e166] [cursor=pointer]
+            - generic [ref=e167]:
+              - generic [ref=e168]: 轻量操作
+              - generic [ref=e169]: 不打断学习
+            - button "加入个人采分点手册 保存的是考试表达模板，不代表已经掌握。 保存" [ref=e171] [cursor=pointer]:
+              - img [ref=e173]
+              - generic [ref=e175]:
+                - generic [ref=e176]: 加入个人采分点手册
+                - paragraph [ref=e177]: 保存的是考试表达模板，不代表已经掌握。
+              - generic [ref=e178]: 保存
+          - navigation "底部导航" [ref=e179]:
+            - button "问鲁班" [ref=e180] [cursor=pointer]:
+              - img [ref=e181]
+              - text: 问鲁班
+            - button "今日" [ref=e183] [cursor=pointer]:
+              - img [ref=e184]
+              - text: 今日
+            - button "笔记" [ref=e186] [cursor=pointer]:
+              - img [ref=e187]
+              - text: 笔记
+            - button "学情" [ref=e189] [cursor=pointer]:
+              - img [ref=e190]
+              - text: 学情
+      - article [ref=e192]:
+        - generic [ref=e193]:
+          - generic [ref=e194]: 3. 个人笔记：手动主控 + AI 增强
+          - generic [ref=e195]: P0A
+        - generic [ref=e197]:
+          - generic [ref=e198]:
+            - generic [ref=e199]: 9:41
+            - generic [ref=e200]: 88%
+          - generic [ref=e201]:
+            - generic [ref=e202]: 笔记
+            - generic "微信菜单" [ref=e203]:
+              - img [ref=e204]
+          - generic [ref=e208]:
+            - generic [ref=e209]:
+              - generic [ref=e210]: 个人采分点手册
+              - generic [ref=e211]: 32 条手动笔记
+            - generic [ref=e212]:
+              - generic [ref=e213]:
+                - generic [ref=e214]: 你手动收藏
+                - generic [ref=e215]: 鲁班补充
+                - generic [ref=e216]: 不计入掌握
+              - heading "质量问题处理类案例表达" [level=3] [ref=e217]
+              - generic [ref=e218]: 我的原文：质量问题要写整改和预防，别只写加强管理。
+              - generic [ref=e219]:
+                - generic [ref=e220]:
+                  - generic [ref=e221]: 鲁班整理
+                  - generic [ref=e222]: 案例题不能只写整改，还要形成原因、处理、复查验收、预防的闭环。
+                - generic [ref=e223]:
+                  - generic [ref=e224]: 关联错因
+                  - generic [ref=e225]: 只写措施、不写责任主体；只写处理、不写复查记录。
+              - generic "采分点模板" [ref=e226]:
+                - generic [ref=e227]: 发现问题，说明责任主体
+                - generic [ref=e229]: 分析原因，提出处理方案
+                - generic [ref=e231]: 整改处理，复查验收并形成记录
+                - generic [ref=e233]: 制定预防措施，避免再次发生
+              - generic [ref=e235]:
+                - button "今日复习" [ref=e236] [cursor=pointer]
+                - button "我已掌握，测一下" [ref=e237] [cursor=pointer]
+            - generic [ref=e238]:
+              - generic [ref=e239]: 证据来源
+              - generic [ref=e240]: 可追溯
+            - button "5 月 23 日案例批改 漏写责任主体和复查验收 查看" [ref=e241] [cursor=pointer]:
+              - img [ref=e242]
+              - generic [ref=e244]:
+                - generic [ref=e245]: 5 月 23 日案例批改
+                - generic [ref=e246]: 漏写责任主体和复查验收
+              - generic [ref=e247]: 查看
+            - button "5 月 25 日答疑 主动追问“怎么写得像标准答案” 查看" [ref=e248] [cursor=pointer]:
+              - img [ref=e249]
+              - generic [ref=e251]:
+                - generic [ref=e252]: 5 月 25 日答疑
+                - generic [ref=e253]: 主动追问“怎么写得像标准答案”
+              - generic [ref=e254]: 查看
+          - navigation "底部导航" [ref=e255]:
+            - button "问鲁班" [ref=e256] [cursor=pointer]:
+              - img [ref=e257]
+              - text: 问鲁班
+            - button "今日" [ref=e259] [cursor=pointer]:
+              - img [ref=e260]
+              - text: 今日
+            - button "笔记" [ref=e262] [cursor=pointer]:
+              - img [ref=e263]
+              - text: 笔记
+            - button "学情" [ref=e265] [cursor=pointer]:
+              - img [ref=e266]
+              - text: 学情
+      - article [ref=e268]:
+        - generic [ref=e269]:
+          - generic [ref=e270]: 4. 学情看板：计划与纠偏
+          - generic [ref=e271]: P1 预览
+        - generic [ref=e273]:
+          - generic [ref=e274]:
+            - generic [ref=e275]: 9:41
+            - generic [ref=e276]: 88%
+          - generic [ref=e277]:
+            - generic [ref=e278]: 学情
+            - generic "微信菜单" [ref=e279]:
+              - img [ref=e280]
+          - generic [ref=e284]:
+            - tablist "计划周期" [ref=e285]:
+              - button "今天" [ref=e286] [cursor=pointer]
+              - button "本周" [ref=e287] [cursor=pointer]
+              - button "本月" [ref=e288] [cursor=pointer]
+            - generic [ref=e289]:
+              - generic [ref=e290]: 本周目标
+              - paragraph [ref=e291]: 把“质量管理案例题”从 4 分水平提升到 6 分水平。重点不是多刷题，而是稳定写出责任主体、处理标准和复查记录。
+            - generic [ref=e292]:
+              - generic [ref=e293]: 本周安排
+              - generic [ref=e294]: 来自处方投影
+            - generic [ref=e295]:
+              - generic [ref=e296]:
+                - generic [ref=e297]: 周二
+                - generic [ref=e298]:
+                  - generic [ref=e299]: 复习专项施工方案审批流程
+                  - generic [ref=e300]: 8 分钟，来自上次错因复发
+                - generic [ref=e301]: 今日
+              - generic [ref=e302]:
+                - generic [ref=e303]: 周四
+                - generic [ref=e304]:
+                  - generic [ref=e305]: 做 1 道质量问题处理短案例
+                  - generic [ref=e306]: 重点检查责任主体和复查验收
+                - generic [ref=e307]: 待做
+              - generic [ref=e308]:
+                - generic [ref=e309]: 周日
+                - generic [ref=e310]:
+                  - generic [ref=e311]: 复测质量问题处理类错因
+                  - generic [ref=e312]: 低置信测评不写 improvement evidence
+                - generic [ref=e313]: 复测
+            - generic [ref=e314]:
+              - generic [ref=e315]: 主观关注 vs 教练关注
+              - generic [ref=e316]: 纠偏
+            - generic [ref=e317]:
+              - paragraph [ref=e318]: 你最近一直关注“怎么背模板”，但从作答证据看，更大的丢分点是“会但写不成采分点”。
+              - generic [ref=e319]:
+                - generic [ref=e320]:
+                  - generic [ref=e321]: 你主动关注
+                  - list [ref=e322]:
+                    - listitem [ref=e323]: 快速背施工流程
+                    - listitem [ref=e324]: 哪些知识点会考
+                    - listitem [ref=e325]: 模板怎么记
+                - generic [ref=e326]:
+                  - generic [ref=e327]: 建议优先关注
+                  - list [ref=e328]:
+                    - listitem [ref=e329]: 责任主体表达
+                    - listitem [ref=e330]: 复查验收闭环
+                    - listitem [ref=e331]: 标准答案改写
+              - generic [ref=e332]:
+                - button "接受建议" [ref=e333] [cursor=pointer]
+                - button "查看证据" [ref=e334] [cursor=pointer]
+          - navigation "底部导航" [ref=e335]:
+            - button "问鲁班" [ref=e336] [cursor=pointer]:
+              - img [ref=e337]
+              - text: 问鲁班
+            - button "今日" [ref=e339] [cursor=pointer]:
+              - img [ref=e340]
+              - text: 今日
+            - button "笔记" [ref=e342] [cursor=pointer]:
+              - img [ref=e343]
+              - text: 笔记
+            - button "学情" [ref=e345] [cursor=pointer]:
+              - img [ref=e346]
+              - text: 学情
+  - status [ref=e348]:
+    - img [ref=e349]
+    - generic [ref=e351]: 已保存

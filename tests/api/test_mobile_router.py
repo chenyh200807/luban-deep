@@ -110,6 +110,30 @@ def test_mobile_chat_start_turn_returns_ws_bootstrap(monkeypatch: pytest.MonkeyP
     }
 
 
+def test_mobile_feedback_attachment_upload_returns_bi_visible_url(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/feedback/attachments",
+            data={"kind": "image"},
+            files={"file": ("screen.png", b"image-bytes", "image/png")},
+        )
+
+    assert response.status_code == 200
+    attachment = response.json()["attachment"]
+    assert attachment["kind"] == "image"
+    assert attachment["filename"] == "screen.png"
+    assert attachment["size"] == len(b"image-bytes")
+    assert attachment["url"].startswith("/api/attachments/feedback-student_demo/")
+
+
 def test_mobile_chat_start_turn_passes_chat_mode_and_followup_context(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

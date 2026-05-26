@@ -1,0 +1,1429 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>鲁班学情工作台微信小程序信息架构原型</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23101622'/%3E%3Cpath d='M8 22V8h5c6 0 10 4 10 10v4h-4v-4a6 6 0 0 0-6-6h-1v10H8Z' fill='%237dd3fc'/%3E%3C/svg%3E" />
+  <style>
+    :root {
+      --bg-primary: #101622;
+      --bg-secondary: #1a2130;
+      --bg-tertiary: #232d3f;
+      --bg-card: rgba(26, 33, 48, 0.92);
+      --bg-elevated: rgba(35, 45, 63, 0.95);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(148, 163, 184, 0.18);
+      --text-primary: #ffffff;
+      --text-secondary: rgba(255, 255, 255, 0.75);
+      --text-muted: rgba(255, 255, 255, 0.5);
+      --blue: #60a5fa;
+      --cyan: #7dd3fc;
+      --deep-cyan: #15978c;
+      --green: #34d399;
+      --orange: #fb923c;
+      --amber: #fbbf24;
+      --red: #fb7185;
+      --purple: #a78bfa;
+      --radius: 14px;
+      --radius-sm: 10px;
+      --shadow-md: 0 18px 44px rgba(0, 0, 0, 0.34);
+      --shadow-lg: 0 30px 80px rgba(0, 0, 0, 0.46);
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      background: #070b13;
+      color: var(--text-primary);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 20% 8%, rgba(96, 165, 250, 0.18), transparent 28%),
+        radial-gradient(circle at 90% 4%, rgba(251, 146, 60, 0.12), transparent 30%),
+        linear-gradient(180deg, #0c1220 0%, #070b13 100%);
+    }
+
+    button {
+      border: 0;
+      padding: 0;
+      color: inherit;
+      background: transparent;
+      font: inherit;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    button:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 3px;
+    }
+
+    .page {
+      width: min(1280px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 34px 0 70px;
+    }
+
+    .brief {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 430px);
+      gap: 20px;
+      margin-bottom: 26px;
+      align-items: stretch;
+    }
+
+    .brief-main,
+    .review-box {
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background:
+        radial-gradient(circle at top right, rgba(125, 211, 252, 0.09), transparent 36%),
+        rgba(26, 33, 48, 0.72);
+      box-shadow: var(--shadow-md);
+      backdrop-filter: blur(18px);
+    }
+
+    .brief-main {
+      padding: 26px;
+    }
+
+    .review-box {
+      padding: 18px;
+    }
+
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 28px;
+      padding: 0 11px;
+      border-radius: 999px;
+      color: #bae6fd;
+      background: rgba(125, 211, 252, 0.1);
+      border: 1px solid rgba(125, 211, 252, 0.16);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    h1 {
+      margin: 15px 0 10px;
+      max-width: 780px;
+      font-size: clamp(30px, 4vw, 48px);
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .brief-main p {
+      max-width: 840px;
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .decision {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .decision-item {
+      min-height: 82px;
+      padding: 12px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .decision-item b {
+      display: block;
+      margin-bottom: 5px;
+      color: #f8fafc;
+      font-size: 13px;
+    }
+
+    .decision-item span {
+      display: block;
+      color: var(--text-muted);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .review-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      font-size: 15px;
+      font-weight: 850;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0 8px;
+      border-radius: 999px;
+      color: #bae6fd;
+      background: rgba(125, 211, 252, 0.1);
+      border: 1px solid rgba(125, 211, 252, 0.14);
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .review-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .review-row {
+      display: grid;
+      grid-template-columns: 26px 1fr;
+      gap: 9px;
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      font-size: 12px;
+      line-height: 1.48;
+    }
+
+    .review-row svg {
+      margin-top: 1px;
+      color: var(--cyan);
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(340px, 392px) minmax(0, 1fr);
+      gap: 26px;
+      align-items: start;
+    }
+
+    .phone {
+      width: min(100%, 390px);
+      padding: 10px;
+      border-radius: 36px;
+      background: linear-gradient(180deg, #1b2533, #090d16);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .screen {
+      position: relative;
+      height: 790px;
+      overflow: hidden;
+      border-radius: 28px;
+      background: var(--bg-primary);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .status {
+      height: 31px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      color: rgba(255, 255, 255, 0.86);
+      font-size: 12px;
+      font-weight: 760;
+      background: rgba(10, 10, 10, 0.52);
+    }
+
+    .nav-bar {
+      height: 48px;
+      display: grid;
+      grid-template-columns: 60px 1fr 78px;
+      align-items: center;
+      gap: 10px;
+      padding: 0 14px;
+      background: rgba(10, 10, 10, 0.9);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(18px);
+    }
+
+    .nav-back {
+      color: #818cf8;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .nav-title {
+      text-align: center;
+      font-size: 17px;
+      font-weight: 850;
+    }
+
+    .nav-badge {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 28px;
+      border-radius: 999px;
+      color: #34d399;
+      background: rgba(52, 211, 153, 0.15);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .phone-scroll {
+      height: calc(100% - 79px);
+      overflow-y: auto;
+      padding: 16px 14px 112px;
+      scrollbar-width: none;
+    }
+
+    .phone-scroll::-webkit-scrollbar { display: none; }
+
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+      animation: fadeIn 180ms ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .glass-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg-card);
+      box-shadow: var(--shadow-md);
+    }
+
+    .hero-card {
+      padding: 17px;
+      background:
+        radial-gradient(circle at 92% 12%, rgba(56, 189, 248, 0.18), transparent 34%),
+        linear-gradient(145deg, rgba(31, 41, 89, 0.96), rgba(20, 28, 54, 0.92));
+      border-color: rgba(96, 165, 250, 0.22);
+    }
+
+    .hero-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .hero-kicker {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--orange);
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .hero-title {
+      display: block;
+      color: var(--text-primary);
+      font-size: 24px;
+      line-height: 1.15;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .hero-sub {
+      display: block;
+      margin-top: 9px;
+      color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1.48;
+    }
+
+    .donut {
+      position: relative;
+      width: 76px;
+      height: 96px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: none;
+    }
+
+    .donut-ring {
+      position: absolute;
+      top: 0;
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: conic-gradient(#15978c 0 176deg, #ffe2ba 176deg 360deg);
+    }
+
+    .donut-cut {
+      position: absolute;
+      top: 13px;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: #172141;
+    }
+
+    .donut-score {
+      position: relative;
+      z-index: 1;
+      margin-top: -18px;
+      color: var(--cyan);
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .donut-label {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 2px;
+      color: rgba(226, 232, 240, 0.62);
+      text-align: center;
+      font-size: 9px;
+      font-weight: 800;
+    }
+
+    .action-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 9px;
+      margin-top: 15px;
+    }
+
+    .btn {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 0 13px;
+      border-radius: 12px;
+      color: #082f49;
+      background: #5eddea;
+      box-shadow: 0 16px 34px rgba(94, 221, 234, 0.18);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .btn.secondary {
+      color: var(--orange);
+      background: rgba(251, 146, 60, 0.08);
+      border: 1px solid rgba(251, 146, 60, 0.38);
+      box-shadow: none;
+    }
+
+    .btn.dark {
+      color: #bae6fd;
+      background: rgba(125, 211, 252, 0.12);
+      border: 1px solid rgba(125, 211, 252, 0.18);
+      box-shadow: none;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 14px;
+      margin: 16px 4px 9px;
+    }
+
+    .section-kicker,
+    .section-title {
+      display: block;
+    }
+
+    .section-kicker {
+      margin-bottom: 4px;
+      color: var(--cyan);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .section-title {
+      color: var(--text-primary);
+      font-size: 16px;
+      line-height: 1.24;
+      font-weight: 850;
+    }
+
+    .section-note {
+      color: var(--text-muted);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .module-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+    }
+
+    .module-card {
+      min-height: 112px;
+      padding: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.05);
+      overflow: hidden;
+    }
+
+    .module-card.wide {
+      grid-column: span 2;
+      min-height: 88px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .module-kicker {
+      display: block;
+      margin-bottom: 6px;
+      color: rgba(226, 232, 240, 0.62);
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .module-title {
+      display: block;
+      color: var(--text-primary);
+      font-size: 14px;
+      line-height: 1.28;
+      font-weight: 850;
+    }
+
+    .module-desc {
+      display: block;
+      margin-top: 6px;
+      color: var(--text-muted);
+      font-size: 11px;
+      line-height: 1.42;
+    }
+
+    .mini-flow {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 12px;
+    }
+
+    .mini-node {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--cyan);
+    }
+
+    .mini-line {
+      flex: 1;
+      height: 2px;
+      border-radius: 99px;
+      background: rgba(125, 211, 252, 0.22);
+    }
+
+    .task-list,
+    .stack {
+      display: grid;
+      gap: 9px;
+    }
+
+    .task-card,
+    .list-card,
+    .chat-card,
+    .profile-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg-card);
+    }
+
+    .task-card {
+      display: grid;
+      grid-template-columns: 34px 1fr auto;
+      gap: 10px;
+      align-items: start;
+      padding: 11px;
+    }
+
+    .task-num {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border-radius: 9px;
+      color: #082f49;
+      background: #5eddea;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .task-card:nth-child(2) .task-num { background: #fb923c; color: #1f1307; }
+    .task-card:nth-child(3) .task-num { background: #34d399; color: #052e1c; }
+
+    .task-body b,
+    .list-card b,
+    .chat-card b,
+    .profile-card b {
+      display: block;
+      color: var(--text-primary);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .task-body span,
+    .list-card span,
+    .chat-card span,
+    .profile-card span {
+      display: block;
+      margin-top: 4px;
+      color: var(--text-muted);
+      font-size: 11px;
+      line-height: 1.42;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 23px;
+      padding: 0 7px;
+      border-radius: 999px;
+      color: #bae6fd;
+      background: rgba(125, 211, 252, 0.11);
+      font-size: 10px;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+
+    .pill.warn { color: #fed7aa; background: rgba(251, 146, 60, 0.13); }
+    .pill.ok { color: #bbf7d0; background: rgba(52, 211, 153, 0.12); }
+    .pill.red { color: #fecdd3; background: rgba(251, 113, 133, 0.12); }
+    .pill.purple { color: #ddd6fe; background: rgba(167, 139, 250, 0.12); }
+
+    .list-card {
+      min-height: 66px;
+      display: grid;
+      grid-template-columns: 34px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 11px;
+    }
+
+    .list-icon {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      color: var(--cyan);
+      background: rgba(125, 211, 252, 0.11);
+    }
+
+    .list-card.orange .list-icon { color: var(--orange); background: rgba(251, 146, 60, 0.1); }
+    .list-card.green .list-icon { color: var(--green); background: rgba(52, 211, 153, 0.1); }
+    .list-card.purple .list-icon { color: var(--purple); background: rgba(167, 139, 250, 0.1); }
+
+    .chat-start {
+      padding: 16px;
+      border-radius: 18px;
+      background:
+        radial-gradient(circle at 86% 8%, rgba(125, 211, 252, 0.16), transparent 35%),
+        linear-gradient(145deg, rgba(35, 45, 63, 0.98), rgba(18, 26, 43, 0.96));
+      border: 1px solid rgba(125, 211, 252, 0.14);
+    }
+
+    .chat-start h2 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.18;
+    }
+
+    .chat-start p {
+      margin: 8px 0 0;
+      color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1.48;
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 13px;
+    }
+
+    .quick {
+      min-height: 70px;
+      display: grid;
+      place-items: center;
+      gap: 5px;
+      border-radius: var(--radius-sm);
+      color: #e0f2fe;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      font-size: 11px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .chat-card {
+      display: grid;
+      grid-template-columns: 34px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 11px;
+    }
+
+    .note-summary {
+      padding: 13px;
+      background:
+        linear-gradient(135deg, rgba(14, 165, 233, 0.14), rgba(15, 23, 42, 0.58));
+      border: 1px solid rgba(125, 211, 252, 0.18);
+      border-radius: var(--radius);
+    }
+
+    .note-summary h2 {
+      margin: 0;
+      font-size: 19px;
+      line-height: 1.18;
+    }
+
+    .note-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+      margin: 12px 0 0;
+      padding: 4px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+    }
+
+    .note-tab {
+      min-height: 34px;
+      border-radius: 9px;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .note-tab.active {
+      color: #082f49;
+      background: #5eddea;
+    }
+
+    .profile-head {
+      padding: 15px;
+      display: grid;
+      grid-template-columns: 52px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      background: linear-gradient(145deg, rgba(31, 41, 89, 0.96), rgba(20, 28, 54, 0.92));
+      border: 1px solid rgba(96, 165, 250, 0.2);
+      border-radius: var(--radius);
+    }
+
+    .avatar {
+      width: 52px;
+      height: 52px;
+      display: grid;
+      place-items: center;
+      border-radius: 18px;
+      color: #082f49;
+      background: linear-gradient(135deg, #5eddea, #34d399);
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .profile-card {
+      display: grid;
+      grid-template-columns: 34px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      min-height: 64px;
+      padding: 11px;
+    }
+
+    .center-tab-shell {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 88px;
+      padding: 9px 10px 13px;
+      background: rgba(10, 14, 23, 0.96);
+      border-top: 1px solid var(--border);
+      box-shadow: 0 -18px 40px rgba(0, 0, 0, 0.28);
+      backdrop-filter: blur(20px);
+    }
+
+    .tabbar {
+      display: grid;
+      grid-template-columns: 1fr 1fr 82px 1fr 1fr;
+      align-items: end;
+      height: 100%;
+      gap: 4px;
+    }
+
+    .tab {
+      min-height: 58px;
+      display: grid;
+      place-items: center;
+      align-content: center;
+      gap: 4px;
+      border-radius: 14px;
+      color: #8b8fa3;
+      font-size: 11px;
+      font-weight: 780;
+    }
+
+    .tab.active {
+      color: var(--cyan);
+      background: rgba(125, 211, 252, 0.07);
+    }
+
+    .tab svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .tab-dialog-wrap {
+      position: relative;
+      height: 76px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .tab-dialog {
+      position: absolute;
+      top: -24px;
+      width: 74px;
+      height: 74px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: #082f49;
+      background:
+        radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.82), transparent 24%),
+        linear-gradient(135deg, #5eddea, #34d399);
+      border: 7px solid #101622;
+      box-shadow: 0 16px 34px rgba(94, 221, 234, 0.24), 0 0 0 1px rgba(125, 211, 252, 0.22);
+    }
+
+    .tab-dialog.active {
+      transform: translateY(-2px);
+    }
+
+    .tab-dialog-label {
+      position: absolute;
+      top: 52px;
+      color: #dffaff;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .architecture {
+      display: grid;
+      gap: 14px;
+    }
+
+    .arch-card {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: rgba(26, 33, 48, 0.78);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+
+    .arch-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 15px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .arch-head b {
+      font-size: 16px;
+    }
+
+    .arch-body {
+      padding: 15px 16px;
+    }
+
+    .arch-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .arch-item {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .arch-item b {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    .arch-item span {
+      color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .route-table {
+      display: grid;
+      gap: 8px;
+    }
+
+    .route-row {
+      display: grid;
+      grid-template-columns: 78px 1fr;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .route-row:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .route-name {
+      color: #f8fafc;
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .route-desc {
+      color: var(--text-muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 28px;
+      z-index: 30;
+      min-height: 44px;
+      max-width: min(430px, calc(100% - 40px));
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 10px 13px;
+      border-radius: 999px;
+      color: #fff;
+      background: rgba(11, 18, 32, 0.94);
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+      transform: translate(-50%, 110px);
+      opacity: 0;
+      transition: transform 220ms ease, opacity 220ms ease;
+      font-size: 13px;
+      font-weight: 760;
+    }
+
+    .toast.show {
+      transform: translate(-50%, 0);
+      opacity: 1;
+    }
+
+    @media (max-width: 1040px) {
+      .brief,
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .phone {
+        margin: 0 auto;
+      }
+    }
+
+    @media (max-width: 740px) {
+      .page {
+        width: min(100% - 20px, 430px);
+        padding: 18px 0 48px;
+      }
+
+      .brief-main {
+        padding: 18px;
+      }
+
+      .decision {
+        grid-template-columns: 1fr;
+      }
+
+      .arch-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .screen {
+        height: 770px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="brief" aria-labelledby="pageTitle">
+      <div class="brief-main">
+        <span class="kicker">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 19V5m0 14h16M8 16v-5m4 5V8m4 8v-8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          微信小程序信息架构重设计
+        </span>
+        <h1 id="pageTitle">底部导航先定边界，再谈页面美术</h1>
+        <p>这一版不再把“今日”做成独立模块。TabBar 改为：学习、笔记、对话、学情、我的。中心“对话”作为放大的圆形主入口，保留鲁班最核心的 AI 交互心智；其他四个 Tab 分别承接行动、资产、诊断、账户服务。</p>
+        <div class="decision" aria-label="一级导航边界">
+          <div class="decision-item"><b>学习</b><span>今天做什么，练题、摸底、本周目标都在这里。</span></div>
+          <div class="decision-item"><b>笔记</b><span>学员 100% 主控，AI 推荐只是待确认内容。</span></div>
+          <div class="decision-item"><b>对话</b><span>中间主入口：答疑、拍题、批改、历史聊天。</span></div>
+          <div class="decision-item"><b>学情</b><span>系统判断、报告、错因、成就和证据链。</span></div>
+          <div class="decision-item"><b>我的</b><span>充值、设置、个人信息、反馈和权益。</span></div>
+        </div>
+      </div>
+      <aside class="review-box">
+        <div class="review-title">
+          <span>本版评审重点</span>
+          <span class="badge">结构优先</span>
+        </div>
+        <div class="review-list">
+          <div class="review-row">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>“今日”降级为学习页首屏，不再占 Tab。</span>
+          </div>
+          <div class="review-row">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <span>“对话”居中放大，符合 AI 产品主入口习惯。</span>
+          </div>
+          <div class="review-row">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <span>历史聊天回到“对话”里；充值、设置回到“我的”。</span>
+          </div>
+          <div class="review-row">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 11h6M9 15h4M7 3h7l3 3v15H7V3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>整体视觉贴近现有学情页：深底、玻璃卡、青蓝主 CTA。</span>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="workspace">
+      <div class="phone" aria-label="小程序主框架">
+        <div class="screen">
+          <div class="status">
+            <span>9:41</span>
+            <span>5G  88%</span>
+          </div>
+          <div class="nav-bar">
+            <button class="nav-back" data-toast="返回上一页">‹ 返回</button>
+            <div class="nav-title" id="navTitle">学习</div>
+            <div class="nav-badge" id="navBadge">今日处方</div>
+          </div>
+
+          <div class="phone-scroll">
+            <section class="view active" data-view="learn">
+              <div class="hero-card glass-card">
+                <div class="hero-head">
+                  <div>
+                    <span class="hero-kicker">今日处方</span>
+                    <span class="hero-title">先补案例题采分表达</span>
+                    <span class="hero-sub">约 33 分钟 · 3 个任务 · 来自最近 5 次作答证据</span>
+                  </div>
+                  <div class="donut" aria-label="掌握可信度 62%">
+                    <div class="donut-ring"></div>
+                    <div class="donut-cut"></div>
+                    <div class="donut-score">62%</div>
+                    <div class="donut-label">可信度</div>
+                  </div>
+                </div>
+                <div class="action-row">
+                  <button class="btn" data-toast="开始今日定向训练">开始定向训练</button>
+                  <button class="btn secondary" data-toast="打开推荐依据">为什么推荐</button>
+                </div>
+              </div>
+
+              <div class="section-head">
+                <div>
+                  <span class="section-kicker">行动入口</span>
+                  <span class="section-title">今天只给 3 件事</span>
+                </div>
+                <span class="section-note">不做信息总表</span>
+              </div>
+              <div class="task-list">
+                <button class="task-card" data-toast="进入质量问题处理短案例">
+                  <span class="task-num">1</span>
+                  <span class="task-body"><b>练 1 道质量问题处理案例题</b><span>重点检查责任主体、处理标准、复查验收。</span></span>
+                  <span class="pill warn">高优</span>
+                </button>
+                <button class="task-card" data-toast="复习专项施工方案审批链">
+                  <span class="task-num">2</span>
+                  <span class="task-body"><b>复习专项施工方案审批链</b><span>你上次能说出专项方案，但审批责任主体不稳定。</span></span>
+                  <span class="pill">8 分钟</span>
+                </button>
+                <button class="task-card" data-toast="进入昨日错题改写">
+                  <span class="task-num">3</span>
+                  <span class="task-body"><b>改写昨日错题答案</b><span>把“加强管理”改成可得分的主体、标准、记录闭环。</span></span>
+                  <span class="pill ok">改写</span>
+                </button>
+              </div>
+
+              <div class="section-head">
+                <div>
+                  <span class="section-kicker">已有模块</span>
+                  <span class="section-title">学习页承接行动类入口</span>
+                </div>
+              </div>
+              <div class="module-grid">
+                <button class="module-card" data-toast="进入摸底测试">
+                  <span class="module-kicker">低证据状态</span>
+                  <span class="module-title">摸底测试</span>
+                  <span class="module-desc">重新校准学情画像，不混进普通对话推荐。</span>
+                  <div class="mini-flow"><span class="mini-node"></span><span class="mini-line"></span><span class="mini-node"></span></div>
+                </button>
+                <button class="module-card" data-toast="进入专项练题">
+                  <span class="module-kicker">训练入口</span>
+                  <span class="module-title">专项练题</span>
+                  <span class="module-desc">按错因、知识点和采分点进入训练。</span>
+                  <div class="mini-flow"><span class="mini-node"></span><span class="mini-line"></span><span class="mini-node"></span></div>
+                </button>
+                <button class="module-card wide" data-toast="查看本周计划">
+                  <span><span class="module-kicker">计划</span><span class="module-title">本周目标：质量管理案例题 4 分到 6 分</span><span class="module-desc">P0A 是 projection，用户自建日程放 P0B。</span></span>
+                  <span class="pill">查看</span>
+                </button>
+              </div>
+            </section>
+
+            <section class="view" data-view="notes">
+              <div class="note-summary">
+                <span class="hero-kicker">我的学习资产</span>
+                <h2>笔记必须清爽、可控</h2>
+                <span class="hero-sub">手动收藏优先；AI 推荐只进入待确认，不自动污染学情。</span>
+                <div class="note-tabs" aria-label="笔记分类">
+                  <button class="note-tab active">手动</button>
+                  <button class="note-tab">采分点</button>
+                  <button class="note-tab">AI待确认</button>
+                </div>
+              </div>
+
+              <div class="section-head">
+                <div>
+                  <span class="section-kicker">我的笔记</span>
+                  <span class="section-title">学员自己 100% 主控</span>
+                </div>
+                <span class="section-note">32 条</span>
+              </div>
+              <div class="stack">
+                <button class="list-card" data-toast="打开质量问题处理笔记">
+                  <span class="list-icon"><svg viewBox="0 0 24 24" width="19" height="19" fill="none"><path d="M4 19.5V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-1.5Z" stroke="currentColor" stroke-width="2"/></svg></span>
+                  <span><b>质量问题处理类案例表达</b><span>我手动收藏 · 鲁班补充采分模板</span></span>
+                  <span class="pill purple">主控</span>
+                </button>
+                <button class="list-card orange" data-toast="打开大体积混凝土采分点">
+                  <span class="list-icon"><svg viewBox="0 0 24 24" width="19" height="19" fill="none"><path d="M12 3v18M5 8h14M5 16h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+                  <span><b>大体积混凝土温控措施</b><span>采分点：原材、入模、分层、测温、异常处理</span></span>
+                  <span class="pill">复习</span>
+                </button>
+                <button class="list-card green" data-toast="查看 AI 推荐笔记">
+                  <span class="list-icon"><svg viewBox="0 0 24 24" width="19" height="19" fill="none"><path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                  <span><b>鲁班建议保存 3 条</b><span>待确认，未保存前不进入正式笔记</span></span>
+                  <span class="pill ok">确认</span>
+                </button>
+              </div>
+            </section>
+
+            <section class="view" data-view="chat">
+              <div class="chat-start">
+                <span class="hero-kicker">对话主入口</span>
+                <h2>问鲁班、拍题、批改</h2>
+                <p>中间圆形 Tab 进入这里。历史聊天也放在对话内，不再单独占底部导航。</p>
+                <div class="quick-grid">
+                  <button class="quick" data-toast="开始新对话">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    新对话
+                  </button>
+                  <button class="quick" data-toast="打开拍照识题">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none"><path d="M4 8h4l2-3h4l2 3h4v11H4V8Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" stroke-width="2"/></svg>
+                    拍题
+                  </button>
+                  <button class="quick" data-toast="进入案例批改">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none"><path d="M4 4h16v16H4V4Zm4 5h8M8 13h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    批改
+                  </button>
+                </div>
+              </div>
+
+              <div class="section-head">
+                <div>
+                  <span class="section-kicker">历史聊天</span>
+                  <span class="section-title">最近继续，不丢记录</span>
+                </div>
+                <span class="section-note">全部 ›</span>
+              </div>
+              <div class="stack">
+                <button class="chat-card" data-toast="继续模板工程对话">
+                  <span class="list-icon"><svg viewBox="0 0 24 24" width="19" height="19" fill="none"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8Z" stroke="currentColor" stroke-width="2"/></svg></span>
+                  <span><b>模板工程专项方案怎么记</b><span>今天 09:12 · 已生成 1 条采分点卡片</span></span>
+                  <span class="pill">继续</span>
+                </button>
+                <button class="chat-card" data-toast="打开屋面防水历史">
+                  <span class="list-icon"><svg viewBox="0 0 24 24" width="19" height="19" fill="none"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+                  <span><b>屋面防水质量问题案例</b><span>昨天 · 关联错因：只写措施不写验收</span></span>
+                  <span class="pill warn">错因</span>
+                </button>
+              </div>
+            </section>
+
+            <section class="view" data-view="report">
+              <div class="hero-card glass-card">
+                <div class="hero-head">
+                  <div>
+                    <span class="hero-kicker">我的学情</span>
+                    <span class="hero-title">会知识，但采分表达不稳</span>
+                    <span class="hero-sub">系统判断来自作答、测试报告、错题和历史对话证据。</span>
+                  </div>
+                  <div class="donut" aria-label="总体掌握 62%">
+                    <div class="donut-ring"></div>
+                    <div class="donut-cut"></div>
+                    <div class="donut-score">62%</div>
+                    <div class="donut-label">掌握</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="section-head">
+                <div>
+                  <span class="section-kicker">诊断中心</span>
+                  <span class="section-title">系统怎么看我</span>
+                </div>
+              </div>
+              <div class="module-grid">
+                <button class="module-card" data-toast="打开测试报告">
+                  <span class="module-kicker">报告</span>
+                  <span class="module-title">测试报告</span>
+                  <span class="module-desc">摸底、阶段测、复测结果集中查看。</span>
+                </button>
+                <button class="module-card" data-toast="打开错因地图">
+                  <span class="module-kicker">丢分原因</span>
+                  <span class="module-title">错因地图</span>
+                  <span class="module-desc">责任主体、复查验收、表达空泛。</span>
+                </button>
+                <button class="module-card" data-toast="打开能力图谱">
+                  <span class="module-kicker">强弱结构</span>
+                  <span class="module-title">能力图谱</span>
+                  <span class="module-desc">按知识点、能力维度和趋势看。</span>
+                </button>
+                <button class="module-card" data-toast="打开我的成就">
+                  <span class="module-kicker">反馈进步</span>
+                  <span class="module-title">我的成就</span>
+                  <span class="module-desc">连续训练、错因消除、提分记录。</span>
+                </button>
+                <button class="module-card wide" data-toast="查看学情证据链">
+                  <span><span class="module-kicker">可追溯</span><span class="module-title">学情证据链</span><span class="module-desc">作答、系统解析、错题、复测都能点回来源。</span></span>
+                  <span class="pill">查看</span>
+                </button>
+              </div>
+            </section>
+
+            <section class="view" data-view="profile">
+              <div class="profile-head">
+                <div class="avatar">鲁</div>
+                <div>
+                  <span class="module-title">阿鸿</span>
+                  <span class="module-desc">一建建筑实务 · 备考中</span>
+                </div>
+                <span class="pill ok">会员</span>
+              </div>
+
+              <div class="section-head">
+                <div>
+                  <span class="section-kicker">账户与服务</span>
+                  <span class="section-title">我的不承担学习主流程</span>
+                </div>
+              </div>
+              <div class="stack">
+                <button class="profile-card" data-toast="进入充值会员">
+                  <span class="list-icon"><svg viewBox="0 0 24 24" width="19" height="19" fill="none"><path d="M4 7h16v10H4V7Zm3 4h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+                  <span><b>充值 / 会员 / 余额</b><span>权益、套餐、订单和余额记录。</span></span>
+                  <span class="pill warn">充值</span>
+                </button>
+                <button class="profile-card" data-toast="进入学习设置">
+                  <span class="list-icon"><svg viewBox="0 0 24 24" width="19" height="19" fill="none"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" stroke-width="2"/><path d="M19.4 15a8 8 0 0 0 .1-6M4.5 9a8 8 0 0 0 .1 6M8 4.7a8 8 0 0 1 8 0M16 19.3a8 8 0 0 1-8 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+                  <span><b>学习设置</b><span>目标考试、提醒时间、训练强度。</span></span>
+                  <span class="pill">设置</span>
+                </button>
+                <button class="profile-card" data-toast="查看成就摘要">
+                  <span class="list-icon"><svg viewBox="0 0 24 24" width="19" height="19" fill="none"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Zm10 2h3a3 3 0 0 1-3 3M7 6H4a3 3 0 0 0 3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+                  <span><b>我的成就</b><span>正式详情在学情，这里只放入口摘要。</span></span>
+                  <span class="pill ok">摘要</span>
+                </button>
+                <button class="profile-card" data-toast="打开意见反馈">
+                  <span class="list-icon"><svg viewBox="0 0 24 24" width="19" height="19" fill="none"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8Z" stroke="currentColor" stroke-width="2"/></svg></span>
+                  <span><b>意见反馈 / 客服</b><span>问题上报、处理进度、客服入口。</span></span>
+                  <span class="pill">反馈</span>
+                </button>
+              </div>
+            </section>
+          </div>
+
+          <nav class="center-tab-shell" aria-label="底部导航">
+            <div class="tabbar">
+              <button class="tab active" data-tab="learn" aria-label="学习">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 2v4m8-4v4M4 10h16M5 4h14a1 1 0 0 1 1 1v15H4V5a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                <span>学习</span>
+              </button>
+              <button class="tab" data-tab="notes" aria-label="笔记">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 19.5V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-1.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+                <span>笔记</span>
+              </button>
+              <div class="tab-dialog-wrap">
+                <button class="tab-dialog" data-tab="chat" aria-label="对话">
+                  <svg width="31" height="31" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg>
+                </button>
+                <span class="tab-dialog-label">对话</span>
+              </div>
+              <button class="tab" data-tab="report" aria-label="学情">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 19V5m0 14h16M8 16v-5m4 5V8m4 8v-8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                <span>学情</span>
+              </button>
+              <button class="tab" data-tab="profile" aria-label="我的">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 21a8 8 0 1 0-16 0M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                <span>我的</span>
+              </button>
+            </div>
+          </nav>
+        </div>
+      </div>
+
+      <aside class="architecture">
+        <section class="arch-card">
+          <div class="arch-head">
+            <b>为什么“对话”放中间</b>
+            <span class="badge">主操作</span>
+          </div>
+          <div class="arch-body">
+            <div class="arch-grid">
+              <div class="arch-item"><b>心智更清楚</b><span>鲁班最核心的能力是问答、拍题、批改；中间凸起代表随时发起互动。</span></div>
+              <div class="arch-item"><b>不挤占内容</b><span>历史聊天、拍照识题、案例批改都收进对话页，避免历史单独占 Tab。</span></div>
+              <div class="arch-item"><b>符合小程序习惯</b><span>中间圆形按钮适合主动作，但旁边四个 Tab 仍保持信息架构稳定。</span></div>
+              <div class="arch-item"><b>降低混乱</b><span>学习管行动，笔记管资产，学情管判断，我的管账户。</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="arch-card">
+          <div class="arch-head">
+            <b>模块归属表</b>
+            <span class="badge">不丢现有能力</span>
+          </div>
+          <div class="arch-body">
+            <div class="route-table">
+              <div class="route-row"><span class="route-name">学习</span><span class="route-desc">今日任务、继续学习、摸底测试、专项练题、本周/月目标、笔记转来的待复习。</span></div>
+              <div class="route-row"><span class="route-name">笔记</span><span class="route-desc">手动笔记、收藏、采分点手册、AI 推荐待确认、待复习笔记。</span></div>
+              <div class="route-row"><span class="route-name">对话</span><span class="route-desc">新对话、拍照识题、案例批改、最近聊天、历史搜索、答疑后保存。</span></div>
+              <div class="route-row"><span class="route-name">学情</span><span class="route-desc">学情总览、测试报告、错因地图、能力图谱、学习时间线、我的成就、证据链。</span></div>
+              <div class="route-row"><span class="route-name">我的</span><span class="route-desc">充值会员、余额、学习设置、账号信息、意见反馈、客服、协议、数据设置。</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="arch-card">
+          <div class="arch-head">
+            <b>下一步 UI 审查问题</b>
+            <span class="badge">待拍板</span>
+          </div>
+          <div class="arch-body">
+            <div class="review-list">
+              <div class="review-row">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" stroke="currentColor" stroke-width="2"/></svg>
+                <span>学习页首屏是“今日处方”还是“继续上次学习”优先？</span>
+              </div>
+              <div class="review-row">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 19.5V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-1.5Z" stroke="currentColor" stroke-width="2"/></svg>
+                <span>笔记页是否默认只看“手动笔记”，AI 推荐放右上角待确认角标？</span>
+              </div>
+              <div class="review-row">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 21a8 8 0 1 0-16 0M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                <span>我的成就是放学情主入口，还是我的页也保留摘要入口？</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span id="toastText">已切换</span>
+  </div>
+
+  <script>
+    const titles = {
+      learn: ['学习', '今日处方'],
+      notes: ['笔记', '主控资产'],
+      chat: ['对话', '问鲁班'],
+      report: ['学情', '诊断中心'],
+      profile: ['我的', '账户服务']
+    };
+
+    const toast = document.getElementById('toast');
+    const toastText = document.getElementById('toastText');
+    let toastTimer;
+
+    function showToast(text) {
+      toastText.textContent = text;
+      toast.classList.add('show');
+      window.clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => toast.classList.remove('show'), 1800);
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.view').forEach((view) => {
+        view.classList.toggle('active', view.dataset.view === tab);
+      });
+      document.querySelectorAll('[data-tab]').forEach((item) => {
+        item.classList.toggle('active', item.dataset.tab === tab);
+      });
+      document.getElementById('navTitle').textContent = titles[tab][0];
+      document.getElementById('navBadge').textContent = titles[tab][1];
+    }
+
+    document.addEventListener('click', (event) => {
+      const tabTarget = event.target.closest('[data-tab]');
+      if (tabTarget) {
+        const tab = tabTarget.dataset.tab;
+        switchTab(tab);
+        showToast(`已切换到${titles[tab][0]}`);
+        return;
+      }
+
+      const toastTarget = event.target.closest('[data-toast]');
+      if (toastTarget) {
+        showToast(toastTarget.dataset.toast);
+      }
+    });
+  </script>
+</body>
+</html>

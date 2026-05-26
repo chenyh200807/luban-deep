@@ -57,6 +57,13 @@ def normalize_uuid_or_none(value: Any) -> str | None:
         return None
 
 
+def _nonnegative_int(value: Any) -> int:
+    try:
+        return max(0, int(value or 0))
+    except (TypeError, ValueError):
+        return 0
+
+
 def build_mobile_feedback_row(
     *,
     user_id: str,
@@ -75,6 +82,10 @@ def build_mobile_feedback_row(
     effective_response_mode: str = "",
     response_mode_degrade_reason: str = "",
     actual_tool_rounds: int | None = None,
+    problem_type: str = "",
+    symptom_tags: list[str] | None = None,
+    attachments: list[dict[str, Any]] | None = None,
+    context_snapshot: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     normalized_conversation_id = str(session_id or "").strip()
     normalized_message_id = str(message_id or "").strip()
@@ -118,6 +129,48 @@ def build_mobile_feedback_row(
         metadata["trace_id"] = normalized_trace_id
     if normalized_request_id:
         metadata["request_id"] = normalized_request_id
+    normalized_problem_type = str(problem_type or "").strip()
+    if normalized_problem_type:
+        metadata["problem_type"] = normalized_problem_type[:80]
+    normalized_symptoms = normalize_feedback_reason_tags(symptom_tags)
+    if normalized_symptoms:
+        metadata["symptom_tags"] = normalized_symptoms
+    normalized_attachments: list[dict[str, Any]] = []
+    for item in attachments or []:
+        if not isinstance(item, dict):
+            continue
+        normalized_attachments.append(
+            {
+                "id": str(item.get("id") or item.get("attachment_id") or "").strip()[:80],
+                "kind": str(item.get("kind") or item.get("fileType") or "image").strip()[:24],
+                "filename": str(item.get("filename") or item.get("name") or "").strip()[:160],
+                "mime_type": str(item.get("mime_type") or item.get("content_type") or "").strip()[:80],
+                "size": _nonnegative_int(item.get("size")),
+                "url": str(item.get("url") or "").strip()[:500],
+                "temp_path": str(item.get("temp_path") or item.get("tempFilePath") or "").strip()[
+                    :240
+                ],
+            }
+        )
+    if normalized_attachments:
+        metadata["attachments"] = [
+            {
+                key: value
+                for key, value in item.items()
+                if not (isinstance(value, str) and value == "")
+            }
+            for item in normalized_attachments[:3]
+        ]
+        metadata["attachment_count"] = len(metadata["attachments"])
+    if isinstance(context_snapshot, dict) and context_snapshot:
+        metadata["context_snapshot"] = {
+            "route": str(context_snapshot.get("route") or "").strip()[:160],
+            "network_type": str(context_snapshot.get("network_type") or "").strip()[:40],
+            "device_model": str(context_snapshot.get("device_model") or "").strip()[:120],
+            "platform": str(context_snapshot.get("platform") or "").strip()[:40],
+            "system": str(context_snapshot.get("system") or "").strip()[:80],
+            "wechat_version": str(context_snapshot.get("wechat_version") or "").strip()[:40],
+        }
     return {
         "id": str(uuid4()),
         "created_at": datetime.now().astimezone().isoformat(),
@@ -147,10 +200,40 @@ def _metadata_mapping(metadata: Mapping[str, Any], key: str) -> dict[str, Any]:
     return dict(value) if isinstance(value, dict) else {}
 
 
+def normalize_feedback_attachments(values: Any) -> list[dict[str, Any]]:
+    if not isinstance(values, list):
+        return []
+    normalized: list[dict[str, Any]] = []
+    for item in values:
+        if not isinstance(item, Mapping):
+            continue
+        url = str(item.get("url") or "").strip()
+        temp_path = str(item.get("temp_path") or item.get("tempFilePath") or "").strip()
+        record = {
+            "id": str(item.get("id") or item.get("attachment_id") or "").strip()[:80],
+            "kind": str(item.get("kind") or item.get("fileType") or "image").strip()[:24],
+            "filename": str(item.get("filename") or item.get("name") or "").strip()[:160],
+            "mime_type": str(item.get("mime_type") or item.get("content_type") or "").strip()[:80],
+            "size": _nonnegative_int(item.get("size")),
+            "url": url[:500],
+            "temp_path": temp_path[:240],
+        }
+        normalized.append(
+            {
+                key: value
+                for key, value in record.items()
+                if not (isinstance(value, str) and value == "")
+            }
+        )
+    return normalized[:3]
+
+
 def normalize_feedback_record(row: Mapping[str, Any]) -> dict[str, Any]:
     metadata = row.get("metadata")
     normalized_metadata = dict(metadata) if isinstance(metadata, dict) else {}
     triage = _metadata_mapping(normalized_metadata, "bi_triage")
+    attachments = normalize_feedback_attachments(normalized_metadata.get("attachments"))
+    context_snapshot = _metadata_mapping(normalized_metadata, "context_snapshot")
     return {
         "id": str(row.get("id") or "").strip(),
         "created_at": str(row.get("created_at") or "").strip(),
@@ -182,6 +265,12 @@ def normalize_feedback_record(row: Mapping[str, Any]) -> dict[str, Any]:
         "triage_operator": _metadata_str(triage, "operator"),
         "triage_note": _metadata_str(triage, "note"),
         "triage_updated_at": _metadata_str(triage, "updated_at"),
+        "problem_type": _metadata_str(normalized_metadata, "problem_type"),
+        "symptom_tags": normalize_feedback_reason_tags(normalized_metadata.get("symptom_tags")),
+        "attachment_count": _metadata_int(normalized_metadata, "attachment_count")
+        or len(attachments),
+        "attachments": attachments,
+        "context_snapshot": context_snapshot,
         "metadata": normalized_metadata,
     }
 

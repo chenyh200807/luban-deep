@@ -9,6 +9,7 @@ var KNOWN_PACKAGE_PATHS = {
   "pages/login/manual": true,
   "pages/mistake-book/mistake-book": true,
   "pages/practice/practice": true,
+  "pages/feedback/feedback": true,
   "pages/profile/profile": true,
   "pages/register/register": true,
   "pages/report/report": true,
@@ -104,6 +105,9 @@ module.exports = {
   },
   practice: function () {
     return resolve("pages/practice/practice");
+  },
+  feedback: function (query) {
+    return withQuery("pages/feedback/feedback", query);
   },
   terms: function () {
     return resolve("pages/legal/terms");

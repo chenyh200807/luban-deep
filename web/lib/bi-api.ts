@@ -188,6 +188,26 @@ export interface BiFeedbackRecord {
   triage_operator?: string;
   triage_note?: string;
   triage_updated_at?: string;
+  problem_type?: string;
+  symptom_tags?: string[];
+  attachment_count?: number;
+  attachments?: Array<{
+    id?: string;
+    kind?: string;
+    filename?: string;
+    mime_type?: string;
+    size?: number;
+    url?: string;
+    temp_path?: string;
+  }>;
+  context_snapshot?: {
+    route?: string;
+    network_type?: string;
+    device_model?: string;
+    platform?: string;
+    system?: string;
+    wechat_version?: string;
+  };
   created_at?: string;
 }
 
@@ -1736,6 +1756,37 @@ export async function getBiFeedback(options: { days?: number; limit?: number } =
         triage_operator: toString(itemRecord.triage_operator ?? itemRecord.triageOperator, ""),
         triage_note: toString(itemRecord.triage_note ?? itemRecord.triageNote, ""),
         triage_updated_at: toString(itemRecord.triage_updated_at ?? itemRecord.triageUpdatedAt, ""),
+        problem_type: toString(itemRecord.problem_type ?? itemRecord.problemType, ""),
+        symptom_tags: toArray(itemRecord.symptom_tags ?? itemRecord.symptomTags)
+          .map((value) => toString(value))
+          .filter(Boolean),
+        attachment_count: toFiniteNumber(
+          itemRecord.attachment_count ?? itemRecord.attachmentCount,
+          0,
+        ),
+        attachments: toArray(itemRecord.attachments).map((attachment) => {
+          const attachmentRecord = asRecord(attachment);
+          return {
+            id: toString(attachmentRecord.id ?? attachmentRecord.attachment_id ?? attachmentRecord.attachmentId, ""),
+            kind: toString(attachmentRecord.kind ?? attachmentRecord.fileType, ""),
+            filename: toString(attachmentRecord.filename ?? attachmentRecord.name, ""),
+            mime_type: toString(attachmentRecord.mime_type ?? attachmentRecord.mimeType, ""),
+            size: toFiniteNumber(attachmentRecord.size, 0),
+            url: toString(attachmentRecord.url, ""),
+            temp_path: toString(attachmentRecord.temp_path ?? attachmentRecord.tempFilePath, ""),
+          };
+        }),
+        context_snapshot: (() => {
+          const context = asRecord(itemRecord.context_snapshot ?? itemRecord.contextSnapshot);
+          return {
+            route: toString(context.route, ""),
+            network_type: toString(context.network_type ?? context.networkType, ""),
+            device_model: toString(context.device_model ?? context.deviceModel, ""),
+            platform: toString(context.platform, ""),
+            system: toString(context.system, ""),
+            wechat_version: toString(context.wechat_version ?? context.wechatVersion, ""),
+          };
+        })(),
         created_at: toString(itemRecord.created_at ?? itemRecord.createdAt, ""),
       };
     }),
