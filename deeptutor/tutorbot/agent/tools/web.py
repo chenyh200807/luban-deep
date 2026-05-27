@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import asyncio
 import html
+import ipaddress
 import json
 import os
 import re
+import socket
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
@@ -48,6 +50,69 @@ def _validate_url(url: str) -> tuple[bool, str]:
         return True, ""
     except Exception as e:
         return False, str(e)
+
+
+# RFC6598 shared address space (100.64.0.0/10). Aliyun's metadata service lives
+# at 100.100.100.200 inside this range, and Python <3.13 marks it neither
+# is_private nor is_global — so it is blocked here explicitly as a belt-and-
+# suspenders backstop on top of the `not is_global` gate below.
+_EXTRA_BLOCKED_NETS = (ipaddress.ip_network("100.64.0.0/10"),)
+
+
+def _ip_is_blocked(ip: ipaddress.IPv4Address | ipaddress.IPv6Address) -> bool:
+    """True if the address is not a public, internet-routable target."""
+    mapped = getattr(ip, "ipv4_mapped", None)
+    if mapped is not None:  # normalise ::ffff:10.0.0.1 → 10.0.0.1
+        ip = mapped
+    if (
+        ip.is_private
+        or ip.is_loopback
+        or ip.is_link_local
+        or ip.is_reserved
+        or ip.is_multicast
+        or ip.is_unspecified
+        or not ip.is_global
+    ):
+        return True
+    return any(ip.version == net.version and ip in net for net in _EXTRA_BLOCKED_NETS)
+
+
+def _resolve_host_ips(host: str) -> list[ipaddress.IPv4Address | ipaddress.IPv6Address]:
+    """Resolve a host to every IP it maps to (literal IPs short-circuit DNS)."""
+    literal = host.strip("[]")
+    try:
+        return [ipaddress.ip_address(literal)]
+    except ValueError:
+        pass
+    infos = socket.getaddrinfo(host, None, proto=socket.IPPROTO_TCP)
+    return [ipaddress.ip_address(info[4][0]) for info in infos]
+
+
+def _assert_url_safe(url: str) -> tuple[bool, str]:
+    """Reject http(s) URLs whose host resolves to any non-public address.
+
+    Fail-closed SSRF guard for the LLM-facing web_fetch tool: validates scheme,
+    resolves the hostname, and blocks loopback/link-local/private/reserved and
+    cloud-metadata targets. DNS errors reject too. This is a point-in-time
+    check; pinning the socket to the resolved IP (full DNS-rebinding defense)
+    is tracked as a separate follow-up.
+    """
+    ok, err = _validate_url(url)
+    if not ok:
+        return False, err
+    host = urlparse(url).hostname
+    if not host:
+        return False, "Missing host"
+    try:
+        ips = _resolve_host_ips(host)
+    except Exception as exc:
+        return False, f"Could not resolve host '{host}': {exc}"
+    if not ips:
+        return False, f"Host '{host}' did not resolve"
+    for ip in ips:
+        if _ip_is_blocked(ip):
+            return False, f"Blocked non-public address {ip} for host '{host}'"
+    return True, ""
 
 
 def _format_results(query: str, items: list[dict[str, Any]], n: int) -> str:
@@ -251,7 +316,7 @@ class WebFetchTool(Tool):
 
     async def execute(self, url: str, extractMode: str = "markdown", maxChars: int | None = None, **kwargs: Any) -> str:
         max_chars = maxChars or self.max_chars
-        is_valid, error_msg = _validate_url(url)
+        is_valid, error_msg = await asyncio.to_thread(_assert_url_safe, url)
         if not is_valid:
             return json.dumps({"error": f"URL validation failed: {error_msg}", "url": url}, ensure_ascii=False)
 
@@ -295,17 +360,39 @@ class WebFetchTool(Tool):
             return None
 
     async def _fetch_readability(self, url: str, extract_mode: str, max_chars: int) -> str:
-        """Local fallback using readability-lxml."""
+        """Local fallback using readability-lxml.
+
+        Redirects are followed manually (follow_redirects=False) so every hop is
+        re-checked against the SSRF guard — a public URL that 30x-redirects to an
+        internal/metadata address must not slip past the entry check.
+        """
         from readability import Document
 
         try:
             async with httpx.AsyncClient(
-                follow_redirects=True,
-                max_redirects=MAX_REDIRECTS,
+                follow_redirects=False,
                 timeout=30.0,
                 proxy=self.proxy,
             ) as client:
-                r = await client.get(url, headers={"User-Agent": USER_AGENT})
+                current = url
+                r = None
+                for _ in range(MAX_REDIRECTS + 1):
+                    ok, err = await asyncio.to_thread(_assert_url_safe, current)
+                    if not ok:
+                        return json.dumps(
+                            {"error": f"Blocked URL: {err}", "url": current},
+                            ensure_ascii=False,
+                        )
+                    r = await client.get(current, headers={"User-Agent": USER_AGENT})
+                    if r.is_redirect and r.next_request is not None:
+                        current = str(r.next_request.url)
+                        continue
+                    break
+                else:
+                    return json.dumps(
+                        {"error": "Too many redirects", "url": url},
+                        ensure_ascii=False,
+                    )
                 r.raise_for_status()
 
             ctype = r.headers.get("content-type", "")
