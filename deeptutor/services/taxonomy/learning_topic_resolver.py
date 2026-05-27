@@ -7,13 +7,13 @@ import threading
 from collections import Counter
 from dataclasses import dataclass
 from functools import lru_cache
-from pathlib import Path
 from typing import Any, Callable
 
-from deeptutor.services.assessment.topic_catalog import get_topic_testset_catalog
-from deeptutor.services.taxonomy import construction_taxonomy
+from deeptutor.services.taxonomy.taxonomy_authority import (
+    normalize_taxonomy_code as _normalize_authority_taxonomy_code,
+    taxonomy_index,
+)
 
-_COMPILED_TAXONOMY_PATH = Path(__file__).resolve().parent / "compiled" / "construction_2026_taxonomy.compiled.json"
 _CODE_RE = re.compile(r"1A\d{3,6}(?:-\d{2})?(?:-[a-z])?", re.IGNORECASE)
 _DEICTIC_TOPIC_RE = re.compile(r"^(?:这|这道|这一|这个|本|该|此|当前)(?:道|个|类)?(?:题|题目|选择题|案例题|真题)$")
 _GENERIC_TOPIC_LABELS = {
@@ -171,6 +171,9 @@ def resolve_learning_topic_from_payload(
         inferred = normalize_learning_topic_text(llm_topic_inferer(payload, evidence_candidates))
         if inferred:
             return ResolvedLearningTopic(label=inferred, source="llm_inferred", confidence="low")
+        fallback = _personalized_focus_from_candidates(specific_focus_candidates)
+        if fallback:
+            return fallback
         return None
 
     for code in _taxonomy_code_candidates(payload, evidence_candidates):
@@ -193,6 +196,7 @@ def resolve_learning_topic_from_payload(
         inferred = normalize_learning_topic_text(llm_topic_inferer(payload, evidence_candidates))
         if inferred:
             return ResolvedLearningTopic(label=inferred, source="llm_inferred", confidence="low")
+        return _personalized_focus_from_candidates(evidence_candidates)
     return None
 
 
@@ -206,7 +210,7 @@ def _resolve_confirmed_label(label: str, index: dict[str, dict[str, dict[str, An
             taxonomy_code=str(node.get("code") or ""),
             taxonomy_id=str(node.get("id") or ""),
         )
-    return _assessment_topic_from_label(label)
+    return None
 
 
 def infer_learning_topic_with_llm(payload: dict[str, Any], candidates: list[str]) -> str:
@@ -279,58 +283,7 @@ def normalize_learning_topic_text(value: Any) -> str:
 
 @lru_cache(maxsize=1)
 def _load_topic_index() -> dict[str, dict[str, dict[str, Any]]]:
-    if _COMPILED_TAXONOMY_PATH.exists():
-        compiled = json.loads(_COMPILED_TAXONOMY_PATH.read_text(encoding="utf-8"))
-        nodes = [dict(node) for node in list(compiled.get("nodes") or []) if isinstance(node, dict)]
-    else:
-        labels = getattr(construction_taxonomy, "_TAXONOMY_LABELS", {})
-        nodes = [
-            {
-                "id": str(code),
-                "code": str(code),
-                "name": str(label),
-                "level": 0,
-                "parent_code": "",
-                "path_names": [str(label)],
-                "keywords": [],
-            }
-            for code, label in dict(labels).items()
-        ]
-    code_counts = Counter(str(node.get("code") or "").strip() for node in nodes if str(node.get("code") or "").strip())
-    ambiguous_codes = {
-        code
-        for code, count in code_counts.items()
-        if count > 1
-        and len({_compact(node.get("name")) for node in nodes if str(node.get("code") or "").strip() == code}) > 1
-    }
-    nodes_by_code = {
-        str(node.get("code") or "").strip(): node
-        for node in nodes
-        if str(node.get("code") or "").strip()
-        and str(node.get("code") or "").strip() not in ambiguous_codes
-    }
-    nodes_by_id = {
-        str(node.get("id") or "").strip(): node
-        for node in nodes
-        if str(node.get("id") or "").strip()
-    }
-    name_codes: dict[str, set[str]] = {}
-    for node in nodes:
-        name = _compact(node.get("name"))
-        code = str(node.get("code") or "").strip()
-        if name and code:
-            name_codes.setdefault(name, set()).add(code)
-    ambiguous_names = {name for name, codes in name_codes.items() if len(codes) > 1}
-    nodes_by_name: dict[str, dict[str, Any]] = {}
-    for node in nodes:
-        name = _compact(node.get("name"))
-        if normalize_learning_topic_text(node.get("name")) and name not in ambiguous_names:
-            nodes_by_name.setdefault(name, node)
-    return {
-        "nodes_by_code": nodes_by_code,
-        "nodes_by_id": nodes_by_id,
-        "nodes_by_name": nodes_by_name,
-    }
+    return taxonomy_index()
 
 
 def _taxonomy_id_candidates(payload: dict[str, Any]) -> list[str]:
@@ -383,11 +336,7 @@ def _taxonomy_code_candidates(payload: dict[str, Any], text_candidates: list[str
 
 
 def _normalize_taxonomy_code(value: str) -> str:
-    parts = value.split("-")
-    normalized = [parts[0].upper()]
-    for part in parts[1:]:
-        normalized.append(part.lower() if part.isalpha() else part)
-    return "-".join(normalized)
+    return _normalize_authority_taxonomy_code(value)
 
 
 def _topic_text_candidates(payload: dict[str, Any]) -> list[str]:
@@ -406,34 +355,18 @@ def _topic_text_candidates(payload: dict[str, Any]) -> list[str]:
     return candidates
 
 
-def _assessment_topic_from_label(label: str) -> ResolvedLearningTopic | None:
-    compact = _compact(label)
-    for spec in get_topic_testset_catalog():
-        labels = [spec.label, spec.short_label]
-        keywords: list[str] = []
-        for section in spec.sections:
-            labels.append(section.label)
-            keywords.extend(section.topics)
-        label_matches = [_compact(item) for item in labels if _compact(item)]
-        keyword_matches = [_compact(item) for item in keywords if _compact(item)]
-        if (
-            compact in label_matches
-            or any(item and item in compact for item in label_matches if len(item) >= 4)
-            or compact in keyword_matches
-        ):
-            return ResolvedLearningTopic(
-                label=spec.label,
-                source="assessment_topic_catalog",
-                confidence="medium",
-                topic_id=spec.topic_id,
-            )
-    return None
-
-
 def _has_topic_evidence(payload: dict[str, Any], candidates: list[str]) -> bool:
     if candidates:
         return True
     return any(str(payload.get(key) or "").strip() for key in ("question_stem", "simple_explanation", "explanation"))
+
+
+def _personalized_focus_from_candidates(candidates: list[str]) -> ResolvedLearningTopic | None:
+    for label in candidates:
+        text = normalize_learning_topic_text(label)
+        if text and not _CODE_RE.fullmatch(text):
+            return ResolvedLearningTopic(label=text, source="evidence_inferred", confidence="low")
+    return None
 
 
 def _compact(value: Any) -> str:

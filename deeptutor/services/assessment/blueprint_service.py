@@ -20,8 +20,12 @@ from deeptutor.services.assessment.blueprint import (
 )
 from deeptutor.services.assessment.profile_probes import ProfileProbe, get_profile_probes
 from deeptutor.services.taxonomy.construction_taxonomy import display_taxonomy_label
+from deeptutor.services.taxonomy.learning_topic_resolver import (
+    normalize_learning_topic_text,
+    resolve_learning_topic_from_payload,
+)
 
-_CHAPTER_CODE_RE = re.compile(r"^1A\d{6}$")
+_CHAPTER_CODE_RE = re.compile(r"^1A\d{3,6}(?:-\d{2})?(?:-[a-z])?$", re.IGNORECASE)
 _ASSESSMENT_FORM_COUNT = TARGET_FORM_ROTATION_COUNT
 _FORM_CACHE_LOCK = threading.RLock()
 _FORM_CACHE: dict[str, "_AssessmentFormBank"] = {}
@@ -1286,26 +1290,59 @@ def _humanize_chapter_label(value: str, *, section: AssessmentSection) -> str:
         return section.label or "综合能力"
     upper = raw.upper()
     if _is_chapter_code(upper):
-        return display_taxonomy_label(upper, fallback="") or section.label or "综合能力"
+        return display_taxonomy_label(raw, fallback="") or section.label or "综合能力"
     return raw
 
 
 def _chapter_from_row(row: dict[str, Any], section: AssessmentSection) -> str:
+    node_code = str(row.get("node_code") or "").strip()
+    resolved = _confirmed_taxonomy_chapter({"node_code": node_code})
+    if resolved:
+        return resolved
+
+    legacy_candidates: list[str] = []
     source_meta = row.get("source_meta")
     if isinstance(source_meta, dict):
         for key in ("chapter_name", "chapter_label", "topic_name", "node_name"):
             value = str(source_meta.get(key) or "").strip()
-            if value and not _is_chapter_code(value):
-                return value
+            if not value:
+                continue
+            resolved = _confirmed_taxonomy_chapter({"knowledge_points": [value]})
+            if resolved:
+                return resolved
+            normalized = normalize_learning_topic_text(value)
+            if normalized and not _is_chapter_code(normalized):
+                legacy_candidates.append(normalized)
     tags = row.get("tags")
     if isinstance(tags, dict):
         for key in ("node_name", "chapter_name", "chapter_label", "topic_name", "chapter", "topic", "module"):
             if tags.get(key):
-                return _humanize_chapter_label(str(tags[key]), section=section)
+                value = str(tags[key])
+                resolved = _confirmed_taxonomy_chapter({"knowledge_points": [value], "node_code": value})
+                if resolved:
+                    return resolved
+                label = _humanize_chapter_label(value, section=section)
+                normalized = normalize_learning_topic_text(label)
+                if normalized:
+                    legacy_candidates.append(normalized)
     if isinstance(tags, list) and tags:
         for tag in tags:
-            label = _humanize_chapter_label(str(tag), section=section)
+            value = str(tag)
+            resolved = _confirmed_taxonomy_chapter({"knowledge_points": [value], "node_code": value})
+            if resolved:
+                return resolved
+            label = _humanize_chapter_label(value, section=section)
             if label:
-                return label
-    node_code = str(row.get("node_code") or "").strip()
+                normalized = normalize_learning_topic_text(label)
+                if normalized:
+                    legacy_candidates.append(normalized)
+    if legacy_candidates:
+        return legacy_candidates[0]
     return _humanize_chapter_label(node_code, section=section)
+
+
+def _confirmed_taxonomy_chapter(payload: dict[str, Any]) -> str:
+    resolved = resolve_learning_topic_from_payload(payload, llm_topic_inferer=None)
+    if not resolved or not resolved.taxonomy_code:
+        return ""
+    return resolved.label

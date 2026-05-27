@@ -170,6 +170,12 @@ def test_resolver_does_not_remap_structured_label_to_coarse_topic_by_keyword() -
     assert resolved is None
 
 
+def test_resolver_does_not_promote_topic_catalog_label_as_taxonomy_authority() -> None:
+    resolved = resolve_learning_topic_from_payload({"knowledge_points": ["防水工程"]})
+
+    assert resolved is None
+
+
 def test_resolver_allows_llm_inferred_topic_when_taxonomy_misses() -> None:
     calls: list[dict[str, object]] = []
 
@@ -190,6 +196,19 @@ def test_resolver_allows_llm_inferred_topic_when_taxonomy_misses() -> None:
     assert resolved.source == "llm_inferred"
     assert resolved.confidence == "low"
     assert calls
+
+
+def test_resolver_can_use_sanitized_evidence_as_low_confidence_personalized_focus_after_llm_miss() -> None:
+    resolved = resolve_learning_topic_from_payload(
+        {"knowledge_points": ["防水工程"]},
+        llm_topic_inferer=lambda _payload, _candidates: "",
+    )
+
+    assert resolved is not None
+    assert resolved.label == "防水工程"
+    assert resolved.source == "evidence_inferred"
+    assert resolved.confidence == "low"
+    assert resolved.taxonomy_code == ""
 
 
 def test_compiled_taxonomy_artifact_is_packaged() -> None:

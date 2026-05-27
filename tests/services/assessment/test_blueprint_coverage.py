@@ -505,6 +505,29 @@ def test_supabase_candidate_rows_use_chinese_chapter_labels_for_node_codes() -> 
     assert candidate.difficulty == "hard"
 
 
+def test_supabase_candidate_prefers_confirmed_taxonomy_code_over_generic_metadata() -> None:
+    section = get_assessment_blueprint("diagnostic_v1").sections[1]
+
+    candidate = SupabaseAssessmentQuestionProvider._candidate_from_row(
+        {
+            "id": "taxonomy-confirmed",
+            "question_stem": "题干",
+            "question_type": "single_choice",
+            "source_type": "REAL_EXAM",
+            "node_code": "1A411011-02-d",
+            "source_meta": {"chapter_name": "这题"},
+            "tags": {"topic": "当前考点"},
+            "difficulty": "0.3",
+            "options": {"A": "选项 A", "B": "选项 B"},
+            "correct_answer": "A",
+        },
+        section,
+    )
+
+    assert candidate is not None
+    assert candidate.chapter == "建筑高度计算方法"
+
+
 def test_supabase_candidate_rejects_multi_prompt_case_stem_for_click_assessment() -> None:
     section = get_assessment_blueprint("diagnostic_v1").sections[6]
 
