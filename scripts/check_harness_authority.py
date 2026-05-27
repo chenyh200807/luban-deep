@@ -27,6 +27,7 @@ the gate fails the moment a second authority or a shell re-judgement appears.
 
 from __future__ import annotations
 
+import ast
 import re
 import sys
 from dataclasses import dataclass
@@ -40,10 +41,15 @@ EXECUTION_SHELLS: tuple[str, ...] = (
     "deeptutor/agents/chat/agentic_pipeline.py",
     "deeptutor/tutorbot/agent/loop.py",
 )
-FORBIDDEN_SHELL_SYMBOLS: tuple[str, ...] = (
-    "detect_construction_exam_scene",
-    "get_construction_exam_skill_instruction",
+FORBIDDEN_SHELL_SYMBOLS: frozenset[str] = frozenset(
+    {
+        "detect_construction_exam_scene",
+        "get_construction_exam_skill_instruction",
+    }
 )
+# Legacy module the forbidden detectors live in (matched by trailing segment so
+# `deeptutor.tutorbot.teaching_modes` and a bare `teaching_modes` both resolve).
+FORBIDDEN_MODULE_SUFFIX = "teaching_modes"
 
 # --- Rule B: each authority is defined exactly once, in its authority module.
 @dataclass(frozen=True)
@@ -76,26 +82,75 @@ def _iter_python_files() -> list[Path]:
     return sorted(PACKAGE_ROOT.rglob("*.py"))
 
 
+def _is_forbidden_module(name: str | None) -> bool:
+    return bool(name) and name.split(".")[-1] == FORBIDDEN_MODULE_SUFFIX
+
+
+def _attr_root_name(node: ast.expr) -> str | None:
+    """Resolve the owner name of an attribute access: `tm.x` -> 'tm',
+    `a.b.teaching_modes.x` -> 'teaching_modes'."""
+    if isinstance(node, ast.Name):
+        return node.id
+    if isinstance(node, ast.Attribute):
+        return node.attr
+    return None
+
+
+def _scan_shell_file_ast(rel: str, source: str) -> list[str]:
+    """AST (not text) scan: flag actual import bindings / attribute-access calls
+    of the legacy scene detectors — alias-proof, and without false-positives on
+    docstrings/comments that merely mention the symbol.
+
+    Out of scope (no static check can catch this; runtime enforcement is
+    deliberately not built per the project's thin-wrapper / less-is-more rule):
+    fully dynamic access such as ``getattr(mod, "detect_" + "...")``.
+    """
+    try:
+        tree = ast.parse(source, filename=rel)
+    except SyntaxError as exc:  # fail-safe: unparseable shell cannot be verified
+        return [f"{rel}: AST parse failed ({exc}); cannot verify scene authority"]
+
+    violations: list[str] = []
+    module_aliases: set[str] = set()  # local names bound to the teaching_modes module
+
+    for node in ast.walk(tree):
+        # (1) from ...teaching_modes import <forbidden> [as alias]  — alias-proof.
+        if isinstance(node, ast.ImportFrom) and _is_forbidden_module(node.module):
+            for alias in node.names:
+                if alias.name in FORBIDDEN_SHELL_SYMBOLS:
+                    as_part = f" as `{alias.asname}`" if alias.asname else ""
+                    violations.append(
+                        f"{rel}:{node.lineno}: execution shell imports legacy scene "
+                        f"detector `{alias.name}`{as_part} — read "
+                        f"context.metadata['question_lifecycle_scene'] instead"
+                    )
+        # (2) import ...teaching_modes [as alias]  — remember the bound name.
+        elif isinstance(node, ast.Import):
+            for alias in node.names:
+                if _is_forbidden_module(alias.name):
+                    module_aliases.add(alias.asname or alias.name.split(".")[0])
+
+    # (3) attribute-access calls: <teaching_modes alias|name>.<forbidden>.
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Attribute) and node.attr in FORBIDDEN_SHELL_SYMBOLS:
+            root = _attr_root_name(node.value)
+            if root in module_aliases or root == FORBIDDEN_MODULE_SUFFIX:
+                violations.append(
+                    f"{rel}:{node.lineno}: execution shell calls legacy scene "
+                    f"detector `{root}.{node.attr}` — read "
+                    f"context.metadata['question_lifecycle_scene'] instead"
+                )
+    return violations
+
+
 def _scan_shell_rejudgement() -> list[str]:
     violations: list[str] = []
-    symbol_re = {
-        symbol: re.compile(rf"\b{re.escape(symbol)}\b") for symbol in FORBIDDEN_SHELL_SYMBOLS
-    }
     for rel in EXECUTION_SHELLS:
         path = PROJECT_ROOT / rel
         if not path.exists():
             violations.append(f"{rel}: execution shell missing (guard cannot verify)")
             continue
-        for lineno, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
-            if raw.lstrip().startswith("#"):
-                continue
-            for symbol, pattern in symbol_re.items():
-                if pattern.search(raw):
-                    violations.append(
-                        f"{rel}:{lineno}: execution shell references legacy scene "
-                        f"detector `{symbol}` — read context.metadata"
-                        f"['question_lifecycle_scene'|'question_lifecycle_skill_names'] instead"
-                    )
+        violations.extend(_scan_shell_file_ast(rel, path.read_text(encoding="utf-8")))
     return violations
 
 
