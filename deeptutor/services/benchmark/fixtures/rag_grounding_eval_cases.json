@@ -94,5 +94,34 @@
       "textbook_delta_query": true,
       "should_prefetch_grounded_rag": true
     }
+  },
+  {
+    "name": "exact_answer_fidelity_mcq",
+    "kind": "exact_answer_fidelity",
+    "metadata": {
+      "exact_question": {
+        "answer_kind": "mcq",
+        "correct_answer": "B",
+        "stem": "施工现场临时用电组织设计应由谁编制？",
+        "analysis": "本题以题库标准答案为准。B 选项符合规范要求。",
+        "options": {
+          "A": "项目负责人",
+          "B": "电气工程技术人员",
+          "C": "专职安全员",
+          "D": "监理工程师"
+        }
+      }
+    }
+  },
+  {
+    "name": "exact_answer_fidelity_free_text",
+    "kind": "exact_answer_fidelity",
+    "metadata": {
+      "exact_question": {
+        "answer_kind": "free_text",
+        "correct_answer": "应先进行验槽，确认地基承载力满足设计要求后方可施工。",
+        "analysis": "验槽是隐蔽工程验收的关键环节。"
+      }
+    }
   }
 ]

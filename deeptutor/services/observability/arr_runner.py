@@ -21,6 +21,8 @@ from deeptutor.services.question_followup import (
     resolve_submission_attempt,
 )
 from deeptutor.services.rag.exact_authority import (
+    build_exact_authority_response,
+    exact_authority_response_matches,
     extract_exact_question_authority_from_metadata,
     resolve_exact_authority_response_from_authority,
     should_force_exact_authority,
@@ -262,6 +264,31 @@ def run_rag_grounding_suite() -> tuple[dict[str, Any], list[dict[str, Any]]]:
                 "rendered_preview": rendered_text[:300],
             }
             failure_type = "FAIL_RAG_MISS" if authority is None else "FAIL_GROUNDEDNESS"
+        elif kind == "exact_answer_fidelity":
+            # Deterministic answer-fidelity oracle (harness 9+ roadmap C8 step-0; no LLM).
+            # The authority's own rendered exact response must stay faithful to its
+            # authoritative answer: a renderer regression that drops/garbles the answer
+            # flips this to FAIL. MCQ gets the strong exact_authority_response_matches
+            # check; free_text additionally requires the authoritative answer text to be
+            # present (matches() is a deliberate no-op for non-MCQ kinds).
+            exact_question = (case.get("metadata") or {}).get("exact_question") or {}
+            answer_kind = str(exact_question.get("answer_kind") or "").strip().lower()
+            rendered = build_exact_authority_response(exact_question)
+            matches_ok = exact_authority_response_matches(exact_question, rendered)
+            answer_text = "".join(str(exact_question.get("correct_answer") or "").split())
+            rendered_compact = "".join(str(rendered or "").split())
+            answer_present = bool(answer_text) and answer_text in rendered_compact
+            passed = matches_ok and (answer_present if answer_kind == "free_text" else True)
+            evidence = {
+                "answer_kind": answer_kind,
+                "fidelity_matches": matches_ok,
+                "answer_present": answer_present,
+                "rendered_preview": str(rendered or "")[:200],
+            }
+            # Reuse the canonical FAIL_GROUNDEDNESS taxonomy: an answer-fidelity
+            # miss IS a groundedness failure (output not grounded in the
+            # authoritative answer). No new failure-type concept.
+            failure_type = "FAIL_GROUNDEDNESS"
         elif kind == "grounding_decision":
             decision = build_grounding_decision(
                 query=case["query"],
