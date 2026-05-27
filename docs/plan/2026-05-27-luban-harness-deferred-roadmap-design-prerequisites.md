@@ -128,6 +128,6 @@
 | D2 | 兼容规范文档（本文） | replay 断言落测（需 keyed env） |
 | D3 | `read_artifact` 契约 | **决定保持设计态（2026-05-27）**：现在建原语=未接线投机抽象 + 概念重复，违反 §2/§Concept Discipline，故不建；实现等接进 context_budget（gated）再做 |
 | D4 | partition 边界规则 + 不变量文档（本文） | KV 命中率基线（需 keyed env） |
-| D5 | **model-swap 单点 guard + inventory** | **已落地（2026-05-27，commit `c45713a6`）**：`scripts/check_model_authority.py` + `model_authority_guard` quick gate（守默认单点 + 债务 inventory）；轨迹 golden 扩容仍需 keyed env |
+| D5 | **model-swap 单点 guard + inventory + 轨迹 eval** | **已落地（2026-05-27）**：`check_model_authority.py` + `model_authority_guard` quick gate（commit `c45713a6`）；`run_harness_trajectory_eval.py` + `harness_trajectory_eval` deep gate（commit `8cc2f255`，真实 chat 管线轨迹结构不变量，keyed env 自解析 sibling .env） |
 
-> plan-owner 决策（2026-05-27）：D5 的离线 guard **已落地**；D3 离线原语**决定不建**（投机抽象，保持设计态）。其余 D1–D5 实现仍受 §0 gate + keyed 环境约束。本文档仅交付设计，不自动启动剩余实现。
+> plan-owner 决策（2026-05-27）：keyed env 就位后，D5 **已实现**（model-swap guard + 轨迹 eval，真实 LLM 验收通过）；D3 离线原语**决定不建**（投机抽象，保持设计态）。D1 scene-skill 共享已由 P0.2 落地。**D2（chat 有界迭代，改 WS 事件语义）与 D4（KV-cache prompt partition，改两壳 prompt 拼装）仍是高风险 contract 敏感重构**：设计已就位（本文 §D2/§D4），但实现应各自走独立 PR + 真实 replay/命中率验收，不在与后台 main 活动并行时仓促合入。本文档仅交付设计，D2/D4 实现待单独推进。
