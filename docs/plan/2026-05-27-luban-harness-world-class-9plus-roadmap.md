@@ -46,6 +46,38 @@
 
 **剩余(按 C8,本会话边界已诚实标注)**:H4 下半(failed_turn→脱敏候选 case,需按 C5 谨慎设计 PII 合成)→ 之后是**资源/生产受限**的 H3(规模化 live 录制 + tutorbot 壳可回放性难题)、H2(需人工标注 golden)、H6(依赖 H2)、H7(改生产 turn flow,专门 PR)。**这些不在单会话能"测试验证完成"之列,按路线图分专门 PR 推进。real 命中率维要靠持续使用累积——这是设计使然(C3)。**
 
+## 0.6 7→9 差距 + 北极星「模型升级→系统升级」的诚实拆解
+
+**北极星**(你的要求):模型变强 → 系统自动变强。它需要**两半,缺一不可**:
+
+- **A 架构透传 —— 已基本到位(~9)**:薄壳 + 单一权威 + 干净上下文,让更强的模型不被 wrapper 逻辑卡住。P0(scene/grounding/exact 收权)+ H5(架构级 alias-proof guard)+ 删 legacy 重判 = **这一半真做到了**。一个更强模型 drop-in,不会被旧壳逻辑瓶颈——这正是 harness 单一权威工作的直接产出。
+- **B 验证透传 —— 差距所在**:harness 必须能**证明**一次模型升级「更好且无回归」,你才敢让系统跟着升级。没有它,换模型只能「希望」它更好,不敢自动透传。**7→9 的差距几乎全在 B。**
+
+**7→9 差距表(全在 B 的子维度)**:
+
+| 维度 | 现 | 9 | 缺口 / 需要的资源 |
+|---|---|---|---|
+| 真实面覆盖 | 3 | 9 | RAG/embedding 栈可靠 + tool-loop shim + tutorbot 事件溯源回放(**基础设施**) |
+| 质量打分 | 4 | 9 | ground-truth 题库答案 **或** 人工标注 judge golden(**数据/人力**) |
+| 跨模型差分评估(B 核心) | 0 | 9 | 上两者就位后:swap 模型→量化 better/regression(已确认有 deepseek+qwen,但 qwen provider config 需装) |
+| real 命中率(C3 真判据) | 0 real | 9 | 持续使用累积真实事故抓取(**时间**) |
+| 趋势/成本盘 | 4 | 8 | 依赖质量打分 |
+
+**为什么这些不是「再写几个增量」就能到 9 —— 是资源/时间依赖,不是藏着的工作**:
+- 质量打分:需 ground-truth(题库标准答案/采分点)或人工标注 golden。compiled taxonomy 只有节点、无带答案题库;无法凭空造。
+- 真实面覆盖:需 RAG/embedding 栈可靠运行(本地 ConnectError 过)+ tutorbot 自主壳的事件溯源回放(真难题)。
+- real 命中率:时间函数,每次真实改动抓到回归才累积。
+
+**通往 9+ 的最短路径(需资源解锁)**:
+1. **可靠 keyed staging**(RAG/embedding 可达 + qwen provider 配好)→ 解锁真实面覆盖 + cross-model live。
+2. **授权用题库标准答案做 ground-truth oracle,或给 30–100 条人工标注 golden** → 解锁质量打分(无需 judge 的 ground-truth 路径优先,见 C2)。
+3. **把 `append_hit(kind="real")` 接进日常改动流程** → real 命中率开始累积(C3 真判据)。
+做到这三点,cross-model 质量评估(B 核心)即可落地,北极星「验证透传」成立 → 9+。
+
+**当前无新资源即可推进的小块**(诚实:都不足以单独把分数推到 9):① cross-model 差分评估骨架(结构+延迟+成本,质量打分留 hook;qwen provider config 需先验证)② 把 `tools/tex_chunker.py` 等业务层硬编码 model 收进 config(model-swap 单点最后一块,直接服务北极星 A)。
+
+> **一句话**:harness 的「架构透传」地基已是顶尖水平(单一权威 + 薄壳 + alias-proof guard);要到 9+ 的「验证透传」,核心瓶颈不是再多写代码,而是 **质量度量的 ground-truth/标注 + 真实面 staging + 时间累积**。这三样到位前,任何人(含顶尖团队)都到不了可信 9+;到位后,我已铺好的 cassette/oracle/ledger/guard 能直接长上去。
+
 ## 1. 世界级实践基线（调研依据，2026-05 检索）
 
 本路线图不是凭空设计,锚定以下实践:
