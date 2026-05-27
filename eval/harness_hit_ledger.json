@@ -1,0 +1,42 @@
+[
+  {
+    "gate": "harness_authority_baseline",
+    "regression": "scene re-judgement drift (decision-layer golden tampered)",
+    "caught": true,
+    "kind": "injected",
+    "date": "2026-05-27",
+    "note": "P0.1 golden diff went red on a flipped derive_scene value"
+  },
+  {
+    "gate": "harness_authority_guard",
+    "regression": "aliased legacy scene detector import in chat shell (from ... import detect_construction_exam_scene as _legacy_d)",
+    "caught": true,
+    "kind": "injected",
+    "date": "2026-05-27",
+    "note": "H5 AST guard caught the alias import that line-regex would have detected only at the call site"
+  },
+  {
+    "gate": "model_authority_guard",
+    "regression": "second DEFAULT_LLM_MODEL declared outside config/defaults.py",
+    "caught": true,
+    "kind": "injected",
+    "date": "2026-05-27",
+    "note": "D5 guard red on a rogue default declaration"
+  },
+  {
+    "gate": "harness_trajectory_replay",
+    "regression": "trajectory drift via tampered cassette (recorded answer emptied)",
+    "caught": true,
+    "kind": "injected",
+    "date": "2026-05-27",
+    "note": "H1 replay flipped PASS->FAIL: empty thinking changed the downstream prompt -> cassette key miss"
+  },
+  {
+    "gate": "rag-grounding.exact_answer_fidelity",
+    "regression": "exact renderer dropped the authoritative MCQ answer",
+    "caught": true,
+    "kind": "injected",
+    "date": "2026-05-27",
+    "note": "C8 step-0 oracle flipped PASS->FAIL on a corrupted build_exact_authority_response"
+  }
+]
