@@ -67,6 +67,9 @@ all = [
 [tool.setuptools]
 include-package-data = true
 
+[tool.setuptools.package-data]
+"deeptutor.services.taxonomy" = ["compiled/*.json"]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["deeptutor*", "deeptutor_cli*"]

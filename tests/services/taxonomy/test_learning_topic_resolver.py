@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import tomllib
+from pathlib import Path
+
 from deeptutor.services.taxonomy.learning_topic_resolver import (
     compile_taxonomy_payload,
     resolve_learning_topic_from_payload,
@@ -187,3 +190,11 @@ def test_resolver_allows_llm_inferred_topic_when_taxonomy_misses() -> None:
     assert resolved.source == "llm_inferred"
     assert resolved.confidence == "low"
     assert calls
+
+
+def test_compiled_taxonomy_artifact_is_packaged() -> None:
+    pyproject = tomllib.loads((Path(__file__).parents[3] / "pyproject.toml").read_text())
+
+    package_data = pyproject["tool"]["setuptools"]["package-data"]
+
+    assert "compiled/*.json" in package_data["deeptutor.services.taxonomy"]
