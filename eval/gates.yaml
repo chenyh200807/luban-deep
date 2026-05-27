@@ -22,6 +22,11 @@ gates:
     category: quick
     command: ["python", "scripts/run_harness_authority_baseline.py", "--check"]
 
+  harness_trajectory_replay:
+    description: "Deterministic trajectory regression via recorded cassettes (harness H1; no key)."
+    category: quick
+    command: ["python", "scripts/run_harness_trajectory_eval.py", "--replay"]
+
   ws_mobile_turn_runtime:
     description: "Unified /api/v1/ws turn runtime and mobile router contract."
     category: quick

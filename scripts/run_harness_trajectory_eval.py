@@ -45,6 +45,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 PER_CASE_TIMEOUT_S = 120.0
+CASSETTE_DIR = PROJECT_ROOT / "tests" / "fixtures" / "cassettes" / "harness_trajectory"
 
 # Representative cases. Kept LLM-only (no external RAG/web infra) so the gate is
 # reliable: `reason` is a dedicated deep-reasoning LLM call, not an external tool.
@@ -104,11 +105,17 @@ def _llm_configured() -> bool:
     return bool(host and key)
 
 
-async def _run_case(case: dict[str, Any]) -> dict[str, Any]:
-    from deeptutor.agents.chat.agentic_pipeline import AgenticChatPipeline
+def _cassette_path(case_name: str) -> Path:
+    return CASSETTE_DIR / f"{case_name}.json"
+
+
+async def _run_case(case: dict[str, Any], *, mode: str = "live") -> dict[str, Any]:
+    import deeptutor.agents.chat.agentic_pipeline as ap
     from deeptutor.core.context import UnifiedContext
     from deeptutor.core.stream import StreamEventType
     from deeptutor.core.stream_bus import StreamBus
+    from deeptutor.services.benchmark import llm_replay
+    from deeptutor.services.benchmark.cassette import Cassette
 
     bus = StreamBus()
     events: list[Any] = []
@@ -128,7 +135,17 @@ async def _run_case(case: dict[str, Any]) -> dict[str, Any]:
         config_overrides=dict(case.get("config_overrides") or {}),
         metadata=dict(case.get("metadata") or {}),
     )
-    pipeline = AgenticChatPipeline(language=context.language)
+    pipeline = ap.AgenticChatPipeline(language=context.language)
+
+    # record/replay: intercept the streaming LLM entry around this turn (H1).
+    real_stream = ap.llm_stream
+    cassette: Cassette | None = None
+    if mode == "record":
+        cassette = Cassette()
+        ap.llm_stream = llm_replay.build_recording_stream(real_stream, cassette)
+    elif mode == "replay":
+        cassette = Cassette.from_json(_cassette_path(case["name"]).read_text(encoding="utf-8"))
+        ap.llm_stream = llm_replay.build_replaying_stream(cassette)
 
     run_error: str | None = None
     try:
@@ -136,8 +153,13 @@ async def _run_case(case: dict[str, Any]) -> dict[str, Any]:
     except Exception as exc:  # noqa: BLE001 - surfaced as a case failure, not a crash
         run_error = f"{type(exc).__name__}: {str(exc)[:160]}"
     finally:
+        ap.llm_stream = real_stream
         await bus.close()
         await consumer
+
+    if mode == "record" and cassette is not None and run_error is None:
+        _cassette_path(case["name"]).parent.mkdir(parents=True, exist_ok=True)
+        _cassette_path(case["name"]).write_text(cassette.to_json(), encoding="utf-8")
 
     seq = [event.type.value for event in events]
     tool_calls = [str(event.content) for event in events if event.type == StreamEventType.TOOL_CALL]
@@ -177,21 +199,41 @@ async def _run_case(case: dict[str, Any]) -> dict[str, Any]:
 
 async def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--check", action="store_true", help="assert trajectory invariants (gate mode)")
-    parser.parse_args()
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--check", action="store_true", help="live run + assert invariants (keyed)")
+    group.add_argument("--record", action="store_true", help="live run + freeze cassettes (keyed)")
+    group.add_argument("--replay", action="store_true", help="replay cassettes + assert invariants (no key, deterministic gate)")
+    args = parser.parse_args()
 
-    _ensure_keyed_env()
-    if not _llm_configured():
-        print(
-            "SKIP harness trajectory eval: no LLM config resolved. "
-            "Set DEEPTUTOR_ENV_FILE to a populated .env (keyed env required).",
-            file=sys.stderr,
-        )
-        return 2
+    mode = "replay" if args.replay else ("record" if args.record else "live")
+
+    if mode == "replay":
+        # Deterministic, keyless: every case must have a frozen cassette.
+        missing = [c["name"] for c in CASES if not _cassette_path(c["name"]).exists()]
+        if missing:
+            print(f"SKIP harness trajectory replay: missing cassettes {missing}. Run --record first.", file=sys.stderr)
+            return 2
+    else:
+        _ensure_keyed_env()
+        if not _llm_configured():
+            print(
+                "SKIP harness trajectory eval: no LLM config resolved. "
+                "Set DEEPTUTOR_ENV_FILE to a populated .env (keyed env required).",
+                file=sys.stderr,
+            )
+            return 2
+
+    if mode == "record":
+        for case in CASES:
+            rec = await _run_case(case, mode="record")
+            ok = rec["run_error"] is None and _cassette_path(case["name"]).exists()
+            print(f"[{'REC' if ok else 'ERR'}] {rec['name']}: cassette {'frozen' if ok else 'FAILED'} ({rec['run_error'] or ''})")
+        print(f"harness trajectory cassettes recorded -> {CASSETTE_DIR.relative_to(PROJECT_ROOT)}")
+        return 0
 
     failures = 0
     for case in CASES:
-        record = await _run_case(case)
+        record = await _run_case(case, mode=mode)
         status = "PASS" if record["passed"] else "FAIL"
         print(
             f"[{status}] {record['name']}: "
