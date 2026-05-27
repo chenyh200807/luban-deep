@@ -122,12 +122,12 @@
 
 ## 汇总：哪些"前置"其实可离线先落地（不破 gate）
 
-| 项 | 可离线先做的部分 | 仍需 keyed env / gate 的部分 |
+| 项 | 可离线先做的部分 | 状态 / 仍需 keyed env / gate 的部分 |
 |---|---|---|
 | D1 | （scene-skill 共享已由 P0.2 落地） | 其余按矩阵保持有意分叉，触发条件未到不抽 |
-| D2 | 兼容规范文档（本文） | replay 断言落测 |
-| D3 | `read_artifact` 契约 + "压缩→回取等价"单测 | 与真实长对话联调 |
-| D4 | partition 边界规则 + 不变量文档（本文） | KV 命中率基线 |
-| D5 | **model-swap 单点 guard（静态，可离线）** | 轨迹 golden 扩容 |
+| D2 | 兼容规范文档（本文） | replay 断言落测（需 keyed env） |
+| D3 | `read_artifact` 契约 | **决定保持设计态（2026-05-27）**：现在建原语=未接线投机抽象 + 概念重复，违反 §2/§Concept Discipline，故不建；实现等接进 context_budget（gated）再做 |
+| D4 | partition 边界规则 + 不变量文档（本文） | KV 命中率基线（需 keyed env） |
+| D5 | **model-swap 单点 guard + inventory** | **已落地（2026-05-27，commit `c45713a6`）**：`scripts/check_model_authority.py` + `model_authority_guard` quick gate（守默认单点 + 债务 inventory）；轨迹 golden 扩容仍需 keyed env |
 
-> 若未来要在 gate 未全开时**先行**落地上表"可离线"列（如 D5 model-swap guard、D3 read_artifact 单测），需单独向 plan owner 申请、并确认不抢 launch-readiness 风险预算。本文档仅交付设计，不自动启动其中任何实现。
+> plan-owner 决策（2026-05-27）：D5 的离线 guard **已落地**；D3 离线原语**决定不建**（投机抽象，保持设计态）。其余 D1–D5 实现仍受 §0 gate + keyed 环境约束。本文档仅交付设计，不自动启动剩余实现。
