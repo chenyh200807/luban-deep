@@ -16,13 +16,20 @@
 [![Feishu](https://img.shields.io/badge/Feishu-Group-00D4AA?style=flat-square&logo=feishu&logoColor=white)](../../Communication.md)
 [![WeChat](https://img.shields.io/badge/WeChat-Group-07C160?style=flat-square&logo=wechat&logoColor=white)](https://github.com/HKUDS/DeepTutor/issues/78)
 
-[الميزات](#key-features) · [البدء](#get-started) · [استكشاف](#explore-deeptutor) · [TutorBot](#tutorbot) · [CLI](#deeptutor-cli-guide) · [خارطة الطريق](#roadmap) · [المجتمع](#community)
+[تركيز المنتج](#product-focus) · [الميزات](#key-features) · [البدء](#get-started) · [استكشاف](#explore-deeptutor) · [TutorBot](#tutorbot) · [CLI](#deeptutor-cli-guide) · [خارطة الطريق](#roadmap) · [المجتمع](#community)
 
 [🇬🇧 English](../../README.md) · [🇨🇳 中文](README_CN.md) · [🇯🇵 日本語](README_JA.md) · [🇪🇸 Español](README_ES.md) · [🇫🇷 Français](README_FR.md) · [🇷🇺 Русский](README_RU.md) · [🇮🇳 हिन्दी](README_HI.md) · [🇵🇹 Português](README_PT.md)
 
 </div>
 
 ---
+<a id="product-focus"></a>
+## 🎯 تركيز المنتج
+
+DeepTutor هو محرك التعلم agent-native خلف **鲁班智考**، وهو مدرب AI على الجوال لامتحانات ممارسة البناء في الصين. المنتج ليس مجرد chatbot أو بنك أسئلة؛ كل تدريب يتحول إلى حلقة: تقييم، تصحيح، حفظ دليل التعلم، تدريب تال، ثم إعادة اختبار.
+
+الحلقة الأساسية الحالية هي **assess -> grade -> remember -> train -> retest**. Assessment TestSet وTopic Catalog وتصحيح مسائل الحالة ودفتر الأخطاء وتقرير التعلم والسؤال التالي المخصص هي عمود منتج واحد. Web وmini program وCLI والـ adapters تبقى wrappers رقيقة؛ سياسة التعليم، قواعد التصحيح، scene authority، وتفسير حالة المتعلم تعيش في skills/services مسماة.
+
 ### 📰 الأخبار
 
 > **[2026.4.4]** منذ زمن غائبين! ✨ DeepTutor v1.0.0 وصل أخيرًا — تطور أصلي للوكلاء مع إعادة بناء المعمار من الصفر وTutorBot وأوضاع مرنة بموجب Apache-2.0. فصل جديد يبدأ!
@@ -59,13 +66,14 @@
 <a id="key-features"></a>
 ## ✨ أبرز الميزات
 
-- **مساحة دردشة موحّدة** — خمسة أوضاع في سلسلة واحدة: دردشة، Deep Solve، اختبارات، Deep Research، Math Animator تتشارك السياق.
-- **TutorBots شخصية** — ليست روبوتات دردشة: مدرّسون مستقلّون بمساحة عمل وذاكرة وشخصية ومهارات. يعمل بـ [nanobot](https://github.com/HKUDS/nanobot).
-- **AI Co-Writer** — محرّر Markdown والذكاء الاصطناعي شريك: إعادة صياغة، توسيع، اختصار مع قاعدة المعرفة والويب.
-- **تعليم موجّه** — تحويل موادك إلى رحلات تعلّم بصرية متدرّجة.
-- **مركز المعرفة** — PDF وMarkdown ونص لقواعد جاهزة لـ RAG؛ دفاتر ملوّنة.
-- **ذاكرة دائمة** — ملخّص التقدّم وملف المتعلّم؛ مشتركة مع TutorBots.
-- **CLI أصلي للوكلاء** — القدرات وقواعد المعرفة والجلسات وTutorBot بأمر واحد؛ Rich وJSON. [`SKILL.md`](../../SKILL.md).
+- **حلقة تدريب لامتحان البناء** — لا تنتهي الممارسة عند صحيح/خطأ؛ DeepTutor يصحح حسب نقاط الدرجة، يشخص سبب الفقد، ويقترح التدريب التالي.
+- **تصحيح مسائل الحالة وتشخيص MCQ** — الإجابات المكتوبة تنقسم إلى نقاط محققة، نقاط مفقودة، ومشاكل تعبير؛ أخطاء الاختيار ترتبط بالمشتتات أو المفاهيم أو قراءة السؤال.
+- **مدخل محادثة واحد** — Chat وmini program وTutorBot وreplay وresume تخضع لعقد `/api/v1/ws` المستقر.
+- **TutorBot هو هوية المعلم الوحيدة** — TutorBot هو هوية المعلم الدائمة؛ hints وaliases القديمة تطبع قبل قرارات runtime.
+- **RAG وبنك الأسئلة بسلطة واحدة** — معرفة الامتحان، أدلة الأسئلة، المعايير، syllabus، والبحث الاختياري في الويب تحت retrieval authority واحدة.
+- **Learning Evidence هو السجل** — التصحيح، attempt، دفتر الأخطاء، التقرير، والتدريب تقرأ دليل التعلم نفسه.
+- **تسليم mobile-first** — WeChat mini program وحزمة Yousen هما سطحا 鲁班智考 الأساسيان؛ web وCLI للإدارة والاختبار والأتمتة.
+- **CLI أصلي للوكلاء** — القدرات وقواعد المعرفة والجلسات وTutorBot بأمر واحد؛ Rich للبشر وJSON للوكلاء. [`SKILL.md`](../../SKILL.md).
 
 ---
 
@@ -361,13 +369,13 @@ deeptutor kb create my-kb --doc textbook.pdf
 ---
 
 <a id="tutorbot"></a>
-### 🦞 TutorBot — مدرّسو ذكاء اصطناعي دائمون ومستقلّون
+### 🦞 TutorBot — runtime دائم لمعلم AI
 
 <div align="center">
 <img src="../../assets/figs/tutorbot-architecture.png" alt="هندسة TutorBot" width="800">
 </div>
 
-وكيل **متعدّد النسخ** دائم على [nanobot](https://github.com/HKUDS/nanobot): حلقة ومساحة عمل وذاكرة وشخصية مستقلة.
+TutorBot ليس chatbot آخر. إنه هوية المعلم الدائمة في DeepTutor: runtime وworkspace وذاكرة وskills وheartbeat وأدوات وأسلوب تعليم تحت مفهوم عمل واحد. في 鲁班智考، coaching للبناء، مراجعة الأسئلة، grading، evidence narration، وnext action تعيد استخدام نفس حد TutorBot.
 
 <div align="center">
 <img src="../../assets/figs/tb.png" alt="TutorBot" width="800">

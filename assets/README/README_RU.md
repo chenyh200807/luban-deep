@@ -16,13 +16,20 @@
 [![Feishu](https://img.shields.io/badge/Feishu-Group-00D4AA?style=flat-square&logo=feishu&logoColor=white)](../../Communication.md)
 [![WeChat](https://img.shields.io/badge/WeChat-Group-07C160?style=flat-square&logo=wechat&logoColor=white)](https://github.com/HKUDS/DeepTutor/issues/78)
 
-[Возможности](#key-features) · [Быстрый старт](#get-started) · [Обзор](#explore-deeptutor) · [TutorBot](#tutorbot) · [CLI](#deeptutor-cli-guide) · [Дорожная карта](#roadmap) · [Сообщество](#community)
+[Фокус продукта](#product-focus) · [Возможности](#key-features) · [Быстрый старт](#get-started) · [Обзор](#explore-deeptutor) · [TutorBot](#tutorbot) · [CLI](#deeptutor-cli-guide) · [Дорожная карта](#roadmap) · [Сообщество](#community)
 
 [🇬🇧 English](../../README.md) · [🇨🇳 中文](README_CN.md) · [🇯🇵 日本語](README_JA.md) · [🇪🇸 Español](README_ES.md) · [🇫🇷 Français](README_FR.md) · [🇸🇦 العربية](README_AR.md) · [🇮🇳 हिन्दी](README_HI.md) · [🇵🇹 Português](README_PT.md)
 
 </div>
 
 ---
+<a id="product-focus"></a>
+## 🎯 Фокус продукта
+
+DeepTutor — agent-native движок обучения для **鲁班智考**, мобильного AI-коуча для китайских экзаменов по строительной практике. Это не просто чатбот и не банк вопросов: каждая практика превращается в цикл оценки, проверки, сохранения учебного сигнала, следующей тренировки и повторной проверки.
+
+Текущий главный цикл: **assess -> grade -> remember -> train -> retest**. Assessment TestSet, Topic Catalog, проверка кейсов, книга ошибок, learning report и персональная следующая задача — одна продуктовая ось. Web, mini program, CLI и адаптеры остаются тонкими wrapper; педагогическая политика, правила проверки, scene authority и интерпретация состояния ученика живут в именованных skills/services.
+
 ### 📰 Новости
 
 > **[2026.4.4]** Давно не виделись! ✨ Вышел DeepTutor v1.0.0 — агентно-нативная эволюция: архитектура переписана с нуля, TutorBot и гибкие режимы под Apache-2.0. Начинается новая глава!
@@ -59,13 +66,14 @@
 <a id="key-features"></a>
 ## ✨ Ключевые возможности
 
-- **Единое чат-пространство** — пять режимов в одной ветке: Chat, Deep Solve, квизы, Deep Research, Math Animator с общим контекстом.
-- **Персональные TutorBot** — не чат-боты: автономные репетиторы со своей памятью, личностью и навыками. [nanobot](https://github.com/HKUDS/nanobot).
-- **AI Co-Writer** — Markdown: переписать, расширить, сократить с KB и вебом.
-- **Guided Learning** — визуальные пошаговые маршруты по вашим материалам.
-- **Центр знаний** — PDF, Markdown, текст для RAG; цветные блокноты.
-- **Постоянная память** — сводка прогресса и профиль ученика; общая с TutorBot.
-- **Агентно-нативный CLI** — возможности, KB, сессии, TutorBot одной командой; Rich и JSON. [`SKILL.md`](../../SKILL.md).
+- **Цикл подготовки к строительному экзамену** — Практика не заканчивается на верно/неверно: DeepTutor проверяет по баллам, находит причину ошибки и задает следующую тренировку.
+- **Проверка кейсов и диагностика MCQ** — Письменные ответы делятся на набранные пункты, пробелы и проблемы формулировки; ошибки выбора связываются с distractor, понятиями или чтением условия.
+- **Единый разговорный вход** — Chat, mini program, TutorBot, replay и resume проходят через стабильный контракт `/api/v1/ws`.
+- **TutorBot как единая идентичность** — TutorBot — постоянная идентичность наставника; входные hints и старые aliases нормализуются до runtime.
+- **RAG и банк вопросов под одной authority** — Экзаменационные знания, вопросы, нормы, syllabus и опциональный web search объединены под одной retrieval authority.
+- **Learning Evidence как реестр** — Проверка, attempt, книга ошибок, отчет и тренировка читают одну и ту же учебную evidence.
+- **Mobile-first поставка** — WeChat mini program и пакет Yousen — главные поверхности 鲁班智考; web и CLI поддерживают админку, тесты и автоматизацию.
+- **Агентно-нативный CLI** — Возможности, KB, сессии и TutorBot одной командой; Rich для людей, JSON для агентов. [`SKILL.md`](../../SKILL.md).
 
 ---
 
@@ -361,13 +369,13 @@ deeptutor kb create my-kb --doc textbook.pdf
 ---
 
 <a id="tutorbot"></a>
-### 🦞 TutorBot — постоянные автономные ИИ-репетиторы
+### 🦞 TutorBot — постоянный runtime ИИ-наставника
 
 <div align="center">
 <img src="../../assets/figs/tutorbot-architecture.png" alt="Архитектура TutorBot" width="800">
 </div>
 
-**Мультиинстансный** агент на [nanobot](https://github.com/HKUDS/nanobot): свой цикл, workspace, память, личность.
+TutorBot — не отдельный чатбот. Это единая постоянная идентичность наставника в DeepTutor: runtime, workspace, память, skills, heartbeat, инструменты и стиль обучения живут под одним бизнес-понятием. В 鲁班智考 coaching, review, grading, evidence narration и next action используют одну и ту же границу TutorBot.
 
 <div align="center">
 <img src="../../assets/figs/tb.png" alt="TutorBot" width="800">

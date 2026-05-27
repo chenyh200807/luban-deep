@@ -3,6 +3,14 @@
 > **状态**: PR-0 of [2026-05-25 Prelaunch Readiness Checklist v2.1](../plan/2026-05-25-prelaunch-readiness-checklist.md)
 > **目标**: 仓库内的可对照 baseline，用于后续 PR 检测"是否新增匿名 endpoint / 未启 RLS 的 public 表 / 失控的 anon grants"。**只报告不 fail**。后续 PR (PR-1a / PR-2 / 之后的 CI gate) 会把这些 baseline 当对照基线。
 
+本目录不是普通测试报告归档，而是鲁班智考内测上线前的安全与发布门禁介绍入口。当前产品已经有微信小程序、佑森包、BI / 会员后台、Assessment TestSet、learning-report、TutorBot 和 RAG 等多条外显面；任何新增 endpoint、public 表、anon grant 或 service-role 使用漂移，都可能让学习事实、账户事实或题库事实变成第二套未受控暴露面。
+
+阅读方式：
+
+- 看产品风险：先读本 README 的 finding 和后续 PR 依赖关系。
+- 看机器可比对数据：读 `route_inventory.json` 与 `rls_audit.json`。
+- 做修复：回到 `docs/plan/2026-05-25-prelaunch-readiness-checklist.md`，不要在本目录直接补 migration 或业务逻辑。
+
 ## 两份 baseline
 
 | 文件 | 来源 | 重要字段 |

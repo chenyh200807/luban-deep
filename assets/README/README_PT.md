@@ -16,13 +16,20 @@
 [![Feishu](https://img.shields.io/badge/Feishu-Group-00D4AA?style=flat-square&logo=feishu&logoColor=white)](../../Communication.md)
 [![WeChat](https://img.shields.io/badge/WeChat-Group-07C160?style=flat-square&logo=wechat&logoColor=white)](https://github.com/HKUDS/DeepTutor/issues/78)
 
-[Recursos](#key-features) · [Começar](#get-started) · [Explorar](#explore-deeptutor) · [TutorBot](#tutorbot) · [CLI](#deeptutor-cli-guide) · [Roteiro](#roadmap) · [Comunidade](#community)
+[Foco do produto](#product-focus) · [Recursos](#key-features) · [Começar](#get-started) · [Explorar](#explore-deeptutor) · [TutorBot](#tutorbot) · [CLI](#deeptutor-cli-guide) · [Roteiro](#roadmap) · [Comunidade](#community)
 
 [🇬🇧 English](../../README.md) · [🇨🇳 中文](README_CN.md) · [🇯🇵 日本語](README_JA.md) · [🇪🇸 Español](README_ES.md) · [🇫🇷 Français](README_FR.md) · [🇸🇦 العربية](README_AR.md) · [🇷🇺 Русский](README_RU.md) · [🇮🇳 हिन्दी](README_HI.md) · [🇵🇹 Português](README_PT.md)
 
 </div>
 
 ---
+<a id="product-focus"></a>
+## 🎯 Foco do produto
+
+DeepTutor é o motor de aprendizagem agent-native por trás do **鲁班智考**, um coach móvel para exames chineses de prática de construção. O produto não é apenas um chatbot nem um banco de questões: cada prática vira um ciclo fechado de avaliação, correção, memória de evidências, treino seguinte e revalidação.
+
+O fluxo principal atual é **avaliar -> corrigir -> lembrar -> treinar -> reavaliar**. Assessment TestSet, Topic Catalog, correção de casos, caderno de erros, relatório de aprendizagem e próxima questão personalizada formam uma única espinha dorsal do produto. Web, mini program, CLI e adaptadores ficam como wrappers finos; política pedagógica, correção, autoridade de cena e interpretação do estado do aluno vivem em skills e serviços nomeados.
+
 ### 📰 Notícias
 
 > **[2026.4.4]** Há quanto tempo! ✨ DeepTutor v1.0.0 chegou — evolução nativa de agentes com reescrita da arquitetura do zero, TutorBot e modos flexíveis sob Apache-2.0. Um novo capítulo começa!
@@ -59,13 +66,14 @@
 <a id="key-features"></a>
 ## ✨ Principais recursos
 
-- **Workspace de chat unificado** — Cinco modos, um fio: Chat, Deep Solve, quiz, Deep Research e Math Animator compartilham contexto.
-- **TutorBots pessoais** — Não são chatbots: tutores autônomos com espaço de trabalho, memória, personalidade e habilidades. [nanobot](https://github.com/HKUDS/nanobot).
-- **AI Co-Writer** — Markdown com IA como colaborador: reescrever, expandir ou encurtar com KB e web.
-- **Aprendizado guiado** — Jornadas visuais passo a passo a partir dos seus materiais.
-- **Hub de conhecimento** — PDF, Markdown e texto para bases RAG; cadernos coloridos.
-- **Memória persistente** — Resumo de progresso e perfil do aprendiz; compartilhado com TutorBots.
-- **CLI nativo para agentes** — Capacidades, KB, sessões e TutorBot em um comando; Rich e JSON. [`SKILL.md`](../../SKILL.md).
+- **Ciclo de preparação para construção** — A prática não termina em certo/errado: DeepTutor corrige por pontos, diagnostica o erro e propõe o próximo treino.
+- **Correção de casos e diagnóstico MCQ** — Respostas escritas são divididas em pontos atingidos, lacunas e expressão; erros de múltipla escolha são ligados a distratores, conceitos ou leitura da pergunta.
+- **Entrada conversacional única** — Chat, mini program, TutorBot, replay e resume passam pelo contrato estável `/api/v1/ws`.
+- **TutorBot como identidade única** — TutorBot é a identidade persistente do tutor; hints de entrada e aliases antigos são normalizados antes do runtime.
+- **RAG e banco de questões com autoridade** — Conhecimento de exame, questões, normas, syllabus e busca web opcional ficam sob uma autoridade de recuperação.
+- **Learning Evidence como livro-razão** — Correção, tentativa, caderno de erros, relatório e treino leem a mesma evidência do aluno.
+- **Entrega mobile-first** — WeChat mini program e pacote Yousen são as superfícies principais de 鲁班智考; web e CLI servem admin, testes e automação.
+- **CLI nativo para agentes** — Capacidades, KB, sessões e TutorBot em um comando; Rich para humanos e JSON para agentes. [`SKILL.md`](../../SKILL.md).
 
 ---
 
@@ -361,13 +369,13 @@ Ferramentas **desacopladas dos fluxos**.
 ---
 
 <a id="tutorbot"></a>
-### 🦞 TutorBot — Tutores de IA persistentes e autônomos
+### 🦞 TutorBot — Runtime persistente de tutor IA
 
 <div align="center">
 <img src="../../assets/figs/tutorbot-architecture.png" alt="Arquitetura TutorBot" width="800">
 </div>
 
-Agente **multi-instância** persistente com [nanobot](https://github.com/HKUDS/nanobot).
+TutorBot não é mais um chatbot. É a identidade persistente de tutor no DeepTutor: runtime, workspace, memória, skills, heartbeat, ferramentas e estilo pedagógico vivem sob um único conceito de negócio. Em 鲁班智考, coaching de construção, revisão de questões, correção, evidence narration e próxima ação reutilizam esse mesmo limite.
 
 <div align="center">
 <img src="../../assets/figs/tb.png" alt="TutorBot" width="800">

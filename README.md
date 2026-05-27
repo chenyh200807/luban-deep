@@ -16,7 +16,7 @@
 [![Feishu](https://img.shields.io/badge/Feishu-Group-00D4AA?style=flat-square&logo=feishu&logoColor=white)](./Communication.md)
 [![WeChat](https://img.shields.io/badge/WeChat-Group-07C160?style=flat-square&logo=wechat&logoColor=white)](https://github.com/HKUDS/DeepTutor/issues/78)
 
-[Product Focus](#-product-focus) · [Features](#-key-features) · [Get Started](#-get-started) · [Explore](#-explore-deeptutor) · [TutorBot](#-tutorbot--persistent-autonomous-ai-tutors) · [CLI](#%EF%B8%8F-deeptutor-cli--agent-native-interface) · [Community](#-community--ecosystem)
+[Product Focus](#-product-focus) · [Features](#-key-features) · [Get Started](#-get-started) · [Explore](#-explore-deeptutor) · [TutorBot](#-tutorbot--persistent-ai-tutor-runtime) · [CLI](#%EF%B8%8F-deeptutor-cli--agent-native-interface) · [Community](#-community--ecosystem)
 
 [🇨🇳 中文](assets/README/README_CN.md) · [🇯🇵 日本語](assets/README/README_JA.md) · [🇪🇸 Español](assets/README/README_ES.md) · [🇫🇷 Français](assets/README/README_FR.md) · [🇸🇦 العربية](assets/README/README_AR.md) · [🇷🇺 Русский](assets/README/README_RU.md) · [🇮🇳 हिन्दी](assets/README/README_HI.md) · [🇵🇹 Português](assets/README/README_PT.md)
 
@@ -39,7 +39,14 @@ This repository keeps the open DeepTutor architecture while grounding the curren
 | **Learning memory** | Learner state, bot-learner overlay, notebooks, and heartbeat signals are used to make each later explanation and recommendation more specific. |
 | **Quality control** | Observability, benchmark suites, release gates, and trace metadata are treated as product infrastructure, not optional debugging aids. |
 
-The most important commercial loop today is **case grading + error map + personalized next-question training**. Generic capabilities such as Co-Writer, Guided Learning, Deep Research, Math Animator, and CLI remain available, but the product narrative should be read through this exam-coach loop first.
+The most important product loop today is **assess -> grade -> remember -> train -> retest**. Assessment TestSet, Topic Catalog, case grading, mistake-book writeback, learning-report read models, and personalized next-question training are one product spine, not separate demos. Generic capabilities such as Co-Writer, Guided Learning, Deep Research, Math Animator, and CLI remain available, but the project narrative should be read through this exam-coach loop first.
+
+Current build priorities:
+
+- **Finite Topic Catalog before unlimited generation** — production assessment starts from bounded construction-exam topics, persistent form banks, and coverage gates.
+- **Learning evidence as the ledger** — grading, attempt detail, mistake book, learning report, and next training must agree on the same learner evidence instead of keeping parallel truth.
+- **Thin wrappers, fat skills** — web, mini program, CLI, and compatibility adapters stay thin; teaching policy, grading rules, scene authority, and learner-state interpretation live in named skills/services.
+- **Mobile-first verification** — `/wechat-harness`, WeChat DevTools, Langfuse, benchmark artifacts, `/healthz`, and `/readyz` are normal acceptance surfaces for product claims.
 
 ### 📦 Releases
 
@@ -398,6 +405,8 @@ deeptutor kb create my-kb --doc textbook.pdf     # Build a knowledge base
 <img src="assets/figs/deeptutor-architecture.png" alt="DeepTutor Architecture" width="800">
 </div>
 
+Read the following surfaces as one system: DeepTutor provides the agent-native runtime, while 鲁班智考 currently productizes it around construction-exam assessment, grading, learner evidence, and mobile delivery. When a generic feature and an exam-coach flow overlap, the exam-coach contract is the product authority.
+
 ### 💬 Chat — Unified Intelligent Workspace
 
 <div align="center">
@@ -471,25 +480,24 @@ Memory is shared across all features and all your TutorBots. The more you use De
 
 ---
 
-### 🦞 TutorBot — Persistent, Autonomous AI Tutors
+### 🦞 TutorBot — Persistent AI Tutor Runtime
 
 <div align="center">
 <img src="assets/figs/tutorbot-architecture.png" alt="TutorBot Architecture" width="800">
 </div>
 
-TutorBot is not a chatbot — it is a **persistent, multi-instance agent** built on [nanobot](https://github.com/HKUDS/nanobot). Each TutorBot runs its own agent loop with independent workspace, memory, and personality. Create a Socratic math tutor, a patient writing coach, and a rigorous research advisor — all running simultaneously, each evolving with you.
+TutorBot is not a chatbot. It is the single persistent tutor identity in DeepTutor: runtime, workspace, memory, skills, heartbeat, tools, and teaching style live under one business concept. For 鲁班智考, that means construction-exam coaching, question review, grading, learning-evidence narration, study support, and next-action guidance all reuse the same TutorBot boundary instead of creating entry-specific tutor identities.
 
 <div align="center">
 <img src="assets/figs/tb.png" alt="TutorBot" width="800">
 </div>
 
-- **Soul Templates** — Define your tutor's personality, tone, and teaching philosophy through editable Soul files. Choose from built-in archetypes (Socratic, encouraging, rigorous) or craft your own — the soul shapes every response.
-- **Independent Workspace** — Each bot has its own directory with separate memory, sessions, skills, and configuration — fully isolated yet able to access DeepTutor's shared knowledge layer.
-- **Proactive Heartbeat** — Bots don't just respond — they initiate. The built-in Heartbeat system enables recurring study check-ins, review reminders, and scheduled tasks. Your tutor shows up even when you don't.
-- **Full Tool Access** — Every bot reaches into DeepTutor's complete toolkit: RAG retrieval, code execution, web search, academic paper search, deep reasoning, and brainstorming.
-- **Skill Learning** — Teach your bot new abilities by adding skill files to its workspace. As your needs evolve, so does your tutor's capability.
-- **Multi-Channel Presence** — Connect bots to Telegram, Discord, Slack, Feishu, WeChat Work, DingTalk, Email, and more. Your tutor meets you wherever you are.
-- **Team & Sub-Agents** — Spawn background sub-agents or orchestrate multi-agent teams within a single bot for complex, long-running tasks.
+- **Tutor identity, not mode alias** — `TutorBot` is the only business identity; entry hints, teaching modes, and product surfaces are normalized before runtime decisions.
+- **Skill authority** — Construction-exam tutoring, question supply, question review, MCQ grading, case grading, evidence narration, study assistance, and learning support live in named skills/services.
+- **Shared learner context** — TutorBot reads learner state, overlays, notebooks, attempt refs, and evidence projections through the same authority used by reports and training.
+- **Controlled tool access** — RAG remains the single grounding tool; web search and other tools are enabled through runtime config rather than wrapper-level fallback.
+- **Heartbeat and support** — Proactive study check-ins and support flows must point back to canonical learning facts instead of inventing a second plan.
+- **Team and sub-agents** — Multi-worker mode is useful for long-running operations, but it is not allowed to become a second teaching or grading authority.
 
 ```bash
 deeptutor bot create math-tutor --persona "Socratic math teacher who uses probing questions"

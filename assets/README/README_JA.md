@@ -16,13 +16,20 @@
 [![Feishu](https://img.shields.io/badge/Feishu-Group-00D4AA?style=flat-square&logo=feishu&logoColor=white)](../../Communication.md)
 [![WeChat](https://img.shields.io/badge/WeChat-Group-07C160?style=flat-square&logo=wechat&logoColor=white)](https://github.com/HKUDS/DeepTutor/issues/78)
 
-[主な機能](#key-features) · [はじめる](#get-started) · [DeepTutor を探る](#explore-deeptutor) · [TutorBot](#tutorbot) · [CLI](#deeptutor-cli-guide) · [ロードマップ](#roadmap) · [コミュニティ](#community)
+[プロダクトの焦点](#product-focus) · [主な機能](#key-features) · [はじめる](#get-started) · [DeepTutor を探る](#explore-deeptutor) · [TutorBot](#tutorbot) · [CLI](#deeptutor-cli-guide) · [ロードマップ](#roadmap) · [コミュニティ](#community)
 
 [🇬🇧 English](../../README.md) · [🇨🇳 中文](README_CN.md) · [🇪🇸 Español](README_ES.md) · [🇫🇷 Français](README_FR.md) · [🇸🇦 العربية](README_AR.md) · [🇷🇺 Русский](README_RU.md) · [🇮🇳 हिन्दी](README_HI.md) · [🇵🇹 Português](README_PT.md)
 
 </div>
 
 ---
+<a id="product-focus"></a>
+## 🎯 プロダクトの焦点
+
+DeepTutor は **鲁班智考** の背後にある agent-native 学習エンジンです。現在の主製品は、中国の建築実務試験に向けたモバイル優先の AI コーチであり、単なるチャットボットや問題集ではありません。各演習を、評価、採点、学習証拠の保存、次の練習、再確認までつなげます。
+
+現在の中心ループは **assess -> grade -> remember -> train -> retest** です。Assessment TestSet、Topic Catalog、ケース採点、誤答帳、学習レポート、個別の次問題は 1 本のプロダクト軸です。Web、ミニプログラム、CLI、互換 adapter は薄い wrapper に保ち、教授方針、採点ルール、scene authority、学習状態の解釈は名前のある skill/service に置きます。
+
 ### 📰 ニュース
 
 > **[2026.4.4]** お久しぶりです！✨ DeepTutor v1.0.0 がついに登場 — Apache-2.0 のもと、ゼロからの架構書き直し、TutorBot、柔軟なモード切替を備えたエージェントネイティブな進化です。新章の始まりです！
@@ -59,13 +66,14 @@
 <a id="key-features"></a>
 ## ✨ 主な機能
 
-- **統一チャットワークスペース** — 5 モードを 1 スレッドで。チャット、Deep Solve、クイズ、Deep Research、Math Animator が同じ文脈を共有。
-- **パーソナル TutorBot** — チャットボットではなく自律チューター。独立ワークスペース、記憶、人格、スキル。[nanobot](https://github.com/HKUDS/nanobot) 搭載。
-- **AI Co-Writer** — Markdown で AI が第一級の共同編集者。書き換え・拡張・要約、KB と Web を参照。
-- **ガイド付き学習** — 資料を段階的・視覚的な学習ジャーニーへ。
-- **ナレッジハブ** — PDF / MD / テキストで RAG 対応 KB、カラー付きノートブックで整理。
-- **永続メモリ** — 学習の要約と学習者プロファイル。全機能と TutorBot で共有。
-- **エージェントネイティブ CLI** — 能力・KB・セッション・TutorBot をコマンド一つで。Rich と JSON。ルートの [`SKILL.md`](../../SKILL.md) をエージェントに渡せば自律操作。
+- **建築実務コーチングループ** — 正誤で終わらず、採点ポイントで評価し、失点理由を診断し、次の練習に変えます。
+- **ケース採点と MCQ エラー診断** — 記述答案を得点点、欠落点、表現問題に分け、選択問題の誤りを distractor、概念混同、読解ミスに接続します。
+- **単一の会話入口** — Chat、ミニプログラム、TutorBot、replay、resume は安定契約 `/api/v1/ws` に従います。
+- **TutorBot は唯一のチューター身份** — 入口 hint や旧 mode alias は runtime 判断前に正規化されます。
+- **RAG と問題銀行の根拠づけ** — 試験知識、問題証拠、規範、シラバス、必要時の web search は 1 つの retrieval authority にまとまります。
+- **Learning Evidence が台帳** — 採点、attempt、誤答帳、学習レポート、次練習が同じ学習証拠を読みます。
+- **モバイル優先提供** — WeChat mini program と Yousen package が 鲁班智考 の主表面です。Web と CLI は admin、テスト、自動化を支えます。
+- **エージェントネイティブ CLI** — 能力、KB、セッション、TutorBot を 1 コマンドで操作。Rich は人間向け、JSON は agent 向けです。[`SKILL.md`](../../SKILL.md)。
 
 ---
 
@@ -373,13 +381,13 @@ deeptutor kb create my-kb --doc textbook.pdf
 ---
 
 <a id="tutorbot"></a>
-### 🦞 TutorBot — 永続的で自律的な AI チューター
+### 🦞 TutorBot — 永続 AI チューター runtime
 
 <div align="center">
 <img src="../../assets/figs/tutorbot-architecture.png" alt="TutorBot アーキテクチャ" width="800">
 </div>
 
-[nanobot](https://github.com/HKUDS/nanobot) ベースの**マルチインスタンス**自律エージェント。各インスタンスは独立ループ・ワークスペース・記憶・人格。
+TutorBot は別の chatbot ではありません。DeepTutor における単一の永続チューター身份です。runtime、workspace、memory、skills、heartbeat、tools、教授スタイルが 1 つの business concept に属します。鲁班智考 では建築実務 coaching、question review、grading、evidence narration、next action が同じ TutorBot boundary を再利用します。
 
 <div align="center">
 <img src="../../assets/figs/tb.png" alt="TutorBot" width="800">

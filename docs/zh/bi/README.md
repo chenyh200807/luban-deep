@@ -1,15 +1,16 @@
 # DeepTutor BI 方案总览
 
-本文档组用于为 DeepTutor 补齐一套可落地的 BI（Business Intelligence）方案。它参考了
+本文档组用于为 DeepTutor / 鲁班智考补齐一套可落地的 BI（Business Intelligence）与会员经营后台方案。它参考了
 `/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/` 中已经存在的 BI 思路，
-但不会机械照搬，而是围绕 DeepTutor 当前的产品形态重新设计：
+但不会机械照搬，而是围绕当前“建筑实务 AI 陪考”产品形态重新设计：
 
 - DeepTutor 是 agent-native 学习产品，不只是普通问答应用。
-- 它同时存在 Web、WebSocket API、Python SDK、CLI、TutorBot、小程序等多入口。
-- 它既有学习行为数据，也有 Agent 路由、工具调用、知识库召回、会话质量、成本与会员数据。
+- 鲁班智考当前主线是“测 -> 判 -> 记 -> 练 -> 复”：Assessment TestSet、案例题批改、错题写回、学习报告、下一题训练和复测改善。
+- 它同时存在 Web、WebSocket API、Python SDK、CLI、TutorBot、微信小程序、佑森宿主包等多入口，但学员真实体验以微信端为准。
+- 它既有学习行为数据，也有 Agent 路由、工具调用、知识库召回、会话质量、成本、会员、钱包、运营动作与审计数据。
 
 因此，DeepTutor 的 BI 不能只做“用户数 + 充值数 + API 日志”，而应形成一套覆盖
-“经营、学习、Agent、知识库、会员、可观测性”的统一数据体系。
+“经营、会员、学习闭环、Agent 能力、知识库资产、成本质量、可观测性、审计回看”的统一数据体系。
 
 ## 文档清单
 
@@ -31,7 +32,8 @@
 BI 的目标不是“堆图表”，而是帮助团队回答真实问题：
 
 - 用户从哪里来，什么人会留下来，什么人会流失。
-- 哪些 capability、tool、知识库或 TutorBot 真正在提升学习效果。
+- 哪些测评专题、错题训练、案例题批改和学习报告真的推动了复测改善。
+- 哪些 capability、tool、知识库或 TutorBot 真正在提升学习效果，而不是只增加 token 成本。
 - 哪些模型组合最贵，哪些最值，哪些会拉低质量。
 - 哪些会员应该续费触达，哪些用户应该触发学习干预。
 

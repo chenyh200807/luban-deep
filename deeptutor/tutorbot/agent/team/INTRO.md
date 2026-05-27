@@ -1,6 +1,8 @@
-# Nano Team Mode
+# TutorBot Team Mode
 
-用一句话描述：用户给出一个目标，LLM 自动规划出 2-3 人的微型团队，每个成员作为独立 worker 异步执行任务，通过共享看板和邮箱协作，用户可以随时审批、追加指令或停止。
+用一句话描述：用户给出一个目标，TutorBot runtime 内的 LLM 自动规划出 2-3 人的微型团队，每个成员作为独立 worker 异步执行任务，通过共享看板和邮箱协作，用户可以随时审批、追加指令或停止。
+
+当前项目定位：这是 TutorBot 的长任务 / 多 worker 协作能力说明，不是鲁班智考学习事实、Assessment、批改、错题、学习报告或下一题推荐的 authority。它可以帮助执行研究、文档、后台任务和多步骤操作，但不能绕开 `ChatOrchestrator`、`SkillsLoader`、`question_lifecycle_skills`、learner-state 或 `/api/v1/ws` contract 自行决定教学语义。
 
 ## 架构总览
 

@@ -2,6 +2,14 @@
 
 本目录用于沉淀“建筑实务 AI 互动课堂”相关的架构、实施、ADR 和历史材料。
 
+它在当前 DeepTutor / 鲁班智考项目中的定位是：**互动课堂产品线的体验标杆与架构收口区**，不是 DeepTutor 主聊天入口、Assessment TestSet、learning-report 或 TutorBot runtime 的第二套 authority。任何课堂能力都必须继续服从根目录 `CONTRACT.md`、`contracts/index.yaml`、统一 `/api/v1/ws`、learner-state 与 RAG contract。
+
+和主产品主线的关系：
+
+- 鲁班智考当前主线是“测 -> 判 -> 记 -> 练 -> 复”的陪考闭环；OpenMAIC 补的是“教材/课件/资料 -> Lesson IR -> 微信互动课堂 -> 质量 gate”的课堂生成与播放能力。
+- P0 学员端仍然优先微信小程序；HTML export 和 Web 预览是 artifact / admin surface，不是学员主表面。
+- OpenMAIC 可以复用 DeepTutor 的 RAG、题库证据、source provenance、Learner State 和统一 turn transport，但不能复制外部源码、prompt、schema 或 UI 当作实现捷径。
+
 自 2026-04-22 起，文档层级固定如下。自 2026-04-24 起，本目录迁入 `docs/openmaic/`；旧 `doc/openmaic/` 只保留为历史路径，不再新增内容。
 
 ## 1. Canonical

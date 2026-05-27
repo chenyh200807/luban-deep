@@ -39,7 +39,14 @@ DeepTutor 是 **鲁班智考** 背后的智能体原生学习引擎。当前产�
 | **学习记忆** | Learner State、Bot-Learner Overlay、Notebook、Heartbeat 共同让后续讲解和推荐更贴近真实薄弱点。 |
 | **质量控制** | Langfuse trace、benchmark、observer、ARR/AAE/OA 与 release gate 都是产品基础设施，不是可选调试工具。 |
 
-当前最重要的对外卖点是：**案例题批改 + 错因图谱 + 个性化下一题训练**。Co-Writer、引导式学习、深度研究、数学动画、CLI 等通用能力仍然存在，但项目介绍应优先围绕这个陪考闭环来理解。
+当前最重要的产品闭环是：**测 -> 判 -> 记 -> 练 -> 复**。Assessment TestSet、Topic Catalog、案例题批改、错题写回、学习报告 read model 与个性化下一题训练是一条主脊梁，不是几组孤立 demo。Co-Writer、引导式学习、深度研究、数学动画、CLI 等通用能力仍然存在，但项目介绍应优先围绕这个陪考闭环来理解。
+
+当前建设优先级：
+
+- **有限 Topic Catalog 先于无限自动出卷** — 生产测评先从有限建筑实务专题、持久化 form bank 和 coverage gate 做起。
+- **Learning Evidence 是学习事实账本** — 批改、attempt detail、错题集、学习报告和下一题训练必须读取同一份证据，不各自保存一套真相。
+- **薄 wrapper，胖 skill** — Web、小程序、CLI、兼容 adapter 只做入口适配；教学策略、阅卷规则、scene authority 和学情解释沉到明确的 skill/service。
+- **移动端优先验收** — `/wechat-harness`、微信开发者工具、Langfuse、benchmark artifact、`/healthz`、`/readyz` 都是项目介绍里可以被追问的真实验收面。
 
 ### 📰 动态
 
@@ -387,6 +394,8 @@ deeptutor kb create my-kb --doc textbook.pdf     # 构建知识库
 <img src="../../assets/figs/deeptutor-architecture.png" alt="DeepTutor 架构" width="800">
 </div>
 
+下面这些产品表面要按一套系统理解：DeepTutor 提供 agent-native runtime，鲁班智考当前把它产品化为建筑实务测评、批改、学习证据和移动端交付。通用能力和陪考链路重叠时，以陪考链路 contract 为产品 authority。
+
 ### 💬 聊天 — 统一智能工作区
 
 <div align="center">
@@ -461,25 +470,24 @@ DeepTutor 从两个互补维度持续理解你：
 ---
 
 <a id="tutorbot"></a>
-### 🦞 TutorBot — 持久、自主的 AI 导师
+### 🦞 TutorBot — 持久 AI 导师 runtime
 
 <div align="center">
 <img src="../../assets/figs/tutorbot-architecture.png" alt="TutorBot 架构" width="800">
 </div>
 
-TutorBot 不是聊天机器人 —— 它是基于 [nanobot](https://github.com/HKUDS/nanobot) 的**持久、可多实例**智能体。每个实例独立循环、工作区、记忆与人格；你可同时运行多个角色，各自演进。
+TutorBot 不是聊天机器人，而是 DeepTutor 里唯一的持久导师身份：runtime、workspace、memory、skills、heartbeat、tools 和教学风格都归到同一个业务概念。对鲁班智考来说，建筑实务陪考、题目讲评、阅卷、learning-evidence 叙事、学习支持和下一步行动都必须复用同一个 TutorBot 边界，而不是按入口再造导师身份。
 
 <div align="center">
 <img src="../../assets/figs/tb.png" alt="TutorBot" width="800">
 </div>
 
-- **Soul 模板** — 通过可编辑 Soul 文件定义人格、语气与教学理念；可选内置原型或完全自定义。  
-- **独立工作区** — 每实例独立目录：记忆、会话、技能与配置隔离，仍可访问 DeepTutor 共享知识层。  
-- **主动心跳** — 不止被动回复：心跳系统支持定期学习提醒、复习与计划任务。  
-- **完整工具** — RAG、代码执行、联网、论文检索、深度推理、头脑风暴。  
-- **技能扩展** — 在工作区添加技能文件即可教会新能力。  
-- **多通道** — 可接 Telegram、Discord、Slack、飞书、企业微信、钉钉、邮件等。  
-- **团队与子智能体** — 后台子任务或多智能体协作，应对长程复杂任务。
+- **导师身份，不是模式别名** — `TutorBot` 是唯一业务身份；入口 hint、teaching mode、product surface 在 runtime 决策前归一化。
+- **Skill authority** — 建筑实务教学、出题供给、题目讲评、选择题阅卷、案例题阅卷、证据叙事、学习助手和情绪支持都落在明确 skill/service。
+- **共享学员上下文** — TutorBot 读取 learner state、overlay、notebook、attempt refs 和 evidence projection，不能自己维护第二套学情。
+- **受控工具访问** — `rag` 是唯一 grounding 工具；联网搜索等工具由 runtime config 决定可用性，不由 wrapper fallback 各自决定。
+- **Heartbeat 与支持** — 主动提醒和学习支持必须回指 canonical learning facts，不能生成第二套学习计划。
+- **团队与子智能体** — 多 worker 模式适合长任务操作，但不能成为第二套教学或阅卷 authority。
 
 ```bash
 deeptutor bot create math-tutor --persona "Socratic math teacher who uses probing questions"

@@ -9,6 +9,12 @@ Agent-first 的命令行界面，也是鲁班智考/DeepTutor 当前工程链路
 - **`run`** — 单次执行任意 capability（为 agent 调用设计）
 - **`chat`** — 交互式 REPL（为人类设计）
 
+当前使用边界：
+
+- CLI 是工程、评测、自动化和 agent 操作面，不是鲁班智考的一线学员产品面。
+- 学员体验以微信小程序 / 佑森包为准；CLI 结果只能证明 backend capability 可用，不能替代 WeChat DevTools 或真机验收。
+- 涉及出题、批改、学情、错题、下一题训练的 CLI 命令必须沿用同一套 skill/service authority，不能在命令行里重写一套规则。
+
 ## 安装
 
 ```bash

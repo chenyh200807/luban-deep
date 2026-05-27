@@ -16,13 +16,20 @@
 [![Feishu](https://img.shields.io/badge/Feishu-Group-00D4AA?style=flat-square&logo=feishu&logoColor=white)](../../Communication.md)
 [![WeChat](https://img.shields.io/badge/WeChat-Group-07C160?style=flat-square&logo=wechat&logoColor=white)](https://github.com/HKUDS/DeepTutor/issues/78)
 
-[मुख्य विशेषताएँ](#key-features) · [शुरू करें](#get-started) · [अन्वेषण](#explore-deeptutor) · [TutorBot](#tutorbot) · [CLI](#deeptutor-cli-guide) · [रोडमैप](#roadmap) · [समुदाय](#community)
+[उत्पाद फोकस](#product-focus) · [मुख्य विशेषताएँ](#key-features) · [शुरू करें](#get-started) · [अन्वेषण](#explore-deeptutor) · [TutorBot](#tutorbot) · [CLI](#deeptutor-cli-guide) · [रोडमैप](#roadmap) · [समुदाय](#community)
 
 [🇬🇧 English](../../README.md) · [🇨🇳 中文](README_CN.md) · [🇯🇵 日本語](README_JA.md) · [🇪🇸 Español](README_ES.md) · [🇫🇷 Français](README_FR.md) · [🇸🇦 العربية](README_AR.md) · [🇷🇺 Русский](README_RU.md) · [🇵🇹 Português](README_PT.md)
 
 </div>
 
 ---
+<a id="product-focus"></a>
+## 🎯 उत्पाद फोकस
+
+DeepTutor **鲁班智考** के पीछे agent-native learning engine है। अभी मुख्य उत्पाद चीन के construction practice exams के लिए mobile-first AI coach है। यह सिर्फ chatbot या question bank नहीं है: हर practice को assessment, grading, learning evidence, next training और retest की बंद loop में बदलता है।
+
+मौजूदा मुख्य loop है **assess -> grade -> remember -> train -> retest**। Assessment TestSet, Topic Catalog, case grading, mistake book, learning report और personalized next question एक ही product spine हैं। Web, mini program, CLI और adapters पतले wrappers रहते हैं; teaching policy, grading rules, scene authority और learner-state interpretation named skills/services में रहते हैं।
+
 ### 📰 समाचार
 
 > **[2026.4.4]** बहुत दिन बाद! ✨ DeepTutor v1.0.0 आ गया — Apache-2.0 के तहत एजेंट-नेटिव विकास: ज़मीन से आर्किटेक्चर रिराइट, TutorBot, लचीले मोड। नया अध्याय शुरू!
@@ -59,13 +66,14 @@
 <a id="key-features"></a>
 ## ✨ मुख्य विशेषताएँ
 
-- **एकीकृत चैट वर्कस्पेस** — पाँच मोड, एक थ्रेड: Chat, Deep Solve, क्विज़, Deep Research, Math Animator एक संदर्भ साझा करते हैं।
-- **व्यक्तिगत TutorBot** — चैटबॉट नहीं: स्वायत्त ट्यूटर, अपना वर्कस्पेस, मेमोरी, व्यक्तित्व, कौशल। [nanobot](https://github.com/HKUDS/nanobot)।
-- **AI Co-Writer** — Markdown में AI सह-लेखक: फिर से लिखें, विस्तार, संक्षेप; KB व वेब।
-- **Guided Learning** — आपकी सामग्री से संरचित दृश्य यात्राएँ।
-- **नॉलेज हब** — PDF, Markdown, टेक्स्ट से RAG-तैयार KB; रंगीन नोटबुक।
-- **स्थायी मेमोरी** — प्रगति सारांश व शिक्षार्थी प्रोफ़ाइल; TutorBot के साथ साझा।
-- **एजेंट-नेटिव CLI** — क्षमता, KB, सत्र, TutorBot एक कमांड में; Rich व JSON। [`SKILL.md`](../../SKILL.md)।
+- **Construction exam coaching loop** — Practice सही/गलत पर खत्म नहीं होती; DeepTutor scoring points से grade करता है, गलती का कारण बताता है और अगली training देता है।
+- **Case grading और MCQ diagnosis** — लिखित उत्तर hit points, missing points और expression issues में टूटते हैं; MCQ errors distractor, concept confusion या question-reading issue से जुड़ते हैं।
+- **एक stable conversation entry** — Chat, mini program, TutorBot, replay और resume `/api/v1/ws` contract के तहत चलते हैं।
+- **TutorBot एकमात्र tutor identity** — Entry hints और पुराने mode aliases runtime decision से पहले normalize होते हैं।
+- **RAG और question-bank grounding** — Exam knowledge, question evidence, standards, syllabus और optional web search एक retrieval authority में रहते हैं।
+- **Learning Evidence ledger** — Grading, attempt, mistake book, report और training वही learner evidence पढ़ते हैं।
+- **Mobile-first delivery** — WeChat mini program और Yousen package 鲁班智考 के primary surfaces हैं; web और CLI admin, testing और automation के लिए हैं।
+- **एजेंट-नेटिव CLI** — Capabilities, KB, sessions और TutorBot एक command में; Rich humans के लिए, JSON agents के लिए। [`SKILL.md`](../../SKILL.md)।
 
 ---
 
@@ -361,13 +369,13 @@ deeptutor kb create my-kb --doc textbook.pdf
 ---
 
 <a id="tutorbot"></a>
-### 🦞 TutorBot — स्थायी स्वायत्त AI ट्यूटर
+### 🦞 TutorBot — persistent AI tutor runtime
 
 <div align="center">
 <img src="../../assets/figs/tutorbot-architecture.png" alt="TutorBot आर्किटेक्चर" width="800">
 </div>
 
-[nanobot](https://github.com/HKUDS/nanobot) पर **बहु-इंस्टेंस** स्थायी एजेंट।
+TutorBot कोई अलग chatbot नहीं है। यह DeepTutor की single persistent tutor identity है: runtime, workspace, memory, skills, heartbeat, tools और teaching style एक ही business concept के अंदर रहते हैं। 鲁班智考 में construction coaching, question review, grading, evidence narration और next action इसी TutorBot boundary को reuse करते हैं।
 
 <div align="center">
 <img src="../../assets/figs/tb.png" alt="TutorBot" width="800">

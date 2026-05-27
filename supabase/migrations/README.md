@@ -2,6 +2,15 @@
 
 > 新增 / 修改 public schema 之前必读。偏离任何条目必须在 PR description 写明 reason。本 README 是 markdown，不会被 supabase CLI apply（CLI 只扫 `*.sql`）。
 
+本目录是 DeepTutor / 鲁班智考的数据 authority 入口之一。当前产品会把账户事实、钱包事实、Assessment TestSet、学习证据、错题、学习报告、会员经营后台和观测审计都落到 Supabase 相关表里；migration 不是“建表脚本仓库”，而是防止同一业务事实长出第二份未受 RLS / policy / comment 约束真相的边界。
+
+项目级原则：
+
+- 账户事实与学习事实分权：wallet / member authority 不能写进 learner profile 当第二份余额或会员真相。
+- 学习事实以 `learning_evidence` 及其 read model 为主脊梁；新增表必须说明它是 canonical writer、projection、outbox、audit 还是临时 staging。
+- Assessment / Topic Catalog / form bank 相关表默认 service-role only，除非 PR 明确证明客户端读写边界安全。
+- 任何 public schema 新表都必须在同一 migration 内启 RLS，并写清楚默认 stance。
+
 ## 命名
 
 - 文件名：`YYYYMMDDHHMMSS_<verb>_<noun>.sql`，14 位时间戳 + 下划线 + 小写蛇形
