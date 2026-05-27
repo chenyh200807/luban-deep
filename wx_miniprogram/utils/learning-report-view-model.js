@@ -1,3 +1,5 @@
+var taxonomy = require("./taxonomy");
+
 function asObject(value) {
   return value && typeof value === "object" && !Array.isArray(value)
     ? value
@@ -26,13 +28,175 @@ function levelName(value) {
 
 function chapterName(value) {
   var text = String(value || "").trim();
-  if (/^1A\d{6}$/i.test(text)) return "知识点 " + text.toUpperCase();
-  return text || "未归类能力";
+  if (isDeicticTopicLabel(text)) return "";
+  var resolved = taxonomy.displayChapterName(text, "");
+  if (isDeicticTopicLabel(resolved)) return "";
+  return resolved || text || "未归类能力";
+}
+
+function isDeicticTopicLabel(value) {
+  var compact = String(value || "").replace(/[\s　，,。.!！?？:：;；“”"'‘’（）()【】[\]<>《》]/g, "");
+  return (
+    [
+      "这题",
+      "那题",
+      "本题",
+      "该题",
+      "此题",
+      "题目",
+      "当前题",
+      "当前题目",
+      "这个题",
+      "那个题",
+      "这道题",
+      "那道题",
+      "这一题",
+      "那一题",
+      "这道题目",
+      "那道题目",
+      "当前考点",
+      "当前知识点",
+    ].indexOf(compact) >= 0
+  );
+}
+
+function normalizeLearningTopic(rawValue, taxonomyPath) {
+  var raw = String(rawValue || "").trim();
+  var path = asList(taxonomyPath).map(function (name) {
+    return String(name || "").trim();
+  }).filter(Boolean);
+  if (taxonomy.isNonTopicLabel(raw)) return null;
+  var label = chapterName(raw);
+  var meta = taxonomy.resolveTextbookTopic(raw, path) || taxonomy.resolveTextbookTopic(label, path);
+  if (!meta) return null;
+  var name = label;
+  if (/^1A\d{6}(?:-\d+)?(?:-[a-z]+)?$/i.test(raw) && path.length) {
+    name = path[path.length - 1];
+  }
+  if (!name || taxonomy.isNonTopicLabel(name)) return null;
+  return {
+    name: name,
+    textbookChapterNo: meta.chapterNo,
+    textbookChapterName: meta.chapterName,
+    textbookSectionName: meta.sectionName || "",
+    taxonomyPath: path,
+  };
+}
+
+function decorateMasteryGroup(group) {
+  var item = asObject(group);
+  var chapters = asList(item.chapters).filter(function (chapter) {
+    return chapter && chapter.name;
+  });
+  var hiddenCount = Math.max(0, chapters.length - 3);
+  var unit = item.hierarchical ? "子章节" : "章节";
+  return {
+    name: String(item.name || ""),
+    avgMastery: Math.round(asNumber(item.avg_mastery, item.avgMastery || 0)),
+    avgClass: String(item.avg_class || item.avgClass || ""),
+    chapters: chapters,
+    previewChapters: chapters.slice(0, 3),
+    chapterCount: chapters.length,
+    hiddenCount: hiddenCount,
+    expanded: Boolean(item.expanded),
+    previewText:
+      chapters.length + " 个" + unit + (hiddenCount ? " · 还有 " + hiddenCount + " 个" + unit : ""),
+  };
+}
+
+function masteryAvgClass(score) {
+  var value = Math.round(asNumber(score, 0));
+  if (value >= 70) return "avg-good";
+  if (value >= 40) return "avg-mid";
+  return "avg-low";
+}
+
+function buildMasteryDisplayGroups(sourceGroups) {
+  var byChapter = {};
+  var textbookGroups = [];
+  asList(sourceGroups).forEach(function (group) {
+    asList(group.chapters).forEach(function (chapter) {
+      var chapterNameKey = String(chapter.textbookChapterName || "").trim();
+      if (!chapterNameKey) return;
+      if (!byChapter[chapterNameKey]) {
+        byChapter[chapterNameKey] = {
+          name: chapterNameKey,
+          chapterNo: chapter.textbookChapterNo || 999,
+          chapters: [],
+          hierarchical: true,
+        };
+        textbookGroups.push(byChapter[chapterNameKey]);
+      }
+      byChapter[chapterNameKey].chapters.push(chapter);
+    });
+  });
+  return textbookGroups
+    .sort(function (a, b) {
+      return asNumber(a.chapterNo, 999) - asNumber(b.chapterNo, 999);
+    })
+    .map(function (group) {
+      var avg = Math.round(
+        group.chapters.reduce(function (sum, chapter) {
+          return sum + asNumber(chapter.mastery, 0);
+        }, 0) / Math.max(group.chapters.length, 1),
+      );
+      return decorateMasteryGroup({
+        name: group.name,
+        avg_mastery: avg,
+        avg_class: masteryAvgClass(avg),
+        chapters: group.chapters,
+        hierarchical: true,
+      });
+    });
+}
+
+function mergeRadarDimensions(items) {
+  var byChapter = {};
+  var ordered = [];
+  asList(items).forEach(function (item) {
+    if (!item || !item.name) return;
+    var key = item.textbookChapterName || item.name;
+    if (!byChapter[key]) {
+      byChapter[key] = {
+        name: key,
+        values: [],
+        scores: [],
+        level: item.level,
+        textbookChapterNo: item.textbookChapterNo || 999,
+      };
+      ordered.push(byChapter[key]);
+    }
+    byChapter[key].values.push(asNumber(item.value, 0));
+    byChapter[key].scores.push(asNumber(item.score, asNumber(item.value, 0) * 100));
+  });
+  return ordered
+    .sort(function (a, b) {
+      return asNumber(a.textbookChapterNo, 999) - asNumber(b.textbookChapterNo, 999);
+    })
+    .map(function (item) {
+      var score = Math.round(
+        item.scores.reduce(function (sum, current) {
+          return sum + current;
+        }, 0) / Math.max(item.scores.length, 1),
+      );
+      return {
+        name: item.name,
+        value: score / 100,
+        score: score,
+        level: item.level,
+        rateText: score + "%",
+      };
+    });
 }
 
 function normalizeRadar(dimensions) {
-  var dims = asList(dimensions).map(function (item) {
+  var dims = mergeRadarDimensions(asList(dimensions).map(function (item) {
     var source = asObject(item);
+    var taxonomyPath = asList(source.taxonomy_path || source.taxonomyPath).map(function (name) {
+      return String(name || "").trim();
+    }).filter(Boolean);
+    var topic = normalizeLearningTopic(source.label || source.name || source.key || "", taxonomyPath);
+    if (!topic) return null;
     var score = asNumber(source.score, NaN);
     var value =
       typeof source.value === "number"
@@ -41,13 +205,15 @@ function normalizeRadar(dimensions) {
           ? score / 100
           : 0;
     return {
-      name: chapterName(source.label || source.name || source.key || ""),
+      name: topic.name,
+      textbookChapterNo: topic.textbookChapterNo,
+      textbookChapterName: topic.textbookChapterName,
       value: value || 0,
       score: Math.round(asNumber(source.score, asNumber(value, 0) * 100)),
       level: String(source.level || source.status || "observed"),
       rateText: String(source.rate_text || source.rateText || ""),
     };
-  });
+  }).filter(Boolean));
   var scores = dims.map(function (item) {
     return Math.round(asNumber(item.value, 0) * 100);
   });
@@ -91,24 +257,45 @@ function normalizeMastery(source) {
   var overallStatus = String(overallPayload.status || "");
   var overallClass = String(overallPayload.class_name || overallPayload.className || "");
   if (overall && typeof overall === "object") overall = overall.score;
-  var groups = asList(mastery.groups).map(function (group) {
+  var rawGroups = asList(mastery.groups).map(function (group) {
     var item = asObject(group);
     var chapters = asList(item.chapters).map(function (chapter) {
       var c = asObject(chapter);
       var rate = Math.round(asNumber(c.mastery, asNumber(c.score, 0)));
+      var taxonomyPath = asList(c.taxonomy_path || c.taxonomyPath).map(function (name) {
+        return String(name || "").trim();
+      }).filter(Boolean);
+      var topic = normalizeLearningTopic(c.name || "", taxonomyPath);
+      if (!topic && c.textbook_chapter_name) {
+        topic = {
+          name: chapterName(c.name || ""),
+          textbookChapterNo: asNumber(c.textbook_chapter_no, 999),
+          textbookChapterName: String(c.textbook_chapter_name || ""),
+          textbookSectionName: String(c.textbook_section_name || ""),
+          taxonomyPath: taxonomyPath,
+        };
+      }
+      if (!topic) return null;
       return {
-        name: chapterName(c.name || ""),
+        name: topic.name,
         mastery: rate,
         color: String(c.color || ""),
+        taxonomyPath: topic.taxonomyPath,
+        textbookChapterNo: topic.textbookChapterNo,
+        textbookChapterName: topic.textbookChapterName,
+        textbookSectionName: topic.textbookSectionName,
       };
-    });
+    }).filter(Boolean);
     return {
-      name: String(item.name || ""),
+      name: item.name,
       avgMastery: Math.round(asNumber(item.avg_mastery, 0)),
       avgClass: String(item.avg_class || item.avgClass || ""),
       chapters: chapters,
     };
+  }).filter(function (group) {
+    return group.chapters.length;
   });
+  var groups = buildMasteryDisplayGroups(rawGroups);
   return {
     overall: Math.round(asNumber(overall, 0)),
     overallConfidence: overallConfidence,
@@ -119,12 +306,15 @@ function normalizeMastery(source) {
     hotspots: asList(mastery.hotspots).map(function (hotspot) {
       var item = asObject(hotspot);
       var rate = Math.round(asNumber(item.mastery, asNumber(item.score, 0)));
+      var taxonomyPath = asList(item.taxonomy_path || item.taxonomyPath);
+      var topic = normalizeLearningTopic(item.name || "", taxonomyPath);
+      if (!topic) return null;
       return {
-        name: chapterName(item.name || ""),
+        name: topic.name,
         mastery: rate,
         rateText: rate + "%",
       };
-    }),
+    }).filter(Boolean),
     reviewSummary: asObject(mastery.review_summary),
   };
 }

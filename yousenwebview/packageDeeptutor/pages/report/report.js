@@ -1503,6 +1503,16 @@ Page({
     this._dismissReportModuleHint();
   },
 
+  toggleMasteryGroup(e) {
+    var index = Number(e && e.currentTarget && e.currentTarget.dataset.index);
+    var groups = (this.data.masteryGroups || []).map(function (group, groupIndex) {
+      if (groupIndex !== index) return group;
+      return Object.assign({}, group, { expanded: !group.expanded });
+    });
+    helpers.vibrate("light");
+    this.setData({ masteryGroups: groups });
+  },
+
   _setReportDetailView(view) {
     var next = REPORT_DETAIL_TITLES[view] ? view : "home";
     var scrollTop = this.data.reportScrollTop === 0 ? 1 : 0;

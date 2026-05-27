@@ -1461,9 +1461,30 @@ def test_learning_state_inference_kill_switch_hides_action_loop(monkeypatch) -> 
 
 
 def test_mastery_payload_carries_display_classes_from_backend() -> None:
+    class DisplayClassMemberService(FakeMemberService):
+        def get_assessment_profile(self, user_id: str) -> dict:
+            return {
+                "level": "beginner",
+                "chapter_mastery": {"1A411011": {"name": "1A411011", "mastery": 20}},
+            }
+
+        def get_mastery_dashboard(self, user_id: str) -> dict:
+            return {
+                "overall_mastery": 20,
+                "groups": [
+                    {
+                        "name": "需要加强",
+                        "avg_mastery": 20,
+                        "chapters": [{"name": "1A411011", "mastery": 20}],
+                    }
+                ],
+                "hotspots": [{"name": "1A411011", "mastery": 20}],
+                "review_summary": {"total_due": 0, "overdue_count": 0},
+            }
+
     model = build_learning_report_read_model(
         user_id="student_demo",
-        member_service=FakeMemberService(),
+        member_service=DisplayClassMemberService(),
         learner_state_service=FakeLearnerStateService([]),
         event_limit=50,
     )
@@ -1472,6 +1493,140 @@ def test_mastery_payload_carries_display_classes_from_backend() -> None:
     assert model["mastery"]["groups"][0]["avg_class"]
     assert model["mastery"]["groups"][0]["chapters"][0]["color"]
     assert model["overview"]["overall_mastery"] == model["mastery"]["overall_mastery"]["score"]
+
+
+def test_mastery_map_filters_deictic_question_labels() -> None:
+    class DeicticMasteryMemberService(FakeMemberService):
+        def get_assessment_profile(self, user_id: str) -> dict:
+            return {
+                "level": "beginner",
+                "chapter_mastery": {
+                    "那题": {"name": "那题", "mastery": 72},
+                    "1A432000": {"name": "1A432000", "mastery": 20},
+                },
+            }
+
+        def get_mastery_dashboard(self, user_id: str) -> dict:
+            return {
+                "overall_mastery": 46,
+                "groups": [
+                    {
+                        "name": "需要加强",
+                        "avg_mastery": 46,
+                        "chapters": [
+                            {"name": "那题", "mastery": 72},
+                            {"name": "1A432000", "mastery": 20},
+                        ],
+                    }
+                ],
+                "hotspots": [{"name": "那题", "mastery": 72}],
+                "review_summary": {"total_due": 0, "overdue_count": 0},
+            }
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=DeicticMasteryMemberService(),
+        learner_state_service=FakeLearnerStateService([]),
+        event_limit=50,
+    )
+
+    rendered = str(model)
+    assert "那题" not in rendered
+    assert model["mastery"]["groups"][0]["chapters"][0]["name"] == "工程招标投标与合同管理"
+    assert model["mastery"]["hotspots"] == []
+    assert all(item["name"] != "那题" for item in model["radar_dimensions"])
+
+
+def test_mastery_map_carries_taxonomy_path_for_chapter_hierarchy() -> None:
+    class HierarchyMasteryMemberService(FakeMemberService):
+        def get_assessment_profile(self, user_id: str) -> dict:
+            return {
+                "level": "beginner",
+                "chapter_mastery": {"1A411011": {"name": "1A411011", "mastery": 20}},
+            }
+
+        def get_mastery_dashboard(self, user_id: str) -> dict:
+            return {
+                "overall_mastery": 20,
+                "groups": [
+                    {
+                        "name": "需要加强",
+                        "avg_mastery": 20,
+                        "chapters": [{"name": "1A411011", "mastery": 20}],
+                    }
+                ],
+                "hotspots": [],
+                "review_summary": {"total_due": 0, "overdue_count": 0},
+            }
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=HierarchyMasteryMemberService(),
+        learner_state_service=FakeLearnerStateService([]),
+        event_limit=50,
+    )
+
+    chapter = model["mastery"]["groups"][0]["chapters"][0]
+    assert chapter["name"] == "建筑物分类与构成"
+    assert chapter["taxonomy_path"][:2] == ["建筑工程技术", "建筑设计与构造"]
+    assert chapter["parent_name"] == "建筑工程技术"
+
+
+def test_mastery_map_keeps_only_textbook_directory_topics() -> None:
+    class NoisyMasteryMemberService(FakeMemberService):
+        def get_assessment_profile(self, user_id: str) -> dict:
+            return {
+                "level": "beginner",
+                "chapter_mastery": {
+                    "考卷": {"name": "考卷", "mastery": 72},
+                    "1A415041": {"name": "1A415041", "mastery": 25},
+                    "1A420000": {"name": "1A420000", "mastery": 25},
+                    "1A411011": {"name": "1A411011", "mastery": 20},
+                    "主体结构工程施工": {"name": "主体结构工程施工", "mastery": 25},
+                },
+            }
+
+        def get_mastery_dashboard(self, user_id: str) -> dict:
+            return {
+                "overall_mastery": 33,
+                "groups": [
+                    {
+                        "name": "练习证据",
+                        "avg_mastery": 33,
+                        "chapters": [
+                            {"name": "考卷", "mastery": 72},
+                            {"name": "1A415041", "mastery": 25},
+                            {"name": "1A420000", "mastery": 25},
+                            {"name": "防水 / 装饰 / 机电", "mastery": 25},
+                            {"name": "1A411011", "mastery": 20},
+                            {"name": "主体结构工程施工", "mastery": 25},
+                        ],
+                    }
+                ],
+                "hotspots": [{"name": "考卷", "mastery": 72}],
+                "review_summary": {"total_due": 0, "overdue_count": 0},
+            }
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=NoisyMasteryMemberService(),
+        learner_state_service=FakeLearnerStateService([]),
+        event_limit=50,
+    )
+
+    rendered = str(model)
+    for invalid in ("考卷", "1A415041", "1A420000", "防水 / 装饰 / 机电"):
+        assert invalid not in rendered
+
+    chapters = [
+        chapter
+        for group in model["mastery"]["groups"]
+        for chapter in group["chapters"]
+    ]
+    assert [chapter["name"] for chapter in chapters] == ["建筑物分类与构成", "主体结构工程施工"]
+    assert chapters[0]["textbook_chapter_name"] == "第1章 建筑工程设计技术"
+    assert chapters[1]["textbook_chapter_name"] == "第3章 建筑工程施工技术"
+    assert model["mastery"]["hotspots"] == []
 
 
 def test_mastery_map_uses_learning_evidence_when_dashboard_has_only_total_score() -> None:

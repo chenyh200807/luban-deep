@@ -28,7 +28,13 @@ from deeptutor.services.learner_state.revalidation_queue import (
     build_revalidation_queue_projection,
 )
 from deeptutor.services.learner_state.training_intent import build_learning_training_intent
-from deeptutor.services.taxonomy.construction_taxonomy import display_taxonomy_label
+from deeptutor.services.taxonomy.construction_taxonomy import (
+    display_taxonomy_label,
+    is_non_topic_label,
+    normalize_taxonomy_code,
+    taxonomy_index,
+    textbook_topic_meta,
+)
 
 
 def _build_scoring_point_map_from(*, events: list[Any], user_id: str) -> dict[str, Any]:
@@ -64,6 +70,26 @@ _DEPRECATED_PAGE_SOURCES = [
     "/api/v1/plan/mastery-dashboard",
     "/api/v1/learning-brain/projection",
 ]
+_DEICTIC_TOPIC_LABELS = {
+    "这题",
+    "那题",
+    "本题",
+    "该题",
+    "此题",
+    "题目",
+    "当前题",
+    "当前题目",
+    "这个题",
+    "那个题",
+    "这道题",
+    "那道题",
+    "这一题",
+    "那一题",
+    "这道题目",
+    "那道题目",
+    "当前考点",
+    "当前知识点",
+}
 _SOURCE_NAMES = (
     "today_progress",
     "home_dashboard",
@@ -155,6 +181,8 @@ def build_learning_report_read_model(
     home_dashboard = _safe_dict(home_dashboard)
     assessment_profile = _safe_dict(assessment_profile)
     mastery_dashboard = _safe_dict(mastery_dashboard)
+    assessment_profile = _sanitize_assessment_profile_topics(assessment_profile)
+    mastery_dashboard = _sanitize_mastery_dashboard_topics(mastery_dashboard)
     raw_events = list(raw_events or [])
 
     events = _learning_evidence_events(raw_events)
@@ -1663,8 +1691,10 @@ def _mastery_payload(
         chapters = []
         for chapter in _safe_list(group_payload.get("chapters")):
             chapter_payload = _safe_dict(chapter)
-            name = _display_dimension_label(chapter_payload.get("name"))
-            if not name:
+            raw_name = chapter_payload.get("name")
+            name = _display_dimension_label(raw_name)
+            taxonomy_meta = _taxonomy_display_meta(raw_name, name)
+            if not name or not taxonomy_meta:
                 continue
             mastery = _calibrated_mastery(
                 _safe_int(chapter_payload.get("mastery")),
@@ -1673,6 +1703,7 @@ def _mastery_payload(
             status = _score_status(mastery)
             chapters.append({
                 **chapter_payload,
+                **taxonomy_meta,
                 "name": name,
                 "mastery": mastery,
                 "status": status,
@@ -1708,8 +1739,10 @@ def _mastery_payload(
     hotspots = []
     for item in _safe_list(mastery_dashboard.get("hotspots")):
         hotspot = _safe_dict(item)
-        name = _display_dimension_label(hotspot.get("name"))
-        if not name:
+        raw_name = hotspot.get("name")
+        name = _display_dimension_label(raw_name)
+        taxonomy_meta = _taxonomy_display_meta(raw_name, name)
+        if not name or not taxonomy_meta:
             continue
         mastery = _calibrated_mastery(
             _safe_int(hotspot.get("mastery")),
@@ -1718,6 +1751,7 @@ def _mastery_payload(
         status = _score_status(mastery)
         hotspots.append({
             **hotspot,
+            **taxonomy_meta,
             "name": name,
             "mastery": mastery,
             "status": status,
@@ -1782,32 +1816,40 @@ def _radar_dimensions(
         item = _safe_dict(value)
         score = _safe_int(item.get("mastery") if item else value)
         name = _display_dimension_label(item.get("name") or key)
-        if name:
+        taxonomy_meta = _taxonomy_display_meta(item.get("name") or key, name)
+        if name and taxonomy_meta:
             calibrated = _calibrated_mastery(
                 score,
                 _safe_dict(chapter_stats.get(name)),
             )
-            _append_dimension(dimensions, name=name, score=calibrated)
+            _append_dimension(dimensions, name=name, score=calibrated, extra=taxonomy_meta)
     if dimensions:
         return dimensions
     for group in _safe_list(mastery_dashboard.get("groups")):
         for chapter in _safe_list(_safe_dict(group).get("chapters")):
             item = _safe_dict(chapter)
             name = _display_dimension_label(item.get("name"))
-            if name:
+            taxonomy_meta = _taxonomy_display_meta(item.get("name"), name)
+            if name and taxonomy_meta:
                 calibrated = _calibrated_mastery(
                     _safe_int(item.get("mastery")),
                     _safe_dict(chapter_stats.get(name)),
                 )
-                _append_dimension(dimensions, name=name, score=calibrated)
+                _append_dimension(dimensions, name=name, score=calibrated, extra=taxonomy_meta)
     if dimensions:
         return dimensions
     for item in _evidence_mastery_chapters(chapter_stats):
-        _append_dimension(
-            dimensions,
-            name=str(item.get("name") or ""),
-            score=_safe_int(item.get("mastery")),
-        )
+        if item.get("textbook_chapter_name"):
+            _append_dimension(
+                dimensions,
+                name=str(item.get("name") or ""),
+                score=_safe_int(item.get("mastery")),
+                extra={
+                    key: item[key]
+                    for key in ("taxonomy_code", "taxonomy_path", "parent_name", "textbook_chapter_no", "textbook_chapter_name", "textbook_section_name")
+                    if key in item
+                },
+            )
     return dimensions
 
 
@@ -1826,7 +1868,9 @@ def _evidence_mastery_chapters(chapter_stats: dict[str, Any]) -> list[dict[str, 
             continue
         mastery = _calibrated_mastery(0, stats)
         status = _score_status(mastery)
+        taxonomy_meta = _taxonomy_display_meta(name, label)
         chapters.append({
+            **taxonomy_meta,
             "name": label,
             "mastery": mastery,
             "status": status,
@@ -1839,7 +1883,13 @@ def _evidence_mastery_chapters(chapter_stats: dict[str, Any]) -> list[dict[str, 
     return chapters
 
 
-def _append_dimension(dimensions: list[dict[str, Any]], *, name: str, score: int) -> None:
+def _append_dimension(
+    dimensions: list[dict[str, Any]],
+    *,
+    name: str,
+    score: int,
+    extra: dict[str, Any] | None = None,
+) -> None:
     normalized_name = str(name or "").strip()
     if not normalized_name:
         return
@@ -1854,6 +1904,7 @@ def _append_dimension(dimensions: list[dict[str, Any]], *, name: str, score: int
         "status": status,
         "level": status,
         "color": _status_color(status),
+        **_safe_dict(extra),
     }
     for item in dimensions:
         if item.get("name") == normalized_name:
@@ -1886,8 +1937,86 @@ def _display_dimension_label(value: Any) -> str:
     text = str(value or "").strip()
     if not text:
         return ""
+    if _is_deictic_topic_label(text):
+        return ""
     label = display_taxonomy_label(text, fallback=text)
-    return str(label or text).strip()
+    normalized = str(label or text).strip()
+    if _is_deictic_topic_label(normalized):
+        return ""
+    return normalized
+
+
+def _sanitize_assessment_profile_topics(profile: dict[str, Any]) -> dict[str, Any]:
+    payload = dict(_safe_dict(profile))
+    chapter_mastery = {}
+    for key, value in _safe_dict(payload.get("chapter_mastery")).items():
+        item = _safe_dict(value)
+        name = item.get("name") if item else key
+        display_name = _display_dimension_label(name or key)
+        if not display_name or not _taxonomy_display_meta(name or key, display_name):
+            continue
+        chapter_mastery[key] = value
+    payload["chapter_mastery"] = chapter_mastery
+    return payload
+
+
+def _sanitize_mastery_dashboard_topics(dashboard: dict[str, Any]) -> dict[str, Any]:
+    payload = dict(_safe_dict(dashboard))
+    groups = []
+    for group in _safe_list(payload.get("groups")):
+        group_payload = dict(_safe_dict(group))
+        chapters = [
+            chapter
+            for chapter in _safe_list(group_payload.get("chapters"))
+            if _is_textbook_topic_payload(_safe_dict(chapter).get("name"))
+        ]
+        if not chapters:
+            continue
+        group_payload["chapters"] = chapters
+        groups.append(group_payload)
+    payload["groups"] = groups
+    payload["hotspots"] = [
+        hotspot
+        for hotspot in _safe_list(payload.get("hotspots"))
+        if _is_textbook_topic_payload(_safe_dict(hotspot).get("name"))
+    ]
+    return payload
+
+
+def _is_textbook_topic_payload(value: Any) -> bool:
+    label = _display_dimension_label(value)
+    return bool(label and _taxonomy_display_meta(value, label))
+
+
+def _taxonomy_display_meta(raw_value: Any, label: str) -> dict[str, Any]:
+    code = normalize_taxonomy_code(raw_value)
+    node = taxonomy_index()["nodes_by_code"].get(code) if code else None
+    path = [
+        str(name or "").strip()
+        for name in _safe_list(_safe_dict(node).get("path_names"))
+        if str(name or "").strip()
+    ] if node else []
+    if not path:
+        path = [str(label or "").strip()] if str(label or "").strip() else []
+    textbook_meta = textbook_topic_meta(
+        raw_value=raw_value,
+        label=label,
+        path_names=path,
+    )
+    if not textbook_meta:
+        return {}
+    meta = {**textbook_meta}
+    if code and node:
+        meta["taxonomy_code"] = code
+    if path:
+        meta["taxonomy_path"] = path
+        meta["parent_name"] = path[0]
+    return meta
+
+
+def _is_deictic_topic_label(value: Any) -> bool:
+    compact = re.sub(r"[\s　，,。.!！?？:：;；“”\"'‘’（）()【】\[\]<>《》]+", "", str(value or ""))
+    return compact in _DEICTIC_TOPIC_LABELS or is_non_topic_label(value)
 
 
 def _calibrated_mastery(raw_score: int, stats: dict[str, Any]) -> int:

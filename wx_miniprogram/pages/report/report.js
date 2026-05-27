@@ -1011,6 +1011,16 @@ Page({
     this.setData({ masteryExpanded: !this.data.masteryExpanded });
   },
 
+  toggleMasteryGroup(e) {
+    var index = Number(e && e.currentTarget && e.currentTarget.dataset.index);
+    var groups = (this.data.masteryGroups || []).map(function (group, groupIndex) {
+      if (groupIndex !== index) return group;
+      return Object.assign({}, group, { expanded: !group.expanded });
+    });
+    helpers.vibrate("light");
+    this.setData({ masteryGroups: groups });
+  },
+
   async _loadLearningBrain() {
     try {
       var normalized = normalizeLearningBrainPayload(

@@ -686,15 +686,22 @@
         <view
           class="mastery-group glass-card"
           wx:for="{{masteryGroups}}"
+          wx:for-index="groupIndex"
           wx:key="name"
         >
-          <view class="group-header">
-            <text class="group-name">{{item.name}}</text>
-            <text class="group-avg {{item.avgClass}}">
-              {{item.avgMastery}}%
-            </text>
+          <view class="group-header" bindtap="toggleMasteryGroup" data-index="{{groupIndex}}">
+            <view class="group-title">
+              <text class="group-name">{{item.name}}</text>
+              <text class="group-preview">{{item.previewText}}</text>
+            </view>
+            <view class="group-meta">
+              <text class="group-avg {{item.avgClass}}">
+                {{item.avgMastery}}%
+              </text>
+              <text class="group-toggle">{{item.expanded ? '收起' : '展开'}}</text>
+            </view>
           </view>
-          <view class="group-chapters">
+          <view class="group-chapters" wx:if="{{item.expanded}}">
             <view
               class="chapter-row"
               wx:for="{{item.chapters}}"

@@ -354,8 +354,8 @@ function createPageInstance(pageDef) {
                 coach_note: "后端下发：这是 learner-state 统一生成的作战建议",
               },
               radar_dimensions: [
-                { name: "建筑构造", value: 0.8 },
-                { name: "防水工程", value: 0.2 },
+                { name: "建筑物的构成与设计要求", value: 0.8 },
+                { name: "屋面与防水工程施工", value: 0.2 },
               ],
               mastery: {
                 overall_mastery: 50,
@@ -363,10 +363,10 @@ function createPageInstance(pageDef) {
                   {
                     name: "需要加强",
                     avg_mastery: 20,
-                    chapters: [{ name: "防水工程", mastery: 20 }],
+                    chapters: [{ name: "屋面与防水工程施工", mastery: 20 }],
                   },
                 ],
-                hotspots: [{ name: "防水工程", mastery: 20 }],
+                hotspots: [{ name: "屋面与防水工程施工", mastery: 20 }],
                 review_summary: { total_due: 2, overdue_count: 1 },
               },
               learning_state: {

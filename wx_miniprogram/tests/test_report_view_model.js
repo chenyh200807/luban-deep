@@ -9,6 +9,7 @@ var yousenVmPath = path.join(
   "../../yousenwebview/packageDeeptutor/utils/learning-report-view-model.js",
 );
 var wxReportPath = path.join(__dirname, "../pages/report/report.js");
+var wxReportWxmlPath = path.join(__dirname, "../pages/report/report.wxml");
 
 var wxVm = require(wxVmPath);
 var yousenVm = require(yousenVmPath);
@@ -27,13 +28,13 @@ var report = {
     study_tip: "先复盘错因，再做变式题",
   },
   radar_dimensions: [
-    { name: "主体结构", value: 0.72, score: 72, status: "strong" },
-    { name: "防水工程", value: 0.28, score: 28, status: "weak" },
+    { name: "主体结构工程施工", value: 0.72, score: 72, status: "strong" },
+    { name: "地基基础工程相关规定", value: 0.28, score: 28, status: "weak" },
   ],
   mastery: {
     overall_mastery: { score: 52, confidence: 0.55, status: "developing" },
-    groups: [{ name: "薄弱点", chapters: [{ name: "防水工程", mastery: 28 }] }],
-    hotspots: [{ name: "防水工程", mastery: 28 }],
+    groups: [{ name: "薄弱点", chapters: [{ name: "屋面与防水工程施工", mastery: 28 }] }],
+    hotspots: [{ name: "屋面与防水工程施工", mastery: 28 }],
     review_summary: { total_due: 2, overdue_count: 1 },
   },
   attempts: [
@@ -103,6 +104,9 @@ assert.strictEqual(wxModel.overview.todayDone, 4);
 assert.strictEqual(wxModel.radar.weakCount, 1);
 assert.strictEqual(wxModel.mastery.overall, 52);
 assert.strictEqual(wxModel.mastery.overallStatusLabel, "正在形成");
+assert.strictEqual(wxModel.mastery.groups[0].expanded, false);
+assert.strictEqual(wxModel.mastery.groups[0].chapterCount, 1);
+assert.strictEqual(wxModel.mastery.groups[0].previewText, "1 个子章节");
 assert.strictEqual(wxModel.learningBrain.attempts[0].attemptRef, "signed-ref");
 assert.strictEqual(
   wxModel.learningBrain.training[0].intent.source,
@@ -156,6 +160,96 @@ var loadBody = wxReportSource
 assert(loadBody.indexOf("normalizeMasteryGroups(") < 0);
 assert(loadBody.indexOf("normalizeRadarState(") < 0);
 assert(loadBody.indexOf("normalizeLearningBrainPayload(") < 0);
+assert(
+  wxReportSource.indexOf("toggleMasteryGroup") >= 0,
+  "wx report page must let mastery groups expand and collapse independently",
+);
+var wxReportWxml = fs.readFileSync(wxReportWxmlPath, "utf8");
+assert(
+  wxReportWxml.indexOf('wx:if="{{item.expanded}}"') >= 0 &&
+    wxReportWxml.indexOf("group-preview-list") < 0,
+  "wx report mastery map must hide child chapters until a group is expanded",
+);
+
+var noisyReport = {
+  schema_version: 2,
+  overview: {},
+  radar_dimensions: [
+    { name: "那题", value: 0.72 },
+    { name: "考卷", value: 0.72 },
+    { name: "1A415041", value: 0.25 },
+    { name: "1A420000", value: 0.25 },
+    { name: "主体结构工程施工", value: 0.2 },
+  ],
+  mastery: {
+    overall_mastery: 46,
+    groups: [
+      {
+        name: "需要加强",
+        avg_mastery: 46,
+        chapters: [
+          { name: "那题", mastery: 72 },
+          { name: "考卷", mastery: 72 },
+          { name: "1A415041", mastery: 25 },
+          { name: "1A420000", mastery: 25 },
+          { name: "防水 / 装饰 / 机电", mastery: 25 },
+          {
+            name: "1A411011",
+            mastery: 20,
+            taxonomy_path: ["建筑工程技术", "建筑设计与构造", "建筑设计", "建筑物分类与构成"],
+          },
+          {
+            name: "1A411012",
+            mastery: 25,
+            taxonomy_path: ["建筑工程技术", "建筑设计与构造", "建筑设计", "建筑构造设计要求"],
+          },
+          { name: "屋面与防水工程施工", mastery: 30 },
+          { name: "安全管理", mastery: 35 },
+        ],
+      },
+    ],
+    hotspots: [{ name: "那题", mastery: 72 }],
+  },
+};
+var noisyModel = wxVm.buildLearningReportViewModel(noisyReport);
+var noisyJson = JSON.stringify(noisyModel);
+assert(noisyJson.indexOf("那题") < 0, "deictic question labels must not reach the report view model");
+assert(noisyJson.indexOf("考卷") < 0, "exam-paper labels must not reach the report view model");
+assert(noisyJson.indexOf("1A415041") < 0, "unresolved taxonomy codes must not render as chapters");
+assert(noisyJson.indexOf("1A420000") < 0, "legacy parent codes must not render as chapters");
+assert(noisyJson.indexOf("防水 / 装饰 / 机电") < 0, "slash-composed pseudo topics must not render as chapters");
+assert.deepStrictEqual(
+  noisyModel.radar.dims.map(function (dim) {
+    return dim.name;
+  }),
+  ["第3章 建筑工程施工技术"],
+);
+assert.strictEqual(noisyModel.mastery.hotspots.length, 0);
+assert.deepStrictEqual(
+  noisyModel.mastery.groups.map(function (group) {
+    return group.name;
+  }),
+  ["第1章 建筑工程设计技术", "第3章 建筑工程施工技术"],
+);
+assert.strictEqual(noisyModel.mastery.groups[0].chapters.length, 2);
+assert.deepStrictEqual(
+  noisyModel.mastery.groups[0].chapters.map(function (chapter) {
+    return chapter.name;
+  }),
+  ["建筑物分类与构成", "建筑构造设计要求"],
+);
+assert.strictEqual(noisyModel.mastery.groups[0].expanded, false);
+assert.strictEqual(noisyModel.mastery.groups[0].chapterCount, 2);
+assert.strictEqual(noisyModel.mastery.groups[0].previewChapters.length, 2);
+assert.strictEqual(noisyModel.mastery.groups[0].hiddenCount, 0);
+assert.strictEqual(noisyModel.mastery.groups[0].previewText, "2 个子章节");
+assert.strictEqual(noisyModel.mastery.groups[1].chapters.length, 1);
+assert.deepStrictEqual(
+  noisyModel.mastery.groups[1].chapters.map(function (chapter) {
+    return chapter.name;
+  }),
+  ["屋面与防水工程施工"],
+);
 
 // ─── Batch C Task 8: state / scoring point map / prescription ───────────
 
