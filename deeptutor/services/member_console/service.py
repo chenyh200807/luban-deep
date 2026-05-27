@@ -72,6 +72,7 @@ from deeptutor.services.learner_state.progress_feedback import (
     build_progress_feedback,
     build_progress_feedback_from_learner_snapshot,
 )
+from deeptutor.services.learner_state.home_personalization import normalize_home_focus_topic_label
 from deeptutor.services.learner_state.study_plan import (
     build_study_plan,
     build_study_plan_from_learner_snapshot,
@@ -4265,17 +4266,7 @@ class MemberConsoleService:
 
     @staticmethod
     def _normalize_home_focus_topic(value: Any) -> str:
-        topic = str(value or "").strip().strip("。；;，,")
-        if not topic:
-            return ""
-        generic_topics = {
-            "今天先稳住基础节奏",
-            "保持节奏，继续推进",
-            "建筑实务入门导学",
-            "建筑实务入门诊断",
-            "入门摸底",
-        }
-        return "" if topic in generic_topics else topic
+        return normalize_home_focus_topic_label(value)
 
     def _pick_home_focus_topic(
         self,

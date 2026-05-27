@@ -133,6 +133,77 @@ def test_learning_signal_projection_makes_today_focus_clickable() -> None:
     assert first_prompt["intent"]["evidence_refs"] == ["evt-home-1", "attempt-ref-1"]
 
 
+def test_learning_signal_projection_rejects_deictic_focus_labels() -> None:
+    projection = build_home_personalization_projection_from_learning_signal(
+        {
+            "subject_id": "construction_exam_1",
+            "next_training_signal": {"focus": "这题", "concept": "本题"},
+            "concept": {"label": "这道题"},
+            "error": {"label": "这题"},
+            "learning_state_ref": "knowledge:1A413053",
+            "knowledge_points": ["这题"],
+            "error_codes": ["M01"],
+            "event_id": "evt-home-deictic",
+        },
+        generated_at=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
+    )
+
+    assert projection is not None
+    assert projection["today_focus"]["title"] == "今日焦点：地下室防水工程施工"
+    rendered = json.dumps(projection, ensure_ascii=False)
+    assert "这题" not in rendered
+    assert projection["today_focus"]["intent"]["topic_source"] == "taxonomy_code"
+    assert projection["recommended_prompts"][0]["text"] == "用 3 道题训练地下室防水工程施工"
+    assert projection["recommended_prompts"][1]["text"] == "复盘地下室防水工程施工里的M01"
+
+
+def test_learning_signal_projection_drops_generic_only_focus() -> None:
+    projection = build_home_personalization_projection_from_learning_signal(
+        {
+            "subject_id": "construction_exam_1",
+            "next_training_signal": {"focus": "这题"},
+            "concept": {"label": "这题"},
+            "error": {"label": "这题"},
+            "event_id": "evt-home-generic-only",
+        },
+        generated_at=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
+    )
+
+    assert projection is None
+
+
+def test_learning_signal_projection_requires_learnable_focus_topic() -> None:
+    projection = build_home_personalization_projection_from_learning_signal(
+        {
+            "subject_id": "construction_exam_1",
+            "error": {"label": "M01"},
+            "error_codes": ["M01"],
+            "event_id": "evt-home-error-only",
+        },
+        generated_at=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
+    )
+
+    assert projection is None
+
+
+def test_learning_signal_projection_uses_llm_inferred_topic_when_taxonomy_misses() -> None:
+    projection = build_home_personalization_projection_from_learning_signal(
+        {
+            "subject_id": "construction_exam_1",
+            "question_stem": "雨季施工时，混凝土浇筑后的养护措施选择错误。",
+            "simple_explanation": "应结合雨季施工和混凝土养护要求判断。",
+            "event_id": "evt-home-llm-topic",
+        },
+        generated_at=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
+        llm_topic_inferer=lambda payload, candidates: "雨季混凝土养护",
+    )
+
+    assert projection is not None
+    assert projection["today_focus"]["title"] == "今日焦点：雨季混凝土养护"
+    assert projection["today_focus"]["intent"]["topic_source"] == "llm_inferred"
+    assert projection["today_focus"]["intent"]["topic_confidence"] == "low"
+
+
 def test_learning_signal_projection_generates_six_actionable_prompt_types() -> None:
     projection = build_home_personalization_projection_from_learning_signal(
         {
@@ -191,6 +262,50 @@ def test_stale_or_missing_projection_falls_back_to_seed_starters() -> None:
     assert len({item["prompt_type"] for item in missing_dashboard["recommended_prompts"]}) >= 3
 
 
+def test_fresh_projection_with_deictic_focus_recovers_from_learning_evidence() -> None:
+    generated_at = datetime(2026, 5, 21, 9, 0, tzinfo=_TZ).isoformat()
+    bad_projection = {
+        "generated_at": generated_at,
+        "source_status": {"fallback_used": False, "learning_report": "projection"},
+        "today_focus": {
+            "title": "今日焦点：这题",
+            "meta": "来自 learner_state.home_personalization",
+            "intent": {"source": "learner_state.home_personalization", "concept_label": "这题"},
+        },
+        "recommended_prompts": [
+            {
+                "prompt_type": "practice_prompt",
+                "text": "用 3 道题训练这题",
+                "intent": {"source": "learner_state.home_personalization", "concept_label": "这题"},
+            }
+        ],
+    }
+    latest_event = SimpleNamespace(
+        event_id="evt_recover_deictic",
+        memory_kind="learning_evidence",
+        source_feature="assessment_testset",
+        payload_json={
+            "event_type": "learning_evidence",
+            "assessment_type": "topic_diagnostic",
+            "knowledge_points": ["防水工程"],
+            "error_codes": ["M01"],
+            "attempt_ref": "attempt-ref-recover",
+        },
+    )
+
+    dashboard = build_home_dashboard_learning_projection(
+        projection=bad_projection,
+        conversation_events=[latest_event],
+        subject_id="construction_exam_1",
+        now=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
+    )
+
+    assert dashboard["today_focus"]["title"] == "今日焦点：防水工程"
+    assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练防水工程"
+    assert "这题" not in json.dumps(dashboard, ensure_ascii=False)
+    assert dashboard["source_status"]["recovered_from"] == "learner_memory_events.learning_evidence"
+
+
 def test_missing_projection_recovers_from_assessment_learning_evidence() -> None:
     older_event = SimpleNamespace(
         event_id="evt_assessment_old",
@@ -245,6 +360,7 @@ def test_training_completion_projection_recommends_topic_retest() -> None:
             "subject_id": "construction_exam",
             "concept": {"label": "地下防水"},
             "error": {"label": "M01"},
+            "learning_state_ref": "knowledge:1A413053",
             "attempt_ref": "attempt_signed",
             "evidence_refs": ["attempt_signed"],
         },
@@ -254,9 +370,10 @@ def test_training_completion_projection_recommends_topic_retest() -> None:
     assert projection is not None
     first_prompt = projection["recommended_prompts"][0]
     assert first_prompt["prompt_type"] == "assessment"
-    assert first_prompt["text"] == "再测一次地下防水"
+    assert first_prompt["text"] == "再测一次地下室防水工程施工"
     assert first_prompt["intent"]["learning_signal_type"] == "assessment"
-    assert first_prompt["intent"]["concept_label"] == "地下防水"
+    assert first_prompt["intent"]["concept_label"] == "地下室防水工程施工"
+    assert first_prompt["intent"]["taxonomy_code"] == "1A413053"
     assert first_prompt["intent"]["evidence_refs"] == ["attempt_signed"]
 
 
@@ -469,12 +586,12 @@ def test_home_dashboard_reads_canonical_learner_state_for_merged_member(
         event_id="evt_canonical_assessment_1",
         memory_kind="learning_evidence",
         source_feature="assessment_testset",
-        payload_json={
-            "event_type": "learning_evidence",
-            "assessment_type": "topic_diagnostic",
-            "knowledge_points": ["招投标与合同"],
-            "error_codes": [],
-        },
+            payload_json={
+                "event_type": "learning_evidence",
+                "assessment_type": "topic_diagnostic",
+                "knowledge_points": ["1A432000"],
+                "error_codes": [],
+            },
     )
     requested_snapshot_users: list[str] = []
     requested_heartbeat_users: list[str] = []
@@ -503,8 +620,8 @@ def test_home_dashboard_reads_canonical_learner_state_for_merged_member(
 
     assert requested_snapshot_users == [canonical_user_id]
     assert requested_heartbeat_users == [canonical_user_id, canonical_user_id]
-    assert dashboard["today_focus"]["title"] == "今日焦点：招投标与合同"
-    assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练招投标与合同"
+    assert dashboard["today_focus"]["title"] == "今日焦点：工程招标投标与合同管理"
+    assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练工程招标投标与合同管理"
 
 
 def test_dashboard_seed_fallback_uses_subject_from_learner_snapshot(
@@ -569,3 +686,24 @@ def test_home_dashboard_falls_back_when_no_learning_facts() -> None:
 
 def test_module_does_not_keep_hardcoded_starter_prompt_pool() -> None:
     assert not hasattr(home_personalization_module, "_STARTER_PROMPTS")
+
+
+def test_member_console_today_focus_skips_deictic_topics() -> None:
+    service = MemberConsoleService()
+    snapshot = SimpleNamespace(
+        profile={"focus_topic": "这题"},
+        progress={"knowledge_map": {"weak_points": ["防水工程"]}},
+        summary="当前聚焦：这题",
+    )
+
+    focus = service._build_home_today_focus(
+        {"focus_topic": "这题"},
+        weak_nodes=[{"name": "地下防水"}],
+        review={},
+        snapshot=snapshot,
+        study_plan={"focus_topic": "这题"},
+    )
+
+    assert focus["topic"] == "防水工程"
+    assert focus["title"] == "推进防水工程下一步学习"
+    assert "这题" not in json.dumps(focus, ensure_ascii=False)

@@ -7,6 +7,12 @@ from pathlib import Path
 from typing import Any
 
 from deeptutor.services.learner_state.training_intent import build_learning_training_intent
+from deeptutor.services.taxonomy.learning_topic_resolver import (
+    TopicInferer,
+    infer_learning_topic_with_llm,
+    normalize_learning_topic_text,
+    resolve_learning_topic_from_payload,
+)
 
 
 _TZ = timezone(timedelta(hours=8))
@@ -65,24 +71,25 @@ def build_home_personalization_projection_from_learning_signal(
     payload: dict[str, Any],
     *,
     generated_at: datetime | None = None,
+    llm_topic_inferer: TopicInferer | None = None,
 ) -> dict[str, Any] | None:
     signal = dict(payload.get("next_training_signal") or {}) if isinstance(payload.get("next_training_signal"), dict) else {}
-    concept = payload.get("concept") if isinstance(payload.get("concept"), dict) else {}
     error = payload.get("error") if isinstance(payload.get("error"), dict) else {}
-    concept_label = _first_text(
-        signal.get("focus"),
-        signal.get("concept"),
-        concept.get("label"),
-        _first_knowledge_point(payload),
+    topic = resolve_learning_topic_from_payload(
+        payload,
+        llm_topic_inferer=llm_topic_inferer or infer_learning_topic_with_llm,
     )
-    error_label = _first_text(
+    if topic is None:
+        return None
+    concept_label = topic.label
+    error_label = _first_focus_topic_label(
         error.get("label"),
         _first_error_label(payload),
     )
-    if not concept_label and not error_label:
+    if not concept_label:
         return None
     current_time = generated_at or datetime.now(tz=_TZ)
-    prompt_concept = concept_label or "本次错因"
+    prompt_concept = concept_label
     prompt_error = error_label or "薄弱点"
     base_intent = {
         "concept_label": prompt_concept,
@@ -92,6 +99,7 @@ def build_home_personalization_projection_from_learning_signal(
         "evidence_refs": _evidence_refs(payload),
         "learning_state_ref": str(payload.get("learning_state_ref") or "").strip(),
         "suggested_mode": str(payload.get("suggested_mode") or payload.get("teaching_mode") or "").strip(),
+        **topic.intent_fields(),
     }
     prompts = [
         _projection_prompt(
@@ -182,13 +190,13 @@ def _upgrade_legacy_home_projection(projection: dict[str, Any]) -> dict[str, Any
         return None
 
     focus = projection.get("today_focus") if isinstance(projection.get("today_focus"), dict) else {}
-    concept_label = _first_text(
+    concept_label = _first_focus_topic_label(
         _projection_intent_value(prompts, "concept_label"),
         _projection_intent_value([focus], "concept_label"),
         _topic_from_focus_title(str(focus.get("title") or "")),
         _topic_from_prompt_text(str(prompts[0].get("text") or "")) if prompts else "",
     )
-    error_label = _first_text(
+    error_label = _first_focus_topic_label(
         _projection_intent_value(prompts, "error_label"),
         _projection_intent_value([focus], "error_label"),
     )
@@ -199,7 +207,10 @@ def _upgrade_legacy_home_projection(projection: dict[str, Any]) -> dict[str, Any
     upgraded = build_home_personalization_projection_from_learning_signal(
         {
             "subject_id": _projection_intent_value(prompts + [focus], "subject_id"),
-            "concept": {"label": concept_label},
+            "concept": {
+                "label": concept_label,
+                "taxonomy_code": _projection_intent_value(prompts + [focus], "taxonomy_code"),
+            },
             "error": {"label": error_label},
             "training_intent_id": _projection_intent_value(prompts + [focus], "training_intent_id"),
             "evidence_refs": _projection_evidence_refs(prompts + [focus]),
@@ -270,7 +281,15 @@ def _topic_from_prompt_text(value: str) -> str:
 
 
 def _valid_focus(value: Any) -> bool:
-    return isinstance(value, dict) and bool(str(value.get("title") or "").strip())
+    if not isinstance(value, dict):
+        return False
+    title = str(value.get("title") or "").strip()
+    if not title:
+        return False
+    topic = _topic_from_focus_title(title)
+    if topic and not normalize_home_focus_topic_label(topic):
+        return False
+    return True
 
 
 def _valid_prompts(value: Any) -> bool:
@@ -407,6 +426,11 @@ def _projection_prompt(*, prompt_type: str, text: str, intent: dict[str, Any]) -
             "source_training_intent_id": intent.get("training_intent_id"),
             "learning_state_ref": learning_state_ref,
             "suggested_mode": suggested_mode,
+            "taxonomy_code": str(intent.get("taxonomy_code") or "").strip(),
+            "taxonomy_id": str(intent.get("taxonomy_id") or "").strip(),
+            "topic_id": str(intent.get("topic_id") or "").strip(),
+            "topic_source": str(intent.get("topic_source") or "").strip(),
+            "topic_confidence": str(intent.get("topic_confidence") or "").strip(),
         },
     }
 
@@ -431,6 +455,11 @@ def _assessment_retest_prompt(*, text: str, intent: dict[str, Any]) -> dict[str,
             "concept_label": concept_label,
             "error_label": error_label,
             "evidence_refs": evidence_refs,
+            "taxonomy_code": str(intent.get("taxonomy_code") or "").strip(),
+            "taxonomy_id": str(intent.get("taxonomy_id") or "").strip(),
+            "topic_id": str(intent.get("topic_id") or "").strip(),
+            "topic_source": str(intent.get("topic_source") or "").strip(),
+            "topic_confidence": str(intent.get("topic_confidence") or "").strip(),
         },
     }
 
@@ -466,12 +495,16 @@ def _first_error_label(payload: dict[str, Any]) -> str:
     return ""
 
 
-def _first_knowledge_point(payload: dict[str, Any]) -> str:
-    for value in list(payload.get("knowledge_points") or []):
-        text = str(value or "").strip()
+def _first_focus_topic_label(*values: Any) -> str:
+    for value in values:
+        text = normalize_home_focus_topic_label(value)
         if text:
             return text
     return ""
+
+
+def normalize_home_focus_topic_label(value: Any) -> str:
+    return normalize_learning_topic_text(value)
 
 
 def _first_text(*values: Any) -> str:
@@ -497,5 +530,6 @@ def _parse_time(value: str) -> datetime | None:
 __all__ = [
     "build_home_dashboard_learning_projection",
     "build_home_personalization_projection_from_learning_signal",
+    "normalize_home_focus_topic_label",
     "write_home_personalization_projection",
 ]
