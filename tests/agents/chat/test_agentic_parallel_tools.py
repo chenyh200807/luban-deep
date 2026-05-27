@@ -1330,6 +1330,29 @@ def test_teaching_overlay_reads_scene_authority_from_metadata() -> None:
     assert mcq_instruction != practice_instruction
 
 
+def test_build_messages_partitions_stable_prefix_ahead_of_dynamic_memory() -> None:
+    """D4 prompt partition: the turn-invariant stage prompt must lead as its own
+    system message (cacheable prefix); per-turn memory must NOT be merged into
+    it, but follow as a separate dynamic-tail message. Content order preserved."""
+    pipeline = AgenticChatPipeline(language="zh")
+    context = UnifiedContext(
+        session_id="d4",
+        user_message="继续",
+        memory_context="MEMORY_T1",
+        metadata={},  # non-tutorbot → no teaching overlay, isolates the memory split
+    )
+
+    messages = pipeline._build_messages(context, "STABLE_STAGE_PROMPT", "user turn content")
+
+    # Stable stage prompt leads, alone — not concatenated with per-turn memory.
+    assert messages[0] == {"role": "system", "content": "STABLE_STAGE_PROMPT"}
+    assert "MEMORY_T1" not in messages[0]["content"]
+    # Memory follows as its own dynamic-tail system message.
+    assert {"role": "system", "content": "MEMORY_T1"} in messages
+    # The user turn is last.
+    assert messages[-1] == {"role": "user", "content": "user turn content"}
+
+
 def test_teaching_overlay_falls_back_to_default_skill_without_scene() -> None:
     """No attached scene → the shell loads the default construction tutor skill
     (not an independently re-derived scene)."""

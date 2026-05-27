@@ -41,6 +41,7 @@ domains:
       - tests/api/test_unified_ws_public_redaction.py
       - tests/api/test_mobile_router.py
       - tests/services/session/test_context_builder.py
+      - tests/services/session/test_prompt_partition.py
       - tests/services/learner_state/test_attempt_refs.py
       - tests/services/learner_state/test_attempt_detail_read_model.py
       - tests/services/learner_state/test_mistake_book.py

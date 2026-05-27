@@ -51,6 +51,10 @@ from deeptutor.services.rag.exact_authority import (
     extract_exact_question_authority_from_metadata,
     normalize_exact_authority_display_text,
 )
+from deeptutor.services.session.prompt_partition import (
+    partition_system_prompt,
+    to_system_messages,
+)
 from deeptutor.services.llm.openai_http_client import openai_client_kwargs
 from deeptutor.tutorbot.teaching_modes import (
     get_lecture_skill_instruction,
@@ -1359,16 +1363,16 @@ class AgenticChatPipeline:
         system_prompt: str,
         user_content: str,
     ) -> list[dict[str, Any]]:
-        system_parts = [system_prompt]
-        if context.memory_context:
-            system_parts.append(context.memory_context)
-
-        messages: list[dict[str, Any]] = [
-            {"role": "system", "content": "\n\n".join(system_parts)}
-        ]
-        teaching_overlay = self._teaching_mode_overlay(context)
-        if teaching_overlay:
-            messages.append({"role": "system", "content": teaching_overlay})
+        # D4 prompt partition: the turn-invariant stage prompt leads as the
+        # cacheable stable prefix; per-turn memory and the lifecycle scene
+        # teaching overlay follow as the dynamic tail. Content and order are
+        # preserved (system_prompt → memory → teaching overlay); only the
+        # message boundaries change so the provider can reuse the cached prefix.
+        partition = partition_system_prompt(
+            stable=[system_prompt],
+            dynamic=[context.memory_context, self._teaching_mode_overlay(context)],
+        )
+        messages: list[dict[str, Any]] = to_system_messages(partition)
         for item in context.conversation_history:
             role = item.get("role")
             content = item.get("content")
