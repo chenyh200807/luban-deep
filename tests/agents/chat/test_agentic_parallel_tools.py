@@ -1295,3 +1295,53 @@ async def test_run_uses_compact_response_for_construction_exam_tutor_profile(
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     assert result_event.metadata["response"] == "这是 construction exam smart 单轮回答。"
     assert result_event.metadata["chat_mode"] == "smart"
+
+
+def _tutorbot_overlay_context(user_message: str, scene: str | None) -> UnifiedContext:
+    metadata: dict[str, Any] = {
+        "product_surface": "tutorbot",
+        "bot_id": "construction-exam-coach",
+    }
+    if scene is not None:
+        metadata["question_lifecycle_scene"] = scene
+    return UnifiedContext(user_message=user_message, metadata=metadata)
+
+
+def test_teaching_overlay_reads_scene_authority_from_metadata() -> None:
+    """The chat shell must follow the lifecycle scene attached to turn metadata
+    by the orchestrator, never re-derive scene from the raw user message.
+
+    Same user message ("再出 3 题", which would derive ``practice_generation``)
+    but a different ``question_lifecycle_scene`` in metadata must yield a
+    different skill instruction — proving the shell reads the single authority
+    instead of re-judging the scene."""
+    pipeline = AgenticChatPipeline(language="zh")
+
+    mcq_instruction = pipeline._question_lifecycle_skill_instruction(
+        _tutorbot_overlay_context("再出 3 题", "mcq_grading")
+    )
+    practice_instruction = pipeline._question_lifecycle_skill_instruction(
+        _tutorbot_overlay_context("再出 3 题", "practice_generation")
+    )
+
+    assert mcq_instruction
+    assert practice_instruction
+    # Identical user message, different metadata scene → different instruction.
+    assert mcq_instruction != practice_instruction
+
+
+def test_teaching_overlay_falls_back_to_default_skill_without_scene() -> None:
+    """No attached scene → the shell loads the default construction tutor skill
+    (not an independently re-derived scene)."""
+    pipeline = AgenticChatPipeline(language="zh")
+
+    default_instruction = pipeline._question_lifecycle_skill_instruction(
+        _tutorbot_overlay_context("你好", None)
+    )
+    scene_instruction = pipeline._question_lifecycle_skill_instruction(
+        _tutorbot_overlay_context("你好", "mcq_grading")
+    )
+
+    assert default_instruction
+    # The default (no-scene) skill differs from a scene-specific skill stack.
+    assert default_instruction != scene_instruction

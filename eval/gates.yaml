@@ -7,6 +7,16 @@ gates:
     category: quick
     command: ["python", "scripts/check_contract_guard.py"]
 
+  harness_authority_guard:
+    description: "Static guard: single scene/grounding/exact authority, no shell re-judgement."
+    category: quick
+    command: ["python", "scripts/check_harness_authority.py"]
+
+  harness_authority_baseline:
+    description: "Decision-layer golden for scene/grounding/exact single authority (offline)."
+    category: quick
+    command: ["python", "scripts/run_harness_authority_baseline.py", "--check"]
+
   ws_mobile_turn_runtime:
     description: "Unified /api/v1/ws turn runtime and mobile router contract."
     category: quick

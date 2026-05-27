@@ -59,7 +59,7 @@
 - 背景：codex 指出现网网太粗——`pr_gate_core` 不含 grounding，grounding 只有 4 个静态 case（`deeptutor/services/benchmark/fixtures/rag_grounding_eval_cases.json`），long-dialog gate 只跑 `--max-cases 1`（`eval/gates.yaml:107`）。这张网抓不住 scene/grounding/exact 的语义回归。
 - 做什么：为 chat 与 tutorbot 两壳，各采一组覆盖 {grounding 命中、MCQ exact、case_study exact、free_text、construction scene、follow-up、低信息考试查询} 的代表性 case，**冻结 trace 级 golden**：`tool 调用序列 + 关键 metadata（question_lifecycle_decision / scene / selected_skill_names / authority_applied）+ sources + 最终可见输出`。
 - 代码入口：`eval/gates.yaml`、`deeptutor/services/benchmark/`、`scripts/run_benchmark.py`、`scripts/run_long_dialog_v1_retest.py`。
-- 验收：golden 落 `artifacts/harness-baseline-20260527/`；新增一个能 diff trace 级字段的 harness eval gate；故意改一处 scene 重判 → gate 红（证明网有效）。
+- 验收：golden 落 **tracked fixture** `deeptutor/services/benchmark/fixtures/harness_authority_decision_golden.json`（**注意**：`artifacts/` 被 `.gitignore` 排除——"review artifacts must never enter git"，golden 必须进 tracked 路径，gate 才能在全新 checkout/CI 工作）；新增一个能 diff 决策级字段的 harness eval gate；故意改一处 scene 重判 → gate 红（证明网有效）。已落地（2026-05-27）。
 
 **Task P0.2 — scene 权威强制（v1 错误已修正）**
 - 一等事实：题目生命周期 scene → skill stack。**唯一 authority = `deeptutor/services/question_lifecycle_skills.py`**（`SCENE_COMPOSITION` + `resolve_question_lifecycle_scene_decision`），由 orchestrator 写入 turn metadata；`contracts/capability.md` 第 27 条。

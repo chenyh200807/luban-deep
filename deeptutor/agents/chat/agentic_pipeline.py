@@ -53,8 +53,6 @@ from deeptutor.services.rag.exact_authority import (
 )
 from deeptutor.services.llm.openai_http_client import openai_client_kwargs
 from deeptutor.tutorbot.teaching_modes import (
-    detect_construction_exam_scene,
-    get_construction_exam_skill_instruction,
     get_lecture_skill_instruction,
     get_teaching_mode_instruction,
 )
@@ -2877,18 +2875,12 @@ class AgenticChatPipeline:
         if not self._is_tutorbot_context(context):
             return ""
         mode = self._interaction_teaching_mode(context)
-        answer_type = self._infer_answer_type(context.user_message)
-        scene = detect_construction_exam_scene(
-            context.user_message,
-            answer_type=answer_type,
-            followup_context=self._followup_question_context(context),
-        )
         parts: list[str] = []
         mode_instruction = get_teaching_mode_instruction(mode) if mode in {"fast", "deep"} else ""
         if mode_instruction:
             parts.append(mode_instruction)
         parts.append(get_markdown_style_instruction())
-        skill_instruction = get_construction_exam_skill_instruction(scene)
+        skill_instruction = self._question_lifecycle_skill_instruction(context)
         if skill_instruction:
             parts.append(skill_instruction)
         lecture_instruction = get_lecture_skill_instruction(context.user_message)
@@ -2907,6 +2899,29 @@ class AgenticChatPipeline:
             )
         )
         return "\n\n".join(part for part in parts if part).strip()
+
+    def _question_lifecycle_skill_instruction(self, context: UnifiedContext) -> str:
+        """Read the lifecycle scene authority and build its skill instruction.
+
+        Scene is the single authority's decision attached to
+        ``context.metadata['question_lifecycle_scene']`` by the orchestrator
+        (``resolve_question_lifecycle_scene_decision``). This shell only reads
+        that decision and never re-derives the scene — mirroring the migrated
+        TutorBot loop path.
+        """
+        # Local import avoids a TutorBot↔services circular import at module load.
+        from deeptutor.services.question_lifecycle_skills import (
+            build_default_construction_exam_skill_context,
+            build_question_lifecycle_skill_context,
+        )
+
+        metadata = context.metadata or {}
+        scene = str(metadata.get("question_lifecycle_scene") or "").strip() or None
+        if scene:
+            skill_context = build_question_lifecycle_skill_context(context)
+        else:
+            skill_context = build_default_construction_exam_skill_context()
+        return skill_context.instructions
 
     def _required_heading_block(self, required_elements: list[str], english: bool = False) -> str:
         mapping = {
