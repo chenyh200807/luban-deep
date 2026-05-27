@@ -177,7 +177,7 @@ class MatrixChannel(BaseChannel):
         config: Any,
         bus: MessageBus,
         *,
-        restrict_to_workspace: bool = False,
+        restrict_to_workspace: bool = True,
         workspace: str | Path | None = None,
     ):
         if isinstance(config, dict):

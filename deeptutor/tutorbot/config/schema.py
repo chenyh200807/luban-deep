@@ -151,5 +151,5 @@ class ToolsConfig(Base):
 
     web: WebToolsConfig = Field(default_factory=WebToolsConfig)
     exec: ExecToolConfig = Field(default_factory=ExecToolConfig)
-    restrict_to_workspace: bool = False  # If true, restrict all tool access to workspace directory
+    restrict_to_workspace: bool = True  # Confine all tool (fs/exec) access to the bot workspace; must be opted out of explicitly
     mcp_servers: dict[str, MCPServerConfig] = Field(default_factory=dict)

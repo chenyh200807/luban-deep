@@ -96,7 +96,7 @@ def build_base_tools(
     exec_config: "ExecToolConfig",
     web_search_config: "WebSearchConfig | None" = None,
     web_proxy: str | None = None,
-    restrict_to_workspace: bool = False,
+    restrict_to_workspace: bool = True,
 ) -> ToolRegistry:
     """Build a ToolRegistry pre-loaded with filesystem, shell, and web tools."""
     from deeptutor.services.search import is_web_search_runtime_available

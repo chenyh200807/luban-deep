@@ -518,7 +518,7 @@ class TutorBotManager:
             exec_config=exec_config,
             session_manager=session_adapter,
             shared_memory_dir=None,
-            restrict_to_workspace=False,
+            restrict_to_workspace=True,
             default_session_key=canonical_key,
         )
 
