@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import time
 from pathlib import Path
@@ -36,6 +37,40 @@ def _candidate_from_event(event: dict[str, Any], *, incident_id: str) -> dict[st
         "reason": _failure_reason(event),
         "recommended_tier": "incident_replay",
     }
+
+
+def build_redacted_harness_case_candidate(candidate: dict[str, Any]) -> dict[str, Any]:
+    """Turn a failed-turn replay candidate into a PII-safe harness eval-case seed.
+
+    Roadmap H4 / C5: production traces carry real user content, so they must NEVER
+    enter the committed eval corpus. This keeps only the *structural* failure
+    signature — capability, route, error_type, status — and deliberately DROPS the
+    linkable identifiers (session/turn/trace id) and the free-text ``reason`` that
+    can echo user input / PII. The ``failure_signature`` lets the backlog dedupe
+    failure shapes without storing any conversation content.
+    """
+    capability = str(candidate.get("capability") or "")
+    route = str(candidate.get("route") or "")
+    error_type = str(candidate.get("error_type") or "")
+    status = str(candidate.get("status") or "")
+    signature = hashlib.sha256(
+        f"{capability}|{route}|{error_type}".encode("utf-8")
+    ).hexdigest()[:16]
+    return {
+        "failure_signature": signature,
+        "capability": capability,
+        "route": route,
+        "error_type": error_type,
+        "status": status,
+        "recommended_tier": str(candidate.get("recommended_tier") or "incident_replay"),
+        "redacted": True,
+    }
+
+
+def redacted_harness_case_candidates(report: dict[str, Any]) -> list[dict[str, Any]]:
+    """Map an incident report's replay candidates to PII-safe harness case seeds."""
+    candidates = report.get("replay_candidates") or []
+    return [build_redacted_harness_case_candidate(c) for c in candidates if isinstance(c, dict)]
 
 
 def build_failed_turn_incident_report(
