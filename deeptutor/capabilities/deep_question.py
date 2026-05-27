@@ -1292,6 +1292,30 @@ def _question_review_renderable(summary: dict[str, Any] | None) -> bool:
     return False
 
 
+def _clamp_result_question_count(summary: dict[str, Any], max_questions: int) -> dict[str, Any]:
+    """Keep rendered/generated question count aligned with upstream request."""
+
+    if not isinstance(summary, dict):
+        return summary
+    try:
+        limit = int(max_questions or 0)
+    except (TypeError, ValueError):
+        limit = 0
+    if limit <= 0:
+        return summary
+    results = summary.get("results")
+    if not isinstance(results, list) or len(results) <= limit:
+        return summary
+    clamped = dict(summary)
+    clamped["results"] = list(results[:limit])
+    trace = dict(clamped.get("trace") or {})
+    trace["requested_question_count"] = limit
+    trace["generated_question_count"] = len(results)
+    trace["clamped_question_count"] = len(results) - limit
+    clamped["trace"] = trace
+    return clamped
+
+
 def _promote_question_review_result(summary: dict[str, Any]) -> dict[str, Any]:
     promoted = dict(summary)
     results: list[dict[str, Any]] = []
@@ -1930,6 +1954,8 @@ class DeepQuestionCapability(BaseCapability):
                 )
                 return
 
+        result = _clamp_result_question_count(result, num_questions)
+
         # plan §Phase 0 Step 0.3 (B3) — single-writer trace 字段。
         # coordinator 在 result["trace"]["lightweight_counters"] 累加；
         # 这里 capability 一次性 flush 到 context.metadata.trace_metadata。
@@ -1939,6 +1965,15 @@ class DeepQuestionCapability(BaseCapability):
                 counters = (
                     (result.get("trace") or {}).get("lightweight_counters") if isinstance(result.get("trace"), dict) else None
                 )
+                if isinstance(result.get("trace"), dict):
+                    trace = result["trace"]
+                    if trace.get("clamped_question_count"):
+                        trace_meta["practice_generation.generated_question_count"] = int(
+                            trace.get("generated_question_count") or 0
+                        )
+                        trace_meta["practice_generation.clamped_question_count"] = int(
+                            trace.get("clamped_question_count") or 0
+                        )
                 if isinstance(counters, dict):
                     trace_meta["practice_generation.llm_calls"] = int(counters.get("llm_calls") or 0)
                     trace_meta["practice_generation.retriever_calls"] = int(counters.get("retriever_calls") or 0)

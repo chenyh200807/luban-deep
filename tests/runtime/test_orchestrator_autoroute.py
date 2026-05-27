@@ -548,6 +548,105 @@ async def test_orchestrator_marks_low_information_exam_query_without_exact_autho
 
 
 @pytest.mark.asyncio
+async def test_orchestrator_persists_low_information_exam_query_clarification_choice() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-low-info-choice",
+        active_capability="tutorbot",
+        user_message="2025真题",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    active_object = context.metadata.get("active_object")
+    assert isinstance(active_object, dict)
+    assert active_object["object_type"] == "question_lifecycle_clarification"
+    snapshot = active_object["state_snapshot"]
+    assert snapshot["topic"] == "2025真题"
+    assert snapshot["options"][0]["intent"] == "exam_catalog_query"
+    assert context.metadata["question_lifecycle_clarification"] == snapshot
+
+
+@pytest.mark.asyncio
+async def test_low_information_clarification_suspends_existing_active_question() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    existing_active_object = {
+        "object_type": "question",
+        "object_id": "q1",
+        "scope": {"domain": "question"},
+        "state_snapshot": {
+            "question_id": "q1",
+            "question": "钢筋保护层厚度题",
+            "question_type": "mcq",
+            "options": {"A": "55", "B": "60", "C": "65", "D": "70"},
+        },
+        "version": 1,
+    }
+    context = UnifiedContext(
+        session_id="s-low-info-preserve-active",
+        active_capability="tutorbot",
+        user_message="2025真题",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={"active_object": existing_active_object},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert context.metadata["active_object"]["object_type"] == "question_lifecycle_clarification"
+    assert context.metadata["suspended_object_stack"][0]["object_id"] == "q1"
+
+
+@pytest.mark.asyncio
+@pytest.mark.asyncio
+async def test_orchestrator_resolves_clarification_option_one_to_exam_catalog_query() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-low-info-option-one",
+        active_capability="tutorbot",
+        user_message="1",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={
+            "active_object": {
+                "object_type": "question_lifecycle_clarification",
+                "state_snapshot": {
+                    "topic": "2025真题",
+                    "options": [
+                        {
+                            "key": "1",
+                            "intent": "exam_catalog_query",
+                            "label": "查看这一类真题目录或考点范围",
+                        }
+                    ],
+                },
+            }
+        },
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "tutorbot"
+    assert context.metadata["question_lifecycle_scene"] == "exam_catalog_query"
+    assert context.metadata["question_lifecycle_decision"]["business_gate_result"] == "resolved_clarification_option"
+    assert context.metadata["semantic_router_mode"] == "question_lifecycle"
+    assert context.metadata["semantic_router_selected_capability"] == "tutorbot"
+    assert "exact_question_blocked_reason" not in context.metadata
+
+
+@pytest.mark.asyncio
 async def test_low_information_exam_query_overrides_preselected_deep_question() -> None:
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()

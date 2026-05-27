@@ -201,6 +201,53 @@ def test_low_information_exam_query_is_not_question_review(message: str):
     assert derive_question_lifecycle_scene(ctx) is None
 
 
+@pytest.mark.parametrize(
+    "message",
+    [
+        "查看这一类真题目录或考点范围",
+        "查看这一类真题目录或考点范围、2025年真题",
+        "查看2025年真题考点范围",
+    ],
+)
+def test_explicit_exam_catalog_followup_is_not_blocked_as_low_information(message: str):
+    ctx = _FakeContext(user_message=message)
+
+    assert is_low_information_exam_query(message) is False
+    assert derive_question_lifecycle_scene(ctx) == "exam_catalog_query"
+
+
+@pytest.mark.asyncio
+async def test_clarification_option_number_resolves_to_exam_catalog_query():
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(
+            user_message="1",
+            metadata={
+                "active_object": {
+                    "object_type": "question_lifecycle_clarification",
+                    "state_snapshot": {
+                        "topic": "2025年真题",
+                        "options": [
+                            {
+                                "key": "1",
+                                "intent": "exam_catalog_query",
+                                "label": "查看这一类真题目录或考点范围",
+                            }
+                        ],
+                    },
+                }
+            },
+        )
+    )
+
+    assert decision.scene == "exam_catalog_query"
+    assert decision.required_anchor_status == "satisfied"
+    assert decision.business_gate_result == "resolved_clarification_option"
+    assert decision.selected_skill_names == (
+        "construction-exam-tutor",
+        "construction-study-assistant",
+    )
+
+
 @pytest.mark.asyncio
 async def test_low_information_exam_query_business_gate_overrides_llm_review_candidate(monkeypatch):
     async def _fake_complete(**kwargs):

@@ -90,6 +90,7 @@ SCENE_COMPOSITION: dict[str, tuple[str, ...]] = {
     "learning_evidence_story": ("construction-exam-tutor", "construction-learning-evidence-story"),
     "study_assistant": ("construction-exam-tutor", "construction-study-assistant"),
     "learning_support": ("construction-exam-tutor", "construction-learning-support"),
+    "exam_catalog_query": ("construction-exam-tutor", "construction-study-assistant"),
 }
 
 # Legacy ConstructionExamScene → skill stack. Used only by the legacy shim
@@ -192,6 +193,22 @@ async def resolve_question_lifecycle_scene_decision(
         metadata,
     )
     low_information_exam_query = is_low_information_exam_query(user_message)
+    clarification_intent = (
+        _resolve_clarification_option_intent(user_message, metadata)
+        if isinstance(metadata, dict)
+        else ""
+    )
+    if clarification_intent in {"exam_catalog_query", "practice_generation"}:
+        skill_names = select_question_lifecycle_skill_names(clarification_intent)
+        return QuestionLifecycleSceneDecision(
+            scene=clarification_intent,
+            source="deterministic",
+            confidence=1.0,
+            reason="resolved previous lifecycle clarification option",
+            required_anchor_status="satisfied",
+            selected_skill_names=skill_names,
+            business_gate_result="resolved_clarification_option",
+        )
     proposal: QuestionLifecycleSceneDecision | None = None
     if enable_llm and (low_information_exam_query or (scene is None and _should_use_llm_scene_proposal(ctx))):
         proposal = await _llm_question_lifecycle_scene_proposal(ctx)
@@ -267,6 +284,129 @@ async def resolve_question_lifecycle_scene_decision(
     return proposal
 
 
+def _looks_like_exam_catalog_query(query: str) -> bool:
+    """Return True for an explicit request to view exam catalog/range."""
+
+    text = re.sub(r"\s+", "", str(query or "").strip())
+    if not text:
+        return False
+    if not any(marker in text for marker in ("真题", "试题", "题库", "试卷")):
+        return False
+    catalog_action_markers = (
+        "查看这一类真题目录",
+        "查看真题目录",
+        "真题目录",
+        "考点范围",
+        "题目范围",
+        "范围目录",
+        "目录范围",
+    )
+    return any(marker in text for marker in catalog_action_markers)
+
+
+def _clarification_state_from_metadata(metadata: dict[str, Any]) -> dict[str, Any]:
+    direct = metadata.get("question_lifecycle_clarification")
+    if isinstance(direct, dict):
+        return direct
+    active_object = metadata.get("active_object")
+    if not isinstance(active_object, dict):
+        return {}
+    if str(active_object.get("object_type") or "").strip() != "question_lifecycle_clarification":
+        return {}
+    snapshot = active_object.get("state_snapshot")
+    return dict(snapshot) if isinstance(snapshot, dict) else {}
+
+
+def _resolve_clarification_option_intent(user_message: str, metadata: dict[str, Any]) -> str:
+    state = _clarification_state_from_metadata(metadata)
+    if not state:
+        return ""
+    text = re.sub(r"\s+", "", str(user_message or "").strip())
+    if not text:
+        return ""
+    if _looks_like_exam_catalog_query(user_message):
+        return "exam_catalog_query"
+    options = state.get("options")
+    if not isinstance(options, list):
+        return ""
+    for option in options:
+        if not isinstance(option, dict):
+            continue
+        key = re.sub(r"\s+", "", str(option.get("key") or "").strip())
+        label = re.sub(r"\s+", "", str(option.get("label") or "").strip())
+        intent = str(option.get("intent") or "").strip()
+        if key and text in {key, f"选{key}", f"第{key}项"}:
+            return intent
+        if label and (text == label or text.startswith(label) or label in text):
+            return intent
+    if text in {"一", "第一项", "选一", "选第一个"}:
+        for option in options:
+            if isinstance(option, dict) and str(option.get("key") or "").strip() == "1":
+                return str(option.get("intent") or "").strip()
+    return ""
+
+
+def build_question_lifecycle_clarification_context(message: str, reason: str) -> dict[str, Any]:
+    """Canonical active object for a lifecycle clarification choice."""
+
+    if str(reason or "").strip() != "low_information_exam_query":
+        return {}
+    topic = str(message or "").strip() or "真题"
+    options = [
+        {
+            "key": "1",
+            "intent": "exam_catalog_query",
+            "label": "查看这一类真题目录或考点范围",
+        },
+        {
+            "key": "2",
+            "intent": "practice_generation",
+            "label": "让我出一套真题风格练习",
+        },
+        {
+            "key": "3",
+            "intent": "question_review",
+            "label": "粘贴具体题干和选项，我按题目讲评",
+        },
+    ]
+    return {
+        "object_type": "question_lifecycle_clarification",
+        "object_id": f"exam-query:{topic}",
+        "scope": {"domain": "question_lifecycle", "source": "question_lifecycle"},
+        "state_snapshot": {
+            "topic": topic,
+            "reason": "low_information_exam_query",
+            "options": options,
+        },
+        "version": 1,
+        "source_turn_id": "",
+    }
+
+
+def build_question_lifecycle_exam_catalog_response(message: str, metadata: dict[str, Any] | None = None) -> str:
+    """Student-facing answer for exam catalog/range requests without inventing a specific paper."""
+
+    metadata = metadata or {}
+    state = _clarification_state_from_metadata(metadata) if isinstance(metadata, dict) else {}
+    topic = str(state.get("topic") or message or "真题").strip() or "真题"
+    return (
+        f"可以。你现在问的是“{topic}”这一类真题的目录或考点范围，我先按复习入口帮你整理，"
+        "不直接编造某一道题的标准答案。\n\n"
+        "一、可以先这样看范围\n"
+        "1. 按年份：近年真题、模拟卷、专项题分开看。\n"
+        "2. 按题型：单选、多选、案例题分别训练。\n"
+        "3. 按模块：地基基础、主体结构、防水保温、装饰装修、施工组织、质量安全、进度成本、合同法规。\n\n"
+        "二、这类真题常见考点\n"
+        "- 问“主要方法/优先采用/不应小于”时，重点抓题干限定词。\n"
+        "- 问规范数值时，重点区分适用场景，别只背一个数字。\n"
+        "- 问管理流程时，重点看谁编制、谁审批、何时验收、资料怎么闭合。\n\n"
+        "三、下一步你可以直接这样说\n"
+        "- 按这个范围出 3 道可作答练习题。\n"
+        "- 展开钢筋保护层或地下防水的真题范围。\n"
+        "- 我粘贴具体题干和选项，请按真题讲评格式解析：先列题目，再给答案、逐项分析、易错点和记忆抓手。"
+    )
+
+
 def is_low_information_exam_query(query: str) -> bool:
     """Return True when the message is an exam inventory/filter query, not a question.
 
@@ -280,6 +420,8 @@ def is_low_information_exam_query(query: str) -> bool:
     if not text:
         return False
     if not any(marker in text for marker in ("真题", "试题", "题库", "试卷")):
+        return False
+    if _looks_like_exam_catalog_query(query):
         return False
     if _looks_like_year_only_exam_review_query(text):
         return True
@@ -584,6 +726,15 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
         return None
 
     metadata = getattr(ctx, "metadata", None) or {}
+    if isinstance(metadata, dict):
+        clarification_intent = _resolve_clarification_option_intent(user_message, metadata)
+        if clarification_intent == "exam_catalog_query":
+            return "exam_catalog_query"
+        if clarification_intent == "practice_generation":
+            return "practice_generation"
+    if _looks_like_exam_catalog_query(user_message):
+        return "exam_catalog_query"
+
     question_context = normalize_question_followup_context(
         metadata.get("question_followup_context") if isinstance(metadata, dict) else None
     ) or {}
@@ -695,6 +846,7 @@ async def _llm_question_lifecycle_scene_proposal(
             "learning_evidence_story",
             "study_assistant",
             "learning_support",
+            "exam_catalog_query",
             "none",
         ],
         "rules": [
@@ -704,6 +856,7 @@ async def _llm_question_lifecycle_scene_proposal(
             "用户问最近哪里错、学得怎么样 -> learning_evidence_story",
             "用户问今天学什么、下一步学什么 -> study_assistant",
             "用户表达没动力、焦虑、学不动 -> learning_support",
+            "用户选择查看真题目录、考点范围、题库范围 -> exam_catalog_query",
             "无法判断或不是学习题目生命周期场景 -> none",
         ],
     }
