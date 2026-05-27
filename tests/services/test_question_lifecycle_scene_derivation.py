@@ -48,6 +48,19 @@ def test_training_by_question_count_returns_practice_generation():
     assert derive_question_lifecycle_scene(ctx) == "practice_generation"
 
 
+@pytest.mark.parametrize(
+    "message",
+    [
+        "用一道真题场景理解基础和地基的",
+        "用一道真题场景理解项目质量计划管理",
+        "通过一道真题场景讲一下地基处理",
+    ],
+)
+def test_real_exam_scenario_learning_returns_question_review(message: str):
+    ctx = _FakeContext(user_message=message)
+    assert derive_question_lifecycle_scene(ctx) == "question_review"
+
+
 def test_mastery_check_training_intent_wins_over_learning_report_phrase():
     ctx = _FakeContext(user_message="项目质量计划管理这个点，帮我检验一下掌握情况")
     assert derive_question_lifecycle_scene(ctx) == "practice_generation"
@@ -168,7 +181,7 @@ def test_topic_qualified_real_exam_review_returns_question_review():
     assert derive_question_lifecycle_scene(ctx) == "question_review"
 
 
-@pytest.mark.parametrize("message", ["分析一道2025真题", "讲解一道历年真题", "解析一道防水真题"])
+@pytest.mark.parametrize("message", ["解析一道防水真题", "分析一道钢筋保护层真题"])
 def test_explicit_real_exam_review_action_is_not_low_information_query(message: str):
     ctx = _FakeContext(user_message=message)
 
@@ -176,12 +189,76 @@ def test_explicit_real_exam_review_action_is_not_low_information_query(message: 
     assert derive_question_lifecycle_scene(ctx) == "question_review"
 
 
-@pytest.mark.parametrize("message", ["2025真题", "历年真题", "防水真题", "2025真题有哪些", "2025真题答案"])
+@pytest.mark.parametrize(
+    "message",
+    [
+        "2025真题",
+        "历年真题",
+        "防水真题",
+        "2025真题有哪些",
+        "2025真题答案",
+        "2025真题带答案",
+        "讲解2025年真题",
+        "讲解2025真题答案",
+        "2025真题第15题",
+        "解析2025年真题第15题",
+        "分析一道2025真题",
+        "讲解一道历年真题",
+        "解析2025真题第15题",
+    ],
+)
 def test_low_information_exam_query_is_not_question_review(message: str):
     ctx = _FakeContext(user_message=message)
 
     assert is_low_information_exam_query(message) is True
     assert derive_question_lifecycle_scene(ctx) is None
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "查看这一类真题目录或考点范围",
+        "查看这一类真题目录或考点范围、2025年真题",
+        "查看2025年真题考点范围",
+    ],
+)
+def test_explicit_exam_catalog_followup_is_not_blocked_as_low_information(message: str):
+    ctx = _FakeContext(user_message=message)
+
+    assert is_low_information_exam_query(message) is False
+    assert derive_question_lifecycle_scene(ctx) == "exam_catalog_query"
+
+
+@pytest.mark.asyncio
+async def test_clarification_option_number_resolves_to_exam_catalog_query():
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(
+            user_message="1",
+            metadata={
+                "active_object": {
+                    "object_type": "question_lifecycle_clarification",
+                    "state_snapshot": {
+                        "topic": "2025年真题",
+                        "options": [
+                            {
+                                "key": "1",
+                                "intent": "exam_catalog_query",
+                                "label": "查看这一类真题目录或考点范围",
+                            }
+                        ],
+                    },
+                }
+            },
+        )
+    )
+
+    assert decision.scene == "exam_catalog_query"
+    assert decision.required_anchor_status == "satisfied"
+    assert decision.business_gate_result == "resolved_clarification_option"
+    assert decision.selected_skill_names == (
+        "construction-exam-tutor",
+        "construction-study-assistant",
+    )
 
 
 @pytest.mark.asyncio
@@ -220,6 +297,42 @@ async def test_unanchored_mcq_answer_returns_clarification_decision():
     assert decision.required_anchor_status == "missing_active_question"
     assert decision.exact_question_blocked_reason == "unanchored_answer_submission"
     assert decision.needs_clarification is True
+
+
+@pytest.mark.asyncio
+async def test_llm_scene_proposal_failure_degrades_without_blocking(monkeypatch):
+    async def _fake_complete(**_kwargs):
+        raise RuntimeError("llm unavailable")
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.complete", _fake_complete)
+
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(user_message="拿一道钢筋保护层题给我讲透")
+    )
+
+    assert decision.scene is None
+    assert decision.source == "llm"
+    assert decision.business_gate_result == "llm_unavailable"
+    assert decision.confidence == pytest.approx(0.0)
+
+
+@pytest.mark.asyncio
+async def test_deterministic_active_submission_suppresses_llm_candidate(monkeypatch):
+    async def _fake_complete(**_kwargs):
+        raise AssertionError("LLM must not run when active submission evidence is sufficient")
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.complete", _fake_complete)
+
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(
+            user_message="我选B",
+            metadata={"question_followup_context": _mcq_followup_context()},
+        )
+    )
+
+    assert decision.scene == "mcq_grading"
+    assert decision.source == "deterministic"
+    assert decision.business_gate_result == "passed"
 
 
 @pytest.mark.asyncio

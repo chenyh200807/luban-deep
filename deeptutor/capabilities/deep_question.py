@@ -1292,6 +1292,30 @@ def _question_review_renderable(summary: dict[str, Any] | None) -> bool:
     return False
 
 
+def _clamp_result_question_count(summary: dict[str, Any], max_questions: int) -> dict[str, Any]:
+    """Keep rendered/generated question count aligned with upstream request."""
+
+    if not isinstance(summary, dict):
+        return summary
+    try:
+        limit = int(max_questions or 0)
+    except (TypeError, ValueError):
+        limit = 0
+    if limit <= 0:
+        return summary
+    results = summary.get("results")
+    if not isinstance(results, list) or len(results) <= limit:
+        return summary
+    clamped = dict(summary)
+    clamped["results"] = list(results[:limit])
+    trace = dict(clamped.get("trace") or {})
+    trace["requested_question_count"] = limit
+    trace["generated_question_count"] = len(results)
+    trace["clamped_question_count"] = len(results) - limit
+    clamped["trace"] = trace
+    return clamped
+
+
 def _promote_question_review_result(summary: dict[str, Any]) -> dict[str, Any]:
     promoted = dict(summary)
     results: list[dict[str, Any]] = []
@@ -1474,15 +1498,13 @@ class DeepQuestionCapability(BaseCapability):
         from deeptutor.services.llm.config import get_llm_config
         from deeptutor.services.path_service import get_path_service
         from deeptutor.services.question_lifecycle_skills import (
-            attach_question_lifecycle_scene_to_context,
+            project_question_lifecycle_scene_from_metadata,
         )
 
-        # Plan 2026-05-24 §5.1 — single decider implementation point.
-        # Attaches question_lifecycle_scene + skill_names projection to
-        # context.metadata for trace / downstream consumers. Idempotent: if
-        # ChatOrchestrator (Task 0.7) has already set the scene, this honors
-        # it without overwriting. Does not alter capability routing.
-        lifecycle_scene = attach_question_lifecycle_scene_to_context(context)
+        # Capabilities are downstream readers of ChatOrchestrator's lifecycle
+        # decision. Project skill names/trace from metadata, but never derive a
+        # scene here; otherwise deep_question becomes a second route authority.
+        lifecycle_scene = project_question_lifecycle_scene_from_metadata(context)
 
         llm_config = get_llm_config()
         kb_name = context.knowledge_bases[0] if context.knowledge_bases else None
@@ -1932,6 +1954,8 @@ class DeepQuestionCapability(BaseCapability):
                 )
                 return
 
+        result = _clamp_result_question_count(result, num_questions)
+
         # plan §Phase 0 Step 0.3 (B3) — single-writer trace 字段。
         # coordinator 在 result["trace"]["lightweight_counters"] 累加；
         # 这里 capability 一次性 flush 到 context.metadata.trace_metadata。
@@ -1941,6 +1965,15 @@ class DeepQuestionCapability(BaseCapability):
                 counters = (
                     (result.get("trace") or {}).get("lightweight_counters") if isinstance(result.get("trace"), dict) else None
                 )
+                if isinstance(result.get("trace"), dict):
+                    trace = result["trace"]
+                    if trace.get("clamped_question_count"):
+                        trace_meta["practice_generation.generated_question_count"] = int(
+                            trace.get("generated_question_count") or 0
+                        )
+                        trace_meta["practice_generation.clamped_question_count"] = int(
+                            trace.get("clamped_question_count") or 0
+                        )
                 if isinstance(counters, dict):
                     trace_meta["practice_generation.llm_calls"] = int(counters.get("llm_calls") or 0)
                     trace_meta["practice_generation.retriever_calls"] = int(counters.get("retriever_calls") or 0)
@@ -1954,6 +1987,7 @@ class DeepQuestionCapability(BaseCapability):
             result,
             reveal_answers=reveal_answers,
             reveal_explanations=reveal_explanations,
+            review_mode=question_review_mode,
         )
         if content:
             await stream.content(content, source=self.name, stage="generation")
@@ -2782,6 +2816,7 @@ class DeepQuestionCapability(BaseCapability):
         *,
         reveal_answers: bool = False,
         reveal_explanations: bool = False,
+        review_mode: bool = False,
     ) -> str:
         results = summary.get("results", []) if isinstance(summary, dict) else []
         if not results:
@@ -2803,6 +2838,74 @@ class DeepQuestionCapability(BaseCapability):
                     lines.append(f"- {key}. {value}")
 
             answer = qa_pair.get("correct_answer", "")
+            if review_mode:
+                grading_key = qa_pair.get("grading_key") if isinstance(qa_pair.get("grading_key"), dict) else {}
+                metadata = qa_pair.get("metadata") if isinstance(qa_pair.get("metadata"), dict) else {}
+                display_answer = str(answer or grading_key.get("correct_answer") or "").strip()
+                if display_answer:
+                    lines.append(f"\n**正确答案：** {display_answer}")
+                explanation = str(
+                    qa_pair.get("explanation")
+                    or grading_key.get("minimal_rationale")
+                    or metadata.get("knowledge_context")
+                    or ""
+                ).strip()
+                if explanation:
+                    lines.append(f"\n**解析要点：** {explanation}")
+                scoring_points = self._string_list(
+                    qa_pair.get("scoring_points"),
+                    metadata.get("scoring_points"),
+                    grading_key.get("scoring_points"),
+                )
+                if not scoring_points:
+                    scoring_points = self._default_review_scoring_points(
+                        question=question,
+                        answer=display_answer,
+                    )
+                if scoring_points:
+                    lines.append("\n**采分点：**")
+                    lines.extend(f"- {item}" for item in scoring_points)
+                option_analysis = metadata.get("option_analysis") or qa_pair.get("option_analysis")
+                option_rows = option_analysis if isinstance(option_analysis, list) else []
+                if option_rows:
+                    lines.append("\n**逐项分析：**")
+                    for row in option_rows:
+                        if not isinstance(row, dict):
+                            continue
+                        key = str(row.get("key") or "").strip()
+                        verdict = str(row.get("verdict") or "").strip()
+                        analysis = str(row.get("analysis") or "").strip()
+                        if key and (verdict or analysis):
+                            lines.append(f"- {key}：{verdict}。{analysis}".rstrip("。") + "。")
+                pitfalls = self._string_list(
+                    qa_pair.get("pitfalls"),
+                    qa_pair.get("common_mistakes"),
+                    metadata.get("pitfalls"),
+                    metadata.get("common_mistakes"),
+                    grading_key.get("common_traps"),
+                )
+                if not pitfalls:
+                    pitfalls = self._default_review_pitfalls(
+                        question=question,
+                        answer=display_answer,
+                    )
+                if pitfalls:
+                    lines.append("\n**易错点：**")
+                    lines.extend(f"- {item}" for item in pitfalls)
+                mnemonic = str(
+                    qa_pair.get("mnemonic")
+                    or qa_pair.get("memory_tip")
+                    or metadata.get("mnemonic")
+                    or metadata.get("memory_tip")
+                    or ""
+                ).strip()
+                if not mnemonic and display_answer:
+                    mnemonic = f"先圈题干对象，再锁定答案 {display_answer}。"
+                if mnemonic:
+                    lines.append(f"\n**记忆口诀：** {mnemonic}")
+                lines.append("")
+                continue
+
             if reveal_answers and answer:
                 lines.append(f"\n**答案：** {answer}")
 
@@ -2813,6 +2916,41 @@ class DeepQuestionCapability(BaseCapability):
             lines.append("")
 
         return "\n".join(lines).strip()
+
+    @staticmethod
+    def _string_list(*values: Any) -> list[str]:
+        for value in values:
+            if not isinstance(value, list):
+                continue
+            items = [str(item or "").strip() for item in value]
+            items = [item for item in items if item]
+            if items:
+                return items
+        return []
+
+    @staticmethod
+    def _default_review_scoring_points(*, question: Any, answer: str) -> list[str]:
+        stem = str(question or "").strip()
+        points = ["先圈出题干限定对象和关键词。"]
+        if answer:
+            points.append(f"把标准答案 {answer} 与题干限定条件对应起来。")
+        points.append("逐项排除与题干对象、数值或规范条件不一致的干扰项。")
+        if "保护层" in stem:
+            points[0] = "先圈出构件类型、环境条件和保护层厚度要求。"
+        return points
+
+    @staticmethod
+    def _default_review_pitfalls(*, question: Any, answer: str) -> list[str]:
+        stem = str(question or "").strip()
+        if "保护层" in stem:
+            return [
+                "只记住保护层厚度考点，但没有先判断题干限定的构件和环境。",
+                "把相近数值当成规范值，忽略“不应小于”等关键词。",
+            ]
+        pitfall = "只看选项熟悉度，没有回到题干限定条件。"
+        if answer:
+            return [pitfall, f"知道答案是 {answer} 后，要反推它对应的规范抓手。"]
+        return [pitfall]
 
     def _build_trace_bridge(self, stream: StreamBus):
         async def _trace_bridge(update: dict[str, Any]) -> None:

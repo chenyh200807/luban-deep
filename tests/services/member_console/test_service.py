@@ -1554,6 +1554,75 @@ def test_member_360_and_conversation_list_hide_messages_before_audit(tmp_path: P
     assert "messages" not in list_payload["items"][0]
 
 
+def test_list_member_conversations_filters_and_sorts_workspace_queue(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service._store = SQLiteSessionStore(db_path=tmp_path / "chat_history.db")
+
+    async def _seed() -> None:
+        await service._store.create_session(
+            title="地基基础答疑",
+            session_id="chat_revision",
+            owner_key=build_user_owner_key("student_demo"),
+            source="wx_miniprogram",
+        )
+        await service._store.create_turn("chat_revision", capability="chat")
+        await service._store.add_message("chat_revision", "user", "帮我看看地基基础怎么复习", capability="chat")
+        await service._store.add_message(
+            "chat_revision",
+            "assistant",
+            "先按承载力、验槽和防水节点拆开复习。",
+            capability="chat",
+        )
+
+        await service._store.create_session(
+            title="退款投诉跟进",
+            session_id="refund_complaint",
+            owner_key=build_user_owner_key("student_demo"),
+            source="web",
+        )
+        await service._store.create_turn("refund_complaint", capability="deep_question")
+        for content in ("我想退款", "先确认问题原因", "课程不适合我", "已转人工跟进"):
+            await service._store.add_message("refund_complaint", "user", content, capability="deep_question")
+
+    asyncio.run(_seed())
+
+    by_volume = service.list_member_conversations(
+        "student_demo",
+        limit=10,
+        sort="message_count",
+        order="desc",
+    )
+
+    assert [item["session_id"] for item in by_volume["items"]] == [
+        "refund_complaint",
+        "chat_revision",
+    ]
+    assert by_volume["items"][0]["source"] == "web"
+    assert by_volume["items"][0]["capability"] == "deep_question"
+    assert by_volume["sort"] == "message_count"
+    assert by_volume["order"] == "desc"
+    assert "messages" not in by_volume["items"][0]
+
+    filtered = service.list_member_conversations(
+        "student_demo",
+        limit=10,
+        q="退款",
+        source="web",
+        capability="deep_question",
+        sort="updated_at",
+        order="asc",
+    )
+
+    assert filtered["total"] == 1
+    assert filtered["items"][0]["session_id"] == "refund_complaint"
+    assert filtered["filters"] == {
+        "q": "退款",
+        "source": "web",
+        "capability": "deep_question",
+    }
+
+
 def test_record_conversation_view_writes_privacy_audit(tmp_path: Path) -> None:
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"

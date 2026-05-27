@@ -781,6 +781,8 @@ def _submission_action_for_user_message(
         return normalized_context, None
     if not target_context or not submission:
         return normalized_context, None
+    if submission.get("kind") == "ambiguous":
+        return target_context, None
     if submission.get("kind") == "batch":
         return target_context, {
             "intent": "answer_questions",
@@ -799,6 +801,17 @@ def _submission_action_for_user_message(
         ],
         "reason": "用户消息包含当前题目的可解析答案，优先进入批改。",
     }
+
+
+def _has_ambiguous_submission_attempt(
+    user_message: str,
+    question_context: dict[str, Any] | None,
+) -> bool:
+    normalized_context = normalize_question_followup_context(question_context)
+    if normalized_context is None:
+        return False
+    _target_context, submission = resolve_submission_attempt(user_message, normalized_context)
+    return isinstance(submission, dict) and submission.get("kind") == "ambiguous"
 
 
 async def _resolve_question_followup_context_and_action(
@@ -833,6 +846,8 @@ async def _resolve_question_followup_context_and_action(
         )
         if submission_action is not None:
             return submission_context or normalized_explicit, submission_action
+        if _has_ambiguous_submission_attempt(user_message, normalized_explicit):
+            return normalized_explicit, None
         if normalized_action is None:
             practice_action = _practice_generation_action_for_explicit_request(
                 user_message,
@@ -866,6 +881,8 @@ async def _resolve_question_followup_context_and_action(
         )
         if submission_action is not None:
             return submission_context or normalized_candidate, submission_action
+        if _has_ambiguous_submission_attempt(user_message, normalized_candidate):
+            return normalized_candidate, None
         practice_action = _practice_generation_action_for_explicit_request(
             user_message,
             normalized_candidate,
@@ -1073,6 +1090,17 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
     skill_trace: list[dict[str, Any]] = []
     loader_source: dict[str, Any] = {}
     skill_source_status: dict[str, Any] = {}
+    lifecycle_metadata: dict[str, Any] = {}
+    lifecycle_metadata_keys = (
+        "question_lifecycle_decision",
+        "decision_source",
+        "scene_confidence",
+        "required_anchor_status",
+        "exact_question_blocked_reason",
+        "selected_skill_names",
+        "llm_scene_candidate",
+        "business_gate_result",
+    )
 
     for item in events:
         if not isinstance(item, dict):
@@ -1110,6 +1138,9 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
             raw_scene = str(candidate.get("question_lifecycle_scene") or "").strip()
             if raw_scene:
                 question_lifecycle_scene = raw_scene
+            for metadata_key in lifecycle_metadata_keys:
+                if metadata_key in candidate and metadata_key not in lifecycle_metadata:
+                    lifecycle_metadata[metadata_key] = candidate[metadata_key]
             raw_skill_stack = candidate.get("skill_stack")
             if isinstance(raw_skill_stack, list):
                 for skill_name in raw_skill_stack:
@@ -1155,6 +1186,8 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
     }
     if question_lifecycle_scene:
         summary["question_lifecycle_scene"] = question_lifecycle_scene
+    if lifecycle_metadata:
+        summary.update(lifecycle_metadata)
     if skill_stack:
         summary["skill_stack"] = skill_stack
     if skill_trace:
@@ -2971,13 +3004,7 @@ class TurnRuntimeManager:
             == "tutorbot"
         ):
             entry_capability_hint = "tutorbot"
-        has_question_lifecycle_evidence = (
-            runtime_followup_question_context is not None
-            or runtime_followup_action is not None
-        )
-        if (
-            requested_capability in {"chat", "tutorbot"} or entry_capability_hint
-        ) and has_question_lifecycle_evidence:
+        if requested_capability in {"chat", "tutorbot"} or entry_capability_hint:
             runtime_only_config["_entry_capability_hint"] = entry_capability_hint or ""
             requested_capability = None
             capability = ""
@@ -4193,11 +4220,7 @@ class TurnRuntimeManager:
                     user_message=effective_user_message,
                     conversation_history=conversation_history,
                     enabled_tools=payload.get("tools"),
-                    active_capability=(
-                        payload.get("capability")
-                        or entry_capability_hint
-                        or None
-                    ),
+                    active_capability=payload.get("capability") or None,
                     knowledge_bases=payload.get("knowledge_bases", []),
                     attachments=attachments,
                     config_overrides=request_config,

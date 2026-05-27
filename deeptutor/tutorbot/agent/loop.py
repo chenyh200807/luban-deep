@@ -759,7 +759,7 @@ class AgentLoop:
         effective_model = str(runtime_metadata.get("preferred_model") or self.model).strip() or self.model
         exact_authority_override_allowed = bool(allow_exact_authority_override) and not str(
             runtime_metadata.get("exact_question_blocked_reason") or ""
-        ).strip()
+        ).strip() and not self._is_question_review_scene(runtime_metadata)
 
         def _visible_stream_text(raw_text: str) -> str:
             # Hide completed and in-progress <think> blocks before forwarding deltas.
@@ -787,6 +787,8 @@ class AgentLoop:
 
             tool_defs = self._resolve_tool_definitions(runtime_metadata)
             if self._prefetched_case_exact_question_can_answer(runtime_metadata):
+                tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
+            elif self._should_disable_rag_for_active_question_flow(runtime_metadata):
                 tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
             elif rag_saturation:
                 tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
@@ -996,6 +998,10 @@ class AgentLoop:
         return final_content, tools_used, messages
 
     @staticmethod
+    def _is_question_review_scene(runtime_metadata: dict[str, Any] | None) -> bool:
+        return str((runtime_metadata or {}).get("question_lifecycle_scene") or "").strip() == "question_review"
+
+    @staticmethod
     def _should_force_exact_authority(exact_question: dict[str, Any]) -> bool:
         return should_force_exact_authority(exact_question)
 
@@ -1050,6 +1056,28 @@ class AgentLoop:
         }
 
     @staticmethod
+    def _has_active_question_flow(runtime_metadata: dict[str, Any] | None) -> bool:
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        return bool(
+            metadata.get("question_followup_context")
+            or metadata.get("followup_question_context")
+            or metadata.get("active_object")
+        )
+
+    @classmethod
+    def _should_disable_rag_for_active_question_flow(
+        cls,
+        runtime_metadata: dict[str, Any] | None,
+    ) -> bool:
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        scene = str(metadata.get("question_lifecycle_scene") or "").strip()
+        return (
+            scene in {"mcq_grading", "case_grading", "question_review"}
+            and cls._has_active_question_flow(metadata)
+            and not cls._runtime_current_info_required(metadata)
+        )
+
+    @staticmethod
     def _is_exact_question_probe_for_grounding(exact_probe: Any | None) -> bool:
         if exact_probe is None:
             return False
@@ -1098,6 +1126,8 @@ class AgentLoop:
             return decision.current_info_required or decision.textbook_delta_query
 
         scene = str(metadata.get("question_lifecycle_scene") or "").strip() or None
+        if cls._should_disable_rag_for_active_question_flow(metadata):
+            return False
         if (
             cls._construction_scene_uses_learner_state_authority(scene)
             and query_uses_learner_state_authority(current_message)
@@ -1711,6 +1741,14 @@ class AgentLoop:
         if not isinstance(target_metadata, dict):
             return
         for metadata_key in (
+            "question_lifecycle_decision",
+            "decision_source",
+            "scene_confidence",
+            "required_anchor_status",
+            "exact_question_blocked_reason",
+            "selected_skill_names",
+            "llm_scene_candidate",
+            "business_gate_result",
             "question_lifecycle_scene",
             "skill_stack",
             "skill_trace",
@@ -1803,8 +1841,6 @@ class AgentLoop:
                 )
             skill_instruction = skill_context.instructions
             if skill_instruction:
-                if skill_context.scene is not None:
-                    metadata["question_lifecycle_scene"] = str(skill_context.scene)
                 self._record_skill_trace(
                     metadata,
                     skill_context.skill_names,
@@ -1957,6 +1993,8 @@ class AgentLoop:
         if rag_tool is None:
             return None
         if str((runtime_metadata or {}).get("exact_question_blocked_reason") or "").strip():
+            return None
+        if self._is_question_review_scene(runtime_metadata):
             return None
         exact_probe = prepare_exact_question_probe(current_message)
         practice_generation_request = looks_like_practice_generation_request(current_message)
@@ -2602,6 +2640,7 @@ class AgentLoop:
             allow_exact_authority_override=(
                 prepare_exact_question_probe(current_message) is not None
                 and not str(runtime_metadata.get("exact_question_blocked_reason") or "").strip()
+                and not self._is_question_review_scene(runtime_metadata)
             ),
         )
 

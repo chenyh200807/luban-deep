@@ -988,6 +988,15 @@ class MemberConsoleService:
         return session_id
 
     @staticmethod
+    def _conversation_source(row: dict[str, Any]) -> str:
+        preferences = row.get("preferences")
+        if isinstance(preferences, dict):
+            source = str(preferences.get("source") or "").strip()
+            if source:
+                return source
+        return str(row.get("source") or "").strip()
+
+    @staticmethod
     def _conversation_row_score(row: dict[str, Any]) -> tuple[int, float, int]:
         session_id = str(row.get("session_id") or row.get("id") or "").strip()
         try:
@@ -1075,6 +1084,7 @@ class MemberConsoleService:
                 "title": str(row.get("title") or "未命名会话"),
                 "created_at": self._session_time_to_iso(row.get("created_at")),
                 "updated_at": self._session_time_to_iso(row.get("updated_at")),
+                "source": self._conversation_source(row),
                 "capability": str(row.get("capability") or "chat"),
                 "message_count": int(row.get("message_count") or len(raw_messages)),
                 "last_message": self._preview_chat_content(row.get("last_message")),
@@ -1099,23 +1109,96 @@ class MemberConsoleService:
         *,
         limit: int = 20,
         message_limit: int = 12,
+        q: str = "",
+        source: str = "",
+        capability: str = "",
+        sort: str = "updated_at",
+        order: str = "desc",
     ) -> dict[str, Any]:
         data = self._load()
         member = self._find_member(data, user_id)
         normalized_limit = max(1, min(int(limit or 20), 100))
         normalized_message_limit = max(1, min(int(message_limit or 12), 50))
+        normalized_query = str(q or "").strip()
+        normalized_source = str(source or "").strip()
+        normalized_capability = str(capability or "").strip()
+        normalized_sort = str(sort or "updated_at").strip().lower()
+        if normalized_sort not in {"updated_at", "created_at", "message_count", "title", "source", "capability"}:
+            normalized_sort = "updated_at"
+        normalized_order = str(order or "desc").strip().lower()
+        if normalized_order not in {"asc", "desc"}:
+            normalized_order = "desc"
+        # Fetch a wider owner slice before applying BI-console filters so a
+        # narrow query is not accidentally starved by the default top-20 page.
+        load_limit = (
+            100
+            if any((normalized_query, normalized_source, normalized_capability))
+            or normalized_sort != "updated_at"
+            or normalized_order != "desc"
+            else normalized_limit
+        )
         conversations = self._load_recent_conversations_for_member(
             member,
             user_id,
-            session_limit=normalized_limit,
+            session_limit=load_limit,
             message_limit=normalized_message_limit,
         )
+        if normalized_query:
+            query_lower = normalized_query.lower()
+            conversations = [
+                item
+                for item in conversations
+                if query_lower
+                in " ".join(
+                    [
+                        str(item.get("session_id") or ""),
+                        str(item.get("title") or ""),
+                        str(item.get("source") or ""),
+                        str(item.get("capability") or ""),
+                        str(item.get("last_message") or ""),
+                    ]
+                ).lower()
+            ]
+        if normalized_source:
+            source_lower = normalized_source.lower()
+            conversations = [
+                item
+                for item in conversations
+                if str(item.get("source") or "").lower() == source_lower
+            ]
+        if normalized_capability:
+            capability_lower = normalized_capability.lower()
+            conversations = [
+                item
+                for item in conversations
+                if str(item.get("capability") or "").lower() == capability_lower
+            ]
+
+        def sort_value(item: dict[str, Any]) -> Any:
+            if normalized_sort == "message_count":
+                return int(item.get("message_count") or 0)
+            return str(item.get(normalized_sort) or "").lower()
+
+        conversations = sorted(
+            conversations,
+            key=lambda item: (sort_value(item), str(item.get("session_id") or "")),
+            reverse=normalized_order == "desc",
+        )
+        filtered_total = len(conversations)
+        conversations = conversations[:normalized_limit]
         return {
             "user_id": user_id,
             "items": conversations,
-            "total": len(conversations),
+            "total": filtered_total,
             "limit": normalized_limit,
             "message_limit": normalized_message_limit,
+            "sort": normalized_sort,
+            "order": normalized_order,
+            "filters": {
+                "q": normalized_query,
+                "source": normalized_source,
+                "capability": normalized_capability,
+            },
         }
 
     def _seed_data(self) -> dict[str, Any]:

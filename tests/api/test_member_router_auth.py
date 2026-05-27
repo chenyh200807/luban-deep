@@ -121,7 +121,18 @@ def test_member_conversations_exposes_metadata_only(monkeypatch: pytest.MonkeyPa
     body = response.json()
     assert body["items"][0]["session_id"] == "tb_student_demo"
     assert "messages" not in body["items"][0]
-    assert calls == [{"user_id": "student_demo", "limit": 10, "message_limit": 6}]
+    assert calls == [
+        {
+            "user_id": "student_demo",
+            "limit": 10,
+            "message_limit": 6,
+            "q": "",
+            "source": "",
+            "capability": "",
+            "sort": "updated_at",
+            "order": "desc",
+        }
+    ]
 
 
 def test_member_router_exposes_learner_state_overlay_and_heartbeat_controls(
@@ -539,3 +550,47 @@ def test_member_list_forwards_operational_filters(monkeypatch: pytest.MonkeyPatc
     assert captured["active_within_days"] == 3
     assert captured["has_heartbeat_job"] is True
     assert captured["has_overlay_candidates"] is False
+
+
+def test_member_conversations_forwards_workspace_filters(monkeypatch: pytest.MonkeyPatch) -> None:
+    app = _build_app()
+    app.dependency_overrides[get_current_user] = lambda: _ctx("admin_demo", is_admin=True)
+    captured: dict[str, object] = {}
+
+    def fake_list_member_conversations(user_id: str, **kwargs: object) -> dict[str, object]:
+        captured["user_id"] = user_id
+        captured.update(kwargs)
+        return {"user_id": user_id, "items": [], "total": 0}
+
+    monkeypatch.setattr(
+        "deeptutor.api.routers.member.service",
+        type(
+            "FakeMemberService",
+            (),
+            {"list_member_conversations": staticmethod(fake_list_member_conversations)},
+        )(),
+    )
+
+    with TestClient(app) as client:
+        response = client.get(
+            "/api/v1/member/student_demo/conversations"
+            "?q=退款"
+            "&source=web"
+            "&capability=deep_question"
+            "&sort=message_count"
+            "&order=desc"
+            "&limit=30"
+            "&message_limit=8"
+        )
+
+    assert response.status_code == 200
+    assert captured == {
+        "user_id": "student_demo",
+        "limit": 30,
+        "message_limit": 8,
+        "q": "退款",
+        "source": "web",
+        "capability": "deep_question",
+        "sort": "message_count",
+        "order": "desc",
+    }

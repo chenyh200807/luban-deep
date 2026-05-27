@@ -163,13 +163,41 @@ export function Member360Drawer({
         </Section>
 
         <Section title="最近对话" trust="A">
+          <div className="rounded-2xl border border-cyan-300/15 bg-cyan-300/[0.06] p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <div className="text-base font-black text-slate-50">{conversations.length}</div>
+                <div className="text-[11px] text-slate-400">360 快照最近会话</div>
+              </div>
+              <BiButton onClick={onOpenConversation} variant="secondary" size="xs" aria-label="打开会员对话工作台">
+                打开工作台
+              </BiButton>
+            </div>
+            <p className="mt-2 text-[11px] leading-5 text-slate-400">
+              工作台支持按来源、能力、关键词和消息量筛选排序；全文查看仍需原因 + audit。
+            </p>
+          </div>
           {conversations.length === 0 ? (
-            <p className="text-xs text-slate-400">暂无 recent_conversations。</p>
+            <div className="rounded-2xl border border-dashed border-white/15 bg-white/[0.035] p-3 text-xs leading-5 text-slate-400">
+              当前 360 快照没有 recent_conversations。请打开工作台实时读取 session_store；若确认学员聊过但仍为空，优先检查会员 alias 与 session owner_key 归因。
+            </div>
           ) : (
             <ul className="space-y-2">
               {conversations.slice(0, 3).map(session => (
                 <li key={session.session_id} className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
-                  <div className="font-bold text-slate-100">{session.title || session.session_id}</div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <div className="font-bold text-slate-100">{session.title || session.session_id}</div>
+                    {session.source ? (
+                      <span className="rounded-full border border-white/10 bg-white/[0.06] px-2 py-0.5 text-[10px] text-slate-300">
+                        {session.source}
+                      </span>
+                    ) : null}
+                    {session.capability ? (
+                      <span className="rounded-full border border-white/10 bg-white/[0.06] px-2 py-0.5 text-[10px] text-slate-300">
+                        {session.capability}
+                      </span>
+                    ) : null}
+                  </div>
                   <div className="mt-0.5 text-[11px] text-slate-400">
                     {session.updated_at || session.created_at} · {session.message_count} 条
                   </div>

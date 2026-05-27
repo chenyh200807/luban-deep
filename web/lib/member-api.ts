@@ -75,6 +75,7 @@ export interface MemberConversationPreview {
   title: string
   updated_at: string
   created_at: string
+  source?: string
   capability: string
   message_count: number
   last_message: string
@@ -123,6 +124,13 @@ export interface MemberConversationListResponse {
   total: number
   limit?: number
   message_limit?: number
+  sort?: string
+  order?: string
+  filters?: {
+    q?: string
+    source?: string
+    capability?: string
+  }
 }
 
 export interface LearnerStateMemoryEvent {
@@ -290,11 +298,24 @@ export async function getMemberDetail(userId: string): Promise<MemberDetail> {
 
 export async function listMemberConversations(
   userId: string,
-  params: { limit?: number; message_limit?: number } = {}
+  params: {
+    limit?: number
+    message_limit?: number
+    q?: string
+    source?: string
+    capability?: string
+    sort?: 'updated_at' | 'created_at' | 'message_count' | 'title' | 'source' | 'capability'
+    order?: 'asc' | 'desc'
+  } = {}
 ): Promise<MemberConversationListResponse> {
   const query = new URLSearchParams()
   if (params.limit !== undefined) query.set('limit', String(params.limit))
   if (params.message_limit !== undefined) query.set('message_limit', String(params.message_limit))
+  if (params.q) query.set('q', params.q)
+  if (params.source) query.set('source', params.source)
+  if (params.capability) query.set('capability', params.capability)
+  if (params.sort) query.set('sort', params.sort)
+  if (params.order) query.set('order', params.order)
   const suffix = query.toString() ? `?${query.toString()}` : ''
   const response = await fetch(
     apiUrl(`/api/v1/member/${encodeURIComponent(userId)}/conversations${suffix}`),

@@ -279,7 +279,7 @@ def build_release_gate_report(
     p2_status = _FAIL
     p2_summary = "未提供 benchmark / ARR run"
     p2_blockers: list[str] = ["missing_benchmark_arr"]
-    if arr_payload:
+    if arr_payload or benchmark_payload:
         pass_rate = benchmark_pass_rate
         has_new_critical = new_critical_regressions > 0
         p2_blockers = []

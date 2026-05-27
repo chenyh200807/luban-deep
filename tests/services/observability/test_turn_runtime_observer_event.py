@@ -128,6 +128,52 @@ def test_assistant_event_summary_keeps_skill_observability_metadata() -> None:
     assert summary["skill_source_status"]["complete"] is True
 
 
+def test_assistant_event_summary_keeps_lifecycle_decision_metadata() -> None:
+    summary = _summarize_assistant_events(
+        [
+            {
+                "type": "result",
+                "metadata": {
+                    "metadata": {
+                        "question_lifecycle_decision": {
+                            "scene": "question_review",
+                            "decision_source": "llm",
+                            "scene_confidence": 0.86,
+                            "required_anchor_status": "satisfied",
+                            "exact_question_blocked_reason": "",
+                            "selected_skill_names": [
+                                "construction-exam-tutor",
+                                "construction-question-review",
+                            ],
+                        },
+                        "decision_source": "llm",
+                        "scene_confidence": 0.86,
+                        "required_anchor_status": "satisfied",
+                        "selected_skill_names": [
+                            "construction-exam-tutor",
+                            "construction-question-review",
+                        ],
+                        "llm_scene_candidate": {"intended_action": "question_review"},
+                        "business_gate_result": {"accepted": True},
+                        "question_lifecycle_scene": "question_review",
+                    }
+                },
+            }
+        ]
+    )
+
+    assert summary["question_lifecycle_decision"]["scene"] == "question_review"
+    assert summary["decision_source"] == "llm"
+    assert summary["scene_confidence"] == 0.86
+    assert summary["required_anchor_status"] == "satisfied"
+    assert summary["selected_skill_names"] == [
+        "construction-exam-tutor",
+        "construction-question-review",
+    ]
+    assert summary["llm_scene_candidate"] == {"intended_action": "question_review"}
+    assert summary["business_gate_result"] == {"accepted": True}
+
+
 def test_terminal_turn_event_flows_to_snapshot_and_oa_via_persisted_latest(tmp_path) -> None:
     store = ObservabilityControlPlaneStore(base_dir=tmp_path / "control_plane")
     event_log = TurnEventLog(events_dir=tmp_path / "events")

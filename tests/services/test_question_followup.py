@@ -5,6 +5,7 @@ import json
 import pytest
 
 from deeptutor.services.question_followup import (
+    annotate_batch_submission_context,
     apply_followup_action_to_context,
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_presentation,
@@ -272,6 +273,54 @@ def test_resolve_submission_attempt_supports_renderer_generated_batch_submission
     assert submission["kind"] == "batch"
     assert [item["question_id"] for item in submission["answers"]] == ["q_1", "q_2"]
     assert [item["user_answer"] for item in submission["answers"]] == ["B", "B"]
+
+
+def test_resolve_submission_attempt_keeps_unmatched_numbered_batch_refs_explicit() -> None:
+    question_set = {
+        "question_id": "quiz_unmatched",
+        "question": "第1题...\n第2题...\n第3题...",
+        "question_type": "choice",
+        "items": [
+            {
+                "question_id": "q_1",
+                "question": "题1",
+                "question_type": "single_choice",
+                "options": {"A": "A1", "B": "B1", "C": "C1", "D": "D1"},
+                "correct_answer": "A",
+            },
+            {
+                "question_id": "q_2",
+                "question": "题2",
+                "question_type": "single_choice",
+                "options": {"A": "A2", "B": "B2", "C": "C2", "D": "D2"},
+                "correct_answer": "B",
+            },
+            {
+                "question_id": "q_3",
+                "question": "题3",
+                "question_type": "single_choice",
+                "options": {"A": "A3", "B": "B3", "C": "C3", "D": "D3"},
+                "correct_answer": "C",
+            },
+        ],
+    }
+
+    target, submission = resolve_submission_attempt("q1 A, q3 C, q5 B", question_set)
+
+    assert target is not None
+    assert submission is not None
+    assert submission["kind"] == "batch"
+    assert submission["answers"] == [
+        {"index": 1, "question_id": "q_1", "user_answer": "A"},
+        {"index": 3, "question_id": "q_3", "user_answer": "C"},
+        {"index": 5, "question_id": "", "user_answer": "B", "unmatched": True},
+    ]
+    graded = annotate_batch_submission_context(question_set, submission["answers"])
+    assert graded is not None
+    assert [item.get("user_answer", "") for item in graded["items"]] == ["A", "", "C"]
+    assert graded["unmatched_answer_refs"] == [
+        {"index": 5, "question_id": "", "user_answer": "B"}
+    ]
 
 
 def test_resolve_submission_attempt_supports_positional_batch_submission_variants() -> None:
@@ -607,6 +656,165 @@ def test_resolve_submission_attempt_does_not_split_compact_letters_when_question
     assert submission is None
 
 
+def test_resolve_submission_attempt_requires_question_index_for_multi_question_single_letter() -> None:
+    question_set = {
+        "question_id": "quiz_3",
+        "question": "第1题...\n第2题...\n第3题...",
+        "question_type": "choice",
+        "items": [
+            {
+                "question_id": "q_1",
+                "question": "第1题单选",
+                "question_type": "single_choice",
+                "options": {"A": "A1", "B": "B1", "C": "C1"},
+                "correct_answer": "A",
+            },
+            {
+                "question_id": "q_2",
+                "question": "第2题单选",
+                "question_type": "single_choice",
+                "options": {"A": "A2", "B": "B2", "C": "C2"},
+                "correct_answer": "B",
+            },
+        ],
+    }
+
+    target, submission = resolve_submission_attempt("我选B", question_set)
+
+    assert target is not None
+    assert submission == {
+        "kind": "ambiguous",
+        "answer": "B",
+        "requires_question_index": True,
+    }
+
+
+def test_resolve_submission_attempt_accepts_q_number_single_submission() -> None:
+    question_set = {
+        "question_id": "quiz_4",
+        "question": "第1题...\n第2题...\n第3题...",
+        "question_type": "choice",
+        "items": [
+            {
+                "question_id": "q_1",
+                "question": "第1题单选",
+                "question_type": "single_choice",
+                "options": {"A": "A1", "B": "B1", "C": "C1"},
+                "correct_answer": "A",
+            },
+            {
+                "question_id": "q_2",
+                "question": "第2题单选",
+                "question_type": "single_choice",
+                "options": {"A": "A2", "B": "B2", "C": "C2"},
+                "correct_answer": "B",
+            },
+        ],
+    }
+
+    target, submission = resolve_submission_attempt("q2 选C", question_set)
+
+    assert target is not None
+    assert target["question_id"] == "q_2"
+    assert submission == {
+        "kind": "single",
+        "answer": "C",
+        "question_id": "q_2",
+    }
+
+
+@pytest.mark.parametrize("message", ["q2 为什么选C", "第2题为什么选C", "q2 答案是什么"])
+def test_resolve_submission_attempt_keeps_q_numbered_question_as_followup(message: str) -> None:
+    question_set = {
+        "question_id": "quiz_5",
+        "question": "第1题...\n第2题...",
+        "question_type": "choice",
+        "items": [
+            {
+                "question_id": "q_1",
+                "question": "第1题单选",
+                "question_type": "single_choice",
+                "options": {"A": "A1", "B": "B1", "C": "C1"},
+                "correct_answer": "A",
+            },
+            {
+                "question_id": "q_2",
+                "question": "第2题单选",
+                "question_type": "single_choice",
+                "options": {"A": "A2", "B": "B2", "C": "C2"},
+                "correct_answer": "B",
+            },
+        ],
+    }
+
+    target, submission = resolve_submission_attempt(message, question_set)
+
+    assert target is not None
+    assert target["question_id"] == "q_2"
+    assert submission is None
+
+
+def test_looks_like_question_followup_accepts_q_numbered_answer_request() -> None:
+    question_set = {
+        "question_id": "quiz_6",
+        "question": "第1题...\n第2题...",
+        "question_type": "choice",
+        "items": [
+            {
+                "question_id": "q_1",
+                "question": "第1题单选",
+                "question_type": "single_choice",
+                "options": {"A": "A1", "B": "B1", "C": "C1"},
+                "correct_answer": "A",
+            },
+            {
+                "question_id": "q_2",
+                "question": "第2题单选",
+                "question_type": "single_choice",
+                "options": {"A": "A2", "B": "B2", "C": "C2"},
+                "correct_answer": "B",
+            },
+        ],
+    }
+
+    assert looks_like_question_followup("q2 答案是什么", question_set) is True
+
+
+def test_resolve_submission_attempt_keeps_single_numbered_case_answer_unsplit() -> None:
+    question_set = {
+        "question_id": "case_set_1",
+        "question": "第1问...\n第2问...",
+        "question_type": "case",
+        "items": [
+            {
+                "question_id": "case_q1",
+                "question": "第1问",
+                "question_type": "case",
+                "correct_answer": "应说明组织责任。",
+            },
+            {
+                "question_id": "case_q2",
+                "question": "第2问",
+                "question_type": "case",
+                "correct_answer": "施工缝未按规范处理，需要返工整改。",
+            },
+        ],
+    }
+
+    target, submission = resolve_submission_attempt(
+        "第2问我的答案是施工缝未按规范处理，需要返工整改",
+        question_set,
+    )
+
+    assert target is not None
+    assert target["question_id"] == "case_q2"
+    assert submission == {
+        "kind": "single",
+        "answer": "施工缝未按规范处理，需要返工整改",
+        "question_id": "case_q2",
+    }
+
+
 def test_build_question_followup_context_from_result_summary_keeps_all_items() -> None:
     context = build_question_followup_context_from_result_summary(
         {
@@ -883,6 +1091,39 @@ def test_merge_redacted_batch_submission_restores_all_authoritative_items_by_id(
     assert merged_items["q_5"]["user_answer"] == "D"
     assert merged_items["q_3"]["user_answer"] == ""
     assert "第5题解析" in merged_items["q_5"]["explanation"]
+
+
+def test_turn_runtime_does_not_promote_ambiguous_multi_question_answer() -> None:
+    from deeptutor.services.session.turn_runtime import (
+        _submission_action_for_user_message,
+    )
+
+    question_set = {
+        "question_id": "question_set",
+        "question": "相关两道题",
+        "question_type": "choice",
+        "items": [
+            {
+                "question_id": "q_1",
+                "question": "第1题单选",
+                "question_type": "single_choice",
+                "options": {"A": "A1", "B": "B1"},
+                "correct_answer": "A",
+            },
+            {
+                "question_id": "q_2",
+                "question": "第2题单选",
+                "question_type": "single_choice",
+                "options": {"A": "A2", "B": "B2"},
+                "correct_answer": "B",
+            },
+        ],
+    }
+
+    resolved_context, action = _submission_action_for_user_message("我选B", question_set)
+
+    assert resolved_context is not None
+    assert action is None
 
 
 def test_merge_redacted_batch_submission_recognizes_hidden_grading_key_authority() -> None:
