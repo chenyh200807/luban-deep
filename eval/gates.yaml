@@ -92,6 +92,11 @@ gates:
     category: deep
     command: ["python", "scripts/run_semantic_router_eval.py"]
 
+  harness_trajectory_eval:
+    description: "Trajectory-level eval of the chat shell over a live LLM (harness D5; needs keyed env)."
+    category: deep
+    command: ["python", "scripts/run_harness_trajectory_eval.py", "--check"]
+
   benchmark_pr_gate_core:
     description: "Canonical pr_gate_core benchmark suite."
     category: deep
