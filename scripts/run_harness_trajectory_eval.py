@@ -63,6 +63,18 @@ CASES: list[dict[str, Any]] = [
         "language": "zh",
         "metadata": {"turn_id": "d5-reason"},
     },
+    {
+        # D2 prerequisite baseline: explicit deep mode must still converge to a
+        # single terminal result with a well-formed sequence. D2's future
+        # bounded multi-hop MUST preserve exactly these invariants — this case
+        # is the replay assertion that will catch a WS-contract violation.
+        "name": "deep_mode_single_terminal_result",
+        "user_message": "简要说明傅里叶变换和拉普拉斯变换的核心区别。",
+        "enabled_tools": [],
+        "language": "zh",
+        "config_overrides": {"chat_mode": "deep"},
+        "metadata": {"turn_id": "d5-deep"},
+    },
 ]
 
 
@@ -113,6 +125,7 @@ async def _run_case(case: dict[str, Any]) -> dict[str, Any]:
         user_message=case["user_message"],
         enabled_tools=list(case.get("enabled_tools") or []),
         language=case.get("language", "zh"),
+        config_overrides=dict(case.get("config_overrides") or {}),
         metadata=dict(case.get("metadata") or {}),
     )
     pipeline = AgenticChatPipeline(language=context.language)
