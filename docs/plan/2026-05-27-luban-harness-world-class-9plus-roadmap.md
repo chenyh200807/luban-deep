@@ -26,6 +26,9 @@
 | 趋势/成本/延迟可观测门 | 4 | 8（dashboard+delta gate） | H6 |
 | 红利项落地（D2/D4/D5 全） | 5 | 8 | H7 |
 | 工程纪律/过程 | 8.5 | 9（保持） | 全程 |
+| **经验性命中率(真·9+ 判据,见 C3)** | 未测 | 9（拦住真回归、低误报，有数据） | 全程度量 |
+
+> **重要(v2/C3)**:上表前 7 维是"能力维",但**世界级的最终判据是最后一行——harness 经验性地拦住了多少真回归、误报多少**。能力维全满但从没拦住过真问题,不算 9+。所以本路线图把"命中率度量"作为贯穿全程的一等产物,而非附属。
 
 ---
 
@@ -40,6 +43,35 @@
 
 ---
 
+## 1.5 v2 对抗自审：载荷级修正（principal-engineer 复核）
+
+v1 路线图方向对,但有几处**会让整套 harness 在真实使用中烂掉**的隐患。逐条修正:
+
+**C1 — replay 的两个真相(H1 最关键)。**
+(a) **replay 冻结模型输出 → 它验的是"编排/轨迹结构"不是"答案质量"**。prompt 改了,recorded 输出不变(只是 key 不命中),所以 **replay 抓不到 prompt 改动带来的质量回归**。v1 "H1 让质量 eval 每次提交免费跑"是错的——质量(H2)本质上需要**定期 live 跑**(夜间/按需),不是每次提交免费。修正:H1 的价值 = 每次提交确定性验**编排/轨迹结构**;质量门是**定期 live + judge**。
+(b) **cassette key 必须对良性非确定性鲁棒**(归一化 turn_id / 时间戳 / uuid / dict-set 顺序),否则 prompt 拼装里任何易变字段都会让 key 漂移→"假回归"。naive message-digest 会 brutally flaky——这是 record/replay harness 烂掉的头号原因。cassette miss 要**区分"良性漂移 vs 真实变更"**(给 diff 让人判,不是无脑红)。
+(c) shim 必须**断言拦截完整性**(捕获了全部 LLM/tool 调用次数),否则生产路径变更后 shim 静默失效 → 假绿。
+
+**C2 — 有 ground truth 的地方,确定性 oracle > LLM-judge(H2)。** 建造考试的 **exact 答案本身就是 ground truth** → exact 保真度用**确定性精确匹配 oracle**(便宜、无 judge、无偏置)。LLM-judge 只留给开放式(讲解忠实度 / 教学性 / grounding faithfulness)。judge 本身要**版本钉死 + judge 调用也 cassette 化 + 定期对人工重校准**;人工标注是真实瓶颈(种子 ~30 起步、逐步长)。
+
+**C3 — 9+ 的唯一可信证明是"经验性命中率",不是我自评的 rubric(最深的一条)。** 世界级 harness 由**它实际拦住多少真回归**证明,不是自打分。必须把 **harness 自身的 precision/recall** 做成一等指标:近 N 次变更/线上事故里,网在合并前拦住的比例 + 误报率。**"9+" 重新定义为:可证明地拦住会真正伤到你的回归,且误报低。** 没有这条,9 分只是我的观点。
+
+**C4 — 不要另造,建在现有基建上(降工作量+降风险)。** 仓库已有:`services/benchmark/runner.py`(多套件 `_run_semantic/context/rag/long_dialog/surface` + `_compute_baseline_diff` + `_aggregate_failure_taxonomy` + `_build_blind_spots`)、`failed_turn_promotion.py`(失败 turn → incident candidate)。修正:**H1 把这个 runner 做成可 replay;H3 扩它的 case 集;H4 把 failed_turn_promotion 的 candidate 接进 case 语料**——不另起平行 harness。
+
+**C5 — 永不把生产 trace 原文提交进 git(H4)。** 生产对话=真实用户数据。即便脱敏,把用户对话提交进仓库是隐私/合规风险。修正:生产派生 case 要**合成/重写成代表性 case**,原始语料放**私有存储(git 外)**;且要**采样通过的 turn**(不只失败),否则语料偏向失败、抓不到对"当前正常行为"的回归。
+
+**C6 — build-vs-buy(已核验):** 仓库 Langfuse 集成**只有 tracing/cost,无 dataset/evaluator/experiment**——"用 Langfuse 当 eval 平台"是**新集成工作,不是 drop-in**。可选但不免费。决策:H2/H6 的打分/趋势优先复用**现有 runner 的 baseline-diff + failure-taxonomy**,Langfuse datasets 作为"若投入产出比合适再接"的备选,不作前提。
+
+**C7 — H5 防过度工程。** "让第二套 authority 写不出来"在 Python 里做成运行时 provenance 框架会**违反本项目 §2/§0(thin wrappers/less is more)** 且拖慢热路径。修正:H5 收敛为**廉价的 AST import-graph CI 检查**(抓 alias/间接 import,比 grep 强、仍静态/零运行时开销),不做运行时框架。
+
+**C8 — 按 launch-readiness 约束 right-size(ROI)。** 7 阶段大干会和上线抢预算。修正排序为**最便宜最高 ROI 先行**:① 确定性 oracle(C2,便宜、立刻覆盖 exact 质量)② 在现有 runner 上做最小 cassette(C1/C4)③ H4-lite(失败→合成 case)。**重 judge/全覆盖/架构强制等"网证明了命中率(C3)"之后再投**。先让网自证价值,再扩。
+
+**C9 — H3 的两个硬约束。** (a) grounding case 依赖 KB,**KB 一变 cassette 就过期** → 固定 KB 快照 或 cassette 化检索结果(检索本身也非确定:embedding/ranking)。(b) **tutorbot 自主壳可回放性是真难题**(有状态、bus/cron/heartbeat、多轮)→ 需 event-sourced 回放,v1 严重低估;修正:H3 先覆盖 chat 同步壳,tutorbot 壳**单独立项或窄范围**,不混进通用 cassette。
+
+> **不确定性 + 验证/替代**:① cassette 归一化规则的"良性 vs 真实"边界——**验证**:先在 chat 同步壳 10 case 上试录试放、统计一周内的 key-miss 是良性还是真实,再决定归一化粒度;**替代**:若归一化做不稳,退到"决策层 golden(已有 P0.1,确定性、无 LLM)+ 定期 live 质量抽检",放弃全量 replay。② judge-人工一致率能否到 75-90%——**验证**:30 条种子先标;**替代**:达不到就缩到"确定性 oracle + 规则检查",judge 只作非阻断参考。③ 命中率指标需要时间积累——**验证**:从现在起记录每次"网拦住/漏掉"的真回归;**替代**:短期用"故意注入已知回归,网能否抓"做代理指标。
+
+---
+
 ## 2. 七阶段路线图（按杠杆排序）
 
 > 排序原则:H1 是 keystone(一通,H2/H3/H4 都解锁);H5/H6 横切;H7 在强网下安全收尾红利项。每阶段 = 独立 PR 线,独立验收。
@@ -48,7 +80,7 @@
 - **目标**:让全量轨迹 eval **确定性、免费、秒级、每次提交可跑**——无需 live key。
 - **做法(grounded)**:在唯一 LLM 出入口拦截 `factory.complete` / `llm_stream` 与 tool 出口 `tool_registry.execute`,record 模式下把(model id、解码参数、messages 指纹 → 响应)和(tool name、args 指纹 → result)写 cassette;replay 模式注入记录值、零网络;cassette 按 case 存 `tests/fixtures/cassettes/<case>.json`。
 - **验收/gate**:同一 case record 一次后,replay 模式重跑 N 次**逐字节一致**;`harness_trajectory_eval` 增 `--replay` 模式进 **quick gate**(不再是 deep/需 key);故意改壳逻辑 → replay diff 红。
-- **分数提升**:回归网维 4→9;解锁 H2/H3/H4 的"每次提交全量跑"。
+- **分数提升**:回归网维 4→9——但**仅限编排/轨迹结构**(见 C1a:replay 冻结模型输出,验编排不验质量);质量门(H2)仍需**定期 live**,不是每次提交免费。H1 让 H3 的 200 case **编排/结构回归**每次提交确定性跑。
 - 详化见 §3。
 
 ### H2 — 语义/质量打分(rubric + LLM-judge)
@@ -97,7 +129,9 @@
 
 ## 3. H1 keystone 详化(PR-ready)
 
-**Goal:** record/replay cassette 层,让 `harness_trajectory_eval` 从"deep/需 key"变成"quick/确定性回放"。
+> **执行前必读 v2 修正**:H1 必须吸收 **C1**(cassette key 归一化 turn_id/时间戳/uuid/顺序等易变字段;shim 断言拦截完整性;replay 验编排不验质量;cassette-miss 区分良性漂移 vs 真实变更)与 **C4**(优先做成 `services/benchmark/runner.py` 的可 replay 层,而非另起平行 harness)。下面的 cassette 数据结构是基础件,接入点按 C4 对齐现有 runner。**先按 C8 第 1 步只覆盖 chat 同步壳 ~10 case 验证归一化稳定性**,再扩。
+
+**Goal:** record/replay cassette 层,让轨迹/编排回归 eval 从"deep/需 key"变成"quick/确定性回放"。
 
 **Architecture:** 在单一 LLM/tool 出入口拦截非确定性事件;record 写 cassette,replay 注入;不改业务逻辑,只在出入口加可开关的拦截。
 
@@ -189,7 +223,13 @@ class Cassette:
 
 ## 4. Gating / 风险
 
-- **Gating**:H1 先行(其余依赖它);H5 可与 H1 并行;H2→H3→H4 顺序;H6 在 H2 后;H7 最后。整体仍受原计划 §0 gate(launch-readiness 稳定)——但 H1–H6 多为 eval/guard 工具(不动生产 turn flow),可在 launch-readiness 推进的同时并行,**H7 才碰生产壳**。
+- **Gating(v2/C8 right-sized,最便宜最高 ROI 先行)**:
+  - **第 0 步(最便宜、立刻见效)**:确定性 oracle(C2)——exact 答案精确匹配,接进现有 `runner.py` 的 rag/case 套件;无需 cassette、无需 judge、无需 key。立刻给 exact 质量一张确定性网。
+  - **第 1 步**:H1 最小 cassette,**做在现有 runner 上**(C4),先只覆盖 chat 同步壳 ~10 case(C9a),验证归一化稳不稳(见不确定性①)。
+  - **第 2 步**:H4-lite——把 `failed_turn_promotion` 的 candidate **合成**成 case(C5),并开始记录 **命中率指标(C3)**。
+  - **闸门**:**网证明了命中率(拦住过真回归、误报低)之后**,再投 H2 重 judge / H3 全覆盖 / H5 架构强制 / H6 趋势盘 / H7 红利。先自证价值再扩,不big-bang。
+  - H5(AST import-graph 检查,C7)廉价,可任意时点并行。
+  - 整体仍受原计划 §0 gate(launch-readiness 稳定);第 0–2 步均为 eval/guard 工具(不动生产 turn flow),可与 launch-readiness 并行,**只有 H7 碰生产壳**。
 - **风险**:cassette 漂移(模型升级致 record 失效)→ `--record` 定期刷新 + cassette 带 model id 校验;judge 偏置 → 跨家族 + 人工对齐门;case 维护成本 → H4 生产自喂养摊薄;replay 与真实分叉 → 定期 `--record` 重录 + 抽样真实对比。
 - **每阶段独立可回滚**:都是新增 eval/guard,FF/gate 可关。
 
