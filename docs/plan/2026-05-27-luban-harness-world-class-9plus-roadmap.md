@@ -32,6 +32,19 @@
 
 ---
 
+## 0.5 进度快照（2026-05-27 落地，全部已上线 origin/main + 验证）
+
+| 阶段 | 状态 | commit | 验证 |
+|---|---|---|---|
+| **C8 第0步** 确定性 exact-answer-fidelity oracle | ✅ 落地 | `d73926f7` | 注入"答案丢失"→翻 FAIL（命中率数据点 #1） |
+| **H1.1/H1.2** cassette store + LLM 拦截 shim | ✅ 落地 | `6f53f7d7` | 活体:record→replay 零 miss、回答一致→**确定性成立** |
+| **H1.3/H1.4** `--record`/`--replay` + 3 cassette + `harness_trajectory_replay` quick gate | ✅ 落地 | `c79f2ca6` | replay 3 case 全 PASS、两次逐字节一致;篡改→红→还原绿 |
+| **H5** AST import-graph 权威 guard | ✅ 落地 | `082b90ef` | 6 单测 + 端到端别名注入→抓红;docstring 提及不误报 |
+
+**分数变化(诚实)**:回归网确定性 4→~7(keystone 仅覆盖 chat 同步壳 3 case);质量打分 2→~4(exact oracle);单一权威 7.5→~9(H5 alias-proof);命中率 未测→有数据点。**总体 ~6 → ~7**。
+
+**剩余(按 C8,本会话边界已诚实标注)**:H4-lite(失败→合成 case + 命中率计数,大部分离线可做)→ 之后是**资源/生产受限**的 H3(规模化 live 录制 + tutorbot 壳可回放性难题)、H2(需人工标注 golden)、H6(依赖 H2)、H7(改生产 turn flow,专门 PR)。**这些不在单会话能"测试验证完成"之列,按路线图分专门 PR 推进。**
+
 ## 1. 世界级实践基线（调研依据，2026-05 检索）
 
 本路线图不是凭空设计,锚定以下实践:
