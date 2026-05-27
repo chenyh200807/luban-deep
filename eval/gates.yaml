@@ -12,6 +12,11 @@ gates:
     category: quick
     command: ["python", "scripts/check_harness_authority.py"]
 
+  model_authority_guard:
+    description: "Static guard: single default LLM model/provider authority (harness D5)."
+    category: quick
+    command: ["python", "scripts/check_model_authority.py"]
+
   harness_authority_baseline:
     description: "Decision-layer golden for scene/grounding/exact single authority (offline)."
     category: quick
