@@ -27,16 +27,19 @@ class ExecTool(Tool):
         self.timeout = timeout
         self.working_dir = working_dir
         self.forward_logs = forward_logs
+        # Dangerous *commands*, anchored to the start of each shell segment so a
+        # command name appearing as an argument (echo "rm -rf ...") is not flagged.
         self.deny_patterns = deny_patterns or [
-            r"\brm\s+-[rf]{1,2}\b",          # rm -r, rm -rf, rm -fr
-            r"\bdel\s+/[fq]\b",              # del /f, del /q
-            r"\brmdir\s+/s\b",               # rmdir /s
-            r"(?:^|[;&|]\s*)format\b",       # format (as standalone command only)
-            r"\b(mkfs|diskpart)\b",          # disk operations
-            r"\bdd\s+if=",                   # dd
-            r">\s*/dev/sd",                  # write to disk
-            r"\b(shutdown|reboot|poweroff)\b",  # system power
-            r":\(\)\s*\{.*\};\s*:",          # fork bomb
+            r"rm\s+-[a-z]*[rf]",                 # rm -r / -rf / -fr / -rfv
+            r"del\s+/[fq]",                      # Windows del /f, /q
+            r"rmdir\s+/s",                       # Windows rmdir /s
+            r"format\b",                         # format
+            r"mkfs",                             # mkfs, mkfs.ext4, ...
+            r"diskpart\b",
+            r"dd\b",                             # dd — raw-disk read/write either way
+            r"(shutdown|reboot|poweroff|halt)\b",
+            r"init\s+[06]\b",                    # init 0 / init 6
+            r"(chmod|chown)\s+-[a-z]*r",         # recursive chmod/chown
         ]
         self.allow_patterns = allow_patterns or []
         self.restrict_to_workspace = restrict_to_workspace
@@ -48,6 +51,14 @@ class ExecTool(Tool):
 
     _MAX_TIMEOUT = 600
     _MAX_OUTPUT = 10_000
+
+    # Matched across the whole command (structure, not a leading command name).
+    _STRUCTURAL_DENY = (
+        r":\s*\(\s*\)\s*\{.*\}\s*;\s*:",       # fork bomb :(){ :|:& };:
+        r">\s*/dev/(sd|nvme|hd|disk|mapper)",  # redirect onto a block device
+    )
+    # Shell tokens that begin a new command (segment boundaries).
+    _SEGMENT_SPLIT = re.compile(r"\|\||&&|[|;&\n]|\$\(|`|\(|\{")
 
     @property
     def description(self) -> str:
@@ -153,13 +164,24 @@ class ExecTool(Tool):
             return f"Error executing command: {str(e)}"
 
     def _guard_command(self, command: str, cwd: str) -> str | None:
-        """Best-effort safety guard for potentially destructive commands."""
+        """Best-effort safety guard for potentially destructive commands.
+
+        Dangerous command patterns are anchored to the start of each shell
+        segment (so a command name used as an argument is not flagged), while
+        structural patterns are matched across the whole command.
+        """
         cmd = command.strip()
         lower = cmd.lower()
+        blocked = "Error: Command blocked by safety guard (dangerous pattern detected)"
 
-        for pattern in self.deny_patterns:
+        for pattern in self._STRUCTURAL_DENY:
             if re.search(pattern, lower):
-                return "Error: Command blocked by safety guard (dangerous pattern detected)"
+                return blocked
+
+        for segment in self._command_segments(lower):
+            for pattern in self.deny_patterns:
+                if re.match(pattern, segment):
+                    return blocked
 
         if self.allow_patterns:
             if not any(re.search(p, lower) for p in self.allow_patterns):
@@ -181,6 +203,11 @@ class ExecTool(Tool):
                     return "Error: Command blocked by safety guard (path outside working dir)"
 
         return None
+
+    @classmethod
+    def _command_segments(cls, command: str) -> list[str]:
+        """Split a command line into individual command segments at shell boundaries."""
+        return [seg.strip() for seg in cls._SEGMENT_SPLIT.split(command) if seg.strip()]
 
     @staticmethod
     def _extract_absolute_paths(command: str) -> list[str]:
