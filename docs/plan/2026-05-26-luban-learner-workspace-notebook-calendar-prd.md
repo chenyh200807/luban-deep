@@ -1,8 +1,9 @@
 # 鲁班学情工作台：个人笔记本 + 计划日历 + 学情看板 PRD
 
-- 状态：Proposed v0.3
+- 状态：Proposed v0.4
 - 日期：2026-05-26
 - 复审：2026-05-26，基于产品/CEO 视角、移动端交互视角、现有 learner-state/notebook 代码现实做可交付性加固
+- 复审：2026-05-27，补入 GBrain / Obsidian Wiki 分层、Learning Brain 后续吸收项与 P0A 边界
 - 归属主线：Learner State / Evidence-first Memory / 鲁班智考个性化教学
 - 产品表面：鲁班智考微信小程序、佑森融合包、后续教师端
 - 相关 contract：[contracts/learner-state.md](../../contracts/learner-state.md)、[docs/contracts/learning-state-inference.md](../contracts/learning-state-inference.md)
@@ -51,6 +52,28 @@ v0.3 接受代码实证评审的四个 blocker，并修改 P0A 边界：
 3. 工作台首页不得新增 `GET /api/v1/learner-workspace/home`。P0A 必须扩展既有 `GET /api/v1/mobile/learning-report` read model，避免学情首页出现第二个 reader。
 4. P0A 不做用户自建 planner task，不提供 planner CRUD。今日任务是只读 projection：来自 `training_intent`、learning-report read model、已确认笔记的待行动投影和系统提醒。`换一组`、`今天时间少` 只能做前端过滤/重排，不落库。用户创建任务、延期、完成状态进入 P0B 的 `planner_tasks`。
 5. notebook 生产持久化不再是“后续不满足再说”。小程序 + 佑森 + Web 多端写入场景下，file-backed JSON 有 lost update 风险；P0A 上线前必须完成 durable notebook store 方案或明确只做单端内测，不得假装已满足生产。
+
+## 1.3 v0.4 GBrain / Obsidian Wiki 分层修正
+
+v0.4 明确：本工作台同时吸收 Obsidian Wiki 与 GBrain，但两者落在不同层，不能混成一套概念。
+
+| 外部启发 | 在鲁班的产品层 | 在鲁班的系统层 | 边界 |
+| --- | --- | --- | --- |
+| Obsidian Wiki / LLM Wiki | 笔记、采分点手册、学员可控学习资产 | notebook card / AI candidate / source-linked markdown projection | 给学员掌控感；不作为掌握事实。 |
+| GBrain / Learning Brain | 学情、今日任务、个性化答疑、教师提示的底层依据 | evidence ledger、compiled truth、typed graph、brain-first lookup、nightly lint、eval | 给系统理解力；不新增第二套 learner-state / RAG / 聊天入口。 |
+
+因此 P0A 的职责仍然是“用户可控笔记 + 下一步行动”的最小闭环；GBrain 后续增强进入 P0B/P1/P2，作为 Learning Brain 的能力加固，而不是把 P0A 做成复杂学习大脑。
+
+后续要吸收的 GBrain 能力：
+
+1. **Brain-first lookup**：对话、今日任务和学情卡片生成前，优先读取当前学员的 compiled truth、近期 evidence、stale / superseded claim 和 next_training；但只能作为个性化上下文，不能盖过题库、规范、教材和标准答案。
+2. **Claim lifecycle**：学习判断不再只有“会/不会”，而要分为 `L0_observed`、`L1_repeated`、`L2_confirmed`、`stale`、`superseded`、`rejected`，并在 UI 中翻译成用户能理解的“观察 / 反复出现 / 已复测确认 / 待复测”。
+3. **Typed graph 驱动训练**：用结构化关系连接“学员 -> 知识点 -> 采分点 -> 错因 -> 证据事件 -> 推荐训练 -> 复测结果”，让错因地图、今日任务、AI 互动课堂、笔记转训练共用同一条事实链。
+4. **Nightly lint / dream cycle**：夜间检查无证据画像、冲突判断、长期未复测错因、已改善但仍提醒的 stale claim、用户高频收藏但系统未识别的主观关注。
+5. **Provenance-aware retrieval**：个性化答疑必须说明“为什么给这个建议”，并能点回 source event / attempt detail；compiled truth 可以参与召回，但不能超过 exact question、规范、教材 authority。
+6. **Eval harness**：补 `profile_claim_precision`、`hallucinated_profile_claim_rate`、`stale_claim_rate`、`brain_first_lookup_hit_rate`、`provenance_trace_coverage`、`retest_improvement_rate` 等指标，防止学习大脑自嗨。
+
+这六件事只增强 Learning Brain 主线，不新增 `gbrain` 运行时、不新增第二套 memory DB、不新增第二套 RAG provider、不新增独立“GBrain”小程序入口。
 
 ## 2. Karpathy Gate
 
@@ -150,9 +173,11 @@ P0A 不做以下事情：
 | --- | --- | --- |
 | 学员做过什么、错过什么、系统讲过什么 | `learner_memory_events.memory_kind=learning_evidence` | 只引用，不复制成第二套 truth。 |
 | 学员当前掌握、薄弱、趋势 | `learning_synthesis` / learner-state read model | 笔记和看板只展示 projection，不自行推断。 |
+| 学习事实 claim 生命周期 | `learning_synthesis` / `summary_structured_json.learning_brain` | 工作台只展示 `L0/L1/L2/stale/superseded/rejected` projection，不让笔记直接改 claim。 |
 | 下一步训练处方 | `training_intent` | 日历和今日任务可呈现、排程、完成反馈，但不另算处方。 |
 | 学情首页 / 工作台 view model | `GET /api/v1/mobile/learning-report` / `learning_report_read_model` | P0A 只扩展既有 read model，不新增 `learner-workspace/home`。 |
 | learner summary / recall context | `LearnerStateService` summary / context candidates | 手动笔记不得触发 summary LLM 改写；进入 recall 必须带“学员自记/主观关注”来源标签并降权。 |
+| 个性化召回 / brain-first lookup | `RAGService` + runtime learner context + compiled truth projection | 只作为 source-aware context / source group，不覆盖 exact question、标准、教材事实。 |
 | 学员长期目标 | `user_goals` | 月目标/阶段目标应读取或写入既有 goals authority。 |
 | 用户手动收藏、手动笔记 | Notebook 用户资产服务 | 代表主观关注和复习资产，不代表掌握事实。 |
 | 用户手动计划 | P0B `planner_tasks`，P0A 不做 | P0A 只有只读今日任务 projection；用户自建任务推迟到 P0B。 |
@@ -167,6 +192,9 @@ P0A 不做以下事情：
 - `study_plan` 在 `training_intent` 之外另算推荐
 - `notebook_add -> refresh_from_turn -> _rewrite_summary`
 - `notebook_* -> compiled_learning_truth`
+- `notebook_card -> compiled_truth` 无 evidence 直接升格
+- `compiled_truth -> exact_question / standard / textbook authority` 覆盖
+- 新增独立 `gbrain` 入口、第二套 RAG 或第二套 learner memory
 - `GET /api/v1/learner-workspace/home` 与 `/api/v1/mobile/learning-report` 并行服务同一首页
 - P0A 新增 `planner/tasks` CRUD 或把 `learning_plans` 改造成日历任务
 - 因为笔记功能新增 `/api/v1/mobile/tutorbot/ws/...`
@@ -181,19 +209,23 @@ P0A 不做以下事情：
 - `task_completed -> learning_behavior_event`
 - `task_completed + retest_result -> learning_evidence`
 - `ai_note_candidate accepted -> notebook_card`
+- `learning_evidence -> claim lifecycle -> learning-report projection`
+- `compiled_learning_truth -> RAG context(source_group)`，并在 provenance 中保留 `supporting_event_ids`
+- `typed_graph -> next_training explanation`，题目选择仍由题库 / 出题 authority 完成
 
 ## 6. 核心信息架构
 
-P0A 不建议新增 5 个底部 tab。移动端先保持轻量：
+微信小程序主框架收敛为 5 个底部 Tab：`学习 / 笔记 / 对话 / 学情 / 我的`。中间 `对话` 是圆形放大的 AI 主入口；`今日` 不再作为独立 Tab，而是放入 `学习` 的首屏处方和计划日历。
 
-| 入口 | P0A 展示 | 后续扩展 |
-| --- | --- | --- |
-| 问鲁班 | 答疑、拍照识题、案例批改、答后保存 | 对话后学习档案更新卡 |
-| 今日 | 今日 3 个任务、继续学习、待复习 | 周计划、月目标、时间压缩模式 |
-| 学情 | 当前状态、错因、采分点、证据链 | 能力图谱、主观关注 vs 教师关注 |
-| 我的 | 我的笔记本、AI 待确认、收藏、设置 | 导出、教师共享权限 |
+| Tab | P0A 展示 | 后续扩展 | 边界 |
+| --- | --- | --- | --- |
+| 学习 | 今日 3 任务、继续学习、待复习、摸底测试/专项练题入口 | 计划日历、AI 互动课堂、周/月目标、时间压缩模式 | 行动调度入口，不另算 recommendation。 |
+| 笔记 | 手动笔记、AI 推荐笔记、采分点卡片 | AI 待确认箱、笔记转训练、导出 | 学员 100% 可控资产，不作为 mastery truth。 |
+| 对话 | 问鲁班、拍照识题、案例批改、历史聊天 | 对话后学习档案更新卡、课堂内追问 | 统一 `/api/v1/ws`，不新增聊天路由。 |
+| 学情 | 当前状态、测试报告、错因地图、能力图谱、我的成就 | 主观关注 vs 教师关注、证据链、周报/月报 | 只读 learner-state / learning-report projection。 |
+| 我的 | 充值、会员、余额、学习设置、反馈、账号 | 教师共享权限、隐私授权、导出管理 | 账户与权益，不承载学习事实判断。 |
 
-如果当前小程序导航不适合新增“今日”，P0A 可先在学情页顶部做“今日建议”模块，但交互设计上仍应把“今日行动”放在首屏第一优先级。
+P0A 仍可把“今日建议”放在 `学习` 首屏或学情页顶部做灰度，但产品命名上不再把“今日”设为一级 Tab，避免学习、学情、笔记三者边界继续交错。
 
 ## 7. 关键体验原则
 
@@ -500,6 +532,7 @@ P0A 有两个工程前置阻断：
 | P0B-3 | 采分点手册入口 | 按题型/错因聚合个人采分点 | 至少有 5 条用户确认或批改来源卡片。 |
 | P0B-4 | 错因地图入口 | 高频错因、复发次数、最近证据 | 错因 evidence coverage 达标。 |
 | P0B-5 | 周复盘 | 本周进步、反复错因、下周建议 | 有足够一周行为数据。 |
+| P0B-6 | claim lifecycle 可见标签 | 把 `L0/L1/L2/stale` 翻译成“待确认观察 / 反复出现 / 已复测确认 / 待复测” | `learning_synthesis` 已稳定输出 claim lifecycle projection。 |
 
 ### P1：增强个性化
 
@@ -507,6 +540,10 @@ P0A 有两个工程前置阻断：
 - 主观关注 vs AI/教师关注差异卡。
 - 个人采分点手册独立入口。
 - 错因地图与笔记互链。
+- brain-first lookup：对话、今日任务、错因解释先读 compiled truth / recent evidence / next_training。
+- 局部 typed graph 链路：只展示“错因 -> 漏分采分点 -> 训练 -> 复测结果”，不展示大而全图谱。
+- provenance 抽屉：解释“为什么这样推荐”，并展示 supporting event ids / attempt detail。
+- nightly lint dry-run：检查 stale claim、冲突画像、无证据结论、长期未复测错因。
 - 教师端提示卡：本周干预建议、证据和建议动作。
 - 计划完成后的周报/月报。
 - 局部能力链路图，而不是全量知识大网图。
@@ -519,6 +556,8 @@ P0A 有两个工程前置阻断：
 - 教师批量布置计划。
 - 笔记/采分点导出。
 - 自适应复习频率和间隔复习策略。
+- Learning Brain eval harness：画像准确率、无证据画像率、过期画像率、个性化召回命中率、复测改善率。
+- maintenance workflow：nightly lint 从 dry-run 进入可回滚修复，输出审计报告。
 
 ## 11. 数据模型草案
 
@@ -719,6 +758,12 @@ P0A 不新增第二套首页接口，不新增 planner CRUD，不新增 cards wr
 | `false_profile_claim_rate` | 用户标记“不准确”的学情判断比例。 |
 | `calendar_return_rate` | 用户因计划/提醒返回学习的比例。 |
 | `stale_note_rate` | 长期未复习、未训练、未更新的笔记比例。 |
+| `profile_claim_precision` | 抽样审查学情判断与证据是否一致。 |
+| `hallucinated_profile_claim_rate` | 没有 source event 支撑的画像 claim 比例。 |
+| `stale_claim_rate` | 已过期、已改善但仍在活跃推荐的 claim 比例。 |
+| `brain_first_lookup_hit_rate` | 个性化对话/任务生成前成功读取 compiled truth 的比例。 |
+| `provenance_trace_coverage` | 个性化建议可展示 supporting event ids 的比例。 |
+| `nightly_lint_actionable_rate` | nightly lint 发现的问题中可转成修复/复测动作的比例。 |
 
 ## 14. 风险与缓解
 
@@ -742,6 +787,10 @@ P0A 不新增第二套首页接口，不新增 planner CRUD，不新增 cards wr
 | 低可信复测假改善 | rubric 覆盖不足时，“测一下”误把弱点刷成已掌握 | probe evidence 必须带 `measurement_confidence`；低于门槛不写 improvement evidence。 |
 | 用户编辑错误内容回流 | 用户把 AI 内容改错，后续被 recall 注入 | user-edited 内容进入 recall 时标“学员自记，仅供参考”，不能作为教学事实。 |
 | 跨 bot 笔记归属混乱 | 佑森包、鲁班 bot、教师 bot 各自写局部笔记 | 工作台按 learner 聚合，`source_bot_id` 只作来源标签，不形成第二套 learner truth。 |
+| GBrain 变第二套 authority | 新增独立 memory / retriever / dashboard reader | 只增强 `LearnerStateService`、`RAGService`、`learning-report` 主链，不新增独立入口。 |
+| compiled truth 盖过考试事实 | 个性化判断影响标准答案或 exact question 排序 | authority 顺序固定：exact question / 标准 / 教材 > compiled truth > 普通语义 chunk。 |
+| 图谱黑箱化 | 用户看到复杂关系但不知道该做什么 | 只展示局部链路和下一步动作；完整 graph 先留在系统层。 |
+| nightly lint 自动作废正确判断 | 后台维护误删仍有效弱点 | P1 只 dry-run + 审计；自动修复必须有回滚和人工抽检。 |
 
 ## 14.1 失败救援图
 
@@ -804,6 +853,18 @@ P0A 不新增第二套首页接口，不新增 planner CRUD，不新增 cards wr
 | 首屏负担 | 新用户首屏最多 3 个任务 + 1 个次级入口。 |
 | summary 污染 | 保存手动笔记后 learner summary / compiled-truth projection 不应变化。 |
 | 首页 reader | 今日任务字段只来自 `/api/v1/mobile/learning-report`，不存在第二个首页接口。 |
+
+### P1 Learning Brain 增强 gate
+
+这些 gate 不阻塞 P0A，但进入 brain-first lookup / typed graph / nightly lint 前必须满足：
+
+| Gate | 目标 |
+| --- | --- |
+| claim source coverage | 进入 `L1_repeated` / `L2_confirmed` 的 claim 100% 有 supporting event ids。 |
+| authority order | exact question / 标准 / 教材检索结果不得被 compiled truth 覆盖。 |
+| stale claim lint | nightly dry-run 能识别 stale / superseded / conflict claim，并输出审计报告。 |
+| brain-first trace | 个性化对话 trace 中能看到是否读取 compiled truth、读到了什么、为何使用或未使用。 |
+| graph explanation | “错因 -> 训练 -> 复测”链路能被翻译成用户可读文案，而不是只展示 JSON/图谱。 |
 
 ### 手工回归
 
@@ -873,6 +934,11 @@ P0A 不新增第二套首页接口，不新增 planner CRUD，不新增 cards wr
 - 主观关注 vs AI 教练关注。
 - 个人采分点手册。
 - 错因地图和笔记互链。
+- brain-first lookup 接入对话、今日任务和学情解释，但只作为个性化上下文。
+- claim lifecycle 可见化：`L0/L1/L2/stale/superseded/rejected` 转成用户可理解标签。
+- 局部 typed graph：围绕单个错因展示“证据 -> 漏分采分点 -> 训练 -> 复测”。
+- provenance 抽屉：个性化建议可点回 supporting event ids 和 attempt detail。
+- nightly lint dry-run：只出报告和复测建议，不自动改写稳定画像。
 - 周报/月报。
 
 ### Phase 4：教师端与机构化
@@ -881,6 +947,13 @@ P0A 不新增第二套首页接口，不新增 planner CRUD，不新增 cards wr
 - 班级共性错因。
 - 教师布置任务。
 - 学员计划完成和复测改善追踪。
+
+### Phase 5：Learning Brain 评估与维护闭环
+
+- Learning Brain eval harness：画像准确率、无证据画像率、过期画像率、个性化召回命中率、复测改善率。
+- maintenance workflow：nightly lint 从 dry-run 进入可回滚修复。
+- source-aware retrieval gate：compiled truth 只在 weak-point / next-training 类意图中进入 final source，其余场景先 shadow。
+- 教研抽检台：抽样查看 claim、supporting evidence、推荐动作和复测结果是否一致。
 
 ## 18. 不确定性与验证方案
 
@@ -895,6 +968,9 @@ P0A 不新增第二套首页接口，不新增 planner CRUD，不新增 cards wr
 | 老师端是否能看原始聊天 | 涉及隐私和机构协议 | 内测前明确授权模型和脱敏策略 | P0/P1 只给聚合证据摘要，不给原文。 |
 | 采分点卡片质量是否足够可靠 | 取决于 rubric 覆盖和 grading evidence 质量 | 只对 `grading_key` / curated / 合格 projected rubric 点亮“采分点” | 低置信时展示为“审题要点”或“复习提示”。 |
 | probe 是否会制造低可信 improvement | 风险存在，尤其 rubric 覆盖不足时 | 检查 probe writer 是否输出 `measurement_confidence`，低于门槛不得写 improvement | 低置信时只展示讲解或换标准题。 |
+| brain-first lookup 会不会干扰标准答案 | 有风险，尤其学员画像与题目标准事实冲突时 | fixture 覆盖 exact question / standard clause / weak-point review / next-training 四类 query | 先 shadow trace；只在 weak-point / next-training 开启 final source。 |
+| claim lifecycle 是否会让学员困惑 | L0/L1/L2 对用户不可读 | 可用性测试中只展示“待确认观察 / 反复出现 / 已复测确认 / 待复测” | 专业标签只给教师端和审计日志。 |
+| nightly lint 自动维护是否可靠 | 可能误判 stale / conflict | P1 只 dry-run + 人工抽检，不自动修复 | P2 再加可回滚修复和审计。 |
 
 ## 19. 最优交付切片
 
@@ -911,6 +987,20 @@ P0A 不新增第二套首页接口，不新增 planner CRUD，不新增 cards wr
 ```
 
 这条链路足够小，可以落地；也足够有价值，能让学员感到“鲁班不是只回答一次，而是在帮我把下一步学清楚”。
+
+GBrain 后续最稳的交付切片是：
+
+```text
+learning_evidence
+  -> claim lifecycle
+  -> compiled truth / typed graph projection
+  -> brain-first lookup
+  -> 个性化解释 + 今日任务
+  -> 复测 / 改善 evidence
+  -> nightly lint 检查 stale / conflict / missing evidence
+```
+
+这条链路不作为 P0A 阻断，但必须成为 P1 之后学情工作台从“好用的笔记和计划”升级为“真正懂学员的学习事实引擎”的主线。
 
 ## 20. 一句话定位
 

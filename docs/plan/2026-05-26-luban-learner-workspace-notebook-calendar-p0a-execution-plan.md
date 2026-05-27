@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: 用 `superpowers:subagent-driven-development`（推荐）或 `superpowers:executing-plans` 逐任务实现本计划。步骤用 `- [ ]` 复选框跟踪。
 >
-> **上游 PRD（单一权威，先读）：** [2026-05-26-luban-learner-workspace-notebook-calendar-prd.md](2026-05-26-luban-learner-workspace-notebook-calendar-prd.md)（Proposed v0.3）。本执行计划只把 PRD 的 P0A 落成可执行任务，**不得**扩大 PRD 边界；任何与 PRD 冲突处以 PRD 为准。
+> **上游 PRD（单一权威，先读）：** [2026-05-26-luban-learner-workspace-notebook-calendar-prd.md](2026-05-26-luban-learner-workspace-notebook-calendar-prd.md)（Proposed v0.4）。本执行计划只把 PRD 的 P0A 落成可执行任务，**不得**扩大 PRD 边界；任何与 PRD 冲突处以 PRD 为准。
 
 - 状态：Proposed v0.1
 - 日期：2026-05-26
@@ -39,6 +39,24 @@
 - 不动既有 `NotebookManager._writeback_learner_state()` 对 legacy 记录（solve / guided_learning / co_writer / markdown 导入）的行为。
 - 不扩 `RecordType` 枚举（卡片类型走 `metadata.card_type`）。
 - 不新增聊天 WebSocket；不让前端计算 mastery/错因/处方。
+- 不在 P0A 实现独立 GBrain 运行时、第二套 RAG、第二套 learner memory、复杂 graph UI、nightly auto-fix 或 Learning Brain eval harness。
+
+## 0.1 GBrain / Obsidian 分层在 P0A 的落点
+
+P0A 只实现 Obsidian Wiki 启发的“用户可控学习资产层”：source-linked 卡片、用户确认/编辑/删除、笔记转训练、今日任务只读投影。
+
+GBrain 启发的“学习事实引擎层”在 P0A 只做预留，不做新 authority：
+
+| 能力 | P0A 做什么 | P0A 不做什么 |
+| --- | --- | --- |
+| Brain-first lookup | 卡片和今日任务保留 `source_ref`、`evidence_event_ids`、`why`、`reason_code`，方便后续 learning-report / RAG 读取 | 不把 compiled truth 接入所有回答，不改变标准答案排序。 |
+| Claim lifecycle | 不让手动笔记写 `learning_evidence`，保留 `user_control_status`、`mastery_effect=none` | 不在卡片服务里计算 `L0/L1/L2/stale`。 |
+| Typed graph | 卡片 metadata 保留 `linked_knowledge_points`、`linked_error_patterns`、`evidence_event_ids` | 不建新图数据库，不展示复杂知识大图。 |
+| Provenance | 证据抽屉只展示已有 source ref / attempt detail | 不让 AI enhancer 自行编造 supporting evidence。 |
+| Nightly lint | 不阻塞 P0A；只确保卡片数据有足够字段供后续 lint 读取 | 不做自动作废、自动修复、自动重写画像。 |
+| Eval harness | P0A 指标只覆盖保存、行动转化、summary 污染、证据覆盖 | 不把画像准确率、stale claim rate 作为 P0A release blocker。 |
+
+后续 P1/P2 要把这些能力接回既有 `LearnerStateService`、`learning_synthesis`、`RAGService` 和 `GET /api/v1/mobile/learning-report`，不得把本计划里的 `NotebookCardService` 扩张成学习事实 authority。
 
 ## 1. 相关代码入口（实施前先读，行号以当前 main 为准）
 
