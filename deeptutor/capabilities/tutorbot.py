@@ -17,7 +17,10 @@ from deeptutor.services.question_followup import (
     normalize_question_followup_context,
     resolve_submission_attempt,
 )
-from deeptutor.services.question_lifecycle_skills import build_question_lifecycle_clarification_response
+from deeptutor.services.question_lifecycle_skills import (
+    build_question_lifecycle_clarification_response,
+    build_question_lifecycle_exam_catalog_response,
+)
 from deeptutor.services.query_intent import query_requires_current_info
 from deeptutor.services.render_presentation import build_canonical_presentation
 from deeptutor.services.security.tutorbot_guardrails import guard_tutorbot_output
@@ -124,6 +127,7 @@ class TutorBotCapability(BaseCapability):
             "question_lifecycle_scene_confidence",
             "question_lifecycle_scene_reason",
             "question_lifecycle_skill_names",
+            "question_lifecycle_clarification",
         ):
             if metadata_key in context.metadata:
                 session_metadata[metadata_key] = context.metadata[metadata_key]
@@ -156,6 +160,66 @@ class TutorBotCapability(BaseCapability):
         ).strip()
         if conversation_context_text:
             session_metadata["conversation_context_text"] = conversation_context_text
+
+        exam_catalog_response = ""
+        if str(context.metadata.get("question_lifecycle_scene") or "").strip() == "exam_catalog_query":
+            exam_catalog_response = build_question_lifecycle_exam_catalog_response(
+                context.user_message,
+                context.metadata if isinstance(context.metadata, dict) else {},
+            )
+        if exam_catalog_response:
+            async with stream.stage(
+                "responding",
+                source=self.name,
+                metadata={"execution_engine": "tutorbot_runtime", "bot_id": bot_id},
+            ):
+                await stream.content(
+                    exam_catalog_response,
+                    source=self.name,
+                    stage="responding",
+                    metadata={
+                        "execution_engine": "tutorbot_runtime",
+                        "call_kind": "exam_catalog_query",
+                    },
+                )
+                result_payload = {
+                    "response": exam_catalog_response,
+                    "bot_id": bot_id,
+                    "execution_engine": "tutorbot_runtime",
+                    "authority_applied": False,
+                    "exact_question": {},
+                    "rag_rounds": [],
+                    "rag_saturation": {},
+                    "requested_response_mode": policy.requested_mode,
+                    "selected_mode": policy.selected_mode,
+                    "effective_response_mode": policy.effective_mode,
+                    "execution_path": "tutorbot_exam_catalog_query",
+                    "exact_fast_path_hit": False,
+                    "actual_tool_rounds": 0,
+                    "reveal_answers": False,
+                    "reveal_explanations": False,
+                }
+                for metadata_key in (
+                    "question_lifecycle_decision",
+                    "decision_source",
+                    "scene_confidence",
+                    "required_anchor_status",
+                    "exact_question_blocked_reason",
+                    "selected_skill_names",
+                    "llm_scene_candidate",
+                    "business_gate_result",
+                    "question_lifecycle_scene",
+                    "question_lifecycle_scene_source",
+                    "question_lifecycle_scene_confidence",
+                    "question_lifecycle_scene_reason",
+                    "question_lifecycle_skill_names",
+                    "question_lifecycle_clarification",
+                    "active_object",
+                ):
+                    if metadata_key in session_metadata:
+                        result_payload[metadata_key] = session_metadata[metadata_key]
+                await stream.result(result_payload, source=self.name)
+            return
 
         clarification_response = build_question_lifecycle_clarification_response(
             context.user_message,
@@ -207,6 +271,8 @@ class TutorBotCapability(BaseCapability):
                     "question_lifecycle_scene_confidence",
                     "question_lifecycle_scene_reason",
                     "question_lifecycle_skill_names",
+                    "question_lifecycle_clarification",
+                    "active_object",
                 ):
                     if metadata_key in session_metadata:
                         result_payload[metadata_key] = session_metadata[metadata_key]

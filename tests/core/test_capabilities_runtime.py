@@ -1313,6 +1313,64 @@ async def test_deep_question_capability_uses_user_message_as_topic(
 
 
 @pytest.mark.asyncio
+async def test_deep_question_capability_clamps_generated_questions_to_requested_count(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeCoordinator:
+        def __init__(self, **kwargs: Any) -> None:
+            captured["init"] = kwargs
+            self._callback = None
+
+        def set_ws_callback(self, callback) -> None:
+            self._callback = callback
+
+        async def generate_from_topic(self, **kwargs: Any) -> dict[str, Any]:
+            captured["topic_call"] = kwargs
+            return {
+                "results": [
+                    {
+                        "qa_pair": {
+                            "question": f"第{i}道题？",
+                            "question_type": "choice",
+                            "options": {"A": "对", "B": "错"},
+                            "correct_answer": "A",
+                            "explanation": f"第{i}题解析。",
+                        }
+                    }
+                    for i in range(1, 5)
+                ]
+            }
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="用 3 道题训练地基基础",
+        config_overrides={"num_questions": 3, "mode": "custom", "topic": "地基基础"},
+        language="zh",
+    )
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    assert captured["topic_call"]["num_questions"] == 3
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    presentation = result_event.metadata["presentation"]
+    assert len(presentation["blocks"][0]["questions"]) == 3
+    assert "第4道题" not in result_event.metadata["response"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.asyncio
 async def test_deep_question_capability_anchors_deictic_generation_topic_to_open_chat_context(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

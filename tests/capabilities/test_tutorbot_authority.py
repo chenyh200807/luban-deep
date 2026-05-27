@@ -114,6 +114,61 @@ async def test_tutorbot_low_information_exam_query_returns_clarification(
 
 
 @pytest.mark.asyncio
+async def test_tutorbot_exam_catalog_query_answers_directory_without_llm_call(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    manager = _FakeTutorBotManager()
+    monkeypatch.setattr(
+        tutorbot_capability,
+        "get_tutorbot_manager",
+        lambda: manager,
+    )
+
+    stream = StreamBus()
+    context = UnifiedContext(
+        session_id="s-exam-catalog-query",
+        user_message="1",
+        config_overrides={
+            "bot_id": "construction-exam-coach",
+            "chat_mode": "fast",
+        },
+        metadata={
+            "question_lifecycle_scene": "exam_catalog_query",
+            "question_lifecycle_clarification": {
+                "topic": "2025年真题",
+                "reason": "low_information_exam_query",
+                "options": [],
+            },
+            "question_lifecycle_decision": {
+                "scene": "exam_catalog_query",
+                "decision_source": "deterministic",
+                "scene_confidence": 1.0,
+                "required_anchor_status": "satisfied",
+                "selected_skill_names": [
+                    "construction-exam-tutor",
+                    "construction-study-assistant",
+                ],
+                "needs_clarification": False,
+                "business_gate_result": "resolved_clarification_option",
+            },
+        },
+        language="zh",
+    )
+
+    await TutorBotCapability().run(context, stream)
+
+    result_events = [event for event in stream._history if event.type == StreamEventType.RESULT]
+    assert result_events
+    result_payload = result_events[-1].metadata
+    assert "2025年真题" in result_payload["response"]
+    assert "考点范围" in result_payload["response"]
+    assert "不直接编造某一道题的标准答案" in result_payload["response"]
+    assert result_payload["question_lifecycle_scene"] == "exam_catalog_query"
+    assert result_payload["execution_path"] == "tutorbot_exam_catalog_query"
+    assert manager.sent_messages == 0
+
+
+@pytest.mark.asyncio
 async def test_tutorbot_regular_result_exports_lifecycle_decision_metadata(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

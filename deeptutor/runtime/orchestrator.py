@@ -34,6 +34,7 @@ from deeptutor.services.question_followup import (
     reset_question_submission_state,
 )
 from deeptutor.services.question_lifecycle_skills import (
+    build_question_lifecycle_clarification_context,
     resolve_question_lifecycle_scene_decision,
     select_question_lifecycle_skill_names,
 )
@@ -220,7 +221,7 @@ class ChatOrchestrator:
             context.metadata["semantic_router_shadow_route"] = ""
             context.metadata["semantic_router_selected_capability"] = "deep_question"
             return "deep_question"
-        if lifecycle_scene in {"learning_evidence_story", "study_assistant", "learning_support"}:
+        if lifecycle_scene in {"learning_evidence_story", "study_assistant", "learning_support", "exam_catalog_query"}:
             cap_name = self._default_chat_capability(context)
             context.metadata["semantic_router_mode"] = "question_lifecycle"
             context.metadata["semantic_router_mode_reason"] = (
@@ -391,6 +392,24 @@ class ChatOrchestrator:
             context.metadata.setdefault("question_lifecycle_skill_names", [])
         if decision.exact_question_blocked_reason:
             context.metadata["exact_question_blocked_reason"] = decision.exact_question_blocked_reason
+            clarification_context = build_question_lifecycle_clarification_context(
+                context.user_message,
+                decision.exact_question_blocked_reason,
+            )
+            if clarification_context:
+                previous_active_object = context.metadata.get("active_object")
+                if (
+                    isinstance(previous_active_object, dict)
+                    and str(previous_active_object.get("object_type") or "") != "question_lifecycle_clarification"
+                ):
+                    existing_stack = context.metadata.get("suspended_object_stack")
+                    suspended_stack = list(existing_stack) if isinstance(existing_stack, list) else []
+                    suspended_stack.append(dict(previous_active_object))
+                    context.metadata["suspended_object_stack"] = suspended_stack
+                context.metadata["active_object"] = clarification_context
+                snapshot = clarification_context.get("state_snapshot")
+                if isinstance(snapshot, dict):
+                    context.metadata["question_lifecycle_clarification"] = dict(snapshot)
         else:
             context.metadata.pop("exact_question_blocked_reason", None)
         trace_meta = context.metadata.setdefault("trace_metadata", {})
