@@ -48,6 +48,19 @@ def test_training_by_question_count_returns_practice_generation():
     assert derive_question_lifecycle_scene(ctx) == "practice_generation"
 
 
+@pytest.mark.parametrize(
+    "message",
+    [
+        "用一道真题场景理解基础和地基的",
+        "用一道真题场景理解项目质量计划管理",
+        "通过一道真题场景讲一下地基处理",
+    ],
+)
+def test_real_exam_scenario_learning_returns_question_review(message: str):
+    ctx = _FakeContext(user_message=message)
+    assert derive_question_lifecycle_scene(ctx) == "question_review"
+
+
 def test_mastery_check_training_intent_wins_over_learning_report_phrase():
     ctx = _FakeContext(user_message="项目质量计划管理这个点，帮我检验一下掌握情况")
     assert derive_question_lifecycle_scene(ctx) == "practice_generation"

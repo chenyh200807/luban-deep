@@ -3004,13 +3004,7 @@ class TurnRuntimeManager:
             == "tutorbot"
         ):
             entry_capability_hint = "tutorbot"
-        has_question_lifecycle_evidence = (
-            runtime_followup_question_context is not None
-            or runtime_followup_action is not None
-        )
-        if (
-            requested_capability in {"chat", "tutorbot"} or entry_capability_hint
-        ) and has_question_lifecycle_evidence:
+        if requested_capability in {"chat", "tutorbot"} or entry_capability_hint:
             runtime_only_config["_entry_capability_hint"] = entry_capability_hint or ""
             requested_capability = None
             capability = ""
@@ -4226,11 +4220,7 @@ class TurnRuntimeManager:
                     user_message=effective_user_message,
                     conversation_history=conversation_history,
                     enabled_tools=payload.get("tools"),
-                    active_capability=(
-                        payload.get("capability")
-                        or entry_capability_hint
-                        or None
-                    ),
+                    active_capability=payload.get("capability") or None,
                     knowledge_bases=payload.get("knowledge_bases", []),
                     attachments=attachments,
                     config_overrides=request_config,

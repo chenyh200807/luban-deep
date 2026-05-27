@@ -641,6 +641,10 @@ _QUESTION_REVIEW_FREETEXT_PHRASES: tuple[str, ...] = (
 _QUESTION_REVIEW_FREETEXT_RE = re.compile(
     r"(?:分析|讲解|解析|讲)\s*(?:一|1)?\s*(?:道|题)?[^，。！？；\n]{0,24}?真题"
 )
+_QUESTION_REVIEW_SCENARIO_RE = re.compile(
+    r"(?:用|通过)\s*(?:一|1)?\s*(?:道|题)?[^，。！？；\n]{0,24}?真题场景"
+    r"[^，。！？；\n]{0,24}?(?:理解|讲|学|掌握)"
+)
 
 _FREE_TEXT_CASE_GRADING_CONTEXT_MARKERS: tuple[str, ...] = (
     "案例题",
@@ -756,6 +760,7 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
 
     if any(phrase in user_message for phrase in _QUESTION_REVIEW_FREETEXT_PHRASES) or (
         _QUESTION_REVIEW_FREETEXT_RE.search(user_message) is not None
+        or _QUESTION_REVIEW_SCENARIO_RE.search(user_message) is not None
     ):
         return "question_review"
 

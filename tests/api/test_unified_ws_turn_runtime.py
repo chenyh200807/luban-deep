@@ -97,6 +97,72 @@ def test_turn_runtime_question_domain_decision_uses_canonical_semantic_shape() -
     }
 
 
+class _LifecycleAuthorityStore:
+    def __init__(self) -> None:
+        self.created_turn_capability: str | None = None
+        self.events: list[dict[str, object]] = []
+
+    async def get_active_object(self, _session_id: str) -> None:
+        return None
+
+    async def ensure_session(self, session_id: str | None, *, owner_key: str | None = None) -> dict[str, object]:
+        return {"id": session_id or "session-runtime-test", "preferences": {}}
+
+    async def update_session_preferences(self, _session_id: str, _preferences: dict[str, object]) -> bool:
+        return True
+
+    async def list_active_turns(self, _session_id: str) -> list[dict[str, object]]:
+        return []
+
+    async def get_active_turn(self, _session_id: str) -> None:
+        return None
+
+    async def create_turn(self, session_id: str, capability: str) -> dict[str, object]:
+        self.created_turn_capability = capability
+        return {
+            "id": "turn-runtime-test",
+            "session_id": session_id,
+            "status": "running",
+            "capability": capability,
+        }
+
+    async def append_turn_event(self, _turn_id: str, payload: dict[str, object]) -> dict[str, object]:
+        self.events.append(payload)
+        return payload
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_demotes_tutorbot_capability_hint_before_lifecycle_authority(monkeypatch) -> None:
+    async def _no_run_turn(self: TurnRuntimeManager, _execution: object) -> None:
+        return None
+
+    monkeypatch.setattr(TurnRuntimeManager, "_run_turn", _no_run_turn)
+    store = _LifecycleAuthorityStore()
+    runtime = TurnRuntimeManager(store=store)  # type: ignore[arg-type]
+
+    _session, turn = await runtime.start_turn(
+        {
+            "session_id": "session-runtime-test",
+            "content": "用一道真题场景理解基础和地基的",
+            "capability": "tutorbot",
+            "config": {
+                "bot_id": "construction-exam-coach",
+                "interaction_profile": "tutorbot",
+            },
+            "language": "zh",
+        }
+    )
+
+    assert store.created_turn_capability == ""
+    assert turn["capability"] == ""
+    execution = runtime._executions[turn["id"]]
+    assert execution.capability == ""
+    assert execution.payload["capability"] is None
+    assert execution.payload["config"]["_entry_capability_hint"] == "tutorbot"
+    if execution.task is not None:
+        await asyncio.wait_for(execution.task, timeout=1)
+
+
 def test_turn_runtime_result_context_does_not_parse_presentation_read_model() -> None:
     metadata = {
         "response": "第1题\nA. 选项A\nB. 选项B",
@@ -609,9 +675,8 @@ async def test_start_turn_merges_redacted_public_submission_with_stored_active_q
         pass
 
     resolved = captured["question_followup_context"]
-    assert captured["selector_active_capability"] == "tutorbot"
+    assert captured["selector_active_capability"] is None
     assert captured["capability"] == "deep_question"
-    assert "_entry_capability_hint" not in captured["config_overrides"]
     assert resolved["question_id"] == "q_2"
     assert resolved["correct_answer"] == "B"
     assert resolved["user_answer"] == "B"
@@ -1838,7 +1903,7 @@ async def test_turn_runtime_leaves_tutorbot_question_followup_for_orchestrator_a
         pass
 
     assert turn["capability"] == "deep_question"
-    assert captured["active_capability"] == "tutorbot"
+    assert captured["active_capability"] is None
     assert captured["followup_question_context"]["question_id"] == "q_1"
     assert captured["followup_question_context"]["correct_answer"] == "B"
     detail = await store.get_session_with_messages(session["id"])
@@ -4392,7 +4457,7 @@ async def test_turn_runtime_recovers_tutorbot_mirror_question_set_for_batch_subm
         pass
 
     assert turn["capability"] == "deep_question"
-    assert captured["active_capability"] == "tutorbot"
+    assert captured["active_capability"] is None
     resolved = captured["question_followup_context"]
     assert resolved["question_id"] == "quiz_mirror"
     action = captured["question_followup_action"]
