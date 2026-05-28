@@ -27,6 +27,9 @@ on:
       - ".github/pull_request_template.md"
       - "scripts/ci/check_secure_routers.sh"
       - "scripts/ci/baselines/secure_routers_baseline.txt"
+      - "supabase/migrations/**"
+      - "scripts/ci/check_rls_on_create_table.sh"
+      - "scripts/ci/baselines/rls_migrations_baseline.txt"
   pull_request:
     branches:
       - main
@@ -53,6 +56,9 @@ on:
       - ".github/pull_request_template.md"
       - "scripts/ci/check_secure_routers.sh"
       - "scripts/ci/baselines/secure_routers_baseline.txt"
+      - "supabase/migrations/**"
+      - "scripts/ci/check_rls_on_create_table.sh"
+      - "scripts/ci/baselines/rls_migrations_baseline.txt"
 
 jobs:
   contract-guard:
@@ -87,6 +93,9 @@ jobs:
 
       - name: Secure router fail-on-new gate
         run: FAIL_ON_NEW=1 bash scripts/ci/check_secure_routers.sh
+
+      - name: RLS fail-on-new gate
+        run: FAIL_ON_NEW=1 bash scripts/ci/check_rls_on_create_table.sh
 
   import-check:
     name: Import Check (Python ${{ matrix.python-version }})
