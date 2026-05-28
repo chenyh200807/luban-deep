@@ -89,6 +89,26 @@
 
 **分数变化(诚实)**:质量打分 4 → **有真实 ground-truth 基线测量**(从「只有 exact 渲染保真」到「真题答对率可量化」)。**跨模型差分评估**(B 核心)的逻辑 + 数据 + 单模型实跑已全部就位，唯一缺口收窄到 **qwen provider config**——配好即可一条命令出「换模型→better/regression」裁决。real 命中率、真实面覆盖(RAG/tutorbot)、2024 题并入仍为待解锁项。
 
+## 0.8 进度更新（2026-05-28：cross-model live 首个实证裁决）
+
+**北极星 B 的首个可信信号正式落地**——harness 第一次给出"换模型是否安全"的实测裁决。
+
+- **CLI 显式 binding 扩展**(commit `2bf4e3be`):`exam_quality_eval` 接受 `binding:model` 形式（如 `dashscope:qwen-max-latest`），通过单一 `provider_registry` 解析 env_key + base_url，绑定匹配回退 `get_llm_config()`，绑定不匹配 fail-fast 绝不混用跨 provider key。
+- **首次 cross-model live**(62 道 ground-truth MCQ × 2 模型 × concurrency=4):
+
+  | 模型 | accuracy | 2023 | 2025 | errors |
+  |---|---:|---:|---:|---:|
+  | `deepseek:deepseek-v4-flash` (基线) | **0.8548** (53/62) | 0.8667 | 0.8438 | 0 |
+  | `dashscope:qwen-max-latest` (候选) | **0.7581** (47/62) | 0.7000 | 0.8125 | 0 |
+
+  - **`upgrade_safe = False`**，delta = **-9.67pp**，per-question regressions = 6（2023-sc-05/08/13/18, 2023-mc-08, 2025-sc-04）。
+  - **诊断**(3 道回归题原始响应抽样):qwen 全部输出 `答案：X` 完美格式，失败**不是 prompt/extraction 问题**，是**真实知识错误**(中国建造师专业题，gold=D 答 A、gold=ABE 多答 C、防水顺序答反)。
+  - **意义**:harness 刚刚阻止了一次"qwen-max 听起来更强、盲目升级 -10pp 准确率"的潜在事故——这正是北极星 B「验证透传」承诺的可操作机制。
+
+**分数变化(诚实)**:跨模型差分(B 核心) 0 → **有真实裁决可下** (一个 baseline + 一个 candidate 已实跑)。质量打分维度从「单点 4」走到「单点 + 跨模型实证」。
+**诚实标注的精度地板**:deepseek 同 prompt 同 temperature=0 两次跑 83.87→85.48 飘 1 道题（~1.5pp）——单跑 delta 精度地板 ~1.5pp;9.67pp 远超此 ceiling，信号可信。未来若要更细分判，需 N 跑取均值（roadmap H6）。
+**仍未解锁**:① 真实面覆盖（RAG / tutorbot 事件溯源回放）;② real 命中率（时间累积）;③ 2024 题（云占位待下载）;④ 更多模型 tier 对比（qwen-plus/turbo/qwen2.5-72b 等，用相同 CLI 一行加入）。这些不是"再写代码"能跨过——是 staging/数据/时间。
+
 ## 1. 世界级实践基线（调研依据，2026-05 检索）
 
 本路线图不是凭空设计,锚定以下实践:
