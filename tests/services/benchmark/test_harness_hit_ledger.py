@@ -48,11 +48,19 @@ def test_append_and_load_round_trip(tmp_path) -> None:
 
 
 def test_committed_seed_ledger_is_loadable_and_teeth_proven() -> None:
-    """The tracked seed ledger records this session's capability proofs."""
+    """The tracked ledger records capability proofs AND real catches.
+
+    Injected entries prove the gates have teeth; real entries prove the
+    harness actually catches in-the-wild regressions (the 9+ judge, roadmap
+    §0.10). real_total > 0 only became true once production code paths (the
+    cross-model eval CLI) started auto-recording — before that the ledger was
+    injected-only by design (capability evidence, not catch evidence).
+    """
     hits = load_ledger()  # default path: eval/harness_hit_ledger.json
     summary = catch_rate_summary(hits)
     # Every seeded injected regression was caught (gates have teeth).
     assert summary["injected_total"] >= 5
     assert summary["injected_caught"] == summary["injected_total"]
-    # Honest: no real incidents recorded yet.
-    assert summary["real_total"] == 0
+    # Real lane has at least one production-recorded catch (cross-model gate).
+    assert summary["real_total"] >= 1
+    assert summary["real_caught"] >= 1

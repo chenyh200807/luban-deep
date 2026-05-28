@@ -16,13 +16,16 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
+from datetime import date
 import os
+from pathlib import Path
 from typing import Any, Awaitable, Callable
 
 from deeptutor.services.benchmark.exam_quality_bank import (
     ExamQuestion,
     load_exam_quality_bank,
 )
+from deeptutor.services.benchmark.harness_hit_ledger import HarnessHit, append_hit
 from deeptutor.services.benchmark.quality_scoring import (
     CorrectnessScore,
     cross_model_correctness_report,
@@ -242,6 +245,41 @@ async def run_closed_book_eval(
     )
 
 
+def record_cross_model_real_hits(
+    report: dict[str, Any],
+    *,
+    bank_label: str = "一建《建筑实务》62 MCQ",
+    ledger_path: Path | None = None,
+) -> int:
+    """Append one ``kind="real"`` hit per regressing candidate; return count.
+
+    Each candidate with ``accuracy_delta < 0`` is a real regression the cross-model
+    gate caught — a model swap that would degrade quality. This is exactly the
+    catch that proves north-star B is operational (roadmap H4 / C3 'real' lane);
+    without this hook, real-catches don't accrue and the ledger stays at 0.
+    """
+    if not isinstance(report, dict) or report.get("upgrade_safe") is not False:
+        return 0
+    deltas = report.get("accuracy_delta_vs_baseline") or {}
+    baseline = str(report.get("baseline_model") or "")
+    today = date.today().isoformat()
+    appended = 0
+    for model, delta in deltas.items():
+        if not isinstance(delta, (int, float)) or delta >= 0:
+            continue
+        hit = HarnessHit(
+            gate="exam_quality_eval.cross_model",
+            regression=f"{model} {delta:+.4f} vs {baseline} on {bank_label}",
+            caught=True,
+            kind="real",
+            date=today,
+            note=f"cross-model auto-record: candidate would regress quality by {-float(delta) * 100:.2f}pp",
+        )
+        append_hit(hit, ledger_path)
+        appended += 1
+    return appended
+
+
 def _format_result(result: ClosedBookEvalResult) -> str:
     lines = [
         f"model={result.model}",
@@ -257,6 +295,11 @@ def _format_result(result: ClosedBookEvalResult) -> str:
 
 async def _amain(args: list[str]) -> None:
     questions = load_exam_quality_bank()
+    # Flag handling: opt-out of auto-recording real hits. Default ON so the
+    # ledger actually accrues real-catches with normal use (the gap §0.8/§0.9
+    # called out — wired only here, not in inner-loop code, so no surprise).
+    record_hits = "--no-record-hits" not in args
+    args = [a for a in args if not a.startswith("--")]
     print(f"loaded {len(questions)} ground-truth MCQs")
     if not args:
         result = await run_closed_book_eval(questions)
@@ -292,6 +335,10 @@ async def _amain(args: list[str]) -> None:
         )
         if report["regressions"]:
             print(f"regressions: {report['regressions']}")
+        if record_hits:
+            n = record_cross_model_real_hits(report)
+            if n:
+                print(f"recorded {n} real hit(s) in harness_hit_ledger.json")
 
 
 if __name__ == "__main__":  # pragma: no cover - CLI entry

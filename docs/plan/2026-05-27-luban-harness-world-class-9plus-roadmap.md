@@ -132,6 +132,48 @@
 
 **分数变化(诚实)**:跨模型差分(B 核心) "可下裁决" → **"可对整族 model 出 tier landscape + 反直觉发现"**。这正是 B「验证透传」从单点比对走向系统化模型选型工具的实证。
 
+## 0.10 进度更新（2026-05-28：4 个 7→9 杠杆并行推进）
+
+按用户要求一次性推进 §0.9 末段标记的 4 个剩余杠杆。诚实进度:
+
+### #4 real 命中率 — ✅ 实质激活(从 0 到有数据)
+
+- **根因**:生产代码无人调 `append_hit(kind="real")` → real 维度永远 0,仅 5 个 injected capability proofs。
+- **挂钩**:`exam_quality_eval.cross_model` 自动 record——任何 cross-model run 检测到 `upgrade_safe=False` 时,逐 candidate `accuracy_delta<0` append 1 个 real hit;默认 ON,`--no-record-hits` 可关。
+- **回填**:§0.9 tier matrix 4 个真实抓取(qwen-plus/-max/-turbo/qwen2.5-72b 各 ~-6 到 -14.5pp)写入 ledger。
+- **现状**:ledger 5 injected + **4 real**,real_catch_rate = 1.0(4/4)。诚实地板:1.0 表示"目前 4 次 caught=True",未来有 caught=False 漏抓真案例会下降——那才是更有信息量的状态。
+
+### #1 RAG cassette/replay — ⚠️ 脚手架就绪,录制本身待 staging
+
+- **canonical 入口确认**:`RAGPipeline.search(query, kb_name, **kwargs) -> dict` (`deeptutor/services/rag/pipeline.py:169`)。
+- **新 wrapper**:`deeptutor/services/benchmark/rag_replay.py`——`search_key` / `build_recording_search` / `build_replaying_search`,与 `llm_replay` 同型;复用 `Cassette.tool` 槽(zero Cassette 改动,§5.7 单一权威保留)。
+- **测试**:4 个离线测试覆盖 key 稳定性、record→replay round-trip、miss 报 KeyError。
+- **未解锁**:录制本身需可达的 RAG/embedding 栈——本地 init 失败(模块名猜错过,但更根本是 staging 不通),需 staging key 或本地 RAG 修复后跑一次真实 turn 录入 cassette。**脚手架就位 = 当天 staging 一通,recording 一行命令。**
+
+### #2 tutorbot 事件溯源 replay — ⚠️ 第 1 阶段(turn-outcome)就绪,iteration-level capture 待后续 PR
+
+- **关键发现**:`TurnEventLog`(`deeptutor/services/observability/turn_event_log.py`)已是 production-ish append-only JSONL,**今天本地真实数据 = 62 turns(其中 9 个 tutorbot,来自 7 unique sessions,全 completed)**。这是 capture 半边的 **turn 粒度**已有。
+- **gap 明确**:`AgentLoop`(`deeptutor/tutorbot/agent/loop.py:69`)内部 iteration(think → tool_call → observation)**不持久化**——这是 iteration-level 事件溯源需要新加的 capture 层。
+- **walking skeleton(本 session 落地)**:`deeptutor/services/benchmark/tutorbot_turn_replay.py` — `TurnOutcome` / `load_tutorbot_outcomes` / `diff_outcomes`,用现有 TurnEventLog 即可做 **turn-outcome parity replay**(rerun 同 turn,断言 status/error_type/retrieval_hit 严格相等、latency/token 在容忍带内)。5 个离线测试 + 真生产数据 spike 通过。
+- **下一阶段(出本 session 范围)**:① iteration-level event capture wire 入 AgentLoop(改生产代码,§3 单独 PR);② iteration-level replay 用现有 llm_replay/tool_replay/rag_replay 组合驱动。本 session 设计文档 + 第 1 层骨架。
+
+### #3 2024 真题并入 — ❌ 真 blocked(用户侧 1 步)
+
+- **再确认**:`flags=compressed,dataless`,`dd` 80 字节空输出,`brctl download` exit=0 但无效。2023/2025 同目录 `flags=-` 正常。
+- **用户侧解锁**(任选其一):① Finder 双击 2024 文件本身联网下载;② 系统设置 → iCloud Drive → 关 Optimize Mac Storage;③ Files.app 长按 → Keep Downloaded。下载后我重跑提取脚本即可并入,62 → ~90 题、delta 置信区间收紧。
+
+---
+
+**ledger 状态汇总**:9 hits = 5 injected (capability) + 4 real (cross-model catches)。real_catch_rate 首次 ≠ None,**测的不再是"harness 能不能抓",而是"实际在抓"**——north-star B 真正的 9+ 判据已经从悬空走到地面。
+
+**仍未到 9+ 的具体地形**:
+- ① iteration-level tutorbot capture(待生产代码 PR);
+- ② RAG 真实面 cassette 内容(待 staging);
+- ③ 2024+ 更多年份 + 跨学科真题(待 user materialize / 拉源);
+- ④ 多 run 取均值的 noise 治理(单跑 ~1.5pp 地板 → N 跑 ~0.5pp);
+- ⑤ real-catch 信号自然积累(时间);
+- ⑥ caught=False(真漏抓)的负样本——目前 4/4 都 caught,这是好事但也是测试盲区。
+
 ## 1. 世界级实践基线（调研依据，2026-05 检索）
 
 本路线图不是凭空设计,锚定以下实践:

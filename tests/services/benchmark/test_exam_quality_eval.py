@@ -16,8 +16,10 @@ from deeptutor.services.benchmark.exam_quality_eval import (
     build_closed_book_prompt,
     build_completer_for_spec,
     parse_model_spec,
+    record_cross_model_real_hits,
     run_closed_book_eval,
 )
+from deeptutor.services.benchmark.harness_hit_ledger import load_ledger
 
 _Q_SINGLE = ExamQuestion(
     question_id="2025-sc-01",
@@ -146,6 +148,52 @@ def test_build_completer_does_not_cross_bindings(monkeypatch) -> None:
     )
     with pytest.raises(RuntimeError, match="DASHSCOPE_API_KEY"):
         build_completer_for_spec(ModelSpec(model="qwen-max", binding="dashscope"))
+
+
+def test_record_cross_model_real_hits_appends_one_per_regression(tmp_path) -> None:
+    ledger = tmp_path / "ledger.json"
+    report = {
+        "baseline_model": "deepseek:deepseek-v4-flash",
+        "upgrade_safe": False,
+        "accuracy_delta_vs_baseline": {
+            "dashscope:qwen-max-latest": -0.0806,
+            "dashscope:qwen-plus-latest": -0.0645,
+        },
+        "regressions": [{"model": "...", "regressed": True}],
+    }
+    n = record_cross_model_real_hits(report, ledger_path=ledger)
+    assert n == 2
+    hits = load_ledger(ledger)
+    assert all(h.kind == "real" and h.caught for h in hits)
+    assert all(h.gate == "exam_quality_eval.cross_model" for h in hits)
+    assert any("qwen-max-latest" in h.regression for h in hits)
+
+
+def test_record_cross_model_real_hits_skips_when_upgrade_safe(tmp_path) -> None:
+    ledger = tmp_path / "ledger.json"
+    report = {
+        "baseline_model": "x",
+        "upgrade_safe": True,
+        "accuracy_delta_vs_baseline": {"y": 0.02},
+        "regressions": [],
+    }
+    assert record_cross_model_real_hits(report, ledger_path=ledger) == 0
+    assert load_ledger(ledger) == []
+
+
+def test_record_cross_model_real_hits_ignores_positive_deltas(tmp_path) -> None:
+    """A candidate that IMPROVES on baseline must not be recorded as a regression."""
+    ledger = tmp_path / "ledger.json"
+    report = {
+        "baseline_model": "x",
+        "upgrade_safe": False,  # report says unsafe (per-question regressions exist)
+        "accuracy_delta_vs_baseline": {"improved": 0.05, "regressed": -0.03},
+        "regressions": [{"model": "regressed", "regressed": True}],
+    }
+    n = record_cross_model_real_hits(report, ledger_path=ledger)
+    assert n == 1
+    hits = load_ledger(ledger)
+    assert "regressed" in hits[0].regression and "improved" not in hits[0].regression
 
 
 def test_wrong_and_erroring_model() -> None:

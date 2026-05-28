@@ -38,5 +38,37 @@
     "kind": "injected",
     "date": "2026-05-27",
     "note": "C8 step-0 oracle flipped PASS->FAIL on a corrupted build_exact_authority_response"
+  },
+  {
+    "gate": "exam_quality_eval.cross_model",
+    "regression": "dashscope:qwen-plus-latest -0.0645 vs deepseek:deepseek-v4-flash on 一建《建筑实务》62 MCQ",
+    "caught": true,
+    "kind": "real",
+    "date": "2026-05-28",
+    "note": "cross-model auto-record: candidate would regress quality by 6.45pp"
+  },
+  {
+    "gate": "exam_quality_eval.cross_model",
+    "regression": "dashscope:qwen-max-latest -0.0806 vs deepseek:deepseek-v4-flash on 一建《建筑实务》62 MCQ",
+    "caught": true,
+    "kind": "real",
+    "date": "2026-05-28",
+    "note": "cross-model auto-record: candidate would regress quality by 8.06pp"
+  },
+  {
+    "gate": "exam_quality_eval.cross_model",
+    "regression": "dashscope:qwen2.5-72b-instruct -0.1290 vs deepseek:deepseek-v4-flash on 一建《建筑实务》62 MCQ",
+    "caught": true,
+    "kind": "real",
+    "date": "2026-05-28",
+    "note": "cross-model auto-record: candidate would regress quality by 12.90pp"
+  },
+  {
+    "gate": "exam_quality_eval.cross_model",
+    "regression": "dashscope:qwen-turbo-latest -0.1452 vs deepseek:deepseek-v4-flash on 一建《建筑实务》62 MCQ",
+    "caught": true,
+    "kind": "real",
+    "date": "2026-05-28",
+    "note": "cross-model auto-record: candidate would regress quality by 14.52pp"
   }
 ]
