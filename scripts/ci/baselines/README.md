@@ -18,9 +18,15 @@ and reference the approving PR in the commit message.
 
 ## Files
 
-- `secure_routers_baseline.txt` — `file:line` keys for bare `APIRouter()`,
-  `public_router()` missing reason, or `@router.websocket` without
-  `secure_ws_endpoint`, as detected by `scripts/ci/check_secure_routers.sh`.
+- `secure_routers_baseline.txt` — mixed-format keys from
+  `scripts/ci/check_secure_routers.sh`:
+  - `file:line` for Rule 1 bare `APIRouter()` violations (line number stable
+    because the import sits at a deterministic position)
+  - bare `file` path for Rule 3 `@router.websocket` without
+    `secure_ws_endpoint` (line number omitted because decorator position
+    shifts with edits; path-level match is more stable)
+  Rule 2 (`public_router()` without `reason=`) is not baseline-tracked — it
+  always fails because there is no reason to grandfather missing reasons.
 - `rls_migrations_baseline.txt` — migration filenames where
   `create table public.X` lacks same-migration `enable row level security`,
   as detected by `scripts/ci/check_rls_on_create_table.sh`.
