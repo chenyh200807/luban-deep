@@ -15,6 +15,11 @@ MANIFEST="deeptutor/api/_public_manifest.py"
 # STRICT=0 (default, post-PR-1a): warn-only baseline; routers still bare APIRouter.
 # STRICT=1 (post-PR-1b migration): hard fail on bare APIRouter.
 STRICT="${STRICT:-0}"
+# FAIL_ON_NEW=1: pass historical violations in scripts/ci/baselines/secure_routers_baseline.txt,
+# but fail on any new bare APIRouter / public_router-without-reason / WS-without-secure_ws_endpoint
+# that does not appear in the baseline. This is the gate enforced in CI before STRICT=1 rollout.
+FAIL_ON_NEW="${FAIL_ON_NEW:-0}"
+BASELINE_FILE="${BASELINE_FILE:-scripts/ci/baselines/secure_routers_baseline.txt}"
 fail=0
 warn_count=0
 
@@ -26,13 +31,32 @@ fi
 # Rule 1: no bare APIRouter() in routers/ — must use secure_router or public_router.
 bad=$(grep -RnE '^[^#]*APIRouter\(' "$ROUTERS_DIR" 2>/dev/null || true)
 if [ -n "$bad" ]; then
-    n=$(echo "$bad" | wc -l | tr -d ' ')
-    if [ "$STRICT" = "1" ]; then
+    if [ "$FAIL_ON_NEW" = "1" ] && [ -f "$BASELINE_FILE" ]; then
+        # Filter out baseline-known entries; fail only on new ones.
+        new_bad=""
+        new_count=0
+        while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            key=$(echo "$line" | grep -oE "${ROUTERS_DIR}/[^:]+:[0-9]+" || true)
+            if [ -n "$key" ] && ! grep -qxF "$key" "$BASELINE_FILE"; then
+                new_bad="${new_bad}${line}"$'\n'
+                new_count=$((new_count + 1))
+            fi
+        done <<< "$bad"
+        if [ "$new_count" -gt 0 ]; then
+            echo "[FAIL] $new_count new bare APIRouter() not in $BASELINE_FILE:" >&2
+            printf '%s' "$new_bad" >&2
+            echo "  → If intentional, regenerate baseline and reference the approving PR." >&2
+            fail=1
+        fi
+    elif [ "$STRICT" = "1" ]; then
+        n=$(echo "$bad" | wc -l | tr -d ' ')
         echo "[FAIL] bare APIRouter() found in $n places (STRICT=1):" >&2
         echo "$bad" >&2
         fail=1
     else
-        echo "[WARN] bare APIRouter() found in $n places (STRICT=0 baseline; will fail when STRICT=1)" >&2
+        n=$(echo "$bad" | wc -l | tr -d ' ')
+        echo "[WARN] bare APIRouter() found in $n places (STRICT=0 baseline; will fail when STRICT=1 or FAIL_ON_NEW=1)" >&2
         warn_count=$((warn_count + n))
     fi
 fi
@@ -47,9 +71,14 @@ fi
 
 # Rule 3: WS endpoints must call secure_ws_endpoint OR be exempted via comment.
 ws_violations=0
+ws_new_violations=()
 for f in $(grep -lE '@router\.websocket' "$ROUTERS_DIR"/*.py 2>/dev/null); do
     if ! grep -qE 'secure_ws_endpoint|# secure_ws_endpoint:exempt' "$f"; then
-        if [ "$STRICT" = "1" ]; then
+        if [ "$FAIL_ON_NEW" = "1" ] && [ -f "$BASELINE_FILE" ]; then
+            if ! grep -qxF "$f" "$BASELINE_FILE"; then
+                ws_new_violations+=("$f")
+            fi
+        elif [ "$STRICT" = "1" ]; then
             echo "[FAIL] $f has @router.websocket without secure_ws_endpoint:" >&2
             grep -nE '@router\.websocket' "$f" >&2
             fail=1
@@ -58,7 +87,12 @@ for f in $(grep -lE '@router\.websocket' "$ROUTERS_DIR"/*.py 2>/dev/null); do
         fi
     fi
 done
-if [ "$ws_violations" -gt 0 ] && [ "$STRICT" != "1" ]; then
+if [ "${#ws_new_violations[@]}" -gt 0 ]; then
+    echo "[FAIL] ${#ws_new_violations[@]} WS file(s) with @router.websocket but no secure_ws_endpoint, not in $BASELINE_FILE:" >&2
+    printf '  %s\n' "${ws_new_violations[@]}" >&2
+    fail=1
+fi
+if [ "$ws_violations" -gt 0 ] && [ "$STRICT" != "1" ] && [ "$FAIL_ON_NEW" != "1" ]; then
     echo "[WARN] $ws_violations WS file(s) without secure_ws_endpoint (STRICT=0 baseline)" >&2
     warn_count=$((warn_count + ws_violations))
 fi
