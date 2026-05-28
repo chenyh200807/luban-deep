@@ -20,8 +20,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+# Reuse the single MCQ-answer parsing authority from exact_authority — do NOT
+# duplicate normalization/extraction here (single-authority gate, AGENTS §5.7).
 from deeptutor.services.rag.exact_authority import (
-    exact_authority_response_matches,
+    _extract_marked_mcq_answers,
+    _normalize_mcq_answer_letters,
     extract_exact_question_authority_from_metadata,
 )
 
@@ -46,8 +49,11 @@ def score_answer_correctness(
 ) -> CorrectnessScore:
     """Score one model answer against the bank's authoritative answer.
 
-    - mcq: strong check via ``exact_authority_response_matches`` (marked answer
-      must equal the authoritative letter(s)).
+    - mcq: closed-book correctness — the model's marked answer letter(s) must
+      equal the authoritative letter(s). This is deliberately *not* the
+      rendering-faithfulness oracle (``exact_authority_response_matches``),
+      whose length / option-restatement / anti-echo guards reject legitimate
+      closed-book answers like "答案：B".
     - free_text: the authoritative answer text must be present in the response.
     - case_study: every covered subquestion's authoritative answer must appear.
     """
@@ -55,8 +61,10 @@ def score_answer_correctness(
     response_compact = _compact(response)
 
     if answer_kind == "mcq":
-        correct = exact_authority_response_matches(exact_question, str(response or ""))
-        return CorrectnessScore(question_id, "mcq", correct, "marked answer vs authoritative letter")
+        expected = _normalize_mcq_answer_letters(exact_question.get("correct_answer"))
+        marked = _extract_marked_mcq_answers(str(response or ""))
+        correct = bool(expected) and bool(marked) and all(ans == expected for ans in marked)
+        return CorrectnessScore(question_id, "mcq", correct, "marked letter(s) vs authoritative letter(s)")
 
     if answer_kind == "free_text":
         answer = _compact(exact_question.get("correct_answer"))

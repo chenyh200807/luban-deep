@@ -78,6 +78,17 @@
 
 > **一句话**:harness 的「架构透传」地基已是顶尖水平(单一权威 + 薄壳 + alias-proof guard);要到 9+ 的「验证透传」,核心瓶颈不是再多写代码,而是 **质量度量的 ground-truth/标注 + 真实面 staging + 时间累积**。这三样到位前,任何人(含顶尖团队)都到不了可信 9+;到位后,我已铺好的 cassette/oracle/ledger/guard 能直接长上去。
 
+## 0.7 进度更新（2026-05-28：质量打分 ground-truth 路径落地 + 真实基线）
+
+**资源解锁**:用户提供近 3 年一建《建筑实务》历史真题作为 ground-truth(§0.6 路径 2)。已落地:
+
+- **ground-truth 题库 fixture**:`fixtures/exam_quality_bank.json`，从真题抽出 **62 道带权威答案的 MCQ**(2023×30 + 2025×32；2024 源文件为 macOS 云占位 dataless，待下载后再并入)。`correct_answer` 字母为唯一权威。
+- **加载器 + 闭卷 eval**:`exam_quality_bank.py` / `exam_quality_eval.py`(LLM 调用依赖注入，离线全测）。
+- **§5.7 收权**:`quality_scoring` 的 mcq 分支从「渲染保真 oracle」(`exact_authority_response_matches`，带长度/选项复述/回显守卫)**收权**到「模型标注字母 vs 权威字母」——闭卷正确性与渲染保真是两个不同业务事实，复用单一 MCQ 解析权威，不新增第二套。
+- **真实基线(无 judge、无人工标注、确定性打分)**:`deepseek-v4-flash` 闭卷 **accuracy = 0.8387（52/62）**，0 errors；2023 = 0.8667，2025 = 0.8125。
+
+**分数变化(诚实)**:质量打分 4 → **有真实 ground-truth 基线测量**(从「只有 exact 渲染保真」到「真题答对率可量化」)。**跨模型差分评估**(B 核心)的逻辑 + 数据 + 单模型实跑已全部就位，唯一缺口收窄到 **qwen provider config**——配好即可一条命令出「换模型→better/regression」裁决。real 命中率、真实面覆盖(RAG/tutorbot)、2024 题并入仍为待解锁项。
+
 ## 1. 世界级实践基线（调研依据，2026-05 检索）
 
 本路线图不是凭空设计,锚定以下实践:

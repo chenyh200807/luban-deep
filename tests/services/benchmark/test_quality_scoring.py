@@ -32,6 +32,24 @@ def test_mcq_correct_and_incorrect() -> None:
     assert score_answer_correctness(question_id="q1", exact_question=_MCQ, response=bad).correct is False
 
 
+def test_mcq_closed_book_bare_letter_is_correct() -> None:
+    """Closed-book scoring must reward a correct *letter* even when the model
+    does not restate the option text — the realistic closed-book answer shape.
+    (The rendering-faithfulness oracle wrongly rejected this; closed-book
+    correctness is a different question scored by letter, not by restatement.)"""
+    bare = "答案：B"
+    reasoned = "题目考查工业建筑分类。逐项分析后，仓储建筑属于工业建筑。\n答案：B"
+    assert score_answer_correctness(question_id="q1", exact_question=_MCQ, response=bare).correct is True
+    assert score_answer_correctness(question_id="q1", exact_question=_MCQ, response=reasoned).correct is True
+
+
+def test_mcq_multi_answer_letters() -> None:
+    multi = {"answer_kind": "mcq", "correct_answer": "ABD", "options": {"A": "x", "B": "y", "C": "z", "D": "w"}}
+    assert score_answer_correctness(question_id="m1", exact_question=multi, response="答案：A、B、D").correct is True
+    assert score_answer_correctness(question_id="m1", exact_question=multi, response="答案：A、B").correct is False
+    assert score_answer_correctness(question_id="m1", exact_question=multi, response="未给出答案").correct is False
+
+
 def test_free_text_correct_and_incorrect() -> None:
     good = "依据规范，应先进行验槽，确认地基承载力满足设计要求后方可施工。"
     bad = "直接开始施工即可。"
