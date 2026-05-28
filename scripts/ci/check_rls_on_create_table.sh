@@ -70,7 +70,7 @@ done
 
 if [ "$fail" -eq 0 ]; then
     if [ "$FAIL_ON_NEW" = "1" ]; then
-        echo "[OK] check_rls_on_create_table: FAIL_ON_NEW gate passed (baseline: $BASELINE_FILE, $(wc -l < "$BASELINE_FILE" | tr -d ' ') known historical violations skipped, 0 new)"
+        echo "[OK] check_rls_on_create_table: FAIL_ON_NEW gate passed (baseline: $BASELINE_FILE, $(wc -l < "$BASELINE_FILE" | tr -d ' ') known historical migration files skipped, 0 new)"
     elif [ "$warn_count" -gt 0 ]; then
         echo "[OK-warn] check_rls_on_create_table: $warn_count historical violation(s) (STRICT=0 baseline)" >&2
         echo "  → Re-run with STRICT=1 to see details and fail the gate." >&2
