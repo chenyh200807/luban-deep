@@ -109,6 +109,29 @@
 **诚实标注的精度地板**:deepseek 同 prompt 同 temperature=0 两次跑 83.87→85.48 飘 1 道题（~1.5pp）——单跑 delta 精度地板 ~1.5pp;9.67pp 远超此 ceiling，信号可信。未来若要更细分判，需 N 跑取均值（roadmap H6）。
 **仍未解锁**:① 真实面覆盖（RAG / tutorbot 事件溯源回放）;② real 命中率（时间累积）;③ 2024 题（云占位待下载）;④ 更多模型 tier 对比（qwen-plus/turbo/qwen2.5-72b 等，用相同 CLI 一行加入）。这些不是"再写代码"能跨过——是 staging/数据/时间。
 
+## 0.9 进度更新（2026-05-28：5 模型 tier matrix + 反直觉信号）
+
+§0.8 的"两模型"裁决一行扩到"五模型 tier matrix"——一次 CLI 调用,5 × 62 = 310 次 live calls,errors=0:
+
+| 模型 | accuracy | vs deepseek baseline |
+|---|---:|---:|
+| `deepseek:deepseek-v4-flash` (baseline) | **0.8387** (52/62) | — |
+| `dashscope:qwen-plus-latest` | 0.7742 (48/62) | **-6.45pp** |
+| `dashscope:qwen-max-latest` | 0.7581 (47/62) | -8.06pp |
+| `dashscope:qwen2.5-72b-instruct` | 0.7097 (44/62) | -12.90pp |
+| `dashscope:qwen-turbo-latest` | 0.6935 (43/62) | -14.52pp |
+
+**两个无尺子看不见的反直觉信号**:
+
+1. **qwen-plus 反超 qwen-max** +1.6pp:Qwen 系内"更大不一定更强",至少在中国建造师专业题域上 qwen-max 不是 qwen 系最强。这是无 harness 永远看不见的发现。
+2. **DeepSeek-flash 击败 Qwen 全 4 tier**:不是模型质量普遍论，但**本项目所在域 DeepSeek 就是更对**。"qwen-max 听起来更强"的本能升级直觉在此处是 -8pp 事故。
+
+**公共回归题集群**:`2023-sc-05`/`2023-sc-18`/`2023-mc-08` 各被 ≥3 个 qwen tier 共同栽——指向具体的中国建筑规范条款知识缺口,可指导后续 RAG 检索强化路线（哪些条款值得 chunk 化、哪些题型最受益于检索增强）。
+
+**精度地板再确认**:deepseek 同 prompt/temperature=0 两次跑 85.48→83.87 飘 1 题（1.6pp）;本次所有 delta 都远超此地板,信号可信。
+
+**分数变化(诚实)**:跨模型差分(B 核心) "可下裁决" → **"可对整族 model 出 tier landscape + 反直觉发现"**。这正是 B「验证透传」从单点比对走向系统化模型选型工具的实证。
+
 ## 1. 世界级实践基线（调研依据，2026-05 检索）
 
 本路线图不是凭空设计,锚定以下实践:
