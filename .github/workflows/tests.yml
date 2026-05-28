@@ -25,6 +25,8 @@ on:
       - "docs/zh/guide/unified-turn-contract.md"
       - ".github/workflows/tests.yml"
       - ".github/pull_request_template.md"
+      - "scripts/ci/check_secure_routers.sh"
+      - "scripts/ci/baselines/secure_routers_baseline.txt"
   pull_request:
     branches:
       - main
@@ -49,6 +51,8 @@ on:
       - "docs/zh/guide/unified-turn-contract.md"
       - ".github/workflows/tests.yml"
       - ".github/pull_request_template.md"
+      - "scripts/ci/check_secure_routers.sh"
+      - "scripts/ci/baselines/secure_routers_baseline.txt"
 
 jobs:
   contract-guard:
@@ -80,6 +84,9 @@ jobs:
         env:
           BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
           HEAD_SHA: ${{ github.sha }}
+
+      - name: Secure router fail-on-new gate
+        run: FAIL_ON_NEW=1 bash scripts/ci/check_secure_routers.sh
 
   import-check:
     name: Import Check (Python ${{ matrix.python-version }})
