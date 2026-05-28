@@ -15,6 +15,19 @@ MIG_DIR="${MIG_DIR:-supabase/migrations}"
 # STRICT=0 (default): warn on historical violations (PR-2 baseline).
 # STRICT=1: hard fail (use in CI for NEW migrations once historical drift is cleaned).
 STRICT="${STRICT:-0}"
+# FAIL_ON_NEW=1: pass historical migration violations listed in
+# scripts/ci/baselines/rls_migrations_baseline.txt, but fail on any NEW migration
+# that creates `public.X` without enabling RLS in the same file.
+# This is the gate enforced in CI before STRICT=1 rollout.
+FAIL_ON_NEW="${FAIL_ON_NEW:-0}"
+BASELINE_FILE="${BASELINE_FILE:-scripts/ci/baselines/rls_migrations_baseline.txt}"
+
+if [ "$FAIL_ON_NEW" = "1" ] && [ ! -f "$BASELINE_FILE" ]; then
+    echo "[FAIL] FAIL_ON_NEW=1 but baseline file not found: $BASELINE_FILE" >&2
+    echo "  → Either regenerate the baseline or unset FAIL_ON_NEW." >&2
+    exit 1
+fi
+
 fail=0
 warn_count=0
 
@@ -38,8 +51,15 @@ for f in "$MIG_DIR"/*.sql; do
 
     for t in ${tables}; do
         if ! grep -iqE "alter table[[:space:]]+public\.${t}[[:space:]]+enable[[:space:]]+row[[:space:]]+level[[:space:]]+security" "$f"; then
-            if [ "$STRICT" = "1" ]; then
-                echo "[FAIL] $(basename "$f"): table public.${t} created but RLS not enabled in same migration" >&2
+            basename_f=$(basename "$f")
+            if [ "$FAIL_ON_NEW" = "1" ]; then
+                if ! grep -qxF "$basename_f" "$BASELINE_FILE"; then
+                    echo "[FAIL] new migration $basename_f creates public.${t} without RLS enabled in same migration" >&2
+                    echo "  → If intentional, regenerate $BASELINE_FILE and reference the approving PR." >&2
+                    fail=1
+                fi
+            elif [ "$STRICT" = "1" ]; then
+                echo "[FAIL] $basename_f: table public.${t} created but RLS not enabled in same migration" >&2
                 fail=1
             else
                 warn_count=$((warn_count + 1))
@@ -49,7 +69,9 @@ for f in "$MIG_DIR"/*.sql; do
 done
 
 if [ "$fail" -eq 0 ]; then
-    if [ "$warn_count" -gt 0 ]; then
+    if [ "$FAIL_ON_NEW" = "1" ]; then
+        echo "[OK] check_rls_on_create_table: FAIL_ON_NEW gate passed (baseline: $BASELINE_FILE, $(wc -l < "$BASELINE_FILE" | tr -d ' ') known historical violations skipped, 0 new)"
+    elif [ "$warn_count" -gt 0 ]; then
         echo "[OK-warn] check_rls_on_create_table: $warn_count historical violation(s) (STRICT=0 baseline)" >&2
         echo "  → Re-run with STRICT=1 to see details and fail the gate." >&2
     else
