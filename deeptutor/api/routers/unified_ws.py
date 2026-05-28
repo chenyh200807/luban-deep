@@ -318,6 +318,55 @@ def _redact_event_for_public(event: dict[str, Any]) -> dict[str, Any]:
     return clean
 
 
+# Backport item: bound the size of the event copy sent to clients over
+# /api/v1/ws so one pathological event (a huge tool dump, a base64 blob in
+# metadata) cannot blow up the WS frame or the client. Like
+# _redact_event_for_public this runs ONLY on the outbound public copy — the
+# persisted turn_events row and the canonical final answer
+# (result.metadata.response materialised into messages.content) are never
+# touched (turn.md §13 copy-only contract, §96 canonical answer authority).
+_MAX_PUBLIC_CONTENT_CHARS = 16000
+_MAX_PUBLIC_METADATA_STR_CHARS = 8000
+_PUBLIC_TRUNCATION_MARKER = "…[truncated]"
+
+
+def _clamp_str_for_public(value: str, limit: int) -> str:
+    if len(value) <= limit:
+        return value
+    return value[:limit] + _PUBLIC_TRUNCATION_MARKER
+
+
+def _clamp_value_for_public(value: Any) -> Any:
+    if isinstance(value, str):
+        return _clamp_str_for_public(value, _MAX_PUBLIC_METADATA_STR_CHARS)
+    if isinstance(value, dict):
+        return {key: _clamp_value_for_public(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_clamp_value_for_public(item) for item in value]
+    return value
+
+
+def _clamp_event_for_public(event: dict[str, Any]) -> dict[str, Any]:
+    """Bound the outbound public event size; structure and small fields stay intact.
+
+    Oversized top-level ``content`` and oversized string values inside
+    ``metadata`` are truncated with a marker. Realistic oversized payloads are a
+    single huge string (image base64, giant tool dump), which per-string
+    clamping bounds directly while preserving keys and small values the client
+    needs to render. Returns a new dict and never mutates the input.
+    """
+    if not isinstance(event, dict):
+        return event
+    clamped = dict(event)
+    content = clamped.get("content")
+    if isinstance(content, str):
+        clamped["content"] = _clamp_str_for_public(content, _MAX_PUBLIC_CONTENT_CHARS)
+    metadata = clamped.get("metadata")
+    if isinstance(metadata, dict):
+        clamped["metadata"] = _clamp_value_for_public(metadata)
+    return clamped
+
+
 @router.websocket("/ws")
 async def unified_websocket(ws: WebSocket) -> None:
     # SR1 PR-1b: A2 closed — anonymous WS connections now reject 4401 (was: pass-through).
@@ -358,7 +407,7 @@ async def unified_websocket(ws: WebSocket) -> None:
         async def _forward() -> None:
             runtime = get_turn_runtime_manager()
             async for event in runtime.subscribe_turn(turn_id, after_seq=after_seq):
-                await safe_send(_redact_event_for_public(event))
+                await safe_send(_clamp_event_for_public(_redact_event_for_public(event)))
 
         await stop_subscription(turn_id)
         subscription_tasks[turn_id] = spawn_task(
@@ -373,7 +422,7 @@ async def unified_websocket(ws: WebSocket) -> None:
         async def _forward() -> None:
             runtime = get_turn_runtime_manager()
             async for event in runtime.subscribe_session(session_id, after_seq=after_seq):
-                await safe_send(_redact_event_for_public(event))
+                await safe_send(_clamp_event_for_public(_redact_event_for_public(event)))
 
         key = f"session:{session_id}"
         await stop_subscription(key)

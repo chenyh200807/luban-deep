@@ -11,6 +11,10 @@ import json
 import pytest
 
 from deeptutor.api.routers.unified_ws import (
+    _MAX_PUBLIC_CONTENT_CHARS,
+    _MAX_PUBLIC_METADATA_STR_CHARS,
+    _PUBLIC_TRUNCATION_MARKER,
+    _clamp_event_for_public,
     _redact_active_object_for_public,
     _redact_event_for_public,
     _redact_metadata_for_public,
@@ -323,3 +327,95 @@ def test_redact_metadata_preserves_string_bodies_and_non_hidden_keys() -> None:
     assert redacted["presentation"]["blocks"][0]["text"] == "Q1 正确答案 是 A"
     assert redacted["response"] == "请看下面的解析与正确答案：……"
     assert redacted["tool_traces"] == []
+
+
+# ── Oversized event payload clamp (public WS boundary only) ──────────────────
+# Backport item: bound the size of the event copy sent to clients over
+# /api/v1/ws. Persisted truth (turn_events) and canonical final answer
+# (result.metadata.response materialised into messages.content) are NOT
+# touched — clamping runs only on the outbound public copy, mirroring how
+# _redact_event_for_public operates on a copy at the same boundary.
+
+
+def test_clamp_event_passthrough_for_normal_event() -> None:
+    event = {
+        "type": "content",
+        "content": "正常的一小段流式正文",
+        "metadata": {"status": "running", "visibility": "public"},
+        "seq": 3,
+    }
+    clamped = _clamp_event_for_public(event)
+    assert clamped == event
+
+
+def test_clamp_event_does_not_mutate_input() -> None:
+    original_content = "x" * (_MAX_PUBLIC_CONTENT_CHARS + 5000)
+    event = {"type": "content", "content": original_content, "metadata": {}}
+    _clamp_event_for_public(event)
+    # input untouched — clamp returns a new dict
+    assert event["content"] == original_content
+    assert len(event["content"]) == _MAX_PUBLIC_CONTENT_CHARS + 5000
+
+
+def test_clamp_event_truncates_oversized_content() -> None:
+    event = {
+        "type": "content",
+        "content": "字" * (_MAX_PUBLIC_CONTENT_CHARS + 2000),
+        "metadata": {"status": "running"},
+    }
+    clamped = _clamp_event_for_public(event)
+    assert clamped["content"].endswith(_PUBLIC_TRUNCATION_MARKER)
+    assert len(clamped["content"]) == _MAX_PUBLIC_CONTENT_CHARS + len(_PUBLIC_TRUNCATION_MARKER)
+    # essential metadata untouched
+    assert clamped["metadata"]["status"] == "running"
+
+
+def test_clamp_event_truncates_oversized_metadata_string_preserving_structure() -> None:
+    huge_blob = "A" * (_MAX_PUBLIC_METADATA_STR_CHARS + 4000)
+    event = {
+        "type": "tool_result",
+        "content": "ok",
+        "metadata": {
+            "status": "completed",
+            "image_base64": huge_blob,
+            "sources": [{"title": "ref", "url": "https://example.com"}],
+            "nested": {"dump": huge_blob},
+        },
+    }
+    clamped = _clamp_event_for_public(event)
+    md = clamped["metadata"]
+    # oversized strings truncated with marker, structure + small keys intact
+    assert md["image_base64"].endswith(_PUBLIC_TRUNCATION_MARKER)
+    assert len(md["image_base64"]) == _MAX_PUBLIC_METADATA_STR_CHARS + len(_PUBLIC_TRUNCATION_MARKER)
+    assert md["nested"]["dump"].endswith(_PUBLIC_TRUNCATION_MARKER)
+    assert md["status"] == "completed"
+    assert md["sources"] == [{"title": "ref", "url": "https://example.com"}]
+    assert clamped["content"] == "ok"
+
+
+def test_clamp_event_preserves_short_strings_in_metadata() -> None:
+    event = {
+        "type": "result",
+        "content": "短答案",
+        "metadata": {"response": "这是 canonical 最终答案的展示投影，长度正常。", "status": "completed"},
+    }
+    clamped = _clamp_event_for_public(event)
+    assert clamped["metadata"]["response"] == "这是 canonical 最终答案的展示投影，长度正常。"
+    assert clamped == event
+
+
+def test_clamp_composes_after_redaction_on_oversized_event_with_hidden_key() -> None:
+    huge_blob = "B" * (_MAX_PUBLIC_METADATA_STR_CHARS + 3000)
+    event = {
+        "type": "tool_result",
+        "content": "ok",
+        "metadata": {
+            "status": "completed",
+            "correct_answer": "B",  # hidden authority — must be dropped by redaction
+            "dump": huge_blob,  # oversized — must be clamped
+        },
+    }
+    public = _clamp_event_for_public(_redact_event_for_public(event))
+    assert "correct_answer" not in public["metadata"]
+    assert public["metadata"]["dump"].endswith(_PUBLIC_TRUNCATION_MARKER)
+    assert public["metadata"]["status"] == "completed"
