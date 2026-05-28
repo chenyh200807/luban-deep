@@ -20,6 +20,13 @@ STRICT="${STRICT:-0}"
 # that does not appear in the baseline. This is the gate enforced in CI before STRICT=1 rollout.
 FAIL_ON_NEW="${FAIL_ON_NEW:-0}"
 BASELINE_FILE="${BASELINE_FILE:-scripts/ci/baselines/secure_routers_baseline.txt}"
+
+if [ "$FAIL_ON_NEW" = "1" ] && [ ! -f "$BASELINE_FILE" ]; then
+    echo "[FAIL] FAIL_ON_NEW=1 but baseline file not found: $BASELINE_FILE" >&2
+    echo "  → Either regenerate the baseline or unset FAIL_ON_NEW." >&2
+    exit 1
+fi
+
 fail=0
 warn_count=0
 
@@ -98,7 +105,9 @@ if [ "$ws_violations" -gt 0 ] && [ "$STRICT" != "1" ] && [ "$FAIL_ON_NEW" != "1"
 fi
 
 if [ "$fail" -eq 0 ]; then
-    if [ "$warn_count" -gt 0 ]; then
+    if [ "$FAIL_ON_NEW" = "1" ]; then
+        echo "[OK] check_secure_routers.sh: FAIL_ON_NEW gate passed (baseline: $BASELINE_FILE, $(wc -l < "$BASELINE_FILE" | tr -d ' ') known historical violations skipped, 0 new)"
+    elif [ "$warn_count" -gt 0 ]; then
         echo "[OK-warn] check_secure_routers.sh: $warn_count baseline warnings (STRICT=0 mode)"
     else
         echo "[OK] check_secure_routers.sh: all routers use secure_router/public_router factory"
