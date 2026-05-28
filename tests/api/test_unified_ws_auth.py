@@ -160,6 +160,41 @@ def test_ws_anonymous_connection_rejected_with_4401(
     assert exc_info.value.code == 4401
 
 
+def test_ws_resume_from_rejects_foreign_owned_turn(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """SR1 PR-1b regression: cross-session turn-regeneration is blocked.
+
+    turn.md hard constraint #4 — `resume_from` only replays an existing turn and
+    must authorize it through `_authorize_turn_access` (turn -> session -> owner).
+    User A replaying user B's turn must get "Turn not found" and must never be
+    subscribed to another user's stream. subscribe_session covers the session
+    path; this locks the turn path independently so a future resume_from refactor
+    that drops the authorize call is caught.
+    """
+    store = SQLiteSessionStore(db_path=tmp_path / "ws-auth.db")
+    fake_runtime = _FakeRuntime()
+
+    monkeypatch.setattr(secure_router_mod, "resolve_auth_context", lambda _authorization: _ctx("student_demo"))
+    monkeypatch.setattr("deeptutor.services.session.get_sqlite_session_store", lambda: store)
+    monkeypatch.setattr("deeptutor.services.session.get_turn_runtime_manager", lambda: fake_runtime)
+
+    import asyncio
+
+    asyncio.run(store.create_session(session_id="owned_by_other", owner_key=build_user_owner_key("student_other")))
+    foreign_turn = asyncio.run(store.create_turn("owned_by_other", capability="chat"))
+    foreign_turn_id = str(foreign_turn.get("id") or "")
+
+    with TestClient(_build_app()) as client:
+        with client.websocket_connect("/api/v1/ws") as websocket:
+            websocket.send_json({"type": "resume_from", "turn_id": foreign_turn_id, "seq": 0})
+            message = websocket.receive_json()
+
+    assert message["type"] == "error"
+    assert message["content"] == "Turn not found"
+
+
 def test_ws_subscribe_session_allows_owner(
     tmp_path,
     monkeypatch: pytest.MonkeyPatch,
