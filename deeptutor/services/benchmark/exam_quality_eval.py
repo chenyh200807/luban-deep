@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
+import os
 from typing import Any, Awaitable, Callable
 
 from deeptutor.services.benchmark.exam_quality_bank import (
@@ -52,6 +53,104 @@ def build_closed_book_prompt(exact_question: dict[str, Any], *, is_multiple: boo
         "请只输出一行最终答案，格式为「答案：」后紧跟所选选项的大写字母；"
         "多选请将字母连续写在一起。不要输出任何解释或推理过程。"
     )
+
+
+@dataclass(frozen=True)
+class ModelSpec:
+    """One model to eval: an opaque model name plus optional explicit binding.
+
+    With ``binding=None`` the call falls back to the configured default provider
+    (current production deepseek). With ``binding`` set, the eval bypasses the
+    default config and resolves the provider via ``provider_registry`` —
+    required for cross-model runs (e.g. ``dashscope:qwen-max`` next to
+    ``deepseek:deepseek-v4-flash``) so each call hits the right key + base_url.
+    """
+
+    model: str
+    binding: str | None = None
+
+    @property
+    def label(self) -> str:
+        return f"{self.binding}:{self.model}" if self.binding else self.model
+
+
+def parse_model_spec(arg: str) -> ModelSpec:
+    """Parse a CLI arg of form ``model`` or ``binding:model``.
+
+    Fail fast on empty model name — a typo would otherwise silently use config.
+    """
+    arg = (arg or "").strip()
+    if not arg:
+        raise ValueError("empty model spec")
+    if ":" in arg:
+        binding, model = arg.split(":", 1)
+        binding = binding.strip() or None
+        model = model.strip()
+    else:
+        binding, model = None, arg
+    if not model:
+        raise ValueError(f"empty model name in spec {arg!r}")
+    return ModelSpec(model=model, binding=binding)
+
+
+def build_completer_for_spec(spec: ModelSpec) -> Completer:
+    """Build the completer for a model spec.
+
+    No binding → reuse the configured-default completer (zero env requirements).
+    Explicit binding → resolve the provider via the single ``provider_registry``
+    authority, read the env key it declares, and pass the full quad
+    (model + api_key + base_url + binding) to ``factory.complete`` so the
+    configured-default never bleeds in.
+    """
+    if spec.binding is None:
+        return _default_completer
+
+    from deeptutor.services.provider_registry import find_by_name
+
+    provider = find_by_name(spec.binding)
+    if provider is None:
+        raise ValueError(f"unknown provider binding: {spec.binding!r}")
+    env_key = getattr(provider, "env_key", "") or ""
+    api_key = os.environ.get(env_key) if env_key else None
+    base_url = getattr(provider, "default_api_base", None)
+    # Fall back to the configured default ONLY when the configured binding
+    # matches the requested one — otherwise we'd risk hitting one provider's
+    # endpoint with another's key. This keeps "deepseek:deepseek-v4-flash"
+    # usable on a deepseek-configured project without DEEPSEEK_API_KEY in
+    # os.environ, while still failing fast on real cross-provider key gaps.
+    if not api_key:
+        from deeptutor.services.llm.config import get_llm_config
+
+        try:
+            cfg = get_llm_config()
+        except Exception:
+            cfg = None
+        if cfg is not None and str(getattr(cfg, "binding", "") or "").lower() == spec.binding.lower():
+            api_key = getattr(cfg, "api_key", None) or api_key
+            base_url = base_url or getattr(cfg, "base_url", None)
+    if env_key and not api_key:
+        raise RuntimeError(
+            f"binding {spec.binding!r} requires env var {env_key} (not set, "
+            f"and configured provider does not match); set it before running "
+            f"cross-model eval."
+        )
+
+    async def _completer(
+        *, prompt: str, system_prompt: str, model: str | None, **kwargs: Any
+    ) -> str:
+        from deeptutor.services.llm.factory import complete
+
+        return await complete(
+            prompt=prompt,
+            system_prompt=system_prompt,
+            model=model,
+            api_key=api_key,
+            base_url=base_url,
+            binding=spec.binding,
+            **kwargs,
+        )
+
+    return _completer
 
 
 @dataclass(frozen=True)
@@ -156,22 +255,43 @@ def _format_result(result: ClosedBookEvalResult) -> str:
     return "\n".join(lines)
 
 
-async def _amain(models: list[str]) -> None:
+async def _amain(args: list[str]) -> None:
     questions = load_exam_quality_bank()
     print(f"loaded {len(questions)} ground-truth MCQs")
-    if not models:
+    if not args:
         result = await run_closed_book_eval(questions)
         print(_format_result(result))
         return
 
+    specs = [parse_model_spec(a) for a in args]
     scores_by_model: dict[str, list[CorrectnessScore]] = {}
-    for model in models:
-        result = await run_closed_book_eval(questions, model=model)
-        print(_format_result(result))
-        scores_by_model[model] = result.scores
-    report = cross_model_correctness_report(scores_by_model, baseline_model=models[0])
-    print("=== cross-model upgrade verdict ===")
-    print(f"upgrade_safe={report['upgrade_safe']}  deltas={report['accuracy_delta_vs_baseline']}")
+    for spec in specs:
+        completer = build_completer_for_spec(spec)
+        result = await run_closed_book_eval(
+            questions, model=spec.model, completer=completer
+        )
+        # report uses the full label (binding:model) so cross-model output is unambiguous
+        labeled = ClosedBookEvalResult(
+            model=spec.label,
+            scores=result.scores,
+            accuracy=result.accuracy,
+            by_year=result.by_year,
+            errors=result.errors,
+        )
+        print(_format_result(labeled))
+        scores_by_model[spec.label] = result.scores
+    if len(specs) >= 2:
+        report = cross_model_correctness_report(
+            scores_by_model, baseline_model=specs[0].label
+        )
+        print("=== cross-model upgrade verdict ===")
+        print(
+            f"baseline={report['baseline_model']}  "
+            f"upgrade_safe={report['upgrade_safe']}  "
+            f"deltas={report['accuracy_delta_vs_baseline']}"
+        )
+        if report["regressions"]:
+            print(f"regressions: {report['regressions']}")
 
 
 if __name__ == "__main__":  # pragma: no cover - CLI entry

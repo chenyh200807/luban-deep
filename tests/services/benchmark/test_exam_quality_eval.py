@@ -8,9 +8,14 @@ from __future__ import annotations
 
 import asyncio
 
+import pytest
+
 from deeptutor.services.benchmark.exam_quality_bank import ExamQuestion
 from deeptutor.services.benchmark.exam_quality_eval import (
+    ModelSpec,
     build_closed_book_prompt,
+    build_completer_for_spec,
+    parse_model_spec,
     run_closed_book_eval,
 )
 
@@ -63,6 +68,84 @@ def test_perfect_model_scores_full_accuracy() -> None:
     assert result.accuracy == 1.0
     assert result.errors == 0
     assert result.by_year[2025] == {"total": 1, "correct": 1}
+
+
+def test_parse_model_spec_forms() -> None:
+    assert parse_model_spec("qwen-max") == ModelSpec(model="qwen-max", binding=None)
+    assert parse_model_spec("dashscope:qwen-max") == ModelSpec(
+        model="qwen-max", binding="dashscope"
+    )
+    # whitespace is trimmed
+    assert parse_model_spec("  deepseek :  deepseek-v4-flash ") == ModelSpec(
+        model="deepseek-v4-flash", binding="deepseek"
+    )
+    # empty or model-less is rejected (fail fast — a typo would silently use config)
+    with pytest.raises(ValueError):
+        parse_model_spec("")
+    with pytest.raises(ValueError):
+        parse_model_spec("dashscope:")
+
+
+def test_model_spec_label() -> None:
+    assert ModelSpec(model="qwen-max", binding="dashscope").label == "dashscope:qwen-max"
+    assert ModelSpec(model="qwen-max").label == "qwen-max"
+
+
+def test_build_completer_no_binding_returns_default() -> None:
+    # Without a binding the completer is the default (configured-provider) path.
+    from deeptutor.services.benchmark.exam_quality_eval import _default_completer
+
+    completer = build_completer_for_spec(ModelSpec(model="any"))
+    assert completer is _default_completer
+
+
+def test_build_completer_missing_env_key_fails_fast(monkeypatch) -> None:
+    monkeypatch.delenv("DASHSCOPE_API_KEY", raising=False)
+    with pytest.raises(RuntimeError, match="DASHSCOPE_API_KEY"):
+        build_completer_for_spec(ModelSpec(model="qwen-max", binding="dashscope"))
+
+
+def test_build_completer_unknown_binding_fails() -> None:
+    with pytest.raises(ValueError, match="unknown provider binding"):
+        build_completer_for_spec(ModelSpec(model="x", binding="no-such-binding"))
+
+
+def test_build_completer_falls_back_to_config_when_binding_matches(monkeypatch) -> None:
+    """If the env var is missing but the configured-default binding matches the
+    requested one, reuse the config's api_key (so "deepseek:..." works on a
+    deepseek-configured project without DEEPSEEK_API_KEY in os.environ)."""
+
+    class _FakeCfg:
+        binding = "deepseek"
+        api_key = "fake-cfg-key"
+        base_url = "https://api.deepseek.com/v1"
+
+    monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
+    monkeypatch.setattr(
+        "deeptutor.services.llm.config.get_llm_config", lambda: _FakeCfg()
+    )
+    # Should NOT raise — fallback supplies the key.
+    completer = build_completer_for_spec(
+        ModelSpec(model="deepseek-v4-flash", binding="deepseek")
+    )
+    assert callable(completer)
+
+
+def test_build_completer_does_not_cross_bindings(monkeypatch) -> None:
+    """Configured deepseek must NOT supply a key for an explicit dashscope spec
+    — that would call dashscope's endpoint with deepseek's key."""
+
+    class _FakeCfg:
+        binding = "deepseek"
+        api_key = "fake-cfg-key"
+        base_url = "https://api.deepseek.com/v1"
+
+    monkeypatch.delenv("DASHSCOPE_API_KEY", raising=False)
+    monkeypatch.setattr(
+        "deeptutor.services.llm.config.get_llm_config", lambda: _FakeCfg()
+    )
+    with pytest.raises(RuntimeError, match="DASHSCOPE_API_KEY"):
+        build_completer_for_spec(ModelSpec(model="qwen-max", binding="dashscope"))
 
 
 def test_wrong_and_erroring_model() -> None:
