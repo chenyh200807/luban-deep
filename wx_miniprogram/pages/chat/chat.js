@@ -100,11 +100,17 @@ function isGenericFocusQuery(query) {
   if (normalized.indexOf("下一步学习推进") >= 0) return true;
   if (normalized.indexOf("先判断我当前更适合") >= 0) return true;
   if (normalized.indexOf("继续巩固") === 0) return true;
-  return ["继续我的计划", "继续计划", "继续学习", "按计划继续"].indexOf(normalized) >= 0;
+  return (
+    ["继续我的计划", "继续计划", "继续学习", "按计划继续"].indexOf(
+      normalized,
+    ) >= 0
+  );
 }
 
 function extractFocusTopic(title) {
-  var text = String(title || "").replace(/^今日焦点[:：]\s*/, "").trim();
+  var text = String(title || "")
+    .replace(/^今日焦点[:：]\s*/, "")
+    .trim();
   text = text
     .replace(/^推进\s*/, "")
     .replace(/^讲清\s*/, "")
@@ -115,18 +121,32 @@ function extractFocusTopic(title) {
     .replace(/\s*的?专项训练$/, "")
     .replace(/^先做\s*/, "")
     .replace(/\s+/g, "");
-  if (!text || text === "保持节奏，继续推进" || text === "按当前状态推进建筑实务") return "建筑实务";
+  if (
+    !text ||
+    text === "保持节奏，继续推进" ||
+    text === "按当前状态推进建筑实务"
+  )
+    return "建筑实务";
   return text;
 }
 
 function buildFocusDisplayTitle(focus, title) {
   var payload = focus && typeof focus === "object" ? focus : {};
-  var text = String(title || "").replace(/^今日焦点[:：]\s*/, "").replace(/\s+/g, " ").trim();
-  if (/第一份.*学习证据/.test(text) || /给系统.*学习证据/.test(text)) return "先做 1 题摸底";
+  var text = String(title || "")
+    .replace(/^今日焦点[:：]\s*/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (/第一份.*学习证据/.test(text) || /给系统.*学习证据/.test(text))
+    return "先做 1 题摸底";
   if (/^先做\s*1\s*题/.test(text)) return text;
   var topic = String(payload.topic || payload.focus_topic || "").trim();
   if (topic && /^推进.+下一步学习$/.test(text)) return "推进" + topic;
-  if (text && text !== "保持节奏，继续推进" && text !== "按当前状态推进建筑实务") return text;
+  if (
+    text &&
+    text !== "保持节奏，继续推进" &&
+    text !== "按当前状态推进建筑实务"
+  )
+    return text;
   text = extractFocusTopic(title);
   if (!text || text === "建筑实务") return "今日推进";
   return text.length > 12 ? text.slice(0, 12) : text;
@@ -134,7 +154,9 @@ function buildFocusDisplayTitle(focus, title) {
 
 function buildFocusDisplayMeta(focus, meta) {
   var payload = focus && typeof focus === "object" ? focus : {};
-  var text = String(meta || payload.meta || "").replace(/\s+/g, " ").trim();
+  var text = String(meta || payload.meta || "")
+    .replace(/\s+/g, " ")
+    .trim();
   if (!text) return "";
   if (text === "starter") return "生成学情基线";
   if (/learner_state\.home_personalization/.test(text)) return "来自学情更新";
@@ -142,19 +164,27 @@ function buildFocusDisplayMeta(focus, meta) {
 }
 
 function normalizeAnswerMode(value) {
-  var key = String(value || "").trim().toLowerCase();
-  if (key === "deep" || key === "detailed" || key === "深度" || key === "精讲") return "DEEP";
-  if (key === "fast" || key === "quick" || key === "快速" || key === "快答") return "FAST";
+  var key = String(value || "")
+    .trim()
+    .toLowerCase();
+  if (key === "deep" || key === "detailed" || key === "深度" || key === "精讲")
+    return "DEEP";
+  if (key === "fast" || key === "quick" || key === "快速" || key === "快答")
+    return "FAST";
   if (key === "auto" || key === "smart" || key === "智能") return "AUTO";
   return "";
 }
 
 function resolveConversationAnswerMode(meta) {
-  var payload = meta && typeof meta === "object" && !Array.isArray(meta) ? meta : {};
+  var payload =
+    meta && typeof meta === "object" && !Array.isArray(meta) ? meta : {};
   var preferences =
-    payload.preferences && typeof payload.preferences === "object" ? payload.preferences : {};
+    payload.preferences && typeof payload.preferences === "object"
+      ? payload.preferences
+      : {};
   var hints =
-    preferences.interaction_hints && typeof preferences.interaction_hints === "object"
+    preferences.interaction_hints &&
+    typeof preferences.interaction_hints === "object"
       ? preferences.interaction_hints
       : {};
   var candidates = [
@@ -181,7 +211,11 @@ function resolveConversationAnswerMode(meta) {
 function isDeletedConversationId(id) {
   var key = String(id || "").trim();
   if (!key) return false;
-  if (!historyTombstone || typeof historyTombstone.readDeletedConversationIds !== "function") return false;
+  if (
+    !historyTombstone ||
+    typeof historyTombstone.readDeletedConversationIds !== "function"
+  )
+    return false;
   var tombstones = historyTombstone.readDeletedConversationIds();
   return !!(tombstones && tombstones[key]);
 }
@@ -342,7 +376,8 @@ Page({
       isDark: helpers.isDark(),
       enableReason: !!savedToolPrefs.enableReason,
       webSearchAvailable: DEFAULT_WEB_SEARCH_AVAILABLE,
-      enableWebSearch: DEFAULT_WEB_SEARCH_AVAILABLE && !!savedToolPrefs.enableWebSearch,
+      enableWebSearch:
+        DEFAULT_WEB_SEARCH_AVAILABLE && !!savedToolPrefs.enableWebSearch,
     });
     this._loadToolRuntimeCapabilities(savedToolPrefs);
     var debugMarkdownSample =
@@ -388,7 +423,9 @@ Page({
     var unit = function (rpx) {
       return Math.round((viewportWidth * rpx) / 750);
     };
-    return Math.max(0, Number(keyboardHeight) || 0) + (safeBottom || 0) + unit(252);
+    return (
+      Math.max(0, Number(keyboardHeight) || 0) + (safeBottom || 0) + unit(252)
+    );
   },
 
   _syncKeyboardLayout: function (keyboardHeight) {
@@ -399,7 +436,8 @@ Page({
       keyboardHeight: height,
       inputCursorSpacing: height > 0 ? 24 : Math.max(24, safeBottom + 24),
       chatBottomSpacer: this._computeChatBottomSpacer(height, safeBottom),
-      bottomBarStyle: "bottom:" + height + "px;padding-bottom:" + paddingBottom + "px;",
+      bottomBarStyle:
+        "bottom:" + height + "px;padding-bottom:" + paddingBottom + "px;",
     });
   },
 
@@ -438,7 +476,11 @@ Page({
       app.globalData.goHomeFlag = false;
       this.clearMessages();
     }
-    if (isDeletedConversationId(this._convId || this._sid || wx.getStorageSync("current_session_id"))) {
+    if (
+      isDeletedConversationId(
+        this._convId || this._sid || wx.getStorageSync("current_session_id"),
+      )
+    ) {
       this.clearMessages();
     }
     // 从历史记录恢复对话
@@ -455,16 +497,19 @@ Page({
     if (this._loadPendingTurn() && !this._pendingRecoveryActive) {
       this._pendingRecoveryActive = true;
       this.setData({ hasMessages: true, isStreaming: true });
-      this._recoverTurnFromHistory({ longPoll: true }).then(function (recovered) {
-        self._pendingRecoveryActive = false;
-        if (!recovered) {
-          self._recoveringTurn = false;
-        }
-      });
+      this._recoverTurnFromHistory({ longPoll: true }).then(
+        function (recovered) {
+          self._pendingRecoveryActive = false;
+          if (!recovered) {
+            self._recoveringTurn = false;
+          }
+        },
+      );
     }
-    app.checkAuth(function () {
+    // ensurePhone = checkAuth + 手机号强制检查，缺手机号会跳回登录页
+    app.ensurePhone(function () {
       self.setData({ timeGreeting: helpers.getTimeGreeting() });
-      // 用 getUserInfo 验证 token 是否真的有效
+      // 用 getUserInfo 验证 token 并刷新用户名（手机号已在 ensurePhone 里确认）
       api
         .getUserInfo()
         .then(function (raw) {
@@ -530,7 +575,9 @@ Page({
           !msgs[i].hasStructuredContent &&
           (!msgs[i].blocks || !msgs[i].blocks.length)
         ) {
-          var normalized = this._buildAiMessageUpdates(i, { parseBlocks: true });
+          var normalized = this._buildAiMessageUpdates(i, {
+            parseBlocks: true,
+          });
           if (normalized) Object.assign(update, normalized.updates);
         }
       }
@@ -602,7 +649,8 @@ Page({
         this.setData({
           ["messages[" + streamIdx + "].thinkingStatus"]: "正在停止本轮分析…",
           ["messages[" + streamIdx + "].thinkingBadge"]: "停止中",
-          ["messages[" + streamIdx + "].thinkingSub"]: "收到停止指令，正在同步本轮状态",
+          ["messages[" + streamIdx + "].thinkingSub"]:
+            "收到停止指令，正在同步本轮状态",
           ["messages[" + streamIdx + "].thinkingTone"]: "retry",
         });
       }
@@ -671,7 +719,9 @@ Page({
     var counter = 0;
     var msgs = (rawMsgs || []).map(function (m) {
       var role = m.role === "assistant" ? "ai" : m.role;
-      var visibleContent = aiMessageState.coerceUserVisibleContent(m.content || "");
+      var visibleContent = aiMessageState.coerceUserVisibleContent(
+        m.content || "",
+      );
       var visiblePresentation = aiMessageState.sanitizePresentationForState
         ? aiMessageState.sanitizePresentationForState(m.presentation)
         : m.presentation && typeof m.presentation === "object"
@@ -783,7 +833,10 @@ Page({
 
   debugReplaceMessagesWithStructuredSample: function (sample) {
     if (!_IS_DEVTOOLS) {
-      log.warn("Chat", "debugReplaceMessagesWithStructuredSample is devtools-only");
+      log.warn(
+        "Chat",
+        "debugReplaceMessagesWithStructuredSample is devtools-only",
+      );
       return false;
     }
     var payload = sample && typeof sample === "object" ? sample : {};
@@ -795,7 +848,10 @@ Page({
       streaming: false,
       blocks: [],
       hasStructuredContent: false,
-      presentation: payload.presentation && typeof payload.presentation === "object" ? payload.presentation : null,
+      presentation:
+        payload.presentation && typeof payload.presentation === "object"
+          ? payload.presentation
+          : null,
       mcqCards: null,
       mcqHint: "",
       mcqReceipt: "",
@@ -863,7 +919,9 @@ Page({
       log.warn("Chat", "debugLoadMarkdownRegressionSample is devtools-only");
       return false;
     }
-    var sample = getMarkdownFixtures().getMarkdownRegressionSample(String(name || ""));
+    var sample = getMarkdownFixtures().getMarkdownRegressionSample(
+      String(name || ""),
+    );
     if (!sample) {
       log.warn("Chat", "unknown markdown regression sample: " + name);
       return false;
@@ -900,23 +958,28 @@ Page({
             serverMessages = data;
           }
           if (
-            !chatTurnRecovery.hasRecoveredAssistant(
-              serverMessages,
-              pending,
-            )
+            !chatTurnRecovery.hasRecoveredAssistant(serverMessages, pending)
           ) {
             if (attempt < maxAttempts) {
               return new Promise(function (resolve) {
-                setTimeout(function () {
-                  resolve(tryFetch());
-                }, opts.longPoll ? PENDING_TURN_POLL_DELAY_MS : attempt * 700);
+                setTimeout(
+                  function () {
+                    resolve(tryFetch());
+                  },
+                  opts.longPoll ? PENDING_TURN_POLL_DELAY_MS : attempt * 700,
+                );
               });
             }
-            self._finishPendingTurnRecovery(opts.longPoll ? serverMessages : null);
+            self._finishPendingTurnRecovery(
+              opts.longPoll ? serverMessages : null,
+            );
             return false;
           }
 
-        self._applyHydratedConversationMessages(serverMessages, data.conversation || data);
+          self._applyHydratedConversationMessages(
+            serverMessages,
+            data.conversation || data,
+          );
           self._recoveringTurn = false;
           self._clearPendingTurn();
           return true;
@@ -924,9 +987,12 @@ Page({
         .catch(function () {
           if (attempt < maxAttempts) {
             return new Promise(function (resolve) {
-              setTimeout(function () {
-                resolve(tryFetch());
-              }, opts.longPoll ? PENDING_TURN_POLL_DELAY_MS : attempt * 700);
+              setTimeout(
+                function () {
+                  resolve(tryFetch());
+                },
+                opts.longPoll ? PENDING_TURN_POLL_DELAY_MS : attempt * 700,
+              );
             });
           }
           self._finishPendingTurnRecovery();
@@ -997,11 +1063,9 @@ Page({
     if (
       !this._firstVisibleAckSent &&
       this._surfaceTurnId &&
-      (
-        normalized.state.renderableContent ||
+      (normalized.state.renderableContent ||
         (normalized.state.blocks && normalized.state.blocks.length) ||
-        (normalized.state.mcqCards && normalized.state.mcqCards.length)
-      )
+        (normalized.state.mcqCards && normalized.state.mcqCards.length))
     ) {
       this._firstVisibleAckSent = true;
       surfaceTelemetry.trackOnce(
@@ -1063,11 +1127,9 @@ Page({
       if (
         !this._doneRenderedAckSent &&
         this._surfaceTurnId &&
-        (
-          state.renderableContent ||
+        (state.renderableContent ||
           (state.blocks && state.blocks.length) ||
-          (state.mcqCards && state.mcqCards.length)
-        )
+          (state.mcqCards && state.mcqCards.length))
       ) {
         this._doneRenderedAckSent = true;
         surfaceTelemetry.trackOnce(
@@ -1171,7 +1233,10 @@ Page({
     var idx = this._find(this._streamId);
     if (idx === -1) return;
     var msg = this.data.messages[idx] || {};
-    var summary = workflowStatus.summarizeWorkflow(msg.workflowEntries || [], false);
+    var summary = workflowStatus.summarizeWorkflow(
+      msg.workflowEntries || [],
+      false,
+    );
     var preserveThinking = !!(
       msg.renderableContent ||
       (msg.blocks && msg.blocks.length) ||
@@ -1273,15 +1338,18 @@ Page({
   },
 
   _setWorkflowState: function (idx, state, preserveThinking) {
-    var summary = (state && state.summary) || workflowStatus.summarizeWorkflow([], false);
+    var summary =
+      (state && state.summary) || workflowStatus.summarizeWorkflow([], false);
     var updates = {};
     updates["messages[" + idx + "].workflowEntries"] = state.entries || [];
     updates["messages[" + idx + "].workflowBadge"] = summary.badge || "";
     updates["messages[" + idx + "].workflowTitle"] = summary.headline || "";
     updates["messages[" + idx + "].workflowSub"] = summary.subline || "";
     updates["messages[" + idx + "].workflowMeta"] = summary.meta || "";
-    updates["messages[" + idx + "].workflowCountText"] = summary.countText || "";
-    updates["messages[" + idx + "].workflowToggleText"] = summary.toggleText || "查看处理摘要";
+    updates["messages[" + idx + "].workflowCountText"] =
+      summary.countText || "";
+    updates["messages[" + idx + "].workflowToggleText"] =
+      summary.toggleText || "查看处理摘要";
     updates["messages[" + idx + "].workflowTone"] = summary.tone || "analyze";
     updates["messages[" + idx + "].workflowActive"] = !!summary.active;
 
@@ -1299,20 +1367,28 @@ Page({
     if (!msg || msg.role !== "ai") return null;
     var options = opts || {};
     var hasContent = Object.prototype.hasOwnProperty.call(options, "content");
-    var hasPresentation = Object.prototype.hasOwnProperty.call(options, "presentation");
+    var hasPresentation = Object.prototype.hasOwnProperty.call(
+      options,
+      "presentation",
+    );
     var content = aiMessageState.coerceUserVisibleContent(
       hasContent ? String(options.content || "") : String(msg.content || ""),
     );
     var presentation = aiMessageState.sanitizePresentationForState
       ? aiMessageState.sanitizePresentationForState(
-          hasPresentation ? options.presentation || null : msg.presentation || null,
+          hasPresentation
+            ? options.presentation || null
+            : msg.presentation || null,
         )
       : hasPresentation
         ? options.presentation || null
         : msg.presentation || null;
-    var disclosureInput = Object.prototype.hasOwnProperty.call(options, "progressiveDisclosure")
+    var disclosureInput = Object.prototype.hasOwnProperty.call(
+      options,
+      "progressiveDisclosure",
+    )
       ? options.progressiveDisclosure || null
-      : (msg.progressiveDisclosure || null);
+      : msg.progressiveDisclosure || null;
     var state = aiMessageState.deriveAiMessageRenderState({
       content: content,
       presentation: presentation,
@@ -1326,19 +1402,25 @@ Page({
     if (hasPresentation) {
       updates["messages[" + idx + "].presentation"] = presentation;
     }
-    updates["messages[" + idx + "].renderableContent"] = state.renderableContent;
+    updates["messages[" + idx + "].renderableContent"] =
+      state.renderableContent;
     updates["messages[" + idx + "].mcqCards"] = state.mcqCards;
     updates["messages[" + idx + "].mcqHint"] = state.mcqHint;
     updates["messages[" + idx + "].mcqReceipt"] = state.mcqReceipt;
-    updates["messages[" + idx + "].mcqInteractiveReady"] = state.mcqInteractiveReady;
+    updates["messages[" + idx + "].mcqInteractiveReady"] =
+      state.mcqInteractiveReady;
     updates["messages[" + idx + "].mcqReviewMode"] = state.mcqReviewMode;
-    updates["messages[" + idx + "].originalContent"] = state.originalContent || "";
-    updates["messages[" + idx + "].originalExpanded"] = state.originalCollapsed === false;
-    updates["messages[" + idx + "].hasStructuredContent"] = !!state.hasStructuredContent;
+    updates["messages[" + idx + "].originalContent"] =
+      state.originalContent || "";
+    updates["messages[" + idx + "].originalExpanded"] =
+      state.originalCollapsed === false;
+    updates["messages[" + idx + "].hasStructuredContent"] =
+      !!state.hasStructuredContent;
     if (options.parseBlocks || state.hasStructuredContent) {
       updates["messages[" + idx + "].blocks"] = state.blocks || [];
     }
-    updates["messages[" + idx + "].progressiveDisclosure"] = state.progressiveDisclosure || null;
+    updates["messages[" + idx + "].progressiveDisclosure"] =
+      state.progressiveDisclosure || null;
     return {
       updates: updates,
       state: state,
@@ -1357,7 +1439,8 @@ Page({
 
   _buildFallbackMcqJudgePrompt: function (cards, selections) {
     var items = Array.isArray(cards) ? cards : [];
-    if (!items.length || !Array.isArray(selections) || !selections.length) return "";
+    if (!items.length || !Array.isArray(selections) || !selections.length)
+      return "";
 
     var questionBlocks = [];
     for (var i = 0; i < items.length; i++) {
@@ -1447,7 +1530,9 @@ Page({
     if (!selections.length) return null;
     var rows = [];
     for (var k = 0; k < selections.length; k++) {
-      rows.push("第" + selections[k].index + "题：" + selections[k].keys.join("、"));
+      rows.push(
+        "第" + selections[k].index + "题：" + selections[k].keys.join("、"),
+      );
     }
     var followupQuestionContext = null;
     if (selections.length === 1) {
@@ -1455,9 +1540,13 @@ Page({
         var singleCard = items[m];
         if (!singleCard || !singleCard.followupContext) continue;
         if (Number(singleCard.index) !== Number(selections[0].index)) continue;
-        followupQuestionContext = Object.assign({}, singleCard.followupContext, {
-          user_answer: selections[0].keys.join(""),
-        });
+        followupQuestionContext = Object.assign(
+          {},
+          singleCard.followupContext,
+          {
+            user_answer: selections[0].keys.join(""),
+          },
+        );
         break;
       }
     } else {
@@ -1632,7 +1721,11 @@ Page({
     if (nextMode !== "DEEP" && this.data.enableReason) {
       nextState.enableReason = false;
       this._saveToolPrefs(false, this.data.enableWebSearch);
-      wx.showToast({ title: "非深度模式已关闭推理", icon: "none", duration: 1800 });
+      wx.showToast({
+        title: "非深度模式已关闭推理",
+        icon: "none",
+        duration: 1800,
+      });
     }
     this.setData(nextState);
   },
@@ -1689,16 +1782,22 @@ Page({
       .getRuntimeCapabilities()
       .then(function (res) {
         var body = unwrap(res) || {};
-        var tools = body.tools && typeof body.tools === "object" ? body.tools : {};
+        var tools =
+          body.tools && typeof body.tools === "object" ? body.tools : {};
         var webSearch = tools.web_search || {};
         var available = webSearch.available === true;
         self.setData({
           webSearchAvailable: available,
-          enableWebSearch: available && !!(savedToolPrefs && savedToolPrefs.enableWebSearch),
+          enableWebSearch:
+            available && !!(savedToolPrefs && savedToolPrefs.enableWebSearch),
         });
         if (available && savedToolPrefs && savedToolPrefs.enableWebSearch) {
           self._saveToolPrefs(self.data.enableReason, true);
-        } else if (!available && savedToolPrefs && savedToolPrefs.enableWebSearch) {
+        } else if (
+          !available &&
+          savedToolPrefs &&
+          savedToolPrefs.enableWebSearch
+        ) {
           self._saveToolPrefs(self.data.enableReason, false);
         }
       })
@@ -1717,7 +1816,10 @@ Page({
   _getSelectedTools: function (query) {
     var tools = [];
     if (this.data.enableReason) tools.push("reason");
-    if (this._isWebSearchAvailable() && (this.data.enableWebSearch || this._shouldAutoEnableWebSearch(query))) {
+    if (
+      this._isWebSearchAvailable() &&
+      (this.data.enableWebSearch || this._shouldAutoEnableWebSearch(query))
+    ) {
       tools.push("web_search");
     }
     return tools;
@@ -1868,10 +1970,13 @@ Page({
 
   _doSend: function (query, extraOpts) {
     var self = this;
-    var sendOptions = extraOpts && typeof extraOpts === "object" ? extraOpts : {};
+    var sendOptions =
+      extraOpts && typeof extraOpts === "object" ? extraOpts : {};
     var reuseUserMessage = !!sendOptions.reuseUserMessage;
     var autoWebSearch =
-      self._isWebSearchAvailable() && !self.data.enableWebSearch && self._shouldAutoEnableWebSearch(query);
+      self._isWebSearchAvailable() &&
+      !self.data.enableWebSearch &&
+      self._shouldAutoEnableWebSearch(query);
     var selectedTools = self._getSelectedTools(query);
 
     if (!self._sid && self._convId) {
@@ -1935,9 +2040,13 @@ Page({
     var inferTitleOnStart = existing.length === 0;
     var messageReserve = reuseUserMessage ? 1 : 2;
     if (existing.length > MAX_MESSAGES - messageReserve) {
-      existing = existing.slice(existing.length - (MAX_MESSAGES - messageReserve));
+      existing = existing.slice(
+        existing.length - (MAX_MESSAGES - messageReserve),
+      );
     }
-    var msgs = reuseUserMessage ? existing.concat([aiMsg]) : existing.concat([userMsg, aiMsg]);
+    var msgs = reuseUserMessage
+      ? existing.concat([aiMsg])
+      : existing.concat([userMsg, aiMsg]);
     // 同一轮消息在网络重连时复用同一个客户端侧标识。
     var _turnId =
       self._sid +
@@ -1970,7 +2079,10 @@ Page({
       self.getTabBar().setData({ hidden: true });
     }
 
-    var tutorInteraction = self._applySelectedToolHints(self._buildTutorInteraction(), selectedTools);
+    var tutorInteraction = self._applySelectedToolHints(
+      self._buildTutorInteraction(),
+      selectedTools,
+    );
     self._surfaceTurnId = "";
     self._firstVisibleAckSent = false;
     self._doneRenderedAckSent = false;
@@ -2158,7 +2270,12 @@ Page({
 
   // plan §Phase 5 / Gap 2 — action chip 派发：把 slug 翻译成用户输入文本，复用现有 chat send。
   onProgressiveDisclosureAction: function (e) {
-    var slug = (e && e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.slug) || "";
+    var slug =
+      (e &&
+        e.currentTarget &&
+        e.currentTarget.dataset &&
+        e.currentTarget.dataset.slug) ||
+      "";
     var actionToInput = {
       practice_more_3: "再练3题",
       explain_thoroughly: "讲透这个点",
@@ -2506,7 +2623,9 @@ Page({
       return this._joinCopyParts(chartParts, "\n");
     }
     if (type === "formula_block" || type === "formula_inline") {
-      return String(block.copyText || block.displayText || block.latex || "").trim();
+      return String(
+        block.copyText || block.displayText || block.latex || "",
+      ).trim();
     }
     if (type === "ul" || type === "ol") {
       var itemParts = [];
@@ -2515,7 +2634,12 @@ Page({
         var item = items[i] || {};
         var prefix = type === "ol" ? String(item.index || i + 1) + ". " : "- ";
         var itemText = this._copyLooseText(
-          item.nodes || item.content || item.children || item.raw || item.text || "",
+          item.nodes ||
+            item.content ||
+            item.children ||
+            item.raw ||
+            item.text ||
+            "",
         );
         if (itemText) itemParts.push(prefix + itemText);
       }
@@ -2569,7 +2693,11 @@ Page({
 
   _copyLooseText: function (value) {
     if (value === null || typeof value === "undefined") return "";
-    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    if (
+      typeof value === "string" ||
+      typeof value === "number" ||
+      typeof value === "boolean"
+    ) {
       return String(value);
     }
     if (Array.isArray(value)) {
@@ -2589,7 +2717,13 @@ Page({
       );
       if (nested) return nested;
       return String(
-        value.copyText || value.displayText || value.latex || value.summary || value.title || value.detail || "",
+        value.copyText ||
+          value.displayText ||
+          value.latex ||
+          value.summary ||
+          value.title ||
+          value.detail ||
+          "",
       );
     }
     return "";
@@ -2651,7 +2785,11 @@ Page({
       this._inputText = msg.content;
       this.setData({ inputText: msg.content });
       if (this.data.isStreaming) {
-        wx.showToast({ title: "已停止本轮，可修改后重发", icon: "none", duration: 1800 });
+        wx.showToast({
+          title: "已停止本轮，可修改后重发",
+          icon: "none",
+          duration: 1800,
+        });
         this._stop({ cancelTurn: true });
       }
     }
@@ -2767,7 +2905,11 @@ Page({
       });
     };
     var finishFailure = function () {
-      wx.showToast({ title: "提交失败，请稍后重试", icon: "none", duration: 1800 });
+      wx.showToast({
+        title: "提交失败，请稍后重试",
+        icon: "none",
+        duration: 1800,
+      });
       self.setData({ feedbackSubmitting: false });
     };
     if (request && typeof request.then === "function") {

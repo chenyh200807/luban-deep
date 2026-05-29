@@ -50,7 +50,9 @@ const _REMOTE_FALLBACK_CANDIDATES = [_NGROK_URL].filter(function (item) {
   );
 });
 const _HAS_REAL_NGROK =
-  !!_NGROK_URL && !_NGROK_URL.includes("example.com") && /^https?:\/\//.test(_NGROK_URL);
+  !!_NGROK_URL &&
+  !_NGROK_URL.includes("example.com") &&
+  /^https?:\/\//.test(_NGROK_URL);
 const _DEFAULT_LOCAL_DIRECT = _IS_DEVELOP && _IS_DEVTOOLS;
 const _USE_LOCAL_DIRECT =
   typeof __USE_LOCAL_DIRECT__ !== "undefined"
@@ -95,7 +97,8 @@ App({
 
   onLaunch() {
     // App 启动
-    console.info("[DeepTutor MP] env=%s trial=%s devtools=%s api=%s candidates=%j",
+    console.info(
+      "[DeepTutor MP] env=%s trial=%s devtools=%s api=%s candidates=%j",
       _envVersion,
       _IS_TRIAL,
       _IS_DEVTOOLS,
@@ -184,6 +187,58 @@ App({
     }
     this.globalData.token = token;
     if (callback) callback(token);
+  },
+
+  /**
+   * 校验手机号是否已绑定，未绑定则强制跳回登录页绑定手机。
+   * 行业标准：登录后进内容页前必须有手机号。
+   * 调用方式：app.ensurePhone(function() { ... });
+   */
+  ensurePhone(callback) {
+    var self = this;
+    var pages = getCurrentPages();
+    var currentRoute =
+      pages && pages.length ? pages[pages.length - 1].route || "" : "";
+    if (currentRoute === "pages/login/login") {
+      if (callback) callback();
+      return;
+    }
+    // 复用 globalData 里已缓存的 userInfo，避免重复请求
+    var cached = self.globalData.userInfo;
+    if (cached && cached._phoneChecked) {
+      if (callback) callback();
+      return;
+    }
+    var api = require("./utils/api");
+    api
+      .getUserInfo()
+      .then(function (raw) {
+        var info = api.unwrapResponse
+          ? api.unwrapResponse(raw)
+          : raw.data || raw;
+        var phone = ((info && info.phone) || "").trim().replace(/\D/g, "");
+        if (!phone || phone.length < 8) {
+          // 没有手机号 → 强制跳回登录页绑定
+          if (self.globalData._authRedirecting) return;
+          self.globalData._authRedirecting = true;
+          wx.reLaunch({
+            url: "/pages/login/login",
+            complete: function () {
+              self.globalData._authRedirecting = false;
+            },
+          });
+          return;
+        }
+        // 有手机号 → 缓存结果，执行回调
+        self.globalData.userInfo = Object.assign({}, info, {
+          _phoneChecked: true,
+        });
+        if (callback) callback();
+      })
+      .catch(function () {
+        // getUserInfo 失败（如 401）—— api.js 会自动跳登录，这里静默处理
+        if (callback) callback();
+      });
   },
 
   /**

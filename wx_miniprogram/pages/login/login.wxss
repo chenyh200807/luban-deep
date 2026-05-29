@@ -290,3 +290,27 @@
   margin: 0 auto;
   transform: none;
 }
+
+/* bind_phone_only 模式：强制绑定手机号面板 */
+.bind-phone-only-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20rpx;
+  padding: 0 8rpx;
+}
+
+.bind-phone-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: rgba(226, 232, 240, 0.95);
+  text-align: center;
+}
+
+.bind-phone-desc {
+  font-size: 26rpx;
+  color: rgba(226, 232, 240, 0.60);
+  text-align: center;
+  line-height: 1.5;
+  margin-bottom: 8rpx;
+}

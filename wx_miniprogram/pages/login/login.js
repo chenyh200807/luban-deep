@@ -11,7 +11,11 @@ function showSmsSentFeedback(message) {
 
 function canShowDebugCode() {
   var cfg = typeof __wxConfig !== "undefined" ? __wxConfig : {};
-  return cfg.platform === "devtools" || cfg.envVersion === "develop" || cfg.envVersion === "trial";
+  return (
+    cfg.platform === "devtools" ||
+    cfg.envVersion === "develop" ||
+    cfg.envVersion === "trial"
+  );
 }
 
 Page({
@@ -62,7 +66,27 @@ Page({
       this._initSubtitleScene(info);
     } catch (_) {}
     if (auth.isLoggedIn()) {
-      wx.switchTab({ url: "/pages/chat/chat" });
+      // 已登录：先确认手机号是否绑定
+      // 有手机 → 进聊天；无手机 → 停在本页展示绑定手机 UI
+      var self = this;
+      api
+        .getUserInfo()
+        .then(function (raw) {
+          var info = api.unwrapResponse
+            ? api.unwrapResponse(raw)
+            : raw.data || raw;
+          var phone = ((info && info.phone) || "").trim().replace(/\D/g, "");
+          if (phone && phone.length >= 8) {
+            wx.switchTab({ url: "/pages/chat/chat" });
+          } else {
+            // 显示手机绑定专属模式
+            self.setData({ loginMode: "bind_phone_only" });
+          }
+        })
+        .catch(function () {
+          // token 失效，清除并留在登录页
+          auth.clearToken();
+        });
       return;
     }
   },
@@ -167,14 +191,19 @@ Page({
         var outerCode = resp.code !== undefined ? resp.code : inner.code;
         var outerMsg = resp.message || inner.message || "发送失败";
         var dataObj = inner.data || inner;
-        var retryAfter = (dataObj && dataObj.retry_after) || inner.retry_after || 60;
+        var retryAfter =
+          (dataObj && dataObj.retry_after) || inner.retry_after || 60;
         var sent = inner.sent || (dataObj && dataObj.sent);
 
         if (outerCode === 0 || sent) {
           // Success: start countdown
-          var debugCode = (dataObj && dataObj.debug_code) || inner.debug_code || "";
+          var debugCode =
+            (dataObj && dataObj.debug_code) || inner.debug_code || "";
           var successMsg =
-            (dataObj && dataObj.message) || inner.message || resp.message || "验证码发送成功";
+            (dataObj && dataObj.message) ||
+            inner.message ||
+            resp.message ||
+            "验证码发送成功";
           var nextData = { codeCountdown: retryAfter, loading: false };
           var showDebugCode = debugCode && canShowDebugCode();
           if (showDebugCode) nextData.phoneCode = debugCode;
@@ -279,7 +308,10 @@ Page({
     wx.login({
       success: function (loginRes) {
         if (!loginRes.code) {
-          self.setData({ wechatLoading: false, errorMsg: "微信登录失败，请重试" });
+          self.setData({
+            wechatLoading: false,
+            errorMsg: "微信登录失败，请重试",
+          });
           return;
         }
         api
@@ -308,7 +340,10 @@ Page({
           );
       },
       fail: function () {
-        self.setData({ wechatLoading: false, errorMsg: "无法获取微信登录凭证" });
+        self.setData({
+          wechatLoading: false,
+          errorMsg: "无法获取微信登录凭证",
+        });
       },
     });
   },
@@ -316,18 +351,55 @@ Page({
     var self = this;
     if (self.data.wechatLoading || self.data.loading) return;
     var phoneCode =
-      e &&
-      e.detail &&
-      (e.detail.code || e.detail.phoneCode || "");
+      e && e.detail && (e.detail.code || e.detail.phoneCode || "");
     if (!phoneCode) {
-      self.setData({ errorMsg: "未获取到微信手机号授权" });
+      // 拒绝授权手机号：必须授权才能继续，给出明确提示
+      self.setData({ errorMsg: "请授权手机号才能继续使用" });
       return;
     }
     self.setData({ wechatLoading: true, errorMsg: "" });
+
+    // 两种路径：
+    // A) 已登录（bind_phone_only 模式）→ 直接绑定手机，不需要重新 wx.login
+    // B) 新登录 → wx.login + bindPhone 同步完成
+    if (auth.isLoggedIn()) {
+      // 路径 A：已有 token，直接绑定
+      api
+        .bindPhone(phoneCode)
+        .then(function (resp) {
+          var inner = resp.data || resp;
+          if (inner && inner.token) {
+            auth.setToken(inner.token, inner.expires_at, inner);
+          }
+          wx.switchTab({ url: "/pages/chat/chat" });
+        })
+        .catch(function (err) {
+          var m = String((err && err.message) || "");
+          var msg = "手机号绑定失败，请重试";
+          if (m.includes("getuserphonenumber")) msg = "微信手机号授权失败";
+          else if (m.includes("NETWORK_")) msg = "网络连接失败";
+          else if (m && !m.startsWith("HTTP_")) msg = m;
+          self.setData({ errorMsg: msg });
+        })
+        .then(
+          function () {
+            self.setData({ wechatLoading: false });
+          },
+          function () {
+            self.setData({ wechatLoading: false });
+          },
+        );
+      return;
+    }
+
+    // 路径 B：新用户，先 wx.login 再绑定手机
     wx.login({
       success: function (loginRes) {
         if (!loginRes.code) {
-          self.setData({ wechatLoading: false, errorMsg: "微信登录失败，请重试" });
+          self.setData({
+            wechatLoading: false,
+            errorMsg: "微信登录失败，请重试",
+          });
           return;
         }
         api
@@ -347,7 +419,8 @@ Page({
             var m = String((err && err.message) || "");
             var msg = "微信手机号登录失败，请重试";
             if (m.includes("credentials")) msg = "后端未配置微信小程序密钥";
-            else if (m.includes("getuserphonenumber")) msg = "微信手机号授权失败";
+            else if (m.includes("getuserphonenumber"))
+              msg = "微信手机号授权失败";
             else if (m.includes("NETWORK_")) msg = "网络连接失败";
             else if (m && !m.startsWith("HTTP_")) msg = m;
             self.setData({ errorMsg: msg });
@@ -362,7 +435,10 @@ Page({
           );
       },
       fail: function () {
-        self.setData({ wechatLoading: false, errorMsg: "无法获取微信登录凭证" });
+        self.setData({
+          wechatLoading: false,
+          errorMsg: "无法获取微信登录凭证",
+        });
       },
     });
   },
