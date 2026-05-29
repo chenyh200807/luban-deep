@@ -305,3 +305,7 @@ celerybeat.pid
 
 # Offline compiler outputs; review artifacts must never enter git.
 /artifacts/
+
+# Claude Code agent workspace (settings, transcripts, isolated worktrees).
+# Like .codex/.gstack — agent scratch state, must never enter git or reach prod.
+.claude/

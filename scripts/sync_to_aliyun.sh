@@ -116,6 +116,7 @@ root = Path(sys.argv[1]).resolve()
 excluded_names = {
     ".git",
     ".github",
+    ".claude",
     ".codex",
     ".gstack",
     ".local-runs",
