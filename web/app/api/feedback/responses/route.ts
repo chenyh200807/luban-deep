@@ -148,13 +148,9 @@ function normalizeDatabaseUrl(connectionString: string) {
 
 function getDatabaseSsl(connectionString: string) {
   if (isLocalDatabaseUrl(connectionString)) return undefined
-  const ca = process.env.FEEDBACK_DATABASE_CA_CERT || process.env.SUPABASE_DB_CA_CERT
-  if (ca) return { ca }
-  // Explicit opt-in only: set FEEDBACK_ALLOW_UNVERIFIED_SSL=1 when the Supabase
-  // pooler cert chain is not trusted by the container CA bundle.
-  // TODO: replace with SUPABASE_DB_CA_CERT once cert is provisioned from
-  //       Supabase Dashboard → Settings → Database → SSL Certificate.
-  if (process.env.FEEDBACK_ALLOW_UNVERIFIED_SSL === '1') return { rejectUnauthorized: false }
+  const rawCa = process.env.FEEDBACK_DATABASE_CA_CERT || process.env.SUPABASE_DB_CA_CERT
+  // env_file stores PEM as single-line with literal \n; pg needs real newlines.
+  if (rawCa) return { ca: rawCa.replace(/\\n/g, '\n') }
   return true
 }
 
