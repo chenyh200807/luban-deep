@@ -49,26 +49,22 @@
         <text class="bind-phone-title">请先绑定手机号</text>
         <text class="bind-phone-desc">为保障账号安全，使用前需绑定手机号</text>
         <button
-          class="btn-wechat-primary {{wechatLoading?'off':''}}"
-          open-type="getPhoneNumber"
-          bindgetphonenumber="handleWechatPhoneNumber"
+          class="btn-wechat-primary"
+          bindtap="goManualLogin"
           disabled="{{wechatLoading || loading}}"
         >
-          <text class="btn-wechat-primary-txt">{{wechatLoading ? '授权中...' : '微信授权绑定手机号'}}</text>
+          <text class="btn-wechat-primary-txt">绑定手机号</text>
         </button>
-        <view class="link-row">
-          <text class="manual-link" bindtap="goManualLogin">手动输入手机号</text>
-        </view>
       </view>
 
       <!-- 正常登录 UI -->
       <view wx:else>
         <view class="btn-wechat-stack">
-          <!-- 微信登录同步获取手机号（open-type="getPhoneNumber"） -->
+          <!-- 微信登录走 plain wx.login（与 yousenwebview canonical 一致）；
+               显式手机号绑定改由 register 流程的 getPhoneNumber 承载 -->
           <button
             class="btn-wechat-primary {{wechatLoading?'off':''}}"
-            open-type="getPhoneNumber"
-            bindgetphonenumber="handleWechatPhoneNumber"
+            bindtap="handleWechatLogin"
             disabled="{{wechatLoading || loading}}"
           >
             <text class="btn-wechat-primary-txt">{{wechatLoading ? '微信授权中...' : '微信一键登录'}}</text>
