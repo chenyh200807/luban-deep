@@ -67,6 +67,17 @@ gates:
       - "tests/services/rag/test_rag_failure_contract.py"
       - "-q"
 
+  rag_retrieval_quality:
+    description: "RAG IR metrics, golden loader, staleness preflight, and FF rollout guards (P0-1 diagnostic). E2E baseline self-skips until golden set + RAG_EVAL_KB_NAME exist."
+    category: quick
+    command:
+      - "pytest"
+      - "tests/services/rag/test_retrieval_quality.py"
+      - "tests/services/rag/test_supabase_check_chunk_ids.py"
+      - "tests/services/rag/test_provenance_boost_rollout.py"
+      - "tests/services/rag/test_compiled_truth_rollout.py"
+      - "-q"
+
   learning_report_read_models:
     description: "Learning report and learning brain read model tests."
     category: quick
