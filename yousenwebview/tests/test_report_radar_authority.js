@@ -40,7 +40,10 @@ function loadReportPage(stubs) {
       if (request === "../../utils/runtime") return stubs.runtime;
       if (request === "../../utils/route") return stubs.route;
       if (request === "../../utils/flags") return stubs.flags;
-      if (request === "../../utils/taxonomy") return require(path.join(__dirname, "../packageDeeptutor/utils/taxonomy"));
+      if (request === "../../utils/taxonomy")
+        return require(
+          path.join(__dirname, "../packageDeeptutor/utils/taxonomy"),
+        );
       return {};
     },
   };
@@ -114,26 +117,49 @@ async function run() {
 
   await page._loadRadar();
 
-  assert(profileCalls === 1, "report radar flow should always load assessment profile first");
-  assert(radarCalls === 0, "positive assessment profile should prevent zero radar override");
-  assert(page.data.radarLoading === false, "report radar flow should finish loading");
-  assert(page.data.radarError === false, "report radar flow should stay healthy");
-  assert(page.data.avgScore === 80, "assessment profile should drive radar average");
-  assert(page.data.strongCount === 4, "assessment profile should produce strong chapter counts");
-  assert(page.data.weakCount === 1, "assessment profile should preserve weak chapter counts");
   assert(
-    JSON.stringify(page.data.dimList.map(function (item) {
-      return [item.name, item.pct];
-    })) ===
-	      JSON.stringify([
-	        ["防水工程", 0],
-	        ["结构设计与建筑材料", 100],
-	        ["地基基础", 100],
-	        ["主体结构", 100],
-	        ["施工管理", 100],
-	      ]),
-	    "zero radar response should not overwrite assessment mastery details or expose chapter codes",
-	  );
+    profileCalls === 1,
+    "report radar flow should always load assessment profile first",
+  );
+  assert(
+    radarCalls === 0,
+    "positive assessment profile should prevent zero radar override",
+  );
+  assert(
+    page.data.radarLoading === false,
+    "report radar flow should finish loading",
+  );
+  assert(
+    page.data.radarError === false,
+    "report radar flow should stay healthy",
+  );
+  assert(
+    page.data.avgScore === 80,
+    "assessment profile should drive radar average",
+  );
+  assert(
+    page.data.strongCount === 4,
+    "assessment profile should produce strong chapter counts",
+  );
+  assert(
+    page.data.weakCount === 1,
+    "assessment profile should preserve weak chapter counts",
+  );
+  assert(
+    JSON.stringify(
+      page.data.dimList.map(function (item) {
+        return [item.name, item.pct];
+      }),
+    ) ===
+      JSON.stringify([
+        ["防水工程", 0],
+        ["主要建筑工程材料的性能与应用", 100],
+        ["地基基础", 100],
+        ["主体结构", 100],
+        ["施工管理", 100],
+      ]),
+    "zero radar response should not overwrite assessment mastery details or expose chapter codes",
+  );
 
   radarCalls = 0;
   profileCalls = 0;
@@ -179,10 +205,22 @@ async function run() {
 
   await page._loadRadar();
 
-  assert(profileCalls === 1, "all-zero assessment profile should still be read");
-  assert(radarCalls === 0, "all-zero assessment profile should not be overwritten by radar fallback");
-  assert(page.data.avgScore === 0, "all-zero assessment profile should keep avgScore at 0");
-  assert(page.data.weakCount === 2, "all-zero assessment profile should preserve weak dimensions");
+  assert(
+    profileCalls === 1,
+    "all-zero assessment profile should still be read",
+  );
+  assert(
+    radarCalls === 0,
+    "all-zero assessment profile should not be overwritten by radar fallback",
+  );
+  assert(
+    page.data.avgScore === 0,
+    "all-zero assessment profile should keep avgScore at 0",
+  );
+  assert(
+    page.data.weakCount === 2,
+    "all-zero assessment profile should preserve weak dimensions",
+  );
 
   if (fail) {
     console.error(errors.join("\n"));
