@@ -1672,7 +1672,7 @@ class SupabasePipeline:
                 "SUPABASE_RAG_COMPILED_TRUTH_SHADOW_ENABLED",
                 True,
             ),
-            compiled_truth_enabled=_env_flag("SUPABASE_RAG_COMPILED_TRUTH_ENABLED", False),
+            compiled_truth_enabled=_env_flag("SUPABASE_RAG_COMPILED_TRUTH_ENABLED", True),
             compiled_truth_max_documents=max(
                 1,
                 int(os.getenv("SUPABASE_RAG_COMPILED_TRUTH_MAX_DOCS", "6")),
@@ -1685,7 +1685,7 @@ class SupabasePipeline:
                 300,
                 int(os.getenv("SUPABASE_RAG_COMPILED_TRUTH_MAX_TOTAL_CHARS", "2400")),
             ),
-            provenance_boost_enabled=_env_flag("SUPABASE_RAG_PROVENANCE_BOOST_ENABLED", False),
+            provenance_boost_enabled=_env_flag("SUPABASE_RAG_PROVENANCE_BOOST_ENABLED", True),
             query_variant_concurrency=max(
                 1,
                 int(os.getenv("SUPABASE_RAG_QUERY_VARIANT_CONCURRENCY", "2")),
