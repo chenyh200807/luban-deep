@@ -5876,15 +5876,20 @@ class MemberConsoleService:
             try:
                 import psycopg
                 conn_ctx = psycopg.connect(db_url, connect_timeout=5)
-                use_psycopg2 = False
             except ImportError:
-                import psycopg2
-                conn_ctx = psycopg2.connect(db_url, connect_timeout=5)
-                use_psycopg2 = True
+                try:
+                    import psycopg2
+                    conn_ctx = psycopg2.connect(db_url, connect_timeout=5)
+                except ImportError:
+                    logger.warning("phone identity persist skipped: neither psycopg nor psycopg2 is installed")
+                    return
 
             with conn_ctx as conn:
                 cur = conn.cursor()
-                # 写 user_identity_aliases（唯一键：alias_type + alias_value）
+                # ON CONFLICT 采用 last-writer-wins：同一手机号永远指向最近一次经过
+                # OTP/微信绑定验证的 canonical UUID，无需额外时间戳守卫。
+                # user_identity_aliases.user_id 是 uuid 类型；users.id 是 text 类型，
+                # 两者均存同一 UUID 字符串，psycopg 驱动会做隐式转换。
                 cur.execute(
                     """
                     INSERT INTO public.user_identity_aliases
@@ -5898,13 +5903,13 @@ class MemberConsoleService:
                     """,
                     ("phone", phone, canonical_uid, "phone_verification", 1.0),
                 )
-                # 同步到 users.phone（id 是 text 类型，直接比较即可）
+                # users.phone 只在空时写入，避免覆盖已有值
                 cur.execute(
                     "UPDATE public.users SET phone = %s WHERE id = %s AND (phone IS NULL OR phone = '')",
                     (phone, canonical_uid),
                 )
-                if not use_psycopg2:
-                    conn.commit()
+                # psycopg3 和 psycopg2 的 `with conn:` 均在 __exit__ 时自动 commit，
+                # 此处不需要显式调用 conn.commit()。
         except Exception as exc:
             logger.warning(
                 "phone identity persist failed: phone=%s canonical_uid=%s error=%s",
