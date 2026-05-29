@@ -41,6 +41,7 @@ domains:
       - tests/api/test_unified_ws_public_redaction.py
       - tests/api/test_mobile_router.py
       - tests/services/session/test_context_builder.py
+      - tests/services/session/test_prompt_partition.py
       - tests/services/learner_state/test_attempt_refs.py
       - tests/services/learner_state/test_attempt_detail_read_model.py
       - tests/services/learner_state/test_mistake_book.py
@@ -122,6 +123,10 @@ domains:
       - tests/services/rag/test_index_versioning.py
       - tests/services/rag/test_supabase_strategy.py
       - tests/agents/chat/test_agentic_parallel_tools.py
+      - tests/services/rag/test_supabase_check_chunk_ids.py
+      - tests/services/rag/test_retrieval_quality.py
+      - tests/services/rag/test_provenance_boost_rollout.py
+      - tests/services/rag/test_compiled_truth_rollout.py
     schema_files:
       - deeptutor/contracts/bot_runtime_defaults.py
 
