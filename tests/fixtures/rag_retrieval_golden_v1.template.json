@@ -1,0 +1,42 @@
+[
+  {
+    "id": "concept-001",
+    "query": "什么是屋面防水等级？依据什么确定？",
+    "query_shape": "concept_like",
+    "expected_chunk_ids": ["__REPLACE_WITH_REAL_KB_CHUNK_ID__"],
+    "annotator": "__EXPERT_NAME_OR_ID__",
+    "notes": "标注理由：为什么这几个 chunk 才是 expected（双盲交叉验证后填写）"
+  },
+  {
+    "id": "mcq-001",
+    "query": "确定屋面防水工程的防水等级应根据（　）。A.建筑物类别　B.重要程度　C.使用功能要求　D.防水层耐用年限",
+    "query_shape": "mcq_like",
+    "expected_chunk_ids": ["__REPLACE_WITH_REAL_KB_CHUNK_ID__"],
+    "annotator": "__EXPERT_NAME_OR_ID__",
+    "notes": "标注理由（双盲交叉验证后填写）"
+  },
+  {
+    "id": "case-001",
+    "query": "某工程地下室采用卷材防水，施工过程中发现基层有渗漏。问：1) 该防水等级应如何确定？2) 卷材搭接的构造要求是什么？",
+    "query_shape": "case_like",
+    "expected_chunk_ids": ["__REPLACE_WITH_REAL_KB_CHUNK_ID__"],
+    "annotator": "__EXPERT_NAME_OR_ID__",
+    "notes": "案例题可能有多个 expected chunk 覆盖不同小问；标注理由（双盲后填）"
+  },
+  {
+    "id": "standard-001",
+    "query": "GB 50208 地下防水工程质量验收规范对防水等级的规定",
+    "query_shape": "standard_like",
+    "expected_chunk_ids": ["__REPLACE_WITH_REAL_KB_CHUNK_ID__"],
+    "annotator": "__EXPERT_NAME_OR_ID__",
+    "notes": "标准条文类应命中精确条文 chunk；标注理由（双盲后填）"
+  },
+  {
+    "id": "calc-001",
+    "query": "某屋面防水工程面积 1200 m²，采用幅宽 1 m 的卷材，搭接宽度 100 mm，计算所需卷材的最小用量。",
+    "query_shape": "calc_like",
+    "expected_chunk_ids": ["__REPLACE_WITH_REAL_KB_CHUNK_ID__"],
+    "annotator": "__EXPERT_NAME_OR_ID__",
+    "notes": "计算题 expected 通常是公式/参数依据 chunk；标注理由（双盲后填）"
+  }
+]
