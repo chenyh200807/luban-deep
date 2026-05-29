@@ -1,0 +1,953 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#07111f" />
+  <title>鲁班智考 · 内测回访调查</title>
+  <meta name="description" content="鲁班智考 AI 建筑实务陪考内测回访调查：花 3 分钟告诉我们你的真实体验、遇到的问题和改进建议。" />
+  <style>
+    :root {
+      --bg: #07111f;
+      --bg-2: #0a1322;
+      --bg-3: #050b14;
+      --card: rgba(18, 31, 52, 0.84);
+      --card-2: rgba(15, 26, 45, 0.94);
+      --card-hover: rgba(28, 44, 72, 0.9);
+      --line: rgba(148, 163, 184, 0.17);
+      --line-strong: rgba(148, 163, 184, 0.32);
+      --text: #f5f9ff;
+      --sub: #93a4bb;
+      --faint: #6b7c93;
+      --blue: #2f8fff;
+      --blue-soft: #60a5fa;
+      --cyan: #7dd3fc;
+      --green: #34d399;
+      --red: #fb7185;
+      --orange: #fbbf24;
+      --shadow: 0 24px 72px rgba(0, 0, 0, 0.36);
+      --shadow-lg: 0 32px 100px rgba(0, 0, 0, 0.5);
+      --ring: 0 0 0 4px rgba(47, 143, 255, 0.25);
+      --radius: 22px;
+      --radius-sm: 14px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      background:
+        radial-gradient(circle at 14% -2%, rgba(96, 165, 250, .16), transparent 36%),
+        radial-gradient(circle at 90% 4%, rgba(52, 211, 153, .08), transparent 32%),
+        radial-gradient(circle at 50% 120%, rgba(47, 143, 255, .10), transparent 50%),
+        linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 58%, var(--bg-3) 100%);
+      background-attachment: fixed;
+    }
+
+    /* ---------- Top progress bar ---------- */
+    .progress-shell {
+      position: fixed; inset: 0 0 auto 0; z-index: 50;
+      background: rgba(7, 17, 31, 0.72);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--line);
+    }
+    .progress-inner {
+      width: min(820px, calc(100% - 36px));
+      margin: 0 auto; padding: 14px 0 13px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .brand svg { width: 26px; height: 26px; flex-shrink: 0; }
+    .brand b { font-size: 15px; font-weight: 800; letter-spacing: .02em; white-space: nowrap; }
+    .brand b span { color: var(--cyan); }
+    .progress-track {
+      flex: 1; height: 7px; border-radius: 999px;
+      background: rgba(148, 163, 184, 0.16); overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; width: 0%; border-radius: 999px;
+      background: linear-gradient(90deg, var(--blue), var(--cyan));
+      box-shadow: 0 0 18px rgba(47, 143, 255, .5);
+      transition: width .5s cubic-bezier(.22,.61,.36,1);
+    }
+    .progress-count { font-size: 12px; font-weight: 700; color: var(--sub); white-space: nowrap; min-width: 36px; text-align: right; }
+
+    /* ---------- Layout ---------- */
+    .stage {
+      width: min(720px, calc(100% - 36px));
+      margin: 0 auto; padding: 92px 0 120px;
+      min-height: 100vh;
+      display: flex; flex-direction: column; justify-content: center;
+    }
+
+    .step { display: none; animation: rise .55s cubic-bezier(.16,.84,.44,1) both; }
+    .step.active { display: block; }
+    @keyframes rise { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+
+    .kicker {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 7px 13px; border-radius: 999px;
+      border: 1px solid rgba(125, 211, 252, .25);
+      background: rgba(125, 211, 252, .08);
+      color: var(--cyan); font-size: 12.5px; font-weight: 800; letter-spacing: .04em;
+    }
+    .kicker .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+
+    .step-title { margin: 18px 0 0; font-size: clamp(26px, 4.2vw, 40px); line-height: 1.12; font-weight: 850; letter-spacing: -.01em; }
+    .step-desc { margin: 14px 0 0; color: var(--sub); font-size: 16px; line-height: 1.7; max-width: 560px; }
+
+    /* ---------- Questions ---------- */
+    .questions { margin-top: 30px; display: flex; flex-direction: column; gap: 26px; }
+    .q { animation: rise .5s both; }
+    .q-label { font-size: 17px; font-weight: 750; line-height: 1.5; }
+    .q-label .req { color: var(--blue-soft); margin-left: 4px; }
+    .q-label .opt { color: var(--faint); font-size: 13px; font-weight: 600; margin-left: 8px; }
+    .q-hint { margin-top: 6px; color: var(--faint); font-size: 13.5px; line-height: 1.55; }
+    .q-body { margin-top: 16px; }
+
+    /* NPS */
+    .nps { display: grid; grid-template-columns: repeat(11, 1fr); gap: 6px; }
+    .nps button {
+      aspect-ratio: 1; border-radius: 12px; border: 1px solid var(--line);
+      background: var(--card); color: var(--text); font-weight: 750; font-size: 15px;
+      cursor: pointer; transition: transform .15s, border-color .2s, background .2s, box-shadow .2s;
+    }
+    .nps button:hover { border-color: var(--line-strong); transform: translateY(-2px); }
+    .nps button[aria-pressed="true"] {
+      background: linear-gradient(135deg, var(--blue), #1c6fe0);
+      border-color: transparent; box-shadow: 0 8px 24px rgba(47,143,255,.4); transform: translateY(-2px);
+    }
+    .nps-ends { display: flex; justify-content: space-between; margin-top: 9px; font-size: 12px; color: var(--faint); }
+
+    /* Scale (segmented) */
+    .scale { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; }
+    .scale.has-na { grid-template-columns: repeat(5, 1fr) 0.9fr; }
+    .scale .opt-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      padding: 13px 6px; border-radius: var(--radius-sm); border: 1px solid var(--line);
+      background: var(--card); color: var(--text); cursor: pointer; text-align: center;
+      transition: transform .15s, border-color .2s, background .2s, box-shadow .2s;
+    }
+    .scale .opt-btn .emoji { font-size: 22px; line-height: 1; }
+    .scale .opt-btn .t { font-size: 12px; font-weight: 700; color: var(--sub); }
+    .scale .opt-btn:hover { border-color: var(--line-strong); transform: translateY(-2px); }
+    .scale .opt-btn[aria-pressed="true"] {
+      background: linear-gradient(135deg, rgba(47,143,255,.22), rgba(125,211,252,.12));
+      border-color: var(--blue); box-shadow: var(--ring);
+    }
+    .scale .opt-btn[aria-pressed="true"] .t { color: var(--text); }
+
+    /* Single / Multi choice cards */
+    .choices { display: flex; flex-direction: column; gap: 10px; }
+    .choices.grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .choice {
+      display: flex; align-items: flex-start; gap: 13px;
+      padding: 15px 16px; border-radius: var(--radius-sm); border: 1px solid var(--line);
+      background: var(--card); color: var(--text); text-align: left;
+      cursor: pointer; transition: border-color .2s, background .2s, transform .12s;
+    }
+    .choice:hover { border-color: var(--line-strong); background: var(--card-hover); }
+    .choice[aria-pressed="true"] { border-color: var(--blue); background: linear-gradient(135deg, rgba(47,143,255,.16), rgba(125,211,252,.06)); box-shadow: var(--ring); }
+    .choice .mark {
+      width: 22px; height: 22px; border-radius: 7px; border: 2px solid var(--line-strong);
+      flex-shrink: 0; margin-top: 1px; display: grid; place-items: center; transition: all .2s;
+    }
+    .choice[data-shape="radio"] .mark { border-radius: 50%; }
+    .choice .mark svg { width: 13px; height: 13px; opacity: 0; transform: scale(.5); transition: all .2s; color: #fff; }
+    .choice[aria-pressed="true"] .mark { background: var(--blue); border-color: var(--blue); }
+    .choice[aria-pressed="true"] .mark svg { opacity: 1; transform: scale(1); }
+    .choice .c-text { flex: 1; min-width: 0; }
+    .choice .c-title { font-size: 15.5px; font-weight: 700; line-height: 1.4; }
+    .choice .c-desc { margin-top: 3px; font-size: 13px; color: var(--faint); line-height: 1.5; }
+
+    /* Text inputs */
+    .field {
+      width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--line);
+      background: var(--card-2); color: var(--text); font: inherit; font-size: 15.5px;
+      padding: 15px 16px; resize: vertical; transition: border-color .2s, box-shadow .2s;
+    }
+    textarea.field { min-height: 116px; line-height: 1.65; }
+    .field::placeholder { color: var(--faint); }
+    .field:focus { outline: none; border-color: var(--blue); box-shadow: var(--ring); }
+    .field-count { text-align: right; font-size: 12px; color: var(--faint); margin-top: 6px; }
+    .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .other-wrap { margin-top: 10px; display: none; }
+    .other-wrap.show { display: block; animation: rise .35s both; }
+
+    /* ---------- Welcome / Thanks ---------- */
+    .hero-card {
+      border-radius: var(--radius); border: 1px solid var(--line);
+      background: var(--card); box-shadow: var(--shadow-lg);
+      padding: 36px 30px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    }
+    .hero-logo svg { width: 56px; height: 56px; }
+    .meta-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+    .meta-pill {
+      display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px;
+      border-radius: 999px; border: 1px solid var(--line); background: rgba(255,255,255,.04);
+      font-size: 13.5px; font-weight: 650; color: var(--sub);
+    }
+    .meta-pill svg { width: 15px; height: 15px; color: var(--cyan); }
+    .privacy {
+      margin-top: 22px; padding: 14px 16px; border-radius: var(--radius-sm);
+      border: 1px solid var(--line); background: rgba(52,211,153,.05);
+      font-size: 13px; color: var(--sub); line-height: 1.6; display: flex; gap: 10px;
+    }
+    .privacy svg { width: 17px; height: 17px; color: var(--green); flex-shrink: 0; margin-top: 1px; }
+
+    .thanks-check {
+      width: 76px; height: 76px; border-radius: 50%; margin: 0 auto;
+      display: grid; place-items: center;
+      background: linear-gradient(135deg, var(--green), #0ea968);
+      box-shadow: 0 16px 48px rgba(52,211,153,.4);
+      animation: pop .6s cubic-bezier(.16,1.3,.5,1) both;
+    }
+    .thanks-check svg { width: 38px; height: 38px; color: #04130c; }
+    @keyframes pop { from { opacity: 0; transform: scale(.4); } to { opacity: 1; transform: scale(1); } }
+
+    /* ---------- Buttons / nav ---------- */
+    .nav {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+      background: linear-gradient(180deg, transparent, rgba(5,11,20,.92) 36%);
+      padding: 18px 0 max(20px, env(safe-area-inset-bottom));
+    }
+    .nav-inner { width: min(720px, calc(100% - 36px)); margin: 0 auto; display: flex; gap: 12px; align-items: center; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+      border: none; cursor: pointer; font: inherit; font-weight: 800; font-size: 16px;
+      border-radius: 999px; padding: 16px 26px; transition: transform .15s, box-shadow .2s, background .2s, opacity .2s;
+    }
+    .btn-primary {
+      flex: 1; color: #fff;
+      background: linear-gradient(135deg, var(--blue), #1c6fe0);
+      box-shadow: 0 12px 38px rgba(47,143,255,.42);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 16px 46px rgba(47,143,255,.55); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { opacity: .45; cursor: not-allowed; transform: none; box-shadow: none; }
+    .btn-ghost {
+      color: var(--sub); background: rgba(255,255,255,.05); border: 1px solid var(--line);
+      padding: 16px 20px;
+    }
+    .btn-ghost:hover { color: var(--text); border-color: var(--line-strong); }
+    .btn-ghost svg { width: 17px; height: 17px; }
+
+    .err-toast {
+      position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%) translateY(20px);
+      z-index: 60; background: var(--red); color: #2a0810; font-weight: 750; font-size: 14px;
+      padding: 11px 18px; border-radius: 999px; box-shadow: 0 12px 36px rgba(251,113,133,.45);
+      opacity: 0; pointer-events: none; transition: all .35s cubic-bezier(.16,1.3,.5,1); white-space: nowrap;
+    }
+    .err-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .q.invalid .q-label { color: var(--red); }
+    .q.invalid .nps, .q.invalid .scale, .q.invalid .choices { animation: shake .4s; }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }
+
+    .fallback-actions { display: none; flex-direction: column; gap: 10px; margin-top: 24px; }
+    .fallback-actions.show { display: flex; }
+
+    @media (max-width: 560px) {
+      .nps { gap: 4px; } .nps button { font-size: 13px; border-radius: 9px; }
+      .scale .opt-btn .t { font-size: 11px; }
+      .choices.grid { grid-template-columns: 1fr; }
+      .field-grid { grid-template-columns: 1fr; }
+      .brand b { display: none; }
+      .scale.has-na { grid-template-columns: repeat(3, 1fr); }
+      .step-desc { font-size: 15px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- ===== SVG defs: 鲁班角尺 logo mark ===== -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <linearGradient id="lubanGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#7dd3fc"/><stop offset="1" stop-color="#2f8fff"/>
+      </linearGradient>
+      <symbol id="luban-mark" viewBox="0 0 48 48">
+        <path d="M9 8h7v24h24v8H9z" fill="url(#lubanGrad)"/>
+        <path d="M20 8h20v20h-8V16H20z" fill="url(#lubanGrad)" opacity="0.55"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <header class="progress-shell">
+    <div class="progress-inner">
+      <div class="brand">
+        <svg viewBox="0 0 48 48"><use href="#luban-mark"/></svg>
+        <b>鲁班<span>智考</span></b>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-count" id="progressCount">0%</div>
+    </div>
+  </header>
+
+  <main class="stage" id="stage"><!-- steps injected here --></main>
+
+  <div class="nav" id="nav">
+    <div class="nav-inner">
+      <button class="btn btn-ghost" id="backBtn" type="button" aria-label="上一步">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        上一步
+      </button>
+      <button class="btn btn-primary" id="nextBtn" type="button"></button>
+    </div>
+  </div>
+
+  <div class="err-toast" id="errToast">请先回答这个问题</div>
+
+  <script>
+  "use strict";
+  /* =========================================================
+     鲁班智考 · 内测回访调查
+     提交配置：把答案 POST 到下面的 SUBMIT_ENDPOINT。
+     留空（""）时自动降级为「下载 / 复制」收集方式，无需后端也能用。
+     ========================================================= */
+  const SUBMIT_ENDPOINT = "/api/feedback/responses"; // 与主站同源：答卷写入 Supabase public.luban_feedback
+  const SOURCE_PAGE = "luban-html-js-wechat-required";
+  const STORAGE_KEY = "luban_feedback_survey_v1";
+
+  /* ---------- 问卷结构（数据驱动） ---------- */
+  const SURVEY = [
+    {
+      type: "welcome",
+      kicker: "内测回访调查",
+      title: "你的真实体验，决定鲁班智考下一步长什么样",
+      desc: "感谢你参与建筑实务 AI 陪考内测。这份回访只问真正影响产品的问题——哪里帮到了你，哪里还不行，以及你最想要什么。",
+    },
+    {
+      kicker: "第一印象",
+      title: "先聊聊整体感受",
+      desc: "凭直觉作答即可，没有标准答案。",
+      questions: [
+        {
+          id: "nps", type: "nps",
+          label: "综合这段时间的体验，你有多大可能把鲁班智考推荐给同样在备考建筑实务的同学？",
+          hint: "0 = 完全不会推荐，10 = 一定会强烈推荐",
+          lowLabel: "绝不会", highLabel: "一定会",
+        },
+        {
+          id: "overall_satisfaction", type: "scale",
+          label: "整体而言，你对这次内测体验的满意度是？",
+          options: [
+            { value: "1", emoji: "😣", t: "很不满意" },
+            { value: "2", emoji: "🙁", t: "不太满意" },
+            { value: "3", emoji: "😐", t: "一般" },
+            { value: "4", emoji: "🙂", t: "比较满意" },
+            { value: "5", emoji: "😍", t: "非常满意" },
+          ],
+        },
+        {
+          id: "one_word", type: "text", optional: true, maxlength: 60,
+          label: "如果用一句话形容你的使用感受，会是？",
+          placeholder: "例如：案例题终于知道怎么踩分了 / 还差点意思……",
+        },
+      ],
+    },
+    {
+      kicker: "核心功能",
+      title: "几个主要功能，分别打个分",
+      desc: "没用过的功能选「没用过」就好，我们不会强求。",
+      questions: [
+        {
+          id: "feat_case_grading", type: "scale", allowNA: true,
+          label: "案例题 AI 阅卷官（把作答拆成得分点 / 缺口 / 改写建议）",
+          options: scale5(), naLabel: "没用过",
+        },
+        {
+          id: "feat_error_coach", type: "scale", allowNA: true,
+          label: "错因驱动陪练（围绕你的失分点继续训练）",
+          options: scale5(), naLabel: "没用过",
+        },
+        {
+          id: "feat_qa", type: "scale", allowNA: true,
+          label: "AI 答疑（随时提问建筑实务知识点）",
+          options: scale5(), naLabel: "没用过",
+        },
+        {
+          id: "most_valuable", type: "single",
+          label: "到目前为止，哪个功能对你最有价值？",
+          options: [
+            { value: "case_grading", title: "案例题 AI 阅卷官" },
+            { value: "error_coach", title: "错因驱动陪练" },
+            { value: "qa", title: "AI 答疑" },
+            { value: "none_yet", title: "暂时都还没真正帮到我" },
+          ],
+        },
+      ],
+    },
+    {
+      kicker: "使用体验",
+      title: "用起来顺不顺手",
+      desc: "这部分帮我们定位体验上的硬伤。",
+      questions: [
+        {
+          id: "ease_of_use", type: "scale",
+          label: "上手 / 操作的难易程度",
+          options: scaleCustom(["很难用", "有点绕", "还行", "比较顺", "很顺手"]),
+        },
+        {
+          id: "accuracy", type: "scale",
+          label: "AI 回答与批改的准确度",
+          options: scaleCustom(["经常出错", "时对时错", "一般", "基本可靠", "很准"]),
+        },
+        {
+          id: "speed", type: "scale",
+          label: "响应速度",
+          options: scaleCustom(["太慢", "偏慢", "一般", "比较快", "很流畅"]),
+        },
+        {
+          id: "problems", type: "multi", allowOther: true,
+          label: "使用过程中，你遇到过哪些问题？",
+          hint: "可多选；没遇到就选最后一项。",
+          options: [
+            { value: "slow_loading", title: "加载 / 等待太久" },
+            { value: "off_topic", title: "答非所问、没抓住重点" },
+            { value: "grading_inaccurate", title: "案例题批改不准 / 不认同" },
+            { value: "hard_to_understand", title: "回答太长或看不懂" },
+            { value: "cant_find", title: "功能 / 入口不好找" },
+            { value: "miniprogram_laggy", title: "小程序卡顿、闪退或登录问题" },
+            { value: "none", title: "基本没遇到什么问题", exclusive: true },
+          ],
+        },
+      ],
+    },
+    {
+      kicker: "痛点与缺口",
+      title: "我们还没帮你解决的，是什么",
+      desc: "这部分对我们最重要——请尽量具体。",
+      questions: [
+        {
+          id: "unsolved_pain", type: "text",
+          label: "备考建筑实务时，最让你头疼、而鲁班智考还没帮上忙的问题是？",
+          hint: "越具体越好，比如某类题型、某个知识模块、某种学习场景。",
+          placeholder: "例如：进度计划的网络图计算，做题时还是没人帮我逐步纠错……",
+          maxlength: 500,
+        },
+        {
+          id: "wanted_features", type: "multi", allowOther: true,
+          label: "你最希望接下来增加哪些能力？",
+          hint: "可多选，最多帮我们排个序也行。",
+          options: [
+            { value: "mock_exam", title: "真题 / 全真模考" },
+            { value: "more_cases", title: "更多案例题批改额度" },
+            { value: "concept_explain", title: "知识点精讲与图解" },
+            { value: "spec_lookup", title: "规范条文速查与解读" },
+            { value: "study_plan", title: "个性化学习计划" },
+            { value: "mistake_book", title: "智能错题本" },
+            { value: "memory_aid", title: "记忆 / 背诵辅助" },
+            { value: "video", title: "配套视频精讲" },
+          ],
+        },
+      ],
+    },
+    {
+      kicker: "价值与意愿",
+      title: "它对你到底值不值",
+      desc: "真实判断比客气更有帮助。",
+      questions: [
+        {
+          id: "will_continue", type: "single",
+          label: "内测结束后，你还会继续使用吗？",
+          options: [
+            { value: "definitely", title: "一定会，已经离不开" },
+            { value: "probably", title: "大概率会用" },
+            { value: "depends", title: "看后续做成什么样" },
+            { value: "probably_not", title: "可能不会" },
+            { value: "no", title: "应该不会再用" },
+          ],
+        },
+        {
+          id: "pay_willingness", type: "single",
+          label: "如果正式版需要付费，你的态度是？",
+          options: [
+            { value: "happy_to_pay", title: "很愿意付费，确实值" },
+            { value: "if_priced_right", title: "价格合适就会付" },
+            { value: "free_only", title: "只会用免费部分" },
+            { value: "no_pay", title: "不会为它付费" },
+            { value: "unsure", title: "现在还说不好" },
+          ],
+        },
+        {
+          id: "would_recommend", type: "single",
+          label: "你已经 / 会主动把它推荐给同学吗？",
+          options: [
+            { value: "already_did", title: "已经推荐过了" },
+            { value: "will", title: "会主动推荐" },
+            { value: "maybe", title: "看情况，可能会" },
+            { value: "wont", title: "暂时不会" },
+          ],
+        },
+      ],
+    },
+    {
+      kicker: "最后一步",
+      title: "一条建议，和一次深聊邀请",
+      desc: "快完成了，谢谢你坚持到这里 🙌",
+      questions: [
+        {
+          id: "top_suggestion", type: "text",
+          label: "如果只能提一条最重要的改进建议，会是什么？",
+          placeholder: "把你最想说的那句话写在这里……",
+          maxlength: 500,
+        },
+        {
+          id: "revisit_willingness", type: "single",
+          label: "是否愿意参加一次 10 分钟左右的电话 / 微信回访，帮我们深入聊聊？",
+          options: [
+            { value: "very_willing", title: "非常愿意" },
+            { value: "ok", title: "可以，约个合适时间" },
+            { value: "depends_time", title: "看时间，不一定" },
+            { value: "no", title: "暂时不太方便" },
+          ],
+        },
+        {
+          id: "contact", type: "contact", optional: true,
+          label: "方便的话，留个联系方式（仅用于回访，绝不外传）",
+          fields: [
+            { key: "wechat", placeholder: "微信号（选填）" },
+            { key: "phone", placeholder: "手机号（选填）" },
+          ],
+        },
+      ],
+    },
+  ];
+
+  function scale5() {
+    return [
+      { value: "1", emoji: "😣", t: "很差" },
+      { value: "2", emoji: "🙁", t: "较差" },
+      { value: "3", emoji: "😐", t: "一般" },
+      { value: "4", emoji: "🙂", t: "不错" },
+      { value: "5", emoji: "😍", t: "很棒" },
+    ];
+  }
+  function scaleCustom(labels) {
+    const emojis = ["😣", "🙁", "😐", "🙂", "😍"];
+    return labels.map((t, i) => ({ value: String(i + 1), emoji: emojis[i], t }));
+  }
+
+  /* ---------- 状态 ---------- */
+  const answers = loadAnswers();
+  let current = 0;
+  const stageEl = document.getElementById("stage");
+  const navEl = document.getElementById("nav");
+  const backBtn = document.getElementById("backBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const fillEl = document.getElementById("progressFill");
+  const countEl = document.getElementById("progressCount");
+  const toastEl = document.getElementById("errToast");
+  let submitted = false;
+  let submitFailed = false;
+
+  const TOTAL_CONTENT = SURVEY.filter(s => s.type !== "welcome").length;
+  const ICONS = {
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+    clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+    layers: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>',
+    heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 10-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg>',
+    shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+  };
+
+  /* ---------- 渲染 ---------- */
+  function render() {
+    stageEl.innerHTML = "";
+    const step = SURVEY[current];
+    const stepEl = document.createElement("section");
+    stepEl.className = "step active";
+
+    if (step.type === "welcome") {
+      stepEl.innerHTML = welcomeHTML(step);
+    } else if (step.type === "thanks") {
+      stepEl.innerHTML = thanksHTML();
+    } else {
+      stepEl.innerHTML = `
+        <div class="kicker"><span class="dot"></span>${step.kicker} · ${stepIndex()} / ${TOTAL_CONTENT}</div>
+        <h1 class="step-title">${step.title}</h1>
+        ${step.desc ? `<p class="step-desc">${step.desc}</p>` : ""}
+        <div class="questions">${step.questions.map(renderQuestion).join("")}</div>`;
+    }
+    stageEl.appendChild(stepEl);
+    bindStep(step);
+    updateChrome(step);
+    window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
+  }
+
+  function welcomeHTML(step) {
+    return `
+      <div class="kicker"><span class="dot"></span>${step.kicker}</div>
+      <h1 class="step-title" style="margin-top:20px">${step.title}</h1>
+      <p class="step-desc">${step.desc}</p>
+      <div class="meta-row">
+        <span class="meta-pill">${ICONS.clock}约 3 分钟</span>
+        <span class="meta-pill">${ICONS.layers}6 个小节</span>
+        <span class="meta-pill">${ICONS.heart}匿名也可提交</span>
+      </div>
+      <div class="privacy">${ICONS.shield}<span>你的回答仅用于改进产品。联系方式为选填，只在你同意回访时使用，绝不对外分享。中途退出会自动保存进度。</span></div>`;
+  }
+
+  function thanksHTML() {
+    return `
+      <div class="thanks-check">${ICONS.check}</div>
+      <h1 class="step-title" style="text-align:center;margin-top:26px">收到了，谢谢你！</h1>
+      <p class="step-desc" style="text-align:center;margin-left:auto;margin-right:auto">
+        你的每一条反馈我们都会认真读。正是这些真实声音，让鲁班智考一点点变得更好用。
+      </p>
+      <div class="fallback-actions" id="fallbackActions">
+        <p class="step-desc" id="fallbackHint" style="text-align:center;margin:0 auto 6px;font-size:14px;color:var(--orange)">
+          提示：当前为本地收集模式，请把你的反馈导出后发回给我们。
+        </p>
+        <button class="btn btn-primary" type="button" id="downloadBtn">下载我的反馈（JSON）</button>
+        <button class="btn btn-ghost" type="button" id="copyBtn" style="justify-content:center">复制反馈内容</button>
+      </div>`;
+  }
+
+  function renderQuestion(q) {
+    const labelOpt = q.optional ? '<span class="opt">（选填）</span>' : '<span class="req">*</span>';
+    let body = "";
+    if (q.type === "nps") body = renderNPS(q);
+    else if (q.type === "scale") body = renderScale(q);
+    else if (q.type === "single") body = renderChoices(q, "radio");
+    else if (q.type === "multi") body = renderChoices(q, "check");
+    else if (q.type === "text") body = renderText(q);
+    else if (q.type === "contact") body = renderContact(q);
+    return `
+      <div class="q" data-qid="${q.id}" data-type="${q.type}" ${q.optional ? 'data-optional="1"' : ""} ${q.exclusiveAware ? "" : ""}>
+        <div class="q-label">${q.label}${labelOpt}</div>
+        ${q.hint ? `<div class="q-hint">${q.hint}</div>` : ""}
+        <div class="q-body">${body}</div>
+      </div>`;
+  }
+
+  function renderNPS(q) {
+    const v = answers[q.id];
+    let btns = "";
+    for (let i = 0; i <= 10; i++) {
+      btns += `<button type="button" data-v="${i}" aria-pressed="${String(i) === String(v)}">${i}</button>`;
+    }
+    return `<div class="nps" data-input="nps">${btns}</div>
+      <div class="nps-ends"><span>${q.lowLabel || ""}</span><span>${q.highLabel || ""}</span></div>`;
+  }
+
+  function renderScale(q) {
+    const v = answers[q.id];
+    const opts = q.options.map(o =>
+      `<button type="button" class="opt-btn" data-v="${o.value}" aria-pressed="${String(o.value) === String(v)}">
+        <span class="emoji">${o.emoji}</span><span class="t">${o.t}</span></button>`
+    ).join("");
+    const na = q.allowNA
+      ? `<button type="button" class="opt-btn" data-v="na" aria-pressed="${v === "na"}">
+          <span class="emoji">🚫</span><span class="t">${q.naLabel || "没用过"}</span></button>`
+      : "";
+    return `<div class="scale ${q.allowNA ? "has-na" : ""}" data-input="scale">${opts}${na}</div>`;
+  }
+
+  function renderChoices(q, shape) {
+    const sel = answers[q.id];
+    const grid = q.options.length > 4 && q.type === "multi" ? "grid" : "";
+    const opts = q.options.map(o => {
+      const on = q.type === "multi" ? Array.isArray(sel) && sel.includes(o.value) : sel === o.value;
+      return `<button type="button" class="choice" data-shape="${shape}" data-v="${o.value}" ${o.exclusive ? 'data-exclusive="1"' : ""} aria-pressed="${on}">
+        <span class="mark">${ICONS.check}</span>
+        <span class="c-text"><span class="c-title">${o.title}</span>${o.desc ? `<span class="c-desc">${o.desc}</span>` : ""}</span>
+      </button>`;
+    }).join("");
+    let other = "";
+    if (q.allowOther) {
+      const otherVal = (answers[q.id + "__other"]) || "";
+      const show = q.type === "multi"
+        ? Array.isArray(sel) && sel.includes("__other")
+        : sel === "__other";
+      other = `
+        <button type="button" class="choice" data-shape="${shape}" data-v="__other" aria-pressed="${show}" style="margin-top:0">
+          <span class="mark">${ICONS.check}</span>
+          <span class="c-text"><span class="c-title">其他（请补充）</span></span>
+        </button>
+        <div class="other-wrap ${show ? "show" : ""}" data-other-for="${q.id}">
+          <input class="field" type="text" data-other-input placeholder="请简单描述……" value="${escapeAttr(otherVal)}" maxlength="120" />
+        </div>`;
+    }
+    return `<div class="choices ${grid}" data-input="${q.type}">${opts}${q.allowOther ? other : ""}</div>`;
+  }
+
+  function renderText(q) {
+    const v = answers[q.id] || "";
+    const max = q.maxlength || 300;
+    return `<textarea class="field" data-input="text" maxlength="${max}" placeholder="${escapeAttr(q.placeholder || "")}">${escapeHTML(v)}</textarea>
+      <div class="field-count"><span data-count>${v.length}</span> / ${max}</div>`;
+  }
+
+  function renderContact(q) {
+    const data = answers[q.id] || {};
+    const inputs = q.fields.map(f =>
+      `<input class="field" type="text" data-contact="${f.key}" placeholder="${escapeAttr(f.placeholder)}" value="${escapeAttr(data[f.key] || "")}" maxlength="40" />`
+    ).join("");
+    return `<div class="field-grid" data-input="contact">${inputs}</div>`;
+  }
+
+  /* ---------- 事件绑定 ---------- */
+  function bindStep(step) {
+    if (step.type === "welcome") return;
+    if (step.type === "thanks") { bindThanks(); return; }
+
+    stageEl.querySelectorAll(".q").forEach(qEl => {
+      const qid = qEl.dataset.qid;
+      const type = qEl.dataset.type;
+
+      if (type === "nps") {
+        qEl.querySelectorAll(".nps button").forEach(b => b.addEventListener("click", () => {
+          setPressed(qEl, ".nps button", b);
+          answers[qid] = b.dataset.v; persist(); clearInvalid(qEl); refreshNext();
+        }));
+      }
+      if (type === "scale") {
+        qEl.querySelectorAll(".opt-btn").forEach(b => b.addEventListener("click", () => {
+          setPressed(qEl, ".opt-btn", b);
+          answers[qid] = b.dataset.v; persist(); clearInvalid(qEl); refreshNext();
+        }));
+      }
+      if (type === "single") {
+        qEl.querySelectorAll(".choice").forEach(b => b.addEventListener("click", () => {
+          setPressed(qEl, ".choice", b);
+          answers[qid] = b.dataset.v;
+          toggleOther(qEl, qid, b.dataset.v === "__other");
+          persist(); clearInvalid(qEl); refreshNext();
+        }));
+      }
+      if (type === "multi") {
+        qEl.querySelectorAll(".choice").forEach(b => b.addEventListener("click", () => {
+          let arr = Array.isArray(answers[qid]) ? answers[qid].slice() : [];
+          const v = b.dataset.v;
+          const isExclusive = b.dataset.exclusive === "1";
+          if (arr.includes(v)) arr = arr.filter(x => x !== v);
+          else {
+            if (isExclusive) arr = [v];
+            else arr = arr.filter(x => {
+              const other = qEl.querySelector(`.choice[data-v="${x}"]`);
+              return !(other && other.dataset.exclusive === "1");
+            }).concat(v);
+          }
+          answers[qid] = arr;
+          // sync pressed states
+          qEl.querySelectorAll(".choice").forEach(c => c.setAttribute("aria-pressed", arr.includes(c.dataset.v)));
+          toggleOther(qEl, qid, arr.includes("__other"));
+          persist(); clearInvalid(qEl); refreshNext();
+        }));
+      }
+      // other input
+      const otherInput = qEl.querySelector("[data-other-input]");
+      if (otherInput) otherInput.addEventListener("input", () => { answers[qid + "__other"] = otherInput.value; persist(); });
+
+      if (type === "text") {
+        const ta = qEl.querySelector("textarea");
+        const counter = qEl.querySelector("[data-count]");
+        ta.addEventListener("input", () => {
+          answers[qid] = ta.value; if (counter) counter.textContent = ta.value.length;
+          persist(); clearInvalid(qEl); refreshNext();
+        });
+      }
+      if (type === "contact") {
+        qEl.querySelectorAll("[data-contact]").forEach(inp => inp.addEventListener("input", () => {
+          const obj = answers[qid] || {};
+          obj[inp.dataset.contact] = inp.value; answers[qid] = obj; persist();
+        }));
+      }
+    });
+  }
+
+  function bindThanks() {
+    const fa = document.getElementById("fallbackActions");
+    if (!fa) return;
+    // 无后端（本地收集）或提交失败时，才显示「下载 / 复制」兜底，避免答卷丢失
+    if (SUBMIT_ENDPOINT && !submitFailed) return;
+    const hint = document.getElementById("fallbackHint");
+    if (hint) {
+      hint.textContent = submitFailed
+        ? "提示：网络提交未成功，但已为你本地保存。请导出反馈发回给我们，以免丢失。"
+        : "提示：当前为本地收集模式，请把你的反馈导出后发回给我们。";
+    }
+    fa.classList.add("show");
+    document.getElementById("downloadBtn").addEventListener("click", downloadAnswers);
+    document.getElementById("copyBtn").addEventListener("click", copyAnswers);
+  }
+
+  function toggleOther(qEl, qid, show) {
+    const wrap = qEl.querySelector(`[data-other-for="${qid}"]`);
+    if (wrap) wrap.classList.toggle("show", show);
+  }
+  function setPressed(qEl, sel, active) {
+    qEl.querySelectorAll(sel).forEach(b => b.setAttribute("aria-pressed", b === active));
+  }
+  function clearInvalid(qEl) { qEl.classList.remove("invalid"); }
+
+  /* ---------- 导航 / 验证 ---------- */
+  function stepIndex() {
+    let n = 0;
+    for (let i = 0; i <= current; i++) if (SURVEY[i].type !== "welcome" && SURVEY[i].type !== "thanks") n++;
+    return n;
+  }
+
+  function updateChrome(step) {
+    const isWelcome = step.type === "welcome";
+    const isThanks = step.type === "thanks";
+    navEl.style.display = isThanks ? "none" : "flex";
+    backBtn.style.visibility = (current === 0 || isThanks) ? "hidden" : "visible";
+
+    const lastContent = current === SURVEY.length - 1;
+    if (isWelcome) nextBtn.textContent = "开始填写";
+    else if (lastContent) nextBtn.textContent = "提交反馈";
+    else nextBtn.textContent = "下一步";
+
+    // progress
+    let pct;
+    if (isThanks) pct = 100;
+    else if (isWelcome) pct = 4;
+    else pct = Math.round((stepIndex() - 1) / TOTAL_CONTENT * 92) + 6;
+    fillEl.style.width = pct + "%";
+    countEl.textContent = pct + "%";
+    refreshNext();
+  }
+
+  function validateStep() {
+    const step = SURVEY[current];
+    if (!step.questions) return true;
+    let firstBad = null;
+    step.questions.forEach(q => {
+      if (q.optional) return;
+      const a = answers[q.id];
+      let ok = true;
+      if (q.type === "multi") ok = Array.isArray(a) && a.length > 0;
+      else if (q.type === "text") ok = typeof a === "string" && a.trim().length > 0;
+      else ok = a !== undefined && a !== null && a !== "";
+      const qEl = stageEl.querySelector(`.q[data-qid="${q.id}"]`);
+      if (!ok) { if (qEl) qEl.classList.add("invalid"); if (!firstBad) firstBad = qEl; }
+    });
+    if (firstBad) {
+      firstBad.scrollIntoView({ behavior: "smooth", block: "center" });
+      showToast("这里还没填哦");
+      return false;
+    }
+    return true;
+  }
+
+  function refreshNext() {
+    // 仅做软提示：按钮始终可点，点了再校验（体验更顺）
+  }
+
+  function next() {
+    const step = SURVEY[current];
+    if (step.type === "welcome") { current++; render(); return; }
+    if (!validateStep()) return;
+    const lastContent = current === SURVEY.length - 1;
+    if (lastContent) { submit(); return; }
+    current++; render();
+  }
+  function back() { if (current > 0) { current--; render(); } }
+
+  nextBtn.addEventListener("click", next);
+  backBtn.addEventListener("click", back);
+
+  function showToast(msg) {
+    toastEl.textContent = msg || "请先回答这个问题";
+    toastEl.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toastEl.classList.remove("show"), 2200);
+  }
+
+  /* ---------- 提交 ---------- */
+  async function submit() {
+    if (submitted) return;
+    nextBtn.disabled = true; nextBtn.textContent = "提交中…";
+    const payload = buildPayload();
+    let ok = false;
+    if (SUBMIT_ENDPOINT) {
+      try {
+        const res = await fetch(SUBMIT_ENDPOINT, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        ok = res.ok;
+      } catch (e) { ok = false; }
+    } else {
+      ok = true; // 本地降级模式
+    }
+    submitted = true;
+    try { localStorage.setItem(STORAGE_KEY + "_submitted", JSON.stringify(payload)); } catch (e) {}
+    if (!ok && SUBMIT_ENDPOINT) {
+      submitFailed = true;
+      showToast("网络提交失败，已为你保存，可手动导出");
+    }
+    // 进入感谢页
+    SURVEY.push({ type: "thanks" });
+    current = SURVEY.length - 1;
+    nextBtn.disabled = false;
+    render();
+  }
+
+  function buildPayload() {
+    const data = {};
+    SURVEY.forEach(s => (s.questions || []).forEach(q => {
+      if (q.type === "contact") { data[q.id] = answers[q.id] || {}; return; }
+      data[q.id] = answers[q.id] !== undefined ? answers[q.id] : null;
+      if (q.allowOther && answers[q.id + "__other"]) data[q.id + "__other"] = answers[q.id + "__other"];
+    }));
+    return {
+      survey: "luban_feedback_internal_test",
+      version: "v1",
+      source_page: SOURCE_PAGE,
+      submitted_at: new Date().toISOString(),
+      user_agent: navigator.userAgent,
+      answers: data,
+    };
+  }
+
+  function downloadAnswers() {
+    const payload = buildPayload();
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "luban-feedback-" + Date.now() + ".json";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  async function copyAnswers() {
+    const text = JSON.stringify(buildPayload(), null, 2);
+    try { await navigator.clipboard.writeText(text); showToast("已复制，粘贴发回给我们即可"); }
+    catch (e) {
+      const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta);
+      ta.select(); try { document.execCommand("copy"); showToast("已复制"); } catch (_) { showToast("复制失败，请用下载"); }
+      ta.remove();
+    }
+  }
+
+  /* ---------- 持久化 ---------- */
+  function persist() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(answers)); } catch (e) {} }
+  function loadAnswers() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch (e) { return {}; }
+  }
+
+  /* ---------- utils ---------- */
+  function escapeHTML(s) { return String(s).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c])); }
+  function escapeAttr(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+  // keyboard: Enter advances (but not inside textarea)
+  document.addEventListener("keydown", e => {
+    const tag = e.target.tagName;
+    if (e.key === "Enter" && tag !== "TEXTAREA" && tag !== "INPUT" && navEl.style.display !== "none") {
+      e.preventDefault(); next();
+    }
+  });
+
+  render();
+  </script>
+</body>
+</html>
