@@ -32,6 +32,14 @@ from deeptutor.contracts.unified_turn import (
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
+# F5: hard cap on a single inbound WS text frame (character length). The handler
+# json.loads() the frame before schema validation, so without a boundary cap an
+# authenticated client could send a ~16MiB frame and force a large parse + memory
+# spike on every start_turn (only soft-bounded by the 10/60s start_turn rate limit).
+# 128K chars comfortably fits a long tutoring message + attachment metadata + config
+# while killing the amplification vector. Applies to every message type at the entry.
+_MAX_WS_INBOUND_FRAME_CHARS = 128 * 1024
+
 _LEGACY_INTERACTION_HINT_KEYS = (
     "profile",
     "scene",
@@ -435,6 +443,17 @@ async def unified_websocket(ws: WebSocket) -> None:
     try:
         while not closed:
             raw = await ws.receive_text()
+            if len(raw) > _MAX_WS_INBOUND_FRAME_CHARS:
+                await safe_send(
+                    {
+                        "type": "error",
+                        "content": (
+                            f"Message too large ({len(raw)} chars; "
+                            f"limit {_MAX_WS_INBOUND_FRAME_CHARS})."
+                        ),
+                    }
+                )
+                continue
             try:
                 msg = json.loads(raw)
             except json.JSONDecodeError:
