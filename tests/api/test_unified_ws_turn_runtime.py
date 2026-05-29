@@ -8895,3 +8895,90 @@ def test_sanitize_appended_deltas_round_trip_to_markdown_heading() -> None:
     joined = "".join(out)
     assert "\n\n### 一、基本原则" in joined
     assert "### 一、基本原则\n\n施工缝应留置在" in joined
+
+
+def test_offer_to_subscriber_bounds_queue_and_preserves_sentinel() -> None:
+    """F7: bounded live-subscriber queue drops the oldest event on overflow,
+    never raises, stays at maxsize, and always delivers the terminal None sentinel."""
+    from deeptutor.services.session.turn_runtime import (
+        _MAX_LIVE_SUBSCRIBER_QUEUE_SIZE,
+        _offer_to_subscriber,
+    )
+
+    # Overflow with live events: never raises, queue stays bounded, oldest dropped.
+    q: asyncio.Queue = asyncio.Queue(maxsize=4)
+    for i in range(20):
+        _offer_to_subscriber(q, {"seq": i})
+    assert q.qsize() == 4
+    seqs = [q.get_nowait()["seq"] for _ in range(4)]
+    assert seqs == [16, 17, 18, 19]  # freshest kept, oldest evicted
+
+    # The None close sentinel must land even when the queue is full
+    # (a slow consumer must never hang waiting for end-of-stream).
+    q2: asyncio.Queue = asyncio.Queue(maxsize=2)
+    _offer_to_subscriber(q2, {"seq": 0})
+    _offer_to_subscriber(q2, {"seq": 1})
+    assert q2.full()
+    _offer_to_subscriber(q2, None)  # must not raise; must enqueue None
+    drained = [q2.get_nowait() for _ in range(q2.qsize())]
+    assert None in drained
+
+    assert _MAX_LIVE_SUBSCRIBER_QUEUE_SIZE >= 256  # sane bound, headroom for healthy consumers
+
+
+def test_ws_rejects_oversized_inbound_frame(tmp_path, monkeypatch) -> None:
+    """F5: an authenticated client sending a frame above the app-layer char cap is
+    rejected fail-fast with a clear error (not silently truncated); normal payload passes."""
+    pytest.importorskip("fastapi")
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from deeptutor.api import _secure_router as secure_router_mod
+    from deeptutor.api.dependencies import AuthContext
+    from deeptutor.api.routers.unified_ws import _MAX_WS_INBOUND_FRAME_CHARS, router
+    from deeptutor.services.session import SQLiteSessionStore
+
+    store = SQLiteSessionStore(db_path=tmp_path / "ws-f5.db")
+
+    class _FakeRuntime:
+        async def start_turn(self, payload):
+            return {"id": "session_new"}, {"id": "turn_new"}
+
+        async def subscribe_turn(self, turn_id, after_seq=0):
+            yield {
+                "type": "done",
+                "metadata": {"status": "completed"},
+                "session_id": "session_new",
+                "turn_id": turn_id,
+                "seq": 1,
+                "timestamp": 0,
+            }
+
+    monkeypatch.setattr(
+        secure_router_mod,
+        "resolve_auth_context",
+        lambda _authorization: AuthContext(
+            user_id="u1", provider="test", token="t", claims={"uid": "u1"}, is_admin=False
+        ),
+    )
+    monkeypatch.setattr("deeptutor.services.session.get_sqlite_session_store", lambda: store)
+    monkeypatch.setattr("deeptutor.services.session.get_turn_runtime_manager", lambda: _FakeRuntime())
+
+    app = FastAPI()
+    app.include_router(router, prefix="/api/v1")
+    with TestClient(app) as client:
+        with client.websocket_connect("/api/v1/ws") as websocket:
+            websocket.send_json(
+                {"type": "start_turn", "content": "x" * (_MAX_WS_INBOUND_FRAME_CHARS + 100)}
+            )
+            oversized = websocket.receive_json()
+            assert oversized["type"] == "error"
+            assert "too large" in oversized["content"].lower()
+
+            # Normal-size payload is processed (not rejected as too large).
+            websocket.send_json({"type": "start_turn", "content": "hello"})
+            normal = websocket.receive_json()
+            assert not (
+                normal.get("type") == "error"
+                and "too large" in str(normal.get("content", "")).lower()
+            )

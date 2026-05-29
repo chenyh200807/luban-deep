@@ -119,3 +119,29 @@ def test_websocket_rate_limit_blocks_repeated_connections(
     assert first is True
     assert second is False
     assert closed == (1013, "Too many requests")
+
+
+def test_fallback_in_memory_bucket_accumulates_across_calls(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """F9 regression: when the primary backend keeps throwing, the in-memory fallback
+    must still rate-limit. The fallback ``_MemoryRateLimitBackend()`` is stateless —
+    its buckets live in the module-level ``_RATE_LIMIT_STATE`` — so constructing a new
+    instance per call does NOT reset counts; they accumulate and the limiter holds.
+    (The audit's F9 "limiter bypassed" reading was a false positive; this pins the fact.)"""
+
+    class _BoomBackend:
+        def consume(self, *_args, **_kwargs):
+            raise RuntimeError("primary backend down")
+
+    monkeypatch.setattr(rate_limit_module, "_get_backend", lambda: _BoomBackend())
+
+    policy = rate_limit_module.RateLimitPolicy(max_requests=3, window_seconds=60.0)
+    results = [
+        rate_limit_module._consume_rate_limit("probe_scope", "probe_key", policy)
+        for _ in range(5)
+    ]
+
+    # First 3 allowed (None), then the accumulated count trips the limit (retry-after int).
+    assert results[:3] == [None, None, None]
+    assert all(isinstance(r, int) and r > 0 for r in results[3:])

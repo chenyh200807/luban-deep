@@ -1688,6 +1688,35 @@ def _format_interaction_hints(hints: dict[str, Any], language: str = "en") -> st
     return "\n".join(lines).strip()
 
 
+# F7: bound each live WS subscriber's in-memory event queue. The queue carries
+# replayed catchup events, live events, and a terminal ``None`` sentinel; on overflow
+# we drop the OLDEST buffered event (never the incoming one) so memory is capped for a
+# slow/stuck consumer, the close sentinel is always delivered (a slow consumer must not
+# hang on end-of-stream), and any gap is recoverable by the client via SQLite replay
+# (subscribe/resume with after_seq). SQLite remains the source of truth, so no data is lost.
+_MAX_LIVE_SUBSCRIBER_QUEUE_SIZE = 2048
+
+
+def _offer_to_subscriber(
+    queue: "asyncio.Queue[dict[str, Any] | None]",
+    item: dict[str, Any] | None,
+) -> None:
+    """Enqueue ``item`` into a bounded subscriber queue, dropping the oldest on overflow.
+
+    Every put (catchup replay, live events, terminal ``None``) goes through here so the
+    queue can never grow without bound and the ``None`` sentinel is never silently lost.
+    """
+    while True:
+        try:
+            queue.put_nowait(item)
+            return
+        except asyncio.QueueFull:
+            try:
+                queue.get_nowait()
+            except asyncio.QueueEmpty:
+                return
+
+
 @dataclass
 class _LiveSubscriber:
     queue: asyncio.Queue[dict[str, Any]]
@@ -3286,7 +3315,9 @@ class TurnRuntimeManager:
             last_seq = max(last_seq, int(item.get("seq") or 0))
             yield item
 
-        queue: asyncio.Queue[dict[str, Any] | None] = asyncio.Queue()
+        queue: asyncio.Queue[dict[str, Any] | None] = asyncio.Queue(
+            maxsize=_MAX_LIVE_SUBSCRIBER_QUEUE_SIZE
+        )
         subscriber = _LiveSubscriber(queue=queue)
         execution: _TurnExecution | None = None
         async with self._lock:
@@ -3311,7 +3342,7 @@ class TurnRuntimeManager:
             if execution is None:
                 yield item
             else:
-                queue.put_nowait(item)
+                _offer_to_subscriber(queue, item)
 
         turn = await self._safe_store_call(
             None,
@@ -4713,8 +4744,7 @@ class TurnRuntimeManager:
                 current = self._executions.get(turn_id)
                 if current is not None:
                     for subscriber in current.subscribers:
-                        with contextlib.suppress(asyncio.QueueFull):
-                            subscriber.queue.put_nowait(None)
+                        _offer_to_subscriber(subscriber.queue, None)
                     self._executions.pop(turn_id, None)
 
     async def _persist_and_publish(
@@ -4835,8 +4865,7 @@ class TurnRuntimeManager:
         async with self._lock:
             subscribers = list(self._executions.get(execution.turn_id, execution).subscribers)
         for subscriber in subscribers:
-            with contextlib.suppress(asyncio.QueueFull):
-                subscriber.queue.put_nowait(persisted)
+            _offer_to_subscriber(subscriber.queue, persisted)
         self._mirror_event_to_workspace(execution, persisted)
         return persisted
 
