@@ -1,11 +1,57 @@
-# RAG 诊断优先 + 免费午餐 — 2 周执行计划(v3.1 eng-review-locked)
+# RAG 诊断优先 + 免费午餐 — 2 周执行计划(v3.2 implementation-corrected)
 
-**日期**:2026-05-28(eng review 2026-05-29)
-**Scope**:P0-1(RAG 评估能力)+ P0-2(开 2 个已实现未开的 FF,但生产 env override 保留)
-**总投入**:**~2 周**(P0-1 1 周代码 + 3-5 天专家标注 / P0-2 代码 4h + 等 P0-1 baseline 验证)
+**日期**:2026-05-28(eng review 2026-05-29 / 实施修正 2026-05-29)
+**Scope**:P0-1(RAG 评估能力)+ P0-2(~~开 2 个 FF~~ → **改为 staging env 灰度 + baseline 量化,不翻代码默认**,见 addendum)
+**总投入**:**~2 周**(P0-1 1 周代码 + 3-5 天专家标注 / P0-2 代码 0,改走 staging env)
 **目的**:**用最低成本买"信息增益"**,搞清 RAG 是不是产品当前瓶颈,然后决定要不要继续投
 **依据**:[2026-05-28 RAG 评估报告](#)(70/100,代码证据级)
 **Eng review**:`/gstack-plan-eng-review` 2026-05-29,scope reduce 到 pytest 一体化(5 文件),5 个 finding 全部解决并入此版
+
+---
+
+## ⚠️ v3.2 实施修正 addendum(2026-05-29,以本节为准)
+
+> v3.1 正文是 eng-review 时的快照(保留作历史)。**实施中发现的偏差以本 addendum 为准**;凡正文与此冲突,信此节。
+
+### 已完成(代码侧关键路径全闭环)
+
+| 任务 | 状态 | commit | 备注 |
+|---|---|---|---|
+| T1 `SupabasePipeline.check_chunk_ids_exist` | ✅ | `fad5ac9f` | 只读 RPC,复用 `_select`,无后端 SQL function;分批 50 防 URL 超长 |
+| T2 `tests/services/rag/test_retrieval_quality.py` | ✅ | `883d29ac` | 27 单测 + 1 e2e gate(无 golden 时 skip) |
+| T4 `eval/gates.yaml::rag_retrieval_quality` | ✅ | `39738aff` | gate key 无 `_gate` 后缀(对齐现有风格) |
+
+### 骨架修正(v3.1 §2 代码骨架有两处错)
+
+1. **`content_blocks[].chunk_id` 是错的** → 实际 `RAGService.search` 返回里 `content_blocks` 是**渲染文本字符串列表**;ranked chunk_id 在顶层 **`sources[].chunk_id`**。T2 已按 `sources` 实现(`_extract_retrieved_chunk_ids`)。
+2. **`@pytest.mark.rag_quality` 被拒** → 仓库开 `--strict-markers`,未注册 marker 直接报错。已去掉 marker,gate 按文件路径 / `-k baseline` 选择。
+
+### P0-2 方向变更(最重要)
+
+v3.1 §3「翻代码默认 False→True + prod .env override」**已撤销**。原因:`contracts/rag.md` 实为 **33 段**(v1.1 §8 误以为 15 段),其中:
+
+- **§20**:compiled truth 默认只能进 `ranking_trace.shadow_sources`,不得影响排序
+- **§22**:provenance boost 默认关闭,不得成为 exact-question pinning 的承重项
+
+这两段已把「默认关闭」写成**硬契约**。翻代码默认 = 破契约,且在 P0-1 baseline 出数据前翻 = 违背本计划「数据驱动」原则。
+
+**新方向**:代码默认保持 `False`(契约成立)→ **staging 用 `.env=true` 显式开启**跑 P0-1 baseline 对比 true vs false → 数据证明改善后,**再正式走契约变更(改 §20/§22 + 理由)**才落代码默认 ON。守护测试:`test_provenance_boost_rollout.py` / `test_compiled_truth_rollout.py`(锁默认 OFF + 验 env 开关)。
+
+### 任务状态重整
+
+| 原任务 | 新状态 |
+|---|---|
+| T5 翻默认 + regression | **改为** rollout guard(默认 OFF + env 开关);`9f3c34cf` 翻默认已被 `433e8eef` 回退 |
+| T6 contracts 加 §16 §17 声明默认 on | **作废**(不翻默认,§20/§22 保持不动) |
+| T7 prod `.env` override=false | **作废**(代码默认已 OFF,部署 main 不会启用) |
+| T9 删 prod override | **作废**(从未加 override) |
+| 新增:contract guard 合规 | `433e8eef` — supabase.py 是 contract-sensitive,改它须配套白名单 test(已加进 `contracts/index.yaml`)+ contract surface |
+
+### 剩余(都需人/远端)
+
+- **T3** golden set 60-100 条专家标注(CC=0,禁 LLM 生成)
+- **baseline 真跑**:需 T3 golden + staging KB + `RAG_EVAL_KB_NAME` + staging `.env=true`
+- **T8** baseline 报告 commit(依赖上两项)
 
 ---
 
@@ -583,7 +629,8 @@ T5 (P0-2 默认 flip)           ─→ T6 (contracts/rag.md)│
 - v1(2026-05-28 上午):基于两份评估报告口述,基线多处错误。**已删除**。
 - v2(2026-05-28 中午):基于 codegraph 实证,代码证据级基线。**已删除**。
 - v3(2026-05-28 下午):基于 70/100 评估 + 战略反思(诊断优先 + 免费午餐)。
-- **v3.1(本文件,2026-05-29)**:`/gstack-plan-eng-review` 后定稿,scope reduce 到 5 文件,5 个 finding 全部 resolved。
+- **v3.1(2026-05-29)**:`/gstack-plan-eng-review` 后定稿,scope reduce 到 5 文件,5 个 finding 全部 resolved。
+- **v3.2(本文件,2026-05-29 实施修正)**:T1/T2/T4 落地(`fad5ac9f`/`883d29ac`/`39738aff`)。实施中发现 v3.1 三处偏差并修正(见顶部 addendum):①§2 骨架 `content_blocks`→`sources`;②`--strict-markers` 去掉 `rag_quality` marker;③`contracts/rag.md` 实为 33 段且 §20/§22 已硬性规定两 FF 默认关闭 → **P0-2 撤销「翻代码默认」,改走 staging env 灰度**(T5 改 rollout guard / T6 T7 T9 作废);补 contract-guard 合规(`433e8eef`)。
 
 ---
 
