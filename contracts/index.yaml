@@ -123,6 +123,10 @@ domains:
       - tests/services/rag/test_index_versioning.py
       - tests/services/rag/test_supabase_strategy.py
       - tests/agents/chat/test_agentic_parallel_tools.py
+      - tests/services/rag/test_supabase_check_chunk_ids.py
+      - tests/services/rag/test_retrieval_quality.py
+      - tests/services/rag/test_provenance_boost_rollout.py
+      - tests/services/rag/test_compiled_truth_rollout.py
     schema_files:
       - deeptutor/contracts/bot_runtime_defaults.py
 

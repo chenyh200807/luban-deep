@@ -1,9 +1,11 @@
-"""P0-2 regression: compiled_truth source ships default-ON (T5).
+"""P0-2 rollout guard: compiled_truth stays default-OFF (contract rag.md §20).
 
-Guards the env-default flip in _load_search_config: the code default must be
-True (shadow mode is promoted to real), and an explicit env override must
-still turn it off — 2A requires prod to keep override=false until the P0-1
-baseline validates.
+Contract §20 pins compiled truth to shadow-only by default; it may enter final
+candidates only when explicitly enabled and the intent is weak_point_review /
+next_training. So P0-2 does NOT flip the code default — staging enables it via
+env to measure the true-vs-false delta against the P0-1 baseline, then a
+contract change can land if the data justifies it. These tests lock the
+contract default and the env on/off path the baseline relies on.
 """
 from __future__ import annotations
 
@@ -31,14 +33,21 @@ def _load_config(monkeypatch: pytest.MonkeyPatch, *, env: dict[str, str] | None 
     return pipeline._load_search_config(kb_name="construction-exam", kwargs={})
 
 
-def test_compiled_truth_default_enabled(monkeypatch):
-    """After the P0-2 flip the code default is ON."""
+def test_compiled_truth_default_disabled(monkeypatch):
+    """Contract rag.md §20: compiled truth ships default-OFF (shadow only)."""
     config = _load_config(monkeypatch)
+    assert config.compiled_truth_enabled is False
+
+
+def test_compiled_truth_env_can_enable_for_staging_baseline(monkeypatch):
+    """Staging opens it via env to measure the baseline delta (no code flip)."""
+    config = _load_config(
+        monkeypatch, env={"SUPABASE_RAG_COMPILED_TRUTH_ENABLED": "true"}
+    )
     assert config.compiled_truth_enabled is True
 
 
-def test_compiled_truth_env_override_still_disables(monkeypatch):
-    """2A: env=false must keep it off in prod regardless of the code default."""
+def test_compiled_truth_env_explicit_disable(monkeypatch):
     config = _load_config(
         monkeypatch, env={"SUPABASE_RAG_COMPILED_TRUTH_ENABLED": "false"}
     )

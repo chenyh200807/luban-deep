@@ -1,8 +1,11 @@
-"""P0-2 regression: provenance ranking ships default-ON (T5).
+"""P0-2 rollout guard: provenance boost stays default-OFF (contract rag.md §22).
 
-Guards the env-default flip in _load_search_config: the code default must be
-True, and an explicit env override must still turn it off — 2A requires prod
-to keep override=false until the P0-1 baseline validates.
+The 70/100 eval flagged provenance boost as a "free lunch", but contract §22
+pins it default-OFF (exact-question pinning must not depend on provenance
+boost). So P0-2 does NOT flip the code default — staging enables it via env to
+measure the true-vs-false delta against the P0-1 baseline, then a contract
+change can land if the data justifies it. These tests lock the contract default
+and the env on/off path the baseline relies on.
 """
 from __future__ import annotations
 
@@ -30,14 +33,21 @@ def _load_config(monkeypatch: pytest.MonkeyPatch, *, env: dict[str, str] | None 
     return pipeline._load_search_config(kb_name="construction-exam", kwargs={})
 
 
-def test_provenance_boost_default_enabled(monkeypatch):
-    """After the P0-2 flip the code default is ON."""
+def test_provenance_boost_default_disabled(monkeypatch):
+    """Contract rag.md §22: provenance boost ships default-OFF."""
     config = _load_config(monkeypatch)
+    assert config.provenance_boost_enabled is False
+
+
+def test_provenance_boost_env_can_enable_for_staging_baseline(monkeypatch):
+    """Staging opens it via env to measure the baseline delta (no code flip)."""
+    config = _load_config(
+        monkeypatch, env={"SUPABASE_RAG_PROVENANCE_BOOST_ENABLED": "true"}
+    )
     assert config.provenance_boost_enabled is True
 
 
-def test_provenance_boost_env_override_still_disables(monkeypatch):
-    """2A: env=false must keep it off in prod regardless of the code default."""
+def test_provenance_boost_env_explicit_disable(monkeypatch):
     config = _load_config(
         monkeypatch, env={"SUPABASE_RAG_PROVENANCE_BOOST_ENABLED": "false"}
     )
