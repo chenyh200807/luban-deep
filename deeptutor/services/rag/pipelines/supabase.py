@@ -57,6 +57,10 @@ _QUESTION_SELECT = (
 _EMBEDDING_CACHE: OrderedDict[str, tuple[list[float], float]] = OrderedDict()
 _SUPABASE_AVAILABILITY_CACHE: dict[str, tuple[bool, float]] = {}
 _SUPABASE_AVAILABILITY_TTL_S = 60.0
+# Batch size for chunk_id existence checks — keeps the PostgREST GET URL
+# (chunk_id=in.(...)) well under proxy/server URL-length limits when a golden
+# set carries hundreds of expected chunk_ids.
+_CHUNK_ID_EXISTS_BATCH_SIZE = 50
 
 
 def _safe_response_text(response: httpx.Response | None) -> str:
@@ -749,6 +753,50 @@ class SupabasePipeline:
     async def delete(self, kb_name: str) -> bool:
         _ = kb_name
         raise RuntimeError("Supabase provider is read-only and cannot delete remote knowledge.")
+
+    async def check_chunk_ids_exist(
+        self,
+        chunk_ids: list[str],
+        kb_name: str,
+    ) -> set[str]:
+        """Return the subset of chunk_ids that exist in the KB's kb_chunks table.
+
+        Read-only batch existence check over PostgREST (chunk_id=in.(...)),
+        reusing the _select read path (same pattern as _hydrate_sources). Backs
+        the RAG eval preflight (1B): the caller computes
+        ``missing = requested - found`` to detect a golden set gone stale after
+        a KB reindex. kb_name selects the Supabase config (url/key/timeout);
+        chunk_id is unique within a KB so no per-row kb_name filter is applied,
+        consistent with _hydrate_sources and the availability gate. Supabase
+        errors propagate as RAGSearchError so the preflight can tell infra-down
+        (skip) apart from a truly stale set.
+        """
+        unique_ids = list(
+            dict.fromkeys(
+                str(cid).strip() for cid in chunk_ids if str(cid or "").strip()
+            )
+        )
+        if not unique_ids:
+            return set()
+
+        config = self._load_search_config(kb_name=kb_name, kwargs={})
+        client = await self._get_client(config.timeout_s)
+        found: set[str] = set()
+        for start in range(0, len(unique_ids), _CHUNK_ID_EXISTS_BATCH_SIZE):
+            batch = unique_ids[start : start + _CHUNK_ID_EXISTS_BATCH_SIZE]
+            quoted_ids = ",".join(f'"{cid}"' for cid in batch)
+            rows = await self._select(
+                client,
+                table="kb_chunks",
+                select="chunk_id",
+                query={"chunk_id": f"in.({quoted_ids})"},
+                config=config,
+            )
+            for row in rows:
+                cid = str(row.get("chunk_id") or "").strip()
+                if cid:
+                    found.add(cid)
+        return found
 
     async def search(
         self,
