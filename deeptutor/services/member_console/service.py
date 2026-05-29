@@ -5771,6 +5771,11 @@ class MemberConsoleService:
                 "phone": normalized,
             }
         )
+        # 微信绑定手机后同步持久化到 Supabase
+        self._persist_phone_identity(
+            phone=normalized,
+            canonical_uid=str(auth_identity.get("canonical_uid") or "").strip(),
+        )
         return payload
 
     def send_phone_code(self, phone: str) -> dict[str, Any]:
@@ -5859,6 +5864,55 @@ class MemberConsoleService:
 
         return self._mutate(_apply)
 
+    def _persist_phone_identity(self, *, phone: str, canonical_uid: str) -> None:
+        """把手机号持久化到 user_identity_aliases 和 users.phone，best-effort 不阻塞认证流程。"""
+        if not phone or not canonical_uid or not is_uuid_like(canonical_uid):
+            return
+        db_url = str(os.getenv("DB_URL") or os.getenv("DATABASE_URL") or "").strip()
+        if not db_url:
+            logger.warning("phone identity persist skipped: DB_URL not configured")
+            return
+        try:
+            try:
+                import psycopg
+                conn_ctx = psycopg.connect(db_url, connect_timeout=5)
+                use_psycopg2 = False
+            except ImportError:
+                import psycopg2
+                conn_ctx = psycopg2.connect(db_url, connect_timeout=5)
+                use_psycopg2 = True
+
+            with conn_ctx as conn:
+                cur = conn.cursor()
+                # 写 user_identity_aliases（唯一键：alias_type + alias_value）
+                cur.execute(
+                    """
+                    INSERT INTO public.user_identity_aliases
+                        (alias_type, alias_value, user_id, source, confidence, verified_at)
+                    VALUES (%s, %s, %s::uuid, %s, %s, now())
+                    ON CONFLICT (alias_type, alias_value) DO UPDATE SET
+                        user_id     = EXCLUDED.user_id,
+                        confidence  = EXCLUDED.confidence,
+                        verified_at = EXCLUDED.verified_at,
+                        updated_at  = now()
+                    """,
+                    ("phone", phone, canonical_uid, "phone_verification", 1.0),
+                )
+                # 同步到 users.phone（id 是 text 类型，直接比较即可）
+                cur.execute(
+                    "UPDATE public.users SET phone = %s WHERE id = %s AND (phone IS NULL OR phone = '')",
+                    (phone, canonical_uid),
+                )
+                if not use_psycopg2:
+                    conn.commit()
+        except Exception as exc:
+            logger.warning(
+                "phone identity persist failed: phone=%s canonical_uid=%s error=%s",
+                phone[-4:] if len(phone) >= 4 else "****",
+                canonical_uid,
+                exc,
+            )
+
     def verify_phone_code(self, phone: str, code: str) -> dict[str, Any]:
         normalized = _normalize_phone_input(phone)
         if not normalized:
@@ -5886,6 +5940,11 @@ class MemberConsoleService:
         token = self._issue_access_token(
             user_id=auth_identity["user_id"],
             canonical_uid=auth_identity["canonical_uid"],
+        )
+        # 手机号持久化到 Supabase（不影响认证主流程）
+        self._persist_phone_identity(
+            phone=verified_phone,
+            canonical_uid=str(auth_identity.get("canonical_uid") or "").strip(),
         )
         return self._build_auth_response(user_id=auth_identity["user_id"], token=token)
 

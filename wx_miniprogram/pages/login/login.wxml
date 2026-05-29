@@ -45,9 +45,11 @@
       </view>
 
       <view class="btn-wechat-stack">
+        <!-- 主按钮：微信授权 + 手机号一步完成（open-type="getPhoneNumber"） -->
         <button
           class="btn-wechat-primary {{wechatLoading?'off':''}}"
-          bindtap="handleWechatLogin"
+          open-type="getPhoneNumber"
+          bindgetphonenumber="handleWechatPhoneNumber"
           disabled="{{wechatLoading || loading}}"
         >
           <text class="btn-wechat-primary-txt">{{wechatLoading ? '微信授权中...' : '微信一键登录'}}</text>
