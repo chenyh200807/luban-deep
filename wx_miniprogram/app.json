@@ -94,5 +94,6 @@
   "style": "v2",
   "sitemapLocation": "sitemap.json",
   "darkmode": true,
-  "lazyCodeLoading": "requiredComponents"
+  "lazyCodeLoading": "requiredComponents",
+  "__usePrivacyCheck__": true
 }

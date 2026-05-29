@@ -96,6 +96,26 @@ App({
   },
 
   onLaunch() {
+    // WeChat Privacy Framework (base lib ≥ 2.32.3) — must register before any
+    // personal-data API (phone number, profile, location) is called.
+    // Backend requirement: submit 《用户隐私保护指引》 in MP admin console.
+    wx.onNeedPrivacyAuthorization(function (resolve) {
+      wx.showModal({
+        title: "用户隐私保护提示",
+        content:
+          "在使用本小程序前，请您仔细阅读《用户隐私保护指引》，了解我们如何收集和使用您的个人信息。",
+        confirmText: "同意",
+        cancelText: "不同意",
+        success: function (res) {
+          if (res.confirm) {
+            resolve({ event: "agree" });
+          } else {
+            resolve({ event: "disagree" });
+          }
+        },
+      });
+    });
+
     // App 启动
     console.info(
       "[DeepTutor MP] env=%s trial=%s devtools=%s api=%s candidates=%j",

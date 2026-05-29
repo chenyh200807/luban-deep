@@ -82,7 +82,8 @@ function tryLockCrossHomeNav(durationMs) {
   if (crossHomeNavLockExpiresAt > now) {
     return false;
   }
-  const lockMs = Number(durationMs) > 0 ? Number(durationMs) : CROSS_HOME_NAV_LOCK_MS;
+  const lockMs =
+    Number(durationMs) > 0 ? Number(durationMs) : CROSS_HOME_NAV_LOCK_MS;
   crossHomeNavLockExpiresAt = now + lockMs;
   if (crossHomeNavLockTimer) {
     clearTimeout(crossHomeNavLockTimer);
@@ -167,11 +168,14 @@ function normalizeDeeptutorEntryConfig(config) {
   const defaults = getDefaultDeeptutorEntryConfig();
   const source = config && typeof config === "object" ? config : {};
   return {
-    title: String(source.title || source.text || defaults.title).trim() || defaults.title,
+    title:
+      String(source.title || source.text || defaults.title).trim() ||
+      defaults.title,
     subtitle:
       String(source.subtitle || source.subtext || defaults.subtitle).trim() ||
       defaults.subtitle,
-    tip: String(source.tip || source.cta || defaults.tip).trim() || defaults.tip,
+    tip:
+      String(source.tip || source.cta || defaults.tip).trim() || defaults.tip,
     badge:
       String(source.badge || source.iconText || defaults.badge).trim() ||
       defaults.badge,
@@ -180,7 +184,9 @@ function normalizeDeeptutorEntryConfig(config) {
 }
 
 function resolveDeeptutorEntryConfig() {
-  return normalizeDeeptutorEntryConfig(wx.getStorageSync(DEEPTUTOR_ENTRY_CONFIG_KEY));
+  return normalizeDeeptutorEntryConfig(
+    wx.getStorageSync(DEEPTUTOR_ENTRY_CONFIG_KEY),
+  );
 }
 
 function getDefaultDeeptutorWorkspaceFlags() {
@@ -201,38 +207,38 @@ function normalizeDeeptutorWorkspaceFlags(flags) {
       source.workspaceEnabled !== undefined
         ? source.workspaceEnabled
         : source.workspace_enabled,
-      defaults.workspaceEnabled
+      defaults.workspaceEnabled,
     ),
     historyEnabled: normalizeBooleanFlag(
       source.historyEnabled !== undefined
         ? source.historyEnabled
         : source.history_enabled,
-      defaults.historyEnabled
+      defaults.historyEnabled,
     ),
     reportEnabled: normalizeBooleanFlag(
       source.reportEnabled !== undefined
         ? source.reportEnabled
         : source.report_enabled,
-      defaults.reportEnabled
+      defaults.reportEnabled,
     ),
     profileEnabled: normalizeBooleanFlag(
       source.profileEnabled !== undefined
         ? source.profileEnabled
         : source.profile_enabled,
-      defaults.profileEnabled
+      defaults.profileEnabled,
     ),
     assessmentEnabled: normalizeBooleanFlag(
       source.assessmentEnabled !== undefined
         ? source.assessmentEnabled
         : source.assessment_enabled,
-      defaults.assessmentEnabled
+      defaults.assessmentEnabled,
     ),
   };
 }
 
 function resolveDeeptutorWorkspaceFlags() {
   return normalizeDeeptutorWorkspaceFlags(
-    wx.getStorageSync(DEEPTUTOR_WORKSPACE_FLAGS_KEY)
+    wx.getStorageSync(DEEPTUTOR_WORKSPACE_FLAGS_KEY),
   );
 }
 
@@ -416,10 +422,16 @@ function extractDeeptutorWorkspaceFlags(payload) {
   for (var i = 0; i < containers.length; i++) {
     var item = containers[i];
     if (!item || typeof item !== "object") continue;
-    if (item.deeptutor_workspace && typeof item.deeptutor_workspace === "object") {
+    if (
+      item.deeptutor_workspace &&
+      typeof item.deeptutor_workspace === "object"
+    ) {
       return normalizeDeeptutorWorkspaceFlags(item.deeptutor_workspace);
     }
-    if (item.deeptutorWorkspace && typeof item.deeptutorWorkspace === "object") {
+    if (
+      item.deeptutorWorkspace &&
+      typeof item.deeptutorWorkspace === "object"
+    ) {
       return normalizeDeeptutorWorkspaceFlags(item.deeptutorWorkspace);
     }
     if (
@@ -473,7 +485,7 @@ function resolveBaseUrl() {
 
 function isLocalBaseUrl(url) {
   return /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/i.test(
-    String(url || "").trim()
+    String(url || "").trim(),
   );
 }
 
@@ -494,10 +506,18 @@ function buildDeeptutorBaseCandidates(baseUrl) {
   if (!isLocalBaseUrl(normalizedBase)) {
     return normalizedBase ? [normalizedBase] : [];
   }
-  const localFallbacks = [LOCAL_BASE_URL, "http://127.0.0.1:8001", "http://127.0.0.1:8012"];
+  const localFallbacks = [
+    LOCAL_BASE_URL,
+    "http://127.0.0.1:8001",
+    "http://127.0.0.1:8012",
+  ];
   const remoteFallbacks = [NGROK_URL, PROD_API].filter((item) => {
     const normalized = String(item || "").trim();
-    return normalized && /^https?:\/\//.test(normalized) && !isLocalBaseUrl(normalized);
+    return (
+      normalized &&
+      /^https?:\/\//.test(normalized) &&
+      !isLocalBaseUrl(normalized)
+    );
   });
   return uniqBaseUrls([normalizedBase].concat(localFallbacks, remoteFallbacks));
 }
@@ -523,6 +543,26 @@ function requestHostSysInfo() {
 
 App({
   onLaunch() {
+    // WeChat Privacy Framework (base lib ≥ 2.32.3) — must register before any
+    // personal-data API (phone number, getphone page, profile) is called.
+    // Backend requirement: submit 《用户隐私保护指引》 in MP admin console.
+    wx.onNeedPrivacyAuthorization(function (resolve) {
+      wx.showModal({
+        title: "用户隐私保护提示",
+        content:
+          "在使用本小程序前，请您仔细阅读《用户隐私保护指引》，了解我们如何收集和使用您的个人信息。",
+        confirmText: "同意",
+        cancelText: "不同意",
+        success: function (res) {
+          if (res.confirm) {
+            resolve({ event: "agree" });
+          } else {
+            resolve({ event: "disagree" });
+          }
+        },
+      });
+    });
+
     wx.login({
       success: () => {},
     });
@@ -596,9 +636,7 @@ App({
 
   getHostSysInfo(force = false) {
     if (!force && this.globalData.sysInfoLoaded) {
-      return Promise.resolve(
-        this.globalData.sysInfo || normalizeHostSysInfo()
-      );
+      return Promise.resolve(this.globalData.sysInfo || normalizeHostSysInfo());
     }
     if (hostSysInfoPromise) {
       return hostSysInfoPromise;
@@ -625,10 +663,7 @@ App({
   },
 
   getDeeptutorEntryEnabled() {
-    return normalizeBooleanFlag(
-      this.globalData.deeptutorEntryEnabled,
-      true
-    );
+    return normalizeBooleanFlag(this.globalData.deeptutorEntryEnabled, true);
   },
 
   getDeeptutorEntryConfig() {
@@ -650,7 +685,9 @@ App({
   },
 
   getDeeptutorWorkspaceFlags() {
-    return normalizeDeeptutorWorkspaceFlags(this.globalData.deeptutorWorkspaceFlags);
+    return normalizeDeeptutorWorkspaceFlags(
+      this.globalData.deeptutorWorkspaceFlags,
+    );
   },
 
   setDeeptutorWorkspaceFlags(flags) {
@@ -701,7 +738,7 @@ App({
     const bridgeUrl = buildDeeptutorEntryBridgeUrl(
       entrySource,
       returnTo,
-      hasLikelyValidStoredToken()
+      hasLikelyValidStoredToken(),
     );
     const handleFinalFailure = (err) => {
       clearCrossHomeNavLock();
