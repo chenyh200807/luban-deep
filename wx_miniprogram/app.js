@@ -236,8 +236,8 @@ App({
         if (callback) callback();
       })
       .catch(function () {
-        // getUserInfo 失败（如 401）—— api.js 会自动跳登录，这里静默处理
-        if (callback) callback();
+        // getUserInfo 失败（如 401）—— api.js 会自动跳登录，不调 callback
+        // 避免网络失败时放行无手机用户进入聊天
       });
   },
 
