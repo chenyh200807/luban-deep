@@ -545,16 +545,13 @@ def _build_local_checkout_payload(
     }
 
 
-def _create_payment_gateway_order(payload: dict[str, Any]) -> dict[str, Any] | None:
+async def _create_payment_gateway_order(payload: dict[str, Any]) -> dict[str, Any] | None:
     gateway_url = _payment_gateway_url()
     if not gateway_url:
         return None
     try:
-        response = httpx.post(
-            f"{gateway_url}/orders",
-            json=payload,
-            timeout=8.0,
-        )
+        async with httpx.AsyncClient(timeout=8.0) as client:
+            response = await client.post(f"{gateway_url}/orders", json=payload)
         response.raise_for_status()
         data = response.json()
     except Exception as exc:
@@ -2070,7 +2067,7 @@ async def billing_checkout(
         package=package,
         channel=channel,
     )
-    gateway_payload = _create_payment_gateway_order(checkout_payload)
+    gateway_payload = await _create_payment_gateway_order(checkout_payload)
     if gateway_payload is not None:
         return gateway_payload
     return checkout_payload
