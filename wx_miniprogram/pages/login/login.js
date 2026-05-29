@@ -359,40 +359,9 @@ Page({
     }
     self.setData({ wechatLoading: true, errorMsg: "" });
 
-    // 两种路径：
-    // A) 已登录（bind_phone_only 模式）→ 直接绑定手机，不需要重新 wx.login
-    // B) 新登录 → wx.login + bindPhone 同步完成
-    if (auth.isLoggedIn()) {
-      // 路径 A：已有 token，直接绑定
-      api
-        .bindPhone(phoneCode)
-        .then(function (resp) {
-          var inner = resp.data || resp;
-          if (inner && inner.token) {
-            auth.setToken(inner.token, inner.expires_at, inner);
-          }
-          wx.switchTab({ url: "/pages/chat/chat" });
-        })
-        .catch(function (err) {
-          var m = String((err && err.message) || "");
-          var msg = "手机号绑定失败，请重试";
-          if (m.includes("getuserphonenumber")) msg = "微信手机号授权失败";
-          else if (m.includes("NETWORK_")) msg = "网络连接失败";
-          else if (m && !m.startsWith("HTTP_")) msg = m;
-          self.setData({ errorMsg: msg });
-        })
-        .then(
-          function () {
-            self.setData({ wechatLoading: false });
-          },
-          function () {
-            self.setData({ wechatLoading: false });
-          },
-        );
-      return;
-    }
-
-    // 路径 B：新用户，先 wx.login 再绑定手机
+    // 显式 getPhoneNumber 授权路径：始终 wx.login + bindPhone 同步完成。
+    // 与 register.js / yousenwebview canonical 一致——bindPhone 的唯一写入点，
+    // 不依赖 auth.isLoggedIn（已登录无手机号的用户走 bind_phone_only 面板的手动绑定）。
     wx.login({
       success: function (loginRes) {
         if (!loginRes.code) {

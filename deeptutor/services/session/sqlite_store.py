@@ -1563,6 +1563,32 @@ class SQLiteSessionStore:
     async def update_turn_status(self, turn_id: str, status: str, error: str = "") -> bool:
         return await self._run(self._update_turn_status_sync, turn_id, status, error)
 
+    def _recover_all_orphaned_turns_sync(self, reason: str) -> int:
+        now = time.time()
+        with self._connect() as conn:
+            cur = conn.execute(
+                """
+                UPDATE turns
+                SET status = 'failed', error = ?, updated_at = ?, finished_at = ?
+                WHERE status = 'running'
+                """,
+                (reason or "", now, now),
+            )
+            conn.commit()
+        return cur.rowcount
+
+    async def recover_all_orphaned_turns(self, reason: str) -> int:
+        """Fail every turn still marked ``running`` at process startup.
+
+        After a crash (OOM / SIGKILL) the in-process turn tasks are gone, so any
+        ``running`` row in SQLite is provably orphaned — its ``_run_turn``
+        ``finally`` block never executed. This is a session-agnostic, idempotent
+        terminal write: it reuses the same column convention as
+        ``update_turn_status`` (status='failed', error=reason, updated_at,
+        finished_at) and a second call sweeps 0 rows. Returns affected rows.
+        """
+        return await self._run(self._recover_all_orphaned_turns_sync, reason)
+
     def _update_turn_capability_sync(self, turn_id: str, capability: str) -> bool:
         with self._connect() as conn:
             cur = conn.execute(

@@ -331,6 +331,21 @@ async def lifespan(app: FastAPI):
         logger.warning(f"Failed to start EventBus: {e}")
         startup_failures.append(f"event_bus_ready: {e}")
 
+    # Self-heal orphaned turns left ``running`` by a previous crash (OOM /
+    # SIGKILL). On restart the process has no in-memory turn tasks, so any
+    # ``running`` row in SQLite is provably orphaned — its _run_turn finally
+    # block never ran. Sweep them to ``failed`` once, before TutorBots start,
+    # so global active/billing views are not polluted. Idempotent.
+    try:
+        from deeptutor.services.session import get_sqlite_session_store
+
+        recovered = await get_sqlite_session_store().recover_all_orphaned_turns(
+            "orphaned_on_restart"
+        )
+        logger.info(f"Recovered {recovered} orphaned running turn(s) on startup")
+    except Exception as e:
+        logger.warning(f"Failed to recover orphaned running turns at startup: {e}")
+
     try:
         from deeptutor.services.tutorbot import get_tutorbot_manager
         await get_tutorbot_manager().auto_start_bots()
