@@ -3211,7 +3211,15 @@ class TurnRuntimeManager:
                     session["id"],
                     reason="Cancelled superseded running turn after orphan recovery conflict",
                 )
-            turn = await self.store.create_turn(session["id"], capability=capability)
+            try:
+                turn = await self.store.create_turn(session["id"], capability=capability)
+            except RuntimeError as retry_exc:
+                # Active turn persists after cancel/recovery — likely a concurrent start_turn.
+                # Raise a clean error so the WS handler can surface an informative client event.
+                raise RuntimeError(
+                    f"[turn_runtime] start_turn conflict on session {session['id']}: "
+                    "active turn persists after cancel/recovery. Concurrent request detected."
+                ) from retry_exc
         execution = _TurnExecution(
             turn_id=turn["id"],
             session_id=session["id"],
