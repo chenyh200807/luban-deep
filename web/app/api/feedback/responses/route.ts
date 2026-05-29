@@ -3,6 +3,15 @@ import path from 'node:path'
 import { NextRequest, NextResponse } from 'next/server'
 import { Pool } from 'pg'
 
+import {
+  normalizePhone,
+  isPlausiblePhone,
+  shouldNotifyOperators,
+  buildOperatorMessage,
+  buildWebhookBody,
+  type OperatorAlertInput,
+} from './feedback-logic'
+
 export const runtime = 'nodejs'
 
 // 鲁班智考 · 内测回访问卷答卷接收。
@@ -30,6 +39,9 @@ type FeedbackRecord = {
   payWillingness: string
   wouldRecommend: string
   revisitWillingness: string
+  attemptCount: string
+  examTimeframe: string
+  usageFrequency: string
   topSuggestion: string
   unsolvedPain: string
   phone: string
@@ -210,9 +222,12 @@ function validatePayload(payload: FeedbackPayload) {
     payWillingness: cleanScalar(answers.pay_willingness, MAX_LENGTHS.enum),
     wouldRecommend: cleanScalar(answers.would_recommend, MAX_LENGTHS.enum),
     revisitWillingness: cleanScalar(answers.revisit_willingness, MAX_LENGTHS.enum),
+    attemptCount: cleanScalar(answers.attempt_count, MAX_LENGTHS.enum),
+    examTimeframe: cleanScalar(answers.exam_timeframe, MAX_LENGTHS.enum),
+    usageFrequency: cleanScalar(answers.usage_frequency, MAX_LENGTHS.enum),
     topSuggestion: cleanString(answers.top_suggestion, MAX_LENGTHS.openText),
     unsolvedPain: cleanString(answers.unsolved_pain, MAX_LENGTHS.openText),
-    phone: cleanString(contact.phone, MAX_LENGTHS.phone).replace(/\s+/g, ''),
+    phone: normalizePhone(cleanString(contact.phone, MAX_LENGTHS.phone)),
     wechatId: cleanString(contact.wechat, MAX_LENGTHS.wechatId),
     userAgent: cleanString(payload.user_agent, MAX_LENGTHS.userAgent),
     status: 'submitted',
@@ -224,9 +239,10 @@ function validatePayload(payload: FeedbackPayload) {
   if (record.nps === null) {
     return { error: '缺少推荐意愿(NPS)评分。' }
   }
-  // 留了手机号则校验格式（避免脏数据），但不强制填写。
-  if (record.phone && !/^1\d{10}$/.test(record.phone)) {
-    return { error: '手机号格式不正确。' }
+  // 留了手机号则宽松校验：仅挡明显脏数据（位数异常），不强制填写；
+  // 国际号 / 带分隔符的合法号码一律放行，避免误杀真实联系方式。
+  if (!isPlausiblePhone(record.phone)) {
+    return { error: '手机号位数似乎不对，请检查后重填，或留空。' }
   }
 
   return { record }
@@ -250,6 +266,9 @@ async function saveToDatabase(record: FeedbackRecord) {
         pay_willingness,
         would_recommend,
         revisit_willingness,
+        attempt_count,
+        exam_timeframe,
+        usage_frequency,
         top_suggestion,
         unsolved_pain,
         phone,
@@ -261,7 +280,8 @@ async function saveToDatabase(record: FeedbackRecord) {
       )
       values (
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-        $11, $12, $13, $14, $15, $16, $17, $18, $19
+        $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
+        $21, $22
       )
     `,
     [
@@ -276,6 +296,9 @@ async function saveToDatabase(record: FeedbackRecord) {
       record.payWillingness,
       record.wouldRecommend,
       record.revisitWillingness,
+      record.attemptCount,
+      record.examTimeframe,
+      record.usageFrequency,
       record.topSuggestion,
       record.unsolvedPain,
       record.phone,
@@ -305,6 +328,46 @@ async function saveToJsonl(record: FeedbackRecord) {
   return true
 }
 
+// 高价值答卷（NPS≤6 detractor 或愿意回访）即时推送到运营 IM 群，便于尽快跟进。
+// 未配置 FEEDBACK_NOTIFY_WEBHOOK 时静默跳过；推送失败绝不影响答卷入库与 201 返回。
+async function notifyOperators(record: FeedbackRecord) {
+  const webhook = process.env.FEEDBACK_NOTIFY_WEBHOOK
+  if (!webhook) return
+  if (!shouldNotifyOperators(record)) return
+
+  let host = ''
+  try {
+    host = new URL(webhook).host
+  } catch {
+    return
+  }
+
+  const alert: OperatorAlertInput = {
+    nps: record.nps,
+    revisitWillingness: record.revisitWillingness,
+    overallSatisfaction: record.overallSatisfaction,
+    willContinue: record.willContinue,
+    unsolvedPain: record.unsolvedPain,
+    topSuggestion: record.topSuggestion,
+    phone: record.phone,
+    wechatId: record.wechatId,
+    createdAt: record.createdAt,
+    sourcePage: record.sourcePage,
+  }
+  const body = buildWebhookBody(host, buildOperatorMessage(alert))
+
+  try {
+    await fetch(webhook, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(5000),
+    })
+  } catch (error) {
+    console.warn('Feedback operator notify failed', error)
+  }
+}
+
 export async function POST(request: NextRequest) {
   const ip = extractIp(request)
   if (isRateLimited(ip)) {
@@ -327,6 +390,9 @@ export async function POST(request: NextRequest) {
     const wroteToDatabase = await saveToDatabase(validation.record)
     if (!wroteToDatabase && !(await saveToJsonl(validation.record))) {
       return NextResponse.json({ error: '反馈提交通道未配置，请稍后再试。' }, { status: 503 })
+    }
+    if (wroteToDatabase) {
+      await notifyOperators(validation.record)
     }
   } catch (error) {
     console.error('Failed to save luban feedback response', error)

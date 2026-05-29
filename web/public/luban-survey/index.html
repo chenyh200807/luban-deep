@@ -354,6 +354,43 @@
       ],
     },
     {
+      kicker: "关于你",
+      title: "先认识一下你",
+      desc: "这几个问题帮我们读懂你反馈背后的背景，几秒就好。",
+      questions: [
+        {
+          id: "attempt_count", type: "single",
+          label: "你是第几次参加建筑实务考试？",
+          options: [
+            { value: "first", title: "第一次（一战）" },
+            { value: "second", title: "第二次（二战）" },
+            { value: "third_plus", title: "三次及以上" },
+          ],
+        },
+        {
+          id: "exam_timeframe", type: "single",
+          label: "距离你最近一次建筑实务考试大约还有多久？",
+          options: [
+            { value: "within_1m", title: "1 个月内" },
+            { value: "1to3m", title: "1–3 个月" },
+            { value: "3to6m", title: "3–6 个月" },
+            { value: "over_6m", title: "半年以上" },
+            { value: "passed", title: "已经考完（等成绩 / 已出成绩）" },
+          ],
+        },
+        {
+          id: "usage_frequency", type: "single",
+          label: "内测期间，你平均每周大约用几次鲁班智考？",
+          options: [
+            { value: "rarely", title: "几乎没用" },
+            { value: "1to2", title: "每周 1–2 次" },
+            { value: "3to5", title: "每周 3–5 次" },
+            { value: "daily", title: "几乎每天" },
+          ],
+        },
+      ],
+    },
+    {
       kicker: "核心功能",
       title: "几个主要功能，分别打个分",
       desc: "没用过的功能选「没用过」就好，我们不会强求。",
@@ -589,7 +626,7 @@
       <p class="step-desc">${step.desc}</p>
       <div class="meta-row">
         <span class="meta-pill">${ICONS.clock}约 3 分钟</span>
-        <span class="meta-pill">${ICONS.layers}6 个小节</span>
+        <span class="meta-pill">${ICONS.layers}7 个小节</span>
         <span class="meta-pill">${ICONS.heart}匿名也可提交</span>
       </div>
       <div class="privacy">${ICONS.shield}<span>你的回答仅用于改进产品。联系方式为选填，只在你同意回访时使用，绝不对外分享。中途退出会自动保存进度。</span></div>`;
