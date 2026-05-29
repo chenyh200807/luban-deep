@@ -175,6 +175,7 @@
 | [2026-04-24-luban-feedback-top10-root-cause-fix-plan.md](2026-04-24-luban-feedback-top10-root-cause-fix-plan.md) | Root-cause fix plan | Draft | 运营反馈与线上证据汇总出的 Top10 问题；Batch 1-4、2026-04-25 Batch A-H 已实施，继续收口练题结构化 config、SMS 真实送达、干净 DevTools/真机慢请求取消和移动端交互矩阵。 |
 | [2026-05-26-luban-feedback-center-system-review.html](2026-05-26-luban-feedback-center-system-review.html) | System review / HTML prototype | Proposed | 基于 Apple Feedback Assistant、Discord、Slack、Luciq/Instabug、FeedAIde 与微信小程序上传能力调研，把“我的 → 意见反馈”从单输入框升级为问题类型、症状标签、图片/录屏附件、自动上下文、BI 分诊和 Top10 问题回流的系统方案。 |
 | [2026-05-26-luban-feedback-miniprogram-ui-ux-mockup.html](2026-05-26-luban-feedback-miniprogram-ui-ux-mockup.html) | WeChat mini-program UI/UX mockup | Proposed | 专注微信小程序端意见反馈模块本身，按学情模块视觉语言输出三屏目标稿：我的页反馈入口、全屏反馈处方表单、提交后的处理进度与证据闭环。 |
+| [2026-05-29-luban-feedback-bi-integration-plan.md](2026-05-29-luban-feedback-bi-integration-plan.md) | Implementation Plan | Draft | 把内测回访问卷（`luban-survey` → Supabase `public.luban_feedback`）接入 BI 看板，仿「内测申请」`InviteTestApplicationStore`/`BiInviteTestTab` 模式：新增 `LubanFeedbackStore` 读模型（NPS 分值、满意度、背景分层等聚合）+ `bi_service` 转发 + `/api/v1/bi/luban-feedback/{responses,stats}` 路由 + PATCH 跟进 + 前端「内测回访」Tab；只做读模型与看板，不改问卷与写入侧。Phase 1 后端、Phase 2 前端。 |
 
 ### 10. 建筑实务 AI 互动课堂 / OpenMAIC 对标
 

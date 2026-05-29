@@ -369,3 +369,53 @@ async def bi_invite_test_stats(
     _auth: AuthContext = Depends(require_bi_admin),
 ):
     return await get_bi_service().get_invite_test_stats(days=days)
+
+
+@router.get("/luban-feedback/responses")
+async def bi_luban_feedback_responses(
+    days: int = Query(365, ge=1, le=3650),
+    limit: int = Query(100, ge=1, le=500),
+    status_filter: str | None = Query(None, alias="status"),
+    source_page: str | None = Query(None),
+    q: str | None = Query(None, max_length=120),
+    auth: AuthContext = Depends(require_bi_admin),
+):
+    return await get_bi_service().get_luban_feedback_responses(
+        days=days,
+        limit=limit,
+        status=status_filter,
+        source_page=source_page,
+        q=q,
+        reveal_contact=auth.is_admin,
+    )
+
+
+@router.get("/luban-feedback/stats")
+async def bi_luban_feedback_stats(
+    days: int = Query(365, ge=1, le=3650),
+    _auth: AuthContext = Depends(require_bi_admin),
+):
+    return await get_bi_service().get_luban_feedback_stats(days=days)
+
+
+@router.patch("/luban-feedback/responses/{response_id}")
+async def bi_luban_feedback_response_update(
+    response_id: str,
+    payload: dict[str, Any] | None = Body(default=None),
+    idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
+    auth: AuthContext = Depends(require_bi_admin),
+):
+    key = _validate_idempotency_key(idempotency_key)
+    try:
+        return await get_bi_service().update_luban_feedback_response(
+            response_id=response_id,
+            payload=payload or {},
+            operator=auth.user_id,
+            idempotency_key=key,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except KeyError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Luban feedback response not found") from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
