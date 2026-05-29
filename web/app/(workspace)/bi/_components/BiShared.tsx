@@ -39,6 +39,11 @@ export const BI_PRIMARY_TABS = [
     summary: "查看内测申请名单、联系方式和首批体验学员筛选统计。",
   },
   {
+    key: "luban-feedback",
+    label: "内测回访",
+    summary: "查看内测回访问卷的 NPS、满意度、分层背景与高价值用户跟进。",
+  },
+  {
     key: "learner-360",
     label: "学员 360",
     summary: "下钻单个会员的学习画像、Heartbeat、Overlay 和备注。",

@@ -18,6 +18,7 @@ from deeptutor.services.feedback_service import (
     normalize_feedback_record,
 )
 from deeptutor.services.invite_test_applications import InviteTestApplicationStore
+from deeptutor.services.luban_feedback_store import LubanFeedbackStore
 from deeptutor.services.member_console import get_member_console_service
 from deeptutor.services.observability import (
     get_bailian_billing_client,
@@ -122,6 +123,7 @@ class BIService:
         member_service=None,
         feedback_store=None,
         invite_test_store=None,
+        luban_feedback_store=None,
         bailian_telemetry_client=None,
         bailian_billing_client=None,
         usage_ledger=None,
@@ -131,6 +133,7 @@ class BIService:
         self._member_service = member_service or get_member_console_service()
         self._feedback_store = feedback_store or SupabaseFeedbackStore()
         self._invite_test_store = invite_test_store or InviteTestApplicationStore()
+        self._luban_feedback_store = luban_feedback_store or LubanFeedbackStore()
         self._bailian_telemetry_client = bailian_telemetry_client or get_bailian_telemetry_client()
         self._bailian_billing_client = bailian_billing_client or get_bailian_billing_client()
         self._usage_ledger = usage_ledger or get_usage_ledger()
@@ -3424,6 +3427,69 @@ class BIService:
 
     async def get_invite_test_stats(self, *, days: int = 365) -> dict[str, Any]:
         return await self._invite_test_store.get_stats(days=days)
+
+    # ---------- 内测回访问卷（luban_feedback） ----------
+
+    async def get_luban_feedback_responses(
+        self,
+        *,
+        days: int = 365,
+        limit: int = 100,
+        status: str | None = None,
+        source_page: str | None = None,
+        q: str | None = None,
+        reveal_contact: bool = False,
+    ) -> dict[str, Any]:
+        return await self._luban_feedback_store.list_responses(
+            days=days,
+            limit=limit,
+            status=status,
+            source_page=source_page,
+            q=q,
+            reveal_contact=reveal_contact,
+        )
+
+    async def get_luban_feedback_stats(self, *, days: int = 365) -> dict[str, Any]:
+        return await self._luban_feedback_store.get_stats(days=days)
+
+    async def update_luban_feedback_response(
+        self,
+        *,
+        response_id: str,
+        payload: dict[str, Any],
+        operator: str,
+        idempotency_key: str = "",
+    ) -> dict[str, Any]:
+        normalized_id = str(response_id or "").strip()
+        if not normalized_id:
+            raise ValueError("response_id is required")
+        result = await self._luban_feedback_store.update_response(normalized_id, payload)
+        after = result.get("after") or {}
+        after_record = after if isinstance(after, dict) else {}
+        normalized_operator = str(operator or "").strip() or "admin"
+
+        auditor = getattr(self._member_service, "record_bi_audit", None)
+        if not callable(auditor):
+            raise RuntimeError("member console audit service does not support BI audit writes")
+        audit = auditor(
+            action="luban_feedback_response_update",
+            target_user=f"luban-feedback:{normalized_id}",
+            operator=normalized_operator,
+            reason=str(after_record.get("status") or "updated"),
+            before={"response_id": normalized_id},
+            after={
+                "response_id": normalized_id,
+                "status": after_record.get("status"),
+                "operator_note": after_record.get("operator_note"),
+            },
+            idempotency_key=idempotency_key,
+        )
+        return {
+            "response": after_record,
+            "storage_status": str(result.get("storage_status") or ""),
+            "audit_id": str(audit.get("audit_id") or ""),
+            "deduped": bool(audit.get("deduped")),
+        }
 
 
 _bi_service: BIService | None = None

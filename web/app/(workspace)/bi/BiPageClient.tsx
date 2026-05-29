@@ -1,27 +1,31 @@
 /* eslint-disable i18n/no-literal-ui-text */
-"use client";
+'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { Search } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { Search } from 'lucide-react'
 import {
   BI_API_TOKEN,
   apiUrl,
   clearStoredBiAdminSession,
   getStoredBiAdminSession,
   type BiAdminSession,
-} from "@/lib/api";
-import { loginBiAdmin, restoreBiAdminSession } from "@/lib/bi-admin-auth";
+} from '@/lib/api'
+import { loginBiAdmin, restoreBiAdminSession } from '@/lib/bi-admin-auth'
 import {
   getBiInviteTestApplications,
   getBiInviteTestStats,
+  getBiLubanFeedbackResponses,
+  getBiLubanFeedbackStats,
   getBiLaunchReadiness,
   loadBiWorkbench,
   type BiInviteTestApplication,
   type BiInviteTestStats,
+  type BiLubanFeedbackResponse,
+  type BiLubanFeedbackStats,
   type BiLaunchReadinessDashboard,
   type BiBossActionItem,
-} from "@/lib/bi-api";
+} from '@/lib/bi-api'
 import {
   applyOverlayPromotions,
   batchUpdateMembers,
@@ -44,15 +48,16 @@ import {
   type MemberDashboard,
   type MemberDetail,
   type MemberListItem,
-} from "@/lib/member-api";
-import { BiBossHeader } from "./_components/BiBossHeader";
-import { BiCommandDeckTabs } from "./_components/BiCommandDeckTabs";
-import { BiAuditTab } from "./_components/BiAuditTab";
-import { BiInviteTestTab, type InviteTestFilterState } from "./_components/BiInviteTestTab";
-import { BiLaunchReadinessTab } from "./_components/BiLaunchReadinessTab";
-import { BiMember360Panel } from "./_components/BiMember360Panel";
-import { BiMemberOpsTab } from "./_components/BiMemberOpsTab";
-import { BiOverviewTab } from "./_components/BiOverviewTab";
+} from '@/lib/member-api'
+import { BiBossHeader } from './_components/BiBossHeader'
+import { BiCommandDeckTabs } from './_components/BiCommandDeckTabs'
+import { BiAuditTab } from './_components/BiAuditTab'
+import { BiInviteTestTab, type InviteTestFilterState } from './_components/BiInviteTestTab'
+import { BiLubanFeedbackTab, type LubanFeedbackFilterState } from './_components/BiLubanFeedbackTab'
+import { BiLaunchReadinessTab } from './_components/BiLaunchReadinessTab'
+import { BiMember360Panel } from './_components/BiMember360Panel'
+import { BiMemberOpsTab } from './_components/BiMemberOpsTab'
+import { BiOverviewTab } from './_components/BiOverviewTab'
 import {
   BI_PRIMARY_TABS,
   BiFiltersPanel,
@@ -63,132 +68,158 @@ import {
   type BiPrimaryTab,
   formatTime,
   normalizeBiPrimaryTab,
-} from "./_components/BiShared";
+} from './_components/BiShared'
 
 type MemberFilterState = {
-  search: string;
-  status: string;
-  tier: string;
-  risk_level: string;
-  expire_within_days: number | null;
-};
+  search: string
+  status: string
+  tier: string
+  risk_level: string
+  expire_within_days: number | null
+}
 
 type AuditFilterState = {
-  target_user: string;
-  operator: string;
-  action: string;
-};
+  target_user: string
+  operator: string
+  action: string
+}
 
 const DEFAULT_MEMBER_FILTERS: MemberFilterState = {
-  search: "",
-  status: "all",
-  tier: "all",
-  risk_level: "all",
+  search: '',
+  status: 'all',
+  tier: 'all',
+  risk_level: 'all',
   expire_within_days: null,
-};
+}
 
 const DEFAULT_AUDIT_FILTERS: AuditFilterState = {
-  target_user: "",
-  operator: "",
-  action: "all",
-};
+  target_user: '',
+  operator: '',
+  action: 'all',
+}
 
 const DEFAULT_INVITE_TEST_FILTERS: InviteTestFilterState = {
-  q: "",
-  status: "",
-  source_page: "",
-};
-const INVITE_TEST_WINDOW_DAYS = 365;
+  q: '',
+  status: '',
+  source_page: '',
+}
+const INVITE_TEST_WINDOW_DAYS = 365
+
+const DEFAULT_LUBAN_FEEDBACK_FILTERS: LubanFeedbackFilterState = {
+  q: '',
+  status: '',
+  source_page: '',
+}
+const LUBAN_FEEDBACK_WINDOW_DAYS = 365
 
 export default function BiPageClient() {
-  const searchParams = useSearchParams();
-  const loginPanelRef = useRef<HTMLDivElement | null>(null);
-  const loginUsernameRef = useRef<HTMLInputElement | null>(null);
-  const [adminSession, setAdminSession] = useState<BiAdminSession | null>(null);
-  const [authReady, setAuthReady] = useState(false);
-  const [adminUsername, setAdminUsername] = useState("");
-  const [adminPassword, setAdminPassword] = useState("");
-  const [authSubmitting, setAuthSubmitting] = useState(false);
-  const [authError, setAuthError] = useState("");
-  const biReadOnly = !adminSession?.isAdmin;
-  const [days, setDays] = useState<7 | 30 | 90>(30);
-  const [activeTab, setActiveTab] = useState<BiPrimaryTab>("boss-workbench");
-  const [filtersOpen, setFiltersOpen] = useState(false);
-  const [filters, setFilters] = useState<BiFilterState>({ capability: "", entrypoint: "", tier: "" });
-  const [workbench, setWorkbench] = useState<Awaited<ReturnType<typeof loadBiWorkbench>> | null>(null);
-  const [issues, setIssues] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [exporting, setExporting] = useState(false);
-  const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null);
+  const searchParams = useSearchParams()
+  const loginPanelRef = useRef<HTMLDivElement | null>(null)
+  const loginUsernameRef = useRef<HTMLInputElement | null>(null)
+  const [adminSession, setAdminSession] = useState<BiAdminSession | null>(null)
+  const [authReady, setAuthReady] = useState(false)
+  const [adminUsername, setAdminUsername] = useState('')
+  const [adminPassword, setAdminPassword] = useState('')
+  const [authSubmitting, setAuthSubmitting] = useState(false)
+  const [authError, setAuthError] = useState('')
+  const biReadOnly = !adminSession?.isAdmin
+  const [days, setDays] = useState<7 | 30 | 90>(30)
+  const [activeTab, setActiveTab] = useState<BiPrimaryTab>('boss-workbench')
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const [filters, setFilters] = useState<BiFilterState>({
+    capability: '',
+    entrypoint: '',
+    tier: '',
+  })
+  const [workbench, setWorkbench] = useState<Awaited<ReturnType<typeof loadBiWorkbench>> | null>(
+    null
+  )
+  const [issues, setIssues] = useState<string[]>([])
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<string | null>(null)
 
-  const [memberFilters, setMemberFilters] = useState<MemberFilterState>(DEFAULT_MEMBER_FILTERS);
-  const [memberDashboard, setMemberDashboard] = useState<MemberDashboard | null>(null);
-  const [memberItems, setMemberItems] = useState<MemberListItem[]>([]);
-  const [memberTotal, setMemberTotal] = useState(0);
-  const [memberLoading, setMemberLoading] = useState(true);
-  const [memberError, setMemberError] = useState("");
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [selectedUserId, setSelectedUserId] = useState("");
-  const [selectedMember, setSelectedMember] = useState<MemberDetail | null>(null);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [detailError, setDetailError] = useState("");
-  const [actionLoading, setActionLoading] = useState(false);
+  const [memberFilters, setMemberFilters] = useState<MemberFilterState>(DEFAULT_MEMBER_FILTERS)
+  const [memberDashboard, setMemberDashboard] = useState<MemberDashboard | null>(null)
+  const [memberItems, setMemberItems] = useState<MemberListItem[]>([])
+  const [memberTotal, setMemberTotal] = useState(0)
+  const [memberLoading, setMemberLoading] = useState(true)
+  const [memberError, setMemberError] = useState('')
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [selectedUserId, setSelectedUserId] = useState('')
+  const [selectedMember, setSelectedMember] = useState<MemberDetail | null>(null)
+  const [detailLoading, setDetailLoading] = useState(false)
+  const [detailError, setDetailError] = useState('')
+  const [actionLoading, setActionLoading] = useState(false)
 
-  const [auditLog, setAuditLog] = useState<MemberAuditLogResponse | null>(null);
-  const [auditFilters, setAuditFilters] = useState<AuditFilterState>(DEFAULT_AUDIT_FILTERS);
-  const [auditLoading, setAuditLoading] = useState(false);
-  const [auditError, setAuditError] = useState("");
-  const [inviteTestFilters, setInviteTestFilters] = useState<InviteTestFilterState>(DEFAULT_INVITE_TEST_FILTERS);
-  const [inviteTestStats, setInviteTestStats] = useState<BiInviteTestStats | null>(null);
-  const [inviteTestItems, setInviteTestItems] = useState<BiInviteTestApplication[]>([]);
-  const [inviteTestTotal, setInviteTestTotal] = useState(0);
-  const [inviteTestLoading, setInviteTestLoading] = useState(false);
-  const [inviteTestError, setInviteTestError] = useState("");
-  const [launchReadiness, setLaunchReadiness] = useState<BiLaunchReadinessDashboard | null>(null);
-  const [launchReadinessLoading, setLaunchReadinessLoading] = useState(false);
-  const [launchReadinessError, setLaunchReadinessError] = useState("");
+  const [auditLog, setAuditLog] = useState<MemberAuditLogResponse | null>(null)
+  const [auditFilters, setAuditFilters] = useState<AuditFilterState>(DEFAULT_AUDIT_FILTERS)
+  const [auditLoading, setAuditLoading] = useState(false)
+  const [auditError, setAuditError] = useState('')
+  const [inviteTestFilters, setInviteTestFilters] = useState<InviteTestFilterState>(
+    DEFAULT_INVITE_TEST_FILTERS
+  )
+  const [inviteTestStats, setInviteTestStats] = useState<BiInviteTestStats | null>(null)
+  const [inviteTestItems, setInviteTestItems] = useState<BiInviteTestApplication[]>([])
+  const [inviteTestTotal, setInviteTestTotal] = useState(0)
+  const [inviteTestLoading, setInviteTestLoading] = useState(false)
+  const [inviteTestError, setInviteTestError] = useState('')
+  const [lubanFeedbackFilters, setLubanFeedbackFilters] = useState<LubanFeedbackFilterState>(
+    DEFAULT_LUBAN_FEEDBACK_FILTERS
+  )
+  const [lubanFeedbackStats, setLubanFeedbackStats] = useState<BiLubanFeedbackStats | null>(null)
+  const [lubanFeedbackItems, setLubanFeedbackItems] = useState<BiLubanFeedbackResponse[]>([])
+  const [lubanFeedbackTotal, setLubanFeedbackTotal] = useState(0)
+  const [lubanFeedbackLoading, setLubanFeedbackLoading] = useState(false)
+  const [lubanFeedbackError, setLubanFeedbackError] = useState('')
+  const [launchReadiness, setLaunchReadiness] = useState<BiLaunchReadinessDashboard | null>(null)
+  const [launchReadinessLoading, setLaunchReadinessLoading] = useState(false)
+  const [launchReadinessError, setLaunchReadinessError] = useState('')
   const isProtectedTab =
-    activeTab === "member-ops" ||
-    activeTab === "launch-readiness" ||
-    activeTab === "invite-test" ||
-    activeTab === "learner-360" ||
-    activeTab === "audit";
-  const readAccessDenied = issues.some((issue) => /(^|\s)401(\s|$)|Authentication required/i.test(issue));
+    activeTab === 'member-ops' ||
+    activeTab === 'launch-readiness' ||
+    activeTab === 'invite-test' ||
+    activeTab === 'luban-feedback' ||
+    activeTab === 'learner-360' ||
+    activeTab === 'audit'
+  const readAccessDenied = issues.some(issue =>
+    /(^|\s)401(\s|$)|Authentication required/i.test(issue)
+  )
 
   const refreshBi = useCallback(async () => {
-    setRefreshing(true);
+    setRefreshing(true)
     try {
       if (!BI_API_TOKEN && !getStoredBiAdminSession()?.token) {
-        setWorkbench(null);
-        setIssues(["401 BI 数据 API 尚未授权：请配置只读凭证或登录管理员后台。"]);
-        setLastUpdatedAt(null);
-        return;
+        setWorkbench(null)
+        setIssues(['401 BI 数据 API 尚未授权：请配置只读凭证或登录管理员后台。'])
+        setLastUpdatedAt(null)
+        return
       }
       const result = await loadBiWorkbench({
         days,
         capability: filters.capability || undefined,
         entrypoint: filters.entrypoint || undefined,
         tier: filters.tier || undefined,
-      });
-      setWorkbench(result);
-      setIssues(result.issues);
-      setLastUpdatedAt(new Date().toISOString());
+      })
+      setWorkbench(result)
+      setIssues(result.issues)
+      setLastUpdatedAt(new Date().toISOString())
     } catch (error) {
-      setIssues([error instanceof Error ? error.message : "BI 数据加载失败"]);
+      setIssues([error instanceof Error ? error.message : 'BI 数据加载失败'])
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      setLoading(false)
+      setRefreshing(false)
     }
-  }, [days, filters.capability, filters.entrypoint, filters.tier]);
+  }, [days, filters.capability, filters.entrypoint, filters.tier])
 
   const restoreAdminSession = useCallback(async () => {
-    const stored = getStoredBiAdminSession();
+    const stored = getStoredBiAdminSession()
     if (!stored) {
-      setAdminSession(null);
-      setAuthError("");
-      setAuthReady(true);
-      return;
+      setAdminSession(null)
+      setAuthError('')
+      setAuthReady(true)
+      return
     }
     // Optimistic restore: trust the locally stored admin session immediately so
     // the BI surface does not flash the locked ACCESS GATE placeholder during
@@ -200,36 +231,36 @@ export default function BiPageClient() {
     // bearer token, and the async restoreBiAdminSession() call below will null
     // the session out (and clear local storage) if the token is rejected,
     // re-locking the page.
-    setAdminSession(stored);
-    setAuthReady(true);
-    setAuthError("");
+    setAdminSession(stored)
+    setAuthReady(true)
+    setAuthError('')
     try {
-      const restored = await restoreBiAdminSession(stored);
+      const restored = await restoreBiAdminSession(stored)
       if (restored.clearStoredSession) {
-        clearStoredBiAdminSession();
+        clearStoredBiAdminSession()
       }
-      setAdminSession(restored.session);
-      setAuthError(restored.errorMessage);
+      setAdminSession(restored.session)
+      setAuthError(restored.errorMessage)
     } catch {
-      setAdminSession(stored);
-      setAuthError("管理员会话校验暂时失败，请稍后重试。");
+      setAdminSession(stored)
+      setAuthError('管理员会话校验暂时失败，请稍后重试。')
     }
-  }, []);
+  }, [])
 
   const refreshMembers = useCallback(async () => {
     if (biReadOnly) {
-      setMemberLoading(false);
-      setMemberError("");
-      setMemberDashboard(null);
-      setMemberItems([]);
-      setMemberTotal(0);
-      setSelectedIds([]);
-      setSelectedUserId("");
-      return;
+      setMemberLoading(false)
+      setMemberError('')
+      setMemberDashboard(null)
+      setMemberItems([])
+      setMemberTotal(0)
+      setSelectedIds([])
+      setSelectedUserId('')
+      return
     }
     try {
-      setMemberLoading(true);
-      setMemberError("");
+      setMemberLoading(true)
+      setMemberError('')
       const [dashboard, list] = await Promise.all([
         getMemberDashboard(),
         listMembers({
@@ -241,21 +272,23 @@ export default function BiPageClient() {
           risk_level: memberFilters.risk_level,
           expire_within_days: memberFilters.expire_within_days ?? undefined,
         }),
-      ]);
-      setMemberDashboard(dashboard);
-      setMemberItems(list.items);
-      setMemberTotal(list.total);
+      ])
+      setMemberDashboard(dashboard)
+      setMemberItems(list.items)
+      setMemberTotal(list.total)
       if (!selectedUserId && list.items[0]) {
-        setSelectedUserId(list.items[0].user_id);
+        setSelectedUserId(list.items[0].user_id)
       }
-      if (selectedUserId && !list.items.some((item) => item.user_id === selectedUserId)) {
-        setSelectedUserId(list.items[0]?.user_id ?? "");
+      if (selectedUserId && !list.items.some(item => item.user_id === selectedUserId)) {
+        setSelectedUserId(list.items[0]?.user_id ?? '')
       }
-      setSelectedIds((current) => current.filter((userId) => list.items.some((item) => item.user_id === userId)));
+      setSelectedIds(current =>
+        current.filter(userId => list.items.some(item => item.user_id === userId))
+      )
     } catch (error) {
-      setMemberError(error instanceof Error ? error.message : "会员后台加载失败");
+      setMemberError(error instanceof Error ? error.message : '会员后台加载失败')
     } finally {
-      setMemberLoading(false);
+      setMemberLoading(false)
     }
   }, [
     biReadOnly,
@@ -265,45 +298,45 @@ export default function BiPageClient() {
     memberFilters.status,
     memberFilters.tier,
     selectedUserId,
-  ]);
+  ])
 
   const refreshAudit = useCallback(async () => {
     if (biReadOnly) {
-      setAuditLoading(false);
-      setAuditError("");
-      setAuditLog(null);
-      return;
+      setAuditLoading(false)
+      setAuditError('')
+      setAuditLog(null)
+      return
     }
     try {
-      setAuditLoading(true);
-      setAuditError("");
+      setAuditLoading(true)
+      setAuditError('')
       const audit = await getMemberAuditLog({
         page: 1,
         page_size: 50,
         target_user: auditFilters.target_user.trim() || undefined,
         operator: auditFilters.operator.trim() || undefined,
-        action: auditFilters.action === "all" ? undefined : auditFilters.action,
-      });
-      setAuditLog(audit);
+        action: auditFilters.action === 'all' ? undefined : auditFilters.action,
+      })
+      setAuditLog(audit)
     } catch (error) {
-      setAuditError(error instanceof Error ? error.message : "经营审计加载失败");
+      setAuditError(error instanceof Error ? error.message : '经营审计加载失败')
     } finally {
-      setAuditLoading(false);
+      setAuditLoading(false)
     }
-  }, [auditFilters.action, auditFilters.operator, auditFilters.target_user, biReadOnly]);
+  }, [auditFilters.action, auditFilters.operator, auditFilters.target_user, biReadOnly])
 
   const refreshInviteTest = useCallback(async () => {
     if (biReadOnly) {
-      setInviteTestLoading(false);
-      setInviteTestError("");
-      setInviteTestStats(null);
-      setInviteTestItems([]);
-      setInviteTestTotal(0);
-      return;
+      setInviteTestLoading(false)
+      setInviteTestError('')
+      setInviteTestStats(null)
+      setInviteTestItems([])
+      setInviteTestTotal(0)
+      return
     }
     try {
-      setInviteTestLoading(true);
-      setInviteTestError("");
+      setInviteTestLoading(true)
+      setInviteTestError('')
       const [stats, list] = await Promise.all([
         getBiInviteTestStats({ days: INVITE_TEST_WINDOW_DAYS }),
         getBiInviteTestApplications({
@@ -313,421 +346,498 @@ export default function BiPageClient() {
           status: inviteTestFilters.status || undefined,
           source_page: inviteTestFilters.source_page.trim() || undefined,
         }),
-      ]);
-      setInviteTestStats(stats);
-      setInviteTestItems(list.items);
-      setInviteTestTotal(list.total);
+      ])
+      setInviteTestStats(stats)
+      setInviteTestItems(list.items)
+      setInviteTestTotal(list.total)
     } catch (error) {
-      setInviteTestError(error instanceof Error ? error.message : "内测申请后台加载失败");
+      setInviteTestError(error instanceof Error ? error.message : '内测申请后台加载失败')
     } finally {
-      setInviteTestLoading(false);
+      setInviteTestLoading(false)
     }
-  }, [biReadOnly, inviteTestFilters.q, inviteTestFilters.source_page, inviteTestFilters.status]);
+  }, [biReadOnly, inviteTestFilters.q, inviteTestFilters.source_page, inviteTestFilters.status])
+
+  const refreshLubanFeedback = useCallback(async () => {
+    if (biReadOnly) {
+      setLubanFeedbackLoading(false)
+      setLubanFeedbackError('')
+      setLubanFeedbackStats(null)
+      setLubanFeedbackItems([])
+      setLubanFeedbackTotal(0)
+      return
+    }
+    try {
+      setLubanFeedbackLoading(true)
+      setLubanFeedbackError('')
+      const [stats, list] = await Promise.all([
+        getBiLubanFeedbackStats({ days: LUBAN_FEEDBACK_WINDOW_DAYS }),
+        getBiLubanFeedbackResponses({
+          days: LUBAN_FEEDBACK_WINDOW_DAYS,
+          limit: 100,
+          q: lubanFeedbackFilters.q.trim() || undefined,
+          status: lubanFeedbackFilters.status || undefined,
+          source_page: lubanFeedbackFilters.source_page.trim() || undefined,
+        }),
+      ])
+      setLubanFeedbackStats(stats)
+      setLubanFeedbackItems(list.items)
+      setLubanFeedbackTotal(list.total)
+    } catch (error) {
+      setLubanFeedbackError(error instanceof Error ? error.message : '内测回访后台加载失败')
+    } finally {
+      setLubanFeedbackLoading(false)
+    }
+  }, [
+    biReadOnly,
+    lubanFeedbackFilters.q,
+    lubanFeedbackFilters.source_page,
+    lubanFeedbackFilters.status,
+  ])
 
   const refreshLaunchReadiness = useCallback(async () => {
     if (biReadOnly) {
-      setLaunchReadinessLoading(false);
-      setLaunchReadinessError("");
-      setLaunchReadiness(null);
-      return;
+      setLaunchReadinessLoading(false)
+      setLaunchReadinessError('')
+      setLaunchReadiness(null)
+      return
     }
     try {
-      setLaunchReadinessLoading(true);
-      setLaunchReadinessError("");
-      setLaunchReadiness(await getBiLaunchReadiness());
+      setLaunchReadinessLoading(true)
+      setLaunchReadinessError('')
+      setLaunchReadiness(await getBiLaunchReadiness())
     } catch (error) {
-      setLaunchReadinessError(error instanceof Error ? error.message : "上线面板加载失败");
+      setLaunchReadinessError(error instanceof Error ? error.message : '上线面板加载失败')
     } finally {
-      setLaunchReadinessLoading(false);
+      setLaunchReadinessLoading(false)
     }
-  }, [biReadOnly]);
+  }, [biReadOnly])
 
   const refreshSelectedMember = useCallback(async () => {
     if (biReadOnly) {
-      setDetailLoading(false);
-      setDetailError("");
-      setSelectedMember(null);
-      return;
+      setDetailLoading(false)
+      setDetailError('')
+      setSelectedMember(null)
+      return
     }
     if (!selectedUserId) {
-      setSelectedMember(null);
-      return;
+      setSelectedMember(null)
+      return
     }
     try {
-      setDetailLoading(true);
-      setDetailError("");
-      const detail = await getMemberDetail(selectedUserId);
-      setSelectedMember(detail);
+      setDetailLoading(true)
+      setDetailError('')
+      const detail = await getMemberDetail(selectedUserId)
+      setSelectedMember(detail)
     } catch (error) {
-      setSelectedMember(null);
-      setDetailError(error instanceof Error ? error.message : "学员 360 加载失败");
+      setSelectedMember(null)
+      setDetailError(error instanceof Error ? error.message : '学员 360 加载失败')
     } finally {
-      setDetailLoading(false);
+      setDetailLoading(false)
     }
-  }, [biReadOnly, selectedUserId]);
+  }, [biReadOnly, selectedUserId])
 
   useEffect(() => {
-    void refreshBi();
-  }, [refreshBi]);
+    void refreshBi()
+  }, [refreshBi])
 
   useEffect(() => {
-    if (!authReady) return;
-    void refreshMembers();
-  }, [authReady, refreshMembers]);
+    if (!authReady) return
+    void refreshMembers()
+  }, [authReady, refreshMembers])
 
   useEffect(() => {
-    if (!authReady) return;
-    void refreshAudit();
-  }, [authReady, refreshAudit]);
+    if (!authReady) return
+    void refreshAudit()
+  }, [authReady, refreshAudit])
 
   useEffect(() => {
-    if (!authReady) return;
-    void refreshInviteTest();
-  }, [authReady, refreshInviteTest]);
+    if (!authReady) return
+    void refreshInviteTest()
+  }, [authReady, refreshInviteTest])
 
   useEffect(() => {
-    if (!authReady) return;
-    void refreshLaunchReadiness();
-  }, [authReady, refreshLaunchReadiness]);
+    if (!authReady) return
+    void refreshLubanFeedback()
+  }, [authReady, refreshLubanFeedback])
 
   useEffect(() => {
-    setActiveTab(normalizeBiPrimaryTab(searchParams.get("tab")));
-  }, [searchParams]);
+    if (!authReady) return
+    void refreshLaunchReadiness()
+  }, [authReady, refreshLaunchReadiness])
 
   useEffect(() => {
-    if (!authReady) return;
-    void refreshSelectedMember();
-  }, [authReady, refreshSelectedMember]);
+    setActiveTab(normalizeBiPrimaryTab(searchParams.get('tab')))
+  }, [searchParams])
 
   useEffect(() => {
-    void restoreAdminSession();
-  }, [restoreAdminSession]);
+    if (!authReady) return
+    void refreshSelectedMember()
+  }, [authReady, refreshSelectedMember])
 
   useEffect(() => {
-    if (!biReadOnly || !isProtectedTab) return;
+    void restoreAdminSession()
+  }, [restoreAdminSession])
+
+  useEffect(() => {
+    if (!biReadOnly || !isProtectedTab) return
     const frame = window.requestAnimationFrame(() => {
-      loginPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      loginUsernameRef.current?.focus();
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [biReadOnly, isProtectedTab]);
+      loginPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      loginUsernameRef.current?.focus()
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [biReadOnly, isProtectedTab])
 
   useEffect(() => {
-    const nextTier = filters.tier || "all";
+    const nextTier = filters.tier || 'all'
     if (nextTier !== memberFilters.tier) {
-      setMemberFilters((current) => ({ ...current, tier: nextTier }));
+      setMemberFilters(current => ({ ...current, tier: nextTier }))
     }
-  }, [filters.tier, memberFilters.tier]);
+  }, [filters.tier, memberFilters.tier])
 
-  const data = workbench?.data ?? null;
-  const boss = workbench?.boss ?? { kpis: [], actionQueue: [], heroIssue: "" };
-  const moduleIssues = workbench?.moduleIssues ?? {};
-  const overview = data?.overview;
-  const trend = data?.trend ?? { points: [] };
-  const retention = data?.retention ?? { cohorts: [], labels: ["D0", "D1", "D7", "D30"] };
-  const members = data?.members ?? { cards: [], tiers: [], risks: [], samples: [] };
+  const data = workbench?.data ?? null
+  const boss = workbench?.boss ?? { kpis: [], actionQueue: [], heroIssue: '' }
+  const moduleIssues = workbench?.moduleIssues ?? {}
+  const overview = data?.overview
+  const trend = data?.trend ?? { points: [] }
+  const retention = data?.retention ?? { cohorts: [], labels: ['D0', 'D1', 'D7', 'D30'] }
+  const members = data?.members ?? { cards: [], tiers: [], risks: [], samples: [] }
 
   const activeFilters = [
-    filters.capability ? `capability: ${filters.capability}` : "",
-    filters.entrypoint ? `entrypoint: ${filters.entrypoint}` : "",
-    filters.tier ? `tier: ${filters.tier}` : "",
-  ].filter(Boolean);
-  const activeTabMeta = BI_PRIMARY_TABS.find((tab) => tab.key === activeTab) ?? BI_PRIMARY_TABS[0];
-  const heroIssue = issues[0] || boss.heroIssue || null;
-  const heroIssueTitle = issues[0] ? "当前数据已降级展示" : "经营提醒";
+    filters.capability ? `capability: ${filters.capability}` : '',
+    filters.entrypoint ? `entrypoint: ${filters.entrypoint}` : '',
+    filters.tier ? `tier: ${filters.tier}` : '',
+  ].filter(Boolean)
+  const activeTabMeta = BI_PRIMARY_TABS.find(tab => tab.key === activeTab) ?? BI_PRIMARY_TABS[0]
+  const heroIssue = issues[0] || boss.heroIssue || null
+  const heroIssueTitle = issues[0] ? '当前数据已降级展示' : '经营提醒'
 
   const updateFilter = useCallback((field: BiFilterField, value: string) => {
-    setFilters((current) => ({
+    setFilters(current => ({
       ...current,
       [field]: value,
-    }));
-  }, []);
+    }))
+  }, [])
 
   const resetFilters = useCallback(() => {
-    setFilters({ capability: "", entrypoint: "", tier: "" });
-  }, []);
+    setFilters({ capability: '', entrypoint: '', tier: '' })
+  }, [])
 
   const openMember360 = useCallback((userId: string) => {
-    setSelectedUserId(userId);
-    setActiveTab("learner-360");
-  }, []);
+    setSelectedUserId(userId)
+    setActiveTab('learner-360')
+  }, [])
 
   const toggleSelectedMember = useCallback((userId: string) => {
-    setSelectedIds((current) => (current.includes(userId) ? current.filter((item) => item !== userId) : [...current, userId]));
-  }, []);
+    setSelectedIds(current =>
+      current.includes(userId) ? current.filter(item => item !== userId) : [...current, userId]
+    )
+  }, [])
 
   const applyMemberFilterPatch = useCallback((patch: Partial<MemberFilterState>) => {
-    setMemberFilters((current) => ({ ...current, ...patch }));
-  }, []);
+    setMemberFilters(current => ({ ...current, ...patch }))
+  }, [])
 
   const updateAuditFilter = useCallback((field: keyof AuditFilterState, value: string) => {
-    setAuditFilters((current) => ({ ...current, [field]: value }));
-  }, []);
+    setAuditFilters(current => ({ ...current, [field]: value }))
+  }, [])
 
-  const updateInviteTestFilter = useCallback((field: keyof InviteTestFilterState, value: string) => {
-    setInviteTestFilters((current) => ({ ...current, [field]: value }));
-  }, []);
+  const updateInviteTestFilter = useCallback(
+    (field: keyof InviteTestFilterState, value: string) => {
+      setInviteTestFilters(current => ({ ...current, [field]: value }))
+    },
+    []
+  )
+
+  const updateLubanFeedbackFilter = useCallback(
+    (field: keyof LubanFeedbackFilterState, value: string) => {
+      setLubanFeedbackFilters(current => ({ ...current, [field]: value }))
+    },
+    []
+  )
 
   const navigateFromBossQueue = useCallback(
     (action?: BiBossActionItem) => {
-      const handoffFilters = action?.handoffFilters;
-      if (action?.source === "members") {
-        if (typeof handoffFilters?.expire_within_days === "number") {
+      const handoffFilters = action?.handoffFilters
+      if (action?.source === 'members') {
+        if (typeof handoffFilters?.expire_within_days === 'number') {
           applyMemberFilterPatch({
             ...DEFAULT_MEMBER_FILTERS,
             expire_within_days: handoffFilters.expire_within_days,
-          });
-          setActiveTab("member-ops");
-          return;
+          })
+          setActiveTab('member-ops')
+          return
         }
         if (
-          typeof handoffFilters?.status === "string" ||
-          typeof handoffFilters?.tier === "string" ||
-          typeof handoffFilters?.risk_level === "string" ||
-          typeof handoffFilters?.search === "string"
+          typeof handoffFilters?.status === 'string' ||
+          typeof handoffFilters?.tier === 'string' ||
+          typeof handoffFilters?.risk_level === 'string' ||
+          typeof handoffFilters?.search === 'string'
         ) {
           applyMemberFilterPatch({
             ...DEFAULT_MEMBER_FILTERS,
-            status: typeof handoffFilters?.status === "string" ? handoffFilters.status : "all",
-            tier: typeof handoffFilters?.tier === "string" ? handoffFilters.tier : "all",
-            risk_level: typeof handoffFilters?.risk_level === "string" ? handoffFilters.risk_level : "all",
-            search: typeof handoffFilters?.search === "string" ? handoffFilters.search : "",
-          });
-          setActiveTab("member-ops");
-          return;
+            status: typeof handoffFilters?.status === 'string' ? handoffFilters.status : 'all',
+            tier: typeof handoffFilters?.tier === 'string' ? handoffFilters.tier : 'all',
+            risk_level:
+              typeof handoffFilters?.risk_level === 'string' ? handoffFilters.risk_level : 'all',
+            search: typeof handoffFilters?.search === 'string' ? handoffFilters.search : '',
+          })
+          setActiveTab('member-ops')
+          return
         }
-        applyMemberFilterPatch({ ...DEFAULT_MEMBER_FILTERS, risk_level: "high" });
-        setActiveTab("member-ops");
-        return;
+        applyMemberFilterPatch({ ...DEFAULT_MEMBER_FILTERS, risk_level: 'high' })
+        setActiveTab('member-ops')
+        return
       }
-      if (action?.source === "anomalies") {
-        setActiveTab("audit");
-        return;
+      if (action?.source === 'anomalies') {
+        setActiveTab('audit')
+        return
       }
-      setActiveTab("boss-workbench");
+      setActiveTab('boss-workbench')
     },
-    [applyMemberFilterPatch],
-  );
+    [applyMemberFilterPatch]
+  )
 
   const openLearnerDetail = useCallback((sample: { user_id: string; display_name: string }) => {
-    if (!sample.user_id) return;
-    setSelectedUserId(sample.user_id);
-    setActiveTab("learner-360");
-  }, []);
+    if (!sample.user_id) return
+    setSelectedUserId(sample.user_id)
+    setActiveTab('learner-360')
+  }, [])
 
   const refreshAll = useCallback(async () => {
     if (biReadOnly) {
-      await refreshBi();
-      return;
+      await refreshBi()
+      return
     }
     await Promise.all([
       refreshBi(),
       refreshMembers(),
       refreshAudit(),
       refreshInviteTest(),
+      refreshLubanFeedback(),
       refreshLaunchReadiness(),
       refreshSelectedMember(),
-    ]);
-  }, [biReadOnly, refreshAudit, refreshBi, refreshInviteTest, refreshLaunchReadiness, refreshMembers, refreshSelectedMember]);
+    ])
+  }, [
+    biReadOnly,
+    refreshAudit,
+    refreshBi,
+    refreshInviteTest,
+    refreshLubanFeedback,
+    refreshLaunchReadiness,
+    refreshMembers,
+    refreshSelectedMember,
+  ])
 
   const handleBatchAction = useCallback(
-    async (action: "grant" | "revoke") => {
-      if (selectedIds.length === 0) return;
+    async (action: 'grant' | 'revoke') => {
+      if (selectedIds.length === 0) return
       try {
-        setActionLoading(true);
+        setActionLoading(true)
         await batchUpdateMembers({
           user_ids: selectedIds,
           action,
-          days: action === "grant" ? 30 : undefined,
-          tier: action === "grant" ? "vip" : undefined,
-          reason: action === "grant" ? "BI 会员工作台批量开通" : "BI 会员工作台批量撤销",
-        });
-        await refreshBi();
-        await refreshMembers();
-        await refreshAudit();
+          days: action === 'grant' ? 30 : undefined,
+          tier: action === 'grant' ? 'vip' : undefined,
+          reason: action === 'grant' ? 'BI 会员工作台批量开通' : 'BI 会员工作台批量撤销',
+        })
+        await refreshBi()
+        await refreshMembers()
+        await refreshAudit()
         if (selectedUserId) {
-          await refreshSelectedMember();
+          await refreshSelectedMember()
         }
-        setSelectedIds([]);
+        setSelectedIds([])
       } catch (error) {
-        setMemberError(error instanceof Error ? error.message : "批量操作失败");
+        setMemberError(error instanceof Error ? error.message : '批量操作失败')
       } finally {
-        setActionLoading(false);
+        setActionLoading(false)
       }
     },
-    [refreshAudit, refreshBi, refreshMembers, refreshSelectedMember, selectedIds, selectedUserId],
-  );
+    [refreshAudit, refreshBi, refreshMembers, refreshSelectedMember, selectedIds, selectedUserId]
+  )
 
   const handleSingleGrant = useCallback(async () => {
-    if (!selectedUserId) return;
+    if (!selectedUserId) return
     try {
-      setActionLoading(true);
-      await grantMembership({ user_id: selectedUserId, days: 30, tier: "vip", reason: "BI 会员工作台开通" });
-      await refreshBi();
-      await refreshMembers();
-      await refreshAudit();
-      await refreshSelectedMember();
+      setActionLoading(true)
+      await grantMembership({
+        user_id: selectedUserId,
+        days: 30,
+        tier: 'vip',
+        reason: 'BI 会员工作台开通',
+      })
+      await refreshBi()
+      await refreshMembers()
+      await refreshAudit()
+      await refreshSelectedMember()
     } catch (error) {
-      setDetailError(error instanceof Error ? error.message : "开通会员失败");
+      setDetailError(error instanceof Error ? error.message : '开通会员失败')
     } finally {
-      setActionLoading(false);
+      setActionLoading(false)
     }
-  }, [refreshAudit, refreshBi, refreshMembers, refreshSelectedMember, selectedUserId]);
+  }, [refreshAudit, refreshBi, refreshMembers, refreshSelectedMember, selectedUserId])
 
   const handleSingleExtend = useCallback(async () => {
-    if (!selectedUserId) return;
+    if (!selectedUserId) return
     try {
-      setActionLoading(true);
-      await updateMembership({ user_id: selectedUserId, days: 90, reason: "BI 会员工作台续期 90 天" });
-      await refreshBi();
-      await refreshMembers();
-      await refreshAudit();
-      await refreshSelectedMember();
+      setActionLoading(true)
+      await updateMembership({
+        user_id: selectedUserId,
+        days: 90,
+        reason: 'BI 会员工作台续期 90 天',
+      })
+      await refreshBi()
+      await refreshMembers()
+      await refreshAudit()
+      await refreshSelectedMember()
     } catch (error) {
-      setDetailError(error instanceof Error ? error.message : "续期会员失败");
+      setDetailError(error instanceof Error ? error.message : '续期会员失败')
     } finally {
-      setActionLoading(false);
+      setActionLoading(false)
     }
-  }, [refreshAudit, refreshBi, refreshMembers, refreshSelectedMember, selectedUserId]);
+  }, [refreshAudit, refreshBi, refreshMembers, refreshSelectedMember, selectedUserId])
 
   const handleSingleRevoke = useCallback(async () => {
-    if (!selectedUserId) return;
+    if (!selectedUserId) return
     try {
-      setActionLoading(true);
-      await revokeMembership({ user_id: selectedUserId, reason: "BI 会员工作台撤销" });
-      await refreshBi();
-      await refreshMembers();
-      await refreshAudit();
-      await refreshSelectedMember();
+      setActionLoading(true)
+      await revokeMembership({ user_id: selectedUserId, reason: 'BI 会员工作台撤销' })
+      await refreshBi()
+      await refreshMembers()
+      await refreshAudit()
+      await refreshSelectedMember()
     } catch (error) {
-      setDetailError(error instanceof Error ? error.message : "撤销会员失败");
+      setDetailError(error instanceof Error ? error.message : '撤销会员失败')
     } finally {
-      setActionLoading(false);
+      setActionLoading(false)
     }
-  }, [refreshAudit, refreshBi, refreshMembers, refreshSelectedMember, selectedUserId]);
+  }, [refreshAudit, refreshBi, refreshMembers, refreshSelectedMember, selectedUserId])
 
   const handleAddNote = useCallback(
     async (content: string) => {
-      if (!selectedUserId) return;
+      if (!selectedUserId) return
       try {
-        setActionLoading(true);
-        await createMemberNote(selectedUserId, { content, pinned: false, channel: "manual" });
-        await refreshAudit();
-        await refreshSelectedMember();
-        await refreshMembers();
+        setActionLoading(true)
+        await createMemberNote(selectedUserId, { content, pinned: false, channel: 'manual' })
+        await refreshAudit()
+        await refreshSelectedMember()
+        await refreshMembers()
       } catch (error) {
-        setDetailError(error instanceof Error ? error.message : "添加备注失败");
+        setDetailError(error instanceof Error ? error.message : '添加备注失败')
       } finally {
-        setActionLoading(false);
+        setActionLoading(false)
       }
     },
-    [refreshAudit, refreshMembers, refreshSelectedMember, selectedUserId],
-  );
+    [refreshAudit, refreshMembers, refreshSelectedMember, selectedUserId]
+  )
 
   const handleRecordOpsAction = useCallback(
     async (payload: {
-      status: "open" | "in_progress" | "done" | "follow_up";
-      result: string;
-      action_title?: string;
-      next_follow_up_at?: string;
+      status: 'open' | 'in_progress' | 'done' | 'follow_up'
+      result: string
+      action_title?: string
+      next_follow_up_at?: string
     }) => {
-      if (!selectedUserId) return;
+      if (!selectedUserId) return
       try {
-        setActionLoading(true);
-        await recordMemberOpsAction(selectedUserId, payload);
-        await refreshBi();
-        await refreshMembers();
-        await refreshAudit();
-        await refreshSelectedMember();
+        setActionLoading(true)
+        await recordMemberOpsAction(selectedUserId, payload)
+        await refreshBi()
+        await refreshMembers()
+        await refreshAudit()
+        await refreshSelectedMember()
       } catch (error) {
-        const message = error instanceof Error ? error.message : "记录处理结果失败";
-        setDetailError(message);
-        throw new Error(message);
+        const message = error instanceof Error ? error.message : '记录处理结果失败'
+        setDetailError(message)
+        throw new Error(message)
       } finally {
-        setActionLoading(false);
+        setActionLoading(false)
       }
     },
-    [refreshAudit, refreshBi, refreshMembers, refreshSelectedMember, selectedUserId],
-  );
+    [refreshAudit, refreshBi, refreshMembers, refreshSelectedMember, selectedUserId]
+  )
 
   const handleRecordConversationView = useCallback(
     async (conversation: MemberConversationPreview) => {
-      if (!selectedUserId) return;
-      const result = await recordMemberConversationView(selectedUserId, conversation.session_id);
-      await refreshAudit();
-      return result;
+      if (!selectedUserId) return
+      const result = await recordMemberConversationView(selectedUserId, conversation.session_id)
+      await refreshAudit()
+      return result
     },
-    [refreshAudit, selectedUserId],
-  );
+    [refreshAudit, selectedUserId]
+  )
 
   const handleHeartbeatJobAction = useCallback(
     async (job: HeartbeatJob) => {
-      if (!selectedUserId) return;
+      if (!selectedUserId) return
       try {
-        setActionLoading(true);
-        if (job.status === "active") {
-          await pauseHeartbeatJob(selectedUserId, job.job_id);
+        setActionLoading(true)
+        if (job.status === 'active') {
+          await pauseHeartbeatJob(selectedUserId, job.job_id)
         } else {
-          await resumeHeartbeatJob(selectedUserId, job.job_id);
+          await resumeHeartbeatJob(selectedUserId, job.job_id)
         }
-        await refreshAudit();
-        await refreshSelectedMember();
+        await refreshAudit()
+        await refreshSelectedMember()
       } catch (error) {
-        setDetailError(error instanceof Error ? error.message : "Heartbeat job 操作失败");
+        setDetailError(error instanceof Error ? error.message : 'Heartbeat job 操作失败')
       } finally {
-        setActionLoading(false);
+        setActionLoading(false)
       }
     },
-    [refreshAudit, refreshSelectedMember, selectedUserId],
-  );
+    [refreshAudit, refreshSelectedMember, selectedUserId]
+  )
 
   const handleApplyOverlayPromotions = useCallback(
     async (overlay: BotOverlaySummary) => {
-      if (!selectedUserId) return;
+      if (!selectedUserId) return
       try {
-        setActionLoading(true);
-        await applyOverlayPromotions(selectedUserId, overlay.bot_id, { min_confidence: 0.7, max_candidates: 10 });
-        await refreshAudit();
-        await refreshSelectedMember();
+        setActionLoading(true)
+        await applyOverlayPromotions(selectedUserId, overlay.bot_id, {
+          min_confidence: 0.7,
+          max_candidates: 10,
+        })
+        await refreshAudit()
+        await refreshSelectedMember()
       } catch (error) {
-        setDetailError(error instanceof Error ? error.message : "Overlay promotion 执行失败");
+        setDetailError(error instanceof Error ? error.message : 'Overlay promotion 执行失败')
       } finally {
-        setActionLoading(false);
+        setActionLoading(false)
       }
     },
-    [refreshAudit, refreshSelectedMember, selectedUserId],
-  );
+    [refreshAudit, refreshSelectedMember, selectedUserId]
+  )
 
   const handleAdminLogin = useCallback(async () => {
-    const username = adminUsername.trim();
-    const password = adminPassword.trim();
+    const username = adminUsername.trim()
+    const password = adminPassword.trim()
     if (!username || !password) {
-      setAuthError("请输入管理员用户名和密码。");
-      return;
+      setAuthError('请输入管理员用户名和密码。')
+      return
     }
     try {
-      setAuthSubmitting(true);
-      setAuthError("");
-      const session = await loginBiAdmin(username, password);
-      setAdminSession(session);
-      setAdminPassword("");
-      await refreshBi();
+      setAuthSubmitting(true)
+      setAuthError('')
+      const session = await loginBiAdmin(username, password)
+      setAdminSession(session)
+      setAdminPassword('')
+      await refreshBi()
     } catch (error) {
-      setAuthError(error instanceof Error ? error.message : "管理员登录失败");
+      setAuthError(error instanceof Error ? error.message : '管理员登录失败')
     } finally {
-      setAuthSubmitting(false);
+      setAuthSubmitting(false)
     }
-  }, [adminPassword, adminUsername, refreshBi]);
+  }, [adminPassword, adminUsername, refreshBi])
 
   const handleAdminLogout = useCallback(() => {
-    clearStoredBiAdminSession();
-    setAdminSession(null);
-    setAdminPassword("");
-    setAuthError("");
-  }, []);
+    clearStoredBiAdminSession()
+    setAdminSession(null)
+    setAdminPassword('')
+    setAuthError('')
+  }, [])
 
   const exportJson = useCallback(() => {
-    setExporting(true);
+    setExporting(true)
     try {
       const payload = {
         exported_at: new Date().toISOString(),
@@ -739,32 +849,35 @@ export default function BiPageClient() {
         data,
         boss,
         member_dashboard: memberDashboard,
-      };
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = `bi-member-admin-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
-      anchor.click();
-      URL.revokeObjectURL(url);
+      }
+      const blob = new Blob([JSON.stringify(payload, null, 2)], {
+        type: 'application/json;charset=utf-8',
+      })
+      const url = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = `bi-member-admin-${new Date().toISOString().replace(/[:.]/g, '-')}.json`
+      anchor.click()
+      URL.revokeObjectURL(url)
     } finally {
-      setExporting(false);
+      setExporting(false)
     }
-  }, [boss, data, days, filters, issues, lastUpdatedAt, memberDashboard, memberFilters]);
+  }, [boss, data, days, filters, issues, lastUpdatedAt, memberDashboard, memberFilters])
 
-  const canExport = !biReadOnly && Boolean(workbench || memberItems.length || issues.length);
+  const canExport = !biReadOnly && Boolean(workbench || memberItems.length || issues.length)
   const exportHref = useMemo(() => {
     if (biReadOnly) {
-      return "";
+      return ''
     }
-    const query = new URLSearchParams();
-    if (memberFilters.status !== "all") query.set("status", memberFilters.status);
-    if (memberFilters.tier !== "all") query.set("tier", memberFilters.tier);
-    if (memberFilters.risk_level !== "all") query.set("risk_level", memberFilters.risk_level);
-    if (memberFilters.expire_within_days !== null) query.set("expire_within_days", String(memberFilters.expire_within_days));
-    if (memberFilters.search.trim()) query.set("search", memberFilters.search.trim());
-    const suffix = query.toString();
-    return apiUrl(`/api/v1/member/export${suffix ? `?${suffix}` : ""}`);
+    const query = new URLSearchParams()
+    if (memberFilters.status !== 'all') query.set('status', memberFilters.status)
+    if (memberFilters.tier !== 'all') query.set('tier', memberFilters.tier)
+    if (memberFilters.risk_level !== 'all') query.set('risk_level', memberFilters.risk_level)
+    if (memberFilters.expire_within_days !== null)
+      query.set('expire_within_days', String(memberFilters.expire_within_days))
+    if (memberFilters.search.trim()) query.set('search', memberFilters.search.trim())
+    const suffix = query.toString()
+    return apiUrl(`/api/v1/member/export${suffix ? `?${suffix}` : ''}`)
   }, [
     biReadOnly,
     memberFilters.expire_within_days,
@@ -772,20 +885,20 @@ export default function BiPageClient() {
     memberFilters.search,
     memberFilters.status,
     memberFilters.tier,
-  ]);
-  const activeTabLabel = BI_PRIMARY_TABS.find((tab) => tab.key === activeTab)?.label ?? "会员后台";
+  ])
+  const activeTabLabel = BI_PRIMARY_TABS.find(tab => tab.key === activeTab)?.label ?? '会员后台'
   const adminLoginForm = (
     <form
       className="grid w-full gap-3 xl:max-w-[520px] xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
-      onSubmit={(event) => {
-        event.preventDefault();
-        void handleAdminLogin();
+      onSubmit={event => {
+        event.preventDefault()
+        void handleAdminLogin()
       }}
     >
       <input
         ref={loginUsernameRef}
         value={adminUsername}
-        onChange={(event) => setAdminUsername(event.target.value)}
+        onChange={event => setAdminUsername(event.target.value)}
         placeholder="管理员用户名"
         autoComplete="username"
         suppressHydrationWarning
@@ -793,7 +906,7 @@ export default function BiPageClient() {
       />
       <input
         value={adminPassword}
-        onChange={(event) => setAdminPassword(event.target.value)}
+        onChange={event => setAdminPassword(event.target.value)}
         placeholder="管理员密码"
         type="password"
         autoComplete="current-password"
@@ -805,10 +918,10 @@ export default function BiPageClient() {
         disabled={!authReady || authSubmitting}
         className="inline-flex items-center justify-center rounded-2xl bg-[var(--foreground)] px-4 py-3 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-60"
       >
-        {authSubmitting ? "登录中..." : "登录后台"}
+        {authSubmitting ? '登录中...' : '登录后台'}
       </button>
     </form>
-  );
+  )
 
   return (
     <div className="h-full overflow-y-auto [scrollbar-gutter:stable] bg-[radial-gradient(circle_at_top_left,_rgba(195,90,44,0.14),_transparent_34%),radial-gradient(circle_at_85%_10%,_rgba(18,122,134,0.09),_transparent_28%),linear-gradient(180deg,#faf9f6_0%,#f4efe8_100%)] px-6 py-6">
@@ -821,9 +934,9 @@ export default function BiPageClient() {
           onRefresh={() => void refreshAll()}
           refreshing={refreshing || memberLoading || detailLoading}
           canExport={canExport}
-          lastUpdatedLabel={lastUpdatedAt ? formatTime(lastUpdatedAt) : "尚未同步"}
+          lastUpdatedLabel={lastUpdatedAt ? formatTime(lastUpdatedAt) : '尚未同步'}
           filtersOpen={filtersOpen}
-          onToggleFilters={() => setFiltersOpen((open) => !open)}
+          onToggleFilters={() => setFiltersOpen(open => !open)}
           activeFilters={activeFilters}
           heroIssue={heroIssue}
           heroIssueTitle={heroIssueTitle}
@@ -846,9 +959,14 @@ export default function BiPageClient() {
           {biReadOnly ? (
             <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p className="text-xs font-medium tracking-[0.18em] text-[var(--muted-foreground)]">ACCESS STATUS</p>
+                <p className="text-xs font-medium tracking-[0.18em] text-[var(--muted-foreground)]">
+                  ACCESS STATUS
+                </p>
                 <p className="mt-1 text-sm text-[var(--foreground)]">
-                  当前状态：{readAccessDenied ? "老板工作台未解锁，会员运营后台已锁定。" : "老板工作台可读，会员运营后台已锁定。"}
+                  当前状态：
+                  {readAccessDenied
+                    ? '老板工作台未解锁，会员运营后台已锁定。'
+                    : '老板工作台可读，会员运营后台已锁定。'}
                 </p>
                 <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">
                   {readAccessDenied
@@ -860,8 +978,8 @@ export default function BiPageClient() {
                 <button
                   type="button"
                   onClick={() => {
-                    loginPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-                    loginUsernameRef.current?.focus();
+                    loginPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                    loginUsernameRef.current?.focus()
                   }}
                   className="inline-flex items-center justify-center rounded-2xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm font-medium text-[var(--foreground)] transition hover:bg-[var(--secondary)]"
                 >
@@ -872,9 +990,12 @@ export default function BiPageClient() {
           ) : (
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p className="text-xs font-medium tracking-[0.18em] text-emerald-700">ADMIN SESSION</p>
+                <p className="text-xs font-medium tracking-[0.18em] text-emerald-700">
+                  ADMIN SESSION
+                </p>
                 <p className="mt-1 text-sm text-emerald-900">
-                  已使用管理员身份进入会员后台：{adminSession?.displayName || adminSession?.userId || "admin"}
+                  已使用管理员身份进入会员后台：
+                  {adminSession?.displayName || adminSession?.userId || 'admin'}
                 </p>
               </div>
               <button
@@ -895,15 +1016,21 @@ export default function BiPageClient() {
           >
             <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
               <div className="max-w-2xl">
-                <p className="text-xs font-medium tracking-[0.2em] text-[var(--muted-foreground)]">ADMIN ACCESS</p>
-                <h2 className="mt-2 text-xl font-semibold tracking-tight text-[var(--foreground)]">管理员登录</h2>
+                <p className="text-xs font-medium tracking-[0.2em] text-[var(--muted-foreground)]">
+                  ADMIN ACCESS
+                </p>
+                <h2 className="mt-2 text-xl font-semibold tracking-tight text-[var(--foreground)]">
+                  管理员登录
+                </h2>
                 <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
                   {readAccessDenied
-                    ? "老板工作台当前未拿到只读数据权限；请登录管理员后台后继续查看。"
-                    : "老板工作台默认只读开放；如果你接下来要进入会员运营、学员 360 或经营审计，请在这里先解锁会员后台。"}
+                    ? '老板工作台当前未拿到只读数据权限；请登录管理员后台后继续查看。'
+                    : '老板工作台默认只读开放；如果你接下来要进入会员运营、学员 360 或经营审计，请在这里先解锁会员后台。'}
                 </p>
                 <p className="mt-2 text-xs leading-5 text-[var(--muted-foreground)]">
-                  {readAccessDenied ? "当前页面 shell 可访问，但 BI 数据 API 尚未授权。" : "BI 只读凭证已由系统配置，无需手动填写。"}
+                  {readAccessDenied
+                    ? '当前页面 shell 可访问，但 BI 数据 API 尚未授权。'
+                    : 'BI 只读凭证已由系统配置，无需手动填写。'}
                 </p>
               </div>
               {adminLoginForm}
@@ -926,15 +1053,17 @@ export default function BiPageClient() {
                 <p className="text-xs tracking-[0.24em] text-white/70">ACCESS GATE</p>
                 <h2 className="mt-3 text-2xl font-semibold tracking-tight">解锁会员后台</h2>
                 <p className="mt-3 text-sm leading-6 text-white/75">
-                  你当前打开的是 {activeTabLabel}，这个分区属于管理员后台，不会再要求你手动填写 API Token。
+                  你当前打开的是 {activeTabLabel}，这个分区属于管理员后台，不会再要求你手动填写 API
+                  Token。
                 </p>
                 <p className="mt-2 text-sm leading-6 text-white/75">
                   {readAccessDenied
-                    ? "当前没有可用的只读凭证；请输入管理员用户名和密码解锁会员管理能力。"
-                    : "BI API Token 已由系统配置，无需手动填写；只需要输入管理员用户名和密码即可解锁会员管理能力。"}
+                    ? '当前没有可用的只读凭证；请输入管理员用户名和密码解锁会员管理能力。'
+                    : 'BI API Token 已由系统配置，无需手动填写；只需要输入管理员用户名和密码即可解锁会员管理能力。'}
                 </p>
                 <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-6 text-white/80">
-                  登录后将直接解锁：会员筛选与批量操作、学员 360、Heartbeat / Overlay 操作、经营审计记录。
+                  登录后将直接解锁：会员筛选与批量操作、学员 360、Heartbeat / Overlay
+                  操作、经营审计记录。
                 </div>
               </div>
               <div className="w-full max-w-[560px] rounded-3xl border border-white/10 bg-white/95 p-4 text-[var(--foreground)] shadow-[0_12px_30px_rgba(31,26,23,0.16)]">
@@ -950,7 +1079,7 @@ export default function BiPageClient() {
                 ) : null}
                 <button
                   type="button"
-                  onClick={() => setActiveTab("boss-workbench")}
+                  onClick={() => setActiveTab('boss-workbench')}
                   className="mt-4 inline-flex items-center justify-center rounded-2xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm font-medium text-[var(--foreground)] transition hover:bg-[var(--secondary)]"
                 >
                   先返回老板工作台
@@ -960,14 +1089,20 @@ export default function BiPageClient() {
           </section>
         ) : null}
 
-        {(activeTab === "member-ops" || activeTab === "learner-360" || activeTab === "audit") && !biReadOnly ? (
+        {(activeTab === 'member-ops' || activeTab === 'learner-360' || activeTab === 'audit') &&
+        !biReadOnly ? (
           <section className="rounded-3xl border border-[var(--border)]/60 bg-[var(--background)] p-5 shadow-[0_12px_30px_rgba(45,33,25,0.05)]">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]" size={16} />
+                <Search
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]"
+                  size={16}
+                />
                 <input
                   value={memberFilters.search}
-                  onChange={(event) => applyMemberFilterPatch({ search: event.target.value, expire_within_days: null })}
+                  onChange={event =>
+                    applyMemberFilterPatch({ search: event.target.value, expire_within_days: null })
+                  }
                   placeholder="搜索 User ID / 昵称 / 手机号"
                   className="w-full rounded-2xl border bg-white px-10 py-2.5 text-sm outline-none transition focus:border-[var(--primary)]"
                 />
@@ -975,7 +1110,9 @@ export default function BiPageClient() {
               <div className="grid flex-1 gap-3 sm:grid-cols-3">
                 <select
                   value={memberFilters.status}
-                  onChange={(event) => applyMemberFilterPatch({ status: event.target.value, expire_within_days: null })}
+                  onChange={event =>
+                    applyMemberFilterPatch({ status: event.target.value, expire_within_days: null })
+                  }
                   className="rounded-2xl border bg-white px-3 py-2.5 text-sm outline-none focus:border-[var(--primary)]"
                 >
                   <option value="all">全部状态</option>
@@ -985,7 +1122,9 @@ export default function BiPageClient() {
                 </select>
                 <select
                   value={memberFilters.tier}
-                  onChange={(event) => applyMemberFilterPatch({ tier: event.target.value, expire_within_days: null })}
+                  onChange={event =>
+                    applyMemberFilterPatch({ tier: event.target.value, expire_within_days: null })
+                  }
                   className="rounded-2xl border bg-white px-3 py-2.5 text-sm outline-none focus:border-[var(--primary)]"
                 >
                   <option value="all">全部层级</option>
@@ -995,7 +1134,12 @@ export default function BiPageClient() {
                 </select>
                 <select
                   value={memberFilters.risk_level}
-                  onChange={(event) => applyMemberFilterPatch({ risk_level: event.target.value, expire_within_days: null })}
+                  onChange={event =>
+                    applyMemberFilterPatch({
+                      risk_level: event.target.value,
+                      expire_within_days: null,
+                    })
+                  }
                   className="rounded-2xl border bg-white px-3 py-2.5 text-sm outline-none focus:border-[var(--primary)]"
                 >
                   <option value="all">全部风险</option>
@@ -1013,7 +1157,7 @@ export default function BiPageClient() {
           </section>
         ) : null}
 
-        {activeTab === "boss-workbench" ? (
+        {activeTab === 'boss-workbench' ? (
           <BiOverviewTab
             loading={loading}
             days={days}
@@ -1026,85 +1170,98 @@ export default function BiPageClient() {
             onNavigateFromBossQueue={navigateFromBossQueue}
             onOpenLearnerDetail={openLearnerDetail}
           />
-        ) : activeTab === "member-ops" ? (
+        ) : activeTab === 'member-ops' ? (
           biReadOnly ? null : (
-          <BiMemberOpsTab
-            loading={memberLoading}
-            memberItems={memberItems}
-            selectedIds={selectedIds}
-            selectedMember={selectedMember}
-            detailLoading={detailLoading}
-            detailError={detailError || memberError}
-            actionLoading={actionLoading}
-            totalCount={memberTotal}
-            onToggleMember={toggleSelectedMember}
-            onOpenMember={openMember360}
-            onBatchGrant={() => void handleBatchAction("grant")}
-            onBatchRevoke={() => void handleBatchAction("revoke")}
-            onGrantSingle={() => void handleSingleGrant()}
-            onExtendSingle={() => void handleSingleExtend()}
-            onRevokeSingle={() => void handleSingleRevoke()}
-            onAddNote={(content) => void handleAddNote(content)}
-            onRecordOpsAction={handleRecordOpsAction}
-            onRecordConversationView={handleRecordConversationView}
-            onToggleHeartbeat={(job) => void handleHeartbeatJobAction(job)}
-            onApplyOverlay={(overlay) => void handleApplyOverlayPromotions(overlay)}
-          />
+            <BiMemberOpsTab
+              loading={memberLoading}
+              memberItems={memberItems}
+              selectedIds={selectedIds}
+              selectedMember={selectedMember}
+              detailLoading={detailLoading}
+              detailError={detailError || memberError}
+              actionLoading={actionLoading}
+              totalCount={memberTotal}
+              onToggleMember={toggleSelectedMember}
+              onOpenMember={openMember360}
+              onBatchGrant={() => void handleBatchAction('grant')}
+              onBatchRevoke={() => void handleBatchAction('revoke')}
+              onGrantSingle={() => void handleSingleGrant()}
+              onExtendSingle={() => void handleSingleExtend()}
+              onRevokeSingle={() => void handleSingleRevoke()}
+              onAddNote={content => void handleAddNote(content)}
+              onRecordOpsAction={handleRecordOpsAction}
+              onRecordConversationView={handleRecordConversationView}
+              onToggleHeartbeat={job => void handleHeartbeatJobAction(job)}
+              onApplyOverlay={overlay => void handleApplyOverlayPromotions(overlay)}
+            />
           )
-        ) : activeTab === "launch-readiness" ? (
+        ) : activeTab === 'launch-readiness' ? (
           biReadOnly ? null : (
-          <BiLaunchReadinessTab
-            dashboard={launchReadiness}
-            loading={launchReadinessLoading}
-            error={launchReadinessError}
-            onRefresh={() => void refreshLaunchReadiness()}
-          />
+            <BiLaunchReadinessTab
+              dashboard={launchReadiness}
+              loading={launchReadinessLoading}
+              error={launchReadinessError}
+              onRefresh={() => void refreshLaunchReadiness()}
+            />
           )
-        ) : activeTab === "invite-test" ? (
+        ) : activeTab === 'invite-test' ? (
           biReadOnly ? null : (
-          <BiInviteTestTab
-            stats={inviteTestStats}
-            applications={inviteTestItems}
-            total={inviteTestTotal}
-            loading={inviteTestLoading}
-            error={inviteTestError}
-            filters={inviteTestFilters}
-            onFilterChange={updateInviteTestFilter}
-            onRefresh={() => void refreshInviteTest()}
-          />
+            <BiInviteTestTab
+              stats={inviteTestStats}
+              applications={inviteTestItems}
+              total={inviteTestTotal}
+              loading={inviteTestLoading}
+              error={inviteTestError}
+              filters={inviteTestFilters}
+              onFilterChange={updateInviteTestFilter}
+              onRefresh={() => void refreshInviteTest()}
+            />
           )
-        ) : activeTab === "learner-360" ? (
+        ) : activeTab === 'luban-feedback' ? (
           biReadOnly ? null : (
-          <BiMember360Panel
-            member={selectedMember}
-            loading={detailLoading}
-            error={detailError || memberError}
-            actionLoading={actionLoading}
-            onGrant={() => void handleSingleGrant()}
-            onExtend={() => void handleSingleExtend()}
-            onRevoke={() => void handleSingleRevoke()}
-            onAddNote={(content) => void handleAddNote(content)}
-            onRecordOpsAction={handleRecordOpsAction}
-            onRecordConversationView={handleRecordConversationView}
-            onToggleHeartbeat={(job) => void handleHeartbeatJobAction(job)}
-            onApplyOverlay={(overlay) => void handleApplyOverlayPromotions(overlay)}
-          />
+            <BiLubanFeedbackTab
+              stats={lubanFeedbackStats}
+              responses={lubanFeedbackItems}
+              total={lubanFeedbackTotal}
+              loading={lubanFeedbackLoading}
+              error={lubanFeedbackError}
+              filters={lubanFeedbackFilters}
+              onFilterChange={updateLubanFeedbackFilter}
+              onRefresh={() => void refreshLubanFeedback()}
+            />
           )
-        ) : activeTab === "audit" ? (
+        ) : activeTab === 'learner-360' ? (
           biReadOnly ? null : (
-          <BiAuditTab
-            audit={auditLog}
-            loading={auditLoading}
-            error={auditError}
-            exportHref={exportHref}
-            filters={auditFilters}
-            onFilterChange={updateAuditFilter}
-          />
+            <BiMember360Panel
+              member={selectedMember}
+              loading={detailLoading}
+              error={detailError || memberError}
+              actionLoading={actionLoading}
+              onGrant={() => void handleSingleGrant()}
+              onExtend={() => void handleSingleExtend()}
+              onRevoke={() => void handleSingleRevoke()}
+              onAddNote={content => void handleAddNote(content)}
+              onRecordOpsAction={handleRecordOpsAction}
+              onRecordConversationView={handleRecordConversationView}
+              onToggleHeartbeat={job => void handleHeartbeatJobAction(job)}
+              onApplyOverlay={overlay => void handleApplyOverlayPromotions(overlay)}
+            />
+          )
+        ) : activeTab === 'audit' ? (
+          biReadOnly ? null : (
+            <BiAuditTab
+              audit={auditLog}
+              loading={auditLoading}
+              error={auditError}
+              exportHref={exportHref}
+              filters={auditFilters}
+              onFilterChange={updateAuditFilter}
+            />
           )
         ) : (
           <BiTabShell title={activeTabMeta.label} summary={activeTabMeta.summary} />
         )}
       </div>
     </div>
-  );
+  )
 }
