@@ -97,6 +97,18 @@ jobs:
       - name: RLS fail-on-new gate
         run: FAIL_ON_NEW=1 bash scripts/ci/check_rls_on_create_table.sh
 
+      - name: Rate limit single-authority gate
+        run: bash scripts/ci/check_rate_limit_single_authority.sh
+
+      - name: LLM client factory gate
+        run: bash scripts/ci/check_llm_client_factory.sh
+
+      - name: Runtime safety wiring gate
+        run: bash scripts/ci/check_runtime_safety_usage.sh
+
+      - name: Migration uniqueness gate
+        run: bash scripts/ci/check_migration_uniqueness.sh
+
   import-check:
     name: Import Check (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
