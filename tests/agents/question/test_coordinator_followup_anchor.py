@@ -117,22 +117,21 @@ async def test_coordinator_lightweight_topic_generation_skips_idea_agent(
         lambda self, prefix: (tmp_path / prefix).mkdir(parents=True, exist_ok=True) or (tmp_path / prefix),
     )
 
-    async def _fake_generation_loop(
+    async def _fake_lightweight_batch_generate(
         self,
+        *,
         templates,
         user_topic: str,
         preference: str,
-        history_context: str = "",
-        require_explanation: bool = True,
-        lightweight_generation: bool = False,
+        history_context: str,
+        counters,
     ):
+        # lightweight=True path never reaches _generation_loop; it uses this method.
         captured["templates"] = templates
-        captured["require_explanation"] = require_explanation
-        captured["lightweight_generation"] = lightweight_generation
         captured["user_topic"] = user_topic
         return []
 
-    monkeypatch.setattr(AgentCoordinator, "_generation_loop", _fake_generation_loop)
+    monkeypatch.setattr(AgentCoordinator, "_lightweight_batch_generate", _fake_lightweight_batch_generate)
 
     coordinator = AgentCoordinator(language="zh", enable_idea_rag=True)
     result = await coordinator.generate_from_topic(
@@ -157,8 +156,6 @@ async def test_coordinator_lightweight_topic_generation_skips_idea_agent(
         for template in templates
     )
     assert all(template.concentration == "网络计划" for template in templates)
-    assert captured["require_explanation"] is False
-    assert captured["lightweight_generation"] is True
     assert result["trace"]["lightweight_generation"] is True
 
 
@@ -200,22 +197,20 @@ async def test_coordinator_lightweight_topic_generation_uses_single_rag_anchor(
             },
         }
 
-    async def _fake_generation_loop(
+    async def _fake_lightweight_batch_generate(
         self,
+        *,
         templates,
         user_topic: str,
         preference: str,
-        history_context: str = "",
-        require_explanation: bool = True,
-        lightweight_generation: bool = False,
+        history_context: str,
+        counters,
     ):
         captured["templates"] = templates
-        captured["require_explanation"] = require_explanation
-        captured["lightweight_generation"] = lightweight_generation
         return []
 
     monkeypatch.setattr("deeptutor.agents.question.coordinator.rag_search", _fake_rag_search)
-    monkeypatch.setattr(AgentCoordinator, "_generation_loop", _fake_generation_loop)
+    monkeypatch.setattr(AgentCoordinator, "_lightweight_batch_generate", _fake_lightweight_batch_generate)
 
     coordinator = AgentCoordinator(language="zh", kb_name="construction-exam", enable_idea_rag=True)
     result = await coordinator.generate_from_topic(
@@ -235,8 +230,6 @@ async def test_coordinator_lightweight_topic_generation_uses_single_rag_anchor(
     assert captured["rag_kwargs"]["query"] == "我现在学到流水节拍了，先给我出1道很短的小题，只出题不要答案。"
     assert captured["rag_kwargs"]["kb_name"] == "construction-exam"
     assert captured["rag_kwargs"]["only_need_context"] is True
-    assert captured["lightweight_generation"] is True
-    assert captured["require_explanation"] is False
     assert templates[0].concentration == "流水节拍"
     assert "题库参考题目：关于流水节拍，下列说法正确的是？" in templates[0].metadata["knowledge_context"]
     assert "题库解析要点：流水节拍反映本专业队在一个施工段上的持续时间。" in templates[0].metadata["knowledge_context"]
@@ -277,20 +270,20 @@ async def test_coordinator_lightweight_topic_generation_falls_back_when_rag_empt
             "exact_question": {},
         }
 
-    async def _fake_generation_loop(
+    async def _fake_lightweight_batch_generate(
         self,
+        *,
         templates,
         user_topic: str,
         preference: str,
-        history_context: str = "",
-        require_explanation: bool = True,
-        lightweight_generation: bool = False,
+        history_context: str,
+        counters,
     ):
         captured["templates"] = templates
         return []
 
     monkeypatch.setattr("deeptutor.agents.question.coordinator.rag_search", _fake_rag_search)
-    monkeypatch.setattr(AgentCoordinator, "_generation_loop", _fake_generation_loop)
+    monkeypatch.setattr(AgentCoordinator, "_lightweight_batch_generate", _fake_lightweight_batch_generate)
 
     coordinator = AgentCoordinator(language="zh", kb_name="construction-exam", enable_idea_rag=True)
     await coordinator.generate_from_topic(
@@ -350,20 +343,20 @@ async def test_coordinator_lightweight_topic_generation_extracts_reference_ancho
             "exact_question": {},
         }
 
-    async def _fake_generation_loop(
-        self,
-        templates,
-        user_topic: str,
-        preference: str,
-        history_context: str = "",
-        require_explanation: bool = True,
-        lightweight_generation: bool = False,
-    ):
-        captured["templates"] = templates
-        return []
+    _orig_build_templates = AgentCoordinator._build_lightweight_topic_templates
+
+    def _spy_build_templates(**kwargs):
+        result = _orig_build_templates(**kwargs)
+        captured["templates"] = result
+        return result
+
+    monkeypatch.setattr(
+        AgentCoordinator,
+        "_build_lightweight_topic_templates",
+        staticmethod(_spy_build_templates),
+    )
 
     monkeypatch.setattr("deeptutor.agents.question.coordinator.rag_search", _fake_rag_search)
-    monkeypatch.setattr(AgentCoordinator, "_generation_loop", _fake_generation_loop)
 
     coordinator = AgentCoordinator(language="zh", kb_name="construction-exam", enable_idea_rag=True)
     await coordinator.generate_from_topic(

@@ -332,7 +332,6 @@ def _serialize_wallet_ledger_entry(entry: WalletLedgerEntry) -> dict[str, Any]:
         "balance_after": balance_after_points,
         "balance_after_micros": int(entry.balance_after_micros),
         "frozen_after_micros": int(entry.frozen_after_micros),
-        "frozen_delta_micros": int(entry.frozen_after_micros),
         "reference_type": entry.reference_type,
         "reference_id": entry.reference_id,
         "idempotency_key": entry.idempotency_key,
