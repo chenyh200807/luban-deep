@@ -1,277 +1,316 @@
-# RAG 诊断优先 + 免费午餐 — 2 周执行计划
+# RAG 诊断优先 + 免费午餐 — 2 周执行计划(v3.1 eng-review-locked)
 
-**日期**:2026-05-28
-**Scope**:仅 P0-1(RAG 评估 harness)+ P0-2(开 2 个已实现未开的 FF)。
-**总投入**:**2 周**(P0-1 1.5-2 周 + P0-2 1-2 天 并行/嵌入)。
-**目的**:**用最低成本买"信息增益"**,搞清 RAG 是不是产品当前瓶颈,然后决定要不要继续投。
-**依据**:[2026-05-28 RAG 评估报告](#)(70/100),证据级代码审计 + codegraph 实证。
+**日期**:2026-05-28(eng review 2026-05-29)
+**Scope**:P0-1(RAG 评估能力)+ P0-2(开 2 个已实现未开的 FF,但生产 env override 保留)
+**总投入**:**~2 周**(P0-1 1 周代码 + 3-5 天专家标注 / P0-2 代码 4h + 等 P0-1 baseline 验证)
+**目的**:**用最低成本买"信息增益"**,搞清 RAG 是不是产品当前瓶颈,然后决定要不要继续投
+**依据**:[2026-05-28 RAG 评估报告](#)(70/100,代码证据级)
+**Eng review**:`/gstack-plan-eng-review` 2026-05-29,scope reduce 到 pytest 一体化(5 文件),5 个 finding 全部解决并入此版
 
 ---
 
 ## 0. 决定的前因(为什么是这个 scope)
 
-70/100 评估 + 战略反思后,scope 决策:**不全押世界顶尖,不冻结 RAG,做诊断 + 免费午餐**。
+70/100 评估 + 战略反思后:**不全押世界顶尖,不冻结 RAG,做诊断 + 免费午餐**。
 
-理由(简版,完整反思见 chat 历史):
+1. 当前 RAG 已 70/100——核心检索能力世界一线(8 路并行 + db hybrid + RRF + rerank + exact authority + 5 种 query shape)
+2. **RAG 是不是瓶颈我们不知道**——`retrieval_empty_rate` / per-shape Recall / 低评归因(RAG vs LLM)全无数据
+3. **2 周买 P0-1 + P0-2 是最高 ROI**:P0-1 是任何后续 RAG / 模型 / prompt 优化的前置 gate
+4. **2 周后基于数据决策**:不预先承诺 P1
 
-1. **当前 RAG 已经在 70/100**——核心检索能力世界一线水平(8 路并行 + db hybrid + RRF + rerank + exact authority + 5 种 query shape)。再投 20 分(8-12 周)边际效用大概率小于把同样精力投到内容覆盖 / 模型升级 / mobile UX。
-2. **RAG 是不是瓶颈我们不知道**——`retrieval_empty_rate`、per-shape Recall、低评回答归因(RAG vs LLM)全部无数据。在不知道瓶颈位置时全押 RAG = 直觉配资。
-3. **2 周买 P0-1 + P0-2 是最高 ROI**:P0-1 是任何后续 RAG / 模型 / prompt 优化的前置 gate,本身高价值;P0-2 是 1-2 天 0 风险的免费收益。
-4. **2 周后基于数据决定**:走完 P0-1 + P0-2,数据出来再选 P1 是否做、要不要冻结 RAG、要不要 redirect 到内容/UX。
-
-**不承诺 P1/P2**——本计划只覆盖 2 周。后续 phase 用真实数据驱动。
+**Eng review 2026-05-29 后的 scope reduction**:Step 0 complexity check 触发(12 文件 → reduce 到 **5 文件 pytest 一体化**)。
 
 ---
 
-## 1. Karpathy Gate
+## 1. Karpathy Gate(eng-review-locked)
 
-### Assumptions(开始前先暴露)
+### Assumptions
 
-1. P0-1 评估 harness 上生产 1-2 周后能拿到**有意义的真实流量样本**(retrieval_empty_rate / per-shape Recall@5 / 低评 retrieval pattern)。若流量太小(< 1000 queries / 周),数据可能没统计意义,会延后决策。
-2. 60-100 条 golden set 标注质量决定一切。**内部建筑考试专家参与是硬要求**,LLM 自动生成不算。
-3. 开 `provenance_boost_enabled` 和 `compiled_truth_enabled` 不会引发 contract guard / 现有测试失败(代码已实现,只默认关——但要验)。
-4. 后续 phase(P1/P2)**等 P0-1 数据出来再决定**,本计划不预先承诺。
+1. P0-1 上 staging 1-2 周后能拿到**有意义的真实流量样本**(retrieval_empty_rate / per-shape Recall@5)。若流量 < 1000 queries / 周延后决策
+2. 60-100 条 golden set **由内部建筑考试专家人工标注**,LLM 自动生成不算
+3. P0-2 FF 默认改 True 但**生产 env override 保 False 直到 P0-1 baseline 证明不退化**(2A)
+4. 不预先承诺 2 周后的 phase(P1/P2 等数据决定)
+5. **统计学诚实**:60-100 样本 → 每 shape 12-20 条 → Wilson 95% CI 约 ±25% → 只能 detect ≥15pp 移动,不要假装能 detect +5pp(3A)
 
 ### Simplest path
 
-- P0-1 评估 harness 本质是 `(query, expected_chunk_ids)` → `pipeline.search` → Recall/MRR/NDCG。**不重写主链路,不动 contract**,只在外面套一层 evaluator。
-- P0-2 是 2 行 env 默认值 + 测试 + eval baseline 对比。**0 代码改动**。
-- 不引外部依赖(无 Redis / GPU / 新 vector DB)。
+- P0-1 单文件 `tests/services/rag/test_retrieval_quality.py`(~250 行)含 metrics + golden loader + preflight + e2e gate test
+- P0-2 是 2 行 env 默认值 + 2 个 regression 测试 + 1 段 contract 声明 + **生产 env override**
+- 不引外部依赖(无 Redis / GPU / 新 vector DB / 无 RAGAS / 无 DeepEval)
 
-### Change boundary
+### Change boundary(eng-review-locked)
 
 | 允许触碰 | 不许顺手改 |
 |---|---|
-| 新建 `deeptutor/services/rag/eval/`(metrics + golden_set + harness) | `supabase.py::search` 主链路 |
-| 新建 `eval/datasets/rag_golden_v1.json`(60-100 条人工标注) | `contracts/rag.md`(契约不动) |
-| 新建 `scripts/run_rag_eval.py` CLI | `RAGService` / `RAGTool` 对外契约 |
-| 改 `_load_search_config:1627, 1640` 两个 env 默认值 | `_AUTHORITY_ORDER` / `_AUTHORITY_RANK` 常量 |
-| 新建 `tests/services/rag/eval/*`(测试) | 任何 Supabase 端 SQL function |
-| 改 `eval/gates.yaml`(新增 `rag_retrieval_quality_gate`) | LlamaIndex pipeline |
+| 新建 `tests/services/rag/test_retrieval_quality.py`(单文件 ~250 行) | `supabase.py::search` 主链路 |
+| 新建 `tests/fixtures/rag_retrieval_golden_v1.json` 60-100 条 | `_AUTHORITY_ORDER` / `_AUTHORITY_RANK` 常量数值 |
+| 改 `_load_search_config:1627, 1640` 两个 env 默认值(P0-2) | LlamaIndex pipeline |
+| 新增 2 个 regression test 文件 | Supabase 端 SQL function |
+| **加 1 段 `contracts/rag.md` 声明 provenance ranking 默认开**(1A) | 任何已有契约段落 |
+| 改 `eval/gates.yaml` 加 `rag_retrieval_quality_gate`(1 行) | `RAGService` / `RAGTool` 对外契约 |
 
 ### Verification target
 
-**P0-1 Done 标准**:
-- `python -m scripts.run_rag_eval --baseline <commit>` 跑出完整 baseline 报告:per-shape(concept/mcq/case/standard/calc)的 `recall@1/5/10`、`mrr`、`ndcg@5`
-- 离线测试 ≥ 80% 覆盖(metrics + golden_set 加载 + harness 跑一遍)
-- 接入 `eval/gates.yaml` 作为 `rag_retrieval_quality_gate`,PR 必跑
+**P0-1 Done**:
+- `pytest tests/services/rag/test_retrieval_quality.py -v` 跑出 baseline 报告(stdout + 落盘)
+- 报告含 per-shape(concept/mcq/case/standard/calc)的 `recall@1/5/10 / mrr`,**每项带 Wilson 95% CI**(3A)
+- preflight chunk_id staleness check 工作(1B)
+- 测试覆盖 ≥ 80%
+- 接入 `eval/gates.yaml::rag_retrieval_quality_gate`
 - baseline 报告 commit 到 `docs/plan/2026-XX-XX-rag-baseline-report.md`
+- contract guard 全绿
 
-**P0-2 Done 标准**:
-- `provenance_boost_enabled` 默认 True,`compiled_truth_enabled` 默认 True
-- 所有现有 RAG 测试无回归(`tests/services/rag/` 全绿)
-- P0-1 baseline 上对比"关 vs 开":Recall@5 不下降;**期望** authority-aware case 上 +5pp,learner-targeted query 上 +3pp
-- 改动落 commit + 在 staging 跑 1 周 shadow 观察
-
-**2 周整体 Done 标准**:
-- 有 baseline 数据
-- 知道 RAG 当前 per-shape Recall@5 真实值
-- 知道 P0-2 对 Recall 的真实影响(数据,非估计)
-- 输出 1 份 1-2 页决策建议(继续 RAG 优化 vs 冻结 vs redirect)给你
+**P0-2 Done**:
+- `_load_search_config:1627, 1640` 默认改 True + 2 个 regression test
+- `contracts/rag.md` 加 1 段声明 provenance ranking 默认开(1A)
+- **生产 `.env` 设 `SUPABASE_RAG_PROVENANCE_BOOST_ENABLED=false` 和 `SUPABASE_RAG_COMPILED_TRUTH_ENABLED=false` override 保护**,等 P0-1 baseline 验证(2A)
+- 所有现有 RAG 测试无回归
+- P0-1 baseline 上对比"override=false vs override=true":`standard_like` Recall@5 不下降。**期望命中**:+5pp(用 Wilson CI 看是否显著)
 
 ---
 
-## 2. P0-1:RAG 评估 harness(1.5-2 周)
+## 2. P0-1:RAG 评估能力(单文件 pytest 一体化)
 
 ### Why
 
-`tests/services/rag/` 3886 行测试**零 IR 度量**(`recall@k / mrr / ndcg` 全 grep 空)。任何后续 RAG 改动(P0-2 包括)无法用数据证明是改善还是退化。**先建度量,再谈优化**。
+`tests/services/rag/` 3886 行测试**零 IR 度量**(grep `recall_at|MRR|NDCG` 全空)。任何后续 RAG 改动无法用数据证明改善还是退化。先建度量。
 
-### What
+### What(eng-review-reduced 后)
 
-#### 模块结构
+#### 单一新增文件结构
 
 ```
-deeptutor/services/rag/eval/
-├── __init__.py
-├── metrics.py          # compute_recall_at_k / compute_mrr / compute_ndcg / compute_per_shape
-├── golden_set.py       # RetrievalGoldenSet dataclass + JSON loader + schema 校验
-├── harness.py          # 跑 pipeline.search,对照 expected,聚合结果
+tests/services/rag/
+├── test_retrieval_quality.py      # NEW ~250 行
+│   ├── compute_recall_at_k()
+│   ├── compute_mrr()
+│   ├── compute_wilson_ci()        # 3A 诚实 CI 报告
+│   ├── load_golden_set()
+│   ├── preflight_check_stale()    # 1B 防 fixture 漂移
+│   ├── _eval_fixture()            # 4A 关 rerank
+│   └── test_rag_retrieval_quality_baseline()  # pytest 入口
+└── (现有测试不动)
 
-eval/datasets/
-└── rag_golden_v1.json  # 60-100 条人工标注
+tests/fixtures/
+└── rag_retrieval_golden_v1.json   # NEW 60-100 条
 
-scripts/
-└── run_rag_eval.py     # CLI: --baseline <commit> --candidate <commit> 出对比报告
+eval/
+└── gates.yaml                     # MODIFY 加 rag_retrieval_quality_gate
 
-tests/services/rag/eval/
-├── test_metrics.py
-├── test_golden_set.py
-└── test_harness.py
+contracts/
+└── rag.md                          # MODIFY 加 1 段 provenance ranking 默认开
+```
+
+#### 单文件代码骨架
+
+```python
+# tests/services/rag/test_retrieval_quality.py
+"""RAG retrieval quality eval — diagnostic baseline (P0-1).
+
+Single-file harness: metrics + golden loader + preflight + pytest gate.
+Run: pytest tests/services/rag/test_retrieval_quality.py -v
+Output: baseline report stdout + per-shape Recall@K/MRR with Wilson 95% CI.
+"""
+from __future__ import annotations
+import json, math, os, pytest
+from contextlib import contextmanager
+from dataclasses import dataclass
+
+# ── Metrics ────────────────────────────────────────────────────────────
+
+def compute_recall_at_k(retrieved: list[str], expected: list[str], k: int) -> float:
+    if not expected: return 0.0
+    top = set(retrieved[:k])
+    return sum(1 for e in expected if e in top) / len(expected)
+
+def compute_mrr(retrieved: list[str], expected: list[str]) -> float:
+    exp = set(expected)
+    for rank, cid in enumerate(retrieved, 1):
+        if cid in exp:
+            return 1.0 / rank
+    return 0.0
+
+def compute_wilson_ci(p_hat: float, n: int, z: float = 1.96) -> tuple[float, float]:
+    """Wilson 95% CI. 3A: honest reporting of n=12-20 → ±25% width."""
+    if n == 0: return (0.0, 0.0)
+    denom = 1 + z * z / n
+    centre = (p_hat + z * z / (2 * n)) / denom
+    margin = z * math.sqrt(p_hat * (1 - p_hat) / n + z * z / (4 * n * n)) / denom
+    return (max(0.0, centre - margin), min(1.0, centre + margin))
+
+# ── Golden set ─────────────────────────────────────────────────────────
+
+@dataclass(frozen=True)
+class GoldenItem:
+    id: str
+    query: str
+    query_shape: str  # concept_like / mcq_like / case_like / standard_like / calc_like
+    expected_chunk_ids: list[str]
+    annotator: str
+    notes: str = ""
+
+def load_golden_set(path: str) -> list[GoldenItem]:
+    with open(path, encoding="utf-8") as f:
+        raw = json.load(f)
+    items = []
+    for r in raw:
+        for required in ("id", "query", "query_shape", "expected_chunk_ids"):
+            if required not in r:
+                raise ValueError(f"golden item missing {required}: {r.get('id', '?')}")
+        if r["query_shape"] not in {"concept_like", "mcq_like", "case_like", "standard_like", "calc_like"}:
+            raise ValueError(f"invalid query_shape: {r['query_shape']}")
+        items.append(GoldenItem(**{k: r[k] for k in r if k in GoldenItem.__annotations__}))
+    return items
+
+# ── Preflight staleness check (1B) ─────────────────────────────────────
+
+class StaleGoldenSetError(RuntimeError):
+    pass
+
+async def preflight_check_stale(items: list[GoldenItem], kb_name: str) -> None:
+    """1B: verify all expected_chunk_ids exist in Supabase. Fail loudly."""
+    from deeptutor.services.rag.pipelines.supabase import SupabasePipeline
+    all_ids = {cid for item in items for cid in item.expected_chunk_ids}
+    pipeline = SupabasePipeline()
+    try:
+        existing = await pipeline.check_chunk_ids_exist(list(all_ids), kb_name)
+        missing = all_ids - existing
+        if missing:
+            raise StaleGoldenSetError(
+                f"Golden set stale: {len(missing)}/{len(all_ids)} chunk_ids missing in KB. "
+                f"First 5: {sorted(list(missing))[:5]}. "
+                f"Re-annotate golden set or check KB reindex history."
+            )
+    except Exception as e:
+        if isinstance(e, StaleGoldenSetError):
+            raise
+        pytest.skip(f"Supabase unreachable for preflight: {e}")  # infra skip, not RAG fail
+
+# ── Eval fixture: deterministic mode (4A) ──────────────────────────────
+
+@contextmanager
+def _eval_fixture():
+    """4A: turn rerank OFF during eval; pure RRF quality only.
+    rerank is high-variance LLM-based; including it adds noise that
+    swamps small move detection. Eval measures retrieval, not rerank."""
+    overrides = {
+        "SUPABASE_RAG_ENABLE_RERANK": "false",
+    }
+    old = {k: os.environ.get(k) for k in overrides}
+    os.environ.update(overrides)
+    try:
+        yield
+    finally:
+        for k, v in old.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+
+# ── E2E pytest gate ────────────────────────────────────────────────────
+
+@pytest.mark.rag_quality
+@pytest.mark.asyncio
+async def test_rag_retrieval_quality_baseline(rag_kb_name):
+    """Pytest gate — emits baseline report to stdout + report file.
+    Reports per-shape Recall@K/MRR with Wilson 95% CI (3A honest).
+    Failure modes: golden set stale (1B fail-loud) / Supabase down (skip)."""
+    from deeptutor.services.rag.service import RAGService
+    items = load_golden_set("tests/fixtures/rag_retrieval_golden_v1.json")
+    await preflight_check_stale(items, rag_kb_name)
+
+    with _eval_fixture():
+        svc = RAGService()
+        results = []
+        for item in items:
+            out = await svc.search(query=item.query, kb_name=rag_kb_name)
+            retrieved = [b.get("chunk_id") for b in
+                         out.get("evidence_bundle", {}).get("content_blocks", [])
+                         if b.get("chunk_id")]
+            results.append((item, retrieved))
+
+    # Per-shape aggregation
+    by_shape: dict[str, list[tuple]] = {}
+    for item, retr in results:
+        by_shape.setdefault(item.query_shape, []).append((item, retr))
+
+    report = ["", "═" * 60, "RAG Retrieval Quality Baseline", "═" * 60]
+    for shape, group in sorted(by_shape.items()):
+        n = len(group)
+        recalls = [compute_recall_at_k(r, i.expected_chunk_ids, 5) for i, r in group]
+        mrrs = [compute_mrr(r, i.expected_chunk_ids) for i, r in group]
+        r5_mean = sum(recalls) / n
+        mrr_mean = sum(mrrs) / n
+        r5_lo, r5_hi = compute_wilson_ci(r5_mean, n)
+        report.append(
+            f"  {shape:14s} n={n:3d}  Recall@5={r5_mean:.3f} [CI {r5_lo:.2f}, {r5_hi:.2f}]  MRR={mrr_mean:.3f}"
+        )
+    report.append("═" * 60)
+    report.append(f"NOTE: Wilson 95% CI. n={min(len(g) for g in by_shape.values())}-{max(len(g) for g in by_shape.values())} per shape — only detects ≥15pp moves reliably.")
+    msg = "\n".join(report)
+    print(msg)
+    # Also dump to artifact for baseline commit
+    os.makedirs("artifacts/rag_eval", exist_ok=True)
+    with open(f"artifacts/rag_eval/baseline_{os.getenv('GIT_SHA', 'local')}.md", "w") as f:
+        f.write(msg)
 ```
 
 #### Golden set 标注规格
 
-- **60-100 条**,按 query_shape 分层:
-  - `concept_like`:12-20 条
-  - `mcq_like`:12-20 条
-  - `case_like`:12-20 条
-  - `standard_like`:12-20 条
-  - `calc_like`:12-20 条
-- **每条 schema**:
-
-```json
-{
-  "id": "rag-eval-001",
-  "query": "GB50300-2019 第 5.3.2 条对混凝土养护温度有什么规定?",
-  "query_shape": "standard_like",
-  "expected_source_types": ["standard", "standard_code_exact"],
-  "expected_chunk_ids": ["chunk_abc123", "chunk_def456"],
-  "expected_keywords_in_top_k": ["GB50300", "5.3.2", "养护温度"],
-  "expected_exact_question_match": false,
-  "annotator": "内部专家姓名 / id",
-  "annotated_at": "2026-05-XX",
-  "notes": "标准题,主要测 standard_code_exact 通道是否优先命中"
-}
-```
-
+- **60-100 条**,5 query_shape 分层(每层 12-20 条)
+- **每条 schema**:`id / query / query_shape / expected_chunk_ids / annotator / notes`
 - **标注流程**:
   1. 从生产 Langfuse trace 抽 200 条真实 query,按 query_shape 分桶
   2. 内部建筑考试专家逐条标注 expected chunks(看实际 chunks 库)
   3. 双盲交叉验证(两位专家独立标注 → 不一致项讨论)
   4. v1 ship 60-100 条,后续可加到 200+
+- **诚实标注**:`notes` 字段记录"为什么这几个 chunks 才是 expected"(为后续迭代留 trace)
 
-#### Metrics 实现
+### Done = acceptance test 清单
 
-```python
-# deeptutor/services/rag/eval/metrics.py
-
-def compute_recall_at_k(
-    retrieved_chunk_ids: list[str],
-    expected_chunk_ids: list[str],
-    k: int,
-) -> float:
-    if not expected_chunk_ids:
-        return 0.0
-    top_k_set = set(retrieved_chunk_ids[:k])
-    hits = sum(1 for ec in expected_chunk_ids if ec in top_k_set)
-    return hits / len(expected_chunk_ids)
-
-def compute_mrr(retrieved: list[str], expected: list[str]) -> float:
-    expected_set = set(expected)
-    for rank, chunk_id in enumerate(retrieved, start=1):
-        if chunk_id in expected_set:
-            return 1.0 / rank
-    return 0.0
-
-def compute_ndcg_at_k(...): ...
-
-def compute_per_shape(
-    results: list[EvalResult],
-) -> dict[str, dict[str, float]]:
-    # 按 query_shape 分桶,每桶出 recall@1/5/10, mrr, ndcg@5
-    ...
-```
-
-#### Harness 接入主链路
-
-```python
-# deeptutor/services/rag/eval/harness.py
-
-async def run_eval(
-    golden_set: RetrievalGoldenSet,
-    *,
-    kb_name: str,
-    env_override: dict[str, str] | None = None,
-) -> EvalReport:
-    rag_service = RAGService()
-    results = []
-    for item in golden_set.items:
-        with _env_context(env_override):  # 临时改 env 比较 baseline vs candidate
-            evidence_bundle = await rag_service.search(
-                query=item.query,
-                kb_name=kb_name,
-                intent="",  # eval 不走 intent 强制路径
-            )
-        retrieved_chunk_ids = [
-            block.get("chunk_id")
-            for block in evidence_bundle.get("evidence_bundle", {}).get("content_blocks", [])
-        ]
-        results.append(EvalResult(
-            item=item,
-            retrieved_chunk_ids=retrieved_chunk_ids,
-            recall_at_5=compute_recall_at_k(retrieved_chunk_ids, item.expected_chunk_ids, k=5),
-            ...
-        ))
-    return EvalReport(results=results, per_shape=compute_per_shape(results))
-```
-
-#### CLI 输出格式
-
-```bash
-$ python -m scripts.run_rag_eval --baseline current --candidate p0-2-enabled
-
-RAG Retrieval Quality Comparison
-================================
-Baseline:  current (ef0f9904)
-Candidate: p0-2-enabled (env SUPABASE_RAG_PROVENANCE_BOOST_ENABLED=true, SUPABASE_RAG_COMPILED_TRUTH_ENABLED=true)
-Golden set: rag_golden_v1.json (78 items)
-
-Per-shape Recall@5:
-                  baseline  candidate  Δ
-  concept_like      0.683    0.683     +0.000
-  mcq_like          0.756    0.792     +0.036  ↑
-  case_like         0.611    0.628     +0.017  ↑
-  standard_like     0.812    0.871     +0.059  ↑↑  (provenance_boost 生效)
-  calc_like         0.450    0.450     +0.000
-  WEIGHTED          0.706    0.745     +0.039  ↑
-
-Per-shape MRR:
-  ...
-
-Overall: Recall@5 +3.9pp, MRR +0.04. PASS rag_retrieval_quality_gate.
-```
-
-### Done = 通过的 acceptance test 清单
-
-- [ ] `deeptutor/services/rag/eval/` 全部模块代码 + ≥ 80% 离线测试覆盖
-- [ ] `eval/datasets/rag_golden_v1.json` 60+ 条标注完成,双盲交叉验证通过
-- [ ] `scripts/run_rag_eval.py` 能跑出 baseline + candidate 对比 markdown 报告
-- [ ] `eval/gates.yaml` 加入 `rag_retrieval_quality_gate`,PR 必跑
-- [ ] 跑一次 current main(`origin/main` HEAD)的 baseline,**结果落盘** `docs/plan/2026-XX-XX-rag-baseline-report.md`
-- [ ] contract guard 全绿
-- [ ] 现有所有 RAG 测试 (`tests/services/rag/`) 无回归
+- [ ] `tests/services/rag/test_retrieval_quality.py` 250 行写完,**测试覆盖 ≥ 80%**(metrics + golden loader + preflight + Wilson CI 全有单元测试)
+- [ ] `tests/fixtures/rag_retrieval_golden_v1.json` 60+ 条标注完成,双盲交叉验证过
+- [ ] `pytest tests/services/rag/test_retrieval_quality.py -v` 跑出 baseline 报告,落 `artifacts/rag_eval/baseline_<sha>.md`
+- [ ] `eval/gates.yaml` 加 `rag_retrieval_quality_gate`,PR 必跑
+- [ ] baseline 报告 commit 到 `docs/plan/2026-XX-XX-rag-baseline-report.md`
+- [ ] contract guard 全绿(本计划改 `contracts/rag.md` 1 段,见 P0-2)
+- [ ] 现有 `tests/services/rag/` 全套无回归
+- [ ] **`SupabasePipeline.check_chunk_ids_exist` 方法新增**(为 1B preflight 服务,纯只读 RPC)
 
 ### 估时分解
 
 | 子任务 | 估时 |
 |---|---|
-| `metrics.py` + 离线测试 | 2 天 |
-| `golden_set.py` + schema + loader + 测试 | 1 天 |
-| `harness.py` + 主链路接入 + 测试 | 2 天 |
-| `scripts/run_rag_eval.py` CLI + markdown 输出 | 1 天 |
-| `eval/gates.yaml` 接入 + CI 跑通 | 1 天 |
-| **代码侧累计** | **7 天 ≈ 1.5 周** |
-| Golden set 60+ 条专家标注 + 双盲 | **3-5 天**(取决于专家可用度,可并行代码侧) |
+| 单文件 ~250 行(metrics + golden loader + preflight + e2e gate) | 3-4 天 |
+| `SupabasePipeline.check_chunk_ids_exist` 实现 + 测试 | 1 天 |
+| `eval/gates.yaml` 接入 | 0.5 天 |
 | baseline 数据 commit | 0.5 天 |
-| **总计(代码 + 标注并行)** | **~2 周** |
+| **代码侧累计** | **~5-6 天** |
+| Golden set 60+ 条专家标注 + 双盲 | **3-5 天**(可与代码并行) |
+| **总计(并行后)** | **~1.5-2 周** |
 
-### 风险登记
+### 风险登记(eng-review 后更新)
 
 | 风险 | 级别 | 缓解 |
 |---|---|---|
-| **Golden set 标注质量低 → eval 失真** | **高** | 内部专家强制参与;双盲交叉验证;v1 ship 后允许迭代到 v2 |
-| 主链路接入时发现 evidence_bundle schema 缺 chunk_id | 中 | 已 grep 实证 chunk_id 在 `_search_source:1670` 透传,有;若 fallback 路径丢字段,加补丁 |
-| 60 条样本统计意义不足 | 中 | v1 60 条求 lower bound,后续可加到 200+;per-shape 分桶可缓解 |
-| 标注耗时超预期专家不够忙活 | 中 | 代码侧可独立先跑通(用 mock golden set),等专家标注 ready 再切真集 |
-| `RAGService.search` 拒绝 eval 期间的频繁调用(Supabase rate limit) | 低 | eval 内置 sleep + retry;若 DashScope rerank 配额触发,临时关 rerank 跑 |
+| Golden set 标注质量低 → eval 失真 | **高** | 内部专家强制参与;双盲交叉验证;v1 → v2 迭代;LLM 不允许自动生成标注 |
+| **统计不足以 detect 小 move** | **中** | 3A: 报告 Wilson CI,文档明说"v1 只 detect ≥15pp",P1 按需扩到 200+ |
+| **Golden set fixture 漂移**(KB 重灌后) | **中** | 1B: preflight check 失败 raise `StaleGoldenSetError` 列名 |
+| **eval 跑时 rerank 噪声混入** | **中** | 4A: `_eval_fixture` 强制关 rerank |
+| 60 条样本统计意义不足 | 已合并到上 | — |
+| `SupabasePipeline.check_chunk_ids_exist` 未实现需要新增 RPC | 中 | 后端协作或临时用 `_select` 表查询兜底 |
 
 ---
 
-## 3. P0-2:开 2 个已实现未开的 FF(1-2 天)
+## 3. P0-2:开 2 个已实现未开的 FF(代码先合,生产 env 保 override)
 
 ### Why
 
-70/100 评估实证:**两项关键功能完整实现但默认 disabled**——是免费午餐。
+70/100 评估实证:**两项关键功能完整实现但默认 disabled**——免费午餐。
 
-| 配置项 | 位置 | 默认 | 实现 | 开启即得 |
-|---|---|---|---|---|
-| `SUPABASE_RAG_PROVENANCE_BOOST_ENABLED` | `supabase.py:1640` | False | `provenance.py:66 apply_provenance_ranking` + 8 层 `_AUTHORITY_RANK` 完整 | authority-aware ranking(exact_question +0.04 / standard_code_exact +0.02 / exact_question 命中硬置顶) |
-| `SUPABASE_RAG_COMPILED_TRUTH_ENABLED` | `supabase.py:1627` | False | `compiled_truth_source.py` + `_compiled_truth_plan` 完整,**shadow 已默认开** | 学员弱点 / 错因 / 训练标签作为 evidence 进 RRF |
+### What(eng-review 后 — 加 contract 段落 + override discipline)
 
-### What
-
-#### 改动
+#### 改动 1:env 默认值翻转(代码)
 
 ```python
 # deeptutor/services/rag/pipelines/supabase.py
@@ -285,137 +324,281 @@ Overall: Recall@5 +3.9pp, MRR +0.04. PASS rag_retrieval_quality_gate.
 + provenance_boost_enabled=_env_flag("SUPABASE_RAG_PROVENANCE_BOOST_ENABLED", True),
 ```
 
-加配套测试:
+#### 改动 2:2 个 regression 测试
 
 ```python
 # tests/services/rag/test_provenance_boost_default_on.py
-def test_provenance_boost_default_enabled() -> None:
-    """Regression: provenance boost should default ON after P0-2."""
-    config = _load_search_config_with_minimal_env()
+def test_provenance_boost_default_enabled(monkeypatch):
+    """P0-2 regression: default should be ON after this PR."""
+    monkeypatch.delenv("SUPABASE_RAG_PROVENANCE_BOOST_ENABLED", raising=False)
+    config = _load_minimal_config()
     assert config.provenance_boost_enabled is True
 
-def test_provenance_boost_respects_explicit_off() -> None:
-    """If user explicitly sets env=false, respect it (FF 灰度通道还在)."""
-    os.environ["SUPABASE_RAG_PROVENANCE_BOOST_ENABLED"] = "false"
-    config = _load_search_config_with_minimal_env()
+def test_provenance_boost_env_override_still_works(monkeypatch):
+    """Critical for P0-2 rollout (2A): env=false must keep it off in prod."""
+    monkeypatch.setenv("SUPABASE_RAG_PROVENANCE_BOOST_ENABLED", "false")
+    config = _load_minimal_config()
     assert config.provenance_boost_enabled is False
-    del os.environ["SUPABASE_RAG_PROVENANCE_BOOST_ENABLED"]
-
-# tests/services/rag/test_compiled_truth_default_on.py
-# 同款
 ```
+
+`test_compiled_truth_default_on.py` 同款。
+
+#### 改动 3:contracts/rag.md 加段(1A)
+
+在 `contracts/rag.md` 现有 §15 之后追加 §16:
+
+```markdown
+16. `provenance ranking` 默认启用(`SUPABASE_RAG_PROVENANCE_BOOST_ENABLED=true`,代码默认值在
+    `deeptutor/services/rag/pipelines/supabase.py::_load_search_config`)。
+    Authority rank 数值唯一来源是 `deeptutor/services/rag/provenance.py::_AUTHORITY_RANK`
+    (8 层:exact_question 100 / question_exact_text 100 / question_exact_vector 95 /
+    standard_code_exact 90 / standard_precision 88 / standard 80 / questions_bank 70 /
+    compiled_learning_truth 55 / textbook 45 / exam 40)。
+    `apply_provenance_ranking` 在 weighted_rrf_score 之上叠加 authority boost
+    (+0.02 ~ +0.04 by source group)+ exact_question 命中时硬置顶。
+    生产环境若需关闭只能通过 env override(`SUPABASE_RAG_PROVENANCE_BOOST_ENABLED=false`),
+    不得在代码里硬编 False。
+```
+
+(`compiled_truth` 段类似补)
+
+#### 改动 4:生产 env override(2A)
+
+**代码合并 PR 之前**,先在生产 `.env` 加:
+
+```bash
+# Temporary override pending P0-1 baseline validation (2A)
+SUPABASE_RAG_PROVENANCE_BOOST_ENABLED=false
+SUPABASE_RAG_COMPILED_TRUTH_ENABLED=false
+```
+
+P0-1 baseline 验证后,**单独 PR** 删除这两行 override,让代码默认生效。
 
 ### Done = acceptance test 清单
 
 - [ ] 改 `_load_search_config:1627, 1640` 默认值 → True
-- [ ] 2 个新测试 pass
-- [ ] 现有 `tests/services/rag/` 全部测试无回归
-- [ ] 跑一次 P0-1 eval harness,confirm Recall@5 不下降(per-shape)
-- [ ] **期望命中**:`standard_like` Recall@5 +5pp(provenance boost 在 standard_code_exact / standard_precision 通道生效);`mcq_like` / `case_like` +3pp(exact_question / questions_bank authority boost)
-- [ ] **期望命中**(compiled_truth):若 KB 有 compiled_learning_truth 数据(即用户有学习记录),learner-targeted query 上 Recall@5 +3pp;若没数据,中性
-- [ ] staging shadow 1 周观察 retrieval_empty_rate / avg_top1_sim 趋势,无退化再上 prod
-- [ ] 改动 commit 落 origin/main + 上 Aliyun(走 `redeploy_aliyun_fast.sh`)
+- [ ] 2 个新 regression 测试 pass(默认开 + env override 仍 work)
+- [ ] `contracts/rag.md` 加 §16 + §17(provenance + compiled_truth 默认 on 声明)
+- [ ] 生产 `.env` 设 override=false(2A)
+- [ ] `scripts/check_contract_guard.py` 全绿
+- [ ] 现有 `tests/services/rag/` 全部测试无回归(已 grep 确认 — 测试构造 SupabaseSearchConfig 直接绕开 env)
+- [ ] P0-1 baseline ready 后,跑"override=true vs override=false"对比:`standard_like` Recall@5 ≥ 不下降
+- [ ] **期望命中**:`standard_like` Recall@5 +5pp(Wilson CI 看是否显著);`mcq_like` +3pp
+- [ ] **后续 PR**:删 `.env` override 让代码默认生效(单独 PR,P0-1 baseline 通过后)
 
 ### 风险登记
 
 | 风险 | 级别 | 缓解 |
 |---|---|---|
-| `provenance_boost` 让 exact_question 过强,挤掉某些 standard 召回 | 中 | P0-1 eval 拦截;FF 仍存(env override 可关) |
-| `compiled_truth_enabled=True` 但实际 KB 没数据 → 中性 | 低 | shadow 模式已跑,真开不会改变行为,只是 trace 上更明显 |
-| 与并发 agent 改 RAG 模块冲突 | 中 | RAG 单一权威 `RAGService` 不允许并行重写;改前先看 `docs/plan/INDEX.md` 看有无并发计划 |
+| `provenance_boost` 让 exact_question 过强挤掉 standard 召回 | 中 | P0-1 eval 拦截;生产 env override 保 False 直到验证 |
+| `compiled_truth_enabled=True` 但 KB 没数据 → 中性 | 低 | shadow 已跑,真开行为相同 |
+| 现有测试假设旧默认 | **已验证低** | grep 实证:测试都直接构造 SupabaseSearchConfig 绕开 env |
+| 与并发 agent 改 RAG 模块冲突 | 中 | RAG 单一权威;改前看 `docs/plan/INDEX.md` 有无并发计划 |
+| **rollout 中误删 env override 让默认生效** | **中** | override PR 单独走,与代码默认 flip PR 解耦,P0-1 baseline 验证 sign-off 后才删 |
 
 ### 估时
 
-- 代码改 + 测试:**4 小时**
-- staging 跑 + 观察:**1 周(嵌入 P0-1 期间)**
-- prod 部署:**0.5 小时**(走标准 `redeploy_aliyun_fast.sh`)
+- 代码改 + 2 个 regression 测试:**3 h**
+- `contracts/rag.md` 加 §16 §17:**1 h**
+- 生产 `.env` 加 override:**0.5 h**
+- 等 P0-1 baseline:**~2 周(并行 P0-1 完工)**
+- 删除 override 的后续 PR:**0.5 h**
 
 ---
 
 ## 4. 2 周后的决策点(用真实数据驱动)
 
-**P0-1 + P0-2 完成后**,基于 baseline 数据决定下一步:
-
-### Decision Tree
-
 ```
 看 P0-1 baseline 数据 + 用户反馈数据
 │
-├─ Weighted Recall@5 ≥ 0.85  且 retrieval_empty_rate < 10%
-│     └─ 结论:RAG 不是当前瓶颈 → **冻结 RAG**,资源转去:
-│            • 内容覆盖度(规范库 / 题库扩充)
-│            • 模型升级(已在做的 cross-model eval 加深)
-│            • mobile UX
+├─ 加权 Recall@5 ≥ 0.85 且 retrieval_empty_rate < 10%
+│   └─ 结论:RAG 不是当前瓶颈 → **冻结 RAG**,资源转去:
+│         • 内容覆盖度(规范库 / 题库扩充)
+│         • 模型升级(已在做的 cross-model eval 加深)
+│         • mobile UX
 │
-├─ Weighted Recall@5 ∈ [0.70, 0.85)  或  某个 shape 明显拖后腿
-│     └─ 结论:**针对性优化**,只做最高 ROI 的 1-2 个 P1 item
-│            • 若 standard_like / case_like 弱 → 推 P1-3 clause v2 分块标准(协调外部数据流程)
-│            • 若 concept_like 弱锚 query 召回差 → 推 P0-3 LLM rewriter fallback(3-5 天)
-│            • 若 LLM 回答幻觉率高 → 推 P1-4 hallucination guard(1 周)
-│            • 不全做 P1,只挑数据最支持的 1-2 项
+├─ 加权 Recall@5 ∈ [0.70, 0.85) 或某 shape 明显拖
+│   └─ 结论:**针对性优化**,只做最高 ROI 的 1-2 个 P1 item
 │
-└─ Weighted Recall@5 < 0.70
-      └─ 结论:**RAG 是真瓶颈**,全做 P1(6-8 周)
-             • P1-1 结构化 context 注入
-             • P1-2 检索结果级语义 cache
-             • P1-3 clause v2 分块
-             • P1-4 hallucination guard
-             • P1-5 hybrid 权重 grid search
+└─ 加权 Recall@5 < 0.70
+    └─ 结论:**RAG 是真瓶颈**,全做 P1(6-8 周)
 ```
 
-**这个决策点不在本计划承诺范围**——P0-1 + P0-2 完成后单开 ADR 决策。
+这个决策点不在本计划承诺范围——P0-1 + P0-2 完成后单开 ADR。
 
 ---
 
-## 5. 不做的事(non-goals)
+## 5. NOT in scope(防 scope creep,eng-review-locked)
 
-1. **不**做 P1/P2 任何项目——等 P0-1 数据决定
-2. **不**改 `contracts/rag.md` 契约——P0-1 + P0-2 不触碰契约边界
-3. **不**改 LlamaIndex 本地管道——不用
-4. **不**改 Supabase 端 `search_unified / search_questions_bank_text` SQL function——外部数据流程
-5. **不**引外部依赖(Redis / GPU / 新 vector DB)
-6. **不**重写 `supabase.py::search` 主链路
-7. **不**把 eval harness 塞进生产 hot-path——只 offline / prerelease gate
-8. **不**让 LLM 自动生成 golden set 标注——专家人工标注
-9. **不**预先承诺 2 周后的 phase——基于数据决定
+1. **不**做 P1 任何项目(LLM rewriter / 语义 cache / clause v2 / hallucination guard / hybrid grid search)——等 P0-1 数据决定
+2. **不**改 LlamaIndex 本地管道——不用
+3. **不**改 Supabase 端 `search_unified / search_questions_bank_text` SQL function——外部数据流程
+4. **不**重写 `supabase.py::search` 主链路
+5. **不**引外部依赖(Redis / GPU / RAGAS / DeepEval / TruLens / 新 vector DB)
+6. **不**做 200+ 条 golden set(v2 看数据再扩)
+7. **不**做 bootstrap CI(Wilson 已足)
+8. **不**做 LLM-as-judge metrics(faithfulness / answer relevance)——P1 视情
+9. **不**让 eval harness 跑生产 hot-path——只 offline / pytest gate
+10. **不**让 LLM 自动生成 golden set 标注——专家人工
+11. **不**预先承诺 2 周后 phase——基于数据决定
+12. **不**做 rerank 质量评估——4A 决定 eval 关 rerank,rerank 视为正交模块未来单独评估
+13. **不**做火箭灯 user-id rollout——2A 选择 env override 保护
+14. **不**在 P0-2 PR 内删 `.env` override——单独 PR 在 P0-1 baseline 后
 
 ---
 
-## 6. 与契约 / 单一权威纪律的关系
+## 6. What already exists(避免重复造)
+
+| 已有 | 位置 | 计划如何处理 |
+|---|---|---|
+| `eval/gates.yaml::rag_retrieval_contract` | 现有 gate 跑 unit/contract 测试 | **并列加** `rag_retrieval_quality_gate`,不替换 |
+| `deeptutor/services/rag/maintenance.py`(225 行) | retrieval 质量审计 dry-run | **保留**,不替换;它做"维护期审计",我们做"per-PR 评估",正交 |
+| `tests/fixtures/rag_grounding_eval_cases.json` | exact_authority 测试 fixture | **不复用**,schema 不同(它测 authority,我们测 recall);**学其命名约定** |
+| `RAGService.smart_retrieve` LLM query 改写路径 | `service.py:291-349` | **不动**;生产主路径 `search()` 不走它,P1 再考虑 main-path fallback |
+| `apply_provenance_ranking`(8 层 authority) | `provenance.py:66` | **P0-2 启用即生效**,不重写 |
+| `compiled_truth_source.py` + shadow 模式 | 已默认 shadow on | **P0-2 启用从 shadow 升 real**,不重写 |
+| `tests/services/rag/` 3886 行 unit/contract 测试 | 测试基线 | **不动**,我们补 IR 度量维度,与现有 unit 测试正交 |
+| Langfuse trace(10+ start_observation in supabase.py) | observability | eval harness **复用** Langfuse,新 stage 名 `rag.eval.baseline` |
+
+**确认无重复造**:本计划新增的是 IR 度量这个**全新维度**,与现有所有模块正交。
+
+---
+
+## 7. Failure modes(每条新代码路径,失败 + 是否兜)
+
+| 新路径 | 失败模式 | 测试覆盖 | 用户/CI 看到什么 |
+|---|---|---|---|
+| `compute_recall_at_k` | empty retrieved → div?empty expected→div? | ✓ 边界单测 | 0.0(无声) |
+| `compute_wilson_ci` | n=0 | ✓ 边界单测 | (0,0) 不 NaN |
+| `load_golden_set` | missing field / invalid shape | ✓ raise ValueError | CI 红 + 列字段 |
+| `preflight_check_stale` | chunk_id 缺失 | ✓ raise StaleGoldenSetError(列名) | CI 红 + missing 列表 |
+| `preflight_check_stale` | Supabase 不可达 | ✓ pytest.skip + WARN | CI 黄(infra skip,非 RAG fail) |
+| `_eval_fixture` | env restore 失败 | ✓ try/finally 单测 | 不影响后续 test 隔离 |
+| `test_rag_retrieval_quality_baseline` | RAGService.search 抛 RAGError | 现有 typed-failure 兜底 | CI 红 + 错误类型 + provider |
+| P0-2 默认 flip + env override 误删 | 静默全量启用 | **PR review 必须 catch** | 生产用户直接暴露 |
+
+**critical gap**: P0-2 .env override 误删是 silent failure 风险,但通过 **rollout discipline(单独 PR + sign-off)+ eng review here**,治理在流程层面。
+
+---
+
+## 8. 单一权威 + 契约纪律
 
 按 `AGENTS.md §5.7` Single Authority Hard Gate + `contracts/rag.md`:
 
-- **`RAGService` 仍是唯一 grounding 入口** —— eval harness 通过 `RAGService.search` 调用,不绕过。
-- **`evidence_bundle` schema 不动** —— eval 只读 `content_blocks[].chunk_id`,不改字段。
-- **`_AUTHORITY_ORDER` / `_AUTHORITY_RANK` 不动** —— P0-2 只开 `provenance_boost_enabled` flag,启用既有 ranking 逻辑。
-- **`contracts/rag.md` 不动** —— 本计划无契约级改动。
+- **`RAGService` 仍是唯一 grounding 入口** —— eval harness 通过 `RAGService.search` 调用
+- **`evidence_bundle` schema 不动** —— eval 只读 `content_blocks[].chunk_id`
+- **`_AUTHORITY_ORDER` / `_AUTHORITY_RANK` 数值不动** —— P0-2 启用既有 ranking 逻辑;1A 在契约中**显式声明**这两个常量是数值唯一来源
+- **`contracts/rag.md` 改动**:加 §16 (provenance) + §17 (compiled_truth) 声明默认 on,不改既有 15 段
+- 改前跑 `scripts/check_contract_guard.py`
 
 ---
 
-## 7. 上 `docs/plan/INDEX.md`
+## 9. 上 `docs/plan/INDEX.md`
 
-按 AGENTS Plan Directory Discipline,新计划必须挂索引。在 `docs/plan/INDEX.md` 加:
+✓ 已挂(2026-05-28 主线总览 + PRD 列表)
 
-```markdown
-- [2026-05-28 RAG 诊断优先 + 免费午餐(2 周)](2026-05-28-rag-diagnostic-first-prd.md) — P0-1 评估 harness + P0-2 开 2 FF,数据驱动后续决策
+---
+
+## 10. Implementation Tasks(eng-review 后,build-actionable)
+
+- [ ] **T1 (P0, human: ~4h / CC: ~30min)** — supabase pipeline — 加 `check_chunk_ids_exist` 只读 RPC 方法
+  - Surfaced by: 1B Architecture review — preflight 需要批量验证 chunk_id 存在
+  - Files: `deeptutor/services/rag/pipelines/supabase.py`(新方法)+ `tests/services/rag/test_supabase_check_chunk_ids.py`(新)
+  - Verify: `pytest tests/services/rag/test_supabase_check_chunk_ids.py -v`
+- [ ] **T2 (P0, human: ~3-4 天 / CC: ~2h)** — eval — 写单文件 `test_retrieval_quality.py`
+  - Surfaced by: Step 0 reduce + Section 3 — metrics + golden loader + preflight + Wilson CI + e2e gate
+  - Files: `tests/services/rag/test_retrieval_quality.py`
+  - Verify: 离线单测覆盖 ≥ 80% + 跑出 baseline 报告
+- [ ] **T3 (P0, human: ~3-5 天 / CC: 0)** — golden set — 60-100 条专家标注
+  - Surfaced by: P0-1 核心交付
+  - Files: `tests/fixtures/rag_retrieval_golden_v1.json`
+  - Verify: 双盲交叉验证;preflight check 全过
+- [ ] **T4 (P0, human: ~30min / CC: ~5min)** — gates — 加 `rag_retrieval_quality_gate`
+  - Surfaced by: Section 1
+  - Files: `eval/gates.yaml`
+  - Verify: CI 跑通
+- [ ] **T5 (P0, human: ~3h / CC: ~15min)** — P0-2 默认 flip + regression test
+  - Surfaced by: P0-2 核心
+  - Files: `_load_search_config:1627, 1640` + 2 regression test 文件
+  - Verify: 现有 RAG 套件无回归 + 2 regression test pass
+- [ ] **T6 (P0, human: ~1h / CC: ~10min)** — contracts/rag.md 加 §16 §17 — 1A 决定
+  - Surfaced by: 1A Architecture review
+  - Files: `contracts/rag.md`
+  - Verify: `scripts/check_contract_guard.py` 全绿
+- [ ] **T7 (P0, human: ~30min)** — 生产 .env override(2A 决定)
+  - Surfaced by: 2A Code Quality review
+  - Files: 阿里云 `/root/deeptutor/.env`(走 §3.7 边界)
+  - Verify: `SUPABASE_RAG_PROVENANCE_BOOST_ENABLED=false` + `SUPABASE_RAG_COMPILED_TRUTH_ENABLED=false` 生效 + 容器读到
+- [ ] **T8 (P0, human: ~0.5h / CC: ~5min)** — baseline 报告 commit + 决策启动
+  - Surfaced by: P0-1 Done 标准
+  - Files: `docs/plan/2026-XX-XX-rag-baseline-report.md`
+  - Verify: 报告含 per-shape Recall@5/MRR + Wilson CI;决策树启动
+- [ ] **T9 (P1 follow-up, human: ~0.5h)** — 删 .env override(P0-1 baseline 验证 OK 后)
+  - Surfaced by: 2A rollout discipline
+  - Files: 阿里云 `.env`
+  - Verify: 默认 True 生效,Recall@5 不退化
+  - **Depends on T8 pass**
+
+---
+
+## 11. 序列与依赖
+
+```
+T1 (check_chunk_ids_exist)  ─┬─→ T2 (test_retrieval_quality.py)
+                              │      │
+                              │      └─→ T3 (golden set 标注)
+                              │              │
+                              │              └─→ T4 (gates.yaml)
+                              │                       │
+T5 (P0-2 默认 flip)           ─→ T6 (contracts/rag.md)│
+                                       │              │
+                              T7 (.env override) ──────┴─→ T8 (baseline 报告)
+                                                                │
+                                                          T9 (删 override)
 ```
 
-(等你同意后我挂)
+**最短关键路径**:T1 → T2 → T3 → T4 → T8 → T9
+**累计**:~2 周(T3 标注是大头,可与 T1/T2 并行)
 
 ---
 
-## 8. 待你决定的 3 件事
+## 12. Worktree parallelization
 
-1. **挂 `docs/plan/INDEX.md`** —— 现在挂?
-2. **Golden set 标注专家** —— 内部建筑考试专家可用?2 周内能投 3-5 天?
-3. **谁来执行 P0-1 代码** —— 我下一步直接开干,还是先 `/gstack-plan-eng-review` 一轮?
+**Sequential, no parallelization opportunity**——所有 task 都在 `deeptutor/services/rag/` 或 `tests/services/rag/` 域内串行,没有独立 lane。单 worktree 顺序做完即可。
 
 ---
 
-## 附:计划版本史
+## 13. 待你决定(eng-review 后剩 1 件)
+
+1. **执行启动节奏**:
+   - A) 我直接开 T1(`SupabasePipeline.check_chunk_ids_exist` 新 RPC 方法 + 单测)
+   - B) 先 `/gstack-plan-design-review` 走 UI 视角审查(本计划无 UI,N/A)
+   - C) 先 `/gstack-plan-ceo-review` 走 scope 审查(scope 已 reduce,N/A)
+   - D) 等专家标注资源 ready 再启动
+
+---
+
+## 14. 计划版本史
 
 - v1(2026-05-28 上午):基于两份评估报告口述,基线多处错误。**已删除**。
-- v2(2026-05-28 中午):基于 codegraph 实证,代码证据级别基线。**已删除**。
-- **v3(本文件,2026-05-28 下午)**:基于 70/100 评估报告 + 战略反思后的 scope 决策(诊断优先 + 免费午餐)。
+- v2(2026-05-28 中午):基于 codegraph 实证,代码证据级基线。**已删除**。
+- v3(2026-05-28 下午):基于 70/100 评估 + 战略反思(诊断优先 + 免费午餐)。
+- **v3.1(本文件,2026-05-29)**:`/gstack-plan-eng-review` 后定稿,scope reduce 到 5 文件,5 个 finding 全部 resolved。
+
+---
+
+## GSTACK REVIEW REPORT
+
+| Review | Trigger | Why | Runs | Status | Findings |
+|--------|---------|-----|------|--------|----------|
+| CEO Review | `/plan-ceo-review` | Scope & strategy | 0 | — | (skipped: scope 已 reduce,user 已做战略反思决策) |
+| Codex Review | `/codex review` | Independent 2nd opinion | 0 | — | (skipped: Codex 配额 2026-05-31 才恢复) |
+| Eng Review | `/plan-eng-review` | Architecture & tests (required) | 1 | **CLEAR** | Step 0 reduce 12→5 files;5 findings resolved (1A contract update / 1B preflight check / 2A env override discipline / 3A Wilson CI / 4A eval rerank off);0 critical gaps;0 unresolved decisions |
+| Design Review | `/plan-design-review` | UI/UX gaps | 0 | — | (N/A: 无 UI 改动) |
+| DX Review | `/plan-devex-review` | Developer experience gaps | 0 | — | (skipped) |
+
+- **UNRESOLVED:** 0
+- **CRITICAL GAPS:** 0(P0-2 .env override 误删是 silent risk 但治理在 rollout 流程层面 — T9 单独 PR + T8 sign-off gate)
+- **VERDICT:** **ENG CLEARED — ready to implement** (执行启动按问题 13 选项 A 直接开 T1)
 
 —— 完 ——
