@@ -30,6 +30,8 @@ on:
       - "supabase/migrations/**"
       - "scripts/ci/check_rls_on_create_table.sh"
       - "scripts/ci/baselines/rls_migrations_baseline.txt"
+      - "scripts/ci/check_live_rls_regression.sh"
+      - "scripts/ci/live_rls_audit.sh"
   pull_request:
     branches:
       - main
@@ -59,6 +61,8 @@ on:
       - "supabase/migrations/**"
       - "scripts/ci/check_rls_on_create_table.sh"
       - "scripts/ci/baselines/rls_migrations_baseline.txt"
+      - "scripts/ci/check_live_rls_regression.sh"
+      - "scripts/ci/live_rls_audit.sh"
 
 jobs:
   contract-guard:
@@ -108,6 +112,15 @@ jobs:
 
       - name: Migration uniqueness gate
         run: bash scripts/ci/check_migration_uniqueness.sh
+
+      - name: Live RLS regression gate
+        # Skips with a warning when SUPABASE_DB_URL is not configured (forks /
+        # missing secret), so a missing credential never blocks CI. When the
+        # secret is present, it fails on any monitored PII table that still
+        # grants anon/authenticated (regression guard for the P5 hardening).
+        run: bash scripts/ci/check_live_rls_regression.sh
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
 
   import-check:
     name: Import Check (Python ${{ matrix.python-version }})
