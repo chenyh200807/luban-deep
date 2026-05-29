@@ -1138,3 +1138,72 @@ async def test_sqlite_store_recovers_stale_running_turn_before_creating_new_turn
     assert stale_detail is not None
     assert stale_detail["status"] == "failed"
     assert next_turn["id"] != stale_turn["id"]
+
+
+@pytest.mark.asyncio
+async def test_recover_all_orphaned_turns_sweeps_running_across_sessions(
+    tmp_path: Path,
+) -> None:
+    """Startup sweep fails every ``running`` turn regardless of session or age.
+
+    After a crash the process holds no in-memory turn tasks, so a ``running``
+    row in SQLite is provably orphaned even if ``updated_at`` is recent — the
+    _run_turn finally never executed. The sweep is therefore intentionally
+    unconditional (no per-session, no age cutoff). Terminal rows and a fresh
+    ``running`` row from a *different* session are both checked.
+    """
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    session_a = await store.create_session(title="A", session_id="session-a")
+    session_b = await store.create_session(title="B", session_id="session-b")
+
+    # A terminal turn that must NOT be touched. Complete it first so the
+    # session can then hold a fresh running turn (one active turn per session).
+    completed = await store.create_turn(session_a["id"], capability="chat")
+    await store.update_turn_status(completed["id"], "completed")
+
+    # Orphan A: old running turn (simulates a long-lived crashed turn).
+    orphan_old = await store.create_turn(session_a["id"], capability="chat")
+    # Orphan B: a fresh running turn in another session (updated_at ~ now).
+    orphan_fresh = await store.create_turn(session_b["id"], capability="deep_solve")
+
+    with sqlite3.connect(store.db_path) as conn:
+        conn.execute(
+            "UPDATE turns SET updated_at = ? WHERE id = ?",
+            (time.time() - 999, orphan_old["id"]),
+        )
+        conn.commit()
+
+    recovered = await store.recover_all_orphaned_turns("orphaned_on_restart")
+    assert recovered == 2
+
+    old_detail = await store.get_turn(orphan_old["id"])
+    fresh_detail = await store.get_turn(orphan_fresh["id"])
+    completed_detail = await store.get_turn(completed["id"])
+
+    assert old_detail is not None
+    assert old_detail["status"] == "failed"
+    assert old_detail["error"] == "orphaned_on_restart"
+    assert old_detail["finished_at"] is not None
+
+    assert fresh_detail is not None
+    assert fresh_detail["status"] == "failed"
+    assert fresh_detail["error"] == "orphaned_on_restart"
+    assert fresh_detail["finished_at"] is not None
+
+    # Terminal turn is preserved verbatim.
+    assert completed_detail is not None
+    assert completed_detail["status"] == "completed"
+
+
+@pytest.mark.asyncio
+async def test_recover_all_orphaned_turns_is_idempotent(tmp_path: Path) -> None:
+    """A second sweep finds no ``running`` rows and reports 0."""
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    session = await store.create_session(title="Idem", session_id="session-idem")
+    await store.create_turn(session["id"], capability="chat")
+
+    first = await store.recover_all_orphaned_turns("orphaned_on_restart")
+    assert first == 1
+
+    second = await store.recover_all_orphaned_turns("orphaned_on_restart")
+    assert second == 0
