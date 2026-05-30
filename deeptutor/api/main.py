@@ -594,7 +594,6 @@ from deeptutor.api.routers import (
     agent_config,
     attachments,
     bi,
-    chat,
     co_writer,
     dashboard,
     guide,
