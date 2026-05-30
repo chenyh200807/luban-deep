@@ -14,6 +14,7 @@ from deeptutor.api.dependencies import AuthContext, get_current_user
 from deeptutor.agents.notebook import NotebookSummarizeAgent
 from deeptutor.services.session import build_user_owner_key
 from deeptutor.services.notebook import notebook_manager
+from deeptutor.services.notebook_card.service import get_notebook_card_service
 from deeptutor.utils.error_utils import public_error_detail
 
 router = APIRouter(dependencies=[Depends(get_current_user)])
@@ -303,6 +304,23 @@ async def add_record(
     """
     try:
         metadata = _request_metadata(request, current_user)
+        # Phase 3.1 分流：带 metadata.card_type 的写入走 durable NotebookCardService（轻写回，
+        # 零 summary/overlay 污染）；其余维持 legacy notebook_manager 不变。不新增 cards writer。
+        card_type = str((metadata or {}).get("card_type") or "").strip()
+        if card_type:
+            card = await get_notebook_card_service().save_card(
+                user_id=current_user.user_id,
+                subject_id=str(metadata.get("subject_id") or ""),
+                source_bot_id=str(metadata.get("source_bot_id") or ""),
+                card_type=card_type,
+                source_type=str(metadata.get("source_type") or "manual"),
+                source_ref=dict(metadata.get("source_ref") or {}),
+                evidence_event_ids=list(metadata.get("evidence_event_ids") or []),
+                title=request.title,
+                raw_user_content=request.user_query or request.output,
+                ai_enhanced_content=dict(metadata.get("ai_enhanced_content") or {}),
+            )
+            return {"success": True, "card": card, "note_id": card["note_id"]}
         normalized_request = request.model_copy(update={"metadata": metadata})
         summary = await _build_record_summary(normalized_request)
         result = notebook_manager.add_record(

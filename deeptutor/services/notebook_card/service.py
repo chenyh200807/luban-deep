@@ -75,4 +75,23 @@ class NotebookCardService:
         )
 
 
-__all__ = ["NotebookCardService"]
+_singleton: NotebookCardService | None = None
+
+
+def get_notebook_card_service() -> NotebookCardService:
+    """进程级单例：生产用 Supabase store（配置齐全时），否则 InMemory（dev/test）。"""
+    global _singleton
+    if _singleton is None:
+        from deeptutor.services.learner_state.service import get_learner_state_service
+        from deeptutor.services.notebook_card.store import (
+            InMemoryNotebookCardStore,
+            SupabaseNotebookCardStore,
+        )
+
+        supabase_store = SupabaseNotebookCardStore()
+        store = supabase_store if supabase_store.is_configured else InMemoryNotebookCardStore()
+        _singleton = NotebookCardService(store=store, learner_state_service=get_learner_state_service())
+    return _singleton
+
+
+__all__ = ["NotebookCardService", "get_notebook_card_service"]
