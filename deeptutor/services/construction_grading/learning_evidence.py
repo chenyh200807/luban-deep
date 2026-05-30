@@ -120,7 +120,7 @@ def build_learning_evidence_dedupe_key(*, user_id: str, payload_json: dict[str, 
         sort_keys=True,
         separators=(",", ":"),
     )
-    return hashlib.sha1(raw.encode("utf-8")).hexdigest()
+    return hashlib.sha1(raw.encode("utf-8"), usedforsecurity=False).hexdigest()
 
 
 def _grading_result_payload(grading_result: CaseGradingResult | MCQGradingResult | dict[str, Any]) -> dict[str, Any]:

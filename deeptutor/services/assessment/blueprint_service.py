@@ -1139,14 +1139,18 @@ def _stable_shuffle_candidates(candidates: list[QuestionCandidate], selection_se
         return list(candidates)
     return sorted(
         candidates,
-        key=lambda item: hashlib.sha1(f"{selection_seed}:{item.source_question_id}".encode("utf-8")).hexdigest(),
+        key=lambda item: hashlib.sha1(
+            f"{selection_seed}:{item.source_question_id}".encode("utf-8"), usedforsecurity=False
+        ).hexdigest(),
     )
 
 
 def _selection_offset(selection_seed: str, section_id: str) -> int:
     if not selection_seed:
         return 1000
-    digest = hashlib.sha1(f"{selection_seed}:{section_id}:offset".encode("utf-8")).hexdigest()
+    digest = hashlib.sha1(
+        f"{selection_seed}:{section_id}:offset".encode("utf-8"), usedforsecurity=False
+    ).hexdigest()
     return 1000 + (int(digest[:8], 16) % 3000)
 
 

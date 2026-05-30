@@ -29,7 +29,8 @@ def _secret() -> bytes:
 
 
 def _log_secret_fingerprint() -> None:
-    digest = hashlib.sha1(_secret()).hexdigest()[:8]
+    # log fingerprint only (first 8 hex), not signing; real signing uses HMAC-SHA256 below
+    digest = hashlib.sha1(_secret(), usedforsecurity=False).hexdigest()[:8]
     _LOG.info("attempt_ref secret fingerprint=%s kid=%s", digest, _KID_V1)
 
 

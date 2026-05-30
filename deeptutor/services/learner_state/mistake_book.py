@@ -380,12 +380,12 @@ def _etag(row: dict[str, Any]) -> str:
         str(row.get(key) or "")
         for key in ("user_id", "event_id", "saved_at", "updated_at", "archived_at", "mastered_at", "last_reviewed_at")
     )
-    return hashlib.sha1(raw.encode("utf-8")).hexdigest()[:16]
+    return hashlib.sha1(raw.encode("utf-8"), usedforsecurity=False).hexdigest()[:16]
 
 
 def _collection_etag(rows: list[dict[str, Any]]) -> str:
     raw = "|".join(str(row.get("etag") or "") for row in rows)
-    return hashlib.sha1(raw.encode("utf-8")).hexdigest()[:16]
+    return hashlib.sha1(raw.encode("utf-8"), usedforsecurity=False).hexdigest()[:16]
 
 
 def _public_item(row: dict[str, Any]) -> dict[str, Any]:

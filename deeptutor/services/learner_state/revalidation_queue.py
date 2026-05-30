@@ -230,7 +230,7 @@ def _probe_id(*, user_id: str, row: dict[str, Any]) -> str:
     human = raw.replace("|", "_")
     if len(human) <= 80 and all(part for part in raw.split("|")):
         return "rvp_" + human
-    return "rvp_" + hashlib.sha1(raw.encode("utf-8")).hexdigest()[:16]
+    return "rvp_" + hashlib.sha1(raw.encode("utf-8"), usedforsecurity=False).hexdigest()[:16]
 
 
 def _refs(value: Any) -> list[str]:

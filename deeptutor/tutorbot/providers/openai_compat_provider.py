@@ -166,7 +166,7 @@ class OpenAICompatProvider(LLMProvider):
             return tool_call_id
         if len(tool_call_id) == 9 and tool_call_id.isalnum():
             return tool_call_id
-        return hashlib.sha1(tool_call_id.encode()).hexdigest()[:9]
+        return hashlib.sha1(tool_call_id.encode(), usedforsecurity=False).hexdigest()[:9]
 
     def _sanitize_messages(self, messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
         sanitized = LLMProvider._sanitize_request_messages(messages, _ALLOWED_MSG_KEYS)

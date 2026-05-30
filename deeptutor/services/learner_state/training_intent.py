@@ -189,7 +189,7 @@ def _normalize_refs(refs: list[str] | None) -> list[str]:
 
 def _intent_id(**values: str) -> str:
     raw = "|".join(str(values.get(key) or "") for key in sorted(values))
-    return "lti_" + hashlib.sha1(raw.encode("utf-8")).hexdigest()[:16]
+    return "lti_" + hashlib.sha1(raw.encode("utf-8"), usedforsecurity=False).hexdigest()[:16]
 
 
 __all__ = ["build_learning_training_intent", "prioritize_training_intents"]

@@ -5571,7 +5571,9 @@ class MemberConsoleService:
                 external_user_id=external_user_id,
             )
             if member is None:
-                fallback_id = hashlib.sha1(normalized_username.encode("utf-8")).hexdigest()[:24]
+                fallback_id = hashlib.sha1(
+                    normalized_username.encode("utf-8"), usedforsecurity=False
+                ).hexdigest()[:24]
                 member_user_id = f"auth_{(external_user_id or fallback_id).replace('-', '')[:24]}"
                 member = self._ensure_member(data, member_user_id)
             else:

@@ -327,7 +327,7 @@ def _dedupe_key(*, user_id: str, turn_ref: str, payload: dict[str, Any]) -> str:
             str(payload.get("assistant_explanation_summary") or ""),
         ]
     )
-    return hashlib.sha1(raw.encode("utf-8")).hexdigest()
+    return hashlib.sha1(raw.encode("utf-8"), usedforsecurity=False).hexdigest()
 
 
 __all__ = [

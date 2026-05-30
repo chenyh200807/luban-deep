@@ -1692,7 +1692,7 @@ class LearnerStateService:
                 "payload_json": payload_json,
             }
         )
-        return hashlib.sha1(raw.encode("utf-8")).hexdigest()
+        return hashlib.sha1(raw.encode("utf-8"), usedforsecurity=False).hexdigest()
 
     @staticmethod
     def _compact_segment(source_tag: str, content: str, *, metadata: dict[str, Any] | None = None) -> dict[str, Any]:

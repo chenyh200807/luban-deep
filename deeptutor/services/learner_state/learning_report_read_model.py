@@ -2130,7 +2130,7 @@ def _opaque_ref(value: Any) -> str:
     raw = str(value or "").strip()
     if not raw:
         return ""
-    digest = hashlib.sha1(raw.encode("utf-8")).hexdigest()[:12]
+    digest = hashlib.sha1(raw.encode("utf-8"), usedforsecurity=False).hexdigest()[:12]
     return f"evidence-{digest}"
 
 
@@ -2181,7 +2181,7 @@ def _attempt_card_key(*, event: Any, payload: dict[str, Any], index: int) -> str
     )
     if not raw.strip("|"):
         raw = f"fallback-{index}"
-    digest = hashlib.sha1(raw.encode("utf-8")).hexdigest()[:12]
+    digest = hashlib.sha1(raw.encode("utf-8"), usedforsecurity=False).hexdigest()[:12]
     return f"attempt-{digest}"
 
 
