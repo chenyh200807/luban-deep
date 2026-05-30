@@ -1,0 +1,66 @@
+name: Wallet Consistency Cron
+
+# Daily read-only audit of wallet projection vs wallet_ledger.
+# scripts/audit_wallet_projection_consistency.py --execute runs SELECT-only SQL
+# (json_build_object over wallets/wallet_ledger) and prints a JSON summary whose
+# result.ledger_sum_diff_count is the count of users whose wallets.balance_micros
+# disagrees with SUM(wallet_ledger.delta_micros). That ledger-sum check never reads
+# the polluted balance_after_micros column, so it is the trustworthy drift signal.
+# When drift > 0 this job exits non-zero, turning the Actions run red so the drift
+# is visible / alertable. The audit performs no writes; nothing here mutates prod.
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Daily at 04:00 UTC.
+    - cron: "0 4 * * *"
+
+jobs:
+  wallet-consistency:
+    name: Wallet Projection Consistency Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements/server.txt
+
+      - name: Run wallet projection consistency audit (read-only)
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          set -o pipefail
+          python3 scripts/audit_wallet_projection_consistency.py --execute | tee audit_output.json
+
+          # Parse the trustworthy ledger-sum drift count from the JSON summary.
+          # status != "ok" means the audit never ran (e.g. missing DB url) -> -1 (failure).
+          # Otherwise read result.ledger_sum_diff_count; fail (exit 1) when drift > 0
+          # so the run goes red and can be alerted on.
+          drift="$(python3 -c 'import json; s=json.load(open("audit_output.json", encoding="utf-8")); print(int((s.get("result") or {}).get("ledger_sum_diff_count", -1)) if s.get("status")=="ok" else -1)')"
+
+          echo "ledger_sum_diff_count=${drift}"
+
+          if [ "${drift}" = "0" ]; then
+            echo "Wallet projection consistent: no ledger-sum drift."
+          else
+            echo "::error::Wallet projection drift detected (ledger_sum_diff_count=${drift}). See audit_output.json."
+            exit 1
+          fi
+
+      - name: Upload audit artifact
+        if: always()
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4
+        with:
+          name: wallet-projection-consistency
+          path: audit_output.json
+          if-no-files-found: ignore

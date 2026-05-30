@@ -1,0 +1,117 @@
+name: Deploy Gate
+
+# "main must be CI-green before it may be deployed."
+#
+# Why this exists (2026-05 maturity audit, M9): the deploy path runs over SSH
+# outside GitHub, so GitHub's native `needs:` (which only links jobs inside one
+# workflow) cannot express "block deploy unless Tests passed". This workflow
+# closes that gap by listening for the Tests workflow's completion on `main`
+# via `workflow_run` and turning its conclusion into a single, explicit
+# deploy-readiness signal that a deploy runbook can gate on.
+#
+# Trigger semantics:
+#   - Fires only after the workflow literally named "Tests" finishes a run
+#     whose head branch is `main` (workflow_run delivers the upstream run's
+#     conclusion in github.event.workflow_run).
+#   - Does NOT run on PRs or feature branches — deploy readiness is a property
+#     of main only.
+#
+# Failure semantics:
+#   - If Tests concluded `success` → this gate job succeeds, writes a GREEN
+#     step summary, and uploads a `deploy-readiness` artifact containing
+#     `status=green` (machine-readable for downstream tooling / SSH runbooks).
+#   - If Tests concluded anything else (failure, cancelled, timed_out, …) →
+#     this gate job uploads `status=red` and then exits non-zero, so the
+#     Deploy Gate check on the main commit is RED. Any deploy that keys off
+#     this check must refuse to proceed.
+#
+# This is intentionally read-only: it inspects an existing Tests result and
+# emits a verdict. It never builds, deploys, mutates state, or touches secrets.
+
+on:
+  workflow_run:
+    workflows: ["Tests"]
+    branches: [main]
+    types:
+      - completed
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-gate:
+    name: Deploy Readiness Gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Evaluate upstream Tests conclusion
+        id: gate
+        env:
+          TESTS_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          TESTS_RUN_URL: ${{ github.event.workflow_run.html_url }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          if [ "$TESTS_CONCLUSION" = "success" ]; then
+            echo "status=green" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=red" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Tests conclusion for main@${HEAD_SHA}: ${TESTS_CONCLUSION}"
+          echo "Upstream Tests run: ${TESTS_RUN_URL}"
+
+      - name: Write deploy-readiness marker
+        env:
+          STATUS: ${{ steps.gate.outputs.status }}
+          TESTS_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          TESTS_RUN_URL: ${{ github.event.workflow_run.html_url }}
+        run: |
+          set -euo pipefail
+          {
+            echo "status=${STATUS}"
+            echo "tests_conclusion=${TESTS_CONCLUSION}"
+            echo "head_sha=${HEAD_SHA}"
+            echo "tests_run_url=${TESTS_RUN_URL}"
+          } > deploy-readiness.txt
+          cat deploy-readiness.txt
+
+      - name: Upload deploy-readiness artifact
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4
+        with:
+          name: deploy-readiness
+          path: deploy-readiness.txt
+          retention-days: 30
+
+      - name: Step summary
+        env:
+          STATUS: ${{ steps.gate.outputs.status }}
+          TESTS_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          TESTS_RUN_URL: ${{ github.event.workflow_run.html_url }}
+        run: |
+          set -euo pipefail
+          if [ "$STATUS" = "green" ]; then
+            verdict="🟢 GREEN — deploy allowed"
+          else
+            verdict="🔴 RED — deploy blocked"
+          fi
+          {
+            echo "## 🚦 Deploy Gate"
+            echo ""
+            echo "**${verdict}**"
+            echo ""
+            echo "| Field | Value |"
+            echo "|-------|-------|"
+            echo "| main commit | \`${HEAD_SHA}\` |"
+            echo "| Tests conclusion | \`${TESTS_CONCLUSION}\` |"
+            echo "| Upstream run | ${TESTS_RUN_URL} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail gate if Tests were not green
+        if: steps.gate.outputs.status != 'green'
+        env:
+          TESTS_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+        run: |
+          echo "::error::Deploy Gate RED — Tests on main concluded '${TESTS_CONCLUSION}', not 'success'. Deploy must not proceed."
+          exit 1
