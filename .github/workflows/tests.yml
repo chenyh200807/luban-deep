@@ -11,6 +11,7 @@ on:
       - "tests/**"
       - "scripts/check_contract_guard.py"
       - "scripts/check_turn_contract_guard.py"
+      - "scripts/ci/check_websocket_route_allowlist.py"
       - "requirements/**"
       - "requirements.txt"
       - "pyproject.toml"
@@ -42,6 +43,7 @@ on:
       - "tests/**"
       - "scripts/check_contract_guard.py"
       - "scripts/check_turn_contract_guard.py"
+      - "scripts/ci/check_websocket_route_allowlist.py"
       - "requirements/**"
       - "requirements.txt"
       - "pyproject.toml"
@@ -94,6 +96,18 @@ jobs:
         env:
           BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
           HEAD_SHA: ${{ github.sha }}
+
+      - name: WebSocket single-control-plane allowlist gate
+        # Reflects the live FastAPI app's production WebSocket surface and fails
+        # on any WS route not declared in contracts/index.yaml websocket_routes,
+        # or any second chat WS (turn.md:22). Reflection needs server deps; the
+        # contract-guard step above degrades to a skip-with-note when they are
+        # absent, so this step is the load-bearing enforcement.
+        run: |
+          pip install -r requirements/server.txt
+          python scripts/ci/check_websocket_route_allowlist.py
+        env:
+          PYTHONPATH: ${{ github.workspace }}
 
       - name: Secure router fail-on-new gate
         run: FAIL_ON_NEW=1 bash scripts/ci/check_secure_routers.sh

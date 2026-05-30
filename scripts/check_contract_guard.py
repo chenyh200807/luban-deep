@@ -16,6 +16,14 @@ INDEX_PATH = REPO_ROOT / "contracts" / "index.yaml"
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+# WebSocket single-control-plane allowlist gate (contracts/turn.md:22). The
+# evaluator reflects the live app and degrades to a pass-with-note when server
+# deps are absent (the lightweight contract-guard job); the dedicated workflow
+# step installs server deps so the reflection runs for real.
+from scripts.ci.check_websocket_route_allowlist import (  # noqa: E402
+    evaluate_websocket_route_allowlist,
+)
+
 # Phase -1.B: error-code emit-site cross-check.
 # Scan these source paths for hard-coded error_code literals that look like
 # E0X / M0X codes and validate them against ERROR_CODE_REGISTRY. The list is
@@ -322,7 +330,11 @@ def main(argv: list[str] | None = None) -> int:
     lifecycle_stream = sys.stdout if lifecycle_ok else sys.stderr
     print(lifecycle_message, file=lifecycle_stream)
 
-    return 0 if (ok and code_ok and node_ok and lifecycle_ok) else 1
+    ws_ok, ws_message = evaluate_websocket_route_allowlist()
+    ws_stream = sys.stdout if ws_ok else sys.stderr
+    print(ws_message, file=ws_stream)
+
+    return 0 if (ok and code_ok and node_ok and lifecycle_ok and ws_ok) else 1
 
 
 if __name__ == "__main__":
