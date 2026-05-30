@@ -8,6 +8,26 @@ from uuid import uuid4
 import httpx
 
 
+BILLING_ENFORCEMENT_FLAG = "DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED"
+
+
+def _env_flag(name: str, default: bool = False) -> bool:
+    raw = str(os.getenv(name, "")).strip().lower()
+    if not raw:
+        return default
+    return raw in {"1", "true", "yes", "on"}
+
+
+def is_billing_enforcement_enabled() -> bool:
+    """Single authority for whether real wallet charging is enforced.
+
+    Internal beta defaults to OFF: no balance mutation, no ledger writes,
+    no fail-closed gating. Flip to ON via ``DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED``
+    (1/true/yes/on) once paid billing starts.
+    """
+    return _env_flag(BILLING_ENFORCEMENT_FLAG, default=False)
+
+
 def _normalize_text(value: Any) -> str:
     return str(value or "").strip()
 
@@ -360,6 +380,19 @@ class SupabaseWalletService:
         normalized_idempotency_key = _normalize_text(idempotency_key)
         requested_points = max(0, _coerce_int(amount_points))
         requested_micros = requested_points * 1_000_000
+
+        # Internal beta default: billing enforcement OFF. No balance mutation
+        # and no ledger write — keep the wallet pristine so free-tier usage
+        # never pollures the canonical ledger. The call stays a no-op that
+        # returns a skipped/zero-capture result so the caller flow is unchanged.
+        if not is_billing_enforcement_enabled():
+            return WalletCaptureResult(
+                captured_micros=0,
+                requested_micros=requested_micros,
+                balance_after_micros=0,
+                entry=None,
+            )
+
         if not normalized_user_id or not normalized_idempotency_key or requested_micros <= 0:
             return WalletCaptureResult(
                 captured_micros=0,
@@ -370,49 +403,20 @@ class SupabaseWalletService:
         if not self.is_configured:
             raise RuntimeError("Supabase wallet service is not configured")
 
-        existing_entry = self.find_wallet_ledger_by_idempotency_key(
-            normalized_user_id,
+        # Enforcement ON: route through the canonical atomic RPC path
+        # (debit_points -> _mutate_points -> apply_wallet_mutation). The RPC
+        # row-locks the wallet, decrements balance_micros, writes the correct
+        # after-image (balance + delta), is transactionally idempotent on the
+        # idempotency key, and raises WalletInsufficientBalanceError (P0001)
+        # when the debit would overdraw — without writing a ledger row.
+        return self.capture_points(
+            user_id=normalized_user_id,
+            amount_points=requested_points,
             idempotency_key=normalized_idempotency_key,
-        )
-        if existing_entry is not None:
-            return WalletCaptureResult(
-                captured_micros=abs(_coerce_int(existing_entry.delta_micros)),
-                requested_micros=requested_micros,
-                balance_after_micros=_coerce_int(existing_entry.balance_after_micros),
-                entry=existing_entry,
-            )
-
-        snapshot = self.get_wallet(normalized_user_id)
-        balance_after_micros = _coerce_int(getattr(snapshot, "balance_micros", 0))
-        frozen_after_micros = _coerce_int(getattr(snapshot, "frozen_micros", 0))
-        metadata_payload = {
-            "reason": _normalize_text(reason) or "capture",
-            **(dict(metadata or {}) if isinstance(metadata, dict) else {}),
-        }
-        entry = self._insert_wallet_ledger(
-            {
-                "user_id": normalized_user_id,
-                "event_type": "usage",
-                "delta_micros": -abs(requested_micros),
-                "balance_after_micros": balance_after_micros,
-                "frozen_after_micros": frozen_after_micros,
-                "reference_type": _normalize_text(reference_type) or "ai_usage",
-                "reference_id": _normalize_text(reference_id),
-                "reason": _normalize_text(reason) or "capture",
-                "idempotency_key": normalized_idempotency_key,
-                "metadata": metadata_payload,
-            }
-        )
-        if entry is None:
-            entry = self.find_wallet_ledger_by_idempotency_key(
-                normalized_user_id,
-                idempotency_key=normalized_idempotency_key,
-            )
-        return WalletCaptureResult(
-            captured_micros=requested_micros if entry is not None else 0,
-            requested_micros=requested_micros,
-            balance_after_micros=balance_after_micros,
-            entry=entry,
+            reference_id=reference_id,
+            reason=reason,
+            reference_type=reference_type,
+            metadata=metadata,
         )
 
     def debit_points(

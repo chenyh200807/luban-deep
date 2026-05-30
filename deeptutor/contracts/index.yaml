@@ -1,5 +1,36 @@
 version: 1
 entrypoint: CONTRACT.md
+
+# WebSocket single-control-plane allowlist (contracts/turn.md:22).
+#
+# Machine-readable registry of every production WebSocket route (i.e. routes
+# still registered when legacy routers are disabled: _legacy_routers_enabled()
+# == False). scripts/ci/check_websocket_route_allowlist.py reflects the live
+# FastAPI app and fails CI when:
+#   - a registered production WS path is not listed here, OR
+#   - any entry has kind "chat" with a path other than /api/v1/ws, OR
+#   - more than one entry has kind "chat".
+#
+# This gives the turn.md:22 hard constraint ("禁止新增第二条聊天 WebSocket")
+# real enforcement. It is reflection-based, so alias imports / wrappers /
+# include_router chains cannot bypass it (the same rationale as
+# scripts/ci/runtime_route_inventory.py). The previously-buried prose under
+# learning_state_inference.forbidden was never consumed by any guard.
+#
+# kind:
+#   chat   — a turn/chat streaming entrypoint. Exactly one allowed; path MUST
+#            be /api/v1/ws (the single streaming control plane).
+#   stream — a non-chat server→client stream (e.g. progress fan-out). Allowed,
+#            but must be explicitly registered here with a reason.
+websocket_routes:
+  - path: /api/v1/ws
+    kind: chat
+    reason: Single unified turn/chat streaming control plane (contracts/turn.md).
+  - path: /api/v1/knowledge/{kb_name}/progress/ws
+    kind: stream
+    reason: Knowledge-base ingestion progress fan-out. Non-chat; broadcasts build
+      progress events only, creates no turn/session state.
+
 domains:
   turn:
     summary: Unified turn, stream, replay, session, trace boundary, and mobile assessment HTTP bridges.
