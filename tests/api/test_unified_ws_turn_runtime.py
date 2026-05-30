@@ -8982,3 +8982,98 @@ def test_ws_rejects_oversized_inbound_frame(tmp_path, monkeypatch) -> None:
                 normal.get("type") == "error"
                 and "too large" in str(normal.get("content", "")).lower()
             )
+
+
+@pytest.mark.asyncio
+async def test_turn_completion_writes_internal_semantic_router_telemetry_event(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    # Additive instrumentation invariant (PR #84): on turn completion the
+    # semantic-router decision telemetry is persisted to the durable turn_events
+    # store as a dedicated internal observation event (type=observation,
+    # source=turn_runtime) carrying the in-place captured input + drove_route —
+    # NOT folded into the assistant message — so analysis never needs the
+    # unreliable session+time join and the public/replay answer stays clean.
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, context):
+            # Simulate the real ChatOrchestrator populating primary-mode routing
+            # telemetry into context.metadata (incl. the in-place captured input).
+            context.metadata["semantic_router_mode"] = "primary"
+            context.metadata["semantic_router_captured_input"] = "我选B"
+            context.metadata["turn_semantic_decision"] = {
+                "next_action": "route_to_grading",
+                "confidence": 0.93,
+                "reason": "用户消息是'我选B'，提交当前题目答案。",
+            }
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="deep_question",
+                metadata={"response": "已批改：B 正确。", "mode": "grading"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="deep_question")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(build_memory_context=lambda: "", refresh_from_turn=_noop_refresh),
+    )
+
+    session = await store.create_session(session_id="session_sr_telemetry", title="题组")
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "我选B",
+            "session_id": session["id"],
+            "capability": "tutorbot",
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {"bot_id": "construction-exam-coach"},
+        }
+    )
+
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    events = await store.get_turn_events(turn["id"])
+    telemetry_events = [e for e in events if e.get("stage") == "semantic_router_telemetry"]
+    assert len(telemetry_events) == 1, "exactly one internal semantic-router telemetry event persisted"
+
+    ev = telemetry_events[0]
+    # dedicated internal observation event — system-emitted, not a public/capability result
+    assert ev["type"] == "observation"
+    assert ev["source"] == "turn_runtime"
+
+    tele = ev["metadata"]["semantic_router_telemetry"]
+    assert tele["mode"] == "primary"
+    assert tele["drove_route"] is True  # primary mode => the semantic decision drove the route
+    assert tele["captured_raw_input"] == "我选B"  # in-place capture, no session+time join
+    assert tele["final_executed_capability"]  # final executed capability recorded
+    assert tele["semantic_decision"]["next_action"] == "route_to_grading"
+
+    # internal-ness: telemetry must NOT be folded into the persisted assistant message
+    messages = await store.get_messages(session["id"])
+    assert all(
+        "semantic_router_telemetry" not in (m.get("metadata") or {})
+        for m in messages
+    ), "telemetry must not leak into the assistant message metadata"

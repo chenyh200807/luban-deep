@@ -2225,3 +2225,32 @@ async def test_orchestrator_handle_propagates_generator_exit_when_consumer_close
     await _asyncio.wait_for(slow.cancelled.wait(), timeout=3.0)
     assert slow.cancelled.is_set()
     assert context.metadata.get("turn_cancel_propagated") is True
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_captures_routing_input_without_changing_route() -> None:
+    # Additive decision telemetry (PR #84): the orchestrator captures the exact
+    # routing message in-place into context.metadata at the decision point — so
+    # downstream analysis never needs the unreliable session+time join — AND the
+    # routing decision itself is unchanged (behavior-preserving). The expected
+    # route here is the same "deep_question" as
+    # test_orchestrator_autoroutes_practice_request_to_deep_question, which is
+    # the invariant the capture must not perturb.
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-capture",
+        user_message="考我一道流水施工的题",
+        config_overrides={},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    # behavior-preserving: identical routing decision to the un-instrumented path
+    assert registry.captured[0] == "deep_question"
+    # in-place capture of the exact routing message (closes the post-join breakpoint)
+    assert context.metadata["semantic_router_captured_input"] == "考我一道流水施工的题"
