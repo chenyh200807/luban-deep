@@ -87,12 +87,40 @@ def _resolve_prompt_version() -> str:
     ) or _UNSET_PROMPT_VERSION
 
 
+# Engine-level gray-release flag families. These switches move runtime
+# behaviour (retrieval source, assessment backend, question authority, rollout
+# stage, action loop), so the ff_snapshot MUST not drop them.
+_FLAG_PREFIXES: tuple[str, ...] = (
+    "FF_",
+    "SUPABASE_RAG_",
+    "ASSESSMENT_",
+    "QUESTION_LIFECYCLE_",
+)
+_FLAG_SUBSTRINGS: tuple[str, ...] = (
+    "ACTION_LOOP",
+)
+_FLAG_SUFFIXES: tuple[str, ...] = (
+    "_STAGE",
+)
+_DEEPTUTOR_FLAG_SUFFIXES: tuple[str, ...] = (
+    "_ENABLED",
+    "_MODE",
+    "_STRICT",
+)
+
+
 def _should_capture_flag(key: str) -> bool:
-    if key.startswith("FF_"):
+    if key.startswith(_FLAG_PREFIXES):
+        return True
+    if key.endswith(_FLAG_SUFFIXES):
+        return True
+    if any(token in key for token in _FLAG_SUBSTRINGS):
         return True
     if not key.startswith("DEEPTUTOR_"):
         return False
-    return key.endswith("_ENABLED") or key.endswith("_MODE") or "_SHADOW_" in key or key.endswith("_STRICT")
+    if "_SHADOW_" in key:
+        return True
+    return key.endswith(_DEEPTUTOR_FLAG_SUFFIXES)
 
 
 def _normalize_flag_value(value: str) -> str:

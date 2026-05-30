@@ -105,7 +105,6 @@ domains:
       - deeptutor/services/render_presentation.py
       - deeptutor/services/exam_track.py
       - deeptutor/services/question_lifecycle_skills.py
-      - deeptutor/api/routers/chat.py
       - deeptutor/api/routers/mobile.py
       - deeptutor/api/routers/unified_ws.py
     sensitive_patterns:
