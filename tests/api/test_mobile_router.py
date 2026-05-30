@@ -4635,3 +4635,47 @@ def test_delete_conversation_deletes_direct_and_mirror_variants(
         "tb_123",
         "tutorbot:bot:construction-exam-coach:user:student_demo:chat:tb_123",
     ]
+
+
+def test_mobile_chat_start_turn_rejects_oversized_query() -> None:
+    """H9: query above the F5-equivalent char cap is rejected fail-fast (422),
+    not silently accepted into an expensive turn."""
+    oversized = "x" * (mobile_module._MAX_MOBILE_START_TURN_QUERY_CHARS + 1)
+    with TestClient(_build_app()) as client:
+        response = client.post("/api/v1/chat/start-turn", json={"query": oversized})
+    assert response.status_code == 422
+
+
+def test_mobile_chat_start_turn_is_rate_limited(monkeypatch: pytest.MonkeyPatch) -> None:
+    """H9: the paid HTTP start-turn entry is rate limited (10/60s), closing the
+    F5-shaped amplification surface on the mobile HTTP side."""
+
+    class FakeTurnRuntime:
+        async def start_turn(self, payload):
+            return (
+                {"id": "session_1", "title": "c", "created_at": 1_700_000_000.0},
+                {"id": "turn_1", "status": "running", "capability": ""},
+            )
+
+    monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
+    monkeypatch.setattr(
+        mobile_module, "_resolve_authenticated_user_id", lambda *a, **k: "student_demo"
+    )
+    monkeypatch.setattr(
+        mobile_module, "_resolve_wallet_lookup_user_id", lambda *a, **k: "wallet_demo"
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "session_store",
+        SimpleNamespace(get_session_owner_key=AsyncMock(return_value="user:student_demo")),
+    )
+
+    statuses: list[int] = []
+    with TestClient(_build_app()) as client:
+        for _ in range(11):
+            statuses.append(
+                client.post("/api/v1/chat/start-turn", json={"query": "考一道题"}).status_code
+            )
+
+    assert statuses[:10] == [200] * 10  # first 10 within the window pass
+    assert statuses[10] == 429  # 11th over the limit is rejected

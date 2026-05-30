@@ -68,6 +68,12 @@ _MOBILE_CONVERSATION_LOOKUP_PAGE_SIZE = 500
 MobileFeedbackSupabaseClient = SupabaseFeedbackStore
 _FEEDBACK_ATTACHMENT_MAX_BYTES = 20 * 1024 * 1024
 
+# H9: hard upper bound on the mobile HTTP /chat/start-turn query text, mirroring the
+# F5 WS frame cap (unified_ws._MAX_WS_INBOUND_FRAME_CHARS). start-turn is the second
+# inbound boundary that can launch an expensive turn; without a cap it reopens the
+# same amplification surface F5 closed on the WS side. Over-limit -> 422 fail-fast.
+_MAX_MOBILE_START_TURN_QUERY_CHARS = 128 * 1024
+
 _BILLING_USAGE_TZ = ZoneInfo("Asia/Shanghai")
 _BILLING_USAGE_LEDGER_WINDOW = 500
 _BILLING_USAGE_FIVE_HOUR_LIMIT_POINTS = "DEEPTUTOR_BILLING_USAGE_5H_LIMIT_POINTS"
@@ -1710,7 +1716,7 @@ class WechatBindPhoneRequest(BaseModel):
 
 
 class MobileStartTurnRequest(BaseModel):
-    query: str
+    query: str = Field(max_length=_MAX_MOBILE_START_TURN_QUERY_CHARS)
     conversation_id: str = ""
     client_turn_id: str = ""
     capability: str = ""
@@ -2614,7 +2620,18 @@ async def upload_chat_feedback_attachment(
     }
 
 
-@router.post("/chat/start-turn")
+@router.post(
+    "/chat/start-turn",
+    dependencies=[
+        Depends(
+            route_rate_limit(
+                "mobile_chat_start_turn",
+                default_max_requests=10,
+                default_window_seconds=60.0,
+            )
+        )
+    ],
+)
 async def mobile_chat_start_turn(
     body: MobileStartTurnRequest,
     authorization: str | None = Header(default=None),
