@@ -50,6 +50,8 @@
 
 31. 统一流式入口 `/api/v1/ws` 对单条入站文本帧设有应用层硬上限（`unified_ws._MAX_WS_INBOUND_FRAME_CHARS`，当前 128K 字符）：超限帧在 `json.loads` 之前 fail-fast 拒绝并返回 `{"type":"error","content":"Message too large …"}`，不静默截断、不进入 capability / turn 链路。该上限是请求边界防御（阻止单个已认证客户端用接近 16MiB 的 payload 放大内存 / LLM 成本，受 start_turn 10次/60s 限流软约束之外的硬边界），适用于所有消息类型；客户端须将单帧控制在上限内，超长内容走附件 / 分段而非超大 content / config。等价地，mobile HTTP 入口 `/api/v1/chat/start-turn`（turn 的第二个入站边界）同样设 query 字符硬上限（`mobile._MAX_MOBILE_START_TURN_QUERY_CHARS`，128K，超限 422）+ 10次/60s route 限流（`route_rate_limit("mobile_chat_start_turn")`），与 WS 入口单点同治理，避免 F5 同形放大面在 HTTP 侧重开（H9）。
 
+32. `ChatOrchestrator` 在路由决策点就地把本轮 routing 消息写入 `context.metadata["semantic_router_captured_input"]`，作为 semantic-router 决策遥测的 in-place 输入捕获（供 turn 完成时落 `semantic_router_telemetry` internal 事件，免事后 session+time join）。这是**纯 additive、只读观测**，**绝不改变任何 capability 路由判决**（behavior-preserving）；任何 capability/路由判定不得读取或依赖该字段做决策。
+
 ## Schema
 
 - 机器可读 schema：`deeptutor/capabilities/request_contracts.py`

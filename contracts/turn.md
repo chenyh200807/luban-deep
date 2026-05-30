@@ -60,6 +60,7 @@
 - 如果最近 assistant turn 明确发出“出同考点题 / 巩固练习 / 继续练题”邀请，下一轮用户的短肯定回复或复述该邀请必须被归一为 question-domain `practice_generation` 候选，由统一 semantic route 决定是否进入 `deep_question`；`bot_id` / TutorBot 默认绑定只能在语义结果为普通聊天时决定执行引擎。
 - `exam_track` 只表示同一 `construction-exam-coach` 下的考试方向上下文，如一建 / 二建 / 一造 / 二造；它可以进入 `interaction_hints`、session preferences 和 trace，作为 RAG/source plan 与回答口径的 scoped metadata，但不得成为第二个 TutorBot 身份、第二套 capability route 或第二套 knowledge-chain authority。
 - semantic router 的灰度与回滚也必须走统一 turn trace：`semantic_router_mode / semantic_router_mode_reason / semantic_router_scope / semantic_router_scope_match / semantic_router_shadow_decision / semantic_router_shadow_route / semantic_router_selected_capability`。`shadow` 只允许并行比对，不得抢执行 authority。
+- semantic-router 决策遥测在 turn 完成时以独立 **internal** turn_event 落 `turn_events`（`type=observation` / `source=turn_runtime` / `stage=semantic_router_telemetry`），字段 `semantic_router_telemetry = {captured_raw_input, semantic_decision, final_executed_capability, drove_route, is_default_template, mode}`：纯 additive 观测，`internal` 可见性——不进公开 / replay 答案、不混入 assistant 消息；`captured_raw_input` 在路由决策点就地捕获（免事后 session+time join），`drove_route` 区分语义决策是否真驱动最终路由（vs lifecycle 覆盖 / 记账）。
 - TutorBot 默认知识链只能由服务端 runtime 统一解析与注入，adapter 不得各自维护：
   - 默认工具链
   - 默认 knowledge base
