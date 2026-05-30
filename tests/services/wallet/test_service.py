@@ -6,7 +6,25 @@ import pytest
 from deeptutor.services.wallet.service import (
     SupabaseWalletService,
     WalletInsufficientBalanceError,
+    is_billing_enforcement_enabled,
 )
+
+
+def test_is_billing_enforcement_enabled_defaults_off(monkeypatch) -> None:
+    monkeypatch.delenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", raising=False)
+    assert is_billing_enforcement_enabled() is False
+
+
+@pytest.mark.parametrize("raw", ["1", "true", "TRUE", "yes", "on"])
+def test_is_billing_enforcement_enabled_honors_truthy_env(monkeypatch, raw: str) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", raw)
+    assert is_billing_enforcement_enabled() is True
+
+
+@pytest.mark.parametrize("raw", ["", "0", "false", "off", "no"])
+def test_is_billing_enforcement_enabled_treats_falsey_env_as_off(monkeypatch, raw: str) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", raw)
+    assert is_billing_enforcement_enabled() is False
 
 
 class _FakeResponse:
@@ -267,9 +285,11 @@ def test_capture_points_is_idempotent_by_ledger_key() -> None:
     assert calls["rpc"] == 1
 
 
-def test_record_usage_points_writes_usage_ledger_without_wallet_balance() -> None:
+def test_record_usage_points_is_noop_when_enforcement_disabled(monkeypatch) -> None:
+    # Internal beta default: enforcement OFF -> no balance mutation, no ledger
+    # write. The wallet stays pristine and the call returns a skipped result.
+    monkeypatch.delenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", raising=False)
     client = _FakeWalletRestClient()
-    client.wallet["balance_micros"] = 0
     service = SupabaseWalletService(
         base_url="https://example.supabase.co",
         service_key="service-role-key",
@@ -284,20 +304,101 @@ def test_record_usage_points_writes_usage_ledger_without_wallet_balance() -> Non
         metadata={"source": "wx_miniprogram"},
     )
 
-    assert result.captured_micros == 20_000_000
+    assert result.captured_micros == 0
     assert result.requested_micros == 20_000_000
     assert result.balance_after_micros == 0
-    assert client.wallet["balance_micros"] == 0
-    assert len(client.ledger) == 1
-    row = client.ledger[0]
-    assert row["event_type"] == "usage"
-    assert row["delta_micros"] == -20_000_000
-    assert row["balance_after_micros"] == 0
-    assert row["reference_type"] == "ai_usage"
-    assert row["reference_id"] == "turn_usage_1"
-    assert row["idempotency_key"] == "mini_program_capture:turn_usage_1"
-    assert row["metadata"]["reason"] == "capture"
-    assert row["metadata"]["source"] == "wx_miniprogram"
+    assert result.entry is None
+    assert client.post_calls == 0
+    assert client.ledger == []
+    assert client.wallet["balance_micros"] == 100_000_000
+
+
+def test_record_usage_points_debits_wallet_atomically_when_enforcement_enabled(monkeypatch) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    rpc_calls: list[str] = []
+
+    def _handler(request: httpx.Request) -> httpx.Response:
+        assert request.method == "POST"
+        assert request.url.path.endswith("/rest/v1/rpc/apply_wallet_mutation")
+        payload = request.read().decode("utf-8")
+        rpc_calls.append(payload)
+        assert '"p_event_type":"debit"' in payload
+        assert '"p_delta_micros":-20000000' in payload
+        assert '"p_idempotency_key":"mini_program_capture:turn_usage_2"' in payload
+        return httpx.Response(
+            200,
+            json=[
+                {
+                    "ledger_event_id": "evt_usage_2",
+                    "user_id": "wallet_user_1",
+                    "event_type": "debit",
+                    "delta_micros": -20_000_000,
+                    "balance_micros": 80_000_000,
+                    "frozen_micros": 0,
+                    "version": 5,
+                    "idempotency_key": "mini_program_capture:turn_usage_2",
+                    "reference_type": "ai_usage",
+                    "reference_id": "turn_usage_2",
+                    "created_at": "2026-04-21T10:01:00+08:00",
+                }
+            ],
+            request=request,
+        )
+
+    service = SupabaseWalletService(
+        base_url="https://example.supabase.co",
+        service_key="service-role-key",
+        client=httpx.Client(transport=httpx.MockTransport(_handler)),
+    )
+
+    result = service.record_usage_points(
+        user_id="wallet_user_1",
+        amount_points=20,
+        idempotency_key="mini_program_capture:turn_usage_2",
+        reference_id="turn_usage_2",
+        metadata={"source": "wx_miniprogram"},
+    )
+
+    # Balance truly decremented to balance + delta (100M - 20M).
+    assert result.captured_micros == 20_000_000
+    assert result.requested_micros == 20_000_000
+    assert result.balance_after_micros == 80_000_000
+    assert result.entry is not None
+    assert result.entry.id == "evt_usage_2"
+    assert result.entry.event_type == "debit"
+    assert result.entry.balance_after_micros == 80_000_000
+    assert len(rpc_calls) == 1
+
+
+def test_record_usage_points_raises_and_writes_nothing_on_insufficient_balance(monkeypatch) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "1")
+
+    def _handler(request: httpx.Request) -> httpx.Response:
+        # RPC raises P0001 insufficient inside the transaction; no ledger row.
+        return httpx.Response(
+            400,
+            json={
+                "message": "Insufficient wallet balance.",
+                "details": "available_micros=1000000 requested_delta_micros=-20000000",
+                "code": "P0001",
+            },
+            request=request,
+        )
+
+    service = SupabaseWalletService(
+        base_url="https://example.supabase.co",
+        service_key="service-role-key",
+        client=httpx.Client(transport=httpx.MockTransport(_handler)),
+    )
+
+    with pytest.raises(WalletInsufficientBalanceError):
+        service.record_usage_points(
+            user_id="wallet_user_1",
+            amount_points=20,
+            idempotency_key="mini_program_capture:turn_usage_3",
+            reference_id="turn_usage_3",
+            metadata={"source": "wx_miniprogram"},
+        )
 
 
 def test_get_wallet_returns_none_for_invalid_uuid_identity_query() -> None:
