@@ -48,7 +48,13 @@ from deeptutor.services.session import (
 )
 from deeptutor.services.storage import get_attachment_store
 from deeptutor.tutorbot.utils.helpers import safe_filename
-from deeptutor.services.wallet import WalletLedgerEntry, WalletSnapshot, get_wallet_service
+from deeptutor.services.session.turn_runtime import _MINI_PROGRAM_CAPTURE_COST
+from deeptutor.services.wallet import (
+    WalletLedgerEntry,
+    WalletSnapshot,
+    get_wallet_service,
+    is_billing_enforcement_enabled,
+)
 from deeptutor.tutorbot.response_mode import normalize_requested_response_mode
 
 router = APIRouter()
@@ -568,10 +574,41 @@ async def _create_payment_gateway_order(payload: dict[str, Any]) -> dict[str, An
     return data
 
 
+def _assert_wallet_balance_available(wallet_user_id: str) -> None:
+    """Hard balance gate run before start-turn when enforcement is ON.
+
+    Reads the canonical wallet snapshot and fails closed (429
+    billing_quota_exceeded) when the available balance cannot cover this
+    turn's minimum charge. Per contracts/turn.md:69 this runs before
+    turn_runtime.start_turn, so no pending turn is created and no answer is
+    delivered. Internal beta keeps enforcement OFF, so this is a no-op then.
+    """
+    if not is_billing_enforcement_enabled():
+        return
+    snapshot = wallet_service.get_wallet(wallet_user_id)
+    if snapshot is None:
+        return
+    available_micros = int(snapshot.balance_micros) - int(snapshot.frozen_micros)
+    minimum_charge_micros = int(_MINI_PROGRAM_CAPTURE_COST) * 1_000_000
+    if available_micros >= minimum_charge_micros:
+        return
+    raise HTTPException(
+        status_code=429,
+        detail={
+            "code": "billing_quota_exceeded",
+            "message": "Insufficient wallet balance for this turn.",
+            "limited_by": "balance",
+            "available_micros": max(available_micros, 0),
+            "required_micros": minimum_charge_micros,
+        },
+    )
+
+
 def _assert_billing_quota_available(authorization: str | None, *, wallet_user_id: str) -> None:
     normalized_user_id = str(wallet_user_id or "").strip()
     if not normalized_user_id or not getattr(wallet_service, "is_configured", False):
         return
+    _assert_wallet_balance_available(normalized_user_id)
     try:
         usage_payload = _build_billing_usage_payload(
             _load_billing_usage_entries(
