@@ -574,7 +574,6 @@ from deeptutor.api.routers import (
     tutor_state,
     tutorbot,
     unified_ws,
-    vision_solver,
     question_notebook,
 )
 
@@ -611,7 +610,6 @@ app.include_router(system.router, prefix="/api/v1/system", tags=["system"])
 app.include_router(agent_config.router, prefix="/api/v1/agent-config", tags=["agent-config"])
 app.include_router(tutor_state.router, prefix="/api/v1/tutor-state", tags=["tutor-state"])
 app.include_router(observability.router, prefix="/api/v1/observability", tags=["observability"])
-app.include_router(vision_solver.router, prefix="/api/v1", tags=["vision-solver"])
 app.include_router(mobile.router, prefix="/api/v1", tags=["mobile"])
 app.include_router(attachments.router, prefix="/api/attachments", tags=["attachments"])
 

@@ -1,17 +1,17 @@
 {
   "generated_at": "2026-05-25T09:40:56.082725+00:00",
-  "fastapi_routes_total": 259,
-  "api_endpoints_total": 254,
+  "fastapi_routes_total": 257,
+  "api_endpoints_total": 252,
   "summary": {
     "by_classification": {
-      "secure_authed": 166,
+      "secure_authed": 164,
       "explicit_public": 14,
       "anonymous_ratelimited_only": 0,
       "anonymous_no_ratelimit": 74
     },
     "by_kind": {
-      "http": 247,
-      "websocket": 7
+      "http": 246,
+      "websocket": 6
     },
     "anonymous_paths": [
       "GET / (explicit_public)",
@@ -3821,37 +3821,6 @@
       ],
       "has_auth_dep": true,
       "auth_dep_kind": "admin",
-      "has_rate_limit_dep": false,
-      "is_public_marker": false,
-      "public_reason": null,
-      "classification": "secure_authed"
-    },
-    {
-      "path": "/api/v1/vision/analyze",
-      "method": "POST",
-      "kind": "http",
-      "endpoint": "deeptutor.api.routers.vision_solver.analyze_image",
-      "all_dependency_names": [
-        "_rate_limit_dependency",
-        "get_current_user"
-      ],
-      "has_auth_dep": true,
-      "auth_dep_kind": "user",
-      "has_rate_limit_dep": false,
-      "is_public_marker": false,
-      "public_reason": null,
-      "classification": "secure_authed"
-    },
-    {
-      "path": "/api/v1/vision/solve",
-      "method": "WS",
-      "kind": "websocket",
-      "endpoint": "deeptutor.api.routers.vision_solver.websocket_vision_solve",
-      "all_dependency_names": [
-        "get_current_user"
-      ],
-      "has_auth_dep": true,
-      "auth_dep_kind": "user",
       "has_rate_limit_dep": false,
       "is_public_marker": false,
       "public_reason": null,

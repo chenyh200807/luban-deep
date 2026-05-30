@@ -7,6 +7,10 @@ from scripts.check_contract_guard import (
     evaluate_question_lifecycle_authority,
     resolve_changed_files,
 )
+from scripts.ci.check_websocket_route_allowlist import (
+    evaluate_allowlist,
+    load_websocket_allowlist,
+)
 
 
 def test_guard_allows_non_protected_changes() -> None:
@@ -116,6 +120,56 @@ def test_question_lifecycle_guard_allows_approved_projection_points(tmp_path) ->
 
     assert ok is True
     assert "question-lifecycle-authority-guard: passed" in message
+
+
+_REPO_ALLOWLIST = {
+    "/api/v1/ws": {"path": "/api/v1/ws", "kind": "chat"},
+    "/api/v1/knowledge/{kb_name}/progress/ws": {
+        "path": "/api/v1/knowledge/{kb_name}/progress/ws",
+        "kind": "stream",
+    },
+}
+
+
+def test_websocket_allowlist_passes_for_declared_production_routes() -> None:
+    ok, message = evaluate_allowlist(
+        ["/api/v1/knowledge/{kb_name}/progress/ws", "/api/v1/ws"],
+        _REPO_ALLOWLIST,
+    )
+    assert ok is True
+    assert "websocket-allowlist-guard: passed" in message
+
+
+def test_websocket_allowlist_rejects_unlisted_route() -> None:
+    ok, message = evaluate_allowlist(
+        ["/api/v1/ws", "/api/v1/rogue/ws"],
+        _REPO_ALLOWLIST,
+    )
+    assert ok is False
+    assert "unlisted production WebSocket route: /api/v1/rogue/ws" in message
+
+
+def test_websocket_allowlist_rejects_second_chat_route() -> None:
+    allowlist = {
+        **_REPO_ALLOWLIST,
+        "/api/v1/mobile/tutorbot/ws": {
+            "path": "/api/v1/mobile/tutorbot/ws",
+            "kind": "chat",
+        },
+    }
+    ok, message = evaluate_allowlist(
+        ["/api/v1/ws", "/api/v1/mobile/tutorbot/ws"],
+        allowlist,
+    )
+    assert ok is False
+    assert "is not /api/v1/ws" in message
+    assert "more than one chat-kind WebSocket route" in message
+
+
+def test_websocket_allowlist_loads_repo_index_with_single_chat_route() -> None:
+    allowlist = load_websocket_allowlist()
+    chat_paths = [p for p, e in allowlist.items() if e.get("kind") == "chat"]
+    assert chat_paths == ["/api/v1/ws"]
 
 
 def test_resolve_changed_files_defaults_to_current_candidate(monkeypatch) -> None:
