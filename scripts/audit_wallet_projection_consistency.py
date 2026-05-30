@@ -29,8 +29,23 @@ except ModuleNotFoundError:
 
 def build_wallet_projection_audit_sql(*, limit: int = 100) -> str:
     normalized_limit = max(1, int(limit))
+    # Two independent consistency checks, both reported:
+    #  - ledger_sum_diff (TRUSTWORTHY): wallet.balance_micros vs SUM(delta_micros).
+    #    The opening balance is itself a 'grant' ledger entry (migration
+    #    20260419000600), so SUM(delta_micros) == the true expected balance. This
+    #    check never reads balance_after_micros, so B1-style pollution (ledger
+    #    written, projection never decremented, after-image snapshotted as the
+    #    pre-charge balance) CANNOT hide from it.
+    #  - balance_after_diff (LEGACY, may be misled): wallet vs latest ledger
+    #    after-image. Kept for continuity, but a 'consistent' result here does NOT
+    #    prove correctness — balance_after_micros is the same polluted column.
     return f"""
-with latest_ledger as (
+with ledger_sum as (
+  select user_id, sum(delta_micros) as expected_balance_micros
+  from public.wallet_ledger
+  group by user_id
+),
+latest_ledger as (
   select distinct on (user_id)
     user_id,
     balance_after_micros,
@@ -39,7 +54,17 @@ with latest_ledger as (
   from public.wallet_ledger
   order by user_id, created_at desc, id desc
 ),
-diff_rows as (
+ledger_sum_diff as (
+  select
+    w.user_id,
+    w.balance_micros as wallet_balance_micros,
+    coalesce(s.expected_balance_micros, 0) as expected_balance_micros,
+    w.balance_micros - coalesce(s.expected_balance_micros, 0) as drift_micros
+  from public.wallets w
+  left join ledger_sum s on s.user_id = w.user_id
+  where coalesce(w.balance_micros, 0) <> coalesce(s.expected_balance_micros, 0)
+),
+balance_after_diff as (
   select
     w.user_id,
     w.balance_micros as wallet_balance_micros,
@@ -51,33 +76,33 @@ diff_rows as (
   left join latest_ledger l on l.user_id = w.user_id
   where coalesce(w.balance_micros, 0) <> coalesce(l.balance_after_micros, 0)
      or coalesce(w.frozen_micros, 0) <> coalesce(l.frozen_after_micros, 0)
-),
-sample_diff as (
-  select *
-  from diff_rows
-  order by user_id
-  limit {normalized_limit}
 )
 select json_build_object(
   'generated_at', now(),
   'limit', {normalized_limit},
-  'diff_count', (select count(*) from diff_rows),
-  'sample', coalesce(
-    json_agg(
-      json_build_object(
-        'user_id', s.user_id,
-        'wallet_balance_micros', s.wallet_balance_micros,
-        'ledger_balance_micros', s.ledger_balance_micros,
-        'wallet_frozen_micros', s.wallet_frozen_micros,
-        'ledger_frozen_micros', s.ledger_frozen_micros,
-        'ledger_created_at', s.ledger_created_at
-      )
-      order by s.user_id
-    ),
-    '[]'::json
+  'ledger_sum_diff_count', (select count(*) from ledger_sum_diff),
+  'balance_after_diff_count', (select count(*) from balance_after_diff),
+  'ledger_sum_sample', (
+    select coalesce(json_agg(json_build_object(
+      'user_id', d.user_id,
+      'wallet_balance_micros', d.wallet_balance_micros,
+      'expected_balance_micros', d.expected_balance_micros,
+      'drift_micros', d.drift_micros
+    )), '[]'::json)
+    from (select * from ledger_sum_diff order by abs(drift_micros) desc limit {normalized_limit}) d
+  ),
+  'balance_after_sample', (
+    select coalesce(json_agg(json_build_object(
+      'user_id', d.user_id,
+      'wallet_balance_micros', d.wallet_balance_micros,
+      'ledger_balance_micros', d.ledger_balance_micros,
+      'wallet_frozen_micros', d.wallet_frozen_micros,
+      'ledger_frozen_micros', d.ledger_frozen_micros,
+      'ledger_created_at', d.ledger_created_at
+    )), '[]'::json)
+    from (select * from balance_after_diff order by user_id limit {normalized_limit}) d
   )
-)::text
-from sample_diff s;
+)::text;
 """.strip()
 
 

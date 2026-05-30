@@ -31,23 +31,36 @@ def build_rebuild_wallet_projection_sql(*, user_id: str = "") -> str:
     predicate = ""
     if str(user_id or "").strip():
         predicate = f"where user_id = '{str(user_id).strip()}'::uuid"
+    # Reconstruct balance_micros from SUM(delta_micros) — the trustworthy basis.
+    # The opening balance is itself a 'grant' ledger entry (migration 20260419000600),
+    # so SUM(delta_micros) == the true balance. The previous basis (latest
+    # balance_after_micros) is the SAME application-written column that B1 polluted,
+    # so rebuilding from it would FIX-IN the wrong balance — never use it.
+    # frozen_micros is a reservation column (not part of delta accounting) and is
+    # rebuilt from the latest after-image, which B1 does not touch.
     return f"""
-with latest_ledger as (
+with ledger_sum as (
+  select user_id, sum(delta_micros) as expected_balance_micros
+  from public.wallet_ledger
+  {predicate}
+  group by user_id
+),
+latest_ledger as (
   select distinct on (user_id)
     user_id,
-    balance_after_micros,
     frozen_after_micros
   from public.wallet_ledger
   {predicate}
   order by user_id, created_at desc, id desc
 )
 update public.wallets w
-   set balance_micros = l.balance_after_micros,
-       frozen_micros = l.frozen_after_micros,
+   set balance_micros = s.expected_balance_micros,
+       frozen_micros = coalesce(l.frozen_after_micros, w.frozen_micros),
        version = greatest(coalesce(w.version, 0), 0) + 1,
        updated_at = now()
-  from latest_ledger l
- where w.user_id = l.user_id
+  from ledger_sum s
+  left join latest_ledger l on l.user_id = s.user_id
+ where w.user_id = s.user_id
 returning w.user_id::text, w.balance_micros::text, w.frozen_micros::text, w.version::text;
 """.strip()
 
