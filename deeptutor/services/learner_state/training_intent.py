@@ -173,7 +173,13 @@ def _intent_priority(intent: dict[str, Any]) -> float:
     exam_weight = _safe_float(intent.get("exam_weight"), 1.0)
     recurrence = _safe_float(intent.get("recurrence"), len(_normalize_refs(intent.get("evidence_refs"))))
     recurrence_weight = min(recurrence / 3, 1.0)
-    return round(forgetting_risk * exam_weight * (1 + recurrence_weight), 3)
+    # 关注线（A 层）：有上限 α=0.5（×≤1.5）——可重排同档，但盖不过高
+    # forgetting_risk×recurrence 的证据关键弱点。绝不进掌握/得分（B 层）。
+    subjective_focus = min(max(_safe_float(intent.get("subjective_focus_weight"), 0.0), 0.0), 1.0)
+    return round(
+        forgetting_risk * exam_weight * (1 + recurrence_weight) * (1 + 0.5 * subjective_focus),
+        3,
+    )
 
 
 def _safe_float(value: Any, default: float) -> float:
