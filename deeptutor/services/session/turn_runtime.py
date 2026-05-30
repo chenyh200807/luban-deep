@@ -55,6 +55,9 @@ from deeptutor.services.semantic_router import (
     build_turn_semantic_decision as build_semantic_turn_decision,
     has_explicit_practice_generation_intent,
 )
+from deeptutor.services.semantic_router_telemetry import (
+    build_semantic_router_telemetry_event,
+)
 from deeptutor.services.user_visible_output import (
     coerce_user_visible_answer,
     looks_like_unsafe_visible_output,
@@ -4530,6 +4533,25 @@ class TurnRuntimeManager:
                     turn_id,
                     "completed",
                     default=False,
+                )
+                # Additive, behavior-preserving: persist the semantic-router
+                # decision telemetry tuple to our own durable turn_events store
+                # (internal, never published, never forwarded to external trace).
+                # captured_raw_input lives here (same tier as messages.content),
+                # closing the baseline join/decision-vs-route/default breakpoints.
+                await self._safe_store_call(
+                    execution,
+                    "append_semantic_router_telemetry",
+                    self.store.append_turn_event,
+                    turn_id,
+                    build_semantic_router_telemetry_event(
+                        context_metadata=context.metadata,
+                        final_executed_capability=capability_name,
+                        captured_raw_input=str(
+                            context.metadata.get("semantic_router_captured_input") or ""
+                        ),
+                    ),
+                    default=None,
                 )
                 assistant_event_summary = _summarize_assistant_events(assistant_events)
                 observability.update_observation(

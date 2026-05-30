@@ -264,3 +264,24 @@ async def test_orchestrator_scope_keeps_question_in_question_only_rollout() -> N
     assert registry.captured[0] == "deep_question"
     assert context.metadata["semantic_router_mode"] == "primary"
     assert context.metadata["semantic_router_scope_match"] is True
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_captures_routing_input_in_place() -> None:
+    # Breakpoint #1: the routing message must be captured in-place at decision
+    # time so analysis never needs the unreliable session+time join.
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="semantic-router-capture",
+        user_message="继续刚才这个学习页面",
+        config_overrides={},
+        metadata={"active_object": _guide_active_object()},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert context.metadata["semantic_router_captured_input"] == "继续刚才这个学习页面"
