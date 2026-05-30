@@ -18,6 +18,11 @@ def _iso(days_ago: int = 0) -> str:
     return (datetime.now(_TZ) - timedelta(days=days_ago)).isoformat()
 
 
+def _iso_minutes_ago(minutes: int) -> str:
+    """Recent timestamp inside the report's recency window, ordered by minutes-ago."""
+    return (datetime.now(_TZ) - timedelta(minutes=minutes)).isoformat()
+
+
 def _learning_event(
     event_id: str,
     *,
@@ -676,7 +681,7 @@ def test_training_loop_uses_latest_attempt_not_any_past_correct_signal() -> None
                     question_id="zh-mcq-old",
                     score_awarded=1.0,
                     max_score=1.0,
-                    created_at="2026-05-20T10:00:00+08:00",
+                    created_at=_iso_minutes_ago(10),
                 ),
                 _learning_event(
                     "evt_new_wrong",
@@ -685,7 +690,7 @@ def test_training_loop_uses_latest_attempt_not_any_past_correct_signal() -> None
                     error_code="M06",
                     score_awarded=0.0,
                     max_score=1.0,
-                    created_at="2026-05-20T10:05:00+08:00",
+                    created_at=_iso_minutes_ago(5),
                 ),
             ]
         ),
