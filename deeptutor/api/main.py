@@ -78,6 +78,16 @@ _READINESS_CHECK_NAMES = (
     "learner_state_runtime_ready",
 )
 
+# Production-required secrets. Single source of truth shared with
+# scripts/validate_aliyun_release_env.sh (deploy-time .env gate); this is the
+# matching startup-time gate so a misconfigured production process fails fast
+# instead of booting with auth disabled. Local/dev (non-production) is exempt so
+# `make dev` keeps working without these set.
+_PRODUCTION_REQUIRED_ENV_KEYS = (
+    "DEEPTUTOR_AUTH_SECRET",
+    "DEEPTUTOR_ADMIN_USER_IDS",
+)
+
 
 def _assessment_form_prewarm_enabled() -> bool:
     return (
@@ -245,6 +255,29 @@ def _validate_startup_llm_client(llm_client: object) -> None:
         )
 
 
+def assert_required_env() -> None:
+    """Fail fast in production when canonical required secrets are absent.
+
+    Mirrors the deploy-time check in scripts/validate_aliyun_release_env.sh so a
+    production process never boots with auth misconfigured. Non-production
+    environments (default "local") are intentionally exempt to keep local
+    startup frictionless. Raises ``RuntimeError`` listing every missing key.
+    """
+    if not is_production_environment():
+        return
+    store = get_env_store()
+    missing = [
+        key
+        for key in _PRODUCTION_REQUIRED_ENV_KEYS
+        if not str(store.get(key, "") or "").strip()
+    ]
+    if missing:
+        raise RuntimeError(
+            "Production startup blocked: required environment variables are "
+            "unset or empty: " + ", ".join(missing)
+        )
+
+
 def validate_tool_consistency():
     """
     Validate that capability manifests only reference tools that are actually
@@ -353,6 +386,14 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"Failed to auto-start TutorBots: {e}")
         startup_failures.append(f"tutorbots_ready: {e}")
+
+    # Production secret gate: route through the existing fail-fast mechanism so a
+    # misconfigured production process aborts instead of serving with auth off.
+    try:
+        assert_required_env()
+    except RuntimeError as e:
+        logger.error(str(e))
+        startup_failures.append(f"required_env: {e}")
 
     app.state.readiness_ready = bool(app.state.readiness_checks) and all(
         app.state.readiness_checks.values()
@@ -553,7 +594,6 @@ from deeptutor.api.routers import (
     agent_config,
     attachments,
     bi,
-    chat,
     co_writer,
     dashboard,
     guide,

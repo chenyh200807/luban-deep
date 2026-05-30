@@ -1,6 +1,7 @@
 # 2026-05-25 内测上线 Production Readiness Checklist
 
-> **状态**: Draft v2.1（2026-05-25，根因版 + codex second-opinion 修订）
+> **状态**: Draft v2.1（2026-05-25，根因版 + codex second-opinion 修订）→ **代码侧 SR1-SR6 已落 main + 接 CI（2026-05-30 plan-vs-code 核验确认）**；剩余为人工 release gate（真机回归、观察期、`runtime_route_inventory.py` Layer B 接 CI、`supabase/schema_baselines/` dump）待补。G1-G9 验收日期待人工填，未达 Done。详见 [2026-05-30-plan-vs-code-reconciliation.md](2026-05-30-plan-vs-code-reconciliation.md)。
+> **代码事实校验（2026-05-30）**: SR1 `_secure_router.py` + `check_secure_routers.sh FAIL_ON_NEW` 已接 `tests.yml:113`；SR2 `check_rls_on_create_table.sh` 接 `tests.yml:116`、#75/#82 RLS harden；SR3 限流 single authority（`route_rate_limit` + `enforce_websocket_rate_limit`）；SR4 LLM client factory（`openai_http_client.py` 三 factory）；SR5 `/readyz` 一致性；SR6 `runtime/safety.py`（spawn_task/readiness/exception handler）接 `main.py` + `tests.yml:124`。计费止血 `wallet/service.py` enforcement flag 默认 OFF（#79）。active-turn-capacity 50-120 仍 0 代码（`Proposed` 属实，内测 <100 DAU 不阻塞）。
 > **主线**: 生产部署 / Observability 与 release gate
 > **来源**: 8 维度上线前审查 + 4 组根因 subagent 深度评估（SR1 路由认证 / SR2 Schema-RLS / SR3-5 限流-LLM-Healthcheck / SR6 Runtime safety）+ codex CLI 200 IQ 独立 review
 > **审查上下文**: 内测窗口 < 100 DAU / 本周内开放 / 后端 FastAPI + WebSocket + Supabase + 多 LLM provider / **小程序主验收面 `yousenwebview/packageDeeptutor/`（`wx_miniprogram/` 仅 shadow 辅助）** + 阿里云 Docker Compose 部署
