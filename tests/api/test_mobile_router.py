@@ -4635,3 +4635,120 @@ def test_delete_conversation_deletes_direct_and_mirror_variants(
         "tb_123",
         "tutorbot:bot:construction-exam-coach:user:student_demo:chat:tb_123",
     ]
+
+
+class _FakeBalanceWalletService:
+    """Minimal wallet service stub for the H3 hard balance gate tests."""
+
+    is_configured = True
+
+    def __init__(self, *, balance_micros: int, frozen_micros: int = 0) -> None:
+        self._snapshot = mobile_module.WalletSnapshot(
+            user_id="wallet_demo",
+            balance_micros=balance_micros,
+            frozen_micros=frozen_micros,
+            plan_id="advance",
+            version=1,
+            created_at="2026-04-21T10:00:00+08:00",
+        )
+
+    def get_wallet(self, user_id: str):
+        del user_id
+        return self._snapshot
+
+    def list_wallet_ledger(self, user_id: str, *, limit: int = 20, offset: int = 0):
+        del user_id, limit, offset
+        return []
+
+
+def _install_start_turn_stubs(monkeypatch: pytest.MonkeyPatch, started: list[object]) -> None:
+    class FakeTurnRuntime:
+        async def start_turn(self, payload):
+            started.append(payload)
+            return (
+                {"id": "session_1", "title": "New conversation", "created_at": 1_700_000_000.0},
+                {"id": "turn_1", "status": "running", "capability": ""},
+            )
+
+    monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
+    monkeypatch.setattr(
+        mobile_module, "_resolve_authenticated_user_id", lambda *_a, **_k: "student_demo"
+    )
+    monkeypatch.setattr(
+        mobile_module, "_resolve_wallet_lookup_user_id", lambda *_a, **_k: "wallet_demo"
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "session_store",
+        SimpleNamespace(get_session_owner_key=AsyncMock(return_value="user:student_demo")),
+    )
+
+
+def test_mobile_chat_start_turn_hard_balance_gate_rejects_when_enforced_and_insufficient(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    started: list[object] = []
+    _install_start_turn_stubs(monkeypatch, started)
+    # Available balance (balance - frozen) below the per-turn minimum charge
+    # (20 points = 20_000_000 micros).
+    monkeypatch.setattr(
+        mobile_module, "wallet_service", _FakeBalanceWalletService(balance_micros=1_000_000)
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={"query": "考我一道题", "mode": "AUTO", "language": "zh"},
+        )
+
+    assert response.status_code == 429
+    detail = response.json()["detail"]
+    assert detail["code"] == "billing_quota_exceeded"
+    assert detail["limited_by"] == "balance"
+    assert detail["required_micros"] == 20_000_000
+    # Fail-closed before delivery: no pending turn was ever created.
+    assert started == []
+
+
+def test_mobile_chat_start_turn_hard_balance_gate_allows_when_enforced_and_sufficient(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    started: list[object] = []
+    _install_start_turn_stubs(monkeypatch, started)
+    monkeypatch.setattr(
+        mobile_module, "wallet_service", _FakeBalanceWalletService(balance_micros=500_000_000)
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={"query": "考我一道题", "mode": "AUTO", "language": "zh"},
+        )
+
+    assert response.status_code == 200
+    assert response.json()["turn"]["id"] == "turn_1"
+    assert len(started) == 1
+
+
+def test_mobile_chat_start_turn_hard_balance_gate_is_off_during_internal_beta(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Enforcement OFF (default): even an empty wallet must not block start-turn.
+    monkeypatch.delenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", raising=False)
+    started: list[object] = []
+    _install_start_turn_stubs(monkeypatch, started)
+    monkeypatch.setattr(
+        mobile_module, "wallet_service", _FakeBalanceWalletService(balance_micros=0)
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={"query": "考我一道题", "mode": "AUTO", "language": "zh"},
+        )
+
+    assert response.status_code == 200
+    assert response.json()["turn"]["id"] == "turn_1"
+    assert len(started) == 1
