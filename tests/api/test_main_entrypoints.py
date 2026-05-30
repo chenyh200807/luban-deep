@@ -419,6 +419,13 @@ def test_production_disables_legacy_router_mounts_by_default(
     assert "/api/v1/notebook/list" not in paths
     assert "/api/v1/plugins/list" not in paths
     assert "/api/v1/tutorbot" not in paths
+    # Retired second chat WebSocket: vision_solver router (the `/api/v1/vision/solve`
+    # WS that degraded to generic chat without an image) was removed. Vision stays a
+    # single-authority builtin tool inside /api/v1/ws. turn.md:22 forbids a second
+    # chat WebSocket; assert both vision endpoints are unregistered (the WS is the
+    # contract violation; the REST analyze endpoint shared the same retired router).
+    assert "/api/v1/vision/solve" not in paths
+    assert "/api/v1/vision/analyze" not in paths
 
 
 def test_learning_brain_qa_router_is_not_mounted_by_default(
