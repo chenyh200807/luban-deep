@@ -68,7 +68,7 @@ P2: subjective case grading / adaptive / authoring
 
 v0.3 吸收二次评审后，把 P0A 的硬门槛再收紧：
 
-1. `assessment_sessions` 不再标为“待验证持久性”。代码已确认当前落在 `MemberConsoleService` 的 member-console JSON file；P0A 正式上线前必须有 Supabase durable session 表、RLS/owner check 和 submit idempotency 设计。
+1. `assessment_sessions` 不再标为“待验证持久性”。~~代码已确认当前落在 `MemberConsoleService` 的 member-console JSON file；~~ **【2026-05-30 核验更新】Supabase durable session 表 + RLS + submit idempotency 已落地并合 main（migration `20260524000100_assessment_sessions.sql`, PR #42）；本句关于 "当前落 JSON file" 的描述已过期，durable 路径在 production / `ASSESSMENT_SESSIONS_USE_SUPABASE=true` 下生效，生产 apply 待环境实证。** P0A 正式上线前的 Supabase durable session 表、RLS/owner check 和 submit idempotency 设计已满足。
 2. “防水工程”不能假设为已存在的独立 blueprint topic。当前代码只有 `waterproof_decoration_mep` composite section；Phase -1 必须先决定拆成 `waterproof / decoration / mep`，还是把 P0A 改为“防水/装饰/机电综合测评”。
 3. P0A submit 不直接写 `training_intent`。结果页显示“基于本次测评的即时建议”和跳转学习计划；学习计划仍由 learner-state / study-plan projection 作为处方 authority。
 4. P0A 不交付 deep explanation。完整按题深解是 Phase 2/P1；P0A 只给 simple report、attempt refs、错题/证据写回，以及 disabled/hidden CTA 的一致文案。
@@ -863,7 +863,7 @@ Given the current repository shape, make these decisions before coding:
 
 | Decision | Default | Verification |
 | --- | --- | --- |
-| Storage durability | **CONFIRMED at deeptutor/services/member_console/service.py:447 — single-instance JSON file via PathService. P0A is BLOCKED until Supabase `assessment_sessions` table exists with RLS by user_id.** | Migration + RLS + restart/deploy resume test prove active/submitted sessions survive multi-instance drift |
+| Storage durability | **RESOLVED (2026-05-30 plan-vs-code 核验): Supabase `assessment_sessions` 表 + RLS 已落地并合 main（migration `20260524000100_assessment_sessions.sql`, PR #42 6a5dad2e）。`session_repository.py` 同时有 InMemory 与 Supabase 两实现，`MemberConsoleService._build_assessment_session_repository` 在 production 或 `ASSESSMENT_SESSIONS_USE_SUPABASE=true` 时走 durable。原 "P0A is BLOCKED until table exists" 已不成立；生产 apply 待运行环境实证。** | Migration + RLS + restart/deploy resume test prove active/submitted sessions survive multi-instance drift；生产侧需实证 `ASSESSMENT_SESSIONS_USE_SUPABASE` 已生效，避免静默回落 InMemory 丢卷 |
 | New endpoint count | Keep existing `create/submit/profile`; add report/resume only if current surface cannot support P0A | API tests prove no duplicate surface |
 | Deep explanation | P0A result page hides CTA or shows disabled "coming next"; working deep explanation is Phase 2/P1 | Prevents half-working expensive path |
 | Frontend source | `yousenwebview/packageDeeptutor` primary; `wx_miniprogram` parity only | DevTools and Node tests target yusen package |
