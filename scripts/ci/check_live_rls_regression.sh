@@ -24,8 +24,9 @@ set -euo pipefail
 
 AUDIT="${AUDIT:-scripts/ci/live_rls_audit.sh}"
 
-# Tables hardened by 20260529000300 — none may grant anon/authenticated.
-MONITORED_TABLES="${MONITORED_TABLES:-user_profiles user_stats user_goals user_logs user_emotion_logs user_badges learner_mistake_book_items questions_bank mock_exams}"
+# Tables hardened by 20260529000300 (user_*/questions_bank/mock_exams) and
+# 20260530000100 (wallets, H10) — none may grant anon/authenticated.
+MONITORED_TABLES="${MONITORED_TABLES:-user_profiles user_stats user_goals user_logs user_emotion_logs user_badges learner_mistake_book_items questions_bank mock_exams wallets}"
 
 if [ -z "${SUPABASE_DB_URL:-}" ]; then
     echo "[SKIP] check_live_rls_regression: SUPABASE_DB_URL not set."
