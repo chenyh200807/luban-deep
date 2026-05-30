@@ -7,6 +7,7 @@ from .identity import (
     resolve_wallet_identity,
 )
 from .service import (
+    BILLING_ENFORCEMENT_FLAG,
     SupabaseWalletService,
     WalletCaptureResult,
     WalletInsufficientBalanceError,
@@ -15,9 +16,11 @@ from .service import (
     WalletServiceError,
     WalletSnapshot,
     get_wallet_service,
+    is_billing_enforcement_enabled,
 )
 
 __all__ = [
+    "BILLING_ENFORCEMENT_FLAG",
     "IdentityInventoryRow",
     "SupabaseWalletService",
     "WalletCaptureResult",
@@ -31,5 +34,6 @@ __all__ = [
     "collect_identity_inventory_rows",
     "get_wallet_identity_store",
     "get_wallet_service",
+    "is_billing_enforcement_enabled",
     "resolve_wallet_identity",
 ]
