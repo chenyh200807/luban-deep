@@ -803,6 +803,17 @@ git commit -am "feat(learning-report): extend read model with note_assets + read
 git commit -am "feat(assessment): gate probe improvement evidence by measurement_confidence"
 ```
 
+### Phase 5 对账结论（2026-05-31 codegraph/源码实证）
+
+**N/A — 当前 MCQ 复测路线下无 confidence 可门、亦无风险，按 §857 不硬造门。** 实证：
+
+- 喂 `_is_improvement` 的 score 源是 `deeptutor/services/assessment/learning_evidence.py`（MCQ batch），其 `score_awarded = 1.0 if is_correct else 0.0`（**二元**），`grep measurement_confidence` 计数 = **0**（该 payload 不带 confidence）。
+- `deeptutor/services/learner_state/learning_synthesis.py:779-785` `_is_improvement` 只读 `score_awarded/max_score/error_events`，**不读** `measurement_confidence`。
+- `measurement_confidence` 只活在 `assessment/scoring.py` / `teaching_policy.py` / `writeback.py`（rubric 评分路径），而该路径**不喂** `_is_improvement`。两路径不相交。
+- MCQ 精确匹配本质二元高置信，H5「低置信复测假翻盘」风险**在此路线不成立**。
+
+**待复测改走 rubric 案例批改（有 confidence variance）时再装门**，门边界 = assessment rubric 写回 → learning_evidence（不改 `_is_improvement`，那是 construction_grading 域、不带 confidence 的错边界）。本 Phase 不产代码、不阻塞验收。
+
 ---
 
 ## Phase 6：双端 UI + 微信开发者工具回归（contract 驱动）

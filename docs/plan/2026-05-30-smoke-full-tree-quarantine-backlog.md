@@ -7,7 +7,7 @@
 ## 目标
 
 把 CI 必过门（required gate）从手挑 allowlist 升级为 `pytest tests/` **全目录**，消除"整目录静默漏跑"。全树 2968 测试中：
-- **2954 个 hermetic** → 进 required gate（`-m "not requires_external and not quarantine_web_drift and not quarantine_assessment_drift"`），全绿才放行。
+- **2953 个 hermetic** → 进 required gate（`-m "not requires_external and not quarantine_web_drift and not quarantine_assessment_drift"`），本地干净环境 `2953 passed, 1 skipped, 14 deselected` 全绿才放行。
 - **14 个被显式排除**，每一个都有 marker、有 log、有 owner，**绝不静默 skip**。
 
 ## 非目标
@@ -58,7 +58,7 @@
 
 | 修复 | 根因 |
 |---|---|
-| `tests/services/learner_state/test_learning_report_read_model.py::test_training_loop_uses_latest_attempt_not_any_past_correct_signal` IndexError | 夹具硬编码绝对日期 `2026-05-20` 随时间漂出读模型 8 天 recency 窗口 → 改 `days_ago` 相对时间 |
+| `tests/services/learner_state/test_learning_report_read_model.py::test_training_loop_uses_latest_attempt_not_any_past_correct_signal` IndexError | 夹具硬编码绝对日期 `2026-05-20` 随时间漂出读模型 8 天 recency 窗口；同根因已被并行会话在 main 用 `_iso_minutes_ago(10/5)` 相对时间修复，本轮 merge main 时采纳其版本（本轮自带的 `days_ago` 冗余 fix 已弃） |
 | `scripts/wallet_authority_common.py` `resolve_wallet_env` 全树串扰（wallet_authority×2 / wallet_projection×1） | `dict(environ or os.environ)` 把显式空 dict 当 falsy 回退真 os.environ → 改 `environ if environ is not None else os.environ` |
 | `tests/services/test_config_loader.py::test_load_config_with_main_uses_explicit_project_root` | PathService 进程单例被前置测试用 tmp dir 构建后缓存 → `tests/conftest.py` autouse 每测试 reset |
 | `tests/api/test_auth_dependency.py::test_get_current_user_resets_bound_user_context_between_requests` | log-context ContextVar 泄漏 + auth flow 打 live Supabase identity store → conftest 重置 contextvar + 测试 mock `get_wallet_identity_store` |

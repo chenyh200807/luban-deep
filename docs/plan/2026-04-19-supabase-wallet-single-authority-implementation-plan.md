@@ -42,12 +42,14 @@
 
 ## 5. 当前基线事实
 
-实施前必须承认以下现实：
+> **【2026-05-30 plan-vs-code 核验更新】本节是 2026-04-19 实施前的基线快照，已被代码追平。** 当前状态：WP1（schema+RPC）、WP3（统一 wallet service）、WP4（读链切换）已落地接线——`SupabaseWalletService`、`apply_wallet_mutation` RPC（migration `20260419000300_wallet_mutation_rpc.sql`，行锁+ledger+projection 单事务+幂等键）、硬余额门（`mobile.py:577`）、`/billing/*` 读链已切 wallet 权威、#81 Σdelta 审计脚本均已上线。写链 enforcement flag `DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED` 默认 **OFF**，待 release gate 翻 ON。**WP2 身份归一化层（`identity.py`、影子ID hard-fail、owner_key 迁移、token 重签发）是否完整落地待确认（本次核验未证实）；enforcement OFF 时风险被掩盖，翻 ON 前必须先确认 WP2 收敛，否则带身份漂移开真实扣费会查错人钱包。** 下列原始第 2-4 条已过期，保留作历史快照。详见 [2026-05-30-plan-vs-code-reconciliation.md](2026-05-30-plan-vs-code-reconciliation.md)。
+
+实施前必须承认以下现实（2026-04-19 快照）：
 
 1. Supabase `wallets` 真实存在，且已有线上数据。
-2. Supabase `wallet_ledger` 当前不存在。
-3. 当前移动端 `/billing/points`、`/billing/wallet`、`/billing/ledger` 仍走 `member_service`。
-4. 当前鉴权直接信 token 内的 `uid/sub`，没有 alias -> UUID 归一化层。
+2. ~~Supabase `wallet_ledger` 当前不存在。~~ **【已过期】`wallet_ledger` 已由 migration `20260419000300` 建表并接 `apply_wallet_mutation` RPC。**
+3. ~~当前移动端 `/billing/points`、`/billing/wallet`、`/billing/ledger` 仍走 `member_service`。~~ **【已过期】三条读链已切到 `wallet_service`（`mobile.py:1996/2014/2048`）。**
+4. 当前鉴权直接信 token 内的 `uid/sub`，没有 alias -> UUID 归一化层。 **【部分过期/待确认】钱包查找用 `_resolve_wallet_lookup_user_id`；WP2 要求的独立 `identity.py` + 影子ID hard-fail 是否完整落地待确认。**
 5. 当前会话、notebook、learner_state、heartbeat 等状态仍大量按 legacy `user_id` 挂接。
 6. 小程序本地仍缓存 `auth_token` 和 `auth_user_id`。
 
