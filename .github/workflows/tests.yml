@@ -204,11 +204,18 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-3.11-
 
-      - name: Install smoke test dependencies
+      - name: Install full-tree test dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements/server.txt
-          pip install pytest pytest-asyncio
+          # The hermetic full tree spans the whole codebase, so install the
+          # full runtime + test dep set, not just server.txt:
+          #   tutorbot.txt → -r server.txt → -r cli.txt, plus loguru and the
+          #     agent-engine deps the tutorbot tests import.
+          #   dev.txt → pytest/pytest-asyncio + jsonschema (observability test).
+          # A missing dep here would surface as a collection ImportError and fail
+          # the whole gate — exactly the silent-gap the full tree is meant to catch.
+          pip install -r requirements/tutorbot.txt
+          pip install -r requirements/dev.txt
 
       - name: Create minimal runtime config
         run: |
@@ -276,11 +283,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-3.11-
 
-      - name: Install test dependencies
+      - name: Install full-tree test dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements/server.txt
-          pip install pytest pytest-asyncio
+          pip install -r requirements/tutorbot.txt
+          pip install -r requirements/dev.txt
 
       - name: Create minimal runtime config
         run: |
