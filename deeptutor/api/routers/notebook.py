@@ -6,18 +6,19 @@ Provides notebook creation, querying, updating, deletion, and record management 
 import json
 from typing import AsyncGenerator, Literal
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from deeptutor.api.dependencies import AuthContext, get_current_user
 from deeptutor.agents.notebook import NotebookSummarizeAgent
-from deeptutor.services.session import build_user_owner_key
+from deeptutor.api._secure_router import secure_router
+from deeptutor.api.dependencies import AuthContext, get_current_user
 from deeptutor.services.notebook import notebook_manager
 from deeptutor.services.notebook_card.service import get_notebook_card_service
+from deeptutor.services.session import build_user_owner_key
 from deeptutor.utils.error_utils import public_error_detail
 
-router = APIRouter(dependencies=[Depends(get_current_user)])
+router = secure_router(tags=["notebook"])
 
 
 # === Request/Response Models ===
