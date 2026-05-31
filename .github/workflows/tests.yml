@@ -186,6 +186,10 @@ jobs:
     name: Full Test Tree (Python 3.11)
     runs-on: ubuntu-latest
     needs: import-check
+    # Backstop: the hermetic tree runs ~12-20 min; cap the job so a hang can
+    # never burn the default 6h. Per-test --timeout below fails the offending
+    # test fast with a thread dump well before this cap.
+    timeout-minutes: 30
 
     steps:
       - name: Checkout code
@@ -252,7 +256,12 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
           echo "::notice::Hermetic gate excludes ${ext} requires_external + ${qweb} quarantine_web_drift + ${qasmt} quarantine_assessment_drift test(s); all are run/reported in their own jobs, never silently skipped."
           echo "🧪 Running hermetic full test tree (excluding the markers above)"
-          pytest -q --import-mode=importlib -m "$EXCLUDE" tests/
+          # --timeout: no hermetic test legitimately runs >90s (local slowest ~6s);
+          # a hung test fails fast and the thread method dumps every thread's stack
+          # so CI logs pinpoint the offender instead of stalling silently.
+          pytest -q --import-mode=importlib \
+            --timeout=90 --timeout-method=thread \
+            -m "$EXCLUDE" tests/
         env:
           PYTHONPATH: ${{ github.workspace }}
 
