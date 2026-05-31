@@ -18,24 +18,6 @@ import pytest
 
 
 @pytest.fixture(autouse=True)
-def _isolate_external_auth_store(tmp_path_factory, monkeypatch):
-    """Point external-auth users/sessions files at a writable per-test tmp dir.
-
-    The production defaults are absolute container paths
-    (``/app/data/user/external_auth`` and the legacy ``/root/luban/.storage``).
-    A test that exercises external-auth writeback without overriding the path
-    targets those prod paths — readable/writable on a developer machine whose
-    .env points elsewhere, but a PermissionError on a hermetic CI runner that
-    cannot touch ``/root`` or ``/app``. Default both files to tmp so no test
-    writes outside its sandbox; tests that set their own override still win
-    because their ``monkeypatch.setenv`` runs after this autouse fixture.
-    """
-    store_dir = tmp_path_factory.mktemp("external_auth_store")
-    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(store_dir / "users.json"))
-    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_SESSIONS_FILE", str(store_dir / "sessions.json"))
-
-
-@pytest.fixture(autouse=True)
 def _reset_path_service_singleton():
     """Reset the ``PathService`` process singleton around each test.
 
