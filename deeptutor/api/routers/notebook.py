@@ -15,6 +15,7 @@ from deeptutor.api._secure_router import secure_router
 from deeptutor.api.dependencies import AuthContext, get_current_user
 from deeptutor.services.notebook import notebook_manager
 from deeptutor.services.notebook_card.service import get_notebook_card_service
+from deeptutor.services.notebook_card.store import OptimisticConcurrencyError
 from deeptutor.services.session import build_user_owner_key
 from deeptutor.utils.error_utils import public_error_detail
 
@@ -70,6 +71,13 @@ class UpdateRecordRequest(BaseModel):
     output: str | None = None
     metadata: dict | None = None
     kb_name: str | None = None
+
+
+class CardPatchRequest(BaseModel):
+    """学习卡片乐观并发编辑请求（expected_version 来自上次读取的 version / If-Match）。"""
+
+    expected_version: int
+    patch: dict = {}
 
 
 # === API Endpoints ===
@@ -419,6 +427,47 @@ async def update_record(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=public_error_detail("Notebook operation"))
+
+
+@router.patch("/cards/{note_id}")
+async def update_notebook_card(
+    note_id: str,
+    request: CardPatchRequest,
+    current_user: AuthContext = Depends(get_current_user),
+):
+    """编辑学习卡片（乐观并发：stale version → 409）。走 NotebookCardService，不新增 cards writer。"""
+    try:
+        updated = await get_notebook_card_service().update_card(
+            user_id=current_user.user_id,
+            note_id=note_id,
+            expected_version=int(request.expected_version),
+            patch=dict(request.patch or {}),
+        )
+        return {"success": True, "card": updated}
+    except OptimisticConcurrencyError:
+        raise HTTPException(status_code=409, detail="card was modified by another device; reload and retry")
+    except KeyError:
+        raise HTTPException(status_code=404, detail="card not found")
+
+
+@router.delete("/cards/{note_id}")
+async def delete_notebook_card(
+    note_id: str,
+    expected_version: int,
+    current_user: AuthContext = Depends(get_current_user),
+):
+    """软删学习卡片（archived_at；乐观并发：stale version → 409）。"""
+    try:
+        deleted = await get_notebook_card_service().delete_card(
+            user_id=current_user.user_id,
+            note_id=note_id,
+            expected_version=int(expected_version),
+        )
+        return {"success": True, "card": deleted}
+    except OptimisticConcurrencyError:
+        raise HTTPException(status_code=409, detail="card was modified by another device; reload and retry")
+    except KeyError:
+        raise HTTPException(status_code=404, detail="card not found")
 
 
 @router.get("/health")
