@@ -34,12 +34,28 @@ def _allow_legacy_external_auth_default() -> bool:
     return env_flag("DEEPTUTOR_EXTERNAL_AUTH_ALLOW_LEGACY_DEFAULT", default=False)
 
 
+def _path_exists_safe(path: Path) -> bool:
+    """``Path.exists`` that treats an inaccessible path as non-existent.
+
+    The legacy default lives under ``/root`` (the production container's home).
+    A non-root process — CI runners, or a hardened prod deployment — gets
+    ``PermissionError`` from ``os.stat`` on it, which previously propagated out
+    of the eagerly-evaluated default argument in ``_resolve_*_file_for_write``
+    and crashed even callers that had set an explicit override. Inaccessible
+    means "not a usable default", so swallow the OSError and report absent.
+    """
+    try:
+        return path.exists()
+    except OSError:
+        return False
+
+
 def _default_users_file() -> Path | None:
     candidates = [_PRIMARY_USERS_FILE]
     if _allow_legacy_external_auth_default():
         candidates.append(_LEGACY_USERS_FILE)
     for path in candidates:
-        if path.exists():
+        if _path_exists_safe(path):
             return path
     return None
 
@@ -49,7 +65,7 @@ def _default_sessions_file() -> Path | None:
     if _allow_legacy_external_auth_default():
         candidates.append(_LEGACY_SESSIONS_FILE)
     for path in candidates:
-        if path.exists():
+        if _path_exists_safe(path):
             return path
     return None
 

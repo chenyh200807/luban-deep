@@ -6,9 +6,11 @@
 
 ## 目标
 
-把 CI 必过门（required gate）从手挑 allowlist 升级为 `pytest tests/` **全目录**，消除"整目录静默漏跑"。全树 2968 测试中：
-- **2953 个 hermetic** → 进 required gate（`-m "not requires_external and not quarantine_web_drift and not quarantine_assessment_drift"`），本地干净环境 `2953 passed, 1 skipped, 14 deselected` 全绿才放行。
-- **14 个被显式排除**，每一个都有 marker、有 log、有 owner，**绝不静默 skip**。
+把 CI 必过门（required gate）从手挑 allowlist 升级为 `pytest tests/` **全目录**，消除"整目录静默漏跑"。全树 ~2978 测试中：
+- **~2963 个 hermetic** → 进 required gate（`-m "not requires_external and not quarantine_web_drift and not quarantine_assessment_drift and not quarantine_ci_skill_divergence"`）。
+- **15 个被显式排除**，每一个都有 marker、有 log、有 owner，**绝不静默 skip**。
+
+> 注：本地（macOS + 开发机 `.env`）干净跑 `2953 passed`，但 CI（Linux + 无 `.env`）暴露出**本地看不到的 6 个失败**——正是全树升级要抓的"开发机 `.env` 掩盖"类。其中 5 个已 §5 治本（见下"CI 暴露"节），1 个 quarantine。
 
 ## 非目标
 
@@ -63,11 +65,27 @@
 | `tests/services/test_config_loader.py::test_load_config_with_main_uses_explicit_project_root` | PathService 进程单例被前置测试用 tmp dir 构建后缓存 → `tests/conftest.py` autouse 每测试 reset |
 | `tests/api/test_auth_dependency.py::test_get_current_user_resets_bound_user_context_between_requests` | log-context ContextVar 泄漏 + auth flow 打 live Supabase identity store → conftest 重置 contextvar + 测试 mock `get_wallet_identity_store` |
 
+## CI 首次真执行暴露的失败（本地 dev `.env` 掩盖，6 个）
+
+把 allowlist 升级为全树后，CI（Linux + 无 `.env`）首次真跑全树，暴露出本地（macOS + 开发机 `.env`）看不到的 6 个失败。这正是 M9 升级的价值——旧 allowlist 把这些一起漏跑了。
+
+**§5 治本（5 个 PermissionError，留 required gate 内）**
+
+| 失败 | 根因（治本） |
+|---|---|
+| `member_console/test_service.py` 5 个 external-auth 测试 `PermissionError: /root/luban/.storage/users.json` | **生产真 bug**：`_resolve_users_file_for_write` 调 `_env_path("...", _default_users_file())`，默认参数 `_default_users_file()` 被**急切求值**，对 legacy `/root` 路径调 `.exists()` 抛 PermissionError（非 root 进程不可访问），**即使调用方设了 override 也照崩** → 修 `_default_users_file/_default_sessions_file` 用 `_path_exists_safe`（OSError→视为不存在）。再加 `tests/conftest.py` autouse 把 external-auth 文件指向 per-test tmp（hermetic：测试不碰 `/root`、`/app` 生产路径）。 |
+
+**Quarantine（1 个，HIGH——可能是真生产 skill 加载 bug）**
+
+| 测试 | marker | 说明 |
+|---|---|---|
+| `tests/core/test_capabilities_runtime.py::test_tutorbot_progressive_skills_load_construction_scene_for_fast_and_deep` | `quarantine_ci_skill_divergence` | 本地全树过，CI 干净环境失败：deep 模式 `deep-question` skill **没进 skill_stack**。已排除：非缺文件（`deep-question/SKILL.md` 已入库）、非 order 污染（本地全树过）、非 creds（无-creds 模拟不复现）、`looks_like_practice_generation_request` 是纯文本判断两端同为 True、无 env flag 门控。🔴 **HIGH**：CI 干净环境 = 生产干净环境，若 deep-question 在干净环境真不加载，**生产用户深问练题可能也丢这个 skill**。交 tutorbot owner 确认是真 bug 还是仅测试环境耦合，**不盲改断言固化**。 |
+
 ## 验收标准
 
 - required gate（`smoke-tests` job）= hermetic 全树绿，排除项数显式打进 `$GITHUB_STEP_SUMMARY` + `::notice::`（no silent caps）。
-- `quarantine-advisory` job 仍执行 + 报告 10 个隔离测试，结果显示在 Test Summary 表，但**不进** test-summary 的 Fail-if → 可见、不阻断。
-- 14 个排除项全部有 marker + 本 backlog 条目。
+- `quarantine-advisory` job 仍执行 + 报告 11 个隔离测试（9 web + 1 assessment + 1 skill），结果显示在 Test Summary 表，但**不进** test-summary 的 Fail-if → 可见、不阻断。
+- 15 个排除项全部有 marker + 本 backlog 条目。
 
 ## M9 翻 required full-green 的前置依赖
 

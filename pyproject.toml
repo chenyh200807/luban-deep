@@ -232,6 +232,7 @@ markers = [
     "requires_external: needs a real external service or host layout (live Supabase / network / a specific .venv subprocess); excluded from the hermetic required CI gate and logged explicitly",
     "quarantine_web_drift: web tests broken by in-flight parallel BI/web work; run advisory (executed + reported) but kept out of the required gate until the web owner fixes the drift",
     "quarantine_assessment_drift: assessment test whose expectation diverged from code after the taxonomy-authority unification; advisory (executed + reported), kept out of the required gate until the assessment owner confirms intentional vs regression",
+    "quarantine_ci_skill_divergence: tutorbot skill-loading test that passes locally but fails on a clean CI runner (deep-question skill not entering the deep-mode stack); advisory until the tutorbot owner confirms whether this is a real clean-environment skill-loading bug",
 ]
 asyncio_default_fixture_loop_scope = "function"
 addopts = [
