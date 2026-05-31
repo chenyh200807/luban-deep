@@ -1998,21 +1998,31 @@ class LearnerStateService:
         scored.sort(key=lambda item: (-item[0], item[1]))
         candidates: list[dict[str, Any]] = []
         for score, _rank, event, text in scored[:max_hits]:
-            candidates.append(
-                {
-                    "source_tag": "memory_hit",
-                    "content": text,
-                    "score": round(float(score), 3),
-                    "metadata": {
-                        "event_id": event.event_id,
-                        "source_feature": event.source_feature,
-                        "source_id": event.source_id,
-                        "memory_kind": event.memory_kind,
-                        "source_bot_id": event.source_bot_id,
-                        "created_at": event.created_at,
-                    },
-                }
-            )
+            # 学员自记笔记（notebook_* 事件 / metadata.source_label=student_note）：打
+            # student_note 标签 + 降权 + 文案前缀，避免主观笔记被当作已掌握证据注入
+            # （PRD §1.2 / §5）。Surgical：其余 memory_hit 行为不变。
+            payload = getattr(event, "payload_json", None) or {}
+            meta_label = ""
+            if isinstance(payload, dict) and isinstance(payload.get("metadata"), dict):
+                meta_label = str(payload["metadata"].get("source_label") or "").strip()
+            is_student_note = str(event.memory_kind or "").startswith("notebook_") or meta_label == "student_note"
+            candidate: dict[str, Any] = {
+                "source_tag": "memory_hit",
+                "content": ("（学员自记，不代表已掌握）" + text) if is_student_note else text,
+                "score": round(float(score), 3),
+                "metadata": {
+                    "event_id": event.event_id,
+                    "source_feature": event.source_feature,
+                    "source_id": event.source_id,
+                    "memory_kind": event.memory_kind,
+                    "source_bot_id": event.source_bot_id,
+                    "created_at": event.created_at,
+                },
+            }
+            if is_student_note:
+                candidate["source_label"] = "student_note"
+                candidate["weight"] = 0.4
+            candidates.append(candidate)
         return candidates
 
     @staticmethod

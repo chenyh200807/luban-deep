@@ -192,6 +192,7 @@ P0A 不做以下事情：
 - `study_plan` 在 `training_intent` 之外另算推荐
 - `notebook_add -> refresh_from_turn -> _rewrite_summary`
 - `notebook_* -> compiled_learning_truth`
+- `manual_note -> bot_learner_overlay.working_memory_projection`
 - `notebook_card -> compiled_truth` 无 evidence 直接升格
 - `compiled_truth -> exact_question / standard / textbook authority` 覆盖
 - 新增独立 `gbrain` 入口、第二套 RAG 或第二套 learner memory
@@ -828,6 +829,7 @@ P0A 不新增第二套首页接口，不新增 planner CRUD，不新增 cards wr
 - 前端不得直接计算 mastery、错因置信度或处方推荐。
 - 手动笔记保存不写 `learner_memory_events.learning_evidence`。
 - 手动笔记允许写 `notebook_*` memory event 或 notebook record，但不得触发 `refresh_from_turn()`、`_rewrite_summary()` 或 compiled-truth refresh。
+- 保存手动卡片后，Bot-Learner Overlay 的 `working_memory_projection` / `local_notebook_scope_refs` 不被该卡片写入。
 - `mastery_effect=none` 只能是审计字段，不能作为主要安全边界。
 - 任务完成不直接写 mastery。
 - 训练、作答、复测结果仍走既有 grading / evidence writer。

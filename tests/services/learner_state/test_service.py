@@ -911,6 +911,22 @@ def test_learner_state_build_context_candidates_recall_includes_memory_hits(tmp_
     assert any("承载力和沉降控制" in item["content"] for item in candidates["memory_candidates"])
 
 
+def test_notebook_card_recall_is_labeled_student_note_and_downweighted(tmp_path) -> None:
+    service = _make_service(tmp_path)
+    asyncio.run(service.record_notebook_writeback(
+        user_id="student_demo", notebook_id="note_x", record_id="note_x", operation="card_add",
+        title="承载力和沉降控制", summary="先分清极限承载和正常使用阶段。",
+        user_query="回顾承载力", record_type="scoring_card", source_bot_id="bot_a",
+        metadata={"source_label": "student_note", "card_type": "scoring_card", "mastery_effect": "none"},
+    ))
+    candidates = service.build_context_candidates("student_demo", query="请回顾承载力和沉降控制", language="zh")
+    hits = [c for c in candidates["candidates"] if c.get("source_tag") == "memory_hit"]
+    assert hits, "应有 recall 命中"
+    assert all(h.get("source_label") == "student_note" for h in hits)
+    # 降权断言：student_note 命中权重不得高于普通 learning 证据默认权重
+    assert all(float(h.get("weight", 1.0)) <= 0.5 for h in hits)
+
+
 def test_learner_state_build_context_candidates_accepts_orchestration_route_aliases(tmp_path) -> None:
     service = _make_service(tmp_path)
     service.record_turn_event(

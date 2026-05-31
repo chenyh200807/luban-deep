@@ -210,6 +210,11 @@ Overlay 必须支持：
 - 兼容历史 construction grading 事件：早期 `memory_kind="learning_evidence"` 但缺少
   `payload.event_type` 的 `source_feature="construction_grading"` 事件仍应被 read model
   读取；新写入事件必须带 `payload.event_type="learning_evidence"`。
+- 手动笔记/卡片来源的召回（recall）注入必须可识别且降权：`build_context_candidates`
+  对 `memory_kind` 以 `notebook_` 开头或 `payload.metadata.source_label="student_note"`
+  的命中，统一打顶层 `source_label="student_note"`、`weight ≤ 0.4`，并在注入文案前缀
+  「（学员自记，不代表已掌握）」。学员主观笔记只作低权重个性化上下文，**不得**被当作
+  已掌握证据、不得反向覆盖 learner state（PRD §1.2 / §5）。其余 `memory_hit` 候选行为不变。
 - Home dashboard 个性化只能读取 learner-state projection、同一 learner snapshot
   内最近的 canonical `learning_evidence`，或 starter pool。`member_console`
   请求路径不得同步运行完整 learning report，也不得根据 weak point 现场重新推导
