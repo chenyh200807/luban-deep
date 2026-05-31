@@ -58,6 +58,37 @@ def test_run_oa_load_json_accepts_raw_payload(tmp_path) -> None:
     assert OA_MODULE._load_json(str(target), expected_kind="oa_runs") == payload
 
 
+def test_daily_observability_uses_explicit_ws_smoke_token(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("DEEPTUTOR_UNIFIED_WS_SMOKE_TOKEN", "smoke-token")
+
+    assert (
+        DAILY_OBSERVABILITY_MODULE._resolve_unified_ws_smoke_token(api_base_url="http://127.0.0.1:8001")
+        == "smoke-token"
+    )
+
+
+def test_daily_observability_issues_local_canonical_ws_smoke_token(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("DEEPTUTOR_UNIFIED_WS_SMOKE_TOKEN", raising=False)
+    monkeypatch.delenv("DEEPTUTOR_WS_SMOKE_TOKEN", raising=False)
+
+    class _Service:
+        def _issue_access_token(self, **kwargs):
+            assert kwargs["user_id"] == "student_demo"
+            assert kwargs["canonical_uid"] == "student_demo"
+            assert kwargs["ttl_seconds"] == 300
+            return "signed-token"
+
+    monkeypatch.setattr(
+        "deeptutor.services.member_console.get_member_console_service",
+        lambda: _Service(),
+    )
+
+    assert (
+        DAILY_OBSERVABILITY_MODULE._resolve_unified_ws_smoke_token(api_base_url="http://127.0.0.1:8001")
+        == "signed-token"
+    )
+
+
 def test_run_oa_load_json_accepts_observer_snapshot_wrapper(tmp_path) -> None:
     payload = {"run_id": "observer-snapshot-1", "turn_events": {"event_count": 1}}
     wrapper = {
@@ -101,6 +132,21 @@ def test_run_release_gate_load_json_accepts_plan_completion_wrapper(tmp_path) ->
     target.write_text(json.dumps(wrapper, ensure_ascii=False), encoding="utf-8")
 
     assert RELEASE_GATE_MODULE._load_json(str(target), expected_kind="plan_completion_audits") == payload
+
+
+def test_run_release_gate_load_json_accepts_incident_wrapper(tmp_path) -> None:
+    payload = {"run_manifest": {"run_id": "incident-replay-1"}, "runtime_incidents": []}
+    wrapper = {
+        "kind": "incident_ledger",
+        "run_id": "incident-replay-1",
+        "release_id": "rel-1",
+        "recorded_at": 123,
+        "payload": payload,
+    }
+    target = tmp_path / "incident.json"
+    target.write_text(json.dumps(wrapper, ensure_ascii=False), encoding="utf-8")
+
+    assert RELEASE_GATE_MODULE._load_json(str(target), expected_kind="incident_ledger") == payload
 
 
 def test_run_release_gate_report_only_preserves_explicit_plan_completion_json(tmp_path, monkeypatch) -> None:
@@ -228,6 +274,7 @@ def test_run_release_gate_cli_fails_closed_without_canary(monkeypatch, tmp_path)
             arr_json=None,
             aae_json=None,
             oa_json=None,
+            incident_json=None,
             change_impact_json=None,
             plan_completion_json=None,
             report_only=False,

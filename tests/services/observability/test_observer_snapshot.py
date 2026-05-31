@@ -215,6 +215,32 @@ def test_build_observer_snapshot_collects_recent_conversation_and_backend_log_ev
     assert payload["recent_conversations"]["recent_sessions"][0]["last_user_excerpt"] == "我手机号是[PHONE]，帮我出题"
     assert payload["backend_logs"]["error_count"] == 1
     assert payload["backend_logs"]["warning_count"] == 1
+    assert payload["runtime_incidents"] == [
+        {
+            "incident_type": "supabase_primary_plan_exploded",
+            "component": "rag.supabase_pipeline",
+            "severity": "high",
+            "release_blocking": True,
+            "failure_taxonomy_hint": "FAIL_GROUNDEDNESS",
+            "summary": "SupabasePipeline primary plan 在 retrieval 主链路爆炸，当前 release 的 grounding 结果不可信。",
+            "repeat_count": 1,
+            "first_seen": "2026-04-23 10:01:00",
+            "last_seen": "2026-04-23 10:01:00",
+            "query_samples": [],
+            "related_source_groups": [],
+            "warning_reasons": [],
+            "evidence_samples": [
+                "2026-04-23 10:01:00 [ERROR   ] [SupabasePipeline] Supabase retrieval failed: primary plan exploded"
+            ],
+            "warning_samples": [],
+            "signature": "SupabasePipeline:primary_plan_exploded",
+            "benchmark_projection": {
+                "case_id": "runtime.supabase.primary_plan_exploded",
+                "recommended_tier": "incident_replay",
+                "contract_domain": "grounding_contract",
+            },
+        }
+    ]
     assert payload["langfuse_trace_linkage"]["trace_id_count"] == 1
     assert payload["data_sources"]["recent_conversations"]["has_data"] is True
     assert payload["data_sources"]["backend_logs"]["has_data"] is True

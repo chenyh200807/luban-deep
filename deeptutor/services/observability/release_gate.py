@@ -158,6 +158,7 @@ def _stale_input_names(
     om_payload: dict[str, Any] | None,
     arr_payload: dict[str, Any] | None,
     benchmark_payload: dict[str, Any] | None,
+    incident_payload: dict[str, Any] | None,
     aae_payload: dict[str, Any] | None,
     oa_payload: dict[str, Any] | None,
     change_impact_payload: dict[str, Any] | None,
@@ -171,6 +172,7 @@ def _stale_input_names(
         ("om", om_payload),
         ("arr", arr_payload),
         ("benchmark", benchmark_payload),
+        ("incident", incident_payload),
         ("aae", aae_payload),
         ("oa", oa_payload),
         ("change_impact", change_impact_payload),
@@ -187,6 +189,7 @@ def build_release_gate_report(
     om_payload: dict[str, Any] | None,
     arr_payload: dict[str, Any] | None,
     benchmark_payload: dict[str, Any] | None = None,
+    incident_payload: dict[str, Any] | None = None,
     aae_payload: dict[str, Any] | None,
     oa_payload: dict[str, Any] | None,
     change_impact_payload: dict[str, Any] | None = None,
@@ -256,6 +259,8 @@ def build_release_gate_report(
     benchmark_manifest = canonical_benchmark_manifest or embedded_benchmark_manifest
     benchmark_case_results = (benchmark_payload or {}).get("case_results") or (arr_payload or {}).get("benchmark_case_results") or []
     benchmark_blind_spots = (benchmark_payload or {}).get("blind_spots") or (arr_payload or {}).get("blind_spots") or []
+    runtime_incidents = (incident_payload or {}).get("runtime_incidents") or []
+    blocking_runtime_incidents = [item for item in runtime_incidents if bool(item.get("release_blocking"))]
     arr_summary = (arr_payload or {}).get("summary") or {}
     benchmark_summary = (benchmark_payload or {}).get("summary") or {}
     arr_diff = (benchmark_payload or {}).get("baseline_diff") or (arr_payload or {}).get("baseline_diff") or {}
@@ -306,6 +311,10 @@ def build_release_gate_report(
             p2_status = _FAIL
             p2_summary = "benchmark 出现新增 regression 或 new failure"
             p2_blockers.append("new_benchmark_regression")
+        elif p2_status != _FAIL and blocking_runtime_incidents:
+            p2_status = _FAIL
+            p2_summary = "incident replay 捕获到 blocking runtime incident"
+            p2_blockers.append("incident_replay_runtime_regression")
         elif p2_status != _FAIL and isinstance(pass_rate, (int, float)) and float(pass_rate) < 0.9:
             p2_status = _WARN
             p2_summary = "benchmark pass rate 偏低，但当前没有新增 regression"
@@ -323,6 +332,8 @@ def build_release_gate_report(
                 f"gate_failures={len(gate_failures)}",
                 f"gate_skips={len(gate_skips)}",
                 f"long_dialog_live_ws={live_ws_ready}",
+                f"incident_run_id={((incident_payload or {}).get('run_manifest') or {}).get('run_id')}",
+                f"blocking_runtime_incidents={len(blocking_runtime_incidents)}",
             ],
             blockers=p2_blockers,
         )
@@ -483,6 +494,7 @@ def build_release_gate_report(
         om_payload=om_payload,
         arr_payload=arr_payload,
         benchmark_payload=benchmark_payload,
+        incident_payload=incident_payload,
         aae_payload=aae_payload,
         oa_payload=oa_payload,
         change_impact_payload=change_impact_payload,
@@ -514,5 +526,6 @@ def build_release_gate_report(
             "oa_run_id": (oa_payload or {}).get("run_id"),
             "change_impact_run_id": (change_impact_payload or {}).get("run_id"),
             "plan_completion_run_id": (plan_completion_payload or {}).get("run_id"),
+            "incident_run_id": ((incident_payload or {}).get("run_manifest") or {}).get("run_id"),
         },
     }

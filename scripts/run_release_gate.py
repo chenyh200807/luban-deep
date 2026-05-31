@@ -193,6 +193,7 @@ def main() -> None:
     parser.add_argument("--arr-json")
     parser.add_argument("--aae-json")
     parser.add_argument("--oa-json")
+    parser.add_argument("--incident-json")
     parser.add_argument("--change-impact-json")
     parser.add_argument("--plan-completion-json")
     parser.add_argument(
@@ -203,11 +204,15 @@ def main() -> None:
     args = parser.parse_args()
 
     current_release = get_release_lineage_snapshot()
-    explicit_om_payload = _load_json(args.om_json, expected_kind="om_runs")
-    explicit_arr_payload = _load_json(args.arr_json, expected_kind="arr_runs")
-    explicit_aae_payload = _load_json(args.aae_json, expected_kind="aae_composite_runs")
-    explicit_oa_payload = _load_json(args.oa_json, expected_kind="oa_runs")
-    explicit_change_impact_payload = _load_json(args.change_impact_json, expected_kind="change_impact_runs")
+    explicit_om_payload = _load_json(getattr(args, "om_json", None), expected_kind="om_runs")
+    explicit_arr_payload = _load_json(getattr(args, "arr_json", None), expected_kind="arr_runs")
+    explicit_aae_payload = _load_json(getattr(args, "aae_json", None), expected_kind="aae_composite_runs")
+    explicit_oa_payload = _load_json(getattr(args, "oa_json", None), expected_kind="oa_runs")
+    explicit_incident_payload = _load_json(getattr(args, "incident_json", None), expected_kind="incident_ledger")
+    explicit_change_impact_payload = _load_json(
+        getattr(args, "change_impact_json", None),
+        expected_kind="change_impact_runs",
+    )
     scoped_report_only_inputs = args.report_only and _should_scope_report_only_inputs(current_release)
     if scoped_report_only_inputs:
         om_payload = explicit_om_payload or _ensure_report_only_om_payload(
@@ -216,6 +221,11 @@ def main() -> None:
         )
         arr_payload = explicit_arr_payload or _load_store_payload_for_release("arr_runs", release=current_release)
         benchmark_payload = _load_store_payload_for_release("benchmark_runs", release=current_release, fallback=False)
+        incident_payload = explicit_incident_payload or _load_store_payload_for_release(
+            "incident_ledger",
+            release=current_release,
+            fallback=False,
+        )
         aae_payload = explicit_aae_payload or _load_store_payload_for_release("aae_composite_runs", release=current_release)
         oa_payload = explicit_oa_payload or _load_store_payload_for_release("oa_runs", release=current_release)
         change_impact_payload = explicit_change_impact_payload or _load_store_payload_for_release(
@@ -226,10 +236,14 @@ def main() -> None:
         om_payload = explicit_om_payload or _load_store_payload("om_runs")
         arr_payload = explicit_arr_payload or _load_store_payload("arr_runs")
         benchmark_payload = _load_store_payload("benchmark_runs", fallback=False)
+        incident_payload = explicit_incident_payload or _load_store_payload("incident_ledger", fallback=False)
         aae_payload = explicit_aae_payload or _load_store_payload("aae_composite_runs")
         oa_payload = explicit_oa_payload or _load_store_payload("oa_runs")
         change_impact_payload = explicit_change_impact_payload or _load_store_payload("change_impact_runs")
-    explicit_plan_completion_payload = _load_json(args.plan_completion_json, expected_kind="plan_completion_audits")
+    explicit_plan_completion_payload = _load_json(
+        getattr(args, "plan_completion_json", None),
+        expected_kind="plan_completion_audits",
+    )
     plan_completion_payload = explicit_plan_completion_payload or (
         _load_store_payload_for_release("plan_completion_audits", release=current_release)
         if scoped_report_only_inputs
@@ -244,6 +258,7 @@ def main() -> None:
         om_payload=om_payload,
         arr_payload=arr_payload,
         benchmark_payload=benchmark_payload,
+        incident_payload=incident_payload,
         aae_payload=aae_payload,
         oa_payload=oa_payload,
         change_impact_payload=change_impact_payload,

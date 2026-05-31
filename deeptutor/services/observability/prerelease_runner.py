@@ -269,11 +269,13 @@ def run_prerelease_observability(
     )
 
     plan_completion_payload = get_control_plane_store().latest_payload("plan_completion_audits")
+    incident_payload = get_control_plane_store().latest_payload("incident_ledger", fallback=False)
 
     release_gate_payload = build_release_gate_report(
         om_payload=om_payload,
         arr_payload=arr_payload,
         benchmark_payload=persisted_benchmark_payload,
+        incident_payload=incident_payload,
         aae_payload=aae_payload,
         oa_payload=oa_payload,
         change_impact_payload=persisted_change_impact_payload,

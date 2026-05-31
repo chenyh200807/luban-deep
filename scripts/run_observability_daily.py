@@ -6,11 +6,13 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
 import subprocess
 import sys
 import time
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 import httpx
 
@@ -165,12 +167,14 @@ def _ensure_om_payload(
 
 
 def _run_unified_ws_smoke_check(*, api_base_url: str, timeout_seconds: float) -> dict[str, Any]:
+    auth_token = _resolve_unified_ws_smoke_token(api_base_url=api_base_url)
     try:
         payload = asyncio.run(
             run_unified_ws_smoke(
                 api_base_url=api_base_url,
                 message="请只回复 ok。",
                 language="zh",
+                auth_token=auth_token,
                 timeout_seconds=timeout_seconds,
             )
         )
@@ -194,11 +198,40 @@ def _run_unified_ws_smoke_check(*, api_base_url: str, timeout_seconds: float) ->
             f"run_id={payload.get('run_id')}",
             f"api_base_url={payload.get('api_base_url')}",
             f"ws_url={payload.get('ws_url')}",
+            f"auth_configured={bool(payload.get('auth_configured'))}",
             f"terminal={terminal.get('type')}",
             f"message_count={len(messages)}",
             f"duration_ms={payload.get('duration_ms')}",
         ],
     }
+
+
+def _resolve_unified_ws_smoke_token(*, api_base_url: str) -> str:
+    explicit = str(
+        os.getenv("DEEPTUTOR_UNIFIED_WS_SMOKE_TOKEN")
+        or os.getenv("DEEPTUTOR_WS_SMOKE_TOKEN")
+        or ""
+    ).strip()
+    if explicit:
+        return explicit
+
+    parsed = urlparse(api_base_url)
+    if parsed.hostname in {"127.0.0.1", "localhost", "::1"}:
+        try:
+            from deeptutor.services.member_console import get_member_console_service
+
+            issuer = getattr(get_member_console_service(), "_issue_access_token", None)
+            if callable(issuer):
+                return str(
+                    issuer(
+                        user_id="student_demo",
+                        canonical_uid="student_demo",
+                        ttl_seconds=300,
+                    )
+                )
+        except Exception:
+            return "demo-token-student_demo"
+    return ""
 
 
 def _ensure_benchmark_payload(
@@ -508,10 +541,12 @@ def main() -> None:
         output_dir=output_dir,
         base_ref=args.base_ref,
     )
+    incident_payload = _current_release_payload(store, "incident_ledger", release=current_release)
     gate_payload = build_release_gate_report(
         om_payload=om_payload,
         arr_payload=arr_payload,
         benchmark_payload=benchmark_payload,
+        incident_payload=incident_payload,
         aae_payload=aae_payload,
         oa_payload=oa_payload,
         change_impact_payload=change_impact_payload,

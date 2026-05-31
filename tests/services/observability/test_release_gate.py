@@ -94,6 +94,53 @@ def test_release_gate_report_marks_fail_and_warn_correctly(monkeypatch) -> None:
     assert "new_benchmark_regression" in payload["blockers"]
 
 
+def test_release_gate_blocks_on_incident_replay_runtime_incident() -> None:
+    release = {
+        "release_id": "rel-1",
+        "git_sha": "abc",
+        "deployment_environment": "prod",
+        "prompt_version": "p1",
+        "ff_snapshot_hash": "ff1",
+        "git_dirty": "false",
+        "deploy_manifest_hash": "manifest1",
+    }
+    payload = build_release_gate_report(
+        om_payload={
+            "run_id": "om-1",
+            "release": dict(release),
+            "health_summary": {"ready": True, "unified_ws_smoke_ok": True},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload=None,
+        benchmark_payload=_canonical_benchmark_payload(release=release),
+        incident_payload={
+            "run_manifest": {"run_id": "incident-replay-1"},
+            "release_spine": dict(release),
+            "runtime_incidents": [
+                {
+                    "incident_type": "supabase_primary_plan_exploded",
+                    "summary": "Supabase primary plan exploded",
+                    "release_blocking": True,
+                }
+            ],
+        },
+        aae_payload=None,
+        oa_payload={"run_id": "oa-1", "blind_spots": [], "root_causes": []},
+        plan_completion_payload={
+            "run_id": "plan-completion-1",
+            "release": dict(release),
+            "status": "PASS",
+            "summary": {"total": 1, "done": 1, "partial": 0, "not_done": 0, "unverifiable": 0},
+            "warnings": [],
+        },
+    )
+
+    p2 = next(item for item in payload["gate_results"] if item["gate"] == "P2 Benchmark Regression")
+    assert p2["status"] == "FAIL"
+    assert "incident_replay_runtime_regression" in payload["blockers"]
+    assert payload["latest_runs"]["incident_run_id"] == "incident-replay-1"
+
+
 def test_release_gate_report_fails_when_unified_ws_smoke_failed() -> None:
     payload = build_release_gate_report(
         om_payload={

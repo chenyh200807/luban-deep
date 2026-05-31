@@ -17,6 +17,9 @@ from deeptutor.services.observability.release_lineage import get_release_lineage
 from deeptutor.services.observability.surface_events import get_surface_event_store
 from deeptutor.services.observability.turn_event_log import TurnEventLog
 from deeptutor.services.observability.turn_event_log import get_turn_event_log
+from deeptutor.services.observability.runtime_incidents import (
+    classify_runtime_incidents_from_backend_logs,
+)
 from deeptutor.services.path_service import get_path_service
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
@@ -480,6 +483,7 @@ def build_observer_snapshot(
         days=event_days,
         tail_lines=backend_log_tail_lines,
     )
+    runtime_incidents = classify_runtime_incidents_from_backend_logs(backend_logs)
     trace_linkage = _build_trace_linkage_snapshot(turn_events)
     surface_payload = surface_snapshot if isinstance(surface_snapshot, dict) else get_surface_event_store().snapshot()
     surface_coverage = surface_payload.get("coverage") if isinstance(surface_payload, dict) else []
@@ -643,6 +647,7 @@ def build_observer_snapshot(
         "turn_event_log": turn_log_stats,
         "recent_conversations": recent_conversations,
         "backend_logs": backend_logs,
+        "runtime_incidents": runtime_incidents,
         "langfuse_trace_linkage": trace_linkage,
         "source_runs": {
             "om_run_id": (om_payload or {}).get("run_id"),
@@ -663,6 +668,7 @@ def build_observer_snapshot(
             "live_metrics_snapshot": metrics_snapshot or {},
             "recent_conversations": recent_conversations,
             "backend_logs": backend_logs,
+            "runtime_incidents": runtime_incidents,
             "langfuse_trace_linkage": trace_linkage,
         },
     }
