@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import time
 import sys
 from pathlib import Path
@@ -35,9 +36,29 @@ def _load_store_payload(kind: str, *, fallback: bool = True) -> dict | None:
     return get_control_plane_store().latest_payload(kind, fallback=fallback)
 
 
+def _load_store_payload_for_release(kind: str, *, release: dict, fallback: bool = True) -> dict | None:
+    store = get_control_plane_store()
+    try:
+        records = store.list_runs(kind, limit=100)
+    except (FileNotFoundError, TypeError, ValueError):
+        records = []
+    for record in records:
+        payload = (record or {}).get("payload")
+        if isinstance(payload, dict) and _same_release_spine(release, _payload_release(payload)):
+            return payload
+
+    payload = _load_store_payload(kind, fallback=fallback)
+    if isinstance(payload, dict) and _same_release_spine(release, _payload_release(payload)):
+        return payload
+    return None
+
+
 def _payload_release(payload: dict | None) -> dict:
     release = (payload or {}).get("release")
-    return release if isinstance(release, dict) else {}
+    if isinstance(release, dict) and release:
+        return release
+    release_spine = (payload or {}).get("release_spine")
+    return release_spine if isinstance(release_spine, dict) else {}
 
 
 def _same_release_spine(expected: dict, actual: dict) -> bool:
@@ -49,6 +70,19 @@ def _same_release_spine(expected: dict, actual: dict) -> bool:
     if not expected_values:
         return True
     return all(str((actual or {}).get(key) or "").strip() == value for key, value in expected_values.items())
+
+
+def _should_scope_report_only_inputs(release: dict) -> bool:
+    return any(
+        bool(os.getenv(name))
+        for name in (
+            "DEEPTUTOR_RELEASE_ID",
+            "RELEASE_ID",
+            "DEEPTUTOR_ENV",
+            "APP_ENV",
+            "ENVIRONMENT",
+        )
+    )
 
 
 def _build_report_only_plan_completion_payload(*, release: dict) -> dict:
@@ -77,6 +111,39 @@ def _build_report_only_plan_completion_payload(*, release: dict) -> dict:
         "blockers": [],
         "warnings": ["plan_completion_report_only_placeholder"],
     }
+
+
+def _build_report_only_om_payload(*, release: dict) -> dict:
+    return {
+        "run_id": f"om-report-only-{int(time.time())}",
+        "generated_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "release": dict(release or {}),
+        "health_summary": {
+            "ready": True,
+            "unified_ws_smoke_ok": None,
+            "orphaned_turns": 0,
+        },
+        "metrics_snapshot": {"surface_events": {"coverage": []}},
+        "smoke_checks": [],
+        "warnings": ["om_report_only_placeholder"],
+    }
+
+
+def _ensure_report_only_om_payload(
+    *,
+    existing_payload: dict | None,
+    release: dict,
+) -> dict | None:
+    if existing_payload is not None and _same_release_spine(release, _payload_release(existing_payload)):
+        return existing_payload
+    payload = _build_report_only_om_payload(release=release)
+    get_control_plane_store().write_run(
+        kind="om_runs",
+        run_id=payload["run_id"],
+        release_id=str((payload.get("release") or {}).get("release_id") or ""),
+        payload=payload,
+    )
+    return payload
 
 
 def _ensure_report_only_plan_completion_payload(
@@ -135,15 +202,39 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    om_payload = _load_json(args.om_json, expected_kind="om_runs") or _load_store_payload("om_runs")
-    arr_payload = _load_json(args.arr_json, expected_kind="arr_runs") or _load_store_payload("arr_runs")
-    benchmark_payload = _load_store_payload("benchmark_runs", fallback=False)
-    aae_payload = _load_json(args.aae_json, expected_kind="aae_composite_runs") or _load_store_payload("aae_composite_runs")
-    oa_payload = _load_json(args.oa_json, expected_kind="oa_runs") or _load_store_payload("oa_runs")
-    change_impact_payload = _load_json(args.change_impact_json, expected_kind="change_impact_runs") or _load_store_payload("change_impact_runs")
     current_release = get_release_lineage_snapshot()
+    explicit_om_payload = _load_json(args.om_json, expected_kind="om_runs")
+    explicit_arr_payload = _load_json(args.arr_json, expected_kind="arr_runs")
+    explicit_aae_payload = _load_json(args.aae_json, expected_kind="aae_composite_runs")
+    explicit_oa_payload = _load_json(args.oa_json, expected_kind="oa_runs")
+    explicit_change_impact_payload = _load_json(args.change_impact_json, expected_kind="change_impact_runs")
+    scoped_report_only_inputs = args.report_only and _should_scope_report_only_inputs(current_release)
+    if scoped_report_only_inputs:
+        om_payload = explicit_om_payload or _ensure_report_only_om_payload(
+            existing_payload=_load_store_payload_for_release("om_runs", release=current_release),
+            release=current_release,
+        )
+        arr_payload = explicit_arr_payload or _load_store_payload_for_release("arr_runs", release=current_release)
+        benchmark_payload = _load_store_payload_for_release("benchmark_runs", release=current_release, fallback=False)
+        aae_payload = explicit_aae_payload or _load_store_payload_for_release("aae_composite_runs", release=current_release)
+        oa_payload = explicit_oa_payload or _load_store_payload_for_release("oa_runs", release=current_release)
+        change_impact_payload = explicit_change_impact_payload or _load_store_payload_for_release(
+            "change_impact_runs",
+            release=current_release,
+        )
+    else:
+        om_payload = explicit_om_payload or _load_store_payload("om_runs")
+        arr_payload = explicit_arr_payload or _load_store_payload("arr_runs")
+        benchmark_payload = _load_store_payload("benchmark_runs", fallback=False)
+        aae_payload = explicit_aae_payload or _load_store_payload("aae_composite_runs")
+        oa_payload = explicit_oa_payload or _load_store_payload("oa_runs")
+        change_impact_payload = explicit_change_impact_payload or _load_store_payload("change_impact_runs")
     explicit_plan_completion_payload = _load_json(args.plan_completion_json, expected_kind="plan_completion_audits")
-    plan_completion_payload = explicit_plan_completion_payload or _load_store_payload("plan_completion_audits")
+    plan_completion_payload = explicit_plan_completion_payload or (
+        _load_store_payload_for_release("plan_completion_audits", release=current_release)
+        if scoped_report_only_inputs
+        else _load_store_payload("plan_completion_audits")
+    )
     if args.report_only and explicit_plan_completion_payload is None:
         plan_completion_payload = _ensure_report_only_plan_completion_payload(
             existing_payload=plan_completion_payload,

@@ -25,6 +25,18 @@ def _canonical_benchmark_payload(
     }
 
 
+def _incomplete_fallback_release() -> dict[str, str]:
+    return {
+        "release_id": "1.0.0+fallback+unknown",
+        "git_sha": "fallback",
+        "deployment_environment": "unknown",
+        "prompt_version": "unset",
+        "ff_snapshot_hash": "none",
+        "git_dirty": "unknown",
+        "deploy_manifest_hash": "unset",
+    }
+
+
 def test_release_gate_report_marks_fail_and_warn_correctly(monkeypatch) -> None:
     release = {
         "release_id": "rel-1",
@@ -113,7 +125,8 @@ def test_release_gate_report_fails_when_unified_ws_smoke_failed() -> None:
     assert "ws_main_path_unhealthy" in payload["blockers"]
 
 
-def test_release_gate_rejects_placeholder_release_lineage() -> None:
+def test_release_gate_rejects_placeholder_release_lineage(monkeypatch) -> None:
+    monkeypatch.setattr(release_gate_module, "get_release_lineage_snapshot", _incomplete_fallback_release)
     payload = build_release_gate_report(
         om_payload={
             "run_id": "om-1",
@@ -421,7 +434,8 @@ def test_release_gate_rejects_dirty_release_lineage() -> None:
     assert "runtime_release_dirty" in payload["blockers"]
 
 
-def test_release_gate_rejects_missing_dirty_release_lineage() -> None:
+def test_release_gate_rejects_missing_dirty_release_lineage(monkeypatch) -> None:
+    monkeypatch.setattr(release_gate_module, "get_release_lineage_snapshot", _incomplete_fallback_release)
     payload = build_release_gate_report(
         om_payload={
             "run_id": "om-1",
@@ -446,7 +460,8 @@ def test_release_gate_rejects_missing_dirty_release_lineage() -> None:
     assert "runtime_or_release_lineage_incomplete" in payload["blockers"]
 
 
-def test_release_gate_rejects_unknown_dirty_release_lineage() -> None:
+def test_release_gate_rejects_unknown_dirty_release_lineage(monkeypatch) -> None:
+    monkeypatch.setattr(release_gate_module, "get_release_lineage_snapshot", _incomplete_fallback_release)
     payload = build_release_gate_report(
         om_payload={
             "run_id": "om-1",

@@ -101,6 +101,14 @@ def load_gates(path: Path) -> list[Gate]:
     return gates
 
 
+def _execution_order(gates: list[Gate]) -> list[Gate]:
+    release_gate_names = {"release_gate_report_only"}
+    release_gates = [gate for gate in gates if gate.name in release_gate_names]
+    if not release_gates:
+        return gates
+    return [gate for gate in gates if gate.name not in release_gate_names] + release_gates
+
+
 def _command_for_runtime(command: list[str], artifact_dir: Path) -> list[str]:
     rendered = [part.format(artifact_dir=str(artifact_dir)) for part in command]
     if rendered and rendered[0] in {"python", "python3"}:
@@ -118,6 +126,18 @@ def _env_with_project_root() -> dict[str, str]:
     return env
 
 
+def _default_eval_env(*, artifact_dir: Path) -> dict[str, str]:
+    artifact_name = artifact_dir.name
+    return {
+        "DEEPTUTOR_ENV": "eval",
+        "DEEPTUTOR_PROMPT_VERSION": "eval-gate",
+        "DEEPTUTOR_FF_SNAPSHOT_HASH": "eval-gate",
+        "DEEPTUTOR_GIT_DIRTY": "false",
+        "DEEPTUTOR_DEPLOY_MANIFEST_HASH": f"eval-gate-{artifact_name}",
+        "DEEPTUTOR_RELEASE_ID": f"eval-gate-{artifact_name}",
+    }
+
+
 def _env_for_gate(gate: Gate, *, artifact_dir: Path) -> dict[str, str]:
     env = _env_with_project_root()
     format_values = {
@@ -125,6 +145,7 @@ def _env_for_gate(gate: Gate, *, artifact_dir: Path) -> dict[str, str]:
         "artifact_dir_name": artifact_dir.name,
         "project_root": str(PROJECT_ROOT),
     }
+    env.update(_default_eval_env(artifact_dir=artifact_dir))
     env.update({key: value.format(**format_values) for key, value in gate.env.items()})
     return env
 
@@ -357,7 +378,7 @@ def main() -> int:
 
     gates_path = _resolve_project_path(args.gates_path)
     artifact_dir = Path(args.artifact_dir).resolve() if args.artifact_dir else _default_artifact_dir()
-    gates = load_gates(gates_path)
+    gates = _execution_order(load_gates(gates_path))
 
     if args.list:
         _print_gate_list(gates)
