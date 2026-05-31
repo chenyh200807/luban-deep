@@ -86,6 +86,7 @@ def test_v2_no_raw_fetch_outside_allowlist() -> None:
     )
 
 
+@pytest.mark.quarantine_web_drift  # HIGH: real WRITE_ENDPOINTS contract violation (BiV2FeedbackPanel.tsx); advisory until web owner fixes the code, NOT the test
 def test_v2_no_apiurl_outside_allowlist() -> None:
     """``apiUrl(`` calls outside useAuditedAction signal a URL being built
     by hand for a write — same regression vector as raw fetch.

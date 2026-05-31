@@ -229,6 +229,9 @@ testpaths = ["tests"]
 pythonpath = ["."]
 markers = [
     "asyncio: mark async tests that require pytest-asyncio",
+    "requires_external: needs a real external service or host layout (live Supabase / network / a specific .venv subprocess); excluded from the hermetic required CI gate and logged explicitly",
+    "quarantine_web_drift: web tests broken by in-flight parallel BI/web work; run advisory (executed + reported) but kept out of the required gate until the web owner fixes the drift",
+    "quarantine_assessment_drift: assessment test whose expectation diverged from code after the taxonomy-authority unification; advisory (executed + reported), kept out of the required gate until the assessment owner confirms intentional vs regression",
 ]
 asyncio_default_fixture_loop_scope = "function"
 addopts = [

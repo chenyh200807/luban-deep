@@ -80,7 +80,10 @@ def resolve_wallet_env(
         for key, value in _parse_dotenv(dotenv_path).items():
             env_values[key] = value
             source_map[key] = str(dotenv_path)
-    for key, value in dict(environ or os.environ).items():
+    # 显式传入的 environ（含空 mapping）必须被尊重；用 `or` 会把空 dict 当 falsy
+    # 回退到进程 os.environ，导致 "无 env" 的调用被环境泄漏污染（全树测试串扰根因）。
+    effective_environ = environ if environ is not None else os.environ
+    for key, value in dict(effective_environ).items():
         if value:
             env_values[key] = value
             source_map[key] = "process_env"

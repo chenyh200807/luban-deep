@@ -670,22 +670,25 @@ def test_training_loop_uses_latest_attempt_not_any_past_correct_signal() -> None
         member_service=FakeMemberService(),
         learner_state_service=FakeLearnerStateService(
             [
+                # 时间用相对 days_ago，避免硬编码绝对日期随时间漂出读模型的
+                # 8 天 recency 窗口（_recent_window_since_iso）——旧对(2天前)、
+                # 新错(1天前)，两者均在窗口内，且最近一次仍为错答。
                 _learning_event(
                     "evt_old_correct",
+                    days_ago=2,
                     concept_id="1A432000",
                     question_id="zh-mcq-old",
                     score_awarded=1.0,
                     max_score=1.0,
-                    created_at="2026-05-20T10:00:00+08:00",
                 ),
                 _learning_event(
                     "evt_new_wrong",
+                    days_ago=1,
                     concept_id="1A432000",
                     question_id="zh-mcq-new",
                     error_code="M06",
                     score_awarded=0.0,
                     max_score=1.0,
-                    created_at="2026-05-20T10:05:00+08:00",
                 ),
             ]
         ),

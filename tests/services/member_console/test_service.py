@@ -915,6 +915,7 @@ def test_login_with_password_does_not_fail_when_wallet_bootstrap_is_unavailable(
     assert claims["canonical_uid"] == canonical_uid
 
 
+@pytest.mark.requires_external  # MemberConsoleService resolves live Supabase creds (dev .env re-injected via EnvStore); excluded from hermetic gate
 def test_production_without_supabase_sessions_only_blocks_assessment_paths(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -2685,6 +2686,7 @@ def test_real_exam_simulation_create_and_submit_use_mini_blueprint(
     assert result["score_summary"]["scored_count"] == 20
 
 
+@pytest.mark.requires_external  # hits live Supabase wallet_ledger via REST (dev .env creds); excluded from hermetic gate
 def test_assessment_deep_explanation_reads_submitted_report_without_score_mutation(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -2779,6 +2781,7 @@ def test_assessment_deep_explanation_reads_submitted_report_without_score_mutati
     assert stored["score_summary"] == before_score
 
 
+@pytest.mark.requires_external  # hits live Supabase wallet_ledger via REST (dev .env creds); excluded from hermetic gate
 def test_assessment_deep_explanation_checks_balance_before_llm_generation(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

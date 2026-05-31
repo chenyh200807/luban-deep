@@ -183,7 +183,7 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}
 
   smoke-tests:
-    name: Smoke Tests (Python 3.11)
+    name: Full Test Tree (Python 3.11)
     runs-on: ubuntu-latest
     needs: import-check
 
@@ -220,23 +220,85 @@ jobs:
             level: WARNING
           YAML
 
-      - name: Run smoke tests
+      - name: Run hermetic full test tree
         run: |
-          echo "🧪 Running smoke test subset"
+          # M9 → L3/L4: the required gate now runs the WHOLE tests/ tree, not a
+          # hand-picked allowlist, so no directory can silently go un-run. Tests
+          # that need a real external service or host layout are isolated behind
+          # explicit markers (requires_external) and tests broken by in-flight
+          # parallel work are quarantined (quarantine_web_drift /
+          # quarantine_assessment_drift). Everything else is hermetic and gates.
+          #
+          # No silent caps: count and print exactly what is excluded so the
+          # exclusion is visible in the log and the step summary, never silent.
+          EXCLUDE='not requires_external and not quarantine_web_drift and not quarantine_assessment_drift'
+          ext=$(pytest --collect-only -q -m "requires_external" tests/ 2>/dev/null | grep -c '::' || true)
+          qweb=$(pytest --collect-only -q -m "quarantine_web_drift" tests/ 2>/dev/null | grep -c '::' || true)
+          qasmt=$(pytest --collect-only -q -m "quarantine_assessment_drift" tests/ 2>/dev/null | grep -c '::' || true)
+          {
+            echo "### Hermetic full-tree gate — explicit exclusions";
+            echo "| Marker | Excluded from gate | Why |";
+            echo "|--------|--------------------|-----|";
+            echo "| requires_external | ${ext} | needs live Supabase / network / .venv subprocess |";
+            echo "| quarantine_web_drift | ${qweb} | broken by parallel BI/web work (advisory job) |";
+            echo "| quarantine_assessment_drift | ${qasmt} | taxonomy-authority drift, owner review (advisory job) |";
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice::Hermetic gate excludes ${ext} requires_external + ${qweb} quarantine_web_drift + ${qasmt} quarantine_assessment_drift test(s); all are run/reported in their own jobs, never silently skipped."
+          echo "🧪 Running hermetic full test tree (excluding the markers above)"
+          pytest -q --import-mode=importlib -m "$EXCLUDE" tests/
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+
+  quarantine-advisory:
+    name: Quarantined Tests (advisory)
+    runs-on: ubuntu-latest
+    needs: import-check
+    # ADVISORY ONLY — deliberately NOT in the test-summary required gate. It
+    # executes and reports the quarantined tests so the drift stays visible
+    # (never silently skipped), but a red result here does not block merge.
+    # These tests un-quarantine (markers removed) once their owners fix the
+    # underlying drift; see docs/plan/2026-05-30-smoke-full-tree-quarantine-backlog.md.
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip packages
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-3.11-${{ hashFiles('requirements/server.txt', 'requirements/cli.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-3.11-
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements/server.txt
+          pip install pytest pytest-asyncio
+
+      - name: Create minimal runtime config
+        run: |
+          mkdir -p data/user/settings
+          cat > data/user/settings/main.yaml <<'YAML'
+          system:
+            language: en
+          logging:
+            level: WARNING
+          YAML
+
+      - name: Run quarantined tests (advisory, non-gating)
+        run: |
+          echo "⚠️ Advisory run of quarantined tests — visible but NON-blocking."
+          echo "Required gate stays green; un-quarantine after the owner fixes the drift."
+          echo "Backlog: docs/plan/2026-05-30-smoke-full-tree-quarantine-backlog.md"
           pytest -q --import-mode=importlib \
-            tests/api \
-            tests/cli \
-            tests/services/test_app_facade.py \
-            tests/services/test_model_catalog.py \
-            tests/services/test_path_service.py \
-            tests/runtime/test_orchestrator_autoroute.py \
-            tests/capabilities/test_deep_question_question_review.py \
-            tests/capabilities/test_deep_question_lightweight_generation.py \
-            tests/services/test_render_presentation.py \
-            tests/services/memory \
-            tests/services/session \
-            tests/security \
-            tests/tools
+            -m "quarantine_web_drift or quarantine_assessment_drift" tests/
         env:
           PYTHONPATH: ${{ github.workspace }}
 
@@ -386,7 +448,7 @@ jobs:
   test-summary:
     name: Test Summary
     runs-on: ubuntu-latest
-    needs: [contract-guard, import-check, smoke-tests, frontend-checks, wx-checks, yousen-checks]
+    needs: [contract-guard, import-check, smoke-tests, frontend-checks, wx-checks, yousen-checks, quarantine-advisory]
     if: always()
 
     steps:
@@ -398,10 +460,11 @@ jobs:
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| Contract guard | ${{ needs.contract-guard.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Import check (3.11/3.12) | ${{ needs.import-check.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Smoke tests (3.11) | ${{ needs.smoke-tests.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Full test tree (3.11, hermetic gate) | ${{ needs.smoke-tests.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Frontend checks | ${{ needs.frontend-checks.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| WX checks | ${{ needs.wx-checks.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Yousen checks | ${{ needs.yousen-checks.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Quarantined tests (advisory, non-gating) | ${{ needs.quarantine-advisory.result == 'success' && '✅ Passed' || '⚠️ Drift present (non-blocking)' }} |" >> $GITHUB_STEP_SUMMARY
 
       - name: Fail if tests failed
         if: needs.contract-guard.result == 'failure' || needs.import-check.result == 'failure' || needs.smoke-tests.result == 'failure' || needs.frontend-checks.result == 'failure' || needs.wx-checks.result == 'failure' || needs.yousen-checks.result == 'failure'

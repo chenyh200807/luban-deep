@@ -16,6 +16,24 @@ from deeptutor.logging.context import get_log_context
 def test_get_current_user_resets_bound_user_context_between_requests(monkeypatch: pytest.MonkeyPatch) -> None:
     auth_module = importlib.import_module("deeptutor.api.dependencies.auth")
 
+    # Keep the identity-alias store unconfigured so the auth flow never hits
+    # live Supabase. Developer .env files (re-injected by EnvStore.load via
+    # os.environ.setdefault) otherwise populate SUPABASE_URL/KEY and make
+    # store.resolve_alias issue a real REST call. This test only asserts
+    # log-context reset, not identity resolution, so the live store is
+    # incidental — stub it out for hermetic behaviour locally and in CI.
+    class _UnconfiguredIdentityStore:
+        is_configured = False
+
+        def resolve_alias(self, *, alias_type: str, alias_value: str):
+            return None
+
+    monkeypatch.setattr(
+        auth_module,
+        "get_wallet_identity_store",
+        lambda: _UnconfiguredIdentityStore(),
+    )
+
     class _FakeMemberConsoleService:
         def verify_access_token(self, token: str):
             if token != "admin-token":
