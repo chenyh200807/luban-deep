@@ -36,10 +36,14 @@ import {
   getBiFeedback,
   getBiInviteTestApplications,
   getBiInviteTestStats,
+  getBiLubanFeedbackResponses,
+  getBiLubanFeedbackStats,
   type BiFeedbackPayload,
   type BiFeedbackRecord,
   type BiInviteTestApplication,
   type BiInviteTestStats,
+  type BiLubanFeedbackResponse,
+  type BiLubanFeedbackStats,
 } from '@/lib/bi-api'
 import { apiUrl } from '@/lib/api'
 import { useAuditedAction } from '../useAuditedAction'
@@ -62,9 +66,15 @@ type Filter = {
 
 const DEFAULT_FILTER: Filter = { status: '', source: '', owner: '' }
 
-type FeedbackWorkspaceView = 'feedback' | 'invite-test'
+type FeedbackWorkspaceView = 'feedback' | 'invite-test' | 'luban-feedback'
 
 type InviteTestFilter = {
+  q: string
+  status: string
+  source_page: string
+}
+
+type LubanFeedbackFilter = {
   q: string
   status: string
   source_page: string
@@ -97,13 +107,16 @@ type InviteApplicationFormState = {
 }
 
 const DEFAULT_INVITE_FILTER: InviteTestFilter = { q: '', status: '', source_page: '' }
+const DEFAULT_LUBAN_FEEDBACK_FILTER: LubanFeedbackFilter = { q: '', status: '', source_page: '' }
 const INVITE_TEST_WINDOW_DAYS = 365
+const LUBAN_FEEDBACK_WINDOW_DAYS = 365
 
 function readFeedbackWorkspaceView(): FeedbackWorkspaceView {
   if (typeof window === 'undefined') return 'feedback'
   const search = new URLSearchParams(window.location.search)
   const tab = search.get('tab') ?? ''
   const panel = search.get('panel') ?? search.get('feedback') ?? ''
+  if (tab === 'luban-feedback' || panel === 'luban-feedback') return 'luban-feedback'
   return tab === 'invite-test' || panel === 'invite-test' ? 'invite-test' : 'feedback'
 }
 
@@ -118,6 +131,32 @@ const SOURCE_TONE = {
   invite_test: 'amber',
   member_note: 'slate',
 } as const
+
+const LUBAN_STATUS_LABELS: Record<string, string> = {
+  submitted: '待处理',
+  contacted: '已联系',
+  interviewed: '已回访',
+  resolved: '已闭环',
+  archived: '已归档',
+  unknown: '未知',
+}
+
+const LUBAN_REVISIT_LABELS: Record<string, string> = {
+  very_willing: '非常愿意',
+  ok: '可以约',
+  depends_time: '看时间',
+  no: '不方便',
+  unknown: '未填',
+}
+
+const LUBAN_WILL_CONTINUE_LABELS: Record<string, string> = {
+  definitely: '一定会用',
+  probably: '大概率用',
+  depends: '看后续',
+  probably_not: '可能不会',
+  no: '不会再用',
+  unknown: '未填',
+}
 
 export type BiV2FeedbackPanelProps = {
   flagEnabled: boolean
@@ -140,6 +179,12 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
   const [inviteError, setInviteError] = useState('')
   const [selectedInvite, setSelectedInvite] = useState<BiInviteTestApplication | null>(null)
   const [pendingInviteDeleteId, setPendingInviteDeleteId] = useState('')
+  const [lubanFilter, setLubanFilter] = useState<LubanFeedbackFilter>(DEFAULT_LUBAN_FEEDBACK_FILTER)
+  const [lubanStats, setLubanStats] = useState<BiLubanFeedbackStats | null>(null)
+  const [lubanResponses, setLubanResponses] = useState<BiLubanFeedbackResponse[]>([])
+  const [lubanTotal, setLubanTotal] = useState(0)
+  const [lubanLoading, setLubanLoading] = useState(flagEnabled)
+  const [lubanError, setLubanError] = useState('')
   const [feedbackStatusOverrides, setFeedbackStatusOverrides] = useState<
     Record<string, FeedbackStatus>
   >({})
@@ -215,6 +260,41 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
     }
   }, [flagEnabled, inviteFilter.q, inviteFilter.source_page, inviteFilter.status])
 
+  const loadLubanFeedback = useCallback(async () => {
+    if (!flagEnabled) {
+      setLubanStats(null)
+      setLubanResponses([])
+      setLubanTotal(0)
+      setLubanLoading(false)
+      setLubanError('')
+      return
+    }
+    try {
+      setLubanLoading(true)
+      setLubanError('')
+      const [stats, list] = await Promise.all([
+        getBiLubanFeedbackStats({ days: LUBAN_FEEDBACK_WINDOW_DAYS }),
+        getBiLubanFeedbackResponses({
+          days: LUBAN_FEEDBACK_WINDOW_DAYS,
+          limit: 100,
+          q: lubanFilter.q.trim() || undefined,
+          status: lubanFilter.status || undefined,
+          source_page: lubanFilter.source_page.trim() || undefined,
+        }),
+      ])
+      setLubanStats(stats)
+      setLubanResponses(list.items)
+      setLubanTotal(list.total)
+    } catch (err) {
+      setLubanStats(null)
+      setLubanResponses([])
+      setLubanTotal(0)
+      setLubanError(err instanceof Error ? err.message : '内测回访加载失败')
+    } finally {
+      setLubanLoading(false)
+    }
+  }, [flagEnabled, lubanFilter.q, lubanFilter.source_page, lubanFilter.status])
+
   useEffect(() => {
     void loadFeedback()
   }, [loadFeedback])
@@ -223,13 +303,17 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
     void loadInviteTest()
   }, [loadInviteTest])
 
+  useEffect(() => {
+    void loadLubanFeedback()
+  }, [loadLubanFeedback])
+
   function switchWorkspaceView(next: FeedbackWorkspaceView) {
     setWorkspaceView(next)
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href)
       url.searchParams.set('tab', 'feedback')
-      if (next === 'invite-test') url.searchParams.set('panel', 'invite-test')
-      else url.searchParams.delete('panel')
+      if (next === 'feedback') url.searchParams.delete('panel')
+      else url.searchParams.set('panel', next)
       window.history.replaceState(null, '', url)
     }
   }
@@ -432,21 +516,24 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
               onClick={() => {
                 void loadFeedback()
                 void loadInviteTest()
+                void loadLubanFeedback()
               }}
-              disabled={loading || inviteLoading}
+              disabled={loading || inviteLoading || lubanLoading}
               variant="primary"
               size="xs"
               aria-label="刷新反馈中心"
             >
               <RefreshCw
-                className={`h-3 w-3 ${loading || inviteLoading ? 'animate-spin' : ''}`}
+                className={`h-3 w-3 ${
+                  loading || inviteLoading || lubanLoading ? 'animate-spin' : ''
+                }`}
                 aria-hidden
               />
               刷新
             </BiButton>
           }
         >
-          反馈中心已接入真实读模型 · AI 消息反馈与内测申请池分区管理
+          反馈中心已接入真实读模型 · AI 消息反馈 / 内测申请 / 内测回访分区管理
           {payload ? ` · storage=${payload.storage_status}` : ''}；已看 / 忽略 / 归档写入审计。
         </BiV2DataSourceBanner>
       )}
@@ -487,6 +574,7 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
         current={workspaceView}
         feedbackCount={counts.total}
         inviteCount={inviteStats?.summary.total_applications ?? inviteTotal}
+        lubanCount={lubanStats?.summary.total_responses ?? lubanTotal}
         onSelect={switchWorkspaceView}
       />
 
@@ -633,7 +721,7 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
             </p>
           </aside>
         </>
-      ) : (
+      ) : workspaceView === 'invite-test' ? (
         <InviteTestPanel
           stats={inviteStats}
           applications={inviteApplications}
@@ -647,6 +735,17 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
           onDeleteApplication={handleInviteApplicationDelete}
           deleting={inviteDeleting}
           pendingDeleteId={pendingInviteDeleteId}
+        />
+      ) : (
+        <LubanFeedbackPanel
+          stats={lubanStats}
+          responses={lubanResponses}
+          total={lubanTotal}
+          loading={lubanLoading}
+          error={lubanError}
+          filters={lubanFilter}
+          onFilterChange={(field, value) => setLubanFilter(prev => ({ ...prev, [field]: value }))}
+          onRefresh={() => void loadLubanFeedback()}
         />
       )}
       <FeedbackDetailPanel item={selectedFeedback} onClose={() => setSelectedFeedback(null)} />
@@ -718,11 +817,13 @@ function FeedbackWorkspaceSwitcher({
   current,
   feedbackCount,
   inviteCount,
+  lubanCount,
   onSelect,
 }: {
   current: FeedbackWorkspaceView
   feedbackCount: number
   inviteCount: number
+  lubanCount: number
   onSelect: (next: FeedbackWorkspaceView) => void
 }) {
   const items: Array<{
@@ -743,10 +844,16 @@ function FeedbackWorkspaceSwitcher({
       count: inviteCount,
       hint: '申请池 / 联系方式 / 痛点筛选',
     },
+    {
+      key: 'luban-feedback',
+      label: '内测回访',
+      count: lubanCount,
+      hint: 'NPS / 满意度 / 回访线索',
+    },
   ]
   return (
     <div
-      className="grid grid-cols-1 gap-2 rounded-2xl border border-white/10 bg-white/[0.04] p-1.5 shadow-lg shadow-black/10 md:grid-cols-2"
+      className="grid grid-cols-1 gap-2 rounded-2xl border border-white/10 bg-white/[0.04] p-1.5 shadow-lg shadow-black/10 md:grid-cols-3"
       role="tablist"
       aria-label="反馈中心子模块"
     >
@@ -1004,6 +1111,212 @@ function InviteTestPanel({
         />
       </div>
     </div>
+  )
+}
+
+function LubanFeedbackPanel({
+  stats,
+  responses,
+  total,
+  loading,
+  error,
+  filters,
+  onFilterChange,
+  onRefresh,
+}: {
+  stats: BiLubanFeedbackStats | null
+  responses: BiLubanFeedbackResponse[]
+  total: number
+  loading: boolean
+  error: string
+  filters: LubanFeedbackFilter
+  onFilterChange: (field: keyof LubanFeedbackFilter, value: string) => void
+  onRefresh: () => void
+}) {
+  const summary = stats?.summary
+  const highIntentCount = responses.filter(item =>
+    ['very_willing', 'ok'].includes(item.revisit_willingness)
+  ).length
+  const contactCount = responses.filter(item => item.phone || item.wechat_id).length
+  const topSource = stats?.source_breakdown?.[0]?.source_page || '—'
+
+  return (
+    <div className="space-y-4">
+      <section className="overflow-hidden rounded-3xl border border-emerald-300/20 bg-gradient-to-br from-emerald-300/12 via-cyan-300/8 to-white/[0.035] p-5 shadow-xl shadow-black/20">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/25 bg-emerald-300/10 px-2.5 py-1 text-[11px] font-black text-emerald-100">
+              <ClipboardList className="h-3 w-3" aria-hidden />
+              来自 luban-survey
+            </div>
+            <h3 className="mt-2 text-2xl font-black text-white">内测回访池</h3>
+            <p className="mt-1 max-w-3xl text-xs leading-5 text-slate-300">
+              authority: <code className="font-mono">public.luban_feedback</code> · 展示
+              <code className="mx-1 font-mono">/luban-survey/index.html</code>
+              提交后的 NPS、满意度、痛点、建议和可回访联系方式。
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={loading}
+            className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-white/10 bg-white/[0.06] px-3 text-xs font-bold text-slate-100 hover:bg-white/10 disabled:opacity-50"
+            aria-label="刷新内测回访"
+          >
+            <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} aria-hidden />
+            刷新
+          </button>
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-5">
+          <Tile
+            label="回访总数"
+            value={summary?.total_responses ?? total}
+            hint={`近 ${LUBAN_FEEDBACK_WINDOW_DAYS}d`}
+          />
+          <Tile
+            label="NPS"
+            value={summary?.nps_score ?? 0}
+            tone={(summary?.nps_score ?? 0) >= 0 ? 'sky' : 'rose'}
+            hint={summary ? `推荐 ${summary.promoters} / 贬损 ${summary.detractors}` : '等待数据'}
+          />
+          <Tile
+            label="平均满意度"
+            value={summary?.avg_satisfaction ?? 0}
+            tone="amber"
+            hint={summary ? `${summary.satisfaction_base} 份评分` : '1-5 分'}
+          />
+          <Tile label="高意向回访" value={highIntentCount} tone="sky" hint="非常愿意 / 可以约" />
+          <Tile label="可联系" value={contactCount} tone="amber" hint={`主来源 ${topSource}`} />
+        </div>
+      </section>
+
+      <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-xl shadow-black/20">
+        <div className="border-b border-white/10 p-4">
+          <div className="grid grid-cols-1 gap-2 rounded-2xl border border-white/10 bg-white/[0.035] p-2 lg:grid-cols-[minmax(0,1fr)_150px_150px_auto]">
+            <label className="relative">
+              <Search
+                className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500"
+                aria-hidden
+              />
+              <input
+                value={filters.q}
+                onChange={event => onFilterChange('q', event.target.value)}
+                placeholder="搜索痛点 / 建议 / 微信 / 手机 / 一句话"
+                className="h-11 w-full rounded-xl border border-white/10 bg-white/[0.06] px-9 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
+                aria-label="搜索内测回访"
+              />
+            </label>
+            <BiSelect
+              value={filters.status}
+              onChange={event => onFilterChange('status', event.target.value)}
+              className="h-11"
+              aria-label="按内测回访状态筛选"
+            >
+              <option value="">全部状态</option>
+              <option value="submitted">待处理</option>
+              <option value="contacted">已联系</option>
+              <option value="interviewed">已回访</option>
+              <option value="resolved">已闭环</option>
+              <option value="archived">已归档</option>
+            </BiSelect>
+            <input
+              value={filters.source_page}
+              onChange={event => onFilterChange('source_page', event.target.value)}
+              placeholder="来源页"
+              className="h-11 rounded-xl border border-white/10 bg-white/[0.06] px-3 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
+              aria-label="按来源页筛选内测回访"
+            />
+            <div className="flex h-11 items-center justify-end gap-1.5 text-xs font-bold text-slate-400">
+              <Filter className="h-3.5 w-3.5" aria-hidden />共 {formatCount(total)} 条
+            </div>
+          </div>
+          {error ? (
+            <p className="mt-3 rounded-2xl border border-rose-300/25 bg-rose-300/10 px-3 py-2 text-xs text-rose-100">
+              {error}
+            </p>
+          ) : null}
+        </div>
+
+        <div className="grid gap-3 p-4">
+          {loading ? (
+            <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-10 text-center text-sm text-slate-400">
+              正在加载内测回访…
+            </div>
+          ) : null}
+          {!loading && !error && responses.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-white/15 bg-white/[0.035] px-4 py-10 text-center">
+              <div className="font-bold text-slate-100">暂无内测回访</div>
+              <div className="mt-1 text-xs text-slate-400">
+                当前筛选下没有问卷记录，或 luban_feedback 存储暂未返回数据。
+              </div>
+            </div>
+          ) : null}
+          {!loading && !error
+            ? responses.map(item => <LubanFeedbackCard key={item.id} item={item} />)
+            : null}
+        </div>
+        <div className="flex flex-wrap justify-between gap-2 border-t border-white/10 px-4 py-3 text-[11px] font-bold text-slate-400">
+          <span>
+            显示 {responses.length} / {total}
+          </span>
+          <span>服务端返回前 {responses.length} / {total}</span>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+function LubanFeedbackCard({ item }: { item: BiLubanFeedbackResponse }) {
+  const contact = joinNonEmpty([
+    item.wechat_id ? `微信 ${item.wechat_id}` : '',
+    item.phone ? `手机 ${item.phone}` : '',
+  ])
+  const npsTone =
+    item.nps === null
+      ? 'text-slate-400'
+      : item.nps >= 9
+        ? 'text-emerald-200'
+        : item.nps <= 6
+          ? 'text-rose-200'
+          : 'text-amber-200'
+  return (
+    <article className="grid gap-3 rounded-2xl border border-white/10 bg-white/[0.045] p-4 transition hover:border-emerald-300/25 hover:bg-emerald-300/[0.06] lg:grid-cols-[88px_minmax(0,1fr)_260px]">
+      <div>
+        <div className={`text-4xl font-black tabular-nums ${npsTone}`}>
+          {item.nps === null ? '—' : item.nps}
+        </div>
+        <div className="mt-1 text-[11px] font-bold text-slate-400">
+          满意度 {item.overall_satisfaction ?? '—'}/5
+        </div>
+      </div>
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <BiStatusPill tone={lubanStatusTone(item.status)} label={lubanLabel(LUBAN_STATUS_LABELS, item.status)} />
+          <span className="rounded-full border border-white/10 bg-white/[0.05] px-2 py-0.5 text-[11px] font-bold text-slate-300">
+            继续：{lubanLabel(LUBAN_WILL_CONTINUE_LABELS, item.will_continue)}
+          </span>
+          <span className="rounded-full border border-white/10 bg-white/[0.05] px-2 py-0.5 text-[11px] font-bold text-slate-300">
+            回访：{lubanLabel(LUBAN_REVISIT_LABELS, item.revisit_willingness)}
+          </span>
+        </div>
+        {item.unsolved_pain ? (
+          <p className="mt-2 text-sm font-bold leading-6 text-slate-100">痛点：{item.unsolved_pain}</p>
+        ) : null}
+        {item.top_suggestion ? (
+          <p className="mt-1 text-sm leading-6 text-slate-300">建议：{item.top_suggestion}</p>
+        ) : null}
+        {item.one_word ? (
+          <p className="mt-1 text-xs italic text-slate-400">“{item.one_word}”</p>
+        ) : null}
+      </div>
+      <div className="text-xs leading-5 text-slate-400 lg:text-right">
+        <div className="font-bold text-slate-200">{contact || '未留联系方式'}</div>
+        <div className="mt-1">{joinNonEmpty([item.attempt_count, item.exam_timeframe]) || '未填写考试背景'}</div>
+        <div>{item.source_page || 'unknown-source'}</div>
+        <div>{formatBiDate(item.created_at)}</div>
+      </div>
+    </article>
   )
 }
 
@@ -2107,6 +2420,18 @@ function joinNonEmpty(values: Array<string | undefined>): string {
     .map(v => (v ?? '').trim())
     .filter(Boolean)
     .join(' / ')
+}
+
+function lubanLabel(map: Record<string, string>, value: string | undefined): string {
+  const key = (value ?? '').trim() || 'unknown'
+  return map[key] || key
+}
+
+function lubanStatusTone(status: string | undefined): BiStatusTone {
+  if (status === 'resolved' || status === 'interviewed') return 'emerald'
+  if (status === 'contacted') return 'sky'
+  if (status === 'archived') return 'slate'
+  return 'amber'
 }
 
 function Tile({
