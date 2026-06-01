@@ -217,7 +217,9 @@ def _bind_authenticated_user(
 _HIDDEN_PAYLOAD_KEYS: tuple[str, ...] = (
     "grading_key",
     "scoring_points",
+    "minimal_rationale",
     "correct_answer",
+    "official_answer",
     "explanation",
 )
 

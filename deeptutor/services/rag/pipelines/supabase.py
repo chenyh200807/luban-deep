@@ -1132,18 +1132,31 @@ class SupabasePipeline:
         )
         content = "\n\n".join(block for block in content_blocks if block)
 
-        sources = _dedupe_source_items([
-            {
-                "title": item.get("card_title") or item.get("title") or "Document",
-                "content": str(item.get("rag_content") or "")[:200],
-                "source": item.get("source") or item.get("source_doc") or item.get("card_title") or "",
-                "page": item.get("page_num") or item.get("page") or "",
-                "chunk_id": item.get("chunk_id") or item.get("id") or "",
-                "score": round(float(item.get("score") or 0.0), 4),
-                "source_type": item.get("source_type") or "",
-            }
-            for item in final_results
-        ])
+        source_items: list[dict[str, Any]] = []
+        for item in final_results:
+            raw_metadata = item.get("metadata")
+            metadata = raw_metadata if isinstance(raw_metadata, dict) else {}
+            source_items.append(
+                {
+                    "title": item.get("card_title") or item.get("title") or "Document",
+                    "content": str(item.get("rag_content") or "")[:200],
+                    "source": item.get("source") or item.get("source_doc") or item.get("card_title") or "",
+                    "page": item.get("page_num") or item.get("page") or "",
+                    "chunk_id": item.get("chunk_id") or item.get("id") or "",
+                    "score": round(float(item.get("score") or 0.0), 4),
+                    "source_type": item.get("source_type") or "",
+                    "source_id": metadata.get("source_id") or item.get("source_id") or "",
+                    "source_table": metadata.get("source_table") or item.get("_source_table") or item.get("source_table") or "",
+                    "stable_id": metadata.get("stable_id") or item.get("stable_id") or "",
+                    "source_span": metadata.get("source_span") or item.get("source_span") or {},
+                    "content_hash": metadata.get("content_hash") or item.get("content_hash") or "",
+                    "quote_hash": metadata.get("quote_hash") or item.get("quote_hash") or "",
+                    "chapter": metadata.get("chapter") or item.get("chapter") or "",
+                    "chapter_name": metadata.get("chapter_name") or item.get("chapter_name") or "",
+                    "section": metadata.get("section") or item.get("section") or "",
+                }
+            )
+        sources = _dedupe_source_items(source_items)
         evidence_bundle = _build_evidence_bundle(
             query=query,
             provider="supabase",

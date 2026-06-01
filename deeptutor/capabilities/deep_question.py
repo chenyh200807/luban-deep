@@ -22,6 +22,11 @@ from deeptutor.services.construction_grading.deep_question_adapter import (
     attach_deep_question_grading_result,
 )
 from deeptutor.services.construction_grading.writeback import write_grading_error_events
+from deeptutor.services.citations import (
+    CitationPolicy,
+    answer_citations_enabled,
+    apply_answer_citation_metadata,
+)
 from deeptutor.services.question_followup import (
     apply_followup_action_to_context,
     answers_match,
@@ -1932,8 +1937,10 @@ class DeepQuestionCapability(BaseCapability):
                         trace_meta["question_review.renderable"] = False
                         trace_meta["question_review.degraded_reason"] = "missing_question_bank_hit"
                 content = _render_missing_question_review_feedback(topic)
-                await stream.content(content, source=self.name, stage="generation")
-                await stream.result(
+                if not answer_citations_enabled():
+                    await stream.content(content, source=self.name, stage="generation")
+                await self._emit_result_with_citations(
+                    stream,
                     {
                         "response": content,
                         "mode": mode,
@@ -1950,7 +1957,6 @@ class DeepQuestionCapability(BaseCapability):
                             "review_mode": "missing_question",
                         },
                     },
-                    source=self.name,
                 )
                 return
 
@@ -1989,7 +1995,8 @@ class DeepQuestionCapability(BaseCapability):
             reveal_explanations=reveal_explanations,
             review_mode=question_review_mode,
         )
-        if content:
+        generation_citation_enabled = answer_citations_enabled()
+        if content and not generation_citation_enabled:
             await stream.content(content, source=self.name, stage="generation")
 
         presentation = build_canonical_presentation(
@@ -2055,6 +2062,39 @@ class DeepQuestionCapability(BaseCapability):
         cost_meta = self._collect_cost_summary("question")
         if cost_meta:
             result_payload["metadata"] = {"cost_summary": cost_meta}
+        await self._emit_result_with_citations(
+            stream,
+            result_payload,
+            stage="generation",
+            emit_content_when_enabled=bool(content),
+        )
+
+    async def _emit_result_with_citations(
+        self,
+        stream: StreamBus,
+        result_payload: dict[str, Any],
+        *,
+        stage: str = "generation",
+        sources: list[dict[str, Any]] | None = None,
+        emit_content_when_enabled: bool = True,
+    ) -> None:
+        if "response" in result_payload:
+            citation_enabled = answer_citations_enabled()
+            citation_metadata: dict[str, Any] = {}
+            result_payload["response"] = apply_answer_citation_metadata(
+                citation_metadata,
+                response=str(result_payload.get("response") or ""),
+                sources=sources or [],
+                policy=CitationPolicy(surface="student"),
+                enabled=citation_enabled,
+            )
+            result_payload.update(citation_metadata)
+            if citation_enabled and emit_content_when_enabled:
+                await stream.content(
+                    str(result_payload["response"] or ""),
+                    source=self.name,
+                    stage=stage,
+                )
         await stream.result(result_payload, source=self.name)
 
     async def _emit_missing_mcq_authority_result(
@@ -2069,13 +2109,15 @@ class DeepQuestionCapability(BaseCapability):
         user_message: str,
     ) -> None:
         answer = _render_missing_mcq_authority_feedback()
-        await stream.content(answer, source=self.name, stage="generation")
+        if not answer_citations_enabled():
+            await stream.content(answer, source=self.name, stage="generation")
         result_active_object = build_active_object_from_question_context(
             blocked_context,
             source_turn_id=turn_id,
             previous_active_object=active_object,
         )
-        await stream.result(
+        await self._emit_result_with_citations(
+            stream,
             {
                 "response": answer,
                 "mode": "grading",
@@ -2100,7 +2142,6 @@ class DeepQuestionCapability(BaseCapability):
                     correct_answer_present=False,
                 ),
             },
-            source=self.name,
         )
 
     @staticmethod
@@ -2185,6 +2226,7 @@ class DeepQuestionCapability(BaseCapability):
         kb_name: str | None,
     ) -> None:
         async with stream.stage("generation", source=self.name):
+            citation_enabled = answer_citations_enabled()
             grounding_context = ""
             grounding_sources: list[dict[str, Any]] = []
             grounding_error = ""
@@ -2203,6 +2245,8 @@ class DeepQuestionCapability(BaseCapability):
                 async def _content_sink(chunk: str) -> None:
                     nonlocal content_streamed
                     if not chunk:
+                        return
+                    if citation_enabled:
                         return
                     content_streamed = True
                     await stream.content(chunk, source=self.name, stage="generation")
@@ -2260,9 +2304,9 @@ class DeepQuestionCapability(BaseCapability):
                     + "\n\n"
                     + post_grading_next_action
                 ).strip()
-            if answer and not content_streamed:
+            if answer and not content_streamed and not citation_enabled:
                 await stream.content(answer, source=self.name, stage="generation")
-            elif post_grading_next_action:
+            elif post_grading_next_action and not citation_enabled:
                 await stream.content(
                     "\n\n" + post_grading_next_action,
                     source=self.name,
@@ -2407,6 +2451,29 @@ class DeepQuestionCapability(BaseCapability):
                                 signal.get("grading_source") or ""
                             )
 
+            citation_sources: list[dict[str, Any]] = [
+                item for item in grounding_sources[:5] if isinstance(item, dict)
+            ]
+            grading_refs = grading_result.get("evidence_refs") if isinstance(grading_result, dict) else None
+            if isinstance(grading_refs, list):
+                citation_sources.extend(item for item in grading_refs if isinstance(item, dict))
+            original_response = str(result_payload.get("response") or "")
+            citation_metadata: dict[str, Any] = {}
+            result_payload["response"] = apply_answer_citation_metadata(
+                citation_metadata,
+                response=original_response,
+                sources=citation_sources,
+                policy=CitationPolicy(surface="student"),
+                enabled=citation_enabled,
+            )
+            result_payload.update(citation_metadata)
+            if citation_enabled:
+                await stream.content(
+                    str(result_payload["response"] or ""),
+                    source=self.name,
+                    stage="generation",
+                )
+
             await stream.result(result_payload, source=self.name)
 
     async def _emit_followup_result(
@@ -2452,7 +2519,7 @@ class DeepQuestionCapability(BaseCapability):
                         context.metadata.get("conversation_context_text", "") or ""
                     ).strip(),
                 )
-            if answer:
+            if answer and not answer_citations_enabled():
                 await stream.content(answer, source=self.name, stage="generation")
             result_active_object = build_active_object_from_question_context(
                 followup_question_context,
@@ -2484,7 +2551,12 @@ class DeepQuestionCapability(BaseCapability):
             cost_meta = self._collect_cost_summary("question")
             if cost_meta:
                 followup_payload["metadata"] = {"cost_summary": cost_meta}
-            await stream.result(followup_payload, source=self.name)
+            await self._emit_result_with_citations(
+                stream,
+                followup_payload,
+                stage="generation",
+                emit_content_when_enabled=bool(answer),
+            )
 
     @staticmethod
     def _default_turn_semantic_decision(

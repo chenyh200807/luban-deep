@@ -989,6 +989,14 @@ async def test_supabase_search_prioritizes_parallel_exact_question_match(
                         "score": 0.83,
                         "_source_group": "questions_bank",
                         "_source_table": "questions_bank",
+                        "metadata": {
+                            "source_id": "question_2026_roof_001",
+                            "source_table": "questions_bank",
+                            "stable_id": "question_2026_roof_001:stem",
+                            "source_span": {"question": "Q1", "section": "roof"},
+                            "content_hash": "hash-question-roof",
+                            "quote_hash": "quote-question-roof",
+                        },
                     }
                 ],
             }
@@ -1148,6 +1156,14 @@ async def test_supabase_search_emits_evidence_bundle_and_respects_routing_metada
                         "score": 0.83,
                         "_source_group": "questions_bank",
                         "_source_table": "questions_bank",
+                        "metadata": {
+                            "source_id": "question_2026_roof_001",
+                            "source_table": "questions_bank",
+                            "stable_id": "question_2026_roof_001:stem",
+                            "source_span": {"question": "Q1", "section": "roof"},
+                            "content_hash": "hash-question-roof",
+                            "quote_hash": "quote-question-roof",
+                        },
                     }
                 ],
             }
@@ -1172,6 +1188,12 @@ async def test_supabase_search_emits_evidence_bundle_and_respects_routing_metada
     assert result["evidence_bundle"]["retrieval_empty"] is False
     assert result["evidence_bundle"]["source_plan"]["search_questions_bank"] is True
     assert result["evidence_bundle"]["sources"][0]["chunk_id"] == "question-q-fuzzy"
+    assert result["evidence_bundle"]["sources"][0]["source_id"] == "question_2026_roof_001"
+    assert result["evidence_bundle"]["sources"][0]["source_table"] == "questions_bank"
+    assert result["evidence_bundle"]["sources"][0]["stable_id"] == "question_2026_roof_001:stem"
+    assert result["evidence_bundle"]["sources"][0]["source_span"] == {"question": "Q1", "section": "roof"}
+    assert result["evidence_bundle"]["sources"][0]["content_hash"] == "hash-question-roof"
+    assert result["evidence_bundle"]["sources"][0]["quote_hash"] == "quote-question-roof"
 
 
 @pytest.mark.asyncio
