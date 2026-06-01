@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import hashlib
+import re
 from typing import Any
 
 from deeptutor.services.citations.redaction import HIDDEN_AUTHORITY_FIELDS
 from deeptutor.services.citations.schema import CitationPolicy, CitationSourceRef
+from deeptutor.services.taxonomy.textbook_directory import textbook_topic_meta
 
 
 _HIDDEN_FIELDS = HIDDEN_AUTHORITY_FIELDS
+_TEXTBOOK_CODE_RE = re.compile(r"1A\d{3,6}", re.IGNORECASE)
 
 
 def _text(value: Any) -> str:
@@ -82,9 +85,14 @@ def _source_span(source: dict[str, Any]) -> dict[str, Any]:
     return dict(span) if isinstance(span, dict) else {}
 
 
+def _raw_title(source: dict[str, Any]) -> str:
+    metadata = _metadata(source)
+    return _text(source.get("title") or metadata.get("title") or source.get("source_title"))
+
+
 def _title(source: dict[str, Any]) -> str:
     metadata = _metadata(source)
-    title = _text(source.get("title") or metadata.get("title") or source.get("source_title"))
+    title = _raw_title(source)
     source_type = _source_type(source)
     source_label = _text(
         source.get("source")
@@ -104,6 +112,68 @@ def _title(source: dict[str, Any]) -> str:
     return title or source_type
 
 
+def _taxonomy_code(source: dict[str, Any]) -> str:
+    metadata = _metadata(source)
+    for value in (
+        source.get("node_code"),
+        metadata.get("node_code"),
+        source.get("taxonomy_code"),
+        metadata.get("taxonomy_code"),
+        source.get("chunk_id"),
+        metadata.get("chunk_id"),
+        _source_id(source),
+        _stable_id(source),
+    ):
+        match = _TEXTBOOK_CODE_RE.search(_text(value))
+        if match:
+            return match.group(0).upper()
+    return ""
+
+
+def _taxonomy_path_names(source: dict[str, Any]) -> list[str]:
+    metadata = _metadata(source)
+    value = source.get("taxonomy_path") or metadata.get("taxonomy_path")
+    if isinstance(value, (list, tuple)):
+        return [_text(item) for item in value if _text(item)]
+    text = _text(value)
+    if not text:
+        return []
+    return [item.strip() for item in re.split(r"\s*(?:>|/|／|,|，|;|；)\s*", text) if item.strip()]
+
+
+def _textbook_location_meta(source: dict[str, Any]) -> dict[str, Any]:
+    if _source_type(source).lower() != "textbook":
+        return {}
+    code = _taxonomy_code(source)
+    path_names = _taxonomy_path_names(source)
+    meta = textbook_topic_meta(raw_value=code, label=_raw_title(source), path_names=path_names)
+    if path_names and not meta.get("textbook_section_name"):
+        for candidate in reversed(path_names):
+            path_meta = textbook_topic_meta(raw_value="", label=candidate, path_names=path_names)
+            if path_meta.get("textbook_section_name"):
+                meta = {**meta, **path_meta}
+                break
+    return meta
+
+
+def _format_chapter_locator(chapter: str) -> str:
+    clean = _text(chapter)
+    if not clean:
+        return ""
+    if clean.startswith("第") or "章" in clean:
+        return clean
+    return f"第 {clean} 章"
+
+
+def _format_section_locator(section: str) -> str:
+    clean = _text(section)
+    if not clean:
+        return ""
+    if clean.startswith("第") or "节" in clean:
+        return clean
+    return f"第 {clean} 节"
+
+
 def _locator(source: dict[str, Any]) -> str:
     metadata = _metadata(source)
     standard_code = _text(source.get("standard_code") or metadata.get("standard_code"))
@@ -115,11 +185,16 @@ def _locator(source: dict[str, Any]) -> str:
     chapter = _text(span.get("chapter") or metadata.get("chapter") or source.get("chapter"))
     section = _text(span.get("section") or span.get("ref") or metadata.get("section") or source.get("section"))
     page = _text(span.get("page") or metadata.get("page") or source.get("page"))
+    textbook_meta = _textbook_location_meta(source)
     parts: list[str] = []
     if chapter:
-        parts.append(f"第 {chapter} 章")
+        parts.append(_format_chapter_locator(chapter))
+    elif textbook_meta.get("textbook_chapter_name"):
+        parts.append(_text(textbook_meta.get("textbook_chapter_name")))
     if section:
-        parts.append(f"第 {section} 节")
+        parts.append(_format_section_locator(section))
+    elif textbook_meta.get("textbook_section_name"):
+        parts.append(_text(textbook_meta.get("textbook_section_name")))
     if page:
         parts.append(f"p.{page}")
     if parts:

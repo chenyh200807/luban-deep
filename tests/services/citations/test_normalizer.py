@@ -56,6 +56,45 @@ def test_normalizes_rag_source_top_level_locator_fields() -> None:
     assert refs[0].title == "2026 建筑实务教材：平屋面工程的防水做法"
 
 
+def test_textbook_locator_uses_taxonomy_path_when_source_span_is_missing() -> None:
+    refs = normalize_citation_sources(
+        [
+            {
+                "chunk_id": "1A413050_133_0255",
+                "source_type": "textbook",
+                "title": "防水工程",
+                "source": "2026教材 v3_production_core9-166",
+                "page": 133,
+                "node_code": "1A413050",
+                "taxonomy_path": ["建筑工程施工技术", "屋面与防水工程施工"],
+                "content": "屋面防水等级应根据建筑物的类别、重要程度、使用功能要求确定防水等级。",
+            }
+        ],
+        policy=CitationPolicy(),
+    )
+
+    assert refs[0].locator == "第3章 建筑工程施工技术 屋面与防水工程施工 p.133"
+
+
+def test_textbook_locator_infers_chapter_from_chunk_code_without_guessing_section() -> None:
+    refs = normalize_citation_sources(
+        [
+            {
+                "chunk_id": "1A412010_066_0130",
+                "source_type": "textbook",
+                "title": "防火材料技术要求",
+                "source": "2026教材 v3_production_core9-166",
+                "page": 66,
+                "content": "钢结构防火涂料应能采用规定的分散介质进行调和、稀释。",
+            }
+        ],
+        policy=CitationPolicy(),
+    )
+
+    assert refs[0].locator == "第2章 主要建筑工程材料的性能与应用 p.66"
+    assert "结构工程材料" not in refs[0].locator
+
+
 def test_source_span_locator_fields_override_top_level_fallbacks() -> None:
     refs = normalize_citation_sources(
         [

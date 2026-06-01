@@ -1151,6 +1151,8 @@ class SupabasePipeline:
                     "source_span": metadata.get("source_span") or item.get("source_span") or {},
                     "content_hash": metadata.get("content_hash") or item.get("content_hash") or "",
                     "quote_hash": metadata.get("quote_hash") or item.get("quote_hash") or "",
+                    "node_code": metadata.get("node_code") or item.get("node_code") or "",
+                    "taxonomy_path": metadata.get("taxonomy_path") or item.get("taxonomy_path") or "",
                     "chapter": metadata.get("chapter") or item.get("chapter") or "",
                     "chapter_name": metadata.get("chapter_name") or item.get("chapter_name") or "",
                     "section": metadata.get("section") or item.get("section") or "",
