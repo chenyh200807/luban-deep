@@ -1,5 +1,7 @@
 # 鲁班 Nexus-like Knowledge Engine 总体落地方案 v2.1
 
+> **Status update 2026-05-31:** Superseded by [鲁班评分真相覆盖率 + Golden Eval 战役计划 v2.2](2026-05-31-luban-grading-truth-golden-eval-campaign-v2-2.md). This file is retained as a historical architecture risk study. Do not execute its generic Knowledge Engine / broad schema / standalone eval-service direction as P0/P1 work.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:executing-plans` or `superpowers:subagent-driven-development` before implementation. This file is a master implementation plan, not a concept note. Execute by work package, keep changes surgical, and update `docs/plan/INDEX.md` when this plan changes.
 >
 > **Goal:** Build a Luban-owned Nexus-like Knowledge Engine for 一建建筑实务: turn trusted sources, past exam answers, teaching materials, standards, learner attempts, teacher corrections, and evaluation results into versioned, typed, evidence-backed knowledge artifacts that improve case-answer grading, scoring-point diagnosis, weakness profiling, and next-step training.
@@ -8,7 +10,7 @@
 >
 > **Tech Stack:** Existing Python services, Supabase/Postgres, existing `RAGService`, optional `pgvector`, existing `CaseGradingSkillKernel`, existing `learning_evidence` writeback chain, existing assessment/session separation, offline compiler scripts, shadow schema first.
 
-Status: Proposed v2.1, hardened on 2026-05-31 after a second pass against the attached `deep-research-report.md`. v2.1 keeps the v2.0 architecture, but adds report-to-plan traceability, credibility gates, path-level implementation priorities, and a stricter A/B validation design.
+Status: Superseded by v2.2. Historical architecture risk study only.
 
 Supersedes: [2026-05-31-luban-knowledge-compiler-systematic-implementation-plan-v1-2.md](2026-05-31-luban-knowledge-compiler-systematic-implementation-plan-v1-2.md) as the current strategy and architecture plan.
 
