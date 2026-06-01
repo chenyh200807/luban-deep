@@ -11,6 +11,7 @@ from deeptutor.services.taxonomy.textbook_directory import textbook_topic_meta
 
 _HIDDEN_FIELDS = HIDDEN_AUTHORITY_FIELDS
 _TEXTBOOK_CODE_RE = re.compile(r"1A\d{3,6}", re.IGNORECASE)
+_SECTION_GENERIC_TERMS = ("工程", "施工", "技术", "相关", "规定", "管理", "应用")
 
 
 def _text(value: Any) -> str:
@@ -150,10 +151,38 @@ def _textbook_location_meta(source: dict[str, Any]) -> dict[str, Any]:
     if path_names and not meta.get("textbook_section_name"):
         for candidate in reversed(path_names):
             path_meta = textbook_topic_meta(raw_value="", label=candidate, path_names=path_names)
-            if path_meta.get("textbook_section_name"):
+            if path_meta.get("textbook_section_name") and _section_supported_by_source(source, candidate):
                 meta = {**meta, **path_meta}
                 break
     return meta
+
+
+def _section_supported_by_source(source: dict[str, Any], section: str) -> bool:
+    candidate = _text(section)
+    if not candidate:
+        return False
+    haystack = "".join(
+        [
+            _raw_title(source),
+            _text(source.get("content") or source.get("rag_content") or source.get("public_quote")),
+        ]
+    )
+    if not haystack:
+        return False
+    reduced = candidate
+    for term in _SECTION_GENERIC_TERMS:
+        reduced = reduced.replace(term, "")
+    parts = [item for item in re.split(r"[与和及、/／\s]+", reduced) if len(item) >= 2]
+    if len(reduced) >= 2:
+        parts.extend(reduced[index : index + 2] for index in range(0, len(reduced) - 1))
+    seen: set[str] = set()
+    for token in parts:
+        if token in seen:
+            continue
+        seen.add(token)
+        if token and token in haystack:
+            return True
+    return False
 
 
 def _format_chapter_locator(chapter: str) -> str:

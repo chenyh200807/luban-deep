@@ -76,6 +76,27 @@ def test_textbook_locator_uses_taxonomy_path_when_source_span_is_missing() -> No
     assert refs[0].locator == "第3章 建筑工程施工技术 屋面与防水工程施工 p.133"
 
 
+def test_textbook_locator_ignores_unsupported_taxonomy_section() -> None:
+    refs = normalize_citation_sources(
+        [
+            {
+                "chunk_id": "1A413030_133_0255",
+                "source_type": "textbook",
+                "title": "防水工程",
+                "source": "2026教材 v3_production_core9-166",
+                "page": 133,
+                "node_code": "1A413030",
+                "taxonomy_path": ["建筑工程施工技术", "地基与基础工程施工"],
+                "content": "屋面防水等级应根据建筑物的类别、重要程度、使用功能要求确定防水等级。",
+            }
+        ],
+        policy=CitationPolicy(),
+    )
+
+    assert refs[0].locator == "第3章 建筑工程施工技术 p.133"
+    assert "地基与基础工程施工" not in refs[0].locator
+
+
 def test_textbook_locator_infers_chapter_from_chunk_code_without_guessing_section() -> None:
     refs = normalize_citation_sources(
         [
