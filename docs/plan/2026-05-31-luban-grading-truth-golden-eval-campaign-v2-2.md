@@ -714,6 +714,8 @@ Migration is gated by:
 
 ### 6.10 v0 执行轨道（无人类专家时的 AI 锚定管线）
 
+> **可复用方法论**：本节是 [AI 锚定 Golden 生产 Playbook](2026-06-01-ai-anchored-golden-production-playbook.md)（**平台无关**）在本项目的 worked example。未来为 Codex 等其他平台复刻"无人类专家做 golden"，读那份 playbook（含 5 角色管线、踩字口径、8 条踩坑迭代修法、平台无关 vs 平台相关切分）。
+
 > **定性（诚实红线）**：无人类阅卷专家时本轨道产出 **v0 synthetic 锚定集 = directional 级**，**不报人类 IRR、不宣称"通过生产门"**。顶级人类共识 golden（双盲 + IRR + 仲裁）= v1 目标态，待真人到位。v0 已用 2023 真题（1A434000，7 分）pilot 验证：独立 subagent 盲标 vs 构造台账，**点级 hit/miss 与总分 100% 复现**，错因码有粒度分歧（实证"错因码 directional、不进硬门"）。
 
 **ground truth 三锚（非 AI 主观裁量）**：① 官方 `correct_answer`（采分点照它拆、不发明）；② 规范条文 + **教材原文**（标准文件 / `2026教材/*.json` 带规范术语原文，效度锚）；③ **构造台账**（学生答案按"故意命中/漏/错某采分点"构造，注入错误构造时写死、非事后判断）。
