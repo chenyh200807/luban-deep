@@ -414,8 +414,18 @@ export interface BiLubanFeedbackResponse {
   attempt_count: string
   exam_timeframe: string
   one_word: string
+  feat_case_grading: string
+  feat_error_coach: string
+  feat_qa: string
+  ease_of_use: string
+  accuracy: string
+  speed: string
+  problems: string[]
+  problems_other: string
   top_suggestion: string
   unsolved_pain: string
+  wanted_features: string[]
+  wanted_features_other: string
   phone: string
   wechat_id: string
   status: string
@@ -846,8 +856,20 @@ function normalizeLubanFeedbackResponse(item: unknown): BiLubanFeedbackResponse 
     attempt_count: toString(record.attempt_count ?? record.attemptCount, ''),
     exam_timeframe: toString(record.exam_timeframe ?? record.examTimeframe, ''),
     one_word: toString(record.one_word ?? record.oneWord, ''),
+    feat_case_grading: toString(record.feat_case_grading ?? record.featCaseGrading, ''),
+    feat_error_coach: toString(record.feat_error_coach ?? record.featErrorCoach, ''),
+    feat_qa: toString(record.feat_qa ?? record.featQa, ''),
+    ease_of_use: toString(record.ease_of_use ?? record.easeOfUse, ''),
+    accuracy: toString(record.accuracy, ''),
+    speed: toString(record.speed, ''),
+    problems: toArray(record.problems).map(value => toString(value)).filter(Boolean),
+    problems_other: toString(record.problems_other ?? record.problemsOther, ''),
     top_suggestion: toString(record.top_suggestion ?? record.topSuggestion, ''),
     unsolved_pain: toString(record.unsolved_pain ?? record.unsolvedPain, ''),
+    wanted_features: toArray(record.wanted_features ?? record.wantedFeatures)
+      .map(value => toString(value))
+      .filter(Boolean),
+    wanted_features_other: toString(record.wanted_features_other ?? record.wantedFeaturesOther, ''),
     phone: toString(record.phone, ''),
     wechat_id: toString(record.wechat_id ?? record.wechatId, ''),
     status: toString(record.status, 'submitted'),

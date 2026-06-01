@@ -163,6 +163,70 @@ const LUBAN_WILL_CONTINUE_LABELS: Record<string, string> = {
   unknown: '未填',
 }
 
+const LUBAN_PAY_LABELS: Record<string, string> = {
+  happy_to_pay: '愿意付费',
+  if_priced_right: '价格合适会付',
+  free_only: '只用免费',
+  no_pay: '不会付费',
+  unsure: '说不好',
+  unknown: '未填',
+}
+
+const LUBAN_RECOMMEND_LABELS: Record<string, string> = {
+  already_did: '已推荐',
+  will: '会推荐',
+  maybe: '看情况',
+  wont: '暂不推荐',
+  unknown: '未填',
+}
+
+const LUBAN_ATTEMPT_LABELS: Record<string, string> = {
+  first: '第一次',
+  second: '第二次',
+  third_plus: '三次及以上',
+  unknown: '未填',
+}
+
+const LUBAN_TIMEFRAME_LABELS: Record<string, string> = {
+  within_1m: '1 个月内',
+  '1to3m': '1-3 个月',
+  '3to6m': '3-6 个月',
+  over_6m: '半年以上',
+  passed: '已考完',
+  unknown: '未填',
+}
+
+const LUBAN_FEATURE_LABELS: Record<string, string> = {
+  case_grading: '案例题 AI 阅卷官',
+  error_coach: '错因驱动陪练',
+  qa: 'AI 答疑',
+  none_yet: '暂时没帮到',
+  unknown: '未填',
+}
+
+const LUBAN_PROBLEM_LABELS: Record<string, string> = {
+  slow_loading: '加载 / 等待太久',
+  off_topic: '答非所问',
+  grading_inaccurate: '批改不准',
+  hard_to_understand: '回答太长或看不懂',
+  cant_find: '入口不好找',
+  miniprogram_laggy: '小程序卡顿 / 登录问题',
+  none: '基本没遇到问题',
+  unknown: '未填',
+}
+
+const LUBAN_WANTED_FEATURE_LABELS: Record<string, string> = {
+  mock_exam: '真题 / 全真模考',
+  more_cases: '更多案例题批改额度',
+  concept_explain: '知识点精讲与图解',
+  spec_lookup: '规范条文速查与解读',
+  study_plan: '个性化学习计划',
+  mistake_book: '智能错题本',
+  memory_aid: '记忆 / 背诵辅助',
+  video: '配套视频精讲',
+  unknown: '未填',
+}
+
 export type BiV2FeedbackPanelProps = {
   flagEnabled: boolean
 }
@@ -581,6 +645,22 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
     if (!flagEnabled || lubanExporting) return
     setLubanExportError('')
     setLubanExportNotice('')
+    let exportRows: BiLubanFeedbackResponse[] = []
+    let exportTotal = 0
+    try {
+      const exportPayload = await getBiLubanFeedbackResponses({
+        days: LUBAN_FEEDBACK_WINDOW_DAYS,
+        limit: 500,
+        q: lubanFilter.q.trim() || undefined,
+        status: lubanFilter.status || undefined,
+        source_page: lubanFilter.source_page.trim() || undefined,
+      })
+      exportRows = exportPayload.items
+      exportTotal = exportPayload.total
+    } catch (err) {
+      setLubanExportError(err instanceof Error ? err.message : '导出数据拉取失败')
+      return
+    }
     const result = await lubanExportRequest.execute({
       key: 'bi.export.request',
       params: {},
@@ -592,8 +672,8 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
           q: lubanFilter.q.trim(),
           status: lubanFilter.status,
           source_page: lubanFilter.source_page.trim(),
-          visible_rows: lubanResponses.length,
-          total: lubanTotal,
+          visible_rows: exportRows.length,
+          total: exportTotal,
         },
       },
     })
@@ -603,9 +683,13 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
     }
     downloadCsv(
       `luban-feedback-${new Date().toISOString().slice(0, 10)}.csv`,
-      buildLubanFeedbackCsv(lubanResponses)
+      buildLubanFeedbackCsv(exportRows)
     )
-    setLubanExportNotice(`已导出当前 ${lubanResponses.length} 条；审计 ${result.auditId || '已写入'}`)
+    setLubanExportNotice(
+      exportTotal > exportRows.length
+        ? `已导出当前筛选前 ${exportRows.length} / ${exportTotal} 条；后端单次导出上限 500，审计 ${result.auditId || '已写入'}`
+        : `已导出当前筛选全部 ${exportRows.length} 条；审计 ${result.auditId || '已写入'}`
+    )
   }
 
   return (
@@ -1498,6 +1582,21 @@ function LubanFeedbackCard({
         {item.one_word ? (
           <p className="mt-1 text-xs italic text-slate-400">“{item.one_word}”</p>
         ) : null}
+        <div className="mt-3 grid gap-2 text-[11px] leading-5 text-slate-400 md:grid-cols-2">
+          <div className="rounded-2xl border border-white/10 bg-white/[0.035] px-2.5 py-2">
+            <span className="font-black text-slate-200">功能评分：</span>
+            案例 {item.feat_case_grading || '—'} · 错因 {item.feat_error_coach || '—'} · 答疑{' '}
+            {item.feat_qa || '—'}
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.035] px-2.5 py-2">
+            <span className="font-black text-slate-200">体验：</span>
+            上手 {item.ease_of_use || '—'} · 准确 {item.accuracy || '—'} · 速度 {item.speed || '—'}
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.035] px-2.5 py-2 md:col-span-2">
+            <span className="font-black text-slate-200">遇到问题：</span>
+            {formatLubanList(item.problems, LUBAN_PROBLEM_LABELS, item.problems_other)}
+          </div>
+        </div>
       </div>
       <div className="text-xs leading-5 text-slate-400 lg:text-right">
         <div className="font-bold text-slate-200">{contact || '未留联系方式'}</div>
@@ -1631,9 +1730,45 @@ function LubanFeedbackDetailPanel({
             <Field label="联系方式">{joinNonEmpty([item.wechat_id, item.phone]) || '未留'}</Field>
           </div>
 
-          <ReadonlyBlock label="未解决痛点" value={item.unsolved_pain} />
-          <ReadonlyBlock label="最重要建议" value={item.top_suggestion} />
-          <ReadonlyBlock label="一句话评价" value={item.one_word} />
+          <section className="space-y-3 rounded-3xl border border-white/10 bg-white/[0.045] p-4 shadow-lg shadow-black/10">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-xs font-black uppercase text-cyan-200">完整问卷反馈</h3>
+              <span className="rounded-full border border-white/10 bg-white/[0.05] px-2 py-1 text-[11px] font-bold text-slate-400">
+                只读 · 来自用户原始提交
+              </span>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field label="考试次数">{lubanLabel(LUBAN_ATTEMPT_LABELS, item.attempt_count)}</Field>
+              <Field label="考试时间">{lubanLabel(LUBAN_TIMEFRAME_LABELS, item.exam_timeframe)}</Field>
+              <Field label="最有价值功能">{lubanLabel(LUBAN_FEATURE_LABELS, item.most_valuable)}</Field>
+              <Field label="付费意愿">{lubanLabel(LUBAN_PAY_LABELS, item.pay_willingness)}</Field>
+              <Field label="主动推荐">{lubanLabel(LUBAN_RECOMMEND_LABELS, item.would_recommend)}</Field>
+              <Field label="来源页">{item.source_page || '—'}</Field>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <Field label="案例题阅卷">{item.feat_case_grading || '—'}</Field>
+              <Field label="错因陪练">{item.feat_error_coach || '—'}</Field>
+              <Field label="AI 答疑">{item.feat_qa || '—'}</Field>
+              <Field label="上手难易">{item.ease_of_use || '—'}</Field>
+              <Field label="准确度">{item.accuracy || '—'}</Field>
+              <Field label="响应速度">{item.speed || '—'}</Field>
+            </div>
+            <ReadonlyBlock label="一句话评价" value={item.one_word} />
+            <ReadonlyBlock
+              label="遇到的问题"
+              value={formatLubanList(item.problems, LUBAN_PROBLEM_LABELS, item.problems_other)}
+            />
+            <ReadonlyBlock label="未解决痛点" value={item.unsolved_pain} />
+            <ReadonlyBlock
+              label="希望增加能力"
+              value={formatLubanList(
+                item.wanted_features,
+                LUBAN_WANTED_FEATURE_LABELS,
+                item.wanted_features_other
+              )}
+            />
+            <ReadonlyBlock label="最重要建议" value={item.top_suggestion} />
+          </section>
 
           <label className="block">
             <span className="text-xs font-black text-slate-300">运营状态</span>
@@ -2429,6 +2564,11 @@ function stringValue(value: unknown, fallback = ''): string {
   return fallback
 }
 
+function stringArrayValue(value: unknown, fallback: string[]): string[] {
+  if (!Array.isArray(value)) return fallback
+  return value.map(item => stringValue(item)).filter(Boolean)
+}
+
 function boolValue(value: unknown, fallback = false): boolean {
   if (typeof value === 'boolean') return value
   if (typeof value === 'string') return ['1', 'true', 'yes', 'on'].includes(value.toLowerCase())
@@ -2644,6 +2784,23 @@ function extractLubanFeedbackFromUpdate(
       fallback.exam_timeframe
     ),
     one_word: stringValue(response.one_word ?? response.oneWord, fallback.one_word),
+    feat_case_grading: stringValue(
+      response.feat_case_grading ?? response.featCaseGrading,
+      fallback.feat_case_grading
+    ),
+    feat_error_coach: stringValue(
+      response.feat_error_coach ?? response.featErrorCoach,
+      fallback.feat_error_coach
+    ),
+    feat_qa: stringValue(response.feat_qa ?? response.featQa, fallback.feat_qa),
+    ease_of_use: stringValue(response.ease_of_use ?? response.easeOfUse, fallback.ease_of_use),
+    accuracy: stringValue(response.accuracy, fallback.accuracy),
+    speed: stringValue(response.speed, fallback.speed),
+    problems: stringArrayValue(response.problems, fallback.problems),
+    problems_other: stringValue(
+      response.problems_other ?? response.problemsOther,
+      fallback.problems_other
+    ),
     top_suggestion: stringValue(
       response.top_suggestion ?? response.topSuggestion,
       fallback.top_suggestion
@@ -2651,6 +2808,14 @@ function extractLubanFeedbackFromUpdate(
     unsolved_pain: stringValue(
       response.unsolved_pain ?? response.unsolvedPain,
       fallback.unsolved_pain
+    ),
+    wanted_features: stringArrayValue(
+      response.wanted_features ?? response.wantedFeatures,
+      fallback.wanted_features
+    ),
+    wanted_features_other: stringValue(
+      response.wanted_features_other ?? response.wantedFeaturesOther,
+      fallback.wanted_features_other
     ),
     phone: stringValue(response.phone, fallback.phone),
     wechat_id: stringValue(response.wechat_id ?? response.wechatId, fallback.wechat_id),
@@ -2673,8 +2838,23 @@ function buildLubanFeedbackCsv(items: BiLubanFeedbackResponse[]): string {
     'status',
     'nps',
     'overall_satisfaction',
+    'attempt_count',
+    'exam_timeframe',
+    'most_valuable',
+    'feat_case_grading',
+    'feat_error_coach',
+    'feat_qa',
+    'ease_of_use',
+    'accuracy',
+    'speed',
+    'problems',
+    'problems_other',
     'revisit_willingness',
     'will_continue',
+    'pay_willingness',
+    'would_recommend',
+    'wanted_features',
+    'wanted_features_other',
     'phone',
     'wechat_id',
     'unsolved_pain',
@@ -2689,8 +2869,23 @@ function buildLubanFeedbackCsv(items: BiLubanFeedbackResponse[]): string {
     item.status,
     item.nps ?? '',
     item.overall_satisfaction ?? '',
+    lubanLabel(LUBAN_ATTEMPT_LABELS, item.attempt_count),
+    lubanLabel(LUBAN_TIMEFRAME_LABELS, item.exam_timeframe),
+    lubanLabel(LUBAN_FEATURE_LABELS, item.most_valuable),
+    item.feat_case_grading,
+    item.feat_error_coach,
+    item.feat_qa,
+    item.ease_of_use,
+    item.accuracy,
+    item.speed,
+    formatLubanList(item.problems, LUBAN_PROBLEM_LABELS),
+    item.problems_other,
     lubanLabel(LUBAN_REVISIT_LABELS, item.revisit_willingness),
     lubanLabel(LUBAN_WILL_CONTINUE_LABELS, item.will_continue),
+    lubanLabel(LUBAN_PAY_LABELS, item.pay_willingness),
+    lubanLabel(LUBAN_RECOMMEND_LABELS, item.would_recommend),
+    formatLubanList(item.wanted_features, LUBAN_WANTED_FEATURE_LABELS),
+    item.wanted_features_other,
     item.phone,
     item.wechat_id,
     item.unsolved_pain,
@@ -2939,6 +3134,16 @@ function joinNonEmpty(values: Array<string | undefined>): string {
 function lubanLabel(map: Record<string, string>, value: string | undefined): string {
   const key = (value ?? '').trim() || 'unknown'
   return map[key] || key
+}
+
+function formatLubanList(
+  values: string[] | undefined,
+  map: Record<string, string>,
+  other = ''
+): string {
+  const labels = (values ?? []).map(value => lubanLabel(map, value)).filter(Boolean)
+  if (other.trim()) labels.push(`其他：${other.trim()}`)
+  return labels.length ? labels.join(' / ') : '未填写'
 }
 
 function lubanStatusTone(status: string | undefined): BiStatusTone {

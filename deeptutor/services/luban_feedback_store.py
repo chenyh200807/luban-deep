@@ -80,6 +80,18 @@ def _raw_payload(row: Mapping[str, Any]) -> Mapping[str, Any]:
     return {}
 
 
+def _raw_text(raw: Mapping[str, Any], key: str) -> str:
+    return _text(raw.get(key))
+
+
+def _raw_list(raw: Mapping[str, Any], key: str) -> list[str]:
+    value = raw.get(key)
+    if isinstance(value, list):
+        return [_text(item) for item in value if _text(item)]
+    text = _text(value)
+    return [text] if text else []
+
+
 def normalize_luban_feedback(row: Mapping[str, Any], *, reveal_contact: bool = False) -> dict[str, Any]:
     """把一行答卷归一化为 BI 视图，联系方式按 reveal_contact 脱敏。"""
     raw = _raw_payload(row)
@@ -99,9 +111,19 @@ def normalize_luban_feedback(row: Mapping[str, Any], *, reveal_contact: bool = F
         "revisit_willingness": _text(row.get("revisit_willingness")),
         "attempt_count": _text(row.get("attempt_count")),
         "exam_timeframe": _text(row.get("exam_timeframe")),
-        "one_word": _text(raw.get("one_word")),
+        "one_word": _raw_text(raw, "one_word"),
+        "feat_case_grading": _raw_text(raw, "feat_case_grading"),
+        "feat_error_coach": _raw_text(raw, "feat_error_coach"),
+        "feat_qa": _raw_text(raw, "feat_qa"),
+        "ease_of_use": _raw_text(raw, "ease_of_use"),
+        "accuracy": _raw_text(raw, "accuracy"),
+        "speed": _raw_text(raw, "speed"),
+        "problems": _raw_list(raw, "problems"),
+        "problems_other": _raw_text(raw, "problems__other"),
         "top_suggestion": _text(row.get("top_suggestion")),
         "unsolved_pain": _text(row.get("unsolved_pain")),
+        "wanted_features": _raw_list(raw, "wanted_features"),
+        "wanted_features_other": _raw_text(raw, "wanted_features__other"),
         "phone": phone if reveal_contact else _mask_phone(phone),
         "wechat_id": wechat if reveal_contact else _mask_optional(wechat),
         "status": _text(row.get("status")) or "submitted",
@@ -462,7 +484,11 @@ class LubanFeedbackStore:
                         _text(row.get("unsolved_pain")),
                         _text(row.get("phone")),
                         _text(row.get("wechat_id")),
-                        _text(raw.get("one_word")),
+                        _raw_text(raw, "one_word"),
+                        _raw_text(raw, "problems__other"),
+                        _raw_text(raw, "wanted_features__other"),
+                        " ".join(_raw_list(raw, "problems")),
+                        " ".join(_raw_list(raw, "wanted_features")),
                     ]
                 ).lower()
                 if query not in haystack:
