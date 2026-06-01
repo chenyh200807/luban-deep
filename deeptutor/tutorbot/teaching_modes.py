@@ -268,7 +268,7 @@ def build_continuity_anchor_instruction(
         )
     if summary:
         parts.append(f"当前连续性上下文：{summary}")
-    return "".join(parts)
+    return "\n".join(parts)
 
 
 def normalize_anchor_terms_in_response(

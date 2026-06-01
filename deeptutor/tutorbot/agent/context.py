@@ -1,6 +1,7 @@
 """Context builder for assembling agent prompts."""
 
 import base64
+import logging
 import mimetypes
 import platform
 import re
@@ -17,6 +18,8 @@ from deeptutor.tutorbot.utils.helpers import (
     detect_image_mime,
     normalize_message_content,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class ContextBuilder:
@@ -148,6 +151,7 @@ Reply directly with text for conversations. Only use the 'message' tool to send 
         try:
             return path.read_text(encoding="utf-8").strip()
         except Exception:
+            logger.exception("Failed to read shared memory file: %s", path)
             return ""
 
     @staticmethod

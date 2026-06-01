@@ -119,6 +119,115 @@ def test_tutorbot_sqlite_adapter_repeated_save_does_not_duplicate_final_answer(t
     ]
 
 
+def test_tutorbot_sqlite_adapter_load_failure_is_not_treated_as_missing_session(tmp_path) -> None:
+    class BrokenStore:
+        def _get_session_sync(self, _session_id: str):
+            raise RuntimeError("sqlite unavailable")
+
+        def _get_messages_sync(self, _session_id: str):
+            return []
+
+    adapter = SQLiteSessionAdapter(BrokenStore())
+
+    with pytest.raises(RuntimeError, match="sqlite unavailable"):
+        adapter.get_or_create("bot:demo:user:u1:chat:c1")
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_sqlite_adapter_save_uses_spawn_task_on_running_loop(monkeypatch: pytest.MonkeyPatch) -> None:
+    class Store:
+        pass
+
+    spawned: dict[str, object] = {}
+
+    def fake_spawn_task(coro, *, name=None, on_error=None):
+        spawned["name"] = name
+        spawned["on_error"] = on_error
+        task = asyncio.create_task(coro)
+        return task
+
+    async def fake_save_async(_session: Session) -> None:
+        spawned["saved"] = True
+
+    monkeypatch.setattr(
+        "deeptutor.tutorbot.session.sqlite_adapter.spawn_task",
+        fake_spawn_task,
+    )
+    adapter = SQLiteSessionAdapter(Store())
+    monkeypatch.setattr(adapter, "_save_async", fake_save_async)
+
+    adapter.save(Session(key="bot:demo:user:u1:chat:c1"))
+    await asyncio.sleep(0)
+
+    assert spawned["name"] == "tutorbot.sqlite.save:bot:demo:user:u1:chat:c1"
+    assert spawned["saved"] is True
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_sqlite_adapter_ensure_and_save_share_session_create_lock(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class RacingStore:
+        def __init__(self) -> None:
+            self.sessions: dict[str, dict] = {}
+            self.create_calls = 0
+            self.first_create_entered = asyncio.Event()
+            self.release_create = asyncio.Event()
+
+        def _get_session_sync(self, _session_id: str):
+            return None
+
+        def _get_messages_sync(self, _session_id: str):
+            return []
+
+        async def get_session(self, session_id: str):
+            return self.sessions.get(session_id)
+
+        async def create_session(self, *, session_id: str, **kwargs):
+            self.create_calls += 1
+            if self.create_calls == 1:
+                self.first_create_entered.set()
+            await self.release_create.wait()
+            if session_id in self.sessions:
+                raise RuntimeError("duplicate session create")
+            self.sessions[session_id] = {"id": session_id, **kwargs}
+
+        async def update_session_preferences(self, *_args, **_kwargs):
+            return None
+
+        async def get_messages(self, _session_id: str):
+            return []
+
+        async def add_message(self, *_args, **_kwargs):
+            return None
+
+    tasks: list[asyncio.Task] = []
+
+    def fake_spawn_task(coro, *, name=None, on_error=None):
+        task = asyncio.create_task(coro, name=name)
+        tasks.append(task)
+        return task
+
+    monkeypatch.setattr(
+        "deeptutor.tutorbot.session.sqlite_adapter.spawn_task",
+        fake_spawn_task,
+    )
+    store = RacingStore()
+    adapter = SQLiteSessionAdapter(store)
+
+    session = adapter.get_or_create("bot:demo:user:u1:chat:c1")
+    session.messages.append({"role": "user", "content": "hello"})
+    adapter.save(session)
+    await asyncio.wait_for(store.first_create_entered.wait(), timeout=0.1)
+    await asyncio.sleep(0)
+    create_calls_before_release = store.create_calls
+    store.release_create.set()
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    assert create_calls_before_release == 1
+    assert not [result for result in results if isinstance(result, RuntimeError)]
+
+
 def test_tutorbot_sqlite_adapter_rewrites_legacy_noisy_session_before_appending(tmp_path) -> None:
     store = SQLiteSessionStore(db_path=tmp_path / "chat_history.db")
     adapter = SQLiteSessionAdapter(store)

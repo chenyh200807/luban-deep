@@ -40,6 +40,26 @@ logger = logging.getLogger(__name__)
 # while killing the amplification vector. Applies to every message type at the entry.
 _MAX_WS_INBOUND_FRAME_CHARS = 128 * 1024
 
+
+def _discard_current_subscription_task(
+    subscription_tasks: dict[str, asyncio.Task[None]],
+    key: str,
+    task: asyncio.Task[None],
+) -> None:
+    if subscription_tasks.get(key) is task:
+        subscription_tasks.pop(key, None)
+
+
+async def _await_stopped_subscription_task(key: str, task: asyncio.Task[None]) -> None:
+    if not task.done():
+        task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
+    except Exception:
+        logger.exception("Unified WS subscription task failed during cleanup: %s", key)
+
 _LEGACY_INTERACTION_HINT_KEYS = (
     "profile",
     "scene",
@@ -389,25 +409,25 @@ async def unified_websocket(ws: WebSocket) -> None:
     get_turn_runtime_metrics().record_ws_open()
     closed = False
     subscription_tasks: dict[str, asyncio.Task[None]] = {}
+    send_lock = asyncio.Lock()
 
     async def safe_send(data: dict[str, Any]) -> None:
         nonlocal closed
         if closed:
             return
-        try:
-            await ws.send_json(data)
-        except Exception:
-            closed = True
+        async with send_lock:
+            if closed:
+                return
+            try:
+                await ws.send_json(data)
+            except Exception:
+                closed = True
 
     async def stop_subscription(key: str) -> None:
         task = subscription_tasks.pop(key, None)
         if task is None:
             return
-        task.cancel()
-        try:
-            await task
-        except asyncio.CancelledError:
-            pass
+        await _await_stopped_subscription_task(key, task)
 
     async def subscribe_turn(turn_id: str, after_seq: int = 0) -> None:
         from deeptutor.services.session import get_turn_runtime_manager
@@ -418,11 +438,17 @@ async def unified_websocket(ws: WebSocket) -> None:
                 await safe_send(_clamp_event_for_public(_redact_event_for_public(event)))
 
         await stop_subscription(turn_id)
-        subscription_tasks[turn_id] = spawn_task(
-            _forward(),
-            name=f"ws.subscribe_turn:{turn_id}",
-            on_error=lambda _exc: subscription_tasks.pop(turn_id, None),
-        )
+        task: asyncio.Task[None] | None = None
+
+        async def _run_subscription() -> None:
+            try:
+                await _forward()
+            finally:
+                if task is not None:
+                    _discard_current_subscription_task(subscription_tasks, turn_id, task)
+
+        task = spawn_task(_run_subscription(), name=f"ws.subscribe_turn:{turn_id}")
+        subscription_tasks[turn_id] = task
 
     async def subscribe_session(session_id: str, after_seq: int = 0) -> None:
         from deeptutor.services.session import get_turn_runtime_manager
@@ -434,11 +460,17 @@ async def unified_websocket(ws: WebSocket) -> None:
 
         key = f"session:{session_id}"
         await stop_subscription(key)
-        subscription_tasks[key] = spawn_task(
-            _forward(),
-            name=f"ws.subscribe_session:{session_id}",
-            on_error=lambda _exc: subscription_tasks.pop(key, None),
-        )
+        task: asyncio.Task[None] | None = None
+
+        async def _run_subscription() -> None:
+            try:
+                await _forward()
+            finally:
+                if task is not None:
+                    _discard_current_subscription_task(subscription_tasks, key, task)
+
+        task = spawn_task(_run_subscription(), name=f"ws.subscribe_session:{session_id}")
+        subscription_tasks[key] = task
 
     try:
         while not closed:
@@ -638,6 +670,8 @@ async def unified_websocket(ws: WebSocket) -> None:
         )
     finally:
         closed = True
-        for key in list(subscription_tasks.keys()):
-            await stop_subscription(key)
-        get_turn_runtime_metrics().record_ws_close()
+        try:
+            for key in list(subscription_tasks.keys()):
+                await stop_subscription(key)
+        finally:
+            get_turn_runtime_metrics().record_ws_close()

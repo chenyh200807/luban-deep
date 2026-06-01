@@ -15,6 +15,7 @@ from typing import Any
 
 from loguru import logger
 
+from deeptutor.runtime.safety import spawn_task
 from deeptutor.services.session.sqlite_store import build_user_owner_key
 from deeptutor.tutorbot.session.manager import Session
 from deeptutor.tutorbot.utils.helpers import normalize_message_content
@@ -155,7 +156,10 @@ class SQLiteSessionAdapter:
         """Persist session messages to SQLite synchronously."""
         try:
             loop = asyncio.get_running_loop()
-            loop.create_task(self._save_async(session))
+            spawn_task(
+                self._save_async(session),
+                name=f"tutorbot.sqlite.save:{session.key}",
+            )
         except RuntimeError:
             asyncio.run(self._save_async(session))
 
@@ -172,7 +176,8 @@ class SQLiteSessionAdapter:
             session_row = self.store._get_session_sync(session_id)
             messages_raw = self.store._get_messages_sync(session_id)
         except Exception:
-            return None
+            logger.exception("Failed to load TutorBot SQLite session {}", session_id)
+            raise
 
         if session_row is None:
             return None
@@ -216,28 +221,42 @@ class SQLiteSessionAdapter:
 
     def _ensure_sqlite_session_sync(self, key: str, metadata: dict[str, Any] | None = None) -> None:
         """Ensure a corresponding DeepTutor session row exists."""
-        session_id = self._session_id(key)
         normalized_metadata = self._normalize_metadata(metadata)
-        coro = self.store.create_session(
-            title=self._title_from_metadata(key, normalized_metadata),
-            session_id=session_id,
-            owner_key=self._owner_key_from_metadata(normalized_metadata) or None,
-            source=self._source_from_metadata(normalized_metadata),
-            archived=bool(normalized_metadata.get("archived", False)),
-        )
         try:
             loop = asyncio.get_running_loop()
         except RuntimeError:
             loop = None
         try:
             if loop and loop.is_running():
-                loop.create_task(coro)
+                spawn_task(
+                    self._ensure_sqlite_session_async(key, normalized_metadata),
+                    name=f"tutorbot.sqlite.ensure_session:{self._session_id(key)}",
+                )
             elif loop:
-                loop.run_until_complete(coro)
+                loop.run_until_complete(self._ensure_sqlite_session_async(key, normalized_metadata))
             else:
-                asyncio.run(coro)
+                asyncio.run(self._ensure_sqlite_session_async(key, normalized_metadata))
         except Exception:
-            logger.debug("Session {} may already exist", session_id)
+            logger.debug("Session {} may already exist", self._session_id(key))
+
+    async def _ensure_sqlite_session_async(self, key: str, metadata: dict[str, Any]) -> None:
+        session_id = self._session_id(key)
+        lock = self._save_locks.setdefault(session_id, asyncio.Lock())
+        async with lock:
+            existing = await self.store.get_session(session_id)
+            if existing is not None:
+                if metadata:
+                    await self.store.update_session_preferences(session_id, metadata)
+                return
+            await self.store.create_session(
+                title=self._title_from_metadata(key, metadata),
+                session_id=session_id,
+                owner_key=self._owner_key_from_metadata(metadata) or None,
+                source=self._source_from_metadata(metadata),
+                archived=bool(metadata.get("archived", False)),
+            )
+            if metadata:
+                await self.store.update_session_preferences(session_id, metadata)
 
     async def _save_async(self, session: Session) -> None:
         """Write new messages to SQLite."""

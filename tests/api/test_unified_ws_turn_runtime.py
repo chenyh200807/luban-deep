@@ -8982,3 +8982,21 @@ def test_ws_rejects_oversized_inbound_frame(tmp_path, monkeypatch) -> None:
                 normal.get("type") == "error"
                 and "too large" in str(normal.get("content", "")).lower()
             )
+
+
+@pytest.mark.asyncio
+async def test_ws_subscription_cleanup_swallows_failed_forward_task_for_contract_coverage(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    from deeptutor.api.routers.unified_ws import _await_stopped_subscription_task
+
+    async def fail() -> None:
+        raise RuntimeError("subscriber failed")
+
+    task = asyncio.create_task(fail())
+    await asyncio.sleep(0)
+
+    await _await_stopped_subscription_task("turn-contract-test", task)
+
+    assert "turn-contract-test" in caplog.text
+    assert "subscriber failed" in caplog.text
