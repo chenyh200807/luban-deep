@@ -95,9 +95,9 @@ def _locator(source: dict[str, Any]) -> str:
         return f"{standard_code} 第 {article_code} 条"
 
     span = _source_span(source)
-    chapter = _text(span.get("chapter") or metadata.get("chapter"))
-    section = _text(span.get("section") or span.get("ref") or metadata.get("section"))
-    page = _text(span.get("page") or metadata.get("page"))
+    chapter = _text(span.get("chapter") or metadata.get("chapter") or source.get("chapter"))
+    section = _text(span.get("section") or span.get("ref") or metadata.get("section") or source.get("section"))
+    page = _text(span.get("page") or metadata.get("page") or source.get("page"))
     parts: list[str] = []
     if chapter:
         parts.append(f"第 {chapter} 章")

@@ -33,6 +33,50 @@ def test_normalizes_textbook_source_span() -> None:
     assert refs[0].public_quote == "屋面防水等级应根据工程重要性确定。"
 
 
+def test_normalizes_rag_source_top_level_locator_fields() -> None:
+    refs = normalize_citation_sources(
+        [
+            {
+                "chunk_id": "1A413030_122_0230",
+                "source_type": "textbook",
+                "title": "平屋面工程的防水做法",
+                "source": "2026教材 v3_production_core9-166",
+                "page": 122,
+                "chapter": "3",
+                "chapter_name": "屋面与防水工程施工",
+                "section": "3.5.1",
+                "content": "屋面防水工程应根据建筑物的类别、重要程度、使用功能要求确定防水等级。",
+            }
+        ],
+        policy=CitationPolicy(),
+    )
+
+    assert refs[0].locator == "第 3 章 第 3.5.1 节 p.122"
+    assert refs[0].source_id == "1A413030_122_0230"
+
+
+def test_source_span_locator_fields_override_top_level_fallbacks() -> None:
+    refs = normalize_citation_sources(
+        [
+            {
+                "chunk_id": "book-1",
+                "source_type": "textbook",
+                "title": "2026 建筑实务教材",
+                "chapter": "9",
+                "section": "9.9",
+                "page": 122,
+                "metadata": {
+                    "source_span": {"chapter": "1", "section": "1.4", "page": 32},
+                },
+                "content": "屋面防水等级应根据工程重要性确定。",
+            }
+        ],
+        policy=CitationPolicy(),
+    )
+
+    assert refs[0].locator == "第 1 章 第 1.4 节 p.32"
+
+
 def test_filters_hidden_grading_authority_for_student_surface() -> None:
     refs = normalize_citation_sources(
         [
