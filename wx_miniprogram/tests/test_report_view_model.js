@@ -622,6 +622,48 @@ assert.strictEqual(
   0,
 );
 
+var explicitZeroMasteryReport = {
+  ok: true,
+  schema_version: 2,
+  overview: {},
+  radar_dimensions: [
+    {
+      name: "1A411011",
+      value: 0.62,
+      score: 62,
+      level: "normal",
+      taxonomy_path: ["建筑工程技术", "建筑设计与构造", "建筑设计", "建筑物分类与构成"],
+    },
+  ],
+  mastery: {
+    overall_mastery: {
+      score: 0,
+      confidence: 0.86,
+      status: "stable",
+    },
+    groups: [],
+    hotspots: [],
+    review_summary: { total_due: 1, overdue_count: 0 },
+  },
+  learner_facing: {},
+  learning_brain: {},
+  freshness: { event_count: 2 },
+  next_training: [],
+};
+var explicitZeroMasteryPage = wxVm.toReportPageData(
+  wxVm.buildLearningReportViewModel(explicitZeroMasteryReport),
+);
+assert.strictEqual(
+  explicitZeroMasteryPage.overallMastery,
+  0,
+  "explicit zero mastery must survive page-data normalization",
+);
+assert.strictEqual(
+  explicitZeroMasteryPage.overviewScore,
+  0,
+  "report overview score must not hide a real zero mastery behind radar fallback",
+);
+
 // Keyword-only / rubric_pending honesty.
 var pendingReport = {
   ok: true,
