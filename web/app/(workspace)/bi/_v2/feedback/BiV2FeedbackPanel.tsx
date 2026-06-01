@@ -192,6 +192,7 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
   const [lubanError, setLubanError] = useState('')
   const [selectedLubanFeedback, setSelectedLubanFeedback] =
     useState<BiLubanFeedbackResponse | null>(null)
+  const [pendingLubanDeleteId, setPendingLubanDeleteId] = useState('')
   const [lubanExportNotice, setLubanExportNotice] = useState('')
   const [lubanExportError, setLubanExportError] = useState('')
   const [feedbackStatusOverrides, setFeedbackStatusOverrides] = useState<
@@ -543,6 +544,39 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
     void loadLubanFeedback()
   }
 
+  async function handleLubanFeedbackDelete(item: BiLubanFeedbackResponse) {
+    if (!flagEnabled || lubanWriting || !item.id || item.status === 'archived') return
+    if (pendingLubanDeleteId !== item.id) {
+      setPendingLubanDeleteId(item.id)
+      return
+    }
+    setPendingLubanDeleteId('')
+    setLubanError('')
+    const result = await lubanFeedbackUpdate.execute({
+      key: 'feedback.luban_feedback.update',
+      params: { response_id: item.id },
+      body: {
+        status: 'archived',
+        operator_note: item.operator_note || 'BI 删除：已归档隐藏',
+      },
+    })
+    if (!result.ok) {
+      setLubanError(result.error || '删除内测回访失败')
+      return
+    }
+    const updated = extractLubanFeedbackFromUpdate(result.data, item)
+    if (lubanFilter.status === 'archived') {
+      setLubanResponses(prev =>
+        prev.map(candidate => (candidate.id === item.id ? updated : candidate))
+      )
+    } else {
+      setLubanResponses(prev => prev.filter(candidate => candidate.id !== item.id))
+      setLubanTotal(prev => Math.max(0, prev - 1))
+    }
+    if (selectedLubanFeedback?.id === item.id) setSelectedLubanFeedback(null)
+    void loadLubanFeedback()
+  }
+
   async function handleLubanFeedbackExport() {
     if (!flagEnabled || lubanExporting) return
     setLubanExportError('')
@@ -820,6 +854,9 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
           onFilterChange={(field, value) => setLubanFilter(prev => ({ ...prev, [field]: value }))}
           onRefresh={() => void loadLubanFeedback()}
           onOpenResponse={setSelectedLubanFeedback}
+          onDeleteResponse={handleLubanFeedbackDelete}
+          deleting={lubanWriting}
+          pendingDeleteId={pendingLubanDeleteId}
           onExport={() => void handleLubanFeedbackExport()}
           exporting={lubanExporting}
           exportNotice={lubanExportNotice}
@@ -850,6 +887,9 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
         saveError={lubanWriteError}
         onClose={() => setSelectedLubanFeedback(null)}
         onSave={handleLubanFeedbackSave}
+        onDelete={handleLubanFeedbackDelete}
+        deleting={lubanWriting}
+        pendingDeleteId={pendingLubanDeleteId}
       />
     </section>
   )
@@ -1214,6 +1254,9 @@ function LubanFeedbackPanel({
   onFilterChange,
   onRefresh,
   onOpenResponse,
+  onDeleteResponse,
+  deleting,
+  pendingDeleteId,
   onExport,
   exporting,
   exportNotice,
@@ -1228,6 +1271,9 @@ function LubanFeedbackPanel({
   onFilterChange: (field: keyof LubanFeedbackFilter, value: string) => void
   onRefresh: () => void
   onOpenResponse: (item: BiLubanFeedbackResponse) => void
+  onDeleteResponse: (item: BiLubanFeedbackResponse) => void
+  deleting: boolean
+  pendingDeleteId: string
   onExport: () => void
   exporting: boolean
   exportNotice: string
@@ -1376,7 +1422,14 @@ function LubanFeedbackPanel({
           ) : null}
           {!loading && !error
             ? responses.map(item => (
-                <LubanFeedbackCard key={item.id} item={item} onOpen={onOpenResponse} />
+                <LubanFeedbackCard
+                  key={item.id}
+                  item={item}
+                  onOpen={onOpenResponse}
+                  onDelete={onDeleteResponse}
+                  deleting={deleting}
+                  pendingDeleteId={pendingDeleteId}
+                />
               ))
             : null}
         </div>
@@ -1394,9 +1447,15 @@ function LubanFeedbackPanel({
 function LubanFeedbackCard({
   item,
   onOpen,
+  onDelete,
+  deleting,
+  pendingDeleteId,
 }: {
   item: BiLubanFeedbackResponse
   onOpen: (item: BiLubanFeedbackResponse) => void
+  onDelete: (item: BiLubanFeedbackResponse) => void
+  deleting: boolean
+  pendingDeleteId: string
 }) {
   const contact = joinNonEmpty([
     item.wechat_id ? `微信 ${item.wechat_id}` : '',
@@ -1459,6 +1518,17 @@ function LubanFeedbackCard({
           <Pencil className="h-3 w-3" aria-hidden />
           编辑
         </button>
+        <button
+          type="button"
+          onClick={() => onDelete(item)}
+          disabled={deleting || item.status === 'archived'}
+          className="ml-2 mt-3 inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-rose-300/25 bg-rose-300/10 px-3 text-[11px] font-black text-rose-100 hover:bg-rose-300/16 disabled:opacity-45"
+          aria-label={`删除内测回访 ${item.id}`}
+          title="删除会归档隐藏并写入 audit；不会物理删除原始问卷"
+        >
+          <Trash2 className="h-3 w-3" aria-hidden />
+          {pendingDeleteId === item.id ? '确认删除' : '删除'}
+        </button>
       </div>
     </article>
   )
@@ -1470,12 +1540,18 @@ function LubanFeedbackDetailPanel({
   saveError,
   onClose,
   onSave,
+  onDelete,
+  deleting,
+  pendingDeleteId,
 }: {
   item: BiLubanFeedbackResponse | null
   saving: boolean
   saveError: string
   onClose: () => void
   onSave: (item: BiLubanFeedbackResponse, patch: LubanFeedbackFormState) => Promise<void>
+  onDelete: (item: BiLubanFeedbackResponse) => void
+  deleting: boolean
+  pendingDeleteId: string
 }) {
   const [form, setForm] = useState<LubanFeedbackFormState>(() =>
     item ? formFromLubanFeedback(item) : emptyLubanFeedbackForm()
@@ -1503,6 +1579,16 @@ function LubanFeedbackDetailPanel({
       footer={
         item ? (
           <div className="flex items-center justify-end gap-2">
+            <BiButton
+              onClick={() => onDelete(item)}
+              disabled={deleting || item.status === 'archived'}
+              variant="secondary"
+              size="sm"
+              title="删除会归档隐藏并写入 audit；不会物理删除原始问卷"
+            >
+              <Trash2 className="h-3.5 w-3.5" aria-hidden />
+              {pendingDeleteId === item.id ? '确认删除' : '删除'}
+            </BiButton>
             <BiButton onClick={onClose} variant="secondary" size="sm">
               关闭
             </BiButton>
