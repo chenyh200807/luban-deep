@@ -80,11 +80,6 @@ type LubanFeedbackFilter = {
   source_page: string
 }
 
-type LubanFeedbackFormState = {
-  status: string
-  operator_note: string
-}
-
 type InviteApplicationFormState = {
   status: string
   operator_note: string
@@ -283,10 +278,6 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
       : ''
   const inviteDeleting = inviteApplicationDelete.state.phase === 'writing'
   const lubanWriting = lubanFeedbackUpdate.state.phase === 'writing'
-  const lubanWriteError =
-    lubanFeedbackUpdate.state.phase === 'denied'
-      ? (lubanFeedbackUpdate.state.result.error ?? '')
-      : ''
   const lubanExporting = lubanExportRequest.state.phase === 'writing'
 
   const loadFeedback = useCallback(async () => {
@@ -583,29 +574,6 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
     setInviteTotal(prev => Math.max(0, prev - 1))
     if (selectedInvite?.id === item.id) setSelectedInvite(null)
     void loadInviteTest()
-  }
-
-  async function handleLubanFeedbackSave(
-    item: BiLubanFeedbackResponse,
-    patch: LubanFeedbackFormState
-  ) {
-    if (!flagEnabled || lubanWriting || !item.id) return
-    setLubanError('')
-    const result = await lubanFeedbackUpdate.execute({
-      key: 'feedback.luban_feedback.update',
-      params: { response_id: item.id },
-      body: patch,
-    })
-    if (!result.ok) {
-      setLubanError(result.error || '保存内测回访失败')
-      return
-    }
-    const updated = extractLubanFeedbackFromUpdate(result.data, item)
-    setLubanResponses(prev =>
-      prev.map(candidate => (candidate.id === item.id ? updated : candidate))
-    )
-    setSelectedLubanFeedback(updated)
-    void loadLubanFeedback()
   }
 
   async function handleLubanFeedbackDelete(item: BiLubanFeedbackResponse) {
@@ -967,10 +935,7 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
             : 'luban-feedback-empty'
         }
         item={selectedLubanFeedback}
-        saving={lubanWriting}
-        saveError={lubanWriteError}
         onClose={() => setSelectedLubanFeedback(null)}
-        onSave={handleLubanFeedbackSave}
         onDelete={handleLubanFeedbackDelete}
         deleting={lubanWriting}
         pendingDeleteId={pendingLubanDeleteId}
@@ -1612,10 +1577,10 @@ function LubanFeedbackCard({
           type="button"
           onClick={() => onOpen(item)}
           className="mt-3 inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-cyan-300/25 bg-cyan-300/10 px-3 text-[11px] font-black text-cyan-100 hover:bg-cyan-300/16"
-          aria-label={`编辑内测回访 ${item.id}`}
+          aria-label={`查看内测回访 ${item.id} 完整反馈`}
         >
-          <Pencil className="h-3 w-3" aria-hidden />
-          编辑
+          <Eye className="h-3 w-3" aria-hidden />
+          查看完整反馈
         </button>
         <button
           type="button"
@@ -1635,43 +1600,25 @@ function LubanFeedbackCard({
 
 function LubanFeedbackDetailPanel({
   item,
-  saving,
-  saveError,
   onClose,
-  onSave,
   onDelete,
   deleting,
   pendingDeleteId,
 }: {
   item: BiLubanFeedbackResponse | null
-  saving: boolean
-  saveError: string
   onClose: () => void
-  onSave: (item: BiLubanFeedbackResponse, patch: LubanFeedbackFormState) => Promise<void>
   onDelete: (item: BiLubanFeedbackResponse) => void
   deleting: boolean
   pendingDeleteId: string
 }) {
-  const [form, setForm] = useState<LubanFeedbackFormState>(() =>
-    item ? formFromLubanFeedback(item) : emptyLubanFeedbackForm()
-  )
-  const formId = 'bi-luban-feedback-edit-form'
-
-  function updateField<K extends keyof LubanFeedbackFormState>(
-    field: K,
-    value: LubanFeedbackFormState[K]
-  ) {
-    setForm(prev => ({ ...prev, [field]: value }))
-  }
-
   return (
     <BiSidePanel
       open={Boolean(item)}
       onClose={onClose}
-      title={item ? `编辑内测回访 · NPS ${item.nps ?? '—'}` : '编辑内测回访'}
+      title={item ? `内测回访详情 · NPS ${item.nps ?? '—'}` : '内测回访详情'}
       subtitle={
         item
-          ? `${lubanLabel(LUBAN_STATUS_LABELS, item.status)} · ${formatBiDate(item.created_at)} · 保存写入 audit`
+          ? `${lubanLabel(LUBAN_STATUS_LABELS, item.status)} · ${formatBiDate(item.created_at)} · 只读完整问卷`
           : undefined
       }
       width="lg"
@@ -1691,22 +1638,12 @@ function LubanFeedbackDetailPanel({
             <BiButton onClick={onClose} variant="secondary" size="sm">
               关闭
             </BiButton>
-            <BiButton type="submit" form={formId} disabled={saving} variant="primary" size="sm">
-              {saving ? '保存中…' : '保存并审计'}
-            </BiButton>
           </div>
         ) : undefined
       }
     >
       {item ? (
-        <form
-          id={formId}
-          className="space-y-4 text-sm"
-          onSubmit={event => {
-            event.preventDefault()
-            void onSave(item, form)
-          }}
-        >
+        <div className="space-y-4 text-sm">
           <section className="rounded-3xl border border-cyan-300/25 bg-cyan-300/10 p-4">
             <div className="flex flex-wrap items-center gap-2">
               <BiStatusPill tone={lubanStatusTone(item.status)} label={lubanLabel(LUBAN_STATUS_LABELS, item.status)} />
@@ -1719,7 +1656,7 @@ function LubanFeedbackDetailPanel({
               </span>
             </div>
             <p className="mt-3 text-xs leading-5 text-slate-300">
-              原始问卷答案保持只读，避免污染真实用户提交；这里编辑的是运营跟进状态和内部备注。
+              原始问卷答案保持只读，避免污染真实用户提交；当前仅保留删除/归档动作。
             </p>
           </section>
 
@@ -1769,37 +1706,7 @@ function LubanFeedbackDetailPanel({
             />
             <ReadonlyBlock label="最重要建议" value={item.top_suggestion} />
           </section>
-
-          <label className="block">
-            <span className="text-xs font-black text-slate-300">运营状态</span>
-            <BiSelect
-              value={form.status}
-              onChange={event => updateField('status', event.target.value)}
-              className="mt-1 h-11 w-full"
-            >
-              <option value="submitted">待处理</option>
-              <option value="contacted">已联系</option>
-              <option value="interviewed">已回访</option>
-              <option value="resolved">已闭环</option>
-              <option value="archived">已归档</option>
-            </BiSelect>
-          </label>
-          <label className="block">
-            <span className="text-xs font-black text-slate-300">运营备注</span>
-            <textarea
-              value={form.operator_note}
-              onChange={event => updateField('operator_note', event.target.value)}
-              rows={6}
-              placeholder="记录联系结果、回访安排、是否适合进入种子用户池。"
-              className="mt-1 w-full resize-none rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-2 text-sm leading-6 text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
-            />
-          </label>
-          {saveError ? (
-            <p className="rounded-2xl border border-rose-300/25 bg-rose-300/10 px-3 py-2 text-xs text-rose-100">
-              {saveError}
-            </p>
-          ) : null}
-        </form>
+        </div>
       ) : null}
     </BiSidePanel>
   )
@@ -2712,20 +2619,6 @@ function extractInviteApplicationFromUpdate(
       application.contact_revealed ?? application.contactRevealed,
       fallback.contact_revealed
     ),
-  }
-}
-
-function emptyLubanFeedbackForm(): LubanFeedbackFormState {
-  return {
-    status: 'submitted',
-    operator_note: '',
-  }
-}
-
-function formFromLubanFeedback(item: BiLubanFeedbackResponse): LubanFeedbackFormState {
-  return {
-    status: item.status || 'submitted',
-    operator_note: item.operator_note || '',
   }
 }
 
