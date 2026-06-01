@@ -1,0 +1,99 @@
+from __future__ import annotations
+
+import csv
+import json
+from pathlib import Path
+
+from scripts.build_luban_human_validation_slice import (
+    DEFAULT_AFTER_REPORT,
+    DEFAULT_FIXTURE,
+    build_validation_bundle,
+    select_validation_slice,
+)
+from scripts.score_luban_human_validation_slice import score_human_labels
+
+
+def test_select_validation_slice_is_blind_and_includes_error_frontier() -> None:
+    bundle = select_validation_slice(
+        fixture_path=DEFAULT_FIXTURE,
+        report_path=DEFAULT_AFTER_REPORT,
+        target_count=24,
+    )
+
+    selected = bundle["selected_samples"]
+    assert 1 <= len(selected) <= 24
+    assert any(sample["selection_reason"] == "positive_score_delta" for sample in selected)
+    assert any(sample["selection_reason"] == "penalty_rule_case" for sample in selected)
+    assert any(sample["selection_reason"] == "largest_under_score_delta" for sample in selected)
+
+    public_packet = bundle["po_review_packet"]
+    serialized_public = json.dumps(public_packet, ensure_ascii=False)
+    assert "pred_score" not in serialized_public
+    assert "artifact-first" not in serialized_public
+    assert "artifact_first" not in serialized_public
+    assert "baseline" not in serialized_public
+    assert "RAG" not in serialized_public
+    assert "ground_truth_ledger" not in serialized_public
+    assert "blind_grade" not in serialized_public
+    assert public_packet["review_status"] == "awaiting_human_labels"
+
+
+def test_build_validation_bundle_writes_protocol_packet_and_label_templates(tmp_path: Path) -> None:
+    paths = build_validation_bundle(
+        fixture_path=DEFAULT_FIXTURE,
+        report_path=DEFAULT_AFTER_REPORT,
+        output_dir=tmp_path,
+        target_count=12,
+    )
+
+    assert paths["po_review_packet"].exists()
+    assert paths["po_labels_template_csv"].exists()
+    assert paths["po_labels_template_json"].exists()
+    assert paths["internal_manifest"].exists()
+    assert paths["protocol"].exists()
+
+    packet = json.loads(paths["po_review_packet"].read_text(encoding="utf-8"))
+    manifest = json.loads(paths["internal_manifest"].read_text(encoding="utf-8"))
+    assert packet["slice_id"] == manifest["slice_id"]
+    assert manifest["artifact_assets"]
+    assert all("content_hash" in asset for asset in manifest["artifact_assets"])
+
+    rows = list(csv.DictReader(paths["po_labels_template_csv"].open(encoding="utf-8")))
+    assert rows
+    assert {"case_id", "student_id", "point_id", "human_hit", "human_score"} <= set(rows[0])
+    assert all(row["human_hit"] == "" for row in rows)
+
+
+def test_score_human_labels_compares_human_to_ledger_and_artifact(tmp_path: Path) -> None:
+    paths = build_validation_bundle(
+        fixture_path=DEFAULT_FIXTURE,
+        report_path=DEFAULT_AFTER_REPORT,
+        output_dir=tmp_path,
+        target_count=3,
+    )
+    manifest = json.loads(paths["internal_manifest"].read_text(encoding="utf-8"))
+    label_rows: list[dict[str, str]] = []
+    for sample in manifest["selected_samples"]:
+        for point in sample["ledger_point_rows"]:
+            label_rows.append(
+                {
+                    "case_id": sample["case_id"],
+                    "student_id": sample["student_id"],
+                    "point_id": point["point_id"],
+                    "human_hit": point["ledger_hit"],
+                    "human_score": str(point["gold_score"]),
+                    "human_error_codes": "",
+                    "human_note": "test fixture mirrors ledger",
+                }
+            )
+    labels_path = tmp_path / "human_labels.csv"
+    with labels_path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(label_rows[0]))
+        writer.writeheader()
+        writer.writerows(label_rows)
+
+    result = score_human_labels(manifest_path=paths["internal_manifest"], labels_path=labels_path)
+
+    assert result["human_vs_ledger"]["mean_abs_score_delta"] == 0.0
+    assert result["human_vs_ledger"]["point_hit_agreement"] == 1.0
+    assert result["human_vs_artifact_first"]["sample_count"] == len(manifest["selected_samples"])

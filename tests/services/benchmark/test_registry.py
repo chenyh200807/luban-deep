@@ -28,12 +28,13 @@ def test_registry_uses_version_and_cases_mapping() -> None:
     assert not isinstance(registry.suites, dict)
     with pytest.raises(TypeError):
         registry.cases["new_case"] = registry.cases["routing.semantic_router.case_set"]  # type: ignore[index]
-    assert len(registry.cases) == 8
+    assert len(registry.cases) == 9
     assert set(registry.suites) == {
         "pr_gate_core",
         "regression_watch",
         "incident_replay",
         "exploration_lab",
+        "luban_case_grading_shadow",
         "answer_citation_shadow",
     }
 
@@ -143,6 +144,24 @@ def test_wx_and_web_surface_cases_use_canonical_vocab() -> None:
     assert web_case.expected_contract
 
 
+def test_luban_case_grading_shadow_case_uses_canonical_vocab() -> None:
+    registry = _load_registry()
+    case = registry.cases["grading.luban_case_golden.v0"]
+
+    assert case.dataset_id == "benchmark_phase1"
+    assert case.dataset_version == "phase1.0"
+    assert case.case_id == "grading.luban_case_golden.v0"
+    assert case.contract_domain == "grading_quality_contract"
+    assert case.case_tier == "exploratory"
+    assert case.execution_kind == "case_grading_eval"
+    assert case.surface == "backend"
+    assert case.source_fixture == "deeptutor/services/benchmark/fixtures/luban_case_grading_golden_v1.json"
+    assert case.expected_contract == "luban_case_grading_v0_directional_shadow"
+    assert case.failure_taxonomy_scope == ()
+    assert case.origin_type == "manual"
+    assert case.promotion_status == "candidate"
+
+
 def test_answer_citation_shadow_case_uses_canonical_vocab() -> None:
     registry = _load_registry()
     case = registry.cases["answer.citation.paper_style.v0"]
@@ -170,6 +189,7 @@ def test_all_case_ids_exist() -> None:
 
     assert set(registry.cases) == {
         "answer.citation.paper_style.v0",
+        "grading.luban_case_golden.v0",
         "routing.semantic_router.case_set",
         "routing.context_orchestration.case_set",
         "grounding.rag.case_set",

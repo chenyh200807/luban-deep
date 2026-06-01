@@ -133,6 +133,32 @@ async def test_run_benchmark_uses_registry_suites_and_reuses_arr_helpers(
             ],
         )
 
+    def fake_run_luban_case_grading_case_set(**kwargs):
+        return (
+            {
+                "suite": "luban-case-grading-shadow",
+                "total_cases": 1,
+                "passed": 1,
+                "failed": 0,
+                "skipped": 0,
+                "pass_rate": 1.0,
+                "failure_taxonomy": [],
+                "case_tiers": {"exploratory": 1},
+            },
+            [
+                {
+                    "suite": "luban-case-grading-shadow",
+                    "case_id": "grading.luban_case_golden.v0",
+                    "case_name": "grading.luban_case_golden.v0",
+                    "status": "PASS",
+                    "case_tier": "exploratory",
+                    "failure_type": None,
+                    "evidence": {"directional_go": True},
+                    "latency_ms": None,
+                    "details": {},
+                }
+            ],
+        )
 
     def fake_run_answer_citation_case_set(**kwargs):
         return (
@@ -178,6 +204,10 @@ async def test_run_benchmark_uses_registry_suites_and_reuses_arr_helpers(
         fake_run_local_long_dialog_suite,
     )
     monkeypatch.setattr(
+        "deeptutor.services.benchmark.runner._run_luban_case_grading_case_set",
+        fake_run_luban_case_grading_case_set,
+    )
+    monkeypatch.setattr(
         "deeptutor.services.benchmark.runner._run_answer_citation_case_set",
         fake_run_answer_citation_case_set,
     )
@@ -199,6 +229,7 @@ async def test_run_benchmark_uses_registry_suites_and_reuses_arr_helpers(
         "regression_watch",
         "incident_replay",
         "exploration_lab",
+        "luban_case_grading_shadow",
         "answer_citation_shadow",
     ]
     assert [item["suite"] for item in payload["suite_summaries"]] == [
@@ -206,11 +237,12 @@ async def test_run_benchmark_uses_registry_suites_and_reuses_arr_helpers(
         "regression_watch",
         "incident_replay",
         "exploration_lab",
+        "luban_case_grading_shadow",
         "answer_citation_shadow",
     ]
     assert payload["run_manifest"]["registry_version"] == "phase1"
     assert payload["release_spine"]
-    assert payload["summary"]["passed"] == 7
+    assert payload["summary"]["passed"] == 8
     assert payload["summary"]["failed"] == 1
     assert payload["summary"]["skipped"] == 1
     assert payload["failure_taxonomy"] == [{"failure_type": "FAIL_ROUTE_WRONG", "count": 1}]

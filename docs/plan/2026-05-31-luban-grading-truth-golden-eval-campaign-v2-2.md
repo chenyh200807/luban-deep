@@ -354,6 +354,14 @@ Expected:
 - Create: `scripts/poc_luban_case_grading_three_arms.py`
 - Test: `tests/scripts/test_poc_luban_case_grading_three_arms.py`
 
+**2026-06-01 status: Implemented for v0 directional / shadow.**
+
+- Runner: `scripts/poc_luban_case_grading_three_arms.py`
+- Tests: `tests/scripts/test_poc_luban_case_grading_three_arms.py`
+- Full report: `artifacts/luban_case_grading_three_arms/full_v0_directional/luban_case_grading_three_arm_full_report_20260601.md`
+- Benchmark suite: `luban_case_grading_shadow` with `execution_kind=case_grading_eval`, `contract_domain=grading_quality_contract`, `case_tier=exploratory`; it is not part of `pr_gate_core`.
+- Red line preserved: `gold=ground_truth_ledger`; `blind_grade` is only a second-opinion reference. The runner does not patch scores after `CaseGradingSkillKernel` returns.
+
 - [ ] **Step 1: Write the test**
 
 Create `tests/scripts/test_poc_luban_case_grading_three_arms.py`:
@@ -563,6 +571,155 @@ Migration is gated by:
 - If Artifact-first does not beat Baseline on score delta, stop runtime integration and use it only as reviewer support.
 - If citation accuracy fails, keep citations internal-only.
 - If learner writeback pollution occurs, disable learner writeback for this path.
+
+### 5.4 2026-06-01 full v0 directional result
+
+Full run: 20 questions / 100 synthetic AI-anchored samples, 3 arms, deterministic metrics. This is a directional / shadow result, not a production gate.
+
+| Arm | Mean abs score delta | Point recall | Point precision | Term recall | Term precision | Hallucination | Token proxy |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| baseline | 2.6305 | 0.4059 | 0.5450 | 0.4630 | 0.6200 | 0.6900 | 812.2 |
+| rag | 2.6305 | 0.4059 | 0.5450 | 0.4630 | 0.6200 | 0.6900 | 1059.2 |
+| artifact-first | 2.1338 | 0.6508 | 0.7890 | 0.7611 | 0.9000 | 0.0000 | 730.5 |
+
+Decision: **directional GO for continued structured scoring-point investment; NO-GO for production runtime promotion before kernel-rule work and v1 human validation.**
+
+Key findings:
+
+- Artifact-first is better than baseline/RAG on score delta, recall, precision, hallucination, and token proxy.
+- RAG evidence reaches `CaseGradingSkillKernel` evidence refs but does not enter scoring decisions; full run had `score_changed_samples=0`, so current RAG is not a fair scoring arm unless reworked into `retrieval -> rubric candidate -> structured validation -> grading_key`.
+- Artifact-first weakness distribution: `compiled_term_recall_gap=47`, `term_form_normalization_gap=8`, `compiled_term_overmatch=3`, `keyword_context_false_positive=2`, `penalty_rule_unsupported=1`.
+- §0.3 evolution gate reading: structured scoring data is worth continued investment, but the evidence supports expanding the scoring-truth layer, not building a generic Nexus-like platform yet.
+
+### 5.5 2026-06-01 kernel-rule support after-run
+
+Scope: PO-approved minimal `CaseGradingSkillKernel` authority change plus route-B artifact compiler updates. This remains v0 directional / shadow.
+
+Implemented:
+
+- `penalty_rules` with `multi_answer_no_score` for Q4-style "多答不得分" scoped zeroing.
+- Official-term normalization for punctuation / brackets / slash alternatives / `或` variants, with no synonym expansion.
+- Compiled-term overmatch controls: reject overbroad terms such as `原则`, remove full-label fallback, and preserve fill-blank `answer_label` context.
+
+After-run report: `artifacts/luban_case_grading_three_arms/kernel_rule_support_20260601/kernel_rule_support_lift_report_20260601.md`.
+
+| Arm | Mean abs score delta | Point recall | Point precision | Term recall | Term precision | Hallucination | Token proxy |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| baseline | 2.5928 | 0.4376 | 0.6150 | 0.4537 | 0.6500 | 0.7100 | 812.2 |
+| rag | 2.5928 | 0.4376 | 0.6150 | 0.4537 | 0.6500 | 0.7100 | 1059.2 |
+| artifact-first | 1.5778 | 0.7487 | 0.8888 | 0.8273 | 0.9600 | 0.0000 | 684.5 |
+
+Before -> after artifact-first lift:
+
+- Mean abs score delta: `2.1338 -> 1.5778` (`-0.5560`, 26.1% relative reduction).
+- Point recall: `0.6508 -> 0.7487`.
+- Point precision: `0.7890 -> 0.8888`.
+- Term recall: `0.7611 -> 0.8273`.
+- Term precision: `0.9000 -> 0.9600`.
+- Hallucination: `0.0000 -> 0.0000`.
+- Token proxy: `730.5 -> 684.5`.
+
+Targeted gap reading:
+
+- `penalty_rule_unsupported`: `1 -> 0`; Q4-S4 now scores `3.0/3.0`.
+- `term_form_normalization_gap`: count `8 -> 9`, but absolute error severity `10.3511 -> 7.6249`; remaining items are mostly list-rule / extraction quality, not only punctuation form.
+- `compiled_term_overmatch`: count `3 -> 5`, but absolute over-award severity `4.2250 -> 1.8583`; severe Q10 fill-blank cross-match was fixed, residuals are smaller point-specific context issues.
+- `compiled_term_recall_gap`: `47 -> 38`; still the dominant backlog.
+
+§0.3 evolution gate reading: this strengthens the case for structured scoring data investment and supports planning v1 validation slices. It still does not justify production promotion or generic Nexus-like platform construction.
+
+### 5.6 2026-06-01 v1 human validation slice handoff
+
+PO approved starting v1 validation slices + artifact versioning. The first human gate is prepared and awaiting real PO labels.
+
+Package:
+
+- `artifacts/luban_human_validation_v1/po_slice_20260601/po_review_packet.json`
+- `artifacts/luban_human_validation_v1/po_slice_20260601/po_labels_template.csv`
+- `artifacts/luban_human_validation_v1/po_slice_20260601/internal_slice_manifest.json`
+- `artifacts/luban_human_validation_v1/po_slice_20260601/human_validation_protocol.md`
+
+Selection:
+
+- 24 samples.
+- 12 cases.
+- 131 point-label rows.
+- deterministic selection: positive-score frontier -> penalty-rule cases -> largest under-score deltas.
+
+Protocol:
+
+- `ground_truth_ledger` remains v0 gold for comparability.
+- PO labels are a new higher-authority validation layer.
+- PO packet is blind: no baseline/RAG/artifact-first predictions, no ledger labels, no blind_grade.
+- Metrics script compares `human-vs-ledger` and `human-vs-artifact-first` after human labels return.
+
+Artifact-versioning seed:
+
+- `internal_slice_manifest.json` records `schema_version=grading_artifact.v1`, `version_id`, `content_hash`, and source authority for each selected case artifact.
+- This is a handoff seed, not a production artifact store.
+
+Stop condition reached: human/PO labeling is now required. No AI may substitute for this label step.
+
+### 5.7 2026-06-01 no-human v1.5 false-miss correction
+
+PO adversarial spotcheck found that the previous no-human v1.5 headline (`460/485=94.85% deterministic`, `类B=0`, "strong GO") was inflated by a false-miss bug. That value is now explicitly superseded and must not be quoted as a valid gate result.
+
+Root cause:
+
+- Empty-anchor points were allowed to become certified misses (`hit=miss`, `score=0`, `is_deterministic=true`, `class A`).
+- Official `correct_answer` was not included as a case-local exact anchor source, despite §6.10 treating official answer as one of the three gold anchors.
+- Stale independent A/B triage labels could re-demote residual class B items back to class A.
+
+Correction r1:
+
+- Official answer is now a local exact-match anchor source (`source_class=official_answer`), still no RAG and no synonym expansion.
+- No-verifiable-term labels are `verifiable=false`, `hit=unverifiable`, `score=null`, `resolution_class=B`.
+- Old independent A/B labels are no longer applied by default; `verifiable=false` items cannot be demoted to class A.
+- Junk non-terms such as `可选项`, scoring instructions, pure numbering, and estimate-score fragments are filtered from required terms.
+
+Corrected shadow result:
+
+- point labels: `485`
+- deterministic labels: `470/485 = 96.91%`
+- residual labels: `15`
+- class distribution: `A=470`, `B=15`, `C=0`
+- PO queue: `15`; external expert queue: `0`
+- deterministic subset comparison: artifact-first mean abs delta `0.9607`, baseline/RAG `3.1315`.
+
+Interpretation: structured scoring data remains valuable, and artifact-first still beats baseline/RAG on the corrected deterministic subset. However, no-human v1.5 is not allowed to self-certify from same-model agreement. The next gate is the corrected PO spotcheck package at `artifacts/luban_no_human_v1_5/spotcheck_corrected_20260601/`. Full correction report: `artifacts/luban_no_human_v1_5/20260601_textbook_anchored/FINDING_false_miss_correction_r1.md`.
+
+### 5.8 2026-06-01 no-human v1.5 list-rule denominator correction r2
+
+Claude independent r2 spotcheck confirmed the r1 false-miss fix, but exposed a narrower bug: some list-rule points were under-scored because `required_terms_v1_5` still included junk anchors, official-answer sentence fragments, or non-term fallback fragments. This inflated the list denominator, so an answer containing all true official list terms could receive only partial credit.
+
+Correction r2:
+
+- List-rule denominator now prefers explicit official list terms and does not use repaired sentence-level anchors as the scoring denominator.
+- List splitting respects bracket depth, so terms containing punctuation inside brackets are not split incorrectly.
+- Junk/non-term anchors are filtered (`可选项`, scoring instructions, pure numbering, `三项`, quote fragments).
+- Risky substring contexts such as `上厕所的` matching the official term `厕所` are no longer auto-certified; they become `verifiable=false`, `resolution_class=B`.
+- PO spotcheck excerpts now keep enough answer context to avoid hiding the relevant answer span.
+
+Corrected r2 shadow result:
+
+- point labels: `485`
+- deterministic labels: `469/485 = 96.70%`
+- residual labels: `16`
+- class distribution: `A=469`, `B=16`, `C=0`
+- PO queue: `16`; external expert queue: `0`
+- explicit list-denominator points: `24`
+- filtered junk/non-term anchors during squeeze: `5`
+- remaining junk / overlong sentence anchors in `required_terms_v1_5`: `0 / 0`
+- substring context risks deferred to B: `1`
+- deterministic subset comparison: artifact-first mean abs delta `1.1536`, baseline/RAG `3.2556`.
+
+Q11 list-rule evidence after r2:
+
+- P1 denominator = `生活区 / 办公区 / 材料加工和存放区`; Q11-S1 scores `3.0/3.0`.
+- P2 denominator = `体温计 / 口罩 / 消毒剂`; Q11-S1 scores `1.5/1.5`.
+- P3 denominator = `食堂 / 盥洗室 / 厕所`; Q11-S1 scores `1.5/1.5`.
+
+Interpretation: the previous r1 corrected headline (`470/485 = 96.91%`) is now superseded by r2 (`469/485 = 96.70%`). This is a more honest number: one substring-only context is now sent to PO instead of being certified. Artifact-first still materially beats baseline/RAG on the corrected deterministic subset, but no-human v1.5 remains directional/shadow only. Next gate remains PO/human spotcheck, now at `artifacts/luban_no_human_v1_5/spotcheck_r2_corrected_20260601/`. Full r2 finding: `artifacts/luban_no_human_v1_5/r2_corrected_list_rule_20260601/FINDING_list_rule_denominator_correction_r2.md`.
 
 ---
 

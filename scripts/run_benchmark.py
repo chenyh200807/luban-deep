@@ -25,6 +25,7 @@ CANONICAL_SUITES = (
     "regression_watch",
     "incident_replay",
     "exploration_lab",
+    "luban_case_grading_shadow",
     "answer_citation_shadow",
 )
 
