@@ -2240,6 +2240,7 @@ class AgentLoop:
             session.metadata.pop("nano_team_active", None)
             self.sessions.save(session)
             self.sessions.invalidate(session.key)
+            self.memory_consolidator.release_lock(session.key)
             return OutboundMessage(channel=msg.channel, chat_id=msg.chat_id,
                                   content="New session started.")
         if cmd == "/help":

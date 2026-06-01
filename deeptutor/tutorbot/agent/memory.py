@@ -257,6 +257,16 @@ class MemoryConsolidator:
         """Return the shared consolidation lock for one session."""
         return self._locks.setdefault(session_key, asyncio.Lock())
 
+    def release_lock(self, session_key: str) -> bool:
+        """Release an idle per-session consolidation lock after session teardown."""
+        lock = self._locks.get(session_key)
+        if lock is None:
+            return False
+        if lock.locked():
+            return False
+        self._locks.pop(session_key, None)
+        return True
+
     async def consolidate_messages(self, messages: list[dict[str, object]]) -> bool:
         """Archive a selected message chunk into persistent memory."""
         return await self.store.consolidate(messages, self.provider, self.model)
