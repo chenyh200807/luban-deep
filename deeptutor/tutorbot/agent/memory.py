@@ -264,6 +264,9 @@ class MemoryConsolidator:
             return False
         if lock.locked():
             return False
+        waiters = getattr(lock, "_waiters", None)
+        if waiters and any(not waiter.cancelled() for waiter in waiters):
+            return False
         self._locks.pop(session_key, None)
         return True
 

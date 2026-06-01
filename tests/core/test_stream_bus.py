@@ -75,6 +75,24 @@ async def test_subscribe_history_replay_does_not_duplicate_live_event() -> None:
 
 
 @pytest.mark.asyncio
+async def test_subscribe_drains_live_event_queued_before_close_after_history_replay() -> None:
+    bus = StreamBus()
+    first = StreamEvent(type=StreamEventType.CONTENT, content="first")
+    second = StreamEvent(type=StreamEventType.CONTENT, content="second")
+    await bus.emit(first)
+
+    subscription = bus.subscribe()
+    assert await anext(subscription) is first
+
+    await bus.emit(second)
+    await bus.close()
+
+    assert await asyncio.wait_for(anext(subscription), timeout=0.1) is second
+    with pytest.raises(StopAsyncIteration):
+        await asyncio.wait_for(anext(subscription), timeout=0.1)
+
+
+@pytest.mark.asyncio
 async def test_late_subscriber_replays_history_and_stops_after_close() -> None:
     bus = StreamBus()
     event = StreamEvent(type=StreamEventType.ERROR, content="closed")
