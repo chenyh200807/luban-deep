@@ -20,6 +20,26 @@ function buildPresentationEvent(resultMetadata) {
   return presentation;
 }
 
+function extractResultCitations(resultMetadata) {
+  if (!resultMetadata || typeof resultMetadata !== "object") return [];
+  var bundle = resultMetadata.citation_bundle;
+  if (!bundle && resultMetadata.metadata && typeof resultMetadata.metadata === "object") {
+    bundle = resultMetadata.metadata.citation_bundle;
+  }
+  if (bundle && Array.isArray(bundle.refs)) return bundle.refs.map(toDisplayCitation);
+  return [];
+}
+
+function toDisplayCitation(ref) {
+  var raw = ref && typeof ref === "object" ? ref : {};
+  return {
+    key: String(raw.key || "").trim(),
+    marker: String(raw.marker || "").trim(),
+    title: String(raw.title || "").trim(),
+    locator: String(raw.locator || "").trim(),
+  };
+}
+
 function buildFinalResponseEvent(resultMetadata) {
   if (!resultMetadata || typeof resultMetadata !== "object") return null;
   var response = resultMetadata.response;
@@ -27,11 +47,14 @@ function buildFinalResponseEvent(resultMetadata) {
     response = resultMetadata.metadata.response;
   }
   if (typeof response !== "string" || !response.trim()) return null;
-  return {
+  var finalEvent = {
     type: "final",
     engine: "tutorbot",
     response: response,
   };
+  var citations = extractResultCitations(resultMetadata);
+  if (citations.length) finalEvent.citations = citations;
+  return finalEvent;
 }
 
 function normalizeErrorMessage(err) {

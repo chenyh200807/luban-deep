@@ -84,7 +84,24 @@ def _source_span(source: dict[str, Any]) -> dict[str, Any]:
 
 def _title(source: dict[str, Any]) -> str:
     metadata = _metadata(source)
-    return _text(source.get("title") or metadata.get("title") or source.get("source_title") or _source_type(source))
+    title = _text(source.get("title") or metadata.get("title") or source.get("source_title"))
+    source_type = _source_type(source)
+    source_label = _text(
+        source.get("source")
+        or source.get("source_doc")
+        or source.get("doc_id")
+        or metadata.get("source")
+        or metadata.get("source_doc")
+        or metadata.get("doc_id")
+    )
+    is_2026_textbook = (
+        source_type.lower() == "textbook" and "2026" in source_label and "教材" in source_label
+    )
+    if is_2026_textbook:
+        if title and not title.startswith("2026"):
+            return f"2026 建筑实务教材：{title}"
+        return title or "2026 建筑实务教材"
+    return title or source_type
 
 
 def _locator(source: dict[str, Any]) -> str:
@@ -114,7 +131,7 @@ def _locator(source: dict[str, Any]) -> str:
     if question_no:
         suffix = f"-{sub_question}" if sub_question else ""
         return f"{exam_year} 真题 {question_no}{suffix}".strip()
-    return _source_type(source)
+    return ""
 
 
 def _stable_ref_id(source: dict[str, Any], locator: str, quote: str) -> str:
@@ -135,19 +152,23 @@ def normalize_citation_sources(
         locator = _locator(source)
         sid = _source_id(source)
         stable_id = _stable_id(source)
-        key = (sid or stable_id or _text(source.get("chunk_id")) or _text(source.get("id")), locator)
+        metadata = _metadata(source)
+        quote = _public_quote(source, max_chars=policy.max_public_quote_chars)
+        title = _title(source)
+        identity = sid or stable_id or _text(source.get("chunk_id")) or _text(source.get("id"))
+        if not identity:
+            identity = "|".join([title, quote]).strip("|")
+        key = (identity, locator)
         if key in seen:
             continue
         seen.add(key)
-        metadata = _metadata(source)
-        quote = _public_quote(source, max_chars=policy.max_public_quote_chars)
         index = len(refs) + 1
         refs.append(
             CitationSourceRef(
                 citation_id=_stable_ref_id(source, locator, quote),
                 marker=f"〔{index}〕",
                 source_type=_source_type(source),
-                title=_title(source),
+                title=title,
                 locator=locator,
                 source_id=sid,
                 source_table=_source_table(source),

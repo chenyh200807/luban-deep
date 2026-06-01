@@ -136,6 +136,16 @@ def test_resolve_group_weights_matches_query_shape() -> None:
     assert standard_weights["standard"] > standard_weights["questions_bank"]
 
 
+def test_resolve_group_weights_prefers_textbook_for_concept_teaching() -> None:
+    weights = resolve_group_weights(
+        "防火门等级和使用部位怎么区分",
+        base_source_weights={"standard": 1.4, "textbook": 1.0, "exam": 0.7, "questions_bank": 0.4, "standard_precision": 2.2},
+        base_question_weights={"standard": 1.4, "textbook": 1.0, "exam": 1.2, "questions_bank": 1.5, "standard_precision": 2.2},
+    )
+
+    assert weights["textbook"] > weights["standard"]
+
+
 def test_dedupe_ranked_results_removes_duplicate_stems() -> None:
     results = dedupe_ranked_results(
         [

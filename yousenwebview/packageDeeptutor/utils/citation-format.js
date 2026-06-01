@@ -96,6 +96,22 @@ function _sourceKindLabel(citation) {
   return "";
 }
 
+function _markerKey(citation) {
+  var explicit = _clean(citation.key);
+  if (explicit) return explicit;
+  var marker = _clean(citation.marker);
+  var match = marker.match(/\d+/);
+  return match ? match[0] : "";
+}
+
+function _bundleRefTitle(citation) {
+  var title = _clean(citation.title);
+  var locator = _clean(citation.locator);
+  var sourceType = String(citation.source_type || "").toLowerCase();
+  if (!title || title.toLowerCase() === sourceType || title === "source") return "";
+  return [title, locator].filter(Boolean).join(" · ");
+}
+
 function _buildSourceMeta(citation) {
   var docId = String(citation.doc_id || "");
   var chunkId = String(citation.chunk_id || "");
@@ -166,8 +182,8 @@ function _buildTitle(citation) {
 function formatCitation(citation) {
   var next = citation || {};
   return {
-    key: next.key || "",
-    title: _buildTitle(next),
+    key: _markerKey(next),
+    title: _bundleRefTitle(next) || _buildTitle(next),
   };
 }
 

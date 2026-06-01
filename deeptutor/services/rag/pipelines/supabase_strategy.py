@@ -846,8 +846,8 @@ def resolve_group_weights(
         weights["questions_bank"] = min(weights.get("questions_bank", 0.4), 0.35)
         weights["exam"] = min(weights.get("exam", 0.7), 0.45)
     elif plan.query_shape == "concept_like":
-        weights["textbook"] = max(weights.get("textbook", 1.0), 1.1)
-        weights["standard"] = max(weights.get("standard", 1.0), 1.25)
+        weights["textbook"] = max(weights.get("textbook", 1.0), 1.55)
+        weights["standard"] = min(weights.get("standard", 1.0), 1.0)
         weights["questions_bank"] = min(weights.get("questions_bank", 0.4), 0.25)
         weights["exam"] = min(weights.get("exam", 0.7), 0.35)
 

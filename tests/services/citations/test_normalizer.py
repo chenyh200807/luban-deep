@@ -53,6 +53,7 @@ def test_normalizes_rag_source_top_level_locator_fields() -> None:
 
     assert refs[0].locator == "第 3 章 第 3.5.1 节 p.122"
     assert refs[0].source_id == "1A413030_122_0230"
+    assert refs[0].title == "2026 建筑实务教材：平屋面工程的防水做法"
 
 
 def test_source_span_locator_fields_override_top_level_fallbacks() -> None:
@@ -122,6 +123,65 @@ def test_deduplicates_same_source_and_span() -> None:
 
     assert len(refs) == 1
     assert refs[0].locator == "GB 50345-2012 第 3.0.1 条"
+
+
+def test_missing_locator_does_not_fall_back_to_raw_source_type() -> None:
+    refs = normalize_citation_sources(
+        [
+            {
+                "chunk_id": "std-1",
+                "source_type": "standard",
+                "title": "GB 50016-2019 建筑防火",
+                "rag_content": "防火门等级应与使用部位匹配。",
+            }
+        ],
+        policy=CitationPolicy(),
+    )
+
+    assert refs[0].locator == ""
+
+
+def test_sources_without_identity_are_not_deduped_by_empty_locator() -> None:
+    refs = normalize_citation_sources(
+        [
+            {
+                "source_type": "standard",
+                "title": "规范来源 A",
+                "rag_content": "防火门等级应与使用部位匹配。",
+            },
+            {
+                "source_type": "standard",
+                "title": "规范来源 B",
+                "rag_content": "防火门应具备自行关闭功能。",
+            },
+        ],
+        policy=CitationPolicy(),
+    )
+
+    assert [ref.title for ref in refs] == ["规范来源 A", "规范来源 B"]
+
+
+def test_sources_without_identity_keep_same_title_different_quotes() -> None:
+    refs = normalize_citation_sources(
+        [
+            {
+                "source_type": "standard",
+                "title": "规范来源",
+                "rag_content": "防火门等级应与使用部位匹配。",
+            },
+            {
+                "source_type": "standard",
+                "title": "规范来源",
+                "rag_content": "防火门应具备自行关闭功能。",
+            },
+        ],
+        policy=CitationPolicy(),
+    )
+
+    assert [ref.public_quote for ref in refs] == [
+        "防火门等级应与使用部位匹配。",
+        "防火门应具备自行关闭功能。",
+    ]
 
 
 def test_bad_authority_rank_degrades_to_zero() -> None:
