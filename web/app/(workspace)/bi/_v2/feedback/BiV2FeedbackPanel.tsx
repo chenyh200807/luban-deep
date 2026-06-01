@@ -4,6 +4,7 @@
 import {
   CheckCircle2,
   ClipboardList,
+  Download,
   Filter,
   Eye,
   Image as ImageIcon,
@@ -45,7 +46,6 @@ import {
   type BiLubanFeedbackResponse,
   type BiLubanFeedbackStats,
 } from '@/lib/bi-api'
-import { apiUrl } from '@/lib/api'
 import { useAuditedAction } from '../useAuditedAction'
 import {
   FEEDBACK_ITEMS,
@@ -78,6 +78,11 @@ type LubanFeedbackFilter = {
   q: string
   status: string
   source_page: string
+}
+
+type LubanFeedbackFormState = {
+  status: string
+  operator_note: string
 }
 
 type InviteApplicationFormState = {
@@ -185,6 +190,10 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
   const [lubanTotal, setLubanTotal] = useState(0)
   const [lubanLoading, setLubanLoading] = useState(flagEnabled)
   const [lubanError, setLubanError] = useState('')
+  const [selectedLubanFeedback, setSelectedLubanFeedback] =
+    useState<BiLubanFeedbackResponse | null>(null)
+  const [lubanExportNotice, setLubanExportNotice] = useState('')
+  const [lubanExportError, setLubanExportError] = useState('')
   const [feedbackStatusOverrides, setFeedbackStatusOverrides] = useState<
     Record<string, FeedbackStatus>
   >({})
@@ -195,6 +204,10 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
   const inviteApplicationDelete = useAuditedAction({
     actionType: 'feedback.invite_test.delete',
   })
+  const lubanFeedbackUpdate = useAuditedAction({
+    actionType: 'feedback.luban_feedback.update',
+  })
+  const lubanExportRequest = useAuditedAction({ actionType: 'bi.export.request' })
   const triageWriting = feedbackTriage.state.phase === 'writing'
   const triageError =
     feedbackTriage.state.phase === 'denied' ? (feedbackTriage.state.result.error ?? '') : ''
@@ -204,6 +217,12 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
       ? (inviteApplicationUpdate.state.result.error ?? '')
       : ''
   const inviteDeleting = inviteApplicationDelete.state.phase === 'writing'
+  const lubanWriting = lubanFeedbackUpdate.state.phase === 'writing'
+  const lubanWriteError =
+    lubanFeedbackUpdate.state.phase === 'denied'
+      ? (lubanFeedbackUpdate.state.result.error ?? '')
+      : ''
+  const lubanExporting = lubanExportRequest.state.phase === 'writing'
 
   const loadFeedback = useCallback(async () => {
     if (!flagEnabled) {
@@ -501,6 +520,60 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
     void loadInviteTest()
   }
 
+  async function handleLubanFeedbackSave(
+    item: BiLubanFeedbackResponse,
+    patch: LubanFeedbackFormState
+  ) {
+    if (!flagEnabled || lubanWriting || !item.id) return
+    setLubanError('')
+    const result = await lubanFeedbackUpdate.execute({
+      key: 'feedback.luban_feedback.update',
+      params: { response_id: item.id },
+      body: patch,
+    })
+    if (!result.ok) {
+      setLubanError(result.error || '保存内测回访失败')
+      return
+    }
+    const updated = extractLubanFeedbackFromUpdate(result.data, item)
+    setLubanResponses(prev =>
+      prev.map(candidate => (candidate.id === item.id ? updated : candidate))
+    )
+    setSelectedLubanFeedback(updated)
+    void loadLubanFeedback()
+  }
+
+  async function handleLubanFeedbackExport() {
+    if (!flagEnabled || lubanExporting) return
+    setLubanExportError('')
+    setLubanExportNotice('')
+    const result = await lubanExportRequest.execute({
+      key: 'bi.export.request',
+      params: {},
+      body: {
+        dataset: 'luban_feedback',
+        format: 'csv',
+        filters: {
+          days: LUBAN_FEEDBACK_WINDOW_DAYS,
+          q: lubanFilter.q.trim(),
+          status: lubanFilter.status,
+          source_page: lubanFilter.source_page.trim(),
+          visible_rows: lubanResponses.length,
+          total: lubanTotal,
+        },
+      },
+    })
+    if (!result.ok) {
+      setLubanExportError(result.error || '导出审计写入失败')
+      return
+    }
+    downloadCsv(
+      `luban-feedback-${new Date().toISOString().slice(0, 10)}.csv`,
+      buildLubanFeedbackCsv(lubanResponses)
+    )
+    setLubanExportNotice(`已导出当前 ${lubanResponses.length} 条；审计 ${result.auditId || '已写入'}`)
+  }
+
   return (
     <section className="space-y-5">
       {!flagEnabled ? (
@@ -746,6 +819,11 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
           filters={lubanFilter}
           onFilterChange={(field, value) => setLubanFilter(prev => ({ ...prev, [field]: value }))}
           onRefresh={() => void loadLubanFeedback()}
+          onOpenResponse={setSelectedLubanFeedback}
+          onExport={() => void handleLubanFeedbackExport()}
+          exporting={lubanExporting}
+          exportNotice={lubanExportNotice}
+          exportError={lubanExportError}
         />
       )}
       <FeedbackDetailPanel item={selectedFeedback} onClose={() => setSelectedFeedback(null)} />
@@ -760,6 +838,18 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
         saveError={inviteWriteError}
         onClose={() => setSelectedInvite(null)}
         onSave={handleInviteApplicationSave}
+      />
+      <LubanFeedbackDetailPanel
+        key={
+          selectedLubanFeedback
+            ? `${selectedLubanFeedback.id}:${selectedLubanFeedback.status}:${selectedLubanFeedback.operator_note}`
+            : 'luban-feedback-empty'
+        }
+        item={selectedLubanFeedback}
+        saving={lubanWriting}
+        saveError={lubanWriteError}
+        onClose={() => setSelectedLubanFeedback(null)}
+        onSave={handleLubanFeedbackSave}
       />
     </section>
   )
@@ -1123,6 +1213,11 @@ function LubanFeedbackPanel({
   filters,
   onFilterChange,
   onRefresh,
+  onOpenResponse,
+  onExport,
+  exporting,
+  exportNotice,
+  exportError,
 }: {
   stats: BiLubanFeedbackStats | null
   responses: BiLubanFeedbackResponse[]
@@ -1132,6 +1227,11 @@ function LubanFeedbackPanel({
   filters: LubanFeedbackFilter
   onFilterChange: (field: keyof LubanFeedbackFilter, value: string) => void
   onRefresh: () => void
+  onOpenResponse: (item: BiLubanFeedbackResponse) => void
+  onExport: () => void
+  exporting: boolean
+  exportNotice: string
+  exportError: string
 }) {
   const summary = stats?.summary
   const highIntentCount = responses.filter(item =>
@@ -1156,16 +1256,28 @@ function LubanFeedbackPanel({
               提交后的 NPS、满意度、痛点、建议和可回访联系方式。
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onRefresh}
-            disabled={loading}
-            className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-white/10 bg-white/[0.06] px-3 text-xs font-bold text-slate-100 hover:bg-white/10 disabled:opacity-50"
-            aria-label="刷新内测回访"
-          >
-            <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} aria-hidden />
-            刷新
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={onExport}
+              disabled={exporting || responses.length === 0}
+              className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-emerald-300/25 bg-emerald-300/12 px-3 text-xs font-black text-emerald-100 hover:bg-emerald-300/18 disabled:opacity-50"
+              aria-label="导出内测回访"
+            >
+              <Download className="h-3.5 w-3.5" aria-hidden />
+              {exporting ? '审计中…' : '导出 CSV'}
+            </button>
+            <button
+              type="button"
+              onClick={onRefresh}
+              disabled={loading}
+              className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-white/10 bg-white/[0.06] px-3 text-xs font-bold text-slate-100 hover:bg-white/10 disabled:opacity-50"
+              aria-label="刷新内测回访"
+            >
+              <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} aria-hidden />
+              刷新
+            </button>
+          </div>
         </div>
 
         <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-5">
@@ -1236,6 +1348,16 @@ function LubanFeedbackPanel({
               {error}
             </p>
           ) : null}
+          {exportError ? (
+            <p className="mt-3 rounded-2xl border border-rose-300/25 bg-rose-300/10 px-3 py-2 text-xs text-rose-100">
+              {exportError}
+            </p>
+          ) : null}
+          {exportNotice ? (
+            <p className="mt-3 rounded-2xl border border-emerald-300/25 bg-emerald-300/10 px-3 py-2 text-xs text-emerald-100">
+              {exportNotice}
+            </p>
+          ) : null}
         </div>
 
         <div className="grid gap-3 p-4">
@@ -1253,7 +1375,9 @@ function LubanFeedbackPanel({
             </div>
           ) : null}
           {!loading && !error
-            ? responses.map(item => <LubanFeedbackCard key={item.id} item={item} />)
+            ? responses.map(item => (
+                <LubanFeedbackCard key={item.id} item={item} onOpen={onOpenResponse} />
+              ))
             : null}
         </div>
         <div className="flex flex-wrap justify-between gap-2 border-t border-white/10 px-4 py-3 text-[11px] font-bold text-slate-400">
@@ -1267,7 +1391,13 @@ function LubanFeedbackPanel({
   )
 }
 
-function LubanFeedbackCard({ item }: { item: BiLubanFeedbackResponse }) {
+function LubanFeedbackCard({
+  item,
+  onOpen,
+}: {
+  item: BiLubanFeedbackResponse
+  onOpen: (item: BiLubanFeedbackResponse) => void
+}) {
   const contact = joinNonEmpty([
     item.wechat_id ? `微信 ${item.wechat_id}` : '',
     item.phone ? `手机 ${item.phone}` : '',
@@ -1315,8 +1445,142 @@ function LubanFeedbackCard({ item }: { item: BiLubanFeedbackResponse }) {
         <div className="mt-1">{joinNonEmpty([item.attempt_count, item.exam_timeframe]) || '未填写考试背景'}</div>
         <div>{item.source_page || 'unknown-source'}</div>
         <div>{formatBiDate(item.created_at)}</div>
+        {item.operator_note ? (
+          <div className="mt-2 rounded-xl border border-white/10 bg-white/[0.04] px-2 py-1 text-left text-slate-300 lg:text-right">
+            备注：{item.operator_note}
+          </div>
+        ) : null}
+        <button
+          type="button"
+          onClick={() => onOpen(item)}
+          className="mt-3 inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-cyan-300/25 bg-cyan-300/10 px-3 text-[11px] font-black text-cyan-100 hover:bg-cyan-300/16"
+          aria-label={`编辑内测回访 ${item.id}`}
+        >
+          <Pencil className="h-3 w-3" aria-hidden />
+          编辑
+        </button>
       </div>
     </article>
+  )
+}
+
+function LubanFeedbackDetailPanel({
+  item,
+  saving,
+  saveError,
+  onClose,
+  onSave,
+}: {
+  item: BiLubanFeedbackResponse | null
+  saving: boolean
+  saveError: string
+  onClose: () => void
+  onSave: (item: BiLubanFeedbackResponse, patch: LubanFeedbackFormState) => Promise<void>
+}) {
+  const [form, setForm] = useState<LubanFeedbackFormState>(() =>
+    item ? formFromLubanFeedback(item) : emptyLubanFeedbackForm()
+  )
+  const formId = 'bi-luban-feedback-edit-form'
+
+  function updateField<K extends keyof LubanFeedbackFormState>(
+    field: K,
+    value: LubanFeedbackFormState[K]
+  ) {
+    setForm(prev => ({ ...prev, [field]: value }))
+  }
+
+  return (
+    <BiSidePanel
+      open={Boolean(item)}
+      onClose={onClose}
+      title={item ? `编辑内测回访 · NPS ${item.nps ?? '—'}` : '编辑内测回访'}
+      subtitle={
+        item
+          ? `${lubanLabel(LUBAN_STATUS_LABELS, item.status)} · ${formatBiDate(item.created_at)} · 保存写入 audit`
+          : undefined
+      }
+      width="lg"
+      footer={
+        item ? (
+          <div className="flex items-center justify-end gap-2">
+            <BiButton onClick={onClose} variant="secondary" size="sm">
+              关闭
+            </BiButton>
+            <BiButton type="submit" form={formId} disabled={saving} variant="primary" size="sm">
+              {saving ? '保存中…' : '保存并审计'}
+            </BiButton>
+          </div>
+        ) : undefined
+      }
+    >
+      {item ? (
+        <form
+          id={formId}
+          className="space-y-4 text-sm"
+          onSubmit={event => {
+            event.preventDefault()
+            void onSave(item, form)
+          }}
+        >
+          <section className="rounded-3xl border border-cyan-300/25 bg-cyan-300/10 p-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <BiStatusPill tone={lubanStatusTone(item.status)} label={lubanLabel(LUBAN_STATUS_LABELS, item.status)} />
+              <BiStatusPill
+                tone={item.revisit_willingness === 'very_willing' ? 'emerald' : 'slate'}
+                label={`回访：${lubanLabel(LUBAN_REVISIT_LABELS, item.revisit_willingness)}`}
+              />
+              <span className="rounded-full border border-white/10 bg-white/[0.05] px-2 py-1 text-xs font-bold text-slate-300">
+                满意度 {item.overall_satisfaction ?? '—'}/5
+              </span>
+            </div>
+            <p className="mt-3 text-xs leading-5 text-slate-300">
+              原始问卷答案保持只读，避免污染真实用户提交；这里编辑的是运营跟进状态和内部备注。
+            </p>
+          </section>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            <Field label="NPS">{item.nps ?? '—'}</Field>
+            <Field label="继续使用">{lubanLabel(LUBAN_WILL_CONTINUE_LABELS, item.will_continue)}</Field>
+            <Field label="回访意愿">{lubanLabel(LUBAN_REVISIT_LABELS, item.revisit_willingness)}</Field>
+            <Field label="联系方式">{joinNonEmpty([item.wechat_id, item.phone]) || '未留'}</Field>
+          </div>
+
+          <ReadonlyBlock label="未解决痛点" value={item.unsolved_pain} />
+          <ReadonlyBlock label="最重要建议" value={item.top_suggestion} />
+          <ReadonlyBlock label="一句话评价" value={item.one_word} />
+
+          <label className="block">
+            <span className="text-xs font-black text-slate-300">运营状态</span>
+            <BiSelect
+              value={form.status}
+              onChange={event => updateField('status', event.target.value)}
+              className="mt-1 h-11 w-full"
+            >
+              <option value="submitted">待处理</option>
+              <option value="contacted">已联系</option>
+              <option value="interviewed">已回访</option>
+              <option value="resolved">已闭环</option>
+              <option value="archived">已归档</option>
+            </BiSelect>
+          </label>
+          <label className="block">
+            <span className="text-xs font-black text-slate-300">运营备注</span>
+            <textarea
+              value={form.operator_note}
+              onChange={event => updateField('operator_note', event.target.value)}
+              rows={6}
+              placeholder="记录联系结果、回访安排、是否适合进入种子用户池。"
+              className="mt-1 w-full resize-none rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-2 text-sm leading-6 text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
+            />
+          </label>
+          {saveError ? (
+            <p className="rounded-2xl border border-rose-300/25 bg-rose-300/10 px-3 py-2 text-xs text-rose-100">
+              {saveError}
+            </p>
+          ) : null}
+        </form>
+      ) : null}
+    </BiSidePanel>
   )
 }
 
@@ -1777,6 +2041,26 @@ function TextField({
   )
 }
 
+function Field({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-3 py-2">
+      <div className="text-[11px] font-black text-slate-500">{label}</div>
+      <div className="mt-1 break-words text-sm font-bold text-slate-100">{children ?? '—'}</div>
+    </div>
+  )
+}
+
+function ReadonlyBlock({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2">
+      <div className="text-[11px] font-black text-slate-500">{label}</div>
+      <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-6 text-slate-200">
+        {value || '未填写'}
+      </p>
+    </div>
+  )
+}
+
 function TextAreaField({
   label,
   value,
@@ -1958,7 +2242,6 @@ function resolveFeedbackAttachmentUrl(url: string | undefined): string {
   const normalized = (url ?? '').trim()
   if (!normalized) return ''
   if (/^https?:\/\//.test(normalized)) return normalized
-  if (normalized.startsWith('/api/')) return apiUrl(normalized)
   return normalized
 }
 
@@ -2204,6 +2487,151 @@ function extractInviteApplicationFromUpdate(
       fallback.contact_revealed
     ),
   }
+}
+
+function emptyLubanFeedbackForm(): LubanFeedbackFormState {
+  return {
+    status: 'submitted',
+    operator_note: '',
+  }
+}
+
+function formFromLubanFeedback(item: BiLubanFeedbackResponse): LubanFeedbackFormState {
+  return {
+    status: item.status || 'submitted',
+    operator_note: item.operator_note || '',
+  }
+}
+
+function extractLubanFeedbackFromUpdate(
+  data: unknown,
+  fallback: BiLubanFeedbackResponse
+): BiLubanFeedbackResponse {
+  const root = asObject(data)
+  const response = asObject(root.response)
+  if (!Object.keys(response).length) return fallback
+  return {
+    ...fallback,
+    id: stringValue(response.id, fallback.id),
+    created_at: stringValue(response.created_at ?? response.createdAt, fallback.created_at),
+    source_page: stringValue(response.source_page ?? response.sourcePage, fallback.source_page),
+    survey_version: stringValue(
+      response.survey_version ?? response.surveyVersion,
+      fallback.survey_version
+    ),
+    nps:
+      response.nps === null || response.nps === undefined
+        ? fallback.nps
+        : Number(response.nps),
+    overall_satisfaction:
+      response.overall_satisfaction === null || response.overall_satisfaction === undefined
+        ? response.overallSatisfaction === null || response.overallSatisfaction === undefined
+          ? fallback.overall_satisfaction
+          : Number(response.overallSatisfaction)
+        : Number(response.overall_satisfaction),
+    most_valuable: stringValue(
+      response.most_valuable ?? response.mostValuable,
+      fallback.most_valuable
+    ),
+    will_continue: stringValue(
+      response.will_continue ?? response.willContinue,
+      fallback.will_continue
+    ),
+    pay_willingness: stringValue(
+      response.pay_willingness ?? response.payWillingness,
+      fallback.pay_willingness
+    ),
+    would_recommend: stringValue(
+      response.would_recommend ?? response.wouldRecommend,
+      fallback.would_recommend
+    ),
+    revisit_willingness: stringValue(
+      response.revisit_willingness ?? response.revisitWillingness,
+      fallback.revisit_willingness
+    ),
+    attempt_count: stringValue(
+      response.attempt_count ?? response.attemptCount,
+      fallback.attempt_count
+    ),
+    exam_timeframe: stringValue(
+      response.exam_timeframe ?? response.examTimeframe,
+      fallback.exam_timeframe
+    ),
+    one_word: stringValue(response.one_word ?? response.oneWord, fallback.one_word),
+    top_suggestion: stringValue(
+      response.top_suggestion ?? response.topSuggestion,
+      fallback.top_suggestion
+    ),
+    unsolved_pain: stringValue(
+      response.unsolved_pain ?? response.unsolvedPain,
+      fallback.unsolved_pain
+    ),
+    phone: stringValue(response.phone, fallback.phone),
+    wechat_id: stringValue(response.wechat_id ?? response.wechatId, fallback.wechat_id),
+    status: stringValue(response.status, fallback.status),
+    operator_note: stringValue(
+      response.operator_note ?? response.operatorNote,
+      fallback.operator_note
+    ),
+    contact_revealed: boolValue(
+      response.contact_revealed ?? response.contactRevealed,
+      fallback.contact_revealed
+    ),
+  }
+}
+
+function buildLubanFeedbackCsv(items: BiLubanFeedbackResponse[]): string {
+  const headers = [
+    'id',
+    'created_at',
+    'status',
+    'nps',
+    'overall_satisfaction',
+    'revisit_willingness',
+    'will_continue',
+    'phone',
+    'wechat_id',
+    'unsolved_pain',
+    'top_suggestion',
+    'one_word',
+    'operator_note',
+    'source_page',
+  ]
+  const rows = items.map(item => [
+    item.id,
+    item.created_at,
+    item.status,
+    item.nps ?? '',
+    item.overall_satisfaction ?? '',
+    lubanLabel(LUBAN_REVISIT_LABELS, item.revisit_willingness),
+    lubanLabel(LUBAN_WILL_CONTINUE_LABELS, item.will_continue),
+    item.phone,
+    item.wechat_id,
+    item.unsolved_pain,
+    item.top_suggestion,
+    item.one_word,
+    item.operator_note,
+    item.source_page,
+  ])
+  return [headers, ...rows].map(row => row.map(csvCell).join(',')).join('\n')
+}
+
+function csvCell(value: string | number): string {
+  const text = String(value ?? '')
+  if (!/[",\n\r]/.test(text)) return text
+  return `"${text.replaceAll('"', '""')}"`
+}
+
+function downloadCsv(filename: string, content: string) {
+  const blob = new Blob([`\uFEFF${content}`], { type: 'text/csv;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  URL.revokeObjectURL(url)
 }
 
 function extractFeedbackTriageStatus(data: unknown): Exclude<FeedbackStatus, 'open'> | null {

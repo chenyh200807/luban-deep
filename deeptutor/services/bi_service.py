@@ -35,6 +35,7 @@ _EXPORT_DATASET_LABELS = {
     "member_audit_log": "操作审计导出",
     "member_list": "会员名单导出",
     "feedback_ai": "AI 反馈导出",
+    "luban_feedback": "内测回访导出",
     "commerce_ledger": "钱包流水导出",
 }
 _EXPORT_FORMATS = {"csv", "json"}

@@ -104,6 +104,19 @@ WRITE_ENDPOINTS: tuple[WriteEndpoint, ...] = (
         audit_action="invite_test_application_delete",
     ),
     WriteEndpoint(
+        key="feedback.luban_feedback.update",
+        method="PATCH",
+        path_template="/api/v1/bi/luban-feedback/responses/{response_id}",
+        requires_idempotency=True,
+        description=(
+            "Luban survey follow-up edit: growth ops updates only the "
+            "operator-owned status and operator_note fields. Backend preserves "
+            "the original survey answers and records luban_feedback_response_update "
+            "audit with idempotency dedup."
+        ),
+        audit_action="luban_feedback_response_update",
+    ),
+    WriteEndpoint(
         key="member.ops_action.record",
         method="POST",
         path_template="/api/v1/bi/member/{user_id}/ops-action",
