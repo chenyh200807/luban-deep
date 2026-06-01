@@ -51,6 +51,11 @@ from deeptutor.services.rag.exact_authority import (
     extract_exact_question_authority_from_metadata,
     normalize_exact_authority_display_text,
 )
+from deeptutor.services.citations import (
+    CitationPolicy,
+    answer_citations_enabled,
+    apply_answer_citation_metadata,
+)
 from deeptutor.services.session.prompt_partition import (
     partition_system_prompt,
     to_system_messages,
@@ -603,10 +608,11 @@ class AgenticChatPipeline:
                         exact_question_authority
                     )
                 required_elements = self._required_teaching_elements(context, answer_type, tool_traces)
+                citation_enabled = answer_citations_enabled()
                 force_buffer = self._should_buffer_authoritative_response(
                     answer_type=answer_type,
                     tool_traces=tool_traces,
-                )
+                ) or citation_enabled
                 if required_elements:
                     user_prompt += "\n\n" + self._knowledge_response_contract(required_elements)
                 messages = self._build_messages(
@@ -624,7 +630,7 @@ class AgenticChatPipeline:
                         tool_traces=tool_traces,
                         max_tokens=1200,
                     )
-                    if content:
+                    if content and not citation_enabled:
                         await stream.content(
                             content,
                             source="chat",
@@ -741,16 +747,18 @@ class AgenticChatPipeline:
                 )
 
                 chunks: list[str] = []
+                citation_enabled = answer_citations_enabled()
                 async for chunk in self._stream_messages(messages, max_tokens=1800):
                     if not chunk:
                         continue
                     chunks.append(chunk)
-                    await stream.content(
-                        chunk,
-                        source="chat",
-                        stage="responding",
-                        metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
-                    )
+                    if not citation_enabled:
+                        await stream.content(
+                            chunk,
+                            source="chat",
+                            stage="responding",
+                            metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
+                        )
                 content = clean_thinking_tags("".join(chunks), self.binding, self.model)
                 await stream.progress(
                     "",
@@ -793,12 +801,13 @@ class AgenticChatPipeline:
                     {"trace_kind": "call_status", "call_state": "running"},
                 ),
             )
-            await stream.content(
-                content,
-                source="chat",
-                stage="responding",
-                metadata=merge_trace_metadata(trace_meta, {"trace_kind": "shortcut_output"}),
-            )
+            if not answer_citations_enabled():
+                await stream.content(
+                    content,
+                    source="chat",
+                    stage="responding",
+                    metadata=merge_trace_metadata(trace_meta, {"trace_kind": "shortcut_output"}),
+                )
             await stream.progress(
                 "",
                 source="chat",
@@ -876,16 +885,18 @@ class AgenticChatPipeline:
                 )
 
                 chunks: list[str] = []
+                citation_enabled = answer_citations_enabled()
                 async for chunk in self._stream_messages(messages, max_tokens=1800):
                     if not chunk:
                         continue
                     chunks.append(chunk)
-                    await stream.content(
-                        chunk,
-                        source="chat",
-                        stage="responding",
-                        metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
-                    )
+                    if not citation_enabled:
+                        await stream.content(
+                            chunk,
+                            source="chat",
+                            stage="responding",
+                            metadata=merge_trace_metadata(trace_meta, {"trace_kind": "llm_chunk"}),
+                        )
                 content = clean_thinking_tags("".join(chunks), self.binding, self.model)
                 await stream.progress(
                     "",
@@ -2208,16 +2219,59 @@ class AgenticChatPipeline:
                 ),
             )
 
+        citation_enabled = answer_citations_enabled()
+        result_metadata: dict[str, Any] = {}
+        final_response = apply_answer_citation_metadata(
+            result_metadata,
+            response=final_response,
+            sources=all_sources,
+            policy=CitationPolicy(surface="student"),
+            enabled=citation_enabled,
+        )
+        if citation_enabled:
+            await stream.content(
+                final_response,
+                source="chat",
+                stage="responding",
+                metadata=merge_trace_metadata(
+                    responding_trace,
+                    {"trace_kind": "citation_final_response"},
+                ),
+            )
+
         result_payload: dict[str, Any] = {
             "response": final_response,
             "observation": observation,
             "tool_traces": [asdict(trace) for trace in tool_traces],
         }
+        result_payload.update(result_metadata)
         if source_trace_label:
             result_payload["source_trace"] = source_trace_label
         await self._emit_result(stream, result_payload)
 
     async def _emit_result(self, stream: StreamBus, result_payload: dict[str, Any]) -> None:
+        if (
+            "response" in result_payload
+            and "citation_bundle" not in result_payload
+            and "citation_bundle_candidate" not in result_payload
+        ):
+            citation_enabled = answer_citations_enabled()
+            citation_metadata: dict[str, Any] = {}
+            result_payload["response"] = apply_answer_citation_metadata(
+                citation_metadata,
+                response=str(result_payload.get("response") or ""),
+                sources=[],
+                policy=CitationPolicy(surface="student"),
+                enabled=citation_enabled,
+            )
+            result_payload.update(citation_metadata)
+            if citation_enabled:
+                await stream.content(
+                    str(result_payload["response"] or ""),
+                    source="chat",
+                    stage="responding",
+                    metadata={"trace_kind": "citation_final_response"},
+                )
         cs = self._get_cost_summary()
         if cs:
             nested = dict(result_payload.get("metadata") or {})

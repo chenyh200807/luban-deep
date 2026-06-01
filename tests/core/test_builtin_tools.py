@@ -181,8 +181,23 @@ async def test_code_execution_tool_generates_code_from_intent(monkeypatch: pytes
     result = await tool.execute(intent="compute the answer")
 
     assert executed["code"] == "print(42)"
+    assert executed["timeout"] == 30
     assert "42" in result.content
     assert result.sources[0]["file"] == "plot.png"
+
+
+@pytest.mark.asyncio
+async def test_code_execution_tool_rejects_non_positive_timeout(monkeypatch: pytest.MonkeyPatch) -> None:
+    async def fake_run_code(**_kwargs: Any) -> dict[str, Any]:
+        raise AssertionError("run_code should not be called for invalid timeout")
+
+    _install_module(monkeypatch, "deeptutor.tools.code_executor", run_code=fake_run_code)
+
+    result = await CodeExecutionTool().execute(code="print(1)", timeout=0)
+
+    assert result.success is False
+    assert "timeout" in result.content
+    assert "positive integer" in result.content
 
 
 def test_code_execution_tool_strips_markdown_fences() -> None:

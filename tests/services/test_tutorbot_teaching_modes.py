@@ -153,6 +153,19 @@ def test_build_continuity_anchor_instruction_uses_authoritative_context_anchor()
     assert "不要重新起一个泛化的新例子" in instruction
 
 
+def test_build_continuity_anchor_instruction_separates_sentence_parts():
+    instruction = build_continuity_anchor_instruction(
+        "继续讲刚才那个例子",
+        active_object={
+            "state_snapshot": {
+                "compressed_summary": "用户在用6层住宅楼理解流水施工。",
+            }
+        },
+    )
+
+    assert "\n当前连续性上下文：" in instruction
+
+
 def test_normalize_anchor_terms_in_response_restores_exact_user_anchor_wording():
     normalized = normalize_anchor_terms_in_response(
         user_message="你用盖一栋6层住宅楼举个例子讲讲",

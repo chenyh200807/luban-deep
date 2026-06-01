@@ -228,6 +228,26 @@ def test_llm_api_base_keyword_gateway(tmp_path: Path) -> None:
     assert resolved.extra_headers == {"APP-Code": "x"}
 
 
+def test_llm_coding_plan_api_base_uses_specific_gateway(tmp_path: Path) -> None:
+    catalog = _build_catalog(
+        llm_profile={
+            "id": "llm-p",
+            "name": "LLM",
+            "binding": "",
+            "base_url": "https://ark.cn-beijing.volces.com/api/coding/v3",
+            "api_key": "k",
+            "api_version": "",
+            "extra_headers": {},
+            "models": [{"id": "llm-m", "name": "m", "model": "volcengine/deepseek-v3"}],
+        }
+    )
+
+    resolved = resolve_llm_runtime_config(catalog=catalog, env_store=_empty_env(tmp_path))
+
+    assert resolved.provider_name == "volcengine_coding_plan"
+    assert resolved.provider_mode == "gateway"
+
+
 def test_llm_local_fallback(tmp_path: Path) -> None:
     catalog = _build_catalog(
         llm_profile={

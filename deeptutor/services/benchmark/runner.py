@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any, Sequence
 
 from deeptutor.services.benchmark import BenchmarkRegistry, load_benchmark_registry
+from deeptutor.services.benchmark.answer_citation_audit import audit_answer_citation_cases
 from deeptutor.services.observability.release_lineage import get_release_lineage_snapshot
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
@@ -409,6 +410,66 @@ def _run_yousenwebview_surface_case_set(case_metadata: dict[str, Any]) -> tuple[
     )
 
 
+def _run_answer_citation_case_set(
+    *,
+    case_metadata: dict[str, Any],
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    case_id = str(case_metadata["case_id"])
+    fixture = PROJECT_ROOT / str(case_metadata.get("source_fixture") or "")
+    try:
+        audit = audit_answer_citation_cases(fixture)
+    except Exception as exc:
+        result = _make_case_result(
+            suite="answer-citation-shadow",
+            case_id=case_id,
+            case_name=case_id,
+            status="FAIL",
+            case_tier=str(case_metadata.get("case_tier") or "exploratory"),
+            failure_type="FAIL_UNSUPPORTED_CITATION",
+            evidence={
+                "reason": "answer_citation_audit_exception",
+                "exception_type": type(exc).__name__,
+                "exception": str(exc),
+                "source_fixture": case_metadata.get("source_fixture"),
+            },
+            details={"source_fixture": case_metadata.get("source_fixture")},
+        )
+        return _summarize_case_results("answer-citation-shadow", [result]), [result]
+
+    citation_accuracy = float(audit.get("citation_accuracy") or 0.0)
+    footer_coverage = float(audit.get("footer_coverage") or 0.0)
+    hidden_leak_count = int(audit.get("hidden_leak_count") or 0)
+    status = "PASS"
+    failure_type: str | None = None
+    if hidden_leak_count:
+        status = "FAIL"
+        failure_type = "FAIL_HIDDEN_AUTHORITY_LEAK"
+    elif footer_coverage < 1.0:
+        status = "FAIL"
+        failure_type = "FAIL_CITATION_MISSING"
+    elif citation_accuracy < 0.9:
+        status = "FAIL"
+        failure_type = "FAIL_UNSUPPORTED_CITATION"
+    result = _make_case_result(
+        suite="answer-citation-shadow",
+        case_id=case_id,
+        case_name=case_id,
+        status=status,
+        case_tier=str(case_metadata.get("case_tier") or "exploratory"),
+        failure_type=failure_type,
+        evidence={
+            "reason": "answer_citation_audit_completed",
+            "citation_accuracy": citation_accuracy,
+            "footer_coverage": footer_coverage,
+            "hidden_leak_count": hidden_leak_count,
+            "suite": audit.get("suite"),
+            "source_fixture": case_metadata.get("source_fixture"),
+        },
+        details={"results": audit.get("results") or []},
+    )
+    return _summarize_case_results("answer-citation-shadow", [result]), [result]
+
+
 async def _run_surface_web_case_set(
     *,
     case_metadata: dict[str, Any],
@@ -518,6 +579,11 @@ async def _collect_suite_execution(
             include_in_legacy = False
         elif case_id == "surface.yousenwebview.telemetry.smoke":
             legacy_summary, legacy_results = _run_yousenwebview_surface_case_set(case_metadata)
+            include_in_legacy = False
+        elif case_id == "answer.citation.paper_style.v0":
+            legacy_summary, legacy_results = _run_answer_citation_case_set(
+                case_metadata=case_metadata,
+            )
             include_in_legacy = False
         elif case_id == "surface.web.ack.smoke":
             legacy_summary, legacy_results = await _run_surface_web_case_set(

@@ -28,12 +28,13 @@ def test_registry_uses_version_and_cases_mapping() -> None:
     assert not isinstance(registry.suites, dict)
     with pytest.raises(TypeError):
         registry.cases["new_case"] = registry.cases["routing.semantic_router.case_set"]  # type: ignore[index]
-    assert len(registry.cases) == 7
+    assert len(registry.cases) == 8
     assert set(registry.suites) == {
         "pr_gate_core",
         "regression_watch",
         "incident_replay",
         "exploration_lab",
+        "answer_citation_shadow",
     }
 
 
@@ -142,10 +143,33 @@ def test_wx_and_web_surface_cases_use_canonical_vocab() -> None:
     assert web_case.expected_contract
 
 
+def test_answer_citation_shadow_case_uses_canonical_vocab() -> None:
+    registry = _load_registry()
+    case = registry.cases["answer.citation.paper_style.v0"]
+
+    assert case.dataset_id == "benchmark_phase1"
+    assert case.dataset_version == "phase1.0"
+    assert case.case_id == "answer.citation.paper_style.v0"
+    assert case.contract_domain == "citation_contract"
+    assert case.case_tier == "exploratory"
+    assert case.execution_kind == "answer_citation_eval"
+    assert case.surface == "backend"
+    assert case.source_fixture == "tests/fixtures/answer_citation_eval_cases.json"
+    assert case.expected_contract == "paper_style_answer_citation_contract"
+    assert case.failure_taxonomy_scope == (
+        "FAIL_CITATION_MISSING",
+        "FAIL_UNSUPPORTED_CITATION",
+        "FAIL_HIDDEN_AUTHORITY_LEAK",
+    )
+    assert case.origin_type == "execution_plan"
+    assert case.promotion_status == "candidate"
+
+
 def test_all_case_ids_exist() -> None:
     registry = _load_registry()
 
     assert set(registry.cases) == {
+        "answer.citation.paper_style.v0",
         "routing.semantic_router.case_set",
         "routing.context_orchestration.case_set",
         "grounding.rag.case_set",

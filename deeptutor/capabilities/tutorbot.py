@@ -25,6 +25,11 @@ from deeptutor.services.query_intent import query_requires_current_info
 from deeptutor.services.render_presentation import build_canonical_presentation
 from deeptutor.services.security.tutorbot_guardrails import guard_tutorbot_output
 from deeptutor.services.semantic_router import build_active_object_from_question_context
+from deeptutor.services.citations import (
+    CitationPolicy,
+    answer_citations_enabled,
+    apply_answer_citation_metadata,
+)
 from deeptutor.services.tutorbot import get_tutorbot_manager
 from deeptutor.services.tutorbot.manager import BotConfig
 from deeptutor.tutorbot.response_mode import (
@@ -60,13 +65,19 @@ class TutorBotCapability(BaseCapability):
         await manager.ensure_bot_running(bot_id, config=self._default_bot_config(context))
 
         chunks: list[str] = []
+        citation_sources: list[dict[str, Any]] = []
         turn_summary: dict[str, Any] = {
             "authority_applied": False,
             "exact_question": {},
             "rag_rounds": [],
             "rag_saturation": {},
         }
-        stream_public_deltas = self._stream_public_deltas_enabled() and not hide_generated_answers
+        citation_enabled = answer_citations_enabled()
+        stream_public_deltas = (
+            self._stream_public_deltas_enabled()
+            and not hide_generated_answers
+            and not citation_enabled
+        )
         public_stream_buffer = ""
         streamed_public_text = ""
         public_stream_started = False
@@ -173,15 +184,17 @@ class TutorBotCapability(BaseCapability):
                 source=self.name,
                 metadata={"execution_engine": "tutorbot_runtime", "bot_id": bot_id},
             ):
-                await stream.content(
-                    exam_catalog_response,
-                    source=self.name,
-                    stage="responding",
-                    metadata={
-                        "execution_engine": "tutorbot_runtime",
-                        "call_kind": "exam_catalog_query",
-                    },
-                )
+                content_metadata = {
+                    "execution_engine": "tutorbot_runtime",
+                    "call_kind": "exam_catalog_query",
+                }
+                if not citation_enabled:
+                    await stream.content(
+                        exam_catalog_response,
+                        source=self.name,
+                        stage="responding",
+                        metadata=content_metadata,
+                    )
                 result_payload = {
                     "response": exam_catalog_response,
                     "bot_id": bot_id,
@@ -218,6 +231,22 @@ class TutorBotCapability(BaseCapability):
                 ):
                     if metadata_key in session_metadata:
                         result_payload[metadata_key] = session_metadata[metadata_key]
+                citation_metadata: dict[str, Any] = {}
+                result_payload["response"] = apply_answer_citation_metadata(
+                    citation_metadata,
+                    response=str(result_payload.get("response") or ""),
+                    sources=[],
+                    policy=CitationPolicy(surface="student"),
+                    enabled=citation_enabled,
+                )
+                result_payload.update(citation_metadata)
+                if citation_enabled:
+                    await stream.content(
+                        str(result_payload["response"] or ""),
+                        source=self.name,
+                        stage="responding",
+                        metadata=content_metadata,
+                    )
                 await stream.result(result_payload, source=self.name)
             return
 
@@ -231,15 +260,17 @@ class TutorBotCapability(BaseCapability):
                 source=self.name,
                 metadata={"execution_engine": "tutorbot_runtime", "bot_id": bot_id},
             ):
-                await stream.content(
-                    clarification_response,
-                    source=self.name,
-                    stage="responding",
-                    metadata={
-                        "execution_engine": "tutorbot_runtime",
-                        "call_kind": "lifecycle_clarification",
-                    },
-                )
+                content_metadata = {
+                    "execution_engine": "tutorbot_runtime",
+                    "call_kind": "lifecycle_clarification",
+                }
+                if not citation_enabled:
+                    await stream.content(
+                        clarification_response,
+                        source=self.name,
+                        stage="responding",
+                        metadata=content_metadata,
+                    )
                 result_payload = {
                     "response": clarification_response,
                     "bot_id": bot_id,
@@ -276,6 +307,22 @@ class TutorBotCapability(BaseCapability):
                 ):
                     if metadata_key in session_metadata:
                         result_payload[metadata_key] = session_metadata[metadata_key]
+                citation_metadata: dict[str, Any] = {}
+                result_payload["response"] = apply_answer_citation_metadata(
+                    citation_metadata,
+                    response=str(result_payload.get("response") or ""),
+                    sources=[],
+                    policy=CitationPolicy(surface="student"),
+                    enabled=citation_enabled,
+                )
+                result_payload.update(citation_metadata)
+                if citation_enabled:
+                    await stream.content(
+                        str(result_payload["response"] or ""),
+                        source=self.name,
+                        stage="responding",
+                        metadata=content_metadata,
+                    )
                 await stream.result(result_payload, source=self.name)
             return
 
@@ -356,6 +403,7 @@ class TutorBotCapability(BaseCapability):
             )
             sources = metadata.get("sources") if isinstance(metadata, dict) else None
             if isinstance(sources, list) and sources:
+                citation_sources.extend(item for item in sources if isinstance(item, dict))
                 await stream.sources(
                     sources,
                     source=self.name,
@@ -421,6 +469,14 @@ class TutorBotCapability(BaseCapability):
                 reveal_answers=reveal_answers,
                 reveal_explanations=reveal_explanations,
             )
+            citation_metadata: dict[str, Any] = {}
+            visible_response = apply_answer_citation_metadata(
+                citation_metadata,
+                response=visible_response,
+                sources=citation_sources,
+                policy=CitationPolicy(surface="student"),
+                enabled=citation_enabled,
+            )
             final_visible_delta = visible_response
             if streamed_public_text:
                 if visible_response.startswith(streamed_public_text):
@@ -455,6 +511,7 @@ class TutorBotCapability(BaseCapability):
                 "reveal_answers": reveal_answers,
                 "reveal_explanations": reveal_explanations,
             }
+            result_payload.update(citation_metadata)
             # Propagate hermes question-lifecycle telemetry fields out of
             # session_metadata (set by tutorbot/agent/loop.py when the
             # question lifecycle builder ran). Diagnostic only; per

@@ -25,6 +25,7 @@
 3. 如未来确有需要，可以新增 `bot_id + user_id` overlay，但它只能是后置能力，不能提前成为平行主真相。
 4. `TutorBot workspace memory` 不是学员长期真相，不能反向覆盖 learner state。
 5. Markdown 文件只能是 projection / cache / 可读视图，不能再承担唯一真相。
+6. `TutorBot workspace memory` 的 consolidation lock 只负责同一 session 内的并发互斥；它不得成为 learner-state 写回 authority，也不得用弱引用等可被 GC 回收的锁破坏同 session consolidation 的串行化。长期学习事实仍只能通过 `learner_memory_events` / learner-state writeback pipeline 进入 durable truth。
 
 ## Member Console / BI Audit Boundary
 

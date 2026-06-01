@@ -1291,12 +1291,22 @@ async def sync_folder(kb_name: str, folder_id: str, background_tasks: Background
 
         # Get linked folders and find the one with matching ID
         folders = manager.get_linked_folders(kb_name)
-        folder_info = next((f for f in folders if f["id"] == folder_id), None)
+        folder_info = next(
+            (
+                folder
+                for folder in folders
+                if isinstance(folder, dict) and folder.get("id") == folder_id
+            ),
+            None,
+        )
 
         if not folder_info:
             raise HTTPException(status_code=404, detail=f"Linked folder '{folder_id}' not found")
 
-        folder_path = _resolve_linked_folder_path(folder_info["path"])
+        folder_path_raw = str(folder_info.get("path") or "").strip()
+        if not folder_path_raw:
+            raise HTTPException(status_code=400, detail=f"Linked folder '{folder_id}' has no path")
+        folder_path = _resolve_linked_folder_path(folder_path_raw)
 
         # Check for changes (new or modified files)
         changes = manager.detect_folder_changes(kb_name, folder_id)

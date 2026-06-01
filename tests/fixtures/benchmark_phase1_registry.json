@@ -25,9 +25,34 @@
         "surface.wx.renderer.parity",
         "surface.yousenwebview.telemetry.smoke"
       ]
+    },
+    "answer_citation_shadow": {
+      "case_ids": [
+        "answer.citation.paper_style.v0"
+      ]
     }
   },
   "cases": {
+    "answer.citation.paper_style.v0": {
+      "dataset_id": "benchmark_phase1",
+      "dataset_version": "phase1.0",
+      "case_id": "answer.citation.paper_style.v0",
+      "contract_domain": "citation_contract",
+      "case_tier": "exploratory",
+      "execution_kind": "answer_citation_eval",
+      "surface": "backend",
+      "expected_contract": "paper_style_answer_citation_contract",
+      "failure_taxonomy_scope": [
+        "FAIL_CITATION_MISSING",
+        "FAIL_UNSUPPORTED_CITATION",
+        "FAIL_HIDDEN_AUTHORITY_LEAK"
+      ],
+      "source_fixture": "tests/fixtures/answer_citation_eval_cases.json",
+      "origin_type": "execution_plan",
+      "origin_ref": "docs/plan/2026-06-01-luban-paper-style-answer-citations-execution-plan.md",
+      "promotion_status": "candidate",
+      "promoted_from_case_id": ""
+    },
     "routing.semantic_router.case_set": {
       "dataset_id": "benchmark_phase1",
       "dataset_version": "phase1.0",

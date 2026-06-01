@@ -9,6 +9,7 @@ from typing import Any, Mapping
 ALLOWED_CONTRACT_DOMAINS = {
     "routing_contract",
     "grounding_contract",
+    "citation_contract",
     "continuity_contract",
     "surface_contract",
     "production_replay_contract",
@@ -22,6 +23,7 @@ ALLOWED_CASE_TIERS = {
 }
 
 ALLOWED_EXECUTION_KINDS = {
+    "answer_citation_eval",
     "static_contract_eval",
     "live_ws_replay",
     "surface_parity_eval",
@@ -31,6 +33,9 @@ ALLOWED_FAILURE_TAXONOMY_SCOPE = {
     "FAIL_ROUTE_WRONG",
     "FAIL_CONTEXT_LOSS",
     "FAIL_GROUNDEDNESS",
+    "FAIL_CITATION_MISSING",
+    "FAIL_UNSUPPORTED_CITATION",
+    "FAIL_HIDDEN_AUTHORITY_LEAK",
     "FAIL_CONTINUITY",
     "FAIL_SURFACE_DELIVERY",
 }
@@ -41,6 +46,7 @@ ALLOWED_ORIGIN_TYPES = {
     "surface_smoke",
     "incident_replay",
     "production_trace",
+    "execution_plan",
     "manual",
 }
 

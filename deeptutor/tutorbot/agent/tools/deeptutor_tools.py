@@ -10,6 +10,18 @@ from deeptutor.tutorbot.agent.tools.base import Tool
 logger = logging.getLogger(__name__)
 
 
+def _coerce_positive_timeout(value: Any, *, default: int) -> int:
+    if value is None:
+        return default
+    try:
+        timeout = int(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("timeout must be a positive integer") from exc
+    if timeout <= 0:
+        raise ValueError("timeout must be a positive integer")
+    return timeout
+
+
 class BrainstormAdapterTool(Tool):
     @property
     def name(self) -> str:
@@ -402,7 +414,10 @@ class CodeExecutionAdapterTool(Tool):
 
         code = str(kwargs.get("code") or "").strip()
         intent = str(kwargs.get("intent") or "").strip()
-        timeout = int(kwargs.get("timeout", 30) or 30)
+        try:
+            timeout = _coerce_positive_timeout(kwargs.get("timeout"), default=30)
+        except ValueError as exc:
+            return f"Error: invalid code_execution timeout: {exc}"
 
         if not code:
             if not intent:

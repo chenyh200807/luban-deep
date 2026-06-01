@@ -41,28 +41,32 @@ class StreamBus:
         if self._closed:
             return
         self._history.append(event)
-        for q in self._subscribers:
+        for q in tuple(self._subscribers):
             await q.put(event)
 
     async def subscribe(self) -> AsyncIterator[StreamEvent]:
         """Yield events until the bus is closed."""
         q: asyncio.Queue[StreamEvent | None] = asyncio.Queue()
         self._subscribers.append(q)
+        history_snapshot = tuple(self._history)
         try:
-            for event in self._history:
+            for event in history_snapshot:
                 yield event
+            if self._closed:
+                return
             while True:
                 event = await q.get()
                 if event is None:
                     break
                 yield event
         finally:
-            self._subscribers.remove(q)
+            if q in self._subscribers:
+                self._subscribers.remove(q)
 
     async def close(self) -> None:
         """Signal all subscribers that the stream is finished."""
         self._closed = True
-        for q in self._subscribers:
+        for q in tuple(self._subscribers):
             await q.put(None)
 
     # ---- convenience helpers for producers ----
