@@ -19,6 +19,7 @@ from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.exam_track import exam_track_label
 from deeptutor.services.query_intent import (
     build_grounding_decision_from_metadata,
+    looks_like_construction_exam_knowledge_query,
     query_requires_current_info,
     query_uses_learner_state_authority,
 )
@@ -1047,7 +1048,6 @@ class AgentLoop:
             "question_review",
         }
 
-    @staticmethod
     def _construction_scene_uses_learner_state_authority(scene: str | None) -> bool:
         return scene in {
             "learning_evidence_story",
@@ -1109,6 +1109,7 @@ class AgentLoop:
         )
 
         bot_id = str(metadata.get("bot_id") or "").strip().lower()
+        citations_required = bool(metadata.get("answer_citations_required"))
         if bot_id != "construction-exam-coach":
             if decision.should_prefetch_grounded_rag:
                 return True
@@ -1135,6 +1136,8 @@ class AgentLoop:
             and not decision.exact_question_candidate
         ):
             return False
+        if citations_required and looks_like_construction_exam_knowledge_query(current_message):
+            return True
         if decision.should_prefetch_grounded_rag:
             return True
         if decision.should_force_retrieval_first:
