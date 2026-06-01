@@ -29,9 +29,12 @@ import {
   DEFAULT_FILTERS,
   MOCK_MEMBERS,
   filterMembers,
+  sortMembers,
   type MemberColumnKey,
   type MemberFilters,
   type MemberRow,
+  type MemberSortDir,
+  type MemberSortKey,
   type SavedView,
 } from './data'
 import { useAuditedAction } from '../useAuditedAction'
@@ -166,6 +169,8 @@ export function BiV2MemberOpsPanel({
   identity,
 }: BiV2MemberOpsPanelProps) {
   const [filters, setFilters] = useState<MemberFilters>(DEFAULT_FILTERS)
+  const [sortKey, setSortKey] = useState<MemberSortKey>('expires_at')
+  const [sortDir, setSortDir] = useState<MemberSortDir>('asc')
   const [advancedOpen, setAdvancedOpen] = useState(false)
   const [columns, setColumns] = useState<MemberColumnKey[]>(DEFAULT_COLUMNS)
   const [columnPickerOpen, setColumnPickerOpen] = useState(false)
@@ -245,9 +250,24 @@ export function BiV2MemberOpsPanel({
   }, [loadMembers])
 
   const rows = useMemo(
-    () => filterMembers(flagEnabled ? liveRows : MOCK_MEMBERS, filters, flagEnabled ? '' : globalQuery),
-    [filters, flagEnabled, globalQuery, liveRows]
+    () =>
+      sortMembers(
+        filterMembers(flagEnabled ? liveRows : MOCK_MEMBERS, filters, flagEnabled ? '' : globalQuery),
+        sortKey,
+        sortDir
+      ),
+    [filters, flagEnabled, globalQuery, liveRows, sortDir, sortKey]
   )
+
+  function handleSort(key: string) {
+    const nextKey = key as MemberSortKey
+    if (nextKey === sortKey) {
+      setSortDir(prev => (prev === 'asc' ? 'desc' : 'asc'))
+      return
+    }
+    setSortKey(nextKey)
+    setSortDir(nextKey === 'risk' || nextKey === 'balance' ? 'desc' : 'asc')
+  }
 
   function toggleColumn(key: MemberColumnKey) {
     setColumns(prev => {
@@ -532,6 +552,9 @@ export function BiV2MemberOpsPanel({
           if (allSelected) setSelectedRows(new Set())
           else setSelectedRows(new Set(rows.map(r => r.user_id)))
         }}
+        sortKey={sortKey}
+        sortDir={sortDir}
+        onSort={handleSort}
         rowAction={row => (
           <div className="flex justify-end gap-1.5">
             <BiButton
