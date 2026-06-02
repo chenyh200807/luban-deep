@@ -16,6 +16,7 @@ export interface MemberDashboard {
     learning_report_open_count_7d: number
     history_open_count_7d: number
     action_start_count_7d: number
+    event_count_7d?: number
     low_trust_count: number
   }
 }
@@ -24,7 +25,11 @@ export interface MemberBehaviorSummary {
   learning_report_open_count_7d: number
   history_open_count_7d: number
   action_start_count_7d: number
+  event_count_7d?: number
+  last_event_at_ms?: number
   cohort: string
+  cohort_reasons?: string[]
+  next_action?: string
   trust_level: 'A' | 'B' | 'C' | string
 }
 
@@ -36,6 +41,20 @@ export interface MemberBehaviorTimelineEvent {
   module: string
   section: string
   action: string
+  visit_id?: string
+  session_id?: string
+  turn_id?: string
+  object_type?: string
+  object_id?: string
+  entry_source?: string
+  referrer_module?: string
+  duration_ms?: number
+  visible_ms?: number
+  result?: string
+  error_code?: string
+  release_id?: string
+  app_version?: string
+  platform?: string
 }
 
 export interface MemberBehaviorPayload {

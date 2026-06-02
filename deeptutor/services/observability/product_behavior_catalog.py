@@ -75,6 +75,23 @@ FORBIDDEN_PRODUCT_BEHAVIOR_FIELDS = frozenset(
 )
 
 
+def find_forbidden_product_behavior_field(value: Any) -> str:
+    if isinstance(value, dict):
+        forbidden = sorted(set(value) & FORBIDDEN_PRODUCT_BEHAVIOR_FIELDS)
+        if forbidden:
+            return forbidden[0]
+        for item in value.values():
+            nested = find_forbidden_product_behavior_field(item)
+            if nested:
+                return nested
+    elif isinstance(value, list):
+        for item in value:
+            nested = find_forbidden_product_behavior_field(item)
+            if nested:
+                return nested
+    return ""
+
+
 def _clean_string(value: Any, *, max_length: int = 128) -> str:
     return str(value or "").strip()[:max_length]
 
@@ -87,9 +104,9 @@ def validate_product_behavior_event(event_name: str, metadata: dict[str, Any]) -
     if not isinstance(metadata, dict):
         raise ValueError("metadata must be an object")
 
-    forbidden = sorted(set(metadata) & FORBIDDEN_PRODUCT_BEHAVIOR_FIELDS)
+    forbidden = find_forbidden_product_behavior_field(metadata)
     if forbidden:
-        raise ValueError(f"Forbidden product behavior field: {forbidden[0]}")
+        raise ValueError(f"Forbidden product behavior field: {forbidden}")
 
     module = _clean_string(metadata.get("module"), max_length=64)
     if module not in PRODUCT_BEHAVIOR_MODULES:

@@ -2753,7 +2753,11 @@ class MemberConsoleService:
             "learning_report_open_count_7d": 0,
             "history_open_count_7d": 0,
             "action_start_count_7d": 0,
+            "event_count_7d": 0,
+            "last_event_at_ms": 0,
             "cohort": "",
+            "cohort_reasons": [],
+            "next_action": "检查埋点状态",
             "trust_level": trust_level,
         }
 
@@ -2768,7 +2772,7 @@ class MemberConsoleService:
             return {
                 "summary": store.get_member_behavior_summary(user_id, days=7),
                 "learning_report_sections": store.get_learning_report_section_breakdown(user_id, days=7),
-                "timeline": store.get_member_timeline(user_id, limit=20),
+                "timeline": store.get_member_timeline(user_id, days=7, limit=20),
             }
         except Exception:
             logger.warning("Failed to load product behavior for member: user_id=%s", user_id, exc_info=True)
@@ -2803,6 +2807,10 @@ class MemberConsoleService:
             ),
             "action_start_count_7d": sum(
                 int(summary.get("action_start_count_7d") or 0)
+                for summary in behavior_summaries.values()
+            ),
+            "event_count_7d": sum(
+                int(summary.get("event_count_7d") or 0)
                 for summary in behavior_summaries.values()
             ),
             "low_trust_count": sum(

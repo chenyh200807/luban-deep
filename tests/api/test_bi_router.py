@@ -1148,12 +1148,35 @@ def test_bi_export_request_requires_idempotency_and_dedupes_audit(
         assert audit_entry["after"]["filters"] == {"operator": "admin_test", "category": "feedback"}
 
 
-def test_behavior_export_job_is_raw_mode_and_audited(bi_service: BIService) -> None:
+def test_behavior_export_job_is_raw_mode_and_audited(bi_service: BIService, tmp_path: Path) -> None:
+    from deeptutor.services.observability import reset_product_behavior_store
+
+    behavior_store = reset_product_behavior_store(tmp_path / "behavior-test.db")
+    now_ms = int(datetime.now().timestamp() * 1000)
+    behavior_store.record_event(
+        {
+            "event_id": "evt-export-u1-1",
+            "event_name": "section_viewed",
+            "event_version": 1,
+            "occurred_at_ms": now_ms,
+            "received_at_ms": now_ms + 100,
+            "user_id": "u1",
+            "visit_id": "visit-export-1",
+            "session_id": "session-export-1",
+            "turn_id": "turn-export-1",
+            "surface": "web",
+            "module": "learning_report",
+            "section": "next_action",
+            "action": "view",
+            "properties_json": {"entry_source": "member_ops"},
+        }
+    )
+
     result = asyncio.run(
         bi_service.request_export_job(
             dataset="product_behavior_raw",
             export_format="csv",
-            filters={"cohort": "report_high_no_action"},
+            filters={"user_id": "u1", "module": "learning_report", "days": 7},
             operator="admin_demo",
             idempotency_key="behavior-export-1",
         )
@@ -1163,6 +1186,11 @@ def test_behavior_export_job_is_raw_mode_and_audited(bi_service: BIService) -> N
     assert job["dataset"] == "product_behavior_raw"
     assert job["scrubbed"] is False
     assert job["raw_mode"] is True
+    assert job["status"] == "ready"
+    assert job["rows"] == 1
+    assert result["export"]["content_type"] == "text/csv"
+    assert "evt-export-u1-1" in result["export"]["content"]
+    assert "next_action" in result["export"]["content"]
     assert result["audit_id"]
     audit_entry = bi_service._member_service.audit_log[0]  # noqa: SLF001
     assert audit_entry["after"]["scrubbed"] is False

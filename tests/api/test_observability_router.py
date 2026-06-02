@@ -190,6 +190,43 @@ def test_surface_event_router_persists_product_behavior_event(tmp_path) -> None:
     assert summary["learning_report_open_count_7d"] == 1
 
 
+def test_surface_event_router_surfaces_product_behavior_persistence_failure(monkeypatch) -> None:
+    class FailingBehaviorStore:
+        def record_event(self, event):
+            raise RuntimeError("disk unavailable")
+
+    monkeypatch.setattr(observability_module, "get_product_behavior_store", lambda: FailingBehaviorStore())
+    app = _build_app()
+    now_ms = int(time.time() * 1000)
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/observability/surface-events",
+            json={
+                "event_id": "evt-product-persist-fail",
+                "surface": "web",
+                "event_name": "module_viewed",
+                "collected_at_ms": now_ms,
+                "metadata": {
+                    "visit_id": "visit-fail-1",
+                    "module": "learning_report",
+                    "action": "view",
+                },
+            },
+        )
+
+    assert response.status_code == 202
+    assert response.json()["status"] == "accepted"
+    assert response.json()["product_behavior_status"] == "persistence_failed"
+    snapshot = observability_module.get_surface_event_store().snapshot()
+    assert {
+        "surface": "web",
+        "event_name": "module_viewed",
+        "status": "product_behavior_persistence_failed",
+        "count": 1,
+    } in snapshot["event_counts"]
+
+
 def test_surface_event_router_rejects_product_behavior_without_visit_id(tmp_path) -> None:
     observability_module.reset_product_behavior_store(tmp_path / "behavior.db")
     app = _build_app()

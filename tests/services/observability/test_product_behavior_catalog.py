@@ -93,3 +93,17 @@ def test_validate_product_behavior_event_rejects_forbidden_payload_fields() -> N
                 "full_answer_text": "should not be stored",
             },
         )
+
+
+def test_validate_product_behavior_event_rejects_nested_forbidden_payload_fields() -> None:
+    with pytest.raises(ValueError, match="Forbidden product behavior field"):
+        validate_product_behavior_event(
+            event_name="module_viewed",
+            metadata={
+                "visit_id": "visit-u1-1",
+                "module": "history",
+                "action": "view",
+                "surface": "web",
+                "extra": {"complete_subjective_answer": "should not be stored"},
+            },
+        )

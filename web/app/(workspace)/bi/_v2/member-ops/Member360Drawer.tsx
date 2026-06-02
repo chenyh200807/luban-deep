@@ -230,6 +230,17 @@ export function Member360Drawer({
                     {event.surface || 'unknown'} · {event.module || 'unknown'} ·{' '}
                     {event.section || 'unknown'} · {event.action || 'unknown'}
                   </div>
+                  <div className="mt-1 text-[11px] text-slate-500">
+                    {event.object_type || event.object_id ? (
+                      <span>
+                        对象 {event.object_type || 'unknown'}:{event.object_id || 'unknown'} ·{' '}
+                      </span>
+                    ) : null}
+                    {event.duration_ms ? <span>停留 {event.duration_ms}ms · </span> : null}
+                    {event.result ? <span>结果 {event.result} · </span> : null}
+                    {event.error_code ? <span>错误 {event.error_code} · </span> : null}
+                    {event.release_id ? <span>release {event.release_id}</span> : null}
+                  </div>
                 </div>
               ))
             ) : (
