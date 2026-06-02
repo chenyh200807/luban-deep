@@ -197,6 +197,75 @@ def test_filters_metadata_hidden_grading_authority_for_student_surface() -> None
     assert refs[0].public_quote == "屋面防水"
 
 
+def test_student_refs_prioritize_textbook_kb_chunk_over_question_bank_when_ref_slots_are_limited() -> None:
+    refs = normalize_citation_sources(
+        [
+            {
+                "chunk_id": f"question-{index}",
+                "source_type": "TEXTBOOK",
+                "source_table": "questions_bank",
+                "title": f"题目 {index}",
+                "rag_content": "题库解析。",
+            }
+            for index in range(1, 5)
+        ]
+        + [
+            {
+                "chunk_id": "1A411011_001_0001",
+                "source_type": "textbook",
+                "source_table": "kb_chunks",
+                "title": "建筑物分类",
+                "source": "2026教材 v3_production_core9-166",
+                "metadata": {
+                    "source_span": {
+                        "chapter": "第1章 建筑工程设计技术",
+                        "section": "建筑物的构成与设计要求",
+                        "page": 1,
+                    }
+                },
+                "rag_content": "建筑物分类与构成。",
+            }
+        ],
+        policy=CitationPolicy(surface="student", max_public_refs=3),
+    )
+
+    assert refs[0].source_table == "kb_chunks"
+    assert refs[0].source_id == "1A411011_001_0001"
+    assert refs[0].locator == "第1章 建筑工程设计技术 建筑物的构成与设计要求 p.1"
+    assert len(refs) == 3
+
+
+def test_reviewer_refs_keep_input_order_without_student_prioritization() -> None:
+    refs = normalize_citation_sources(
+        [
+            {
+                "chunk_id": "question-1",
+                "source_type": "TEXTBOOK",
+                "source_table": "questions_bank",
+                "title": "题目",
+                "rag_content": "题库解析。",
+            },
+            {
+                "chunk_id": "1A411011_001_0001",
+                "source_type": "textbook",
+                "source_table": "kb_chunks",
+                "title": "建筑物分类",
+                "metadata": {
+                    "source_span": {
+                        "chapter": "第1章 建筑工程设计技术",
+                        "section": "建筑物的构成与设计要求",
+                        "page": 1,
+                    }
+                },
+                "rag_content": "建筑物分类与构成。",
+            },
+        ],
+        policy=CitationPolicy(surface="reviewer"),
+    )
+
+    assert [ref.source_table for ref in refs] == ["questions_bank", "kb_chunks"]
+
+
 def test_deduplicates_same_source_and_span() -> None:
     refs = normalize_citation_sources(
         [
