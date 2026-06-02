@@ -58,6 +58,7 @@
 33. chat 执行壳（`AgenticChatPipeline`）的 construction-exam skill overlay 必须从 `question_lifecycle_scene` turn metadata 读取由 orchestrator（`resolve_question_lifecycle_scene_decision`）写入的单一 scene authority，再经 `build_question_lifecycle_skill_context` 组织 skill 指令；不得在壳内用 legacy `detect_construction_exam_scene` / `get_construction_exam_skill_instruction` 独立重判 scene。scene 是 turn 级一等事实，两套执行壳（chat / tutorbot）只读不重判，由 `scripts/check_harness_authority.py` 静态保证。
 34. `evidence_bundle.sources` must preserve compact public citation identity/location fields when available: `source_id`, `source_table`, `stable_id`, `source_span`, `content_hash`, `quote_hash`, `node_code`, `taxonomy_path`, source type, title, page, and standard/article locators. It must not expose private learner projections or hidden grading authority.
 35. 对建筑实务学生端的概念讲解 / 查漏补缺类 `concept_like` 查询，source-aware ranking 必须把 2026 教材类 `textbook` 作为主概念 grounding，避免大体量标准库挤掉教材证据；只有显式规范、标准编号、条文解释等 `standard_like` 查询才允许把标准 / 精确条文权重提升到教材之上。“附依据 / 写出处 / 教材口径 / 答题依据”这类引用格式要求不得单独触发 `standard_like`。该约束只改变同一 `RAGService` 内的排序权重，不得新增第二套 RAG 入口或第二套引用来源 authority。
+36. 学生端引用标准 / 规范 / 条文来源时，如果该 source 携带可信 `node_code` 或 `taxonomy_path`，公开 citation locator 必须同时展示“关联教材：第 X 章 / 第 Y 节”这类 2026 教材知识点定位；标准条文本身仍是 evidence source，教材定位是 learner remediation coordinate。缺少可信映射时必须 fail closed，不得凭关键词硬编教材章节。
 
 ## 当前统一语义
 

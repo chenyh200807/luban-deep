@@ -142,11 +142,13 @@ def _taxonomy_path_names(source: dict[str, Any]) -> list[str]:
     return [item.strip() for item in re.split(r"\s*(?:>|/|／|,|，|;|；)\s*", text) if item.strip()]
 
 
-def _textbook_location_meta(source: dict[str, Any]) -> dict[str, Any]:
-    if _source_type(source).lower() != "textbook":
+def _textbook_location_meta(source: dict[str, Any], *, allow_linked_source: bool = False) -> dict[str, Any]:
+    if _source_type(source).lower() != "textbook" and not allow_linked_source:
         return {}
     code = _taxonomy_code(source)
     path_names = _taxonomy_path_names(source)
+    if allow_linked_source and _source_type(source).lower() != "textbook" and not code and not path_names:
+        return {}
     meta = textbook_topic_meta(raw_value=code, label=_raw_title(source), path_names=path_names)
     if path_names and not meta.get("textbook_section_name"):
         for candidate in reversed(path_names):
@@ -155,6 +157,25 @@ def _textbook_location_meta(source: dict[str, Any]) -> dict[str, Any]:
                 meta = {**meta, **path_meta}
                 break
     return meta
+
+
+def _related_textbook_locator(source: dict[str, Any]) -> str:
+    if _source_type(source).lower() == "textbook":
+        return ""
+    textbook_meta = _textbook_location_meta(source, allow_linked_source=True)
+    parts: list[str] = []
+    if textbook_meta.get("textbook_chapter_name"):
+        parts.append(_text(textbook_meta.get("textbook_chapter_name")))
+    if textbook_meta.get("textbook_section_name"):
+        parts.append(_text(textbook_meta.get("textbook_section_name")))
+    return f"关联教材：{' '.join(parts)}" if parts else ""
+
+
+def _append_related_textbook_locator(source: dict[str, Any], locator: str) -> str:
+    related = _related_textbook_locator(source)
+    if not related:
+        return locator
+    return f"{locator}；{related}"
 
 
 def _section_supported_by_source(source: dict[str, Any], section: str) -> bool:
@@ -208,7 +229,9 @@ def _locator(source: dict[str, Any]) -> str:
     standard_code = _text(source.get("standard_code") or metadata.get("standard_code"))
     article_code = _text(source.get("article_code") or metadata.get("article_code"))
     if standard_code and article_code:
-        return f"{standard_code} 第 {article_code} 条"
+        return _append_related_textbook_locator(source, f"{standard_code} 第 {article_code} 条")
+    if standard_code:
+        return _append_related_textbook_locator(source, standard_code)
 
     span = _source_span(source)
     chapter = _text(span.get("chapter") or metadata.get("chapter") or source.get("chapter"))
@@ -235,6 +258,9 @@ def _locator(source: dict[str, Any]) -> str:
     if question_no:
         suffix = f"-{sub_question}" if sub_question else ""
         return f"{exam_year} 真题 {question_no}{suffix}".strip()
+    related = _related_textbook_locator(source)
+    if related:
+        return related
     return ""
 
 

@@ -185,6 +185,62 @@ def test_deduplicates_same_source_and_span() -> None:
     assert refs[0].locator == "GB 50345-2012 第 3.0.1 条"
 
 
+def test_standard_locator_includes_related_textbook_mapping_when_available() -> None:
+    refs = normalize_citation_sources(
+        [
+            {
+                "chunk_id": "std-1",
+                "source_type": "standard",
+                "title": "GB 50345-2012 屋面工程技术规范",
+                "standard_code": "GB 50345-2012",
+                "article_code": "3.0.1",
+                "node_code": "1A413050",
+                "taxonomy_path": ["建筑工程施工技术", "屋面与防水工程施工"],
+                "rag_content": "屋面防水工程应根据建筑物的类别、重要程度、使用功能要求确定防水等级。",
+            }
+        ],
+        policy=CitationPolicy(),
+    )
+
+    assert refs[0].locator == "GB 50345-2012 第 3.0.1 条；关联教材：第3章 建筑工程施工技术 屋面与防水工程施工"
+
+
+def test_standard_locator_without_article_keeps_related_textbook_mapping() -> None:
+    refs = normalize_citation_sources(
+        [
+            {
+                "chunk_id": "std-1",
+                "source_type": "standard",
+                "title": "建筑防火标准",
+                "standard_code": "GB 50016-2014",
+                "node_code": "1A411020",
+                "rag_content": "防火门窗的耐火极限分为甲级、乙级、丙级。",
+            }
+        ],
+        policy=CitationPolicy(),
+    )
+
+    assert refs[0].locator == "GB 50016-2014；关联教材：第1章 建筑工程设计技术"
+
+
+def test_standard_without_textbook_mapping_keeps_original_locator_only() -> None:
+    refs = normalize_citation_sources(
+        [
+            {
+                "chunk_id": "std-1",
+                "source_type": "standard",
+                "title": "GB 50016-2014 建筑防火",
+                "standard_code": "GB 50016-2014",
+                "article_code": "6.5.1",
+                "rag_content": "防火门等级应与使用部位匹配。",
+            }
+        ],
+        policy=CitationPolicy(),
+    )
+
+    assert refs[0].locator == "GB 50016-2014 第 6.5.1 条"
+
+
 def test_missing_locator_does_not_fall_back_to_raw_source_type() -> None:
     refs = normalize_citation_sources(
         [
