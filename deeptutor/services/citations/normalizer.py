@@ -12,6 +12,7 @@ from deeptutor.services.taxonomy.textbook_directory import textbook_topic_meta
 _HIDDEN_FIELDS = HIDDEN_AUTHORITY_FIELDS
 _TEXTBOOK_CODE_RE = re.compile(r"1A\d{3,6}", re.IGNORECASE)
 _SECTION_GENERIC_TERMS = ("工程", "施工", "技术", "相关", "规定", "管理", "应用")
+_STANDARD_SOURCE_TYPES = {"standard", "spec", "standard_precision", "standard_code_exact", "standard_article"}
 
 
 def _text(value: Any) -> str:
@@ -56,6 +57,10 @@ def _is_hidden_source(source: dict[str, Any], *, policy: CitationPolicy) -> bool
 def _source_type(source: dict[str, Any]) -> str:
     metadata = _metadata(source)
     return _text(source.get("source_type") or source.get("_source_group") or metadata.get("source_type") or "source")
+
+
+def _is_standard_source(source: dict[str, Any]) -> bool:
+    return _source_type(source).lower() in _STANDARD_SOURCE_TYPES
 
 
 def _source_id(source: dict[str, Any]) -> str:
@@ -131,6 +136,20 @@ def _taxonomy_code(source: dict[str, Any]) -> str:
     return ""
 
 
+def _trusted_taxonomy_code(source: dict[str, Any]) -> str:
+    metadata = _metadata(source)
+    for value in (
+        source.get("node_code"),
+        metadata.get("node_code"),
+        source.get("taxonomy_code"),
+        metadata.get("taxonomy_code"),
+    ):
+        match = _TEXTBOOK_CODE_RE.search(_text(value))
+        if match:
+            return match.group(0).upper()
+    return ""
+
+
 def _taxonomy_path_names(source: dict[str, Any]) -> list[str]:
     metadata = _metadata(source)
     value = source.get("taxonomy_path") or metadata.get("taxonomy_path")
@@ -143,11 +162,12 @@ def _taxonomy_path_names(source: dict[str, Any]) -> list[str]:
 
 
 def _textbook_location_meta(source: dict[str, Any], *, allow_linked_source: bool = False) -> dict[str, Any]:
-    if _source_type(source).lower() != "textbook" and not allow_linked_source:
+    source_type = _source_type(source).lower()
+    if source_type != "textbook" and (not allow_linked_source or not _is_standard_source(source)):
         return {}
-    code = _taxonomy_code(source)
+    code = _taxonomy_code(source) if source_type == "textbook" else _trusted_taxonomy_code(source)
     path_names = _taxonomy_path_names(source)
-    if allow_linked_source and _source_type(source).lower() != "textbook" and not code and not path_names:
+    if allow_linked_source and source_type != "textbook" and not code and not path_names:
         return {}
     meta = textbook_topic_meta(raw_value=code, label=_raw_title(source), path_names=path_names)
     if path_names and not meta.get("textbook_section_name"):
@@ -160,7 +180,7 @@ def _textbook_location_meta(source: dict[str, Any], *, allow_linked_source: bool
 
 
 def _related_textbook_locator(source: dict[str, Any]) -> str:
-    if _source_type(source).lower() == "textbook":
+    if _source_type(source).lower() == "textbook" or not _is_standard_source(source):
         return ""
     textbook_meta = _textbook_location_meta(source, allow_linked_source=True)
     parts: list[str] = []
@@ -250,7 +270,8 @@ def _locator(source: dict[str, Any]) -> str:
     if page:
         parts.append(f"p.{page}")
     if parts:
-        return " ".join(parts)
+        locator = " ".join(parts)
+        return _append_related_textbook_locator(source, locator) if _is_standard_source(source) else locator
 
     question_no = _text(source.get("question_no") or metadata.get("question_no") or span.get("question"))
     sub_question = _text(source.get("sub_question") or metadata.get("sub_question") or span.get("sub_question"))
@@ -258,9 +279,10 @@ def _locator(source: dict[str, Any]) -> str:
     if question_no:
         suffix = f"-{sub_question}" if sub_question else ""
         return f"{exam_year} 真题 {question_no}{suffix}".strip()
-    related = _related_textbook_locator(source)
-    if related:
-        return related
+    if _is_standard_source(source):
+        related = _related_textbook_locator(source)
+        if related:
+            return related
     return ""
 
 

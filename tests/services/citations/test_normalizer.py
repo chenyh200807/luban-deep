@@ -241,6 +241,64 @@ def test_standard_without_textbook_mapping_keeps_original_locator_only() -> None
     assert refs[0].locator == "GB 50016-2014 第 6.5.1 条"
 
 
+def test_standard_with_only_id_like_chunk_does_not_guess_textbook_mapping() -> None:
+    refs = normalize_citation_sources(
+        [
+            {
+                "chunk_id": "standard_raw_1A413050_line_99",
+                "source_id": "STD_GB50345_2012_1A413050_RAW",
+                "stable_id": "std:1A413050:raw",
+                "source_type": "standard",
+                "title": "GB 50345-2012 屋面工程技术规范",
+                "standard_code": "GB 50345-2012",
+                "article_code": "3.0.1",
+                "rag_content": "屋面工程应按不同屋面防水等级进行设防。",
+            }
+        ],
+        policy=CitationPolicy(),
+    )
+
+    assert refs[0].locator == "GB 50345-2012 第 3.0.1 条"
+    assert "关联教材" not in refs[0].locator
+
+
+def test_standard_span_locator_appends_trusted_related_textbook_mapping() -> None:
+    refs = normalize_citation_sources(
+        [
+            {
+                "chunk_id": "std-span-1",
+                "source_type": "standard",
+                "title": "基本规定",
+                "metadata": {"source_span": {"chapter": "3", "page": 13}},
+                "node_code": "1A413050",
+                "taxonomy_path": ["建筑工程施工技术", "屋面与防水工程施工"],
+                "rag_content": "屋面工程应根据建筑物的性质、重要程度、使用功能要求进行设防。",
+            }
+        ],
+        policy=CitationPolicy(),
+    )
+
+    assert refs[0].locator == "第 3 章 p.13；关联教材：第3章 建筑工程施工技术 屋面与防水工程施工"
+
+
+def test_non_standard_source_with_textbook_mapping_does_not_get_related_locator() -> None:
+    refs = normalize_citation_sources(
+        [
+            {
+                "chunk_id": "question-1",
+                "source_type": "questions_bank",
+                "title": "题库解析",
+                "node_code": "1A413050",
+                "taxonomy_path": ["建筑工程施工技术", "屋面与防水工程施工"],
+                "rag_content": "屋面防水等级是本题考查点。",
+            }
+        ],
+        policy=CitationPolicy(),
+    )
+
+    assert refs[0].locator == ""
+
+
 def test_missing_locator_does_not_fall_back_to_raw_source_type() -> None:
     refs = normalize_citation_sources(
         [
