@@ -193,7 +193,10 @@ function toMemberRow(item: MemberListItem): MemberRow {
     behavior_history_7d: behavior?.history_open_count_7d ?? 0,
     behavior_cohort: behaviorCohort,
     behavior_trust: behavior?.trust_level || 'C',
-    behavior_next_action: behaviorNextAction(behaviorCohort),
+    behavior_next_action: behavior?.next_action || behaviorNextAction(behaviorCohort),
+    behavior_reasons: behavior?.cohort_reasons || [],
+    behavior_event_count_7d: behavior?.event_count_7d ?? 0,
+    behavior_last_event_at_ms: behavior?.last_event_at_ms ?? 0,
   }
 }
 
@@ -300,6 +303,7 @@ export function BiV2MemberOpsPanel({
         learningReport: health.learning_report_open_count_7d,
         history: health.history_open_count_7d,
         actions: health.action_start_count_7d,
+        events: health.event_count_7d ?? sourceRows.reduce((sum, row) => sum + (row.behavior_event_count_7d ?? 0), 0),
         lowTrust: health.low_trust_count,
       }
     }
@@ -307,10 +311,11 @@ export function BiV2MemberOpsPanel({
       (acc, row) => {
         acc.learningReport += row.behavior_learning_report_7d ?? 0
         acc.history += row.behavior_history_7d ?? 0
+        acc.events += row.behavior_event_count_7d ?? 0
         acc.lowTrust += row.behavior_trust && row.behavior_trust !== 'A' ? 1 : 0
         return acc
       },
-      { learningReport: 0, history: 0, actions: 0, lowTrust: 0 }
+      { learningReport: 0, history: 0, actions: 0, events: 0, lowTrust: 0 }
     )
   }, [dashboard, sourceRows])
 
@@ -712,10 +717,11 @@ function BehaviorHealthStrip({
   totals,
   loading,
 }: {
-  totals: { learningReport: number; history: number; actions: number; lowTrust: number }
+  totals: { learningReport: number; history: number; actions: number; events: number; lowTrust: number }
   loading: boolean
 }) {
   const cards = [
+    { label: '行为样本 7日', value: totals.events },
     { label: '学情打开 7日', value: totals.learningReport },
     { label: '历史打开 7日', value: totals.history },
     { label: '行动开始 7日', value: totals.actions },
@@ -724,7 +730,7 @@ function BehaviorHealthStrip({
   return (
     <section
       data-testid="bi-member-behavior-health-strip"
-      className="grid grid-cols-2 gap-3 md:grid-cols-4"
+      className="grid grid-cols-2 gap-3 md:grid-cols-5"
       aria-label="会员行为健康摘要"
     >
       {cards.map(card => (
@@ -1072,7 +1078,16 @@ function renderCell(row: MemberRow, key: MemberColumnKey): React.ReactNode {
       cohort && cohort in BEHAVIOR_COHORT_TONE
         ? BEHAVIOR_COHORT_TONE[cohort as keyof typeof BEHAVIOR_COHORT_TONE]
         : 'emerald'
-    return <BiStatusPill tone={tone} label={behaviorCohortLabel(cohort)} />
+    return (
+      <div className="max-w-[220px] space-y-1">
+        <BiStatusPill tone={tone} label={behaviorCohortLabel(cohort)} />
+        {row.behavior_reasons?.[0] ? (
+          <div className="truncate text-[11px] text-slate-400" title={row.behavior_reasons.join('；')}>
+            {row.behavior_reasons[0]}
+          </div>
+        ) : null}
+      </div>
+    )
   }
   if (key === 'behavior_next_action')
     return <span className="text-slate-300">{row.behavior_next_action ?? '观察'}</span>

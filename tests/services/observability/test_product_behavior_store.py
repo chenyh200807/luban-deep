@@ -91,6 +91,44 @@ def test_store_detects_report_high_no_action_cohort(tmp_path: Path) -> None:
     assert store.get_member_behavior_summary("u1", days=7)["cohort"] == "report_high_no_action"
 
 
+def test_store_detects_p0_member_behavior_cohorts_with_reasons(tmp_path: Path) -> None:
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    now_ms = int(time.time() * 1000)
+
+    scenarios = [
+        ("history_user", "history", "module_viewed", "view", 3, "history_high_no_review"),
+        ("chat_user", "chat", "module_viewed", "view", 3, "chat_only"),
+        ("training_user", "practice", "learning_action_started", "start_training", 1, "training_no_retest"),
+    ]
+    for user_id, module, event_name, action, count, _expected in scenarios:
+        for index in range(count):
+            store.record_event(
+                {
+                    "event_id": f"evt-{user_id}-{index}",
+                    "event_name": event_name,
+                    "event_version": 1,
+                    "occurred_at_ms": now_ms + index,
+                    "received_at_ms": now_ms + 100 + index,
+                    "user_id": user_id,
+                    "visit_id": f"visit-{user_id}-{index}",
+                    "session_id": "",
+                    "turn_id": "",
+                    "surface": "web",
+                    "module": module,
+                    "section": "",
+                    "action": action,
+                    "properties_json": {},
+                }
+            )
+
+    summaries = store.get_member_behavior_summaries([item[0] for item in scenarios], days=7)
+
+    for user_id, _module, _event_name, _action, _count, expected in scenarios:
+        assert summaries[user_id]["cohort"] == expected
+        assert summaries[user_id]["next_action"]
+        assert summaries[user_id]["cohort_reasons"]
+
+
 def test_store_uses_occurred_at_for_offline_replay_window(tmp_path: Path) -> None:
     store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
     now_ms = int(time.time() * 1000)
@@ -121,6 +159,37 @@ def test_store_uses_occurred_at_for_offline_replay_window(tmp_path: Path) -> Non
     assert summary["history_open_count_7d"] == 1
 
 
+def test_member_timeline_respects_days_window(tmp_path: Path) -> None:
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    now_ms = int(time.time() * 1000)
+    for event_id, occurred_at_ms in [
+        ("evt-recent", now_ms - 2 * 86400 * 1000),
+        ("evt-old", now_ms - 10 * 86400 * 1000),
+    ]:
+        store.record_event(
+            {
+                "event_id": event_id,
+                "event_name": "module_viewed",
+                "event_version": 1,
+                "occurred_at_ms": occurred_at_ms,
+                "received_at_ms": now_ms,
+                "user_id": "u1",
+                "visit_id": "visit-window",
+                "session_id": "",
+                "turn_id": "",
+                "surface": "web",
+                "module": "history",
+                "section": "",
+                "action": "view",
+                "properties_json": {},
+            }
+        )
+
+    timeline = store.get_member_timeline("u1", days=7)
+
+    assert [event["event_id"] for event in timeline] == ["evt-recent"]
+
+
 def test_store_rejects_forbidden_properties_for_direct_callers(tmp_path: Path) -> None:
     store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
     now_ms = int(time.time() * 1000)
@@ -142,6 +211,31 @@ def test_store_rejects_forbidden_properties_for_direct_callers(tmp_path: Path) -
                 "section": "",
                 "action": "view",
                 "properties_json": {"full_answer_text": "do not store"},
+            }
+        )
+
+
+def test_store_rejects_nested_forbidden_properties_for_direct_callers(tmp_path: Path) -> None:
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    now_ms = int(time.time() * 1000)
+
+    with pytest.raises(ValueError, match="Forbidden product behavior property"):
+        store.record_event(
+            {
+                "event_id": "evt-forbidden-nested-direct",
+                "event_name": "module_viewed",
+                "event_version": 1,
+                "occurred_at_ms": now_ms,
+                "received_at_ms": now_ms,
+                "user_id": "u1",
+                "visit_id": "visit-1",
+                "session_id": "",
+                "turn_id": "",
+                "surface": "web",
+                "module": "history",
+                "section": "",
+                "action": "view",
+                "properties_json": {"extra": {"complete_subjective_answer": "do not store"}},
             }
         )
 

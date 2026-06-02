@@ -16,6 +16,9 @@ export type MemberRow = {
   behavior_cohort?: string
   behavior_trust?: string
   behavior_next_action?: string
+  behavior_reasons?: string[]
+  behavior_event_count_7d?: number
+  behavior_last_event_at_ms?: number
 }
 
 export type MemberColumnKey =
@@ -68,6 +71,7 @@ export const DEFAULT_COLUMNS: MemberColumnKey[] = [
   'behavior_report',
   'behavior_history',
   'behavior_cohort',
+  'behavior_next_action',
   'last_active',
   'balance',
   'expires_at',

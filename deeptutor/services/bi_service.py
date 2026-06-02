@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import csv
+import io
 import json
 import logging
 import math
@@ -23,6 +25,7 @@ from deeptutor.services.member_console import get_member_console_service
 from deeptutor.services.observability import (
     get_bailian_billing_client,
     get_bailian_telemetry_client,
+    get_product_behavior_store,
     get_usage_ledger,
 )
 from deeptutor.services.session import get_sqlite_session_store
@@ -3234,6 +3237,14 @@ class BIService:
         normalized_operator = str(operator or "").strip() or "admin"
         sanitized_filters = self._sanitize_export_filters(filters or {})
         is_behavior_raw = normalized_dataset == "product_behavior_raw"
+        raw_export = (
+            self._build_product_behavior_raw_export(
+                export_format=normalized_format,
+                filters=sanitized_filters,
+            )
+            if is_behavior_raw
+            else None
+        )
 
         auditor = getattr(self._member_service, "record_bi_audit", None)
         if not callable(auditor):
@@ -3246,7 +3257,8 @@ class BIService:
             "scrubbed": not is_behavior_raw,
             "raw_mode": is_behavior_raw,
             "rate_limit_per_hour": 2,
-            "status": "queued",
+            "status": "ready" if raw_export is not None else "queued",
+            "rows": len(raw_export["rows"]) if raw_export is not None else 0,
         }
         audit = auditor(
             action="bi_export_request",
@@ -3258,14 +3270,14 @@ class BIService:
             idempotency_key=idempotency_key,
         )
         audit_id = str(audit.get("audit_id") or "")
-        return {
+        result = {
             "export_job": {
                 "id": f"export_{audit_id}" if audit_id else f"export_{normalized_dataset}",
                 "name": _EXPORT_DATASET_LABELS[normalized_dataset],
                 "dataset": normalized_dataset,
                 "format": normalized_format,
-                "rows": 0,
-                "status": "queued",
+                "rows": len(raw_export["rows"]) if raw_export is not None else 0,
+                "status": "ready" if raw_export is not None else "queued",
                 "scrubbed": not is_behavior_raw,
                 "raw_mode": is_behavior_raw,
                 "rate_limit_per_hour": 2,
@@ -3273,6 +3285,65 @@ class BIService:
             },
             "audit_id": audit_id,
             "deduped": bool(audit.get("deduped")),
+        }
+        if raw_export is not None:
+            result["export"] = {
+                "content_type": raw_export["content_type"],
+                "content": raw_export["content"],
+                "filename": raw_export["filename"],
+            }
+        return result
+
+    def _build_product_behavior_raw_export(self, *, export_format: str, filters: dict[str, Any]) -> dict[str, Any]:
+        rows = get_product_behavior_store().query_raw_events(
+            filters=filters,
+            limit=_safe_int(filters.get("limit"), 1000),
+        )
+        if export_format == "json":
+            return {
+                "rows": rows,
+                "content_type": "application/json",
+                "content": json.dumps(rows, ensure_ascii=False, sort_keys=True),
+                "filename": "product_behavior_raw.json",
+            }
+        fieldnames = [
+            "event_id",
+            "event_name",
+            "event_version",
+            "occurred_at_ms",
+            "received_at_ms",
+            "user_id",
+            "visit_id",
+            "session_id",
+            "turn_id",
+            "surface",
+            "module",
+            "section",
+            "action",
+            "object_type",
+            "object_id",
+            "entry_source",
+            "referrer_module",
+            "duration_ms",
+            "visible_ms",
+            "result",
+            "error_code",
+            "release_id",
+            "app_version",
+            "platform",
+            "device_model",
+            "network_type",
+            "properties_json",
+        ]
+        output = io.StringIO()
+        writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(rows)
+        return {
+            "rows": rows,
+            "content_type": "text/csv",
+            "content": output.getvalue(),
+            "filename": "product_behavior_raw.csv",
         }
 
     @staticmethod
