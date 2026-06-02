@@ -473,15 +473,17 @@ Page({
         }
       });
     }
-    self
-      ._ensureChatReady()
-      .then(function () {
-        self._loadDashboard();
-        self._checkDiagnostic();
-        if (restoringConversation) {
-          runtime.consumePendingChatIntent();
-          return;
-        }
+    var hasUsableAuth =
+      typeof auth.isLoggedIn === "function" ? auth.isLoggedIn() : !!auth.getToken();
+    self._ensureChatReady().catch(function (e) {
+      log.warn("Chat", "chat profile bootstrap degraded: " + ((e && e.message) || e));
+    });
+    if (hasUsableAuth) {
+      self._loadDashboard();
+      self._checkDiagnostic();
+      if (restoringConversation) {
+        runtime.consumePendingChatIntent();
+      } else {
         var pendingIntent = runtime.consumePendingChatIntent();
         if (pendingIntent.query && !self.data.isStreaming) {
           self.setData({ answerMode: pendingIntent.mode || "AUTO" });
@@ -492,14 +494,8 @@ Page({
             promptIntent: pendingIntent.promptIntent || null,
           });
         }
-      })
-      .catch(function (e) {
-        log.warn("Chat", "chat bootstrap blocked: " + ((e && e.message) || e));
-        if (((e && e.message) || e) !== "AUTH_EXPIRED") {
-          self._loadDashboard();
-          self._checkDiagnostic();
-        }
-      });
+      }
+    }
     // [FIX] 从后台切回时重建 observer（onHide 中已 teardown）
     if (this.data.hasMessages) {
       this._setupObserver();
@@ -534,7 +530,9 @@ Page({
     if (self._chatReadyPromise) {
       return self._chatReadyPromise;
     }
-    if (!auth.getToken()) {
+    var hasUsableAuth =
+      typeof auth.isLoggedIn === "function" ? auth.isLoggedIn() : !!auth.getToken();
+    if (!hasUsableAuth) {
       runtime.checkAuth(function () {});
       return Promise.reject(new Error("AUTH_EXPIRED"));
     }
@@ -1945,39 +1943,6 @@ Page({
         self._sid = self._convId;
         self._scheduleSessionPersist(true);
       }
-
-      // 首次发消息时先创建对话，后续复用同一个 _convId
-      if (!self._convId || !self._sid) {
-        self.setData({ isStreaming: true });
-        api
-          .createConversation()
-          .then(function (raw) {
-            // [FIX-SESSION-ROOT-CAUSE 2026-04-01] ApiResponse 包装必须 unwrap
-            // 之前直接读 data.conversation，但 data 是 {code,data,message} 包装
-            // 导致 conv.id=undefined → session_id=None → 每次新 thread → 上下文断裂
-            var unwrapped = api.unwrapResponse(raw);
-            var conv = unwrapped.conversation || unwrapped;
-            if (!conv || !conv.id) {
-              log.error("Chat", "createConversation returned no id", unwrapped);
-              self.setData({ isStreaming: false });
-              wx.showToast({ title: "创建对话异常", icon: "none" });
-              return;
-            }
-            self._convId = conv.id;
-            self._sid = conv.id; // conversation_id 同时用作 session_id
-            // [FIX-SESSION-2] 立即持久化（含时间戳），防止刷新/重启后丢失
-            self._scheduleSessionPersist(true);
-            self._doSend(query, extraOpts);
-          })
-          .catch(function (err) {
-            self.setData({ isStreaming: false });
-            if (String((err && err.message) || "") === "AUTH_EXPIRED") {
-              return;
-            }
-            wx.showToast({ title: "创建对话失败", icon: "none" });
-          });
-        return;
-      }
       self._doSend(query, extraOpts);
     };
 
@@ -1988,29 +1953,13 @@ Page({
     if (self.data.isStreaming) return;
     self._stop();
 
-    if (!auth.getToken()) {
+    var canSendWithAuth =
+      typeof auth.isLoggedIn === "function" ? auth.isLoggedIn() : !!auth.getToken();
+    if (!canSendWithAuth) {
       runtime.checkAuth(function () {});
       return;
     }
 
-    if (self._chatReadyPromise) {
-      self
-        ._chatReadyPromise
-        .then(function () {
-          startSend();
-        })
-        .catch(function (err) {
-          var title = "服务暂时不可用，请稍后重试";
-          if (String((err && err.message) || "") === "AUTH_EXPIRED") {
-            return;
-          }
-          if (typeof api.describeRequestError === "function") {
-            title = api.describeRequestError(err, title);
-          }
-          wx.showToast({ title: title, icon: "none" });
-        });
-      return;
-    }
     startSend();
   },
 
@@ -2025,16 +1974,12 @@ Page({
     if (!self._sid && self._convId) {
       self._sid = self._convId;
     }
-    if (!self._sid) {
-      log.error("Chat", "missing session id before stream", {
-        convId: self._convId || "",
-      });
-      wx.showToast({ title: "会话初始化失败", icon: "none" });
-      return;
-    }
+    var streamSessionId = self._sid || "";
 
     // 每次发消息只做低频续期，避免把同步落盘放到高频流式路径里
-    self._scheduleSessionPersist(false);
+    if (streamSessionId) {
+      self._scheduleSessionPersist(false);
+    }
 
     var userMsg = { id: "u" + self._counter++, role: "user", content: query };
     var aiMsg = {
@@ -2093,17 +2038,25 @@ Page({
       Date.now().toString(36) +
       "_" +
       Math.random().toString(36).substr(2, 4);
-    self._persistPendingTurn({
-      conversationId: self._sid,
+    var pendingDraft = {
       baselineCount: existing.length,
       query: query,
       clientTurnId: _turnId,
       createdAt: Date.now(),
-    });
+    };
+    if (streamSessionId) {
+      self._persistPendingTurn({
+        conversationId: streamSessionId,
+        baselineCount: pendingDraft.baselineCount,
+        query: pendingDraft.query,
+        clientTurnId: pendingDraft.clientTurnId,
+        createdAt: pendingDraft.createdAt,
+      });
+    }
     self._syncMessageIndexMap(msgs);
     if (inferTitleOnStart) {
       analytics.track("deeptutor_first_question_start", {
-        conversation_id: self._convId || self._sid || "",
+        conversation_id: self._convId || self._sid || _turnId,
         entry_source: self.data.entrySource,
         answer_mode: self.data.answerMode,
       });
@@ -2128,7 +2081,7 @@ Page({
     self._firstVisibleAckSent = false;
     self._doneRenderedAckSent = false;
     surfaceTelemetry.track("start_turn_sent", {
-      sessionId: self._sid,
+      sessionId: streamSessionId || _turnId,
       metadata: {
         answer_mode: self.data.answerMode,
         tools_count: selectedTools.length,
@@ -2137,7 +2090,7 @@ Page({
     self._abort = wsStream.streamChat(
       {
         query: query,
-        sessionId: self._sid,
+        sessionId: streamSessionId,
         mode: self.data.answerMode,
         tools: selectedTools,
         config: { bot_id: "construction-exam-coach" },
@@ -2152,6 +2105,30 @@ Page({
         inferTitleOnStart: inferTitleOnStart,
       },
       {
+        onStarted: function (payload) {
+          var started = payload && typeof payload === "object" ? payload : {};
+          var conversation = started.conversation && typeof started.conversation === "object"
+            ? started.conversation
+            : {};
+          var turn = started.turn && typeof started.turn === "object" ? started.turn : {};
+          var startedSessionId = String(started.sessionId || conversation.id || "").trim();
+          var startedTurnId = String(started.turnId || turn.id || "").trim();
+          if (startedSessionId) {
+            self._convId = startedSessionId;
+            self._sid = startedSessionId;
+            self._scheduleSessionPersist(true);
+            self._persistPendingTurn(
+              Object.assign({}, pendingDraft, {
+                conversationId: startedSessionId,
+                turnId: startedTurnId,
+              })
+            );
+          }
+          if (startedTurnId) {
+            self._surfaceTurnId = startedTurnId;
+            self._updatePendingTurn({ turnId: startedTurnId });
+          }
+        },
         onToken: function (t) {
           self._onToken(t);
         },

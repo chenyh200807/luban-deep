@@ -270,7 +270,7 @@ function loadChatPage(overrides) {
 }
 
 (async function main() {
-  await run("chat page should wait for bootstrap auth validation before creating conversation", async function () {
+  await run("chat page should not wait for profile bootstrap before entering send pipeline", async function () {
     var bootstrapDeferred = createDeferred();
     var loaded = loadChatPage({
       api: {
@@ -288,11 +288,11 @@ function loadChatPage(overrides) {
 
     assert(
       loaded.apiState.createConversationCalls === 0,
-      "conversation creation must wait until bootstrap auth validation resolves",
+      "first turn should not pre-create conversation while profile bootstrap is pending",
     );
     assert(
-      loaded.page._doSendCallCount === 0,
-      "send pipeline should not continue before bootstrap auth validation completes",
+      loaded.page._doSendCallCount === 1,
+      "send pipeline should use token authority and continue without waiting for profile bootstrap",
     );
 
     bootstrapDeferred.resolve({ username: "chenyh2008", points: 18 });
@@ -300,16 +300,16 @@ function loadChatPage(overrides) {
     await flushPromises();
 
     assert(
-      loaded.apiState.createConversationCalls === 1,
-      "conversation creation should resume once bootstrap auth validation succeeds",
+      loaded.apiState.createConversationCalls === 0,
+      "profile bootstrap completion should not add a separate create-conversation roundtrip",
     );
     assert(
       loaded.page._doSendCallCount === 1,
-      "send pipeline should continue after bootstrap auth validation succeeds",
+      "profile bootstrap completion should not replay the same send",
     );
   });
 
-  await run("chat page should block pending auto-send when bootstrap auth validation fails", async function () {
+  await run("chat page should keep pending auto-send independent from degraded profile bootstrap", async function () {
     var sendCount = 0;
     var dashboardCount = 0;
     var loaded = loadChatPage({
@@ -338,7 +338,7 @@ function loadChatPage(overrides) {
     await flushPromises();
     await flushPromises();
 
-    assert(sendCount === 0, "pending auto-send should stay blocked when auth bootstrap is not authoritative");
+    assert(sendCount === 1, "pending auto-send should use token authority even when profile is degraded");
     assert(dashboardCount === 1, "dashboard should still load so today focus can render when profile is degraded");
   });
 
@@ -432,7 +432,7 @@ function loadChatPage(overrides) {
     );
   });
 
-  await run("chat page should not race past a failing bootstrap promise on manual send", async function () {
+  await run("manual send should not fail just because profile bootstrap later fails", async function () {
     var bootstrapDeferred = createDeferred();
     var loaded = loadChatPage({
       api: {
@@ -449,7 +449,11 @@ function loadChatPage(overrides) {
     await flushPromises();
     assert(
       loaded.apiState.createConversationCalls === 0,
-      "manual send should stay behind the in-flight bootstrap promise",
+      "manual send should avoid the extra create-conversation roundtrip",
+    );
+    assert(
+      loaded.page._doSendCallCount === 1,
+      "manual send should enter stream pipeline before non-authoritative profile bootstrap resolves",
     );
 
     bootstrapDeferred.reject(new Error("profile temporarily unavailable"));
@@ -458,17 +462,13 @@ function loadChatPage(overrides) {
 
     assert(
       loaded.apiState.createConversationCalls === 0,
-      "manual send should not create a conversation when bootstrap auth validation fails",
+      "profile bootstrap failure should not trigger create-conversation",
     );
     assert(
-      loaded.page._doSendCallCount === 0,
-      "manual send should not enter the stream pipeline when bootstrap auth validation fails",
+      loaded.page._doSendCallCount === 1,
+      "profile bootstrap failure should not roll back an already-started send",
     );
-    assert(
-      loaded.toastCalls.length >= 1 &&
-        loaded.toastCalls[loaded.toastCalls.length - 1].title === "服务暂时不可用，请稍后重试",
-      "manual send should surface an availability toast instead of a misleading create-conversation failure",
-    );
+    assert(loaded.toastCalls.length === 0, "profile bootstrap failure should not toast over an active send");
   });
 
   await run("chat page should not call profile bootstrap or create conversation after auth redirect starts", async function () {
