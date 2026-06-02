@@ -5,7 +5,6 @@ import json
 from pathlib import Path
 
 from scripts.build_luban_human_validation_slice import (
-    DEFAULT_AFTER_REPORT,
     DEFAULT_FIXTURE,
     build_validation_bundle,
     select_validation_slice,
@@ -13,10 +12,67 @@ from scripts.build_luban_human_validation_slice import (
 from scripts.score_luban_human_validation_slice import parse_review_book_markdown, score_human_labels, validate_human_labels
 
 
-def test_select_validation_slice_is_blind_and_includes_error_frontier() -> None:
+def _gold_point_rows(case: dict, sample: dict) -> list[dict]:
+    points_by_id = {str(point.get("point_id")): point for point in case.get("gold_scoring_points") or []}
+    rows: list[dict] = []
+    for hit_row in (sample.get("ground_truth_ledger") or {}).get("point_hits") or []:
+        point_id = str(hit_row.get("point_id") or "")
+        point = points_by_id.get(point_id) or {}
+        max_score = float(point.get("max_score") or 0)
+        hit = str(hit_row.get("hit") or "")
+        gold_score = max_score if hit == "hit" else (max_score / 2 if hit == "partial" else 0.0)
+        rows.append(
+            {
+                "point_id": point_id,
+                "max_score": max_score,
+                "ledger_hit": hit,
+                "gold_score": gold_score,
+            }
+        )
+    return rows
+
+
+def _write_after_report_fixture(tmp_path: Path) -> Path:
+    fixture = json.loads(DEFAULT_FIXTURE.read_text(encoding="utf-8"))
+    cases = fixture["cases"][:3]
+    rows = []
+    reasons = [
+        {"score_delta": 1.0, "gold_penalty_triggered": False, "case_group_tags": []},
+        {"score_delta": 0.0, "gold_penalty_triggered": True, "case_group_tags": ["penalty_rule"]},
+        {"score_delta": -1.0, "gold_penalty_triggered": False, "case_group_tags": []},
+    ]
+    for case, reason in zip(cases, reasons, strict=True):
+        sample = (case.get("eval_samples") or [])[0]
+        gold_rows = _gold_point_rows(case, sample)
+        rows.append(
+            {
+                "arm": "artifact_first",
+                "case_id": case["case_id"],
+                "sample_id": sample["student_id"],
+                "gold_score": sum(float(row["gold_score"]) for row in gold_rows),
+                "pred_score": 0.0,
+                "score_delta": reason["score_delta"],
+                "gold_penalty_triggered": reason["gold_penalty_triggered"],
+                "case_group_tags": reason["case_group_tags"],
+                "gold_point_rows": gold_rows,
+                "result": {
+                    "rubric_items": [
+                        {"criterion": f"{row['point_id']}::fixture", "awarded_score": row["gold_score"]}
+                        for row in gold_rows
+                    ]
+                },
+            }
+        )
+    report_path = tmp_path / "after_report.json"
+    report_path.write_text(json.dumps({"rows": rows, "artifact_weaknesses": {}}, ensure_ascii=False), encoding="utf-8")
+    return report_path
+
+
+def test_select_validation_slice_is_blind_and_includes_error_frontier(tmp_path: Path) -> None:
+    report_path = _write_after_report_fixture(tmp_path)
     bundle = select_validation_slice(
         fixture_path=DEFAULT_FIXTURE,
-        report_path=DEFAULT_AFTER_REPORT,
+        report_path=report_path,
         target_count=24,
     )
 
@@ -39,9 +95,10 @@ def test_select_validation_slice_is_blind_and_includes_error_frontier() -> None:
 
 
 def test_build_validation_bundle_writes_protocol_packet_and_label_templates(tmp_path: Path) -> None:
+    report_path = _write_after_report_fixture(tmp_path)
     paths = build_validation_bundle(
         fixture_path=DEFAULT_FIXTURE,
-        report_path=DEFAULT_AFTER_REPORT,
+        report_path=report_path,
         output_dir=tmp_path,
         target_count=12,
     )
@@ -65,9 +122,10 @@ def test_build_validation_bundle_writes_protocol_packet_and_label_templates(tmp_
 
 
 def test_score_human_labels_compares_human_to_ledger_and_artifact(tmp_path: Path) -> None:
+    report_path = _write_after_report_fixture(tmp_path)
     paths = build_validation_bundle(
         fixture_path=DEFAULT_FIXTURE,
-        report_path=DEFAULT_AFTER_REPORT,
+        report_path=report_path,
         output_dir=tmp_path,
         target_count=3,
     )

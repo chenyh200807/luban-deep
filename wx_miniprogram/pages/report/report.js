@@ -90,6 +90,10 @@ function asNumber(value, fallback) {
   return Number.isFinite(num) ? num : fallback;
 }
 
+function hasExplicitNumericValue(value) {
+  return value !== undefined && value !== null && value !== "" && Number.isFinite(Number(value));
+}
+
 function mistakeBookPayloadFromCard(card) {
   var item = asObject(card);
   return {
@@ -1140,7 +1144,9 @@ Page({
           avgMastery: Math.round(group.avg_mastery || 0),
           avgClass: group.avg_class || group.class_name || "",
           chapters: (group.chapters || []).map(function (chapter) {
-            var mastery = Math.round(chapter.mastery || 0);
+            var mastery = Math.round(
+              asNumber(chapter.mastery, asNumber(chapter.score, 0)),
+            );
             return {
               name: displayChapterName(chapter.name || ""),
               mastery: mastery,
@@ -1151,7 +1157,9 @@ Page({
       });
 
       var hotspots = (data.hotspots || []).map(function (item) {
-        var mastery = Math.round(item.mastery || 0);
+        var mastery = Math.round(
+          asNumber(item.mastery, asNumber(item.score, 0)),
+        );
         return {
           name: displayChapterName(item.name || ""),
           mastery: mastery,
@@ -1160,6 +1168,9 @@ Page({
       });
 
       var overallPayload = asObject(data.overall_mastery);
+      var hasOverall =
+        hasExplicitNumericValue(data.overall_mastery) ||
+        hasExplicitNumericValue(overallPayload.score);
       var overall = Math.round(
         asNumber(overallPayload.score, asNumber(data.overall_mastery, 0)),
       );
@@ -1170,7 +1181,7 @@ Page({
         overdue_count: 0,
       };
 
-      if (!groups.length && !overall) {
+      if (!groups.length && !hasOverall) {
         var fallback = await api.getAssessmentProfile();
         var fallbackData = api.unwrapResponse(fallback) || {};
         var cm = fallbackData.chapter_mastery || {};
@@ -1180,7 +1191,7 @@ Page({
           var name = displayChapterName(
             (typeof v === "object" ? v.name : k) || k,
           );
-          var mastery = (typeof v === "object" ? v.mastery : v) || 0;
+          var mastery = asNumber(typeof v === "object" ? v.mastery : v, 0);
           var item = {
             name: name,
             mastery: mastery,
@@ -1208,7 +1219,7 @@ Page({
 
         var allMastery = Object.keys(cm).map(function (k) {
           var v = cm[k];
-          return (typeof v === "object" ? v.mastery : v) || 0;
+          return asNumber(typeof v === "object" ? v.mastery : v, 0);
         });
         overall = allMastery.length
           ? Math.round(
@@ -1224,9 +1235,11 @@ Page({
       this.setData({
         overallMastery: overall,
         masteryScoreClass: masteryScoreClass,
-        overviewScore: this.data.radarDimensions.length
-          ? this.data.avgScore
-          : overall,
+        overviewScore: hasOverall
+          ? overall
+          : this.data.radarDimensions.length
+            ? this.data.avgScore
+            : overall,
         masteryGroups: groups,
         hotspots: hotspots,
         reviewSummary: reviewSummary,

@@ -48,6 +48,15 @@ class _SourceEmittingTutorBotManager:
         return "屋面防水等级应根据工程重要性确定。\n\n设防要求应结合渗漏后果判断。"
 
 
+class _CapturingSourceEmittingTutorBotManager(_SourceEmittingTutorBotManager):
+    def __init__(self) -> None:
+        self.session_metadata: dict[str, object] = {}
+
+    async def send_message(self, **kwargs) -> str:
+        self.session_metadata = dict(kwargs["session_metadata"])
+        return await super().send_message(**kwargs)
+
+
 @pytest.mark.asyncio
 async def test_tutorbot_result_appends_paper_style_citations(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DEEPTUTOR_ANSWER_CITATIONS_ENABLED", "true")
@@ -72,9 +81,10 @@ async def test_tutorbot_result_appends_paper_style_citations(monkeypatch: pytest
 
     result_event = next(event for event in stream._history if event.type == StreamEventType.RESULT)
     response = result_event.metadata["response"]
-    assert "屋面防水等级应根据工程重要性确定。〔1〕" in response
-    assert "设防要求应结合渗漏后果判断。〔2〕" in response
-    assert "\n\n依据\n〔1〕2026 建筑实务教材" in response
+    assert response == "屋面防水等级应根据工程重要性确定。\n\n设防要求应结合渗漏后果判断。"
+    assert "〔1〕" not in response
+    assert "依据" not in response
+    assert result_event.metadata["citation_bundle"]["footer_text"].startswith("依据\n〔1〕2026 建筑实务教材")
     assert result_event.metadata["citation_bundle"]["citation_state"] in {"supported", "partial"}
     content = "".join(
         str(event.content or "")
@@ -82,3 +92,30 @@ async def test_tutorbot_result_appends_paper_style_citations(monkeypatch: pytest
         if event.type == StreamEventType.CONTENT
     )
     assert content == response
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_citation_mode_applies_runtime_default_rag_grounding(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ANSWER_CITATIONS_ENABLED", "true")
+    manager = _CapturingSourceEmittingTutorBotManager()
+    monkeypatch.setattr(tutorbot_capability, "get_tutorbot_manager", lambda: manager)
+
+    stream = StreamBus()
+    context = UnifiedContext(
+        session_id="s-tutorbot-default-citation-grounding",
+        user_message="请说明屋面防水构造的作用，并指出答题采分点。",
+        config_overrides={
+            "bot_id": "construction-exam-coach",
+            "chat_mode": "smart",
+        },
+        language="zh",
+    )
+
+    await TutorBotCapability().run(context, stream)
+
+    assert manager.session_metadata["default_tools"] == ["rag"]
+    assert manager.session_metadata["knowledge_bases"] == ["construction-exam"]
+    assert manager.session_metadata["default_kb"] == "construction-exam"
+    assert manager.session_metadata["answer_citations_required"] is True

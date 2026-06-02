@@ -393,6 +393,43 @@ assert(
   finalEv && finalEv.type === "final" && finalEv.engine === "tutorbot",
   "[buildFinalResponseEvent] non-empty response wrapped as final/tutorbot",
 );
+var citedFinalEv = pure.buildFinalResponseEvent({
+  response: "屋面防水等级应根据工程重要性确定。〔1〕",
+  citation_bundle: {
+    refs: [
+      {
+        marker: "〔1〕",
+        source_type: "textbook",
+        title: "2026 建筑实务教材：屋面防水等级",
+        locator: "第 3 章 第 3.5.1 节 p.122",
+      },
+    ],
+  },
+});
+assertEqual(
+  citedFinalEv && citedFinalEv.citations && citedFinalEv.citations[0].marker,
+  "〔1〕",
+  "[buildFinalResponseEvent] citation_bundle.refs projected to frontend citations",
+);
+assertEqual(
+  Object.prototype.hasOwnProperty.call(citedFinalEv.citations[0], "source_id"),
+  false,
+  "[buildFinalResponseEvent] frontend citations must not expose source_id",
+);
+assertEqual(
+  Object.prototype.hasOwnProperty.call(citedFinalEv.citations[0], "source_type"),
+  false,
+  "[buildFinalResponseEvent] frontend citations must not expose source_type",
+);
+var directCitationsFinalEv = pure.buildFinalResponseEvent({
+  response: "已有直接 citations 的结果",
+  citations: [{ doc_id: "legacy-doc", snippet: "legacy citation shape" }],
+});
+assertEqual(
+  Object.prototype.hasOwnProperty.call(directCitationsFinalEv, "citations"),
+  false,
+  "[buildFinalResponseEvent] only citation_bundle refs are projected in this adapter",
+);
 
 // nested metadata.response variant
 var finalEv2 = pure.buildFinalResponseEvent({

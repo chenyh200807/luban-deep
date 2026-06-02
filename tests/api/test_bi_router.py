@@ -356,6 +356,72 @@ def bi_service(tmp_path: Path, monkeypatch) -> BIService:
                 return {"storage_status": "fake", "before": before, "after": after}
             raise KeyError(application_id)
 
+    class _FakeLubanFeedbackStore:
+        def __init__(self) -> None:
+            self._rows = [
+                {
+                    "id": "luban-feedback-1",
+                    "created_at": "2026-05-17T12:00:00.000Z",
+                    "source_page": "luban-survey",
+                    "survey_version": "v1",
+                    "nps": 9,
+                    "overall_satisfaction": 5,
+                    "most_valuable": "错因定位",
+                    "will_continue": "probably",
+                    "pay_willingness": "maybe",
+                    "would_recommend": "yes",
+                    "revisit_willingness": "very_willing",
+                    "attempt_count": "first",
+                    "exam_timeframe": "within_1m",
+                    "one_word": "清晰",
+                    "top_suggestion": "希望增加回访提醒",
+                    "unsolved_pain": "案例题不会组织答案",
+                    "phone": "13800138000",
+                    "wechat_id": "wx_luban",
+                    "status": "submitted",
+                    "operator_note": "",
+                    "contact_revealed": True,
+                }
+            ]
+
+        async def list_responses(self, **_: object) -> dict[str, object]:
+            return {
+                "window_days": 365,
+                "storage_status": "fake",
+                "total": len(self._rows),
+                "contact_revealed": True,
+                "items": list(self._rows),
+            }
+
+        async def get_stats(self, **_: object) -> dict[str, object]:
+            return {
+                "window_days": 365,
+                "storage_status": "fake",
+                "summary": {
+                    "total_responses": len(self._rows),
+                    "nps_score": 100,
+                    "nps_base": len(self._rows),
+                    "promoters": len(self._rows),
+                    "passives": 0,
+                    "detractors": 0,
+                    "avg_satisfaction": 5,
+                    "satisfaction_base": len(self._rows),
+                    "revisit_willing_count": len(self._rows),
+                    "revisit_willing_rate": 1,
+                    "with_contact_count": len(self._rows),
+                    "with_contact_rate": 1,
+                },
+            }
+
+        async def update_response(self, response_id: str, patch: dict[str, object]) -> dict[str, object]:
+            for index, row in enumerate(self._rows):
+                if str(row.get("id")) != response_id:
+                    continue
+                after = {**row, **patch}
+                self._rows[index] = after
+                return {"storage_status": "fake", "after": after}
+            raise KeyError(response_id)
+
     class _FakeBailianTelemetryClient:
         def is_configured(self) -> bool:
             return True
@@ -461,6 +527,7 @@ def bi_service(tmp_path: Path, monkeypatch) -> BIService:
         member_service=_FakeMemberService(),
         feedback_store=_FakeFeedbackStore(feedback_rows),
         invite_test_store=_FakeInviteTestStore(),
+        luban_feedback_store=_FakeLubanFeedbackStore(),
         bailian_telemetry_client=_FakeBailianTelemetryClient(),
         bailian_billing_client=_FakeBailianBillingClient(),
         usage_ledger=_FakeUsageLedger(),
@@ -932,6 +999,52 @@ def test_bi_invite_test_application_delete_requires_idempotency_and_dedupes_audi
         assert retry_body["audit_id"] == first_body["audit_id"]
         assert retry_body["deduped"] is True
         assert len(bi_service._member_service.audit_log) == 1  # noqa: SLF001
+
+
+def test_bi_luban_feedback_update_requires_idempotency_and_dedupes_audit(
+    bi_service: BIService,
+) -> None:
+    """luban_feedback_response_update edits ops-owned fields and dedupes audit."""
+    app = _build_app(bi_service)
+    app.dependency_overrides[bi_router_module.require_bi_access] = (
+        lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
+    )
+    app.dependency_overrides[bi_router_module.require_bi_admin] = (
+        lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
+    )
+
+    with TestClient(app) as client:
+        missing_key = client.patch(
+            "/api/v1/bi/luban-feedback/responses/luban-feedback-1",
+            json={"status": "contacted", "operator_note": "已约回访"},
+        )
+        assert missing_key.status_code == 400
+        assert "X-Idempotency-Key" in missing_key.json()["detail"]
+
+        first = client.patch(
+            "/api/v1/bi/luban-feedback/responses/luban-feedback-1",
+            headers={"X-Idempotency-Key": "luban-feedback-key-1"},
+            json={"status": "contacted", "operator_note": "已约回访"},
+        )
+        assert first.status_code == 200
+        first_body = first.json()
+        assert first_body["audit_id"] == "audit_feedback_1"
+        assert first_body["deduped"] is False
+        assert first_body["response"]["status"] == "contacted"
+        assert first_body["response"]["operator_note"] == "已约回访"
+
+        retry = client.patch(
+            "/api/v1/bi/luban-feedback/responses/luban-feedback-1",
+            headers={"X-Idempotency-Key": "luban-feedback-key-1"},
+            json={"status": "contacted", "operator_note": "已约回访"},
+        )
+        assert retry.status_code == 200
+        assert retry.json()["audit_id"] == first_body["audit_id"]
+        assert retry.json()["deduped"] is True
+        assert len(bi_service._member_service.audit_log) == 1  # noqa: SLF001
+        audit_entry = bi_service._member_service.audit_log[0]  # noqa: SLF001
+        assert audit_entry["action"] == "luban_feedback_response_update"
+        assert audit_entry["target_user"] == "luban-feedback:luban-feedback-1"
 
 
 def test_bi_member_ops_action_requires_idempotency_and_dedupes_audit(

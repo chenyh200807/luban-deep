@@ -13,7 +13,6 @@ def format_citation_footer(refs: list[CitationSourceRef]) -> str:
     lines = ["依据"]
     for ref in refs:
         locator = f"，{ref.locator}" if ref.locator else ""
-        source_id = f"，source_id={ref.source_id}" if ref.source_id else ""
         quote = f"。摘录：{ref.public_quote}" if ref.public_quote else ""
-        lines.append(f"{ref.marker}{ref.title}{locator}{source_id}{quote}")
+        lines.append(f"{ref.marker}{ref.title}{locator}{quote}")
     return "\n".join(lines)

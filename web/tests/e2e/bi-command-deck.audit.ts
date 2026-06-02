@@ -31,7 +31,7 @@ async function mockBiApis(page: Page, options: MockBiApisOptions = {}) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           data: {
-            title: "DeepTutor BI 工作台",
+            title: "鲁班智考 BI 工作台",
             subtitle: "Mock overview",
             cards: [
               { label: "活跃学员", value: 128, delta: "+8%", tone: "good" },
@@ -152,8 +152,8 @@ test.describe("BI Command Deck audit", () => {
 
     await visitBi(page);
 
-    await expect(page.getByRole("heading", { name: "DeepTutor BI Deck" })).toBeVisible();
-    await expect(page.getByText("经营、质量、会员、TutorBot 四条主线的一体化指挥舱")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "鲁班智考 BI 工作台" })).toBeVisible();
+    await expect(page.getByText("经营、质量、会员、TutorBot 四条主线的轻量总览入口。")).toBeVisible();
   });
 
   test("bi deck exposes the new primary tabs", async ({ page }) => {

@@ -52,9 +52,7 @@ class StreamBus:
         try:
             for event in history_snapshot:
                 yield event
-            if self._closed:
-                return
-            while True:
+            while not self._closed or not q.empty():
                 event = await q.get()
                 if event is None:
                     break

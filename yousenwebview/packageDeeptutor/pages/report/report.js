@@ -128,6 +128,10 @@ function _asLearningBrainNumber(value, fallback) {
   return Number.isFinite(num) ? num : fallback;
 }
 
+function _hasExplicitNumericValue(value) {
+  return value !== undefined && value !== null && value !== "" && Number.isFinite(Number(value));
+}
+
 function _learningBrainEventIds(ids) {
   return _asLearningBrainList(ids)
     .map(function (_id, index) {
@@ -1742,7 +1746,12 @@ Page({
         {};
       var groups = (data.groups || []).map(function (group) {
         var chapters = (group.chapters || []).map(function (chapter) {
-          var mastery = Math.round(chapter.mastery || 0);
+          var mastery = Math.round(
+            _asLearningBrainNumber(
+              chapter.mastery,
+              _asLearningBrainNumber(chapter.score, 0),
+            ),
+          );
           return {
             name: _displayChapterName(chapter.name || ""),
             mastery: mastery,
@@ -1758,7 +1767,12 @@ Page({
       });
 
       var hotspots = (data.hotspots || []).map(function (item) {
-        var mastery = Math.round(item.mastery || 0);
+        var mastery = Math.round(
+          _asLearningBrainNumber(
+            item.mastery,
+            _asLearningBrainNumber(item.score, 0),
+          ),
+        );
         return {
           name: _displayChapterName(item.name || ""),
           mastery: mastery,
@@ -1767,6 +1781,9 @@ Page({
       });
 
       var overallPayload = _asLearningBrainObject(data.overall_mastery);
+      var hasOverall =
+        _hasExplicitNumericValue(data.overall_mastery) ||
+        _hasExplicitNumericValue(overallPayload.score);
       var overall = Math.round(
         _asLearningBrainNumber(
           overallPayload.score,
@@ -1780,7 +1797,7 @@ Page({
         overdue_count: 0,
       };
 
-      if (!groups.length && !overall) {
+      if (!groups.length && !hasOverall) {
         var fallbackData =
           api.unwrapResponse(
             await api.getAssessmentProfile(optionalReadOpts),
@@ -1792,7 +1809,10 @@ Page({
           var name = _displayChapterName(
             (typeof v === "object" ? v.name : k) || k,
           );
-          var mastery = (typeof v === "object" ? v.mastery : v) || 0;
+          var mastery = _asLearningBrainNumber(
+            typeof v === "object" ? v.mastery : v,
+            0,
+          );
           var item = {
             name: name,
             mastery: mastery,
@@ -1820,7 +1840,10 @@ Page({
 
         var allMastery = Object.keys(cm).map(function (k) {
           var v = cm[k];
-          return (typeof v === "object" ? v.mastery : v) || 0;
+          return _asLearningBrainNumber(
+            typeof v === "object" ? v.mastery : v,
+            0,
+          );
         });
         overall = allMastery.length
           ? Math.round(

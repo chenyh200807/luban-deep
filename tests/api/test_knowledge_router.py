@@ -301,6 +301,36 @@ def test_sync_folder_rejects_unsafe_historical_path(monkeypatch, tmp_path: Path)
     assert "allowed root" in response.json()["detail"].lower()
 
 
+def test_list_linked_folders_skips_malformed_metadata(monkeypatch, tmp_path: Path) -> None:
+    class _MalformedFolderKBManager(_FakeKBManager):
+        def get_linked_folders(self, kb_name: str) -> list[dict]:
+            return [
+                {"path": "/missing-id"},
+                {
+                    "id": "folder-1",
+                    "path": str(tmp_path),
+                    "added_at": "2026-01-01T00:00:00",
+                    "file_count": 0,
+                },
+            ]
+
+    manager = _MalformedFolderKBManager(tmp_path / "knowledge_bases")
+    monkeypatch.setattr(knowledge_router_module, "get_kb_manager", lambda: manager)
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/knowledge/kb-safe/linked-folders")
+
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "id": "folder-1",
+            "path": str(tmp_path),
+            "added_at": "2026-01-01T00:00:00",
+            "file_count": 0,
+        }
+    ]
+
+
 def test_upload_returns_409_when_kb_needs_reindex(monkeypatch, tmp_path: Path) -> None:
     manager = _FakeKBManager(tmp_path / "knowledge_bases")
     manager.config["knowledge_bases"]["legacy-kb"] = {

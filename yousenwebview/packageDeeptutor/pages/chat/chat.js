@@ -2140,6 +2140,7 @@ Page({
         sessionId: self._sid,
         mode: self.data.answerMode,
         tools: selectedTools,
+        config: { bot_id: "construction-exam-coach" },
         interactionProfile: tutorInteraction.profile,
         interactionHints: tutorInteraction.hints,
         clientTurnId: _turnId,

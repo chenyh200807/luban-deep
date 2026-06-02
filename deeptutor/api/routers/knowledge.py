@@ -120,6 +120,17 @@ class LinkedFolderInfo(BaseModel):
     file_count: int
 
 
+def _linked_folder_info_or_none(folder: object) -> LinkedFolderInfo | None:
+    if not isinstance(folder, dict):
+        logger.warning(f"Skipping malformed linked folder metadata: {type(folder).__name__}")
+        return None
+    try:
+        return LinkedFolderInfo(**folder)
+    except Exception:
+        logger.warning(f"Skipping malformed linked folder metadata: {folder}")
+        return None
+
+
 def _build_unique_task_id(task_type: str, task_key_prefix: str) -> str:
     task_manager = TaskIDManager.get_instance()
     task_key = f"{task_key_prefix}_{datetime.now().isoformat()}_{uuid4().hex[:8]}"
@@ -1246,7 +1257,11 @@ async def get_linked_folders(kb_name: str):
     try:
         manager = get_kb_manager()
         folders = manager.get_linked_folders(kb_name)
-        return [LinkedFolderInfo(**f) for f in folders]
+        return [
+            folder_info
+            for folder in folders
+            if (folder_info := _linked_folder_info_or_none(folder)) is not None
+        ]
     except ValueError:
         raise HTTPException(status_code=404, detail=f"Knowledge base '{kb_name}' not found")
     except Exception:

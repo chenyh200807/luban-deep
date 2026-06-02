@@ -60,6 +60,9 @@ class TutorBotCapability(BaseCapability):
         policy = self._mode_policy(context)
         response_mode = policy.effective_mode
         hide_generated_answers = self._should_hide_generated_answers(context)
+        runtime_default_tools = list(runtime_defaults.default_tools or []) if runtime_defaults else []
+        runtime_default_kbs = list(runtime_defaults.default_knowledge_bases or []) if runtime_defaults else []
+        effective_knowledge_bases = list(context.knowledge_bases or []) or runtime_default_kbs
 
         manager = get_tutorbot_manager()
         await manager.ensure_bot_running(bot_id, config=self._default_bot_config(context))
@@ -95,8 +98,14 @@ class TutorBotCapability(BaseCapability):
             "source": self._billing_source(context) or "ws",
             "title": manager._infer_conversation_title(context.user_message),
             "bot_id": bot_id,
-            "default_tools": self._session_default_tools(context, response_mode=response_mode),
-            "knowledge_bases": list(context.knowledge_bases or []),
+            "default_tools": self._session_default_tools(
+                context,
+                response_mode=response_mode,
+                runtime_default_tools=runtime_default_tools,
+                effective_knowledge_bases=effective_knowledge_bases,
+            ),
+            "knowledge_bases": effective_knowledge_bases,
+            "answer_citations_required": citation_enabled,
             "requested_response_mode": policy.requested_mode,
             "selected_mode": policy.selected_mode,
             "effective_response_mode": policy.effective_mode,
@@ -119,6 +128,8 @@ class TutorBotCapability(BaseCapability):
             session_metadata["preferred_model"] = policy.preferred_model
         if runtime_defaults:
             session_metadata["kb_aliases"] = list(runtime_defaults.supabase_kb_aliases or [])
+            if runtime_default_kbs:
+                session_metadata["default_knowledge_bases"] = runtime_default_kbs
         session_metadata["suppress_answer_reveal_on_generate"] = (
             self._suppress_answer_reveal_on_generate(context)
         )
@@ -155,8 +166,8 @@ class TutorBotCapability(BaseCapability):
         turn_id = str((context.metadata or {}).get("turn_id") or "").strip()
         if turn_id:
             session_metadata["turn_id"] = turn_id
-        if context.knowledge_bases:
-            session_metadata["default_kb"] = context.knowledge_bases[0]
+        if effective_knowledge_bases:
+            session_metadata["default_kb"] = effective_knowledge_bases[0]
         if user_id:
             session_metadata["user_id"] = user_id
         active_object = (
@@ -720,16 +731,37 @@ class TutorBotCapability(BaseCapability):
         return True
 
     @staticmethod
-    def _session_default_tools(context: UnifiedContext, *, response_mode: str) -> list[str]:
+    def _dedupe_strings(values: list[str]) -> list[str]:
+        seen: set[str] = set()
+        result: list[str] = []
+        for value in values:
+            normalized = str(value or "").strip()
+            if not normalized or normalized in seen:
+                continue
+            seen.add(normalized)
+            result.append(normalized)
+        return result
+
+    @classmethod
+    def _session_default_tools(
+        cls,
+        context: UnifiedContext,
+        *,
+        response_mode: str,
+        runtime_default_tools: list[str] | None = None,
+        effective_knowledge_bases: list[str] | None = None,
+    ) -> list[str]:
         enabled_tools = list(context.enabled_tools or [])
+        runtime_tools = list(runtime_default_tools or [])
+        knowledge_bases = list(effective_knowledge_bases or [])
         if response_mode == "fast":
             tools: list[str] = []
-            if "rag" in enabled_tools or context.knowledge_bases:
+            if "rag" in enabled_tools or "rag" in runtime_tools or knowledge_bases:
                 tools.append("rag")
             if "web_search" in enabled_tools:
                 tools.append("web_search")
-            return tools
-        return enabled_tools
+            return cls._dedupe_strings(tools)
+        return cls._dedupe_strings([*enabled_tools, *runtime_tools])
 
     @staticmethod
     def _current_info_required(context: UnifiedContext) -> bool:

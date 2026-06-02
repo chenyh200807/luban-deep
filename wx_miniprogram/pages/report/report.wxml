@@ -22,7 +22,7 @@
             <text class="overview-sub">掌握可信度</text>
           </view>
           <view class="overview-score-wrap">
-            <text class="overview-score">{{overallMastery}}%</text>
+            <text class="overview-score">{{overviewScore}}%</text>
             <text class="overview-score-unit">{{masteryStatusLabel}}</text>
           </view>
         </view>

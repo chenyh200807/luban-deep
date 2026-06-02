@@ -11,6 +11,7 @@ class CitationQualityError(ValueError):
 
 
 _MARKER_RE = re.compile(r"〔(\d+)〕")
+_INLINE_MARKER_RE = re.compile(r"〔(\d{1,3})〕(?=$|[\s，。；;、,.!?！？）\])])")
 _HIDDEN_FIELD_PATTERN = "|".join(
     re.escape(field) for field in sorted(HIDDEN_AUTHORITY_FIELDS, key=len, reverse=True)
 )
@@ -22,16 +23,6 @@ _HIDDEN_EXACT_RE = re.compile(
     rf"^(?:{_HIDDEN_FIELD_PATTERN})$",
     re.I,
 )
-_FOOTER_SPLIT_RE = re.compile(r"\n{1,2}依据\n", re.MULTILINE)
-
-
-def _split_body_footer(response: str) -> tuple[str, str]:
-    match = _FOOTER_SPLIT_RE.search(response)
-    if not match:
-        return response, ""
-    return response[: match.start()], response[match.start() :]
-
-
 def _contains_hidden_authority(value: object, *, exact_field_name: bool = False) -> bool:
     if isinstance(value, dict):
         return any(
@@ -54,23 +45,20 @@ def validate_cited_answer(answer: CitedAnswer) -> None:
     response = str(answer.response or "")
     if _contains_hidden_authority(response):
         raise CitationQualityError("hidden authority found in public response")
-    body, footer = _split_body_footer(response)
-    body_markers = {int(match.group(1)) for match in _MARKER_RE.finditer(body)}
-    all_markers = {int(match.group(1)) for match in _MARKER_RE.finditer(response)}
+    inline_markers = {int(match.group(1)) for match in _INLINE_MARKER_RE.finditer(response)}
     expected = set(range(1, len(answer.bundle.refs) + 1))
     if answer.bundle.citation_state == "no_public_source":
-        if all_markers:
+        if inline_markers:
             raise CitationQualityError("no-public-source answer cannot contain citation markers")
         return
-    if all_markers - expected:
-        raise CitationQualityError("orphan citation marker")
-    if expected - body_markers:
-        raise CitationQualityError("footer row without visible marker")
-    if footer and expected - {int(match.group(1)) for match in _MARKER_RE.finditer(footer)}:
-        raise CitationQualityError("public marker without footer row")
+    if inline_markers:
+        raise CitationQualityError("public response cannot contain citation markers")
     for ref in answer.bundle.refs:
         if any(
             _contains_hidden_authority(value, exact_field_name=True)
             for value in ref.to_public_dict().values()
         ):
             raise CitationQualityError("hidden authority found in public citation")
+    footer_markers = {int(match.group(1)) for match in _MARKER_RE.finditer(answer.bundle.footer_text)}
+    if expected - footer_markers:
+        raise CitationQualityError("public marker without footer row")

@@ -29,9 +29,12 @@ import {
   DEFAULT_FILTERS,
   MOCK_MEMBERS,
   filterMembers,
+  sortMembers,
   type MemberColumnKey,
   type MemberFilters,
   type MemberRow,
+  type MemberSortDir,
+  type MemberSortKey,
   type SavedView,
 } from './data'
 import { useAuditedAction } from '../useAuditedAction'
@@ -200,6 +203,8 @@ export function BiV2MemberOpsPanel({
   identity,
 }: BiV2MemberOpsPanelProps) {
   const [filters, setFilters] = useState<MemberFilters>(DEFAULT_FILTERS)
+  const [sortKey, setSortKey] = useState<MemberSortKey>('expires_at')
+  const [sortDir, setSortDir] = useState<MemberSortDir>('asc')
   const [behaviorCohort, setBehaviorCohort] = useState('')
   const [advancedOpen, setAdvancedOpen] = useState(false)
   const [columns, setColumns] = useState<MemberColumnKey[]>(DEFAULT_COLUMNS)
@@ -282,9 +287,11 @@ export function BiV2MemberOpsPanel({
   const sourceRows = flagEnabled ? liveRows : MOCK_MEMBERS
   const rows = useMemo(() => {
     const filtered = filterMembers(sourceRows, filters, flagEnabled ? '' : globalQuery)
-    if (!behaviorCohort) return filtered
-    return filtered.filter(row => row.behavior_cohort === behaviorCohort)
-  }, [behaviorCohort, filters, flagEnabled, globalQuery, sourceRows])
+    const cohortRows = behaviorCohort
+      ? filtered.filter(row => row.behavior_cohort === behaviorCohort)
+      : filtered
+    return sortMembers(cohortRows, sortKey, sortDir)
+  }, [behaviorCohort, filters, flagEnabled, globalQuery, sortDir, sortKey, sourceRows])
 
   const behaviorTotals = useMemo(() => {
     const health = dashboard?.behavior_health
@@ -306,6 +313,16 @@ export function BiV2MemberOpsPanel({
       { learningReport: 0, history: 0, actions: 0, lowTrust: 0 }
     )
   }, [dashboard, sourceRows])
+
+  function handleSort(key: string) {
+    const nextKey = key as MemberSortKey
+    if (nextKey === sortKey) {
+      setSortDir(prev => (prev === 'asc' ? 'desc' : 'asc'))
+      return
+    }
+    setSortKey(nextKey)
+    setSortDir(nextKey === 'risk' || nextKey === 'balance' ? 'desc' : 'asc')
+  }
 
   function toggleColumn(key: MemberColumnKey) {
     setColumns(prev => {
@@ -594,6 +611,9 @@ export function BiV2MemberOpsPanel({
           if (allSelected) setSelectedRows(new Set())
           else setSelectedRows(new Set(rows.map(r => r.user_id)))
         }}
+        sortKey={sortKey}
+        sortDir={sortDir}
+        onSort={handleSort}
         rowAction={row => (
           <div className="flex justify-end gap-1.5">
             <BiButton

@@ -215,6 +215,7 @@ Promise.resolve(
           sessionId: "session_1",
           mode: "AUTO",
           clientTurnId: "client_turn_1",
+          config: { bot_id: "construction-exam-coach" },
         },
         {
           onStatus: function (payload) {
@@ -232,6 +233,11 @@ Promise.resolve(
       assert(
         api.lastStartTurnPayload && api.lastStartTurnPayload.client_turn_id === "client_turn_1",
         "start-turn payload should preserve the surface client turn id",
+      );
+      assertEqual(
+        api.lastStartTurnPayload && api.lastStartTurnPayload.config,
+        { bot_id: "construction-exam-coach" },
+        "start-turn payload should preserve bot runtime config for default construction RAG",
       );
       assertEqual(socketState.sent[0], {
         type: "subscribe_turn",

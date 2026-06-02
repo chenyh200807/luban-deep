@@ -166,6 +166,41 @@ _GROUNDED_CONSTRUCTION_EXAM_KB_ALIASES = {
     "construction_exam_tutor",
 }
 
+_CONSTRUCTION_EXAM_KNOWLEDGE_MARKERS = (
+    "一建",
+    "二建",
+    "建造师",
+    "建筑",
+    "施工",
+    "实务",
+    "教材",
+    "规范",
+    "规程",
+    "真题",
+    "案例",
+    "考点",
+    "采分点",
+    "易错点",
+    "混凝土",
+    "钢筋",
+    "模板",
+    "脚手架",
+    "屋面",
+    "防水",
+    "保温",
+    "防火",
+    "质量",
+    "安全",
+    "进度",
+    "成本",
+    "合同",
+    "招标",
+    "验收",
+    "构造",
+    "工艺",
+    "做法",
+)
+
 
 @dataclass(slots=True)
 class GroundingDecision:
@@ -224,6 +259,15 @@ def query_requires_current_info(query: str) -> bool:
 def looks_like_textbook_delta_query(query: str) -> bool:
     text = normalize_query_text(query)
     return "教材" in text and any(marker in text for marker in _TEXTBOOK_DELTA_MARKERS)
+
+
+def looks_like_construction_exam_knowledge_query(query: str) -> bool:
+    text = str(query or "").strip()
+    if not text:
+        return False
+    if query_uses_learner_state_authority(text):
+        return False
+    return any(marker in text for marker in _CONSTRUCTION_EXAM_KNOWLEDGE_MARKERS)
 
 
 def has_grounded_construction_exam_kb(

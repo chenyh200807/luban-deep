@@ -253,6 +253,10 @@ function normalizeMastery(source) {
   var mastery = asObject(source);
   var overall = mastery.overall_mastery;
   var overallPayload = asObject(overall);
+  var hasOverall =
+    (overall && typeof overall === "object")
+      ? overall.score !== undefined && overall.score !== null && overall.score !== ""
+      : overall !== undefined && overall !== null && overall !== "";
   var overallConfidence = asNumber(overallPayload.confidence, 0);
   var overallStatus = String(overallPayload.status || "");
   var overallClass = String(overallPayload.class_name || overallPayload.className || "");
@@ -297,6 +301,7 @@ function normalizeMastery(source) {
   });
   var groups = buildMasteryDisplayGroups(rawGroups);
   return {
+    hasOverall: hasOverall,
     overall: Math.round(asNumber(overall, 0)),
     overallConfidence: overallConfidence,
     overallStatus: overallStatus,
@@ -1376,6 +1381,8 @@ function toReportPageData(model) {
   var radar = asObject(vm.radar);
   var mastery = asObject(vm.mastery);
   var brain = asObject(vm.learningBrain);
+  var hasRadar = asList(radar.dims).length > 0;
+  var hasMasteryOverall = mastery.hasOverall === true;
   var emptyBrain =
     asList(brain.truths).length === 0 &&
     asList(brain.evidence).length === 0 &&
@@ -1397,9 +1404,11 @@ function toReportPageData(model) {
     normalCount: radar.normalCount || 0,
     weakCount: radar.weakCount || 0,
     avgScore: radar.avgScore || 0,
-    overviewScore: asList(radar.dims).length
-      ? radar.avgScore || 0
-      : mastery.overall || 0,
+    overviewScore: hasMasteryOverall
+      ? mastery.overall
+      : hasRadar
+        ? radar.avgScore || 0
+        : mastery.overall || 0,
     dimList: asList(radar.dimList),
     overallMastery: mastery.overall || 0,
     masteryConfidence: mastery.overallConfidence || 0,

@@ -1369,20 +1369,44 @@
   font-size: 26rpx; font-weight: 700; color: #fff; letter-spacing: 2rpx;
 }
 
-/* ── 引用 — 柔和分隔 ─────────────────────────── */
-.cite-list { margin-top: 16rpx; padding-top: 14rpx; border-top: 1rpx solid rgba(255,255,255,0.06); }
+/* ── 依据 — 独立参考文献区 ─────────────────────── */
+.cite-list {
+  margin-top: 24rpx;
+  padding: 18rpx 18rpx 16rpx;
+  border-radius: 14rpx;
+  border: 1rpx solid rgba(125,211,252,0.16);
+  background: rgba(8,13,24,0.42);
+}
 .cite-head {
-  display: block; margin-bottom: 10rpx;
-  font-size: 22rpx; font-weight: 700; letter-spacing: 2rpx; color: rgba(148,163,184,0.72);
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12rpx;
+  margin-bottom: 12rpx; padding-bottom: 10rpx;
+  border-bottom: 1rpx solid rgba(125,211,252,0.10);
+}
+.cite-head-main {
+  font-size: 23rpx; font-weight: 800; letter-spacing: 2rpx; color: rgba(186,230,253,0.94);
+}
+.cite-head-sub {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 18rpx; color: rgba(148,163,184,0.62);
 }
 .cite {
   display: flex; align-items: flex-start; gap: 12rpx; margin-bottom: 10rpx;
-  padding: 12rpx 14rpx; border-radius: 14rpx;
-  background: rgba(255,255,255,0.03); border: 1rpx solid rgba(148,163,184,0.08);
+  padding: 12rpx 0 0;
+  background: transparent;
 }
-.cite-key { font-size: 22rpx; color: #60a5fa; font-weight: 700; flex-shrink: 0; }
-.cite-body { flex: 1; min-width: 0; }
-.cite-title { font-size: 22rpx; color: rgba(203,213,225,0.78); line-height: 1.5; }
+.cite + .cite { border-top: 1rpx solid rgba(148,163,184,0.08); }
+.cite-key {
+  min-width: 48rpx;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 20rpx; color: rgba(96,165,250,0.92); font-weight: 800; flex-shrink: 0;
+}
+.cite-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6rpx; }
+.cite-title { font-size: 22rpx; color: rgba(226,232,240,0.86); line-height: 1.48; font-weight: 650; }
+.cite-locator {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 20rpx; line-height: 1.45; color: rgba(125,211,252,0.74);
+}
+.cite-quote { font-size: 20rpx; line-height: 1.55; color: rgba(148,163,184,0.72); }
 
 
 /* ═══════════════════════════════════════════════
@@ -1877,11 +1901,15 @@
 }
 
 /* ── 引用来源 ──────────────────────────────── */
-.page.light .cite-list { border-color: #e6edf8; }
-.page.light .cite-head { color: #8b98ad; }
-.page.light .cite { background: #f8fbff; border-color: #e2eaf7; }
+.page.light .cite-list { background: #f8fbff; border-color: #d8e8fb; }
+.page.light .cite-head { border-color: #e2eaf7; }
+.page.light .cite-head-main { color: #2563eb; }
+.page.light .cite-head-sub { color: #8b98ad; }
+.page.light .cite + .cite { border-color: #e6edf8; }
 .page.light .cite-key { color: #2f6bff; }
-.page.light .cite-title { color: #607086; }
+.page.light .cite-title { color: #334155; }
+.page.light .cite-locator { color: #2563eb; }
+.page.light .cite-quote { color: #64748b; }
 
 /* ── 操作栏（气泡外） ─────────────────────── */
 .page.light .act-btn { background: #eef4ff; }

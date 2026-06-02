@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import gc
 import sys
 import types
@@ -77,6 +78,36 @@ async def test_memory_consolidator_release_lock_keeps_locked_session_lock(tmp_pa
         assert consolidator.get_lock("session-1") is lock
     finally:
         lock.release()
+
+
+@pytest.mark.asyncio
+async def test_memory_consolidator_release_lock_keeps_lock_with_waiter(tmp_path) -> None:
+    consolidator = MemoryConsolidator(
+        tmp_path,
+        provider=object(),
+        model="demo",
+        sessions=object(),
+        context_window_tokens=100,
+        build_messages=lambda **_kwargs: [],
+        get_tool_definitions=lambda: [],
+    )
+    lock = consolidator.get_lock("session-1")
+
+    await lock.acquire()
+    waiter = asyncio.create_task(lock.acquire())
+    await asyncio.sleep(0)
+
+    lock.release()
+    try:
+        assert consolidator.release_lock("session-1") is False
+        assert consolidator.get_lock("session-1") is lock
+        await asyncio.wait_for(waiter, timeout=0.1)
+        assert lock.locked()
+    finally:
+        if not waiter.done():
+            waiter.cancel()
+        if lock.locked():
+            lock.release()
 
 
 @pytest.mark.asyncio
