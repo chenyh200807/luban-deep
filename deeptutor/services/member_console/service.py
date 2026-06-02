@@ -2748,9 +2748,69 @@ class MemberConsoleService:
 
         return self._mutate(_apply)
 
+    def _fallback_member_behavior_summary(self, *, trust_level: str = "C") -> dict[str, Any]:
+        return {
+            "learning_report_open_count_7d": 0,
+            "history_open_count_7d": 0,
+            "action_start_count_7d": 0,
+            "cohort": "",
+            "trust_level": trust_level,
+        }
+
+    def _get_product_behavior_store(self):
+        from deeptutor.services.observability import get_product_behavior_store
+
+        return get_product_behavior_store()
+
+    def _load_member_behavior_payload(self, user_id: str) -> dict[str, Any]:
+        try:
+            store = self._get_product_behavior_store()
+            return {
+                "summary": store.get_member_behavior_summary(user_id, days=7),
+                "learning_report_sections": store.get_learning_report_section_breakdown(user_id, days=7),
+                "timeline": store.get_member_timeline(user_id, limit=20),
+            }
+        except Exception:
+            logger.warning("Failed to load product behavior for member: user_id=%s", user_id, exc_info=True)
+            return {
+                "summary": self._fallback_member_behavior_summary(),
+                "learning_report_sections": [],
+                "timeline": [],
+            }
+
+    def _load_member_behavior_summaries(self, user_ids: list[str]) -> dict[str, dict[str, Any]]:
+        try:
+            return self._get_product_behavior_store().get_member_behavior_summaries(user_ids, days=7)
+        except Exception:
+            logger.warning("Failed to load product behavior summaries for member list", exc_info=True)
+            return {
+                user_id: self._fallback_member_behavior_summary()
+                for user_id in user_ids
+            }
+
     def get_dashboard(self, days: int = 30) -> dict[str, Any]:
         data = self._load()
         members = self._members_for_bi(data)
+        behavior_summaries = self._load_member_behavior_summaries([item["user_id"] for item in members])
+        behavior_health = {
+            "learning_report_open_count_7d": sum(
+                int(summary.get("learning_report_open_count_7d") or 0)
+                for summary in behavior_summaries.values()
+            ),
+            "history_open_count_7d": sum(
+                int(summary.get("history_open_count_7d") or 0)
+                for summary in behavior_summaries.values()
+            ),
+            "action_start_count_7d": sum(
+                int(summary.get("action_start_count_7d") or 0)
+                for summary in behavior_summaries.values()
+            ),
+            "low_trust_count": sum(
+                1
+                for summary in behavior_summaries.values()
+                if str(summary.get("trust_level") or "C") != "A"
+            ),
+        }
         now = _now()
         active_count = sum(1 for item in members if item["status"] == "active")
         expiring_soon_count = sum(
@@ -2801,6 +2861,7 @@ class MemberConsoleService:
                 "total": len(data["audit_log"]),
                 "by_action": self._aggregate_actions(data["audit_log"]),
             },
+            "behavior_health": behavior_health,
             "recommendations": recommendations,
         }
 
@@ -2897,8 +2958,10 @@ class MemberConsoleService:
         total = len(filtered)
         start = max(0, (page - 1) * page_size)
         end = start + page_size
+        page_items = filtered[start:end]
+        behavior_summaries = self._load_member_behavior_summaries([item["user_id"] for item in page_items])
         items = []
-        for item in filtered[start:end]:
+        for item in page_items:
             items.append(
                 {
                     "user_id": item["user_id"],
@@ -2916,6 +2979,10 @@ class MemberConsoleService:
                     "review_due": item["review_due"],
                     "canonical_user_id": item.get("canonical_user_id") or item["user_id"],
                     "alias_user_ids": item.get("alias_user_ids") or [item["user_id"]],
+                    "behavior": behavior_summaries.get(
+                        item["user_id"],
+                        self._fallback_member_behavior_summary(),
+                    ),
                 }
             )
         return {
@@ -3004,6 +3071,7 @@ class MemberConsoleService:
             logger.warning("Failed to load bot overlays for member 360: user_id=%s", user_id, exc_info=True)
             member["bot_overlays"] = []
         member["recent_conversations"] = self._load_recent_conversations_for_member(member, user_id)
+        member["behavior"] = self._load_member_behavior_payload(user_id)
         return member
 
     def get_member_learner_state_panel(self, user_id: str, *, limit: int = 20) -> dict[str, Any]:

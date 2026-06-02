@@ -1035,6 +1035,27 @@ def test_bi_export_request_requires_idempotency_and_dedupes_audit(
         assert audit_entry["after"]["filters"] == {"operator": "admin_test", "category": "feedback"}
 
 
+def test_behavior_export_job_is_raw_mode_and_audited(bi_service: BIService) -> None:
+    result = asyncio.run(
+        bi_service.request_export_job(
+            dataset="product_behavior_raw",
+            export_format="csv",
+            filters={"cohort": "report_high_no_action"},
+            operator="admin_demo",
+            idempotency_key="behavior-export-1",
+        )
+    )
+
+    job = result["export_job"]
+    assert job["dataset"] == "product_behavior_raw"
+    assert job["scrubbed"] is False
+    assert job["raw_mode"] is True
+    assert result["audit_id"]
+    audit_entry = bi_service._member_service.audit_log[0]  # noqa: SLF001
+    assert audit_entry["after"]["scrubbed"] is False
+    assert audit_entry["after"]["raw_mode"] is True
+
+
 def test_bi_router_rejects_invalid_metrics_token_in_production(
     bi_service: BIService,
     monkeypatch,

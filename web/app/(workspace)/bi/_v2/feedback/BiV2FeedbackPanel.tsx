@@ -36,12 +36,12 @@ import {
   getBiFeedback,
   getBiInviteTestApplications,
   getBiInviteTestStats,
+  resolveBiAttachmentUrl,
   type BiFeedbackPayload,
   type BiFeedbackRecord,
   type BiInviteTestApplication,
   type BiInviteTestStats,
 } from '@/lib/bi-api'
-import { apiUrl } from '@/lib/api'
 import { useAuditedAction } from '../useAuditedAction'
 import {
   FEEDBACK_ITEMS,
@@ -1642,11 +1642,7 @@ function FeedbackAttachmentGrid({ attachments }: { attachments: NonNullable<Feed
 }
 
 function resolveFeedbackAttachmentUrl(url: string | undefined): string {
-  const normalized = (url ?? '').trim()
-  if (!normalized) return ''
-  if (/^https?:\/\//.test(normalized)) return normalized
-  if (normalized.startsWith('/api/')) return apiUrl(normalized)
-  return normalized
+  return resolveBiAttachmentUrl(url)
 }
 
 function formatAttachmentSize(value: number | undefined): string {

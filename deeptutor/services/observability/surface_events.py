@@ -6,6 +6,11 @@ from collections import Counter
 from collections import deque
 from typing import Any
 
+from deeptutor.services.observability.product_behavior_catalog import (
+    PRODUCT_BEHAVIOR_EVENT_NAMES,
+    validate_product_behavior_event,
+)
+
 _ALLOWED_SURFACES = {
     "web",
     "wechat_miniprogram",
@@ -22,6 +27,7 @@ _ALLOWED_EVENT_NAMES = {
     "resume_attempted",
     "resume_succeeded",
     "surface_render_failed",
+    *PRODUCT_BEHAVIOR_EVENT_NAMES,
 }
 
 
@@ -65,6 +71,15 @@ class SurfaceEventStore:
         collected_at_ms = int(payload.get("collected_at_ms") or payload.get("client_timestamp_ms") or 0)
         sent_at_ms = int(payload.get("sent_at_ms") or 0)
         ingested_at_ms = int(time.time() * 1000)
+        product_event: dict[str, Any] | None = None
+        if event_name in PRODUCT_BEHAVIOR_EVENT_NAMES:
+            product_event = validate_product_behavior_event(
+                event_name,
+                {
+                    **normalized_metadata,
+                    "surface": surface,
+                },
+            )
 
         with self._lock:
             if event_id in self._seen_event_ids:
@@ -99,6 +114,27 @@ class SurfaceEventStore:
                     "metadata": normalized_metadata,
                 }
             )
+            if product_event is not None:
+                from deeptutor.services.observability import get_product_behavior_store
+
+                get_product_behavior_store().record_event(
+                    {
+                        "event_id": event_id,
+                        "event_name": event_name,
+                        "event_version": int(normalized_metadata.get("event_version") or 1),
+                        "occurred_at_ms": collected_at_ms or ingested_at_ms,
+                        "received_at_ms": ingested_at_ms,
+                        "user_id": user_id,
+                        "visit_id": product_event["visit_id"],
+                        "session_id": session_id,
+                        "turn_id": turn_id,
+                        "surface": surface,
+                        "module": product_event["module"],
+                        "section": product_event["section"],
+                        "action": product_event["action"],
+                        "properties_json": normalized_metadata,
+                    }
+                )
             return {
                 "accepted": True,
                 "status": "accepted",

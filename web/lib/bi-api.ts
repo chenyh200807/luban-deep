@@ -1,5 +1,13 @@
 import { BI_API_TOKEN, apiUrl, withAdminAuthorization, withBiApiToken } from '@/lib/api'
 
+export function resolveBiAttachmentUrl(url: string | undefined): string {
+  const normalized = (url ?? '').trim()
+  if (!normalized) return ''
+  if (/^https?:\/\//.test(normalized)) return normalized
+  if (normalized.startsWith('/api/')) return apiUrl(normalized)
+  return normalized
+}
+
 export interface BiMetricCard {
   label: string
   value: number | string

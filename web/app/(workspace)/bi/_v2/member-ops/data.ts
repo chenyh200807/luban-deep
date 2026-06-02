@@ -11,6 +11,11 @@ export type MemberRow = {
   region?: string
   notes_count?: number
   feedback_count?: number
+  behavior_learning_report_7d?: number
+  behavior_history_7d?: number
+  behavior_cohort?: string
+  behavior_trust?: string
+  behavior_next_action?: string
 }
 
 export type MemberColumnKey =
@@ -25,6 +30,10 @@ export type MemberColumnKey =
   | 'region'
   | 'notes'
   | 'feedback'
+  | 'behavior_report'
+  | 'behavior_history'
+  | 'behavior_cohort'
+  | 'behavior_next_action'
 
 export type MemberColumnDef = {
   key: MemberColumnKey
@@ -45,6 +54,10 @@ export const ALL_COLUMNS: MemberColumnDef[] = [
   { key: 'region', label: '地区' },
   { key: 'notes', label: '备注数', align: 'right' },
   { key: 'feedback', label: '反馈数', align: 'right' },
+  { key: 'behavior_report', label: '学情7日', sortable: true, align: 'right' },
+  { key: 'behavior_history', label: '历史7日', sortable: true, align: 'right' },
+  { key: 'behavior_cohort', label: '行为队列' },
+  { key: 'behavior_next_action', label: '建议动作' },
 ]
 
 export const DEFAULT_COLUMNS: MemberColumnKey[] = [
@@ -52,6 +65,9 @@ export const DEFAULT_COLUMNS: MemberColumnKey[] = [
   'tier',
   'status',
   'risk',
+  'behavior_report',
+  'behavior_history',
+  'behavior_cohort',
   'last_active',
   'balance',
   'expires_at',
