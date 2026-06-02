@@ -63,6 +63,25 @@ def _segments(answer: str) -> list[str]:
     return [part.strip() for part in re.split(r"(\n{2,}|(?<=。)\n)", answer) if part.strip()]
 
 
+def _is_citable_segment(segment: str) -> bool:
+    text = str(segment or "").strip()
+    if not text:
+        return False
+    if re.fullmatch(r"[-*_]{3,}", text):
+        return False
+    return not re.match(r"^#{1,6}\s+\S+", text)
+
+
+def _claim_text_from_segment(segment: str) -> str:
+    lines = []
+    for line in str(segment or "").splitlines():
+        text = line.strip()
+        if not _is_citable_segment(text):
+            continue
+        lines.append(text)
+    return "\n".join(lines).strip()
+
+
 def _tokens(text: str) -> set[str]:
     return set(re.findall(r"[\u4e00-\u9fff]|[A-Za-z0-9_]+", text))
 
@@ -185,7 +204,7 @@ def assemble_cited_answer(
 
     claims: list[CitedClaim] = []
     matched_count = 0
-    segments = _segments(clean_answer)
+    segments = [claim_text for segment in _segments(clean_answer) if (claim_text := _claim_text_from_segment(segment))]
     for index, segment in enumerate(segments, start=1):
         ref, score = _best_ref(segment, refs, policy=active_policy)
         if ref and score >= active_policy.min_claim_ref_score:

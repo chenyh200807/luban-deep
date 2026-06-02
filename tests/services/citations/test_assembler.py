@@ -93,6 +93,34 @@ def test_footer_refs_keep_contiguous_markers_without_body_renumbering() -> None:
     validate_cited_answer(cited)
 
 
+def test_does_not_mark_markdown_headings_as_cited_claims() -> None:
+    cited = assemble_cited_answer(
+        "## 结论\n\n楼地面应满足隔声、保温、防水、防火要求。\n\n---\n\n## 采分点\n\n- 铺装面层应平整、防滑、耐磨、易清洁。",
+        sources=[
+            {
+                "source_type": "textbook",
+                "title": "楼地面构造",
+                "source": "2026建筑实务教材",
+                "chapter": "1",
+                "section": "楼地面基本构造要求",
+                "page": 15,
+                "rag_content": "楼地面应满足隔声、保温、防水、防火要求。铺装面层应平整、防滑、耐磨、易清洁。",
+            },
+        ],
+        policy=CitationPolicy(surface="student"),
+    )
+
+    assert "## 结论〔1〕" not in cited.response
+    assert "## 采分点〔1〕" not in cited.response
+    assert "楼地面应满足隔声、保温、防水、防火要求。〔1〕" in cited.response
+    assert "- 铺装面层应平整、防滑、耐磨、易清洁。〔1〕" in cited.response
+    assert [claim.text for claim in cited.bundle.claims] == [
+        "楼地面应满足隔声、保温、防水、防火要求。",
+        "- 铺装面层应平整、防滑、耐磨、易清洁。",
+    ]
+    validate_cited_answer(cited)
+
+
 def test_student_surface_prefers_textbook_reference_over_standard_when_available() -> None:
     cited = assemble_cited_answer(
         "防火门等级要与使用部位匹配，甲级常用于防火分区隔墙，乙级常用于疏散楼梯间。",
