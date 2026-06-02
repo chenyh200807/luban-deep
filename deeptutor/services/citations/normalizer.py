@@ -169,7 +169,8 @@ def _textbook_location_meta(source: dict[str, Any], *, allow_linked_source: bool
     path_names = _taxonomy_path_names(source)
     if allow_linked_source and source_type != "textbook" and not code and not path_names:
         return {}
-    meta = textbook_topic_meta(raw_value=code, label=_raw_title(source), path_names=path_names)
+    label = _raw_title(source) if source_type == "textbook" else (path_names[-1] if path_names else code)
+    meta = textbook_topic_meta(raw_value=code, label=label, path_names=path_names)
     if path_names and not meta.get("textbook_section_name"):
         for candidate in reversed(path_names):
             path_meta = textbook_topic_meta(raw_value="", label=candidate, path_names=path_names)

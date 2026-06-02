@@ -262,6 +262,25 @@ def test_standard_with_only_id_like_chunk_does_not_guess_textbook_mapping() -> N
     assert "关联教材" not in refs[0].locator
 
 
+def test_standard_title_does_not_guess_textbook_mapping() -> None:
+    refs = normalize_citation_sources(
+        [
+            {
+                "chunk_id": "std-title-only",
+                "source_type": "standard",
+                "title": "施工测量",
+                "standard_code": "GB 50026-2020",
+                "taxonomy_path": ["无法识别路径"],
+                "rag_content": "施工测量应符合工程测量标准。",
+            }
+        ],
+        policy=CitationPolicy(),
+    )
+
+    assert refs[0].locator == "GB 50026-2020"
+    assert "关联教材" not in refs[0].locator
+
+
 def test_standard_span_locator_appends_trusted_related_textbook_mapping() -> None:
     refs = normalize_citation_sources(
         [
