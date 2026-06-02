@@ -124,6 +124,11 @@ assert(
   wsStreamJs.indexOf("startTurnPayload.capability = opts.capability") >= 0,
   "ws stream should forward explicit capability to the backend start-turn contract",
 );
+assert(
+  chatJs.indexOf('config: { bot_id: "construction-exam-coach" }') >= 0 &&
+    wsStreamJs.indexOf("startTurnPayload.config = opts.config") >= 0,
+  "package chat should bind to construction-exam-coach and forward bot runtime config for default RAG citations",
+);
 
 if (fail) {
   console.error(errors.join("\n"));

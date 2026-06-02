@@ -555,6 +555,9 @@ function streamChat(opts, callbacks) {
   if (opts && opts.capability) {
     startTurnPayload.capability = opts.capability;
   }
+  if (opts && opts.config && typeof opts.config === "object") {
+    startTurnPayload.config = opts.config;
+  }
   if (Array.isArray(opts && opts.tools) && opts.tools.length) {
     startTurnPayload.tools = opts.tools.slice();
   }
