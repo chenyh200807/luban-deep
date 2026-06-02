@@ -101,7 +101,7 @@ function loadWsStream(config) {
           },
           startChatTurn: function (payload) {
             startPayloads.push(payload || {});
-            return Promise.resolve({
+            return Promise.resolve(config.startResponse || {
               stream: {
                 url: "/api/v1/ws",
                 subscribe: { turn_id: "turn_1" },
@@ -218,6 +218,43 @@ function loadWsStream(config) {
     assert(
       loaded.connects[0].header.Authorization === "Bearer fresh-token-1",
       "initial socket connect should use refreshed bearer token instead of stale snapshot",
+    );
+  });
+
+  await run("first-turn stream should let start-turn create the conversation", async function () {
+    var loaded = loadWsStream({
+      tokens: ["fresh-token-1"],
+    });
+    var started = [];
+
+    loaded.wsStream.streamChat(
+      { query: "错题复盘：房子", clientTurnId: "client_turn_new" },
+      {
+        onStarted: function (payload) {
+          started.push(payload || {});
+        },
+        onError: function () {},
+      },
+    );
+
+    await flushPromises();
+    await flushPromises();
+
+    assert(loaded.startPayloads.length === 1, "start-turn should run even without a pre-created session id");
+    assert(
+      !Object.prototype.hasOwnProperty.call(loaded.startPayloads[0], "conversation_id"),
+      "first-turn payload should omit conversation_id so backend start-turn owns session creation",
+    );
+    assert(
+      started.length === 1 &&
+        started[0].sessionId === "conv_1" &&
+        started[0].turnId === "turn_1",
+      "stream should surface backend-created conversation and turn ids to the page",
+    );
+    loaded.tasks[0]._open();
+    assert(
+      loaded.sent[0].type === "subscribe_turn" && loaded.sent[0].turn_id === "turn_1",
+      "socket should subscribe to the authoritative turn returned by start-turn",
     );
   });
 

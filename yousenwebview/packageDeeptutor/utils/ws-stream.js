@@ -175,11 +175,6 @@ function streamChat(opts, callbacks) {
     if (cb.onDone) cb.onDone();
     return function () {};
   }
-  if (!sessionId) {
-    if (cb.onError) cb.onError("会话初始化失败，请重试");
-    if (cb.onDone) cb.onDone();
-    return function () {};
-  }
 
   var aborted = false;
   var doneReceived = false;
@@ -546,9 +541,11 @@ function streamChat(opts, callbacks) {
 
   var startTurnPayload = {
     query: query,
-    conversation_id: sessionId,
     mode: mode,
   };
+  if (sessionId) {
+    startTurnPayload.conversation_id = sessionId;
+  }
   if (clientTurnId) {
     startTurnPayload.client_turn_id = clientTurnId;
   }
@@ -589,9 +586,10 @@ function streamChat(opts, callbacks) {
       var stream = payload.stream || {};
       var bot = payload.bot || {};
       var conversation = payload.conversation || {};
+      var turn = payload.turn || {};
       var preferredBase = endpoints.getPrimaryBaseUrl(false);
       botId = String(bot.id || "").trim();
-      turnId = String((stream.subscribe && stream.subscribe.turn_id) || (payload.turn && payload.turn.id) || "").trim();
+      turnId = String((stream.subscribe && stream.subscribe.turn_id) || turn.id || "").trim();
       chatId = String(stream.chat_id || conversation.id || sessionId).trim();
       lastSeq = Number((stream.resume && stream.resume.seq) || 0) || 0;
       socketUrls = endpoints.getSocketUrlCandidates(
@@ -600,6 +598,16 @@ function streamChat(opts, callbacks) {
       );
       if (!chatId || !turnId || !socketUrls.length) {
         throw new Error("启动流式会话失败");
+      }
+      if (cb.onStarted) {
+        cb.onStarted({
+          conversation: conversation,
+          turn: turn,
+          stream: stream,
+          bot: bot,
+          sessionId: chatId,
+          turnId: turnId,
+        });
       }
       if (
         cb.onUpdatedTitle &&
