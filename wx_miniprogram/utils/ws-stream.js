@@ -417,6 +417,9 @@ function streamChat(opts, callbacks) {
   if (Array.isArray(opts && opts.tools) && opts.tools.length) {
     startTurnPayload.tools = opts.tools.slice();
   }
+  if (opts && opts.config && typeof opts.config === "object") {
+    startTurnPayload.config = opts.config;
+  }
   if (opts && opts.interactionProfile) {
     startTurnPayload.interaction_profile = opts.interactionProfile;
   }

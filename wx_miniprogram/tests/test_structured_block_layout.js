@@ -81,9 +81,19 @@ assert(
   "packageDeeptutor chat.js should mirror terminal result.response replacement",
 );
 assert(
+  chatJs.indexOf('config: { bot_id: "construction-exam-coach" }') >= 0 &&
+    packageChatJs.indexOf('config: { bot_id: "construction-exam-coach" }') >= 0,
+  "both chat surfaces should bind to construction-exam-coach so backend defaults inject textbook RAG",
+);
+assert(
   wxWsStream.indexOf("buildFinalResponseEvent") >= 0 &&
     packageWsStream.indexOf("buildFinalResponseEvent") >= 0,
   "both ws-stream surfaces should forward public result.response to onFinal",
+);
+assert(
+  wxWsStream.indexOf("startTurnPayload.config = opts.config") >= 0 &&
+    packageWsStream.indexOf("startTurnPayload.config = opts.config") >= 0,
+  "both ws-stream surfaces should forward bot runtime config to start-turn",
 );
 assert(
   chatWxml.indexOf("cite-head-sub") >= 0 &&
