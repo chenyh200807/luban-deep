@@ -312,6 +312,7 @@ function loadChatPage(overrides) {
   await run("chat page should keep pending auto-send independent from degraded profile bootstrap", async function () {
     var sendCount = 0;
     var dashboardCount = 0;
+    var diagnosticCount = 0;
     var loaded = loadChatPage({
       api: {
         getUserInfo: function () {
@@ -332,6 +333,9 @@ function loadChatPage(overrides) {
     loaded.page._loadDashboard = function () {
       dashboardCount += 1;
     };
+    loaded.page._checkDiagnostic = function () {
+      diagnosticCount += 1;
+    };
 
     loaded.page.onLoad({});
     loaded.page.onShow();
@@ -339,7 +343,61 @@ function loadChatPage(overrides) {
     await flushPromises();
 
     assert(sendCount === 1, "pending auto-send should use token authority even when profile is degraded");
-    assert(dashboardCount === 1, "dashboard should still load so today focus can render when profile is degraded");
+    assert(dashboardCount === 0, "pending auto-send should not spend a dashboard request before start-turn");
+    assert(diagnosticCount === 0, "pending auto-send should not spend a diagnostic request before start-turn");
+  });
+
+  await run("chat page should still hydrate hero dashboard when profile bootstrap is degraded", async function () {
+    var dashboardCount = 0;
+    var diagnosticCount = 0;
+    var loaded = loadChatPage({
+      api: {
+        getUserInfo: function () {
+          loaded.apiState.getUserInfoCalls += 1;
+          return Promise.reject(new Error("profile temporarily unavailable"));
+        },
+      },
+    });
+
+    loaded.page._loadDashboard = function () {
+      dashboardCount += 1;
+    };
+    loaded.page._checkDiagnostic = function () {
+      diagnosticCount += 1;
+    };
+
+    loaded.page.onLoad({});
+    loaded.page.onShow();
+    await flushPromises();
+    await flushPromises();
+
+    assert(dashboardCount === 1, "hero dashboard should still load without a pending send");
+    assert(diagnosticCount === 1, "hero diagnostic prompt should still load without a pending send");
+  });
+
+  await run("hero diagnostic check should wait for dashboard hydration", async function () {
+    var dashboardDeferred = createDeferred();
+    var diagnosticCount = 0;
+    var loaded = loadChatPage({});
+
+    loaded.page._loadDashboard = function () {
+      return dashboardDeferred.promise;
+    };
+    loaded.page._checkDiagnostic = function () {
+      diagnosticCount += 1;
+    };
+
+    loaded.page.onLoad({});
+    loaded.page.onShow();
+    await flushPromises();
+
+    assert(diagnosticCount === 0, "diagnostic request should not compete with the dashboard request");
+
+    dashboardDeferred.resolve();
+    await flushPromises();
+    await flushPromises();
+
+    assert(diagnosticCount === 1, "diagnostic request should run after dashboard hydration settles");
   });
 
   await run("chat page should keep a default today focus when dashboard request fails", async function () {
