@@ -10,7 +10,7 @@ from scripts.build_luban_human_validation_slice import (
     build_validation_bundle,
     select_validation_slice,
 )
-from scripts.score_luban_human_validation_slice import score_human_labels
+from scripts.score_luban_human_validation_slice import parse_review_book_markdown, score_human_labels, validate_human_labels
 
 
 def test_select_validation_slice_is_blind_and_includes_error_frontier() -> None:
@@ -97,3 +97,58 @@ def test_score_human_labels_compares_human_to_ledger_and_artifact(tmp_path: Path
     assert result["human_vs_ledger"]["mean_abs_score_delta"] == 0.0
     assert result["human_vs_ledger"]["point_hit_agreement"] == 1.0
     assert result["human_vs_artifact_first"]["sample_count"] == len(manifest["selected_samples"])
+
+
+def test_parse_review_book_markdown_extracts_teacher_rows() -> None:
+    markdown = """
+# 1. QX （满分 1 分）
+### 学生 S1
+**给 S1 打分**:
+
+| 采分点 | 满分 | 判定(hit/partial/miss) | 得分 | 备注 |
+|---|---|---|---|---|
+| P1 | 1 | partial | 0.5 | 老师备注 |
+"""
+
+    rows = parse_review_book_markdown(markdown)
+
+    assert rows == [
+        {
+            "case_id": "QX",
+            "student_id": "S1",
+            "point_id": "P1",
+            "human_hit": "partial",
+            "human_score": "0.5",
+            "human_note": "老师备注",
+            "human_error_codes": "",
+        }
+    ]
+
+
+def test_validate_human_labels_reports_missing_and_invalid_without_guessing(tmp_path: Path) -> None:
+    manifest = {
+        "selected_samples": [
+            {
+                "case_id": "QX",
+                "student_id": "S1",
+                "ledger_point_rows": [
+                    {"point_id": "P1", "max_score": 1},
+                    {"point_id": "P2", "max_score": 0.5},
+                ],
+            }
+        ]
+    }
+    labels = {
+        ("QX", "S1", "P1"): {
+            "human_hit": "yes",
+            "human_score": 2.0,
+            "human_note": "",
+            "human_error_codes": "",
+        }
+    }
+
+    validation = validate_human_labels(manifest=manifest, labels=labels)
+
+    assert validation["filled_label_count"] == 1
+    assert validation["missing_count"] == 1
+    assert validation["invalid_count"] == 2

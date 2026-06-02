@@ -12,7 +12,7 @@ from typing import Any
 from deeptutor.services.benchmark.irr_scoring import score_point_label_agreement
 
 
-SOURCE_DIR_NAMES = ("2026教材", "标准文件")
+TEXTBOOK_DIR_NAME = "2026教材"
 _COMPACT_DROP_CHARS = set(" \t\r\n()（）《》〈〉、,，；;:：。.!！?？\"'“”‘’")
 JUNK_REQUIRED_TERMS = {"可选项", "近义不算", "每项1分", "算", "或", "如", "分别为"}
 JUNK_REQUIRED_TERM_PATTERNS = (
@@ -81,35 +81,65 @@ def _flatten_strings(value: Any, *, pointer: str = "") -> list[tuple[str, str]]:
     return []
 
 
-def build_textbook_anchor_corpus(source_root: Path) -> list[dict[str, Any]]:
-    """Build a local exact-search corpus from textbook and standard JSON files only."""
+def _textbook_json_paths(root: Path) -> list[Path]:
+    strengthened_dir = root / TEXTBOOK_DIR_NAME / "第二次加强"
+    if strengthened_dir.exists():
+        primary = sorted(strengthened_dir.glob("FINAL_CLEANED_BOOK2026-*_fixed.json"))
+        if primary:
+            return primary
+    textbook_dir = root / TEXTBOOK_DIR_NAME
+    if not textbook_dir.exists():
+        return []
+    primary = sorted(textbook_dir.rglob("FINAL_CLEANED_BOOK2026-*_fixed.json"))
+    return primary or sorted(textbook_dir.rglob("*.json"))
 
-    root = Path(source_root).expanduser().resolve()
-    records: list[dict[str, Any]] = []
-    for dirname in SOURCE_DIR_NAMES:
-        source_dir = root / dirname
-        if not source_dir.exists():
-            continue
-        source_paths = sorted(source_dir.rglob("*.json"))
-        if dirname == "2026教材":
-            primary = [path for path in source_paths if path.name.startswith("FINAL_CLEANED_BOOK2026") and path.name.endswith("_fixed.json")]
-            source_paths = primary or source_paths
-        for path in source_paths:
-            text = path.read_text(encoding="utf-8")
-            rel = path.relative_to(root).as_posix()
-            source_class = "textbook" if dirname == "2026教材" else "standard"
+
+def _content_markdown_records(payload: Any, *, rel: str, raw_text: str) -> list[dict[str, Any]]:
+    if isinstance(payload, dict) and isinstance(payload.get("content_blocks"), list):
+        records: list[dict[str, Any]] = []
+        for index, block in enumerate(payload.get("content_blocks") or []):
+            if not isinstance(block, dict):
+                continue
+            text = str(block.get("content_markdown") or "").strip()
+            if not text:
+                continue
             compact_text, compact_offsets = _compact_with_raw_offsets(text)
+            taxonomy = block.get("taxonomy") if isinstance(block.get("taxonomy"), dict) else {}
+            source_meta = block.get("source_meta") if isinstance(block.get("source_meta"), dict) else {}
             records.append(
                 {
                     "source_path": rel,
-                    "source_class": source_class,
-                    "json_pointer": "$",
+                    "source_class": "textbook",
+                    "json_pointer": f"$.content_blocks[{index}].content_markdown",
                     "text": text,
                     "compact_text": compact_text,
                     "compact_offsets": compact_offsets,
                     "content_hash": _sha256_text(text),
+                    "chunk_id": str(block.get("chunk_id") or block.get("id") or ""),
+                    "node_code": str(taxonomy.get("node_code") or ""),
+                    "node_name": str(taxonomy.get("node_name") or ""),
+                    "taxonomy_path": str(taxonomy.get("taxonomy_path") or ""),
+                    "page_num": source_meta.get("page_num"),
+                    "source_meta": source_meta,
                 }
             )
+        return records
+    return []
+
+
+def build_textbook_anchor_corpus(source_root: Path) -> list[dict[str, Any]]:
+    """Build local exact-search records from faithful textbook content_markdown only."""
+
+    root = Path(source_root).expanduser().resolve()
+    records: list[dict[str, Any]] = []
+    for path in _textbook_json_paths(root):
+        raw_text = path.read_text(encoding="utf-8")
+        rel = path.relative_to(root).as_posix()
+        try:
+            payload = json.loads(raw_text)
+        except json.JSONDecodeError:
+            continue
+        records.extend(_content_markdown_records(payload, rel=rel, raw_text=raw_text))
     return records
 
 
@@ -137,6 +167,28 @@ def build_case_official_answer_corpus(case: dict[str, Any]) -> list[dict[str, An
     ]
 
 
+def build_case_exam_figure_corpus(case: dict[str, Any]) -> list[dict[str, Any]]:
+    case_id = str(case.get("case_id") or "unknown")
+    text = "\n".join(str(case.get(field) or "").strip() for field in ("stem", "official_answer") if case.get(field)).strip()
+    if not text:
+        return []
+    compact_text, compact_offsets = _compact_with_raw_offsets(text)
+    return [
+        {
+            "source_path": f"golden/{case_id}/exam_figure_and_official_answer",
+            "source_class": "exam_figure",
+            "json_pointer": "$.stem + $.official_answer",
+            "text": text,
+            "compact_text": compact_text,
+            "compact_offsets": compact_offsets,
+            "content_hash": _sha256_text(text),
+            "chunk_id": "",
+            "node_code": str(case.get("question_node") or ""),
+            "page_num": None,
+        }
+    ]
+
+
 def _exact_anchor(term: str, record: dict[str, Any]) -> dict[str, Any] | None:
     text = str(record.get("text") or "")
     start = text.find(term)
@@ -147,6 +199,9 @@ def _exact_anchor(term: str, record: dict[str, Any]) -> dict[str, Any] | None:
         "source_path": record["source_path"],
         "source_class": record["source_class"],
         "json_pointer": record["json_pointer"],
+        "chunk_id": record.get("chunk_id") or "",
+        "node_code": record.get("node_code") or "",
+        "page_num": record.get("page_num"),
         "start": start,
         "end": end,
         "span_text": text[start:end],
@@ -172,6 +227,9 @@ def _form_normalized_anchor(term: str, record: dict[str, Any]) -> dict[str, Any]
         "source_path": record["source_path"],
         "source_class": record["source_class"],
         "json_pointer": record["json_pointer"],
+        "chunk_id": record.get("chunk_id") or "",
+        "node_code": record.get("node_code") or "",
+        "page_num": record.get("page_num"),
         "start": raw_start,
         "end": raw_end,
         "span_text": text[raw_start:raw_end],
@@ -187,20 +245,24 @@ def anchor_required_terms(terms: list[str], corpus: list[dict[str, Any]], *, max
         term = str(raw_term or "").strip()
         if not term:
             continue
-        anchors: list[dict[str, Any]] = []
+        primary_anchors: list[dict[str, Any]] = []
+        weak_anchors: list[dict[str, Any]] = []
         for record in corpus:
             exact = _exact_anchor(term, record)
             if exact:
-                anchors.append(exact)
-                if len(anchors) >= max_anchors:
+                target = weak_anchors if exact.get("source_class") == "official_answer" else primary_anchors
+                target.append(exact)
+                if len(primary_anchors) >= max_anchors:
                     break
-        if not anchors:
+        if not primary_anchors and not weak_anchors:
             for record in corpus:
                 normalized = _form_normalized_anchor(term, record)
                 if normalized:
-                    anchors.append(normalized)
-                    if len(anchors) >= max_anchors:
+                    target = weak_anchors if normalized.get("source_class") == "official_answer" else primary_anchors
+                    target.append(normalized)
+                    if len(primary_anchors) >= max_anchors:
                         break
+        anchors = primary_anchors[:max_anchors] if primary_anchors else weak_anchors[:max_anchors]
         anchored.append({"term": term, "anchors": anchors})
         if not anchors:
             unanchored.append(term)
@@ -297,10 +359,13 @@ def squeeze_required_terms(terms: list[str], corpus: list[dict[str, Any]]) -> di
 
 
 def numeric_terms_from_point(point: dict[str, Any]) -> list[str]:
+    expected = [str(term).strip() for term in point.get("calculation_expected_terms_v1_5") or [] if str(term).strip()]
+    if expected:
+        return expected
     text = f"{point.get('label') or ''}\n{point.get('official_basis') or ''}"
     seen: set[str] = set()
     terms: list[str] = []
-    for value, unit in re.findall(r"(\d+(?:\.\d+)?)\s*(kg|万|万元|天|人|m|mm|%)", text, flags=re.I):
+    for value, unit in re.findall(r"(\d+(?:\.\d+)?)\s*(kg|万|万元|天|人|名|个月|m|mm|%)", text, flags=re.I):
         term = f"{value}{unit}"
         if term not in seen:
             seen.add(term)
@@ -426,6 +491,33 @@ def _label_for_point(
     unanchored_terms: list[str],
 ) -> dict[str, Any]:
     max_score = float(point.get("max_score") or 0)
+    if point.get("anchor_source") in {"non_textbook", "official_answer_weak"} and not terms:
+        resolution = classify_residual_resolution(
+            residual_type="boundary",
+            unanchored_terms=[str(point.get("anchor_source"))],
+            terms=[],
+            matched_terms=[],
+        )
+        agent = {"hit": "unverifiable", "score": None, "matched_terms": []}
+        return {
+            "case_id": case_id,
+            "sample_id": sample_id,
+            "point_id": str(point.get("point_id") or ""),
+            "max_score": max_score,
+            "verifiable": False,
+            "is_deterministic": False,
+            "residual_type": "boundary",
+            "resolution_class": resolution["resolution_class"],
+            "resolution_label": "Tier-1 required: point is not certified by content_markdown textbook anchors",
+            "exhaustion_proof": "This point is outside verified content_markdown textbook-term certification; it must not be auto-certified from official-answer weak anchors or non-textbook knowledge.",
+            "agent_a": {"agent": "A", **agent},
+            "agent_b": {"agent": "B", **agent},
+            "hit": "unverifiable",
+            "score": None,
+            "matched_terms": [],
+            "unanchored_terms": [str(point.get("anchor_source"))],
+            "numeric_terms": [],
+        }
     residual_type = _residual_type(point, terms, unanchored_terms)
     numeric_terms = numeric_terms_from_point(point)
     effective_terms = numeric_terms if residual_type == "calculation" and numeric_terms else terms

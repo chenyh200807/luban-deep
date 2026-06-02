@@ -721,6 +721,71 @@ Q11 list-rule evidence after r2:
 
 Interpretation: the previous r1 corrected headline (`470/485 = 96.91%`) is now superseded by r2 (`469/485 = 96.70%`). This is a more honest number: one substring-only context is now sent to PO instead of being certified. Artifact-first still materially beats baseline/RAG on the corrected deterministic subset, but no-human v1.5 remains directional/shadow only. Next gate remains PO/human spotcheck, now at `artifacts/luban_no_human_v1_5/spotcheck_r2_corrected_20260601/`. Full r2 finding: `artifacts/luban_no_human_v1_5/r2_corrected_list_rule_20260601/FINDING_list_rule_denominator_correction_r2.md`.
 
+### 5.9 2026-06-02 no-human v1.5 content_markdown re-anchor r3
+
+Claude PDF visual sampling confirmed that the cleaned KB JSON `content_markdown` is faithful textbook text. The no-human collector therefore now treats `content_blocks[].content_markdown` as the primary literal-term authority and excludes LLM-derived JSON fields such as `grading_keywords`, `exam_matrix`, and `knowledge_cards` from scoring-term anchors.
+
+Correction r3:
+
+- Textbook corpus records are built from `content_markdown` blocks only, with `chunk_id`, `node_code`, `page_num`, and source path.
+- Textbook anchors are preferred over `official_answer`; if a point only anchors to `official_answer`, it becomes `official_answer_weak` and is routed to class B.
+- Calculation points are marked `point_type=calculation`, `anchor_source=calculation`; they use deterministic numeric validation and are not counted as textbook-term anchors.
+- Figure-label points are marked `point_type=figure_label`, `anchor_source=exam_figure`; junk terms such as `图中`, `须含`, `起重机` are not denominator terms.
+- Cross-subject / non-textbook points are marked `anchor_source=non_textbook` and routed to class B. No AI world knowledge is used for certification.
+
+Corrected r3 point classification:
+
+- total scoring points: `97`
+- point types: `text_term=75`, `calculation=15`, `figure_label=3`, `non_textbook=4`
+- anchor sources: `textbook=57`, `official_answer_weak=18`, `calculation=15`, `exam_figure=3`, `non_textbook=4`
+- true textbook-anchor point coverage: `57/97 = 58.76%`
+
+Corrected r3 label-level shadow result:
+
+- point labels: `485`
+- deterministic labels: `369/485 = 76.08%`
+- residual labels: `116`
+- class distribution: `A=369`, `B=116`, `C=0`
+- PO queue: `116`; external expert queue: `0`
+- deterministic subset comparison: artifact-first mean abs delta `0.8934`, baseline/RAG `2.6885`
+
+Interpretation: r3 intentionally lowers the no-human certification headline. This is not a regression; it removes false textbook certification and converts official-answer-only / non-textbook / uncertain points into an honest PO queue. Full r3 finding: `artifacts/luban_no_human_v1_5/content_markdown_reanchor_20260602/FINDING_content_markdown_reanchor_r3.md`.
+
+### 5.10 2026-06-02 r4 pilot gate: verify-on-write and short-anchor guard
+
+Claude follow-up review found two residual collector bugs in r3:
+
+- Some points were marked `anchor_source=textbook` even though the point-level `chunk_id` was empty or the quote could not be verified against the target `content_markdown` chunk.
+- Some single-term anchors were too short and generic (`防护`, `浇筑`, `限制`), creating over-credit risk.
+
+Correction r4:
+
+- A point can be written as `anchor_source=textbook` only when every required term has a valid textbook anchor with non-empty `chunk_id`, non-empty quote, and the quote is present verbatim in that chunk's `content_markdown`.
+- Legacy JSON `content` fallback is disabled; only `content_blocks[].content_markdown` is textbook authority.
+- Mixed textbook + official-answer weak terms no longer certify the whole point as textbook.
+- Short common single-term anchors must be expanded from the point text to a longer phrase that also verifies against `content_markdown`; unresolved terms are downgraded to B.
+- `exam_figure` is restricted to `point_type=figure_label`; text terms cannot borrow stem / figure anchors.
+
+Corrected r4 pilot-gate classification:
+
+- total scoring points: `97`
+- point types: `text_term=75`, `calculation=15`, `figure_label=3`, `non_textbook=4`
+- anchor sources: `textbook=38`, `official_answer_weak=36`, `calculation=15`, `exam_figure=3`, `non_textbook=5`
+- verified textbook anchors: `38/38`; invalid textbook anchors: `0`
+- current short common single-term anchors: `0`
+- true textbook-anchor point coverage: `38/97 = 39.18%`
+
+Corrected r4 label-level shadow result:
+
+- point labels: `485`
+- deterministic labels: `274/485 = 56.49%`
+- residual labels: `211`
+- class distribution: `A=274`, `B=211`, `C=0`
+- PO queue: `211`; external expert queue: `0`
+- deterministic subset comparison: artifact-first mean abs delta `0.7065`, baseline/RAG `2.1438`
+
+Interpretation: r4 supersedes r3 and intentionally lowers the certification headline again. This is a stricter and more defensible number, not a product regression. Full-KB extraction remains blocked at the pilot gate until Claude/PO independently verifies the r4 audit packet. Full r4 finding: `artifacts/luban_no_human_v1_5/content_markdown_reanchor_pilot_gate_20260602/FINDING_pilot_gate_verify_on_write_r4.md`.
+
 ---
 
 ## 6. Data Production Plan — Golden 数据生产 SOP（全球顶尖标准）

@@ -103,4 +103,3 @@ def score_point_label_agreement(labels_a: list[dict[str, Any]], labels_b: list[d
         "pre_adjudication_disagreements": disagreements,
         "cluster_bootstrap_ci": _cluster_bootstrap_hit_ci(pairs),
     }
-

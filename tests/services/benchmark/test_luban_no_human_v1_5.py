@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from deeptutor.services.benchmark.luban_no_human_v1_5 import (
     anchor_required_terms,
     build_textbook_anchor_corpus,
@@ -17,15 +19,23 @@ from deeptutor.services.benchmark.luban_no_human_v1_5 import (
 
 def test_textbook_anchor_corpus_pins_exact_and_form_normalized_spans(tmp_path) -> None:
     source_root = tmp_path / "docs2026"
-    textbook_dir = source_root / "2026教材"
-    standard_dir = source_root / "标准文件"
+    textbook_dir = source_root / "2026教材" / "第二次加强"
     textbook_dir.mkdir(parents=True)
-    standard_dir.mkdir(parents=True)
-    (textbook_dir / "book.json").write_text(
-        '{"content":"施工总进度计划表（图），资源需要量及供应平衡表。"}',
+    (textbook_dir / "FINAL_CLEANED_BOOK2026-9-166v3_fixed.json").write_text(
+        json.dumps(
+            {
+                "content_blocks": [
+                    {
+                        "chunk_id": "1A000000_001",
+                        "taxonomy": {"node_code": "1A000000"},
+                        "content_markdown": "施工总进度计划表（图），资源需要量及供应平衡表。",
+                    }
+                ]
+            },
+            ensure_ascii=False,
+        ),
         encoding="utf-8",
     )
-    (standard_dir / "gb.json").write_text('{"content":"设置防护栏杆。"}', encoding="utf-8")
 
     corpus = build_textbook_anchor_corpus(source_root)
     anchored = anchor_required_terms(["施工总进度计划表(图)", "资源需要量及供应平衡表", "不存在术语"], corpus)
@@ -34,6 +44,71 @@ def test_textbook_anchor_corpus_pins_exact_and_form_normalized_spans(tmp_path) -
     assert by_term["施工总进度计划表(图)"]["anchors"][0]["match_method"] == "form_normalized"
     assert by_term["资源需要量及供应平衡表"]["anchors"][0]["match_method"] == "exact"
     assert anchored["unanchored_terms"] == ["不存在术语"]
+
+
+def test_textbook_anchor_corpus_uses_content_markdown_not_llm_fields(tmp_path) -> None:
+    source_root = tmp_path / "docs2026"
+    textbook_dir = source_root / "2026教材" / "第二次加强"
+    textbook_dir.mkdir(parents=True)
+    (textbook_dir / "FINAL_CLEANED_BOOK2026-9-166v3_fixed.json").write_text(
+        json.dumps(
+            {
+                "content_blocks": [
+                    {
+                        "chunk_id": "1A411011_001_0001",
+                        "taxonomy": {"node_code": "1A411011"},
+                        "source_meta": {"page_num": 12},
+                        "content_markdown": "教材原文只写施工总进度计划表（图）。",
+                        "assessment": {"grading_keywords": ["LLM近义词锚"]},
+                    }
+                ]
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    corpus = build_textbook_anchor_corpus(source_root)
+    anchored = anchor_required_terms(["施工总进度计划表(图)", "LLM近义词锚"], corpus)
+    by_term = {item["term"]: item for item in anchored["terms"]}
+
+    assert corpus[0]["chunk_id"] == "1A411011_001_0001"
+    assert corpus[0]["json_pointer"] == "$.content_blocks[0].content_markdown"
+    assert by_term["施工总进度计划表(图)"]["anchors"][0]["source_class"] == "textbook"
+    assert by_term["施工总进度计划表(图)"]["anchors"][0]["chunk_id"] == "1A411011_001_0001"
+    assert by_term["LLM近义词锚"]["anchors"] == []
+    assert anchored["unanchored_terms"] == ["LLM近义词锚"]
+
+
+def test_anchor_required_terms_prefers_textbook_over_official_answer_when_both_match(tmp_path) -> None:
+    source_root = tmp_path / "docs2026"
+    textbook_dir = source_root / "2026教材" / "第二次加强"
+    textbook_dir.mkdir(parents=True)
+    (textbook_dir / "FINAL_CLEANED_BOOK2026-222-382_fixed.json").write_text(
+        json.dumps(
+            {
+                "content_blocks": [
+                    {
+                        "chunk_id": "1A434000_001_0290",
+                        "taxonomy": {"node_code": "1A434000"},
+                        "source_meta": {"page_num": 290},
+                        "content_markdown": "卷材鼓泡治理可采用割补法。",
+                    }
+                ]
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    corpus = build_textbook_anchor_corpus(source_root) + build_case_official_answer_corpus(
+        {"case_id": "Q18", "official_answer": "卷材鼓泡治理可采用割补法。"}
+    )
+
+    anchored = anchor_required_terms(["割补法"], corpus)
+
+    anchors = anchored["terms"][0]["anchors"]
+    assert [anchor["source_class"] for anchor in anchors] == ["textbook"]
+    assert anchors[0]["chunk_id"] == "1A434000_001_0290"
 
 
 def test_blind_agents_apply_literal_term_matching_without_synonyms() -> None:
@@ -92,9 +167,12 @@ def test_classify_residual_resolution_keeps_external_expert_as_last_resort() -> 
 
 def test_squeeze_required_terms_repairs_slash_paraphrase_to_anchored_term(tmp_path) -> None:
     source_root = tmp_path / "docs2026"
-    (source_root / "2026教材").mkdir(parents=True)
-    (source_root / "标准文件").mkdir(parents=True)
-    (source_root / "标准文件" / "gb.json").write_text('{"content":"临边应设置防护栏杆。"}', encoding="utf-8")
+    textbook_dir = source_root / "2026教材" / "第二次加强"
+    textbook_dir.mkdir(parents=True)
+    (textbook_dir / "FINAL_CLEANED_BOOK2026-222-382_fixed.json").write_text(
+        json.dumps({"content_blocks": [{"chunk_id": "1A000000_001", "content_markdown": "临边应设置防护栏杆。"}]}, ensure_ascii=False),
+        encoding="utf-8",
+    )
     corpus = build_textbook_anchor_corpus(source_root)
 
     result = squeeze_required_terms(["防护栏杆/防护", "黄色或红色标示"], corpus)
@@ -172,9 +250,15 @@ def test_independent_triage_cannot_demote_unverifiable_empty_anchor_to_a() -> No
 
 def test_squeeze_required_terms_drops_junk_non_terms_even_when_present_in_source(tmp_path) -> None:
     source_root = tmp_path / "docs2026"
-    (source_root / "2026教材").mkdir(parents=True)
-    (source_root / "标准文件").mkdir(parents=True)
-    (source_root / "2026教材" / "book.json").write_text('{"content":"可选项 环境 气候 地形"}', encoding="utf-8")
+    textbook_dir = source_root / "2026教材" / "第二次加强"
+    textbook_dir.mkdir(parents=True)
+    (textbook_dir / "FINAL_CLEANED_BOOK2026-9-166v3_fixed.json").write_text(
+        json.dumps(
+            {"content_blocks": [{"chunk_id": "1A000000_001", "content_markdown": "可选项 环境 气候 地形"}]},
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
     corpus = build_textbook_anchor_corpus(source_root)
 
     result = squeeze_required_terms(["可选项", "环境", "气候"], corpus)
@@ -184,9 +268,15 @@ def test_squeeze_required_terms_drops_junk_non_terms_even_when_present_in_source
 
 def test_categorize_unanchored_term_detects_numeric_and_normalization(tmp_path) -> None:
     source_root = tmp_path / "docs2026"
-    (source_root / "2026教材").mkdir(parents=True)
-    (source_root / "标准文件").mkdir(parents=True)
-    (source_root / "2026教材" / "book.json").write_text('{"content":"施工总进度计划表（图）"}', encoding="utf-8")
+    textbook_dir = source_root / "2026教材" / "第二次加强"
+    textbook_dir.mkdir(parents=True)
+    (textbook_dir / "FINAL_CLEANED_BOOK2026-9-166v3_fixed.json").write_text(
+        json.dumps(
+            {"content_blocks": [{"chunk_id": "1A000000_001", "content_markdown": "施工总进度计划表（图）"}]},
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
     corpus = build_textbook_anchor_corpus(source_root)
 
     assert categorize_unanchored_term("275kg", corpus)["category"] == "is_numeric_not_term"
