@@ -138,6 +138,31 @@ def test_source_span_locator_fields_override_top_level_fallbacks() -> None:
     assert refs[0].locator == "第 1 章 第 1.4 节 p.32"
 
 
+def test_source_span_allows_named_textbook_section_without_synthetic_section_prefix() -> None:
+    refs = normalize_citation_sources(
+        [
+            {
+                "chunk_id": "1A411011_001_0001",
+                "source_type": "textbook",
+                "title": "建筑物分类",
+                "source": "2026教材 v3_production_core9-166",
+                "metadata": {
+                    "source_span": {
+                        "chapter": "第1章 建筑工程设计技术",
+                        "section": "建筑物的构成与设计要求",
+                        "page": 1,
+                    },
+                },
+                "content": "建筑物分类与构成。",
+            }
+        ],
+        policy=CitationPolicy(),
+    )
+
+    assert refs[0].locator == "第1章 建筑工程设计技术 建筑物的构成与设计要求 p.1"
+    assert "第 建筑物的构成与设计要求 节" not in refs[0].locator
+
+
 def test_filters_hidden_grading_authority_for_student_surface() -> None:
     refs = normalize_citation_sources(
         [

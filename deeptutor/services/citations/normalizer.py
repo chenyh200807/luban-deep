@@ -242,6 +242,8 @@ def _format_section_locator(section: str) -> str:
         return ""
     if clean.startswith("第") or "节" in clean:
         return clean
+    if re.search(r"[\u4e00-\u9fff]", clean) and not re.match(r"^\d+(?:\.\d+)*", clean):
+        return clean
     return f"第 {clean} 节"
 
 
