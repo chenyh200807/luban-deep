@@ -479,8 +479,6 @@ Page({
       log.warn("Chat", "chat profile bootstrap degraded: " + ((e && e.message) || e));
     });
     if (hasUsableAuth) {
-      self._loadDashboard();
-      self._checkDiagnostic();
       if (restoringConversation) {
         runtime.consumePendingChatIntent();
       } else {
@@ -493,6 +491,15 @@ Page({
           self._send(pendingIntent.query, {
             promptIntent: pendingIntent.promptIntent || null,
           });
+        } else if (!self.data.hasMessages) {
+          Promise.resolve(self._loadDashboard()).then(
+            function () {
+              if (!self.data.hasMessages) self._checkDiagnostic();
+            },
+            function () {
+              if (!self.data.hasMessages) self._checkDiagnostic();
+            },
+          );
         }
       }
     }
@@ -1665,7 +1672,7 @@ Page({
 
   _loadDashboard: function () {
     var self = this;
-    api
+    return api
       .getHomeDashboard()
       .then(function (resp) {
         var d = unwrap(resp) || {};
