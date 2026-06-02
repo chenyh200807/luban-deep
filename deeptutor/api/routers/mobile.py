@@ -68,6 +68,15 @@ wallet_service = get_wallet_service()
 
 _MOBILE_TUTORBOT_ID = CONSTRUCTION_EXAM_BOT_DEFAULTS.bot_ids[0]
 _MOBILE_TUTORBOT_NAME = "Construction Exam Coach"
+_MOBILE_CHAT_START_TURN_DEPENDENCIES = [
+    Depends(
+        route_rate_limit(
+            "mobile_chat_start_turn",
+            default_max_requests=10,
+            default_window_seconds=60.0,
+        )
+    )
+]
 _MOBILE_TUTORBOT_DESCRIPTION = "微信小程序主聊天默认建筑实务 TutorBot"
 _MOBILE_PLACEHOLDER_TITLES = {"", "new conversation", "新对话"}
 _MOBILE_CONVERSATION_LOOKUP_PAGE_SIZE = 500
@@ -2658,16 +2667,18 @@ async def upload_chat_feedback_attachment(
 
 
 @router.post(
+    "/mobile/chat/start",
+    dependencies=_MOBILE_CHAT_START_TURN_DEPENDENCIES,
+    include_in_schema=False,
+)
+@router.post(
+    "/mobile/chat/start-turn",
+    dependencies=_MOBILE_CHAT_START_TURN_DEPENDENCIES,
+    include_in_schema=False,
+)
+@router.post(
     "/chat/start-turn",
-    dependencies=[
-        Depends(
-            route_rate_limit(
-                "mobile_chat_start_turn",
-                default_max_requests=10,
-                default_window_seconds=60.0,
-            )
-        )
-    ],
+    dependencies=_MOBILE_CHAT_START_TURN_DEPENDENCIES,
 )
 async def mobile_chat_start_turn(
     body: MobileStartTurnRequest,

@@ -42,7 +42,18 @@ def _clear_rate_limit_state() -> None:
     PathService.get_instance()._user_data_dir = _ORIGINAL_USER_DATA_DIR
 
 
-def test_mobile_chat_start_turn_returns_ws_bootstrap(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/api/v1/chat/start-turn",
+        "/api/v1/mobile/chat/start-turn",
+        "/api/v1/mobile/chat/start",
+    ],
+)
+def test_mobile_chat_start_turn_returns_ws_bootstrap(
+    monkeypatch: pytest.MonkeyPatch,
+    path: str,
+) -> None:
     captured: dict[str, object] = {}
 
     class FakeTurnRuntime:
@@ -82,7 +93,7 @@ def test_mobile_chat_start_turn_returns_ws_bootstrap(monkeypatch: pytest.MonkeyP
 
     with TestClient(_build_app()) as client:
         response = client.post(
-            "/api/v1/chat/start-turn",
+            path,
             json={
                 "query": "考我一道流水施工的题",
                 "mode": "AUTO",
