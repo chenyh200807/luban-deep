@@ -38,3 +38,14 @@ test('BiSideNav nav button has data-testid template `bi-sidenav-item-${key}`', a
     'expected BiSideNav.tsx to include data-testid={`bi-sidenav-item-${...}`} on each nav button',
   )
 })
+
+test('member ops exposes product behavior UI anchors', async () => {
+  const panel = await readWeb('app/(workspace)/bi/_v2/member-ops/BiV2MemberOpsPanel.tsx')
+  const drawer = await readWeb('app/(workspace)/bi/_v2/member-ops/Member360Drawer.tsx')
+
+  assert.ok(panel.includes('data-testid="bi-member-behavior-health-strip"'))
+  assert.ok(panel.includes('data-testid="bi-member-behavior-cohort-tabs"'))
+  assert.ok(panel.includes('report_high_no_action'))
+  assert.ok(drawer.includes('data-testid="bi-member-behavior-timeline"'))
+  assert.ok(drawer.includes('data-testid="bi-member-learning-report-breakdown"'))
+})

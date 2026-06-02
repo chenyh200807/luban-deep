@@ -10,6 +10,7 @@ ALLOWED_CONTRACT_DOMAINS = {
     "routing_contract",
     "grounding_contract",
     "citation_contract",
+    "grading_quality_contract",
     "continuity_contract",
     "surface_contract",
     "production_replay_contract",
@@ -23,6 +24,7 @@ ALLOWED_CASE_TIERS = {
 }
 
 ALLOWED_EXECUTION_KINDS = {
+    "case_grading_eval",
     "answer_citation_eval",
     "static_contract_eval",
     "live_ws_replay",

@@ -52,6 +52,21 @@ const TIER_TONE = {
   svip: 'amber',
 } as const
 
+const BEHAVIOR_COHORTS = [
+  { key: '', label: '全部行为' },
+  { key: 'report_high_no_action', label: '学情高频无行动' },
+  { key: 'history_high_no_review', label: '历史高频无复盘' },
+  { key: 'chat_only', label: '只对话不看学情' },
+  { key: 'training_no_retest', label: '训练未复测' },
+] as const
+
+const BEHAVIOR_COHORT_TONE = {
+  report_high_no_action: 'amber',
+  history_high_no_review: 'sky',
+  chat_only: 'slate',
+  training_no_retest: 'rose',
+} as const
+
 const SAVED_VIEWS_STORAGE_KEY = 'bi-v2-saved-views-v1'
 const SAVED_VIEWS_EVENT = 'bi-v2-saved-views-changed'
 const EMPTY_VIEWS: SavedView[] = []
@@ -145,8 +160,22 @@ function shortDate(value: string): string {
   return new Intl.DateTimeFormat('zh-CN', { month: '2-digit', day: '2-digit' }).format(parsed)
 }
 
+function behaviorCohortLabel(cohort?: string): string {
+  return BEHAVIOR_COHORTS.find(item => item.key === cohort)?.label ?? (cohort || '正常')
+}
+
+function behaviorNextAction(cohort?: string): string {
+  if (cohort === 'report_high_no_action') return '安排训练回访'
+  if (cohort === 'history_high_no_review') return '发送错题复盘'
+  if (cohort === 'chat_only') return '引导查看学情'
+  if (cohort === 'training_no_retest') return '提醒复测'
+  return '观察'
+}
+
 function toMemberRow(item: MemberListItem): MemberRow {
   const tier = ['trial', 'vip', 'svip'].includes(item.tier) ? item.tier : 'trial'
+  const behavior = item.behavior
+  const behaviorCohort = behavior?.cohort || ''
   return {
     user_id: item.user_id,
     phone_masked: maskPhone(item.phone),
@@ -160,6 +189,11 @@ function toMemberRow(item: MemberListItem): MemberRow {
     region: item.segment || item.display_name,
     notes_count: item.review_due,
     feedback_count: 0,
+    behavior_learning_report_7d: behavior?.learning_report_open_count_7d ?? 0,
+    behavior_history_7d: behavior?.history_open_count_7d ?? 0,
+    behavior_cohort: behaviorCohort,
+    behavior_trust: behavior?.trust_level || 'C',
+    behavior_next_action: behaviorNextAction(behaviorCohort),
   }
 }
 
@@ -171,6 +205,7 @@ export function BiV2MemberOpsPanel({
   const [filters, setFilters] = useState<MemberFilters>(DEFAULT_FILTERS)
   const [sortKey, setSortKey] = useState<MemberSortKey>('expires_at')
   const [sortDir, setSortDir] = useState<MemberSortDir>('asc')
+  const [behaviorCohort, setBehaviorCohort] = useState('')
   const [advancedOpen, setAdvancedOpen] = useState(false)
   const [columns, setColumns] = useState<MemberColumnKey[]>(DEFAULT_COLUMNS)
   const [columnPickerOpen, setColumnPickerOpen] = useState(false)
@@ -249,15 +284,35 @@ export function BiV2MemberOpsPanel({
     void loadMembers()
   }, [loadMembers])
 
-  const rows = useMemo(
-    () =>
-      sortMembers(
-        filterMembers(flagEnabled ? liveRows : MOCK_MEMBERS, filters, flagEnabled ? '' : globalQuery),
-        sortKey,
-        sortDir
-      ),
-    [filters, flagEnabled, globalQuery, liveRows, sortDir, sortKey]
-  )
+  const sourceRows = flagEnabled ? liveRows : MOCK_MEMBERS
+  const rows = useMemo(() => {
+    const filtered = filterMembers(sourceRows, filters, flagEnabled ? '' : globalQuery)
+    const cohortRows = behaviorCohort
+      ? filtered.filter(row => row.behavior_cohort === behaviorCohort)
+      : filtered
+    return sortMembers(cohortRows, sortKey, sortDir)
+  }, [behaviorCohort, filters, flagEnabled, globalQuery, sortDir, sortKey, sourceRows])
+
+  const behaviorTotals = useMemo(() => {
+    const health = dashboard?.behavior_health
+    if (health) {
+      return {
+        learningReport: health.learning_report_open_count_7d,
+        history: health.history_open_count_7d,
+        actions: health.action_start_count_7d,
+        lowTrust: health.low_trust_count,
+      }
+    }
+    return sourceRows.reduce(
+      (acc, row) => {
+        acc.learningReport += row.behavior_learning_report_7d ?? 0
+        acc.history += row.behavior_history_7d ?? 0
+        acc.lowTrust += row.behavior_trust && row.behavior_trust !== 'A' ? 1 : 0
+        return acc
+      },
+      { learningReport: 0, history: 0, actions: 0, lowTrust: 0 }
+    )
+  }, [dashboard, sourceRows])
 
   function handleSort(key: string) {
     const nextKey = key as MemberSortKey
@@ -471,6 +526,10 @@ export function BiV2MemberOpsPanel({
 
       <MemberSummaryCards dashboard={dashboard} loading={loading} />
 
+      <BehaviorHealthStrip totals={behaviorTotals} loading={loading} />
+
+      <BehaviorCohortTabs active={behaviorCohort} onChange={setBehaviorCohort} />
+
       <SavedViewsBar
         savedViews={savedViews}
         activeViewId={activeViewId}
@@ -644,6 +703,72 @@ function MemberSummaryCards({
             {loading && card.value === undefined ? '…' : (card.value ?? '—')}
           </div>
         </div>
+      ))}
+    </div>
+  )
+}
+
+function BehaviorHealthStrip({
+  totals,
+  loading,
+}: {
+  totals: { learningReport: number; history: number; actions: number; lowTrust: number }
+  loading: boolean
+}) {
+  const cards = [
+    { label: '学情打开 7日', value: totals.learningReport },
+    { label: '历史打开 7日', value: totals.history },
+    { label: '行动开始 7日', value: totals.actions },
+    { label: '低可信行为', value: totals.lowTrust },
+  ]
+  return (
+    <section
+      data-testid="bi-member-behavior-health-strip"
+      className="grid grid-cols-2 gap-3 md:grid-cols-4"
+      aria-label="会员行为健康摘要"
+    >
+      {cards.map(card => (
+        <div
+          key={card.label}
+          className="rounded-2xl border border-cyan-300/15 bg-cyan-300/[0.055] p-3 shadow-lg shadow-black/10"
+        >
+          <div className="text-[11px] font-bold text-cyan-100/80">{card.label}</div>
+          <div className="mt-1 text-2xl font-black tabular-nums text-slate-50">
+            {loading ? '…' : card.value}
+          </div>
+        </div>
+      ))}
+    </section>
+  )
+}
+
+function BehaviorCohortTabs({
+  active,
+  onChange,
+}: {
+  active: string
+  onChange: (next: string) => void
+}) {
+  return (
+    <div
+      data-testid="bi-member-behavior-cohort-tabs"
+      className="flex flex-wrap items-center gap-2 text-xs"
+      aria-label="按行为队列筛选会员"
+    >
+      {BEHAVIOR_COHORTS.map(item => (
+        <button
+          key={item.key || 'all'}
+          type="button"
+          onClick={() => onChange(item.key)}
+          aria-pressed={active === item.key}
+          className={`rounded-full border px-3 py-1 font-bold transition ${
+            active === item.key
+              ? 'border-amber-300/35 bg-amber-300/15 text-amber-50'
+              : 'border-white/10 bg-white/[0.045] text-slate-300 hover:border-white/20 hover:bg-white/[0.07]'
+          }`}
+        >
+          {item.label}
+        </button>
       ))}
     </div>
   )
@@ -937,5 +1062,19 @@ function renderCell(row: MemberRow, key: MemberColumnKey): React.ReactNode {
   if (key === 'region') return row.region ?? '—'
   if (key === 'notes') return <span className="tabular-nums">{row.notes_count ?? 0}</span>
   if (key === 'feedback') return <span className="tabular-nums">{row.feedback_count ?? 0}</span>
+  if (key === 'behavior_report')
+    return <span className="tabular-nums">{row.behavior_learning_report_7d ?? 0}</span>
+  if (key === 'behavior_history')
+    return <span className="tabular-nums">{row.behavior_history_7d ?? 0}</span>
+  if (key === 'behavior_cohort') {
+    const cohort = row.behavior_cohort || ''
+    const tone =
+      cohort && cohort in BEHAVIOR_COHORT_TONE
+        ? BEHAVIOR_COHORT_TONE[cohort as keyof typeof BEHAVIOR_COHORT_TONE]
+        : 'emerald'
+    return <BiStatusPill tone={tone} label={behaviorCohortLabel(cohort)} />
+  }
+  if (key === 'behavior_next_action')
+    return <span className="text-slate-300">{row.behavior_next_action ?? '观察'}</span>
   return null
 }

@@ -12,6 +12,36 @@ export interface MemberDashboard {
   tier_breakdown: Array<{ tier: string; count: number }>
   expiry_breakdown: Array<{ label: string; count: number }>
   recommendations: string[]
+  behavior_health?: {
+    learning_report_open_count_7d: number
+    history_open_count_7d: number
+    action_start_count_7d: number
+    low_trust_count: number
+  }
+}
+
+export interface MemberBehaviorSummary {
+  learning_report_open_count_7d: number
+  history_open_count_7d: number
+  action_start_count_7d: number
+  cohort: string
+  trust_level: 'A' | 'B' | 'C' | string
+}
+
+export interface MemberBehaviorTimelineEvent {
+  event_id: string
+  event_name: string
+  occurred_at_ms: number
+  surface: string
+  module: string
+  section: string
+  action: string
+}
+
+export interface MemberBehaviorPayload {
+  summary: MemberBehaviorSummary
+  learning_report_sections: Array<{ section: string; view_count: number }>
+  timeline: MemberBehaviorTimelineEvent[]
 }
 
 export interface MemberListItem {
@@ -28,6 +58,7 @@ export interface MemberListItem {
   last_active_at: string
   points_balance: number
   review_due: number
+  behavior?: MemberBehaviorSummary
 }
 
 export interface MemberListResponse {
@@ -238,6 +269,7 @@ export interface MemberDetail {
     arbitration_history?: HeartbeatEvent[]
   }
   bot_overlays?: BotOverlaySummary[]
+  behavior?: MemberBehaviorPayload
 }
 
 async function expectJson<T>(response: Response): Promise<T> {

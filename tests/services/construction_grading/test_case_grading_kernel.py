@@ -195,3 +195,139 @@ def test_case_grading_marks_open_skill_when_no_authority_available() -> None:
     assert result.grading_mode == "open_skill"
     assert result.next_training_signal["grading_source"] == "open_skill_fallback"
     assert result.next_training_signal["case_grading_mode"] == "open_skill"
+
+
+def test_grading_key_matches_official_term_punctuation_variants_only() -> None:
+    result = CaseGradingSkillKernel().grade(
+        question_row={"id": "case-official-term-normalization", "node_code": "1A432000"},
+        user_answer="分期分批实施工程的开、竣工日期及工期一览表",
+        grading_key={
+            "scoring_points": [
+                {
+                    "criterion": "P1::分期(分批)实施工程的开、竣工日期及工期一览表",
+                    "keywords": ["分期(分批)实施工程的开、竣工日期及工期一览表"],
+                    "score": 1,
+                }
+            ]
+        },
+    )
+
+    assert result.score_awarded == 1
+    assert result.rubric_items[0].status == "full"
+    assert result.rubric_items[0].keywords == ["分期(分批)实施工程的开、竣工日期及工期一览表"]
+
+
+def test_grading_key_normalization_does_not_expand_synonyms() -> None:
+    result = CaseGradingSkillKernel().grade(
+        question_row={"id": "case-no-synonyms", "node_code": "1A432000"},
+        user_answer="施工单位应诚信经营。",
+        grading_key={
+            "scoring_points": [
+                {
+                    "criterion": "P1::诚实信用",
+                    "keywords": ["诚实信用"],
+                    "score": 1,
+                }
+            ]
+        },
+    )
+
+    assert result.score_awarded == 0
+    assert result.rubric_items[0].status == "miss"
+
+
+def test_grading_key_matches_official_slash_variants_without_synonyms() -> None:
+    result = CaseGradingSkillKernel().grade(
+        question_row={"id": "case-slash-variant", "node_code": "1A412000"},
+        user_answer="受压接头可不受限制。",
+        grading_key={
+            "scoring_points": [
+                {
+                    "criterion": "P1::受压接头(可)不受限制/无限制",
+                    "keywords": ["受压接头(可)不受限制/无限制"],
+                    "score": 1,
+                }
+            ]
+        },
+    )
+
+    assert result.score_awarded == 1
+    assert result.rubric_items[0].status == "full"
+
+
+def test_grading_key_multi_answer_penalty_zeroes_scoped_points_only() -> None:
+    result = CaseGradingSkillKernel().grade(
+        question_row={"id": "case-penalty", "node_code": "1A434000"},
+        user_answer=(
+            "不妥:试验员制作见证记录;不妥:总包支付检测费;"
+            "不妥:检测委托单由试验员填报;不妥:建设单位委托检测机构。"
+            "见证记录还包括取样、制样、标识、封志、送检、现场检测。"
+        ),
+        grading_key={
+            "scoring_points": [
+                {"criterion": "P1::见证人员", "keywords": ["见证人员"], "score": 2},
+                {"criterion": "P2::建设单位", "keywords": ["建设单位"], "score": 2},
+                {"criterion": "P3::现场检测", "keywords": ["现场检测"], "score": 3},
+            ],
+            "penalty_rules": [
+                {
+                    "rule_id": "multi_answer_no_score",
+                    "type": "multi_answer_no_score",
+                    "trigger": {"max_answered_items": 2, "pattern": "不妥"},
+                    "zero_point_ids": ["P1", "P2"],
+                }
+            ],
+        },
+    )
+
+    awarded_by_criterion = {item.criterion: item.awarded_score for item in result.rubric_items}
+    assert awarded_by_criterion["P1::见证人员"] == 0
+    assert awarded_by_criterion["P2::建设单位"] == 0
+    assert awarded_by_criterion["P3::现场检测"] == 3
+    assert result.score_awarded == 3
+    assert result.next_training_signal["penalty_rules_applied"] == ["multi_answer_no_score"]
+
+
+def test_grading_key_rejects_overbroad_compiled_terms() -> None:
+    result = CaseGradingSkillKernel().grade(
+        question_row={"id": "case-overmatch", "node_code": "1A432000"},
+        user_answer="总包合同实施管理的原则有质量第一原则、安全生产原则、进度控制原则。",
+        grading_key={
+            "scoring_points": [
+                {
+                    "criterion": "P2::原则",
+                    "keywords": ["原则"],
+                    "score": 2.4,
+                }
+            ]
+        },
+    )
+
+    assert result.score_awarded == 0
+    assert result.rubric_items[0].status == "miss"
+
+
+def test_grading_key_answer_label_prevents_fill_blank_cross_match() -> None:
+    result = CaseGradingSkillKernel().grade(
+        question_row={"id": "case-fill-blank", "node_code": "1A422000"},
+        user_answer="A：禁止。B：限制。",
+        grading_key={
+            "scoring_points": [
+                {
+                    "criterion": "P1::限制",
+                    "keywords": ["限制"],
+                    "score": 1,
+                    "answer_label": "A",
+                },
+                {
+                    "criterion": "P2::禁止",
+                    "keywords": ["禁止"],
+                    "score": 1,
+                    "answer_label": "B",
+                },
+            ]
+        },
+    )
+
+    assert result.score_awarded == 0
+    assert [item.status for item in result.rubric_items] == ["miss", "miss"]

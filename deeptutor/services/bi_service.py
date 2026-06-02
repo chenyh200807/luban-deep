@@ -37,6 +37,7 @@ _EXPORT_DATASET_LABELS = {
     "feedback_ai": "AI 反馈导出",
     "luban_feedback": "内测回访导出",
     "commerce_ledger": "钱包流水导出",
+    "product_behavior_raw": "产品行为 raw events",
 }
 _EXPORT_FORMATS = {"csv", "json"}
 
@@ -3232,6 +3233,7 @@ class BIService:
             raise ValueError("format must be one of csv, json")
         normalized_operator = str(operator or "").strip() or "admin"
         sanitized_filters = self._sanitize_export_filters(filters or {})
+        is_behavior_raw = normalized_dataset == "product_behavior_raw"
 
         auditor = getattr(self._member_service, "record_bi_audit", None)
         if not callable(auditor):
@@ -3241,7 +3243,8 @@ class BIService:
             "dataset": normalized_dataset,
             "format": normalized_format,
             "filters": sanitized_filters,
-            "scrubbed": True,
+            "scrubbed": not is_behavior_raw,
+            "raw_mode": is_behavior_raw,
             "rate_limit_per_hour": 2,
             "status": "queued",
         }
@@ -3263,7 +3266,8 @@ class BIService:
                 "format": normalized_format,
                 "rows": 0,
                 "status": "queued",
-                "scrubbed": True,
+                "scrubbed": not is_behavior_raw,
+                "raw_mode": is_behavior_raw,
                 "rate_limit_per_hour": 2,
                 "requested_at": datetime.now(timezone.utc).isoformat(),
             },

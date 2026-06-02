@@ -3557,3 +3557,86 @@ def test_assessment_topic_catalog_rejects_invalid_form_bank(monkeypatch: pytest.
     assert by_id["waterproof"]["enabled"] is False
     assert by_id["waterproof"]["quality_status"] == "invalid_form_bank"
     assert by_id["decoration"]["quality_status"] == "insufficient_forms"
+
+
+def test_member_360_includes_product_behavior_snapshot(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from deeptutor.services import observability
+    from deeptutor.services.observability.product_behavior_store import SQLiteProductBehaviorStore
+
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    monkeypatch.setattr(observability, "get_product_behavior_store", lambda: store)
+    now_ms = int(time.time() * 1000)
+    store.record_event(
+        {
+            "event_id": "evt-member-360-1",
+            "event_name": "section_viewed",
+            "event_version": 1,
+            "occurred_at_ms": now_ms,
+            "received_at_ms": now_ms + 100,
+            "user_id": "student_demo",
+            "visit_id": "visit-u1-1",
+            "session_id": "",
+            "turn_id": "",
+            "surface": "web",
+            "module": "learning_report",
+            "section": "next_action",
+            "action": "view",
+            "properties_json": {},
+        }
+    )
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    payload = service.get_member_360("student_demo")
+
+    assert payload["behavior"]["summary"]["learning_report_open_count_7d"] == 0
+    assert payload["behavior"]["learning_report_sections"][0]["section"] == "next_action"
+    assert payload["behavior"]["timeline"][0]["event_name"] == "section_viewed"
+
+
+def test_list_members_loads_behavior_summaries_in_one_batch(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services import observability
+
+    class FakeBehaviorStore:
+        def __init__(self):
+            self.batch_calls = 0
+            self.single_calls = 0
+
+        def get_member_behavior_summaries(self, user_ids, *, days=7):
+            self.batch_calls += 1
+            return {
+                str(user_id): {
+                    "learning_report_open_count_7d": 1,
+                    "history_open_count_7d": 0,
+                    "action_start_count_7d": 0,
+                    "cohort": "",
+                    "trust_level": "B",
+                }
+                for user_id in user_ids
+            }
+
+        def get_member_behavior_summary(self, user_id, *, days=7):
+            self.single_calls += 1
+            raise AssertionError("list_members must use get_member_behavior_summaries")
+
+    fake_store = FakeBehaviorStore()
+    monkeypatch.setattr(observability, "get_product_behavior_store", lambda: fake_store)
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    def _seed_registered_member(data: dict[str, object]) -> None:
+        member = service._build_default_member("real_member_1")
+        member["phone"] = "13800138000"
+        member["display_name"] = "真实会员"
+        data["members"].append(member)
+
+    service._mutate(_seed_registered_member)
+    payload = service.list_members(page=1, page_size=20)
+
+    assert fake_store.batch_calls == 1
+    assert fake_store.single_calls == 0
+    assert payload["items"]
+    assert payload["items"][0]["behavior"]["learning_report_open_count_7d"] == 1

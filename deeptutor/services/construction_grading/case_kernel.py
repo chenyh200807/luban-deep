@@ -18,6 +18,7 @@ from deeptutor.services.construction_grading.schema import (
 )
 
 _VAGUE_PHRASES = ("加强管理", "加强现场管理", "严格检查", "注意安全", "落实责任", "提高意识")
+_OVERBROAD_GRADING_KEYWORDS = {"原则", "材料"}
 
 
 class CaseGradingSkillKernel:
@@ -51,6 +52,7 @@ class CaseGradingSkillKernel:
         rubric_specs: list[dict[str, Any]]
         mode: CaseGradingMode
         gk_specs = _grading_key_rubric_specs(grading_key)
+        penalty_rules = _grading_key_penalty_rules(grading_key)
         if gk_specs:
             rubric_specs = gk_specs
             mode = "curated_rubric"
@@ -63,11 +65,20 @@ class CaseGradingSkillKernel:
                 grading_source = "open_skill_fallback"
 
         answer_text = str(user_answer or "").strip()
+        answer_norm = _normalize_official_term(answer_text)
         item_results: list[CaseRubricItemResult] = []
         error_events: list[GradingErrorEvent] = []
         for spec in rubric_specs:
             keywords = list(spec["keywords"])
-            matched = [keyword for keyword in keywords if keyword and keyword in answer_text]
+            required_context = _normalize_official_term(spec.get("required_context"))
+            match_text = _answer_label_segment(answer_text, spec.get("answer_label"))
+            match_norm = _normalize_official_term(match_text)
+            context_ok = not required_context or required_context in match_norm
+            matched = [
+                keyword
+                for keyword in keywords
+                if context_ok and _official_keyword_matches(keyword, match_norm)
+            ]
             status = "full" if matched else "miss"
             max_score = float(spec["score"])
             awarded = max_score if matched else 0.0
@@ -106,6 +117,11 @@ class CaseGradingSkillKernel:
                 )
             )
 
+        item_results, applied_penalties = _apply_penalty_rules(
+            item_results,
+            answer_text=answer_text,
+            penalty_rules=penalty_rules,
+        )
         score_awarded = sum(item.awarded_score for item in item_results)
         max_score = sum(item.max_score for item in item_results)
         rewrite = _build_rewrite_answer(item_results)
@@ -125,6 +141,7 @@ class CaseGradingSkillKernel:
                 # plan §Phase 3 Step 3.4 / Batch D.2 — single trace label
                 "grading_source": grading_source,
                 "case_grading_mode": mode,
+                "penalty_rules_applied": applied_penalties,
             },
         )
 
@@ -158,6 +175,115 @@ def _external_evidence_refs(rows: list[dict[str, Any]]) -> list[EvidenceRef]:
         if is_meaningful(value):
             refs.append(EvidenceRef(source=source, field=field, value=value))
     return refs
+
+
+def _normalize_official_term(value: Any) -> str:
+    return re.sub(r"[\s()（）《》〈〉、,，；;:：。.!！?？\"'“”‘’/／~-]+", "", str(value or ""))
+
+
+def _official_keyword_variants(keyword: Any) -> list[str]:
+    raw = str(keyword or "")
+    variants = [_normalize_official_term(raw)]
+    optional_removed = re.sub(r"[（(][^()（）]{1,6}[)）]", "", raw)
+    if optional_removed != raw:
+        variants.append(_normalize_official_term(optional_removed))
+    for source in (raw, optional_removed):
+        if "或" in source:
+            variants.extend(_normalize_official_term(part) for part in source.split("或"))
+        if "/" in source or "／" in source:
+            parts = re.split(r"[/／]", source)
+            prefix = _common_variant_prefix(parts)
+            variants.extend(_normalize_official_term(part) for part in parts)
+            variants.extend(_normalize_official_term(prefix + part) for part in parts[1:] if prefix)
+    return [variant for variant in dict.fromkeys(variants) if variant]
+
+
+def _common_variant_prefix(parts: list[str]) -> str:
+    first = parts[0].strip() if parts else ""
+    if len(parts) < 2 or len(first) < 4:
+        return ""
+    match = re.match(r"^([\u4e00-\u9fffA-Za-z0-9]+?)(?:不受限制|受限制|太小|太大|过厚|过低|过高)$", first)
+    return match.group(1) if match else ""
+
+
+def _answer_label_segment(answer_text: str, answer_label: Any) -> str:
+    label = str(answer_label or "").strip()
+    if not label:
+        return answer_text
+    pattern = re.compile(
+        rf"(?:^|[\n；;。])\s*{re.escape(label)}\s*[：:、.．]\s*(.*?)(?=(?:[\n；;。]\s*[A-Z]\s*[：:、.．])|$)",
+        flags=re.S | re.I,
+    )
+    match = pattern.search(answer_text)
+    return match.group(1) if match else ""
+
+
+def _official_keyword_matches(keyword: Any, answer_norm: str) -> bool:
+    raw = str(keyword or "").strip()
+    if not raw or raw in _OVERBROAD_GRADING_KEYWORDS:
+        return False
+    return any(variant in answer_norm for variant in _official_keyword_variants(raw))
+
+
+def _point_id_from_criterion(criterion: str) -> str:
+    if "::" not in criterion:
+        return ""
+    return criterion.split("::", 1)[0].strip()
+
+
+def _grading_key_penalty_rules(grading_key: dict[str, Any] | None) -> list[dict[str, Any]]:
+    if not isinstance(grading_key, dict):
+        return []
+    rules = grading_key.get("penalty_rules")
+    if not isinstance(rules, list):
+        return []
+    return [rule for rule in rules if isinstance(rule, dict)]
+
+
+def _apply_penalty_rules(
+    items: list[CaseRubricItemResult],
+    *,
+    answer_text: str,
+    penalty_rules: list[dict[str, Any]],
+) -> tuple[list[CaseRubricItemResult], list[str]]:
+    if not penalty_rules:
+        return items, []
+    zero_point_ids: set[str] = set()
+    applied: list[str] = []
+    for rule in penalty_rules:
+        if rule.get("type") != "multi_answer_no_score":
+            continue
+        trigger = rule.get("trigger") if isinstance(rule.get("trigger"), dict) else {}
+        pattern = str(trigger.get("pattern") or "").strip()
+        max_answered = int(trigger.get("max_answered_items") or 0)
+        if not pattern or max_answered <= 0:
+            continue
+        if len(re.findall(re.escape(pattern), answer_text)) <= max_answered:
+            continue
+        scoped_ids = {str(point_id).strip() for point_id in rule.get("zero_point_ids") or [] if str(point_id).strip()}
+        if scoped_ids:
+            zero_point_ids.update(scoped_ids)
+            applied.append(str(rule.get("rule_id") or rule.get("type") or "multi_answer_no_score"))
+    if not zero_point_ids:
+        return items, applied
+    adjusted: list[CaseRubricItemResult] = []
+    for item in items:
+        point_id = _point_id_from_criterion(item.criterion)
+        if point_id in zero_point_ids:
+            adjusted.append(
+                CaseRubricItemResult(
+                    criterion=item.criterion,
+                    max_score=item.max_score,
+                    awarded_score=0.0,
+                    status="miss",
+                    keywords=item.keywords,
+                    evidence_text=item.evidence_text,
+                    source_fields=item.source_fields,
+                )
+            )
+        else:
+            adjusted.append(item)
+    return adjusted, applied
 
 
 def _grading_key_rubric_specs(grading_key: dict[str, Any] | None) -> list[dict[str, Any]]:
@@ -201,6 +327,8 @@ def _grading_key_rubric_specs(grading_key: dict[str, Any] | None) -> list[dict[s
                     "keywords": keywords,
                     "score": float(item.get("score") or item.get("max_score") or 1),
                     "source_fields": ["grading_key.scoring_points"],
+                    "answer_label": str(item.get("answer_label") or "").strip(),
+                    "required_context": str(item.get("required_context") or "").strip(),
                 }
             )
     return specs

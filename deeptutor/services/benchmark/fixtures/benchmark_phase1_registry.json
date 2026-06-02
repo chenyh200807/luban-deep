@@ -26,6 +26,11 @@
         "surface.yousenwebview.telemetry.smoke"
       ]
     },
+    "luban_case_grading_shadow": {
+      "case_ids": [
+        "grading.luban_case_golden.v0"
+      ]
+    },
     "answer_citation_shadow": {
       "case_ids": [
         "answer.citation.paper_style.v0"
@@ -50,6 +55,22 @@
       "source_fixture": "tests/fixtures/answer_citation_eval_cases.json",
       "origin_type": "execution_plan",
       "origin_ref": "docs/plan/2026-06-01-luban-paper-style-answer-citations-execution-plan.md",
+      "promotion_status": "candidate",
+      "promoted_from_case_id": ""
+    },
+    "grading.luban_case_golden.v0": {
+      "dataset_id": "benchmark_phase1",
+      "dataset_version": "phase1.0",
+      "case_id": "grading.luban_case_golden.v0",
+      "contract_domain": "grading_quality_contract",
+      "case_tier": "exploratory",
+      "execution_kind": "case_grading_eval",
+      "surface": "backend",
+      "expected_contract": "luban_case_grading_v0_directional_shadow",
+      "failure_taxonomy_scope": [],
+      "source_fixture": "deeptutor/services/benchmark/fixtures/luban_case_grading_golden_v1.json",
+      "origin_type": "manual",
+      "origin_ref": "docs/plan/2026-05-31-luban-grading-truth-golden-eval-campaign-v2-2.md",
       "promotion_status": "candidate",
       "promoted_from_case_id": ""
     },

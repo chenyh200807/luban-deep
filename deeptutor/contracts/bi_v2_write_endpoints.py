@@ -137,7 +137,11 @@ WRITE_ENDPOINTS: tuple[WriteEndpoint, ...] = (
             "BI export request: admin asks for a scrubbed export job. "
             "Backend records bi_export_request audit with dataset, filters, "
             "scrubbing, rate-limit metadata, and idempotency dedup before any "
-            "export job is shown in the UI."
+            "export job is shown in the UI. product_behavior_raw is the only "
+            "P0 raw_mode=true dataset; all other datasets remain scrubbed. "
+            "P0 records the raw export job and audit trail; actual raw CSV "
+            "extraction is deferred until the export worker supports behavior "
+            "rows."
         ),
         audit_action="bi_export_request",
     ),

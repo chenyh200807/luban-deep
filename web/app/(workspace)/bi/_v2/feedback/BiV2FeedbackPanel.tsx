@@ -39,6 +39,7 @@ import {
   getBiInviteTestStats,
   getBiLubanFeedbackResponses,
   getBiLubanFeedbackStats,
+  resolveBiAttachmentUrl,
   type BiFeedbackPayload,
   type BiFeedbackRecord,
   type BiInviteTestApplication,
@@ -2367,10 +2368,7 @@ function FeedbackAttachmentGrid({ attachments }: { attachments: NonNullable<Feed
 }
 
 function resolveFeedbackAttachmentUrl(url: string | undefined): string {
-  const normalized = (url ?? '').trim()
-  if (!normalized) return ''
-  if (/^https?:\/\//.test(normalized)) return normalized
-  return normalized
+  return resolveBiAttachmentUrl(url)
 }
 
 function formatAttachmentSize(value: number | undefined): string {

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import shutil
 import subprocess
+import sys
 import time
 from collections import Counter
 from pathlib import Path
@@ -410,6 +411,94 @@ def _run_yousenwebview_surface_case_set(case_metadata: dict[str, Any]) -> tuple[
     )
 
 
+def _run_luban_case_grading_case_set(
+    *,
+    case_metadata: dict[str, Any],
+    output_dir: Path | None,
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    case_id = str(case_metadata["case_id"])
+    fixture = PROJECT_ROOT / str(case_metadata.get("source_fixture") or "")
+    target_dir = (output_dir or DEFAULT_OUTPUT_DIR) / "luban_case_grading_shadow"
+    command = [
+        sys.executable,
+        str(PROJECT_ROOT / "scripts" / "poc_luban_case_grading_three_arms.py"),
+        "--all",
+        "--fixture",
+        str(fixture),
+        "--output-dir",
+        str(target_dir),
+    ]
+    try:
+        completed = subprocess.run(
+            command,
+            cwd=str(PROJECT_ROOT),
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=60,
+        )
+    except subprocess.TimeoutExpired as exc:
+        result = _make_case_result(
+            suite="luban-case-grading-shadow",
+            case_id=case_id,
+            case_name=case_id,
+            status="FAIL",
+            case_tier=str(case_metadata.get("case_tier") or "exploratory"),
+            failure_type="FAIL_TIMEOUT",
+            evidence={"reason": "case_grading_eval_timeout", "stdout_tail": str(exc.stdout or "")[-1000:]},
+            details={"command": command, "source_fixture": case_metadata.get("source_fixture")},
+        )
+        return _summarize_case_results("luban-case-grading-shadow", [result]), [result]
+    if completed.returncode != 0:
+        result = _make_case_result(
+            suite="luban-case-grading-shadow",
+            case_id=case_id,
+            case_name=case_id,
+            status="FAIL",
+            case_tier=str(case_metadata.get("case_tier") or "exploratory"),
+            failure_type="FAIL_GRADING_EVAL",
+            evidence={
+                "reason": "case_grading_eval_failed",
+                "stdout_tail": completed.stdout[-1000:],
+                "stderr_tail": completed.stderr[-1000:],
+            },
+            details={"command": command, "source_fixture": case_metadata.get("source_fixture")},
+        )
+        return _summarize_case_results("luban-case-grading-shadow", [result]), [result]
+    try:
+        script_payload = json.loads(completed.stdout)
+    except json.JSONDecodeError:
+        script_payload = {"stdout_tail": completed.stdout[-1000:]}
+    summary = script_payload.get("summary") if isinstance(script_payload.get("summary"), dict) else {}
+    artifact_summary = summary.get("artifact_first") if isinstance(summary.get("artifact_first"), dict) else {}
+    baseline_summary = summary.get("baseline") if isinstance(summary.get("baseline"), dict) else {}
+    artifact_delta = artifact_summary.get("mean_abs_score_delta")
+    baseline_delta = baseline_summary.get("mean_abs_score_delta")
+    directional_go = (
+        isinstance(artifact_delta, (int, float))
+        and isinstance(baseline_delta, (int, float))
+        and artifact_delta < baseline_delta
+    )
+    result = _make_case_result(
+        suite="luban-case-grading-shadow",
+        case_id=case_id,
+        case_name=case_id,
+        status="PASS",
+        case_tier=str(case_metadata.get("case_tier") or "exploratory"),
+        evidence={
+            "reason": "case_grading_eval_completed",
+            "directional_go": directional_go,
+            "artifact_first": artifact_summary,
+            "baseline": baseline_summary,
+            "rag": summary.get("rag") if isinstance(summary.get("rag"), dict) else {},
+            "json_path": script_payload.get("json_path"),
+            "md_path": script_payload.get("md_path"),
+        },
+        details={"command": command, "source_fixture": case_metadata.get("source_fixture")},
+    )
+    return _summarize_case_results("luban-case-grading-shadow", [result]), [result]
+
+
 def _run_answer_citation_case_set(
     *,
     case_metadata: dict[str, Any],
@@ -579,6 +668,12 @@ async def _collect_suite_execution(
             include_in_legacy = False
         elif case_id == "surface.yousenwebview.telemetry.smoke":
             legacy_summary, legacy_results = _run_yousenwebview_surface_case_set(case_metadata)
+            include_in_legacy = False
+        elif case_id == "grading.luban_case_golden.v0":
+            legacy_summary, legacy_results = _run_luban_case_grading_case_set(
+                case_metadata=case_metadata,
+                output_dir=output_dir,
+            )
             include_in_legacy = False
         elif case_id == "answer.citation.paper_style.v0":
             legacy_summary, legacy_results = _run_answer_citation_case_set(

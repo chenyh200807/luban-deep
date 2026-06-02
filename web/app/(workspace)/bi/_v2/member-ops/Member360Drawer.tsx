@@ -36,6 +36,8 @@ export function Member360Drawer({
   const [noteDraft, setNoteDraft] = useState('')
   if (!member) return null
   const conversations = detail?.recent_conversations ?? []
+  const behavior = detail?.behavior
+  const behaviorTrust = normalizeTrust(behavior?.summary?.trust_level)
   async function submitNote() {
     if (!member) return
     const note = noteDraft.trim()
@@ -210,6 +212,54 @@ export function Member360Drawer({
           )}
         </Section>
 
+        <Section title="行为时间线" trust={behaviorTrust}>
+          <div data-testid="bi-member-behavior-timeline" className="space-y-2">
+            {behavior?.timeline?.length ? (
+              behavior.timeline.slice(0, 8).map(event => (
+                <div
+                  key={event.event_id}
+                  className="rounded-2xl border border-white/10 bg-white/[0.04] p-3"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="font-bold text-slate-100">{event.event_name}</span>
+                    <span className="text-[11px] text-slate-500">
+                      {formatBehaviorTime(event.occurred_at_ms)}
+                    </span>
+                  </div>
+                  <div className="mt-1 text-[11px] text-slate-400">
+                    {event.surface || 'unknown'} · {event.module || 'unknown'} ·{' '}
+                    {event.section || 'unknown'} · {event.action || 'unknown'}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-2xl border border-dashed border-white/15 bg-white/[0.035] p-3 text-xs leading-5 text-slate-400">
+                暂无行为事件。优先检查前端 surface-telemetry 是否传入 user_id、visit_id 与
+                canonical module。
+              </div>
+            )}
+          </div>
+        </Section>
+
+        <Section title="学情模块分布" trust={behaviorTrust}>
+          <div data-testid="bi-member-learning-report-breakdown" className="space-y-2">
+            {behavior?.learning_report_sections?.length ? (
+              behavior.learning_report_sections.slice(0, 8).map(section => (
+                <KV
+                  key={section.section}
+                  label={section.section || 'unknown'}
+                  value={`${section.view_count} 次`}
+                />
+              ))
+            ) : (
+              <div className="rounded-2xl border border-dashed border-white/15 bg-white/[0.035] p-3 text-xs leading-5 text-slate-400">
+                暂无学情 section 访问。若学员已打开学情但此处为空，优先检查
+                learning_report.section_view 的 section 字段是否归一化。
+              </div>
+            )}
+          </div>
+        </Section>
+
         <Section title="运营记录" trust="A">
           <KV label="备注数" value={`${detail?.recent_notes?.length ?? member.notes_count ?? 0}`} />
           <KV label="反馈数" value={`${member.feedback_count ?? 0}`} />
@@ -232,6 +282,21 @@ export function Member360Drawer({
       </div>
     </BiSidePanel>
   )
+}
+
+function normalizeTrust(value?: string): 'A' | 'B' | 'C' | 'D' {
+  if (value === 'A' || value === 'B' || value === 'C' || value === 'D') return value
+  return 'C'
+}
+
+function formatBehaviorTime(value: number): string {
+  if (!Number.isFinite(value) || value <= 0) return '—'
+  return new Intl.DateTimeFormat('zh-CN', {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(value)
 }
 
 function Section({
