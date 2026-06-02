@@ -170,8 +170,8 @@ async def test_deep_question_post_submit_result_appends_citations(monkeypatch: p
 
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     response = result_event.metadata["response"]
-    assert response == "双扇防火门应按顺序关闭。\n\n关闭顺序是本题的采分关键。"
-    assert "〔1〕" not in response
+    assert response == "双扇防火门应按顺序关闭。〔1〕\n\n关闭顺序是本题的采分关键。〔2〕"
+    assert "〔1〕" in response
     assert "依据" not in response
     assert result_event.metadata["citation_bundle"]["footer_text"].startswith("依据\n〔1〕建筑防火门规范考点")
     assert result_event.metadata["citation_bundle"]["citation_state"] in {"supported", "partial"}
