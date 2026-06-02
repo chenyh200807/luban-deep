@@ -59,6 +59,7 @@
 34. `evidence_bundle.sources` must preserve compact public citation identity/location fields when available: `source_id`, `source_table`, `stable_id`, `source_span`, `content_hash`, `quote_hash`, `node_code`, `taxonomy_path`, source type, title, page, and standard/article locators. It must not expose private learner projections or hidden grading authority.
 35. 对建筑实务学生端的概念讲解 / 查漏补缺类 `concept_like` 查询，source-aware ranking 必须把 2026 教材类 `textbook` 作为主概念 grounding，避免大体量标准库挤掉教材证据；只有显式规范、标准编号、条文解释等 `standard_like` 查询才允许把标准 / 精确条文权重提升到教材之上。“附依据 / 写出处 / 教材口径 / 答题依据”这类引用格式要求不得单独触发 `standard_like`。该约束只改变同一 `RAGService` 内的排序权重，不得新增第二套 RAG 入口或第二套引用来源 authority。
 36. 学生端引用标准 / 规范 / 条文来源时，如果该 source 携带可信 `node_code` 或 `taxonomy_path`，公开 citation locator 必须同时展示“关联教材：第 X 章 / 第 Y 节”这类 2026 教材知识点定位；标准条文本身仍是 evidence source，教材定位是 learner remediation coordinate。缺少可信映射时必须 fail closed，不得凭关键词、标题、`chunk_id`、`source_id`、`stable_id` 硬编或反推教材章节。
+37. 学生端 answer citation 的唯一展示 authority 是结构化 `citation_bundle.refs` / `citation_bundle.footer_text`；最终 `response` 正文不得内联 `〔1〕` marker、不得追加“依据”footer，也不得把引用段落混入“采分点 / 易错点 / 判断依据”等教学正文。前端必须在回答末尾用独立引用区域渲染结构化 refs。
 
 ## 当前统一语义
 

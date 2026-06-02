@@ -573,16 +573,21 @@ module.exports = {
 	          <!-- 流式光标 -->
 	          <view class="cursor" wx:if="{{item.streaming}}"></view>
 
-          <!-- 引用 -->
-          <view class="cite-list" wx:if="{{item.citations && item.citations.length}}">
-            <text class="cite-head">参考来源</text>
-            <view class="cite" wx:for="{{item.citations}}" wx:key="key" wx:for-item="ct">
-              <text class="cite-key">[{{ct.key}}]</text>
-              <view class="cite-body">
-                <text class="cite-title">{{ct.title}}</text>
-              </view>
-            </view>
-          </view>
+	          <!-- 引用 -->
+	          <view class="cite-list" wx:if="{{item.citations && item.citations.length}}">
+	            <view class="cite-head">
+	              <text class="cite-head-main">依据</text>
+	              <text class="cite-head-sub">References</text>
+	            </view>
+	            <view class="cite" wx:for="{{item.citations}}" wx:key="key" wx:for-item="ct">
+	              <text class="cite-key">〔{{ct.key}}〕</text>
+	              <view class="cite-body">
+	                <text class="cite-title">{{ct.title}}</text>
+	                <text class="cite-locator" wx:if="{{ct.locator}}">{{ct.locator}}</text>
+	                <text class="cite-quote" wx:if="{{ct.quote}}">摘录：{{ct.quote}}</text>
+	              </view>
+	            </view>
+	          </view>
         </view>
         <!-- AI 操作栏 — 气泡外部，左对齐 -->
         <view class="msg-actions msg-actions-left" wx:if="{{item.role !== 'user' && !item.streaming && (item.renderableContent || item.blocks.length || (item.mcqCards && item.mcqCards.length))}}">

@@ -28,14 +28,18 @@ var formatted = citationFormat.formatCitation({
   source_type: "textbook",
   title: "2026 建筑实务教材：屋面防水等级",
   locator: "第 3 章 第 3.5.1 节 p.122",
+  public_quote: "屋面防水等级应根据工程重要性确定。",
 });
 
 assertEqual(formatted.key, "1", "citation marker should become numeric key");
 assertEqual(
   formatted.title,
-  "2026 建筑实务教材：屋面防水等级 · 第 3 章 第 3.5.1 节 p.122",
-  "citation_bundle refs should render as readable textbook references",
+  "2026 建筑实务教材：屋面防水等级",
+  "citation title should stay separate from locator",
 );
+assertEqual(formatted.locator, "第 3 章 第 3.5.1 节 p.122", "locator should render as a separate reference line");
+assertEqual(formatted.quote, "屋面防水等级应根据工程重要性确定。", "quote should render as separate reference excerpt");
+assertEqual(formatted.sourceType, "教材", "source type should render as a compact label");
 
 if (fail) {
   console.error(errors.join("\n"));

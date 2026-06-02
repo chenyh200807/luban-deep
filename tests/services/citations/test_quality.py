@@ -9,19 +9,34 @@ from deeptutor.services.citations.schema import CitationBundle, CitationSourceRe
 def _answer(response: str, refs: list[CitationSourceRef]) -> CitedAnswer:
     return CitedAnswer(
         response=response,
-        bundle=CitationBundle(citation_state="supported", refs=refs, claims=[], footer_text="依据"),
+        bundle=CitationBundle(
+            citation_state="supported",
+            refs=refs,
+            claims=[],
+            footer_text="依据\n" + "\n".join(f"{ref.marker}{ref.title}" for ref in refs),
+        ),
     )
 
 
-def test_rejects_orphan_marker() -> None:
-    with pytest.raises(CitationQualityError, match="orphan citation marker"):
+def test_rejects_inline_response_marker() -> None:
+    ref = CitationSourceRef("c1", "〔1〕", "textbook", "教材", "第 1 章")
+    with pytest.raises(CitationQualityError, match="public response cannot contain citation markers"):
+        validate_cited_answer(_answer("正文〔1〕", [ref]))
+
+
+def test_allows_legal_document_number_brackets_in_response() -> None:
+    ref = CitationSourceRef("c1", "〔1〕", "textbook", "教材", "第 1 章")
+    validate_cited_answer(_answer("复工要求可参考建办质〔2020〕8号。", [ref]))
+
+
+def test_rejects_orphan_inline_response_marker() -> None:
+    with pytest.raises(CitationQualityError, match="public response cannot contain citation markers"):
         validate_cited_answer(_answer("正文〔2〕\n\n依据\n〔1〕来源", []))
 
 
-def test_rejects_footer_row_without_visible_marker() -> None:
+def test_allows_structured_footer_rows_without_visible_body_marker() -> None:
     ref = CitationSourceRef("c1", "〔1〕", "textbook", "教材", "第 1 章")
-    with pytest.raises(CitationQualityError, match="footer row without visible marker"):
-        validate_cited_answer(_answer("正文\n\n依据\n〔1〕教材", [ref]))
+    validate_cited_answer(_answer("正文", [ref]))
 
 
 def test_rejects_hidden_public_quote() -> None:
@@ -34,7 +49,7 @@ def test_rejects_hidden_public_quote() -> None:
         public_quote="correct_answer: A",
     )
     with pytest.raises(CitationQualityError, match="hidden authority"):
-        validate_cited_answer(_answer("正文〔1〕\n\n依据\n〔1〕题库", [ref]))
+        validate_cited_answer(_answer("正文", [ref]))
 
 
 def test_rejects_hidden_text_in_response() -> None:
@@ -48,7 +63,7 @@ def test_rejects_hidden_text_in_response() -> None:
     )
 
     with pytest.raises(CitationQualityError, match="hidden authority"):
-        validate_cited_answer(_answer("正文 correct_answer: A〔1〕\n\n依据\n〔1〕题库", [ref]))
+        validate_cited_answer(_answer("正文 correct_answer: A", [ref]))
 
 
 def test_allows_plain_answer_word_without_hidden_field_label() -> None:
@@ -61,7 +76,7 @@ def test_allows_plain_answer_word_without_hidden_field_label() -> None:
         public_quote="屋面防水",
     )
 
-    validate_cited_answer(_answer("The answer depends on the waterproofing grade.〔1〕\n\n依据\n〔1〕教材", [ref]))
+    validate_cited_answer(_answer("The answer depends on the waterproofing grade.", [ref]))
 
 
 def test_safe_runtime_fallback_redacts_hidden_authority_response_body() -> None:
@@ -94,7 +109,7 @@ def test_rejects_hidden_text_in_any_public_ref_field() -> None:
     )
 
     with pytest.raises(CitationQualityError, match="hidden authority"):
-        validate_cited_answer(_answer("正文〔1〕\n\n依据\n〔1〕题库", [ref]))
+        validate_cited_answer(_answer("正文", [ref]))
 
 
 def test_rejects_hidden_nested_public_ref_field() -> None:
@@ -109,7 +124,7 @@ def test_rejects_hidden_nested_public_ref_field() -> None:
     )
 
     with pytest.raises(CitationQualityError, match="hidden authority"):
-        validate_cited_answer(_answer("正文〔1〕\n\n依据\n〔1〕题库", [ref]))
+        validate_cited_answer(_answer("正文", [ref]))
 
 
 @pytest.mark.parametrize("hidden_field", sorted(HIDDEN_AUTHORITY_FIELDS))
@@ -125,19 +140,15 @@ def test_rejects_every_hidden_authority_field_in_response_and_public_ref(hidden_
     )
 
     with pytest.raises(CitationQualityError, match="hidden authority"):
-        validate_cited_answer(_answer(f"正文 {hidden_field}: value〔1〕\n\n依据\n〔1〕教材", [ref]))
+        validate_cited_answer(_answer(f"正文 {hidden_field}: value", [ref]))
 
     with pytest.raises(CitationQualityError, match="hidden authority"):
-        validate_cited_answer(_answer("正文〔1〕\n\n依据\n〔1〕教材", [ref]))
+        validate_cited_answer(_answer("正文", [ref]))
 
 
 def test_accepts_no_public_source_footer() -> None:
     answer = CitedAnswer(
-        response=(
-            "你好\n\n依据\n"
-            "本轮未使用可公开引用的教材、规范、题库或学习证据；"
-            "以上内容仅为通用对话说明，不进入学习事实或评分依据。"
-        ),
+        response="你好",
         bundle=CitationBundle.no_public_source(),
     )
 

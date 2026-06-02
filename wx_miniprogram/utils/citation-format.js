@@ -85,7 +85,7 @@ function _isOpaqueDocId(docId) {
 }
 
 function _sourceKindLabel(citation) {
-  var sourceType = String(citation.source_type || "").toLowerCase();
+  var sourceType = String(citation.source_type || citation.sourceType || "").toLowerCase();
   var sourceTable = String(citation.source_table || "").toLowerCase();
   if (sourceType === "exam" || sourceTable === "questions_bank" || sourceTable === "exam") {
     return "真题";
@@ -106,10 +106,9 @@ function _markerKey(citation) {
 
 function _bundleRefTitle(citation) {
   var title = _clean(citation.title);
-  var locator = _clean(citation.locator);
-  var sourceType = String(citation.source_type || "").toLowerCase();
+  var sourceType = String(citation.source_type || citation.sourceType || "").toLowerCase();
   if (!title || title.toLowerCase() === sourceType || title === "source") return "";
-  return [title, locator].filter(Boolean).join(" · ");
+  return title;
 }
 
 function _buildSourceMeta(citation) {
@@ -184,6 +183,9 @@ function formatCitation(citation) {
   return {
     key: _markerKey(next),
     title: _bundleRefTitle(next) || _buildTitle(next),
+    locator: _clean(next.locator),
+    quote: _clean(next.public_quote || next.quote || next.snippet).slice(0, 220),
+    sourceType: _sourceKindLabel(next) || _clean(next.source_type || next.sourceType),
   };
 }
 

@@ -35,8 +35,10 @@ function toDisplayCitation(ref) {
   return {
     key: String(raw.key || "").trim(),
     marker: String(raw.marker || "").trim(),
+    sourceType: String(raw.source_type || raw.sourceType || "").trim(),
     title: String(raw.title || "").trim(),
     locator: String(raw.locator || "").trim(),
+    quote: String(raw.public_quote || raw.quote || "").trim(),
   };
 }
 

@@ -39,8 +39,10 @@ async def test_chat_emit_sources_and_result_appends_paper_style_citations(monkey
 
     result = next(event for event in stream._history if event.type == StreamEventType.RESULT)
     response = result.metadata["response"]
-    assert "屋面防水等级应根据工程重要性确定。〔1〕" in response
-    assert "\n\n依据\n〔1〕2026 建筑实务教材" in response
+    assert response == "屋面防水等级应根据工程重要性确定。"
+    assert "〔1〕" not in response
+    assert "依据" not in response
+    assert result.metadata["citation_bundle"]["footer_text"].startswith("依据\n〔1〕2026 建筑实务教材")
     assert result.metadata["citation_bundle"]["citation_state"] in {"supported", "partial"}
     content = "".join(
         str(event.content or "")

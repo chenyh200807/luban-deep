@@ -3,7 +3,7 @@ from deeptutor.services.citations.quality import validate_cited_answer
 from deeptutor.services.citations.schema import CitationPolicy
 
 
-def test_assembles_markers_on_multiple_knowledge_lines() -> None:
+def test_assembles_footer_only_references_without_inline_markers() -> None:
     cited = assemble_cited_answer(
         "屋面防水等级应根据工程重要性确定。\n\n设防要求要结合渗漏后果判断。",
         sources=[
@@ -27,16 +27,17 @@ def test_assembles_markers_on_multiple_knowledge_lines() -> None:
         policy=CitationPolicy(),
     )
 
-    assert "屋面防水等级应根据工程重要性确定。〔1〕" in cited.response
-    assert "设防要求要结合渗漏后果判断。〔2〕" in cited.response
-    assert "\n\n依据\n〔1〕2026 建筑实务教材" in cited.response
-    assert "〔2〕屋面工程技术规范，GB 50345-2012 第 3.0.1 条" in cited.response
+    assert cited.response == "屋面防水等级应根据工程重要性确定。\n\n设防要求要结合渗漏后果判断。"
+    assert "〔1〕" not in cited.response
+    assert "依据" not in cited.response
+    assert cited.bundle.footer_text.startswith("依据\n〔1〕2026 建筑实务教材")
+    assert "〔2〕屋面工程技术规范，GB 50345-2012 第 3.0.1 条" in cited.bundle.footer_text
     assert cited.bundle.citation_state == "supported"
     assert len(cited.bundle.claims) == 2
     validate_cited_answer(cited)
 
 
-def test_partial_answer_footer_only_includes_visible_markers() -> None:
+def test_footer_only_keeps_all_public_refs_at_the_end() -> None:
     cited = assemble_cited_answer(
         "屋面防水等级应根据工程重要性确定。",
         sources=[
@@ -57,13 +58,15 @@ def test_partial_answer_footer_only_includes_visible_markers() -> None:
         policy=CitationPolicy(),
     )
 
-    assert "〔1〕" in cited.response
+    assert "〔1〕" not in cited.response
     assert "〔2〕" not in cited.response
-    assert len(cited.bundle.refs) == 1
+    assert len(cited.bundle.refs) == 2
+    assert "〔1〕2026 建筑实务教材" in cited.bundle.footer_text
+    assert "〔2〕施工现场临时用电安全技术规范" in cited.bundle.footer_text
     validate_cited_answer(cited)
 
 
-def test_visible_subset_refs_are_renumbered_contiguously() -> None:
+def test_footer_refs_keep_contiguous_markers_without_body_renumbering() -> None:
     cited = assemble_cited_answer(
         "临时用电组织设计应包含用电负荷计算。",
         sources=[
@@ -84,9 +87,9 @@ def test_visible_subset_refs_are_renumbered_contiguously() -> None:
         policy=CitationPolicy(),
     )
 
-    assert "临时用电组织设计应包含用电负荷计算。〔1〕" in cited.response
+    assert cited.response == "临时用电组织设计应包含用电负荷计算。"
     assert "〔2〕" not in cited.response
-    assert cited.bundle.refs[0].marker == "〔1〕"
+    assert [ref.marker for ref in cited.bundle.refs] == ["〔1〕", "〔2〕"]
     validate_cited_answer(cited)
 
 
@@ -117,9 +120,10 @@ def test_student_surface_prefers_textbook_reference_over_standard_when_available
     )
 
     assert "防火门等级要与使用部位匹配" in cited.response
-    assert cited.bundle.refs[0].source_type == "textbook"
-    assert cited.bundle.refs[0].title.startswith("2026 建筑实务教材")
-    assert "GB 50016-2019 建筑防火" not in cited.bundle.footer_text
+    assert "〔1〕" not in cited.response
+    assert any(ref.source_type == "textbook" for ref in cited.bundle.refs)
+    assert any(ref.title.startswith("2026 建筑实务教材") for ref in cited.bundle.refs)
+    assert "GB 50016-2019 建筑防火" in cited.bundle.footer_text
     validate_cited_answer(cited)
 
 
@@ -149,7 +153,8 @@ def test_student_surface_keeps_standard_reference_for_explicit_standard_claim() 
         policy=CitationPolicy(surface="student"),
     )
 
-    assert cited.bundle.refs[0].source_type == "standard"
+    assert "〔1〕" not in cited.response
+    assert any(ref.source_type == "standard" for ref in cited.bundle.refs)
     assert "GB 50016-2019 建筑防火" in cited.bundle.footer_text
     validate_cited_answer(cited)
 
@@ -158,7 +163,114 @@ def test_assembles_no_public_source_footer_without_fake_marker() -> None:
     cited = assemble_cited_answer("你好，我可以帮你复习。", sources=[], policy=CitationPolicy())
 
     assert cited.response.startswith("你好，我可以帮你复习。")
-    assert "本轮未使用可公开引用" in cited.response
+    assert "本轮未使用可公开引用" not in cited.response
+    assert "本轮未使用可公开引用" in cited.bundle.footer_text
     assert "〔1〕" not in cited.response
     assert cited.bundle.citation_state == "no_public_source"
+    validate_cited_answer(cited)
+
+
+def test_strips_model_generated_inline_reference_noise() -> None:
+    cited = assemble_cited_answer(
+        "屋面防水等级应根据工程重要性确定。〔1〕\n\n## 采分点\n- 按重要程度判断。〔1〕\n\n依据：2026 建筑实务教材第3章。",
+        sources=[
+            {
+                "source_type": "textbook",
+                "title": "2026 建筑实务教材",
+                "metadata": {"source_id": "book_2026_roof_level", "source_span": {"chapter": "3"}},
+                "rag_content": "屋面防水等级应根据工程重要性确定。",
+            },
+        ],
+        policy=CitationPolicy(),
+    )
+
+    assert cited.response == "屋面防水等级应根据工程重要性确定。\n\n## 采分点\n- 按重要程度判断。"
+    assert "依据：" not in cited.response
+    assert "〔1〕" not in cited.response
+    assert "〔1〕2026 建筑实务教材" in cited.bundle.footer_text
+    validate_cited_answer(cited)
+
+
+def test_preserves_legal_document_numbers_and_teaching_basis_lines() -> None:
+    cited = assemble_cited_answer(
+        "防疫复工可参考建办质〔2020〕8号。\n\n依据：关键线路决定总工期。\n\n采分点：先判断，再写依据。",
+        sources=[
+            {
+                "source_type": "textbook",
+                "title": "2026 建筑实务教材",
+                "metadata": {"source_id": "book_2026_schedule_basis", "source_span": {"chapter": "2"}},
+                "rag_content": "关键线路决定总工期，案例题要先判断再写依据。",
+            },
+        ],
+        policy=CitationPolicy(),
+    )
+
+    assert "建办质〔2020〕8号" in cited.response
+    assert "依据：关键线路决定总工期。" in cited.response
+    assert "采分点：先判断，再写依据。" in cited.response
+    assert "〔1〕" not in cited.response
+    validate_cited_answer(cited)
+
+
+def test_preserves_plain_basis_section_without_reference_footer_shape() -> None:
+    cited = assemble_cited_answer(
+        "结论：应封闭管理。\n\n依据\n关键线路决定总工期。\n\n采分点：先判断，再写依据。",
+        sources=[
+            {
+                "source_type": "textbook",
+                "title": "2026 建筑实务教材",
+                "metadata": {"source_id": "book_2026_schedule_basis", "source_span": {"chapter": "2"}},
+                "rag_content": "关键线路决定总工期，案例题要先判断再写依据。",
+            },
+        ],
+        policy=CitationPolicy(),
+    )
+
+    assert "依据\n关键线路决定总工期。" in cited.response
+    assert "采分点：先判断，再写依据。" in cited.response
+    validate_cited_answer(cited)
+
+
+def test_strips_old_answer_footer_only_when_footer_has_reference_shape() -> None:
+    cited = assemble_cited_answer(
+        "屋面防水等级应根据工程重要性确定。\n\n依据\n〔1〕2026 建筑实务教材，第 3 章。摘录：屋面防水等级应根据工程重要性确定。",
+        sources=[
+            {
+                "source_type": "textbook",
+                "title": "2026 建筑实务教材",
+                "metadata": {"source_id": "book_2026_roof_level", "source_span": {"chapter": "3"}},
+                "rag_content": "屋面防水等级应根据工程重要性确定。",
+            },
+        ],
+        policy=CitationPolicy(),
+    )
+
+    assert cited.response == "屋面防水等级应根据工程重要性确定。"
+    assert "〔1〕" not in cited.response
+    validate_cited_answer(cited)
+
+
+def test_strips_last_reference_footer_without_removing_teaching_basis_section() -> None:
+    cited = assemble_cited_answer(
+        "结论：应封闭管理。\n\n"
+        "依据\n"
+        "关键线路决定总工期。\n\n"
+        "采分点：先判断，再写依据。\n\n"
+        "依据\n"
+        "〔1〕2026 建筑实务教材，第 2 章。摘录：关键线路决定总工期。",
+        sources=[
+            {
+                "source_type": "textbook",
+                "title": "2026 建筑实务教材",
+                "metadata": {"source_id": "book_2026_schedule_basis", "source_span": {"chapter": "2"}},
+                "rag_content": "关键线路决定总工期，案例题要先判断再写依据。",
+            },
+        ],
+        policy=CitationPolicy(),
+    )
+
+    assert "依据\n关键线路决定总工期。" in cited.response
+    assert "采分点：先判断，再写依据。" in cited.response
+    assert cited.response.endswith("采分点：先判断，再写依据。")
+    assert "〔1〕" not in cited.response
     validate_cited_answer(cited)

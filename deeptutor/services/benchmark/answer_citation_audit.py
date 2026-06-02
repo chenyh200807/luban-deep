@@ -8,12 +8,17 @@ from pathlib import Path
 from typing import Any
 
 
-MARKER_RE = re.compile(r"〔\d+〕")
+MARKER_RE = re.compile(r"〔\d{1,3}〕")
+INLINE_MARKER_RE = re.compile(r"〔\d{1,3}〕(?=$|[\s，。；;、,.!?！？）\])])")
 FOOTER_RE = re.compile(r"\n{1,2}依据\n", re.MULTILINE)
 
 
 def _markers(text: str) -> set[str]:
     return set(MARKER_RE.findall(text or ""))
+
+
+def _inline_markers(text: str) -> set[str]:
+    return set(INLINE_MARKER_RE.findall(text or ""))
 
 
 def _split_answer_footer(answer: str) -> tuple[str, str]:
@@ -50,18 +55,25 @@ def _hidden_leaks(case: dict[str, Any]) -> list[dict[str, str]]:
     return leaks
 
 
-def _footer_supported(answer: str) -> tuple[bool, list[str]]:
-    body, footer = _split_answer_footer(answer)
+def _footer_supported(answer: str, bundle: dict[str, Any]) -> tuple[bool, list[str]]:
+    refs = [ref for ref in bundle.get("refs") or [] if isinstance(ref, dict)]
+    expected_markers = {str(ref.get("marker") or "").strip() for ref in refs if str(ref.get("marker") or "").strip()}
+    footer = str(bundle.get("footer_text") or "").strip()
+    body, answer_footer = _split_answer_footer(answer)
+    body_markers = _inline_markers(body)
     failures: list[str] = []
+    if body_markers:
+        failures.append(f"answer_contains_inline_markers:{','.join(sorted(body_markers))}")
+    if answer_footer:
+        failures.append("answer_contains_footer")
     if not footer:
         failures.append("missing_footer")
         return False, failures
 
-    body_markers = _markers(body)
     footer_markers = _markers(footer)
 
-    missing_footer_rows = sorted(marker for marker in body_markers if marker not in footer_markers)
-    unknown_footer_rows = sorted(marker for marker in footer_markers if marker not in body_markers)
+    missing_footer_rows = sorted(marker for marker in expected_markers if marker not in footer_markers)
+    unknown_footer_rows = sorted(marker for marker in footer_markers if expected_markers and marker not in expected_markers)
     if missing_footer_rows:
         failures.append(f"missing_footer_rows:{','.join(missing_footer_rows)}")
     if unknown_footer_rows:
@@ -98,7 +110,7 @@ def audit_answer_citation_cases(path: Path) -> dict[str, Any]:
         refs = [ref for ref in bundle.get("refs") or [] if isinstance(ref, dict)]
         answer = str(case.get("answer") or "")
 
-        footer_supported, footer_failures = _footer_supported(answer)
+        footer_supported, footer_failures = _footer_supported(answer, bundle)
         citation_supported, citation_failures = _citation_supported(case, refs)
         leaks = _hidden_leaks(case)
         failures = [*footer_failures, *citation_failures]
