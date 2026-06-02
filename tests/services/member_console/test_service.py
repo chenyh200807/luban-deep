@@ -922,6 +922,11 @@ def test_production_without_supabase_sessions_only_blocks_assessment_paths(
     monkeypatch.delenv("SUPABASE_URL", raising=False)
     monkeypatch.delenv("SUPABASE_SERVICE_ROLE_KEY", raising=False)
     monkeypatch.delenv("SUPABASE_KEY", raising=False)
+    monkeypatch.setattr(
+        member_service_module,
+        "SupabaseAssessmentSessionRepository",
+        lambda: SimpleNamespace(is_configured=False),
+    )
 
     service = MemberConsoleService()
 
@@ -2764,6 +2769,7 @@ def test_assessment_deep_explanation_reads_submitted_report_without_score_mutati
         "generate_llm_deep_explanation",
         _fake_generate_llm_deep_explanation,
     )
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: SimpleNamespace(is_configured=False))
 
     result = asyncio.run(service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1"))
     stored = service.get_assessment_report("student_demo", session["quiz_id"])
@@ -2828,6 +2834,7 @@ def test_assessment_deep_explanation_checks_balance_before_llm_generation(
         "generate_llm_deep_explanation",
         _fail_if_called,
     )
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: SimpleNamespace(is_configured=False))
 
     with pytest.raises(RuntimeError, match="assessment_deep_explanation_insufficient_balance"):
         asyncio.run(service.get_assessment_deep_explanation("student_demo", session["quiz_id"], "q1"))
