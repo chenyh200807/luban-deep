@@ -1294,7 +1294,7 @@ Expected: PASS.
 - Test Fixture: `tests/fixtures/deepseek_usage_export/amount_redacted.csv`
 - Modify: `.env.example`
 
-- [ ] **Step 1: Write balance client tests without network**
+- [x] **Step 1: Write balance client tests without network**
 
 Add:
 
@@ -1339,7 +1339,7 @@ def test_deepseek_usage_export_parser_aggregates_by_key_and_model(tmp_path) -> N
     assert totals.models["deepseek-v4-flash"]["output_tokens"] == 200
 ```
 
-- [ ] **Step 3: Run failing tests**
+- [x] **Step 3: Run failing tests**
 
 Run:
 
@@ -1349,7 +1349,7 @@ pytest tests/services/test_deepseek_billing.py -q
 
 Expected: FAIL because `deepseek_billing.py` does not exist.
 
-- [ ] **Step 4: Implement the adapter**
+- [x] **Step 4: Implement the adapter**
 
 Create dataclasses:
 
@@ -1404,7 +1404,7 @@ Only `get_balance` performs HTTP. `parse_usage_export` and `get_usage_export_tot
 
 The parser must return a manifest containing `source_file_sha256`, `schema_hash`, `billing_cycle`, and `imported_at`. Re-importing the same file hash for the same provider/cycle must produce the same totals and not duplicate any persisted import record.
 
-- [ ] **Step 5: Document env vars**
+- [x] **Step 5: Document env vars**
 
 Append to `.env.example`:
 
@@ -1435,7 +1435,7 @@ Expected: PASS.
 - Create: `deeptutor/services/observability/official_billing_imports.py`
 - Test: `tests/services/test_official_billing_imports.py`
 
-- [ ] **Step 1: Write the failing import idempotency test**
+- [x] **Step 1: Write the failing import idempotency test**
 
 Add:
 
@@ -1469,7 +1469,7 @@ def test_official_billing_import_store_is_idempotent_by_provider_cycle_and_hash(
     assert store.list_imports(provider_name="deepseek", billing_cycle="2026-06")[0].source_file_sha256 == "abc123"
 ```
 
-- [ ] **Step 2: Run the failing import test**
+- [x] **Step 2: Run the failing import test**
 
 Run:
 
@@ -1479,7 +1479,7 @@ pytest tests/services/test_official_billing_imports.py::test_official_billing_im
 
 Expected: FAIL because `official_billing_imports.py` does not exist.
 
-- [ ] **Step 3: Implement the import manifest store**
+- [x] **Step 3: Implement the import manifest store**
 
 Create:
 
@@ -1526,7 +1526,7 @@ class OfficialBillingImportStore:
 
 `record_import` must `INSERT OR IGNORE`, then read back the canonical row and return `inserted=False` for duplicate imports.
 
-- [ ] **Step 4: Wire DeepSeek parser output to the manifest store**
+- [x] **Step 4: Wire DeepSeek parser output to the manifest store**
 
 In `DeepSeekBillingClient.get_usage_export_totals`, after parsing a configured export directory or ZIP, call the store only when parse status is usable:
 
@@ -1544,7 +1544,7 @@ if totals.status in {"ok", "empty"} and totals.manifest.get("source_file_sha256"
 
 Do not persist raw export rows.
 
-- [ ] **Step 5: Run import tests**
+- [x] **Step 5: Run import tests**
 
 Run:
 
