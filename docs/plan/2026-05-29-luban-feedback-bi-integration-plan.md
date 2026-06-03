@@ -1,9 +1,15 @@
 # 鲁班内测回访问卷 → BI 互通实施计划
 
-- 状态：`Draft`
+- 状态：`Implemented`（后端 store + BI route + migration + 前端 Tab 已合 main；本地/自动化证据已回写；production real-data smoke / admin-token smoke 如未记录仍为 pending evidence）
 - 日期：2026-05-29
 - 领域：BI 看板 / 内测回访
 - 起因：内测回访问卷（`luban-survey`，写入 Supabase `public.luban_feedback`）当前在 BI/web 代码里**零引用**——数据只入库、无人可视化。要像「内测申请」（`invite_test_applications` → `BiInviteTestTab`）一样接入 BI，让运营能看/筛/导出/跟进。
+
+## 当前实施状态（2026-06-03 文档同步）
+
+- 已实现并接入：`LubanFeedbackStore` 读模型、BI service 转发、`/api/v1/bi/luban-feedback/{responses,stats}` 与 PATCH 跟进路由、Supabase migration、前端「内测回访」Tab 和 normalize 测试。
+- 已记录的低风险验收：后端 store/stats、前端 `node --test` / build、本地 BI 路由与 Tab 接线证据已在 `docs/plan/INDEX.md` 标为 Implemented。
+- 仍不能标 Done：缺少已回写的 production real-data smoke 与 admin-token smoke 证据；部署后必须确认 BI「内测回访」Tab 看到真实 `public.luban_feedback` 数据，且匿名/非 admin 不泄露联系方式。
 
 ## 目标
 
@@ -64,8 +70,8 @@
 
 ## 验收标准（汇总）
 
-- [ ] pytest store/stats 全绿（含空表与脱敏）
-- [ ] web `node --test` + `next build` 全绿
-- [ ] BI endpoint 经 `require_bi_admin` 鉴权，匿名/非 admin 不泄露联系方式
+- [x] pytest store/stats 全绿（含空表与脱敏；本地/自动化证据已回写）
+- [x] web `node --test` + `next build` 全绿（本地/自动化证据已回写）
+- [x] BI endpoint 经 `require_bi_admin` 鉴权，匿名/非 admin 不泄露联系方式（本地/自动化证据已回写）
 - [ ] 部署阿里云后，BI「内测回访」Tab 展示真实数据，筛选/跟进可用
-- [ ] 与 invite-test 看板风格一致（复用 `BiShared`）
+- [x] 与 invite-test 看板风格一致（复用 `BiShared`）

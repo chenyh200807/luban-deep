@@ -1,6 +1,6 @@
 # PRD：鲁班 Product Behavior Intelligence 产品行为智能系统
 
-- 状态：Proposed v0.4
+- 状态：Implemented P0 locally（自动化与本地视觉/API 证据已完成；WeChat DevTools/真机与 production observation pending，不能标 Done）
 - 日期：2026-06-02
 - 复审：2026-06-02，按 CEO / 产品 / 工程 / 设计 review 加固场景矩阵、P0 触点、数据质量、运营队列、不确定性验证；v0.3 再按工程现实校准，收敛到复用现有 `surface-telemetry` 通路；v0.4 按执行计划工程复审收口为独立 `product_behavior.db` + indexed raw read model，daily/hourly aggregate 延后到 P1 或 volume gate
 - 归属主线：BI / 会员经营后台、学习工作台、Observability
