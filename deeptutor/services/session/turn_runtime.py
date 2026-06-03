@@ -4516,6 +4516,12 @@ class TurnRuntimeManager:
                     turn_id=turn_id,
                     usage_summary=usage_summary,
                 )
+                if billing_capture and billing_capture.get("status") == "captured":
+                    with contextlib.suppress(Exception):
+                        observability.mark_usage_scope_billable(
+                            turn_id=turn_id,
+                            billing_capture=billing_capture,
+                        )
                 if billing_capture:
                     trace_metadata["billing_capture"] = billing_capture
                 self._record_mobile_learning(

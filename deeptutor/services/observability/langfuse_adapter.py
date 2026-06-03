@@ -646,6 +646,17 @@ class LangfuseObservability:
         except Exception as exc:
             logger.debug(f"Usage ledger write skipped: {exc}", exc_info=True)
 
+    def mark_usage_scope_billable(
+        self,
+        *,
+        turn_id: str,
+        billing_capture: dict[str, Any],
+    ) -> int:
+        return self._usage_ledger.mark_turn_billable(
+            turn_id=turn_id,
+            billing_capture=billing_capture,
+        )
+
     @staticmethod
     def normalize_usage_source(source: str | None) -> str:
         source_key = str(source or "estimated").strip().lower()

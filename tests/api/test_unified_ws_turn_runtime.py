@@ -6559,6 +6559,124 @@ async def test_turn_runtime_captures_points_for_mini_program_turns(
 
 
 @pytest.mark.asyncio
+async def test_turn_runtime_marks_usage_scope_billable_after_wallet_capture(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    marked_billable: dict[str, object] = {}
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, _context):
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="chat",
+                stage="responding",
+                content="这是一次会扣分的回复。",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    class FakeWalletService:
+        is_configured = True
+
+        def record_usage_points(
+            self,
+            *,
+            user_id: str,
+            amount_points: int,
+            idempotency_key: str,
+            reference_id: str,
+            reason: str = "capture",
+            reference_type: str = "ai_usage",
+            metadata: dict[str, object] | None = None,
+        ):
+            return {"captured": amount_points}
+
+    def fake_mark_usage_scope_billable(
+        *,
+        turn_id: str,
+        billing_capture: dict[str, object],
+    ) -> int:
+        marked_billable["turn_id"] = turn_id
+        marked_billable["billing_capture"] = dict(billing_capture)
+        return 1
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.get_wallet_service",
+        lambda: FakeWalletService(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.observability.get_current_usage_summary",
+        lambda: {
+            "total_cost_usd": 0.0,
+            "estimated_total_cost_usd": 0.0,
+            "total_tokens": 250,
+            "usage_accuracy": "measured",
+            "usage_sources": {"provider": 1},
+            "models": {"deepseek-v4-flash": 1},
+        },
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.observability.mark_usage_scope_billable",
+        fake_mark_usage_scope_billable,
+    )
+
+    session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "考我一道题",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "billing_context": {
+                    "source": "wx_miniprogram",
+                    "user_id": "student_demo",
+                    "wallet_user_id": "wallet_demo",
+                }
+            },
+        }
+    )
+
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    assert session["id"]
+    assert marked_billable["turn_id"] == turn["id"]
+    billing_capture = marked_billable["billing_capture"]
+    assert billing_capture["status"] == "captured"
+    assert billing_capture["idempotency_key"] == f"mini_program_capture:{turn['id']}"
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_skips_mini_program_capture_without_wallet_authority(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
