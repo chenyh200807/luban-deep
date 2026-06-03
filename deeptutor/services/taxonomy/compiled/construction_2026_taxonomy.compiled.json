@@ -154898,6 +154898,13 @@
       "version": "V25.0 SLIM"
     },
     "path": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/FINAL_CLEANED_TAXONOMY2026.json",
-    "sha256": "01ade710cf7faee4915b6dcfe8075244eaf637613576d4af845326c7a88d5cc1"
+    "sha256": "01ade710cf7faee4915b6dcfe8075244eaf637613576d4af845326c7a88d5cc1",
+    "stats": {
+      "coded_nodes": 3733,
+      "duplicate_code_rows": 2449,
+      "leaf_nodes": 2786,
+      "total_nodes": 3735,
+      "unique_codes": 1284
+    }
   }
 }

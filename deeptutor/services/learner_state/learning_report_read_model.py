@@ -38,6 +38,7 @@ from deeptutor.services.taxonomy.construction_taxonomy import (
     is_non_topic_label,
     normalize_taxonomy_code,
     taxonomy_index,
+    taxonomy_tree_stats,
     textbook_directory,
     textbook_topic_meta,
 )
@@ -1886,22 +1887,13 @@ def _mastery_payload(
 
 
 def _taxonomy_counts() -> dict[str, int]:
-    nodes = list(_safe_dict(taxonomy_index().get("nodes_by_id")).values())
-    coded_nodes = _safe_dict(taxonomy_index().get("nodes_by_code"))
-    parent_refs = {
-        str(_safe_dict(node).get("parent_code") or "").strip()
-        for node in nodes
-        if str(_safe_dict(node).get("parent_code") or "").strip()
-    }
-    leaf_nodes = [
-        node
-        for node in nodes
-        if str(_safe_dict(node).get("id") or _safe_dict(node).get("code") or "").strip() not in parent_refs
-    ]
+    stats = taxonomy_tree_stats()
     return {
-        "total_nodes": len(nodes),
-        "coded_nodes": len(coded_nodes),
-        "leaf_nodes": len(leaf_nodes),
+        "total_nodes": _safe_int(stats.get("total_nodes")),
+        "coded_nodes": _safe_int(stats.get("coded_nodes")),
+        "leaf_nodes": _safe_int(stats.get("leaf_nodes")),
+        "unique_codes": _safe_int(stats.get("unique_codes")),
+        "duplicate_code_rows": _safe_int(stats.get("duplicate_code_rows")),
     }
 
 

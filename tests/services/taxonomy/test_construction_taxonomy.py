@@ -7,6 +7,7 @@ from deeptutor.services.taxonomy.construction_taxonomy import (
     display_taxonomy_label,
     taxonomy_label,
     taxonomy_source_metadata,
+    taxonomy_tree_stats,
 )
 
 
@@ -32,6 +33,16 @@ def test_construction_taxonomy_reads_compiled_final_cleaned_authority() -> None:
 
     assert source["sha256"] == "01ade710cf7faee4915b6dcfe8075244eaf637613576d4af845326c7a88d5cc1"
     assert source["path"].endswith("FINAL_CLEANED_TAXONOMY2026.json")
+
+
+def test_construction_taxonomy_tree_stats_preserve_original_outline_counts() -> None:
+    stats = taxonomy_tree_stats()
+
+    assert stats["total_nodes"] == 3735
+    assert stats["leaf_nodes"] == 2786
+    assert stats["coded_nodes"] == 3733
+    assert stats["unique_codes"] == 1284
+    assert stats["duplicate_code_rows"] == 2449
 
 
 def test_wechat_taxonomy_shadow_is_derived_from_backend_prefix_labels() -> None:

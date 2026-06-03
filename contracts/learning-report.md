@@ -48,6 +48,7 @@
 | `home_dashboard` | `dict \| None` | 首页 dashboard 汇总 | stable |
 | `assessment_profile` | `dict \| None` | 测评画像 | stable |
 | `mastery_dashboard` | `dict \| None` | 掌握度 dashboard | stable |
+| `mastery` | `dict` | 学情页掌握度 projection；由 read model 统一投影，包含 `knowledge_summary` | stable |
 | `quality_signals` | `dict` | 质量指标（dedupe 后，Task 0 已实施） | stable |
 | `learning_brain` | `dict \| None` | 学习大脑 projection | stable |
 | `training_prescription` | `dict` | `training_intent` 的学员可见训练处方 projection | active |
@@ -79,6 +80,7 @@ v2 新增字段（Task 1-5 实施后逐步引入）：
 | `next_best_actions` | `list[dict]` | `training_intent` 的解释视图，必须带 `why_this_now` 和证据引用 | GBrain P0 | active |
 | `today_prescription` | `dict` | 学员可见的今日处方；只能由 `training_intent` / `next_best_actions` 派生 | GBrain P1 | active |
 | `mastery.dimensions` | `list[dict]` | 掌握度维度；包含 score/status/confidence，但不得伪装成稳定真相 | Stage 1 | active |
+| `mastery.knowledge_summary` | `dict` | taxonomy/textbook-directory 知识地图摘要；只表达教材目录覆盖和证据定位，不等同 mastery truth | Stage 1 | active |
 | `i18n_keys` | `dict` | v2 UI copy key，当前 locale=`zh-CN` | Stage 1 | active |
 
 v2 `authority` 必须额外声明以下来源，供前端和 QA 验证 single authority：
@@ -92,6 +94,7 @@ v2 `authority` 必须额外声明以下来源，供前端和 QA 验证 single au
 | `home_context_source` | `home_dashboard.today_focus/recommended_prompts` |
 | `personalization_context_source` | `PersonalizationContextPack` from learner-state read helpers |
 | `next_best_action_source` | `training_intent` view/explain |
+| `knowledge_map_source` | `taxonomy_index/textbook_directory + learning-report-read-model evidence/mastery projection` |
 
 **v1 Retirement 计划：**
 
@@ -178,6 +181,51 @@ v2 `authority` 必须额外声明以下来源，供前端和 QA 验证 single au
   - `next_best_actions` 是 `training_intent` 上的 view/explain 层，不得自决处方。
   - `today_prescription` 必须来自 `training_intent` / `next_best_actions`，且非 starter action
     必须暴露 `why_this_now` 与 `evidence_refs`。无证据学员只能收到 starter action，不得生成假个性化。
+
+### 3.7 Knowledge Summary Projection
+
+- **Owner 文件**：`deeptutor/services/learner_state/learning_report_read_model.py`
+- **唯一目录 authority**：`deeptutor/services/taxonomy/textbook_directory.py`、`taxonomy_tree_stats()` 与 taxonomy resolver/index
+- **用途**：把全局 taxonomy 节点数、叶子节点数、13 章教材目录和已有学习证据定位成学情页可读的知识地图。
+- **稳定字段**：
+
+| 字段 | 类型 | 含义 |
+|---|---|---|
+| `mastery.knowledge_summary.total_nodes` | `int` | taxonomy 总节点数 |
+| `mastery.knowledge_summary.coded_nodes` | `int` | 有 code 的原始 taxonomy 节点行数；当前为 3733，不等同唯一 code 数 |
+| `mastery.knowledge_summary.leaf_nodes` | `int` | 最细知识点数量 |
+| `mastery.knowledge_summary.unique_codes` | `int` | 原始 taxonomy 中唯一 code 数；当前为 1284 |
+| `mastery.knowledge_summary.duplicate_code_rows` | `int` | 重复 code 行数；用于解释为什么唯一 code 少于带 code 节点 |
+| `mastery.knowledge_summary.total_textbook_chapters` | `int` | 教材章数，当前建筑实务为 13 |
+| `mastery.knowledge_summary.evaluated_topics` | `int` | 已被 evidence/mastery 输入定位到的主题数 |
+| `mastery.knowledge_summary.evaluated_leaf_points` | `int` | 已定位的叶子知识点数 |
+| `mastery.knowledge_summary.mastered_topics` | `int` | 当前 projection 中状态为 strong 的主题数 |
+| `mastery.knowledge_summary.developing_topics` | `int` | 当前 projection 中状态为 normal/observed 的主题数 |
+| `mastery.knowledge_summary.weak_topics` | `int` | 当前 projection 中状态为 weak 的主题数 |
+| `mastery.knowledge_summary.unmeasured_leaf_points` | `int` | 尚未被 evidence 定位的叶子知识点数 |
+| `mastery.knowledge_summary.textbook_chapters[]` | `list[dict]` | 按教材目录排序的章级进度 |
+
+`textbook_chapters[]` 字段：
+
+| 字段 | 类型 | 含义 |
+|---|---|---|
+| `chapter_no` | `int` | 教材章号 |
+| `chapter_name` | `str` | 展示章名，形如 `第1章 建筑工程设计技术` |
+| `section_count` | `int` | 该章目录小节数 |
+| `evaluated_topics` | `int` | 该章已定位主题数 |
+| `mastered_topics` | `int` | 该章 strong 主题数 |
+| `developing_topics` | `int` | 该章 normal/observed 主题数 |
+| `weak_topics` | `int` | 该章 weak 主题数 |
+| `top_topics` | `list[str]` | 最多 3 个已定位主题名 |
+| `status` | `unseen \| developing \| weak \| strong` | 章级展示状态 |
+
+**硬约束：**
+
+1. `knowledge_summary` 是只读 projection，不写 learner-state，不新增第二套 `knowledge_map_progress` / `textbook_progress` authority。
+2. 全量节点统计必须来自原始 taxonomy outline 或 compiled artifact 中固化的 `source.stats`，不得用 `nodes_by_code` / 去歧义检索索引反推总节点或叶子节点。
+3. `evaluated_topics` 表示“已定位/有证据”，不得解释成“已掌握”。
+4. 教材章节覆盖率不得直接作为全局 mastery；全局 mastery 仍由 `mastery.overall_mastery` 按 evidence sufficiency 产出。
+5. 前端只能做 snake_case 到 camelCase 的展示适配，不得自行计算 `textbook_chapters` 或从题数推导 chapter status。
 
 ---
 

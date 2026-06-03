@@ -451,6 +451,24 @@
               <text class="mastery-unit">%</text>
             </view>
             <text class="mastery-label">总体掌握度</text>
+            <view class="mastery-map-row" wx:if="{{knowledgeSummary.totalTextbookChapters || knowledgeSummary.total_textbook_chapters}}">
+              <view class="mastery-map-item">
+                <text class="mastery-map-num">{{knowledgeSummary.totalTextbookChapters || knowledgeSummary.total_textbook_chapters}}</text>
+                <text class="mastery-map-label">教材章节</text>
+              </view>
+              <view class="mastery-map-item">
+                <text class="mastery-map-num">{{knowledgeSummary.leafNodes || knowledgeSummary.leaf_nodes}}</text>
+                <text class="mastery-map-label">最细知识点</text>
+              </view>
+              <view class="mastery-map-item">
+                <text class="mastery-map-num">{{knowledgeSummary.evaluatedTopics || knowledgeSummary.evaluated_topics}}</text>
+                <text class="mastery-map-label">已定位主题</text>
+              </view>
+              <view class="mastery-map-item warn">
+                <text class="mastery-map-num">{{knowledgeSummary.weakTopics || knowledgeSummary.weak_topics}}</text>
+                <text class="mastery-map-label">薄弱主题</text>
+              </view>
+            </view>
             <view class="mastery-sub-row">
               <view class="mastery-sub-item">
                 <text class="mastery-sub-num">{{reviewSummary.total_due || 0}}</text>
@@ -466,6 +484,25 @@
                 <text class="mastery-sub-num">{{hotspots.length}}</text>
                 <text class="mastery-sub-label">热点</text>
               </view>
+            </view>
+          </view>
+
+          <view class="section-header" wx:if="{{textbookChapters.length}}">
+            <text class="section-title">教材目录进度</text>
+            <text class="section-subtitle">先按 13 章看全局，再展开章节看知识点</text>
+          </view>
+
+          <view class="textbook-directory glass-card" wx:if="{{textbookChapters.length}}">
+            <view
+              class="directory-row status-{{item.status}}"
+              wx:for="{{textbookChapters}}"
+              wx:key="chapterNo"
+            >
+              <view class="directory-main">
+                <text class="directory-title">{{item.chapterName}}</text>
+                <text class="directory-meta">{{item.sectionCount}} 节 · 已定位 {{item.evaluatedTopics}} · 薄弱 {{item.weakTopics}}</text>
+              </view>
+              <text class="directory-status">{{item.weakTopics ? '需补强' : item.evaluatedTopics ? '有证据' : '未覆盖'}}</text>
             </view>
           </view>
 

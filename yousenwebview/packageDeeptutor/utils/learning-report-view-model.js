@@ -349,6 +349,8 @@ function normalizeKnowledgeSummary(source) {
     totalNodes: asNumber(summary.total_nodes || summary.totalNodes, 0),
     codedNodes: asNumber(summary.coded_nodes || summary.codedNodes, 0),
     leafNodes: asNumber(summary.leaf_nodes || summary.leafNodes, 0),
+    uniqueCodes: asNumber(summary.unique_codes || summary.uniqueCodes, 0),
+    duplicateCodeRows: asNumber(summary.duplicate_code_rows || summary.duplicateCodeRows, 0),
     totalTextbookChapters: asNumber(summary.total_textbook_chapters || summary.totalTextbookChapters, chapters.length),
     evaluatedTopics: asNumber(summary.evaluated_topics || summary.evaluatedTopics, 0),
     evaluatedLeafPoints: asNumber(summary.evaluated_leaf_points || summary.evaluatedLeafPoints, 0),
