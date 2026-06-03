@@ -37,6 +37,10 @@ Not completed, and must remain production blockers:
 2. WeChat DevTools / true mini-program regression after automated renderer tests.
 3. Live Langfuse / ClickHouse citation metrics sampling after enabling the feature flag in a shadow environment.
 
+## High-Risk Contract Drift — 2026-06-03
+
+`contracts/rag.md` currently defines structured `citation_bundle.refs` / `citation_bundle.footer_text` as the student-facing citation display authority, and says canonical `response` must not inline `〔n〕` markers or append a prose `依据` footer. This plan and current citation tests still describe or expect inline `〔n〕` markers in the final response body. Treat this as high-risk drift: do not mark production Done, do not auto-edit the contract, and do not change implementation in this low-risk docs sync. Manual decision is required to either align implementation/tests/this plan to structured-only rendering, or revise the RAG contract through the normal contract process.
+
 ---
 
 ## 0. v1.1 Review Fixes
