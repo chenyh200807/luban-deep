@@ -180,11 +180,14 @@ function _buildTitle(citation) {
 
 function formatCitation(citation) {
   var next = citation || {};
+  var quote = _clean(next.public_quote || next.quote || next.snippet).slice(0, 220);
   return {
     key: _markerKey(next),
     title: _bundleRefTitle(next) || _buildTitle(next),
     locator: _clean(next.locator),
-    quote: _clean(next.public_quote || next.quote || next.snippet).slice(0, 220),
+    quote: quote,
+    quoteExpanded: false,
+    quoteActionText: "查看摘录",
     sourceType: _sourceKindLabel(next) || _clean(next.source_type || next.sourceType),
   };
 }

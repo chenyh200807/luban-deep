@@ -3118,6 +3118,25 @@ Page({
     this.setData({ feedbackMsgId: "", feedbackTags: [], feedbackComment: "" });
   },
 
+  onToggleCitationQuote: function (e) {
+    var dataset = (e && e.currentTarget && e.currentTarget.dataset) || {};
+    var msgid = String(dataset.msgid || "").trim();
+    var citeIndex = Number(dataset.citeindex);
+    var idx = this._find(msgid);
+    if (idx === -1 || !Number.isFinite(citeIndex) || citeIndex < 0) return;
+    var msg = this.data.messages[idx] || {};
+    var citations = Array.isArray(msg.citations) ? msg.citations : [];
+    var current = citations[citeIndex];
+    if (!current || !current.quote) return;
+    var expanded = !current.quoteExpanded;
+    var updates = {};
+    updates["messages[" + idx + "].citations[" + citeIndex + "].quoteExpanded"] = expanded;
+    updates["messages[" + idx + "].citations[" + citeIndex + "].quoteActionText"] = expanded
+      ? "收起摘录"
+      : "查看摘录";
+    this.setData(updates);
+  },
+
   // [W5-1] Network restored — refresh dashboard and hint user about failed messages
   onNetworkRestore: function () {
     this._loadDashboard();
