@@ -1561,7 +1561,7 @@ Expected: PASS.
 - Create: `deeptutor/services/observability/provider_reconciliation.py`
 - Test: `tests/services/test_provider_reconciliation.py`
 
-- [ ] **Step 1: Write delta tests**
+- [x] **Step 1: Write delta tests**
 
 Add:
 
@@ -1609,7 +1609,7 @@ def test_build_reconciliation_delta_refuses_cross_currency_amount_delta() -> Non
     assert "currency_mismatch" in result["warnings"]
 ```
 
-- [ ] **Step 2: Run failing tests**
+- [x] **Step 2: Run failing tests**
 
 Run:
 
@@ -1619,7 +1619,7 @@ pytest tests/services/test_provider_reconciliation.py -q
 
 Expected: FAIL because the helper does not exist.
 
-- [ ] **Step 3: Implement provider-neutral delta helper**
+- [x] **Step 3: Implement provider-neutral delta helper**
 
 Return a plain dict shaped for BI:
 
@@ -1651,7 +1651,7 @@ Status rules in this helper:
 - Return `scope_mismatch` when internal and official account/key/workspace scope values disagree.
 - Include `cost_basis` in every response so BI cannot silently mix margin and finance views.
 
-- [ ] **Step 4: Run reconciliation helper tests**
+- [x] **Step 4: Run reconciliation helper tests**
 
 Run:
 
