@@ -2,6 +2,7 @@ from deeptutor.services.observability.provider_reconciliation import (
     BillingScope,
     CostBasis,
     ProviderAccountScope,
+    build_reconciliation_delta,
     fingerprint_secret,
 )
 
@@ -48,3 +49,43 @@ def test_provider_account_scope_matches_official_key_identity() -> None:
     assert scope.matches_official_key({"key_id": "key_123"}) is True
     assert scope.matches_official_key({"key_label": "prod-main"}) is True
     assert scope.matches_official_key({"key_id": "other"}) is False
+
+
+def test_build_reconciliation_delta_flags_large_official_gap() -> None:
+    result = build_reconciliation_delta(
+        provider_name="deepseek",
+        cost_basis="list_price_cost",
+        internal={
+            "total_tokens": 1200,
+            "currency_amounts": {"USD": 0.0001},
+            "billable_turns": 1,
+            "provider_calls": 1,
+            "unattributed_provider_calls": 0,
+        },
+        official={
+            "total_tokens": 1000,
+            "currency_amounts": {"USD": 0.0002},
+        },
+        warn_ratio=0.05,
+    )
+
+    assert result["provider_name"] == "deepseek"
+    assert result["cost_basis"] == "list_price_cost"
+    assert result["token_delta"] == 200
+    assert result["amount_delta_by_currency"]["USD"] == -0.0001
+    assert result["status"] == "warning"
+    assert result["cost_per_billable_turn"]["USD"] == 0.0001
+
+
+def test_build_reconciliation_delta_refuses_cross_currency_amount_delta() -> None:
+    result = build_reconciliation_delta(
+        provider_name="deepseek",
+        cost_basis="list_price_cost",
+        internal={"total_tokens": 1200, "currency_amounts": {"USD": 0.0001}},
+        official={"total_tokens": 1200, "currency_amounts": {"CNY": 0.0007}},
+        warn_ratio=0.05,
+    )
+
+    assert result["status"] == "warning"
+    assert result["amount_delta_by_currency"] == {}
+    assert "currency_mismatch" in result["warnings"]

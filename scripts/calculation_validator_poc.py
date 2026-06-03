@@ -33,9 +33,7 @@ def _to_float(s: str) -> float | None:
         return None
 
 
-def expected_from_label(label: str) -> tuple[float, str] | None:
-    """Pull the result value + unit from a calculation label (last '=NUM 单位' or 'NUM 单位')."""
-    text = str(label or "")
+def _last_number_with_unit(text: str) -> tuple[float, str] | None:
     best = None
     best_pos = -1
     # The final result is stated last; pick the value+unit at the maximum text position.
@@ -45,6 +43,22 @@ def expected_from_label(label: str) -> tuple[float, str] | None:
             if v is not None and m.start() > best_pos:
                 best, best_pos = (v, unit), m.start()
     return best
+
+
+def expected_from_label(label: str) -> tuple[float, str] | None:
+    """Pull the result value + unit from a calculation label.
+
+    Prefer quoted answer phrases because labels often include distractor numbers
+    such as unit prices or durations in explanatory parentheses.
+    """
+    text = str(label or "")
+    quoted_segments = re.findall(r"'([^']+)'|\"([^\"]+)\"|“([^”]+)”", text)
+    for groups in quoted_segments:
+        segment = next((item for item in groups if item), "")
+        result = _last_number_with_unit(segment)
+        if result:
+            return result
+    return _last_number_with_unit(text)
 
 
 def student_value(answer: str, unit: str, expected: float) -> tuple[float | None, str]:
