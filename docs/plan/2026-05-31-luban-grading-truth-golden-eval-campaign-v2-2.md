@@ -970,6 +970,17 @@ Interpretation: r4 supersedes r3 and intentionally lowers the certification head
 
 ---
 
+## 6.11 实验记录追加（2026-06-03，对真人切片 po_slice_20260601）
+
+> 全部 directional/shadow，不进生产门、不接 RAG、不碰 `CaseGradingSkillKernel` runtime、不改 golden fixture。
+
+- **当前最佳方向 = GPT5.5 + Opus 4.8 对抗 dual**：`point_hit_agreement=0.9389`、`mean_abs_delta=0.4645`、unsupported=0，对规则基线（0.5267 / 4.6091）+41 点、逼近 ledger 天花板（0.4292）。架构验证：可审计 artifact（权威）+ LLM 证据理解 + **跨模型对抗审查**（守踩字纪律）。证据 `artifacts/luban_agentic_grading_harness/po_slice_20260601_agentic_20260602/FINDING_four_arm_agentic_grading_20260603.md`。
+- **全局 required_terms hard guardrail = 负结果**：list/exact/both 变体均退步（0.9008/0.9084/0.8702 < dual 0.9389）。根因：现有 `required_terms` 即让 artifact_first 只有 0.5267 的不完美踩字集，当硬门会切掉 LLM 正确给分的合法变体。**只能 typed、不能全局。**
+- **DeepSeek-v4-flash shadow = no-go（单模型三角色）**：DeepSeek 原生 API 实测可用，deepseek-v4-flash 跑完 131 point，三角色全部 `0.8855 / ≈0.87 / unsupported=3`，三门全未过。核心负结果：**单模型自审自裁≈零 lift**（dual 仅改 2/131），缺跨模型异质性；primary 踩字不弱但 span 可靠性差。建议保留 GPT/Opus 为离线 teacher/auditor，下一步只试跨模型（flash×pro）。证据 `..._deepseek_shadow_20260603/FINDING_deepseek_v4_flash_shadow_20260603.md`。
+- **calculation numeric validator 窄 POC = 当前无 lift**：label-正则抽期望值不可靠（22 correct/4 wrong、1 假阳性、真实修复 0、引入 false negative），需结构化 `expected_value` 字段。证据 `..._deepseek_shadow_20260603/FINDING_calculation_validator_poc_20260603.md`。
+
+---
+
 ## 7. Revised 4-week / 8-week route
 
 > SOP 六阶段（Stage 0–5，§6.2–§6.7）映射进周计划，新增 **Week 0 体系前置**：Stage 0 不冻结，后面全废。

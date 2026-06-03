@@ -255,6 +255,24 @@ function loadChatPage() {
     );
   });
 
+  await run("first _doSend should not send a local draft session as conversation_id", async function () {
+    var loaded = loadChatPage();
+    loaded.page._sid = "s_1780445194569";
+    loaded.page._convId = null;
+
+    loaded.page._doSend("继续追问房子专项训练");
+
+    assert(loaded.streamCalls.length === 1, "local draft session should still enter ws stream");
+    assert(
+      loaded.streamCalls[0].sessionId === "",
+      "local draft session must not be sent as the backend conversation id",
+    );
+    assert(
+      !loaded.page._pendingTurn,
+      "pending turn should wait for the authoritative start-turn conversation id",
+    );
+  });
+
   if (fail) {
     console.error(errors.join("\n"));
     process.exit(1);

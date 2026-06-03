@@ -577,12 +577,15 @@ module.exports = {
 	              <text class="cite-head-main">依据</text>
 	              <text class="cite-head-sub">References</text>
 	            </view>
-	            <view class="cite" wx:for="{{item.citations}}" wx:key="key" wx:for-item="ct">
+	            <view class="cite" wx:for="{{item.citations}}" wx:key="key" wx:for-item="ct" wx:for-index="ctIndex">
 	              <text class="cite-key">〔{{ct.key}}〕</text>
 	              <view class="cite-body">
 	                <text class="cite-title">{{ct.title}}</text>
 	                <text class="cite-locator" wx:if="{{ct.locator}}">{{ct.locator}}</text>
-	                <text class="cite-quote" wx:if="{{ct.quote}}">摘录：{{ct.quote}}</text>
+	                <view class="cite-toggle" wx:if="{{ct.quote}}" bindtap="onToggleCitationQuote" data-msgid="{{item.id}}" data-citeindex="{{ctIndex}}" aria-role="button" aria-label="{{ct.quoteActionText}}">
+	                  <text>{{ct.quoteActionText}}</text>
+	                </view>
+	                <text class="cite-quote" wx:if="{{ct.quote && ct.quoteExpanded}}">摘录：{{ct.quote}}</text>
 	              </view>
 	            </view>
 	          </view>

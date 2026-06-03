@@ -1,5 +1,6 @@
 from deeptutor.services.citations.assembler import assemble_cited_answer
 from deeptutor.services.citations.quality import validate_cited_answer
+from deeptutor.services.citations.runtime import citation_metrics
 from deeptutor.services.citations.schema import CitationPolicy
 
 
@@ -31,10 +32,36 @@ def test_assembles_footer_only_references_without_inline_markers() -> None:
     assert "〔1〕" not in cited.response
     assert "依据" not in cited.response
     assert cited.bundle.footer_text.startswith("依据\n〔1〕2026 建筑实务教材")
-    assert "〔2〕屋面工程技术规范，GB 50345-2012 第 3.0.1 条" in cited.bundle.footer_text
+    assert "〔2〕屋面工程技术规范｜GB 50345-2012 第 3.0.1 条" in cited.bundle.footer_text
     assert cited.bundle.citation_state == "supported"
     assert len(cited.bundle.claims) == 2
     validate_cited_answer(cited)
+
+
+def test_citation_metrics_separate_provider_tokens_from_display_payload() -> None:
+    cited = assemble_cited_answer(
+        "屋面防水等级应根据工程重要性确定。",
+        sources=[
+            {
+                "source_type": "textbook",
+                "title": "2026 建筑实务教材",
+                "metadata": {
+                    "source_id": "book_2026_roof_level",
+                    "source_span": {"chapter": "1", "section": "1.4"},
+                },
+                "rag_content": "屋面防水等级应根据工程重要性确定。",
+            },
+        ],
+        policy=CitationPolicy(),
+    )
+
+    metrics = citation_metrics(cited.bundle)
+
+    assert metrics["citation_ref_count"] == 1
+    assert metrics["citation_footer_chars"] == len(cited.bundle.footer_text)
+    assert metrics["citation_public_quote_chars"] == len("屋面防水等级应根据工程重要性确定。")
+    assert metrics["citation_public_payload_bytes"] > metrics["citation_footer_chars"]
+    assert metrics["citation_display_cost_source"] == "post_llm_public_projection"
 
 
 def test_footer_only_keeps_all_public_refs_at_the_end() -> None:

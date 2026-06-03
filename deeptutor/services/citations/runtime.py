@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import Any
 
 from deeptutor.services.citations.assembler import assemble_cited_answer
@@ -45,11 +46,21 @@ def citation_metrics(bundle: CitationBundle) -> dict[str, Any]:
     cited_claims = [
         claim for claim in bundle.claims if any(citation_id for citation_id in claim.citation_ids)
     ]
+    public_payload = bundle.to_public_dict()
+    public_payload_bytes = len(
+        json.dumps(public_payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    )
+    public_quote_chars = sum(len(str(ref.public_quote or "")) for ref in bundle.refs)
     return {
         "citation_state": bundle.citation_state,
         "citation_ref_count": len(bundle.refs),
         "citation_claim_count": len(bundle.claims),
         "citation_source_types": source_types,
+        "citation_footer_chars": len(str(bundle.footer_text or "")),
+        "citation_marker_count": len(public_markers),
+        "citation_public_quote_chars": public_quote_chars,
+        "citation_public_payload_bytes": public_payload_bytes,
+        "citation_display_cost_source": "post_llm_public_projection",
         "citation_quality": {
             "hidden_leak_detected": False,
             "orphan_marker_count": 0,

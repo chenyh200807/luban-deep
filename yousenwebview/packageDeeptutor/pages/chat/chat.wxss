@@ -1393,6 +1393,14 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 20rpx; line-height: 1.45; color: rgba(125,211,252,0.74);
 }
+.cite-toggle {
+  align-self: flex-start;
+  padding: 4rpx 0;
+  font-size: 20rpx;
+  line-height: 1.4;
+  color: rgba(96,165,250,0.90);
+  font-weight: 650;
+}
 .cite-quote { font-size: 20rpx; line-height: 1.55; color: rgba(148,163,184,0.72); }
 
 

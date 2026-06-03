@@ -2365,6 +2365,94 @@ async def test_tutorbot_capability_streams_safe_public_deltas_without_final_dupl
 
 
 @pytest.mark.asyncio
+async def test_tutorbot_capability_streams_public_deltas_when_citations_are_enabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("TUTORBOT_STREAM_PUBLIC_DELTAS", "1")
+    monkeypatch.setenv("DEEPTUTOR_ANSWER_CITATIONS_ENABLED", "true")
+
+    class FakeManager:
+        async def ensure_bot_running(self, bot_id: str, config=None):
+            return SimpleNamespace(running=True)
+
+        def build_chat_session_key(
+            self,
+            bot_id: str,
+            conversation_id: str,
+            user_id: str | None = None,
+        ) -> str:
+            return f"bot:{bot_id}:chat:{conversation_id}"
+
+        def _infer_conversation_title(self, text: str) -> str:
+            return text[:8]
+
+        async def send_message(
+            self,
+            *,
+            bot_id: str,
+            content: str,
+            chat_id: str = "web",
+            on_progress=None,
+            on_content_delta=None,
+            on_tool_call=None,
+            on_tool_result=None,
+            mode: str = "smart",
+            session_key: str | None = None,
+            session_metadata: dict[str, Any] | None = None,
+        ) -> str:
+            if on_tool_result is not None:
+                await on_tool_result(
+                    "rag",
+                    "屋面防水等级应根据工程重要性确定。",
+                    {
+                        "sources": [
+                            {
+                                "title": "2026 建筑实务教材",
+                                "source_type": "textbook",
+                                "content": "屋面防水等级应根据工程重要性确定。",
+                            }
+                        ]
+                    },
+                )
+            if on_content_delta is not None:
+                await on_content_delta("结论：屋面防水等级")
+                await on_content_delta("应根据工程重要性确定。")
+            return "结论：屋面防水等级应根据工程重要性确定。"
+
+    monkeypatch.setattr(
+        "deeptutor.capabilities.tutorbot.get_tutorbot_manager",
+        lambda: FakeManager(),
+    )
+
+    context = UnifiedContext(
+        session_id="session-cited-stream",
+        user_message="屋面防水等级怎么定？",
+        enabled_tools=["rag"],
+        knowledge_bases=["construction-exam"],
+        config_overrides={"bot_id": "construction-exam-coach", "chat_mode": "smart"},
+        metadata={"billing_context": {"user_id": "u1", "source": "wx_miniprogram"}},
+        language="zh",
+    )
+
+    capability = TutorBotCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    content_events = [event for event in events if event.type == StreamEventType.CONTENT]
+    streaming_content_events = [
+        event
+        for event in content_events
+        if event.metadata.get("streaming_delta") is True
+    ]
+    assert [event.content for event in streaming_content_events] == [
+        "结论：屋面防水等级",
+        "应根据工程重要性确定。",
+    ]
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert "结论：屋面防水等级应根据工程重要性确定。" in result_event.metadata["response"]
+    assert result_event.metadata["citation_bundle"]["refs"][0]["title"] == "2026 建筑实务教材"
+
+
+@pytest.mark.asyncio
 async def test_tutorbot_capability_does_not_emit_internal_process_deltas(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

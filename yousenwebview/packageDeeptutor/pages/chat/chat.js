@@ -48,10 +48,15 @@ var PENDING_TURN_MAX_AGE_MS = 30 * 60 * 1000;
 var PENDING_TURN_POLL_MAX_ATTEMPTS = 1200;
 var PENDING_TURN_POLL_DELAY_MS = 1500;
 
+function isLocalDraftSessionId(id) {
+  return /^s_\d{10,}$/.test(String(id || "").trim());
+}
+
 function normalizePendingTurn(raw) {
   var source = raw && typeof raw === "object" ? raw : {};
   var conversationId = String(source.conversationId || "").trim();
   if (!conversationId) return null;
+  if (isLocalDraftSessionId(conversationId)) return null;
   var createdAt = Number(source.createdAt) || Date.now();
   if (Date.now() - createdAt > PENDING_TURN_MAX_AGE_MS) return null;
   return {
@@ -391,7 +396,11 @@ Page({
     var savedTs = wx.getStorageSync("current_session_ts") || 0;
     var SESSION_MAX_AGE_MS = 5 * 60 * 1000; // 5 分钟过期
 
-    if (savedSessionId && Date.now() - savedTs < SESSION_MAX_AGE_MS) {
+    if (
+      savedSessionId &&
+      !isLocalDraftSessionId(savedSessionId) &&
+      Date.now() - savedTs < SESSION_MAX_AGE_MS
+    ) {
       this._sid = savedSessionId;
       this._convId = savedSessionId;
     } else {
@@ -1981,7 +1990,8 @@ Page({
     if (!self._sid && self._convId) {
       self._sid = self._convId;
     }
-    var streamSessionId = self._sid || "";
+    var candidateSessionId = String(self._convId || self._sid || "").trim();
+    var streamSessionId = isLocalDraftSessionId(candidateSessionId) ? "" : candidateSessionId;
 
     // 每次发消息只做低频续期，避免把同步落盘放到高频流式路径里
     if (streamSessionId) {
@@ -2198,6 +2208,20 @@ Page({
 
   _restoreConversation: function (convId) {
     var self = this;
+    if (isLocalDraftSessionId(convId)) {
+      self._convId = null;
+      if (!self._sid || !isLocalDraftSessionId(self._sid)) {
+        self._sid = "s_" + Date.now();
+      }
+      self._clearPendingTurn();
+      wx.removeStorageSync("current_session_id");
+      wx.removeStorageSync("current_session_ts");
+      if (!self.data.messages.length) {
+        self.setData({ hasMessages: false, isStreaming: false });
+        self._syncWorkspaceChrome({ hasMessages: false });
+      }
+      return;
+    }
     self._convId = convId;
     self._sid = convId;
     // [FIX-SESSION-3] 恢复历史对话时同步持久化（含时间戳）
@@ -3092,6 +3116,25 @@ Page({
   onFeedbackClose: function () {
     if (this.data.feedbackSubmitting) return;
     this.setData({ feedbackMsgId: "", feedbackTags: [], feedbackComment: "" });
+  },
+
+  onToggleCitationQuote: function (e) {
+    var dataset = (e && e.currentTarget && e.currentTarget.dataset) || {};
+    var msgid = String(dataset.msgid || "").trim();
+    var citeIndex = Number(dataset.citeindex);
+    var idx = this._find(msgid);
+    if (idx === -1 || !Number.isFinite(citeIndex) || citeIndex < 0) return;
+    var msg = this.data.messages[idx] || {};
+    var citations = Array.isArray(msg.citations) ? msg.citations : [];
+    var current = citations[citeIndex];
+    if (!current || !current.quote) return;
+    var expanded = !current.quoteExpanded;
+    var updates = {};
+    updates["messages[" + idx + "].citations[" + citeIndex + "].quoteExpanded"] = expanded;
+    updates["messages[" + idx + "].citations[" + citeIndex + "].quoteActionText"] = expanded
+      ? "收起摘录"
+      : "查看摘录";
+    this.setData(updates);
   },
 
   // [W5-1] Network restored — refresh dashboard and hint user about failed messages
