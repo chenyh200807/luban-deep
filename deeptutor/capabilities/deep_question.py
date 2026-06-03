@@ -929,6 +929,51 @@ def _format_grading_grounding_context(rag_result: dict[str, Any] | None) -> tupl
     return "\n\n".join(lines).strip(), sources
 
 
+def _citation_sources_from_question_context(question_context: dict[str, Any] | None) -> list[dict[str, Any]]:
+    items = _grading_items(question_context)
+    sources: list[dict[str, Any]] = []
+    seen: set[str] = set()
+
+    def append_source(raw: Any) -> None:
+        if not isinstance(raw, dict):
+            return
+        source = dict(raw)
+        content = (
+            source.get("content")
+            or source.get("public_quote")
+            or source.get("rag_content")
+            or source.get("text")
+            or source.get("value")
+        )
+        if content in (None, "", [], {}):
+            return
+        if "public_quote" not in source:
+            source["public_quote"] = content
+        if "source_type" not in source and source.get("source"):
+            source["source_type"] = str(source.get("source") or "").strip()
+        identity = "|".join(
+            str(source.get(key) or "").strip()
+            for key in ("source_id", "stable_source_id", "stable_id", "chunk_id", "title", "public_quote")
+        )
+        if identity in seen:
+            return
+        seen.add(identity)
+        sources.append(source)
+
+    for container in [question_context or {}, *items]:
+        for ref in container.get("evidence_refs") or []:
+            append_source(ref)
+        grading_result = (
+            container.get("construction_grading_result")
+            if isinstance(container.get("construction_grading_result"), dict)
+            else {}
+        )
+        for ref in grading_result.get("evidence_refs") or []:
+            append_source(ref)
+
+    return sources[:8]
+
+
 def _render_deterministic_grading_feedback(question_context: dict[str, Any] | None) -> str:
     items = _grading_items(question_context)
     if not items:
@@ -2555,6 +2600,7 @@ class DeepQuestionCapability(BaseCapability):
                 stream,
                 followup_payload,
                 stage="generation",
+                sources=_citation_sources_from_question_context(followup_question_context),
                 emit_content_when_enabled=bool(answer),
             )
 
