@@ -1,18 +1,24 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Any, Protocol
 
 import httpx
 
 from deeptutor.services.learner_state.attempt_refs import verify_attempt_ref
+from deeptutor.services.path_service import get_path_service
+from deeptutor.services.runtime_env import env_flag, is_production_environment
 
 
 _TZ = timezone(timedelta(hours=8))
 _MISTAKE_BOOK_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_ENABLED"
 _MISTAKE_BOOK_WRITE_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED"
+_MISTAKE_BOOK_LOCAL_FALLBACK = "DEEPTUTOR_MISTAKE_BOOK_LOCAL_FALLBACK"
+_LOCAL_FALLBACK_FILENAME = "MISTAKE_BOOK.json"
 
 
 class MistakeBookConflict(Exception):
@@ -82,6 +88,87 @@ class InMemoryMistakeBookStore:
                 continue
             rows.append(dict(row))
         return sorted(rows, key=lambda row: str(row.get("saved_at") or ""), reverse=True)
+
+
+class LocalFileMistakeBookStore:
+    def __init__(self) -> None:
+        self._path_service = get_path_service()
+
+    def upsert_item(self, row: dict[str, Any]) -> dict[str, Any]:
+        user_id = str(row.get("user_id") or "")
+        event_id = str(row.get("event_id") or "")
+        rows = self._read_rows(user_id)
+        replaced = False
+        for index, current in enumerate(rows):
+            if str(current.get("event_id") or "") != event_id:
+                continue
+            rows[index] = {**current, **dict(row or {})}
+            replaced = True
+            break
+        if not replaced:
+            rows.append(dict(row or {}))
+        self._write_rows(user_id, rows)
+        return self.get_item(user_id, event_id) or dict(row or {})
+
+    def get_item(self, user_id: str, event_id: str) -> dict[str, Any] | None:
+        for row in self._read_rows(user_id):
+            if str(row.get("event_id") or "") == str(event_id or ""):
+                return dict(row)
+        return None
+
+    def update_item(self, user_id: str, event_id: str, patch: dict[str, Any]) -> dict[str, Any] | None:
+        rows = self._read_rows(user_id)
+        for index, current in enumerate(rows):
+            if str(current.get("event_id") or "") != str(event_id or ""):
+                continue
+            rows[index] = {**current, **dict(patch or {})}
+            self._write_rows(user_id, rows)
+            return dict(rows[index])
+        return None
+
+    def list_items(
+        self,
+        user_id: str,
+        *,
+        subject_id: str = "",
+        include_mastered: bool = False,
+    ) -> list[dict[str, Any]]:
+        normalized_subject = str(subject_id or "").strip()
+        rows = []
+        for row in self._read_rows(user_id):
+            if row.get("archived_at"):
+                continue
+            if normalized_subject and str(row.get("subject_id") or "") != normalized_subject:
+                continue
+            if not include_mastered and row.get("mastered_at"):
+                continue
+            rows.append(dict(row))
+        return sorted(rows, key=lambda row: str(row.get("saved_at") or ""), reverse=True)
+
+    def _user_dir(self, user_id: str) -> Path:
+        return self._path_service.get_learner_state_root() / str(user_id or "").strip()
+
+    def _path(self, user_id: str) -> Path:
+        return self._user_dir(user_id) / _LOCAL_FALLBACK_FILENAME
+
+    def _read_rows(self, user_id: str) -> list[dict[str, Any]]:
+        path = self._path(user_id)
+        if not path.exists():
+            return []
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            return []
+        if not isinstance(payload, list):
+            return []
+        return [dict(item) for item in payload if isinstance(item, dict)]
+
+    def _write_rows(self, user_id: str, rows: list[dict[str, Any]]) -> None:
+        path = self._path(user_id)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        temp = path.with_suffix(f"{path.suffix}.tmp")
+        temp.write_text(json.dumps(rows, ensure_ascii=False), encoding="utf-8")
+        temp.replace(path)
 
 
 class UnavailableMistakeBookStore:
@@ -213,7 +300,12 @@ class MistakeBookService:
             self._store = store
         else:
             supabase_store = SupabaseMistakeBookStore()
-            self._store = supabase_store if supabase_store.is_configured else UnavailableMistakeBookStore()
+            if _local_fallback_enabled():
+                self._store = LocalFileMistakeBookStore()
+            elif supabase_store.is_configured:
+                self._store = supabase_store
+            else:
+                self._store = UnavailableMistakeBookStore()
 
     def save_item(
         self,
@@ -352,6 +444,10 @@ def _verify_ref(attempt_ref: str, *, user_id: str) -> dict[str, str]:
 
 def _flag_enabled(name: str) -> bool:
     return str(os.getenv(name, "") or "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _local_fallback_enabled() -> bool:
+    return not is_production_environment() and env_flag(_MISTAKE_BOOK_LOCAL_FALLBACK, default=False)
 
 
 def _require_read_enabled() -> None:
