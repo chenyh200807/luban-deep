@@ -51,8 +51,21 @@ def validate_cited_answer(answer: CitedAnswer) -> None:
         if inline_markers:
             raise CitationQualityError("no-public-source answer cannot contain citation markers")
         return
-    if inline_markers:
-        raise CitationQualityError("public response cannot contain citation markers")
+    marker_by_citation_id = {
+        ref.citation_id: int(match.group(1))
+        for ref in answer.bundle.refs
+        if (match := _MARKER_RE.fullmatch(ref.marker))
+    }
+    claim_markers = {
+        marker
+        for claim in answer.bundle.claims
+        for citation_id in claim.citation_ids
+        if (marker := marker_by_citation_id.get(citation_id)) is not None
+    }
+    if claim_markers - inline_markers:
+        raise CitationQualityError("public response missing claim citation marker")
+    if inline_markers - claim_markers:
+        raise CitationQualityError("public response contains orphan citation marker")
     for ref in answer.bundle.refs:
         if any(
             _contains_hidden_authority(value, exact_field_name=True)

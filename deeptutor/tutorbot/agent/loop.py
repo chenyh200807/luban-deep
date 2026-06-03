@@ -89,6 +89,20 @@ class AgentLoop:
         "刚才输出的是过程承诺，不是最终答案。请现在直接给出可展示给学员的中文答案；"
         "不要说“我先查看”“我会检索”“再给你”等过程话术。",
     )
+    _INTERNAL_CONTEXT_MARKERS = (
+        "## 参考证据",
+        "## Supporting Evidence",
+        "以下内容是辅助证据",
+        "[Question Follow-up Context]",
+        "[Attached Documents]",
+        "[Notebook Context]",
+        "[History Context]",
+    )
+    _CURRENT_USER_QUESTION_MARKERS = (
+        "## 当前用户问题",
+        "## Current User Question",
+        "[User Question]",
+    )
     _PROGRESSIVE_SKILL_TRIGGERS: dict[str, tuple[str, ...]] = {
         "deep-research": (
             "调研",
@@ -1088,6 +1102,64 @@ class AgentLoop:
         return bool(allowed_types & {"single", "multi", "case", "case_study", "case_background", "calculation"})
 
     @classmethod
+    def _looks_like_internal_context_message(cls, value: str) -> bool:
+        text = str(value or "").strip()
+        if not text:
+            return False
+        if "不得覆盖当前用户问题" in text:
+            return True
+        if any(text.startswith(marker) for marker in cls._INTERNAL_CONTEXT_MARKERS):
+            return True
+        return any(marker in text for marker in cls._CURRENT_USER_QUESTION_MARKERS) and any(
+            marker in text for marker in cls._INTERNAL_CONTEXT_MARKERS
+        )
+
+    @classmethod
+    def _extract_current_user_question_section(cls, value: str) -> str:
+        text = str(value or "")
+        for marker in cls._CURRENT_USER_QUESTION_MARKERS:
+            index = text.find(marker)
+            if index < 0:
+                continue
+            candidate = text[index + len(marker) :]
+            if candidate.startswith("\n"):
+                candidate = candidate[1:]
+            cut_at = len(candidate)
+            for stop_marker in cls._INTERNAL_CONTEXT_MARKERS:
+                stop_index = candidate.find(f"\n{stop_marker}")
+                if stop_index >= 0:
+                    cut_at = min(cut_at, stop_index)
+            candidate = candidate[:cut_at].strip()
+            if candidate and not cls._looks_like_internal_context_message(candidate):
+                return candidate
+        return ""
+
+    @classmethod
+    def _resolve_tool_query(
+        cls,
+        current_message: str,
+        runtime_metadata: dict[str, Any] | None,
+    ) -> str:
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        for key in (
+            "raw_user_message",
+            "user_visible_content",
+            "user_visible_query",
+            "surface_content",
+            "surface_query",
+            "original_query",
+            "original_content",
+            "query",
+        ):
+            candidate = str(metadata.get(key) or "").strip()
+            if candidate and not cls._looks_like_internal_context_message(candidate):
+                return candidate
+        section = cls._extract_current_user_question_section(current_message)
+        if section:
+            return section
+        return str(current_message or "").strip()
+
+    @classmethod
     def _should_prefetch_grounded_rag(
         cls,
         *,
@@ -1095,11 +1167,12 @@ class AgentLoop:
         runtime_metadata: dict[str, Any] | None,
     ) -> bool:
         metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
-        practice_generation_request = looks_like_practice_generation_request(current_message)
+        tool_query = cls._resolve_tool_query(current_message, metadata)
+        practice_generation_request = looks_like_practice_generation_request(tool_query)
         answer_type = str(metadata.get("answer_type") or metadata.get("intent") or "").strip()
-        exact_probe = prepare_exact_question_probe(current_message)
+        exact_probe = prepare_exact_question_probe(tool_query)
         decision = build_grounding_decision_from_metadata(
-            query=current_message,
+            query=tool_query,
             runtime_metadata=metadata,
             rag_enabled=True,
             tutorbot_context=True,
@@ -1131,12 +1204,12 @@ class AgentLoop:
             return False
         if (
             cls._construction_scene_uses_learner_state_authority(scene)
-            and query_uses_learner_state_authority(current_message)
+            and query_uses_learner_state_authority(tool_query)
             and not decision.textbook_delta_query
             and not decision.exact_question_candidate
         ):
             return False
-        if citations_required and looks_like_construction_exam_knowledge_query(current_message):
+        if citations_required and looks_like_construction_exam_knowledge_query(tool_query):
             return True
         if decision.should_prefetch_grounded_rag:
             return True
@@ -1178,13 +1251,14 @@ class AgentLoop:
         runtime_metadata: dict[str, Any] | None,
     ) -> bool:
         metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        tool_query = cls._resolve_tool_query(current_message, metadata)
         default_tools = {
             str(item or "").strip()
             for item in (metadata.get("default_tools") if isinstance(metadata.get("default_tools"), list) else [])
         }
         return (
             cls._runtime_current_info_required(metadata)
-            and query_requires_current_info(current_message)
+            and query_requires_current_info(tool_query)
             and "web_search" in default_tools
         )
 
@@ -1194,7 +1268,9 @@ class AgentLoop:
         runtime_metadata: dict[str, Any] | None,
     ) -> dict[str, Any]:
         metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
-        preview_args: dict[str, Any] = {"query": current_message}
+        preview_args: dict[str, Any] = {
+            "query": AgentLoop._resolve_tool_query(current_message, metadata)
+        }
         default_kb = str(metadata.get("default_kb") or "").strip()
         if not default_kb:
             knowledge_bases = metadata.get("knowledge_bases")
@@ -1239,8 +1315,12 @@ class AgentLoop:
         return preview_args
 
     @staticmethod
-    def _build_web_search_preview_args(current_message: str) -> dict[str, Any]:
-        return {"query": AgentLoop._normalize_web_search_query(current_message), "count": 5}
+    def _build_web_search_preview_args(
+        current_message: str,
+        runtime_metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        tool_query = AgentLoop._resolve_tool_query(current_message, runtime_metadata)
+        return {"query": AgentLoop._normalize_web_search_query(tool_query), "count": 5}
 
     @staticmethod
     def _normalize_web_search_query(current_message: str) -> str:
@@ -1390,7 +1470,7 @@ class AgentLoop:
         if web_search_tool is None:
             return initial_messages
 
-        preview_args = self._build_web_search_preview_args(current_message)
+        preview_args = self._build_web_search_preview_args(current_message, runtime_metadata)
         try:
             preview_args = web_search_tool.preview_args(preview_args)
         except Exception:
@@ -1999,12 +2079,13 @@ class AgentLoop:
             return None
         if self._is_question_review_scene(runtime_metadata):
             return None
-        exact_probe = prepare_exact_question_probe(current_message)
-        practice_generation_request = looks_like_practice_generation_request(current_message)
+        tool_query = self._resolve_tool_query(current_message, runtime_metadata)
+        exact_probe = prepare_exact_question_probe(tool_query)
+        practice_generation_request = looks_like_practice_generation_request(tool_query)
         if bool(runtime_metadata.get("suppress_answer_reveal_on_generate")) and practice_generation_request:
             return None
         decision = build_grounding_decision_from_metadata(
-            query=current_message,
+            query=tool_query,
             runtime_metadata=runtime_metadata,
             rag_enabled=True,
             tutorbot_context=True,
@@ -2026,7 +2107,7 @@ class AgentLoop:
         if not (allowed_types & {"single", "multi"}):
             return None
 
-        preview_args = self._build_rag_preview_args(current_message, runtime_metadata)
+        preview_args = self._build_rag_preview_args(tool_query, runtime_metadata)
         try:
             preview_args = rag_tool.preview_args(preview_args)
         except Exception:
@@ -2642,7 +2723,7 @@ class AgentLoop:
             on_tool_call=on_tool_call,
             on_tool_result=on_tool_result,
             allow_exact_authority_override=(
-                prepare_exact_question_probe(current_message) is not None
+                prepare_exact_question_probe(self._resolve_tool_query(current_message, runtime_metadata)) is not None
                 and not str(runtime_metadata.get("exact_question_blocked_reason") or "").strip()
                 and not self._is_question_review_scene(runtime_metadata)
             ),

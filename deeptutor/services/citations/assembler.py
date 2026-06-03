@@ -63,6 +63,25 @@ def _segments(answer: str) -> list[str]:
     return [part.strip() for part in re.split(r"(\n{2,}|(?<=。)\n)", answer) if part.strip()]
 
 
+def _is_citable_segment(segment: str) -> bool:
+    text = str(segment or "").strip()
+    if not text:
+        return False
+    if re.fullmatch(r"[-*_]{3,}", text):
+        return False
+    return not re.match(r"^#{1,6}\s+\S+", text)
+
+
+def _claim_text_from_segment(segment: str) -> str:
+    lines = []
+    for line in str(segment or "").splitlines():
+        text = line.strip()
+        if not _is_citable_segment(text):
+            continue
+        lines.append(text)
+    return "\n".join(lines).strip()
+
+
 def _tokens(text: str) -> set[str]:
     return set(re.findall(r"[\u4e00-\u9fff]|[A-Za-z0-9_]+", text))
 
@@ -137,6 +156,36 @@ def _best_ref(
     return max(scored, key=lambda item: (item[1], item[0].authority_rank))
 
 
+def _insert_inline_markers(
+    answer: str,
+    claims: list[CitedClaim],
+    refs: list[CitationSourceRef],
+) -> str:
+    if not claims or not refs:
+        return answer
+    refs_by_id = {ref.citation_id: ref for ref in refs}
+    marked = str(answer or "")
+    cursor = 0
+    for claim in claims:
+        markers = "".join(
+            ref.marker
+            for citation_id in claim.citation_ids
+            if (ref := refs_by_id.get(citation_id)) is not None and ref.marker
+        )
+        target = str(claim.text or "").strip()
+        if not markers or not target:
+            continue
+        replacement = f"{target}{markers}"
+        index = marked.find(target, cursor)
+        if index < 0:
+            index = marked.find(target)
+        if index < 0:
+            continue
+        marked = f"{marked[:index]}{replacement}{marked[index + len(target):]}"
+        cursor = index + len(replacement)
+    return marked
+
+
 def assemble_cited_answer(
     answer: str,
     *,
@@ -155,7 +204,7 @@ def assemble_cited_answer(
 
     claims: list[CitedClaim] = []
     matched_count = 0
-    segments = _segments(clean_answer)
+    segments = [claim_text for segment in _segments(clean_answer) if (claim_text := _claim_text_from_segment(segment))]
     for index, segment in enumerate(segments, start=1):
         ref, score = _best_ref(segment, refs, policy=active_policy)
         if ref and score >= active_policy.min_claim_ref_score:
@@ -163,6 +212,7 @@ def assemble_cited_answer(
             matched_count += 1
 
     citation_state = "supported" if matched_count == len(segments) else "partial"
+    marked_answer = _insert_inline_markers(clean_answer, claims, refs)
     footer = format_citation_footer(refs)
     bundle = CitationBundle(citation_state=citation_state, refs=refs, claims=claims, footer_text=footer)
-    return CitedAnswer(response=clean_answer, bundle=bundle)
+    return CitedAnswer(response=marked_answer, bundle=bundle)

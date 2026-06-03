@@ -13,6 +13,7 @@ _HIDDEN_FIELDS = HIDDEN_AUTHORITY_FIELDS
 _TEXTBOOK_CODE_RE = re.compile(r"1A\d{3,6}", re.IGNORECASE)
 _SECTION_GENERIC_TERMS = ("工程", "施工", "技术", "相关", "规定", "管理", "应用")
 _STANDARD_SOURCE_TYPES = {"standard", "spec", "standard_precision", "standard_code_exact", "standard_article"}
+_QUESTION_SOURCE_TABLES = {"questions_bank", "question_bank"}
 
 
 def _text(value: Any) -> str:
@@ -242,6 +243,8 @@ def _format_section_locator(section: str) -> str:
         return ""
     if clean.startswith("第") or "节" in clean:
         return clean
+    if re.search(r"[\u4e00-\u9fff]", clean) and not re.match(r"^\d+(?:\.\d+)*", clean):
+        return clean
     return f"第 {clean} 节"
 
 
@@ -292,6 +295,53 @@ def _stable_ref_id(source: dict[str, Any], locator: str, quote: str) -> str:
     return "cite_" + hashlib.sha256(seed.encode("utf-8")).hexdigest()[:16]
 
 
+def _student_source_priority(source: dict[str, Any]) -> int:
+    source_type = _source_type(source).lower()
+    source_table = _source_table(source).lower()
+    span = _source_span(source)
+    standard_code = _text(source.get("standard_code") or _metadata(source).get("standard_code"))
+    article_code = _text(source.get("article_code") or _metadata(source).get("article_code"))
+
+    if source_table in _QUESTION_SOURCE_TABLES:
+        return 45
+    if source_table == "kb_chunks" and source_type == "textbook" and span:
+        return 100
+    if source_table == "kb_chunks" and source_type == "textbook":
+        return 95
+    if source_type == "textbook" and span:
+        return 90
+    if source_type == "textbook":
+        return 88
+    if standard_code and article_code:
+        return 85
+    if source_type in _STANDARD_SOURCE_TYPES:
+        return 80
+    return 50
+
+
+def _public_source_candidates(
+    sources: list[dict[str, Any]],
+    *,
+    policy: CitationPolicy,
+) -> list[dict[str, Any]]:
+    candidates = [
+        source
+        for source in sources
+        if isinstance(source, dict) and not _is_hidden_source(source, policy=policy)
+    ]
+    if policy.surface != "student":
+        return candidates
+    ordered = sorted(
+        enumerate(candidates),
+        key=lambda item: (
+            -_student_source_priority(item[1]),
+            -_int(item[1].get("authority_rank") or _metadata(item[1]).get("authority_rank")),
+            item[0],
+        ),
+    )
+    return [source for _, source in ordered]
+
+
 def normalize_citation_sources(
     sources: list[dict[str, Any]],
     *,
@@ -299,9 +349,7 @@ def normalize_citation_sources(
 ) -> list[CitationSourceRef]:
     refs: list[CitationSourceRef] = []
     seen: set[tuple[str, str]] = set()
-    for source in sources:
-        if not isinstance(source, dict) or _is_hidden_source(source, policy=policy):
-            continue
+    for source in _public_source_candidates(sources, policy=policy):
         locator = _locator(source)
         sid = _source_id(source)
         stable_id = _stable_id(source)

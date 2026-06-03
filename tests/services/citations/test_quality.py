@@ -3,16 +3,20 @@ import pytest
 from deeptutor.services.citations.quality import CitationQualityError, validate_cited_answer
 from deeptutor.services.citations.redaction import HIDDEN_AUTHORITY_FIELDS
 from deeptutor.services.citations.runtime import assemble_public_cited_answer
-from deeptutor.services.citations.schema import CitationBundle, CitationSourceRef, CitedAnswer
+from deeptutor.services.citations.schema import CitationBundle, CitationSourceRef, CitedAnswer, CitedClaim
 
 
-def _answer(response: str, refs: list[CitationSourceRef]) -> CitedAnswer:
+def _answer(
+    response: str,
+    refs: list[CitationSourceRef],
+    claims: list[CitedClaim] | None = None,
+) -> CitedAnswer:
     return CitedAnswer(
         response=response,
         bundle=CitationBundle(
             citation_state="supported",
             refs=refs,
-            claims=[],
+            claims=claims or [],
             footer_text="依据\n" + "\n".join(f"{ref.marker}{ref.title}" for ref in refs),
         ),
     )
@@ -20,7 +24,7 @@ def _answer(response: str, refs: list[CitationSourceRef]) -> CitedAnswer:
 
 def test_rejects_inline_response_marker() -> None:
     ref = CitationSourceRef("c1", "〔1〕", "textbook", "教材", "第 1 章")
-    with pytest.raises(CitationQualityError, match="public response cannot contain citation markers"):
+    with pytest.raises(CitationQualityError, match="orphan citation marker"):
         validate_cited_answer(_answer("正文〔1〕", [ref]))
 
 
@@ -30,13 +34,26 @@ def test_allows_legal_document_number_brackets_in_response() -> None:
 
 
 def test_rejects_orphan_inline_response_marker() -> None:
-    with pytest.raises(CitationQualityError, match="public response cannot contain citation markers"):
+    with pytest.raises(CitationQualityError, match="orphan citation marker"):
         validate_cited_answer(_answer("正文〔2〕\n\n依据\n〔1〕来源", []))
 
 
 def test_allows_structured_footer_rows_without_visible_body_marker() -> None:
     ref = CitationSourceRef("c1", "〔1〕", "textbook", "教材", "第 1 章")
     validate_cited_answer(_answer("正文", [ref]))
+
+
+def test_rejects_missing_claim_marker_in_response() -> None:
+    ref = CitationSourceRef("c1", "〔1〕", "textbook", "教材", "第 1 章")
+    claim = CitedClaim("claim_1", "正文", ["c1"], 0.9)
+    with pytest.raises(CitationQualityError, match="missing claim citation marker"):
+        validate_cited_answer(_answer("正文", [ref], [claim]))
+
+
+def test_accepts_inline_marker_when_backed_by_claim() -> None:
+    ref = CitationSourceRef("c1", "〔1〕", "textbook", "教材", "第 1 章")
+    claim = CitedClaim("claim_1", "正文", ["c1"], 0.9)
+    validate_cited_answer(_answer("正文〔1〕", [ref], [claim]))
 
 
 def test_rejects_hidden_public_quote() -> None:
