@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from deeptutor.services.learner_state.training_intent import (
+    PRESCRIPTION_AUTHORITY,
     build_learning_training_intent,
     prioritize_training_intents,
 )
@@ -22,6 +23,7 @@ def test_training_intent_contains_concept_error_attempt_and_question_count() -> 
     )
 
     assert intent["source"] == "learning_report"
+    assert intent["prescription_authority"] == PRESCRIPTION_AUTHORITY
     assert intent["concept_label"] == "主体结构"
     assert intent["error_label"] == "多选漏选"
     assert intent["attempt_refs"] == ["ref1"]

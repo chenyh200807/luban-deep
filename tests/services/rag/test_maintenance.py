@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from deeptutor.services.rag.maintenance import (
     audit_learning_fact_retrieval_case,
+    build_learning_brain_dream_cycle_maintenance_report,
     build_learning_fact_retrieval_maintenance_report,
 )
 
@@ -74,3 +75,24 @@ def test_build_learning_fact_retrieval_maintenance_report_sections() -> None:
     assert report["stale_weak_point_count"] == 1
     assert report["rubric_coverage_gap_count"] == 2
     assert report["sections"]["eval_cases"][0]["case_id"] == "case-3"
+
+
+def test_build_learning_brain_dream_cycle_maintenance_report_wraps_lint() -> None:
+    report = build_learning_brain_dream_cycle_maintenance_report(
+        user_id="student_demo",
+        dry_run=True,
+        projection={
+            "weak_points": [
+                {
+                    "concept_id": "1A432000",
+                    "claim": "掌握不稳",
+                    "claim_status": "confirmed",
+                    "evidence_refs": [],
+                }
+            ]
+        },
+    )
+
+    assert report["status"] == "dry_run_ok"
+    assert report["maintenance_authority"] == "deeptutor.services.rag.maintenance"
+    assert report["issues"][0]["code"] == "unsupported_claim"

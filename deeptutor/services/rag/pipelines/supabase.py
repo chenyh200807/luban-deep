@@ -820,6 +820,8 @@ class SupabasePipeline:
         routing_metadata = kwargs.get("routing_metadata")
         routing_metadata = routing_metadata if isinstance(routing_metadata, dict) else {}
         compiled_learning_truth = kwargs.get("compiled_learning_truth")
+        personalization_context = kwargs.get("personalization_context")
+        personalization_context = personalization_context if isinstance(personalization_context, dict) else None
         with observability.start_observation(
             name="rag.supabase.search",
             as_type="retriever",
@@ -849,6 +851,8 @@ class SupabasePipeline:
                 routing_metadata={
                     **routing_metadata,
                     "compiled_learning_truth_available": bool(compiled_learning_truth),
+                    "personalization_context_available": bool(personalization_context)
+                    or bool(routing_metadata.get("personalization_context_available")),
                 },
             )
             query_shape = rewritten.query_shape or classify_query_shape(query)
@@ -886,6 +890,7 @@ class SupabasePipeline:
             compiled_truth_plan = self._compiled_truth_plan(
                 retrieval_plan=retrieval_plan,
                 compiled_learning_truth=compiled_learning_truth,
+                personalization_context=personalization_context,
                 config=config,
             )
             compiled_truth_final_enabled = self._compiled_truth_final_enabled(
@@ -1273,13 +1278,20 @@ class SupabasePipeline:
         *,
         retrieval_plan,
         compiled_learning_truth: Any,
+        personalization_context: Any = None,
         config: SupabaseSearchConfig | None = None,
     ) -> list[dict[str, Any]]:
         source_group = getattr(retrieval_plan, "source_groups", {}).get("compiled_learning_truth")
         if not source_group or not getattr(source_group, "enabled", False):
             return []
         documents = materialize_compiled_truth_documents(
-            compiled_learning_truth if isinstance(compiled_learning_truth, dict) else None,
+            (
+                compiled_learning_truth
+                if isinstance(compiled_learning_truth, dict)
+                else personalization_context
+                if isinstance(personalization_context, dict)
+                else None
+            ),
             max_documents=config.compiled_truth_max_documents if config else 6,
             max_chars_per_doc=config.compiled_truth_max_chars_per_doc if config else 700,
             max_total_chars=config.compiled_truth_max_total_chars if config else 2400,

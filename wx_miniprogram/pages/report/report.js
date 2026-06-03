@@ -988,6 +988,8 @@ Page({
         learningBrainError: false,
         degradedHint: degraded ? buildDegradedHint(degradedSources) : "",
         degradedSources: degraded ? degradedSources : [],
+        prescriptionAuthority: sharedPageData.prescriptionAuthority || "",
+        prescriptionEvidenceLabels: sharedPageData.prescriptionEvidenceRefs || [],
         reportFallbackActive: false,
       }));
       if (this._canvasReady && sharedPageData.radarDimensions.length) {

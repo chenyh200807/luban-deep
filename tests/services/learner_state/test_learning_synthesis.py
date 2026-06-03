@@ -161,6 +161,35 @@ def test_synthesis_promotes_repeated_error_to_l1() -> None:
     assert weak["supporting_event_ids"] == ["evt1", "evt2"]
 
 
+def test_synthesis_outputs_p0_claim_lifecycle_states() -> None:
+    observed_projection = synthesize_learning_truth([_learning_event("evt1")])
+    repeated_projection = synthesize_learning_truth([
+        _learning_event("evt1"),
+        _learning_event("evt2", question_id="case_002", rubric_item_id="r9"),
+    ])
+    confirmed_projection = synthesize_learning_truth([
+        _learning_event("evt1"),
+        _manual_confirmation(),
+    ])
+    stale_projection = synthesize_learning_truth([
+        _learning_event("evt1"),
+        _learning_event("evt2", question_id="case_002", rubric_item_id="r9"),
+        _learning_event("evt3", improved=True, observed_at="2026-05-18T14:00:00+08:00"),
+    ])
+    superseded_projection = synthesize_learning_truth([
+        _learning_event("evt1"),
+        _learning_event("evt2", question_id="case_002", rubric_item_id="r9"),
+        _manual_correction(),
+    ])
+
+    assert observed_projection["observed_candidates"][0]["claim_status"] == "observed"
+    assert repeated_projection["weak_points"][0]["claim_status"] == "repeated"
+    assert confirmed_projection["weak_points"][0]["claim_status"] == "confirmed"
+    assert stale_projection["stale_claims"][0]["claim_status"] == "stale"
+    assert superseded_projection["compiled_objects"]["error:1A432000:E02"]["claim_status"] == "superseded"
+    assert repeated_projection["weak_points"][0]["lifecycle"]["status"] == "repeated"
+
+
 def test_synthesis_expands_all_errors_in_event() -> None:
     event1 = _learning_event("evt1")
     event1.payload_json["error_events"].append({

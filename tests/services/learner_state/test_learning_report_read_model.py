@@ -372,6 +372,8 @@ def test_learning_report_exposes_learner_facing_attempt_review_without_machine_i
     assert facing["diagnoses"][0]["title"] == "工程招标投标与合同管理：多选漏选"
     assert facing["diagnoses"][0]["level_label"] == "需要重点补"
     assert facing["next_action"]["title"].startswith("先做 3 道")
+    assert facing["next_action"]["source"] == "training_intent"
+    assert facing["next_action"]["prescription_authority"] == "training_intent"
     rendered = str(facing)
     assert "evt_review" not in rendered
     assert "M06" not in rendered
@@ -474,6 +476,28 @@ def test_repeated_error_promotes_to_stable_truth() -> None:
     )
 
     assert model["truth_sections"]["stable_truths"][0]["level_label"] == "重复出现"
+
+
+def test_learning_report_exposes_personalization_context_from_learning_brain_and_training_intent() -> None:
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService(
+            [
+                _learning_event("evt_pack_1", days_ago=0, concept_id="1A432000", error_code="M06"),
+                _learning_event("evt_pack_2", days_ago=0, concept_id="1A432000", error_code="M06"),
+            ]
+        ),
+        event_limit=50,
+    )
+
+    pack = model["personalization_context"]
+    assert pack["authority"]["claims"] == "learning_synthesis"
+    assert pack["authority"]["prescription"] == "training_intent"
+    assert pack["top_claims"][0]["evidence_refs"]
+    assert pack["active_training_intent"]["training_intent_id"] == model["training_prescription"]["training_intent_id"]
+    assert pack["next_best_action_candidates"][0]["prescription_authority"] == "training_intent"
+    assert model["next_best_actions"] == pack["next_best_action_candidates"]
 
 
 def test_conversation_evidence_does_not_mark_mastered() -> None:
@@ -1073,6 +1097,15 @@ def test_schema_v2_dual_emits_v1_fields_and_v2_surfaces() -> None:
     assert model["study_plan"]["priority_task"] == "先围绕薄弱点速练 5 题"
     assert model["attempts"][0]["attempt_ref"]
     assert model["hero"]["primary_cta"]["intent"]["source"] == "learning_report"
+    assert model["today_prescription"]["primary_action"]["intent_id"] == model["training_prescription"]["training_intent_id"]
+    assert model["today_prescription"]["why_this_now"]
+    assert model["today_prescription"]["prescription_authority"] == "training_intent"
+    assert model["today_prescription"]["primary_action"]["prescription_authority"] == "training_intent"
+    assert model["today_prescription"]["source"] == (
+        "dry_run_fallback"
+        if model["authority"]["learning_brain_degraded"]
+        else model["training_prescription"]["source"]
+    )
     assert isinstance(model["mastery"]["overall_mastery"], dict)
     assert model["i18n_keys"]["locale"] == "zh-CN"
 
@@ -1189,6 +1222,9 @@ def test_compiled_truth_missing_triggers_dry_run_and_marks_source_status() -> No
     assert model["source_status"]["dry_run_synthesis"]["ok"] is True
     assert model["source_status"]["compiled_truth"]["ok"] is True
     assert model["learning_brain"]["visible_sections"]
+    assert model["authority"]["learning_brain_degraded"] is True
+    assert model["next_best_actions"][0]["degraded"] is True
+    assert model["next_best_actions"][0]["source"] == "dry_run_fallback"
 
 
 def test_compiled_truth_present_skips_dry_run() -> None:
@@ -1218,6 +1254,7 @@ def test_compiled_truth_present_skips_dry_run() -> None:
     )
 
     assert model["authority"]["learning_brain_source"] == "compiled_learning_truth"
+    assert model["authority"]["learning_brain_degraded"] is False
     assert model["source_status"]["compiled_truth"]["ok"] is True
     assert model["source_status"]["dry_run_synthesis"]["ok"] is None
 

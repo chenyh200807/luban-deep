@@ -3449,6 +3449,108 @@ def test_rag_prefetch_preview_args_forward_compiled_learning_truth() -> None:
     assert preview["routing_metadata"]["compiled_learning_truth_available"] is True
 
 
+def test_rag_prefetch_preview_args_forward_personalization_context_without_writing_learner_state(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+
+    record_calls: list[dict[str, Any]] = []
+    synthesize_calls: list[dict[str, Any]] = []
+
+    def fake_record_memory_event(*args: Any, **kwargs: Any) -> None:
+        record_calls.append({"args": args, "kwargs": kwargs})
+        raise AssertionError("RAG preview must not write learner-state truth")
+
+    def fake_synthesize_learning_truth(*args: Any, **kwargs: Any) -> None:
+        synthesize_calls.append({"args": args, "kwargs": kwargs})
+        raise AssertionError("RAG preview must not compute claim lifecycle")
+
+    monkeypatch.setattr(
+        "deeptutor.services.learner_state.service.LearnerStateService.record_memory_event",
+        fake_record_memory_event,
+        raising=False,
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.learner_state.learning_synthesis.synthesize_learning_truth",
+        fake_synthesize_learning_truth,
+        raising=False,
+    )
+
+    personalization_context = {
+        "authority": {"claims": "learning_synthesis", "prescription": "training_intent"},
+        "top_claims": [{"concept_id": "1A432000", "evidence_refs": ["event:e1"]}],
+    }
+    preview = AgentLoop._build_rag_preview_args(
+        "我老是案例题丢分怎么办",
+        {
+            "default_kb": "construction-exam",
+            "personalization_context": personalization_context,
+        },
+    )
+
+    assert preview["personalization_context"] == personalization_context
+    assert preview["routing_metadata"]["personalization_context_available"] is True
+    assert record_calls == []
+    assert synthesize_calls == []
+
+
+@pytest.mark.asyncio
+async def test_rag_adapter_tool_forwards_personalization_context_without_writing_learner_state(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+    record_calls: list[dict[str, Any]] = []
+
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    def fake_record_memory_event(*args: Any, **kwargs: Any) -> None:
+        record_calls.append({"args": args, "kwargs": kwargs})
+        raise AssertionError("RAG adapter must not write learner-state truth")
+
+    monkeypatch.setattr(
+        "deeptutor.services.learner_state.service.LearnerStateService.record_memory_event",
+        fake_record_memory_event,
+        raising=False,
+    )
+
+    from deeptutor.tutorbot.agent.tools.deeptutor_tools import RAGAdapterTool
+
+    rag_tool = importlib.import_module("deeptutor.tools.rag_tool")
+    personalization_context = {
+        "authority": {"claims": "learning_synthesis", "prescription": "training_intent"},
+        "top_claims": [{"concept_id": "1A432000", "evidence_refs": ["event:e1"]}],
+    }
+
+    async def _fake_rag_search(**kwargs: Any) -> dict[str, Any]:
+        captured.update(kwargs)
+        return {"answer": "ok"}
+
+    monkeypatch.setattr(rag_tool, "rag_search", _fake_rag_search)
+
+    tool = RAGAdapterTool()
+    tool.set_runtime_context(
+        metadata={
+            "default_kb": "construction-exam",
+            "personalization_context": personalization_context,
+        }
+    )
+
+    result = await tool.execute(query="我老是案例题丢分怎么办")
+
+    assert result == "ok"
+    assert captured["personalization_context"] == personalization_context
+    assert captured["routing_metadata"]["personalization_context_available"] is True
+    assert record_calls == []
+
+
 @pytest.mark.asyncio
 async def test_rag_adapter_tool_normalizes_legacy_kb_alias_to_default(
     monkeypatch: pytest.MonkeyPatch,

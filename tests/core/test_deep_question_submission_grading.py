@@ -1675,6 +1675,51 @@ def test_related_generation_anchor_accepts_compiled_learning_truth_signal() -> N
     assert "policy_action=diagnostic_hint" in topic
 
 
+def test_related_generation_anchor_accepts_personalization_context_without_writing_learner_state(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    record_calls: list[dict[str, Any]] = []
+
+    def fake_record_memory_event(*args: Any, **kwargs: Any) -> None:
+        record_calls.append({"args": args, "kwargs": kwargs})
+        raise AssertionError("deep_question must not write learner-state truth from context")
+
+    monkeypatch.setattr(
+        "deeptutor.services.learner_state.service.LearnerStateService.record_memory_event",
+        fake_record_memory_event,
+        raising=False,
+    )
+
+    topic = deep_question_module._resolve_generation_topic(
+        raw_topic="再给我相关题",
+        active_object=None,
+        suspended_object_stack=[],
+        followup_question_context={
+            "question_id": "q-case",
+            "question_type": "case",
+            "personalization_context": {
+                "authority": {"claims": "learning_synthesis", "prescription": "training_intent"},
+                "top_claims": [{"concept_id": "1A432000", "evidence_refs": ["event:e1"]}],
+                "active_training_intent": {
+                    "training_intent_id": "lti_1",
+                    "concept_id": "1A432000",
+                    "concept_label": "危大工程专项方案",
+                    "error_code": "E02",
+                    "error_label": "专家论证程序漏项",
+                    "evidence_refs": ["event:e1"],
+                },
+            },
+        },
+        conversation_context_text="",
+    )
+
+    assert "个性化训练意图" in topic
+    assert "1A432000" in topic
+    assert "危大工程专项方案" in topic
+    assert "专家论证程序漏项" in topic
+    assert record_calls == []
+
+
 def test_related_generation_anchor_uses_l2_compiled_truth_for_stable_personalization() -> None:
     topic = deep_question_module._resolve_generation_topic(
         raw_topic="再给我相关题",

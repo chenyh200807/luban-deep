@@ -57,6 +57,8 @@ domains:
       - deeptutor/services/learner_state/training_intent.py
       - deeptutor/services/learner_state/conversation_learning_evidence.py
       - deeptutor/services/learner_state/home_personalization.py
+      - deeptutor/services/learner_state/personalization_context.py
+      - deeptutor/services/learner_state/next_best_action.py
     sensitive_patterns:
       - deeptutor/api/routers/unified_ws.py
       - deeptutor/api/routers/mobile.py
@@ -80,6 +82,8 @@ domains:
       - tests/services/learner_state/test_attempt_detail_read_model.py
       - tests/services/learner_state/test_mistake_book.py
       - tests/services/learner_state/test_training_intent.py
+      - tests/services/learner_state/test_personalization_context.py
+      - tests/services/learner_state/test_next_best_action.py
       - tests/services/learner_state/test_scoring_point_map_read_model.py
       - tests/services/learner_state/test_conversation_learning_evidence_event.py
       - tests/services/learner_state/test_learning_evidence_quality_gate.py
@@ -254,6 +258,8 @@ domains:
       - tests/services/learner_state/test_learning_state_projection.py
       - tests/services/learner_state/test_mastery_estimator.py
       - tests/services/learner_state/test_training_intent.py
+      - tests/services/learner_state/test_personalization_context.py
+      - tests/services/learner_state/test_next_best_action.py
       - tests/services/learner_state/test_scoring_point_map_read_model.py
       - tests/services/learner_state/test_evidence_story_read_model.py
       - tests/services/learner_state/test_prescription_outcomes_read_model.py
@@ -294,10 +300,13 @@ learning_state_inference:
     - behavior_state
     - prescription
     - scoring_point_map
+    - PersonalizationContextPack
+    - today_prescription
   forbidden:
     - second learner memory table
     - frontend mastery derivation
     - recommendation authority outside training_intent / learning_report_read_model
+    - compiled truth override of exact question / standard / textbook authority
     - new chat WebSocket route outside /api/v1/ws
     - LLM-fabricated scoring_point_hits bypassing audit.reconcile_grader_output
     - unregistered error_code in payload outside docs/contracts/error_code_registry.md

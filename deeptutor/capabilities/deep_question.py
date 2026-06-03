@@ -237,9 +237,51 @@ def _compiled_training_signal_text_from_context(question_context: dict[str, Any]
     return " | ".join(parts)
 
 
+def _personalization_training_signal_text_from_context(question_context: dict[str, Any]) -> str:
+    context = question_context.get("personalization_context")
+    if not isinstance(context, dict):
+        return ""
+    intent = context.get("active_training_intent") if isinstance(context.get("active_training_intent"), dict) else {}
+    parts: list[str] = []
+    for key in ("training_intent_id", "concept_id", "concept_label", "error_code", "error_label"):
+        value = _compact_text(intent.get(key))
+        if value:
+            parts.append(f"{key}={value}")
+    evidence_refs = [
+        _compact_text(ref)
+        for ref in list(intent.get("evidence_refs") or [])
+        if _compact_text(ref)
+    ]
+    if evidence_refs:
+        parts.append(f"evidence_refs={','.join(evidence_refs[:3])}")
+    if parts:
+        return "；".join(parts)
+
+    top_claims = list(context.get("top_claims") or [])
+    claim_parts: list[str] = []
+    for claim in top_claims[:2]:
+        if not isinstance(claim, dict):
+            continue
+        concept_id = _compact_text(claim.get("concept_id"))
+        evidence = [
+            _compact_text(ref)
+            for ref in list(claim.get("evidence_refs") or [])
+            if _compact_text(ref)
+        ]
+        if concept_id:
+            claim_parts.append(
+                f"concept_id={concept_id}；evidence_refs={','.join(evidence[:3])}"
+                if evidence
+                else f"concept_id={concept_id}"
+            )
+    return " | ".join(claim_parts)
+
+
 def _question_context_generation_anchor(question_context: dict[str, Any] | None) -> str:
     raw_context = question_context if isinstance(question_context, dict) else {}
     normalized = normalize_question_followup_context(question_context)
+    if not normalized and isinstance(raw_context.get("personalization_context"), dict):
+        normalized = {"personalization_context": raw_context["personalization_context"]}
     if not normalized:
         return ""
     if (
@@ -248,6 +290,12 @@ def _question_context_generation_anchor(question_context: dict[str, Any] | None)
     ):
         normalized = dict(normalized)
         normalized["compiled_learning_truth"] = raw_context["compiled_learning_truth"]
+    if (
+        "personalization_context" not in normalized
+        and isinstance(raw_context.get("personalization_context"), dict)
+    ):
+        normalized = dict(normalized)
+        normalized["personalization_context"] = raw_context["personalization_context"]
 
     items = normalized.get("items") or []
     contexts = [normalized, *[item for item in items if isinstance(item, dict)]]
@@ -271,6 +319,12 @@ def _question_context_generation_anchor(question_context: dict[str, Any] | None)
             _append_unique(
                 training_parts,
                 f"长期错因训练信号：{compiled_training_signal}；下一题优先从现有题库选择同考点、同错因的相似题。",
+            )
+        personalization_signal = _personalization_training_signal_text_from_context(item)
+        if personalization_signal:
+            _append_unique(
+                training_parts,
+                f"个性化训练意图：{personalization_signal}；下一题优先从现有题库选择同考点、同错因的相似题。",
             )
 
     anchor_lines: list[str] = []

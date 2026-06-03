@@ -33,6 +33,7 @@ _ABILITY_DIMENSIONS = frozenset({
 })
 
 _FULL_PHASES = ("repair_root", "expression_drill", "transfer_case", "verification_probe")
+PRESCRIPTION_AUTHORITY = "training_intent"
 
 
 def build_learning_training_intent(
@@ -106,6 +107,7 @@ def build_learning_training_intent(
     return {
         # ─── v1 fields ───────────────────────────────────────────────────
         "source": str(source or "learning_report").strip(),
+        "prescription_authority": PRESCRIPTION_AUTHORITY,
         "training_intent_id": intent_id,
         "concept_id": str(concept_id or "").strip(),
         "concept_label": str(concept_label or "").strip(),
@@ -192,4 +194,8 @@ def _intent_id(**values: str) -> str:
     return "lti_" + hashlib.sha1(raw.encode("utf-8")).hexdigest()[:16]
 
 
-__all__ = ["build_learning_training_intent", "prioritize_training_intents"]
+__all__ = [
+    "PRESCRIPTION_AUTHORITY",
+    "build_learning_training_intent",
+    "prioritize_training_intents",
+]

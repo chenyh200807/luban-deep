@@ -61,6 +61,12 @@
 36. 学生端引用标准 / 规范 / 条文来源时，如果该 source 携带可信 `node_code` 或 `taxonomy_path`，公开 citation locator 必须同时展示“关联教材：第 X 章 / 第 Y 节”这类 2026 教材知识点定位；标准条文本身仍是 evidence source，教材定位是 learner remediation coordinate。缺少可信映射时必须 fail closed，不得凭关键词、标题、`chunk_id`、`source_id`、`stable_id` 硬编或反推教材章节。
 37. 学生端 answer citation 的唯一展示 authority 是结构化 `citation_bundle.refs` / `citation_bundle.footer_text`；最终 `response` 正文不得内联 `〔1〕` marker、不得追加“依据”footer，也不得把引用段落混入“采分点 / 易错点 / 判断依据”等教学正文。前端必须在回答末尾用独立引用区域渲染结构化 refs。
 38. 学生端开启 answer citation 时，不得压制普通聊天 / TutorBot 正文的 public `content` delta；citation 只负责最终引用组装。对于已经流式展示过的正文，最终组装阶段只能补未展示过的 citation suffix / delta，不能重复发送整段回答。exact-question authority correction、判题、出题、隐藏标准答案等需要先完成权威校验的路径仍允许缓冲到最终结果。
+39. `PersonalizationContextPack` 可作为只读 request metadata 进入
+    `RAGService.search(...)` 或 RAG tool runtime context。RAG 只能用它设置
+    `routing_metadata.personalization_context_available`、解释现有
+    `compiled_learning_truth` source group 是否可用，或携带 compact provenance marker；
+    不得写 learner-state、不得计算 claim lifecycle、不得把 compiled truth override
+    exact question、标准条文、教材或 hidden grading authority。
 
 ## 当前统一语义
 
@@ -86,6 +92,8 @@
 - `evidence_bundle.stage_timings_ms`
 - `evidence_bundle.performance_policy`
 - `learning_fact_capsule`
+- `routing_metadata.personalization_context_available`
+- `PersonalizationContextPack`
 - `question_grading_explanation`
 - `exact_question_blocked_reason`
 - `evidence_bundle.sources[].source_id`

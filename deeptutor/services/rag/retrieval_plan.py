@@ -133,6 +133,7 @@ def build_retrieval_plan(
     )
     standard_codes = extract_standard_codes(text)
     compiled_truth_available = _truthy(metadata.get("compiled_learning_truth_available"))
+    personalization_context_available = _truthy(metadata.get("personalization_context_available"))
     wants_compiled_truth = inferred_intent in {"weak_point_review", "next_training"}
     expanded = expand_query_variants(text, max_variants=max_expanded_queries)
     if not expanded:
@@ -141,7 +142,7 @@ def build_retrieval_plan(
     groups = {
         "compiled_learning_truth": _source_group(
             "compiled_learning_truth",
-            bool(compiled_truth_available and wants_compiled_truth),
+            bool((compiled_truth_available or personalization_context_available) and wants_compiled_truth),
             inferred_intent or "compiled_truth_context",
         ),
         "questions_bank": _source_group(
@@ -173,6 +174,8 @@ def build_retrieval_plan(
     reasons.extend(list(getattr(source_plan, "selection_reasons", []) or []))
     if compiled_truth_available:
         reasons.append("compiled_learning_truth_available")
+    if personalization_context_available:
+        reasons.append("personalization_context_available")
     if standard_codes:
         reasons.append("standard_code")
     plan_seed = {

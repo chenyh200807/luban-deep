@@ -43,6 +43,7 @@ always: false
 | 业务事实 | Authority | 本 Skill 的职责 |
 | --- | --- | --- |
 | 当前训练意图 | training intent read model | 转成学生可执行动作 |
+| 个性化上下文 | PersonalizationContextPack | 只读引用 top claims / evidence refs / active intent，不生成新处方 |
 | 学习计划 | study plan read projection | 读取当前计划，不自行重排全局计划 |
 | 作答细节 | attempt detail / grading result | 选择和解释一个训练动作 |
 | 练题入口 | `deep_question` / assessment / practice surface | 输出入口建议，不自己生成题库 |
@@ -60,6 +61,7 @@ always: false
 
 1. **读取输入事实**
    - 优先读取 training intent。
+   - 如果存在 `PersonalizationContextPack`，只把它作为已编译学习事实和证据引用的上下文；下一步动作仍以 training intent 为处方权威。
    - 再看 study plan、attempt detail、recent grading result。
    - 如果没有足够证据，建议先做摸底或少量自测，而不是编造诊断。
 

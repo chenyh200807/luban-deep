@@ -139,6 +139,10 @@ class RAGAdapterTool(Tool):
         if compiled_truth:
             search_kwargs["compiled_learning_truth"] = compiled_truth
             routing_metadata["compiled_learning_truth_available"] = True
+        personalization_context = self._personalization_context()
+        if personalization_context:
+            search_kwargs["personalization_context"] = personalization_context
+            routing_metadata["personalization_context_available"] = True
         if any(routing_metadata.values()):
             search_kwargs["routing_metadata"] = routing_metadata
         try:
@@ -214,6 +218,14 @@ class RAGAdapterTool(Tool):
         compiled_truth = self._compiled_learning_truth()
         if compiled_truth:
             preview.setdefault("compiled_learning_truth", compiled_truth)
+        personalization_context = self._personalization_context()
+        if personalization_context:
+            preview.setdefault("personalization_context", personalization_context)
+            routing_metadata = preview.get("routing_metadata")
+            if not isinstance(routing_metadata, dict):
+                routing_metadata = {}
+            routing_metadata["personalization_context_available"] = True
+            preview["routing_metadata"] = routing_metadata
         return preview
 
     def consume_trace_metadata(self) -> dict[str, Any] | None:
@@ -257,6 +269,12 @@ class RAGAdapterTool(Tool):
         if not isinstance(projection, dict):
             return {}
         return dict(projection)
+
+    def _personalization_context(self) -> dict[str, Any]:
+        context = self._runtime_context.get("personalization_context")
+        if not isinstance(context, dict):
+            return {}
+        return dict(context)
 
     @staticmethod
     def _summarize_evidence_bundle(bundle: dict[str, Any]) -> dict[str, Any]:

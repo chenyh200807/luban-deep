@@ -75,6 +75,9 @@ v2 新增字段（Task 1-5 实施后逐步引入）：
 | `next_training` | `list[dict]` | 下一步训练卡片；intent 由 `training_intent.py` / read model projection 生成 | Task 4 | active |
 | `training_prescription` | `dict` | `training_intent` v2 的学员可见处方：主题、错因、题目顺序、成功标准 | Task 4 / Batch C | active |
 | `home_personalization` | `dict` | 首页个性化 projection；复用 `home_dashboard.today_focus/recommended_prompts` | Task 4.6 | active |
+| `personalization_context` | `dict` | `PersonalizationContextPack` 的学习事实只读投影；不得在 report 内重算 learner truth | GBrain P0 | active |
+| `next_best_actions` | `list[dict]` | `training_intent` 的解释视图，必须带 `why_this_now` 和证据引用 | GBrain P0 | active |
+| `today_prescription` | `dict` | 学员可见的今日处方；只能由 `training_intent` / `next_best_actions` 派生 | GBrain P1 | active |
 | `mastery.dimensions` | `list[dict]` | 掌握度维度；包含 score/status/confidence，但不得伪装成稳定真相 | Stage 1 | active |
 | `i18n_keys` | `dict` | v2 UI copy key，当前 locale=`zh-CN` | Stage 1 | active |
 
@@ -87,6 +90,8 @@ v2 `authority` 必须额外声明以下来源，供前端和 QA 验证 single au
 | `mistake_book_source` | `learner_mistake_book_items` |
 | `training_intent_source` | `learning-report-read-model` |
 | `home_context_source` | `home_dashboard.today_focus/recommended_prompts` |
+| `personalization_context_source` | `PersonalizationContextPack` from learner-state read helpers |
+| `next_best_action_source` | `training_intent` view/explain |
 
 **v1 Retirement 计划：**
 
@@ -170,6 +175,9 @@ v2 `authority` 必须额外声明以下来源，供前端和 QA 验证 single au
   - `display_topic` 必须来自可诊断学习证据；prompt-like 文案（例如“我想练习…出题”“那出5道题”“training_mode=…”）不得展示为训练主题。
   - 证据不足时必须 `status=degraded`，展示起步测评/补证据，不得伪装成专项题。
   - `study_plan` 只能读取 `training_prescription` 或已有安全 projection；不得反向覆盖 `training_intent`。
+  - `next_best_actions` 是 `training_intent` 上的 view/explain 层，不得自决处方。
+  - `today_prescription` 必须来自 `training_intent` / `next_best_actions`，且非 starter action
+    必须暴露 `why_this_now` 与 `evidence_refs`。无证据学员只能收到 starter action，不得生成假个性化。
 
 ---
 
