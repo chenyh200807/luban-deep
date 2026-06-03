@@ -2959,7 +2959,7 @@ def test_report_analytics_stay_empty_before_any_assessment_or_practice(tmp_path:
     assert profile["chapter_mastery"] == {}
 
 
-def test_explicit_learning_activity_builds_provisional_report_analytics_without_assessment(tmp_path: Path) -> None:
+def test_explicit_learning_activity_does_not_build_provisional_mastery_without_assessment(tmp_path: Path) -> None:
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
 
@@ -2974,15 +2974,12 @@ def test_explicit_learning_activity_builds_provisional_report_analytics_without_
     dashboard = service.get_mastery_dashboard("blank_user")
     profile = service.get_assessment_profile("blank_user")
 
-    assert any(item["label"] == "建筑构造" and item["score"] > 0 for item in radar["dimensions"])
-    assert dashboard["overall_mastery"] > 0
-    assert any(
-        chapter["name"] == "建筑构造" and chapter["mastery"] > 0
-        for group in dashboard["groups"]
-        for chapter in group["chapters"]
-    )
-    assert profile["score"] > 0
-    assert profile["chapter_mastery"]["建筑构造"]["mastery"] > 0
+    assert radar["dimensions"] == []
+    assert dashboard["overall_mastery"] == 0
+    assert dashboard["groups"] == []
+    assert dashboard["hotspots"] == []
+    assert profile["score"] == 0
+    assert profile["chapter_mastery"] == {}
 
 
 def test_chat_learning_does_not_count_generated_questions_as_completed(tmp_path: Path) -> None:

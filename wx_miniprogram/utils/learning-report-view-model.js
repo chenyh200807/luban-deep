@@ -320,7 +320,45 @@ function normalizeMastery(source) {
         rateText: rate + "%",
       };
     }).filter(Boolean),
+    knowledgeSummary: normalizeKnowledgeSummary(mastery.knowledge_summary || mastery.knowledgeSummary),
     reviewSummary: asObject(mastery.review_summary),
+  };
+}
+
+function normalizeKnowledgeSummary(source) {
+  var summary = asObject(source);
+  var chapters = asList(summary.textbook_chapters || summary.textbookChapters).map(function (item) {
+    var chapter = asObject(item);
+    return {
+      chapterNo: asNumber(chapter.chapter_no || chapter.chapterNo, 0),
+      chapterName: String(chapter.chapter_name || chapter.chapterName || ""),
+      sectionCount: asNumber(chapter.section_count || chapter.sectionCount, 0),
+      evaluatedTopics: asNumber(chapter.evaluated_topics || chapter.evaluatedTopics, 0),
+      masteredTopics: asNumber(chapter.mastered_topics || chapter.masteredTopics, 0),
+      developingTopics: asNumber(chapter.developing_topics || chapter.developingTopics, 0),
+      weakTopics: asNumber(chapter.weak_topics || chapter.weakTopics, 0),
+      topTopics: asList(chapter.top_topics || chapter.topTopics).map(function (name) {
+        return String(name || "").trim();
+      }).filter(Boolean),
+      status: String(chapter.status || "unseen"),
+    };
+  }).filter(function (chapter) {
+    return chapter.chapterNo > 0 && chapter.chapterName;
+  });
+  return {
+    totalNodes: asNumber(summary.total_nodes || summary.totalNodes, 0),
+    codedNodes: asNumber(summary.coded_nodes || summary.codedNodes, 0),
+    leafNodes: asNumber(summary.leaf_nodes || summary.leafNodes, 0),
+    uniqueCodes: asNumber(summary.unique_codes || summary.uniqueCodes, 0),
+    duplicateCodeRows: asNumber(summary.duplicate_code_rows || summary.duplicateCodeRows, 0),
+    totalTextbookChapters: asNumber(summary.total_textbook_chapters || summary.totalTextbookChapters, chapters.length),
+    evaluatedTopics: asNumber(summary.evaluated_topics || summary.evaluatedTopics, 0),
+    evaluatedLeafPoints: asNumber(summary.evaluated_leaf_points || summary.evaluatedLeafPoints, 0),
+    masteredTopics: asNumber(summary.mastered_topics || summary.masteredTopics, 0),
+    developingTopics: asNumber(summary.developing_topics || summary.developingTopics, 0),
+    weakTopics: asNumber(summary.weak_topics || summary.weakTopics, 0),
+    unmeasuredLeafPoints: asNumber(summary.unmeasured_leaf_points || summary.unmeasuredLeafPoints, 0),
+    textbookChapters: chapters,
   };
 }
 
@@ -1417,6 +1455,8 @@ function toReportPageData(model) {
     masteryScoreClass: mastery.overallClass || "",
     masteryGroups: asList(mastery.groups),
     hotspots: asList(mastery.hotspots),
+    knowledgeSummary: asObject(mastery.knowledgeSummary),
+    textbookChapters: asList(asObject(mastery.knowledgeSummary).textbookChapters),
     reviewSummary: asObject(mastery.reviewSummary),
     learningBrainSummary: asObject(brain.summary),
     learningBrainAttempts: asList(brain.attempts),

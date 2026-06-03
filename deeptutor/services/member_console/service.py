@@ -4109,19 +4109,7 @@ class MemberConsoleService:
         return list(scoped.values())
 
     def _build_provisional_mastery_items(self, member: dict[str, Any]) -> list[dict[str, Any]]:
-        learning = self._ensure_learning_profile(member)
-        items: list[dict[str, Any]] = []
-        has_signal = False
-        daily_target = max(1, int(member.get("daily_target") or 30))
-        for key, value in (member.get("chapter_mastery") or {}).items():
-            chapter_name = value.get("name") or key
-            stats = learning["chapter_stats"].get(chapter_name) or {}
-            done = int(stats.get("done") or 0)
-            mastery = round((done / daily_target) * 100) if done > 0 else 0
-            if mastery > 0:
-                has_signal = True
-            items.append({"name": chapter_name, "mastery": mastery})
-        return items if has_signal else []
+        return []
 
     def _report_mastery_items(self, member: dict[str, Any]) -> list[dict[str, Any]]:
         last_assessment_items = self._last_assessment_mastery_items(member)

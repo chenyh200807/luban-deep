@@ -37,11 +37,13 @@ function buildRadarDimensionsFromAssessment(data) {
   return Object.keys(mastery).map(function (key) {
     var item = mastery[key];
     var score = Number(typeof item === "object" ? item.mastery : item);
+    var normalizedScore = Number.isFinite(score) ? score : 0;
     return {
       name: displayChapterName(
         (typeof item === "object" ? item.name : key) || key,
       ),
-      value: (Number.isFinite(score) ? score : 0) / 100,
+      value: normalizedScore / 100,
+      status: normalizedScore >= 70 ? "strong" : normalizedScore > 0 ? "normal" : "weak",
     };
   });
 }
@@ -64,6 +66,7 @@ function normalizeRadarDimensions(radarData) {
     return {
       name: displayChapterName(item.label || item.name || item.key || ""),
       value: value || 0,
+      status: value >= 0.7 ? "strong" : value > 0 ? "normal" : "weak",
     };
   });
 }
@@ -876,6 +879,8 @@ Page({
     masteryScoreClass: "",
     masteryGroups: [],
     hotspots: [],
+    knowledgeSummary: {},
+    textbookChapters: [],
     reviewSummary: { total_due: 0, overdue_count: 0 },
     todayDone: 0,
     dailyTarget: 0,

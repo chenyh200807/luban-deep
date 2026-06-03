@@ -86,6 +86,7 @@
 - 单章做对一题不能推导全局 100%。
 - 章节 mastery 与全局 mastery 分开展示；全局 mastery 只能来自明确的 mastery authority 或按章节覆盖度加权。
 - 若 mastery 输入源降级，页面可显示 evidence-driven 进度和 Learning Brain，但必须标记 `degraded`。
+- 教材目录进度是 read-model 对 taxonomy/textbook-directory 与 evidence 的只读 projection，用来说明“哪些章节已定位到证据”；它不是做题数，也不能直接当 mastery truth。
 
 ### Learning Brain 口径
 
@@ -155,7 +156,39 @@ Learning Brain 只回答三件事：
     "overall_mastery": 0
   },
   "progress_feedback": { /* build_progress_feedback 输出，不在本计划重定义 */ },
-  "mastery": { /* groups / hotspots / review_summary / overall_mastery */ },
+  "mastery": {
+    "overall_mastery": { "score": 0, "status": "observed", "class_name": "score-low" },
+    "groups": [],
+    "hotspots": [],
+    "knowledge_summary": {
+      "total_nodes": 3735,
+      "coded_nodes": 3733,
+      "leaf_nodes": 2786,
+      "unique_codes": 1284,
+      "duplicate_code_rows": 2449,
+      "total_textbook_chapters": 13,
+      "evaluated_topics": 0,
+      "evaluated_leaf_points": 0,
+      "mastered_topics": 0,
+      "developing_topics": 0,
+      "weak_topics": 0,
+      "unmeasured_leaf_points": 2786,
+      "textbook_chapters": [
+        {
+          "chapter_no": 1,
+          "chapter_name": "第1章 建筑工程设计技术",
+          "section_count": 5,
+          "evaluated_topics": 0,
+          "mastered_topics": 0,
+          "developing_topics": 0,
+          "weak_topics": 0,
+          "top_topics": [],
+          "status": "unseen"
+        }
+      ]
+    },
+    "review_summary": { "total_due": 0, "overdue_count": 0 }
+  },
   "radar_dimensions": [ { "name": "...", "value": 0.0 } ],
   "learning_brain": { /* build_learning_brain_read_model 输出，三段式 */ },
   "next_training": [ { "display_title": "...", "display_meta": "..." } ],
@@ -284,7 +317,7 @@ Learning Brain 只回答三件事：
 6. 切回学情页，下拉刷新或重新进入。
 
 **断言**（必须同时变化）：
-- `近 3 天完成 = 2 题`（attempt 口径，非 1 题）。
+- `近 3 天完成 = 2 次练习`（attempt 口径，非 1 道唯一题）。
 - `今日进度 ≥ 2`。
 - `unique_question_count = 1`、`recent_three_unique_questions = 1`。
 - 薄弱点更新出现对应 concept。
@@ -370,7 +403,7 @@ curl -s -H "Authorization: Bearer demo-token-phase3-demo-user" \
 
 **Step 5 — 断言（必须**同时**满足）**
 
-- `近 3 天完成 = 2 题`（attempt 口径，**非 1 题**）
+- `近 3 天完成 = 2 次练习`（attempt 口径，**非 1 道唯一题**）
 - `今日进度 ≥ 2`
 - `unique_question_count = 1`
 - `recent_three_unique_questions = 1`
@@ -514,7 +547,7 @@ python scripts/run_learning_report_read_model_e2e.py \
 
 | 场景 | 输入 | 预期 |
 | --- | --- | --- |
-| 旧 daily count 为 0，但有 `learning_evidence` | 今日 1 条 evidence | `近 3 天完成=1题`、`progress_source=learner_memory_events.learning_evidence` |
+| 旧 daily count 为 0，但有 `learning_evidence` | 今日 1 条 evidence | `近 3 天完成=1次练习`、`progress_source=learner_memory_events.learning_evidence` |
 | 同题二刷（attempt 口径硬约束） | 同一 `question_id` 同一日 2 条 evidence | `today_done=2`、`recent_three_done=2`、`today_unique_questions=1`、`attempt_count=2` |
 | 跨日多题练习 | 今日 1 条 + 昨日 1 条 + 前日 1 条（不同 question_id） | `recent_three_done=3`、`recent_three_unique_questions=3` |
 | 多章节练习 | 不同 concept evidence | 章节统计、雷达、弱点分布分别更新 |

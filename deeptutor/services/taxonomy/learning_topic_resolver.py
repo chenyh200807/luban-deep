@@ -125,6 +125,7 @@ def compile_taxonomy_payload(
             "path": source_path,
             "sha256": content_sha256,
             "meta": dict(payload.get("meta") or {}),
+            "stats": _outline_tree_stats(payload),
         },
         "nodes": nodes,
         "nodes_by_id": {node["id"]: node for node in nodes},
@@ -136,6 +137,36 @@ def compile_taxonomy_payload(
         "duplicate_codes": sorted(code for code, count in code_counts.items() if count > 1),
         "ambiguous_codes": sorted(ambiguous_codes),
         "ambiguous_names": sorted(ambiguous_names),
+    }
+
+
+def _outline_tree_stats(payload: dict[str, Any]) -> dict[str, int]:
+    total_nodes = 0
+    leaf_nodes = 0
+    code_counts: Counter[str] = Counter()
+
+    def walk(items: list[Any]) -> None:
+        nonlocal total_nodes, leaf_nodes
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            total_nodes += 1
+            code = _normalize_authority_taxonomy_code(item.get("code") or item.get("node_code"))
+            if code:
+                code_counts[code] += 1
+            children = list(item.get("children") or [])
+            if children:
+                walk(children)
+            else:
+                leaf_nodes += 1
+
+    walk(list(payload.get("outline_structure") or []))
+    return {
+        "total_nodes": total_nodes,
+        "coded_nodes": sum(code_counts.values()),
+        "leaf_nodes": leaf_nodes,
+        "unique_codes": len(code_counts),
+        "duplicate_code_rows": sum(count - 1 for count in code_counts.values() if count > 1),
     }
 
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections import Counter
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -67,6 +68,17 @@ def taxonomy_source_metadata() -> dict[str, str]:
     }
 
 
+def taxonomy_tree_stats() -> dict[str, int]:
+    """Original outline tree statistics, not the deduped lookup index.
+
+    `nodes_by_code` deliberately drops ambiguous duplicate codes for resolver
+    safety. Learning-report totals need the full textbook/taxonomy outline
+    instead, otherwise the UI undercounts total nodes and wildly overcounts
+    leaves.
+    """
+    return dict(_taxonomy_tree_stats())
+
+
 def taxonomy_nodes() -> list[dict[str, Any]]:
     return [dict(node) for node in list(_compiled_taxonomy().get("nodes") or []) if isinstance(node, dict)]
 
@@ -90,6 +102,92 @@ def _compiled_taxonomy() -> dict[str, Any]:
         return json.loads(_COMPILED_TAXONOMY_PATH.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return {"source": {}, "nodes": [], "nodes_by_code": {}, "nodes_by_id": {}}
+
+
+@lru_cache(maxsize=1)
+def _taxonomy_tree_stats() -> dict[str, int]:
+    source = _safe_dict(_compiled_taxonomy().get("source"))
+    embedded = _coerce_stats(source.get("stats"))
+    if embedded:
+        return embedded
+
+    path = Path(str(source.get("path") or ""))
+    if path.exists():
+        stats = _stats_from_source_path(path)
+        if stats:
+            return stats
+
+    nodes = taxonomy_nodes()
+    code_counts = Counter(normalize_taxonomy_code(node.get("code")) for node in nodes if normalize_taxonomy_code(node.get("code")))
+    parent_refs = {
+        normalize_taxonomy_code(_safe_dict(node).get("parent_code"))
+        for node in nodes
+        if normalize_taxonomy_code(_safe_dict(node).get("parent_code"))
+    }
+    leaf_nodes = [
+        node
+        for node in nodes
+        if normalize_taxonomy_code(_safe_dict(node).get("code")) not in parent_refs
+    ]
+    return {
+        "total_nodes": len(nodes),
+        "coded_nodes": sum(code_counts.values()),
+        "leaf_nodes": len(leaf_nodes),
+        "unique_codes": len(code_counts),
+        "duplicate_code_rows": sum(count - 1 for count in code_counts.values() if count > 1),
+    }
+
+
+def _stats_from_source_path(path: Path) -> dict[str, int]:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return _stats_from_outline_payload(payload)
+
+
+def _stats_from_outline_payload(payload: dict[str, Any]) -> dict[str, int]:
+    total_nodes = 0
+    leaf_nodes = 0
+    code_counts: Counter[str] = Counter()
+
+    def walk(items: list[Any]) -> None:
+        nonlocal total_nodes, leaf_nodes
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            total_nodes += 1
+            code = normalize_taxonomy_code(item.get("code") or item.get("node_code"))
+            if code:
+                code_counts[code] += 1
+            children = list(item.get("children") or [])
+            if children:
+                walk(children)
+            else:
+                leaf_nodes += 1
+
+    walk(list(_safe_dict(payload).get("outline_structure") or []))
+    if total_nodes <= 0:
+        return {}
+    return {
+        "total_nodes": total_nodes,
+        "coded_nodes": sum(code_counts.values()),
+        "leaf_nodes": leaf_nodes,
+        "unique_codes": len(code_counts),
+        "duplicate_code_rows": sum(count - 1 for count in code_counts.values() if count > 1),
+    }
+
+
+def _coerce_stats(value: Any) -> dict[str, int]:
+    stats = _safe_dict(value)
+    result = {
+        "total_nodes": int(stats.get("total_nodes") or 0),
+        "coded_nodes": int(stats.get("coded_nodes") or 0),
+        "leaf_nodes": int(stats.get("leaf_nodes") or 0),
+        "unique_codes": int(stats.get("unique_codes") or 0),
+        "duplicate_code_rows": int(stats.get("duplicate_code_rows") or 0),
+    }
+    return result if result["total_nodes"] > 0 and result["leaf_nodes"] > 0 else {}
 
 
 @lru_cache(maxsize=1)
@@ -186,6 +284,10 @@ def _compact(value: Any) -> str:
     return re.sub(r"\s+", "", str(value or "").strip())
 
 
+def _safe_dict(value: Any) -> dict[str, Any]:
+    return dict(value) if isinstance(value, dict) else {}
+
+
 __all__ = [
     "chapter_prefix_labels",
     "display_taxonomy_label",
@@ -194,4 +296,5 @@ __all__ = [
     "taxonomy_label",
     "taxonomy_nodes",
     "taxonomy_source_metadata",
+    "taxonomy_tree_stats",
 ]

@@ -7,6 +7,7 @@ from deeptutor.services.taxonomy.taxonomy_authority import (
     taxonomy_index,
     taxonomy_label,
     taxonomy_source_metadata,
+    taxonomy_tree_stats,
 )
 from deeptutor.services.taxonomy.textbook_directory import (
     is_non_topic_label,
@@ -24,4 +25,5 @@ __all__ = [
     "textbook_directory",
     "textbook_topic_meta",
     "taxonomy_source_metadata",
+    "taxonomy_tree_stats",
 ]

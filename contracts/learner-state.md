@@ -135,6 +135,9 @@ Overlay 必须支持：
   `user_stats.knowledge_map.projections.home_personalization`。服务层读回时可暴露为
   `progress.home_personalization` 以便页面消费，但不得把同一 projection 放入平行表、
   本地 JSON 或 member-console cache 作为第二套权威。
+- 学情页教材目录进度不得写入 `user_stats.knowledge_map` 作为第二套主真相。它只能由
+  `learning-report-read-model` 读取 taxonomy/textbook-directory 与已有 learning evidence 后即时投影，
+  用来展示章节覆盖和证据定位，不得反向覆盖 mastery、weak points 或 diagnosis。
 
 必须真实接入：
 

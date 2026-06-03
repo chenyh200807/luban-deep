@@ -42,6 +42,13 @@ def test_compile_taxonomy_payload_flattens_final_cleaned_outline() -> None:
     )
 
     assert compiled["source"]["path"] == "fixture/FINAL_CLEANED_TAXONOMY2026.json"
+    assert compiled["source"]["stats"] == {
+        "total_nodes": 3,
+        "coded_nodes": 3,
+        "leaf_nodes": 1,
+        "unique_codes": 3,
+        "duplicate_code_rows": 0,
+    }
     assert compiled["nodes_by_code"]["1A413053"]["name"] == "地下室防水工程施工"
     assert compiled["nodes_by_code"]["1A413053"]["path_names"] == [
         "建筑工程施工技术",

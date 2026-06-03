@@ -61,11 +61,13 @@ function _buildRadarDimensionsFromAssessment(data) {
   return Object.keys(chapterMastery).map(function (key) {
     var item = chapterMastery[key];
     var mastery = Number(typeof item === "object" ? item.mastery : item);
+    var normalizedMastery = Number.isFinite(mastery) ? mastery : 0;
     return {
       name: _displayChapterName(
         (typeof item === "object" ? item.name : key) || key,
       ),
-      value: (Number.isFinite(mastery) ? mastery : 0) / 100,
+      value: normalizedMastery / 100,
+      status: normalizedMastery >= 70 ? "strong" : normalizedMastery > 0 ? "normal" : "weak",
     };
   });
 }

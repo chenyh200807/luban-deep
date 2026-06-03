@@ -44,7 +44,7 @@
       <view class="overview-metrics" wx:if="{{reportDetailView == 'home'}}">
         <view class="metric-chip metric-chip-progress">
           <text class="metric-label">近 3 天</text>
-          <text class="metric-num">{{learningReviewSummary.recentThreeDone || 0}}题</text>
+          <text class="metric-num">{{learningReviewSummary.recentThreeDone || 0}}次练习</text>
           <view class="metric-sparkline">
             <view class="metric-spark one"></view>
             <view class="metric-spark two"></view>

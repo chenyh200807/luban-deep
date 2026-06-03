@@ -85,9 +85,9 @@ async function run() {
   assert.deepStrictEqual(
     ctx.data.dimList.map((item) => [item.name, item.pct]),
       [
-        ["防水工程", 0],
-        ["结构设计与建筑材料", 100],
+        ["主要建筑工程材料的性能与应用", 100],
         ["地基基础", 100],
+        ["防水工程", 0],
         ["主体结构", 100],
         ["施工管理", 100],
       ],
