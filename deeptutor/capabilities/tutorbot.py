@@ -79,7 +79,6 @@ class TutorBotCapability(BaseCapability):
         stream_public_deltas = (
             self._stream_public_deltas_enabled()
             and not hide_generated_answers
-            and not citation_enabled
         )
         public_stream_buffer = ""
         streamed_public_text = ""
