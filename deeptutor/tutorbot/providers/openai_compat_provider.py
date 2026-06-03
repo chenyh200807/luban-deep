@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import os
 import secrets
 import string
 import uuid
@@ -17,6 +18,7 @@ from typing import TYPE_CHECKING, Any
 import json_repair
 from deeptutor.services.llm.openai_http_client import make_openai_client
 from deeptutor.services.observability import get_langfuse_observability
+from deeptutor.services.observability.provider_reconciliation import fingerprint_secret
 from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
 
 if TYPE_CHECKING:
@@ -64,6 +66,15 @@ def _uses_openrouter(spec: "ProviderSpec | None", api_base: str | None) -> bool:
     if spec and spec.name == "openrouter":
         return True
     return bool(api_base and "openrouter" in api_base.lower())
+
+
+def _normalize_pricing_model(model: str) -> str:
+    raw_model = str(model or "").strip()
+    if raw_model in {"deepseek-chat", "deepseek-reasoner"}:
+        # DeepSeek pricing doc maps these aliases to deepseek-v4-flash pricing.
+        # Keep raw_model separately and surface pricing_source_checked_at with cost metadata.
+        return "deepseek-v4-flash"
+    return raw_model
 
 
 class OpenAICompatProvider(LLMProvider):
@@ -118,6 +129,25 @@ class OpenAICompatProvider(LLMProvider):
         for env_name, env_val in spec.env_extras:
             resolved = env_val.replace("{api_key}", api_key).replace("{api_base}", effective_base or "")
             os.environ.setdefault(env_name, resolved)
+
+    def _provider_metadata(self, *, streaming: bool, model: str | None = None) -> dict[str, Any]:
+        provider_name = self._provider_name or (self._spec.name if self._spec else "openai_compat")
+        effective_url = self.api_base or (self._spec.default_api_base if self._spec else "") or ""
+        raw_model = str(model or self.default_model or "").strip()
+        return {
+            "provider_name": provider_name,
+            "charged_provider_name": provider_name,
+            "requested_provider_name": provider_name,
+            "api_base": effective_url,
+            "effective_url": effective_url,
+            "streaming": bool(streaming),
+            "runtime_environment": os.getenv("LLM_USAGE_RUNTIME_ENVIRONMENT", "unknown"),
+            "cost_center": os.getenv("LLM_USAGE_COST_CENTER", "unknown"),
+            "raw_model": raw_model,
+            "normalized_model": raw_model,
+            "pricing_model": _normalize_pricing_model(raw_model),
+            "api_key_fingerprint": fingerprint_secret(self.api_key or ""),
+        }
 
     # ------------------------------------------------------------------
     # Prompt caching
@@ -522,14 +552,12 @@ class OpenAICompatProvider(LLMProvider):
             reasoning_effort, tool_choice,
         )
         model_name = str(kwargs.get("model") or model or self.default_model)
+        provider_metadata = self._provider_metadata(streaming=False, model=model_name)
         with observability.start_observation(
             name="tutorbot.llm.chat",
             as_type="generation",
             input_payload=messages,
-            metadata={
-                "provider_name": self._provider_name or (self._spec.name if self._spec else "openai_compat"),
-                "streaming": False,
-            },
+            metadata=provider_metadata,
             model=model_name,
             model_parameters={
                 "max_tokens": max_tokens,
@@ -544,10 +572,7 @@ class OpenAICompatProvider(LLMProvider):
             except Exception as e:
                 observability.update_observation(
                     observation,
-                    metadata={
-                        "provider_name": self._provider_name or (self._spec.name if self._spec else "openai_compat"),
-                        "streaming": False,
-                    },
+                    metadata=provider_metadata,
                     level="ERROR",
                     status_message=str(e),
                 )
@@ -569,10 +594,7 @@ class OpenAICompatProvider(LLMProvider):
             observability.update_observation(
                 observation,
                 output_payload=parsed.content,
-                metadata={
-                    "provider_name": self._provider_name or (self._spec.name if self._spec else "openai_compat"),
-                    "streaming": False,
-                },
+                metadata=provider_metadata,
                 usage_details=usage_details,
                 usage_source=usage_source,
                 model=model_name,
@@ -602,14 +624,12 @@ class OpenAICompatProvider(LLMProvider):
         kwargs["stream_options"] = {"include_usage": True}
         idle_timeout_s = 90
         model_name = str(kwargs.get("model") or model or self.default_model)
+        provider_metadata = self._provider_metadata(streaming=True, model=model_name)
         with observability.start_observation(
             name="tutorbot.llm.stream",
             as_type="generation",
             input_payload=messages,
-            metadata={
-                "provider_name": self._provider_name or (self._spec.name if self._spec else "openai_compat"),
-                "streaming": True,
-            },
+            metadata=provider_metadata,
             model=model_name,
             model_parameters={
                 "max_tokens": max_tokens,
@@ -640,10 +660,7 @@ class OpenAICompatProvider(LLMProvider):
             except asyncio.TimeoutError:
                 observability.update_observation(
                     observation,
-                    metadata={
-                        "provider_name": self._provider_name or (self._spec.name if self._spec else "openai_compat"),
-                        "streaming": True,
-                    },
+                    metadata=provider_metadata,
                     level="ERROR",
                     status_message=f"stream stalled for more than {idle_timeout_s} seconds",
                 )
@@ -654,10 +671,7 @@ class OpenAICompatProvider(LLMProvider):
             except Exception as e:
                 observability.update_observation(
                     observation,
-                    metadata={
-                        "provider_name": self._provider_name or (self._spec.name if self._spec else "openai_compat"),
-                        "streaming": True,
-                    },
+                    metadata=provider_metadata,
                     level="ERROR",
                     status_message=str(e),
                 )
@@ -674,10 +688,7 @@ class OpenAICompatProvider(LLMProvider):
             observability.update_observation(
                 observation,
                 output_payload=parsed.content,
-                metadata={
-                    "provider_name": self._provider_name or (self._spec.name if self._spec else "openai_compat"),
-                    "streaming": True,
-                },
+                metadata=provider_metadata,
                 usage_details=usage_details,
                 usage_source=usage_source,
                 model=model_name,

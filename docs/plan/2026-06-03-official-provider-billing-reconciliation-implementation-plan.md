@@ -619,7 +619,7 @@ Expected: PASS after implementation.
 - Test: `tests/services/test_langfuse_observability.py`
 - Test: `tests/tutorbot/providers/test_openai_compat_provider_usage.py`
 
-- [ ] **Step 1: Write test that provider metadata reaches UsageLedger**
+- [x] **Step 1: Write test that provider metadata reaches UsageLedger**
 
 Add to `tests/services/test_langfuse_observability.py`:
 
@@ -657,7 +657,7 @@ def test_record_usage_keeps_charged_provider_and_api_base() -> None:
     assert fake_ledger.calls[0]["metadata"]["api_base"] == "https://api.deepseek.com"
 ```
 
-- [ ] **Step 2: Add provider metadata helper test**
+- [x] **Step 2: Add provider metadata helper test**
 
 Add to `tests/tutorbot/providers/test_openai_compat_provider_usage.py`:
 
@@ -691,7 +691,7 @@ def test_openai_compat_provider_builds_charged_provider_metadata() -> None:
     assert "sk-test" not in metadata["api_key_fingerprint"]
 ```
 
-- [ ] **Step 3: Run failing attribution tests**
+- [x] **Step 3: Run failing attribution tests**
 
 Run:
 
@@ -702,7 +702,7 @@ pytest tests/services/test_langfuse_observability.py::test_record_usage_keeps_ch
 
 Expected: FAIL because `_provider_metadata` does not exist and provider metadata is not standardized.
 
-- [ ] **Step 4: Implement provider metadata helper**
+- [x] **Step 4: Implement provider metadata helper**
 
 In `OpenAICompatProvider`, add:
 
@@ -731,7 +731,7 @@ Import `os`, `fingerprint_secret`, and a small `_normalize_pricing_model` helper
 
 Use this helper at every `start_observation` and `update_observation` call in `OpenAICompatProvider`.
 
-- [ ] **Step 5: Run attribution tests**
+- [x] **Step 5: Run attribution tests**
 
 Run:
 

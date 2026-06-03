@@ -426,6 +426,39 @@ def test_record_usage_writes_global_usage_ledger_without_scope() -> None:
     ]
 
 
+def test_record_usage_keeps_charged_provider_and_api_base() -> None:
+    adapter = LangfuseObservability()
+    fake_ledger = _FakeUsageLedger()
+    adapter._usage_ledger = fake_ledger
+
+    adapter.record_usage(
+        usage_details={"input": 10.0, "output": 2.0, "total": 12.0},
+        cost_details={"total": 0.001},
+        source="provider",
+        model="deepseek-v4-flash",
+        metadata={
+            "provider_name": "deepseek",
+            "charged_provider_name": "deepseek",
+            "requested_provider_name": "deepseek",
+            "api_base": "https://api.deepseek.com",
+            "effective_url": "https://api.deepseek.com",
+            "api_key_fingerprint": "sha256:synthetic",
+            "runtime_environment": "production",
+            "cost_center": "prod_user_chat",
+            "billable_unit": "conversation_turn",
+            "billable_turn_id": "turn-1",
+            "raw_model": "deepseek-v4-flash",
+            "pricing_model": "deepseek-v4-flash",
+        },
+    )
+
+    assert fake_ledger.calls[0]["metadata"]["provider_name"] == "deepseek"
+    assert fake_ledger.calls[0]["metadata"]["charged_provider_name"] == "deepseek"
+    assert fake_ledger.calls[0]["metadata"]["cost_center"] == "prod_user_chat"
+    assert fake_ledger.calls[0]["metadata"]["billable_turn_id"] == "turn-1"
+    assert fake_ledger.calls[0]["metadata"]["api_base"] == "https://api.deepseek.com"
+
+
 def test_record_usage_skips_summary_for_global_usage_ledger() -> None:
     adapter = LangfuseObservability()
     fake_ledger = _FakeUsageLedger()
