@@ -368,16 +368,30 @@ class OpenAICompatProvider(LLMProvider):
 
         usage_map = cls._maybe_mapping(usage_obj)
         if usage_map is not None:
+            usage_keys = (
+                "prompt_tokens",
+                "completion_tokens",
+                "total_tokens",
+                "prompt_cache_hit_tokens",
+                "prompt_cache_miss_tokens",
+            )
             return {
-                "prompt_tokens": int(usage_map.get("prompt_tokens") or 0),
-                "completion_tokens": int(usage_map.get("completion_tokens") or 0),
-                "total_tokens": int(usage_map.get("total_tokens") or 0),
+                key: int(usage_map.get(key) or 0)
+                for key in usage_keys
+                if key in usage_map
             }
         if usage_obj:
+            usage_keys = (
+                "prompt_tokens",
+                "completion_tokens",
+                "total_tokens",
+                "prompt_cache_hit_tokens",
+                "prompt_cache_miss_tokens",
+            )
             return {
-                "prompt_tokens": getattr(usage_obj, "prompt_tokens", 0) or 0,
-                "completion_tokens": getattr(usage_obj, "completion_tokens", 0) or 0,
-                "total_tokens": getattr(usage_obj, "total_tokens", 0) or 0,
+                key: int(getattr(usage_obj, key, 0) or 0)
+                for key in usage_keys
+                if hasattr(usage_obj, key)
             }
         return {}
 

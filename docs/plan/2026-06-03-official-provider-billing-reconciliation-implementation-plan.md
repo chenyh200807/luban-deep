@@ -751,7 +751,7 @@ Expected: PASS.
 - Test: `tests/services/test_usage_ledger.py`
 - Test: `tests/api/test_unified_ws_turn_runtime.py`
 
-- [ ] **Step 1: Write the failing ledger binding test**
+- [x] **Step 1: Write the failing ledger binding test**
 
 Add to `tests/services/test_usage_ledger.py`:
 
@@ -805,7 +805,7 @@ def test_usage_ledger_marks_turn_billable_only_after_wallet_capture(tmp_path) ->
     assert after.total_tokens == 15
 ```
 
-- [ ] **Step 2: Run the failing ledger binding test**
+- [x] **Step 2: Run the failing ledger binding test**
 
 Run:
 
@@ -815,7 +815,7 @@ pytest tests/services/test_usage_ledger.py::test_usage_ledger_marks_turn_billabl
 
 Expected: FAIL because `mark_turn_billable` and `billable_only` do not exist.
 
-- [ ] **Step 3: Implement `UsageLedger.mark_turn_billable`**
+- [x] **Step 3: Implement `UsageLedger.mark_turn_billable`**
 
 Add a method that updates existing rows for the same turn after wallet capture succeeds:
 
@@ -869,7 +869,7 @@ def mark_turn_billable(self, *, turn_id: str, billing_capture: dict[str, Any]) -
 
 This mirrors wallet capture evidence into the usage ledger. It does not become the wallet authority.
 
-- [ ] **Step 4: Call the binding method after successful mini-program capture**
+- [x] **Step 4: Call the binding method after successful mini-program capture**
 
 In `turn_runtime.py`, immediately after `_capture_mobile_points` returns a captured payload, call:
 
@@ -894,7 +894,7 @@ def mark_usage_scope_billable(self, *, turn_id: str, billing_capture: dict[str, 
 
 Prefer the public method if this patch touches `LangfuseObservability` anyway.
 
-- [ ] **Step 5: Write the turn-runtime binding test**
+- [x] **Step 5: Write the turn-runtime binding test**
 
 Extend the existing mini-program capture test in `tests/api/test_unified_ws_turn_runtime.py` by monkeypatching `observability.mark_usage_scope_billable`:
 
@@ -920,7 +920,7 @@ assert marked_billable["billing_capture"]["idempotency_key"] == f"mini_program_c
 
 Use the existing wallet-service test fakes in this file instead of constructing a real wallet service.
 
-- [ ] **Step 6: Run binding tests**
+- [x] **Step 6: Run binding tests**
 
 Run:
 
@@ -939,7 +939,7 @@ Expected: PASS.
 - Modify: `deeptutor/tutorbot/providers/base.py:176`
 - Test: `tests/tutorbot/providers/test_openai_compat_provider_usage.py`
 
-- [ ] **Step 1: Write the failing usage extraction test**
+- [x] **Step 1: Write the failing usage extraction test**
 
 Add a test that proves provider-specific usage fields survive extraction.
 
@@ -967,7 +967,7 @@ def test_extract_usage_preserves_deepseek_cache_tokens() -> None:
     }
 ```
 
-- [ ] **Step 2: Run the failing test**
+- [x] **Step 2: Run the failing test**
 
 Run:
 
@@ -977,7 +977,7 @@ pytest tests/tutorbot/providers/test_openai_compat_provider_usage.py::test_extra
 
 Expected: FAIL because `_extract_usage` drops cache fields.
 
-- [ ] **Step 3: Preserve safe numeric usage keys**
+- [x] **Step 3: Preserve safe numeric usage keys**
 
 Update `_extract_usage` to copy known numeric fields:
 
@@ -994,7 +994,7 @@ return {key: int(usage_map.get(key) or 0) for key in usage_keys}
 
 For object-style usage, use `getattr(usage_obj, key, 0)`.
 
-- [ ] **Step 4: Normalize cache fields into `usage_details`**
+- [x] **Step 4: Normalize cache fields into `usage_details`**
 
 Extend `LLMProvider._normalize_usage_details` so it returns:
 
@@ -1010,7 +1010,7 @@ Extend `LLMProvider._normalize_usage_details` so it returns:
 
 Only include `input_cache_hit` and `input_cache_miss` when at least one is greater than zero.
 
-- [ ] **Step 5: Run provider usage tests**
+- [x] **Step 5: Run provider usage tests**
 
 Run:
 

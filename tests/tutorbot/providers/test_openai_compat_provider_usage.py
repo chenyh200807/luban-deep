@@ -13,6 +13,7 @@ if "json_repair" not in sys.modules:
     sys.modules["json_repair"] = module
 
 from deeptutor.tutorbot.providers.openai_compat_provider import OpenAICompatProvider
+from deeptutor.tutorbot.providers.base import LLMProvider
 from deeptutor.tutorbot.providers.registry import find_by_name
 
 
@@ -43,3 +44,41 @@ def test_openai_compat_provider_builds_charged_provider_metadata(
     assert metadata["pricing_model"] == "deepseek-v4-flash"
     assert metadata["api_key_fingerprint"]
     assert "sk-test" not in metadata["api_key_fingerprint"]
+
+
+def test_extract_usage_preserves_deepseek_cache_tokens() -> None:
+    response = {
+        "usage": {
+            "prompt_tokens": 1000,
+            "completion_tokens": 200,
+            "total_tokens": 1200,
+            "prompt_cache_hit_tokens": 750,
+            "prompt_cache_miss_tokens": 250,
+        }
+    }
+
+    assert OpenAICompatProvider._extract_usage(response) == {
+        "prompt_tokens": 1000,
+        "completion_tokens": 200,
+        "total_tokens": 1200,
+        "prompt_cache_hit_tokens": 750,
+        "prompt_cache_miss_tokens": 250,
+    }
+
+
+def test_normalize_usage_details_preserves_cache_breakdown() -> None:
+    assert LLMProvider._normalize_usage_details(
+        {
+            "prompt_tokens": 1000,
+            "completion_tokens": 200,
+            "total_tokens": 1200,
+            "prompt_cache_hit_tokens": 750,
+            "prompt_cache_miss_tokens": 250,
+        }
+    ) == {
+        "input": 1000.0,
+        "output": 200.0,
+        "total": 1200.0,
+        "input_cache_hit": 750.0,
+        "input_cache_miss": 250.0,
+    }

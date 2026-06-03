@@ -189,11 +189,17 @@ class LLMProvider(ABC):
         total_tokens = float(usage.get("total_tokens") or (prompt_tokens + completion_tokens))
         if total_tokens <= 0:
             return None
-        return {
+        normalized = {
             "input": prompt_tokens,
             "output": completion_tokens,
             "total": total_tokens,
         }
+        cache_hit_tokens = float(usage.get("prompt_cache_hit_tokens") or 0.0)
+        cache_miss_tokens = float(usage.get("prompt_cache_miss_tokens") or 0.0)
+        if cache_hit_tokens > 0 or cache_miss_tokens > 0:
+            normalized["input_cache_hit"] = cache_hit_tokens
+            normalized["input_cache_miss"] = cache_miss_tokens
+        return normalized
 
     @abstractmethod
     async def chat(
