@@ -306,6 +306,10 @@ celerybeat.pid
 # Offline compiler outputs; review artifacts must never enter git.
 /artifacts/
 
+# Official billing exports may contain API-key-level cost details.
+data/user/official_billing/
+var/official_billing/
+
 # Claude Code agent workspace (settings, transcripts, isolated worktrees).
 # Like .codex/.gstack — agent scratch state, must never enter git or reach prod.
 .claude/
