@@ -323,7 +323,7 @@ def _is_learning_evidence(event: LearnerStateEvent) -> bool:
     payload = dict(event.payload_json or {})
     return (
         event.memory_kind == "learning_evidence"
-        and event.source_feature in {"construction_grading", "assessment_testset"}
+        and event.source_feature in {"construction_grading", "assessment_testset", "conversation_synthesis"}
         and (event.source_feature == "construction_grading" or payload.get("event_type") == "learning_evidence")
     )
 
@@ -407,6 +407,7 @@ def _blocks_stable_learning_truth(cap_reasons: list[str]) -> bool:
         "missing_question_id",
         "rag_degraded",
         "missing_rag_evidence",
+        "conversation_signal_not_grading_truth",
     }
     return bool(blocking_caps.intersection({_clean_text(item) for item in cap_reasons}))
 

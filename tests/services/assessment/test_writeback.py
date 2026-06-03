@@ -208,3 +208,48 @@ def test_assessment_submit_does_not_mutate_training_intent(monkeypatch: pytest.M
 
     assert all(event.memory_kind != "training_intent" for event in learner.events)
     assert "M01" in ERROR_CODE_REGISTRY
+
+
+def test_assessment_wrong_item_writes_actionable_learning_graph_edges(monkeypatch: pytest.MonkeyPatch) -> None:
+    service, learner, _mistake_book = _service(monkeypatch)
+
+    service.writeback(
+        user_id="student_demo",
+        quiz_id="quiz_1",
+        form_id="form_1",
+        assessment_type="topic_diagnostic",
+        subject_id="construction_exam",
+        scored_result=_scored_result(),
+    )
+
+    wrong_payload = learner.events[1].payload_json
+    edges = wrong_payload["typed_edges"]
+
+    assert any(edge["edge_type"] == "question_tests_concept" for edge in edges)
+    assert any(edge["edge_type"] == "submission_triggered_error" for edge in edges)
+    action_edge = next(edge for edge in edges if edge["edge_type"] == "error_points_to_training")
+    assert action_edge["from"] == {"type": "error", "id": "防水工程:M01"}
+    assert action_edge["to"]["type"] == "next_training"
+    assert action_edge["source_feature"] == "assessment_testset"
+
+
+def test_assessment_graph_edges_prefer_canonical_concept_id(monkeypatch: pytest.MonkeyPatch) -> None:
+    service, learner, _mistake_book = _service(monkeypatch)
+    result = _scored_result()
+    result["items"][1]["section_id"] = "1A432000"
+
+    service.writeback(
+        user_id="student_demo",
+        quiz_id="quiz_1",
+        form_id="form_1",
+        assessment_type="topic_diagnostic",
+        subject_id="construction_exam",
+        scored_result=result,
+    )
+
+    wrong_payload = learner.events[1].payload_json
+    action_edge = next(edge for edge in wrong_payload["typed_edges"] if edge["edge_type"] == "error_points_to_training")
+
+    assert wrong_payload["concept_id"] == "1A432000"
+    assert wrong_payload["error_events"][0]["concept_tag"] == "1A432000"
+    assert action_edge["from"] == {"type": "error", "id": "1A432000:M01"}

@@ -77,6 +77,47 @@ def _with_ratio(stats: Counter[str]) -> dict[str, Any]:
     }
 
 
+def source_coverage_failures(
+    report: dict[str, Any],
+    *,
+    min_source_coverages: dict[str, float],
+) -> list[dict[str, Any]]:
+    by_source = report.get("by_source") if isinstance(report.get("by_source"), dict) else {}
+    failures: list[dict[str, Any]] = []
+    for source, minimum in sorted(min_source_coverages.items()):
+        stats = by_source.get(source) if isinstance(by_source.get(source), dict) else {}
+        coverage = float(stats.get("actionable_edge_coverage") or 0.0)
+        if coverage < minimum:
+            failures.append(
+                {
+                    "source": source,
+                    "coverage": coverage,
+                    "min_actionable_coverage": float(minimum),
+                    "learning_evidence_events": int(stats.get("learning_evidence_events") or 0),
+                }
+            )
+    return failures
+
+
+def _parse_source_coverage_gates(values: list[str]) -> dict[str, float]:
+    gates: dict[str, float] = {}
+    for value in values:
+        source, separator, ratio = str(value or "").partition("=")
+        source = source.strip()
+        if not source or separator != "=":
+            raise argparse.ArgumentTypeError(
+                "--min-source-actionable-coverage must use SOURCE=RATIO"
+            )
+        try:
+            parsed_ratio = float(ratio)
+        except ValueError as exc:
+            raise argparse.ArgumentTypeError(
+                "--min-source-actionable-coverage ratio must be a number"
+            ) from exc
+        gates[source] = parsed_ratio
+    return gates
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Audit Learning Brain actionable typed-edge coverage.")
     parser.add_argument(
@@ -91,14 +132,29 @@ def main() -> int:
         default=None,
         help="Fail when total actionable edge coverage is below this ratio.",
     )
+    parser.add_argument(
+        "--min-source-actionable-coverage",
+        action="append",
+        default=[],
+        metavar="SOURCE=RATIO",
+        help="Fail when a specific source_feature actionable edge coverage is below this ratio.",
+    )
     args = parser.parse_args()
 
     report = collect_actionable_edge_coverage(args.root)
+    source_failures = source_coverage_failures(
+        report,
+        min_source_coverages=_parse_source_coverage_gates(args.min_source_actionable_coverage),
+    )
+    if source_failures:
+        report["source_gate_failures"] = source_failures
     print(json.dumps(report, ensure_ascii=False, indent=2, sort_keys=True))
     if args.min_actionable_coverage is not None:
         coverage = float(report["total"]["actionable_edge_coverage"])
         if coverage < args.min_actionable_coverage:
             return 2
+    if source_failures:
+        return 2
     return 0
 
 

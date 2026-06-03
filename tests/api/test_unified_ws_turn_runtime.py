@@ -23,6 +23,7 @@ from deeptutor.services.session.turn_runtime import (
     _LiveSubscriber,
     _TurnExecution,
     _billing_capture_amount_from_usage_summary,
+    _learning_prompt_intent_trace_metadata,
     _request_snapshot_metadata,
     _build_turn_semantic_decision,
     _result_active_object,
@@ -95,6 +96,39 @@ def test_turn_runtime_question_domain_decision_uses_canonical_semantic_shape() -
         "reason": "用户修正上一题答案。",
         "target_object_ref": {"object_type": "single_question", "object_id": "q_1"},
     }
+
+
+def test_learning_prompt_intent_trace_metadata_exports_only_gbrain_observability_fields() -> None:
+    metadata = _learning_prompt_intent_trace_metadata(
+        {
+            "training_intent_id": "lti_123",
+            "source": "home_dashboard",
+            "concept_id": "concept_waterproof",
+            "concept_label": "防水工程",
+            "error_code": "waterproof_detail_confusion",
+            "error_label": "节点构造混淆",
+            "learning_signal_type": "home_prompt_clicked",
+            "training_outcome": "improved",
+            "evidence_refs": ["evt_1", "evt_2"],
+            "attempt_refs": ["attempt_1"],
+            "user_question": "我的手机号 13800001234，为什么错？",
+            "prompt": "请讲解这道题",
+        }
+    )
+
+    assert metadata == {
+        "gbrain_training_intent_id": "lti_123",
+        "gbrain_concept_id": "concept_waterproof",
+        "gbrain_error_code": "waterproof_detail_confusion",
+        "gbrain_evidence_ref_count": 2,
+        "gbrain_attempt_ref_count": 1,
+        "gbrain_prescription_authority": "training_intent",
+        "gbrain_learning_signal_type": "home_prompt_clicked",
+        "gbrain_training_outcome": "improved",
+        "gbrain_prompt_source": "home_dashboard",
+    }
+    assert "user_question" not in metadata
+    assert "prompt" not in metadata
 
 
 class _LifecycleAuthorityStore:
@@ -7534,6 +7568,55 @@ async def test_turn_runtime_writes_home_prompt_conversation_learning_evidence(
     runtime = TurnRuntimeManager(store)
     captured: dict[str, object] = {}
 
+    class FakeObservability:
+        def __init__(self) -> None:
+            self.started: list[dict[str, object]] = []
+
+        def usage_scope(self, **_kwargs):
+            class _UsageScope:
+                def __enter__(self):
+                    return SimpleNamespace()
+
+                def __exit__(self, *_args):
+                    return False
+
+            return _UsageScope()
+
+        def start_observation(self, **kwargs):
+            outer = self
+
+            class _Observation:
+                def __enter__(self):
+                    outer.started.append(
+                        {
+                            "name": str(kwargs.get("name") or ""),
+                            "metadata": dict(kwargs.get("metadata") or {}),
+                        }
+                    )
+                    return SimpleNamespace()
+
+                def __exit__(self, *_args):
+                    return False
+
+            return _Observation()
+
+        def update_observation(self, _observation, **_kwargs):
+            return None
+
+        def get_current_usage_summary(self):
+            return {}
+
+        def summary_metadata(self, _summary):
+            return {}
+
+        def usage_details_from_summary(self, _summary):
+            return None
+
+        def cost_details_from_summary(self, _summary):
+            return None
+
+    fake_observability = FakeObservability()
+
     class FakeContextBuilder:
         def __init__(self, *_args, **_kwargs) -> None:
             pass
@@ -7572,6 +7655,7 @@ async def test_turn_runtime_writes_home_prompt_conversation_learning_evidence(
     monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
     monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
     monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr("deeptutor.services.session.turn_runtime.observability", fake_observability)
     monkeypatch.setattr(
         "deeptutor.services.learner_state.get_learner_state_service",
         lambda: FakeLearnerStateService(),
@@ -7629,6 +7713,10 @@ async def test_turn_runtime_writes_home_prompt_conversation_learning_evidence(
     assert payload["subject_id"] == "construction_exam_1"
     assert payload["training_intent_id"] == "lti_123"
     assert "13800001234" not in payload["user_question"]
+    turn_trace = next(item for item in fake_observability.started if item["name"] == "turn.chat")
+    assert turn_trace["metadata"]["gbrain_training_intent_id"] == "lti_123"
+    assert turn_trace["metadata"]["gbrain_prescription_authority"] == "training_intent"
+    assert turn_trace["metadata"]["gbrain_prompt_source"] == "home_dashboard"
 
 
 @pytest.mark.asyncio

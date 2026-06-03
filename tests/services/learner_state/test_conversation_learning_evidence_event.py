@@ -110,6 +110,75 @@ def test_training_completion_carries_assessment_attempt_context() -> None:
     assert payload["training_question_count"] == 3
 
 
+def test_training_intent_conversation_writes_actionable_graph_edge_without_stable_truth() -> None:
+    event = build_learning_evidence_from_conversation_turn(
+        user_id="u1",
+        turn_ref="turn_training_start",
+        user_question="请根据我的学情处方开始训练。",
+        assistant_answer={"summary": "先围绕结算与价款做一组专项题。"},
+        prompt_intent={
+            "source": "learning_report",
+            "learning_signal_type": "home_prompt_clicked",
+            "subject_id": "construction_exam",
+            "training_intent_id": "lti_123",
+            "concept_id": "1A432000",
+            "concept_label": "结算与价款",
+            "error_code": "M01",
+            "error_label": "知识点不熟",
+            "evidence_refs": ["evt_assessment_1"],
+        },
+    )
+
+    assert event is not None
+    payload = event["payload_json"]
+    assert payload["concept"] == {"id": "1A432000", "label": "结算与价款"}
+    assert payload["error"] == {"code": "M01", "label": "知识点不熟"}
+    assert payload["error_events"] == [
+        {
+            "error_code": "M01",
+            "concept_tag": "1A432000",
+            "diagnosis": "知识点不熟",
+        }
+    ]
+    assert payload["quality"]["stable_truth_eligible"] is False
+    assert "conversation_signal_not_grading_truth" in payload["quality"]["evidence_cap_reasons"]
+    assert payload["typed_edges"] == [
+        {
+            "edge_type": "error_points_to_training",
+            "from": {"type": "error", "id": "1A432000:M01"},
+            "to": {"type": "next_training", "id": "lti_123"},
+            "source_feature": "conversation_synthesis",
+            "confidence": 0.45,
+        }
+    ]
+
+
+def test_training_completion_can_mark_canonical_error_improved() -> None:
+    event = build_learning_evidence_from_conversation_turn(
+        user_id="u1",
+        turn_ref="turn_training_improved",
+        user_question="我答完验证题了。",
+        assistant_answer={"summary": "这次结算与价款的知识点不熟已经改善。"},
+        prompt_intent={
+            "source": "learning_report",
+            "learning_signal_type": "training_completed",
+            "training_outcome": "improved",
+            "training_intent_id": "lti_123",
+            "concept_id": "1A432000",
+            "concept_label": "结算与价款",
+            "error_code": "M01",
+            "error_label": "知识点不熟",
+            "question_id": "probe_q1",
+            "evidence_refs": ["evt_assessment_1"],
+        },
+    )
+
+    assert event is not None
+    payload = event["payload_json"]
+    assert any(edge["edge_type"] == "training_uses_question" for edge in payload["typed_edges"])
+    assert any(edge["edge_type"] == "training_improved_error" for edge in payload["typed_edges"])
+
+
 def test_supabase_writer_does_not_require_conversation_event_type_whitelist() -> None:
     from deeptutor.services.learner_state.supabase_writer import LearnerStateSupabaseWriter
 

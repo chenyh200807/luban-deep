@@ -421,6 +421,50 @@ def test_chat_only_event_is_not_learning_evidence() -> None:
     assert projection["compiled_objects"] == {}
 
 
+def test_conversation_synthesis_graph_edges_are_read_without_promoting_stable_truth() -> None:
+    projection = synthesize_learning_truth([
+        LearnerStateEvent(
+            event_id="conv1",
+            user_id="student_demo",
+            source_feature="conversation_synthesis",
+            source_id="turn_1",
+            source_bot_id=None,
+            memory_kind="learning_evidence",
+            dedupe_key="conv1",
+            created_at="2026-06-03T10:00:00+08:00",
+            payload_json={
+                "event_type": "learning_evidence",
+                "evidence_source": "conversation_synthesis",
+                "question_id": "probe_q1",
+                "error_events": [
+                    {
+                        "concept_tag": "1A432000",
+                        "error_code": "M01",
+                        "diagnosis": "知识点不熟",
+                    }
+                ],
+                "quality": {
+                    "evidence_cap_reasons": ["conversation_signal_not_grading_truth"],
+                    "stable_truth_eligible": False,
+                },
+                "typed_edges": [
+                    {
+                        "edge_type": "error_points_to_training",
+                        "from": {"type": "error", "id": "1A432000:M01"},
+                        "to": {"type": "next_training", "id": "lti_123"},
+                        "source_feature": "conversation_synthesis",
+                        "confidence": 0.45,
+                    }
+                ],
+            },
+        )
+    ])
+
+    assert projection["weak_points"] == []
+    assert projection["typed_graph"]["edges"][0]["edge_type"] == "error_points_to_training"
+    assert projection["typed_graph"]["edges"][0]["source_feature"] == "conversation_synthesis"
+
+
 def test_manual_correction_supersedes_automatic_claim() -> None:
     projection = synthesize_learning_truth([
         _learning_event("evt1"),
