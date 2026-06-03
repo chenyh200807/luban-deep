@@ -1207,6 +1207,8 @@ Page({
     masteryScoreClass: "",
     masteryGroups: [],
     hotspots: [],
+    knowledgeSummary: {},
+    textbookChapters: [],
     reviewSummary: { total_due: 0, overdue_count: 0 },
     todayDone: 0,
     dailyTarget: 0,
@@ -1796,6 +1798,7 @@ Page({
         total_due: 0,
         overdue_count: 0,
       };
+      var knowledgeSummary = data.knowledge_summary || data.knowledgeSummary || {};
 
       if (!groups.length && !hasOverall) {
         var fallbackData =
@@ -1854,6 +1857,7 @@ Page({
           : 0;
         hotspots = [];
         reviewSummary = { total_due: 0, overdue_count: 0 };
+        knowledgeSummary = {};
       }
 
       this.setData({
@@ -1861,6 +1865,8 @@ Page({
         masteryScoreClass: masteryScoreClass,
         masteryGroups: groups,
         hotspots: hotspots,
+        knowledgeSummary: knowledgeSummary,
+        textbookChapters: knowledgeSummary.textbook_chapters || knowledgeSummary.textbookChapters || [],
         reviewSummary: reviewSummary,
         masteryLoading: false,
       });

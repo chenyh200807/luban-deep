@@ -33,6 +33,7 @@ from deeptutor.services.taxonomy.construction_taxonomy import (
     is_non_topic_label,
     normalize_taxonomy_code,
     taxonomy_index,
+    textbook_directory,
     textbook_topic_meta,
 )
 
@@ -1773,6 +1774,7 @@ def _mastery_payload(
     else:
         scores = [round(float(item.get("value") or 0) * 100) for item in radar_dimensions]
         overall = round(sum(scores) / max(len(scores), 1)) if scores else 0
+    knowledge_summary = _knowledge_map_summary(groups=groups, hotspots=hotspots)
     return {
         "overall_mastery": {
             "score": overall,
@@ -1781,7 +1783,116 @@ def _mastery_payload(
         },
         "groups": groups,
         "hotspots": hotspots,
+        "knowledge_summary": knowledge_summary,
         "review_summary": review or {"total_due": 0, "overdue_count": 0},
+    }
+
+
+def _taxonomy_counts() -> dict[str, int]:
+    nodes = list(_safe_dict(taxonomy_index().get("nodes_by_id")).values())
+    coded_nodes = _safe_dict(taxonomy_index().get("nodes_by_code"))
+    parent_refs = {
+        str(_safe_dict(node).get("parent_code") or "").strip()
+        for node in nodes
+        if str(_safe_dict(node).get("parent_code") or "").strip()
+    }
+    leaf_nodes = [
+        node
+        for node in nodes
+        if str(_safe_dict(node).get("id") or _safe_dict(node).get("code") or "").strip() not in parent_refs
+    ]
+    return {
+        "total_nodes": len(nodes),
+        "coded_nodes": len(coded_nodes),
+        "leaf_nodes": len(leaf_nodes),
+    }
+
+
+def _knowledge_map_summary(
+    *,
+    groups: list[dict[str, Any]],
+    hotspots: list[dict[str, Any]],
+) -> dict[str, Any]:
+    counts = _taxonomy_counts()
+    parent_refs = {
+        str(_safe_dict(node).get("parent_code") or "").strip()
+        for node in _safe_dict(taxonomy_index().get("nodes_by_id")).values()
+        if str(_safe_dict(node).get("parent_code") or "").strip()
+    }
+    chapter_rows: dict[int, dict[str, Any]] = {}
+    for chapter in textbook_directory():
+        no = _safe_int(_safe_dict(chapter).get("no"))
+        if no <= 0:
+            continue
+        chapter_rows[no] = {
+            "chapter_no": no,
+            "chapter_name": "第" + str(no) + "章 " + str(_safe_dict(chapter).get("name") or "").strip(),
+            "section_count": len(_safe_list(_safe_dict(chapter).get("sections"))),
+            "evaluated_topics": 0,
+            "mastered_topics": 0,
+            "developing_topics": 0,
+            "weak_topics": 0,
+            "top_topics": [],
+            "status": "unseen",
+        }
+
+    observed: dict[str, dict[str, Any]] = {}
+    for item in [
+        chapter
+        for group in groups
+        for chapter in _safe_list(_safe_dict(group).get("chapters"))
+    ] + [hotspot for hotspot in hotspots]:
+        topic = _safe_dict(item)
+        key = str(topic.get("taxonomy_code") or topic.get("name") or "").strip()
+        name = str(topic.get("name") or "").strip()
+        if not key or not name:
+            continue
+        observed[key] = {
+            "name": name,
+            "status": str(topic.get("status") or _score_status(_safe_int(topic.get("mastery")))),
+            "mastery": _safe_int(topic.get("mastery")),
+            "taxonomy_code": str(topic.get("taxonomy_code") or "").strip(),
+            "textbook_chapter_no": _safe_int(topic.get("textbook_chapter_no")),
+        }
+
+    status_counts = {"strong": 0, "normal": 0, "weak": 0, "observed": 0}
+    leaf_evaluated = 0
+    for item in observed.values():
+        status = str(item.get("status") or "observed")
+        status_counts[status if status in status_counts else "observed"] += 1
+        chapter_no = _safe_int(item.get("textbook_chapter_no"))
+        chapter = chapter_rows.get(chapter_no)
+        if chapter is not None:
+            chapter["evaluated_topics"] += 1
+            if status == "strong":
+                chapter["mastered_topics"] += 1
+            elif status == "weak":
+                chapter["weak_topics"] += 1
+            else:
+                chapter["developing_topics"] += 1
+            if len(chapter["top_topics"]) < 3:
+                chapter["top_topics"].append(str(item.get("name") or "").strip())
+        code = str(item.get("taxonomy_code") or "").strip()
+        if code and code not in parent_refs:
+            leaf_evaluated += 1
+    for chapter in chapter_rows.values():
+        if _safe_int(chapter.get("weak_topics")) > 0:
+            chapter["status"] = "weak"
+        elif _safe_int(chapter.get("mastered_topics")) > 0 and _safe_int(chapter.get("developing_topics")) <= 0:
+            chapter["status"] = "strong"
+        elif _safe_int(chapter.get("evaluated_topics")) > 0:
+            chapter["status"] = "developing"
+
+    return {
+        **counts,
+        "total_textbook_chapters": len(chapter_rows),
+        "evaluated_topics": len(observed),
+        "evaluated_leaf_points": leaf_evaluated,
+        "mastered_topics": status_counts["strong"],
+        "developing_topics": status_counts["normal"] + status_counts["observed"],
+        "weak_topics": status_counts["weak"],
+        "unmeasured_leaf_points": max(0, counts["leaf_nodes"] - leaf_evaluated),
+        "textbook_chapters": list(chapter_rows.values()),
     }
 
 

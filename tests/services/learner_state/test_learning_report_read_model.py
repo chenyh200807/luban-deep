@@ -110,7 +110,7 @@ class FakeMemberService:
                 "coach_note": "当前优先补强建筑构造",
                 "source": "training_intent",
             },
-            "progress_feedback": {"cards": [{"label": "近 3 天完成", "value": "0题"}]},
+            "progress_feedback": {"cards": [{"label": "近 3 天完成", "value": "0次"}]},
         }
 
     def get_assessment_profile(self, user_id: str) -> dict:
@@ -721,10 +721,17 @@ def test_multi_concept_evidence_updates_progress_feedback_chapter_focus() -> Non
     assert model["overview"]["attempt_count"] == 3
     assert model["overview"]["recent_three_done"] == 3
     assert model["overview"]["unique_question_count"] == 3
-    # progress_feedback 的"主攻推进"卡片应能选出一个 chapter（不为空标签）
+    # progress_feedback 的"主攻主题"卡片应能选出一个 chapter（不为空标签）
     cards_by_label = {item["label"]: item for item in model["progress_feedback"]["cards"]}
-    assert "主攻推进" in cards_by_label
-    assert cards_by_label["主攻推进"]["detail"], "multi-chapter evidence should yield a non-empty focus detail"
+    assert "主攻主题" in cards_by_label
+    assert cards_by_label["主攻主题"]["detail"], "multi-chapter evidence should yield a non-empty focus detail"
+    knowledge_summary = model["mastery"]["knowledge_summary"]
+    assert knowledge_summary["total_textbook_chapters"] == 13
+    assert knowledge_summary["leaf_nodes"] > 1000
+    assert knowledge_summary["evaluated_topics"] >= 2
+    chapters_by_no = {item["chapter_no"]: item for item in knowledge_summary["textbook_chapters"]}
+    assert chapters_by_no[1]["evaluated_topics"] >= 1
+    assert chapters_by_no[7]["evaluated_topics"] >= 1
 
 
 def test_no_evidence_does_not_inflate_progress() -> None:
@@ -746,7 +753,7 @@ def test_no_evidence_does_not_inflate_progress() -> None:
     assert model["authority"]["progress_source"] == "learner_memory_events.learning_evidence"
     # 近 3 天卡片应展示 0 题（非冒充非负值）
     cards = {item["label"]: item for item in model["progress_feedback"]["cards"]}
-    assert cards["近 3 天完成"]["value"] == "0题"
+    assert cards["近 3 天完成"]["value"] == "0次"
 
 
 def test_single_correct_attempt_does_not_mark_chapter_as_fully_mastered() -> None:
@@ -890,7 +897,7 @@ def test_learning_report_counts_recent_three_days_from_learning_evidence_not_leg
     )
 
     cards = {item["label"]: item for item in model["progress_feedback"]["cards"]}
-    assert cards["近 3 天完成"]["value"] == "2题"
+    assert cards["近 3 天完成"]["value"] == "2次"
     assert model["overview"]["today_done"] == 1
     assert model["authority"]["progress_source"] == "learner_memory_events.learning_evidence"
     assert model["legacy_compat"]["today_progress"]["today_done"] == 0
@@ -1302,7 +1309,7 @@ def test_realistic_chinese_grading_event_updates_report_progress_learning_brain_
     )
 
     cards = {item["label"]: item for item in model["progress_feedback"]["cards"]}
-    assert cards["近 3 天完成"]["value"] == "2题"
+    assert cards["近 3 天完成"]["value"] == "2次"
     assert model["overview"]["today_done"] == 2
     assert model["overview"]["attempt_count"] == 2
     assert model["overview"]["unique_question_count"] == 2

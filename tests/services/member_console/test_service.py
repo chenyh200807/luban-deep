@@ -536,7 +536,7 @@ def test_home_dashboard_exposes_structured_study_plan_and_progress_feedback_from
     assert dashboard["study_plan"]["study_method"].startswith("先看“防水工程”")
     assert "近 3 天" in dashboard["progress_feedback"]["summary"]
     assert "防水工程" in dashboard["progress_feedback"]["insight"]
-    assert dashboard["progress_feedback"]["cards"][2]["value"] == "9题"
+    assert dashboard["progress_feedback"]["cards"][2]["value"] == "9条证据"
     assert any(
         item["title"] == "刚完成一次专题梳理"
         for item in dashboard["progress_feedback"]["milestones"]
@@ -3011,7 +3011,7 @@ def test_chat_learning_does_not_count_generated_questions_as_completed(tmp_path:
     assert result["recorded"] is False
     assert result["reason"] == "chat_turn_is_not_completion_authority"
     assert today["today_done"] == 0
-    assert progress_card["value"] == "0题"
+    assert progress_card["value"] == "0次"
 
 
 def test_legacy_chat_learning_counts_are_removed_from_report_progress(tmp_path: Path) -> None:
@@ -3060,7 +3060,7 @@ def test_legacy_chat_learning_counts_are_removed_from_report_progress(tmp_path: 
     )
 
     assert today_progress["today_done"] == 0
-    assert progress_card["value"] == "0题"
+    assert progress_card["value"] == "0次"
     migrated = json.loads(service._data_path.read_text(encoding="utf-8"))
     assert migrated["audit_log"] == []
     assert migrated["migrations"]["chat_learning_counts_removed_v1"] is True
