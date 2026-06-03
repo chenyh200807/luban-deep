@@ -3072,7 +3072,7 @@ def test_mobile_learning_report_uses_learning_evidence_for_recent_progress(
     assert body["overview"]["unique_question_count"] == 1
     assert body["overview"]["today_unique_questions"] == 1
     assert body["progress_feedback"]["cards"][0]["label"] == "近 3 天完成"
-    assert body["progress_feedback"]["cards"][0]["value"] == "1题"
+    assert body["progress_feedback"]["cards"][0]["value"] == "1次"
     assert body["legacy_compat"]["today_progress"]["today_done"] == 0
     # degraded 契约：所有源 ok → degraded=false / degraded_sources=[]
     assert body["degraded"] is False
