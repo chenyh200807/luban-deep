@@ -117,6 +117,82 @@ def test_usage_ledger_marks_turn_billable_only_after_wallet_capture(tmp_path) ->
     assert after.total_tokens == 15
 
 
+def test_usage_ledger_rolls_up_deepseek_cache_metadata(tmp_path) -> None:
+    ledger = UsageLedger(db_path=tmp_path / "llm_usage.db")
+
+    ledger.record_usage_event(
+        usage_source="provider",
+        usage_details={
+            "input": 1000.0,
+            "input_cache_hit": 700.0,
+            "input_cache_miss": 300.0,
+            "output": 200.0,
+            "total": 1200.0,
+        },
+        cost_details={"input": 0.000044, "output": 0.000056, "total": 0.0001},
+        model="deepseek-v4-flash",
+        metadata={
+            "provider_name": "deepseek",
+            "charged_provider_name": "deepseek",
+            "requested_provider_name": "deepseek",
+            "api_key_fingerprint": "sha256:test",
+            "runtime_environment": "production",
+            "cost_center": "prod_user_chat",
+            "billable_unit": "conversation_turn",
+            "billable_turn_id": "turn-1",
+            "billing_capture_status": "captured",
+            "raw_model": "deepseek-v4-flash",
+            "pricing_model": "deepseek-v4-flash",
+            "pricing_currency": "USD",
+            "billing_currency": "USD",
+            "pricing_source_checked_at": "2026-06-03",
+            "official_usage_fields": {
+                "prompt_cache_hit_tokens": 700,
+                "prompt_cache_miss_tokens": 300,
+            },
+        },
+    )
+
+    totals = ledger.get_totals(start_ts=0, end_ts=9_999_999_999, provider_name="deepseek")
+
+    assert totals.total_tokens == 1200
+    assert totals.metadata_breakdown["input_cache_hit_tokens"] == 700
+    assert totals.metadata_breakdown["input_cache_miss_tokens"] == 300
+    assert totals.currency_amounts["USD"] == 0.0001
+    assert totals.billable_turns == 1
+    assert totals.provider_calls == 1
+    assert totals.cost_center_amounts["prod_user_chat"]["USD"] == 0.0001
+
+
+def test_usage_ledger_billable_only_requires_wallet_capture(tmp_path) -> None:
+    ledger = UsageLedger(db_path=tmp_path / "llm_usage.db")
+
+    ledger.record_usage_event(
+        usage_source="provider",
+        usage_details={"input": 1000.0, "output": 200.0, "total": 1200.0},
+        cost_details={"total": 0.0001},
+        model="deepseek-v4-flash",
+        metadata={
+            "provider_name": "deepseek",
+            "runtime_environment": "production",
+            "cost_center": "prod_user_chat",
+            "billable_unit": "conversation_turn",
+            "billable_turn_id": "turn-pending",
+        },
+    )
+
+    totals = ledger.get_totals(
+        start_ts=0,
+        end_ts=9_999_999_999,
+        provider_name="deepseek",
+        billable_only=True,
+    )
+
+    assert totals.total_tokens == 0
+    assert totals.billable_turns == 0
+    assert totals.provider_calls == 0
+
+
 def test_usage_ledger_respects_created_at_override(tmp_path) -> None:
     ledger = UsageLedger(db_path=tmp_path / "llm_usage.db")
 

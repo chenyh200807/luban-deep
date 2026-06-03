@@ -312,7 +312,7 @@ Review only if P1 UI is requested:
 - Create: `tests/fixtures/deepseek_usage_export/README.md`
 - Modify: `.gitignore`
 
-- [ ] **Step 1: Create the local schema audit script**
+- [x] **Step 1: Create the local schema audit script**
 
 Create `scripts/audit_deepseek_usage_export.py`:
 
@@ -370,7 +370,7 @@ if __name__ == "__main__":
     raise SystemExit(main())
 ```
 
-- [ ] **Step 2: Ignore raw official exports**
+- [x] **Step 2: Ignore raw official exports**
 
 Add to `.gitignore`:
 
@@ -380,7 +380,7 @@ data/user/official_billing/
 var/official_billing/
 ```
 
-- [ ] **Step 3: Harden export path handling**
+- [x] **Step 3: Harden export path handling**
 
 Before reading a path, the script must:
 
@@ -424,7 +424,7 @@ Paste the output of:
 - If the export does not expose model, API key, amount, and currency semantics, implementation stops and the BI response reports `official_usage.status = "unsupported_export_schema"`.
 ```
 
-- [ ] **Step 6: Create redacted fixture documentation**
+- [x] **Step 6: Create redacted fixture documentation**
 
 Create `tests/fixtures/deepseek_usage_export/README.md`:
 
@@ -441,7 +441,7 @@ Rules:
 - Use synthetic row values while keeping real column names.
 ```
 
-- [ ] **Step 7: Stop if no real schema is available**
+- [x] **Step 7: Stop if no real schema is available**
 
 Do not implement `DeepSeekBillingClient.parse_usage_export` until this task has produced the schema audit document and a redacted fixture plan.
 
@@ -1028,7 +1028,7 @@ Expected: PASS.
 - Modify: `deeptutor/services/observability/langfuse_adapter.py:200`
 - Test: `tests/services/test_langfuse_observability.py`
 
-- [ ] **Step 1: Write the failing cache-aware cost test**
+- [x] **Step 1: Write the failing cache-aware cost test**
 
 Add:
 
@@ -1061,7 +1061,7 @@ Calculation uses official DeepSeek v4 flash USD pricing checked on 2026-06-03:
 - cache miss input: `200000 / 1_000_000 * 0.14 = 0.028`
 - output: `100000 / 1_000_000 * 0.28 = 0.028`
 
-- [ ] **Step 2: Run the failing test**
+- [x] **Step 2: Run the failing test**
 
 Run:
 
@@ -1071,7 +1071,7 @@ pytest tests/services/test_langfuse_observability.py::test_deepseek_v4_flash_cos
 
 Expected: FAIL because current pricing only multiplies total input by cache-miss input price.
 
-- [ ] **Step 3: Add cache-aware pricing fields**
+- [x] **Step 3: Add cache-aware pricing fields**
 
 Represent DeepSeek pricing as:
 
@@ -1088,7 +1088,7 @@ Represent DeepSeek pricing as:
 
 Keep existing `input_per_1m` aliases only for non-cache-aware fallback.
 
-- [ ] **Step 4: Update `estimate_model_cost`**
+- [x] **Step 4: Update `estimate_model_cost`**
 
 When `usage_details` has cache fields and pricing has cache fields, compute:
 
@@ -1103,7 +1103,7 @@ input_cost = (
 
 If cache fields are missing, fall back to `input_per_1m` so existing tests keep passing.
 
-- [ ] **Step 5: Add pricing metadata helper**
+- [x] **Step 5: Add pricing metadata helper**
 
 Do not put string fields into `cost_details`. Add a metadata helper on `LangfuseObservability`:
 
@@ -1126,7 +1126,7 @@ def pricing_metadata_for_model(self, model: str | None) -> dict[str, str]:
 
 Whenever provider usage is recorded with locally priced cost details, merge this metadata into the ledger metadata. This keeps `cost_details: dict[str, float]` numeric while making currency rollups deterministic.
 
-- [ ] **Step 6: Run Langfuse cost tests**
+- [x] **Step 6: Run Langfuse cost tests**
 
 Run:
 
@@ -1143,7 +1143,7 @@ Expected: PASS.
 - Modify: `deeptutor/services/observability/usage_ledger.py:34`
 - Test: `tests/services/test_usage_ledger.py`
 
-- [ ] **Step 1: Write the failing metadata rollup test**
+- [x] **Step 1: Write the failing metadata rollup test**
 
 Add:
 
@@ -1194,7 +1194,7 @@ def test_usage_ledger_rolls_up_deepseek_cache_metadata(tmp_path) -> None:
     assert totals.cost_center_amounts["prod_user_chat"]["USD"] == 0.0001
 ```
 
-- [ ] **Step 2: Run the failing test**
+- [x] **Step 2: Run the failing test**
 
 Run:
 
@@ -1204,7 +1204,7 @@ pytest tests/services/test_usage_ledger.py::test_usage_ledger_rolls_up_deepseek_
 
 Expected: FAIL because `UsageLedgerTotals` has no metadata breakdown.
 
-- [ ] **Step 3: Extend `UsageLedgerTotals`**
+- [x] **Step 3: Extend `UsageLedgerTotals`**
 
 Add fields:
 
@@ -1216,7 +1216,7 @@ provider_amounts: dict[str, float] = field(default_factory=dict)
 
 Keep the existing `total_cost_usd` fields for backward compatibility, but do not treat them as provider-native truth.
 
-- [ ] **Step 4: Persist raw usage and cost details in metadata**
+- [x] **Step 4: Persist raw usage and cost details in metadata**
 
 Update `UsageLedger.record_usage_event` before writing `metadata_json`:
 
@@ -1233,7 +1233,7 @@ if "billing_currency" not in payload:
 
 `cost_details["currency"]` is a legacy fallback only; new code should put `pricing_currency` and `billing_currency` in metadata. Do not store API keys, request bodies, prompts, completions, or raw export rows in `metadata_json`.
 
-- [ ] **Step 5: Add billing-scope filters and billable-turn counters**
+- [x] **Step 5: Add billing-scope filters and billable-turn counters**
 
 Extend `UsageLedger.get_totals` with optional filters:
 
@@ -1257,7 +1257,7 @@ cost_center_amounts: dict[str, dict[str, float]]
 
 Expose `billable_turns = len(billable_turn_ids)` and `calls_per_billable_turn` in `UsageLedgerTotals.to_dict()`.
 
-- [ ] **Step 6: Aggregate cache and currency from metadata**
+- [x] **Step 6: Aggregate cache and currency from metadata**
 
 Inside `get_totals`, parse `metadata_json` for provider-scoped rows and accumulate:
 
@@ -1275,7 +1275,7 @@ currency_amounts[currency] += _safe_float(cost_details.get("total"))
 
 Use row data and metadata only. Do not read Langfuse directly from `UsageLedger`.
 
-- [ ] **Step 7: Run UsageLedger tests**
+- [x] **Step 7: Run UsageLedger tests**
 
 Run:
 

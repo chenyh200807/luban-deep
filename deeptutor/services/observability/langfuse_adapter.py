@@ -77,10 +77,13 @@ _DEFAULT_MODEL_PRICING = {
         "source": "anthropic-default",
     },
     "deepseek-v4-flash": {
+        "input_cache_hit_per_1m": 0.0028,
+        "input_cache_miss_per_1m": 0.14,
         "input_per_1m": 0.14,
         "output_per_1m": 0.28,
         "currency": "USD",
-        "source": "deepseek-official-cache-miss",
+        "source": "deepseek-official-2026-06-03",
+        "pricing_source_checked_at": "2026-06-03",
     },
     "deepseek-v3.2": {
         "input_per_1m": 2.0,
@@ -102,8 +105,9 @@ _DEFAULT_MODEL_PRICING = {
     },
 }
 _MODEL_PRICE_ALIASES = {
-    "DeepSeek-V4-Flash": "deepseek-v4-flash",
-    "deepseek-chat": "deepseek-v3.2",
+    "deepseek-v4-flash": "deepseek-v4-flash",
+    "deepseek-chat": "deepseek-v4-flash",
+    "deepseek-reasoner": "deepseek-v4-flash",
     "deepseek-v3.2-exp": "deepseek-v3.2",
     "gte-rerank": "gte-rerank-v2",
 }
@@ -129,7 +133,7 @@ def _normalize_langfuse_host(raw_host: str | None) -> str | None:
     return urlunparse((parsed.scheme, parsed.netloc, path, "", "", "")).rstrip("/")
 
 
-def _get_pricing_override(model: str) -> dict[str, float] | None:
+def _get_pricing_override(model: str) -> dict[str, Any] | None:
     raw = str(os.getenv("LANGFUSE_MODEL_PRICING_JSON", "") or "").strip()
     if not raw:
         return None
@@ -143,12 +147,14 @@ def _get_pricing_override(model: str) -> dict[str, float] | None:
     entry = payload.get(model) or payload.get(str(model or "").lower())
     if not isinstance(entry, dict):
         return None
-    result: dict[str, float] = {}
+    result: dict[str, Any] = {}
     for key in (
         "input",
         "output",
         "total",
         "input_per_1m",
+        "input_cache_hit_per_1m",
+        "input_cache_miss_per_1m",
         "output_per_1m",
         "total_per_1m",
     ):
@@ -161,6 +167,9 @@ def _get_pricing_override(model: str) -> dict[str, float] | None:
     source = entry.get("source")
     if isinstance(source, str) and source.strip():
         result["source"] = source.strip()
+    pricing_source_checked_at = entry.get("pricing_source_checked_at")
+    if isinstance(pricing_source_checked_at, str) and pricing_source_checked_at.strip():
+        result["pricing_source_checked_at"] = pricing_source_checked_at.strip()
     return result or None
 
 
@@ -191,8 +200,10 @@ def get_model_pricing_metadata(model: str | None) -> dict[str, Any] | None:
         return None
     metadata = {
         "pricing_currency": _normalize_cost_currency(pricing.get("currency", "USD")),
+        "billing_currency": _normalize_cost_currency(pricing.get("currency", "USD")),
         "pricing_unit": "per_1m_tokens",
         "pricing_source": pricing.get("source", "built_in"),
+        "pricing_source_checked_at": pricing.get("pricing_source_checked_at"),
     }
     return {key: value for key, value in metadata.items() if value is not None}
 
@@ -212,8 +223,22 @@ def estimate_model_cost(
     input_units = float(usage_details.get("input") or 0.0)
     output_units = float(usage_details.get("output") or 0.0)
     total_units = float(usage_details.get("total") or (input_units + output_units))
+    cache_hit_units = float(usage_details.get("input_cache_hit") or 0.0)
+    cache_miss_units = float(usage_details.get("input_cache_miss") or 0.0)
     if "input_per_1m" in pricing or "output_per_1m" in pricing or "total_per_1m" in pricing:
-        input_cost = (input_units / 1_000_000.0) * float(pricing.get("input_per_1m") or 0.0)
+        if (
+            (cache_hit_units > 0 or cache_miss_units > 0)
+            and "input_cache_hit_per_1m" in pricing
+            and "input_cache_miss_per_1m" in pricing
+        ):
+            input_cost = (
+                (cache_hit_units / 1_000_000.0)
+                * float(pricing.get("input_cache_hit_per_1m") or 0.0)
+                + (cache_miss_units / 1_000_000.0)
+                * float(pricing.get("input_cache_miss_per_1m") or 0.0)
+            )
+        else:
+            input_cost = (input_units / 1_000_000.0) * float(pricing.get("input_per_1m") or 0.0)
         output_cost = (output_units / 1_000_000.0) * float(pricing.get("output_per_1m") or 0.0)
         total_cost = (total_units / 1_000_000.0) * float(pricing.get("total_per_1m") or 0.0)
     else:
@@ -944,6 +969,23 @@ class LangfuseObservability:
     def get_pricing_metadata(self, model: str | None) -> dict[str, Any] | None:
         return get_model_pricing_metadata(model)
 
+    def pricing_metadata_for_model(self, model: str | None) -> dict[str, str]:
+        pricing = resolve_model_pricing(model)
+        if not pricing:
+            return {}
+        currency = _normalize_cost_currency(pricing.get("currency", ""))
+        checked_at = str(pricing.get("pricing_source_checked_at") or "").strip()
+        source = str(pricing.get("source") or "").strip()
+        metadata: dict[str, str] = {}
+        if currency:
+            metadata["pricing_currency"] = currency
+            metadata["billing_currency"] = currency
+        if checked_at:
+            metadata["pricing_source_checked_at"] = checked_at
+        if source:
+            metadata["pricing_source"] = source
+        return metadata
+
     def estimate_cost_details(
         self,
         *,
@@ -976,6 +1018,9 @@ class LangfuseObservability:
         client = self._get_client()
         source_key = self.normalize_usage_source(usage_source)
         merged_metadata = dict(metadata or {})
+        pricing_metadata = self.pricing_metadata_for_model(model)
+        if pricing_metadata:
+            merged_metadata.update(pricing_metadata)
         merged_metadata.update(
             self._build_usage_metadata(
                 usage_source=source_key,
@@ -1057,18 +1102,21 @@ class LangfuseObservability:
         status_message: str | None = None,
     ) -> None:
         source_key = self.normalize_usage_source(usage_source)
+        merged_metadata = dict(metadata or {})
+        pricing_metadata = self.pricing_metadata_for_model(model)
+        if pricing_metadata:
+            merged_metadata.update(pricing_metadata)
         self.record_usage(
             usage_details=usage_details,
             cost_details=cost_details,
             source=source_key,
             model=model,
-            metadata=metadata,
+            metadata=merged_metadata,
         )
         if observation is None or isinstance(observation, _NoopObservation):
             return
         try:
             export_usage = self.should_export_usage_to_langfuse(source_key)
-            merged_metadata = dict(metadata or {})
             merged_metadata.update(
                 self._build_usage_metadata(
                     usage_source=source_key,

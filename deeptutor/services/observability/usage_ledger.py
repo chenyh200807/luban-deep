@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import json
 from pathlib import Path
 import sqlite3
@@ -43,7 +43,12 @@ class UsageLedgerTotals:
     estimated_total_cost: float = 0.0
     events: int = 0
     provider_calls: int = 0
+    unattributed_provider_calls: int = 0
     billable_turns: int = 0
+    metadata_breakdown: dict[str, int] = field(default_factory=dict)
+    currency_amounts: dict[str, float] = field(default_factory=dict)
+    provider_amounts: dict[str, float] = field(default_factory=dict)
+    cost_center_amounts: dict[str, dict[str, float]] = field(default_factory=dict)
     coverage_start_ts: float | None = None
     coverage_end_ts: float | None = None
 
@@ -63,6 +68,12 @@ class UsageLedgerTotals:
     def total_cost(self) -> float:
         return self.measured_total_cost + self.estimated_total_cost
 
+    @property
+    def calls_per_billable_turn(self) -> float:
+        if self.billable_turns <= 0:
+            return 0.0
+        return round(float(self.provider_calls) / float(self.billable_turns), 4)
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "input_tokens": int(self.input_tokens),
@@ -79,7 +90,25 @@ class UsageLedgerTotals:
             "estimated_total_cost_usd": round(float(self.estimated_total_cost or 0.0), 8),
             "events": int(self.events),
             "provider_calls": int(self.provider_calls),
+            "unattributed_provider_calls": int(self.unattributed_provider_calls),
             "billable_turns": int(self.billable_turns),
+            "calls_per_billable_turn": self.calls_per_billable_turn,
+            "metadata_breakdown": dict(self.metadata_breakdown),
+            "currency_amounts": {
+                key: round(float(value or 0.0), 8)
+                for key, value in self.currency_amounts.items()
+            },
+            "provider_amounts": {
+                key: round(float(value or 0.0), 8)
+                for key, value in self.provider_amounts.items()
+            },
+            "cost_center_amounts": {
+                center: {
+                    currency: round(float(amount or 0.0), 8)
+                    for currency, amount in amounts.items()
+                }
+                for center, amounts in self.cost_center_amounts.items()
+            },
             "coverage_start_ts": self.coverage_start_ts,
             "coverage_end_ts": self.coverage_end_ts,
         }
@@ -175,6 +204,14 @@ class UsageLedger:
         measured = source in {"provider", "measured", "actual"}
         payload = dict(metadata or {})
         provider_name = _as_str(payload.get("provider_name"))
+        if usage_details:
+            payload.setdefault("usage_details", dict(usage_details))
+        if cost_details:
+            payload.setdefault("cost_details", dict(cost_details))
+        if "billing_currency" not in payload:
+            currency = _as_str(payload.get("pricing_currency") or (cost_details or {}).get("currency"))
+            if currency:
+                payload["billing_currency"] = currency
 
         input_tokens = _safe_int((usage_details or {}).get("input"))
         output_tokens = _safe_int((usage_details or {}).get("output"))
@@ -250,6 +287,9 @@ class UsageLedger:
         provider_name: str | None = None,
         model: str | None = None,
         billable_only: bool = False,
+        environment: str | None = None,
+        cost_center: str | None = None,
+        api_key_fingerprint: str | None = None,
     ) -> UsageLedgerTotals:
         clauses = ["created_at >= ?", "created_at <= ?"]
         params: list[Any] = [float(start_ts), float(end_ts)]
@@ -259,53 +299,136 @@ class UsageLedger:
         if _as_str(model):
             clauses.append("model = ?")
             params.append(_as_str(model))
-        if billable_only:
-            clauses.append("metadata_json LIKE ?")
-            params.append('%"billable_unit": "conversation_turn"%')
-            clauses.append("metadata_json LIKE ?")
-            params.append('%"billing_capture_status": "captured"%')
 
         where_sql = " AND ".join(clauses)
         with self._connect() as conn:
-            aggregate = conn.execute(
+            rows = conn.execute(
                 f"""
                 SELECT
-                    COALESCE(SUM(measured_input_tokens), 0) AS measured_input_tokens,
-                    COALESCE(SUM(measured_output_tokens), 0) AS measured_output_tokens,
-                    COALESCE(SUM(measured_total_tokens), 0) AS measured_total_tokens,
-                    COALESCE(SUM(measured_total_cost), 0.0) AS measured_total_cost,
-                    COALESCE(SUM(estimated_input_tokens), 0) AS estimated_input_tokens,
-                    COALESCE(SUM(estimated_output_tokens), 0) AS estimated_output_tokens,
-                    COALESCE(SUM(estimated_total_tokens), 0) AS estimated_total_tokens,
-                    COALESCE(SUM(estimated_total_cost), 0.0) AS estimated_total_cost,
-                    COUNT(*) AS events,
-                    COUNT(*) AS provider_calls,
-                    COUNT(DISTINCT COALESCE(NULLIF(turn_id, ''), NULLIF(scope_id, ''))) AS billable_turns,
-                    MIN(created_at) AS coverage_start_ts,
-                    MAX(created_at) AS coverage_end_ts
+                    created_at, turn_id, scope_id, provider_name, usage_source,
+                    measured_input_tokens, measured_output_tokens, measured_total_tokens,
+                    measured_total_cost, estimated_input_tokens, estimated_output_tokens,
+                    estimated_total_tokens, estimated_total_cost, metadata_json
                 FROM llm_usage_events
                 WHERE {where_sql}
                 """,
                 params,
-            ).fetchone()
+            ).fetchall()
 
-        if aggregate is None:
-            return UsageLedgerTotals()
-        return UsageLedgerTotals(
-            measured_input_tokens=_safe_int(aggregate["measured_input_tokens"]),
-            measured_output_tokens=_safe_int(aggregate["measured_output_tokens"]),
-            measured_total_tokens=_safe_int(aggregate["measured_total_tokens"]),
-            measured_total_cost=_safe_float(aggregate["measured_total_cost"]),
-            estimated_input_tokens=_safe_int(aggregate["estimated_input_tokens"]),
-            estimated_output_tokens=_safe_int(aggregate["estimated_output_tokens"]),
-            estimated_total_tokens=_safe_int(aggregate["estimated_total_tokens"]),
-            estimated_total_cost=_safe_float(aggregate["estimated_total_cost"]),
-            events=_safe_int(aggregate["events"]),
-            provider_calls=_safe_int(aggregate["provider_calls"]),
-            billable_turns=_safe_int(aggregate["billable_turns"]) if billable_only else 0,
-            coverage_start_ts=_safe_float(aggregate["coverage_start_ts"]) or None,
-            coverage_end_ts=_safe_float(aggregate["coverage_end_ts"]) or None,
-        )
+        totals = UsageLedgerTotals()
+        billable_turn_ids: set[str] = set()
+        requested_environment = _as_str(environment)
+        requested_cost_center = _as_str(cost_center)
+        requested_api_key = _as_str(api_key_fingerprint)
+
+        for row in rows:
+            try:
+                metadata = json.loads(row["metadata_json"] or "{}")
+            except json.JSONDecodeError:
+                metadata = {}
+            if not isinstance(metadata, dict):
+                metadata = {}
+
+            row_environment = _as_str(metadata.get("runtime_environment"))
+            row_cost_center = _as_str(metadata.get("cost_center"))
+            row_api_key = _as_str(metadata.get("api_key_fingerprint"))
+            if requested_environment and row_environment != requested_environment:
+                continue
+            if requested_cost_center and row_cost_center != requested_cost_center:
+                continue
+            if requested_api_key and row_api_key != requested_api_key:
+                continue
+
+            billable_turn_id = _as_str(
+                metadata.get("billable_turn_id") or row["turn_id"] or row["scope_id"]
+            )
+            is_billable = (
+                _as_str(metadata.get("billable_unit")) == "conversation_turn"
+                and _as_str(metadata.get("billing_capture_status")) == "captured"
+                and bool(billable_turn_id)
+            )
+            if billable_only and not is_billable:
+                continue
+
+            totals.measured_input_tokens += _safe_int(row["measured_input_tokens"])
+            totals.measured_output_tokens += _safe_int(row["measured_output_tokens"])
+            totals.measured_total_tokens += _safe_int(row["measured_total_tokens"])
+            totals.measured_total_cost += _safe_float(row["measured_total_cost"])
+            totals.estimated_input_tokens += _safe_int(row["estimated_input_tokens"])
+            totals.estimated_output_tokens += _safe_int(row["estimated_output_tokens"])
+            totals.estimated_total_tokens += _safe_int(row["estimated_total_tokens"])
+            totals.estimated_total_cost += _safe_float(row["estimated_total_cost"])
+            totals.events += 1
+            totals.provider_calls += 1
+            if is_billable:
+                billable_turn_ids.add(billable_turn_id)
+            if not row_environment or not row_cost_center or not row_api_key:
+                totals.unattributed_provider_calls += 1
+
+            created_at = _safe_float(row["created_at"])
+            if created_at:
+                totals.coverage_start_ts = (
+                    created_at
+                    if totals.coverage_start_ts is None
+                    else min(totals.coverage_start_ts, created_at)
+                )
+                totals.coverage_end_ts = (
+                    created_at
+                    if totals.coverage_end_ts is None
+                    else max(totals.coverage_end_ts, created_at)
+                )
+
+            usage_payload = metadata.get("usage_details")
+            if not isinstance(usage_payload, dict):
+                usage_payload = {}
+            official_usage_fields = metadata.get("official_usage_fields")
+            if not isinstance(official_usage_fields, dict):
+                official_usage_fields = {}
+            cache_hit_tokens = _safe_int(
+                usage_payload.get("input_cache_hit")
+                or official_usage_fields.get("prompt_cache_hit_tokens")
+            )
+            cache_miss_tokens = _safe_int(
+                usage_payload.get("input_cache_miss")
+                or official_usage_fields.get("prompt_cache_miss_tokens")
+            )
+            if cache_hit_tokens:
+                totals.metadata_breakdown["input_cache_hit_tokens"] = (
+                    totals.metadata_breakdown.get("input_cache_hit_tokens", 0)
+                    + cache_hit_tokens
+                )
+            if cache_miss_tokens:
+                totals.metadata_breakdown["input_cache_miss_tokens"] = (
+                    totals.metadata_breakdown.get("input_cache_miss_tokens", 0)
+                    + cache_miss_tokens
+                )
+
+            cost_payload = metadata.get("cost_details")
+            if not isinstance(cost_payload, dict):
+                cost_payload = {}
+            amount = _safe_float(
+                cost_payload.get("total")
+                or (_safe_float(row["measured_total_cost"]) + _safe_float(row["estimated_total_cost"]))
+            )
+            currency = _as_str(
+                metadata.get("billing_currency")
+                or metadata.get("pricing_currency")
+                or cost_payload.get("currency")
+            ).upper()
+            if currency and amount:
+                totals.currency_amounts[currency] = (
+                    totals.currency_amounts.get(currency, 0.0) + amount
+                )
+                provider = _as_str(row["provider_name"]) or "unknown"
+                totals.provider_amounts[provider] = (
+                    totals.provider_amounts.get(provider, 0.0) + amount
+                )
+                if row_cost_center:
+                    center_amounts = totals.cost_center_amounts.setdefault(row_cost_center, {})
+                    center_amounts[currency] = center_amounts.get(currency, 0.0) + amount
+
+        totals.billable_turns = len(billable_turn_ids)
+        return totals
 
     def mark_turn_billable(self, *, turn_id: str, billing_capture: dict[str, Any]) -> int:
         resolved_turn_id = _as_str(turn_id)

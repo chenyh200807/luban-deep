@@ -635,6 +635,53 @@ def test_deepseek_v4_flash_pricing_uses_official_cache_miss_units(
     }
 
 
+def test_deepseek_v4_flash_cost_uses_cache_hit_and_miss_tokens(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("LANGFUSE_MODEL_PRICING_JSON", raising=False)
+    adapter = LangfuseObservability()
+
+    assert adapter.estimate_cost_details(
+        model="deepseek-v4-flash",
+        usage_details={
+            "input": 1_000_000.0,
+            "input_cache_hit": 800_000.0,
+            "input_cache_miss": 200_000.0,
+            "output": 100_000.0,
+            "total": 1_100_000.0,
+        },
+    ) == {
+        "input": 0.03024,
+        "output": 0.028,
+        "total": 0.05824,
+    }
+
+
+def test_update_observation_writes_pricing_metadata_to_usage_ledger(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("LANGFUSE_MODEL_PRICING_JSON", raising=False)
+    adapter = LangfuseObservability()
+    fake_ledger = _FakeUsageLedger()
+    adapter._usage_ledger = fake_ledger
+
+    adapter.update_observation(
+        _FakeObservation(),
+        metadata={"provider_name": "deepseek"},
+        usage_details={"input": 1.0, "output": 1.0, "total": 2.0},
+        cost_details={"input": 0.0, "output": 0.0, "total": 0.0},
+        usage_source="provider",
+        model="deepseek-v4-flash",
+    )
+
+    metadata = fake_ledger.calls[0]["metadata"]
+    assert metadata["provider_name"] == "deepseek"
+    assert metadata["pricing_currency"] == "USD"
+    assert metadata["billing_currency"] == "USD"
+    assert metadata["pricing_source"] == "deepseek-official-2026-06-03"
+    assert metadata["pricing_source_checked_at"] == "2026-06-03"
+
+
 def test_start_observation_preserves_body_exception() -> None:
     adapter = LangfuseObservability()
     client = _FakeClient()
