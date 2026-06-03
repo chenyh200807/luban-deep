@@ -441,6 +441,28 @@ function loadChatPage(overrides) {
     );
   });
 
+  await run("chat page should discard local draft sessions before hydration", async function () {
+    var loaded = loadChatPage({
+      storage: {
+        current_session_id: "s_1780445194569",
+        current_session_ts: Date.now(),
+      },
+    });
+
+    loaded.page.onLoad({});
+    loaded.page.onShow();
+    await flushPromises();
+
+    assert(
+      loaded.apiState.getConversationMessagesCalls.length === 0,
+      "local draft session ids should not be hydrated as backend conversations",
+    );
+    assert(
+      loaded.page._convId === null,
+      "local draft session should not remain as the current conversation id",
+    );
+  });
+
   await run("history entry should suppress hero before pending conversation hydration", async function () {
     var pendingConversationId = "conv_history_direct";
     var pendingChatIntentConsumed = false;
