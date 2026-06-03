@@ -1418,7 +1418,7 @@ DEEPSEEK_BILLING_EXPORT_MAX_BYTES=10485760
 
 `DEEPSEEK_BILLING_API_KEY` may default to `DEEPSEEK_API_KEY` in code, but keep a separate env var to allow read-only billing keys if DeepSeek supports scoped keys later.
 
-- [ ] **Step 6: Run DeepSeek billing tests**
+- [x] **Step 6: Run DeepSeek billing tests**
 
 Run:
 
@@ -1669,7 +1669,7 @@ Expected: PASS.
 - Modify: `deeptutor/api/routers/bi.py:170`
 - Test: `tests/api/test_bi_router.py`
 
-- [ ] **Step 1: Write router tests for `provider=deepseek` and admin-only access**
+- [x] **Step 1: Write router tests for `provider=deepseek` and admin-only access**
 
 Add:
 
@@ -1706,7 +1706,7 @@ def test_bi_cost_reconciliation_rejects_metrics_token_only(bi_service: BIService
     assert response.status_code == 403
 ```
 
-- [ ] **Step 2: Run failing router tests**
+- [x] **Step 2: Run failing router tests**
 
 Run:
 
@@ -1717,7 +1717,7 @@ pytest tests/api/test_bi_router.py::test_bi_cost_reconciliation_supports_deepsee
 
 Expected: FAIL because the endpoint does not accept provider-neutral output yet and does not enforce admin-only access.
 
-- [ ] **Step 3: Add `provider` query parameter**
+- [x] **Step 3: Add `provider` query parameter**
 
 In `deeptutor/api/routers/bi.py`, pass `provider` into `BIService.get_cost_reconciliation`.
 
@@ -1760,7 +1760,7 @@ async def get_cost_reconciliation(
 
 Default can remain `dashscope` for backward compatibility, but BI should explicitly call `provider=all` after P0.
 
-- [ ] **Step 4: Refactor service output**
+- [x] **Step 4: Refactor service output**
 
 Change `BIService.get_cost_reconciliation` to support:
 
@@ -1810,7 +1810,7 @@ Expected top-level shape:
 
 Keep legacy fields `bailian`, `bailian_billing`, `system_global_bailian`, and `reconciliation` when `provider=dashscope` so existing consumers do not break.
 
-- [ ] **Step 5: Remove hard-coded `dashscope` from provider-neutral code**
+- [x] **Step 5: Remove hard-coded `dashscope` from provider-neutral code**
 
 Any usage ledger call must use the requested provider:
 
@@ -1829,7 +1829,7 @@ system_global_totals = self._usage_ledger.get_totals(
 
 Only the Bailian-specific branch should use `dashscope`.
 
-- [ ] **Step 6: Run API tests**
+- [x] **Step 6: Run API tests**
 
 Run:
 
@@ -1850,7 +1850,7 @@ Expected: PASS.
 - Test: `tests/services/test_bailian_billing.py`
 - Test: `tests/api/test_bi_router.py`
 
-- [ ] **Step 1: Keep existing BssOpenApi aggregation tests passing**
+- [x] **Step 1: Keep existing BssOpenApi aggregation tests passing**
 
 Run:
 
@@ -1860,7 +1860,7 @@ pytest tests/services/test_bailian_billing.py -q
 
 Expected: PASS before and after this task.
 
-- [ ] **Step 2: Add provider-neutral `to_official_usage_dict`**
+- [x] **Step 2: Add provider-neutral `to_official_usage_dict`**
 
 In `BailianBillingTotals`, expose:
 
@@ -1879,7 +1879,7 @@ def to_official_usage_dict(self) -> dict[str, Any]:
     }
 ```
 
-- [ ] **Step 3: Run Bailian and API tests**
+- [x] **Step 3: Run Bailian and API tests**
 
 Run:
 

@@ -128,7 +128,7 @@ class DeepSeekBillingClient:
     ) -> None:
         self._config = config or DeepSeekBillingConfig.from_env()
         self._http_client = http_client
-        self._import_store = import_store or OfficialBillingImportStore()
+        self._import_store = import_store
 
     def is_configured(self) -> bool:
         return bool(self._config.api_key or self._config.usage_export_dir)
@@ -177,7 +177,8 @@ class DeepSeekBillingClient:
             selected = totals.models.get(model, {})
             totals.models = {model: dict(selected)} if selected else {}
         if totals.status in {"ok", "empty"} and totals.manifest.get("source_file_sha256"):
-            self._import_store.record_import(
+            import_store = self._import_store or OfficialBillingImportStore()
+            import_store.record_import(
                 provider_name="deepseek",
                 billing_cycle=_as_str(totals.manifest.get("billing_cycle") or billing_cycle),
                 source_file_sha256=_as_str(totals.manifest["source_file_sha256"]),
