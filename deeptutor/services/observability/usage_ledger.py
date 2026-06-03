@@ -42,6 +42,8 @@ class UsageLedgerTotals:
     estimated_total_tokens: int = 0
     estimated_total_cost: float = 0.0
     events: int = 0
+    provider_calls: int = 0
+    billable_turns: int = 0
     coverage_start_ts: float | None = None
     coverage_end_ts: float | None = None
 
@@ -76,6 +78,8 @@ class UsageLedgerTotals:
             "estimated_total_tokens": int(self.estimated_total_tokens),
             "estimated_total_cost_usd": round(float(self.estimated_total_cost or 0.0), 8),
             "events": int(self.events),
+            "provider_calls": int(self.provider_calls),
+            "billable_turns": int(self.billable_turns),
             "coverage_start_ts": self.coverage_start_ts,
             "coverage_end_ts": self.coverage_end_ts,
         }
@@ -245,6 +249,7 @@ class UsageLedger:
         end_ts: float,
         provider_name: str | None = None,
         model: str | None = None,
+        billable_only: bool = False,
     ) -> UsageLedgerTotals:
         clauses = ["created_at >= ?", "created_at <= ?"]
         params: list[Any] = [float(start_ts), float(end_ts)]
@@ -254,6 +259,11 @@ class UsageLedger:
         if _as_str(model):
             clauses.append("model = ?")
             params.append(_as_str(model))
+        if billable_only:
+            clauses.append("metadata_json LIKE ?")
+            params.append('%"billable_unit": "conversation_turn"%')
+            clauses.append("metadata_json LIKE ?")
+            params.append('%"billing_capture_status": "captured"%')
 
         where_sql = " AND ".join(clauses)
         with self._connect() as conn:
@@ -269,6 +279,8 @@ class UsageLedger:
                     COALESCE(SUM(estimated_total_tokens), 0) AS estimated_total_tokens,
                     COALESCE(SUM(estimated_total_cost), 0.0) AS estimated_total_cost,
                     COUNT(*) AS events,
+                    COUNT(*) AS provider_calls,
+                    COUNT(DISTINCT COALESCE(NULLIF(turn_id, ''), NULLIF(scope_id, ''))) AS billable_turns,
                     MIN(created_at) AS coverage_start_ts,
                     MAX(created_at) AS coverage_end_ts
                 FROM llm_usage_events
@@ -289,9 +301,59 @@ class UsageLedger:
             estimated_total_tokens=_safe_int(aggregate["estimated_total_tokens"]),
             estimated_total_cost=_safe_float(aggregate["estimated_total_cost"]),
             events=_safe_int(aggregate["events"]),
+            provider_calls=_safe_int(aggregate["provider_calls"]),
+            billable_turns=_safe_int(aggregate["billable_turns"]) if billable_only else 0,
             coverage_start_ts=_safe_float(aggregate["coverage_start_ts"]) or None,
             coverage_end_ts=_safe_float(aggregate["coverage_end_ts"]) or None,
         )
+
+    def mark_turn_billable(self, *, turn_id: str, billing_capture: dict[str, Any]) -> int:
+        resolved_turn_id = _as_str(turn_id)
+        if not resolved_turn_id:
+            return 0
+        if _as_str((billing_capture or {}).get("status")) != "captured":
+            return 0
+
+        updated = 0
+        with self._lock:
+            with self._connect() as conn:
+                rows = conn.execute(
+                    """
+                    SELECT id, metadata_json
+                    FROM llm_usage_events
+                    WHERE turn_id = ? OR scope_id = ?
+                    """,
+                    (resolved_turn_id, resolved_turn_id),
+                ).fetchall()
+                for row in rows:
+                    try:
+                        metadata = json.loads(row["metadata_json"] or "{}")
+                    except json.JSONDecodeError:
+                        metadata = {}
+                    metadata.update(
+                        {
+                            "billable_unit": "conversation_turn",
+                            "billable_turn_id": resolved_turn_id,
+                            "billing_capture_status": "captured",
+                            "billing_capture_idempotency_key": _as_str(
+                                billing_capture.get("idempotency_key")
+                            ),
+                            "billing_reference_id": resolved_turn_id,
+                            "billing_amount_points": _safe_int(
+                                billing_capture.get("amount_points")
+                            ),
+                            "billing_amount_source": _as_str(
+                                billing_capture.get("billing_amount_source")
+                            ),
+                        }
+                    )
+                    conn.execute(
+                        "UPDATE llm_usage_events SET metadata_json = ? WHERE id = ?",
+                        (json.dumps(metadata, ensure_ascii=False, default=str), row["id"]),
+                    )
+                    updated += 1
+                conn.commit()
+        return updated
 
     def has_usage_for_turn(self, turn_id: str) -> bool:
         resolved_turn_id = _as_str(turn_id)

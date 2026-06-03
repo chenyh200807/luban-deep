@@ -68,6 +68,55 @@ def test_usage_ledger_dedupe_key_is_idempotent(tmp_path) -> None:
     assert totals.events == 1
 
 
+def test_usage_ledger_marks_turn_billable_only_after_wallet_capture(tmp_path) -> None:
+    ledger = UsageLedger(db_path=tmp_path / "llm_usage.db")
+
+    ledger.record_usage_event(
+        usage_source="provider",
+        usage_details={"input": 10.0, "output": 5.0, "total": 15.0},
+        cost_details={"total": 0.02},
+        model="deepseek-v4-flash",
+        metadata={
+            "provider_name": "deepseek",
+            "charged_provider_name": "deepseek",
+            "runtime_environment": "production",
+            "cost_center": "prod_user_chat",
+        },
+        session_id="session-1",
+        turn_id="turn-1",
+        scope_id="turn-1",
+    )
+
+    before = ledger.get_totals(
+        start_ts=0,
+        end_ts=9_999_999_999,
+        provider_name="deepseek",
+        billable_only=True,
+    )
+    assert before.total_tokens == 0
+
+    updated = ledger.mark_turn_billable(
+        turn_id="turn-1",
+        billing_capture={
+            "status": "captured",
+            "idempotency_key": "mini_program_capture:turn-1",
+            "amount_points": 20,
+            "billing_amount_source": "fallback_minimum",
+        },
+    )
+
+    assert updated == 1
+    after = ledger.get_totals(
+        start_ts=0,
+        end_ts=9_999_999_999,
+        provider_name="deepseek",
+        billable_only=True,
+    )
+    assert after.billable_turns == 1
+    assert after.provider_calls == 1
+    assert after.total_tokens == 15
+
+
 def test_usage_ledger_respects_created_at_override(tmp_path) -> None:
     ledger = UsageLedger(db_path=tmp_path / "llm_usage.db")
 
