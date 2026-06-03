@@ -495,9 +495,73 @@ def bi_service(tmp_path: Path, monkeypatch) -> BIService:
                 },
             )()
 
+    class _FakeDeepSeekBillingClient:
+        async def get_balance(self):
+            return type(
+                "BalanceTotals",
+                (),
+                {
+                    "to_dict": lambda self: {
+                        "status": "unconfigured",
+                        "provider_name": "deepseek",
+                        "is_available": False,
+                        "currency_balances": {},
+                    },
+                },
+            )()
+
+        async def get_usage_export_totals(self, **_kwargs):
+            return type(
+                "UsageTotals",
+                (),
+                {
+                    "to_official_usage_dict": lambda self: {
+                        "status": "unconfigured",
+                        "provider_name": "deepseek",
+                        "cost_basis": "net_charge_cost",
+                        "currency_amounts": {},
+                        "models": {},
+                    },
+                },
+            )()
+
     class _FakeUsageLedger:
         def get_totals(self, **kwargs):
-            assert kwargs["provider_name"] == "dashscope"
+            assert kwargs["provider_name"] in {"dashscope", "deepseek"}
+            provider_name = kwargs["provider_name"]
+            if provider_name == "deepseek":
+                return type(
+                    "LedgerTotals",
+                    (),
+                    {
+                        "to_dict": lambda self: {
+                            "input_tokens": 1000,
+                            "output_tokens": 200,
+                            "total_tokens": 1200,
+                            "total_cost_usd": 0.0001,
+                            "measured_input_tokens": 1000,
+                            "measured_output_tokens": 200,
+                            "measured_total_tokens": 1200,
+                            "measured_total_cost_usd": 0.0001,
+                            "estimated_input_tokens": 0,
+                            "estimated_output_tokens": 0,
+                            "estimated_total_tokens": 0,
+                            "estimated_total_cost_usd": 0.0,
+                            "events": 1,
+                            "provider_calls": 1,
+                            "billable_turns": 1,
+                            "calls_per_billable_turn": 1.0,
+                            "unattributed_provider_calls": 0,
+                            "currency_amounts": {"USD": 0.0001},
+                            "metadata_breakdown": {
+                                "input_cache_hit_tokens": 700,
+                                "input_cache_miss_tokens": 300,
+                            },
+                            "coverage_start_ts": kwargs["start_ts"] + 10,
+                            "coverage_end_ts": kwargs["end_ts"] - 10,
+                        },
+                    },
+                )()
             return type(
                 "LedgerTotals",
                 (),
@@ -530,6 +594,7 @@ def bi_service(tmp_path: Path, monkeypatch) -> BIService:
         luban_feedback_store=_FakeLubanFeedbackStore(),
         bailian_telemetry_client=_FakeBailianTelemetryClient(),
         bailian_billing_client=_FakeBailianBillingClient(),
+        deepseek_billing_client=_FakeDeepSeekBillingClient(),
         usage_ledger=_FakeUsageLedger(),
         wallet_service=_FakeWalletService(),
     )
@@ -673,6 +738,124 @@ def test_bi_router_rejects_non_admin_even_with_authenticated_context(bi_service:
         response = client.get("/api/v1/bi/overview?days=30")
         assert response.status_code == 403
         assert response.json()["detail"] == "Admin access required"
+
+
+def test_bi_cost_reconciliation_supports_deepseek_provider(
+    bi_service: BIService,
+) -> None:
+    app = _build_app(bi_service)
+    app.dependency_overrides[bi_router_module.require_bi_access] = lambda: SimpleNamespace(is_admin=True)
+    app.dependency_overrides[bi_router_module.require_bi_admin] = lambda: SimpleNamespace(is_admin=True)
+
+    with TestClient(app) as client:
+        response = client.get(
+            "/api/v1/bi/cost/reconciliation"
+            "?days=30&provider=deepseek&billing_cycle=2026-06"
+            "&environment=production&cost_center=prod_user_chat&billable_only=true"
+        )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["filters"]["provider"] == "deepseek"
+    assert "providers" in payload
+    assert "deepseek" in payload["providers"]
+    deepseek = payload["providers"]["deepseek"]
+    assert deepseek["internal"]["total_tokens"] == 1200
+    assert deepseek["internal"]["currency_amounts"] == {"USD": 0.0001}
+    assert deepseek["official_usage"]["status"] in {
+        "unconfigured",
+        "unsupported_export_schema",
+    }
+    assert deepseek["reconciliation"]["cost_basis"] == "list_price_cost"
+
+
+def test_bi_cost_reconciliation_deepseek_does_not_query_bailian(
+    bi_service: BIService,
+) -> None:
+    class FailingBailianClient:
+        config = SimpleNamespace(workspace_id="", apikey_id="")
+
+        def is_configured(self) -> bool:
+            raise AssertionError("provider=deepseek must not query Bailian clients")
+
+    bi_service._bailian_telemetry_client = FailingBailianClient()
+    bi_service._bailian_billing_client = FailingBailianClient()
+
+    class ProviderAwareLedger:
+        def get_totals(self, **kwargs):
+            if kwargs["provider_name"] != "deepseek":
+                raise AssertionError("provider=deepseek must not query DashScope ledger totals")
+            return type(
+                "LedgerTotals",
+                (),
+                {
+                    "to_dict": lambda self: {
+                        "total_tokens": 1200,
+                        "currency_amounts": {"USD": 0.0001},
+                        "provider_calls": 1,
+                        "billable_turns": 1,
+                        "unattributed_provider_calls": 0,
+                    }
+                },
+            )()
+
+    bi_service._usage_ledger = ProviderAwareLedger()
+
+    payload = asyncio.run(
+        bi_service.get_cost_reconciliation(
+            provider="deepseek",
+            days=30,
+            billing_cycle="2026-06",
+            environment="production",
+            cost_center="prod_user_chat",
+            billable_only=True,
+        )
+    )
+
+    assert payload["filters"]["provider"] == "deepseek"
+    assert set(payload["providers"]) == {"deepseek"}
+    assert payload["system_global_bailian"]["status"] != "error"
+    assert not any("system_global_bailian" in warning for warning in payload["warnings"])
+
+
+def test_bi_cost_reconciliation_all_returns_provider_neutral_official_usage(
+    bi_service: BIService,
+) -> None:
+    app = _build_app(bi_service)
+    app.dependency_overrides[bi_router_module.require_bi_access] = lambda: SimpleNamespace(is_admin=True)
+    app.dependency_overrides[bi_router_module.require_bi_admin] = lambda: SimpleNamespace(is_admin=True)
+
+    with TestClient(app) as client:
+        response = client.get(
+            "/api/v1/bi/cost/reconciliation?provider=all&billing_cycle=2026-06"
+        )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["filters"]["provider"] == "all"
+    assert set(payload["providers"]) == {"dashscope", "deepseek"}
+    dashscope = payload["providers"]["dashscope"]
+    assert dashscope["official_usage"]["provider_name"] == "dashscope"
+    assert dashscope["official_usage"]["cost_basis"] == "list_price_cost"
+    assert dashscope["official_usage"]["list_price_cost"] == {"CNY": 0.0124}
+    assert dashscope["official_usage"]["net_charge_cost"] == {"CNY": 0.0124}
+
+
+def test_bi_cost_reconciliation_rejects_metrics_token_only(
+    bi_service: BIService,
+    monkeypatch,
+) -> None:
+    app = _build_app(bi_service)
+    monkeypatch.setenv("DEEPTUTOR_BI_PUBLIC_ENABLED", "true")
+    monkeypatch.setenv("DEEPTUTOR_METRICS_TOKEN", "metrics-secret")
+
+    with TestClient(app) as client:
+        response = client.get(
+            "/api/v1/bi/cost/reconciliation?provider=all&billing_cycle=2026-06",
+            headers={"X-Metrics-Token": "metrics-secret"},
+        )
+
+    assert response.status_code == 403
 
 
 def test_bi_router_allows_public_access_when_flag_enabled(

@@ -7,6 +7,7 @@ import pytest
 from deeptutor.services.observability.bailian_billing import (
     BailianBillingClient,
     BailianBillingConfig,
+    BailianBillingTotals,
 )
 
 
@@ -127,6 +128,29 @@ async def test_bailian_billing_client_aggregates_cycles_and_filters(monkeypatch:
         "output_token": pytest.approx(2.5),
     }
     assert totals.billing_cycles[0]["billing_cycle"] == "2026-04"
+
+
+def test_bailian_billing_totals_exports_provider_neutral_official_usage() -> None:
+    totals = BailianBillingTotals(
+        pretax_amount=4.25,
+        after_discount_amount=4.2,
+        items_count=3,
+        currency="CNY",
+        model_amounts={"deepseek-v3.2": 3.75},
+        usage_kind_amounts={"input_token": 1.75, "output_token": 2.5},
+    )
+
+    assert totals.to_official_usage_dict() == {
+        "status": "ok",
+        "provider_name": "dashscope",
+        "cost_basis": "list_price_cost",
+        "currency_amounts": {"CNY": 4.25},
+        "list_price_cost": {"CNY": 4.25},
+        "net_charge_cost": {"CNY": 4.2},
+        "model_amounts": {"deepseek-v3.2": 3.75},
+        "usage_kind_amounts": {"input_token": 1.75, "output_token": 2.5},
+        "items_count": 3,
+    }
 
 
 @pytest.mark.asyncio

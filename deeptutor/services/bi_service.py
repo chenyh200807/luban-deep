@@ -28,6 +28,8 @@ from deeptutor.services.observability import (
     get_product_behavior_store,
     get_usage_ledger,
 )
+from deeptutor.services.observability.deepseek_billing import DeepSeekBillingClient
+from deeptutor.services.observability.provider_reconciliation import build_reconciliation_delta
 from deeptutor.services.session import get_sqlite_session_store
 from deeptutor.services.wallet.service import get_wallet_service
 
@@ -131,6 +133,7 @@ class BIService:
         luban_feedback_store=None,
         bailian_telemetry_client=None,
         bailian_billing_client=None,
+        deepseek_billing_client=None,
         usage_ledger=None,
         wallet_service=None,
     ) -> None:
@@ -141,6 +144,7 @@ class BIService:
         self._luban_feedback_store = luban_feedback_store or LubanFeedbackStore()
         self._bailian_telemetry_client = bailian_telemetry_client or get_bailian_telemetry_client()
         self._bailian_billing_client = bailian_billing_client or get_bailian_billing_client()
+        self._deepseek_billing_client = deepseek_billing_client
         self._usage_ledger = usage_ledger or get_usage_ledger()
         self._wallet_service = wallet_service or get_wallet_service()
 
@@ -2276,18 +2280,29 @@ class BIService:
 
     async def get_cost_reconciliation(
         self,
+        provider: str = "dashscope",
         days: int = 30,
         capability: str | None = None,
         entrypoint: str | None = None,
         tier: str | None = None,
+        environment: str | None = None,
+        cost_center: str = "all",
+        billable_only: bool = False,
+        cost_basis: str = "list_price_cost",
         workspace_id: str | None = None,
         apikey_id: str | None = None,
+        api_key_fingerprint: str | None = None,
         model: str | None = None,
         billing_cycle: str | None = None,
     ) -> dict[str, Any]:
         window_start = self._window_start(days)
         now_ts = time.time()
         filters = self._normalize_filters(capability, entrypoint, tier)
+        effective_provider = str(provider or "dashscope").strip().lower() or "dashscope"
+        if effective_provider not in {"dashscope", "deepseek", "all"}:
+            effective_provider = "dashscope"
+        use_dashscope = effective_provider in {"dashscope", "all"}
+        normalized_cost_center = str(cost_center or "all").strip()
         explicit_billing_cycle = self._normalize_billing_cycle(billing_cycle)
         billing_cycles = (
             [explicit_billing_cycle]
@@ -2347,6 +2362,17 @@ class BIService:
             "model_amounts": {},
             "usage_kind_amounts": {},
         }
+        bailian_official_usage_payload: dict[str, Any] = {
+            "status": "unconfigured",
+            "provider_name": "dashscope",
+            "cost_basis": "list_price_cost",
+            "currency_amounts": {},
+            "list_price_cost": {},
+            "net_charge_cost": {},
+            "model_amounts": {},
+            "usage_kind_amounts": {},
+            "items_count": 0,
+        }
         system_global_payload: dict[str, Any] = {
             "status": "ok",
             "provider_name": "dashscope",
@@ -2367,55 +2393,56 @@ class BIService:
             "coverage_end_ts": None,
         }
         warnings: list[str] = []
-        try:
-            system_global_totals = self._usage_ledger.get_totals(
-                start_ts=window_start,
-                end_ts=now_ts,
-                provider_name="dashscope",
-                model=model,
-            )
-            system_global_totals_dict = (
-                system_global_totals.to_dict()
-                if hasattr(system_global_totals, "to_dict")
-                else dict(system_global_totals or {})
-            )
-            system_global_payload = {
-                "status": "ok",
-                "provider_name": "dashscope",
-                **system_global_totals_dict,
-            }
-            coverage_start_ts = system_global_totals_dict.get(
-                "coverage_start_ts",
-                getattr(system_global_totals, "coverage_start_ts", None),
-            )
-            if (
-                coverage_start_ts is None
-                or float(coverage_start_ts) > float(window_start)
-            ):
-                warnings.append("全量 LLM usage ledger 尚未覆盖整个查询窗口；system_global_bailian 仅代表新账期/新部署后的调用。")
-        except Exception as exc:
-            logger.exception("Failed to query usage ledger")
-            system_global_payload = {
-                "status": "error",
-                "provider_name": "dashscope",
-                "input_tokens": 0,
-                "output_tokens": 0,
-                "total_tokens": 0,
-                "total_cost_usd": 0.0,
-                "measured_input_tokens": 0,
-                "measured_output_tokens": 0,
-                "measured_total_tokens": 0,
-                "measured_total_cost_usd": 0.0,
-                "estimated_input_tokens": 0,
-                "estimated_output_tokens": 0,
-                "estimated_total_tokens": 0,
-                "estimated_total_cost_usd": 0.0,
-                "events": 0,
-                "coverage_start_ts": None,
-                "coverage_end_ts": None,
-                "error": str(exc),
-            }
-            warnings.append("全量 LLM usage ledger 查询失败，system_global_bailian 不可用。")
+        if use_dashscope:
+            try:
+                system_global_totals = self._usage_ledger.get_totals(
+                    start_ts=window_start,
+                    end_ts=now_ts,
+                    provider_name="dashscope",
+                    model=model,
+                )
+                system_global_totals_dict = (
+                    system_global_totals.to_dict()
+                    if hasattr(system_global_totals, "to_dict")
+                    else dict(system_global_totals or {})
+                )
+                system_global_payload = {
+                    "status": "ok",
+                    "provider_name": "dashscope",
+                    **system_global_totals_dict,
+                }
+                coverage_start_ts = system_global_totals_dict.get(
+                    "coverage_start_ts",
+                    getattr(system_global_totals, "coverage_start_ts", None),
+                )
+                if (
+                    coverage_start_ts is None
+                    or float(coverage_start_ts) > float(window_start)
+                ):
+                    warnings.append("全量 LLM usage ledger 尚未覆盖整个查询窗口；system_global_bailian 仅代表新账期/新部署后的调用。")
+            except Exception as exc:
+                logger.exception("Failed to query usage ledger")
+                system_global_payload = {
+                    "status": "error",
+                    "provider_name": "dashscope",
+                    "input_tokens": 0,
+                    "output_tokens": 0,
+                    "total_tokens": 0,
+                    "total_cost_usd": 0.0,
+                    "measured_input_tokens": 0,
+                    "measured_output_tokens": 0,
+                    "measured_total_tokens": 0,
+                    "measured_total_cost_usd": 0.0,
+                    "estimated_input_tokens": 0,
+                    "estimated_output_tokens": 0,
+                    "estimated_total_tokens": 0,
+                    "estimated_total_cost_usd": 0.0,
+                    "events": 0,
+                    "coverage_start_ts": None,
+                    "coverage_end_ts": None,
+                    "error": str(exc),
+                }
+                warnings.append("全量 LLM usage ledger 查询失败，system_global_bailian 不可用。")
         telemetry_config = getattr(self._bailian_telemetry_client, "config", None)
         billing_config = getattr(self._bailian_billing_client, "config", None)
         effective_workspace_id = str(
@@ -2430,65 +2457,83 @@ class BIService:
             or getattr(billing_config, "apikey_id", "")
             or ""
         ).strip()
-        if not self._bailian_telemetry_client.is_configured():
-            warnings.append("百炼 Prometheus 监控未配置，无法查询外部账。")
-        else:
-            try:
-                bailian_totals = await self._bailian_telemetry_client.get_usage_totals(
-                    start_ts=window_start,
-                    end_ts=now_ts,
-                    workspace_id=effective_workspace_id,
-                    apikey_id=effective_apikey_id,
-                    model=model,
-                )
-                telemetry_status = "ok"
-                bailian_payload = {
-                    "status": telemetry_status,
-                    **bailian_totals.to_dict(),
-                }
-            except Exception as exc:
-                logger.exception("Failed to query Bailian telemetry")
-                telemetry_status = "error"
-                bailian_payload = {
-                    "status": telemetry_status,
-                    "input_tokens": 0,
-                    "output_tokens": 0,
-                    "total_tokens": 0,
-                    "models": {},
-                    "error": str(exc),
-                }
-                warnings.append("百炼 Prometheus 查询失败，请检查地址、AK/SK 和实例权限。")
+        if use_dashscope:
+            if not self._bailian_telemetry_client.is_configured():
+                warnings.append("百炼 Prometheus 监控未配置，无法查询外部账。")
+            else:
+                try:
+                    bailian_totals = await self._bailian_telemetry_client.get_usage_totals(
+                        start_ts=window_start,
+                        end_ts=now_ts,
+                        workspace_id=effective_workspace_id,
+                        apikey_id=effective_apikey_id,
+                        model=model,
+                    )
+                    telemetry_status = "ok"
+                    bailian_payload = {
+                        "status": telemetry_status,
+                        **bailian_totals.to_dict(),
+                    }
+                except Exception as exc:
+                    logger.exception("Failed to query Bailian telemetry")
+                    telemetry_status = "error"
+                    bailian_payload = {
+                        "status": telemetry_status,
+                        "input_tokens": 0,
+                        "output_tokens": 0,
+                        "total_tokens": 0,
+                        "models": {},
+                        "error": str(exc),
+                    }
+                    warnings.append("百炼 Prometheus 查询失败，请检查地址、AK/SK 和实例权限。")
 
-        if not self._bailian_billing_client.is_configured():
-            warnings.append("百炼官方账单接口未配置，无法查询金额账。")
-        else:
-            try:
-                bailian_billing_totals = await self._bailian_billing_client.get_totals(
-                    billing_cycles=billing_cycles,
-                    workspace_id=effective_workspace_id,
-                    apikey_id=effective_apikey_id,
-                    model=model,
-                )
-                billing_status = "ok"
-                bailian_billing_payload = {
-                    "status": billing_status,
-                    **bailian_billing_totals.to_dict(),
-                }
-            except Exception as exc:
-                logger.exception("Failed to query Bailian billing")
-                billing_status = "error"
-                bailian_billing_payload = {
-                    "status": billing_status,
-                    "billing_cycles": billing_cycles,
-                    "pretax_amount": 0.0,
-                    "after_discount_amount": 0.0,
-                    "items_count": 0,
-                    "currency": "CNY",
-                    "model_amounts": {},
-                    "usage_kind_amounts": {},
-                    "error": str(exc),
-                }
-                warnings.append("百炼官方账单查询失败，请检查 AK/SK、BssOpenApi 依赖和权限。")
+            if not self._bailian_billing_client.is_configured():
+                warnings.append("百炼官方账单接口未配置，无法查询金额账。")
+            else:
+                try:
+                    bailian_billing_totals = await self._bailian_billing_client.get_totals(
+                        billing_cycles=billing_cycles,
+                        workspace_id=effective_workspace_id,
+                        apikey_id=effective_apikey_id,
+                        model=model,
+                    )
+                    billing_status = "ok"
+                    bailian_billing_payload = {
+                        "status": billing_status,
+                        **bailian_billing_totals.to_dict(),
+                    }
+                    if hasattr(bailian_billing_totals, "to_official_usage_dict"):
+                        bailian_official_usage_payload = bailian_billing_totals.to_official_usage_dict()
+                    else:
+                        currency = str(bailian_billing_payload.get("currency") or "CNY").upper()
+                        pretax_amount = _round(bailian_billing_payload.get("pretax_amount"), 8)
+                        net_amount = _round(bailian_billing_payload.get("after_discount_amount"), 8)
+                        bailian_official_usage_payload = {
+                            "status": "ok" if _safe_int(bailian_billing_payload.get("items_count")) else "empty",
+                            "provider_name": "dashscope",
+                            "cost_basis": "list_price_cost",
+                            "currency_amounts": {currency: pretax_amount},
+                            "list_price_cost": {currency: pretax_amount},
+                            "net_charge_cost": {currency: net_amount},
+                            "model_amounts": dict(bailian_billing_payload.get("model_amounts") or {}),
+                            "usage_kind_amounts": dict(bailian_billing_payload.get("usage_kind_amounts") or {}),
+                            "items_count": _safe_int(bailian_billing_payload.get("items_count")),
+                        }
+                except Exception as exc:
+                    logger.exception("Failed to query Bailian billing")
+                    billing_status = "error"
+                    bailian_billing_payload = {
+                        "status": billing_status,
+                        "billing_cycles": billing_cycles,
+                        "pretax_amount": 0.0,
+                        "after_discount_amount": 0.0,
+                        "items_count": 0,
+                        "currency": "CNY",
+                        "model_amounts": {},
+                        "usage_kind_amounts": {},
+                        "error": str(exc),
+                    }
+                    warnings.append("百炼官方账单查询失败，请检查 AK/SK、BssOpenApi 依赖和权限。")
 
         token_delta = system_total - _safe_int(bailian_payload.get("total_tokens"))
         input_delta = system_input - _safe_int(bailian_payload.get("input_tokens"))
@@ -2540,6 +2585,105 @@ class BIService:
                         6,
                     )
 
+        async def _build_deepseek_provider_payload() -> dict[str, Any]:
+            try:
+                deepseek_totals = self._usage_ledger.get_totals(
+                    start_ts=window_start,
+                    end_ts=now_ts,
+                    provider_name="deepseek",
+                    model=model,
+                    environment=environment,
+                    cost_center=None if normalized_cost_center == "all" else normalized_cost_center,
+                    api_key_fingerprint=api_key_fingerprint,
+                    billable_only=billable_only,
+                )
+                internal_payload = {
+                    "status": "ok",
+                    "provider_name": "deepseek",
+                    **(
+                        deepseek_totals.to_dict()
+                        if hasattr(deepseek_totals, "to_dict")
+                        else dict(deepseek_totals or {})
+                    ),
+                }
+            except Exception as exc:
+                logger.exception("Failed to query DeepSeek usage ledger")
+                internal_payload = {
+                    "status": "error",
+                    "provider_name": "deepseek",
+                    "total_tokens": 0,
+                    "currency_amounts": {},
+                    "billable_turns": 0,
+                    "provider_calls": 0,
+                    "unattributed_provider_calls": 0,
+                    "error": str(exc),
+                }
+
+            deepseek_client = self._deepseek_billing_client or DeepSeekBillingClient()
+            try:
+                official_balance_obj = await deepseek_client.get_balance()
+                official_balance = (
+                    official_balance_obj.to_dict()
+                    if hasattr(official_balance_obj, "to_dict")
+                    else dict(official_balance_obj or {})
+                )
+            except Exception as exc:
+                logger.exception("Failed to query DeepSeek balance")
+                official_balance = {
+                    "status": "error",
+                    "provider_name": "deepseek",
+                    "account_currency": "",
+                    "error": str(exc),
+                }
+            try:
+                official_usage_obj = await deepseek_client.get_usage_export_totals(
+                    billing_cycle=explicit_billing_cycle,
+                    model=model,
+                )
+                official_usage = (
+                    official_usage_obj.to_official_usage_dict()
+                    if hasattr(official_usage_obj, "to_official_usage_dict")
+                    else dict(official_usage_obj or {})
+                )
+            except Exception as exc:
+                logger.exception("Failed to query DeepSeek official usage export")
+                official_usage = {
+                    "status": "error",
+                    "provider_name": "deepseek",
+                    "currency_amounts": {},
+                    "error": str(exc),
+                }
+
+            reconciliation = build_reconciliation_delta(
+                provider_name="deepseek",
+                cost_basis=cost_basis,
+                internal=internal_payload,
+                official=official_usage,
+                warn_ratio=0.05,
+            )
+            return {
+                "internal": internal_payload,
+                "official_usage": official_usage,
+                "official_balance": official_balance,
+                "reconciliation": reconciliation,
+            }
+
+        dashscope_provider_payload = {
+            "internal": system_global_payload,
+            "official_usage": bailian_official_usage_payload,
+            "bailian": bailian_payload,
+            "bailian_billing": bailian_billing_payload,
+            "reconciliation": {
+                "status": "ok" if telemetry_status == "ok" else telemetry_status,
+                "warnings": [],
+            },
+        }
+        providers_payload: dict[str, Any] = {}
+        if effective_provider in {"dashscope", "all"}:
+            providers_payload["dashscope"] = dashscope_provider_payload
+        if effective_provider in {"deepseek", "all"}:
+            providers_payload["deepseek"] = await _build_deepseek_provider_payload()
+
         return {
             "window_days": days,
             "time_range": {
@@ -2547,11 +2691,17 @@ class BIService:
                 "end_ts": now_ts,
             },
             "filters": {
+                "provider": effective_provider,
                 "capability": str(capability or "").strip().lower(),
                 "entrypoint": str(entrypoint or "").strip().lower(),
                 "tier": str(tier or "").strip().lower(),
+                "environment": str(environment or "").strip(),
+                "cost_center": normalized_cost_center,
+                "billable_only": bool(billable_only),
+                "cost_basis": str(cost_basis or "").strip() or "list_price_cost",
                 "workspace_id": effective_workspace_id,
                 "apikey_id": effective_apikey_id,
+                "api_key_fingerprint": str(api_key_fingerprint or "").strip(),
                 "model": str(model or "").strip(),
                 "billing_cycle": explicit_billing_cycle,
             },
@@ -2577,6 +2727,7 @@ class BIService:
             "bailian": bailian_payload,
             "bailian_billing": bailian_billing_payload,
             "system_global_bailian": system_global_payload,
+            "providers": providers_payload,
             "reconciliation": {
                 "status": "ok" if telemetry_status == "ok" else telemetry_status,
                 "token_delta": token_delta,

@@ -169,22 +169,35 @@ async def bi_cost(
 
 @router.get("/cost/reconciliation")
 async def bi_cost_reconciliation(
+    _auth: AuthContext = Depends(require_bi_admin),
+    provider: str = Query("dashscope"),
     days: int = Query(30, ge=1, le=365),
     capability: str | None = Query(None),
     entrypoint: str | None = Query(None),
     tier: str | None = Query(None),
+    environment: str | None = Query(None),
+    cost_center: str = Query("all"),
+    billable_only: bool = Query(False),
+    cost_basis: str = Query("list_price_cost"),
     workspace_id: str | None = Query(None),
     apikey_id: str | None = Query(None),
+    api_key_fingerprint: str | None = Query(None),
     model: str | None = Query(None),
     billing_cycle: str | None = Query(None, pattern=r"^\d{4}-\d{2}$"),
 ):
     return await get_bi_service().get_cost_reconciliation(
+        provider=provider,
         days=days,
         capability=capability,
         entrypoint=entrypoint,
         tier=tier,
+        environment=environment,
+        cost_center=cost_center,
+        billable_only=billable_only,
+        cost_basis=cost_basis,
         workspace_id=workspace_id,
         apikey_id=apikey_id,
+        api_key_fingerprint=api_key_fingerprint,
         model=model,
         billing_cycle=billing_cycle,
     )
