@@ -1,5 +1,8 @@
 # GBrain Deep Absorption Personalization Implementation Plan
 
+> **Status: `Superseded`（2026-06-04，被 `2026-06-03-luban-grading-engine-learning-brain-loop-v0.md` v0.2 吸收并取代）。**
+> 本计划与 grading-engine-learning-brain-loop 计划在 claim lifecycle、`PersonalizationContextPack`、`next_best_action.py` 上并行定义同一批 canonical 落点，违反 Plan Directory Discipline「不要并行制造第二套主线」。自此，Learning Brain 个性化引擎的唯一主线 authority 归 grading-engine-learning-brain-loop 计划（见其 §0.0）。**本文件仅作为 GBrain 源码概念吸收的研究记录保留，不再作为实现 authority；不要按本文件 create 任何文件或 contract。**
+>
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Turn the existing Learning Brain from "compiled learning facts" into a production personalization engine that can decide, explain, and verify each learner's next best action.
