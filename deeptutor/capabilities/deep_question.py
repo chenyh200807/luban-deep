@@ -1443,6 +1443,79 @@ def _write_grading_error_events_for_context(
         return 0
 
 
+def _runtime_shadow_flag_enabled(context: UnifiedContext) -> bool:
+    """QA/test runtime-shadow flag. Default OFF -> legacy payload byte-identical."""
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return bool(
+        metadata.get("grading_engine_runtime_shadow")
+        or context.config_overrides.get("grading_engine_runtime_shadow")
+    )
+
+
+def _runtime_shadow_engine(context: UnifiedContext) -> str:
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return str(
+        metadata.get("grading_engine_runtime_shadow_mode")
+        or metadata.get("grading_engine_runtime_shadow_engine")
+        or context.config_overrides.get("grading_engine_runtime_shadow_mode")
+        or context.config_overrides.get("grading_engine_runtime_shadow_engine")
+        or "deepseek_fast"
+    ).strip()
+
+
+def _runtime_shadow_cache_student_id(context: UnifiedContext) -> str:
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return str(
+        metadata.get("grading_engine_runtime_shadow_cache_student_id")
+        or context.config_overrides.get("grading_engine_runtime_shadow_cache_student_id")
+        or ""
+    ).strip()
+
+
+def _maybe_attach_runtime_shadow(
+    *,
+    context: UnifiedContext,
+    graded_context: dict[str, Any],
+    result_payload: dict[str, Any],
+) -> None:
+    """QA/test-only: append a non-production Luban shadow grading result.
+
+    Thin wrapper — all scoring / artifact-gate / policy logic lives in
+    ``runtime_shadow_adapter`` (fat skill). This only reads the flag + the real
+    submission fields and appends ``luban_grading_engine_shadow``. It NEVER mutates
+    the legacy ``construction_grading_result``, never writes the DB / Learning Brain,
+    never calls the kernel or RAG. Any error fails closed (``engine_unavailable``);
+    legacy always returns. The adapter itself refuses non-``qa_``/``test_`` students.
+    """
+    if not _runtime_shadow_flag_enabled(context):
+        return
+    student_id = _learner_user_id_from_context(context)
+    question_id = str(graded_context.get("question_id") or "").strip()
+    student_answer = str(graded_context.get("user_answer") or "").strip()
+    try:
+        from deeptutor.services.construction_grading.runtime_shadow_adapter import (
+            build_runtime_shadow_result,
+        )
+
+        result_payload["luban_grading_engine_shadow"] = build_runtime_shadow_result(
+            question_id=question_id,
+            student_id=student_id,
+            student_answer=student_answer,
+            engine=_runtime_shadow_engine(context),
+            qa_shadow=True,
+            prediction_student_id=_runtime_shadow_cache_student_id(context) or None,
+        )
+    except Exception as exc:  # noqa: BLE001 — shadow must never break legacy
+        result_payload["luban_grading_engine_shadow"] = {
+            "authority": "luban_grading_engine_shadow",
+            "shadow_status": "engine_unavailable",
+            "unavailable_reason": str(exc)[:200],
+            "not_production_grade": True,
+            "writeback_performed": False,
+            "teacher_review_required": True,
+        }
+
+
 class DeepQuestionCapability(BaseCapability):
     manifest = CapabilityManifest(
         name="deep_question",
@@ -2428,6 +2501,12 @@ class DeepQuestionCapability(BaseCapability):
                     source_id=f"{turn_id}:{graded_context.get('question_id') or 'grading'}",
                 )
                 result_payload["construction_grading_result"] = grading_result
+                # QA/test-only Luban shadow (default off; legacy untouched above).
+                _maybe_attach_runtime_shadow(
+                    context=context,
+                    graded_context=graded_context,
+                    result_payload=result_payload,
+                )
 
             # plan §Phase 5 / Batch E.2 Gap 5 — progressive disclosure payload.
             # 从 grader_trace 拿到 parsed sections，结合 grading_result 与 is_correct 输出

@@ -131,11 +131,17 @@ def adjudicate(points: list[dict], model_outputs: dict[str, dict]) -> tuple[list
 
 def best_quality_draft(question: dict, student_answer: str, model_outputs: dict[str, dict], *,
                        points: list[dict] | None = None, student_id: str | None = None,
-                       source: str = "cached_4model_485") -> dict:
-    """Adjudicate 4-model votes -> draft. Reuses ai_draft_shadow guards via build_ai_draft."""
+                       source: str = "cached_4model_485", artifact_gate: Any = None) -> dict:
+    """Adjudicate 4-model votes -> draft. Reuses ai_draft_shadow guards via build_ai_draft.
+
+    Best-Quality is subject to the SAME QuestionGradingArtifact runtime gate as the
+    fast path: it forwards ``artifact_gate`` to ``build_ai_draft`` (no duplicate gate
+    logic). A missing/draft/blocked artifact downgrades every point here too.
+    """
     points = points if points is not None else (question.get("scoring_points") or [])
     adjudicated, extras = adjudicate(points, model_outputs)
-    draft = build_ai_draft(question, student_answer, adjudicated, points=points, student_id=student_id)
+    draft = build_ai_draft(question, student_answer, adjudicated, points=points,
+                           student_id=student_id, artifact_gate=artifact_gate)
     # re-mark authority/engine + source provenance (UI must show this is not a single-model draft)
     draft["authority"] = "best_quality_4model_shadow"
     draft["engine"] = "best_quality_4model"

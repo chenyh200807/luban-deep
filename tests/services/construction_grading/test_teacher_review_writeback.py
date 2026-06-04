@@ -21,8 +21,9 @@ from deeptutor.services.construction_grading.teacher_review_writeback import (
 def _review(point_reviews: list[dict[str, Any]]) -> dict[str, Any]:
     return {
         "case_id": "Q1-NA",
-        "student_id": "stu-1",
+        "student_id": "qa_stu_1",
         "engine": "best_quality_4model",
+        "teacher_reviewed": True,
         "point_reviews": point_reviews,
     }
 
@@ -218,7 +219,7 @@ def test_dry_run_is_pure_and_makes_no_service_call() -> None:
     ])
 
     out = build_teacher_review_writeback(
-        review, dry_run=True, learner_state_service=service, user_id="stu-1"
+        review, dry_run=True, learner_state_service=service, user_id="qa_stu_1"
     )
 
     assert out["dry_run"] is True
@@ -244,7 +245,7 @@ def test_writeback_when_explicitly_enabled_calls_service() -> None:
     ])
 
     out = build_teacher_review_writeback(
-        review, dry_run=False, learner_state_service=service, user_id="stu-1"
+        review, dry_run=False, learner_state_service=service, user_id="qa_stu_1"
     )
 
     assert out["dry_run"] is False
@@ -255,17 +256,46 @@ def test_writeback_when_explicitly_enabled_calls_service() -> None:
     payload = service.calls[0]["payload_json"]
     assert payload["question_id"] == "Q1-NA"
     point_events = payload["next_training_signal"]["teacher_review_points"]
-    assert point_events == [
+    assert point_events[0]["point_id"] == "P1"
+    assert point_events[0]["authority"] == "teacher_override"
+    assert point_events[0]["final_hit"] == "miss"
+    assert point_events[0]["final_score"] == 0.0
+    assert point_events[0]["awarded_score"] == 0.0
+    assert point_events[0]["mastery_eligible"] is False
+    assert point_events[0]["diagnosis"] == "缺少规范术语"
+    teacher_final = payload["next_training_signal"]["teacher_final_grading_result"]
+    assert teacher_final["teacher_reviewed"] is True
+    assert teacher_final["points"][0]["point_id"] == "P1"
+    assert teacher_final["points"][0]["final_hit"] == "miss"
+
+
+def test_teacher_final_point_event_preserves_source_and_evidence_span() -> None:
+    review = _review([
         {
             "point_id": "P1",
-            "authority": "teacher_override",
-            "final_hit": "miss",
-            "final_score": 0.0,
-            "awarded_score": 0.0,
-            "mastery_eligible": False,
-            "diagnosis": "缺少规范术语",
-        }
-    ]
+            "label": "官方术语：专项施工方案",
+            "policy_type": "exact_required",
+            "max_score": 2,
+            "ai_hit": "hit",
+            "ai_score": 2,
+            "auto_certified": True,
+            "teacher_hit": "miss",
+            "teacher_score": 0,
+            "evidence_span": "施工方案",
+            "teacher_note": "近义/半术语，未写官方术语",
+            "review_action": "override",
+            "source": "teacher_final",
+        },
+    ])
+
+    out = build_teacher_review_writeback(review, dry_run=True)
+
+    plan = out["write_plan"][0]
+    assert plan["source"] == "teacher_final"
+    assert plan["evidence_span"] == "施工方案"
+    point = out["learning_evidence_payload"]["next_training_signal"]["teacher_review_points"][0]
+    assert point["source"] == "teacher_final"
+    assert point["evidence_span"] == "施工方案"
 
 
 def test_writeback_payload_does_not_mark_high_risk_or_unsupported_as_mastery() -> None:
@@ -292,7 +322,7 @@ def test_writeback_payload_does_not_mark_high_risk_or_unsupported_as_mastery() -
     ])
 
     out = build_teacher_review_writeback(
-        review, dry_run=False, learner_state_service=service, user_id="stu-1"
+        review, dry_run=False, learner_state_service=service, user_id="qa_stu_1"
     )
 
     assert out["writeback_count"] == 1
@@ -321,7 +351,7 @@ def test_teacher_reviewed_full_hit_can_persist_success_learning_evidence() -> No
     ])
 
     out = build_teacher_review_writeback(
-        review, dry_run=False, learner_state_service=service, user_id="stu-1"
+        review, dry_run=False, learner_state_service=service, user_id="qa_stu_1"
     )
 
     assert out["writeback_count"] == 1
@@ -329,6 +359,50 @@ def test_teacher_reviewed_full_hit_can_persist_success_learning_evidence() -> No
     assert payload["error_events"] == []
     assert payload["next_training_signal"]["concept"] == "流水节拍计算"
     assert payload["next_training_signal"]["teacher_review_points"][0]["mastery_eligible"] is True
+
+
+def test_teacher_reviewed_false_does_not_write_when_explicitly_enabled() -> None:
+    service = _RecordingLearnerStateService()
+    review = _review([
+        {
+            "point_id": "P1",
+            "max_score": 5,
+            "ai_hit": "miss",
+            "ai_score": 0,
+            "review_action": "confirm",
+        },
+    ])
+    review["teacher_reviewed"] = False
+
+    out = build_teacher_review_writeback(
+        review, dry_run=False, learner_state_service=service, user_id="qa_stu_1"
+    )
+
+    assert out["writeback_count"] == 0
+    assert out["writeback_skipped_reason"] == "teacher_reviewed_required"
+    assert service.calls == []
+
+
+def test_non_qa_user_id_does_not_write_when_explicitly_enabled() -> None:
+    service = _RecordingLearnerStateService()
+    review = _review([
+        {
+            "point_id": "P1",
+            "max_score": 5,
+            "ai_hit": "miss",
+            "ai_score": 0,
+            "review_action": "confirm",
+        },
+    ])
+    review["student_id"] = "real_student_123"
+
+    out = build_teacher_review_writeback(
+        review, dry_run=False, learner_state_service=service, user_id="real_student_123"
+    )
+
+    assert out["writeback_count"] == 0
+    assert out["writeback_skipped_reason"] == "qa_user_id_required"
+    assert service.calls == []
 
 
 def test_writeback_disabled_without_service_even_if_not_dry_run() -> None:

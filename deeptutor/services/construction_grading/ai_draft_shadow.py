@@ -181,8 +181,16 @@ def payload_preview(result: CaseGradingResult) -> dict:
 
 def build_ai_draft(question: dict, student_answer: str, predictions: list[dict], *,
                    points: list[dict] | None = None, abstain_tau: float = 0.6,
-                   build_preview: bool = True, student_id: str | None = None) -> dict:
-    """Assemble the draft view from predictions (NO model call here)."""
+                   build_preview: bool = True, student_id: str | None = None,
+                   artifact_gate: Any = None) -> dict:
+    """Assemble the draft view from predictions (NO model call here).
+
+    If ``artifact_gate`` (a resolved ArtifactRuntimeGate) is provided, the assembled
+    draft is passed through the QuestionGradingArtifact runtime gate before return:
+    no point may auto-certify unless its question is published AND the point is
+    auto_certifiable. The gate only downgrades; it never upgrades. This is the same
+    single gate the runtime applies, so both engines share one rule.
+    """
     points = points if points is not None else (question.get("scoring_points") or [])
     guarded = apply_guards(predictions, points, student_answer, abstain_tau=abstain_tau)
     expected_n = len(points)
@@ -228,4 +236,10 @@ def build_ai_draft(question: dict, student_answer: str, predictions: list[dict],
             draft["learning_evidence_payload_preview"] = payload_preview(_to_case_grading_result(question, points, guarded))
         except Exception as exc:  # noqa: BLE001
             draft["learning_evidence_payload_preview_error"] = str(exc)[:200]
+    if artifact_gate is not None:
+        # lazy import: artifact_runtime_gate -> registry -> ... -> this module
+        from deeptutor.services.construction_grading.artifact_runtime_gate import (
+            apply_runtime_artifact_gate,
+        )
+        draft = apply_runtime_artifact_gate(draft, artifact_gate)
     return draft

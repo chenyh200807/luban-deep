@@ -424,6 +424,14 @@ def compute_quality_signals(payload: dict[str, Any]) -> dict[str, Any]:
         cap_reasons.append("missing_rag_evidence")
     if grading_mode == "open_skill":
         cap_reasons.append("open_skill_requires_repetition_or_manual_confirmation")
+    teacher_final = (
+        next_training_signal.get("teacher_final_grading_result")
+        if isinstance(next_training_signal.get("teacher_final_grading_result"), dict)
+        else {}
+    )
+    teacher_reviewed = bool(teacher_final.get("teacher_reviewed") is True)
+    if teacher_reviewed:
+        cap_reasons = [reason for reason in cap_reasons if reason != "missing_rag_evidence"]
 
     # ── New quality-gate fields ───────────────────────────────────────────────
     has_question_ref = bool(question_id)
@@ -470,7 +478,7 @@ def compute_quality_signals(payload: dict[str, Any]) -> dict[str, Any]:
             degraded_parts.append("题干暂缺")
     degraded_reason = "；".join(degraded_parts)
 
-    return {
+    quality = {
         "evidence_level": "L0_observed",
         "writeback_eligible": bool(errors),
         "stable_truth_eligible": False,
@@ -481,6 +489,10 @@ def compute_quality_signals(payload: dict[str, Any]) -> dict[str, Any]:
         "missing_fields": missing_fields,
         "degraded_reason": degraded_reason,
     }
+    if teacher_reviewed:
+        quality["teacher_reviewed"] = True
+        quality["teacher_review_authority"] = "teacher_final_grading_result"
+    return quality
 
 
 def _quality_from_payload(

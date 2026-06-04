@@ -172,6 +172,50 @@ def test_ai_draft_payload_preview_present(monkeypatch):
     assert isinstance(b["learning_evidence_payload_preview"], dict) and b["learning_evidence_payload_preview"]
 
 
+def test_router_returns_artifact_gate_for_published_case(monkeypatch):
+    monkeypatch.setattr(lb, "_ai_draft_grader", _fixture_grader)
+    with TestClient(_build_app()) as client:
+        b = client.post("/api/v1/learning-brain/harness-case-grading",
+                        json={"user_id": "qa", "user_answer": _FIXTURE_ANSWER, "mode": "ai_draft", "case_id": "Q1-NA"}).json()
+    gate = b["artifact_gate"]
+    assert gate["artifact_status"] == "published"
+    assert gate["auto_certification_allowed"] is True
+    # P1 is auto_certifiable in Q1-NA -> stays auto; P2 is not in the artifact -> downgraded.
+    by_id = {p["point_id"]: p for p in b["point_results"]}
+    assert by_id["P1"]["auto_certified"] is True
+    assert by_id["P2"]["auto_certified"] is False
+    assert "point_not_auto_certifiable" in (by_id["P2"]["review_reason"] or "")
+
+
+def test_router_draft_case_blocks_all_auto_certification(monkeypatch):
+    monkeypatch.setattr(lb, "_ai_draft_grader", _fixture_grader)
+    with TestClient(_build_app()) as client:
+        b = client.post("/api/v1/learning-brain/harness-case-grading",
+                        json={"user_id": "qa", "user_answer": _FIXTURE_ANSWER, "mode": "ai_draft", "case_id": "Q20-1A413000"}).json()
+    assert b["artifact_gate"]["artifact_status"] == "draft"
+    assert b["artifact_gate"]["auto_certification_allowed"] is False
+    assert b["auto_certified_score"] == 0.0
+    assert all(p["auto_certified"] is False for p in b["point_results"])
+    # pending_review_score preserved (not zeroed)
+    assert b["pending_review_score"] >= 1.0
+
+
+def test_router_blocked_case_blocks_all_auto_certification(monkeypatch):
+    monkeypatch.setattr(lb, "_ai_draft_grader", _fixture_grader)
+    with TestClient(_build_app()) as client:
+        b = client.post("/api/v1/learning-brain/harness-case-grading",
+                        json={"user_id": "qa", "user_answer": _FIXTURE_ANSWER, "mode": "ai_draft", "case_id": "Q15-NA"}).json()
+    assert b["artifact_gate"]["artifact_status"] == "blocked"
+    assert b["auto_certified_score"] == 0.0
+    assert all(p["auto_certified"] is False for p in b["point_results"])
+
+
+def test_html_has_artifact_gate_display():
+    html = lb.render_learning_brain_harness_html()
+    for token in ("artifact_gate", "auto_certification_allowed", "artifact_version_id", "未 published"):
+        assert token in html
+
+
 def test_kernel_mode_default_preserves_original_behavior(monkeypatch):
     # mode != ai_draft must NOT return the ai_draft shadow markers
     sentinel = {"called": False}
