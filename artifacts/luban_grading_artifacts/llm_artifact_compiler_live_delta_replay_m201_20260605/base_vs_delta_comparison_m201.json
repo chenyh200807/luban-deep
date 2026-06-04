@@ -1,0 +1,35 @@
+{
+  "mode": "live_delta_replay",
+  "requirements": {
+    "submissions_or_point_decisions_met": true,
+    "same_batch_base_and_delta": true
+  },
+  "token_budget_improved": true,
+  "packet_size_delta_bytes": 1086.05,
+  "packet_size_note": "delta packet carries candidate hints, so byte size can increase while token_budget decreases",
+  "validator_downgrade_rate_improved": true,
+  "point_coverage_delta": 0,
+  "distribution_base": {
+    "accept": 68,
+    "partial": 15,
+    "reject": 130,
+    "needs_review": 22
+  },
+  "distribution_delta": {
+    "accept": 43,
+    "partial": 35,
+    "reject": 123,
+    "needs_review": 34
+  },
+  "false_positive": 0,
+  "source_mismatch": 0,
+  "unsupported_positive": 0,
+  "list_partial_auto": 0,
+  "bad_calculation": 0,
+  "evidence_span_validity": {
+    "delta_invalid_accept_spans": 0
+  },
+  "legacy_overwrite": 0,
+  "production_write_count": 0,
+  "canonical_truth_written": false
+}

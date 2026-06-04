@@ -1,0 +1,10 @@
+{
+  "learning_brain_delta_count": 16,
+  "card_specificity_base": 84,
+  "card_specificity_delta": 84,
+  "card_specificity_improved_or_equal": true,
+  "retest_claim_mapping_quality": "improve",
+  "canonical_truth_written": false,
+  "mastery_written": false,
+  "human_reviewed": false
+}
