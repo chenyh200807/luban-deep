@@ -6,6 +6,8 @@
 > 术语说明：本文中的 `GradingEvidenceEventV1`、`LearnerClaim`、`PersonalizationContextPack` 是 **existing container 内的 JSON payload / projection contract**，不是新增数据库 schema、不是新表、不是新 runtime authority。
 >
 > **v0.2 收口（权威唯一化）**：本计划**吸收并取代** `2026-06-03-luban-gbrain-deep-absorption-personalization-execution-plan.md`。此前两份同日计划在 claim lifecycle、`PersonalizationContextPack`、`next_best_action.py` 上并行定义同一批 canonical 落点，违反 Plan Directory Discipline「不要并行制造第二套主线」。自 v0.2 起，**本计划是 Learning Brain 个性化引擎的唯一主线 authority**；gbrain 计划标记 `Superseded`，仅作为 GBrain 源码概念吸收的研究记录保留。被吸收的 canonical 制品清单见 §0.0。
+>
+> 🚧 **实施硬阻断（2026-06-04 eng review 决议）**：**整条 loop 的实现 gating 在 DeepSeek 案例题评分器从 WEAK-GO 升到 production 之后**（见 `2026-06-03-luban-deepseek-production-shadow-v0-plan.md` 与 consensus-gold protocol §14-§16）。在评分器过生产门之前，**不开 Phase 0/0A/0B 的产品接线**；本计划当前只作为「已锁定架构与 contract 的纸面 authority」，等门一开即可干净落地。理由：端到端「改善证明」必须由 `gate_status>=human_confirmed` 的真实评分驱动（§6.1-1），而 list_rule 语义阅卷天花板使评分门可能数周不动——提前实现只会在未过门评分上堆补丁。例外：若要先行降低风险，唯一允许的前置是 Slice 1（pack/action/claim 的 5 类 golden fixture + 测试，不接 UI），但必须显式标注「评分门未过，纵切闭环未证明」。
 
 ## 0.0 单一主线 authority 与被吸收的 canonical 制品
 
@@ -246,7 +248,8 @@ T1 是硬同步；T2 可跟随批改结果同批返回或短延迟；T3/T4 默�
 
 1. 扩展后，现有 `tests/services/construction_grading/test_learning_evidence*.py` 与 `tests/services/learner_state/test_learning_evidence_quality_gate.py` **全绿**。
 2. `build_learning_evidence_dedupe_key` 行为**不变**（新增字段不进 dedupe key，除非显式纳入并更新 golden）。
-3. `engine.gate_status` 为必填；缺失即 fail-closed，不写 ledger。
+3. `engine.gate_status` 为必填（仅对 v2 新写）；缺失即 fail-closed，不写 ledger。
+4. **遗留 v1 事件读取规则（eng review C1，2026-06-04 补）**：ledger 里已有的 `schema_version=1` 事件没有 `engine.gate_status` 与 point-level policy 字段。synthesis 读到 v1 事件时，必须按**显式规则**处理，不得崩或静默丢：v1 事件视为 `gate_status=production`（它们是 shadow 机制引入前、已上线路径产出的评分，非未过门 shadow），但 point-level 新字段缺失时按 keyword-only 粒度降级，不伪造 policy_type。该规则需有 golden 测试覆盖 v1/v2 混读。
 
 ### 5.2 `LearnerClaim`
 
@@ -993,3 +996,22 @@ RAG 仍然有用，但角色要降噪：
 - 性能最优路径：**热路径只做评分必需工作；Learning Brain 更新、RAG 复习包、BI/cost 都异步或离线。**
 - 产品最优路径：**不要再堆学情模块；把现有模块重排成“今天为什么练这个 -> 证据是什么 -> 采分点怎么补 -> 练完如何证明变好”。**
 - v0 最该做的不是做大平台，而是把 `point-level grading evidence -> learner claim -> context pack -> next action -> retest -> 微信学情页可见证明` 这条链路跑通，同时守住 hot-path latency gate。
+
+## GSTACK REVIEW REPORT
+
+| Review | Trigger | Why | Runs | Status | Findings |
+|--------|---------|-----|------|--------|----------|
+| Eng Review | `/plan-eng-review` | Architecture & tests (required) | 1 | issues_open | 4 issues, 1 critical gap |
+| CEO Review | `/plan-ceo-review` | Scope & strategy | 0 | — | — |
+| Design Review | `/plan-design-review` | UI/UX gaps | 0 | — | — |
+
+**Scope 决议（D1, 2026-06-04）**：整条 loop 实现 gating 在 DeepSeek 评分器从 WEAK-GO 升到 production 之后（见顶部 🚧 硬阻断 banner）。当前计划是「已锁定架构与 contract 的纸面 authority」，唯一允许前置是 Slice 1（contract+fixtures, 不接 UI）。
+
+**Architecture (2)**：A1 [P2] `personalization_context.py` 纯 builder 缺单一 pack loader，风险 N caller 各自取数；A2 [P3] §4 mermaid 缺 pack_status fail-closed 状态图。
+**Code Quality (2)**：C1 [P2] schema v1→v2 遗留事件读取规则缺失 → **已补进 §5.1 验收4**；C2 [P3] 新 point-level 字段应保持 `learning_evidence.py` 单一 producer。
+**Test**：5 类 pack fixture + 10 evidence fixture 已承诺，但 §6.1 三硬规则（shadow 隔离 / 乱序幂等 / subject 隔离）缺配套 golden；C1 混读 golden 已补要求。
+**Performance**：0 new findings，热/温/冷 + 分阶段响应 + version/hash 失效缓存设计扎实。
+**Failure modes**：1 critical gap — shadow 隔离规则（§6.1-1）缺配套 fixture，规则写了没测，可能静默污染 claim，Phase 1 必补。
+
+**UNRESOLVED**：0（scope 决议已定，findings 已落计划或转 Implementation Tasks）。
+**VERDICT**：ENG REVIEW 完成，状态 issues_open（实现 gating 在评分门之后；1 critical test gap 待 Phase 1 补 fixture）。该计划在评分门开启前不进入实现，故不阻塞当前交付。
