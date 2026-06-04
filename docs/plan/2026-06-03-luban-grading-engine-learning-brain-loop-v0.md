@@ -7,7 +7,8 @@
 >
 > **v0.2 收口（权威唯一化）**：本计划**吸收并取代** `2026-06-03-luban-gbrain-deep-absorption-personalization-execution-plan.md`。此前两份同日计划在 claim lifecycle、`PersonalizationContextPack`、`next_best_action.py` 上并行定义同一批 canonical 落点，违反 Plan Directory Discipline「不要并行制造第二套主线」。自 v0.2 起，**本计划是 Learning Brain 个性化引擎的唯一主线 authority**；gbrain 计划标记 `Superseded`，仅作为 GBrain 源码概念吸收的研究记录保留。被吸收的 canonical 制品清单见 §0.0。
 >
-> 🚧 **实施硬阻断（2026-06-04 eng review 决议）**：**整条 loop 的实现 gating 在 DeepSeek 案例题评分器从 WEAK-GO 升到 production 之后**（见 `2026-06-03-luban-deepseek-production-shadow-v0-plan.md` 与 consensus-gold protocol §14-§16）。在评分器过生产门之前，**不开 Phase 0/0A/0B 的产品接线**；本计划当前只作为「已锁定架构与 contract 的纸面 authority」，等门一开即可干净落地。理由：端到端「改善证明」必须由 `gate_status>=human_confirmed` 的真实评分驱动（§6.1-1），而 list_rule 语义阅卷天花板使评分门可能数周不动——提前实现只会在未过门评分上堆补丁。例外：若要先行降低风险，唯一允许的前置是 Slice 1（pack/action/claim 的 5 类 golden fixture + 测试，不接 UI），但必须显式标注「评分门未过，纵切闭环未证明」。
+> 🚦 **实施策略：按评分来源解耦（2026-06-04 eng review D2，采纳 codex 对抗审查）**：**不把整条 loop 绑死在 DeepSeek 案例题评分器过门之上**。改为按 `engine.gate_status` 分流：MCQ、assessment、人工确认案例题、既有 v1 production 事件**现在就走 production loop**（验证 pack/report/practice/retest/降级/证据点击链）；**case-study list_rule 保持 shadow**，等评分器从 WEAK-GO 升到 production（见 `2026-06-03-luban-deepseek-production-shadow-v0-plan.md` 与 consensus-gold protocol §14-§16）再扩大案例题自动写权。
+> **Phase 0/0A 必须现在就建，不得延后**——它就是 shadow 隔离的安全网：统一 eligibility helper + write-time 隔离 + 全读路径过滤 + mixed-claim 语义 + 全读面不变量 golden（详见 §6.1-1）。codex 论点（已采纳）：越等越危险——若因评分器未过门而不建隔离层，系统就没有统一 gate helper、没有读侧过滤、没有 shadow fixture，一旦有人先接 shadow writeback，污染面巨大。先把安全网建好，再按来源放量。
 
 ## 0.0 单一主线 authority 与被吸收的 canonical 制品
 
@@ -342,7 +343,13 @@ Learning Brain 不应该每次重新读所有历史，而是把事件编译成 c
 
 ### 6.1 v0.2 新增的四条硬规则（防生产事故）
 
-1. **shadow 评分隔离（最高优先）。**`engine.gate_status=shadow` 的事件**进 ledger 但 claim synthesis 必须跳过**：只累加 `needs_confirmation` 计数，**不得**抬升 `evidence_level`、不得进入 `top_claims`、不得驱动 `next_best_action`。只有 `human_confirmed` / `production` 评分才能提升 claim。理由：DeepSeek shadow v0 当前仅 WEAK-GO（见 `2026-06-03-luban-deepseek-production-shadow-v0-plan.md`），未过生产门的评分一旦提升 claim 即污染长期画像。Phase 0B 纵切的 demo learner **必须用 `human_confirmed`/fixture 评分**，禁止用 live shadow 输出演示闭环。
+1. **shadow 评分隔离（最高优先，eng review + codex 对抗审查加强）。**只在 synthesis 跳过 shadow **远远不够**——codex 读码证明真实泄漏点在 write-time 与多条绕开 synthesis 的读路径。隔离必须**三层同时做**，否则等于没做：
+   - **统一 eligibility authority（单一 helper）**：新增唯一 `is_claim_eligible_evidence(event)`（落 learner_state，判 `gate_status in {production, human_confirmed}`），所有写/读/projection 都调它，**禁止各处各判**（否则又是第二套 authority）。
+   - **write-time 隔离（第一泄漏点）**：`writeback.py` 必须在 payload 写出 `engine.gate_status`；`gate_status=shadow` 的事件**不得**触发错题本写入、`home_personalization` 首页投影刷新、mastery 累加——这些副作用现发生在 synthesis 之前（`writeback.py:55/252` → ledger + 错题本 + home projection），不堵这里 shadow 会在 synthesis 之前就泄漏到首页和错题本。
+   - **read-time 全路径过滤**：以下读路径全部按 `is_claim_eligible_evidence` 过滤，shadow 只进 `needs_confirmation/shadow_stats`，不得提升 claim/action/mastery：`learning_synthesis`（`_is_learning_evidence`）、`learning_report_read_model`（`list_learning_evidence_events` → progress/diagnoses/truth_sections/next_action/scoring_point_map/learning_state/revalidation_queue/mastery）、`home_personalization`、`mastery_estimator`、RAG `compiled_truth_source`、`deep_question` context。注意 `_compiled_truth_shadow_only` 只是文本清洗标志、**不是** grading gate，不能复用。
+   - **mixed-claim 语义（原计划缺）**：同一 claim 混有 production+shadow 证据时——只有 production/human evidence 能进入 `supporting_event_ids`、recurrence、improvement、verified outcome；shadow 只进 `shadow_refs/needs_confirmation`。shadow 与 production 冲突时只生成 reviewer queue，**不得**把 claim 标 `contradicted`。shadow 后被人工确认时，**追加一条 human_confirmation event**，而不是原地把 shadow event 提升。
+   - **全读面不变量 golden（codex #10，取代「补一条 fixture」）**：单个 golden learner 含 `production + shadow + human_confirmed + missing_gate_status_v2 + v1_legacy` 五类事件，断言 synthesis、report、home、scoring map、learning_state、revalidation、RAG compiled truth、deep_question context **全部**只让 eligible evidence 提升 claim/action/mastery，shadow 只出现在 `needs_confirmation/shadow_stats`。
+   - 只有 `human_confirmed` / `production` 评分才能提升 claim；Phase 0B demo learner 必须用 `human_confirmed`/fixture 评分，禁止 live shadow 演示闭环。
 
 2. **claim 状态机基于事件序、不基于到达序（幂等）。**claim 状态迁移按事件 `(last_seen_at, event_id)` 单调序判定；晚到的旧事件**不得**把 `improving/stable` 打回 `active`。synthesis 复用 `learner_summaries` 既有 version 乐观锁；同一 learner 的 claim merge 串行或乐观锁（呼应 §4.2）。验收补 golden：乱序 + 重投（outbox 重试）不回退 claim 状态。
 
@@ -1002,16 +1009,19 @@ RAG 仍然有用，但角色要降噪：
 | Review | Trigger | Why | Runs | Status | Findings |
 |--------|---------|-----|------|--------|----------|
 | Eng Review | `/plan-eng-review` | Architecture & tests (required) | 1 | issues_open | 4 issues, 1 critical gap |
+| Outside Voice | `codex` (对抗审查) | 独立模型挑刺 | 1 | issues_found | 10 findings, 隔离点放错 + 战略过度阻断 |
 | CEO Review | `/plan-ceo-review` | Scope & strategy | 0 | — | — |
 | Design Review | `/plan-design-review` | UI/UX gaps | 0 | — | — |
 
-**Scope 决议（D1, 2026-06-04）**：整条 loop 实现 gating 在 DeepSeek 评分器从 WEAK-GO 升到 production 之后（见顶部 🚧 硬阻断 banner）。当前计划是「已锁定架构与 contract 的纸面 authority」，唯一允许前置是 Slice 1（contract+fixtures, 不接 UI）。
+**Scope 决议（D1→D2, 2026-06-04）**：D1 初定「整条 loop 等评分过门」；经 codex 对抗审查 + D2 cross-model 决议**修订为按评分来源解耦**（见顶部 🚦 banner）——MCQ/assessment/人工确认/v1 production 现在就走 production loop，case-study list_rule 保持 shadow；**Phase 0/0A 隔离层必须现在就建**，不延后。
 
 **Architecture (2)**：A1 [P2] `personalization_context.py` 纯 builder 缺单一 pack loader，风险 N caller 各自取数；A2 [P3] §4 mermaid 缺 pack_status fail-closed 状态图。
 **Code Quality (2)**：C1 [P2] schema v1→v2 遗留事件读取规则缺失 → **已补进 §5.1 验收4**；C2 [P3] 新 point-level 字段应保持 `learning_evidence.py` 单一 producer。
-**Test**：5 类 pack fixture + 10 evidence fixture 已承诺，但 §6.1 三硬规则（shadow 隔离 / 乱序幂等 / subject 隔离）缺配套 golden；C1 混读 golden 已补要求。
+**Outside Voice / CODEX (10)**：核心结论「隔离点放错了」——只在 synthesis 跳过不够，必须 write-time 隔离（`writeback.py:55/252`）+ 六条读路径统一过滤（report_read_model/home/mastery_estimator/compiled_truth_source/deep_question）+ mixed-claim 语义 + 全读面不变量 golden。**已采纳并重写 §6.1-1**。战略上反对 D1 全 gating，主张按来源解耦——**已采纳为 D2**。
+**Test**：critical gap 升级——不是「补一条 fixture」，而是 codex #10 的**全读面不变量 golden**（production+shadow+human_confirmed+missing_gate_v2+v1_legacy 五类事件断言全读面只让 eligible evidence 提升 claim/action/mastery）。已落 §6.1-1。
 **Performance**：0 new findings，热/温/冷 + 分阶段响应 + version/hash 失效缓存设计扎实。
-**Failure modes**：1 critical gap — shadow 隔离规则（§6.1-1）缺配套 fixture，规则写了没测，可能静默污染 claim，Phase 1 必补。
+**Failure modes**：1 critical gap — shadow 隔离原计划只放在 synthesis，codex 证明 write-time + 六读路径全漏；§6.1-1 已重写为三层隔离 + 全读面 golden。
 
-**UNRESOLVED**：0（scope 决议已定，findings 已落计划或转 Implementation Tasks）。
-**VERDICT**：ENG REVIEW 完成，状态 issues_open（实现 gating 在评分门之后；1 critical test gap 待 Phase 1 补 fixture）。该计划在评分门开启前不进入实现，故不阻塞当前交付。
+**CROSS-MODEL**：codex 与 eng review 在「shadow 隔离不足」上一致（codex 更深，定位到具体 write/read 旁路）；在「是否 gating 全 loop」上 codex 反对 D1，用户 D2 采纳 codex 解耦方案。
+**UNRESOLVED**：0（D2 已定，codex 10 findings 全部已折进 §6.1-1 / banner / §5.1）。
+**VERDICT**：ENG REVIEW + OUTSIDE VOICE 完成，状态 issues_open。架构方向 CLEAR；实现按 D2 解耦推进（隔离层先行）；Phase 0/0A 必须含统一 eligibility helper + write-time 隔离 + 六读路径过滤 + mixed-claim 语义 + 全读面不变量 golden，否则不得接任何 grading writeback。
