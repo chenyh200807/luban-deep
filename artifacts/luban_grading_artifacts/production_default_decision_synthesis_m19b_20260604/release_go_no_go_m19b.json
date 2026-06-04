@@ -1,0 +1,11 @@
+{
+  "canonical_learner_truth_write": "NO-GO",
+  "canonical_truth_written": false,
+  "default_flip_executed": false,
+  "formal_registry_emitted": false,
+  "m19b_limited_production_default_candidate": "GO",
+  "production_default": "OFF",
+  "production_v1_default_flip": "NO-GO",
+  "production_write_count": 0,
+  "reason": "limited candidate is GO as dry-run/reversible cohort config; actual flip remains NO-GO until explicit authorization."
+}

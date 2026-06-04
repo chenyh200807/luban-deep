@@ -380,6 +380,88 @@ M17 之后的鲁班评分引擎 v1 必须收敛成六个一等组件；不要继
 
 ---
 
+## 0.17 Canonical update after M17B/M18 AI-council calibrated scaleout（2026-06-05）
+
+> **本节推进 §0.16 的 M17A 纵切：M17B/M18 把 runtime LLM adjudication 扩成产品决策级规模证据 + 4 模型 AI council。production default 仍 OFF；下一步 M19 default decision（需用户授权 + 准确率 eval）。**
+
+最新 canonical ledger：`artifacts/luban_grading_artifacts/runtime_llm_ai_council_scaleout_m17b_m18_20260604/`
+
+**M17B/M18 三轴 verdict：**
+| 轴 | verdict |
+|---|---|
+| M17B/M18 AI-council calibrated scaleout | **GO** |
+| production default enable | **NO-GO** |
+| production v1 | **NO-GO** |
+
+- 真实 `/api/v1/ws`：**130 DeepSeek-V4-flash 判题 + 347 点级裁决**；**22 条真实 Qwen3.7 fallback**（强制 primary 失败，100% 成功）。
+- **4 模型 AI expert council**（DeepSeek-V4 Prosecutor + Qwen3.7 Semantics + GPT5.5/Codex Chief Architect + Opus4.8 in-session Judge）复核 **40 frontier 点**：council 真实调用 DeepSeek/Qwen 80 + Codex 4；`reviewer_type=ai_expert_council`、`human_reviewed=false`、council 不替代 source。
+- 安全全过：false_positive=0、bad_certified=0、source_mismatch=0、official_answer_as_textbook=0、model_vote_as_source=0、council_replaced_source=0、list_partial_auto=0、legacy_equal_rate=1.0、production_write=0、production_default OFF。
+- 点级分布：accept 177/reject 106/needs_review 42/partial 22；validator 下调 31（fp 防护）；severe disagreement 24（全 actionable）。
+- **40 条 artifact feedback candidate**（rubric_delta 18 + machine_spec_fix 20 + validator_rule_review 1 + drop 1），全停 candidate/work_order，不动 release registry。p50≈2.2s/p95≈3.4s。
+- 代码：新增 fat skill 字段无（复用 M17A `runtime_llm_adjudicator`）；新增 `run_luban_runtime_llm_adjudication_scaleout_m17b_m18.py`（council builder + aggregator + tournament + artifact feedback）。**未改 runtime 主链路**。
+
+**当前下一步（唯一主线）：M19 production default decision**
+
+1. M19 前置硬证据：大样本 **LLM-vs-ground-truth 准确率 eval**（当前是 council calibration，非绝对准确率）、production 化**异步/超时/限流**、**用户显式授权**小流量 default flip、GPT5.5 全量 council。
+2. production v1 仍 **NO-GO**、production default OFF、不发 published registry；**不要**现在 flip default、**不要**回 M11–M17A 旧链路。
+
+---
+
+## 0.18 Canonical update after M19B production default decision synthesis（2026-06-04）
+
+> **本节 supersede §0.17 的"下一步 M19 default decision"和 M19A 的 `DEFERRED_TO_M19_AFTER_M17B` 槽位。M17B 的 DeepSeek live<80 WEAK-GO 缺口已由 M17C 合并补齐；M19B 是当前唯一 production-default decision package。**
+
+最新 canonical ledger：`artifacts/luban_grading_artifacts/production_default_decision_synthesis_m19b_20260604/`
+
+**M19B 三轴 verdict：**
+| 轴 | verdict |
+|---|---|
+| M19B limited production default candidate | **GO**（仅 dry-run / reversible candidate，不代表已执行） |
+| production v1 default flip | **NO-GO**（未授权，不执行） |
+| canonical learner truth write | **NO-GO**（M18D 仍是 dry-run/guarded candidate path） |
+
+- M17B 原 verdict：**WEAK-GO**，唯一 blocker 是 DeepSeek live 28 < 80；M17B 的 safety/scale/fallback/council evidence 保留。
+- M17C 已补齐：M17A 25 + M17B 28 + M17C 27 = **merged DeepSeek live 80**，`m17_scaleout_axis=GO`，safety 全 0、duplicated_paid_calls=0、production_default OFF。
+- M18C/M18D Learning Brain 证据保留：real retest proof / canonical write dry-run 均 GO；但 `canonical_truth_written=false`，不得升级为真实 learner truth write authority。
+- M19A preflight 仅作为 rollback/observability/cost skeleton 保留；其 `production_default_decision=DEFERRED_TO_M19_AFTER_M17B` 已被 M19B supersede。
+- M19B final `/api/v1/ws` release drill：**205 submissions**，覆盖 `qa_ / test_ / operator_`；non-cohort real student blocked；kill switch / malformed registry / provider failure / fallback / rollback 全过；`legacy_equal_rate=1.0`、`production_write_count=0`、`canonical_truth_written=false`。
+- M19B 没有重发 live LLM call：模型能力证据来自 M17C merged live=80；M19B release drill 使用 deterministic in-process provider，只验证 default/rollback/guard，不伪造 live provider。
+- decision matrix：`shadow_only=GO`、`controlled_cohort_only=GO`、`one_percent_qa_operator_default=GO`、`named_internal_cohort_default=GO`，但均为**需用户显式授权的 dry-run candidate**；`broad_production_default=NO-GO`。
+
+**当前下一步（唯一主线）：**
+
+1. 如要执行任何 limited default（1% qa/operator 或 named internal cohort），必须由用户显式授权，并使用 `production_default_config_dryrun_m19b.json` 转为实际配置；默认仍 OFF。
+2. production v1 broad default 继续 **NO-GO**，直到完成 production async/timeout/rate-limit hardening、operator live window、成本/延迟 SLO 接入，以及更强外部/human-like 复核授权。
+3. canonical learner truth write 继续 **NO-GO**，必须另开 teacher-final / real retest truth-write release gate；不能把 shadow/preview/dry-run 写成 mastery。
+
+---
+
+## 0.16 Canonical update after M17A runtime LLM adjudicator（2026-06-04）
+
+> **本节落实 §0.12 的 M17 Nexus-style runtime LLM adjudication（vertical slice = M17A）。production default 仍 OFF；下一步是 M17B/M18 扩面 + M19 default decision，不是 default flip。**
+
+最新 canonical ledger：`artifacts/luban_grading_artifacts/runtime_llm_adjudicator_m17a_20260604/`
+
+**M17A 三轴 verdict：**
+| 轴 | verdict |
+|---|---|
+| M17A runtime LLM adjudication | **GO** |
+| production default enable | **NO-GO** |
+| production v1 | **NO-GO** |
+
+- 真实 `/api/v1/ws` 受控 cohort：每次判题生成 scoped **GradingPacket**（registry hash + source/spec/list policy slice + student_answer + PCP read-only + token_budget + packet_hash），**DeepSeek-V4-flash primary** 判题（Qwen3.7 fallback），**deterministic validator** 作安全地板。
+- 实测：**25 条真实 DeepSeek live 判题**，点级 accept 40/needs_review 10/reject 9/partial 7；比 M16 二元判定多 **12 个 granularity gain** + 8 个 validator downgrade（fp 防护）；false_positive=0、source_mismatch=0、legacy_equal_rate=1.0、production_write=0、kill/non-cohort 全过；p50≈2.1s。
+- 代码：fat skill `runtime_llm_adjudicator.py`（packet + adjudicator + validator + LB preview draft）；thin hook `_maybe_attach_v1_llm_adjudication`；flag `grading_engine_v1_llm_adjudication`（allowlist）+ env kill `LUBAN_V1_LLM_ADJUDICATOR_ENABLED` + cohort `LUBAN_V1_LLM_ADJUDICATOR_COHORT`。production default OFF。
+- 模型分工（§0.12）：runtime 仅 DeepSeek-flash + Qwen；GPT5.5（无 key fail-closed）/Opus（in-session）只 build-council。
+
+**当前下一步（唯一主线）：M17B/M18 扩面评测 → M19 default decision**
+
+1. M17B/M18：扩大 adjudication 样本，做 LLM-vs-teacher 准确率/一致率离线评测、真人 teacher 闭环、production 化异步/超时预算。
+2. M19 才是 default decision（需用户显式授权小流量）；**不要**现在 flip default、**不要**回 M11–M16 旧链路。
+3. production v1 仍 **NO-GO**、production default OFF、不发 published registry。
+
+---
+
 ## 0.15 GBrain personalization absorption: make grading feed a brain, not just a score（2026-06-04）
 
 > 本节吸收 `2026-06-03-luban-gbrain-deep-absorption-personalization-execution-plan.md` 的有效思想。该文件本身已标记 `Superseded`，**不能恢复为独立实现 authority**；但其中的 GBrain 方法论必须进入鲁班评分引擎 v1：每次评分不仅产出分数，还要成为 Learning Brain 可解释、可复测、可行动的证据。
@@ -1627,3 +1709,4 @@ B/C 可并行，但不应抢走 A 线 M7 的主线地位。
 - **安全不变量全 0/通过**：official_answer_as_textbook=0、model_vote_as_source=0、council_vote_as_source=0、list_rule_partial_anchor_auto=0、source_mismatch=0、bad_certified=0；18/18 beta 提升点逐字锚独立复核在 2026 教材（含用「label 最长逐字子串命中」重定位 M5D 修复锚）；legacy unchanged；无 live call（复用 M5R/M5D 33 缓存票，无伪造）。
 - **产品纵切已跑通**（复用 full100 真实 ai_draft_shadow 样本，dry-run、writeback=false）：grading→point evidence→blocked reason→diagnosis→Learning-Brain event→learner profile→personalization context pack→**12 张 learner-visible study card**（哪里错/为什么/教材证据/拦截原因/下一步练什么/可复测）。
 - **M10 = WEAK-GO（不直接 GO）**。一条主线：**继续 source/calc/list supply 修复，把新轨 source-backed 点从 18 推向 ≥50**（优先 calc spec 补全 + list_rule 真实分母去虚增 + external_source 工单），再评估 M10 gated beta；**不要先扩 QA 样本**。residual queue 见 `bad_case_review_queue_m9.jsonl`（ai_draft 自证、尚未 source-backed 的点，属待修复非违规）。
+

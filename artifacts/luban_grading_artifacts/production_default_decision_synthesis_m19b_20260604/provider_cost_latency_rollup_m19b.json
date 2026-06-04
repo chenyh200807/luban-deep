@@ -1,0 +1,32 @@
+{
+  "cost": {
+    "cost_marker": "DeepSeek metered by completed live call count; M19B release drill uses deterministic provider and executes no live calls.",
+    "duplicated_paid_calls": 0
+  },
+  "council_risk": {
+    "council_points_reviewed": 70,
+    "council_vote_as_source": 0,
+    "risk_note": "council is release-risk advisory only; it does not replace source or runtime authority."
+  },
+  "deepseek_live": {
+    "m17a_live_calls": 25,
+    "m17b_live_calls": 28,
+    "m17c_new_live_calls": 27,
+    "merged_live_calls": 80,
+    "target_met": true
+  },
+  "fallback": {
+    "contract": "DeepSeek primary -> Qwen fallback -> fail-closed",
+    "qwen_fallback_drills": 24,
+    "real_qwen_fallback_completed": 4
+  },
+  "latency": {
+    "m17a_latency_note": "M17A live p95 retained as vertical-slice baseline; M17B scale latency used for M19 slot.",
+    "m17b_latency_p50_ms": 23.4,
+    "m17b_latency_p95_ms": 2298.6
+  },
+  "validator": {
+    "m17a_false_positive_prevented": 8,
+    "safety_all_zero": true
+  }
+}
