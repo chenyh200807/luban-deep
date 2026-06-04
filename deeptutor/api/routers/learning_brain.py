@@ -24,6 +24,58 @@ class LearningBrainHarnessRequest(BaseModel):
         max_length=1000,
     )
     manual_confirm: bool = False
+    # AI-Draft shadow mode (QA-gated, dry_run, candidate_only). Default "kernel" preserves
+    # the original harness behavior exactly. ai_draft does NOT write learner_memory_events
+    # this round and never touches CaseGradingSkillKernel authority.
+    mode: str = "kernel"
+    case_id: str | None = None
+    writeback: bool = False
+
+
+# Monkeypatchable grader hook so tests can exercise the ai_draft branch without a live
+# model call. Returns the AI-Draft view dict for one golden case + answer.
+def _ai_draft_grader(case_row: dict[str, Any], answer: str) -> dict[str, Any]:
+    from scripts.run_luban_ai_draft_grading import ai_draft_grade  # lazy: dev harness only
+    return ai_draft_grade(case_row, answer, student_id="harness")
+
+
+def _golden_case(case_id: str | None) -> dict[str, Any] | None:
+    import json
+    from pathlib import Path
+    fixture = Path(__file__).resolve().parents[3] / "deeptutor/services/benchmark/fixtures/luban_case_grading_golden_v1.json"
+    if not fixture.exists():
+        return None
+    cases = json.loads(fixture.read_text(encoding="utf-8")).get("cases", [])
+    if case_id:
+        return next((c for c in cases if c.get("case_id") == case_id), None)
+    return cases[0] if cases else None
+
+
+def _run_ai_draft_harness(payload: "LearningBrainHarnessRequest") -> dict[str, Any]:
+    """AI-Draft shadow path: candidate_only / dry_run / no writeback / no kernel touch."""
+    case = _golden_case(payload.case_id)
+    if case is None:
+        raise HTTPException(status_code=404, detail="golden case not available for ai_draft mode")
+    draft = _ai_draft_grader(case, payload.user_answer)
+    return {
+        "authority": "ai_draft_shadow",
+        "candidate_only": True,
+        "not_production_grade": True,
+        "dry_run": True,
+        "writeback_performed": False,
+        "writeback_requested_ignored_this_round": bool(payload.writeback),
+        "mode": "ai_draft",
+        "case_id": case.get("case_id"),
+        "model_draft_score": draft.get("model_draft_score"),
+        "auto_certified_score": draft.get("auto_certified_score"),
+        "pending_review_score": draft.get("pending_review_score"),
+        "bad_certified_count": draft.get("bad_certified_count", 0),
+        "metric_gate": draft.get("metric_gate"),
+        "parse_status": draft.get("parse_status"),
+        "point_results": draft.get("point_results", []),
+        "learning_evidence_payload_preview": draft.get("learning_evidence_payload_preview"),
+        "note": "AI-Draft is a shadow assembler; it does NOT replace CaseGradingSkillKernel and writes nothing this round.",
+    }
 
 
 def render_learning_brain_harness_html() -> str:
@@ -243,6 +295,11 @@ async def run_learning_brain_harness_case_grading(
     user_id = payload.user_id.strip()
     if not user_id:
         raise HTTPException(status_code=400, detail="user_id is required")
+
+    # AI-Draft shadow branch (candidate_only / dry_run / no writeback / no kernel touch).
+    # mode != "ai_draft" falls through to the original kernel harness behavior unchanged.
+    if payload.mode == "ai_draft":
+        return _run_ai_draft_harness(payload)
 
     kernel = CaseGradingSkillKernel()
     learner_state_service = get_learner_state_service()

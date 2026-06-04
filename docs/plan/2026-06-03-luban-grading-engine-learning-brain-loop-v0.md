@@ -1,9 +1,33 @@
 # 鲁班评分引擎 × Learning Brain 融合方案 v0
 
-> Status: `Proposed v0`（2026-06-03）。
+> Status: `Proposed v0.2`（2026-06-03 起草，2026-06-04 收口）。
 > 本方案回答一个具体问题：鲁班评分引擎产出的采分点级证据，如何进入 Learning Brain，形成长期、可审计、可压缩、可运维的个性化教学闭环。
 > 边界：不新增第二套 learner memory，不新增第二套 RAG，不新增 GBrain runtime，不把离线 shadow 结果直接宣称为生产门。
 > 术语说明：本文中的 `GradingEvidenceEventV1`、`LearnerClaim`、`PersonalizationContextPack` 是 **existing container 内的 JSON payload / projection contract**，不是新增数据库 schema、不是新表、不是新 runtime authority。
+>
+> **v0.2 收口（权威唯一化）**：本计划**吸收并取代** `2026-06-03-luban-gbrain-deep-absorption-personalization-execution-plan.md`。此前两份同日计划在 claim lifecycle、`PersonalizationContextPack`、`next_best_action.py` 上并行定义同一批 canonical 落点，违反 Plan Directory Discipline「不要并行制造第二套主线」。自 v0.2 起，**本计划是 Learning Brain 个性化引擎的唯一主线 authority**；gbrain 计划标记 `Superseded`，仅作为 GBrain 源码概念吸收的研究记录保留。被吸收的 canonical 制品清单见 §0.0。
+>
+> 🚦 **实施策略：按评分来源解耦（2026-06-04 eng review D2，采纳 codex 对抗审查）**：**不把整条 loop 绑死在 DeepSeek 案例题评分器过门之上**。改为按 `engine.gate_status` 分流：MCQ、assessment、人工确认案例题、既有 v1 production 事件**现在就走 production loop**（验证 pack/report/practice/retest/降级/证据点击链）；**case-study list_rule 保持 shadow**，等评分器从 WEAK-GO 升到 production（见 `2026-06-03-luban-deepseek-production-shadow-v0-plan.md` 与 consensus-gold protocol §14-§16）再扩大案例题自动写权。
+> **Phase 0/0A 必须现在就建，不得延后**——它就是 shadow 隔离的安全网：统一 eligibility helper + write-time 隔离 + 全读路径过滤 + mixed-claim 语义 + 全读面不变量 golden（详见 §6.1-1）。codex 论点（已采纳）：越等越危险——若因评分器未过门而不建隔离层，系统就没有统一 gate helper、没有读侧过滤、没有 shadow fixture，一旦有人先接 shadow writeback，污染面巨大。先把安全网建好，再按来源放量。
+
+## 0.0 单一主线 authority 与被吸收的 canonical 制品
+
+本计划同时拥有三段链路的唯一定义权与实现权：**上游**（评分引擎→证据桥）、**中游**（claim/pack/next-best-action，从 gbrain 计划吸收）、**下游**（微信学情页世界级表达）。中游制品的 canonical 落点（从 gbrain 计划吸收，不得在别处重新定义）：
+
+| canonical 文件 | 职责 | 配套测试 |
+| --- | --- | --- |
+| `deeptutor/services/learner_state/learning_synthesis.py` | claim lifecycle 唯一编译者（active/improving/stable/contradicted/superseded/stale/needs_retest） | `tests/services/learner_state/test_learning_synthesis.py` |
+| `deeptutor/services/learner_state/personalization_context.py` | `PersonalizationContextPack` 唯一 pure builder（不读 DB，只接收 projection/intent 入参） | `tests/services/learner_state/test_personalization_context.py` |
+| `deeptutor/services/learner_state/next_best_action.py` | next-best-action 唯一排序器（纯函数，over claim/typed graph/recency/`training_intent`） | `tests/services/learner_state/test_next_best_action.py` |
+| `deeptutor/services/learner_state/learning_brain_lint.py` | dream-cycle 检查（unsupported/stale/contradiction/missing retest/graph gap） | `tests/services/learner_state/test_learning_brain_lint.py` |
+| `scripts/run_learning_brain_dream_cycle.py` | 离线 dream cycle（先 dry-run，后 cron） | `tests/scripts/test_run_learning_brain_dream_cycle.py` |
+| fixtures | 个性化 golden 用例 | `tests/fixtures/learning_brain_personalization_cases.json` |
+
+contract 同步落点（从 gbrain 计划吸收）：`contracts/learner-state.md`（claim lifecycle + pack 定义）、`contracts/learning-report.md`（`personalization_context` / `next_best_actions` / `today_prescription` 为 learning-report v2 字段）、`contracts/rag.md`（pack 如何影响 compiled truth 检索而不成为 RAG authority）、`contracts/index.yaml`（注册以上 surface 与测试）。
+
+change boundary（允许改）：`deeptutor/services/learner_state/*`、`deeptutor/services/rag/*`、`deeptutor/api/routers/mobile.py`、`deeptutor/capabilities/deep_question.py`、`deeptutor/tutorbot/agent/loop.py`、相关 SKILL.md、聚焦测试。**禁止**：第二聊天路由、独立 gbrain runtime、第二向量库/RAG、新 learner profile 表（除非后续 scale gate 证明 JSON projection 不够）、notebook 卡片直接改 mastery、前端排序成为推荐 authority。
+
+verification target（采样一个 learner 必须能答全 6 问，缺一即吸收未完成）：我们相信这个 learner 什么、哪些证据支撑、最近变了什么、下一步做什么、为什么是现在、怎么知道有效。
 
 ## 0. 执行摘要
 
@@ -164,53 +188,69 @@ T1 是硬同步；T2 可跟随批改结果同批返回或短延迟；T3/T4 默�
 | `PersonalizationContextPack` | 由 Learning Brain projection + recent events 即时构造；必要时作为 projection cache 存在 `learning_brain` namespace 下 | 否 |
 | 教材/规范证据 | 现有 KB/RAG source 和 compiled artifacts | 否 |
 
-### 5.1 `GradingEvidenceEventV1`
+### 5.1 `GradingEvidenceEventV1`（现有扁平 payload 的扩展，非新结构）
 
-这是评分引擎写给 Learning Brain 的最小标准事件形态。实现时应优先作为 `build_learning_evidence_payload(...)` 的向后兼容扩展，而不是新建 parallel event writer。
+> **v0.2 澄清（消除 schema 形状冲突）**：现有 `build_learning_evidence_payload(...)`（`deeptutor/services/construction_grading/learning_evidence.py:61`）产出的是**扁平** payload：顶层 `schema_version`（整数 `1`）、`score_awarded`/`max_score`/`score_ratio` 平铺、`rubric.scoring_points[]` / `rubric.scoring_point_hits[]`、`rubric_items[]`、`evidence_refs[]`、`typed_edges[]`、`quality{}`。`GradingEvidenceEventV1` **不是另一套树**，而是在这套扁平 payload 上**新增 point-level 与 engine 字段**，`schema_version` bump 为整数 `2`。**禁止**引入字符串命名空间（如 `grading_evidence_event.v1`），否则会击穿 `build_learning_evidence_dedupe_key`（:105）与现有 quality gate 测试。
+
+新增字段落点（在现有扁平 payload 上叠加，下例只高亮 v2 新增项，未列出的现有字段一律保留原位）：
 
 ```jsonc
 {
-  "schema_version": "grading_evidence_event.v1",
-  "user_id": "u_123",
-  "attempt_id": "attempt_456",
-  "question_id": "Q10",
-  "subject_id": "construction_exam_1",
-  "engine": {
+  "schema_version": 2,                       // 整数，由 1 bump 到 2（不是字符串）
+  "event_type": "learning_evidence",         // 现有，保留
+  "source": "construction_grading",          // 现有，保留
+  "question_id": "Q10",                      // 现有，保留
+  "question_type": "case",                   // 现有，保留
+  "subject_id": "construction_exam_1",       // v2 新增（顶层，用于跨学科分键，见 §6）
+  "score_awarded": 7.5,                      // 现有扁平字段，保留（不改成 score.awarded）
+  "max_score": 10,                           // 现有，保留
+  "score_ratio": 0.75,                       // 现有，保留
+  "engine": {                                // v2 新增：评分引擎 provenance + 生产门状态
     "name": "luban_grading_engine",
-    "version": "v1-shadow",
     "model": "deepseek-v4-flash",
     "model_run_id": "run_20260603_001",
-    "artifact_version": "grading_artifact_2026_v0"
+    "artifact_version": "grading_artifact_2026_v0",
+    "policy_version": "policy_2026_v0",
+    "gate_status": "shadow"                   // shadow | human_confirmed | production（硬隔离键，见 §6）
   },
-  "score": {
-    "awarded": 7.5,
-    "max": 10,
-    "ratio": 0.75
-  },
-  "points": [
-    {
-      "point_id": "Q10-P4",
-      "policy_type": "exact_required",
-      "knowledge_node_id": "1A432000",
-      "hit": "partial",
-      "score": 0.5,
-      "max_score": 1,
-      "required_terms": ["数控钢筋调直切断机"],
-      "evidence_span": "普通钢筋调直机",
-      "unsupported": false,
-      "auto_certified": false,
-      "high_risk_review": true,
-      "review_reason": "near_synonym_rationale",
-      "mistake_type": "near_synonym_not_exact_term",
-      "provenance": {
-        "official_answer_id": "Q10-official-2026",
-        "source_chunk_id": "1A432000_...",
-        "source_quote": "数控钢筋调直切断机..."
+  "rubric": {                                // 现有 block，v2 在 scoring_point_hits[i] 上叠加 point-level 新字段
+    "rubric_mode": "grading_key",            // 现有
+    "scoring_points": [ /* 现有 specs，保留 */ ],
+    "scoring_point_hits": [
+      {
+        "point_id": "Q10-P4",                // 现有
+        "hit": false,                        // 现有（沿用 bool；partial 由 awarded_score < max_score 表达）
+        "awarded_score": 0.5,                // 现有
+        "miss_reason": "...",                // 现有
+        "evidence_text": "普通钢筋调直机",      // 现有（= evidence_span）
+        // ↓ v2 新增 point-level 字段
+        "policy_type": "exact_required",
+        "knowledge_node_id": "1A432000",
+        "required_terms": ["数控钢筋调直切断机"],
+        "unsupported_positive": false,
+        "auto_certified": false,
+        "high_risk_review": true,
+        "review_reason": "near_synonym_rationale",
+        "mistake_type": "near_synonym_not_exact_term",
+        "provenance": {
+          "official_answer_id": "Q10-official-2026",
+          "source_chunk_id": "1A432000_...",
+          "source_quote": "数控钢筋调直切断机...",
+          "content_hash": "sha1:..."
+        }
       }
-    }
-  ]
+    ]
+  }
+  // rubric_items[]、evidence_refs[]、error_events[]、typed_edges[]、quality{} 等现有字段全部原位保留
 }
 ```
+
+**Phase 0 验收硬门（v0.2 新增）**：
+
+1. 扩展后，现有 `tests/services/construction_grading/test_learning_evidence*.py` 与 `tests/services/learner_state/test_learning_evidence_quality_gate.py` **全绿**。
+2. `build_learning_evidence_dedupe_key` 行为**不变**（新增字段不进 dedupe key，除非显式纳入并更新 golden）。
+3. `engine.gate_status` 为必填（仅对 v2 新写）；缺失即 fail-closed，不写 ledger。
+4. **遗留 v1 事件读取规则（eng review C1，2026-06-04 补）**：ledger 里已有的 `schema_version=1` 事件没有 `engine.gate_status` 与 point-level policy 字段。synthesis 读到 v1 事件时，必须按**显式规则**处理，不得崩或静默丢：v1 事件视为 `gate_status=production`（它们是 shadow 机制引入前、已上线路径产出的评分，非未过门 shadow），但 point-level 新字段缺失时按 keyword-only 粒度降级，不伪造 policy_type。该规则需有 golden 测试覆盖 v1/v2 混读。
 
 ### 5.2 `LearnerClaim`
 
@@ -300,6 +340,22 @@ Learning Brain 不应该每次重新读所有历史，而是把事件编译成 c
 3. **复测会改变 claim 状态。**一次正确不直接 mastery；连续正确且跨题型才稳定掌握。
 4. **遗忘不是删除，而是降权。**长时间未出现的弱点变 `stale` 或 `needs_retest`。
 5. **冲突必须显式存在。**新证据推翻旧 claim 时，旧 claim 变 `superseded`，不能悄悄覆盖。
+
+### 6.1 v0.2 新增的四条硬规则（防生产事故）
+
+1. **shadow 评分隔离（最高优先，eng review + codex 对抗审查加强）。**只在 synthesis 跳过 shadow **远远不够**——codex 读码证明真实泄漏点在 write-time 与多条绕开 synthesis 的读路径。隔离必须**三层同时做**，否则等于没做：
+   - **统一 eligibility authority（单一 helper）**：新增唯一 `is_claim_eligible_evidence(event)`（落 learner_state，判 `gate_status in {production, human_confirmed}`），所有写/读/projection 都调它，**禁止各处各判**（否则又是第二套 authority）。
+   - **write-time 隔离（第一泄漏点）**：`writeback.py` 必须在 payload 写出 `engine.gate_status`；`gate_status=shadow` 的事件**不得**触发错题本写入、`home_personalization` 首页投影刷新、mastery 累加——这些副作用现发生在 synthesis 之前（`writeback.py:55/252` → ledger + 错题本 + home projection），不堵这里 shadow 会在 synthesis 之前就泄漏到首页和错题本。
+   - **read-time 全路径过滤**：以下读路径全部按 `is_claim_eligible_evidence` 过滤，shadow 只进 `needs_confirmation/shadow_stats`，不得提升 claim/action/mastery：`learning_synthesis`（`_is_learning_evidence`）、`learning_report_read_model`（`list_learning_evidence_events` → progress/diagnoses/truth_sections/next_action/scoring_point_map/learning_state/revalidation_queue/mastery）、`home_personalization`、`mastery_estimator`、RAG `compiled_truth_source`、`deep_question` context。注意 `_compiled_truth_shadow_only` 只是文本清洗标志、**不是** grading gate，不能复用。
+   - **mixed-claim 语义（原计划缺）**：同一 claim 混有 production+shadow 证据时——只有 production/human evidence 能进入 `supporting_event_ids`、recurrence、improvement、verified outcome；shadow 只进 `shadow_refs/needs_confirmation`。shadow 与 production 冲突时只生成 reviewer queue，**不得**把 claim 标 `contradicted`。shadow 后被人工确认时，**追加一条 human_confirmation event**，而不是原地把 shadow event 提升。
+   - **全读面不变量 golden（codex #10，取代「补一条 fixture」）**：单个 golden learner 含 `production + shadow + human_confirmed + missing_gate_status_v2 + v1_legacy` 五类事件，断言 synthesis、report、home、scoring map、learning_state、revalidation、RAG compiled truth、deep_question context **全部**只让 eligible evidence 提升 claim/action/mastery，shadow 只出现在 `needs_confirmation/shadow_stats`。
+   - 只有 `human_confirmed` / `production` 评分才能提升 claim；Phase 0B demo learner 必须用 `human_confirmed`/fixture 评分，禁止 live shadow 演示闭环。
+
+2. **claim 状态机基于事件序、不基于到达序（幂等）。**claim 状态迁移按事件 `(last_seen_at, event_id)` 单调序判定；晚到的旧事件**不得**把 `improving/stable` 打回 `active`。synthesis 复用 `learner_summaries` 既有 version 乐观锁；同一 learner 的 claim merge 串行或乐观锁（呼应 §4.2）。验收补 golden：乱序 + 重投（outbox 重试）不回退 claim 状态。
+
+3. **claim 与 pack 按 `(user_id, subject_id)` 分键。**`claim_id` 必须含 subject 段，pack budget 按 subject 隔离，避免一建/二建等共用 knowledge_node 命名空间时串味（项目已在 `learner_mistake_book_items` 踩过 subject 隔离坑）。Gate C 的 coverage 报告也按 subject 分组，否则覆盖率被热门科目平均掉。
+
+4. **retest「跨题型稳定」给可操作阈值。**默认（可调，但 baseline 必须写死且其 authority 在 `learning_synthesis`，复用既有 `DECAY_PROFILES`/ARRS，不另造）：`stable := 命中 ≥2 种题型 × ≥2 次正确 × 跨 ≥1 个 decay 周期`；不满足只到 `improving`。`recency_score`/`stability_score` 是**派生量**，要么不持久化为真相、要么带计算版本号，保证 §9.3「projection rebuild 100% deterministic」成立。
 
 ## 7. Grading-to-Brain Loop
 
@@ -614,6 +670,8 @@ RAG 仍然有用，但角色要降噪：
 
 若真实图为空或 coverage 过低，Phase 3 必须先做 starter/degraded 和 evidence capture，不允许伪造“智能推荐”。
 
+**v0.2 升级为 Phase 0B 准入前置**：`events_with_training_outcome_edges` 很可能接近 0（复测闭环本身尚未上线），而 Phase 3 排序、Phase 4「变化记录/改善证明」全押在这条 outcome edge 上。因此 Phase 0B 纵切**必须先用 1 个 fixture learner 人工种出一条真的「作答→证据→claim→训练→复测→改善」outcome edge**，证明链路能产出 outcome，再谈扩面。否则 v0 只能演示「诊断」，演示不了「闭环证明」——而后者才是本方案相对普通 dashboard 的唯一差异化卖点。此前置不过，Phase 4 世界级首屏默认降级为 starter 校准页。
+
 #### Gate D：微信 UX 可测化
 
 首屏世界级体验必须转成自动化与人工双门：
@@ -758,6 +816,34 @@ RAG 仍然有用，但角色要降噪：
 - `training_improved_error` / `training_not_improved_error` 只展示，不写回 claim。
 - grep/AST guard 证明 report/chat/practice 没有本地处方排序或弱点计算。
 
+### Phase 3.5：RAG 个性化注入与 brain-first lookup（1 周，从 gbrain 计划吸收）
+
+目标：让 `PersonalizationContextPack` 以**只读 request metadata** 的身份进入 RAG，开启/解释已有 `compiled_learning_truth` source group，但 RAG **绝不**成为学员状态或 claim 的 authority。这是 v0.2 吸收 gbrain 计划后唯一未展开的整段链路，单列一个 Phase 以免散落。
+
+**一等业务事实**：检索 grounding 由 `RAGService` / `SupabasePipeline` 唯一负责；个性化只影响「召回哪些 compiled truth、如何解释」，不改 exact/standard/textbook/hidden-grading 的 authority 排序。
+
+交付：
+
+1. `deeptutor/services/rag/retrieval_plan.py`：intent planning 增加 `personalization_context_available` 标志（pack 在/不在都要可观测），不在 wrapper 里直读 `kb_chunks` 或 learner-state。
+2. `deeptutor/services/rag/compiled_truth_source.py`：materialized doc 带上 claim `lifecycle status` 与 `evidence_refs`，使「为什么召回这条 compiled truth」可解释。
+3. `deeptutor/services/rag/maintenance.py`：加 learning-brain personalization audit 检查（与 §9.2 dream-cycle lint 同源，不另造第二套检查）。
+4. `deeptutor/capabilities/deep_question.py` / `deeptutor/tutorbot/agent/loop.py`：把 pack 作为 RAG preview args + session metadata 传入；**只作为 context**，不计算 learner truth、不算 claim lifecycle。
+5. `contracts/rag.md` 新增契约语言（逐字吸收 gbrain 计划）：
+
+   > `PersonalizationContextPack` 可作为只读 request metadata 传入 `RAGService.search(...)`。RAG 可用它开启或解释已有 `compiled_learning_truth` source group，但 **RAG 不得写 learner-state、不得计算 claim lifecycle、不得让 compiled truth 覆盖 exact question / standard / textbook / hidden grading authority**。
+
+配套测试：`tests/services/rag/test_retrieval_plan.py`、`tests/services/rag/test_compiled_truth_source.py`、`tests/services/rag/test_maintenance.py`。
+
+验收（吸收 gbrain Release Gate 第 4、7 条）：
+
+- RAG preview **不**写 learner-state truth、**不**计算 claim lifecycle（断言失败即红）。
+- `exact_question` 与 standard authority 在 RAG 中**仍然**排在 compiled truth 之前（`lbp_006_exact_question_conflict` 不变量）。
+- routing metadata 含 `personalization_context_available`；pack 缺失时为 `false` 以便观测命中率。
+- Langfuse / ClickHouse 采样含 `personalization_context_available=true`、`claim_status`、`evidence_ref_count`、`next_action_id`。
+- 反模式硬拒：「RAG 找到 compiled truth 就可以覆盖 exact answer」「TutorBot wrapper 用 regex 查弱点」。
+
+非目标：不新增第二套 RAG / 向量库；不让 compiled truth 进入评分 authority（呼应 §8）；不在本 Phase 改 exact/standard 排序逻辑本身。
+
 ### Phase 4：微信学情页世界级表达闭环（1 周）
 
 目标：把 Grading-to-Brain Loop 从后端事实链变成用户一眼能懂、愿意行动、能感到系统变聪明的产品表面。
@@ -881,6 +967,11 @@ RAG 仍然有用，但角色要降噪：
 | 旧处方源复活 | Phase 0A 处方源盘点 + scope 标记 + grep/AST guard |
 | derived proof 被写回事实 | `training_improved_error` 只做展示，claim 只由 canonical evidence 更新 |
 | UX gate 主观化 | 首屏四事实字段、证据点击链、冷启动、布局、同源性全部转 fixture / DevTools gate |
+| **未过门 shadow 评分污染长期画像** | `engine.gate_status=shadow` 进 ledger 但 synthesis 跳过，不提升 claim；Phase 0B demo 用 `human_confirmed`/fixture（§6.1-1） |
+| **乱序/重投事件回退 claim 状态** | claim 状态机按 `(last_seen_at, event_id)` 单调序 + 乐观锁，晚到旧事件不回退（§6.1-2） |
+| **跨学科 claim 串味** | `claim_id`/pack 按 `(user_id, subject_id)` 分键，Gate C coverage 按 subject 分组（§6.1-3） |
+| **evidence_span 越权暴露给家长/老师** | span 可见性按 viewer role × ownership 控制；脱敏摘要保留 `point_id+mistake_type` 归因骨架，不暴露作答原文 |
+| **两份计划并行造同一 authority** | 本计划 v0.2 吸收并取代 gbrain-deep-absorption 计划，claim/pack/next_best_action 唯一定义权见 §0.0 |
 
 ## 13. 第一优先级实现清单
 
@@ -912,3 +1003,25 @@ RAG 仍然有用，但角色要降噪：
 - 性能最优路径：**热路径只做评分必需工作；Learning Brain 更新、RAG 复习包、BI/cost 都异步或离线。**
 - 产品最优路径：**不要再堆学情模块；把现有模块重排成“今天为什么练这个 -> 证据是什么 -> 采分点怎么补 -> 练完如何证明变好”。**
 - v0 最该做的不是做大平台，而是把 `point-level grading evidence -> learner claim -> context pack -> next action -> retest -> 微信学情页可见证明` 这条链路跑通，同时守住 hot-path latency gate。
+
+## GSTACK REVIEW REPORT
+
+| Review | Trigger | Why | Runs | Status | Findings |
+|--------|---------|-----|------|--------|----------|
+| Eng Review | `/plan-eng-review` | Architecture & tests (required) | 1 | issues_open | 4 issues, 1 critical gap |
+| Outside Voice | `codex` (对抗审查) | 独立模型挑刺 | 1 | issues_found | 10 findings, 隔离点放错 + 战略过度阻断 |
+| CEO Review | `/plan-ceo-review` | Scope & strategy | 0 | — | — |
+| Design Review | `/plan-design-review` | UI/UX gaps | 0 | — | — |
+
+**Scope 决议（D1→D2, 2026-06-04）**：D1 初定「整条 loop 等评分过门」；经 codex 对抗审查 + D2 cross-model 决议**修订为按评分来源解耦**（见顶部 🚦 banner）——MCQ/assessment/人工确认/v1 production 现在就走 production loop，case-study list_rule 保持 shadow；**Phase 0/0A 隔离层必须现在就建**，不延后。
+
+**Architecture (2)**：A1 [P2] `personalization_context.py` 纯 builder 缺单一 pack loader，风险 N caller 各自取数；A2 [P3] §4 mermaid 缺 pack_status fail-closed 状态图。
+**Code Quality (2)**：C1 [P2] schema v1→v2 遗留事件读取规则缺失 → **已补进 §5.1 验收4**；C2 [P3] 新 point-level 字段应保持 `learning_evidence.py` 单一 producer。
+**Outside Voice / CODEX (10)**：核心结论「隔离点放错了」——只在 synthesis 跳过不够，必须 write-time 隔离（`writeback.py:55/252`）+ 六条读路径统一过滤（report_read_model/home/mastery_estimator/compiled_truth_source/deep_question）+ mixed-claim 语义 + 全读面不变量 golden。**已采纳并重写 §6.1-1**。战略上反对 D1 全 gating，主张按来源解耦——**已采纳为 D2**。
+**Test**：critical gap 升级——不是「补一条 fixture」，而是 codex #10 的**全读面不变量 golden**（production+shadow+human_confirmed+missing_gate_v2+v1_legacy 五类事件断言全读面只让 eligible evidence 提升 claim/action/mastery）。已落 §6.1-1。
+**Performance**：0 new findings，热/温/冷 + 分阶段响应 + version/hash 失效缓存设计扎实。
+**Failure modes**：1 critical gap — shadow 隔离原计划只放在 synthesis，codex 证明 write-time + 六读路径全漏；§6.1-1 已重写为三层隔离 + 全读面 golden。
+
+**CROSS-MODEL**：codex 与 eng review 在「shadow 隔离不足」上一致（codex 更深，定位到具体 write/read 旁路）；在「是否 gating 全 loop」上 codex 反对 D1，用户 D2 采纳 codex 解耦方案。
+**UNRESOLVED**：0（D2 已定，codex 10 findings 全部已折进 §6.1-1 / banner / §5.1）。
+**VERDICT**：ENG REVIEW + OUTSIDE VOICE 完成，状态 issues_open。架构方向 CLEAR；实现按 D2 解耦推进（隔离层先行）；Phase 0/0A 必须含统一 eligibility helper + write-time 隔离 + 六读路径过滤 + mixed-claim 语义 + 全读面不变量 golden，否则不得接任何 grading writeback。
