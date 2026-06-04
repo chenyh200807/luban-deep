@@ -436,6 +436,61 @@ M17 之后的鲁班评分引擎 v1 必须收敛成六个一等组件；不要继
 
 ---
 
+## 0.19 Canonical update after M19C limited default flip（2026-06-05）
+
+> **本节执行 §0.18 的用户授权 limited default。M19C 只开启 M19B 已批准的可逆 `qa_` / `operator_` limited default，本地 `/api/v1/ws` TestClient 真实路径验证通过；broad production default、canonical learner truth write、production DB write 继续关闭。远端/Aliyun 配置未写入。**
+
+最新 canonical ledger：`artifacts/luban_grading_artifacts/limited_default_flip_m19c_20260605/`
+
+**M19C 三轴 verdict：**
+| 轴 | verdict |
+|---|---|
+| M19C limited default flip | **GO**（local authorized config package + `/api/v1/ws` drill） |
+| production v1 broad default | **NO-GO** |
+| canonical learner truth write | **NO-GO** |
+
+- 授权：用户已明确授权 M19C limited flip；授权范围只覆盖 M19B `one_percent_qa_operator_default`，默认 cohort 前缀为 `qa_` / `operator_`，`test_` 仅作为 internal cohort/显式回归路径，不扩大为 broad default。
+- 实际最小变更：薄 wrapper 增加 env-gated limited default hook：`LUBAN_V1_LLM_ADJUDICATOR_LIMITED_DEFAULT_ENABLED=true` + `LUBAN_V1_LLM_ADJUDICATOR_LIMITED_DEFAULT_COHORT=qa_,operator_` 时，允许 cohort 在无 request flag 情况下 append `luban_grading_engine_v1_llm_adjudication`；判题 policy 仍由 fat skill `runtime_llm_adjudicator` 承担。
+- Live `/api/v1/ws` TestClient drill：**100 submissions**；default-on 覆盖 `qa_` / `operator_`；显式 internal 回归覆盖 `test_`；non-cohort real student blocked；`legacy_equal_rate=1.0`、`production_write_count=0`、`canonical_truth_written=false`。
+- Provider drill：DeepSeek-success path 52、Qwen fallback 5、provider failure fail-closed 3；M19C 未重发 live LLM call，模型能力证据仍来自 M17C merged live=80；M20 delta 不进入本轮。
+- Safety invariants 全过：false_positive=0、bad_certified=0、source_mismatch=0、official_answer_as_source=0、model_vote_as_source=0、council_vote_as_source=0、list_partial_auto=0、legacy_overwrite=0、kill_switch_works=true。
+- Rollback drill：撤 request flag / env kill / registry unavailable 均恢复 legacy-only 或 fail-closed legacy intact；当前 M19C artifact state = **ON**。由于未获远端部署授权，这个 ON 表示本地授权配置包和 TestClient 验证状态，不表示 Aliyun/remote 已写。
+
+**当前下一步（唯一主线）：M19D soak monitoring 或 rollback repair**
+
+1. 若进入 M19D，必须只做 limited cohort soak monitoring：p95 latency / fallback rate / failclosed rate / production_write_count / canonical_truth_written / operator stop conditions；不得 broad default。
+2. 若任何 safety invariant 非 0，立即执行 rollback repair；不得把 M19C ON 扩大成 production v1 default。
+3. canonical learner truth write 仍 **NO-GO**，必须另开 teacher-final / real retest truth-write release gate。
+
+---
+
+## 0.20 Canonical update after M19D limited cohort soak monitoring（2026-06-05）
+
+> **本节监控 §0.19 的 M19C limited default ON 状态，不再次 flip、不扩大 cohort、不写远端/Aliyun、不写 production DB、不写 canonical learner truth。**
+
+最新 canonical ledger：`artifacts/luban_grading_artifacts/limited_default_soak_monitoring_m19d_20260605/`
+
+**M19D 三轴 verdict：**
+| 轴 | verdict |
+|---|---|
+| M19D soak monitoring | **GO** |
+| keep limited default ON | **YES** |
+| remote/Aliyun deployment authorization review | **GO**（仅授权包评审，不代表已部署） |
+
+- 输入：M19C artifact state = **ON**；default cohort 仍仅 `qa_` / `operator_`；`test_` 只做 explicit regression；broad default 仍 **NO-GO**；canonical learner truth write 仍 **NO-GO**。
+- Soak：真实 `/api/v1/ws` TestClient **300 submissions**；cohort_hit=231；non_cohort_blocked=15；DeepSeek-success path=256；Qwen fallback=10；provider failure fail-closed=8。
+- Metrics：fallback_rate=0.036496；failclosed_rate=0.029197；latency p50/p95/p99=28.161/33.75/63.293ms；token p50/p95=1200/1200；Learning Brain preview-only=274。
+- Safety gates 全过：false_positive=0、bad_certified=0、source_mismatch=0、unsupported_positive=0、legacy_overwrite=0、production_write_count=0、canonical_truth_written=false、non_cohort_default_leak=0、provider_failure_fail_open=0。
+- Rollback readiness：env kill / registry unavailable / request flag withdraw 三路径均 state_correct=true、legacy_intact=true；switch-path latency 只按切换路径计，不混入完整 grading latency。
+
+**当前下一步（唯一主线）：M19E remote deployment authorization package**
+
+1. M19E 只能做远端/Aliyun 部署授权包评审：列出远端路径、命令、rollback 命令、env/config diff、观测窗口和 stop conditions；未获新授权前不得写远端。
+2. broad production default 继续 **NO-GO**；canonical learner truth write 继续 **NO-GO**。
+3. 若 M19D safety invariant 在后续 soak 中出现非 0，立即走 rollback repair，不进入 M19E。
+
+---
+
 ## 0.16 Canonical update after M17A runtime LLM adjudicator（2026-06-04）
 
 > **本节落实 §0.12 的 M17 Nexus-style runtime LLM adjudication（vertical slice = M17A）。production default 仍 OFF；下一步是 M17B/M18 扩面 + M19 default decision，不是 default flip。**
@@ -1710,3 +1765,16 @@ B/C 可并行，但不应抢走 A 线 M7 的主线地位。
 - **产品纵切已跑通**（复用 full100 真实 ai_draft_shadow 样本，dry-run、writeback=false）：grading→point evidence→blocked reason→diagnosis→Learning-Brain event→learner profile→personalization context pack→**12 张 learner-visible study card**（哪里错/为什么/教材证据/拦截原因/下一步练什么/可复测）。
 - **M10 = WEAK-GO（不直接 GO）**。一条主线：**继续 source/calc/list supply 修复，把新轨 source-backed 点从 18 推向 ≥50**（优先 calc spec 补全 + list_rule 真实分母去虚增 + external_source 工单），再评估 M10 gated beta；**不要先扩 QA 样本**。residual queue 见 `bad_case_review_queue_m9.jsonl`（ai_draft 自证、尚未 source-backed 的点，属待修复非违规）。
 
+
+## 21. M19B corrected canonical patch (2026-06-05)
+
+**corrected canonical verdict（固化，覆盖早期 _20260604 草稿与未修正的 risk 语义）**：
+- **M19B limited production default candidate = GO**（仅 1% qa/operator 可逆 config DRY-RUN 候选，非真实 flip）。
+- **production default flip = NO-GO**，直到 M19C 显式 human-owner authorization 执行。
+- **broad production default = NO-GO**；**canonical learner truth write = WEAK-GO/NO-GO（未开）**；**production v1 = NO-GO**；**production default 仍 OFF**（default_flip_executed=false）。
+
+**两处 risk 修正**：
+1. **rollback 3paths 旧 false = measurement bug**：withdraw recover_ms(~1451ms) 含 no-flag legacy grading 延迟（每 turn ~1.4s），≠ rollback 状态变更延迟；env_kill(~16ms)/registry(~14ms) 才是真 sub-second switch path；三路径 state 变更全部正确。M19C 必须分别报告 state_correct 与 recover_ms。
+2. **council block = advisory bare-word artifact**：原始 vote 是无理由裸词 "block"（parser 忠实，非解析伪影）；裸词 block 不 veto，只有绑定 source/spec/list/safety 权威证据的 substantive reasoned block 才能 veto；council 永不替代 source/spec/gate 权威。
+
+本 patch 不执行 M19C、不开 default、不删 _20260604/_20260605 artifacts（只记 supersession/correction）。详见 artifacts/luban_grading_artifacts/m19b_corrected_canonical_patch_20260605/。

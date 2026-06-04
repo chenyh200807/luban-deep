@@ -1,0 +1,12 @@
+{
+  "cost_basis": "no new live calls; deterministic provider drill, M17C supplies live ability evidence",
+  "duplicated_paid_calls": 0,
+  "estimated_live_cost_usd": 0,
+  "failclosed_rate": 0.05,
+  "fallback_rate": 0.083333,
+  "latency_p50_ms": 0.0,
+  "latency_p95_ms": 0.0,
+  "live_llm_calls_executed": false,
+  "submission_count": 100,
+  "token_budget_sum": 72000
+}

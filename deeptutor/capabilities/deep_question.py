@@ -1516,6 +1516,271 @@ def _maybe_attach_runtime_shadow(
         }
 
 
+def _v1_beta_shadow_flag_enabled(context: UnifiedContext) -> bool:
+    """v1 beta_shadow request flag. Default OFF -> legacy payload byte-identical, no beta key."""
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return bool(
+        metadata.get("grading_engine_v1_beta_shadow")
+        or metadata.get("enable_luban_v1_beta_shadow")
+        or context.config_overrides.get("grading_engine_v1_beta_shadow")
+        or context.config_overrides.get("enable_luban_v1_beta_shadow")
+    )
+
+
+def _v1_beta_shadow_kill_switch_active() -> bool:
+    """Env kill switch. ``LUBAN_V1_BETA_SHADOW_ENABLED=false`` (or 0/off/no) force-disables beta
+    even when the request flag is on. Absence does NOT enable (the request flag is still required)."""
+    import os
+
+    return os.environ.get("LUBAN_V1_BETA_SHADOW_ENABLED", "").strip().lower() in (
+        "false", "0", "off", "no",
+    )
+
+
+def _v1_beta_shadow_cohort_prefixes() -> tuple[str, ...]:
+    """Limited-release cohort allowlist (user-id prefixes). Default = ``qa_`` / ``test_`` only, so
+    production behaviour is unchanged. Ops may EXTEND it for a named internal/operator cohort via env
+    ``LUBAN_V1_BETA_SHADOW_COHORT="qa_,test_,operator_"`` (comma-separated prefixes). The built-in
+    ``qa_``/``test_`` cohort is always included; an empty/blank env value keeps the default."""
+    import os
+
+    base = ["qa_", "test_"]
+    raw = os.environ.get("LUBAN_V1_BETA_SHADOW_COHORT", "")
+    extra = [p.strip() for p in raw.split(",") if p.strip()]
+    # de-dupe, preserve order
+    return tuple(dict.fromkeys(base + extra))
+
+
+def _v1_beta_shadow_cohort_member(student_id: str) -> bool:
+    return str(student_id).startswith(_v1_beta_shadow_cohort_prefixes())
+
+
+def _maybe_attach_v1_beta_shadow(
+    *,
+    context: UnifiedContext,
+    graded_context: dict[str, Any],
+    result_payload: dict[str, Any],
+) -> None:
+    """Cohort-gated QA/test-only: append the non-production v1 beta_shadow result (append-only).
+
+    Thin wrapper — ALL scoring / source / spec / list policy lives in ``beta_shadow_loader``
+    (fat skill). This only reads the flag + kill switch + cohort allowlist + the real submission
+    fields and appends ``luban_grading_engine_v1_beta_shadow``. It NEVER mutates the legacy
+    ``construction_grading_result``, never writes the DB / Learning Brain truth / formal registry,
+    never touches v0 / the kernel / RAG. Any error fails closed; legacy always returns. Only
+    limited-release cohort members (default ``qa_`` / ``test_``) get a beta result.
+    """
+    if not _v1_beta_shadow_flag_enabled(context):
+        return  # flag off -> legacy only
+    if _v1_beta_shadow_kill_switch_active():
+        result_payload["luban_grading_engine_v1_beta_shadow"] = {
+            "authority": "luban_grading_engine_v1_beta_shadow",
+            "shadow_status": "killed_by_switch",
+            "not_production_grade": True,
+            "writeback_performed": False,
+        }
+        return
+    student_id = _learner_user_id_from_context(context)
+    if not _v1_beta_shadow_cohort_member(student_id):
+        return  # non-cohort (production / real student) -> never beta, legacy only
+    question_id = str(graded_context.get("question_id") or "").strip()
+    student_answer = str(graded_context.get("user_answer") or "").strip()
+    try:
+        from deeptutor.services.construction_grading.beta_shadow_loader import (
+            build_beta_shadow_payload,
+        )
+
+        result_payload["luban_grading_engine_v1_beta_shadow"] = build_beta_shadow_payload(
+            question_id=question_id,
+            student_id=student_id,
+            student_answer=student_answer,
+        )
+    except Exception as exc:  # noqa: BLE001 — beta must never break legacy
+        result_payload["luban_grading_engine_v1_beta_shadow"] = {
+            "authority": "luban_grading_engine_v1_beta_shadow",
+            "shadow_status": "beta_supply_unavailable",
+            "unavailable_reason": str(exc)[:200],
+            "not_production_grade": True,
+            "writeback_performed": False,
+            "teacher_review_required": True,
+        }
+
+
+def _v1_controlled_runtime_flag_enabled(context: UnifiedContext) -> bool:
+    """v1 controlled-runtime request flag. Default OFF -> legacy payload byte-identical."""
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return bool(
+        metadata.get("grading_engine_v1_controlled_runtime")
+        or context.config_overrides.get("grading_engine_v1_controlled_runtime")
+    )
+
+
+def _v1_controlled_runtime_kill_switch_active() -> bool:
+    """Env kill switch ``LUBAN_V1_CONTROLLED_RUNTIME_ENABLED=false`` force-disables controlled runtime."""
+    import os
+
+    return os.environ.get("LUBAN_V1_CONTROLLED_RUNTIME_ENABLED", "").strip().lower() in (
+        "false", "0", "off", "no",
+    )
+
+
+def _v1_controlled_runtime_cohort_prefixes() -> tuple[str, ...]:
+    """Controlled-runtime cohort allowlist. Default ``qa_``/``test_``/``operator_`` (production
+    default still OFF — no flag means no controlled runtime). Extendable via env
+    ``LUBAN_V1_CONTROLLED_RUNTIME_COHORT``. Real students are never in the default cohort."""
+    import os
+
+    base = ["qa_", "test_", "operator_"]
+    raw = os.environ.get("LUBAN_V1_CONTROLLED_RUNTIME_COHORT", "")
+    extra = [p.strip() for p in raw.split(",") if p.strip()]
+    return tuple(dict.fromkeys(base + extra))
+
+
+def _v1_controlled_runtime_cohort_member(student_id: str) -> bool:
+    return str(student_id).startswith(_v1_controlled_runtime_cohort_prefixes())
+
+
+def _maybe_attach_v1_controlled_runtime(
+    *,
+    context: UnifiedContext,
+    graded_context: dict[str, Any],
+    result_payload: dict[str, Any],
+) -> None:
+    """Controlled production runtime candidate (append-only). Promotes beta_shadow to
+    ``controlled_runtime_candidate`` mode, gated on a loadable release_candidate registry + the
+    controlled cohort. production default stays OFF; legacy ``construction_grading_result`` is never
+    mutated; no production / canonical-truth write; fail-closed. ALL scoring + registry policy lives
+    in ``beta_shadow_loader`` (fat skill); this wrapper only does flag / kill / cohort / append."""
+    if not _v1_controlled_runtime_flag_enabled(context):
+        return  # flag off -> legacy only (production default OFF)
+    if _v1_controlled_runtime_kill_switch_active():
+        result_payload["luban_grading_engine_v1_controlled_runtime"] = {
+            "authority": "luban_grading_engine_v1_controlled_runtime",
+            "mode": "controlled_runtime_candidate",
+            "shadow_status": "killed_by_switch",
+            "not_production_grade": True,
+            "writeback_performed": False,
+        }
+        return
+    student_id = _learner_user_id_from_context(context)
+    if not _v1_controlled_runtime_cohort_member(student_id):
+        return  # non-cohort (real student) -> legacy only
+    question_id = str(graded_context.get("question_id") or "").strip()
+    student_answer = str(graded_context.get("user_answer") or "").strip()
+    try:
+        from deeptutor.services.construction_grading.beta_shadow_loader import (
+            build_controlled_runtime_payload,
+        )
+
+        result_payload["luban_grading_engine_v1_controlled_runtime"] = build_controlled_runtime_payload(
+            question_id=question_id,
+            student_id=student_id,
+            student_answer=student_answer,
+        )
+    except Exception as exc:  # noqa: BLE001 — controlled runtime must never break legacy
+        result_payload["luban_grading_engine_v1_controlled_runtime"] = {
+            "authority": "luban_grading_engine_v1_controlled_runtime",
+            "mode": "controlled_runtime_candidate",
+            "shadow_status": "release_candidate_registry_unavailable",
+            "unavailable_reason": str(exc)[:200],
+            "not_production_grade": True,
+            "writeback_performed": False,
+            "teacher_review_required": True,
+        }
+
+
+def _v1_llm_adjudication_flag_enabled(context: UnifiedContext) -> bool:
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return bool(
+        metadata.get("grading_engine_v1_llm_adjudication")
+        or context.config_overrides.get("grading_engine_v1_llm_adjudication")
+    )
+
+
+def _v1_llm_adjudication_limited_default_enabled(student_id: str) -> bool:
+    import os
+
+    enabled = os.environ.get("LUBAN_V1_LLM_ADJUDICATOR_LIMITED_DEFAULT_ENABLED", "").strip().lower()
+    if enabled not in ("1", "true", "on", "yes"):
+        return False
+    raw = os.environ.get("LUBAN_V1_LLM_ADJUDICATOR_LIMITED_DEFAULT_COHORT", "qa_,operator_")
+    prefixes = [p.strip() for p in raw.split(",") if p.strip()]
+    if not prefixes:
+        prefixes = ["qa_", "operator_"]
+    return str(student_id).startswith(tuple(prefixes))
+
+
+def _v1_llm_adjudication_kill_switch_active() -> bool:
+    import os
+
+    return os.environ.get("LUBAN_V1_LLM_ADJUDICATOR_ENABLED", "").strip().lower() in (
+        "false", "0", "off", "no",
+    )
+
+
+def _v1_llm_adjudication_cohort_member(student_id: str) -> bool:
+    import os
+
+    base = ["qa_", "test_", "operator_"]
+    raw = os.environ.get("LUBAN_V1_LLM_ADJUDICATOR_COHORT", "")
+    extra = [p.strip() for p in raw.split(",") if p.strip()]
+    return str(student_id).startswith(tuple(dict.fromkeys(base + extra)))
+
+
+def _maybe_attach_v1_llm_adjudication(
+    *,
+    context: UnifiedContext,
+    graded_context: dict[str, Any],
+    result_payload: dict[str, Any],
+) -> None:
+    """Runtime LLM adjudication candidate (append-only). DeepSeek-V4-flash primary + Qwen fallback,
+    gated by a deterministic validator (the safety floor) in ``runtime_llm_adjudicator`` (fat skill).
+    production default OFF; legacy ``construction_grading_result`` never mutated; no production /
+    canonical-truth write; fail-closed. This thin wrapper only does flag / kill / cohort / append."""
+    student_id = _learner_user_id_from_context(context)
+    explicit_flag = _v1_llm_adjudication_flag_enabled(context)
+    limited_default = _v1_llm_adjudication_limited_default_enabled(student_id)
+    if not explicit_flag and not limited_default:
+        return  # flag/default off -> legacy only
+    if _v1_llm_adjudication_kill_switch_active():
+        if limited_default and not explicit_flag:
+            return  # default rollback path -> legacy only
+        result_payload["luban_grading_engine_v1_llm_adjudication"] = {
+            "authority": "luban_grading_engine_v1_llm_adjudication",
+            "mode": "llm_adjudication_candidate", "shadow_status": "killed_by_switch",
+            "not_production_grade": True, "writeback_performed": False,
+        }
+        return
+    if not _v1_llm_adjudication_cohort_member(student_id):
+        return  # non-cohort real student -> legacy only
+    question_id = str(graded_context.get("question_id") or "").strip()
+    student_answer = str(graded_context.get("user_answer") or "").strip()
+    try:
+        from deeptutor.services.construction_grading.runtime_llm_adjudicator import (
+            build_llm_adjudication_payload,
+        )
+
+        payload = build_llm_adjudication_payload(
+            question_id=question_id, student_id=student_id, student_answer=student_answer,
+        )
+        if limited_default and not explicit_flag:
+            payload["limited_default_applied"] = True
+            payload["trigger"] = "limited_default"
+            payload["production_default"] = "limited_cohort_on"
+        result_payload["luban_grading_engine_v1_llm_adjudication"] = payload
+    except Exception as exc:  # noqa: BLE001 — adjudication must never break legacy
+        if limited_default and not explicit_flag:
+            return  # default rollback/fail-closed path -> legacy only
+        result_payload["luban_grading_engine_v1_llm_adjudication"] = {
+            "authority": "luban_grading_engine_v1_llm_adjudication",
+            "mode": "llm_adjudication_candidate",
+            "shadow_status": "adjudicator_unavailable",
+            "unavailable_reason": str(exc)[:200],
+            "not_production_grade": True, "writeback_performed": False,
+            "teacher_review_required": True,
+        }
+
+
 class DeepQuestionCapability(BaseCapability):
     manifest = CapabilityManifest(
         name="deep_question",
@@ -2503,6 +2768,27 @@ class DeepQuestionCapability(BaseCapability):
                 result_payload["construction_grading_result"] = grading_result
                 # QA/test-only Luban shadow (default off; legacy untouched above).
                 _maybe_attach_runtime_shadow(
+                    context=context,
+                    graded_context=graded_context,
+                    result_payload=result_payload,
+                )
+                # QA/test-only Luban v1 beta_shadow (default off; flag + env kill switch;
+                # append-only; legacy construction_grading_result untouched above).
+                _maybe_attach_v1_beta_shadow(
+                    context=context,
+                    graded_context=graded_context,
+                    result_payload=result_payload,
+                )
+                # Controlled production runtime candidate (default off; flag + env kill switch +
+                # cohort + release_candidate registry; append-only; legacy untouched).
+                _maybe_attach_v1_controlled_runtime(
+                    context=context,
+                    graded_context=graded_context,
+                    result_payload=result_payload,
+                )
+                # Runtime LLM adjudication candidate (default off; flag + env kill switch + cohort;
+                # DeepSeek/Qwen adjudication gated by deterministic validator; append-only).
+                _maybe_attach_v1_llm_adjudication(
                     context=context,
                     graded_context=graded_context,
                     result_payload=result_payload,
