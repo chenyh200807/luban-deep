@@ -44,6 +44,74 @@ def _qa_on(monkeypatch):
     monkeypatch.delenv("SUPABASE_KEY", raising=False)
 
 
+def test_harness_html_contains_ai_draft_panel():
+    html = lb.render_learning_brain_harness_html()
+    # panel inputs + run/export controls
+    for token in ("aiCaseId", "aiAnswer", "runAiDraft", "exportReview", "AI-Draft 阅卷"):
+        assert token in html
+    # three-score semantics surfaced (pending not shown as 0)
+    for token in ("model_draft_score", "auto_certified_score", "pending_review_score", "bad_certified_count"):
+        assert token in html
+    # distinct visual status classes: auto(green)/pending(amber)/unsupported(red)
+    for token in ("st-auto", "st-pending", "st-unsupported", "b-pending", "b-unsupported"):
+        assert token in html
+    # evidence_span highlight + teacher-review override/export structure
+    for token in ("highlightSpan", "<mark>", "tr-hit", "tr-score", "tr-note", "point_reviews", "teacher_hit", "review_action"):
+        assert token in html
+    # calls the existing endpoint with ai_draft mode + writeback:false (no second endpoint)
+    assert "/api/v1/learning-brain/harness-case-grading" in html
+    assert "writeback:false" in html
+
+
+def test_html_has_engine_toggle_and_votes_display():
+    html = lb.render_learning_brain_harness_html()
+    for token in ("aiEngine", "best_quality_4model", "deepseek_fast", "aiStudent", "model_votes", "adjudication_reason", "四模型"):
+        assert token in html
+    assert "engine:engine" in html  # request sends engine
+
+
+def test_engine_best_quality_calls_new_service(monkeypatch):
+    captured = {}
+
+    def _bq(case_row, student_id):
+        captured["called"] = True
+        return build_ai_draft(_FIXTURE_QUESTION, _FIXTURE_ANSWER, _FIXTURE_PREDS, points=_FIXTURE_QUESTION["scoring_points"], student_id=student_id) | {
+            "authority": "best_quality_4model_shadow", "engine": "best_quality_4model",
+            "prediction_source": "cached_4model_485", "model_set": ["gpt55", "opus48", "deepseek_v4", "qwen37"]}
+
+    monkeypatch.setattr(lb, "_best_quality_grader", _bq)
+    # best-quality must NOT call deepseek_fast grader nor kernel
+    monkeypatch.setattr(lb, "_ai_draft_grader", lambda *a, **k: (_ for _ in ()).throw(AssertionError("best_quality must not call deepseek_fast")))
+    monkeypatch.setattr(lb.CaseGradingSkillKernel, "grade", lambda *a, **k: (_ for _ in ()).throw(AssertionError("must not call kernel")))
+    with TestClient(_build_app()) as client:
+        r = client.post("/api/v1/learning-brain/harness-case-grading",
+                        json={"user_id": "qa", "user_answer": "x", "mode": "ai_draft", "engine": "best_quality_4model", "case_id": "Q10-1A422000", "student_id": "S2"})
+    assert r.status_code == 200
+    b = r.json()
+    assert captured.get("called") is True
+    assert b["authority"] == "best_quality_4model_shadow" and b["engine"] == "best_quality_4model"
+    assert b["prediction_source"] == "cached_4model_485"
+
+
+def test_engine_default_is_deepseek_fast(monkeypatch):
+    monkeypatch.setattr(lb, "_ai_draft_grader", _fixture_grader)
+    monkeypatch.setattr(lb, "_best_quality_grader", lambda *a, **k: (_ for _ in ()).throw(AssertionError("default must not call best_quality")))
+    with TestClient(_build_app()) as client:
+        b = client.post("/api/v1/learning-brain/harness-case-grading", json={"user_id": "qa", "user_answer": _FIXTURE_ANSWER, "mode": "ai_draft"}).json()
+    assert b["engine"] == "deepseek_fast" and b["authority"] == "ai_draft_shadow"
+
+
+def test_best_quality_fail_closed_when_unavailable(monkeypatch):
+    from deeptutor.services.construction_grading.best_quality_ai_draft import BestQualityUnavailable
+    monkeypatch.setattr(lb, "_best_quality_grader", lambda *a, **k: (_ for _ in ()).throw(BestQualityUnavailable("no cached predictions")))
+    monkeypatch.setattr(lb, "_ai_draft_grader", lambda *a, **k: (_ for _ in ()).throw(AssertionError("must not fall back to DeepSeek")))
+    with TestClient(_build_app()) as client:
+        r = client.post("/api/v1/learning-brain/harness-case-grading",
+                        json={"user_id": "qa", "user_answer": "x", "mode": "ai_draft", "engine": "best_quality_4model"})
+    assert r.status_code == 503
+    assert r.json()["detail"]["error"] == "best_quality_unavailable"
+
+
 def test_qa_disabled_rejects(monkeypatch):
     monkeypatch.setenv("DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA", "0")
     with TestClient(_build_app()) as client:

@@ -130,6 +130,39 @@ python -m pytest tests/scripts/test_luban_ai_draft_grading.py \
 
 ---
 
+## Teacher-Review Writeback Pilot 已接入（2026-06-04）
+
+- ✅ **fat skill**：`deeptutor/services/construction_grading/teacher_review_writeback.py`（Stream C）—— 把 QA 面板老师复核 JSON 转成 teacher-final `CaseGradingResult`，**复用现有 `build_learning_evidence_payload` / `write_grading_error_events`，无新表/无第二套 memory/无新 builder**。override=更高 authority；high_risk/unsupported 未复核→降权 never mastery；teacher override 可升降。
+- ✅ **薄适配**：router `POST /api/v1/learning-brain/harness-case-grading-review`（QA-gated，默认 dry_run / writeback=false；writeback 需 QA+teacher_reviewed=true 才走现有写回；teacher_score 越界/非法 hit → 400）；前端「Dry-run 写回预览」按钮展示 override/confirm/mastery/降权摘要 + payload 摘要 + 明确「未真正写库」。**写回规则零前端/最小 router**。
+- ✅ **真实 smoke**（Q10/S2 exact_required）：老师 override P5/P6→miss(踩字)、confirm 清洁 hit → **mastery=P1/P2**，5 个 gap 进 learning_evidence，**dry_run 未写库**（无 writeback_count）。产物 `artifacts/luban_consensus_gold/teacher_review_writeback_pilot_20260604/`。
+- 硬规则：AI-Draft 单独绝不写库；teacher-reviewed 才是 Learning Brain 写入 authority；high_risk/unsupported 不自动 mastery；dry_run 不跳过；不改 kernel/RAG/runtime/新表。
+
+## Best-Quality 四模型协作模式已接入（2026-06-04）
+
+- ✅ **fat skill**：`deeptutor/services/construction_grading/best_quality_ai_draft.py` —— GPT5.5+Opus4.8+DeepSeek-V4+Qwen3.7 逐采分点投票 + policy-aware 裁决（exact_required 取严踩字 / list_rule 语义多数 partial / 硬分裂 → high_risk），**复用 ai_draft_shadow guards 不复制规则**。本轮裁决缓存的真实 4-model 预测（`source=cached_4model_485`）；缺则 **fail closed（503 best_quality_unavailable），不用 DeepSeek 冒充**。
+- ✅ **薄适配**：router `mode=ai_draft` 加 `engine`（默认 `deepseek_fast` 不变 / `best_quality_4model` 走新服务）；前端加引擎切换 + 逐点 model_votes/裁决理由展示 + export 带 engine/authority/model_votes。**评分逻辑零前端/零 router**。
+- ✅ **真实 smoke**：Q10/S2（exact_required 边界）best_quality 在 P4/P5/P6 **裁决取严纠正单模型放水**（DeepSeek/Opus partial/hit → 裁决 miss）；Q5/S3（list_rule）DeepSeek-fast 长题解析失败而 best_quality 稳健产出语义 partial。两样本 bad_certified=0。浏览器截图 `artifacts/luban_consensus_gold/best_quality_ai_draft_20260604/best_quality_panel_smoke.png`，对比 `comparison_deepseek_vs_best_quality.json` + `FINDING_best_quality_ai_draft_20260604.md`。
+- 仍 QA-gated / dry_run / writeback=false / 不改 kernel / 不接 RAG / 不新增表 / 不新增 endpoint。**best_quality 是测试期最高能力，不是低成本生产模式；DeepSeek 仍是生产候选。**
+
+## runtime v0 并行推进包（2026-06-04，能力补全 + 题目级 artifact + 写回预案 + 可复现 smoke）
+
+四条线并行交付（dynamic workflow，互不冲突的独立文件），全部 TDD、确定性、无 live provider 依赖；合并测试 `69 passed`、`construction_grading` 全量 `100 passed` 无回归。
+
+- ✅ **Stream A — best_quality 能力测试**：`tests/services/construction_grading/test_best_quality_ai_draft.py`（11 测试）。合成 `model_outputs` 在进程内验证四模型裁决：四模一致→该 label（score=同 label 均值）；exact_required GPT 放水/Opus 严/DeepSeek partial/Qwen miss → **取严裁 miss**（model_votes/adjudication_reason 保留）；2-2 硬分裂→high_risk_review 且不 auto_certified；list_rule 分歧→合理 partial；unsupported span→fail-closed；pending_review_score 携带真实非 0 且不计入认证分；schema 与 AI-Draft 兼容；`load_cached_4model_predictions` 陪审<3 → `BestQualityUnavailable`。
+- ✅ **Stream B — 题目级 QuestionGradingArtifact 发布层**：`deeptutor/services/construction_grading/question_grading_artifacts.py`（+测试 10 个）。`build_question_grading_artifact(case_id)` 把 golden `gold_scoring_points` + 缓存 typed-policy packet 投影成 runtime 可读 artifact（`version_id=qga_v0_20260604`，每点带 policy_type/max_score/required_terms/list_rule/calculation_spec/penalty_rule/source_refs/source_status/auto_certifiable/knowledge_point_refs）。**20 题 97 点全可读**；未知 case_id → `artifact_missing`；强教材锚点 69 点 `source_status=ok·auto_certifiable=true`，无强源 28 点 `missing_or_weak·auto_certifiable=false` 且**绝不伪造教材锚点**；不改库。policy 分布：exact_required 40 / list_rule 31 / calculation 17 / high_risk_review 4 / figure_label 3 / penalty_rule 2。
+- ✅ **Stream C — teacher-review 写回预案（dry-run 优先）**：`deeptutor/services/construction_grading/teacher_review_writeback.py`（+测试 9 个）。`build_teacher_review_writeback(review_json, *, dry_run=True, learner_state_service=None, user_id=None)` 把 QA 面板 review JSON 纯函数转换成**现有** `build_learning_evidence_payload`，**不造第二套 memory、不新增表**。权威规则：override→teacher 覆盖 AI 且可把 high_risk/unsupported 升为 mastery；reject→落 miss 不 mastery；confirm→AI draft 成立；high_risk/unsupported（非 override）降权 mastery_eligible=False 且强制 miss/0、并发 E03 错因事件。默认 dry_run 不触 DB（即使传入 service）；仅 `dry_run=False` 且传入 service（测试环境）才委托现有 `write_grading_error_events`。
+- ✅ **Stream D — Best-Quality vs DeepSeek-Fast 确定性 smoke**：`scripts/run_luban_best_quality_smoke.py`（+测试 6 个）。**确定性复现**并把样本从 2 扩到 **5（覆盖 exact_required/list_rule/calculation/penalty_rule/figure_label 5 类）**：best_quality=对缓存 4-model 预测裁决（`cached_4model_485`），deepseek_fast=同源 deepseek_v4_flash arm 喂 `build_ai_draft`（`cached_deepseek_v4_flash_485`），**全程不调 live**。验收：best_quality 在 4 个 exact_required 点取严纠正单模放水、6 个 list_rule 语义 partial、**bad_certified=0**、unsupported（Q7-1A431000/S1 P2）**fail-closed**、字节级可复现。产物刷新：`smoke_results.json` / `comparison_deepseek_fast_vs_best_quality.json` / `FINDING_best_quality_ai_draft_20260604.md`（panel 截图 `best_quality_panel_smoke.png` 沿用）。
+
+> 红线全部守住：未改 `CaseGradingSkillKernel`、未新增表、RAG 未进评分 authority、未接 production runtime、未重跑 485/QWK/consensus 大实验；缺 4-model 预测 fail-closed 不冒充。下一步二选一：**(a) teacher-review writeback pilot**（用 Stream C 在测试环境 `dry_run=False`）或 **(b) 把 Best-Quality 能力蒸馏到 DeepSeek production-cost runtime**。
+
+## QA 可视面板已接线（2026-06-04，teacher-review 最小闭环）
+
+- ✅ **QA-gated 可视面板**：在现有 `GET /wechat-harness`（`render_learning_brain_harness_html`）里**薄加**「鲁班评分引擎 · AI-Draft 阅卷」面板（case_id 输入 / 答案 textarea / 运行 / 导出按钮 / 三分数 summary / 逐采分点卡片）。前端只展示，**评分理解全在 `ai_draft_shadow.py`**（thin wrapper, fat skill）。
+- ✅ **后端 service 抽出**：`deeptutor/services/construction_grading/ai_draft_shadow.py`（`build_ai_draft` + 守卫 + display_status + payload preview，单一来源）；router `mode=ai_draft` 与 script 都用它，**无第二套评分规则**。
+- ✅ **真实浏览器 smoke**：QA server 起 `/wechat-harness` → 输入 Q5-1A432000 + 真实答案 → 运行（真实 DeepSeek）→ 7 采分点渲染：model_draft_score 3.43 / auto_certified_score 0 / pending_review_score 3.43 / bad_certified 0；6 绿(auto_certified) + 1 黄(pending_review) + 证据高亮 `<mark>`；`dry_run=true / writeback_performed=false`；server 日志 0 次写库。截图 `artifacts/luban_consensus_gold/ai_draft_panel_20260604/ai_draft_panel_smoke.png`。
+- ✅ **teacher-review 本地草稿 + 导出**：每个采分点 accept/override hit·score + note，导出 review JSON（`point_reviews[]` 含 `teacher_hit/teacher_score/teacher_note/review_action`），纯前端 local state，不写库。
+- ✅ **pending_review 非 0**：面板把待复核分单列、黄色、不当 0、不当已认证；unsupported 红色危险态。
+
 ## 实施状态（2026-06-04，最小纵切已落地）
 
 - ✅ `scripts/run_luban_ai_draft_grading.py`：DeepSeek Arm2 semantic + span guard(fail-closed) + exact_required rationale fallback + selective-abstention(model-observable proxy) → draft 视图 + `learning_evidence_payload_preview`（**复用现有 `build_learning_evidence_payload`**），**默认 dry_run、无写库**。draft 固定标 `authority=ai_draft_shadow / candidate_only / not_production_grade`。

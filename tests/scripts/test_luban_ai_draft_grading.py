@@ -11,7 +11,22 @@ from scripts.run_luban_ai_draft_grading import (
     _sample_set,
     ai_draft_grade,
     apply_guards,
+    build_run_summary,
 )
+
+
+def test_run_summary_completion_rate_is_by_selected_not_available() -> None:
+    # 50 drafts of a 50-sample selection out of 100 available -> 100% selected completion (not 50%)
+    drafts = [{"question_id": f"Q{i}", "student_id": "S1", "point_count": 2, "latency_s": 1.0,
+               "parse_status": "ok", "unsupported_count": 0, "high_risk_review_count": 0, "auto_certified_count": 2}
+              for i in range(50)]
+    keys = {(f"Q{i}", "S1") for i in range(50)}
+    s = build_run_summary(drafts, keys, available_samples=100)
+    assert s["available_samples"] == 100
+    assert s["selected_samples"] == 50
+    assert s["completed_selected_samples"] == 50
+    assert s["selected_completion_rate"] == 1.0  # NOT 0.5
+    assert "target_samples" not in s and "completion_rate" not in s  # misleading keys removed
 
 REPO = Path(__file__).resolve().parents[2]
 OUT = REPO / "artifacts/luban_consensus_gold/ai_draft_test_20260604"

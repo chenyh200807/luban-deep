@@ -119,6 +119,30 @@ def _parse(text):
             return []
 
 
+def build_run_summary(drafts: list[dict], selection_keys: set, available_samples: int) -> dict:
+    """run_summary 口径：selected = 本次按 filter 选中的样本；completion_rate 按 selected 算，
+    不按 available 算（避免把 100/100 显示成 51%）。available 仅作诊断。"""
+    lats_sorted = sorted(d["latency_s"] for d in drafts if "latency_s" in d)
+
+    def pct(p):
+        return lats_sorted[min(len(lats_sorted) - 1, int(p * (len(lats_sorted) - 1)))] if lats_sorted else 0
+    selected = len(selection_keys)
+    completed = sum(1 for d in drafts if (d.get("question_id"), d.get("student_id")) in selection_keys)
+    return {
+        "dry_run": True, "writeback": False,
+        "available_samples": available_samples,
+        "selected_samples": selected,
+        "completed_selected_samples": completed,
+        "selected_completion_rate": round(completed / (selected or 1), 4),
+        "total_points": sum(d["point_count"] for d in drafts),
+        "parse_failures": sum(1 for d in drafts if d.get("parse_status") != "ok"),
+        "unsupported_points": sum(d["unsupported_count"] for d in drafts),
+        "high_risk_points": sum(d["high_risk_review_count"] for d in drafts),
+        "auto_certified_points": sum(d["auto_certified_count"] for d in drafts),
+        "latency_p50": pct(0.50), "latency_p95": pct(0.95), "latency_max": (lats_sorted[-1] if lats_sorted else 0),
+    }
+
+
 def _sample_set(cases, *, all_samples, case_id, limit, offset):
     samples = []
     for c in cases:
@@ -216,28 +240,10 @@ def main():
         for d in drafts:
             f.write(json.dumps(d, ensure_ascii=False) + "\n")
 
-    lats = [d["latency_s"] for d in drafts if "latency_s" in d]
-    lats_sorted = sorted(lats)
-    def pct(p):
-        return lats_sorted[min(len(lats_sorted) - 1, int(p * (len(lats_sorted) - 1)))] if lats_sorted else 0
-    pts = sum(d["point_count"] for d in drafts)
-    available_samples = sum(len(c.get("eval_samples") or [{}]) for c in cases)
     selection_keys = {(c.get("case_id"), es.get("student_id")) for c, es in samples}
-    selected_samples = len(selection_keys)
-    completed_selected = sum(1 for d in drafts if (d.get("question_id"), d.get("student_id")) in selection_keys)
-    summary = {
-        "dry_run": True, "writeback": False,
-        "available_samples": available_samples,           # 全 golden 可选样本(诊断用)
-        "selected_samples": selected_samples,              # 本次按 filter 选中的样本数
-        "completed_selected_samples": completed_selected,  # 选中里已完成的
-        "selected_completion_rate": round(completed_selected / (selected_samples or 1), 4),
-        "total_points": pts,
-        "parse_failures": sum(1 for d in drafts if d.get("parse_status") != "ok"),
-        "unsupported_points": sum(d["unsupported_count"] for d in drafts),
-        "high_risk_points": sum(d["high_risk_review_count"] for d in drafts),
-        "auto_certified_points": sum(d["auto_certified_count"] for d in drafts),
-        "latency_p50": pct(0.50), "latency_p95": pct(0.95), "latency_max": max(lats_sorted) if lats_sorted else 0,
-    }
+    available_samples = sum(len(c.get("eval_samples") or [{}]) for c in cases)
+    summary = build_run_summary(drafts, selection_keys, available_samples)
+    pts = summary["total_points"]
     (out / "run_summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"DRY-RUN (no writeback). completed {len(drafts)} drafts, {pts} points -> {out}")
     print(f"summary: {json.dumps(summary, ensure_ascii=False)}")
