@@ -1,0 +1,52 @@
+{
+  "queue_count": 202,
+  "review_queue_100pct_final_disposition": true,
+  "bucket_counts": {
+    "auto_shadow_safe": 22,
+    "review_required_high_risk": 9,
+    "external_source_needed": 6,
+    "source_gap": 14,
+    "spec_gap": 8,
+    "teacher_override_needed": 6,
+    "blocked_from_writeback": 1,
+    "review_required": 136
+  },
+  "risk_counts": {
+    "low": 22,
+    "high": 10,
+    "medium": 170
+  },
+  "authority_kind_counts": {
+    "calculation": 10,
+    "exact_required": 26,
+    "high_risk_review": 15,
+    "figure_label": 6,
+    "list_rule": 6,
+    "source_backed_positive": 10,
+    "machine_spec_positive": 7,
+    "list_spec_positive": 10,
+    "miss": 10,
+    "partial": 8,
+    "contradiction": 3,
+    "high_risk": 6,
+    "external_source": 6,
+    "duplicate": 5,
+    "machine_checkable_logic": 9,
+    "machine_checkable_calculation": 3,
+    "question_stem_fact": 12,
+    "list_rule_full_coverage": 14,
+    "textbook_verbatim": 17,
+    "adversarial_negative": 19
+  },
+  "pending_rate": 0.8911,
+  "override_rate": 0.2411,
+  "reject_rate": 0.2411,
+  "avg_packet_length": 624.74,
+  "teacher_packet_count": 202,
+  "unknown_disposition": 0,
+  "production_write_count": 0,
+  "lb_canonical_writeback": 0,
+  "source_authority_mutation": false,
+  "confirm_reject_override_idempotent": true,
+  "mistaken_accept_high_risk_guarded": true
+}
