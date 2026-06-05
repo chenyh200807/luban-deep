@@ -31,6 +31,21 @@ _ARTIFACT_ROOT = _REPO / "artifacts" / "luban_grading_artifacts"
 # canonical M10 supply dir (auto-discovered if the exact name differs)
 _M10_GLOB = "non_textbook_rubric_authority_factory_m10_*"
 
+# Tracked, minimal, signed runtime supply bundle (M21S). This is the DEFAULT runtime authority so a
+# clean checkout (no gitignored review artifacts) can load the supply. Review artifacts remain a
+# DEV/TEST-only fallback, never a silent CI/production dependency.
+_SUPPLY_BUNDLE = _REPO / "deeptutor" / "services" / "construction_grading" / "runtime_supply" / "v1_limited_default"
+
+
+def _use_dev_artifacts() -> bool:
+    """Explicit opt-in to read the supply from gitignored review artifacts (dev/test only)."""
+    import os
+    return os.environ.get("LUBAN_SUPPLY_DEV_ARTIFACTS", "").strip().lower() in ("1", "true", "yes", "on")
+
+
+def _bundle_available() -> bool:
+    return (_SUPPLY_BUNDLE / "runtime_supply_manifest.json").exists()
+
 _NUM = re.compile(r"-?\d+(?:\.\d+)?")
 _JUDGE_NEG = ("不合理", "不正确", "不妥", "不符合", "不成立", "无效", "错误")
 _JUDGE_POS = ("合理", "正确", "妥当", "妥", "符合", "成立", "可以")
@@ -67,10 +82,17 @@ def _norm(s: Any) -> str:
 
 
 def discover_supply_dir(root: Path | None = None) -> Path:
+    # DEFAULT: tracked runtime supply bundle (clean-checkout safe). root= or dev-artifacts env
+    # explicitly select the gitignored review-artifact layout instead.
+    if root is None and not _use_dev_artifacts() and _bundle_available():
+        return _SUPPLY_BUNDLE
     base = root or _ARTIFACT_ROOT
+    # a bundle-style dir IS the supply dir (holds the supply files directly)
+    if (base / "machine_checkable_case_specs_m10.jsonl").exists():
+        return base
     matches = sorted(base.glob(_M10_GLOB))
     if not matches:
-        raise BetaSupplyUnavailable(f"no M10 supply dir under {base} matching {_M10_GLOB}")
+        raise BetaSupplyUnavailable(f"no supply bundle or M10 dir under {base}")
     return matches[-1]
 
 
@@ -89,12 +111,28 @@ def _read_jsonl(path: Path) -> list[dict[str, Any]]:
     return rows
 
 
-def _load_verified_source_backed() -> tuple[set, dict]:
-    """Read-only union of M7 reverified + M8 + M9 verified source candidates (the 23), plus the
-    verified TEXTBOOK term per point (used by the runtime source matcher). Best-effort: a missing
-    prior-stage file is skipped (still fail-safe)."""
-    out: set = set()
-    terms: dict = {}
+def _load_verified_source_backed(supply_dir: Path | None = None) -> tuple[set, dict]:
+    """Union of the verified source candidates (keys + verified TEXTBOOK term per point) used by the
+    runtime source matcher. DEFAULT: the tracked bundle's pre-merged ``source_backed_points.jsonl``.
+    Falls back to the M7/M8/M9 review artifacts only in dev/test (explicit). Best-effort, fail-safe."""
+    # bundle path: single pre-merged file (clean-checkout safe)
+    bundle_sb = (supply_dir or _SUPPLY_BUNDLE) / "source_backed_points.jsonl"
+    if bundle_sb.exists():
+        out: set = set()
+        terms: dict = {}
+        for ln in bundle_sb.read_text("utf-8").splitlines():
+            ln = ln.strip()
+            if not ln:
+                continue
+            r = json.loads(ln)
+            key = (r["question_id"], r["point_id"])
+            out.add(key)
+            if r.get("source_terms"):
+                terms[key] = [str(t).strip() for t in r["source_terms"] if str(t).strip()]
+        return out, terms
+    # dev/test fallback: read the original review artifacts
+    out = set()
+    terms = {}
     m8 = _ARTIFACT_ROOT / "v1_alpha_grand_sprint_m8_20260604" / "verified_source_candidates.jsonl"
     m9 = _ARTIFACT_ROOT / "v1_beta_shadow_source_assault_m9_20260604" / "verified_source_candidates_m9.jsonl"
     m7 = (_ARTIFACT_ROOT / "registry_v1_council_hardened_candidate_m7_20260604"
@@ -170,10 +208,19 @@ def load_beta_supply(root: Path | None = None) -> BetaSupply:
     inv = json.loads(f_inv.read_text("utf-8"))
     source_backed = {(p["question_id"], p["point_id"]) for p in inv.get("points", [])
                      if p.get("authority_bucket") == "textbook_verbatim_auto_candidate"}
-    verified_keys, source_terms = _load_verified_source_backed()
+    verified_keys, source_terms = _load_verified_source_backed(supply_dir)
     source_backed |= verified_keys
 
     content_hash = _hash_files([f_machine, f_list, f_review, f_external, f_inv])
+    # signed-bundle integrity: if a manifest is present, its content_hash MUST match -> else fail-closed
+    manifest_path = supply_dir / "runtime_supply_manifest.json"
+    if manifest_path.exists():
+        try:
+            man = json.loads(manifest_path.read_text("utf-8"))
+        except json.JSONDecodeError as exc:
+            raise BetaSupplyUnavailable(f"malformed runtime_supply_manifest: {exc}") from exc
+        if man.get("content_hash") != content_hash:
+            raise BetaSupplyUnavailable("runtime supply bundle hash mismatch (tampered/stale manifest)")
     return BetaSupply(
         supply_dir=str(supply_dir.relative_to(_REPO)),
         content_hash=content_hash,
@@ -346,14 +393,19 @@ class ReleaseCandidateUnavailable(Exception):
 
 
 def discover_release_candidate_registry(root: Path | None = None) -> Path:
+    # DEFAULT: the tracked supply bundle's signed registry (clean-checkout safe).
+    if root is None and not _use_dev_artifacts():
+        bundled = _SUPPLY_BUNDLE / _RC_NAME
+        if bundled.exists():
+            return bundled
     base = root or _ARTIFACT_ROOT
+    direct = base / _RC_NAME
+    if direct.exists():
+        return direct
     for d in sorted(base.glob(_RC_GLOB), reverse=True):
         p = d / _RC_NAME
         if p.exists():
             return p
-    direct = base / _RC_NAME
-    if direct.exists():
-        return direct
     raise ReleaseCandidateUnavailable(f"no {_RC_NAME} under {base}")
 
 

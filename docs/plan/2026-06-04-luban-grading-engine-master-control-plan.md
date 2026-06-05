@@ -1778,3 +1778,10 @@ B/C 可并行，但不应抢走 A 线 M7 的主线地位。
 2. **council block = advisory bare-word artifact**：原始 vote 是无理由裸词 "block"（parser 忠实，非解析伪影）；裸词 block 不 veto，只有绑定 source/spec/list/safety 权威证据的 substantive reasoned block 才能 veto；council 永不替代 source/spec/gate 权威。
 
 本 patch 不执行 M19C、不开 default、不删 _20260604/_20260605 artifacts（只记 supersession/correction）。详见 artifacts/luban_grading_artifacts/m19b_corrected_canonical_patch_20260605/。
+
+
+## 22. M21S runtime supply bundle extraction (2026-06-05)
+
+- 把 luban limited-default **运行时供给数据**从 gitignored review artifacts 抽成最小、签名、版本化的 **tracked bundle**：`deeptutor/services/construction_grading/runtime_supply/v1_limited_default/`（9 文件/~156K；machine 45/list 14/source_backed 23/typed_policy 97/signed registry）。
+- loader 默认读 tracked bundle；artifacts 仅 `LUBAN_SUPPLY_DEV_ARTIFACTS=1` 显式 dev fallback；malformed/missing/hash-mismatch fail-closed，legacy intact。
+- **clean checkout 无 artifacts：192 passed / 0 failed**（gate/registry/runtime_shadow/adjudicator/ws/m16/m17a）。review artifacts（FINDING/votes/ledgers/4-model eval cache）仍排除、非 runtime authority。production default 仍 OFF。
