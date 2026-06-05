@@ -210,7 +210,8 @@ def _build_exact_question(
 
 def _match_score(query_surface: str, candidate: dict[str, Any]) -> int:
     stem = _normalize_surface(candidate.get("stem"))
-    if not stem or stem not in query_surface:
+    stem_score = _stem_match_score(query_surface, stem)
+    if not stem_score:
         return 0
     option_values = [
         _normalize_surface(item.get("value"))
@@ -222,9 +223,34 @@ def _match_score(query_surface: str, candidate: dict[str, Any]) -> int:
         return 0
     matches = sum(1 for value in option_values if value in query_surface)
     required = 2 if len(option_values) >= 3 else 1
+    if stem not in query_surface:
+        required = min(len(option_values), max(required, 3))
     if matches < required:
         return 0
-    return len(stem) * 10 + matches * 100 + len(str(candidate.get("correct_answer") or ""))
+    return stem_score + matches * 100 + len(str(candidate.get("correct_answer") or ""))
+
+
+def _stem_match_score(query_surface: str, stem: str) -> int:
+    if not query_surface or not stem:
+        return 0
+    if stem in query_surface:
+        return len(stem) * 10
+
+    stem_grams = _char_ngrams(stem, size=2)
+    if not stem_grams:
+        return 0
+    overlap = len(stem_grams & _char_ngrams(query_surface, size=2))
+    if overlap < 6:
+        return 0
+    if overlap / len(stem_grams) < 0.25:
+        return 0
+    return overlap * 10
+
+
+def _char_ngrams(text: str, *, size: int) -> set[str]:
+    if size <= 0 or len(text) < size:
+        return set()
+    return {text[index : index + size] for index in range(len(text) - size + 1)}
 
 
 def _project_to_query_option_surface(candidate: dict[str, Any], query: str) -> dict[str, Any]:
@@ -292,6 +318,27 @@ def _extract_query_options(query: str) -> list[dict[str, str]]:
         key, value = _parse_option_string(line, fallback_key="")
         if key and value:
             options.append({"key": key, "value": value})
+    if len(options) >= 2:
+        return options
+
+    text = str(query or "")
+    inline_options: list[dict[str, str]] = []
+    for match in re.finditer(
+        r"(?ms)(?:^|[\s，。；;：:？！!?）)])([A-Ea-e])"
+        r"(?:[\.．、:：\s]+|(?=[\u4e00-\u9fff]))"
+        r"(.*?)"
+        r"(?=(?:[\s，。；;：:？！!?）)])"
+        r"[A-Ea-e](?:[\.．、:：\s]+|(?=[\u4e00-\u9fff]))"
+        r"|[\s，。；;：:？！!?）)]*(?:我\s*)?(?:选|答|选择|答案)"
+        r"|$)",
+        text,
+    ):
+        key = match.group(1).upper()
+        value = re.sub(r"\s+", " ", match.group(2)).strip(" ，。；;：:？！!?")
+        if key and value:
+            inline_options.append({"key": key, "value": value})
+    if len(inline_options) >= 2:
+        return inline_options
     return options
 
 

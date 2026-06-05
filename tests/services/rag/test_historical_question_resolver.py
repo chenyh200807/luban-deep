@@ -112,6 +112,29 @@ def test_historical_question_resolver_remaps_answer_to_current_option_surface(tm
     assert response == "对，标准答案是 A（A. 5%），题库解析依据是：屋面最小坡度：压型金属板：5%。"
 
 
+def test_historical_question_resolver_matches_natural_stem_variant_with_option_surface(tmp_path) -> None:
+    from deeptutor.services.rag.historical_questions import resolve_historical_question
+
+    _write_roof_slope_question_bank(tmp_path)
+    query = "压型金属板采用轻型屋面时，屋面最小坡度宜为多少？A. 5% B. 1% C. 2% D. 3%，我选A，对吗？"
+
+    exact_question = resolve_historical_question(query, question_bank_dir=str(tmp_path))
+
+    assert exact_question is not None
+    assert exact_question["correct_answer"] == "A"
+    assert exact_question["metadata"]["canonical_correct_answer"] == "D"
+    assert exact_question["metadata"]["option_surface"] == "query"
+
+
+def test_historical_question_resolver_does_not_match_option_values_without_stem_anchor(tmp_path) -> None:
+    from deeptutor.services.rag.historical_questions import resolve_historical_question
+
+    _write_roof_slope_question_bank(tmp_path)
+    query = "A. 5% B. 1% C. 2% D. 3%，我选A，对吗？"
+
+    assert resolve_historical_question(query, question_bank_dir=str(tmp_path)) is None
+
+
 @pytest.mark.asyncio
 async def test_rag_service_adds_historical_exact_question_when_pipeline_is_empty(
     monkeypatch: pytest.MonkeyPatch,

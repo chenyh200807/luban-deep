@@ -321,6 +321,26 @@ async def test_embedded_compact_mcq_with_answer_submission_is_anchored_grading()
     assert decision.needs_clarification is False
 
 
+@pytest.mark.parametrize("terminal", ["？", "?", "！", "!"])
+@pytest.mark.asyncio
+async def test_embedded_mcq_options_after_terminal_mark_is_anchored_grading(terminal):
+    message = (
+        f"压型金属板采用轻型屋面时，屋面最小坡度宜为多少{terminal}"
+        "A. 5% B. 1% C. 2% D. 3%，我选A，对吗？"
+    )
+
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(user_message=message),
+        enable_llm=False,
+    )
+
+    assert derive_question_lifecycle_scene(_FakeContext(user_message=message)) == "mcq_grading"
+    assert looks_like_free_text_mcq_grading_request(message) is True
+    assert decision.scene == "mcq_grading"
+    assert decision.exact_question_blocked_reason == ""
+    assert decision.needs_clarification is False
+
+
 @pytest.mark.asyncio
 async def test_llm_scene_proposal_failure_degrades_without_blocking(monkeypatch):
     async def _fake_complete(**_kwargs):

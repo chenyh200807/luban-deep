@@ -709,7 +709,7 @@ _FREE_TEXT_MCQ_OPTION_SELECTION_RE = re.compile(
     re.IGNORECASE,
 )
 _FREE_TEXT_MCQ_OPTION_LIST_RE = re.compile(
-    r"(?:^|[\s，。；;：:）)])A(?:[\.．、:：\s]+|(?=[\u4e00-\u9fff]))[^，。；;\n]{0,120}"
+    r"(?:^|[\s，。；;：:？！!?）)])A(?:[\.．、:：\s]+|(?=[\u4e00-\u9fff]))[^，。；;\n]{0,120}"
     r"(?:[\s，。；;：:])B(?:[\.．、:：\s]+|(?=[\u4e00-\u9fff]))",
     re.IGNORECASE,
 )

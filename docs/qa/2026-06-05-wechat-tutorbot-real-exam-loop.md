@@ -33,7 +33,7 @@
 | H1 | 情绪化记忆口诀请求 | 安抚并给短口诀 | 有帮助但仍偏长 | P2 expression | 暂登记 |
 | I1 | 压型金属板屋面坡度完整单选，用户选 C 并要求 `别展开，一句话` | 批错、给 D/5%，一句话 | 修前 exact fast-path 输出完整教学模板；p11 后返回一句话 | Pass | 已把用户表达约束传入 exact authority builder |
 | J1 | 固定 QA 号 `qa_tutorbot_mcq` 走移动端 login/profile/start-turn | 不人工注册、不收费、不被 wallet 读卡住 | 修前 `/auth/profile` 因 wallet 404/503 中断 smoke | Pass | 内部 QA profile 钱包读返回 `internal_qa` 快照 |
-| K1 | 同一屋面坡度题，但学员手抄乱序：`A.5% B.1% C.2% D.3%，我选A` | 按当前题面判 A 对，不能沿用题库旧字母 D | 修前答“不对，标准答案D”；p13 后答“对，标准答案A” | Pass with follow-up caveat | 已把 historical exact question 投影到 query option surface |
+| K1 | 同一屋面坡度题，但学员手抄乱序：`A.5% B.1% C.2% D.3%，我选A` | 按当前题面判 A 对，不能沿用题库旧字母 D | 修前答“不对，标准答案D”；p13 后答“对，标准答案A”；p16 自然题干变体也能命中 A/5% | Pass | 已把 historical exact question 投影到 query option surface，并修复自然题干变体匹配 |
 | K2 | 接 K1 追问 `是不是因为你按旧题库字母没看我这轮选项？` | 承接刚才乱序题并承认/澄清当前题面 A 才对 | 修前说“不知道你要批改哪一道题”；p14 后承接同一 active_object 但仍非一句话；p15 后单句澄清当前题面 A/5% | Pass | 已修 exact fast-path active question continuity + reveal state + follow-up brevity |
 
 ## Fixed This Loop
@@ -115,6 +115,12 @@
    - p15 live evidence：固定账号 `qa_tutorbot_weird`，首轮 `turn_1780668293721_21ae58f4c2` 返回 `对，标准答案是 A（A. 5%）...`，RESULT metadata `authority_applied=true`、`execution_path=tutorbot_exact_fast_path`、`canonical_correct_answer=D`、`option_surface=query`、`active_object_id=historical:cf366dd4c395fffa`、`billing_capture=null`。
    - p15 第二轮 `turn_1780668322147_5b3677a8ae` 返回单句 `不是，已按你这轮题面判断，正确答案是 A（5%）。`，RESULT metadata `mode=followup`、`execution_path=deep_question_followup`、`qctx_id=historical:cf366dd4c395fffa`、`qctx_reveal_answers=true`、`active_object_id=historical:cf366dd4c395fffa`、`billing_capture=null`。
 
+14. natural MCQ anchor after question mark + fuzzy historical stem
+   - root cause 1：question lifecycle 的 free-text MCQ option-list detector 不把中文/英文问号、感叹号当作选项 A 前的合法边界，导致 `...多少？A. 5% ... 我选A` 被降级为无题卡裸提交并澄清。
+   - root cause 2：historical resolver 要求题库 stem 必须完整出现在用户消息里；真实学员会把 `某工程屋面做法为压型金属板，当设计无要求时...` 改写成 `压型金属板采用轻型屋面时...`，但选项 surface 与核心 stem 事实仍足够具体。
+   - 修法保持 thin wrapper / fat skill：边界修在 `question_lifecycle_skills` 的 MCQ option detector；题库匹配修在 `historical_questions` 的 resolver 内核，采用“足够 stem bigram 重合 + 至少 3 个选项值命中”的 deterministic guard，且无题干只有选项时仍不命中。
+   - p16 live evidence：固定账号 `qa_tutorbot_weird`，`turn_1780668852566_5930b38edc` 输入 `压型金属板采用轻型屋面时...？A. 5% B. 1% C. 2% D. 3%，我选A，对吗？`，返回 A/5%，RESULT metadata `question_lifecycle_scene=mcq_grading`、`required_anchor_status=satisfied`、`execution_path=tutorbot_exact_fast_path`、`authority_applied=true`、`canonical_correct_answer=D`、`option_surface=query`、`active_object_id=historical:cf366dd4c395fffa`、`billing_capture=null`。
+
 ## Team Monitoring Notes
 
 - 主代理：负责真实小程序同构链路复现、最小代码修复、测试与 scoped commit。
@@ -128,7 +134,7 @@
 - P1：历史题库 resolver 目前是 full-MCQ vertical slice，不是生产题库总闭环。还需要把签名/可部署的题库 artifact、题卡 id、前端题面对象和 Supabase/KB source evidence 收敛成同一个 canonical question authority。
 - P1：题卡 id / 当前题面对象没有从微信前端稳定传进 TutorBot 时，系统只能澄清，无法兑现“我在小程序刷题，别让我复制题干”的体验。
 - P2：exact MCQ 首答与 exact follow-up deterministic reveal 的一句话模板问题已修；general TutorBot LLM 路径仍可能在用户要求“一句话/别废话”时偏长，p15 负例里 general fast policy 仍输出多段解析。
-- P2：historical resolver 对部分自然问句格式仍漏识别。p15 负例 `压型金属板采用轻型屋面时，屋面最小坡度宜为多少？A. 5% B. 1% C. 2% D. 3%，我选A，对吗？` 首轮进入 clarification；需要下一轮收敛 MCQ anchor 识别，而不是让用户改成测试模板格式。
+- P2：p16 已修 historical resolver 对自然问句格式 `...多少？A. 5% B. 1%...我选A` 的漏识别；但还需要继续用更多自然题干变体压测，避免过宽 fuzzy match 或漏掉其他标点/换行格式。
 - P2：RAG unavailable 的措辞需要更稳定：可以给候选判断，但不能说成题库标准确认。
 - P2：本地 `/api/v1/wechat/mp/login` 缺 `WECHAT_MP_APP_ID/WECHAT_MP_APP_SECRET` 时返回 502；当前 QA 通过注册登录绕过，只验证 `/api/v1/chat/start-turn` + `/api/v1/ws`。
 - P2：正式 billing/wallet 链路仍要单独做生产对账；本轮 bypass 只服务内部 QA，不作为真实收费链路证据。
