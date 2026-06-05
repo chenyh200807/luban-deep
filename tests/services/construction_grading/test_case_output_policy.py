@@ -57,6 +57,40 @@ def test_case_grading_with_exact_case_authority_keeps_score_path() -> None:
     )
 
 
+def test_case_grading_authority_applied_without_case_evidence_is_not_enough() -> None:
+    metadata = {
+        "question_lifecycle_scene": "case_grading",
+        "authority_applied": True,
+        "exact_question": {},
+    }
+
+    assert not case_grading_score_authority_available(metadata)
+    assert should_demote_case_grading_hard_score(
+        "## 预计得分\n**4分 / 满分5分**\n",
+        runtime_metadata=metadata,
+    )
+
+
+def test_case_bundle_answer_kind_with_case_bundle_keeps_score_path() -> None:
+    metadata = {
+        "question_lifecycle_scene": "case_grading",
+        "authority_applied": False,
+        "exact_question": {
+            "answer_kind": "case_bundle",
+            "case_bundle": {
+                "covered_subquestions": [{"authoritative_answer": "龄期应达到28天"}],
+                "coverage_state": "full",
+            },
+        },
+    }
+
+    assert case_grading_score_authority_available(metadata)
+    assert not should_demote_case_grading_hard_score(
+        "## 预计得分\n**4分 / 满分5分**\n",
+        runtime_metadata=metadata,
+    )
+
+
 def test_non_case_grading_hard_score_is_not_case_policy() -> None:
     metadata = {
         "question_lifecycle_scene": "mcq_grading",

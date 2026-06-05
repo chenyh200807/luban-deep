@@ -14,6 +14,7 @@ _OFFICIAL_GRADING_RE = re.compile(
     r"判错|阅卷|给分|扣分|满分)"
 )
 _DIAGNOSTIC_ONLY_MARKER = "本次不硬估标准分"
+_CASE_SCORE_AUTHORITY_KINDS = {"case", "case_study", "case_bundle", "written", "subjective"}
 
 
 def case_grading_score_authority_available(runtime_metadata: dict[str, Any] | None) -> bool:
@@ -22,24 +23,25 @@ def case_grading_score_authority_available(runtime_metadata: dict[str, Any] | No
     metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
     if str(metadata.get("question_lifecycle_scene") or "").strip() != "case_grading":
         return False
-    if metadata.get("authority_applied") is True:
-        return True
     for key in ("_prefetched_exact_question", "exact_question"):
         exact_question = metadata.get(key)
         if not isinstance(exact_question, dict) or not exact_question:
             continue
-        answer_kind = str(exact_question.get("answer_kind") or "").strip().lower()
-        if answer_kind not in {"case", "case_study", "written", "subjective"}:
-            continue
-        if (
-            exact_question.get("case_bundle")
-            or exact_question.get("grading_key")
-            or exact_question.get("covered_subquestions")
-            or exact_question.get("correct_answer")
-            or exact_question.get("authoritative_answer")
-        ):
+        if _exact_question_has_case_score_authority(exact_question):
             return True
     return False
+
+
+def _exact_question_has_case_score_authority(exact_question: dict[str, Any]) -> bool:
+    answer_kind = str(exact_question.get("answer_kind") or "").strip().lower()
+    case_bundle = exact_question.get("case_bundle")
+    if isinstance(case_bundle, dict) and case_bundle:
+        return True
+    if exact_question.get("grading_key") or exact_question.get("covered_subquestions"):
+        return True
+    if answer_kind not in _CASE_SCORE_AUTHORITY_KINDS:
+        return False
+    return bool(exact_question.get("correct_answer") or exact_question.get("authoritative_answer"))
 
 
 def should_demote_case_grading_hard_score(
