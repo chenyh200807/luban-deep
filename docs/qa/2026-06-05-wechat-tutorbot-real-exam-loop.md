@@ -31,6 +31,8 @@
 | F1 | `2023地下连续墙多选答案是不是CDE？别装不知道。` | 没有 exact evidence 时不能否定/乱编 | RAG 不可用仍自信说“不是 CDE” | P1 fixed guard | 已加 degraded exact-answer 保护，WS metadata 透传 guard/degraded |
 | G1 | 屋面防水卷材上翻高度案例 | 答 250mm，按“一句话” | 答案正确但过长 | P2 expression | 暂登记 |
 | H1 | 情绪化记忆口诀请求 | 安抚并给短口诀 | 有帮助但仍偏长 | P2 expression | 暂登记 |
+| I1 | 压型金属板屋面坡度完整单选，用户选 C 并要求 `别展开，一句话` | 批错、给 D/5%，一句话 | 修前 exact fast-path 输出完整教学模板；p11 后返回一句话 | Pass | 已把用户表达约束传入 exact authority builder |
+| J1 | 固定 QA 号 `qa_tutorbot_mcq` 走移动端 login/profile/start-turn | 不人工注册、不收费、不被 wallet 读卡住 | 修前 `/auth/profile` 因 wallet 404/503 中断 smoke | Pass | 内部 QA profile 钱包读返回 `internal_qa` 快照 |
 
 ## Fixed This Loop
 
@@ -81,6 +83,17 @@
    - p09 live evidence：`turn_1780663489181_60d9becf0e`，Langfuse 本地 trace 可用；RESULT metadata `billing_capture=null`、`exact_question.correct_answer=D`、`rag_retrieval_status=provider_failed_exact_question_resolved`。
    - p10 live evidence：固定账号 `qa_tutorbot_mcq` 登录后跑微信同构链路，`turn_1780663947405_edeabd6e1d` completed；RESULT metadata `billing_capture=null`、`exact_question.correct_answer=D`、`authority_applied=true`。
 
+9. exact authority 尊重明确简短表达约束
+   - `AgentLoop` 在 exact authority override 和 exact RAG fast-path 两处，把本轮用户原话传入同一个 `build_exact_authority_response`。
+   - MCQ exact authority builder 只在用户明确要求 `一句话 / 别展开 / 只说答案 / 不用解析` 等场景切到简短答案；默认完整教学模板保持不变。
+   - 这是 expression projection，不是新的答案 authority：标准答案、选项文本、解析依据仍来自 `exact_question`。
+   - p11 live evidence：固定账号 `qa_tutorbot_mcq`，`turn_1780665484309_6172b5c2f1` completed，内容为 `不对，标准答案是 D（D. 5%），题库解析依据是：屋面最小坡度：压型金属板：5%。`；RESULT metadata `billing_capture=null`、`authority_applied=true`、`exact_question.correct_answer=D`。
+
+10. 内部 QA profile 钱包读 bypass
+   - 真实微信链路前置 `/api/v1/auth/profile` 也纳入内部 QA billing bypass；固定 QA 号不再因钱包 Supabase 404/503 中断 smoke。
+   - bypass 仍只由 `internal_qa_billing_bypass_allowed` 判定，非 production + QA 身份前缀才生效；非 QA 钱包失败测试保持 fail-closed。
+   - p12 live evidence：`qa_tutorbot_mcq` 登录后 `/api/v1/auth/profile` 返回 `user_id=7465c84a-d1d6-4ff8-82d8-22945addbf86`、`points=120`、`wallet.plan_id=internal_qa`。
+
 ## Team Monitoring Notes
 
 - 主代理：负责真实小程序同构链路复现、最小代码修复、测试与 scoped commit。
@@ -93,7 +106,7 @@
 
 - P1：历史题库 resolver 目前是 full-MCQ vertical slice，不是生产题库总闭环。还需要把签名/可部署的题库 artifact、题卡 id、前端题面对象和 Supabase/KB source evidence 收敛成同一个 canonical question authority。
 - P1：题卡 id / 当前题面对象没有从微信前端稳定传进 TutorBot 时，系统只能澄清，无法兑现“我在小程序刷题，别让我复制题干”的体验。
-- P2：用户明确要求“一句话/别废话”时，TutorBot 仍常输出完整教学模板，表达质量影响满意度。
+- P2：exact MCQ 首答的一句话模板问题已修；但 follow-up/general LLM 路径仍可能在用户要求“一句话/别废话”时偏长，例如 p11 第二轮解释 C 为什么不对时输出了两句较长文本。
 - P2：RAG unavailable 的措辞需要更稳定：可以给候选判断，但不能说成题库标准确认。
 - P2：本地 `/api/v1/wechat/mp/login` 缺 `WECHAT_MP_APP_ID/WECHAT_MP_APP_SECRET` 时返回 502；当前 QA 通过注册登录绕过，只验证 `/api/v1/chat/start-turn` + `/api/v1/ws`。
 - P2：正式 billing/wallet 链路仍要单独做生产对账；本轮 bypass 只服务内部 QA，不作为真实收费链路证据。

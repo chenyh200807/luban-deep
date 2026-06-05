@@ -2791,6 +2791,55 @@ def test_auth_profile_allows_explicit_local_wallet_fallback(
     assert body["wallet"]["plan_id"] == "local"
 
 
+def test_auth_profile_internal_qa_billing_bypass_skips_wallet_read(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ENV", "local")
+    monkeypatch.setenv("DEEPTUTOR_INTERNAL_QA_BILLING_BYPASS", "true")
+    canonical_uid = "7465c84a-d1d6-4ff8-82d8-22945addbf86"
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: canonical_uid,
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "resolve_auth_context",
+        lambda *_args, **_kwargs: SimpleNamespace(user_id=canonical_uid, is_admin=False),
+    )
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "get_profile",
+        lambda user_id: {
+            "user_id": user_id,
+            "username": "qa_tutorbot_mcq",
+            "display_name": "qa_tutorbot_mcq",
+            "points": 120,
+        },
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "resolve_wallet_user_id",
+        lambda *_args, **_kwargs: canonical_uid,
+    )
+
+    class UnavailableWalletService:
+        is_configured = False
+
+        def get_wallet(self, _user_id: str):
+            raise AssertionError("internal QA profile must not read wallet")
+
+    monkeypatch.setattr(mobile_module, "wallet_service", UnavailableWalletService())
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/auth/profile")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["points"] == 120
+    assert body["wallet"]["plan_id"] == "internal_qa"
+
+
 def test_learning_brain_projection_reads_authenticated_learner_truth(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

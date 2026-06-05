@@ -268,7 +268,43 @@ def _shadow_compare_wallet_read(user_id: str, *, balance_points: int, source: st
         )
 
 
-def _wallet_snapshot_or_zero(user_id: str) -> WalletSnapshot:
+def _internal_qa_wallet_snapshot_or_none(
+    user_id: str,
+    *,
+    identity_candidates: Iterable[Any] = (),
+    fallback_points: int = 0,
+) -> WalletSnapshot | None:
+    candidates = [
+        user_id,
+        *identity_candidates,
+        *_internal_qa_member_identity_candidates(user_id),
+    ]
+    if not internal_qa_billing_bypass_allowed(*candidates):
+        return None
+    points = max(int(fallback_points or 0), 0)
+    return WalletSnapshot(
+        user_id=str(user_id or "").strip(),
+        balance_micros=points * 1_000_000,
+        frozen_micros=0,
+        plan_id="internal_qa",
+        version=0,
+        created_at="",
+    )
+
+
+def _wallet_snapshot_or_zero(
+    user_id: str,
+    *,
+    identity_candidates: Iterable[Any] = (),
+    fallback_points: int = 0,
+) -> WalletSnapshot:
+    internal_qa_snapshot = _internal_qa_wallet_snapshot_or_none(
+        user_id,
+        identity_candidates=identity_candidates,
+        fallback_points=fallback_points,
+    )
+    if internal_qa_snapshot is not None:
+        return internal_qa_snapshot
     if not getattr(wallet_service, "is_configured", False):
         if _env_flag_enabled(_LOCAL_WALLET_FALLBACK):
             return WalletSnapshot(
@@ -1936,7 +1972,18 @@ async def auth_profile(authorization: str | None = Header(default=None)) -> dict
     current_user = resolve_auth_context(authorization)
     profile = member_service.get_profile(user_id)
     wallet_user_id = _resolve_wallet_lookup_user_id(authorization)
-    snapshot = _wallet_snapshot_or_zero(wallet_user_id)
+    legacy_points = int(profile.get("points") or profile.get("points_balance") or 0)
+    snapshot = _wallet_snapshot_or_zero(
+        wallet_user_id,
+        identity_candidates=(
+            user_id,
+            profile.get("user_id"),
+            profile.get("username"),
+            profile.get("auth_username"),
+            profile.get("external_auth_user_id"),
+        ),
+        fallback_points=legacy_points,
+    )
     wallet_payload = _serialize_wallet_snapshot(snapshot)
     wallet_payload["user_id"] = user_id
     profile["id"] = user_id

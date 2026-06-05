@@ -100,6 +100,28 @@ def test_build_exact_authority_response_renders_mcq_as_learning_report() -> None
     assert "安全性 + 耐久性 + 适用性" in response
 
 
+def test_build_exact_authority_response_honors_explicit_brief_mcq_request() -> None:
+    response = build_exact_authority_response(
+        {
+            "answer_kind": "mcq",
+            "stem": "某工程屋面做法为压型金属板，当设计无要求时，屋面坡度最小值是（　　）。",
+            "options": [
+                {"key": "A", "value": "1%"},
+                {"key": "B", "value": "2%"},
+                {"key": "C", "value": "3%"},
+                {"key": "D", "value": "5%"},
+            ],
+            "correct_answer": "D",
+            "analysis": "屋面最小坡度：压型金属板：5%。",
+        },
+        user_message="别展开，一句话告诉我，我选C对不对。",
+    )
+
+    assert response == "不对，标准答案是 D（D. 5%），题库解析依据是：屋面最小坡度：压型金属板：5%。"
+    assert "##" not in response
+    assert "下一步建议" not in response
+
+
 def test_build_exact_authority_response_strips_internal_analysis_markers() -> None:
     response = build_exact_authority_response(
         {

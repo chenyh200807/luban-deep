@@ -922,8 +922,12 @@ class AgentLoop:
         return not (isinstance(missing, list) and missing and coverage_ratio < 0.999)
 
     @staticmethod
-    def _build_exact_authority_response_sync(exact_question: dict[str, Any]) -> str:
-        return build_exact_authority_response(exact_question)
+    def _build_exact_authority_response_sync(
+        exact_question: dict[str, Any],
+        *,
+        user_message: Any = "",
+    ) -> str:
+        return build_exact_authority_response(exact_question, user_message=user_message)
 
     @staticmethod
     def _filter_out_tool_definitions(
@@ -1194,6 +1198,7 @@ class AgentLoop:
             exact_response = await self._build_exact_authority_response(
                 exact_authority,
                 runtime_metadata=runtime_metadata,
+                user_message=self._latest_user_message(messages),
             )
             if exact_response:
                 final_content = exact_response
@@ -1219,9 +1224,10 @@ class AgentLoop:
         exact_question: dict[str, Any],
         *,
         runtime_metadata: dict[str, Any] | None = None,
+        user_message: Any = "",
     ) -> str:
         _ = runtime_metadata
-        return build_exact_authority_response(exact_question)
+        return build_exact_authority_response(exact_question, user_message=user_message)
 
     @staticmethod
     def _replace_last_assistant_message(messages: list[dict[str, Any]], content: str) -> None:
@@ -1229,6 +1235,13 @@ class AgentLoop:
             if str(item.get("role") or "") == "assistant":
                 item["content"] = content
                 return
+
+    @staticmethod
+    def _latest_user_message(messages: list[dict[str, Any]]) -> str:
+        for item in reversed(messages):
+            if str(item.get("role") or "") == "user":
+                return str(item.get("content") or "").strip()
+        return ""
 
     @staticmethod
     def _has_default_rag_grounding(runtime_metadata: dict[str, Any] | None) -> bool:
@@ -2362,6 +2375,7 @@ class AgentLoop:
         exact_response = await self._build_exact_authority_response(
             exact_candidate,
             runtime_metadata=runtime_metadata,
+            user_message=current_message,
         )
         if not exact_response:
             return None

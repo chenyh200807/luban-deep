@@ -22,7 +22,7 @@ def _compact_text(text: Any) -> str:
 def _extract_marked_mcq_answers(text: str) -> list[str]:
     answers: list[str] = []
     for match in re.finditer(
-        r"(?:标准答案|正确答案|参考答案|答案)\s*[：:]\s*([A-E](?:\s*[、，,/／\s]?\s*[A-E])*)",
+        r"(?:标准答案|正确答案|参考答案|答案)\s*(?:[是为]|[：:])\s*([A-E](?:\s*[、，,/／\s]?\s*[A-E])*)",
         str(text or ""),
         flags=re.IGNORECASE,
     ):
@@ -263,6 +263,64 @@ def _sentence(text: str) -> str:
     return clean if clean[-1] in "。！？.!?" else f"{clean}。"
 
 
+def _wants_brief_exact_authority_response(user_message: Any) -> bool:
+    text = str(user_message or "").strip().lower()
+    if not text:
+        return False
+    return any(
+        marker in text
+        for marker in (
+            "一句话",
+            "一两句",
+            "别展开",
+            "不要展开",
+            "不用展开",
+            "别废话",
+            "少废话",
+            "只说答案",
+            "只要答案",
+            "直接说",
+            "不用解析",
+            "不要解析",
+            "不需要解析",
+            "one sentence",
+            "just answer",
+            "no explanation",
+        )
+    )
+
+
+def _extract_user_mcq_answer(user_message: Any) -> str:
+    text = str(user_message or "").strip()
+    patterns = (
+        r"(?:我\s*)?(?:选|答|答案是|答案为)\s*([A-E](?:\s*[、，,/／\s]?\s*[A-E])*)",
+        r"([A-E](?:\s*[、，,/／\s]?\s*[A-E])*)\s*(?:对不对|是不是|是否正确)",
+        r"\b(?:choose|answer)\s*([A-E](?:\s*[,/ ]?\s*[A-E])*)\b",
+    )
+    for pattern in patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if match:
+            normalized = _normalize_mcq_answer_letters(match.group(1))
+            if normalized:
+                return normalized
+    return ""
+
+
+def _build_brief_mcq_exact_authority_response(
+    *,
+    normalized_answer: str,
+    answer_text: str,
+    core_rule: str,
+    user_message: Any,
+) -> str:
+    user_answer = _extract_user_mcq_answer(user_message)
+    explanation = _sentence(core_rule)
+    if user_answer:
+        verdict = "对" if user_answer == normalized_answer else "不对"
+        return f"{verdict}，标准答案是 {answer_text}，题库解析依据是：{explanation}".strip()
+    return f"标准答案是 {answer_text}，题库解析依据是：{explanation}".strip()
+
+
 def _build_mcq_pitfall_section(
     *,
     normalized_answer: str,
@@ -417,7 +475,11 @@ def build_mcq_review_notes_from_exact_question(exact_question: dict[str, Any]) -
     }
 
 
-def build_exact_authority_response(exact_question: dict[str, Any]) -> str:
+def build_exact_authority_response(
+    exact_question: dict[str, Any],
+    *,
+    user_message: Any = "",
+) -> str:
     answer_kind = str(exact_question.get("answer_kind") or "").strip().lower()
     if answer_kind == "mcq":
         answer = str(exact_question.get("correct_answer") or "").strip()
@@ -442,6 +504,13 @@ def build_exact_authority_response(exact_question: dict[str, Any]) -> str:
         correct_text = "、".join(correct_labels) if correct_labels else normalized_answer
         wrong_text = "、".join(wrong_labels) if wrong_labels else "非标准答案选项"
         core_rule = summary or f"本题以题库标准答案 {answer_text} 为准。"
+        if _wants_brief_exact_authority_response(user_message):
+            return _build_brief_mcq_exact_authority_response(
+                normalized_answer=normalized_answer,
+                answer_text=answer_text,
+                core_rule=core_rule,
+                user_message=user_message,
+            )
         memory_hook = (
             " + ".join(option_values[letter] for letter in normalized_answer if option_values.get(letter))
             or normalized_answer
