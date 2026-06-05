@@ -283,6 +283,11 @@ def _wants_brief_exact_authority_response(user_message: Any) -> bool:
             "不用解析",
             "不要解析",
             "不需要解析",
+            "别讲全题",
+            "不要讲全题",
+            "不用讲全题",
+            "别讲整题",
+            "不用讲整题",
             "one sentence",
             "just answer",
             "no explanation",
@@ -293,6 +298,7 @@ def _wants_brief_exact_authority_response(user_message: Any) -> bool:
 def _extract_user_mcq_answer(user_message: Any) -> str:
     text = str(user_message or "").strip()
     patterns = (
+        r"(?:我(?:实际|真正|就)?|实际|真正)?\s*(?:答案)?\s*(?:选了|选|答|填|写)(?:的是|是|的)?\s*([A-E](?:\s*[、，,/／\s]?\s*[A-E])*)",
         r"(?:我\s*)?(?:选|答|答案是|答案为)\s*([A-E](?:\s*[、，,/／\s]?\s*[A-E])*)",
         r"([A-E](?:\s*[、，,/／\s]?\s*[A-E])*)\s*(?:对不对|是不是|是否正确)",
         r"\b(?:choose|answer)\s*([A-E](?:\s*[,/ ]?\s*[A-E])*)\b",

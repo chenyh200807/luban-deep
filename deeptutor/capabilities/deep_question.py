@@ -1273,6 +1273,103 @@ def _looks_like_option_mapping_challenge(user_message: str) -> bool:
     )
 
 
+def _looks_like_wrong_cause_request(user_message: str) -> bool:
+    text = str(user_message or "").strip().lower()
+    if not text:
+        return False
+    return any(marker in text for marker in ("错因", "错在哪", "哪里错", "为什么错"))
+
+
+def _looks_like_missing_selection_check(user_message: str) -> bool:
+    text = str(user_message or "").strip().lower()
+    if not text:
+        return False
+    return any(marker in text for marker in ("漏没漏", "漏没", "漏了没", "有没有漏", "少没少"))
+
+
+def _brief_option_focus(option_text: str, *, fallback: str) -> str:
+    text = _compact_text(option_text)
+    if not text:
+        return fallback
+    if "槽段" in text:
+        return "槽段长度"
+    if "导墙" in text and ("高度" in text or "1.0" in text or "1.2" in text):
+        return "导墙高度"
+    if "施工方案" in text:
+        return "施工方案"
+    if "支架构造" in text:
+        return "支架构造"
+    if "支架稳定" in text:
+        return "支架稳定"
+    return text[:8] or fallback
+
+
+def _render_brief_wrong_cause(item: dict[str, Any]) -> str:
+    correct_letters = set(_answer_letters(item.get("correct_answer")))
+    user_letters = set(_answer_letters(item.get("user_answer")))
+    options = dict(_option_entries(item))
+    extra_letters = sorted(user_letters - correct_letters)
+    missing_letters = sorted(correct_letters - user_letters)
+    if extra_letters:
+        focus = _brief_option_focus(
+            options.get(extra_letters[0], ""),
+            fallback=f"{extra_letters[0]}项",
+        )
+        return f"误选{focus}。"
+    if missing_letters:
+        focus = _brief_option_focus(
+            options.get(missing_letters[0], ""),
+            fallback=f"{missing_letters[0]}项",
+        )
+        return f"漏选{focus}。"
+    if item.get("is_correct") is True:
+        return "没错，答案正确。"
+    return "错在选项判断。"
+
+
+def _render_brief_missing_selection_check(item: dict[str, Any]) -> str:
+    user_answer = "".join(_answer_letters(item.get("user_answer")))
+    correct_answer = "".join(_answer_letters(item.get("correct_answer")))
+    if item.get("is_correct") is True and user_answer:
+        return f"没漏，{user_answer}都选对。"
+    correct_letters = set(_answer_letters(item.get("correct_answer")))
+    user_letters = set(_answer_letters(item.get("user_answer")))
+    missing_letters = sorted(correct_letters - user_letters)
+    if missing_letters:
+        return f"漏选{''.join(missing_letters)}。"
+    if correct_answer:
+        return f"以标准答案{correct_answer}为准。"
+    return "需要题目答案才能判断。"
+
+
+def _render_brief_value_challenge(user_message: str, item: dict[str, Any]) -> str:
+    text = str(user_message or "")
+    explanation = str(item.get("explanation") or "")
+    if "1.0" in text and "1.2" in explanation:
+        return "不行，应≥1.2m。"
+    return ""
+
+
+def _render_targeted_brief_reference_feedback(
+    user_message: str,
+    question_context: dict[str, Any] | None,
+) -> str:
+    if not looks_like_explicit_brevity_request(user_message):
+        return ""
+    items = _reference_items(question_context)
+    if len(items) != 1:
+        return ""
+    item = items[0]
+    value_answer = _render_brief_value_challenge(user_message, item)
+    if value_answer:
+        return value_answer
+    if _looks_like_wrong_cause_request(user_message):
+        return _render_brief_wrong_cause(item)
+    if _looks_like_missing_selection_check(user_message):
+        return _render_brief_missing_selection_check(item)
+    return ""
+
+
 def _render_brief_reference_feedback(
     user_message: str,
     question_context: dict[str, Any] | None,
@@ -1306,6 +1403,9 @@ def _render_deterministic_reference_feedback(
     *,
     user_message: str = "",
 ) -> str:
+    targeted_brief = _render_targeted_brief_reference_feedback(user_message, question_context)
+    if targeted_brief:
+        return targeted_brief
     if looks_like_explicit_brevity_request(user_message):
         return _render_brief_reference_feedback(user_message, question_context)
 

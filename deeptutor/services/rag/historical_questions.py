@@ -36,7 +36,7 @@ def resolve_historical_question(
 
     best: tuple[int, dict[str, Any]] | None = None
     for candidate in _load_question_bank(str(root)):
-        score = _match_score(query_surface, candidate)
+        score = _match_score(query_surface, candidate, query=query)
         if score <= 0:
             continue
         if best is None or score > best[0]:
@@ -208,11 +208,9 @@ def _build_exact_question(
     }
 
 
-def _match_score(query_surface: str, candidate: dict[str, Any]) -> int:
+def _match_score(query_surface: str, candidate: dict[str, Any], *, query: str = "") -> int:
     stem = _normalize_surface(candidate.get("stem"))
     stem_score = _stem_match_score(query_surface, stem)
-    if not stem_score:
-        return 0
     option_values = [
         _normalize_surface(item.get("value"))
         for item in candidate.get("options") or []
@@ -221,7 +219,15 @@ def _match_score(query_surface: str, candidate: dict[str, Any]) -> int:
     option_values = [value for value in option_values if value]
     if not option_values:
         return 0
-    matches = sum(1 for value in option_values if value in query_surface)
+    if not stem_score:
+        return _value_only_option_surface_match_score(
+            query_surface,
+            candidate,
+            query=query,
+        )
+    matches = sum(
+        1 for value in option_values if _option_value_matches_query_surface(query_surface, value)
+    )
     required = 2 if len(option_values) >= 3 else 1
     if stem not in query_surface:
         required = min(len(option_values), max(required, 3))
@@ -257,6 +263,14 @@ def _project_to_query_option_surface(candidate: dict[str, Any], query: str) -> d
     projected = dict(candidate)
     query_options = _extract_query_options(query)
     if len(query_options) < 2:
+        if _value_only_option_surface_match_score(
+            _normalize_surface(query),
+            candidate,
+            query=query,
+        ):
+            metadata = dict(projected.get("metadata") or {})
+            metadata["option_surface"] = "canonical_value_only_query"
+            projected["metadata"] = metadata
         return projected
 
     canonical_by_value = _unique_options_by_normalized_value(candidate.get("options"))
@@ -310,6 +324,66 @@ def _unique_options_by_normalized_value(raw: Any) -> dict[str, dict[str, str]]:
     for duplicate in duplicates:
         by_value.pop(duplicate, None)
     return by_value
+
+
+def _value_only_option_surface_match_score(
+    query_surface: str,
+    candidate: dict[str, Any],
+    *,
+    query: str = "",
+) -> int:
+    if len(_extract_query_options(query)) >= 2:
+        return 0
+    if not _extract_query_answer_letters(query):
+        return 0
+    options = [
+        item
+        for item in candidate.get("options") or []
+        if isinstance(item, dict) and str(item.get("value") or "").strip()
+    ]
+    if len(options) < 4:
+        return 0
+    matches = sum(
+        1
+        for item in options
+        if _option_value_matches_query_surface(query_surface, str(item.get("value") or ""))
+    )
+    required = min(len(options), 4)
+    if matches < required:
+        return 0
+    return matches * 100 + len(str(candidate.get("correct_answer") or ""))
+
+
+def _extract_query_answer_letters(query: str) -> str:
+    text = str(query or "").strip()
+    if not text:
+        return ""
+    patterns = (
+        r"(?:我\s*)?(?:是不是\s*)?(?:选|答|答案(?:是|为)?)\s*([A-E](?:\s*[、，,/／\s]?\s*[A-E])*)",
+        r"([A-E](?:\s*[、，,/／\s]?\s*[A-E])*)\s*(?:对不对|是不是|是否正确)",
+    )
+    for pattern in patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if not match:
+            continue
+        answer = _normalize_answer_key(match.group(1))
+        if answer:
+            return answer
+    return ""
+
+
+def _option_value_matches_query_surface(query_surface: str, option_value: str) -> bool:
+    option_surface = _normalize_surface(option_value)
+    if not query_surface or not option_surface:
+        return False
+    if option_surface in query_surface:
+        return True
+    option_grams = _char_ngrams(option_surface, size=2)
+    query_grams = _char_ngrams(query_surface, size=2)
+    if not option_grams or not query_grams:
+        return False
+    overlap = len(option_grams & query_grams)
+    return overlap >= 3 and overlap / len(option_grams) >= 0.30
 
 
 def _extract_query_options(query: str) -> list[dict[str, str]]:

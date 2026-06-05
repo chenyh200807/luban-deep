@@ -91,6 +91,64 @@ def test_resolve_submission_maps_judgment_text_to_option_key() -> None:
     assert answer == "B"
 
 
+def test_resolve_submission_attempt_extracts_explicit_natural_option_values() -> None:
+    target, submission = resolve_submission_attempt(
+        "五个候选是施工方案、支架构造、底座与托撑、构配件材质、支架稳定。我只勾施工方案+支架构造+支架稳定，能拿满吗？",
+        {
+            "question_id": "q_template_support",
+            "question": "模板支架检查评分表保证项目包括哪些？",
+            "question_type": "choice",
+            "options": {
+                "A": "施工方案",
+                "B": "支架构造",
+                "C": "底座与托撑",
+                "D": "构配件材质",
+                "E": "支架稳定",
+            },
+            "correct_answer": "ABE",
+            "multi_select": True,
+        },
+    )
+
+    assert target is not None
+    assert submission == {
+        "kind": "single",
+        "answer": "ABE",
+        "question_id": "q_template_support",
+    }
+
+
+def test_resolve_submission_attempt_extracts_explicit_letters_after_option_table() -> None:
+    target, submission = resolve_submission_attempt(
+        (
+            "地下连续墙施工质量控制多选：A.槽段长度8-10m B.导墙高度1.0m "
+            "C.现浇钢筋混凝土导墙 D.导管法连续浇筑混凝土 "
+            "E.设计强度后墙底注浆。我实际选的是ACDE，对吗？"
+        ),
+        {
+            "question_id": "q_wall",
+            "question": "地下连续墙施工质量控制，下列说法正确的有？",
+            "question_type": "choice",
+            "options": {
+                "A": "槽段长度8-10m",
+                "B": "导墙高度1.0m",
+                "C": "现浇钢筋混凝土导墙",
+                "D": "导管法连续浇筑混凝土",
+                "E": "设计强度后墙底注浆",
+            },
+            "correct_answer": "CDE",
+            "multi_select": True,
+        },
+    )
+
+    assert target is not None
+    assert submission == {
+        "kind": "single",
+        "answer": "ACDE",
+        "question_id": "q_wall",
+    }
+
+
 def test_resolve_submission_attempt_accepts_subjective_case_answer() -> None:
     target, submission = resolve_submission_attempt(
         "我的答案：共用一个开关箱不妥，应采用专用开关箱。请按案例题阅卷标准批改。",
@@ -901,6 +959,8 @@ def test_normalize_question_followup_context_preserves_compact_evidence_refs() -
             "source": "evidence_bundle",
             "field": "kb_chunks",
             "content": "危大工程应编制专项施工方案，超过一定规模的应组织专家论证。",
+            "source_type": "evidence_bundle",
+            "public_quote": "危大工程应编制专项施工方案，超过一定规模的应组织专家论证。",
         }
     ]
 

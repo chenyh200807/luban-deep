@@ -662,6 +662,7 @@ async def test_orchestrator_marks_low_information_exam_query_without_exact_autho
             "我在小程序刷题，别让我再复制题干。"
         ),
         "2021屋面案例第4问答案发我，快点，我在刷题页面。",
+        "2015案例二第3问答案直接发我，我在题卡里。",
     ],
 )
 async def test_orchestrator_blocks_colloquial_exact_answer_request_without_stem(message: str) -> None:

@@ -10,6 +10,7 @@ from deeptutor.core.capability_protocol import BaseCapability, CapabilityManifes
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream_bus import StreamBus
 from deeptutor.services.question_followup import (
+    annotate_submission_context_from_message,
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_result_summary,
     detect_answer_reveal_preference,
@@ -596,14 +597,20 @@ class TutorBotCapability(BaseCapability):
             if state_result_summary:
                 # Authority-gated: question_followup_context + active_object
                 # only emitted when exact_question authority is present.
-                result_payload["question_followup_context"] = (
-                    build_question_followup_context_from_result_summary(
-                        state_result_summary,
-                        final_response,
-                        reveal_answers=state_reveal_answers,
-                        reveal_explanations=state_reveal_explanations,
-                    )
+                question_followup_context = build_question_followup_context_from_result_summary(
+                    state_result_summary,
+                    final_response,
+                    reveal_answers=state_reveal_answers,
+                    reveal_explanations=state_reveal_explanations,
                 )
+                question_followup_context = (
+                    annotate_submission_context_from_message(
+                        self._raw_user_message(context),
+                        question_followup_context,
+                    )
+                    or question_followup_context
+                )
+                result_payload["question_followup_context"] = question_followup_context
                 if result_payload["question_followup_context"]:
                     result_payload["active_object"] = (
                         build_active_object_from_question_context(

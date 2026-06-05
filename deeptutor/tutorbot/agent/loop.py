@@ -921,6 +921,30 @@ class AgentLoop:
             coverage_ratio = 0.0
         return not (isinstance(missing, list) and missing and coverage_ratio < 0.999)
 
+    @classmethod
+    def _prefetched_exact_authority_candidate(
+        cls,
+        runtime_metadata: dict[str, Any] | None,
+        *,
+        current_message: str = "",
+    ) -> dict[str, Any] | None:
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        exact_question = metadata.get("_prefetched_exact_question")
+        if not isinstance(exact_question, dict) or not exact_question:
+            return None
+        if str(metadata.get("exact_question_blocked_reason") or "").strip():
+            return None
+        if cls._is_question_review_scene(metadata):
+            return None
+        tool_query = cls._resolve_tool_query(current_message, metadata)
+        if bool(metadata.get("suppress_answer_reveal_on_generate")) and (
+            looks_like_practice_generation_request(tool_query)
+        ):
+            return None
+        if not cls._should_force_exact_authority(exact_question):
+            return None
+        return exact_question
+
     @staticmethod
     def _build_exact_authority_response_sync(
         exact_question: dict[str, Any],
@@ -1627,7 +1651,12 @@ class AgentLoop:
         )
         if isinstance(exact_candidate, dict):
             runtime_metadata["_prefetched_exact_question"] = exact_candidate
-            if self._prefetched_case_exact_question_can_answer(runtime_metadata):
+            if self._prefetched_exact_authority_candidate(
+                runtime_metadata,
+                current_message=current_message,
+            ):
+                merged_metadata["authority_applied"] = True
+            elif self._prefetched_case_exact_question_can_answer(runtime_metadata):
                 merged_metadata["authority_applied"] = True
 
         if on_tool_call:
@@ -2921,6 +2950,60 @@ class AgentLoop:
             on_tool_call=on_tool_call,
             on_tool_result=on_tool_result,
         )
+        prefetched_exact_authority = self._prefetched_exact_authority_candidate(
+            runtime_metadata,
+            current_message=current_message,
+        )
+        if prefetched_exact_authority:
+            final_content = await self._build_exact_authority_response(
+                prefetched_exact_authority,
+                runtime_metadata=runtime_metadata,
+                user_message=current_message,
+            )
+            if final_content:
+                final_content = normalize_anchor_terms_in_response(
+                    user_message=current_message,
+                    response=final_content,
+                ) or final_content
+                final_content = correct_construction_exam_boundary_fact_response(
+                    user_message=current_message,
+                    response=final_content,
+                ) or final_content
+                final_content = self._degraded_exact_answer_claim_response(
+                    user_message=current_message,
+                    final_content=final_content,
+                    runtime_metadata=runtime_metadata,
+                ) or final_content
+                final_content = self._degraded_mcq_grading_response(
+                    user_message=current_message,
+                    final_content=final_content,
+                    runtime_metadata=runtime_metadata,
+                ) or final_content
+                guarded_output = guard_tutorbot_output(final_content)
+                final_content = guarded_output.content or final_content
+                all_msgs = self.context.add_assistant_message(initial_messages, final_content)
+                await self._emit_visible_text_deltas(final_content, on_content_delta)
+                self._save_turn(session, all_msgs, 1 + len(history))
+                session.metadata["last_exact_fast_path"] = False
+                self.sessions.save(session)
+                await self.memory_consolidator.maybe_consolidate_by_tokens(session)
+                preview = (
+                    final_content[:120] + "..."
+                    if len(final_content) > 120
+                    else final_content
+                )
+                logger.info(
+                    "Prefetched exact authority response to {}:{}: {}",
+                    msg.channel,
+                    msg.sender_id,
+                    preview,
+                )
+                return OutboundMessage(
+                    channel=msg.channel,
+                    chat_id=msg.chat_id,
+                    content=final_content,
+                    metadata=msg.metadata or {},
+                )
         if response_mode == "fast":
             suppress_fast_stream = self._should_suppress_stream_for_degraded_answer(
                 user_message=current_message,

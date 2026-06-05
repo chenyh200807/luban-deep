@@ -6553,6 +6553,146 @@ async def test_tutorbot_fast_process_direct_prefetches_rag_for_case_grading_scen
 
 
 @pytest.mark.asyncio
+async def test_tutorbot_fast_process_direct_prefetched_exact_mcq_takes_authority(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    captured: dict[str, Any] = {"tool_results": [], "deltas": []}
+    user_message = (
+        "模板支架检查评分表保证项目那题，五个候选是施工方案、支架构造、"
+        "底座与托撑、构配件材质、支架稳定。我只勾施工方案+支架构造+支架稳定，能拿满吗？"
+    )
+
+    class RejectingProvider(LLMProvider):
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            raise AssertionError("prefetched exact MCQ authority must bypass plain fast LLM writer")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class PrefetchExactMcqTool(Tool):
+        def __init__(self) -> None:
+            self._trace_metadata = {
+                "kb_name": "construction-exam",
+                "sources": [{"chunk_id": "template-support-001", "source_type": "REAL_EXAM"}],
+                "authority_applied": False,
+                "exact_question": {
+                    "answer_kind": "mcq",
+                    "stem": "模板支架检查评分表保证项目包括（ ）。",
+                    "question_type": "multi_choice",
+                    "correct_answer": "ABE",
+                    "analysis": "模板支架检查评分表保证项目包括施工方案、支架构造、支架稳定。",
+                    "options": [
+                        {"key": "A", "value": "施工方案"},
+                        {"key": "B", "value": "支架构造"},
+                        {"key": "C", "value": "底座与托撑"},
+                        {"key": "D", "value": "构配件材质"},
+                        {"key": "E", "value": "支架稳定"},
+                    ],
+                },
+            }
+
+        @property
+        def name(self) -> str:
+            return "rag"
+
+        @property
+        def description(self) -> str:
+            return "prefetched exact mcq rag"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {"query": {"type": "string"}, "kb_name": {"type": "string"}},
+                "required": ["query"],
+            }
+
+        async def execute(self, **kwargs: Any) -> str:
+            assert kwargs["query"] == user_message
+            assert kwargs["kb_name"] == "construction-exam"
+            return "题库命中模板支架保证项目原题"
+
+        def preview_args(self, params: dict[str, Any]) -> dict[str, Any]:
+            return dict(params)
+
+        def consume_trace_metadata(self) -> dict[str, Any] | None:
+            metadata = dict(self._trace_metadata)
+            self._trace_metadata = {}
+            return metadata
+
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=RejectingProvider(),
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(
+                metadata={},
+                key=key,
+                messages=[],
+                get_history=lambda max_messages=0: [],
+            ),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+    loop.tools.register(PrefetchExactMcqTool())
+
+    async def _no_exact_fast_path(*_args, **_kwargs):
+        return None
+
+    monkeypatch.setattr(loop, "_maybe_run_exact_rag_fast_path", _no_exact_fast_path)
+
+    content = await loop.process_direct(
+        user_message,
+        metadata={
+            "bot_id": "construction-exam-coach",
+            "default_tools": ["rag"],
+            "default_kb": "construction-exam",
+            "knowledge_bases": ["construction-exam"],
+            "effective_response_mode": "fast",
+            "question_lifecycle_scene": "mcq_grading",
+        },
+        on_content_delta=lambda value: _capture_async(captured["deltas"], value),
+        on_tool_result=lambda name, result, metadata: _capture_async(
+            captured["tool_results"], (name, result, metadata)
+        ),
+    )
+
+    assert "标准答案：ABE" in content
+    assert "施工方案" in content
+    assert "支架稳定" in content
+    assert captured["tool_results"][0][2]["authority_applied"] is True
+    assert "".join(captured["deltas"]) == content
+
+
+@pytest.mark.asyncio
 async def test_tutorbot_fast_process_direct_does_not_deny_answer_claim_when_rag_degraded(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,

@@ -122,6 +122,30 @@ def test_build_exact_authority_response_honors_explicit_brief_mcq_request() -> N
     assert "下一步建议" not in response
 
 
+def test_build_exact_authority_response_honors_do_not_review_whole_question() -> None:
+    response = build_exact_authority_response(
+        {
+            "answer_kind": "mcq",
+            "stem": "地下连续墙施工质量控制，下列说法正确的有？",
+            "options": [
+                {"key": "A", "value": "槽段长度8-10m"},
+                {"key": "B", "value": "导墙高度1.0m"},
+                {"key": "C", "value": "现浇钢筋混凝土导墙"},
+                {"key": "D", "value": "导管法连续浇筑混凝土"},
+                {"key": "E", "value": "设计强度后墙底注浆"},
+            ],
+            "correct_answer": "CDE",
+            "analysis": "A 错误；地下连续墙单元槽段长度宜为 4～6m。B 错误；导墙高度应≥1.2m。",
+        },
+        user_message="我实际选的是ACDE，对吗？别讲全题。",
+    )
+
+    assert response.startswith("不对，标准答案是 CDE")
+    assert "题库解析依据是" in response
+    assert "##" not in response
+    assert "下一步建议" not in response
+
+
 def test_build_exact_authority_response_strips_internal_analysis_markers() -> None:
     response = build_exact_authority_response(
         {

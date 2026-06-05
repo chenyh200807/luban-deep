@@ -436,6 +436,8 @@ def is_low_information_exam_query(query: str) -> bool:
         "标准答案",
         "直接告诉",
         "只要答案",
+        "发答案",
+        "给答案",
     )
     concrete_stem_markers = (
         "下列",
@@ -445,8 +447,19 @@ def is_low_information_exam_query(query: str) -> bool:
         "不宜",
         "应为",
     )
+    case_question_index_pattern = (
+        r"(?:20\d{2}年?)?[\u4e00-\u9fffA-Za-z0-9]{0,16}"
+        r"案例(?:第?[0-9一二两三四五六七八九十]+)?第?[0-9一二两三四五六七八九十]+问"
+    )
     if (
-        re.search(r"(?:20\d{2}年?)?[\u4e00-\u9fffA-Za-z0-9]{0,16}案例第?[0-9一二两三四五六七八九十]+问", text)
+        re.search(case_question_index_pattern, text)
+        and any(marker in text for marker in answer_request_markers)
+        and not _FREE_TEXT_MCQ_OPTION_LIST_RE.search(str(query or ""))
+        and not any(marker in text for marker in concrete_stem_markers)
+    ):
+        return True
+    if (
+        "题卡" in text
         and any(marker in text for marker in answer_request_markers)
         and not _FREE_TEXT_MCQ_OPTION_LIST_RE.search(str(query or ""))
         and not any(marker in text for marker in concrete_stem_markers)
@@ -1100,7 +1113,9 @@ def _looks_like_free_text_case_grading(user_message: str) -> bool:
 def _looks_like_free_text_mcq_grading(user_message: str) -> bool:
     has_question_signal = any(
         marker in user_message for marker in _FREE_TEXT_MCQ_GRADING_CONTEXT_MARKERS
-    ) or (_FREE_TEXT_MCQ_OPTION_LIST_RE.search(user_message) is not None)
+    ) or (
+        _FREE_TEXT_MCQ_OPTION_LIST_RE.search(user_message) is not None
+    ) or _looks_like_value_only_mcq_option_surface(user_message)
     has_option_selection = _FREE_TEXT_MCQ_OPTION_SELECTION_RE.search(user_message) is not None
     has_grading_action = has_option_selection or any(
         marker in user_message
@@ -1108,6 +1123,44 @@ def _looks_like_free_text_mcq_grading(user_message: str) -> bool:
         if marker != "我选"
     )
     return has_question_signal and has_grading_action
+
+
+def _looks_like_value_only_mcq_option_surface(user_message: str) -> bool:
+    if not _FREE_TEXT_MCQ_OPTION_SELECTION_RE.search(user_message):
+        return False
+    head = re.split(
+        r"(?:我\s*)?(?:是不是\s*)?(?:选|答|答案(?:是|为)?)\s*[A-Ea-e]",
+        str(user_message or ""),
+        maxsplit=1,
+    )[0]
+    fragments = [
+        fragment.strip(" 　。.!！?；;，,、：:")
+        for fragment in re.split(r"[、，,；;]", head)
+        if fragment.strip(" 　。.!！?；;，,、：:")
+    ]
+    if len(fragments) < 4:
+        return False
+    option_like = 0
+    for fragment in fragments:
+        if len(fragment) < 2:
+            continue
+        if re.search(r"\d", fragment) or any(
+            marker in fragment
+            for marker in (
+                "导墙",
+                "槽段",
+                "混凝土",
+                "导管",
+                "注浆",
+                "施工",
+                "支架",
+                "方案",
+                "构造",
+                "稳定",
+            )
+        ):
+            option_like += 1
+    return option_like >= 3
 
 
 def _looks_like_unanchored_mcq_answer_submission(

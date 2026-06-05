@@ -170,6 +170,87 @@ async def test_tutorbot_low_information_clarification_uses_raw_user_message(
 
 
 @pytest.mark.asyncio
+async def test_tutorbot_exact_authority_persists_natural_submission_attempt(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeManager:
+        async def ensure_bot_running(self, bot_id: str, config=None) -> None:
+            return None
+
+        def build_chat_session_key(
+            self,
+            bot_id: str,
+            conversation_id: str,
+            user_id: str | None = None,
+        ) -> str:
+            return f"bot:{bot_id}:chat:{conversation_id}"
+
+        def _infer_conversation_title(self, text: str) -> str:
+            return text[:8]
+
+        async def send_message(self, **kwargs) -> str:
+            on_tool_result = kwargs.get("on_tool_result")
+            if on_tool_result is not None:
+                await on_tool_result(
+                    "rag",
+                    "题库命中模板支架保证项目原题",
+                    {
+                        "authority_applied": True,
+                        "exact_question": {
+                            "answer_kind": "mcq",
+                            "stem": "模板支架检查评分表保证项目包括（ ）。",
+                            "question_type": "multi_choice",
+                            "correct_answer": "ABE",
+                            "analysis": "模板支架检查评分表保证项目包括施工方案、支架构造、支架稳定。",
+                            "options": [
+                                {"key": "A", "value": "施工方案"},
+                                {"key": "B", "value": "支架构造"},
+                                {"key": "C", "value": "底座与托撑"},
+                                {"key": "D", "value": "构配件材质"},
+                                {"key": "E", "value": "支架稳定"},
+                            ],
+                        },
+                    },
+                )
+            return "标准答案：ABE。你只勾施工方案、支架构造、支架稳定，可以拿满。"
+
+    monkeypatch.setattr(
+        tutorbot_capability,
+        "get_tutorbot_manager",
+        lambda: FakeManager(),
+    )
+
+    stream = StreamBus()
+    context = UnifiedContext(
+        session_id="s-exact-natural-submission",
+        user_message=(
+            "五个候选是施工方案、支架构造、底座与托撑、构配件材质、支架稳定。"
+            "我只勾施工方案+支架构造+支架稳定，能拿满吗？"
+        ),
+        config_overrides={
+            "bot_id": "construction-exam-coach",
+            "chat_mode": "fast",
+        },
+        metadata={"billing_context": {"user_id": "u1", "source": "wx_miniprogram"}},
+        language="zh",
+    )
+
+    await TutorBotCapability().run(context, stream)
+
+    result_events = [event for event in stream._history if event.type == StreamEventType.RESULT]
+    assert result_events
+    result_payload = result_events[-1].metadata
+    question_context = result_payload["question_followup_context"]
+    assert result_payload["authority_applied"] is True
+    assert question_context["reveal_answers"] is True
+    assert question_context["user_answer"] == "ABE"
+    assert question_context["is_correct"] is True
+    assert question_context["items"][0]["user_answer"] == "ABE"
+    assert question_context["items"][0]["is_correct"] is True
+    assert result_payload["active_object"]["object_type"] == "single_question"
+
+
+@pytest.mark.asyncio
 async def test_tutorbot_exam_catalog_query_answers_directory_without_llm_call(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

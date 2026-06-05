@@ -126,6 +126,41 @@ def test_historical_question_resolver_matches_natural_stem_variant_with_option_s
     assert exact_question["metadata"]["option_surface"] == "query"
 
 
+def test_historical_question_resolver_matches_value_only_ordered_options(tmp_path) -> None:
+    from deeptutor.services.rag.historical_questions import resolve_historical_question
+
+    _write_question_bank(tmp_path)
+    query = (
+        "地下连续墙那个：槽段8-10m、导墙1.0m、现浇导墙、导管法、"
+        "水下混凝土后注浆，我是不是选CDE？别让我重打选项。"
+    )
+
+    exact_question = resolve_historical_question(query, question_bank_dir=str(tmp_path))
+
+    assert exact_question is not None
+    assert exact_question["correct_answer"] == "CDE"
+    assert exact_question["metadata"]["option_surface"] == "canonical_value_only_query"
+
+
+def test_historical_question_resolver_matches_fuzzy_option_surface_with_stem_anchor(
+    tmp_path,
+) -> None:
+    from deeptutor.services.rag.historical_questions import resolve_historical_question
+
+    _write_question_bank(tmp_path)
+    query = (
+        "地下连续墙施工要求：A槽段8-10m B导墙高度≥1.0m "
+        "C现浇钢筋混凝土导墙 D导管法连续浇筑 E达设计强度后墙底注浆。"
+        "我选ACDE，对吗？"
+    )
+
+    exact_question = resolve_historical_question(query, question_bank_dir=str(tmp_path))
+
+    assert exact_question is not None
+    assert exact_question["correct_answer"] == "CDE"
+    assert exact_question["metadata"].get("option_surface") is None
+
+
 def test_historical_question_resolver_does_not_match_option_values_without_stem_anchor(tmp_path) -> None:
     from deeptutor.services.rag.historical_questions import resolve_historical_question
 

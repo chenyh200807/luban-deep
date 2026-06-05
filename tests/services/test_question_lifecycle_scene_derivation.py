@@ -208,6 +208,8 @@ def test_explicit_real_exam_review_action_is_not_low_information_query(message: 
         "解析2025真题第15题",
         "2025年一建建筑实务防水那道真题，直接告诉我答案，我在小程序刷题，别让我再复制题干。",
         "2021屋面案例第4问答案发我，快点，我在刷题页面。",
+        "2015案例二第3问答案直接发我，我在题卡里。",
+        "我说了在题卡里，你就发答案。",
     ],
 )
 def test_low_information_exam_query_is_not_question_review(message: str):
@@ -310,6 +312,25 @@ async def test_low_information_case_answer_request_business_gate_overrides_llm_g
 
 
 @pytest.mark.asyncio
+async def test_low_information_case_ordinal_answer_request_business_gate_overrides_llm_chat_candidate(monkeypatch):
+    async def _fake_complete(**kwargs):
+        assert "题目生命周期语义候选" in kwargs["system_prompt"]
+        return '{"scene":"question_review","confidence":0.88,"reason":"模型误以为题卡可见"}'
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.complete", _fake_complete)
+
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(user_message="2015案例二第3问答案直接发我，我在题卡里。")
+    )
+
+    assert decision.scene is None
+    assert decision.required_anchor_status == "missing_question_anchor"
+    assert decision.exact_question_blocked_reason == "low_information_exam_query"
+    assert decision.needs_clarification is True
+    assert decision.business_gate_result == "blocked_low_information_exam_query"
+
+
+@pytest.mark.asyncio
 async def test_unanchored_mcq_answer_returns_clarification_decision():
     decision = await resolve_question_lifecycle_scene_decision(
         _FakeContext(user_message="我选B")
@@ -347,6 +368,25 @@ async def test_embedded_mcq_options_after_terminal_mark_is_anchored_grading(term
     message = (
         f"压型金属板采用轻型屋面时，屋面最小坡度宜为多少{terminal}"
         "A. 5% B. 1% C. 2% D. 3%，我选A，对吗？"
+    )
+
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(user_message=message),
+        enable_llm=False,
+    )
+
+    assert derive_question_lifecycle_scene(_FakeContext(user_message=message)) == "mcq_grading"
+    assert looks_like_free_text_mcq_grading_request(message) is True
+    assert decision.scene == "mcq_grading"
+    assert decision.exact_question_blocked_reason == ""
+    assert decision.needs_clarification is False
+
+
+@pytest.mark.asyncio
+async def test_value_only_mcq_options_with_answer_submission_is_anchored_grading():
+    message = (
+        "地下连续墙那个：槽段8-10m、导墙1.0m、现浇导墙、导管法、"
+        "水下混凝土后注浆，我是不是选CDE？别让我重打选项。"
     )
 
     decision = await resolve_question_lifecycle_scene_decision(
