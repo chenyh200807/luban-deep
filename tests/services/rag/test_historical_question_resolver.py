@@ -1,0 +1,138 @@
+from __future__ import annotations
+
+import json
+
+import pytest
+
+
+_UNDERGROUND_WALL_QUERY = (
+    "关于地下连续墙施工要求，正确的有（    ）。\n"
+    "A. 地下连续墙单元槽段长度宜为8～10m\n"
+    "B. 导墙高度不应小于1.0m\n"
+    "C. 应设置现浇钢筋混凝土导墙\n"
+    "D. 水下混凝土应采用导管法连续浇筑\n"
+    "E. 混凝土达到设计强度后方可进行墙底注浆\n"
+    "我选ACDE，对吗？"
+)
+
+
+def _write_question_bank(root) -> None:
+    payload = {
+        "taxonomy": {"node_code": "1A413020", "node_name": "土石方工程施工"},
+        "exercises": [
+            {
+                "type": "multi_choice",
+                "question_data": {
+                    "stem": "关于地下连续墙施工要求，正确的有（    ）。",
+                    "options": [
+                        {"key": "A", "value": "地下连续墙单元槽段长度宜为8～10m"},
+                        {"key": "B", "value": "导墙高度不应小于1.0m"},
+                        {"key": "C", "value": "应设置现浇钢筋混凝土导墙"},
+                        {"key": "D", "value": "水下混凝土应采用导管法连续浇筑"},
+                        {"key": "E", "value": "混凝土达到设计强度后方可进行墙底注浆"},
+                    ],
+                    "correct_answer": "CDE",
+                    "analysis": "A选项错误，槽段长度宜为4～6m。B选项错误，导墙高度不应小于1.2m。",
+                    "score": 2.0,
+                    "difficulty": "hard",
+                },
+                "predicted_node": "1A413020",
+            }
+        ],
+    }
+    (root / "questions.json").write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+
+
+def test_historical_question_resolver_matches_full_mcq_from_configured_bank(tmp_path) -> None:
+    from deeptutor.services.rag.historical_questions import resolve_historical_question
+
+    _write_question_bank(tmp_path)
+
+    exact_question = resolve_historical_question(
+        _UNDERGROUND_WALL_QUERY,
+        question_bank_dir=str(tmp_path),
+    )
+
+    assert exact_question is not None
+    assert exact_question["answer_kind"] == "mcq"
+    assert exact_question["source_group"] == "historical_question_bank"
+    assert exact_question["correct_answer"] == "CDE"
+    assert exact_question["stem"] == "关于地下连续墙施工要求，正确的有（    ）。"
+    assert exact_question["options"][1] == {"key": "B", "value": "导墙高度不应小于1.0m"}
+    assert exact_question["metadata"]["node_code"] == "1A413020"
+    assert "source_path" not in exact_question["metadata"]
+
+
+@pytest.mark.asyncio
+async def test_rag_service_adds_historical_exact_question_when_pipeline_is_empty(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    from deeptutor.services.rag.service import RAGService
+    from deeptutor.services.rag import service as rag_service_module
+
+    _write_question_bank(tmp_path)
+    monkeypatch.setenv("DEEPTUTOR_HISTORICAL_QUESTION_BANK_DIR", str(tmp_path))
+
+    class _EmptyPipeline:
+        async def search(self, **kwargs):
+            return {
+                "query": kwargs["query"],
+                "answer": "No documents indexed. Please upload documents first.",
+                "content": "No documents indexed. Please upload documents first.",
+                "sources": [],
+                "provider": "llamaindex",
+            }
+
+    monkeypatch.setattr(rag_service_module, "get_pipeline", lambda *args, **kwargs: _EmptyPipeline())
+    service = RAGService(provider="llamaindex")
+    monkeypatch.setattr(service, "_get_provider_for_kb", lambda kb_name: "llamaindex")
+
+    result = await service.search(query=_UNDERGROUND_WALL_QUERY, kb_name="construction-exam")
+
+    assert result["exact_question"]["correct_answer"] == "CDE"
+    assert result["exact_question"]["source_group"] == "historical_question_bank"
+    assert result["evidence_bundle"]["exact_question"]["correct_answer"] == "CDE"
+    assert "题库原题" in result["content"]
+    assert "标准答案：CDE" in result["content"]
+
+
+@pytest.mark.asyncio
+async def test_rag_service_returns_historical_exact_question_when_provider_fails(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    from deeptutor.services.rag.exceptions import RAGSearchError
+    from deeptutor.services.rag.service import RAGService
+    from deeptutor.services.rag import service as rag_service_module
+
+    _write_question_bank(tmp_path)
+    monkeypatch.setenv("DEEPTUTOR_HISTORICAL_QUESTION_BANK_DIR", str(tmp_path))
+
+    class _FailingPipeline:
+        async def search(self, **kwargs):
+            raise RAGSearchError(
+                "supabase retrieval failed: Data API unavailable",
+                provider="supabase",
+                kb_name=kwargs["kb_name"],
+                query=kwargs["query"],
+                stage="pipeline.search",
+                retryable=False,
+            )
+
+    monkeypatch.setattr(rag_service_module, "get_pipeline", lambda *args, **kwargs: _FailingPipeline())
+    service = RAGService(provider="supabase")
+    monkeypatch.setattr(service, "_get_provider_for_kb", lambda kb_name: "supabase")
+
+    result = await service.search(query=_UNDERGROUND_WALL_QUERY, kb_name="construction-exam")
+
+    assert result["exact_question"]["correct_answer"] == "CDE"
+    assert result["canonical_question_context"]["answer_key"] == "CDE"
+    assert result["retrieval_degraded"] is True
+    assert result["retrieval_status"] == "provider_failed_exact_question_resolved"
+    assert result["evidence_bundle"]["exact_question"]["correct_answer"] == "CDE"
+    assert result["evidence_bundle"]["canonical_question_context"]["answer_key"] == "CDE"
+    assert result["evidence_bundle"]["retrieval_degraded"] is True
+    assert result["evidence_bundle"]["retrieval_status"] == "provider_failed_exact_question_resolved"
+    assert "题库原题" in result["content"]
+    assert "标准答案：CDE" in result["content"]

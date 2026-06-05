@@ -24,7 +24,7 @@
 | A2 | 防水砂浆温度完整单选题 | 答 C. 5℃ | 答 C，但 RAG 不可用时措辞信心摇摆 | P2 | 暂登记 |
 | B1 | 海洋钢筋锈蚀错选 D | 批错并讲氯盐 | 正确，能解释硫酸盐 vs 氯盐 | Pass | 保留 |
 | B2 | 追问“硫酸盐也腐蚀吧” | 承接上一题 | 正确承接并解释边界 | Pass | 保留 |
-| C1 | 地下连续墙完整多选，用户选 ACDE | 期望 CDE，A/B 错 | 早期错判 B 正确；修 guard 后一度空白兜底；最新 live 不再空白，标记 RAG `empty_index` 并拒绝伪称标准答案 | P1 factual authority / P0 blank fixed | 已修空白与乱改判保护；未修 exact evidence 命中 |
+| C1 | 地下连续墙完整多选，用户选 ACDE | 期望 CDE，A/B 错 | 早期错判 B 正确；修 guard 后一度空白兜底；p06 live 在 Supabase 404 后命中历史题库 exact question，答 CDE 并讲 A/B 错 | Pass with P1 rollout caveat | 已接入历史题库 exact authority；仍需生产题库 artifact/前端题卡对象闭环 |
 | C2 | 接 C1 追问 `guide wall height >=1.0m is OK? yes/no` | No，应按 1.2m | 早期回 Yes；最新 live 回 `No, ≥1.2m` | Pass with caveat | 事实答复已恢复；仍受 RAG empty-index 影响 |
 | D1 | `我选BD，快批，别问太多。` | 无题干时合理澄清 | 正确澄清缺题目 | Pass | 保留 |
 | E1 | 模板支架保证项目完整题，紧凑选项 `A施工方案 B支架构造...我选ABCE对吗` | 识别完整题并批改，答案 ABE | 起初拒绝“还不知道哪道题”；p05 后又被 clarification active_object 阻断 RAG；修后可走 RAG 并答 ABE | P0 fixed | 已修 compact MCQ anchor + clarification active_object 不再禁用新题 RAG |
@@ -59,13 +59,30 @@
    - 完整 MCQ grading 在 RAG empty-index 且无 exact question 时，不再掉到“模型没有返回可见答案”，也不伪称“题库标准答案确认”。
    - WS result metadata 透传 `degraded_mcq_grading_guard_applied=true`。
 
+6. 历史题库 exact authority 接入 RAGService
+   - 新增历史题库 resolver：只在用户消息已经包含完整 MCQ 题干和至少两个选项文本时，从 `DEEPTUTOR_HISTORICAL_QUESTION_BANK_DIR` 配置的题库 JSON 中解析 canonical exact question。
+   - Supabase / RAG provider 失败时，如果完整题能命中历史题库，RAGService 返回 `exact_question`、`canonical_question_context`、`evidence_bundle` 和 `retrieval_status=provider_failed_exact_question_resolved`。
+   - TutorBot final 继续走现有 exact fast path；wrapper 只做入口/异常边界，题目标准答案 authority 放在 RAG fat service 侧。
+   - p06 live evidence：`turn_1780661116386_217dc55edf`，RESULT metadata `authority_applied=true`、`exact_question.source_group=historical_question_bank`、`correct_answer=CDE`、`rag_retrieval_degraded=true`、`degraded_mcq_grading_guard_applied=false`。
+   - 对外 metadata 不再包含本机 `source_path`；live RESULT event 检查未发现 `/Users/yehongchen` 路径泄露。
+
+## Team Monitoring Notes
+
+- 主代理：负责真实小程序同构链路复现、最小代码修复、测试与 scoped commit。
+- 微信链路审计子代理：确认微信主链路应保持 `/api/v1/chat/start-turn` + `/api/v1/ws`，不要新增专用 TutorBot WS；同时标出 `deep_question` 外部预选和 start-turn bootstrap capability 不是最终 authority 的风险。
+- 题目 authority 子代理：确认旧问题不是单题不会做，而是 exact question / active object / RAG evidence 在多个模块间投影不一致；建议把标准答案对象收敛为 canonical question context。
+- 题库探针子代理：提供地下连续墙、屋面上翻高度、危大、见证取样、模板支架、抹灰等 diverse probe 池，用于后续循环。
+- 后台/Langfuse 子代理：确认本地 `.env` 中 `LANGFUSE_ENABLED=false`，当前 live 证据主要来自后端日志和 WS RESULT metadata；Langfuse 还不是本轮真实 trace authority。
+
 ## Open Problems
 
-- P1：地下连续墙真题标准答案仍未根治。C1 现在不空白、不乱改判，但仍没有命中题库 exact question；需要题库 exact question / source evidence 成为唯一答案 authority，不能让闭卷 LLM 或降级文案替代真题标准批改。
+- P1：历史题库 resolver 目前是 full-MCQ vertical slice，不是生产题库总闭环。还需要把签名/可部署的题库 artifact、题卡 id、前端题面对象和 Supabase/KB source evidence 收敛成同一个 canonical question authority。
 - P1：题卡 id / 当前题面对象没有从微信前端稳定传进 TutorBot 时，系统只能澄清，无法兑现“我在小程序刷题，别让我复制题干”的体验。
 - P2：用户明确要求“一句话/别废话”时，TutorBot 仍常输出完整教学模板，表达质量影响满意度。
 - P2：RAG unavailable 的措辞需要更稳定：可以给候选判断，但不能说成题库标准确认。
 - P2：本地 `/api/v1/wechat/mp/login` 缺 `WECHAT_MP_APP_ID/WECHAT_MP_APP_SECRET` 时返回 502；当前 QA 通过注册登录绕过，只验证 `/api/v1/chat/start-turn` + `/api/v1/ws`。
+- P2：auth/register 仍可能被 wallet bootstrap / Supabase wallet 404 拖慢或污染日志；p06 注册本身成功，但后台仍有 wallet 404 观测噪音，需要单独收敛。
+- P2：Langfuse 本地默认未启用；若要把“拒答/降级/exact authority”纳入日常监控，需要显式启用并定义 turn-level trace 字段。
 
 ## Next Loop Probes
 
