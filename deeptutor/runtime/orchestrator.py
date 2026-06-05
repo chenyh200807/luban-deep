@@ -35,6 +35,7 @@ from deeptutor.services.question_followup import (
 )
 from deeptutor.services.question_lifecycle_skills import (
     build_question_lifecycle_clarification_context,
+    looks_like_free_text_mcq_answer_request,
     resolve_question_lifecycle_scene_decision,
     select_question_lifecycle_skill_names,
 )
@@ -194,6 +195,21 @@ class ChatOrchestrator:
         )
         self._record_lifecycle_decision(context, lifecycle_decision)
         lifecycle_scene = lifecycle_decision.scene
+        if (
+            lifecycle_scene is None
+            and self._has_active_lifecycle_context(context)
+            and looks_like_free_text_mcq_answer_request(routing_user_message)
+        ):
+            self._suspend_active_lifecycle_context(context)
+            cap_name = self._default_chat_capability(context)
+            context.metadata["semantic_router_mode"] = "question_lifecycle"
+            context.metadata["semantic_router_mode_reason"] = (
+                "embedded_mcq_answer_request_replaces_active_object"
+            )
+            context.metadata["semantic_router_shadow_decision"] = {}
+            context.metadata["semantic_router_shadow_route"] = ""
+            context.metadata["semantic_router_selected_capability"] = cap_name
+            return cap_name
         if lifecycle_scene == "question_review":
             if self._should_replace_active_context_for_question_review(
                 context,
@@ -441,6 +457,8 @@ class ChatOrchestrator:
         message: str,
     ) -> bool:
         if not self._has_active_lifecycle_context(context):
+            return True
+        if looks_like_free_text_mcq_answer_request(message):
             return True
         if self._looks_like_question_submission(context, message):
             return False

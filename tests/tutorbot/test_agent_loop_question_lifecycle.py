@@ -25,6 +25,31 @@ def test_active_question_grading_does_not_prefetch_grounded_rag() -> None:
     )
 
 
+def test_lifecycle_clarification_object_does_not_disable_new_mcq_rag_prefetch() -> None:
+    assert (
+        AgentLoop._should_prefetch_grounded_rag(
+            current_message=(
+                "根据JGJ59，《模板支架检查评分表》保证项目有（ ）。"
+                "A施工方案 B支架构造 C底座与托撑 D构配件材质 E支架稳定。我选ABCE对吗？"
+            ),
+            runtime_metadata={
+                "bot_id": "construction-exam-coach",
+                "default_tools": ["rag"],
+                "default_kb": "construction-exam",
+                "question_lifecycle_scene": "mcq_grading",
+                "active_object": {
+                    "object_type": "question_lifecycle_clarification",
+                    "state_snapshot": {
+                        "topic": "2025年真题",
+                        "reason": "low_information_exam_query",
+                    },
+                },
+            },
+        )
+        is True
+    )
+
+
 def test_citation_required_active_question_grading_does_not_prefetch_grounded_rag() -> None:
     assert (
         AgentLoop._should_prefetch_grounded_rag(

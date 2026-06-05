@@ -106,6 +106,7 @@ async def test_tutorbot_low_information_exam_query_returns_clarification(
     assert result_events
     result_payload = result_events[-1].metadata
     assert "2025真题" in result_payload["response"]
+    assert "没有拿到小程序里的题卡对象" in result_payload["response"]
     assert "查看这一类真题目录" in result_payload["response"]
     assert "标准答案" not in result_payload["response"]
     assert result_payload["exact_question_blocked_reason"] == "low_information_exam_query"

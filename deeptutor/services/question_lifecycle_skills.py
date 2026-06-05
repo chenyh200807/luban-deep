@@ -196,6 +196,7 @@ async def resolve_question_lifecycle_scene_decision(
         metadata,
     )
     low_information_exam_query = is_low_information_exam_query(user_message)
+    free_text_mcq_answer_request = _looks_like_free_text_mcq_answer_request(user_message)
     clarification_intent = (
         _resolve_clarification_option_intent(user_message, metadata)
         if isinstance(metadata, dict)
@@ -213,7 +214,14 @@ async def resolve_question_lifecycle_scene_decision(
             business_gate_result="resolved_clarification_option",
         )
     proposal: QuestionLifecycleSceneDecision | None = None
-    if enable_llm and (low_information_exam_query or (scene is None and _should_use_llm_scene_proposal(ctx))):
+    if enable_llm and (
+        low_information_exam_query
+        or (
+            scene is None
+            and not free_text_mcq_answer_request
+            and _should_use_llm_scene_proposal(ctx)
+        )
+    ):
         proposal = await _llm_question_lifecycle_scene_proposal(ctx)
     llm_candidate = _llm_candidate_payload(proposal)
 
@@ -428,6 +436,27 @@ def is_low_information_exam_query(query: str) -> bool:
         return False
     if _looks_like_year_only_exam_review_query(text):
         return True
+    answer_request_markers = (
+        "答案",
+        "正确答案",
+        "标准答案",
+        "直接告诉",
+        "只要答案",
+    )
+    concrete_stem_markers = (
+        "下列",
+        "正确的是",
+        "错误的是",
+        "不正确的是",
+        "不宜",
+        "应为",
+    )
+    if (
+        any(marker in text for marker in answer_request_markers)
+        and not _FREE_TEXT_MCQ_OPTION_LIST_RE.search(str(query or ""))
+        and not any(marker in text for marker in concrete_stem_markers)
+    ):
+        return True
     explicit_action_markers = (
         "分析",
         "讲解",
@@ -481,11 +510,13 @@ def build_question_lifecycle_clarification_response(message: str, reason: str) -
     if reason == "low_information_exam_query":
         topic = str(message or "").strip() or "真题"
         return (
-            f"你提到的是“{topic}”，但还没有指定要做哪件事。\n\n"
+            f"我知道你是想直接要“{topic}”的答案，但这轮我没有拿到小程序里的题卡对象、题干或选项。"
+            "如果我只凭“那道真题”直接给答案，就是在编。\n\n"
             "你可以这样继续：\n"
-            "1. 查看这一类真题目录或考点范围\n"
-            "2. 让我出一套真题风格练习\n"
-            "3. 粘贴具体题干和选项，我按题目讲评：先展示题目，再给答案、逐项解析、易错点和记忆抓手"
+            "0. 如果当前题卡已经打开，需要小程序把题卡 id/题干/选项传给 TutorBot\n"
+            "1. 直接粘贴题干和选项，我按题目讲评：先展示题目，再给答案、逐项解析、易错点和记忆抓手\n"
+            "2. 查看这一类真题目录或考点范围\n"
+            "3. 让我出一套真题风格练习"
         )
     return ""
 
@@ -678,9 +709,20 @@ _FREE_TEXT_MCQ_OPTION_SELECTION_RE = re.compile(
     re.IGNORECASE,
 )
 _FREE_TEXT_MCQ_OPTION_LIST_RE = re.compile(
-    r"(?:^|[\s，。；;：:])A[\.．、:：\s][^，。；;\n]{0,80}"
-    r"(?:[\s，。；;：:])B[\.．、:：\s]",
+    r"(?:^|[\s，。；;：:）)])A(?:[\.．、:：\s]+|(?=[\u4e00-\u9fff]))[^，。；;\n]{0,120}"
+    r"(?:[\s，。；;：:])B(?:[\.．、:：\s]+|(?=[\u4e00-\u9fff]))",
     re.IGNORECASE,
+)
+_FREE_TEXT_MCQ_ANSWER_REQUEST_MARKERS: tuple[str, ...] = (
+    "正确答案",
+    "标准答案",
+    "只要答案",
+    "直接告诉",
+    "怎么选",
+    "选哪个",
+    "讲解",
+    "解析",
+    "真题应该怎么选",
 )
 
 _MCQ_QUESTION_TYPES: frozenset[str] = frozenset(
@@ -741,6 +783,13 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
             return "practice_generation"
     if _looks_like_exam_catalog_query(user_message):
         return "exam_catalog_query"
+
+    if _looks_like_free_text_mcq_answer_request(user_message):
+        return None
+    if _looks_like_free_text_mcq_grading(user_message):
+        return "mcq_grading"
+    if _looks_like_free_text_case_grading(user_message):
+        return "case_grading"
 
     question_context = normalize_question_followup_context(
         metadata.get("question_followup_context") if isinstance(metadata, dict) else None
@@ -812,6 +861,35 @@ def _should_use_llm_scene_proposal(ctx: Any) -> bool:
         "没动力",
     )
     return any(hint in user_message for hint in hints)
+
+
+def _looks_like_free_text_mcq_answer_request(text: str) -> bool:
+    query = str(text or "").strip()
+    if not query:
+        return False
+    if not _FREE_TEXT_MCQ_OPTION_LIST_RE.search(query):
+        return False
+    if _FREE_TEXT_MCQ_OPTION_SELECTION_RE.search(query):
+        return False
+    return any(marker in query for marker in _FREE_TEXT_MCQ_ANSWER_REQUEST_MARKERS)
+
+
+def looks_like_free_text_mcq_answer_request(text: str) -> bool:
+    """Return true when the current message itself anchors an MCQ answer request.
+
+    This is not a lifecycle scene by itself: a pasted full MCQ plus "just tell
+    me the answer" should normally stay in TutorBot, not the strict exact-bank
+    question-review pipeline. The predicate exists so entry adapters can stop a
+    stale active card from stealing the turn.
+    """
+
+    return _looks_like_free_text_mcq_answer_request(text)
+
+
+def looks_like_free_text_mcq_grading_request(text: str) -> bool:
+    """Return true when the message contains a full free-text MCQ grading request."""
+
+    return _looks_like_free_text_mcq_grading(str(text or ""))
 
 
 def _parse_llm_scene_payload(raw: Any) -> dict[str, Any] | None:

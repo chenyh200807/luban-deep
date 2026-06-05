@@ -19,6 +19,7 @@ import pytest
 from deeptutor.services.question_lifecycle_skills import (
     derive_question_lifecycle_scene,
     is_low_information_exam_query,
+    looks_like_free_text_mcq_grading_request,
     resolve_question_lifecycle_scene_decision,
 )
 
@@ -205,6 +206,7 @@ def test_explicit_real_exam_review_action_is_not_low_information_query(message: 
         "分析一道2025真题",
         "讲解一道历年真题",
         "解析2025真题第15题",
+        "2025年一建建筑实务防水那道真题，直接告诉我答案，我在小程序刷题，别让我再复制题干。",
     ],
 )
 def test_low_information_exam_query_is_not_question_review(message: str):
@@ -297,6 +299,26 @@ async def test_unanchored_mcq_answer_returns_clarification_decision():
     assert decision.required_anchor_status == "missing_active_question"
     assert decision.exact_question_blocked_reason == "unanchored_answer_submission"
     assert decision.needs_clarification is True
+
+
+@pytest.mark.asyncio
+async def test_embedded_compact_mcq_with_answer_submission_is_anchored_grading():
+    message = (
+        "根据JGJ59，《模板支架检查评分表》保证项目有（ ）。"
+        "A施工方案 B支架构造 C底座与托撑 D构配件材质 E支架稳定。"
+        "我选ABCE对吗？"
+    )
+
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(user_message=message),
+        enable_llm=False,
+    )
+
+    assert derive_question_lifecycle_scene(_FakeContext(user_message=message)) == "mcq_grading"
+    assert looks_like_free_text_mcq_grading_request(message) is True
+    assert decision.scene == "mcq_grading"
+    assert decision.exact_question_blocked_reason == ""
+    assert decision.needs_clarification is False
 
 
 @pytest.mark.asyncio

@@ -822,6 +822,9 @@ class TutorBotManager:
             "exact_question": {},
             "rag_rounds": [],
             "rag_saturation": {},
+            "rag_retrieval_degraded": False,
+            "rag_retrieval_status": "",
+            "rag_retrieval_error_type": "",
         }
         mode_execution_policy = (
             dict(merged_metadata.get("mode_execution_policy"))
@@ -901,6 +904,17 @@ class TutorBotManager:
             rag_saturation = metadata.get("rag_saturation")
             if isinstance(rag_saturation, dict) and rag_saturation:
                 tool_trace_summary["rag_saturation"] = dict(rag_saturation)
+            retrieval_status = str(metadata.get("retrieval_status") or "").strip()
+            retrieval_degraded = bool(metadata.get("retrieval_degraded")) or retrieval_status in {
+                "failed",
+                "degraded",
+            }
+            if retrieval_degraded:
+                tool_trace_summary["rag_retrieval_degraded"] = True
+                tool_trace_summary["rag_retrieval_status"] = retrieval_status or "degraded"
+                tool_trace_summary["rag_retrieval_error_type"] = str(
+                    metadata.get("error_type") or ""
+                ).strip()
             exact_question = metadata.get("exact_question")
             if isinstance(exact_question, dict) and exact_question:
                 tool_trace_summary["exact_question"] = exact_question
@@ -951,6 +965,9 @@ class TutorBotManager:
                 "rag_rounds": tool_trace_summary["rag_rounds"],
                 "rag_round_count": len(tool_trace_summary["rag_rounds"]),
                 "rag_saturation": tool_trace_summary["rag_saturation"],
+                "rag_retrieval_degraded": tool_trace_summary["rag_retrieval_degraded"],
+                "rag_retrieval_status": tool_trace_summary["rag_retrieval_status"],
+                "rag_retrieval_error_type": tool_trace_summary["rag_retrieval_error_type"],
                 "authority_applied": tool_trace_summary["authority_applied"],
                 "exact_question": tool_trace_summary["exact_question"],
             }
@@ -1037,11 +1054,34 @@ class TutorBotManager:
                     trace_metadata["execution_path"] = execution_path
                     trace_metadata["exact_fast_path_hit"] = exact_fast_path_hit
                     trace_metadata["actual_tool_rounds"] = len(tool_trace_summary["tool_calls"])
+                    trace_metadata["rag_retrieval_degraded"] = tool_trace_summary["rag_retrieval_degraded"]
+                    trace_metadata["rag_retrieval_status"] = tool_trace_summary["rag_retrieval_status"]
+                    trace_metadata["rag_retrieval_error_type"] = tool_trace_summary[
+                        "rag_retrieval_error_type"
+                    ]
+                    degraded_guard_applied = bool(
+                        tool_trace_summary["rag_retrieval_degraded"]
+                        and "我现在不能确认或否定" in response
+                        and "没有命中可作为标准答案的原题证据" in response
+                    )
+                    degraded_mcq_guard_applied = bool(
+                        tool_trace_summary["rag_retrieval_degraded"]
+                        and "不能把这轮批改说成“题库标准答案确认”" in response
+                    )
+                    trace_metadata["degraded_exact_answer_guard_applied"] = degraded_guard_applied
+                    trace_metadata["degraded_mcq_grading_guard_applied"] = degraded_mcq_guard_applied
                     merged_metadata["selected_mode"] = selected_mode
                     merged_metadata["effective_response_mode"] = selected_mode
                     merged_metadata["execution_path"] = execution_path
                     merged_metadata["exact_fast_path_hit"] = exact_fast_path_hit
                     merged_metadata["actual_tool_rounds"] = len(tool_trace_summary["tool_calls"])
+                    merged_metadata["rag_retrieval_degraded"] = tool_trace_summary["rag_retrieval_degraded"]
+                    merged_metadata["rag_retrieval_status"] = tool_trace_summary["rag_retrieval_status"]
+                    merged_metadata["rag_retrieval_error_type"] = tool_trace_summary[
+                        "rag_retrieval_error_type"
+                    ]
+                    merged_metadata["degraded_exact_answer_guard_applied"] = degraded_guard_applied
+                    merged_metadata["degraded_mcq_grading_guard_applied"] = degraded_mcq_guard_applied
                     if session_metadata is not None:
                         update_metadata = {
                             "selected_mode": selected_mode,
@@ -1049,6 +1089,13 @@ class TutorBotManager:
                             "execution_path": execution_path,
                             "exact_fast_path_hit": exact_fast_path_hit,
                             "actual_tool_rounds": len(tool_trace_summary["tool_calls"]),
+                            "rag_retrieval_degraded": tool_trace_summary["rag_retrieval_degraded"],
+                            "rag_retrieval_status": tool_trace_summary["rag_retrieval_status"],
+                            "rag_retrieval_error_type": tool_trace_summary[
+                                "rag_retrieval_error_type"
+                            ],
+                            "degraded_exact_answer_guard_applied": degraded_guard_applied,
+                            "degraded_mcq_grading_guard_applied": degraded_mcq_guard_applied,
                         }
                         for metadata_key in (
                             "question_lifecycle_decision",

@@ -3610,6 +3610,48 @@ async def test_rag_adapter_tool_coerces_none_answer_to_empty_string(
 
 
 @pytest.mark.asyncio
+async def test_rag_adapter_tool_marks_empty_index_answer_as_degraded(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.tools.deeptutor_tools import RAGAdapterTool
+
+    rag_tool = importlib.import_module("deeptutor.tools.rag_tool")
+
+    async def _fake_rag_search(*, query: str, kb_name: str | None = None, **_kwargs: Any) -> dict[str, Any]:
+        assert query == "地下连续墙"
+        assert kb_name == "construction-exam"
+        return {
+            "answer": "No documents indexed. Please upload documents first.",
+            "content": "No documents indexed. Please upload documents first.",
+            "sources": [],
+        }
+
+    monkeypatch.setattr(rag_tool, "rag_search", _fake_rag_search)
+
+    tool = RAGAdapterTool()
+    tool.set_runtime_context(metadata={"default_kb": "construction-exam"})
+
+    result = await tool.execute(query="地下连续墙")
+    metadata = tool.consume_trace_metadata()
+
+    assert "知识库检索暂时不可用" in result
+    assert metadata["retrieval_degraded"] is True
+    assert metadata["retrieval_status"] == "empty_index"
+    assert metadata["error_type"] == "RAGEmptyIndex"
+    assert metadata["exact_question"] == {}
+
+
+@pytest.mark.asyncio
 async def test_rag_adapter_tool_forwards_exam_track_and_degrades_typed_failure(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -6367,6 +6409,7 @@ async def test_tutorbot_fast_process_direct_prefetches_rag_for_case_grading_scen
             "default_kb": "construction-exam",
             "knowledge_bases": ["construction-exam"],
             "effective_response_mode": "fast",
+            "question_lifecycle_scene": "question_review",
         },
         on_tool_call=lambda name, args: _capture_async(captured["tool_calls"], (name, args)),
         on_tool_result=lambda name, result, metadata: _capture_async(
@@ -6388,6 +6431,381 @@ async def test_tutorbot_fast_process_direct_prefetches_rag_for_case_grading_scen
         "source_overlap_to_prev": None,
         "shared_source_count_with_prev": 0,
     }
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_fast_process_direct_does_not_deny_answer_claim_when_rag_degraded(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    captured: dict[str, Any] = {"tool_calls": [], "tool_results": [], "deltas": []}
+    user_message = "2023地下连续墙多选答案是不是CDE？别装不知道。"
+
+    class DenyingProvider(LLMProvider):
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            assert [item for item in messages if item.get("role") == "tool"]
+            assert any(
+                item.get("role") == "system"
+                and "本轮知识召回失败或降级" in str(item.get("content") or "")
+                for item in messages
+            )
+            if on_content_delta is not None:
+                await on_content_delta("不是，答案不是 CDE，")
+                await on_content_delta("正确答案是 ABD。")
+            return LLMResponse(content="不是，答案不是 CDE，正确答案是 ABD。")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class DegradedRagTool(Tool):
+        @property
+        def name(self) -> str:
+            return "rag"
+
+        @property
+        def description(self) -> str:
+            return "degraded rag"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {"query": {"type": "string"}, "kb_name": {"type": "string"}},
+                "required": ["query"],
+            }
+
+        async def execute(self, **kwargs: Any) -> str:
+            assert kwargs["query"] == user_message
+            assert kwargs["kb_name"] == "construction-exam"
+            return "知识库检索暂时不可用，请基于已有上下文谨慎回答；涉及题库答案时必须说明证据不足。"
+
+        def preview_args(self, params: dict[str, Any]) -> dict[str, Any]:
+            return dict(params)
+
+        def consume_trace_metadata(self) -> dict[str, Any] | None:
+            return {
+                "kb_name": "construction-exam",
+                "sources": [],
+                "tool_source_count": 0,
+                "exact_question": {},
+                "authority_applied": False,
+                "retrieval_degraded": True,
+                "retrieval_status": "failed",
+                "error_type": "RAGSearchError",
+            }
+
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=DenyingProvider(),
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(
+                metadata={},
+                key=key,
+                messages=[],
+                get_history=lambda max_messages=0: [],
+            ),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+    loop.tools.register(DegradedRagTool())
+
+    content = await loop.process_direct(
+        user_message,
+        metadata={
+            "bot_id": "construction-exam-coach",
+            "default_tools": ["rag"],
+            "default_kb": "construction-exam",
+            "knowledge_bases": ["construction-exam"],
+            "effective_response_mode": "fast",
+            "question_lifecycle_scene": "question_review",
+        },
+        on_tool_call=lambda name, args: _capture_async(captured["tool_calls"], (name, args)),
+        on_tool_result=lambda name, result, metadata: _capture_async(
+            captured["tool_results"], (name, result, metadata)
+        ),
+        on_content_delta=lambda value: _capture_async(captured["deltas"], value),
+    )
+
+    assert "我现在不能确认或否定 C、D、E" in content
+    assert "正确答案是 ABD" not in content
+    assert captured["tool_calls"] == [
+        ("rag", {"query": user_message, "kb_name": "construction-exam"})
+    ]
+    assert captured["tool_results"][0][2]["retrieval_degraded"] is True
+    assert "".join(captured["deltas"]) == content
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_full_process_direct_suppresses_stream_when_degraded_answer_guard_applies(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    captured: dict[str, Any] = {"tool_results": [], "deltas": []}
+    user_message = "2023地下连续墙多选答案是不是CDE？别装不知道。"
+
+    class FullProvider(LLMProvider):
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            assert [item for item in messages if item.get("role") == "tool"]
+            assert on_content_delta is None
+            return LLMResponse(content="不是，答案不是 CDE，正确答案是 ABD。")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class DegradedRagTool(Tool):
+        @property
+        def name(self) -> str:
+            return "rag"
+
+        @property
+        def description(self) -> str:
+            return "degraded rag"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {"query": {"type": "string"}, "kb_name": {"type": "string"}},
+                "required": ["query"],
+            }
+
+        async def execute(self, **kwargs: Any) -> str:
+            return "知识库检索暂时不可用，请基于已有上下文谨慎回答；涉及题库答案时必须说明证据不足。"
+
+        def preview_args(self, params: dict[str, Any]) -> dict[str, Any]:
+            return dict(params)
+
+        def consume_trace_metadata(self) -> dict[str, Any] | None:
+            return {
+                "kb_name": "construction-exam",
+                "sources": [],
+                "tool_source_count": 0,
+                "exact_question": {},
+                "authority_applied": False,
+                "retrieval_degraded": True,
+                "retrieval_status": "failed",
+            }
+
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=FullProvider(),
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(
+                metadata={},
+                key=key,
+                messages=[],
+                get_history=lambda max_messages=0: [],
+            ),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+    loop.tools.register(DegradedRagTool())
+
+    content = await loop.process_direct(
+        user_message,
+        metadata={
+            "bot_id": "construction-exam-coach",
+            "default_tools": ["rag"],
+            "default_kb": "construction-exam",
+            "knowledge_bases": ["construction-exam"],
+            "effective_response_mode": "deep",
+            "question_lifecycle_scene": "question_review",
+        },
+        on_tool_result=lambda name, result, metadata: _capture_async(
+            captured["tool_results"], (name, result, metadata)
+        ),
+        on_content_delta=lambda value: _capture_async(captured["deltas"], value),
+    )
+
+    assert "我现在不能确认或否定 C、D、E" in content
+    assert "正确答案是 ABD" not in content
+    assert captured["tool_results"][0][2]["retrieval_degraded"] is True
+    assert "".join(captured["deltas"]) == content
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_fast_process_direct_returns_degraded_mcq_grading_guard_when_model_is_empty(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    captured: dict[str, Any] = {"tool_results": [], "deltas": []}
+    user_message = (
+        "关于地下连续墙施工要求，正确的有（ ）。"
+        "A.地下连续墙单元槽段长度宜为8～10m "
+        "B.导墙高度不应小于1.0m "
+        "C.应设置现浇钢筋混凝土导墙 "
+        "D.水下混凝土应采用导管法连续浇筑 "
+        "E.混凝土达到设计强度后方可进行墙底注浆。我选ACDE，对吗？"
+    )
+
+    class EmptyVisibleProvider(LLMProvider):
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            assert [item for item in messages if item.get("role") == "tool"]
+            assert any(
+                item.get("role") == "system"
+                and "本轮知识召回失败或降级" in str(item.get("content") or "")
+                for item in messages
+            )
+            return LLMResponse(content="我先检索题库。")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class DegradedRagTool(Tool):
+        @property
+        def name(self) -> str:
+            return "rag"
+
+        @property
+        def description(self) -> str:
+            return "degraded rag"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {"query": {"type": "string"}, "kb_name": {"type": "string"}},
+                "required": ["query"],
+            }
+
+        async def execute(self, **kwargs: Any) -> str:
+            return "知识库检索暂时不可用，请基于已有上下文谨慎回答；涉及题库答案时必须说明证据不足。"
+
+        def preview_args(self, params: dict[str, Any]) -> dict[str, Any]:
+            return dict(params)
+
+        def consume_trace_metadata(self) -> dict[str, Any] | None:
+            return {
+                "kb_name": "construction-exam",
+                "sources": [],
+                "tool_source_count": 0,
+                "exact_question": {},
+                "authority_applied": False,
+                "retrieval_degraded": True,
+                "retrieval_status": "failed",
+            }
+
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=EmptyVisibleProvider(),
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(
+                metadata={},
+                key=key,
+                messages=[],
+                get_history=lambda max_messages=0: [],
+            ),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+    loop.tools.register(DegradedRagTool())
+
+    content = await loop.process_direct(
+        user_message,
+        metadata={
+            "bot_id": "construction-exam-coach",
+            "default_tools": ["rag"],
+            "default_kb": "construction-exam",
+            "knowledge_bases": ["construction-exam"],
+            "effective_response_mode": "fast",
+            "question_lifecycle_scene": "mcq_grading",
+        },
+        on_tool_result=lambda name, result, metadata: _capture_async(
+            captured["tool_results"], (name, result, metadata)
+        ),
+        on_content_delta=lambda value: _capture_async(captured["deltas"], value),
+    )
+
+    assert "这次模型没有返回可见答案" not in content
+    assert "你这轮给出的答案是 A、C、D、E" in content
+    assert "不能把这轮批改说成“题库标准答案确认”" in content
+    assert "强行改成另一组答案" in content
+    assert captured["tool_results"][0][2]["retrieval_degraded"] is True
+    assert "".join(captured["deltas"]) == content
 
 
 @pytest.mark.asyncio

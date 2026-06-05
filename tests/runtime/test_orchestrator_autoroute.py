@@ -518,6 +518,55 @@ async def test_orchestrator_new_review_request_replaces_stale_active_question() 
 
 
 @pytest.mark.asyncio
+async def test_orchestrator_embedded_new_mcq_answer_request_clears_stale_active_question() -> None:
+    """A full new stem/options answer request must not grade the previous card."""
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-new-mcq-answer-replaces-stale-question",
+        active_capability="tutorbot",
+        user_message=(
+            "建筑防水砂浆施工环境温度不宜低于（ ）。"
+            "A.-5℃ B.0℃ C.5℃ D.10℃。我赶时间，只要答案，不要长篇解析。"
+        ),
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={
+            "active_object": {
+                "object_type": "question_set",
+                "state_snapshot": {
+                    "question": "根据《屋面工程技术规范》，一级防水应采用几道设防？",
+                    "question_type": "choice",
+                    "options": {"A": "一道防水设防", "B": "两道防水设防"},
+                    "correct_answer": "B",
+                },
+            },
+            "question_followup_context": {
+                "question_id": "old_waterproof_q",
+                "question": "根据《屋面工程技术规范》，一级防水应采用几道设防？",
+                "question_type": "choice",
+                "options": {"A": "一道防水设防", "B": "两道防水设防"},
+                "correct_answer": "B",
+            },
+        },
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "tutorbot"
+    assert context.metadata["question_lifecycle_scene"] is None
+    assert context.metadata["question_review_replaces_active_object"] is True
+    assert "active_object" not in context.metadata
+    assert "question_followup_context" not in context.metadata
+    assert context.metadata["semantic_router_selected_capability"] == "tutorbot"
+    assert context.metadata["semantic_router_mode_reason"] == (
+        "embedded_mcq_answer_request_replaces_active_object"
+    )
+
+
+@pytest.mark.asyncio
 async def test_orchestrator_blocks_explicit_year_only_real_exam_review_without_anchor() -> None:
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()
@@ -602,6 +651,37 @@ async def test_orchestrator_marks_low_information_exam_query_without_exact_autho
     assert context.metadata["question_lifecycle_decision"]["selected_skill_names"] == []
     assert context.metadata["exact_question_blocked_reason"] == "low_information_exam_query"
     assert context.metadata["trace_metadata"]["exact_question_blocked_reason"] == "low_information_exam_query"
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_blocks_colloquial_exact_answer_request_without_stem() -> None:
+    """A student asking for "that 2025 waterproofing question" needs an anchor, not generation."""
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-colloquial-low-info-answer-request",
+        active_capability="tutorbot",
+        user_message=(
+            "2025年一建建筑实务防水那道真题，直接告诉我答案，"
+            "我在小程序刷题，别让我再复制题干。"
+        ),
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "tutorbot"
+    assert context.metadata["question_lifecycle_scene"] is None
+    assert context.metadata["question_lifecycle_decision"].items() >= {
+        "required_anchor_status": "missing_question_anchor",
+        "exact_question_blocked_reason": "low_information_exam_query",
+        "needs_clarification": True,
+        "business_gate_result": "blocked_low_information_exam_query",
+    }.items()
 
 
 @pytest.mark.asyncio

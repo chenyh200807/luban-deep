@@ -113,3 +113,21 @@ def test_wallet_identity_supabase_store_resolves_alias_row() -> None:
     assert row["user_id"] == "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
     assert calls[0]["params"]["alias_type"] == "eq.legacy_user_id"
     assert calls[0]["params"]["alias_value"] == "eq.user_2008"
+
+
+def test_wallet_identity_supabase_store_treats_missing_alias_read_model_as_alias_miss() -> None:
+    class _FakeClient:
+        def get(self, url, *, headers=None, params=None):
+            return httpx.Response(
+                404,
+                request=httpx.Request("GET", url),
+                json={"message": "relation user_identity_aliases does not exist"},
+            )
+
+    store = WalletIdentitySupabaseStore(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=_FakeClient(),
+    )
+
+    assert store.resolve_alias(alias_type="legacy_user_id", alias_value="user_2008") is None

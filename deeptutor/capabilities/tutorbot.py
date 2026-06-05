@@ -541,6 +541,11 @@ class TutorBotCapability(BaseCapability):
                 "skill_trace",
                 "loader_source",
                 "skill_source_status",
+                "rag_retrieval_degraded",
+                "rag_retrieval_status",
+                "rag_retrieval_error_type",
+                "degraded_exact_answer_guard_applied",
+                "degraded_mcq_grading_guard_applied",
             ):
                 if metadata_key in session_metadata:
                     result_payload[metadata_key] = session_metadata[metadata_key]

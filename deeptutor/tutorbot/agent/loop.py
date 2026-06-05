@@ -23,6 +23,10 @@ from deeptutor.services.query_intent import (
     query_requires_current_info,
     query_uses_learner_state_authority,
 )
+from deeptutor.services.question_lifecycle_skills import (
+    looks_like_free_text_mcq_answer_request,
+    looks_like_free_text_mcq_grading_request,
+)
 from deeptutor.services.rag.exact_authority import (
     build_exact_authority_response,
     normalize_exact_authority_display_text,
@@ -102,6 +106,23 @@ class AgentLoop:
         "## 当前用户问题",
         "## Current User Question",
         "[User Question]",
+    )
+    _ANSWER_LETTER_CLAIM_RE = re.compile(
+        r"(?:答案|标准答案|正确答案|是不是|是否|我选|我选择|选了|选择了|对吗|对不对|正确吗)"
+        r"[^A-EＡ-Ｅ]{0,18}([A-EＡ-Ｅ](?:[\s,，、/]*[A-EＡ-Ｅ]){0,4})",
+        flags=re.IGNORECASE,
+    )
+    _ANSWER_DENIAL_MARKERS = (
+        "不是",
+        "不对",
+        "不正确",
+        "错误",
+        "错了",
+        "答案不是",
+        "正确答案是",
+        "标准答案是",
+        "应为",
+        "应该是",
     )
     _PROGRESSIVE_SKILL_TRIGGERS: dict[str, tuple[str, ...]] = {
         "deep-research": (
@@ -497,6 +518,178 @@ class AgentLoop:
         if parts:
             return "|".join(parts)
         return json.dumps(source, ensure_ascii=False, sort_keys=True)
+
+    @staticmethod
+    def _normalize_answer_letters(value: str | None) -> str:
+        table = str.maketrans("ＡＢＣＤＥａｂｃｄｅ", "ABCDEabcde")
+        letters = re.findall(r"[A-E]", str(value or "").translate(table).upper())
+        seen: list[str] = []
+        for letter in letters:
+            if letter not in seen:
+                seen.append(letter)
+        return "".join(seen)
+
+    @classmethod
+    def _extract_answer_letter_claim(cls, text: str | None) -> str:
+        source = str(text or "").strip()
+        if not source:
+            return ""
+        for match in cls._ANSWER_LETTER_CLAIM_RE.finditer(source):
+            letters = cls._normalize_answer_letters(match.group(1))
+            if letters:
+                return letters
+        return ""
+
+    @staticmethod
+    def _has_authoritative_exact_question(runtime_metadata: dict[str, Any] | None) -> bool:
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        exact_question = metadata.get("_prefetched_exact_question")
+        if isinstance(exact_question, dict) and exact_question:
+            return True
+        latest_trace = metadata.get("_latest_rag_trace_metadata")
+        exact_question = (
+            latest_trace.get("exact_question")
+            if isinstance(latest_trace, dict) and isinstance(latest_trace.get("exact_question"), dict)
+            else None
+        )
+        return bool(exact_question)
+
+    @staticmethod
+    def _record_rag_trace_status(
+        runtime_metadata: dict[str, Any] | None,
+        tool_trace_metadata: dict[str, Any] | None,
+    ) -> None:
+        if not isinstance(runtime_metadata, dict) or not isinstance(tool_trace_metadata, dict):
+            return
+        runtime_metadata["_latest_rag_trace_metadata"] = dict(tool_trace_metadata)
+        retrieval_status = str(tool_trace_metadata.get("retrieval_status") or "").strip()
+        retrieval_degraded = bool(tool_trace_metadata.get("retrieval_degraded")) or retrieval_status in {
+            "failed",
+            "degraded",
+        }
+        if not retrieval_degraded:
+            return
+        runtime_metadata["rag_retrieval_degraded"] = True
+        runtime_metadata["rag_retrieval_status"] = retrieval_status or "degraded"
+        error_type = str(tool_trace_metadata.get("error_type") or "").strip()
+        if error_type:
+            runtime_metadata["rag_retrieval_error_type"] = error_type
+
+    @classmethod
+    def _should_guard_degraded_exact_answer_claim(
+        cls,
+        *,
+        user_message: str,
+        final_content: str | None,
+        runtime_metadata: dict[str, Any] | None,
+    ) -> tuple[bool, str]:
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        if not metadata.get("rag_retrieval_degraded"):
+            return False, ""
+        if cls._has_authoritative_exact_question(metadata):
+            return False, ""
+        if looks_like_free_text_mcq_answer_request(user_message):
+            return False, ""
+        claim = cls._extract_answer_letter_claim(user_message)
+        if not claim:
+            return False, ""
+        text = str(user_message or "")
+        if not any(marker in text for marker in ("真题", "题", "答案", "标准答案", "正确答案", "多选", "单选")):
+            return False, ""
+        compact_answer = re.sub(r"\s+", "", str(final_content or ""))
+        if not any(marker in compact_answer for marker in cls._ANSWER_DENIAL_MARKERS):
+            return False, ""
+        return True, claim
+
+    @classmethod
+    def _degraded_exact_answer_claim_response(
+        cls,
+        *,
+        user_message: str,
+        final_content: str | None,
+        runtime_metadata: dict[str, Any] | None,
+    ) -> str:
+        should_guard, claim = cls._should_guard_degraded_exact_answer_claim(
+            user_message=user_message,
+            final_content=final_content,
+            runtime_metadata=runtime_metadata,
+        )
+        if not should_guard:
+            return ""
+        if isinstance(runtime_metadata, dict):
+            runtime_metadata["degraded_exact_answer_guard_applied"] = True
+            runtime_metadata["degraded_exact_answer_claim"] = claim
+        formatted_claim = "、".join(claim)
+        return (
+            f"我现在不能确认或否定 {formatted_claim}。\n\n"
+            "当前题库检索不可用，也没有命中可作为标准答案的原题证据；"
+            "如果直接说“不是”或改成另一个答案，就是在编标准答案。"
+            "请把这道题的题干和选项发过来，或让小程序把当前题卡 id 传给我，我再按真题标准批改。"
+        )
+
+    @classmethod
+    def _degraded_mcq_grading_response(
+        cls,
+        *,
+        user_message: str,
+        final_content: str | None,
+        runtime_metadata: dict[str, Any] | None,
+    ) -> str:
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        if not metadata.get("rag_retrieval_degraded"):
+            return ""
+        if cls._has_authoritative_exact_question(metadata):
+            return ""
+        if not looks_like_free_text_mcq_grading_request(user_message):
+            return ""
+
+        content = str(final_content or "").strip()
+        compact = re.sub(r"\s+", "", content)
+        has_visible_answer = cls._is_user_visible_final_answer(content) and content != cls._USER_VISIBLE_MODEL_EMPTY_MESSAGE
+        standard_answer_claim = any(
+            marker in compact
+            for marker in ("标准答案是", "正确答案是", "答案是", "应选", "应该选")
+        ) and not any(marker in compact for marker in ("候选", "证据不足", "不能确认", "无法确认"))
+        if has_visible_answer and not standard_answer_claim:
+            return ""
+
+        if isinstance(runtime_metadata, dict):
+            runtime_metadata["degraded_mcq_grading_guard_applied"] = True
+            claim = cls._extract_answer_letter_claim(user_message)
+            if claim:
+                runtime_metadata["degraded_mcq_grading_claim"] = claim
+
+        claim = cls._extract_answer_letter_claim(user_message)
+        claim_text = f"你这轮给出的答案是 {cls._format_answer_letters(claim)}。" if claim else "我已经看到这道选择题的题干和选项。"
+        return (
+            f"{claim_text}\n\n"
+            "但当前题库检索不可用，也没有命中可作为标准答案的原题证据。"
+            "所以我不能把这轮批改说成“题库标准答案确认”，也不能在没有证据时强行改成另一组答案。\n\n"
+            "可用结论：这轮需要小程序继续传入题卡 id，或等题库检索恢复后再按标准答案批改；"
+            "如果只做非题库标准确认的思路分析，可以基于题干逐项判断，但结论不能标成真题标准答案。"
+        )
+
+    @staticmethod
+    def _format_answer_letters(letters: str | None) -> str:
+        normalized = AgentLoop._normalize_answer_letters(letters)
+        return "、".join(normalized) if normalized else ""
+
+    @classmethod
+    def _should_suppress_stream_for_degraded_answer(
+        cls,
+        *,
+        user_message: str,
+        runtime_metadata: dict[str, Any] | None,
+    ) -> bool:
+        metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        if not metadata.get("rag_retrieval_degraded"):
+            return False
+        if cls._has_authoritative_exact_question(metadata):
+            return False
+        return bool(
+            cls._extract_answer_letter_claim(user_message)
+            or looks_like_free_text_mcq_grading_request(user_message)
+        )
 
     @classmethod
     def _source_overlap(cls, previous: list[dict[str, Any]], current: list[dict[str, Any]]) -> tuple[float | None, int]:
@@ -902,6 +1095,7 @@ class AgentLoop:
                             tool_trace_metadata=tool_trace_metadata,
                             rag_rounds=rag_rounds,
                         )
+                        self._record_rag_trace_status(runtime_metadata, tool_trace_metadata)
                         current_round = (
                             tool_trace_metadata.get("rag_round")
                             if isinstance(tool_trace_metadata, dict)
@@ -1072,10 +1266,33 @@ class AgentLoop:
     @staticmethod
     def _has_active_question_flow(runtime_metadata: dict[str, Any] | None) -> bool:
         metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        active_object = metadata.get("active_object")
         return bool(
             metadata.get("question_followup_context")
             or metadata.get("followup_question_context")
-            or metadata.get("active_object")
+            or AgentLoop._active_object_is_question_flow(active_object)
+        )
+
+    @staticmethod
+    def _active_object_is_question_flow(active_object: Any) -> bool:
+        if not isinstance(active_object, dict):
+            return False
+        object_type = str(active_object.get("object_type") or "").strip()
+        if object_type in {"question_set", "single_question", "question", "question_card"}:
+            return True
+        state_snapshot = active_object.get("state_snapshot")
+        if not isinstance(state_snapshot, dict):
+            return False
+        return any(
+            key in state_snapshot
+            for key in (
+                "question",
+                "questions",
+                "items",
+                "question_id",
+                "correct_answer",
+                "user_answer",
+            )
         )
 
     @classmethod
@@ -1389,6 +1606,7 @@ class AgentLoop:
         if guarded_context.signals:
             merged_metadata["guardrail_sanitized"] = True
             merged_metadata["guardrail_signals"] = list(guarded_context.signals)
+        self._record_rag_trace_status(runtime_metadata, merged_metadata)
         exact_candidate = (
             merged_metadata.get("exact_question")
             if isinstance(merged_metadata.get("exact_question"), dict)
@@ -1404,6 +1622,18 @@ class AgentLoop:
         if on_tool_result:
             await on_tool_result("rag", result_text, merged_metadata)
 
+        retrieval_degraded_instruction = (
+            "本轮知识召回失败或降级，且没有命中可作为标准答案的原题证据。"
+            "如果用户是在问真题标准答案、某组选项是否正确、或要求批改字母答案，"
+            "不得输出“不是”“正确答案是某项”“标准答案是某项”等确定性改判；"
+            "只能说明证据不足，要求题干/选项/题卡 id，或在完整题干下标注为非题库标准确认的候选判断。"
+            if bool(merged_metadata.get("retrieval_degraded"))
+            and not (
+                isinstance(merged_metadata.get("exact_question"), dict)
+                and merged_metadata.get("exact_question")
+            )
+            else ""
+        )
         prefetch_messages = list(initial_messages)
         tool_call_id = "prefetch-rag-1"
         prefetch_messages = self.context.add_assistant_message(
@@ -1445,6 +1675,7 @@ class AgentLoop:
                     "不要复述“我去搜索/我正在查找”这类过程话术；"
                     "只有当前证据仍明显不足时，才继续调用其他工具。"
                     + (f"\n{case_exact_instruction}" if case_exact_instruction else "")
+                    + (f"\n{retrieval_degraded_instruction}" if retrieval_degraded_instruction else "")
                 ),
             }
         )
@@ -2624,6 +2855,16 @@ class AgentLoop:
                 final_content,
                 runtime_metadata=runtime_metadata,
             ) or final_content
+            final_content = self._degraded_exact_answer_claim_response(
+                user_message=current_message,
+                final_content=final_content,
+                runtime_metadata=runtime_metadata,
+            ) or final_content
+            final_content = self._degraded_mcq_grading_response(
+                user_message=current_message,
+                final_content=final_content,
+                runtime_metadata=runtime_metadata,
+            ) or final_content
             guarded_output = guard_tutorbot_output(final_content)
             final_content = guarded_output.content or final_content
             if all_msgs:
@@ -2667,10 +2908,14 @@ class AgentLoop:
             on_tool_result=on_tool_result,
         )
         if response_mode == "fast":
+            suppress_fast_stream = self._should_suppress_stream_for_degraded_answer(
+                user_message=current_message,
+                runtime_metadata=runtime_metadata,
+            )
             final_content, all_msgs, streamed_text = await self._run_fast_policy_once(
                 initial_messages,
                 runtime_metadata=runtime_metadata,
-                on_content_delta=on_content_delta,
+                on_content_delta=None if suppress_fast_stream else on_content_delta,
             )
             if final_content is None:
                 final_content = self._USER_VISIBLE_MODEL_EMPTY_MESSAGE
@@ -2684,6 +2929,16 @@ class AgentLoop:
             ) or final_content
             final_content = self._case_exact_authority_fallback(
                 final_content,
+                runtime_metadata=runtime_metadata,
+            ) or final_content
+            final_content = self._degraded_exact_answer_claim_response(
+                user_message=current_message,
+                final_content=final_content,
+                runtime_metadata=runtime_metadata,
+            ) or final_content
+            final_content = self._degraded_mcq_grading_response(
+                user_message=current_message,
+                final_content=final_content,
                 runtime_metadata=runtime_metadata,
             ) or final_content
             guarded_output = guard_tutorbot_output(final_content)
@@ -2707,6 +2962,11 @@ class AgentLoop:
                 metadata=msg.metadata or {},
             )
 
+        suppress_agent_stream = self._should_suppress_stream_for_degraded_answer(
+            user_message=current_message,
+            runtime_metadata=runtime_metadata,
+        )
+
         async def _bus_progress(content: str, *, tool_hint: bool = False) -> None:
             meta = dict(msg.metadata or {})
             meta["_progress"] = True
@@ -2719,7 +2979,7 @@ class AgentLoop:
             initial_messages,
             runtime_metadata=runtime_metadata,
             on_progress=on_progress or _bus_progress,
-            on_content_delta=on_content_delta,
+            on_content_delta=None if suppress_agent_stream else on_content_delta,
             on_tool_call=on_tool_call,
             on_tool_result=on_tool_result,
             allow_exact_authority_override=(
@@ -2743,10 +3003,22 @@ class AgentLoop:
             final_content,
             runtime_metadata=runtime_metadata,
         ) or final_content
+        final_content = self._degraded_exact_answer_claim_response(
+            user_message=current_message,
+            final_content=final_content,
+            runtime_metadata=runtime_metadata,
+        ) or final_content
+        final_content = self._degraded_mcq_grading_response(
+            user_message=current_message,
+            final_content=final_content,
+            runtime_metadata=runtime_metadata,
+        ) or final_content
         guarded_output = guard_tutorbot_output(final_content)
         final_content = guarded_output.content or final_content
         if all_msgs:
             all_msgs[-1]["content"] = final_content
+        if suppress_agent_stream:
+            await self._emit_visible_text_deltas(final_content, on_content_delta)
 
         self._save_turn(session, all_msgs, 1 + len(history))
         session.metadata["last_exact_fast_path"] = False
