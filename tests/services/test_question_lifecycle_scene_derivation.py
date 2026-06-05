@@ -67,6 +67,23 @@ def test_mastery_check_training_intent_wins_over_learning_report_phrase():
     assert derive_question_lifecycle_scene(ctx) == "practice_generation"
 
 
+@pytest.mark.asyncio
+async def test_true_exam_practice_generation_is_not_low_information_answer_request():
+    message = "给我出两道2025一建建筑实务单选真题，不要先给答案，先考我。"
+    ctx = _FakeContext(user_message=message)
+
+    assert is_low_information_exam_query(message) is False
+    assert derive_question_lifecycle_scene(ctx) == "practice_generation"
+
+    decision = await resolve_question_lifecycle_scene_decision(ctx, enable_llm=False)
+
+    assert decision.scene == "practice_generation"
+    assert decision.required_anchor_status == "satisfied"
+    assert decision.exact_question_blocked_reason == ""
+    assert decision.needs_clarification is False
+    assert decision.business_gate_result == "passed"
+
+
 def test_active_object_with_submission_returns_mcq_grading():
     ctx = _FakeContext(
         user_message="B",
@@ -219,6 +236,8 @@ def test_explicit_real_exam_review_action_is_not_low_information_query(message: 
         "解析2025真题第15题",
         "2025年一建建筑实务防水那道真题，直接告诉我答案，我在小程序刷题，别让我再复制题干。",
         "2025建筑实务第15题答案直接发我，别问。",
+        "给我生成2025建筑实务第15题答案",
+        "生成2025真题答案",
         "2021屋面案例第4问答案发我，快点，我在刷题页面。",
         "2015案例二第3问答案直接发我，我在题卡里。",
         "我说了在题卡里，你就发答案。",

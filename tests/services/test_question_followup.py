@@ -35,6 +35,7 @@ def test_detect_requested_question_type_prefers_explicit_written_case() -> None:
 def test_detect_answer_reveal_preference_respects_suppress_request() -> None:
     assert detect_answer_reveal_preference("先别给答案，只问我第1问") is False
     assert detect_answer_reveal_preference("先不要直接给答案，先给作答要求") is False
+    assert detect_answer_reveal_preference("不要先给答案，先考我") is False
 
 
 def test_unanswered_question_does_not_reveal_answer_on_direct_answer_request() -> None:
@@ -1716,6 +1717,45 @@ def test_grading_key_persisted_in_followup_context_item_from_result_summary() ->
     items = ctx.get("items") or []
     assert items and isinstance(items[0], dict)
     assert items[0].get("grading_key", {}).get("correct_answer") == "B"
+
+
+def test_hidden_grading_key_supplies_followup_correct_answer_when_public_answer_is_empty() -> None:
+    from deeptutor.services.question_followup import (
+        build_question_followup_context_from_result_summary,
+    )
+
+    result_summary = {
+        "results": [
+            {
+                "qa_pair": {
+                    "question_id": "q_1",
+                    "question": "自由时差是多少？",
+                    "question_type": "choice",
+                    "options": {"A": "0天", "B": "1天", "C": "2天", "D": "3天"},
+                    "correct_answer": "",
+                    "explanation": "",
+                    "grading_key": {
+                        "correct_answer": "B",
+                        "scoring_points": ["自由时差=紧后最早开始-本工作最早完成"],
+                        "common_traps": [],
+                        "source": "lightweight_batch_llm",
+                    },
+                }
+            }
+        ]
+    }
+
+    ctx = build_question_followup_context_from_result_summary(
+        result_summary,
+        rendered_response="自由时差是多少？",
+        reveal_answers=False,
+    )
+
+    assert ctx is not None
+    item = (ctx.get("items") or [])[0]
+    assert item["correct_answer"] == "B"
+    assert item["grading_key"]["correct_answer"] == "B"
+    assert ctx["correct_answer"] == "B"
 
 
 def test_redact_question_followup_context_for_public_strips_hidden_authority() -> None:

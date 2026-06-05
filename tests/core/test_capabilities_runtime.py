@@ -1449,6 +1449,85 @@ async def test_deep_question_capability_anchors_deictic_generation_topic_to_open
 
 
 @pytest.mark.asyncio
+async def test_deep_question_generation_hides_answers_but_keeps_hidden_authority(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeCoordinator:
+        def __init__(self, **kwargs: Any) -> None:
+            self._callback = None
+
+        def set_ws_callback(self, callback) -> None:
+            self._callback = callback
+
+        async def generate_from_topic(self, **kwargs: Any) -> dict[str, Any]:
+            return {
+                "results": [
+                    {
+                        "qa_pair": {
+                            "question": "自由时差是多少？",
+                            "question_type": "choice",
+                            "options": {"A": "0天", "B": "1天"},
+                            "correct_answer": "B",
+                            "explanation": "自由时差等于紧后最早开始减本工作最早完成。",
+                        }
+                    },
+                    {
+                        "qa_pair": {
+                            "question": "大体积混凝土控温常用措施是什么？",
+                            "question_type": "choice",
+                            "options": {"A": "高水化热水泥", "C": "预埋冷却水管"},
+                            "correct_answer": "C",
+                            "explanation": "冷却水管可降低内部温升。",
+                        }
+                    },
+                ]
+            }
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="给我出两道2025一建建筑实务单选真题，不要先给答案，先考我。",
+        config_overrides={
+            "topic": "给我出两道2025一建建筑实务单选真题，不要先给答案，先考我。",
+            "num_questions": 2,
+            "question_type": "choice",
+            "force_generate_questions": True,
+            "reveal_answers": False,
+            "reveal_explanations": False,
+        },
+        language="zh",
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    response = result_event.metadata["response"]
+    assert "自由时差是多少" in response
+    assert "大体积混凝土控温" in response
+    assert "**答案" not in response
+    assert "**解析" not in response
+    assert "自由时差等于" not in response
+    assert result_event.metadata["question_followup_context"]["reveal_answers"] is False
+    assert result_event.metadata["question_followup_context"]["items"][0]["correct_answer"] == "B"
+    assert (
+        result_event.metadata["presentation"]["blocks"][0]["questions"][0]["followup_context"].get(
+            "correct_answer"
+        )
+        in {None, ""}
+    )
+
+
+@pytest.mark.asyncio
 async def test_deep_question_capability_does_not_leak_old_open_chat_anchor_into_explicit_new_topic(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

@@ -111,6 +111,30 @@ async def test_orchestrator_routes_training_by_question_count_as_practice_genera
 
 
 @pytest.mark.asyncio
+async def test_orchestrator_respects_negated_answer_reveal_for_true_exam_practice_generation() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-true-exam-practice-no-reveal",
+        user_message="给我出两道2025一建建筑实务单选真题，不要先给答案，先考我。",
+        config_overrides={},
+        metadata={"interaction_hints": {"profile": "tutorbot"}},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.metadata["question_lifecycle_scene"] == "practice_generation"
+    assert context.config_overrides["force_generate_questions"] is True
+    assert context.config_overrides["num_questions"] == 2
+    assert context.config_overrides["reveal_answers"] is False
+    assert context.config_overrides["reveal_explanations"] is False
+
+
+@pytest.mark.asyncio
 async def test_orchestrator_blocks_topic_only_real_exam_query_before_exact_authority() -> None:
     """Topic-only exam queries need a choice, not an arbitrary exact-question answer."""
     orchestrator = ChatOrchestrator()

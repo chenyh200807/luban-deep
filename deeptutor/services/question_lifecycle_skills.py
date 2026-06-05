@@ -430,6 +430,8 @@ def is_low_information_exam_query(query: str) -> bool:
     text = re.sub(r"\s+", "", str(query or "").strip())
     if not text:
         return False
+    if _looks_like_explicit_question_generation_request(text):
+        return False
     answer_request_markers = (
         "答案",
         "正确答案",
@@ -522,6 +524,35 @@ def is_low_information_exam_query(query: str) -> bool:
     ):
         return True
     return False
+
+
+def _looks_like_explicit_question_generation_request(text: str) -> bool:
+    """Return True when the user asks the system to create a new question object."""
+
+    normalized = re.sub(r"\s+", "", str(text or "").strip())
+    if not normalized:
+        return False
+    generation_markers = (
+        "出题",
+        "出一道",
+        "出一题",
+        "给我出",
+        "帮我出",
+        "生成一道",
+        "生成一题",
+        "来一道",
+        "来一题",
+        "考我",
+        "先考我",
+        "测我",
+    )
+    if any(marker in normalized for marker in generation_markers):
+        return True
+    generation_patterns = (
+        r"(?:给我|帮我|来|出|生成)[一二两三四五六七八九十0-9几]{0,3}道?(?:真题|试题|题|单选题|多选题|选择题|判断题)",
+        r"(?:先|直接)?(?:考我|测我)",
+    )
+    return any(re.search(pattern, normalized) for pattern in generation_patterns)
 
 
 def build_question_lifecycle_clarification_response(message: str, reason: str) -> str:

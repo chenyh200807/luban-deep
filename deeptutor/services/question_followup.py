@@ -66,6 +66,10 @@ _SUPPRESS_ANSWER_MARKERS = (
     "先不要给答案",
     "先别直接给答案",
     "先不要直接给答案",
+    "不要先给答案",
+    "别先给答案",
+    "先不给答案",
+    "不先给答案",
     "不要给答案",
     "不要直接给答案",
     "别给答案",
@@ -930,12 +934,18 @@ def build_question_followup_context_from_result_summary(
         question = str(qa_pair.get("question", "") or "").strip()
         if not question:
             continue
+        grading_key = qa_pair.get("grading_key") if isinstance(qa_pair.get("grading_key"), dict) else None
+        hidden_correct_answer = str(
+            qa_pair.get("correct_answer")
+            or ((grading_key or {}).get("correct_answer"))
+            or ""
+        ).strip()
         item = {
             "question_id": str(qa_pair.get("question_id", "") or f"q_{index}").strip(),
             "question": question,
             "question_type": _normalize_question_type(qa_pair.get("question_type")),
             "options": _normalize_options(qa_pair.get("options")),
-            "correct_answer": str(qa_pair.get("correct_answer", "") or "").strip(),
+            "correct_answer": hidden_correct_answer,
             "explanation": str(qa_pair.get("explanation", "") or "").strip(),
             "difficulty": str(qa_pair.get("difficulty", "") or "").strip(),
             "concentration": str(qa_pair.get("concentration", "") or "").strip(),
@@ -947,7 +957,6 @@ def build_question_followup_context_from_result_summary(
             "multi_select": bool(qa_pair.get("multi_select", False)),
         }
         # plan §Phase 3 (Batch C / A5) — copy hidden grading_key into item.
-        grading_key = qa_pair.get("grading_key") if isinstance(qa_pair.get("grading_key"), dict) else None
         if grading_key:
             item["grading_key"] = dict(grading_key)
         item.update(_followup_grading_authority_fields(qa_pair, metadata))
