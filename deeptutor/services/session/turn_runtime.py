@@ -871,6 +871,12 @@ async def _resolve_question_followup_context_and_action(
             return submission_context or normalized_explicit, submission_action
         if _has_ambiguous_submission_attempt(user_message, normalized_explicit):
             return normalized_explicit, None
+        deterministic_followup = looks_like_question_followup(user_message, normalized_explicit)
+        if (
+            followup_action_route(normalized_action) == "practice_generation"
+            and not looks_like_practice_generation_request(user_message)
+        ):
+            normalized_action = None
         if normalized_action is None:
             practice_action = _practice_generation_action_for_explicit_request(
                 user_message,
@@ -887,6 +893,13 @@ async def _resolve_question_followup_context_and_action(
                     user_message,
                     normalized_explicit,
                 )
+                if (
+                    followup_action_route(normalized_action) == "practice_generation"
+                    and not looks_like_practice_generation_request(user_message)
+                ):
+                    normalized_action = None
+        if deterministic_followup and followup_action_route(normalized_action) == "practice_generation":
+            normalized_action = None
         return normalized_explicit, normalized_action
 
     for candidate in candidate_contexts:
@@ -3758,9 +3771,12 @@ class TurnRuntimeManager:
                 )
                 original_stored_suspended_object_stack = list(stored_suspended_object_stack)
                 stored_object_type = str((stored_active_object or {}).get("object_type") or "").strip()
+                stored_followup_question_context = extract_question_context_from_active_object(
+                    stored_active_object
+                )
             if (
                 stored_active_object is not None
-                and extract_question_context_from_active_object(stored_active_object) is not None
+                and stored_followup_question_context is not None
                 and followup_question_context is None
                 and followup_action_route(followup_question_action) is None
             ):
@@ -3804,7 +3820,7 @@ class TurnRuntimeManager:
                         )
             stored_followup_question_context = extract_question_context_from_active_object(
                 stored_active_object
-            )
+            ) or stored_followup_question_context
             if session_id:
                 volatile_followup_question_context = self._volatile_question_contexts.get(session_id)
             session_active_object = None

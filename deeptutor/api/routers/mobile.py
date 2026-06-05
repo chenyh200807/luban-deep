@@ -858,6 +858,48 @@ async def _assert_mobile_conversation_access(conversation_id: str, user_id: str)
     raise HTTPException(status_code=404, detail="Conversation not found")
 
 
+async def _resolve_mobile_runtime_session_id(
+    conversation_id: str,
+    user_id: str,
+) -> tuple[str | None, str | None]:
+    resolved_conversation_id = str(conversation_id or "").strip()
+    if not resolved_conversation_id:
+        return None, None
+
+    variants = await _load_mobile_conversation_variants(resolved_conversation_id, user_id)
+    if not variants:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    def session_id_for(row: dict[str, Any]) -> str:
+        return str(row.get("id") or row.get("session_id") or "").strip()
+
+    def public_id_for(row: dict[str, Any]) -> str:
+        return _normalize_mobile_conversation_id(row) or resolved_conversation_id
+
+    def is_synthetic_direct(row: dict[str, Any]) -> bool:
+        return set(row.keys()) <= {"id"} and session_id_for(row) == resolved_conversation_id
+
+    for row in variants:
+        if not isinstance(row, dict):
+            continue
+        session_id = session_id_for(row)
+        if session_id == resolved_conversation_id:
+            return session_id, public_id_for(row)
+
+    rich_variants = [row for row in variants if isinstance(row, dict) and not is_synthetic_direct(row)]
+    for row in rich_variants:
+        session_id = session_id_for(row)
+        if session_id:
+            return session_id, public_id_for(row)
+    for row in variants:
+        if not isinstance(row, dict):
+            continue
+        session_id = session_id_for(row)
+        if session_id:
+            return session_id, public_id_for(row)
+    raise HTTPException(status_code=404, detail="Conversation not found")
+
+
 def _new_mobile_conversation_id() -> str:
     return f"tb_{uuid4().hex[:24]}"
 
@@ -2794,16 +2836,26 @@ async def mobile_chat_start_turn(
         wallet_user_id=resolved_wallet_user_id,
         authenticated_user_id=resolved_user_id,
     )
-    await _assert_mobile_conversation_access(body.conversation_id, resolved_user_id)
+    runtime_session_id, public_conversation_id = await _resolve_mobile_runtime_session_id(
+        body.conversation_id,
+        resolved_user_id,
+    )
     payload = _build_mobile_turn_payload(
         body=body,
         authenticated_user_id=resolved_user_id,
         wallet_user_id=resolved_wallet_user_id,
         query=query,
     )
+    if runtime_session_id:
+        payload["session_id"] = runtime_session_id
     session, turn = await turn_runtime.start_turn(payload)
+    response_conversation_id = (
+        public_conversation_id
+        or _normalize_mobile_conversation_id(session)
+        or str(session.get("id") or "")
+    )
     return _build_tutorbot_start_response(
-        conversation_id=str(session.get("id") or ""),
+        conversation_id=response_conversation_id,
         query=query,
         turn_id=str(turn.get("id") or ""),
         capability=str(turn.get("capability") or "chat") or "chat",

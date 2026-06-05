@@ -215,6 +215,173 @@ def test_mobile_chat_start_turn_passes_chat_mode_and_followup_context(
     assert config["interaction_hints"]["profile"] == "tutorbot"
 
 
+def test_mobile_chat_start_turn_uses_canonical_runtime_session_for_mirror_conversation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+    mirror_session_id = "tutorbot:bot:construction-exam-coach:user:student_demo:chat:tb_123"
+
+    class FakeTurnRuntime:
+        async def start_turn(self, payload):
+            captured["payload"] = payload
+            return (
+                {
+                    "id": payload["session_id"],
+                    "title": "真题追问",
+                    "created_at": 1_700_000_012.0,
+                    "preferences": {
+                        "source": "wx_miniprogram",
+                        "conversation_id": "tb_123",
+                    },
+                },
+                {
+                    "id": "turn_alias_1",
+                    "status": "running",
+                    "capability": "deep_question",
+                },
+            )
+
+    class FakeSessionStore:
+        async def get_session_owner_key(self, session_id: str) -> str:
+            assert session_id == "tb_123"
+            return ""
+
+        async def list_sessions_by_owner_and_conversation(
+            self,
+            owner_key: str,
+            conversation_id: str,
+            *,
+            source: str | None = None,
+            archived: bool | None = None,
+            limit: int = 50,
+        ):
+            assert owner_key == "user:student_demo"
+            assert conversation_id == "tb_123"
+            assert source == "wx_miniprogram"
+            assert archived is None
+            assert limit == 50
+            return [
+                {
+                    "id": mirror_session_id,
+                    "session_id": mirror_session_id,
+                    "preferences": {
+                        "source": "wx_miniprogram",
+                        "conversation_id": "tb_123",
+                    },
+                }
+            ]
+
+    monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
+    monkeypatch.setattr(mobile_module, "session_store", FakeSessionStore())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_wallet_lookup_user_id",
+        lambda *_args, **_kwargs: "wallet_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={
+                "query": "那C呢？一句话",
+                "conversation_id": "tb_123",
+                "mode": "AUTO",
+            },
+        )
+
+    assert response.status_code == 200
+    assert captured["payload"]["session_id"] == mirror_session_id
+    body = response.json()
+    assert body["conversation"]["id"] == "tb_123"
+    assert body["stream"]["url"] == "/api/v1/ws"
+
+
+def test_mobile_chat_start_turn_keeps_direct_runtime_session_when_direct_and_mirror_exist(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+    mirror_session_id = "tutorbot:bot:construction-exam-coach:user:student_demo:chat:tb_123"
+
+    class FakeTurnRuntime:
+        async def start_turn(self, payload):
+            captured["payload"] = payload
+            return (
+                {
+                    "id": payload["session_id"],
+                    "title": "真题追问",
+                    "created_at": 1_700_000_013.0,
+                    "preferences": {
+                        "source": "wx_miniprogram",
+                    },
+                },
+                {
+                    "id": "turn_alias_direct_1",
+                    "status": "running",
+                    "capability": "deep_question",
+                },
+            )
+
+    class FakeSessionStore:
+        async def get_session_owner_key(self, session_id: str) -> str:
+            assert session_id == "tb_123"
+            return "user:student_demo"
+
+        async def list_sessions_by_owner_and_conversation(
+            self,
+            owner_key: str,
+            conversation_id: str,
+            *,
+            source: str | None = None,
+            archived: bool | None = None,
+            limit: int = 50,
+        ):
+            assert owner_key == "user:student_demo"
+            assert conversation_id == "tb_123"
+            return [
+                {
+                    "id": mirror_session_id,
+                    "session_id": mirror_session_id,
+                    "preferences": {
+                        "source": "wx_miniprogram",
+                        "conversation_id": "tb_123",
+                    },
+                }
+            ]
+
+    monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
+    monkeypatch.setattr(mobile_module, "session_store", FakeSessionStore())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_wallet_lookup_user_id",
+        lambda *_args, **_kwargs: "wallet_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={
+                "query": "那C呢？一句话",
+                "conversation_id": "tb_123",
+                "mode": "AUTO",
+            },
+        )
+
+    assert response.status_code == 200
+    assert captured["payload"]["session_id"] == "tb_123"
+    body = response.json()
+    assert body["conversation"]["id"] == "tb_123"
+
+
 def test_mobile_chat_start_turn_can_regenerate_without_repersisting_user_message(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

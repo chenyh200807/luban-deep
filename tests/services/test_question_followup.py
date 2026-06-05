@@ -229,6 +229,62 @@ def test_resolve_submission_attempt_keeps_english_written_explanation_as_followu
 @pytest.mark.parametrize(
     "message",
     [
+        "为什么不是B？一句话。",
+        "为什么不是 B？一句话。",
+        "B为什么不对？",
+        "B为啥错？",
+        "那C呢？",
+        "那C呢？一句话",
+    ],
+)
+def test_resolve_submission_attempt_keeps_option_challenge_as_followup(
+    message: str,
+) -> None:
+    question_context = {
+        "question_id": "q_ratio",
+        "question": "某企业本期营业收入为1000万元，利润总额为50万元，则营业利润率为？",
+        "question_type": "choice",
+        "options": {"A": "2%", "B": "3%", "C": "4%", "D": "5%"},
+        "correct_answer": "D",
+        "user_answer": "B",
+        "is_correct": False,
+    }
+
+    target, submission = resolve_submission_attempt(message, question_context)
+
+    assert target is not None
+    assert submission is None
+    assert looks_like_question_followup(message, question_context) is True
+
+
+@pytest.mark.parametrize("message", ["我选B", "B"])
+def test_resolve_submission_attempt_keeps_explicit_option_submission(
+    message: str,
+) -> None:
+    target, submission = resolve_submission_attempt(
+        message,
+        {
+            "question_id": "q_ratio",
+            "question": "某企业本期营业收入为1000万元，利润总额为50万元，则营业利润率为？",
+            "question_type": "choice",
+            "options": {"A": "2%", "B": "3%", "C": "4%", "D": "5%"},
+            "correct_answer": "D",
+            "user_answer": "B",
+            "is_correct": False,
+        },
+    )
+
+    assert target is not None
+    assert submission == {
+        "kind": "single",
+        "answer": "B",
+        "question_id": "q_ratio",
+    }
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
         "选择题",
         "给我出单选题",
         "给我出简答题",

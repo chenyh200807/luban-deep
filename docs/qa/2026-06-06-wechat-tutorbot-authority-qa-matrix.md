@@ -9,7 +9,7 @@ Current evidence status:
 - `real_wechat_package`: partially covered. QA30-017/018 have WeChat DevTools automation evidence for `yousenwebview/packageDeeptutor` visible-card submit/retry payload authority. Full terminal answer quality over `/api/v1/ws` is still pending.
 - `standalone_shadow`: partially covered. `wx_miniprogram/pages/chat/chat.js` context continuity was fixed only as shadow parity.
 - `node_contract`: covered for the current P1 shadow parity fix.
-- `backend_harness`: not expanded in this artifact.
+- `backend_harness`: expanded for the active-question option challenge regression. `minimal_final7` passed 3/3 on local `/api/v1/chat/start-turn` + `/api/v1/ws`; earlier `minimal_final4/5/6` all failed 1/3 and are retained as before/after evidence under the ignored artifact directory.
 - `runtime_base_authority`: fixed for DevTools QA. `yousenwebview` develop+DevTools now has a tested local-first contract (`127.0.0.1:8001`, then `8012`, then `test2` fallback); explicit `__USE_LOCAL_DEVTOOLS__=false` is the tested remote mode.
 
 Question source manifest:
@@ -140,6 +140,44 @@ P2:
 | `WX-SHADOW-001` | P1 shadow / P2 production | fixed | standalone `wx_miniprogram` kept old retry/context transfer and could turn question-object retry into text replay | `node wx_miniprogram/tests/test_chat_retry_billing_contract.js` failed before fix | Preserve `followupQuestionContext/structuredSubmitContext/promptIntent` on user message and retry options; add visible-card context builder |
 | `EVIDENCE-001` | P1 | open | QA evidence can confuse real `packageDeeptutor` path with standalone/shadow `wx_miniprogram` path | subagent reachability audit | Every future ledger row must set `entry_surface` and report evidence boundary |
 | `EVIDENCE-002` | P1 | fixed | `yousenwebview` DevTools runtime base URL contract drifted: implementation defaulted local for QA, but the contract test still expected remote and a temporary comment said to revert | `node yousenwebview/tests/test_app_runtime_base_selection.js` failed before this fix; DevTools runtime evaluate returned local-first base candidates | Keep develop+DevTools local-first as the canonical internal QA mode, remove temporary revert comment, and add explicit remote-mode assertions |
+| `WX-AUTH-003` | P1 | fixed in backend harness | Active question option challenge such as `那C呢？一句话` could be interpreted by different modules as option submission, practice generation, or new question review. The shared failure shape was duplicate decision authority: option parsing, semantic router, lifecycle `question_review`, and mobile session alias all had partial authority over the same current-question fact. | Before: `minimal_final4/5/6` each passed 1/3. `minimal_final6` showed old historical question moved to `suspended_object_stack` while `question_review`/`deep_question_generation` created a C-language question. After: `minimal_final7` passed 3/3 and kept `historical:cf366dd4c395fffa` across follow-up and regrade. | Keep option-challenge wording as follow-up, clear misleading generation hints without explicit practice intent, preserve stored active question before suspend, resolve mobile public/mirror session ids without mirror-of-mirror, and make lifecycle `question_review` defer to active-question semantic routing before free-text review. |
+
+## Backend Harness Finding: `WX-AUTH-003`
+
+One business fact:
+
+> If a learner is inside a current historical MCQ, a terse option challenge like `那C呢？一句话` must stay attached to that same `question_id`, official answer, learner answer, and grading state.
+
+One authority:
+
+- Writer: exact-question fast path / question-followup context emitted by TutorBot runtime.
+- Persistence: session `runtime_state.active_object` plus `suspended_object_stack` only when a real new object replaces the current one.
+- Reader: TurnRuntimeManager restores active question context, then ChatOrchestrator asks semantic routing before lifecycle free-text review/generation can mutate the context.
+- Terminal answer: `deep_question_followup` / `deep_question_grading` can explain or regrade, but cannot swap the official question.
+
+Competing authorities found:
+
+- Option parser treated `C`-style wording too close to a submission.
+- LLM follow-up interpreter could return `generate_more_questions`.
+- Mobile start-turn access check found mirror variants but did not canonicalize the runtime session id; the first fix then over-selected mirror when direct and mirror both existed, causing mirror-of-mirror behavior.
+- Lifecycle `question_review` ran before active-object semantic routing and converted `那C呢？一句话` into `mode=custom/topic=那C呢？一句话`, causing a new C-language question.
+
+Fix type:
+
+- 收权, not fallback sprawl. The wrapper now only canonicalizes session id. Active-question semantics are decided once through the existing question context path before lifecycle review/generation can replace the object.
+
+Evidence:
+
+- Ignored artifact path: `artifacts/qa/wechat-tutorbot-authority-option-challenge-fix-20260606/`
+- Before: `minimal_final4_summary.json`, `minimal_final5_summary.json`, `minimal_final6_summary.json` -> each `passed=1`, `failed=2`.
+- After: `minimal_final7_summary.json` -> `passed=3`, `failed=0`.
+- Final ledger:
+
+```jsonl
+{"round_id":"QA30-FINAL7-001","resolved_authority":"tutorbot_exact_fast_path","question_id":"historical:cf366dd4c395fffa","learner_answer":"B","is_correct":false,"passed":true}
+{"round_id":"QA30-FINAL7-002","resolved_authority":"deep_question_followup","next_action":"route_to_followup_explainer","question_id":"historical:cf366dd4c395fffa","learner_answer":"B","is_correct":false,"passed":true}
+{"round_id":"QA30-FINAL7-003","resolved_authority":"deep_question_grading","next_action":"route_to_grading","question_id":"historical:cf366dd4c395fffa","learner_answer":"第1题：D","is_correct":true,"passed":true}
+```
 
 ## This-Round Verification
 
@@ -156,6 +194,10 @@ node yousenwebview/tests/test_api_base_failover.js
 node yousenwebview/tests/test_chat_send_surface_telemetry.js
 node yousenwebview/tests/test_ws_stream_auth_refresh.js
 node yousenwebview/tests/test_package_chat_retry_billing_contract.js
+pytest -q tests/api/test_mobile_router.py::test_mobile_chat_start_turn_uses_canonical_runtime_session_for_mirror_conversation tests/api/test_mobile_router.py::test_mobile_chat_start_turn_keeps_direct_runtime_session_when_direct_and_mirror_exist tests/api/test_mobile_router.py::test_mobile_chat_start_turn_passes_chat_mode_and_followup_context tests/api/test_mobile_router.py::test_mobile_chat_start_turn_requires_authentication tests/api/test_mobile_router.py::test_mobile_chat_start_turn_rejects_other_users_conversation tests/api/test_mobile_router.py::test_list_conversations_uses_owner_source_and_archived_filters tests/api/test_mobile_router.py::test_list_conversations_can_request_archived_items tests/api/test_mobile_router.py::test_get_conversation_messages_merges_internal_tutorbot_variants tests/api/test_mobile_router.py::test_get_conversation_messages_rejects_existing_non_mobile_session tests/api/test_mobile_router.py::test_delete_conversation_deletes_direct_and_mirror_variants
+pytest -q tests/services/test_question_followup.py tests/services/test_semantic_router.py tests/services/test_semantic_router_eval_cases.py tests/services/test_semantic_router_stack.py
+pytest -q tests/api/test_unified_ws_turn_runtime.py::test_resolve_question_followup_explicit_context_keeps_option_challenge_from_llm_generation tests/api/test_unified_ws_turn_runtime.py::test_resolve_question_followup_explicit_context_ignores_generation_hint_for_option_challenge tests/api/test_unified_ws_turn_runtime.py::test_answered_active_question_can_generate_related_questions_without_regrading tests/api/test_unified_ws_turn_runtime.py::test_submission_with_next_training_request_routes_to_grading tests/api/test_unified_ws_turn_runtime.py::test_start_turn_recovers_stored_active_question_for_plain_text_option_followup tests/api/test_unified_ws_turn_runtime.py::test_start_turn_merges_redacted_public_submission_with_stored_active_question
+pytest -q tests/runtime/test_orchestrator_autoroute.py::test_preselected_deep_question_grades_submission_before_practice_generation tests/runtime/test_orchestrator_autoroute.py::test_lifecycle_practice_generation_respects_active_question_followup tests/runtime/test_orchestrator_autoroute.py::test_lifecycle_question_review_respects_active_question_followup tests/runtime/test_orchestrator_autoroute.py::test_orchestrator_grades_before_generation_in_mixed_answer_then_more_practice tests/runtime/test_orchestrator_autoroute.py::test_orchestrator_autoroutes_question_followup_without_revealing_answer tests/runtime/test_orchestrator_autoroute.py::test_orchestrator_prefers_llm_followup_action_before_regex_fallback tests/runtime/test_orchestrator_autoroute.py::test_orchestrator_treats_explicit_choice_type_as_generation_with_active_question tests/runtime/test_orchestrator_autoroute.py::test_orchestrator_clears_previous_answer_when_explicit_generation_reuses_active_question
 ```
 
 All listed checks passed in the current run where applicable. The runtime base URL fix specifically passed:
@@ -169,8 +211,8 @@ Not run yet:
 - Full WebSocket terminal answer QA on `yousenwebview`
 - real device smoke
 - full 30-round conversation loop
-- Langfuse trace review for this exact shadow fix
+- Langfuse UI review for this exact fix. Local SDK initialized, but `localhost:3030` auth check failed during backend harness runs; use event metadata and SQLite session rows as current evidence.
 
 ## Next Single Mainline
 
-Run a full `/api/v1/chat/start-turn` + `/api/v1/ws` terminal-answer loop on the real `yousenwebview/packageDeeptutor` DevTools path for QA30-001/002/007. QA30-017/018 have payload-continuity evidence, but answer correctness, refusal class, and expression quality still need live WS evidence.
+Run the same QA30-FINAL7 three-turn sequence through the real `yousenwebview/packageDeeptutor` DevTools path, then continue the remaining 30-round matrix. Backend harness evidence is strong for the current authority bug, but it is still not real WeChat container closure.

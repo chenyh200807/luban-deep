@@ -682,6 +682,8 @@ def looks_like_question_followup(message: str, question_context: dict[str, Any] 
     normalized = normalize_question_followup_context(question_context)
     if not normalized:
         return False
+    if _looks_like_option_challenge_followup(message, normalized):
+        return True
     submission = resolve_submission_attempt(message, normalized)[1]
     if submission is not None and submission.get("kind") != "ambiguous":
         return True
@@ -1505,6 +1507,9 @@ def _extract_option_submission(message: str, question_context: dict[str, Any]) -
         return None
 
     option_keys = _available_option_keys(question_context)
+    if _looks_like_option_challenge_followup(text, question_context):
+        return None
+
     compact_upper = re.sub(r"\s+", "", text).upper().rstrip("。.!！?")
     letter_patterns = [
         rf"^(?:我选|我觉得选|选|答案是|答案|就是)?([{option_keys}](?:[、，,/／\s]*[{option_keys}])*)$",
@@ -1533,6 +1538,37 @@ def _extract_option_submission(message: str, question_context: dict[str, Any]) -
         if normalized is not None:
             return normalized
     return None
+
+
+def _looks_like_option_challenge_followup(
+    message: str,
+    question_context: dict[str, Any],
+) -> bool:
+    text = str(message or "").strip()
+    if not text:
+        return False
+
+    option_keys = _available_option_keys(question_context)
+    compact = re.sub(r"\s+", "", text).upper().strip("。.!！?？；;，,")
+    if not compact:
+        return False
+
+    letter = rf"[{option_keys}]"
+    negative_markers = r"(?:不对|错|错误|不是|不选|不能选|不该选|不行|不可以|为什么|为啥|怎么|咋)"
+    question_markers = r"(?:为什么|为啥|怎么|咋)"
+    response_constraint_tail = (
+        r"(?:[。.!！?？；;，,、]*"
+        r"(?:一句话|一两句话|简短(?:说|点)?|简单(?:说|点)?|说简单点|"
+        r"(?:[0-9一二两三四五六七八九十]+)个字以内))?"
+    )
+
+    patterns = [
+        rf"{question_markers}.{{0,12}}?(?:不是|不选|不能选|不该选|不对|错|错误)?{letter}.*",
+        rf"{letter}.{{0,12}}?{question_markers}.{{0,12}}?(?:不对|错|错误|不是|不选|不能选|不行|不可以)",
+        rf"{letter}.{{0,8}}?{negative_markers}",
+        rf"(?:那|这个|这|那么|如果是|要是)?{letter}呢{response_constraint_tail}",
+    ]
+    return any(re.fullmatch(pattern, compact, flags=re.IGNORECASE) for pattern in patterns)
 
 
 def _extract_explicit_option_letter_submission(

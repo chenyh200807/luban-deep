@@ -224,6 +224,82 @@ async def test_resolve_turn_semantic_decision_keeps_next_question_explanation_as
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "message",
+    ["为什么不是B？一句话。", "B为什么不对？", "那A呢？", "那A呢？一句话"],
+)
+async def test_resolve_turn_semantic_decision_keeps_option_challenge_as_followup(
+    monkeypatch: pytest.MonkeyPatch,
+    message: str,
+) -> None:
+    async def fake_interpret(_message: str, _context: dict[str, object], *, history_context: str = ""):
+        return None
+
+    monkeypatch.setattr(semantic_router, "interpret_question_followup_action", fake_interpret)
+    active_object = semantic_router.build_active_object_from_question_context(
+        {
+            "question_id": "q_1",
+            "question": "流水步距反映的是什么？",
+            "question_type": "choice",
+            "options": {"A": "工期", "B": "相邻专业队投入间隔"},
+            "correct_answer": "B",
+            "user_answer": "A",
+            "is_correct": False,
+        },
+        source_turn_id="turn-option-challenge",
+    )
+
+    decision, action = await semantic_router.resolve_turn_semantic_decision(
+        message,
+        active_object,
+    )
+
+    assert action is None
+    assert decision is not None
+    assert decision["relation_to_active_object"] == "ask_about_active_object"
+    assert decision["next_action"] == "route_to_followup_explainer"
+    assert decision["allowed_patch"] == ["no_state_change"]
+
+
+@pytest.mark.asyncio
+async def test_resolve_turn_semantic_decision_keeps_option_challenge_from_llm_generation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def misleading_interpret(_message: str, _context: dict[str, object], *, history_context: str = ""):
+        return {
+            "intent": "generate_more_questions",
+            "confidence": 0.9,
+            "answers": [],
+            "reason": "模拟 LLM 把选项追问误判成继续出题。",
+        }
+
+    monkeypatch.setattr(semantic_router, "interpret_question_followup_action", misleading_interpret)
+    active_object = semantic_router.build_active_object_from_question_context(
+        {
+            "question_id": "historical:roof_slope",
+            "question": "压型金属板屋面最低坡度是多少？",
+            "question_type": "choice",
+            "options": {"A": "1%", "B": "2%", "C": "3%", "D": "5%"},
+            "correct_answer": "D",
+            "user_answer": "B",
+            "is_correct": False,
+        },
+        source_turn_id="turn-option-challenge-llm-generation",
+    )
+
+    decision, action = await semantic_router.resolve_turn_semantic_decision(
+        "那C呢？一句话",
+        active_object,
+    )
+
+    assert action is None
+    assert decision is not None
+    assert decision["relation_to_active_object"] == "ask_about_active_object"
+    assert decision["next_action"] == "route_to_followup_explainer"
+    assert decision["allowed_patch"] == ["no_state_change"]
+
+
+@pytest.mark.asyncio
 async def test_resolve_turn_semantic_decision_routes_explicit_continue_practice_generation(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

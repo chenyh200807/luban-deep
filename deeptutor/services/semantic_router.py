@@ -783,6 +783,17 @@ async def resolve_question_semantic_routing(
             followup_action=llm_action if isinstance(llm_action, dict) else None,
         )
     llm_route = semantic_route_for_decision(llm_decision)
+    if (
+        llm_route == "practice_generation"
+        and question_context is not None
+        and not (
+            looks_like_practice_generation_request(user_message)
+            and _has_explicit_practice_generation_intent(user_message)
+        )
+    ):
+        llm_decision = None
+        llm_action = None
+        llm_route = None
     if llm_decision is not None and llm_route in {"submission", "followup", "practice_generation"}:
         return SemanticRoutingResult(
             active_object=active_object,
