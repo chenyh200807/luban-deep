@@ -55,6 +55,7 @@ from deeptutor.services.question_followup import (
     reset_question_submission_state,
     resolve_submission_attempt,
 )
+from deeptutor.services.question_lifecycle_skills import looks_like_free_text_mcq_grading_request
 from deeptutor.services.semantic_router import (
     build_turn_semantic_decision as build_semantic_turn_decision,
     has_explicit_practice_generation_intent,
@@ -784,6 +785,60 @@ def _looks_like_batch_correction_reference(user_message: str) -> bool:
     )
 
 
+def _normalize_question_identity_text(value: Any) -> str:
+    text = str(value or "").strip().lower()
+    return re.sub(r"[\s　，,。.!！?？；;：:、/／+\-—_（）()【】\[\]<>《》\"'“”‘’]+", "", text)
+
+
+def _identity_ngrams(text: str, *, size: int = 2) -> set[str]:
+    normalized = _normalize_question_identity_text(text)
+    if len(normalized) < size:
+        return set()
+    return {normalized[index : index + size] for index in range(0, len(normalized) - size + 1)}
+
+
+def _question_context_matches_free_text_surface(
+    user_message: str,
+    question_context: dict[str, Any],
+) -> bool:
+    message_identity = _normalize_question_identity_text(user_message)
+    if not message_identity:
+        return False
+
+    question_identity = _normalize_question_identity_text(question_context.get("question"))
+    if question_identity:
+        if len(question_identity) >= 10 and question_identity in message_identity:
+            return True
+        question_grams = _identity_ngrams(question_identity)
+        if question_grams:
+            message_grams = _identity_ngrams(message_identity)
+            overlap_ratio = len(question_grams & message_grams) / max(len(question_grams), 1)
+            if overlap_ratio >= 0.55:
+                return True
+
+    options = question_context.get("options") if isinstance(question_context, dict) else None
+    if not isinstance(options, dict) or not options:
+        return False
+    option_hits = 0
+    for value in options.values():
+        option_identity = _normalize_question_identity_text(value)
+        if len(option_identity) >= 2 and option_identity in message_identity:
+            option_hits += 1
+    return option_hits >= min(2, len(options))
+
+
+def _should_ignore_explicit_context_for_free_text_mcq(
+    user_message: str,
+    question_context: dict[str, Any] | None,
+) -> bool:
+    normalized_context = normalize_question_followup_context(question_context)
+    if normalized_context is None:
+        return False
+    if not looks_like_free_text_mcq_grading_request(user_message):
+        return False
+    return not _question_context_matches_free_text_surface(user_message, normalized_context)
+
+
 def _submission_action_for_user_message(
     user_message: str,
     question_context: dict[str, Any] | None,
@@ -826,6 +881,26 @@ def _submission_action_for_user_message(
     }
 
 
+def _deterministic_followup_action_for_user_message(
+    user_message: str,
+    question_context: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    normalized_context = normalize_question_followup_context(question_context)
+    if normalized_context is None:
+        return None
+    _target_context, submission = resolve_submission_attempt(user_message, normalized_context)
+    if isinstance(submission, dict) and submission.get("kind") != "ambiguous":
+        return None
+    if not looks_like_question_followup(user_message, normalized_context):
+        return None
+    return {
+        "intent": "ask_followup",
+        "confidence": 0.88,
+        "answers": [],
+        "reason": "用户消息是围绕当前题目的稳定格式追问，不应被解释成改答或提交答案。",
+    }
+
+
 def _has_ambiguous_submission_attempt(
     user_message: str,
     question_context: dict[str, Any] | None,
@@ -846,6 +921,10 @@ async def _resolve_question_followup_context_and_action(
 ) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
     normalized_explicit = normalize_question_followup_context(explicit_context)
     normalized_action = _normalize_question_followup_action(explicit_action)
+    free_text_mcq_grading_request = looks_like_free_text_mcq_grading_request(user_message)
+    if _should_ignore_explicit_context_for_free_text_mcq(user_message, normalized_explicit):
+        normalized_explicit = None
+        normalized_action = None
     if (
         normalized_explicit is not None
         and not (normalized_explicit.get("items") or [])
@@ -871,6 +950,12 @@ async def _resolve_question_followup_context_and_action(
             return submission_context or normalized_explicit, submission_action
         if _has_ambiguous_submission_attempt(user_message, normalized_explicit):
             return normalized_explicit, None
+        deterministic_followup_action = _deterministic_followup_action_for_user_message(
+            user_message,
+            normalized_explicit,
+        )
+        if deterministic_followup_action is not None:
+            return normalized_explicit, deterministic_followup_action
         deterministic_followup = looks_like_question_followup(user_message, normalized_explicit)
         if (
             followup_action_route(normalized_action) == "practice_generation"
@@ -903,6 +988,8 @@ async def _resolve_question_followup_context_and_action(
         return normalized_explicit, normalized_action
 
     for candidate in candidate_contexts:
+        if free_text_mcq_grading_request:
+            continue
         normalized_candidate = normalize_question_followup_context(candidate)
         if normalized_candidate is None:
             continue
@@ -919,6 +1006,12 @@ async def _resolve_question_followup_context_and_action(
             return submission_context or normalized_candidate, submission_action
         if _has_ambiguous_submission_attempt(user_message, normalized_candidate):
             return normalized_candidate, None
+        deterministic_followup_action = _deterministic_followup_action_for_user_message(
+            user_message,
+            normalized_candidate,
+        )
+        if deterministic_followup_action is not None:
+            return normalized_candidate, deterministic_followup_action
         practice_action = _practice_generation_action_for_explicit_request(
             user_message,
             normalized_candidate,

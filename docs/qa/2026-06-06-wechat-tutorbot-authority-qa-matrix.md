@@ -12,7 +12,7 @@ Current evidence status:
 - `backend_harness`: expanded for the active-question option challenge regression. `minimal_final7` passed 3/3 on local `/api/v1/chat/start-turn` + `/api/v1/ws`; earlier `minimal_final4/5/6` all failed 1/3 and are retained as before/after evidence under the ignored artifact directory.
 - `runtime_base_authority`: fixed for DevTools QA. `yousenwebview` develop+DevTools now has a tested local-first contract (`127.0.0.1:8001`, then `8012`, then `test2` fallback); explicit `__USE_LOCAL_DEVTOOLS__=false` is the tested remote mode.
 - `internal_authority_trace`: covered for the 5 current real `yousenwebview/packageDeeptutor` DevTools terminal rows. `scripts/extract_wechat_tutorbot_authority_ledger.py` now reads the existing local SQLite session store (`turn_events + sessions.runtime_state`) and emits compact authority rows without adding a production endpoint, new runtime state, production DB write, or second answer truth.
-- `near_real_http_ws`: expanded by `QA30-STATE-001..003`. The probe uses WeChat-shaped `/api/v1/chat/start-turn` + `/api/v1/ws` with internal QA billing bypass, but not the DevTools container. It specifically tested low-info clarification -> open-world teaching -> open-world follow-up after a stale clarification active object.
+- `near_real_http_ws`: expanded by `QA30-STATE-001..003` and `QA30-NR-004..016`. These probes use WeChat-shaped `/api/v1/chat/start-turn` + `/api/v1/ws` with internal QA billing bypass, but not the DevTools container. `QA30-NR-004..016` now has a final after-fix authority ledger with 12/12 trace-complete rows under `artifacts/qa/wechat-tutorbot-near-real-batch-20260606-core12-after-suspended-fix/`; it specifically caught and then verified fixes for stale active/explicit/suspended question authority and option/value follow-up misrouting.
 
 Question source manifest:
 
@@ -148,6 +148,10 @@ P2:
 | `WX-EXP-006` | P2 | deferred | Real package regrade after `那我改选D，对吗？一句话` preserved authority and graded correctly, but ignored the brevity constraint and emitted a long grader template. | `artifacts/qa/wechat-tutorbot-real-final7-20260606/summary.json`, `QA30-REAL-FINAL7-003`, `conversation_id=unified_1780692619402_d7820eca`, `turn_id=turn_1780692651216_75ccc15068`. | Record as TutorBot expression policy / mode adherence issue. Avoid treating this as answer-authority failure; no P0/P1 code change this round. |
 | `EVIDENCE-003` | P1 evidence gap | fixed | The first real DevTools rows recorded visible terminal answers but not enough internal authority trace to prove object/route/answer source continuity. | `artifacts/qa/wechat-tutorbot-real-authority-trace-20260606/authority-ledger.jsonl`; `pytest -q tests/scripts/test_extract_wechat_tutorbot_authority_ledger.py`. | Add a thin internal QA extractor that reads persisted `turn_events.metadata_json` and `sessions.preferences_json.runtime_state` only. It reports scenario-aware trace completeness and does not mutate runtime, DB, or frontend state. |
 | `WX-STATE-007` | P2 state hygiene probe | near-real not reproduced / DevTools pending | After a low-information clarification, later open-world teaching turns had no active question in their own result events, but the durable session active object still pointed to the earlier `question_lifecycle_clarification`. The near-real probe shows this stale durable object did not hijack open-world follow-up routing. | Initial signal: `artifacts/qa/wechat-tutorbot-real-authority-trace-20260606/authority-ledger.jsonl`, `QA30-REAL-015`. Follow-up probe: `artifacts/qa/wechat-tutorbot-state-after-clarification-probe-20260606/authority-ledger.jsonl`, `QA30-STATE-001..003`, all `trace_complete=true`; `QA30-STATE-003` answered漏保参数 via `tutorbot_kb_first_fast_policy`, not the old 2021 case. | Keep as state hygiene risk until a real DevTools repeat verifies the same behavior. Do not patch now: no user-visible failure, no answer-authority drift, and a patch would likely add state-clearing complexity before reproducing a defect. |
+| `WX-AUTH-008` | P1 | fixed in near-real HTTP+WS | Full new MCQ turns after an old active question were still graded against the stale question. The shared failure shape was object-continuity authority drift: candidate context, explicit context, and suspended stack could all read the old question before lifecycle/exact authority got the current full question surface. | Before: `artifacts/qa/wechat-tutorbot-near-real-batch-20260606-core12-after-fix/authority-ledger.jsonl`, `QA30-NR-006` graded `historical:cf366dd4c395fffa` (roof slope), official `A`, learner `C`, `answer_authority_source=active_object`. After explicit-context-only fix it still failed via suspended stack. Final after: `artifacts/qa/wechat-tutorbot-near-real-batch-20260606-core12-after-suspended-fix/authority-ledger.jsonl`, `QA30-NR-006` resolved `historical:53cbdad71ba26c1c`, official `D`, learner `C`, `answer_authority_source=exact_question`, `trace_complete=true`. | Turn runtime now demotes stale explicit question context when the current message is a full free-text MCQ whose题干/选项 surface does not match that context; candidate contexts are skipped for full new MCQ requests; semantic routing also refuses to resume suspended old questions for full new MCQ surfaces. Same-question full MCQ still preserves explicit context. |
+| `WX-AUTH-009` | P1 | fixed in near-real HTTP+WS | Option/value challenges such as `那1.0m行不行？一句话` or `A错在哪里？` could be treated as answer revision/submission. The shared failure shape was duplicate decision authority: deterministic option parser saw a follow-up, but LLM follow-up interpreter could still return `revise_answers` and deep_question would regrade. | Before: `artifacts/qa/wechat-tutorbot-near-real-batch-20260606-core12-after-fix/authority-ledger.jsonl`, `QA30-NR-011` was `deep_question_grading`, learner `第1题：ACDE`, `next_action=route_to_grading`. Final after: `artifacts/qa/wechat-tutorbot-near-real-batch-20260606-core12-after-suspended-fix/authority-ledger.jsonl`, `QA30-NR-011` is `deep_question_followup`, same `historical:9474436148e22029`, visible answer `不行，应≥1.2m。`; `QA30-NR-013` also remains follow-up. | `question_followup` now recognizes option-letter challenge variants and option-value numeric challenges before option submission extraction. Turn runtime emits deterministic `ask_followup` for stable follow-up formats before calling the LLM interpreter, so LLM cannot promote a stable follow-up into revise-answer authority. |
+| `WX-EXP-010` | P2 | deferred | Several correct near-real answers remain too long for `一句话` / low-friction WeChat usage, especially exact multi-choice templates and open-world teaching. This is expression authority, not answer authority. | Final after-fix transcript: `QA30-NR-008`, `QA30-NR-010`, and `QA30-NR-016` are correct/traceable but verbose. | Record for expression policy / response mode work. Do not mix into current P1 authority fix; next pass should tune terminal writer brevity without changing official-answer authority. |
+| `OBS-004` | P2 evidence gap | open | Local Langfuse SDK initializes but auth check to `http://localhost:3030` fails, so Langfuse cannot be treated as this run's authority evidence. | Backend logs in all three core12 reruns show `Langfuse initialization skipped: Langfuse auth check failed: [Errno 61] Connection refused`; authority evidence instead comes from `turn_events` and `sessions.runtime_state` via `scripts/extract_wechat_tutorbot_authority_ledger.py`. | Keep SQLite turn-event authority ledger as primary evidence until Langfuse local service is reachable and trace ids can be linked to turns. Do not fake trace ids or report Langfuse closure. |
 
 ## Real WeChat Finding: `WX-REAL-004`
 
@@ -311,6 +315,106 @@ Conclusion:
 
 - Current near-real evidence does not promote `WX-STATE-007` to P1. The stale durable clarification object is observable, but the turn-level result authority stayed open-world teaching.
 - Next real DevTools batch should include this same three-turn pattern before marking the risk closed for the primary front end.
+
+## Near-Real Core12 Finding: `QA30-NR-004..016`
+
+Artifacts:
+
+- Before current P1 fixes: `artifacts/qa/wechat-tutorbot-near-real-batch-20260606-core12/`
+- After first local fix, still failing stale suspended object: `artifacts/qa/wechat-tutorbot-near-real-batch-20260606-core12-after-fix/`
+- After explicit-context fix, still failing stale suspended object: `artifacts/qa/wechat-tutorbot-near-real-batch-20260606-core12-after-explicit-fix/`
+- Final after suspended-stack fix: `artifacts/qa/wechat-tutorbot-near-real-batch-20260606-core12-after-suspended-fix/`
+
+Evidence boundary:
+
+- Entry: `near_real_http_ws_wechat_payload`
+- Path: `/api/v1/chat/start-turn` + existing `/api/v1/ws`
+- Account: fixed internal QA account `qa_tutorbot_mcq`
+- Billing: local internal QA bypass only
+- Not real DevTools container evidence, not production DB write, not canonical learner truth write, not remote deploy.
+
+One business fact:
+
+> Each turn must decide whether the learner is answering the current active question, asking about it, or supplying a new complete question. That relation must be authoritative before grading.
+
+One authority:
+
+- Writer: exact-question / question lifecycle result for complete current-question surfaces; question-followup context for true active-question follow-up.
+- Persistence/transfer: existing `active_object`, `question_followup_context`, and `suspended_object_stack`.
+- Reader: `TurnRuntimeManager._resolve_question_followup_context_and_action` and semantic routing.
+- Terminal writers: TutorBot exact fast path, `deep_question_followup`, or lifecycle clarification. They may explain, but cannot choose a different official question.
+
+Competing authorities found:
+
+- Candidate active question context read the old question before lifecycle/exact saw the new complete MCQ.
+- Explicit `question_followup_context` could be stale and still parse `我选C` from a new complete question as an old-question answer.
+- `suspended_object_stack` could resume an older question because its options contained the same answer letter.
+- Deterministic option/value follow-up detection could be overruled by LLM `revise_answers`.
+
+Break points:
+
+- Last correct point for `QA30-NR-006`: user supplied a full new MCQ surface with options `A.檐口顶点 B.屋脊 C.墙顶点 D.最高点` and answer `C`.
+- First wrong point before fix: semantic/active-object path bound that `C` to old roof-slope question `historical:cf366dd4c395fffa` and graded against official `A=5%`.
+- Last correct point for `QA30-NR-011`: `question_followup` could identify `那1.0m行不行？一句话` as a current-question numeric follow-up.
+- First wrong point before fix: LLM follow-up interpreter promoted it to `revise_answers`, causing `deep_question_grading` to regrade old `ACDE`.
+
+Fix type:
+
+- 收权 and demotion, not another router. Full new MCQ surfaces now demote stale explicit/candidate/suspended question readers unless the message surface matches the explicit question. Stable option/value challenges now produce deterministic `ask_followup` before LLM interpretation.
+- No new chat WebSocket, no new answer truth, no production DB write, no learner truth write.
+
+Before/after metrics:
+
+| Round | Before path | Before authority | Final path | Final authority | Outcome |
+| --- | --- | --- | --- | --- | --- |
+| `QA30-NR-006` | `deep_question_grading` | old active roof question `historical:cf366dd4c395fffa`, official `A`, learner `C` | `tutorbot_exact_fast_path` | new historical-building question `historical:53cbdad71ba26c1c`, official `D`, learner `C` | fixed P1 |
+| `QA30-NR-011` | `deep_question_grading` | active underground wall question, learner rewritten as `第1题：ACDE` | `deep_question_followup` | same underground wall question, no regrade | fixed P1 |
+| `QA30-NR-013` | `deep_question_followup` | same underground wall question | `deep_question_followup` | same underground wall question | regression guard pass |
+
+Final ledger summary:
+
+| Round | Scenario | Authority result | Customer result |
+| --- | --- | --- | --- |
+| `QA30-NR-004` | shuffled roof options, learner A | exact question on query option surface, official `A` | pass |
+| `QA30-NR-005` | follow-up asks if old letters were used | same roof active question follow-up | pass |
+| `QA30-NR-006` | switch to full historical-building MCQ | exact question `historical:53cbdad71ba26c1c`, official `D`, learner `C` | pass |
+| `QA30-NR-008` | natural-language multi-select template support | exact question, learner `ABE`, official `ABE` | pass, verbose |
+| `QA30-NR-009` | why C not count | active question follow-up | pass, not concise enough |
+| `QA30-NR-010` | underground wall learner `ACDE` | exact question, official `CDE` | pass, verbose |
+| `QA30-NR-011` | `那1.0m行不行？一句话` | active question follow-up | pass |
+| `QA30-NR-012` | value-only underground wall, learner `CDE` | exact question, official `CDE` | pass |
+| `QA30-NR-013` | `A错在哪里？一句话` | active question follow-up | pass |
+| `QA30-NR-014` | low-info case request | lifecycle clarification | pass |
+| `QA30-NR-015` | repeated `题卡里` demand | lifecycle clarification | pass |
+| `QA30-NR-016` | open-world temporary electricity question | open-world teaching, no official score | pass, verbose |
+
+Verification commands:
+
+```bash
+pytest -q \
+  tests/services/test_question_followup.py \
+  tests/services/test_semantic_router.py \
+  tests/api/test_unified_ws_turn_runtime.py::test_full_new_mcq_does_not_regrade_stale_active_question \
+  tests/api/test_unified_ws_turn_runtime.py::test_full_new_mcq_does_not_regrade_stale_explicit_question \
+  tests/api/test_unified_ws_turn_runtime.py::test_full_same_mcq_keeps_explicit_question_context \
+  tests/api/test_unified_ws_turn_runtime.py::test_explicit_question_value_challenge_routes_to_followup \
+  tests/api/test_unified_ws_turn_runtime.py::test_resolve_question_followup_explicit_context_keeps_option_challenge_from_llm_generation \
+  tests/api/test_unified_ws_turn_runtime.py::test_resolve_question_followup_explicit_context_ignores_generation_hint_for_option_challenge \
+  tests/scripts/test_run_wechat_tutorbot_qa_batch.py \
+  tests/scripts/test_extract_wechat_tutorbot_authority_ledger.py
+
+python scripts/run_wechat_tutorbot_qa_batch.py \
+  --api-base-url http://127.0.0.1:8001 \
+  --username qa_tutorbot_mcq \
+  --password QaTutorbot2026 \
+  --output-dir artifacts/qa/wechat-tutorbot-near-real-batch-20260606-core12-after-suspended-fix \
+  --timeout-seconds 120
+
+python scripts/extract_wechat_tutorbot_authority_ledger.py \
+  $(awk '{print "--turn", $0}' artifacts/qa/wechat-tutorbot-near-real-batch-20260606-core12-after-suspended-fix/turn_ids.txt) \
+  --entry-surface near_real_http_ws_wechat_payload \
+  --output artifacts/qa/wechat-tutorbot-near-real-batch-20260606-core12-after-suspended-fix/authority-ledger.jsonl
+```
 
 Subagent trace-review checklist for the next runner:
 

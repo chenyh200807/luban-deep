@@ -300,6 +300,88 @@ async def test_resolve_turn_semantic_decision_keeps_option_challenge_from_llm_ge
 
 
 @pytest.mark.asyncio
+async def test_resolve_turn_semantic_decision_does_not_bind_full_new_mcq_to_active_question(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def fake_interpret(_message: str, _context: dict[str, object], *, history_context: str = ""):
+        return {
+            "intent": "unrelated",
+            "confidence": 0.7,
+            "answers": [],
+            "reason": "当前输入是另一道完整题。",
+        }
+
+    monkeypatch.setattr(semantic_router, "interpret_question_followup_action", fake_interpret)
+    active_object = semantic_router.build_active_object_from_question_context(
+        {
+            "question_id": "historical:roof_slope",
+            "question": "某工程屋面做法为压型金属板，当设计无要求时，屋面坡度最小值是（ ）。",
+            "question_type": "single_choice",
+            "options": {"A": "5%", "B": "1%", "C": "2%", "D": "3%"},
+            "correct_answer": "A",
+            "user_answer": "A",
+            "is_correct": True,
+        },
+        source_turn_id="turn-old-roof",
+    )
+
+    decision, action = await semantic_router.resolve_turn_semantic_decision(
+        (
+            "换题：历史建筑的建筑高度应按室外设计地坪至建构筑物什么计算？"
+            "A.檐口顶点 B.屋脊 C.墙顶点 D.最高点，我选C，直接批改"
+        ),
+        active_object,
+    )
+
+    assert action is None
+    assert decision is not None
+    assert decision["next_action"] == "route_to_general_chat"
+    assert decision["allowed_patch"] == ["no_state_change"]
+
+
+@pytest.mark.asyncio
+async def test_resolve_question_semantic_routing_does_not_resume_suspended_for_full_new_mcq() -> None:
+    async def misleading_interpret(_message: str, _context: dict[str, object], *, history_context: str = ""):
+        return {
+            "intent": "answer_questions",
+            "confidence": 0.95,
+            "answers": [{"question_id": "historical:roof_slope", "answer": "C"}],
+            "reason": "如果被调用，就会把新题误判成旧题改答。",
+        }
+
+    suspended_question = semantic_router.build_active_object_from_question_context(
+        {
+            "question_id": "historical:roof_slope",
+            "question": "某工程屋面做法为压型金属板，当设计无要求时，屋面坡度最小值是（ ）。",
+            "question_type": "single_choice",
+            "options": {"A": "5%", "B": "1%", "C": "2%", "D": "3%"},
+            "correct_answer": "A",
+            "user_answer": "A",
+            "is_correct": True,
+        },
+        source_turn_id="turn-old-roof",
+    )
+
+    routing = await semantic_router.resolve_question_semantic_routing(
+        user_message=(
+            "换题：历史建筑的建筑高度应按室外设计地坪至建构筑物什么计算？"
+            "A.檐口顶点 B.屋脊 C.墙顶点 D.最高点，我选C，直接批改"
+        ),
+        metadata={"suspended_object_stack": [suspended_question]},
+        history_context="",
+        interpret_followup_action=misleading_interpret,
+        resolve_submission_attempt=semantic_router.resolve_submission_attempt,
+        looks_like_question_followup=semantic_router.looks_like_question_followup,
+        looks_like_practice_generation_request=semantic_router.looks_like_practice_generation_request,
+    )
+
+    assert routing.followup_action is None
+    assert routing.question_context is None
+    assert routing.turn_semantic_decision["next_action"] == "route_to_general_chat"
+    assert routing.turn_semantic_decision["allowed_patch"] == ["no_state_change"]
+
+
+@pytest.mark.asyncio
 async def test_resolve_turn_semantic_decision_routes_explicit_continue_practice_generation(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

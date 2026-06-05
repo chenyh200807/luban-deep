@@ -233,6 +233,9 @@ def test_resolve_submission_attempt_keeps_english_written_explanation_as_followu
         "为什么不是 B？一句话。",
         "B为什么不对？",
         "B为啥错？",
+        "A错在哪里？一句话",
+        "A错在哪？",
+        "A哪里错了？",
         "那C呢？",
         "那C呢？一句话",
     ],
@@ -255,6 +258,30 @@ def test_resolve_submission_attempt_keeps_option_challenge_as_followup(
     assert target is not None
     assert submission is None
     assert looks_like_question_followup(message, question_context) is True
+
+
+def test_resolve_submission_attempt_keeps_option_value_challenge_as_followup() -> None:
+    question_context = {
+        "question_id": "q_diaphragm_wall",
+        "question": "关于地下连续墙施工要求，正确的有（ ）。",
+        "question_type": "multiple_choice",
+        "options": {
+            "A": "地下连续墙单元槽段长度宜为8～10m",
+            "B": "导墙高度不应小于1.0m",
+            "C": "应设置现浇钢筋混凝土导墙",
+            "D": "水下混凝土应采用导管法连续浇筑",
+            "E": "混凝土达到设计强度后方可进行墙底注浆",
+        },
+        "correct_answer": "CDE",
+        "user_answer": "ACDE",
+        "is_correct": False,
+    }
+
+    target, submission = resolve_submission_attempt("那1.0m行不行？一句话", question_context)
+
+    assert target is not None
+    assert submission is None
+    assert looks_like_question_followup("那1.0m行不行？一句话", question_context) is True
 
 
 @pytest.mark.parametrize("message", ["我选B", "B"])

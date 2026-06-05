@@ -12,6 +12,7 @@ from deeptutor.services.question_followup import (
     reset_question_submission_state,
     resolve_submission_attempt,
 )
+from deeptutor.services.question_lifecycle_skills import looks_like_free_text_mcq_grading_request
 from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
 
 _PREVIOUS_OBJECT_MARKERS = (
@@ -636,6 +637,17 @@ async def resolve_turn_semantic_decision(
             return decision, None
         return None, None
 
+    if looks_like_free_text_mcq_grading_request(user_message):
+        decision = build_turn_semantic_decision(
+            relation_to_active_object="temporary_detour",
+            next_action="route_to_general_chat",
+            allowed_patch="no_state_change",
+            confidence=0.74,
+            reason="当前输入包含完整新选择题题干和作答，不能绑定到旧 active question。",
+            active_object=normalized_active_object,
+        )
+        return decision, None
+
     routing = await resolve_question_semantic_routing(
         user_message=user_message,
         metadata={
@@ -707,6 +719,28 @@ async def resolve_question_semantic_routing(
             turn_semantic_decision=practice_decision,
             question_context=question_context,
             followup_action=accepted_practice_offer,
+        )
+
+    if (
+        active_object is not None
+        and legacy_question_context is None
+        and question_context is not None
+        and looks_like_free_text_mcq_grading_request(user_message)
+    ):
+        detour_decision = build_turn_semantic_decision(
+            relation_to_active_object="temporary_detour",
+            next_action="route_to_general_chat",
+            allowed_patch="no_state_change",
+            confidence=0.74,
+            reason="当前输入包含完整新选择题题干和作答，不能绑定到旧 active question。",
+            active_object=active_object,
+        )
+        return SemanticRoutingResult(
+            active_object=active_object,
+            suspended_object_stack=suspended_stack,
+            turn_semantic_decision=detour_decision,
+            question_context=None,
+            followup_action=None,
         )
 
     if (
@@ -962,6 +996,8 @@ async def _resolve_from_suspended_stack(
     looks_like_practice_generation_request: Callable[[str], bool],
     active_decision: dict[str, Any] | None,
 ) -> SemanticRoutingResult | None:
+    if looks_like_free_text_mcq_grading_request(user_message):
+        return None
     if not suspended_stack:
         return None
 

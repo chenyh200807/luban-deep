@@ -429,6 +429,110 @@ async def test_ambiguous_multi_question_single_letter_is_not_promoted_to_answer_
 
 
 @pytest.mark.asyncio
+async def test_full_new_mcq_does_not_regrade_stale_active_question() -> None:
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message=(
+            "换题：历史建筑的建筑高度应按室外设计地坪至建构筑物什么计算？"
+            "A.檐口顶点 B.屋脊 C.墙顶点 D.最高点，我选C，直接批改"
+        ),
+        explicit_context=None,
+        explicit_action=None,
+        candidate_contexts=[
+            {
+                "question_id": "historical:roof_slope",
+                "question": "某工程屋面做法为压型金属板，当设计无要求时，屋面坡度最小值是（ ）。",
+                "question_type": "single_choice",
+                "options": {"A": "5%", "B": "1%", "C": "2%", "D": "3%"},
+                "correct_answer": "A",
+                "user_answer": "A",
+                "is_correct": True,
+            }
+        ],
+    )
+
+    assert resolved_context is None
+    assert resolved_action is None
+
+
+@pytest.mark.asyncio
+async def test_full_new_mcq_does_not_regrade_stale_explicit_question() -> None:
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message=(
+            "换题：历史建筑的建筑高度应按室外设计地坪至建构筑物什么计算？"
+            "A.檐口顶点 B.屋脊 C.墙顶点 D.最高点，我选C，直接批改"
+        ),
+        explicit_context={
+            "question_id": "historical:roof_slope",
+            "question": "某工程屋面做法为压型金属板，当设计无要求时，屋面坡度最小值是（ ）。",
+            "question_type": "single_choice",
+            "options": {"A": "5%", "B": "1%", "C": "2%", "D": "3%"},
+            "correct_answer": "A",
+            "user_answer": "A",
+            "is_correct": True,
+        },
+        explicit_action=None,
+        candidate_contexts=[],
+    )
+
+    assert resolved_context is None
+    assert resolved_action is None
+
+
+@pytest.mark.asyncio
+async def test_full_same_mcq_keeps_explicit_question_context() -> None:
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message=(
+            "某工程屋面做法为压型金属板，当设计无要求时，屋面坡度最小值是（ ）。"
+            "A.5% B.1% C.2% D.3%，我选A，直接批改"
+        ),
+        explicit_context={
+            "question_id": "historical:roof_slope",
+            "question": "某工程屋面做法为压型金属板，当设计无要求时，屋面坡度最小值是（ ）。",
+            "question_type": "single_choice",
+            "options": {"A": "5%", "B": "1%", "C": "2%", "D": "3%"},
+            "correct_answer": "A",
+        },
+        explicit_action=None,
+        candidate_contexts=[],
+    )
+
+    assert resolved_context is not None
+    assert resolved_context["question_id"] == "historical:roof_slope"
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "answer_questions"
+    assert resolved_action["answers"][0]["answer"] == "A"
+
+
+@pytest.mark.asyncio
+async def test_explicit_question_value_challenge_routes_to_followup() -> None:
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message="那1.0m行不行？一句话",
+        explicit_context={
+            "question_id": "historical:diaphragm_wall",
+            "question": "关于地下连续墙施工要求，正确的有（ ）。",
+            "question_type": "multiple_choice",
+            "options": {
+                "A": "地下连续墙单元槽段长度宜为8～10m",
+                "B": "导墙高度不应小于1.0m",
+                "C": "应设置现浇钢筋混凝土导墙",
+                "D": "水下混凝土应采用导管法连续浇筑",
+                "E": "混凝土达到设计强度后方可进行墙底注浆",
+            },
+            "correct_answer": "CDE",
+            "user_answer": "ACDE",
+            "is_correct": False,
+        },
+        explicit_action=None,
+        candidate_contexts=[],
+    )
+
+    assert resolved_context is not None
+    assert resolved_context["question_id"] == "historical:diaphragm_wall"
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "ask_followup"
+
+
+@pytest.mark.asyncio
 async def test_answered_active_question_can_generate_related_questions_without_regrading() -> None:
     resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
         user_message="再给我相关的五道题，不要给答案，等我作答后再批改",
@@ -524,7 +628,8 @@ async def test_resolve_question_followup_explicit_context_keeps_option_challenge
     assert resolved_context is not None
     assert resolved_context["question_id"] == "historical:roof_slope"
     assert resolved_context["user_answer"] == "B"
-    assert resolved_action is None
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "ask_followup"
 
 
 @pytest.mark.asyncio
