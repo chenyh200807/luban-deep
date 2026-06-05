@@ -94,23 +94,52 @@ def _looks_like_deep_query(user_message: str) -> bool:
     return text.count("？") + text.count("?") >= 2
 
 
-def _looks_like_fast_query(user_message: str) -> bool:
+def looks_like_explicit_brevity_request(user_message: str) -> bool:
     text = str(user_message or "").strip().lower()
     if not text:
         return False
     return _contains_any(
         text,
         (
-            "简单说",
             "简要",
             "一句话",
             "简短",
             "快速",
             "快一点",
             "概括",
+            "别展开",
+            "不要展开",
+            "不用展开",
+            "少废话",
+            "只说结论",
+            "只给结论",
+            "只说答案",
+            "只给答案",
+            "直接说",
             "简单解释",
             "简单讲",
-            "是什么",
+            "one sentence",
+            "briefly",
+            "short answer",
+        ),
+    )
+
+
+def _looks_like_fast_query(user_message: str) -> bool:
+    text = str(user_message or "").strip().lower()
+    if not text:
+        return False
+    return bool(
+        looks_like_explicit_brevity_request(text)
+        or _contains_any(
+            text,
+            (
+                "简单说",
+                "简单解释",
+                "简单讲",
+                "概括",
+                "是什么",
+            ),
         ),
     )
 
@@ -146,6 +175,9 @@ def select_response_mode(
 
     if looks_like_practice_generation_request(user_message):
         return "fast", "practice_generation"
+
+    if looks_like_explicit_brevity_request(user_message):
+        return "fast", "explicit_brevity"
 
     deep_reasons: list[str] = []
     if has_active_object:

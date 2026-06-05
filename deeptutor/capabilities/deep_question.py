@@ -49,6 +49,7 @@ from deeptutor.services.semantic_router import (
     question_context_from_active_object,
 )
 from deeptutor.tools.rag_tool import rag_search
+from deeptutor.tutorbot.response_mode import looks_like_explicit_brevity_request
 from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
 
 
@@ -1254,7 +1255,60 @@ def _should_render_deterministic_reference_feedback(
     )
 
 
-def _render_deterministic_reference_feedback(question_context: dict[str, Any] | None) -> str:
+def _looks_like_option_mapping_challenge(user_message: str) -> bool:
+    text = str(user_message or "").strip().lower()
+    if not text:
+        return False
+    return any(
+        marker in text
+        for marker in (
+            "旧题库",
+            "这轮选项",
+            "当前选项",
+            "选项顺序",
+            "没看我这轮",
+            "没看选项",
+            "字母对不上",
+        )
+    )
+
+
+def _render_brief_reference_feedback(
+    user_message: str,
+    question_context: dict[str, Any] | None,
+) -> str:
+    items = _reference_items(question_context)
+    if not items:
+        return ""
+    if len(items) == 1:
+        item = items[0]
+        objective = bool(_objective_items(item))
+        answer_label = "正确答案" if objective else "参考答案"
+        answer = _format_answer_with_option_text(item, item.get("correct_answer"))
+        if objective and _looks_like_option_mapping_challenge(user_message):
+            return f"不是，已按你这轮题面判断，正确答案是 {answer}。"
+        explanation = _compact_text(_reference_explanation(item))
+        if explanation:
+            return f"{answer_label}是 {answer}：{explanation}"
+        return f"{answer_label}是 {answer}。"
+
+    parts: list[str] = []
+    for index, item in enumerate(items, 1):
+        objective = bool(_objective_items(item))
+        answer_label = "正确答案" if objective else "参考答案"
+        answer = _format_answer_with_option_text(item, item.get("correct_answer"))
+        parts.append(f"第{index}题{answer_label}是 {answer}")
+    return "；".join(parts) + "。"
+
+
+def _render_deterministic_reference_feedback(
+    question_context: dict[str, Any] | None,
+    *,
+    user_message: str = "",
+) -> str:
+    if looks_like_explicit_brevity_request(user_message):
+        return _render_brief_reference_feedback(user_message, question_context)
+
     items = _reference_items(question_context)
     if not items:
         return ""
@@ -3003,7 +3057,8 @@ class DeepQuestionCapability(BaseCapability):
                 followup_question_context,
             ):
                 answer = _render_deterministic_reference_feedback(
-                    followup_question_context
+                    followup_question_context,
+                    user_message=context.user_message,
                 )
             else:
                 from deeptutor.agents.question.agents.followup_agent import FollowupAgent

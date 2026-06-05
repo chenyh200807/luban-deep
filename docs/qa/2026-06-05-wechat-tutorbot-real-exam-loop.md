@@ -34,7 +34,7 @@
 | I1 | 压型金属板屋面坡度完整单选，用户选 C 并要求 `别展开，一句话` | 批错、给 D/5%，一句话 | 修前 exact fast-path 输出完整教学模板；p11 后返回一句话 | Pass | 已把用户表达约束传入 exact authority builder |
 | J1 | 固定 QA 号 `qa_tutorbot_mcq` 走移动端 login/profile/start-turn | 不人工注册、不收费、不被 wallet 读卡住 | 修前 `/auth/profile` 因 wallet 404/503 中断 smoke | Pass | 内部 QA profile 钱包读返回 `internal_qa` 快照 |
 | K1 | 同一屋面坡度题，但学员手抄乱序：`A.5% B.1% C.2% D.3%，我选A` | 按当前题面判 A 对，不能沿用题库旧字母 D | 修前答“不对，标准答案D”；p13 后答“对，标准答案A” | Pass with follow-up caveat | 已把 historical exact question 投影到 query option surface |
-| K2 | 接 K1 追问 `是不是因为你按旧题库字母没看我这轮选项？` | 承接刚才乱序题并承认/澄清当前题面 A 才对 | 修前说“不知道你要批改哪一道题”；p14 后承接同一 active_object 并给 A/5%，但仍非一句话 | Pass with P2 expression caveat | 已修 exact fast-path active question continuity + reveal state |
+| K2 | 接 K1 追问 `是不是因为你按旧题库字母没看我这轮选项？` | 承接刚才乱序题并承认/澄清当前题面 A 才对 | 修前说“不知道你要批改哪一道题”；p14 后承接同一 active_object 但仍非一句话；p15 后单句澄清当前题面 A/5% | Pass | 已修 exact fast-path active question continuity + reveal state + follow-up brevity |
 
 ## Fixed This Loop
 
@@ -109,6 +109,12 @@
    - p14 live evidence：固定账号 `qa_tutorbot_weird`，首轮 `turn_1780667305528_e39399ae2b` 返回 `对，标准答案是 A（A. 5%）...`，RESULT metadata `authority_applied=true`、`execution_path=tutorbot_exact_fast_path`、`active_object_id=historical:cf366dd4c395fffa`、`question_followup_context.reveal_answers=true`、`billing_capture=null`。
    - p14 第二轮 `turn_1780667337128_ba1588c54f` 返回 `正确答案：A（5%）...`，RESULT metadata `execution_path=deep_question_followup`、`context_question_id=historical:cf366dd4c395fffa`、`context_reveal_answers=true`、`active_object_id=historical:cf366dd4c395fffa`、`billing_capture=null`；已不再拒绝/丢上下文，但“一句话”表达仍需下一轮修。
 
+13. exact follow-up brevity authority
+   - root cause：active question follow-up 已能恢复题目对象，但 deterministic reference renderer 是最后一个 terminal writer，只读取题目 context，不读取本轮显式表达约束；同时 `response_mode` 里 active object 会先把 smart 模式升级到 deep，压过“一句话/别展开”。
+   - 修法保持 thin wrapper / fat skill：把显式简短请求收敛到 `tutorbot.response_mode.looks_like_explicit_brevity_request`，`select_response_mode` 在 active object deep 前先尊重该表达约束；`deep_question` 的 deterministic reveal renderer 只消费同一 helper，不在微信、WS 或前端做截断。
+   - p15 live evidence：固定账号 `qa_tutorbot_weird`，首轮 `turn_1780668293721_21ae58f4c2` 返回 `对，标准答案是 A（A. 5%）...`，RESULT metadata `authority_applied=true`、`execution_path=tutorbot_exact_fast_path`、`canonical_correct_answer=D`、`option_surface=query`、`active_object_id=historical:cf366dd4c395fffa`、`billing_capture=null`。
+   - p15 第二轮 `turn_1780668322147_5b3677a8ae` 返回单句 `不是，已按你这轮题面判断，正确答案是 A（5%）。`，RESULT metadata `mode=followup`、`execution_path=deep_question_followup`、`qctx_id=historical:cf366dd4c395fffa`、`qctx_reveal_answers=true`、`active_object_id=historical:cf366dd4c395fffa`、`billing_capture=null`。
+
 ## Team Monitoring Notes
 
 - 主代理：负责真实小程序同构链路复现、最小代码修复、测试与 scoped commit。
@@ -121,7 +127,8 @@
 
 - P1：历史题库 resolver 目前是 full-MCQ vertical slice，不是生产题库总闭环。还需要把签名/可部署的题库 artifact、题卡 id、前端题面对象和 Supabase/KB source evidence 收敛成同一个 canonical question authority。
 - P1：题卡 id / 当前题面对象没有从微信前端稳定传进 TutorBot 时，系统只能澄清，无法兑现“我在小程序刷题，别让我复制题干”的体验。
-- P2：exact MCQ 首答的一句话模板问题已修；但 follow-up/general LLM 路径仍可能在用户要求“一句话/别废话”时偏长，例如 p14 第二轮仍输出 markdown 小段，未直接一句话回应“是不是按旧字母”。
+- P2：exact MCQ 首答与 exact follow-up deterministic reveal 的一句话模板问题已修；general TutorBot LLM 路径仍可能在用户要求“一句话/别废话”时偏长，p15 负例里 general fast policy 仍输出多段解析。
+- P2：historical resolver 对部分自然问句格式仍漏识别。p15 负例 `压型金属板采用轻型屋面时，屋面最小坡度宜为多少？A. 5% B. 1% C. 2% D. 3%，我选A，对吗？` 首轮进入 clarification；需要下一轮收敛 MCQ anchor 识别，而不是让用户改成测试模板格式。
 - P2：RAG unavailable 的措辞需要更稳定：可以给候选判断，但不能说成题库标准确认。
 - P2：本地 `/api/v1/wechat/mp/login` 缺 `WECHAT_MP_APP_ID/WECHAT_MP_APP_SECRET` 时返回 502；当前 QA 通过注册登录绕过，只验证 `/api/v1/chat/start-turn` + `/api/v1/ws`。
 - P2：正式 billing/wallet 链路仍要单独做生产对账；本轮 bypass 只服务内部 QA，不作为真实收费链路证据。
