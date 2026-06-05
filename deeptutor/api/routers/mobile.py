@@ -29,6 +29,10 @@ from deeptutor.services.learner_state.attempt_detail_read_model import build_att
 from deeptutor.services.learner_state.learning_brain_read_model import build_learning_brain_read_model
 from deeptutor.services.learner_state.learning_report_read_model import build_learning_report_read_model
 from deeptutor.services.learner_state.mistake_book import MistakeBookConflict, MistakeBookService
+from deeptutor.services.internal_qa import (
+    internal_qa_billing_bypass_allowed,
+    internal_qa_billing_bypass_enabled,
+)
 from deeptutor.services.member_console import get_member_console_service
 from deeptutor.services.assessment import AssessmentBlueprintUnavailable
 from deeptutor.services.query_intent import (
@@ -613,7 +617,47 @@ def _assert_wallet_balance_available(wallet_user_id: str) -> None:
     )
 
 
-def _assert_billing_quota_available(authorization: str | None, *, wallet_user_id: str) -> None:
+def _internal_qa_member_identity_candidates(*user_ids: str) -> list[str]:
+    if not internal_qa_billing_bypass_enabled():
+        return []
+    candidates: list[str] = []
+
+    def _append(value: Any) -> None:
+        normalized = str(value or "").strip()
+        if normalized and normalized not in candidates:
+            candidates.append(normalized)
+
+    for user_id in user_ids:
+        normalized_user_id = str(user_id or "").strip()
+        if not normalized_user_id:
+            continue
+        try:
+            profile = member_service.get_profile(normalized_user_id)
+        except Exception:
+            continue
+        if not isinstance(profile, dict):
+            continue
+        for key in ("user_id", "username", "auth_username", "external_auth_user_id"):
+            _append(profile.get(key))
+    return candidates
+
+
+def _assert_billing_quota_available(
+    authorization: str | None,
+    *,
+    wallet_user_id: str,
+    authenticated_user_id: str = "",
+) -> None:
+    identity_candidates = [
+        authenticated_user_id,
+        wallet_user_id,
+        *_resolve_legacy_ledger_candidate_user_ids(authorization),
+    ]
+    identity_candidates.extend(_internal_qa_member_identity_candidates(*identity_candidates))
+    if internal_qa_billing_bypass_allowed(
+        *identity_candidates,
+    ):
+        return
     normalized_user_id = str(wallet_user_id or "").strip()
     if not normalized_user_id or not getattr(wallet_service, "is_configured", False):
         return
@@ -2698,7 +2742,11 @@ async def mobile_chat_start_turn(
 
     resolved_user_id = _resolve_authenticated_user_id(authorization)
     resolved_wallet_user_id = _resolve_wallet_lookup_user_id(authorization)
-    _assert_billing_quota_available(authorization, wallet_user_id=resolved_wallet_user_id)
+    _assert_billing_quota_available(
+        authorization,
+        wallet_user_id=resolved_wallet_user_id,
+        authenticated_user_id=resolved_user_id,
+    )
     await _assert_mobile_conversation_access(body.conversation_id, resolved_user_id)
     payload = _build_mobile_turn_payload(
         body=body,

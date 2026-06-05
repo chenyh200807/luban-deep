@@ -71,6 +71,16 @@
    - observer exact question 摘要只保留 `id / answer_kind / question_type / source_group / correct_answer / source_file / content_hash`，不携带题库本机路径或完整选项长文本。
    - p07 live evidence：`turn_1780661568387_2bbd0b106a`，observer JSONL 记录 `exact_question.correct_answer=CDE`、`rag_retrieval_status=provider_failed_exact_question_resolved`、`authority_applied=true`，未发现 `source_path` 或 `/Users/yehongchen`。
 
+8. 内部 QA billing bypass
+   - 新增 `DEEPTUTOR_INTERNAL_QA_BILLING_BYPASS=true`，且仅非 production runtime + 内部 QA 身份前缀生效；生产误设也不会绕过收费。
+   - `DEEPTUTOR_RUNTIME_ENV=production` 已纳入 runtime authority，避免只设置 runtime env 时误判为 local。
+   - bypass 覆盖三处 QA 噪音：auth wallet bootstrap、start-turn quota gate、turn 完成后的 wallet capture。
+   - `scripts/run_luban_local_test_backend.sh` 默认启用该内部模式，banner 显示 `billing-bypass=internal-qa`。
+   - 新增固定内部测试号 seed：`qa_tutorbot_mcq / qa_tutorbot_followup / qa_tutorbot_weird / qa_tutorbot_case`，默认密码 `QaTutorbot2026`；后续微信链路 loop 固定使用这些账号，不再临时注册一次性账号。
+   - p08 live evidence：`turn_1780662356729_362ed493d6`，注册、建会话、start-turn 日志未再出现 wallet bootstrap/quota/capture；RESULT metadata `billing_capture=null`，题库 exact answer 仍命中 D。
+   - p09 live evidence：`turn_1780663489181_60d9becf0e`，Langfuse 本地 trace 可用；RESULT metadata `billing_capture=null`、`exact_question.correct_answer=D`、`rag_retrieval_status=provider_failed_exact_question_resolved`。
+   - p10 live evidence：固定账号 `qa_tutorbot_mcq` 登录后跑微信同构链路，`turn_1780663947405_edeabd6e1d` completed；RESULT metadata `billing_capture=null`、`exact_question.correct_answer=D`、`authority_applied=true`。
+
 ## Team Monitoring Notes
 
 - 主代理：负责真实小程序同构链路复现、最小代码修复、测试与 scoped commit。
@@ -86,7 +96,7 @@
 - P2：用户明确要求“一句话/别废话”时，TutorBot 仍常输出完整教学模板，表达质量影响满意度。
 - P2：RAG unavailable 的措辞需要更稳定：可以给候选判断，但不能说成题库标准确认。
 - P2：本地 `/api/v1/wechat/mp/login` 缺 `WECHAT_MP_APP_ID/WECHAT_MP_APP_SECRET` 时返回 502；当前 QA 通过注册登录绕过，只验证 `/api/v1/chat/start-turn` + `/api/v1/ws`。
-- P2：auth/register 仍可能被 wallet bootstrap / Supabase wallet 404 拖慢或污染日志；p06 注册本身成功，但后台仍有 wallet 404 观测噪音，需要单独收敛。
+- P2：正式 billing/wallet 链路仍要单独做生产对账；本轮 bypass 只服务内部 QA，不作为真实收费链路证据。
 - P2：Langfuse 本地默认未启用；若要把“拒答/降级/exact authority”纳入日常监控，需要显式启用并定义 turn-level trace 字段。
 - P2：WS live probe 偶发 keepalive timeout；本次 turn 后端和 DB 都完成，但客户端未稳定收到 close/done，需要后续按 transport/replay 层单独压测。
 

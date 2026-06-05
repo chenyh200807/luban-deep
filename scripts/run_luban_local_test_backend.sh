@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # M24 LOCAL TEST MODE backend launcher (manual /api/v1/ws + mini-program testing).
 # NOT for production / remote / aliyun. Bundles a self-contained local profile:
-#   - wallet: Supabase disabled -> zero-balance local fallback (no remote wallet dependency)
+#   - billing/wallet: internal QA bypass for quota/capture/bootstrap (no remote wallet dependency)
 #   - v1 LLM adjudication: DEV force-on for ANY logged-in user (bypasses request-flag + cohort;
 #     non-production only; deterministic validator floor + append-only still apply; legacy never mutated)
 #   - auth users: local writable JSON store (no /app read-only path)
@@ -62,12 +62,14 @@ fi
 export DEEPTUTOR_RUNTIME_ENV="${DEEPTUTOR_RUNTIME_ENV:-local}"
 # --- wallet: local zero-balance fallback without clearing Supabase RAG env ---
 export DEEPTUTOR_ALLOW_LOCAL_WALLET_FALLBACK="true"
+export DEEPTUTOR_INTERNAL_QA_BILLING_BYPASS="true"
 if [ -z "${RAG_PROVIDER:-}" ] && [ "${SUPABASE_RAG_ENABLED:-}" = "true" ] && [ -n "${SUPABASE_URL:-}" ] && [ -n "${SUPABASE_KEY:-}" ]; then
   export RAG_PROVIDER="supabase"
 fi
 # --- local auth user store (writable; avoids /app read-only) ---
 export DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE="$PWD/data/user/external_auth/users.json"
 export DEEPTUTOR_EXTERNAL_AUTH_SESSIONS_FILE="$PWD/data/user/external_auth/sessions.json"
+python scripts/seed_luban_internal_qa_accounts.py
 # --- v1 LLM adjudication: force on for any logged-in user (LOCAL TEST ONLY) ---
 export LUBAN_V1_LLM_ADJUDICATOR_DEV_FORCE_ON="true"
 export LUBAN_V1_LLM_ADJUDICATOR_LIMITED_DEFAULT_ENABLED="true"
@@ -75,5 +77,5 @@ export LUBAN_V1_LLM_ADJUDICATOR_LIMITED_DEFAULT_COHORT="qa_,test_,operator_,auth
 export LUBAN_V1_LLM_ADJUDICATOR_COHORT="qa_,test_,operator_,auth_"
 # kill switch OFF (absent) -> v1 enabled
 
-echo "[local-test-mode] backend on 0.0.0.0:${PORT} | v1 DEV_FORCE_ON=1 | wallet=local-fallback | env=${DEEPTUTOR_RUNTIME_ENV}"
+echo "[local-test-mode] backend on 0.0.0.0:${PORT} | v1 DEV_FORCE_ON=1 | billing-bypass=internal-qa | env=${DEEPTUTOR_RUNTIME_ENV}"
 exec python -u -m uvicorn deeptutor.api.main:app --host 0.0.0.0 --port "${PORT}"

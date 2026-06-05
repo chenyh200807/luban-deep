@@ -6774,6 +6774,96 @@ async def test_turn_runtime_skips_mini_program_capture_without_wallet_authority(
     }
 
 
+def test_turn_runtime_internal_qa_billing_bypass_skips_wallet_capture(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ENV", "local")
+    monkeypatch.setenv("DEEPTUTOR_INTERNAL_QA_BILLING_BYPASS", "true")
+    canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+    runtime = TurnRuntimeManager(SQLiteSessionStore(tmp_path / "chat_history.db"))
+
+    class FailingWalletService:
+        def record_usage_points(self, **_kwargs):
+            raise AssertionError("wallet capture must not run in internal QA billing bypass")
+
+    class FakeMemberService:
+        def get_profile(self, _user_id: str):
+            return {
+                "user_id": "auth_2d9eac155d264e93941b9ec6",
+                "username": "qa_student_demo",
+            }
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.get_wallet_service",
+        lambda: FailingWalletService(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.member_console.get_member_console_service",
+        lambda: FakeMemberService(),
+    )
+
+    result = runtime._capture_mobile_points(
+        {
+            "source": "wx_miniprogram",
+            "user_id": canonical_uid,
+            "wallet_user_id": canonical_uid,
+            "learning_user_id": canonical_uid,
+        },
+        "这是一次内部 QA 回复。",
+        session_id="session-1",
+        turn_id="turn-1",
+        usage_summary={"total_tokens": 123, "total_calls": 1},
+    )
+
+    assert result == {
+        "status": "bypassed",
+        "reason": "internal_qa_billing_bypass",
+        "wallet_user_id": canonical_uid,
+        "idempotency_key": "mini_program_capture:turn-1",
+    }
+
+
+def test_turn_runtime_internal_qa_billing_bypass_keeps_non_qa_wallet_capture(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ENV", "local")
+    monkeypatch.setenv("DEEPTUTOR_INTERNAL_QA_BILLING_BYPASS", "true")
+    runtime = TurnRuntimeManager(SQLiteSessionStore(tmp_path / "chat_history.db"))
+    calls: list[dict[str, object]] = []
+
+    class RecordingWalletService:
+        def record_usage_points(self, **kwargs):
+            calls.append(dict(kwargs))
+            return SimpleNamespace(
+                captured_micros=20_000_000,
+                requested_micros=20_000_000,
+                balance_after_micros=80_000_000,
+            )
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.get_wallet_service",
+        lambda: RecordingWalletService(),
+    )
+
+    result = runtime._capture_mobile_points(
+        {
+            "source": "wx_miniprogram",
+            "user_id": "student_demo",
+            "wallet_user_id": "wallet_demo",
+            "learning_user_id": "student_demo",
+        },
+        "这是一次普通用户回复。",
+        session_id="session-1",
+        turn_id="turn-1",
+        usage_summary={"total_tokens": 123, "total_calls": 1},
+    )
+
+    assert result and result["status"] == "captured"
+    assert calls and calls[0]["user_id"] == "wallet_demo"
+
+
 @pytest.mark.asyncio
 async def test_turn_runtime_rejects_deep_research_without_explicit_config(
     tmp_path,

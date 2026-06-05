@@ -915,6 +915,98 @@ def test_login_with_password_does_not_fail_when_wallet_bootstrap_is_unavailable(
     assert claims["canonical_uid"] == canonical_uid
 
 
+def test_internal_qa_billing_bypass_skips_wallet_bootstrap(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+    username = "qa_wallet_bypass_user"
+    password = "SyntheticPass123"
+    password_hash = bcrypt.hashpw(
+        hashlib.sha256(password.encode("utf-8")).hexdigest().encode("utf-8"),
+        bcrypt.gensalt(),
+    ).decode("utf-8")
+    users_file.write_text(
+        json.dumps(
+            {
+                username: {
+                    "id": canonical_uid,
+                    "username": username,
+                    "password_hash": password_hash,
+                }
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("DEEPTUTOR_ENV", "local")
+    monkeypatch.setenv("DEEPTUTOR_INTERNAL_QA_BILLING_BYPASS", "true")
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    wallet_calls: list[dict[str, object]] = []
+
+    class _FailingWalletService:
+        is_configured = True
+
+        @staticmethod
+        def ensure_wallet_seeded(**kwargs):
+            wallet_calls.append(dict(kwargs))
+            return None
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: _FailingWalletService())
+
+    result = service.login_with_password(username, password)
+    claims = service.verify_access_token(result["token"])
+
+    assert result["token"].startswith("dtm.")
+    assert claims is not None
+    assert claims["canonical_uid"] == canonical_uid
+    assert wallet_calls == []
+
+
+def test_internal_qa_billing_bypass_keeps_non_qa_wallet_bootstrap(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    canonical_uid = "a5732af1-496b-4643-a23c-e74ec7216b94"
+    monkeypatch.setenv("DEEPTUTOR_ENV", "local")
+    monkeypatch.setenv("DEEPTUTOR_INTERNAL_QA_BILLING_BYPASS", "true")
+    wallet_calls: list[dict[str, object]] = []
+
+    class _RecordingWalletService:
+        is_configured = True
+
+        @staticmethod
+        def ensure_wallet_seeded(**kwargs):
+            wallet_calls.append(dict(kwargs))
+            return None
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    service._mutate(
+        lambda data: data["members"].append(
+            {
+                **data["members"][0],
+                "user_id": "user_real_wallet",
+                "auth_username": "student_wallet_user",
+                "external_auth_user_id": canonical_uid,
+                "phone": "",
+            }
+        )
+    )
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: _RecordingWalletService())
+
+    auth_identity = service._auth_identity_for_member("user_real_wallet")
+
+    assert auth_identity["canonical_uid"] == canonical_uid
+    assert len(wallet_calls) == 1
+    assert wallet_calls[0]["user_id"] == canonical_uid
+
+
 def test_production_without_supabase_sessions_only_blocks_assessment_paths(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -1211,6 +1303,29 @@ def test_external_auth_production_explicit_legacy_env_still_allows_compat_store(
 
     assert user is not None
     assert user["username"] == "legacy_user"
+
+
+def test_ensure_external_auth_user_resets_seeded_test_password(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+
+    created = external_auth_module.ensure_external_auth_user(
+        "qa_tutorbot_mcq",
+        "OldPass123",
+        phone="13900001001",
+    )
+    updated = external_auth_module.ensure_external_auth_user(
+        "qa_tutorbot_mcq",
+        "NewPass123",
+        phone="13900001001",
+    )
+
+    assert created["id"] == updated["id"]
+    assert external_auth_module.verify_external_auth_user("qa_tutorbot_mcq", "OldPass123") is None
+    assert external_auth_module.verify_external_auth_user("qa_tutorbot_mcq", "NewPass123") is not None
 
 
 def test_member_console_serializes_multi_step_writes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

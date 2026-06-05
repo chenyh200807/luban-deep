@@ -33,6 +33,10 @@ from deeptutor.services.observability import (
     get_turn_event_log,
     get_surface_event_store,
 )
+from deeptutor.services.internal_qa import (
+    internal_qa_billing_bypass_allowed,
+    internal_qa_billing_bypass_enabled,
+)
 from deeptutor.services.observability.aae_scores import build_turn_aae_metadata
 from deeptutor.services.observability.turn_event_log import build_turn_observation_event
 from deeptutor.services.path_service import get_path_service
@@ -1526,6 +1530,40 @@ def _normalize_billing_context(raw: dict[str, Any] | None) -> dict[str, str] | N
     return normalized
 
 
+def _internal_qa_billing_context_identity_candidates(
+    billing_context: dict[str, str],
+) -> list[str]:
+    candidates: list[str] = []
+
+    def _append(value: Any) -> None:
+        normalized = str(value or "").strip()
+        if normalized and normalized not in candidates:
+            candidates.append(normalized)
+
+    for key in ("user_id", "wallet_user_id", "learning_user_id"):
+        _append(billing_context.get(key))
+
+    if not internal_qa_billing_bypass_enabled():
+        return candidates
+
+    try:
+        from deeptutor.services.member_console import get_member_console_service
+
+        member_service = get_member_console_service()
+        for user_id in list(candidates):
+            try:
+                profile = member_service.get_profile(user_id)
+            except Exception:
+                continue
+            if not isinstance(profile, dict):
+                continue
+            for key in ("user_id", "username", "auth_username", "external_auth_user_id"):
+                _append(profile.get(key))
+    except Exception:
+        pass
+    return candidates
+
+
 def _extract_billing_context(config: dict[str, Any] | None) -> dict[str, str] | None:
     if not isinstance(config, dict):
         return None
@@ -2255,6 +2293,15 @@ class TurnRuntimeManager:
             if str(turn_id or "").strip()
             else f"mini_program_capture:{session_id}"
         )
+        if internal_qa_billing_bypass_allowed(
+            *_internal_qa_billing_context_identity_candidates(billing_context)
+        ):
+            return {
+                "status": "bypassed",
+                "reason": "internal_qa_billing_bypass",
+                "wallet_user_id": user_id,
+                "idempotency_key": idempotency_key,
+            }
         amount_points, billing_metadata = _billing_capture_amount_from_usage_summary(usage_summary)
         try:
             from deeptutor.services.wallet import WalletInsufficientBalanceError, get_wallet_service

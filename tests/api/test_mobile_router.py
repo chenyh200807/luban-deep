@@ -4672,7 +4672,13 @@ class _FakeBalanceWalletService:
         return []
 
 
-def _install_start_turn_stubs(monkeypatch: pytest.MonkeyPatch, started: list[object]) -> None:
+def _install_start_turn_stubs(
+    monkeypatch: pytest.MonkeyPatch,
+    started: list[object],
+    *,
+    user_id: str = "student_demo",
+    wallet_user_id: str = "wallet_demo",
+) -> None:
     class FakeTurnRuntime:
         async def start_turn(self, payload):
             started.append(payload)
@@ -4683,15 +4689,15 @@ def _install_start_turn_stubs(monkeypatch: pytest.MonkeyPatch, started: list[obj
 
     monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
     monkeypatch.setattr(
-        mobile_module, "_resolve_authenticated_user_id", lambda *_a, **_k: "student_demo"
+        mobile_module, "_resolve_authenticated_user_id", lambda *_a, **_k: user_id
     )
     monkeypatch.setattr(
-        mobile_module, "_resolve_wallet_lookup_user_id", lambda *_a, **_k: "wallet_demo"
+        mobile_module, "_resolve_wallet_lookup_user_id", lambda *_a, **_k: wallet_user_id
     )
     monkeypatch.setattr(
         mobile_module,
         "session_store",
-        SimpleNamespace(get_session_owner_key=AsyncMock(return_value="user:student_demo")),
+        SimpleNamespace(get_session_owner_key=AsyncMock(return_value=f"user:{user_id}")),
     )
 
 
@@ -4763,6 +4769,79 @@ def test_mobile_chat_start_turn_hard_balance_gate_is_off_during_internal_beta(
     assert response.status_code == 200
     assert response.json()["turn"]["id"] == "turn_1"
     assert len(started) == 1
+
+
+def test_mobile_chat_start_turn_internal_qa_billing_bypass_skips_wallet_quota(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ENV", "local")
+    monkeypatch.setenv("DEEPTUTOR_INTERNAL_QA_BILLING_BYPASS", "true")
+    canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+    started: list[object] = []
+    wallet_calls: list[str] = []
+    _install_start_turn_stubs(
+        monkeypatch,
+        started,
+        user_id=canonical_uid,
+        wallet_user_id=canonical_uid,
+    )
+    monkeypatch.setattr(
+        mobile_module,
+        "member_service",
+        SimpleNamespace(
+            get_profile=lambda _user_id: {
+                "user_id": "auth_2d9eac155d264e93941b9ec6",
+                "username": "qa_student_demo",
+            }
+        ),
+    )
+
+    class FailingWalletService:
+        is_configured = True
+
+        def get_wallet(self, _user_id: str):
+            wallet_calls.append("get_wallet")
+            return None
+
+        def list_wallet_ledger(self, _user_id: str, *, limit: int = 20, offset: int = 0):
+            wallet_calls.append("list_wallet_ledger")
+            return []
+
+    monkeypatch.setattr(mobile_module, "wallet_service", FailingWalletService())
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={"query": "考我一道题", "mode": "AUTO", "language": "zh"},
+        )
+
+    assert response.status_code == 200
+    assert response.json()["turn"]["id"] == "turn_1"
+    assert len(started) == 1
+    assert wallet_calls == []
+
+
+def test_mobile_chat_start_turn_internal_qa_billing_bypass_keeps_non_qa_gate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ENV", "local")
+    monkeypatch.setenv("DEEPTUTOR_INTERNAL_QA_BILLING_BYPASS", "true")
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    started: list[object] = []
+    _install_start_turn_stubs(monkeypatch, started)
+    monkeypatch.setattr(
+        mobile_module, "wallet_service", _FakeBalanceWalletService(balance_micros=1_000_000)
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={"query": "考我一道题", "mode": "AUTO", "language": "zh"},
+        )
+
+    assert response.status_code == 429
+    assert response.json()["detail"]["code"] == "billing_quota_exceeded"
+    assert started == []
 
 
 def test_mobile_chat_start_turn_rejects_oversized_query() -> None:
