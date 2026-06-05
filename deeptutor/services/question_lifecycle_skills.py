@@ -187,7 +187,10 @@ async def resolve_question_lifecycle_scene_decision(
     scene = derive_question_lifecycle_scene(ctx)
     user_message = str(getattr(ctx, "user_message", None) or "").strip()
     metadata = getattr(ctx, "metadata", None) or {}
-    unanchored_submission = _looks_like_unanchored_mcq_answer_submission(user_message, metadata)
+    unanchored_submission = (
+        _looks_like_unanchored_mcq_answer_submission(user_message, metadata)
+        and scene != "mcq_grading"
+    )
     ambiguous_multi_submission = _looks_like_ambiguous_multi_question_submission(
         user_message,
         metadata,

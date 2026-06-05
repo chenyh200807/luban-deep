@@ -336,6 +336,24 @@ async def test_deterministic_active_submission_suppresses_llm_candidate(monkeypa
 
 
 @pytest.mark.asyncio
+async def test_free_text_mcq_answer_with_embedded_question_is_not_unanchored():
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(
+            user_message=(
+                "海洋环境下，引起混凝土内钢筋锈蚀的主要因素是（ ）。"
+                "A.混凝土硬化 B.反复冻融 C.氯盐 D.硫酸盐。我选A，对吗？"
+            ),
+            metadata={},
+        )
+    )
+
+    assert decision.scene == "mcq_grading"
+    assert decision.required_anchor_status == "satisfied"
+    assert decision.exact_question_blocked_reason == ""
+    assert decision.needs_clarification is False
+
+
+@pytest.mark.asyncio
 async def test_llm_scene_proposal_fills_semantic_practice_generation_gap(monkeypatch):
     async def _fake_complete(**kwargs):
         assert "scene" in kwargs["prompt"]
