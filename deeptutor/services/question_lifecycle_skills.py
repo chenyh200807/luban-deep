@@ -701,7 +701,11 @@ _QUESTION_REVIEW_SCENARIO_RE = re.compile(
 )
 
 _FREE_TEXT_CASE_GRADING_CONTEXT_MARKERS: tuple[str, ...] = (
+    "案例：",
+    "案例:",
     "案例题",
+    "案例分析题",
+    "背景材料",
     "背景资料",
 )
 _FREE_TEXT_GRADING_ACTION_MARKERS: tuple[str, ...] = (

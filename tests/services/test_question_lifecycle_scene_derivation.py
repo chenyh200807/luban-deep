@@ -123,6 +123,17 @@ def test_free_text_case_answer_review_returns_case_grading():
     assert derive_question_lifecycle_scene(ctx) == "case_grading"
 
 
+def test_free_text_case_colon_answer_review_returns_case_grading():
+    ctx = _FakeContext(
+        user_message=(
+            "案例：二次结构填充墙施工时，项目部把刚生产7天的蒸压加气混凝土砌块用于砌筑。"
+            "我的答案：不妥，应龄期28天，含水率宜小于30%。帮我按踩分点批改，简短"
+        )
+    )
+
+    assert derive_question_lifecycle_scene(ctx) == "case_grading"
+
+
 def test_free_text_mcq_answer_review_returns_mcq_grading():
     ctx = _FakeContext(user_message="这道单选题我选B，对吗？题干：施工现场临时用电组织设计应由谁编制？")
     assert derive_question_lifecycle_scene(ctx) == "mcq_grading"

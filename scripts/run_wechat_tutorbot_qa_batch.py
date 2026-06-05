@@ -289,6 +289,7 @@ async def run_batch(
     client_builder = client_factory or httpx.AsyncClient
     output_dir.mkdir(parents=True, exist_ok=True)
     transcript_path = output_dir / "transcript.jsonl"
+    transcript_path.write_text("", encoding="utf-8")
     rows: list[dict[str, Any]] = []
     conversation_ids: dict[str, str] = {}
 

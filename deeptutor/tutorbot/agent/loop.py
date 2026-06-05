@@ -16,6 +16,11 @@ from typing import TYPE_CHECKING, Any, Awaitable, Callable
 from loguru import logger
 
 from deeptutor.services.observability import get_langfuse_observability
+from deeptutor.services.construction_grading.case_output_policy import (
+    build_case_grading_diagnostic_only_response,
+    case_grading_score_authority_available,
+    should_demote_case_grading_hard_score,
+)
 from deeptutor.services.exam_track import exam_track_label
 from deeptutor.services.query_intent import (
     build_grounding_decision_from_metadata,
@@ -682,6 +687,11 @@ class AgentLoop:
         runtime_metadata: dict[str, Any] | None,
     ) -> bool:
         metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        if (
+            str(metadata.get("question_lifecycle_scene") or "").strip() == "case_grading"
+            and not case_grading_score_authority_available(metadata)
+        ):
+            return True
         if not metadata.get("rag_retrieval_degraded"):
             return False
         if cls._has_authoritative_exact_question(metadata):
@@ -902,6 +912,20 @@ class AgentLoop:
         if all(number in compact_response for number in required_numbers):
             return ""
         return self._build_exact_authority_response_sync(exact_question)
+
+    @staticmethod
+    def _case_grading_no_authority_score_fallback(
+        final_content: str | None,
+        *,
+        runtime_metadata: dict[str, Any] | None,
+        user_message: str,
+    ) -> str:
+        if not should_demote_case_grading_hard_score(
+            final_content,
+            runtime_metadata=runtime_metadata,
+        ):
+            return ""
+        return build_case_grading_diagnostic_only_response(user_message)
 
     @staticmethod
     def _prefetched_case_exact_question_can_answer(runtime_metadata: dict[str, Any] | None) -> bool:
@@ -1232,6 +1256,14 @@ class AgentLoop:
         if case_fallback:
             final_content = case_fallback
             self._replace_last_assistant_message(messages, case_fallback)
+        no_score_fallback = self._case_grading_no_authority_score_fallback(
+            final_content,
+            runtime_metadata=runtime_metadata,
+            user_message=self._latest_user_message(messages),
+        )
+        if no_score_fallback:
+            final_content = no_score_fallback
+            self._replace_last_assistant_message(messages, no_score_fallback)
 
         return final_content, tools_used, messages
 
@@ -2898,6 +2930,11 @@ class AgentLoop:
                 final_content,
                 runtime_metadata=runtime_metadata,
             ) or final_content
+            final_content = self._case_grading_no_authority_score_fallback(
+                final_content,
+                runtime_metadata=runtime_metadata,
+                user_message=current_message,
+            ) or final_content
             final_content = self._degraded_exact_answer_claim_response(
                 user_message=current_message,
                 final_content=final_content,
@@ -3028,6 +3065,11 @@ class AgentLoop:
                 final_content,
                 runtime_metadata=runtime_metadata,
             ) or final_content
+            final_content = self._case_grading_no_authority_score_fallback(
+                final_content,
+                runtime_metadata=runtime_metadata,
+                user_message=current_message,
+            ) or final_content
             final_content = self._degraded_exact_answer_claim_response(
                 user_message=current_message,
                 final_content=final_content,
@@ -3099,6 +3141,11 @@ class AgentLoop:
         final_content = self._case_exact_authority_fallback(
             final_content,
             runtime_metadata=runtime_metadata,
+        ) or final_content
+        final_content = self._case_grading_no_authority_score_fallback(
+            final_content,
+            runtime_metadata=runtime_metadata,
+            user_message=current_message,
         ) or final_content
         final_content = self._degraded_exact_answer_claim_response(
             user_message=current_message,

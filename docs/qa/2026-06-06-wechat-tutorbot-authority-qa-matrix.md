@@ -14,6 +14,7 @@ Current evidence status:
 - `internal_authority_trace`: covered for the 5 current real `yousenwebview/packageDeeptutor` DevTools terminal rows. `scripts/extract_wechat_tutorbot_authority_ledger.py` now reads the existing local SQLite session store (`turn_events + sessions.runtime_state`) and emits compact authority rows without adding a production endpoint, new runtime state, production DB write, or second answer truth.
 - `near_real_http_ws`: expanded by `QA30-STATE-001..003` and `QA30-NR-004..016`. These probes use WeChat-shaped `/api/v1/chat/start-turn` + `/api/v1/ws` with internal QA billing bypass, but not the DevTools container. `QA30-NR-004..016` now has a final after-fix authority ledger with 12/12 trace-complete rows under `artifacts/qa/wechat-tutorbot-near-real-batch-20260606-core12-after-suspended-fix/`; it specifically caught and then verified fixes for stale active/explicit/suspended question authority and option/value follow-up misrouting.
 - `near_real_http_ws_30_rounds`: reached 30 near-real rounds by adding `QA30-NR-017..034` under `artifacts/qa/wechat-tutorbot-near-real-batch-20260606-nr017-034/` with 18/18 trace-complete ledger rows. This batch found new P1 issues around comma-containing MCQ surfaces, option-surface tail pollution, and same-option stale context matching; after-fix spot regression `QA30-NR-025-FIX/026-FIX/034-FIX` has 3/3 trace-complete rows under `artifacts/qa/wechat-tutorbot-near-real-batch-20260606-nr025-034-after-fix/`. This still is not full real DevTools closure.
+- `case_grading_authority`: `WX-CASE-015` is fixed in near-real HTTP+WS evidence. `QA30-NR-031-FIX` now routes `案例：...我的答案...帮我按踩分点批改` to `case_grading` and, because there is no exact case / standard answer / structured rubric authority, returns diagnostic-only wording with `本次不硬估标准分`. Evidence: `artifacts/qa/wechat-tutorbot-case-authority-after-fix-20260606/`. This is not real DevTools closure yet.
 
 Question source manifest:
 
@@ -156,8 +157,53 @@ P2:
 | `WX-AUTH-013` | P1 | fixed in near-real HTTP+WS | Query option-surface parser could swallow trailing learner commentary into the last option value, preventing answer remap to the current pasted option letters. | Red test: `tests/services/rag/test_historical_question_resolver.py::test_historical_question_resolver_trims_trailing_learner_comment_from_option_surface`. After: `QA30-NR-034-FIX` resolved official `A` on current `A.5% ... D.3%` surface and visible output used `B.1%/C.2%/D.3%`. | Historical exact resolver trims common learner-comment tails from query option values before remapping. The resolver remains the option-surface authority; TutorBot response writer just consumes the projected exact question. |
 | `WX-EXP-010` | P2 | deferred | Several correct near-real answers remain too long for `一句话` / low-friction WeChat usage, especially exact multi-choice templates and open-world teaching. This is expression authority, not answer authority. | Final after-fix transcript: `QA30-NR-008`, `QA30-NR-010`, and `QA30-NR-016` are correct/traceable but verbose. | Record for expression policy / response mode work. Do not mix into current P1 authority fix; next pass should tune terminal writer brevity without changing official-answer authority. |
 | `WX-EXP-014` | P2 | deferred | Active follow-up path preserves authority but often answers by restating full standard answer instead of the specific option/value question. | `QA30-NR-026-FIX` is `deep_question_followup` on防水混凝土, but visible answer repeats official ABE instead of directly saying `D 不够，应不少于14d`; earlier real `QA30-REAL-FINAL7-002` had the same shape for `那C呢？`. | Keep as expression/follow-up usefulness issue. Do not add another router; next expression-policy pass should make follow-up explainer answer the specific asked option while preserving authority. |
-| `WX-CASE-015` | P1 | open / not fixed this round | Case-style free-text grading can generate estimated scores without case authority. This risks making an LLM/RAG teaching diagnosis look like official grading. | `QA30-NR-031` used `tutorbot_kb_first_fast_policy` with no `question_id` / official answer, but visible text said `预计得分 4分/5分` and referenced a standard-answer-style rubric. | Needs a separate case-grading authority pass: either resolve case exact authority with point evidence or fail-open as teaching diagnosis without official-looking score. Not patched in this MCQ authority fix to avoid mixing domains. |
+| `WX-CASE-015` | P1 | fixed in near-real HTTP+WS / DevTools pending | Case-style free-text grading could generate estimated scores without case authority. The shared failure shape was score authority laundering: lifecycle did not recognize `案例：` as `case_grading`, and once routed, ordinary RAG / model knowledge could still emit official-looking `预计得分` / `采分点批改` without exact case, standard answer, or structured rubric evidence. | Before: `QA30-NR-031` used `tutorbot_kb_first_fast_policy` with no `question_id` / official answer, but visible text said `预计得分 4分/5分`. After: `artifacts/qa/wechat-tutorbot-case-authority-after-fix-20260606/summary.json`, `QA30-NR-031-FIX`, `conversation_id=tb_5fd8674b45cc4733af8df3ed`, `turn_id=turn_1780699538894_903501ae4d`, scene `case_grading`, `authority_applied=false`, visible answer says `本次不硬估标准分`. | Add case-colon scene detection; strengthen `construction-case-grading` skill authority guard; add `construction_grading.case_output_policy` to suppress no-authority model stream and demote official score/rubric tone to diagnostic-only output. The runner now truncates transcript output before each batch so stale artifacts cannot pollute evidence. |
 | `OBS-004` | P2 evidence gap | open | Local Langfuse SDK initializes but auth check to `http://localhost:3030` fails, so Langfuse cannot be treated as this run's authority evidence. | Backend logs in all three core12 reruns show `Langfuse initialization skipped: Langfuse auth check failed: [Errno 61] Connection refused`; authority evidence instead comes from `turn_events` and `sessions.runtime_state` via `scripts/extract_wechat_tutorbot_authority_ledger.py`. | Keep SQLite turn-event authority ledger as primary evidence until Langfuse local service is reachable and trace ids can be linked to turns. Do not fake trace ids or report Langfuse closure. |
+
+## Near-Real Finding: `WX-CASE-015`
+
+One business fact:
+
+> A case-style grading answer may only show official score / rubric / point-by-point grading when the current turn owns case scoring authority.
+
+One authority:
+
+- Writer: current active case, `questions_bank` / exact case retrieval, or structured `case_bundle/grading_key/covered_subquestions`.
+- Reader: construction case grading skill / case output policy.
+- Terminal answer: TutorBot may provide open-skill teaching diagnosis, but it cannot invent a standard score or official rubric from RAG, model common knowledge, similar-question memory, or the learner's own hints.
+
+Competing authorities found:
+
+- Lifecycle scene detection missed `案例：`, leaving the turn in a generic TutorBot/RAG path.
+- The case grading skill prompt allowed `projected_rubric` language unless the model respected instructions.
+- The terminal stream could expose the model's official-looking score before final metadata policy corrected it.
+- The batch transcript file was append-only across reruns, which could make stale evidence look current.
+
+Break point:
+
+- Last correct point after routing fix: runtime metadata showed `question_lifecycle_scene=case_grading`, `authority_applied=false`, and no exact case authority.
+- First wrong point: `tutorbot_kb_first_fast_policy` still emitted `预计得分 4分 / 满分5分` and `采分点`-style claims.
+
+Fix type:
+
+- 收权 and demotion. `case_output_policy` is the fat scoring-output authority for this no-authority edge; `AgentLoop` remains a thin terminal adapter that suppresses unsafe streaming and delegates the replacement text. No new chat WebSocket, no production DB write, no canonical learner truth write, and no second scoring route.
+
+After evidence:
+
+```json
+{
+  "entry_surface": "near_real_http_ws_case_authority_after_fix",
+  "round_id": "QA30-NR-031-FIX",
+  "conversation_id": "tb_5fd8674b45cc4733af8df3ed",
+  "turn_id": "turn_1780699538894_903501ae4d",
+  "resolved_authority": "case_grading_without_score_authority",
+  "authority_applied": false,
+  "actual": "## 预计得分\n本次不硬估标准分。",
+  "correctness": "pass",
+  "refusal_class": "not_refusal",
+  "customer_satisfaction": 4
+}
+```
 
 ## Real WeChat Finding: `WX-REAL-004`
 

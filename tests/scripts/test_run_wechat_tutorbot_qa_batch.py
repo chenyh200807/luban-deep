@@ -163,6 +163,7 @@ async def test_run_batch_sends_wechat_shaped_payload_and_writes_artifacts(tmp_pa
         MODULE.BatchTurn("R2", "a", "追问", "followup", "答二"),
         MODULE.BatchTurn("R3", "b", "第二题", "exact", "答三"),
     ]
+    (tmp_path / "transcript.jsonl").write_text('{"stale": true}\n', encoding="utf-8")
 
     summary = await MODULE.run_batch(
         api_base_url="http://example.test",
@@ -177,6 +178,7 @@ async def test_run_batch_sends_wechat_shaped_payload_and_writes_artifacts(tmp_pa
     )
 
     assert summary["rounds"] == 3
+    assert len((tmp_path / "transcript.jsonl").read_text(encoding="utf-8").splitlines()) == 3
     assert summary["conversation_ids"] == {"a": "conv_a", "b": "conv_b"}
     assert (tmp_path / "summary.json").exists()
     assert (tmp_path / "transcript.jsonl").exists()
