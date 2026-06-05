@@ -439,13 +439,14 @@ class TutorBotCapability(BaseCapability):
                 session_metadata=session_metadata,
             )
             final_response = response or "".join(chunks)
+            exact_state_summary = build_choice_result_summary_from_exact_question(
+                turn_summary["exact_question"]
+            )
             if turn_summary["authority_applied"]:
                 display_result_summary = None
-                state_result_summary = None
+                state_result_summary = exact_state_summary
             else:
-                state_result_summary = build_choice_result_summary_from_exact_question(
-                    turn_summary["exact_question"]
-                )
+                state_result_summary = exact_state_summary
                 # TutorBot free text is not grading authority. Only render
                 # submit-able MCQ presentation when the answer key came from an
                 # exact authoritative question source.
@@ -472,6 +473,11 @@ class TutorBotCapability(BaseCapability):
                 free_text_render_summary = extract_choice_result_summary_from_text(final_response)
             render_summary = display_result_summary or free_text_render_summary
             reveal_answers, reveal_explanations = self._reveal_reference_flags(context)
+            exact_authority_revealed = bool(
+                turn_summary["authority_applied"] and state_result_summary
+            )
+            state_reveal_answers = True if exact_authority_revealed else reveal_answers
+            state_reveal_explanations = True if exact_authority_revealed else reveal_explanations
             visible_response = self._build_visible_response(
                 context=context,
                 final_response=final_response,
@@ -518,8 +524,8 @@ class TutorBotCapability(BaseCapability):
                 or policy.execution_path,
                 "exact_fast_path_hit": bool(session_metadata.get("exact_fast_path_hit", False)),
                 "actual_tool_rounds": int(session_metadata.get("actual_tool_rounds") or 0),
-                "reveal_answers": reveal_answers,
-                "reveal_explanations": reveal_explanations,
+                "reveal_answers": state_reveal_answers,
+                "reveal_explanations": state_reveal_explanations,
             }
             result_payload.update(citation_metadata)
             # Propagate hermes question-lifecycle telemetry fields out of
@@ -594,8 +600,8 @@ class TutorBotCapability(BaseCapability):
                     build_question_followup_context_from_result_summary(
                         state_result_summary,
                         final_response,
-                        reveal_answers=reveal_answers,
-                        reveal_explanations=reveal_explanations,
+                        reveal_answers=state_reveal_answers,
+                        reveal_explanations=state_reveal_explanations,
                     )
                 )
                 if result_payload["question_followup_context"]:
@@ -607,6 +613,10 @@ class TutorBotCapability(BaseCapability):
                         )
                         or {}
                     )
+                    context.metadata["question_followup_context"] = dict(
+                        result_payload["question_followup_context"]
+                    )
+                    context.metadata["active_object"] = dict(result_payload["active_object"])
             await stream.result(result_payload, source=self.name)
 
     @staticmethod

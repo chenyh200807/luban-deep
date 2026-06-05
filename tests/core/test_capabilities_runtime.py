@@ -2691,7 +2691,11 @@ async def test_tutorbot_capability_does_not_turn_exact_authority_answer_into_mcq
     assert result_event.metadata["authority_applied"] is True
     assert result_event.metadata["response"].startswith("题干：结构的可靠性包括")
     assert "presentation" not in result_event.metadata
-    assert "question_followup_context" not in result_event.metadata
+    assert result_event.metadata["question_followup_context"]["question"] == "结构的可靠性包括（　　）"
+    assert result_event.metadata["question_followup_context"]["correct_answer"] == "BCE"
+    assert result_event.metadata["question_followup_context"]["reveal_answers"] is True
+    assert result_event.metadata["question_followup_context"]["reveal_explanations"] is True
+    assert result_event.metadata["active_object"]["object_type"] == "single_question"
 
 
 @pytest.mark.asyncio
@@ -2810,10 +2814,13 @@ async def test_tutorbot_authority_response_not_rebuilt_by_freetext_parser(
     )
     # The authority-emitted prefix or stem must survive the visible build.
     assert "题干：结构的可靠性" in response or response.startswith("结构的可靠性")
-    # Presentation must remain authority-gated absent (existing invariant).
+    # Presentation must remain absent, but exact authority still seeds the
+    # active-question anchor used by the next TutorBot follow-up turn.
     assert "presentation" not in result_event.metadata
-    assert "question_followup_context" not in result_event.metadata
-    assert "active_object" not in result_event.metadata
+    assert result_event.metadata["question_followup_context"]["question"] == "结构的可靠性包括（　　）"
+    assert result_event.metadata["question_followup_context"]["reveal_answers"] is True
+    assert result_event.metadata["question_followup_context"]["reveal_explanations"] is True
+    assert result_event.metadata["active_object"]["object_type"] == "single_question"
 
 
 @pytest.mark.parametrize("chat_mode", ["fast", "deep"])
