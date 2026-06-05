@@ -12,6 +12,7 @@ Current evidence status:
 - `backend_harness`: expanded for the active-question option challenge regression. `minimal_final7` passed 3/3 on local `/api/v1/chat/start-turn` + `/api/v1/ws`; earlier `minimal_final4/5/6` all failed 1/3 and are retained as before/after evidence under the ignored artifact directory.
 - `runtime_base_authority`: fixed for DevTools QA. `yousenwebview` develop+DevTools now has a tested local-first contract (`127.0.0.1:8001`, then `8012`, then `test2` fallback); explicit `__USE_LOCAL_DEVTOOLS__=false` is the tested remote mode.
 - `internal_authority_trace`: covered for the 5 current real `yousenwebview/packageDeeptutor` DevTools terminal rows. `scripts/extract_wechat_tutorbot_authority_ledger.py` now reads the existing local SQLite session store (`turn_events + sessions.runtime_state`) and emits compact authority rows without adding a production endpoint, new runtime state, production DB write, or second answer truth.
+- `near_real_http_ws`: expanded by `QA30-STATE-001..003`. The probe uses WeChat-shaped `/api/v1/chat/start-turn` + `/api/v1/ws` with internal QA billing bypass, but not the DevTools container. It specifically tested low-info clarification -> open-world teaching -> open-world follow-up after a stale clarification active object.
 
 Question source manifest:
 
@@ -146,7 +147,7 @@ P2:
 | `WX-EXP-005` | P2 | deferred | Real package active-question option follow-up stayed on the same official answer, but did not directly answer `那C呢？` as `C=3%，不对`; it only restated D/5%. | `artifacts/qa/wechat-tutorbot-real-final7-20260606/summary.json`, `QA30-REAL-FINAL7-002`, `conversation_id=unified_1780692619402_d7820eca`, `turn_id=turn_1780692636572_eaf7c2a65d`. | Record as expression/follow-up usefulness issue. Do not add regex/router patch until repeated across more rounds or promoted to P1. |
 | `WX-EXP-006` | P2 | deferred | Real package regrade after `那我改选D，对吗？一句话` preserved authority and graded correctly, but ignored the brevity constraint and emitted a long grader template. | `artifacts/qa/wechat-tutorbot-real-final7-20260606/summary.json`, `QA30-REAL-FINAL7-003`, `conversation_id=unified_1780692619402_d7820eca`, `turn_id=turn_1780692651216_75ccc15068`. | Record as TutorBot expression policy / mode adherence issue. Avoid treating this as answer-authority failure; no P0/P1 code change this round. |
 | `EVIDENCE-003` | P1 evidence gap | fixed | The first real DevTools rows recorded visible terminal answers but not enough internal authority trace to prove object/route/answer source continuity. | `artifacts/qa/wechat-tutorbot-real-authority-trace-20260606/authority-ledger.jsonl`; `pytest -q tests/scripts/test_extract_wechat_tutorbot_authority_ledger.py`. | Add a thin internal QA extractor that reads persisted `turn_events.metadata_json` and `sessions.preferences_json.runtime_state` only. It reports scenario-aware trace completeness and does not mutate runtime, DB, or frontend state. |
-| `WX-STATE-007` | P2 probe | open | After a low-information clarification, the later open-world teaching turn had no active question in its own result event, but the durable session active object still pointed to the earlier `question_lifecycle_clarification`. This did not affect the visible open-world answer, but it may confuse a later ambiguous follow-up if the stale clarification is treated as a real active question. | `artifacts/qa/wechat-tutorbot-real-authority-trace-20260606/authority-ledger.jsonl`, `QA30-REAL-015`, `session_active_object_ref.object_type=question_lifecycle_clarification` while `active_object_ref={}`. | Next matrix should add a real follow-up after open-world teaching, e.g. `那漏保参数呢？一句话`, to prove the stale clarification is ignored or safely superseded. Do not patch until reproduced as a behavior failure. |
+| `WX-STATE-007` | P2 state hygiene probe | near-real not reproduced / DevTools pending | After a low-information clarification, later open-world teaching turns had no active question in their own result events, but the durable session active object still pointed to the earlier `question_lifecycle_clarification`. The near-real probe shows this stale durable object did not hijack open-world follow-up routing. | Initial signal: `artifacts/qa/wechat-tutorbot-real-authority-trace-20260606/authority-ledger.jsonl`, `QA30-REAL-015`. Follow-up probe: `artifacts/qa/wechat-tutorbot-state-after-clarification-probe-20260606/authority-ledger.jsonl`, `QA30-STATE-001..003`, all `trace_complete=true`; `QA30-STATE-003` answered漏保参数 via `tutorbot_kb_first_fast_policy`, not the old 2021 case. | Keep as state hygiene risk until a real DevTools repeat verifies the same behavior. Do not patch now: no user-visible failure, no answer-authority drift, and a patch would likely add state-clearing complexity before reproducing a defect. |
 
 ## Real WeChat Finding: `WX-REAL-004`
 
@@ -282,6 +283,34 @@ Summary from the internal ledger:
 | `QA30-REAL-FINAL7-003` | `active_question_followup_or_grading` | yes | `active_object` | `turn_semantic_decision.next_action=route_to_grading`; `allowed_patch=update_answer_slot`; same active object version advanced to `3`. |
 | `QA30-REAL-011` | `lifecycle_clarification` | yes | `lifecycle_clarification` | Low-information exam query was blocked as `missing_question_anchor`; no official answer fabricated. |
 | `QA30-REAL-015` | `open_world_teaching` | yes | `tutorbot_kb_first_fast_policy` | Open-world construction knowledge answer used teaching path, no `question_id`, no official score, no fake standard answer. |
+
+## Near-Real State Hygiene Probe: `QA30-STATE-001..003`
+
+Artifact:
+
+- `artifacts/qa/wechat-tutorbot-state-after-clarification-probe-20260606/summary.json`
+- `artifacts/qa/wechat-tutorbot-state-after-clarification-probe-20260606/transcript.jsonl`
+- `artifacts/qa/wechat-tutorbot-state-after-clarification-probe-20260606/authority-ledger.jsonl`
+
+Evidence boundary:
+
+- Entry: `near_real_http_ws_wechat_payload`
+- Path: `/api/v1/chat/start-turn` + `/api/v1/ws`
+- Not real DevTools container evidence; use it as a fast state-continuity probe before real package repeat.
+- Billing: local internal QA bypass only; no production DB write, no learner truth write, no remote deploy.
+
+Result:
+
+| Round | Learner turn | Conversation | Turn | Trace expectation | Authority result | Visible behavior |
+| --- | --- | --- | --- | --- | --- | --- |
+| `QA30-STATE-001` | `2021案例二第3问答案发我，别废话` | `unified_1780693823345_77c68200` | `turn_1780693823347_55c52cf5f0` | `lifecycle_clarification` | `business_gate_result=blocked_low_information_exam_query`; active object is `question_lifecycle_clarification`. | Reasonable clarification; no fabricated official answer. |
+| `QA30-STATE-002` | `施工现场临时用电“三级配电、两级保护”是什么意思？一句话` | same | `turn_1780693844162_365a9a505e` | `open_world_teaching` | `execution_path=tutorbot_kb_first_fast_policy`; no active question in result event; durable session still has previous clarification object. | Helpful open-world teaching answer, no official score. |
+| `QA30-STATE-003` | `那漏保参数呢？一句话` | same | `turn_1780693869252_f9dd44b38d` | `open_world_teaching` | Still `tutorbot_kb_first_fast_policy`; stale clarification did not hijack routing. | Correctly answered漏保参数: 总配延时型、开关箱 30mA/0.1s、潮湿环境 15mA. |
+
+Conclusion:
+
+- Current near-real evidence does not promote `WX-STATE-007` to P1. The stale durable clarification object is observable, but the turn-level result authority stayed open-world teaching.
+- Next real DevTools batch should include this same three-turn pattern before marking the risk closed for the primary front end.
 
 Subagent trace-review checklist for the next runner:
 
