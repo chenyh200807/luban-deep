@@ -349,6 +349,45 @@ function loadWsStream(config) {
     );
   });
 
+  await run("start-turn payload should send only canonical followup question context", async function () {
+    var loaded = loadWsStream({
+      tokens: ["fresh-token-1"],
+    });
+
+    loaded.wsStream.streamChat(
+      {
+        query: "我选A",
+        sessionId: "conv_1",
+        followupQuestionContext: {
+          question_id: "q_visible_1",
+          question: "压型金属板屋面最低坡度是多少？",
+          question_type: "choice",
+          options: { A: "5%", B: "1%" },
+          user_answer: "A",
+        },
+        structuredSubmitContext: {
+          questions: [{ question_id: "q_visible_1", selected_answer: "A" }],
+        },
+      },
+      { onError: function () {} },
+    );
+
+    await flushPromises();
+    await flushPromises();
+
+    assert(
+      loaded.startPayloads[0] &&
+        loaded.startPayloads[0].followup_question_context &&
+        loaded.startPayloads[0].followup_question_context.question_id === "q_visible_1",
+      "start-turn should receive canonical followup question context",
+    );
+    assert(
+      !Object.prototype.hasOwnProperty.call(loaded.startPayloads[0], "structuredSubmitContext") &&
+        !Object.prototype.hasOwnProperty.call(loaded.startPayloads[0], "structured_submit_context"),
+      "start-turn payload must not grow a second structured submit authority",
+    );
+  });
+
   await run("idle timeout should cancel the authoritative turn before surfacing timeout", async function () {
     var loaded = loadWsStream({
       tokens: ["fresh-token-1"],

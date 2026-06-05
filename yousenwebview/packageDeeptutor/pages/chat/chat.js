@@ -1562,6 +1562,33 @@ Page({
     );
   },
 
+  _buildVisibleCardFollowupContext: function (card, userAnswer) {
+    var source = card || {};
+    var optionMap = {};
+    var options = Array.isArray(source.options) ? source.options : [];
+    for (var i = 0; i < options.length; i++) {
+      var option = options[i] || {};
+      var key = String(option.key || "").trim().toUpperCase();
+      var text = String(option.text || option.value || "").trim();
+      if (key && text) optionMap[key] = text;
+    }
+    var context = {
+      question_id: String(
+        source.questionId ||
+          (source.followupContext && source.followupContext.question_id) ||
+          "",
+      ).trim(),
+      question: String(source.stem || "").trim(),
+      question_type: source.questionType || "choice",
+      options: optionMap,
+      user_answer: String(userAnswer || "").trim(),
+    };
+    if (!context.question && !context.question_id && !Object.keys(optionMap).length) {
+      return null;
+    }
+    return context;
+  },
+
   _buildMcqSubmitPayload: function (cards) {
     var selections = [];
     var structuredQuestions = [];
@@ -1620,11 +1647,16 @@ Page({
     if (selections.length === 1) {
       for (var m = 0; m < items.length; m++) {
         var singleCard = items[m];
-        if (!singleCard || !singleCard.followupContext) continue;
+        if (!singleCard) continue;
         if (Number(singleCard.index) !== Number(selections[0].index)) continue;
-        followupQuestionContext = Object.assign({}, singleCard.followupContext, {
+        var singleUserAnswer = selections[0].keys.join("");
+        var visibleSingleContext = this._buildVisibleCardFollowupContext(singleCard, singleUserAnswer);
+        followupQuestionContext = Object.assign({}, visibleSingleContext || {}, singleCard.followupContext || {}, {
           user_answer: selections[0].keys.join(""),
         });
+        if (!followupQuestionContext.question && !followupQuestionContext.question_id) {
+          followupQuestionContext = null;
+        }
         break;
       }
     } else {
@@ -1632,11 +1664,23 @@ Page({
       var questionLines = [];
       for (var n = 0; n < items.length; n++) {
         var compositeCard = items[n];
-        if (!compositeCard || !compositeCard.followupContext) continue;
+        if (!compositeCard) continue;
+        var compositeUserAnswer = this._selectedMcqKeys(compositeCard).join("");
+        var visibleCompositeContext = this._buildVisibleCardFollowupContext(
+          compositeCard,
+          compositeUserAnswer,
+        );
+        var compositeContext = Object.assign(
+          {},
+          visibleCompositeContext || {},
+          compositeCard.followupContext || {},
+          {
+            user_answer: compositeUserAnswer,
+          },
+        );
+        if (!compositeContext.question && !compositeContext.question_id) continue;
         compositeItems.push(
-          Object.assign({}, compositeCard.followupContext, {
-            user_answer: this._selectedMcqKeys(compositeCard).join(""),
-          }),
+          compositeContext,
         );
         questionLines.push(
           "第" +
@@ -1658,7 +1702,7 @@ Page({
       selections.length === 1 && followupQuestionContext
         ? "我选" + selections[0].keys.join("、")
         : rows.join("；");
-    if (missingContext) {
+    if (missingContext && !followupQuestionContext) {
       return {
         text: this._buildFallbackMcqJudgePrompt(items, selections),
         structuredSubmitContext: {
@@ -2000,6 +2044,15 @@ Page({
     }
 
     var userMsg = { id: "u" + self._counter++, role: "user", content: query };
+    if (sendOptions.followupQuestionContext && typeof sendOptions.followupQuestionContext === "object") {
+      userMsg.followupQuestionContext = sendOptions.followupQuestionContext;
+    }
+    if (sendOptions.structuredSubmitContext && typeof sendOptions.structuredSubmitContext === "object") {
+      userMsg.structuredSubmitContext = sendOptions.structuredSubmitContext;
+    }
+    if (sendOptions.promptIntent && typeof sendOptions.promptIntent === "object") {
+      userMsg.promptIntent = sendOptions.promptIntent;
+    }
     var aiMsg = {
       id: "a" + self._counter++,
       role: "ai",
@@ -3019,10 +3072,20 @@ Page({
     var newMsgs = msgs.slice(0, aiIdx);
     this._syncMessageIndexMap(newMsgs);
     this.setData({ messages: newMsgs });
-    this._send(userMsg.content, {
+    var retryOptions = {
       reuseUserMessage: true,
       persistUserMessage: false,
-    });
+    };
+    if (userMsg.followupQuestionContext && typeof userMsg.followupQuestionContext === "object") {
+      retryOptions.followupQuestionContext = userMsg.followupQuestionContext;
+    }
+    if (userMsg.structuredSubmitContext && typeof userMsg.structuredSubmitContext === "object") {
+      retryOptions.structuredSubmitContext = userMsg.structuredSubmitContext;
+    }
+    if (userMsg.promptIntent && typeof userMsg.promptIntent === "object") {
+      retryOptions.promptIntent = userMsg.promptIntent;
+    }
+    this._send(userMsg.content, retryOptions);
   },
 
   onThumbUp: function (e) {

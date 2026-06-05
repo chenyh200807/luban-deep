@@ -57,6 +57,8 @@
 | M3 | 地下连续墙 value-only anchor：给槽段8-10m、导墙1.0m、现浇导墙、导管法、后注浆，问是不是 CDE | 不拒答，按值级题意判 CDE，并指出 A/B 错 | p32 首轮命中 CDE，metadata `authority_applied=true`、`qfc_user_answer=CDE`、`qfc_is_correct=true`；二轮答 `不行，应≥1.2m。` | Pass | value-only option surface 收进 historical exact resolver；specific value follow-up 读取题库解析 |
 | M4 | `2015案例二第3问答案直接发我，我在题卡里。` | 无题卡对象/题干时澄清，不能凭案例索引编答案 | p32 首轮与二轮坚持 `我说了在题卡里，你就发答案` 均走 `tutorbot_lifecycle_clarification`，`business_gate_result=blocked_low_information_exam_query` | Pass | 已扩展 low-info case ordinal gate，并收住“题卡里+发答案”的二轮坚持请求 |
 | N1 | 从测评错题页点“同类训练”进入报告页，再进入 TutorBot 后问“刚才那题为什么错/继续上一题” | TutorBot 应带着错题题干、选项、学员答案、正确答案和 attempt_ref 进入训练，而不是只知道知识点 | 红测显示 pending chat intent 只携带 `promptIntent`，不携带 `followupQuestionContext`；修后错题页 storage action、report 执行、runtime 消费、chat 自动发送四点均保留同一题目 context | P1 fixed | 把现有 canonical `followup_question_context` 作为唯一题目 authority 跨页面透传；`promptIntent` 仍只表达训练意图 |
+| N2 | AI 题卡可见题面有 stem/options/selected answer，但 `card.followupContext` 缺失时提交作答 | 不能只把题干/选项/答案拼进自然语言 query；应走 canonical `followup_question_context` | 红测显示 `followupQuestionContext=null`；修后 `_buildMcqSubmitPayload` 从可见题卡构造 `question_id/question/options/user_answer` 并传给 ws-stream | P1 fixed | `structuredSubmitContext` 仍是前端内部辅助，不新增独立 payload authority |
+| N3 | 对已经判题/讲解的题卡轮点击重试 | 新 turn 应复用原 user message 的题目 context，同时不重复持久化用户消息 | 红测显示 retry 只重发 `userMsg.content`；修后 user message 保存原始 `followupQuestionContext/structuredSubmitContext/promptIntent`，retry 透传并保留 `persistUserMessage=false` | P1 fixed | 重试不再退化为自然语言猜题 |
 
 ## Fixed This Loop
 
@@ -191,6 +193,12 @@
    - 修法保持 thin wrapper / fat skill：前端只把已存在的 canonical `followupQuestionContext` 跨 `assessment -> report -> runtime -> chat -> ws-stream` 透传；`promptIntent` 继续只表达训练来源、知识点、错因和数量。没有新增 `question_card/current_question` 状态机，也没有让前端重判答案。
    - 验证：`node yousenwebview/tests/test_deeptutor_runtime_state.js`、`node yousenwebview/tests/test_chat_bootstrap_authority.js`、`node yousenwebview/tests/test_assessment_testset_view_model.js`、`node yousenwebview/tests/test_report_snapshot_dedupe.js` 均通过。`test_assessment_testset_view_model.js` 仍打印一个既有 `ap.priority_chapters` 降级日志，未影响本修复。
 
+24. visible-card submit and retry continuity
+   - root cause 1：`_buildMcqSubmitPayload` 已经构造 `structuredSubmitContext.questions/answers`，但 `ws-stream` 不序列化该字段；当 `card.followupContext` 缺失时，前端把完整题干/选项/答案拼入自然语言 query，并把 `followupQuestionContext` 置空，导致后端只能重新猜当前题。
+   - root cause 2：`onRetry` 只找到 AI 消息前的 user message 并重发 `userMsg.content`，没有保存/恢复原始 `followupQuestionContext`、`structuredSubmitContext` 或训练 `promptIntent`。题卡判题轮 retry 因此会从 object continuity 退化成文本重放。
+   - 修法保持 single authority：不新增 `structured_submit_context` 后端字段，不新增 `question_card/current_question`；前端把可见题卡 state 折叠成现有 canonical `followupQuestionContext`，并把同一发送上下文挂在本地 user message 上供 retry 复用。`structuredSubmitContext` 只保留为前端内部辅助和训练 completion 计数，不成为第二套 start-turn payload。
+   - 验证：`node yousenwebview/tests/test_chat_send_surface_telemetry.js` 红转绿，新增断言覆盖 visible card -> `followupQuestionContext` 和 retry -> 原 context；`node yousenwebview/tests/test_ws_stream_auth_refresh.js` 锁住 start-turn 只发送 canonical `followup_question_context`、不新增 `structuredSubmitContext` 协议字段；同时 `node yousenwebview/tests/test_package_chat_retry_billing_contract.js`、`node yousenwebview/tests/test_question_review_readonly_mcq.js`、`python -m pytest tests/api/test_mobile_router.py -q` 均通过。
+
 ## Accumulated Lessons
 
 - “合理澄清”和“不合理拒答”不能按是否给出答案粗暴判断；关键看系统是否已有题目对象 authority。无题卡/无题干时澄清是合理的，但必须说清缺什么、怎么继续。
@@ -201,6 +209,8 @@
 - 首轮终端正文公开了标准答案，就必须把 reveal state 和 learner answer / wrong-cause summary 写入同一 active object；否则下一轮会出现“刚才已公开答案，但 follow-up 又说练习阶段不公开”的伪拒答。
 - `promptIntent` 只能表达“为什么来训练/练什么/练几道”，不能顺手承载题干、选项、学员答案；题目对象要走 `followupQuestionContext`，否则跨页面跳转会把两个 authority 揉在一起。
 - 小程序 runtime 这种薄层可以保存待发送上下文，但只能保存 canonical 字段并在消费后清空；不要在 runtime 里解释题目、猜答案或补业务规则。
+- `structuredSubmitContext` 如果不进入 start-turn，就不能被当作真实后端 authority；要么删除/降级为前端内部辅助，要么折叠进 `followupQuestionContext`。本轮选择后者，链路更短。
+- retry 不是普通“再发一遍文本”。对题卡判题轮来说，retry 必须恢复同一个发送上下文，否则会重新制造“刚才那题”丢失。
 
 ## Team Monitoring Notes
 
@@ -213,11 +223,13 @@
 - p24-p31 监测结论：后台子代理只读确认 8011 healthy；最近 50 个 `wx_miniprogram` turn 全部 completed，`tutorbot_lifecycle_clarification=7/50`、`rag_degraded=20/50`；Langfuse adapter 日志显示启用但本地 3000/3001 health 不可达，trace linkage 仍不能当 release 证据；`billing_capture_non_null=0` 仍只说明本地 QA bypass，没有生产 wallet capture 证据。
 - p34 微信前端子代理结论：真实主前端是 `yousenwebview/packageDeeptutor`；start-turn 走 canonical `/api/v1/chat/start-turn`，不是新增 mobile 专用 WS。题卡提交只有在 `extraOpts.followupQuestionContext` 存在时才会发 `followup_question_context`；`structuredSubmitContext` 当前未被 `ws-stream` 序列化，重试路径也可能只重发自然语言 query。这两点是下一轮高优先级方向。
 - p34 后台观测子代理结论：Langfuse root observation 已记录 `session_id/turn_id/bot_id/interaction_profile/active_object/question_followup_context` 等关键 metadata，可以辅助定位题目对象丢失点；但 terminal `turn_event_log` / ObserverSnapshot 当前只保留摘要，不足以单独还原完整 `active_object / followup_question_context`。下一轮应补安全摘要字段如 `active_object_id`、`qfc_question_id`、`qfc_items_count`、`qfc_user_answer_present`、`qfc_is_correct`，并修正 snapshot 与 raw event 的 trace linkage 时间窗漂移。
+- p35 本轮本地修复结论：`structuredSubmitContext` 未序列化与 retry 丢上下文两个前端断点已通过 TDD 修复；仍需用真实微信开发者工具/真机跑一轮题卡提交与 retry smoke，确认小程序运行时事件绑定和页面状态与 Node contract 一致。
+- p35 retry 子代理结论：当前 package live retry 已能透传 `followupQuestionContext/structuredSubmitContext/promptIntent`；但 MCQ receipt 仍只写进未序列化的 `structuredSubmitContext.questions[].receipt`，pending turn recovery/history hydration 不恢复本地 user message retry metadata，旧 `wx_miniprogram/pages/chat/chat.js` 仍可能是旧 retry 逻辑。如果这些路径仍参与真实入口或 parity gate，需要单独修。
 
 ## Open Problems
 
 - P1：历史题库 resolver 目前是 full-MCQ vertical slice，不是生产题库总闭环。还需要把签名/可部署的题库 artifact、题卡 id、前端题面对象和 Supabase/KB source evidence 收敛成同一个 canonical question authority。
-- P1：题卡 id / 当前题面对象从微信前端传进 TutorBot 仍未总闭环。测评错题训练跨页面链路已修复 `followupQuestionContext` 透传；但 AI 题卡 `structuredSubmitContext` 未序列化、题卡缺 `followupContext` 的 fallback、以及 retry 重发仍可能退化为自然语言 query。
+- P1：题卡 id / 当前题面对象从微信前端传进 TutorBot 仍未总闭环。测评错题训练跨页面链路、AI 题卡缺 `followupContext` 的 visible-card fallback、以及 live retry context continuity 已修复；剩余是生产题卡 artifact / 真实微信开发者工具或真机 smoke / 多题混合题卡 / cold history retry / MCQ receipt authority 的更宽回归。
 - P2：自然语言多选 learner answer extraction 已覆盖明确作答短语，但还没有做“任意自由文本候选 + 无标准题库 exact hit”的泛化语义解析；本轮刻意不扩，避免制造第二套题目 authority。
 - P2：value-only option surface 已覆盖地下连续墙这类 4+ 候选值 + 明确答案字母的窄场景；弱锚点、无答案字母、候选边界不清的输入仍应澄清。
 - P2：exact MCQ 首答与 exact follow-up deterministic reveal 的一句话模板问题已修；general TutorBot LLM 路径仍可能在用户要求“一句话/别废话”时偏长，p15 负例里 general fast policy 仍输出多段解析。
@@ -238,5 +250,8 @@
 - Full case grading：检查采分点、易错点、估分、学习记忆是否同一份 evidence。
 - Natural learner answer：不用 ABCDE，只说“我勾了施工方案+支架构造+支架稳定”，系统必须提取实际学员答案，而不是把候选项列表全当作已选。
 - Value-only MCQ anchor：给出 `槽段8-10m、导墙1.0m、现浇导墙...我是不是CDE` 时，系统应识别足够题意并按题库值锚定，不应直接澄清缺题。
-- Structured submit serialization：AI 题卡作答时，如果 `structuredSubmitContext` 已经有 questions/answers，但 `followupContext` 缺失，不能让它死在前端边界；要决定是删除这条半成品，还是收敛进 `followup_question_context.items`。
-- Retry continuity：对题卡判题轮点击重试时，应恢复同一 `followupQuestionContext`，不能只重发用户文本。
+- Multi-card submit continuity：多题题卡里部分 card 缺 `followupContext`、部分有 backend context 时，`followup_question_context.items` 应保留每题 `question_id/question/options/user_answer`。
+- WeChat DevTools retry smoke：真实小程序里题卡提交后点重试，start-turn payload 应继续带 `followup_question_context`，且不重复持久化 user message。
+- MCQ receipt continuity：题卡 receipt 如果对判题/溯源有用，必须折叠进 canonical `followupQuestionContext` 或显式降级为纯前端 UI，不应继续只放在未序列化 `structuredSubmitContext`。
+- Cold history retry：从历史消息恢复后点重试，若本地 user message 没有 request metadata，应从 assistant presentation / active object ref 恢复同一题目 context，或者 fail-closed 不允许伪装成同一题 retry。
+- Package parity audit：确认 `wx_miniprogram/pages/chat/chat.js` 是否仍是可达真实入口；若可达，需要同步 packageDeeptutor 的 context continuity 修复，若不可达则文档/测试中降级为 legacy path。
