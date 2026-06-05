@@ -499,6 +499,7 @@ Page({
           }
           self._send(pendingIntent.query, {
             promptIntent: pendingIntent.promptIntent || null,
+            followupQuestionContext: pendingIntent.followupQuestionContext || null,
           });
         } else if (!self.data.hasMessages) {
           Promise.resolve(self._loadDashboard()).then(

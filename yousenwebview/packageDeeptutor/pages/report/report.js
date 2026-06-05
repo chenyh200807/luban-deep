@@ -787,6 +787,13 @@ function _buildTrainingExecutionAction(input) {
       ? source.assessmentTrainingAction
       : null;
   if (assessmentAction) {
+    var followupQuestionContext =
+      assessmentAction.followupQuestionContext ||
+      assessmentAction.followup_question_context ||
+      null;
+    var promptIntent = Object.assign({}, assessmentAction);
+    delete promptIntent.followupQuestionContext;
+    delete promptIntent.followup_question_context;
     var concept = String(assessmentAction.concept_label || "本次错题").trim();
     var count = Math.max(1, Number(assessmentAction.question_count) || 3);
     var query = String(assessmentAction.prompt || "").trim();
@@ -803,7 +810,8 @@ function _buildTrainingExecutionAction(input) {
       label: "练 " + count + " 道同类题",
       hint: "带上本次错题、错因和 attempt_ref 进入结构化训练",
       query: query,
-      promptIntent: assessmentAction,
+      promptIntent: promptIntent,
+      followupQuestionContext: followupQuestionContext,
     };
   }
   var plan = source.battlePlan || {};
@@ -2160,7 +2168,12 @@ Page({
       query = "请根据我的学情处方开始今天的定向训练，先出第一组题。";
     }
     runtime.setWorkspaceBack(route.report(), "学情");
-    runtime.setPendingChatIntent(query, "AUTO", action.promptIntent || null);
+    runtime.setPendingChatIntent(
+      query,
+      "AUTO",
+      action.promptIntent || null,
+      action.followupQuestionContext || null,
+    );
     wx.reLaunch({ url: route.chat() });
   },
 

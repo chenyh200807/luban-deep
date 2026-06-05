@@ -561,6 +561,32 @@ function normalizeWrongItems(items, attemptRefs, questions) {
   });
 }
 
+function buildWrongItemFollowupQuestionContext(item, quizId) {
+  var source = item || {};
+  var optionMap = {};
+  var options = Array.isArray(source.options) ? source.options : [];
+  for (var i = 0; i < options.length; i++) {
+    var option = options[i] || {};
+    var key = String(option.key || "").trim().toUpperCase();
+    var text = String(option.text || option.value || "").trim();
+    if (key && text) optionMap[key] = text;
+  }
+  var context = {
+    parent_quiz_session_id: String(quizId || "").trim(),
+    question_id: String(source.questionId || "").trim(),
+    question: String(source.stem || "").trim(),
+    question_type: "choice",
+    options: optionMap,
+    user_answer: String(source.learnerAnswer || "").trim(),
+    correct_answer: String(source.correctAnswer || "").trim(),
+    explanation: String(source.explanation || "").trim(),
+    reveal_answers: true,
+    reveal_explanations: true,
+  };
+  if (!context.question && !context.question_id) return null;
+  return context;
+}
+
 function buildIssueSummary(wrongItems) {
   if (!(wrongItems || []).length) return [];
   var presets = [
@@ -1349,6 +1375,7 @@ Page({
       "请围绕我刚才错的“" +
       knowledgePoint +
       "”，出 3 道同类选择题训练我。先只出题，不要提前给答案和解析。";
+    var followupQuestionContext = buildWrongItemFollowupQuestionContext(item, this._quizId);
     var intent = {
       source: "assessment_result_wrong_item",
       learning_signal_type: "assessment_wrong_item_practice",
@@ -1361,6 +1388,9 @@ Page({
       training_mode: "same_type_repair",
       prompt: prompt,
     };
+    if (followupQuestionContext) {
+      intent.followupQuestionContext = followupQuestionContext;
+    }
     if (typeof wx !== "undefined" && typeof wx.setStorageSync === "function") {
       wx.setStorageSync("deeptutor.report.pendingTrainingAction", intent);
     }
