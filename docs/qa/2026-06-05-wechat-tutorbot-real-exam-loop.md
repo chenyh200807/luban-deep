@@ -59,6 +59,7 @@
 | N1 | 从测评错题页点“同类训练”进入报告页，再进入 TutorBot 后问“刚才那题为什么错/继续上一题” | TutorBot 应带着错题题干、选项、学员答案、正确答案和 attempt_ref 进入训练，而不是只知道知识点 | 红测显示 pending chat intent 只携带 `promptIntent`，不携带 `followupQuestionContext`；修后错题页 storage action、report 执行、runtime 消费、chat 自动发送四点均保留同一题目 context | P1 fixed | 把现有 canonical `followup_question_context` 作为唯一题目 authority 跨页面透传；`promptIntent` 仍只表达训练意图 |
 | N2 | AI 题卡可见题面有 stem/options/selected answer，但 `card.followupContext` 缺失时提交作答 | 不能只把题干/选项/答案拼进自然语言 query；应走 canonical `followup_question_context` | 红测显示 `followupQuestionContext=null`；修后 `_buildMcqSubmitPayload` 从可见题卡构造 `question_id/question/options/user_answer` 并传给 ws-stream | P1 fixed | `structuredSubmitContext` 仍是前端内部辅助，不新增独立 payload authority |
 | N3 | 对已经判题/讲解的题卡轮点击重试 | 新 turn 应复用原 user message 的题目 context，同时不重复持久化用户消息 | 红测显示 retry 只重发 `userMsg.content`；修后 user message 保存原始 `followupQuestionContext/structuredSubmitContext/promptIntent`，retry 透传并保留 `persistUserMessage=false` | P1 fixed | 重试不再退化为自然语言猜题 |
+| N4 | standalone `wx_miniprogram/pages/chat/chat` 与真实 `packageDeeptutor` chat 分叉 | 不能把 standalone/shadow 入口证据冒充真实佑森微信证据；若保留 shadow QA，也必须不丢题目 context | 子代理确认 `wx_miniprogram` 是独立工程 tabBar 可达，但当前真实佑森 TutorBot 入口是 `yousenwebview/packageDeeptutor`；旧 standalone retry contract 红，且缺 visible-card context fallback / retry context restore | P1 shadow fixed + evidence boundary | 只做 shadow parity 修复，不把它升级为 production authority；后续真实验收仍只认 `packageDeeptutor` + 微信开发者工具/真机证据 |
 
 ## Fixed This Loop
 
@@ -199,6 +200,12 @@
    - 修法保持 single authority：不新增 `structured_submit_context` 后端字段，不新增 `question_card/current_question`；前端把可见题卡 state 折叠成现有 canonical `followupQuestionContext`，并把同一发送上下文挂在本地 user message 上供 retry 复用。`structuredSubmitContext` 只保留为前端内部辅助和训练 completion 计数，不成为第二套 start-turn payload。
    - 验证：`node yousenwebview/tests/test_chat_send_surface_telemetry.js` 红转绿，新增断言覆盖 visible card -> `followupQuestionContext` 和 retry -> 原 context；`node yousenwebview/tests/test_ws_stream_auth_refresh.js` 锁住 start-turn 只发送 canonical `followup_question_context`、不新增 `structuredSubmitContext` 协议字段；同时 `node yousenwebview/tests/test_package_chat_retry_billing_contract.js`、`node yousenwebview/tests/test_question_review_readonly_mcq.js`、`python -m pytest tests/api/test_mobile_router.py -q` 均通过。
 
+25. standalone/shadow wx_miniprogram chat parity boundary
+   - root cause：`wx_miniprogram/pages/chat/chat.js` 仍是独立打开 `wx_miniprogram` 工程时的 tabBar chat，但不是当前佑森真实 TutorBot 入口；当前真实入口在 `yousenwebview/packageDeeptutor/pages/chat/chat.js`。旧入口继续作为 shadow QA 面存在，却缺少 package 版已修的可见题卡 context fallback 和 retry context restore。
+   - 业务事实：QA 证据必须带入口标签。`wx_miniprogram` 可以证明 standalone/shadow renderer parity，不能证明真实佑森微信 TutorBot；但只要它还被测试和内部打开，就不能让它把题目作答从 canonical context 退化成自然语言重放。
+   - 修法保持 less is more：不新增第二个真实微信入口，不新增后端协议，不把 standalone 升格为 production gate；只同步三块 shadow parity：`_buildVisibleCardFollowupContext`、user message 保存 `followupQuestionContext/structuredSubmitContext/promptIntent`、retry 回传同一上下文。
+   - 验证：`node wx_miniprogram/tests/test_chat_retry_billing_contract.js` 红转绿；`node wx_miniprogram/tests/test_chat_mcq_submit_prompt.js` 通过并新增 visible-card context 断言；新增 `node wx_miniprogram/tests/test_chat_question_context_continuity.js` 覆盖 standalone visible card -> context 与 retry -> 原 context；`node wx_miniprogram/tests/test_chat_pending_turn_continuity_contract.js` 的静态断言改为语义正则以避免换行误报；真实入口回归 `node yousenwebview/tests/test_chat_send_surface_telemetry.js`、`node yousenwebview/tests/test_package_chat_retry_billing_contract.js` 保持通过。
+
 ## Accumulated Lessons
 
 - “合理澄清”和“不合理拒答”不能按是否给出答案粗暴判断；关键看系统是否已有题目对象 authority。无题卡/无题干时澄清是合理的，但必须说清缺什么、怎么继续。
@@ -211,6 +218,7 @@
 - 小程序 runtime 这种薄层可以保存待发送上下文，但只能保存 canonical 字段并在消费后清空；不要在 runtime 里解释题目、猜答案或补业务规则。
 - `structuredSubmitContext` 如果不进入 start-turn，就不能被当作真实后端 authority；要么删除/降级为前端内部辅助，要么折叠进 `followupQuestionContext`。本轮选择后者，链路更短。
 - retry 不是普通“再发一遍文本”。对题卡判题轮来说，retry 必须恢复同一个发送上下文，否则会重新制造“刚才那题”丢失。
+- 证据也有 authority。真实微信证据、standalone/shadow 证据、Node contract 证据和后端/harness 证据必须分开标注；否则 QA 报告本身会制造第二套现实。
 
 ## Team Monitoring Notes
 
@@ -225,6 +233,7 @@
 - p34 后台观测子代理结论：Langfuse root observation 已记录 `session_id/turn_id/bot_id/interaction_profile/active_object/question_followup_context` 等关键 metadata，可以辅助定位题目对象丢失点；但 terminal `turn_event_log` / ObserverSnapshot 当前只保留摘要，不足以单独还原完整 `active_object / followup_question_context`。下一轮应补安全摘要字段如 `active_object_id`、`qfc_question_id`、`qfc_items_count`、`qfc_user_answer_present`、`qfc_is_correct`，并修正 snapshot 与 raw event 的 trace linkage 时间窗漂移。
 - p35 本轮本地修复结论：`structuredSubmitContext` 未序列化与 retry 丢上下文两个前端断点已通过 TDD 修复；仍需用真实微信开发者工具/真机跑一轮题卡提交与 retry smoke，确认小程序运行时事件绑定和页面状态与 Node contract 一致。
 - p35 retry 子代理结论：当前 package live retry 已能透传 `followupQuestionContext/structuredSubmitContext/promptIntent`；但 MCQ receipt 仍只写进未序列化的 `structuredSubmitContext.questions[].receipt`，pending turn recovery/history hydration 不恢复本地 user message retry metadata，旧 `wx_miniprogram/pages/chat/chat.js` 仍可能是旧 retry 逻辑。如果这些路径仍参与真实入口或 parity gate，需要单独修。
+- p36 微信入口子代理结论：`wx_miniprogram/pages/chat/chat.js` 仍是 standalone 工程 tabBar 可达入口，但不是当前佑森真实 TutorBot 入口。真实佑森路径经 `yousenwebview/pages/freeCourse` / `pages/deeptutorEntry` / `packageDeeptutor/utils/route.chat()` 进入 `yousenwebview/packageDeeptutor/pages/chat/chat.js`。本轮修复只作为 standalone/shadow parity，不作为 production 微信证据。
 
 ## Open Problems
 
@@ -240,6 +249,7 @@
 - P2：Langfuse 本地默认未启用；若要把“拒答/降级/exact authority”纳入日常监控，需要显式启用并定义 turn-level trace 字段。
 - P2：WS live probe 偶发 keepalive timeout；本次 turn 后端和 DB 都完成，但客户端未稳定收到 close/done，需要后续按 transport/replay 层单独压测。
 - P2：测评页测试暴露既有 `ap.priority_chapters` 非数组时 render failed 的降级日志；本次不混修，后续可作为 assessment report robustness 单独处理。
+- P2：`wx_miniprogram` standalone/shadow 入口仍和 `packageDeeptutor` 双实现并存；本轮只修题目 context continuity 的已复现红测。更彻底的 less-is-more 方向是明确 shadow 只服务 renderer/parity QA，减少它对真实微信入口判断的权重。
 
 ## Next Loop Probes
 
@@ -254,4 +264,4 @@
 - WeChat DevTools retry smoke：真实小程序里题卡提交后点重试，start-turn payload 应继续带 `followup_question_context`，且不重复持久化 user message。
 - MCQ receipt continuity：题卡 receipt 如果对判题/溯源有用，必须折叠进 canonical `followupQuestionContext` 或显式降级为纯前端 UI，不应继续只放在未序列化 `structuredSubmitContext`。
 - Cold history retry：从历史消息恢复后点重试，若本地 user message 没有 request metadata，应从 assistant presentation / active object ref 恢复同一题目 context，或者 fail-closed 不允许伪装成同一题 retry。
-- Package parity audit：确认 `wx_miniprogram/pages/chat/chat.js` 是否仍是可达真实入口；若可达，需要同步 packageDeeptutor 的 context continuity 修复，若不可达则文档/测试中降级为 legacy path。
+- Evidence boundary smoke：每个后续 probe 必须标注 `real_wechat_package` / `standalone_shadow` / `node_contract` / `backend_harness`，禁止把 `wx_miniprogram` standalone 结果冒充真实佑森微信结果。

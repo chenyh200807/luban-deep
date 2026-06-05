@@ -49,8 +49,8 @@ assertContains(
   "_finishPendingTurnRecovery: function (serverMessages)",
   "pending turn recovery should have an explicit terminal path for unrecovered cold starts",
 );
-assertContains(
-  "self._finishPendingTurnRecovery(opts.longPoll ? serverMessages : null);",
+assert(
+  /self\._finishPendingTurnRecovery\(\s*opts\.longPoll\s*\?\s*serverMessages\s*:\s*null\s*,?\s*\);/.test(source),
   "unrecovered server responses should hydrate or unlock the chat instead of leaving streaming stuck",
 );
 assertContains(
