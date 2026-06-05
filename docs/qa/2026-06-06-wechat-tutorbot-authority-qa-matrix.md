@@ -6,7 +6,7 @@ This is the working matrix for the next 30-round real or near-real WeChat TutorB
 
 Current evidence status:
 
-- `real_wechat_package`: partially covered. QA30-017/018 have WeChat DevTools automation evidence for `yousenwebview/packageDeeptutor` visible-card submit/retry payload authority. QA30-002 now has one real DevTools terminal-answer smoke for `/api/v1/chat/start-turn` + `/api/v1/ws` after `WX-REAL-004`; the full 30-round terminal answer quality loop is still pending.
+- `real_wechat_package`: partially covered. QA30-017/018 have WeChat DevTools automation evidence for `yousenwebview/packageDeeptutor` visible-card submit/retry payload authority. QA30-002 now has one real DevTools terminal-answer smoke for `/api/v1/chat/start-turn` + `/api/v1/ws` after `WX-REAL-004`. QA30-REAL-FINAL7 added 3 real terminal turns for active-question follow-up/regrade; QA30-REAL-011/015 added low-info/open-world terminal turns. Full 30-round terminal answer quality loop is still pending.
 - `standalone_shadow`: partially covered. `wx_miniprogram/pages/chat/chat.js` context continuity was fixed only as shadow parity.
 - `node_contract`: covered for the current P1 shadow parity fix.
 - `backend_harness`: expanded for the active-question option challenge regression. `minimal_final7` passed 3/3 on local `/api/v1/chat/start-turn` + `/api/v1/ws`; earlier `minimal_final4/5/6` all failed 1/3 and are retained as before/after evidence under the ignored artifact directory.
@@ -142,6 +142,8 @@ P2:
 | `EVIDENCE-002` | P1 | fixed | `yousenwebview` DevTools runtime base URL contract drifted: implementation defaulted local for QA, but the contract test still expected remote and a temporary comment said to revert | `node yousenwebview/tests/test_app_runtime_base_selection.js` failed before this fix; DevTools runtime evaluate returned local-first base candidates | Keep develop+DevTools local-first as the canonical internal QA mode, remove temporary revert comment, and add explicit remote-mode assertions |
 | `WX-AUTH-003` | P1 | fixed in backend harness | Active question option challenge such as `那C呢？一句话` could be interpreted by different modules as option submission, practice generation, or new question review. The shared failure shape was duplicate decision authority: option parsing, semantic router, lifecycle `question_review`, and mobile session alias all had partial authority over the same current-question fact. | Before: `minimal_final4/5/6` each passed 1/3. `minimal_final6` showed old historical question moved to `suspended_object_stack` while `question_review`/`deep_question_generation` created a C-language question. After: `minimal_final7` passed 3/3 and kept `historical:cf366dd4c395fffa` across follow-up and regrade. | Keep option-challenge wording as follow-up, clear misleading generation hints without explicit practice intent, preserve stored active question before suspend, resolve mobile public/mirror session ids without mirror-of-mirror, and make lifecycle `question_review` defer to active-question semantic routing before free-text review. |
 | `WX-REAL-004` | P1 | fixed in real `packageDeeptutor` | Backend and `ws-stream` delivered the correct public TutorBot final answer, but the package renderer treated public phrases like `标准答案是 D` as hidden answer authority and sanitized the visible message to empty. | Before: real DevTools probe for `unified_1780691416028_69b788c2` / `turn_1780691416030_a1570ba196` saw `_onToken len=42` and `_onFinal responseLen=42`, but final AI `content/renderableContent` length was `0`. After: real DevTools probe for `unified_1780692282387_81bf021b` / `turn_1780692282389_f4cdd6118a` had `content/renderableContent` length `42` with `不对，标准答案是 D（D. 5%）...`. | Move phrase-based hidden-answer redaction out of public AI content projection: `ai-message-state.coerceUserVisibleContent()` now keeps public final prose while still blocking deterministic internal DSML/toolcall leakage. Keep `render-schema` authority scrubbing for structured MCQ/followup/presentation boundaries. |
+| `WX-EXP-005` | P2 | deferred | Real package active-question option follow-up stayed on the same official answer, but did not directly answer `那C呢？` as `C=3%，不对`; it only restated D/5%. | `artifacts/qa/wechat-tutorbot-real-final7-20260606/summary.json`, `QA30-REAL-FINAL7-002`, `conversation_id=unified_1780692619402_d7820eca`, `turn_id=turn_1780692636572_eaf7c2a65d`. | Record as expression/follow-up usefulness issue. Do not add regex/router patch until repeated across more rounds or promoted to P1. |
+| `WX-EXP-006` | P2 | deferred | Real package regrade after `那我改选D，对吗？一句话` preserved authority and graded correctly, but ignored the brevity constraint and emitted a long grader template. | `artifacts/qa/wechat-tutorbot-real-final7-20260606/summary.json`, `QA30-REAL-FINAL7-003`, `conversation_id=unified_1780692619402_d7820eca`, `turn_id=turn_1780692651216_75ccc15068`. | Record as TutorBot expression policy / mode adherence issue. Avoid treating this as answer-authority failure; no P0/P1 code change this round. |
 
 ## Real WeChat Finding: `WX-REAL-004`
 
@@ -225,6 +227,38 @@ Evidence:
 {"round_id":"QA30-FINAL7-003","resolved_authority":"deep_question_grading","next_action":"route_to_grading","question_id":"historical:cf366dd4c395fffa","learner_answer":"第1题：D","is_correct":true,"passed":true}
 ```
 
+## Real WeChat QA Extension: `QA30-REAL-FINAL7` and Open-World
+
+Artifacts:
+
+- `artifacts/qa/wechat-tutorbot-real-final7-20260606/summary.json`
+- `artifacts/qa/wechat-tutorbot-real-final7-20260606/ledger.jsonl`
+- `artifacts/qa/wechat-tutorbot-real-openworld-20260606/summary.json`
+- `artifacts/qa/wechat-tutorbot-real-openworld-20260606/ledger.jsonl`
+
+Real package terminal results:
+
+| Round | Conversation | Turn | Scenario | Result | Satisfaction | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `QA30-REAL-FINAL7-001` | `unified_1780692619402_d7820eca` | `turn_1780692619406_68b9905083` | full historical MCQ, learner chose C | pass | 5 | Correctly answered `不对，标准答案是 D（D. 5%）...`; no refusal, no answer drift. |
+| `QA30-REAL-FINAL7-002` | `unified_1780692619402_d7820eca` | `turn_1780692636572_eaf7c2a65d` | follow-up `那C呢？一句话` | partial / P2 | 3 | Preserved D/5% authority but did not explicitly say C=3% is wrong. |
+| `QA30-REAL-FINAL7-003` | `unified_1780692619402_d7820eca` | `turn_1780692651216_75ccc15068` | revise answer to D | pass / P2 expression | 2 | Correctly graded D as right but ignored `一句话` and emitted full grader template. |
+| `QA30-REAL-011` | `unified_1780692809261_3829d868` | `turn_1780692809264_bd924a68cd` | low-info request `2021案例二第3问答案发我` | pass | 4 | Did not fabricate official answer; asked for题卡/题干 and explained why direct answer would be invented. |
+| `QA30-REAL-015` | `unified_1780692809261_3829d868` | `turn_1780692826595_36edaeb7b5` | open-world knowledge question | pass | 5 | Fail-opened to teaching explanation; no official score or fake standard answer. |
+
+Authority interpretation:
+
+- These 5 rows are real `yousenwebview/packageDeeptutor` DevTools terminal evidence, not backend harness or standalone shadow.
+- Public stream evidence proves terminal answer visibility, conversation/turn continuity, and no official-answer drift.
+- Internal active-object evidence is still incomplete in the artifact: it records public WS status/final events and `/conversations/{id}/messages` readback, but does not yet snapshot internal `runtime_state.active_object`, `question_lifecycle_decision`, and `turn_semantic_decision`. Add this to the next runner before claiming full authority trace coverage for all 30 rounds.
+
+Subagent trace-review checklist for the next runner:
+
+- Record `capability`, `execution_engine`, `question_lifecycle_decision`, `turn_semantic_decision`, `active_object.object_id/version/source_turn_id`, question/options hash, `user_answer`, `is_correct`, `question_authority_source`, `correct_answer_present`, result `mode`, `grading_blocked`, assistant content source, and terminal status.
+- For follow-up rounds, `active_object.object_id` must remain the same as the first round unless the user supplies a new full question.
+- For revise-answer rounds, `allowed_patch` should be answer-slot update, not new active object.
+- Frontend visible answer is necessary but not sufficient evidence; it must be paired with internal session authority snapshots.
+
 ## This-Round Verification
 
 Commands run:
@@ -253,14 +287,16 @@ All listed checks passed in the current run where applicable. The runtime base U
 - `node wx_miniprogram/tests/test_app_runtime_base_selection.js` -> `PASS test_app_runtime_base_selection.js (6 assertions)`
 - WeChat DevTools automation read `getApp().globalData` from `yousenwebview`: `apiUrl=http://127.0.0.1:8001`, `gatewayUrl=http://127.0.0.1:8001`, candidates `[8001, 8012, https://test2.yousenjiaoyu.com]`.
 - WeChat DevTools terminal-answer smoke after `WX-REAL-004`: real `packageDeeptutor/pages/chat/chat`, `conversation_id=unified_1780692282387_81bf021b`, `turn_id=turn_1780692282389_f4cdd6118a`, `_onToken len=42`, `_onFinal responseLen=42`, final `content/renderableContent len=42`.
+- Real package `QA30-REAL-FINAL7` three-turn run: `pass=2`, `partial=1`, `fail=0` after human QA correction; P2 issues only.
+- Real package open-world run: `pass=2`, `partial=0`, `fail=0`.
 
 Not run yet:
 
-- Full WebSocket terminal answer QA on `yousenwebview`
+- Full 30-round WebSocket terminal answer QA on `yousenwebview`
 - real device smoke
-- full 30-round conversation loop
+- internal `active_object` / lifecycle decision snapshot capture for every real package round
 - Langfuse UI review for this exact fix. Local SDK initialized, but `localhost:3030` auth check failed during backend harness runs; use event metadata and SQLite session rows as current evidence.
 
 ## Next Single Mainline
 
-Run the same QA30-FINAL7 three-turn sequence through the real `yousenwebview/packageDeeptutor` DevTools path, then continue the remaining 30-round matrix. Backend harness evidence is strong for the current authority bug, but it is still not real WeChat container closure.
+Upgrade the real `yousenwebview/packageDeeptutor` DevTools runner to capture internal session authority snapshots (`active_object`, lifecycle decision, semantic decision, result mode), then continue the remaining 30-round matrix. Current real package terminal evidence is useful, but full authority closure still requires pairing frontend-visible transcript with backend internal state.
