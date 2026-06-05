@@ -126,6 +126,29 @@ def test_historical_question_resolver_matches_natural_stem_variant_with_option_s
     assert exact_question["metadata"]["option_surface"] == "query"
 
 
+def test_historical_question_resolver_trims_trailing_learner_comment_from_option_surface(
+    tmp_path,
+) -> None:
+    from deeptutor.services.rag.exact_authority import build_exact_authority_response
+    from deeptutor.services.rag.historical_questions import resolve_historical_question
+
+    _write_roof_slope_question_bank(tmp_path)
+    query = (
+        "某工程屋面做法为压型金属板，当设计无要求时，屋面坡度最小值是（ ）。"
+        "A.5% B.1% C.2% D.3%，我听别人说A，直接判"
+    )
+
+    exact_question = resolve_historical_question(query, question_bank_dir=str(tmp_path))
+
+    assert exact_question is not None
+    assert exact_question["correct_answer"] == "A"
+    assert exact_question["options"][3] == {"key": "D", "value": "3%"}
+    assert exact_question["metadata"]["option_surface"] == "query"
+    response = build_exact_authority_response(exact_question, user_message=query)
+    assert "标准答案：A（A. 5%）" in response
+    assert "D. 3%" in response
+
+
 def test_historical_question_resolver_matches_value_only_ordered_options(tmp_path) -> None:
     from deeptutor.services.rag.historical_questions import resolve_historical_question
 

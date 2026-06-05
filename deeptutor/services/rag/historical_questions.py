@@ -390,6 +390,7 @@ def _extract_query_options(query: str) -> list[dict[str, str]]:
     options: list[dict[str, str]] = []
     for line in str(query or "").splitlines():
         key, value = _parse_option_string(line, fallback_key="")
+        value = _trim_query_option_value(value)
         if key and value:
             options.append({"key": key, "value": value})
     if len(options) >= 2:
@@ -409,6 +410,7 @@ def _extract_query_options(query: str) -> list[dict[str, str]]:
     ):
         key = match.group(1).upper()
         value = re.sub(r"\s+", " ", match.group(2)).strip(" ，。；;：:？！!?")
+        value = _trim_query_option_value(value)
         if key and value:
             inline_options.append({"key": key, "value": value})
     if len(inline_options) >= 2:
@@ -443,6 +445,20 @@ def _parse_option_string(value: str, *, fallback_key: str) -> tuple[str, str]:
     if match:
         return match.group(1).upper(), match.group(2).strip()
     return fallback_key, text
+
+
+def _trim_query_option_value(value: str) -> str:
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    marker = re.search(
+        r"(?:[，,。.!！?？；;]\s*|\s+)"
+        r"(?:我(?:选|答|听|觉得|认为|记得|看)|别人|老师|同学|直接|只说|别|对吗|是不是|是否|请|帮|错因|解析)",
+        text,
+    )
+    if marker:
+        text = text[: marker.start()]
+    return text.strip(" ，,。.!！?？；;：:")
 
 
 def _normalize_answer_key(value: Any) -> str:

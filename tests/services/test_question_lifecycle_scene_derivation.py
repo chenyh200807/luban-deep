@@ -383,6 +383,30 @@ async def test_embedded_mcq_options_after_terminal_mark_is_anchored_grading(term
 
 
 @pytest.mark.asyncio
+async def test_embedded_mcq_option_text_with_inner_comma_is_anchored_grading():
+    message = (
+        "关于防水混凝土施工的说法，正确的有（ ）。"
+        "A.连续性浇筑，少留施工缝 "
+        "B.宜采用高频机械分层振捣密实 "
+        "C.施工缝宜留置在受剪力较大部位 "
+        "D.养护时间不少于7天 "
+        "E.冬期施工入模温度不应低于5℃。"
+        "我选ABDE，错因10个字以内"
+    )
+
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(user_message=message),
+        enable_llm=False,
+    )
+
+    assert derive_question_lifecycle_scene(_FakeContext(user_message=message)) == "mcq_grading"
+    assert looks_like_free_text_mcq_grading_request(message) is True
+    assert decision.scene == "mcq_grading"
+    assert decision.exact_question_blocked_reason == ""
+    assert decision.needs_clarification is False
+
+
+@pytest.mark.asyncio
 async def test_value_only_mcq_options_with_answer_submission_is_anchored_grading():
     message = (
         "地下连续墙那个：槽段8-10m、导墙1.0m、现浇导墙、导管法、"

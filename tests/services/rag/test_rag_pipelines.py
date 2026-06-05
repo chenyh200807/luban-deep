@@ -80,6 +80,51 @@ def _learning_fact_supabase_config(supabase_module, *, compiled_truth_enabled: b
     )
 
 
+def test_historical_question_projection_trims_query_option_tail_comment(tmp_path) -> None:
+    from deeptutor.services.rag.historical_questions import resolve_historical_question
+
+    payload = {
+        "exercises": [
+            {
+                "type": "single_choice",
+                "question_data": {
+                    "stem": "某工程屋面做法为压型金属板，当设计无要求时，屋面坡度最小值是（　　）。",
+                    "options": [
+                        {"key": "A", "value": "1%"},
+                        {"key": "B", "value": "2%"},
+                        {"key": "C", "value": "3%"},
+                        {"key": "D", "value": "5%"},
+                    ],
+                    "correct_answer": "D",
+                    "analysis": "屋面最小坡度：压型金属板：5%。",
+                },
+            }
+        ]
+    }
+    (tmp_path / "questions.json").write_text(
+        json.dumps(payload, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+    exact_question = resolve_historical_question(
+        (
+            "某工程屋面做法为压型金属板，当设计无要求时，屋面坡度最小值是（ ）。"
+            "A.5% B.1% C.2% D.3%，我听别人说A，直接判"
+        ),
+        question_bank_dir=str(tmp_path),
+    )
+
+    assert exact_question is not None
+    assert exact_question["correct_answer"] == "A"
+    assert exact_question["options"] == [
+        {"key": "A", "value": "5%"},
+        {"key": "B", "value": "1%"},
+        {"key": "C", "value": "2%"},
+        {"key": "D", "value": "3%"},
+    ]
+    assert exact_question["metadata"]["option_surface"] == "query"
+
+
 async def _run_learning_fact_search(
     monkeypatch: pytest.MonkeyPatch,
     *,

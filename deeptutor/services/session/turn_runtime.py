@@ -815,6 +815,7 @@ def _question_context_matches_free_text_surface(
             overlap_ratio = len(question_grams & message_grams) / max(len(question_grams), 1)
             if overlap_ratio >= 0.55:
                 return True
+        return False
 
     options = question_context.get("options") if isinstance(question_context, dict) else None
     if not isinstance(options, dict) or not options:
@@ -988,10 +989,13 @@ async def _resolve_question_followup_context_and_action(
         return normalized_explicit, normalized_action
 
     for candidate in candidate_contexts:
-        if free_text_mcq_grading_request:
-            continue
         normalized_candidate = normalize_question_followup_context(candidate)
         if normalized_candidate is None:
+            continue
+        if (
+            free_text_mcq_grading_request
+            and not _question_context_matches_free_text_surface(user_message, normalized_candidate)
+        ):
             continue
         if (
             not (normalized_candidate.get("items") or [])

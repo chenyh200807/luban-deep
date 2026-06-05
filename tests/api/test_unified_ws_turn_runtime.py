@@ -479,6 +479,33 @@ async def test_full_new_mcq_does_not_regrade_stale_explicit_question() -> None:
 
 
 @pytest.mark.asyncio
+async def test_full_new_mcq_with_same_option_values_does_not_keep_stale_explicit_question() -> None:
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message=(
+            "安全生产法属于（ ）。A.法律 B.行政法规 C.部门规章 D.地方性法规，"
+            "我选A，直接批改"
+        ),
+        explicit_context={
+            "question_id": "old_regulation_level",
+            "question": "建设工程安全生产管理条例属于（ ）。",
+            "question_type": "single_choice",
+            "options": {
+                "A": "法律",
+                "B": "行政法规",
+                "C": "部门规章",
+                "D": "地方性法规",
+            },
+            "correct_answer": "B",
+        },
+        explicit_action=None,
+        candidate_contexts=[],
+    )
+
+    assert resolved_context is None
+    assert resolved_action is None
+
+
+@pytest.mark.asyncio
 async def test_full_same_mcq_keeps_explicit_question_context() -> None:
     resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
         user_message=(
@@ -494,6 +521,33 @@ async def test_full_same_mcq_keeps_explicit_question_context() -> None:
         },
         explicit_action=None,
         candidate_contexts=[],
+    )
+
+    assert resolved_context is not None
+    assert resolved_context["question_id"] == "historical:roof_slope"
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "answer_questions"
+    assert resolved_action["answers"][0]["answer"] == "A"
+
+
+@pytest.mark.asyncio
+async def test_full_same_mcq_keeps_candidate_question_context_without_explicit_context() -> None:
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message=(
+            "某工程屋面做法为压型金属板，当设计无要求时，屋面坡度最小值是（ ）。"
+            "A.5% B.1% C.2% D.3%，我选A，直接批改"
+        ),
+        explicit_context=None,
+        explicit_action=None,
+        candidate_contexts=[
+            {
+                "question_id": "historical:roof_slope",
+                "question": "某工程屋面做法为压型金属板，当设计无要求时，屋面坡度最小值是（ ）。",
+                "question_type": "single_choice",
+                "options": {"A": "5%", "B": "1%", "C": "2%", "D": "3%"},
+                "correct_answer": "A",
+            }
+        ],
     )
 
     assert resolved_context is not None
