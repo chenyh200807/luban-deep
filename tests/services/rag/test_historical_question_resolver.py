@@ -69,6 +69,32 @@ def _write_roof_slope_question_bank(root) -> None:
     (root / "roof.json").write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
 
 
+def _write_waterproof_design_life_question_bank(root) -> None:
+    payload = {
+        "taxonomy": {"node_code": "1A411020", "node_name": "建筑构造"},
+        "exercises": [
+            {
+                "type": "single_choice",
+                "question_data": {
+                    "stem": "室内工程防水设计工作年限不应低于（　　）。",
+                    "options": [
+                        {"key": "A", "value": "15"},
+                        {"key": "B", "value": "20"},
+                        {"key": "C", "value": "25"},
+                        {"key": "D", "value": "50"},
+                    ],
+                    "correct_answer": "C",
+                    "analysis": "解析：室内工程防水设计工作年限不应低于25年。",
+                    "score": 1.0,
+                    "difficulty": "easy",
+                },
+                "predicted_node": "1A411020",
+            }
+        ],
+    }
+    (root / "waterproof.json").write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+
+
 def test_historical_question_resolver_matches_full_mcq_from_configured_bank(tmp_path) -> None:
     from deeptutor.services.rag.historical_questions import resolve_historical_question
 
@@ -124,6 +150,28 @@ def test_historical_question_resolver_matches_natural_stem_variant_with_option_s
     assert exact_question["correct_answer"] == "A"
     assert exact_question["metadata"]["canonical_correct_answer"] == "D"
     assert exact_question["metadata"]["option_surface"] == "query"
+
+
+def test_historical_question_resolver_remaps_unit_bearing_query_option_values(tmp_path) -> None:
+    from deeptutor.services.rag.exact_authority import build_exact_authority_response
+    from deeptutor.services.rag.historical_questions import resolve_historical_question
+
+    _write_waterproof_design_life_question_bank(tmp_path)
+    query = (
+        "室内工程防水设计工作年限不应低于（ ）。"
+        "A.50年 B.25年 C.20年 D.15年，我答25年，直接判，一句话"
+    )
+
+    exact_question = resolve_historical_question(query, question_bank_dir=str(tmp_path))
+
+    assert exact_question is not None
+    assert exact_question["correct_answer"] == "B"
+    assert exact_question["options"][1] == {"key": "B", "value": "25年"}
+    assert exact_question["metadata"]["canonical_correct_answer"] == "C"
+    assert exact_question["metadata"]["option_surface"] == "query"
+    response = build_exact_authority_response(exact_question, user_message=query)
+    assert "标准答案是 B（B. 25年）" in response
+    assert "C. 25" not in response
 
 
 def test_historical_question_resolver_trims_trailing_learner_comment_from_option_surface(

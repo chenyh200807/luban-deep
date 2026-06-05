@@ -458,6 +458,17 @@ def is_low_information_exam_query(query: str) -> bool:
         and not any(marker in text for marker in concrete_stem_markers)
     ):
         return True
+    objective_question_index_pattern = (
+        r"(?:20\d{2}年?)?[\u4e00-\u9fffA-Za-z0-9《》]{0,20}"
+        r"第?[0-9一二两三四五六七八九十]+题"
+    )
+    if (
+        re.search(objective_question_index_pattern, text)
+        and any(marker in text for marker in answer_request_markers)
+        and not _FREE_TEXT_MCQ_OPTION_LIST_RE.search(str(query or ""))
+        and not any(marker in text for marker in concrete_stem_markers)
+    ):
+        return True
     if (
         "题卡" in text
         and any(marker in text for marker in answer_request_markers)

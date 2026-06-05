@@ -836,17 +836,17 @@ def answers_match(
     if left.upper() == right.upper():
         return True
 
+    options = (normalized or {}).get("options") or {}
+    if isinstance(options, dict):
+        left_option = normalized_left_option or _match_option_key_by_value(left, options)
+        right_option = normalized_right_option or _match_option_key_by_value(right, options)
+        if left_option and right_option:
+            return left_option == right_option
+
     left_judgment = _normalize_judgment_token(left)
     right_judgment = _normalize_judgment_token(right)
     if left_judgment and right_judgment:
         return left_judgment == right_judgment
-
-    options = (normalized or {}).get("options") or {}
-    if isinstance(options, dict):
-        left_option = _match_option_key_by_value(left, options)
-        right_option = _match_option_key_by_value(right, options)
-        if left_option and right_option:
-            return left_option == right_option
     return False
 
 
@@ -1536,6 +1536,9 @@ def _extract_option_submission(message: str, question_context: dict[str, Any]) -
     if value_answer is not None:
         return value_answer
 
+    if _message_contains_option_table(text, question_context):
+        return None
+
     stripped = _LEADING_SUBMISSION_PREFIX.sub("", text).strip().strip("。.!！?，,：:")
     for fragment in re.split(r"[，,。.!！?；;\s]+", stripped):
         normalized = _normalize_option_answer(fragment, question_context)
@@ -1627,7 +1630,8 @@ def _extract_explicit_option_letter_submission(
     letter_group = rf"([{option_keys}](?:[、，,/／\s]*[{option_keys}])*)"
     patterns = [
         rf"(?:我(?:实际|真正|就)?|实际|真正)?\s*(?:答案)?\s*"
-        rf"(?<!多)(?<!单)(?<!项)(?<!候)(?:选了|选(?!择)|勾了|勾|填了|填|写了|写|圈了|圈)"
+        rf"(?<!多)(?<!单)(?<!项)(?<!候)"
+        rf"(?:选了|选(?!择)|答了|答|回答了|回答|勾了|勾|填了|填|写了|写|圈了|圈)"
         rf"(?:的是|是|的)?\s*{letter_group}",
         rf"(?:我)?\s*(?:是不是|是否)\s*{letter_group}",
         rf"(?:答案|正确答案|标准答案)\s*(?:是|为)?\s*{letter_group}",
@@ -1650,6 +1654,21 @@ def _available_option_keys(question_context: dict[str, Any]) -> str:
         if str(key).strip().upper()[:1] in {"A", "B", "C", "D", "E"}
     ]
     return "".join(sorted(set(keys))) or "ABCDE"
+
+
+def _message_contains_option_table(message: str, question_context: dict[str, Any]) -> bool:
+    text = str(message or "")
+    if not text:
+        return False
+    hits = 0
+    for key in _available_option_keys(question_context):
+        if re.search(
+            rf"(?:^|[\s\n\r，,。；;:：]){re.escape(key)}\s*[.、．\)]",
+            text,
+            flags=re.IGNORECASE,
+        ):
+            hits += 1
+    return hits >= 2
 
 
 def _normalize_option_answer(value: str, question_context: dict[str, Any]) -> str | None:
@@ -1684,16 +1703,21 @@ def _extract_explicit_option_value_submission(
     match = re.search(
         r"(?:我(?:实际|真正|就)?|实际|真正)?\s*"
         r"(?:只)?\s*"
-        r"(?<!多)(?<!单)(?<!项)(?<!候)(?:勾选|勾了|勾|选了|选(?!择)|填了|填|写了|写|圈了|圈)"
+        r"(?<!多)(?<!单)(?<!项)(?<!候)"
+        r"(?:勾选|勾了|勾|选了|选(?!择)|答了|答|回答了|回答|答案(?:是|为)?|填了|填|写了|写|圈了|圈)"
         r"(?:的是|是|的)?\s*"
         r"(.+)$",
         text,
     )
-    if not match:
+    if match:
+        selected_text = match.group(1).strip()
+    elif _LEADING_SUBMISSION_PREFIX.match(text):
+        selected_text = _strip_submission_prefix(text)
+    else:
         return None
-    selected_text = match.group(1).strip()
     selected_text = re.split(
-        r"(?:能拿满|能满|拿满|对吗|对不对|是不是|是否|批改|判一下|别把|别算|漏没漏|错因|为什么|[？?])",
+        r"(?:能拿满|能满|拿满|对吗|对不对|是不是|是否|直接判|判一下|判下|判|"
+        r"直接批改|批改|打分|一句话|简短|别把|别算|漏没漏|错因|为什么|[？?])",
         selected_text,
         maxsplit=1,
     )[0].strip("。.!！?；;，,、 ")
@@ -2101,12 +2125,28 @@ def _normalize_judgment_token(value: str) -> str | None:
 
 def _match_option_key_by_value(answer: str, options: dict[str, Any]) -> str | None:
     normalized_answer = _normalize_judgment_token(answer)
-    if normalized_answer is None:
+    if normalized_answer is not None:
+        for key, value in options.items():
+            if _normalize_judgment_token(str(value or "").strip()) == normalized_answer:
+                return str(key).strip().upper()[:1]
         return None
+
+    normalized_value = _normalize_option_value_text(answer)
+    if len(normalized_value) < 2:
+        return None
+    matched_keys: list[str] = []
     for key, value in options.items():
-        if _normalize_judgment_token(str(value or "").strip()) == normalized_answer:
-            return str(key).strip().upper()[:1]
-    return None
+        normalized_option = _normalize_option_value_text(value)
+        if not normalized_option:
+            continue
+        if (
+            normalized_value == normalized_option
+            or (len(normalized_value) >= 2 and normalized_value in normalized_option)
+            or (len(normalized_option) >= 2 and normalized_option in normalized_value)
+        ):
+            matched_keys.append(str(key).strip().upper()[:1])
+    unique_keys = sorted({key for key in matched_keys if key})
+    return unique_keys[0] if len(unique_keys) == 1 else None
 
 
 def _parse_small_zh_number(value: str) -> int | None:

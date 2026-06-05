@@ -314,16 +314,29 @@ def _unique_options_by_normalized_value(raw: Any) -> dict[str, dict[str, str]]:
     by_value: dict[str, dict[str, str]] = {}
     duplicates: set[str] = set()
     for item in options:
-        normalized_value = _normalize_surface(item.get("value"))
-        if not normalized_value:
-            continue
-        if normalized_value in by_value:
-            duplicates.add(normalized_value)
-            continue
-        by_value[normalized_value] = item
+        for normalized_value in _option_value_lookup_keys(item.get("value")):
+            if normalized_value in by_value:
+                duplicates.add(normalized_value)
+                continue
+            by_value[normalized_value] = item
     for duplicate in duplicates:
         by_value.pop(duplicate, None)
     return by_value
+
+
+def _option_value_lookup_keys(raw: Any) -> tuple[str, ...]:
+    normalized_value = _normalize_surface(raw)
+    if not normalized_value:
+        return ()
+    keys = [normalized_value]
+    unit_stripped = re.sub(
+        r"(?:年|天|日|米|厘米|毫米|M|CM|MM|m|cm|mm)$",
+        "",
+        normalized_value,
+    )
+    if unit_stripped != normalized_value and re.fullmatch(r"\d+(?:\.\d+)?", unit_stripped):
+        keys.append(unit_stripped)
+    return tuple(dict.fromkeys(keys))
 
 
 def _value_only_option_surface_match_score(

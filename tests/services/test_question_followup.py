@@ -7,6 +7,7 @@ import pytest
 from deeptutor.services.question_followup import (
     annotate_batch_submission_context,
     apply_followup_action_to_context,
+    answers_match,
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_presentation,
     build_question_followup_context_from_result_summary,
@@ -116,6 +117,106 @@ def test_resolve_submission_attempt_extracts_explicit_natural_option_values() ->
         "answer": "ABE",
         "question_id": "q_template_support",
     }
+
+
+def test_resolve_submission_attempt_maps_answer_value_to_current_option_key() -> None:
+    question_context = {
+        "question_id": "q_waterproof_life",
+        "question": "室内工程防水设计工作年限不应低于（ ）。",
+        "question_type": "single_choice",
+        "options": {"A": "50年", "B": "25年", "C": "20年", "D": "15年"},
+        "correct_answer": "B",
+    }
+
+    target, submission = resolve_submission_attempt("我答25年", question_context)
+
+    assert target is not None
+    assert submission == {
+        "kind": "single",
+        "answer": "B",
+        "question_id": "q_waterproof_life",
+    }
+
+
+def test_resolve_submission_attempt_uses_answer_tail_not_option_table_letters() -> None:
+    question_context = {
+        "question_id": "q_waterproof_life",
+        "question": "室内工程防水设计工作年限不应低于（ ）。",
+        "question_type": "single_choice",
+        "options": {"A": "50年", "B": "25年", "C": "20年", "D": "15年"},
+        "correct_answer": "B",
+    }
+
+    target, submission = resolve_submission_attempt(
+        (
+            "室内工程防水设计工作年限不应低于（ ）。"
+            "A.50年 B.25年 C.20年 D.15年，我答25年，直接判，一句话"
+        ),
+        question_context,
+    )
+
+    assert target is not None
+    assert submission == {
+        "kind": "single",
+        "answer": "B",
+        "question_id": "q_waterproof_life",
+    }
+
+
+def test_resolve_submission_attempt_uses_letter_tail_not_option_table_letters() -> None:
+    question_context = {
+        "question_id": "q_waterproof_life",
+        "question": "室内工程防水设计工作年限不应低于（ ）。",
+        "question_type": "single_choice",
+        "options": {"A": "50年", "B": "25年", "C": "20年", "D": "15年"},
+        "correct_answer": "B",
+    }
+
+    target, submission = resolve_submission_attempt(
+        (
+            "室内工程防水设计工作年限不应低于（ ）。"
+            "A.50年 B.25年 C.20年 D.15年，我答B，直接判，一句话"
+        ),
+        question_context,
+    )
+
+    assert target is not None
+    assert submission == {
+        "kind": "single",
+        "answer": "B",
+        "question_id": "q_waterproof_life",
+    }
+
+
+def test_resolve_submission_attempt_does_not_treat_option_table_as_answer() -> None:
+    question_context = {
+        "question_id": "q_waterproof_life",
+        "question": "室内工程防水设计工作年限不应低于（ ）。",
+        "question_type": "single_choice",
+        "options": {"A": "50年", "B": "25年", "C": "20年", "D": "15年"},
+        "correct_answer": "B",
+    }
+
+    target, submission = resolve_submission_attempt(
+        "室内工程防水设计工作年限不应低于（ ）。A.50年 B.25年 C.20年 D.15年",
+        question_context,
+    )
+
+    assert target is not None
+    assert submission is None
+
+
+def test_answers_match_compares_option_value_to_current_correct_letter() -> None:
+    question_context = {
+        "question_id": "q_waterproof_life",
+        "question": "室内工程防水设计工作年限不应低于（ ）。",
+        "question_type": "single_choice",
+        "options": {"A": "50年", "B": "25年", "C": "20年", "D": "15年"},
+        "correct_answer": "B",
+    }
+
+    assert answers_match("25年", "B", question_context) is True
+    assert answers_match("50年", "B", question_context) is False
 
 
 def test_resolve_submission_attempt_extracts_explicit_letters_after_option_table() -> None:
