@@ -1,0 +1,56 @@
+{
+  "schema_version": "luban_runtime_supply_bundle.v1",
+  "version": "v1_limited_default",
+  "status": "limited_default_candidate",
+  "content_hash": "7d0c92c2914c5b0a314894ebcdd4b26604a0dc10dbe3f7f30ad3f079a48e9253",
+  "source_backed_hash": "a460b45f8a78f607593cd703f7801d00ab86427951b51a10c3b00146513c074f",
+  "typed_policy_hash": "c10b322dd35e58f1650a871f4c99743fcbf475a294ee3c84a9d9d02dc6e85c24",
+  "registry_hash": "83f794c699d504ecd207008a2c5aba9b2efbe3fa19d2ad4f3d1e39f0a746d669",
+  "generated_from_artifact_hashes": {
+    "machine": "46db63598f8ce89cc8f03bbbe21e830734c908de6393c57ea5b3025965aaa243",
+    "list": "20e5aefeda5a76ec6b4a1ee0f8384bfb9d37ab70ff318a53a135486002420d62",
+    "review": "e5eb4aa51a18322b74c6c370e52a58987b415a4381b2e94989a54c4ee9e56a14",
+    "external": "a7e9cb32028b9ef705166a0a0e90aa4517ebf303fa1ade2194a02c19a04ad9d1",
+    "residual": "14106103f2da7b6dd370eb6b9e78a0e311c538b3554fa390ff67b016a9ab4034",
+    "m7": "760b5a10becacaa2e7d72b2788f559ef4b65f4f6292fe3505efdd9c4a65f29b0",
+    "m8": "b4627739ffafc38396f2ed50416608e58523a862421c8bd901e308b330fa5677",
+    "m9": "c9e8ab1382b5703c59189e32d645fdea4881a99f540bff967cdb776d8f801176",
+    "registry": "3f42e6999d552288f90fd944885826009854d27dde14b665cb726d52702f75c4",
+    "typed_policy": "78431f14d87c5e6a52ae4e28901a6c58a305f7e50edbdda6785bc6fcf8d84f11",
+    "typed_policy_2": "c121722c23b7082c010215d8ea3e4ff891d1f8828bd8bf4a690185b0604abee1"
+  },
+  "included_files": [
+    "machine_checkable_case_specs_m10.jsonl",
+    "list_rule_structured_specs_m10.jsonl",
+    "review_required_packets_m10.jsonl",
+    "external_source_work_orders_m10.jsonl",
+    "residual_authority_inventory_m10.json",
+    "source_backed_points.jsonl",
+    "golden_typed_policy.jsonl",
+    "registry_v1_release_candidate.json",
+    "runtime_supply_manifest.json"
+  ],
+  "counts": {
+    "machine_specs": 45,
+    "list_specs": 14,
+    "review_points": 31,
+    "external_points": 13,
+    "residual_auto_points": 9,
+    "source_backed_points": 23,
+    "golden_typed_policy_points": 97
+  },
+  "excluded_review_artifact_categories": [
+    "raw_llm_votes",
+    "ai_council_votes",
+    "FINDING_*.md",
+    "latency_token_cost_ledgers",
+    "qa_sample_logs",
+    "go_no_go / verdict reports",
+    "review packets full text",
+    "adversarial reviews",
+    "workflow ledgers / manifests"
+  ],
+  "rollback_pointer": "legacy (drop request flag / env kill / registry unavailable -> fail-closed)",
+  "runtime_authority": "deterministic textbook/spec/list matcher only; official_answer/model_vote/council_vote NEVER a source",
+  "production_default": "off"
+}

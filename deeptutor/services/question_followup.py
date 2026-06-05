@@ -280,6 +280,31 @@ def _normalize_followup_evidence_refs(raw: Any) -> list[dict[str, Any]]:
     if not isinstance(raw, list):
         return []
     refs: list[dict[str, Any]] = []
+    passthrough_keys = (
+        "title",
+        "source_type",
+        "source_table",
+        "source_id",
+        "stable_source_id",
+        "stable_id",
+        "chunk_id",
+        "id",
+        "source_span",
+        "taxonomy_path",
+        "node_code",
+        "taxonomy_code",
+        "chapter",
+        "section",
+        "page",
+        "standard_code",
+        "article_code",
+        "authority_rank",
+        "evidence_level",
+        "content_hash",
+        "quote_hash",
+        "public_quote",
+        "metadata",
+    )
     for item in raw:
         if not isinstance(item, dict):
             continue
@@ -294,7 +319,16 @@ def _normalize_followup_evidence_refs(raw: Any) -> list[dict[str, Any]]:
             content = item.get("value")
         if not source or not field or content in (None, "", [], {}):
             continue
-        refs.append({"source": source, "field": field, "content": content})
+        ref = {"source": source, "field": field, "content": content}
+        for key in passthrough_keys:
+            value = item.get(key)
+            if value not in (None, "", [], {}):
+                ref[key] = value
+        if "source_type" not in ref:
+            ref["source_type"] = source
+        if "public_quote" not in ref:
+            ref["public_quote"] = content
+        refs.append(ref)
         if len(refs) >= 8:
             break
     return refs

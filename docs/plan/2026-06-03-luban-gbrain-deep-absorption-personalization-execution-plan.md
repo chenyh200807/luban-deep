@@ -33,7 +33,7 @@ Primary source concepts absorbed:
 We have learned the first half of GBrain:
 
 1. `learner_memory_events` can hold learning evidence.
-2. `deeptutor/services/learner_state/learning_synthesis.py` can create `learning_brain` compiled projection.
+2. `learning_synthesis.py` can create `learning_brain` compiled projection.
 3. Compiled truth can enter RAG as `compiled_learning_truth` source group.
 4. `learning-report-read-model` exposes learning brain evidence and next training.
 5. `deep_question` can consume `learning_training_intent`.
@@ -60,7 +60,7 @@ We have not fully learned the second half:
 
 The shortest path is:
 
-1. Harden learner claim lifecycle inside `deeptutor/services/learner_state/learning_synthesis.py`.
+1. Harden learner claim lifecycle inside `learning_synthesis.py`.
 2. Add a pure `PersonalizationContextPack` builder that reads compiled truth, evidence timeline, active training intent, and graph hints.
 3. Use that pack in learning report, TutorBot, `deep_question`, and RAG metadata.
 4. Add a next-best-action helper over existing typed graph and `training_intent`.
@@ -1329,8 +1329,7 @@ projection。§7 gate 只卡 learning-report p95，没卡 chat turn p95 → 热�
    且 `error_points_to_training` 真边产生非空 action（关闭"静默退化"失败模式）。
 2. **tie-break 确定性测试**：构造 status/level/recency 全等的多个候选，断言 `next_best_action`
    输出顺序稳定（计划自称 deterministic 但无 tie 测试）。
-3. **synthesis 性能门**：Task 1 后复跑性能门，证据见
-   `docs/qa/2026-06-03-gbrain-learning-synthesis-performance-baseline.md`；
+3. **synthesis 性能门**：Task 1 后复跑现有 `scripts/bench_learning_synthesis.py`，
    p95≤200ms@2000-event 不回归（lifecycle 扫描勿引入 O(events×claims)）。
 4. **旧客户端 v2 缺失渲染**：Task 7 manual gate 增一条——wx/yousen 旧版页面在
    `today_prescription` / `personalization_context` 字段缺失时优雅降级（不白屏、回退 v1）。

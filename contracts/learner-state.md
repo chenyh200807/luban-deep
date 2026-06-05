@@ -179,17 +179,6 @@ Overlay 必须支持：
   只能读取 `learner_summaries.summary_structured_json.learning_brain`，不得让本地缓存
   与 durable store 竞争权威；生产环境即使 Supabase core store 未配置，也不得 fail-open
   读取本地 `COMPILED_TRUTH.json`；在线链路不得为了召回临时重跑 synthesis。
-- Claim lifecycle: `summary_structured_json.learning_brain` 的 claim lifecycle 只能由
-  `learning_synthesis.py` 产出。允许状态为 `observed`、`repeated`、`confirmed`、
-  `stale`、`superseded`、`rejected`、`contradicted`；P0 只启用已有事件管道可证明的
-  `observed/repeated/confirmed/stale/superseded`。在线 wrapper、mobile router、
-  TutorBot runtime、RAG、Notebook 和前端都不得计算 claim lifecycle。
-- 稳定 claim 暴露给产品面时必须携带非空 `evidence_refs` 或
-  `supporting_event_ids`。读侧必须兼容历史 `supporting_event_ids`，不得因为旧
-  projection 缺 `evidence_refs` 而把真实证据清零。
-- `PersonalizationContextPack` 是对既有 learner-state truth、`training_intent`
-  和最近证据的只读 projection。它不是 writer、不是 learner profile 表，也不是新的
-  recommendation authority；下一步训练处方仍只能由 `training_intent` 决定。
 
 #### `learner_memory_events`
 
