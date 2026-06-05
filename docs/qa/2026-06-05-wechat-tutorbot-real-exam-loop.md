@@ -66,6 +66,11 @@
    - p06 live evidence：`turn_1780661116386_217dc55edf`，RESULT metadata `authority_applied=true`、`exact_question.source_group=historical_question_bank`、`correct_answer=CDE`、`rag_retrieval_degraded=true`、`degraded_mcq_grading_guard_applied=false`。
    - 对外 metadata 不再包含本机 `source_path`；live RESULT event 检查未发现 `/Users/yehongchen` 路径泄露。
 
+7. 后台 observer 能看见 exact authority
+   - `turn_observation` terminal event 现在从同一份 final RESULT metadata 投影出 `authority_applied`、`execution_path`、`exact_question` 摘要、`rag_retrieval_status` 和 degraded guard 字段。
+   - observer exact question 摘要只保留 `id / answer_kind / question_type / source_group / correct_answer / source_file / content_hash`，不携带题库本机路径或完整选项长文本。
+   - p07 live evidence：`turn_1780661568387_2bbd0b106a`，observer JSONL 记录 `exact_question.correct_answer=CDE`、`rag_retrieval_status=provider_failed_exact_question_resolved`、`authority_applied=true`，未发现 `source_path` 或 `/Users/yehongchen`。
+
 ## Team Monitoring Notes
 
 - 主代理：负责真实小程序同构链路复现、最小代码修复、测试与 scoped commit。
@@ -83,6 +88,7 @@
 - P2：本地 `/api/v1/wechat/mp/login` 缺 `WECHAT_MP_APP_ID/WECHAT_MP_APP_SECRET` 时返回 502；当前 QA 通过注册登录绕过，只验证 `/api/v1/chat/start-turn` + `/api/v1/ws`。
 - P2：auth/register 仍可能被 wallet bootstrap / Supabase wallet 404 拖慢或污染日志；p06 注册本身成功，但后台仍有 wallet 404 观测噪音，需要单独收敛。
 - P2：Langfuse 本地默认未启用；若要把“拒答/降级/exact authority”纳入日常监控，需要显式启用并定义 turn-level trace 字段。
+- P2：WS live probe 偶发 keepalive timeout；本次 turn 后端和 DB 都完成，但客户端未稳定收到 close/done，需要后续按 transport/replay 层单独压测。
 
 ## Next Loop Probes
 

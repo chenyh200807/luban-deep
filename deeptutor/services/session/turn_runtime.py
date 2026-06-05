@@ -398,6 +398,25 @@ def _build_terminal_turn_observation_event(
         "total_output_tokens": int(usage.get("total_output_tokens") or 0),
         "total_calls": int(usage.get("total_calls") or 0),
     }
+    for metadata_key in (
+        "authority_applied",
+        "exact_fast_path_hit",
+        "execution_path",
+        "question_lifecycle_scene",
+        "rag_retrieval_degraded",
+        "rag_retrieval_status",
+        "rag_retrieval_error_type",
+        "degraded_exact_answer_guard_applied",
+        "degraded_mcq_grading_guard_applied",
+    ):
+        if metadata_key in trace_metadata:
+            metadata[metadata_key] = trace_metadata[metadata_key]
+    exact_question_summary = _summarize_exact_question_for_observer(trace_metadata.get("exact_question"))
+    if exact_question_summary:
+        metadata["exact_question"] = exact_question_summary
+    lifecycle_decision = trace_metadata.get("question_lifecycle_decision")
+    if isinstance(lifecycle_decision, dict):
+        metadata["question_lifecycle_decision"] = dict(lifecycle_decision)
     return build_turn_observation_event(
         session_id=session_id,
         turn_id=turn_id,
@@ -1084,6 +1103,8 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
     selected_mode = ""
     execution_path = ""
     exact_fast_path_hit = False
+    exact_question_summary: dict[str, Any] = {}
+    retrieval_metadata: dict[str, Any] = {}
     actual_tool_rounds: int | None = None
     question_lifecycle_scene = ""
     skill_stack: list[str] = []
@@ -1174,6 +1195,19 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
                 loader_source.update(dict(candidate.get("loader_source") or {}))
             if isinstance(candidate.get("skill_source_status"), dict):
                 skill_source_status = dict(candidate.get("skill_source_status") or {})
+            if not exact_question_summary and isinstance(candidate.get("exact_question"), dict):
+                exact_question_summary = _summarize_exact_question_for_observer(
+                    candidate.get("exact_question")
+                )
+            for metadata_key in (
+                "rag_retrieval_degraded",
+                "rag_retrieval_status",
+                "rag_retrieval_error_type",
+                "degraded_exact_answer_guard_applied",
+                "degraded_mcq_grading_guard_applied",
+            ):
+                if metadata_key in candidate and metadata_key not in retrieval_metadata:
+                    retrieval_metadata[metadata_key] = candidate[metadata_key]
 
     summary = {
         "tool_calls": tool_calls[:8],
@@ -1188,6 +1222,10 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
         summary["question_lifecycle_scene"] = question_lifecycle_scene
     if lifecycle_metadata:
         summary.update(lifecycle_metadata)
+    if exact_question_summary:
+        summary["exact_question"] = exact_question_summary
+    if retrieval_metadata:
+        summary.update(retrieval_metadata)
     if skill_stack:
         summary["skill_stack"] = skill_stack
     if skill_trace:
@@ -1197,6 +1235,22 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
     if skill_source_status:
         summary["skill_source_status"] = skill_source_status
     return summary
+
+
+def _summarize_exact_question_for_observer(value: Any) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        return {}
+    metadata = value.get("metadata") if isinstance(value.get("metadata"), dict) else {}
+    summary = {
+        "id": str(value.get("id") or value.get("chunk_id") or "").strip(),
+        "answer_kind": str(value.get("answer_kind") or "").strip(),
+        "question_type": str(value.get("question_type") or "").strip(),
+        "source_group": str(value.get("source_group") or metadata.get("source_group") or "").strip(),
+        "correct_answer": str(value.get("correct_answer") or "").strip(),
+        "source_file": str(metadata.get("source_file") or "").strip(),
+        "content_hash": str(metadata.get("content_hash") or "").strip(),
+    }
+    return {key: item for key, item in summary.items() if item}
 
 
 def _result_selected_mode(
@@ -4733,6 +4787,10 @@ class TurnRuntimeManager:
             )
             with contextlib.suppress(Exception):
                 event_log = get_turn_event_log()
+                terminal_trace_metadata = _build_final_observation_metadata(
+                    usage_summary=terminal_usage_summary,
+                    terminal_status=terminal_status,
+                )
                 append_ok = event_log.append(
                     _build_terminal_turn_observation_event(
                         session_id=session_id,
@@ -4740,10 +4798,7 @@ class TurnRuntimeManager:
                         status=terminal_status,
                         capability_name=capability_name,
                         duration_ms=turn_duration_ms,
-                        trace_metadata={
-                            **trace_metadata,
-                            "assistant_content_source": assistant_content_source,
-                        },
+                        trace_metadata=terminal_trace_metadata,
                         usage_summary=terminal_usage_summary,
                     )
                 )
