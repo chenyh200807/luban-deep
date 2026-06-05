@@ -40,6 +40,9 @@ M5_DIR = (
     / "artifacts/luban_grading_artifacts/case_rubric_authority_adjudication_m5_20260604"
 )
 V0_DIR = REPO_ROOT / "artifacts/luban_grading_artifacts/registry_v0_20260604"
+# M5R jury review overlay (real 3-model heterogeneous jury). Overlay-only: it may gate which
+# M5 publish-ready questions stay candidate, but NEVER upgrades a weak source to verified.
+M5R_DIR = REPO_ROOT / "artifacts/luban_grading_artifacts/case_rubric_jury_review_m5r_20260604"
 OUT_DIR = (
     REPO_ROOT
     / "artifacts/luban_grading_artifacts/registry_v1_candidate_dry_run_m6_20260604"
@@ -568,6 +571,7 @@ def _build_blocked_points(artifacts: list[dict[str, Any]]) -> dict[str, Any]:
 def _build_po_carryover(
     authority_adjudication: dict[str, Any],
     po_review_queue: list[dict[str, Any]],
+    extra_downgraded: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     questions = authority_adjudication.get("questions") or {}
     po_questions = [
@@ -582,6 +586,18 @@ def _build_po_carryover(
         for question_id, row in sorted(questions.items())
         if row.get("question_authority_status") == "po_review_required"
     ]
+    # M5R-overlay downgrades: M5 publish-ready questions the jury did not clear join the PO queue.
+    for artifact in sorted(extra_downgraded or [], key=lambda a: a["question_id"]):
+        qrow = questions.get(artifact["question_id"], {})
+        po_questions.append({
+            "question_id": artifact["question_id"],
+            "question_authority_status": artifact["question_authority_status"],
+            "point_count": qrow.get("point_count", len(artifact.get("scoring_points") or [])),
+            "auto_certifiable_point_count": qrow.get("auto_certifiable_point_count"),
+            "source_coverage": qrow.get("source_coverage"),
+            "carryover_reason": "m5r_jury_not_cleared_downgraded_to_po_review",
+            "m5r_decision": (artifact.get("m5r_overlay") or {}).get("m5r_decision"),
+        })
     points = [
         {
             "question_id": row["question_id"],
@@ -779,10 +795,11 @@ def _render_finding(
     runtime: dict[str, Any],
     diff: dict[str, Any],
     carryover: dict[str, Any],
+    m5r_overlay: dict[str, Any],
 ) -> str:
     status_counts = report["question_status_counts"]
     decision_counts = report["point_decision_counts"]
-    return f"""# FINDING Registry v1 Candidate Compile Dry-Run M6 20260604
+    return f"""# FINDING Registry v1 Candidate Compile Dry-Run M6 20260604 (M5R overlay)
 
 1. M5 counts match exactly: YES. M5 authority input is {audit['m5_counts']['question_count']} questions / {audit['m5_counts']['point_count']} points, with {audit['m5_counts']['auto_certifiable_point_count']} auto-certifiable, {audit['m5_counts']['review_required_official_weak_point_count']} official-weak review, and {audit['m5_counts']['rewrite_needed_point_count']} rewrite-needed points.
 2. Formal Registry v1 generated: NO. `formal_registry_emitted=false`; no `registry_v1.json`, `question_grading_registry_v1.json`, or formal `question_grading_artifacts_v1.jsonl` is emitted.
@@ -795,6 +812,12 @@ def _render_finding(
 9. LLM jury / provider status: real LLM jury coverage is {audit['m5_counts']['llm_jury_covered_point_count']}/{audit['m5_counts']['point_count']}; provider-unavailable advice remains non-authoritative and cannot promote weak sources.
 10. M7 verdict: WEAK-GO for candidate-only jury/PO/QA dry-run; NO-GO for formal Registry v1 publish/runtime connection.
 11. Next task: run M7 on this sealed candidate package, repair `review_required_official_weak` and `rewrite_needed` points with PO/external evidence, then re-run M6 before any formal publish decision.
+
+## M5R jury overlay (real 3-model heterogeneous jury)
+
+- M5R reviewed: {m5r_overlay.get('m5r_reviewed_question_count')} questions; jury_cleared (decision==publish_candidate): {m5r_overlay.get('m5r_jury_cleared_question_ids')}; needs_po_review: {m5r_overlay.get('m5r_needs_po_review_question_count')}.
+- Overlay rule: a question stays `candidate_dry_run` ONLY if M5 publish-ready AND M5R jury-cleared. `candidate_dry_run_after_overlay`={m5r_overlay.get('candidate_dry_run_after_overlay_question_ids')}; M5 publish-ready questions the jury did not clear are DOWNGRADED to `po_review_required`: {m5r_overlay.get('downgraded_to_po_review_question_ids')}.
+- **The jury never upgraded a weak source to verified**: source_status_upgraded_by_jury={m5r_overlay.get('source_status_upgraded_by_jury')}. The overlay only narrows the candidate set; auto_certifiable counts come solely from M5 deterministic authority.
 
 ## Boundary recap
 
@@ -817,11 +840,76 @@ def _blocked_report(audit: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _load_m5r_summary(m5r_dir: Path) -> dict[str, dict[str, Any]]:
+    """M5R jury question-level decisions ({qid: {decision, quorum_met, ...}}); {} if absent."""
+    path = m5r_dir / "question_decision_summary.json"
+    if not path.exists():
+        return {}
+    data = _read_json(path)
+    return data if isinstance(data, dict) else {}
+
+
+def _apply_m5r_overlay(
+    artifacts: list[dict[str, Any]], m5r: dict[str, dict[str, Any]]
+) -> tuple[dict[str, Any], list[str]]:
+    """Overlay the real M5R jury onto M5 candidates.
+
+    Rule: a question stays ``candidate_dry_run`` ONLY if M5 marked it publish-ready AND the
+    M5R jury cleared it (decision == publish_candidate). Any M5 publish-ready question the jury
+    did NOT clear is DOWNGRADED to ``po_review_required`` (never upgraded). The jury never
+    changes auto_certifiable or source_status — overlay only narrows the candidate set.
+    """
+    jury_cleared = {qid for qid, row in m5r.items()
+                    if isinstance(row, dict) and row.get("decision") == "publish_candidate"}
+    reviewed = set(m5r)
+    needs_po = {qid for qid, row in m5r.items()
+                if isinstance(row, dict) and row.get("decision") == "needs_po_review"}
+    downgraded: list[str] = []
+    kept: list[str] = []
+    for artifact in artifacts:
+        qid = artifact["question_id"]
+        m5r_decision = (m5r.get(qid) or {}).get("decision") if qid in reviewed else "not_reviewed"
+        overlay = {
+            "m5r_reviewed": qid in reviewed,
+            "m5r_decision": m5r_decision,
+            "jury_cleared": qid in jury_cleared,
+            "source_status_upgraded_by_jury": False,  # invariant: jury never upgrades source
+        }
+        if artifact["status"] == "candidate_dry_run":
+            if qid in jury_cleared:
+                kept.append(qid)
+            else:
+                artifact["status"] = "po_review_required"
+                artifact["status_reason"] = "m5_publish_ready_but_m5r_jury_not_cleared_po_review"
+                overlay["downgraded_from"] = "candidate_dry_run"
+                downgraded.append(qid)
+        artifact["m5r_overlay"] = overlay
+        # status may have changed -> recompute the content hash deterministically
+        artifact["provenance"]["content_hash"] = ""
+        artifact["provenance"]["content_hash"] = _stable_hash(artifact)
+    audit = {
+        "version_id": VERSION_ID,
+        "m5r_source": str(M5R_DIR),
+        "overlay_rule": (
+            "candidate_dry_run requires M5 publish_ready_candidate AND M5R jury decision "
+            "== publish_candidate; jury may only narrow (downgrade), never upgrade source_status."
+        ),
+        "m5r_reviewed_question_count": len(reviewed),
+        "m5r_jury_cleared_question_ids": sorted(jury_cleared),
+        "m5r_needs_po_review_question_count": len(needs_po),
+        "source_status_upgraded_by_jury": False,
+        "candidate_dry_run_after_overlay_question_ids": sorted(kept),
+        "downgraded_to_po_review_question_ids": sorted(downgraded),
+    }
+    return audit, downgraded
+
+
 def build_registry_v1_candidate_dry_run(
     *,
     out_dir: str | Path = OUT_DIR,
     m5_dir: str | Path = M5_DIR,
     v0_dir: str | Path = V0_DIR,
+    m5r_dir: str | Path = M5R_DIR,
 ) -> dict[str, Any]:
     out_path = Path(out_dir)
     m5_path = Path(m5_dir)
@@ -847,14 +935,18 @@ def build_registry_v1_candidate_dry_run(
     v0_digest_before = _dir_digest(v0_path)
     authority = loaded["authority_adjudication"]
     artifacts = _build_candidate_artifacts(authority)
+    # M5R jury overlay: narrow candidate_dry_run to jury-cleared questions only (never upgrade).
+    m5r_summary = _load_m5r_summary(Path(m5r_dir))
+    m5r_overlay_audit, m5r_downgraded = _apply_m5r_overlay(artifacts, m5r_summary)
     registry_index = _build_registry_index(artifacts)
     report = _build_publish_report(audit, artifacts)
     blocked = _build_blocked_points(artifacts)
-    carryover = _build_po_carryover(authority, loaded["po_review_queue"])
+    carryover = _build_po_carryover(authority, loaded["po_review_queue"],
+                                    extra_downgraded=[a for a in artifacts if a["question_id"] in set(m5r_downgraded)])
     runtime = _build_runtime_gate_dry_run(artifacts)
     v0_digest_after = _dir_digest(v0_path)
     diff = _build_v0_diff(v0_path, v0_digest_before, v0_digest_after, artifacts)
-    finding = _render_finding(audit, report, blocked, runtime, diff, carryover)
+    finding = _render_finding(audit, report, blocked, runtime, diff, carryover, m5r_overlay_audit)
 
     _write_json(out_path / "question_grading_registry_v1_candidate.json", registry_index)
     (out_path / "question_grading_artifacts_v1_candidate.jsonl").write_text(
@@ -867,6 +959,7 @@ def build_registry_v1_candidate_dry_run(
     _write_json(out_path / "runtime_gate_dry_run_results.json", runtime)
     _write_json(out_path / "blocked_from_auto_certification.json", blocked)
     _write_json(out_path / "po_review_carryover_queue.json", carryover)
+    _write_json(out_path / "m5r_overlay_audit.json", m5r_overlay_audit)
     (out_path / "candidate_registry_schema.md").write_text(
         _candidate_registry_schema(),
         "utf-8",

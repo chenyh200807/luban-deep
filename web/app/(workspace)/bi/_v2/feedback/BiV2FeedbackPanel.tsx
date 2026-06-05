@@ -244,6 +244,8 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
   const [inviteError, setInviteError] = useState('')
   const [selectedInvite, setSelectedInvite] = useState<BiInviteTestApplication | null>(null)
   const [pendingInviteDeleteId, setPendingInviteDeleteId] = useState('')
+  const [inviteExportNotice, setInviteExportNotice] = useState('')
+  const [inviteExportError, setInviteExportError] = useState('')
   const [lubanFilter, setLubanFilter] = useState<LubanFeedbackFilter>(DEFAULT_LUBAN_FEEDBACK_FILTER)
   const [lubanStats, setLubanStats] = useState<BiLubanFeedbackStats | null>(null)
   const [lubanResponses, setLubanResponses] = useState<BiLubanFeedbackResponse[]>([])
@@ -265,6 +267,7 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
   const inviteApplicationDelete = useAuditedAction({
     actionType: 'feedback.invite_test.delete',
   })
+  const inviteExportRequest = useAuditedAction({ actionType: 'bi.export.request' })
   const lubanFeedbackUpdate = useAuditedAction({
     actionType: 'feedback.luban_feedback.update',
   })
@@ -278,6 +281,7 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
       ? (inviteApplicationUpdate.state.result.error ?? '')
       : ''
   const inviteDeleting = inviteApplicationDelete.state.phase === 'writing'
+  const inviteExporting = inviteExportRequest.state.phase === 'writing'
   const lubanWriting = lubanFeedbackUpdate.state.phase === 'writing'
   const lubanExporting = lubanExportRequest.state.phase === 'writing'
 
@@ -577,6 +581,62 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
     void loadInviteTest()
   }
 
+  async function handleInviteApplicationExport() {
+    if (!flagEnabled || inviteExporting) return
+    setInviteExportError('')
+    setInviteExportNotice('')
+    let exportRows: BiInviteTestApplication[] = []
+    let exportTotal = 0
+    try {
+      const exportPayload = await getBiInviteTestApplications({
+        days: INVITE_TEST_WINDOW_DAYS,
+        limit: 500,
+        q: inviteFilter.q.trim() || undefined,
+        status: inviteFilter.status || undefined,
+        source_page: inviteFilter.source_page.trim() || undefined,
+      })
+      exportRows = exportPayload.items
+      exportTotal = exportPayload.total
+    } catch (err) {
+      setInviteExportError(err instanceof Error ? err.message : '导出数据拉取失败')
+      return
+    }
+    const result = await inviteExportRequest.execute({
+      key: 'bi.export.request',
+      params: {},
+      body: {
+        dataset: 'invite_test_applications',
+        format: 'csv',
+        filters: {
+          days: INVITE_TEST_WINDOW_DAYS,
+          q: inviteFilter.q.trim(),
+          status: inviteFilter.status,
+          source_page: inviteFilter.source_page.trim(),
+          visible_rows: exportRows.length,
+          total: exportTotal,
+        },
+      },
+    })
+    if (!result.ok) {
+      setInviteExportError(result.error || '导出审计写入失败')
+      return
+    }
+    const content = buildInviteApplicationCsv(exportRows)
+    const notice =
+      exportTotal > exportRows.length
+        ? `已导出当前筛选前 ${exportRows.length} / ${exportTotal} 条；后端单次导出上限 500，审计 ${result.auditId || '已写入'}`
+        : `已导出当前筛选全部 ${exportRows.length} 条；审计 ${result.auditId || '已写入'}`
+    setInviteExportNotice(notice)
+    try {
+      downloadCsv(
+        `invite-test-applications-${new Date().toISOString().slice(0, 10)}.csv`,
+        content
+      )
+    } catch (err) {
+      setInviteExportError(err instanceof Error ? err.message : 'CSV 下载启动失败')
+    }
+  }
+
   async function handleLubanFeedbackDelete(item: BiLubanFeedbackResponse) {
     if (!flagEnabled || lubanWriting || !item.id || item.status === 'archived') return
     if (pendingLubanDeleteId !== item.id) {
@@ -650,15 +710,17 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
       setLubanExportError(result.error || '导出审计写入失败')
       return
     }
-    downloadCsv(
-      `luban-feedback-${new Date().toISOString().slice(0, 10)}.csv`,
-      buildLubanFeedbackCsv(exportRows)
-    )
-    setLubanExportNotice(
+    const content = buildLubanFeedbackCsv(exportRows)
+    const notice =
       exportTotal > exportRows.length
         ? `已导出当前筛选前 ${exportRows.length} / ${exportTotal} 条；后端单次导出上限 500，审计 ${result.auditId || '已写入'}`
         : `已导出当前筛选全部 ${exportRows.length} 条；审计 ${result.auditId || '已写入'}`
-    )
+    setLubanExportNotice(notice)
+    try {
+      downloadCsv(`luban-feedback-${new Date().toISOString().slice(0, 10)}.csv`, content)
+    } catch (err) {
+      setLubanExportError(err instanceof Error ? err.message : 'CSV 下载启动失败')
+    }
   }
 
   return (
@@ -895,6 +957,10 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
           onDeleteApplication={handleInviteApplicationDelete}
           deleting={inviteDeleting}
           pendingDeleteId={pendingInviteDeleteId}
+          onExport={() => void handleInviteApplicationExport()}
+          exporting={inviteExporting}
+          exportNotice={inviteExportNotice}
+          exportError={inviteExportError}
         />
       ) : (
         <LubanFeedbackPanel
@@ -1087,6 +1153,10 @@ function InviteTestPanel({
   onDeleteApplication,
   deleting,
   pendingDeleteId,
+  onExport,
+  exporting,
+  exportNotice,
+  exportError,
 }: {
   stats: BiInviteTestStats | null
   applications: BiInviteTestApplication[]
@@ -1100,9 +1170,14 @@ function InviteTestPanel({
   onDeleteApplication: (item: BiInviteTestApplication) => void
   deleting: boolean
   pendingDeleteId: string
+  onExport: () => void
+  exporting: boolean
+  exportNotice: string
+  exportError: string
 }) {
   const priorityCount = countPriorityInviteApplications(applications)
   const currentStats = summarizeVisibleInviteApplications(applications)
+  const profileTotal = stats?.summary.total_applications ?? total
 
   return (
     <div className="space-y-4">
@@ -1159,16 +1234,28 @@ function InviteTestPanel({
                   从卡片进入编辑、归档和回访，不再只有查看按钮。
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={onRefresh}
-                disabled={loading}
-                className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-white/10 bg-white/[0.06] px-3 text-xs font-bold text-slate-100 hover:bg-white/10 disabled:opacity-50"
-                aria-label="刷新内测申请"
-              >
-                <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} aria-hidden />
-                刷新
-              </button>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={onExport}
+                  disabled={exporting || total === 0}
+                  className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-emerald-300/25 bg-emerald-300/12 px-3 text-xs font-black text-emerald-100 hover:bg-emerald-300/18 disabled:opacity-50"
+                  aria-label="导出内测申请"
+                >
+                  <Download className="h-3.5 w-3.5" aria-hidden />
+                  {exporting ? '审计中…' : '导出 CSV'}
+                </button>
+                <button
+                  type="button"
+                  onClick={onRefresh}
+                  disabled={loading}
+                  className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-white/10 bg-white/[0.06] px-3 text-xs font-bold text-slate-100 hover:bg-white/10 disabled:opacity-50"
+                  aria-label="刷新内测申请"
+                >
+                  <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} aria-hidden />
+                  刷新
+                </button>
+              </div>
             </div>
 
             <div className="mt-4 grid grid-cols-1 gap-2 rounded-2xl border border-white/10 bg-white/[0.035] p-2 lg:grid-cols-[minmax(0,1fr)_150px_150px_auto]">
@@ -1212,6 +1299,16 @@ function InviteTestPanel({
             {error ? (
               <p className="mt-3 rounded-2xl border border-rose-300/25 bg-rose-300/10 px-3 py-2 text-xs text-rose-100">
                 {error}
+              </p>
+            ) : null}
+            {exportError ? (
+              <p className="mt-3 rounded-2xl border border-rose-300/25 bg-rose-300/10 px-3 py-2 text-xs text-rose-100">
+                {exportError}
+              </p>
+            ) : null}
+            {exportNotice ? (
+              <p className="mt-3 rounded-2xl border border-emerald-300/25 bg-emerald-300/10 px-3 py-2 text-xs text-emerald-100">
+                {exportNotice}
               </p>
             ) : null}
           </div>
@@ -1274,18 +1371,134 @@ function InviteTestPanel({
         </aside>
       </div>
 
+      <section
+        className="rounded-3xl border border-white/10 bg-white/[0.04] p-4 shadow-lg shadow-black/10"
+        aria-label="内测申请画像汇总"
+      >
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h3 className="text-lg font-black text-white">申请画像汇总</h3>
+            <p className="mt-1 text-xs leading-5 text-slate-400">
+              以服务端 stats 为准，汇总年龄、地区、备考阶段、学习时间和痛点；当前列表筛选不改写画像 authority。
+            </p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-3 py-2 text-right text-xs">
+            <div className="font-black tabular-nums text-white">{formatCount(profileTotal)}</div>
+            <div className="mt-0.5 text-slate-400">画像样本</div>
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 gap-3 xl:grid-cols-[minmax(280px,0.82fr)_minmax(0,1.18fr)]">
+          <AgeCompositionCard
+            title="年龄占比"
+            total={profileTotal}
+            items={(stats?.age_range_breakdown ?? []).slice(0, 6).map(item => ({
+              label: item.age_range,
+              count: item.count,
+            }))}
+          />
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <BreakdownCard
+              title="最想解决的问题"
+              total={profileTotal}
+              items={(stats?.pain_point_breakdown ?? []).slice(0, 6).map(item => ({
+                label: item.pain_point,
+                count: item.count,
+              }))}
+            />
+            <BreakdownCard
+              title="备考阶段"
+              total={profileTotal}
+              items={(stats?.exam_stage_breakdown ?? []).slice(0, 6).map(item => ({
+                label: item.exam_stage,
+                count: item.count,
+              }))}
+            />
+          </div>
+        </div>
+
+        <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <BreakdownCard
+            title="考试类型"
+            total={profileTotal}
+            items={(stats?.exam_type_breakdown ?? []).slice(0, 5).map(item => ({
+              label: item.exam_type,
+              count: item.count,
+            }))}
+          />
+          <BreakdownCard
+            title="省份"
+            total={profileTotal}
+            items={(stats?.province_breakdown ?? []).slice(0, 5).map(item => ({
+              label: item.province,
+              count: item.count,
+            }))}
+          />
+          <BreakdownCard
+            title="学历"
+            total={profileTotal}
+            items={(stats?.education_breakdown ?? []).slice(0, 5).map(item => ({
+              label: item.education,
+              count: item.count,
+            }))}
+          />
+          <BreakdownCard
+            title="职业"
+            total={profileTotal}
+            items={(stats?.occupation_breakdown ?? []).slice(0, 5).map(item => ({
+              label: item.occupation,
+              count: item.count,
+            }))}
+          />
+          <BreakdownCard
+            title="每周学习时间"
+            total={profileTotal}
+            items={(stats?.weekly_time_breakdown ?? []).slice(0, 5).map(item => ({
+              label: item.weekly_time,
+              count: item.count,
+            }))}
+          />
+          <BreakdownCard
+            title="每日学习时间"
+            total={profileTotal}
+            items={(stats?.daily_study_time_breakdown ?? []).slice(0, 5).map(item => ({
+              label: item.daily_study_time,
+              count: item.count,
+            }))}
+          />
+          <BreakdownCard
+            title="备考年限"
+            total={profileTotal}
+            items={(stats?.preparation_years_breakdown ?? []).slice(0, 5).map(item => ({
+              label: item.preparation_years,
+              count: item.count,
+            }))}
+          />
+          <BreakdownCard
+            title="知识基础"
+            total={profileTotal}
+            items={(stats?.knowledge_foundation_breakdown ?? []).slice(0, 5).map(item => ({
+              label: item.knowledge_foundation,
+              count: item.count,
+            }))}
+          />
+        </div>
+      </section>
+
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
         <BreakdownCard
-          title="考试类型"
-          items={(stats?.exam_type_breakdown ?? []).slice(0, 5).map(item => ({
-            label: item.exam_type,
+          title="来源页"
+          total={profileTotal}
+          items={(stats?.source_breakdown ?? []).slice(0, 5).map(item => ({
+            label: item.source_page,
             count: item.count,
           }))}
         />
         <BreakdownCard
-          title="最想解决的问题"
-          items={(stats?.pain_point_breakdown ?? []).slice(0, 5).map(item => ({
-            label: item.pain_point,
+          title="状态"
+          total={profileTotal}
+          items={(stats?.status_breakdown ?? []).slice(0, 5).map(item => ({
+            label: item.status,
             count: item.count,
           }))}
         />
@@ -2788,7 +3001,73 @@ function buildLubanFeedbackCsv(items: BiLubanFeedbackResponse[]): string {
   return [headers, ...rows].map(row => row.map(csvCell).join(',')).join('\n')
 }
 
-function csvCell(value: string | number): string {
+function buildInviteApplicationCsv(items: BiInviteTestApplication[]): string {
+  const headers = [
+    'id',
+    'created_at',
+    'status',
+    'name',
+    'phone',
+    'email',
+    'wechat_id',
+    'province',
+    'age_range',
+    'education',
+    'occupation',
+    'exam_type',
+    'exam_stage',
+    'preparation_years',
+    'knowledge_foundation',
+    'pain_point',
+    'weekly_time',
+    'daily_study_time',
+    'current_method',
+    'study_difficulties',
+    'latest_wrong_question',
+    'is_yousen_member',
+    'exam_date',
+    'accept_interview',
+    'consent',
+    'operator_note',
+    'source_page',
+    'utm_source',
+    'utm_campaign',
+  ]
+  const rows = items.map(item => [
+    item.id,
+    item.created_at,
+    item.status,
+    item.name,
+    item.phone,
+    item.email,
+    item.wechat_id,
+    item.province,
+    item.age_range,
+    item.education,
+    item.occupation,
+    item.exam_type,
+    item.exam_stage,
+    item.preparation_years,
+    item.knowledge_foundation,
+    item.pain_point,
+    item.weekly_time,
+    item.daily_study_time,
+    item.current_method,
+    item.study_difficulties,
+    item.latest_wrong_question,
+    item.is_yousen_member,
+    item.exam_date,
+    item.accept_interview ? 'yes' : 'no',
+    item.consent ? 'yes' : 'no',
+    item.operator_note,
+    item.source_page,
+    item.utm_source,
+    item.utm_campaign,
+  ])
+  return [headers, ...rows].map(row => row.map(csvCell).join(',')).join('\n')
+}
+
+function csvCell(value: string | number | boolean | null | undefined): string {
   const text = String(value ?? '')
   if (!/[",\n\r]/.test(text)) return text
   return `"${text.replaceAll('"', '""')}"`
@@ -2854,10 +3133,17 @@ function ContactLine({ icon, value }: { icon: ReactNode; value: string }) {
 function BreakdownCard({
   title,
   items,
+  total,
 }: {
   title: string
   items: Array<{ label: string; count: number }>
+  total?: number
 }) {
+  const denominator =
+    typeof total === 'number' && Number.isFinite(total) && total > 0
+      ? total
+      : items.reduce((sum, item) => sum + item.count, 0)
+  const maxCount = Math.max(1, ...items.map(item => item.count))
   return (
     <section className="rounded-3xl border border-white/10 bg-white/[0.04] p-4 shadow-lg shadow-black/10">
       <div className="flex items-center justify-between gap-2">
@@ -2866,17 +3152,136 @@ function BreakdownCard({
       </div>
       <div className="mt-3 space-y-2">
         {items.length > 0 ? (
-          items.map(item => (
-            <div
-              key={`${title}-${item.label}`}
-              className="flex items-start justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.045] px-3 py-2 text-xs"
-            >
-              <span className="min-w-0 text-slate-300">{item.label || 'unknown'}</span>
-              <span className="font-black tabular-nums text-white">
-                {formatCount(item.count)}
-              </span>
-            </div>
-          ))
+          items.map(item => {
+            const width = Math.max(8, Math.round((item.count / maxCount) * 100))
+            const share = denominator > 0 ? item.count / denominator : undefined
+            return (
+                <div
+                  key={`${title}-${item.label}`}
+                  className="rounded-2xl border border-white/10 bg-white/[0.045] px-3 py-2 text-xs"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="min-w-0 break-words text-slate-300">
+                      {item.label || 'unknown'}
+                    </span>
+                    <span className="shrink-0 font-black tabular-nums text-white">
+                      {formatCount(item.count)}
+                    </span>
+                  </div>
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
+                    <div
+                      className="h-full rounded-full bg-cyan-300/70"
+                      style={{ width: `${width}%` }}
+                      aria-hidden
+                    />
+                  </div>
+                  {share !== undefined ? (
+                    <div className="mt-1 text-[10px] font-bold text-slate-500">
+                      {formatRate(share)}
+                    </div>
+                  ) : null}
+                </div>
+            )
+          })
+        ) : (
+          <div className="rounded-2xl border border-dashed border-white/15 bg-white/[0.035] px-3 py-4 text-center text-xs text-slate-400">
+            暂无数据
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
+
+function AgeCompositionCard({
+  title,
+  total,
+  items,
+}: {
+  title: string
+  total: number
+  items: Array<{ label: string; count: number }>
+}) {
+  const denominator =
+    Number.isFinite(total) && total > 0 ? total : items.reduce((sum, item) => sum + item.count, 0)
+  return (
+    <section className="rounded-3xl border border-cyan-300/20 bg-cyan-300/10 p-4 shadow-lg shadow-black/10">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-sm font-black text-white">{title}</h3>
+          <p className="mt-1 text-[11px] leading-5 text-slate-400">
+            按服务端画像字段汇总；未填写会落到 unknown。
+          </p>
+        </div>
+        <div className="rounded-2xl border border-white/10 bg-white/[0.06] px-3 py-2 text-right">
+          <div className="text-xl font-black tabular-nums text-cyan-100">
+            {formatCount(denominator)}
+          </div>
+          <div className="text-[10px] font-bold text-slate-400">样本</div>
+        </div>
+      </div>
+      <div
+        className="mt-4 flex h-8 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.05]"
+        aria-label={`${title}堆叠占比`}
+      >
+        {items.length > 0 && denominator > 0 ? (
+          items.map((item, index) => {
+            const width = Math.max(4, (item.count / denominator) * 100)
+            const palette = [
+              'bg-emerald-300',
+              'bg-cyan-300',
+              'bg-amber-300',
+              'bg-sky-400',
+              'bg-rose-300',
+              'bg-slate-300',
+            ]
+            return (
+              <div
+                key={`${title}-segment-${item.label}`}
+                className={`${palette[index % palette.length]} h-full`}
+                style={{ width: `${width}%` }}
+                title={`${item.label || 'unknown'} ${formatCount(item.count)} (${formatRate(
+                  item.count / denominator
+                )})`}
+                aria-label={`${item.label || 'unknown'} ${formatRate(item.count / denominator)}`}
+              />
+            )
+          })
+        ) : (
+          <div className="grid h-full w-full place-items-center text-[11px] font-bold text-slate-400">
+            暂无年龄数据
+          </div>
+        )}
+      </div>
+      <div className="mt-3 grid gap-2">
+        {items.length > 0 ? (
+          items.map((item, index) => {
+            const share = denominator > 0 ? item.count / denominator : 0
+            return (
+              <div
+                key={`${title}-${item.label}`}
+                className="grid grid-cols-[14px_minmax(0,1fr)_auto] items-center gap-2 text-xs"
+              >
+                <span
+                  className={
+                    [
+                      'h-2.5 w-2.5 rounded-full bg-emerald-300',
+                      'h-2.5 w-2.5 rounded-full bg-cyan-300',
+                      'h-2.5 w-2.5 rounded-full bg-amber-300',
+                      'h-2.5 w-2.5 rounded-full bg-sky-400',
+                      'h-2.5 w-2.5 rounded-full bg-rose-300',
+                      'h-2.5 w-2.5 rounded-full bg-slate-300',
+                    ][index % 6]
+                  }
+                  aria-hidden
+                />
+                <span className="min-w-0 truncate text-slate-300">{item.label || 'unknown'}</span>
+                <span className="font-black tabular-nums text-white">
+                  {formatCount(item.count)} · {formatRate(share)}
+                </span>
+              </div>
+            )
+          })
         ) : (
           <div className="rounded-2xl border border-dashed border-white/15 bg-white/[0.035] px-3 py-4 text-center text-xs text-slate-400">
             暂无数据

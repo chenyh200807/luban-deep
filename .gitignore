@@ -102,7 +102,11 @@ tmp/eval-gate/
 tmp/observability/
 tmp/arr_*/
 tmp/prelaunch-audit-*/
+tmp/pdfs/
+tmp/plan-completion-audits/
 web/tmp/
+web/test-results/
+deeptutor/tutorbot/.understand-anything/
 
 # Cache directories
 cache/

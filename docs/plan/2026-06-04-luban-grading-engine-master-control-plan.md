@@ -171,6 +171,7 @@ M12 证据（86 runtime submissions）：false_positive=0、bad_certified=0、so
 3. **运行期必须 LLM adjudication。** 每次案例题判题都应由 runtime LLM adjudicator 基于 `student_answer + question/stem + compiled rubric + evidence/spec/list policy + learner context` 做点级裁决；deterministic validator 只负责防越权、验 source/spec/list、拦 false positive、fail-closed。
 4. **production 模型分工固定。** 未来生产运行主模型为 **DeepSeek-V4-flash**，fallback 为 **Qwen3.7 plus**。GPT5.5 / Opus4.8 / DeepSeek-V4 / Qwen3.7 组成的四模型专家组只用于设计、构建、对抗验证、release council 和离线评测，不进入常规 production runtime。
 5. **Nexus-style 的精髓是 compile once, adjudicate with scoped packet many times。** 编译层把教材、题干、外部规范、rubric、采分点、历史复核和 learner evidence 做成可信 artifacts；runtime 只给 LLM 看本次判题最有价值的 scoped packet，而不是把全量资料塞给模型，也不是减少 LLM 能力投入。
+6. **Nexus-style compiler 是能力放大器，不是题库闸门。** 学 Nexus 的目的，是让系统通过知识编译更会理解题目、组织证据、迁移到变体题、生成高质量上下文和持续吸收新知识；不是把系统缩成“registry 里有才答、题库外就拒答”。已签发 artifacts 提供高置信锚点；未命中的问题应进入 open-world teaching / RAG / LLM reasoning / candidate compiler loop，而不是停止服务。
 
 ### 0.12.2 Artifact 维护 authority：哪些会运行期更新，由谁维护
 
@@ -488,6 +489,182 @@ M17 之后的鲁班评分引擎 v1 必须收敛成六个一等组件；不要继
 1. M19E 只能做远端/Aliyun 部署授权包评审：列出远端路径、命令、rollback 命令、env/config diff、观测窗口和 stop conditions；未获新授权前不得写远端。
 2. broad production default 继续 **NO-GO**；canonical learner truth write 继续 **NO-GO**。
 3. 若 M19D safety invariant 在后续 soak 中出现非 0，立即走 rollback repair，不进入 M19E。
+
+---
+
+## 0.21 Canonical update after M22 RAG-vs-Luban-v1 quality benchmark（2026-06-05）
+
+> **本节是「旧 RAG 体系 vs 鲁班评分引擎 v1」的同台 benchmark。未 flip production default、未写远端/DB/canonical truth、未发 registry、未把 M20.2 delta 吸收进 runtime。**
+
+最新 canonical ledger：`artifacts/luban_grading_artifacts/rag_vs_luban_v1_quality_benchmark_m22_20260605/`
+
+**M22 裁决：WEAK-GO**（同 1 批 **210** 真实 `/api/v1/ws` 案例作答 + construction-gold 点级真值，四条线同台；**安全不变量全 0**；但 line A 旧 RAG live 检索不可用 + line C 仅单 provider live，不到 GO）。
+
+- **四条线真实入口**：A 旧 RAG = `RAGService.search`/`rag_search`（`data/knowledge_bases` 空→诚实降级为 retrieval/answer baseline，写 missing_input_audit，**未伪造**）；B M16 = `build_controlled_runtime_payload`；C v1 = 真实 `/api/v1/ws`→`_maybe_attach_v1_llm_adjudication`（**177 条真实 DeepSeek-V4-flash live**，fallback 0/failclosed 0/timeout 0）；D M20.2 = 临时 packet harness，**未进 runtime**。
+- **规模**：210 submissions、point decisions B=550 / C=479、6 题型（authority_kind 映射）、每题 10 作答变体、每样本 final disposition。
+- **质量（诚实，不 overclaim）**：二元 auto-eligibility 上 **B agreement 0.891 ≥ C 0.812**（C 更保守，recall 0.619<0.767）。C 的价值**不在更高二元一致率**，而在：**evidence_span_valid_rate 0.973**、partial 22/needs_review 57 的细档、可喂 Learning Brain 的证据+解释。两线 **fp=0、accept_precision=1.0**，adversarial 五类全 0。
+- **效率**：B p50 **21.7ms / $0**；C p50 **2253ms**/p95 3898/p99 5104，177 调用 ≈145k tokens ≈ **$0.081**（~$0.0005/条）。D 在 C 之上省 **token 19.5% / bytes 18.2%**（packet 压缩；19 个评分 delta 仍是 work-order，未可执行）。
+- **职责切分（核心产品结论）**：旧 RAG→retrieval/source expansion/answer baseline（不判分）；M16 deterministic→安全地板+免费即时二元 auto（正确作答下足够）；v1 runtime LLM→粒度判分+evidence+解释+LB 证据（仅在需细档/事件定位/对抗判断时调用，承担延迟与成本）；M20.2 delta→packet 压缩候选，**进下一版 registry 需独立编译里程碑**（非 M22）。
+
+**当前下一步**：保持职责切分现状；不因本 benchmark 改 production default/registry。若要把 M20.2 的 19 个评分 work-order 落地，须先经独立编译里程碑（带 textbook provenance + 安全复测），packet 压缩可优先纳入。详见 §0.20（M19D 当前 runtime 状态）与本节 ledger。
+
+---
+
+## 0.22 Canonical update after M22R RAG baseline + Qwen fallback closure（2026-06-05）
+
+> **补 M22 两个 WEAK-GO 缺口。未 flip default、未写远端/DB/canonical truth、未发 registry、未建第二套 RAG authority、未碰 M20.2 runtime。**
+
+最新 canonical ledger：`artifacts/luban_grading_artifacts/rag_vs_luban_v1_benchmark_closure_m22r_20260605/`
+
+**M22R 裁决：WEAK-GO**（安全全 0；Qwen fallback 已闭环，但旧 RAG live 因本环境 schema 未部署仍 blocked，且修复=远端写被禁）。corrected M22 overall = **WEAK-GO**。
+
+- **任务 A（旧 RAG，按用户纠正走真实 Supabase 链路）**：RAGService/rag_search→SupabasePipeline（read-only PostgREST）。**不再把 `data/knowledge_bases` 空当信号、不自建本地 stub**。结果：Supabase 项目**可达且认证通过**（`/rest/v1/`=200、`/auth/v1/health`=200），但 **RAG schema 未部署**——`kb_chunks` 表 404/`PGRST205`、`match_kb_chunks` RPC 404/`PGRST202`。21 条真实 query 全此错误码（未伪造）。处置=**still_blocked_with_exact_reason**；生产 RAG KB 在另一(production)Supabase 项目，**建表/灌数据=远端写，红线禁止，未做**。RAG 职责定位不变：retrieval/context/source expansion，**不判分**。
+- **任务 B（Qwen fallback 闭环）**：强制 DeepSeek primary fail → 真实 **Qwen3.7-plus fallback 43 次**（resume 不重计费已完成调用）。dispositions reject 61/needs_review 14/accept 18/partial 3；evidence_span_valid=0.958；**fp=0、source_mismatch=0**。**DeepSeek vs Qwen**（96 配对点）：auto_agreement=**0.958**、auto 18=18（**tie**，无谁更激进）；latency Qwen p50 4818ms vs DeepSeek 2119ms（**Qwen 慢 ~2.3×**）。**双 provider 全宕 = fail-closed、legacy intact**（no_auto_points、fail_open=false）。**「自然稳定未触发」≠「fallback 不可用」**：M22 本轮 DeepSeek 全成功故未自然触发，本轮强制失败已证 Qwen fallback 真实可用。
+
+**当前下一步**：Qwen fallback 冗余已闭环，无需再补。旧 RAG live baseline 要补实测须在已部署 RAG schema（`kb_chunks`+`match_kb_chunks`）的 Supabase 项目环境进行——本任务边界内（禁远端写）不可恢复。不影响 PR #100 / M19F（均未触碰）。详见本节 ledger 与 §0.21（M22 同台 benchmark）。
+
+---
+
+## 0.23 Canonical update after M22S RAG Supabase authority reconciliation（2026-06-05，只读）
+
+> **纯只读对账。未写 Supabase、未建表、未迁移、未灌数据、未改 production default、未执行 M19F、未新增第二套 RAG authority、未打印 secret。**
+
+最新 canonical ledger：`artifacts/luban_grading_artifacts/rag_supabase_authority_reconciliation_m22s_20260605/`
+
+**M22S 裁决：GO**（找到正确 RAG authority + 精确根因 + 可执行零数据写恢复路径，全部只读证据）。
+
+- **正确 RAG authority（已直连只读确认 + 当场检索成功）**：production RAG 数据在项目 `bsaajvxkbnnnodrvrxct`（RAG/KB v5；另有主 app 项目 `zgupgizexqpwtajvghno`=`DB_URL`）的内部 **`kb_v5` schema**（6 表：chunks/documents/concepts/concept_edges/ingest_runs/__project_marker），检索 RPC `public.search_chunks_v2`（混合 vector+lexical+权威；filter_data_version 默认 2026、filter_doc_types 默认 standard/textbook/lecture/exam；embed=DashScope `text-embedding-v3` dim 1024）。**经 `.env` 已有的 `KBV5_DB_URL` 直连（role `postgres`，对 kb_v5 有 USAGE）调 `search_chunks_v2` 真实返回 3 条教材 chunk——RAG 本就可用。**
+- **根因 = transport + 凭证 + 代际**：repo `SupabasePipeline` 走 **PostgREST**，而该项目 API key（`SUPABASE_KEY`=`SERVICE_ROLE_KEY_V5` 同一把非-JWT key）角色对 `kb_v5` 无 USAGE（`42501`）、PostgREST 仅暴露 public/graphql_public；叠加代码仍调 legacy `public.kb_chunks`/`search_kb_chunks`（全仓无 search_chunks_v2）。**正确 transport=`KBV5_DB_URL` 直连**。排除连错项目/缺数据/env 未载/KB 名错。
+- **恢复=零数据/表/schema 写 + 零新凭证**：现有 `KBV5_DB_URL` 即可。纯 code-side：RAG 客户端走直连调 `public.search_chunks_v2`（filter_doc_types 从 `SUPABASE_RAG_SOURCES`，dim 1024）+ 更新 `contracts/rag.md`+contract guard test（feature-flag legacy↔v5）。可选：若坚持 PostgREST transport，才需 ops `GRANT USAGE ON SCHEMA kb_v5`（权限授予非数据写）。**禁止**重建 legacy schema（远端写/倒退）。
+- **对 production / M19F 无影响**：线上经直连/已授权路径访问 kb_v5，RAG 正常（用户已确认）；问题仅在 dev/benchmark（legacy 分支 PostgREST 路径）。**告警**：本分支 RAG pipeline 与 kb_v5 部署不兼容，部署本分支前须先做 code adapter；修正前本地 PostgREST RAG-live（含 M22T）会复现 42501。
+
+**当前下一步**：eng 做 `KBV5_DB_URL` 直连 → `search_chunks_v2` 的 code-side adapter（凭证已就绪，零数据写，无需等 ops）→ 再跑 **M22T live RAG benchmark**。详见 `direct_db_kb_v5_verification_m22s.json` 与 `rag_baseline_recovery_options_m22s.md`。
+
+---
+
+## 0.24 Canonical update after M24 v0 vs v1 A/B benchmark + KB v5 RAG baseline（2026-06-05）
+
+> **本地 A/B benchmark。未 flip default、未写远端/Supabase/DB/canonical truth、未发 registry、KB v5 adapter 只读且非评分 authority、M20.2 未吸收。**
+
+最新 canonical ledger：`artifacts/luban_grading_artifacts/v0_vs_v1_ab_benchmark_m24_20260605/`
+
+**M24 裁决：GO**（同一批 **134** 真实 `/api/v1/ws` 案例,v0 legacy 与 v1 LLM adjudication 同 turn 同台,**134 条真实 DeepSeek live**,安全全 0）。
+
+- **v0 = legacy `construction_grading_result`**（CaseGradingSkillKernel projected-rubric,关键词/criterion 匹配,full/partial/none,有 rewrite_answer + next_training_signal）；**v1 = `luban_grading_engine_v1_llm_adjudication`**（registry source/spec/list 点 + DeepSeek/Qwen + deterministic validator floor + evidence_span + point 级 LB draft）。
+- **安全（决定性）**：对抗变体上 v0 avg_score_ratio=**0.66**（关键词过判,无 validator),v1 avg_auto=**0.0**;v1 **fp_vs_gold=0、source_mismatch=0、validator 拦下 31 个 false positive**。
+- **颗粒度**：v1 partial 19 + needs_review 64;v0 partial 0、无 needs_review 档。**解释**：v1 evidence_span_valid=**0.978**（学生原文锚定）vs v0 criterion 文本。**LB 信号**：v1 point 级=1.0 vs v0 submission 级 specific=0.0。
+- **代价（已修正延迟归因）**：v0 standalone **~14ms/$0**（确定性,flag-off 测）;v1 p50 **2155ms**、~**$0.0005/条**（≈150× 慢）。注:live A/B 中 v0/v1 同 turn,整 turn 2175ms 由 v1 LLM 主导,非 v0 成本。
+- **provider 冗余**：强制 primary fail → **Qwen fallback 20 live**(fp=0)、双挂 fail-closed、legacy intact。
+- **RAG baseline（M22S 续作）**：新增 `deeptutor/services/benchmark/kb_v5_readonly_adapter.py`（`KBV5_DB_URL` 直连只读 → `public.search_chunks_v2`,text-embedding-v3 dim1024,read-only 事务硬保护,非 runtime RAG authority）。12/12 问检索成功,avg 5 chunks;retrieval/context baseline,**不判分**。
+- **Langfuse**：本地 Docker daemon 未起 + repo 无本地全栈 langfuse compose（只有 Aliyun overlay）+ 现有 pk-/sk- key 不匹配新实例 → 本地 Docker Langfuse **blocked**;按要求写 `langfuse_trace_ledger.jsonl`(134 条 Langfuse 兼容 trace)+ 记录 blocker。
+
+**职责切分**：v0 legacy 保留（免费/即时 projected-rubric,正确作答与简单点足够）;v1 接管（source 签名 + validator 安全地板 + evidence_span + 细档 + point 级 LB,用于对抗/洗稿/需解释/复习信号,承担 ~150× 延迟与 ~$0.0005/条）;KB v5 RAG = retrieval/context,不判分。**v1 安全全 0,作为受控 cohort overlay 支持继续 M19F limited（仍需用户授权,不在本任务执行）。**
+
+---
+
+## 0.25 Canonical correction: v1 must cover objective questions, and historical-question lookup is upstream context authority（2026-06-05）
+
+> **本节补正 §0.24 的适用范围。M24 A/B 证明的是案例题 v1 LLM adjudication 明显优于 v0；它不代表鲁班评分引擎 v1 只做案例题。选择题/判断题/多选题必须进入 v1，但走 objective deterministic lane；历史真题识别与标准答案 lookup 是上游 canonical question context authority，不与 v1 冲突。**
+
+### 0.25.1 全题型 v1 分层
+
+鲁班评分引擎 v1 的最终形态是 **全题型评分与学习闭环引擎**，不是单一案例题引擎：
+
+| 题型 lane | 评分 authority | LLM 角色 | deterministic 角色 | Learning Brain 输出 |
+|---|---|---|---|---|
+| **objective_choice**（单选/多选/判断） | canonical `answer_key` / option metadata / official question bank | 解释错因、识别混淆概念、组织教材/RAG 依据、生成 next action | 判对错、集合比较、顺序无关多选、部分给分 policy、答案 key hash | objective evidence event、错因标签、concept gap、复测计划 |
+| **case_question**（案例主观题） | compiled rubric + source/spec/list authority + runtime LLM adjudication | 理解学生自然语言、点级 accept/partial/reject/needs_review、evidence_span、reasoning summary | validator 防 false-positive/source laundering/list partial auto、fail-closed | point-level claim draft、review queue、study card |
+| **calculation/spec** | machine-checkable spec / formula / expected value / unit | 解释计算路径、识别步骤性错误 | 数值容差、单位、off-by-one、contradiction guard | calculation gap、retest proof |
+| **retrieval/context**（RAG/KB v5） | KB v5 source chunks /教材/规范/题干事实 | 查证、引用、扩展解释 | provenance/hash/read-only guard | citation refs、学习资料建议 |
+
+关键结论：**选择题不需要 LLM 判对错，但需要 LLM 做解释、诊断、知识关联和个性化学习建议。** 对错事实由 `answer_key` 唯一负责；LLM 不能临场改标准答案。
+
+### 0.25.2 Historical question lookup 与 v1 不冲突
+
+当用户问的是历史真题、真题答案、某年某题解析、或直接提交真题作答时，系统应先做 **HistoricalQuestionResolver / CanonicalQuestionContext**：
+
+```text
+user input
+  -> question identity resolver
+  -> canonical question_id / year / paper / section / stem / options / answer_key / rubric / source_refs
+  -> lane selection
+      objective_choice -> deterministic grader + LLM explanation
+      case_question -> runtime LLM adjudicator + validator
+      retrieval_only -> RAG/KB v5 explanation, no grading
+  -> Learning Brain evidence / next action
+```
+
+这不会和 v1 冲突，原因是 authority 不同：
+
+| 业务事实 | 唯一 authority | v1 是否可覆盖 |
+|---|---|---:|
+| 这是不是某道历史真题 | `HistoricalQuestionResolver` + question bank index + stable question_id | 否 |
+| 标准答案/选项 key 是什么 | canonical `answer_key` / official question bank / signed truth artifact | 否 |
+| 主观题某采分点是否命中 | v1 runtime LLM adjudicator + deterministic validator + compiled rubric | 是，在对应 lane 内 |
+| 教材/规范依据是什么 | KB v5 / source compiler / source refs | 否，只消费 |
+| 学员是否掌握/进步 | Learning Brain claim gate + retest proof | 否，只产 evidence/proposal |
+
+因此，**历史真题 lookup 是 v1 的上游上下文，不是第二套评分器。** 它保证“题目是谁、标准答案是什么”先稳定下来；v1 再决定“学生这次回答得怎样、错在哪、下一步怎么学”。
+
+### 0.25.3 对知识编译与采分点编译的新增要求
+
+现有 knowledge/rubric compiler 不能只围绕案例题采分点继续扩张，必须补三类 artifact：
+
+1. **Historical Question Index**
+   - `question_id`、年份、卷别、题型、题干 hash、选项 hash、答案 key hash、source refs、版本/supersession。
+   - LLM 可用于去重、题干变体归一化、年份/题号抽取、疑似同题合并候选；deterministic gate 负责 hash、schema、冲突检测和 release signing。
+
+2. **Objective Answer Key Compiler**
+   - 单选/多选/判断的 `answer_key`、option metadata、multi-select set policy、partial credit policy（如允许时）、解析 source_refs。
+   - official answer 只能作为 answer-key seed；进入 release 前必须经过题库 authority / source provenance / hash signing。
+
+3. **Unified GradingPacket Builder**
+   - 对 objective 题，packet 必须包含 `canonical_question_context + answer_key + selected_option + learner context + explanation sources`，但不让 LLM 决定对错。
+   - 对 case 题，packet 保持 §0.12 的 source/spec/list/rubric/student_answer scoped context。
+   - 对 retrieval-only 问答，packet 输出 citations/explanation，不生成 grading decision。
+
+### 0.25.4 M25 下一步：Objective Question Integration + Historical Resolver
+
+M25 是 §0.25 的落地任务，不取代 M19F/M24，但补齐 v1 的全题型边界：
+
+1. 实现/确认 `HistoricalQuestionResolver`：从用户输入和题目上下文识别历史真题，返回 canonical question context；未知题必须 fail-open 到普通问答/RAG，不伪造真题身份。
+2. 实现 objective deterministic grader：单选/多选/判断按 answer_key 判分，LLM 只解释，不判对错。
+3. 把 objective evidence event 接入 Learning Brain：错因、知识点、source refs、next action、retest plan。
+4. 做 v0 vs v1 objective benchmark：正确/错误/多选漏选/多选多选/近义解释/历史真题问答案；false_positive=0、answer_key_override=0、LLM_changed_key=0。
+5. 更新 runtime supply bundle：objective answer-key artifacts 与 case registry 分 namespace，均带 manifest hash/rollback。
+
+**红线**：不要让 RAG、LLM、model vote、AI council 改写历史真题标准答案；不要把 objective answer-key compiler 和 case rubric compiler 混成一个 mutable registry；不要为选择题新增第二条聊天入口。
+
+### 0.25.5 Open-world teaching mode：不在题库也必须能回答
+
+> **硬纠偏**：`HistoricalQuestionResolver` 未命中时，系统只能说“这不是已识别真题 / 无 canonical answer_key”，**不能**说“不能回答”。鲁班 v1 是智能教学与评分系统，不是题库查表器。
+
+题库外/未识别问题的正确行为：
+
+```text
+unknown / not-in-bank user query
+  -> fail-open to TutorBot / RAG / runtime LLM teaching answer
+  -> answer with uncertainty label + citations/provenance when available
+  -> if user is submitting an answer, produce diagnostic draft / needs_review, not official score
+  -> if repeated/high-value, create candidate artifact/work-order for compiler
+```
+
+允许：
+
+- 用 DeepSeek/Qwen 基于用户问题、KB v5、教材/规范/RAG 上下文做开放式讲解。
+- 对非题库作答给出“诊断性反馈 / 学习建议 / 可能得分点”，但标记为 `unverified_diagnostic` 或 `needs_review`。
+- 把新题、变体题、用户自带题干送入 LLM-assisted compiler，生成 `question_candidate` / `rubric_candidate` / `source_candidate`，进入后续签发流程。
+
+禁止：
+
+- 未识别为真题时冒充“官方真题答案”。
+- 没有 canonical `answer_key` / signed rubric 时给正式 auto score。
+- 把 open-world LLM 回答写成 canonical question bank truth。
+- 因题库未命中而拒绝教学回答。
+
+产品口径：**题库命中提升确定性和评分可信度；题库未命中仍应体现智能体能力，只是降级为开放式教学/诊断，不升官方答案或自动评分 authority。**
+
+Nexus 口径：**知识编译扩大能力边界，而不是缩小能力边界。** 每次题库外问题、变体问法、非标准作答、RAG 新证据，都应成为 compiler 的候选输入：LLM 负责抽取/归纳/对齐/提出候选 artifact，deterministic gate 负责签发或拒绝。这样系统越用越强，而不是越编译越狭窄。
 
 ---
 

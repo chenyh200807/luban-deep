@@ -46,6 +46,18 @@ test('member ops exposes product behavior UI anchors', async () => {
   assert.ok(panel.includes('data-testid="bi-member-behavior-health-strip"'))
   assert.ok(panel.includes('data-testid="bi-member-behavior-cohort-tabs"'))
   assert.ok(panel.includes('report_high_no_action'))
+  assert.ok(panel.includes('onRowClick={row =>'))
+  assert.ok(panel.includes('rowAriaLabel={row => `打开 ${row.phone_masked} 学员 360`}'))
   assert.ok(drawer.includes('data-testid="bi-member-behavior-timeline"'))
   assert.ok(drawer.includes('data-testid="bi-member-learning-report-breakdown"'))
+  assert.ok(drawer.includes('data-testid="bi-member-360-summary"'))
+})
+
+test('BiDataTable supports row-level click without stealing checkbox/action clicks', async () => {
+  const table = await readWeb('components/bi-v2/BiDataTable.tsx')
+
+  assert.ok(table.includes('onRowClick?: (row: T) => void'))
+  assert.ok(table.includes('rowAriaLabel?: (row: T) => string'))
+  assert.ok(table.includes('onKeyDown='))
+  assert.ok(table.includes('event.stopPropagation()'))
 })

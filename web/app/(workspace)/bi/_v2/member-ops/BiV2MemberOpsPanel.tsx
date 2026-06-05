@@ -619,6 +619,10 @@ export function BiV2MemberOpsPanel({
         sortKey={sortKey}
         sortDir={sortDir}
         onSort={handleSort}
+        onRowClick={row => {
+          void openMember360(row)
+        }}
+        rowAriaLabel={row => `打开 ${row.phone_masked} 学员 360`}
         rowAction={row => (
           <div className="flex justify-end gap-1.5">
             <BiButton
@@ -629,16 +633,6 @@ export function BiV2MemberOpsPanel({
             >
               <MessageSquareText className="h-3 w-3" aria-hidden />
               对话
-            </BiButton>
-            <BiButton
-              onClick={() => {
-                void openMember360(row)
-              }}
-              variant="secondary"
-              size="xs"
-              aria-label={`打开 ${row.user_id} 学员 360`}
-            >
-              360
             </BiButton>
           </div>
         )}
@@ -1047,7 +1041,13 @@ function BulkActions({
 }
 
 function renderCell(row: MemberRow, key: MemberColumnKey): React.ReactNode {
-  if (key === 'phone') return <span className="font-mono">{row.phone_masked}</span>
+  if (key === 'phone')
+    return (
+      <div className="min-w-[132px]">
+        <div className="font-mono font-black text-slate-100">{row.phone_masked}</div>
+        <div className="mt-0.5 truncate font-mono text-[10px] text-slate-500">{row.user_id}</div>
+      </div>
+    )
   if (key === 'tier')
     return <BiStatusPill tone={TIER_TONE[row.tier]} label={row.tier.toUpperCase()} />
   if (key === 'status')
@@ -1090,6 +1090,10 @@ function renderCell(row: MemberRow, key: MemberColumnKey): React.ReactNode {
     )
   }
   if (key === 'behavior_next_action')
-    return <span className="text-slate-300">{row.behavior_next_action ?? '观察'}</span>
+    return (
+      <span className="inline-flex rounded-full border border-white/10 bg-white/[0.055] px-2 py-0.5 text-[11px] font-bold text-slate-200">
+        {row.behavior_next_action ?? '观察'}
+      </span>
+    )
   return null
 }

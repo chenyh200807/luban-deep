@@ -1727,6 +1727,90 @@ def _v1_llm_adjudication_cohort_member(student_id: str) -> bool:
     return str(student_id).startswith(tuple(dict.fromkeys(base + extra)))
 
 
+def _objective_candidate_flag_enabled(context: UnifiedContext) -> bool:
+    """Objective candidate request flag (M25-B). Default OFF -> legacy payload byte-identical."""
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return bool(
+        metadata.get("grading_engine_objective_candidate")
+        or context.config_overrides.get("grading_engine_objective_candidate")
+    )
+
+
+def _objective_candidate_cohort_member(student_id: str) -> bool:
+    import os
+
+    base = ["qa_", "test_", "operator_"]
+    raw = os.environ.get("LUBAN_OBJECTIVE_CANDIDATE_COHORT", "")
+    extra = [p.strip() for p in raw.split(",") if p.strip()]
+    return str(student_id).startswith(tuple(dict.fromkeys(base + extra)))
+
+
+def _maybe_attach_objective_candidate(
+    *,
+    context: UnifiedContext,
+    graded_context: dict[str, Any],
+    result_payload: dict[str, Any],
+) -> None:
+    """Objective answer-key CANDIDATE lane (append-only, M25-B). Cohort-gated QA/test-only.
+
+    Thin wrapper — ALL objective scoring / packet / authority policy lives in
+    ``objective_runtime_adapter`` + ``objective_grader`` + ``objective_answer_key_compiler``
+    (fat skills). This only reads the flag + cohort + real submission fields and appends
+    ``luban_grading_engine_objective_candidate``. It NEVER mutates the legacy
+    ``construction_grading_result``, never writes the DB / Learning Brain / registry, never
+    claims official truth. answer_key is the sole authority; the LLM cannot decide correctness.
+    Missing / malformed / tampered candidate bundle -> fail-closed; not-in-bank -> fail-open
+    open-world diagnostic. Default OFF -> legacy byte-identical."""
+    if not _objective_candidate_flag_enabled(context):
+        return  # flag off -> legacy only
+    student_id = _learner_user_id_from_context(context)
+    if not _objective_candidate_cohort_member(student_id):
+        return  # non-cohort (real student) -> legacy only
+    question_id = str(graded_context.get("question_id") or "").strip()
+    selected_option = str(graded_context.get("user_answer") or "").strip()
+    try:
+        from deeptutor.services.construction_grading.objective_runtime_adapter import (
+            build_objective_candidate_payload,
+        )
+
+        result_payload["luban_grading_engine_objective_candidate"] = build_objective_candidate_payload(
+            question_id=question_id,
+            selected_option=selected_option,
+            learner_context={"student_id": student_id},
+        )
+    except Exception as exc:  # noqa: BLE001 — objective candidate must never break legacy
+        result_payload["luban_grading_engine_objective_candidate"] = {
+            "authority": "luban_grading_engine_objective_candidate",
+            "mode": "objective_candidate",
+            "status": "candidate_bundle_unavailable",
+            "fail_closed": True,
+            "unavailable_reason": str(exc)[:200],
+            "not_production_grade": True,
+            "writeback_performed": False,
+        }
+
+
+def _v1_llm_adjudication_dev_force_on() -> bool:
+    """LOCAL TEST MODE ONLY: force v1 adjudication ON (bypass request-flag + cohort) when
+    ``LUBAN_V1_LLM_ADJUDICATOR_DEV_FORCE_ON`` is truthy AND this is NOT a production environment.
+    Default off -> zero production behaviour change. The kill switch still overrides it; legacy
+    is never mutated; no production / canonical-truth write. For manual local testing only."""
+    import os
+
+    if os.environ.get("LUBAN_V1_LLM_ADJUDICATOR_DEV_FORCE_ON", "").strip().lower() not in (
+        "1", "true", "on", "yes",
+    ):
+        return False
+    try:
+        from deeptutor.services.runtime_env import is_production_environment
+
+        if is_production_environment():
+            return False  # never force-on in production, regardless of the flag
+    except Exception:
+        return False
+    return True
+
+
 def _maybe_attach_v1_llm_adjudication(
     *,
     context: UnifiedContext,
@@ -1740,10 +1824,11 @@ def _maybe_attach_v1_llm_adjudication(
     student_id = _learner_user_id_from_context(context)
     explicit_flag = _v1_llm_adjudication_flag_enabled(context)
     limited_default = _v1_llm_adjudication_limited_default_enabled(student_id)
-    if not explicit_flag and not limited_default:
+    dev_force = _v1_llm_adjudication_dev_force_on()  # LOCAL TEST MODE: bypass flag + cohort (non-prod only)
+    if not explicit_flag and not limited_default and not dev_force:
         return  # flag/default off -> legacy only
     if _v1_llm_adjudication_kill_switch_active():
-        if limited_default and not explicit_flag:
+        if limited_default and not explicit_flag and not dev_force:
             return  # default rollback path -> legacy only
         result_payload["luban_grading_engine_v1_llm_adjudication"] = {
             "authority": "luban_grading_engine_v1_llm_adjudication",
@@ -1751,7 +1836,7 @@ def _maybe_attach_v1_llm_adjudication(
             "not_production_grade": True, "writeback_performed": False,
         }
         return
-    if not _v1_llm_adjudication_cohort_member(student_id):
+    if not dev_force and not _v1_llm_adjudication_cohort_member(student_id):
         return  # non-cohort real student -> legacy only
     question_id = str(graded_context.get("question_id") or "").strip()
     student_answer = str(graded_context.get("user_answer") or "").strip()
@@ -2789,6 +2874,14 @@ class DeepQuestionCapability(BaseCapability):
                 # Runtime LLM adjudication candidate (default off; flag + env kill switch + cohort;
                 # DeepSeek/Qwen adjudication gated by deterministic validator; append-only).
                 _maybe_attach_v1_llm_adjudication(
+                    context=context,
+                    graded_context=graded_context,
+                    result_payload=result_payload,
+                )
+                # Objective answer-key CANDIDATE lane (M25-B; default off; flag + cohort; answer_key
+                # is sole authority, LLM cannot decide correctness; append-only; candidate_unverified;
+                # fail-closed on tamper, fail-open open-world on not-in-bank; legacy untouched).
+                _maybe_attach_objective_candidate(
                     context=context,
                     graded_context=graded_context,
                     result_payload=result_payload,

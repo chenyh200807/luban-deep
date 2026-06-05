@@ -31,6 +31,7 @@ EXPECTED_FILES = {
     "runtime_gate_dry_run_results.json",
     "blocked_from_auto_certification.json",
     "po_review_carryover_queue.json",
+    "m5r_overlay_audit.json",
     "FINDING_registry_v1_candidate_dry_run_m6_20260604.md",
 }
 
@@ -108,9 +109,9 @@ def test_m5_counts_match_exactly_and_candidate_counts_are_sealed(built_out: Path
     assert registry["summary"]["total_scoring_points"] == 150
     assert registry["summary"]["auto_certifiable_point_count"] == 25
     assert registry["summary"]["question_status_counts"] == {
-        "candidate_dry_run": 2,
+        "candidate_dry_run": 1,
         "draft_review": 5,
-        "po_review_required": 27,
+        "po_review_required": 28,
     }
 
     assert len(artifacts) == 34
@@ -122,9 +123,9 @@ def test_m5_counts_match_exactly_and_candidate_counts_are_sealed(built_out: Path
         if point["auto_certifiable"]
     ) == 25
     assert Counter(a["status"] for a in artifacts) == {
-        "candidate_dry_run": 2,
+        "candidate_dry_run": 1,
         "draft_review": 5,
-        "po_review_required": 27,
+        "po_review_required": 28,
     }
 
 
@@ -179,15 +180,32 @@ def test_v0_is_read_only_reference_and_not_overwritten(tmp_path: Path):
 def test_po_review_carryover_preserves_point_and_question_granularity(built_out: Path):
     carryover = _read_json(built_out / "po_review_carryover_queue.json")
 
-    assert carryover["summary"]["po_review_required_question_count"] == 27
+    # 27 M5 po_review_required + 1 M5R-overlay downgrade (M2-2016-31-02) = 28
+    assert carryover["summary"]["po_review_required_question_count"] == 28
     assert carryover["summary"]["non_auto_certifiable_point_count"] == 125
     assert carryover["summary"]["point_decision_counts"] == {
         "review_required_official_weak": 112,
         "rewrite_needed": 13,
     }
-    assert len(carryover["questions"]) == 27
+    assert len(carryover["questions"]) == 28
     assert len(carryover["points"]) == 125
-    assert all(q["question_authority_status"] == "po_review_required" for q in carryover["questions"])
+    # the downgraded question keeps its M5 authority status (publish_ready_candidate) but carries
+    # an m5r downgrade reason; the rest are M5 po_review_required.
+    assert any(q.get("carryover_reason") == "m5r_jury_not_cleared_downgraded_to_po_review"
+               for q in carryover["questions"])
+
+
+def test_m5r_overlay_only_jury_cleared_question_is_candidate_and_no_source_upgrade(built_out: Path):
+    overlay = _read_json(built_out / "m5r_overlay_audit.json")
+    assert overlay["m5r_jury_cleared_question_ids"] == ["M2-2015-32-00"]
+    assert overlay["candidate_dry_run_after_overlay_question_ids"] == ["M2-2015-32-00"]
+    assert overlay["downgraded_to_po_review_question_ids"] == ["M2-2016-31-02"]
+    # the LLM jury overlay must NEVER upgrade a weak source to verified
+    assert overlay["source_status_upgraded_by_jury"] is False
+    # exactly one candidate_dry_run question in the registry, and it is the jury-cleared one
+    registry = _read_json(built_out / "question_grading_registry_v1_candidate.json")
+    cdr = [q for q, v in registry["questions"].items() if v["status"] == "candidate_dry_run"]
+    assert cdr == ["M2-2015-32-00"]
 
 
 def test_finding_answers_required_m6_questions(built_out: Path):
@@ -199,6 +217,8 @@ def test_finding_answers_required_m6_questions(built_out: Path):
     assert "Formal Registry v1 generated: NO" in content
     assert "M7 verdict: WEAK-GO" in content
     assert "NO-GO for formal Registry v1 publish/runtime connection" in content
+    assert "M5R jury overlay" in content
+    assert "M2-2015-32-00" in content
 
 
 def test_m5_input_mismatch_blocks_compile_and_emits_only_audit(tmp_path: Path):

@@ -435,9 +435,16 @@ class InviteTestApplicationStore:
         exam_stage_counter = Counter(item["exam_stage"] or "unknown" for item in normalized)
         pain_point_counter = Counter(item["pain_point"] or "unknown" for item in normalized)
         weekly_time_counter = Counter(item["weekly_time"] or "unknown" for item in normalized)
+        age_range_counter = Counter(item["age_range"] or "unknown" for item in normalized)
+        province_counter = Counter(item["province"] or "unknown" for item in normalized)
+        education_counter = Counter(item["education"] or "unknown" for item in normalized)
+        occupation_counter = Counter(item["occupation"] or "unknown" for item in normalized)
+        preparation_years_counter = Counter(item["preparation_years"] or "unknown" for item in normalized)
+        knowledge_foundation_counter = Counter(item["knowledge_foundation"] or "unknown" for item in normalized)
+        daily_study_time_counter = Counter(item["daily_study_time"] or "unknown" for item in normalized)
         unique_contacts = {
             (_text(_field(row, "phone")) or _text(_field(row, "email"))).lower()
-            for row in rows
+            for row in visible_rows
             if _text(_field(row, "phone")) or _text(_field(row, "email"))
         }
         total = len(normalized)
@@ -461,6 +468,22 @@ class InviteTestApplicationStore:
             "exam_stage_breakdown": self._counter_rows(exam_stage_counter, key="exam_stage"),
             "pain_point_breakdown": self._counter_rows(pain_point_counter, key="pain_point"),
             "weekly_time_breakdown": self._counter_rows(weekly_time_counter, key="weekly_time"),
+            "age_range_breakdown": self._counter_rows(age_range_counter, key="age_range"),
+            "province_breakdown": self._counter_rows(province_counter, key="province"),
+            "education_breakdown": self._counter_rows(education_counter, key="education"),
+            "occupation_breakdown": self._counter_rows(occupation_counter, key="occupation"),
+            "preparation_years_breakdown": self._counter_rows(
+                preparation_years_counter,
+                key="preparation_years",
+            ),
+            "knowledge_foundation_breakdown": self._counter_rows(
+                knowledge_foundation_counter,
+                key="knowledge_foundation",
+            ),
+            "daily_study_time_breakdown": self._counter_rows(
+                daily_study_time_counter,
+                key="daily_study_time",
+            ),
         }
 
     async def submit_application(self, payload: Mapping[str, Any]) -> dict[str, Any]:
