@@ -234,6 +234,7 @@
 - p35 本轮本地修复结论：`structuredSubmitContext` 未序列化与 retry 丢上下文两个前端断点已通过 TDD 修复；仍需用真实微信开发者工具/真机跑一轮题卡提交与 retry smoke，确认小程序运行时事件绑定和页面状态与 Node contract 一致。
 - p35 retry 子代理结论：当前 package live retry 已能透传 `followupQuestionContext/structuredSubmitContext/promptIntent`；但 MCQ receipt 仍只写进未序列化的 `structuredSubmitContext.questions[].receipt`，pending turn recovery/history hydration 不恢复本地 user message retry metadata，旧 `wx_miniprogram/pages/chat/chat.js` 仍可能是旧 retry 逻辑。如果这些路径仍参与真实入口或 parity gate，需要单独修。
 - p36 微信入口子代理结论：`wx_miniprogram/pages/chat/chat.js` 仍是 standalone 工程 tabBar 可达入口，但不是当前佑森真实 TutorBot 入口。真实佑森路径经 `yousenwebview/pages/freeCourse` / `pages/deeptutorEntry` / `packageDeeptutor/utils/route.chat()` 进入 `yousenwebview/packageDeeptutor/pages/chat/chat.js`。本轮修复只作为 standalone/shadow parity，不作为 production 微信证据。
+- p37 runtime base authority 结论：真实 `yousenwebview/packageDeeptutor` 的 DeepTutor API/WS 初始 base URL 只能由宿主 `yousenwebview/app.js` 写入 `globalData.apiUrl/gatewayUrl/apiCandidates/gatewayCandidates`，分包 `host-runtime/endpoints/api/ws-stream` 只读这份 runtime authority。红测发现测试仍要求 develop+DevTools 默认远端，但实现已经默认本地且注释写着“revert to false”，导致真实 QA 可能说不清到底打 `127.0.0.1`、`8012` 还是 `test2`。本轮裁决：为内部 QA 和“不得远端部署/不得写生产 DB”的目标，develop+DevTools canonical 为 local-first；显式 `__USE_LOCAL_DEVTOOLS__=false` 才是 remote mode。已删除误导性临时注释，并把 `node yousenwebview/tests/test_app_runtime_base_selection.js` 改成同时锁住默认本地和显式远端两条分支。真实 DevTools automation 读取 `getApp().globalData` 证明当前 runtime 为 `apiUrl=http://127.0.0.1:8001`、候选 `[8001,8012,test2]`。
 
 ## Open Problems
 
@@ -250,6 +251,7 @@
 - P2：WS live probe 偶发 keepalive timeout；本次 turn 后端和 DB 都完成，但客户端未稳定收到 close/done，需要后续按 transport/replay 层单独压测。
 - P2：测评页测试暴露既有 `ap.priority_chapters` 非数组时 render failed 的降级日志；本次不混修，后续可作为 assessment report robustness 单独处理。
 - P2：`wx_miniprogram` standalone/shadow 入口仍和 `packageDeeptutor` 双实现并存；本轮只修题目 context continuity 的已复现红测。更彻底的 less-is-more 方向是明确 shadow 只服务 renderer/parity QA，减少它对真实微信入口判断的权重。
+- P2：`packageDeeptutor/utils/endpoints.js` 在宿主 `globalData` 缺失时仍有 develop fallback。这不是正常合包入口的初始 authority，但可作为后续 hardening：保持只读 fallback，不让它与宿主 `app.js` 争夺真实 runtime base decision。
 
 ## Next Loop Probes
 

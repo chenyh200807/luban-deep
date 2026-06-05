@@ -6,10 +6,11 @@ This is the working matrix for the next 30-round real or near-real WeChat TutorB
 
 Current evidence status:
 
-- `real_wechat_package`: not completed in this artifact. Needs WeChat DevTools or real device evidence on `yousenwebview/packageDeeptutor`.
+- `real_wechat_package`: partially covered. QA30-017/018 have WeChat DevTools automation evidence for `yousenwebview/packageDeeptutor` visible-card submit/retry payload authority. Full terminal answer quality over `/api/v1/ws` is still pending.
 - `standalone_shadow`: partially covered. `wx_miniprogram/pages/chat/chat.js` context continuity was fixed only as shadow parity.
 - `node_contract`: covered for the current P1 shadow parity fix.
 - `backend_harness`: not expanded in this artifact.
+- `runtime_base_authority`: fixed for DevTools QA. `yousenwebview` develop+DevTools now has a tested local-first contract (`127.0.0.1:8001`, then `8012`, then `test2` fallback); explicit `__USE_LOCAL_DEVTOOLS__=false` is the tested remote mode.
 
 Question source manifest:
 
@@ -138,6 +139,7 @@ P2:
 | --- | --- | --- | --- | --- | --- |
 | `WX-SHADOW-001` | P1 shadow / P2 production | fixed | standalone `wx_miniprogram` kept old retry/context transfer and could turn question-object retry into text replay | `node wx_miniprogram/tests/test_chat_retry_billing_contract.js` failed before fix | Preserve `followupQuestionContext/structuredSubmitContext/promptIntent` on user message and retry options; add visible-card context builder |
 | `EVIDENCE-001` | P1 | open | QA evidence can confuse real `packageDeeptutor` path with standalone/shadow `wx_miniprogram` path | subagent reachability audit | Every future ledger row must set `entry_surface` and report evidence boundary |
+| `EVIDENCE-002` | P1 | fixed | `yousenwebview` DevTools runtime base URL contract drifted: implementation defaulted local for QA, but the contract test still expected remote and a temporary comment said to revert | `node yousenwebview/tests/test_app_runtime_base_selection.js` failed before this fix; DevTools runtime evaluate returned local-first base candidates | Keep develop+DevTools local-first as the canonical internal QA mode, remove temporary revert comment, and add explicit remote-mode assertions |
 
 ## This-Round Verification
 
@@ -148,19 +150,27 @@ node wx_miniprogram/tests/test_chat_retry_billing_contract.js
 node wx_miniprogram/tests/test_chat_mcq_submit_prompt.js
 node wx_miniprogram/tests/test_chat_question_context_continuity.js
 node wx_miniprogram/tests/test_chat_pending_turn_continuity_contract.js
+node wx_miniprogram/tests/test_app_runtime_base_selection.js
+node yousenwebview/tests/test_app_runtime_base_selection.js
+node yousenwebview/tests/test_api_base_failover.js
 node yousenwebview/tests/test_chat_send_surface_telemetry.js
+node yousenwebview/tests/test_ws_stream_auth_refresh.js
 node yousenwebview/tests/test_package_chat_retry_billing_contract.js
 ```
 
-All five passed.
+All listed checks passed in the current run where applicable. The runtime base URL fix specifically passed:
+
+- `node yousenwebview/tests/test_app_runtime_base_selection.js` -> `PASS test_app_runtime_base_selection.js (11 assertions)`
+- `node wx_miniprogram/tests/test_app_runtime_base_selection.js` -> `PASS test_app_runtime_base_selection.js (6 assertions)`
+- WeChat DevTools automation read `getApp().globalData` from `yousenwebview`: `apiUrl=http://127.0.0.1:8001`, `gatewayUrl=http://127.0.0.1:8001`, candidates `[8001, 8012, https://test2.yousenjiaoyu.com]`.
 
 Not run yet:
 
-- WeChat DevTools simulator on `yousenwebview`
+- Full WebSocket terminal answer QA on `yousenwebview`
 - real device smoke
 - full 30-round conversation loop
 - Langfuse trace review for this exact shadow fix
 
 ## Next Single Mainline
 
-Run QA30-017 and QA30-018 on the real `yousenwebview/packageDeeptutor` WeChat path with DevTools or real device, then record the payload/trace in the ledger. This is the next highest-value proof because Node contract is already green, but real WeChat runtime event binding and page state still need direct evidence.
+Run a full `/api/v1/chat/start-turn` + `/api/v1/ws` terminal-answer loop on the real `yousenwebview/packageDeeptutor` DevTools path for QA30-001/002/007. QA30-017/018 have payload-continuity evidence, but answer correctness, refusal class, and expression quality still need live WS evidence.
