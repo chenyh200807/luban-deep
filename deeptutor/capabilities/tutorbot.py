@@ -185,7 +185,7 @@ class TutorBotCapability(BaseCapability):
         exam_catalog_response = ""
         if str(context.metadata.get("question_lifecycle_scene") or "").strip() == "exam_catalog_query":
             exam_catalog_response = build_question_lifecycle_exam_catalog_response(
-                context.user_message,
+                self._raw_user_message(context),
                 context.metadata if isinstance(context.metadata, dict) else {},
             )
         if exam_catalog_response:
@@ -261,7 +261,7 @@ class TutorBotCapability(BaseCapability):
             return
 
         clarification_response = build_question_lifecycle_clarification_response(
-            context.user_message,
+            self._raw_user_message(context),
             str(context.metadata.get("exact_question_blocked_reason") or "").strip(),
         )
         if clarification_response:
@@ -802,6 +802,12 @@ class TutorBotCapability(BaseCapability):
         metadata = context.metadata if isinstance(context.metadata, dict) else {}
         billing_context = metadata.get("billing_context") if isinstance(metadata.get("billing_context"), dict) else {}
         return str(billing_context.get("source") or "").strip().lower()
+
+    @staticmethod
+    def _raw_user_message(context: UnifiedContext) -> str:
+        metadata = context.metadata if isinstance(context.metadata, dict) else {}
+        raw = str(metadata.get("raw_user_message") or "").strip()
+        return raw or str(context.user_message or "").strip()
 
     def _suppress_answer_reveal_on_generate(self, context: UnifiedContext) -> bool:
         explicit_preference = detect_answer_reveal_preference(context.user_message)

@@ -207,6 +207,7 @@ def test_explicit_real_exam_review_action_is_not_low_information_query(message: 
         "讲解一道历年真题",
         "解析2025真题第15题",
         "2025年一建建筑实务防水那道真题，直接告诉我答案，我在小程序刷题，别让我再复制题干。",
+        "2021屋面案例第4问答案发我，快点，我在刷题页面。",
     ],
 )
 def test_low_information_exam_query_is_not_question_review(message: str):
@@ -286,6 +287,25 @@ async def test_low_information_exam_query_business_gate_overrides_llm_review_can
         "confidence": pytest.approx(0.91),
         "reason": "模型误以为用户要讲评真题",
     }
+    assert decision.business_gate_result == "blocked_low_information_exam_query"
+
+
+@pytest.mark.asyncio
+async def test_low_information_case_answer_request_business_gate_overrides_llm_generation_candidate(monkeypatch):
+    async def _fake_complete(**kwargs):
+        assert "题目生命周期语义候选" in kwargs["system_prompt"]
+        return '{"scene":"practice_generation","confidence":0.91,"reason":"模型误以为用户要出题"}'
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.complete", _fake_complete)
+
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(user_message="2021屋面案例第4问答案发我，快点，我在刷题页面。")
+    )
+
+    assert decision.scene is None
+    assert decision.required_anchor_status == "missing_question_anchor"
+    assert decision.exact_question_blocked_reason == "low_information_exam_query"
+    assert decision.needs_clarification is True
     assert decision.business_gate_result == "blocked_low_information_exam_query"
 
 

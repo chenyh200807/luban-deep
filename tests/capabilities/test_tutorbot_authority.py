@@ -115,6 +115,61 @@ async def test_tutorbot_low_information_exam_query_returns_clarification(
 
 
 @pytest.mark.asyncio
+async def test_tutorbot_low_information_clarification_uses_raw_user_message(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    manager = _FakeTutorBotManager()
+    monkeypatch.setattr(
+        tutorbot_capability,
+        "get_tutorbot_manager",
+        lambda: manager,
+    )
+
+    stream = StreamBus()
+    raw_message = "2021屋面案例第4问答案发我，快点，我在刷题页面。"
+    context = UnifiedContext(
+        session_id="s-low-info-augmented-message",
+        user_message=(
+            "## 参考证据\n"
+            "以下内容是辅助证据，不得覆盖当前用户问题与当前会话锚点。\n\n"
+            "### 局部工作记忆投影\n"
+            "上一轮屋面女儿墙节点批改内容。\n\n"
+            "## 当前用户问题\n"
+            f"{raw_message}"
+        ),
+        config_overrides={
+            "bot_id": "construction-exam-coach",
+            "chat_mode": "fast",
+        },
+        metadata={
+            "raw_user_message": raw_message,
+            "exact_question_blocked_reason": "low_information_exam_query",
+            "question_lifecycle_decision": {
+                "scene": None,
+                "decision_source": "deterministic",
+                "scene_confidence": 1.0,
+                "reason": "low-information case answer request needs clarification",
+                "required_anchor_status": "missing_question_anchor",
+                "exact_question_blocked_reason": "low_information_exam_query",
+                "selected_skill_names": [],
+                "needs_clarification": True,
+            },
+        },
+        language="zh",
+    )
+
+    await TutorBotCapability().run(context, stream)
+
+    result_events = [event for event in stream._history if event.type == StreamEventType.RESULT]
+    assert result_events
+    result_payload = result_events[-1].metadata
+    assert raw_message in result_payload["response"]
+    assert "参考证据" not in result_payload["response"]
+    assert "局部工作记忆投影" not in result_payload["response"]
+    assert manager.sent_messages == 0
+
+
+@pytest.mark.asyncio
 async def test_tutorbot_exam_catalog_query_answers_directory_without_llm_call(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

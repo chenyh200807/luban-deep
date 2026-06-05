@@ -654,7 +654,17 @@ async def test_orchestrator_marks_low_information_exam_query_without_exact_autho
 
 
 @pytest.mark.asyncio
-async def test_orchestrator_blocks_colloquial_exact_answer_request_without_stem() -> None:
+@pytest.mark.parametrize(
+    "message",
+    [
+        (
+            "2025年一建建筑实务防水那道真题，直接告诉我答案，"
+            "我在小程序刷题，别让我再复制题干。"
+        ),
+        "2021屋面案例第4问答案发我，快点，我在刷题页面。",
+    ],
+)
+async def test_orchestrator_blocks_colloquial_exact_answer_request_without_stem(message: str) -> None:
     """A student asking for "that 2025 waterproofing question" needs an anchor, not generation."""
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()
@@ -663,10 +673,7 @@ async def test_orchestrator_blocks_colloquial_exact_answer_request_without_stem(
     context = UnifiedContext(
         session_id="s-colloquial-low-info-answer-request",
         active_capability="tutorbot",
-        user_message=(
-            "2025年一建建筑实务防水那道真题，直接告诉我答案，"
-            "我在小程序刷题，别让我再复制题干。"
-        ),
+        user_message=message,
         config_overrides={"bot_id": "construction-exam-coach"},
         metadata={},
         language="zh",

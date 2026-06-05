@@ -430,12 +430,6 @@ def is_low_information_exam_query(query: str) -> bool:
     text = re.sub(r"\s+", "", str(query or "").strip())
     if not text:
         return False
-    if not any(marker in text for marker in ("真题", "试题", "题库", "试卷")):
-        return False
-    if _looks_like_exam_catalog_query(query):
-        return False
-    if _looks_like_year_only_exam_review_query(text):
-        return True
     answer_request_markers = (
         "答案",
         "正确答案",
@@ -451,6 +445,19 @@ def is_low_information_exam_query(query: str) -> bool:
         "不宜",
         "应为",
     )
+    if (
+        re.search(r"(?:20\d{2}年?)?[\u4e00-\u9fffA-Za-z0-9]{0,16}案例第?[0-9一二两三四五六七八九十]+问", text)
+        and any(marker in text for marker in answer_request_markers)
+        and not _FREE_TEXT_MCQ_OPTION_LIST_RE.search(str(query or ""))
+        and not any(marker in text for marker in concrete_stem_markers)
+    ):
+        return True
+    if not any(marker in text for marker in ("真题", "试题", "题库", "试卷")):
+        return False
+    if _looks_like_exam_catalog_query(query):
+        return False
+    if _looks_like_year_only_exam_review_query(text):
+        return True
     if (
         any(marker in text for marker in answer_request_markers)
         and not _FREE_TEXT_MCQ_OPTION_LIST_RE.search(str(query or ""))

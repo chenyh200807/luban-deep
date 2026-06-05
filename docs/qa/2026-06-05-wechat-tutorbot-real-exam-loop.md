@@ -16,6 +16,17 @@
 - Deep question / question review / TutorBot 使用不同状态投影时，题干、选项、用户答案、题库 exact evidence 没有同一个主事实。
 - RAG degraded / empty-index 只进入工具事件、日志或观测，未进入最终回答的 authority，导致模型在证据不足时仍自信改判或掉到空白兜底。
 
+## Long-Run Direction
+
+后续循环不做无头苍蝇式随机问答，而是持续围绕同一个目标收敛：微信 TutorBot 必须稳定维护四个一等事实。
+
+1. raw user intent：学生原话到底是在要答案、提交答案、追问题目、还是要出题。
+2. question object：当前题目对象、题干、选项、题卡 id、题库 exact evidence 只能有一个主事实。
+3. learner answer：学生这一轮实际选了什么、答了什么、错因是什么，必须能被后续追问读取。
+4. terminal text：最终给学生看的文案只能来自 canonical result，不得混入 reference evidence、working memory projection 或 transport 增强提示。
+
+每轮记录都按 `probe -> customer score -> root shape -> fix/effect -> accumulated lesson` 累积，优先修让这四个事实更单一、更短链路、更可验证的问题。
+
 ## Probe Results
 
 | ID | 学员模拟输入 | 期望 | 实际 | 评级 | 处理 |
@@ -35,6 +46,12 @@
 | J1 | 固定 QA 号 `qa_tutorbot_mcq` 走移动端 login/profile/start-turn | 不人工注册、不收费、不被 wallet 读卡住 | 修前 `/auth/profile` 因 wallet 404/503 中断 smoke | Pass | 内部 QA profile 钱包读返回 `internal_qa` 快照 |
 | K1 | 同一屋面坡度题，但学员手抄乱序：`A.5% B.1% C.2% D.3%，我选A` | 按当前题面判 A 对，不能沿用题库旧字母 D | 修前答“不对，标准答案D”；p13 后答“对，标准答案A”；p16 自然题干变体也能命中 A/5% | Pass | 已把 historical exact question 投影到 query option surface，并修复自然题干变体匹配 |
 | K2 | 接 K1 追问 `是不是因为你按旧题库字母没看我这轮选项？` | 承接刚才乱序题并承认/澄清当前题面 A 才对 | 修前说“不知道你要批改哪一道题”；p14 后承接同一 active_object 但仍非一句话；p15 后单句澄清当前题面 A/5% | Pass | 已修 exact fast-path active question continuity + reveal state + follow-up brevity |
+| L1 | 防水砂浆最低温完整单选，用户选 B | 不拒答，判 B/5℃ 正确，简短说明 | p17 判对，但走 general LLM path 且偏长；metadata 显示 `rag_retrieval_degraded=true`、`authority_applied=false` | P2 expression | 暂登记；正确性可接受，后续压 general brevity |
+| L2 | 模板支架保证项目自然语言多选：五个候选里只勾 `施工方案+支架构造+支架稳定` | 按语义判满，不能把未勾候选项当用户答案 | p18 误说“不能拿满”，一边承认三个对，一边误称用户选了 C/D | P1 open | 自然语言 learner answer extraction 缺 authority，下一轮优先定位 |
+| L3 | 地下连续墙 exact 首轮后追问 `错因是什么？10个字以内` | 承接上一轮 ACDE，短答“误选槽段长度” | p19 首轮命中 CDE；二轮只重复标准答案和解析，未给错因且超长 | P1 open | learner answer / wrong-cause projection 未进入 follow-up terminal writer |
+| L4 | `2021屋面案例第4问答案发我，快点，我在刷题页面。` | 无题卡对象时澄清，不编答案，不转出题 | p20 修前进入 `deep_question_generation` 生成“请写出...”；修后走 `tutorbot_lifecycle_clarification`，不泄露 reference evidence | P1 fixed | 已修 low-info answer request gate + raw-user terminal text |
+| L5 | 屋面女儿墙防水节点 case grading | 批已得/漏点/估分，不拒答 | p21 能批改，标注 RAG 不可用；整体有用但偏长，估分口径需和题库采分点继续对齐 | P2 | 暂登记；case grading evidence authority 仍需强化 |
+| L6 | 地下连续墙情绪化混合输入：选项值无字母，问是不是 CDE | 一句话确认 CDE，指出 A/B 错点并安抚 | p22 被 `missing_active_question` 澄清，未利用已给出的值级题意 | P1 open | 自然语言 option-value anchor 缺失，和 L2 同属自然语言题目对象/作答 extraction |
 
 ## Fixed This Loop
 
@@ -121,6 +138,24 @@
    - 修法保持 thin wrapper / fat skill：边界修在 `question_lifecycle_skills` 的 MCQ option detector；题库匹配修在 `historical_questions` 的 resolver 内核，采用“足够 stem bigram 重合 + 至少 3 个选项值命中”的 deterministic guard，且无题干只有选项时仍不命中。
    - p16 live evidence：固定账号 `qa_tutorbot_weird`，`turn_1780668852566_5930b38edc` 输入 `压型金属板采用轻型屋面时...？A. 5% B. 1% C. 2% D. 3%，我选A，对吗？`，返回 A/5%，RESULT metadata `question_lifecycle_scene=mcq_grading`、`required_anchor_status=satisfied`、`execution_path=tutorbot_exact_fast_path`、`authority_applied=true`、`canonical_correct_answer=D`、`option_surface=query`、`active_object_id=historical:cf366dd4c395fffa`、`billing_capture=null`。
 
+15. case-index low-info answer request gate
+   - root cause：`is_low_information_exam_query` 只把 `真题 / 试题 / 题库 / 试卷` 当低信息索引词；真实微信学员会说 `2021屋面案例第4问答案发我`，没有“真题”二字但仍缺题卡对象/题干/稳定题卡 id。
+   - 第二断点：该消息含 `刷题页面`，deterministic practice generation 误把“我在刷题页面”当成“请出题”，最终进入 `deep_question_generation` 并生成 `请写出2021年屋面案例第4问的答案`。
+   - 修法保持 thin wrapper / fat skill：在 `question_lifecycle_skills.is_low_information_exam_query` 中收敛“年份/案例/第几问 + 索要答案 + 无题干/选项”的稳定格式；business gate 继续压过 LLM 候选和 preselected deep_question。
+   - p23 live evidence：固定账号 `qa_tutorbot_case`，`turn_1780669868215_9b5cddc151` 输入 `2021屋面案例第4问答案发我，快点，我在刷题页面。`，返回明确澄清；RESULT metadata `execution_path=tutorbot_lifecycle_clarification`、`required_anchor_status=missing_question_anchor`、`exact_question_blocked_reason=low_information_exam_query`、`business_gate_result=blocked_low_information_exam_query`、`billing_capture=null`。
+
+16. lifecycle terminal text uses raw user message
+   - root cause：TurnRuntime 为 TutorBot 构造 `context.user_message` 时会加入 `## 参考证据`、`局部工作记忆投影` 和 `## 当前用户问题`；Orchestrator 路由已使用 `metadata.raw_user_message`，但 TutorBot lifecycle clarification terminal writer 仍把增强后的 `context.user_message` 当 topic，导致学生可见澄清里泄露参考证据。
+   - 修法保持 thin wrapper / fat skill：TutorBot capability 只在 lifecycle terminal 文案构造处读取 `metadata.raw_user_message`，没有修改 routing、RAG、LLM 或 transport；最终文案不再混入 reference evidence。
+   - p23 live evidence 同上：`contains_reference_evidence=false`，response 只包含原始 `2021屋面案例第4问答案发我，快点，我在刷题页面。`，不含 `参考证据` / `局部工作记忆投影`。
+
+## Accumulated Lessons
+
+- “合理澄清”和“不合理拒答”不能按是否给出答案粗暴判断；关键看系统是否已有题目对象 authority。无题卡/无题干时澄清是合理的，但必须说清缺什么、怎么继续。
+- `context.user_message` 在 runtime 内可能是增强后的工作输入，不等于学生原话。凡是学生可见 terminal 文案、题目索引、低信息澄清 topic，优先读取 `metadata.raw_user_message`。
+- 如果一句话里既有“刷题页面”又有“答案发我”，`刷题` 是产品场景，不是 practice generation intent；“要答案但缺题卡”应由 lifecycle gate 收住。
+- 自然语言多选和情绪化混合输入不是“模型表达问题”，而是 learner answer extraction / option-value anchor 还没有单一 authority。
+
 ## Team Monitoring Notes
 
 - 主代理：负责真实小程序同构链路复现、最小代码修复、测试与 scoped commit。
@@ -128,11 +163,15 @@
 - 题目 authority 子代理：确认旧问题不是单题不会做，而是 exact question / active object / RAG evidence 在多个模块间投影不一致；建议把标准答案对象收敛为 canonical question context。
 - 题库探针子代理：提供地下连续墙、屋面上翻高度、危大、见证取样、模板支架、抹灰等 diverse probe 池，用于后续循环。
 - 后台/Langfuse 子代理：本地后端启动后可见 Langfuse trace，日志中有 `turn.runtime`、`tutorbot.runtime`、`rag.supabase.search`、`llm.stream`；当前报告仍以 WS RESULT metadata + 后端日志为主证据，Langfuse 作为辅助后台监控面。
+- p17-p22 监测结论：8011 `/readyz` / `/healthz` healthy；本地 Langfuse tracer 启用并 flush；近 30 条微信 turn 全部 completed，但 `rag_retrieval_degraded` 比例高，Supabase 404/402 仍是背景风险；`billing_capture=null` 只能证明内部 QA bypass，不是生产收费闭环。
 
 ## Open Problems
 
 - P1：历史题库 resolver 目前是 full-MCQ vertical slice，不是生产题库总闭环。还需要把签名/可部署的题库 artifact、题卡 id、前端题面对象和 Supabase/KB source evidence 收敛成同一个 canonical question authority。
 - P1：题卡 id / 当前题面对象没有从微信前端稳定传进 TutorBot 时，系统只能澄清，无法兑现“我在小程序刷题，别让我复制题干”的体验。
+- P1：自然语言多选 learner answer extraction 未收敛。p18 中系统把候选项列表里的 C/D 当成用户选项，错判“不能拿满”。
+- P1：exact 首轮中的 learner answer / wrong-cause summary 没有进入 follow-up terminal writer。p19 追问“错因是什么？10个字以内”仍重复标准答案。
+- P1：无字母但值级足够明确的 MCQ anchor 未被识别。p22 给出地下连续墙关键选项值并问 CDE，却被澄清缺题。
 - P2：exact MCQ 首答与 exact follow-up deterministic reveal 的一句话模板问题已修；general TutorBot LLM 路径仍可能在用户要求“一句话/别废话”时偏长，p15 负例里 general fast policy 仍输出多段解析。
 - P2：p16 已修 historical resolver 对自然问句格式 `...多少？A. 5% B. 1%...我选A` 的漏识别；但还需要继续用更多自然题干变体压测，避免过宽 fuzzy match 或漏掉其他标点/换行格式。
 - P2：RAG unavailable 的措辞需要更稳定：可以给候选判断，但不能说成题库标准确认。
@@ -148,3 +187,5 @@
 - Follow-up brevity：首轮 exact MCQ 命中后，连续追问“刚才那题为什么不是 X / 你是不是按旧字母了，一句话”，必须读取上一轮 exact question surface，并按显式简短约束回答。
 - Missing stem：只说“2015案例5第2问答案”时必须澄清，不得 hallucinate。
 - Full case grading：检查采分点、易错点、估分、学习记忆是否同一份 evidence。
+- Natural learner answer：不用 ABCDE，只说“我勾了施工方案+支架构造+支架稳定”，系统必须提取实际学员答案，而不是把候选项列表全当作已选。
+- Value-only MCQ anchor：给出 `槽段8-10m、导墙1.0m、现浇导墙...我是不是CDE` 时，系统应识别足够题意并按题库值锚定，不应直接澄清缺题。
