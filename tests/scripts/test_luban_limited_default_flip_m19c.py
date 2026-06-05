@@ -13,6 +13,15 @@ import pytest
 
 import scripts.run_luban_limited_default_flip_m19c as m19c
 
+# REVIEW-ARTIFACT-ONLY: M19C is a milestone-audit drill that consumes the (gitignored) M19B
+# review-artifact package. It is NOT a limited-default runtime test — the runtime path is covered
+# by the gate / registry / adjudicator / ws / runtime-supply-bundle tests, which run clean without
+# artifacts. Skip in a clean checkout where the upstream review artifacts are absent.
+pytestmark = pytest.mark.skipif(
+    not (m19c.M19B / "release_go_no_go_m19b.json").exists(),
+    reason="M19B review-artifact package absent (milestone-audit drill; not a runtime dependency)",
+)
+
 
 def _j(path: Path) -> dict:
     return json.loads(path.read_text("utf-8"))
