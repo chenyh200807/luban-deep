@@ -41,7 +41,9 @@ def resolve_historical_question(
             continue
         if best is None or score > best[0]:
             best = (score, candidate)
-    return dict(best[1]) if best is not None else None
+    if best is None:
+        return None
+    return _project_to_query_option_surface(best[1], query)
 
 
 def build_canonical_question_context(exact_question: dict[str, Any]) -> dict[str, Any]:
@@ -223,6 +225,74 @@ def _match_score(query_surface: str, candidate: dict[str, Any]) -> int:
     if matches < required:
         return 0
     return len(stem) * 10 + matches * 100 + len(str(candidate.get("correct_answer") or ""))
+
+
+def _project_to_query_option_surface(candidate: dict[str, Any], query: str) -> dict[str, Any]:
+    projected = dict(candidate)
+    query_options = _extract_query_options(query)
+    if len(query_options) < 2:
+        return projected
+
+    canonical_by_value = _unique_options_by_normalized_value(candidate.get("options"))
+    query_by_value = _unique_options_by_normalized_value(query_options)
+    if not canonical_by_value or not query_by_value:
+        return projected
+
+    mapped_letters: list[str] = []
+    for canonical_letter in _normalize_answer_key(candidate.get("correct_answer")):
+        canonical_option = next(
+            (
+                item
+                for item in candidate.get("options") or []
+                if isinstance(item, dict)
+                and str(item.get("key") or "").strip().upper() == canonical_letter
+            ),
+            None,
+        )
+        normalized_value = _normalize_surface(
+            canonical_option.get("value") if isinstance(canonical_option, dict) else ""
+        )
+        query_option = query_by_value.get(normalized_value)
+        if not isinstance(query_option, dict):
+            return projected
+        mapped_letters.append(str(query_option.get("key") or "").strip().upper())
+
+    remapped_answer = _normalize_answer_key("".join(mapped_letters))
+    if not remapped_answer:
+        return projected
+    projected["options"] = query_options
+    projected["correct_answer"] = remapped_answer
+    metadata = dict(projected.get("metadata") or {})
+    metadata["canonical_correct_answer"] = str(candidate.get("correct_answer") or "").strip()
+    metadata["option_surface"] = "query"
+    projected["metadata"] = metadata
+    return projected
+
+
+def _unique_options_by_normalized_value(raw: Any) -> dict[str, dict[str, str]]:
+    options = _normalize_options(raw)
+    by_value: dict[str, dict[str, str]] = {}
+    duplicates: set[str] = set()
+    for item in options:
+        normalized_value = _normalize_surface(item.get("value"))
+        if not normalized_value:
+            continue
+        if normalized_value in by_value:
+            duplicates.add(normalized_value)
+            continue
+        by_value[normalized_value] = item
+    for duplicate in duplicates:
+        by_value.pop(duplicate, None)
+    return by_value
+
+
+def _extract_query_options(query: str) -> list[dict[str, str]]:
+    options: list[dict[str, str]] = []
+    for line in str(query or "").splitlines():
+        key, value = _parse_option_string(line, fallback_key="")
+        if key and value:
+            options.append({"key": key, "value": value})
+    return options
 
 
 def _normalize_options(raw: Any) -> list[dict[str, str]]:

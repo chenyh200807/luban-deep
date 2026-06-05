@@ -33,6 +33,8 @@
 | H1 | 情绪化记忆口诀请求 | 安抚并给短口诀 | 有帮助但仍偏长 | P2 expression | 暂登记 |
 | I1 | 压型金属板屋面坡度完整单选，用户选 C 并要求 `别展开，一句话` | 批错、给 D/5%，一句话 | 修前 exact fast-path 输出完整教学模板；p11 后返回一句话 | Pass | 已把用户表达约束传入 exact authority builder |
 | J1 | 固定 QA 号 `qa_tutorbot_mcq` 走移动端 login/profile/start-turn | 不人工注册、不收费、不被 wallet 读卡住 | 修前 `/auth/profile` 因 wallet 404/503 中断 smoke | Pass | 内部 QA profile 钱包读返回 `internal_qa` 快照 |
+| K1 | 同一屋面坡度题，但学员手抄乱序：`A.5% B.1% C.2% D.3%，我选A` | 按当前题面判 A 对，不能沿用题库旧字母 D | 修前答“不对，标准答案D”；p13 后答“对，标准答案A” | Pass with follow-up caveat | 已把 historical exact question 投影到 query option surface |
+| K2 | 接 K1 追问 `是不是因为你按旧题库字母没看我这轮选项？` | 承接刚才乱序题并承认/澄清当前题面 A 才对 | 仍说“不知道你要批改哪一道题” | P1 context continuity | 新登记，待查 exact fast-path 后 active question continuity |
 
 ## Fixed This Loop
 
@@ -94,6 +96,12 @@
    - bypass 仍只由 `internal_qa_billing_bypass_allowed` 判定，非 production + QA 身份前缀才生效；非 QA 钱包失败测试保持 fail-closed。
    - p12 live evidence：`qa_tutorbot_mcq` 登录后 `/api/v1/auth/profile` 返回 `user_id=7465c84a-d1d6-4ff8-82d8-22945addbf86`、`points=120`、`wallet.plan_id=internal_qa`。
 
+11. 乱序选项的 current-surface answer authority
+   - historical question resolver 现在只把题库原题作为“正确值/解析”的 authority；如果用户当前消息里给出了完整选项表，则把 canonical correct answer 投影到当前题面字母。
+   - 这避免题库旧字母抢走学员当前题面选项语义：同一道题原题 `D=5%`，若用户当前题面写成 `A=5%`，本轮标准答案应显示为 `A（A. 5%）`。
+   - provenance 保留在 metadata：`canonical_correct_answer=D`、`option_surface=query`；最终判题和展示使用 query surface。
+   - p13 live evidence：固定账号 `qa_tutorbot_weird`，`turn_1780666512262_e4afb5dabe` completed，内容为 `对，标准答案是 A（A. 5%），题库解析依据是：屋面最小坡度：压型金属板：5%。`；RESULT metadata `billing_capture=null`、`authority_applied=true`、`execution_path=tutorbot_exact_fast_path`、`exact_question.correct_answer=A`、`exact_question.options[0]=A.5%`、`exact_question.metadata.canonical_correct_answer=D`。
+
 ## Team Monitoring Notes
 
 - 主代理：负责真实小程序同构链路复现、最小代码修复、测试与 scoped commit。
@@ -106,6 +114,7 @@
 
 - P1：历史题库 resolver 目前是 full-MCQ vertical slice，不是生产题库总闭环。还需要把签名/可部署的题库 artifact、题卡 id、前端题面对象和 Supabase/KB source evidence 收敛成同一个 canonical question authority。
 - P1：题卡 id / 当前题面对象没有从微信前端稳定传进 TutorBot 时，系统只能澄清，无法兑现“我在小程序刷题，别让我复制题干”的体验。
+- P1：exact fast-path 首轮命中后，下一轮对“刚才那道题/这轮选项”的追问仍可能丢失 active question continuity；p13 第二轮 `turn_1780666569540_d42be278b9` 仍返回“不知道你要批改哪一道题”。
 - P2：exact MCQ 首答的一句话模板问题已修；但 follow-up/general LLM 路径仍可能在用户要求“一句话/别废话”时偏长，例如 p11 第二轮解释 C 为什么不对时输出了两句较长文本。
 - P2：RAG unavailable 的措辞需要更稳定：可以给候选判断，但不能说成题库标准确认。
 - P2：本地 `/api/v1/wechat/mp/login` 缺 `WECHAT_MP_APP_ID/WECHAT_MP_APP_SECRET` 时返回 502；当前 QA 通过注册登录绕过，只验证 `/api/v1/chat/start-turn` + `/api/v1/ws`。
@@ -117,5 +126,6 @@
 
 - Shuffled options：同一题乱序后，答案必须按当前用户选项语义判断，不能按历史字母。
 - Context object continuity：先给题卡，再连续问“为什么不是 B”“那 1.0m 对吗”，看是否读取同一个题目对象。
+- Exact fast-path continuity：首轮 exact MCQ 命中后，连续追问“刚才那题为什么不是 X / 你是不是按旧字母了”，必须读取上一轮 exact question surface。
 - Missing stem：只说“2015案例5第2问答案”时必须澄清，不得 hallucinate。
 - Full case grading：检查采分点、易错点、估分、学习记忆是否同一份 evidence。

@@ -43,6 +43,32 @@ def _write_question_bank(root) -> None:
     (root / "questions.json").write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
 
 
+def _write_roof_slope_question_bank(root) -> None:
+    payload = {
+        "taxonomy": {"node_code": "1A411010", "node_name": "建筑设计"},
+        "exercises": [
+            {
+                "type": "single_choice",
+                "question_data": {
+                    "stem": "某工程屋面做法为压型金属板，当设计无要求时，屋面坡度最小值是（　　）。",
+                    "options": [
+                        {"key": "A", "value": "1%"},
+                        {"key": "B", "value": "2%"},
+                        {"key": "C", "value": "3%"},
+                        {"key": "D", "value": "5%"},
+                    ],
+                    "correct_answer": "D",
+                    "analysis": "屋面最小坡度：压型金属板：5%。",
+                    "score": 1.0,
+                    "difficulty": "medium",
+                },
+                "predicted_node": "1A411010",
+            }
+        ],
+    }
+    (root / "roof.json").write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+
+
 def test_historical_question_resolver_matches_full_mcq_from_configured_bank(tmp_path) -> None:
     from deeptutor.services.rag.historical_questions import resolve_historical_question
 
@@ -61,6 +87,29 @@ def test_historical_question_resolver_matches_full_mcq_from_configured_bank(tmp_
     assert exact_question["options"][1] == {"key": "B", "value": "导墙高度不应小于1.0m"}
     assert exact_question["metadata"]["node_code"] == "1A413020"
     assert "source_path" not in exact_question["metadata"]
+
+
+def test_historical_question_resolver_remaps_answer_to_current_option_surface(tmp_path) -> None:
+    from deeptutor.services.rag.exact_authority import build_exact_authority_response
+    from deeptutor.services.rag.historical_questions import resolve_historical_question
+
+    _write_roof_slope_question_bank(tmp_path)
+    query = (
+        "这题选项顺序我手抄乱了：某工程屋面做法为压型金属板，当设计无要求时，屋面坡度最小值是（　　）。\n"
+        "A. 5%\n"
+        "B. 1%\n"
+        "C. 2%\n"
+        "D. 3%\n"
+        "我选A，对吗？别展开，一句话。"
+    )
+
+    exact_question = resolve_historical_question(query, question_bank_dir=str(tmp_path))
+
+    assert exact_question is not None
+    assert exact_question["correct_answer"] == "A"
+    assert exact_question["options"][0] == {"key": "A", "value": "5%"}
+    response = build_exact_authority_response(exact_question, user_message=query)
+    assert response == "对，标准答案是 A（A. 5%），题库解析依据是：屋面最小坡度：压型金属板：5%。"
 
 
 @pytest.mark.asyncio
