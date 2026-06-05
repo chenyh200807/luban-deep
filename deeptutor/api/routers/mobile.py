@@ -1645,6 +1645,12 @@ def _build_mobile_turn_payload(
         config["bot_id"] = _MOBILE_TUTORBOT_ID
     if body.followup_question_context:
         config["followup_question_context"] = dict(body.followup_question_context)
+    if body.grading_engine_runtime_shadow:
+        config["grading_engine_runtime_shadow"] = True
+        config["grading_engine_runtime_shadow_engine"] = (
+            str(body.grading_engine_runtime_shadow_engine or "deepseek_fast").strip()
+            or "deepseek_fast"
+        )
     if body.prompt_intent:
         intent_key = "learning_training_intent" if capability == "deep_question" else "learning_prompt_intent"
         config[intent_key] = dict(body.prompt_intent)
@@ -1776,6 +1782,8 @@ class MobileStartTurnRequest(BaseModel):
     followup_question_context: dict[str, Any] | None = None
     prompt_intent: dict[str, Any] | None = None
     persist_user_message: bool = True
+    grading_engine_runtime_shadow: bool = False
+    grading_engine_runtime_shadow_engine: str = "deepseek_fast"
 
 
 class ChatFeedbackRequest(BaseModel):
@@ -2180,26 +2188,13 @@ async def mobile_learning_report(
         accept=accept,
     )
     return await run_in_threadpool(
-        _build_mobile_learning_report_read_model,
-        user_id=user_id,
-        event_limit=event_limit,
-        schema_version=requested_schema_version,
-    )
-
-
-def _build_mobile_learning_report_read_model(
-    *,
-    user_id: str,
-    event_limit: int,
-    schema_version: int,
-) -> dict[str, Any]:
-    return build_learning_report_read_model(
+        build_learning_report_read_model,
         user_id=user_id,
         member_service=member_service,
         learner_state_service=learner_state_service,
         mistake_book_service=mistake_book_service,
         event_limit=event_limit,
-        schema_version=schema_version,
+        schema_version=requested_schema_version,
     )
 
 

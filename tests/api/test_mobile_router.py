@@ -3189,9 +3189,6 @@ def test_mobile_learning_report_dual_emits_v2_without_breaking_v1_fields(
     assert body["timeline"] == body["learner_facing"]["evidence_timeline"]
     assert body["training_loop_cards"] == body["learner_facing"]["training_loops"]
     assert body["hero"]["primary_cta"]["intent"]["source"] == "learning_report"
-    assert body["today_prescription"]["source"] in {"training_intent", "dry_run_fallback"}
-    assert "why_this_now" in body["today_prescription"]
-    assert "evidence_refs" in body["today_prescription"]
     assert body["home_personalization"]["recommended_prompt_count"] == 1
     assert isinstance(body["mastery"]["overall_mastery"], dict)
 

@@ -27,12 +27,7 @@ from deeptutor.services.learner_state.prescription_outcome_read_model import (
 from deeptutor.services.learner_state.revalidation_queue import (
     build_revalidation_queue_projection,
 )
-from deeptutor.services.learner_state.next_best_action import build_next_best_actions
-from deeptutor.services.learner_state.personalization_context import build_personalization_context_pack
-from deeptutor.services.learner_state.training_intent import (
-    PRESCRIPTION_AUTHORITY,
-    build_learning_training_intent,
-)
+from deeptutor.services.learner_state.training_intent import build_learning_training_intent
 from deeptutor.services.taxonomy.construction_taxonomy import (
     display_taxonomy_label,
     is_non_topic_label,
@@ -255,20 +250,6 @@ def build_learning_report_read_model(
     training_prescription = _training_prescription_payload(
         learner_facing=learner_facing,
     )
-    personalization_context = build_personalization_context_pack(
-        user_id=normalized_user,
-        learning_brain=learning_brain,
-        active_training_intent=_safe_dict(_safe_dict(learner_facing.get("next_action")).get("intent")),
-        recent_events=events,
-    )
-    learning_brain_degraded = learning_brain_source == "dry_run_learning_evidence"
-    next_best_actions = _safe_list(personalization_context.get("next_best_action_candidates"))
-    if learning_brain_degraded:
-        next_best_actions = [_degraded_dry_run_action(action) for action in next_best_actions] or [
-            _degraded_dry_run_action({})
-        ]
-        personalization_context = dict(personalization_context)
-        personalization_context["next_best_action_candidates"] = next_best_actions
     truth_sections = _truth_sections(events)
     daily_target = _safe_int(legacy_today.get("daily_target")) or 30
     overview = {
@@ -331,9 +312,6 @@ def build_learning_report_read_model(
             "read_model": "learning-report-read-model",
             "progress_source": "learner_memory_events.learning_evidence",
             "learning_brain_source": learning_brain_source,
-            "learning_brain_degraded": learning_brain_degraded,
-            "personalization_context_source": "PersonalizationContextPack",
-            "next_best_action_source": "training_intent",
             "deprecated_page_sources": list(_DEPRECATED_PAGE_SOURCES),
         },
         "degraded": degraded,
@@ -360,8 +338,6 @@ def build_learning_report_read_model(
         "learning_brain": learning_brain,
         "learner_facing": learner_facing,
         "truth_sections": truth_sections,
-        "personalization_context": personalization_context,
-        "next_best_actions": next_best_actions,
         "next_training": next_training,
         "training_prescription": training_prescription,
         # Batch C Task 7: scoring point map projection (read-only sibling).
@@ -506,10 +482,6 @@ def _learning_report_v2(
         "latest_conversation_signal": "",
         "source_status": _safe_dict(home_dashboard.get("source_status")),
     }
-    payload["today_prescription"] = _today_prescription_v2(
-        training_prescription=_safe_dict(payload.get("training_prescription")),
-        next_best_actions=_safe_list(payload.get("next_best_actions")),
-    )
     payload["mistake_book"] = mistake_book_projection
     payload["next_training"] = _next_training_v2(next_action=next_action, existing=_safe_list(payload.get("next_training")))
     payload["mastery"] = _mastery_v2(mastery, overview=overview, evidence_stats=evidence_stats)
@@ -582,42 +554,6 @@ def _compact_learning_brain_v2(learning_brain: dict[str, Any]) -> dict[str, Any]
         "event_count": _safe_int(learning_brain.get("event_count")),
         "created_claim_count": _safe_int(learning_brain.get("created_claim_count")),
         "typed_graph_edge_count": _safe_int(learning_brain.get("typed_graph_edge_count")),
-    }
-
-
-def _today_prescription_v2(
-    *,
-    training_prescription: dict[str, Any],
-    next_best_actions: list[Any],
-) -> dict[str, Any]:
-    top_action = _safe_dict(next_best_actions[0] if next_best_actions else {})
-    intent_id = str(training_prescription.get("training_intent_id") or top_action.get("training_intent_id") or "").strip()
-    source = str(
-        top_action.get("source")
-        if top_action.get("degraded") or top_action.get("source") == "dry_run_fallback"
-        else training_prescription.get("source") or top_action.get("source") or "training_intent"
-    ).strip()
-    evidence_refs = _safe_list(training_prescription.get("evidence_refs")) or _safe_list(top_action.get("evidence_refs"))
-    action_type = "starter_action" if not evidence_refs else "retest_training"
-    if source == "dry_run_fallback":
-        action_type = "starter_action"
-    return {
-        "title": str(training_prescription.get("title") or top_action.get("title") or "先补一条可诊断证据").strip(),
-        "why_this_now": str(
-            top_action.get("why_this_now")
-            or training_prescription.get("why_this")
-            or training_prescription.get("subtitle")
-            or ""
-        ).strip(),
-        "evidence_refs": evidence_refs[:5],
-        "source": source,
-        "prescription_authority": PRESCRIPTION_AUTHORITY,
-        "degraded": bool(source == "dry_run_fallback" or training_prescription.get("degraded") or top_action.get("degraded")),
-        "primary_action": {
-            "type": action_type,
-            "intent_id": intent_id,
-            "prescription_authority": PRESCRIPTION_AUTHORITY,
-        },
     }
 
 
@@ -1195,20 +1131,6 @@ def _training_prescription_payload(*, learner_facing: dict[str, Any]) -> dict[st
     }
 
 
-def _degraded_dry_run_action(action: dict[str, Any]) -> dict[str, Any]:
-    payload = dict(action or {})
-    payload.update({
-        "status": "degraded",
-        "degraded": True,
-        "source": "dry_run_fallback",
-        "prescription_authority": "training_intent",
-        "title": "先补一题可诊断练习",
-        "why_this_now": "当前稳定学习事实缺失，只能用最近窗口做低风险提示。",
-        "evidence_refs": [],
-    })
-    return payload
-
-
 def _prescription_question_plan(
     *,
     steps: list[Any],
@@ -1659,7 +1581,7 @@ def _next_action_card(
                 training_mode="mixed_review",
                 reason=str(top.get("meta") or ""),
             )
-            return _with_next_best_action_view({
+            return {
                 "title": "先补一条可诊断证据",
                 "subtitle": "完成 1 题后，系统会生成可靠训练主题",
                 "concept": "",
@@ -1667,63 +1589,44 @@ def _next_action_card(
                 "intent": intent,
                 "cta": "去练习",
                 "estimated_minutes": 3,
-            }, intent=intent)
-        intent = build_learning_training_intent(
-            user_id="",
-            concept_label=concept,
-            error_label=error,
-            evidence_refs=evidence_refs,
-            question_count=3,
-            training_mode="mixed_review",
-            reason=str(top.get("meta") or ""),
-        )
-        return _with_next_best_action_view({
+            }
+        return {
             "title": f"先做 3 道“{concept}”专项题",
             "subtitle": f"目标：把“{error}”这一类错误拉回主线",
             "concept": concept,
             "error": error,
-            "intent": intent,
+            "intent": build_learning_training_intent(
+                user_id="",
+                concept_label=concept,
+                error_label=error,
+                evidence_refs=evidence_refs,
+                question_count=3,
+                training_mode="mixed_review",
+                reason=str(top.get("meta") or ""),
+            ),
             "cta": "开始训练",
             "estimated_minutes": 8,
-        }, intent=intent)
+        }
     if next_training:
         item = _safe_dict(next_training[0])
         title = _clean_learning_text(item.get("display_title") or item.get("claim") or "下一步训练")
         meta = _clean_learning_text(item.get("display_meta") or item.get("display_label") or "")
-        intent = build_learning_training_intent(user_id="", reason=meta, question_count=3)
-        return _with_next_best_action_view({
+        return {
             "title": title or "先完成一组专项训练",
             "subtitle": meta or "完成后系统会继续更新你的学情判断",
             "concept": "",
-            "intent": intent,
+            "intent": build_learning_training_intent(user_id="", reason=meta, question_count=3),
             "cta": "开始训练",
             "estimated_minutes": 8,
-        }, intent=intent)
-    intent = build_learning_training_intent(user_id="", reason="starter", question_count=3)
-    return _with_next_best_action_view({
+        }
+    return {
         "title": "先完成一组练习",
         "subtitle": "完成批改后，系统会生成你的错因和下一步训练",
         "concept": "",
-        "intent": intent,
+        "intent": build_learning_training_intent(user_id="", reason="starter", question_count=3),
         "cta": "去练习",
         "estimated_minutes": 10,
-    }, intent=intent)
-
-
-def _with_next_best_action_view(card: dict[str, Any], *, intent: dict[str, Any]) -> dict[str, Any]:
-    actions = build_next_best_actions(user_id="", training_intents=[intent], max_actions=1)
-    action = _safe_dict(actions[0] if actions else {})
-    enriched = dict(card)
-    enriched.update({
-        "action_id": action.get("action_id") or "",
-        "training_intent_id": action.get("training_intent_id") or str(intent.get("training_intent_id") or ""),
-        "source": action.get("source") or "training_intent",
-        "prescription_authority": action.get("prescription_authority") or "training_intent",
-        "why_this_now": action.get("why_this_now") or "",
-        "evidence_refs": _safe_list(action.get("evidence_refs")),
-        "intent": _safe_dict(action.get("intent")) or dict(intent),
-    })
-    return enriched
+    }
 
 
 def _truth_sections(events: list[Any]) -> dict[str, list[dict[str, Any]]]:

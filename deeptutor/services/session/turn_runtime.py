@@ -133,38 +133,6 @@ def _should_capture_assistant_content(event: StreamEvent) -> bool:
     return str(metadata.get("call_kind") or "").strip() in _CAPTURED_ASSISTANT_CALL_KINDS
 
 
-def _learning_prompt_intent_trace_metadata(intent: Any) -> dict[str, Any]:
-    if not isinstance(intent, dict):
-        return {}
-    training_intent_id = str(intent.get("training_intent_id") or "").strip()
-    if not training_intent_id:
-        return {}
-    evidence_refs = intent.get("evidence_refs")
-    if not isinstance(evidence_refs, list):
-        evidence_refs = intent.get("supporting_event_ids")
-    attempt_refs = intent.get("attempt_refs")
-    if not isinstance(attempt_refs, list):
-        attempt_refs = intent.get("attempt_ids")
-    metadata: dict[str, Any] = {
-        "gbrain_training_intent_id": training_intent_id,
-        "gbrain_evidence_ref_count": len(evidence_refs) if isinstance(evidence_refs, list) else 0,
-        "gbrain_attempt_ref_count": len(attempt_refs) if isinstance(attempt_refs, list) else 0,
-        "gbrain_prescription_authority": "training_intent",
-    }
-    for source_key, metadata_key in (
-        ("concept_id", "gbrain_concept_id"),
-        ("error_code", "gbrain_error_code"),
-        ("learning_signal_type", "gbrain_learning_signal_type"),
-        ("training_outcome", "gbrain_training_outcome"),
-        ("outcome", "gbrain_training_outcome"),
-        ("source", "gbrain_prompt_source"),
-    ):
-        value = str(intent.get(source_key) or "").strip()
-        if value and metadata_key not in metadata:
-            metadata[metadata_key] = value
-    return metadata
-
-
 def _extract_authoritative_assistant_content(event: StreamEvent) -> str:
     if _event_visibility(event) != _PUBLIC_VISIBILITY:
         return ""
@@ -2954,6 +2922,14 @@ class TurnRuntimeManager:
             "semantic_router_scope",
             "interaction_hints",
             "billing_context",
+            "grading_engine_runtime_shadow",
+            "grading_engine_runtime_shadow_engine",
+            "grading_engine_runtime_shadow_mode",
+            "grading_engine_runtime_shadow_cache_student_id",
+            "grading_engine_v1_beta_shadow",
+            "enable_luban_v1_beta_shadow",
+            "grading_engine_v1_controlled_runtime",
+            "grading_engine_v1_llm_adjudication",
             "interaction_profile",
             "chat_mode_explicit",
             "context_orchestration_enabled",
@@ -3888,9 +3864,6 @@ class TurnRuntimeManager:
             user_id = str((billing_context or {}).get("user_id", "") or "").strip()
             if user_id:
                 trace_metadata["user_id"] = user_id
-            trace_metadata.update(
-                _learning_prompt_intent_trace_metadata(request_config.get("learning_prompt_intent"))
-            )
             try:
                 usage_scope_cm = observability.usage_scope(
                     scope_id=turn_id,
