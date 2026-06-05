@@ -6,7 +6,7 @@ This is the working matrix for the next 30-round real or near-real WeChat TutorB
 
 Current evidence status:
 
-- `real_wechat_package`: partially covered. QA30-017/018 have WeChat DevTools automation evidence for `yousenwebview/packageDeeptutor` visible-card submit/retry payload authority. Full terminal answer quality over `/api/v1/ws` is still pending.
+- `real_wechat_package`: partially covered. QA30-017/018 have WeChat DevTools automation evidence for `yousenwebview/packageDeeptutor` visible-card submit/retry payload authority. QA30-002 now has one real DevTools terminal-answer smoke for `/api/v1/chat/start-turn` + `/api/v1/ws` after `WX-REAL-004`; the full 30-round terminal answer quality loop is still pending.
 - `standalone_shadow`: partially covered. `wx_miniprogram/pages/chat/chat.js` context continuity was fixed only as shadow parity.
 - `node_contract`: covered for the current P1 shadow parity fix.
 - `backend_harness`: expanded for the active-question option challenge regression. `minimal_final7` passed 3/3 on local `/api/v1/chat/start-turn` + `/api/v1/ws`; earlier `minimal_final4/5/6` all failed 1/3 and are retained as before/after evidence under the ignored artifact directory.
@@ -141,6 +141,52 @@ P2:
 | `EVIDENCE-001` | P1 | open | QA evidence can confuse real `packageDeeptutor` path with standalone/shadow `wx_miniprogram` path | subagent reachability audit | Every future ledger row must set `entry_surface` and report evidence boundary |
 | `EVIDENCE-002` | P1 | fixed | `yousenwebview` DevTools runtime base URL contract drifted: implementation defaulted local for QA, but the contract test still expected remote and a temporary comment said to revert | `node yousenwebview/tests/test_app_runtime_base_selection.js` failed before this fix; DevTools runtime evaluate returned local-first base candidates | Keep develop+DevTools local-first as the canonical internal QA mode, remove temporary revert comment, and add explicit remote-mode assertions |
 | `WX-AUTH-003` | P1 | fixed in backend harness | Active question option challenge such as `那C呢？一句话` could be interpreted by different modules as option submission, practice generation, or new question review. The shared failure shape was duplicate decision authority: option parsing, semantic router, lifecycle `question_review`, and mobile session alias all had partial authority over the same current-question fact. | Before: `minimal_final4/5/6` each passed 1/3. `minimal_final6` showed old historical question moved to `suspended_object_stack` while `question_review`/`deep_question_generation` created a C-language question. After: `minimal_final7` passed 3/3 and kept `historical:cf366dd4c395fffa` across follow-up and regrade. | Keep option-challenge wording as follow-up, clear misleading generation hints without explicit practice intent, preserve stored active question before suspend, resolve mobile public/mirror session ids without mirror-of-mirror, and make lifecycle `question_review` defer to active-question semantic routing before free-text review. |
+| `WX-REAL-004` | P1 | fixed in real `packageDeeptutor` | Backend and `ws-stream` delivered the correct public TutorBot final answer, but the package renderer treated public phrases like `标准答案是 D` as hidden answer authority and sanitized the visible message to empty. | Before: real DevTools probe for `unified_1780691416028_69b788c2` / `turn_1780691416030_a1570ba196` saw `_onToken len=42` and `_onFinal responseLen=42`, but final AI `content/renderableContent` length was `0`. After: real DevTools probe for `unified_1780692282387_81bf021b` / `turn_1780692282389_f4cdd6118a` had `content/renderableContent` length `42` with `不对，标准答案是 D（D. 5%）...`. | Move phrase-based hidden-answer redaction out of public AI content projection: `ai-message-state.coerceUserVisibleContent()` now keeps public final prose while still blocking deterministic internal DSML/toolcall leakage. Keep `render-schema` authority scrubbing for structured MCQ/followup/presentation boundaries. |
+
+## Real WeChat Finding: `WX-REAL-004`
+
+One business fact:
+
+> A backend-public TutorBot final answer must remain visible as the terminal AI message in the real WeChat package.
+
+One authority:
+
+- Writer: backend TutorBot `/api/v1/ws` public `content` / `result.metadata.response`.
+- Transfer: `yousenwebview/packageDeeptutor/utils/ws-stream.js` forwards public `content` and `final` events.
+- Reader/projection: `packageDeeptutor/pages/chat/chat.js` and `utils/ai-message-state.js` project the already-public answer into page state.
+- Boundary: frontend rendering may block deterministic internal tool leakage, but it must not reclassify public final answer text as hidden answer authority.
+
+Competing authorities found:
+
+- `render-schema.sanitizeAuthorityMarkdownText()` was written for structured hidden fields (`correct_answer`, `grading_key`, MCQ followup context, presentation fallback), but `ai-message-state.coerceUserVisibleContent()` reused it for public final prose.
+- The subsequent `done` event made the empty projection look like a transport or TutorBot refusal, but the first wrong reader was the public-content sanitizer.
+
+Break point:
+
+- Last correct point: real DevTools probe saw `_onToken` with length `42` and `_onFinal.responseLen=42`.
+- First wrong point: `coerceUserVisibleContent()` called `sanitizeAuthorityMarkdownText()` and turned `不对，标准答案是 D...` into an empty visible message.
+
+Fix type:
+
+- 收权 and demotion. Public final content stays under backend stream authority; structured hidden-field redaction remains in `render-schema` where it belongs. No new chat WebSocket, no new answer authority, no production DB write.
+
+After evidence:
+
+```json
+{
+  "entry_surface": "real_wechat_package",
+  "round_id": "QA30-002",
+  "conversation_id": "unified_1780692282387_81bf021b",
+  "turn_id": "turn_1780692282389_f4cdd6118a",
+  "resolved_authority": "tutorbot_exact_fast_path",
+  "learner_answer": "C",
+  "official_answer": "D",
+  "actual": "不对，标准答案是 D（D. 5%），题库解析依据是：屋面最小坡度：压型金属板：5%。",
+  "correctness": "pass",
+  "refusal_class": "not_refusal",
+  "customer_satisfaction": 5
+}
+```
 
 ## Backend Harness Finding: `WX-AUTH-003`
 
@@ -193,6 +239,7 @@ node yousenwebview/tests/test_app_runtime_base_selection.js
 node yousenwebview/tests/test_api_base_failover.js
 node yousenwebview/tests/test_chat_send_surface_telemetry.js
 node yousenwebview/tests/test_ws_stream_auth_refresh.js
+node yousenwebview/tests/test_question_review_readonly_mcq.js
 node yousenwebview/tests/test_package_chat_retry_billing_contract.js
 pytest -q tests/api/test_mobile_router.py::test_mobile_chat_start_turn_uses_canonical_runtime_session_for_mirror_conversation tests/api/test_mobile_router.py::test_mobile_chat_start_turn_keeps_direct_runtime_session_when_direct_and_mirror_exist tests/api/test_mobile_router.py::test_mobile_chat_start_turn_passes_chat_mode_and_followup_context tests/api/test_mobile_router.py::test_mobile_chat_start_turn_requires_authentication tests/api/test_mobile_router.py::test_mobile_chat_start_turn_rejects_other_users_conversation tests/api/test_mobile_router.py::test_list_conversations_uses_owner_source_and_archived_filters tests/api/test_mobile_router.py::test_list_conversations_can_request_archived_items tests/api/test_mobile_router.py::test_get_conversation_messages_merges_internal_tutorbot_variants tests/api/test_mobile_router.py::test_get_conversation_messages_rejects_existing_non_mobile_session tests/api/test_mobile_router.py::test_delete_conversation_deletes_direct_and_mirror_variants
 pytest -q tests/services/test_question_followup.py tests/services/test_semantic_router.py tests/services/test_semantic_router_eval_cases.py tests/services/test_semantic_router_stack.py
@@ -205,6 +252,7 @@ All listed checks passed in the current run where applicable. The runtime base U
 - `node yousenwebview/tests/test_app_runtime_base_selection.js` -> `PASS test_app_runtime_base_selection.js (11 assertions)`
 - `node wx_miniprogram/tests/test_app_runtime_base_selection.js` -> `PASS test_app_runtime_base_selection.js (6 assertions)`
 - WeChat DevTools automation read `getApp().globalData` from `yousenwebview`: `apiUrl=http://127.0.0.1:8001`, `gatewayUrl=http://127.0.0.1:8001`, candidates `[8001, 8012, https://test2.yousenjiaoyu.com]`.
+- WeChat DevTools terminal-answer smoke after `WX-REAL-004`: real `packageDeeptutor/pages/chat/chat`, `conversation_id=unified_1780692282387_81bf021b`, `turn_id=turn_1780692282389_f4cdd6118a`, `_onToken len=42`, `_onFinal responseLen=42`, final `content/renderableContent len=42`.
 
 Not run yet:
 

@@ -23,9 +23,7 @@ function coerceUserVisibleContent(text) {
       return INTERNAL_FALLBACK;
     }
   }
-  return renderSchema.sanitizeAuthorityMarkdownText
-    ? renderSchema.sanitizeAuthorityMarkdownText(source)
-    : source;
+  return source;
 }
 
 function toInlineContent(text) {
