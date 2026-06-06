@@ -55,7 +55,10 @@ from deeptutor.services.question_followup import (
     reset_question_submission_state,
     resolve_submission_attempt,
 )
-from deeptutor.services.question_lifecycle_skills import looks_like_free_text_mcq_grading_request
+from deeptutor.services.question_lifecycle_skills import (
+    looks_like_free_text_mcq_grading_request,
+    looks_like_free_text_mcq_question_surface,
+)
 from deeptutor.services.semantic_router import (
     build_turn_semantic_decision as build_semantic_turn_decision,
     has_explicit_practice_generation_intent,
@@ -835,7 +838,10 @@ def _should_ignore_explicit_context_for_free_text_mcq(
     normalized_context = normalize_question_followup_context(question_context)
     if normalized_context is None:
         return False
-    if not looks_like_free_text_mcq_grading_request(user_message):
+    if not (
+        looks_like_free_text_mcq_grading_request(user_message)
+        and looks_like_free_text_mcq_question_surface(user_message)
+    ):
         return False
     return not _question_context_matches_free_text_surface(user_message, normalized_context)
 
@@ -922,7 +928,10 @@ async def _resolve_question_followup_context_and_action(
 ) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
     normalized_explicit = normalize_question_followup_context(explicit_context)
     normalized_action = _normalize_question_followup_action(explicit_action)
-    free_text_mcq_grading_request = looks_like_free_text_mcq_grading_request(user_message)
+    free_text_mcq_grading_request = (
+        looks_like_free_text_mcq_grading_request(user_message)
+        and looks_like_free_text_mcq_question_surface(user_message)
+    )
     if _should_ignore_explicit_context_for_free_text_mcq(user_message, normalized_explicit):
         normalized_explicit = None
         normalized_action = None
@@ -951,13 +960,6 @@ async def _resolve_question_followup_context_and_action(
             return submission_context or normalized_explicit, submission_action
         if _has_ambiguous_submission_attempt(user_message, normalized_explicit):
             return normalized_explicit, None
-        deterministic_followup_action = _deterministic_followup_action_for_user_message(
-            user_message,
-            normalized_explicit,
-        )
-        if deterministic_followup_action is not None:
-            return normalized_explicit, deterministic_followup_action
-        deterministic_followup = looks_like_question_followup(user_message, normalized_explicit)
         if (
             followup_action_route(normalized_action) == "practice_generation"
             and not looks_like_practice_generation_request(user_message)
@@ -975,6 +977,12 @@ async def _resolve_question_followup_context_and_action(
                 )
                 normalized_action = practice_action
             else:
+                deterministic_followup_action = _deterministic_followup_action_for_user_message(
+                    user_message,
+                    normalized_explicit,
+                )
+                if deterministic_followup_action is not None:
+                    return normalized_explicit, deterministic_followup_action
                 normalized_action = await interpret_question_followup_action(
                     user_message,
                     normalized_explicit,
@@ -984,7 +992,12 @@ async def _resolve_question_followup_context_and_action(
                     and not looks_like_practice_generation_request(user_message)
                 ):
                     normalized_action = None
-        if deterministic_followup and followup_action_route(normalized_action) == "practice_generation":
+        deterministic_followup = looks_like_question_followup(user_message, normalized_explicit)
+        if (
+            deterministic_followup
+            and followup_action_route(normalized_action) == "practice_generation"
+            and not looks_like_practice_generation_request(user_message)
+        ):
             normalized_action = None
         return normalized_explicit, normalized_action
 
@@ -1010,12 +1023,6 @@ async def _resolve_question_followup_context_and_action(
             return submission_context or normalized_candidate, submission_action
         if _has_ambiguous_submission_attempt(user_message, normalized_candidate):
             return normalized_candidate, None
-        deterministic_followup_action = _deterministic_followup_action_for_user_message(
-            user_message,
-            normalized_candidate,
-        )
-        if deterministic_followup_action is not None:
-            return normalized_candidate, deterministic_followup_action
         practice_action = _practice_generation_action_for_explicit_request(
             user_message,
             normalized_candidate,
@@ -1025,6 +1032,12 @@ async def _resolve_question_followup_context_and_action(
                 reset_question_submission_state(normalized_candidate) or normalized_candidate,
                 practice_action,
             )
+        deterministic_followup_action = _deterministic_followup_action_for_user_message(
+            user_message,
+            normalized_candidate,
+        )
+        if deterministic_followup_action is not None:
+            return normalized_candidate, deterministic_followup_action
         deterministic_followup = looks_like_question_followup(user_message, normalized_candidate)
         candidate_action = await interpret_question_followup_action(
             user_message,

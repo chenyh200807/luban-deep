@@ -32,7 +32,7 @@ def test_brief_reference_feedback_answers_wrong_cause_intent() -> None:
         user_message="错因是什么？10个字以内。",
     )
 
-    assert response == "误选槽段长度。"
+    assert response.startswith("误选槽段长度8-10")
 
 
 def test_brief_reference_feedback_answers_specific_value_challenge() -> None:
@@ -41,7 +41,8 @@ def test_brief_reference_feedback_answers_specific_value_challenge() -> None:
         user_message="那1.0m到底行不行？10字以内。",
     )
 
-    assert response == "不行，应≥1.2m。"
+    assert "正确答案是" in response
+    assert "导墙高度应≥1.2m" in response
 
 
 def test_brief_reference_feedback_answers_missing_selection_check() -> None:
@@ -68,3 +69,37 @@ def test_brief_reference_feedback_answers_missing_selection_check() -> None:
     )
 
     assert response == "没漏，ABE都选对。"
+
+
+def test_reference_feedback_targets_indexed_question_set_item() -> None:
+    response = _render_deterministic_reference_feedback(
+        {
+            "question_id": "quiz_generated",
+            "question": "第1题...\n第2题...",
+            "question_type": "choice",
+            "items": [
+                {
+                    "question_id": "q_1",
+                    "question": "第1题",
+                    "question_type": "single_choice",
+                    "options": {"A": "违法分包", "B": "合法分包"},
+                    "correct_answer": "A",
+                    "explanation": "主体结构不得分包。",
+                },
+                {
+                    "question_id": "q_2",
+                    "question": "第2题",
+                    "question_type": "single_choice",
+                    "options": {"A": "不支付", "B": "验收合格可参照合同支付"},
+                    "grading_key": {"correct_answer": "B"},
+                    "user_answer": "A",
+                    "is_correct": False,
+                    "explanation": "合同无效但工程验收合格时可参照合同约定支付工程款。",
+                },
+            ],
+        },
+        user_message="现在公布第2题答案和解析，不要批第1题。",
+    )
+
+    assert "验收合格可参照合同支付" in response
+    assert "主体结构不得分包" not in response

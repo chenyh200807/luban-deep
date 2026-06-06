@@ -184,9 +184,9 @@ async def resolve_question_lifecycle_scene_decision(
     this function's business-gated ``QuestionLifecycleSceneDecision``.
     """
 
-    scene = derive_question_lifecycle_scene(ctx)
     user_message = str(getattr(ctx, "user_message", None) or "").strip()
     metadata = getattr(ctx, "metadata", None) or {}
+    scene = derive_question_lifecycle_scene(ctx)
     unanchored_submission = (
         _looks_like_unanchored_mcq_answer_submission(user_message, metadata)
         and scene != "mcq_grading"
@@ -195,7 +195,9 @@ async def resolve_question_lifecycle_scene_decision(
         user_message,
         metadata,
     )
-    low_information_exam_query = is_low_information_exam_query(user_message)
+    low_information_exam_query = is_low_information_exam_query(
+        user_message
+    ) and not _active_question_context_from_metadata(metadata)
     free_text_mcq_answer_request = _looks_like_free_text_mcq_answer_request(user_message)
     clarification_intent = (
         _resolve_clarification_option_intent(user_message, metadata)
@@ -837,10 +839,13 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
     user_message = (getattr(ctx, "user_message", None) or "").strip()
     if not user_message:
         return None
-    if is_low_information_exam_query(user_message):
-        return None
 
     metadata = getattr(ctx, "metadata", None) or {}
+    question_context = _active_question_context_from_metadata(metadata)
+    low_information_exam_query = is_low_information_exam_query(user_message)
+    if low_information_exam_query and not question_context:
+        return None
+
     if isinstance(metadata, dict):
         clarification_intent = _resolve_clarification_option_intent(user_message, metadata)
         if clarification_intent == "exam_catalog_query":
@@ -857,9 +862,12 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
     if _looks_like_free_text_case_grading(user_message):
         return "case_grading"
 
-    question_context = normalize_question_followup_context(
+    question_context = question_context or normalize_question_followup_context(
         metadata.get("question_followup_context") if isinstance(metadata, dict) else None
     ) or {}
+
+    if low_information_exam_query and question_context:
+        return "question_review"
 
     if question_context:
         _target_context, submission = resolve_submission_attempt(user_message, question_context)
@@ -956,6 +964,16 @@ def looks_like_free_text_mcq_grading_request(text: str) -> bool:
     """Return true when the message contains a full free-text MCQ grading request."""
 
     return _looks_like_free_text_mcq_grading(str(text or ""))
+
+
+def looks_like_free_text_mcq_question_surface(text: str) -> bool:
+    """Return true when the message carries its own MCQ option surface."""
+
+    user_message = str(text or "")
+    return (
+        _FREE_TEXT_MCQ_OPTION_LIST_RE.search(user_message) is not None
+        or _looks_like_value_only_mcq_option_surface(user_message)
+    )
 
 
 def _parse_llm_scene_payload(raw: Any) -> dict[str, Any] | None:
@@ -1148,6 +1166,29 @@ def project_question_lifecycle_scene_from_metadata(ctx: Any) -> str | None:
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
+
+def _active_question_context_from_metadata(metadata: Any) -> dict[str, Any]:
+    if not isinstance(metadata, dict):
+        return {}
+    try:
+        from deeptutor.services.question_followup import (  # noqa: WPS433
+            normalize_question_followup_context,
+        )
+    except Exception:
+        return {}
+
+    direct = normalize_question_followup_context(metadata.get("question_followup_context"))
+    if direct:
+        return direct
+
+    active_object = metadata.get("active_object")
+    if not isinstance(active_object, dict):
+        return {}
+    snapshot = active_object.get("state_snapshot")
+    if not isinstance(snapshot, dict):
+        return {}
+    return normalize_question_followup_context(snapshot) or {}
 
 
 def _looks_like_free_text_case_grading(user_message: str) -> bool:

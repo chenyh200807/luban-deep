@@ -75,6 +75,12 @@ _SUPPRESS_ANSWER_MARKERS = (
     "别给答案",
     "别直接给答案",
     "不要答案",
+    "先不公布答案",
+    "不公布答案",
+    "不要公布答案",
+    "别公布答案",
+    "先别公布答案",
+    "暂不公布答案",
     "先别解析",
     "先不要解析",
     "不要解析",
@@ -725,7 +731,11 @@ def resolve_submission_attempt(
             if narrowed:
                 if _numbered_tail_looks_like_followup_question(item_message):
                     return narrowed, None
-                answer = _extract_single_submission(item_message, narrowed)
+                answer = _extract_single_submission(
+                    item_message,
+                    narrowed,
+                    allow_invalid_multi_option=True,
+                )
                 if answer is not None:
                     return narrowed, {
                         "kind": "single",
@@ -870,7 +880,11 @@ def should_reveal_reference_material(
         return True
     text = str(message or "").strip().lower()
     explicit_request_markers = ("参考答案", "标准答案", "正确答案", "答案", "解析", "讲解", "为什么", "错因")
-    return any(marker in text for marker in explicit_request_markers)
+    if any(marker in text for marker in explicit_request_markers):
+        if should_block_unanswered_reference_reveal(message, normalized):
+            return False
+        return True
+    return False
 
 
 def should_block_unanswered_reference_reveal(
@@ -882,6 +896,14 @@ def should_block_unanswered_reference_reveal(
         return False
     if normalized.get("reveal_explanations") or normalized.get("reveal_answers"):
         return False
+    requested_index = requested_question_item_index(message, normalized)
+    if requested_index is not None:
+        items = normalized.get("items") or []
+        if isinstance(items, list) and 1 <= requested_index <= len(items):
+            item = items[requested_index - 1]
+            if isinstance(item, dict) and _question_has_learner_attempt(item):
+                return False
+        return not _looks_like_answer_concession(message)
     if _question_has_learner_attempt(normalized):
         return False
     return not _looks_like_answer_concession(message)
@@ -907,6 +929,28 @@ def _question_has_learner_attempt(question_context: dict[str, Any]) -> bool:
 def _looks_like_answer_concession(message: str) -> bool:
     text = str(message or "").strip()
     return any(marker in text for marker in _ANSWER_CONCESSION_MARKERS)
+
+
+def requested_question_item_index(
+    message: str,
+    question_context: dict[str, Any] | None,
+) -> int | None:
+    normalized = normalize_question_followup_context(question_context)
+    if not normalized:
+        return None
+    items = normalized.get("items") or []
+    if not isinstance(items, list) or len(items) < 2:
+        return None
+    text = str(message or "").strip()
+    if not text:
+        return None
+    match = re.search(r"第\s*([0-9一二两三四五六七八九十]+)\s*[题问]", text)
+    if not match:
+        return None
+    index = _parse_small_zh_number(match.group(1))
+    if index is None or index < 1 or index > len(items):
+        return None
+    return index
 
 
 def build_question_followup_context_from_result_summary(
@@ -1132,12 +1176,21 @@ def extract_choice_result_summary_from_text(text: str) -> dict[str, Any] | None:
     return {"results": results}
 
 
-def _extract_single_submission(message: str, question_context: dict[str, Any]) -> str | None:
+def _extract_single_submission(
+    message: str,
+    question_context: dict[str, Any],
+    *,
+    allow_invalid_multi_option: bool = False,
+) -> str | None:
     text = str(message or "").strip()
     if not text:
         return None
 
-    option_answer = _extract_option_submission(text, question_context)
+    option_answer = _extract_option_submission(
+        text,
+        question_context,
+        allow_invalid_multi_option=allow_invalid_multi_option,
+    )
     if option_answer is not None:
         return option_answer
 
@@ -1349,7 +1402,11 @@ def _parse_numbered_batch_submission(
                 }
             )
             continue
-        answer = _extract_single_submission(fragment, items[item_index - 1])
+        answer = _extract_single_submission(
+            fragment,
+            items[item_index - 1],
+            allow_invalid_multi_option=True,
+        )
         if answer is None:
             return None
         seen_indexes.add(item_index)
@@ -1404,7 +1461,11 @@ def _parse_compact_numbered_batch_submission(
                 }
             )
             continue
-        answer = _extract_single_submission(fragment, items[item_index - 1])
+        answer = _extract_single_submission(
+            fragment,
+            items[item_index - 1],
+            allow_invalid_multi_option=True,
+        )
         if answer is None:
             return None
         seen_indexes.add(item_index)
@@ -1424,7 +1485,11 @@ def _extract_unmatched_batch_answer(fragment: str) -> str | None:
     match = re.fullmatch(r"[A-E](?:[、，,/／]*[A-E])*", compact)
     if not match:
         return None
-    return _normalize_option_answer(compact, {"question_type": "choice", "options": {key: key for key in "ABCDE"}})
+    return _normalize_option_answer(
+        compact,
+        {"question_type": "choice", "options": {key: key for key in "ABCDE"}},
+        allow_multi=True,
+    )
 
 
 def _parse_batch_correction_submission(
@@ -1502,7 +1567,12 @@ def _parse_positional_batch_submission(
     return answers or None
 
 
-def _extract_option_submission(message: str, question_context: dict[str, Any]) -> str | None:
+def _extract_option_submission(
+    message: str,
+    question_context: dict[str, Any],
+    *,
+    allow_invalid_multi_option: bool = False,
+) -> str | None:
     text = str(message or "").strip()
     if not text:
         return None
@@ -1533,11 +1603,19 @@ def _extract_option_submission(message: str, question_context: dict[str, Any]) -
     for pattern in letter_patterns:
         match = re.fullmatch(pattern, compact_upper)
         if match:
-            normalized = _normalize_option_answer(match.group(1), question_context)
+            normalized = _normalize_option_answer(
+                match.group(1),
+                question_context,
+                allow_multi=allow_invalid_multi_option,
+            )
             if normalized is not None:
                 return normalized
 
-    letter_answer = _extract_explicit_option_letter_submission(text, question_context)
+    letter_answer = _extract_explicit_option_letter_submission(
+        text,
+        question_context,
+        allow_invalid_multi_option=allow_invalid_multi_option,
+    )
     if letter_answer is not None:
         return letter_answer
 
@@ -1550,7 +1628,11 @@ def _extract_option_submission(message: str, question_context: dict[str, Any]) -
 
     stripped = _LEADING_SUBMISSION_PREFIX.sub("", text).strip().strip("。.!！?，,：:")
     for fragment in re.split(r"[，,。.!！?；;\s]+", stripped):
-        normalized = _normalize_option_answer(fragment, question_context)
+        normalized = _normalize_option_answer(
+            fragment,
+            question_context,
+            allow_multi=allow_invalid_multi_option,
+        )
         if normalized is not None:
             return normalized
     return None
@@ -1583,7 +1665,8 @@ def _looks_like_option_challenge_followup(
 
     patterns = [
         rf"{question_markers}.{{0,12}}?(?:不是|不选|不能选|不该选|不对|错|错误)?{letter}.*",
-        rf"{letter}.{{0,12}}?{question_markers}.{{0,12}}?(?:不对|错|错误|不是|不选|不能选|不行|不可以)",
+        rf".{{0,20}}?{letter}.{{0,12}}?{question_markers}.{{0,12}}?(?:不对|错|错误|不是|不选|不能选|不行|不可以|对|正确)",
+        rf"{letter}.{{0,12}}?{question_markers}.{{0,12}}?(?:不对|错|错误|不是|不选|不能选|不行|不可以|对|正确)",
         rf"{letter}.{{0,8}}?{negative_markers}{response_constraint_tail}",
         rf"(?:那|这个|这|那么|如果是|要是)?{letter}呢{response_constraint_tail}",
     ]
@@ -1631,6 +1714,8 @@ def _looks_like_option_value_challenge_followup(
 def _extract_explicit_option_letter_submission(
     message: str,
     question_context: dict[str, Any],
+    *,
+    allow_invalid_multi_option: bool = False,
 ) -> str | None:
     text = str(message or "").strip()
     if not text:
@@ -1649,7 +1734,11 @@ def _extract_explicit_option_letter_submission(
         match = re.search(pattern, text, flags=re.IGNORECASE)
         if not match:
             continue
-        normalized = _normalize_option_answer(match.group(1), question_context)
+        normalized = _normalize_option_answer(
+            match.group(1),
+            question_context,
+            allow_multi=allow_invalid_multi_option,
+        )
         if normalized is not None:
             return normalized
     return None
@@ -1680,7 +1769,12 @@ def _message_contains_option_table(message: str, question_context: dict[str, Any
     return hits >= 2
 
 
-def _normalize_option_answer(value: str, question_context: dict[str, Any]) -> str | None:
+def _normalize_option_answer(
+    value: str,
+    question_context: dict[str, Any],
+    *,
+    allow_multi: bool = False,
+) -> str | None:
     token = str(value or "").strip().upper()
     if not token:
         return None
@@ -1690,7 +1784,11 @@ def _normalize_option_answer(value: str, question_context: dict[str, Any]) -> st
     available = set(_available_option_keys(question_context))
     if any(letter not in available for letter in letters):
         return None
-    if len(set(letters)) > 1 and not _question_allows_multi_option_answer(question_context):
+    if (
+        len(set(letters)) > 1
+        and not allow_multi
+        and not _question_allows_multi_option_answer(question_context)
+    ):
         return None
     normalized_letters: list[str] = []
     for letter in sorted(set(letters)):

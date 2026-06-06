@@ -25,6 +25,17 @@ Question source manifest:
 
 Do not use `standalone_shadow`, `node_contract`, or `backend_harness` rows as proof that the real `yousenwebview/packageDeeptutor` WeChat path passed.
 
+## Anti-Overfit QA Policy
+
+- `QA30-R3-FIX-*` scenarios are high-risk spot regressions, not full real DevTools closure and not a complete language-understanding oracle.
+- Marker phrases in issue rows are examples of semantic polarity or item identity; they must not be treated as the full rule set. A fix passes only when the canonical question authority, hidden/public answer split, and visible response all agree.
+- Before promoting an after-fix scenario to a release gate, add at least one counterexample with similar words but opposite intent, such as suppressing answer reveal, asking for source/reference without answer, out-of-range item index, missing active object, or a false premise about an option.
+- If a scenario can only be fixed by adding more phrase markers while the authority path remains split, keep the issue open as authority/state work instead of marking it fixed.
+- 2026-06-06 review note: `QA30-NR-011` verifies that numeric option-value follow-up stays on the active question authority. The exact phrase `不行，应≥1.2m。` is not a release contract; expression-layer shortcuts hard-coded to this example were removed to avoid turning one QA sample into a general answer policy.
+- 2026-06-06 review note: pointing to `第 N 题` only identifies which item to project after reveal authorization has passed. It must not unlock answers for an unanswered question set; reveal still requires item-level learner attempt, explicit public reveal flags, or a clear concession such as giving up/skipping.
+- 2026-06-06 review note: low-information exam-index guards apply only when no active question object is available. If the current turn already has an active question, the active question context remains the authority; answer reveal is still fail-closed by learner-attempt / concession policy, not by a missing-anchor refusal.
+- 2026-06-06 review note: case scoring authority requires actual standard-answer / authoritative-answer / scoring-point / rubric evidence. A non-empty `case_bundle`, `grading_key`, or `covered_subquestions` shell is not enough to permit official-looking score claims.
+
 ## Single Authority Contract
 
 One business fact:
@@ -56,7 +67,7 @@ Each probe row must record:
 | Field | Required value |
 | --- | --- |
 | `round_id` | Stable id, e.g. `QA30-001` |
-| `entry_surface` | `real_wechat_package` / `standalone_shadow` / `node_contract` / `backend_harness` |
+| `entry_surface` | `real_wechat_package` / `near_real_http_ws` / `near_real_http_ws_*` / `wechat_harness_shadow` / `standalone_shadow` / `node_contract` / `backend_harness` |
 | `transcript` | Learner turns and TutorBot visible replies |
 | `conversation_id` | WeChat/backend conversation id, or `N/A` for static contract tests |
 | `turn_id` | Backend turn id, or `N/A` |
@@ -66,7 +77,7 @@ Each probe row must record:
 | `resolved_authority` | `exact_question`, `followup_question_context`, `lifecycle_clarification`, `rag_degraded_guard`, etc. |
 | `learner_answer` | Parsed learner answer, or `none` |
 | `official_answer` | Official answer if available |
-| `authority_trace` | How the system got from input to answer authority |
+| `authority_trace` | How the system got from input to answer authority; `trace_complete=true` means the local `turn_events + runtime_state` row can explain that path, not that the visible answer quality is automatically satisfactory |
 | `expected` | What a satisfied learner should receive |
 | `actual` | Visible TutorBot response |
 | `correctness` | pass / fail / partial |

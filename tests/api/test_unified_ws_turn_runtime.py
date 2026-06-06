@@ -587,6 +587,54 @@ async def test_explicit_question_value_challenge_routes_to_followup() -> None:
 
 
 @pytest.mark.asyncio
+async def test_explicit_question_option_explainer_is_not_treated_as_answer_submission() -> None:
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message="这个题的B为什么对？",
+        explicit_context={
+            "question_id": "historical:design_stage",
+            "question": "工程概算书属于（　　）文件内容。",
+            "question_type": "single_choice",
+            "options": {"A": "方案设计", "B": "初步设计", "C": "施工图设计", "D": "专项设计"},
+            "correct_answer": "B",
+            "user_answer": "A",
+            "is_correct": False,
+        },
+        explicit_action=None,
+        candidate_contexts=[],
+    )
+
+    assert resolved_context is not None
+    assert resolved_context["question_id"] == "historical:design_stage"
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "ask_followup"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("user_message", ["我选B。", "答案是B。", "B，批改一下。"])
+async def test_explicit_question_option_submission_still_routes_to_grading(
+    user_message: str,
+) -> None:
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message=user_message,
+        explicit_context={
+            "question_id": "historical:design_stage",
+            "question": "工程概算书属于（　　）文件内容。",
+            "question_type": "single_choice",
+            "options": {"A": "方案设计", "B": "初步设计", "C": "施工图设计", "D": "专项设计"},
+            "correct_answer": "B",
+        },
+        explicit_action=None,
+        candidate_contexts=[],
+    )
+
+    assert resolved_context is not None
+    assert resolved_context["question_id"] == "historical:design_stage"
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "answer_questions"
+    assert resolved_action["answers"][0]["answer"] == "B"
+
+
+@pytest.mark.asyncio
 async def test_answered_active_question_can_generate_related_questions_without_regrading() -> None:
     resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
         user_message="再给我相关的五道题，不要给答案，等我作答后再批改",
@@ -1683,10 +1731,23 @@ async def test_turn_runtime_excludes_internal_content_from_assistant_history(
     assert detail is not None
     assert detail["messages"][-1]["content"] == "建筑构造是研究建筑物组成方式和连接关系的学科。"
     assert any(event["visibility"] == "internal" for event in events if event["type"] == "content")
-    assert all(
-        item.get("visibility") == "public"
+    assistant_history_events = [
+        item
         for item in detail["messages"][-1]["events"]
         if item.get("type") not in {"done", "session"}
+    ]
+    assert all(
+        item.get("visibility") == "public"
+        or (
+            item.get("type") == "trace_link"
+            and item.get("visibility") == "internal"
+            and not str(item.get("content") or "").strip()
+        )
+        for item in assistant_history_events
+    )
+    assert all(
+        item.get("type") != "content" or item.get("content") != "我来读取相关技能文件。"
+        for item in assistant_history_events
     )
 
 

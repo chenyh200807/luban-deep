@@ -18,6 +18,7 @@ from deeptutor.services.question_followup import (
     normalize_question_followup_context,
     resolve_submission,
     resolve_submission_attempt,
+    should_block_unanswered_reference_reveal,
     should_reveal_reference_material,
 )
 from deeptutor.services.render_presentation import build_canonical_presentation
@@ -36,6 +37,61 @@ def test_detect_answer_reveal_preference_respects_suppress_request() -> None:
     assert detect_answer_reveal_preference("先别给答案，只问我第1问") is False
     assert detect_answer_reveal_preference("先不要直接给答案，先给作答要求") is False
     assert detect_answer_reveal_preference("不要先给答案，先考我") is False
+    assert detect_answer_reveal_preference("出3道建筑实务单选题，先不公布答案。") is False
+
+
+def test_resolve_submission_attempt_extracts_numbered_batch_with_wo_xuan_prefix() -> None:
+    question_set = {
+        "question_id": "quiz_generated",
+        "question": "第1题...\n第2题...",
+        "question_type": "choice",
+        "items": [
+            {
+                "question_id": "q_1",
+                "question": "第1题",
+                "question_type": "single_choice",
+                "options": {"A": "A1", "B": "B1", "C": "C1", "D": "D1"},
+                "grading_key": {"correct_answer": "A"},
+            },
+            {
+                "question_id": "q_2",
+                "question": "第2题",
+                "question_type": "single_choice",
+                "options": {"A": "A2", "B": "B2", "C": "C2", "D": "D2"},
+                "grading_key": {"correct_answer": "B"},
+            },
+        ],
+    }
+
+    target, submission = resolve_submission_attempt(
+        "第1题我选AC，第2题我选BD，批改一下。",
+        question_set,
+    )
+
+    assert target is not None
+    assert submission == {
+        "kind": "batch",
+        "answers": [
+            {"index": 1, "question_id": "q_1", "user_answer": "AC"},
+            {"index": 2, "question_id": "q_2", "user_answer": "BD"},
+        ],
+    }
+
+
+def test_resolve_submission_attempt_rejects_multi_option_single_choice_without_item_anchor() -> None:
+    target, submission = resolve_submission_attempt(
+        "我选AC，批改一下。",
+        {
+            "question_id": "q_single",
+            "question": "单选题。",
+            "question_type": "single_choice",
+            "options": {"A": "A1", "B": "B1", "C": "C1", "D": "D1"},
+            "grading_key": {"correct_answer": "A"},
+        },
+    )
+
+    assert target is not None
+    assert submission is None
 
 
 def test_unanswered_question_does_not_reveal_answer_on_direct_answer_request() -> None:
@@ -49,6 +105,59 @@ def test_unanswered_question_does_not_reveal_answer_on_direct_answer_request() -
     }
 
     assert should_reveal_reference_material("直接告诉我答案", question_context) is False
+
+
+def test_unanswered_question_set_blocks_indexed_reference_reveal_until_attempt() -> None:
+    question_context = {
+        "question_id": "quiz_generated",
+        "question": "第1题...\n第2题...",
+        "question_type": "choice",
+        "items": [
+            {
+                "question_id": "q_1",
+                "question": "第1题",
+                "question_type": "single_choice",
+                "options": {"A": "A1", "B": "B1"},
+                "correct_answer": "A",
+            },
+            {
+                "question_id": "q_2",
+                "question": "第2题",
+                "question_type": "single_choice",
+                "options": {"A": "A2", "B": "B2"},
+                "grading_key": {"correct_answer": "B"},
+            },
+        ],
+    }
+
+    assert should_block_unanswered_reference_reveal(
+        "现在公布第2题答案和解析，不要批第1题。",
+        question_context,
+    ) is True
+    assert should_reveal_reference_material(
+        "现在公布第2题答案和解析，不要批第1题。",
+        question_context,
+    ) is False
+
+    attempted_context = dict(question_context)
+    attempted_context["items"] = [dict(item) for item in question_context["items"]]
+    attempted_context["items"][1]["user_answer"] = "A"
+    attempted_context["items"][1]["is_correct"] = False
+
+    assert should_block_unanswered_reference_reveal(
+        "现在公布第2题答案和解析，不要批第1题。",
+        attempted_context,
+    ) is False
+
+    assert should_block_unanswered_reference_reveal(
+        "第2题参考哪个规范？先不要公布答案。",
+        question_context,
+    ) is True
+
+    assert should_block_unanswered_reference_reveal(
+        "现在公布第3题答案和解析。",
+        question_context,
+    ) is True
 
 
 def test_unanswered_question_reveals_when_learner_explicitly_concedes() -> None:

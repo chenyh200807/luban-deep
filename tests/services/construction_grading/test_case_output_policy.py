@@ -71,6 +71,40 @@ def test_case_grading_authority_applied_without_case_evidence_is_not_enough() ->
     )
 
 
+def test_case_bundle_shape_without_score_evidence_is_not_enough() -> None:
+    metadata = {
+        "question_lifecycle_scene": "case_grading",
+        "authority_applied": True,
+        "exact_question": {
+            "answer_kind": "case_bundle",
+            "case_bundle": {
+                "covered_subquestions": [{"display_index": "1", "stem": "分析不妥之处"}],
+                "coverage_state": "full",
+            },
+        },
+    }
+
+    assert not case_grading_score_authority_available(metadata)
+    assert should_demote_case_grading_hard_score(
+        "## 预计得分\n**4分 / 满分5分**\n",
+        runtime_metadata=metadata,
+    )
+
+
+def test_grading_key_shape_without_scoring_points_is_not_enough() -> None:
+    metadata = {
+        "question_lifecycle_scene": "case_grading",
+        "authority_applied": True,
+        "exact_question": {
+            "answer_kind": "case_study",
+            "grading_key": {"scoring_points": []},
+            "covered_subquestions": [{"display_index": "1"}],
+        },
+    }
+
+    assert not case_grading_score_authority_available(metadata)
+
+
 def test_case_bundle_answer_kind_with_case_bundle_keeps_score_path() -> None:
     metadata = {
         "question_lifecycle_scene": "case_grading",
@@ -81,6 +115,23 @@ def test_case_bundle_answer_kind_with_case_bundle_keeps_score_path() -> None:
                 "covered_subquestions": [{"authoritative_answer": "龄期应达到28天"}],
                 "coverage_state": "full",
             },
+        },
+    }
+
+    assert case_grading_score_authority_available(metadata)
+    assert not should_demote_case_grading_hard_score(
+        "## 预计得分\n**4分 / 满分5分**\n",
+        runtime_metadata=metadata,
+    )
+
+
+def test_case_grading_key_scoring_points_keep_score_path() -> None:
+    metadata = {
+        "question_lifecycle_scene": "case_grading",
+        "authority_applied": True,
+        "exact_question": {
+            "answer_kind": "case_study",
+            "grading_key": {"scoring_points": ["指出专项施工方案审批问题"]},
         },
     }
 

@@ -250,6 +250,29 @@ def test_low_information_exam_query_is_not_question_review(message: str):
     assert derive_question_lifecycle_scene(ctx) is None
 
 
+@pytest.mark.asyncio
+async def test_low_information_answer_request_with_active_question_uses_active_context():
+    ctx = _FakeContext(
+        user_message="我说了在题卡里，你就发答案。",
+        metadata={
+            "active_object": {
+                "object_type": "single_question",
+                "state_snapshot": _mcq_followup_context(),
+            }
+        },
+    )
+
+    assert is_low_information_exam_query(ctx.user_message) is True
+    assert derive_question_lifecycle_scene(ctx) == "question_review"
+
+    decision = await resolve_question_lifecycle_scene_decision(ctx, enable_llm=False)
+
+    assert decision.scene == "question_review"
+    assert decision.required_anchor_status == "satisfied"
+    assert decision.business_gate_result == "passed"
+    assert decision.exact_question_blocked_reason == ""
+
+
 @pytest.mark.parametrize(
     "message",
     [

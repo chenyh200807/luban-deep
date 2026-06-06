@@ -34,6 +34,7 @@ from deeptutor.services.question_followup import (
     build_question_followup_context_from_presentation,
     build_question_followup_context_from_result_summary,
     normalize_question_followup_context,
+    requested_question_item_index,
     resolve_submission_attempt,
     should_block_unanswered_reference_reveal,
     should_reveal_reference_material,
@@ -1024,6 +1025,7 @@ def _objective_items(question_context: dict[str, Any] | None) -> list[dict[str, 
     items = _grading_items(question_context)
     objective_items: list[dict[str, Any]] = []
     for item in items:
+        item = _promote_grading_key_correct_answer(item) or item
         question_type = str(item.get("question_type") or "").strip().lower()
         if question_type not in {
             "choice",
@@ -1045,6 +1047,7 @@ def _reference_items(question_context: dict[str, Any] | None) -> list[dict[str, 
     items = _grading_items(question_context)
     reference_items: list[dict[str, Any]] = []
     for item in items:
+        item = _promote_grading_key_correct_answer(item) or item
         if not str(item.get("correct_answer") or "").strip():
             return []
         reference_items.append(item)
@@ -1291,16 +1294,6 @@ def _brief_option_focus(option_text: str, *, fallback: str) -> str:
     text = _compact_text(option_text)
     if not text:
         return fallback
-    if "槽段" in text:
-        return "槽段长度"
-    if "导墙" in text and ("高度" in text or "1.0" in text or "1.2" in text):
-        return "导墙高度"
-    if "施工方案" in text:
-        return "施工方案"
-    if "支架构造" in text:
-        return "支架构造"
-    if "支架稳定" in text:
-        return "支架稳定"
     return text[:8] or fallback
 
 
@@ -1342,14 +1335,6 @@ def _render_brief_missing_selection_check(item: dict[str, Any]) -> str:
     return "需要题目答案才能判断。"
 
 
-def _render_brief_value_challenge(user_message: str, item: dict[str, Any]) -> str:
-    text = str(user_message or "")
-    explanation = str(item.get("explanation") or "")
-    if "1.0" in text and "1.2" in explanation:
-        return "不行，应≥1.2m。"
-    return ""
-
-
 def _render_targeted_brief_reference_feedback(
     user_message: str,
     question_context: dict[str, Any] | None,
@@ -1360,9 +1345,6 @@ def _render_targeted_brief_reference_feedback(
     if len(items) != 1:
         return ""
     item = items[0]
-    value_answer = _render_brief_value_challenge(user_message, item)
-    if value_answer:
-        return value_answer
     if _looks_like_wrong_cause_request(user_message):
         return _render_brief_wrong_cause(item)
     if _looks_like_missing_selection_check(user_message):
@@ -1377,6 +1359,9 @@ def _render_brief_reference_feedback(
     items = _reference_items(question_context)
     if not items:
         return ""
+    requested_index = requested_question_item_index(user_message, question_context)
+    if requested_index is not None and 1 <= requested_index <= len(items):
+        items = [items[requested_index - 1]]
     if len(items) == 1:
         item = items[0]
         objective = bool(_objective_items(item))
@@ -1412,6 +1397,9 @@ def _render_deterministic_reference_feedback(
     items = _reference_items(question_context)
     if not items:
         return ""
+    requested_index = requested_question_item_index(user_message, question_context)
+    if requested_index is not None and 1 <= requested_index <= len(items):
+        items = [items[requested_index - 1]]
     if len(items) == 1:
         item = items[0]
         objective = bool(_objective_items(item))

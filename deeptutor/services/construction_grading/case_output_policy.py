@@ -34,14 +34,44 @@ def case_grading_score_authority_available(runtime_metadata: dict[str, Any] | No
 
 def _exact_question_has_case_score_authority(exact_question: dict[str, Any]) -> bool:
     answer_kind = str(exact_question.get("answer_kind") or "").strip().lower()
-    case_bundle = exact_question.get("case_bundle")
-    if isinstance(case_bundle, dict) and case_bundle:
+    if _has_case_score_evidence(exact_question.get("case_bundle")):
         return True
-    if exact_question.get("grading_key") or exact_question.get("covered_subquestions"):
+    if _has_case_score_evidence(exact_question.get("grading_key")):
+        return True
+    if _has_case_score_evidence(exact_question.get("covered_subquestions")):
         return True
     if answer_kind not in _CASE_SCORE_AUTHORITY_KINDS:
         return False
     return bool(exact_question.get("correct_answer") or exact_question.get("authoritative_answer"))
+
+
+def _has_case_score_evidence(value: Any) -> bool:
+    if isinstance(value, list):
+        return any(_has_case_score_evidence(item) for item in value)
+    if not isinstance(value, dict) or not value:
+        return False
+
+    for key in ("authoritative_answer", "correct_answer", "standard_answer", "reference_answer"):
+        if str(value.get(key) or "").strip():
+            return True
+
+    for key in ("scoring_points", "grading_points", "score_points"):
+        if _has_non_empty_collection(value.get(key)):
+            return True
+
+    for key in ("rubric", "grading_rubric", "grading_key", "covered_subquestions", "case_bundle"):
+        if _has_case_score_evidence(value.get(key)):
+            return True
+
+    return False
+
+
+def _has_non_empty_collection(value: Any) -> bool:
+    if isinstance(value, list):
+        return any(item not in (None, "", [], {}) for item in value)
+    if isinstance(value, dict):
+        return bool(value)
+    return False
 
 
 def should_demote_case_grading_hard_score(
