@@ -71,6 +71,61 @@ def test_brief_reference_feedback_answers_missing_selection_check() -> None:
     assert response == "没漏，ABE都选对。"
 
 
+def test_brief_wrong_cause_addresses_named_distractor_when_learner_is_correct() -> None:
+    # Learner answered correctly (CDE) but asks why a specific *distractor* option
+    # is wrong. The brief wrong-cause renderer must address that option, not reply
+    # "没错，答案正确" — which reads as "A is fine" and misleads the learner.
+    for named in ("A错在哪里？一句话", "B错在哪？一句话"):
+        letter = named[0]
+        response = _render_deterministic_reference_feedback(
+            _wall_context(user_answer="CDE", is_correct=True),
+            user_message=named,
+        )
+        assert response != "没错，答案正确。", named
+        assert response.startswith(letter), (named, response)
+        assert ("干扰项" in response) or ("不在标准答案" in response), (named, response)
+        # The standard answer must still be the single authority, never overridden.
+        assert "CDE" in response, (named, response)
+
+
+def test_brief_wrong_cause_addresses_multiple_named_distractors() -> None:
+    # "A和B错在哪" names two distractors; both must be addressed, not silently
+    # reduced to the first, and never fall back to "没错，答案正确".
+    response = _render_deterministic_reference_feedback(
+        _wall_context(user_answer="CDE", is_correct=True),
+        user_message="A和B错在哪？一句话",
+    )
+    assert response != "没错，答案正确。"
+    assert response.startswith("A")
+    assert "B" in response
+    assert "干扰项" in response
+    assert "CDE" in response
+
+
+def test_brief_wrong_cause_ignores_incidental_ascii_letters_in_prose() -> None:
+    # An English word ("Cause") must not be mistaken for option references; with no
+    # standalone option letter the renderer keeps the existing wrong-cause behavior.
+    response = _render_deterministic_reference_feedback(
+        _wall_context(user_answer="ACDE", is_correct=False),
+        user_message="Cause of error? 错因一句话",
+    )
+    # ACDE vs CDE ->误选 A; must not become an option-named distractor explanation.
+    assert "干扰项" not in response
+    assert response.startswith("误选")
+
+
+def test_brief_wrong_cause_confirms_named_correct_option() -> None:
+    # If the learner names a correct option, confirm it is a correct option
+    # instead of the self-answer-centric "没错，答案正确".
+    response = _render_deterministic_reference_feedback(
+        _wall_context(user_answer="CDE", is_correct=True),
+        user_message="C错在哪里？一句话",
+    )
+    assert response != "没错，答案正确。"
+    assert response.startswith("C")
+    assert "正确选项" in response
+
+
 def test_reference_feedback_targets_indexed_question_set_item() -> None:
     response = _render_deterministic_reference_feedback(
         {

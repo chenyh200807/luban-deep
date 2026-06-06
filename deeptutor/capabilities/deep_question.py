@@ -1296,10 +1296,52 @@ def _brief_option_focus(option_text: str, *, fallback: str) -> str:
     return text[:8] or fallback
 
 
-def _render_brief_wrong_cause(item: dict[str, Any]) -> str:
+def _named_option_letters(user_message: str, options: dict[str, str]) -> list[str]:
+    """Option letters the learner explicitly names, in ABCDE order.
+
+    A letter counts only when it is an existing option and appears standalone
+    (not surrounded by other ASCII letters), so incidental letters inside English
+    prose like "Cause" are never mistaken for an option reference.
+    """
+
+    text = str(user_message or "").upper()
+    named: list[str] = []
+    for letter in "ABCDE":
+        if letter not in options:
+            continue
+        if re.search(rf"(?<![A-Z]){letter}(?![A-Z])", text):
+            named.append(letter)
+    return named
+
+
+def _render_brief_wrong_cause(item: dict[str, Any], user_message: str = "") -> str:
     correct_letters = set(_answer_letters(item.get("correct_answer")))
     user_letters = set(_answer_letters(item.get("user_answer")))
     options = dict(_option_entries(item))
+    # When the learner names a specific option ("A错在哪里"), answer about *that*
+    # option using the question's own standard answer as the single authority.
+    # Otherwise a correct-answer learner falls through to "没错，答案正确", which
+    # reads as "A is fine" and misleads them about the named distractor.
+    # Match a letter only when it stands alone (not inside an ASCII word), so
+    # incidental letters in prose ("Cause") never count as an option reference.
+    named_letters = _named_option_letters(user_message, options)
+    named_distractors = [letter for letter in named_letters if letter not in correct_letters]
+    if named_distractors:
+        focus = "、".join(
+            f"{letter}（{_brief_option_focus(options.get(letter, ''), fallback=f'{letter}项')}）"
+            for letter in named_distractors
+        )
+        correct_text = "".join(sorted(correct_letters)) or "标准答案"
+        tail = "均为" if len(named_distractors) > 1 else "是"
+        return f"{focus}不在标准答案（{correct_text}）内，{tail}干扰项。"
+    named_correct = [letter for letter in named_letters if letter in correct_letters]
+    if named_correct:
+        focus = "、".join(
+            f"{letter}（{_brief_option_focus(options.get(letter, ''), fallback=f'{letter}项')}）"
+            for letter in named_correct
+        )
+        tail = "都是正确选项" if len(named_correct) > 1 else "是正确选项"
+        return f"{focus}{tail}，应选。"
     extra_letters = sorted(user_letters - correct_letters)
     missing_letters = sorted(correct_letters - user_letters)
     if extra_letters:
@@ -1345,7 +1387,7 @@ def _render_targeted_brief_reference_feedback(
         return ""
     item = items[0]
     if _looks_like_wrong_cause_request(user_message):
-        return _render_brief_wrong_cause(item)
+        return _render_brief_wrong_cause(item, user_message)
     if _looks_like_missing_selection_check(user_message):
         return _render_brief_missing_selection_check(item)
     return ""
