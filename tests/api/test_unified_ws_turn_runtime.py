@@ -5516,6 +5516,126 @@ async def test_turn_runtime_cancels_superseded_running_turn_before_new_turn(
 
 
 @pytest.mark.asyncio
+async def test_turn_runtime_preserves_terminal_commit_when_new_turn_arrives(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    terminal_commit_started = asyncio.Event()
+    release_terminal_commit = asyncio.Event()
+
+    class BlockingAssistantStore(SQLiteSessionStore):
+        async def add_message(self, *args, **kwargs):  # type: ignore[no-untyped-def]
+            role = kwargs.get("role") if kwargs else None
+            content = kwargs.get("content") if kwargs else None
+            if role is None and len(args) >= 2:
+                role = args[1]
+            if content is None and len(args) >= 3:
+                content = args[2]
+            if role == "assistant" and str(content or "") == "first turn answer":
+                terminal_commit_started.set()
+                await release_terminal_commit.wait()
+            return await super().add_message(*args, **kwargs)
+
+    store = BlockingAssistantStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    orchestrator_calls = {"count": 0}
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, _context):
+            orchestrator_calls["count"] += 1
+            if orchestrator_calls["count"] == 1:
+                yield StreamEvent(
+                    type=StreamEventType.CONTENT,
+                    source="deep_question",
+                    stage="grading",
+                    content="first turn answer",
+                    metadata={"call_kind": "llm_final_response"},
+                )
+                yield StreamEvent(type=StreamEventType.DONE, source="deep_question")
+                return
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="deep_question",
+                stage="grading",
+                content="second turn answer",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="deep_question")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session, first_turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "第一轮 deep question",
+            "session_id": None,
+            "capability": "deep_question",
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {},
+        }
+    )
+    await asyncio.wait_for(terminal_commit_started.wait(), timeout=1.0)
+
+    second_start = asyncio.create_task(
+        runtime.start_turn(
+            {
+                "type": "start_turn",
+                "content": "第二轮 deep question",
+                "session_id": session["id"],
+                "capability": "deep_question",
+                "tools": [],
+                "knowledge_bases": [],
+                "attachments": [],
+                "language": "zh",
+                "config": {},
+            }
+        )
+    )
+    await asyncio.sleep(0)
+    assert not second_start.done()
+
+    release_terminal_commit.set()
+    _session, second_turn = await asyncio.wait_for(second_start, timeout=1.0)
+    async for _event in runtime.subscribe_turn(second_turn["id"], after_seq=0):
+        pass
+
+    first = await store.get_turn(first_turn["id"])
+    second = await store.get_turn(second_turn["id"])
+    assert first is not None
+    assert first["status"] == "completed"
+    assert second is not None
+    assert second["status"] == "completed"
+    messages = await store.get_messages(session["id"])
+    assert any(item["role"] == "assistant" and item["content"] == "first turn answer" for item in messages)
+    assert all("取消" not in item["content"] for item in messages if item["role"] == "assistant")
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_fails_closed_for_provider_raw_error(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,

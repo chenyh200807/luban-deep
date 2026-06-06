@@ -1949,6 +1949,7 @@ class _TurnExecution:
     first_subscriber_attached: asyncio.Event = field(default_factory=asyncio.Event)
     deadline_exceeded: bool = False
     persistence_degraded: bool = False
+    terminal_commit_started: bool = False
 
 
 class TurnRuntimeManager:
@@ -2381,6 +2382,18 @@ class TurnRuntimeManager:
                 default=False,
             )
             return bool(updated)
+
+        if execution.terminal_commit_started:
+            with contextlib.suppress(asyncio.CancelledError, asyncio.TimeoutError):
+                await asyncio.wait_for(asyncio.shield(execution.task), timeout=2.0)
+            refreshed_turn = await self._safe_store_call(
+                None,
+                "get_terminal_committed_turn_for_new_request",
+                self.store.get_turn,
+                turn_id,
+                default=None,
+            )
+            return bool(refreshed_turn) and refreshed_turn.get("status") != "running"
 
         execution.task.cancel()
         with contextlib.suppress(asyncio.CancelledError, asyncio.TimeoutError):
@@ -3526,6 +3539,10 @@ class TurnRuntimeManager:
                 default=False,
             )
             return bool(updated)
+        if execution.terminal_commit_started:
+            with contextlib.suppress(asyncio.CancelledError, asyncio.TimeoutError):
+                await asyncio.wait_for(asyncio.shield(execution.task), timeout=2.0)
+            return True
         execution.task.cancel()
         return True
 
@@ -4732,6 +4749,7 @@ class TurnRuntimeManager:
                 assistant_content = normalize_markdown_for_tutorbot(
                     coerce_user_visible_answer(assistant_content)
                 )
+                execution.terminal_commit_started = True
                 await self._safe_store_call(
                     execution,
                     "add_assistant_message",
