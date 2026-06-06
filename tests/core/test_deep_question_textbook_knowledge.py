@@ -85,6 +85,29 @@ def test_no_node_code_attaches_nothing(supply):
     assert KEY not in p
 
 
+def test_auto_maps_question_id_to_node(supply):
+    # no explicit node_code; the question_id embeds 1A411011 -> auto-mapped (exact) to textbook context
+    p = _legacy()
+    dq._maybe_attach_textbook_knowledge(
+        context=_ctx(flag=True, user_id="qa_alice"),
+        graded_context={"question_id": "QTZ_1A411011_SMR_x", "user_answer": "A"},
+        result_payload=p,
+    )
+    assert p[KEY]["mode"] == "textbook_knowledge_node"
+    assert p[KEY]["node_match"] == "exact"
+    assert p[KEY]["card_count"] == 1
+
+
+def test_unmappable_question_id_attaches_nothing(supply):
+    p = _legacy()
+    dq._maybe_attach_textbook_knowledge(
+        context=_ctx(flag=True, user_id="qa_alice"),
+        graded_context={"question_id": "QTZ_1A511011_x", "user_answer": "A"},  # node not in pack
+        result_payload=p,
+    )
+    assert KEY not in p
+
+
 def test_kill_switch_tombstone(supply, monkeypatch):
     monkeypatch.setenv("LUBAN_TEXTBOOK_KNOWLEDGE_ENABLED", "off")
     p = _legacy()

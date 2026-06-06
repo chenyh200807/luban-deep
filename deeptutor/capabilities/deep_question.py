@@ -2052,17 +2052,30 @@ def _textbook_knowledge_cohort_prefixes() -> tuple[str, ...]:
     return tuple(dict.fromkeys(base + extra))
 
 
-def _resolve_node_code_for_turn(context: UnifiedContext, graded_context: dict[str, Any]) -> str:
-    """The node_code to resolve verbatim textbook context for. Explicit only (graded_context /
-    followup_question_context / metadata); auto question->node mapping is a documented follow-up."""
+def _resolve_node_code_for_turn(context: UnifiedContext, graded_context: dict[str, Any]) -> tuple[str, str]:
+    """Resolve (node_code, match_kind) for the turn's verbatim textbook context.
+
+    Priority: an EXPLICIT node_code (graded_context / followup_question_context / metadata) wins with
+    match_kind ``explicit``; otherwise AUTO-MAP the turn's question_id to a textbook node via
+    ``node_code_for_question`` (match_kind ``exact`` / ``section``) so any in-bank turn gets textbook
+    context. Returns ("","") when nothing resolves (caller attaches nothing)."""
     metadata = context.metadata if isinstance(context.metadata, dict) else {}
     fctx = metadata.get("followup_question_context") if isinstance(metadata.get("followup_question_context"), dict) else {}
-    return str(
-        graded_context.get("node_code")
-        or fctx.get("node_code")
-        or metadata.get("textbook_node_code")
-        or ""
+    explicit = str(
+        graded_context.get("node_code") or fctx.get("node_code") or metadata.get("textbook_node_code") or ""
     ).strip()
+    if explicit:
+        return (explicit, "explicit")
+    question_id = str(graded_context.get("question_id") or fctx.get("question_id") or "").strip()
+    if question_id:
+        from deeptutor.services.construction_grading.textbook_knowledge_runtime import (
+            node_code_for_question,
+        )
+
+        resolved = node_code_for_question(question_id)
+        if resolved is not None:
+            return resolved  # (node_code, "exact"|"section")
+    return ("", "")
 
 
 def _maybe_attach_textbook_knowledge(
@@ -2089,9 +2102,9 @@ def _maybe_attach_textbook_knowledge(
     student_id = _learner_user_id_from_context(context)
     if not str(student_id).startswith(_textbook_knowledge_cohort_prefixes()):
         return
-    node = _resolve_node_code_for_turn(context, graded_context)
+    node, match_kind = _resolve_node_code_for_turn(context, graded_context)
     if not node:
-        return  # no node to resolve -> nothing to attach
+        return  # no node to resolve (no explicit code + no confident question->node map) -> nothing
     try:
         from deeptutor.services.construction_grading.textbook_knowledge_runtime import (
             resolve_textbook_knowledge,
@@ -2099,6 +2112,7 @@ def _maybe_attach_textbook_knowledge(
 
         payload = resolve_textbook_knowledge(node, learner_context={"student_id": student_id})
         if payload is not None:
+            payload["node_match"] = match_kind  # explicit | exact | section (transparency for consumers)
             result_payload[KEY] = payload
     except Exception as exc:  # noqa: BLE001 — textbook lane must never break legacy
         result_payload[KEY] = {"authority": KEY, "status": "unavailable",

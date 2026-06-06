@@ -17,6 +17,7 @@ from __future__ import annotations
 from functools import lru_cache
 import logging
 from pathlib import Path
+import re
 from typing import Any
 
 from deeptutor.services.construction_grading import compiled_registry_resolver as _R
@@ -49,6 +50,46 @@ def available_nodes() -> list[str]:
     if not ok:
         return []
     return sorted((bundle.get("manifest") or {}).get("node_index", {}).keys())
+
+
+_NODE_IN_ID = re.compile(r"1A\d{4,}")
+_MIN_SECTION_PREFIX = 6  # a question node must share >= this many chars with a textbook node
+
+
+def node_code_for_question(question_id: str) -> tuple[str, str] | None:
+    """Map a question_id to a textbook node_code so any in-bank turn can fetch textbook context.
+
+    Returns ``(node_code, match_kind)`` where match_kind is ``exact`` (the question's own node IS a
+    textbook node — high confidence) or ``section`` (the question's node shares the longest, UNIQUE
+    >= 6-char prefix with one textbook node — section-level teaching match). Returns None when no
+    node code is embedded, or when the best prefix is ambiguous (ties across textbook nodes) — the
+    caller then falls open (no wrong-chapter attribution). Teaching context only; never grants
+    official authority.
+    """
+    m = _NODE_IN_ID.search(str(question_id or ""))
+    if not m:
+        return None
+    code = m.group(0)
+    nodes = available_nodes()
+    if not nodes:
+        return None
+    if code in nodes:
+        return (code, "exact")
+    best_len = 0
+    best: list[str] = []
+    for n in nodes:
+        p = 0
+        for a, b in zip(code, n):
+            if a != b:
+                break
+            p += 1
+        if p > best_len:
+            best_len, best = p, [n]
+        elif p == best_len:
+            best.append(n)
+    if best_len >= _MIN_SECTION_PREFIX and len(best) == 1:
+        return (best[0], "section")
+    return None  # ambiguous or too-shallow prefix -> fall open
 
 
 def resolve_textbook_knowledge(
@@ -92,4 +133,4 @@ def resolve_textbook_knowledge(
     }
 
 
-__all__ = ["AUTHORITY", "available_nodes", "resolve_textbook_knowledge"]
+__all__ = ["AUTHORITY", "available_nodes", "node_code_for_question", "resolve_textbook_knowledge"]

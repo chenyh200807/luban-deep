@@ -75,6 +75,17 @@ def test_unknown_node_and_tamper_fall_through(supply, tmp_path, monkeypatch):
     assert RT.resolve_textbook_knowledge("1A411011") is None
 
 
+def test_node_code_for_question_exact_and_section_and_miss(supply):
+    # exact: the question's own node IS a textbook node
+    assert RT.node_code_for_question("QTZ_1A411011_SMR_x") == ("1A411011", "exact")
+    # section: shares the longest unique >=6-char prefix with the one textbook node 1A411011
+    assert RT.node_code_for_question("q_1A411019_y") == ("1A411011", "section")
+    # too-shallow prefix (only "1A" shared) -> fall open
+    assert RT.node_code_for_question("q_1A511011_z") is None
+    # no node code embedded -> None
+    assert RT.node_code_for_question("just a free text question") is None
+
+
 def test_missing_supply_falls_through(tmp_path, monkeypatch):
     monkeypatch.setattr(RT, "_SUPPLY_DIR", tmp_path / "nope")
     RT._load_supply.cache_clear()
