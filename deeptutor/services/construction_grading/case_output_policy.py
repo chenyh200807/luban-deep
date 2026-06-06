@@ -15,6 +15,18 @@ _OFFICIAL_GRADING_RE = re.compile(
 )
 _DIAGNOSTIC_ONLY_MARKER = "本次不硬估标准分"
 _CASE_SCORE_AUTHORITY_KINDS = {"case", "case_study", "case_bundle", "written", "subjective"}
+# An explicit case-style score *verdict* (not a bare 采分点 teaching label, a
+# rubric like "满分100分", or a unit price like "5分/平米"). Used only as the
+# safety net for unclassified turns that escaped case_grading scene derivation;
+# matches "不得分", "得 4 分", "4分/满分5分", "0分/5分", "0 个采分点", "预计得分".
+_NO_AUTHORITY_CASE_SCORE_RE = re.compile(
+    r"(不得分"
+    r"|得\s*\d+(?:\.\d+)?\s*分"
+    r"|\d+(?:\.\d+)?\s*分\s*[/／]\s*(?:满分\s*)?\d"
+    r"|\d+\s*个?\s*采分点"
+    r"|得分\s*[:：]\s*\d"
+    r"|预计得分)"
+)
 
 
 def case_grading_score_authority_available(runtime_metadata: dict[str, Any] | None) -> bool:
@@ -74,6 +86,26 @@ def _has_non_empty_collection(value: Any) -> bool:
     return False
 
 
+def _has_any_grading_authority(metadata: dict[str, Any]) -> bool:
+    """True when the turn owns a real graded-question authority of any kind.
+
+    Protects legitimate MCQ/active-object grading (which carries an authoritative
+    exact question or a single-question active object) from the unclassified-turn
+    safety net below.
+    """
+
+    if metadata.get("authority_applied") is True:
+        return True
+    for key in ("_prefetched_exact_question", "exact_question"):
+        exact_question = metadata.get(key)
+        if isinstance(exact_question, dict) and exact_question:
+            return True
+    active_object = metadata.get("active_object")
+    if isinstance(active_object, dict) and str(active_object.get("object_type") or "").strip() == "single_question":
+        return True
+    return False
+
+
 def should_demote_case_grading_hard_score(
     response: str | None,
     *,
@@ -82,14 +114,24 @@ def should_demote_case_grading_hard_score(
     """Detect a case-grading official-score claim produced without authority."""
 
     metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
-    if str(metadata.get("question_lifecycle_scene") or "").strip() != "case_grading":
-        return False
-    if case_grading_score_authority_available(metadata):
-        return False
     text = str(response or "")
     if _DIAGNOSTIC_ONLY_MARKER in text:
         return False
-    return _HARD_SCORE_RE.search(text) is not None or _OFFICIAL_GRADING_RE.search(text) is not None
+
+    scene = str(metadata.get("question_lifecycle_scene") or "").strip()
+    if scene == "case_grading":
+        if case_grading_score_authority_available(metadata):
+            return False
+        return _HARD_SCORE_RE.search(text) is not None or _OFFICIAL_GRADING_RE.search(text) is not None
+
+    # Safety net for the P1-A leak: an unclassified turn (no lifecycle scene) that
+    # still asserts an official case-style score verdict while owning no grading
+    # authority of any kind — e.g. an out-of-bank pasted case the lifecycle did
+    # not tag as case_grading. Recognized non-case scenes (mcq_grading, …) are
+    # handled by their own guards and are intentionally excluded here.
+    if not scene and not _has_any_grading_authority(metadata):
+        return _NO_AUTHORITY_CASE_SCORE_RE.search(text) is not None
+    return False
 
 
 def build_case_grading_diagnostic_only_response(user_message: str) -> str:
