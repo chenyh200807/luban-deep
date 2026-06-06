@@ -41,6 +41,27 @@ def test_build_aae_composite_run_uses_arr_and_om_inputs() -> None:
     assert payload["composite"]["input_count"] >= 4
 
 
+def test_build_aae_composite_run_uses_real_exam_spine_when_present() -> None:
+    payload = build_aae_composite_run(
+        arr_payload={
+            "run_id": "arr-lite-1",
+            "release": {"release_id": "rel-1"},
+            "summary": {"pass_rate": 0.5, "total_cases": 3},
+            "suite_summaries": [
+                {"suite": "real_exam_quality_spine", "pass_rate": 1.0},
+                {"suite": "context-orchestration", "pass_rate": 0.75},
+            ],
+            "case_results": [],
+        },
+    )
+
+    correctness = payload["scorecard"]["correctness_score"]
+    assert correctness["value"] == 1.0
+    assert correctness["source"] == "arr_real_exam_quality_spine"
+    assert payload["scorecard"]["continuity_score"]["value"] == 0.75
+    assert "real-exam spine" in payload["review_note"]
+
+
 def test_build_aae_composite_run_uses_real_feedback_for_paid_satisfaction() -> None:
     payload = build_aae_composite_run(
         arr_payload={

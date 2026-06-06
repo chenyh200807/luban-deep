@@ -23,6 +23,9 @@ if str(PROJECT_ROOT) not in sys.path:
 from deeptutor.services.benchmark.runner import run_benchmark  # noqa: E402
 from deeptutor.services.benchmark.runner import write_benchmark_artifacts  # noqa: E402
 from deeptutor.services.observability import get_control_plane_store  # noqa: E402
+from deeptutor.services.observability.aae_composite import build_aae_composite_run  # noqa: E402
+from deeptutor.services.observability.arr_runner import run_arr  # noqa: E402
+from deeptutor.services.observability.arr_runner import write_arr_artifacts  # noqa: E402
 from deeptutor.services.observability.change_impact import DEFAULT_CHANGE_IMPACT_BASE_REF  # noqa: E402
 from deeptutor.services.observability.change_impact import build_change_impact_run  # noqa: E402
 from deeptutor.services.observability.change_impact import collect_git_changed_files  # noqa: E402
@@ -41,12 +44,50 @@ from deeptutor.services.observability.unified_ws_smoke import run_unified_ws_smo
 
 DEFAULT_BASE_REF = DEFAULT_CHANGE_IMPACT_BASE_REF
 DEFAULT_API_BASE_URL = "http://127.0.0.1:8001"
-DEFAULT_BENCHMARK_SUITES = ("pr_gate_core",)
+DEFAULT_BENCHMARK_SUITES = (
+    "pr_gate_core",
+    "regression_watch",
+    "real_exam_quality_spine",
+)
 DEFAULT_PLAN_COMPLETION_PLANS = ("docs/plan/INDEX.md",)
 SURFACE_READINESS_CHECKS = (
     ("playwright", "Playwright"),
     ("wechat_devtools", "微信 DevTools"),
 )
+WECHAT_DEVTOOLS_PRIMARY_PACKAGE = "yousenwebview/packageDeeptutor"
+
+
+def _surface_readiness_missing_summary(check_id: str, label: str) -> str:
+    if check_id == "wechat_devtools":
+        return (
+            f"{label} readiness evidence missing for current release: run the daily "
+            f"DevTools CLI smoke against {WECHAT_DEVTOOLS_PRIMARY_PACKAGE}"
+        )
+    return f"{label} readiness evidence missing for current release"
+
+
+def _surface_readiness_missing_evidence(
+    *,
+    check_id: str,
+    changed_preview: str,
+) -> list[str]:
+    evidence = [
+        "source=daily_observability_fallback",
+        "reason=no current-release readiness row existed",
+        f"changed_files={changed_preview}",
+    ]
+    if check_id == "wechat_devtools":
+        evidence.extend(
+            [
+                "expected_task=python scripts/run_readiness_check.py --check-id wechat_devtools --report-only",
+                "default_smoke=python scripts/run_wechat_devtools_daily_smoke.py",
+                "entry_surface=real_wechat_package",
+                f"project_path={WECHAT_DEVTOOLS_PRIMARY_PACKAGE}",
+                "coverage_targets=container,project_config,page_stack,network_baseURL,WS,cache,login",
+                "boundary=islogin/open are preflight until page scenario or automator evidence exists",
+            ]
+        )
+    return evidence
 
 
 def _load_json(path: str | None, *, expected_kind: str | None = None) -> dict[str, Any] | None:
@@ -239,15 +280,17 @@ def _ensure_benchmark_payload(
     store,
     release: dict[str, Any],
     output_dir: Path,
+    api_base_url: str,
 ) -> dict[str, Any] | None:
     existing = _current_release_payload(store, "benchmark_runs", release=release)
-    if isinstance(existing, dict):
+    if isinstance(existing, dict) and _benchmark_covers_default_suites(existing):
         return existing
 
     payload = asyncio.run(
         run_benchmark(
             suite_names=DEFAULT_BENCHMARK_SUITES,
             output_dir=output_dir / "benchmark",
+            api_base_url=api_base_url,
         )
     )
     write_benchmark_artifacts(payload, output_dir=output_dir / "benchmark")
@@ -256,6 +299,109 @@ def _ensure_benchmark_payload(
         run_id=str((payload.get("run_manifest") or {}).get("run_id") or ""),
         release_id=str((_payload_release(payload) or {}).get("release_id") or ""),
         payload=payload,
+    )
+    return payload
+
+
+def _benchmark_covers_default_suites(payload: dict[str, Any]) -> bool:
+    requested = {
+        str(item)
+        for item in ((payload.get("run_manifest") or {}).get("requested_suites") or [])
+        if str(item).strip()
+    }
+    return all(suite in requested for suite in DEFAULT_BENCHMARK_SUITES)
+
+
+def _quality_api_base_url(api_base_url: str, om_payload: dict[str, Any] | None) -> str:
+    health_summary = (om_payload or {}).get("health_summary") or {}
+    if health_summary.get("unified_ws_smoke_ok") is False:
+        return ""
+    return str(api_base_url or "").strip()
+
+
+def _arr_covers_default_suites(payload: dict[str, Any]) -> bool:
+    requested = {
+        str(item)
+        for item in ((payload.get("benchmark_run_manifest") or {}).get("requested_suites") or [])
+        if str(item).strip()
+    }
+    return all(suite in requested for suite in DEFAULT_BENCHMARK_SUITES)
+
+
+def _ensure_arr_payload(
+    *,
+    store,
+    release: dict[str, Any],
+    output_dir: Path,
+    api_base_url: str,
+) -> dict[str, Any] | None:
+    existing = _current_release_payload(store, "arr_runs", release=release)
+    if isinstance(existing, dict) and _arr_covers_default_suites(existing):
+        return existing
+
+    payload = asyncio.run(
+        run_arr(
+            mode="lite",
+            output_dir=output_dir / "arr",
+            api_base_url=api_base_url,
+        )
+    )
+    write_arr_artifacts(payload, output_dir=output_dir / "arr")
+    store.write_run(
+        kind="arr_runs",
+        run_id=str(payload.get("run_id") or ""),
+        release_id=str((_payload_release(payload) or {}).get("release_id") or ""),
+        payload=payload,
+    )
+    canonical_benchmark_payload = payload.get("canonical_benchmark_payload") or {}
+    if isinstance(canonical_benchmark_payload, dict) and (canonical_benchmark_payload.get("run_manifest") or {}).get("run_id"):
+        store.write_run(
+            kind="benchmark_runs",
+            run_id=str((canonical_benchmark_payload.get("run_manifest") or {}).get("run_id") or ""),
+            release_id=str((canonical_benchmark_payload.get("release_spine") or {}).get("release_id") or ""),
+            payload=canonical_benchmark_payload,
+        )
+    return payload
+
+
+def _render_aae_markdown(payload: dict[str, Any]) -> str:
+    lines = [
+        "# AAE Snapshot",
+        "",
+        f"- run_id: `{payload.get('run_id')}`",
+        f"- source_arr_run_id: `{payload.get('source_arr_run_id')}`",
+        f"- composite: `{json.dumps(payload.get('composite') or {}, ensure_ascii=False)}`",
+    ]
+    return "\n".join(lines)
+
+
+def _ensure_aae_payload(
+    *,
+    store,
+    release: dict[str, Any],
+    arr_payload: dict[str, Any] | None,
+    om_payload: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    existing = _current_release_payload(store, "aae_composite_runs", release=release)
+    if isinstance(existing, dict):
+        return existing
+    if not isinstance(arr_payload, dict):
+        return None
+
+    payload = build_aae_composite_run(
+        arr_payload=arr_payload,
+        om_payload=om_payload,
+        feedback_payload=None,
+    )
+    paths = store.write_run(
+        kind="aae_composite_runs",
+        run_id=str(payload.get("run_id") or ""),
+        release_id=str((_payload_release(payload) or {}).get("release_id") or ""),
+        payload=payload,
+    )
+    Path(paths["json_path"]).with_suffix(".md").write_text(
+        _render_aae_markdown(payload),
+        encoding="utf-8",
     )
     return payload
 
@@ -286,12 +432,11 @@ def _ensure_surface_readiness_rows(
                 "label": label,
                 "status": "FAIL",
                 "required": True,
-                "summary": f"{label} readiness evidence missing for current release",
-                "evidence": [
-                    "source=daily_observability_fallback",
-                    "reason=no current-release readiness row existed",
-                    f"changed_files={changed_preview}",
-                ],
+                "summary": _surface_readiness_missing_summary(check_id, label),
+                "evidence": _surface_readiness_missing_evidence(
+                    check_id=check_id,
+                    changed_preview=changed_preview,
+                ),
                 "blockers": [f"{check_id}_failed"],
                 "release": dict(release or {}),
             }
@@ -457,15 +602,28 @@ def main() -> None:
         api_base_url=args.api_base_url,
         unified_ws_smoke_timeout=float(getattr(args, "unified_ws_smoke_timeout", 20.0) or 20.0),
     )
+    arr_payload = _ensure_arr_payload(
+        store=store,
+        release=current_release,
+        output_dir=output_dir,
+        api_base_url=_quality_api_base_url(args.api_base_url, om_payload),
+    )
     benchmark_payload = _ensure_benchmark_payload(
         store=store,
         release=current_release,
         output_dir=output_dir,
+        api_base_url=_quality_api_base_url(args.api_base_url, om_payload),
     )
     _ensure_surface_readiness_rows(
         store=store,
         release=current_release,
         changed_files=changed_files,
+    )
+    aae_payload = _ensure_aae_payload(
+        store=store,
+        release=current_release,
+        arr_payload=arr_payload,
+        om_payload=om_payload,
     )
 
     metrics_snapshot = (om_payload or {}).get("metrics_snapshot") or _load_json(args.metrics_json)
@@ -487,8 +645,6 @@ def main() -> None:
         payload=observer_payload,
     )
 
-    arr_payload = store.latest_payload("arr_runs")
-    aae_payload = store.latest_payload("aae_composite_runs")
     _write_contract_guard_readiness(
         store=store,
         changed_files=changed_files,
@@ -552,6 +708,7 @@ def main() -> None:
         change_impact_payload=change_impact_payload,
         plan_completion_payload=plan_completion_payload,
         release=current_release,
+        quality_evidence_required=True,
     )
     gate_paths = store.write_run(
         kind="release_gate_runs",

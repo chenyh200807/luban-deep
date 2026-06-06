@@ -18,11 +18,14 @@ from deeptutor.services.observability.release_lineage import get_release_lineage
 
 ALLOWED_CHECK_IDS = {"contract_guard", "playwright", "wechat_devtools"}
 ALLOWED_STATUS = {"PASS", "WARN", "FAIL", "SKIP"}
+WECHAT_DEVTOOLS_DAILY_SMOKE = PROJECT_ROOT / "scripts" / "run_wechat_devtools_daily_smoke.py"
 
 
 def _default_command(check_id: str, changed_files: list[str]) -> list[str]:
     if check_id == "contract_guard":
         return [sys.executable, str(PROJECT_ROOT / "scripts" / "check_contract_guard.py"), *changed_files]
+    if check_id == "wechat_devtools":
+        return [sys.executable, str(WECHAT_DEVTOOLS_DAILY_SMOKE)]
     raise ValueError(f"--command is required for {check_id}")
 
 

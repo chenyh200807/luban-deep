@@ -1,4 +1,4 @@
-# 鲁班智考 P0 微信开发者工具人工验收脚本
+# 鲁班智考 P0 微信开发者工具验收脚本
 
 | 字段 | 值 |
 |---|---|
@@ -8,17 +8,31 @@
 | **本地后端** | `scripts/start_local_learning_brain.sh start --no-web` → `http://127.0.0.1:8001` |
 | **预计耗时** | 4 × 5 min = 20 min |
 | **回滚阈值** | 任一脚本中出现 ✗ 即 NO-GO（plan §6.3） |
+| **主验收面** | `yousenwebview/packageDeeptutor`；`wx_miniprogram` 只作为 shadow / render-contract 辅助面 |
 
 ---
 
 ## 通用配置
 
-1. 微信开发者工具 → 项目 → `wx_miniprogram/`
+优先用 CLI 完成登录态、打开项目和自动化端口预检：
+
+```bash
+WX_DEVTOOLS_CLI=/Applications/wechatwebdevtools.app/Contents/MacOS/cli
+$WX_DEVTOOLS_CLI islogin
+$WX_DEVTOOLS_CLI open --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/yousenwebview/packageDeeptutor --lang zh
+$WX_DEVTOOLS_CLI auto --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/yousenwebview/packageDeeptutor --auto-port 9420
+```
+
+`islogin` 只算环境预检；`open --project` 只算项目打开预检。必须完成下方 A-D 场景或自动化脚本输出，才能写 `real_wechat_package` PASS。若只跑到 `/wechat-harness`、node contract、`islogin` 或 `open --project`，结论必须写 `partial / true-entry pending`。
+
+1. 微信开发者工具 → 项目 → `yousenwebview/packageDeeptutor/`
 2. 详情 → 本地设置 → 启用「不校验合法域名」
 3. 在 app/config 把 ws 入口指向 `ws://127.0.0.1:8001/api/v1/ws`
 4. 编译并点开聊天页
 
 > 每条 ✗ 都必须截图保存到 `.gstack/qa-reports/screenshots-2026-05-21-luban-p0-wx/` 并在末尾备注。
+
+> 不默认执行 `upload`。发布、预览包或 CI 流水线另走明确授权的发布步骤，不能混入本 P0 验收。
 
 ---
 

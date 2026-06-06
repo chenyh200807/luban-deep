@@ -33,7 +33,7 @@ _MANUAL_CHECKS = {
     "wechat_devtools": {
         "label": "微信 DevTools",
         "required": True,
-        "missing_summary": "微信开发者工具验收还没有进入 readiness evidence",
+        "missing_summary": "微信 DevTools CLI 主包 smoke 还没有进入 readiness evidence",
     },
 }
 

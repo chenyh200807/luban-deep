@@ -713,7 +713,7 @@ async def run_arr(
     from deeptutor.services.benchmark.runner import run_benchmark
 
     benchmark_payload = await run_benchmark(
-        suite_names=("pr_gate_core", "regression_watch", "incident_replay"),
+        suite_names=("pr_gate_core", "regression_watch", "real_exam_quality_spine"),
         explicit_long_dialog_source_json=explicit_long_dialog_source_json,
         long_dialog_max_cases=long_dialog_max_cases or (1 if mode == "lite" else None),
         output_dir=output_dir,
@@ -992,10 +992,9 @@ def build_arr_report_payload(payload: dict[str, Any]) -> dict[str, Any]:
     if not any(item.get("failure_type") for item in case_results):
         report_limitations.append("当前没有失败用例，失败详情与 failure taxonomy 为空。")
     report_limitations.append("当前 ARR 尚未采集 token_usage、transcript grading、judge calibration 等旧仓增强字段。")
+    report_limitations.append("当前 ARR 默认覆盖 routing/context、rag grounding 与 docs/2026 real-exam bank；long-dialog 已降级为 incident_replay 专项 gate。")
     if execution_context.get("api_base_url"):
-        report_limitations.append("当前只有 long-dialog suite 走真实 /api/v1/ws；semantic/context/rag 仍是静态分析回归。")
-    else:
-        report_limitations.append("当前 full ARR 的 long-dialog 仍可能走本进程 runtime；若要真实服务验证，请传入 --api-base-url。")
+        report_limitations.append("api_base_url 只会被 runtime case 使用；默认 real-exam spine 不依赖真实 /api/v1/ws。")
 
     failures = [
         (

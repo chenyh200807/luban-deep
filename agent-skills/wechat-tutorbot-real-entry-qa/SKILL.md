@@ -22,6 +22,34 @@ Always label each row with exactly one surface:
 Only `real_wechat_package` can close the primary WeChat front-end risk. The
 others are useful probes, not production closure.
 
+## DevTools CLI
+
+Prefer the WeChat DevTools CLI for real package smoke before falling back to
+manual GUI control:
+
+```bash
+WX_DEVTOOLS_CLI=/Applications/wechatwebdevtools.app/Contents/MacOS/cli
+$WX_DEVTOOLS_CLI islogin
+$WX_DEVTOOLS_CLI open --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/yousenwebview/packageDeeptutor --lang zh
+$WX_DEVTOOLS_CLI auto --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/yousenwebview/packageDeeptutor --auto-port 9420
+```
+
+Keep `entry_surface` as `real_wechat_package` for the primary package, and put
+the mechanism in `trace source` such as `devtools_cli_open`,
+`devtools_cli_auto`, `miniprogram_automator`, or `manual_devtools`.
+
+CLI evidence rules:
+
+- `islogin` is only an environment preflight.
+- `open --project` is only a project-open preflight until a page/scenario is
+  actually exercised.
+- `auto --project` only counts as automation evidence when an automator/Minium
+  script drives the page and records scenario output.
+- If DevTools project-open or auto is skipped, report true-entry status as
+  `partial` or `pending`, even if Web harness and contract tests pass.
+- Do not run `upload` by default; use upload/preview commands only when the user
+  explicitly asks for publishing or package preview.
+
 ## Scenario Design
 
 Build scenarios from the learner's point of view:
@@ -88,6 +116,8 @@ A satisfactory TutorBot answer must meet all of these:
 ## Anti-Confusion Rules
 
 - Do not treat `/wechat-harness` or `wx_miniprogram` PASS as real package closure.
+- Do not treat DevTools CLI `islogin` or `open --project` as a real package
+  scenario PASS without page-level or script-level evidence.
 - Do not let a backend harness hide a frontend projection bug.
 - Do not let a visible answer pass hide runtime state drift.
 - Do not let a trace-complete row imply customer satisfaction; score expression separately.

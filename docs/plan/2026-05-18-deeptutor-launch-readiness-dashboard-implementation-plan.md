@@ -97,7 +97,7 @@ Next, add thin writer adapters that record existing commands into `readiness_che
 
 1. `scripts/run_readiness_check.py --check-id contract_guard` -> `contract_guard`.
 2. `scripts/run_readiness_check.py --check-id playwright --command ...` -> `playwright`.
-3. `scripts/run_readiness_check.py --check-id wechat_devtools --command ...` -> `wechat_devtools`.
+3. `scripts/run_readiness_check.py --check-id wechat_devtools` -> `wechat_devtools`，默认执行 `scripts/run_wechat_devtools_daily_smoke.py`，目标是 `yousenwebview/packageDeeptutor`。
 4. Langfuse / ClickHouse trace verification may remain in `observer_snapshots` unless a dedicated manual trace audit is needed.
 
 ## P2 BI Surface
