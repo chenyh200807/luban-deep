@@ -400,7 +400,9 @@ def _norm_textbook(s: Any) -> str:
     out: list[str] = []
     for ch in str(s or ""):
         o = ord(ch)
-        if 0xFF10 <= o <= 0xFF19 or 0xFF21 <= o <= 0xFF5A:  # full-width digits / latin -> half-width
+        # fold ONLY full-width digits (FF10-19), upper A-Z (FF21-3A), lower a-z (FF41-5A) to ASCII.
+        # NOT FF3B-FF40 (［＼］＾＿｀) — those are punctuation and must stay distinct from ASCII.
+        if 0xFF10 <= o <= 0xFF19 or 0xFF21 <= o <= 0xFF3A or 0xFF41 <= o <= 0xFF5A:
             out.append(chr(o - 0xFEE0))
         elif ch.isspace():
             continue
@@ -495,15 +497,25 @@ def _split_printed_derived(key_numbers: list[str], content_markdown: str) -> tup
             j -= 1
         return j >= 0 and cm[j].isdigit()
 
+    def _in_table_row(m: "re.Match[str]") -> bool:
+        # the number sits inside a markdown table row (a printed input cell, never a computed result).
+        lo = cm.rfind("\n", 0, m.start()) + 1
+        hi = cm.find("\n", m.start())
+        return "|" in cm[lo:(hi if hi >= 0 else len(cm))]
+
     for kn in key_numbers:
         core = _num_core(kn)
         if not core:
             printed.append(kn)
             continue
         occ = list(re.finditer(r"(?<![\d.])" + re.escape(core) + r"(?![\d])", cm))
-        # derived iff it appears AT LEAST ONCE as an arithmetic result (a computed answer);
-        # a printed textbook/table value never appears as the RHS of a computation.
-        (derived if occ and any(_is_arith_result(m) for m in occ) else printed).append(kn)
+        # DERIVED iff it appears as an arithmetic result (a computed answer) AND never as a printed
+        # table-cell input. The arith-result check uses ANY occurrence (enrichment often repeats a
+        # derived value in prose, e.g. "成本增加 14560 元" alongside "= 14560"); the table-row guard
+        # keeps a printed input value (e.g. 综合单价 in a "| ... |" row) out of the derived set even
+        # if it coincidentally also appears as a computation result somewhere.
+        is_derived = bool(occ) and any(_is_arith_result(m) for m in occ) and not any(_in_table_row(m) for m in occ)
+        (derived if is_derived else printed).append(kn)
     return printed, derived
 
 

@@ -249,10 +249,13 @@ def _s3_gates_textbook(cands: list[dict[str, Any]]) -> dict[str, list[dict[str, 
             rejected.append(c)
         elif kind == _CF.KIND_WORK_ORDER:
             work_orders.append(c)
-        elif str((c.get("payload") or {}).get("point_id") or ""):
+        # WHITELIST (defense-in-depth): only a textbook rubric candidate with a point_id is eligible.
+        # A mis-injected worker emitting answer_key / source / machine_spec / question candidates must
+        # NOT reach the textbook signer even though the signer would also drop most of them.
+        elif kind == _CF.KIND_RUBRIC and str((c.get("payload") or {}).get("point_id") or ""):
             eligible.append(c)
         else:
-            rejected.append(_stage_log(c, {"stage": "S3", "gate": "G1_schema", "verdict": "fail"}))
+            rejected.append(_stage_log(c, {"stage": "S3", "gate": "G_kind_or_schema", "verdict": "fail"}))
     return {"eligible": eligible, "work_order": work_orders, "rejected": rejected, "conflict": []}
 
 

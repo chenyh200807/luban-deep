@@ -17,6 +17,7 @@ The worker NEVER signs, never promotes, never decides correctness.
 from __future__ import annotations
 
 from collections.abc import Callable
+import logging
 import re
 from typing import Any
 
@@ -26,6 +27,7 @@ from deeptutor.services.construction_grading.full_knowledge_compiler import (
     _norm_textbook,
 )
 
+_log = logging.getLogger(__name__)
 _CLAUSE_SPLIT = re.compile(r"[。；;！!？?\n、，,：:]")
 # Below this length a deterministic clause span is a weak fragment; ask the LLM for a fuller verbatim
 # span (quality enrichment ① + rescue of clause-misaligned spans = human-gate expansion ②).
@@ -74,7 +76,10 @@ def _llm_propose_quote(
             system_prompt="你只做教材原文逐字定位，绝不判定对错、绝不改写。只输出原文子串或 NONE。",
             model="deepseek-chat", api_key=api_key, max_retries=1,
         ))
-    except Exception:  # noqa: BLE001 — LLM failure must never break the deterministic spine
+    except Exception as exc:  # noqa: BLE001 — LLM failure must never break the deterministic spine
+        # log the type only (never the prompt/content) so operators can tell an asyncio/runtime crash
+        # apart from a legitimate "model returned NONE"; the deterministic span still covers this card.
+        _log.debug("_llm_propose_quote skipped: %s", type(exc).__name__)
         return None
     quote = str(raw or "").strip()
     if not quote or quote.upper() == "NONE":

@@ -138,6 +138,25 @@ def test_calc_card_splits_printed_vs_derived_numbers():
     assert out["manifest"]["records_with_derived_numbers"] == 1
 
 
+def test_derived_value_repeated_in_prose_still_derived():
+    # the enrichment repeats a computed value in prose ("成本增加 14560 元") alongside "= 14560";
+    # ANY arith-result occurrence + no table-row occurrence -> derived (the real 连环替代法 pattern).
+    corpus = ("- 第一次替换与目标的差额 = 378560 - 364000 = 14560 元，说明成本增加 14560 元。")
+    c = _card(content_markdown=corpus, exact_quote="第一次替换与目标的差额", key_numbers=["14560"])
+    out = FKC.compile_textbook_knowledge_release_candidate([c])
+    assert out["records"][0]["derived_key_numbers"] == ["14560"]
+    assert "14560" not in out["records"][0]["key_numbers"]
+
+
+def test_printed_table_value_not_false_derived():
+    # a printed table input that ALSO appears as a computation result stays PRINTED (table-row guard)
+    corpus = ("| 综合单价 | 14560 元 |\n计算：1456 × 10 = 14560 元。")
+    c = _card(content_markdown=corpus, exact_quote="综合单价", key_numbers=["14560"])
+    out = FKC.compile_textbook_knowledge_release_candidate([c])
+    assert "14560" in out["records"][0]["key_numbers"]      # in a table cell -> printed authority
+    assert out["records"][0]["derived_key_numbers"] == []
+
+
 def test_non_calc_card_has_no_derived_numbers():
     c = _card(exact_quote="低层或多层住宅建筑高度不大于27m", key_numbers=["27m"])
     out = FKC.compile_textbook_knowledge_release_candidate([c])
