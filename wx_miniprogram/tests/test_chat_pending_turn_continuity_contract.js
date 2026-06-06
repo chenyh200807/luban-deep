@@ -58,6 +58,18 @@ assertContains(
   "recovery fetch exhaustion should unlock the chat even when no messages can be loaded",
 );
 assertContains(
+  "err && err.statusCode === 404",
+  "missing conversations should terminate recovery immediately instead of polling or switching base",
+);
+assertContains(
+  'wx.getStorageSync("current_session_id") === pending.conversationId',
+  "missing pending conversations should clear the stale current session pointer",
+);
+assertContains(
+  'wx.getStorageSync("current_session_id") === convId',
+  "missing restored conversations should clear the stale current session pointer",
+);
+assertContains(
   "isStreaming: false,",
   "pending turn terminal recovery should return the chat surface to a sendable state",
 );

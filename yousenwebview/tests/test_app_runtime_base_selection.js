@@ -96,8 +96,8 @@ function loadAppModule(options) {
   assert(
     Array.isArray(defaultDevtools.globalData.apiCandidates) &&
       defaultDevtools.globalData.apiCandidates[0] === "http://127.0.0.1:8001" &&
-      defaultDevtools.globalData.apiCandidates.indexOf("https://test2.yousenjiaoyu.com") >= 0,
-    "develop devtools runtime candidates should keep localhost first and remote fallback",
+      defaultDevtools.globalData.apiCandidates.indexOf("https://test2.yousenjiaoyu.com") < 0,
+    "develop devtools runtime candidates should keep local direct isolated from remote",
   );
 
   var explicitRemote = loadAppModule({
@@ -129,8 +129,8 @@ function loadAppModule(options) {
   );
   assert(
     explicitLocal.globalData.apiCandidates[0] === "http://127.0.0.1:8001" &&
-      explicitLocal.globalData.apiCandidates.indexOf("https://test2.yousenjiaoyu.com") >= 0,
-    "explicit local mode should keep localhost first and retain remote fallback",
+      explicitLocal.globalData.apiCandidates.indexOf("https://test2.yousenjiaoyu.com") < 0,
+    "explicit local mode should keep localhost first without remote fallback",
   );
 
   var explicitAltLocal = loadAppModule({
@@ -144,8 +144,9 @@ function loadAppModule(options) {
   );
   assert(
     explicitAltLocal.globalData.apiCandidates[0] === "http://127.0.0.1:8012" &&
-      explicitAltLocal.globalData.apiCandidates.indexOf("https://test2.yousenjiaoyu.com") >= 0,
-    "alternate localhost candidate list should still retain remote fallback",
+      explicitAltLocal.globalData.apiCandidates[1] === "http://127.0.0.1:8001" &&
+      explicitAltLocal.globalData.apiCandidates.indexOf("https://test2.yousenjiaoyu.com") < 0,
+    "alternate localhost candidate list should fall back to canonical local backend only",
   );
 
   if (fail) {

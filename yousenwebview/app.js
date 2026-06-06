@@ -509,15 +509,7 @@ function buildDeeptutorBaseCandidates(baseUrl) {
     "http://127.0.0.1:8001",
     "http://127.0.0.1:8012",
   ];
-  const remoteFallbacks = [NGROK_URL, PROD_API].filter((item) => {
-    const normalized = String(item || "").trim();
-    return (
-      normalized &&
-      /^https?:\/\//.test(normalized) &&
-      !isLocalBaseUrl(normalized)
-    );
-  });
-  return uniqBaseUrls([normalizedBase].concat(localFallbacks, remoteFallbacks));
+  return uniqBaseUrls([normalizedBase].concat(localFallbacks));
 }
 
 function requestHostSysInfo() {

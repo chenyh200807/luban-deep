@@ -294,26 +294,6 @@ function rawRequest(opts) {
           return;
         }
 
-        if (
-          !opts.url.startsWith("http") &&
-          res.statusCode === 404 &&
-          baseIndex + 1 < baseCandidates.length
-        ) {
-          var nextBaseOn404 = baseCandidates[baseIndex + 1];
-          console.warn(
-            "[API] HTTP 404 on " + fullUrl + ", fallback to " + nextBaseOn404,
-          );
-          request(
-            Object.assign({}, opts, {
-              _baseCandidates: baseCandidates,
-              _baseIndex: baseIndex + 1,
-            }),
-          )
-            .then(resolve)
-            .catch(reject);
-          return;
-        }
-
         if (res.statusCode === 401) {
           if (noAuth) {
             reject(createHttpError(401));

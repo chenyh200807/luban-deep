@@ -984,7 +984,17 @@ Page({
           self._clearPendingTurn();
           return true;
         })
-        .catch(function () {
+        .catch(function (err) {
+          if (err && err.statusCode === 404) {
+            if (wx.getStorageSync("current_session_id") === pending.conversationId) {
+              self._sid = "s_" + Date.now();
+              self._convId = null;
+              wx.removeStorageSync("current_session_id");
+              wx.removeStorageSync("current_session_ts");
+            }
+            self._finishPendingTurnRecovery();
+            return false;
+          }
           if (attempt < maxAttempts) {
             return new Promise(function (resolve) {
               setTimeout(
@@ -2248,7 +2258,15 @@ Page({
           data.conversation || data,
         );
       })
-      .catch(function () {
+      .catch(function (err) {
+        if (err && err.statusCode === 404) {
+          if (wx.getStorageSync("current_session_id") === convId) {
+            wx.removeStorageSync("current_session_id");
+            wx.removeStorageSync("current_session_ts");
+          }
+          self._convId = null;
+          self._sid = "s_" + Date.now();
+        }
         if (!self.data.messages.length) {
           self.setData({ hasMessages: false });
         }
