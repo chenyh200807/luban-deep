@@ -231,6 +231,7 @@ async def test_run_benchmark_uses_registry_suites_and_reuses_arr_helpers(
         "exploration_lab",
         "luban_case_grading_shadow",
         "answer_citation_shadow",
+        "m26_context_safety",
     ]
     assert [item["suite"] for item in payload["suite_summaries"]] == [
         "pr_gate_core",
@@ -239,12 +240,13 @@ async def test_run_benchmark_uses_registry_suites_and_reuses_arr_helpers(
         "exploration_lab",
         "luban_case_grading_shadow",
         "answer_citation_shadow",
+        "m26_context_safety",
     ]
     assert payload["run_manifest"]["registry_version"] == "phase1"
     assert payload["release_spine"]
     assert payload["summary"]["passed"] == 8
     assert payload["summary"]["failed"] == 1
-    assert payload["summary"]["skipped"] == 1
+    assert payload["summary"]["skipped"] == 4
     assert payload["failure_taxonomy"] == [{"failure_type": "FAIL_ROUTE_WRONG", "count": 1}]
     assert payload["baseline_diff"] is None
     assert payload["runtime_evidence_links"] == [
@@ -264,6 +266,12 @@ async def test_run_benchmark_uses_registry_suites_and_reuses_arr_helpers(
     assert not any(item["case_id"] == "surface.yousenwebview.telemetry.smoke" for item in payload["blind_spots"])
     assert not any(item["case_id"] == "answer.citation.paper_style.v0" for item in payload["blind_spots"])
     assert any(item["case_id"] == "surface.web.ack.smoke" for item in payload["blind_spots"])
+    m26_case = next(
+        item for item in payload["case_results"] if item["case_id"] == "grading.compiled_context.safety_contract"
+    )
+    assert m26_case["status"] == "SKIP"
+    assert m26_case["evidence"]["reason"] == "benchmark_case_runner_not_implemented"
+    assert "FAIL_OFFICIAL_SCORE_LAUNDERING" in m26_case["evidence"]["failure_taxonomy_scope"]
     assert all("source_suite" in item for item in payload["case_results"])
     assert payload["legacy"]["suite_summaries"][0]["suite"] == "semantic-router"
     assert payload["legacy"]["case_results"][0]["suite"] == "semantic-router"

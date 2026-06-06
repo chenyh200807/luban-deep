@@ -35,6 +35,13 @@
       "case_ids": [
         "answer.citation.paper_style.v0"
       ]
+    },
+    "m26_context_safety": {
+      "case_ids": [
+        "grading.compiled_context.safety_contract",
+        "grading.open_world_diagnostic.safety_contract",
+        "learning_brain.evidence_loop.safety_contract"
+      ]
     }
   },
   "cases": {
@@ -71,6 +78,74 @@
       "source_fixture": "deeptutor/services/benchmark/fixtures/luban_case_grading_golden_v1.json",
       "origin_type": "manual",
       "origin_ref": "docs/plan/2026-05-31-luban-grading-truth-golden-eval-campaign-v2-2.md",
+      "promotion_status": "candidate",
+      "promoted_from_case_id": ""
+    },
+    "grading.compiled_context.safety_contract": {
+      "dataset_id": "benchmark_phase1",
+      "dataset_version": "phase1.0",
+      "case_id": "grading.compiled_context.safety_contract",
+      "contract_domain": "grading_quality_contract",
+      "case_tier": "regression_tier",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "compiled_context_authority_safety_contract",
+      "failure_taxonomy_scope": [
+        "FAIL_COMPILED_CONTEXT_AUTHORITY_DRIFT",
+        "FAIL_OFFICIAL_SCORE_LAUNDERING",
+        "FAIL_ANSWER_KEY_OVERRIDE",
+        "FAIL_SOURCE_LAUNDERING",
+        "FAIL_CANDIDATE_PROMOTED_TO_TRUTH",
+        "FAIL_CANDIDATE_RELEASE_TRUTH",
+        "FAIL_WRAPPER_POLICY_DRIFT",
+        "FAIL_CANONICAL_TRUTH_WRITE"
+      ],
+      "source_fixture": "docs/plan/2026-06-06-luban-m26-compiled-context-open-world-execution-plan.md",
+      "origin_type": "execution_plan",
+      "origin_ref": "docs/plan/2026-06-06-luban-m26-compiled-context-open-world-execution-plan.md",
+      "promotion_status": "candidate",
+      "promoted_from_case_id": ""
+    },
+    "grading.open_world_diagnostic.safety_contract": {
+      "dataset_id": "benchmark_phase1",
+      "dataset_version": "phase1.0",
+      "case_id": "grading.open_world_diagnostic.safety_contract",
+      "contract_domain": "grading_quality_contract",
+      "case_tier": "regression_tier",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "open_world_diagnostic_fail_open_safety_contract",
+      "failure_taxonomy_scope": [
+        "FAIL_OPEN_WORLD_REFUSAL",
+        "FAIL_OFFICIAL_SCORE_LAUNDERING",
+        "FAIL_ANSWER_KEY_OVERRIDE",
+        "FAIL_SOURCE_LAUNDERING",
+        "FAIL_CANONICAL_TRUTH_WRITE"
+      ],
+      "source_fixture": "docs/plan/2026-06-06-luban-m26-compiled-context-open-world-execution-plan.md",
+      "origin_type": "execution_plan",
+      "origin_ref": "docs/plan/2026-06-06-luban-m26-compiled-context-open-world-execution-plan.md",
+      "promotion_status": "candidate",
+      "promoted_from_case_id": ""
+    },
+    "learning_brain.evidence_loop.safety_contract": {
+      "dataset_id": "benchmark_phase1",
+      "dataset_version": "phase1.0",
+      "case_id": "learning_brain.evidence_loop.safety_contract",
+      "contract_domain": "continuity_contract",
+      "case_tier": "regression_tier",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "grading_evidence_to_learning_brain_loop_contract",
+      "failure_taxonomy_scope": [
+        "FAIL_LEARNING_EVIDENCE_LOOP_BREAK",
+        "FAIL_CANDIDATE_PROMOTED_TO_TRUTH",
+        "FAIL_LB_UNSAFE_PROMOTION",
+        "FAIL_CANONICAL_TRUTH_WRITE"
+      ],
+      "source_fixture": "docs/plan/2026-06-06-luban-m26-compiled-context-open-world-execution-plan.md",
+      "origin_type": "execution_plan",
+      "origin_ref": "docs/plan/2026-06-06-luban-m26-compiled-context-open-world-execution-plan.md",
       "promotion_status": "candidate",
       "promoted_from_case_id": ""
     },

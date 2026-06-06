@@ -124,6 +124,26 @@ gates:
       - "--output-dir"
       - "{artifact_dir}/benchmark-pr-gate-core"
 
+  arr_lite_quality_spine:
+    description: "ARR lite producer for current-release quality spine."
+    category: deep
+    command:
+      - "python"
+      - "scripts/run_arr_lite.py"
+      - "--mode"
+      - "lite"
+      - "--report-only"
+      - "--output-dir"
+      - "{artifact_dir}/arr-lite"
+
+  aae_snapshot_quality_spine:
+    description: "AAE producer consuming current ARR/OM quality evidence before release gate."
+    category: deep
+    command:
+      - "python"
+      - "scripts/run_aae_snapshot.py"
+      - "--no-live-feedback"
+
   learning_fact_retrieval_maintenance:
     description: "Learning fact retrieval maintenance dry-run."
     category: deep

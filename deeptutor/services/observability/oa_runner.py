@@ -417,7 +417,7 @@ def build_oa_run(
                 next_verification_step="先看 benchmark case_results 中失败 case 的 origin_ref/source_suite，再回到 ARR 或真实 session 重放。",
                 counterfactual="若 benchmark 全通过且无 regressions，则当前质量问题更可能来自真实流量或观测盲区。",
                 validation_cmds=[
-                    "python3.11 scripts/run_daily_benchmark.py --suite regression_watch",
+                    "python3.11 scripts/run_benchmark.py --suite regression_watch",
                     "python3.11 scripts/run_oa.py --mode incident",
                 ],
                 suggested_fix_type="回放",
