@@ -92,3 +92,59 @@ def test_missing_supply_falls_through(tmp_path, monkeypatch):
     assert RT.available_nodes() == []
     assert RT.resolve_textbook_knowledge("1A411011") is None
     RT._load_supply.cache_clear()
+
+
+# Three blocks under ONE syllabus node (1A411011) but three different taxonomy_path sub-topics — the
+# coarse-node / fine-path situation the focusing feature targets.
+_C30 = "结构工程材料混凝土强度等级不应低于C30。"
+_FILL = "填方压实每层分层厚度为250mm。"
+_PILE = "桩基低应变法用于检测桩身缺陷。"
+def _blk(cid, path, corpus, title, content):
+    return {"chunk_id": cid, "content_markdown": corpus,
+            "taxonomy": {"node_code": "1A411011", "taxonomy_path": path},
+            "knowledge_cards": [{"card_title": title, "card_type": "强制条文(数值)",
+                                 "card_content": content, "key_numbers": []}]}
+
+
+@pytest.fixture
+def multi_supply(tmp_path, monkeypatch):
+    blocks = [
+        _blk("1A411011_001_0001", "技术 > 材料", _C30, "材料", _C30),
+        _blk("1A411011_002_0002", "技术 > 土方", _FILL, "土方", _FILL),
+        _blk("1A411011_003_0003", "技术 > 桩基", _PILE, "桩基", _PILE),
+    ]
+    ev = B.ingest_sources(textbook_blocks=blocks, run_id="mrt-1")
+    res = P.run_pipeline(ev, run_id="mrt-1", llm_worker=W.default_textbook_block_worker,
+                         lane="textbook", max_iter=1)
+    bundle = res["signed_bundle"]
+    d = tmp_path / "supply"
+    d.mkdir()
+    (d / "textbook_knowledge_release_candidate.json").write_text(
+        json.dumps(bundle, ensure_ascii=False, sort_keys=True, separators=(",", ":")), "utf-8")
+    (d / "canonical_pointer.json").write_text(json.dumps(
+        {"namespace": "textbook_knowledge_full", "status": "release_candidate", "published": False,
+         "expected_content_hash": bundle["manifest"]["content_hash"]}), "utf-8")
+    monkeypatch.setattr(RT, "_SUPPLY_DIR", d)
+    RT._load_supply.cache_clear()
+    yield
+    RT._load_supply.cache_clear()
+
+
+def test_available_paths_finer_than_nodes(multi_supply):
+    # one syllabus node, three taxonomy_path sub-topics
+    assert RT.available_nodes() == ["1A411011"]
+    assert RT.available_paths() == ["技术 > 土方", "技术 > 材料", "技术 > 桩基"]
+
+
+def test_query_focuses_node_to_relevant_card(multi_supply):
+    out = RT.resolve_textbook_knowledge(
+        "1A411011", learner_context={"question_stem": "关于混凝土强度C30的要求"}, limit=1)
+    assert out["node_card_total"] == 3      # the coarse node holds 3 cards
+    assert out["card_count"] == 1           # focused to 1 for this turn
+    assert out["selection_mode"] == "relevance"
+    assert out["selected_taxonomy_paths"] == ["技术 > 材料"]  # the C30 sub-topic, not 土方/桩基
+
+
+def test_no_limit_returns_whole_node(multi_supply):
+    out = RT.resolve_textbook_knowledge("1A411011", learner_context={}, limit=0)
+    assert out["card_count"] == 3 and out["selection_mode"] == "all"

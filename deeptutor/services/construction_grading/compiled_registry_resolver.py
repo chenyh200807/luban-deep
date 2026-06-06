@@ -52,6 +52,45 @@ def _point_map(bundle: dict[str, Any]) -> dict[str, dict[str, Any]]:
     }
 
 
+def _relevance_tokens(text: str) -> set[str]:
+    """Cheap deterministic tokens for lexical relevance: standalone numbers, latin/code runs, and CJK
+    character bigrams. No embedding service — good enough to focus a node's cards on one turn's topic."""
+    import re as _re
+    s = _FKC._norm_textbook(text)
+    toks: set[str] = set()
+    toks.update(_re.findall(r"\d+(?:\.\d+)?", s))
+    toks.update(t.lower() for t in _re.findall(r"[A-Za-z]{2,}", s))
+    for run in _re.findall(r"[一-鿿]+", s):
+        toks.update(run[i:i + 2] for i in range(len(run) - 1))
+        if len(run) == 1:
+            toks.add(run)
+    return toks
+
+
+def _card_text(card: dict[str, Any]) -> str:
+    """The relevance surface of a signed card (verbatim quote + sub-topic path + anchors)."""
+    return " ".join(str(card.get(k) or "") for k in ("textbook_quote", "taxonomy_path", "card_type")) \
+        + " " + " ".join(str(x) for x in (card.get("required_terms") or [])) \
+        + " " + " ".join(str(x) for x in (card.get("key_numbers") or []))
+
+
+def _relevance_rank(cards: list[dict[str, Any]], query: str, limit: int) -> list[dict[str, Any]]:
+    """Rank a node's cards by lexical overlap with the turn's query; return the top ``limit``.
+    Deterministic tie-break by point_id. Zero-overlap query -> first ``limit`` by point_id (still
+    capped, never the whole-node dump). limit<=0 means no cap (returns all, point_id-sorted)."""
+    ordered = sorted(cards, key=lambda c: str(c.get("point_id") or ""))
+    if limit <= 0:
+        return ordered
+    q = _relevance_tokens(query)
+    if not q:
+        return ordered[:limit]
+    scored = sorted(
+        ordered,
+        key=lambda c: (-len(q & _relevance_tokens(_card_text(c))), str(c.get("point_id") or "")),
+    )
+    return scored[:limit]
+
+
 def _points_for_question(bundle: dict[str, Any], qid: str) -> list[dict[str, Any]]:
     """Resolve a question's signed points via the manifest's ``question_index`` (qid -> [point_ids]).
 
@@ -132,12 +171,18 @@ def resolve_node(
     bundle: dict[str, Any],
     pointer: dict[str, Any],
     namespace: str = "textbook_knowledge_full",
+    query: str = "",
+    limit: int = 0,
 ) -> dict[str, Any] | None:
     """Resolve a 2026 教材 knowledge node from a signed textbook bundle into a ``resolution`` dict.
 
     Mirrors ``resolve_question`` but keys on the manifest ``node_index`` (node_code -> [point_ids]).
-    Returns None (caller falls open) on any gate failure or a not-in-bundle node. Carries NO
-    registry_status — release-grade is granted only by the trusted ``governed_registry_status`` kwarg.
+    A node code is coarse (one syllabus leaf can hold 100+ cards), so when ``query`` (the turn's stem
+    text) and ``limit`` are given, the node's cards are FOCUSED: ranked by lexical relevance to the
+    query and capped to ``limit`` (finer effective granularity over the 197 taxonomy_path sub-topics).
+    With no query/limit, behaviour is unchanged (all cards). Returns None (caller falls open) on any
+    gate failure or a not-in-bundle node. Carries NO registry_status — release-grade is granted only by
+    the trusted ``governed_registry_status`` kwarg.
     """
     node = str(node_code or "").strip()
     if not node:
@@ -148,16 +193,23 @@ def resolve_node(
         return None
     nindex = (bundle.get("manifest") or {}).get("node_index") or {}
     pmap = _point_map(bundle)
-    cards = [pmap[pid] for pid in (nindex.get(node) or []) if pid in pmap]
-    if not cards:
+    all_cards = [pmap[pid] for pid in (nindex.get(node) or []) if pid in pmap]
+    if not all_cards:
         return None
+    node_total = len(all_cards)
+    cards = _relevance_rank(all_cards, query, limit) if (query or limit) else all_cards
     required_terms = sorted({t for c in cards for t in (c.get("required_terms") or [])})
+    selected_paths = sorted({str(c.get("taxonomy_path") or "") for c in cards if c.get("taxonomy_path")})
     return {
         "status": "resolved",
         "question_id": node,                 # identity slot reused
         "question_type": "knowledge_node",
         "rubric": {"knowledge_cards": cards, "card_count": len(cards)},
         "required_terms": required_terms,
+        "node_card_total": node_total,
+        "selected_card_count": len(cards),
+        "selection_mode": "relevance" if query else ("capped" if limit else "all"),
+        "selected_taxonomy_paths": selected_paths,
         "source_refs": [
             {"chunk_id": c.get("chunk_id"), "taxonomy_path": c.get("taxonomy_path"),
              "provenance_kind": c.get("provenance_class"), "textbook_quote": c.get("textbook_quote")}
@@ -174,10 +226,14 @@ def build_pack_for_node(
     namespace: str = "textbook_knowledge_full",
     learner_context: dict[str, Any] | None = None,
     grant_release: bool = False,
+    query: str = "",
+    limit: int = 0,
 ) -> Any | None:
     """Resolve a textbook node + build the LubanContextPack. ``grant_release`` is the trusted-server F1
-    decision (authority is the server kwarg, never the bundle)."""
-    resolution = resolve_node(node_code, bundle=bundle, pointer=pointer, namespace=namespace)
+    decision (authority is the server kwarg, never the bundle). ``query``/``limit`` focus a coarse
+    node's cards to the turn's topic (see ``resolve_node``)."""
+    resolution = resolve_node(node_code, bundle=bundle, pointer=pointer, namespace=namespace,
+                              query=query, limit=limit)
     if resolution is None:
         return None
     return build_pack_from_question_context(

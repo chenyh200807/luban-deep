@@ -2110,7 +2110,16 @@ def _maybe_attach_textbook_knowledge(
             resolve_textbook_knowledge,
         )
 
-        payload = resolve_textbook_knowledge(node, learner_context={"student_id": student_id})
+        # the turn's question text focuses the coarse node to its most-relevant cards (finer granularity)
+        learner_context = {
+            "student_id": student_id,
+            "question_stem": str(graded_context.get("question_stem")
+                                 or graded_context.get("stem")
+                                 or graded_context.get("question")
+                                 or graded_context.get("question_text") or ""),
+            "user_answer": str(graded_context.get("user_answer") or ""),
+        }
+        payload = resolve_textbook_knowledge(node, learner_context=learner_context)
         if payload is not None:
             payload["node_match"] = match_kind  # explicit | exact | section (transparency for consumers)
             result_payload[KEY] = payload

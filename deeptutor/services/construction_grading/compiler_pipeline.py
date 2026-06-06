@@ -273,12 +273,19 @@ def _s5_sign_textbook(
             card["_freq_blocklist"] = freq_blocklist
     bundle = _FKC.compile_textbook_knowledge_release_candidate(cards)
     nindex: dict[str, list[str]] = {}
+    pindex: dict[str, list[str]] = {}
     for r in bundle.get("records", []):
+        pid = str(r.get("point_id"))
         node = str(r.get("node_code") or "")
+        path = str(r.get("taxonomy_path") or "")
         if node:
-            nindex.setdefault(node, []).append(str(r.get("point_id")))
-    # node_index does NOT affect content_hash/signature (computed over records only) -> safe.
+            nindex.setdefault(node, []).append(pid)
+        if path:
+            pindex.setdefault(path, []).append(pid)
+    # node_index / path_index do NOT affect content_hash/signature (computed over records only) -> safe.
+    # path_index keys on taxonomy_path (197 sub-topics vs 20 syllabus nodes) for finer resolution.
     bundle["manifest"]["node_index"] = {n: sorted(set(p)) for n, p in nindex.items()}
+    bundle["manifest"]["path_index"] = {n: sorted(set(p)) for n, p in pindex.items()}
     signed_pids = {str(r.get("point_id")) for r in bundle.get("records", [])}
     promoted: list[dict[str, Any]] = []
     for c in eligible:

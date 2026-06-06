@@ -44,12 +44,31 @@ def _load_supply() -> tuple[bool, dict[str, Any], dict[str, Any]]:
     return (True, bundle, pointer)
 
 
+# A coarse node_code can hold 100+ cards; focus a turn to this many most-relevant cards by default.
+_DEFAULT_CARD_LIMIT = 12
+
+
 def available_nodes() -> list[str]:
     """The node_codes the signed textbook pack can resolve (empty if the supply is unavailable)."""
     ok, bundle, _pointer = _load_supply()
     if not ok:
         return []
     return sorted((bundle.get("manifest") or {}).get("node_index", {}).keys())
+
+
+def available_paths() -> list[str]:
+    """The fine taxonomy_path sub-topics the signed pack indexes (197 vs 20 syllabus nodes)."""
+    ok, bundle, _pointer = _load_supply()
+    if not ok:
+        return []
+    return sorted((bundle.get("manifest") or {}).get("path_index", {}).keys())
+
+
+def _relevance_query(learner_context: dict[str, Any] | None) -> str:
+    """Build the lexical relevance query for a turn from its question text (+ the learner's answer)."""
+    lc = learner_context or {}
+    return " ".join(str(lc.get(k) or "") for k in
+                    ("question_stem", "stem", "question_text", "question", "user_answer")).strip()
 
 
 _NODE_IN_ID = re.compile(r"1A\d{4,}")
@@ -97,8 +116,13 @@ def resolve_textbook_knowledge(
     *,
     learner_context: dict[str, Any] | None = None,
     grant_release: bool = False,
+    limit: int = _DEFAULT_CARD_LIMIT,
 ) -> dict[str, Any] | None:
     """Resolve a node_code into a verbatim-sourced knowledge payload (or None to fall open).
+
+    The node's cards are FOCUSED to the turn: ranked by lexical relevance to the question text in
+    ``learner_context`` and capped to ``limit`` (finer effective granularity over the 197 taxonomy_path
+    sub-topics within a coarse syllabus node). Pass ``limit<=0`` to get the whole node.
 
     ``grant_release`` is the trusted-server F1 decision: True grants controlled official authority;
     False yields teaching/source context with ``official_score_allowed=False``.
@@ -109,20 +133,27 @@ def resolve_textbook_knowledge(
     ok, bundle, pointer = _load_supply()
     if not ok:
         return None
+    query = _relevance_query(learner_context)
     pack = _R.build_pack_for_node(
         node, bundle=bundle, pointer=pointer, namespace=_NAMESPACE,
         learner_context=learner_context or {}, grant_release=grant_release,
+        query=query, limit=limit,
     )
     if pack is None:
         return None
     pack_dict = pack.to_dict()
-    cards = pack_dict.get("rubric_context", {}).get("rubric", {}).get("knowledge_cards", [])
+    rubric = pack_dict.get("rubric_context", {}).get("rubric", {})
+    cards = rubric.get("knowledge_cards", [])
+    resolution = pack_dict.get("rubric_context", {})
     policy = pack_dict.get("diagnostic_policy", {})
     return {
         "authority": AUTHORITY,
         "mode": "textbook_knowledge_node",
         "node_code": node,
         "card_count": len(cards),
+        "node_card_total": resolution.get("node_card_total"),
+        "selection_mode": resolution.get("selection_mode"),
+        "selected_taxonomy_paths": resolution.get("selected_taxonomy_paths"),
         "provenance": "verbatim_2026_textbook_content_markdown",
         "official_score_allowed": bool(policy.get("official_score_allowed")),
         "controlled_official": bool(policy.get("controlled_official")),
