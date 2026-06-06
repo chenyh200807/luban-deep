@@ -230,6 +230,7 @@ RUN chmod +x /usr/local/bin/deeptutor
 RUN mkdir -p \
     /tmp \
     /var/tmp \
+    tmp \
     data/user/settings \
     data/memory \
     data/user/workspace/memory \
@@ -246,7 +247,7 @@ RUN mkdir -p \
     data/user/logs \
     data/knowledge_bases
 
-RUN chmod 1777 /tmp /var/tmp
+RUN chmod 1777 /tmp /var/tmp tmp
 
 # Create supervisord configuration for running both services
 # Log output goes to stdout/stderr so docker logs can capture them
