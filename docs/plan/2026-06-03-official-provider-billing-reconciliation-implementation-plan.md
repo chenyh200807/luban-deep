@@ -389,6 +389,7 @@ Before reading a path, the script must:
 - Reject files above `DEEPSEEK_BILLING_EXPORT_MAX_BYTES`, defaulting to a conservative local value.
 - For ZIP files, read CSV entries through `ZipFile.open` only; never extract archive members to disk.
 - Include `source_file_sha256`, `source_file_name`, and `schema_hash` in `--json` output without printing row values.
+- Include `relative_path` for nested directory or ZIP CSV entries so two files with the same basename are not collapsed into one ambiguous manifest entry.
 
 - [ ] **Step 4: Run the audit on a real DeepSeek export**
 
@@ -399,6 +400,8 @@ python scripts/audit_deepseek_usage_export.py "$DEEPSEEK_USAGE_EXPORT_PATH" --js
 ```
 
 Expected: `/tmp/deepseek_usage_export_headers.json` lists every CSV file and its headers without printing row values.
+
+2026-06-03 implementation status: blocked on missing external input. The audit command is implemented and tested, including ZIP safety, size limits, symlink rejection, nested directory scanning, nested ZIP CSV scanning, header-only output, `source_file_sha256`, `source_file_name`, `schema_hash`, and `relative_path`. A local search across Downloads/Desktop/Documents/Developer did not find a real DeepSeek official Usage export; only repo scripts, tests, fixture directories, QA docs, and unrelated personal bills were present.
 
 - [ ] **Step 5: Save the audit result**
 
@@ -422,6 +425,14 @@ Paste the output of:
 - The amount CSV is the monthly monetary authority.
 - A redacted fixture must preserve real header names and use synthetic row values.
 - If the export does not expose model, API key, amount, and currency semantics, implementation stops and the BI response reports `official_usage.status = "unsupported_export_schema"`.
+```
+
+Helper command after the real official export is available:
+
+```bash
+python scripts/write_deepseek_usage_export_schema_audit.py "$DEEPSEEK_USAGE_EXPORT_PATH" \
+  --date 2026-06-03 \
+  --output docs/qa/2026-06-03-deepseek-usage-export-schema-audit.md
 ```
 
 - [x] **Step 6: Create redacted fixture documentation**
@@ -1326,6 +1337,16 @@ def test_deepseek_balance_totals_parse_official_payload() -> None:
 
 Use `tests/fixtures/deepseek_usage_export/amount_redacted.csv`. The fixture must preserve real header names from `docs/qa/2026-06-03-deepseek-usage-export-schema-audit.md` and use synthetic values.
 
+2026-06-03 implementation status: still intentionally not done. The fixture builder now fail-closes unless the saved audit contains real official header semantics for model, API key, amount/cost, and currency. Because the real DeepSeek export audit is still missing, no parser aggregation test from an audited redacted fixture can be trusted yet.
+
+After the real schema audit document is saved, generate the synthetic fixture with:
+
+```bash
+python scripts/build_deepseek_usage_export_redacted_fixture.py \
+  --audit docs/qa/2026-06-03-deepseek-usage-export-schema-audit.md \
+  --output tests/fixtures/deepseek_usage_export/amount_redacted.csv
+```
+
 ```python
 def test_deepseek_usage_export_parser_aggregates_by_key_and_model(tmp_path) -> None:
     export = Path("tests/fixtures/deepseek_usage_export/amount_redacted.csv")
@@ -1897,7 +1918,7 @@ Expected: PASS.
 - Modify only if requested: `web/lib/member-api.ts`
 - Test only if modified: existing BI frontend tests and Playwright smoke.
 
-- [ ] **Step 1: Add UI only after backend response is stable**
+- [x] **Step 1: Add UI only after backend response is stable**
 
 Display provider cards:
 
@@ -1907,11 +1928,11 @@ Display provider cards:
 
 Each card shows internal amount, official amount, token delta, amount delta, currency, and warnings.
 
-- [ ] **Step 2: Do not hide `unconfigured`**
+- [x] **Step 2: Do not hide `unconfigured`**
 
 If DeepSeek export or Bailian BssOpenApi is unconfigured, show `unconfigured` explicitly. A missing official connector is a risk state, not a green state.
 
-- [ ] **Step 3: Run frontend verification**
+- [x] **Step 3: Run frontend verification**
 
 Run the repo's existing BI frontend test/smoke commands used for BI changes. If no narrow UI test exists for this surface, add a small API contract test first and then run Playwright only for the affected BI route.
 
@@ -2004,6 +2025,8 @@ Use this package-margin query, not the all-cost finance query, when deciding how
 - Margin-hardening check: v0.3 separates list-price, net-charge, and cash-paid cost; adds billing scope, cost center, runtime environment, API-key fingerprint, and billable-turn attribution so BI can support package margin decisions rather than only provider spend reporting.
 - Scenario check: v0.3 explicitly covers month-end close, daily finance checks, package margin, fallback drift, eval contamination, API-key rotation, export schema drift, and stale pricing.
 - Review fix check: v0.4 fixes the second review blockers by adding admin-only access, wallet-capture-based billable turn binding, provider account scope mapping, import manifest persistence/idempotency, currency metadata closure, and P0A/P0B sequencing that does not block internal measurement on a missing DeepSeek export.
+- Implementation follow-up check: DeepSeek export audit/runtime parser now preserve nested CSV `relative_path`, recursively scan extracted export directories, read ZIP CSV entries without extraction, reject unsafe paths/oversized entries, and keep manifest data header/hash-only until a real official export is provided.
+- Verification evidence: `pytest tests/scripts/test_audit_deepseek_usage_export.py tests/scripts/test_write_deepseek_usage_export_schema_audit.py tests/scripts/test_build_deepseek_usage_export_redacted_fixture.py -q` passed with 16 tests; `pytest tests/tutorbot/providers/test_openai_compat_provider_usage.py tests/services/test_usage_ledger.py tests/services/test_langfuse_observability.py tests/services/test_deepseek_billing.py tests/services/test_official_billing_imports.py tests/services/test_provider_reconciliation.py tests/services/test_bailian_billing.py tests/api/test_bi_router.py -q` passed with 84 tests; `pytest tests/services/observability/test_plan_completion.py -q` passed with 9 tests; `python -m py_compile ...` and `git diff --check` passed.
 
 ## GSTACK REVIEW REPORT
 

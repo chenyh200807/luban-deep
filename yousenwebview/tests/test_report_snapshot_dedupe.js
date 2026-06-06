@@ -206,8 +206,15 @@ function createPageInstance(pageDef) {
       question_count: 3,
       training_mode: "same_type_repair",
       prompt: "请围绕我刚才错的“地下防水卷材搭接”，出 3 道同类选择题训练我。",
+      followupQuestionContext: {
+        question_id: "q_wrong_1",
+        question: "地下防水卷材搭接做法正确的是？",
+        question_type: "choice",
+        user_answer: "B",
+      },
     };
     var capturedIntent = null;
+    var capturedFollowupContext = null;
     var capturedQuery = "";
     var pageDef = loadReportPage({
       storageSeed: {
@@ -223,9 +230,10 @@ function createPageInstance(pageDef) {
       },
       runtime: {
         setWorkspaceBack: function () {},
-        setPendingChatIntent: function (query, mode, promptIntent) {
+        setPendingChatIntent: function (query, mode, promptIntent, followupQuestionContext) {
           capturedQuery = query;
           capturedIntent = promptIntent;
+          capturedFollowupContext = followupQuestionContext;
         },
       },
       route: {
@@ -257,6 +265,14 @@ function createPageInstance(pageDef) {
     assert(
       capturedIntent && capturedIntent.attempt_ref === "attempt_signed",
       "report training execution should preserve signed assessment attempt_ref",
+    );
+    assert(
+      !capturedIntent.followupQuestionContext && !capturedIntent.followup_question_context,
+      "report training prompt intent should not duplicate question context",
+    );
+    assert(
+      capturedFollowupContext && capturedFollowupContext.question_id === "q_wrong_1",
+      "report training execution should pass followup question context separately",
     );
     assert(
       capturedIntent && capturedIntent.question_count === 3,

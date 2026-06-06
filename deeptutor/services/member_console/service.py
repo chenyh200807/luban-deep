@@ -77,6 +77,7 @@ from deeptutor.services.learner_state.study_plan import (
     build_study_plan,
     build_study_plan_from_learner_snapshot,
 )
+from deeptutor.services.internal_qa import internal_qa_billing_bypass_allowed
 from deeptutor.services.member_console.external_auth import (
     create_external_auth_user,
     ensure_external_auth_user_for_phone,
@@ -1973,7 +1974,12 @@ class MemberConsoleService:
             member["external_auth_provider"] = str(member.get("external_auth_provider") or "wallet_alias").strip()
         if not canonical_uid:
             canonical_uid = str(member.get("user_id") or "").strip()
-        if is_uuid_like(canonical_uid):
+        if is_uuid_like(canonical_uid) and not internal_qa_billing_bypass_allowed(
+            canonical_uid,
+            member.get("user_id"),
+            member.get("auth_username"),
+            member.get("username"),
+        ):
             wallet_service = self._get_wallet_service()
             if getattr(wallet_service, "is_configured", False):
                 try:

@@ -64,10 +64,12 @@ always: false
 | 模式 | 条件 | 用户可见结果 |
 | --- | --- | --- |
 | `curated_rubric` | 有人工校准或结构化 Rubric | 明确得分、逐采分点命中、漏点、得分改写 |
-| `projected_rubric` | 有题干、标准答案、解析、关键词、分值等资产，但无人工 Rubric | 预计分或得分区间、推演采分点、漏点、得分改写 |
+| `projected_rubric` | 有题干、标准答案、解析、关键词、分值等资产，但无人工 Rubric；这些资产必须来自当前 active question、`questions_bank`、exact case retrieval 或明确题库证据 | 预计分或得分区间、推演采分点、漏点、得分改写 |
 | `open_skill` | 用户只粘贴题干/答案，或题目资产不足 | 提分诊断、可能漏点、得分表达改写、建议补充信息/下一题 |
 
 不要把 `projected_rubric` 或 `open_skill` 说成“低置信度”。用户看到的是“本次按采分点推演阅卷”或“本次按提分诊断处理”。
+
+Authority guard：不得仅凭模型常识、普通 RAG 知识、相似题经验或用户题面里的暗示自行拼出 `projected_rubric`。如果没有当前题卡、题库命中、标准答案/解析/分值或结构化采分点，本轮只能是 `open_skill`，预计得分必须写“本次不硬估标准分”。
 
 ## 阅卷流程
 

@@ -80,7 +80,12 @@ class WalletIdentitySupabaseStore:
                     "limit": 1,
                 },
             )
-            response.raise_for_status()
+            try:
+                response.raise_for_status()
+            except httpx.HTTPStatusError as exc:
+                if exc.response is not None and exc.response.status_code == 404:
+                    return None
+                raise
             payload = response.json()
             if isinstance(payload, list) and payload:
                 row = payload[0]

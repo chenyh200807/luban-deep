@@ -2,6 +2,7 @@ from __future__ import annotations
 
 _RUNTIME_ENV_KEYS = (
     "DEEPTUTOR_ENV",
+    "DEEPTUTOR_RUNTIME_ENV",
     "APP_ENV",
     "ENV",
     "ENVIRONMENT",

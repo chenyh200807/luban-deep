@@ -1,0 +1,8 @@
+{
+  "requested_forced_fallback": 10,
+  "fallback_success": 10,
+  "fallback_rate": 0.1,
+  "failclosed_rate": 0.01,
+  "delta_packet_qwen_available": true,
+  "provider_stub_used": false
+}

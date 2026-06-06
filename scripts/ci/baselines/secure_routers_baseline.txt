@@ -10,7 +10,7 @@ deeptutor/api/routers/knowledge.py:54
 deeptutor/api/routers/learning_brain.py:16
 deeptutor/api/routers/member.py:17
 deeptutor/api/routers/memory.py:14
-deeptutor/api/routers/mobile.py:60
+deeptutor/api/routers/mobile.py:64
 deeptutor/api/routers/notebook.py:19
 deeptutor/api/routers/plugins_api.py:29
 deeptutor/api/routers/question_notebook.py:19

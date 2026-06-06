@@ -1,0 +1,23 @@
+{
+  "m201_live_delta_replay": "GO",
+  "release_candidate_delta": "GO",
+  "production_default_impact": "improve",
+  "can_feed_next_formal_registry_candidate": true,
+  "can_affect_current_m19b_default_decision": false,
+  "m20_delta_hash": "0a5d134336a22fd5ebe930e13705cde6af469662721cb5a8d7131c226c18d5e5",
+  "delta_hash_matches": true,
+  "accepted_delta_count": 69,
+  "temporary_packet_builder_explicit_flag_only": true,
+  "live_replay_executed": true,
+  "provider_stub_used": false,
+  "false_positive": 0,
+  "source_mismatch": 0,
+  "unsupported_positive": 0,
+  "list_partial_auto": 0,
+  "bad_calculation": 0,
+  "production_default_changed": false,
+  "production_runtime_connected": false,
+  "production_write_count": 0,
+  "canonical_learner_truth_written": false,
+  "go_blockers": []
+}

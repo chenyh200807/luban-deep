@@ -66,11 +66,21 @@ _SUPPRESS_ANSWER_MARKERS = (
     "先不要给答案",
     "先别直接给答案",
     "先不要直接给答案",
+    "不要先给答案",
+    "别先给答案",
+    "先不给答案",
+    "不先给答案",
     "不要给答案",
     "不要直接给答案",
     "别给答案",
     "别直接给答案",
     "不要答案",
+    "先不公布答案",
+    "不公布答案",
+    "不要公布答案",
+    "别公布答案",
+    "先别公布答案",
+    "暂不公布答案",
     "先别解析",
     "先不要解析",
     "不要解析",
@@ -602,10 +612,90 @@ def apply_followup_action_to_context(
     return graded_context
 
 
+def annotate_submission_context_from_message(
+    message: str,
+    question_context: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    normalized, submission = resolve_submission_attempt(message, question_context)
+    if not normalized or not submission:
+        return normalized
+    kind = str(submission.get("kind") or "").strip()
+    if kind == "batch":
+        answers = submission.get("answers")
+        return annotate_batch_submission_context(
+            normalized,
+            answers if isinstance(answers, list) else None,
+        ) or normalized
+    if kind != "single":
+        return normalized
+
+    user_answer = str(submission.get("answer") or "").strip()
+    if not user_answer:
+        return normalized
+    target_question_id = str(submission.get("question_id") or "").strip()
+    graded_context = dict(normalized)
+    items = normalized.get("items") if isinstance(normalized.get("items"), list) else []
+    if items:
+        graded_items: list[dict[str, Any]] = []
+        matched_item: dict[str, Any] | None = None
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            graded_item = dict(item)
+            item_question_id = str(graded_item.get("question_id") or "").strip()
+            should_update = (
+                bool(target_question_id and item_question_id == target_question_id)
+                or len(items) == 1
+            )
+            if should_update:
+                graded_item["user_answer"] = user_answer
+                graded_item["is_correct"] = answers_match(
+                    user_answer,
+                    str(graded_item.get("correct_answer") or "").strip(),
+                    graded_item,
+                )
+                matched_item = graded_item
+            graded_items.append(graded_item)
+        if matched_item is not None:
+            graded_context["user_answer"] = user_answer
+            graded_context["is_correct"] = matched_item.get("is_correct")
+            if len(graded_items) == 1:
+                for key in (
+                    "question_id",
+                    "question",
+                    "question_type",
+                    "options",
+                    "correct_answer",
+                    "explanation",
+                    "difficulty",
+                    "concentration",
+                    "knowledge_context",
+                    "multi_select",
+                    "grading_key",
+                    "evidence_refs",
+                ):
+                    if key in matched_item:
+                        graded_context[key] = matched_item[key]
+        graded_context["items"] = graded_items
+        return normalize_question_followup_context(graded_context) or graded_context
+
+    graded_context["user_answer"] = user_answer
+    graded_context["is_correct"] = answers_match(
+        user_answer,
+        str(graded_context.get("correct_answer") or "").strip(),
+        graded_context,
+    )
+    return normalize_question_followup_context(graded_context) or graded_context
+
+
 def looks_like_question_followup(message: str, question_context: dict[str, Any] | None) -> bool:
     normalized = normalize_question_followup_context(question_context)
     if not normalized:
         return False
+    if _looks_like_option_challenge_followup(message, normalized):
+        return True
+    if _looks_like_option_value_challenge_followup(message, normalized):
+        return True
     submission = resolve_submission_attempt(message, normalized)[1]
     if submission is not None and submission.get("kind") != "ambiguous":
         return True
@@ -641,7 +731,11 @@ def resolve_submission_attempt(
             if narrowed:
                 if _numbered_tail_looks_like_followup_question(item_message):
                     return narrowed, None
-                answer = _extract_single_submission(item_message, narrowed)
+                answer = _extract_single_submission(
+                    item_message,
+                    narrowed,
+                    allow_invalid_multi_option=True,
+                )
                 if answer is not None:
                     return narrowed, {
                         "kind": "single",
@@ -756,17 +850,17 @@ def answers_match(
     if left.upper() == right.upper():
         return True
 
+    options = (normalized or {}).get("options") or {}
+    if isinstance(options, dict):
+        left_option = normalized_left_option or _match_option_key_by_value(left, options)
+        right_option = normalized_right_option or _match_option_key_by_value(right, options)
+        if left_option and right_option:
+            return left_option == right_option
+
     left_judgment = _normalize_judgment_token(left)
     right_judgment = _normalize_judgment_token(right)
     if left_judgment and right_judgment:
         return left_judgment == right_judgment
-
-    options = (normalized or {}).get("options") or {}
-    if isinstance(options, dict):
-        left_option = _match_option_key_by_value(left, options)
-        right_option = _match_option_key_by_value(right, options)
-        if left_option and right_option:
-            return left_option == right_option
     return False
 
 
@@ -786,7 +880,11 @@ def should_reveal_reference_material(
         return True
     text = str(message or "").strip().lower()
     explicit_request_markers = ("参考答案", "标准答案", "正确答案", "答案", "解析", "讲解", "为什么", "错因")
-    return any(marker in text for marker in explicit_request_markers)
+    if any(marker in text for marker in explicit_request_markers):
+        if should_block_unanswered_reference_reveal(message, normalized):
+            return False
+        return True
+    return False
 
 
 def should_block_unanswered_reference_reveal(
@@ -798,6 +896,14 @@ def should_block_unanswered_reference_reveal(
         return False
     if normalized.get("reveal_explanations") or normalized.get("reveal_answers"):
         return False
+    requested_index = requested_question_item_index(message, normalized)
+    if requested_index is not None:
+        items = normalized.get("items") or []
+        if isinstance(items, list) and 1 <= requested_index <= len(items):
+            item = items[requested_index - 1]
+            if isinstance(item, dict) and _question_has_learner_attempt(item):
+                return False
+        return not _looks_like_answer_concession(message)
     if _question_has_learner_attempt(normalized):
         return False
     return not _looks_like_answer_concession(message)
@@ -825,6 +931,28 @@ def _looks_like_answer_concession(message: str) -> bool:
     return any(marker in text for marker in _ANSWER_CONCESSION_MARKERS)
 
 
+def requested_question_item_index(
+    message: str,
+    question_context: dict[str, Any] | None,
+) -> int | None:
+    normalized = normalize_question_followup_context(question_context)
+    if not normalized:
+        return None
+    items = normalized.get("items") or []
+    if not isinstance(items, list) or len(items) < 2:
+        return None
+    text = str(message or "").strip()
+    if not text:
+        return None
+    match = re.search(r"第\s*([0-9一二两三四五六七八九十]+)\s*[题问]", text)
+    if not match:
+        return None
+    index = _parse_small_zh_number(match.group(1))
+    if index is None or index < 1 or index > len(items):
+        return None
+    return index
+
+
 def build_question_followup_context_from_result_summary(
     result_summary: dict[str, Any] | None,
     rendered_response: str,
@@ -850,12 +978,18 @@ def build_question_followup_context_from_result_summary(
         question = str(qa_pair.get("question", "") or "").strip()
         if not question:
             continue
+        grading_key = qa_pair.get("grading_key") if isinstance(qa_pair.get("grading_key"), dict) else None
+        hidden_correct_answer = str(
+            qa_pair.get("correct_answer")
+            or ((grading_key or {}).get("correct_answer"))
+            or ""
+        ).strip()
         item = {
             "question_id": str(qa_pair.get("question_id", "") or f"q_{index}").strip(),
             "question": question,
             "question_type": _normalize_question_type(qa_pair.get("question_type")),
             "options": _normalize_options(qa_pair.get("options")),
-            "correct_answer": str(qa_pair.get("correct_answer", "") or "").strip(),
+            "correct_answer": hidden_correct_answer,
             "explanation": str(qa_pair.get("explanation", "") or "").strip(),
             "difficulty": str(qa_pair.get("difficulty", "") or "").strip(),
             "concentration": str(qa_pair.get("concentration", "") or "").strip(),
@@ -867,7 +1001,6 @@ def build_question_followup_context_from_result_summary(
             "multi_select": bool(qa_pair.get("multi_select", False)),
         }
         # plan §Phase 3 (Batch C / A5) — copy hidden grading_key into item.
-        grading_key = qa_pair.get("grading_key") if isinstance(qa_pair.get("grading_key"), dict) else None
         if grading_key:
             item["grading_key"] = dict(grading_key)
         item.update(_followup_grading_authority_fields(qa_pair, metadata))
@@ -1043,12 +1176,21 @@ def extract_choice_result_summary_from_text(text: str) -> dict[str, Any] | None:
     return {"results": results}
 
 
-def _extract_single_submission(message: str, question_context: dict[str, Any]) -> str | None:
+def _extract_single_submission(
+    message: str,
+    question_context: dict[str, Any],
+    *,
+    allow_invalid_multi_option: bool = False,
+) -> str | None:
     text = str(message or "").strip()
     if not text:
         return None
 
-    option_answer = _extract_option_submission(text, question_context)
+    option_answer = _extract_option_submission(
+        text,
+        question_context,
+        allow_invalid_multi_option=allow_invalid_multi_option,
+    )
     if option_answer is not None:
         return option_answer
 
@@ -1260,7 +1402,11 @@ def _parse_numbered_batch_submission(
                 }
             )
             continue
-        answer = _extract_single_submission(fragment, items[item_index - 1])
+        answer = _extract_single_submission(
+            fragment,
+            items[item_index - 1],
+            allow_invalid_multi_option=True,
+        )
         if answer is None:
             return None
         seen_indexes.add(item_index)
@@ -1315,7 +1461,11 @@ def _parse_compact_numbered_batch_submission(
                 }
             )
             continue
-        answer = _extract_single_submission(fragment, items[item_index - 1])
+        answer = _extract_single_submission(
+            fragment,
+            items[item_index - 1],
+            allow_invalid_multi_option=True,
+        )
         if answer is None:
             return None
         seen_indexes.add(item_index)
@@ -1335,7 +1485,11 @@ def _extract_unmatched_batch_answer(fragment: str) -> str | None:
     match = re.fullmatch(r"[A-E](?:[、，,/／]*[A-E])*", compact)
     if not match:
         return None
-    return _normalize_option_answer(compact, {"question_type": "choice", "options": {key: key for key in "ABCDE"}})
+    return _normalize_option_answer(
+        compact,
+        {"question_type": "choice", "options": {key: key for key in "ABCDE"}},
+        allow_multi=True,
+    )
 
 
 def _parse_batch_correction_submission(
@@ -1413,7 +1567,12 @@ def _parse_positional_batch_submission(
     return answers or None
 
 
-def _extract_option_submission(message: str, question_context: dict[str, Any]) -> str | None:
+def _extract_option_submission(
+    message: str,
+    question_context: dict[str, Any],
+    *,
+    allow_invalid_multi_option: bool = False,
+) -> str | None:
     text = str(message or "").strip()
     if not text:
         return None
@@ -1429,6 +1588,11 @@ def _extract_option_submission(message: str, question_context: dict[str, Any]) -
         return None
 
     option_keys = _available_option_keys(question_context)
+    if _looks_like_option_challenge_followup(text, question_context):
+        return None
+    if _looks_like_option_value_challenge_followup(text, question_context):
+        return None
+
     compact_upper = re.sub(r"\s+", "", text).upper().rstrip("。.!！?")
     letter_patterns = [
         rf"^(?:我选|我觉得选|选|答案是|答案|就是)?([{option_keys}](?:[、，,/／\s]*[{option_keys}])*)$",
@@ -1439,13 +1603,142 @@ def _extract_option_submission(message: str, question_context: dict[str, Any]) -
     for pattern in letter_patterns:
         match = re.fullmatch(pattern, compact_upper)
         if match:
-            normalized = _normalize_option_answer(match.group(1), question_context)
+            normalized = _normalize_option_answer(
+                match.group(1),
+                question_context,
+                allow_multi=allow_invalid_multi_option,
+            )
             if normalized is not None:
                 return normalized
 
+    letter_answer = _extract_explicit_option_letter_submission(
+        text,
+        question_context,
+        allow_invalid_multi_option=allow_invalid_multi_option,
+    )
+    if letter_answer is not None:
+        return letter_answer
+
+    value_answer = _extract_explicit_option_value_submission(text, question_context)
+    if value_answer is not None:
+        return value_answer
+
+    if _message_contains_option_table(text, question_context):
+        return None
+
     stripped = _LEADING_SUBMISSION_PREFIX.sub("", text).strip().strip("。.!！?，,：:")
     for fragment in re.split(r"[，,。.!！?；;\s]+", stripped):
-        normalized = _normalize_option_answer(fragment, question_context)
+        normalized = _normalize_option_answer(
+            fragment,
+            question_context,
+            allow_multi=allow_invalid_multi_option,
+        )
+        if normalized is not None:
+            return normalized
+    return None
+
+
+def _looks_like_option_challenge_followup(
+    message: str,
+    question_context: dict[str, Any],
+) -> bool:
+    text = str(message or "").strip()
+    if not text:
+        return False
+
+    option_keys = _available_option_keys(question_context)
+    compact = re.sub(r"\s+", "", text).upper().strip("。.!！?？；;，,")
+    if not compact:
+        return False
+
+    letter = rf"[{option_keys}]"
+    negative_markers = (
+        r"(?:错在哪(?:里)?|哪(?:里)?错(?:了)?|哪里错(?:了)?|错因|问题在哪(?:里)?|"
+        r"不对|错误|错|不是|不选|不能选|不该选|不行|不可以|为什么|为啥|怎么|咋)"
+    )
+    question_markers = r"(?:为什么|为啥|怎么|咋|哪里|哪)"
+    response_constraint_tail = (
+        r"(?:[。.!！?？；;，,、]*"
+        r"(?:一句话|一两句话|简短(?:说|点)?|简单(?:说|点)?|说简单点|"
+        r"(?:[0-9一二两三四五六七八九十]+)个字以内))?"
+    )
+
+    patterns = [
+        rf"{question_markers}.{{0,12}}?(?:不是|不选|不能选|不该选|不对|错|错误)?{letter}.*",
+        rf".{{0,20}}?{letter}.{{0,12}}?{question_markers}.{{0,12}}?(?:不对|错|错误|不是|不选|不能选|不行|不可以|对|正确)",
+        rf"{letter}.{{0,12}}?{question_markers}.{{0,12}}?(?:不对|错|错误|不是|不选|不能选|不行|不可以|对|正确)",
+        rf"{letter}.{{0,8}}?{negative_markers}{response_constraint_tail}",
+        rf"(?:那|这个|这|那么|如果是|要是)?{letter}呢{response_constraint_tail}",
+    ]
+    return any(re.fullmatch(pattern, compact, flags=re.IGNORECASE) for pattern in patterns)
+
+
+def _looks_like_option_value_challenge_followup(
+    message: str,
+    question_context: dict[str, Any],
+) -> bool:
+    text = str(message or "").strip()
+    if not text:
+        return False
+    if _LEADING_SUBMISSION_PREFIX.match(text):
+        return False
+    if not re.search(
+        r"(?:行不行|可不可以|可以吗|能不能|对不对|是不是|是否|为什么|为啥|怎么|咋|"
+        r"错在哪(?:里)?|哪(?:里)?错(?:了)?|哪里错(?:了)?|问题在哪(?:里)?|不对|不行|不可以)",
+        text,
+    ):
+        return False
+    options = question_context.get("options") if isinstance(question_context, dict) else None
+    if not isinstance(options, dict) or not options:
+        return False
+
+    normalized_text = _normalize_option_value_text(text)
+    if not normalized_text:
+        return False
+    numeric_tokens = [
+        _normalize_option_value_text(token)
+        for token in re.findall(r"\d+(?:\.\d+)?(?:%|m|mm|cm|℃|°|年|d|天)?", text, flags=re.IGNORECASE)
+    ]
+    value_tokens = [token for token in numeric_tokens if len(token) >= 2]
+    for value in options.values():
+        normalized_option = _normalize_option_value_text(value)
+        if not normalized_option:
+            continue
+        if normalized_option in normalized_text and len(normalized_option) >= 2:
+            return True
+        if any(token and token in normalized_option for token in value_tokens):
+            return True
+    return False
+
+
+def _extract_explicit_option_letter_submission(
+    message: str,
+    question_context: dict[str, Any],
+    *,
+    allow_invalid_multi_option: bool = False,
+) -> str | None:
+    text = str(message or "").strip()
+    if not text:
+        return None
+    option_keys = _available_option_keys(question_context)
+    letter_group = rf"([{option_keys}](?:[、，,/／\s]*[{option_keys}])*)"
+    patterns = [
+        rf"(?:我(?:实际|真正|就)?|实际|真正)?\s*(?:答案)?\s*"
+        rf"(?<!多)(?<!单)(?<!项)(?<!候)"
+        rf"(?:选了|选(?!择)|答了|答|回答了|回答|勾了|勾|填了|填|写了|写|圈了|圈)"
+        rf"(?:的是|是|的)?\s*{letter_group}",
+        rf"(?:我)?\s*(?:是不是|是否)\s*{letter_group}",
+        rf"(?:答案|正确答案|标准答案)\s*(?:是|为)?\s*{letter_group}",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text, flags=re.IGNORECASE)
+        if not match:
+            continue
+        normalized = _normalize_option_answer(
+            match.group(1),
+            question_context,
+            allow_multi=allow_invalid_multi_option,
+        )
         if normalized is not None:
             return normalized
     return None
@@ -1461,7 +1754,27 @@ def _available_option_keys(question_context: dict[str, Any]) -> str:
     return "".join(sorted(set(keys))) or "ABCDE"
 
 
-def _normalize_option_answer(value: str, question_context: dict[str, Any]) -> str | None:
+def _message_contains_option_table(message: str, question_context: dict[str, Any]) -> bool:
+    text = str(message or "")
+    if not text:
+        return False
+    hits = 0
+    for key in _available_option_keys(question_context):
+        if re.search(
+            rf"(?:^|[\s\n\r，,。；;:：]){re.escape(key)}\s*[.、．\)]",
+            text,
+            flags=re.IGNORECASE,
+        ):
+            hits += 1
+    return hits >= 2
+
+
+def _normalize_option_answer(
+    value: str,
+    question_context: dict[str, Any],
+    *,
+    allow_multi: bool = False,
+) -> str | None:
     token = str(value or "").strip().upper()
     if not token:
         return None
@@ -1471,12 +1784,97 @@ def _normalize_option_answer(value: str, question_context: dict[str, Any]) -> st
     available = set(_available_option_keys(question_context))
     if any(letter not in available for letter in letters):
         return None
-    if len(set(letters)) > 1 and not _question_allows_multi_option_answer(question_context):
+    if (
+        len(set(letters)) > 1
+        and not allow_multi
+        and not _question_allows_multi_option_answer(question_context)
+    ):
         return None
     normalized_letters: list[str] = []
     for letter in sorted(set(letters)):
         normalized_letters.append(letter)
     return "".join(normalized_letters)
+
+
+def _extract_explicit_option_value_submission(
+    message: str,
+    question_context: dict[str, Any],
+) -> str | None:
+    options = question_context.get("options") if isinstance(question_context, dict) else None
+    if not isinstance(options, dict) or not options:
+        return None
+    text = str(message or "").strip()
+    if not text:
+        return None
+
+    match = re.search(
+        r"(?:我(?:实际|真正|就)?|实际|真正)?\s*"
+        r"(?:只)?\s*"
+        r"(?<!多)(?<!单)(?<!项)(?<!候)"
+        r"(?:勾选|勾了|勾|选了|选(?!择)|答了|答|回答了|回答|答案(?:是|为)?|填了|填|写了|写|圈了|圈)"
+        r"(?:的是|是|的)?\s*"
+        r"(.+)$",
+        text,
+    )
+    if match:
+        selected_text = match.group(1).strip()
+    elif _LEADING_SUBMISSION_PREFIX.match(text):
+        selected_text = _strip_submission_prefix(text)
+    else:
+        return None
+    selected_text = re.split(
+        r"(?:能拿满|能满|拿满|对吗|对不对|是不是|是否|直接判|判一下|判下|判|"
+        r"直接批改|批改|打分|一句话|简短|别把|别算|漏没漏|错因|为什么|[？?])",
+        selected_text,
+        maxsplit=1,
+    )[0].strip("。.!！?；;，,、 ")
+    if not selected_text:
+        return None
+
+    option_value_by_key = {
+        str(key).strip().upper()[:1]: _normalize_option_value_text(value)
+        for key, value in options.items()
+        if str(key).strip().upper()[:1] in {"A", "B", "C", "D", "E"}
+    }
+    if not option_value_by_key:
+        return None
+
+    selected_keys: list[str] = []
+    unmatched: list[str] = []
+    fragments = re.split(r"(?:[+＋、，,；;/／\s]+|和|与|以及|及)", selected_text)
+    for fragment in fragments:
+        normalized_fragment = _normalize_option_value_text(fragment)
+        if not normalized_fragment:
+            continue
+        matched_key = ""
+        for key, normalized_option in option_value_by_key.items():
+            if not normalized_option:
+                continue
+            if (
+                normalized_fragment == normalized_option
+                or (len(normalized_fragment) >= 2 and normalized_fragment in normalized_option)
+                or (len(normalized_option) >= 2 and normalized_option in normalized_fragment)
+            ):
+                matched_key = key
+                break
+        if matched_key:
+            selected_keys.append(matched_key)
+        elif len(normalized_fragment) >= 2:
+            unmatched.append(normalized_fragment)
+
+    if not selected_keys or unmatched:
+        return None
+    return _normalize_option_answer("".join(selected_keys), question_context)
+
+
+def _normalize_option_value_text(value: Any) -> str:
+    text = str(value or "").strip().lower()
+    text = re.sub(r"^[A-Ea-e][\.、．\)]\s*", "", text)
+    return re.sub(
+        r"[\s　，,。.!！?；;：:、/／+\-—_（）()【】\[\]<>《》\"'“”‘’]+",
+        "",
+        text,
+    )
 
 
 def _split_compact_positional_answers(
@@ -1834,12 +2232,28 @@ def _normalize_judgment_token(value: str) -> str | None:
 
 def _match_option_key_by_value(answer: str, options: dict[str, Any]) -> str | None:
     normalized_answer = _normalize_judgment_token(answer)
-    if normalized_answer is None:
+    if normalized_answer is not None:
+        for key, value in options.items():
+            if _normalize_judgment_token(str(value or "").strip()) == normalized_answer:
+                return str(key).strip().upper()[:1]
         return None
+
+    normalized_value = _normalize_option_value_text(answer)
+    if len(normalized_value) < 2:
+        return None
+    matched_keys: list[str] = []
     for key, value in options.items():
-        if _normalize_judgment_token(str(value or "").strip()) == normalized_answer:
-            return str(key).strip().upper()[:1]
-    return None
+        normalized_option = _normalize_option_value_text(value)
+        if not normalized_option:
+            continue
+        if (
+            normalized_value == normalized_option
+            or (len(normalized_value) >= 2 and normalized_value in normalized_option)
+            or (len(normalized_option) >= 2 and normalized_option in normalized_value)
+        ):
+            matched_keys.append(str(key).strip().upper()[:1])
+    unique_keys = sorted({key for key in matched_keys if key})
+    return unique_keys[0] if len(unique_keys) == 1 else None
 
 
 def _parse_small_zh_number(value: str) -> int | None:

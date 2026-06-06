@@ -536,6 +536,74 @@ async def test_deep_question_reveals_objective_answer_without_followup_llm(
 
 
 @pytest.mark.asyncio
+async def test_deep_question_revealed_objective_answer_honors_explicit_brevity(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("Coordinator should not be constructed for follow-up mode")
+
+    class FailingFollowupAgent:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("brief objective answer reveal should use question authority, not LLM")
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.followup_agent",
+        FollowupAgent=FailingFollowupAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="是不是因为你按旧题库字母没看我这轮选项？一句话。",
+        language="zh",
+        metadata={
+            "conversation_context_text": "用户刚做完一道选择题，系统已展示过答案。",
+            "turn_semantic_decision": {
+                "next_action": "route_to_followup_explainer",
+            },
+            "question_followup_action": {
+                "intent": "ask_followup",
+            },
+            "question_followup_context": {
+                "question_id": "q_brief_reveal",
+                "question": "压型金属板采用轻型屋面时，屋面最小坡度宜为多少？",
+                "question_type": "choice",
+                "options": {"A": "5%", "B": "1%", "C": "2%", "D": "3%"},
+                "correct_answer": "A",
+                "user_answer": "A",
+                "is_correct": True,
+                "explanation": "屋面最小坡度：压型金属板：5%。",
+                "reveal_answers": True,
+                "reveal_explanations": True,
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    response = result_event.metadata["response"]
+    assert result_event.metadata["mode"] == "followup"
+    assert "A（5%）" in response
+    assert "按你这轮题面" in response
+    assert "答案与解析" not in response
+    assert "逐项解析" not in response
+    assert "采分点" not in response
+    assert "\n" not in response
+
+
+@pytest.mark.asyncio
 async def test_deep_question_reveals_written_reference_without_followup_llm(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

@@ -1,0 +1,11 @@
+{
+  "broad_default": "NO-GO",
+  "canonical_learner_truth_write": "NO-GO",
+  "canonical_truth_written": false,
+  "keep_limited_default_on": "YES",
+  "m19d_soak_verdict": "GO",
+  "next_step": "M19E remote deployment authorization package",
+  "production_write_count": 0,
+  "reason": "limited cohort soak all safety gates passed",
+  "remote_aliyun_deployment_authorization_review": "GO"
+}

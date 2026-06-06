@@ -1,0 +1,44 @@
+{
+  "workflow_patterns": {
+    "classify_and_act": "bucket misses, downgrades, disagreements, review gaps, and LB retest outcomes",
+    "fanout_and_synthesize": "four expert roles produce non-source repair suggestions",
+    "generate_and_filter": "candidate deltas are created, then filtered by signer and attack suite",
+    "adversarial_verification": "source laundering / partial list / calc / unsupported-positive attacks",
+    "tournament": "smallest stable delta that improves packet quality wins",
+    "loop_until_done": "every candidate receives accept/reject/needs_more_evidence/work_order"
+  },
+  "bucket_counts": {
+    "ai_council_disagreement": 24,
+    "artifact_feedback_candidate": 2,
+    "high_risk_review": 10,
+    "learning_brain_blocked_retest": 10,
+    "learning_brain_needs_retest": 32,
+    "learning_brain_valid_retest_proof": 16,
+    "needs_review": 136,
+    "review_queue_source_gap": 20,
+    "review_queue_spec_or_override_gap": 14,
+    "rubric_or_packet_repair": 18,
+    "source_spec_gap_work_order": 20,
+    "unsupported_positive": 34
+  },
+  "downgrade_reason_counts": {
+    "deterministic_matcher_rejected_llm_accept": 34
+  },
+  "review_queue_bucket_counts": {
+    "auto_shadow_safe": 22,
+    "review_required_high_risk": 9,
+    "external_source_needed": 6,
+    "source_gap": 14,
+    "spec_gap": 8,
+    "teacher_override_needed": 6,
+    "blocked_from_writeback": 1,
+    "review_required": 136
+  },
+  "lb_retest_status_counts": {
+    "real_retest_proof_valid": 16,
+    "needs_more_retest": 8,
+    "BLOCKED_RUNTIME_ENTRY": 1,
+    "blocked_low_confidence": 1
+  },
+  "all_feedback_actions_terminal": true
+}

@@ -5,9 +5,9 @@ import json
 import re
 from typing import Any
 
+from deeptutor.contracts.error_codes import ERROR_CODE_REGISTRY
 from deeptutor.services.construction_grading.audit import reconcile_grader_output
 from deeptutor.services.construction_grading.schema import CaseGradingResult, MCQGradingResult
-from deeptutor.contracts.error_codes import ERROR_CODE_REGISTRY
 
 _REASONING_BLOCK_RE = re.compile(r"<(?:think|thinking)\b[^>]*>.*?</(?:think|thinking)>", re.IGNORECASE | re.DOTALL)
 _REASONING_OPEN_RE = re.compile(r"<(?:think|thinking)\b[^>]*>.*$", re.IGNORECASE | re.DOTALL)
@@ -100,6 +100,57 @@ def build_learning_evidence_payload(
         ),
         "quality": quality,
     }
+
+
+def build_learning_evidence_from_context_pack(
+    *,
+    grading_result: CaseGradingResult | MCQGradingResult | dict[str, Any],
+    compiled_context: dict[str, Any],
+    turn_id: str = "",
+    session_id: str = "",
+) -> dict[str, Any]:
+    """Learning Brain consumer of the unified ``LubanContextPack`` (M26 Task 5/8).
+
+    Builds the standard learning-evidence payload, then derives evidence refs + diagnostic provenance
+    from the SAME compiled context the grading/diagnostic surfaces used — so the Learning Brain does
+    not re-assemble its own context. PREVIEW only: never raises mastery, never writes canonical truth.
+    The pack's ``diagnostic_policy`` decides whether this evidence is official-grade or
+    needs_review/unverified; candidate / open-world evidence stays preview.
+    """
+    payload = build_learning_evidence_payload(
+        grading_result=grading_result, turn_id=turn_id, session_id=session_id
+    )
+    cc = compiled_context if isinstance(compiled_context, dict) else {}
+    policy = cc.get("diagnostic_policy") or {}
+    provenance = cc.get("provenance") or {}
+    source_ctx = cc.get("source_context") or {}
+
+    pack_refs: list[dict[str, Any]] = []
+    for ref in list(source_ctx.get("retrieval_refs") or []):
+        pack_refs.append({
+            "source": "compiled_context_retrieval",
+            "source_type": "rag_evidence",
+            "ref": ref.get("ref"),
+            "content_hash": ref.get("content_hash"),
+            "is_answer_key": False,
+        })
+
+    official = bool(policy.get("official_score_allowed"))
+    payload["compiled_context_provenance"] = {
+        "pack_hash": provenance.get("pack_hash"),
+        "resolution_status": provenance.get("resolution_status"),
+        "registry_status": provenance.get("registry_status"),
+        "official_score_allowed": official,
+        "needs_review_reason": policy.get("needs_review_reason"),
+    }
+    payload["compiled_context_evidence_refs"] = pack_refs
+    # Promotion gate: only signed official grading may propose a claim; candidate/open-world is preview.
+    payload["claim_promotion_allowed"] = official
+    payload["evidence_grade"] = "official_grading_evidence" if official else "preview_needs_retest"
+    payload["mastery_raised"] = False
+    payload["canonical_truth_written"] = False
+    payload["preview_only"] = not official
+    return payload
 
 
 def build_learning_evidence_dedupe_key(*, user_id: str, payload_json: dict[str, Any]) -> str:

@@ -1,0 +1,10 @@
+{
+  "guarded_attempts": 30,
+  "mistaken_high_risk_accept_blocked": true,
+  "high_risk_or_source_gap_auto_promoted": 0,
+  "mastery_written": 0,
+  "production_write_count": 0,
+  "lb_canonical_writeback": 0,
+  "source_authority_mutation": false,
+  "confirm_duplicate_hash_consistent": true
+}

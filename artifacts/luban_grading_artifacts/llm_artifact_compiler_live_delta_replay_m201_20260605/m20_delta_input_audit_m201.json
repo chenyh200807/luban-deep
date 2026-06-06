@@ -1,0 +1,28 @@
+{
+  "stage": "M20.1 live delta replay input audit",
+  "m20_delta_hash": "0a5d134336a22fd5ebe930e13705cde6af469662721cb5a8d7131c226c18d5e5",
+  "expected_delta_hash": "0a5d134336a22fd5ebe930e13705cde6af469662721cb5a8d7131c226c18d5e5",
+  "delta_hash_matches": true,
+  "candidate_delta_count": 122,
+  "accepted_delta_count": 69,
+  "accepted_delta_expected": 69,
+  "accepted_delta_all_read": true,
+  "accepted_delta_kind_counts": {
+    "list_rule_coverage_delta": 7,
+    "rubric_normalization_delta": 4,
+    "machine_spec_delta": 8,
+    "grading_packet_compression_delta": 34,
+    "learning_brain_claim_mapping_delta": 16
+  },
+  "signer_schema_pass": true,
+  "signer_source_boundary_pass": true,
+  "m20_attacks_pass": true,
+  "live_delta_replay_requested": true,
+  "official_answer_as_source": 0,
+  "model_vote_as_source": 0,
+  "council_vote_as_source": 0,
+  "human_reviewed": false,
+  "production_default_changed": false,
+  "production_write_count": 0,
+  "canonical_learner_truth_written": false
+}

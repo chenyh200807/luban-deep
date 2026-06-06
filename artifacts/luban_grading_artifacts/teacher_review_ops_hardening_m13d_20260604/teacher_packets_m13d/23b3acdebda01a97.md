@@ -1,0 +1,15 @@
+# Teacher Review Packet — 23b3acdebda01a97
+
+- Question: M2-2015-33-03
+- Point: P1
+- Risk: medium / review_required
+- Authority kind: list_spec_positive
+- Non-formal score: alpha_shadow_only
+- Evidence: shadow evidence only; teacher must review before any canonical write
+- Blocked reason: none
+- Suggested action: review_required
+- Can override: true
+
+## Guard
+
+This packet is alpha/QA review material only. Confirm/reject/override dry-run does not write production DB, does not write canonical Learning Brain truth, does not mutate source authority, and does not promote high-risk/source_gap to auto/mastery.

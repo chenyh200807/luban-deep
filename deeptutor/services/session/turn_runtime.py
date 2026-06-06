@@ -6,7 +6,10 @@ from __future__ import annotations
 
 import asyncio
 import base64
+from collections.abc import AsyncIterator, Sequence
 import contextlib
+from dataclasses import dataclass, field
+from datetime import datetime
 import json
 import logging
 import math
@@ -14,28 +17,16 @@ import os
 import re
 import sqlite3
 import time
-from collections.abc import AsyncIterator, Sequence
-from dataclasses import dataclass, field
-from datetime import datetime
 from types import SimpleNamespace
 from typing import Any
 
 from deeptutor.api.runtime_metrics import get_turn_runtime_metrics
-from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.capabilities.chat_mode import get_default_chat_mode
 from deeptutor.contracts.bot_runtime_defaults import (
     resolve_bot_runtime_defaults as resolve_bot_binding_defaults,
 )
+from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.logging.context import bind_log_context, reset_log_context
-from deeptutor.services.observability import (
-    get_langfuse_observability,
-    get_release_lineage_metadata,
-    get_turn_event_log,
-    get_surface_event_store,
-)
-from deeptutor.services.observability.aae_scores import build_turn_aae_metadata
-from deeptutor.services.observability.turn_event_log import build_turn_observation_event
-from deeptutor.services.path_service import get_path_service
 from deeptutor.services.exam_track import (
     exam_track_label,
     has_multiple_exam_track_mentions,
@@ -43,6 +34,19 @@ from deeptutor.services.exam_track import (
     infer_exam_track_from_text,
     normalize_exam_track,
 )
+from deeptutor.services.internal_qa import (
+    internal_qa_billing_bypass_allowed,
+    internal_qa_billing_bypass_enabled,
+)
+from deeptutor.services.observability import (
+    get_langfuse_observability,
+    get_release_lineage_metadata,
+    get_surface_event_store,
+    get_turn_event_log,
+)
+from deeptutor.services.observability.aae_scores import build_turn_aae_metadata
+from deeptutor.services.observability.turn_event_log import build_turn_observation_event
+from deeptutor.services.path_service import get_path_service
 from deeptutor.services.question_followup import (
     followup_action_route,
     interpret_question_followup_action,
@@ -51,13 +55,15 @@ from deeptutor.services.question_followup import (
     reset_question_submission_state,
     resolve_submission_attempt,
 )
+from deeptutor.services.question_lifecycle_skills import (
+    looks_like_free_text_mcq_grading_request,
+    looks_like_free_text_mcq_question_surface,
+)
 from deeptutor.services.semantic_router import (
     build_turn_semantic_decision as build_semantic_turn_decision,
-    has_explicit_practice_generation_intent,
 )
-from deeptutor.services.user_visible_output import (
-    coerce_user_visible_answer,
-    looks_like_unsafe_visible_output,
+from deeptutor.services.semantic_router import (
+    has_explicit_practice_generation_intent,
 )
 from deeptutor.services.session.sqlite_store import (
     SQLiteSessionStore,
@@ -69,6 +75,10 @@ from deeptutor.services.session.sqlite_store import (
     get_sqlite_session_store,
     normalize_active_object,
     normalize_suspended_object_stack,
+)
+from deeptutor.services.user_visible_output import (
+    coerce_user_visible_answer,
+    looks_like_unsafe_visible_output,
 )
 from deeptutor.tutorbot.markdown_style import normalize_markdown_for_tutorbot
 from deeptutor.tutorbot.response_mode import (
@@ -430,6 +440,25 @@ def _build_terminal_turn_observation_event(
         "total_output_tokens": int(usage.get("total_output_tokens") or 0),
         "total_calls": int(usage.get("total_calls") or 0),
     }
+    for metadata_key in (
+        "authority_applied",
+        "exact_fast_path_hit",
+        "execution_path",
+        "question_lifecycle_scene",
+        "rag_retrieval_degraded",
+        "rag_retrieval_status",
+        "rag_retrieval_error_type",
+        "degraded_exact_answer_guard_applied",
+        "degraded_mcq_grading_guard_applied",
+    ):
+        if metadata_key in trace_metadata:
+            metadata[metadata_key] = trace_metadata[metadata_key]
+    exact_question_summary = _summarize_exact_question_for_observer(trace_metadata.get("exact_question"))
+    if exact_question_summary:
+        metadata["exact_question"] = exact_question_summary
+    lifecycle_decision = trace_metadata.get("question_lifecycle_decision")
+    if isinstance(lifecycle_decision, dict):
+        metadata["question_lifecycle_decision"] = dict(lifecycle_decision)
     return build_turn_observation_event(
         session_id=session_id,
         turn_id=turn_id,
@@ -793,6 +822,64 @@ def _looks_like_batch_correction_reference(user_message: str) -> bool:
     )
 
 
+def _normalize_question_identity_text(value: Any) -> str:
+    text = str(value or "").strip().lower()
+    return re.sub(r"[\s　，,。.!！?？；;：:、/／+\-—_（）()【】\[\]<>《》\"'“”‘’]+", "", text)
+
+
+def _identity_ngrams(text: str, *, size: int = 2) -> set[str]:
+    normalized = _normalize_question_identity_text(text)
+    if len(normalized) < size:
+        return set()
+    return {normalized[index : index + size] for index in range(0, len(normalized) - size + 1)}
+
+
+def _question_context_matches_free_text_surface(
+    user_message: str,
+    question_context: dict[str, Any],
+) -> bool:
+    message_identity = _normalize_question_identity_text(user_message)
+    if not message_identity:
+        return False
+
+    question_identity = _normalize_question_identity_text(question_context.get("question"))
+    if question_identity:
+        if len(question_identity) >= 10 and question_identity in message_identity:
+            return True
+        question_grams = _identity_ngrams(question_identity)
+        if question_grams:
+            message_grams = _identity_ngrams(message_identity)
+            overlap_ratio = len(question_grams & message_grams) / max(len(question_grams), 1)
+            if overlap_ratio >= 0.55:
+                return True
+        return False
+
+    options = question_context.get("options") if isinstance(question_context, dict) else None
+    if not isinstance(options, dict) or not options:
+        return False
+    option_hits = 0
+    for value in options.values():
+        option_identity = _normalize_question_identity_text(value)
+        if len(option_identity) >= 2 and option_identity in message_identity:
+            option_hits += 1
+    return option_hits >= min(2, len(options))
+
+
+def _should_ignore_explicit_context_for_free_text_mcq(
+    user_message: str,
+    question_context: dict[str, Any] | None,
+) -> bool:
+    normalized_context = normalize_question_followup_context(question_context)
+    if normalized_context is None:
+        return False
+    if not (
+        looks_like_free_text_mcq_grading_request(user_message)
+        and looks_like_free_text_mcq_question_surface(user_message)
+    ):
+        return False
+    return not _question_context_matches_free_text_surface(user_message, normalized_context)
+
+
 def _submission_action_for_user_message(
     user_message: str,
     question_context: dict[str, Any] | None,
@@ -835,6 +922,26 @@ def _submission_action_for_user_message(
     }
 
 
+def _deterministic_followup_action_for_user_message(
+    user_message: str,
+    question_context: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    normalized_context = normalize_question_followup_context(question_context)
+    if normalized_context is None:
+        return None
+    _target_context, submission = resolve_submission_attempt(user_message, normalized_context)
+    if isinstance(submission, dict) and submission.get("kind") != "ambiguous":
+        return None
+    if not looks_like_question_followup(user_message, normalized_context):
+        return None
+    return {
+        "intent": "ask_followup",
+        "confidence": 0.88,
+        "answers": [],
+        "reason": "用户消息是围绕当前题目的稳定格式追问，不应被解释成改答或提交答案。",
+    }
+
+
 def _has_ambiguous_submission_attempt(
     user_message: str,
     question_context: dict[str, Any] | None,
@@ -855,6 +962,13 @@ async def _resolve_question_followup_context_and_action(
 ) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
     normalized_explicit = normalize_question_followup_context(explicit_context)
     normalized_action = _normalize_question_followup_action(explicit_action)
+    free_text_mcq_grading_request = (
+        looks_like_free_text_mcq_grading_request(user_message)
+        and looks_like_free_text_mcq_question_surface(user_message)
+    )
+    if _should_ignore_explicit_context_for_free_text_mcq(user_message, normalized_explicit):
+        normalized_explicit = None
+        normalized_action = None
     if (
         normalized_explicit is not None
         and not (normalized_explicit.get("items") or [])
@@ -880,6 +994,11 @@ async def _resolve_question_followup_context_and_action(
             return submission_context or normalized_explicit, submission_action
         if _has_ambiguous_submission_attempt(user_message, normalized_explicit):
             return normalized_explicit, None
+        if (
+            followup_action_route(normalized_action) == "practice_generation"
+            and not looks_like_practice_generation_request(user_message)
+        ):
+            normalized_action = None
         if normalized_action is None:
             practice_action = _practice_generation_action_for_explicit_request(
                 user_message,
@@ -892,15 +1011,38 @@ async def _resolve_question_followup_context_and_action(
                 )
                 normalized_action = practice_action
             else:
+                deterministic_followup_action = _deterministic_followup_action_for_user_message(
+                    user_message,
+                    normalized_explicit,
+                )
+                if deterministic_followup_action is not None:
+                    return normalized_explicit, deterministic_followup_action
                 normalized_action = await interpret_question_followup_action(
                     user_message,
                     normalized_explicit,
                 )
+                if (
+                    followup_action_route(normalized_action) == "practice_generation"
+                    and not looks_like_practice_generation_request(user_message)
+                ):
+                    normalized_action = None
+        deterministic_followup = looks_like_question_followup(user_message, normalized_explicit)
+        if (
+            deterministic_followup
+            and followup_action_route(normalized_action) == "practice_generation"
+            and not looks_like_practice_generation_request(user_message)
+        ):
+            normalized_action = None
         return normalized_explicit, normalized_action
 
     for candidate in candidate_contexts:
         normalized_candidate = normalize_question_followup_context(candidate)
         if normalized_candidate is None:
+            continue
+        if (
+            free_text_mcq_grading_request
+            and not _question_context_matches_free_text_surface(user_message, normalized_candidate)
+        ):
             continue
         if (
             not (normalized_candidate.get("items") or [])
@@ -924,6 +1066,12 @@ async def _resolve_question_followup_context_and_action(
                 reset_question_submission_state(normalized_candidate) or normalized_candidate,
                 practice_action,
             )
+        deterministic_followup_action = _deterministic_followup_action_for_user_message(
+            user_message,
+            normalized_candidate,
+        )
+        if deterministic_followup_action is not None:
+            return normalized_candidate, deterministic_followup_action
         deterministic_followup = looks_like_question_followup(user_message, normalized_candidate)
         candidate_action = await interpret_question_followup_action(
             user_message,
@@ -1116,6 +1264,8 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
     selected_mode = ""
     execution_path = ""
     exact_fast_path_hit = False
+    exact_question_summary: dict[str, Any] = {}
+    retrieval_metadata: dict[str, Any] = {}
     actual_tool_rounds: int | None = None
     question_lifecycle_scene = ""
     skill_stack: list[str] = []
@@ -1206,6 +1356,19 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
                 loader_source.update(dict(candidate.get("loader_source") or {}))
             if isinstance(candidate.get("skill_source_status"), dict):
                 skill_source_status = dict(candidate.get("skill_source_status") or {})
+            if not exact_question_summary and isinstance(candidate.get("exact_question"), dict):
+                exact_question_summary = _summarize_exact_question_for_observer(
+                    candidate.get("exact_question")
+                )
+            for metadata_key in (
+                "rag_retrieval_degraded",
+                "rag_retrieval_status",
+                "rag_retrieval_error_type",
+                "degraded_exact_answer_guard_applied",
+                "degraded_mcq_grading_guard_applied",
+            ):
+                if metadata_key in candidate and metadata_key not in retrieval_metadata:
+                    retrieval_metadata[metadata_key] = candidate[metadata_key]
 
     summary = {
         "tool_calls": tool_calls[:8],
@@ -1220,6 +1383,10 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
         summary["question_lifecycle_scene"] = question_lifecycle_scene
     if lifecycle_metadata:
         summary.update(lifecycle_metadata)
+    if exact_question_summary:
+        summary["exact_question"] = exact_question_summary
+    if retrieval_metadata:
+        summary.update(retrieval_metadata)
     if skill_stack:
         summary["skill_stack"] = skill_stack
     if skill_trace:
@@ -1229,6 +1396,22 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
     if skill_source_status:
         summary["skill_source_status"] = skill_source_status
     return summary
+
+
+def _summarize_exact_question_for_observer(value: Any) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        return {}
+    metadata = value.get("metadata") if isinstance(value.get("metadata"), dict) else {}
+    summary = {
+        "id": str(value.get("id") or value.get("chunk_id") or "").strip(),
+        "answer_kind": str(value.get("answer_kind") or "").strip(),
+        "question_type": str(value.get("question_type") or "").strip(),
+        "source_group": str(value.get("source_group") or metadata.get("source_group") or "").strip(),
+        "correct_answer": str(value.get("correct_answer") or "").strip(),
+        "source_file": str(metadata.get("source_file") or "").strip(),
+        "content_hash": str(metadata.get("content_hash") or "").strip(),
+    }
+    return {key: item for key, item in summary.items() if item}
 
 
 def _result_selected_mode(
@@ -1504,6 +1687,40 @@ def _normalize_billing_context(raw: dict[str, Any] | None) -> dict[str, str] | N
     return normalized
 
 
+def _internal_qa_billing_context_identity_candidates(
+    billing_context: dict[str, str],
+) -> list[str]:
+    candidates: list[str] = []
+
+    def _append(value: Any) -> None:
+        normalized = str(value or "").strip()
+        if normalized and normalized not in candidates:
+            candidates.append(normalized)
+
+    for key in ("user_id", "wallet_user_id", "learning_user_id"):
+        _append(billing_context.get(key))
+
+    if not internal_qa_billing_bypass_enabled():
+        return candidates
+
+    try:
+        from deeptutor.services.member_console import get_member_console_service
+
+        member_service = get_member_console_service()
+        for user_id in list(candidates):
+            try:
+                profile = member_service.get_profile(user_id)
+            except Exception:
+                continue
+            if not isinstance(profile, dict):
+                continue
+            for key in ("user_id", "username", "auth_username", "external_auth_user_id"):
+                _append(profile.get(key))
+    except Exception:
+        pass
+    return candidates
+
+
 def _extract_billing_context(config: dict[str, Any] | None) -> dict[str, str] | None:
     if not isinstance(config, dict):
         return None
@@ -1766,6 +1983,7 @@ class _TurnExecution:
     first_subscriber_attached: asyncio.Event = field(default_factory=asyncio.Event)
     deadline_exceeded: bool = False
     persistence_degraded: bool = False
+    terminal_commit_started: bool = False
 
 
 class TurnRuntimeManager:
@@ -2024,7 +2242,9 @@ class TurnRuntimeManager:
                                 logger.debug("Failed to write conversation learning evidence", exc_info=True)
                         if source_bot_id and assistant_content.strip():
                             try:
-                                from deeptutor.services.learner_state import get_bot_learner_overlay_service
+                                from deeptutor.services.learner_state import (
+                                    get_bot_learner_overlay_service,
+                                )
 
                                 operations: list[dict[str, Any]] = [
                                     {
@@ -2199,6 +2419,18 @@ class TurnRuntimeManager:
             )
             return bool(updated)
 
+        if execution.terminal_commit_started:
+            with contextlib.suppress(asyncio.CancelledError, asyncio.TimeoutError):
+                await asyncio.wait_for(asyncio.shield(execution.task), timeout=2.0)
+            refreshed_turn = await self._safe_store_call(
+                None,
+                "get_terminal_committed_turn_for_new_request",
+                self.store.get_turn,
+                turn_id,
+                default=None,
+            )
+            return bool(refreshed_turn) and refreshed_turn.get("status") != "running"
+
         execution.task.cancel()
         with contextlib.suppress(asyncio.CancelledError, asyncio.TimeoutError):
             await asyncio.wait_for(execution.task, timeout=2.0)
@@ -2233,6 +2465,15 @@ class TurnRuntimeManager:
             if str(turn_id or "").strip()
             else f"mini_program_capture:{session_id}"
         )
+        if internal_qa_billing_bypass_allowed(
+            *_internal_qa_billing_context_identity_candidates(billing_context)
+        ):
+            return {
+                "status": "bypassed",
+                "reason": "internal_qa_billing_bypass",
+                "wallet_user_id": user_id,
+                "idempotency_key": idempotency_key,
+            }
         amount_points, billing_metadata = _billing_capture_amount_from_usage_summary(usage_summary)
         try:
             from deeptutor.services.wallet import WalletInsufficientBalanceError, get_wallet_service
@@ -2401,14 +2642,17 @@ class TurnRuntimeManager:
         history_references: list[str],
     ) -> dict[str, Any]:
         from deeptutor.services.session.context_budget import ContextBudget, pack_context_candidates
+        from deeptutor.services.session.context_builder import count_tokens
         from deeptutor.services.session.context_pack import ContextBlockType, ContextCandidate
-        from deeptutor.services.session.context_router import ContextRouteInput, decide_context_route
+        from deeptutor.services.session.context_router import (
+            ContextRouteInput,
+            decide_context_route,
+        )
         from deeptutor.services.session.context_sources import ContextSourceLoader
         from deeptutor.services.session.context_trace import (
             build_context_trace_summary,
             resolve_target_escalation_level,
         )
-        from deeptutor.services.session.context_builder import count_tokens
 
         active_plan_id = str(active_plan_id or "").strip() or _active_object_plan_id(active_object)
         try:
@@ -2962,6 +3206,8 @@ class TurnRuntimeManager:
             "enable_luban_v1_beta_shadow",
             "grading_engine_v1_controlled_runtime",
             "grading_engine_v1_llm_adjudication",
+            "grading_engine_objective_candidate",
+            "grading_engine_m31_governed_objective",
             "interaction_profile",
             "chat_mode_explicit",
             "context_orchestration_enabled",
@@ -3095,7 +3341,10 @@ class TurnRuntimeManager:
         try:
             from deeptutor.capabilities.request_contracts import validate_capability_config
             from deeptutor.services.config import get_model_catalog_service
-            from deeptutor.services.model_selection import LLMSelection, apply_llm_selection_to_catalog
+            from deeptutor.services.model_selection import (
+                LLMSelection,
+                apply_llm_selection_to_catalog,
+            )
 
             validated_public_config = validate_capability_config(config_capability, raw_config)
             llm_selection = LLMSelection.from_payload(payload.get("llm_selection"))
@@ -3334,6 +3583,10 @@ class TurnRuntimeManager:
                 default=False,
             )
             return bool(updated)
+        if execution.terminal_commit_started:
+            with contextlib.suppress(asyncio.CancelledError, asyncio.TimeoutError):
+                await asyncio.wait_for(asyncio.shield(execution.task), timeout=2.0)
+            return True
         execution.task.cancel()
         return True
 
@@ -3598,13 +3851,13 @@ class TurnRuntimeManager:
             terminal_status = "completed"
 
         try:
+            from deeptutor.agents.notebook import NotebookAnalysisAgent
             from deeptutor.core.context import Attachment, UnifiedContext
             from deeptutor.runtime.orchestrator import ChatOrchestrator
-            from deeptutor.agents.notebook import NotebookAnalysisAgent
             from deeptutor.services.learner_state import get_learner_state_service
             from deeptutor.services.memory import get_memory_service
-            from deeptutor.services.notebook import notebook_manager
             from deeptutor.services.model_selection.runtime import activate_llm_selection
+            from deeptutor.services.notebook import notebook_manager
             from deeptutor.services.security.tutorbot_guardrails import classify_tutorbot_user_input
             from deeptutor.services.session.context_builder import ContextBuilder
 
@@ -3689,9 +3942,12 @@ class TurnRuntimeManager:
                 )
                 original_stored_suspended_object_stack = list(stored_suspended_object_stack)
                 stored_object_type = str((stored_active_object or {}).get("object_type") or "").strip()
+                stored_followup_question_context = extract_question_context_from_active_object(
+                    stored_active_object
+                )
             if (
                 stored_active_object is not None
-                and extract_question_context_from_active_object(stored_active_object) is not None
+                and stored_followup_question_context is not None
                 and followup_question_context is None
                 and followup_action_route(followup_question_action) is None
             ):
@@ -3735,7 +3991,7 @@ class TurnRuntimeManager:
                         )
             stored_followup_question_context = extract_question_context_from_active_object(
                 stored_active_object
-            )
+            ) or stored_followup_question_context
             if session_id:
                 volatile_followup_question_context = self._volatile_question_contexts.get(session_id)
             session_active_object = None
@@ -3820,7 +4076,10 @@ class TurnRuntimeManager:
             task_anchor_type: str = ""
             route_confidence = 0.0
             try:
-                from deeptutor.services.session.context_router import ContextRouteInput, decide_context_route
+                from deeptutor.services.session.context_router import (
+                    ContextRouteInput,
+                    decide_context_route,
+                )
 
                 preview_route = decide_context_route(
                     ContextRouteInput(
@@ -4465,7 +4724,9 @@ class TurnRuntimeManager:
                         and event_source != capability_name
                         and event_source not in {"orchestrator", "turn_runtime"}
                     ):
-                        from deeptutor.runtime.registry.capability_registry import get_capability_registry
+                        from deeptutor.runtime.registry.capability_registry import (
+                            get_capability_registry,
+                        )
 
                         if get_capability_registry().get(event_source) is not None:
                             capability_name = await self._canonicalize_execution_capability(
@@ -4540,6 +4801,7 @@ class TurnRuntimeManager:
                 assistant_content = normalize_markdown_for_tutorbot(
                     coerce_user_visible_answer(assistant_content)
                 )
+                execution.terminal_commit_started = True
                 await self._safe_store_call(
                     execution,
                     "add_assistant_message",
@@ -4768,6 +5030,10 @@ class TurnRuntimeManager:
             )
             with contextlib.suppress(Exception):
                 event_log = get_turn_event_log()
+                terminal_trace_metadata = _build_final_observation_metadata(
+                    usage_summary=terminal_usage_summary,
+                    terminal_status=terminal_status,
+                )
                 append_ok = event_log.append(
                     _build_terminal_turn_observation_event(
                         session_id=session_id,
@@ -4775,10 +5041,7 @@ class TurnRuntimeManager:
                         status=terminal_status,
                         capability_name=capability_name,
                         duration_ms=turn_duration_ms,
-                        trace_metadata={
-                            **trace_metadata,
-                            "assistant_content_source": assistant_content_source,
-                        },
+                        trace_metadata=terminal_trace_metadata,
                         usage_summary=terminal_usage_summary,
                     )
                 )

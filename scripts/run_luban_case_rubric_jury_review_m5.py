@@ -157,24 +157,26 @@ def adjudicate(packet: dict[str, Any], votes: list[dict[str, Any]], m4q: dict[st
             "m4_blockers": blockers}
 
 
-def build_m5(out_dir: Path = DEFAULT_OUT, *, vote_fn: VoteFn = _provider_vote) -> dict[str, Any]:
+def build_m5(out_dir: Path = DEFAULT_OUT, *, vote_fn: VoteFn = _provider_vote,
+             models: list[str] | None = None) -> dict[str, Any]:
+    models = list(models) if models else list(MODELS)
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "model_votes").mkdir(exist_ok=True)
     (out_dir / "proposed_packet_patches").mkdir(exist_ok=True)
     packets = _packets()
     m4q = _m4_quality()
 
-    manifest = {"input_packets": len(packets), "models": MODELS, "min_quorum": MIN_QUORUM,
+    manifest = {"input_packets": len(packets), "models": models, "min_quorum": MIN_QUORUM,
                 "reviewer_type": "llm_jury", "cache_485_used_for_new_questions": False,
                 "question_ids": [p.get("question_id") for p in packets]}
     _dump(out_dir, "jury_input_manifest.json", manifest)
 
-    provider_unavailable = {m: 0 for m in MODELS}
+    provider_unavailable = {m: 0 for m in models}
     adjudications = []
     for packet in packets:
         qid = packet.get("question_id")
         votes = []
-        for model in MODELS:
+        for model in models:
             v = vote_fn(model, packet)
             if v.get("status") == "provider_unavailable":
                 provider_unavailable[model] += 1
@@ -233,7 +235,7 @@ def _dump(out_dir: Path, name: str, obj: Any) -> None:
 
 def _finding(packets, adjudications, sim, prov) -> str:
     n_points = sum(len(p.get("scoring_point_candidates") or []) for p in packets)
-    all_unavail = all(prov[m] == len(packets) for m in MODELS)
+    all_unavail = bool(prov) and all(c == len(packets) for c in prov.values())
     from collections import Counter
     pdec = Counter(r["decision"] for a in adjudications for r in a["point_decisions"])
     return "\n".join([

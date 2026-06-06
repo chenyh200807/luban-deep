@@ -73,6 +73,21 @@ def test_case_grading_loads_construction_case_grading_skill():
     assert "# Construction Case Grading" in skill_ctx.instructions
 
 
+def test_free_text_case_grading_loads_no_fake_score_guard():
+    ctx = _FakeContext(
+        user_message=(
+            "案例：二次结构填充墙施工时，项目部把刚生产7天的蒸压加气混凝土砌块用于砌筑。"
+            "我的答案：不妥，应龄期28天，含水率宜小于30%。帮我按踩分点批改，简短"
+        )
+    )
+    scene = attach_question_lifecycle_scene_to_context(ctx)
+    assert scene == "case_grading"
+    skill_ctx = build_question_lifecycle_skill_context(ctx)
+    assert "construction-case-grading" in skill_ctx.skill_names
+    assert "模型常识" in skill_ctx.instructions
+    assert "本次不硬估标准分" in skill_ctx.instructions
+
+
 def test_pre_submission_followup_loads_question_review_skill():
     """Plan Task 4 Step 1 #1: pre-answer follow-up → question_review."""
     ctx = _FakeContext(

@@ -1,6 +1,10 @@
 import { BI_API_TOKEN, apiUrl, withAdminAuthorization, withBiApiToken } from '@/lib/api'
 
 import { BI_WORKBENCH_TITLE } from "./brand"
+import {
+  normalizeBiCostReconciliation,
+  type BiCostReconciliationProvider,
+} from './bi-cost-reconciliation'
 
 export function resolveBiAttachmentUrl(url: string | undefined): string {
   const normalized = (url ?? '').trim()
@@ -333,6 +337,7 @@ export interface BiCostData {
   cards: BiMetricCard[]
   models: BiRankItem[]
   providers: BiRankItem[]
+  reconciliation: BiCostReconciliationProvider[]
 }
 
 export interface BiTutorBotData {
@@ -399,6 +404,13 @@ export interface BiInviteTestStats {
   exam_stage_breakdown: Array<{ exam_stage: string; count: number }>
   pain_point_breakdown: Array<{ pain_point: string; count: number }>
   weekly_time_breakdown: Array<{ weekly_time: string; count: number }>
+  age_range_breakdown: Array<{ age_range: string; count: number }>
+  province_breakdown: Array<{ province: string; count: number }>
+  education_breakdown: Array<{ education: string; count: number }>
+  occupation_breakdown: Array<{ occupation: string; count: number }>
+  preparation_years_breakdown: Array<{ preparation_years: string; count: number }>
+  knowledge_foundation_breakdown: Array<{ knowledge_foundation: string; count: number }>
+  daily_study_time_breakdown: Array<{ daily_study_time: string; count: number }>
 }
 
 export interface BiInviteTestApplicationsResponse {
@@ -664,7 +676,7 @@ const DEFAULT_DATA: BiWorkbenchData = {
   tools: { items: [], efficiency: [] },
   knowledge: { items: [], topQueries: [], zeroHitRate: undefined },
   members: { cards: [], tiers: [], risks: [], samples: [] },
-  cost: { cards: [], models: [], providers: [] },
+  cost: { cards: [], models: [], providers: [], reconciliation: [] },
   tutorbots: { cards: [], ranking: [], statusBreakdown: [], recentActive: [], recentMessages: [] },
   anomalies: { items: [] },
 }
@@ -1777,7 +1789,23 @@ export async function getBiCost(options: BiFetchOptions = {}): Promise<BiCostDat
     providers: firstArray(raw, ['providers', 'sources', 'usage_sources']).map((item, index) =>
       normalizeRankItem(item, `Provider ${index + 1}`)
     ),
+    reconciliation: [],
   }
+}
+
+export async function getBiCostReconciliation(
+  options: BiFetchOptions = {}
+): Promise<BiCostReconciliationProvider[]> {
+  const raw = unwrapPayload(
+    await fetchBiJson('/api/v1/bi/cost/reconciliation', {
+      provider: 'all',
+      days: options.days,
+      capability: options.capability,
+      entrypoint: options.entrypoint,
+      tier: options.tier,
+    })
+  )
+  return normalizeBiCostReconciliation(raw)
 }
 
 export async function getBiTutorBots(options: BiFetchOptions = {}): Promise<BiTutorBotData> {
@@ -1930,6 +1958,41 @@ export async function getBiInviteTestStats(
       ['weekly_time_breakdown', 'weeklyTimeBreakdown'],
       'weekly_time'
     ) as BiInviteTestStats['weekly_time_breakdown'],
+    age_range_breakdown: normalizeCountRows(
+      raw,
+      ['age_range_breakdown', 'ageRangeBreakdown'],
+      'age_range'
+    ) as BiInviteTestStats['age_range_breakdown'],
+    province_breakdown: normalizeCountRows(
+      raw,
+      ['province_breakdown', 'provinceBreakdown'],
+      'province'
+    ) as BiInviteTestStats['province_breakdown'],
+    education_breakdown: normalizeCountRows(
+      raw,
+      ['education_breakdown', 'educationBreakdown'],
+      'education'
+    ) as BiInviteTestStats['education_breakdown'],
+    occupation_breakdown: normalizeCountRows(
+      raw,
+      ['occupation_breakdown', 'occupationBreakdown'],
+      'occupation'
+    ) as BiInviteTestStats['occupation_breakdown'],
+    preparation_years_breakdown: normalizeCountRows(
+      raw,
+      ['preparation_years_breakdown', 'preparationYearsBreakdown'],
+      'preparation_years'
+    ) as BiInviteTestStats['preparation_years_breakdown'],
+    knowledge_foundation_breakdown: normalizeCountRows(
+      raw,
+      ['knowledge_foundation_breakdown', 'knowledgeFoundationBreakdown'],
+      'knowledge_foundation'
+    ) as BiInviteTestStats['knowledge_foundation_breakdown'],
+    daily_study_time_breakdown: normalizeCountRows(
+      raw,
+      ['daily_study_time_breakdown', 'dailyStudyTimeBreakdown'],
+      'daily_study_time'
+    ) as BiInviteTestStats['daily_study_time_breakdown'],
   }
 }
 
@@ -2270,6 +2333,7 @@ export async function loadBiWorkbench(options: BiFetchOptions = {}): Promise<BiW
     getBiKnowledge(options),
     getBiMembers(options),
     getBiCost(options),
+    getBiCostReconciliation(options),
     getBiTutorBots(options),
     getBiAnomalies(options),
   ])
@@ -2287,6 +2351,7 @@ export async function loadBiWorkbench(options: BiFetchOptions = {}): Promise<BiW
     knowledge,
     members,
     cost,
+    costReconciliation,
     tutorbots,
     anomalies,
   ] = results
@@ -2348,6 +2413,17 @@ export async function loadBiWorkbench(options: BiFetchOptions = {}): Promise<BiW
     missingCoreModules.push('cost')
     moduleIssues.cost = cost.reason instanceof Error ? cost.reason.message : '成本加载失败'
     issues.push(moduleIssues.cost)
+  }
+
+  if (costReconciliation.status === 'fulfilled') {
+    data.cost.reconciliation = costReconciliation.value
+  } else {
+    const message =
+      costReconciliation.reason instanceof Error
+        ? costReconciliation.reason.message
+        : '官方成本对账加载失败'
+    moduleIssues.cost = moduleIssues.cost ? `${moduleIssues.cost}; ${message}` : message
+    issues.push(message)
   }
 
   if (tutorbots.status === 'fulfilled') data.tutorbots = tutorbots.value

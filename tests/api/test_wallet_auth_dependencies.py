@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import importlib
 
+import httpx
+
 
 auth_module = importlib.import_module("deeptutor.api.dependencies.auth")
 
@@ -132,6 +134,33 @@ def test_resolve_wallet_user_id_falls_back_to_raw_legacy_uid_when_alias_store_un
     monkeypatch.setattr(auth_module, "get_wallet_identity_store", lambda: _FakeStore())
 
     assert auth_module.resolve_wallet_user_id("Bearer test-token") == "user_2008"
+
+
+def test_resolve_wallet_user_id_falls_back_when_configured_alias_store_http_fails(
+    monkeypatch,
+) -> None:
+    class _FakeMemberService:
+        @staticmethod
+        def verify_access_token(_token: str) -> dict[str, str]:
+            return {
+                "uid": "wx_eb2339d2f5d8",
+                "canonical_uid": "wx_eb2339d2f5d8",
+                "provider": "wechat_mp",
+            }
+
+    class _FakeStore:
+        is_configured = True
+
+        @staticmethod
+        def resolve_alias(*, alias_type: str, alias_value: str):
+            request = httpx.Request("GET", "https://example.supabase.co/rest/v1/user_identity_aliases")
+            response = httpx.Response(404, request=request, json={"message": "not found"})
+            raise httpx.HTTPStatusError("alias table unavailable", request=request, response=response)
+
+    monkeypatch.setattr(auth_module, "get_member_console_service", lambda: _FakeMemberService())
+    monkeypatch.setattr(auth_module, "get_wallet_identity_store", lambda: _FakeStore())
+
+    assert auth_module.resolve_wallet_user_id("Bearer test-token") == "wx_eb2339d2f5d8"
 
 
 def test_resolve_wallet_user_id_reads_member_snapshot_for_legacy_auth_user(monkeypatch) -> None:

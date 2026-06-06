@@ -15,6 +15,9 @@
 
 - 单一 RAG 入口：`deeptutor/services/rag/service.py`
 - provider / pipeline 可以多实现，但必须挂在统一 RAG 入口之后
+- KB v5 只读直连 provider 只能作为 `RAGService` 后面的 provider 实现，
+  通过只读事务调用 `public.search_chunks_v2`；不得成为第二套 RAG 入口、
+  不得写 Supabase/PG，也不得承担评分 authority。
 - exact-question 与 authority metadata 必须以统一字段进入上层 agent
 - TutorBot 默认知识链只能由统一 runtime defaults 注入到 `tools/knowledge_bases`
 - 本地知识库重建只能通过 `POST /api/v1/knowledge/{kb_name}/reindex`
@@ -30,6 +33,7 @@
 5. retrieval trace 命名必须统一，不得为同一语义创造平行字段。
 6. 需要默认 grounding 的 TutorBot 业务身份，必须注册进统一 runtime defaults contract，而不是散落在 router 中。
 7. 对于注册过默认 grounding 的 TutorBot，当模型本轮放弃工具时，agent 必须执行统一的 server-side RAG fallback，不能把 grounding 是否发生完全交给模型偶然发挥。
+7a. 对 `construction-exam-coach` 这类注册过默认 grounding 的 TutorBot，建筑实务概念讲解 / 查漏补缺类短查询即使没有显式 citation flag，也必须先执行统一 server-side RAG；`fast` 与 `deep` 只区别响应密度和 agent loop 深度，不得把 `fast` 降级成无证据直接回答。
 8. `exact_question` 不能再默认等同于选择题；案例题必须带 `answer_kind/case_bundle/coverage_state` 这类题型感知字段。
 9. 当案例题 exact hit 只覆盖部分小问时，系统必须显式标记 partial coverage，并继续做补充检索；不能因为命中 exact 就直接跳过第二轮检索。
 10. 对注册过默认 grounding 的 TutorBot，允许执行 `retrieval-first / exact-first` fast path；但 fast path 仍必须复用统一 `rag` 语义、统一 trace 和统一 `RAGService`。
@@ -55,6 +59,7 @@
 30. TutorBot `rag` tool 可以在 `weak_point_review` / `next_training` 且 compiled truth final-source 明确启用时返回 learning fact capsule，但 capsule 只是对 `evidence_bundle.sources` 和 compiled truth source 的用户可读摘要；不得从 wrapper 内生成新的学习事实、修改 learner-state、或绕过 `RAGService` / `SupabasePipeline` 的 evidence bundle。
 31. `deep_question` 在 `deep` / `smart` 批改讲评中可以先用统一 `rag` 入口检索题库/规范依据，再交给 `SubmissionGraderAgent` 组织教学反馈；RAG 只提供解释依据，不得覆盖 `active_object / questions_bank / construction_grading_result` 已确定的标准答案、分数或正确性。
 32. exact-question fast path 必须要求强题目锚点：完整题干/选项、当前 active question、明确题目讲评请求且命中高置信题库来源，或正在批改当前题。低信息考试查询（例如"2025真题"、"历年真题"、"防水真题"、"2025真题有哪些"）只能作为目录/检索/澄清输入，不得由 `prepare_exact_question_probe` 生成 exact candidate，也不得让 TutorBot exact-first path 输出标准答案。若上游 metadata 带 `exact_question_blocked_reason`，RAG / TutorBot fast path 必须 fail closed 跳过 exact authority，并把该 reason 保留到 trace。
+32a. exact-question 解析完整 MCQ 且用户当前题面选项顺序或单位表述不同于题库时，当前 query option surface 是本轮公开答案字母 authority。`HistoricalQuestionResolver` 可以在同一题干高置信命中后用稳定 value alias（例如 `25` ↔ `25年`）把题库标准答案 remap 到当前题面；不得继续展示题库旧字母，也不得让普通 RAG/LLM 重写 remap 结果。
 33. chat 执行壳（`AgenticChatPipeline`）的 construction-exam skill overlay 必须从 `question_lifecycle_scene` turn metadata 读取由 orchestrator（`resolve_question_lifecycle_scene_decision`）写入的单一 scene authority，再经 `build_question_lifecycle_skill_context` 组织 skill 指令；不得在壳内用 legacy `detect_construction_exam_scene` / `get_construction_exam_skill_instruction` 独立重判 scene。scene 是 turn 级一等事实，两套执行壳（chat / tutorbot）只读不重判，由 `scripts/check_harness_authority.py` 静态保证。
 34. `evidence_bundle.sources` must preserve compact public citation identity/location fields when available: `source_id`, `source_table`, `stable_id`, `source_span`, `content_hash`, `quote_hash`, `node_code`, `taxonomy_path`, source type, title, page, and standard/article locators. It must not expose private learner projections or hidden grading authority.
 35. 对建筑实务学生端的概念讲解 / 查漏补缺类 `concept_like` 查询，source-aware ranking 必须把 2026 教材类 `textbook` 作为主概念 grounding，避免大体量标准库挤掉教材证据；只有显式规范、标准编号、条文解释等 `standard_like` 查询才允许把标准 / 精确条文权重提升到教材之上。“附依据 / 写出处 / 教材口径 / 答题依据”这类引用格式要求不得单独触发 `standard_like`。该约束只改变同一 `RAGService` 内的排序权重，不得新增第二套 RAG 入口或第二套引用来源 authority。
@@ -67,6 +72,7 @@
     `compiled_learning_truth` source group 是否可用，或携带 compact provenance marker；
     不得写 learner-state、不得计算 claim lifecycle、不得把 compiled truth override
     exact question、标准条文、教材或 hidden grading authority。
+40. 案例题评分的可见分数、满分、给分/扣分、官方采分点批改，必须来自当前 active case、`questions_bank` / exact case retrieval、结构化 `case_bundle/grading_key/covered_subquestions` 或明确题库证据。普通 RAG 知识、模型常识、相似题经验、用户题面暗示只能支持 `open_skill` 提分诊断，不得生成 `projected_rubric`、标准分或官方阅卷语气；无评分 authority 时学生端必须 fail-open 为“本次不硬估标准分”。
 
 ## 当前统一语义
 

@@ -1,5 +1,7 @@
 # 鲁班评分真相覆盖率 + Golden Eval 战役计划 v2.2
 
+> **2026-06-06 relationship to master plan:** 本文件是 [2026-06-04-luban-grading-engine-master-control-plan.md](2026-06-04-luban-grading-engine-master-control-plan.md) §0.26 的 **eval/data 支撑计划**，不再单独定义系统目标。它负责回答“采分点、golden、source/rubric compiler、A/B 指标是否可信”；主目标仍是 authority-aware open-world expert system：有 authority 时正式评分，无 authority 时开放诊断并生成 compiler candidate/work-order，不能把 golden/eval 工作误读成“只做题库内评分”。
+>
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:executing-plans` or `superpowers:subagent-driven-development` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 >
 > **Goal:** Improve 一建建筑实务案例题批改准确率 by expanding scoring-point coverage, creating a human-gold eval set, and wiring the existing benchmark harness to compare Baseline / RAG / Artifact-first grading.

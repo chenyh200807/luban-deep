@@ -1,0 +1,20 @@
+{
+  "all_pass": true,
+  "fallback": {
+    "pass": true
+  },
+  "kill_switch": {
+    "env": "LUBAN_V1_LLM_ADJUDICATOR_ENABLED",
+    "pass": true
+  },
+  "malformed_registry": {
+    "pass": true
+  },
+  "provider_failure": {
+    "pass": true
+  },
+  "rollback_flag_off": {
+    "legacy_equal_rate": 1.0,
+    "pass": true
+  }
+}
