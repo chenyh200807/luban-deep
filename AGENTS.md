@@ -265,6 +265,32 @@ CLI, WebSocket API, and Python SDK.
   2. 哪些地方曾经在争夺 authority
   3. 为什么修完后系统比之前更接近单一 authority，而不是又多了一层补丁
 
+### 5.8 Post-QA Root-Cause Gate
+
+以下规则来自 2026-06-06 WeChat TutorBot authority loop 的复盘，用于防止后续 agent 把同类问题再次修窄、修散或修成补丁堆。
+
+凡是 TutorBot / WeChat / question authority / follow-up / refusal / state continuity / terminal answer 问题，开始修复前必须先写清：
+
+1. `one business fact`：本轮真正要维护的业务事实是什么
+2. `one authority`：该事实由谁唯一写、存、恢复、读取
+3. `competing authorities`：哪些模块、字段、fallback、transport、frontend projection 或 artifact 可能在抢权
+4. `canonical path`：从 writer 到 persistence / transfer / routing / final assembly 的主链路是什么
+5. `delete or demote`：这次准备删除、降级或归一化哪些 mirror truth / duplicate decision / bypass reader
+6. `deterministic vs LLM boundary`：哪些只允许规则识别稳定格式，哪些必须交给已有 authoritative context 与主语义链路
+
+修复后必须额外检查：
+
+- 是否把 `/wechat-harness`、`wx_miniprogram`、near-real HTTP+WS 或 backend harness 证据误写成真实 `yousenwebview/packageDeeptutor` closure
+- 是否把 regex / fallback / wrapper 升级成语义 authority
+- 是否至少有一个反例验证没有过拟合某个 marker phrase 或 QA 样例
+- 是否证明 visible terminal answer、hidden answer authority、runtime state / active object 三者一致
+
+项目级 agent workflow skills 放在 [agent-skills/](./agent-skills/)；它们是开发与 QA 工作法，不是 TutorBot runtime skills，不得移动到 `deeptutor/tutorbot/skills/`。优先使用：
+
+- [deeptutor-authority-debugging](./agent-skills/deeptutor-authority-debugging/SKILL.md)：状态丢失、拒答、上下文断裂、follow-up 误路由、authority drift。
+- [wechat-tutorbot-real-entry-qa](./agent-skills/wechat-tutorbot-real-entry-qa/SKILL.md)：真实微信 TutorBot 链路、DevTools、near-real / shadow 证据分级、客户满意度 QA。
+- [anti-overfit-repair-review](./agent-skills/anti-overfit-repair-review/SKILL.md)：regex / fallback / special-case 修复后的过拟合复审、局部撤回或收敛。
+
 ## Architecture
 
 ```
