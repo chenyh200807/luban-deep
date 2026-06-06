@@ -399,6 +399,13 @@ export interface BiInviteTestStats {
   exam_stage_breakdown: Array<{ exam_stage: string; count: number }>
   pain_point_breakdown: Array<{ pain_point: string; count: number }>
   weekly_time_breakdown: Array<{ weekly_time: string; count: number }>
+  age_range_breakdown: Array<{ age_range: string; count: number }>
+  province_breakdown: Array<{ province: string; count: number }>
+  education_breakdown: Array<{ education: string; count: number }>
+  occupation_breakdown: Array<{ occupation: string; count: number }>
+  daily_study_time_breakdown: Array<{ daily_study_time: string; count: number }>
+  preparation_years_breakdown: Array<{ preparation_years: string; count: number }>
+  knowledge_foundation_breakdown: Array<{ knowledge_foundation: string; count: number }>
 }
 
 export interface BiInviteTestApplicationsResponse {
@@ -1930,6 +1937,41 @@ export async function getBiInviteTestStats(
       ['weekly_time_breakdown', 'weeklyTimeBreakdown'],
       'weekly_time'
     ) as BiInviteTestStats['weekly_time_breakdown'],
+    age_range_breakdown: normalizeCountRows(
+      raw,
+      ['age_range_breakdown', 'ageRangeBreakdown'],
+      'age_range'
+    ) as BiInviteTestStats['age_range_breakdown'],
+    province_breakdown: normalizeCountRows(
+      raw,
+      ['province_breakdown', 'provinceBreakdown'],
+      'province'
+    ) as BiInviteTestStats['province_breakdown'],
+    education_breakdown: normalizeCountRows(
+      raw,
+      ['education_breakdown', 'educationBreakdown'],
+      'education'
+    ) as BiInviteTestStats['education_breakdown'],
+    occupation_breakdown: normalizeCountRows(
+      raw,
+      ['occupation_breakdown', 'occupationBreakdown'],
+      'occupation'
+    ) as BiInviteTestStats['occupation_breakdown'],
+    daily_study_time_breakdown: normalizeCountRows(
+      raw,
+      ['daily_study_time_breakdown', 'dailyStudyTimeBreakdown'],
+      'daily_study_time'
+    ) as BiInviteTestStats['daily_study_time_breakdown'],
+    preparation_years_breakdown: normalizeCountRows(
+      raw,
+      ['preparation_years_breakdown', 'preparationYearsBreakdown'],
+      'preparation_years'
+    ) as BiInviteTestStats['preparation_years_breakdown'],
+    knowledge_foundation_breakdown: normalizeCountRows(
+      raw,
+      ['knowledge_foundation_breakdown', 'knowledgeFoundationBreakdown'],
+      'knowledge_foundation'
+    ) as BiInviteTestStats['knowledge_foundation_breakdown'],
   }
 }
 

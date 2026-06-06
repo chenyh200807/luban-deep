@@ -76,6 +76,13 @@ async def test_invite_test_store_reads_local_jsonl_and_builds_stats(tmp_path: Pa
                 "examStage": "正在冲刺刷题",
                 "painPoint": "错题原因不清楚",
                 "weeklyTime": "10-30 分钟",
+                "ageRange": "26-35 岁",
+                "province": "江苏",
+                "education": "本科",
+                "occupation": "施工员",
+                "preparationYears": "第 2 次备考",
+                "knowledgeFoundation": "基础薄弱",
+                "dailyStudyTime": "30-60 分钟",
                 "latestWrongQuestion": "案例题漏采分点",
                 "acceptInterview": True,
                 "consent": True,
@@ -92,6 +99,13 @@ async def test_invite_test_store_reads_local_jsonl_and_builds_stats(tmp_path: Pa
                 "examStage": "刚开始备考",
                 "painPoint": "案例题不会写",
                 "weeklyTime": "30-60 分钟",
+                "ageRange": "36-45 岁",
+                "province": "广东",
+                "education": "大专",
+                "occupation": "项目经理",
+                "preparationYears": "第 3 次备考",
+                "knowledgeFoundation": "一般",
+                "dailyStudyTime": "1-2 小时",
                 "acceptInterview": False,
                 "consent": True,
                 "status": "submitted",
@@ -111,6 +125,13 @@ async def test_invite_test_store_reads_local_jsonl_and_builds_stats(tmp_path: Pa
     assert stats["summary"]["accept_interview_count"] == 1
     assert stats["summary"]["with_wrong_question_count"] == 1
     assert {"exam_type": "二建建筑实务", "count": 1} in stats["exam_type_breakdown"]
+    assert {"age_range": "26-35 岁", "count": 1} in stats["age_range_breakdown"]
+    assert {"province": "江苏", "count": 1} in stats["province_breakdown"]
+    assert {"education": "本科", "count": 1} in stats["education_breakdown"]
+    assert {"occupation": "施工员", "count": 1} in stats["occupation_breakdown"]
+    assert {"daily_study_time": "30-60 分钟", "count": 1} in stats["daily_study_time_breakdown"]
+    assert {"preparation_years": "第 2 次备考", "count": 1} in stats["preparation_years_breakdown"]
+    assert {"knowledge_foundation": "基础薄弱", "count": 1} in stats["knowledge_foundation_breakdown"]
 
 
 @pytest.mark.asyncio
