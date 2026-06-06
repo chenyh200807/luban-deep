@@ -10,6 +10,7 @@ from jsonschema import validate
 from deeptutor.services.observability.control_plane_store import ObservabilityControlPlaneStore
 from deeptutor.services.observability.observer_snapshot import build_observer_snapshot
 from deeptutor.services.observability.oa_runner import build_oa_run
+from deeptutor.services.observability.product_behavior_store import SQLiteProductBehaviorStore
 from deeptutor.services.observability.turn_event_log import TurnEventLog
 from deeptutor.services.observability.turn_event_log import build_turn_observation_event
 
@@ -250,6 +251,91 @@ def test_build_observer_snapshot_collects_recent_conversation_and_backend_log_ev
     assert "后台日志在 OA 窗口内出现 ERROR/CRITICAL" in hypotheses
 
 
+def test_build_observer_snapshot_collects_product_behavior_evidence(tmp_path) -> None:
+    now_ms = int(time.time() * 1000)
+    behavior_db = tmp_path / "product_behavior.db"
+    behavior_store = SQLiteProductBehaviorStore(behavior_db)
+    for event in (
+        {
+            "event_id": "pbe-1",
+            "event_name": "module_viewed",
+            "occurred_at_ms": now_ms,
+            "user_id": "student-1",
+            "visit_id": "visit-1",
+            "surface": "wechat_yousenwebview",
+            "module": "learning_report",
+            "action": "view",
+        },
+        {
+            "event_id": "pbe-2",
+            "event_name": "section_viewed",
+            "occurred_at_ms": now_ms,
+            "user_id": "student-1",
+            "visit_id": "visit-1",
+            "surface": "wechat_yousenwebview",
+            "module": "learning_report",
+            "section": "next_action",
+            "action": "view",
+        },
+        {
+            "event_id": "pbe-3",
+            "event_name": "learning_action_started",
+            "occurred_at_ms": now_ms,
+            "user_id": "student-1",
+            "visit_id": "visit-1",
+            "surface": "wechat_yousenwebview",
+            "module": "practice",
+            "action": "start_training",
+        },
+    ):
+        assert behavior_store.record_event(event)["accepted"] is True
+
+    payload = build_observer_snapshot(
+        store=ObservabilityControlPlaneStore(base_dir=tmp_path / "control_plane"),
+        event_log=TurnEventLog(events_dir=tmp_path / "events"),
+        event_days=1,
+        conversation_db_path=tmp_path / "missing-chat.db",
+        backend_log_paths=[],
+        product_behavior_db_path=behavior_db,
+    )
+
+    assert payload["data_sources"]["product_behavior"]["has_data"] is True
+    assert payload["product_behavior"]["event_count"] == 3
+    assert payload["product_behavior"]["p0_path_counts"]["learning_report_open"] == 1
+    assert payload["product_behavior"]["p0_path_counts"]["learning_report_next_action_view"] == 1
+    assert payload["product_behavior"]["p0_path_counts"]["training_started"] == 1
+    assert "missing_product_behavior_evidence" not in {item["type"] for item in payload["blind_spots"]}
+
+
+def test_build_observer_snapshot_reports_missing_arr_when_only_benchmark_exists(tmp_path) -> None:
+    store = ObservabilityControlPlaneStore(base_dir=tmp_path / "control_plane")
+    release = {"release_id": "rel-1", "git_sha": "abc", "deployment_environment": "dev"}
+    store.write_run(
+        kind="benchmark_runs",
+        run_id="benchmark-1",
+        release_id="rel-1",
+        payload={
+            "run_manifest": {"run_id": "benchmark-1", "release_spine": release},
+            "summary": {"total": 3, "passed": 3, "failed": 0},
+        },
+    )
+
+    payload = build_observer_snapshot(
+        store=store,
+        event_log=TurnEventLog(events_dir=tmp_path / "events"),
+        event_days=1,
+        conversation_db_path=tmp_path / "missing-chat.db",
+        backend_log_paths=[],
+        product_behavior_db_path=tmp_path / "missing-product-behavior.db",
+    )
+
+    blind_spot_types = {item["type"] for item in payload["blind_spots"]}
+    assert payload["data_sources"]["quality_run"]["has_data"] is True
+    assert payload["source_runs"]["benchmark_run_id"] == "benchmark-1"
+    assert "missing_quality_run" not in blind_spot_types
+    assert "missing_arr_run" in blind_spot_types
+
+
 def test_build_observer_snapshot_reports_blind_spots_when_sources_missing(tmp_path) -> None:
     payload = build_observer_snapshot(
         store=ObservabilityControlPlaneStore(base_dir=tmp_path / "control_plane"),
@@ -257,12 +343,14 @@ def test_build_observer_snapshot_reports_blind_spots_when_sources_missing(tmp_pa
         event_days=1,
         conversation_db_path=tmp_path / "missing-chat.db",
         backend_log_paths=[],
+        product_behavior_db_path=tmp_path / "missing-product-behavior.db",
     )
 
     blind_spot_types = {item["type"] for item in payload["blind_spots"]}
     assert "missing_turn_event_log" in blind_spot_types
     assert "missing_om_snapshot" in blind_spot_types
     assert "missing_quality_run" in blind_spot_types
+    assert "missing_product_behavior_evidence" in blind_spot_types
     assert payload["data_coverage"]["coverage_ratio"] < 1.0
 
 

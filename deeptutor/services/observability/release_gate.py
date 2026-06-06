@@ -18,6 +18,11 @@ _RELEASE_SPINE_KEYS = (
     "ff_snapshot_hash",
     "deploy_manifest_hash",
 )
+MINIMUM_RELEASE_BENCHMARK_SUITES = (
+    "pr_gate_core",
+    "regression_watch",
+    "incident_replay",
+)
 
 
 def _gate_entry(
@@ -195,6 +200,7 @@ def build_release_gate_report(
     change_impact_payload: dict[str, Any] | None = None,
     plan_completion_payload: dict[str, Any] | None = None,
     release: dict[str, Any] | None = None,
+    quality_evidence_required: bool = False,
 ) -> dict[str, Any]:
     if _is_prerelease_plan_placeholder(plan_completion_payload):
         plan_completion_payload = None
@@ -265,6 +271,16 @@ def build_release_gate_report(
     benchmark_summary = (benchmark_payload or {}).get("summary") or {}
     arr_diff = (benchmark_payload or {}).get("baseline_diff") or (arr_payload or {}).get("baseline_diff") or {}
     execution_context = (benchmark_payload or {}).get("execution_context") or (arr_payload or {}).get("execution_context") or {}
+    requested_suites = [
+        str(item)
+        for item in (benchmark_manifest.get("requested_suites") or [])
+        if str(item).strip()
+    ]
+    missing_required_suites = [
+        suite
+        for suite in MINIMUM_RELEASE_BENCHMARK_SUITES
+        if suite not in set(requested_suites)
+    ]
     benchmark_pass_rate = _benchmark_pass_rate(benchmark_case_results) if benchmark_case_results else arr_summary.get("pass_rate")
     if benchmark_pass_rate is None:
         benchmark_pass_rate = benchmark_summary.get("pass_rate")
@@ -307,6 +323,10 @@ def build_release_gate_report(
             p2_status = _FAIL
             p2_summary = "long-dialog 未通过真实 /api/v1/ws 执行"
             p2_blockers.append("long_dialog_not_live_ws")
+        if p2_status != _FAIL and quality_evidence_required and missing_required_suites:
+            p2_status = _FAIL
+            p2_summary = "benchmark 未覆盖最小 release 质量套件"
+            p2_blockers.append("benchmark_minimum_suite_missing")
         if p2_status != _FAIL and has_new_critical:
             p2_status = _FAIL
             p2_summary = "benchmark 出现新增 regression 或 new failure"
@@ -326,6 +346,9 @@ def build_release_gate_report(
             evidence=[
                 f"benchmark_run_id={benchmark_manifest.get('run_id')}",
                 f"requested_suites={benchmark_manifest.get('requested_suites')}",
+                f"required_suites={list(MINIMUM_RELEASE_BENCHMARK_SUITES)}",
+                f"missing_required_suites={missing_required_suites}",
+                f"quality_evidence_required={quality_evidence_required}",
                 f"pass_rate={benchmark_pass_rate}",
                 f"regressions={new_critical_regressions}",
                 f"new_failures={len(arr_diff.get('new_failures') or [])}",
@@ -342,8 +365,9 @@ def build_release_gate_report(
     aae_scorecard = (aae_payload or {}).get("scorecard") or {}
     aae_composite = (aae_payload or {}).get("composite") or {}
     aae_coverage = (aae_payload or {}).get("coverage_summary") or {}
-    p3_status = _SKIP
-    p3_summary = "未提供 AAE run"
+    p3_status = _FAIL if quality_evidence_required else _SKIP
+    p3_summary = "未提供 AAE run；当前质量 gate 要求 current-release AAE" if quality_evidence_required else "未提供 AAE run"
+    p3_blockers = ["missing_aae_run"] if quality_evidence_required else []
     if aae_payload:
         satisfaction_score = aae_scorecard.get("paid_student_satisfaction_score") or {}
         proxy_heavy = bool(satisfaction_score.get("is_proxy"))
@@ -353,6 +377,7 @@ def build_release_gate_report(
         composite_value = aae_composite.get("value")
         p3_status = _PASS
         p3_summary = "AAE 关键分数可用"
+        p3_blockers = []
         if satisfaction_available and not proxy_heavy:
             p3_summary = "AAE 已接入真实满意度反馈"
         elif feedback_status and feedback_status != "ok":
@@ -366,6 +391,7 @@ def build_release_gate_report(
         if isinstance(composite_value, (int, float)) and composite_value < 0.75:
             p3_status = _FAIL
             p3_summary = "AAE composite 低于最低门槛"
+            p3_blockers = ["aae_composite_below_floor"]
     gate_results.append(
         _gate_entry(
             gate="P3 AAE",
@@ -377,8 +403,9 @@ def build_release_gate_report(
                 f"proxy_paid_satisfaction={((aae_scorecard.get('paid_student_satisfaction_score') or {}).get('is_proxy'))}",
                 f"feedback_storage_status={aae_coverage.get('feedback_storage_status')}",
                 f"feedback_total={aae_coverage.get('feedback_total')}",
+                f"quality_evidence_required={quality_evidence_required}",
             ],
-            blockers=["aae_composite_below_floor"] if p3_status == _FAIL else [],
+            blockers=p3_blockers,
         )
     )
 

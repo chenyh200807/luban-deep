@@ -28,7 +28,7 @@ def test_registry_uses_version_and_cases_mapping() -> None:
     assert not isinstance(registry.suites, dict)
     with pytest.raises(TypeError):
         registry.cases["new_case"] = registry.cases["routing.semantic_router.case_set"]  # type: ignore[index]
-    assert len(registry.cases) == 9
+    assert len(registry.cases) == 12
     assert set(registry.suites) == {
         "pr_gate_core",
         "regression_watch",
@@ -36,6 +36,7 @@ def test_registry_uses_version_and_cases_mapping() -> None:
         "exploration_lab",
         "luban_case_grading_shadow",
         "answer_citation_shadow",
+        "m26_context_safety",
     }
 
 
@@ -184,12 +185,46 @@ def test_answer_citation_shadow_case_uses_canonical_vocab() -> None:
     assert case.promotion_status == "candidate"
 
 
+def test_m26_context_safety_cases_use_canonical_vocab() -> None:
+    registry = _load_registry()
+    compiled = registry.cases["grading.compiled_context.safety_contract"]
+    open_world = registry.cases["grading.open_world_diagnostic.safety_contract"]
+    learning_loop = registry.cases["learning_brain.evidence_loop.safety_contract"]
+
+    assert registry.suites["m26_context_safety"].case_ids == (
+        "grading.compiled_context.safety_contract",
+        "grading.open_world_diagnostic.safety_contract",
+        "learning_brain.evidence_loop.safety_contract",
+    )
+    assert compiled.case_tier == "regression_tier"
+    assert compiled.expected_contract == "compiled_context_authority_safety_contract"
+    assert "FAIL_COMPILED_CONTEXT_AUTHORITY_DRIFT" in compiled.failure_taxonomy_scope
+    assert "FAIL_OFFICIAL_SCORE_LAUNDERING" in compiled.failure_taxonomy_scope
+    assert "FAIL_ANSWER_KEY_OVERRIDE" in compiled.failure_taxonomy_scope
+    assert "FAIL_CANDIDATE_PROMOTED_TO_TRUTH" in compiled.failure_taxonomy_scope
+    assert "FAIL_CANDIDATE_RELEASE_TRUTH" in compiled.failure_taxonomy_scope
+    assert "FAIL_CANONICAL_TRUTH_WRITE" in compiled.failure_taxonomy_scope
+
+    assert open_world.expected_contract == "open_world_diagnostic_fail_open_safety_contract"
+    assert "FAIL_OPEN_WORLD_REFUSAL" in open_world.failure_taxonomy_scope
+    assert "FAIL_SOURCE_LAUNDERING" in open_world.failure_taxonomy_scope
+    assert "FAIL_CANONICAL_TRUTH_WRITE" in open_world.failure_taxonomy_scope
+
+    assert learning_loop.contract_domain == "continuity_contract"
+    assert learning_loop.expected_contract == "grading_evidence_to_learning_brain_loop_contract"
+    assert "FAIL_LEARNING_EVIDENCE_LOOP_BREAK" in learning_loop.failure_taxonomy_scope
+    assert "FAIL_LB_UNSAFE_PROMOTION" in learning_loop.failure_taxonomy_scope
+
+
 def test_all_case_ids_exist() -> None:
     registry = _load_registry()
 
     assert set(registry.cases) == {
         "answer.citation.paper_style.v0",
         "grading.luban_case_golden.v0",
+        "grading.compiled_context.safety_contract",
+        "grading.open_world_diagnostic.safety_contract",
+        "learning_brain.evidence_loop.safety_contract",
         "routing.semantic_router.case_set",
         "routing.context_orchestration.case_set",
         "grounding.rag.case_set",

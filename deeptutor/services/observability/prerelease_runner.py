@@ -280,6 +280,7 @@ def run_prerelease_observability(
         oa_payload=oa_payload,
         change_impact_payload=persisted_change_impact_payload,
         plan_completion_payload=plan_completion_payload,
+        quality_evidence_required=True,
     )
     release_gate_artifacts = _write_control_plane_artifact(
         kind="release_gate_runs",

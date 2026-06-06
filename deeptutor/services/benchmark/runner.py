@@ -559,6 +559,35 @@ def _run_answer_citation_case_set(
     return _summarize_case_results("answer-citation-shadow", [result]), [result]
 
 
+def _run_metadata_gap_case_set(
+    *,
+    suite_name: str,
+    case_metadata: dict[str, Any],
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    case_id = str(case_metadata["case_id"])
+    result = _make_case_result(
+        suite=suite_name,
+        case_id=case_id,
+        case_name=case_id,
+        status="SKIP",
+        case_tier=str(case_metadata.get("case_tier") or "exploratory"),
+        evidence={
+            "reason": "benchmark_case_runner_not_implemented",
+            "expected_contract": case_metadata.get("expected_contract"),
+            "failure_taxonomy_scope": list(case_metadata.get("failure_taxonomy_scope") or []),
+            "source_fixture": case_metadata.get("source_fixture"),
+        },
+        details={
+            "contract_domain": case_metadata.get("contract_domain"),
+            "execution_kind": case_metadata.get("execution_kind"),
+            "surface": case_metadata.get("surface"),
+            "origin_ref": case_metadata.get("origin_ref"),
+            "promotion_status": case_metadata.get("promotion_status"),
+        },
+    )
+    return _summarize_case_results(suite_name, [result]), [result]
+
+
 async def _run_surface_web_case_set(
     *,
     case_metadata: dict[str, Any],
@@ -687,9 +716,11 @@ async def _collect_suite_execution(
             )
             include_in_legacy = False
         else:
-            legacy_summary = _summarize_case_results(suite_name, [])
-            legacy_results = []
-            blind_spots.append({"suite": suite_name, "case_id": case_id, "reason": "unsupported_case_id", "source_fixture": case.source_fixture})
+            legacy_summary, legacy_results = _run_metadata_gap_case_set(
+                suite_name=suite_name,
+                case_metadata=case_metadata,
+            )
+            include_in_legacy = False
 
         canonical_results = [
             _canonicalize_case_result(

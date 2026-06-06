@@ -571,6 +571,8 @@ def test_run_observability_daily_cli_writes_end_to_end_control_plane_runs(tmp_pa
 
     assert proc.returncode == 0, proc.stderr
     for kind in (
+        "arr_runs",
+        "aae_composite_runs",
         "benchmark_runs",
         "observer_snapshots",
         "om_runs",
@@ -584,8 +586,20 @@ def test_run_observability_daily_cli_writes_end_to_end_control_plane_runs(tmp_pa
 
     oa_latest = json.loads((store_dir / "oa_runs" / "latest.json").read_text(encoding="utf-8"))
     assert oa_latest["payload"]["causal_candidates"]
+    arr_latest = json.loads((store_dir / "arr_runs" / "latest.json").read_text(encoding="utf-8"))
+    assert arr_latest["payload"]["benchmark_run_manifest"]["requested_suites"] == [
+        "pr_gate_core",
+        "regression_watch",
+        "incident_replay",
+    ]
+    aae_latest = json.loads((store_dir / "aae_composite_runs" / "latest.json").read_text(encoding="utf-8"))
+    assert aae_latest["payload"]["source_arr_run_id"] == arr_latest["payload"]["run_id"]
     benchmark_latest = json.loads((store_dir / "benchmark_runs" / "latest.json").read_text(encoding="utf-8"))
-    assert benchmark_latest["payload"]["run_manifest"]["requested_suites"] == ["pr_gate_core"]
+    assert benchmark_latest["payload"]["run_manifest"]["requested_suites"] == [
+        "pr_gate_core",
+        "regression_watch",
+        "incident_replay",
+    ]
     om_latest = json.loads((store_dir / "om_runs" / "latest.json").read_text(encoding="utf-8"))
     assert om_latest["payload"]["run_id"].startswith("om-")
     readiness_latest = json.loads((store_dir / "readiness_checks" / "latest.json").read_text(encoding="utf-8"))
@@ -653,6 +667,18 @@ def test_run_observability_daily_marks_verdict_stale_when_input_release_lags_hea
     )
     monkeypatch.setattr(
         DAILY_OBSERVABILITY_MODULE,
+        "_ensure_arr_payload",
+        lambda **_kwargs: {
+            "run_id": "arr-1",
+            "release": {"release_id": "rel-old", "git_sha": "old123"},
+            "benchmark_run_manifest": {
+                "run_id": "benchmark-1",
+                "requested_suites": ["pr_gate_core", "regression_watch", "incident_replay"],
+            },
+        },
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
         "_ensure_benchmark_payload",
         lambda **_kwargs: {
             "run_manifest": {"run_id": "benchmark-1"},
@@ -661,6 +687,15 @@ def test_run_observability_daily_marks_verdict_stale_when_input_release_lags_hea
         },
     )
     monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "_ensure_surface_readiness_rows", lambda **_kwargs: None)
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "_ensure_aae_payload",
+        lambda **_kwargs: {
+            "run_id": "aae-1",
+            "release": {"release_id": "rel-old", "git_sha": "old123"},
+            "source_arr_run_id": "arr-1",
+        },
+    )
     monkeypatch.setattr(
         DAILY_OBSERVABILITY_MODULE,
         "write_observer_snapshot_artifacts",
@@ -762,8 +797,25 @@ def test_run_observability_daily_passes_current_release_through_spine(
             "release_spine": dict(kwargs["release"]),
         }
 
+    def _ensure_arr_payload(**kwargs):
+        observed_releases["arr"] = dict(kwargs["release"])
+        return {
+            "run_id": "arr-1",
+            "release": dict(kwargs["release"]),
+            "benchmark_run_manifest": {
+                "run_id": "benchmark-1",
+                "requested_suites": ["pr_gate_core", "regression_watch", "incident_replay"],
+            },
+        }
+
+    def _ensure_aae_payload(**kwargs):
+        observed_releases["aae"] = dict(kwargs["release"])
+        return {"run_id": "aae-1", "release": dict(kwargs["release"]), "source_arr_run_id": "arr-1"}
+
     monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "_ensure_om_payload", _ensure_om_payload)
+    monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "_ensure_arr_payload", _ensure_arr_payload)
     monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "_ensure_benchmark_payload", _ensure_benchmark_payload)
+    monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "_ensure_aae_payload", _ensure_aae_payload)
     monkeypatch.setattr(
         DAILY_OBSERVABILITY_MODULE,
         "_ensure_surface_readiness_rows",
@@ -840,8 +892,10 @@ def test_run_observability_daily_passes_current_release_through_spine(
 
     assert observed_releases == {
         "om": current_release,
+        "arr": current_release,
         "benchmark": current_release,
         "surface_readiness": current_release,
+        "aae": current_release,
         "observer": current_release,
         "readiness": current_release,
         "change_impact": current_release,

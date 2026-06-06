@@ -11,11 +11,13 @@ def _canonical_benchmark_payload(
     case_results: list[dict] | None = None,
     summary: dict | None = None,
     baseline_diff: dict | None = None,
+    requested_suites: list[str] | None = None,
 ) -> dict:
     return {
         "run_manifest": {
             "run_id": run_id,
-            "requested_suites": ["pr_gate_core"],
+            "requested_suites": requested_suites
+            or ["pr_gate_core", "regression_watch", "incident_replay"],
         },
         "release_spine": release,
         "case_results": case_results or [],
@@ -835,6 +837,84 @@ def test_release_gate_marks_real_feedback_aae_as_pass() -> None:
     p3 = next(item for item in payload["gate_results"] if item["gate"] == "P3 AAE")
     assert p3["status"] == "PASS"
     assert "真实满意度" in p3["summary"]
+
+
+def test_release_gate_quality_mode_blocks_missing_aae() -> None:
+    release = {
+        "release_id": "rel-1",
+        "git_sha": "abc",
+        "deployment_environment": "production",
+        "prompt_version": "p",
+        "ff_snapshot_hash": "ff",
+        "git_dirty": "false",
+        "deploy_manifest_hash": "manifest1",
+    }
+    payload = build_release_gate_report(
+        om_payload={
+            "release": release,
+            "health_summary": {"ready": True, "unified_ws_smoke_ok": True},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload=None,
+        benchmark_payload=_canonical_benchmark_payload(release=release),
+        aae_payload=None,
+        oa_payload={"blind_spots": [], "root_causes": []},
+        plan_completion_payload={
+            "run_id": "plan-completion-1",
+            "release": release,
+            "status": "PASS",
+            "summary": {"total": 1, "done": 1, "partial": 0, "not_done": 0, "unverifiable": 0},
+            "warnings": [],
+        },
+        quality_evidence_required=True,
+    )
+
+    p3 = next(item for item in payload["gate_results"] if item["gate"] == "P3 AAE")
+    assert p3["status"] == "FAIL"
+    assert "missing_aae_run" in payload["blockers"]
+
+
+def test_release_gate_quality_mode_blocks_missing_required_benchmark_suites() -> None:
+    release = {
+        "release_id": "rel-1",
+        "git_sha": "abc",
+        "deployment_environment": "production",
+        "prompt_version": "p",
+        "ff_snapshot_hash": "ff",
+        "git_dirty": "false",
+        "deploy_manifest_hash": "manifest1",
+    }
+    payload = build_release_gate_report(
+        om_payload={
+            "release": release,
+            "health_summary": {"ready": True, "unified_ws_smoke_ok": True},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload=None,
+        benchmark_payload=_canonical_benchmark_payload(
+            release=release,
+            requested_suites=["pr_gate_core"],
+            case_results=[{"suite": "pr_gate_core", "case_id": "case-a", "status": "PASS", "case_tier": "gate_stable"}],
+        ),
+        aae_payload={
+            "scorecard": {"paid_student_satisfaction_score": {"is_proxy": True}},
+            "composite": {"value": 1.0, "coverage_ratio": 1.0},
+        },
+        oa_payload={"blind_spots": [], "root_causes": []},
+        plan_completion_payload={
+            "run_id": "plan-completion-1",
+            "release": release,
+            "status": "PASS",
+            "summary": {"total": 1, "done": 1, "partial": 0, "not_done": 0, "unverifiable": 0},
+            "warnings": [],
+        },
+        quality_evidence_required=True,
+    )
+
+    p2 = next(item for item in payload["gate_results"] if item["gate"] == "P2 Benchmark Regression")
+    assert p2["status"] == "FAIL"
+    assert "benchmark_minimum_suite_missing" in payload["blockers"]
+    assert any("missing_required_suites=['regression_watch', 'incident_replay']" == item for item in p2["evidence"])
 
 
 def test_release_gate_warns_when_real_feedback_path_has_no_samples() -> None:

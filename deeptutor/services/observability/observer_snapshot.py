@@ -20,6 +20,7 @@ from deeptutor.services.observability.turn_event_log import get_turn_event_log
 from deeptutor.services.observability.runtime_incidents import (
     classify_runtime_incidents_from_backend_logs,
 )
+from deeptutor.services.observability.product_behavior_store import SQLiteProductBehaviorStore
 from deeptutor.services.path_service import get_path_service
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
@@ -110,6 +111,83 @@ def _default_backend_log_paths(*, days: int) -> list[Path]:
         paths.append(path_service.get_logs_dir() / f"deeptutor_{day}.log")
     paths.append(PROJECT_ROOT / "tmp" / "backend.log")
     return paths
+
+
+def _default_product_behavior_db_path() -> Path:
+    return get_path_service().get_chat_history_db().with_name("product_behavior.db")
+
+
+def _counter_from_rows(rows: list[dict[str, Any]], key: str) -> dict[str, int]:
+    counter: Counter[str] = Counter()
+    for row in rows:
+        value = str(row.get(key) or "unknown").strip() or "unknown"
+        counter[value] += 1
+    return dict(sorted(counter.items(), key=lambda item: item[0]))
+
+
+def _build_product_behavior_snapshot(
+    *,
+    db_path: Path | None,
+    days: int,
+    limit: int,
+) -> dict[str, Any]:
+    target = (db_path or _default_product_behavior_db_path()).expanduser().resolve()
+    window_days = max(int(days or 1), 1)
+    base: dict[str, Any] = {
+        "db_path": str(target),
+        "window_days": window_days,
+        "event_count": 0,
+        "sample_limit": max(int(limit or 1), 1),
+        "module_distribution": {},
+        "event_distribution": {},
+        "surface_distribution": {},
+        "p0_path_counts": {
+            "history_open": 0,
+            "learning_report_open": 0,
+            "learning_report_next_action_view": 0,
+            "training_started": 0,
+            "review_started": 0,
+            "retest_started_or_completed": 0,
+        },
+        "missing_reason": "",
+        "read_error": "",
+    }
+    if not target.exists():
+        base["missing_reason"] = "product behavior db missing"
+        return base
+
+    try:
+        rows = SQLiteProductBehaviorStore(target).query_raw_events(
+            {"days": window_days},
+            limit=max(int(limit or 1), 1),
+        )
+    except Exception as exc:
+        base["read_error"] = str(exc)
+        return base
+
+    base["event_count"] = len(rows)
+    base["module_distribution"] = _counter_from_rows(rows, "module")
+    base["event_distribution"] = _counter_from_rows(rows, "event_name")
+    base["surface_distribution"] = _counter_from_rows(rows, "surface")
+    p0 = base["p0_path_counts"]
+    for row in rows:
+        module = str(row.get("module") or "")
+        event_name = str(row.get("event_name") or "")
+        section = str(row.get("section") or "")
+        action = str(row.get("action") or "")
+        if module == "history" and event_name == "module_viewed":
+            p0["history_open"] += 1
+        if module == "learning_report" and event_name == "module_viewed":
+            p0["learning_report_open"] += 1
+        if module == "learning_report" and section == "next_action" and event_name == "section_viewed":
+            p0["learning_report_next_action_view"] += 1
+        if event_name == "learning_action_started" and action == "start_training":
+            p0["training_started"] += 1
+        if event_name == "learning_action_started" and action == "start_review":
+            p0["review_started"] += 1
+        if event_name in {"learning_action_started", "learning_action_completed"} and action == "start_retest":
+            p0["retest_started_or_completed"] += 1
+    return base
 
 
 def _sqlite_count(conn: sqlite3.Connection, query: str, params: tuple[Any, ...]) -> int:
@@ -456,6 +534,8 @@ def build_observer_snapshot(
     conversation_limit: int = 100,
     backend_log_paths: list[Path] | None = None,
     backend_log_tail_lines: int = 1000,
+    product_behavior_db_path: Path | None = None,
+    product_behavior_limit: int = 5000,
 ) -> dict[str, Any]:
     control_store = store or get_control_plane_store()
     turn_log = event_log or get_turn_event_log()
@@ -482,6 +562,11 @@ def build_observer_snapshot(
         paths=backend_log_paths,
         days=event_days,
         tail_lines=backend_log_tail_lines,
+    )
+    product_behavior = _build_product_behavior_snapshot(
+        db_path=product_behavior_db_path,
+        days=event_days,
+        limit=product_behavior_limit,
     )
     runtime_incidents = classify_runtime_incidents_from_backend_logs(backend_logs)
     trace_linkage = _build_trace_linkage_snapshot(turn_events)
@@ -561,6 +646,22 @@ def build_observer_snapshot(
             reason=str(recent_conversations.get("read_error") or "no recent conversations in window"),
             now=now,
         ),
+        "product_behavior": _source_entry(
+            "product_behavior",
+            has_data=int(product_behavior.get("event_count") or 0) > 0,
+            source_id=str(product_behavior.get("db_path") or ""),
+            sample_count=int(product_behavior.get("event_count") or 0),
+            confidence="medium"
+            if int(product_behavior.get("event_count") or 0) > 0
+            and not product_behavior.get("read_error")
+            else "low",
+            reason=str(
+                product_behavior.get("read_error")
+                or product_behavior.get("missing_reason")
+                or "no product behavior events in window"
+            ),
+            now=now,
+        ),
         "backend_logs": _source_entry(
             "backend_logs",
             has_data=int(backend_logs.get("scanned_lines") or 0) > 0,
@@ -615,6 +716,8 @@ def build_observer_snapshot(
         blind_spots.append({"type": "missing_om_snapshot", "severity": "high"})
     if not has_quality_run:
         blind_spots.append({"type": "missing_quality_run", "severity": "high"})
+    elif benchmark_payload and not arr_payload:
+        blind_spots.append({"type": "missing_arr_run", "severity": "medium"})
     if not has_surface_coverage:
         blind_spots.append({"type": "missing_surface_coverage", "severity": "medium"})
     if not daily_trend_payload:
@@ -629,6 +732,25 @@ def build_observer_snapshot(
         )
     elif int(recent_conversations.get("session_count") or 0) <= 0:
         blind_spots.append({"type": "missing_recent_conversation_evidence", "severity": "medium"})
+    if product_behavior.get("read_error"):
+        blind_spots.append(
+            {
+                "type": "product_behavior_evidence_read_error",
+                "severity": "medium",
+                "evidence": {"read_error": product_behavior.get("read_error")},
+            }
+        )
+    elif int(product_behavior.get("event_count") or 0) <= 0:
+        blind_spots.append(
+            {
+                "type": "missing_product_behavior_evidence",
+                "severity": "medium",
+                "evidence": {
+                    "reason": product_behavior.get("missing_reason")
+                    or "no product behavior events in window"
+                },
+            }
+        )
     if int(backend_logs.get("scanned_lines") or 0) <= 0:
         blind_spots.append({"type": "missing_backend_log_evidence", "severity": "medium"})
     if int(trace_linkage.get("trace_id_count") or 0) <= 0:
@@ -646,6 +768,7 @@ def build_observer_snapshot(
         "turn_events": turn_summary,
         "turn_event_log": turn_log_stats,
         "recent_conversations": recent_conversations,
+        "product_behavior": product_behavior,
         "backend_logs": backend_logs,
         "runtime_incidents": runtime_incidents,
         "langfuse_trace_linkage": trace_linkage,
@@ -667,6 +790,7 @@ def build_observer_snapshot(
             "surface_snapshot": surface_payload,
             "live_metrics_snapshot": metrics_snapshot or {},
             "recent_conversations": recent_conversations,
+            "product_behavior": product_behavior,
             "backend_logs": backend_logs,
             "runtime_incidents": runtime_incidents,
             "langfuse_trace_linkage": trace_linkage,

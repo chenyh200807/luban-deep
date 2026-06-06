@@ -264,6 +264,7 @@ def main() -> None:
         change_impact_payload=change_impact_payload,
         plan_completion_payload=plan_completion_payload,
         release=current_release,
+        quality_evidence_required=not args.report_only,
     )
     store_paths = get_control_plane_store().write_run(
         kind="release_gate_runs",
