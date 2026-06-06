@@ -14,6 +14,7 @@
 
 | 触发条件 | 必读章节 |
 |---|---|
+| 涉及 Web / BI / 前端 / 浏览器 / 截图 / `next dev` / Playwright | AGENTS §Claude / Codex Web Memory Guardrails |
 | 涉及 turn / session / stream / replay / resume / 聊天入口 / TutorBot / trace | `CONTRACT.md` + `contracts/index.yaml` + AGENTS §Contract Discipline |
 | 写 PRD / 审 PRD / 判断能力是否落地 / 理解模块方向 | `docs/plan/INDEX.md` + AGENTS §Plan Directory Discipline |
 | 任何"新增字段 / router / classifier / interpreter / wrapper / fallback / state"的冲动 | AGENTS §0 Thin Wrappers Fat Skills + §5.6 + §5.7 Single Authority Hard Gate |
