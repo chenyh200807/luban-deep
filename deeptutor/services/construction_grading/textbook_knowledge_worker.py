@@ -90,11 +90,21 @@ def textbook_block_worker(
     *,
     complete_fn: Callable[..., Any] | None = None,
     api_key: str | None = None,
+    precomputed_spans: dict[str, str] | None = None,
 ) -> list[dict[str, Any]]:
-    """S2: one textbook_block EvidenceItem -> per-card candidates (through make_candidate)."""
+    """S2: one textbook_block EvidenceItem -> per-card candidates (through make_candidate).
+
+    Span proposal priority (best wins; the signer re-verifies EVERY span against the corpus, so the
+    proposer can never bypass provenance):
+      1. ``precomputed_spans[point_id]`` — a span extracted by a TOP build-phase model (Opus 4.8 /
+         Codex GPT5.5), re-checked here as a verbatim substring.
+      2. deterministic clause-level verbatim span.
+      3. optional cheap-LLM (DeepSeek) enrichment of a weak/missing span (production-cost path).
+    """
     payload = item.get("payload") or {}
     cid = str(payload.get("chunk_id") or item.get("evidence_id") or "")
     corpus = str(payload.get("content_markdown") or "")
+    norm_corpus = _norm_textbook(corpus)
     node = _node_code(payload)
     tax_path = _taxonomy_path(payload)
     cards = payload.get("knowledge_cards") or []
@@ -103,9 +113,18 @@ def textbook_block_worker(
     for idx, card in enumerate(cards):
         if not isinstance(card, dict):
             continue
-        # deterministic-first; the LLM only enriches weak/missing spans, and only a LONGER verbatim
-        # span is accepted (the signer re-verifies either way — the LLM never bypasses the corpus).
-        quote = find_verbatim_span(card, corpus)
+        pid = f"{cid}::C{idx}"
+        # 1. top-model precomputed span (re-verified: must be a verbatim substring of THIS corpus).
+        quote: str | None = None
+        if precomputed_spans:
+            pre = str(precomputed_spans.get(pid) or "").strip()
+            if pre and _norm_textbook(pre) in norm_corpus:
+                quote = pre
+        # 2. deterministic clause span (and keep the longer of the two).
+        det = find_verbatim_span(card, corpus)
+        if det and (quote is None or len(det) > len(quote)):
+            quote = det
+        # 3. optional cheap-LLM enrichment of a weak/missing span (production-cost path only).
         if complete_fn is not None and api_key and (quote is None or len(quote) < _ENRICH_THRESHOLD):
             llm = _llm_propose_quote(card, corpus, complete_fn, api_key)
             if llm and (quote is None or len(llm) > len(quote)):
@@ -114,7 +133,7 @@ def textbook_block_worker(
             kind=_CF.KIND_RUBRIC,
             origin="llm_guess",
             payload={
-                "point_id": f"{cid}::C{idx}",
+                "point_id": pid,
                 "chunk_id": cid,
                 "node_code": node,
                 # the block's OWN content_markdown (same-block corpus; must-fix #4) — the signer
@@ -136,4 +155,15 @@ def default_textbook_block_worker(item: dict[str, Any]) -> list[dict[str, Any]]:
     return textbook_block_worker(item, complete_fn=None)
 
 
-__all__ = ["textbook_block_worker", "default_textbook_block_worker", "find_verbatim_span"]
+def make_precomputed_worker(spans: dict[str, str]) -> Callable[[dict[str, Any]], list[dict[str, Any]]]:
+    """S2 worker that uses TOP build-phase model spans (Opus 4.8 / Codex), re-verified deterministically.
+    No live model call at compile time — the expensive top-model extraction is done once, offline."""
+    def _worker(item: dict[str, Any]) -> list[dict[str, Any]]:
+        return textbook_block_worker(item, precomputed_spans=spans)
+    return _worker
+
+
+__all__ = [
+    "textbook_block_worker", "default_textbook_block_worker",
+    "make_precomputed_worker", "find_verbatim_span",
+]

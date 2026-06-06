@@ -2,8 +2,8 @@
   "namespace": "textbook_knowledge_full",
   "status": "release_candidate",
   "published": false,
-  "expected_content_hash": "8b27c96b5d6b17b5a9fd41e1b14f5ecd06cb5b53e51a8234f5f7a6a883d5daa1",
-  "signed_point_count": 1226,
+  "expected_content_hash": "6439bfd3f0ecc371a1b1fe866119ad7ebfc7e32dab37c7ba0ade96c26f9f104b",
+  "signed_point_count": 1293,
   "node_codes": 20,
   "coverage": "full_650_blocks"
 }

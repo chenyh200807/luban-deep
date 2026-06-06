@@ -75,7 +75,11 @@ def _freq_blocklist(blocks: list[dict[str, Any]]) -> list[str]:
     return sorted(n for n, c in counts.items() if c >= _FREQ_K)
 
 
-def _make_worker(*, live: bool):
+def _make_worker(*, live: bool, spans_path: str | None):
+    # Top build-phase model spans (Opus 4.8 / Codex GPT5.5), extracted offline, re-verified here.
+    if spans_path:
+        spans = json.loads(Path(spans_path).read_text(encoding="utf-8"))
+        return TW.make_precomputed_worker({str(k): str(v) for k, v in spans.items() if v})
     if not live:
         return TW.default_textbook_block_worker
     key = os.environ.get("DEEPSEEK_API_KEY")
@@ -176,7 +180,7 @@ def _decide(result, coverage, handoff, audit, blocks_n: int) -> dict[str, Any]:
             "out_of_scope_unchanged": ["publish", "production_default", "canonical_learner_truth", "remote_deploy"]}
 
 
-def run(*, live: bool = False, limit: int | None = None) -> dict[str, Any]:
+def run(*, live: bool = False, limit: int | None = None, spans_path: str | None = None) -> dict[str, Any]:
     try:
         from dotenv import load_dotenv
         load_dotenv(str(_REPO / ".env"))
@@ -190,7 +194,7 @@ def run(*, live: bool = False, limit: int | None = None) -> dict[str, Any]:
     blocklist = _freq_blocklist(blocks)
 
     evidence = BR.ingest_sources(textbook_blocks=blocks, run_id="textbook-full-1")
-    worker = _make_worker(live=live)
+    worker = _make_worker(live=live, spans_path=spans_path)
     result = PIPE.run_pipeline(evidence, run_id="textbook-full-1", llm_worker=worker, lane="textbook",
                                max_iter=1, textbook_freq_blocklist=blocklist)
 
@@ -250,8 +254,10 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--live", action="store_true", help="DeepSeek verbatim-span proposal (~$0.3)")
     parser.add_argument("--limit", type=int, default=None, help="only first N blocks (smoke)")
+    parser.add_argument("--spans", type=str, default=None,
+                        help="JSON {point_id: verbatim_quote} from a TOP model (Opus/Codex), re-verified")
     args = parser.parse_args()
-    out = run(live=args.live, limit=args.limit)
+    out = run(live=args.live, limit=args.limit, spans_path=args.spans)
     print(json.dumps({"verdict": out["go_no_go"]["verdict"], "blocks": out["blocks"],
                       "cards": out["cards"], "signed": out["coverage"]["signed_count"],
                       "signed_pct": out["coverage"]["signed_pct_of_cards"]}, ensure_ascii=False))
