@@ -3176,6 +3176,7 @@ class TurnRuntimeManager:
             "grading_engine_v1_llm_adjudication",
             "grading_engine_objective_candidate",
             "grading_engine_m31_governed_objective",
+            "grading_engine_textbook_knowledge",
             "interaction_profile",
             "chat_mode_explicit",
             "context_orchestration_enabled",

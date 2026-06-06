@@ -2019,6 +2019,76 @@ def _maybe_attach_m31_governed_objective(
         }
 
 
+def _textbook_knowledge_flag_enabled(context: UnifiedContext) -> bool:
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return bool(
+        metadata.get("grading_engine_textbook_knowledge")
+        or context.config_overrides.get("grading_engine_textbook_knowledge")
+    )
+
+
+def _textbook_knowledge_cohort_prefixes() -> tuple[str, ...]:
+    import os
+
+    base = ["qa_", "test_", "operator_"]
+    raw = os.environ.get("LUBAN_TEXTBOOK_KNOWLEDGE_COHORT", "")
+    extra = [p.strip() for p in raw.split(",") if p.strip()]
+    return tuple(dict.fromkeys(base + extra))
+
+
+def _resolve_node_code_for_turn(context: UnifiedContext, graded_context: dict[str, Any]) -> str:
+    """The node_code to resolve verbatim textbook context for. Explicit only (graded_context /
+    followup_question_context / metadata); auto question->node mapping is a documented follow-up."""
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    fctx = metadata.get("followup_question_context") if isinstance(metadata.get("followup_question_context"), dict) else {}
+    return str(
+        graded_context.get("node_code")
+        or fctx.get("node_code")
+        or metadata.get("textbook_node_code")
+        or ""
+    ).strip()
+
+
+def _maybe_attach_textbook_knowledge(
+    *,
+    context: UnifiedContext,
+    graded_context: dict[str, Any],
+    result_payload: dict[str, Any],
+) -> None:
+    """Attach verbatim-sourced 2026-textbook knowledge for the turn's node_code (append-only; flag +
+    env kill switch + cohort; default OFF -> legacy byte-identical).
+
+    Thin wrapper — ALL loading / verification / resolution lives in ``textbook_knowledge_runtime``
+    (fat skill). This reads flag + cohort + node_code and appends ``luban_textbook_knowledge``. It
+    NEVER mutates the legacy result, never writes DB / canonical truth; the signed knowledge is
+    verbatim teaching/source context (grant_release stays False here — not an official score)."""
+    import os
+
+    KEY = "luban_textbook_knowledge"
+    if not _textbook_knowledge_flag_enabled(context):
+        return
+    if os.environ.get("LUBAN_TEXTBOOK_KNOWLEDGE_ENABLED", "").strip().lower() in ("false", "0", "off", "no"):
+        result_payload[KEY] = {"authority": KEY, "status": "killed_by_switch", "killed_by_switch": True}
+        return
+    student_id = _learner_user_id_from_context(context)
+    if not str(student_id).startswith(_textbook_knowledge_cohort_prefixes()):
+        return
+    node = _resolve_node_code_for_turn(context, graded_context)
+    if not node:
+        return  # no node to resolve -> nothing to attach
+    try:
+        from deeptutor.services.construction_grading.textbook_knowledge_runtime import (
+            resolve_textbook_knowledge,
+        )
+
+        payload = resolve_textbook_knowledge(node, learner_context={"student_id": student_id})
+        if payload is not None:
+            result_payload[KEY] = payload
+    except Exception as exc:  # noqa: BLE001 — textbook lane must never break legacy
+        result_payload[KEY] = {"authority": KEY, "status": "unavailable",
+                               "unavailable_reason": type(exc).__name__}
+
+
 def _v1_llm_adjudication_dev_force_on() -> bool:
     """LOCAL TEST MODE ONLY: force v1 adjudication ON (bypass request-flag + cohort) when
     ``LUBAN_V1_LLM_ADJUDICATOR_DEV_FORCE_ON`` is truthy AND this is NOT a production environment.
@@ -3157,6 +3227,13 @@ class DeepQuestionCapability(BaseCapability):
                 # construction_grading_result untouched; LLM cannot decide correctness; fail-closed on
                 # tamper, fall-through to candidate/open-world on governed miss).
                 _maybe_attach_m31_governed_objective(
+                    context=context,
+                    graded_context=graded_context,
+                    result_payload=result_payload,
+                )
+                # Verbatim 2026-textbook knowledge context for the turn's node_code (default off;
+                # flag + env kill switch + cohort; append-only; teaching/source context, not a score).
+                _maybe_attach_textbook_knowledge(
                     context=context,
                     graded_context=graded_context,
                     result_payload=result_payload,
