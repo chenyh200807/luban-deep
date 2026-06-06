@@ -82,13 +82,17 @@ def _standard_units() -> list[KU.Unit]:
         except Exception:  # noqa: BLE001
             continue
         anchor = _standard_anchor(Path(f).name)
-        for cb in d.get("content_blocks") or []:
+        stem = Path(f).stem
+        for i, cb in enumerate(d.get("content_blocks") or []):
             sc = cb.get("source_context") or {}
             text = str(sc.get("origin_text") or "")
             if not text.strip():
                 continue
+            # standards content_block ``id`` is NOT unique across files (e.g. "UNKNOWN_000_0001"
+            # repeats), so qualify it with the file stem + running index to make a globally unique id.
+            raw_id = str(cb.get("id") or cb.get("chunk_id") or i)
             out.append(KU.Unit(
-                source="standard", unit_id=str(cb.get("id") or cb.get("chunk_id") or ""),
+                source="standard", unit_id=f"{stem}::{raw_id}::{i}",
                 native_code=anchor, authority_tier=KU.TIER_STANDARD, text=text,
                 provenance={"standard_code": sc.get("standard_code"), "article_id": sc.get("article_id"),
                             "is_mandatory": sc.get("is_mandatory"), "node_type": cb.get("node_type"),
