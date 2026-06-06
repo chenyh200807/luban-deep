@@ -93,6 +93,29 @@ The signer guarantees `signed == content_markdown` verbatim — but `content_mar
 
 The 2 flags are NOT OCR errors: (1) one was an audit page-mapping artifact (the span's number is on the NEXT printed page; the coarse page_num→PDF-page mapping rendered the prior page); (2) one calc card (`1A435000_091_0149::C0`, 连环替代法) has 3 key_numbers (14560/10816/5616) that are enrichment-COMPUTED differences correctly derived from the printed worked-example values (378560/389376/383760) but not literally printed — an enrichment-derived-value nuance, not OCR or laundering; its quote and the 7 printed numbers are verbatim.
 
-**Conclusion:** `content_markdown`'s vision-OCR is high-fidelity; the garbled PDF text layer does not affect us; no corpus re-OCR is warranted for the signed pack. Audit ledger: `artifacts/luban_grading_artifacts/textbook_knowledge_full_20260606/vision_ocr_drift_audit.json`.
+**Conclusion (OCR):** `content_markdown`'s vision-OCR is high-fidelity; the garbled PDF text layer does not affect us; no corpus re-OCR is warranted for the signed pack. Audit ledger: `artifacts/luban_grading_artifacts/textbook_knowledge_full_20260606/vision_ocr_drift_audit.json`.
 
 **`printed_vs_derived` flag (implemented).** The calc-card nuance is now handled deterministically in the signer (`_split_printed_derived`): a key_number is `derived` iff it appears in `content_markdown` as the result of an arithmetic equation (`<digit> = N`, allowing an optional sign — e.g. `364000 = 14560`, `= -5616`); a printed table/rule value never appears as the RHS of a computation. Derived numbers are split into `derived_key_numbers` and kept OUT of the authoritative `key_numbers` and `required_terms`, so an enrichment-computed answer is never treated as a textbook fact. Across the full pack this separated **16 derived numbers across 7 calc/case cards** (e.g. `1A435000_091_0149::C0` 连环替代法 → derived `14560/10816/5616`, printed `500/520/700/720/4%/2.5%/19760`); manifest carries `records_with_derived_numbers` / `derived_numbers_total`. signed stays 1303, `verify_lane_bundle` holds.
+
+## 8. verified_paraphrase review channel — and the governed council outcome on the 6-card backlog (2026-06-06)
+
+The verbatim signer only signs literal substrings, so the 6 residual `synthesis` cards (faithful-looking restatements/summaries with no verbatim anchor) need a separate path. Built one — a strictly weaker class, never verbatim authority:
+
+- **Open** (`textbook_paraphrase_review.build_review_queue` + `make_paraphrase_candidates`): each synthesis backlog item → a self-contained review packet (claim + the block's own `content_markdown` + deterministic triage signals + a fixed faithfulness question), staged in the `compiler_feedback` candidate ledger (origin `council_vote` → `source_candidate`, `promote_to_release=False`, separate from every release namespace).
+- **Sign** (`sign_verified_paraphrase_release_candidate`): a deterministic signer with a HARD review gate. A packet signs into the SEPARATE namespace `textbook_paraphrase_review` ONLY when a governed reviewer (`human_reviewer` / `governed_council`) returned `faithful` AND every claim key_number is grounded in the source (numbers never laundered, even in a paraphrase). Class `verified_paraphrase`: teaching context only, `official_answer_capable=False`, ZERO verbatim-authority records by construction. Everything else routes back to the backlog.
+- **Authority seam** (mirrors F1): faithfulness is a SEMANTIC judgment — NOT decided by the signer. It comes from a governed council as a verdicts file; the runner (`run_luban_textbook_paraphrase_council_review.py`) joins verdicts onto packets and signs deterministically. The signer never decides faithfulness; the runner never signs by itself.
+
+**Governed council run (Opus 4.8 + Codex GPT5.5, both independent, user-authorized).** Each model read all 6 cards' claim against the block's full `content_markdown` and judged faithful only if the claim is FULLY entailed by that block (no added fact/method/framework, no number absent from the block). Result: **6/6 unanimous, 0 faithful → 0 signed** — channel discipline holding, not a failure. Per-card (both models agreed on every one):
+
+| point_id | node | why rejected (both models) |
+|---|---|---|
+| `1A432001_027_0033::C0` | 1A432001 | block is the bid-scheme-planning table; no 资质/联合体 content — wrong-block attribution |
+| `1A432001_027_0033::C1` | 1A432001 | same table block; no 禁止情形 clause |
+| `1A435000_089_0147::C0` | 1A435000 | block lists 5 cost items flat; claim ADDS a 直接/间接成本 classification the block never states |
+| `1A411011_024_0045::C2` | 1A411011 | block only says "见表1.3-1"; 5/50/100 not inlined — numbers not grounded |
+| `1A413000_085_0158::C2` | 1A413000 | block only says "见表3.2-1"; compaction values not inlined — numbers not grounded |
+| `1A413030_092_0173::C0` | 1A413030 | block has 静载/钻芯/低应变 only; claim ADDS 高应变法/声波透射法 absent from the block |
+
+**Root cause (the real finding):** these 6 are CORRECT knowledge but MIS-ATTACHED — the claim summarizes content from a referenced-but-not-inlined table or a wider section, attributed to a single block that doesn't contain it. Signing them as paraphrase-of-this-block would be false provenance, so both models (rightly) refused. **Unlock path (upstream data fix, not a channel change):** re-attach each card to the block that actually contains its content, or inline the referenced table (表1.3-1 / 表3.2-1) into the block, then re-run the council runner — it will sign the now-grounded cards automatically.
+
+**Runtime wiring: deferred, by design.** With 0 signed records there is nothing to surface, so a `textbook_paraphrase_runtime` consumer + `deep_question` hook would be dead code (AGENTS §2.5 Less Is More). The consumer mirrors `textbook_knowledge_runtime` exactly and is a ~30-line follow-up the moment the backlog produces signed paraphrases. Official scoring stays verbatim-only regardless; `verified_paraphrase` is teaching context only.
