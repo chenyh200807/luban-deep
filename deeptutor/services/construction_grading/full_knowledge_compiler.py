@@ -462,6 +462,51 @@ def validate_textbook_provenance(
     }
 
 
+def _split_printed_derived(key_numbers: list[str], content_markdown: str) -> tuple[list[str], list[str]]:
+    """Per-number provenance split for calc/case cards. A key_number is DERIVED (enrichment-computed,
+    not printed in the textbook) iff EVERY occurrence of it in content_markdown is the right-hand side
+    of an equation (immediately after ``=`` / ``＝`` ignoring spaces/units). Otherwise it is PRINTED
+    (it appears in the textbook body / table / answer text, not only as a computed result).
+
+    This separates e.g. 连环替代法 difference results (``= 378560 - 364000 = 14560 元`` -> 14560 derived)
+    from the printed table values (产量 520, 单价 720 -> printed). Derived numbers are kept out of the
+    authoritative key_numbers / required_terms so a computed answer is never treated as a textbook fact.
+    """
+    cm = content_markdown
+    printed: list[str] = []
+    derived: list[str] = []
+
+    def _is_arith_result(m: "re.Match[str]") -> bool:
+        # the number must sit immediately after '=' / '＝' (allowing an optional leading sign,
+        # e.g. "= -5616") ...
+        j = m.start() - 1
+        while j >= 0 and cm[j] in " \t　":
+            j -= 1
+        if j >= 0 and cm[j] in "-+－＋":  # optional sign on the result
+            j -= 1
+        while j >= 0 and cm[j] in " \t　":
+            j -= 1
+        if not (j >= 0 and cm[j] in "=＝"):
+            return False
+        # ... and that '=' must itself be preceded by a DIGIT (the LHS of a real computation,
+        # e.g. "364000 = 14560"), so a definition like "工期=25天" is NOT treated as derived.
+        j -= 1
+        while j >= 0 and cm[j] in " \t　":
+            j -= 1
+        return j >= 0 and cm[j].isdigit()
+
+    for kn in key_numbers:
+        core = _num_core(kn)
+        if not core:
+            printed.append(kn)
+            continue
+        occ = list(re.finditer(r"(?<![\d.])" + re.escape(core) + r"(?![\d])", cm))
+        # derived iff it appears AT LEAST ONCE as an arithmetic result (a computed answer);
+        # a printed textbook/table value never appears as the RHS of a computation.
+        (derived if occ and any(_is_arith_result(m) for m in occ) else printed).append(kn)
+    return printed, derived
+
+
 _TEXTBOOK_SIGNABLE = {"textbook_authority", "machine_spec", "textbook_concept"}
 
 
@@ -505,6 +550,9 @@ def compile_textbook_knowledge_release_candidate(cards: list[dict[str, Any]]) ->
 
         # Sign ONLY corpus-confirmed fields (must-fix #3). content_hash binds chunk -> corpus
         # (must-fix #4). Non-authority fields (card_title/mnemonics/logic_chain/assessment) excluded.
+        # printed (textbook fact) vs derived (enrichment-computed result) split — a derived answer
+        # never enters the authoritative key_numbers / required_terms.
+        printed_nums, derived_nums = _split_printed_derived(prov["verified_key_numbers"], corpus)
         rec = {
             "point_id": pid,
             "chunk_id": cid,
@@ -512,8 +560,10 @@ def compile_textbook_knowledge_release_candidate(cards: list[dict[str, Any]]) ->
             "card_type": str(c.get("card_type") or ""),
             "provenance_class": pc,
             "textbook_quote": prov["verbatim_quote"],
-            "key_numbers": prov["verified_key_numbers"],
-            "required_terms": list(prov["verified_key_numbers"]),  # ONLY from verified anchors
+            "key_numbers": printed_nums,                 # printed textbook values only (authoritative)
+            "derived_key_numbers": derived_nums,         # enrichment-computed; NOT a textbook fact
+            "has_derived_numbers": bool(derived_nums),
+            "required_terms": list(printed_nums),        # ONLY printed verbatim anchors
             "taxonomy_path": str(c.get("taxonomy_path") or ""),
             "content_hash": _sha256_hex(_norm_textbook(corpus)),
             "answer_key_authority": "verbatim_2026_textbook_content_markdown",
@@ -547,6 +597,8 @@ def compile_textbook_knowledge_release_candidate(cards: list[dict[str, Any]]) ->
         "assessment_keyword_as_required_term": 0,
         "official_answer_as_source": 0,
         "model_vote_as_source": 0,
+        "records_with_derived_numbers": sum(1 for r in signed if r.get("has_derived_numbers")),
+        "derived_numbers_total": sum(len(r.get("derived_key_numbers") or []) for r in signed),
         "rollback_pointer": "legacy (no textbook_knowledge_full -> runtime uses existing context)",
         "separate_namespace": True,
     }

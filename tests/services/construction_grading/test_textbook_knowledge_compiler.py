@@ -122,6 +122,31 @@ def test_tamper_fails_closed():
     assert FKC.verify_lane_bundle(out, _NS) is False
 
 
+def test_calc_card_splits_printed_vs_derived_numbers():
+    # 连环替代法 worked example: 520/720 printed in text; 14560 only ever as an "=" result (derived)
+    corpus = ("产量计划值 500，实际值 520。单价实际值 720 元。\n"
+              "- 第一次替换与目标的差额 = 378560 - 364000 = 14560 元，说明成本增加 14560 元。")
+    c = _card(content_markdown=corpus, exact_quote="第一次替换与目标的差额",
+              key_numbers=["520", "720", "14560"])
+    out = FKC.compile_textbook_knowledge_release_candidate([c])
+    rec = out["records"][0]
+    assert rec["has_derived_numbers"] is True
+    assert "14560" in rec["derived_key_numbers"]      # only appears as an "=" result -> derived
+    assert "14560" not in rec["key_numbers"]          # never an authoritative textbook number
+    assert "14560" not in rec["required_terms"]
+    assert "520" in rec["key_numbers"] and "720" in rec["key_numbers"]  # printed values kept
+    assert out["manifest"]["records_with_derived_numbers"] == 1
+
+
+def test_non_calc_card_has_no_derived_numbers():
+    c = _card(exact_quote="低层或多层住宅建筑高度不大于27m", key_numbers=["27m"])
+    out = FKC.compile_textbook_knowledge_release_candidate([c])
+    rec = out["records"][0]
+    assert rec["has_derived_numbers"] is False
+    assert rec["derived_key_numbers"] == []
+    assert rec["key_numbers"] == ["27m"]              # unchanged for non-calc cards
+
+
 def test_namespace_isolation():
     c = _card(exact_quote="低层或多层住宅建筑高度不大于27m", key_numbers=["27m"])
     out = FKC.compile_textbook_knowledge_release_candidate([c])
