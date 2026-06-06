@@ -37,22 +37,52 @@ export function CockpitDonut({
   const total = data.reduce((s, d) => s + d.value, 0)
   const option: EChartsOption = {
     color: SERIES_COLORS as unknown as string[],
-    tooltip: { ...COCKPIT_TOOLTIP, trigger: 'item', formatter: (p: any) => `${p.name}<br/><b>${fmt(p.value)}</b> · ${p.percent}%` },
+    tooltip: {
+      ...COCKPIT_TOOLTIP,
+      trigger: 'item',
+      formatter: (p: any) => `${p.name}<br/><b>${fmt(p.value)}</b> · ${p.percent}%`,
+    },
     series: [
       {
         type: 'pie',
-        radius: ['62%', '86%'],
+        radius: ['46%', '66%'],
         center: ['50%', '50%'],
         avoidLabelOverlap: true,
         padAngle: 3,
-        itemStyle: { borderRadius: 6, borderColor: COCKPIT.bgPanelSolid, borderWidth: 2, shadowBlur: 14, shadowColor: 'rgba(0,0,0,0.4)' },
-        label: { show: false },
-        labelLine: { show: false },
+        itemStyle: {
+          borderRadius: 6,
+          borderColor: COCKPIT.bgPanelSolid,
+          borderWidth: 2,
+          shadowBlur: 14,
+          shadowColor: 'rgba(0,0,0,0.4)',
+        },
+        // 直接在图上显示「名称 + 数值(占比)」，不依赖悬停
+        label: {
+          show: true,
+          color: COCKPIT.text,
+          fontSize: 11,
+          fontFamily: COCKPIT_FONT,
+          lineHeight: 14,
+          formatter: (p: any) => `{n|${p.name}}\n{v|${fmt(p.value)}  ${p.percent}%}`,
+          rich: {
+            n: { color: COCKPIT.textMuted, fontSize: 11, fontFamily: COCKPIT_FONT },
+            v: { color: COCKPIT.text, fontSize: 12, fontWeight: 700, fontFamily: COCKPIT_FONT },
+          },
+        },
+        labelLine: {
+          show: true,
+          length: 8,
+          length2: 12,
+          smooth: true,
+          lineStyle: { color: 'rgba(212,140,90,0.35)' },
+        },
         emphasis: { scale: true, scaleSize: 6, itemStyle: { shadowBlur: 22 } },
         data: data.map((d, i) => ({
           name: d.name,
           value: d.value,
-          itemStyle: d.color ? { color: d.color } : { color: SERIES_COLORS[i % SERIES_COLORS.length] },
+          itemStyle: d.color
+            ? { color: d.color }
+            : { color: SERIES_COLORS[i % SERIES_COLORS.length] },
         })),
       },
     ],
@@ -62,19 +92,38 @@ export function CockpitDonut({
             type: 'text',
             left: 'center',
             top: '42%',
-            style: { text: centerValue, fill: COCKPIT.text, fontSize: 26, fontWeight: 800, fontFamily: COCKPIT_FONT },
+            style: {
+              text: centerValue,
+              fill: COCKPIT.text,
+              fontSize: 26,
+              fontWeight: 800,
+              fontFamily: COCKPIT_FONT,
+            },
           },
           {
             type: 'text',
             left: 'center',
             top: '58%',
-            style: { text: centerLabel ?? '', fill: COCKPIT.textMuted, fontSize: 11, fontFamily: COCKPIT_FONT },
+            style: {
+              text: centerLabel ?? '',
+              fill: COCKPIT.textMuted,
+              fontSize: 11,
+              fontFamily: COCKPIT_FONT,
+            },
           },
         ]
       : undefined,
   }
   void total
-  return <EChart option={option} height={height} onEvents={onSelect ? { click: (p: any) => onSelect({ name: p.name, value: p.value }) } : undefined} />
+  return (
+    <EChart
+      option={option}
+      height={height}
+      onEvents={
+        onSelect ? { click: (p: any) => onSelect({ name: p.name, value: p.value }) } : undefined
+      }
+    />
+  )
 }
 
 /* ----------------------------------------------------------------- 进度仪表环 */
@@ -99,14 +148,29 @@ export function CockpitGauge({
         endAngle: -40,
         radius: '92%',
         center: ['50%', '54%'],
-        progress: { show: true, width: 12, roundCap: true, itemStyle: { color: vGradient(alpha(color, 0.4), color), shadowBlur: 16, shadowColor: alpha(color, 0.6) } },
+        progress: {
+          show: true,
+          width: 12,
+          roundCap: true,
+          itemStyle: {
+            color: vGradient(alpha(color, 0.4), color),
+            shadowBlur: 16,
+            shadowColor: alpha(color, 0.6),
+          },
+        },
         axisLine: { lineStyle: { width: 12, color: [[1, alpha(color, 0.12)]] } },
         pointer: { show: false },
         axisTick: { show: false },
         splitLine: { show: false },
         axisLabel: { show: false },
         anchor: { show: false },
-        title: { show: !!label, offsetCenter: [0, '32%'], color: COCKPIT.textMuted, fontSize: 11, fontFamily: COCKPIT_FONT },
+        title: {
+          show: !!label,
+          offsetCenter: [0, '32%'],
+          color: COCKPIT.textMuted,
+          fontSize: 11,
+          fontFamily: COCKPIT_FONT,
+        },
         detail: {
           valueAnimation: true,
           offsetCenter: [0, '-2%'],
@@ -143,22 +207,49 @@ export function CockpitBar({
     xAxis: { type: 'value', show: false, max: 'dataMax' },
     yAxis: {
       type: 'category',
-      data: sorted.map((d) => d.name),
+      data: sorted.map(d => d.name),
       axisLine: { show: false },
       axisTick: { show: false },
-      axisLabel: { color: COCKPIT.textMuted, fontSize: 11, fontFamily: COCKPIT_FONT, width: 96, overflow: 'truncate' },
+      axisLabel: {
+        color: COCKPIT.textMuted,
+        fontSize: 11,
+        fontFamily: COCKPIT_FONT,
+        width: 96,
+        overflow: 'truncate',
+      },
     },
     series: [
       {
         type: 'bar',
         barWidth: 12,
-        itemStyle: { borderRadius: [0, 6, 6, 0], color: vGradient(alpha(color, 0.35), color), shadowBlur: 10, shadowColor: alpha(color, 0.45) },
-        label: { show: true, position: 'right', color: COCKPIT.text, fontSize: 11, fontWeight: 700, fontFamily: COCKPIT_FONT, formatter: (p: any) => fmt(p.value) },
-        data: sorted.map((d) => d.value),
+        itemStyle: {
+          borderRadius: [0, 6, 6, 0],
+          color: vGradient(alpha(color, 0.35), color),
+          shadowBlur: 10,
+          shadowColor: alpha(color, 0.45),
+        },
+        label: {
+          show: true,
+          position: 'right',
+          color: COCKPIT.text,
+          fontSize: 11,
+          fontWeight: 700,
+          fontFamily: COCKPIT_FONT,
+          formatter: (p: any) => fmt(p.value),
+        },
+        data: sorted.map(d => d.value),
       },
     ],
   }
-  return <EChart option={option} height={h} onEvents={onSelect ? { click: (p: any) => onSelect({ name: p.name, value: p.value }) } : undefined} />
+  return (
+    <EChart
+      option={option}
+      height={h}
+      onEvents={
+        onSelect ? { click: (p: any) => onSelect({ name: p.name, value: p.value }) } : undefined
+      }
+    />
+  )
 }
 
 /* ----------------------------------------------------------------- 雷达画像图 */
@@ -173,11 +264,11 @@ export function CockpitRadar({
   height?: number
   max?: number
 }) {
-  const maxVal = max ?? Math.max(1, ...data.map((d) => d.value))
+  const maxVal = max ?? Math.max(1, ...data.map(d => d.value))
   const option: EChartsOption = {
     tooltip: { ...COCKPIT_TOOLTIP },
     radar: {
-      indicator: data.map((d) => ({ name: d.name, max: maxVal })),
+      indicator: data.map(d => ({ name: d.name, max: maxVal })),
       radius: '66%',
       center: ['50%', '52%'],
       splitNumber: 4,
@@ -194,7 +285,7 @@ export function CockpitRadar({
         lineStyle: { color, width: 2, shadowBlur: 10, shadowColor: alpha(color, 0.6) },
         areaStyle: { color: alpha(color, 0.22) },
         itemStyle: { color },
-        data: [{ value: data.map((d) => d.value), name: '画像' }],
+        data: [{ value: data.map(d => d.value), name: '画像' }],
       },
     ],
   }
@@ -219,7 +310,7 @@ export function CockpitTrend({
     xAxis: {
       type: 'category',
       boundaryGap: false,
-      data: points.map((p) => p.label),
+      data: points.map(p => p.label),
       axisLine: { lineStyle: { color: COCKPIT.grid } },
       axisTick: { show: false },
       axisLabel: { color: COCKPIT.textFaint, fontSize: 10, fontFamily: COCKPIT_FONT },
@@ -236,7 +327,7 @@ export function CockpitTrend({
         showSymbol: false,
         lineStyle: { color, width: 2.5, shadowBlur: 12, shadowColor: alpha(color, 0.5) },
         areaStyle: { color: vGradient(alpha(color, 0.32), alpha(color, 0.01)) },
-        data: points.map((p) => p.value),
+        data: points.map(p => p.value),
       },
     ],
   }
@@ -261,9 +352,30 @@ export function CockpitNpsBar({
     xAxis: { type: 'value', show: false, max: 'dataMax' },
     yAxis: { type: 'category', show: false, data: ['NPS'] },
     series: [
-      { name: '推荐者', type: 'bar', stack: 'nps', barWidth: 18, itemStyle: { color: SEMANTIC.positive, borderRadius: [6, 0, 0, 6] }, data: [promoters] },
-      { name: '被动者', type: 'bar', stack: 'nps', barWidth: 18, itemStyle: { color: SEMANTIC.warning }, data: [passives] },
-      { name: '贬损者', type: 'bar', stack: 'nps', barWidth: 18, itemStyle: { color: SEMANTIC.danger, borderRadius: [0, 6, 6, 0] }, data: [detractors] },
+      {
+        name: '推荐者',
+        type: 'bar',
+        stack: 'nps',
+        barWidth: 18,
+        itemStyle: { color: SEMANTIC.positive, borderRadius: [6, 0, 0, 6] },
+        data: [promoters],
+      },
+      {
+        name: '被动者',
+        type: 'bar',
+        stack: 'nps',
+        barWidth: 18,
+        itemStyle: { color: SEMANTIC.warning },
+        data: [passives],
+      },
+      {
+        name: '贬损者',
+        type: 'bar',
+        stack: 'nps',
+        barWidth: 18,
+        itemStyle: { color: SEMANTIC.danger, borderRadius: [0, 6, 6, 0] },
+        data: [detractors],
+      },
     ],
   }
   return <EChart option={option} height={height} />
