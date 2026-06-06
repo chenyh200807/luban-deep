@@ -881,6 +881,54 @@ production default flip / published registry / canonical learner-truth write / �
 
 ---
 
+### 0.26.14 Knowledge Compiler Storage / Serving / Capacity Contract（2026-06-06）
+
+> **本节把知识编译的存储、分片、调用和容量边界写成硬约束，供 M32 Waterproof Vertical Slice 及后续 full-topic compiler 复用。知识编译不是第二套 RAG，也不是一个可变 DB truth；它必须以 canonical manifest + signed shards 的形式被 runtime 消费。**
+
+**存储分层（single authority）**：
+
+| 层 | 存什么 | 可以做什么 | 禁止做什么 |
+|---|---|---|---|
+| `Supabase / KB v5` | `questions_bank`、`kb_v5.chunks`、`kb_v5.concepts/concept_edges`、learner evidence raw events | raw evidence / retrieval / learner event store，只读抽取或按业务写 learner event | `kb_v5.chunks` 不能当 answer_key；mutable row 不能直接成为 runtime release truth |
+| `artifacts/luban_grading_artifacts/...` | compiler run ledger、FINDING、coverage、work_order、attack report、auditor report | 审计、人读、reconciliation 输入 | runtime 不得扫描 artifacts 目录猜版本；artifact GO 不自动成为 production authority |
+| `runtime_supply/...` | signed release_candidate / published bundle、canonical pointer、manifest、shards | runtime 正式读取；随代码部署到服务器；hash/signature/rollback fail-closed | 不得无 manifest 碎片化；不得把 unverified candidate 和 release truth 混 namespace |
+| 可选 object storage | 大 bundle 历史归档或未来超大 topic pack | 只能由 tracked canonical pointer + pinned hash/signature 引用 | 不能用“最新 blob”替代 manifest authority |
+
+**文件形态（manifest + shards，不做 huge JSON）**：
+
+1. 每个 compiled knowledge release 必须有一个 canonical manifest，至少包含：`schema_version`、`status`、`published`、`version`、`content_hash`、`signature`、`rollback_pointer`、`shards`、`producer`、`source_inventory_hash`。
+2. 内容按 lane/topic 拆 shard，例如：`objective_answer_key`、`source_context`、`concept_graph`、`case_rubric`、`learning_mapping`、`validator_policy`；专题可继续按 `waterproof`、`concrete`、`contract_claim`、`schedule_network` 等拆。
+3. 禁止把全量知识编译成单一 `huge_knowledge.json`；禁止几千个小文件无 manifest、无 hash、无 canonical pointer。
+4. runtime 只能消费 manifest 指向的 shards；不能从目录扫描、mtime、文件名推断 authority。
+
+**runtime 加载策略**：
+
+- 启动时加载 manifest、验签、构建轻量索引（如 `question_id -> answer_key`、`concept_id -> shard`、`topic_id -> source_refs`）。
+- 请求时按 `question_id / topic_id / concept_id` 读取相关 shard，组 `LubanContextPack` / `GradingPacket`。
+- 不常驻教材全文、长 chunk、audit ledger、历史 artifacts；原文长 span 需要时从 KB v5/RAG 按 `source_ref` 取。
+- tampered / missing / malformed manifest 或 shard 必须 fail-closed；legacy 或 open-world diagnostic 保持可用，不得静默降级为 release truth。
+
+**容量与性能边界（设计目标：5 万会员）**：
+
+- compiled pack 本身不是 5 万会员规模下的主要瓶颈。当前 M31 `runtime_supply` 量级约 MB 级；未来全教材/topic shards 也应控制在“索引常驻、正文按需”的设计下。
+- 5 万会员不等于 5 万并发；容量设计必须按注册会员、日活、峰值同时在线、每分钟 LLM 判题请求、RAG 查询量、Learning Brain 写入量分层建模，不能只报一个会员数。
+- 5 万会员真正瓶颈优先级：LLM 并发与 provider 限流 > WebSocket 长连接 > Supabase/RAG 连接池 > Langfuse/日志/learner event 写入 > compiled pack 文件大小。
+- 必须用 queue、rate limit、provider timeout、DeepSeek→Qwen fallback、RAG/LLM cache、DB connection pool、trace sampling 控制生产压力；不得通过绕过 authority、跳过 validator、删 RAG 来“提速”。
+- token efficiency 是约束，不是目标：知识编译减少无效上下文，让 runtime LLM 看 scoped packet；不能把“少 token”误解为“少用 LLM 理解”。
+
+**维护周期**：
+
+| artifact 类型 | 维护频率 | 规则 |
+|---|---|---|
+| candidate / work_order | 可每日或随 open-world / review / RAG 新证据生成 | LLM 可组织、归纳、提出候选，但不能签 truth |
+| release_candidate | 每个 sprint、教材/题库/规范批次更新后、或高价值候选积累到阈值 | deterministic gate 签发，带 hash/signature/rollback |
+| published | 只经独立 release gate + 用户/owner 授权 | 不原地改；只发新版本 |
+| learner evidence / claims | 运行期持续更新 | 属 Learning Brain authority，不能回写 release artifact |
+
+**M32 前置要求**：Waterproof vertical slice 必须遵守本 contract：防水二次清洗教材只能作为 raw/candidate 输入；最终输出应是 `waterproof` topic shard + manifest pointer + runtime consumption examples + Learning Brain preview examples。RAG 找防水证据，graph 表达防水关系，knowledge compiler 签防水专家资产；三者不能互相替代。
+
+---
+
 ## 0.16 Canonical update after M17A runtime LLM adjudicator（2026-06-04）
 
 > **本节落实 §0.12 的 M17 Nexus-style runtime LLM adjudication（vertical slice = M17A）。production default 仍 OFF；下一步是 M17B/M18 扩面 + M19 default decision，不是 default flip。**
