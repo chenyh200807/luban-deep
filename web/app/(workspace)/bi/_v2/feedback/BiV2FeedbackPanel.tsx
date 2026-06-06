@@ -40,7 +40,11 @@ import {
   type BiStatusTone,
   type BiTableColumn,
 } from '@/components/bi-v2'
-import { FeedbackCockpit } from '@/components/bi-cockpit/FeedbackCockpit'
+import {
+  FeedbackModuleCockpit,
+  InviteModuleCockpit,
+  LubanModuleCockpit,
+} from '@/components/bi-cockpit/ModuleCockpits'
 import {
   getBiFeedback,
   getBiInviteTestApplications,
@@ -819,22 +823,11 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
         onSelect={switchWorkspaceView}
       />
 
-      <FeedbackCockpit
-        feedback={payload}
-        invite={inviteStats}
-        luban={lubanStats}
-        windowDays={FEEDBACK_WINDOW_DAYS}
-      />
-
       {workspaceView === 'feedback' ? (
         <>
-          <FeedbackInsightDeck
-            counts={counts}
-            items={items}
-            loading={loading}
-            error={error}
-            showDetails={detailView === 'feedback'}
-            onRevealDetails={() => revealWorkspaceDetails('feedback')}
+          <FeedbackModuleCockpit
+            feedback={payload}
+            onDrill={() => revealWorkspaceDetails('feedback')}
           />
 
           {detailView === 'feedback' ? (
@@ -1602,24 +1595,7 @@ function InviteTestPanel({
         />
       </div>
 
-      <InviteApplicationInsights
-        stats={stats}
-        applications={applications}
-        profileTotal={profileTotal}
-        onRevealDetails={onRevealDetails}
-        onStatusSelect={status => {
-          onFilterChange('status', status)
-          onRevealDetails()
-        }}
-        onQuerySelect={query => {
-          onFilterChange('q', query)
-          onRevealDetails()
-        }}
-        onSourceSelect={sourcePage => {
-          onFilterChange('source_page', sourcePage)
-          onRevealDetails()
-        }}
-      />
+      <InviteModuleCockpit invite={stats} onDrill={onRevealDetails} />
 
       {showDetails ? (
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
@@ -2132,23 +2108,7 @@ function LubanFeedbackPanel({
         </div>
       </section>
 
-      <LubanFeedbackInsights
-        stats={stats}
-        responses={responses}
-        onRevealDetails={onRevealDetails}
-        onStatusSelect={status => {
-          onFilterChange('status', status)
-          onRevealDetails()
-        }}
-        onQuerySelect={query => {
-          onFilterChange('q', query)
-          onRevealDetails()
-        }}
-        onSourceSelect={sourcePage => {
-          onFilterChange('source_page', sourcePage)
-          onRevealDetails()
-        }}
-      />
+      <LubanModuleCockpit luban={stats} responses={responses} onDrill={onRevealDetails} />
 
       {showDetails ? (
         <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-xl shadow-black/20">

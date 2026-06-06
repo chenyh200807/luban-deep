@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>反馈情报驾驶舱 · 信息架构原型</title>
+<!-- ECharts：优先 bootcdn(国内)，失败回退 jsdelivr -->
+<script>
+  window.__echartsReady = new Promise((resolve) => {
+    function load(src, next) {
+      const s = document.createElement('script')
+      s.src = src
+      s.onload = () => resolve()
+      s.onerror = next ? () => load(next, null) : () => resolve()
+      document.head.appendChild(s)
+    }
+    load(
+      'https://cdn.bootcdn.net/ajax/libs/echarts/5.5.1/echarts.min.js',
+      'https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js'
+    )
+  })
+</script>
+<style>
+  :root{
+    --bg:#150f0b; --panel-a:rgba(40,28,20,.62); --panel-b:rgba(28,19,13,.55);
+    --text:#F1E9E1; --muted:#A99B8C; --faint:#6E5F52;
+    --terra:#E8915A; --amber:#F2B85C; --gold:#E6CB86; --clay:#D86C57; --sage:#9DB89C; --rose:#E0A39A; --bronze:#C58E5A; --teal:#7FA8AE;
+    --line:rgba(212,140,90,.18); --glow:rgba(232,150,80,.45);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);
+    font-family:"Inter",system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+  .wrap{max-width:1440px;margin:0 auto;padding:22px 26px 60px;position:relative;overflow:hidden}
+  /* 大屏背景 */
+  .bg-grid{position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:linear-gradient(rgba(212,150,100,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(212,150,100,.05) 1px,transparent 1px);
+    background-size:34px 34px;
+    -webkit-mask-image:radial-gradient(ellipse 90% 60% at 50% 0%,#000 35%,transparent 100%);
+            mask-image:radial-gradient(ellipse 90% 60% at 50% 0%,#000 35%,transparent 100%)}
+  .bg-glow1{position:fixed;top:-180px;left:50%;width:120%;height:340px;transform:translateX(-50%);z-index:0;pointer-events:none;
+    background:radial-gradient(ellipse at center,rgba(232,145,90,.16),transparent 60%)}
+  .wrap>*{position:relative;z-index:1}
+  /* header */
+  .head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:16px}
+  .eyebrow{font-size:11px;font-weight:800;letter-spacing:.22em;color:rgba(232,145,90,.9);text-transform:uppercase;display:flex;align-items:center;gap:8px}
+  h1{margin:6px 0 0;font-size:27px;font-weight:900}
+  .pill{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(232,145,90,.3);background:rgba(232,145,90,.1);color:#F0A878;font-size:11px;font-weight:800;border-radius:999px;padding:6px 12px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--terra);box-shadow:0 0 0 0 rgba(232,145,90,.6);animation:ping 1.6s infinite}
+  @keyframes ping{0%{box-shadow:0 0 0 0 rgba(232,145,90,.5)}70%{box-shadow:0 0 0 7px rgba(232,145,90,0)}100%{box-shadow:0 0 0 0 rgba(232,145,90,0)}}
+  /* 切换器 */
+  .switcher{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+  .seg{cursor:pointer;border:1px solid var(--line);border-radius:18px;padding:14px 16px;background:linear-gradient(150deg,var(--panel-a),var(--panel-b));transition:.18s;text-align:left}
+  .seg:hover{border-color:rgba(232,145,90,.4)}
+  .seg.active{border-color:rgba(232,145,90,.55);box-shadow:0 0 0 1px rgba(232,145,90,.25),0 18px 40px -18px rgba(0,0,0,.7)}
+  .seg .t{display:flex;align-items:center;justify-content:space-between}
+  .seg .name{font-size:14px;font-weight:800}
+  .seg .arrow{color:var(--faint)}
+  .seg.active .arrow{color:var(--terra)}
+  .seg .num{font-size:30px;font-weight:900;font-variant-numeric:tabular-nums;margin-top:8px;color:#F0A878;text-shadow:0 0 18px rgba(232,145,90,.4)}
+  .seg .sub{font-size:11px;color:var(--muted);margin-top:2px}
+  .seg.active .num{color:var(--amber);text-shadow:0 0 20px rgba(242,184,92,.5)}
+  /* KPI */
+  .kpis{display:grid;gap:12px;margin-bottom:18px}
+  .kpi{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:16px;padding:14px;background:linear-gradient(150deg,var(--panel-a),var(--panel-b))}
+  .kpi .lab{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+  .kpi .val{font-size:28px;font-weight:900;font-variant-numeric:tabular-nums;margin-top:6px}
+  .kpi .unit{font-size:12px;font-weight:700;color:var(--muted);margin-left:3px}
+  .kpi .sub{font-size:11px;color:var(--faint);margin-top:4px}
+  .kpi .blob{position:absolute;right:-18px;top:-18px;width:70px;height:70px;border-radius:50%;filter:blur(20px);opacity:.4}
+  /* 区块标题 */
+  .sec{display:flex;align-items:center;gap:9px;margin:20px 2px 12px}
+  .sec .bar{width:4px;height:14px;border-radius:3px;background:linear-gradient(#F0A878,#D4734B);box-shadow:0 0 8px rgba(232,145,90,.6)}
+  .sec h3{margin:0;font-size:14px;font-weight:800}
+  /* 面板栅格 */
+  .grid{display:grid;gap:14px}
+  .panel{position:relative;border:1px solid var(--line);border-radius:16px;padding:14px;background:linear-gradient(160deg,var(--panel-a),var(--panel-b));backdrop-filter:blur(8px)}
+  .panel.glow{border-color:rgba(232,145,90,.4);box-shadow:0 0 0 1px rgba(232,145,90,.16),0 16px 48px -16px rgba(0,0,0,.7)}
+  .panel .ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+  .panel .pt{font-size:13px;font-weight:800}
+  .panel .phint{font-size:11px;color:var(--faint)}
+  .panel .tag{font-size:10px;color:var(--terra);border:1px solid rgba(232,145,90,.3);border-radius:999px;padding:2px 7px;cursor:pointer}
+  .chart{width:100%}
+  .corner{position:absolute;width:11px;height:11px;border-color:rgba(232,145,90,.55)}
+  .corner.tl{left:6px;top:6px;border-left:1px solid;border-top:1px solid;border-top-left-radius:4px}
+  .corner.tr{right:6px;top:6px;border-right:1px solid;border-top:1px solid;border-top-right-radius:4px}
+  .corner.bl{left:6px;bottom:6px;border-left:1px solid;border-bottom:1px solid;border-bottom-left-radius:4px}
+  .corner.br{right:6px;bottom:6px;border-right:1px solid;border-bottom:1px solid;border-bottom-right-radius:4px}
+  .view{display:none}
+  .view.active{display:block}
+  /* 下钻抽屉 */
+  .drawer-mask{position:fixed;inset:0;background:rgba(5,4,3,.6);backdrop-filter:blur(2px);z-index:40;opacity:0;pointer-events:none;transition:.2s}
+  .drawer-mask.open{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:0;height:100%;width:min(560px,92vw);z-index:50;background:linear-gradient(160deg,#1c130d,#130d09);border-left:1px solid rgba(232,145,90,.3);box-shadow:-20px 0 60px rgba(0,0,0,.6);transform:translateX(100%);transition:.24s;display:flex;flex-direction:column}
+  .drawer.open{transform:translateX(0)}
+  .drawer .dh{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line)}
+  .drawer .dh .dt{font-size:15px;font-weight:800}
+  .drawer .dh .ds{font-size:11px;color:var(--muted);margin-top:2px}
+  .drawer .x{cursor:pointer;color:var(--muted);border:1px solid var(--line);border-radius:10px;width:30px;height:30px;display:grid;place-items:center}
+  .drawer .body{padding:12px 14px;overflow:auto}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid rgba(212,140,90,.12)}
+  th{color:var(--muted);font-weight:700;font-size:11px;position:sticky;top:0;background:#1a120c}
+  td .chip{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700}
+  tr.clickable{cursor:pointer;transition:.12s}
+  tr.clickable:hover td{background:rgba(232,145,90,.08)}
+  .back{cursor:pointer;display:inline-flex;align-items:center;gap:6px;color:#F0A878;font-size:12px;font-weight:700;margin-bottom:12px}
+  .rec-name{font-size:18px;font-weight:900;margin:2px 0 2px}
+  .rec-badges{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+  .badge{font-size:11px;font-weight:700;border-radius:999px;padding:3px 10px;border:1px solid var(--line)}
+  .rec-sec{font-size:11px;font-weight:800;letter-spacing:.04em;color:var(--terra);margin:16px 0 8px;display:flex;align-items:center;gap:7px}
+  .rec-sec::before{content:'';width:3px;height:11px;background:linear-gradient(#F0A878,#D4734B);border-radius:2px}
+  .kv{display:grid;grid-template-columns:96px 1fr;gap:6px 12px;font-size:12.5px}
+  .kv .k{color:var(--muted)}
+  .kv .v{color:var(--text);font-weight:600}
+  .ratings{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px}
+  .rt{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:rgba(232,145,90,.05)}
+  .rt .rn{font-size:11px;color:var(--muted)}
+  .rt .rv{font-size:18px;font-weight:900;color:#F4CE86}
+  .quote{border-left:2px solid rgba(232,145,90,.5);padding:4px 0 4px 12px;color:var(--text);font-size:12.5px;margin:6px 0;line-height:1.6}
+  .note{margin-top:26px;font-size:11px;color:var(--faint);border-top:1px solid var(--line);padding-top:12px;line-height:1.7}
+  @media(max-width:920px){.switcher{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div><div class="bg-glow1"></div>
+<div class="wrap">
+  <div class="head">
+    <div>
+      <div class="eyebrow">◢ Feedback Intelligence Cockpit</div>
+      <h1 id="viewTitle">反馈情报驾驶舱</h1>
+    </div>
+    <span class="pill"><span class="dot"></span> 实时 · 近 30 天 · 真实读模型</span>
+  </div>
+
+  <!-- 三按钮切换器 -->
+  <div class="switcher" id="switcher"></div>
+
+  <!-- 三个模块视图 -->
+  <div class="view active" id="view-feedback"></div>
+  <div class="view" id="view-invite"></div>
+  <div class="view" id="view-luban"></div>
+
+  <div class="note" id="note"></div>
+</div>
+
+<!-- 下钻抽屉 -->
+<div class="drawer-mask" id="mask" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer">
+  <div class="dh">
+    <div><div class="dt" id="drawerTitle">明细</div><div class="ds" id="drawerSub"></div></div>
+    <div class="x" onclick="closeDrawer()">✕</div>
+  </div>
+  <div class="body" id="drawerBody"></div>
+</aside>
+
+<script>
+/* ============ 样例数据（结构=线上真实 BI payload，上线换真数据即可） ============ */
+const DATA = {
+  feedback: {
+    summary:{total_feedback:1284,thumbs_up:1012,thumbs_down:187,neutral:85,commented:342,unique_users:631,unique_sessions:904,unique_messages:1187},
+    rating:[['非常满意',612],['满意',400],['一般',85],['不满意',110],['很差',77]],
+    reason:[['答案准确',388],['讲解清晰',301],['速度快',244],['答非所问',132],['步骤缺失',98],['公式错误',61]],
+    problem:[['内容正确性',286],['步骤完整性',173],['格式排版',96],['速度',64],['其它',41]],
+    symptom:[['漏关键步骤',142],['术语不准',98],['计算误差',73],['答非所问',61]],
+    answerMode:[['案例精讲',540],['错题诊断',410],['知识问答',334]],
+    degrade:[['无降级',1010],['多模态降级',150],['长度截断',84],['超时降级',40]],
+    triage:[['待处理',520],['已看',610],['已忽略',154]],
+    platform:[['微信小程序',980],['iOS',170],['Android',134]],
+    device:[['iPhone',420],['HUAWEI',230],['Xiaomi',180],['OPPO',120],['vivo',96]],
+    trend:[['05-08',28],['05-10',36],['05-12',44],['05-14',52],['05-16',61],['05-18',58],['05-20',72],['05-22',69],['05-24',80],['05-26',76],['05-28',88]],
+  },
+  invite:{
+    summary:{total_applications:506,unique_contacts:472,accept_interview_rate:.63,with_wrong_question_rate:.56,consented_count:489,accept_interview_count:318},
+    status:[['待联系',210],['已联系',188],['已入组',108]],
+    source:[['公众号',224],['朋友圈',152],['官网',130]],
+    examType:[['一级建造师',198],['二级建造师',156],['造价工程师',88],['监理工程师',41],['安全工程师',23]],
+    examStage:[['基础',220],['强化',180],['冲刺',106]],
+    prepYears:[['第1年',240],['第2年',160],['3年+',106]],
+    foundation:[['零基础',150],['有基础',230],['较扎实',126]],
+    age:[['25-30',190],['31-35',168],['36-40',102],['40+',46]],
+    education:[['本科',280],['大专',170],['硕士',56]],
+    occupation:[['施工员',160],['项目经理',120],['造价员',90],['监理',76],['其它',60]],
+    province:[['广东',96],['江苏',78],['山东',64],['浙江',58],['四川',49],['河南',41]],
+    weeklyTime:[['<5h',180],['5-10h',220],['>10h',106]],
+    dailyTime:[['<1h',200],['1-2h',210],['>2h',96]],
+    painPoint:[['案例题不会答',176],['知识点记不住',132],['没时间系统学',98],['做题没反馈',64],['计算题易错',36]],
+  },
+  luban:{
+    summary:{total_responses:268,nps_score:42,nps_base:268,promoters:148,passives:84,detractors:36,avg_satisfaction:4.3,revisit_willing_rate:.8,with_contact_rate:.71},
+    nps:[['9-10',148],['7-8',84],['0-6',36]],
+    satisfaction:[['5分',132],['4分',96],['3分',28],['2分',12]],
+    mostValuable:[['案例题批改',118],['错题精讲',76],['知识问答',44],['学习计划',30]],
+    willContinue:[['一定会',160],['可能会',78],['不会',30]],
+    payWill:[['愿意付费',142],['看价格',86],['暂不付费',40]],
+    revisit:[['一定来',150],['可能来',80],['不来',38]],
+    attempt:[['首考',120],['二战',96],['三战+',52]],
+    timeframe:[['3个月内',110],['半年内',102],['一年内',56]],
+    source:[['小程序',180],['公众号',88]],
+    feature:[['案例批改',4.5],['错题教练',4.2],['知识问答',4.0],['易用性',4.3],['准确性',4.1],['速度',4.4]],
+  },
+}
+/* 抽屉用样例明细 */
+const SAMPLE_ROWS = {
+  feedback:[['fb_0192','user_2008','踩','答非所问','待处理','2026-05-28'],['fb_0188','user_1771','赞','讲解清晰','已看','2026-05-28'],['fb_0185','user_2210','踩','步骤缺失','待处理','2026-05-27'],['fb_0180','user_1903','赞','答案准确','已看','2026-05-27'],['fb_0174','user_2055','中性','速度快','已忽略','2026-05-26']],
+  invite:[['ap_0451','王**','一级建造师','案例题不会答','待联系','广东'],['ap_0448','李**','二级建造师','知识点记不住','已联系','江苏'],['ap_0445','张**','造价工程师','计算题易错','已入组','山东'],['ap_0441','刘**','一级建造师','没时间系统学','待联系','浙江'],['ap_0436','陈**','监理工程师','做题没反馈','已联系','四川']],
+  luban:[['rv_0268','9','案例题批改','一定会','愿意付费','2026-05-28'],['rv_0265','8','错题精讲','可能会','看价格','2026-05-27'],['rv_0261','10','案例题批改','一定会','愿意付费','2026-05-27'],['rv_0258','6','知识问答','不会','暂不付费','2026-05-26'],['rv_0254','9','学习计划','一定会','愿意付费','2026-05-26']],
+}
+const ROW_HEAD = {
+  feedback:['反馈ID','用户','情绪','原因','状态','时间'],
+  invite:['申请ID','姓名','考试','痛点','状态','地域'],
+  luban:['回访ID','NPS','最有价值','是否续用','付费意愿','时间'],
+}
+/* 单条全字段详情（结构=真实记录类型；演示「点行→看单个用户」） */
+const DETAIL={
+  feedback:{badges:[['踩','danger'],['待处理','warn']],
+    groups:[['基础',{用户:'user_2008',会话:'sess_8821',消息:'msg_19204',时间:'2026-05-28 14:22'}],
+      ['内容',{评分:'2 / 5（不满意）',情绪:'踩',原因标签:'答非所问、步骤缺失',评论:'问的是钢筋计算，回答讲成了混凝土养护。'}],
+      ['回答模式',{回答模式:'案例精讲',请求模式:'多模态',生效模式:'文本',降级原因:'图片识别超时降级'}],
+      ['诊断',{问题类型:'内容正确性',症状标签:'答非所问、漏关键步骤'}],
+      ['终端上下文',{页面:'/case/grading',平台:'微信小程序',系统:'iOS 17.5',机型:'iPhone 14',网络:'WiFi',微信版本:'8.0.49'}],
+      ['处理',{状态:'待处理',处理人:'—',备注:'—'}]]},
+  invite:{badges:[['一级建造师','terra'],['待联系','warn'],['愿访谈','sage']],
+    groups:[['联系人',{姓名:'王**',电话:'138****2210',微信:'wxid_****8a',省份:'广东',年龄段:'31-35',学历:'本科',职业:'项目经理'}],
+      ['考试',{考试类型:'一级建造师',备考阶段:'强化',备考年限:'第2年',知识基础:'有基础',考试日期:'2026-09'}],
+      ['学习',{每周时长:'5-10h',每日时长:'1-2h',核心痛点:'案例题不会答',学习难点:'答题不知道踩分点',最近错题:'施工总承包计量计价',当前方法:'看网课+刷题'}],
+      ['意向',{是否会员:'是',接受访谈:'是',同意授权:'是',来源页:'公众号',提交次数:'1'}],
+      ['运营',{状态:'待联系',运营备注:'高意向，已加微信待排访谈'}]]},
+  luban:{badges:[['NPS 9 推荐者','sage'],['满意度 5','amber'],['愿付费','terra']],
+    ratings:[['案例批改',4.6],['错题教练',4.4],['知识问答',4.1],['易用性',4.5],['准确性',4.2],['速度',4.6]],
+    groups:[['口碑',{NPS:'9（推荐者）',总体满意度:'5 / 5',会续用:'一定会',付费意愿:'愿意付费',复访意愿:'一定来',留资:'已留电话'}],
+      ['考情',{考试次数:'二战',时间窗:'3个月内',来源:'小程序'}],
+      ['运营',{状态:'已跟进',运营备注:'愿意做深度访谈，已约周四'}]],
+    quotes:[['最有价值','案例题批改'],['最想要功能','真题模考、押题'],['最佳建议','案例批改能逐条标注踩分点就更好了'],['未解决痛点','计算题步骤分仍把握不准']]},
+}
+const MODS = [
+  {key:'feedback',name:'AI 消息反馈',num:DATA.feedback.summary.total_feedback,sub:'赞 '+DATA.feedback.summary.thumbs_up+' · 踩 '+DATA.feedback.summary.thumbs_down},
+  {key:'invite',name:'内测申请',num:DATA.invite.summary.total_applications,sub:'独立联系人 '+DATA.invite.summary.unique_contacts},
+  {key:'luban',name:'内测回访',num:DATA.luban.summary.total_responses,sub:'NPS '+DATA.luban.summary.nps_score+' · 满意度 '+DATA.luban.summary.avg_satisfaction},
+]
+const TITLE = {feedback:'AI 消息反馈 · 情报驾驶舱',invite:'内测申请 · 情报驾驶舱',luban:'内测回访 · 情报驾驶舱'}
+
+/* ============ ECharts 暖色主题 ============ */
+const SERIES=['#E8915A','#F2B85C','#E6CB86','#D86C57','#9DB89C','#E0A39A','#C58E5A','#7FA8AE']
+const C={text:'#F1E9E1',muted:'#A99B8C',faint:'#6E5F52',grid:'rgba(212,150,100,.09)',panel:'#211710'}
+const FONT='"Inter",system-ui,"PingFang SC","Microsoft YaHei",sans-serif'
+function aRGBA(hex,a){const h=hex.replace('#','');return`rgba(${parseInt(h.slice(0,2),16)},${parseInt(h.slice(2,4),16)},${parseInt(h.slice(4,6),16)},${a})`}
+function vGrad(f,t){return{type:'linear',x:0,y:0,x2:0,y2:1,colorStops:[{offset:0,color:f},{offset:1,color:t}]}}
+const TIP={backgroundColor:'rgba(28,19,13,.92)',borderColor:'rgba(232,150,80,.45)',borderWidth:1,textStyle:{color:C.text,fontSize:12},extraCssText:'backdrop-filter:blur(8px);border-radius:10px'}
+const fmt=n=>new Intl.NumberFormat('en-US').format(Math.round(n))
+
+function optDonut(rows,centerLab,centerVal){
+  return{color:SERIES,tooltip:{...TIP,trigger:'item',formatter:p=>`${p.name}<br/><b>${fmt(p.value)}</b> · ${p.percent}%`},
+    series:[{type:'pie',radius:['60%','85%'],center:['50%','50%'],padAngle:3,
+      itemStyle:{borderRadius:6,borderColor:C.panel,borderWidth:2,shadowBlur:14,shadowColor:'rgba(0,0,0,.4)'},
+      label:{show:false},emphasis:{scale:true,scaleSize:6},
+      data:rows.map(r=>({name:r[0],value:r[1]}))}],
+    graphic:centerVal?[{type:'text',left:'center',top:'42%',style:{text:centerVal,fill:C.text,fontSize:24,fontWeight:800,fontFamily:FONT}},
+      {type:'text',left:'center',top:'57%',style:{text:centerLab||'',fill:C.muted,fontSize:11,fontFamily:FONT}}]:null}
+}
+function optBar(rows,color){
+  color=color||SERIES[0];const s=[...rows].sort((a,b)=>a[1]-b[1])
+  return{grid:{left:4,right:38,top:8,bottom:4,containLabel:true},tooltip:{...TIP,trigger:'axis',axisPointer:{type:'shadow'}},
+    xAxis:{type:'value',show:false,max:'dataMax'},
+    yAxis:{type:'category',data:s.map(r=>r[0]),axisLine:{show:false},axisTick:{show:false},axisLabel:{color:C.muted,fontSize:11,fontFamily:FONT,width:96,overflow:'truncate'}},
+    series:[{type:'bar',barWidth:12,itemStyle:{borderRadius:[0,6,6,0],color:vGrad(aRGBA(color,.35),color),shadowBlur:10,shadowColor:aRGBA(color,.45)},
+      label:{show:true,position:'right',color:C.text,fontSize:11,fontWeight:700,fontFamily:FONT,formatter:p=>fmt(p.value)},data:s.map(r=>r[1])}]}
+}
+function optGauge(val,lab,suffix,color){
+  color=color||'#E8915A';return{series:[{type:'gauge',startAngle:220,endAngle:-40,radius:'92%',center:['50%','54%'],
+    progress:{show:true,width:12,roundCap:true,itemStyle:{color:vGrad(aRGBA(color,.4),color),shadowBlur:16,shadowColor:aRGBA(color,.6)}},
+    axisLine:{lineStyle:{width:12,color:[[1,aRGBA(color,.12)]]}},pointer:{show:false},axisTick:{show:false},splitLine:{show:false},axisLabel:{show:false},anchor:{show:false},
+    title:{show:!!lab,offsetCenter:[0,'34%'],color:C.muted,fontSize:11,fontFamily:FONT},
+    detail:{offsetCenter:[0,'-2%'],formatter:v=>Math.round(v)+(suffix||''),color:C.text,fontSize:26,fontWeight:800,fontFamily:FONT},
+    data:[{value:val,name:lab||''}]}]}
+}
+function optRadar(rows,color){
+  color=color||'#A78B6A';const mx=Math.max(...rows.map(r=>r[1]))
+  return{tooltip:{...TIP},radar:{indicator:rows.map(r=>({name:r[0],max:Math.ceil(mx)})),radius:'66%',center:['50%','54%'],splitNumber:4,
+    axisName:{color:C.muted,fontSize:10,fontFamily:FONT},splitLine:{lineStyle:{color:C.grid}},
+    splitArea:{areaStyle:{color:['rgba(232,145,90,.03)','rgba(232,145,90,.06)']}},axisLine:{lineStyle:{color:C.grid}}},
+    series:[{type:'radar',symbol:'circle',symbolSize:4,lineStyle:{color,width:2,shadowBlur:10,shadowColor:aRGBA(color,.6)},
+      areaStyle:{color:aRGBA(color,.22)},itemStyle:{color},data:[{value:rows.map(r=>r[1])}]}]}
+}
+function optTrend(rows,color){
+  color=color||'#E8915A';return{grid:{left:6,right:12,top:16,bottom:4,containLabel:true},tooltip:{...TIP,trigger:'axis'},
+    xAxis:{type:'category',boundaryGap:false,data:rows.map(r=>r[0]),axisLine:{lineStyle:{color:C.grid}},axisTick:{show:false},axisLabel:{color:C.faint,fontSize:10,fontFamily:FONT}},
+    yAxis:{type:'value',splitLine:{lineStyle:{color:C.grid}},axisLabel:{color:C.faint,fontSize:10,fontFamily:FONT}},
+    series:[{type:'line',smooth:true,showSymbol:false,lineStyle:{color,width:2.5,shadowBlur:12,shadowColor:aRGBA(color,.5)},
+      areaStyle:{color:vGrad(aRGBA(color,.32),aRGBA(color,.01))},data:rows.map(r=>r[1])}]}
+}
+function optNps(p,pa,d){
+  return{grid:{left:0,right:0,top:10,bottom:10},tooltip:{...TIP,trigger:'axis',axisPointer:{type:'shadow'}},
+    xAxis:{type:'value',show:false},yAxis:{type:'category',show:false,data:['NPS']},
+    series:[{name:'推荐者',type:'bar',stack:'n',barWidth:20,itemStyle:{color:'#86B97A',borderRadius:[6,0,0,6]},data:[p]},
+      {name:'被动者',type:'bar',stack:'n',barWidth:20,itemStyle:{color:'#F2B85C'},data:[pa]},
+      {name:'贬损者',type:'bar',stack:'n',barWidth:20,itemStyle:{color:'#D44A3C',borderRadius:[0,6,6,0]},data:[d]}]}
+}
+
+/* ============ DOM 构建 ============ */
+const charts=[]
+function kpi(lab,val,unit,sub,col){
+  const glow={terra:'rgba(232,145,90,.5)',amber:'rgba(242,184,92,.5)',sage:'rgba(134,185,122,.5)',rose:'rgba(216,108,87,.5)',gold:'rgba(230,203,134,.5)',teal:'rgba(127,168,174,.5)'}[col]||'rgba(232,145,90,.5)'
+  const txt={terra:'#F0A878',amber:'#F4CE86',sage:'#A6C99A',rose:'#E89A8E',gold:'#EAD79A',teal:'#A8CBD0'}[col]||'#F0A878'
+  return`<div class="kpi"><div class="blob" style="background:${glow}"></div>
+    <div class="lab">${lab}</div><div class="val" style="color:${txt};text-shadow:0 0 18px ${glow}">${val}${unit?'<span class="unit">'+unit+'</span>':''}</div>
+    <div class="sub">${sub||''}</div></div>`
+}
+function panel(id,title,hint,glow,tag){
+  return`<div class="panel${glow?' glow':''}"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+    <div class="ph"><div><div class="pt">${title}</div>${hint?'<div class="phint">'+hint+'</div>':''}</div>${tag?'<span class="tag" data-mod="'+tag+'">明细 ›</span>':''}</div>
+    <div class="chart" id="${id}" style="height:${arguments[5]||210}px"></div></div>`
+}
+function mkChart(id,opt,mod){
+  window.__echartsReady.then(()=>{
+    if(!window.echarts)return
+    const el=document.getElementById(id);if(!el)return
+    const ch=echarts.init(el);ch.setOption(opt);charts.push(ch)
+    if(mod)ch.on('click',p=>openDrawer(mod,p.name))
+  })
+}
+
+function renderFeedback(){
+  const d=DATA.feedback,s=d.summary
+  const up=Math.round(s.thumbs_up/s.total_feedback*100)
+  document.getElementById('view-feedback').innerHTML=
+    `<div class="kpis" style="grid-template-columns:repeat(6,1fr)">
+      ${kpi('反馈总量',fmt(s.total_feedback),'','','terra')}
+      ${kpi('点赞率',up,'%','赞'+s.thumbs_up+'/踩'+s.thumbs_down,'sage')}
+      ${kpi('评论率',Math.round(s.commented/s.total_feedback*100),'%','含文字 '+s.commented,'amber')}
+      ${kpi('独立用户',fmt(s.unique_users),'','','teal')}
+      ${kpi('独立会话',fmt(s.unique_sessions),'','','gold')}
+      ${kpi('独立消息',fmt(s.unique_messages),'','','rose')}
+    </div>
+    <div class="sec"><span class="bar"></span><h3>情绪与评分</h3></div>
+    <div class="grid" style="grid-template-columns:1fr 1fr 1.2fr">
+      ${panel('f1','赞 / 踩 / 中性','点击下钻明细',true,'feedback',230)}
+      ${panel('f2','评分分布','',false,'feedback',230)}
+      ${panel('f3','反馈量趋势','按天',false,'feedback',230)}
+    </div>
+    <div class="sec"><span class="bar"></span><h3>问题诊断</h3></div>
+    <div class="grid" style="grid-template-columns:1fr 1fr 1fr">
+      ${panel('f4','Top 原因标签','',false,'feedback',220)}
+      ${panel('f5','问题类型','',false,'feedback',220)}
+      ${panel('f6','症状标签','',false,'feedback',220)}
+    </div>
+    <div class="sec"><span class="bar"></span><h3>回答模式 · 处理 · 终端</h3></div>
+    <div class="grid" style="grid-template-columns:1fr 1fr 1fr 1fr">
+      ${panel('f7','回答模式占比','',false,'feedback',210)}
+      ${panel('f8','响应降级原因','',false,'feedback',210)}
+      ${panel('f9','处理状态','',false,'feedback',210)}
+      ${panel('f10','终端平台','',false,'feedback',210)}
+    </div>`
+  mkChart('f1',optDonut(d.triageSentiment||[['赞',s.thumbs_up],['踩',s.thumbs_down],['中性',s.neutral]],'情绪',fmt(s.total_feedback)),'feedback')
+  mkChart('f2',optBar(d.rating,'#E8915A'),'feedback')
+  mkChart('f3',optTrend(d.trend,'#E8915A'))
+  mkChart('f4',optBar(d.reason,'#F2B85C'),'feedback')
+  mkChart('f5',optDonut(d.problem,'问题',''),'feedback')
+  mkChart('f6',optBar(d.symptom,'#D86C57'),'feedback')
+  mkChart('f7',optDonut(d.answerMode,'回答',''),'feedback')
+  mkChart('f8',optBar(d.degrade,'#C58E5A'),'feedback')
+  mkChart('f9',optDonut(d.triage,'样本',''),'feedback')
+  mkChart('f10',optBar(d.platform,'#7FA8AE'),'feedback')
+}
+
+function renderInvite(){
+  const d=DATA.invite,s=d.summary
+  document.getElementById('view-invite').innerHTML=
+    `<div class="kpis" style="grid-template-columns:repeat(5,1fr)">
+      ${kpi('申请总量',fmt(s.total_applications),'','','terra')}
+      ${kpi('独立联系人',fmt(s.unique_contacts),'','','teal')}
+      ${kpi('接受回访率',Math.round(s.accept_interview_rate*100),'%',s.accept_interview_count+' 人愿访谈','sage')}
+      ${kpi('带错题率',Math.round(s.with_wrong_question_rate*100),'%','','amber')}
+      ${kpi('同意授权',fmt(s.consented_count),'','','rose')}
+    </div>
+    <div class="sec"><span class="bar"></span><h3>转化与来源</h3></div>
+    <div class="grid" style="grid-template-columns:1fr 1fr">
+      ${panel('i1','申请状态','点击下钻明细',true,'invite',220)}
+      ${panel('i2','来源渠道','',false,'invite',220)}
+    </div>
+    <div class="sec"><span class="bar"></span><h3>考试画像</h3></div>
+    <div class="grid" style="grid-template-columns:1fr 1fr 1fr 1fr">
+      ${panel('i3','考试类型','',false,'invite',210)}
+      ${panel('i4','备考阶段','',false,'invite',210)}
+      ${panel('i5','备考年限','',false,'invite',210)}
+      ${panel('i6','知识基础','',false,'invite',210)}
+    </div>
+    <div class="sec"><span class="bar"></span><h3>人群画像</h3></div>
+    <div class="grid" style="grid-template-columns:1fr 1fr 1fr 1fr">
+      ${panel('i7','年龄段','',false,'invite',210)}
+      ${panel('i8','学历','',false,'invite',210)}
+      ${panel('i9','职业','',false,'invite',210)}
+      ${panel('i10','地域 Top','',false,'invite',210)}
+    </div>
+    <div class="sec"><span class="bar"></span><h3>学习画像</h3></div>
+    <div class="grid" style="grid-template-columns:1fr 1fr 1.4fr">
+      ${panel('i11','每周时长','',false,'invite',210)}
+      ${panel('i12','每日时长','',false,'invite',210)}
+      ${panel('i13','核心痛点 Top','',false,'invite',210)}
+    </div>`
+  mkChart('i1',optDonut(d.status,'申请',fmt(s.total_applications)),'invite')
+  mkChart('i2',optDonut(d.source,'来源',''),'invite')
+  mkChart('i3',optBar(d.examType,'#E8915A'),'invite')
+  mkChart('i4',optDonut(d.examStage,'阶段',''),'invite')
+  mkChart('i5',optBar(d.prepYears,'#F2B85C'),'invite')
+  mkChart('i6',optBar(d.foundation,'#9DB89C'),'invite')
+  mkChart('i7',optDonut(d.age,'年龄',''),'invite')
+  mkChart('i8',optBar(d.education,'#E6CB86'),'invite')
+  mkChart('i9',optBar(d.occupation,'#C58E5A'),'invite')
+  mkChart('i10',optRadar(d.province,'#A78B6A'),'invite')
+  mkChart('i11',optBar(d.weeklyTime,'#7FA8AE'),'invite')
+  mkChart('i12',optBar(d.dailyTime,'#E0A39A'),'invite')
+  mkChart('i13',optBar(d.painPoint,'#D86C57'),'invite')
+}
+
+function renderLuban(){
+  const d=DATA.luban,s=d.summary
+  document.getElementById('view-luban').innerHTML=
+    `<div class="kpis" style="grid-template-columns:repeat(6,1fr)">
+      ${kpi('NPS',s.nps_score,'','样本 '+s.nps_base,s.nps_score>=0?'sage':'rose')}
+      ${kpi('满意度',s.avg_satisfaction,'/5','','amber')}
+      ${kpi('复访意愿率',Math.round(s.revisit_willing_rate*100),'%','','terra')}
+      ${kpi('留资率',Math.round(s.with_contact_rate*100),'%','','teal')}
+      ${kpi('回访总量',fmt(s.total_responses),'','','gold')}
+      ${kpi('推荐者占比',Math.round(s.promoters/s.nps_base*100),'%',s.promoters+' 人','rose')}
+    </div>
+    <div class="sec"><span class="bar"></span><h3>口碑</h3></div>
+    <div class="grid" style="grid-template-columns:1fr 1fr 1.2fr">
+      ${panel('l1','NPS 仪表','',true,null,200)}
+      ${panel('l2','NPS 结构','推荐/被动/贬损',false,'luban',200)}
+      ${panel('l3','满意度分布','',false,'luban',200)}
+    </div>
+    <div class="sec"><span class="bar"></span><h3>价值与意愿</h3></div>
+    <div class="grid" style="grid-template-columns:1fr 1fr 1fr 1fr">
+      ${panel('l4','最有价值功能','点击下钻',false,'luban',210)}
+      ${panel('l5','是否续用','',false,'luban',210)}
+      ${panel('l6','付费意愿','',false,'luban',210)}
+      ${panel('l7','复访意愿','',false,'luban',210)}
+    </div>
+    <div class="sec"><span class="bar"></span><h3>功能体验 · 考情</h3></div>
+    <div class="grid" style="grid-template-columns:1.2fr 1fr 1fr">
+      ${panel('l8','功能体验六维','均分(满分5)',true,null,240)}
+      ${panel('l9','考试次数','',false,'luban',240)}
+      ${panel('l10','考试时间窗','',false,'luban',240)}
+    </div>`
+  mkChart('l1',optGauge(s.nps_score,'NPS','',s.nps_score>=0?'#86B97A':'#D44A3C'))
+  mkChart('l2',optNps(s.promoters,s.passives,s.detractors))
+  mkChart('l3',optBar(d.satisfaction,'#F2B85C'),'luban')
+  mkChart('l4',optBar(d.mostValuable,'#E8915A'),'luban')
+  mkChart('l5',optDonut(d.willContinue,'续用',''),'luban')
+  mkChart('l6',optDonut(d.payWill,'付费',''),'luban')
+  mkChart('l7',optDonut(d.revisit,'复访',''),'luban')
+  mkChart('l8',optRadar(d.feature,'#E8915A'))
+  mkChart('l9',optDonut(d.attempt,'次数',''),'luban')
+  mkChart('l10',optBar(d.timeframe,'#7FA8AE'),'luban')
+}
+
+/* ============ 切换器 + 抽屉 ============ */
+let current='feedback'
+function renderSwitcher(){
+  document.getElementById('switcher').innerHTML=MODS.map(m=>
+    `<div class="seg${m.key===current?' active':''}" data-k="${m.key}">
+      <div class="t"><span class="name">${m.name}</span><span class="arrow">${m.key===current?'● 当前':'›'}</span></div>
+      <div class="num">${fmt(m.num)}</div><div class="sub">${m.sub}</div></div>`).join('')
+  document.querySelectorAll('.seg').forEach(el=>el.onclick=()=>switchTo(el.dataset.k))
+}
+function switchTo(k){
+  current=k;
+  ['feedback','invite','luban'].forEach(v=>document.getElementById('view-'+v).classList.toggle('active',v===k))
+  document.getElementById('viewTitle').textContent=TITLE[k]
+  renderSwitcher()
+  setTimeout(()=>charts.forEach(c=>{try{c.resize()}catch(e){}}),60)
+}
+const BADGE={terra:'background:rgba(232,145,90,.16);color:#F0A878',amber:'background:rgba(242,184,92,.16);color:#F4CE86',sage:'background:rgba(134,185,122,.18);color:#A6C99A',rose:'background:rgba(216,108,87,.16);color:#E89A8E',danger:'background:rgba(212,74,60,.18);color:#E89A8E',warn:'background:rgba(242,184,92,.16);color:#F4CE86'}
+function openDrawer(mod,dim){
+  document.getElementById('drawerTitle').textContent=MODS.find(m=>m.key===mod).name+' · 明细'
+  document.getElementById('drawerSub').textContent=dim?('下钻维度：'+dim+'（按该维度过滤；点任一行看单个用户）'):'点任一行看单个用户详情'
+  const head=ROW_HEAD[mod],rows=SAMPLE_ROWS[mod]
+  document.getElementById('drawerBody').innerHTML=
+    `<table><thead><tr>${head.map(h=>'<th>'+h+'</th>').join('')}</tr></thead>
+     <tbody>${rows.map(r=>`<tr class="clickable" onclick="openRecord('${mod}','${r[0]}')">`+r.map((c,i)=>'<td>'+(i===2&&mod==='feedback'?'<span class="chip" style="'+(c==='赞'?BADGE.sage:c==='踩'?BADGE.danger:'background:rgba(169,155,140,.18);color:#A99B8C')+'">'+c+'</span>':c)+'</td>').join('')+'</tr>').join('')}</tbody></table>
+     <p style="color:var(--faint);font-size:11px;margin-top:14px">↑ 真实面板=现有 BiDataTable（状态/来源/owner 筛选、导出）。<b>点任一行 → 单个用户全字段详情</b>（下方演示）。</p>`
+  showDrawer()
+}
+function kv(obj){return`<div class="kv">${Object.entries(obj).map(([k,v])=>`<span class="k">${k}</span><span class="v">${v}</span>`).join('')}</div>`}
+function openRecord(mod,id){
+  const d=DETAIL[mod];if(!d){openDrawer(mod);return}
+  const name=mod==='invite'?('王** · '+id):mod==='luban'?('回访 '+id):('反馈 '+id)
+  let html=`<div class="back" onclick="openDrawer('${mod}')">‹ 返回明细表</div>
+    <div class="rec-name">${name}</div>
+    <div class="rec-badges">${d.badges.map(b=>`<span class="badge" style="${BADGE[b[1]]}">${b[0]}</span>`).join('')}</div>`
+  for(const [label,obj] of d.groups){html+=`<div class="rec-sec">${label}</div>${kv(obj)}`}
+  if(d.ratings){html+=`<div class="rec-sec">功能体验评分（满分 5）</div><div class="ratings">${d.ratings.map(r=>`<div class="rt"><div class="rn">${r[0]}</div><div class="rv">${r[1]}</div></div>`).join('')}</div>`}
+  if(d.quotes){html+=`<div class="rec-sec">主观反馈</div>${d.quotes.map(q=>`<div class="quote"><b style="color:var(--muted);font-weight:700">${q[0]}：</b>${q[1]}</div>`).join('')}`}
+  html+=`<p style="color:var(--faint);font-size:11px;margin-top:16px">↑ 真实面板这里是 ${mod==='invite'?'InviteApplicationDetailPanel（可改状态/写运营备注）':mod==='luban'?'LubanFeedbackDetailPanel（含功能评分/建议/留资）':'FeedbackDetailPanel（含分诊操作/终端上下文）'}，字段取自单条真实记录。</p>`
+  document.getElementById('drawerTitle').textContent=MODS.find(m=>m.key===mod).name+' · 单条详情'
+  document.getElementById('drawerSub').textContent='第四级下钻 · 单个用户'
+  document.getElementById('drawerBody').innerHTML=html
+  showDrawer()
+}
+function showDrawer(){document.getElementById('drawer').classList.add('open');document.getElementById('mask').classList.add('open')}
+function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('mask').classList.remove('open')}
+
+document.getElementById('note').innerHTML=
+  '※ 这是<b>信息架构原型</b>：数据为符合线上真实 payload 结构的样例（上线时换成 getBiFeedback / getBiInviteTestStats / getBiLubanFeedbackStats 真实读模型即可，结构一致）。'+
+  '交互模型：顶部三按钮切换模块（只展开当前模块）→ 点任意图表打开右侧明细抽屉 → 点明细行打开单条详情。配色为已确认的暖色品牌驾驶舱。'
+
+window.__echartsReady.then(()=>{ renderSwitcher(); renderFeedback(); renderInvite(); renderLuban() })
+window.addEventListener('resize',()=>charts.forEach(c=>{try{c.resize()}catch(e){}}))
+</script>
+</body>
+</html>
