@@ -21,8 +21,7 @@ ssh "${REMOTE_HOST}" "cd '${REMOTE_DIR}' && PUBLIC_HOST='${PUBLIC_HOST}' bash sc
 PUBLIC_BASE_URL="${PUBLIC_BASE_URL}" bash "${SCRIPT_DIR}/verify_aliyun_public_endpoints.sh"
 bash "${SCRIPT_DIR}/verify_aliyun_observability.sh"
 
-# 把一条 readiness 证据写进远端 control_plane,让 launch_readiness 不再恒 NOT_RUN。
-# 必须在远端 /root/deeptutor 内跑(§3.7 写边界):server 读的是远端那份 control_plane,
-# 本地跑只会写进本地 repo 的 tmp/,生产看不到。hook 失败不让整个发布失败(先求"有记录")。
-ssh "${REMOTE_HOST}" "cd '${REMOTE_DIR}' && python3 scripts/run_readiness_check.py --check-id contract_guard --report-only" \
+# 把一条 readiness 证据写进运行时 control_plane,让 launch_readiness 不再恒 NOT_RUN。
+# 运行时 control_plane 在容器 /app/tmp 下；host python 可能过旧，不能作为脚本解释器 authority。
+ssh "${REMOTE_HOST}" "cd '${REMOTE_DIR}' && docker compose exec -T deeptutor python scripts/run_readiness_check.py --check-id contract_guard --report-only" \
   || echo "readiness check non-fatal"
