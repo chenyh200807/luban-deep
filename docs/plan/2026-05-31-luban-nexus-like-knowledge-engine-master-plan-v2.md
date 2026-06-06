@@ -1,5 +1,7 @@
 # 鲁班 Nexus-like Knowledge Engine 总体落地方案 v2.1
 
+> **2026-06-06 master-plan absorption:** 本文件继续保留为 Nexus-like 方法论与架构风险研究，但**不再是实现 authority**。当前实现目标已由 [2026-06-04-luban-grading-engine-master-control-plan.md](2026-06-04-luban-grading-engine-master-control-plan.md) §0.26 统一收口：Nexus-style 的价值是给 LLM 提供细颗粒、可溯源、可裁剪的 `Compiled Context Pack`，增强 open-world teaching / diagnostic / grading / Learning Brain，而不是新建通用平台，也不是把系统变成“题库内才会答”的 registry 闸门。
+>
 > **Status update 2026-05-31:** Superseded by [鲁班评分真相覆盖率 + Golden Eval 战役计划 v2.2](2026-05-31-luban-grading-truth-golden-eval-campaign-v2-2.md). This file is retained as a historical architecture risk study. Do not execute its generic Knowledge Engine / broad schema / standalone eval-service direction as P0/P1 work.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:executing-plans` or `superpowers:subagent-driven-development` before implementation. This file is a master implementation plan, not a concept note. Execute by work package, keep changes surgical, and update `docs/plan/INDEX.md` when this plan changes.

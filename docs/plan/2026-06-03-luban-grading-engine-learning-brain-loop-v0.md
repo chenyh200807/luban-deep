@@ -1,5 +1,7 @@
 # 鲁班评分引擎 × Learning Brain 融合方案 v0
 
+> **2026-06-06 relationship to master plan:** 本文件是 [2026-06-04-luban-grading-engine-master-control-plan.md](2026-06-04-luban-grading-engine-master-control-plan.md) §0.26 的 **Grading-to-Brain integration layer**，不是第三条平行主线。当前总目标固定为：鲁班评分引擎是“诊断仪”，Learning Brain/GBrain 是“长期主治医生”。本文件只定义 grading evidence 如何进入 learner evidence / claim lifecycle / PersonalizationContextPack / next action；它不得成为第二套评分 authority、第二套 RAG、第二套 learner memory，也不得把 shadow/candidate 证据升 canonical truth。
+>
 > Status: `Proposed v0.2`（2026-06-03 起草，2026-06-04 收口）。
 > 本方案回答一个具体问题：鲁班评分引擎产出的采分点级证据，如何进入 Learning Brain，形成长期、可审计、可压缩、可运维的个性化教学闭环。
 > 边界：不新增第二套 learner memory，不新增第二套 RAG，不新增 GBrain runtime，不把离线 shadow 结果直接宣称为生产门。
