@@ -35,7 +35,8 @@ os.environ.setdefault("LANGFUSE_ENABLED", "false")
 _REPO = Path(__file__).resolve().parents[1]
 OUT = _REPO / "artifacts" / "luban_grading_artifacts" / "supabase_canonical_export_20260606"
 SUPPLY = _REPO / "deeptutor" / "services" / "construction_grading" / "runtime_supply" / "v_canonical_unified_knowledge" / "canonical_unified_knowledge.json"
-TAX_PATH = Path("/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/taxonomy/FINAL_CLEANED_TAXONOMY2026.json")
+_DATA = Path(os.getenv("LUBAN_DATA_DIR", "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026"))
+TAX_PATH = Path(os.getenv("LUBAN_TAX_PATH", str(_DATA / "taxonomy" / "FINAL_CLEANED_TAXONOMY2026.json")))
 
 _TAX_TABLE = "luban_canonical_taxonomy"
 _CATALOG_TABLE = "luban_canonical_knowledge_catalog"
@@ -67,6 +68,9 @@ def _taxonomy_rows() -> list[dict[str, Any]]:
 
 def _catalog_rows() -> list[dict[str, Any]]:
     bundle = json.loads(SUPPLY.read_text("utf-8"))
+    from deeptutor.services.construction_grading.knowledge_unification import verify_unified_bundle
+    if not verify_unified_bundle(bundle):
+        raise SystemExit("ERROR: unified bundle failed integrity check — aborting export.")
     rows: list[dict[str, Any]] = []
     for code, n in (bundle.get("nodes") or {}).items():
         c = n.get("counts") or {}
@@ -92,22 +96,55 @@ def _write_dry_run(tax_rows: list[dict[str, Any]], cat_rows: list[dict[str, Any]
 
 
 def _apply(tax_rows: list[dict[str, Any]], cat_rows: list[dict[str, Any]]) -> dict[str, Any]:
-    url = os.getenv("SUPABASE_URL", "")
-    key = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
-    if not url or not key:
-        raise SystemExit("ERROR: --apply requires SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY in env.")
-    from supabase import create_client  # lazy: only needed for a real write
+    """Idempotent apply via the direct Postgres connection (DATABASE_URL): create-if-not-exists DDL
+    (additive — new catalog tables only, never touches existing data) + ON CONFLICT upsert."""
+    url = os.getenv("DATABASE_URL") or os.getenv("DB_URL")
+    if not url:
+        raise SystemExit("ERROR: --apply requires DATABASE_URL (or DB_URL) in env (.env).")
+    import psycopg2
+    from psycopg2 import sql
+    from psycopg2.extras import execute_values
 
-    client = create_client(url, key)
-    n_tax = 0
-    for i in range(0, len(tax_rows), 500):
-        client.table(_TAX_TABLE).upsert(tax_rows[i:i + 500], on_conflict="code").execute()
-        n_tax += len(tax_rows[i:i + 500])
-    n_cat = 0
-    for i in range(0, len(cat_rows), 500):
-        client.table(_CATALOG_TABLE).upsert(cat_rows[i:i + 500], on_conflict="node_code").execute()
-        n_cat += len(cat_rows[i:i + 500])
-    return {"taxonomy_upserted": n_tax, "catalog_upserted": n_cat}
+    tax_ident, cat_ident = sql.Identifier(_TAX_TABLE), sql.Identifier(_CATALOG_TABLE)
+    conn = psycopg2.connect(url, connect_timeout=30)
+    conn.autocommit = False
+    try:
+        with conn.cursor() as cur:
+            cur.execute(_SCHEMA_SQL)  # create-if-not-exists, additive
+            execute_values(
+                cur,
+                sql.SQL("insert into {} (code, parent_code, name, level, name_path, keywords, is_leaf) "
+                        "values %s on conflict (code) do update set "
+                        "parent_code=excluded.parent_code, name=excluded.name, level=excluded.level, "
+                        "name_path=excluded.name_path, keywords=excluded.keywords, is_leaf=excluded.is_leaf"
+                        ).format(tax_ident),
+                [(r["code"], r["parent_code"], r["name"], r["level"], r["name_path"],
+                  json.dumps(r["keywords"], ensure_ascii=False), r["is_leaf"]) for r in tax_rows],
+            )
+            execute_values(
+                cur,
+                sql.SQL("insert into {} (node_code, name_path, textbook_count, standard_count, "
+                        "lecture_count, question_count, has_knowledge, has_question) values %s "
+                        "on conflict (node_code) do update set name_path=excluded.name_path, "
+                        "textbook_count=excluded.textbook_count, standard_count=excluded.standard_count, "
+                        "lecture_count=excluded.lecture_count, question_count=excluded.question_count, "
+                        "has_knowledge=excluded.has_knowledge, has_question=excluded.has_question"
+                        ).format(cat_ident),
+                [(r["node_code"], r["name_path"], r["textbook_count"], r["standard_count"],
+                  r["lecture_count"], r["question_count"], r["has_knowledge"], r["has_question"])
+                 for r in cat_rows],
+            )
+            conn.commit()
+            cur.execute(sql.SQL("select count(*) from {}").format(tax_ident))
+            n_tax = cur.fetchone()[0]
+            cur.execute(sql.SQL("select count(*) from {}").format(cat_ident))
+            n_cat = cur.fetchone()[0]
+        return {"taxonomy_rows_in_db": n_tax, "catalog_rows_in_db": n_cat}
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
 
 
 _SCHEMA_SQL = """\
@@ -139,6 +176,12 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--apply", action="store_true", help="actually upsert to Supabase (needs env creds)")
     args = ap.parse_args()
+    if args.apply:
+        try:
+            from dotenv import load_dotenv
+            load_dotenv(str(_REPO / ".env"))
+        except ImportError:
+            pass  # python-dotenv optional; rely on real env vars (DATABASE_URL etc.)
 
     tax_rows = _taxonomy_rows()
     cat_rows = _catalog_rows()

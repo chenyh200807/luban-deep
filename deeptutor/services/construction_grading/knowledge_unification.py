@@ -132,9 +132,13 @@ def build_unified_bundle(tax: CanonicalTaxonomy, result: dict[str, Any]) -> dict
 
 
 def verify_unified_bundle(bundle: dict[str, Any]) -> bool:
-    """Fail-closed: recompute content_hash over nodes + signature over (hash|namespace|status)."""
+    """Fail-closed: recompute content_hash over nodes + signature over (hash|namespace|status), AND
+    assert the teaching-tier invariants (this lane can NEVER be an answer-key authority) so a corrupted
+    or hand-edited manifest is rejected at the build/runtime boundary, not just on content tamper."""
     from deeptutor.services.construction_grading.full_knowledge_compiler import _sha256_hex
     m = bundle.get("manifest") or {}
+    if m.get("official_score_allowed") is not False or m.get("tier") != "teaching_context_not_answer_key":
+        return False
     recomputed = _sha256_hex(bundle.get("nodes") or {})
     if recomputed != m.get("content_hash"):
         return False

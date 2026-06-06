@@ -20,6 +20,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import json
+import math
 from pathlib import Path
 from typing import Any
 
@@ -59,7 +60,6 @@ class CanonicalTaxonomy:
                 if k:
                     df[k] = df.get(k, 0) + 1
         n_leaves = max(1, len(self._leaf_codes))
-        import math
         self._kw_weight = {k: math.log(1 + n_leaves / v) for k, v in df.items()}
 
     # ----- construction -----
