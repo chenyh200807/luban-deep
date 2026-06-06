@@ -2127,6 +2127,22 @@ def _maybe_attach_textbook_knowledge(
         result_payload[KEY] = {"authority": KEY, "status": "unavailable",
                                "unavailable_reason": type(exc).__name__}
 
+    # Four-source teaching context (textbook + standard + lecture + question) for the SAME canonical
+    # node, from the verify-gated unified supply. TEACHING tier only (official scoring stays verbatim).
+    try:
+        from deeptutor.services.construction_grading.canonical_knowledge_runtime import (
+            resolve_canonical_knowledge,
+        )
+
+        four = resolve_canonical_knowledge(node, learner_context=learner_context)
+        if four is not None:
+            four["node_match"] = match_kind
+            result_payload["luban_canonical_knowledge"] = four
+    except Exception as exc:  # noqa: BLE001 — teaching lane must never break legacy
+        result_payload["luban_canonical_knowledge"] = {
+            "authority": "luban_canonical_knowledge", "status": "unavailable",
+            "unavailable_reason": type(exc).__name__}
+
 
 def _v1_llm_adjudication_dev_force_on() -> bool:
     """LOCAL TEST MODE ONLY: force v1 adjudication ON (bypass request-flag + cohort) when

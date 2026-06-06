@@ -56,15 +56,22 @@ def test_coverage_buckets(tmp_path):
     assert cov["leaves_question_no_knowledge"] == []  # the unclassified question doesn't create a leaf
 
 
-def test_build_unified_bundle_shape(tmp_path):
+def test_build_unified_bundle_shape_and_verify(tmp_path):
     t = _tax(tmp_path)
     r = KU.unify(t, _units())
     b = KU.build_unified_bundle(t, r)
-    assert b["schema"] == "luban_canonical_unified_knowledge.v1"
+    m = b["manifest"]
+    assert m["schema"] == "luban_canonical_unified_knowledge.v1"
+    assert m["namespace"] == KU.UNIFIED_NAMESPACE
+    assert m["official_score_allowed"] is False  # teaching tier, never answer-key
+    assert m["unclassified_count"] == 1
     n = b["nodes"]["1A412010-01"]
     assert n["counts"]["textbook"] == 1 and n["counts"]["standard"] == 1
     assert "水泥" in n["name_path"]
-    assert b["unclassified_count"] == 1
+    # verify-gated: holds as built, fails on tamper
+    assert KU.verify_unified_bundle(b) is True
+    b["nodes"]["1A412010-01"]["counts"]["textbook"] = 99
+    assert KU.verify_unified_bundle(b) is False
 
 
 def test_build_canonical_index_repins_records(tmp_path):

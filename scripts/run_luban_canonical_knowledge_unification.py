@@ -28,6 +28,7 @@ os.environ.setdefault("LANGFUSE_ENABLED", "false")
 
 _REPO = Path(__file__).resolve().parents[1]
 OUT = _REPO / "artifacts" / "luban_grading_artifacts" / "canonical_unified_knowledge_20260606"
+SUPPLY = _REPO / "deeptutor" / "services" / "construction_grading" / "runtime_supply" / "v_canonical_unified_knowledge"
 BUNDLE = _REPO / "deeptutor" / "services" / "construction_grading" / "runtime_supply" / "v_textbook_knowledge_full" / "textbook_knowledge_release_candidate.json"
 DATA = Path("/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026")
 TAX_PATH = DATA / "taxonomy" / "FINAL_CLEANED_TAXONOMY2026.json"
@@ -163,6 +164,15 @@ def run() -> dict[str, Any]:
 
     (OUT / "unified_knowledge_bundle.json").write_text(
         json.dumps(bundle, ensure_ascii=False, indent=2), "utf-8")
+    # persist as a tracked, verify-gated runtime supply so the tutor can pull four-source context.
+    if KU.verify_unified_bundle(bundle):
+        SUPPLY.mkdir(parents=True, exist_ok=True)
+        (SUPPLY / "canonical_unified_knowledge.json").write_text(
+            json.dumps(bundle, ensure_ascii=False, sort_keys=True, separators=(",", ":")), "utf-8")
+        (SUPPLY / "canonical_pointer.json").write_text(json.dumps(
+            {"namespace": KU.UNIFIED_NAMESPACE, "status": "release_candidate", "published": False,
+             "expected_content_hash": bundle["manifest"]["content_hash"],
+             "tier": "teaching_context_not_answer_key"}, ensure_ascii=False, indent=2), "utf-8")
     with (OUT / "unclassified_backlog.jsonl").open("w", encoding="utf-8") as fh:
         for u in result["unclassified"]:
             fh.write(json.dumps(u, ensure_ascii=False) + "\n")

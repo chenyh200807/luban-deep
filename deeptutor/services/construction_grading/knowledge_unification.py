@@ -92,9 +92,19 @@ def _coverage(tax: CanonicalTaxonomy, nodes: dict[str, dict[str, list]]) -> dict
     }
 
 
+UNIFIED_NAMESPACE = "canonical_unified_knowledge"
+
+
 def build_unified_bundle(tax: CanonicalTaxonomy, result: dict[str, Any]) -> dict[str, Any]:
-    """Shape the unify() result into a node-keyed bundle with human-readable name paths + per-node
-    source counts (the artifact runtime/reporting consume). Aggregation only — no signing here."""
+    """Shape the unify() result into a node-keyed, VERIFY-GATED bundle the runtime can consume.
+
+    Each canonical node aggregates its four sources + a human-readable name_path. The bundle is signed
+    with the same hash+signature pattern as the verbatim lanes (tamper -> fail-closed), but it is a
+    TEACHING-tier artifact: it aggregates already-signed textbook records (by ref) + standards/lectures
+    (teaching context) + questions (assessment); it is NEVER an answer-key authority and official
+    scoring stays verbatim-only. ``official_score_allowed`` is structurally False for this lane."""
+    from deeptutor.services.construction_grading.full_knowledge_compiler import _sha256_hex
+
     nodes_out: dict[str, Any] = {}
     for code, agg in result["nodes"].items():
         nodes_out[code] = {
@@ -102,9 +112,33 @@ def build_unified_bundle(tax: CanonicalTaxonomy, result: dict[str, Any]) -> dict
             "counts": {s: len(agg[s]) for s in ("textbook", "standard", "lecture", "question")},
             "sources": agg,
         }
-    return {"schema": "luban_canonical_unified_knowledge.v1", "nodes": nodes_out,
-            "coverage": result["coverage"], "stats": result["stats"],
-            "unclassified_count": len(result["unclassified"])}
+    content_hash = _sha256_hex(nodes_out)
+    manifest = {
+        "schema": "luban_canonical_unified_knowledge.v1",
+        "namespace": UNIFIED_NAMESPACE,
+        "status": "release_candidate",
+        "published": False,
+        "tier": "teaching_context_not_answer_key",
+        "official_score_allowed": False,
+        "canonical_taxonomy_version": "FINAL_CLEANED_TAXONOMY2026",
+        "node_count": len(nodes_out),
+        "coverage": result["coverage"],
+        "stats": result["stats"],
+        "unclassified_count": len(result["unclassified"]),
+        "content_hash": content_hash,
+        "signature": _sha256_hex([content_hash, UNIFIED_NAMESPACE, "release_candidate"]),
+    }
+    return {"manifest": manifest, "nodes": nodes_out}
+
+
+def verify_unified_bundle(bundle: dict[str, Any]) -> bool:
+    """Fail-closed: recompute content_hash over nodes + signature over (hash|namespace|status)."""
+    from deeptutor.services.construction_grading.full_knowledge_compiler import _sha256_hex
+    m = bundle.get("manifest") or {}
+    recomputed = _sha256_hex(bundle.get("nodes") or {})
+    if recomputed != m.get("content_hash"):
+        return False
+    return _sha256_hex([recomputed, m.get("namespace"), m.get("status")]) == m.get("signature")
 
 
 def build_canonical_index(tax: CanonicalTaxonomy, records: list[dict[str, Any]]) -> dict[str, Any]:

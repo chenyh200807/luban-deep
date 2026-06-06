@@ -39,10 +39,16 @@ def supply(tmp_path, monkeypatch):
         {"namespace": "textbook_knowledge_full", "status": "release_candidate", "published": False,
          "expected_content_hash": bundle["manifest"]["content_hash"]}), "utf-8")
     monkeypatch.setattr(RT, "_SUPPLY_DIR", d)
+    # keep the four-source canonical lane hermetic: point it at an empty dir so it falls through
+    # (its own behaviour is covered by test_canonical_knowledge_runtime).
+    from deeptutor.services.construction_grading import canonical_knowledge_runtime as CK
+    monkeypatch.setattr(CK, "_SUPPLY_DIR", tmp_path / "no_canonical")
+    CK._load.cache_clear()
     monkeypatch.delenv("LUBAN_TEXTBOOK_KNOWLEDGE_ENABLED", raising=False)
     RT._load_supply.cache_clear()
     yield
     RT._load_supply.cache_clear()
+    CK._load.cache_clear()
 
 
 def _ctx(*, flag, user_id="qa_t"):
