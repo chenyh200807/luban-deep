@@ -51,6 +51,29 @@ def _textbook_units() -> list[KU.Unit]:
     return out
 
 
+# Standards carry NO native node_code, so global-keyword classification mis-files them badly (adversarial
+# QA: ~all wrong). Each standard FILE is a single technical domain — anchor it to the canonical 施工技术
+# / 建筑设计 subtree where the textbook + questions on that topic ALSO live, so a standard clause
+# aggregates with its matching textbook/question on the SAME node. Keyword then refines within the
+# anchored subtree (anchor+keyword is QA-reliable).
+_STANDARD_ANCHORS: dict[str, str] = {
+    "GB55003": "1A413030", "GB+51004": "1A413030", "GB51004": "1A413030",  # 地基基础 -> 地基与基础工程施工
+    "JGJ120": "1A413020",                                                   # 基坑支护 -> 土石方工程施工
+    "GB+50207": "1A413050", "GB50207": "1A413050",                          # 屋面 -> 屋面与防水工程施工
+    "GB50210": "1A413060",                                                  # 装饰装修验收 -> 装饰装修工程施工
+    "GB50352": "1A411010",                                                  # 民用建筑设计 -> 建筑设计
+    "GB50354": "1A413060",                                                  # 内部装修防火 -> 装饰装修工程施工
+    "GBT51366": "1A437000",                                                 # 碳排放 -> 绿色建造
+}
+
+
+def _standard_anchor(filename: str) -> str:
+    for key, code in _STANDARD_ANCHORS.items():
+        if key in filename:
+            return code
+    return ""
+
+
 def _standard_units() -> list[KU.Unit]:
     out = []
     for f in sorted(glob.glob(str(DATA / "标准文件" / "*.json"))):
@@ -58,6 +81,7 @@ def _standard_units() -> list[KU.Unit]:
             d = json.loads(Path(f).read_text("utf-8"))
         except Exception:  # noqa: BLE001
             continue
+        anchor = _standard_anchor(Path(f).name)
         for cb in d.get("content_blocks") or []:
             sc = cb.get("source_context") or {}
             text = str(sc.get("origin_text") or "")
@@ -65,9 +89,10 @@ def _standard_units() -> list[KU.Unit]:
                 continue
             out.append(KU.Unit(
                 source="standard", unit_id=str(cb.get("id") or cb.get("chunk_id") or ""),
-                native_code="", authority_tier=KU.TIER_STANDARD, text=text,
+                native_code=anchor, authority_tier=KU.TIER_STANDARD, text=text,
                 provenance={"standard_code": sc.get("standard_code"), "article_id": sc.get("article_id"),
-                            "is_mandatory": sc.get("is_mandatory"), "node_type": cb.get("node_type")}))
+                            "is_mandatory": sc.get("is_mandatory"), "node_type": cb.get("node_type"),
+                            "anchor": anchor}))
     return out
 
 
