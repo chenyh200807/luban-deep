@@ -12,7 +12,9 @@ WeChat front end, while keeping evidence boundaries explicit.
 
 Always label each row with exactly one surface:
 
-- `real_wechat_package`: `yousenwebview/packageDeeptutor` in WeChat DevTools or real device.
+- `real_wechat_package`: `yousenwebview` opened as the WeChat DevTools
+  project root, exercising the `packageDeeptutor` subpackage pages, or a real
+  device.
 - `near_real_http_ws`: WeChat-shaped `/api/v1/chat/start-turn` plus `/api/v1/ws`, not DevTools.
 - `wechat_harness_shadow`: web `/wechat-harness` visible-behavior QA.
 - `standalone_shadow`: `wx_miniprogram` shadow package or render-contract auxiliary surface.
@@ -30,8 +32,8 @@ manual GUI control:
 ```bash
 WX_DEVTOOLS_CLI=/Applications/wechatwebdevtools.app/Contents/MacOS/cli
 $WX_DEVTOOLS_CLI islogin
-$WX_DEVTOOLS_CLI open --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/yousenwebview/packageDeeptutor --lang zh
-$WX_DEVTOOLS_CLI auto --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/yousenwebview/packageDeeptutor --auto-port 9420
+$WX_DEVTOOLS_CLI open --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/yousenwebview --lang zh
+$WX_DEVTOOLS_CLI auto --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/yousenwebview --auto-port 9420
 ```
 
 Keep `entry_surface` as `real_wechat_package` for the primary package, and put
@@ -41,6 +43,9 @@ the mechanism in `trace source` such as `devtools_cli_open`,
 CLI evidence rules:
 
 - `islogin` is only an environment preflight.
+- `--project` must point to the `yousenwebview` project root. Do not open
+  `yousenwebview/packageDeeptutor` as a DevTools project; it is the target
+  subpackage surface inside the project.
 - `open --project` is only a project-open preflight until a page/scenario is
   actually exercised.
 - `auto --project` only counts as automation evidence when an automator/Minium

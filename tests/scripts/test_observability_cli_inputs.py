@@ -622,7 +622,8 @@ def test_run_observability_daily_cli_writes_end_to_end_control_plane_runs(tmp_pa
         "expected_task=python scripts/run_readiness_check.py --check-id wechat_devtools" in item
         for item in wechat_devtools["evidence"]
     )
-    assert any("project_path=yousenwebview/packageDeeptutor" in item for item in wechat_devtools["evidence"])
+    assert any("project_path=yousenwebview" in item for item in wechat_devtools["evidence"])
+    assert any("target_subpackage=packageDeeptutor" in item for item in wechat_devtools["evidence"])
     run_history = DAILY_OBSERVABILITY_MODULE.build_daily_run_history(store_dir=store_dir)
     assert run_history["summary"]["total"] >= 4
 

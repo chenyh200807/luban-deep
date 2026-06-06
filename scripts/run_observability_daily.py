@@ -54,14 +54,15 @@ SURFACE_READINESS_CHECKS = (
     ("playwright", "Playwright"),
     ("wechat_devtools", "微信 DevTools"),
 )
-WECHAT_DEVTOOLS_PRIMARY_PACKAGE = "yousenwebview/packageDeeptutor"
+WECHAT_DEVTOOLS_PROJECT_ROOT = "yousenwebview"
+WECHAT_DEVTOOLS_TARGET_SUBPACKAGE = "packageDeeptutor"
 
 
 def _surface_readiness_missing_summary(check_id: str, label: str) -> str:
     if check_id == "wechat_devtools":
         return (
             f"{label} readiness evidence missing for current release: run the daily "
-            f"DevTools CLI smoke against {WECHAT_DEVTOOLS_PRIMARY_PACKAGE}"
+            f"DevTools CLI smoke against {WECHAT_DEVTOOLS_PROJECT_ROOT}"
         )
     return f"{label} readiness evidence missing for current release"
 
@@ -82,7 +83,8 @@ def _surface_readiness_missing_evidence(
                 "expected_task=python scripts/run_readiness_check.py --check-id wechat_devtools --report-only",
                 "default_smoke=python scripts/run_wechat_devtools_daily_smoke.py",
                 "entry_surface=real_wechat_package",
-                f"project_path={WECHAT_DEVTOOLS_PRIMARY_PACKAGE}",
+                f"project_path={WECHAT_DEVTOOLS_PROJECT_ROOT}",
+                f"target_subpackage={WECHAT_DEVTOOLS_TARGET_SUBPACKAGE}",
                 "coverage_targets=container,project_config,page_stack,network_baseURL,WS,cache,login",
                 "boundary=islogin/open are preflight until page scenario or automator evidence exists",
             ]

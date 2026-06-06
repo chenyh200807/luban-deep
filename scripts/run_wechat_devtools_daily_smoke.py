@@ -16,7 +16,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEVTOOLS_CLI = Path(
     os.environ.get("WX_DEVTOOLS_CLI") or "/Applications/wechatwebdevtools.app/Contents/MacOS/cli"
 )
-DEFAULT_PROJECT_PATH = PROJECT_ROOT / "yousenwebview" / "packageDeeptutor"
+DEFAULT_PROJECT_PATH = PROJECT_ROOT / "yousenwebview"
+TARGET_SUBPACKAGE = "packageDeeptutor"
 RUNTIME_BASE_CONTRACT = PROJECT_ROOT / "yousenwebview" / "tests" / "test_app_runtime_base_selection.js"
 
 
@@ -86,6 +87,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             "entry_surface": "real_wechat_package",
             "trace_source": "devtools_cli_open",
             "project_path": str(project_path),
+            "target_subpackage": TARGET_SUBPACKAGE,
             "error": f"WeChat DevTools CLI not found: {DEVTOOLS_CLI}",
             "coverage_targets": _coverage_targets(),
         }
@@ -97,6 +99,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             "entry_surface": "real_wechat_package",
             "trace_source": "devtools_cli_open",
             "project_path": str(project_path),
+            "target_subpackage": TARGET_SUBPACKAGE,
             "error": f"WeChat project path not found: {project_path}",
             "coverage_targets": _coverage_targets(),
         }
@@ -151,6 +154,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "entry_surface": "real_wechat_package",
         "trace_source": "devtools_cli_open",
         "project_path": str(project_path),
+        "target_subpackage": TARGET_SUBPACKAGE,
         "devtools_cli": str(DEVTOOLS_CLI),
         "coverage_targets": _coverage_targets(),
         "evidence_boundary": (

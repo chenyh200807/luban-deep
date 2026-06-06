@@ -18,7 +18,8 @@ from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEVTOOLS_CLI = Path("/Applications/wechatwebdevtools.app/Contents/MacOS/cli")
-DEFAULT_DEVTOOLS_PROJECT_PATH = PROJECT_ROOT / "yousenwebview" / "packageDeeptutor"
+DEFAULT_DEVTOOLS_PROJECT_PATH = PROJECT_ROOT / "yousenwebview"
+DEFAULT_DEVTOOLS_TARGET_SUBPACKAGE = "packageDeeptutor"
 
 
 def _request_json(
@@ -91,6 +92,7 @@ def _open_devtools(project_path: Path) -> dict[str, Any]:
         "entry_surface": "real_wechat_package",
         "trace_source": "devtools_cli_open",
         "project_path": str(project_path),
+        "target_subpackage": DEFAULT_DEVTOOLS_TARGET_SUBPACKAGE,
         "islogin_returncode": login.returncode,
         "islogin_stdout": (login.stdout or "").strip(),
         "open_returncode": opened.returncode,

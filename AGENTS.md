@@ -178,7 +178,7 @@ CLI 路径固定为：
 默认执行梯度：
 
 1. 先跑 `/wechat-harness`、node contract、backend harness 等快速检查，覆盖可见行为和确定性 contract。
-2. 再用 DevTools CLI 打开主微信包 `yousenwebview/packageDeeptutor`，只把实际打开并执行过场景的结果记为 `real_wechat_package` 证据。
+2. 再用 DevTools CLI 打开微信项目根 `yousenwebview`，并进入 / 编译其中的 `packageDeeptutor` 分包页面；只把实际打开并执行过场景的结果记为 `real_wechat_package` 证据。
 3. 只有涉及真机特有风险、发布前验证、授权/登录/网络环境差异、或用户明确要求时，再补真机/线上小程序。
 
 推荐命令：
@@ -186,14 +186,15 @@ CLI 路径固定为：
 ```bash
 WX_DEVTOOLS_CLI=/Applications/wechatwebdevtools.app/Contents/MacOS/cli
 $WX_DEVTOOLS_CLI islogin
-$WX_DEVTOOLS_CLI open --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/yousenwebview/packageDeeptutor --lang zh
-$WX_DEVTOOLS_CLI auto --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/yousenwebview/packageDeeptutor --auto-port 9420
+$WX_DEVTOOLS_CLI open --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/yousenwebview --lang zh
+$WX_DEVTOOLS_CLI auto --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/yousenwebview --auto-port 9420
 ```
 
 证据边界：
 
 - `islogin` 只证明微信开发者工具登录态可用，不证明项目打开、页面渲染、网络链路或 TutorBot 对话通过。
 - `open --project` 只证明项目可被 DevTools 打开；必须跑到具体页面、操作或自动化脚本，才能写 `real_wechat_package` pass。
+- `--project` 必须指向 `yousenwebview` 项目根，不得指向 `yousenwebview/packageDeeptutor`；`packageDeeptutor` 是分包验收目标，不是 DevTools project root。
 - `auto --project ... --auto-port ...` 可作为 miniprogram-automator / Minium 的入口；只有脚本实际驱动页面并记录结果，才算自动化证据。
 - `/wechat-harness`、`wx_miniprogram`、backend harness、node contract 仍不能替代 `yousenwebview/packageDeeptutor` 的主微信入口 closure。
 - 如果为了不打扰用户环境没有执行 DevTools project-open / auto，最终结论必须写 `partial` 或 `true-entry pending`，不能把 Web/contract 绿灯说成真微信入口 PASS。
