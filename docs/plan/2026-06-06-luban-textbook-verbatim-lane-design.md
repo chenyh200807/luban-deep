@@ -64,15 +64,21 @@ These are the load-bearing corrections from the adversarial premortem. Each is a
 
 OUT OF SCOPE (separate authorization): publish, production default, canonical learner-truth write, remote/DB write, the human-gate review pass, the `verified_paraphrase` bucket.
 
-## 6. Live closure (2026-06-06, GO)
+## 6. Closure (2026-06-06, GO) — best-model build-phase compile
 
-The full 650-block compile ran in both modes; both verify `verify_lane_bundle` + an INDEPENDENT verbatim audit (every signed point re-checked against its block's content_markdown) with `quote_not_in_corpus=0`, `key_number_not_in_corpus=0`, `verbatim_rate_ok=true`, all 14 hard gates GO.
+**Model-tier correction (the key principle):** knowledge compilation is a BUILD-PHASE, one-time, high-stakes task — "compile once with the best model, sign it, reuse forever; the cheap production model (DeepSeek/Qwen) is for runtime adjudication at scale, not for compilation." The first live pass mistakenly used DeepSeek (the production-cost model) to PROPOSE spans. Corrected: the build-phase compile uses the **top expert council — Opus 4.8 (primary, 47 parallel agents) + Codex GPT5.5 (second model / rescue + adversarial audit)**. Span proposal is decoupled from signing: the top model proposes spans offline; the deterministic signer re-verifies EVERY span against the corpus, so the proposer can never bypass provenance.
 
-| Mode | Signed | % of 1309 | textbook_authority | machine_spec | textbook_concept | work_order backlog | concept quote median |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| Deterministic ($0, 0.45s) | 984 | 75.2% | 321 | 385 | 278 | 325 | 9 chars |
-| **DeepSeek live (~$0.3)** | **1226** | **93.7%** | 599 | 107 | 520 | **83** | **54 chars** |
+Every mode verifies `verify_lane_bundle` + an INDEPENDENT verbatim audit (every signed point re-checked against its block's content_markdown): `quote_not_in_corpus=0`, `key_number_not_in_corpus=0`, `verbatim_rate_ok=true`, all 14 hard gates GO.
 
-The live pass rescued **+242 cards** (synthesis backlog 324→83) by finding verbatim spans the deterministic clause-splitter missed (clause-misaligned substrings — this is the human-gate expansion ②), and upgraded short fragments to full verbatim sentences (quality ①; machine_spec→textbook_authority because cards gained a full verbatim clause alongside their numbers). **The LLM is in the loop but provenance is unchanged: it only proposes; the deterministic signer re-verifies every span against the corpus, so all 1226 signed points remain cryptographically verbatim — zero laundering.** The tracked supply `runtime_supply/v_textbook_knowledge_full/` carries the live (1226-point) bundle.
+| Span proposer | Signed | % of 1309 | backlog | note |
+|---|---:|---:|---:|---|
+| Deterministic ($0, 0.45s) | 984 | 75.2% | 325 | clause-level substring only |
+| DeepSeek live (production-cost; mis-applied to build phase) | 1226 | 93.7% | 83 | concept span median 9→54 chars |
+| Opus 4.8 build-phase (47 agents) | 1293 | 98.8% | 16 | full claim-bearing sentences |
+| **Opus 4.8 + Codex GPT5.5 council** | **1303** | **99.5%** | **6** | Codex rescued 10/16 Opus misses |
+
+**Council cross-validation (the top-tier safety signal):** Codex GPT5.5 independently audited a 12-span sample of the Opus extraction — **verbatim 12/12, good_span 12/12** (two top models agree 100%). Codex also rescued **10 of the 16** cards Opus + deterministic both missed (all 10 re-verified verbatim). Final: **1303/1309 (99.5%) signed with cryptographic verbatim provenance, 6 genuine pure-synthesis cards in the named backlog, zero laundering with two LLMs in the loop.** The tracked supply `runtime_supply/v_textbook_knowledge_full/` carries the 1303-point council bundle.
+
+**Mechanism:** `textbook_knowledge_worker` gained `precomputed_spans` (top-model spans injected, re-verified) + `make_precomputed_worker`; the runner gained `--spans`. Proposal priority: top-model precomputed → deterministic clause → cheap-LLM enrichment (production path). The deterministic signer is unchanged — it is the sole provenance authority regardless of proposer.
 
 Runtime consumption (③) is wired: `textbook_knowledge_runtime.resolve_textbook_knowledge(node_code)` loads the signed pack through the resolver's four gates and a turn with a node_code gets verbatim teaching/source context via the gated `deep_question._maybe_attach_textbook_knowledge` hook (flag `grading_engine_textbook_knowledge` + env kill + cohort, default OFF). Authority is the server `grant_release` kwarg only (F1).
