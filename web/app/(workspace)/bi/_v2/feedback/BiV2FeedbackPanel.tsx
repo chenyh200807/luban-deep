@@ -2,17 +2,24 @@
 'use client'
 
 import {
+  Activity,
+  BarChart3,
+  ChevronRight,
   CheckCircle2,
   ClipboardList,
   Download,
   Filter,
   Eye,
+  Gauge,
   Image as ImageIcon,
+  ListChecks,
   Mail,
   MapPin,
   MessageSquareWarning,
+  MousePointerClick,
   Pencil,
   Phone,
+  PieChart,
   RefreshCw,
   Search,
   ShieldCheck,
@@ -230,6 +237,7 @@ export type BiV2FeedbackPanelProps = {
 export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
   const [workspaceView, setWorkspaceView] =
     useState<FeedbackWorkspaceView>(readFeedbackWorkspaceView)
+  const [detailView, setDetailView] = useState<FeedbackWorkspaceView | null>(null)
   const [filter, setFilter] = useState<Filter>(DEFAULT_FILTER)
   const [groupByOwner, setGroupByOwner] = useState(false)
   const [payload, setPayload] = useState<BiFeedbackPayload | null>(null)
@@ -389,6 +397,19 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
 
   function switchWorkspaceView(next: FeedbackWorkspaceView) {
     setWorkspaceView(next)
+    setDetailView(null)
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href)
+      url.searchParams.set('tab', 'feedback')
+      if (next === 'feedback') url.searchParams.delete('panel')
+      else url.searchParams.set('panel', next)
+      window.history.replaceState(null, '', url)
+    }
+  }
+
+  function revealWorkspaceDetails(next: FeedbackWorkspaceView = workspaceView) {
+    setWorkspaceView(next)
+    setDetailView(next)
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href)
       url.searchParams.set('tab', 'feedback')
@@ -800,134 +821,154 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
         onSelect={switchWorkspaceView}
       />
 
+      <FeedbackCommandBoard
+        current={workspaceView}
+        feedbackCounts={counts}
+        feedbackItems={items}
+        inviteStats={inviteStats}
+        inviteTotal={inviteTotal}
+        inviteApplications={inviteApplications}
+        lubanStats={lubanStats}
+        lubanTotal={lubanTotal}
+        lubanResponses={lubanResponses}
+        onSelect={switchWorkspaceView}
+        onReveal={revealWorkspaceDetails}
+      />
+
       {workspaceView === 'feedback' ? (
         <>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-            <Tile label="全部" value={counts.total} hint={feedbackWindowHint()} />
-            <Tile label="待处理" value={counts.open} tone="amber" hint="P0 优先处理" />
-            <Tile label="已看" value={counts.triaged} tone="sky" hint="派单工作流待接入" />
-            <Tile label="已忽略" value={counts.ignored} tone="slate" hint="带 audit 说明" />
-          </div>
+          <FeedbackInsightDeck
+            counts={counts}
+            items={items}
+            loading={loading}
+            error={error}
+            showDetails={detailView === 'feedback'}
+            onRevealDetails={() => revealWorkspaceDetails('feedback')}
+          />
 
-          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.035] p-2 text-xs text-slate-300">
-            <label className="inline-flex items-center gap-1 font-bold">
-              状态
-              <BiSelect
-                value={filter.status}
-                onChange={e => setFilter({ ...filter, status: e.target.value as Filter['status'] })}
-                className="h-8"
-                aria-label="按状态筛选反馈"
-              >
-                <option value="">全部</option>
-                <option value="open">待处理</option>
-                <option value="triaged">已看</option>
-                <option value="ignored">已忽略</option>
-              </BiSelect>
-            </label>
-            <label className="inline-flex items-center gap-1 font-bold">
-              来源
-              <BiSelect
-                value={filter.source}
-                onChange={e => setFilter({ ...filter, source: e.target.value as Filter['source'] })}
-                className="h-8"
-                aria-label="按来源筛选反馈"
-              >
-                <option value="">全部</option>
-                <option value="ai_message">AI 消息反馈</option>
-                <option value="invite_test">内测申请</option>
-                <option value="member_note">运营备注</option>
-              </BiSelect>
-            </label>
-            <label className="inline-flex items-center gap-1 font-bold">
-              owner
-              <BiSelect
-                value={filter.owner}
-                onChange={e => setFilter({ ...filter, owner: e.target.value as Filter['owner'] })}
-                className="h-8"
-                aria-label="按 owner 筛选反馈"
-              >
-                <option value="">全部</option>
-                <option value="quality">AI 质量</option>
-                <option value="growth">增长</option>
-                <option value="ops">运营</option>
-                <option value="product">产品</option>
-              </BiSelect>
-            </label>
-            <button
-              type="button"
-              onClick={() => setGroupByOwner(v => !v)}
-              aria-pressed={groupByOwner}
-              className={`h-8 rounded-xl border px-3 text-xs font-black ${
-                groupByOwner
-                  ? 'border-cyan-300/30 bg-cyan-300/15 text-cyan-100'
-                  : 'border-white/10 text-slate-300 hover:bg-white/[0.06]'
-              }`}
-            >
-              {groupByOwner ? '取消 owner 分组' : '按 owner 分组'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilter(DEFAULT_FILTER)}
-              className="ml-auto h-8 rounded-xl px-2 text-xs font-bold text-slate-400 hover:bg-white/[0.06] hover:text-slate-100"
-              aria-label="清空反馈筛选"
-            >
-              清空筛选
-            </button>
-          </div>
-
-          {!groupByOwner ? (
-            <BiDataTable<FeedbackItem>
-              columns={columns}
-              rows={filtered}
-              rowKey={i => i.id}
-              status={
-                loading
-                  ? 'loading'
-                  : error
-                    ? 'error'
-                    : filtered.length === 0
-                      ? items.length === 0
-                        ? 'empty'
-                        : 'no-results'
-                      : 'ok'
-              }
-              errorMessage={error}
-              emptyTitle="暂无反馈"
-              emptyHint={
-                flagEnabled
-                  ? '当前窗口内没有 ai_feedback 记录。'
-                  : '开启 BI_FEEDBACK_V2_ENABLED 后读取真实反馈。'
-              }
-              rowAction={renderFeedbackActions}
-            />
-          ) : (
-            <div className="space-y-4">
-              {grouped.length === 0 ? (
-                <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 text-center text-xs text-slate-400">
-                  {loading ? '加载反馈中…' : error || '当前筛选下无反馈'}
-                </div>
-              ) : null}
-              {grouped.map(([owner, list]) => (
-                <article
-                  key={owner}
-                  className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] shadow-lg shadow-black/10"
+          {detailView === 'feedback' ? (
+            <>
+              <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.035] p-2 text-xs text-slate-300">
+                <label className="inline-flex items-center gap-1 font-bold">
+                  状态
+                  <BiSelect
+                    value={filter.status}
+                    onChange={e => setFilter({ ...filter, status: e.target.value as Filter['status'] })}
+                    className="h-8"
+                    aria-label="按状态筛选反馈"
+                  >
+                    <option value="">全部</option>
+                    <option value="open">待处理</option>
+                    <option value="triaged">已看</option>
+                    <option value="ignored">已忽略</option>
+                  </BiSelect>
+                </label>
+                <label className="inline-flex items-center gap-1 font-bold">
+                  来源
+                  <BiSelect
+                    value={filter.source}
+                    onChange={e => setFilter({ ...filter, source: e.target.value as Filter['source'] })}
+                    className="h-8"
+                    aria-label="按来源筛选反馈"
+                  >
+                    <option value="">全部</option>
+                    <option value="ai_message">AI 消息反馈</option>
+                    <option value="invite_test">内测申请</option>
+                    <option value="member_note">运营备注</option>
+                  </BiSelect>
+                </label>
+                <label className="inline-flex items-center gap-1 font-bold">
+                  owner
+                  <BiSelect
+                    value={filter.owner}
+                    onChange={e => setFilter({ ...filter, owner: e.target.value as Filter['owner'] })}
+                    className="h-8"
+                    aria-label="按 owner 筛选反馈"
+                  >
+                    <option value="">全部</option>
+                    <option value="quality">AI 质量</option>
+                    <option value="growth">增长</option>
+                    <option value="ops">运营</option>
+                    <option value="product">产品</option>
+                  </BiSelect>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setGroupByOwner(v => !v)}
+                  aria-pressed={groupByOwner}
+                  className={`h-8 rounded-xl border px-3 text-xs font-black ${
+                    groupByOwner
+                      ? 'border-cyan-300/30 bg-cyan-300/15 text-cyan-100'
+                      : 'border-white/10 text-slate-300 hover:bg-white/[0.06]'
+                  }`}
                 >
-                  <header className="flex items-center justify-between border-b border-white/10 px-3 py-2 text-xs">
-                    <h3 className="font-black text-slate-100">
-                      {OWNER_LABELS[owner]} · {list.length}
-                    </h3>
-                  </header>
-                  <BiDataTable<FeedbackItem>
-                    columns={columns}
-                    rows={list}
-                    rowKey={i => i.id}
-                    status="ok"
-                    rowAction={renderFeedbackActions}
-                  />
-                </article>
-              ))}
-            </div>
-          )}
+                  {groupByOwner ? '取消 owner 分组' : '按 owner 分组'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFilter(DEFAULT_FILTER)}
+                  className="ml-auto h-8 rounded-xl px-2 text-xs font-bold text-slate-400 hover:bg-white/[0.06] hover:text-slate-100"
+                  aria-label="清空反馈筛选"
+                >
+                  清空筛选
+                </button>
+              </div>
+
+              {!groupByOwner ? (
+                <BiDataTable<FeedbackItem>
+                  columns={columns}
+                  rows={filtered}
+                  rowKey={i => i.id}
+                  status={
+                    loading
+                      ? 'loading'
+                      : error
+                        ? 'error'
+                        : filtered.length === 0
+                          ? items.length === 0
+                            ? 'empty'
+                            : 'no-results'
+                          : 'ok'
+                  }
+                  errorMessage={error}
+                  emptyTitle="暂无反馈"
+                  emptyHint={
+                    flagEnabled
+                      ? '当前窗口内没有 ai_feedback 记录。'
+                      : '开启 BI_FEEDBACK_V2_ENABLED 后读取真实反馈。'
+                  }
+                  rowAction={renderFeedbackActions}
+                />
+              ) : (
+                <div className="space-y-4">
+                  {grouped.length === 0 ? (
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 text-center text-xs text-slate-400">
+                      {loading ? '加载反馈中…' : error || '当前筛选下无反馈'}
+                    </div>
+                  ) : null}
+                  {grouped.map(([owner, list]) => (
+                    <article
+                      key={owner}
+                      className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] shadow-lg shadow-black/10"
+                    >
+                      <header className="flex items-center justify-between border-b border-white/10 px-3 py-2 text-xs">
+                        <h3 className="font-black text-slate-100">
+                          {OWNER_LABELS[owner]} · {list.length}
+                        </h3>
+                      </header>
+                      <BiDataTable<FeedbackItem>
+                        columns={columns}
+                        rows={list}
+                        rowKey={i => i.id}
+                        status="ok"
+                        rowAction={renderFeedbackActions}
+                      />
+                    </article>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : null}
 
           <aside className="rounded-2xl border border-cyan-300/20 bg-cyan-300/10 p-4 text-xs text-slate-300">
             <div className="flex items-center gap-2 font-black text-cyan-100">
@@ -961,6 +1002,8 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
           exporting={inviteExporting}
           exportNotice={inviteExportNotice}
           exportError={inviteExportError}
+          showDetails={detailView === 'invite-test'}
+          onRevealDetails={() => revealWorkspaceDetails('invite-test')}
         />
       ) : (
         <LubanFeedbackPanel
@@ -980,6 +1023,8 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
           exporting={lubanExporting}
           exportNotice={lubanExportNotice}
           exportError={lubanExportError}
+          showDetails={detailView === 'luban-feedback'}
+          onRevealDetails={() => revealWorkspaceDetails('luban-feedback')}
         />
       )}
       <FeedbackDetailPanel item={selectedFeedback} onClose={() => setSelectedFeedback(null)} />
@@ -1140,6 +1185,543 @@ function FeedbackWorkspaceSwitcher({
   )
 }
 
+type FeedbackCounts = {
+  total: number
+  open: number
+  triaged: number
+  ignored: number
+}
+
+type ChartDatum = {
+  label: string
+  count: number
+  raw?: string
+}
+
+type InsightTone = 'slate' | 'cyan' | 'emerald' | 'amber' | 'rose' | 'sky'
+
+const INSIGHT_TONE_CLASS: Record<InsightTone, string> = {
+  slate: 'border-white/10 bg-white/[0.045]',
+  cyan: 'border-cyan-300/20 bg-cyan-300/10',
+  emerald: 'border-emerald-300/20 bg-emerald-300/10',
+  amber: 'border-amber-300/20 bg-amber-300/10',
+  rose: 'border-rose-300/20 bg-rose-300/10',
+  sky: 'border-sky-300/20 bg-sky-300/10',
+}
+
+function FeedbackCommandBoard({
+  current,
+  feedbackCounts,
+  feedbackItems,
+  inviteStats,
+  inviteTotal,
+  inviteApplications,
+  lubanStats,
+  lubanTotal,
+  lubanResponses,
+  onSelect,
+  onReveal,
+}: {
+  current: FeedbackWorkspaceView
+  feedbackCounts: FeedbackCounts
+  feedbackItems: FeedbackItem[]
+  inviteStats: BiInviteTestStats | null
+  inviteTotal: number
+  inviteApplications: BiInviteTestApplication[]
+  lubanStats: BiLubanFeedbackStats | null
+  lubanTotal: number
+  lubanResponses: BiLubanFeedbackResponse[]
+  onSelect: (next: FeedbackWorkspaceView) => void
+  onReveal: (next: FeedbackWorkspaceView) => void
+}) {
+  const inviteSummary = summarizeVisibleInviteApplications(inviteApplications)
+  const inviteCount = inviteStats?.summary.total_applications ?? inviteTotal
+  const lubanCount = lubanStats?.summary.total_responses ?? lubanTotal
+  const lubanHighIntent = lubanResponses.filter(item =>
+    ['very_willing', 'ok'].includes(item.revisit_willingness)
+  ).length
+  const moduleItems: Array<{
+    key: FeedbackWorkspaceView
+    label: string
+    value: number
+    subtitle: string
+    tone: InsightTone
+    icon: ReactNode
+    chart: ChartDatum[]
+  }> = [
+    {
+      key: 'feedback',
+      label: 'AI 消息反馈',
+      value: feedbackCounts.total,
+      subtitle: `${feedbackWindowHint()} · 待处理 ${formatCount(feedbackCounts.open)}`,
+      tone: 'cyan',
+      icon: <MessageSquareWarning className="h-4 w-4" aria-hidden />,
+      chart: feedbackSourceChart(feedbackItems),
+    },
+    {
+      key: 'invite-test',
+      label: '内测申请',
+      value: inviteCount,
+      subtitle: `愿意回访 ${formatRate(inviteStats?.summary.accept_interview_rate ?? inviteSummary.acceptInterviewRate)}`,
+      tone: 'amber',
+      icon: <ClipboardList className="h-4 w-4" aria-hidden />,
+      chart: (inviteStats?.status_breakdown ?? []).slice(0, 4).map(item => ({
+        label: inviteStatusLabel(item.status),
+        count: item.count,
+      })),
+    },
+    {
+      key: 'luban-feedback',
+      label: '内测回访',
+      value: lubanCount,
+      subtitle: `NPS ${formatCount(lubanStats?.summary.nps_score ?? 0)} · 高意向 ${formatCount(lubanHighIntent)}`,
+      tone: 'emerald',
+      icon: <Gauge className="h-4 w-4" aria-hidden />,
+      chart: (lubanStats?.revisit_willingness_breakdown ?? []).slice(0, 4).map(item => ({
+        label: lubanLabel(LUBAN_REVISIT_LABELS, item.revisit_willingness),
+        count: item.count,
+      })),
+    },
+  ]
+  const total = Math.max(1, feedbackCounts.total + inviteCount + lubanCount)
+
+  return (
+    <section className="overflow-hidden rounded-3xl border border-white/10 bg-[#10192f] shadow-xl shadow-black/20">
+      <div className="grid gap-0 xl:grid-cols-[minmax(0,1fr)_280px]">
+        <div className="p-4 md:p-5">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <div className="flex items-center gap-2 text-xs font-black text-cyan-200">
+                <Activity className="h-4 w-4" aria-hidden />
+                Chart-first feedback intelligence
+              </div>
+              <h2 className="mt-2 text-2xl font-black text-white">反馈中心 · 先看图表，再点开明细</h2>
+              <p className="mt-1 max-w-3xl text-xs leading-5 text-slate-400">
+                AI 消息反馈、内测申请、内测回访分别保留各自 authority；这里仅做图表投影和运营下钻，不把列表当首屏。
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => onReveal(current)}
+              className="inline-flex h-10 items-center justify-center gap-1.5 rounded-2xl border border-cyan-300/25 bg-cyan-300/10 px-3 text-xs font-black text-cyan-100 hover:bg-cyan-300/16"
+            >
+              <MousePointerClick className="h-3.5 w-3.5" aria-hidden />
+              查看当前明细
+            </button>
+          </div>
+
+          <div className="mt-5 grid grid-cols-1 gap-3 lg:grid-cols-3">
+            {moduleItems.map(item => (
+              <SourceInsightCard
+                key={item.key}
+                active={current === item.key}
+                label={item.label}
+                value={item.value}
+                subtitle={item.subtitle}
+                tone={item.tone}
+                icon={item.icon}
+                chart={item.chart}
+                onSelect={() => onSelect(item.key)}
+                onReveal={() => onReveal(item.key)}
+              />
+            ))}
+          </div>
+        </div>
+
+        <aside className="border-t border-white/10 bg-white/[0.035] p-4 xl:border-l xl:border-t-0">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <div className="text-[11px] font-black uppercase text-slate-500">三类数据占比</div>
+              <div className="mt-1 text-2xl font-black tabular-nums text-white">
+                {formatCount(feedbackCounts.total + inviteCount + lubanCount)}
+              </div>
+            </div>
+            <PieChart className="h-5 w-5 text-cyan-300" aria-hidden />
+          </div>
+          <div className="mt-4 space-y-3">
+            {moduleItems.map(item => (
+              <button
+                key={`${item.key}-mix`}
+                type="button"
+                onClick={() => onSelect(item.key)}
+                className="w-full text-left"
+                aria-label={`查看${item.label}图表`}
+              >
+                <div className="mb-1 flex items-center justify-between gap-2 text-xs">
+                  <span className="font-bold text-slate-300">{item.label}</span>
+                  <span className="font-black tabular-nums text-white">
+                    {formatRate(item.value / total)}
+                  </span>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                  <div
+                    className={chartFillClass(item.tone)}
+                    style={{ width: `${Math.max(3, (item.value / total) * 100)}%` }}
+                    aria-hidden
+                  />
+                </div>
+              </button>
+            ))}
+          </div>
+        </aside>
+      </div>
+    </section>
+  )
+}
+
+function SourceInsightCard({
+  active,
+  label,
+  value,
+  subtitle,
+  tone,
+  icon,
+  chart,
+  onSelect,
+  onReveal,
+}: {
+  active: boolean
+  label: string
+  value: number
+  subtitle: string
+  tone: InsightTone
+  icon: ReactNode
+  chart: ChartDatum[]
+  onSelect: () => void
+  onReveal: () => void
+}) {
+  return (
+    <article
+      className={`rounded-2xl border p-3 transition ${
+        active ? `${INSIGHT_TONE_CLASS[tone]} shadow-lg shadow-black/20` : 'border-white/10 bg-white/[0.035]'
+      }`}
+    >
+      <button type="button" onClick={onSelect} className="block w-full text-left">
+        <span className="flex items-center justify-between gap-2">
+          <span className="inline-flex items-center gap-2 text-xs font-black text-slate-200">
+            <span className="grid h-8 w-8 place-items-center rounded-xl border border-white/10 bg-white/10 text-cyan-200">
+              {icon}
+            </span>
+            {label}
+          </span>
+          <ChevronRight className="h-4 w-4 text-slate-500" aria-hidden />
+        </span>
+        <span className="mt-3 block text-3xl font-black tabular-nums text-white">
+          {formatCount(value)}
+        </span>
+        <span className="mt-1 block text-[11px] font-bold text-slate-400">{subtitle}</span>
+      </button>
+      <MiniBarChart
+        className="mt-3"
+        items={chart}
+        maxItems={3}
+        tone={tone}
+        compact
+        onSelect={onReveal}
+      />
+    </article>
+  )
+}
+
+function FeedbackInsightDeck({
+  counts,
+  items,
+  loading,
+  error,
+  showDetails,
+  onRevealDetails,
+}: {
+  counts: FeedbackCounts
+  items: FeedbackItem[]
+  loading: boolean
+  error: string
+  showDetails: boolean
+  onRevealDetails: () => void
+}) {
+  const statusItems = [
+    { label: '待处理', count: counts.open },
+    { label: '已分诊', count: counts.triaged },
+    { label: '已忽略', count: counts.ignored },
+  ]
+  return (
+    <section className="space-y-4">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+        <Tile label="全部反馈" value={counts.total} hint={feedbackWindowHint()} />
+        <Tile label="待处理" value={counts.open} tone="amber" hint="P0 优先处理" />
+        <Tile label="已分诊" value={counts.triaged} tone="sky" hint="分诊写入 audit" />
+        <Tile label="已忽略" value={counts.ignored} tone="slate" hint="带处理说明" />
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        <ChartSurface
+          title="处理状态分布"
+          subtitle={loading ? '正在读取 ai_feedback' : error || '点击图表查看反馈样本'}
+          icon={<PieChart className="h-4 w-4" aria-hidden />}
+          actionLabel="查看反馈明细"
+          onAction={onRevealDetails}
+        >
+          <StackedDistribution
+            items={statusItems}
+            total={Math.max(1, counts.total)}
+            tone="cyan"
+            onSelect={onRevealDetails}
+          />
+        </ChartSurface>
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <ChartSurface
+            title="来源占比"
+            subtitle="AI 消息 / 申请备注 / 运营记录"
+            icon={<BarChart3 className="h-4 w-4" aria-hidden />}
+          >
+            <MiniBarChart items={feedbackSourceChart(items)} tone="cyan" onSelect={onRevealDetails} />
+          </ChartSurface>
+          <ChartSurface
+            title="问题模块 Top"
+            subtitle="按用户标记的问题入口聚合"
+            icon={<ListChecks className="h-4 w-4" aria-hidden />}
+          >
+            <MiniBarChart items={feedbackProblemChart(items)} tone="amber" onSelect={onRevealDetails} />
+          </ChartSurface>
+        </div>
+      </div>
+
+      {!showDetails ? (
+        <DetailRevealGate
+          title="明细已折叠"
+          detail="当前只展示可视化 BI 结论。点击图表条目或按钮后再展开反馈列表、截图和分诊动作。"
+          onReveal={onRevealDetails}
+        />
+      ) : null}
+    </section>
+  )
+}
+
+function ChartSurface({
+  title,
+  subtitle,
+  icon,
+  children,
+  actionLabel,
+  onAction,
+}: {
+  title: string
+  subtitle: string
+  icon: ReactNode
+  children: ReactNode
+  actionLabel?: string
+  onAction?: () => void
+}) {
+  return (
+    <section className="rounded-3xl border border-white/10 bg-white/[0.04] p-4 shadow-lg shadow-black/10">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 text-sm font-black text-white">
+            <span className="grid h-7 w-7 place-items-center rounded-xl border border-white/10 bg-white/[0.06] text-cyan-200">
+              {icon}
+            </span>
+            {title}
+          </div>
+          <p className="mt-1 text-[11px] leading-5 text-slate-400">{subtitle}</p>
+        </div>
+        {actionLabel && onAction ? (
+          <button
+            type="button"
+            onClick={onAction}
+            className="shrink-0 rounded-xl border border-cyan-300/25 bg-cyan-300/10 px-2.5 py-1.5 text-[11px] font-black text-cyan-100 hover:bg-cyan-300/16"
+          >
+            {actionLabel}
+          </button>
+        ) : null}
+      </div>
+      <div className="mt-4">{children}</div>
+    </section>
+  )
+}
+
+function DetailRevealGate({
+  title,
+  detail,
+  onReveal,
+}: {
+  title: string
+  detail: string
+  onReveal: () => void
+}) {
+  return (
+    <section className="rounded-3xl border border-dashed border-cyan-300/25 bg-cyan-300/[0.06] p-5 text-center shadow-lg shadow-black/10">
+      <div className="mx-auto grid h-10 w-10 place-items-center rounded-2xl border border-cyan-300/25 bg-cyan-300/10 text-cyan-100">
+        <MousePointerClick className="h-5 w-5" aria-hidden />
+      </div>
+      <h3 className="mt-3 text-lg font-black text-white">{title}</h3>
+      <p className="mx-auto mt-1 max-w-2xl text-xs leading-5 text-slate-400">{detail}</p>
+      <button
+        type="button"
+        onClick={onReveal}
+        className="mt-4 inline-flex h-10 items-center justify-center gap-1.5 rounded-2xl border border-cyan-300/25 bg-cyan-300 px-4 text-xs font-black text-slate-950 shadow-lg shadow-cyan-300/10"
+      >
+        <Eye className="h-3.5 w-3.5" aria-hidden />
+        展开详细内容
+      </button>
+    </section>
+  )
+}
+
+function MiniBarChart({
+  items,
+  tone,
+  compact = false,
+  maxItems = 6,
+  className = '',
+  onSelect,
+}: {
+  items: ChartDatum[]
+  tone: InsightTone
+  compact?: boolean
+  maxItems?: number
+  className?: string
+  onSelect?: (item: ChartDatum) => void
+}) {
+  const sorted = [...items].filter(item => item.count > 0).sort((a, b) => b.count - a.count).slice(0, maxItems)
+  const maxCount = Math.max(1, ...sorted.map(item => item.count))
+  if (sorted.length === 0) {
+    return (
+      <div className={`rounded-2xl border border-dashed border-white/15 bg-white/[0.035] px-3 py-4 text-center text-xs text-slate-400 ${className}`}>
+        暂无可视化数据
+      </div>
+    )
+  }
+  return (
+    <div className={`space-y-2 ${className}`}>
+      {sorted.map(item => {
+        const width = Math.max(6, (item.count / maxCount) * 100)
+        const content = (
+          <>
+            <span className="flex items-center justify-between gap-3">
+              <span className="min-w-0 truncate text-slate-300">{item.label || 'unknown'}</span>
+              <span className="shrink-0 font-black tabular-nums text-white">{formatCount(item.count)}</span>
+            </span>
+            <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-white/10">
+              <span
+                className={chartFillClass(tone)}
+                style={{ width: `${width}%` }}
+                aria-hidden
+              />
+            </span>
+          </>
+        )
+        return onSelect ? (
+          <button
+            key={`${item.label}-${item.count}`}
+            type="button"
+            onClick={() => onSelect(item)}
+            className={`block w-full rounded-2xl border border-white/10 bg-white/[0.035] px-3 text-left text-xs transition hover:border-cyan-300/25 hover:bg-cyan-300/[0.06] ${
+              compact ? 'py-2' : 'py-2.5'
+            }`}
+          >
+            {content}
+          </button>
+        ) : (
+          <div
+            key={`${item.label}-${item.count}`}
+            className={`rounded-2xl border border-white/10 bg-white/[0.035] px-3 text-xs ${
+              compact ? 'py-2' : 'py-2.5'
+            }`}
+          >
+            {content}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function StackedDistribution({
+  items,
+  total,
+  tone,
+  onSelect,
+}: {
+  items: ChartDatum[]
+  total: number
+  tone: InsightTone
+  onSelect?: (item: ChartDatum) => void
+}) {
+  const palette = ['bg-amber-300', 'bg-cyan-300', 'bg-slate-300', 'bg-emerald-300', 'bg-rose-300']
+  return (
+    <div>
+      <div className="flex h-10 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.05]">
+        {items.filter(item => item.count > 0).map((item, index) => {
+          const segmentTitle = `${item.label} ${formatCount(item.count)} (${formatRate(item.count / total)})`
+          const className = `${palette[index % palette.length]} h-full transition hover:brightness-110`
+          const style = { width: `${Math.max(4, (item.count / total) * 100)}%` }
+          return onSelect ? (
+            <button
+              key={item.label}
+              type="button"
+              title={segmentTitle}
+              className={className}
+              style={style}
+              onClick={() => onSelect(item)}
+            />
+          ) : (
+            <div key={item.label} title={segmentTitle} className={className} style={style} />
+          )
+        })}
+        {items.every(item => item.count === 0) ? (
+          <div className="grid h-full w-full place-items-center text-xs font-bold text-slate-400">
+            暂无状态数据
+          </div>
+        ) : null}
+      </div>
+      <MiniBarChart className="mt-3" items={items} tone={tone} />
+    </div>
+  )
+}
+
+function chartFillClass(tone: InsightTone): string {
+  return {
+    slate: 'block h-full rounded-full bg-slate-300/75',
+    cyan: 'block h-full rounded-full bg-cyan-300/85',
+    emerald: 'block h-full rounded-full bg-emerald-300/85',
+    amber: 'block h-full rounded-full bg-amber-300/85',
+    rose: 'block h-full rounded-full bg-rose-300/85',
+    sky: 'block h-full rounded-full bg-sky-300/85',
+  }[tone]
+}
+
+function feedbackSourceChart(items: FeedbackItem[]): ChartDatum[] {
+  return countBy(items, item => SOURCE_LABELS[item.source] || item.source)
+}
+
+function feedbackProblemChart(items: FeedbackItem[]): ChartDatum[] {
+  return countBy(items, item => {
+    const problem = feedbackProblemLabel(item.problem_type)
+    if (problem) return problem
+    return item.reason.split('·')[0]?.trim() || '未标记'
+  })
+}
+
+function countBy<T>(items: T[], labelOf: (item: T) => string): ChartDatum[] {
+  const map = new Map<string, number>()
+  for (const item of items) {
+    const label = labelOf(item) || 'unknown'
+    map.set(label, (map.get(label) ?? 0) + 1)
+  }
+  return Array.from(map, ([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count)
+}
+
+function inviteStatusLabel(status: string | undefined): string {
+  const labels: Record<string, string> = {
+    submitted: '已提交',
+    contacted: '已联系',
+    accepted: '已入选',
+    rejected: '未入选',
+    waitlisted: '候补',
+    archived: '已归档',
+  }
+  return labels[(status ?? '').trim()] || status || 'unknown'
+}
+
 function InviteTestPanel({
   stats,
   applications,
@@ -1157,6 +1739,8 @@ function InviteTestPanel({
   exporting,
   exportNotice,
   exportError,
+  showDetails,
+  onRevealDetails,
 }: {
   stats: BiInviteTestStats | null
   applications: BiInviteTestApplication[]
@@ -1174,6 +1758,8 @@ function InviteTestPanel({
   exporting: boolean
   exportNotice: string
   exportError: string
+  showDetails: boolean
+  onRevealDetails: () => void
 }) {
   const priorityCount = countPriorityInviteApplications(applications)
   const currentStats = summarizeVisibleInviteApplications(applications)
@@ -1219,6 +1805,26 @@ function InviteTestPanel({
         />
       </div>
 
+      <InviteApplicationInsights
+        stats={stats}
+        applications={applications}
+        profileTotal={profileTotal}
+        onRevealDetails={onRevealDetails}
+        onStatusSelect={status => {
+          onFilterChange('status', status)
+          onRevealDetails()
+        }}
+        onQuerySelect={query => {
+          onFilterChange('q', query)
+          onRevealDetails()
+        }}
+        onSourceSelect={sourcePage => {
+          onFilterChange('source_page', sourcePage)
+          onRevealDetails()
+        }}
+      />
+
+      {showDetails ? (
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
         <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-xl shadow-black/20">
           <div className="border-b border-white/10 p-4">
@@ -1370,6 +1976,13 @@ function InviteTestPanel({
           <InviteOpsPlaybook />
         </aside>
       </div>
+      ) : (
+        <DetailRevealGate
+          title="内测申请明细已折叠"
+          detail="首屏只保留申请漏斗、画像分布和来源结构。点击任意图表条目后再展开申请人列表、联系方式、编辑和归档动作。"
+          onReveal={onRevealDetails}
+        />
+      )}
 
       <section
         className="rounded-3xl border border-white/10 bg-white/[0.04] p-4 shadow-lg shadow-black/10"
@@ -1507,6 +2120,109 @@ function InviteTestPanel({
   )
 }
 
+function InviteApplicationInsights({
+  stats,
+  applications,
+  profileTotal,
+  onRevealDetails,
+  onStatusSelect,
+  onQuerySelect,
+  onSourceSelect,
+}: {
+  stats: BiInviteTestStats | null
+  applications: BiInviteTestApplication[]
+  profileTotal: number
+  onRevealDetails: () => void
+  onStatusSelect: (status: string) => void
+  onQuerySelect: (query: string) => void
+  onSourceSelect: (sourcePage: string) => void
+}) {
+  const currentStats = summarizeVisibleInviteApplications(applications)
+  const statusItems = (stats?.status_breakdown ?? []).slice(0, 6).map(item => ({
+    label: inviteStatusLabel(item.status),
+    count: item.count,
+    raw: item.status,
+  }))
+  const painItems = (stats?.pain_point_breakdown ?? []).slice(0, 6).map(item => ({
+    label: item.pain_point,
+    count: item.count,
+    raw: item.pain_point,
+  }))
+  const sourceItems = (stats?.source_breakdown ?? []).slice(0, 6).map(item => ({
+    label: item.source_page,
+    count: item.count,
+    raw: item.source_page,
+  }))
+  const interviewRate =
+    stats?.summary.accept_interview_rate ?? currentStats.acceptInterviewRate ?? 0
+  const wrongQuestionRate =
+    stats?.summary.with_wrong_question_rate ?? currentStats.wrongQuestionRate ?? 0
+  const contactRate =
+    profileTotal > 0
+      ? (stats?.summary.unique_contacts ?? currentStats.uniqueContacts) / profileTotal
+      : 0
+
+  return (
+    <section className="grid grid-cols-1 gap-3 xl:grid-cols-[280px_minmax(0,1fr)]">
+      <ChartSurface
+        title="申请漏斗"
+        subtitle="可联系、愿意回访、带错题样本三类先判定队列价值"
+        icon={<Gauge className="h-4 w-4" aria-hidden />}
+        actionLabel="查看申请明细"
+        onAction={onRevealDetails}
+      >
+        <div className="grid place-items-center">
+          <RingMetric
+            value={Math.max(interviewRate, wrongQuestionRate, contactRate)}
+            label="可运营强度"
+            tone="amber"
+          />
+        </div>
+        <div className="mt-4 grid gap-2">
+          <FunnelMeter label="可联系" value={contactRate} />
+          <FunnelMeter label="愿意回访" value={interviewRate} />
+          <FunnelMeter label="带错题样本" value={wrongQuestionRate} />
+        </div>
+      </ChartSurface>
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+        <ChartSurface
+          title="状态分布"
+          subtitle="点击状态进入对应申请列表"
+          icon={<BarChart3 className="h-4 w-4" aria-hidden />}
+        >
+          <MiniBarChart
+            items={statusItems}
+            tone="amber"
+            onSelect={item => onStatusSelect(item.raw || '')}
+          />
+        </ChartSurface>
+        <ChartSurface
+          title="痛点分布"
+          subtitle="用条形图看真实报名动机"
+          icon={<ListChecks className="h-4 w-4" aria-hidden />}
+        >
+          <MiniBarChart
+            items={painItems}
+            tone="cyan"
+            onSelect={item => onQuerySelect(item.raw || item.label)}
+          />
+        </ChartSurface>
+        <ChartSurface
+          title="来源页"
+          subtitle="判断入口投放与页面转化"
+          icon={<MapPin className="h-4 w-4" aria-hidden />}
+        >
+          <MiniBarChart
+            items={sourceItems}
+            tone="emerald"
+            onSelect={item => onSourceSelect(item.raw || item.label)}
+          />
+        </ChartSurface>
+      </div>
+    </section>
+  )
+}
+
 function LubanFeedbackPanel({
   stats,
   responses,
@@ -1524,6 +2240,8 @@ function LubanFeedbackPanel({
   exporting,
   exportNotice,
   exportError,
+  showDetails,
+  onRevealDetails,
 }: {
   stats: BiLubanFeedbackStats | null
   responses: BiLubanFeedbackResponse[]
@@ -1541,6 +2259,8 @@ function LubanFeedbackPanel({
   exporting: boolean
   exportNotice: string
   exportError: string
+  showDetails: boolean
+  onRevealDetails: () => void
 }) {
   const summary = stats?.summary
   const highIntentCount = responses.filter(item =>
@@ -1612,6 +2332,25 @@ function LubanFeedbackPanel({
         </div>
       </section>
 
+      <LubanFeedbackInsights
+        stats={stats}
+        responses={responses}
+        onRevealDetails={onRevealDetails}
+        onStatusSelect={status => {
+          onFilterChange('status', status)
+          onRevealDetails()
+        }}
+        onQuerySelect={query => {
+          onFilterChange('q', query)
+          onRevealDetails()
+        }}
+        onSourceSelect={sourcePage => {
+          onFilterChange('source_page', sourcePage)
+          onRevealDetails()
+        }}
+      />
+
+      {showDetails ? (
       <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-xl shadow-black/20">
         <div className="border-b border-white/10 p-4">
           <div className="grid grid-cols-1 gap-2 rounded-2xl border border-white/10 bg-white/[0.035] p-2 lg:grid-cols-[minmax(0,1fr)_150px_150px_auto]">
@@ -1703,6 +2442,203 @@ function LubanFeedbackPanel({
           <span>服务端返回前 {responses.length} / {total}</span>
         </div>
       </section>
+      ) : (
+        <DetailRevealGate
+          title="内测回访明细已折叠"
+          detail="默认只展示 NPS、满意度、回访意愿和来源分布。点击图表条目后再展开完整问卷、联系方式和归档动作。"
+          onReveal={onRevealDetails}
+        />
+      )}
+    </div>
+  )
+}
+
+function LubanFeedbackInsights({
+  stats,
+  responses,
+  onRevealDetails,
+  onStatusSelect,
+  onQuerySelect,
+  onSourceSelect,
+}: {
+  stats: BiLubanFeedbackStats | null
+  responses: BiLubanFeedbackResponse[]
+  onRevealDetails: () => void
+  onStatusSelect: (status: string) => void
+  onQuerySelect: (query: string) => void
+  onSourceSelect: (sourcePage: string) => void
+}) {
+  const summary = stats?.summary
+  const total = summary?.total_responses ?? responses.length
+  const npsValue = summary ? Math.max(0, Math.min(1, (summary.nps_score + 100) / 200)) : 0
+  const satisfactionItems = (stats?.satisfaction_breakdown ?? []).slice(0, 6).map(item => ({
+    label: `${item.overall_satisfaction || 'unknown'} 分`,
+    count: item.count,
+    raw: item.overall_satisfaction,
+  }))
+  const revisitItems = (stats?.revisit_willingness_breakdown ?? []).slice(0, 6).map(item => ({
+    label: lubanLabel(LUBAN_REVISIT_LABELS, item.revisit_willingness),
+    count: item.count,
+    raw: item.revisit_willingness,
+  }))
+  const problemItems = countBy(responses, item => {
+    if (item.unsolved_pain) return item.unsolved_pain
+    const firstProblem = item.problems?.[0]
+    return firstProblem ? lubanLabel(LUBAN_PROBLEM_LABELS, firstProblem) : '未填写'
+  }).slice(0, 6)
+  const statusItems = (stats?.status_breakdown ?? []).slice(0, 5).map(item => ({
+    label: lubanLabel(LUBAN_STATUS_LABELS, item.status),
+    count: item.count,
+    raw: item.status,
+  }))
+  const sourceItems = (stats?.source_breakdown ?? []).slice(0, 5).map(item => ({
+    label: item.source_page,
+    count: item.count,
+    raw: item.source_page,
+  }))
+
+  return (
+    <section className="grid grid-cols-1 gap-3 xl:grid-cols-[280px_minmax(0,1fr)]">
+      <ChartSurface
+        title="NPS 温度计"
+        subtitle={`样本 ${formatCount(summary?.nps_base ?? total)} · 推荐/中立/贬损分层`}
+        icon={<Gauge className="h-4 w-4" aria-hidden />}
+        actionLabel="查看完整问卷"
+        onAction={onRevealDetails}
+      >
+        <div className="grid place-items-center">
+          <RingMetric
+            value={npsValue}
+            label={`NPS ${formatCount(summary?.nps_score ?? 0)}`}
+            tone={(summary?.nps_score ?? 0) >= 0 ? 'emerald' : 'rose'}
+          />
+        </div>
+        <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
+          <NpsBucket label="推荐" value={summary?.promoters ?? 0} tone="emerald" />
+          <NpsBucket label="中立" value={summary?.passives ?? 0} tone="amber" />
+          <NpsBucket label="贬损" value={summary?.detractors ?? 0} tone="rose" />
+        </div>
+      </ChartSurface>
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+        <ChartSurface
+          title="满意度分布"
+          subtitle="评分分布比平均分更适合排查体验断点"
+          icon={<BarChart3 className="h-4 w-4" aria-hidden />}
+        >
+          <MiniBarChart items={satisfactionItems} tone="emerald" onSelect={onRevealDetails} />
+        </ChartSurface>
+        <ChartSurface
+          title="回访意愿"
+          subtitle="点击意愿分层查看对应问卷"
+          icon={<MousePointerClick className="h-4 w-4" aria-hidden />}
+        >
+          <MiniBarChart
+            items={revisitItems}
+            tone="cyan"
+            onSelect={item => onQuerySelect(item.raw || item.label)}
+          />
+        </ChartSurface>
+        <ChartSurface
+          title="痛点 Top"
+          subtitle="把回访文本变成可扫的运营线索"
+          icon={<ListChecks className="h-4 w-4" aria-hidden />}
+        >
+          <MiniBarChart
+            items={problemItems}
+            tone="amber"
+            onSelect={item => onQuerySelect(item.raw || item.label)}
+          />
+        </ChartSurface>
+      </div>
+      <div className="xl:col-span-2 grid grid-cols-1 gap-3 lg:grid-cols-2">
+        <ChartSurface
+          title="处理状态"
+          subtitle="回访闭环状态，不改写原始问卷"
+          icon={<ShieldCheck className="h-4 w-4" aria-hidden />}
+        >
+          <MiniBarChart
+            items={statusItems}
+            tone="sky"
+            onSelect={item => onStatusSelect(item.raw || '')}
+          />
+        </ChartSurface>
+        <ChartSurface
+          title="来源页"
+          subtitle="定位哪一个入口在收集真实回访"
+          icon={<MapPin className="h-4 w-4" aria-hidden />}
+        >
+          <MiniBarChart
+            items={sourceItems}
+            tone="emerald"
+            onSelect={item => onSourceSelect(item.raw || item.label)}
+          />
+        </ChartSurface>
+      </div>
+    </section>
+  )
+}
+
+function RingMetric({
+  value,
+  label,
+  tone,
+}: {
+  value: number
+  label: string
+  tone: InsightTone
+}) {
+  const safeValue = Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 0
+  const color = {
+    slate: '#cbd5e1',
+    cyan: '#67e8f9',
+    emerald: '#6ee7b7',
+    amber: '#fcd34d',
+    rose: '#fda4af',
+    sky: '#7dd3fc',
+  }[tone]
+  return (
+    <div
+      className="grid h-36 w-36 place-items-center rounded-full shadow-[0_0_0_12px_rgba(255,255,255,0.035)]"
+      style={{
+        background: `conic-gradient(${color} 0 ${safeValue * 360}deg, rgba(255,255,255,0.10) ${safeValue * 360}deg 360deg)`,
+      }}
+      aria-label={`${label} ${formatRate(safeValue)}`}
+    >
+      <div className="grid h-24 w-24 place-items-center rounded-full bg-[#111a30] text-center">
+        <span className="px-2 text-xl font-black leading-tight text-white">{label}</span>
+      </div>
+    </div>
+  )
+}
+
+function FunnelMeter({ label, value }: { label: string; value: number }) {
+  const safeValue = Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 0
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.035] px-3 py-2">
+      <div className="flex items-center justify-between gap-2 text-xs">
+        <span className="font-bold text-slate-300">{label}</span>
+        <span className="font-black tabular-nums text-white">{formatRate(safeValue)}</span>
+      </div>
+      <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
+        <div className="h-full rounded-full bg-amber-300/85" style={{ width: `${Math.max(4, safeValue * 100)}%` }} />
+      </div>
+    </div>
+  )
+}
+
+function NpsBucket({
+  label,
+  value,
+  tone,
+}: {
+  label: string
+  value: number
+  tone: InsightTone
+}) {
+  return (
+    <div className={`rounded-2xl border px-2 py-2 ${INSIGHT_TONE_CLASS[tone]}`}>
+      <div className="font-black tabular-nums text-white">{formatCount(value)}</div>
+      <div className="mt-0.5 text-[10px] font-bold text-slate-400">{label}</div>
     </div>
   )
 }
