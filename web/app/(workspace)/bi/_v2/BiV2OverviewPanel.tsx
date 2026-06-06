@@ -36,6 +36,7 @@ import {
   type BiMetricCard,
 } from '@/lib/bi-api'
 import { findMetricByLabel, type BiV2MetricDef } from '@/lib/bi-v2-metric-registry.generated'
+import { OverviewCockpit } from '@/components/bi-cockpit/OverviewCockpit'
 import { reduceOverviewBundle } from './overview-bundle-reducer'
 
 type DataSource = 'mock' | 'live' | 'loading' | 'error'
@@ -339,183 +340,34 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
         onReload={loadLive}
       />
 
-      <OverviewSignalChips
-        activeCard={activeCard}
-        successCard={successCard}
-        costCard={costCard}
-        alertCount={bundle.alerts.length}
-      />
-
       <OverviewConclusionStack
         primaryMetric={primaryMetric}
         primaryAlert={primaryAlert}
         source={source}
       />
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-        {bundle.cards.slice(0, 8).map((card, idx) => {
+      <OverviewCockpit
+        cards={bundle.cards}
+        trend={bundle.trend}
+        alerts={bundle.alerts}
+        windowLabel={
+          source === 'live'
+            ? 'active-trend API'
+            : source === 'loading'
+              ? '加载中…'
+              : source === 'error'
+                ? 'API 不可用'
+                : 'mock'
+        }
+        onMetric={card => {
           const meta = findMetricByLabel(card.label)
-          const trend = inferTrend(card.delta, card.tone)
-          return (
-            <article
-              key={`${meta.metric_id}-${idx}`}
-              className="flex min-h-[176px] flex-col gap-3 rounded-3xl border border-white/10 bg-white/[0.045] p-4 shadow-lg shadow-black/15 transition hover:border-cyan-300/25 hover:bg-cyan-300/[0.06]"
-              title={[
-                `${meta.metric_id}`,
-                `口径：${meta.definition}`,
-                `authority: ${meta.authority}`,
-                `owner: ${meta.owner}`,
-                `可信等级: ${meta.trust}`,
-                `更新频率: ${meta.refresh_cadence}`,
-                meta.degraded_note ? `降级说明: ${meta.degraded_note}` : `降级说明: 无已知降级路径`,
-              ].join(' · ')}
-              aria-label={`${card.label} 当前 ${card.value}，数据可信 ${meta.trust} 级，owner ${meta.owner}`}
-            >
-              <div className="flex items-center justify-between gap-2 text-xs text-slate-400">
-                <span className="font-bold text-slate-200">{card.label}</span>
-                <BiStatusPill tone={BI_TRUST_TONE[meta.trust]} label={`${meta.trust} 级`} />
-              </div>
-              <div className="flex items-baseline justify-between gap-2 text-3xl font-black tracking-normal">
-                {renderCardValue(card, meta)}
-                {card.delta ? (
-                  <span className="flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] px-2 py-1 text-xs tabular-nums text-slate-200">
-                    <TrendIcon trend={trend} />
-                    {card.delta}
-                  </span>
-                ) : null}
-              </div>
-              <div className="space-y-1 text-[11px] leading-snug text-slate-400">
-                <div className="truncate">authority: {meta.authority}</div>
-                <div className="truncate">
-                  owner: {meta.owner} · metric_id:{' '}
-                  <code className="font-mono text-[10px] text-slate-300">{meta.metric_id}</code>
-                </div>
-              </div>
-              {meta.metric_id === 'unknown' ? (
-                <div className="rounded-2xl border border-amber-300/25 bg-amber-300/10 px-2 py-1 text-[10px] text-amber-100">
-                  指标未注册 · 请补充到 BI_V2_METRICS 或 deeptutor/services/bi_metrics.py
-                </div>
-              ) : null}
-              <BiButton
-                onClick={() => setSelectedMetric({ card, meta, trend })}
-                variant="secondary"
-                size="xs"
-                className="mt-auto w-fit"
-                aria-label={`打开 ${card.label} 指标详情`}
-              >
-                查看详情
-              </BiButton>
-            </article>
-          )
-        })}
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-4 shadow-xl shadow-black/15 lg:col-span-2">
-          <header className="flex items-center justify-between text-sm">
-            <span className="font-black text-slate-100">活跃 / 成本 / 学习成功趋势</span>
-            <span className="rounded-full border border-white/10 bg-white/[0.06] px-2 py-1 text-[11px] text-slate-300">
-              {source === 'live'
-                ? 'active-trend API'
-                : source === 'loading'
-                  ? '加载中…'
-                  : source === 'error'
-                    ? 'API 不可用'
-              : 'mock'}
-            </span>
-          </header>
-          <div className="mt-4 rounded-3xl border border-white/10 bg-slate-950/20 p-4">
-            <div className="grid h-44 grid-cols-12 items-end gap-1" aria-label="近窗口活跃趋势">
-              {topTrendPoints.map((point, idx) => {
-                const h = Math.max(10, Math.round((point.active / trendMax) * 100))
-                return (
-                  <div key={`${point.label}-${idx}`} className="flex h-full flex-col justify-end gap-1">
-                    <div
-                      className="rounded-full bg-gradient-to-t from-cyan-500/35 via-cyan-300/65 to-emerald-200 shadow-[0_0_18px_rgba(34,211,238,0.16)]"
-                      style={{ height: `${h}%` }}
-                      aria-hidden
-                      title={`${point.label} · active=${point.active} cost=${point.cost} success=${point.successful}`}
-                    />
-                    <div className="h-1 rounded-full bg-white/10" aria-hidden />
-                  </div>
-                )
-              })}
-            </div>
-            <div className="mt-4 grid grid-cols-3 gap-2 text-[11px] text-slate-400">
-              <div className="rounded-2xl border border-cyan-300/15 bg-cyan-300/10 px-3 py-2">
-                <span className="block font-bold text-cyan-100">活跃峰值</span>
-                <span className="tabular-nums">{trendMax.toLocaleString('zh-CN')}</span>
-              </div>
-              <div className="rounded-2xl border border-emerald-300/15 bg-emerald-300/10 px-3 py-2">
-                <span className="block font-bold text-emerald-100">成功口径</span>
-                <span>{metricText(successCard)}</span>
-              </div>
-              <div className="rounded-2xl border border-amber-300/15 bg-amber-300/10 px-3 py-2">
-                <span className="block font-bold text-amber-100">成本口径</span>
-                <span>{metricText(costCard)}</span>
-              </div>
-            </div>
-          </div>
-          <p className="mt-3 text-[10px] text-slate-400">
-            authority: bi_service.get_active_trend · 收入接入由 P1 处理
-          </p>
-        </div>
-
-        <aside className="rounded-3xl border border-white/10 bg-white/[0.04] p-4 shadow-xl shadow-black/15">
-          <header className="border-b border-white/10 pb-3">
-            <h2 className="text-sm font-black text-slate-100">今日行动队列</h2>
-            <p className="mt-1 text-[11px] text-slate-400">
-              {source === 'live'
-                ? '来自 overview.alerts + anomalies'
-                : source === 'error'
-                  ? 'overview/anomalies API 不可用'
-                  : 'mock · 真实风险接 alerts/anomalies'}
-            </p>
-          </header>
-          <ul className="mt-3 space-y-2">
-            {bundle.alerts.slice(0, 6).map((alert, idx) => {
-              const sev = ALERT_LEVEL_TO_SEVERITY[alert.level ?? 'info'] ?? 'low'
-              const linkMeta = findMetricByLabel(alert.title)
-              return (
-                <li key={idx}>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedAlert({ alert, severity: sev, target: linkMeta })}
-                    className="group flex w-full items-start gap-3 rounded-3xl border border-white/10 bg-slate-950/20 p-3 text-left transition hover:border-cyan-300/30 hover:bg-cyan-300/[0.06] focus:outline-none focus:ring-2 focus:ring-cyan-300/30"
-                    aria-label={`查看 ${alert.title}`}
-                  >
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] text-xs font-black text-cyan-100">
-                      {idx + 1}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="flex items-center gap-2">
-                        <BiStatusPill tone={BI_SEVERITY_TONE[sev]} label={sev.toUpperCase()} />
-                        <span className="truncate text-sm font-bold text-slate-100">
-                          {alert.title}
-                        </span>
-                      </span>
-                      {alert.detail ? (
-                        <span className="mt-1 block truncate text-[11px] text-slate-400">
-                          {alert.detail}
-                        </span>
-                      ) : null}
-                      <span className="mt-2 flex items-center gap-1 text-[11px] font-bold text-cyan-200/100">
-                        下钻 {linkMeta.drilldown_hash}
-                        <ArrowRight className="h-3 w-3 transition group-hover:translate-x-0.5" />
-                      </span>
-                    </span>
-                  </button>
-                </li>
-              )
-            })}
-            {bundle.alerts.length === 0 ? (
-              <li className="rounded-3xl border border-dashed border-white/15 px-2 py-8 text-center text-xs text-slate-400">
-                暂无风险项
-              </li>
-            ) : null}
-          </ul>
-        </aside>
-      </div>
+          setSelectedMetric({ card, meta, trend: inferTrend(card.delta, card.tone) })
+        }}
+        onAlert={alert => {
+          const sev = ALERT_LEVEL_TO_SEVERITY[alert.level ?? 'info'] ?? 'low'
+          setSelectedAlert({ alert, severity: sev, target: findMetricByLabel(alert.title) })
+        }}
+      />
 
       <OverviewModuleGrid modules={modules} />
 
@@ -713,8 +565,8 @@ function OverviewConclusionStack({
               {sourceLabel(source)} · 指标 registry · 可下钻
             </div>
             <p className="mt-2 text-sm leading-6 text-slate-300">
-              每张指标卡保留 metric_id、owner、authority 和可信等级；行动项进入详情后只展示 canonical
-              读模型，不制造第二套业务事实。
+              每张指标卡保留 metric_id、owner、authority 和可信等级；行动项进入详情后只展示
+              canonical 读模型，不制造第二套业务事实。
             </p>
           </div>
           <span className="rounded-2xl border border-cyan-300/25 bg-cyan-300/10 px-3 py-1 text-xs font-black text-cyan-100">
@@ -904,12 +756,7 @@ function DataSourceBanner({
       <BiV2DataSourceBanner
         tone="emerald"
         action={
-          <BiButton
-            onClick={onReload}
-            variant="secondary"
-            size="xs"
-            aria-label="刷新 overview"
-          >
+          <BiButton onClick={onReload} variant="secondary" size="xs" aria-label="刷新 overview">
             <RefreshCw className="h-3 w-3" aria-hidden /> 刷新
           </BiButton>
         }
@@ -923,12 +770,7 @@ function DataSourceBanner({
       tone="rose"
       role="alert"
       action={
-        <BiButton
-          onClick={onReload}
-          variant="secondary"
-          size="xs"
-          aria-label="重试加载 overview"
-        >
+        <BiButton onClick={onReload} variant="secondary" size="xs" aria-label="重试加载 overview">
           <RefreshCw className="h-3 w-3" aria-hidden /> 重试
         </BiButton>
       }
