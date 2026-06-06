@@ -1296,10 +1296,26 @@ def _brief_option_focus(option_text: str, *, fallback: str) -> str:
     return text[:8] or fallback
 
 
-def _render_brief_wrong_cause(item: dict[str, Any]) -> str:
+def _render_brief_wrong_cause(item: dict[str, Any], user_message: str = "") -> str:
     correct_letters = set(_answer_letters(item.get("correct_answer")))
     user_letters = set(_answer_letters(item.get("user_answer")))
     options = dict(_option_entries(item))
+    # When the learner names a specific option ("A错在哪里"), answer about *that*
+    # option using the question's own standard answer as the single authority.
+    # Otherwise a correct-answer learner falls through to "没错，答案正确", which
+    # reads as "A is fine" and misleads them about the named distractor.
+    named_letters = [letter for letter in _answer_letters(user_message) if letter in options]
+    named_distractors = [letter for letter in named_letters if letter not in correct_letters]
+    if named_distractors:
+        letter = named_distractors[0]
+        focus = _brief_option_focus(options.get(letter, ""), fallback=f"{letter}项")
+        correct_text = "".join(sorted(correct_letters)) or "标准答案"
+        return f"{letter}（{focus}）不在标准答案（{correct_text}）内，是干扰项。"
+    named_correct = [letter for letter in named_letters if letter in correct_letters]
+    if named_correct:
+        letter = named_correct[0]
+        focus = _brief_option_focus(options.get(letter, ""), fallback=f"{letter}项")
+        return f"{letter}（{focus}）是正确选项，应选。"
     extra_letters = sorted(user_letters - correct_letters)
     missing_letters = sorted(correct_letters - user_letters)
     if extra_letters:
@@ -1345,7 +1361,7 @@ def _render_targeted_brief_reference_feedback(
         return ""
     item = items[0]
     if _looks_like_wrong_cause_request(user_message):
-        return _render_brief_wrong_cause(item)
+        return _render_brief_wrong_cause(item, user_message)
     if _looks_like_missing_selection_check(user_message):
         return _render_brief_missing_selection_check(item)
     return ""
