@@ -18,11 +18,14 @@ _CASE_SCORE_AUTHORITY_KINDS = {"case", "case_study", "case_bundle", "written", "
 # An explicit case-style score *verdict* (not a bare 采分点 teaching label, a
 # rubric like "满分100分", or a unit price like "5分/平米"). Used only as the
 # safety net for unclassified turns that escaped case_grading scene derivation;
-# matches "不得分", "得 4 分", "4分/满分5分", "0分/5分", "0 个采分点", "预计得分".
+# matches "不得分", "得 4 分", "4分/满分5分", "0分/5分", "**0分。**", "0 个采分点",
+# "预计得分". The bolded ``**N分**`` arm catches a forced-score verdict like
+# R3-16 ("**0分。**") while leaving unbolded rubric/unit-price text alone.
 _NO_AUTHORITY_CASE_SCORE_RE = re.compile(
     r"(不得分"
     r"|得\s*\d+(?:\.\d+)?\s*分"
     r"|\d+(?:\.\d+)?\s*分\s*[/／]\s*(?:满分\s*)?\d"
+    r"|\*\*\s*\d+(?:\.\d+)?\s*分\s*[。.！!]"
     r"|\d+\s*个?\s*采分点"
     r"|得分\s*[:：]\s*\d"
     r"|预计得分)"
