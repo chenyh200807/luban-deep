@@ -69,6 +69,17 @@ fi
 # --- local auth user store (writable; avoids /app read-only) ---
 export DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE="$PWD/data/user/external_auth/users.json"
 export DEEPTUTOR_EXTERNAL_AUTH_SESSIONS_FILE="$PWD/data/user/external_auth/sessions.json"
+if [ -z "${DEEPTUTOR_HISTORICAL_QUESTION_BANK_DIR:-}" ]; then
+  for candidate in \
+    "$PWD/../FastAPI20251222/docs/2026/题库" \
+    "$HOME/Developer/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库" \
+    "$HOME/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库"; do
+    if [ -d "$candidate" ]; then
+      export DEEPTUTOR_HISTORICAL_QUESTION_BANK_DIR="$candidate"
+      break
+    fi
+  done
+fi
 python scripts/seed_luban_internal_qa_accounts.py
 # --- v1 LLM adjudication: force on for any logged-in user (LOCAL TEST ONLY) ---
 export LUBAN_V1_LLM_ADJUDICATOR_DEV_FORCE_ON="true"

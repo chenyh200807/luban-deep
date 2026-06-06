@@ -6,7 +6,10 @@ from __future__ import annotations
 
 import asyncio
 import base64
+from collections.abc import AsyncIterator, Sequence
 import contextlib
+from dataclasses import dataclass, field
+from datetime import datetime
 import json
 import logging
 import math
@@ -14,32 +17,16 @@ import os
 import re
 import sqlite3
 import time
-from collections.abc import AsyncIterator, Sequence
-from dataclasses import dataclass, field
-from datetime import datetime
 from types import SimpleNamespace
 from typing import Any
 
 from deeptutor.api.runtime_metrics import get_turn_runtime_metrics
-from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.capabilities.chat_mode import get_default_chat_mode
 from deeptutor.contracts.bot_runtime_defaults import (
     resolve_bot_runtime_defaults as resolve_bot_binding_defaults,
 )
+from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.logging.context import bind_log_context, reset_log_context
-from deeptutor.services.observability import (
-    get_langfuse_observability,
-    get_release_lineage_metadata,
-    get_turn_event_log,
-    get_surface_event_store,
-)
-from deeptutor.services.internal_qa import (
-    internal_qa_billing_bypass_allowed,
-    internal_qa_billing_bypass_enabled,
-)
-from deeptutor.services.observability.aae_scores import build_turn_aae_metadata
-from deeptutor.services.observability.turn_event_log import build_turn_observation_event
-from deeptutor.services.path_service import get_path_service
 from deeptutor.services.exam_track import (
     exam_track_label,
     has_multiple_exam_track_mentions,
@@ -47,6 +34,19 @@ from deeptutor.services.exam_track import (
     infer_exam_track_from_text,
     normalize_exam_track,
 )
+from deeptutor.services.internal_qa import (
+    internal_qa_billing_bypass_allowed,
+    internal_qa_billing_bypass_enabled,
+)
+from deeptutor.services.observability import (
+    get_langfuse_observability,
+    get_release_lineage_metadata,
+    get_surface_event_store,
+    get_turn_event_log,
+)
+from deeptutor.services.observability.aae_scores import build_turn_aae_metadata
+from deeptutor.services.observability.turn_event_log import build_turn_observation_event
+from deeptutor.services.path_service import get_path_service
 from deeptutor.services.question_followup import (
     followup_action_route,
     interpret_question_followup_action,
@@ -61,11 +61,9 @@ from deeptutor.services.question_lifecycle_skills import (
 )
 from deeptutor.services.semantic_router import (
     build_turn_semantic_decision as build_semantic_turn_decision,
-    has_explicit_practice_generation_intent,
 )
-from deeptutor.services.user_visible_output import (
-    coerce_user_visible_answer,
-    looks_like_unsafe_visible_output,
+from deeptutor.services.semantic_router import (
+    has_explicit_practice_generation_intent,
 )
 from deeptutor.services.session.sqlite_store import (
     SQLiteSessionStore,
@@ -77,6 +75,10 @@ from deeptutor.services.session.sqlite_store import (
     get_sqlite_session_store,
     normalize_active_object,
     normalize_suspended_object_stack,
+)
+from deeptutor.services.user_visible_output import (
+    coerce_user_visible_answer,
+    looks_like_unsafe_visible_output,
 )
 from deeptutor.tutorbot.markdown_style import normalize_markdown_for_tutorbot
 from deeptutor.tutorbot.response_mode import (
@@ -2208,7 +2210,9 @@ class TurnRuntimeManager:
                                 logger.debug("Failed to write conversation learning evidence", exc_info=True)
                         if source_bot_id and assistant_content.strip():
                             try:
-                                from deeptutor.services.learner_state import get_bot_learner_overlay_service
+                                from deeptutor.services.learner_state import (
+                                    get_bot_learner_overlay_service,
+                                )
 
                                 operations: list[dict[str, Any]] = [
                                     {
@@ -2606,14 +2610,17 @@ class TurnRuntimeManager:
         history_references: list[str],
     ) -> dict[str, Any]:
         from deeptutor.services.session.context_budget import ContextBudget, pack_context_candidates
+        from deeptutor.services.session.context_builder import count_tokens
         from deeptutor.services.session.context_pack import ContextBlockType, ContextCandidate
-        from deeptutor.services.session.context_router import ContextRouteInput, decide_context_route
+        from deeptutor.services.session.context_router import (
+            ContextRouteInput,
+            decide_context_route,
+        )
         from deeptutor.services.session.context_sources import ContextSourceLoader
         from deeptutor.services.session.context_trace import (
             build_context_trace_summary,
             resolve_target_escalation_level,
         )
-        from deeptutor.services.session.context_builder import count_tokens
 
         active_plan_id = str(active_plan_id or "").strip() or _active_object_plan_id(active_object)
         try:
@@ -3167,6 +3174,8 @@ class TurnRuntimeManager:
             "enable_luban_v1_beta_shadow",
             "grading_engine_v1_controlled_runtime",
             "grading_engine_v1_llm_adjudication",
+            "grading_engine_objective_candidate",
+            "grading_engine_m31_governed_objective",
             "interaction_profile",
             "chat_mode_explicit",
             "context_orchestration_enabled",
@@ -3300,7 +3309,10 @@ class TurnRuntimeManager:
         try:
             from deeptutor.capabilities.request_contracts import validate_capability_config
             from deeptutor.services.config import get_model_catalog_service
-            from deeptutor.services.model_selection import LLMSelection, apply_llm_selection_to_catalog
+            from deeptutor.services.model_selection import (
+                LLMSelection,
+                apply_llm_selection_to_catalog,
+            )
 
             validated_public_config = validate_capability_config(config_capability, raw_config)
             llm_selection = LLMSelection.from_payload(payload.get("llm_selection"))
@@ -3807,13 +3819,13 @@ class TurnRuntimeManager:
             terminal_status = "completed"
 
         try:
+            from deeptutor.agents.notebook import NotebookAnalysisAgent
             from deeptutor.core.context import Attachment, UnifiedContext
             from deeptutor.runtime.orchestrator import ChatOrchestrator
-            from deeptutor.agents.notebook import NotebookAnalysisAgent
             from deeptutor.services.learner_state import get_learner_state_service
             from deeptutor.services.memory import get_memory_service
-            from deeptutor.services.notebook import notebook_manager
             from deeptutor.services.model_selection.runtime import activate_llm_selection
+            from deeptutor.services.notebook import notebook_manager
             from deeptutor.services.security.tutorbot_guardrails import classify_tutorbot_user_input
             from deeptutor.services.session.context_builder import ContextBuilder
 
@@ -4032,7 +4044,10 @@ class TurnRuntimeManager:
             task_anchor_type: str = ""
             route_confidence = 0.0
             try:
-                from deeptutor.services.session.context_router import ContextRouteInput, decide_context_route
+                from deeptutor.services.session.context_router import (
+                    ContextRouteInput,
+                    decide_context_route,
+                )
 
                 preview_route = decide_context_route(
                     ContextRouteInput(
@@ -4674,7 +4689,9 @@ class TurnRuntimeManager:
                         and event_source != capability_name
                         and event_source not in {"orchestrator", "turn_runtime"}
                     ):
-                        from deeptutor.runtime.registry.capability_registry import get_capability_registry
+                        from deeptutor.runtime.registry.capability_registry import (
+                            get_capability_registry,
+                        )
 
                         if get_capability_registry().get(event_source) is not None:
                             capability_name = await self._canonicalize_execution_capability(

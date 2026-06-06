@@ -103,6 +103,17 @@ load_env() {
   export DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE="${DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE:-${DEEPTUTOR_USER_DATA_DIR}/external_auth/users.json}"
   export DEEPTUTOR_EXTERNAL_AUTH_SESSIONS_FILE="${DEEPTUTOR_EXTERNAL_AUTH_SESSIONS_FILE:-${DEEPTUTOR_USER_DATA_DIR}/external_auth/sessions.json}"
   export LANGFUSE_ENABLED="${LANGFUSE_ENABLED:-false}"
+  if [[ -z "${DEEPTUTOR_HISTORICAL_QUESTION_BANK_DIR:-}" ]]; then
+    for candidate in \
+      "${ROOT}/../FastAPI20251222/docs/2026/题库" \
+      "${HOME}/Developer/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库" \
+      "${HOME}/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/题库"; do
+      if [[ -d "${candidate}" ]]; then
+        export DEEPTUTOR_HISTORICAL_QUESTION_BANK_DIR="${candidate}"
+        break
+      fi
+    done
+  fi
   if [[ "${LEARNING_BRAIN_LOCAL_SUPABASE:-0}" != "1" ]]; then
     # Keep these keys present but blank. Some config helpers lazily hydrate
     # os.environ from .env with setdefault(), so unset values can be revived

@@ -18,18 +18,18 @@ from deeptutor.core.capability_protocol import BaseCapability, CapabilityManifes
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream_bus import StreamBus
 from deeptutor.core.trace import merge_trace_metadata
-from deeptutor.services.construction_grading.deep_question_adapter import (
-    attach_deep_question_grading_result,
-)
-from deeptutor.services.construction_grading.writeback import write_grading_error_events
 from deeptutor.services.citations import (
     CitationPolicy,
     answer_citations_enabled,
     apply_answer_citation_metadata,
 )
+from deeptutor.services.construction_grading.deep_question_adapter import (
+    attach_deep_question_grading_result,
+)
+from deeptutor.services.construction_grading.writeback import write_grading_error_events
 from deeptutor.services.question_followup import (
-    apply_followup_action_to_context,
     answers_match,
+    apply_followup_action_to_context,
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_presentation,
     build_question_followup_context_from_result_summary,
@@ -52,7 +52,6 @@ from deeptutor.services.semantic_router import (
 from deeptutor.tools.rag_tool import rag_search
 from deeptutor.tutorbot.response_mode import looks_like_explicit_brevity_request
 from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
-
 
 _GENERATION_TOPIC_ANCHOR_MARKERS = (
     "刚才",
@@ -1932,6 +1931,94 @@ def _maybe_attach_objective_candidate(
         }
 
 
+def _m31_governed_objective_flag_enabled(context: UnifiedContext) -> bool:
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return bool(
+        metadata.get("grading_engine_m31_governed_objective")
+        or context.config_overrides.get("grading_engine_m31_governed_objective")
+    )
+
+
+def _m31_governed_objective_kill_switch_active() -> bool:
+    """Env kill switch ``LUBAN_M31_GOVERNED_OBJECTIVE_ENABLED=false`` force-disables the governed lane."""
+    import os
+
+    return os.environ.get("LUBAN_M31_GOVERNED_OBJECTIVE_ENABLED", "").strip().lower() in (
+        "false", "0", "off", "no",
+    )
+
+
+def _m31_governed_objective_cohort_prefixes() -> tuple[str, ...]:
+    """Cohort prefixes for the M31 governed objective lane. Base ``qa_/test_/operator_`` plus optional
+    ``LUBAN_M31_GOVERNED_OBJECTIVE_COHORT``. Real students are never in the default cohort."""
+    import os
+
+    base = ["qa_", "test_", "operator_"]
+    raw = os.environ.get("LUBAN_M31_GOVERNED_OBJECTIVE_COHORT", "")
+    extra = [p.strip() for p in raw.split(",") if p.strip()]
+    return tuple(dict.fromkeys(base + extra))
+
+
+def _maybe_attach_m31_governed_objective(
+    *,
+    context: UnifiedContext,
+    graded_context: dict[str, Any],
+    result_payload: dict[str, Any],
+) -> None:
+    """M31 governed objective release-candidate lane (append-only; flag + env kill switch + cohort).
+
+    Thin wrapper — ALL governed loading / verification / scoring policy lives in
+    ``objective_runtime_adapter`` (fat skill). This only reads the flag + cohort + real submission
+    fields and appends ``luban_grading_engine_m31_governed_objective``. It NEVER mutates the legacy
+    ``construction_grading_result``, never writes the DB / Learning Brain / registry, never publishes,
+    never flips production default; the LLM cannot decide correctness. A governed signed hit scores
+    in-bank objective answers as CONTROLLED release-truth (``official_score_allowed=True``); a miss /
+    tamper falls through (in the fat skill) to the candidate / open-world lane. Default OFF -> legacy
+    byte-identical."""
+    if not _m31_governed_objective_flag_enabled(context):
+        return  # flag off -> legacy only
+    # canonical lane key/authority is owned by the fat skill (no duplicated string literal).
+    from deeptutor.services.construction_grading.objective_runtime_adapter import (
+        GOVERNED_AUTHORITY as KEY,
+    )
+    if _m31_governed_objective_kill_switch_active():
+        result_payload[KEY] = {
+            "authority": KEY,
+            "mode": "governed_objective_release_candidate",
+            "status": "killed_by_switch",
+            "killed_by_switch": True,
+            "not_production_grade": False,
+            "writeback_performed": False,
+        }
+        return
+    student_id = _learner_user_id_from_context(context)
+    if not str(student_id).startswith(_m31_governed_objective_cohort_prefixes()):
+        return  # non-cohort (real student) -> legacy only
+    question_id = str(graded_context.get("question_id") or "").strip()
+    selected_option = str(graded_context.get("user_answer") or "").strip()
+    try:
+        from deeptutor.services.construction_grading.objective_runtime_adapter import (
+            build_governed_objective_payload,
+        )
+
+        result_payload[KEY] = build_governed_objective_payload(
+            question_id=question_id,
+            selected_option=selected_option,
+            learner_context={"student_id": student_id},
+        )
+    except Exception as exc:  # noqa: BLE001 — governed lane must never break legacy
+        # classify only — never leak filesystem paths / raw exception text into client metadata.
+        result_payload[KEY] = {
+            "authority": KEY,
+            "mode": "governed_objective_release_candidate",
+            "status": "governed_bundle_unavailable",
+            "fail_closed": True,
+            "unavailable_reason": type(exc).__name__,
+            "not_production_grade": False,
+            "writeback_performed": False,
+        }
+
+
 def _v1_llm_adjudication_dev_force_on() -> bool:
     """LOCAL TEST MODE ONLY: force v1 adjudication ON (bypass request-flag + cohort) when
     ``LUBAN_V1_LLM_ADJUDICATOR_DEV_FORCE_ON`` is truthy AND this is NOT a production environment.
@@ -2006,6 +2093,43 @@ def _maybe_attach_v1_llm_adjudication(
             "not_production_grade": True, "writeback_performed": False,
             "teacher_review_required": True,
         }
+
+
+def _attach_open_world_diagnostic(
+    payload: dict[str, Any],
+    *,
+    followup_question_context: dict[str, Any] | None,
+    user_message: str,
+    answer: str,
+) -> None:
+    """M27 wrapper-side route/append for open-world diagnostic live integration.
+
+    Pure routing: the compiled-context assembly and open-world labelling live in the fat skills
+    (`compiled_context` + `open_world_diagnostic`). This attaches their output to the followup
+    payload so the live `/api/v1/ws` followup surface reads the SAME unified schema as the other
+    surfaces. It never decides correctness, never fabricates an official score / answer_key /
+    textbook source. Best-effort: any failure leaves legacy followup behaviour untouched."""
+    try:
+        from deeptutor.services.construction_grading.compiled_context import (
+            build_pack_from_question_context,
+        )
+        pack = build_pack_from_question_context(followup_question_context or {})
+    except Exception:  # noqa: BLE001 — never break legacy followup
+        return
+    payload["compiled_context"] = pack.to_dict()
+    # Open-world diagnostic ONLY when the question is not resolvable to canonical grading authority.
+    if pack.official_score_allowed or pack.status == "resolved":
+        return
+    try:
+        from deeptutor.services.construction_grading.open_world_diagnostic import (
+            build_open_world_diagnostic,
+        )
+        diag = build_open_world_diagnostic(
+            pack=pack, student_prompt=user_message, diagnosis_override=answer,
+        )
+    except Exception:  # noqa: BLE001
+        return
+    payload["open_world_diagnostic"] = diag.to_unified_schema()
 
 
 class DeepQuestionCapability(BaseCapability):
@@ -3028,6 +3152,15 @@ class DeepQuestionCapability(BaseCapability):
                     graded_context=graded_context,
                     result_payload=result_payload,
                 )
+                # M31 governed objective release-candidate lane (default off; flag + env kill switch +
+                # cohort; signed governed answer_key -> CONTROLLED release-truth; append-only; legacy
+                # construction_grading_result untouched; LLM cannot decide correctness; fail-closed on
+                # tamper, fall-through to candidate/open-world on governed miss).
+                _maybe_attach_m31_governed_objective(
+                    context=context,
+                    graded_context=graded_context,
+                    result_payload=result_payload,
+                )
 
             # plan §Phase 5 / Batch E.2 Gap 5 — progressive disclosure payload.
             # 从 grader_trace 拿到 parsed sections，结合 grading_result 与 is_correct 输出
@@ -3194,6 +3327,17 @@ class DeepQuestionCapability(BaseCapability):
                     else turn_semantic_decision or default_decision
                 ),
             }
+            # M27 open-world diagnostic live integration (§0.26.9). This wrapper only ROUTES + APPENDS;
+            # the compiled-context assembly and open-world labelling live in the fat skills. Followup
+            # is the 4th compiled-context surface. When the question is NOT resolvable to canonical
+            # grading authority, the already-generated LLM answer is STRUCTURED as a labeled
+            # open-world diagnostic (no official score, no answer-key / source fabrication).
+            _attach_open_world_diagnostic(
+                followup_payload,
+                followup_question_context=followup_question_context,
+                user_message=str(context.user_message or ""),
+                answer=str(answer or ""),
+            )
             cost_meta = self._collect_cost_summary("question")
             if cost_meta:
                 followup_payload["metadata"] = {"cost_summary": cost_meta}
