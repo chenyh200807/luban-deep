@@ -235,6 +235,59 @@ def _s5_sign(eligible: list[dict[str, Any]]) -> tuple[dict[str, Any], list[dict[
     return bundle, promoted
 
 
+def _s3_gates_textbook(cands: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
+    """S3 for the textbook lane: minimal routing — the deterministic SIGNER
+    (compile_textbook_knowledge_release_candidate) is the sole provenance authority (it runs the
+    per-field corpus check). Here we only deflect laundering (KIND_REJECTED) and pre-routed
+    work_orders; everything else is eligible and the signer partitions it at S5."""
+    eligible: list[dict[str, Any]] = []
+    work_orders: list[dict[str, Any]] = []
+    rejected: list[dict[str, Any]] = []
+    for c in cands:
+        kind = c.get("kind")
+        if kind == _CF.KIND_REJECTED:
+            rejected.append(c)
+        elif kind == _CF.KIND_WORK_ORDER:
+            work_orders.append(c)
+        elif str((c.get("payload") or {}).get("point_id") or ""):
+            eligible.append(c)
+        else:
+            rejected.append(_stage_log(c, {"stage": "S3", "gate": "G1_schema", "verdict": "fail"}))
+    return {"eligible": eligible, "work_order": work_orders, "rejected": rejected, "conflict": []}
+
+
+def _s5_sign_textbook(
+    eligible: list[dict[str, Any]], *, freq_blocklist: list[str] | None = None
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """S5 for the textbook lane (the ONE flip site). Hands the eligible candidate payloads to the
+    deterministic signer, which signs ONLY corpus-confirmed fields and work-orders the rest, then
+    augments the manifest with a node_index so the resolver can resolve by node_code. The
+    ``freq_blocklist`` (high-frequency boilerplate clauses) is threaded to the signer here so it never
+    pollutes the candidate payloads / ledger."""
+    cards = [dict(c.get("payload") or {}) for c in eligible]
+    if freq_blocklist:
+        for card in cards:
+            card["_freq_blocklist"] = freq_blocklist
+    bundle = _FKC.compile_textbook_knowledge_release_candidate(cards)
+    nindex: dict[str, list[str]] = {}
+    for r in bundle.get("records", []):
+        node = str(r.get("node_code") or "")
+        if node:
+            nindex.setdefault(node, []).append(str(r.get("point_id")))
+    # node_index does NOT affect content_hash/signature (computed over records only) -> safe.
+    bundle["manifest"]["node_index"] = {n: sorted(set(p)) for n, p in nindex.items()}
+    signed_pids = {str(r.get("point_id")) for r in bundle.get("records", [])}
+    promoted: list[dict[str, Any]] = []
+    for c in eligible:
+        pid = str((c.get("payload") or {}).get("point_id"))
+        if pid in signed_pids:
+            promoted.append({**_stage_log(c, {"stage": "S5", "verdict": "signed"}),
+                             "promote_to_release": True, "status": "release_candidate"})
+        else:
+            promoted.append(c)  # provenance-failed inside the signer -> stays candidate
+    return bundle, promoted
+
+
 def run_pipeline(
     evidence: list[dict[str, Any]],
     *,
@@ -244,9 +297,15 @@ def run_pipeline(
     council: Council | None = None,
     max_iter: int = 3,
     prior_seen: set[str] | None = None,
+    lane: str = "case",
+    textbook_freq_blocklist: list[str] | None = None,
 ) -> dict[str, Any]:
     """Run S0-applied evidence through S1→S7. Returns a result dict with the signed bundle, ledgers,
-    loop proof, and the safety report. Deterministic; no production / remote / canonical write."""
+    loop proof, and the safety report. ``lane`` selects the S3/S5 pair: "case" (default) or
+    "textbook". ``textbook_freq_blocklist`` (boilerplate clauses present in many blocks) is threaded
+    to the textbook signer. Deterministic; no production / remote / canonical write."""
+    is_textbook = lane == "textbook"
+    bundle_namespace = _FKC.TEXTBOOK_KNOWLEDGE_NAMESPACE if is_textbook else "case_rubric_full"
     worker = llm_worker or default_machine_spec_worker
     seen: set[str] = set(prior_seen or set())
     queue = [e for e in evidence if e.get("evidence_id") not in seen]
@@ -269,8 +328,8 @@ def run_pipeline(
             cands.extend(worker(item))
         cands = [_stage_log(c, {"stage": "S2", "verdict": "produced"}) for c in cands]
         all_candidates.extend(cands)
-        # S3 deterministic gates
-        routed = _s3_gates(cands, gates)
+        # S3 deterministic gates (lane-selected)
+        routed = _s3_gates_textbook(cands) if is_textbook else _s3_gates(cands, gates)
         all_rejected.extend(routed["rejected"])
         all_conflicts.extend(routed["conflict"])
         # S4 adversarial council (down-rank only)
@@ -282,9 +341,12 @@ def run_pipeline(
                            for c in eligible if c.get("candidate_id") not in kept_ids]
             all_work_orders.extend(down_ranked)
             eligible = kept
-        # S5 sign (the one flip site)
+        # S5 sign (the one flip site; lane-selected)
         if eligible:
-            bundle, promoted = _s5_sign(eligible)
+            bundle, promoted = (
+                _s5_sign_textbook(eligible, freq_blocklist=textbook_freq_blocklist)
+                if is_textbook else _s5_sign(eligible)
+            )
             signed_bundle = bundle  # last run's signed bundle is canonical for the slice
             all_candidates.extend(promoted)
         all_work_orders.extend(routed["work_order"])
@@ -296,7 +358,8 @@ def run_pipeline(
 
     ledger = _CF.build_ledger(all_candidates)
     promoted_count = sum(1 for c in all_candidates if c.get("promote_to_release") is True)
-    safety = _safety_report(signed_bundle, all_candidates, ledger, promoted_count)
+    safety = _safety_report(signed_bundle, all_candidates, ledger, promoted_count,
+                            namespace=bundle_namespace)
     return {
         "run_id": run_id,
         "iterations": iterations,
@@ -313,8 +376,9 @@ def run_pipeline(
     }
 
 
-def _safety_report(bundle, candidates, ledger, promoted_count) -> dict[str, Any]:
-    """The §9 invariants. Every value must be 0 / False or the run is NO-GO."""
+def _safety_report(bundle, candidates, ledger, promoted_count, *, namespace="case_rubric_full") -> dict[str, Any]:
+    """The §9 invariants. Every value must be 0 / False or the run is NO-GO. ``namespace`` selects the
+    lane the signed bundle must verify under (case_rubric_full / textbook_knowledge_full)."""
     # a promote_to_release=True candidate that never went through S5 sign would be a violation.
     illegit_promote = sum(
         1 for c in candidates
@@ -323,7 +387,8 @@ def _safety_report(bundle, candidates, ledger, promoted_count) -> dict[str, Any]
     )
     laundering_blocked = sum(1 for c in candidates
                              if str(c.get("reason", "")).startswith("source_laundering_blocked"))
-    tamper_ok = bool(bundle) and _FKC.verify_lane_bundle(bundle, "case_rubric_full") if bundle else True
+    tamper_ok = bool(bundle) and _FKC.verify_lane_bundle(bundle, namespace) if bundle else True
+    manifest = bundle.get("manifest", {}) if bundle else {}
     return {
         "source_laundering_blocked": laundering_blocked,
         "candidate_used_as_release_truth": illegit_promote,
@@ -332,10 +397,12 @@ def _safety_report(bundle, candidates, ledger, promoted_count) -> dict[str, Any]
         "rag_chunk_as_answer_key": 0,
         "model_vote_as_source": 0,
         "council_vote_as_source": 0,
-        "official_answer_as_source": 0,
-        "list_partial_auto": int(bundle["manifest"]["list_partial_auto"]) if bundle else 0,
+        "official_answer_as_source": int(manifest.get("official_answer_as_source", 0) or 0),
+        "list_partial_auto": int(manifest.get("list_partial_auto", 0) or 0),
+        "key_number_not_in_text_signed": int(manifest.get("key_number_not_in_text_signed", 0) or 0),
+        "external_or_reviewonly_auto_signed": int(manifest.get("external_or_reviewonly_auto_signed", 0) or 0),
         "production_write_count": 0,
-        "published": bool(bundle["manifest"]["published"]) if bundle else False,
+        "published": bool(manifest.get("published")) if bundle else False,
         "canonical_truth_written": False,
         "tamper_fail_closed": tamper_ok,
         "all_candidates_separate_namespace": ledger.get("all_separate_from_release", True),

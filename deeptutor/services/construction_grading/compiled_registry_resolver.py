@@ -19,7 +19,9 @@ from pathlib import Path
 from typing import Any
 
 from deeptutor.services.construction_grading import full_knowledge_compiler as _FKC
-from deeptutor.services.construction_grading.compiled_context import build_pack_from_question_context
+from deeptutor.services.construction_grading.compiled_context import (
+    build_pack_from_question_context,
+)
 
 _log = logging.getLogger(__name__)
 
@@ -124,6 +126,67 @@ def build_pack_for_question(
     )
 
 
+def resolve_node(
+    node_code: str,
+    *,
+    bundle: dict[str, Any],
+    pointer: dict[str, Any],
+    namespace: str = "textbook_knowledge_full",
+) -> dict[str, Any] | None:
+    """Resolve a 2026 教材 knowledge node from a signed textbook bundle into a ``resolution`` dict.
+
+    Mirrors ``resolve_question`` but keys on the manifest ``node_index`` (node_code -> [point_ids]).
+    Returns None (caller falls open) on any gate failure or a not-in-bundle node. Carries NO
+    registry_status — release-grade is granted only by the trusted ``governed_registry_status`` kwarg.
+    """
+    node = str(node_code or "").strip()
+    if not node:
+        return None
+    ok, reason = verify_bundle(bundle, pointer, namespace=namespace)
+    if not ok:
+        _log.warning("textbook bundle rejected at resolver: %s", reason)
+        return None
+    nindex = (bundle.get("manifest") or {}).get("node_index") or {}
+    pmap = _point_map(bundle)
+    cards = [pmap[pid] for pid in (nindex.get(node) or []) if pid in pmap]
+    if not cards:
+        return None
+    required_terms = sorted({t for c in cards for t in (c.get("required_terms") or [])})
+    return {
+        "status": "resolved",
+        "question_id": node,                 # identity slot reused
+        "question_type": "knowledge_node",
+        "rubric": {"knowledge_cards": cards, "card_count": len(cards)},
+        "required_terms": required_terms,
+        "source_refs": [
+            {"chunk_id": c.get("chunk_id"), "taxonomy_path": c.get("taxonomy_path"),
+             "provenance_kind": c.get("provenance_class"), "textbook_quote": c.get("textbook_quote")}
+            for c in cards
+        ],
+    }
+
+
+def build_pack_for_node(
+    node_code: str,
+    *,
+    bundle: dict[str, Any],
+    pointer: dict[str, Any],
+    namespace: str = "textbook_knowledge_full",
+    learner_context: dict[str, Any] | None = None,
+    grant_release: bool = False,
+) -> Any | None:
+    """Resolve a textbook node + build the LubanContextPack. ``grant_release`` is the trusted-server F1
+    decision (authority is the server kwarg, never the bundle)."""
+    resolution = resolve_node(node_code, bundle=bundle, pointer=pointer, namespace=namespace)
+    if resolution is None:
+        return None
+    return build_pack_from_question_context(
+        resolution,
+        learner_context=learner_context or {},
+        governed_registry_status="release_candidate" if grant_release else "",
+    )
+
+
 def load_supply(dir_path: str | Path, *, bundle_name: str, pointer_name: str = "canonical_pointer.json") -> tuple[dict[str, Any], dict[str, Any]] | None:
     """Read a tracked runtime-supply bundle + canonical pointer from disk (read-only). None on error."""
     d = Path(dir_path)
@@ -139,4 +202,5 @@ def load_supply(dir_path: str | Path, *, bundle_name: str, pointer_name: str = "
     return (bundle, pointer)
 
 
-__all__ = ["verify_bundle", "resolve_question", "build_pack_for_question", "load_supply"]
+__all__ = ["verify_bundle", "resolve_question", "build_pack_for_question",
+           "resolve_node", "build_pack_for_node", "load_supply"]

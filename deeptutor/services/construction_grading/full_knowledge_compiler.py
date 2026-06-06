@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from typing import Any, Callable
 
 from deeptutor.services.construction_grading.normalization import normalize_options
@@ -372,6 +373,186 @@ def build_compiled_knowledge_registry_manifest(
     }
 
 
+# --------------------------- textbook verbatim knowledge lane ---------------------------
+#
+# Increment ① of the Living LLM Artifact Compiler (docs/plan/2026-06-06-luban-textbook-verbatim-
+# lane-design.md). Signs 2026 教材 knowledge-card points whose claim is VERBATIM in the block's own
+# ``content_markdown``. The LLM only proposes; THIS deterministic signer re-checks every field against
+# the corpus and signs ONLY confirmed fields. Implements the 5 adversarial must-fix guards:
+#   1. corpus check is internal (``quote in content_markdown``); any LLM-asserted verified/match_method
+#      is IGNORED.
+#   2. per-number provenance: a key_number signs only if it is in the block's OWN content_markdown
+#      (never card_content's GB citation).
+#   3. per-field: card_title / mnemonics / logic_chain / assessment are NEVER in the authority surface.
+#   4. same-block corpus only (keyed by chunk_id); content_hash binds chunk -> corpus.
+#   5. narrow symmetric _norm + min span + high-frequency-phrase blocklist.
+
+TEXTBOOK_KNOWLEDGE_NAMESPACE = "textbook_knowledge_full"
+_NODE_RE = re.compile(r"^1A\d{6,}$")  # canonical taxonomy node_code
+_GB_RE = re.compile(r"(GB|JGJ|CJJ|JG|GBT|GB/T|GB\s*/\s*T)\s*\d")
+_MIN_SPAN = 6  # reject verbatim quotes shorter than this many normalized chars
+
+
+def _norm_textbook(s: Any) -> str:
+    """Narrow, symmetric normalization (must-fix #5): collapse ALL whitespace, fold full-width digits
+    and latin to half-width, but DO NOT strip interior content characters (no char-subset matching).
+    The SAME _norm runs at sign, S5 re-verify, and the resolver."""
+    out: list[str] = []
+    for ch in str(s or ""):
+        o = ord(ch)
+        if 0xFF10 <= o <= 0xFF19 or 0xFF21 <= o <= 0xFF5A:  # full-width digits / latin -> half-width
+            out.append(chr(o - 0xFEE0))
+        elif ch.isspace():
+            continue
+        else:
+            out.append(ch)
+    return "".join(out)
+
+
+def _num_core(n: Any) -> str:
+    """Numeric core of a key_number for substring search (strip unit suffix; keep the number)."""
+    m = re.match(r"^(\d+(?:\.\d+)?)", _norm_textbook(n))
+    return m.group(1) if m else ""
+
+
+def validate_textbook_provenance(
+    card: dict[str, Any],
+    content_markdown: str,
+    *,
+    freq_blocklist: set[str] | None = None,
+) -> dict[str, Any]:
+    """PER-FIELD corpus check against THIS block's content_markdown only. Returns the partitioned
+    provenance: which fields are verbatim-confirmed. The LLM-proposed ``exact_quote`` is re-checked
+    here; card_title/mnemonics/logic_chain/assessment are never authority sources."""
+    norm_corpus = _norm_textbook(content_markdown)
+    quote = str(card.get("exact_quote") or "").strip()
+    nq = _norm_textbook(quote)
+    quote_ok = bool(nq) and len(nq) >= _MIN_SPAN and nq in norm_corpus
+    if quote_ok and freq_blocklist and nq in freq_blocklist:
+        quote_ok = False  # high-frequency boilerplate -> not a real anchor
+
+    verified_nums: list[str] = []
+    external_nums: list[str] = []
+    for kn in card.get("key_numbers") or []:
+        core = _num_core(kn)
+        if core and core in norm_corpus:
+            verified_nums.append(str(kn))
+        else:
+            external_nums.append(str(kn))
+
+    cites_external = bool(_GB_RE.search(str(card.get("card_content") or "")))
+
+    if quote_ok and verified_nums:
+        pc, reason = "textbook_authority", "verbatim_clause_and_numbers_in_block"
+    elif verified_nums:
+        pc, reason = "machine_spec", "key_numbers_verbatim_in_block"
+    elif quote_ok:
+        pc, reason = "textbook_concept", "verbatim_clause_in_block"
+    elif external_nums and cites_external:
+        pc, reason = "external_standard", "external_code_numbers_not_in_block_body"
+    else:
+        pc, reason = "synthesis", "no_verbatim_no_number"
+
+    return {
+        "provenance_class": pc,
+        "reason": reason,
+        "verbatim_quote": quote if quote_ok else None,
+        "verified_key_numbers": verified_nums,
+        "external_residual": external_nums,
+    }
+
+
+_TEXTBOOK_SIGNABLE = {"textbook_authority", "machine_spec", "textbook_concept"}
+
+
+def compile_textbook_knowledge_release_candidate(cards: list[dict[str, Any]]) -> dict[str, Any]:
+    """Sign 2026 教材 knowledge-card points whose claim is verbatim in their block's content_markdown.
+
+    Each input card carries: chunk_id, node_code, content_markdown (the block's OWN), card_type,
+    card_content, key_numbers, exact_quote (LLM proposal), taxonomy_path, point_id, optional
+    _freq_blocklist. external_standard / synthesis -> work_order (NEVER signed). namespace =
+    TEXTBOOK_KNOWLEDGE_NAMESPACE; signature over records only.
+    """
+    signed: list[dict[str, Any]] = []
+    work_order: list[dict[str, Any]] = []
+    dropped: list[dict[str, Any]] = []
+    by_bucket: dict[str, int] = {}
+    seen_point: dict[str, str] = {}
+
+    for c in cards:
+        cid = str(c.get("chunk_id") or c.get("point_id") or "").strip()
+        node = str(c.get("node_code") or "").strip()
+        corpus = str(c.get("content_markdown") or "")  # SAME block only (must-fix #4)
+        pid = str(c.get("point_id") or cid)
+
+        if not cid or not _NODE_RE.match(node):
+            dropped.append({"point_id": pid, "reason": "missing_chunk_or_node_code"})
+            continue
+
+        prov = validate_textbook_provenance(
+            c, corpus, freq_blocklist=set(c.get("_freq_blocklist") or []) or None
+        )
+        pc = prov["provenance_class"]
+        by_bucket[pc] = by_bucket.get(pc, 0) + 1
+
+        if pc not in _TEXTBOOK_SIGNABLE:
+            work_order.append({
+                "point_id": pid, "node_code": node, "provenance_class": pc,
+                "reason": prov["reason"], "external_residual": prov["external_residual"],
+                "promote_to_release": False,
+            })
+            continue
+
+        # Sign ONLY corpus-confirmed fields (must-fix #3). content_hash binds chunk -> corpus
+        # (must-fix #4). Non-authority fields (card_title/mnemonics/logic_chain/assessment) excluded.
+        rec = {
+            "point_id": pid,
+            "chunk_id": cid,
+            "node_code": node,
+            "card_type": str(c.get("card_type") or ""),
+            "provenance_class": pc,
+            "textbook_quote": prov["verbatim_quote"],
+            "key_numbers": prov["verified_key_numbers"],
+            "required_terms": list(prov["verified_key_numbers"]),  # ONLY from verified anchors
+            "taxonomy_path": str(c.get("taxonomy_path") or ""),
+            "content_hash": _sha256_hex(_norm_textbook(corpus)),
+            "answer_key_authority": "verbatim_2026_textbook_content_markdown",
+        }
+        sig = _sha256_hex(rec)
+        if pid in seen_point and seen_point[pid] != sig:
+            work_order.append({"point_id": pid, "reason": "conflict_same_point_different_content",
+                               "promote_to_release": False})
+            continue
+        seen_point[pid] = sig
+        signed.append(rec)
+
+    signed.sort(key=lambda x: x["point_id"])
+    content_hash = _sha256_hex(signed)
+    namespace = TEXTBOOK_KNOWLEDGE_NAMESPACE
+    manifest = {
+        "schema_version": SCHEMA_VERSION,
+        "namespace": namespace,
+        "lane": "textbook_knowledge",
+        "status": STATUS_RELEASE_CANDIDATE,
+        "published": False,
+        "signed_count": len(signed),
+        "work_order_count": len(work_order),
+        "dropped_count": len(dropped),
+        "by_bucket": by_bucket,
+        "content_hash": content_hash,
+        "signature": _sha256_hex([content_hash, namespace, STATUS_RELEASE_CANDIDATE]),
+        # invariants asserted by construction (the signer only signs corpus-confirmed fields):
+        "external_or_reviewonly_auto_signed": 0,
+        "key_number_not_in_text_signed": 0,
+        "assessment_keyword_as_required_term": 0,
+        "official_answer_as_source": 0,
+        "model_vote_as_source": 0,
+        "rollback_pointer": "legacy (no textbook_knowledge_full -> runtime uses existing context)",
+        "separate_namespace": True,
+    }
+    return {"manifest": manifest, "records": signed, "work_order": work_order, "dropped": dropped}
+
+
 def verify_lane_bundle(bundle: dict[str, Any], namespace: str) -> bool:
     """Fail-closed: recompute content_hash over records AND signature over (hash|namespace|status)."""
     manifest = bundle.get("manifest") or {}
@@ -432,4 +613,7 @@ __all__ = [
     "verify_lane_bundle",
     "fetch_full_objective_rows",
     "CASE_AUTHORITY_BUCKETS",
+    "TEXTBOOK_KNOWLEDGE_NAMESPACE",
+    "validate_textbook_provenance",
+    "compile_textbook_knowledge_release_candidate",
 ]
