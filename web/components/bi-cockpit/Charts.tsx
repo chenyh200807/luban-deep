@@ -35,6 +35,7 @@ export function CockpitDonut({
   onSelect?: (d: Datum) => void
 }) {
   const total = data.reduce((s, d) => s + d.value, 0)
+  const colorOf = (d: Datum, i: number) => d.color ?? SERIES_COLORS[i % SERIES_COLORS.length]
   const option: EChartsOption = {
     color: SERIES_COLORS as unknown as string[],
     tooltip: {
@@ -45,7 +46,7 @@ export function CockpitDonut({
     series: [
       {
         type: 'pie',
-        radius: ['46%', '66%'],
+        radius: ['58%', '82%'],
         center: ['50%', '50%'],
         avoidLabelOverlap: true,
         padAngle: 3,
@@ -56,33 +57,14 @@ export function CockpitDonut({
           shadowBlur: 14,
           shadowColor: 'rgba(0,0,0,0.4)',
         },
-        // 直接在图上显示「名称 + 数值(占比)」，不依赖悬停
-        label: {
-          show: true,
-          color: COCKPIT.text,
-          fontSize: 11,
-          fontFamily: COCKPIT_FONT,
-          lineHeight: 14,
-          formatter: (p: any) => `{n|${p.name}}\n{v|${fmt(p.value)}  ${p.percent}%}`,
-          rich: {
-            n: { color: COCKPIT.textMuted, fontSize: 11, fontFamily: COCKPIT_FONT },
-            v: { color: COCKPIT.text, fontSize: 12, fontWeight: 700, fontFamily: COCKPIT_FONT },
-          },
-        },
-        labelLine: {
-          show: true,
-          length: 8,
-          length2: 12,
-          smooth: true,
-          lineStyle: { color: 'rgba(212,140,90,0.35)' },
-        },
+        // 数字放到右侧图例表，环形本身保持干净
+        label: { show: false },
+        labelLine: { show: false },
         emphasis: { scale: true, scaleSize: 6, itemStyle: { shadowBlur: 22 } },
         data: data.map((d, i) => ({
           name: d.name,
           value: d.value,
-          itemStyle: d.color
-            ? { color: d.color }
-            : { color: SERIES_COLORS[i % SERIES_COLORS.length] },
+          itemStyle: { color: colorOf(d, i) },
         })),
       },
     ],
@@ -95,7 +77,7 @@ export function CockpitDonut({
             style: {
               text: centerValue,
               fill: COCKPIT.text,
-              fontSize: 26,
+              fontSize: 24,
               fontWeight: 800,
               fontFamily: COCKPIT_FONT,
             },
@@ -103,7 +85,7 @@ export function CockpitDonut({
           {
             type: 'text',
             left: 'center',
-            top: '58%',
+            top: '57%',
             style: {
               text: centerLabel ?? '',
               fill: COCKPIT.textMuted,
@@ -114,15 +96,40 @@ export function CockpitDonut({
         ]
       : undefined,
   }
-  void total
+  const ringH = Math.min(height, 168)
   return (
-    <EChart
-      option={option}
-      height={height}
-      onEvents={
-        onSelect ? { click: (p: any) => onSelect({ name: p.name, value: p.value }) } : undefined
-      }
-    />
+    <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+      <div className="shrink-0" style={{ width: ringH, height: ringH }}>
+        <EChart
+          option={option}
+          height={ringH}
+          onEvents={
+            onSelect ? { click: (p: any) => onSelect({ name: p.name, value: p.value }) } : undefined
+          }
+        />
+      </div>
+      {/* 旁边图例表：色块 + 名称 + 数值 + 占比；窄面板自动换到环下方 */}
+      <ul className="min-w-[150px] flex-1 space-y-1.5">
+        {data.map((d, i) => {
+          const pct = total > 0 ? Math.round((d.value / total) * 100) : 0
+          return (
+            <li
+              key={`${d.name}-${i}`}
+              onClick={onSelect ? () => onSelect(d) : undefined}
+              className={`flex items-center gap-2 text-[11px] ${onSelect ? 'cursor-pointer hover:opacity-80' : ''}`}
+            >
+              <span
+                className="h-2.5 w-2.5 shrink-0 rounded-sm"
+                style={{ background: colorOf(d, i) }}
+              />
+              <span className="min-w-0 flex-1 truncate text-slate-300">{d.name}</span>
+              <span className="shrink-0 font-bold tabular-nums text-slate-100">{fmt(d.value)}</span>
+              <span className="w-9 shrink-0 text-right tabular-nums text-slate-500">{pct}%</span>
+            </li>
+          )
+        })}
+      </ul>
+    </div>
   )
 }
 
