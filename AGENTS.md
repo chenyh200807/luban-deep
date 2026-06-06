@@ -6,6 +6,67 @@ DeepTutor is an **agent-native** intelligent learning companion built around
 a two-layer plugin model (Tools + Capabilities) with three entry points:
 CLI, WebSocket API, and Python SDK.
 
+## Claude / Codex Web Memory Guardrails
+
+这些规则来自 2026-06-06 Codex Desktop / Claude Code 内存事故。macOS 曾显示 Codex 172.68 GB；后续 Claude Code 托管 BI `next dev` 时，Terminal coalition 被 Jetsam 记录到约 201.6 GB resident、3,927 个 `node` 进程。当前结论不是“机器内存不够”，而是 Web/BI dev server 在 AI agent 进程树下可能触发 Next/PostCSS/Node worker storm。
+
+### Hard Boundaries
+
+- 默认不要使用 Computer Use 处理 Web / BI / 前端 / 浏览器 / 截图任务；优先用终端命令、Playwright CLI、浏览器 URL、截图文件。
+- 不要让 Codex Desktop、Computer Use、Claude Code 或其他 AI agent 托管长时间 `npm run dev` / `next dev` / `next-server` / 浏览器进程。
+- Web dev server 必须由明确的人工 Terminal/tmux 会话托管，并在任务结束时关闭。
+- 如果 `next dev` / `next-server` / `.next/dev/build/postcss.js` 的父链挂在 Codex app-server、Claude Code、Computer Use 或其他 AI agent 下，直接判为高风险，不要继续观察趋势。
+- 不要把 `--max-old-space-size` 当成总内存上限；它只限制单个 Node 进程，不能阻止几千个 child worker 累计爆内存。
+- 不要把 `next dev --webpack` 当成已验证修复；事故中即使试过 `--webpack`，仍可能出现 `.next/dev/build/postcss.js` worker。
+
+### Required Preflight For Web/BI Work
+
+开始任何 DeepTutor Web、BI、前端、浏览器或截图任务前，先运行：
+
+```bash
+/Users/yehongchen/.codex/bin/codex-memory-snapshot.sh
+/Users/yehongchen/.codex/bin/agent-owned-next-guard.sh --check
+pgrep -af 'SkyComputerUse|SkyComputerUseClient|SkyComputerUseService|next-server|/web/\.next/dev/build/postcss\.js|next/dist/bin/next dev' || true
+```
+
+安全基线：
+
+```text
+No SkyComputerUse process
+No AI-agent-owned Next dev process tree
+No old next-server process
+No postcss.js worker burst
+Codex / Terminal / Claude memory stays in low single-digit GB range
+```
+
+### Stop Conditions
+
+出现任一条件，立即停止当前 Web/BI 任务并清理，不要继续生成代码或等待它“自己降下来”：
+
+```text
+Codex matched memory > 8 GB and rising
+Terminal / Claude coalition memory spikes with many node processes
+other matched > 5 GB with many node processes
+postcss.js workers > 50
+SkyComputerUseService reappears unexpectedly
+next-server remains alive after task end
+next dev / next-server is parented by Codex app-server, Claude Code, Computer Use, or another AI agent
+macOS memory pressure warning appears
+```
+
+第一响应：
+
+```bash
+/Users/yehongchen/.codex/bin/codex-memory-snapshot.sh
+/Users/yehongchen/.codex/bin/agent-owned-next-guard.sh --kill
+pkill -KILL -f 'next-server|/web/\.next/dev/build/postcss\.js|next/dist/bin/next dev'
+/Users/yehongchen/.codex/bin/codex-emergency-cleanup.sh
+```
+
+本地事故记录：
+
+- `/Users/yehongchen/.codex/reports/2026-06-06-codex-desktop-memory-incident.md`
+
 ## Contract Discipline
 
 凡是涉及 turn/session/stream/replay/resume、聊天入口、TutorBot 接入、trace/observability 的改动，必须先遵守：
