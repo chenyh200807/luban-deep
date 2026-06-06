@@ -212,12 +212,13 @@ COPY --from=frontend-builder /app/web/public/ ./web/public/
 # Copy application source code
 COPY deeptutor/ ./deeptutor/
 COPY deeptutor_cli/ ./deeptutor_cli/
+COPY contracts/ ./contracts/
 COPY scripts/ ./scripts/
 COPY pyproject.toml ./
 COPY requirements/ ./requirements/
 COPY requirements.txt ./
 
-RUN chmod -R a+rX /app/deeptutor /app/deeptutor_cli /app/scripts /app/requirements \
+RUN chmod -R a+rX /app/deeptutor /app/deeptutor_cli /app/contracts /app/scripts /app/requirements \
     && chmod a+r /app/pyproject.toml /app/requirements.txt
 
 RUN cat > /usr/local/bin/deeptutor <<'EOF'
