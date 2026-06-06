@@ -106,6 +106,7 @@ tmp/pdfs/
 tmp/plan-completion-audits/
 web/tmp/
 web/test-results/
+web/test-results*/
 deeptutor/tutorbot/.understand-anything/
 
 # Cache directories

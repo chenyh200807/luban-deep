@@ -117,6 +117,8 @@ artifacts/
 # ============================================
 develop/
 scripts/extract_numbered_items.sh
+test-results*/
+**/test-results*/
 *.log
 logs/
 *.bak
