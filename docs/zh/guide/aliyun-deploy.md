@@ -207,6 +207,65 @@ Observability 验收不要打公网 `/metrics`。改用：
 bash scripts/verify_aliyun_observability.sh
 ```
 
+### Docker 日志与记录留存
+
+如果要排查 Docker 高负载、Langfuse/ClickHouse 日志膨胀、或准备执行
+`systemctl restart docker` 这类主机级操作，必须先把 Docker 日志和运行记录
+留存在 `/root/deeptutor` 内，再重启或清理。不要把日志备份写到 `/tmp`、
+`/root/luban`、`/var` 或其他系统目录。
+
+当前统一留存位置：
+
+- 文本目录：`/root/deeptutor/data/ops/docker-log-capture-<UTC timestamp>/`
+- 压缩包：`/root/deeptutor/data/ops/docker-log-capture-<UTC timestamp>.tar.gz`
+- 最新一次指针：`/root/deeptutor/data/ops/latest-docker-log-capture.txt`
+
+2026-06-04 真实事故排查时的留存目录是：
+
+- `/root/deeptutor/data/ops/docker-log-capture-20260604T031742Z`
+- `/root/deeptutor/data/ops/docker-log-capture-20260604T031742Z.tar.gz`
+
+该目录包含最近 24 小时的容器日志、`docker ps -a`、`docker stats`、
+`docker inspect`、`docker events` 和 Docker 磁盘状态。本次原始文本约 504M，
+压缩后约 16M；最大文件是 `jgzk-langfuse-clickhouse` 的最近 24 小时日志。
+
+推荐捕获命令：
+
+```bash
+cd /root/deeptutor
+ts=$(date -u +%Y%m%dT%H%M%SZ)
+out="data/ops/docker-log-capture-$ts"
+mkdir -p "$out/logs" "$out/inspect"
+echo "$out" > data/ops/latest-docker-log-capture.txt
+
+{
+  date
+  hostname
+  uptime
+  df -hT
+  docker system df
+  docker ps -a --no-trunc
+} > "$out/00-host-and-docker-state.txt" 2>&1
+
+docker stats --no-stream > "$out/01-docker-stats.txt" 2>&1 || true
+docker events --since 24h --until 0s > "$out/02-docker-events-last-24h.txt" 2>&1 || true
+
+for c in $(docker ps -a --format "{{.Names}}"); do
+  safe=$(printf "%s" "$c" | tr "/ " "__")
+  docker inspect "$c" > "$out/inspect/$safe.inspect.json" 2>&1 || true
+  docker logs --since 24h "$c" > "$out/logs/$safe.last-24h.stdout-stderr.txt" 2>&1 || true
+done
+
+find "$out" -type f -printf "%s %p\n" | sort -nr > "$out/99-file-sizes.txt"
+tar -czf "$out.tar.gz" -C "$(dirname "$out")" "$(basename "$out")"
+du -sh "$out" "$out.tar.gz"
+```
+
+只有确认上面的文本目录和压缩包都存在后，才执行 Docker 重启、日志截断、
+`docker system prune` 或 Langfuse 降载操作。Docker 重启后还要重新确认
+`deeptutor` 容器进入 `healthy`，并从本地发起端验证公网 `/healthz` 与
+`/readyz`。
+
 如果本次发布前本地生成过 ignored 产物，还要确认它们没有进入远端发布面：
 
 ```bash

@@ -18,22 +18,23 @@ from deeptutor.core.capability_protocol import BaseCapability, CapabilityManifes
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream_bus import StreamBus
 from deeptutor.core.trace import merge_trace_metadata
-from deeptutor.services.construction_grading.deep_question_adapter import (
-    attach_deep_question_grading_result,
-)
-from deeptutor.services.construction_grading.writeback import write_grading_error_events
 from deeptutor.services.citations import (
     CitationPolicy,
     answer_citations_enabled,
     apply_answer_citation_metadata,
 )
+from deeptutor.services.construction_grading.deep_question_adapter import (
+    attach_deep_question_grading_result,
+)
+from deeptutor.services.construction_grading.writeback import write_grading_error_events
 from deeptutor.services.question_followup import (
-    apply_followup_action_to_context,
     answers_match,
+    apply_followup_action_to_context,
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_presentation,
     build_question_followup_context_from_result_summary,
     normalize_question_followup_context,
+    requested_question_item_index,
     resolve_submission_attempt,
     should_block_unanswered_reference_reveal,
     should_reveal_reference_material,
@@ -49,8 +50,8 @@ from deeptutor.services.semantic_router import (
     question_context_from_active_object,
 )
 from deeptutor.tools.rag_tool import rag_search
+from deeptutor.tutorbot.response_mode import looks_like_explicit_brevity_request
 from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
-
 
 _GENERATION_TOPIC_ANCHOR_MARKERS = (
     "刚才",
@@ -1023,6 +1024,7 @@ def _objective_items(question_context: dict[str, Any] | None) -> list[dict[str, 
     items = _grading_items(question_context)
     objective_items: list[dict[str, Any]] = []
     for item in items:
+        item = _promote_grading_key_correct_answer(item) or item
         question_type = str(item.get("question_type") or "").strip().lower()
         if question_type not in {
             "choice",
@@ -1044,6 +1046,7 @@ def _reference_items(question_context: dict[str, Any] | None) -> list[dict[str, 
     items = _grading_items(question_context)
     reference_items: list[dict[str, Any]] = []
     for item in items:
+        item = _promote_grading_key_correct_answer(item) or item
         if not str(item.get("correct_answer") or "").strip():
             return []
         reference_items.append(item)
@@ -1254,10 +1257,148 @@ def _should_render_deterministic_reference_feedback(
     )
 
 
-def _render_deterministic_reference_feedback(question_context: dict[str, Any] | None) -> str:
+def _looks_like_option_mapping_challenge(user_message: str) -> bool:
+    text = str(user_message or "").strip().lower()
+    if not text:
+        return False
+    return any(
+        marker in text
+        for marker in (
+            "旧题库",
+            "这轮选项",
+            "当前选项",
+            "选项顺序",
+            "没看我这轮",
+            "没看选项",
+            "字母对不上",
+        )
+    )
+
+
+def _looks_like_wrong_cause_request(user_message: str) -> bool:
+    text = str(user_message or "").strip().lower()
+    if not text:
+        return False
+    return any(marker in text for marker in ("错因", "错在哪", "哪里错", "为什么错"))
+
+
+def _looks_like_missing_selection_check(user_message: str) -> bool:
+    text = str(user_message or "").strip().lower()
+    if not text:
+        return False
+    return any(marker in text for marker in ("漏没漏", "漏没", "漏了没", "有没有漏", "少没少"))
+
+
+def _brief_option_focus(option_text: str, *, fallback: str) -> str:
+    text = _compact_text(option_text)
+    if not text:
+        return fallback
+    return text[:8] or fallback
+
+
+def _render_brief_wrong_cause(item: dict[str, Any]) -> str:
+    correct_letters = set(_answer_letters(item.get("correct_answer")))
+    user_letters = set(_answer_letters(item.get("user_answer")))
+    options = dict(_option_entries(item))
+    extra_letters = sorted(user_letters - correct_letters)
+    missing_letters = sorted(correct_letters - user_letters)
+    if extra_letters:
+        focus = _brief_option_focus(
+            options.get(extra_letters[0], ""),
+            fallback=f"{extra_letters[0]}项",
+        )
+        return f"误选{focus}。"
+    if missing_letters:
+        focus = _brief_option_focus(
+            options.get(missing_letters[0], ""),
+            fallback=f"{missing_letters[0]}项",
+        )
+        return f"漏选{focus}。"
+    if item.get("is_correct") is True:
+        return "没错，答案正确。"
+    return "错在选项判断。"
+
+
+def _render_brief_missing_selection_check(item: dict[str, Any]) -> str:
+    user_answer = "".join(_answer_letters(item.get("user_answer")))
+    correct_answer = "".join(_answer_letters(item.get("correct_answer")))
+    if item.get("is_correct") is True and user_answer:
+        return f"没漏，{user_answer}都选对。"
+    correct_letters = set(_answer_letters(item.get("correct_answer")))
+    user_letters = set(_answer_letters(item.get("user_answer")))
+    missing_letters = sorted(correct_letters - user_letters)
+    if missing_letters:
+        return f"漏选{''.join(missing_letters)}。"
+    if correct_answer:
+        return f"以标准答案{correct_answer}为准。"
+    return "需要题目答案才能判断。"
+
+
+def _render_targeted_brief_reference_feedback(
+    user_message: str,
+    question_context: dict[str, Any] | None,
+) -> str:
+    if not looks_like_explicit_brevity_request(user_message):
+        return ""
+    items = _reference_items(question_context)
+    if len(items) != 1:
+        return ""
+    item = items[0]
+    if _looks_like_wrong_cause_request(user_message):
+        return _render_brief_wrong_cause(item)
+    if _looks_like_missing_selection_check(user_message):
+        return _render_brief_missing_selection_check(item)
+    return ""
+
+
+def _render_brief_reference_feedback(
+    user_message: str,
+    question_context: dict[str, Any] | None,
+) -> str:
     items = _reference_items(question_context)
     if not items:
         return ""
+    requested_index = requested_question_item_index(user_message, question_context)
+    if requested_index is not None and 1 <= requested_index <= len(items):
+        items = [items[requested_index - 1]]
+    if len(items) == 1:
+        item = items[0]
+        objective = bool(_objective_items(item))
+        answer_label = "正确答案" if objective else "参考答案"
+        answer = _format_answer_with_option_text(item, item.get("correct_answer"))
+        if objective and _looks_like_option_mapping_challenge(user_message):
+            return f"不是，已按你这轮题面判断，正确答案是 {answer}。"
+        explanation = _compact_text(_reference_explanation(item))
+        if explanation:
+            return f"{answer_label}是 {answer}：{explanation}"
+        return f"{answer_label}是 {answer}。"
+
+    parts: list[str] = []
+    for index, item in enumerate(items, 1):
+        objective = bool(_objective_items(item))
+        answer_label = "正确答案" if objective else "参考答案"
+        answer = _format_answer_with_option_text(item, item.get("correct_answer"))
+        parts.append(f"第{index}题{answer_label}是 {answer}")
+    return "；".join(parts) + "。"
+
+
+def _render_deterministic_reference_feedback(
+    question_context: dict[str, Any] | None,
+    *,
+    user_message: str = "",
+) -> str:
+    targeted_brief = _render_targeted_brief_reference_feedback(user_message, question_context)
+    if targeted_brief:
+        return targeted_brief
+    if looks_like_explicit_brevity_request(user_message):
+        return _render_brief_reference_feedback(user_message, question_context)
+
+    items = _reference_items(question_context)
+    if not items:
+        return ""
+    requested_index = requested_question_item_index(user_message, question_context)
+    if requested_index is not None and 1 <= requested_index <= len(items):
+        items = [items[requested_index - 1]]
     if len(items) == 1:
         item = items[0]
         objective = bool(_objective_items(item))
@@ -1727,6 +1868,178 @@ def _v1_llm_adjudication_cohort_member(student_id: str) -> bool:
     return str(student_id).startswith(tuple(dict.fromkeys(base + extra)))
 
 
+def _objective_candidate_flag_enabled(context: UnifiedContext) -> bool:
+    """Objective candidate request flag (M25-B). Default OFF -> legacy payload byte-identical."""
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return bool(
+        metadata.get("grading_engine_objective_candidate")
+        or context.config_overrides.get("grading_engine_objective_candidate")
+    )
+
+
+def _objective_candidate_cohort_member(student_id: str) -> bool:
+    import os
+
+    base = ["qa_", "test_", "operator_"]
+    raw = os.environ.get("LUBAN_OBJECTIVE_CANDIDATE_COHORT", "")
+    extra = [p.strip() for p in raw.split(",") if p.strip()]
+    return str(student_id).startswith(tuple(dict.fromkeys(base + extra)))
+
+
+def _maybe_attach_objective_candidate(
+    *,
+    context: UnifiedContext,
+    graded_context: dict[str, Any],
+    result_payload: dict[str, Any],
+) -> None:
+    """Objective answer-key CANDIDATE lane (append-only, M25-B). Cohort-gated QA/test-only.
+
+    Thin wrapper — ALL objective scoring / packet / authority policy lives in
+    ``objective_runtime_adapter`` + ``objective_grader`` + ``objective_answer_key_compiler``
+    (fat skills). This only reads the flag + cohort + real submission fields and appends
+    ``luban_grading_engine_objective_candidate``. It NEVER mutates the legacy
+    ``construction_grading_result``, never writes the DB / Learning Brain / registry, never
+    claims official truth. answer_key is the sole authority; the LLM cannot decide correctness.
+    Missing / malformed / tampered candidate bundle -> fail-closed; not-in-bank -> fail-open
+    open-world diagnostic. Default OFF -> legacy byte-identical."""
+    if not _objective_candidate_flag_enabled(context):
+        return  # flag off -> legacy only
+    student_id = _learner_user_id_from_context(context)
+    if not _objective_candidate_cohort_member(student_id):
+        return  # non-cohort (real student) -> legacy only
+    question_id = str(graded_context.get("question_id") or "").strip()
+    selected_option = str(graded_context.get("user_answer") or "").strip()
+    try:
+        from deeptutor.services.construction_grading.objective_runtime_adapter import (
+            build_objective_candidate_payload,
+        )
+
+        result_payload["luban_grading_engine_objective_candidate"] = build_objective_candidate_payload(
+            question_id=question_id,
+            selected_option=selected_option,
+            learner_context={"student_id": student_id},
+        )
+    except Exception as exc:  # noqa: BLE001 — objective candidate must never break legacy
+        result_payload["luban_grading_engine_objective_candidate"] = {
+            "authority": "luban_grading_engine_objective_candidate",
+            "mode": "objective_candidate",
+            "status": "candidate_bundle_unavailable",
+            "fail_closed": True,
+            "unavailable_reason": str(exc)[:200],
+            "not_production_grade": True,
+            "writeback_performed": False,
+        }
+
+
+def _m31_governed_objective_flag_enabled(context: UnifiedContext) -> bool:
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return bool(
+        metadata.get("grading_engine_m31_governed_objective")
+        or context.config_overrides.get("grading_engine_m31_governed_objective")
+    )
+
+
+def _m31_governed_objective_kill_switch_active() -> bool:
+    """Env kill switch ``LUBAN_M31_GOVERNED_OBJECTIVE_ENABLED=false`` force-disables the governed lane."""
+    import os
+
+    return os.environ.get("LUBAN_M31_GOVERNED_OBJECTIVE_ENABLED", "").strip().lower() in (
+        "false", "0", "off", "no",
+    )
+
+
+def _m31_governed_objective_cohort_prefixes() -> tuple[str, ...]:
+    """Cohort prefixes for the M31 governed objective lane. Base ``qa_/test_/operator_`` plus optional
+    ``LUBAN_M31_GOVERNED_OBJECTIVE_COHORT``. Real students are never in the default cohort."""
+    import os
+
+    base = ["qa_", "test_", "operator_"]
+    raw = os.environ.get("LUBAN_M31_GOVERNED_OBJECTIVE_COHORT", "")
+    extra = [p.strip() for p in raw.split(",") if p.strip()]
+    return tuple(dict.fromkeys(base + extra))
+
+
+def _maybe_attach_m31_governed_objective(
+    *,
+    context: UnifiedContext,
+    graded_context: dict[str, Any],
+    result_payload: dict[str, Any],
+) -> None:
+    """M31 governed objective release-candidate lane (append-only; flag + env kill switch + cohort).
+
+    Thin wrapper — ALL governed loading / verification / scoring policy lives in
+    ``objective_runtime_adapter`` (fat skill). This only reads the flag + cohort + real submission
+    fields and appends ``luban_grading_engine_m31_governed_objective``. It NEVER mutates the legacy
+    ``construction_grading_result``, never writes the DB / Learning Brain / registry, never publishes,
+    never flips production default; the LLM cannot decide correctness. A governed signed hit scores
+    in-bank objective answers as CONTROLLED release-truth (``official_score_allowed=True``); a miss /
+    tamper falls through (in the fat skill) to the candidate / open-world lane. Default OFF -> legacy
+    byte-identical."""
+    if not _m31_governed_objective_flag_enabled(context):
+        return  # flag off -> legacy only
+    # canonical lane key/authority is owned by the fat skill (no duplicated string literal).
+    from deeptutor.services.construction_grading.objective_runtime_adapter import (
+        GOVERNED_AUTHORITY as KEY,
+    )
+    if _m31_governed_objective_kill_switch_active():
+        result_payload[KEY] = {
+            "authority": KEY,
+            "mode": "governed_objective_release_candidate",
+            "status": "killed_by_switch",
+            "killed_by_switch": True,
+            "not_production_grade": False,
+            "writeback_performed": False,
+        }
+        return
+    student_id = _learner_user_id_from_context(context)
+    if not str(student_id).startswith(_m31_governed_objective_cohort_prefixes()):
+        return  # non-cohort (real student) -> legacy only
+    question_id = str(graded_context.get("question_id") or "").strip()
+    selected_option = str(graded_context.get("user_answer") or "").strip()
+    try:
+        from deeptutor.services.construction_grading.objective_runtime_adapter import (
+            build_governed_objective_payload,
+        )
+
+        result_payload[KEY] = build_governed_objective_payload(
+            question_id=question_id,
+            selected_option=selected_option,
+            learner_context={"student_id": student_id},
+        )
+    except Exception as exc:  # noqa: BLE001 — governed lane must never break legacy
+        # classify only — never leak filesystem paths / raw exception text into client metadata.
+        result_payload[KEY] = {
+            "authority": KEY,
+            "mode": "governed_objective_release_candidate",
+            "status": "governed_bundle_unavailable",
+            "fail_closed": True,
+            "unavailable_reason": type(exc).__name__,
+            "not_production_grade": False,
+            "writeback_performed": False,
+        }
+
+
+def _v1_llm_adjudication_dev_force_on() -> bool:
+    """LOCAL TEST MODE ONLY: force v1 adjudication ON (bypass request-flag + cohort) when
+    ``LUBAN_V1_LLM_ADJUDICATOR_DEV_FORCE_ON`` is truthy AND this is NOT a production environment.
+    Default off -> zero production behaviour change. The kill switch still overrides it; legacy
+    is never mutated; no production / canonical-truth write. For manual local testing only."""
+    import os
+
+    if os.environ.get("LUBAN_V1_LLM_ADJUDICATOR_DEV_FORCE_ON", "").strip().lower() not in (
+        "1", "true", "on", "yes",
+    ):
+        return False
+    try:
+        from deeptutor.services.runtime_env import is_production_environment
+
+        if is_production_environment():
+            return False  # never force-on in production, regardless of the flag
+    except Exception:
+        return False
+    return True
+
+
 def _maybe_attach_v1_llm_adjudication(
     *,
     context: UnifiedContext,
@@ -1740,10 +2053,11 @@ def _maybe_attach_v1_llm_adjudication(
     student_id = _learner_user_id_from_context(context)
     explicit_flag = _v1_llm_adjudication_flag_enabled(context)
     limited_default = _v1_llm_adjudication_limited_default_enabled(student_id)
-    if not explicit_flag and not limited_default:
+    dev_force = _v1_llm_adjudication_dev_force_on()  # LOCAL TEST MODE: bypass flag + cohort (non-prod only)
+    if not explicit_flag and not limited_default and not dev_force:
         return  # flag/default off -> legacy only
     if _v1_llm_adjudication_kill_switch_active():
-        if limited_default and not explicit_flag:
+        if limited_default and not explicit_flag and not dev_force:
             return  # default rollback path -> legacy only
         result_payload["luban_grading_engine_v1_llm_adjudication"] = {
             "authority": "luban_grading_engine_v1_llm_adjudication",
@@ -1751,7 +2065,7 @@ def _maybe_attach_v1_llm_adjudication(
             "not_production_grade": True, "writeback_performed": False,
         }
         return
-    if not _v1_llm_adjudication_cohort_member(student_id):
+    if not dev_force and not _v1_llm_adjudication_cohort_member(student_id):
         return  # non-cohort real student -> legacy only
     question_id = str(graded_context.get("question_id") or "").strip()
     student_answer = str(graded_context.get("user_answer") or "").strip()
@@ -1769,7 +2083,7 @@ def _maybe_attach_v1_llm_adjudication(
             payload["production_default"] = "limited_cohort_on"
         result_payload["luban_grading_engine_v1_llm_adjudication"] = payload
     except Exception as exc:  # noqa: BLE001 — adjudication must never break legacy
-        if limited_default and not explicit_flag:
+        if limited_default and not explicit_flag and not dev_force:
             return  # default rollback/fail-closed path -> legacy only
         result_payload["luban_grading_engine_v1_llm_adjudication"] = {
             "authority": "luban_grading_engine_v1_llm_adjudication",
@@ -1779,6 +2093,43 @@ def _maybe_attach_v1_llm_adjudication(
             "not_production_grade": True, "writeback_performed": False,
             "teacher_review_required": True,
         }
+
+
+def _attach_open_world_diagnostic(
+    payload: dict[str, Any],
+    *,
+    followup_question_context: dict[str, Any] | None,
+    user_message: str,
+    answer: str,
+) -> None:
+    """M27 wrapper-side route/append for open-world diagnostic live integration.
+
+    Pure routing: the compiled-context assembly and open-world labelling live in the fat skills
+    (`compiled_context` + `open_world_diagnostic`). This attaches their output to the followup
+    payload so the live `/api/v1/ws` followup surface reads the SAME unified schema as the other
+    surfaces. It never decides correctness, never fabricates an official score / answer_key /
+    textbook source. Best-effort: any failure leaves legacy followup behaviour untouched."""
+    try:
+        from deeptutor.services.construction_grading.compiled_context import (
+            build_pack_from_question_context,
+        )
+        pack = build_pack_from_question_context(followup_question_context or {})
+    except Exception:  # noqa: BLE001 — never break legacy followup
+        return
+    payload["compiled_context"] = pack.to_dict()
+    # Open-world diagnostic ONLY when the question is not resolvable to canonical grading authority.
+    if pack.official_score_allowed or pack.status == "resolved":
+        return
+    try:
+        from deeptutor.services.construction_grading.open_world_diagnostic import (
+            build_open_world_diagnostic,
+        )
+        diag = build_open_world_diagnostic(
+            pack=pack, student_prompt=user_message, diagnosis_override=answer,
+        )
+    except Exception:  # noqa: BLE001
+        return
+    payload["open_world_diagnostic"] = diag.to_unified_schema()
 
 
 class DeepQuestionCapability(BaseCapability):
@@ -2793,6 +3144,23 @@ class DeepQuestionCapability(BaseCapability):
                     graded_context=graded_context,
                     result_payload=result_payload,
                 )
+                # Objective answer-key CANDIDATE lane (M25-B; default off; flag + cohort; answer_key
+                # is sole authority, LLM cannot decide correctness; append-only; candidate_unverified;
+                # fail-closed on tamper, fail-open open-world on not-in-bank; legacy untouched).
+                _maybe_attach_objective_candidate(
+                    context=context,
+                    graded_context=graded_context,
+                    result_payload=result_payload,
+                )
+                # M31 governed objective release-candidate lane (default off; flag + env kill switch +
+                # cohort; signed governed answer_key -> CONTROLLED release-truth; append-only; legacy
+                # construction_grading_result untouched; LLM cannot decide correctness; fail-closed on
+                # tamper, fall-through to candidate/open-world on governed miss).
+                _maybe_attach_m31_governed_objective(
+                    context=context,
+                    graded_context=graded_context,
+                    result_payload=result_payload,
+                )
 
             # plan §Phase 5 / Batch E.2 Gap 5 — progressive disclosure payload.
             # 从 grader_trace 拿到 parsed sections，结合 grading_result 与 is_correct 输出
@@ -2910,7 +3278,8 @@ class DeepQuestionCapability(BaseCapability):
                 followup_question_context,
             ):
                 answer = _render_deterministic_reference_feedback(
-                    followup_question_context
+                    followup_question_context,
+                    user_message=context.user_message,
                 )
             else:
                 from deeptutor.agents.question.agents.followup_agent import FollowupAgent
@@ -2958,6 +3327,17 @@ class DeepQuestionCapability(BaseCapability):
                     else turn_semantic_decision or default_decision
                 ),
             }
+            # M27 open-world diagnostic live integration (§0.26.9). This wrapper only ROUTES + APPENDS;
+            # the compiled-context assembly and open-world labelling live in the fat skills. Followup
+            # is the 4th compiled-context surface. When the question is NOT resolvable to canonical
+            # grading authority, the already-generated LLM answer is STRUCTURED as a labeled
+            # open-world diagnostic (no official score, no answer-key / source fabrication).
+            _attach_open_world_diagnostic(
+                followup_payload,
+                followup_question_context=followup_question_context,
+                user_message=str(context.user_message or ""),
+                answer=str(answer or ""),
+            )
             cost_meta = self._collect_cost_summary("question")
             if cost_meta:
                 followup_payload["metadata"] = {"cost_summary": cost_meta}

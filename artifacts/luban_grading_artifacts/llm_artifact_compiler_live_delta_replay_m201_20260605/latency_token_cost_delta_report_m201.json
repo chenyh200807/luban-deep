@@ -1,0 +1,17 @@
+{
+  "mode": "live_delta_replay",
+  "live_provider_calls_counted": 200,
+  "qwen_fallback_calls_counted": 10,
+  "base_token_budget_avg": 1200,
+  "delta_token_budget_avg": 1064,
+  "token_budget_improvement_pct": 0.1133,
+  "base_packet_size_avg": 1841.04,
+  "delta_packet_size_avg": 2927.09,
+  "base_latency_p50_ms": 2413.9,
+  "base_latency_p95_ms": 3926.6,
+  "delta_latency_p50_ms": 2860.4,
+  "delta_latency_p95_ms": 6173.0,
+  "fallback_rate": 0.1,
+  "failclosed_rate": 0.01,
+  "secrets_printed": false
+}

@@ -20,6 +20,7 @@ import type {
   BiTutorBotItem,
   BiWorkbenchData,
 } from "@/lib/bi-api";
+import { BiCostReconciliationPanel } from "./BiCostReconciliationPanel";
 import {
   InfoLine,
   MetricCard,
@@ -329,6 +330,8 @@ export function BiTutorBotTab({
           </div>
         </div>
       </section>
+
+      <BiCostReconciliationPanel providers={cost.reconciliation} />
     </>
   );
 }

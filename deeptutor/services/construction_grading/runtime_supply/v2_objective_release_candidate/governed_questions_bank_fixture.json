@@ -1,0 +1,31 @@
+{
+  "source": "questions_bank governed extract (hermetic fixture)",
+  "provenance": "governed_questions_bank_read_only_fixture_for_hermetic_tests",
+  "governance_note": "Hermetic stand-in for the live governed questions_bank. Live extraction reads QUESTIONS_BANK_DB_URL read-only; this fixture lets release-candidate signing + tamper tests run without DB access.",
+  "questions": [
+    {
+      "question_id": "QB_2023_1A_001",
+      "question_type": "single_choice",
+      "stem": "建筑物的构成中，承受并传递荷载的是？",
+      "options": {"A": "结构体系", "B": "围护体系", "C": "设备体系", "D": "装饰体系"},
+      "official_answer": "A",
+      "governed_origin": "questions_bank"
+    },
+    {
+      "question_id": "QB_2023_1A_002",
+      "question_type": "multiple_choice",
+      "stem": "下列属于建筑设备体系的有？",
+      "options": {"A": "给排水", "B": "供暖通风", "C": "承重墙", "D": "电气照明"},
+      "official_answer": "ABD",
+      "governed_origin": "questions_bank"
+    },
+    {
+      "question_id": "QB_2024_1A_010",
+      "question_type": "true_false",
+      "stem": "施工现场临时用电应采用三级配电两级保护。",
+      "options": {"T": "正确", "F": "错误"},
+      "official_answer": "对",
+      "governed_origin": "questions_bank"
+    }
+  ]
+}

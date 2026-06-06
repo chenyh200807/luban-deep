@@ -463,6 +463,212 @@ async def test_ambiguous_multi_question_single_letter_is_not_promoted_to_answer_
 
 
 @pytest.mark.asyncio
+async def test_full_new_mcq_does_not_regrade_stale_active_question() -> None:
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message=(
+            "换题：历史建筑的建筑高度应按室外设计地坪至建构筑物什么计算？"
+            "A.檐口顶点 B.屋脊 C.墙顶点 D.最高点，我选C，直接批改"
+        ),
+        explicit_context=None,
+        explicit_action=None,
+        candidate_contexts=[
+            {
+                "question_id": "historical:roof_slope",
+                "question": "某工程屋面做法为压型金属板，当设计无要求时，屋面坡度最小值是（ ）。",
+                "question_type": "single_choice",
+                "options": {"A": "5%", "B": "1%", "C": "2%", "D": "3%"},
+                "correct_answer": "A",
+                "user_answer": "A",
+                "is_correct": True,
+            }
+        ],
+    )
+
+    assert resolved_context is None
+    assert resolved_action is None
+
+
+@pytest.mark.asyncio
+async def test_full_new_mcq_does_not_regrade_stale_explicit_question() -> None:
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message=(
+            "换题：历史建筑的建筑高度应按室外设计地坪至建构筑物什么计算？"
+            "A.檐口顶点 B.屋脊 C.墙顶点 D.最高点，我选C，直接批改"
+        ),
+        explicit_context={
+            "question_id": "historical:roof_slope",
+            "question": "某工程屋面做法为压型金属板，当设计无要求时，屋面坡度最小值是（ ）。",
+            "question_type": "single_choice",
+            "options": {"A": "5%", "B": "1%", "C": "2%", "D": "3%"},
+            "correct_answer": "A",
+            "user_answer": "A",
+            "is_correct": True,
+        },
+        explicit_action=None,
+        candidate_contexts=[],
+    )
+
+    assert resolved_context is None
+    assert resolved_action is None
+
+
+@pytest.mark.asyncio
+async def test_full_new_mcq_with_same_option_values_does_not_keep_stale_explicit_question() -> None:
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message=(
+            "安全生产法属于（ ）。A.法律 B.行政法规 C.部门规章 D.地方性法规，"
+            "我选A，直接批改"
+        ),
+        explicit_context={
+            "question_id": "old_regulation_level",
+            "question": "建设工程安全生产管理条例属于（ ）。",
+            "question_type": "single_choice",
+            "options": {
+                "A": "法律",
+                "B": "行政法规",
+                "C": "部门规章",
+                "D": "地方性法规",
+            },
+            "correct_answer": "B",
+        },
+        explicit_action=None,
+        candidate_contexts=[],
+    )
+
+    assert resolved_context is None
+    assert resolved_action is None
+
+
+@pytest.mark.asyncio
+async def test_full_same_mcq_keeps_explicit_question_context() -> None:
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message=(
+            "某工程屋面做法为压型金属板，当设计无要求时，屋面坡度最小值是（ ）。"
+            "A.5% B.1% C.2% D.3%，我选A，直接批改"
+        ),
+        explicit_context={
+            "question_id": "historical:roof_slope",
+            "question": "某工程屋面做法为压型金属板，当设计无要求时，屋面坡度最小值是（ ）。",
+            "question_type": "single_choice",
+            "options": {"A": "5%", "B": "1%", "C": "2%", "D": "3%"},
+            "correct_answer": "A",
+        },
+        explicit_action=None,
+        candidate_contexts=[],
+    )
+
+    assert resolved_context is not None
+    assert resolved_context["question_id"] == "historical:roof_slope"
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "answer_questions"
+    assert resolved_action["answers"][0]["answer"] == "A"
+
+
+@pytest.mark.asyncio
+async def test_full_same_mcq_keeps_candidate_question_context_without_explicit_context() -> None:
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message=(
+            "某工程屋面做法为压型金属板，当设计无要求时，屋面坡度最小值是（ ）。"
+            "A.5% B.1% C.2% D.3%，我选A，直接批改"
+        ),
+        explicit_context=None,
+        explicit_action=None,
+        candidate_contexts=[
+            {
+                "question_id": "historical:roof_slope",
+                "question": "某工程屋面做法为压型金属板，当设计无要求时，屋面坡度最小值是（ ）。",
+                "question_type": "single_choice",
+                "options": {"A": "5%", "B": "1%", "C": "2%", "D": "3%"},
+                "correct_answer": "A",
+            }
+        ],
+    )
+
+    assert resolved_context is not None
+    assert resolved_context["question_id"] == "historical:roof_slope"
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "answer_questions"
+    assert resolved_action["answers"][0]["answer"] == "A"
+
+
+@pytest.mark.asyncio
+async def test_explicit_question_value_challenge_routes_to_followup() -> None:
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message="那1.0m行不行？一句话",
+        explicit_context={
+            "question_id": "historical:diaphragm_wall",
+            "question": "关于地下连续墙施工要求，正确的有（ ）。",
+            "question_type": "multiple_choice",
+            "options": {
+                "A": "地下连续墙单元槽段长度宜为8～10m",
+                "B": "导墙高度不应小于1.0m",
+                "C": "应设置现浇钢筋混凝土导墙",
+                "D": "水下混凝土应采用导管法连续浇筑",
+                "E": "混凝土达到设计强度后方可进行墙底注浆",
+            },
+            "correct_answer": "CDE",
+            "user_answer": "ACDE",
+            "is_correct": False,
+        },
+        explicit_action=None,
+        candidate_contexts=[],
+    )
+
+    assert resolved_context is not None
+    assert resolved_context["question_id"] == "historical:diaphragm_wall"
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "ask_followup"
+
+
+@pytest.mark.asyncio
+async def test_explicit_question_option_explainer_is_not_treated_as_answer_submission() -> None:
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message="这个题的B为什么对？",
+        explicit_context={
+            "question_id": "historical:design_stage",
+            "question": "工程概算书属于（　　）文件内容。",
+            "question_type": "single_choice",
+            "options": {"A": "方案设计", "B": "初步设计", "C": "施工图设计", "D": "专项设计"},
+            "correct_answer": "B",
+            "user_answer": "A",
+            "is_correct": False,
+        },
+        explicit_action=None,
+        candidate_contexts=[],
+    )
+
+    assert resolved_context is not None
+    assert resolved_context["question_id"] == "historical:design_stage"
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "ask_followup"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("user_message", ["我选B。", "答案是B。", "B，批改一下。"])
+async def test_explicit_question_option_submission_still_routes_to_grading(
+    user_message: str,
+) -> None:
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message=user_message,
+        explicit_context={
+            "question_id": "historical:design_stage",
+            "question": "工程概算书属于（　　）文件内容。",
+            "question_type": "single_choice",
+            "options": {"A": "方案设计", "B": "初步设计", "C": "施工图设计", "D": "专项设计"},
+            "correct_answer": "B",
+        },
+        explicit_action=None,
+        candidate_contexts=[],
+    )
+
+    assert resolved_context is not None
+    assert resolved_context["question_id"] == "historical:design_stage"
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "answer_questions"
+    assert resolved_action["answers"][0]["answer"] == "B"
+
+
+@pytest.mark.asyncio
 async def test_answered_active_question_can_generate_related_questions_without_regrading() -> None:
     resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
         user_message="再给我相关的五道题，不要给答案，等我作答后再批改",
@@ -521,6 +727,89 @@ async def test_submission_with_next_training_request_routes_to_grading() -> None
     assert resolved_action["answers"] == [
         {"question_id": "q_regulation_level", "answer": "A"}
     ]
+
+
+@pytest.mark.asyncio
+async def test_resolve_question_followup_explicit_context_keeps_option_challenge_from_llm_generation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def _misleading_interpret(_message, _question_context, **_kwargs):
+        return {
+            "intent": "generate_more_questions",
+            "confidence": 0.88,
+            "answers": [],
+            "reason": "模拟 LLM 把选项追问误判成继续出题。",
+        }
+
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.interpret_question_followup_action",
+        _misleading_interpret,
+    )
+
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message="那C呢？",
+        explicit_context={
+            "question_id": "historical:roof_slope",
+            "question": "压型金属板屋面最低坡度是多少？",
+            "question_type": "choice",
+            "options": {"A": "1%", "B": "2%", "C": "3%", "D": "5%"},
+            "correct_answer": "D",
+            "user_answer": "B",
+            "is_correct": False,
+        },
+        explicit_action=None,
+        candidate_contexts=[],
+    )
+
+    assert resolved_context is not None
+    assert resolved_context["question_id"] == "historical:roof_slope"
+    assert resolved_context["user_answer"] == "B"
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "ask_followup"
+
+
+@pytest.mark.asyncio
+async def test_resolve_question_followup_explicit_context_ignores_generation_hint_for_option_challenge(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def _followup_interpret(_message, _question_context, **_kwargs):
+        return {
+            "intent": "ask_followup",
+            "confidence": 0.91,
+            "answers": [],
+            "reason": "用户是在追问当前题的 C 选项。",
+        }
+
+    monkeypatch.setattr(
+        "deeptutor.services.session.turn_runtime.interpret_question_followup_action",
+        _followup_interpret,
+    )
+
+    resolved_context, resolved_action = await _resolve_question_followup_context_and_action(
+        user_message="那C呢？",
+        explicit_context={
+            "question_id": "historical:roof_slope",
+            "question": "压型金属板屋面最低坡度是多少？",
+            "question_type": "choice",
+            "options": {"A": "1%", "B": "2%", "C": "3%", "D": "5%"},
+            "correct_answer": "D",
+            "user_answer": "B",
+            "is_correct": False,
+        },
+        explicit_action={
+            "intent": "generate_more_questions",
+            "confidence": 0.9,
+            "answers": [],
+            "reason": "前端或上游 hint 误把选项追问当成继续出题。",
+        },
+        candidate_contexts=[],
+    )
+
+    assert resolved_context is not None
+    assert resolved_context["question_id"] == "historical:roof_slope"
+    assert resolved_context["user_answer"] == "B"
+    assert resolved_action is not None
+    assert resolved_action["intent"] == "ask_followup"
 
 
 @pytest.mark.asyncio
@@ -715,6 +1004,124 @@ async def test_start_turn_merges_redacted_public_submission_with_stored_active_q
     assert resolved["correct_answer"] == "B"
     assert resolved["user_answer"] == "B"
     assert "行政法规" in resolved["explanation"]
+
+
+@pytest.mark.asyncio
+async def test_start_turn_recovers_stored_active_question_for_plain_text_option_followup(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, object] = {}
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    async def fake_interpret(_message, _question_context, **_kwargs):
+        return {
+            "intent": "ask_followup",
+            "confidence": 0.9,
+            "answers": [],
+            "reason": "用户追问当前题的选项。",
+        }
+
+    class FakeOrchestrator:
+        async def _select_capability(self, context):
+            captured["selector_question_followup_context"] = dict(
+                context.metadata.get("question_followup_context", {}) or {}
+            )
+            captured["selector_question_followup_action"] = dict(
+                context.metadata.get("question_followup_action", {}) or {}
+            )
+            captured["selector_active_object"] = dict(context.metadata.get("active_object", {}) or {})
+            return "deep_question"
+
+        async def handle(self, context):
+            captured["capability"] = context.active_capability
+            captured["question_followup_context"] = dict(
+                context.metadata.get("question_followup_context", {}) or {}
+            )
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="deep_question",
+                metadata={
+                    "response": "C 也不对；本题标准答案是 D。",
+                    "mode": "followup",
+                    "question_followup_context": context.metadata.get(
+                        "question_followup_context", {}
+                    ),
+                    "turn_semantic_decision": {
+                        "next_action": "route_to_followup_explainer",
+                    },
+                },
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="deep_question")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.services.session.turn_runtime.interpret_question_followup_action", fake_interpret)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session = await store.create_session(session_id="session_plain_option_followup", title="真题")
+    active_context = {
+        "question_id": "historical:roof_slope",
+        "question": "压型金属板屋面最低坡度是多少？",
+        "question_type": "choice",
+        "options": {"A": "1%", "B": "2%", "C": "3%", "D": "5%"},
+        "correct_answer": "D",
+        "explanation": "压型金属板屋面最小坡度为 5%。",
+        "user_answer": "B",
+        "is_correct": False,
+    }
+    active_object = build_active_object_from_question_context(active_context)
+    assert active_object is not None
+    await store.set_active_object(session["id"], active_object)
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "那C呢？",
+            "session_id": session["id"],
+            "capability": "tutorbot",
+            "tools": [],
+            "knowledge_bases": ["construction-exam"],
+            "attachments": [],
+            "language": "zh",
+            "config": {"bot_id": "construction-exam-coach"},
+        }
+    )
+
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    selector_context = captured["selector_question_followup_context"]
+    selector_action = captured["selector_question_followup_action"]
+    resolved_context = captured["question_followup_context"]
+    assert captured["capability"] == "deep_question"
+    assert selector_context["question_id"] == "historical:roof_slope"
+    assert selector_context["user_answer"] == "B"
+    assert selector_context["is_correct"] is False
+    assert selector_action["intent"] == "ask_followup"
+    assert resolved_context["question_id"] == "historical:roof_slope"
+    assert resolved_context["user_answer"] == "B"
 
 
 @pytest.mark.asyncio
@@ -1358,10 +1765,23 @@ async def test_turn_runtime_excludes_internal_content_from_assistant_history(
     assert detail is not None
     assert detail["messages"][-1]["content"] == "建筑构造是研究建筑物组成方式和连接关系的学科。"
     assert any(event["visibility"] == "internal" for event in events if event["type"] == "content")
-    assert all(
-        item.get("visibility") == "public"
+    assistant_history_events = [
+        item
         for item in detail["messages"][-1]["events"]
         if item.get("type") not in {"done", "session"}
+    ]
+    assert all(
+        item.get("visibility") == "public"
+        or (
+            item.get("type") == "trace_link"
+            and item.get("visibility") == "internal"
+            and not str(item.get("content") or "").strip()
+        )
+        for item in assistant_history_events
+    )
+    assert all(
+        item.get("type") != "content" or item.get("content") != "我来读取相关技能文件。"
+        for item in assistant_history_events
     )
 
 
@@ -5130,6 +5550,126 @@ async def test_turn_runtime_cancels_superseded_running_turn_before_new_turn(
 
 
 @pytest.mark.asyncio
+async def test_turn_runtime_preserves_terminal_commit_when_new_turn_arrives(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    terminal_commit_started = asyncio.Event()
+    release_terminal_commit = asyncio.Event()
+
+    class BlockingAssistantStore(SQLiteSessionStore):
+        async def add_message(self, *args, **kwargs):  # type: ignore[no-untyped-def]
+            role = kwargs.get("role") if kwargs else None
+            content = kwargs.get("content") if kwargs else None
+            if role is None and len(args) >= 2:
+                role = args[1]
+            if content is None and len(args) >= 3:
+                content = args[2]
+            if role == "assistant" and str(content or "") == "first turn answer":
+                terminal_commit_started.set()
+                await release_terminal_commit.wait()
+            return await super().add_message(*args, **kwargs)
+
+    store = BlockingAssistantStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    orchestrator_calls = {"count": 0}
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, _context):
+            orchestrator_calls["count"] += 1
+            if orchestrator_calls["count"] == 1:
+                yield StreamEvent(
+                    type=StreamEventType.CONTENT,
+                    source="deep_question",
+                    stage="grading",
+                    content="first turn answer",
+                    metadata={"call_kind": "llm_final_response"},
+                )
+                yield StreamEvent(type=StreamEventType.DONE, source="deep_question")
+                return
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="deep_question",
+                stage="grading",
+                content="second turn answer",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="deep_question")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session, first_turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "第一轮 deep question",
+            "session_id": None,
+            "capability": "deep_question",
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {},
+        }
+    )
+    await asyncio.wait_for(terminal_commit_started.wait(), timeout=1.0)
+
+    second_start = asyncio.create_task(
+        runtime.start_turn(
+            {
+                "type": "start_turn",
+                "content": "第二轮 deep question",
+                "session_id": session["id"],
+                "capability": "deep_question",
+                "tools": [],
+                "knowledge_bases": [],
+                "attachments": [],
+                "language": "zh",
+                "config": {},
+            }
+        )
+    )
+    await asyncio.sleep(0)
+    assert not second_start.done()
+
+    release_terminal_commit.set()
+    _session, second_turn = await asyncio.wait_for(second_start, timeout=1.0)
+    async for _event in runtime.subscribe_turn(second_turn["id"], after_seq=0):
+        pass
+
+    first = await store.get_turn(first_turn["id"])
+    second = await store.get_turn(second_turn["id"])
+    assert first is not None
+    assert first["status"] == "completed"
+    assert second is not None
+    assert second["status"] == "completed"
+    messages = await store.get_messages(session["id"])
+    assert any(item["role"] == "assistant" and item["content"] == "first turn answer" for item in messages)
+    assert all("取消" not in item["content"] for item in messages if item["role"] == "assistant")
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_fails_closed_for_provider_raw_error(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
@@ -6806,6 +7346,96 @@ async def test_turn_runtime_skips_mini_program_capture_without_wallet_authority(
         "learning_query": "继续解释这道题",
         "learning_content": "这是一次不会扣分的回复。",
     }
+
+
+def test_turn_runtime_internal_qa_billing_bypass_skips_wallet_capture(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ENV", "local")
+    monkeypatch.setenv("DEEPTUTOR_INTERNAL_QA_BILLING_BYPASS", "true")
+    canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+    runtime = TurnRuntimeManager(SQLiteSessionStore(tmp_path / "chat_history.db"))
+
+    class FailingWalletService:
+        def record_usage_points(self, **_kwargs):
+            raise AssertionError("wallet capture must not run in internal QA billing bypass")
+
+    class FakeMemberService:
+        def get_profile(self, _user_id: str):
+            return {
+                "user_id": "auth_2d9eac155d264e93941b9ec6",
+                "username": "qa_student_demo",
+            }
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.get_wallet_service",
+        lambda: FailingWalletService(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.member_console.get_member_console_service",
+        lambda: FakeMemberService(),
+    )
+
+    result = runtime._capture_mobile_points(
+        {
+            "source": "wx_miniprogram",
+            "user_id": canonical_uid,
+            "wallet_user_id": canonical_uid,
+            "learning_user_id": canonical_uid,
+        },
+        "这是一次内部 QA 回复。",
+        session_id="session-1",
+        turn_id="turn-1",
+        usage_summary={"total_tokens": 123, "total_calls": 1},
+    )
+
+    assert result == {
+        "status": "bypassed",
+        "reason": "internal_qa_billing_bypass",
+        "wallet_user_id": canonical_uid,
+        "idempotency_key": "mini_program_capture:turn-1",
+    }
+
+
+def test_turn_runtime_internal_qa_billing_bypass_keeps_non_qa_wallet_capture(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ENV", "local")
+    monkeypatch.setenv("DEEPTUTOR_INTERNAL_QA_BILLING_BYPASS", "true")
+    runtime = TurnRuntimeManager(SQLiteSessionStore(tmp_path / "chat_history.db"))
+    calls: list[dict[str, object]] = []
+
+    class RecordingWalletService:
+        def record_usage_points(self, **kwargs):
+            calls.append(dict(kwargs))
+            return SimpleNamespace(
+                captured_micros=20_000_000,
+                requested_micros=20_000_000,
+                balance_after_micros=80_000_000,
+            )
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.get_wallet_service",
+        lambda: RecordingWalletService(),
+    )
+
+    result = runtime._capture_mobile_points(
+        {
+            "source": "wx_miniprogram",
+            "user_id": "student_demo",
+            "wallet_user_id": "wallet_demo",
+            "learning_user_id": "student_demo",
+        },
+        "这是一次普通用户回复。",
+        session_id="session-1",
+        turn_id="turn-1",
+        usage_summary={"total_tokens": 123, "total_calls": 1},
+    )
+
+    assert result and result["status"] == "captured"
+    assert calls and calls[0]["user_id"] == "wallet_demo"
 
 
 @pytest.mark.asyncio

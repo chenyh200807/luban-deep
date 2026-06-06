@@ -495,12 +495,16 @@ export default function BiPageClient() {
   }, [filters.tier, memberFilters.tier])
 
   const data = workbench?.data ?? null
-  const boss = workbench?.boss ?? { kpis: [], actionQueue: [], heroIssue: '' }
+  const boss = useMemo(
+    () => workbench?.boss ?? { kpis: [], actionQueue: [], heroIssue: '' },
+    [workbench?.boss]
+  )
   const moduleIssues = workbench?.moduleIssues ?? {}
   const overview = data?.overview
   const trend = data?.trend ?? { points: [] }
   const retention = data?.retention ?? { cohorts: [], labels: ['D0', 'D1', 'D7', 'D30'] }
   const members = data?.members ?? { cards: [], tiers: [], risks: [], samples: [] }
+  const cost = data?.cost ?? { cards: [], models: [], providers: [], reconciliation: [] }
 
   const activeFilters = [
     filters.capability ? `capability: ${filters.capability}` : '',
@@ -1166,6 +1170,7 @@ export default function BiPageClient() {
             trend={trend}
             retention={retention}
             members={members}
+            cost={cost}
             moduleIssues={moduleIssues}
             onNavigateFromBossQueue={navigateFromBossQueue}
             onOpenLearnerDetail={openLearnerDetail}

@@ -1,0 +1,10 @@
+{
+  "fallback": {
+    "pass": true
+  },
+  "provider_failure": {
+    "pass": true
+  },
+  "deepseek_primary": null,
+  "note": "task-spec alias of rollback_and_killswitch_verification_m19b.json; real adjudicate() control flow via deterministic provider (no live LLM)"
+}

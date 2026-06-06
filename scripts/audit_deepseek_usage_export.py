@@ -63,9 +63,33 @@ def _check_size(path: Path, max_bytes: int) -> None:
         raise ValueError(f"DeepSeek usage export exceeds max bytes: {path}")
 
 
-def _file_entry(*, name: str, headers: list[str], source_name: str, source_sha: str) -> dict[str, object]:
+def _check_zip_entry_size(info: zipfile.ZipInfo, max_bytes: int) -> None:
+    if int(info.file_size or 0) > max_bytes:
+        raise ValueError(f"DeepSeek usage export entry exceeds max bytes: {info.filename}")
+
+
+def _assert_export_file_allowed(path: Path, billing_export_root: Path | None) -> Path:
+    if not path.is_symlink():
+        return path
+    resolved = path.resolve()
+    try:
+        _assert_under_root(resolved, billing_export_root)
+    except ValueError as exc:
+        raise ValueError(f"rejected symlinked billing export outside root: {path}") from exc
+    return resolved
+
+
+def _file_entry(
+    *,
+    name: str,
+    relative_path: str,
+    headers: list[str],
+    source_name: str,
+    source_sha: str,
+) -> dict[str, object]:
     return {
         "name": name,
+        "relative_path": relative_path,
         "headers": headers,
         "source_file_name": source_name,
         "source_file_sha256": source_sha,
@@ -73,16 +97,23 @@ def _file_entry(*, name: str, headers: list[str], source_name: str, source_sha: 
     }
 
 
-def _iter_csv_headers(path: Path, max_bytes: int) -> list[dict[str, object]]:
+def _iter_csv_headers(
+    path: Path,
+    max_bytes: int,
+    billing_export_root: Path | None,
+) -> list[dict[str, object]]:
     rows: list[dict[str, object]] = []
     if path.is_dir():
-        for file in sorted(path.glob("*.csv")):
-            _check_size(file, max_bytes)
-            payload = file.read_bytes()
+        for file in sorted(path.rglob("*.csv")):
+            relative_path = file.relative_to(path).as_posix()
+            allowed_file = _assert_export_file_allowed(file, billing_export_root)
+            _check_size(allowed_file, max_bytes)
+            payload = allowed_file.read_bytes()
             with io.TextIOWrapper(io.BytesIO(payload), encoding="utf-8-sig", newline="") as handle:
                 rows.append(
                     _file_entry(
                         name=file.name,
+                        relative_path=relative_path,
                         headers=_headers_from_text(handle),
                         source_name=file.name,
                         source_sha=_sha256_bytes(payload),
@@ -95,14 +126,17 @@ def _iter_csv_headers(path: Path, max_bytes: int) -> list[dict[str, object]]:
     source_sha = _sha256_bytes(payload)
     if path.suffix.lower() == ".zip":
         with zipfile.ZipFile(path) as archive:
-            for name in sorted(archive.namelist()):
+            for info in sorted(archive.infolist(), key=lambda item: item.filename):
+                name = info.filename
                 if not name.lower().endswith(".csv"):
                     continue
+                _check_zip_entry_size(info, max_bytes)
                 with archive.open(name) as raw:
                     text = io.TextIOWrapper(raw, encoding="utf-8-sig", newline="")
                     rows.append(
                         _file_entry(
                             name=Path(name).name,
+                            relative_path=name,
                             headers=_headers_from_text(text),
                             source_name=path.name,
                             source_sha=source_sha,
@@ -114,6 +148,7 @@ def _iter_csv_headers(path: Path, max_bytes: int) -> list[dict[str, object]]:
         return [
             _file_entry(
                 name=path.name,
+                relative_path=path.name,
                 headers=_headers_from_text(handle),
                 source_name=path.name,
                 source_sha=source_sha,
@@ -127,9 +162,10 @@ def audit_export(
     max_bytes: int | None = None,
     billing_export_root: Path | None = None,
 ) -> dict[str, object]:
-    resolved = _resolve_input_path(export_path, billing_export_root)
+    root = billing_export_root.expanduser().resolve() if billing_export_root else None
+    resolved = _resolve_input_path(export_path, root)
     limit = _as_max_bytes(max_bytes)
-    return {"files": _iter_csv_headers(resolved, limit)}
+    return {"files": _iter_csv_headers(resolved, limit, root)}
 
 
 def main() -> int:

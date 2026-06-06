@@ -35,6 +35,7 @@ from deeptutor.services.question_followup import (
 )
 from deeptutor.services.question_lifecycle_skills import (
     build_question_lifecycle_clarification_context,
+    looks_like_free_text_mcq_answer_request,
     resolve_question_lifecycle_scene_decision,
     select_question_lifecycle_skill_names,
 )
@@ -194,7 +195,43 @@ class ChatOrchestrator:
         )
         self._record_lifecycle_decision(context, lifecycle_decision)
         lifecycle_scene = lifecycle_decision.scene
+        if (
+            lifecycle_scene is None
+            and self._has_active_lifecycle_context(context)
+            and looks_like_free_text_mcq_answer_request(routing_user_message)
+        ):
+            self._suspend_active_lifecycle_context(context)
+            cap_name = self._default_chat_capability(context)
+            context.metadata["semantic_router_mode"] = "question_lifecycle"
+            context.metadata["semantic_router_mode_reason"] = (
+                "embedded_mcq_answer_request_replaces_active_object"
+            )
+            context.metadata["semantic_router_shadow_decision"] = {}
+            context.metadata["semantic_router_shadow_route"] = ""
+            context.metadata["semantic_router_selected_capability"] = cap_name
+            return cap_name
         if lifecycle_scene == "question_review":
+            if self._has_active_lifecycle_context(context):
+                turn_decision = await self._resolve_turn_semantic_decision(context, routing_user_message)
+                semantic_route = turn_semantic_decision_route(turn_decision)
+                next_action = str((turn_decision or {}).get("next_action") or "").strip()
+                if semantic_route == "deep_question" and next_action in {
+                    "route_to_followup_explainer",
+                    "route_to_grading",
+                }:
+                    if next_action == "route_to_grading":
+                        self._prepare_question_submission_context(
+                            context,
+                            context.metadata.get("question_followup_action"),
+                        )
+                    context.metadata["semantic_router_mode"] = "question_lifecycle"
+                    context.metadata["semantic_router_mode_reason"] = (
+                        f"{lifecycle_decision.source}_question_review_active_object_{next_action}"
+                    )
+                    context.metadata["semantic_router_shadow_decision"] = {}
+                    context.metadata["semantic_router_shadow_route"] = ""
+                    context.metadata["semantic_router_selected_capability"] = "deep_question"
+                    return "deep_question"
             if self._should_replace_active_context_for_question_review(
                 context,
                 routing_user_message,
@@ -210,8 +247,28 @@ class ChatOrchestrator:
             context.metadata["semantic_router_selected_capability"] = "deep_question"
             return "deep_question"
         if lifecycle_scene == "practice_generation":
+            turn_decision = None
             if self._has_active_lifecycle_context(context):
-                await self._resolve_turn_semantic_decision(context, routing_user_message)
+                turn_decision = await self._resolve_turn_semantic_decision(context, routing_user_message)
+                semantic_route = turn_semantic_decision_route(turn_decision)
+                next_action = str((turn_decision or {}).get("next_action") or "").strip()
+                if semantic_route == "deep_question" and next_action in {
+                    "route_to_followup_explainer",
+                    "route_to_grading",
+                }:
+                    if next_action == "route_to_grading":
+                        self._prepare_question_submission_context(
+                            context,
+                            context.metadata.get("question_followup_action"),
+                        )
+                    context.metadata["semantic_router_mode"] = "question_lifecycle"
+                    context.metadata["semantic_router_mode_reason"] = (
+                        f"{lifecycle_decision.source}_practice_generation_active_object_{next_action}"
+                    )
+                    context.metadata["semantic_router_shadow_decision"] = {}
+                    context.metadata["semantic_router_shadow_route"] = ""
+                    context.metadata["semantic_router_selected_capability"] = "deep_question"
+                    return "deep_question"
             self._prepare_practice_request_context(context, routing_user_message)
             context.metadata["semantic_router_mode"] = "question_lifecycle"
             context.metadata["semantic_router_mode_reason"] = (
@@ -441,6 +498,8 @@ class ChatOrchestrator:
         message: str,
     ) -> bool:
         if not self._has_active_lifecycle_context(context):
+            return True
+        if looks_like_free_text_mcq_answer_request(message):
             return True
         if self._looks_like_question_submission(context, message):
             return False

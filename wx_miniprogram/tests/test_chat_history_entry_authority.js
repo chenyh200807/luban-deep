@@ -41,6 +41,9 @@ function loadChatPage() {
     checkAuth: function (cb) {
       if (typeof cb === "function") cb();
     },
+    ensurePhone: function (cb) {
+      if (typeof cb === "function") cb();
+    },
   };
 
   var sandbox = {
@@ -105,13 +108,33 @@ function loadChatPage() {
       }
       if (request === "../../utils/logger") return { warn: function () {}, error: function () {} };
       if (request === "../../utils/auth") return {};
-      if (request === "../../utils/ai-message-state") return {};
+      if (request === "../../utils/ai-message-state") {
+        return {
+          coerceUserVisibleContent: function (content) { return content || ""; },
+          sanitizePresentationForState: function (presentation) { return presentation || null; },
+          deriveAiMessageRenderState: function (options) {
+            return {
+              renderableContent: (options && options.content) || "",
+              blocks: [],
+              hasStructuredContent: false,
+              mcqCards: null,
+              mcqHint: "",
+              mcqReceipt: "",
+              mcqInteractiveReady: false,
+              mcqReviewMode: false,
+            };
+          },
+        };
+      }
       if (request === "../../utils/ws-stream") return {};
       if (request === "../../utils/surface-telemetry") return { track: function () {}, trackOnce: function () {} };
       if (request === "../../utils/workflow-status") return {};
       if (request === "../../utils/citation-format") return {};
       if (request === "../../utils/chat-turn-recovery") return {};
       if (request === "../../utils/history-tombstone") return { rememberDeletedConversationIds: function () {} };
+      if (request === "../../utils/learning-home-view-model") {
+        return { buildLearningHomeViewModel: function () { return {}; } };
+      }
       if (request === "../../utils/devtools-markdown-fixtures") return {};
       throw new Error("unexpected require: " + request);
     },

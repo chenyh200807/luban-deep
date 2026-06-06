@@ -58,6 +58,11 @@
 - TutorBot 普通文本题目解析只能作为 display-only presentation，用于隐藏答案或改善展示；不得由此生成 canonical `question_followup_context` / `active_object`。能进入后续批改状态的题目必须来自 `deep_question` 或 exact-question 结构化 authority。
 - 当已有 question-domain 上下文且用户消息包含可解析作答时，turn runtime 必须优先归一为 `answer_questions` 批改动作；“下一题 / 继续练 / 该练什么”等训练请求只能在本次作答处理之后生效，不能覆盖当前作答批改。
 - 当已有多题 question-domain 上下文且用户只给出单个选项、未指明题号时，turn runtime 必须把该输入视为 `ambiguous_question_anchor` 证据并交由 lifecycle clarification 处理；不得把它交给 LLM follow-up interpreter 二次猜测，也不得默认生成 `answer_questions` 或批改第 1 题。
+- 当已有多题 question-domain 上下文且用户用稳定编号提交作答（如“第1题我选A，第2题我选BD”）时，turn runtime 必须把每个编号 item 的学员所选选项集合保留为 learner answer 并交由 question authority 判错；不得因为单选题收到了多字母答案就降级成追问或拒答。
+- 当用户消息本身包含完整 free-text MCQ 题干、选项和作答 surface 时，本轮完整题面优先于 restored / candidate / explicit / suspended question-domain context。runtime 可以用 deterministic 同题 surface match 保护真实题卡提交；若 surface 不匹配，旧 `question_followup_context` / `active_object` / `suspended_object_stack` 只能作为历史状态保留，不得参与本轮批改或恢复为 grading authority。
+- 完整 free-text MCQ 的同题判断必须以题干/stem surface 为主，选项值重合只能辅助、不能单独保留旧题 context；带内部逗号/句读的选项仍属于完整题面，不得被 lifecycle 误判成无锚点答案提交并阻断 exact-question authority。
+- 稳定格式的选项或数值追问（如 `A错在哪里`、`那1.0m行不行`）属于 active-question follow-up，不是 answer revision。turn runtime 可以将其归一为 canonical `ask_followup` 输入证据；LLM follow-up interpreter 不得把这种 deterministic follow-up 升级为 `revise_answers` / `answer_questions`。
+- 当用户在多题上下文中稳定点名“第 N 题答案 / 解析 / 公布”时，服务端仍以同一个 question-domain context 为 authority，但公开 reference feedback 只投影被点名 item；不得因顶层集合没有公开 `correct_answer` 就拒绝、澄清或改用 TutorBot/RAG 猜答案。
 - 练题出题属于 question authority 域。即使入口带有 `bot_id=construction-exam-coach` 或 TutorBot 默认知识库，`practice_generation` 也不得被预先 pin 到 TutorBot；必须交给统一 semantic route / `deep_question` 生成 canonical `active_object`、`question_followup_context`、隐藏标准答案与后续批改依据。TutorBot 可以参与普通讲解、知识问答和已命中精确题目的 grounded answer，但不得成为出题标准答案的第二套 authority。
 - 如果最近 assistant turn 明确发出“出同考点题 / 巩固练习 / 继续练题”邀请，下一轮用户的短肯定回复或复述该邀请必须被归一为 question-domain `practice_generation` 候选，由统一 semantic route 决定是否进入 `deep_question`；`bot_id` / TutorBot 默认绑定只能在语义结果为普通聊天时决定执行引擎。
 - `exam_track` 只表示同一 `construction-exam-coach` 下的考试方向上下文，如一建 / 二建 / 一造 / 二造；它可以进入 `interaction_hints`、session preferences 和 trace，作为 RAG/source plan 与回答口径的 scoped metadata，但不得成为第二个 TutorBot 身份、第二套 capability route 或第二套 knowledge-chain authority。

@@ -1,0 +1,18 @@
+{
+  "ai_generated_text_as_stem_source": 0,
+  "all_nine_covered": true,
+  "answer_explanation_as_stem_source": 0,
+  "candidate_rejected_count": 18,
+  "covered_work_order_count": 9,
+  "exact_match_span_verified_count": 1,
+  "formal_registry_emitted": false,
+  "go_no_go": "WEAK-GO",
+  "input_work_order_count": 9,
+  "material_request_count": 8,
+  "ocr_or_web_provenance_non_empty": true,
+  "official_answer_as_stem_source": 0,
+  "production_auto_count": 0,
+  "question_stem_as_textbook": 0,
+  "runtime_changed": false,
+  "verified_full_stem_count": 1
+}

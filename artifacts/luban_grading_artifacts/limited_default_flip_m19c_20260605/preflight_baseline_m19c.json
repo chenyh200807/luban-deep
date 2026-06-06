@@ -1,0 +1,18 @@
+{
+  "canonical_truth_write_enabled": false,
+  "dirty_worktree_present": true,
+  "git_branch_status": "## docs/luban-golden-v0-sop-and-dataset...origin/docs/luban-golden-v0-sop-and-dataset [ahead 15]",
+  "git_head": "5b18efd5",
+  "no_staged_changes": true,
+  "production_db_write_enabled": false,
+  "production_default_current": "OFF",
+  "relevant_env_baseline": {
+    "LUBAN_V1_LLM_ADJUDICATOR_COHORT": null,
+    "LUBAN_V1_LLM_ADJUDICATOR_ENABLED": null,
+    "LUBAN_V1_LLM_ADJUDICATOR_LIMITED_DEFAULT_COHORT": null,
+    "LUBAN_V1_LLM_ADJUDICATOR_LIMITED_DEFAULT_ENABLED": null
+  },
+  "remote_deployment_written": false,
+  "repo": "/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor",
+  "staged_files": []
+}

@@ -1331,6 +1331,42 @@ def test_bi_export_request_requires_idempotency_and_dedupes_audit(
         assert audit_entry["after"]["filters"] == {"operator": "admin_test", "category": "feedback"}
 
 
+def test_invite_test_applications_export_request_is_audited(bi_service: BIService) -> None:
+    """Invite-test exports must go through the same audited export boundary."""
+    app = _build_app(bi_service)
+    app.dependency_overrides[bi_router_module.require_bi_access] = (
+        lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
+    )
+    app.dependency_overrides[bi_router_module.require_bi_admin] = (
+        lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
+    )
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/bi/export-jobs",
+            headers={"X-Idempotency-Key": "invite-export-key-1"},
+            json={
+                "dataset": "invite_test_applications",
+                "format": "csv",
+                "filters": {"days": 365, "status": "submitted", "visible_rows": 23},
+            },
+        )
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["export_job"]["dataset"] == "invite_test_applications"
+        assert body["export_job"]["name"] == "内测申请导出"
+        assert body["export_job"]["scrubbed"] is True
+        audit_entry = bi_service._member_service.audit_log[0]  # noqa: SLF001
+        assert audit_entry["action"] == "bi_export_request"
+        assert audit_entry["target_user"] == "export:invite_test_applications"
+        assert audit_entry["after"]["filters"] == {
+            "days": 365,
+            "status": "submitted",
+            "visible_rows": 23,
+        }
+
+
 def test_behavior_export_job_is_raw_mode_and_audited(bi_service: BIService, tmp_path: Path) -> None:
     from deeptutor.services.observability import reset_product_behavior_store
 

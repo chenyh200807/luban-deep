@@ -111,6 +111,30 @@ async def test_orchestrator_routes_training_by_question_count_as_practice_genera
 
 
 @pytest.mark.asyncio
+async def test_orchestrator_respects_negated_answer_reveal_for_true_exam_practice_generation() -> None:
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-true-exam-practice-no-reveal",
+        user_message="给我出两道2025一建建筑实务单选真题，不要先给答案，先考我。",
+        config_overrides={},
+        metadata={"interaction_hints": {"profile": "tutorbot"}},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.metadata["question_lifecycle_scene"] == "practice_generation"
+    assert context.config_overrides["force_generate_questions"] is True
+    assert context.config_overrides["num_questions"] == 2
+    assert context.config_overrides["reveal_answers"] is False
+    assert context.config_overrides["reveal_explanations"] is False
+
+
+@pytest.mark.asyncio
 async def test_orchestrator_blocks_topic_only_real_exam_query_before_exact_authority() -> None:
     """Topic-only exam queries need a choice, not an arbitrary exact-question answer."""
     orchestrator = ChatOrchestrator()
@@ -518,6 +542,55 @@ async def test_orchestrator_new_review_request_replaces_stale_active_question() 
 
 
 @pytest.mark.asyncio
+async def test_orchestrator_embedded_new_mcq_answer_request_clears_stale_active_question() -> None:
+    """A full new stem/options answer request must not grade the previous card."""
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-new-mcq-answer-replaces-stale-question",
+        active_capability="tutorbot",
+        user_message=(
+            "建筑防水砂浆施工环境温度不宜低于（ ）。"
+            "A.-5℃ B.0℃ C.5℃ D.10℃。我赶时间，只要答案，不要长篇解析。"
+        ),
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={
+            "active_object": {
+                "object_type": "question_set",
+                "state_snapshot": {
+                    "question": "根据《屋面工程技术规范》，一级防水应采用几道设防？",
+                    "question_type": "choice",
+                    "options": {"A": "一道防水设防", "B": "两道防水设防"},
+                    "correct_answer": "B",
+                },
+            },
+            "question_followup_context": {
+                "question_id": "old_waterproof_q",
+                "question": "根据《屋面工程技术规范》，一级防水应采用几道设防？",
+                "question_type": "choice",
+                "options": {"A": "一道防水设防", "B": "两道防水设防"},
+                "correct_answer": "B",
+            },
+        },
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "tutorbot"
+    assert context.metadata["question_lifecycle_scene"] is None
+    assert context.metadata["question_review_replaces_active_object"] is True
+    assert "active_object" not in context.metadata
+    assert "question_followup_context" not in context.metadata
+    assert context.metadata["semantic_router_selected_capability"] == "tutorbot"
+    assert context.metadata["semantic_router_mode_reason"] == (
+        "embedded_mcq_answer_request_replaces_active_object"
+    )
+
+
+@pytest.mark.asyncio
 async def test_orchestrator_blocks_explicit_year_only_real_exam_review_without_anchor() -> None:
     orchestrator = ChatOrchestrator()
     registry = _FakeRegistry()
@@ -602,6 +675,45 @@ async def test_orchestrator_marks_low_information_exam_query_without_exact_autho
     assert context.metadata["question_lifecycle_decision"]["selected_skill_names"] == []
     assert context.metadata["exact_question_blocked_reason"] == "low_information_exam_query"
     assert context.metadata["trace_metadata"]["exact_question_blocked_reason"] == "low_information_exam_query"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "message",
+    [
+        (
+            "2025年一建建筑实务防水那道真题，直接告诉我答案，"
+            "我在小程序刷题，别让我再复制题干。"
+        ),
+        "2021屋面案例第4问答案发我，快点，我在刷题页面。",
+        "2015案例二第3问答案直接发我，我在题卡里。",
+    ],
+)
+async def test_orchestrator_blocks_colloquial_exact_answer_request_without_stem(message: str) -> None:
+    """A student asking for "that 2025 waterproofing question" needs an anchor, not generation."""
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-colloquial-low-info-answer-request",
+        active_capability="tutorbot",
+        user_message=message,
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={},
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "tutorbot"
+    assert context.metadata["question_lifecycle_scene"] is None
+    assert context.metadata["question_lifecycle_decision"].items() >= {
+        "required_anchor_status": "missing_question_anchor",
+        "exact_question_blocked_reason": "low_information_exam_query",
+        "needs_clarification": True,
+        "business_gate_result": "blocked_low_information_exam_query",
+    }.items()
 
 
 @pytest.mark.asyncio
@@ -812,6 +924,153 @@ async def test_preselected_deep_question_grades_submission_before_practice_gener
     result = next(event for event in events if event.type.value == "result")
     assert result.metadata["user_answer"] == "A"
     assert result.metadata["is_correct"] is False
+
+
+@pytest.mark.asyncio
+async def test_lifecycle_practice_generation_respects_active_question_followup(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def fake_lifecycle_decision(_ctx: Any) -> SimpleNamespace:
+        return SimpleNamespace(
+            scene="practice_generation",
+            selected_skill_names=("question_supply",),
+            source="llm",
+            confidence=0.91,
+            required_anchor_status="active_question_present",
+            llm_scene_candidate="practice_generation",
+            business_gate_result="passed",
+            exact_question_blocked_reason="",
+            needs_clarification=False,
+            reason="模型误以为用户在请求继续出题。",
+        )
+
+    async def fake_followup_action(
+        _message: str,
+        _context: dict[str, Any] | None,
+        *,
+        history_context: str = "",
+    ) -> dict[str, Any]:
+        return {
+            "intent": "ask_followup",
+            "confidence": 0.92,
+            "answers": [],
+            "reason": "用户追问当前题某个选项。",
+        }
+
+    monkeypatch.setattr(
+        "deeptutor.runtime.orchestrator.resolve_question_lifecycle_scene_decision",
+        fake_lifecycle_decision,
+    )
+    monkeypatch.setattr(
+        "deeptutor.runtime.orchestrator.interpret_question_followup_action",
+        fake_followup_action,
+    )
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-active-question-option-challenge",
+        user_message="那C呢？",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={
+            "question_followup_context": {
+                "question_id": "historical:roof_slope",
+                "question": "压型金属板屋面最低坡度是多少？",
+                "question_type": "choice",
+                "options": {"A": "1%", "B": "2%", "C": "3%", "D": "5%"},
+                "correct_answer": "D",
+                "user_answer": "B",
+                "is_correct": False,
+            }
+        },
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.metadata["turn_semantic_decision"]["next_action"] == "route_to_followup_explainer"
+    assert context.metadata["question_followup_action"]["intent"] == "ask_followup"
+    assert context.metadata["semantic_router_mode"] == "question_lifecycle"
+    assert context.metadata["semantic_router_selected_capability"] == "deep_question"
+    assert context.metadata["question_followup_context"]["user_answer"] == "B"
+    assert "force_generate_questions" not in context.config_overrides
+    assert "topic" not in context.config_overrides
+
+
+@pytest.mark.asyncio
+async def test_lifecycle_question_review_respects_active_question_followup(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def fake_lifecycle_decision(_ctx: Any) -> SimpleNamespace:
+        return SimpleNamespace(
+            scene="question_review",
+            selected_skill_names=("construction-question-review",),
+            source="deterministic",
+            confidence=1.0,
+            required_anchor_status="satisfied",
+            llm_scene_candidate=None,
+            business_gate_result="passed",
+            exact_question_blocked_reason="",
+            needs_clarification=False,
+            reason="模拟 lifecycle 把选项追问误判成新题审题。",
+        )
+
+    async def fake_followup_action(
+        _message: str,
+        _context: dict[str, Any] | None,
+        *,
+        history_context: str = "",
+    ) -> dict[str, Any]:
+        return {
+            "intent": "ask_followup",
+            "confidence": 0.92,
+            "answers": [],
+            "reason": "用户追问当前题某个选项。",
+        }
+
+    monkeypatch.setattr(
+        "deeptutor.runtime.orchestrator.resolve_question_lifecycle_scene_decision",
+        fake_lifecycle_decision,
+    )
+    monkeypatch.setattr(
+        "deeptutor.runtime.orchestrator.interpret_question_followup_action",
+        fake_followup_action,
+    )
+    orchestrator = ChatOrchestrator()
+    registry = _FakeRegistry()
+    orchestrator._cap_registry = registry  # type: ignore[attr-defined]
+
+    context = UnifiedContext(
+        session_id="s-active-question-option-review",
+        user_message="那C呢？一句话",
+        config_overrides={"bot_id": "construction-exam-coach"},
+        metadata={
+            "question_followup_context": {
+                "question_id": "historical:roof_slope",
+                "question": "压型金属板屋面最低坡度是多少？",
+                "question_type": "choice",
+                "options": {"A": "1%", "B": "2%", "C": "3%", "D": "5%"},
+                "correct_answer": "D",
+                "user_answer": "B",
+                "is_correct": False,
+            }
+        },
+        language="zh",
+    )
+
+    _ = [event async for event in orchestrator.handle(context)]
+
+    assert registry.captured[0] == "deep_question"
+    assert context.metadata["turn_semantic_decision"]["next_action"] == "route_to_followup_explainer"
+    assert context.metadata["question_followup_action"]["intent"] == "ask_followup"
+    assert context.metadata["semantic_router_mode"] == "question_lifecycle"
+    assert context.metadata["semantic_router_selected_capability"] == "deep_question"
+    assert context.metadata["question_followup_context"]["question_id"] == "historical:roof_slope"
+    assert context.metadata["question_followup_context"]["user_answer"] == "B"
+    assert "mode" not in context.config_overrides
+    assert "topic" not in context.config_overrides
 
 
 @pytest.mark.asyncio

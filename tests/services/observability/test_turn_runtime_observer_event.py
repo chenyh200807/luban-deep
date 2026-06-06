@@ -174,6 +174,89 @@ def test_assistant_event_summary_keeps_lifecycle_decision_metadata() -> None:
     assert summary["business_gate_result"] == {"accepted": True}
 
 
+def test_assistant_event_summary_keeps_exact_authority_and_retrieval_metadata() -> None:
+    summary = _summarize_assistant_events(
+        [
+            {
+                "type": "result",
+                "metadata": {
+                    "authority_applied": True,
+                    "execution_path": "tutorbot_exact_fast_path",
+                    "exact_fast_path_hit": True,
+                    "exact_question": {
+                        "id": "historical:abc123",
+                        "answer_kind": "mcq",
+                        "question_type": "multi_choice",
+                        "source_group": "historical_question_bank",
+                        "correct_answer": "CDE",
+                        "metadata": {
+                            "source_file": "questions.json",
+                            "source_path": "/Users/local/private/questions.json",
+                            "content_hash": "hash-1",
+                        },
+                    },
+                    "rag_retrieval_degraded": True,
+                    "rag_retrieval_status": "provider_failed_exact_question_resolved",
+                    "degraded_mcq_grading_guard_applied": False,
+                    "degraded_exact_answer_guard_applied": False,
+                },
+            }
+        ]
+    )
+
+    assert summary["authority_applied"] is True
+    assert summary["execution_path"] == "tutorbot_exact_fast_path"
+    assert summary["exact_fast_path_hit"] is True
+    assert summary["exact_question"] == {
+        "id": "historical:abc123",
+        "answer_kind": "mcq",
+        "question_type": "multi_choice",
+        "source_group": "historical_question_bank",
+        "correct_answer": "CDE",
+        "source_file": "questions.json",
+        "content_hash": "hash-1",
+    }
+    assert summary["rag_retrieval_degraded"] is True
+    assert summary["rag_retrieval_status"] == "provider_failed_exact_question_resolved"
+    assert summary["degraded_mcq_grading_guard_applied"] is False
+    assert summary["degraded_exact_answer_guard_applied"] is False
+    assert "source_path" not in summary["exact_question"]
+
+
+def test_terminal_turn_observation_event_keeps_authority_retrieval_summary() -> None:
+    event = _build_terminal_turn_observation_event(
+        session_id="session-1",
+        turn_id="turn-1",
+        status="completed",
+        capability_name="tutorbot",
+        duration_ms=900.0,
+        trace_metadata={
+            "execution_engine": "tutorbot_runtime",
+            "context_route": "mcq_grading",
+            "authority_applied": True,
+            "exact_fast_path_hit": True,
+            "execution_path": "tutorbot_exact_fast_path",
+            "exact_question": {
+                "id": "historical:abc123",
+                "source_group": "historical_question_bank",
+                "correct_answer": "CDE",
+            },
+            "rag_retrieval_degraded": True,
+            "rag_retrieval_status": "provider_failed_exact_question_resolved",
+            "degraded_mcq_grading_guard_applied": False,
+        },
+        usage_summary={"total_tokens": 12, "total_calls": 1},
+    )
+
+    assert event["metadata"]["authority_applied"] is True
+    assert event["metadata"]["exact_fast_path_hit"] is True
+    assert event["metadata"]["execution_path"] == "tutorbot_exact_fast_path"
+    assert event["metadata"]["exact_question"]["correct_answer"] == "CDE"
+    assert event["metadata"]["rag_retrieval_degraded"] is True
+    assert event["metadata"]["rag_retrieval_status"] == "provider_failed_exact_question_resolved"
+    assert event["metadata"]["degraded_mcq_grading_guard_applied"] is False
+
+
 def test_terminal_turn_event_flows_to_snapshot_and_oa_via_persisted_latest(tmp_path) -> None:
     store = ObservabilityControlPlaneStore(base_dir=tmp_path / "control_plane")
     event_log = TurnEventLog(events_dir=tmp_path / "events")

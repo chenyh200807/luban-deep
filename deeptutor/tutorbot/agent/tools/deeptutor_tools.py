@@ -63,6 +63,11 @@ class RAGAdapterTool(Tool):
         "知识库检索暂时不可用，请基于已有上下文谨慎回答；涉及规范数值、题库答案或引用出处时，"
         "必须明确说明当前证据不足。"
     )
+    _EMPTY_RETRIEVAL_ANSWERS = (
+        "No documents indexed",
+        "No relevant documents found",
+        "Please upload documents first",
+    )
 
     def __init__(self) -> None:
         self._runtime_context: dict[str, Any] = {}
@@ -177,6 +182,19 @@ class RAGAdapterTool(Tool):
             return self._DEGRADED_CONTENT
         exact_question = result.get("exact_question") if isinstance(result.get("exact_question"), dict) else None
         sources = result.get("sources") if isinstance(result.get("sources"), list) else []
+        answer = str(result.get("answer") or result.get("content") or "").strip()
+        if not sources and self._looks_like_empty_retrieval_answer(answer):
+            self._last_trace_metadata = {
+                "kb_name": kb_name or "",
+                "sources": [],
+                "tool_source_count": 0,
+                "exact_question": {},
+                "authority_applied": False,
+                "retrieval_degraded": True,
+                "retrieval_status": "empty_index",
+                "error_type": "RAGEmptyIndex",
+            }
+            return self._DEGRADED_CONTENT
         evidence_bundle = (
             result.get("evidence_bundle") if isinstance(result.get("evidence_bundle"), dict) else {}
         )
@@ -204,7 +222,7 @@ class RAGAdapterTool(Tool):
         )
         if learning_capsule:
             return learning_capsule
-        return str(result.get("answer") or result.get("content") or "")
+        return answer
 
     def set_runtime_context(self, **kwargs: Any) -> None:
         metadata = kwargs.get("metadata")
@@ -232,6 +250,13 @@ class RAGAdapterTool(Tool):
         metadata = dict(self._last_trace_metadata)
         self._last_trace_metadata = {}
         return metadata or None
+
+    @classmethod
+    def _looks_like_empty_retrieval_answer(cls, value: str) -> bool:
+        text = str(value or "").strip()
+        if not text:
+            return False
+        return any(marker in text for marker in cls._EMPTY_RETRIEVAL_ANSWERS)
 
     def _resolve_default_kb(self) -> str:
         metadata = self._runtime_context

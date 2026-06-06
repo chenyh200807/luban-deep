@@ -9,6 +9,8 @@
 >
 > 2026-06-04 §0.13 再纠偏：离线编译 artifacts 本身也不能被理解为 rules-only 维护。正确模式是 **LLM-assisted artifact compiler + deterministic-signed releases**：LLM 负责整理和组织数据、生成候选 artifacts、发现缺口和做对抗审查；确定性系统负责来源校验、schema/hash、攻击测试、版本签发和回滚。
 >
+> 2026-06-06 §0.26 目标重置：本计划的目标不是把鲁班 v1 做成“题库内才会答”的窄评分器，而是建设 **建筑实务专家型学习智能体**。鲁班评分引擎是“诊断仪”，回答“这次答题哪里对、哪里错、为什么错”；Learning Brain/GBrain 是“长期主治医生”，回答“这个学生长期是什么画像、下一步怎么教”。Nexus-style 知识编译的目标是给 LLM 更细颗粒、更可信、更可压缩的工作上下文，**增强** LLM，而不是限制 LLM。
+>
 > v2 加强点：补齐历史证据账本、使用场景矩阵、三线详细 backlog、异常处理原则、下一步可交付任务包、验收命令与外来 agent 接手规程。§0.14-§0.15 进一步把计划升级为场景驱动交付：M17/M18 必须同时证明 LLM-native grading、LLM-assisted artifact compiler、GBrain-style evidence-first personalization，而不是只多跑一个 milestone。
 
 ## 0.0 Canonical update after M5D（2026-06-04）
@@ -171,6 +173,7 @@ M12 证据（86 runtime submissions）：false_positive=0、bad_certified=0、so
 3. **运行期必须 LLM adjudication。** 每次案例题判题都应由 runtime LLM adjudicator 基于 `student_answer + question/stem + compiled rubric + evidence/spec/list policy + learner context` 做点级裁决；deterministic validator 只负责防越权、验 source/spec/list、拦 false positive、fail-closed。
 4. **production 模型分工固定。** 未来生产运行主模型为 **DeepSeek-V4-flash**，fallback 为 **Qwen3.7 plus**。GPT5.5 / Opus4.8 / DeepSeek-V4 / Qwen3.7 组成的四模型专家组只用于设计、构建、对抗验证、release council 和离线评测，不进入常规 production runtime。
 5. **Nexus-style 的精髓是 compile once, adjudicate with scoped packet many times。** 编译层把教材、题干、外部规范、rubric、采分点、历史复核和 learner evidence 做成可信 artifacts；runtime 只给 LLM 看本次判题最有价值的 scoped packet，而不是把全量资料塞给模型，也不是减少 LLM 能力投入。
+6. **Nexus-style compiler 是能力放大器，不是题库闸门。** 学 Nexus 的目的，是让系统通过知识编译更会理解题目、组织证据、迁移到变体题、生成高质量上下文和持续吸收新知识；不是把系统缩成“registry 里有才答、题库外就拒答”。已签发 artifacts 提供高置信锚点；未命中的问题应进入 open-world teaching / RAG / LLM reasoning / candidate compiler loop，而不是停止服务。
 
 ### 0.12.2 Artifact 维护 authority：哪些会运行期更新，由谁维护
 
@@ -488,6 +491,393 @@ M17 之后的鲁班评分引擎 v1 必须收敛成六个一等组件；不要继
 1. M19E 只能做远端/Aliyun 部署授权包评审：列出远端路径、命令、rollback 命令、env/config diff、观测窗口和 stop conditions；未获新授权前不得写远端。
 2. broad production default 继续 **NO-GO**；canonical learner truth write 继续 **NO-GO**。
 3. 若 M19D safety invariant 在后续 soak 中出现非 0，立即走 rollback repair，不进入 M19E。
+
+---
+
+## 0.21 Canonical update after M22 RAG-vs-Luban-v1 quality benchmark（2026-06-05）
+
+> **本节是「旧 RAG 体系 vs 鲁班评分引擎 v1」的同台 benchmark。未 flip production default、未写远端/DB/canonical truth、未发 registry、未把 M20.2 delta 吸收进 runtime。**
+
+最新 canonical ledger：`artifacts/luban_grading_artifacts/rag_vs_luban_v1_quality_benchmark_m22_20260605/`
+
+**M22 裁决：WEAK-GO**（同 1 批 **210** 真实 `/api/v1/ws` 案例作答 + construction-gold 点级真值，四条线同台；**安全不变量全 0**；但 line A 旧 RAG live 检索不可用 + line C 仅单 provider live，不到 GO）。
+
+- **四条线真实入口**：A 旧 RAG = `RAGService.search`/`rag_search`（`data/knowledge_bases` 空→诚实降级为 retrieval/answer baseline，写 missing_input_audit，**未伪造**）；B M16 = `build_controlled_runtime_payload`；C v1 = 真实 `/api/v1/ws`→`_maybe_attach_v1_llm_adjudication`（**177 条真实 DeepSeek-V4-flash live**，fallback 0/failclosed 0/timeout 0）；D M20.2 = 临时 packet harness，**未进 runtime**。
+- **规模**：210 submissions、point decisions B=550 / C=479、6 题型（authority_kind 映射）、每题 10 作答变体、每样本 final disposition。
+- **质量（诚实，不 overclaim）**：二元 auto-eligibility 上 **B agreement 0.891 ≥ C 0.812**（C 更保守，recall 0.619<0.767）。C 的价值**不在更高二元一致率**，而在：**evidence_span_valid_rate 0.973**、partial 22/needs_review 57 的细档、可喂 Learning Brain 的证据+解释。两线 **fp=0、accept_precision=1.0**，adversarial 五类全 0。
+- **效率**：B p50 **21.7ms / $0**；C p50 **2253ms**/p95 3898/p99 5104，177 调用 ≈145k tokens ≈ **$0.081**（~$0.0005/条）。D 在 C 之上省 **token 19.5% / bytes 18.2%**（packet 压缩；19 个评分 delta 仍是 work-order，未可执行）。
+- **职责切分（核心产品结论）**：旧 RAG→retrieval/source expansion/answer baseline（不判分）；M16 deterministic→安全地板+免费即时二元 auto（正确作答下足够）；v1 runtime LLM→粒度判分+evidence+解释+LB 证据（仅在需细档/事件定位/对抗判断时调用，承担延迟与成本）；M20.2 delta→packet 压缩候选，**进下一版 registry 需独立编译里程碑**（非 M22）。
+
+**当前下一步**：保持职责切分现状；不因本 benchmark 改 production default/registry。若要把 M20.2 的 19 个评分 work-order 落地，须先经独立编译里程碑（带 textbook provenance + 安全复测），packet 压缩可优先纳入。详见 §0.20（M19D 当前 runtime 状态）与本节 ledger。
+
+---
+
+## 0.22 Canonical update after M22R RAG baseline + Qwen fallback closure（2026-06-05）
+
+> **补 M22 两个 WEAK-GO 缺口。未 flip default、未写远端/DB/canonical truth、未发 registry、未建第二套 RAG authority、未碰 M20.2 runtime。**
+
+最新 canonical ledger：`artifacts/luban_grading_artifacts/rag_vs_luban_v1_benchmark_closure_m22r_20260605/`
+
+**M22R 裁决：WEAK-GO**（安全全 0；Qwen fallback 已闭环，但旧 RAG live 因本环境 schema 未部署仍 blocked，且修复=远端写被禁）。corrected M22 overall = **WEAK-GO**。
+
+- **任务 A（旧 RAG，按用户纠正走真实 Supabase 链路）**：RAGService/rag_search→SupabasePipeline（read-only PostgREST）。**不再把 `data/knowledge_bases` 空当信号、不自建本地 stub**。结果：Supabase 项目**可达且认证通过**（`/rest/v1/`=200、`/auth/v1/health`=200），但 **RAG schema 未部署**——`kb_chunks` 表 404/`PGRST205`、`match_kb_chunks` RPC 404/`PGRST202`。21 条真实 query 全此错误码（未伪造）。处置=**still_blocked_with_exact_reason**；生产 RAG KB 在另一(production)Supabase 项目，**建表/灌数据=远端写，红线禁止，未做**。RAG 职责定位不变：retrieval/context/source expansion，**不判分**。
+- **任务 B（Qwen fallback 闭环）**：强制 DeepSeek primary fail → 真实 **Qwen3.7-plus fallback 43 次**（resume 不重计费已完成调用）。dispositions reject 61/needs_review 14/accept 18/partial 3；evidence_span_valid=0.958；**fp=0、source_mismatch=0**。**DeepSeek vs Qwen**（96 配对点）：auto_agreement=**0.958**、auto 18=18（**tie**，无谁更激进）；latency Qwen p50 4818ms vs DeepSeek 2119ms（**Qwen 慢 ~2.3×**）。**双 provider 全宕 = fail-closed、legacy intact**（no_auto_points、fail_open=false）。**「自然稳定未触发」≠「fallback 不可用」**：M22 本轮 DeepSeek 全成功故未自然触发，本轮强制失败已证 Qwen fallback 真实可用。
+
+**当前下一步**：Qwen fallback 冗余已闭环，无需再补。旧 RAG live baseline 要补实测须在已部署 RAG schema（`kb_chunks`+`match_kb_chunks`）的 Supabase 项目环境进行——本任务边界内（禁远端写）不可恢复。不影响 PR #100 / M19F（均未触碰）。详见本节 ledger 与 §0.21（M22 同台 benchmark）。
+
+---
+
+## 0.23 Canonical update after M22S RAG Supabase authority reconciliation（2026-06-05，只读）
+
+> **纯只读对账。未写 Supabase、未建表、未迁移、未灌数据、未改 production default、未执行 M19F、未新增第二套 RAG authority、未打印 secret。**
+
+最新 canonical ledger：`artifacts/luban_grading_artifacts/rag_supabase_authority_reconciliation_m22s_20260605/`
+
+**M22S 裁决：GO**（找到正确 RAG authority + 精确根因 + 可执行零数据写恢复路径，全部只读证据）。
+
+- **正确 RAG authority（已直连只读确认 + 当场检索成功）**：production RAG 数据在项目 `bsaajvxkbnnnodrvrxct`（RAG/KB v5；另有主 app 项目 `zgupgizexqpwtajvghno`=`DB_URL`）的内部 **`kb_v5` schema**（6 表：chunks/documents/concepts/concept_edges/ingest_runs/__project_marker），检索 RPC `public.search_chunks_v2`（混合 vector+lexical+权威；filter_data_version 默认 2026、filter_doc_types 默认 standard/textbook/lecture/exam；embed=DashScope `text-embedding-v3` dim 1024）。**经 `.env` 已有的 `KBV5_DB_URL` 直连（role `postgres`，对 kb_v5 有 USAGE）调 `search_chunks_v2` 真实返回 3 条教材 chunk——RAG 本就可用。**
+- **根因 = transport + 凭证 + 代际**：repo `SupabasePipeline` 走 **PostgREST**，而该项目 API key（`SUPABASE_KEY`=`SERVICE_ROLE_KEY_V5` 同一把非-JWT key）角色对 `kb_v5` 无 USAGE（`42501`）、PostgREST 仅暴露 public/graphql_public；叠加代码仍调 legacy `public.kb_chunks`/`search_kb_chunks`（全仓无 search_chunks_v2）。**正确 transport=`KBV5_DB_URL` 直连**。排除连错项目/缺数据/env 未载/KB 名错。
+- **恢复=零数据/表/schema 写 + 零新凭证**：现有 `KBV5_DB_URL` 即可。纯 code-side：RAG 客户端走直连调 `public.search_chunks_v2`（filter_doc_types 从 `SUPABASE_RAG_SOURCES`，dim 1024）+ 更新 `contracts/rag.md`+contract guard test（feature-flag legacy↔v5）。可选：若坚持 PostgREST transport，才需 ops `GRANT USAGE ON SCHEMA kb_v5`（权限授予非数据写）。**禁止**重建 legacy schema（远端写/倒退）。
+- **对 production / M19F 无影响**：线上经直连/已授权路径访问 kb_v5，RAG 正常（用户已确认）；问题仅在 dev/benchmark（legacy 分支 PostgREST 路径）。**告警**：本分支 RAG pipeline 与 kb_v5 部署不兼容，部署本分支前须先做 code adapter；修正前本地 PostgREST RAG-live（含 M22T）会复现 42501。
+
+**当前下一步**：eng 做 `KBV5_DB_URL` 直连 → `search_chunks_v2` 的 code-side adapter（凭证已就绪，零数据写，无需等 ops）→ 再跑 **M22T live RAG benchmark**。详见 `direct_db_kb_v5_verification_m22s.json` 与 `rag_baseline_recovery_options_m22s.md`。
+
+---
+
+## 0.24 Canonical update after M24 v0 vs v1 A/B benchmark + KB v5 RAG baseline（2026-06-05）
+
+> **本地 A/B benchmark。未 flip default、未写远端/Supabase/DB/canonical truth、未发 registry、KB v5 adapter 只读且非评分 authority、M20.2 未吸收。**
+
+最新 canonical ledger：`artifacts/luban_grading_artifacts/v0_vs_v1_ab_benchmark_m24_20260605/`
+
+**M24 裁决：GO**（同一批 **134** 真实 `/api/v1/ws` 案例,v0 legacy 与 v1 LLM adjudication 同 turn 同台,**134 条真实 DeepSeek live**,安全全 0）。
+
+- **v0 = legacy `construction_grading_result`**（CaseGradingSkillKernel projected-rubric,关键词/criterion 匹配,full/partial/none,有 rewrite_answer + next_training_signal）；**v1 = `luban_grading_engine_v1_llm_adjudication`**（registry source/spec/list 点 + DeepSeek/Qwen + deterministic validator floor + evidence_span + point 级 LB draft）。
+- **安全（决定性）**：对抗变体上 v0 avg_score_ratio=**0.66**（关键词过判,无 validator),v1 avg_auto=**0.0**;v1 **fp_vs_gold=0、source_mismatch=0、validator 拦下 31 个 false positive**。
+- **颗粒度**：v1 partial 19 + needs_review 64;v0 partial 0、无 needs_review 档。**解释**：v1 evidence_span_valid=**0.978**（学生原文锚定）vs v0 criterion 文本。**LB 信号**：v1 point 级=1.0 vs v0 submission 级 specific=0.0。
+- **代价（已修正延迟归因）**：v0 standalone **~14ms/$0**（确定性,flag-off 测）;v1 p50 **2155ms**、~**$0.0005/条**（≈150× 慢）。注:live A/B 中 v0/v1 同 turn,整 turn 2175ms 由 v1 LLM 主导,非 v0 成本。
+- **provider 冗余**：强制 primary fail → **Qwen fallback 20 live**(fp=0)、双挂 fail-closed、legacy intact。
+- **RAG baseline（M22S 续作）**：新增 `deeptutor/services/benchmark/kb_v5_readonly_adapter.py`（`KBV5_DB_URL` 直连只读 → `public.search_chunks_v2`,text-embedding-v3 dim1024,read-only 事务硬保护,非 runtime RAG authority）。12/12 问检索成功,avg 5 chunks;retrieval/context baseline,**不判分**。
+- **Langfuse**：本地 Docker daemon 未起 + repo 无本地全栈 langfuse compose（只有 Aliyun overlay）+ 现有 pk-/sk- key 不匹配新实例 → 本地 Docker Langfuse **blocked**;按要求写 `langfuse_trace_ledger.jsonl`(134 条 Langfuse 兼容 trace)+ 记录 blocker。
+
+**职责切分**：v0 legacy 保留（免费/即时 projected-rubric,正确作答与简单点足够）;v1 接管（source 签名 + validator 安全地板 + evidence_span + 细档 + point 级 LB,用于对抗/洗稿/需解释/复习信号,承担 ~150× 延迟与 ~$0.0005/条）;KB v5 RAG = retrieval/context,不判分。**v1 安全全 0,作为受控 cohort overlay 支持继续 M19F limited（仍需用户授权,不在本任务执行）。**
+
+---
+
+## 0.25 Canonical correction: v1 must cover objective questions, and historical-question lookup is upstream context authority（2026-06-05）
+
+> **本节补正 §0.24 的适用范围。M24 A/B 证明的是案例题 v1 LLM adjudication 明显优于 v0；它不代表鲁班评分引擎 v1 只做案例题。选择题/判断题/多选题必须进入 v1，但走 objective deterministic lane；历史真题识别与标准答案 lookup 是上游 canonical question context authority，不与 v1 冲突。**
+
+### 0.25.1 全题型 v1 分层
+
+鲁班评分引擎 v1 的最终形态是 **全题型评分与学习闭环引擎**，不是单一案例题引擎：
+
+| 题型 lane | 评分 authority | LLM 角色 | deterministic 角色 | Learning Brain 输出 |
+|---|---|---|---|---|
+| **objective_choice**（单选/多选/判断） | canonical `answer_key` / option metadata / official question bank | 解释错因、识别混淆概念、组织教材/RAG 依据、生成 next action | 判对错、集合比较、顺序无关多选、部分给分 policy、答案 key hash | objective evidence event、错因标签、concept gap、复测计划 |
+| **case_question**（案例主观题） | compiled rubric + source/spec/list authority + runtime LLM adjudication | 理解学生自然语言、点级 accept/partial/reject/needs_review、evidence_span、reasoning summary | validator 防 false-positive/source laundering/list partial auto、fail-closed | point-level claim draft、review queue、study card |
+| **calculation/spec** | machine-checkable spec / formula / expected value / unit | 解释计算路径、识别步骤性错误 | 数值容差、单位、off-by-one、contradiction guard | calculation gap、retest proof |
+| **retrieval/context**（RAG/KB v5） | KB v5 source chunks /教材/规范/题干事实 | 查证、引用、扩展解释 | provenance/hash/read-only guard | citation refs、学习资料建议 |
+
+关键结论：**选择题不需要 LLM 判对错，但需要 LLM 做解释、诊断、知识关联和个性化学习建议。** 对错事实由 `answer_key` 唯一负责；LLM 不能临场改标准答案。
+
+### 0.25.2 Historical question lookup 与 v1 不冲突
+
+当用户问的是历史真题、真题答案、某年某题解析、或直接提交真题作答时，系统应先做 **HistoricalQuestionResolver / CanonicalQuestionContext**：
+
+```text
+user input
+  -> question identity resolver
+  -> canonical question_id / year / paper / section / stem / options / answer_key / rubric / source_refs
+  -> lane selection
+      objective_choice -> deterministic grader + LLM explanation
+      case_question -> runtime LLM adjudicator + validator
+      retrieval_only -> RAG/KB v5 explanation, no grading
+  -> Learning Brain evidence / next action
+```
+
+这不会和 v1 冲突，原因是 authority 不同：
+
+| 业务事实 | 唯一 authority | v1 是否可覆盖 |
+|---|---|---:|
+| 这是不是某道历史真题 | `HistoricalQuestionResolver` + question bank index + stable question_id | 否 |
+| 标准答案/选项 key 是什么 | canonical `answer_key` / official question bank / signed truth artifact | 否 |
+| 主观题某采分点是否命中 | v1 runtime LLM adjudicator + deterministic validator + compiled rubric | 是，在对应 lane 内 |
+| 教材/规范依据是什么 | KB v5 / source compiler / source refs | 否，只消费 |
+| 学员是否掌握/进步 | Learning Brain claim gate + retest proof | 否，只产 evidence/proposal |
+
+因此，**历史真题 lookup 是 v1 的上游上下文，不是第二套评分器。** 它保证“题目是谁、标准答案是什么”先稳定下来；v1 再决定“学生这次回答得怎样、错在哪、下一步怎么学”。
+
+### 0.25.3 对知识编译与采分点编译的新增要求
+
+现有 knowledge/rubric compiler 不能只围绕案例题采分点继续扩张，必须补三类 artifact：
+
+1. **Historical Question Index**
+   - `question_id`、年份、卷别、题型、题干 hash、选项 hash、答案 key hash、source refs、版本/supersession。
+   - LLM 可用于去重、题干变体归一化、年份/题号抽取、疑似同题合并候选；deterministic gate 负责 hash、schema、冲突检测和 release signing。
+
+2. **Objective Answer Key Compiler**
+   - 单选/多选/判断的 `answer_key`、option metadata、multi-select set policy、partial credit policy（如允许时）、解析 source_refs。
+   - official answer 只能作为 answer-key seed；进入 release 前必须经过题库 authority / source provenance / hash signing。
+
+3. **Unified GradingPacket Builder**
+   - 对 objective 题，packet 必须包含 `canonical_question_context + answer_key + selected_option + learner context + explanation sources`，但不让 LLM 决定对错。
+   - 对 case 题，packet 保持 §0.12 的 source/spec/list/rubric/student_answer scoped context。
+   - 对 retrieval-only 问答，packet 输出 citations/explanation，不生成 grading decision。
+
+### 0.25.4 M25 下一步：Objective Question Integration + Historical Resolver
+
+M25 是 §0.25 的落地任务，不取代 M19F/M24，但补齐 v1 的全题型边界：
+
+1. 实现/确认 `HistoricalQuestionResolver`：从用户输入和题目上下文识别历史真题，返回 canonical question context；未知题必须 fail-open 到普通问答/RAG，不伪造真题身份。
+2. 实现 objective deterministic grader：单选/多选/判断按 answer_key 判分，LLM 只解释，不判对错。
+3. 把 objective evidence event 接入 Learning Brain：错因、知识点、source refs、next action、retest plan。
+4. 做 v0 vs v1 objective benchmark：正确/错误/多选漏选/多选多选/近义解释/历史真题问答案；false_positive=0、answer_key_override=0、LLM_changed_key=0。
+5. 更新 runtime supply bundle：objective answer-key artifacts 与 case registry 分 namespace，均带 manifest hash/rollback。
+
+**红线**：不要让 RAG、LLM、model vote、AI council 改写历史真题标准答案；不要把 objective answer-key compiler 和 case rubric compiler 混成一个 mutable registry；不要为选择题新增第二条聊天入口。
+
+### 0.25.5 Open-world teaching mode：不在题库也必须能回答
+
+> **硬纠偏**：`HistoricalQuestionResolver` 未命中时，系统只能说“这不是已识别真题 / 无 canonical answer_key”，**不能**说“不能回答”。鲁班 v1 是智能教学与评分系统，不是题库查表器。
+
+题库外/未识别问题的正确行为：
+
+```text
+unknown / not-in-bank user query
+  -> fail-open to TutorBot / RAG / runtime LLM teaching answer
+  -> answer with uncertainty label + citations/provenance when available
+  -> if user is submitting an answer, produce diagnostic draft / needs_review, not official score
+  -> if repeated/high-value, create candidate artifact/work-order for compiler
+```
+
+允许：
+
+- 用 DeepSeek/Qwen 基于用户问题、KB v5、教材/规范/RAG 上下文做开放式讲解。
+- 对非题库作答给出“诊断性反馈 / 学习建议 / 可能得分点”，但标记为 `unverified_diagnostic` 或 `needs_review`。
+- 把新题、变体题、用户自带题干送入 LLM-assisted compiler，生成 `question_candidate` / `rubric_candidate` / `source_candidate`，进入后续签发流程。
+
+禁止：
+
+- 未识别为真题时冒充“官方真题答案”。
+- 没有 canonical `answer_key` / signed rubric 时给正式 auto score。
+- 把 open-world LLM 回答写成 canonical question bank truth。
+- 因题库未命中而拒绝教学回答。
+
+产品口径：**题库命中提升确定性和评分可信度；题库未命中仍应体现智能体能力，只是降级为开放式教学/诊断，不升官方答案或自动评分 authority。**
+
+Nexus 口径：**知识编译扩大能力边界，而不是缩小能力边界。** 每次题库外问题、变体问法、非标准作答、RAG 新证据，都应成为 compiler 的候选输入：LLM 负责抽取/归纳/对齐/提出候选 artifact，deterministic gate 负责签发或拒绝。这样系统越用越强，而不是越编译越狭窄。
+
+---
+
+## 0.26 Canonical goal reset: authority-aware open-world expert system（2026-06-06）
+
+> **本节 supersede 本文所有可能把 v1 误读成“题库闸门 / registry 查表器 / token-saving grader”的表述。后续 agent 必须先读 §0.26，再执行 M25/M26 之后的任务。**
+
+### 0.26.1 一句话目标
+
+鲁班体系的目标是：
+
+```text
+鲁班评分引擎 = 诊断仪
+  -> 本次作答哪里对、哪里错、为什么错、证据在哪里、风险在哪里
+
+Learning Brain / GBrain = 长期主治医生
+  -> 学生长期画像、弱点演化、遗忘/复测、下一步怎么教
+
+Nexus-style Knowledge Engine = LLM 的领域工作台
+  -> 把教材/规范/真题/采分点/错因/历史证据编译成细颗粒、可溯源、可裁剪的上下文，让 LLM 更强，而不是让 LLM 更窄
+```
+
+因此，本计划的最高原则是：
+
+> **Authority-aware, not authority-limited.**
+
+有权威时给正式评分；无权威时不能伪造正式评分，但必须继续提供建筑实务领域的高质量解释、诊断、追问、练习建议和 compiler candidate。题库未命中是降级信号，不是拒答理由。
+
+### 0.26.2 三种 runtime 模式
+
+| 模式 | 触发 | 系统必须做什么 | 系统禁止做什么 |
+|---|---|---|---|
+| **Official grading mode** | 命中 canonical question / signed answer_key / signed rubric / release_candidate registry | 给正式或受控评分、采分点命中、得分、evidence_span、blocked_reason、Learning Brain evidence draft | 不能让 LLM/RAG/model vote 改写标准答案或 signed rubric |
+| **Open-world diagnostic mode** | 题库未命中、用户自带题、变体题、开放式问答、证据不足 | 用 DeepSeek/Qwen + KB v5/RAG + compiled context 给非正式诊断、知识讲解、可能采分点、下一步练习，并标 `unverified_diagnostic` / `needs_review` | 不能拒答；不能冒充官方真题答案；不能给正式 auto score |
+| **Compiler feedback mode** | open-world 高价值问题、重复未命中、review queue、LLM/council disagreement、RAG 新证据 | 生成 `question_candidate` / `answer_key_candidate` / `rubric_candidate` / `source_candidate` / `work_order`，进入 LLM-assisted compiler + deterministic release gate | 不能把 candidate 直接喂给 production runtime 当 release truth |
+
+### 0.26.3 单一 authority 分工
+
+| 业务事实 | 唯一 authority | LLM 角色 | deterministic 角色 |
+|---|---|---|---|
+| 这是不是历史真题 | `HistoricalQuestionResolver` / question bank index | 识别题干变体、年份题号候选、去重候选 | stable question_id、hash、冲突检测、release signing |
+| 客观题标准答案 | canonical `answer_key` / governed question registry | 解释为什么选/不选、定位知识点和错因 | 判对错、多选集合、true/false 归一、tamper fail-closed |
+| 案例题采分点命中 | runtime LLM adjudicator + signed rubric/source/spec/list + validator | 理解学生自然语言、给 accept/partial/reject/needs_review、证据 span | source/spec/list gate、false-positive guard、unsupported-positive fail-closed |
+| 教材/规范/题干证据 | KB v5 / source compiler / source refs | 检索、组织、解释、生成 source candidate | provenance、content_hash、read-only guard、source laundering guard |
+| 学生长期画像 | Learning Brain claim lifecycle + evidence ledger + retest proof | synthesis、dream-cycle lint、下一步建议候选 | append-only evidence、claim gate、cross-user/subject leak guard |
+
+### 0.26.4 编译层必须服务 agent，而不是只服务 registry
+
+后续知识/采分点/证据编译不能只产“能不能发布 registry”的离线报告，必须产出 runtime 可消费的 **Compiled Context Pack**（命名可落为 `LubanContextPack` / `CompiledContextService`，具体实现前再锁定）：
+
+```text
+raw evidence
+  -> LLM compiler workers
+  -> candidate artifacts
+  -> deterministic validators
+  -> signed release artifacts
+  -> Compiled Context Pack Builder
+  -> TutorBot / DeepQuestion / RAG / Runtime GradingPacket / Learning Brain
+```
+
+最低字段要求：
+
+- `question_context`：question_id、题型、stem/options、answer_key/rubric availability、status。
+- `source_context`：KB v5 / 教材 / 规范 / 题干事实 / external refs，带 provenance/hash。
+- `rubric_context`：采分点、required_terms、list/spec/calc policy、risk flags。
+- `learner_context`：PersonalizationContextPack、recent evidence、active training intent。
+- `diagnostic_policy`：official_score_allowed、unverified_diagnostic_allowed、needs_review_reason、candidate_work_order。
+- `budget_policy`：runtime 只给 LLM 看本次最有价值的上下文；token efficiency 是约束，不是目标。
+
+验收标准：同一份 compiled context 必须能被 TutorBot 问答、案例题评分、选择题解释、RAG 引用、Learning Brain next action 复用；禁止每个 surface 自己拼一套上下文。
+
+### 0.26.5 当前真实差距
+
+截至 2026-06-06，现状应诚实表述为：
+
+- **案例题 v1 LLM adjudication 已证明比 v0 更安全、更细颗粒**，但主要覆盖 signed/compiled registry 内的 case lane。
+- **objective lane 已有 candidate/real-source candidate 基础**，但 full governed question registry signing 仍未完成，不能把 candidate 当 production answer-key release。
+- **KB v5 RAG 可作为 retrieval/context authority**，但它不判分；需要变成 Compiled Context Pack 的稳定输入，而不是只在 benchmark 里使用。
+- **Learning Brain 已有 evidence/claim/PCP/dream-cycle preview 和 dry-run proof**，但 canonical learner truth 仍不能自动写；要保持 evidence-first。
+- **知识/采分点/证据编译尚未全量产品化**：已有 scripts/artifacts/M20 delta，但还没有统一的 full-scope continuous compiler → signed context pack → runtime consumer 闭环。
+- **open-world diagnostic lane 还不够强**：题库外可以回答的原则已定，但需要真实微信/TutorBot 链路验证“任意建筑实务问题不拒答、能诊断、能产 candidate、能保护 authority”。
+
+### 0.26.6 下一阶段 M26 主线：Compiled Context + Open-world Diagnostic Closure
+
+执行计划已单独固化为 [2026-06-06-luban-m26-compiled-context-open-world-execution-plan.md](2026-06-06-luban-m26-compiled-context-open-world-execution-plan.md)。后续 agent 执行 M26 时以本节目标为 authority，以该执行计划的任务拆分、专家分工、测试矩阵和验收标准为操作手册。
+
+M26 不应再是“再跑一个 registry gate”。它必须围绕系统能力闭环：
+
+1. **Context Pack Builder**：把 historical question、objective answer_key、case rubric/spec/source、KB v5、learner PCP 组织成统一 scoped context。
+2. **Open-world Diagnostic Runtime**：题库未命中时，TutorBot/deep_question 能基于 context + RAG + LLM 给建筑实务诊断，明确非正式，不拒答。
+3. **Compiler Feedback Loop**：open-world 诊断结果、未命中题、review queue、RAG 新证据必须生成 candidate/work-order，进入 LLM-assisted compiler。
+4. **Full-scope Compiler Inventory**：按 objective / case / calc / source / learner evidence 五类列出全量覆盖率、release 状态、缺口和下一版 signing plan。
+5. **Learning Brain Integration**：official grading 和 unverified diagnostic 都能产 evidence；但只有 gate 通过的证据才能升 claim/canonical truth。
+6. **A/B 与真链路验收**：用微信 TutorBot / `/api/v1/ws` 真链路覆盖题库内、题库外、历史真题、变体题、开放问答、作答批改、复测六类场景。
+
+M26 GO 门：
+
+- unknown/not-in-bank 场景拒答率 = 0（除安全/无关问题）。
+- official_score_laundering = 0；answer_key_override = 0；source_laundering = 0。
+- open-world diagnostic 每条都有 uncertainty/status label。
+- candidate/work-order 生成率对高价值 unknown ≥ 90%。
+- compiled context 被至少 3 个 surface 消费：TutorBot、runtime grading、Learning Brain。
+- Learning Brain evidence coverage ≥ 0.95，shadow/candidate 不升 mastery。
+- 与 v0 / old RAG / v1 official mode 有同台质量、延迟、成本和满意度对比。
+
+### 0.26.7 M26 执行结果（2026-06-06，hermetic GO）
+
+> **本节只追加 M26 落地结果，不改写 §0.26.1–§0.26.6 目标。** Canonical ledger：`artifacts/luban_grading_artifacts/compiled_context_open_world_m26_20260606/`。
+
+实现（全部带 hermetic pytest）：
+
+| 能力 | 落地 | 文件 |
+|---|---|---|
+| Compiled Context fat skill | `LubanContextPack` + 唯一组装入口 `build_luban_context_pack` / `build_pack_from_question_context`，6 个 context block + provenance + 确定性 `diagnostic_policy` | `deeptutor/services/construction_grading/compiled_context.py` |
+| 3 surface 消费同一 pack | TutorBot(`deep_question_adapter`)、runtime grading(`objective_runtime_adapter`)、Learning Brain(`learning_evidence.build_learning_evidence_from_context_pack`) 都附带同一 `schema_version=luban_context_pack.v1`，wrapper 不再各拼上下文 | 三处 surgical 接入 |
+| KB v5 runtime RAG | provider 注册 + config 选择 + 只读直连 `public.search_chunks_v2`，`source_table=kb_v5.chunks`，fail-closed；RAG 不判分 | `rag/pipelines/kbv5.py`、`rag/factory.py`、`config/knowledge_base_config.py`、`contracts/rag.md` |
+| objective governed release_candidate | 只读 `questions_bank`（live 走 `QUESTIONS_BANK_DB_URL`，缺则 hermetic fixture + 精确 live blocker）→ validate → sign，状态 `release_candidate`（非 published），tamper fail-closed，namespace 独立 | `objective_governed_registry_extractor.py` |
+| open-world diagnostic | 题库外不拒答；LLM 不可用降级模板诊断；输出 `status/uncertainty/evidence_refs/likely_scoring_dimensions/next_practice/candidate_work_order`，不给正式分 | `open_world_diagnostic.py` |
+| compiler feedback | candidate/rejected/work_order ledger，独立 namespace，source/answer-key laundering fail-closed（rag/model/council vote 不能成 answer_key） | `compiler_feedback.py` |
+| Learning Brain | official/open-world 都产 evidence draft；只有 signed official 允许 claim 提案；candidate/shadow/open-world 保持 preview，不升 mastery，不写 canonical truth | `learning_evidence.py` |
+
+硬不变量（`safety_invariant_report_m26.json`，全部达标）：拒答率 0；official_score_laundering / answer_key_override / source_laundering / model_vote_as_source / council_vote_as_source / rag_chunk_as_answer_key / candidate_used_as_release_truth / list_partial_auto / false_positive / source_mismatch / production_write_count / shadow_or_candidate_promoted_to_mastery = 0；canonical_truth_written=false；open-world 全标签且无正式分；high_value_work_order_rate=1.0；three_surface_single_schema=true；LB evidence coverage=1.0；governed tamper fail-closed=true。
+
+**verdict=GO（hermetic only）。** 仍 OUT OF SCOPE 且需单独授权：production default flip、published registry、canonical learner-truth write、远端/DB 写。Live blocker（未伪造）：KB v5 live retrieval 需 `KBV5_DB_URL`+`DASHSCOPE_API_KEY`；governed objective live 需 `QUESTIONS_BANK_DB_URL` 只读 + 列投影确认；A/B 模型质量/token 成本需 DeepSeek/Qwen creds。
+
+runner：`scripts/run_luban_compiled_context_open_world_m26.py`、`scripts/run_luban_m26_ab_and_real_chain_qa.py`。
+
+### 0.26.8 M26 Live Closure 结果（2026-06-06，真实链路 GO）
+
+> **本节把 §0.26.7 的 hermetic GO 升级为真实链路裁决；只追加 live 证据，不重做 hermetic 模块。** Canonical ledger：`artifacts/luban_grading_artifacts/m26_live_closure_20260606/`。runner：`scripts/run_luban_m26_live_closure.py`（全只读，每 stage 失败软记 blocker，不伪造 live）。
+
+四个 live gate **全部 GO**（`go_no_go_m26_live.json`）：
+
+| Gate | 证据 | verdict |
+|---|---|---|
+| KB v5 live retrieval | 只读 `KBV5_DB_URL` + DashScope 1024 维 embedding + `search_chunks_v2`，5/5 query 返回真实 `kb_v5.chunks` 教材片段，write_count=0 | GO |
+| questions_bank governed live | 只读 `DB_URL` 的 `public.questions_bank`（objective 总量≈2659），抽样 600 行 extract→validate→sign，count=600(>62)、conflict=0、rejected=0、answer_key_override=0、rag_chunk_as_answer_key=0、status=release_candidate、published=false、tamper fail-closed=true | GO |
+| live LLM | DeepSeek 主路 live=22(≥20)、强制 Qwen fallback live=10(≥10)、false_positive=0、source_mismatch=0、official_answer_laundering=0、p50≈2341ms | GO |
+| 真实 /api/v1/ws QA | 6 场景经 TestClient→`/api/v1/ws`→TurnRuntime→DeepQuestionCapability 真实链路；open-world 拒答=0、canonical_truth_written=0、compiled_context 在 objective/case/historical 4 个 grading turn 命中 `luban_context_pack.v1` | GO |
+
+**hermetic 与 live 的差异 / 诚实缺口（未 overclaim）**：① questions_bank 是只读抽样 600（总量≈2659），全源签名为 follow-up，非 blocker；② live /api/v1/ws 的 open-world prompt **非拒答（refusal=0）但当前走既有 `deep_question_followup`**，富诊断 `open_world_diagnostic.py`（status/uncertainty/evidence_refs/work_order）仅 hermetic + 直接 surface 已证，**尚未接入 live WS followup**——这是剩余主要 live 质量缺口（集成候选，非 hermetic 失败）；③ compiled_context 在 grading path 命中，open-world followup path 未挂（与②一致）。
+
+production default flip / published registry / canonical learner-truth write / 远端·DB 写仍 OUT OF SCOPE，需单独授权（本轮 production_write_count=0、remote_write=0、default_flip=0、published_registry=false、canonical_truth_written=false）。
+
+### 0.26.9 M27 Open-World Diagnostic Live Integration 结果（2026-06-06，真实链路 GO）
+
+> **本节闭合 §0.26.8 标注的剩余 live 缺口（open-world 富诊断未接入 live WS followup）；只追加结果。** Canonical ledger：`artifacts/luban_grading_artifacts/open_world_diagnostic_live_integration_m27_20260606/`。runner：`scripts/run_luban_m27_open_world_live_integration.py`。
+
+**根因（root-cause-debugging）**：`DeepQuestionCapability._emit_followup_result` 是题库外建筑实务问题的落点，但没有 open-world 分支，也从不消费 `open_world_diagnostic`/`compiled_context` fat skill——live followup 给的是无标签、无 schema 的答案（M26 的"43 字短答"另是 WS smoke harness 用 fake FollowupAgent 的伪影，非生产拒答）。
+
+**修法（thin wrapper / fat skill，非加 fallback）**：① fat skill `open_world_diagnostic.py` 加 `diagnosis_override`（runtime 已生成的真实 LLM 答案由 fat skill 结构化，不重复调模型，provider_used=`caller_supplied_runtime_llm`）+ `to_unified_schema()`（answer/diagnostic_status/uncertainty/evidence_context/next_action/work_order_if_needed）。② wrapper `deep_question.py` 新增 module helper `_attach_open_world_diagnostic`（只 route/append）：挂 `compiled_context`（第 4 个 surface），非可解析的建筑实务 prompt 再附 open-world 统一 schema。未新增第二套 WS、未新增第二套 RAG authority、未让 RAG/official_answer/model_vote 变 answer_key。
+
+**真实 /api/v1/ws verdict=GO**（`go_no_go_m27.json`）：`live_route_trace_m27.json` 显示 objective/case/historical→`governed_grading_authority`，open_world→`open_world_diagnostic`；`compiled_context_surface_matrix_m27.json` 显示 objective/case/historical/open_world/learning_brain **五面同消费 `luban_context_pack.v1`**（single_schema=true）；open-world 拒答率=0、全 labeled、no formal score、no official answer claim、work_order=3；official_score_laundering/answer_key_override/source_laundering/rag_chunk_as_answer_key/model_vote_as_source/candidate_used_as_release_truth/production_write_count/remote_write/default_flip=0、published_registry=false、canonical_truth_written=false、LB preview_only=true。回归 0 破坏（case/objective grading、legacy followup、deep_question/learner_state 全绿）。
+
+**诚实 nuance**：WS smoke harness 用 fake FollowupAgent（短答），生产为真 LLM；M27 加的是**与 provider 无关的结构化**（fat skill 给 runtime 产出的任意答案打标签）。production default/published registry/canonical truth/远端写仍 OUT OF SCOPE。
+
+### 0.26.10 Master-Plan Completion Closure + Canonical Reconciliation（2026-06-06，统一裁决=WEAK-GO）
+
+> **本节是全计划 canonical reconciliation：消解"我方 GO（M26/M27）"与"并行红队 NO-GO（64 场景 acceptance oracle）"的冲突，只留一个 verdict。** Ledger：`artifacts/luban_grading_artifacts/master_plan_completion_closure_20260606/`。runner：`scripts/run_luban_master_plan_completion_closure.py`（全只读，真实 `/api/v1/ws`）。
+
+**红队 NO-GO 的两个真实根因 + 处置**：
+1. **client-answer-key laundering（已修）**：并行红队 adversarial 探针发现——客户端在 `followup_question_context.correct_answer` 注入答案，deep_question 评分路径就给 `authority=construction_grading` 的官方满分 + writeback（`official_score_laundering=3`）。根因=`_recover_missing_mcq_authority` 只要 inbound context 带 `correct_answer` 就标 `authority_source=active_object` 当权威，从不查 governed 源（deep_question 运行时根本未绑定 governed answer_key）。**修法（最小 additive，authority discipline）**：`deep_question_adapter._stamp_compiled_context_and_authority` 按 pack 的 `official_score_allowed` 给 result 盖章——未 governed 的答案标 `release_truth=false` / `registry_status=unresolved` / `answer_key_authority=context_supplied_unverified` / `official_release_score=false`，**分数仍 formative 显示（不破坏 UX/测试），但不再被洗成 release-truth**。真实 `/api/v1/ws` 复现确认闭合（`official_score_laundering=0`）。
+2. **transport_error(41)（oracle driver 伪影）**：红队 oracle 自带 WS driver 对 41/64 场景报 transport_error；本收口用既有 TestClient 真链路驱动 objective/case/historical/open-world/variant 全类别，**transport_errors=0**——证明那是 oracle driver 限制，非产品拒答。其余 blocked：`requires_release_registry(14)`、`requires_live_llm(6)` 为预期 blocker（合成场景无 server-bound signed key / 需 live 裁决，M26 live 已证）。
+
+**统一 canonical verdict=WEAK-GO**（`go_no_go_final.json`，safety_clean=true）：诊断/formative 教学系统 **live 且安全（GO）**——open-world 拒答率=0、laundering=0、五面同 `luban_context_pack.v1`、case LLM 裁决+validator、KB v5 retrieval、LB preview。**官方 release-truth objective 评分 + production default + published registry + canonical learner truth 仍 NO-GO**——in-bank objective 分数当前为 formative（governed answer_key 尚未接入 runtime），且 production/publish/canonical/远端需用户单独授权。Live LLM fallback 新鲜证据：DeepSeek 716ms + Qwen 1459ms 真答案（规模引用 M26 live 22+10）。v0/v1 质量引用 M24（134 样本：对抗 v0 过判 0.66 vs v1 auto 0.0、validator 拦 31 fp、evidence_span 0.978）。
+
+**剩余唯一工程主线**：把 governed questions_bank answer_key 接入 deep_question objective 评分，使 in-bank 分数从 formative 升为 release-truth；此前 production default 锁死。**pre-existing 测试隔离脆弱**（m16 legacy append-only 跑在 submission_grading 前会泄漏 monkeypatch 状态致后者 writeback=0）经 HEAD worktree 证为 committed 既有问题（非本轮引入），各测试单独均过，记此 FINDING 不在本轮 file-family 内修。
+
+### 0.26.11 F1 加固 + M30 Full Knowledge Compiler Release Candidate（2026-06-06，release_candidate=GO）
+
+> **先清前置闸（F1），再做 M30 全量知识编译；本轮上限 release_candidate，不 publish/production/canonical。** Ledger：`artifacts/luban_grading_artifacts/full_knowledge_compiler_release_candidate_m30_20260606/`。runner：`scripts/run_luban_full_knowledge_compiler_m30.py`。
+
+**F1 加固（清闸）**：pre-landing review 发现的 client-answer-key laundering 残留洞——`build_pack_from_question_context` 从 client 可控的 `registry_status` 推导 `official_score_allowed`，注入 `registry_status=release_candidate/published` 可翻 `release_truth=True`（live 经 normalization strip 不可利用，但 adapter 自身未加固）。修法：`build_pack_from_question_context` 新增 `governed_registry_status` 参数（默认空），**忽略 context 供的 registry_status**，只接受可信 server 调用方显式传入；server-resolved 权威走 `build_luban_context_pack`。验证：注入 release_candidate/published 经 direct + 真实 `/api/v1/ws` 均 `release_truth=False`，formative 分数保留；construction_grading 272 回归 0 破坏 + 新增对抗回归测试。
+
+**M30 编译（LLM 组织候选，deterministic gate 签发 truth）**：
+| Lane | 结果 | status |
+|---|---|---|
+| objective 全量 | 只读全量 `questions_bank`（input 2655）→ 签 **2640** governed answer_key（rejected 14 + conflict 1，**未静默修**），official_answer 仅 seed/corroboration | release_candidate（非 published） |
+| source | KB v5 只读 30 chunk refs（stable_source_id/locator/hash/taxonomy），retrieval/context only 不做 answer_key | release_candidate |
+| case rubric | release_candidate registry 70 点 authority partition（textbook/logic/calc/list_full signable；external/review_only→work_order；calc/list deterministic validator） | release_candidate |
+| M20 delta | 122 输入分类 release_candidate/staged_delta/work_order，rag/model/council vote→work_order，无 runtime impact | release_candidate |
+| manifest | `compiled_knowledge_registry.v2`，7 block 可被 runtime packet builder 消费，rollback pointer | release_candidate |
+
+硬不变量（`safety_invariant_report_m30.json` 全达标）：objective full=2640（≥2000）、conflict 不静默、source_laundering/answer_key_override/model_vote_as_source/rag_chunk_as_answer_key/official_answer_as_source/candidate_used_as_release_truth/list_partial_auto/false_positive/source_mismatch/production_write_count=0、tamper_fail_closed=true（三 lane）、laundering_origins_blocked=true、rollback_pointer 存在、published_registry=false、production_default_connected=false、canonical_truth_written=false、all_lanes_release_candidate=true。runtime_consumption_projection 证 signed governed objective→release-grade pack（official_score_allowed=true，但**运行时绑定是下一里程碑，未 flip**）。**verdict=GO（release_candidate scope）**。为何无 publish/production/canonical：本里程碑设计上限即 release_candidate，runtime 绑定 + publish + canonical 写需单独 release gate 与授权。
+
+### 0.26.12 M30R Canonical Knowledge Compiler Reconciliation（2026-06-06，WEAK-GO，canonical pointer）
+
+> **single authority 收口**：M30 出现 3 个并行变体，本节只读 reconcile 出唯一 canonical，不重编译、不改 runtime、不 publish。Ledger：`artifacts/luban_grading_artifacts/m30_canonical_reconciliation_20260606/`。
+
+**唯一 canonical M30**：`full_knowledge_compiler_release_candidate_m30_20260606/compiled_knowledge_registry_manifest_m30.json`，schema `compiled_knowledge_registry.v2`，`registry_content_hash=9395cacc060fe480…`，producer `scripts/run_luban_full_knowledge_compiler_m30.py`（objective 2640/conflict 1/source 30/case 70）。**变体 disposition**：A=CANONICAL；B(`knowledge_compiler_release_candidate_m30_20260606`，schema `crosscheck.v1`)=AUDITOR-ONLY（其 `authoritative_m30_verification` 指向 A 并 concur 同 hash，自签 hash `49d85772…` 非 authority）；C(`…_auditor_readonly`)=AUDITOR-ONLY（独立 re-run hash `36fcaaced…`）。**不用局部 GO 覆盖总 GO**：A 的 release_candidate-scope GO 不抬升 §0.26.10 whole-plan WEAK-GO；B 的 WEAK-GO（compiler-layer toward production）与之一致。safety 全清（含 `client_supplied_answer_key_release_truth=0`、tamper_fail_closed=true）。
+
+**M30R verdict=WEAK-GO**：单一 canonical + safety + runtime_binding_input_contract 均 done；唯一 blocker=**canonical manifest 记了 2640 records 的 hash，但全量 signed records 未持久化为 tracked 可加载 bundle（只存 manifest+20 行 sample），独立 live 抽取非 bit-reproducible**。**M31 step 0**：把全量 2640 signed objective records 持久化为 tracked runtime supply（recompute objective content_hash == `672ff9a653adf2d0…`），或 pin 可复现抽取；**M31 只能消费 canonical pointer，禁止扫 artifact 目录猜**。一句话：M31 runtime-binding release gate 可**准备**但 step-0 持久化前**不可开始**。
+
+---
+
+### 0.26.13 M31 Governed Objective Runtime Binding（2026-06-06，runtime-binding release gate=GO）
+
+> **本节落地 §0.26.10 标注的「剩余唯一工程主线」+ §0.26.12 的 M31 step 0：把 M30 签发的 governed objective release_candidate registry 真正绑进运行时，使题库内 objective 分数从 formative 升为 CONTROLLED release-truth。上限=受控 cohort release-truth；不 publish、不翻 production default、不写 canonical learner truth、不写远端/DB（仍需单独授权）。** Ledger：`artifacts/luban_grading_artifacts/governed_objective_runtime_binding_m31_20260606/`。runner：`scripts/run_luban_m31_governed_objective_runtime_binding.py`。tracked signed bundle：`deeptutor/services/construction_grading/runtime_supply/v3_objective_records_released_m31/`（`objective_answer_key_release_candidate_m31.json` + `canonical_pointer_m31.json`）。
+
+**Step 0 闸已清（§0.26.12 的「非 bit-reproducible」担忧被证伪）**：只读 `DB_URL` 全量抽取 `public.questions_bank`（input 2655）经 `full_knowledge_compiler.compile_full_objective_release_candidate` 编译，**两次抽取确定性一致**且 objective `content_hash == 672ff9a653adf2d00b6501b4d6934e836b34b5d37608ad4d3169d672b41c1bdd`——**精确命中 M30 canonical hash**。全量 2640 signed records 已持久化为 tracked runtime supply（coverage=`full_2640_canonical_match`），canonical pointer pin 该 hash。运行时只读这份 tracked bundle，**绝不扫 artifact 目录**。
+
+**绑定（thin wrapper / fat skill，未新增 WS / registry / 第二套 learner memory）**：
+- fat skill `objective_runtime_adapter.py` 新增 `_governed_index`（只读 tracked v3 bundle + pointer，**四道闸全过才信**：`verify_lane_bundle` 内部一致性 → status=`release_candidate` 且非 published → **pinned content_hash 与 pointer 一致**（keyless 签名只证一致性，信任边界=tracked 路径+pinned hash）→ namespace 硬编码校验）+ `_governed_payload`（answer_key 只取签发 record；release 授权**仅**经 `build_pack_from_question_context(governed_registry_status="release_candidate")` 这一 F1 加固 seam，client 供的 registry_status 无法翻 `official_score_allowed`；LLM 不判对错，objective 100% 确定性）+ 独立入口 `build_governed_objective_payload`（governed 命中→release-truth；未命中/篡改→fall through 到既有 candidate→open-world，**M25-B candidate lane 零改动、非全局 fail-closed**）。
+- thin wrapper `deep_question.py` 新增 `_maybe_attach_m31_governed_objective`（append-only，只挂 `luban_grading_engine_m31_governed_objective`，绝不碰 `construction_grading_result`）：flag `grading_engine_m31_governed_objective` + env kill `LUBAN_M31_GOVERNED_OBJECTIVE_ENABLED` + cohort `LUBAN_M31_GOVERNED_OBJECTIVE_COHORT`（base `qa_/test_/operator_`），production default OFF。
+- `turn_runtime.py` `runtime_only_keys` 登记 `grading_engine_m31_governed_objective`（顺带补 M25-B 遗留缺口 `grading_engine_objective_candidate`），否则 WS frame flag 被 `extra='forbid'` 拒绝。
+
+**硬不变量（`safety_invariant_report_m31.json`，全达标）**：answer_key_override / llm_changed_key / rag_chunk_as_answer_key / model_vote_as_source / official_answer_as_source / false_positive / production_write_count / rejected_or_conflict_scored_as_release = 0；tamper_fail_closed / non_cohort_blocked / client_supplied_registry_status_ignored / controlled_official_only / content_hash_reproducible / matches_m30_canonical_hash = true；legacy_equal_rate=1.0；published / production_default_connected / canonical_truth_written = false。
+
+**真实 `/api/v1/ws` drill（`tests/integration/test_luban_m31_governed_objective_ws.py`）**：cohort（qa_/test_/operator_）题库内 objective 命中拿到 `release_truth=True / official_score_allowed=True / controlled_official=True`，非 cohort 真实学生被挡，flag-off 仅 legacy，`construction_grading_result` 字节不变。测试：19 个新增（fat skill 10 + wrapper 6 + runner 1 + WS 3）全过；construction_grading 294（baseline 284 零回归）+ session 92 + capabilities/m16/m17a/m27 57 全绿。
+
+**verdict=GO（runtime-binding scope）**。为何不是 whole-plan GO：本里程碑设计上限即 runtime-binding release gate（受控 cohort release-truth + production default OFF）。**仍 OUT OF SCOPE 需单独授权**：published registry、production default flip、canonical learner-truth write、远端/Aliyun/DB 写（本轮 production_write=0、remote_write=0、default_flip=0、published=false、canonical_truth_written=false）。
 
 ---
 

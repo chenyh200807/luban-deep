@@ -1,5 +1,7 @@
 # 鲁班评分引擎 × Learning Brain 融合方案 v0
 
+> **2026-06-06 relationship to master plan:** 本文件是 [2026-06-04-luban-grading-engine-master-control-plan.md](2026-06-04-luban-grading-engine-master-control-plan.md) §0.26 的 **Grading-to-Brain integration layer**，不是第三条平行主线。当前总目标固定为：鲁班评分引擎是“诊断仪”，Learning Brain/GBrain 是“长期主治医生”。本文件只定义 grading evidence 如何进入 learner evidence / claim lifecycle / PersonalizationContextPack / next action；它不得成为第二套评分 authority、第二套 RAG、第二套 learner memory，也不得把 shadow/candidate 证据升 canonical truth。
+>
 > Status: `Proposed v0.2`（2026-06-03 起草，2026-06-04 收口）。
 > 本方案回答一个具体问题：鲁班评分引擎产出的采分点级证据，如何进入 Learning Brain，形成长期、可审计、可压缩、可运维的个性化教学闭环。
 > 边界：不新增第二套 learner memory，不新增第二套 RAG，不新增 GBrain runtime，不把离线 shadow 结果直接宣称为生产门。
@@ -8,6 +10,7 @@
 > **v0.2 收口（权威唯一化）**：本计划**吸收并取代** `2026-06-03-luban-gbrain-deep-absorption-personalization-execution-plan.md`。此前两份同日计划在 claim lifecycle、`PersonalizationContextPack`、`next_best_action.py` 上并行定义同一批 canonical 落点，违反 Plan Directory Discipline「不要并行制造第二套主线」。自 v0.2 起，**本计划是 Learning Brain 个性化引擎的唯一主线 authority**；gbrain 计划标记 `Superseded`，仅作为 GBrain 源码概念吸收的研究记录保留。被吸收的 canonical 制品清单见 §0.0。
 >
 > 🚦 **实施策略：按评分来源解耦（2026-06-04 eng review D2，采纳 codex 对抗审查）**：**不把整条 loop 绑死在 DeepSeek 案例题评分器过门之上**。改为按 `engine.gate_status` 分流：MCQ、assessment、人工确认案例题、既有 v1 production 事件**现在就走 production loop**（验证 pack/report/practice/retest/降级/证据点击链）；**case-study list_rule 保持 shadow**，等评分器从 WEAK-GO 升到 production（见 `2026-06-03-luban-deepseek-production-shadow-v0-plan.md` 与 consensus-gold protocol §14-§16）再扩大案例题自动写权。
+> 🧠 **模型分工修订（2026-06-04）**：DeepSeek gate **只约束 DeepSeek 单模型何时获得生产低成本自动写权**，不得阻塞当前打造期用 GPT5.5 + Opus4.8 + DeepSeek + Qwen3.7 四模型 Best-Quality jury 建设评分标准、证据链、teacher-review draft、GBrain pack/claim/next-action 与学员可解释体验。当前能力上限 = `Best-Quality 4-model jury`；未来生产成本线 = `DeepSeek production-cost grader`；Learning Brain 写权仍按 `engine.gate_status`、`artifact_status`、`teacher_final` 分流。
 > **Phase 0/0A 必须现在就建，不得延后**——它就是 shadow 隔离的安全网：统一 eligibility helper + write-time 隔离 + 全读路径过滤 + mixed-claim 语义 + 全读面不变量 golden（详见 §6.1-1）。codex 论点（已采纳）：越等越危险——若因评分器未过门而不建隔离层，系统就没有统一 gate helper、没有读侧过滤、没有 shadow fixture，一旦有人先接 shadow writeback，污染面巨大。先把安全网建好，再按来源放量。
 
 ## 0.0 单一主线 authority 与被吸收的 canonical 制品
@@ -39,7 +42,7 @@ verification target（采样一个 learner 必须能答全 6 问，缺一即吸�
 6. **RAG 仍然有用。**评分标准和学员状态不靠 RAG 临时拼；但教材、规范、讲义、错因解释、复习资料定位仍由 RAG/知识库提供证据。
 7. **后期运维必须从 v0 就设计进去**：schema version、artifact version、model run id、provenance、TTL、冷热分层、nightly lint、rebuild projection、cost/latency/pack-size guard。
 8. **产品表面必须把闭环讲清楚。**世界顶尖学情页不是多几个模块，而是首屏让用户看懂“为什么今天练这个、证据来自哪里、练完如何证明变好”。学情页必须从 dashboard 升级为 Grading-to-Brain Loop 的可见证明面。
-9. **最优落地路径**：先把 DeepSeek/Consensus-Gold 评分输出标准化为现有 `learning_evidence` payload 的扩展字段，写入现有 `learner_memory_events`；再在现有 `learner_summaries.summary_structured_json.learning_brain` projection 内生成 `LearnerClaim` 与 `PersonalizationContextPack`；最后让 TutorBot、deep_question、学习报告、错题集、微信学情页都读取这一个 pack。
+9. **最优落地路径**：先把 Best-Quality/Consensus-Gold/teacher-final 评分输出标准化为现有 `learning_evidence` payload 的扩展字段，写入现有 `learner_memory_events`；DeepSeek 单模型输出先作为 production-cost candidate 和蒸馏目标，不再作为打造期主线 blocker。再在现有 `learner_summaries.summary_structured_json.learning_brain` projection 内生成 `LearnerClaim` 与 `PersonalizationContextPack`；最后让 TutorBot、deep_question、学习报告、错题集、微信学情页都读取这一个 pack。
 10. **交付策略必须先纵切、再扩面。**不要一次性铺满全部智能推荐。先交付一条可证明的端到端链路：一次案例题批改 -> 一条证据事件 -> 一个 claim -> 一个 pack -> 学情首屏一个 action -> 一次训练/复测 -> 一条变化证明。
 
 ## 1. 外部记忆架构调研结论
@@ -111,7 +114,7 @@ verification target（采样一个 learner 必须能答全 6 问，缺一即吸�
 
 ```mermaid
 flowchart TD
-    A["学生提交案例题答案"] --> B["鲁班评分引擎: DeepSeek-V4-flash shadow/production candidate"]
+    A["学生提交案例题答案"] --> B["鲁班评分引擎: Best-Quality 4-model jury / DeepSeek production-cost candidate"]
     B --> C["Point-level GradingEvidenceEventV1"]
     C --> D["LearnerStateService.append_memory_event"]
     D --> E["learner_memory_events: append-only evidence ledger"]
@@ -132,7 +135,7 @@ flowchart TD
 
 | 路径 | 用户是否等待 | 包含工作 | 不允许放入 |
 | --- | --- | --- | --- |
-| **热路径 Hot Path** | 是 | 读取题目 scoring artifact、DeepSeek 批改、结构化 JSON parse、`evidence_span` 校验、exact_required high-risk fallback、返回总分/采分点反馈 | Learning Brain 全量 synthesis、RAG 临时找评分标准、长历史扫描、BI 聚合、复杂推荐生成 |
+| **热路径 Hot Path** | 是 | 读取题目 scoring artifact、评分引擎调用（QA 打造期可用 Best-Quality；生产成本线候选用 DeepSeek）、结构化 JSON parse、`evidence_span` 校验、exact_required high-risk fallback、返回总分/采分点反馈 | Learning Brain 全量 synthesis、RAG 临时找评分标准、长历史扫描、BI 聚合、复杂推荐生成 |
 | **温路径 Warm Path** | 不阻塞首屏，但应尽快完成 | 写 `learner_memory_events`、写错题集、写 high-risk queue、刷新 `PersonalizationContextPack`、生成错因/下一步行动 | 二次改分、绕过 `LearnerStateService` 写学情 |
 | **冷路径 Cold Path** | 否，离线/周期性 | `learning_synthesis`、claim lifecycle 压缩、long-term summary、dream-cycle lint、source drift audit、projection rebuild、Consensus-Gold/模型回归 | 任何用户请求热路径必需结果 |
 
@@ -155,7 +158,7 @@ flowchart TD
 | Scoring artifact cache | `question_id + artifact_version` | artifact version 变化失效 | 热路径必需；只读缓存，不改评分标准 |
 | PersonalizationContextPack cache | `user_id + latest_event_id + learning_brain_hash` | 新 learning evidence 写入或 synthesis hash 变化失效 | 缓存事实层 pack，不缓存首页文案 |
 | RAG source hint cache | `knowledge_node_id + source_version` | KB source hash 变化失效 | 只用于解释/复习定位，不进入评分 |
-| DeepSeek prompt prefix cache | `artifact_version + policy_version` | policy/artifact 变化失效 | 只缓存稳定系统提示和评分协议前缀 |
+| Grader prompt prefix cache | `artifact_version + policy_version + engine_family` | policy/artifact/engine family 变化失效 | 只缓存稳定系统提示和评分协议前缀；Best-Quality 与 DeepSeek 不共用生产资格 |
 | Learning Brain projection cache | `user_id + synthesis_run_hash` | 新事件或 rebuild 失效 | 读模型缓存；authoritative content 仍是 `learner_summaries.learning_brain` |
 
 禁止：
@@ -542,7 +545,7 @@ RAG 仍然有用，但角色要降噪：
 | --- | --- |
 | first visible response p95 | ≤ 500ms |
 | scoring artifact read p95 | ≤ 50ms |
-| DeepSeek grading p95 | ≤ 8s |
+| production-cost grader p95 | ≤ 8s（DeepSeek 单模型候选，不约束 Best-Quality 打造期异步路径） |
 | post-process guard p95 | ≤ 200ms |
 | evidence write success rate | ≥ 99% |
 | evidence read-after-write p95 | ≤ 2s |
@@ -894,7 +897,7 @@ RAG 仍然有用，但角色要降噪：
 | --- | --- | --- | --- |
 | 真实 learner graph 是否有足够 actionable edge | `next_best_action` 排不出真实建议，只能泛化 | Phase 0A Gate C coverage report | 先做 starter/calibration + evidence capture，不上线智能推荐 |
 | `PersonalizationContextPack` build p95 是否 ≤ 200ms | chat/report 热路径变慢 | fixture benchmark + shadow trace | 预编译 projection cache；热路径只读上次 pack |
-| DeepSeek/评分候选是否足以支撑生产事件 | 错误评分污染 Learning Brain | shadow/human gate，unsupported-positive fail closed | 只写 shadow evidence，不提升 claim；人工/规则确认后再升权 |
+| 单模型 production-cost grader 是否足以支撑自动写权 | 错误评分污染 Learning Brain | shadow/human gate，unsupported-positive fail closed，并与 Best-Quality/teacher-final 对齐 | 打造期继续用 Best-Quality/teacher-final；单模型只写 shadow evidence，不提升 claim，过门后再升权 |
 | 微信真实入口是否与 `/wechat-harness` 一致 | Web shadow 通过但真机布局/交互失败 | `yousenwebview/packageDeeptutor` DevTools + 真机 smoke | harness 只做预检，release gate 仍以 yousenwebview 为准 |
 | 首屏文案是否真的提升理解和行动 | 技术闭环存在，但用户无感 | 5-10 人 hallway test：5 秒复述“为什么练/证据/如何证明” | 若失败，减少首屏模块，只留处方+证据+CTA |
 | 家长/老师证据链是否过重 | 用户被证据淹没，反而不信 | progressive disclosure 点击率/停留/返回率 | 首屏只给一句证据，细节折叠到 evidence drawer |

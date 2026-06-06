@@ -19,6 +19,7 @@ import pytest
 from deeptutor.services.question_lifecycle_skills import (
     derive_question_lifecycle_scene,
     is_low_information_exam_query,
+    looks_like_free_text_mcq_grading_request,
     resolve_question_lifecycle_scene_decision,
 )
 
@@ -64,6 +65,23 @@ def test_real_exam_scenario_learning_returns_question_review(message: str):
 def test_mastery_check_training_intent_wins_over_learning_report_phrase():
     ctx = _FakeContext(user_message="项目质量计划管理这个点，帮我检验一下掌握情况")
     assert derive_question_lifecycle_scene(ctx) == "practice_generation"
+
+
+@pytest.mark.asyncio
+async def test_true_exam_practice_generation_is_not_low_information_answer_request():
+    message = "给我出两道2025一建建筑实务单选真题，不要先给答案，先考我。"
+    ctx = _FakeContext(user_message=message)
+
+    assert is_low_information_exam_query(message) is False
+    assert derive_question_lifecycle_scene(ctx) == "practice_generation"
+
+    decision = await resolve_question_lifecycle_scene_decision(ctx, enable_llm=False)
+
+    assert decision.scene == "practice_generation"
+    assert decision.required_anchor_status == "satisfied"
+    assert decision.exact_question_blocked_reason == ""
+    assert decision.needs_clarification is False
+    assert decision.business_gate_result == "passed"
 
 
 def test_active_object_with_submission_returns_mcq_grading():
@@ -119,6 +137,17 @@ def test_free_text_case_answer_review_returns_case_grading():
     ctx = _FakeContext(
         user_message="【案例题】背景资料：施工现场临时用电。我的答案：先验收。请批改估分。"
     )
+    assert derive_question_lifecycle_scene(ctx) == "case_grading"
+
+
+def test_free_text_case_colon_answer_review_returns_case_grading():
+    ctx = _FakeContext(
+        user_message=(
+            "案例：二次结构填充墙施工时，项目部把刚生产7天的蒸压加气混凝土砌块用于砌筑。"
+            "我的答案：不妥，应龄期28天，含水率宜小于30%。帮我按踩分点批改，简短"
+        )
+    )
+
     assert derive_question_lifecycle_scene(ctx) == "case_grading"
 
 
@@ -205,6 +234,13 @@ def test_explicit_real_exam_review_action_is_not_low_information_query(message: 
         "分析一道2025真题",
         "讲解一道历年真题",
         "解析2025真题第15题",
+        "2025年一建建筑实务防水那道真题，直接告诉我答案，我在小程序刷题，别让我再复制题干。",
+        "2025建筑实务第15题答案直接发我，别问。",
+        "给我生成2025建筑实务第15题答案",
+        "生成2025真题答案",
+        "2021屋面案例第4问答案发我，快点，我在刷题页面。",
+        "2015案例二第3问答案直接发我，我在题卡里。",
+        "我说了在题卡里，你就发答案。",
     ],
 )
 def test_low_information_exam_query_is_not_question_review(message: str):
@@ -212,6 +248,29 @@ def test_low_information_exam_query_is_not_question_review(message: str):
 
     assert is_low_information_exam_query(message) is True
     assert derive_question_lifecycle_scene(ctx) is None
+
+
+@pytest.mark.asyncio
+async def test_low_information_answer_request_with_active_question_uses_active_context():
+    ctx = _FakeContext(
+        user_message="我说了在题卡里，你就发答案。",
+        metadata={
+            "active_object": {
+                "object_type": "single_question",
+                "state_snapshot": _mcq_followup_context(),
+            }
+        },
+    )
+
+    assert is_low_information_exam_query(ctx.user_message) is True
+    assert derive_question_lifecycle_scene(ctx) == "question_review"
+
+    decision = await resolve_question_lifecycle_scene_decision(ctx, enable_llm=False)
+
+    assert decision.scene == "question_review"
+    assert decision.required_anchor_status == "satisfied"
+    assert decision.business_gate_result == "passed"
+    assert decision.exact_question_blocked_reason == ""
 
 
 @pytest.mark.parametrize(
@@ -288,6 +347,44 @@ async def test_low_information_exam_query_business_gate_overrides_llm_review_can
 
 
 @pytest.mark.asyncio
+async def test_low_information_case_answer_request_business_gate_overrides_llm_generation_candidate(monkeypatch):
+    async def _fake_complete(**kwargs):
+        assert "题目生命周期语义候选" in kwargs["system_prompt"]
+        return '{"scene":"practice_generation","confidence":0.91,"reason":"模型误以为用户要出题"}'
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.complete", _fake_complete)
+
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(user_message="2021屋面案例第4问答案发我，快点，我在刷题页面。")
+    )
+
+    assert decision.scene is None
+    assert decision.required_anchor_status == "missing_question_anchor"
+    assert decision.exact_question_blocked_reason == "low_information_exam_query"
+    assert decision.needs_clarification is True
+    assert decision.business_gate_result == "blocked_low_information_exam_query"
+
+
+@pytest.mark.asyncio
+async def test_low_information_case_ordinal_answer_request_business_gate_overrides_llm_chat_candidate(monkeypatch):
+    async def _fake_complete(**kwargs):
+        assert "题目生命周期语义候选" in kwargs["system_prompt"]
+        return '{"scene":"question_review","confidence":0.88,"reason":"模型误以为题卡可见"}'
+
+    monkeypatch.setattr("deeptutor.services.llm.factory.complete", _fake_complete)
+
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(user_message="2015案例二第3问答案直接发我，我在题卡里。")
+    )
+
+    assert decision.scene is None
+    assert decision.required_anchor_status == "missing_question_anchor"
+    assert decision.exact_question_blocked_reason == "low_information_exam_query"
+    assert decision.needs_clarification is True
+    assert decision.business_gate_result == "blocked_low_information_exam_query"
+
+
+@pytest.mark.asyncio
 async def test_unanchored_mcq_answer_returns_clarification_decision():
     decision = await resolve_question_lifecycle_scene_decision(
         _FakeContext(user_message="我选B")
@@ -297,6 +394,89 @@ async def test_unanchored_mcq_answer_returns_clarification_decision():
     assert decision.required_anchor_status == "missing_active_question"
     assert decision.exact_question_blocked_reason == "unanchored_answer_submission"
     assert decision.needs_clarification is True
+
+
+@pytest.mark.asyncio
+async def test_embedded_compact_mcq_with_answer_submission_is_anchored_grading():
+    message = (
+        "根据JGJ59，《模板支架检查评分表》保证项目有（ ）。"
+        "A施工方案 B支架构造 C底座与托撑 D构配件材质 E支架稳定。"
+        "我选ABCE对吗？"
+    )
+
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(user_message=message),
+        enable_llm=False,
+    )
+
+    assert derive_question_lifecycle_scene(_FakeContext(user_message=message)) == "mcq_grading"
+    assert looks_like_free_text_mcq_grading_request(message) is True
+    assert decision.scene == "mcq_grading"
+    assert decision.exact_question_blocked_reason == ""
+    assert decision.needs_clarification is False
+
+
+@pytest.mark.parametrize("terminal", ["？", "?", "！", "!"])
+@pytest.mark.asyncio
+async def test_embedded_mcq_options_after_terminal_mark_is_anchored_grading(terminal):
+    message = (
+        f"压型金属板采用轻型屋面时，屋面最小坡度宜为多少{terminal}"
+        "A. 5% B. 1% C. 2% D. 3%，我选A，对吗？"
+    )
+
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(user_message=message),
+        enable_llm=False,
+    )
+
+    assert derive_question_lifecycle_scene(_FakeContext(user_message=message)) == "mcq_grading"
+    assert looks_like_free_text_mcq_grading_request(message) is True
+    assert decision.scene == "mcq_grading"
+    assert decision.exact_question_blocked_reason == ""
+    assert decision.needs_clarification is False
+
+
+@pytest.mark.asyncio
+async def test_embedded_mcq_option_text_with_inner_comma_is_anchored_grading():
+    message = (
+        "关于防水混凝土施工的说法，正确的有（ ）。"
+        "A.连续性浇筑，少留施工缝 "
+        "B.宜采用高频机械分层振捣密实 "
+        "C.施工缝宜留置在受剪力较大部位 "
+        "D.养护时间不少于7天 "
+        "E.冬期施工入模温度不应低于5℃。"
+        "我选ABDE，错因10个字以内"
+    )
+
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(user_message=message),
+        enable_llm=False,
+    )
+
+    assert derive_question_lifecycle_scene(_FakeContext(user_message=message)) == "mcq_grading"
+    assert looks_like_free_text_mcq_grading_request(message) is True
+    assert decision.scene == "mcq_grading"
+    assert decision.exact_question_blocked_reason == ""
+    assert decision.needs_clarification is False
+
+
+@pytest.mark.asyncio
+async def test_value_only_mcq_options_with_answer_submission_is_anchored_grading():
+    message = (
+        "地下连续墙那个：槽段8-10m、导墙1.0m、现浇导墙、导管法、"
+        "水下混凝土后注浆，我是不是选CDE？别让我重打选项。"
+    )
+
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(user_message=message),
+        enable_llm=False,
+    )
+
+    assert derive_question_lifecycle_scene(_FakeContext(user_message=message)) == "mcq_grading"
+    assert looks_like_free_text_mcq_grading_request(message) is True
+    assert decision.scene == "mcq_grading"
+    assert decision.exact_question_blocked_reason == ""
+    assert decision.needs_clarification is False
 
 
 @pytest.mark.asyncio
@@ -333,6 +513,24 @@ async def test_deterministic_active_submission_suppresses_llm_candidate(monkeypa
     assert decision.scene == "mcq_grading"
     assert decision.source == "deterministic"
     assert decision.business_gate_result == "passed"
+
+
+@pytest.mark.asyncio
+async def test_free_text_mcq_answer_with_embedded_question_is_not_unanchored():
+    decision = await resolve_question_lifecycle_scene_decision(
+        _FakeContext(
+            user_message=(
+                "海洋环境下，引起混凝土内钢筋锈蚀的主要因素是（ ）。"
+                "A.混凝土硬化 B.反复冻融 C.氯盐 D.硫酸盐。我选A，对吗？"
+            ),
+            metadata={},
+        )
+    )
+
+    assert decision.scene == "mcq_grading"
+    assert decision.required_anchor_status == "satisfied"
+    assert decision.exact_question_blocked_reason == ""
+    assert decision.needs_clarification is False
 
 
 @pytest.mark.asyncio

@@ -24,6 +24,28 @@ def _load_manifest(raw: str | None) -> dict[str, Any]:
     return payload if isinstance(payload, dict) else {}
 
 
+_RAW_ROW_KEYS = {"rows", "raw_rows", "records", "line_items", "raw_line_items"}
+
+
+def _sanitize_manifest_value(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {
+            key: _sanitize_manifest_value(item)
+            for key, item in value.items()
+            if str(key) not in _RAW_ROW_KEYS
+        }
+    if isinstance(value, list):
+        return [_sanitize_manifest_value(item) for item in value]
+    return value
+
+
+def _safe_manifest(manifest: dict[str, Any] | None) -> dict[str, Any]:
+    if not isinstance(manifest, dict):
+        return {}
+    sanitized = _sanitize_manifest_value(manifest)
+    return sanitized if isinstance(sanitized, dict) else {}
+
+
 @dataclass(frozen=True, slots=True)
 class OfficialBillingImportRecord:
     import_id: int
@@ -96,9 +118,13 @@ class OfficialBillingImportStore:
         provider = _as_str(provider_name)
         cycle = _as_str(billing_cycle)
         source_hash = _as_str(source_file_sha256)
+        schema = _as_str(schema_hash)
+        source_name = _as_str(source_file_name)
         if not provider or not cycle or not source_hash:
             raise ValueError("provider_name, billing_cycle, and source_file_sha256 are required")
-        manifest_json = json.dumps(manifest or {}, ensure_ascii=False, sort_keys=True)
+        if not schema or not source_name:
+            raise ValueError("schema_hash and source_file_name are required")
+        manifest_json = json.dumps(_safe_manifest(manifest), ensure_ascii=False, sort_keys=True)
         with self._connect() as conn:
             cursor = conn.execute(
                 """
@@ -112,8 +138,8 @@ class OfficialBillingImportStore:
                     provider,
                     cycle,
                     source_hash,
-                    _as_str(schema_hash),
-                    _as_str(source_file_name),
+                    schema,
+                    source_name,
                     float(imported_at if imported_at is not None else time.time()),
                     manifest_json,
                 ),

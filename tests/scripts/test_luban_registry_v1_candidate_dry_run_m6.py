@@ -21,6 +21,11 @@ REPO = Path(__file__).resolve().parents[2]
 M5_DIR = REPO / "artifacts/luban_grading_artifacts/case_rubric_authority_adjudication_m5_20260604"
 V0_DIR = REPO / "artifacts/luban_grading_artifacts/registry_v0_20260604"
 
+pytestmark = pytest.mark.skipif(
+    not M5_DIR.exists() or not V0_DIR.exists(),
+    reason="M6 dry-run source artifacts are not tracked in this checkout",
+)
+
 EXPECTED_FILES = {
     "m5_input_audit.json",
     "candidate_registry_schema.md",

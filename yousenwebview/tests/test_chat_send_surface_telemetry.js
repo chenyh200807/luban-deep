@@ -85,6 +85,7 @@ function loadChatPage() {
           shouldAutoEnableWebSearch: function () {
             return false;
           },
+          vibrate: function () {},
         };
       }
       if (request === "../../utils/logger") {
@@ -270,6 +271,75 @@ function loadChatPage() {
     assert(
       !loaded.page._pendingTurn,
       "pending turn should wait for the authoritative start-turn conversation id",
+    );
+  });
+
+  await run("mcq submit should convert visible card state into canonical followup context", async function () {
+    var loaded = loadChatPage();
+    var payload = loaded.page._buildMcqSubmitPayload([
+      {
+        index: 1,
+        questionId: "visible_q1",
+        stem: "压型金属板屋面最低坡度是多少？",
+        questionType: "single_choice",
+        options: [
+          { key: "A", text: "5%", selected: true },
+          { key: "B", text: "1%" },
+          { key: "C", text: "2%" },
+          { key: "D", text: "3%" },
+        ],
+      },
+    ]);
+
+    assert(payload && payload.followupQuestionContext, "visible card submit should carry followup context");
+    if (payload && payload.followupQuestionContext) {
+      assert(
+        payload.followupQuestionContext.question_id === "visible_q1",
+        "visible card followup context should preserve question id",
+      );
+      assert(
+        payload.followupQuestionContext.question === "压型金属板屋面最低坡度是多少？",
+        "visible card followup context should preserve stem",
+      );
+      assert(
+        payload.followupQuestionContext.options &&
+          payload.followupQuestionContext.options.A === "5%",
+        "visible card followup context should preserve options",
+      );
+      assert(
+        payload.followupQuestionContext.user_answer === "A",
+        "visible card followup context should preserve learner answer",
+      );
+    }
+  });
+
+  await run("retry should resend the original followup question context", async function () {
+    var loaded = loadChatPage();
+    loaded.page._sid = "tb_conv_retry";
+    loaded.page._convId = "tb_conv_retry";
+
+    loaded.page._doSend("我选A", {
+      followupQuestionContext: {
+        question_id: "retry_q1",
+        question: "压型金属板屋面最低坡度是多少？",
+        question_type: "choice",
+        user_answer: "A",
+      },
+    });
+    var aiMessage = loaded.page.data.messages[1];
+    loaded.page.data.isStreaming = false;
+
+    loaded.page.onRetry({ currentTarget: { dataset: { msgid: aiMessage.id } } });
+
+    assert(loaded.streamCalls.length === 2, "retry should start a new stream turn");
+    assert(
+      loaded.streamCalls[1].followupQuestionContext &&
+        loaded.streamCalls[1].followupQuestionContext.question_id === "retry_q1",
+      "retry should preserve the original followup question context",
+    );
+    assert(
+      loaded.streamCalls[1].persistUserMessage === false,
+      "retry should still avoid duplicating the persisted user message",
     );
   });
 

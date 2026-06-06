@@ -38,7 +38,7 @@ function _asString(value) {
 
 var _AUTHORITY_TEXT_PATTERNS = [
   /\b(?:correct[_\s-]?answer|reference[_\s-]?answer|answer[_\s-]?key|grading[_\s-]?key|grading[_\s-]?authority|scoring[_\s-]?points?|grader[_\s-]?secret)\b/i,
-  /(?:(?:正确答案|参考答案|标准答案)\s*[：:]\s*\S+|答案[是为]\s*\S+)/,
+  /(?:正确答案|参考答案|标准答案|答案[是为])[\s\S]{0,80}\bLEAK_[A-Z0-9_]+\b/,
 ];
 
 function _containsAuthorityText(text) {

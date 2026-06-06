@@ -311,6 +311,7 @@ function loadChatPage(overrides) {
 
   await run("chat page should keep pending auto-send independent from degraded profile bootstrap", async function () {
     var sendCount = 0;
+    var sentOptions = null;
     var dashboardCount = 0;
     var diagnosticCount = 0;
     var loaded = loadChatPage({
@@ -322,13 +323,22 @@ function loadChatPage(overrides) {
       },
       runtime: {
         consumePendingChatIntent: function () {
-          return { query: "继续上一题", mode: "AUTO" };
+          return {
+            query: "继续上一题",
+            mode: "AUTO",
+            followupQuestionContext: {
+              question_id: "q_wrong_1",
+              question: "地下防水卷材搭接做法正确的是？",
+              question_type: "choice",
+            },
+          };
         },
       },
     });
 
-    loaded.page._send = function () {
+    loaded.page._send = function (_query, opts) {
       sendCount += 1;
+      sentOptions = opts || null;
     };
     loaded.page._loadDashboard = function () {
       dashboardCount += 1;
@@ -343,6 +353,12 @@ function loadChatPage(overrides) {
     await flushPromises();
 
     assert(sendCount === 1, "pending auto-send should use token authority even when profile is degraded");
+    assert(
+      sentOptions &&
+        sentOptions.followupQuestionContext &&
+        sentOptions.followupQuestionContext.question_id === "q_wrong_1",
+      "pending auto-send should preserve followup question context",
+    );
     assert(dashboardCount === 0, "pending auto-send should not spend a dashboard request before start-turn");
     assert(diagnosticCount === 0, "pending auto-send should not spend a diagnostic request before start-turn");
   });

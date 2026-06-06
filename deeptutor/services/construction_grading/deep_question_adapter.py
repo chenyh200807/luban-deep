@@ -3,6 +3,9 @@ from __future__ import annotations
 from typing import Any
 
 from deeptutor.services.construction_grading.case_kernel import CaseGradingSkillKernel
+from deeptutor.services.construction_grading.compiled_context import (
+    build_pack_from_question_context,
+)
 from deeptutor.services.construction_grading.mcq import grade_mcq_submission
 
 _CHOICE_TYPES = {
@@ -25,6 +28,40 @@ _CASE_TYPES = {
     "open_ended",
     "essay",
 }
+
+
+def _stamp_compiled_context_and_authority(
+    result: dict[str, Any],
+    row: dict[str, Any],
+    *,
+    retrieval_sources: list[dict[str, Any]] | None = None,
+) -> None:
+    """Attach the unified compiled_context AND an honest answer-key authority stamp (M27 closure).
+
+    Authority discipline (master plan §0.26.3): a ``correct_answer`` that is merely PRESENT in the
+    inbound question context (e.g. client-supplied via the WS frame) is NOT a governed release-truth
+    answer key. The deep_question runtime does not yet bind objective answer keys to the governed
+    questions_bank / signed registry, so such a score is FORMATIVE only — it must never be laundered
+    into an official release-truth score. We keep the formative score/is_correct unchanged (no UX or
+    test breakage) but stamp the provenance so no downstream consumer (or red-team oracle) can treat
+    a client-supplied answer key as governed truth.
+
+    When the pack reports ``official_score_allowed`` (a signed release/published registry resolved
+    the answer key server-side), the result is marked governed release-truth instead.
+    """
+    pack = build_pack_from_question_context(row, retrieval_sources=retrieval_sources)
+    result["compiled_context"] = pack.to_dict()
+    official = pack.official_score_allowed
+    result["release_truth"] = bool(official)
+    result["answer_key_authority"] = (
+        "governed_signed_registry" if official else "context_supplied_unverified"
+    )
+    if not official:
+        # No governed binding -> governance status is unresolved; score stays formative, not official.
+        result.setdefault("registry_status", "unresolved")
+        result["official_release_score"] = False
+        result["not_production_grade"] = True
+        result["official_score_laundering_guard"] = "client_or_context_answer_key_not_release_truth"
 
 
 def build_deep_question_grading_result(
@@ -59,6 +96,7 @@ def build_deep_question_grading_result(
                 result[key] = row.get(key)
         result["type"] = "mcq"
         result["authority"] = "construction_grading"
+        _stamp_compiled_context_and_authority(result, row)
         return result
     if question_type in _CASE_TYPES:
         result = CaseGradingSkillKernel().grade(
@@ -70,6 +108,9 @@ def build_deep_question_grading_result(
         result["authority"] = "construction_grading"
         result["question_type"] = question_type or "case"
         result["user_answer"] = answer
+        _stamp_compiled_context_and_authority(
+            result, row, retrieval_sources=_evidence_rows_from_context(row)
+        )
         return result
     return None
 

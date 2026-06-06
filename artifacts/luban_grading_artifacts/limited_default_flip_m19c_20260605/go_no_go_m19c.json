@@ -1,0 +1,14 @@
+{
+  "authorization_detected": true,
+  "canonical_learner_truth_write": "NO-GO",
+  "canonical_truth_written": false,
+  "formal_registry_emitted": false,
+  "limited_default_current_state": "ON",
+  "m19c_limited_default_flip": "GO",
+  "m20_delta_included": false,
+  "production_default_broad": "NO-GO",
+  "production_v1_broad_default": "NO-GO",
+  "production_write_count": 0,
+  "reason": "limited qa_/operator_ default verified and rollback drill passed",
+  "remote_deployment_written": false
+}

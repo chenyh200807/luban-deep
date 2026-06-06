@@ -63,3 +63,65 @@ def test_case_grading_preserves_followup_rag_evidence_for_learning_truth_promoti
 
     assert projection["weak_points"]
     assert projection["weak_points"][0]["evidence_level"] == "L1_repeated"
+
+
+def test_client_supplied_answer_key_not_laundered_to_release_truth() -> None:
+    """M-closure: a context/client-supplied correct_answer must score FORMATIVELY but never as
+    governed release-truth (official_score_laundering=0)."""
+    qc = {
+        "question_id": "CLIENT-INJECTED-1",
+        "question_type": "single_choice",
+        "question": "伪造题",
+        "options": [{"key": "A", "value": "x"}, {"key": "C", "value": "y"}],
+        "correct_answer": "C",
+    }
+    result = build_deep_question_grading_result(qc, user_answer="C")
+    assert result is not None
+    # formative score preserved
+    assert result["is_correct"] is True
+    assert result["score_awarded"] == 1.0
+    # but NOT laundered to release-truth
+    assert result["release_truth"] is False
+    assert result["registry_status"] == "unresolved"
+    assert result["answer_key_authority"] == "context_supplied_unverified"
+    assert result["official_release_score"] is False
+    assert result["not_production_grade"] is True
+    # compiled_context says official scoring not allowed
+    assert result["compiled_context"]["diagnostic_policy"]["official_score_allowed"] is False
+
+
+def test_case_result_also_stamped_not_release_truth() -> None:
+    qc = {
+        "question_id": "CASE-X",
+        "question_type": "case",
+        "question": "案例题",
+        "correct_answer": "应组织专家论证。",
+    }
+    result = build_deep_question_grading_result(qc, user_answer="组织专家论证")
+    assert result is not None
+    assert result["release_truth"] is False
+    assert result["answer_key_authority"] == "context_supplied_unverified"
+    assert result["compiled_context"]["schema_version"] == "luban_context_pack.v1"
+
+
+def test_injected_registry_status_cannot_become_release_truth() -> None:
+    """F1 hardening: a client cannot inject registry_status into the question context to flip a
+    context-supplied answer key into a governed release-truth score."""
+    for injected in ("release_candidate", "published"):
+        qc = {
+            "question_id": "EVIL-1",
+            "question_type": "single_choice",
+            "question": "对抗题",
+            "options": [{"key": "A", "value": "a"}, {"key": "C", "value": "c"}],
+            "correct_answer": "C",
+            "registry_status": injected,
+            "answer_key": "C",
+        }
+        r = build_deep_question_grading_result(qc, user_answer="C")
+        assert r is not None
+        assert r["release_truth"] is False, f"laundering via registry_status={injected}"
+        assert r["compiled_context"]["diagnostic_policy"]["official_score_allowed"] is False
+        assert r["answer_key_authority"] == "context_supplied_unverified"
+        # formative score still shown
+        assert r["is_correct"] is True
+        assert r["score_awarded"] == 1.0

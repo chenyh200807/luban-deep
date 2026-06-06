@@ -134,6 +134,11 @@ def test_rag_providers_returns_registered_backends() -> None:
                 "name": "Supabase",
                 "description": "Read-only remote retrieval powered by your Supabase knowledge base.",
             },
+            {
+                "id": "kbv5",
+                "name": "KB v5",
+                "description": "Read-only KB v5 retrieval via the canonical direct Postgres function.",
+            },
         ]
     }
 

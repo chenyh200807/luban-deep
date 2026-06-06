@@ -10,6 +10,7 @@ from deeptutor.core.capability_protocol import BaseCapability, CapabilityManifes
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream_bus import StreamBus
 from deeptutor.services.question_followup import (
+    annotate_submission_context_from_message,
     build_choice_result_summary_from_exact_question,
     build_question_followup_context_from_result_summary,
     detect_answer_reveal_preference,
@@ -185,7 +186,7 @@ class TutorBotCapability(BaseCapability):
         exam_catalog_response = ""
         if str(context.metadata.get("question_lifecycle_scene") or "").strip() == "exam_catalog_query":
             exam_catalog_response = build_question_lifecycle_exam_catalog_response(
-                context.user_message,
+                self._raw_user_message(context),
                 context.metadata if isinstance(context.metadata, dict) else {},
             )
         if exam_catalog_response:
@@ -261,7 +262,7 @@ class TutorBotCapability(BaseCapability):
             return
 
         clarification_response = build_question_lifecycle_clarification_response(
-            context.user_message,
+            self._raw_user_message(context),
             str(context.metadata.get("exact_question_blocked_reason") or "").strip(),
         )
         if clarification_response:
@@ -439,13 +440,14 @@ class TutorBotCapability(BaseCapability):
                 session_metadata=session_metadata,
             )
             final_response = response or "".join(chunks)
+            exact_state_summary = build_choice_result_summary_from_exact_question(
+                turn_summary["exact_question"]
+            )
             if turn_summary["authority_applied"]:
                 display_result_summary = None
-                state_result_summary = None
+                state_result_summary = exact_state_summary
             else:
-                state_result_summary = build_choice_result_summary_from_exact_question(
-                    turn_summary["exact_question"]
-                )
+                state_result_summary = exact_state_summary
                 # TutorBot free text is not grading authority. Only render
                 # submit-able MCQ presentation when the answer key came from an
                 # exact authoritative question source.
@@ -472,6 +474,11 @@ class TutorBotCapability(BaseCapability):
                 free_text_render_summary = extract_choice_result_summary_from_text(final_response)
             render_summary = display_result_summary or free_text_render_summary
             reveal_answers, reveal_explanations = self._reveal_reference_flags(context)
+            exact_authority_revealed = bool(
+                turn_summary["authority_applied"] and state_result_summary
+            )
+            state_reveal_answers = True if exact_authority_revealed else reveal_answers
+            state_reveal_explanations = True if exact_authority_revealed else reveal_explanations
             visible_response = self._build_visible_response(
                 context=context,
                 final_response=final_response,
@@ -518,8 +525,8 @@ class TutorBotCapability(BaseCapability):
                 or policy.execution_path,
                 "exact_fast_path_hit": bool(session_metadata.get("exact_fast_path_hit", False)),
                 "actual_tool_rounds": int(session_metadata.get("actual_tool_rounds") or 0),
-                "reveal_answers": reveal_answers,
-                "reveal_explanations": reveal_explanations,
+                "reveal_answers": state_reveal_answers,
+                "reveal_explanations": state_reveal_explanations,
             }
             result_payload.update(citation_metadata)
             # Propagate hermes question-lifecycle telemetry fields out of
@@ -541,6 +548,11 @@ class TutorBotCapability(BaseCapability):
                 "skill_trace",
                 "loader_source",
                 "skill_source_status",
+                "rag_retrieval_degraded",
+                "rag_retrieval_status",
+                "rag_retrieval_error_type",
+                "degraded_exact_answer_guard_applied",
+                "degraded_mcq_grading_guard_applied",
             ):
                 if metadata_key in session_metadata:
                     result_payload[metadata_key] = session_metadata[metadata_key]
@@ -585,14 +597,20 @@ class TutorBotCapability(BaseCapability):
             if state_result_summary:
                 # Authority-gated: question_followup_context + active_object
                 # only emitted when exact_question authority is present.
-                result_payload["question_followup_context"] = (
-                    build_question_followup_context_from_result_summary(
-                        state_result_summary,
-                        final_response,
-                        reveal_answers=reveal_answers,
-                        reveal_explanations=reveal_explanations,
-                    )
+                question_followup_context = build_question_followup_context_from_result_summary(
+                    state_result_summary,
+                    final_response,
+                    reveal_answers=state_reveal_answers,
+                    reveal_explanations=state_reveal_explanations,
                 )
+                question_followup_context = (
+                    annotate_submission_context_from_message(
+                        self._raw_user_message(context),
+                        question_followup_context,
+                    )
+                    or question_followup_context
+                )
+                result_payload["question_followup_context"] = question_followup_context
                 if result_payload["question_followup_context"]:
                     result_payload["active_object"] = (
                         build_active_object_from_question_context(
@@ -602,6 +620,10 @@ class TutorBotCapability(BaseCapability):
                         )
                         or {}
                     )
+                    context.metadata["question_followup_context"] = dict(
+                        result_payload["question_followup_context"]
+                    )
+                    context.metadata["active_object"] = dict(result_payload["active_object"])
             await stream.result(result_payload, source=self.name)
 
     @staticmethod
@@ -787,6 +809,12 @@ class TutorBotCapability(BaseCapability):
         metadata = context.metadata if isinstance(context.metadata, dict) else {}
         billing_context = metadata.get("billing_context") if isinstance(metadata.get("billing_context"), dict) else {}
         return str(billing_context.get("source") or "").strip().lower()
+
+    @staticmethod
+    def _raw_user_message(context: UnifiedContext) -> str:
+        metadata = context.metadata if isinstance(context.metadata, dict) else {}
+        raw = str(metadata.get("raw_user_message") or "").strip()
+        return raw or str(context.user_message or "").strip()
 
     def _suppress_answer_reveal_on_generate(self, context: UnifiedContext) -> bool:
         explicit_preference = detect_answer_reveal_preference(context.user_message)
