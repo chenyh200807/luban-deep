@@ -148,3 +148,23 @@ def test_query_focuses_node_to_relevant_card(multi_supply):
 def test_no_limit_returns_whole_node(multi_supply):
     out = RT.resolve_textbook_knowledge("1A411011", learner_context={}, limit=0)
     assert out["card_count"] == 3 and out["selection_mode"] == "all"
+
+
+def test_canonical_index_is_routing_spine(multi_supply):
+    # inject a canonical mapping (manifest-only, signature holds) and resolve by the L4 anchor
+    import json as _j
+    bp = RT._SUPPLY_DIR / "textbook_knowledge_release_candidate.json"
+    b = _j.loads(bp.read_text("utf-8"))
+    pids = [r["point_id"] for r in b["records"]]
+    # map all three points under canonical L4 anchor 1A411011 (leaves 1A411011-07-*)
+    b["manifest"]["canonical_index"] = {"1A411011-07-a": pids}
+    b["manifest"]["canonical_of_point"] = {p: "1A411011-07-a" for p in pids}
+    bp.write_text(_j.dumps(b, ensure_ascii=False, sort_keys=True, separators=(",", ":")), "utf-8")
+    RT._load_supply.cache_clear()
+    # available_nodes now exposes the canonical leaf + its L4 anchor (not the old block node_index)
+    an = set(RT.available_nodes())
+    assert "1A411011-07-a" in an and "1A411011" in an
+    # resolve by the L4 anchor -> canonical prefix gathers the whole subtree (all 3 cards)
+    out = RT.resolve_textbook_knowledge("1A411011", learner_context={}, limit=0)
+    assert out is not None and out["card_count"] == 3
+    RT._load_supply.cache_clear()

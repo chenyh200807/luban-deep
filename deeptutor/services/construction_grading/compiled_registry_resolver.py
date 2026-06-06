@@ -191,9 +191,21 @@ def resolve_node(
     if not ok:
         _log.warning("textbook bundle rejected at resolver: %s", reason)
         return None
-    nindex = (bundle.get("manifest") or {}).get("node_index") or {}
+    manifest = bundle.get("manifest") or {}
     pmap = _point_map(bundle)
-    all_cards = [pmap[pid] for pid in (nindex.get(node) or []) if pid in pmap]
+    # CANONICAL-FIRST: resolve via the canonical taxonomy index (FINAL_CLEANED_TAXONOMY2026) — the single
+    # routing spine. ``node`` may be a canonical leaf (1A411011-01-a) or an ancestor anchor (1A411011);
+    # gather every signed point whose canonical leaf is at/under it. Fall back to the legacy block-derived
+    # node_index only when no canonical mapping exists (older bundles / hermetic test fixtures).
+    cof = manifest.get("canonical_of_point") or {}
+    pids: list[str] = []
+    if cof:
+        pids = [pid for pid, leaf in cof.items()
+                if leaf == node or str(leaf).startswith(node + "-")]
+    if not pids:
+        nindex = manifest.get("node_index") or {}
+        pids = list(nindex.get(node) or [])
+    all_cards = [pmap[pid] for pid in pids if pid in pmap]
     if not all_cards:
         return None
     node_total = len(all_cards)

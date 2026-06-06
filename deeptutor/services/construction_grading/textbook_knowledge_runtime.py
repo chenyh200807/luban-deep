@@ -48,12 +48,27 @@ def _load_supply() -> tuple[bool, dict[str, Any], dict[str, Any]]:
 _DEFAULT_CARD_LIMIT = 12
 
 
+def _canonical_anchors(manifest: dict[str, Any]) -> set[str]:
+    """The L4 anchor codes (e.g. 1A411011) derivable from the canonical leaf codes (1A411011-01-a),
+    so a question's syllabus code can match a canonical anchor and resolve its subtree."""
+    anchors: set[str] = set()
+    for leaf in (manifest.get("canonical_index") or {}):
+        anchors.add(leaf)                       # the leaf itself
+        anchors.add(str(leaf).split("-", 1)[0])  # its L4 anchor (before the first '-')
+    return anchors
+
+
 def available_nodes() -> list[str]:
-    """The node_codes the signed textbook pack can resolve (empty if the supply is unavailable)."""
+    """The codes the signed textbook pack resolves. CANONICAL-first: the canonical leaf codes + their L4
+    anchors (the single routing spine); falls back to the legacy block node_index for older bundles."""
     ok, bundle, _pointer = _load_supply()
     if not ok:
         return []
-    return sorted((bundle.get("manifest") or {}).get("node_index", {}).keys())
+    manifest = bundle.get("manifest") or {}
+    anchors = _canonical_anchors(manifest)
+    if anchors:
+        return sorted(anchors)
+    return sorted((manifest.get("node_index") or {}).keys())
 
 
 def available_paths() -> list[str]:

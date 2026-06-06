@@ -107,5 +107,34 @@ def build_unified_bundle(tax: CanonicalTaxonomy, result: dict[str, Any]) -> dict
             "unclassified_count": len(result["unclassified"])}
 
 
-__all__ = ["Unit", "unify", "build_unified_bundle",
+def build_canonical_index(tax: CanonicalTaxonomy, records: list[dict[str, Any]]) -> dict[str, Any]:
+    """Re-pin already-signed textbook records onto canonical leaves WITHOUT touching the records.
+
+    Each record keeps its verbatim signature; this only derives a canonical mapping (manifest metadata),
+    so the bundle's content_hash/signature are unchanged and ``verify_lane_bundle`` still holds. The
+    record's own ``node_code`` (a valid canonical L4 for most) anchors the search; ``textbook_quote`` +
+    ``taxonomy_path`` refine to the leaf. Returns the canonical_index (leaf -> point_ids), the per-point
+    map, and classification stats. This makes canonical the SINGLE routing taxonomy for the runtime."""
+    canonical_index: dict[str, list[str]] = {}
+    canonical_of_point: dict[str, str] = {}
+    stats = {"anchor+keyword": 0, "keyword": 0, "anchor_only": 0, "unclassified": 0}
+    for r in records:
+        pid = str(r.get("point_id") or "")
+        if not pid:
+            continue
+        text = " ".join(str(r.get(k) or "") for k in ("textbook_quote", "taxonomy_path"))
+        c = tax.classify(text, native_code=str(r.get("node_code") or ""))
+        stats[c.method] = stats.get(c.method, 0) + 1
+        if c.leaf_code:
+            canonical_index.setdefault(c.leaf_code, []).append(pid)
+            canonical_of_point[pid] = c.leaf_code
+    return {
+        "canonical_index": {k: sorted(set(v)) for k, v in canonical_index.items()},
+        "canonical_of_point": canonical_of_point,
+        "canonical_stats": stats,
+        "canonical_leaves": len(canonical_index),
+    }
+
+
+__all__ = ["Unit", "unify", "build_unified_bundle", "build_canonical_index",
            "TIER_TEXTBOOK", "TIER_STANDARD", "TIER_LECTURE", "TIER_QUESTION"]

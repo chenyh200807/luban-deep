@@ -65,3 +65,17 @@ def test_build_unified_bundle_shape(tmp_path):
     assert n["counts"]["textbook"] == 1 and n["counts"]["standard"] == 1
     assert "水泥" in n["name_path"]
     assert b["unclassified_count"] == 1
+
+
+def test_build_canonical_index_repins_records(tmp_path):
+    t = _tax(tmp_path)
+    records = [
+        {"point_id": "p1", "node_code": "1A412010", "textbook_quote": "硅酸盐水泥的水泥代号", "taxonomy_path": ""},
+        {"point_id": "p2", "node_code": "1A413030", "textbook_quote": "强夯法夯锤", "taxonomy_path": ""},
+        {"point_id": "p3", "node_code": "", "textbook_quote": "无关外星语", "taxonomy_path": ""},
+    ]
+    idx = KU.build_canonical_index(t, records)
+    assert idx["canonical_of_point"]["p1"] == "1A412010-01"
+    assert idx["canonical_of_point"]["p2"] == "1A413030-01"
+    assert "p3" not in idx["canonical_of_point"]  # unclassified -> not indexed
+    assert idx["canonical_stats"]["anchor+keyword"] == 2
