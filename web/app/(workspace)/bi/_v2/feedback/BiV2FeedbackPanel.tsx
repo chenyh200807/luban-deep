@@ -1253,40 +1253,6 @@ function InviteTestPanel({
 
   return (
     <div className="space-y-4">
-      <InvitePrescriptionHero
-        priorityCount={priorityCount}
-        total={total}
-        acceptInterviewCount={currentStats.acceptInterviewCount}
-        painPoint={topInvitePainPoint(stats)}
-        onStartQueue={() => {
-          onFilterChange('status', 'submitted')
-          onFilterChange('q', '')
-        }}
-        onExplain={() => {
-          document.getElementById('bi-v2-invite-ops-playbook')?.scrollIntoView({
-            behavior: 'smooth',
-            block: 'nearest',
-          })
-        }}
-      />
-
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <Tile label="申请总数" value={total} hint={`当前筛选 · 近 ${INVITE_TEST_WINDOW_DAYS}d`} />
-        <Tile label="可联系人数" value={currentStats.uniqueContacts} hint="当前筛选去重联系方式" />
-        <Tile
-          label="愿意回访"
-          value={currentStats.acceptInterviewCount}
-          tone="sky"
-          hint={formatRate(currentStats.acceptInterviewRate)}
-        />
-        <Tile
-          label="带错题样本"
-          value={currentStats.wrongQuestionCount}
-          tone="amber"
-          hint={formatRate(currentStats.wrongQuestionRate)}
-        />
-      </div>
-
       <InviteModuleCockpit invite={stats} onDrill={onRevealDetails} />
 
       {showDetails ? (
@@ -1674,27 +1640,6 @@ function LubanFeedbackPanel({
           </div>
         </div>
 
-        <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-5">
-          <Tile
-            label="回访总数"
-            value={summary?.total_responses ?? total}
-            hint={`近 ${LUBAN_FEEDBACK_WINDOW_DAYS}d`}
-          />
-          <Tile
-            label="NPS"
-            value={summary?.nps_score ?? 0}
-            tone={(summary?.nps_score ?? 0) >= 0 ? 'sky' : 'rose'}
-            hint={summary ? `推荐 ${summary.promoters} / 贬损 ${summary.detractors}` : '等待数据'}
-          />
-          <Tile
-            label="平均满意度"
-            value={summary?.avg_satisfaction ?? 0}
-            tone="amber"
-            hint={summary ? `${summary.satisfaction_base} 份评分` : '1-5 分'}
-          />
-          <Tile label="高意向回访" value={highIntentCount} tone="sky" hint="非常愿意 / 可以约" />
-          <Tile label="可联系" value={contactCount} tone="amber" hint={`主来源 ${topSource}`} />
-        </div>
       </section>
 
       <LubanModuleCockpit luban={stats} responses={responses} onDrill={onRevealDetails} />
