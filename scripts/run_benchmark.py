@@ -23,10 +23,12 @@ from deeptutor.services.observability import get_control_plane_store  # noqa: E4
 CANONICAL_SUITES = (
     "pr_gate_core",
     "regression_watch",
+    "real_exam_quality_spine",
     "incident_replay",
     "exploration_lab",
     "luban_case_grading_shadow",
     "answer_citation_shadow",
+    "m26_context_safety",
 )
 
 
