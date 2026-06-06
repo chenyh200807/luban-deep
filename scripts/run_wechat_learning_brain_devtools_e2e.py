@@ -11,6 +11,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -118,6 +119,9 @@ def _run_synthesis(*, user_id: str, event_limit: int, user_data_dir: str) -> dic
     env.setdefault("DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA", "1")
     env["DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK"] = "1"
     env.setdefault("DEEPTUTOR_ALLOW_LOCAL_WALLET_FALLBACK", "1")
+    env["DEEPTUTOR_MISTAKE_BOOK_ENABLED"] = "1"
+    env["DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED"] = "1"
+    env["DEEPTUTOR_MISTAKE_BOOK_LOCAL_FALLBACK"] = "1"
     env.setdefault("DEEPTUTOR_USER_DATA_DIR", user_data_dir)
     env["FF_AUTH_SUPABASE_BACKEND"] = "false"
     env["SUPABASE_RAG_ENABLED"] = "false"
@@ -141,7 +145,7 @@ def _run_synthesis(*, user_id: str, event_limit: int, user_data_dir: str) -> dic
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
-    code = args.code or f"dev-learning-brain-e2e-{int(time.time())}"
+    code = args.code or f"dev-learning-brain-e2e-{time.time_ns()}-{uuid.uuid4().hex[:8]}"
     login = _request_json(
         method="POST",
         base_url=args.base_url,

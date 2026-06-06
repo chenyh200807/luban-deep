@@ -1007,3 +1007,17 @@ learning_evidence
 ## 20. 一句话定位
 
 普通题库记录你做错了哪道题；鲁班学情工作台记录你为什么丢分、你自己想记住什么、系统建议你先补什么，并把这些内容安排成今天就能执行的学习计划。
+
+## 21. 2026-06-03 GBrain Personalization Mapping
+
+| GBrain discipline | Learner workspace surface | P0/P1 boundary |
+| --- | --- | --- |
+| Brain-first lookup | 学情页、今日训练、对话入口共读 `PersonalizationContextPack` | 只读上下文，不写学习事实 |
+| Claim lifecycle | 用户可见为“待确认 / 反复出现 / 已确认 / 待复测” | 专业状态留在 learner-state contract |
+| Typed graph | “证据 -> 漏分采分点 -> 训练 -> 复测” visible chain | 只解释 training intent，不自决处方 |
+| Dream cycle | nightly lint dry-run 输出 stale/conflict/missing evidence | P1 前不自动改写稳定画像 |
+| Eval gate | 个性化建议必须证明 evidence_refs 和 why_this_now | 无证据时展示 starter action |
+
+This mapping keeps the workspace as a product surface over the Learning
+Brain authority. It must not become a second homepage personalization
+reader or a second prescription engine.

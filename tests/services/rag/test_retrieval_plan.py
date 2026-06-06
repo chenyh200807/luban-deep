@@ -36,6 +36,18 @@ def test_build_retrieval_plan_for_weak_point_review() -> None:
     assert "compiled_learning_truth" in plan.authority_order
 
 
+def test_build_retrieval_plan_uses_personalization_context_availability_for_weak_point_review() -> None:
+    plan = build_retrieval_plan(
+        query="我老是案例题采分点漏写怎么办",
+        include_questions_default=True,
+        routing_metadata={"personalization_context_available": True},
+    )
+
+    assert plan.intent == "weak_point_review"
+    assert _group(plan, "compiled_learning_truth").enabled is True
+    assert "personalization_context_available" in plan.reasons
+
+
 def test_build_retrieval_plan_ignores_nested_compiled_truth_payload() -> None:
     plan = build_retrieval_plan(
         query="我老是案例题采分点漏写怎么办",

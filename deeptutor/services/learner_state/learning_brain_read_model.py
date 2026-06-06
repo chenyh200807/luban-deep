@@ -88,16 +88,18 @@ def build_learning_brain_read_model(
         _with_edge_display(dict(edge)) for edge in list(typed_graph.get("edges") or []) if isinstance(edge, dict)
     ]
     compiled_objects = {
-        str(key): _with_object_display({
-            **dict(value),
-            "object_key": str(key),
-            "current_truth": _humanize_text(value.get("current_truth", "")),
-        })
+        str(key): _with_object_display(_normalize_claim_payload(
+            {
+                **dict(value),
+                "object_key": str(key),
+                "current_truth": _humanize_text(value.get("current_truth", "")),
+            }
+        ))
         for key, value in dict(normalized_projection.get("compiled_objects") or {}).items()
         if isinstance(value, dict)
     }
     weak_points = [
-        _with_training_display({**dict(item), "claim": _humanize_text(item.get("claim", ""))})
+        _with_training_display(_normalize_claim_payload({**dict(item), "claim": _humanize_text(item.get("claim", ""))}))
         for item in list(normalized_projection.get("weak_points") or [])
         if isinstance(item, dict)
     ]
@@ -375,6 +377,22 @@ def _qa_sections(
 
 def _dict(value: Any) -> dict[str, Any]:
     return dict(value) if isinstance(value, dict) else {}
+
+
+def _refs(value: Any) -> list[str]:
+    return [str(item or "").strip() for item in list(value or []) if str(item or "").strip()]
+
+
+def _normalize_claim_payload(item: dict[str, Any]) -> dict[str, Any]:
+    normalized = dict(item)
+    evidence_refs = _refs(normalized.get("evidence_refs"))
+    if not evidence_refs:
+        evidence_refs = _refs(normalized.get("supporting_event_ids"))
+    normalized["evidence_refs"] = evidence_refs
+    normalized["supporting_event_ids"] = _refs(normalized.get("supporting_event_ids")) or evidence_refs
+    normalized["claim_status"] = str(normalized.get("claim_status") or "observed").strip() or "observed"
+    normalized["lifecycle"] = _dict(normalized.get("lifecycle"))
+    return normalized
 
 
 def _is_learning_brain_projection(value: dict[str, Any]) -> bool:

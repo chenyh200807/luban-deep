@@ -1479,6 +1479,8 @@ Page({
       degradedSources: snapshot.degraded
         ? snapshot.degradedSources.slice()
         : [],
+      prescriptionAuthority: sharedPageData.prescriptionAuthority || "",
+      prescriptionEvidenceLabels: sharedPageData.prescriptionEvidenceRefs || [],
       reportFallbackActive: false,
     }));
     if (sharedPageData.radarDimensions.length) {

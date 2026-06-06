@@ -48,6 +48,19 @@ def test_guard_accepts_rag_sensitive_change_with_contract_and_tests() -> None:
     assert "[rag] passed" in message
 
 
+def test_guard_accepts_rag_personalization_tests() -> None:
+    ok, message = evaluate_changed_files(
+        [
+            "deeptutor/services/rag/retrieval_plan.py",
+            "contracts/rag.md",
+            "tests/services/rag/test_retrieval_plan.py",
+        ]
+    )
+
+    assert ok is True
+    assert "[rag] passed" in message
+
+
 def test_guard_accepts_config_runtime_change_with_contract_and_tests() -> None:
     ok, message = evaluate_changed_files(
         [

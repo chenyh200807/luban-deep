@@ -2321,13 +2321,26 @@ async def mobile_learning_report(
         accept=accept,
     )
     return await run_in_threadpool(
-        build_learning_report_read_model,
+        _build_mobile_learning_report_read_model,
+        user_id=user_id,
+        event_limit=event_limit,
+        schema_version=requested_schema_version,
+    )
+
+
+def _build_mobile_learning_report_read_model(
+    *,
+    user_id: str,
+    event_limit: int,
+    schema_version: int,
+) -> dict[str, Any]:
+    return build_learning_report_read_model(
         user_id=user_id,
         member_service=member_service,
         learner_state_service=learner_state_service,
         mistake_book_service=mistake_book_service,
         event_limit=event_limit,
-        schema_version=requested_schema_version,
+        schema_version=schema_version,
     )
 
 

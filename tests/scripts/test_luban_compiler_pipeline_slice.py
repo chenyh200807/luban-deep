@@ -17,6 +17,11 @@ _spec = importlib.util.spec_from_file_location(
 runner = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(runner)
 
+pytestmark = pytest.mark.skipif(
+    not runner.M2_DIR.exists(),
+    reason="M2 machine_spec audit packets are not tracked in this checkout",
+)
+
 
 @pytest.fixture
 def temp_paths(tmp_path, monkeypatch):

@@ -30,6 +30,7 @@ from typing import Any, Iterable
 
 from deeptutor.services.learner_state.service import LearnerStateEvent
 from deeptutor.services.learner_state.training_intent import (
+    PRESCRIPTION_AUTHORITY,
     build_learning_training_intent,
     prioritize_training_intents,
 )
@@ -167,6 +168,7 @@ def build_scoring_point_map_read_projection(
         "empty_state": empty_state,
         "source_status": {
             "authority": "learner_memory_events.learning_evidence",
+            "prescription_authority": PRESCRIPTION_AUTHORITY,
             "model": "rule_based_v1",
             "total_case_event_count": total_case_event_count,
             "map_eligible_event_count": map_eligible_event_count,

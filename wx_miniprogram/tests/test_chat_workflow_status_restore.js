@@ -126,6 +126,7 @@ function loadWsStream() {
       if (request === "./auth") return { getToken: function () { return "token"; } };
       if (request === "./api") return {};
       if (request === "./endpoints") return {};
+      if (request === "./ws-stream-pure") return require(path.join(__dirname, "../utils/ws-stream-pure.js"));
       throw new Error("unexpected require: " + request);
     },
     console: console,

@@ -1297,6 +1297,53 @@ async def test_run_uses_compact_response_for_construction_exam_tutor_profile(
     assert result_event.metadata["chat_mode"] == "smart"
 
 
+@pytest.mark.asyncio
+async def test_run_compact_response_streams_chunks_when_citations_enabled_without_repeating_final(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ANSWER_CITATIONS_ENABLED", "true")
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(binding="openai", model="gpt-test", api_key="k", base_url="u", api_version=None),
+    )
+    pipeline = AgenticChatPipeline(language="zh")
+
+    async def _fake_stream_messages(_messages, max_tokens: int):
+        assert max_tokens == 1800
+        yield "第一段。"
+        yield "第二段。"
+
+    async def _unexpected(*_args, **_kwargs):
+        raise AssertionError("compact response should not enter deep chat stages")
+
+    monkeypatch.setattr(pipeline, "resolve_enabled_tools", lambda *_args, **_kwargs: [])
+    monkeypatch.setattr(pipeline, "_should_use_compact_response", lambda *_args, **_kwargs: True)
+    monkeypatch.setattr(pipeline, "_stream_messages", _fake_stream_messages)
+    monkeypatch.setattr(pipeline, "_stage_retrieval_first", _unexpected)
+    monkeypatch.setattr(pipeline, "_stage_thinking", _unexpected)
+    monkeypatch.setattr(pipeline, "_stage_acting", _unexpected)
+    monkeypatch.setattr(pipeline, "_stage_observing", _unexpected)
+    monkeypatch.setattr(pipeline, "_stage_responding", _unexpected)
+
+    bus = StreamBus()
+    context = UnifiedContext(
+        session_id="session-citation-stream",
+        user_message="什么是流水施工？",
+        enabled_tools=[],
+        knowledge_bases=[],
+        language="zh",
+        metadata={"turn_id": "turn-citation-stream"},
+        config_overrides={"chat_mode": "smart"},
+    )
+
+    await pipeline.run(context, bus)
+
+    content_events = [event for event in bus._history if event.type == StreamEventType.CONTENT]
+    result_event = next(event for event in bus._history if event.type == StreamEventType.RESULT)
+    assert [event.content for event in content_events] == ["第一段。", "第二段。"]
+    assert result_event.metadata["response"] == "第一段。第二段。"
+
+
 def _tutorbot_overlay_context(user_message: str, scene: str | None) -> UnifiedContext:
     metadata: dict[str, Any] = {
         "product_surface": "tutorbot",

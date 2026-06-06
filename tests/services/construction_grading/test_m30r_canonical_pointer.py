@@ -7,10 +7,17 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 _REPO = Path(__file__).resolve().parents[3]
 _R = _REPO / "artifacts" / "luban_grading_artifacts" / "m30_canonical_reconciliation_20260606"
 CANONICAL_REG_HASH = "9395cacc060fe480e80f81e5effbf68690b94803ff7f4afb8e0848995a7bebc3"
 CANONICAL_OBJ_HASH = "672ff9a653adf2d00b6501b4d6934e836b34b5d37608ad4d3169d672b41c1bdd"
+
+pytestmark = pytest.mark.skipif(
+    not _R.exists(),
+    reason="M30R canonical reconciliation artifacts are not tracked in this checkout",
+)
 
 
 def _load(name):

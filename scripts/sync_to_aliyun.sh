@@ -37,6 +37,7 @@ EXCLUDES=(
     "playwright-report"
     "playwright-report*"
     "test-results"
+    "test-results*"
     "coverage"
     "data"
     "dist"
@@ -146,6 +147,7 @@ excluded_patterns = (
     ".git.broken*",
     ".secrets*",
     "playwright-report*",
+    "test-results*",
     "*.log",
 )
 
@@ -424,8 +426,14 @@ targets = (
     '.playwright-cli',
     '.superpowers',
     'artifacts',
+    'test-results',
     'tmp_inspect_turn.py',
     'tmp_query_hello.py',
+)
+
+glob_patterns = (
+    'test-results*',
+    'web/test-results*',
 )
 
 for name in targets:
@@ -439,6 +447,19 @@ for name in targets:
     else:
         path.unlink()
     print(f'已清理远端发布噪音: {path}')
+
+for pattern in glob_patterns:
+    for path in remote_dir.glob(pattern):
+        path = path.resolve()
+        if remote_dir not in path.parents and path != remote_dir:
+            raise SystemExit(f'拒绝清理非发布目录路径: {path}')
+        if not path.exists():
+            continue
+        if path.is_dir():
+            shutil.rmtree(path)
+        else:
+            path.unlink()
+        print(f'已清理远端发布噪音: {path}')
 PY"
 }
 

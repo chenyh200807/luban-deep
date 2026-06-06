@@ -1,0 +1,51 @@
+{
+  "points": [
+    {
+      "question_id": "M2-2015-30-01",
+      "point_id": "P2",
+      "authority_bucket": "textbook_verbatim_auto_candidate"
+    },
+    {
+      "question_id": "M2-2015-31-01",
+      "point_id": "P5",
+      "authority_bucket": "textbook_verbatim_auto_candidate"
+    },
+    {
+      "question_id": "M2-2015-31-02",
+      "point_id": "P1",
+      "authority_bucket": "textbook_verbatim_auto_candidate"
+    },
+    {
+      "question_id": "M2-2015-31-02",
+      "point_id": "P2",
+      "authority_bucket": "textbook_verbatim_auto_candidate"
+    },
+    {
+      "question_id": "M2-2015-31-03",
+      "point_id": "P4",
+      "authority_bucket": "textbook_verbatim_auto_candidate"
+    },
+    {
+      "question_id": "M2-2015-31-03",
+      "point_id": "P5",
+      "authority_bucket": "textbook_verbatim_auto_candidate"
+    },
+    {
+      "question_id": "M2-2015-32-02",
+      "point_id": "P3",
+      "authority_bucket": "textbook_verbatim_auto_candidate"
+    },
+    {
+      "question_id": "M2-2016-30-00",
+      "point_id": "P1",
+      "authority_bucket": "textbook_verbatim_auto_candidate"
+    },
+    {
+      "question_id": "M2-2016-31-00",
+      "point_id": "P5",
+      "authority_bucket": "textbook_verbatim_auto_candidate"
+    }
+  ],
+  "minimized": true,
+  "note": "textbook_verbatim_auto_candidate points only (runtime auto source set)"
+}

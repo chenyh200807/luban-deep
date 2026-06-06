@@ -2,11 +2,22 @@ from __future__ import annotations
 
 import pytest
 
+from deeptutor.services.construction_grading.best_quality_ai_draft import CACHED_4MODEL
 from scripts.run_real_answer_teacher_review_pilot import (
     PILOT_SAMPLE_SPECS,
     PilotFakeLearnerStateService,
     build_missing_artifact_case_record,
     run_real_answer_teacher_review_pilot,
+)
+
+# DEV/EVAL-ONLY: this pilot drives the best_quality_4model engine, which needs the cached
+# 4-model benchmark predictions (review/eval data, gitignored, NOT a limited-default runtime
+# dependency). Skip in a clean checkout where that eval cache is absent. The limited-default
+# runtime path (deepseek_fast / llm_adjudication + the tracked runtime supply bundle) is covered
+# by the gate / registry / adjudicator / ws tests, which run without artifacts.
+pytestmark = pytest.mark.skipif(
+    not CACHED_4MODEL.exists(),
+    reason="cached 4-model eval predictions absent (dev/eval-only; not a limited-default runtime dependency)",
 )
 
 

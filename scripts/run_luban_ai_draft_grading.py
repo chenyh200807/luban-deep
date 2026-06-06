@@ -63,15 +63,27 @@ def _golden_points(question):
 _TP_CACHE = {}
 
 
+_TP_BUNDLE = REPO / "deeptutor/services/construction_grading/runtime_supply/v1_limited_default/golden_typed_policy.jsonl"
+
+
 def _golden_typed_policy(case_id, point_id):
     if not _TP_CACHE:
-        for pk in ("artifacts/luban_agentic_grading_harness/po_slice_20260603_heldout_unified_typed_policy/unified_typed_policy_packet.json",
-                   "artifacts/luban_agentic_grading_harness/po_slice_20260601_deepseek_typed_policy_20260603/deepseek_typed_policy_packet.json"):
-            p = REPO / pk
-            if p.exists():
-                for t in json.loads(p.read_text(encoding="utf-8"))["tasks"]:
-                    for sp in t["scoring_points"]:
-                        _TP_CACHE.setdefault((t["case_id"], sp["point_id"]), sp.get("typed_policy"))
+        # DEFAULT: tracked minimal typed-policy bundle (clean-checkout safe). The gitignored review
+        # packets are a dev/test fallback only.
+        if _TP_BUNDLE.exists():
+            for ln in _TP_BUNDLE.read_text(encoding="utf-8").splitlines():
+                ln = ln.strip()
+                if ln:
+                    r = json.loads(ln)
+                    _TP_CACHE.setdefault((r["case_id"], r["point_id"]), r.get("typed_policy"))
+        else:
+            for pk in ("artifacts/luban_agentic_grading_harness/po_slice_20260603_heldout_unified_typed_policy/unified_typed_policy_packet.json",
+                       "artifacts/luban_agentic_grading_harness/po_slice_20260601_deepseek_typed_policy_20260603/deepseek_typed_policy_packet.json"):
+                p = REPO / pk
+                if p.exists():
+                    for t in json.loads(p.read_text(encoding="utf-8"))["tasks"]:
+                        for sp in t["scoring_points"]:
+                            _TP_CACHE.setdefault((t["case_id"], sp["point_id"]), sp.get("typed_policy"))
     return _TP_CACHE.get((case_id, point_id)) or {}
 
 

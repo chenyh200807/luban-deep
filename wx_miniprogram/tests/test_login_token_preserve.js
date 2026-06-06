@@ -158,25 +158,54 @@ function loadPage(relativePath, overrides) {
     }
   });
 
-  await run("login page with local token should skip visible profile gate", async function () {
+  await run("login page with local token and phone should enter chat", async function () {
     var profileCalls = 0;
     var setup = loadPage("pages/login/login.js", {
       api: {
         getUserInfo: function () {
           profileCalls++;
+          return Promise.resolve({ username: "chenyh2008", phone: "18688888431" });
+        },
+      },
+    });
+    setup.page.onLoad({});
+    await flushPromises();
+    assert(profileCalls === 1, "login page should verify phone binding before redirect");
+    assert(setup.getClearCount() === 0, "login page should leave token cleanup to the target page");
+    assert(
+      setup.switchTabCalls.length === 1 &&
+        setup.switchTabCalls[0].url === "/pages/chat/chat",
+      "login page should enter chat when a local token has bound phone",
+    );
+  });
+
+  await run("login page with local token but no phone should stay in bind-phone mode", async function () {
+    var setup = loadPage("pages/login/login.js", {
+      api: {
+        getUserInfo: function () {
+          return Promise.resolve({ username: "chenyh2008", phone: "" });
+        },
+      },
+    });
+    setup.page.onLoad({});
+    await flushPromises();
+    assert(setup.getClearCount() === 0, "login page should keep token while asking for phone binding");
+    assert(setup.switchTabCalls.length === 0, "login page should not enter chat before phone binding");
+    assert(setup.page.data.loginMode === "bind_phone_only", "login page should show bind-phone-only mode");
+  });
+
+  await run("login page should clear expired local token", async function () {
+    var setup = loadPage("pages/login/login.js", {
+      api: {
+        getUserInfo: function () {
           return Promise.reject(new Error("AUTH_EXPIRED"));
         },
       },
     });
     setup.page.onLoad({});
     await flushPromises();
-    assert(profileCalls === 0, "login page should not block redirect on profile bootstrap");
-    assert(setup.getClearCount() === 0, "login page should leave token cleanup to the target page");
-    assert(
-      setup.switchTabCalls.length === 1 &&
-        setup.switchTabCalls[0].url === "/pages/chat/chat",
-      "login page should enter chat immediately when a local token exists",
-    );
+    assert(setup.getClearCount() === 1, "login page should clear expired token after profile check fails");
+    assert(setup.switchTabCalls.length === 0, "login page should remain visible after token expiry");
   });
 
   if (fail) {

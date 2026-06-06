@@ -88,13 +88,17 @@ def synthesize_learning_truth(
         manual_events=manual_events,
         improved_keys=improved_keys,
     )
+    observed_candidates = [_with_claim_lifecycle(item) for item in observed_candidates]
+    weak_points = [_with_claim_lifecycle(item) for item in weak_points]
     stale_claims = [
-        {
+        _with_claim_lifecycle({
             "concept_id": weak["concept_id"],
             "error_code": weak["error_code"],
             "reason": "later_training_improved",
             "supporting_event_ids": list(weak.get("supporting_event_ids") or []),
-        }
+            "evidence_level": weak.get("evidence_level") or "L1_repeated",
+            "decay_state": "improving",
+        })
         for weak in raw_weak_points
         if (weak.get("concept_id"), weak.get("error_code")) in improved_keys
     ]
@@ -319,7 +323,7 @@ def _is_learning_evidence(event: LearnerStateEvent) -> bool:
     payload = dict(event.payload_json or {})
     return (
         event.memory_kind == "learning_evidence"
-        and event.source_feature in {"construction_grading", "assessment_testset"}
+        and event.source_feature in {"construction_grading", "assessment_testset", "conversation_synthesis"}
         and (event.source_feature == "construction_grading" or payload.get("event_type") == "learning_evidence")
     )
 
@@ -403,6 +407,7 @@ def _blocks_stable_learning_truth(cap_reasons: list[str]) -> bool:
         "missing_question_id",
         "rag_degraded",
         "missing_rag_evidence",
+        "conversation_signal_not_grading_truth",
     }
     return bool(blocking_caps.intersection({_clean_text(item) for item in cap_reasons}))
 
@@ -487,7 +492,7 @@ def _manual_correction(event: LearnerStateEvent) -> dict[str, Any] | None:
 
 
 def _candidate(item: dict[str, Any], *, evidence_level: str) -> dict[str, Any]:
-    return {
+    return _with_claim_lifecycle({
         "concept_id": item.get("concept_id", ""),
         "error_code": item.get("error_code", ""),
         "claim": _claim_text(item.get("concept_id", ""), item.get("error_code", "")),
@@ -496,7 +501,7 @@ def _candidate(item: dict[str, Any], *, evidence_level: str) -> dict[str, Any]:
         "recommended_training": dict(item.get("recommended_training") or {}),
         "evidence_level": evidence_level,
         "evidence_cap_reasons": list(item.get("evidence_cap_reasons") or []),
-    }
+    })
 
 
 def _candidate_from_items(concept_id: str, error_code: str, items: list[dict[str, Any]]) -> dict[str, Any]:
@@ -654,19 +659,75 @@ def _put_object(
         ])
         timeline_refs = [*previous.get("timeline_refs", []), *timeline_refs]
     final_evidence_level = _max_level(previous.get("evidence_level") if previous else "", evidence_level)
+    final_decay_state = decay_state if decay_state != "active" else (previous or {}).get("decay_state", "active")
+    final_supporting_event_ids = _dedupe(supporting_event_ids)
+    claim_status = _claim_status(final_evidence_level, final_decay_state)
     objects[key] = {
         "object_type": object_type,
         "object_id": object_id,
         "current_truth": current_truth,
         "evidence_level": final_evidence_level,
         "confidence": _confidence_for_level(final_evidence_level),
-        "supporting_event_ids": _dedupe(supporting_event_ids),
+        "supporting_event_ids": final_supporting_event_ids,
+        "evidence_refs": final_supporting_event_ids,
         "conflicting_event_ids": _dedupe(conflicting_event_ids),
         "superseded_by_event_ids": _dedupe(superseded_by_event_ids),
         "valid_since": _first_observed(timeline_refs),
         "last_observed_at": _last_observed(timeline_refs),
-        "decay_state": decay_state if decay_state != "active" else (previous or {}).get("decay_state", "active"),
+        "decay_state": final_decay_state,
+        "claim_status": claim_status,
+        "lifecycle": _claim_lifecycle(
+            status=claim_status,
+            evidence_level=final_evidence_level,
+            decay_state=final_decay_state,
+            supporting_event_ids=final_supporting_event_ids,
+        ),
         "timeline_refs": timeline_refs,
+    }
+
+
+def _with_claim_lifecycle(item: dict[str, Any]) -> dict[str, Any]:
+    enriched = dict(item)
+    evidence_level = _clean_text(enriched.get("evidence_level")) or "L0_observed"
+    decay_state = _clean_text(enriched.get("decay_state")) or "active"
+    supporting_event_ids = _dedupe([_clean_text(item) for item in list(enriched.get("supporting_event_ids") or [])])
+    status = _claim_status(evidence_level, decay_state)
+    enriched["claim_status"] = status
+    enriched["evidence_refs"] = supporting_event_ids
+    enriched["supporting_event_ids"] = supporting_event_ids
+    enriched["lifecycle"] = _claim_lifecycle(
+        status=status,
+        evidence_level=evidence_level,
+        decay_state=decay_state,
+        supporting_event_ids=supporting_event_ids,
+    )
+    return enriched
+
+
+def _claim_status(evidence_level: str, decay_state: str) -> str:
+    if decay_state == "superseded":
+        return "superseded"
+    if decay_state in {"improving", "stale"}:
+        return "stale"
+    if evidence_level in {"L2_confirmed", "L3_mastery_signal"}:
+        return "confirmed"
+    if evidence_level == "L1_repeated":
+        return "repeated"
+    return "observed"
+
+
+def _claim_lifecycle(
+    *,
+    status: str,
+    evidence_level: str,
+    decay_state: str,
+    supporting_event_ids: list[str],
+) -> dict[str, Any]:
+    return {
+        "status": status,
+        "evidence_level": evidence_level,
+        "decay_state": decay_state,
+        "supporting_event_count": len(supporting_event_ids),
     }
 
 

@@ -2169,7 +2169,7 @@ def _maybe_attach_v1_llm_adjudication(
             payload["production_default"] = "limited_cohort_on"
         result_payload["luban_grading_engine_v1_llm_adjudication"] = payload
     except Exception as exc:  # noqa: BLE001 — adjudication must never break legacy
-        if limited_default and not explicit_flag:
+        if limited_default and not explicit_flag and not dev_force:
             return  # default rollback/fail-closed path -> legacy only
         result_payload["luban_grading_engine_v1_llm_adjudication"] = {
             "authority": "luban_grading_engine_v1_llm_adjudication",

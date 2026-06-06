@@ -976,6 +976,7 @@ function buildLearningReportViewModel(report) {
   var scoringPointMap = normalizeScoringPointMapBatchC(body.scoring_point_map);
   var prescription = normalizePrescriptionBatchC(
     body.training_prescription,
+    body.today_prescription,
     nextTraining,
     learningState,
   );
@@ -1148,7 +1149,40 @@ function scoringPointMapEmptyLabel(emptyState) {
   return "";
 }
 
-function normalizePrescriptionBatchC(source, nextTraining, learningState) {
+function normalizePrescriptionBatchC(source, todayPrescription, nextTraining, learningState) {
+  var today = asObject(todayPrescription);
+  if (today.title || today.why_this_now || today.primary_action) {
+    var todayEvidenceRefs = asList(today.evidence_refs).map(function (ref) {
+      return String(ref || "");
+    });
+    var primaryAction = asObject(today.primary_action);
+    return {
+      status: today.degraded ? "degraded" : "active",
+      title: String(today.title || "今日处方"),
+      titleLabel: today.degraded ? "先补证据" : String(today.title || "今日处方"),
+      subtitle: String(today.subtitle || ""),
+      reason: String(today.why_this_now || ""),
+      authority: String(today.prescription_authority || "training_intent"),
+      conceptId: "",
+      conceptLabel: "",
+      abilityDimension: "",
+      abilityDimensionLabel: "",
+      behaviorState: "",
+      behaviorStateLabel: "",
+      meta: [
+        { key: "source", label: today.source === "dry_run_fallback" ? "临时学情" : "训练意图" },
+        { key: "evidence", label: evidenceMetaLabel(todayEvidenceRefs.length) },
+      ].filter(function (item) {
+        return item.label;
+      }),
+      evidenceCount: todayEvidenceRefs.length,
+      evidenceRefs: today.degraded ? [] : todayEvidenceRefs,
+      steps: [],
+      successCriteria: {},
+      intent: { training_intent_id: String(primaryAction.intent_id || "") },
+      ctaLabel: today.degraded ? degradedPrescriptionCta(todayEvidenceRefs.length) : "开始训练",
+    };
+  }
   var direct = asObject(source);
   var directTopic = compactPrescriptionTopic(
     direct.display_topic || direct.concept_label || "",
@@ -1510,6 +1544,7 @@ function toReportPageData(model) {
     prescriptionCtaLabel: String(asObject(vm.prescription).ctaLabel || ""),
     prescriptionEvidenceCount: asNumber(asObject(vm.prescription).evidenceCount, 0),
     prescriptionEvidenceRefs: asList(asObject(vm.prescription).evidenceRefs),
+    prescriptionAuthority: String(asObject(vm.prescription).authority || ""),
     sharedLearningReportViewModel: vm,
   };
 }

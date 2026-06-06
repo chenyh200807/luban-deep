@@ -223,3 +223,30 @@ def test_read_model_hides_internal_mcq_codes_and_event_ids_from_visible_sections
     assert "多选漏选" in visible_text
     assert "多选错选" in visible_text
     assert "最近一次批改" in visible_text
+
+
+def test_read_model_preserves_legacy_supporting_event_ids_as_evidence_refs() -> None:
+    projection = _projection()
+    concept = projection["compiled_objects"]["concept:1A432000"]
+    concept.pop("claim_status", None)
+    concept.pop("lifecycle", None)
+    concept.pop("evidence_refs", None)
+    weak = projection["weak_points"][0]
+    weak.pop("claim_status", None)
+    weak.pop("lifecycle", None)
+    weak.pop("evidence_refs", None)
+
+    model = build_learning_brain_read_model(
+        user_id="student_demo",
+        projection=projection,
+        surface="mobile",
+    )
+
+    compiled = model["compiled_objects"]["concept:1A432000"]
+    weak_point = model["weak_points"][0]
+    assert compiled["evidence_refs"] == ["evt1", "evt2"]
+    assert weak_point["evidence_refs"] == ["evt1", "evt2"]
+    assert compiled["claim_status"] == "observed"
+    assert weak_point["claim_status"] == "observed"
+    assert compiled["lifecycle"] == {}
+    assert weak_point["lifecycle"] == {}

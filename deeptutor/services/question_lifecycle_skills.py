@@ -197,7 +197,7 @@ async def resolve_question_lifecycle_scene_decision(
     )
     low_information_exam_query = is_low_information_exam_query(
         user_message
-    ) and not _active_question_context_from_metadata(metadata)
+    ) and not _low_information_query_can_use_active_question(user_message, metadata)
     free_text_mcq_answer_request = _looks_like_free_text_mcq_answer_request(user_message)
     clarification_intent = (
         _resolve_clarification_option_intent(user_message, metadata)
@@ -528,6 +528,29 @@ def is_low_information_exam_query(query: str) -> bool:
     return False
 
 
+def _low_information_query_can_use_active_question(query: str, metadata: Any) -> bool:
+    """Allow current-card answer requests to use the active question authority.
+
+    Low-information exam inventory queries stay blocked even when stale session
+    state contains an old active question. The only safe exception is a message
+    that points at the current visible card without naming an external year,
+    case/question ordinal, or exam inventory filter.
+    """
+
+    if not _active_question_context_from_metadata(metadata):
+        return False
+    text = re.sub(r"\s+", "", str(query or "").strip())
+    if not text:
+        return False
+    if not any(marker in text for marker in ("题卡", "当前题", "这题", "这道题", "本题")):
+        return False
+    if re.search(r"20\d{2}|案例|第[0-9一二两三四五六七八九十]+[题问]", text):
+        return False
+    if any(marker in text for marker in ("真题", "试题", "题库", "试卷", "历年", "往年")):
+        return False
+    return True
+
+
 def _looks_like_explicit_question_generation_request(text: str) -> bool:
     """Return True when the user asks the system to create a new question object."""
 
@@ -842,9 +865,18 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
 
     metadata = getattr(ctx, "metadata", None) or {}
     question_context = _active_question_context_from_metadata(metadata)
-    low_information_exam_query = is_low_information_exam_query(user_message)
-    if low_information_exam_query and not question_context:
+    raw_low_information_exam_query = is_low_information_exam_query(user_message)
+    can_use_active_question_for_low_information = (
+        raw_low_information_exam_query
+        and _low_information_query_can_use_active_question(user_message, metadata)
+    )
+    low_information_exam_query = (
+        raw_low_information_exam_query and not can_use_active_question_for_low_information
+    )
+    if low_information_exam_query:
         return None
+    if can_use_active_question_for_low_information and question_context:
+        return "question_review"
 
     if isinstance(metadata, dict):
         clarification_intent = _resolve_clarification_option_intent(user_message, metadata)
@@ -865,9 +897,6 @@ def derive_question_lifecycle_scene(ctx: Any) -> str | None:
     question_context = question_context or normalize_question_followup_context(
         metadata.get("question_followup_context") if isinstance(metadata, dict) else None
     ) or {}
-
-    if low_information_exam_query and question_context:
-        return "question_review"
 
     if question_context:
         _target_context, submission = resolve_submission_attempt(user_message, question_context)

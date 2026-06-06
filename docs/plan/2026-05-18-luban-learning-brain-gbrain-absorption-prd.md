@@ -928,3 +928,18 @@ nightly synthesis 必须是可审计、可重跑、可回滚的离线合成：
 5. 新增的只是一个离线、可追溯、可审计的学习事实编译层。
 
 只要新增实现开始绕开上述四个 authority，就必须停下来重审，而不是继续补兼容逻辑。
+
+## 20. 2026-06-03 Deep Absorption Execution Mapping
+
+| GBrain discipline | DeepTutor current state | Gap | Target task |
+| --- | --- | --- | --- |
+| Brain-first lookup | Compiled truth can enter RAG | Not shared across report/TutorBot/deep_question | 2026-06-03 plan Task 2/4 |
+| Claim lifecycle | L0/L1/L2/stale exists in synthesis tests | Not a cross-surface contract | 2026-06-03 plan Task 1 |
+| Typed graph | Projection exists | Not used for next-best-action ranking | 2026-06-03 plan Task 3 |
+| Dream cycle | Maintenance helpers exist for RAG | No learner-brain nightly lint | 2026-06-03 plan Task 5 |
+| Eval gate | Retrieval/grading gates exist | No personalization correctness gate | 2026-06-03 plan Task 6 |
+
+The 2026-06-03 execution plan closes this PRD's P0/P1 bridge by adding
+`PersonalizationContextPack` as a read-only context pack, keeping
+`training_intent` as the only prescription authority, and routing
+`compiled_learning_truth` into retrieval only as evidence metadata.

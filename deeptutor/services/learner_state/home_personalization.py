@@ -81,7 +81,8 @@ def build_home_personalization_projection_from_learning_signal(
     )
     if topic is None:
         return None
-    concept_label = topic.label
+    explicit_label = _explicit_concept_label(payload)
+    concept_label = explicit_label if explicit_label and topic.confidence == "low" else topic.label
     error_label = _first_focus_topic_label(
         error.get("label"),
         _first_error_label(payload),
@@ -243,6 +244,15 @@ def _projection_intent_value(items: list[dict[str, Any]], key: str) -> str:
             text = str(source.get(key) or "").strip()
             if text:
                 return text
+    return ""
+
+
+def _explicit_concept_label(payload: dict[str, Any]) -> str:
+    concept = payload.get("concept") if isinstance(payload.get("concept"), dict) else {}
+    for value in (concept.get("label"), concept.get("name")):
+        text = normalize_learning_topic_text(value)
+        if text:
+            return text
     return ""
 
 

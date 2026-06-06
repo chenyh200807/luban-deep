@@ -13,6 +13,14 @@ import pytest
 
 import scripts.run_luban_limited_default_soak_monitoring_m19d as m19d
 
+# REVIEW-ARTIFACT-ONLY: M19D is a milestone-audit soak drill over the (gitignored) M19C review
+# artifacts. Not a limited-default runtime test (the runtime path is covered by the gate / registry
+# / adjudicator / ws / runtime-supply-bundle tests). Skip in a clean checkout.
+pytestmark = pytest.mark.skipif(
+    not (m19d.M19C).exists(),
+    reason="M19C review-artifact package absent (milestone-audit soak drill; not a runtime dependency)",
+)
+
 
 def _j(path: Path) -> dict:
     return json.loads(path.read_text("utf-8"))

@@ -1595,6 +1595,10 @@ class AgentLoop:
         if isinstance(compiled_truth, dict) and compiled_truth:
             preview_args["compiled_learning_truth"] = dict(compiled_truth)
             routing_metadata["compiled_learning_truth_available"] = True
+        personalization_context = metadata.get("personalization_context")
+        if isinstance(personalization_context, dict) and personalization_context:
+            preview_args["personalization_context"] = dict(personalization_context)
+            routing_metadata["personalization_context_available"] = True
         if any(routing_metadata.values()):
             preview_args["routing_metadata"] = routing_metadata
         return preview_args
