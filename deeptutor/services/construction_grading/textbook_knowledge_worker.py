@@ -27,6 +27,9 @@ from deeptutor.services.construction_grading.full_knowledge_compiler import (
 )
 
 _CLAUSE_SPLIT = re.compile(r"[。；;！!？?\n、，,：:]")
+# Below this length a deterministic clause span is a weak fragment; ask the LLM for a fuller verbatim
+# span (quality enrichment ① + rescue of clause-misaligned spans = human-gate expansion ②).
+_ENRICH_THRESHOLD = 16
 
 
 def _node_code(payload: dict[str, Any]) -> str:
@@ -100,11 +103,13 @@ def textbook_block_worker(
     for idx, card in enumerate(cards):
         if not isinstance(card, dict):
             continue
-        quote: str | None = None
-        if complete_fn is not None and api_key:
-            quote = _llm_propose_quote(card, corpus, complete_fn, api_key)
-        if not quote:
-            quote = find_verbatim_span(card, corpus)
+        # deterministic-first; the LLM only enriches weak/missing spans, and only a LONGER verbatim
+        # span is accepted (the signer re-verifies either way — the LLM never bypasses the corpus).
+        quote = find_verbatim_span(card, corpus)
+        if complete_fn is not None and api_key and (quote is None or len(quote) < _ENRICH_THRESHOLD):
+            llm = _llm_propose_quote(card, corpus, complete_fn, api_key)
+            if llm and (quote is None or len(llm) > len(quote)):
+                quote = llm
         out.append(_CF.make_candidate(
             kind=_CF.KIND_RUBRIC,
             origin="llm_guess",
