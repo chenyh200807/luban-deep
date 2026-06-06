@@ -40,6 +40,7 @@ import {
   type BiStatusTone,
   type BiTableColumn,
 } from '@/components/bi-v2'
+import { FeedbackCockpit } from '@/components/bi-cockpit/FeedbackCockpit'
 import {
   getBiFeedback,
   getBiInviteTestApplications,
@@ -649,10 +650,7 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
         : `已导出当前筛选全部 ${exportRows.length} 条；审计 ${result.auditId || '已写入'}`
     setInviteExportNotice(notice)
     try {
-      downloadCsv(
-        `invite-test-applications-${new Date().toISOString().slice(0, 10)}.csv`,
-        content
-      )
+      downloadCsv(`invite-test-applications-${new Date().toISOString().slice(0, 10)}.csv`, content)
     } catch (err) {
       setInviteExportError(err instanceof Error ? err.message : 'CSV 下载启动失败')
     }
@@ -821,18 +819,11 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
         onSelect={switchWorkspaceView}
       />
 
-      <FeedbackCommandBoard
-        current={workspaceView}
-        feedbackCounts={counts}
-        feedbackItems={items}
-        inviteStats={inviteStats}
-        inviteTotal={inviteTotal}
-        inviteApplications={inviteApplications}
-        lubanStats={lubanStats}
-        lubanTotal={lubanTotal}
-        lubanResponses={lubanResponses}
-        onSelect={switchWorkspaceView}
-        onReveal={revealWorkspaceDetails}
+      <FeedbackCockpit
+        feedback={payload}
+        invite={inviteStats}
+        luban={lubanStats}
+        windowDays={FEEDBACK_WINDOW_DAYS}
       />
 
       {workspaceView === 'feedback' ? (
@@ -853,7 +844,9 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
                   状态
                   <BiSelect
                     value={filter.status}
-                    onChange={e => setFilter({ ...filter, status: e.target.value as Filter['status'] })}
+                    onChange={e =>
+                      setFilter({ ...filter, status: e.target.value as Filter['status'] })
+                    }
                     className="h-8"
                     aria-label="按状态筛选反馈"
                   >
@@ -867,7 +860,9 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
                   来源
                   <BiSelect
                     value={filter.source}
-                    onChange={e => setFilter({ ...filter, source: e.target.value as Filter['source'] })}
+                    onChange={e =>
+                      setFilter({ ...filter, source: e.target.value as Filter['source'] })
+                    }
                     className="h-8"
                     aria-label="按来源筛选反馈"
                   >
@@ -881,7 +876,9 @@ export function BiV2FeedbackPanel({ flagEnabled }: BiV2FeedbackPanelProps) {
                   owner
                   <BiSelect
                     value={filter.owner}
-                    onChange={e => setFilter({ ...filter, owner: e.target.value as Filter['owner'] })}
+                    onChange={e =>
+                      setFilter({ ...filter, owner: e.target.value as Filter['owner'] })
+                    }
                     className="h-8"
                     aria-label="按 owner 筛选反馈"
                   >
@@ -1098,7 +1095,12 @@ function mapFeedbackRecord(record: BiFeedbackRecord, index: number): FeedbackIte
     attachments: record.attachments,
     context_snapshot: record.context_snapshot,
     status: triageStatus ?? (negative || comment ? 'open' : positive ? 'ignored' : 'triaged'),
-    owner: inferOwner(source, [...tags, record.problem_type ?? '', ...(record.symptom_tags ?? [])], comment, negative),
+    owner: inferOwner(
+      source,
+      [...tags, record.problem_type ?? '', ...(record.symptom_tags ?? [])],
+      comment,
+      negative
+    ),
     created_at: record.created_at || '—',
     sla_target_hours: negative ? 24 : comment ? 72 : 0,
   }
@@ -1209,220 +1211,6 @@ const INSIGHT_TONE_CLASS: Record<InsightTone, string> = {
   sky: 'border-sky-300/20 bg-sky-300/10',
 }
 
-function FeedbackCommandBoard({
-  current,
-  feedbackCounts,
-  feedbackItems,
-  inviteStats,
-  inviteTotal,
-  inviteApplications,
-  lubanStats,
-  lubanTotal,
-  lubanResponses,
-  onSelect,
-  onReveal,
-}: {
-  current: FeedbackWorkspaceView
-  feedbackCounts: FeedbackCounts
-  feedbackItems: FeedbackItem[]
-  inviteStats: BiInviteTestStats | null
-  inviteTotal: number
-  inviteApplications: BiInviteTestApplication[]
-  lubanStats: BiLubanFeedbackStats | null
-  lubanTotal: number
-  lubanResponses: BiLubanFeedbackResponse[]
-  onSelect: (next: FeedbackWorkspaceView) => void
-  onReveal: (next: FeedbackWorkspaceView) => void
-}) {
-  const inviteSummary = summarizeVisibleInviteApplications(inviteApplications)
-  const inviteCount = inviteStats?.summary.total_applications ?? inviteTotal
-  const lubanCount = lubanStats?.summary.total_responses ?? lubanTotal
-  const lubanHighIntent = lubanResponses.filter(item =>
-    ['very_willing', 'ok'].includes(item.revisit_willingness)
-  ).length
-  const moduleItems: Array<{
-    key: FeedbackWorkspaceView
-    label: string
-    value: number
-    subtitle: string
-    tone: InsightTone
-    icon: ReactNode
-    chart: ChartDatum[]
-  }> = [
-    {
-      key: 'feedback',
-      label: 'AI 消息反馈',
-      value: feedbackCounts.total,
-      subtitle: `${feedbackWindowHint()} · 待处理 ${formatCount(feedbackCounts.open)}`,
-      tone: 'cyan',
-      icon: <MessageSquareWarning className="h-4 w-4" aria-hidden />,
-      chart: feedbackSourceChart(feedbackItems),
-    },
-    {
-      key: 'invite-test',
-      label: '内测申请',
-      value: inviteCount,
-      subtitle: `愿意回访 ${formatRate(inviteStats?.summary.accept_interview_rate ?? inviteSummary.acceptInterviewRate)}`,
-      tone: 'amber',
-      icon: <ClipboardList className="h-4 w-4" aria-hidden />,
-      chart: (inviteStats?.status_breakdown ?? []).slice(0, 4).map(item => ({
-        label: inviteStatusLabel(item.status),
-        count: item.count,
-      })),
-    },
-    {
-      key: 'luban-feedback',
-      label: '内测回访',
-      value: lubanCount,
-      subtitle: `NPS ${formatCount(lubanStats?.summary.nps_score ?? 0)} · 高意向 ${formatCount(lubanHighIntent)}`,
-      tone: 'emerald',
-      icon: <Gauge className="h-4 w-4" aria-hidden />,
-      chart: (lubanStats?.revisit_willingness_breakdown ?? []).slice(0, 4).map(item => ({
-        label: lubanLabel(LUBAN_REVISIT_LABELS, item.revisit_willingness),
-        count: item.count,
-      })),
-    },
-  ]
-  const total = Math.max(1, feedbackCounts.total + inviteCount + lubanCount)
-
-  return (
-    <section className="overflow-hidden rounded-3xl border border-white/10 bg-[#10192f] shadow-xl shadow-black/20">
-      <div className="grid gap-0 xl:grid-cols-[minmax(0,1fr)_280px]">
-        <div className="p-4 md:p-5">
-          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div>
-              <div className="flex items-center gap-2 text-xs font-black text-cyan-200">
-                <Activity className="h-4 w-4" aria-hidden />
-                Chart-first feedback intelligence
-              </div>
-              <h2 className="mt-2 text-2xl font-black text-white">反馈中心 · 先看图表，再点开明细</h2>
-              <p className="mt-1 max-w-3xl text-xs leading-5 text-slate-400">
-                AI 消息反馈、内测申请、内测回访分别保留各自 authority；这里仅做图表投影和运营下钻，不把列表当首屏。
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => onReveal(current)}
-              className="inline-flex h-10 items-center justify-center gap-1.5 rounded-2xl border border-cyan-300/25 bg-cyan-300/10 px-3 text-xs font-black text-cyan-100 hover:bg-cyan-300/16"
-            >
-              <MousePointerClick className="h-3.5 w-3.5" aria-hidden />
-              查看当前明细
-            </button>
-          </div>
-
-          <div className="mt-5 grid grid-cols-1 gap-3 lg:grid-cols-3">
-            {moduleItems.map(item => (
-              <SourceInsightCard
-                key={item.key}
-                active={current === item.key}
-                label={item.label}
-                value={item.value}
-                subtitle={item.subtitle}
-                tone={item.tone}
-                icon={item.icon}
-                chart={item.chart}
-                onSelect={() => onSelect(item.key)}
-                onReveal={() => onReveal(item.key)}
-              />
-            ))}
-          </div>
-        </div>
-
-        <aside className="border-t border-white/10 bg-white/[0.035] p-4 xl:border-l xl:border-t-0">
-          <div className="flex items-center justify-between gap-2">
-            <div>
-              <div className="text-[11px] font-black uppercase text-slate-500">三类数据占比</div>
-              <div className="mt-1 text-2xl font-black tabular-nums text-white">
-                {formatCount(feedbackCounts.total + inviteCount + lubanCount)}
-              </div>
-            </div>
-            <PieChart className="h-5 w-5 text-cyan-300" aria-hidden />
-          </div>
-          <div className="mt-4 space-y-3">
-            {moduleItems.map(item => (
-              <button
-                key={`${item.key}-mix`}
-                type="button"
-                onClick={() => onSelect(item.key)}
-                className="w-full text-left"
-                aria-label={`查看${item.label}图表`}
-              >
-                <div className="mb-1 flex items-center justify-between gap-2 text-xs">
-                  <span className="font-bold text-slate-300">{item.label}</span>
-                  <span className="font-black tabular-nums text-white">
-                    {formatRate(item.value / total)}
-                  </span>
-                </div>
-                <div className="h-2 overflow-hidden rounded-full bg-white/10">
-                  <div
-                    className={chartFillClass(item.tone)}
-                    style={{ width: `${Math.max(3, (item.value / total) * 100)}%` }}
-                    aria-hidden
-                  />
-                </div>
-              </button>
-            ))}
-          </div>
-        </aside>
-      </div>
-    </section>
-  )
-}
-
-function SourceInsightCard({
-  active,
-  label,
-  value,
-  subtitle,
-  tone,
-  icon,
-  chart,
-  onSelect,
-  onReveal,
-}: {
-  active: boolean
-  label: string
-  value: number
-  subtitle: string
-  tone: InsightTone
-  icon: ReactNode
-  chart: ChartDatum[]
-  onSelect: () => void
-  onReveal: () => void
-}) {
-  return (
-    <article
-      className={`rounded-2xl border p-3 transition ${
-        active ? `${INSIGHT_TONE_CLASS[tone]} shadow-lg shadow-black/20` : 'border-white/10 bg-white/[0.035]'
-      }`}
-    >
-      <button type="button" onClick={onSelect} className="block w-full text-left">
-        <span className="flex items-center justify-between gap-2">
-          <span className="inline-flex items-center gap-2 text-xs font-black text-slate-200">
-            <span className="grid h-8 w-8 place-items-center rounded-xl border border-white/10 bg-white/10 text-cyan-200">
-              {icon}
-            </span>
-            {label}
-          </span>
-          <ChevronRight className="h-4 w-4 text-slate-500" aria-hidden />
-        </span>
-        <span className="mt-3 block text-3xl font-black tabular-nums text-white">
-          {formatCount(value)}
-        </span>
-        <span className="mt-1 block text-[11px] font-bold text-slate-400">{subtitle}</span>
-      </button>
-      <MiniBarChart
-        className="mt-3"
-        items={chart}
-        maxItems={3}
-        tone={tone}
-        compact
-        onSelect={onReveal}
-      />
-    </article>
-  )
-}
-
 function FeedbackInsightDeck({
   counts,
   items,
@@ -1473,14 +1261,22 @@ function FeedbackInsightDeck({
             subtitle="AI 消息 / 申请备注 / 运营记录"
             icon={<BarChart3 className="h-4 w-4" aria-hidden />}
           >
-            <MiniBarChart items={feedbackSourceChart(items)} tone="cyan" onSelect={onRevealDetails} />
+            <MiniBarChart
+              items={feedbackSourceChart(items)}
+              tone="cyan"
+              onSelect={onRevealDetails}
+            />
           </ChartSurface>
           <ChartSurface
             title="问题模块 Top"
             subtitle="按用户标记的问题入口聚合"
             icon={<ListChecks className="h-4 w-4" aria-hidden />}
           >
-            <MiniBarChart items={feedbackProblemChart(items)} tone="amber" onSelect={onRevealDetails} />
+            <MiniBarChart
+              items={feedbackProblemChart(items)}
+              tone="amber"
+              onSelect={onRevealDetails}
+            />
           </ChartSurface>
         </div>
       </div>
@@ -1581,11 +1377,16 @@ function MiniBarChart({
   className?: string
   onSelect?: (item: ChartDatum) => void
 }) {
-  const sorted = [...items].filter(item => item.count > 0).sort((a, b) => b.count - a.count).slice(0, maxItems)
+  const sorted = [...items]
+    .filter(item => item.count > 0)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, maxItems)
   const maxCount = Math.max(1, ...sorted.map(item => item.count))
   if (sorted.length === 0) {
     return (
-      <div className={`rounded-2xl border border-dashed border-white/15 bg-white/[0.035] px-3 py-4 text-center text-xs text-slate-400 ${className}`}>
+      <div
+        className={`rounded-2xl border border-dashed border-white/15 bg-white/[0.035] px-3 py-4 text-center text-xs text-slate-400 ${className}`}
+      >
         暂无可视化数据
       </div>
     )
@@ -1598,14 +1399,12 @@ function MiniBarChart({
           <>
             <span className="flex items-center justify-between gap-3">
               <span className="min-w-0 truncate text-slate-300">{item.label || 'unknown'}</span>
-              <span className="shrink-0 font-black tabular-nums text-white">{formatCount(item.count)}</span>
+              <span className="shrink-0 font-black tabular-nums text-white">
+                {formatCount(item.count)}
+              </span>
             </span>
             <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-white/10">
-              <span
-                className={chartFillClass(tone)}
-                style={{ width: `${width}%` }}
-                aria-hidden
-              />
+              <span className={chartFillClass(tone)} style={{ width: `${width}%` }} aria-hidden />
             </span>
           </>
         )
@@ -1650,23 +1449,25 @@ function StackedDistribution({
   return (
     <div>
       <div className="flex h-10 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.05]">
-        {items.filter(item => item.count > 0).map((item, index) => {
-          const segmentTitle = `${item.label} ${formatCount(item.count)} (${formatRate(item.count / total)})`
-          const className = `${palette[index % palette.length]} h-full transition hover:brightness-110`
-          const style = { width: `${Math.max(4, (item.count / total) * 100)}%` }
-          return onSelect ? (
-            <button
-              key={item.label}
-              type="button"
-              title={segmentTitle}
-              className={className}
-              style={style}
-              onClick={() => onSelect(item)}
-            />
-          ) : (
-            <div key={item.label} title={segmentTitle} className={className} style={style} />
-          )
-        })}
+        {items
+          .filter(item => item.count > 0)
+          .map((item, index) => {
+            const segmentTitle = `${item.label} ${formatCount(item.count)} (${formatRate(item.count / total)})`
+            const className = `${palette[index % palette.length]} h-full transition hover:brightness-110`
+            const style = { width: `${Math.max(4, (item.count / total) * 100)}%` }
+            return onSelect ? (
+              <button
+                key={item.label}
+                type="button"
+                title={segmentTitle}
+                className={className}
+                style={style}
+                onClick={() => onSelect(item)}
+              />
+            ) : (
+              <div key={item.label} title={segmentTitle} className={className} style={style} />
+            )
+          })}
         {items.every(item => item.count === 0) ? (
           <div className="grid h-full w-full place-items-center text-xs font-bold text-slate-400">
             暂无状态数据
@@ -1785,11 +1586,7 @@ function InviteTestPanel({
       />
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <Tile
-          label="申请总数"
-          value={total}
-          hint={`当前筛选 · 近 ${INVITE_TEST_WINDOW_DAYS}d`}
-        />
+        <Tile label="申请总数" value={total} hint={`当前筛选 · 近 ${INVITE_TEST_WINDOW_DAYS}d`} />
         <Tile label="可联系人数" value={currentStats.uniqueContacts} hint="当前筛选去重联系方式" />
         <Tile
           label="愿意回访"
@@ -1825,157 +1622,159 @@ function InviteTestPanel({
       />
 
       {showDetails ? (
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-xl shadow-black/20">
-          <div className="border-b border-white/10 p-4">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <div className="inline-flex items-center gap-1.5 rounded-full border border-cyan-300/25 bg-cyan-300/10 px-2.5 py-1 text-[11px] font-black text-cyan-100">
-                  <Sparkles className="h-3 w-3" aria-hidden />
-                  真实申请池
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+          <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-xl shadow-black/20">
+            <div className="border-b border-white/10 p-4">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <div className="inline-flex items-center gap-1.5 rounded-full border border-cyan-300/25 bg-cyan-300/10 px-2.5 py-1 text-[11px] font-black text-cyan-100">
+                    <Sparkles className="h-3 w-3" aria-hidden />
+                    真实申请池
+                  </div>
+                  <h3 className="mt-2 text-xl font-black text-white">内测申请池</h3>
+                  <p className="mt-1 text-xs leading-5 text-slate-400">
+                    authority: <code className="font-mono">public.invite_test_applications</code> ·
+                    从卡片进入编辑、归档和回访，不再只有查看按钮。
+                  </p>
                 </div>
-                <h3 className="mt-2 text-xl font-black text-white">内测申请池</h3>
-                <p className="mt-1 text-xs leading-5 text-slate-400">
-                  authority: <code className="font-mono">public.invite_test_applications</code> ·
-                  从卡片进入编辑、归档和回访，不再只有查看按钮。
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={onExport}
-                  disabled={exporting || total === 0}
-                  className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-emerald-300/25 bg-emerald-300/12 px-3 text-xs font-black text-emerald-100 hover:bg-emerald-300/18 disabled:opacity-50"
-                  aria-label="导出内测申请"
-                >
-                  <Download className="h-3.5 w-3.5" aria-hidden />
-                  {exporting ? '审计中…' : '导出 CSV'}
-                </button>
-                <button
-                  type="button"
-                  onClick={onRefresh}
-                  disabled={loading}
-                  className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-white/10 bg-white/[0.06] px-3 text-xs font-bold text-slate-100 hover:bg-white/10 disabled:opacity-50"
-                  aria-label="刷新内测申请"
-                >
-                  <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} aria-hidden />
-                  刷新
-                </button>
-              </div>
-            </div>
-
-            <div className="mt-4 grid grid-cols-1 gap-2 rounded-2xl border border-white/10 bg-white/[0.035] p-2 lg:grid-cols-[minmax(0,1fr)_150px_150px_auto]">
-              <label className="relative">
-                <Search
-                  className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500"
-                  aria-hidden
-                />
-                <input
-                  value={filters.q}
-                  onChange={event => onFilterChange('q', event.target.value)}
-                  placeholder="搜索姓名 / 手机 / 邮箱 / 考试 / 痛点"
-                  className="h-11 w-full rounded-xl border border-white/10 bg-white/[0.06] px-9 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
-                  aria-label="搜索内测申请"
-                />
-              </label>
-              <BiSelect
-                value={filters.status}
-                onChange={event => onFilterChange('status', event.target.value)}
-                className="h-11"
-                aria-label="按内测申请状态筛选"
-              >
-                <option value="">全部状态</option>
-                <option value="submitted">已提交</option>
-                <option value="contacted">已联系</option>
-                <option value="accepted">已入选</option>
-                <option value="rejected">未入选</option>
-                <option value="archived">已归档</option>
-              </BiSelect>
-              <input
-                value={filters.source_page}
-                onChange={event => onFilterChange('source_page', event.target.value)}
-                placeholder="来源页"
-                className="h-11 rounded-xl border border-white/10 bg-white/[0.06] px-3 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
-                aria-label="按来源页筛选内测申请"
-              />
-              <div className="flex h-11 items-center justify-end gap-1.5 text-xs font-bold text-slate-400">
-                <Filter className="h-3.5 w-3.5" aria-hidden />共 {formatCount(total)} 条
-              </div>
-            </div>
-            {error ? (
-              <p className="mt-3 rounded-2xl border border-rose-300/25 bg-rose-300/10 px-3 py-2 text-xs text-rose-100">
-                {error}
-              </p>
-            ) : null}
-            {exportError ? (
-              <p className="mt-3 rounded-2xl border border-rose-300/25 bg-rose-300/10 px-3 py-2 text-xs text-rose-100">
-                {exportError}
-              </p>
-            ) : null}
-            {exportNotice ? (
-              <p className="mt-3 rounded-2xl border border-emerald-300/25 bg-emerald-300/10 px-3 py-2 text-xs text-emerald-100">
-                {exportNotice}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="grid gap-3 p-4">
-            {loading ? (
-              <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-10 text-center text-sm text-slate-400">
-                正在加载内测申请…
-              </div>
-            ) : null}
-            {!loading && !error && applications.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-white/15 bg-white/[0.035] px-4 py-10 text-center">
-                <div className="font-bold text-slate-100">暂无内测申请</div>
-                <div className="mt-1 text-xs text-slate-400">
-                  当前筛选下没有申请记录，或内测申请存储暂未返回数据。
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={onExport}
+                    disabled={exporting || total === 0}
+                    className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-emerald-300/25 bg-emerald-300/12 px-3 text-xs font-black text-emerald-100 hover:bg-emerald-300/18 disabled:opacity-50"
+                    aria-label="导出内测申请"
+                  >
+                    <Download className="h-3.5 w-3.5" aria-hidden />
+                    {exporting ? '审计中…' : '导出 CSV'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onRefresh}
+                    disabled={loading}
+                    className="inline-flex h-11 items-center justify-center gap-1.5 rounded-2xl border border-white/10 bg-white/[0.06] px-3 text-xs font-bold text-slate-100 hover:bg-white/10 disabled:opacity-50"
+                    aria-label="刷新内测申请"
+                  >
+                    <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} aria-hidden />
+                    刷新
+                  </button>
                 </div>
               </div>
-            ) : null}
-            {!loading && !error
-              ? applications.map(item => (
-                  <InviteApplicationCard
-                    key={item.id || `${item.phone}-${item.created_at}`}
-                    item={item}
-                    onOpenApplication={onOpenApplication}
-                    onDeleteApplication={onDeleteApplication}
-                    deleting={deleting}
-                    pendingDeleteId={pendingDeleteId}
+
+              <div className="mt-4 grid grid-cols-1 gap-2 rounded-2xl border border-white/10 bg-white/[0.035] p-2 lg:grid-cols-[minmax(0,1fr)_150px_150px_auto]">
+                <label className="relative">
+                  <Search
+                    className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500"
+                    aria-hidden
                   />
-                ))
-              : null}
-          </div>
-          <div className="flex flex-wrap justify-between gap-2 border-t border-white/10 px-4 py-3 text-[11px] font-bold text-slate-400">
-            <span>
-              显示 {applications.length} / {total}
-            </span>
-            <span>服务端返回前 {applications.length} / {total}</span>
-          </div>
-        </section>
+                  <input
+                    value={filters.q}
+                    onChange={event => onFilterChange('q', event.target.value)}
+                    placeholder="搜索姓名 / 手机 / 邮箱 / 考试 / 痛点"
+                    className="h-11 w-full rounded-xl border border-white/10 bg-white/[0.06] px-9 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
+                    aria-label="搜索内测申请"
+                  />
+                </label>
+                <BiSelect
+                  value={filters.status}
+                  onChange={event => onFilterChange('status', event.target.value)}
+                  className="h-11"
+                  aria-label="按内测申请状态筛选"
+                >
+                  <option value="">全部状态</option>
+                  <option value="submitted">已提交</option>
+                  <option value="contacted">已联系</option>
+                  <option value="accepted">已入选</option>
+                  <option value="rejected">未入选</option>
+                  <option value="archived">已归档</option>
+                </BiSelect>
+                <input
+                  value={filters.source_page}
+                  onChange={event => onFilterChange('source_page', event.target.value)}
+                  placeholder="来源页"
+                  className="h-11 rounded-xl border border-white/10 bg-white/[0.06] px-3 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
+                  aria-label="按来源页筛选内测申请"
+                />
+                <div className="flex h-11 items-center justify-end gap-1.5 text-xs font-bold text-slate-400">
+                  <Filter className="h-3.5 w-3.5" aria-hidden />共 {formatCount(total)} 条
+                </div>
+              </div>
+              {error ? (
+                <p className="mt-3 rounded-2xl border border-rose-300/25 bg-rose-300/10 px-3 py-2 text-xs text-rose-100">
+                  {error}
+                </p>
+              ) : null}
+              {exportError ? (
+                <p className="mt-3 rounded-2xl border border-rose-300/25 bg-rose-300/10 px-3 py-2 text-xs text-rose-100">
+                  {exportError}
+                </p>
+              ) : null}
+              {exportNotice ? (
+                <p className="mt-3 rounded-2xl border border-emerald-300/25 bg-emerald-300/10 px-3 py-2 text-xs text-emerald-100">
+                  {exportNotice}
+                </p>
+              ) : null}
+            </div>
 
-        <aside className="space-y-3">
-          <InviteOpsSignal
-            label="优先处理"
-            value={priorityCount}
-            hint="愿意回访 / 已留联系方式 / 待联系"
-            tone="sky"
-          />
-          <InviteOpsSignal
-            label="当前筛选"
-            value={applications.length}
-            hint={`服务端总数 ${formatCount(total)}`}
-            tone="slate"
-          />
-          <InviteOpsSignal
-            label="主来源"
-            value={topInviteSource(stats)}
-            hint="按来源页聚合"
-            tone="amber"
-          />
-          <InviteOpsPlaybook />
-        </aside>
-      </div>
+            <div className="grid gap-3 p-4">
+              {loading ? (
+                <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-10 text-center text-sm text-slate-400">
+                  正在加载内测申请…
+                </div>
+              ) : null}
+              {!loading && !error && applications.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-white/15 bg-white/[0.035] px-4 py-10 text-center">
+                  <div className="font-bold text-slate-100">暂无内测申请</div>
+                  <div className="mt-1 text-xs text-slate-400">
+                    当前筛选下没有申请记录，或内测申请存储暂未返回数据。
+                  </div>
+                </div>
+              ) : null}
+              {!loading && !error
+                ? applications.map(item => (
+                    <InviteApplicationCard
+                      key={item.id || `${item.phone}-${item.created_at}`}
+                      item={item}
+                      onOpenApplication={onOpenApplication}
+                      onDeleteApplication={onDeleteApplication}
+                      deleting={deleting}
+                      pendingDeleteId={pendingDeleteId}
+                    />
+                  ))
+                : null}
+            </div>
+            <div className="flex flex-wrap justify-between gap-2 border-t border-white/10 px-4 py-3 text-[11px] font-bold text-slate-400">
+              <span>
+                显示 {applications.length} / {total}
+              </span>
+              <span>
+                服务端返回前 {applications.length} / {total}
+              </span>
+            </div>
+          </section>
+
+          <aside className="space-y-3">
+            <InviteOpsSignal
+              label="优先处理"
+              value={priorityCount}
+              hint="愿意回访 / 已留联系方式 / 待联系"
+              tone="sky"
+            />
+            <InviteOpsSignal
+              label="当前筛选"
+              value={applications.length}
+              hint={`服务端总数 ${formatCount(total)}`}
+              tone="slate"
+            />
+            <InviteOpsSignal
+              label="主来源"
+              value={topInviteSource(stats)}
+              hint="按来源页聚合"
+              tone="amber"
+            />
+            <InviteOpsPlaybook />
+          </aside>
+        </div>
       ) : (
         <DetailRevealGate
           title="内测申请明细已折叠"
@@ -1992,7 +1791,8 @@ function InviteTestPanel({
           <div>
             <h3 className="text-lg font-black text-white">申请画像汇总</h3>
             <p className="mt-1 text-xs leading-5 text-slate-400">
-              以服务端 stats 为准，汇总年龄、地区、备考阶段、学习时间和痛点；当前列表筛选不改写画像 authority。
+              以服务端 stats 为准，汇总年龄、地区、备考阶段、学习时间和痛点；当前列表筛选不改写画像
+              authority。
             </p>
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/[0.045] px-3 py-2 text-right text-xs">
@@ -2351,97 +2151,99 @@ function LubanFeedbackPanel({
       />
 
       {showDetails ? (
-      <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-xl shadow-black/20">
-        <div className="border-b border-white/10 p-4">
-          <div className="grid grid-cols-1 gap-2 rounded-2xl border border-white/10 bg-white/[0.035] p-2 lg:grid-cols-[minmax(0,1fr)_150px_150px_auto]">
-            <label className="relative">
-              <Search
-                className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500"
-                aria-hidden
-              />
+        <section className="overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] shadow-xl shadow-black/20">
+          <div className="border-b border-white/10 p-4">
+            <div className="grid grid-cols-1 gap-2 rounded-2xl border border-white/10 bg-white/[0.035] p-2 lg:grid-cols-[minmax(0,1fr)_150px_150px_auto]">
+              <label className="relative">
+                <Search
+                  className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500"
+                  aria-hidden
+                />
+                <input
+                  value={filters.q}
+                  onChange={event => onFilterChange('q', event.target.value)}
+                  placeholder="搜索痛点 / 建议 / 微信 / 手机 / 一句话"
+                  className="h-11 w-full rounded-xl border border-white/10 bg-white/[0.06] px-9 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
+                  aria-label="搜索内测回访"
+                />
+              </label>
+              <BiSelect
+                value={filters.status}
+                onChange={event => onFilterChange('status', event.target.value)}
+                className="h-11"
+                aria-label="按内测回访状态筛选"
+              >
+                <option value="">全部状态</option>
+                <option value="submitted">待处理</option>
+                <option value="contacted">已联系</option>
+                <option value="interviewed">已回访</option>
+                <option value="resolved">已闭环</option>
+                <option value="archived">已归档</option>
+              </BiSelect>
               <input
-                value={filters.q}
-                onChange={event => onFilterChange('q', event.target.value)}
-                placeholder="搜索痛点 / 建议 / 微信 / 手机 / 一句话"
-                className="h-11 w-full rounded-xl border border-white/10 bg-white/[0.06] px-9 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
-                aria-label="搜索内测回访"
+                value={filters.source_page}
+                onChange={event => onFilterChange('source_page', event.target.value)}
+                placeholder="来源页"
+                className="h-11 rounded-xl border border-white/10 bg-white/[0.06] px-3 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
+                aria-label="按来源页筛选内测回访"
               />
-            </label>
-            <BiSelect
-              value={filters.status}
-              onChange={event => onFilterChange('status', event.target.value)}
-              className="h-11"
-              aria-label="按内测回访状态筛选"
-            >
-              <option value="">全部状态</option>
-              <option value="submitted">待处理</option>
-              <option value="contacted">已联系</option>
-              <option value="interviewed">已回访</option>
-              <option value="resolved">已闭环</option>
-              <option value="archived">已归档</option>
-            </BiSelect>
-            <input
-              value={filters.source_page}
-              onChange={event => onFilterChange('source_page', event.target.value)}
-              placeholder="来源页"
-              className="h-11 rounded-xl border border-white/10 bg-white/[0.06] px-3 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-cyan-300/40 focus:ring-2 focus:ring-cyan-300/20"
-              aria-label="按来源页筛选内测回访"
-            />
-            <div className="flex h-11 items-center justify-end gap-1.5 text-xs font-bold text-slate-400">
-              <Filter className="h-3.5 w-3.5" aria-hidden />共 {formatCount(total)} 条
-            </div>
-          </div>
-          {error ? (
-            <p className="mt-3 rounded-2xl border border-rose-300/25 bg-rose-300/10 px-3 py-2 text-xs text-rose-100">
-              {error}
-            </p>
-          ) : null}
-          {exportError ? (
-            <p className="mt-3 rounded-2xl border border-rose-300/25 bg-rose-300/10 px-3 py-2 text-xs text-rose-100">
-              {exportError}
-            </p>
-          ) : null}
-          {exportNotice ? (
-            <p className="mt-3 rounded-2xl border border-emerald-300/25 bg-emerald-300/10 px-3 py-2 text-xs text-emerald-100">
-              {exportNotice}
-            </p>
-          ) : null}
-        </div>
-
-        <div className="grid gap-3 p-4">
-          {loading ? (
-            <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-10 text-center text-sm text-slate-400">
-              正在加载内测回访…
-            </div>
-          ) : null}
-          {!loading && !error && responses.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-white/15 bg-white/[0.035] px-4 py-10 text-center">
-              <div className="font-bold text-slate-100">暂无内测回访</div>
-              <div className="mt-1 text-xs text-slate-400">
-                当前筛选下没有问卷记录，或 luban_feedback 存储暂未返回数据。
+              <div className="flex h-11 items-center justify-end gap-1.5 text-xs font-bold text-slate-400">
+                <Filter className="h-3.5 w-3.5" aria-hidden />共 {formatCount(total)} 条
               </div>
             </div>
-          ) : null}
-          {!loading && !error
-            ? responses.map(item => (
-                <LubanFeedbackCard
-                  key={item.id}
-                  item={item}
-                  onOpen={onOpenResponse}
-                  onDelete={onDeleteResponse}
-                  deleting={deleting}
-                  pendingDeleteId={pendingDeleteId}
-                />
-              ))
-            : null}
-        </div>
-        <div className="flex flex-wrap justify-between gap-2 border-t border-white/10 px-4 py-3 text-[11px] font-bold text-slate-400">
-          <span>
-            显示 {responses.length} / {total}
-          </span>
-          <span>服务端返回前 {responses.length} / {total}</span>
-        </div>
-      </section>
+            {error ? (
+              <p className="mt-3 rounded-2xl border border-rose-300/25 bg-rose-300/10 px-3 py-2 text-xs text-rose-100">
+                {error}
+              </p>
+            ) : null}
+            {exportError ? (
+              <p className="mt-3 rounded-2xl border border-rose-300/25 bg-rose-300/10 px-3 py-2 text-xs text-rose-100">
+                {exportError}
+              </p>
+            ) : null}
+            {exportNotice ? (
+              <p className="mt-3 rounded-2xl border border-emerald-300/25 bg-emerald-300/10 px-3 py-2 text-xs text-emerald-100">
+                {exportNotice}
+              </p>
+            ) : null}
+          </div>
+
+          <div className="grid gap-3 p-4">
+            {loading ? (
+              <div className="rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-10 text-center text-sm text-slate-400">
+                正在加载内测回访…
+              </div>
+            ) : null}
+            {!loading && !error && responses.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-white/15 bg-white/[0.035] px-4 py-10 text-center">
+                <div className="font-bold text-slate-100">暂无内测回访</div>
+                <div className="mt-1 text-xs text-slate-400">
+                  当前筛选下没有问卷记录，或 luban_feedback 存储暂未返回数据。
+                </div>
+              </div>
+            ) : null}
+            {!loading && !error
+              ? responses.map(item => (
+                  <LubanFeedbackCard
+                    key={item.id}
+                    item={item}
+                    onOpen={onOpenResponse}
+                    onDelete={onDeleteResponse}
+                    deleting={deleting}
+                    pendingDeleteId={pendingDeleteId}
+                  />
+                ))
+              : null}
+          </div>
+          <div className="flex flex-wrap justify-between gap-2 border-t border-white/10 px-4 py-3 text-[11px] font-bold text-slate-400">
+            <span>
+              显示 {responses.length} / {total}
+            </span>
+            <span>
+              服务端返回前 {responses.length} / {total}
+            </span>
+          </div>
+        </section>
       ) : (
         <DetailRevealGate
           title="内测回访明细已折叠"
@@ -2578,15 +2380,7 @@ function LubanFeedbackInsights({
   )
 }
 
-function RingMetric({
-  value,
-  label,
-  tone,
-}: {
-  value: number
-  label: string
-  tone: InsightTone
-}) {
+function RingMetric({ value, label, tone }: { value: number; label: string; tone: InsightTone }) {
   const safeValue = Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 0
   const color = {
     slate: '#cbd5e1',
@@ -2620,21 +2414,16 @@ function FunnelMeter({ label, value }: { label: string; value: number }) {
         <span className="font-black tabular-nums text-white">{formatRate(safeValue)}</span>
       </div>
       <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
-        <div className="h-full rounded-full bg-amber-300/85" style={{ width: `${Math.max(4, safeValue * 100)}%` }} />
+        <div
+          className="h-full rounded-full bg-amber-300/85"
+          style={{ width: `${Math.max(4, safeValue * 100)}%` }}
+        />
       </div>
     </div>
   )
 }
 
-function NpsBucket({
-  label,
-  value,
-  tone,
-}: {
-  label: string
-  value: number
-  tone: InsightTone
-}) {
+function NpsBucket({ label, value, tone }: { label: string; value: number; tone: InsightTone }) {
   return (
     <div className={`rounded-2xl border px-2 py-2 ${INSIGHT_TONE_CLASS[tone]}`}>
       <div className="font-black tabular-nums text-white">{formatCount(value)}</div>
@@ -2680,7 +2469,10 @@ function LubanFeedbackCard({
       </div>
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
-          <BiStatusPill tone={lubanStatusTone(item.status)} label={lubanLabel(LUBAN_STATUS_LABELS, item.status)} />
+          <BiStatusPill
+            tone={lubanStatusTone(item.status)}
+            label={lubanLabel(LUBAN_STATUS_LABELS, item.status)}
+          />
           <span className="rounded-full border border-white/10 bg-white/[0.05] px-2 py-0.5 text-[11px] font-bold text-slate-300">
             继续：{lubanLabel(LUBAN_WILL_CONTINUE_LABELS, item.will_continue)}
           </span>
@@ -2689,7 +2481,9 @@ function LubanFeedbackCard({
           </span>
         </div>
         {item.unsolved_pain ? (
-          <p className="mt-2 text-sm font-bold leading-6 text-slate-100">痛点：{item.unsolved_pain}</p>
+          <p className="mt-2 text-sm font-bold leading-6 text-slate-100">
+            痛点：{item.unsolved_pain}
+          </p>
         ) : null}
         {item.top_suggestion ? (
           <p className="mt-1 text-sm leading-6 text-slate-300">建议：{item.top_suggestion}</p>
@@ -2715,7 +2509,9 @@ function LubanFeedbackCard({
       </div>
       <div className="text-xs leading-5 text-slate-400 lg:text-right">
         <div className="font-bold text-slate-200">{contact || '未留联系方式'}</div>
-        <div className="mt-1">{joinNonEmpty([item.attempt_count, item.exam_timeframe]) || '未填写考试背景'}</div>
+        <div className="mt-1">
+          {joinNonEmpty([item.attempt_count, item.exam_timeframe]) || '未填写考试背景'}
+        </div>
         <div>{item.source_page || 'unknown-source'}</div>
         <div>{formatBiDate(item.created_at)}</div>
         {item.operator_note ? (
@@ -2796,7 +2592,10 @@ function LubanFeedbackDetailPanel({
         <div className="space-y-4 text-sm">
           <section className="rounded-3xl border border-cyan-300/25 bg-cyan-300/10 p-4">
             <div className="flex flex-wrap items-center gap-2">
-              <BiStatusPill tone={lubanStatusTone(item.status)} label={lubanLabel(LUBAN_STATUS_LABELS, item.status)} />
+              <BiStatusPill
+                tone={lubanStatusTone(item.status)}
+                label={lubanLabel(LUBAN_STATUS_LABELS, item.status)}
+              />
               <BiStatusPill
                 tone={item.revisit_willingness === 'very_willing' ? 'emerald' : 'slate'}
                 label={`回访：${lubanLabel(LUBAN_REVISIT_LABELS, item.revisit_willingness)}`}
@@ -2812,8 +2611,12 @@ function LubanFeedbackDetailPanel({
 
           <div className="grid gap-3 md:grid-cols-2">
             <Field label="NPS">{item.nps ?? '—'}</Field>
-            <Field label="继续使用">{lubanLabel(LUBAN_WILL_CONTINUE_LABELS, item.will_continue)}</Field>
-            <Field label="回访意愿">{lubanLabel(LUBAN_REVISIT_LABELS, item.revisit_willingness)}</Field>
+            <Field label="继续使用">
+              {lubanLabel(LUBAN_WILL_CONTINUE_LABELS, item.will_continue)}
+            </Field>
+            <Field label="回访意愿">
+              {lubanLabel(LUBAN_REVISIT_LABELS, item.revisit_willingness)}
+            </Field>
             <Field label="联系方式">{joinNonEmpty([item.wechat_id, item.phone]) || '未留'}</Field>
           </div>
 
@@ -2826,10 +2629,16 @@ function LubanFeedbackDetailPanel({
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <Field label="考试次数">{lubanLabel(LUBAN_ATTEMPT_LABELS, item.attempt_count)}</Field>
-              <Field label="考试时间">{lubanLabel(LUBAN_TIMEFRAME_LABELS, item.exam_timeframe)}</Field>
-              <Field label="最有价值功能">{lubanLabel(LUBAN_FEATURE_LABELS, item.most_valuable)}</Field>
+              <Field label="考试时间">
+                {lubanLabel(LUBAN_TIMEFRAME_LABELS, item.exam_timeframe)}
+              </Field>
+              <Field label="最有价值功能">
+                {lubanLabel(LUBAN_FEATURE_LABELS, item.most_valuable)}
+              </Field>
               <Field label="付费意愿">{lubanLabel(LUBAN_PAY_LABELS, item.pay_willingness)}</Field>
-              <Field label="主动推荐">{lubanLabel(LUBAN_RECOMMEND_LABELS, item.would_recommend)}</Field>
+              <Field label="主动推荐">
+                {lubanLabel(LUBAN_RECOMMEND_LABELS, item.would_recommend)}
+              </Field>
               <Field label="来源页">{item.source_page || '—'}</Field>
             </div>
             <div className="grid gap-3 sm:grid-cols-3">
@@ -2888,7 +2697,8 @@ function InvitePrescriptionHero({
         </h3>
         <p className="mt-4 max-w-4xl text-sm leading-7 text-slate-300/85">
           {formatCount(total)} 条内测申请里，有 {formatCount(acceptInterviewCount)} 条愿意回访，
-          {formatCount(priorityCount)} 条适合立即进入跟进队列。先处理联系方式完整、痛点明确的人，再补齐样本缺口。
+          {formatCount(priorityCount)}{' '}
+          条适合立即进入跟进队列。先处理联系方式完整、痛点明确的人，再补齐样本缺口。
         </p>
         <div className="mt-5 flex flex-wrap gap-2">
           <button
@@ -2952,10 +2762,7 @@ function InviteApplicationCard({
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-black text-white">{item.name || '未命名'}</span>
           <BiStatusPill tone={priority.tone} label={priority.label} ariaLabel={priority.hint} />
-          <BiStatusPill
-            tone={inviteStatusTone(item.status)}
-            label={item.status || 'submitted'}
-          />
+          <BiStatusPill tone={inviteStatusTone(item.status)} label={item.status || 'submitted'} />
         </div>
         <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs font-bold text-slate-300">
           <ContactLine icon={<Phone className="h-3 w-3" aria-hidden />} value={item.phone || '—'} />
@@ -3071,13 +2878,7 @@ function InviteApplicationDetailPanel({
             <BiButton onClick={onClose} variant="secondary" size="sm">
               关闭
             </BiButton>
-            <BiButton
-              type="submit"
-              form={formId}
-              disabled={saving}
-              variant="primary"
-              size="sm"
-            >
+            <BiButton type="submit" form={formId} disabled={saving} variant="primary" size="sm">
               {saving ? '保存中…' : '保存并审计'}
             </BiButton>
           </div>
@@ -3434,7 +3235,9 @@ function FeedbackDetailPanel({
               <span>页面：{item.context_snapshot?.route || '—'}</span>
               <span>网络：{item.context_snapshot?.network_type || '—'}</span>
               <span>设备：{item.context_snapshot?.device_model || '—'}</span>
-              <span>系统：{item.context_snapshot?.system || item.context_snapshot?.platform || '—'}</span>
+              <span>
+                系统：{item.context_snapshot?.system || item.context_snapshot?.platform || '—'}
+              </span>
             </div>
           </section>
           <FeedbackAttachmentGrid attachments={item.attachments ?? []} />
@@ -3450,7 +3253,11 @@ function FeedbackDetailPanel({
   )
 }
 
-function FeedbackAttachmentGrid({ attachments }: { attachments: NonNullable<FeedbackItem['attachments']> }) {
+function FeedbackAttachmentGrid({
+  attachments,
+}: {
+  attachments: NonNullable<FeedbackItem['attachments']>
+}) {
   if (attachments.length === 0) {
     return (
       <section className="rounded-3xl border border-white/10 bg-white/[0.035] p-4 text-xs text-slate-400">
@@ -3785,10 +3592,7 @@ function extractLubanFeedbackFromUpdate(
       response.survey_version ?? response.surveyVersion,
       fallback.survey_version
     ),
-    nps:
-      response.nps === null || response.nps === undefined
-        ? fallback.nps
-        : Number(response.nps),
+    nps: response.nps === null || response.nps === undefined ? fallback.nps : Number(response.nps),
     overall_satisfaction:
       response.overall_satisfaction === null || response.overall_satisfaction === undefined
         ? response.overallSatisfaction === null || response.overallSatisfaction === undefined
@@ -4092,31 +3896,31 @@ function BreakdownCard({
             const width = Math.max(8, Math.round((item.count / maxCount) * 100))
             const share = denominator > 0 ? item.count / denominator : undefined
             return (
-                <div
-                  key={`${title}-${item.label}`}
-                  className="rounded-2xl border border-white/10 bg-white/[0.045] px-3 py-2 text-xs"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <span className="min-w-0 break-words text-slate-300">
-                      {item.label || 'unknown'}
-                    </span>
-                    <span className="shrink-0 font-black tabular-nums text-white">
-                      {formatCount(item.count)}
-                    </span>
-                  </div>
-                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
-                    <div
-                      className="h-full rounded-full bg-cyan-300/70"
-                      style={{ width: `${width}%` }}
-                      aria-hidden
-                    />
-                  </div>
-                  {share !== undefined ? (
-                    <div className="mt-1 text-[10px] font-bold text-slate-500">
-                      {formatRate(share)}
-                    </div>
-                  ) : null}
+              <div
+                key={`${title}-${item.label}`}
+                className="rounded-2xl border border-white/10 bg-white/[0.045] px-3 py-2 text-xs"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <span className="min-w-0 break-words text-slate-300">
+                    {item.label || 'unknown'}
+                  </span>
+                  <span className="shrink-0 font-black tabular-nums text-white">
+                    {formatCount(item.count)}
+                  </span>
                 </div>
+                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
+                  <div
+                    className="h-full rounded-full bg-cyan-300/70"
+                    style={{ width: `${width}%` }}
+                    aria-hidden
+                  />
+                </div>
+                {share !== undefined ? (
+                  <div className="mt-1 text-[10px] font-bold text-slate-500">
+                    {formatRate(share)}
+                  </div>
+                ) : null}
+              </div>
             )
           })
         ) : (
