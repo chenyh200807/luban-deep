@@ -15,6 +15,9 @@
 
 - 单一 RAG 入口：`deeptutor/services/rag/service.py`
 - provider / pipeline 可以多实现，但必须挂在统一 RAG 入口之后
+- KB v5 只读直连 provider 只能作为 `RAGService` 后面的 provider 实现，
+  通过只读事务调用 `public.search_chunks_v2`；不得成为第二套 RAG 入口、
+  不得写 Supabase/PG，也不得承担评分 authority。
 - exact-question 与 authority metadata 必须以统一字段进入上层 agent
 - TutorBot 默认知识链只能由统一 runtime defaults 注入到 `tools/knowledge_bases`
 - 本地知识库重建只能通过 `POST /api/v1/knowledge/{kb_name}/reindex`
@@ -30,6 +33,7 @@
 5. retrieval trace 命名必须统一，不得为同一语义创造平行字段。
 6. 需要默认 grounding 的 TutorBot 业务身份，必须注册进统一 runtime defaults contract，而不是散落在 router 中。
 7. 对于注册过默认 grounding 的 TutorBot，当模型本轮放弃工具时，agent 必须执行统一的 server-side RAG fallback，不能把 grounding 是否发生完全交给模型偶然发挥。
+7a. 对 `construction-exam-coach` 这类注册过默认 grounding 的 TutorBot，建筑实务概念讲解 / 查漏补缺类短查询即使没有显式 citation flag，也必须先执行统一 server-side RAG；`fast` 与 `deep` 只区别响应密度和 agent loop 深度，不得把 `fast` 降级成无证据直接回答。
 8. `exact_question` 不能再默认等同于选择题；案例题必须带 `answer_kind/case_bundle/coverage_state` 这类题型感知字段。
 9. 当案例题 exact hit 只覆盖部分小问时，系统必须显式标记 partial coverage，并继续做补充检索；不能因为命中 exact 就直接跳过第二轮检索。
 10. 对注册过默认 grounding 的 TutorBot，允许执行 `retrieval-first / exact-first` fast path；但 fast path 仍必须复用统一 `rag` 语义、统一 trace 和统一 `RAGService`。

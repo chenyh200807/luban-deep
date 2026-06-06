@@ -1468,7 +1468,6 @@ class AgentLoop:
         )
 
         bot_id = str(metadata.get("bot_id") or "").strip().lower()
-        citations_required = bool(metadata.get("answer_citations_required"))
         if bot_id != "construction-exam-coach":
             if decision.should_prefetch_grounded_rag:
                 return True
@@ -1495,7 +1494,7 @@ class AgentLoop:
             and not decision.exact_question_candidate
         ):
             return False
-        if citations_required and looks_like_construction_exam_knowledge_query(tool_query):
+        if looks_like_construction_exam_knowledge_query(tool_query):
             return True
         if decision.should_prefetch_grounded_rag:
             return True

@@ -105,6 +105,44 @@ def test_citation_required_construction_exam_prefetches_default_rag() -> None:
     )
 
 
+def test_default_grounded_construction_concepts_prefetch_without_citation_flag() -> None:
+    metadata = {
+        "bot_id": "construction-exam-coach",
+        "default_tools": ["rag"],
+        "default_kb": "construction-exam",
+        "knowledge_bases": ["construction-exam"],
+        "effective_response_mode": "deep",
+    }
+
+    for user_message in ("建筑构造是什么？", "怎么做防水工程"):
+        assert (
+            AgentLoop._should_prefetch_grounded_rag(
+                current_message=user_message,
+                runtime_metadata=metadata,
+            )
+            is True
+        )
+
+
+def test_fast_default_grounded_construction_concepts_prefetch_without_citation_flag() -> None:
+    metadata = {
+        "bot_id": "construction-exam-coach",
+        "default_tools": ["rag"],
+        "default_kb": "construction-exam",
+        "knowledge_bases": ["construction-exam"],
+        "effective_response_mode": "fast",
+    }
+
+    for user_message in ("建筑构造是什么？", "怎么做防水工程"):
+        assert (
+            AgentLoop._should_prefetch_grounded_rag(
+                current_message=user_message,
+                runtime_metadata=metadata,
+            )
+            is True
+        )
+
+
 def test_rag_prefetch_uses_current_user_question_from_internal_context_wrapper() -> None:
     wrapped_message = (
         "## 参考证据\n"

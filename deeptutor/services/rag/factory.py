@@ -48,10 +48,16 @@ def _init_pipelines() -> None:
 
         return SupabasePipeline(**kwargs)
 
+    def _build_kbv5(**kwargs):
+        from .pipelines.kbv5 import KbV5Pipeline
+
+        return KbV5Pipeline(**kwargs)
+
     _PIPELINES.update(
         {
             DEFAULT_PROVIDER: _build_llamaindex,
             "supabase": _build_supabase,
+            "kbv5": _build_kbv5,
         }
     )
     _PIPELINES_INITIALIZED = True
@@ -104,6 +110,11 @@ def list_pipelines() -> List[Dict[str, str]]:
             "id": "supabase",
             "name": "Supabase",
             "description": "Read-only remote retrieval powered by your Supabase knowledge base.",
+        },
+        {
+            "id": "kbv5",
+            "name": "KB v5",
+            "description": "Read-only KB v5 retrieval via the canonical direct Postgres function.",
         },
     ]
 
