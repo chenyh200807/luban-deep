@@ -2,6 +2,21 @@
 'use client'
 
 import {
+  ArcElement,
+  BarElement,
+  CategoryScale,
+  Chart as ChartJS,
+  Filler,
+  Legend,
+  LinearScale,
+  LineElement,
+  PointElement,
+  RadialLinearScale,
+  Tooltip,
+  type ChartData,
+  type ChartOptions,
+} from 'chart.js'
+import {
   Activity,
   BarChart3,
   ChevronRight,
@@ -28,6 +43,7 @@ import {
   XCircle,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { Bar, Doughnut, PolarArea, Radar } from 'react-chartjs-2'
 import {
   BiButton,
   BiDataTable,
@@ -65,6 +81,19 @@ import {
   type FeedbackStatus,
 } from './data'
 import { FEEDBACK_WINDOW_DAYS, feedbackWindowHint } from './feedback-window'
+
+ChartJS.register(
+  ArcElement,
+  BarElement,
+  CategoryScale,
+  Filler,
+  Legend,
+  LinearScale,
+  LineElement,
+  PointElement,
+  RadialLinearScale,
+  Tooltip
+)
 
 type Filter = {
   status: '' | FeedbackStatus
@@ -1283,7 +1312,7 @@ function FeedbackCommandBoard({
       })),
     },
   ]
-  const total = Math.max(1, feedbackCounts.total + inviteCount + lubanCount)
+  const total = feedbackCounts.total + inviteCount + lubanCount
 
   return (
     <section className="overflow-hidden rounded-3xl border border-white/10 bg-[#10192f] shadow-xl shadow-black/20">
@@ -1338,30 +1367,17 @@ function FeedbackCommandBoard({
             </div>
             <PieChart className="h-5 w-5 text-cyan-300" aria-hidden />
           </div>
-          <div className="mt-4 space-y-3">
-            {moduleItems.map(item => (
-              <button
-                key={`${item.key}-mix`}
-                type="button"
-                onClick={() => onSelect(item.key)}
-                className="w-full text-left"
-                aria-label={`查看${item.label}图表`}
-              >
-                <div className="mb-1 flex items-center justify-between gap-2 text-xs">
-                  <span className="font-bold text-slate-300">{item.label}</span>
-                  <span className="font-black tabular-nums text-white">
-                    {formatRate(item.value / total)}
-                  </span>
-                </div>
-                <div className="h-2 overflow-hidden rounded-full bg-white/10">
-                  <div
-                    className={chartFillClass(item.tone)}
-                    style={{ width: `${Math.max(3, (item.value / total) * 100)}%` }}
-                    aria-hidden
-                  />
-                </div>
-              </button>
-            ))}
+          <div className="mt-4">
+            <DonutCompositionChart
+              items={moduleItems.map(item => ({
+                label: item.label,
+                count: item.value,
+                raw: item.key,
+              }))}
+              centerLabel="反馈总量"
+              centerValue={formatCount(total)}
+              onSelect={item => onSelect((item.raw as FeedbackWorkspaceView) || current)}
+            />
           </div>
         </aside>
       </div>
@@ -1460,10 +1476,10 @@ function FeedbackInsightDeck({
           actionLabel="查看反馈明细"
           onAction={onRevealDetails}
         >
-          <StackedDistribution
+          <DonutCompositionChart
             items={statusItems}
-            total={Math.max(1, counts.total)}
-            tone="cyan"
+            centerLabel="反馈状态"
+            centerValue={formatCount(counts.total)}
             onSelect={onRevealDetails}
           />
         </ChartSurface>
@@ -1473,14 +1489,21 @@ function FeedbackInsightDeck({
             subtitle="AI 消息 / 申请备注 / 运营记录"
             icon={<BarChart3 className="h-4 w-4" aria-hidden />}
           >
-            <MiniBarChart items={feedbackSourceChart(items)} tone="cyan" onSelect={onRevealDetails} />
+            <DonutCompositionChart
+              items={feedbackSourceChart(items)}
+              centerLabel="来源占比"
+              onSelect={onRevealDetails}
+            />
           </ChartSurface>
           <ChartSurface
             title="问题模块 Top"
             subtitle="按用户标记的问题入口聚合"
             icon={<ListChecks className="h-4 w-4" aria-hidden />}
           >
-            <MiniBarChart items={feedbackProblemChart(items)} tone="amber" onSelect={onRevealDetails} />
+            <HorizontalRankChart
+              items={feedbackProblemChart(items)}
+              onSelect={onRevealDetails}
+            />
           </ChartSurface>
         </div>
       </div>
@@ -1678,6 +1701,313 @@ function StackedDistribution({
   )
 }
 
+const CHART_PALETTE = [
+  '#67e8f9',
+  '#fcd34d',
+  '#6ee7b7',
+  '#7dd3fc',
+  '#fda4af',
+  '#c4b5fd',
+]
+const CHART_GRID_COLOR = 'rgba(148, 163, 184, 0.18)'
+const CHART_TEXT_COLOR = '#cbd5e1'
+
+function chartItemsWithOther(items: ChartDatum[], maxItems = 6): ChartDatum[] {
+  const sorted = [...items].filter(item => item.count > 0).sort((a, b) => b.count - a.count)
+  if (sorted.length <= maxItems) return sorted
+  const head = sorted.slice(0, maxItems - 1)
+  const otherCount = sorted.slice(maxItems - 1).reduce((sum, item) => sum + item.count, 0)
+  return [...head, { label: '其他', count: otherCount }]
+}
+
+function EmptyChartState({ label = '暂无可视化数据' }: { label?: string }) {
+  return (
+    <div className="grid min-h-[210px] place-items-center rounded-2xl border border-dashed border-white/15 bg-white/[0.035] px-4 text-center text-xs font-bold text-slate-400">
+      {label}
+    </div>
+  )
+}
+
+function DonutCompositionChart({
+  items,
+  centerLabel,
+  centerValue,
+  maxItems = 6,
+  onSelect,
+}: {
+  items: ChartDatum[]
+  centerLabel: string
+  centerValue?: string
+  maxItems?: number
+  onSelect?: (item: ChartDatum) => void
+}) {
+  const chartItems = chartItemsWithOther(items, maxItems)
+  const total = chartItems.reduce((sum, item) => sum + item.count, 0)
+  if (chartItems.length === 0 || total <= 0) return <EmptyChartState />
+
+  const data: ChartData<'doughnut'> = {
+    labels: chartItems.map(item => item.label || 'unknown'),
+    datasets: [
+      {
+        data: chartItems.map(item => item.count),
+        backgroundColor: chartItems.map((_, index) => CHART_PALETTE[index % CHART_PALETTE.length]),
+        borderColor: '#111a30',
+        borderWidth: 3,
+        hoverOffset: 8,
+      },
+    ],
+  }
+  const options: ChartOptions<'doughnut'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '64%',
+    onClick: (_event, elements) => {
+      const index = elements[0]?.index
+      if (index !== undefined) onSelect?.(chartItems[index])
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: context => {
+            const value = Number(context.parsed || 0)
+            return `${context.label}: ${formatCount(value)} (${formatRate(value / total)})`
+          },
+        },
+      },
+    },
+  }
+
+  return (
+    <div>
+      <div className="relative h-[230px]">
+        <Doughnut data={data} options={options} />
+        <div className="pointer-events-none absolute inset-0 grid place-items-center">
+          <div className="max-w-[110px] text-center">
+            <div className="text-2xl font-black tabular-nums text-white">
+              {centerValue ?? formatCount(total)}
+            </div>
+            <div className="mt-1 text-[10px] font-black text-slate-400">{centerLabel}</div>
+          </div>
+        </div>
+      </div>
+      <ChartLegend items={chartItems} total={total} />
+    </div>
+  )
+}
+
+function PolarSignalChart({
+  items,
+  maxItems = 6,
+  onSelect,
+}: {
+  items: ChartDatum[]
+  maxItems?: number
+  onSelect?: (item: ChartDatum) => void
+}) {
+  const chartItems = chartItemsWithOther(items, maxItems)
+  const total = chartItems.reduce((sum, item) => sum + item.count, 0)
+  if (chartItems.length === 0 || total <= 0) return <EmptyChartState />
+
+  const data: ChartData<'polarArea'> = {
+    labels: chartItems.map(item => item.label || 'unknown'),
+    datasets: [
+      {
+        data: chartItems.map(item => item.count),
+        backgroundColor: chartItems.map((_, index) => `${CHART_PALETTE[index % CHART_PALETTE.length]}cc`),
+        borderColor: chartItems.map((_, index) => CHART_PALETTE[index % CHART_PALETTE.length]),
+        borderWidth: 1,
+      },
+    ],
+  }
+  const options: ChartOptions<'polarArea'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    onClick: (_event, elements) => {
+      const index = elements[0]?.index
+      if (index !== undefined) onSelect?.(chartItems[index])
+    },
+    scales: {
+      r: {
+        grid: { color: CHART_GRID_COLOR },
+        ticks: { display: false },
+        angleLines: { color: CHART_GRID_COLOR },
+      },
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: context => {
+            const value = Number(context.parsed.r || 0)
+            return `${context.label}: ${formatCount(value)} (${formatRate(value / total)})`
+          },
+        },
+      },
+    },
+  }
+
+  return (
+    <div>
+      <div className="h-[230px]">
+        <PolarArea data={data} options={options} />
+      </div>
+      <ChartLegend items={chartItems} total={total} />
+    </div>
+  )
+}
+
+function HorizontalRankChart({
+  items,
+  maxItems = 6,
+  onSelect,
+}: {
+  items: ChartDatum[]
+  maxItems?: number
+  onSelect?: (item: ChartDatum) => void
+}) {
+  const chartItems = chartItemsWithOther(items, maxItems)
+  const total = chartItems.reduce((sum, item) => sum + item.count, 0)
+  if (chartItems.length === 0 || total <= 0) return <EmptyChartState />
+
+  const data: ChartData<'bar'> = {
+    labels: chartItems.map(item => item.label || 'unknown'),
+    datasets: [
+      {
+        data: chartItems.map(item => item.count),
+        backgroundColor: chartItems.map((_, index) => `${CHART_PALETTE[index % CHART_PALETTE.length]}d9`),
+        borderColor: chartItems.map((_, index) => CHART_PALETTE[index % CHART_PALETTE.length]),
+        borderWidth: 1,
+        borderRadius: 10,
+        barThickness: 16,
+      },
+    ],
+  }
+  const options: ChartOptions<'bar'> = {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: false,
+    onClick: (_event, elements) => {
+      const index = elements[0]?.index
+      if (index !== undefined) onSelect?.(chartItems[index])
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: context => {
+            const value = Number(context.parsed.x || 0)
+            return `${formatCount(value)} · ${formatRate(value / total)}`
+          },
+        },
+      },
+    },
+    scales: {
+      x: {
+        grid: { color: CHART_GRID_COLOR },
+        ticks: { color: CHART_TEXT_COLOR, precision: 0 },
+      },
+      y: {
+        grid: { display: false },
+        ticks: {
+          color: CHART_TEXT_COLOR,
+          callback(value) {
+            const label = String(this.getLabelForValue(Number(value)))
+            return label.length > 10 ? `${label.slice(0, 10)}…` : label
+          },
+        },
+      },
+    },
+  }
+
+  return (
+    <div className="h-[230px]">
+      <Bar data={data} options={options} />
+    </div>
+  )
+}
+
+function RadarProfileChart({
+  items,
+  label,
+}: {
+  items: ChartDatum[]
+  label: string
+}) {
+  const chartItems = chartItemsWithOther(items, 7)
+  if (chartItems.length < 3) return <EmptyChartState label="画像维度不足，暂不生成雷达图" />
+  const maxCount = Math.max(1, ...chartItems.map(item => item.count))
+  const data: ChartData<'radar'> = {
+    labels: chartItems.map(item => item.label || 'unknown'),
+    datasets: [
+      {
+        label,
+        data: chartItems.map(item => Math.round((item.count / maxCount) * 100)),
+        backgroundColor: 'rgba(103, 232, 249, 0.16)',
+        borderColor: '#67e8f9',
+        borderWidth: 2,
+        pointBackgroundColor: '#fcd34d',
+        pointBorderColor: '#111a30',
+        pointRadius: 3,
+        fill: true,
+      },
+    ],
+  }
+  const options: ChartOptions<'radar'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      r: {
+        beginAtZero: true,
+        suggestedMax: 100,
+        grid: { color: CHART_GRID_COLOR },
+        angleLines: { color: CHART_GRID_COLOR },
+        pointLabels: { color: CHART_TEXT_COLOR, font: { size: 10, weight: 'bold' } },
+        ticks: { display: false },
+      },
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: context => {
+            const raw = chartItems[context.dataIndex]
+            return `${raw.label}: ${formatCount(raw.count)}`
+          },
+        },
+      },
+    },
+  }
+  return (
+    <div className="h-[250px]">
+      <Radar data={data} options={options} />
+    </div>
+  )
+}
+
+function ChartLegend({ items, total }: { items: ChartDatum[]; total: number }) {
+  return (
+    <div className="mt-3 grid gap-1.5 text-[11px]">
+      {items.map((item, index) => (
+        <div
+          key={`${item.label}-${item.count}-${index}`}
+          className="grid grid-cols-[10px_minmax(0,1fr)_auto] items-center gap-2"
+        >
+          <span
+            className="h-2.5 w-2.5 rounded-full"
+            style={{ backgroundColor: CHART_PALETTE[index % CHART_PALETTE.length] }}
+            aria-hidden
+          />
+          <span className="min-w-0 truncate font-bold text-slate-300">{item.label || 'unknown'}</span>
+          <span className="font-black tabular-nums text-white">
+            {formatCount(item.count)} · {formatRate(item.count / total)}
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function chartFillClass(tone: InsightTone): string {
   return {
     slate: 'block h-full rounded-full bg-slate-300/75',
@@ -1708,6 +2038,17 @@ function countBy<T>(items: T[], labelOf: (item: T) => string): ChartDatum[] {
     map.set(label, (map.get(label) ?? 0) + 1)
   }
   return Array.from(map, ([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count)
+}
+
+function knownBreakdownCount(
+  items: Array<Record<string, unknown> & { count: number }> | undefined,
+  key: string
+): number {
+  return (items ?? []).reduce((sum, item) => {
+    const label = String(item[key] ?? '').trim().toLowerCase()
+    if (!label || label === 'unknown' || label === '未填' || label === '未填写') return sum
+    return sum + item.count
+  }, 0)
 }
 
 function inviteStatusLabel(status: string | undefined): string {
@@ -2161,6 +2502,36 @@ function InviteApplicationInsights({
     profileTotal > 0
       ? (stats?.summary.unique_contacts ?? currentStats.uniqueContacts) / profileTotal
       : 0
+  const profileRadarItems = [
+    {
+      label: '年龄',
+      count: knownBreakdownCount(stats?.age_range_breakdown, 'age_range'),
+    },
+    {
+      label: '省份',
+      count: knownBreakdownCount(stats?.province_breakdown, 'province'),
+    },
+    {
+      label: '学历',
+      count: knownBreakdownCount(stats?.education_breakdown, 'education'),
+    },
+    {
+      label: '职业',
+      count: knownBreakdownCount(stats?.occupation_breakdown, 'occupation'),
+    },
+    {
+      label: '每日学习',
+      count: knownBreakdownCount(stats?.daily_study_time_breakdown, 'daily_study_time'),
+    },
+    {
+      label: '备考年限',
+      count: knownBreakdownCount(stats?.preparation_years_breakdown, 'preparation_years'),
+    },
+    {
+      label: '知识基础',
+      count: knownBreakdownCount(stats?.knowledge_foundation_breakdown, 'knowledge_foundation'),
+    },
+  ]
 
   return (
     <section className="grid grid-cols-1 gap-3 xl:grid-cols-[280px_minmax(0,1fr)]">
@@ -2187,36 +2558,78 @@ function InviteApplicationInsights({
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
         <ChartSurface
           title="状态分布"
-          subtitle="点击状态进入对应申请列表"
+          subtitle="环形图看处理池结构；点击状态进入对应申请列表"
           icon={<BarChart3 className="h-4 w-4" aria-hidden />}
         >
-          <MiniBarChart
+          <DonutCompositionChart
             items={statusItems}
-            tone="amber"
+            centerLabel="申请状态"
+            centerValue={formatCount(profileTotal)}
             onSelect={item => onStatusSelect(item.raw || '')}
           />
         </ChartSurface>
         <ChartSurface
           title="痛点分布"
-          subtitle="用条形图看真实报名动机"
+          subtitle="极坐标面积用于快速发现最大报名动机"
           icon={<ListChecks className="h-4 w-4" aria-hidden />}
         >
-          <MiniBarChart
+          <PolarSignalChart
             items={painItems}
-            tone="cyan"
             onSelect={item => onQuerySelect(item.raw || item.label)}
           />
         </ChartSurface>
         <ChartSurface
           title="来源页"
-          subtitle="判断入口投放与页面转化"
+          subtitle="横向排名更适合长入口名"
           icon={<MapPin className="h-4 w-4" aria-hidden />}
         >
-          <MiniBarChart
+          <HorizontalRankChart
             items={sourceItems}
-            tone="emerald"
             onSelect={item => onSourceSelect(item.raw || item.label)}
           />
+        </ChartSurface>
+      </div>
+      <div className="xl:col-span-2 grid grid-cols-1 gap-3 lg:grid-cols-[360px_minmax(0,1fr)]">
+        <ChartSurface
+          title="画像完整度雷达"
+          subtitle="看报名表关键画像字段是否足够支撑分层运营"
+          icon={<PieChart className="h-4 w-4" aria-hidden />}
+        >
+          <RadarProfileChart items={profileRadarItems} label="画像字段覆盖" />
+        </ChartSurface>
+        <ChartSurface
+          title="考试与阶段结构"
+          subtitle="考试类型、备考阶段、学习时间放在同一运营视角里比较"
+          icon={<BarChart3 className="h-4 w-4" aria-hidden />}
+        >
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            <HorizontalRankChart
+              items={(stats?.exam_type_breakdown ?? []).slice(0, 5).map(item => ({
+                label: item.exam_type,
+                count: item.count,
+              }))}
+              maxItems={5}
+            />
+            <HorizontalRankChart
+              items={(stats?.exam_stage_breakdown ?? []).slice(0, 5).map(item => ({
+                label: item.exam_stage,
+                count: item.count,
+              }))}
+              maxItems={5}
+            />
+            <HorizontalRankChart
+              items={(stats?.daily_study_time_breakdown ?? stats?.weekly_time_breakdown ?? [])
+                .slice(0, 5)
+                .map(item => ({
+                  label:
+                    'daily_study_time' in item
+                      ? item.daily_study_time
+                      : item.weekly_time,
+                  count: item.count,
+                }))}
+              maxItems={5}
+            />
+          </div>
         </ChartSurface>
       </div>
     </section>
@@ -2470,7 +2883,6 @@ function LubanFeedbackInsights({
 }) {
   const summary = stats?.summary
   const total = summary?.total_responses ?? responses.length
-  const npsValue = summary ? Math.max(0, Math.min(1, (summary.nps_score + 100) / 200)) : 0
   const satisfactionItems = (stats?.satisfaction_breakdown ?? []).slice(0, 6).map(item => ({
     label: `${item.overall_satisfaction || 'unknown'} 分`,
     count: item.count,
@@ -2496,23 +2908,27 @@ function LubanFeedbackInsights({
     count: item.count,
     raw: item.source_page,
   }))
+  const npsItems = [
+    { label: '推荐者', count: summary?.promoters ?? 0 },
+    { label: '中立者', count: summary?.passives ?? 0 },
+    { label: '贬损者', count: summary?.detractors ?? 0 },
+  ]
 
   return (
     <section className="grid grid-cols-1 gap-3 xl:grid-cols-[280px_minmax(0,1fr)]">
       <ChartSurface
-        title="NPS 温度计"
+        title="NPS 分层环形图"
         subtitle={`样本 ${formatCount(summary?.nps_base ?? total)} · 推荐/中立/贬损分层`}
         icon={<Gauge className="h-4 w-4" aria-hidden />}
         actionLabel="查看完整问卷"
         onAction={onRevealDetails}
       >
-        <div className="grid place-items-center">
-          <RingMetric
-            value={npsValue}
-            label={`NPS ${formatCount(summary?.nps_score ?? 0)}`}
-            tone={(summary?.nps_score ?? 0) >= 0 ? 'emerald' : 'rose'}
-          />
-        </div>
+        <DonutCompositionChart
+          items={npsItems}
+          centerLabel={`NPS ${formatCount(summary?.nps_score ?? 0)}`}
+          centerValue={formatCount(summary?.nps_base ?? total)}
+          onSelect={onRevealDetails}
+        />
         <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
           <NpsBucket label="推荐" value={summary?.promoters ?? 0} tone="emerald" />
           <NpsBucket label="中立" value={summary?.passives ?? 0} tone="amber" />
@@ -2525,27 +2941,26 @@ function LubanFeedbackInsights({
           subtitle="评分分布比平均分更适合排查体验断点"
           icon={<BarChart3 className="h-4 w-4" aria-hidden />}
         >
-          <MiniBarChart items={satisfactionItems} tone="emerald" onSelect={onRevealDetails} />
+          <HorizontalRankChart items={satisfactionItems} onSelect={onRevealDetails} />
         </ChartSurface>
         <ChartSurface
           title="回访意愿"
-          subtitle="点击意愿分层查看对应问卷"
+          subtitle="用环形图快速看可访样本占比"
           icon={<MousePointerClick className="h-4 w-4" aria-hidden />}
         >
-          <MiniBarChart
+          <DonutCompositionChart
             items={revisitItems}
-            tone="cyan"
+            centerLabel="回访意愿"
             onSelect={item => onQuerySelect(item.raw || item.label)}
           />
         </ChartSurface>
         <ChartSurface
           title="痛点 Top"
-          subtitle="把回访文本变成可扫的运营线索"
+          subtitle="极坐标面积突出最大体验阻塞"
           icon={<ListChecks className="h-4 w-4" aria-hidden />}
         >
-          <MiniBarChart
+          <PolarSignalChart
             items={problemItems}
-            tone="amber"
             onSelect={item => onQuerySelect(item.raw || item.label)}
           />
         </ChartSurface>
@@ -2556,9 +2971,8 @@ function LubanFeedbackInsights({
           subtitle="回访闭环状态，不改写原始问卷"
           icon={<ShieldCheck className="h-4 w-4" aria-hidden />}
         >
-          <MiniBarChart
+          <HorizontalRankChart
             items={statusItems}
-            tone="sky"
             onSelect={item => onStatusSelect(item.raw || '')}
           />
         </ChartSurface>
@@ -2567,9 +2981,8 @@ function LubanFeedbackInsights({
           subtitle="定位哪一个入口在收集真实回访"
           icon={<MapPin className="h-4 w-4" aria-hidden />}
         >
-          <MiniBarChart
+          <HorizontalRankChart
             items={sourceItems}
-            tone="emerald"
             onSelect={item => onSourceSelect(item.raw || item.label)}
           />
         </ChartSurface>
@@ -4079,51 +4492,33 @@ function BreakdownCard({
     typeof total === 'number' && Number.isFinite(total) && total > 0
       ? total
       : items.reduce((sum, item) => sum + item.count, 0)
-  const maxCount = Math.max(1, ...items.map(item => item.count))
   return (
     <section className="rounded-3xl border border-white/10 bg-white/[0.04] p-4 shadow-lg shadow-black/10">
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-sm font-black text-white">{title}</h3>
         <ClipboardList className="h-4 w-4 text-cyan-300/70" aria-hidden />
       </div>
-      <div className="mt-3 space-y-2">
-        {items.length > 0 ? (
-          items.map(item => {
-            const width = Math.max(8, Math.round((item.count / maxCount) * 100))
-            const share = denominator > 0 ? item.count / denominator : undefined
-            return (
-                <div
-                  key={`${title}-${item.label}`}
-                  className="rounded-2xl border border-white/10 bg-white/[0.045] px-3 py-2 text-xs"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <span className="min-w-0 break-words text-slate-300">
-                      {item.label || 'unknown'}
-                    </span>
-                    <span className="shrink-0 font-black tabular-nums text-white">
-                      {formatCount(item.count)}
-                    </span>
-                  </div>
-                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
-                    <div
-                      className="h-full rounded-full bg-cyan-300/70"
-                      style={{ width: `${width}%` }}
-                      aria-hidden
-                    />
-                  </div>
-                  {share !== undefined ? (
-                    <div className="mt-1 text-[10px] font-bold text-slate-500">
-                      {formatRate(share)}
-                    </div>
-                  ) : null}
-                </div>
-            )
-          })
-        ) : (
-          <div className="rounded-2xl border border-dashed border-white/15 bg-white/[0.035] px-3 py-4 text-center text-xs text-slate-400">
-            暂无数据
+      <div className="mt-3">
+        <HorizontalRankChart
+          items={items}
+          maxItems={5}
+        />
+      </div>
+      {denominator > 0 ? (
+        <div className="mt-2 text-[10px] font-bold text-slate-500">
+          分母 {formatCount(denominator)}
+        </div>
+      ) : null}
+      <div className="mt-2 grid gap-1.5 text-[11px]">
+        {chartItemsWithOther(items, 5).map(item => (
+          <div key={`${title}-legend-${item.label}`} className="flex items-center justify-between gap-2">
+            <span className="min-w-0 truncate text-slate-400">{item.label || 'unknown'}</span>
+            <span className="font-black tabular-nums text-slate-200">
+              {formatCount(item.count)}
+              {denominator > 0 ? ` · ${formatRate(item.count / denominator)}` : ''}
+            </span>
           </div>
-        )}
+        ))}
       </div>
     </section>
   )
@@ -4156,73 +4551,12 @@ function AgeCompositionCard({
           <div className="text-[10px] font-bold text-slate-400">样本</div>
         </div>
       </div>
-      <div
-        className="mt-4 flex h-8 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.05]"
-        aria-label={`${title}堆叠占比`}
-      >
-        {items.length > 0 && denominator > 0 ? (
-          items.map((item, index) => {
-            const width = Math.max(4, (item.count / denominator) * 100)
-            const palette = [
-              'bg-emerald-300',
-              'bg-cyan-300',
-              'bg-amber-300',
-              'bg-sky-400',
-              'bg-rose-300',
-              'bg-slate-300',
-            ]
-            return (
-              <div
-                key={`${title}-segment-${item.label}`}
-                className={`${palette[index % palette.length]} h-full`}
-                style={{ width: `${width}%` }}
-                title={`${item.label || 'unknown'} ${formatCount(item.count)} (${formatRate(
-                  item.count / denominator
-                )})`}
-                aria-label={`${item.label || 'unknown'} ${formatRate(item.count / denominator)}`}
-              />
-            )
-          })
-        ) : (
-          <div className="grid h-full w-full place-items-center text-[11px] font-bold text-slate-400">
-            暂无年龄数据
-          </div>
-        )}
-      </div>
-      <div className="mt-3 grid gap-2">
-        {items.length > 0 ? (
-          items.map((item, index) => {
-            const share = denominator > 0 ? item.count / denominator : 0
-            return (
-              <div
-                key={`${title}-${item.label}`}
-                className="grid grid-cols-[14px_minmax(0,1fr)_auto] items-center gap-2 text-xs"
-              >
-                <span
-                  className={
-                    [
-                      'h-2.5 w-2.5 rounded-full bg-emerald-300',
-                      'h-2.5 w-2.5 rounded-full bg-cyan-300',
-                      'h-2.5 w-2.5 rounded-full bg-amber-300',
-                      'h-2.5 w-2.5 rounded-full bg-sky-400',
-                      'h-2.5 w-2.5 rounded-full bg-rose-300',
-                      'h-2.5 w-2.5 rounded-full bg-slate-300',
-                    ][index % 6]
-                  }
-                  aria-hidden
-                />
-                <span className="min-w-0 truncate text-slate-300">{item.label || 'unknown'}</span>
-                <span className="font-black tabular-nums text-white">
-                  {formatCount(item.count)} · {formatRate(share)}
-                </span>
-              </div>
-            )
-          })
-        ) : (
-          <div className="rounded-2xl border border-dashed border-white/15 bg-white/[0.035] px-3 py-4 text-center text-xs text-slate-400">
-            暂无数据
-          </div>
-        )}
+      <div className="mt-3">
+        <DonutCompositionChart
+          items={items}
+          centerLabel={title}
+          centerValue={formatCount(denominator)}
+        />
       </div>
     </section>
   )
