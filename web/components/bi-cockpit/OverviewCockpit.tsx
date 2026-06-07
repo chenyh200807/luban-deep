@@ -158,9 +158,7 @@ export function OverviewCockpit({
             <CockpitKpi
               label={card.label}
               value={card.value as string | number}
-              tone={
-                (TONE_BY_CARD[card.tone ?? 'neutral'] ?? TONE_CYCLE[i % TONE_CYCLE.length]) as never
-              }
+              tone={TONE_BY_CARD[card.tone ?? 'neutral'] ?? TONE_CYCLE[i % TONE_CYCLE.length]}
               sub={card.hint}
               delta={
                 card.delta ? { value: card.delta, up: deltaUp(card.delta, card.tone) } : undefined
@@ -344,5 +342,3 @@ function Empty(): ReactNode {
     </div>
   )
 }
-
-void fmtNum
