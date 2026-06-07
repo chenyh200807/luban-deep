@@ -2676,6 +2676,71 @@ def _attach_open_world_diagnostic(
     payload["open_world_diagnostic"] = diag.to_unified_schema()
 
 
+def _learning_evidence_preview_disabled() -> bool:
+    """Emergency kill switch for the gap_1 Learning-Brain preview emission.
+
+    Default ENABLED so the live grading surface actually exercises the unified
+    ``build_learning_evidence_from_context_pack`` consumer (production calls were 0).
+    Set ``LUBAN_LEARNING_EVIDENCE_PREVIEW_DISABLED=1`` to fall back to legacy
+    byte-identical payloads."""
+    import os
+
+    return str(os.getenv("LUBAN_LEARNING_EVIDENCE_PREVIEW_DISABLED", "")).strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+
+def _maybe_attach_learning_evidence_preview(
+    *,
+    graded_context: dict[str, Any],
+    result_payload: dict[str, Any],
+    turn_id: str = "",
+    session_id: str = "",
+) -> None:
+    """gap_1 / M28: emit a Learning-Brain PREVIEW from the SAME compiled context the
+    grading surface used, so the live ``/api/v1/ws`` grading runtime — not only offline
+    scripts — feeds ``build_learning_evidence_from_context_pack``.
+
+    Thin wrapper: ALL policy lives in the fat skill (``learning_evidence``). This only
+    routes the already-graded result + its compiled context into the consumer and
+    appends the preview. It NEVER raises mastery (``mastery_raised`` is always False),
+    NEVER writes canonical truth (``canonical_truth_written`` is always False), and
+    NEVER mutates the legacy ``construction_grading_result``. The fat skill decides the
+    per-question ``preview_only`` / ``claim_promotion_allowed`` flags from the pack's
+    ``diagnostic_policy`` (governed/official questions may set them so the Learning Brain
+    can promote; candidate/open-world questions stay preview). Best-effort: any failure
+    leaves legacy behaviour untouched (fail-closed)."""
+    if _learning_evidence_preview_disabled():
+        return
+    grading_result = graded_context.get("construction_grading_result")
+    if not isinstance(grading_result, dict) or not grading_result:
+        return
+    try:
+        compiled_context = grading_result.get("compiled_context")
+        if not isinstance(compiled_context, dict) or not compiled_context:
+            from deeptutor.services.construction_grading.compiled_context import (
+                build_pack_from_question_context,
+            )
+
+            compiled_context = build_pack_from_question_context(graded_context).to_dict()
+        from deeptutor.services.construction_grading.learning_evidence import (
+            build_learning_evidence_from_context_pack,
+        )
+
+        preview = build_learning_evidence_from_context_pack(
+            grading_result=grading_result,
+            compiled_context=compiled_context,
+            turn_id=turn_id,
+            session_id=session_id,
+        )
+    except Exception:  # noqa: BLE001 — preview must never break legacy grading
+        return
+    result_payload["learning_evidence_preview"] = preview
+
+
 class DeepQuestionCapability(BaseCapability):
     manifest = CapabilityManifest(
         name="deep_question",
@@ -3838,6 +3903,15 @@ class DeepQuestionCapability(BaseCapability):
                     context=context,
                     graded_context=graded_context,
                     result_payload=result_payload,
+                )
+                # gap_1 / M28: feed the SAME compiled context into the Learning-Brain
+                # consumer from the LIVE grading runtime (preview only; env kill switch;
+                # append-only; never raises mastery / writes canonical truth / mutates legacy).
+                _maybe_attach_learning_evidence_preview(
+                    graded_context=graded_context,
+                    result_payload=result_payload,
+                    turn_id=turn_id,
+                    session_id=str(context.session_id or ""),
                 )
 
             # plan §Phase 5 / Batch E.2 Gap 5 — progressive disclosure payload.

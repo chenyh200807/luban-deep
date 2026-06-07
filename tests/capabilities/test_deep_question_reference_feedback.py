@@ -126,6 +126,17 @@ def test_brief_wrong_cause_confirms_named_correct_option() -> None:
     assert "正确选项" in response
 
 
+def test_option_challenge_without_brevity_keeps_detailed_reference_feedback() -> None:
+    response = _render_deterministic_reference_feedback(
+        _wall_context(user_answer="CDE", is_correct=True),
+        user_message="A错在哪里？请说明标准答案依据。",
+    )
+
+    assert response.startswith("A（槽段长度8-10m）")
+    assert "本题标准答案是 C" in response
+    assert "我不会因为追问或假设选项改写标准答案" in response
+
+
 def test_reference_feedback_targets_indexed_question_set_item() -> None:
     response = _render_deterministic_reference_feedback(
         {
