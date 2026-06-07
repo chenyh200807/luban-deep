@@ -25,7 +25,10 @@ from deeptutor.services.question_lifecycle_skills import (
 from deeptutor.services.query_intent import query_requires_current_info
 from deeptutor.services.render_presentation import build_canonical_presentation
 from deeptutor.services.security.tutorbot_guardrails import guard_tutorbot_output
-from deeptutor.services.semantic_router import build_active_object_from_question_context
+from deeptutor.services.semantic_router import (
+    apply_active_object_transition,
+    build_active_object_from_question_context,
+)
 from deeptutor.services.citations import (
     CitationPolicy,
     answer_citations_enabled,
@@ -612,7 +615,7 @@ class TutorBotCapability(BaseCapability):
                 )
                 result_payload["question_followup_context"] = question_followup_context
                 if result_payload["question_followup_context"]:
-                    result_payload["active_object"] = (
+                    next_active_object = (
                         build_active_object_from_question_context(
                             result_payload["question_followup_context"],
                             source_turn_id=turn_id,
@@ -620,10 +623,26 @@ class TutorBotCapability(BaseCapability):
                         )
                         or {}
                     )
+                    transitioned_active_object, transitioned_stack = apply_active_object_transition(
+                        previous_active_object=active_object,
+                        previous_suspended_object_stack=context.metadata.get("suspended_object_stack"),
+                        turn_semantic_decision={
+                            "relation_to_active_object": "switch_to_new_object",
+                            "next_action": "route_to_grading",
+                            "allowed_patch": ["set_active_object"],
+                            "confidence": 1.0,
+                            "reason": "exact-question authority emitted a new active question object.",
+                            "target_object_ref": {},
+                        },
+                        resolved_active_object=next_active_object,
+                    )
+                    result_payload["active_object"] = transitioned_active_object or next_active_object
+                    result_payload["suspended_object_stack"] = transitioned_stack
                     context.metadata["question_followup_context"] = dict(
                         result_payload["question_followup_context"]
                     )
                     context.metadata["active_object"] = dict(result_payload["active_object"])
+                    context.metadata["suspended_object_stack"] = list(transitioned_stack)
             await stream.result(result_payload, source=self.name)
 
     @staticmethod

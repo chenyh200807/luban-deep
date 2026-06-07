@@ -29,6 +29,9 @@ _PREVIOUS_OBJECT_MARKERS = (
     "不是这个题",
     "不是这个",
 )
+_PREVIOUS_OBJECT_REFERENCE_RE = re.compile(
+    r"(?:刚才|之前|前面).{0,24}(?:那道题|那一道|那一题|那道|那题)"
+)
 _GUIDE_CONTINUATION_MARKERS = (
     "继续",
     "接着",
@@ -829,6 +832,20 @@ async def resolve_question_semantic_routing(
         llm_action = None
         llm_route = None
     if llm_decision is not None and llm_route in {"submission", "followup", "practice_generation"}:
+        if suspended_stack and _message_prefers_previous_object(user_message):
+            stack_routing = await _resolve_from_suspended_stack(
+                user_message=user_message,
+                active_object=active_object,
+                suspended_stack=suspended_stack,
+                history_context=history_context,
+                interpret_followup_action=interpret_followup_action,
+                resolve_submission_attempt=resolve_submission_attempt,
+                looks_like_question_followup=looks_like_question_followup,
+                looks_like_practice_generation_request=looks_like_practice_generation_request,
+                active_decision=llm_decision,
+            )
+            if stack_routing is not None:
+                return stack_routing
         return SemanticRoutingResult(
             active_object=active_object,
             suspended_object_stack=suspended_stack,
@@ -1473,7 +1490,9 @@ def _message_prefers_previous_object(message: str) -> bool:
     text = str(message or "").strip()
     if not text:
         return False
-    return any(marker in text for marker in _PREVIOUS_OBJECT_MARKERS)
+    return any(marker in text for marker in _PREVIOUS_OBJECT_MARKERS) or bool(
+        _PREVIOUS_OBJECT_REFERENCE_RE.search(text)
+    )
 
 
 def _is_guide_active_object(active_object: dict[str, Any] | None) -> bool:
