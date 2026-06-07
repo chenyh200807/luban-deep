@@ -1716,21 +1716,29 @@ def _case_rubric_v1_flag_enabled(context: UnifiedContext) -> bool:
 
     Tri-state env ``LUBAN_CASE_RUBRIC_V1_ENABLED``:
       - false/0/off/no  -> force OFF (kill switch, beats the per-turn flag)
-      - true/1/on/yes   -> force ON globally (dev/gray rollout; still cohort-gated downstream)
-      - unset/other     -> per-turn flag from request metadata / config_overrides
+      - true/1/on/yes   -> force ON for ALL users on this instance (dev/local; bypasses cohort)
+      - unset/other     -> per-turn flag from request metadata / config_overrides (cohort-gated)
     """
+    if _case_rubric_v1_global_on():
+        return True
     import os
 
-    env = os.environ.get("LUBAN_CASE_RUBRIC_V1_ENABLED", "").strip().lower()
-    if env in ("false", "0", "off", "no"):
+    if os.environ.get("LUBAN_CASE_RUBRIC_V1_ENABLED", "").strip().lower() in ("false", "0", "off", "no"):
         return False
-    if env in ("true", "1", "on", "yes"):
-        return True
     metadata = context.metadata if isinstance(context.metadata, dict) else {}
     return bool(
         metadata.get("grading_engine_case_rubric_v1")
         or context.config_overrides.get("grading_engine_case_rubric_v1")
     )
+
+
+def _case_rubric_v1_global_on() -> bool:
+    """Dev/local global force-on: ``LUBAN_CASE_RUBRIC_V1_ENABLED=true`` turns V1 on for every user on
+    this instance and BYPASSES the cohort allowlist. Never set in production (production leaves it unset
+    and relies on the per-turn flag + cohort for gray rollout)."""
+    import os
+
+    return os.environ.get("LUBAN_CASE_RUBRIC_V1_ENABLED", "").strip().lower() in ("true", "1", "on", "yes")
 
 
 def _case_rubric_v1_cohort_member(student_id: str) -> bool:
@@ -1758,7 +1766,9 @@ async def _grade_case_rubric_v1(
     if not _case_rubric_v1_flag_enabled(context):
         return None
     student_id = _learner_user_id_from_context(context)
-    if not _case_rubric_v1_cohort_member(student_id):
+    # Global force-on (dev/local) is for ALL users on the instance; the cohort allowlist only gates the
+    # per-turn-flag gray rollout (real production users).
+    if not _case_rubric_v1_global_on() and not _case_rubric_v1_cohort_member(student_id):
         return None  # cohort gate: out-of-cohort users unaffected
     cg = graded_context.get("construction_grading_result")
     # The case adapter stamps result["type"] = "case" for ALL written/essay/short-answer variants;

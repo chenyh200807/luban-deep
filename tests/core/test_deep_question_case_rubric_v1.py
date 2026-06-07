@@ -183,6 +183,24 @@ async def test_case_rubric_v1_open_world_no_rubric(monkeypatch: pytest.MonkeyPat
 
 
 @pytest.mark.asyncio
+async def test_case_rubric_v1_global_on_bypasses_cohort(monkeypatch: pytest.MonkeyPatch) -> None:
+    # LUBAN_CASE_RUBRIC_V1_ENABLED=true -> on for everyone on the instance, even a non-qa account
+    # (dev/local). No per-turn flag needed.
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_V1_ENABLED", "true")
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda qid: _RUBRIC if qid == "case-9006" else [])
+
+    async def _fake_batch_async(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {"P1": {"status": G.HIT}, "P2": {"status": G.MISS}, "P3": {"status": G.MISS}}
+
+    monkeypatch.setattr(G, "batch_judge_async", _fake_batch_async)
+    # real_student_1 is NOT in the qa_/test_ cohort, but global-on overrides it
+    result = await _run_case(monkeypatch, _case_context(user_id="real_student_1", rubric_v1=False))
+    assert result["luban_case_rubric_v1"]["status"] == "ok"
+    assert "逐采分点点评" in result["response"]
+
+
+@pytest.mark.asyncio
 async def test_case_rubric_v1_env_kill_switch(monkeypatch: pytest.MonkeyPatch) -> None:
     # Env kill switch force-disables even with the request flag on.
     monkeypatch.setenv("LUBAN_CASE_RUBRIC_V1_ENABLED", "false")
