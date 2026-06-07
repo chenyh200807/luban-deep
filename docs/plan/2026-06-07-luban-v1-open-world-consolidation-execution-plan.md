@@ -30,10 +30,11 @@
 5. `deep_question_adapter`：`_KNOWN_CASE_TYPES` 快路径 + `_has_reference_answer` + `_is_subjective_context`（非选择+有参考答案），**纯增量**（只增不减 case 覆盖）；`_is_choice_context` 不动。
 6. batch：`_grade_case_rubric_v1` 顶层 `type=="batch"` 时遍历 items 逐个走同一 V1 链（不复制判分逻辑），渲染聚合。
 
-### 批3：簇① 退役死 lane（less is more，本次只动 live 接线）
-7. 删 `_emit_grading_result` 内 6 条 `_maybe_attach_*` 调用 + 其专属 flag/env/cohort helper；保留 V1。
-8. 删 8 个直调被删 wrapper 的测试文件。
-9. **模块文件 + 里程碑测试 + 重复实现收敛**（采分点拆分 4 份、learning_evidence 投影 3-4 份）→ **独立 PR**，避免 mega-diff。
+### 批3：簇① 退役死 lane —— 改为【独立 PR】，本次不做（实测决策）
+**实测发现**：移除 `_emit_grading_result` 内 6 条 `_maybe_attach_*` 接线会**级联破坏约 20 个测试**（m11-m17 里程碑 WS 测试 + `test_deep_question_luban_runtime_shadow` + `e2e_runtime_teacher_review_smoke`/`_v2`），其中 e2e 用例可能覆盖**教师复核真实功能**。半做（删 wiring + 留 builder 模块 + 删 20 测试）会变成有风险的 mega-diff，且可能误删真实功能覆盖——触发 systematic-debugging Phase 4.5「级联即退一步」。
+**决策（对结果负责）**：**回退批3**，把"完整退役"作为**独立 PR** 一次性做（wiring + 模块文件 + 全部里程碑/e2e 测试 + run_luban_m* 脚本 + 重复实现收敛），有专门验证与回滚。
+**为何安全推迟**：①真正的运行时多权威**冲突**（is_correct vs response 不同源）已在**批1 同源修复**根除；②其余 lane 是 **default-off、append-only、零生产消费者**的休眠负载（客户端只读 response），不影响真实学生，仅属代码卫生（flag 泛滥/重复实现）。
+**独立 PR 的精确清单**已由 Cluster C 专家规格给出（第一层 wiring+专属 helper 行号区间、第二层模块+测试连带表、删除顺序依赖 `build_controlled_runtime_payload` 复用 `build_beta_shadow_payload`、`best_quality_ai_draft`/`ai_draft_shadow`/`objective_grader`/`objective_answer_key_compiler` 有生产消费者不可删）。
 
 ## 验证
 - 每批：相关单测先红后绿 + `pytest tests/core/test_deep_question_*.py tests/services/construction_grading/ -q` 零回归（pre-existing `test_related_generation_anchor` 失败与本工作无关，已 stash 验证）。
