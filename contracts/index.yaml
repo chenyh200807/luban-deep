@@ -133,6 +133,7 @@ domains:
       - tests/capabilities/test_deep_question_reference_feedback.py
       - tests/capabilities/test_deep_question_unresolved_switch.py
       - tests/core/test_deep_question_active_object.py
+      - tests/capabilities/test_deep_question_learning_evidence_preview.py
       - tests/services/test_render_presentation.py
       - wx_miniprogram/tests/test_ai_message_state.js
       - yousenwebview/tests/test_question_review_readonly_mcq.js
