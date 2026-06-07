@@ -10,17 +10,17 @@ from deeptutor.services.construction_grading import concept_registry as CR
 def _nodes():
     return [
         # same path + same parent, enriched twice -> confirmed_same merge, keyword union w/ provenance
-        {"code": "X-01", "name": "按用途分类", "parent": "X", "name_path": "建筑 > 分类 > 按用途分类",
+        {"code": "1A411011-01", "name": "按用途分类", "parent": "X", "name_path": "建筑 > 分类 > 按用途分类",
          "keywords": ["民用", "工业"], "level": 5},
-        {"code": "X-01", "name": "按用途分类", "parent": "X", "name_path": "建筑 > 分类 > 按用途分类",
+        {"code": "1A411011-01", "name": "按用途分类", "parent": "X", "name_path": "建筑 > 分类 > 按用途分类",
          "keywords": ["民用", "农业"], "level": 5},
         # SAME code X-01, different name_path -> separate concept (disambiguated)
-        {"code": "X-01", "name": "按高度分类", "parent": "X", "name_path": "建筑 > 分类 > 按高度分类",
+        {"code": "1A411011-01", "name": "按高度分类", "parent": "X", "name_path": "建筑 > 分类 > 按高度分类",
          "keywords": ["高层"], "level": 5},
         # SAME name_path but DIFFERENT parent -> NOT auto-merged, both flagged structural_conflict
-        {"code": "A-09", "name": "防水层施工", "parent": "屋面", "name_path": "施工 > 防水层施工",
+        {"code": "1A413050-01", "name": "防水层施工", "parent": "屋面", "name_path": "施工 > 防水层施工",
          "keywords": ["卷材"], "level": 5},
-        {"code": "B-04", "name": "防水层施工", "parent": "地下", "name_path": "施工 > 防水层施工",
+        {"code": "1A413053-01", "name": "防水层施工", "parent": "地下", "name_path": "施工 > 防水层施工",
          "keywords": ["涂膜"], "level": 5},
     ]
 
@@ -44,11 +44,11 @@ def test_same_path_different_parent_not_merged_flagged_conflict():
 
 def test_collided_code_hard_block():
     reg = CR.compile_registry(_nodes())
-    assert isinstance(reg["alias_index"]["X-01"], list)  # spans >1 concept
+    assert isinstance(reg["alias_index"]["1A411011-01"], list)  # spans >1 concept
     # no name_path -> refuse to single-resolve
-    assert CR.resolve_alias(reg, "X-01") == ""
+    assert CR.resolve_alias(reg, "1A411011-01") == ""
     # with name_path -> disambiguated
-    assert CR.resolve_alias(reg, "X-01", "建筑 > 分类 > 按高度分类") == \
+    assert CR.resolve_alias(reg, "1A411011-01", "建筑 > 分类 > 按高度分类") == \
         next(x["concept_id"] for x in reg["concepts"].values() if x["canonical_path"].endswith("按高度分类"))
 
 
@@ -57,7 +57,7 @@ def test_concept_id_stable_across_recompile_with_prior():
     # simulate a textbook revision: rename a leaf's display name (path/ parent unchanged) -> id must hold
     nodes2 = [dict(n) for n in _nodes()]
     # add a brand-new node; existing concepts must keep their ids via prior match
-    nodes2.append({"code": "Z-01", "name": "新增", "parent": "X", "name_path": "建筑 > 分类 > 新增概念",
+    nodes2.append({"code": "1A411011-09", "name": "新增", "parent": "X", "name_path": "建筑 > 分类 > 新增概念",
                    "keywords": ["x"], "level": 5})
     reg2 = CR.compile_registry(nodes2, prior=reg1)
     # every concept that existed in reg1 keeps its concept_id (keyed by path+parent, the concept group)
@@ -112,8 +112,8 @@ def test_apply_adjudications_merge_migrates_and_clears_gate():
 def test_human_approval_required_for_learner_key():
     # a human-approved merge with NO collided codes -> learner_state durable key gate can open
     nodes = [
-        {"code": "P-1", "name": "概念A", "parent": "屋面", "name_path": "施工 > 概念A", "keywords": ["a"], "level": 5},
-        {"code": "P-2", "name": "概念A", "parent": "地下", "name_path": "施工 > 概念A", "keywords": ["b"], "level": 5},
+        {"code": "1A413050-07", "name": "概念A", "parent": "屋面", "name_path": "施工 > 概念A", "keywords": ["a"], "level": 5},
+        {"code": "1A413053-07", "name": "概念A", "parent": "地下", "name_path": "施工 > 概念A", "keywords": ["b"], "level": 5},
     ]
     reg = CR.compile_registry(nodes)
     ids = [c["concept_id"] for c in reg["concepts"].values()]

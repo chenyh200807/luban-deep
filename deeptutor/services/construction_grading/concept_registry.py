@@ -23,6 +23,7 @@ Deterministic: same input (+ same prior) -> byte-identical registry.
 from __future__ import annotations
 
 import hashlib
+import re
 from typing import Any
 
 SCHEMA_VERSION = "luban_concept_registry.v3"
@@ -66,6 +67,22 @@ def compile_registry(nodes: list[dict[str, Any]], *, prior: dict[str, Any] | Non
     concepts keep their concept_id across a recompile (matched by name_path_hash), so durable ids
     survive textbook revisions.
     """
+    # QUARANTINE malformed source nodes (generation accidents): empty name, or a truncated code that
+    # doesn't match the canonical pattern. Their full/correct counterparts exist as separate concepts,
+    # so dropping them loses no real exam point. Quarantined (not silently deleted) for audit.
+    quarantine: list[dict[str, Any]] = []
+    clean_nodes: list[dict[str, Any]] = []
+    for n in nodes:
+        name_ok = bool(str(n.get("name") or "").strip())
+        code = str(n.get("code") or "")
+        code_ok = bool(re.match(r"^1A\d{6}(-[0-9a-z]+)*$", code))
+        if not name_ok or not code_ok:
+            quarantine.append({"code": code, "name": n.get("name"), "name_path": n.get("name_path"),
+                               "reason": "empty_name" if not name_ok else "malformed_code"})
+        else:
+            clean_nodes.append(n)
+    nodes = clean_nodes
+
     # collect groups
     groups: dict[tuple[str, str], dict[str, Any]] = {}
     paths_to_parents: dict[str, set[str]] = {}
@@ -165,6 +182,7 @@ def compile_registry(nodes: list[dict[str, Any]], *, prior: dict[str, Any] | Non
         "schema_version": SCHEMA_VERSION, "namespace": "concept_registry",
         "status": "release_candidate", "published": False,
         "input_nodes": len(nodes), "concept_count": len(concepts),
+        "quarantined_malformed": len(quarantine),
         "merged_confirmed": merged,
         "structural_conflicts_pre_adjudication": structural,
         "unresolved_adjudications": unresolved,
@@ -176,7 +194,8 @@ def compile_registry(nodes: list[dict[str, Any]], *, prior: dict[str, Any] | Non
         "gates": _capability_gates(concepts, collided, unresolved),
         "content_hash": content_hash,
     }
-    return {"manifest": manifest, "concepts": concepts, "alias_index": alias_index}
+    return {"manifest": manifest, "concepts": concepts, "alias_index": alias_index,
+            "quarantine": quarantine}
 
 
 def _capability_gates(concepts: dict[str, Any], collided: int, unresolved: int) -> dict[str, bool]:

@@ -85,11 +85,15 @@ def run() -> dict[str, Any]:
                  if c["equivalence_status"] == CR.STATUS_STRUCTURAL_CONFLICT]
     (OUT / "structural_conflicts_review.json").write_text(
         json.dumps(conflicts, ensure_ascii=False, indent=2), "utf-8")
+    (OUT / "quarantine.json").write_text(
+        json.dumps(reg.get("quarantine", []), ensure_ascii=False, indent=2), "utf-8")
     m = reg["manifest"]
     return {"input_nodes": m["input_nodes"], "concepts": m["concept_count"],
-            "merged_confirmed": m["merged_confirmed"], "structural_conflicts": m["structural_conflicts"],
+            "quarantined_malformed": m.get("quarantined_malformed"),
+            "merged_confirmed": m["merged_confirmed"],
+            "structural_conflicts_pre_adjudication": m.get("structural_conflicts_pre_adjudication"),
             "unresolved_adjudications": m.get("unresolved_adjudications"),
-            "learner_state_durable_key_safe": m.get("learner_state_durable_key_safe"),
+            "gates": m.get("gates"),
             "collided_codes": m["collided_codes"], "reused_prior_ids": m["reused_prior_ids"],
             "out": str(OUT)}
 
