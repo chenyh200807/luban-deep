@@ -68,10 +68,15 @@ def main() -> None:
 
     rag_fn = None
     if args.use_rag:
-        from deeptutor.tools.rag_tool import rag_search
+        # Call the KB v5 pipeline DIRECTLY — it's a KB-independent direct-Postgres provider; rag_search
+        # resolves the provider per-KB-config and would fall back to llamaindex (no local kbv5 KB).
+        from deeptutor.services.rag.factory import get_pipeline
+
+        _kbv5 = get_pipeline("kbv5")
 
         async def rag_fn(q):  # noqa: E306
-            return await rag_search(q, intent="question_grading_explanation", question_type="case")
+            r = await _kbv5.search(q, kb_name="kb_v5")
+            return (r.get("content") or r.get("answer") or "") if isinstance(r, dict) else str(r)
 
     out = asyncio.run(build_fused_case_feedback(
         merged, question_stem=f"{args.question} 案例题（{chunk}）", student_answer=ans,
