@@ -139,6 +139,58 @@ def to_learning_evidence(event: dict[str, Any], *, node_code: str = "") -> dict[
     }
 
 
+def render_case_rubric_feedback(event: dict[str, Any], *, question_stem: str = "") -> str:
+    """Render a GradingEvent into the student-facing case feedback (the text shown in chat).
+
+    SAME-SOURCE rendering (the ④ fix): the displayed words are derived purely and deterministically from
+    the very GradingEvent that produced the score — so what the student READS can never disagree with the
+    structured score. Per scoring point: hit ✅ / partial ⚠️ / miss ❌, with WHY it was lost (omitted vs
+    wrong-content vs incomplete-list) and the per-point score. V0 by contrast is binary (any keyword ->
+    full, else zero, no partial, no reason), and its prose is a separate LLM blurb that can drift."""
+    sp = event.get("scoring_points") or []
+    awarded = event.get("awarded_score", 0)
+    total = event.get("max_score", 0)
+    lines: list[str] = []
+    if question_stem:
+        lines.append(f"【题目】{question_stem}")
+    lines.append(f"【得分】{awarded} / {total} 分")
+    lines.append("")
+    lines.append("【逐采分点点评】")
+    for i, p in enumerate(sp, 1):
+        kp = str(p.get("knowledge_point") or "")
+        s = p.get("score", 0)
+        m = p.get("max_score", 0)
+        hit = p.get("hit")
+        span = str(p.get("evidence_span") or "").strip()
+        mistake = p.get("mistake_type")
+        if hit == HIT:
+            tag = "✅"
+            why = f"命中：{span}" if span else "命中"
+        elif hit == PARTIAL:
+            tag = "⚠️"
+            why = ("部分命中" + (f"（你写到：{span}）" if span else "")
+                   + "，但本采分点要点未答全，还差关键内容")
+        else:  # miss
+            tag = "❌"
+            if mistake == MISTAKE_WRONG:
+                why = (f"答错：你写的「{span}」不符合本采分点" if span
+                       else "答错：所写内容与本采分点不符")
+            elif mistake == MISTAKE_NEAR_SYNONYM:
+                why = "术语不精确：本采分点要求规范术语，近义/口语表述不得分"
+            else:
+                why = "未作答 / 漏写本采分点"
+        lines.append(f"  {tag} 采分点{i} {kp}（{s}/{m}分）—— {why}")
+    weak = [str(p.get("knowledge_point") or "") for p in sp if p.get("hit") != HIT]
+    if weak:
+        lines.append("")
+        lines.append("【薄弱点（需重点复习）】" + "；".join(w for w in weak if w))
+    lines.append("")
+    note = "本评分为 AI 阅卷草稿，需教师复核后方可作为正式成绩。" if event.get("high_risk_review") \
+        else "本评分为 AI 阅卷草稿，非正式成绩。"
+    lines.append(f"（{note}）")
+    return "\n".join(lines)
+
+
 def load_rubric(qid: str) -> list[dict[str, Any]]:
     """Load a question's compiled scoring-point rubric from the tracked supply (empty if not in bank ->
     caller does open-world on-the-fly extraction). Verify-gated."""
@@ -314,5 +366,5 @@ def make_llm_judge(complete_fn: Callable[..., Any], api_key: str, *, model: str 
 
 __all__ = ["grade_with_rubric", "grade_with_batch_judge", "grade_with_batch_judge_async",
            "batch_judge", "batch_judge_async", "make_batch_judge",
-           "to_learning_evidence", "load_rubric", "make_llm_judge",
+           "to_learning_evidence", "render_case_rubric_feedback", "load_rubric", "make_llm_judge",
            "HIT", "PARTIAL", "MISS", "MISTAKE_MISS", "MISTAKE_NEAR_SYNONYM", "MISTAKE_PARTIAL_LIST"]

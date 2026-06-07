@@ -59,6 +59,24 @@ def test_learning_evidence_projection_lists_missed_points():
     assert le["writeback_performed"] is False
 
 
+def test_render_case_rubric_feedback_same_source_and_reasons():
+    # partial / wrong-content / hit each render with the matching tag + reason, derived purely from
+    # the event (same-source: rendered words can never disagree with the score).
+    judge = _judge({
+        "P1": {"status": G.HIT, "evidence_span": "数控钢筋调直切断机"},          # exact_required hit
+        "P2": {"status": G.PARTIAL, "partial_ratio": 0.5, "evidence_span": "检验A"},  # list partial
+        "P3": {"status": G.MISS, "mistake_type": G.MISTAKE_WRONG, "evidence_span": "塔吊"},  # wrong content
+    })
+    ev = G.grade_with_rubric(qid="Q1", student_answer="x", rubric_points=_rubric(), judge_fn=judge)
+    text = G.render_case_rubric_feedback(ev, question_stem="某案例题")
+    assert "某案例题" in text
+    assert f"【得分】{ev['awarded_score']} / {ev['max_score']} 分" in text  # same source as the score
+    assert "✅" in text                                    # P1 hit
+    assert "⚠️" in text and "部分命中" in text          # P2 partial (list)
+    assert "答错：你写的「塔吊」" in text                   # P3 wrong-content, NOT "漏写"
+    assert "薄弱点" in text and "列举6项检验" in text       # P2 (partial) is a weak point
+
+
 def test_rubric_v1_shadow_qa_gate_and_grading():
     from deeptutor.services.construction_grading import runtime_shadow_adapter as A
     pts = [{"point_id": "P1", "text": "数控钢筋调直切断机", "score": 1.0, "policy": "exact_required",
