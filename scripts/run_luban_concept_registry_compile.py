@@ -49,17 +49,33 @@ def _flatten(tree_path: Path) -> list[dict[str, Any]]:
 
 def run() -> dict[str, Any]:
     nodes = _flatten(TAX_PATH)
-    reg = CR.compile_registry(nodes)
+    # load a prior registry (if present) so existing concepts keep their durable concept_id across
+    # recompiles / textbook revisions (id stability — see concept_registry docstring).
+    prior_path = OUT / "concept_registry.json"
+    prior = None
+    if prior_path.exists():
+        try:
+            prior = json.loads(prior_path.read_text("utf-8"))
+        except Exception:  # noqa: BLE001
+            prior = None
+    reg = CR.compile_registry(nodes, prior=prior)
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "concept_registry.json").write_text(
         json.dumps(reg, ensure_ascii=False, sort_keys=True, separators=(",", ":")), "utf-8")
-    # migration report: old code -> concept_id, flag collided codes (need name_path to resolve)
+    # migration + review reports
     migration = {"old_code_to_concept": reg["alias_index"],
                  "collided_codes": sorted(k for k, v in reg["alias_index"].items() if isinstance(v, list))}
     (OUT / "migration_report.json").write_text(json.dumps(migration, ensure_ascii=False, indent=2), "utf-8")
+    conflicts = [{"concept_id": c["concept_id"], "canonical_path": c["canonical_path"],
+                  "parent": c["parent"], "alias_codes": c["alias_codes"]}
+                 for c in reg["concepts"].values()
+                 if c["equivalence_status"] == CR.STATUS_STRUCTURAL_CONFLICT]
+    (OUT / "structural_conflicts_review.json").write_text(
+        json.dumps(conflicts, ensure_ascii=False, indent=2), "utf-8")
     m = reg["manifest"]
     return {"input_nodes": m["input_nodes"], "concepts": m["concept_count"],
-            "merged_concepts": m["merged_concepts"], "collided_codes": m["collided_codes"],
+            "merged_confirmed": m["merged_confirmed"], "structural_conflicts": m["structural_conflicts"],
+            "collided_codes": m["collided_codes"], "reused_prior_ids": m["reused_prior_ids"],
             "out": str(OUT)}
 
 
