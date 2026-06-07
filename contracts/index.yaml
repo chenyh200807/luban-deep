@@ -266,6 +266,7 @@ domains:
       - tests/services/learner_state/test_attempt_detail_read_model.py
       - tests/services/learner_state/test_learning_report_read_model.py
       - tests/services/learner_state/test_learning_state_projection.py
+      - tests/services/learner_state/test_m32_waterproof_learning_synthesis.py
       - tests/services/learner_state/test_mastery_estimator.py
       - tests/services/learner_state/test_training_intent.py
       - tests/services/learner_state/test_personalization_context.py
