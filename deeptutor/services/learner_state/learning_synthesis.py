@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from collections import defaultdict
 import hashlib
 import json
-from collections import defaultdict
 from typing import Any, Iterable
 
 from deeptutor.services.learner_state.learning_state_projection import (
@@ -42,7 +42,7 @@ def synthesize_learning_truth(
     learning_items = [
         item
         for event in ordered_events
-        if _is_learning_evidence(event)
+        if _is_learning_evidence(event) and _is_release_eligible_evidence(event)
         for item in _learning_items(event)
     ]
     learning_items = [item for item in learning_items if item is not None]
@@ -326,6 +326,27 @@ def _is_learning_evidence(event: LearnerStateEvent) -> bool:
         and event.source_feature in {"construction_grading", "assessment_testset", "conversation_synthesis"}
         and (event.source_feature == "construction_grading" or payload.get("event_type") == "learning_evidence")
     )
+
+
+def _is_release_eligible_evidence(event: LearnerStateEvent) -> bool:
+    """SAFETY NET (defensive read filter): shadow/candidate or not-writeback-eligible evidence must NEVER
+    become a claim / weak point / PersonalizationContextPack input, even if such a row somehow leaked into
+    learner_memory_events (writeback is gated at write time, but the read path must be correct on its own —
+    the PCP now surfaces claims into live turns). Excludes ONLY rows POSITIVELY marked shadow/candidate or
+    explicitly writeback_eligible=False; rows that simply omit the marker are kept (no regression)."""
+    payload = dict(event.payload_json or {})
+    authority = str(payload.get("authority") or "").strip().lower()
+    if authority.endswith("_shadow") or authority in {"ai_draft_shadow", "best_quality_4model_shadow"}:
+        return False
+    if payload.get("candidate_only") is True:
+        return False
+    quality = payload.get("quality")
+    if isinstance(quality, dict):
+        if quality.get("candidate_only") is True or str(quality.get("authority") or "").lower().endswith("_shadow"):
+            return False
+        if quality.get("writeback_eligible") is False:   # explicit False only; absent -> keep
+            return False
+    return True
 
 
 def _is_manual_correction(event: LearnerStateEvent) -> bool:

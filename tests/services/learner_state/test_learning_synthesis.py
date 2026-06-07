@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from deeptutor.services.learner_state.service import LearnerStateEvent
 from deeptutor.services.learner_state.learning_synthesis import (
     find_concept_evidence,
     find_next_training_targets,
@@ -8,6 +7,7 @@ from deeptutor.services.learner_state.learning_synthesis import (
     render_learning_truth_summary_md,
     synthesize_learning_truth,
 )
+from deeptutor.services.learner_state.service import LearnerStateEvent
 
 
 def _learning_event(
@@ -546,3 +546,43 @@ def test_render_learning_truth_summary_md_is_teacher_readable() -> None:
     assert "学习事实编译" in summary
     assert "1A432000" in summary
     assert "E02" in summary
+
+
+def _shadow_authority_event(event_id: str) -> LearnerStateEvent:
+    # A leaked shadow row written directly into learner_memory_events (should NEVER happen by
+    # construction, but the read path must defensively exclude it so claims/PCP stay clean).
+    ev = _learning_event(event_id)
+    payload = dict(ev.payload_json)
+    payload["authority"] = "best_quality_4model_shadow"
+    payload["candidate_only"] = True
+    return LearnerStateEvent(
+        event_id=ev.event_id, user_id=ev.user_id, source_feature=ev.source_feature,
+        source_id=ev.source_id, source_bot_id=ev.source_bot_id, memory_kind=ev.memory_kind,
+        dedupe_key=ev.dedupe_key, created_at=ev.created_at, payload_json=payload)
+
+
+def test_leaked_shadow_evidence_is_excluded_from_synthesis() -> None:
+    # SAFETY NET (Step 0): even if a shadow-authority / not-writeback-eligible row somehow lands in the
+    # event table, the read path must drop it — it must never become a claim / weak point / PCP input.
+    proj = synthesize_learning_truth([
+        _shadow_authority_event("shadow1"),
+        _shadow_authority_event("shadow2"),  # would be L1_repeated stable truth if not excluded
+    ])
+    assert proj["weak_points"] == []
+    assert proj["observed_candidates"] == []
+    assert "error:1A432000:E02" not in proj["compiled_objects"]
+
+
+def test_not_writeback_eligible_evidence_is_excluded_from_synthesis() -> None:
+    proj = synthesize_learning_truth([
+        _learning_event("ne1", quality={"evidence_level": "L0_observed", "writeback_eligible": False}),
+        _learning_event("ne2", quality={"evidence_level": "L0_observed", "writeback_eligible": False}),
+    ])
+    assert proj["weak_points"] == []
+    assert proj["observed_candidates"] == []
+
+
+def test_eligible_evidence_still_consumed_after_safety_filter() -> None:
+    # Regression guard: the defensive filter must NOT drop legitimate writeback_eligible evidence.
+    proj = synthesize_learning_truth([_learning_event("ok1"), _learning_event("ok2")])
+    assert "error:1A432000:E02" in proj["compiled_objects"]
