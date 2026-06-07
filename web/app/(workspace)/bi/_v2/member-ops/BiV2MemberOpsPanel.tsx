@@ -23,6 +23,7 @@ import {
   type MemberDetail,
   type MemberListItem,
 } from '@/lib/member-api'
+import { MemberOpsCockpit } from '@/components/bi-cockpit/MemberOpsCockpit'
 import {
   ALL_COLUMNS,
   DEFAULT_COLUMNS,
@@ -229,7 +230,9 @@ export function BiV2MemberOpsPanel({
   const [detailLoading, setDetailLoading] = useState(false)
   const [detailError, setDetailError] = useState('')
   const [drawer, setDrawer] = useState<'none' | 'member360' | 'conversation'>('none')
-  const [conversationReturnTo, setConversationReturnTo] = useState<'none' | 'member360'>('member360')
+  const [conversationReturnTo, setConversationReturnTo] = useState<'none' | 'member360'>(
+    'member360'
+  )
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set())
   const [liveRows, setLiveRows] = useState<MemberRow[]>([])
   const [dashboard, setDashboard] = useState<MemberDashboard | null>(null)
@@ -240,7 +243,8 @@ export function BiV2MemberOpsPanel({
   const lastAutoOpenedQueryRef = useRef('')
   const memberOpsAction = useAuditedAction({ actionType: 'member.ops_action.record' })
   const opsActionWriting = memberOpsAction.state.phase === 'writing'
-  const opsActionError = memberOpsAction.state.phase === 'denied' ? (memberOpsAction.state.result.error ?? '') : ''
+  const opsActionError =
+    memberOpsAction.state.phase === 'denied' ? (memberOpsAction.state.result.error ?? '') : ''
 
   const loadMembers = useCallback(async () => {
     if (!flagEnabled) {
@@ -272,7 +276,9 @@ export function BiV2MemberOpsPanel({
       setDashboard(nextDashboard)
       setLiveRows(nextRows)
       setTotalRows(list.total)
-      setSelectedRows(prev => new Set([...prev].filter(id => nextRows.some(row => row.user_id === id))))
+      setSelectedRows(
+        prev => new Set([...prev].filter(id => nextRows.some(row => row.user_id === id)))
+      )
     } catch (err) {
       setError(err instanceof Error ? err.message : '会员列表加载失败')
       setLiveRows([])
@@ -281,7 +287,14 @@ export function BiV2MemberOpsPanel({
     } finally {
       setLoading(false)
     }
-  }, [filters.expiringDays, filters.riskMin, filters.status, filters.tier, flagEnabled, globalQuery])
+  }, [
+    filters.expiringDays,
+    filters.riskMin,
+    filters.status,
+    filters.tier,
+    flagEnabled,
+    globalQuery,
+  ])
 
   useEffect(() => {
     void loadMembers()
@@ -303,7 +316,9 @@ export function BiV2MemberOpsPanel({
         learningReport: health.learning_report_open_count_7d,
         history: health.history_open_count_7d,
         actions: health.action_start_count_7d,
-        events: health.event_count_7d ?? sourceRows.reduce((sum, row) => sum + (row.behavior_event_count_7d ?? 0), 0),
+        events:
+          health.event_count_7d ??
+          sourceRows.reduce((sum, row) => sum + (row.behavior_event_count_7d ?? 0), 0),
         lowTrust: health.low_trust_count,
       }
     }
@@ -368,21 +383,24 @@ export function BiV2MemberOpsPanel({
   // audited via useAuditedAction at the call site. UI no longer fabricates
   // local audit logs (which were misleading — they suggested writes happened
   // when in fact nothing was sent to the server).
-  const openMember360 = useCallback(async (row: MemberRow) => {
-    setSelectedMember(row)
-    setSelectedDetail(null)
-    setDetailError('')
-    setDrawer('member360')
-    if (!flagEnabled) return
-    try {
-      setDetailLoading(true)
-      setSelectedDetail(await getMemberDetail(row.user_id))
-    } catch (err) {
-      setDetailError(err instanceof Error ? err.message : '学员 360 加载失败')
-    } finally {
-      setDetailLoading(false)
-    }
-  }, [flagEnabled])
+  const openMember360 = useCallback(
+    async (row: MemberRow) => {
+      setSelectedMember(row)
+      setSelectedDetail(null)
+      setDetailError('')
+      setDrawer('member360')
+      if (!flagEnabled) return
+      try {
+        setDetailLoading(true)
+        setSelectedDetail(await getMemberDetail(row.user_id))
+      } catch (err) {
+        setDetailError(err instanceof Error ? err.message : '学员 360 加载失败')
+      } finally {
+        setDetailLoading(false)
+      }
+    },
+    [flagEnabled]
+  )
 
   useEffect(() => {
     const query = globalQuery.trim()
@@ -512,10 +530,10 @@ export function BiV2MemberOpsPanel({
             </BiButton>
           }
         >
-            BI_CRM_V2_ENABLED 已开启 · 会员列表读取{' '}
-            <code className="font-mono">/api/v1/member/list</code>，学员 360 读取{' '}
-            <code className="font-mono">/api/v1/member/&lt;user_id&gt;/360</code>；低风险写动作走
-            member.ops_action.record audit。
+          BI_CRM_V2_ENABLED 已开启 · 会员列表读取{' '}
+          <code className="font-mono">/api/v1/member/list</code>，学员 360 读取{' '}
+          <code className="font-mono">/api/v1/member/&lt;user_id&gt;/360</code>；低风险写动作走
+          member.ops_action.record audit。
         </BiV2DataSourceBanner>
       )}
       {opsActionError ? (
@@ -523,15 +541,9 @@ export function BiV2MemberOpsPanel({
           会员运营动作未写入：{opsActionError}
         </BiNotice>
       ) : null}
-      {opsActionNotice ? (
-        <BiNotice tone="emerald">
-          {opsActionNotice}
-        </BiNotice>
-      ) : null}
+      {opsActionNotice ? <BiNotice tone="emerald">{opsActionNotice}</BiNotice> : null}
 
-      <MemberSummaryCards dashboard={dashboard} loading={loading} />
-
-      <BehaviorHealthStrip totals={behaviorTotals} loading={loading} />
+      <MemberOpsCockpit dashboard={dashboard} />
 
       <BehaviorCohortTabs active={behaviorCohort} onChange={setBehaviorCohort} />
 
@@ -696,7 +708,10 @@ function MemberSummaryCards({
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
       {cards.map(card => (
-        <div key={card.label} className="rounded-3xl border border-white/10 bg-white/[0.045] p-3 shadow-lg shadow-black/10">
+        <div
+          key={card.label}
+          className="rounded-3xl border border-white/10 bg-white/[0.045] p-3 shadow-lg shadow-black/10"
+        >
           <div className="text-[11px] font-bold text-slate-400">{card.label}</div>
           <div className="mt-1 text-2xl font-black tabular-nums text-slate-50">
             {loading && card.value === undefined ? '…' : (card.value ?? '—')}
@@ -711,7 +726,13 @@ function BehaviorHealthStrip({
   totals,
   loading,
 }: {
-  totals: { learningReport: number; history: number; actions: number; events: number; lowTrust: number }
+  totals: {
+    learningReport: number
+    history: number
+    actions: number
+    events: number
+    lowTrust: number
+  }
   loading: boolean
 }) {
   const cards = [
@@ -1082,7 +1103,10 @@ function renderCell(row: MemberRow, key: MemberColumnKey): React.ReactNode {
       <div className="max-w-[220px] space-y-1">
         <BiStatusPill tone={tone} label={behaviorCohortLabel(cohort)} />
         {row.behavior_reasons?.[0] ? (
-          <div className="truncate text-[11px] text-slate-400" title={row.behavior_reasons.join('；')}>
+          <div
+            className="truncate text-[11px] text-slate-400"
+            title={row.behavior_reasons.join('；')}
+          >
             {row.behavior_reasons[0]}
           </div>
         ) : null}
