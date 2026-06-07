@@ -68,10 +68,7 @@ def _load_rubric_for_chunk(chunk: str):
             by_q[str(r["qid"])].append({"point_id": r["point_id"], "text": r["text"],
                                         "score": r["score"], "policy": r["policy"],
                                         "required_terms": r.get("required_terms") or []})
-    points = []
-    for q in sorted(by_q):
-        points.extend(by_q[q])
-    return points
+    return dict(sorted(by_q.items()))  # {sub_question_qid: [points]} — grade per sub-question
 
 
 def main() -> None:
@@ -89,16 +86,18 @@ def main() -> None:
     if not samples:
         raise SystemExit(f"题 {args.question} 未在文件中找到")
     chunk = next(iter(samples.values()))["chunk"]
-    points = _load_rubric_for_chunk(chunk)
-    if not points:
+    by_e = _load_rubric_for_chunk(chunk)  # {sub_question_qid: [points]}
+    if not by_e:
         raise SystemExit(f"chunk {chunk} 不在编译 rubric 库")
-    correct = "；".join(p["text"] for p in points)
-    max_score = round(sum(float(p["score"]) for p in points), 1)
+    all_points = [p for pts in by_e.values() for p in pts]
+    correct = "；".join(p["text"] for p in all_points)
+    max_score = round(sum(float(p["score"]) for p in all_points), 1)
 
     wanted = [s.strip() for s in args.students.split(",") if s.strip()]
     bar = "=" * 78
     print(bar)
-    print(f"A/B 题目: {args.question}  chunk={chunk}  编译满分={max_score}（{len(points)}个采分点）")
+    print(f"A/B 题目: {args.question}  chunk={chunk}  编译满分={max_score}"
+          f"（{len(all_points)}采分点, {len(by_e)}子问, 逐子问判分）")
     print(bar)
 
     rows = []
@@ -107,24 +106,27 @@ def main() -> None:
         if not s or not s["answer"]:
             print(f"\n[{sid}] 无作答，跳过"); continue
         ans = s["answer"]
-        # V0
+        # V0: deterministic kernel against the full reference
         row = {"question_id": chunk, "question_type": "case", "correct_answer": correct, "stem": ""}
         v0 = CaseGradingSkillKernel().grade(question_row=row, user_answer=ans).to_dict()
         v0_aw, v0_mx = float(v0.get("score_awarded") or 0), float(v0.get("max_score") or 0)
         v0_pct = round(v0_aw / v0_mx * 100) if v0_mx else 0
-        # V1
-        ev = asyncio.run(G.grade_with_batch_judge_async(
-            qid=chunk, student_answer=ans, rubric_points=points,
-            complete_fn=complete, api_key=key, student_id=f"qa_ab_{sid}"))
-        v1_aw, v1_mx = ev["awarded_score"], ev["max_score"]
+        # V1: grade EACH sub-question separately (avoid 40-point batch degradation), sum deterministically
+        v1_aw = v1_mx = 0.0
+        hits = partials = 0
+        for q, pts in by_e.items():
+            ev = asyncio.run(G.grade_with_batch_judge_async(
+                qid=q, student_answer=ans, rubric_points=pts,
+                complete_fn=complete, api_key=key, student_id=f"qa_ab_{sid}"))
+            v1_aw += ev["awarded_score"]; v1_mx += ev["max_score"]
+            hits += sum(1 for sp in ev["scoring_points"] if sp["hit"] == "hit")
+            partials += sum(1 for sp in ev["scoring_points"] if sp["hit"] == "partial")
+        v1_aw = round(v1_aw, 1); v1_mx = round(v1_mx, 1)
         v1_pct = round(v1_aw / v1_mx * 100) if v1_mx else 0
-        hits = sum(1 for sp in ev["scoring_points"] if sp["hit"] == "hit")
-        partials = sum(1 for sp in ev["scoring_points"] if sp["hit"] == "partial")
-        rows.append((sid, s["ability"], s["band"], v0_pct, v1_pct, hits, partials, len(points)))
+        rows.append((sid, s["ability"], s["band"], v0_pct, v1_pct, hits, partials, len(all_points)))
         print(f"\n[{sid}] 能力层={s['ability']}  人工预估={s['band']}  作答{len(ans)}字")
         print(f"   V0(确定性): {v0_aw}/{v0_mx} = {v0_pct}%")
-        print(f"   V1(语义):   {round(v1_aw,1)}/{v1_mx} = {v1_pct}%  (命中{hits} 部分{partials} 共{len(points)}点 "
-              f"high_risk={ev['high_risk_review']})")
+        print(f"   V1(语义):   {v1_aw}/{v1_mx} = {v1_pct}%  (命中{hits} 部分{partials} 共{len(all_points)}点)")
 
     print("\n" + bar)
     print(f"{'学生':<6}{'能力层':<12}{'人工预估':<14}{'V0%':>6}{'V1%':>6}  V1命中/部分/总")
