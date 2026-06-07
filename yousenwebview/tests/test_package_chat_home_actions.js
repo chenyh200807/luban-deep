@@ -29,6 +29,12 @@ var chatWxss = fs.readFileSync(
   path.join(__dirname, "../packageDeeptutor/pages/chat/chat.wxss"),
   "utf8",
 );
+global.wx = {
+  getSystemInfoSync: function () {
+    return { benchmarkLevel: 5, memorySize: 2048, platform: "android", system: "Android 8" };
+  },
+};
+var helpers = require("../packageDeeptutor/utils/helpers.js");
 
 assert(
   chatWxml.indexOf('class="nav-usage-pill"') < 0 &&
@@ -142,6 +148,12 @@ assert(
   chatWxss.indexOf(".example-scroll:active .example-scroll-track") >= 0 &&
     chatWxss.indexOf("animation-play-state: paused") >= 0,
   "package example suggestions should pause marquee motion during touch so users can drag directly",
+);
+assert(
+  helpers.getAnimConfig().enableMarquee === true &&
+    helpers.getAnimConfig().enableBreathingOrbs === false &&
+    helpers.getAnimConfig().enableMsgAnimation === false,
+  "low-end performance downgrade should preserve the original example marquee style",
 );
 assert(
   chatWxml.indexOf("class=\"home-entry-btn\"") < 0 &&
