@@ -1,5 +1,10 @@
 # Luban M26 Compiled Context + Open-world Diagnostic Closure Execution Plan
 
+> **Status: `Completed / historical execution plan`（2026-06-07 状态收口）。**
+> M26/M27 已被 master plan §0.26.7-§0.26.9 记录为 hermetic + live closure GO；本文保留为执行记录、DoD 模板和后续 M32 可复用的 safety/test matrix。**不要再把本文的未勾选 checklist 当作当前任务。** 当前执行入口已转为 [2026-06-07-luban-grading-to-brain-m32-waterproof-vertical-slice-execution-plan.md](2026-06-07-luban-grading-to-brain-m32-waterproof-vertical-slice-execution-plan.md)。
+>
+> 本文仍然有效的部分：`LubanContextPack` single authority、open-world diagnostic safety invariants、compiler feedback boundaries、Learning Brain preview-only promotion gate。已过时的部分：M26 package skeleton / Task checklist 作为待办的语义；这些任务已经在 M26/M27 ledger 中完成或被后续 M30/M31/M32 supersede。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` or `superpowers:executing-plans` to implement task by task. Before code, use `plan-eng-review`, `root-cause-debugging`, and `llm-data-organization`.
 
 **Goal:** Complete the master-control §0.26 target: Luban becomes an authority-aware open-world architecture-practice expert, not a narrow registry lookup grader.

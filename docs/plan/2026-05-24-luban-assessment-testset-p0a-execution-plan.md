@@ -1090,7 +1090,7 @@ git ls-files artifacts/
 ```
 
 - [ ] Run WeChat DevTools manual gate:
-  - open `yousenwebview/packageDeeptutor`
+  - open DevTools project root `yousenwebview`, then enter the `packageDeeptutor` assessment pages
   - start approved P0A topic diagnostic
   - answer all questions with at least one wrong answer
   - submit

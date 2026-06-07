@@ -1,9 +1,11 @@
-# 鲁班评分引擎总控计划 v2（目标、差距、三线并行）
+# 鲁班 Grading-to-Brain 总控计划 v2（当前作战图）
 
-> Status: `Active master plan v2`（2026-06-04）。
-> 本文是鲁班评分引擎当前工作的**总控入口**：它不替代 runtime closure、case-rubric data expansion、Consensus-Gold Protocol、AI-Draft A/B 等细文档，而是把它们收束成一个外来工程师可立即接手的路线图。
+> Status: `Active master plan v2`（2026-06-07 当前入口）。
+> 本文是鲁班 **Grading-to-Brain Loop** 的总控入口。它的当前目标不是继续堆旧的 registry / shadow 里程碑，而是把“评分引擎产生高质量学习证据”与“Learning Brain/GBrain 沉淀长期学习决策”串成一条可执行、可验证、可产品化的闭环。
 >
-> 核心结论：鲁班评分引擎已经从“可行性验证”进入“QA 产品化 + Registry v1 数据生产”的阶段；**runtime shadow / teacher-review / Learning Brain 闭环已成立**，但**正式生产发布仍未完成**。当前必须三线并行推进：A. Registry v1 authority 编译，B. QA 产品测试与 live provider，C. Learning Brain 个性化闭环与生产运营。
+> 当前 canonical 目标：**鲁班评分引擎 = 高质量学习证据生产器；Learning Brain/GBrain = 长期个性化学习决策器；RAG/知识编译 = 教材、规范、真题、章节与证据供应器；DeepSeek/Qwen = 在线批改与教学执行模型。**
+>
+> 当前唯一下一步：执行 **M32 Grading-to-Brain Waterproof Vertical Slice**，用一个防水专题纵切证明 `知识编译 -> Compiled Context -> 批改/诊断 -> Learning Evidence -> LearnerClaim -> PersonalizationContextPack -> NextBestAction -> 复测更新`。M5-M31 只作为历史 ledger、release gate 证据和能力底座，不再提供“当前下一步”。
 >
 > 2026-06-04 §0.12 架构纠偏：Registry/spec/knowledge artifacts 不是最终判题器，而是 Nexus-style runtime LLM adjudication 的高质量上下文底座；未来 production 每次案例题判题必须由 DeepSeek-V4-flash primary / Qwen3.7 plus fallback 参与理解学生答案，deterministic validator 负责防越权和 fail-closed。
 >
@@ -12,6 +14,44 @@
 > 2026-06-06 §0.26 目标重置：本计划的目标不是把鲁班 v1 做成“题库内才会答”的窄评分器，而是建设 **建筑实务专家型学习智能体**。鲁班评分引擎是“诊断仪”，回答“这次答题哪里对、哪里错、为什么错”；Learning Brain/GBrain 是“长期主治医生”，回答“这个学生长期是什么画像、下一步怎么教”。Nexus-style 知识编译的目标是给 LLM 更细颗粒、更可信、更可压缩的工作上下文，**增强** LLM，而不是限制 LLM。
 >
 > v2 加强点：补齐历史证据账本、使用场景矩阵、三线详细 backlog、异常处理原则、下一步可交付任务包、验收命令与外来 agent 接手规程。§0.14-§0.15 进一步把计划升级为场景驱动交付：M17/M18 必须同时证明 LLM-native grading、LLM-assisted artifact compiler、GBrain-style evidence-first personalization，而不是只多跑一个 milestone。
+
+## 0.C Current Canonical Target（2026-06-07）
+
+| 系统 | 核心问题 | 产物 |
+|---|---|---|
+| **鲁班评分引擎** | 学生这次案例题 / 客观题 / 开放诊断答得怎么样？ | 采分点命中、得分、错因、`evidence_span`、`high_risk_review`、`GradingEvidenceEvent` |
+| **Learning Brain / GBrain** | 这个学生长期是什么状态？下一步怎么教？ | 学习画像、弱点演化、遗忘 / 复测状态、`LearnerClaim`、`PersonalizationContextPack`、下一题推荐、复习计划 |
+| **知识编译 / RAG** | 教材、规范、真题、章节和证据在哪里？ | signed shards、source refs、taxonomy / node coverage、Compiled Context 输入 |
+| **Runtime LLM** | 如何把本次作答和上下文讲清楚？ | 在线批改、开放诊断、教学解释、候选 work-order |
+
+一句话：
+
+```text
+评分引擎是诊断仪，Learning Brain 是长期主治医生。
+```
+
+评分引擎每批一次作答，只负责产出结构化、高可信、可追溯的学习证据；Learning Brain 消费这些证据，生成长期记忆、趋势判断和个性化动作。GBrain 不重新评分，RAG 不替代学生画像，知识编译不成为第二套 mutable truth。
+
+当前闭环必须长成：
+
+```text
+评分结果
+  -> 学习证据
+  -> 学生画像 / LearnerClaim
+  -> PersonalizationContextPack
+  -> 下一步动作
+  -> 新训练 / 复测
+  -> 再评分
+  -> 更新画像
+```
+
+### 0.C.1 执行入口与阅读顺序
+
+1. 先读本节和 §0.26，确认目标和 authority。
+2. 再读 §0.26.14，确认知识编译 storage / serving / capacity contract。
+3. 当前执行只读 M32 计划：[2026-06-07-luban-grading-to-brain-m32-waterproof-vertical-slice-execution-plan.md](2026-06-07-luban-grading-to-brain-m32-waterproof-vertical-slice-execution-plan.md)。
+4. M26/M27/M30/M31 是已完成能力底座和 ledger，不要按其中旧 checklist 重新执行。
+5. 任何 production default、published registry、canonical learner truth write、远端/DB 写仍需单独授权。
 
 ## 0.0 Canonical update after M5D（2026-06-04）
 
@@ -70,7 +110,7 @@
 - beta_shadow 可评分供给：23 → **82**（textbook auto 23 + spec 候选 59），但 spec 是 candidate 供给，未经 M11 验证。
 - 安全不变量全 0：official_answer 不当 textbook、模型票不当 source、无 semantic-only auto、未接 runtime、未生成 formal registry、未覆盖 v0。
 
-**当前下一步（唯一主线）：**
+**历史下一步（已被 §0.C / §0.26.15 M32 supersede）：**
 
 1. **M11 gated beta QA**：用真实/教师复核验证 M10 的 machine-checkable / list specs，把 source-backed + spec-validated 可评分点推到 ≥ 50。
 2. 同步把 13 个 external_source work order 与 31 个 review packet 接入 teacher / AI council review lane。
@@ -100,7 +140,7 @@ M11 接入点（最小代码、最小 authority 漂移）：
 - flag：request `grading_engine_v1_beta_shadow=true`；env kill switch `LUBAN_V1_BETA_SHADOW_ENABLED=false`；production default OFF。
 - 验证（15 样本，runtime safety 全过）：flag off legacy 字节不变、flag on append-only、kill switch 立即关闭、artifact missing/malformed fail-closed、`construction_grading_result` 未覆盖、production_write_count=0、Learning Brain writeback=false、review queue 15 个、duplicate 幂等。
 
-**当前下一步（唯一主线）：M12 internal live QA**
+**历史下一步（已被 §0.C / §0.26.15 M32 supersede）：M12 internal live QA**
 
 1. 真实 QA 学员（`qa_`/`test_` id）经 `/api/v1/ws` 带 flag 触发 flag-on beta_shadow；老师清 review queue（override/回滚走既有 teacher-review 写回，仍 shadow）。
 2. 验证 Learning Brain preview；env kill switch 作运营熔断。
@@ -128,7 +168,7 @@ M12 真实入口：FastAPI TestClient `/api/v1/ws` → `TurnRuntimeManager.start
 
 M12 证据（86 runtime submissions）：false_positive=0、bad_certified=0、source_mismatch=0、legacy_equal_rate=1.0、production_write_count=0；kill switch / artifact fail-closed / non-qa guard 全过；teacher review dry_run 幂等；Learning Brain 仅 preview（writeback=false）；latency p50=23ms（p95 由冷启动抬高，稳态 ~18–23ms）。7 个对抗攻击全 pass。
 
-**当前下一步（唯一主线）：M13 formal release candidate gate**
+**历史下一步（已被 §0.C / §0.26.15 M32 supersede）：M13 formal release candidate gate**
 
 1. M13 是一个**独立的 formal release 门**（不是 M12 自动延伸）：要把 beta_shadow 从 QA/test 升到任何更高暴露面，必须单独评审 production authority、真人 teacher 复核闭环、source-backed auto≥50、双大模型 skeptic（补 OpenAI key 启用 GPT5.5）。
 2. M13 readiness 当前为 **WEAK-GO**：runtime 安全已证，但 production v1 仍 NO-GO，需独立 release gate。
@@ -154,7 +194,7 @@ M12 证据（86 runtime submissions）：false_positive=0、bad_certified=0、so
 - 实测：controlled_auto_total=54、cohort_hit=true、non_cohort_blocked=true、false_positive=0、legacy_equal_rate=1.0、append-only、kill works、malformed-registry fail-closed、rollback→legacy-only、production_write=0、p50≈25ms。
 - 代码（薄 wrapper / 胖 skill）：`beta_shadow_loader` 加 release-candidate registry loader + `build_controlled_runtime_payload`；`deep_question` 加 `_maybe_attach_v1_controlled_runtime` thin hook；`turn_runtime` allowlist 加 flag。
 
-**当前下一步（唯一主线）：M17 controlled production default flip（需用户显式授权）**
+**历史下一步（已被 §0.C / §0.26.15 M32 supersede）：M17 controlled production default flip（需用户显式授权）**
 
 1. M17 才是小流量 production default flip，**必须用户显式授权**；M16 GO 仅解锁「受控 cohort 真实 runtime 跑通」。
 2. M17 前置：真人 teacher 闭环（非 shadow）、operator cohort 实时监控窗口、双大模型 skeptic（GPT5.5 key）、canonical learner truth write 路径（当前 dry-run）。
@@ -188,7 +228,7 @@ M12 证据（86 runtime submissions）：false_positive=0、bad_certified=0、so
 
 结论：**离线编译 artifacts 会在系统运行过程中持续产生新版本，但由 A 线 compiler/release gate 维护；学员实时进展由 C 线 Learning Brain 维护；每次判题的即时理解由 runtime LLM adjudicator 维护。** 三者通过 artifact version / supply hash / event provenance 连接，不能互相替代。
 
-### 0.12.3 当前下一步（唯一主线）：M17 Nexus-style Runtime LLM Adjudicator
+### 0.12.3 历史下一步（已被 §0.C / §0.26.15 M32 supersede）：M17 Nexus-style Runtime LLM Adjudicator
 
 M17 不再定义为直接 production default flip，而是：
 
@@ -403,7 +443,7 @@ M17 之后的鲁班评分引擎 v1 必须收敛成六个一等组件；不要继
 - **40 条 artifact feedback candidate**（rubric_delta 18 + machine_spec_fix 20 + validator_rule_review 1 + drop 1），全停 candidate/work_order，不动 release registry。p50≈2.2s/p95≈3.4s。
 - 代码：新增 fat skill 字段无（复用 M17A `runtime_llm_adjudicator`）；新增 `run_luban_runtime_llm_adjudication_scaleout_m17b_m18.py`（council builder + aggregator + tournament + artifact feedback）。**未改 runtime 主链路**。
 
-**当前下一步（唯一主线）：M19 production default decision**
+**历史下一步（已被 §0.C / §0.26.15 M32 supersede）：M19 production default decision**
 
 1. M19 前置硬证据：大样本 **LLM-vs-ground-truth 准确率 eval**（当前是 council calibration，非绝对准确率）、production 化**异步/超时/限流**、**用户显式授权**小流量 default flip、GPT5.5 全量 council。
 2. production v1 仍 **NO-GO**、production default OFF、不发 published registry；**不要**现在 flip default、**不要**回 M11–M17A 旧链路。
@@ -431,7 +471,7 @@ M17 之后的鲁班评分引擎 v1 必须收敛成六个一等组件；不要继
 - M19B 没有重发 live LLM call：模型能力证据来自 M17C merged live=80；M19B release drill 使用 deterministic in-process provider，只验证 default/rollback/guard，不伪造 live provider。
 - decision matrix：`shadow_only=GO`、`controlled_cohort_only=GO`、`one_percent_qa_operator_default=GO`、`named_internal_cohort_default=GO`，但均为**需用户显式授权的 dry-run candidate**；`broad_production_default=NO-GO`。
 
-**当前下一步（唯一主线）：**
+**历史下一步（已被 §0.C / §0.26.15 M32 supersede）：**
 
 1. 如要执行任何 limited default（1% qa/operator 或 named internal cohort），必须由用户显式授权，并使用 `production_default_config_dryrun_m19b.json` 转为实际配置；默认仍 OFF。
 2. production v1 broad default 继续 **NO-GO**，直到完成 production async/timeout/rate-limit hardening、operator live window、成本/延迟 SLO 接入，以及更强外部/human-like 复核授权。
@@ -459,7 +499,7 @@ M17 之后的鲁班评分引擎 v1 必须收敛成六个一等组件；不要继
 - Safety invariants 全过：false_positive=0、bad_certified=0、source_mismatch=0、official_answer_as_source=0、model_vote_as_source=0、council_vote_as_source=0、list_partial_auto=0、legacy_overwrite=0、kill_switch_works=true。
 - Rollback drill：撤 request flag / env kill / registry unavailable 均恢复 legacy-only 或 fail-closed legacy intact；当前 M19C artifact state = **ON**。由于未获远端部署授权，这个 ON 表示本地授权配置包和 TestClient 验证状态，不表示 Aliyun/remote 已写。
 
-**当前下一步（唯一主线）：M19D soak monitoring 或 rollback repair**
+**历史下一步（已被 §0.C / §0.26.15 M32 supersede）：M19D soak monitoring 或 rollback repair**
 
 1. 若进入 M19D，必须只做 limited cohort soak monitoring：p95 latency / fallback rate / failclosed rate / production_write_count / canonical_truth_written / operator stop conditions；不得 broad default。
 2. 若任何 safety invariant 非 0，立即执行 rollback repair；不得把 M19C ON 扩大成 production v1 default。
@@ -486,7 +526,7 @@ M17 之后的鲁班评分引擎 v1 必须收敛成六个一等组件；不要继
 - Safety gates 全过：false_positive=0、bad_certified=0、source_mismatch=0、unsupported_positive=0、legacy_overwrite=0、production_write_count=0、canonical_truth_written=false、non_cohort_default_leak=0、provider_failure_fail_open=0。
 - Rollback readiness：env kill / registry unavailable / request flag withdraw 三路径均 state_correct=true、legacy_intact=true；switch-path latency 只按切换路径计，不混入完整 grading latency。
 
-**当前下一步（唯一主线）：M19E remote deployment authorization package**
+**历史下一步（已被 §0.C / §0.26.15 M32 supersede）：M19E remote deployment authorization package**
 
 1. M19E 只能做远端/Aliyun 部署授权包评审：列出远端路径、命令、rollback 命令、env/config diff、观测窗口和 stop conditions；未获新授权前不得写远端。
 2. broad production default 继续 **NO-GO**；canonical learner truth write 继续 **NO-GO**。
@@ -929,6 +969,56 @@ production default flip / published registry / canonical learner-truth write / �
 
 ---
 
+### 0.26.15 M32 Grading-to-Brain Waterproof Vertical Slice（2026-06-07，当前唯一执行主线）
+
+> **本节取代本文所有旧的“当前下一步”表述。** M32 不是再跑一个全量 compiler，也不是继续证明 M26/M31 已经证明过的 safety gate。M32 的目标是用一个防水专题，把 Grading-to-Brain Loop 跑成学员可感知的产品闭环。
+
+M32 必须证明的唯一业务事实：
+
+```text
+一次批改或开放诊断产生的 point-level 学习证据，能被 Learning Brain 编译成可解释的 LearnerClaim 和下一步动作，并在复测后改变该 claim。
+```
+
+最小闭环：
+
+```text
+waterproof signed topic shard
+  -> LubanContextPack / Compiled Context
+  -> grading or open-world diagnostic
+  -> learning_evidence event
+  -> learning_synthesis / LearnerClaim
+  -> PersonalizationContextPack
+  -> NextBestAction
+  -> retest / practice
+  -> outcome proof
+  -> updated claim
+```
+
+M32 的四个系统角色：
+
+| 系统 | M32 中的职责 | 禁止越权 |
+|---|---|---|
+| 鲁班评分引擎 | 产出采分点级命中、错因、证据 span、high-risk 标记和 learning evidence draft | 不保存第二套长期画像 |
+| Learning Brain / GBrain | 把 evidence ledger 编译为 `LearnerClaim`、PCP、next action、retest outcome | 不重新判分，不把 shadow/candidate 直接升 mastery |
+| 知识编译 / RAG | 提供防水专题 signed shard、教材章节、source refs、taxonomy 关系 | 不把 mutable chunk 当 answer key，不替代 learner model |
+| Runtime LLM | 用 scoped context 做在线解释、诊断和教学表达 | 不改 signed truth，不伪造 official score |
+
+M32 GO 门：
+
+- `waterproof` topic shard 有 canonical manifest、hash、source refs、runtime resolver example。
+- 至少一个真实 `/api/v1/ws` 或等价 TestClient 链路产出防水相关 grading / diagnostic result。
+- learning evidence 写入或 preview payload 能被 `learning_synthesis` 消费成 `LearnerClaim(needs_retest|observed|repeated|confirmed|stale)`。
+- `PersonalizationContextPack` 是 report / TutorBot / practice 的单一 personalization input；前端不得自算推荐。
+- NextBestAction 明确训练目标、材料、相似题或复测方式，且带 evidence refs。
+- 复测 outcome 能更新 claim 或生成“未改善策略”，不能只展示训练完成。
+- `production_write_count=0`、`canonical_truth_written=false`，除非用户另行授权 canonical write gate。
+
+当前执行计划：
+
+- [2026-06-07-luban-grading-to-brain-m32-waterproof-vertical-slice-execution-plan.md](2026-06-07-luban-grading-to-brain-m32-waterproof-vertical-slice-execution-plan.md)
+
+---
+
 ## 0.16 Canonical update after M17A runtime LLM adjudicator（2026-06-04）
 
 > **本节落实 §0.12 的 M17 Nexus-style runtime LLM adjudication（vertical slice = M17A）。production default 仍 OFF；下一步是 M17B/M18 扩面 + M19 default decision，不是 default flip。**
@@ -947,7 +1037,7 @@ production default flip / published registry / canonical learner-truth write / �
 - 代码：fat skill `runtime_llm_adjudicator.py`（packet + adjudicator + validator + LB preview draft）；thin hook `_maybe_attach_v1_llm_adjudication`；flag `grading_engine_v1_llm_adjudication`（allowlist）+ env kill `LUBAN_V1_LLM_ADJUDICATOR_ENABLED` + cohort `LUBAN_V1_LLM_ADJUDICATOR_COHORT`。production default OFF。
 - 模型分工（§0.12）：runtime 仅 DeepSeek-flash + Qwen；GPT5.5（无 key fail-closed）/Opus（in-session）只 build-council。
 
-**当前下一步（唯一主线）：M17B/M18 扩面评测 → M19 default decision**
+**历史下一步（已被 §0.C / §0.26.15 M32 supersede）：M17B/M18 扩面评测 → M19 default decision**
 
 1. M17B/M18：扩大 adjudication 样本，做 LLM-vs-teacher 准确率/一致率离线评测、真人 teacher 闭环、production 化异步/超时预算。
 2. M19 才是 default decision（需用户显式授权小流量）；**不要**现在 flip default、**不要**回 M11–M16 旧链路。
@@ -1109,7 +1199,7 @@ grade the answer
 - 安全全过：false_positive=0、bad_certified=0、source_mismatch=0、legacy_equal_rate=1.0、kill/failclosed/non-cohort 全过、production_write=0、production default OFF。
 - **fresh retest 解阻**：M14E 走 old `runtime_shadow_adapter`（需 ai_draft_predictions）→ 0 proof；M15 改走既有 `/api/v1/ws` beta_shadow 确定性评分 → **5 条真实 retest proof + 5 条 canonical write dry-run**（`production_truth_written=false`）。
 
-**当前下一步（唯一主线）：M16 production release gate（独立硬门）**
+**历史下一步（已被 §0.C / §0.26.15 M32 supersede）：M16 production release gate（独立硬门）**
 
 1. M16 是独立 production 门，差 5 个硬条件：真人 teacher 复核闭环（非 shadow）、production authority registry 签字、双大模型 skeptic（GPT5.5 key）、operator cohort 实时 rollback 演练、canonical learner truth write 路径（当前仅 dry-run）。
 2. production v1 仍 **NO-GO**、production default OFF、**不发 formal production registry**；**不要**回 M6–M13R 旧链路、**不要**单方覆盖并行产物。
@@ -1130,7 +1220,7 @@ grade the answer
 
 **六轴 verdict（canonical）：** M8=GO / M9·M10=WEAK-GO / M11=GO / M12=GO / **M13=WEAK-GO** / production v1=**NO-GO**。
 
-**当前下一步（唯一主线）：把 counted runtime hits 从 43 提到 ≥50**
+**历史下一步（已被 §0.C / §0.26.15 M32 supersede）：把 counted runtime hits 从 43 提到 ≥50**
 
 1. 完成 question_stem_fact 的 **case-event-text span verification**（backfill queue），核实后纳入 counted。
 2. 或扩大 gradeable 题集，让更多 counted 点在 `/api/v1/ws` 触发批改（当前部分 QA question_id 在 harness 下不批改）。
@@ -1160,7 +1250,7 @@ grade the answer
 
 数字：production_authority_backed=**82**（textbook 23 + machine_logic 30 + machine_calc 3 + question_stem_fact 12 + list 14）。真实 `/api/v1/ws` drill：**111** submissions、**55** authority-backed 命中、**35** 对抗负例，false_positive=0 / bad_certified=0 / source_mismatch=0 / legacy_equal_rate=1.0 / production_write=0；cohort gate（qa/test 允许，operator_/real_ 被 block）/ kill switch / fail-closed / duplicate 幂等 / teacher review dry_run 幂等 全过；p50≈27ms。修复了 loader source matcher（原用 point_id，改用 M8/M9 verified 真实 textbook term）。
 
-**当前下一步（唯一主线）：limited internal release 灰度 + 真人 teacher 闭环**
+**历史下一步（已被 §0.C / §0.26.15 M32 supersede）：limited internal release 灰度 + 真人 teacher 闭环**
 
 1. 按 `limited_release_switch_design_m13.md` 做 cohort 灰度（qa→test→named 内部→operator），production default 仍 OFF，每步可 env kill switch 秒回滚。
 2. 落地真人 teacher 复核闭环（非 shadow）+ 补 OpenAI key 启 GPT5.5 双大模型 skeptic。
