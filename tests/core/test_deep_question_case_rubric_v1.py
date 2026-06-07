@@ -125,8 +125,9 @@ _RUBRIC = [
 
 
 @pytest.mark.asyncio
-async def test_case_rubric_v1_absent_without_flag(monkeypatch: pytest.MonkeyPatch) -> None:
-    # Default OFF -> legacy untouched, no v1 key. Stub the grader to explode if it ever runs.
+async def test_case_rubric_v1_kill_switch_disables(monkeypatch: pytest.MonkeyPatch) -> None:
+    # V1 is DEFAULT ON (full rollout); the emergency env kill switch disables it -> legacy untouched.
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_V1_ENABLED", "false")
     monkeypatch.setattr(G, "load_rubric", lambda *_a, **_k: (_ for _ in ()).throw(AssertionError("must not run")))
     result = await _run_case(monkeypatch, _case_context(rubric_v1=False))
     assert result["construction_grading_result"]["authority"] == "construction_grading"
@@ -169,12 +170,18 @@ async def test_case_rubric_v1_grades_for_qa_flag(monkeypatch: pytest.MonkeyPatch
 
 
 @pytest.mark.asyncio
-async def test_case_rubric_v1_non_qa_student_skipped(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_case_rubric_v1_all_users_default_on(monkeypatch: pytest.MonkeyPatch) -> None:
+    # full rollout (not gray): even a non-qa student, with NO per-turn flag, gets V1 by default.
     monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
-    monkeypatch.setattr(G, "load_rubric", lambda *_a, **_k: (_ for _ in ()).throw(AssertionError("must not run")))
-    result = await _run_case(monkeypatch, _case_context(user_id="real_student_1", rubric_v1=True))
-    assert result["construction_grading_result"]["authority"] == "construction_grading"
-    assert "luban_case_rubric_v1" not in result
+    monkeypatch.setattr(G, "load_rubric", lambda qid: _RUBRIC if qid == "case-9006" else [])
+
+    async def _fake(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {"P1": {"status": G.HIT}, "P2": {"status": G.MISS}, "P3": {"status": G.MISS}}
+
+    monkeypatch.setattr(G, "batch_judge_async", _fake)
+    result = await _run_case(monkeypatch, _case_context(user_id="real_student_1", rubric_v1=False))
+    assert result["luban_case_rubric_v1"]["status"] == "ok"     # non-qa, no flag -> still graded
+    assert "逐采分点点评" in result["response"]
 
 
 @pytest.mark.asyncio

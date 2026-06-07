@@ -951,26 +951,14 @@ class AgentLoop:
         if not case_grading_score_authority_available(md):
             return ""
         try:
-            from deeptutor.capabilities.deep_question import (
-                _case_rubric_v1_cohort_member,
-                _case_rubric_v1_global_on,
-                _grade_one_case_v1,
-            )
+            from deeptutor.capabilities.deep_question import _grade_one_case_v1
             from deeptutor.services.construction_grading import rubric_grader_v1 as _G
 
             student_id = str(md.get("user_id") or md.get("learner_user_id") or "").strip()
-            # gating: reuse deep_question's gate (global force-on OR per-turn flag + cohort)
-            kill = os.environ.get("LUBAN_CASE_RUBRIC_V1_ENABLED", "").strip().lower() in (
-                "false", "0", "off", "no")
-            if kill:
-                return ""
-            flagged = (
-                _case_rubric_v1_global_on()
-                or bool(md.get("grading_engine_case_rubric_v1"))
-            )
-            if not flagged:
-                return ""
-            if not _case_rubric_v1_global_on() and not _case_rubric_v1_cohort_member(student_id):
+            # gating: DEFAULT ON for all users (full rollout, not gray); only the emergency env kill
+            # switch disables V1.
+            if os.environ.get("LUBAN_CASE_RUBRIC_V1_ENABLED", "").strip().lower() in (
+                "false", "0", "off", "no"):
                 return ""
             key = os.environ.get("DEEPSEEK_API_KEY")
             if not key:

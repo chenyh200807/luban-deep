@@ -1760,24 +1760,14 @@ def _runtime_shadow_flag_enabled(context: UnifiedContext) -> bool:
 
 
 def _case_rubric_v1_flag_enabled(context: UnifiedContext) -> bool:
-    """case rubric-v1 grading flag. Default OFF -> legacy answer + construction_grading_result untouched.
-
-    Tri-state env ``LUBAN_CASE_RUBRIC_V1_ENABLED``:
-      - false/0/off/no  -> force OFF (kill switch, beats the per-turn flag)
-      - true/1/on/yes   -> force ON for ALL users on this instance (dev/local; bypasses cohort)
-      - unset/other     -> per-turn flag from request metadata / config_overrides (cohort-gated)
+    """case rubric-v1 grading flag. DEFAULT ON (full rollout, not gray) — V1 is the case-grading
+    authority for every case turn that has rubric/reference authority. Only the emergency env kill
+    switch ``LUBAN_CASE_RUBRIC_V1_ENABLED=false/0/off/no`` disables it.
     """
-    if _case_rubric_v1_global_on():
-        return True
     import os
 
-    if os.environ.get("LUBAN_CASE_RUBRIC_V1_ENABLED", "").strip().lower() in ("false", "0", "off", "no"):
-        return False
-    metadata = context.metadata if isinstance(context.metadata, dict) else {}
-    return bool(
-        metadata.get("grading_engine_case_rubric_v1")
-        or context.config_overrides.get("grading_engine_case_rubric_v1")
-    )
+    return os.environ.get("LUBAN_CASE_RUBRIC_V1_ENABLED", "").strip().lower() not in (
+        "false", "0", "off", "no")
 
 
 def _case_rubric_v1_global_on() -> bool:
@@ -1852,12 +1842,8 @@ async def _grade_case_rubric_v1(
     the legacy answer byte-identical). One-or-two awaited DeepSeek calls; never writes the DB / learner
     truth; official_score_allowed stays False."""
     if not _case_rubric_v1_flag_enabled(context):
-        return None
+        return None  # emergency kill switch only; default ON for all users (full rollout, not gray)
     student_id = _learner_user_id_from_context(context)
-    # Global force-on (dev/local) is for ALL users on the instance; the cohort allowlist only gates the
-    # per-turn-flag gray rollout (real production users).
-    if not _case_rubric_v1_global_on() and not _case_rubric_v1_cohort_member(student_id):
-        return None  # cohort gate: out-of-cohort users unaffected
     cg = graded_context.get("construction_grading_result")
     cg_type = str((cg or {}).get("type") or "").lower()
     if cg_type not in ("case", "batch"):
@@ -2743,6 +2729,62 @@ class DeepQuestionCapability(BaseCapability):
         return intent
 
     @staticmethod
+    def _learning_training_intent_from_personalization_context(
+        personalization_context: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        if not isinstance(personalization_context, dict):
+            return {}
+        raw_intent = personalization_context.get("active_training_intent")
+        if not isinstance(raw_intent, dict) or not raw_intent:
+            return {}
+        if raw_intent.get("active") is False:
+            return {}
+        state = str(
+            raw_intent.get("status")
+            or raw_intent.get("state")
+            or raw_intent.get("intent_status")
+            or ""
+        ).strip().lower()
+        if state in {"inactive", "stale", "superseded", "rejected", "closed", "completed"}:
+            return {}
+        intent = dict(raw_intent)
+        intent.setdefault("source", "PersonalizationContextPack")
+        if not intent.get("training_mode"):
+            intent["training_mode"] = intent.get("mode") or intent.get("recommended_mode") or ""
+        return DeepQuestionCapability._normalize_learning_training_intent(intent)
+
+    @staticmethod
+    def _resolve_learning_training_intent(
+        *,
+        overrides: dict[str, Any],
+        metadata: dict[str, Any],
+        followup_question_context: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        override_intent = DeepQuestionCapability._normalize_learning_training_intent(
+            overrides.get("learning_training_intent")
+            if isinstance(overrides.get("learning_training_intent"), dict)
+            else None
+        )
+        if override_intent:
+            return override_intent
+
+        top_level = metadata.get("personalization_context") if isinstance(metadata, dict) else None
+        intent = DeepQuestionCapability._learning_training_intent_from_personalization_context(
+            top_level if isinstance(top_level, dict) else None
+        )
+        if intent:
+            return intent
+
+        nested = (
+            followup_question_context.get("personalization_context")
+            if isinstance(followup_question_context, dict)
+            else None
+        )
+        return DeepQuestionCapability._learning_training_intent_from_personalization_context(
+            nested if isinstance(nested, dict) else None
+        )
+
+    @staticmethod
     def _apply_learning_training_intent_to_topic(topic: str, intent: dict[str, Any]) -> str:
         if not isinstance(intent, dict) or not intent:
             return str(topic or "").strip()
@@ -3017,10 +3059,12 @@ class DeepQuestionCapability(BaseCapability):
                 if part
             ),
         )
-        learning_training_intent = self._normalize_learning_training_intent(
-            overrides.get("learning_training_intent")
-            if isinstance(overrides.get("learning_training_intent"), dict)
-            else None
+        learning_training_intent = self._resolve_learning_training_intent(
+            overrides=overrides,
+            metadata=context.metadata,
+            followup_question_context=(
+                followup_question_context if isinstance(followup_question_context, dict) else None
+            ),
         )
         if learning_training_intent:
             topic = self._apply_learning_training_intent_to_topic(topic, learning_training_intent)
@@ -3352,6 +3396,11 @@ class DeepQuestionCapability(BaseCapability):
             resolved_active_object=result_payload["active_object"],
         )
         result_payload["active_object"] = transitioned_active_object or {}
+        if learning_training_intent and result_payload["active_object"]:
+            result_payload["active_object"] = self._attach_learning_training_intent_to_active_object(
+                result_payload["active_object"],
+                learning_training_intent,
+            )
         result_payload["suspended_object_stack"] = transitioned_stack
         if presentation:
             result_payload["presentation"] = presentation
