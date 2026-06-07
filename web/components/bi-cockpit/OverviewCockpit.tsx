@@ -6,14 +6,36 @@
  * 只做真实字段 -> 图表映射；指标卡点击和告警点击通过回调复用面板已有的
  * MetricDetailPanel / AlertDetailPanel 抽屉（不重复造下钻）。
  */
-import { Activity, AlertTriangle, ArrowRight, TrendingUp } from 'lucide-react'
+import {
+  Activity,
+  AlertTriangle,
+  ArrowRight,
+  Filter,
+  Gauge,
+  HeartPulse,
+  TrendingUp,
+} from 'lucide-react'
 import type { ReactNode } from 'react'
-import type { BiAlertItem, BiMetricCard, BiTrendPoint } from '@/lib/bi-api'
+import type { BiAlertItem, BiMetricCard, BiOverviewData, BiTrendPoint } from '@/lib/bi-api'
+import { CockpitDonut, CockpitGauge, type Datum } from './Charts'
 import { EChart } from './EChart'
 import { CockpitBg, CockpitKpi, CockpitPanel, SectionLabel } from './Layout'
-import { COCKPIT, COCKPIT_FONT, COCKPIT_TOOLTIP, SEMANTIC, alpha, vGradient } from './theme'
+import {
+  COCKPIT,
+  COCKPIT_FONT,
+  COCKPIT_TOOLTIP,
+  SEMANTIC,
+  SERIES_COLORS,
+  alpha,
+  vGradient,
+} from './theme'
 
-const TONE_BY_CARD: Record<string, string> = { good: 'emerald', warning: 'amber', critical: 'rose', neutral: 'cyan' }
+const TONE_BY_CARD: Record<string, string> = {
+  good: 'emerald',
+  warning: 'amber',
+  critical: 'rose',
+  neutral: 'cyan',
+}
 const TONE_CYCLE = ['cyan', 'teal', 'violet', 'amber', 'emerald', 'rose']
 const fmtNum = (n: number) => new Intl.NumberFormat('en-US').format(Math.round(n))
 
@@ -27,6 +49,7 @@ export function OverviewCockpit({
   cards,
   trend,
   alerts,
+  overview,
   windowLabel,
   onMetric,
   onAlert,
@@ -34,6 +57,7 @@ export function OverviewCockpit({
   cards: ReadonlyArray<BiMetricCard>
   trend: ReadonlyArray<BiTrendPoint>
   alerts: ReadonlyArray<BiAlertItem>
+  overview?: BiOverviewData | null
   windowLabel?: string
   onMetric?: (card: BiMetricCard) => void
   onAlert?: (alert: BiAlertItem) => void
@@ -83,7 +107,12 @@ export function OverviewCockpit({
         type: 'line' as const,
         smooth: true,
         showSymbol: false,
-        lineStyle: { color: SEMANTIC.info, width: 2.5, shadowBlur: 12, shadowColor: alpha(SEMANTIC.info, 0.5) },
+        lineStyle: {
+          color: SEMANTIC.info,
+          width: 2.5,
+          shadowBlur: 12,
+          shadowColor: alpha(SEMANTIC.info, 0.5),
+        },
         areaStyle: { color: vGradient(alpha(SEMANTIC.info, 0.28), alpha(SEMANTIC.info, 0.01)) },
         data: trend.map(p => p.active),
       },
@@ -112,19 +141,30 @@ export function OverviewCockpit({
       <div className="mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#E8915A]/90">
         <Activity className="h-3.5 w-3.5" />
         Operations Overview Cockpit
-        {windowLabel ? <span className="ml-1 normal-case tracking-normal text-slate-500">· {windowLabel}</span> : null}
+        {windowLabel ? (
+          <span className="ml-1 normal-case tracking-normal text-slate-500">· {windowLabel}</span>
+        ) : null}
       </div>
 
       {/* KPI 带（来自 overview.cards，点击打开指标详情抽屉） */}
       <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
         {kpis.map((card, i) => (
-          <button key={`${card.label}-${i}`} type="button" onClick={onMetric ? () => onMetric(card) : undefined} className="text-left">
+          <button
+            key={`${card.label}-${i}`}
+            type="button"
+            onClick={onMetric ? () => onMetric(card) : undefined}
+            className="text-left"
+          >
             <CockpitKpi
               label={card.label}
               value={card.value as string | number}
-              tone={(TONE_BY_CARD[card.tone ?? 'neutral'] ?? TONE_CYCLE[i % TONE_CYCLE.length]) as never}
+              tone={
+                (TONE_BY_CARD[card.tone ?? 'neutral'] ?? TONE_CYCLE[i % TONE_CYCLE.length]) as never
+              }
               sub={card.hint}
-              delta={card.delta ? { value: card.delta, up: deltaUp(card.delta, card.tone) } : undefined}
+              delta={
+                card.delta ? { value: card.delta, up: deltaUp(card.delta, card.tone) } : undefined
+              }
             />
           </button>
         ))}
@@ -132,11 +172,20 @@ export function OverviewCockpit({
       </div>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.5fr_1fr]">
-        <CockpitPanel glow title="活跃 / 学习成功 / 成本 趋势" hint="active-trend API · 按窗口" icon={<TrendingUp className="h-4 w-4" />}>
+        <CockpitPanel
+          glow
+          title="活跃 / 学习成功 / 成本 趋势"
+          hint="active-trend API · 按窗口"
+          icon={<TrendingUp className="h-4 w-4" />}
+        >
           {hasTrend ? <EChart option={trendOption} height={260} /> : <Empty />}
         </CockpitPanel>
 
-        <CockpitPanel title="今日行动队列" hint="overview.alerts + anomalies" icon={<AlertTriangle className="h-4 w-4" />}>
+        <CockpitPanel
+          title="今日行动队列"
+          hint="overview.alerts + anomalies"
+          icon={<AlertTriangle className="h-4 w-4" />}
+        >
           <ul className="space-y-2">
             {alerts.slice(0, 6).map((alert, idx) => (
               <li key={idx}>
@@ -145,29 +194,155 @@ export function OverviewCockpit({
                   onClick={onAlert ? () => onAlert(alert) : undefined}
                   className="group flex w-full items-start gap-2.5 rounded-xl border border-white/10 bg-white/[0.03] p-2.5 text-left transition hover:border-[#E8915A]/30 hover:bg-[#E8915A]/[0.06]"
                 >
-                  <span className="mt-0.5 h-2 w-2 shrink-0 rounded-full" style={{ background: LEVEL_COLOR[alert.level] ?? SEMANTIC.neutral }} />
+                  <span
+                    className="mt-0.5 h-2 w-2 shrink-0 rounded-full"
+                    style={{ background: LEVEL_COLOR[alert.level] ?? SEMANTIC.neutral }}
+                  />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[13px] font-bold text-slate-100">{alert.title}</span>
-                    {alert.detail ? <span className="mt-0.5 block truncate text-[11px] text-slate-400">{alert.detail}</span> : null}
+                    <span className="block truncate text-[13px] font-bold text-slate-100">
+                      {alert.title}
+                    </span>
+                    {alert.detail ? (
+                      <span className="mt-0.5 block truncate text-[11px] text-slate-400">
+                        {alert.detail}
+                      </span>
+                    ) : null}
                   </span>
                   <ArrowRight className="mt-1 h-3 w-3 shrink-0 text-slate-500 transition group-hover:translate-x-0.5" />
                 </button>
               </li>
             ))}
             {alerts.length === 0 ? (
-              <li className="grid place-items-center rounded-xl border border-dashed border-white/10 px-2 py-8 text-[11px] text-slate-500">暂无风险项</li>
+              <li className="grid place-items-center rounded-xl border border-dashed border-white/10 px-2 py-8 text-[11px] text-slate-500">
+                暂无风险项
+              </li>
             ) : null}
           </ul>
         </CockpitPanel>
       </div>
+
+      {overview ? <GrowthQualitySection overview={overview} /> : null}
     </CockpitBg>
   )
 }
 
-const LEVEL_COLOR: Record<string, string> = { info: SEMANTIC.info, warning: SEMANTIC.warning, critical: SEMANTIC.danger }
+/* 增长与质量：来自 overview 的 growthFunnel / memberHealth / aiQuality（之前被 reducer 丢弃，现已携带） */
+function GrowthQualitySection({ overview }: { overview: BiOverviewData }) {
+  const funnel: Datum[] = (overview.growthFunnel?.steps ?? []).map(s => ({
+    name: s.label,
+    value: Number(s.value) || 0,
+  }))
+  const health: Datum[] = (overview.memberHealth?.distribution ?? [])
+    .map(b => ({ name: b.label, value: Number(b.count) || 0 }))
+    .filter(d => d.value > 0)
+  const healthScore = Number(overview.memberHealth?.score?.value ?? NaN)
+  const aiRate0 = overview.aiQuality?.engineeringSuccessRate
+  const aiRate =
+    typeof aiRate0 === 'number'
+      ? aiRate0 <= 1
+        ? Math.round(aiRate0 * 100)
+        : Math.round(aiRate0)
+      : null
+
+  if (!funnel.length && !health.length && aiRate == null) return null
+
+  const funnelOption = {
+    tooltip: {
+      ...COCKPIT_TOOLTIP,
+      trigger: 'item' as const,
+      formatter: (p: any) => `${p.name}<br/><b>${fmtNum(p.value)}</b>`,
+    },
+    series: [
+      {
+        type: 'funnel' as const,
+        left: '6%',
+        right: '6%',
+        top: 12,
+        bottom: 8,
+        minSize: '16%',
+        maxSize: '100%',
+        sort: 'descending' as const,
+        gap: 3,
+        color: SERIES_COLORS as unknown as string[],
+        itemStyle: {
+          borderColor: COCKPIT.bgPanelSolid,
+          borderWidth: 2,
+          shadowBlur: 10,
+          shadowColor: 'rgba(0,0,0,0.35)',
+        },
+        label: {
+          show: true,
+          position: 'inside' as const,
+          color: '#1a120c',
+          fontWeight: 700,
+          fontFamily: COCKPIT_FONT,
+          fontSize: 11,
+          formatter: '{b}  {c}',
+        },
+        data: funnel.map(d => ({ name: d.name, value: d.value })),
+      },
+    ],
+  }
+
+  return (
+    <>
+      <SectionLabel icon={<Filter className="h-4 w-4" />}>增长与质量</SectionLabel>
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+        <CockpitPanel
+          glow
+          title="增长漏斗"
+          hint={overview.growthFunnel?.summary || 'growth funnel'}
+          icon={<Filter className="h-4 w-4" />}
+        >
+          {funnel.length ? <EChart option={funnelOption} height={240} /> : <Empty />}
+        </CockpitPanel>
+        <CockpitPanel
+          title="会员健康分布"
+          hint={overview.memberHealth?.score?.note}
+          icon={<HeartPulse className="h-4 w-4" />}
+        >
+          {health.length ? (
+            <CockpitDonut
+              data={health}
+              centerLabel="健康分"
+              centerValue={Number.isFinite(healthScore) ? String(healthScore) : '—'}
+            />
+          ) : (
+            <Empty />
+          )}
+        </CockpitPanel>
+        <CockpitPanel
+          title="AI 工程成功率"
+          hint={overview.aiQuality?.note}
+          icon={<Gauge className="h-4 w-4" />}
+        >
+          {aiRate != null ? (
+            <CockpitGauge
+              value={aiRate}
+              label={`失败 ${fmtNum(Number(overview.aiQuality?.failedTurns ?? 0))}/${fmtNum(Number(overview.aiQuality?.totalTurns ?? 0))}`}
+              color={SEMANTIC.positive}
+            />
+          ) : (
+            <Empty />
+          )}
+        </CockpitPanel>
+      </div>
+    </>
+  )
+}
+
+const LEVEL_COLOR: Record<string, string> = {
+  info: SEMANTIC.info,
+  warning: SEMANTIC.warning,
+  critical: SEMANTIC.danger,
+}
 
 function Empty(): ReactNode {
-  return <div className="grid h-[200px] place-items-center rounded-xl border border-dashed border-white/10 text-[11px] text-slate-500">暂无数据</div>
+  return (
+    <div className="grid h-[200px] place-items-center rounded-xl border border-dashed border-white/10 text-[11px] text-slate-500">
+      暂无数据
+    </div>
+  )
 }
 
 void fmtNum

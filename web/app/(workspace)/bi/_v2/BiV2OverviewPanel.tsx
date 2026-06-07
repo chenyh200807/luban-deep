@@ -34,6 +34,7 @@ import {
   type BiTrendPoint,
   type BiAlertItem,
   type BiMetricCard,
+  type BiOverviewData,
 } from '@/lib/bi-api'
 import { findMetricByLabel, type BiV2MetricDef } from '@/lib/bi-v2-metric-registry.generated'
 import { OverviewCockpit } from '@/components/bi-cockpit/OverviewCockpit'
@@ -48,6 +49,7 @@ type LiveBundle = {
   generatedAt: number
   partial: boolean
   errors: string[]
+  overview?: BiOverviewData | null
 }
 
 type MetricSelection = {
@@ -350,6 +352,7 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
         cards={bundle.cards}
         trend={bundle.trend}
         alerts={bundle.alerts}
+        overview={bundle.overview ?? null}
         windowLabel={
           source === 'live'
             ? 'active-trend API'
