@@ -156,6 +156,9 @@ def _apply(tax_rows: list[dict[str, Any]], cat_rows: list[dict[str, Any]],
             )
             if edge_rows:
                 edge_ident = sql.Identifier(_EDGES_TABLE)
+                # edges are a FULLY DERIVED set — full refresh (delete-then-insert in-txn) so removed
+                # edges (cleaning pass drops cycles/siblings) don't linger as stale rows.
+                cur.execute(sql.SQL("delete from {}").format(edge_ident))
                 execute_values(
                     cur,
                     sql.SQL("insert into {} (src, dst, type, relation_detail, confidence, provenance) "

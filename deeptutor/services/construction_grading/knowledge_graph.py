@@ -76,29 +76,37 @@ def assemble_graph(canonical_nodes: dict[str, dict[str, Any]], edges: list[dict[
                      "confidence": conf,
                      "provenance": [e["provenance"]] if e.get("provenance") else []}
     edge_list = sorted(seen.values(), key=lambda x: (x["src"], x["dst"], x["type"]))
-
-    out_deg: dict[str, int] = {}
-    in_deg: dict[str, int] = {}
-    for e in edge_list:
-        out_deg[e["src"]] = out_deg.get(e["src"], 0) + 1
-        in_deg[e["dst"]] = in_deg.get(e["dst"], 0) + 1
-    by_type: dict[str, int] = {}
-    for e in edge_list:
-        by_type[e["type"]] = by_type.get(e["type"], 0) + 1
-
     return {
         "schema": "luban_canonical_knowledge_graph.v1",
         "nodes": nodes,
         "edges": edge_list,
-        "stats": {
-            "node_count": len(nodes),
-            "edge_count": len(edge_list),
-            "edges_dropped": dropped,
-            "edges_by_type": by_type,
-            "max_out_degree": max(out_deg.values()) if out_deg else 0,
-            "max_in_degree": max(in_deg.values()) if in_deg else 0,
-            "isolated_nodes": sum(1 for n in nodes if n not in out_deg and n not in in_deg),
-        },
+        "stats": graph_stats(nodes, edge_list, edges_dropped=dropped),
+    }
+
+
+def graph_stats(nodes: dict[str, Any], edge_list: list[dict[str, Any]], *, edges_dropped: int = 0) -> dict[str, Any]:
+    """Degree/type stats over a (nodes, edges) pair — usable after a cleaning pass without re-running
+    assemble (which would re-wrap provenance). Also reports prerequisite DAG health."""
+    out_deg: dict[str, int] = {}
+    in_deg: dict[str, int] = {}
+    by_type: dict[str, int] = {}
+    pre_pairs: set[tuple[str, str]] = set()
+    for e in edge_list:
+        out_deg[e["src"]] = out_deg.get(e["src"], 0) + 1
+        in_deg[e["dst"]] = in_deg.get(e["dst"], 0) + 1
+        by_type[e["type"]] = by_type.get(e["type"], 0) + 1
+        if e["type"] == "prerequisite":
+            pre_pairs.add((e["src"], e["dst"]))
+    mutual = sum(1 for (s, d) in pre_pairs if (d, s) in pre_pairs)
+    return {
+        "node_count": len(nodes),
+        "edge_count": len(edge_list),
+        "edges_dropped": edges_dropped,
+        "edges_by_type": by_type,
+        "max_out_degree": max(out_deg.values()) if out_deg else 0,
+        "max_in_degree": max(in_deg.values()) if in_deg else 0,
+        "isolated_nodes": sum(1 for n in nodes if n not in out_deg and n not in in_deg),
+        "prerequisite_mutual_pairs": mutual,
     }
 
 
@@ -116,5 +124,146 @@ def hierarchy_edges(tax: CanonicalTaxonomy, node_codes: set[str]) -> list[dict[s
     return edges
 
 
-__all__ = ["assemble_graph", "hierarchy_edges", "map_topic_to_canonical", "normalize_relation",
-           "REL_HIERARCHY"]
+def _parent_code(code: str) -> str:
+    """The parent code in the dash hierarchy (1A413061-01-a -> 1A413061-01). '' for a top code.
+    Sibling detection compares parent CODES, which is robust to code non-uniqueness: two endpoints
+    sharing a parent code are structural siblings regardless of which duplicated instance they are."""
+    return code.rsplit("-", 1)[0] if "-" in code else ""
+
+
+def prune_related(edges: list[dict[str, Any]]) -> dict[str, Any]:
+    """Issue #1 fix: a ``related`` edge between same-parent siblings is a tautology (the tree's
+    parent_of edges already encode 'same parent = same class'), so it carries ~0 information. Drop those;
+    treat the rest as UNDIRECTED (related has no direction) and merge the 530 reverse-duplicate rows into
+    one canonical (min,max) edge, marking cross_chapter. Non-related edges pass through untouched."""
+    out: list[dict[str, Any]] = []
+    seen_undirected: dict[tuple[str, str], dict[str, Any]] = {}
+    dropped_sibling = 0
+    merged_symmetric = 0
+    for e in edges:
+        if e.get("type") != "related":
+            out.append(e)
+            continue
+        src, dst = str(e.get("src") or ""), str(e.get("dst") or "")
+        if _parent_code(src) and _parent_code(src) == _parent_code(dst):
+            dropped_sibling += 1
+            continue
+        key = (min(src, dst), max(src, dst))
+        if key in seen_undirected:
+            merged_symmetric += 1
+            cur = seen_undirected[key]
+            for p in (e.get("provenance") or []):
+                if p not in cur.setdefault("provenance", []):
+                    cur["provenance"].append(p)
+            if (e.get("confidence") or 0) > (cur.get("confidence") or 0):
+                cur["confidence"] = e.get("confidence")
+            continue
+        merged = {**e, "src": key[0], "dst": key[1],
+                  "cross_chapter": src[:5] != dst[:5],
+                  "provenance": list(e.get("provenance") or [])}
+        seen_undirected[key] = merged
+        out.append(merged)
+    return {"edges": out, "dropped_sibling": dropped_sibling, "merged_symmetric": merged_symmetric}
+
+
+def enforce_prerequisite_dag(edges: list[dict[str, Any]]) -> dict[str, Any]:
+    """Issue #2 fix: ``prerequisite`` must be a DAG. Resolve mutual conflicts (A->B & B->A) and break any
+    remaining cycle, deterministically. Conflict rule (strongest kept): (1) lecture-authored beats
+    llm_semantic; (2) a prerequisite that points at a tree ANCESTOR is structurally wrong -> drop;
+    (3) higher confidence; (4) stable (src<dst) tie-break. Then Kahn topo-sort; if a cycle survives,
+    drop the lowest-confidence edge on it until acyclic. Non-prerequisite edges pass through."""
+    pre = [e for e in edges if e.get("type") == "prerequisite"]
+    other = [e for e in edges if e.get("type") != "prerequisite"]
+
+    def _is_lecture(e: dict[str, Any]) -> bool:
+        return any("lecture" in str(p) for p in (e.get("provenance") or []))
+
+    def _points_at_ancestor(e: dict[str, Any]) -> bool:
+        # dst is an ancestor of src in the dash hierarchy (src 的前置不应是 src 的祖先/父概念)
+        s, d = str(e.get("src") or ""), str(e.get("dst") or "")
+        return s.startswith(d + "-")
+
+    def _weaker(a: dict[str, Any], b: dict[str, Any]) -> dict[str, Any]:
+        """Return the edge to DROP between a conflicting pair a,b."""
+        if _is_lecture(a) != _is_lecture(b):
+            return b if _is_lecture(a) else a
+        aa, ab = _points_at_ancestor(a), _points_at_ancestor(b)
+        if aa != ab:
+            return a if aa else b
+        ca, cb = a.get("confidence") or 0, b.get("confidence") or 0
+        if ca != cb:
+            return a if ca < cb else b
+        return a if str(a["src"]) > str(b["src"]) else b
+
+    by_pair: dict[tuple[str, str], dict[str, Any]] = {}
+    removed: list[dict[str, Any]] = []
+    # 1) drop prerequisites pointing at an ancestor (tree tautology / wrong direction)
+    cleaned = []
+    for e in pre:
+        if _points_at_ancestor(e):
+            removed.append({**e, "drop_reason": "points_at_tree_ancestor"})
+        else:
+            cleaned.append(e)
+    # 2) resolve mutual conflicts
+    kept: dict[tuple[str, str], dict[str, Any]] = {}
+    for e in cleaned:
+        s, d = str(e["src"]), str(e["dst"])
+        rev = (d, s)
+        if rev in kept:
+            drop = _weaker(kept[rev], e)
+            keep = e if drop is kept[rev] else kept[rev]
+            removed.append({**drop, "drop_reason": "mutual_prerequisite_conflict"})
+            del kept[rev]
+            kept[(str(keep["src"]), str(keep["dst"]))] = keep
+        else:
+            kept[(s, d)] = e
+    # 3) Kahn topo; break residual cycles by dropping lowest-confidence edge on a back-edge
+    adj: dict[str, list[tuple[str, dict[str, Any]]]] = {}
+    for (s, d), e in kept.items():
+        adj.setdefault(s, []).append((d, e))
+    WHITE, GRAY, BLACK = 0, 1, 2
+    color: dict[str, int] = {}
+
+    def _has_cycle_edge() -> tuple[str, str] | None:
+        color.clear()
+        stack = [(n, iter(adj.get(n, []))) for n in []]
+        for start in list(adj):
+            if color.get(start, WHITE) != WHITE:
+                continue
+            stack = [(start, iter(adj.get(start, [])))]
+            color[start] = GRAY
+            while stack:
+                node, it = stack[-1]
+                nxt = next(it, None)
+                if nxt is None:
+                    color[node] = BLACK
+                    stack.pop()
+                    continue
+                d, _e = nxt
+                c = color.get(d, WHITE)
+                if c == GRAY:
+                    return (node, d)
+                if c == WHITE:
+                    color[d] = GRAY
+                    stack.append((d, iter(adj.get(d, []))))
+        return None
+
+    guard = 0
+    while True:
+        back = _has_cycle_edge()
+        if back is None or guard > 10000:
+            break
+        guard += 1
+        s, d = back
+        e = kept.pop((s, d))
+        removed.append({**e, "drop_reason": "cycle_break"})
+        adj[s] = [(x, ee) for (x, ee) in adj.get(s, []) if x != d]
+
+    final = other + list(kept.values())
+    return {"edges": final, "removed": removed,
+            "prerequisite_kept": len(kept), "prerequisite_removed": len(removed),
+            "is_dag": _has_cycle_edge() is None}
+
+
+__all__ = ["assemble_graph", "graph_stats", "hierarchy_edges", "map_topic_to_canonical",
+           "normalize_relation", "prune_related", "enforce_prerequisite_dag", "REL_HIERARCHY"]

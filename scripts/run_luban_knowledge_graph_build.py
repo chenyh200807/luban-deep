@@ -123,11 +123,33 @@ def run() -> dict[str, Any]:
     edges = KG.hierarchy_edges(tax, set(nodes)) + lec_edges + sem_edges
     graph = KG.assemble_graph(nodes, edges)
 
+    # CLEANING PASS (remediation #1 + #2): drop tautological same-parent related + symmetric-dedup;
+    # enforce prerequisite DAG (resolve mutual conflicts + break cycles). Deterministic.
+    pruned = KG.prune_related(graph["edges"])
+    dag = KG.enforce_prerequisite_dag(pruned["edges"])
+    clean_edges = dag["edges"]
+    # stamp each node with a stable content-derived uuid (#5: identity decoupled from non-unique code)
+    from deeptutor.services.construction_grading.canonical_taxonomy import node_uuid
+    for code, n in graph["nodes"].items():
+        n["uuid"] = node_uuid(n.get("name_path") or code)
+    graph["edges"] = clean_edges
+    graph["stats"] = KG.graph_stats(graph["nodes"], clean_edges)
+    graph["stats"]["cleaning"] = {
+        "related_siblings_dropped": pruned["dropped_sibling"],
+        "related_symmetric_merged": pruned["merged_symmetric"],
+        "prerequisite_removed": dag["prerequisite_removed"],
+        "prerequisite_is_dag": dag["is_dag"],
+    }
+
     (OUT / "knowledge_graph.json").write_text(json.dumps(graph, ensure_ascii=False, indent=2), "utf-8")
+    (OUT / "prerequisite_dag_removed.jsonl").write_text(
+        "\n".join(json.dumps(e, ensure_ascii=False) for e in dag["removed"]), "utf-8")
     _emit_supabase_edges(graph)
     return {"nodes": graph["stats"]["node_count"], "edges": graph["stats"]["edge_count"],
             "edges_by_type": graph["stats"]["edges_by_type"],
             "lecture_authored_edges": len(lec_edges), "llm_semantic_edges": len(sem_edges),
+            "cleaning": graph["stats"]["cleaning"],
+            "prerequisite_mutual_pairs": graph["stats"]["prerequisite_mutual_pairs"],
             "isolated_nodes": graph["stats"]["isolated_nodes"]}
 
 

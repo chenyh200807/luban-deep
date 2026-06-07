@@ -19,10 +19,22 @@ Pure / hermetic: no I/O beyond reading the taxonomy JSON path it is given.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
 import json
 import math
 from pathlib import Path
 from typing import Any
+
+
+def node_uuid(name_path: str) -> str:
+    """Stable, content-derived node identity (decoupled from the non-unique `code`).
+
+    The canonical source reuses codes across unrelated subtrees (e.g. 1A413061-01 = 15 different
+    concepts) and `id = code#ordinal` is positional (a recompile reorders it), so neither is a safe
+    persistence key for learner mastery / weak-point anchors. The full name_path is the disambiguating
+    identity: same concept (same path) -> same uuid across recompiles (idempotent); same code under a
+    different branch -> different path -> different uuid (disambiguated)."""
+    return "n_" + hashlib.sha256(str(name_path or "").encode("utf-8")).hexdigest()[:16]
 
 
 @dataclass(frozen=True)
@@ -32,6 +44,10 @@ class CanonNode:
     level: int
     name_path: str
     keywords: tuple[str, ...]
+
+    @property
+    def uuid(self) -> str:
+        return node_uuid(self.name_path)
 
 
 @dataclass(frozen=True)

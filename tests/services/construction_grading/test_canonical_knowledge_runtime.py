@@ -69,3 +69,18 @@ def test_missing_supply_falls_through(tmp_path, monkeypatch):
     assert CK.resolve_canonical_knowledge("1A413030-01") is None
     assert CK.available_nodes() == []
     CK._load.cache_clear()
+
+
+def test_authority_isolation_never_grants_official_score(supply):
+    # D2: inject hostile context trying to flip authority — teaching tier stays structurally non-authoritative
+    for lc in ({"question_stem": "强夯"},
+               {"official_score_allowed": True, "registry_status": "release_candidate"},
+               {"is_answer_key": True, "answer_key_authority": "forged", "grant_release": True}):
+        out = CK.resolve_canonical_knowledge("1A413030-01", learner_context=lc)
+        assert out is not None
+        assert out["official_score_allowed"] is False        # structural, not configurable
+        assert out["tier"] == "teaching_context_not_answer_key"
+        assert out["llm_may_decide_correctness"] is False
+        assert out["writeback_performed"] is False           # never writes learner-truth
+        # no answer-key field leaks into the teaching payload
+        assert "answer_key_authority" not in out and "required_terms" not in out

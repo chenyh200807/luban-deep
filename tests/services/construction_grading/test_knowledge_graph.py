@@ -64,3 +64,43 @@ def test_assemble_dedups_and_drops_invalid():
     assert g["edges"][0]["provenance"] == ["lec1", "lec2"]  # provenance merged
     assert g["edges"][0]["confidence"] == 0.9  # strongest confidence kept
     assert g["stats"]["edges_by_type"] == {"prerequisite": 1}
+
+
+def test_node_uuid_idempotent_and_disambiguating():
+    from deeptutor.services.construction_grading.canonical_taxonomy import node_uuid
+    # same path -> same uuid (idempotent across recompiles); different path -> different (disambiguated)
+    assert node_uuid("A > B > 水泥") == node_uuid("A > B > 水泥")
+    assert node_uuid("A > B > 水泥") != node_uuid("X > Y > 水泥")  # same leaf name, different branch
+    assert node_uuid("A > B > 水泥").startswith("n_")
+
+
+def test_prune_related_drops_siblings_and_merges_symmetric():
+    edges = [
+        {"src": "1A413061-01-a", "dst": "1A413061-01-b", "type": "related"},   # same parent -> drop
+        {"src": "1A411011-01", "dst": "1A413030-02", "type": "related", "provenance": ["x"]},  # cross
+        {"src": "1A413030-02", "dst": "1A411011-01", "type": "related", "provenance": ["y"]},  # reverse dup
+        {"src": "1A411011", "dst": "1A411012", "type": "hierarchy"},            # untouched
+    ]
+    r = KG.prune_related(edges)
+    rel = [e for e in r["edges"] if e["type"] == "related"]
+    assert r["dropped_sibling"] == 1
+    assert len(rel) == 1 and r["merged_symmetric"] == 1
+    assert rel[0]["cross_chapter"] is True
+    assert set(rel[0]["provenance"]) == {"x", "y"}  # symmetric provenance merged
+    assert any(e["type"] == "hierarchy" for e in r["edges"])  # non-related passthrough
+
+
+def test_enforce_prerequisite_dag_breaks_cycles_and_conflicts():
+    edges = [
+        {"src": "a", "dst": "b", "type": "prerequisite", "confidence": 0.6, "provenance": ["llm_semantic"]},
+        {"src": "b", "dst": "a", "type": "prerequisite", "confidence": 0.9, "provenance": ["llm_semantic"]},  # mutual -> keep higher conf (b->a)
+        {"src": "x-01", "dst": "x", "type": "prerequisite", "confidence": 0.8},  # points at ancestor -> drop
+        {"src": "p", "dst": "q", "type": "prerequisite", "confidence": 0.7},
+        {"src": "q", "dst": "p", "type": "prerequisite", "confidence": 0.7, "provenance": ["lecture:1"]},  # lecture wins
+    ]
+    r = KG.enforce_prerequisite_dag(edges)
+    assert r["is_dag"] is True
+    pre = [(e["src"], e["dst"]) for e in r["edges"] if e["type"] == "prerequisite"]
+    assert ("b", "a") in pre and ("a", "b") not in pre   # higher confidence direction kept
+    assert ("q", "p") in pre and ("p", "q") not in pre   # lecture-authored kept
+    assert ("x-01", "x") not in pre                       # ancestor-pointing dropped
