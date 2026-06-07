@@ -557,7 +557,7 @@ def _degraded_billing_usage_payload(*, plan_id: str | None = None) -> dict[str, 
         "status": "degraded",
         "reason": "billing_storage_unavailable",
         "display": {
-            "primary_label": "额度同步中",
+            "primary_label": "额度暂不可用",
             "primary_percent": 100,
             "limited_by": "weekly",
             "plan_id": _normalize_billing_plan_id(plan_id),

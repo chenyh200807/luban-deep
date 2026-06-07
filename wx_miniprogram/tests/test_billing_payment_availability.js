@@ -96,6 +96,17 @@ function loadBillingPage(usagePayload) {
   assert(loaded.calls.payments.length === 0, "billing should not invoke payment while pricing is hidden");
   assert(loaded.calls.modal.length === 0, "billing should not show unavailable payment copy while pricing is hidden");
 
+  var degraded = loadBillingPage({
+    status: "degraded",
+    display: { primary_label: "额度暂不可用", primary_percent: 100 },
+    quota: { rows: [] },
+  });
+  await degraded.page._loadUsage();
+  assert(
+    degraded.page.data.usagePrimaryLabel === "额度暂不可用",
+    "billing degraded terminal state should not look like active syncing",
+  );
+
   if (fail) {
     console.error(errors.join("\n"));
     process.exit(1);

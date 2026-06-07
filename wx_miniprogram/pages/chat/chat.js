@@ -43,6 +43,8 @@ var CHAT_PENDING_TURN_KEY = "chat_pending_turn_v1";
 var PENDING_TURN_MAX_AGE_MS = 30 * 60 * 1000;
 var PENDING_TURN_POLL_MAX_ATTEMPTS = 1200;
 var PENDING_TURN_POLL_DELAY_MS = 1500;
+var HOME_DASHBOARD_CACHE_KEY = "deeptutor.chat.homeDashboard.v1";
+var HOME_DASHBOARD_CACHE_MAX_AGE_MS = 10 * 60 * 1000;
 
 function normalizePendingTurn(raw) {
   var source = raw && typeof raw === "object" ? raw : {};
@@ -161,6 +163,51 @@ function buildFocusDisplayMeta(focus, meta) {
   if (text === "starter") return "生成学情基线";
   if (/learner_state\.home_personalization/.test(text)) return "来自学情更新";
   return text.length > 8 ? "" : text;
+}
+
+function readCachedHomeDashboard() {
+  try {
+    if (typeof wx === "undefined" || typeof wx.getStorageSync !== "function") return null;
+    var cached = wx.getStorageSync(HOME_DASHBOARD_CACHE_KEY);
+    if (!cached || typeof cached !== "object") return null;
+    if (Date.now() - (Number(cached.cachedAt) || 0) > HOME_DASHBOARD_CACHE_MAX_AGE_MS) return null;
+    return cached.dashboard && typeof cached.dashboard === "object" ? cached.dashboard : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function writeCachedHomeDashboard(dashboard) {
+  try {
+    if (typeof wx === "undefined" || typeof wx.setStorageSync !== "function") return;
+    if (!dashboard || typeof dashboard !== "object") return;
+    wx.setStorageSync(HOME_DASHBOARD_CACHE_KEY, {
+      cachedAt: Date.now(),
+      dashboard: dashboard,
+    });
+  } catch (_) {}
+}
+
+function buildHomeDashboardUpdate(dashboard) {
+  var d = dashboard && typeof dashboard === "object" ? dashboard : {};
+  var today = d.today || {};
+  var homeModel = learningHomeViewModel.buildLearningHomeViewModel(d);
+  var focus = d.today_focus || today.focus || {};
+
+  var update = {};
+  update.reviewCount = homeModel.reviewCount;
+
+  update.focusLabel = homeModel.focusLabel;
+  update.focusTone = homeModel.focusTone;
+  update.focusTitle = buildFocusDisplayTitle(focus, homeModel.focusTitle);
+  update.focusMeta = buildFocusDisplayMeta(focus, homeModel.focusMeta);
+  update.focusText = update.focusTitle;
+  update.focusQuery = homeModel.focusQuery;
+  update.focusActionType = homeModel.focusActionType;
+  update.focusPromptIntent = homeModel.focusPromptIntent;
+  update.recommendedPrompts = homeModel.recommendedPrompts;
+  update.showStaticExamples = !homeModel.recommendedPrompts.length;
+  return update;
 }
 
 function normalizeAnswerMode(value) {
@@ -1654,32 +1701,20 @@ Page({
 
   _loadDashboard: function () {
     var self = this;
-    api
+    var cachedDashboard = readCachedHomeDashboard();
+    if (cachedDashboard) {
+      self.setData(buildHomeDashboardUpdate(cachedDashboard));
+    }
+    return api
       .getHomeDashboard()
       .then(function (resp) {
         var d = unwrap(resp) || {};
-        var today = d.today || {};
-        var homeModel = learningHomeViewModel.buildLearningHomeViewModel(d);
-        var focus = d.today_focus || today.focus || {};
-
-        var update = {};
-        update.reviewCount = homeModel.reviewCount;
-
-        update.focusLabel = homeModel.focusLabel;
-        update.focusTone = homeModel.focusTone;
-        update.focusTitle = buildFocusDisplayTitle(focus, homeModel.focusTitle);
-        update.focusMeta = buildFocusDisplayMeta(focus, homeModel.focusMeta);
-        update.focusText = update.focusTitle;
-        update.focusQuery = homeModel.focusQuery;
-        update.focusActionType = homeModel.focusActionType;
-        update.focusPromptIntent = homeModel.focusPromptIntent;
-        update.recommendedPrompts = homeModel.recommendedPrompts;
-        update.showStaticExamples = !homeModel.recommendedPrompts.length;
-
-        self.setData(update);
+        writeCachedHomeDashboard(d);
+        self.setData(buildHomeDashboardUpdate(d));
       })
       .catch(function (err) {
         log.warn("Dashboard", "API failed: " + ((err && err.message) || err));
+        if (cachedDashboard) return;
         // 降级：仍显示默认焦点条
         self.setData({
           focusTone: "plan",

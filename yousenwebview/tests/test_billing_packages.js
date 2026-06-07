@@ -15,7 +15,7 @@ function assert(condition, message) {
   errors.push("FAIL: " + message);
 }
 
-function loadBillingPage() {
+function loadBillingPage(usagePayload) {
   var source = fs.readFileSync(
     path.join(__dirname, "../packageDeeptutor/pages/billing/billing.js"),
     "utf8",
@@ -50,6 +50,12 @@ function loadBillingPage() {
     require: function (request) {
       if (request === "../../utils/api") {
         return {
+          getUsage: function () {
+            return Promise.resolve(usagePayload || {
+              display: { primary_label: "剩余 75%", primary_percent: 75 },
+              quota: { rows: [{ key: "weekly", label: "每周使用限额", remaining_percent: 75 }] },
+            });
+          },
           getWallet: function () {
             return Promise.resolve({ balance: 0 });
           },
@@ -142,6 +148,17 @@ function loadBillingPage() {
     assert(loaded.checkoutCalls.length === 0, "billing should not create checkout order while pricing is hidden");
     assert(loaded.paymentCalls.length === 0, "billing should not invoke WeChat payment while pricing is hidden");
     assert(loaded.modalCalls.length === 0, "billing should not show unavailable payment copy while pricing is hidden");
+
+    var degraded = loadBillingPage({
+      status: "degraded",
+      display: { primary_label: "额度暂不可用", primary_percent: 100 },
+      quota: { rows: [] },
+    });
+    await degraded.page._loadUsage();
+    assert(
+      degraded.page.data.usagePrimaryLabel === "额度暂不可用",
+      "billing degraded terminal state should not look like active syncing",
+    );
   } catch (err) {
     fail++;
     errors.push("ERROR: " + (err && err.stack ? err.stack : err));
