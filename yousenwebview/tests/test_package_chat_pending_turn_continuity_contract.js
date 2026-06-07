@@ -49,11 +49,19 @@ assertContains(
   "recovery should poll long enough for slow answers instead of only checking a few times",
 );
 assertContains(
-  "_finishPendingTurnRecovery: function (serverMessages)",
+  "_finishPendingTurnRecovery: function (serverMessages, options)",
   "package pending turn recovery should have an explicit terminal path for unrecovered cold starts",
 );
 assertContains(
-  "self._finishPendingTurnRecovery(opts.longPoll ? serverMessages : null);",
+  "keepPendingOnExhausted",
+  "package foreground recovery should unlock input without erasing a still-slow pending turn",
+);
+assertContains(
+  "PENDING_TURN_FOREGROUND_MAX_ATTEMPTS",
+  "package cold-start recovery should use a short foreground window instead of locking the chat for long polling",
+);
+assertContains(
+  "opts.longPoll || opts.unlockOnExhausted ? serverMessages : null",
   "package unrecovered server responses should hydrate or unlock the chat instead of leaving streaming stuck",
 );
 assertContains(

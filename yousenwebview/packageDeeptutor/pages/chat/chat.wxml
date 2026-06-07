@@ -667,8 +667,8 @@ module.exports = {
 			            <text class="web-pill-txt">联网</text>
 			          </view>
 			        </view>
-			        <view class="send-btn {{isStreaming ? 'stop' : (inputText ? 'on' : '')}}" bindtap="{{isStreaming ? 'stopStream' : 'sendMessage'}}" aria-role="button" aria-label="{{isStreaming ? '停止生成' : '发送消息'}}">
-			          <text class="send-icon">{{isStreaming ? '■' : '▶'}}</text>
+				        <view class="send-btn {{canStopStream ? 'stop' : (inputText ? 'on' : '')}}" bindtap="{{canStopStream ? 'stopStream' : 'sendMessage'}}" aria-role="button" aria-label="{{canStopStream ? '停止生成' : '发送消息'}}">
+				          <text class="send-icon">{{canStopStream ? '■' : '▶'}}</text>
 			        </view>
 			      </view>
 		    </view>
