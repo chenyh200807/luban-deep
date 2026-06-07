@@ -57,3 +57,24 @@ def test_learning_evidence_projection_lists_missed_points():
     assert "数控钢筋调直切断机" in weak_ids and "判断不妥并改正" in weak_ids  # the 2 missed
     assert all(w["concept_id"] == "1A413040" for w in le["weak_points"])
     assert le["writeback_performed"] is False
+
+
+def test_rubric_v1_shadow_qa_gate_and_grading():
+    from deeptutor.services.construction_grading import runtime_shadow_adapter as A
+    pts = [{"point_id": "P1", "text": "数控钢筋调直切断机", "score": 1.0, "policy": "exact_required",
+            "required_terms": ["数控钢筋调直切断机"]},
+           {"point_id": "P2", "text": "列举项", "score": 1.0, "policy": "list", "required_terms": []}]
+    judge = lambda p, a: {"status": G.HIT} if p["point_id"] == "P2" else {"status": G.MISS}  # noqa: E731
+    # non-QA student -> fail closed
+    r = A.build_rubric_v1_shadow_result(question_id="Q1", student_answer="x", student_id="real_1",
+                                        rubric_points=pts, judge_fn=judge)
+    assert r["status"] == "fail_closed"
+    # QA student -> grades, never official
+    r2 = A.build_rubric_v1_shadow_result(question_id="Q1", student_answer="x", student_id="qa_1",
+                                         node_code="1A413040", rubric_points=pts, judge_fn=judge)
+    assert r2["status"] == "ok" and r2["official_score_allowed"] is False
+    assert r2["grading_event"]["awarded_score"] == 1.0  # P2 hit, P1 exact miss
+    assert len(r2["learning_evidence"]["weak_points"]) == 1
+    # no rubric + open-world -> signals caller
+    r3 = A.build_rubric_v1_shadow_result(question_id="ZZZ", student_answer="x", student_id="qa_1", judge_fn=judge)
+    assert r3["status"] == "no_rubric_open_world"
