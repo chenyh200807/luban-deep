@@ -54,35 +54,29 @@ def _edge_rows() -> list[dict[str, Any]]:
              "provenance": e.get("provenance") or []} for e in g.get("edges", [])]
 
 
+REGISTRY = _REPO / "deeptutor" / "services" / "construction_grading" / "runtime_supply" / "v_concept_registry" / "concept_registry.json"
+
+
 def _taxonomy_rows() -> list[dict[str, Any]]:
-    doc = json.loads(TAX_PATH.read_text("utf-8"))
+    """Single authority: export from the governed concept_registry (the canonical SPINE), NOT the raw
+    source tree. concept_id is the primary key; only ACTIVE concepts (dual-model-vetted, deprecated /
+    merged excluded). This makes Supabase a projection of the same truth the runtime uses."""
+    reg = json.loads(REGISTRY.read_text("utf-8"))
     rows: list[dict[str, Any]] = []
-
-    def walk(node: dict[str, Any], parent: str, trail: list[str]) -> None:
-        code = str(node.get("code") or "")
-        name = str(node.get("name") or "")
-        name_path = " > ".join(t for t in (trail + [name]) if t)
-        kids = [c for c in (node.get("children") or []) if isinstance(c, dict)]
-        if code:
-            rows.append({
-                "code": code, "parent_code": parent or None, "name": name,
-                "level": node.get("level"), "name_path": name_path,
-                "keywords": list(node.get("keywords") or []), "is_leaf": not kids,
-            })
-        for c in kids:
-            walk(c, code, trail + [name])
-
-    for root in doc.get("outline_structure", []):
-        if isinstance(root, dict):
-            walk(root, "", [])
-    # the canonical tree has a few duplicate codes (e.g. 1A413000 appears under two L2 branches);
-    # dedup by code (keep the first, prefer one carrying keywords) so the upsert PK holds.
-    deduped: dict[str, dict[str, Any]] = {}
-    for r in rows:
-        cur = deduped.get(r["code"])
-        if cur is None or (not cur.get("keywords") and r.get("keywords")):
-            deduped[r["code"]] = r
-    return list(deduped.values())
+    for cid, c in (reg.get("concepts") or {}).items():
+        if c.get("lifecycle", {}).get("status") != "active":
+            continue
+        rows.append({
+            "concept_id": cid,
+            "code": (c.get("alias_codes") or [None])[0],   # display alias (non-unique) — NOT the key
+            "parent_code": c.get("parent") or None,
+            "name": c.get("canonical_name"),
+            "level": c.get("level"),
+            "name_path": c.get("canonical_path"),
+            "keywords": [k["text"] for k in (c.get("keywords") or [])],
+            "equivalence_status": c.get("equivalence_status"),
+        })
+    return rows
 
 
 def _catalog_rows() -> list[dict[str, Any]]:
@@ -131,15 +125,17 @@ def _apply(tax_rows: list[dict[str, Any]], cat_rows: list[dict[str, Any]],
     try:
         with conn.cursor() as cur:
             cur.execute(_SCHEMA_SQL)  # create-if-not-exists, additive
+            # full refresh: registry is the single source; stale rows from the old code-keyed table go.
+            cur.execute(sql.SQL("delete from {}").format(tax_ident))
             execute_values(
                 cur,
-                sql.SQL("insert into {} (code, parent_code, name, level, name_path, keywords, is_leaf) "
-                        "values %s on conflict (code) do update set "
-                        "parent_code=excluded.parent_code, name=excluded.name, level=excluded.level, "
-                        "name_path=excluded.name_path, keywords=excluded.keywords, is_leaf=excluded.is_leaf"
-                        ).format(tax_ident),
-                [(r["code"], r["parent_code"], r["name"], r["level"], r["name_path"],
-                  json.dumps(r["keywords"], ensure_ascii=False), r["is_leaf"]) for r in tax_rows],
+                sql.SQL("insert into {} (concept_id, code, parent_code, name, level, name_path, "
+                        "keywords, equivalence_status) values %s on conflict (concept_id) do update set "
+                        "code=excluded.code, parent_code=excluded.parent_code, name=excluded.name, "
+                        "level=excluded.level, name_path=excluded.name_path, keywords=excluded.keywords, "
+                        "equivalence_status=excluded.equivalence_status").format(tax_ident),
+                [(r["concept_id"], r["code"], r["parent_code"], r["name"], r["level"], r["name_path"],
+                  json.dumps(r["keywords"], ensure_ascii=False), r["equivalence_status"]) for r in tax_rows],
             )
             execute_values(
                 cur,
@@ -184,16 +180,21 @@ def _apply(tax_rows: list[dict[str, Any]], cat_rows: list[dict[str, Any]],
 
 
 _SCHEMA_SQL = """\
--- canonical taxonomy spine (the single taxonomy everything pins to)
-create table if not exists luban_canonical_taxonomy (
-  code text primary key,
+-- canonical taxonomy spine = projection of the governed concept_registry (single authority).
+-- concept_id is the durable primary key; code is a non-unique display alias.
+-- the legacy code-keyed table (if present) is replaced so Supabase matches the runtime truth.
+drop table if exists luban_canonical_taxonomy;
+create table luban_canonical_taxonomy (
+  concept_id text primary key,
+  code text,
   parent_code text,
   name text,
   level int,
   name_path text,
   keywords jsonb,
-  is_leaf boolean
+  equivalence_status text
 );
+create index if not exists idx_lct_code on luban_canonical_taxonomy (code);
 -- per-canonical-node coverage catalog (drives kmap / coverage dashboards)
 create table if not exists luban_canonical_knowledge_catalog (
   node_code text primary key,
