@@ -2180,6 +2180,25 @@ def _resolve_node_code_for_turn(context: UnifiedContext, graded_context: dict[st
     return ("", "")
 
 
+def _learner_weak_canonical_codes(graded_context: dict[str, Any]) -> list[str]:
+    """The learner's active weak concepts mapped to canonical codes (for #3 targeted remediation).
+    learner_state remains the weakness authority; this only READS + normalizes to canonical."""
+    truth = graded_context.get("compiled_learning_truth")
+    if not isinstance(truth, dict):
+        return []
+    concepts = [str(w.get("concept_id") or "") for w in (truth.get("weak_points") or [])
+                if isinstance(w, dict) and str(w.get("decay_state") or "active") == "active"
+                and not w.get("superseded_by_event_ids")]
+    concepts = [c for c in concepts if c]
+    if not concepts:
+        return []
+    try:
+        from deeptutor.services.construction_grading.canonical_resolution import to_canonical_set
+        return sorted(to_canonical_set(concepts))
+    except Exception:  # noqa: BLE001 — resolution is best-effort; never break the teaching lane
+        return []
+
+
 def _maybe_attach_textbook_knowledge(
     *,
     context: UnifiedContext,
@@ -2222,6 +2241,9 @@ def _maybe_attach_textbook_knowledge(
                                  or graded_context.get("question_text") or ""),
             "user_answer": str(graded_context.get("user_answer") or ""),
             "answered_incorrectly": graded_context.get("is_correct") is False,
+            # #3 precision: map the learner's active weak concepts -> canonical so prerequisite
+            # remediation targets real gaps. learner_state stays the mastery/weakness authority.
+            "weak_codes": _learner_weak_canonical_codes(graded_context),
         }
         payload = resolve_textbook_knowledge(node, learner_context=learner_context)
         if payload is not None:

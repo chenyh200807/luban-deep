@@ -144,3 +144,13 @@ def test_remediation_drops_already_mastered_prerequisite(supply, tmp_path, monke
     assert out["remediation"]["active"] is False  # nothing to remediate -> no noise
     assert out["official_score_allowed"] is False  # still teaching tier
     CK._load_graph.cache_clear()
+
+
+def test_remediation_prioritizes_learner_weak_codes(supply, tmp_path, monkeypatch):
+    _graph_supply(tmp_path, monkeypatch)
+    out = CK.resolve_canonical_knowledge("1A413030-01", learner_context={
+        "answered_incorrectly": True, "weak_codes": ["1A412010-01"]})  # learner weak on this prereq
+    rp = out["remediation"]["review_prerequisites"]
+    assert rp[0]["node_code"] == "1A412010-01" and rp[0]["priority"] == "high"
+    assert out["remediation"]["weak_targeted_count"] == 1
+    CK._load_graph.cache_clear()

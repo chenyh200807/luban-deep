@@ -169,13 +169,20 @@ def _remediation(neighbors: dict[str, list[dict[str, str]]], learner_context: di
     Returns an inactive block when there's no remediation trigger (no noise for correct answers)."""
     prereqs = neighbors.get("prerequisite") or []
     mastered = set(learner_context.get("mastered_codes") or [])
+    weak = set(learner_context.get("weak_codes") or [])           # learner's weak concepts -> canonical
     unmastered = [p for p in prereqs if p["node_code"] not in mastered]
+    # precision: flag prerequisites the learner is KNOWN-weak on as high priority (targeted 补救);
+    # sort high-priority first so the tutor remediates the learner's real gaps before generic prereqs.
+    for p in unmastered:
+        p["priority"] = "high" if p["node_code"] in weak else "normal"
+    unmastered.sort(key=lambda p: 0 if p["priority"] == "high" else 1)
     triggered = bool(learner_context.get("answered_incorrectly")) and bool(unmastered)
     return {
         "active": triggered,
         "trigger": "answered_incorrectly" if triggered else "none",
         "review_prerequisites": unmastered if triggered else [],
-        "authority": "graph_prerequisite + learner_evidence_trigger; mastery stays learner_state",
+        "weak_targeted_count": sum(1 for p in unmastered if p["priority"] == "high") if triggered else 0,
+        "authority": "graph_prerequisite + learner_evidence_trigger; mastery/weakness stays learner_state",
     }
 
 
