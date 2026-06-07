@@ -161,24 +161,45 @@ def compile_registry(nodes: list[dict[str, Any]], *, prior: dict[str, Any] | Non
     ).hexdigest()
     unresolved = sum(1 for c in concepts.values()
                      if c["lineage"]["adjudication_status"] == ADJ_PENDING)
-    # PUBLISH GATE: identity is a snapshot of the directory topology, NOT an adjudicated semantic
-    # identity. It is safe for retrieval / compilation / coverage indexing, but it MUST NOT be a
-    # learner_state durable key while any structural_conflict is unresolved (would transfer future
-    # adjudication cost onto learner data). Flips only after governance (B) resolves all conflicts.
-    learner_key_safe = unresolved == 0
     manifest = {
         "schema_version": SCHEMA_VERSION, "namespace": "concept_registry",
         "status": "release_candidate", "published": False,
         "input_nodes": len(nodes), "concept_count": len(concepts),
-        "merged_confirmed": merged, "structural_conflicts": structural,
+        "merged_confirmed": merged,
+        "structural_conflicts_pre_adjudication": structural,
         "unresolved_adjudications": unresolved,
         "collided_codes": collided, "reused_prior_ids": sum(1 for c in concepts if c in prior_by_fp.values()),
-        "usable_as": ["retrieval", "compilation", "coverage_indexing"],
-        "not_usable_as": ([] if learner_key_safe else ["learner_state_durable_key"]),
-        "learner_state_durable_key_safe": learner_key_safe,
+        # CAPABILITY-SPECIFIC GATES (a single bool over-claims — adversarial review). The registry is a
+        # topology snapshot, safe for retrieval/compilation/coverage. learner_state durable key needs
+        # MORE than llm-adjudicated conflicts: human-approved merges + legacy-alias migration safety +
+        # cross-release semantic identity. Those are NOT met here, so it stays false by construction.
+        "gates": _capability_gates(concepts, collided, unresolved),
         "content_hash": content_hash,
     }
     return {"manifest": manifest, "concepts": concepts, "alias_index": alias_index}
+
+
+def _capability_gates(concepts: dict[str, Any], collided: int, unresolved: int) -> dict[str, bool]:
+    """Per-capability safety gates. Each consumer must read ITS gate, not one boolean. learner_state
+    durable key requires human adjudication + zero ambiguous legacy alias + cross-release identity —
+    none provided here, so it is false until a separate governed learner-migration step proves them."""
+    llm_adjudicated_only = any(
+        c["lineage"].get("reviewer", "").startswith("codex") or "council" in c["lineage"].get("reviewer", "")
+        for c in concepts.values() if c["lineage"]["adjudication_status"] in (ADJ_MERGE, ADJ_SPLIT))
+    human_approved = any(
+        c["lineage"].get("reviewer", "").startswith("human")
+        for c in concepts.values() if c["lineage"]["adjudication_status"] in (ADJ_MERGE, ADJ_SPLIT))
+    return {
+        "topology_snapshot_safe": True,
+        "retrieval_safe": unresolved == 0,
+        "compilation_safe": unresolved == 0,
+        "coverage_indexing_safe": True,
+        "legacy_alias_migration_safe": collided == 0,           # 810 collided codes -> false
+        "human_adjudicated_merge_split_safe": human_approved,    # llm-only adjudication -> false
+        "cross_release_semantic_identity_safe": False,           # fingerprint still topology-derived
+        "learner_state_durable_key_safe": (collided == 0 and human_approved and unresolved == 0),
+        "llm_adjudication_present": llm_adjudicated_only,
+    }
 
 
 def resolve_alias(registry: dict[str, Any], code: str, name_path: str = "") -> str:
@@ -239,12 +260,12 @@ def apply_adjudications(registry: dict[str, Any], decisions: list[dict[str, Any]
                 concepts[cid]["lineage"]["adjudication_status"] = action
                 concepts[cid]["lineage"]["reviewer"] = reviewer
                 concepts[cid]["lineage"]["reason"] = reason
-    # recompute the publish gate
+    # recompute capability gates (LLM adjudication opens retrieval/compilation, NOT learner_state)
     unresolved = sum(1 for c in concepts.values()
                      if c["lineage"]["adjudication_status"] == ADJ_PENDING)
+    collided = sum(1 for v in (reg.get("alias_index") or {}).values() if isinstance(v, list))
     reg["manifest"]["unresolved_adjudications"] = unresolved
-    reg["manifest"]["learner_state_durable_key_safe"] = unresolved == 0
-    reg["manifest"]["not_usable_as"] = [] if unresolved == 0 else ["learner_state_durable_key"]
+    reg["manifest"]["gates"] = _capability_gates(concepts, collided, unresolved)
     reg["manifest"]["adjudications_applied"] = len([d for d in decisions if d.get("reviewer")])
     reg["migration_edges"] = migration_edges
     return reg

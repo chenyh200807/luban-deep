@@ -79,11 +79,12 @@ def test_long_id_and_publish_gate():
     # 16-hex (64-bit) ids, collision-safe
     assert all(len(cid) == 18 for cid in reg["concepts"])  # "c_" + 16 hex
     m = reg["manifest"]
-    # has structural_conflict (防水层施工) -> NOT learner-key-safe, but usable for retrieval
+    g = m["gates"]
+    # has structural_conflict + collided code -> NOT learner-key-safe; topology snapshot always safe
     assert m["unresolved_adjudications"] >= 1
-    assert m["learner_state_durable_key_safe"] is False
-    assert "learner_state_durable_key" in m["not_usable_as"]
-    assert "retrieval" in m["usable_as"]
+    assert g["topology_snapshot_safe"] is True
+    assert g["learner_state_durable_key_safe"] is False
+    assert g["cross_release_semantic_identity_safe"] is False  # fingerprint is topology-derived
 
 
 def test_apply_adjudications_merge_migrates_and_clears_gate():
@@ -100,6 +101,26 @@ def test_apply_adjudications_merge_migrates_and_clears_gate():
     assert out["concepts"][loser]["lineage"]["canonical_concept_id"] == winner
     assert out["concepts"][loser]["lifecycle"]["status"] == "merged"
     assert any(e["from"] == loser and e["to"] == winner for e in out["migration_edges"])
-    # all conflicts resolved -> gate opens
+    # LLM/expert adjudication resolves conflicts -> retrieval/compilation open...
+    g = out["manifest"]["gates"]
     assert out["manifest"]["unresolved_adjudications"] == 0
-    assert out["manifest"]["learner_state_durable_key_safe"] is True
+    assert g["retrieval_safe"] is True and g["compilation_safe"] is True
+    # ...but learner_state durable key still requires human approval + zero legacy alias collisions
+    assert g["learner_state_durable_key_safe"] is False  # no collisions here, but reviewer is not human
+
+
+def test_human_approval_required_for_learner_key():
+    # a human-approved merge with NO collided codes -> learner_state durable key gate can open
+    nodes = [
+        {"code": "P-1", "name": "概念A", "parent": "屋面", "name_path": "施工 > 概念A", "keywords": ["a"], "level": 5},
+        {"code": "P-2", "name": "概念A", "parent": "地下", "name_path": "施工 > 概念A", "keywords": ["b"], "level": 5},
+    ]
+    reg = CR.compile_registry(nodes)
+    ids = [c["concept_id"] for c in reg["concepts"].values()]
+    out = CR.apply_adjudications(reg, [{
+        "concept_ids": ids, "action": CR.ADJ_MERGE, "canonical_concept_id": sorted(ids)[0],
+        "reviewer": "human_expert_1", "reason": "同一概念"}])
+    g = out["manifest"]["gates"]
+    assert g["human_adjudicated_merge_split_safe"] is True
+    assert g["legacy_alias_migration_safe"] is True   # P-1/P-2 distinct codes, no collision
+    assert g["learner_state_durable_key_safe"] is True  # human + no collision + resolved
