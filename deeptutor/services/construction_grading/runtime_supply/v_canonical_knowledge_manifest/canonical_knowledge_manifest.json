@@ -48,9 +48,17 @@
       "content_hash": "01aba5a33736e5b4f17ad085ce7fefc1f0a946a268f9cbff4094b9452bf56fd0",
       "record_count": 1303,
       "tier": "answer_authority"
+    },
+    {
+      "lane": "topic_waterproof",
+      "path": "v_topic_waterproof/topic_waterproof.json",
+      "namespace": "topic_waterproof",
+      "content_hash": "615f644337100cebc2ef24a5f77ad65a2a665daaf2fd813b6aad58f51bd6518d",
+      "record_count": 44,
+      "tier": "teaching_context_not_answer_key"
     }
   ],
-  "shard_count": 5,
-  "content_hash": "e5e4cd12b7c08b8f43d51465e46b43971cb1689f2b6a0dd2990a6c9e21c72225",
-  "signature": "3ac32b2a5abee0b11294fdee0b1d86700f9453bb782fa0b5b77fa447ec7a6cc2"
+  "shard_count": 6,
+  "content_hash": "0aa22e4ef134c48ab9e1bdabf8a09188c12f4b1b9d600d271101dbecfba45763",
+  "signature": "62a63b41a2b0b28106b7b1b31bdb1bdc048ba0bbad6e56dac371240ac4255deb"
 }

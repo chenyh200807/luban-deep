@@ -110,7 +110,12 @@ def verify_manifest(manifest: dict[str, Any], supply_root: Path) -> tuple[bool, 
 def enumerate_shards(supply_root: Path) -> list[dict[str, Any]]:
     """Read the signed lane bundles under runtime_supply into shard descriptors (pinned hashes)."""
     out: list[dict[str, Any]] = []
-    for dirname, lane in _LANE_MAP.items():
+    # fixed lanes + any topic shard (v_topic_<name> -> lane "topic_<name>")
+    lanes = dict(_LANE_MAP)
+    for td in sorted(supply_root.glob("v_topic_*")):
+        if td.is_dir():
+            lanes[td.name] = "topic_" + td.name[len("v_topic_"):]
+    for dirname, lane in lanes.items():
         d = supply_root / dirname
         if not d.is_dir():
             continue
