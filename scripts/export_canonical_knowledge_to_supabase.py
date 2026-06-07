@@ -35,11 +35,23 @@ os.environ.setdefault("LANGFUSE_ENABLED", "false")
 _REPO = Path(__file__).resolve().parents[1]
 OUT = _REPO / "artifacts" / "luban_grading_artifacts" / "supabase_canonical_export_20260606"
 SUPPLY = _REPO / "deeptutor" / "services" / "construction_grading" / "runtime_supply" / "v_canonical_unified_knowledge" / "canonical_unified_knowledge.json"
+GRAPH = _REPO / "artifacts" / "luban_grading_artifacts" / "knowledge_graph_20260606" / "knowledge_graph.json"
 _DATA = Path(os.getenv("LUBAN_DATA_DIR", "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026"))
 TAX_PATH = Path(os.getenv("LUBAN_TAX_PATH", str(_DATA / "taxonomy" / "FINAL_CLEANED_TAXONOMY2026.json")))
 
 _TAX_TABLE = "luban_canonical_taxonomy"
 _CATALOG_TABLE = "luban_canonical_knowledge_catalog"
+_EDGES_TABLE = "luban_canonical_knowledge_edges"
+
+
+def _edge_rows() -> list[dict[str, Any]]:
+    """Typed knowledge-graph edges from the built graph artifact (empty if not built yet)."""
+    if not GRAPH.exists():
+        return []
+    g = json.loads(GRAPH.read_text("utf-8"))
+    return [{"src": e["src"], "dst": e["dst"], "type": e["type"],
+             "relation_detail": e.get("relation_detail"), "confidence": e.get("confidence"),
+             "provenance": e.get("provenance") or []} for e in g.get("edges", [])]
 
 
 def _taxonomy_rows() -> list[dict[str, Any]]:
@@ -63,7 +75,14 @@ def _taxonomy_rows() -> list[dict[str, Any]]:
     for root in doc.get("outline_structure", []):
         if isinstance(root, dict):
             walk(root, "", [])
-    return rows
+    # the canonical tree has a few duplicate codes (e.g. 1A413000 appears under two L2 branches);
+    # dedup by code (keep the first, prefer one carrying keywords) so the upsert PK holds.
+    deduped: dict[str, dict[str, Any]] = {}
+    for r in rows:
+        cur = deduped.get(r["code"])
+        if cur is None or (not cur.get("keywords") and r.get("keywords")):
+            deduped[r["code"]] = r
+    return list(deduped.values())
 
 
 def _catalog_rows() -> list[dict[str, Any]]:
@@ -95,7 +114,8 @@ def _write_dry_run(tax_rows: list[dict[str, Any]], cat_rows: list[dict[str, Any]
     (OUT / "schema.sql").write_text(_SCHEMA_SQL, "utf-8")
 
 
-def _apply(tax_rows: list[dict[str, Any]], cat_rows: list[dict[str, Any]]) -> dict[str, Any]:
+def _apply(tax_rows: list[dict[str, Any]], cat_rows: list[dict[str, Any]],
+           edge_rows: list[dict[str, Any]]) -> dict[str, Any]:
     """Idempotent apply via the direct Postgres connection (DATABASE_URL): create-if-not-exists DDL
     (additive — new catalog tables only, never touches existing data) + ON CONFLICT upsert."""
     url = os.getenv("DATABASE_URL") or os.getenv("DB_URL")
@@ -134,12 +154,25 @@ def _apply(tax_rows: list[dict[str, Any]], cat_rows: list[dict[str, Any]]) -> di
                   r["lecture_count"], r["question_count"], r["has_knowledge"], r["has_question"])
                  for r in cat_rows],
             )
+            if edge_rows:
+                edge_ident = sql.Identifier(_EDGES_TABLE)
+                execute_values(
+                    cur,
+                    sql.SQL("insert into {} (src, dst, type, relation_detail, confidence, provenance) "
+                            "values %s on conflict (src, dst, type) do update set "
+                            "relation_detail=excluded.relation_detail, confidence=excluded.confidence, "
+                            "provenance=excluded.provenance").format(edge_ident),
+                    [(r["src"], r["dst"], r["type"], r["relation_detail"], r["confidence"],
+                      json.dumps(r["provenance"], ensure_ascii=False)) for r in edge_rows],
+                )
             conn.commit()
             cur.execute(sql.SQL("select count(*) from {}").format(tax_ident))
             n_tax = cur.fetchone()[0]
             cur.execute(sql.SQL("select count(*) from {}").format(cat_ident))
             n_cat = cur.fetchone()[0]
-        return {"taxonomy_rows_in_db": n_tax, "catalog_rows_in_db": n_cat}
+            cur.execute(sql.SQL("select count(*) from {}").format(sql.Identifier(_EDGES_TABLE)))
+            n_edge = cur.fetchone()[0]
+        return {"taxonomy_rows_in_db": n_tax, "catalog_rows_in_db": n_cat, "edge_rows_in_db": n_edge}
     except Exception:
         conn.rollback()
         raise
@@ -169,6 +202,18 @@ create table if not exists luban_canonical_knowledge_catalog (
   has_knowledge boolean,
   has_question boolean
 );
+-- typed knowledge-graph edges (hierarchy + authored + llm-mined prerequisite/related)
+create table if not exists luban_canonical_knowledge_edges (
+  src text not null,
+  dst text not null,
+  type text not null,
+  relation_detail text,
+  confidence real,
+  provenance jsonb,
+  primary key (src, dst, type)
+);
+create index if not exists idx_lkge_src on luban_canonical_knowledge_edges (src);
+create index if not exists idx_lkge_dst on luban_canonical_knowledge_edges (dst);
 """
 
 
@@ -185,18 +230,20 @@ def main() -> int:
 
     tax_rows = _taxonomy_rows()
     cat_rows = _catalog_rows()
+    edge_rows = _edge_rows()
     _write_dry_run(tax_rows, cat_rows)
 
     summary = {
         "mode": "apply" if args.apply else "dry-run",
         "taxonomy_rows": len(tax_rows),
         "catalog_rows": len(cat_rows),
-        "tables": [_TAX_TABLE, _CATALOG_TABLE],
+        "edge_rows": len(edge_rows),
+        "tables": [_TAX_TABLE, _CATALOG_TABLE, _EDGES_TABLE],
         "dry_run_output": str(OUT),
         "note": "catalog/graph layer only — grading authority stays on the local signed bundle.",
     }
     if args.apply:
-        summary["applied"] = _apply(tax_rows, cat_rows)
+        summary["applied"] = _apply(tax_rows, cat_rows, edge_rows)
     print(json.dumps(summary, ensure_ascii=False, indent=2))
     return 0
 

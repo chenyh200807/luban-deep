@@ -53,8 +53,8 @@ def test_hierarchy_edges(tmp_path):
 def test_assemble_dedups_and_drops_invalid():
     nodes = {"a": {}, "b": {}}
     edges = [
-        {"src": "a", "dst": "b", "type": "prerequisite", "provenance": "lec1"},
-        {"src": "a", "dst": "b", "type": "prerequisite", "provenance": "lec2"},  # dup -> merge prov
+        {"src": "a", "dst": "b", "type": "prerequisite", "provenance": "lec1", "confidence": 0.6},
+        {"src": "a", "dst": "b", "type": "prerequisite", "provenance": "lec2", "confidence": 0.9},  # dup -> merge prov + max conf
         {"src": "a", "dst": "a", "type": "related"},                              # self-loop -> drop
         {"src": "a", "dst": "zzz", "type": "related"},                            # dangling -> drop
     ]
@@ -62,4 +62,5 @@ def test_assemble_dedups_and_drops_invalid():
     assert g["stats"]["edge_count"] == 1
     assert g["stats"]["edges_dropped"] == 2
     assert g["edges"][0]["provenance"] == ["lec1", "lec2"]  # provenance merged
+    assert g["edges"][0]["confidence"] == 0.9  # strongest confidence kept
     assert g["stats"]["edges_by_type"] == {"prerequisite": 1}

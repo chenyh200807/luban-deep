@@ -63,13 +63,17 @@ def assemble_graph(canonical_nodes: dict[str, dict[str, Any]], edges: list[dict[
             dropped += 1
             continue
         key = (src, dst, rel)
+        conf = e.get("confidence")
         if key in seen:
             prov = e.get("provenance")
             if prov and prov not in seen[key]["provenance"]:
                 seen[key]["provenance"].append(prov)
+            if conf is not None and (seen[key].get("confidence") is None or conf > seen[key]["confidence"]):
+                seen[key]["confidence"] = conf  # corroborated -> keep the strongest confidence
             continue
         seen[key] = {"src": src, "dst": dst, "type": rel,
                      "relation_detail": e.get("relation_detail"),
+                     "confidence": conf,
                      "provenance": [e["provenance"]] if e.get("provenance") else []}
     edge_list = sorted(seen.values(), key=lambda x: (x["src"], x["dst"], x["type"]))
 

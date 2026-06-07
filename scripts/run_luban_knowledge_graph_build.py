@@ -29,6 +29,9 @@ os.environ.setdefault("LANGFUSE_ENABLED", "false")
 _REPO = Path(__file__).resolve().parents[1]
 OUT = _REPO / "artifacts" / "luban_grading_artifacts" / "knowledge_graph_20260606"
 SUPPLY = _REPO / "deeptutor" / "services" / "construction_grading" / "runtime_supply" / "v_canonical_unified_knowledge" / "canonical_unified_knowledge.json"
+# optional LLM-mined semantic edges (prerequisite/related) to merge on top of authored edges.
+SEMANTIC_EDGES = Path(os.getenv("LUBAN_SEMANTIC_EDGES",
+                                str(_REPO / "tmp" / "unify_workflow" / "semantic_edges.json")))
 DATA = Path(os.getenv("LUBAN_DATA_DIR", "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026"))
 TAX_PATH = Path(os.getenv("LUBAN_TAX_PATH", str(DATA / "taxonomy" / "FINAL_CLEANED_TAXONOMY2026.json")))
 
@@ -102,21 +105,29 @@ def run() -> dict[str, Any]:
         }
 
     lec_edges = _lecture_edges(tax)
-    # lecture edge endpoints must be nodes too (else assemble drops them) — add + their ancestors
-    for e in lec_edges:
+    # LLM-mined semantic edges (optional): tag provenance so they're distinguishable from authored ones.
+    sem_edges: list[dict[str, Any]] = []
+    if SEMANTIC_EDGES.exists():
+        for e in json.loads(SEMANTIC_EDGES.read_text("utf-8")):
+            sem_edges.append({"src": str(e.get("src") or ""), "dst": str(e.get("dst") or ""),
+                              "type": KG.normalize_relation(str(e.get("type") or "")),
+                              "relation_detail": str(e.get("reason") or "")[:120],
+                              "confidence": e.get("confidence"), "provenance": "llm_semantic"})
+    # edge endpoints must be nodes too (else assemble drops them)
+    for e in lec_edges + sem_edges:
         for code in (e["src"], e["dst"]):
             if code not in nodes and tax.node(code) is not None:
                 nodes[code] = {"name_path": tax.name_path(code),
                                "counts": {"textbook": 0, "standard": 0, "lecture": 0, "question": 0},
                                "level": tax.node(code).level, "populated": False}
-    edges = KG.hierarchy_edges(tax, set(nodes)) + lec_edges
+    edges = KG.hierarchy_edges(tax, set(nodes)) + lec_edges + sem_edges
     graph = KG.assemble_graph(nodes, edges)
 
     (OUT / "knowledge_graph.json").write_text(json.dumps(graph, ensure_ascii=False, indent=2), "utf-8")
     _emit_supabase_edges(graph)
     return {"nodes": graph["stats"]["node_count"], "edges": graph["stats"]["edge_count"],
             "edges_by_type": graph["stats"]["edges_by_type"],
-            "lecture_authored_edges": len(lec_edges),
+            "lecture_authored_edges": len(lec_edges), "llm_semantic_edges": len(sem_edges),
             "isolated_nodes": graph["stats"]["isolated_nodes"]}
 
 
