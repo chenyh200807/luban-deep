@@ -58,7 +58,7 @@ Page({
 function _normalizeUsage(raw) {
   var data = api.unwrapResponse ? api.unwrapResponse(raw) : raw || {};
   if (data && data.status === "degraded") {
-    return _degradedUsageState();
+    return _degradedUsageState(data.display);
   }
   var display = data.display || {};
   var quota = data.quota || {};
@@ -91,10 +91,13 @@ function _normalizeUsage(raw) {
   };
 }
 
-function _degradedUsageState() {
+function _degradedUsageState(display) {
+  var payload = display && typeof display === "object" ? display : {};
+  var primaryPercent = Number(payload.primary_percent);
+  if (isNaN(primaryPercent)) primaryPercent = 100;
   return {
-    usagePrimaryLabel: "额度同步中",
-    usagePrimaryPercent: 100,
+    usagePrimaryLabel: payload.primary_label || "额度暂不可用",
+    usagePrimaryPercent: Math.max(0, Math.min(100, Math.round(primaryPercent))),
     usageRows: [],
   };
 }

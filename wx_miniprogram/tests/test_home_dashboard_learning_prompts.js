@@ -95,8 +95,9 @@ assert(chatWxml.indexOf("showStaticExamples") >= 0);
 assert(wsSource.indexOf("prompt_intent") >= 0);
 assert(fs.readFileSync(wxVmPath, "utf8").indexOf("buildFallbackFocusQuery") < 0);
 
-function loadChatPage(getHomeDashboard) {
+function loadChatPage(getHomeDashboard, storage) {
   var capturedPage = null;
+  var storageState = storage || {};
   var sandbox = {
     Page: function (definition) {
       capturedPage = definition;
@@ -107,10 +108,12 @@ function loadChatPage(getHomeDashboard) {
         return { left: 320 };
       },
       removeStorageSync: function () {},
-      getStorageSync: function () {
-        return null;
+      getStorageSync: function (key) {
+        return storageState[key] || null;
       },
-      setStorageSync: function () {},
+      setStorageSync: function (key, value) {
+        storageState[key] = value;
+      },
       showToast: function () {},
       navigateTo: function (options) {
         sandbox.navigateCalls.push(options);
@@ -212,6 +215,49 @@ function flushPromises() {
       },
     },
   ]);
+
+  var cachedDashboard = {
+    today_focus: { label: "今日焦点", title: "缓存专题", meta: "来自学情更新" },
+    recommended_prompts: [
+      {
+        text: "先看缓存里的推荐",
+        prompt_type: "concept_explain",
+        intent: { source: "home_dashboard", learning_signal_type: "cached_prompt_clicked" },
+      },
+    ],
+  };
+  var freshDashboard = {
+    today_focus: { label: "今日焦点", title: "新专题", meta: "来自学情更新" },
+    recommended_prompts: [
+      {
+        text: "新回包里的推荐",
+        prompt_type: "practice_prompt",
+        intent: { source: "home_dashboard", learning_signal_type: "fresh_prompt_clicked" },
+      },
+    ],
+  };
+  var resolveFreshDashboard = null;
+  var cachedDefinition = loadChatPage(
+    function () {
+      return new Promise(function (resolve) {
+        resolveFreshDashboard = resolve;
+      });
+    },
+    {
+      "deeptutor.chat.homeDashboard.v1": {
+        cachedAt: Date.now(),
+        dashboard: cachedDashboard,
+      },
+    },
+  );
+  var cached = instantiatePage(cachedDefinition);
+  var cachedLoad = cached.page._loadDashboard();
+  assert.strictEqual(cached.page.data.focusTitle, "缓存专题");
+  assert.strictEqual(cached.page.data.recommendedPrompts[0].text, "先看缓存里的推荐");
+  resolveFreshDashboard({ data: freshDashboard });
+  await cachedLoad;
+  assert.strictEqual(cached.page.data.focusTitle, "新专题");
+  assert.strictEqual(cached.page.data.recommendedPrompts[0].text, "新回包里的推荐");
 
   var assessmentDefinition = loadChatPage(function () {
     return Promise.resolve({

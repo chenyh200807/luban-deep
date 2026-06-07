@@ -1153,7 +1153,7 @@ def test_billing_usage_returns_degraded_payload_when_billing_storage_unavailable
     assert response.status_code == 200
     body = response.json()
     assert body["status"] == "degraded"
-    assert body["display"]["primary_label"] == "额度同步中"
+    assert body["display"]["primary_label"] == "额度暂不可用"
     assert body["quota"]["rows"] == []
 
 
