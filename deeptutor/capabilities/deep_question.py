@@ -241,17 +241,56 @@ def _compiled_training_signal_text_from_context(question_context: dict[str, Any]
     return " | ".join(parts)
 
 
+def _personalization_training_signal_text_from_context(question_context: dict[str, Any]) -> str:
+    context = question_context.get("personalization_context")
+    if not isinstance(context, dict):
+        return ""
+    intent = context.get("active_training_intent")
+    if not isinstance(intent, dict) or not intent:
+        return ""
+
+    signal_parts: list[str] = []
+    for source_key, label in (
+        ("training_intent_id", "training_intent_id"),
+        ("concept_id", "concept"),
+        ("concept_label", "concept_label"),
+        ("error_code", "error_codes"),
+        ("error_label", "error_label"),
+    ):
+        value = _compact_text(intent.get(source_key))
+        if value:
+            signal_parts.append(f"{label}={value}")
+
+    evidence_refs = intent.get("evidence_refs")
+    if isinstance(evidence_refs, list):
+        signal_parts.append(f"evidence_ref_count={len(evidence_refs)}")
+
+    authority = context.get("authority") if isinstance(context.get("authority"), dict) else {}
+    prescription = _compact_text(authority.get("prescription"))
+    if prescription:
+        signal_parts.append(f"prescription_authority={prescription}")
+    return "；".join(signal_parts)
+
+
 def _question_context_generation_anchor(question_context: dict[str, Any] | None) -> str:
     raw_context = question_context if isinstance(question_context, dict) else {}
     normalized = normalize_question_followup_context(question_context)
     if not normalized:
-        return ""
-    if (
-        "compiled_learning_truth" not in normalized
-        and isinstance(raw_context.get("compiled_learning_truth"), dict)
-    ):
-        normalized = dict(normalized)
-        normalized["compiled_learning_truth"] = raw_context["compiled_learning_truth"]
+        if any(
+            isinstance(raw_context.get(key), dict)
+            for key in (
+                "compiled_learning_truth",
+                "personalization_context",
+                "construction_grading_result",
+            )
+        ):
+            normalized = dict(raw_context)
+        else:
+            return ""
+    for key in ("compiled_learning_truth", "personalization_context"):
+        if key not in normalized and isinstance(raw_context.get(key), dict):
+            normalized = dict(normalized)
+            normalized[key] = raw_context[key]
 
     items = normalized.get("items") or []
     contexts = [normalized, *[item for item in items if isinstance(item, dict)]]
@@ -275,6 +314,12 @@ def _question_context_generation_anchor(question_context: dict[str, Any] | None)
             _append_unique(
                 training_parts,
                 f"长期错因训练信号：{compiled_training_signal}；下一题优先从现有题库选择同考点、同错因的相似题。",
+            )
+        personalization_signal = _personalization_training_signal_text_from_context(item)
+        if personalization_signal:
+            _append_unique(
+                training_parts,
+                f"个性化训练意图：{personalization_signal}；下一题优先从现有题库选择同考点、同错因的相似题。",
             )
 
     anchor_lines: list[str] = []
@@ -1757,6 +1802,43 @@ def _case_rubric_v1_cohort_member(student_id: str) -> bool:
     return str(student_id).startswith(prefixes)
 
 
+def _record_v1_langfuse(
+    *, event: dict[str, Any] | None, student_id: str, qid: Any, cg_type: str, status: str = "ok"
+) -> None:
+    """Mirror the V1 grading observation into Langfuse (gray-rollout). Thin wrapper: all client logic is
+    in the langfuse adapter; best-effort, never raises (must not affect grading)."""
+    try:
+        from deeptutor.services.observability import get_langfuse_observability
+
+        obs = get_langfuse_observability()
+        if event and event.get("event_type") == "case_grading_completed":
+            aw = float(event.get("awarded_score") or 0)
+            mx = float(event.get("max_score") or 0)
+            ratio = round(aw / mx, 4) if mx > 0 else 0.0
+            obs.record_grading_event(
+                name="luban_v1_grading",
+                metadata={
+                    "engine": "luban_case_rubric_v1",
+                    "rubric_provenance": event.get("rubric_provenance"),
+                    "awarded_score": aw, "max_score": mx, "score_ratio": ratio,
+                    "scoring_points": len(event.get("scoring_points") or []),
+                    "high_risk_review": event.get("high_risk_review"),
+                    "official_score_allowed": False,
+                    "student_id": student_id, "question_id": qid, "cg_type": cg_type,
+                },
+                score_value=ratio,
+                score_comment=f"V1 {event.get('rubric_provenance')} {aw}/{mx}",
+            )
+        else:
+            obs.record_grading_event(
+                name="luban_v1_no_grade",
+                metadata={"engine": "luban_case_rubric_v1", "status": status,
+                          "student_id": student_id, "question_id": qid, "cg_type": cg_type},
+            )
+    except Exception:  # noqa: BLE001 — observability must never break grading
+        logger.debug("LUBAN_V1 langfuse record skipped", exc_info=True)
+
+
 async def _grade_case_rubric_v1(
     *, context: UnifiedContext, graded_context: dict[str, Any]
 ) -> dict[str, Any] | None:
@@ -1779,6 +1861,10 @@ async def _grade_case_rubric_v1(
     cg = graded_context.get("construction_grading_result")
     cg_type = str((cg or {}).get("type") or "").lower()
     if cg_type not in ("case", "batch"):
+        # Gray-rollout observability: V1 is on for this user but the turn is not subjective.
+        logger.info("LUBAN_V1 skip: not subjective (cg_type=%r) student=%s qid=%s",
+                    cg_type or "(none)", student_id,
+                    graded_context.get("question_id") or (cg or {}).get("question_id"))
         return None  # only subjective single / multi-item turns
     try:
         import os
@@ -1787,14 +1873,33 @@ async def _grade_case_rubric_v1(
 
         key = os.environ.get("DEEPSEEK_API_KEY")
         if not key:
+            logger.info("LUBAN_V1 unavailable: no DEEPSEEK_API_KEY")
             return {"status": "unavailable", "reason": "no_api_key"}
         from deeptutor.services.llm.factory import complete
 
         if cg_type == "batch":
-            return await _grade_case_batch_v1(
+            event = await _grade_case_batch_v1(
                 graded_context, student_id=student_id, complete=complete, key=key, _G=_G)
-        return await _grade_one_case_v1(
-            graded_context, student_id=student_id, complete=complete, key=key, _G=_G)
+        else:
+            event = await _grade_one_case_v1(
+                graded_context, student_id=student_id, complete=complete, key=key, _G=_G)
+        # Gray-rollout observability: did V1 actually grade, with what provenance/score?
+        _qid = graded_context.get("question_id") or (cg or {}).get("question_id")
+        if isinstance(event, dict) and event.get("event_type") == "case_grading_completed":
+            _aw, _mx = event.get("awarded_score"), event.get("max_score")
+            logger.info("LUBAN_V1 GRADED: provenance=%s score=%s/%s points=%d high_risk=%s "
+                        "student=%s qid=%s cg_type=%s",
+                        event.get("rubric_provenance"), _aw, _mx,
+                        len(event.get("scoring_points") or []), event.get("high_risk_review"),
+                        student_id, _qid, cg_type)
+            _record_v1_langfuse(event=event, student_id=student_id, qid=_qid, cg_type=cg_type)
+        else:
+            logger.info("LUBAN_V1 no-grade: %s student=%s qid=%s",
+                        (event or {}).get("status") if isinstance(event, dict) else "none",
+                        student_id, _qid)
+            _record_v1_langfuse(event=None, student_id=student_id, qid=_qid, cg_type=cg_type,
+                                status=(event or {}).get("status") if isinstance(event, dict) else "none")
+        return event
     except Exception:  # noqa: BLE001 — v1 must never break legacy (fail-closed)
         logger.warning("case_rubric_v1 grading failed; legacy answer unaffected", exc_info=True)
         return {"status": "unavailable", "reason": "exception"}

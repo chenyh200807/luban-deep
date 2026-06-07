@@ -636,6 +636,35 @@ class LangfuseObservability:
         finally:
             _current_usage_scope.reset(token)
 
+    def record_grading_event(
+        self,
+        *,
+        name: str = "luban_v1_grading",
+        metadata: dict[str, Any] | None = None,
+        score_value: float | None = None,
+        score_comment: str | None = None,
+    ) -> None:
+        """Record a Luban V1 grading observation on the current turn's trace (gray-rollout
+        observability). Best-effort: no-op when Langfuse is disabled/unconfigured, never raises so it
+        cannot affect grading. Emits an event with the V1 summary + an optional NUMERIC score."""
+        if not self.is_enabled():
+            return
+        client = self._get_client()
+        if client is None:
+            return
+        try:
+            meta = self.sanitize_metadata(metadata) if metadata else None
+            create_event = getattr(client, "create_event", None)
+            if callable(create_event):
+                create_event(name=name, metadata=meta, level="DEFAULT")
+            if score_value is not None:
+                score_fn = getattr(client, "score_current_trace", None)
+                if callable(score_fn):
+                    score_fn(name="luban_v1_score", value=float(score_value),
+                             data_type="NUMERIC", comment=score_comment)
+        except Exception:
+            logger.debug("Langfuse record_grading_event skipped", exc_info=True)
+
     def record_usage(
         self,
         *,
