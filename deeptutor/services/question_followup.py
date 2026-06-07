@@ -879,7 +879,21 @@ def should_reveal_reference_material(
     if normalized.get("reveal_explanations") or normalized.get("reveal_answers"):
         return True
     text = str(message or "").strip().lower()
-    explicit_request_markers = ("参考答案", "标准答案", "正确答案", "答案", "解析", "讲解", "为什么", "错因")
+    explicit_request_markers = (
+        "参考答案",
+        "标准答案",
+        "正确答案",
+        "答案",
+        "解析",
+        "讲解",
+        "为什么",
+        "错因",
+        "扣分",
+        "怎么扣",
+        "怎么判",
+        "怎么评分",
+        "评分",
+    )
     if any(marker in text for marker in explicit_request_markers):
         if should_block_unanswered_reference_reveal(message, normalized):
             return False
@@ -1055,8 +1069,17 @@ def build_choice_result_summary_from_exact_question(
     if not stem or not isinstance(options, dict) or len(options) < 2:
         return None
 
+    metadata = exact_question.get("metadata") if isinstance(exact_question.get("metadata"), dict) else {}
     correct_answer = "".join(
-        re.findall(r"[A-E]", str(exact_question.get("correct_answer") or "").upper())
+        re.findall(
+            r"[A-E]",
+            str(
+                exact_question.get("correct_answer")
+                or exact_question.get("answer")
+                or metadata.get("canonical_correct_answer")
+                or ""
+            ).upper(),
+        )
     )
     qa_pair = {
         "question_id": str(exact_question.get("id") or exact_question.get("chunk_id") or "tb_q_1").strip(),
@@ -1665,10 +1688,18 @@ def _looks_like_option_challenge_followup(
 
     patterns = [
         rf"{question_markers}.{{0,12}}?(?:不是|不选|不能选|不该选|不对|错|错误)?{letter}.*",
-        rf".{{0,20}}?{letter}.{{0,12}}?{question_markers}.{{0,12}}?(?:不对|错|错误|不是|不选|不能选|不行|不可以|对|正确)",
-        rf"{letter}.{{0,12}}?{question_markers}.{{0,12}}?(?:不对|错|错误|不是|不选|不能选|不行|不可以|对|正确)",
+        rf".{{0,20}}?{letter}.{{0,12}}?{question_markers}.{{0,12}}?(?:不对|错|错误|不是|不选|不能选|不行|不可以|对|正确){response_constraint_tail}",
+        rf"{letter}.{{0,12}}?{question_markers}.{{0,12}}?(?:不对|错|错误|不是|不选|不能选|不行|不可以|对|正确){response_constraint_tail}",
         rf"{letter}.{{0,8}}?{negative_markers}{response_constraint_tail}",
+        rf"{letter}.{{0,8}}?(?:不对吗|对吗|错吗|是不是错|是否错|是不是不对)",
+        rf"{letter}.{{0,8}}?(?:怎么扣|怎么判|怎么评分|扣几|扣分|给几分|得几分|会扣|会判|会算).*",
         rf"(?:那|这个|这|那么|如果是|要是)?{letter}呢{response_constraint_tail}",
+        rf".*?(?:不是要|不要|别|不想).{{0,12}}?(?:重新)?(?:提交|作答|回答|答|选|改成|改为){letter}.*",
+        rf".*?(?:不是|不要|别|不想|不是要).{{0,12}}?(?:重新)?(?:提交|作答|回答|答|选|改成|改为){letter}.*?(?:想知道|解释|为什么|为啥|怎么|不对|错).*",
+        rf".*?(?:不是|不要|别|不想|不是要).{{0,20}}?{letter}.{{0,20}}?(?:答案|提交|作答|回答|答|选|改成|改为).*?(?:想知道|解释|为什么|为啥|怎么|不对|错|扣分).*",
+        rf".*?(?:如果|假如|要是|若).{{0,8}}?(?:我)?(?:选|答|填|写|是)?{letter}.{{0,20}}?(?:怎么扣|怎么判|怎么评分|扣几|扣分|给几分|得几分|能得|能拿|会扣|会判|会算|算错|得分|拿分).*",
+        rf".*?(?:如果|假如|要是|若).{{0,8}}?(?:我)?(?:选|答|填|写|是)?{letter}.{{0,20}}?(?:对不对|是不是|是否|为什么|为啥|不对|错).*",
+        rf".*?(?:不选|别选|不能选|不该选){letter}.{{0,20}}?(?:为什么|为啥|怎么|咋|不行|不对|错).*",
     ]
     return any(re.fullmatch(pattern, compact, flags=re.IGNORECASE) for pattern in patterns)
 

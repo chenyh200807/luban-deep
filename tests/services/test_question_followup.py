@@ -78,6 +78,29 @@ def test_resolve_submission_attempt_extracts_numbered_batch_with_wo_xuan_prefix(
     }
 
 
+def test_build_choice_result_summary_reads_canonical_answer_from_exact_question_metadata() -> None:
+    summary = build_choice_result_summary_from_exact_question(
+        {
+            "id": "historical:q1",
+            "answer_kind": "mcq",
+            "stem": "历史建筑高度怎么算？",
+            "options": [
+                {"key": "A", "value": "檐口顶点"},
+                {"key": "B", "value": "屋脊"},
+                {"key": "C", "value": "墙顶点"},
+                {"key": "D", "value": "最高点"},
+            ],
+            "analysis": "应按室外设计地坪至建（构）筑物最高点计算。",
+            "metadata": {"canonical_correct_answer": "D"},
+        }
+    )
+
+    assert summary is not None
+    qa_pair = summary["results"][0]["qa_pair"]
+    assert qa_pair["correct_answer"] == "D"
+    assert qa_pair["explanation"] == "应按室外设计地坪至建（构）筑物最高点计算。"
+
+
 def test_resolve_submission_attempt_rejects_multi_option_single_choice_without_item_anchor() -> None:
     target, submission = resolve_submission_attempt(
         "我选AC，批改一下。",
@@ -444,11 +467,22 @@ def test_resolve_submission_attempt_keeps_english_written_explanation_as_followu
         "为什么不是 B？一句话。",
         "B为什么不对？",
         "B为啥错？",
+        "那C为什么不对？一句话。",
+        "C为什么不对",
+        "B怎么扣？",
+        "C不对吗？",
         "A错在哪里？一句话",
         "A错在哪？",
         "A哪里错了？",
         "那C呢？",
         "那C呢？一句话",
+        "我不是要重新提交C，是想知道C为什么不对；用刚才那题回答。",
+        "我不是要重新提交C",
+        "如果我选B，你会怎么扣？",
+        "这里是不是屋脊？如果选B会怎么判？",
+        "不选A为什么不行？",
+        "不是提交C，解释一下C错在哪里。",
+        "别把B当我的答案，我是问B为什么扣分。",
     ],
 )
 def test_resolve_submission_attempt_keeps_option_challenge_as_followup(
@@ -495,7 +529,7 @@ def test_resolve_submission_attempt_keeps_option_value_challenge_as_followup() -
     assert looks_like_question_followup("那1.0m行不行？一句话", question_context) is True
 
 
-@pytest.mark.parametrize("message", ["我选B", "B"])
+@pytest.mark.parametrize("message", ["我选B", "我改成B", "答案是B", "B"])
 def test_resolve_submission_attempt_keeps_explicit_option_submission(
     message: str,
 ) -> None:
