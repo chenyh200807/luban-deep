@@ -3,6 +3,44 @@ from __future__ import annotations
 from deeptutor.services.construction_grading.deep_question_adapter import (
     build_deep_question_grading_result,
 )
+
+
+def test_subjective_triggers_on_unenumerated_or_chinese_or_empty_type_with_reference() -> None:
+    # First-principles case detection: non-choice + has reference -> type=="case", regardless of the
+    # exact (un-enumerated / Chinese / empty) question_type string.
+    for qt in ("subjective", "简答题", "分析题", "", "fill_blank"):
+        qc = {"question_id": f"q-{qt}", "question_type": qt, "question": "简述...",
+              "correct_answer": "应采用专用开关箱"}
+        r = build_deep_question_grading_result(qc, user_answer="专用开关箱")
+        assert r is not None and r["type"] == "case", f"q_type={qt!r} should route to case"
+
+
+def test_no_reference_non_choice_is_not_force_graded() -> None:
+    # non-choice but NO reference answer -> not force-routed to subjective (returns None, legacy handles)
+    qc = {"question_id": "q-noref", "question_type": "作文", "question": "写一篇..."}
+    assert build_deep_question_grading_result(qc, user_answer="...") is None
+
+
+def test_real_mcq_never_routed_to_subjective() -> None:
+    # real choice question -> stays mcq, never subjective (choice veto first)
+    qc = {"question_id": "q-mcq", "question_type": "single_choice", "question": "...",
+          "options": {"A": "x", "C": "y"}, "correct_answer": "C"}
+    r = build_deep_question_grading_result(qc, user_answer="C")
+    assert r is not None and r["type"] == "mcq"
+
+
+def test_coding_question_with_reference_not_routed_to_subjective() -> None:
+    # coding has a reference answer but is graded by execution, not rubric -> must NOT route to case
+    qc = {"question_id": "coding-1", "question_type": "coding", "question": "写代码...",
+          "correct_answer": "print('hello')"}
+    assert build_deep_question_grading_result(qc, user_answer="print('hello')") is None
+
+
+def test_grading_key_reference_triggers_subjective() -> None:
+    qc = {"question_id": "q-gk", "question_type": "x", "question": "...",
+          "grading_key": {"correct_answer": "应..."}}
+    r = build_deep_question_grading_result(qc, user_answer="...")
+    assert r is not None and r["type"] == "case"
 from deeptutor.services.construction_grading.learning_evidence import (
     build_learning_evidence_payload,
 )

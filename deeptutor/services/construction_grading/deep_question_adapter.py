@@ -20,7 +20,11 @@ _CHOICE_TYPES = {
     "true_false",
 }
 
-_CASE_TYPES = {
+# Known explicit subjective writings — a FAST PATH only. The authoritative case decision is
+# `_is_subjective_context` (first principles: not a choice question AND has a reference answer), so
+# coverage no longer depends on this set being exhaustive or on question_type being normalized to
+# "written". Kept as a set so a declared case/essay with no reference answer yet still routes to case.
+_KNOWN_CASE_TYPES = {
     "written",
     "case",
     "case_study",
@@ -98,7 +102,7 @@ def build_deep_question_grading_result(
         result["authority"] = "construction_grading"
         _stamp_compiled_context_and_authority(result, row)
         return result
-    if question_type in _CASE_TYPES:
+    if _is_subjective_context(row):
         result = CaseGradingSkillKernel().grade(
             question_row=row,
             user_answer=answer,
@@ -230,6 +234,36 @@ def _is_choice_context(row: dict[str, Any]) -> bool:
     options = row.get("options")
     correct = str(row.get("correct_answer") or "").strip()
     return isinstance(options, dict) and bool(options) and bool(correct)
+
+
+def _has_reference_answer(row: dict[str, Any]) -> bool:
+    """First principles: a gradable subjective question must have a reference answer to grade against.
+    `correct_answer` is the only reference that survives followup normalization (analysis is stripped);
+    grading_key.correct_answer is the governed variant."""
+    if str(row.get("correct_answer") or "").strip():
+        return True
+    grading_key = row.get("grading_key")
+    return isinstance(grading_key, dict) and bool(str(grading_key.get("correct_answer") or "").strip())
+
+
+# Types that carry a reference answer but are NOT subjective case questions (own grader / execution-based).
+# Vetoed so the reference-answer heuristic below never mis-routes them to case grading.
+_NON_CASE_TYPES = {"coding", "code", "program", "programming"}
+
+
+def _is_subjective_context(row: dict[str, Any]) -> bool:
+    """A question is subjective (case/rubric) iff it is NOT a choice/coding question AND (it declares a
+    known case type OR it has a reference answer). Purely ADDITIVE over the old enumeration for genuinely
+    subjective writings (un-enumerated / Chinese / empty question_type with a reference); choice and
+    coding are vetoed first so they keep their own grading paths."""
+    if _is_choice_context(row):
+        return False
+    question_type = str(row.get("question_type") or "").strip().lower()
+    if question_type in _NON_CASE_TYPES:
+        return False
+    if question_type in _KNOWN_CASE_TYPES:
+        return True
+    return _has_reference_answer(row)
 
 
 def _result_is_full_score(result: dict[str, Any]) -> bool:

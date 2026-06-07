@@ -238,6 +238,47 @@ async def test_case_rubric_v1_env_kill_switch(monkeypatch: pytest.MonkeyPatch) -
     assert "luban_case_rubric_v1" not in result
 
 
+def test_grade_case_batch_v1_grades_each_case_item(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Multi-item turn (type=="batch"): each case sub-item is graded by the SAME V1 core and merged into
+    # one case_grading_completed event with summed scores. Non-case items are skipped.
+    from deeptutor.capabilities import deep_question as dq
+
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda qid: [
+        {"point_id": "P1", "text": "点1", "score": 1.0, "policy": "list", "required_terms": []},
+        {"point_id": "P2", "text": "点2", "score": 1.0, "policy": "list", "required_terms": []},
+    ])
+
+    async def _fake_batch_async(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {"P1": {"status": G.HIT}, "P2": {"status": G.MISS}}
+
+    monkeypatch.setattr(G, "batch_judge_async", _fake_batch_async)
+
+    graded_context = {
+        "construction_grading_result": {"type": "batch"},
+        "items": [
+            {"question_id": "c1", "user_answer": "a1",
+             "construction_grading_result": {"type": "case", "max_score": 2.0}},
+            {"question_id": "c2", "user_answer": "a2",
+             "construction_grading_result": {"type": "case", "max_score": 2.0}},
+            {"question_id": "m1", "user_answer": "C",
+             "construction_grading_result": {"type": "mcq"}},  # skipped
+        ],
+    }
+
+    async def _noop_complete(**_kw):
+        return "{}"
+
+    ev = asyncio.run(dq._grade_case_batch_v1(
+        graded_context, student_id="qa_x", complete=_noop_complete, key="k", _G=G))
+    assert ev["event_type"] == "case_grading_completed"
+    assert len(ev["items"]) == 2                       # 2 case items graded, mcq skipped
+    assert ev["max_score"] == 4.0                      # 2 + 2
+    assert ev["awarded_score"] == 2.0                  # each item P1 hit (1.0) -> 1+1
+    assert ev["rubric_provenance"] == "batch"
+    assert ev["official_score_allowed"] is False
+
+
 def test_batch_judge_async_parses_and_fails_closed() -> None:
     async def _ok_complete(**_kwargs):
         return '[{"point_id":"P1","status":"hit"},{"point_id":"P2","status":"miss"}]'

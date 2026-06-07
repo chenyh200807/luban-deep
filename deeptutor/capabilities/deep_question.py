@@ -1777,14 +1777,9 @@ async def _grade_case_rubric_v1(
     if not _case_rubric_v1_global_on() and not _case_rubric_v1_cohort_member(student_id):
         return None  # cohort gate: out-of-cohort users unaffected
     cg = graded_context.get("construction_grading_result")
-    # The case adapter stamps result["type"] = "case" for ALL written/essay/short-answer variants;
-    # that (not the raw question_type string) is the reliable case signal.
-    if str((cg or {}).get("type") or "").lower() != "case":
-        return None
-    qid = str(graded_context.get("question_id") or (cg or {}).get("question_id") or "").strip()
-    answer = str(graded_context.get("user_answer") or "").strip()
-    if not answer:
-        return None
+    cg_type = str((cg or {}).get("type") or "").lower()
+    if cg_type not in ("case", "batch"):
+        return None  # only subjective single / multi-item turns
     try:
         import os
 
@@ -1795,40 +1790,93 @@ async def _grade_case_rubric_v1(
             return {"status": "unavailable", "reason": "no_api_key"}
         from deeptutor.services.llm.factory import complete
 
-        # 1) governed compiled rubric (best ammunition) if this question is in the bank
-        points = _G.load_rubric(qid) if qid else []
-        provenance = "compiled_rubric"
-        # 2) OPEN WORLD: no compiled rubric -> extract scoring points on-the-fly from THIS question's
-        #    own reference answer, so V1 still engages (Nexus-like, not a 173-question lookup).
-        if not points:
-            reference = str(
-                graded_context.get("correct_answer")
-                or (cg or {}).get("correct_answer")
-                or graded_context.get("reference_answer")
-                or graded_context.get("analysis")
-                or ""
-            ).strip()
-            if not reference:
-                return {"status": "no_reference", "question_id": qid}
-            stem = str(graded_context.get("question_stem") or graded_context.get("stem")
-                       or graded_context.get("question") or "")
-            points = await _G.extract_rubric_from_reference_async(reference, stem, complete, key)
-            # Normalize on-the-fly weights to the question's nominal full score (V0 max_score) so
-            # open-world awarded/max is comparable to the in-bank scale; compiled rubric is untouched.
-            points = _G.normalize_points_to_nominal(
-                points, nominal_total=float((cg or {}).get("max_score") or 0))
-            provenance = "on_the_fly_reference"
-        if not points:
-            return {"status": "unavailable", "reason": "no_scoring_points"}
-
-        event = await _G.grade_with_batch_judge_async(
-            qid=qid or "open_world", student_answer=answer, rubric_points=points,
-            complete_fn=complete, api_key=key, student_id=student_id)
-        event["rubric_provenance"] = provenance
-        return event
-    except Exception as exc:  # noqa: BLE001 — v1 must never break legacy (fail-closed)
+        if cg_type == "batch":
+            return await _grade_case_batch_v1(
+                graded_context, student_id=student_id, complete=complete, key=key, _G=_G)
+        return await _grade_one_case_v1(
+            graded_context, student_id=student_id, complete=complete, key=key, _G=_G)
+    except Exception:  # noqa: BLE001 — v1 must never break legacy (fail-closed)
         logger.warning("case_rubric_v1 grading failed; legacy answer unaffected", exc_info=True)
-        return {"status": "unavailable", "reason": type(exc).__name__}
+        return {"status": "unavailable", "reason": "exception"}
+
+
+async def _grade_one_case_v1(
+    ctx: dict[str, Any], *, student_id: str, complete: Any, key: str, _G: Any
+) -> dict[str, Any] | None:
+    """Grade ONE subjective question context with V1 (compiled rubric -> open-world reference). Reused by
+    both the single-question and per-batch-item paths so there is exactly one grading core (no second
+    judging logic). Returns a GradingEvent, a marker dict, or None (no gradable answer)."""
+    cg = ctx.get("construction_grading_result")
+    qid = str(ctx.get("question_id") or (cg or {}).get("question_id") or "").strip()
+    answer = str(ctx.get("user_answer") or "").strip()
+    if not answer:
+        return None
+    # 1) governed compiled rubric (best ammunition) if in the bank
+    points = _G.load_rubric(qid) if qid else []
+    provenance = "compiled_rubric"
+    # 2) OPEN WORLD: no compiled rubric -> extract atomic scoring points on-the-fly from THIS question's
+    #    own reference answer (Nexus-like, not a 173-question lookup); never falls back to V0 keywords.
+    if not points:
+        reference = str(
+            ctx.get("correct_answer")
+            or (cg or {}).get("correct_answer")
+            or ctx.get("reference_answer")
+            or ctx.get("analysis")
+            or ""
+        ).strip()
+        if not reference:
+            return {"status": "no_reference", "question_id": qid}
+        stem = str(ctx.get("question_stem") or ctx.get("stem") or ctx.get("question") or "")
+        points = await _G.extract_rubric_from_reference_async(reference, stem, complete, key)
+        # Normalize on-the-fly weights to the question's nominal full score (V0 max_score) so open-world
+        # awarded/max is comparable to the in-bank scale; compiled rubric is untouched.
+        points = _G.normalize_points_to_nominal(
+            points, nominal_total=float((cg or {}).get("max_score") or 0))
+        provenance = "on_the_fly_reference"
+    if not points:
+        return {"status": "unavailable", "reason": "no_scoring_points"}
+    event = await _G.grade_with_batch_judge_async(
+        qid=qid or "open_world", student_answer=answer, rubric_points=points,
+        complete_fn=complete, api_key=key, student_id=student_id)
+    event["rubric_provenance"] = provenance
+    return event
+
+
+async def _grade_case_batch_v1(
+    graded_context: dict[str, Any], *, student_id: str, complete: Any, key: str, _G: Any
+) -> dict[str, Any] | None:
+    """Multi-item turns (type=="batch"): grade each subjective sub-item with the SAME V1 core and merge
+    into one case_grading_completed event (deterministic sums), so render + same-source outcome work
+    unchanged. Non-case sub-items (e.g. MCQ) are left to legacy. None if no sub-item was gradable."""
+    items = graded_context.get("items") or []
+    sub_events: list[dict[str, Any]] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        icg = item.get("construction_grading_result")
+        if str((icg or {}).get("type") or "").lower() != "case":
+            continue
+        ev = await _grade_one_case_v1(item, student_id=student_id, complete=complete, key=key, _G=_G)
+        if isinstance(ev, dict) and ev.get("event_type") == "case_grading_completed":
+            sub_events.append(ev)
+    if not sub_events:
+        return None
+    merged_points = [dict(sp) for ev in sub_events for sp in (ev.get("scoring_points") or [])]
+    return {
+        "event_type": "case_grading_completed",
+        "student_id": student_id,
+        "question_id": "batch",
+        "scoring_points": merged_points,
+        "awarded_score": round(sum(float(e.get("awarded_score") or 0) for e in sub_events), 2),
+        "max_score": round(sum(float(e.get("max_score") or 0) for e in sub_events), 2),
+        "high_risk_review": any(e.get("high_risk_review") for e in sub_events),
+        "grading_source": "rubric_scored_v1",
+        "answer_key_authority": "exam_reference_answer",
+        "llm_adjudicated": True,
+        "official_score_allowed": False,
+        "rubric_provenance": "batch",
+        "items": sub_events,
+    }
 
 
 def _case_rubric_v1_payload_from_event(
