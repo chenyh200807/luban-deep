@@ -4,7 +4,7 @@
 > **代码事实校验（2026-05-30）**: SR1 `_secure_router.py` + `check_secure_routers.sh FAIL_ON_NEW` 已接 `tests.yml:113`；SR2 `check_rls_on_create_table.sh` 接 `tests.yml:116`、#75/#82 RLS harden；SR3 限流 single authority（`route_rate_limit` + `enforce_websocket_rate_limit`）；SR4 LLM client factory（`openai_http_client.py` 三 factory）；SR5 `/readyz` 一致性；SR6 `runtime/safety.py`（spawn_task/readiness/exception handler）接 `main.py` + `tests.yml:124`。计费止血 `wallet/service.py` enforcement flag 默认 OFF（#79）。active-turn-capacity 50-120 仍 0 代码（`Proposed` 属实，内测 <100 DAU 不阻塞）。
 > **主线**: 生产部署 / Observability 与 release gate
 > **来源**: 8 维度上线前审查 + 4 组根因 subagent 深度评估（SR1 路由认证 / SR2 Schema-RLS / SR3-5 限流-LLM-Healthcheck / SR6 Runtime safety）+ codex CLI 200 IQ 独立 review
-> **审查上下文**: 内测窗口 < 100 DAU / 本周内开放 / 后端 FastAPI + WebSocket + Supabase + 多 LLM provider / **小程序主验收面 `yousenwebview/packageDeeptutor/`（`wx_miniprogram/` 仅 shadow 辅助）** + 阿里云 Docker Compose 部署
+> **审查上下文**: 内测窗口 < 100 DAU / 本周内开放 / 后端 FastAPI + WebSocket + Supabase + 多 LLM provider / **小程序 DevTools project root = `yousenwebview/`，主业务验收面 = `packageDeeptutor/` 分包（`wx_miniprogram/` 仅 shadow 辅助）** + 阿里云 Docker Compose 部署
 > **v1 → v2 修订理由**: v1 把 10 个 P0 当孤立补丁修，违反 thin wrappers + first principles + less is more。v2 把 10 个 P0 收敛为 **6 个根因簇（SR1-SR6）**，每个根因簇用 1 个 thin wrapper + 1 个 CI grep gate 在源头阻断，并把 v1 漏掉的 8 个同根因 P0 一并暴露（最关键：A5-A8 在 staging/dev 全开的 LLM-trigger 端点；anthropic.py:14 dead import；public.users / public.wallets schema 不在 git）。
 > **v2 → v2.1 修订理由**: codex 独立 review 命中 5 个 v2 设计盲区——(R1) **grep gate 不是安全边界**（alias / wrapper / `include_router` 都能绕，必须叠加 runtime route inventory gate）；(R2) **baseline schema dump 放进 `migrations/` 会让 fresh env 重复 apply**（改放 `supabase/schema_baselines/` 非 migration artifact + 加 live RLS audit query）；(R3) **SR6 4 个 primitive 上线前不应一次性打包**（BoundedQueue 对 WS 流式可能丢用户可见 token，必须分级：上线前 = subscriber spawn_task + readiness callable + exception envelope；BoundedQueue 推 W1 加压测 + channel-level 策略）；(R4) **PR-α owner_key 回填不是 0.5h，是 1d**（canonical owner 来源 + dry-run + 备份 + idempotency + 抽样验证）；**PR-1 拆分太粗**（拆 PR-0 inventory-only gate / PR-1a manifest 引入 / PR-1b 行为切换）；(R5) **2.5 人日严重低估**——实际 **2.5 人日代码收口 + 1.5-3 人日验证/数据/部署风险预算 = 4-6 人日总盘**。
 > **后续修订**: 任何 P0 项变更或新增 P0 都必须更新本文件 + INDEX.md，不要再开第二份 checklist
@@ -42,7 +42,7 @@
 | **G6 SR6 Runtime safety** | `runtime/safety.py` 就位；`unified_ws.py` + `turn_runtime.py` 关键 8 处迁移完成；`/readyz` 主动探测 SQLite/LLM；500 走统一 envelope；3 段 grep gate 绿 | `deeptutor/runtime/safety.py` `api/main.py` |
 | **G7 P0 测试通过** | `pytest tests/api tests/services/security tests/services/observability tests/runtime tests/contracts` 全绿；新增的 secure_router / readiness / queue 单测全过 | `tests/` |
 | **G8 阿里云 deploy 演练** | `scripts/deploy_aliyun.sh --dry-run` 通过；rollback 路径用 `rollback_aliyun_release.sh` 真验证一次（不是 dry-run） | `scripts/` + `/root/deeptutor` |
-| **G9 微信开发者工具回归** | **主验收面 = `yousenwebview/packageDeeptutor/`**（codex R5 命中：v2 写错了）；`wx_miniprogram/` 仅做 shadow 辅助核对。4 个核心路径：登录 / 聊天 / 个人中心 / 网络断开 + WS 4401 时小程序触发 relaunchLogin（用 PR-1b 修完的 WS auth 路径实测） | `yousenwebview/packageDeeptutor/`（主） + `wx_miniprogram/`（shadow） |
+| **G9 微信开发者工具回归** | **DevTools `--project` 必须打开 `yousenwebview/` 项目根，主业务验收目标是其中的 `packageDeeptutor/` 分包页面**；`wx_miniprogram/` 仅做 shadow 辅助核对。4 个核心路径：登录 / 聊天 / 个人中心 / 网络断开 + WS 4401 时小程序触发 relaunchLogin（用 PR-1b 修完的 WS auth 路径实测）。每次记录 `auth_state` / `auth_mode`；登录不可用只能记 `partial/auth_blocked`，不能冒充真微信 PASS。 | `yousenwebview/` project root + `packageDeeptutor/` target subpackage（主） + `wx_miniprogram/`（shadow） |
 
 **只要 G1-G9 任一未达成，不允许打开内测注册。**
 
@@ -374,7 +374,7 @@ v2 写 2.5 人日是只算 wrapper 代码；codex R5 命中要害：最贵的部
 7. **SR6 exception handler 仅 HTTP**（codex R3 命中）：不接管 WS / streaming 错误语义，避免改现有 close-code 协议。
 8. **mobile.py 不算 P0 漏洞**：43 个端点功能上无漏，但模式偏离 default-secure → 列入 SR1 Phase 1 强制迁移。
 9. **`chat.py` 已不挂载但代码在**：SR1 Phase 2 `git rm`；本周不动，但要标记防止后续 PR 误 `include_router`。
-10. **微信主验收面是 `yousenwebview/packageDeeptutor/`，不是 `wx_miniprogram/`**（codex R5 命中）：G9 验收时 wx_miniprogram 只做 shadow 对照，主流程必须在 yousenwebview 通过。
+10. **微信 DevTools project root 是 `yousenwebview/`，主业务验收目标是 `packageDeeptutor/` 分包，不是 `wx_miniprogram/`**（codex R5 命中）：G9 验收时 wx_miniprogram 只做 shadow 对照，主流程必须在 yousenwebview 项目内通过，并单独记录登录证据。
 
 ---
 

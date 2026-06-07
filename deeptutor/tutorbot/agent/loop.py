@@ -914,12 +914,98 @@ class AgentLoop:
         return self._build_exact_authority_response_sync(exact_question)
 
     @staticmethod
+    def _build_v1_case_ctx(runtime_metadata: dict[str, Any] | None, user_message: str) -> dict[str, Any]:
+        """Pure mapping: TutorBot runtime_metadata -> the ctx dict that rubric_grader_v1 core grades.
+        Case reference lives in ``_prefetched_exact_question.covered_subquestions[].authoritative_answer``
+        (NOT top-level correct_answer); followup-flat correct_answer is the secondary source."""
+        md = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        eq = md.get("_prefetched_exact_question")
+        eq = eq if isinstance(eq, dict) else {}
+        fc = AgentLoop._followup_context_from_metadata(md)
+        covered = eq.get("covered_subquestions") or []
+        ref = "\n".join(
+            str(s.get("authoritative_answer") or "") for s in covered if isinstance(s, dict)
+        ).strip()
+        ref = ref or str(fc.get("correct_answer") or eq.get("correct_answer") or eq.get("analysis") or "")
+        try:
+            nominal = float(eq.get("max_score") or fc.get("max_score") or 0)
+        except (TypeError, ValueError):
+            nominal = 0.0
+        return {
+            "question_id": str(eq.get("question_id") or eq.get("qid") or fc.get("question_id") or ""),
+            "user_answer": str(fc.get("user_answer") or user_message or ""),
+            "correct_answer": ref,
+            "question_stem": str(eq.get("stem") or eq.get("question") or fc.get("question_stem") or ""),
+            "construction_grading_result": {"type": "case", "max_score": nominal},
+        }
+
+    async def _v1_case_render(self, *, runtime_metadata: dict[str, Any] | None, user_message: str) -> str:
+        """Grade a TutorBot case turn with the V1 rubric engine (single fat-skill core, reused from
+        deep_question) and return the student-facing render. Returns '' when V1 should not take over
+        (not case_grading / no score authority / flag off / no reference / unavailable). Best-effort:
+        never raises (must not break the tutorbot turn)."""
+        md = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        if str(md.get("question_lifecycle_scene") or "").strip() != "case_grading":
+            return ""
+        # V1 needs a reference answer; "score authority available" == "structured reference present".
+        if not case_grading_score_authority_available(md):
+            return ""
+        try:
+            from deeptutor.capabilities.deep_question import _grade_one_case_v1
+            from deeptutor.services.construction_grading import rubric_grader_v1 as _G
+
+            student_id = str(md.get("user_id") or md.get("learner_user_id") or "").strip()
+            # gating: DEFAULT ON for all users (full rollout, not gray); only the emergency env kill
+            # switch disables V1.
+            if os.environ.get("LUBAN_CASE_RUBRIC_V1_ENABLED", "").strip().lower() in (
+                "false", "0", "off", "no"):
+                return ""
+            key = os.environ.get("DEEPSEEK_API_KEY")
+            if not key:
+                return ""
+            from deeptutor.services.llm.factory import complete
+
+            ctx = self._build_v1_case_ctx(md, user_message)
+            event = await _grade_one_case_v1(ctx, student_id=student_id, complete=complete, key=key, _G=_G)
+            if not (isinstance(event, dict) and event.get("event_type") == "case_grading_completed"):
+                return ""
+            md["_v1_case_graded"] = True  # defensive: downstream demote must not override
+            try:
+                from deeptutor.capabilities.deep_question import _record_v1_langfuse
+
+                _record_v1_langfuse(event=event, student_id=student_id,
+                                    qid=ctx.get("question_id"), cg_type="case")
+            except Exception:  # noqa: BLE001 — observability never breaks grading
+                pass
+            logger.info("LUBAN_V1 GRADED (tutorbot): provenance={} score={}/{} student={} qid={}",
+                        event.get("rubric_provenance"), event.get("awarded_score"),
+                        event.get("max_score"), student_id, ctx.get("question_id"))
+            return _G.render_case_rubric_feedback(event, question_stem=str(ctx.get("question_stem") or ""))
+        except Exception:  # noqa: BLE001 — V1 must never break the tutorbot turn
+            logger.warning("LUBAN_V1 tutorbot grading failed; legacy answer unaffected", exc_info=True)
+            return ""
+
+    async def _apply_v1_or_case_fallback(
+        self, final_content: str | None, *, runtime_metadata: dict[str, Any] | None, user_message: str
+    ) -> str:
+        """Single seam for all finalize paths: prefer V1 rubric grading (becomes the score authority);
+        otherwise fall back to the existing no-authority demotion. Returns '' to leave final_content as-is."""
+        v1_render = await self._v1_case_render(runtime_metadata=runtime_metadata, user_message=user_message)
+        if v1_render:
+            return v1_render
+        return self._case_grading_no_authority_score_fallback(
+            final_content, runtime_metadata=runtime_metadata, user_message=user_message)
+
+    @staticmethod
     def _case_grading_no_authority_score_fallback(
         final_content: str | None,
         *,
         runtime_metadata: dict[str, Any] | None,
         user_message: str,
     ) -> str:
+        # Defensive: when V1 already produced the authoritative grade, never demote it.
+        if isinstance(runtime_metadata, dict) and runtime_metadata.get("_v1_case_graded"):
+            return ""
         if not should_demote_case_grading_hard_score(
             final_content,
             runtime_metadata=runtime_metadata,
@@ -1256,6 +1342,10 @@ class AgentLoop:
         if case_fallback:
             final_content = case_fallback
             self._replace_last_assistant_message(messages, case_fallback)
+        # V1 is applied ONCE on the outer _process_message seam (after _run_agent_loop returns), NOT
+        # here: _run_agent_loop rebinds runtime_metadata to a local copy, so a V1 attempt here would not
+        # propagate _v1_case_graded and would double-invoke V1 (two DeepSeek calls). This inner seam
+        # keeps only the cheap legacy demote.
         no_score_fallback = self._case_grading_no_authority_score_fallback(
             final_content,
             runtime_metadata=runtime_metadata,
@@ -2933,7 +3023,7 @@ class AgentLoop:
                 final_content,
                 runtime_metadata=runtime_metadata,
             ) or final_content
-            final_content = self._case_grading_no_authority_score_fallback(
+            final_content = await self._apply_v1_or_case_fallback(
                 final_content,
                 runtime_metadata=runtime_metadata,
                 user_message=current_message,
@@ -3068,7 +3158,7 @@ class AgentLoop:
                 final_content,
                 runtime_metadata=runtime_metadata,
             ) or final_content
-            final_content = self._case_grading_no_authority_score_fallback(
+            final_content = await self._apply_v1_or_case_fallback(
                 final_content,
                 runtime_metadata=runtime_metadata,
                 user_message=current_message,
@@ -3145,7 +3235,7 @@ class AgentLoop:
             final_content,
             runtime_metadata=runtime_metadata,
         ) or final_content
-        final_content = self._case_grading_no_authority_score_fallback(
+        final_content = await self._apply_v1_or_case_fallback(
             final_content,
             runtime_metadata=runtime_metadata,
             user_message=current_message,

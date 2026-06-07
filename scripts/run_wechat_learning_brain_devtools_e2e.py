@@ -18,6 +18,8 @@ from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEVTOOLS_CLI = Path("/Applications/wechatwebdevtools.app/Contents/MacOS/cli")
+DEFAULT_DEVTOOLS_PROJECT_PATH = PROJECT_ROOT / "yousenwebview"
+DEFAULT_DEVTOOLS_TARGET_SUBPACKAGE = "packageDeeptutor"
 
 
 def _request_json(
@@ -62,14 +64,49 @@ def _levels(payload: dict[str, Any]) -> set[str]:
     }
 
 
-def _open_devtools(project_path: Path) -> None:
+def _auth_mode_from_code(code: str) -> tuple[str, str]:
+    normalized = str(code or "").strip().lower()
+    if normalized.startswith(("dev-", "dev_", "mock-")):
+        return "qa_token", "local_dev_wechat"
+    return "logged_in", "real_wechat"
+
+
+def _open_devtools(project_path: Path) -> dict[str, Any]:
     if not DEVTOOLS_CLI.exists():
         raise RuntimeError(f"WeChat DevTools CLI not found: {DEVTOOLS_CLI}")
-    subprocess.run(
-        [str(DEVTOOLS_CLI), "open", "--project", str(project_path), "--lang", "zh"],
-        check=True,
+    login = subprocess.run(
+        [str(DEVTOOLS_CLI), "islogin"],
+        check=False,
         cwd=str(PROJECT_ROOT),
+        capture_output=True,
+        text=True,
+        timeout=30,
     )
+    opened = subprocess.run(
+        [str(DEVTOOLS_CLI), "open", "--project", str(project_path), "--lang", "zh"],
+        check=False,
+        cwd=str(PROJECT_ROOT),
+        capture_output=True,
+        text=True,
+        timeout=45,
+    )
+    if opened.returncode != 0:
+        raise RuntimeError(
+            "WeChat DevTools project open failed: "
+            f"exit_code={opened.returncode} stderr={(opened.stderr or '').strip()[:300]}"
+        )
+    return {
+        "entry_surface": "real_wechat_package",
+        "trace_source": "devtools_cli_open",
+        "project_path": str(project_path),
+        "target_subpackage": DEFAULT_DEVTOOLS_TARGET_SUBPACKAGE,
+        "islogin_returncode": login.returncode,
+        "islogin_stdout": (login.stdout or "").strip(),
+        "open_returncode": opened.returncode,
+        "open_stdout": (opened.stdout or "").strip(),
+        "open_stderr": (opened.stderr or "").strip(),
+        "evidence_boundary": "project-open preflight; page-level PASS still requires scenario evidence",
+    }
 
 
 def _run_synthesis(*, user_id: str, event_limit: int, user_data_dir: str) -> dict[str, Any]:
@@ -118,6 +155,7 @@ def _run_synthesis(*, user_id: str, event_limit: int, user_data_dir: str) -> dic
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
     code = args.code or f"dev-learning-brain-e2e-{time.time_ns()}-{uuid.uuid4().hex[:8]}"
+    auth_state, auth_mode = _auth_mode_from_code(code)
     login = _request_json(
         method="POST",
         base_url=args.base_url,
@@ -209,12 +247,16 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     )
     _assert(bool(improved_projection.get("improvement_signals")), "improvement signal is missing")
 
+    devtools = None
     if args.open_devtools:
-        _open_devtools(Path(args.project_path).resolve())
+        devtools = _open_devtools(Path(args.project_path).resolve())
 
     return {
         "ok": True,
         "user_id": user_id,
+        "auth_state": auth_state,
+        "auth_mode": auth_mode,
+        "devtools": devtools,
         "event_count": improved_projection.get("event_count"),
         "l1_levels": sorted(_levels(l1_projection)),
         "l2_levels": sorted(_levels(l2_projection)),
@@ -242,7 +284,7 @@ def main() -> int:
         default=str(PROJECT_ROOT / ".local-runs" / "learning-brain" / "user-data"),
     )
     parser.add_argument("--open-devtools", action="store_true")
-    parser.add_argument("--project-path", default=str(PROJECT_ROOT / "yousenwebview"))
+    parser.add_argument("--project-path", default=str(DEFAULT_DEVTOOLS_PROJECT_PATH))
     args = parser.parse_args()
 
     try:

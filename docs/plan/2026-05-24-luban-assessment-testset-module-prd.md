@@ -912,7 +912,7 @@ P0 需要 `/wechat-harness` 或 Node view-model 覆盖：
 5. deep explanation CTA hidden before submit and hidden/disabled after submit in P0A
 6. report writes attempt refs for learning report
 
-微信 DevTools 真入口验收仍以 `yousenwebview/packageDeeptutor` 为准。
+微信 DevTools 真入口验收以 `yousenwebview` 项目根内的 `packageDeeptutor` 分包页面为准；DevTools CLI `--project` 不得指向 `yousenwebview/packageDeeptutor`。
 
 ---
 
@@ -998,7 +998,7 @@ Verification:
 3. API: create/submit/report happy path and fail-closed path.
 4. Learner-state: wrong item appears in mistake-book projection.
 5. Frontend: answer key absent before submit; present after submit.
-6. DevTools: run full assessment in `yousenwebview/packageDeeptutor`.
+6. DevTools: open project root `yousenwebview`, then run the full assessment through the `packageDeeptutor` subpackage pages.
 
 ### Phase 2 - Deep Explanation And Attempt Detail
 
@@ -1131,7 +1131,7 @@ python scripts/check_contract_guard.py
 
 Manual gate:
 
-1. WeChat DevTools open `yousenwebview/packageDeeptutor`.
+1. WeChat DevTools open project root `yousenwebview`, then enter the `packageDeeptutor` assessment pages.
 2. Start topic diagnostic for 防水工程.
 3. Answer all questions with at least one wrong answer.
 4. Submit and verify no pre-submit answer reveal occurred.

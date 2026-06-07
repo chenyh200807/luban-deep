@@ -498,7 +498,7 @@ Required rules:
 
 WeChat DevTools manual path:
 
-1. Open `yousenwebview/packageDeeptutor`.
+1. Open DevTools project root `yousenwebview`.
 2. Enter `packageDeeptutor/pages/assessment/assessment`.
 3. Confirm catalog shows recommended entry plus topic list.
 4. Start an enabled topic TestSet.

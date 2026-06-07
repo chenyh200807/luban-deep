@@ -47,6 +47,8 @@ var CHAT_PENDING_TURN_KEY = "chat_pending_turn_v1";
 var PENDING_TURN_MAX_AGE_MS = 30 * 60 * 1000;
 var PENDING_TURN_POLL_MAX_ATTEMPTS = 1200;
 var PENDING_TURN_POLL_DELAY_MS = 1500;
+var PENDING_TURN_FOREGROUND_MAX_ATTEMPTS = 4;
+var HYDRATED_HISTORY_EAGER_AI_MESSAGES = 8;
 
 function isLocalDraftSessionId(id) {
   return /^s_\d{10,}$/.test(String(id || "").trim());
@@ -220,6 +222,7 @@ Page({
     messages: [],
     inputText: "",
     isStreaming: false,
+    canStopStream: false,
     chatScrollTop: 0,
     scrollToId: "",
     chatScrollWithAnimation: false,
@@ -330,6 +333,8 @@ Page({
   _visibleSet: {}, // 当前可见消息 id 集合
   _autoScrollEnabled: true,
   _chatReadyPromise: null,
+  _heroDragFramePending: false,
+  _heroDragNextY: 0,
 
   // ── 生命周期 ──────────────────────────────────
 
@@ -416,7 +421,8 @@ Page({
       this._scheduleSessionPersist(true);
       this.setData({
         hasMessages: true,
-        isStreaming: true,
+        isStreaming: false,
+        canStopStream: false,
       });
     }
 
@@ -472,15 +478,7 @@ Page({
       self._restoreConversation(this._convId);
     }
     if (this._loadPendingTurn() && !this._pendingRecoveryActive) {
-      this._pendingRecoveryActive = true;
-      this.setData({ hasMessages: true, isStreaming: true });
-      this._syncWorkspaceChrome({ hasMessages: true });
-      this._recoverTurnFromHistory({ longPoll: true }).then(function (recovered) {
-        self._pendingRecoveryActive = false;
-        if (!recovered) {
-          self._recoveringTurn = false;
-        }
-      });
+      this._startPendingTurnBackgroundRecovery();
     }
     var hasUsableAuth =
       typeof auth.isLoggedIn === "function" ? auth.isLoggedIn() : !!auth.getToken();
@@ -668,9 +666,73 @@ Page({
     } catch (_) {}
   },
 
+  _isPendingTurnCurrent: function (pending) {
+    var current = this._pendingTurn;
+    if (!current || !pending) return false;
+    return (
+      current.conversationId === pending.conversationId &&
+      current.clientTurnId === pending.clientTurnId &&
+      Number(current.createdAt || 0) === Number(pending.createdAt || 0)
+    );
+  },
+
+  _releaseStalePendingRecoveryForManualSend: function () {
+    if (!this.data.isStreaming || !this._pendingRecoveryActive || this._abort) {
+      return false;
+    }
+    this._recoveringTurn = false;
+    this._clearPendingTurn();
+    var hasMessages = !!(this.data.messages && this.data.messages.length);
+    this.setData({
+      hasMessages: hasMessages,
+      isStreaming: false,
+      chatScrollWithAnimation: false,
+    });
+    this._syncWorkspaceChrome({ hasMessages: hasMessages });
+    return true;
+  },
+
+  _startPendingTurnBackgroundRecovery: function () {
+    var self = this;
+    if (!this._loadPendingTurn() || this._pendingRecoveryActive) return;
+    this._pendingRecoveryActive = true;
+    this._recoveringTurn = true;
+    this.setData({
+      hasMessages: true,
+      isStreaming: false,
+      canStopStream: false,
+    });
+    this._syncWorkspaceChrome({ hasMessages: true });
+    this._recoverTurnFromHistory({
+      maxAttempts: PENDING_TURN_FOREGROUND_MAX_ATTEMPTS,
+      unlockOnExhausted: true,
+      keepPendingOnExhausted: true,
+    }).then(function (recovered) {
+      self._pendingRecoveryActive = false;
+      if (!recovered) {
+        self._recoveringTurn = false;
+      }
+    });
+  },
+
   _hydrateConversationMessages: function (rawMsgs) {
     var counter = 0;
-    var msgs = (rawMsgs || []).map(function (m) {
+    var sourceMsgs = rawMsgs || [];
+    if (sourceMsgs.length > MAX_MESSAGES) {
+      sourceMsgs = sourceMsgs.slice(sourceMsgs.length - MAX_MESSAGES);
+    }
+    var eagerAiRemaining = HYDRATED_HISTORY_EAGER_AI_MESSAGES;
+    var eagerByIndex = {};
+    for (var sourceIndex = sourceMsgs.length - 1; sourceIndex >= 0; sourceIndex--) {
+      var sourceMsg = sourceMsgs[sourceIndex] || {};
+      var sourceRole = sourceMsg.role === "assistant" ? "ai" : sourceMsg.role;
+      if (sourceRole !== "ai") continue;
+      if (!sourceMsg.content && !sourceMsg.presentation) continue;
+      if (eagerAiRemaining <= 0) break;
+      eagerByIndex[sourceIndex] = true;
+      eagerAiRemaining--;
+    }
+    var msgs = sourceMsgs.map(function (m, sourceIndex) {
       var role = m.role === "assistant" ? "ai" : m.role;
       var visibleContent = aiMessageState.coerceUserVisibleContent(m.content || "");
       var visiblePresentation = aiMessageState.sanitizePresentationForState
@@ -716,10 +778,11 @@ Page({
         feedback: "",
       };
       if (role === "ai" && (m.content || msg.presentation)) {
+        var shouldParseHistoryBlocks = !!eagerByIndex[sourceIndex];
         var derived = aiMessageState.deriveAiMessageRenderState({
           content: visibleContent,
           presentation: msg.presentation,
-          parseBlocks: true,
+          parseBlocks: shouldParseHistoryBlocks,
         });
         msg.renderableContent = derived.renderableContent;
         msg.blocks = derived.blocks || [];
@@ -768,10 +831,15 @@ Page({
     }, 50);
   },
 
-  _finishPendingTurnRecovery: function (serverMessages) {
+  _finishPendingTurnRecovery: function (serverMessages, options) {
     var hasServerMessages = Array.isArray(serverMessages);
+    var keepPending = !!(options && options.keepPending);
     this._recoveringTurn = false;
-    this._clearPendingTurn();
+    if (keepPending) {
+      this._pendingRecoveryActive = false;
+    } else {
+      this._clearPendingTurn();
+    }
     if (hasServerMessages) {
       this._applyHydratedConversationMessages(serverMessages);
       return;
@@ -780,6 +848,7 @@ Page({
     this.setData({
       hasMessages: hasMessages,
       isStreaming: false,
+      canStopStream: false,
       chatScrollWithAnimation: false,
     });
     this._syncWorkspaceChrome({ hasMessages: hasMessages });
@@ -888,14 +957,20 @@ Page({
       return Promise.resolve(false);
     }
 
-    var maxAttempts = opts.longPoll ? PENDING_TURN_POLL_MAX_ATTEMPTS : 3;
+    var maxAttempts = opts.maxAttempts || (opts.longPoll ? PENDING_TURN_POLL_MAX_ATTEMPTS : 3);
     var attempt = 0;
 
     function tryFetch() {
       attempt += 1;
+      if (!self._isPendingTurnCurrent(pending)) {
+        return Promise.resolve(false);
+      }
       return api
         .getConversationMessages(pending.conversationId)
         .then(function (raw) {
+          if (!self._isPendingTurnCurrent(pending)) {
+            return false;
+          }
           var data = api.unwrapResponse(raw) || {};
           var serverMessages = [];
           if (Array.isArray(data.messages)) {
@@ -916,7 +991,10 @@ Page({
                 }, opts.longPoll ? PENDING_TURN_POLL_DELAY_MS : attempt * 700);
               });
             }
-            self._finishPendingTurnRecovery(opts.longPoll ? serverMessages : null);
+            self._finishPendingTurnRecovery(
+              opts.longPoll || opts.unlockOnExhausted ? serverMessages : null,
+              { keepPending: !!opts.keepPendingOnExhausted },
+            );
             return false;
           }
 
@@ -926,6 +1004,9 @@ Page({
           return true;
         })
         .catch(function (err) {
+          if (!self._isPendingTurnCurrent(pending)) {
+            return false;
+          }
           if (err && err.statusCode === 404) {
             if (wx.getStorageSync("current_session_id") === pending.conversationId) {
               self._sid = "s_" + Date.now();
@@ -943,7 +1024,9 @@ Page({
               }, opts.longPoll ? PENDING_TURN_POLL_DELAY_MS : attempt * 700);
             });
           }
-          self._finishPendingTurnRecovery();
+          self._finishPendingTurnRecovery(null, {
+            keepPending: !!opts.keepPendingOnExhausted,
+          });
           return false;
         });
     }
@@ -1094,6 +1177,7 @@ Page({
       } catch (_) {}
       this._abort = null;
     }
+    this.setData({ canStopStream: false });
     if (this._timer) {
       clearInterval(this._timer);
       this._timer = null;
@@ -1157,11 +1241,10 @@ Page({
     var newContent = this.data.messages[idx].content + this._buf;
     this._buf = "";
     this._flushCount++;
-    var shouldParseBlocks =
-      this._flushCount <= 1 || this._flushCount % MD_PARSE_INTERVAL === 0;
     var normalized = this._buildAiMessageUpdates(idx, {
       content: newContent,
-      parseBlocks: shouldParseBlocks,
+      parseBlocks: false,
+      streamLight: true,
     });
     if (!normalized) return;
     if (
@@ -1232,6 +1315,7 @@ Page({
         u["messages[" + idx + "].thinkingTone"] = "";
       }
       u.isStreaming = false;
+      u.canStopStream = false;
       if (this._autoScrollEnabled) {
         u.scrollToId = "msg-bottom";
         u.chatScrollWithAnimation = false;
@@ -1269,7 +1353,7 @@ Page({
         }, 80);
       }
     } else {
-      this.setData({ isStreaming: false });
+      this.setData({ isStreaming: false, canStopStream: false });
     }
     this._streamId = null;
     this._abort = null;
@@ -1282,6 +1366,7 @@ Page({
     var self = this;
     var failedStreamId = this._streamId;
     this._recoveringTurn = true;
+    this.setData({ canStopStream: false });
     var idx = this._find(failedStreamId);
     if (idx !== -1) {
       var msg = this.data.messages[idx];
@@ -1482,9 +1567,26 @@ Page({
     var options = opts || {};
     var hasContent = Object.prototype.hasOwnProperty.call(options, "content");
     var hasPresentation = Object.prototype.hasOwnProperty.call(options, "presentation");
+    var streamLight = !!options.streamLight && !hasPresentation && !msg.presentation;
     var content = aiMessageState.coerceUserVisibleContent(
       hasContent ? String(options.content || "") : String(msg.content || ""),
     );
+    if (streamLight) {
+      var lightUpdates = {};
+      if (hasContent) {
+        lightUpdates["messages[" + idx + "].content"] = content;
+      }
+      lightUpdates["messages[" + idx + "].renderableContent"] = content;
+      return {
+        updates: lightUpdates,
+        state: {
+          renderableContent: content,
+          blocks: msg.blocks || [],
+          mcqCards: msg.mcqCards || null,
+          hasStructuredContent: !!msg.hasStructuredContent,
+        },
+      };
+    }
     var presentation = aiMessageState.sanitizePresentationForState
       ? aiMessageState.sanitizePresentationForState(
           hasPresentation ? options.presentation || null : msg.presentation || null,
@@ -1800,11 +1902,13 @@ Page({
 
   // ── Hero 弹性拖拽 + 震动 ───────────────────────
   _onHeroDragStart: function (e) {
+    if (helpers.isLowEnd && helpers.isLowEnd()) return;
     this._dragStartY = e.touches[0].clientY;
     this._dragVibrated = false;
     this.setData({ _heroDragTransition: "none" });
   },
   _onHeroDragMove: function (e) {
+    var self = this;
     if (!this._dragStartY) return;
     var delta = e.touches[0].clientY - this._dragStartY;
     // 阻尼系数：拖得越远阻力越大
@@ -1812,7 +1916,14 @@ Page({
       delta > 0
         ? Math.min(HERO_MAX_DRAG_PX, delta * HERO_DRAG_DAMPING)
         : Math.max(-HERO_MAX_DRAG_PX, delta * HERO_DRAG_DAMPING);
-    this.setData({ _heroDragY: damped });
+    this._heroDragNextY = damped;
+    if (!this._heroDragFramePending) {
+      this._heroDragFramePending = true;
+      wx.nextTick(function () {
+        self._heroDragFramePending = false;
+        self.setData({ _heroDragY: self._heroDragNextY || 0 });
+      });
+    }
     // 超过阈值时震动一次
     if (!this._dragVibrated && Math.abs(damped) > HERO_VIBRATE_THRESHOLD_PX) {
       this._dragVibrated = true;
@@ -1820,7 +1931,10 @@ Page({
     }
   },
   _onHeroDragEnd: function () {
+    if (!this._dragStartY) return;
     this._dragStartY = null;
+    this._heroDragFramePending = false;
+    this._heroDragNextY = 0;
     // 弹簧回弹动画
     this.setData({
       _heroDragTransition: "transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)",
@@ -1989,7 +2103,7 @@ Page({
       return;
     }
     var text = (this._inputText || this.data.inputText || "").trim();
-    if (!text || this.data.isStreaming) return;
+    if (!text || this.data.canStopStream) return;
     helpers.vibrate("medium");
     this._inputText = "";
     this.setData({ inputText: "" });
@@ -1997,7 +2111,7 @@ Page({
   },
 
   sendExample: function (e) {
-    if (this.data.isStreaming) return;
+    if (this.data.canStopStream) return;
     helpers.vibrate("light");
     this._send(e.currentTarget.dataset.text);
   },
@@ -2021,6 +2135,7 @@ Page({
       wx.showToast({ title: "当前无网络连接", icon: "none", duration: 2000 });
       return;
     }
+    self._releaseStalePendingRecoveryForManualSend();
     if (self.data.isStreaming) return;
     self._stop();
 
@@ -2148,6 +2263,7 @@ Page({
       messages: msgs,
       hasMessages: true,
       isStreaming: true,
+      canStopStream: true,
       scrollToId: "msg-bottom",
       chatScrollWithAnimation: false,
     });
@@ -2362,6 +2478,7 @@ Page({
       messages: [],
       hasMessages: false,
       isStreaming: false,
+      canStopStream: false,
       scrollToId: "",
       chatScrollWithAnimation: false,
     });
@@ -3033,7 +3150,18 @@ Page({
       wx.showToast({ title: "暂无可复制内容", icon: "none" });
       return;
     }
-    wx.setClipboardData({ data: text });
+    wx.setClipboardData({
+      data: text,
+      success: function () {
+        wx.showToast({ title: "内容已复制", icon: "success", duration: 1200 });
+      },
+      fail: function (err) {
+        if (typeof console !== "undefined" && console.warn) {
+          console.warn("[chat] copy answer failed", err && err.errMsg ? err.errMsg : err);
+        }
+        wx.showToast({ title: "复制失败，请重试", icon: "none", duration: 1800 });
+      },
+    });
   },
 
   onToggleWorkflowTrace: function (e) {

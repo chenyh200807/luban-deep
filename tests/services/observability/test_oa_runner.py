@@ -33,6 +33,28 @@ def test_build_oa_run_emits_root_causes_and_blind_spots() -> None:
     assert payload["repair_playbooks"]
 
 
+def test_build_oa_run_does_not_require_long_dialog_in_default_arr() -> None:
+    payload = build_oa_run(
+        mode="pre-release",
+        om_payload=None,
+        arr_payload={
+            "run_id": "arr-1",
+            "summary": {"pass_rate": 1.0},
+            "baseline_diff": {"regressions": []},
+            "suite_summaries": [
+                {"suite": "real_exam_quality_spine", "skipped": 0, "pass_rate": 1.0},
+                {"suite": "context-orchestration", "skipped": 0, "pass_rate": 1.0},
+            ],
+        },
+        aae_payload={
+            "run_id": "aae-1",
+            "scorecard": {"continuity_score": {"value": 1.0}},
+        },
+    )
+
+    assert not any(item["type"] == "long_dialog_skipped" for item in payload["blind_spots"])
+
+
 def test_build_oa_run_flags_unified_ws_smoke_failure_as_root_cause() -> None:
     payload = build_oa_run(
         mode="pre-release",

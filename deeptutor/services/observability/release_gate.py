@@ -21,7 +21,7 @@ _RELEASE_SPINE_KEYS = (
 MINIMUM_RELEASE_BENCHMARK_SUITES = (
     "pr_gate_core",
     "regression_watch",
-    "incident_replay",
+    "real_exam_quality_spine",
 )
 
 
@@ -55,8 +55,11 @@ def _gate_relevant_case(item: dict[str, Any]) -> bool:
     return bool(item.get("gate_eligible")) or tier in {"gate_stable", "regression_tier"}
 
 
-def _long_dialog_requires_live_ws(case_results: list[dict[str, Any]]) -> bool:
-    return any(str(item.get("suite") or "").startswith("long-dialog") for item in case_results)
+def _is_long_dialog_case(item: dict[str, Any]) -> bool:
+    return any(
+        str(item.get(field) or "").startswith("long-dialog")
+        for field in ("suite", "source_suite")
+    )
 
 
 def _long_dialog_live_ws_ready(
@@ -64,17 +67,19 @@ def _long_dialog_live_ws_ready(
     case_results: list[dict[str, Any]],
     execution_context: dict[str, Any],
 ) -> bool:
-    if not _long_dialog_requires_live_ws(case_results):
+    long_dialog_suites = {
+        str(item.get(field) or "").strip()
+        for item in case_results
+        for field in ("suite", "source_suite")
+        if str(item.get(field) or "").strip().startswith("long-dialog")
+    }
+    if not long_dialog_suites:
         return True
     api_base_url = str(execution_context.get("api_base_url") or "").strip()
     suite_modes = execution_context.get("suite_execution_modes") or {}
     if not api_base_url:
         return False
-    return all(
-        mode == "live_ws"
-        for suite, mode in suite_modes.items()
-        if str(suite).startswith("long-dialog")
-    )
+    return all(suite_modes.get(suite) == "live_ws" for suite in long_dialog_suites)
 
 
 def _has_release_value(release: dict[str, Any], key: str) -> bool:
@@ -270,7 +275,12 @@ def build_release_gate_report(
     arr_summary = (arr_payload or {}).get("summary") or {}
     benchmark_summary = (benchmark_payload or {}).get("summary") or {}
     arr_diff = (benchmark_payload or {}).get("baseline_diff") or (arr_payload or {}).get("baseline_diff") or {}
-    execution_context = (benchmark_payload or {}).get("execution_context") or (arr_payload or {}).get("execution_context") or {}
+    execution_context = (
+        (benchmark_payload or {}).get("execution_context")
+        or ((benchmark_payload or {}).get("legacy") or {}).get("execution_context")
+        or (arr_payload or {}).get("execution_context")
+        or {}
+    )
     requested_suites = [
         str(item)
         for item in (benchmark_manifest.get("requested_suites") or [])

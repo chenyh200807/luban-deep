@@ -7740,6 +7740,230 @@ async def test_deep_question_capability_skips_followup_agent_for_forced_generati
 
 
 @pytest.mark.asyncio
+async def test_deep_question_capability_promotes_personalization_context_to_training_intent(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeCoordinator:
+        def __init__(self, **kwargs: Any) -> None:
+            captured["init"] = kwargs
+
+        def set_ws_callback(self, callback) -> None:
+            captured["ws_callback"] = callback
+
+        async def generate_from_topic(self, **kwargs: Any) -> dict[str, Any]:
+            captured["topic_call"] = kwargs
+            return {
+                "results": [
+                    {
+                        "qa_pair": {
+                            "question_id": "q_personalized",
+                            "question": "危大工程专项方案程序训练题",
+                            "question_type": "choice",
+                            "options": {"A": "不需要论证", "B": "按规定组织专家论证"},
+                            "correct_answer": "B",
+                            "explanation": "应按规定组织专家论证。",
+                        }
+                    }
+                ]
+            }
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="再给我相关题",
+        config_overrides={
+            "mode": "custom",
+            "topic": "再给我相关题",
+            "question_type": "choice",
+        },
+        language="zh",
+        metadata={
+            "personalization_context": {
+                "authority": {"claims": "learning_synthesis", "prescription": "training_intent"},
+                "active_training_intent": {
+                    "training_intent_id": "lti_pcp",
+                    "concept_id": "1A432000",
+                    "concept_label": "危大工程专项方案",
+                    "error_code": "E02",
+                    "error_label": "专家论证程序漏项",
+                    "question_count": 2,
+                    "mode": "case_repair",
+                    "evidence_refs": ["event:e1"],
+                },
+            }
+        },
+    )
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    topic_call = captured["topic_call"]
+    assert topic_call["num_questions"] == 2
+    assert "1A432000" in topic_call["user_topic"]
+    assert "危大工程专项方案" in topic_call["user_topic"]
+    assert "专家论证程序漏项" in topic_call["user_topic"]
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["learning_training_intent"]["training_intent_id"] == "lti_pcp"
+    assert result_event.metadata["learning_training_intent"]["source"] == "PersonalizationContextPack"
+    snapshot = result_event.metadata["active_object"]["state_snapshot"]
+    assert snapshot["training_intent_id"] == "lti_pcp"
+    assert snapshot["learning_training_intent"]["concept_id"] == "1A432000"
+    assert result_event.metadata["question_followup_context"]["correct_answer"] == "B"
+    assert context.metadata["trace_metadata"]["learning_training_intent_id"] == "lti_pcp"
+
+
+@pytest.mark.asyncio
+async def test_deep_question_capability_config_training_intent_beats_personalization_context(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            pass
+
+        def set_ws_callback(self, callback) -> None:
+            captured["ws_callback"] = callback
+
+        async def generate_from_topic(self, **kwargs: Any) -> dict[str, Any]:
+            captured["topic_call"] = kwargs
+            return {
+                "results": [
+                    {
+                        "qa_pair": {
+                            "question_id": "q_override",
+                            "question": "显式处方训练题",
+                            "question_type": "choice",
+                            "options": {"A": "错", "B": "对"},
+                            "correct_answer": "B",
+                            "explanation": "B。",
+                        }
+                    }
+                ]
+            }
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="再给我相关题",
+        config_overrides={
+            "mode": "custom",
+            "topic": "再给我相关题",
+            "question_type": "choice",
+            "learning_training_intent": {
+                "source": "config_override",
+                "training_intent_id": "lti_override",
+                "concept_id": "override_concept",
+                "concept_label": "显式处方",
+                "error_label": "显式错因",
+                "question_count": 4,
+            },
+        },
+        language="zh",
+        metadata={
+            "personalization_context": {
+                "active_training_intent": {
+                    "training_intent_id": "lti_pcp",
+                    "concept_id": "pcp_concept",
+                    "concept_label": "PCP 处方",
+                    "error_label": "PCP 错因",
+                    "question_count": 2,
+                },
+            }
+        },
+    )
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    assert captured["topic_call"]["num_questions"] == 4
+    assert "override_concept" in captured["topic_call"]["user_topic"]
+    assert "pcp_concept" not in captured["topic_call"]["user_topic"]
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert result_event.metadata["learning_training_intent"]["training_intent_id"] == "lti_override"
+    assert result_event.metadata["learning_training_intent"]["source"] == "config_override"
+
+
+@pytest.mark.asyncio
+async def test_deep_question_capability_does_not_guess_training_intent_from_personalization_claims(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            pass
+
+        def set_ws_callback(self, callback) -> None:
+            captured["ws_callback"] = callback
+
+        async def generate_from_topic(self, **kwargs: Any) -> dict[str, Any]:
+            captured["topic_call"] = kwargs
+            return {
+                "results": [
+                    {
+                        "qa_pair": {
+                            "question_id": "q_plain",
+                            "question": "普通相关题",
+                            "question_type": "choice",
+                            "options": {"A": "错", "B": "对"},
+                            "correct_answer": "B",
+                            "explanation": "B。",
+                        }
+                    }
+                ]
+            }
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="再给我相关题",
+        config_overrides={"mode": "custom", "topic": "再给我相关题", "question_type": "choice"},
+        language="zh",
+        metadata={
+            "personalization_context": {
+                "top_claims": [{"concept_id": "claim_only", "label": "只读画像"}],
+            }
+        },
+    )
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    assert captured["topic_call"]["num_questions"] == 1
+    assert "claim_only" not in captured["topic_call"]["user_topic"]
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    assert "learning_training_intent" not in result_event.metadata
+
+
+@pytest.mark.asyncio
 async def test_deep_question_capability_uses_deterministic_feedback_for_choice_submission(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

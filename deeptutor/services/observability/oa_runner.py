@@ -477,15 +477,16 @@ def build_oa_run(
         if isinstance(continuity, (int, float)) and continuity < 0.8:
             _append_root_cause(
                 root_causes,
-                hypothesis="多轮承接能力偏弱，active object 或 long-dialog continuity 仍有断裂。",
+                hypothesis="上下文承接能力偏弱，active object 或 context orchestration 仍有断裂。",
                 confidence="medium",
                 supporting_evidence=[f"aae.continuity_score={continuity}"],
-                affected_cohorts=["followup", "long_dialog"],
+                affected_cohorts=["followup"],
                 suspected_change_window=str(resolved_release.get("release_id") or "unknown"),
-                next_verification_step="重点回放 context-orchestration 与 long-dialog failures。",
+                next_verification_step="先回放 context-orchestration failures；若 incident_replay/long-dialog 专项证据存在，再回放 long-dialog failures。",
                 counterfactual="若 continuity_score >= 0.8，则更可能是表面体验或 grounding 问题。",
                 validation_cmds=[
                     "python3.11 scripts/run_arr_lite.py --mode lite",
+                    "python3.11 scripts/run_benchmark.py --suite incident_replay --api-base-url <url>",
                 ],
                 suggested_fix_type="归一化",
             )

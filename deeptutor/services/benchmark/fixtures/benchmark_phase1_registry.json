@@ -14,6 +14,11 @@
         "grounding.rag.case_set"
       ]
     },
+    "real_exam_quality_spine": {
+      "case_ids": [
+        "quality.real_exam_bank.docs_2026.mcq"
+      ]
+    },
     "incident_replay": {
       "case_ids": [
         "continuity.long_dialog.focus",
@@ -44,7 +49,27 @@
       ]
     }
   },
-  "cases": {
+    "cases": {
+    "quality.real_exam_bank.docs_2026.mcq": {
+      "dataset_id": "benchmark_phase1",
+      "dataset_version": "phase1.0",
+      "case_id": "quality.real_exam_bank.docs_2026.mcq",
+      "contract_domain": "grading_quality_contract",
+      "case_tier": "regression_tier",
+      "execution_kind": "static_contract_eval",
+      "surface": "backend",
+      "expected_contract": "docs_2026_real_exam_mcq_answer_authority_contract",
+      "failure_taxonomy_scope": [
+        "FAIL_ANSWER_KEY_OVERRIDE",
+        "FAIL_SOURCE_LAUNDERING",
+        "FAIL_CANONICAL_TRUTH_WRITE"
+      ],
+      "source_fixture": "deeptutor/services/benchmark/fixtures/exam_quality_bank.json",
+      "origin_type": "seed_fixture",
+      "origin_ref": "FastAPI20251222/docs/2026/题库",
+      "promotion_status": "promoted",
+      "promoted_from_case_id": ""
+    },
     "answer.citation.paper_style.v0": {
       "dataset_id": "benchmark_phase1",
       "dataset_version": "phase1.0",

@@ -1,0 +1,96 @@
+{
+  "schema_version": "luban_canonical_knowledge_manifest.v1",
+  "namespace": "canonical_knowledge_manifest",
+  "status": "release_candidate",
+  "published": false,
+  "version": "2026.06.07",
+  "producer": "run_luban_canonical_knowledge_manifest",
+  "rollback_pointer": "legacy (no canonical manifest -> runtime uses per-shard pointers)",
+  "source_inventory_hash": "cdcc65aa2cc0dd8391d86792760270e0ccac2c9a7fb36f1c6b3e7ddecbf2eae4",
+  "source_file_count": 105,
+  "shards": [
+    {
+      "lane": "case_rubric",
+      "path": "v_slice_case_rubric/case_rubric_release_candidate_slice.json",
+      "namespace": "case_rubric_full",
+      "content_hash": "61dad410ba249183972c54c0fe4f37b6c092711bd4405a1abf19fa59bd2dd0db",
+      "record_count": 18,
+      "tier": "answer_authority"
+    },
+    {
+      "lane": "case_rubric_scored",
+      "path": "v_case_rubric_scored/case_rubric_scored.json",
+      "namespace": "case_rubric_scored",
+      "content_hash": "3d6cf2da88e002dfbdf3f53f8d13d1b4c5e28ec99266c036f77c2d4b2a4eddb0",
+      "record_count": 1213,
+      "tier": "answer_authority"
+    },
+    {
+      "lane": "concept_graph",
+      "path": "v_canonical_knowledge_graph/graph_adjacency.json",
+      "namespace": "canonical_knowledge_graph",
+      "content_hash": "421e69484befbdc39b115f10e1838fcc1aba79ca972e5edd8a4a64197448a628",
+      "record_count": null,
+      "tier": "teaching_context_not_answer_key"
+    },
+    {
+      "lane": "concept_registry",
+      "path": "v_concept_registry/concept_registry.json",
+      "namespace": "concept_registry",
+      "content_hash": "91059d75469fc402a11597b6eb146926b93faa7fb041665aebce3cdf16315eb2",
+      "record_count": 3638,
+      "tier": "identity_spine"
+    },
+    {
+      "lane": "learning_mapping",
+      "path": "v_canonical_unified_knowledge/canonical_unified_knowledge.json",
+      "namespace": "canonical_unified_knowledge",
+      "content_hash": "7fc8717a2a23ba81d147010903aa7877df88ea8e271294618bc2c3a6366cce99",
+      "record_count": 395,
+      "tier": "teaching_context_not_answer_key"
+    },
+    {
+      "lane": "objective_answer_key",
+      "path": "v3_objective_records_released_m31/objective_answer_key_release_candidate_m31.json",
+      "namespace": "objective_answer_key_full",
+      "content_hash": "672ff9a653adf2d00b6501b4d6934e836b34b5d37608ad4d3169d672b41c1bdd",
+      "record_count": 2640,
+      "tier": "answer_authority"
+    },
+    {
+      "lane": "source_context",
+      "path": "v_textbook_knowledge_full/textbook_knowledge_release_candidate.json",
+      "namespace": "textbook_knowledge_full",
+      "content_hash": "01aba5a33736e5b4f17ad085ce7fefc1f0a946a268f9cbff4094b9452bf56fd0",
+      "record_count": 1303,
+      "tier": "answer_authority"
+    },
+    {
+      "lane": "standard_clauses",
+      "path": "v_standard_clauses/standard_clauses.json",
+      "namespace": "standard_clauses",
+      "content_hash": "6b3c3c902c99dcc7760a015d1d8b264f88790ef35cb49266f310b380aca803b8",
+      "record_count": 2355,
+      "tier": "external_regulation"
+    },
+    {
+      "lane": "taxonomy_index",
+      "path": "v_canonical_taxonomy_index/canonical_taxonomy_index.json",
+      "namespace": "canonical_taxonomy_index",
+      "content_hash": "732d7822052e777f9b3a22d47de42e31cac6103c8819a13e1591156415c47c92",
+      "record_count": 3158,
+      "tier": "resolution_index"
+    },
+    {
+      "lane": "topic_waterproof",
+      "path": "v_topic_waterproof/topic_waterproof.json",
+      "namespace": "topic_waterproof",
+      "content_hash": "615f644337100cebc2ef24a5f77ad65a2a665daaf2fd813b6aad58f51bd6518d",
+      "record_count": 44,
+      "tier": "teaching_context_not_answer_key"
+    }
+  ],
+  "shard_count": 10,
+  "content_hash": "7b4e7ea9cced61aa6924e3aa6f9a8628b7653a398de99a40b6ab8e519b171abd",
+  "signature": "870a2302620372ab530bcba9d1f9c6c2dee86d0f223f01b67ea8209cc1a1439c"
+}

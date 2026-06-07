@@ -226,6 +226,46 @@ pkill -KILL -f 'next-server|/web/\.next/dev/build/postcss\.js|next/dist/bin/next
 - 缺少 `node` / `npm` / `deno` 等运行环境时，先自行安装补齐后再继续，不得以环境缺失为由跳过验证。
 - 只要改了代码，就必须执行与改动直接相关的测试，不能只改不测；前端或微信小程序改动，除自动化测试外，还必须至少完成一次微信开发者工具中的模拟器或真机回归验证。
 
+### 4.1 WeChat DevTools CLI Discipline
+
+微信开发者工具 CLI 是 DeepTutor 微信前端日常 QA 的默认可用工具，不是临时人工补充。涉及 `wx_miniprogram`、`yousenwebview` 项目根内的 `packageDeeptutor` 分包、TutorBot 微信端、微信渲染、聊天入口、WS、登录态、报告页、题卡或行为埋点的测试时，默认优先用终端调用 DevTools CLI / 自动化端口，而不是让 Codex Desktop 控制 GUI。
+
+术语硬门槛：`yousenwebview` 是微信开发者工具唯一 project root；`packageDeeptutor` 只是该项目内的分包 / 页面目标。不得把“跑 / 打开 `yousenwebview/packageDeeptutor`”写成真实微信执行动作；必须写成“打开 `yousenwebview` 项目根，并进入 `packageDeeptutor` 分包页面”。
+
+CLI 路径固定为：
+
+```bash
+/Applications/wechatwebdevtools.app/Contents/MacOS/cli
+```
+
+默认执行梯度：
+
+1. 先跑 `/wechat-harness`、node contract、backend harness 等快速检查，覆盖可见行为和确定性 contract。
+2. 再用 DevTools CLI 打开微信项目根 `yousenwebview`，并进入 / 编译其中的 `packageDeeptutor` 分包页面；只把实际打开并执行过场景的结果记为 `real_wechat_package` 证据。
+3. 只有涉及真机特有风险、发布前验证、授权/登录/网络环境差异、或用户明确要求时，再补真机/线上小程序。
+
+推荐命令：
+
+```bash
+WX_DEVTOOLS_CLI=/Applications/wechatwebdevtools.app/Contents/MacOS/cli
+$WX_DEVTOOLS_CLI islogin
+$WX_DEVTOOLS_CLI open --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/yousenwebview --lang zh
+$WX_DEVTOOLS_CLI auto --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/yousenwebview --auto-port 9420
+```
+
+证据边界：
+
+- `islogin` 只证明微信开发者工具登录态可用，不证明项目打开、页面渲染、网络链路或 TutorBot 对话通过。
+- `open --project` 只证明项目可被 DevTools 打开；必须跑到具体页面、操作或自动化脚本，才能写 `real_wechat_package` pass。
+- `--project` 必须指向 `yousenwebview` 项目根，不得指向 `yousenwebview/packageDeeptutor`；`packageDeeptutor` 是分包验收目标，不是 DevTools project root。
+- 每条 `real_wechat_package` 证据必须分开记录 `devtools_project_root`、`target_subpackage`、`target_page` 和 `entry_flow`；缺任一项只能算 `partial`。报告里出现“跑 `packageDeeptutor`”这类模糊说法时，先修正证据措辞再继续结论。
+- `auto --project ... --auto-port ...` 可作为 miniprogram-automator / Minium 的入口；只有脚本实际驱动页面并记录结果，才算自动化证据。
+- 登录态必须作为独立证据记录：至少写明 `auth_state`（logged_in / qa_token / auth_blocked / unknown）和 `auth_mode`（real_wechat / local_dev_wechat / manual_token / none）。登录不可用时只能报 `partial/auth_blocked`，不能把后续 WS、baseURL 或 TutorBot 场景写成通过。
+- 允许非生产 QA 使用既有微信登录 authority 的 dev/mock code 路径（例如后端 `DEEPTUTOR_ALLOW_DEV_WECHAT_LOGIN` 或 `dev-` / `mock-` code）；它只能用于本地/DevTools 测试身份，不得写 production DB、不得伪造 canonical learner truth、不得绕过 `/api/v1/ws` 或另建聊天入口。
+- `/wechat-harness`、`wx_miniprogram`、backend harness、node contract 仍不能替代 `yousenwebview/packageDeeptutor` 的主微信入口 closure。
+- 如果为了不打扰用户环境没有执行 DevTools project-open / auto，最终结论必须写 `partial` 或 `true-entry pending`，不能把 Web/contract 绿灯说成真微信入口 PASS。
+- 默认不执行 `upload`；小程序上传/预览流水线优先考虑 `miniprogram-ci`，除非用户明确要求使用 DevTools CLI 发布相关命令。
+
 ### 5. Fix Root Causes, Not Symptoms
 
 - 修复问题时必须优先寻找根因，不能只对表面症状做妥协性补丁。
@@ -342,6 +382,8 @@ pkill -KILL -f 'next-server|/web/\.next/dev/build/postcss\.js|next/dist/bin/next
 修复后必须额外检查：
 
 - 是否把 `/wechat-harness`、`wx_miniprogram`、near-real HTTP+WS 或 backend harness 证据误写成真实 `yousenwebview/packageDeeptutor` closure
+- 是否把 DevTools CLI 的 `islogin` 或 `open --project` 误写成真实微信场景已通过；没有页面/操作/自动化脚本结果时只能算环境预检或 partial
+- 是否把 `yousenwebview/packageDeeptutor` 写成 DevTools project root，或把“跑 `packageDeeptutor`”写成真实微信执行动作；正确记录必须拆成 `devtools_project_root=yousenwebview` + `target_subpackage=packageDeeptutor` + 具体页面
 - 是否把 regex / fallback / wrapper 升级成语义 authority
 - 是否至少有一个反例验证没有过拟合某个 marker phrase 或 QA 样例
 - 是否证明 visible terminal answer、hidden answer authority、runtime state / active object 三者一致

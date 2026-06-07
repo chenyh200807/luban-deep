@@ -1,0 +1,426 @@
+{
+  "file_count": 105,
+  "files": {
+    "FINAL_CLEANED_BOOK2026-167-221v3_fixed.json": {
+      "sha256": "7367a364836d774d77701fb8c3a7ad90a78941f319630867bc46a898c6641f6c",
+      "bytes": 1930728
+    },
+    "FINAL_CLEANED_BOOK2026-222-382_fixed.json": {
+      "sha256": "3b92d0f81ac0b26ab557d3f317434f4299d58cad384738f89f1bd14fb4b74397",
+      "bytes": 4260424
+    },
+    "FINAL_CLEANED_BOOK2026-9-166v3_fixed.json": {
+      "sha256": "e711976a09f159acb5ed8c950887e0baa2f521d990ee356fbd29466606e23d82",
+      "bytes": 13178055
+    },
+    "FINAL_CLEANED_TAXONOMY2026.json": {
+      "sha256": "38249e82e4d7a38c5b50341bb0c75ef12e599850381a11160121a8dbbbd09e81",
+      "bytes": 1425802
+    },
+    "13、GB55003-2021《建筑与市政地基基础通用规范》.json": {
+      "sha256": "1bdeaf0a6eb29b681604e6bb2d1334481cf468223c41822abf220672e5ac7044",
+      "bytes": 476401
+    },
+    "15、GB+51004-2015建筑地基基础工程施工规范.json": {
+      "sha256": "d744687e8c0538ecb0eadc4418a6ddc35fea2a92738d538797406a425992a5b2",
+      "bytes": 21130702
+    },
+    "16、JGJ120-2012《建筑基坑支护技术规程》.json": {
+      "sha256": "9de51b29c8a7625e58dfe7b18e7d1331111f9ed0056534d704d05be38be71173",
+      "bytes": 2936051
+    },
+    "18、GB+50207-2012屋面工程质量验收规范（清晰版）.json": {
+      "sha256": "9153b4b6f4a2416687c4a80fa8dbbf61b2d73f6a6f2ad41571674b5fc691291b",
+      "bytes": 1726691
+    },
+    "19、GB50210-2018建筑装饰装修工程质量验收标准.json": {
+      "sha256": "d71d681821144a6ee409d6c729653ca9cf805d3f990c72f6ed9f7de1d406c63b",
+      "bytes": 10188488
+    },
+    "1、GB50352-2019民用建筑设计统一标准.json": {
+      "sha256": "401576bd6694fde3b88ef102c26ce1c998b1ea575f66a707e1d1818a38bf16c5",
+      "bytes": 5630180
+    },
+    "20、GB50354-2005《建筑内部装修防火施工及验收规范》.json": {
+      "sha256": "5d34125e1cc6a5b5f779445af0af8b619224dfb9016d0875fb4ee82fe6b3ee7f",
+      "bytes": 345452
+    },
+    "22、GBT51366-2019建筑碳排放计算标准.json": {
+      "sha256": "cf8f182d6be5249a7161c1a3eed62424bd1355572cf57b9b37ee4f4501e9d2a5",
+      "bytes": 493526
+    },
+    "2025.2.23佑森教育闫力齐授课一建建筑实务《流水施工&网络计划》专用讲义，版权所有，侵权必究_v8.json": {
+      "sha256": "f7b3e1e23148c1f308967b292eea9a2009b18464c74b190a5ab8fd6dd6c27357",
+      "bytes": 453142
+    },
+    "page_10_10.json": {
+      "sha256": "fb2f352e4d5c3b15f049566954f98e6a77d1d9a3a9959174112c2bae4545bcbb",
+      "bytes": 29710
+    },
+    "page_11_11.json": {
+      "sha256": "29c42ea631acfcab13b93d627d9df456dd3d3fe528b8f4d0d625d4504fde0506",
+      "bytes": 34435
+    },
+    "page_12_12.json": {
+      "sha256": "ec744de4a5e7c268bc99c84652a8093af70f25c10ef4a4aec017bb019a3a298b",
+      "bytes": 33233
+    },
+    "page_13_13.json": {
+      "sha256": "3bb708afb491ed6d6eae783f5c84bbb89701b0624f199b3a8d224265e434f18f",
+      "bytes": 21691
+    },
+    "page_14_14.json": {
+      "sha256": "09af30a866a6965c5b904874e2ee20fd8a363fea22939b8c7ae349b045480946",
+      "bytes": 15434
+    },
+    "page_15_15.json": {
+      "sha256": "dc04b751844b8f0590ebe3368e5ad59c7a1743c2ccf713e91520eaeff62f1396",
+      "bytes": 13094
+    },
+    "page_16_16.json": {
+      "sha256": "425f58378b2990723632316ddec99e16c8c02d3a68ee7df81a89eb155b2658b3",
+      "bytes": 29964
+    },
+    "page_17_17.json": {
+      "sha256": "fe802c46de98f2c718dee3b69badd6d2934d22b571046e55b62d2d10b4ea145d",
+      "bytes": 7456
+    },
+    "page_18_18.json": {
+      "sha256": "3ab67ec5ceeca9c3e87a63ac7b2420510e9aac592b1855fb81c57cc4ceb97127",
+      "bytes": 19425
+    },
+    "page_19_19.json": {
+      "sha256": "34b81c142c01a51fea2eb93b3a4dd067fbaa475a884b41870a1e0a235581e240",
+      "bytes": 29567
+    },
+    "page_1_1.json": {
+      "sha256": "17d509c0a59d2145c759d85049c7693624c561ee50dff202612c60ae19b43ffd",
+      "bytes": 3564
+    },
+    "page_20_20.json": {
+      "sha256": "3bc5e66d1f0a3727c3f596bae99f16ee8288f9702917951fe2efe0e183ca3561",
+      "bytes": 31426
+    },
+    "page_21_21.json": {
+      "sha256": "ef15916fcad26f698f8e45754b947c0e0a470dfbf5ced2deda81148e60dcbc85",
+      "bytes": 27834
+    },
+    "page_22_22.json": {
+      "sha256": "5015bd1e3fe1d040038e45d570f6d011195c1e58d19dfd498a0d888d90947353",
+      "bytes": 13129
+    },
+    "page_23_23.json": {
+      "sha256": "705724e5ccad491e14eed147cc37bdf46fb827f63683fa306b714c69be800456",
+      "bytes": 27286
+    },
+    "page_24_24.json": {
+      "sha256": "9ee0658df34b2a3ac9c5f80e3314921d565af9345e0cd305ee06d073e56f3fc2",
+      "bytes": 19123
+    },
+    "page_25_25.json": {
+      "sha256": "087340495d24767614a5f338218dc761be2b0eb470d2f6bfdb9a7d55cb4b6543",
+      "bytes": 7378
+    },
+    "page_26_26.json": {
+      "sha256": "68de61189122175a0c3e160d94daff25cb578287cbf592c7a0fc31a55f87e89d",
+      "bytes": 25796
+    },
+    "page_27_27.json": {
+      "sha256": "4514af802af4a92288f4601e928a1d8bda59045bec8ae0ab4b159bb5b32f6359",
+      "bytes": 18688
+    },
+    "page_28_28.json": {
+      "sha256": "4a5d54baa61754e674645bb33b2be1507e2cad4d0e2c9507e403e774cc01d5bd",
+      "bytes": 23536
+    },
+    "page_29_29.json": {
+      "sha256": "b642c85c5974fdf953c53c7fa2c2aca2c9fe8268e36756aa729ecf92dbef701e",
+      "bytes": 23013
+    },
+    "page_2_2.json": {
+      "sha256": "b5fd6a0eaff8617aa6dae3674ed0031610188e9361eafa1a14c4dfba3dcbf328",
+      "bytes": 9756
+    },
+    "page_3_3.json": {
+      "sha256": "c8c5d82ad4dddbd4195330e51831f166951a2a4d9dbf6ae4bdcb6141cd158e6c",
+      "bytes": 9198
+    },
+    "page_4_4.json": {
+      "sha256": "2319e9c774d966b3e6d02639a0afcc115d45c0217d85bf9febe03a0d038d75a2",
+      "bytes": 7858
+    },
+    "page_5_5.json": {
+      "sha256": "00e93f0445d4e70e8e26f2c3586650bca844f0eb70e786f38d7b9704b52cd720",
+      "bytes": 12972
+    },
+    "page_6_6.json": {
+      "sha256": "de9a56df84cb24782573acd498cdc1d5d1a9cedbefd8aa2904a5408a82923fb8",
+      "bytes": 29428
+    },
+    "page_7_7.json": {
+      "sha256": "00d641f0958282b8c90935b403e39653c04f8d013449ce319481a0a57851ac50",
+      "bytes": 26203
+    },
+    "page_8_8.json": {
+      "sha256": "21a2d60f1b782662e5d7306f039d30e5c34b98b04f208db3fcad2268166448f4",
+      "bytes": 30727
+    },
+    "page_9_9.json": {
+      "sha256": "36879043f302712075681fda0ef38016b55a912ec11aac26771f0f7a76c95e8d",
+      "bytes": 29122
+    },
+    "2025.3.22佑森教育闫力齐授课一建建筑实务《招投标及合同管理》专用讲义，版权所有，侵权必究_v8.json": {
+      "sha256": "ae2521ac6066381783206ceed73b85f42f160550b3115db9042977126341b451",
+      "bytes": 579914
+    },
+    "page_30_30.json": {
+      "sha256": "e876e5f8bf45c3df9c98b26aab7f6f87c050ce424b88541948303b578adf19f7",
+      "bytes": 21789
+    },
+    "page_31_31.json": {
+      "sha256": "92f5d436240428149631cf6d16a2e8c2676bd008394f368aa6e887ad69aeb9c5",
+      "bytes": 31162
+    },
+    "page_32_32.json": {
+      "sha256": "be0bdb507847b897bb90e917613024b343589650793e5129aee59a3359fbb352",
+      "bytes": 33890
+    },
+    "2025.4.6佑森教育闫力齐授课一建建筑实务《费用控制（成本＋造价）》专用讲义，版权所有，侵权必究_v8.json": {
+      "sha256": "68966d58dc106b8b42c9bed6e2546c6884ab6916d3aa67834e2af8f4cd4d7b35",
+      "bytes": 344414
+    },
+    "2025.5.17佑森教育闫力齐授课一建建筑实务《第三章》专用讲义，版权所有，侵权必究_v8.json": {
+      "sha256": "8ca70de8898fb78f467badaa0ab35a724d648dba2c7e8714c6ae65be88277b06",
+      "bytes": 879619
+    },
+    "page_33_33.json": {
+      "sha256": "38270e15c8a4eb4ac66998e61a0baa9f690fed9d4d3a381fe1fe17c0da44957a",
+      "bytes": 35592
+    },
+    "page_34_34.json": {
+      "sha256": "566d96e143c96ebaae43910849c03cec1e3487bf43a51e66ac44530b7e3a497a",
+      "bytes": 3908
+    },
+    "page_35_35.json": {
+      "sha256": "2db68fcfb45cfa41b272dc1eb2c051690f297ed105f656c603187f762c11b80a",
+      "bytes": 14657
+    },
+    "page_36_36.json": {
+      "sha256": "33b0fbe93abe3aeb46e37d47c85fa7bf6cf7dbf791ee12ca0e76592b6f6a296b",
+      "bytes": 17462
+    },
+    "page_37_37.json": {
+      "sha256": "13a08dcce90a741deb28fdba33467eb0bae878a52966d930547dde4dbd187e2f",
+      "bytes": 13746
+    },
+    "page_38_38.json": {
+      "sha256": "14310d7edd69b025e57d059e255527412d1f613a076cdf3f3f6df9d799ad9312",
+      "bytes": 15135
+    },
+    "page_39_39.json": {
+      "sha256": "eade75cb397aed66329007b103a1943c1b2c0fca13e1e44da61f6fbc43370a2d",
+      "bytes": 16450
+    },
+    "page_40_40.json": {
+      "sha256": "fc2c78bfac6ff1900601aefa1cda76568b6c97497a2e25e0d8b40396009d83f2",
+      "bytes": 9869
+    },
+    "page_41_41.json": {
+      "sha256": "80a6184b4d9f3f3042400877c44c18687665fec2dd42970014bedd1d5e7008bd",
+      "bytes": 12606
+    },
+    "page_42_42.json": {
+      "sha256": "e55a6a2895caa8882ee3bf28463df4e6e4c9cbb684930a72014a4a753736e9a9",
+      "bytes": 13063
+    },
+    "page_43_43.json": {
+      "sha256": "161e3e5b7b47719e262465c5027624eac46b12f9d91678f8ac9627807cf66824",
+      "bytes": 14397
+    },
+    "page_44_44.json": {
+      "sha256": "792f6dfe366cf5e5e57607eba69e88dfb4f765a57ed4e2ef4fb00d6dbd40b6a4",
+      "bytes": 12612
+    },
+    "page_45_45.json": {
+      "sha256": "1ad53f23e3074874bd3ab56b8a7c955d76a3f363b6359b052f883971350032a1",
+      "bytes": 19303
+    },
+    "page_46_46.json": {
+      "sha256": "a4197b6069c82982abc9b1eb67f556c136c1c4b435e7b613ff3a6176825914b1",
+      "bytes": 18554
+    },
+    "page_47_47.json": {
+      "sha256": "87e41e2800c80ca83e40d5dfd8769bd80d6618468e60d4af51c391bcce09000d",
+      "bytes": 14009
+    },
+    "page_48_48.json": {
+      "sha256": "b8b6c468aecb732baf94d78e3c26fe30d814f76cd560dce24bc423b10c6886e4",
+      "bytes": 14369
+    },
+    "page_49_49.json": {
+      "sha256": "cc2ce3a61390ec7d693d7eaea21560ae52f552701d124148460a14bab9a8a2f9",
+      "bytes": 16206
+    },
+    "page_50_50.json": {
+      "sha256": "83e840afad54500af2df3604a85193a4a668b462a1a616a96416224f254ddd92",
+      "bytes": 15540
+    },
+    "2025.5.3佑森教育闫力齐授课一建建筑实务《专业技术》专用讲义，版权所有，侵权必究_v8.json": {
+      "sha256": "866bd0f53e62add3a6888d419d9615087ec03d7327fa2946b350b3bd76ded131",
+      "bytes": 1013881
+    },
+    "page_51_51.json": {
+      "sha256": "2b50c657e278e8271c3b755f0f92506139ebd67d739e26ca52a8063c4a5e07f5",
+      "bytes": 12974
+    },
+    "page_52_52.json": {
+      "sha256": "0b2bf980727433bbec6c9de5df917ffc79489a7e31b19356409b9e309be2cabf",
+      "bytes": 11914
+    },
+    "page_53_53.json": {
+      "sha256": "652328dd0c8fd5a51df234c6298818ed43286b8c6ddb99a8f1bb015b4c498309",
+      "bytes": 18694
+    },
+    "page_54_54.json": {
+      "sha256": "32187d24c4b813775b18b358ef7c4559fe836d4d9a5c1fc8945644a7868c3771",
+      "bytes": 20200
+    },
+    "page_55_55.json": {
+      "sha256": "f98fc05478317ebab3cfbd4e69c10e75a36f86f11ac7ec7c273e6c77bbc44b27",
+      "bytes": 15308
+    },
+    "page_56_56.json": {
+      "sha256": "2106885d602f21ca0f7f0baba7a1693553364697e236da56b24ce40d092d0a36",
+      "bytes": 11691
+    },
+    "2025.6.21佑森教育闫力齐授课一建建筑实务《防水&节能&装修工程》专用讲义，版权所有，侵权必究_v8.json": {
+      "sha256": "d608052182953cf68e86bd0f26ce72b449458b6d5c96339f9005b08fd178cabe",
+      "bytes": 423399
+    },
+    "page_6_6-2.json": {
+      "sha256": "8948feb462579fb9194bf8d1fe015056ba27664d1d3b542f173cc3c1f4706f54",
+      "bytes": 8497
+    },
+    "page_7_7-2.json": {
+      "sha256": "d27ca5cc1942661cdcdcf663a0d99cabe979a7303a2dbb2a55b598a0f2ce65fc",
+      "bytes": 7730
+    },
+    "page_8_8-2.json": {
+      "sha256": "9e72a855965c9c1c619cfc45f8621a04baeb1f98dba98a3c0a526ba090dbddf7",
+      "bytes": 9911
+    },
+    "page_9_9-2.json": {
+      "sha256": "82067513c06abf3f6a651c01677d6997d27e7f277f9ce9a8bb0d8d4390a8aa91",
+      "bytes": 17223
+    },
+    "2025.6.27佑森教育闫力齐授课一建建筑实务《专业管理》专用讲义，版权所有，侵权必究_v8.json": {
+      "sha256": "5c1122c14efbc15b2c04e82f9abbd16d75be0613e8f68beaa3b0553694cf3b88",
+      "bytes": 979334
+    },
+    "page_2_2_2.json": {
+      "sha256": "619b45e1cf0ac20c2acb1d21814cd25cf264f7fda301c8edcb9ac16659c7d4c8",
+      "bytes": 18639
+    },
+    "page_57_57.json": {
+      "sha256": "4b63b54a748c6722253636427c34f2c5d5c196a9a059efdd3cf7be8633983bb4",
+      "bytes": 14607
+    },
+    "page_58_58.json": {
+      "sha256": "93be96c122ac7d43fff42b82b25ebddfe9ef33e27882098405a1eb30bc4a5b5b",
+      "bytes": 15544
+    },
+    "page_59_59.json": {
+      "sha256": "879300c3d9bb115d9bfd3cf7ad5d28412c234cbcf97d0d4379b927eca0730b6f",
+      "bytes": 12492
+    },
+    "page_60_60.json": {
+      "sha256": "92b4424997fe0e3c4b5df449ac0c42b6300932e80abee4f160bc6e0ef9c5e4a1",
+      "bytes": 14535
+    },
+    "page_61_61.json": {
+      "sha256": "c0fbec2ff9497ed1dd56dbee5590addebcf468bcce5fa031cbfb751cd80d0491",
+      "bytes": 14935
+    },
+    "page_62_62.json": {
+      "sha256": "7f12c9c7e4bba941417cddd5bbc44d4951a6f209c9cb061365fa3960013aab07",
+      "bytes": 15496
+    },
+    "page_63_63.json": {
+      "sha256": "406b44d84c90fac7ad90c7c0d368b2e984c1701d59273d5b895dc23c909de06e",
+      "bytes": 15292
+    },
+    "page_64_64.json": {
+      "sha256": "992811ca88ad2af1676f4777ec4aaca2fecdfef458f92228cbaafbf4cfc9f731",
+      "bytes": 14114
+    },
+    "page_65_65.json": {
+      "sha256": "795d5c79e9e5ed6ca535985b28a8d2d3edb8dafa3291694491bcf02aea5ceb86",
+      "bytes": 10806
+    },
+    "page_66_66.json": {
+      "sha256": "34dad76c7309fd914050d83af6676f795f836834f063f678bfd595a08fd9d819",
+      "bytes": 10473
+    },
+    "page_67_67.json": {
+      "sha256": "2bc91595c941d4a00235c0650220af8bbf8b30defefa94fe5ca7fed475457765",
+      "bytes": 3763
+    },
+    "2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json": {
+      "sha256": "08492e7955ba4db4452f33bf86434f3c1f81e261791e884ccdbd8ae8f8722f68",
+      "bytes": 736321
+    },
+    "FINAL_CLEANED_EXAM_V2015.json": {
+      "sha256": "8ef277d588d7b56066538912b8952f54d44924902bef02518c64d3d18d43b248",
+      "bytes": 132459
+    },
+    "FINAL_CLEANED_EXAM_V2016.json": {
+      "sha256": "2549e4f5fe5971f80cc810ada00d49dc02814fc5485bcc48801abda097c3fdbc",
+      "bytes": 146669
+    },
+    "FINAL_CLEANED_EXAM_V2017.json": {
+      "sha256": "a5ec4346428b50ae37b7dc768497bb8eb54aebf48880d9c965ed59bce52fa269",
+      "bytes": 278343
+    },
+    "FINAL_CLEANED_EXAM_V2018.json": {
+      "sha256": "4c68731cbc125c02d702d3f620c2347e85985b8cb9d1f419b02a111073961f8b",
+      "bytes": 354986
+    },
+    "FINAL_CLEANED_EXAM_V2019.json": {
+      "sha256": "9c85553a4c64725292b184fcda1a92acc5cef824c53471e6996da3008a88b6af",
+      "bytes": 350292
+    },
+    "FINAL_CLEANED_EXAM_V2020.json": {
+      "sha256": "e85837c2469c5a824b43629a5ce5ce4b6009a0e2426ee1b5ea84bd05cfe6c4c8",
+      "bytes": 383123
+    },
+    "FINAL_CLEANED_EXAM_V2021.json": {
+      "sha256": "82ac9d9c73aa7e66d551551a4b28966c4a5cf84373327ae322dc6bdfe15636af",
+      "bytes": 464918
+    },
+    "FINAL_CLEANED_EXAM_V2022.json": {
+      "sha256": "315cdc2157208ee75a052be6903b87d85bdc1b4ebea795b85ad8aeb32da3a751",
+      "bytes": 325229
+    },
+    "FINAL_CLEANED_EXAM_V2023.json": {
+      "sha256": "46c0dc9d5633ddb317fead28df6dc7bdd81e9493814ab6828896b5bb5a2b35de",
+      "bytes": 338712
+    },
+    "FINAL_CLEANED_EXAM_V2024.json": {
+      "sha256": "807eccf62d1ca393d737c10b6d18ba70a00bb128ab63f363f39be055d87f2340",
+      "bytes": 328897
+    },
+    "FINAL_CLEANED_EXAM_V2025.json": {
+      "sha256": "78f708cc883cddcf1f7547d2347d34bd387b64ed02e6d12cc052195d2a05987a",
+      "bytes": 340208
+    },
+    "FINAL_CLEANED_ZL500.json": {
+      "sha256": "362fb9ee252130b3a352838e59db60ea5480b1d5a664e178f205aa65e863f8ba",
+      "bytes": 568820
+    },
+    "FINAL_CLEANED_QIANTIZAN.json": {
+      "sha256": "f3434b93c611a18a9f44fbb9339d4de1a87bc92a223a0908507a49fc3e9c90e9",
+      "bytes": 1101807
+    }
+  },
+  "inventory_hash": "cdcc65aa2cc0dd8391d86792760270e0ccac2c9a7fb36f1c6b3e7ddecbf2eae4"
+}

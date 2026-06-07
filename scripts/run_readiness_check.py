@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import subprocess
 import sys
 import time
@@ -18,11 +19,14 @@ from deeptutor.services.observability.release_lineage import get_release_lineage
 
 ALLOWED_CHECK_IDS = {"contract_guard", "playwright", "wechat_devtools"}
 ALLOWED_STATUS = {"PASS", "WARN", "FAIL", "SKIP"}
+WECHAT_DEVTOOLS_DAILY_SMOKE = PROJECT_ROOT / "scripts" / "run_wechat_devtools_daily_smoke.py"
 
 
 def _default_command(check_id: str, changed_files: list[str]) -> list[str]:
     if check_id == "contract_guard":
         return [sys.executable, str(PROJECT_ROOT / "scripts" / "check_contract_guard.py"), *changed_files]
+    if check_id == "wechat_devtools":
+        return [sys.executable, str(WECHAT_DEVTOOLS_DAILY_SMOKE)]
     raise ValueError(f"--command is required for {check_id}")
 
 
@@ -36,7 +40,92 @@ def _run_command(command: list[str]) -> subprocess.CompletedProcess[str]:
     )
 
 
-def _summary_from_result(check_id: str, result: subprocess.CompletedProcess[str] | None, summary: str) -> str:
+def _json_stdout_payload(result: subprocess.CompletedProcess[str] | None) -> dict:
+    if result is None:
+        return {}
+    stdout = (result.stdout or "").strip()
+    if not stdout:
+        return {}
+    try:
+        payload = json.loads(stdout)
+    except json.JSONDecodeError:
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def _status_from_result(
+    *,
+    check_id: str,
+    result: subprocess.CompletedProcess[str] | None,
+    explicit_status: str | None,
+) -> str:
+    if explicit_status:
+        return explicit_status
+    if result is None:
+        return "WARN"
+    if result.returncode != 0:
+        return "FAIL"
+    if check_id == "wechat_devtools":
+        structured_status = (
+            str(_json_stdout_payload(result).get("readiness_status") or "")
+            .strip()
+            .upper()
+        )
+        if structured_status in ALLOWED_STATUS:
+            return structured_status
+    return "PASS"
+
+
+def _structured_readiness_metadata(
+    *,
+    check_id: str,
+    result: subprocess.CompletedProcess[str] | None,
+) -> dict:
+    if check_id != "wechat_devtools":
+        return {}
+    payload = _json_stdout_payload(result)
+    if not payload:
+        return {}
+    metadata: dict[str, object] = {}
+    for key in (
+        "entry_surface",
+        "trace_source",
+        "project_path",
+        "target_subpackage",
+        "target_page",
+        "devtools_account_login_state",
+        "auth_state",
+        "auth_mode",
+        "scenario_evidence_status",
+        "evidence_boundary",
+    ):
+        value = payload.get(key)
+        if value is not None:
+            metadata[key] = str(value)
+    blockers = payload.get("readiness_blockers")
+    if isinstance(blockers, list):
+        metadata["readiness_blockers"] = [str(item) for item in blockers]
+    return metadata
+
+
+def _blockers_for_status(
+    *,
+    check_id: str,
+    status: str,
+    structured_blockers: list[str],
+) -> list[str]:
+    if structured_blockers:
+        return structured_blockers
+    if status == "FAIL":
+        return [f"{check_id}_failed"]
+    return []
+
+
+def _summary_from_result(
+    check_id: str,
+    result: subprocess.CompletedProcess[str] | None,
+    summary: str,
+) -> str:
     if summary:
         return summary
     if result is None:
@@ -52,8 +141,13 @@ def _evidence_lines(
     result: subprocess.CompletedProcess[str] | None,
     explicit_evidence: list[str],
     max_output_chars: int,
+    structured_metadata: dict | None = None,
 ) -> list[str]:
     evidence = list(explicit_evidence)
+    for key, value in (structured_metadata or {}).items():
+        if key == "readiness_blockers":
+            continue
+        evidence.append(f"{key}={value}")
     if command:
         evidence.append(f"command={' '.join(command)}")
     if result is not None:
@@ -90,7 +184,9 @@ def main() -> None:
         command = _default_command(args.check_id, args.changed_file)
 
     result = _run_command(command) if command else None
-    status = args.status or ("PASS" if result and result.returncode == 0 else "FAIL" if result else "WARN")
+    status = _status_from_result(check_id=args.check_id, result=result, explicit_status=args.status)
+    structured_metadata = _structured_readiness_metadata(check_id=args.check_id, result=result)
+    structured_blockers = [str(item) for item in structured_metadata.pop("readiness_blockers", [])]
     release = get_release_lineage_snapshot()
     payload = {
         "run_id": f"{args.check_id}-{int(time.time())}",
@@ -104,9 +200,15 @@ def main() -> None:
             result=result,
             explicit_evidence=args.evidence,
             max_output_chars=max(200, int(args.max_output_chars or 1200)),
+            structured_metadata=structured_metadata,
         ),
-        "blockers": [f"{args.check_id}_failed"] if status == "FAIL" else [],
+        "blockers": _blockers_for_status(
+            check_id=args.check_id,
+            status=status,
+            structured_blockers=structured_blockers,
+        ),
         "release": release,
+        **structured_metadata,
     }
     store_paths = get_control_plane_store().write_run(
         kind="readiness_checks",

@@ -28,10 +28,11 @@ def test_registry_uses_version_and_cases_mapping() -> None:
     assert not isinstance(registry.suites, dict)
     with pytest.raises(TypeError):
         registry.cases["new_case"] = registry.cases["routing.semantic_router.case_set"]  # type: ignore[index]
-    assert len(registry.cases) == 12
+    assert len(registry.cases) == 13
     assert set(registry.suites) == {
         "pr_gate_core",
         "regression_watch",
+        "real_exam_quality_spine",
         "incident_replay",
         "exploration_lab",
         "luban_case_grading_shadow",
@@ -109,6 +110,24 @@ def test_long_dialog_case_uses_canonical_vocab() -> None:
     assert case.source_fixture == "tests/fixtures/long_dialog_focus_eval_cases.json"
     assert case.failure_taxonomy_scope == ("FAIL_CONTINUITY",)
     assert case.expected_contract
+
+
+def test_real_exam_quality_spine_uses_docs_2026_bank() -> None:
+    registry = _load_registry()
+    case = registry.cases["quality.real_exam_bank.docs_2026.mcq"]
+
+    assert registry.suites["real_exam_quality_spine"].case_ids == (
+        "quality.real_exam_bank.docs_2026.mcq",
+    )
+    assert case.contract_domain == "grading_quality_contract"
+    assert case.case_tier == "regression_tier"
+    assert case.execution_kind == "static_contract_eval"
+    assert case.surface == "backend"
+    assert case.source_fixture == "deeptutor/services/benchmark/fixtures/exam_quality_bank.json"
+    assert case.origin_ref == "FastAPI20251222/docs/2026/题库"
+    assert case.promotion_status == "promoted"
+    assert "FAIL_ANSWER_KEY_OVERRIDE" in case.failure_taxonomy_scope
+    assert "FAIL_SOURCE_LAUNDERING" in case.failure_taxonomy_scope
 
 
 def test_wx_and_web_surface_cases_use_canonical_vocab() -> None:
@@ -221,6 +240,7 @@ def test_all_case_ids_exist() -> None:
 
     assert set(registry.cases) == {
         "answer.citation.paper_style.v0",
+        "quality.real_exam_bank.docs_2026.mcq",
         "grading.luban_case_golden.v0",
         "grading.compiled_context.safety_contract",
         "grading.open_world_diagnostic.safety_contract",

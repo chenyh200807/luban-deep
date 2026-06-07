@@ -44,12 +44,54 @@ from deeptutor.services.observability.unified_ws_smoke import run_unified_ws_smo
 
 DEFAULT_BASE_REF = DEFAULT_CHANGE_IMPACT_BASE_REF
 DEFAULT_API_BASE_URL = "http://127.0.0.1:8001"
-DEFAULT_BENCHMARK_SUITES = ("pr_gate_core", "regression_watch", "incident_replay")
+DEFAULT_BENCHMARK_SUITES = (
+    "pr_gate_core",
+    "regression_watch",
+    "real_exam_quality_spine",
+)
 DEFAULT_PLAN_COMPLETION_PLANS = ("docs/plan/INDEX.md",)
 SURFACE_READINESS_CHECKS = (
     ("playwright", "Playwright"),
     ("wechat_devtools", "微信 DevTools"),
 )
+WECHAT_DEVTOOLS_PROJECT_ROOT = "yousenwebview"
+WECHAT_DEVTOOLS_TARGET_SUBPACKAGE = "packageDeeptutor"
+
+
+def _surface_readiness_missing_summary(check_id: str, label: str) -> str:
+    if check_id == "wechat_devtools":
+        return (
+            f"{label} readiness evidence missing for current release: run the daily "
+            f"DevTools CLI smoke against {WECHAT_DEVTOOLS_PROJECT_ROOT}"
+        )
+    return f"{label} readiness evidence missing for current release"
+
+
+def _surface_readiness_missing_evidence(
+    *,
+    check_id: str,
+    changed_preview: str,
+) -> list[str]:
+    evidence = [
+        "source=daily_observability_fallback",
+        "reason=no current-release readiness row existed",
+        f"changed_files={changed_preview}",
+    ]
+    if check_id == "wechat_devtools":
+        evidence.extend(
+            [
+                "expected_task=python scripts/run_readiness_check.py --check-id wechat_devtools --report-only",
+                "default_smoke=python scripts/run_wechat_devtools_daily_smoke.py",
+                "entry_surface=real_wechat_package",
+                f"project_path={WECHAT_DEVTOOLS_PROJECT_ROOT}",
+                f"target_subpackage={WECHAT_DEVTOOLS_TARGET_SUBPACKAGE}",
+                "auth_state=unknown",
+                "auth_mode=none",
+                "coverage_targets=container,project_config,page_stack,network_baseURL,WS,cache,login",
+                "boundary=islogin/open are preflight until page scenario or automator evidence exists",
+            ]
+        )
+    return evidence
 
 
 def _load_json(path: str | None, *, expected_kind: str | None = None) -> dict[str, Any] | None:
@@ -394,12 +436,11 @@ def _ensure_surface_readiness_rows(
                 "label": label,
                 "status": "FAIL",
                 "required": True,
-                "summary": f"{label} readiness evidence missing for current release",
-                "evidence": [
-                    "source=daily_observability_fallback",
-                    "reason=no current-release readiness row existed",
-                    f"changed_files={changed_preview}",
-                ],
+                "summary": _surface_readiness_missing_summary(check_id, label),
+                "evidence": _surface_readiness_missing_evidence(
+                    check_id=check_id,
+                    changed_preview=changed_preview,
+                ),
                 "blockers": [f"{check_id}_failed"],
                 "release": dict(release or {}),
             }

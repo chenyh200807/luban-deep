@@ -9,9 +9,12 @@ Wraps the existing ``AgentCoordinator``.
 from __future__ import annotations
 
 import base64
+import logging
 import re
 import tempfile
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 from deeptutor.capabilities.request_contracts import get_capability_request_schema
 from deeptutor.core.capability_protocol import BaseCapability, CapabilityManifest
@@ -238,17 +241,56 @@ def _compiled_training_signal_text_from_context(question_context: dict[str, Any]
     return " | ".join(parts)
 
 
+def _personalization_training_signal_text_from_context(question_context: dict[str, Any]) -> str:
+    context = question_context.get("personalization_context")
+    if not isinstance(context, dict):
+        return ""
+    intent = context.get("active_training_intent")
+    if not isinstance(intent, dict) or not intent:
+        return ""
+
+    signal_parts: list[str] = []
+    for source_key, label in (
+        ("training_intent_id", "training_intent_id"),
+        ("concept_id", "concept"),
+        ("concept_label", "concept_label"),
+        ("error_code", "error_codes"),
+        ("error_label", "error_label"),
+    ):
+        value = _compact_text(intent.get(source_key))
+        if value:
+            signal_parts.append(f"{label}={value}")
+
+    evidence_refs = intent.get("evidence_refs")
+    if isinstance(evidence_refs, list):
+        signal_parts.append(f"evidence_ref_count={len(evidence_refs)}")
+
+    authority = context.get("authority") if isinstance(context.get("authority"), dict) else {}
+    prescription = _compact_text(authority.get("prescription"))
+    if prescription:
+        signal_parts.append(f"prescription_authority={prescription}")
+    return "；".join(signal_parts)
+
+
 def _question_context_generation_anchor(question_context: dict[str, Any] | None) -> str:
     raw_context = question_context if isinstance(question_context, dict) else {}
     normalized = normalize_question_followup_context(question_context)
     if not normalized:
-        return ""
-    if (
-        "compiled_learning_truth" not in normalized
-        and isinstance(raw_context.get("compiled_learning_truth"), dict)
-    ):
-        normalized = dict(normalized)
-        normalized["compiled_learning_truth"] = raw_context["compiled_learning_truth"]
+        if any(
+            isinstance(raw_context.get(key), dict)
+            for key in (
+                "compiled_learning_truth",
+                "personalization_context",
+                "construction_grading_result",
+            )
+        ):
+            normalized = dict(raw_context)
+        else:
+            return ""
+    for key in ("compiled_learning_truth", "personalization_context"):
+        if key not in normalized and isinstance(raw_context.get(key), dict):
+            normalized = dict(normalized)
+            normalized[key] = raw_context[key]
 
     items = normalized.get("items") or []
     contexts = [normalized, *[item for item in items if isinstance(item, dict)]]
@@ -272,6 +314,12 @@ def _question_context_generation_anchor(question_context: dict[str, Any] | None)
             _append_unique(
                 training_parts,
                 f"长期错因训练信号：{compiled_training_signal}；下一题优先从现有题库选择同考点、同错因的相似题。",
+            )
+        personalization_signal = _personalization_training_signal_text_from_context(item)
+        if personalization_signal:
+            _append_unique(
+                training_parts,
+                f"个性化训练意图：{personalization_signal}；下一题优先从现有题库选择同考点、同错因的相似题。",
             )
 
     anchor_lines: list[str] = []
@@ -1446,15 +1494,11 @@ def _looks_like_option_scoring_or_challenge_request(user_message: str) -> bool:
     )
 
 
-def _named_option_letters(user_message: str, item: dict[str, Any]) -> list[str]:
+def _named_option_letters_from_item(user_message: str, item: dict[str, Any]) -> list[str]:
     options = dict(_option_entries(item))
     if not options:
         return []
-    letters: list[str] = []
-    for letter in _answer_letters(user_message):
-        if letter in options and letter not in letters:
-            letters.append(letter)
-    return letters
+    return _named_option_letters(user_message, options)
 
 
 def _render_targeted_option_reference_feedback(
@@ -1470,7 +1514,7 @@ def _render_targeted_option_reference_feedback(
     options = dict(_option_entries(item))
     if not options:
         return ""
-    named_letters = _named_option_letters(user_message, item)
+    named_letters = _named_option_letters_from_item(user_message, item)
     if not named_letters:
         return ""
     letter = named_letters[0]
@@ -1528,12 +1572,12 @@ def _render_deterministic_reference_feedback(
     *,
     user_message: str = "",
 ) -> str:
-    targeted_option = _render_targeted_option_reference_feedback(user_message, question_context)
-    if targeted_option:
-        return targeted_option
     targeted_brief = _render_targeted_brief_reference_feedback(user_message, question_context)
     if targeted_brief:
         return targeted_brief
+    targeted_option = _render_targeted_option_reference_feedback(user_message, question_context)
+    if targeted_option:
+        return targeted_option
     if looks_like_explicit_brevity_request(user_message):
         return _render_brief_reference_feedback(user_message, question_context)
 
@@ -1735,6 +1779,229 @@ def _runtime_shadow_flag_enabled(context: UnifiedContext) -> bool:
         metadata.get("grading_engine_runtime_shadow")
         or context.config_overrides.get("grading_engine_runtime_shadow")
     )
+
+
+def _case_rubric_v1_flag_enabled(context: UnifiedContext) -> bool:
+    """case rubric-v1 grading flag. DEFAULT ON (full rollout, not gray) — V1 is the case-grading
+    authority for every case turn that has rubric/reference authority. Only the emergency env kill
+    switch ``LUBAN_CASE_RUBRIC_V1_ENABLED=false/0/off/no`` disables it.
+    """
+    import os
+
+    return os.environ.get("LUBAN_CASE_RUBRIC_V1_ENABLED", "").strip().lower() not in (
+        "false", "0", "off", "no")
+
+
+def _record_v1_langfuse(
+    *, event: dict[str, Any] | None, student_id: str, qid: Any, cg_type: str, status: str = "ok"
+) -> None:
+    """Mirror the V1 grading observation into Langfuse (gray-rollout). Thin wrapper: all client logic is
+    in the langfuse adapter; best-effort, never raises (must not affect grading)."""
+    try:
+        from deeptutor.services.observability import get_langfuse_observability
+
+        obs = get_langfuse_observability()
+        if event and event.get("event_type") == "case_grading_completed":
+            aw = float(event.get("awarded_score") or 0)
+            mx = float(event.get("max_score") or 0)
+            ratio = round(aw / mx, 4) if mx > 0 else 0.0
+            obs.record_grading_event(
+                name="luban_v1_grading",
+                metadata={
+                    "engine": "luban_case_rubric_v1",
+                    "rubric_provenance": event.get("rubric_provenance"),
+                    "awarded_score": aw, "max_score": mx, "score_ratio": ratio,
+                    "scoring_points": len(event.get("scoring_points") or []),
+                    "high_risk_review": event.get("high_risk_review"),
+                    "official_score_allowed": False,
+                    "student_id": student_id, "question_id": qid, "cg_type": cg_type,
+                },
+                score_value=ratio,
+                score_comment=f"V1 {event.get('rubric_provenance')} {aw}/{mx}",
+            )
+        else:
+            obs.record_grading_event(
+                name="luban_v1_no_grade",
+                metadata={"engine": "luban_case_rubric_v1", "status": status,
+                          "student_id": student_id, "question_id": qid, "cg_type": cg_type},
+            )
+    except Exception:  # noqa: BLE001 — observability must never break grading
+        logger.debug("LUBAN_V1 langfuse record skipped", exc_info=True)
+
+
+async def _grade_case_rubric_v1(
+    *, context: UnifiedContext, graded_context: dict[str, Any]
+) -> dict[str, Any] | None:
+    """Run rubric-v1 LLM-adjudicated case grading ONCE (Grading-to-Brain). Thin wrapper — all scoring
+    logic lives in ``rubric_grader_v1`` (fat skill). NEXUS-LIKE / OPEN WORLD: V1 grades EVERY case
+    question, not only the in-bank ones. The compiled rubric (``load_rubric``) is just higher-quality
+    ammunition; when absent, scoring points are extracted on-the-fly from the question's OWN reference
+    answer and graded the same per-point semantic way — it never drops back to the deterministic-keyword
+    V0 path. Returns the GradingEvent (``event_type == case_grading_completed``), a marker dict
+    (``{"status": "unavailable"/"no_reference", ...}``), or None when the gate is closed (caller leaves
+    the legacy answer byte-identical). One-or-two awaited DeepSeek calls; never writes the DB / learner
+    truth; official_score_allowed stays False."""
+    if not _case_rubric_v1_flag_enabled(context):
+        return None  # emergency kill switch only; default ON for all users (full rollout, not gray)
+    student_id = _learner_user_id_from_context(context)
+    cg = graded_context.get("construction_grading_result")
+    cg_type = str((cg or {}).get("type") or "").lower()
+    if cg_type not in ("case", "batch"):
+        # Gray-rollout observability: V1 is on for this user but the turn is not subjective.
+        logger.info("LUBAN_V1 skip: not subjective (cg_type=%r) student=%s qid=%s",
+                    cg_type or "(none)", student_id,
+                    graded_context.get("question_id") or (cg or {}).get("question_id"))
+        return None  # only subjective single / multi-item turns
+    try:
+        import os
+
+        from deeptutor.services.construction_grading import rubric_grader_v1 as _G
+
+        key = os.environ.get("DEEPSEEK_API_KEY")
+        if not key:
+            logger.info("LUBAN_V1 unavailable: no DEEPSEEK_API_KEY")
+            return {"status": "unavailable", "reason": "no_api_key"}
+        from deeptutor.services.llm.factory import complete
+
+        if cg_type == "batch":
+            event = await _grade_case_batch_v1(
+                graded_context, student_id=student_id, complete=complete, key=key, _G=_G)
+        else:
+            event = await _grade_one_case_v1(
+                graded_context, student_id=student_id, complete=complete, key=key, _G=_G)
+        # Gray-rollout observability: did V1 actually grade, with what provenance/score?
+        _qid = graded_context.get("question_id") or (cg or {}).get("question_id")
+        if isinstance(event, dict) and event.get("event_type") == "case_grading_completed":
+            _aw, _mx = event.get("awarded_score"), event.get("max_score")
+            logger.info("LUBAN_V1 GRADED: provenance=%s score=%s/%s points=%d high_risk=%s "
+                        "student=%s qid=%s cg_type=%s",
+                        event.get("rubric_provenance"), _aw, _mx,
+                        len(event.get("scoring_points") or []), event.get("high_risk_review"),
+                        student_id, _qid, cg_type)
+            _record_v1_langfuse(event=event, student_id=student_id, qid=_qid, cg_type=cg_type)
+        else:
+            logger.info("LUBAN_V1 no-grade: %s student=%s qid=%s",
+                        (event or {}).get("status") if isinstance(event, dict) else "none",
+                        student_id, _qid)
+            _record_v1_langfuse(event=None, student_id=student_id, qid=_qid, cg_type=cg_type,
+                                status=(event or {}).get("status") if isinstance(event, dict) else "none")
+        return event
+    except Exception:  # noqa: BLE001 — v1 must never break legacy (fail-closed)
+        logger.warning("case_rubric_v1 grading failed; legacy answer unaffected", exc_info=True)
+        return {"status": "unavailable", "reason": "exception"}
+
+
+async def _grade_one_case_v1(
+    ctx: dict[str, Any], *, student_id: str, complete: Any, key: str, _G: Any
+) -> dict[str, Any] | None:
+    """Grade ONE subjective question context with V1 (compiled rubric -> open-world reference). Reused by
+    both the single-question and per-batch-item paths so there is exactly one grading core (no second
+    judging logic). Returns a GradingEvent, a marker dict, or None (no gradable answer)."""
+    cg = ctx.get("construction_grading_result")
+    qid = str(ctx.get("question_id") or (cg or {}).get("question_id") or "").strip()
+    answer = str(ctx.get("user_answer") or "").strip()
+    if not answer:
+        return None
+    # 1) governed compiled rubric (best ammunition) if in the bank
+    points = _G.load_rubric(qid) if qid else []
+    provenance = "compiled_rubric"
+    # 2) OPEN WORLD: no compiled rubric -> extract atomic scoring points on-the-fly from THIS question's
+    #    own reference answer (Nexus-like, not a 173-question lookup); never falls back to V0 keywords.
+    if not points:
+        reference = str(
+            ctx.get("correct_answer")
+            or (cg or {}).get("correct_answer")
+            or ctx.get("reference_answer")
+            or ctx.get("analysis")
+            or ""
+        ).strip()
+        if not reference:
+            return {"status": "no_reference", "question_id": qid}
+        stem = str(ctx.get("question_stem") or ctx.get("stem") or ctx.get("question") or "")
+        points = await _G.extract_rubric_from_reference_async(reference, stem, complete, key)
+        # Normalize on-the-fly weights to the question's nominal full score (V0 max_score) so open-world
+        # awarded/max is comparable to the in-bank scale; compiled rubric is untouched.
+        points = _G.normalize_points_to_nominal(
+            points, nominal_total=float((cg or {}).get("max_score") or 0))
+        provenance = "on_the_fly_reference"
+    if not points:
+        return {"status": "unavailable", "reason": "no_scoring_points"}
+    event = await _G.grade_with_batch_judge_async(
+        qid=qid or "open_world", student_answer=answer, rubric_points=points,
+        complete_fn=complete, api_key=key, student_id=student_id)
+    # FAIL-SAFE: if the batch adjudication produced no trustworthy verdict at all (LLM down / malformed),
+    # do NOT surface a 0/full score as authority — return a marker so the caller falls back to the legacy
+    # diagnostic path (same as "no rubric"), exactly like an exception would.
+    if event.get("degraded"):
+        logger.info("LUBAN_V1 degraded (no trustworthy verdict); falling back to legacy qid=%s", qid)
+        return {"status": "degraded", "reason": "no_verdict", "question_id": qid}
+    event["rubric_provenance"] = provenance
+    return event
+
+
+async def _grade_case_batch_v1(
+    graded_context: dict[str, Any], *, student_id: str, complete: Any, key: str, _G: Any
+) -> dict[str, Any] | None:
+    """Multi-item turns (type=="batch"): grade each subjective sub-item with the SAME V1 core and merge
+    into one case_grading_completed event (deterministic sums), so render + same-source outcome work
+    unchanged. Non-case sub-items (e.g. MCQ) are left to legacy. None if no sub-item was gradable."""
+    items = graded_context.get("items") or []
+    sub_events: list[dict[str, Any]] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        icg = item.get("construction_grading_result")
+        if str((icg or {}).get("type") or "").lower() != "case":
+            continue
+        ev = await _grade_one_case_v1(item, student_id=student_id, complete=complete, key=key, _G=_G)
+        if isinstance(ev, dict) and ev.get("event_type") == "case_grading_completed":
+            sub_events.append(ev)
+    if not sub_events:
+        return None
+    # Preserve real per-sub-question identity (NOT the literal "batch"): the parent case qid if present,
+    # else the distinct sub-question qids joined — so to_learning_evidence's source_refs carry true
+    # provenance instead of a placeholder. Tag each merged point with its origin qid too.
+    parent_qid = str(graded_context.get("question_id") or "").strip()
+    sub_qids = [q for q in (str(e.get("question_id") or "").strip() for e in sub_events) if q]
+    merged_qid = parent_qid or ",".join(dict.fromkeys(sub_qids)) or "batch"
+    merged_points = [
+        dict(sp, source_qid=str(ev.get("question_id") or ""))
+        for ev in sub_events for sp in (ev.get("scoring_points") or [])
+    ]
+    return {
+        "event_type": "case_grading_completed",
+        "student_id": student_id,
+        "question_id": merged_qid,
+        "scoring_points": merged_points,
+        "awarded_score": round(sum(float(e.get("awarded_score") or 0) for e in sub_events), 2),
+        "max_score": round(sum(float(e.get("max_score") or 0) for e in sub_events), 2),
+        "high_risk_review": any(e.get("high_risk_review") for e in sub_events),
+        "grading_source": "rubric_scored_v1",
+        "answer_key_authority": "exam_reference_answer",
+        "llm_adjudicated": True,
+        "official_score_allowed": False,
+        "rubric_provenance": "batch",
+        "items": sub_events,
+    }
+
+
+def _case_rubric_v1_payload_from_event(
+    event: dict[str, Any] | None, *, node_code: str = ""
+) -> dict[str, Any] | None:
+    """Pure: shape the structured ``luban_case_rubric_v1`` payload from a GradingEvent / marker (no LLM,
+    no I/O). Appended alongside (never replacing) ``construction_grading_result``."""
+    if not isinstance(event, dict):
+        return None
+    if event.get("event_type") == "case_grading_completed":
+        from deeptutor.services.construction_grading import rubric_grader_v1 as _G
+        return {
+            "authority": "luban_case_rubric_v1", "status": "ok",
+            "grading_event": event,
+            "learning_evidence": _G.to_learning_evidence(event, node_code=node_code),
+            "official_score_allowed": False,
+        }
+    # marker dict (no_rubric_open_world / unavailable)
+    return {"authority": "luban_case_rubric_v1", **event, "official_score_allowed": False}
 
 
 def _runtime_shadow_engine(context: UnifiedContext) -> str:
@@ -2163,6 +2430,139 @@ def _maybe_attach_m31_governed_objective(
         }
 
 
+def _textbook_knowledge_flag_enabled(context: UnifiedContext) -> bool:
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return bool(
+        metadata.get("grading_engine_textbook_knowledge")
+        or context.config_overrides.get("grading_engine_textbook_knowledge")
+    )
+
+
+def _textbook_knowledge_cohort_prefixes() -> tuple[str, ...]:
+    import os
+
+    base = ["qa_", "test_", "operator_"]
+    raw = os.environ.get("LUBAN_TEXTBOOK_KNOWLEDGE_COHORT", "")
+    extra = [p.strip() for p in raw.split(",") if p.strip()]
+    return tuple(dict.fromkeys(base + extra))
+
+
+def _resolve_node_code_for_turn(context: UnifiedContext, graded_context: dict[str, Any]) -> tuple[str, str]:
+    """Resolve (node_code, match_kind) for the turn's verbatim textbook context.
+
+    Priority: an EXPLICIT node_code (graded_context / followup_question_context / metadata) wins with
+    match_kind ``explicit``; otherwise AUTO-MAP the turn's question_id to a textbook node via
+    ``node_code_for_question`` (match_kind ``exact`` / ``section``) so any in-bank turn gets textbook
+    context. Returns ("","") when nothing resolves (caller attaches nothing)."""
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    fctx = metadata.get("followup_question_context") if isinstance(metadata.get("followup_question_context"), dict) else {}
+    explicit = str(
+        graded_context.get("node_code") or fctx.get("node_code") or metadata.get("textbook_node_code") or ""
+    ).strip()
+    if explicit:
+        return (explicit, "explicit")
+    question_id = str(graded_context.get("question_id") or fctx.get("question_id") or "").strip()
+    if question_id:
+        from deeptutor.services.construction_grading.textbook_knowledge_runtime import (
+            node_code_for_question,
+        )
+
+        resolved = node_code_for_question(question_id)
+        if resolved is not None:
+            return resolved  # (node_code, "exact"|"section")
+    return ("", "")
+
+
+def _learner_weak_canonical_codes(graded_context: dict[str, Any]) -> list[str]:
+    """The learner's active weak concepts mapped to canonical codes (for #3 targeted remediation).
+    learner_state remains the weakness authority; this only READS + normalizes to canonical."""
+    truth = graded_context.get("compiled_learning_truth")
+    if not isinstance(truth, dict):
+        return []
+    concepts = [str(w.get("concept_id") or "") for w in (truth.get("weak_points") or [])
+                if isinstance(w, dict) and str(w.get("decay_state") or "active") == "active"
+                and not w.get("superseded_by_event_ids")]
+    concepts = [c for c in concepts if c]
+    if not concepts:
+        return []
+    try:
+        from deeptutor.services.construction_grading.canonical_resolution import to_canonical_set
+        return sorted(to_canonical_set(concepts))
+    except Exception:  # noqa: BLE001 — resolution is best-effort; never break the teaching lane
+        return []
+
+
+def _maybe_attach_textbook_knowledge(
+    *,
+    context: UnifiedContext,
+    graded_context: dict[str, Any],
+    result_payload: dict[str, Any],
+) -> None:
+    """Attach verbatim-sourced 2026-textbook knowledge for the turn's node_code (append-only; flag +
+    env kill switch + cohort; default OFF -> legacy byte-identical).
+
+    Thin wrapper — ALL loading / verification / resolution lives in ``textbook_knowledge_runtime``
+    (fat skill). This reads flag + cohort + node_code and appends ``luban_textbook_knowledge``. It
+    NEVER mutates the legacy result, never writes DB / canonical truth; the signed knowledge is
+    verbatim teaching/source context (grant_release stays False here — not an official score)."""
+    import os
+
+    KEY = "luban_textbook_knowledge"
+    if not _textbook_knowledge_flag_enabled(context):
+        return
+    if os.environ.get("LUBAN_TEXTBOOK_KNOWLEDGE_ENABLED", "").strip().lower() in ("false", "0", "off", "no"):
+        result_payload[KEY] = {"authority": KEY, "status": "killed_by_switch", "killed_by_switch": True}
+        return
+    student_id = _learner_user_id_from_context(context)
+    if not str(student_id).startswith(_textbook_knowledge_cohort_prefixes()):
+        return
+    node, match_kind = _resolve_node_code_for_turn(context, graded_context)
+    if not node:
+        return  # no node to resolve (no explicit code + no confident question->node map) -> nothing
+    try:
+        from deeptutor.services.construction_grading.textbook_knowledge_runtime import (
+            resolve_textbook_knowledge,
+        )
+
+        # the turn's question text focuses the coarse node to its most-relevant cards (finer granularity);
+        # answered_incorrectly drives #6 prerequisite remediation (learner evidence, never written back)
+        learner_context = {
+            "student_id": student_id,
+            "question_stem": str(graded_context.get("question_stem")
+                                 or graded_context.get("stem")
+                                 or graded_context.get("question")
+                                 or graded_context.get("question_text") or ""),
+            "user_answer": str(graded_context.get("user_answer") or ""),
+            "answered_incorrectly": graded_context.get("is_correct") is False,
+            # #3 precision: map the learner's active weak concepts -> canonical so prerequisite
+            # remediation targets real gaps. learner_state stays the mastery/weakness authority.
+            "weak_codes": _learner_weak_canonical_codes(graded_context),
+        }
+        payload = resolve_textbook_knowledge(node, learner_context=learner_context)
+        if payload is not None:
+            payload["node_match"] = match_kind  # explicit | exact | section (transparency for consumers)
+            result_payload[KEY] = payload
+    except Exception as exc:  # noqa: BLE001 — textbook lane must never break legacy
+        result_payload[KEY] = {"authority": KEY, "status": "unavailable",
+                               "unavailable_reason": type(exc).__name__}
+
+    # Four-source teaching context (textbook + standard + lecture + question) for the SAME canonical
+    # node, from the verify-gated unified supply. TEACHING tier only (official scoring stays verbatim).
+    try:
+        from deeptutor.services.construction_grading.canonical_knowledge_runtime import (
+            resolve_canonical_knowledge,
+        )
+
+        four = resolve_canonical_knowledge(node, learner_context=learner_context)
+        if four is not None:
+            four["node_match"] = match_kind
+            result_payload["luban_canonical_knowledge"] = four
+    except Exception as exc:  # noqa: BLE001 — teaching lane must never break legacy
+        result_payload["luban_canonical_knowledge"] = {
+            "authority": "luban_canonical_knowledge", "status": "unavailable",
+            "unavailable_reason": type(exc).__name__}
+
+
 def _v1_llm_adjudication_dev_force_on() -> bool:
     """LOCAL TEST MODE ONLY: force v1 adjudication ON (bypass request-flag + cohort) when
     ``LUBAN_V1_LLM_ADJUDICATOR_DEV_FORCE_ON`` is truthy AND this is NOT a production environment.
@@ -2342,6 +2742,62 @@ class DeepQuestionCapability(BaseCapability):
         if not (intent["training_intent_id"] or intent["concept_id"] or intent["concept_label"] or intent["error_label"]):
             return {}
         return intent
+
+    @staticmethod
+    def _learning_training_intent_from_personalization_context(
+        personalization_context: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        if not isinstance(personalization_context, dict):
+            return {}
+        raw_intent = personalization_context.get("active_training_intent")
+        if not isinstance(raw_intent, dict) or not raw_intent:
+            return {}
+        if raw_intent.get("active") is False:
+            return {}
+        state = str(
+            raw_intent.get("status")
+            or raw_intent.get("state")
+            or raw_intent.get("intent_status")
+            or ""
+        ).strip().lower()
+        if state in {"inactive", "stale", "superseded", "rejected", "closed", "completed"}:
+            return {}
+        intent = dict(raw_intent)
+        intent.setdefault("source", "PersonalizationContextPack")
+        if not intent.get("training_mode"):
+            intent["training_mode"] = intent.get("mode") or intent.get("recommended_mode") or ""
+        return DeepQuestionCapability._normalize_learning_training_intent(intent)
+
+    @staticmethod
+    def _resolve_learning_training_intent(
+        *,
+        overrides: dict[str, Any],
+        metadata: dict[str, Any],
+        followup_question_context: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        override_intent = DeepQuestionCapability._normalize_learning_training_intent(
+            overrides.get("learning_training_intent")
+            if isinstance(overrides.get("learning_training_intent"), dict)
+            else None
+        )
+        if override_intent:
+            return override_intent
+
+        top_level = metadata.get("personalization_context") if isinstance(metadata, dict) else None
+        intent = DeepQuestionCapability._learning_training_intent_from_personalization_context(
+            top_level if isinstance(top_level, dict) else None
+        )
+        if intent:
+            return intent
+
+        nested = (
+            followup_question_context.get("personalization_context")
+            if isinstance(followup_question_context, dict)
+            else None
+        )
+        return DeepQuestionCapability._learning_training_intent_from_personalization_context(
+            nested if isinstance(nested, dict) else None
+        )
 
     @staticmethod
     def _apply_learning_training_intent_to_topic(topic: str, intent: dict[str, Any]) -> str:
@@ -2623,10 +3079,12 @@ class DeepQuestionCapability(BaseCapability):
                 if part
             ),
         )
-        learning_training_intent = self._normalize_learning_training_intent(
-            overrides.get("learning_training_intent")
-            if isinstance(overrides.get("learning_training_intent"), dict)
-            else None
+        learning_training_intent = self._resolve_learning_training_intent(
+            overrides=overrides,
+            metadata=context.metadata,
+            followup_question_context=(
+                followup_question_context if isinstance(followup_question_context, dict) else None
+            ),
         )
         if learning_training_intent:
             topic = self._apply_learning_training_intent_to_topic(topic, learning_training_intent)
@@ -2958,6 +3416,11 @@ class DeepQuestionCapability(BaseCapability):
             resolved_active_object=result_payload["active_object"],
         )
         result_payload["active_object"] = transitioned_active_object or {}
+        if learning_training_intent and result_payload["active_object"]:
+            result_payload["active_object"] = self._attach_learning_training_intent_to_active_object(
+                result_payload["active_object"],
+                learning_training_intent,
+            )
         result_payload["suspended_object_stack"] = transitioned_stack
         if presentation:
             result_payload["presentation"] = presentation
@@ -3140,7 +3603,34 @@ class DeepQuestionCapability(BaseCapability):
             # 所有分支可见（确定性反馈分支不进 agent.process，但 Gap 5 仍要
             # 输出 progressive_disclosure）。
             grader_trace: dict[str, Any] = {}
-            if _should_use_deterministic_grading_feedback(
+            # Grading-to-Brain V1 (flag + cohort, default off): adjudicate the compiled rubric ONCE,
+            # up front, so the SAME event both (a) renders the student-facing answer (same-source: the
+            # words read can never disagree with the score) and (b) feeds the structured payload below.
+            # When V1 takes over we skip the legacy SubmissionGraderAgent LLM call entirely.
+            v1_event = await _grade_case_rubric_v1(context=context, graded_context=graded_context)
+            v1_render: str | None = None
+            if isinstance(v1_event, dict) and v1_event.get("event_type") == "case_grading_completed":
+                from deeptutor.services.construction_grading.rubric_grader_v1 import (
+                    render_case_rubric_feedback,
+                )
+
+                _stem = str(graded_context.get("question_stem") or graded_context.get("stem")
+                            or graded_context.get("question") or "")
+                v1_render = render_case_rubric_feedback(v1_event, question_stem=_stem)
+            if v1_render is not None:
+                answer = v1_render
+                # SAME-SOURCE: when V1 renders the student answer, is_correct/score/diagnosis must come
+                # from the SAME event (not V0), so recorded state (recent_outcomes / projection /
+                # observability) can never disagree with what the student read.
+                from deeptutor.services.construction_grading.rubric_grader_v1 import (
+                    derive_outcome_from_event,
+                )
+
+                _v1_outcome = derive_outcome_from_event(v1_event)
+                graded_context["is_correct"] = _v1_outcome["is_correct"]
+                graded_context["score"] = _v1_outcome["score"]
+                graded_context["diagnosis"] = _v1_outcome["diagnosis"]
+            elif _should_use_deterministic_grading_feedback(
                 selected_mode=selected_mode,
                 question_context=graded_context,
                 kb_name=kb_name,
@@ -3294,6 +3784,16 @@ class DeepQuestionCapability(BaseCapability):
                     graded_context=graded_context,
                     result_payload=result_payload,
                 )
+                # rubric-v1 structured payload (flag+cohort; append-only GradingEvent + learning_evidence;
+                # legacy construction_grading_result intact). Reuses the event already graded up top —
+                # no second LLM call. When V1 is on, the answer above is rendered from this same event.
+                _v1_payload = _case_rubric_v1_payload_from_event(
+                    v1_event,
+                    node_code=str(graded_context.get("node_code")
+                                  or (grading_result or {}).get("node_code") or ""),
+                )
+                if _v1_payload is not None:
+                    result_payload["luban_case_rubric_v1"] = _v1_payload
                 # QA/test-only Luban v1 beta_shadow (default off; flag + env kill switch;
                 # append-only; legacy construction_grading_result untouched above).
                 _maybe_attach_v1_beta_shadow(
@@ -3328,6 +3828,13 @@ class DeepQuestionCapability(BaseCapability):
                 # construction_grading_result untouched; LLM cannot decide correctness; fail-closed on
                 # tamper, fall-through to candidate/open-world on governed miss).
                 _maybe_attach_m31_governed_objective(
+                    context=context,
+                    graded_context=graded_context,
+                    result_payload=result_payload,
+                )
+                # Verbatim 2026-textbook knowledge context for the turn's node_code (default off;
+                # flag + env kill switch + cohort; append-only; teaching/source context, not a score).
+                _maybe_attach_textbook_knowledge(
                     context=context,
                     graded_context=graded_context,
                     result_payload=result_payload,
@@ -3567,7 +4074,11 @@ class DeepQuestionCapability(BaseCapability):
             payload: dict[str, Any] = {
                 "response": answer,
                 "mode": "clarification",
-                "active_object": active_object or {},
+                "question_authority_source": "unresolved_switch_clarification",
+                "execution_path": "deep_question_unresolved_switch_clarification",
+                "clarification_reason": "unresolved_switch_target",
+                "question_followup_context": {},
+                "active_object": normalize_active_object(active_object) or {},
                 "suspended_object_stack": suspended_object_stack or [],
                 "turn_semantic_decision": turn_semantic_decision or {},
                 "reveal_answers": False,
@@ -3575,6 +4086,7 @@ class DeepQuestionCapability(BaseCapability):
                 "metadata": {
                     "needs_clarification": True,
                     "clarification_reason": "unresolved_switch_target",
+                    "turn_id": turn_id,
                 },
             }
             await self._emit_result_with_citations(

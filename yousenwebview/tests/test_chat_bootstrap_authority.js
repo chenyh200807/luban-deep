@@ -133,7 +133,7 @@ function loadChatPage(overrides) {
         return authMock;
       }
       if (request === "../../utils/api") return apiMock;
-      if (request === "../../utils/ai-message-state") return {};
+      if (request === "../../utils/ai-message-state") return (overrides && overrides.aiMessageState) || {};
       if (request === "../../utils/ws-stream") return {};
       if (request === "../../utils/helpers") {
         return {
@@ -174,7 +174,9 @@ function loadChatPage(overrides) {
       }
       if (request === "../../utils/workflow-status") return {};
       if (request === "../../utils/citation-format") return {};
-      if (request === "../../utils/chat-turn-recovery") return {};
+      if (request === "../../utils/chat-turn-recovery") {
+        return (overrides && overrides.chatTurnRecovery) || {};
+      }
       if (request === "../../utils/devtools-markdown-fixtures") return {};
       if (request === "../../utils/surface-telemetry") {
         return {
@@ -265,6 +267,7 @@ function loadChatPage(overrides) {
   return {
     page: page,
     apiState: apiState,
+    storage: storage,
     toastCalls: toastCalls,
   };
 }
@@ -567,6 +570,61 @@ function loadChatPage(overrides) {
     assert(loaded.toastCalls.length === 0, "profile bootstrap failure should not toast over an active send");
   });
 
+  await run("manual send should release stale pending recovery instead of leaving the chat locked", async function () {
+    var loaded = loadChatPage({});
+    loaded.page._sid = "conv_stale";
+    loaded.page._convId = "conv_stale";
+    loaded.page._pendingTurn = {
+      conversationId: "conv_stale",
+      baselineCount: 1,
+      query: "上一轮卡住的问题",
+      clientTurnId: "client_stale",
+      createdAt: Date.now(),
+    };
+    loaded.page._pendingRecoveryActive = true;
+    loaded.page._abort = null;
+    loaded.page.setData({
+      hasMessages: true,
+      isStreaming: true,
+      messages: [{ id: "u0", role: "user", content: "上一轮卡住的问题" }],
+    });
+
+    loaded.page._send("我现在要问新问题");
+
+    assert(
+      loaded.page._doSendCallCount === 1,
+      "manual send should enter the stream pipeline after releasing stale pending recovery",
+    );
+    assert(
+      loaded.page._pendingTurn === null,
+      "stale pending recovery should be demoted before the new turn becomes authoritative",
+    );
+    assert(
+      loaded.page._sid === "conv_stale" && loaded.page._convId === "conv_stale",
+      "manual send should keep the current conversation anchor while releasing only the stale recovery state",
+    );
+  });
+
+  await run("manual send should still refuse while an active stream is running", async function () {
+    var loaded = loadChatPage({});
+    loaded.page._sid = "conv_active";
+    loaded.page._convId = "conv_active";
+    loaded.page._pendingRecoveryActive = true;
+    loaded.page._abort = function () {};
+    loaded.page.setData({
+      hasMessages: true,
+      isStreaming: true,
+      messages: [{ id: "a0", role: "ai", content: "", streaming: true }],
+    });
+
+    loaded.page._send("不要打断活跃流");
+
+    assert(
+      loaded.page._doSendCallCount === 0,
+      "manual send should not start a second turn while an active stream still owns the surface",
+    );
+  });
+
   await run("chat page should not call profile bootstrap or create conversation after auth redirect starts", async function () {
     var loaded = loadChatPage({
       auth: {
@@ -592,6 +650,104 @@ function loadChatPage(overrides) {
     assert(
       loaded.apiState.createConversationCalls === 0,
       "manual send should not create conversation after auth redirect starts",
+    );
+  });
+
+  await run("cold-start pending turn recovery should not lock manual input", async function () {
+    var never = createDeferred();
+    var loaded = loadChatPage({
+      storage: {
+        chat_pending_turn_v1: {
+          conversationId: "conv_pending",
+          baselineCount: 1,
+          query: "上一轮较慢的问题",
+          clientTurnId: "client_pending",
+          createdAt: Date.now(),
+        },
+      },
+      api: {
+        getConversationMessages: function (id) {
+          loaded.apiState.getConversationMessagesCalls.push(id);
+          return never.promise;
+        },
+      },
+      chatTurnRecovery: {
+        hasRecoveredAssistant: function () {
+          return false;
+        },
+      },
+    });
+
+    loaded.page.onLoad({});
+    assert(
+      loaded.page.data.isStreaming === false,
+      "pending turn cold start should show chat chrome without claiming an active stream",
+    );
+
+    loaded.page.onShow();
+    await flushPromises();
+
+    assert(
+      loaded.page.data.isStreaming === false,
+      "background pending recovery must keep the input sendable",
+    );
+    assert(
+      loaded.page._pendingRecoveryActive === true,
+      "background recovery should still try to recover the authoritative pending turn",
+    );
+    assert(
+      loaded.page._pendingTurn &&
+        loaded.page._pendingTurn.conversationId === "conv_pending",
+      "background recovery must not erase the durable pending turn before terminal recovery",
+    );
+  });
+
+  await run("stream flush should use lightweight render state until done", async function () {
+    var deriveCalls = 0;
+    var loaded = loadChatPage({
+      aiMessageState: {
+        coerceUserVisibleContent: function (text) {
+          return String(text || "");
+        },
+        deriveAiMessageRenderState: function () {
+          deriveCalls += 1;
+          return {
+            renderableContent: "heavy",
+            blocks: [{ id: "b1" }],
+            mcqCards: null,
+            mcqHint: "",
+            mcqReceipt: "",
+            mcqInteractiveReady: false,
+            mcqReviewMode: false,
+            originalContent: "",
+            originalCollapsed: true,
+            hasStructuredContent: false,
+          };
+        },
+      },
+    });
+    loaded.page.setData({
+      messages: [
+        {
+          id: "a0",
+          role: "ai",
+          content: "",
+          renderableContent: "",
+          blocks: [],
+          streaming: true,
+        },
+      ],
+    });
+    loaded.page._streamId = "a0";
+    loaded.page._messageIndexMap = { a0: 0 };
+    loaded.page._buf = "第一段流式内容";
+
+    loaded.page._flush();
+
+    assert(deriveCalls === 0, "stream flush should not run heavy AI message derivation");
+    assert(
+      loaded.page.data["messages[0].renderableContent"] === "第一段流式内容",
+      "stream flush should still render visible text immediately",
     );
   });
 

@@ -1,0 +1,604 @@
+[
+ {
+  "concept_ids": [
+   "c_02e73993d5280b55",
+   "c_44120ac8a810bc5e"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_02e73993d5280b55",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "同章容器重复"
+ },
+ {
+  "concept_ids": [
+   "c_02f25921a4571bdb",
+   "c_7280dab1cbef7289"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_02f25921a4571bdb",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "同类信息技术"
+ },
+ {
+  "concept_ids": [
+   "c_07a76e1889dc6e13",
+   "c_9dac39f9c9cae3bd"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_07a76e1889dc6e13",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "BIM子项重复"
+ },
+ {
+  "concept_ids": [
+   "c_0b80d728dd5bf142",
+   "c_217c57692e6c67f9"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_0b80d728dd5bf142",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "绿色技术重复"
+ },
+ {
+  "concept_ids": [
+   "c_0e2f7a7ae0c9992b",
+   "c_48d87dfb56ffb298"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_0e2f7a7ae0c9992b",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "绿色技术重复"
+ },
+ {
+  "concept_ids": [
+   "c_13e812ae4eae195c",
+   "c_88dfd4512a07a92d"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_13e812ae4eae195c",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "父子编码重复"
+ },
+ {
+  "concept_ids": [
+   "c_17d88a69220595de",
+   "c_e66c5e49a959473c"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_17d88a69220595de",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "安全语义一致"
+ },
+ {
+  "concept_ids": [
+   "c_2865115e6a5a4ff8",
+   "c_b2131051d4d254d7"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_2865115e6a5a4ff8",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "父子编码重复"
+ },
+ {
+  "concept_ids": [
+   "c_2d8804b2d18dcd7d",
+   "c_6558a52da22bbd8a"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_2d8804b2d18dcd7d",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "同类信息技术"
+ },
+ {
+  "concept_ids": [
+   "c_34744e3ba351089c",
+   "c_ccad9f34d6ce4356"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_34744e3ba351089c",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "父子编码重复"
+ },
+ {
+  "concept_ids": [
+   "c_3d6d575416005a4c",
+   "c_7018dd2bcae8e7e1"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_3d6d575416005a4c",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "父子编码重复"
+ },
+ {
+  "concept_ids": [
+   "c_3d7c25c6e6259d25",
+   "c_da1e085d8df143a9"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_3d7c25c6e6259d25",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "绿色技术重复"
+ },
+ {
+  "concept_ids": [
+   "c_495b0b498a3ba26c",
+   "c_9fd9d3b9e5764ec7"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_495b0b498a3ba26c",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "父子编码重复"
+ },
+ {
+  "concept_ids": [
+   "c_51ef153b34bada42",
+   "c_67f4872d2194597b"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_51ef153b34bada42",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "绿色技术重复"
+ },
+ {
+  "concept_ids": [
+   "c_53a5bcdc3f805731",
+   "c_d2444720388e9104"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_53a5bcdc3f805731",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "安全语义一致"
+ },
+ {
+  "concept_ids": [
+   "c_5feb18800fe9713c",
+   "c_ea7456d973c312b0"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_5feb18800fe9713c",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "绿色技术重复"
+ },
+ {
+  "concept_ids": [
+   "c_63115e645ce32cab",
+   "c_d4de60088d7c5612"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_63115e645ce32cab",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "安全语义一致"
+ },
+ {
+  "concept_ids": [
+   "c_658f631793012bd0",
+   "c_e48caf06700bda01"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_658f631793012bd0",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "父子编码重复"
+ },
+ {
+  "concept_ids": [
+   "c_659ffe2c1a40182e",
+   "c_d110a8977cb4b9f1"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_659ffe2c1a40182e",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "同章容器重复"
+ },
+ {
+  "concept_ids": [
+   "c_6c68bc414f13cd61",
+   "c_dfcf9eb26271b829"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_6c68bc414f13cd61",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "同类信息技术"
+ },
+ {
+  "concept_ids": [
+   "c_6e664c4401e69623",
+   "c_f0fb2c5038a35b6f"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_6e664c4401e69623",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "父子编码重复"
+ },
+ {
+  "concept_ids": [
+   "c_7326e1ad6e3e28bc",
+   "c_c23f17f8ae8cb0ce"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_7326e1ad6e3e28bc",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "父子编码重复"
+ },
+ {
+  "concept_ids": [
+   "c_7e8af52f46a0e8b2",
+   "c_9728b11c8c02b816"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_7e8af52f46a0e8b2",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "父子编码重复"
+ },
+ {
+  "concept_ids": [
+   "c_88eab27fcd028dd1",
+   "c_d9d70da84fb43f92"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_88eab27fcd028dd1",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "同类信息技术"
+ },
+ {
+  "concept_ids": [
+   "c_8e5d9c987eb789fe",
+   "c_8ef9264fe083766d"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_8e5d9c987eb789fe",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "绿色技术重复"
+ },
+ {
+  "concept_ids": [
+   "c_96d2e122b3355df7",
+   "c_fd3460c0a9a4f67a"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_96d2e122b3355df7",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "BIM子项重复"
+ },
+ {
+  "concept_ids": [
+   "c_97c294de87c8dd49",
+   "c_a79e9e552525580f"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_97c294de87c8dd49",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "同章容器重复"
+ },
+ {
+  "concept_ids": [
+   "c_9e88eef7ab338637",
+   "c_f4e03e5dbf1e53b5"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_9e88eef7ab338637",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "同类信息技术"
+ },
+ {
+  "concept_ids": [
+   "c_9fd61f73459d8250",
+   "c_ce8b5a3ae2ccefbd"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_9fd61f73459d8250",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "父子编码重复"
+ },
+ {
+  "concept_ids": [
+   "c_d43d43008193efb9",
+   "c_f170736c25f32f99"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_d43d43008193efb9",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "安全语义一致"
+ },
+ {
+  "concept_ids": [
+   "c_dd7bb70a537670f0",
+   "c_e85368c838f89b9c"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_dd7bb70a537670f0",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "同类信息技术"
+ },
+ {
+  "concept_ids": [
+   "c_ea0d91f7b47841ac",
+   "c_f120e59552e03b81"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_ea0d91f7b47841ac",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "同类信息技术"
+ },
+ {
+  "concept_ids": [
+   "c_f730d84d5466c280",
+   "c_fb4582825ed7b240"
+  ],
+  "action": "adjudicated_merge",
+  "canonical_concept_id": "c_f730d84d5466c280",
+  "reviewer": "codex-gpt5.5-council",
+  "reason": "绿色技术重复"
+ },
+ {
+  "concept_ids": [
+   "c_00fa14988dab1595"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_07a71358e3634569"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_13b6d5a44d79bdd7"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_2d13149770e33bbd"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_2f5c0a89165a7b9e"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_340b8663f792c5dd"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_5921a4e6a6e781cb"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_5e53f6d37075013e"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_5f1edd2257874c2a"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_6da4ad4a39bcd1a5"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_9cc40faca4f188e3"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_ac841b38d1ccd10d"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_d0a6400050059026"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_d551d85f8b5d6bdf"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_df09cfb3b76972a0"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_f2e237e2e43f3bc6"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_f49f6a68d2ddfa3e"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_f879b9bd1d4cb207"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_fa86025f13e06037"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_fc48d53b8b7928f1"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_fe4af741b5a072d5"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_9bd152bcd72cc207"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-arbitration",
+  "reason": "双模型对抗仲裁一致判源中无据/伪考点"
+ },
+ {
+  "concept_ids": [
+   "c_161f53df78bf852c"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-arbitration",
+  "reason": "双模型对抗仲裁一致判源中无据/伪考点"
+ },
+ {
+  "concept_ids": [
+   "c_bdb112d7c16525d0"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-arbitration",
+  "reason": "双模型对抗仲裁一致判源中无据/伪考点"
+ },
+ {
+  "concept_ids": [
+   "c_517523563c906fe5"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-arbitration",
+  "reason": "双模型对抗仲裁一致判源中无据/伪考点"
+ },
+ {
+  "concept_ids": [
+   "c_040cebe460ef818e"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-arbitration",
+  "reason": "双模型对抗仲裁一致判源中无据/伪考点"
+ },
+ {
+  "concept_ids": [
+   "c_3d60181ea2ea5565"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-arbitration",
+  "reason": "双模型对抗仲裁一致判源中无据/伪考点"
+ },
+ {
+  "concept_ids": [
+   "c_28f7203ab0323ec8"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-arbitration",
+  "reason": "双模型对抗仲裁一致判源中无据/伪考点"
+ },
+ {
+  "concept_ids": [
+   "c_19a16ecc8c12f265"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-arbitration",
+  "reason": "双模型对抗仲裁一致判源中无据/伪考点"
+ },
+ {
+  "concept_ids": [
+   "c_7b9d3f2daec21623"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-arbitration",
+  "reason": "双模型对抗仲裁一致判源中无据/伪考点"
+ },
+ {
+  "concept_ids": [
+   "c_42b70d0c1f80bc05"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-arbitration",
+  "reason": "双模型对抗仲裁一致判源中无据/伪考点"
+ },
+ {
+  "concept_ids": [
+   "c_417c2ecb8e1b3f06"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-arbitration",
+  "reason": "双模型对抗仲裁一致判源中无据/伪考点"
+ },
+ {
+  "concept_ids": [
+   "c_3f53b6a06c2e875b"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-arbitration",
+  "reason": "双模型对抗仲裁一致判源中无据/伪考点"
+ },
+ {
+  "concept_ids": [
+   "c_a14044bd06d9d6b1"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-arbitration",
+  "reason": "双模型对抗仲裁一致判源中无据/伪考点"
+ }
+]

@@ -168,6 +168,11 @@ def _rubric_context(resolution: dict[str, Any], budget_tokens: int) -> dict[str,
         "risk_flags": list(resolution.get("risk_flags") or []),
         "rubric_signed": str(resolution.get("registry_status") or "").strip().lower() in RELEASE_GRADES
         and bool(rubric),
+        # node-resolution focus metadata (textbook lane): how a coarse node was narrowed for this turn.
+        "node_card_total": resolution.get("node_card_total"),
+        "selected_card_count": resolution.get("selected_card_count"),
+        "selection_mode": resolution.get("selection_mode"),
+        "selected_taxonomy_paths": resolution.get("selected_taxonomy_paths"),
         "budget_tokens": budget_tokens,
     }
 
@@ -336,6 +341,12 @@ def build_pack_from_question_context(
         "risk_flags": qc.get("risk_flags"),
         "source_refs": qc.get("source_refs"),
         "is_historical_exam": qc.get("is_historical_exam"),
+        # node-resolution focus metadata (textbook lane) — carried through so consumers see how a
+        # coarse syllabus node was narrowed to the turn's sub-topic.
+        "node_card_total": qc.get("node_card_total"),
+        "selected_card_count": qc.get("selected_card_count"),
+        "selection_mode": qc.get("selection_mode"),
+        "selected_taxonomy_paths": qc.get("selected_taxonomy_paths"),
     }
     return build_luban_context_pack(
         resolution=resolution,

@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from typing import Any, Callable
 
 from deeptutor.services.construction_grading.normalization import normalize_options
@@ -372,6 +373,250 @@ def build_compiled_knowledge_registry_manifest(
     }
 
 
+# --------------------------- textbook verbatim knowledge lane ---------------------------
+#
+# Increment ① of the Living LLM Artifact Compiler (docs/plan/2026-06-06-luban-textbook-verbatim-
+# lane-design.md). Signs 2026 教材 knowledge-card points whose claim is VERBATIM in the block's own
+# ``content_markdown``. The LLM only proposes; THIS deterministic signer re-checks every field against
+# the corpus and signs ONLY confirmed fields. Implements the 5 adversarial must-fix guards:
+#   1. corpus check is internal (``quote in content_markdown``); any LLM-asserted verified/match_method
+#      is IGNORED.
+#   2. per-number provenance: a key_number signs only if it is in the block's OWN content_markdown
+#      (never card_content's GB citation).
+#   3. per-field: card_title / mnemonics / logic_chain / assessment are NEVER in the authority surface.
+#   4. same-block corpus only (keyed by chunk_id); content_hash binds chunk -> corpus.
+#   5. narrow symmetric _norm + min span + high-frequency-phrase blocklist.
+
+TEXTBOOK_KNOWLEDGE_NAMESPACE = "textbook_knowledge_full"
+_NODE_RE = re.compile(r"^1A\d{6,}$")  # canonical taxonomy node_code
+_GB_RE = re.compile(r"(GB|JGJ|CJJ|JG|GBT|GB/T|GB\s*/\s*T)\s*\d")
+_MIN_SPAN = 6  # reject verbatim quotes shorter than this many normalized chars
+
+
+def _norm_textbook(s: Any) -> str:
+    """Narrow, symmetric normalization (must-fix #5): collapse ALL whitespace, fold full-width digits
+    and latin to half-width, but DO NOT strip interior content characters (no char-subset matching).
+    The SAME _norm runs at sign, S5 re-verify, and the resolver."""
+    out: list[str] = []
+    for ch in str(s or ""):
+        o = ord(ch)
+        # fold ONLY full-width digits (FF10-19), upper A-Z (FF21-3A), lower a-z (FF41-5A) to ASCII.
+        # NOT FF3B-FF40 (［＼］＾＿｀) — those are punctuation and must stay distinct from ASCII.
+        if 0xFF10 <= o <= 0xFF19 or 0xFF21 <= o <= 0xFF3A or 0xFF41 <= o <= 0xFF5A:
+            out.append(chr(o - 0xFEE0))
+        elif ch.isspace():
+            continue
+        else:
+            out.append(ch)
+    return "".join(out)
+
+
+def _num_core(n: Any) -> str:
+    """Numeric core of a key_number for substring search (strip unit suffix; keep the number)."""
+    m = re.match(r"^(\d+(?:\.\d+)?)", _norm_textbook(n))
+    return m.group(1) if m else ""
+
+
+def validate_textbook_provenance(
+    card: dict[str, Any],
+    content_markdown: str,
+    *,
+    freq_blocklist: set[str] | None = None,
+) -> dict[str, Any]:
+    """PER-FIELD corpus check against THIS block's content_markdown only. Returns the partitioned
+    provenance: which fields are verbatim-confirmed. The LLM-proposed ``exact_quote`` is re-checked
+    here; card_title/mnemonics/logic_chain/assessment are never authority sources."""
+    norm_corpus = _norm_textbook(content_markdown)
+    quote = str(card.get("exact_quote") or "").strip()
+    nq = _norm_textbook(quote)
+    quote_ok = bool(nq) and len(nq) >= _MIN_SPAN and nq in norm_corpus
+    if quote_ok and freq_blocklist and nq in freq_blocklist:
+        quote_ok = False  # high-frequency boilerplate -> not a real anchor
+
+    verified_nums: list[str] = []
+    external_nums: list[str] = []
+    for kn in card.get("key_numbers") or []:
+        core = _num_core(kn)
+        if core and core in norm_corpus:
+            verified_nums.append(str(kn))
+        else:
+            external_nums.append(str(kn))
+
+    cites_external = bool(_GB_RE.search(str(card.get("card_content") or "")))
+
+    if quote_ok and verified_nums:
+        pc, reason = "textbook_authority", "verbatim_clause_and_numbers_in_block"
+    elif verified_nums:
+        pc, reason = "machine_spec", "key_numbers_verbatim_in_block"
+    elif quote_ok:
+        pc, reason = "textbook_concept", "verbatim_clause_in_block"
+    elif external_nums and cites_external:
+        pc, reason = "external_standard", "external_code_numbers_not_in_block_body"
+    else:
+        pc, reason = "synthesis", "no_verbatim_no_number"
+
+    return {
+        "provenance_class": pc,
+        "reason": reason,
+        "verbatim_quote": quote if quote_ok else None,
+        "verified_key_numbers": verified_nums,
+        "external_residual": external_nums,
+    }
+
+
+def _split_printed_derived(key_numbers: list[str], content_markdown: str) -> tuple[list[str], list[str]]:
+    """Per-number provenance split for calc/case cards. A key_number is DERIVED (enrichment-computed,
+    not printed in the textbook) iff EVERY occurrence of it in content_markdown is the right-hand side
+    of an equation (immediately after ``=`` / ``＝`` ignoring spaces/units). Otherwise it is PRINTED
+    (it appears in the textbook body / table / answer text, not only as a computed result).
+
+    This separates e.g. 连环替代法 difference results (``= 378560 - 364000 = 14560 元`` -> 14560 derived)
+    from the printed table values (产量 520, 单价 720 -> printed). Derived numbers are kept out of the
+    authoritative key_numbers / required_terms so a computed answer is never treated as a textbook fact.
+    """
+    cm = content_markdown
+    printed: list[str] = []
+    derived: list[str] = []
+
+    def _is_arith_result(m: "re.Match[str]") -> bool:
+        # the number must sit immediately after '=' / '＝' (allowing an optional leading sign,
+        # e.g. "= -5616") ...
+        j = m.start() - 1
+        while j >= 0 and cm[j] in " \t　":
+            j -= 1
+        if j >= 0 and cm[j] in "-+－＋":  # optional sign on the result
+            j -= 1
+        while j >= 0 and cm[j] in " \t　":
+            j -= 1
+        if not (j >= 0 and cm[j] in "=＝"):
+            return False
+        # ... and that '=' must itself be preceded by a DIGIT (the LHS of a real computation,
+        # e.g. "364000 = 14560"), so a definition like "工期=25天" is NOT treated as derived.
+        j -= 1
+        while j >= 0 and cm[j] in " \t　":
+            j -= 1
+        return j >= 0 and cm[j].isdigit()
+
+    def _in_table_row(m: "re.Match[str]") -> bool:
+        # the number sits inside a markdown table row (a printed input cell, never a computed result).
+        lo = cm.rfind("\n", 0, m.start()) + 1
+        hi = cm.find("\n", m.start())
+        return "|" in cm[lo:(hi if hi >= 0 else len(cm))]
+
+    for kn in key_numbers:
+        core = _num_core(kn)
+        if not core:
+            printed.append(kn)
+            continue
+        occ = list(re.finditer(r"(?<![\d.])" + re.escape(core) + r"(?![\d])", cm))
+        # DERIVED iff it appears as an arithmetic result (a computed answer) AND never as a printed
+        # table-cell input. The arith-result check uses ANY occurrence (enrichment often repeats a
+        # derived value in prose, e.g. "成本增加 14560 元" alongside "= 14560"); the table-row guard
+        # keeps a printed input value (e.g. 综合单价 in a "| ... |" row) out of the derived set even
+        # if it coincidentally also appears as a computation result somewhere.
+        is_derived = bool(occ) and any(_is_arith_result(m) for m in occ) and not any(_in_table_row(m) for m in occ)
+        (derived if is_derived else printed).append(kn)
+    return printed, derived
+
+
+_TEXTBOOK_SIGNABLE = {"textbook_authority", "machine_spec", "textbook_concept"}
+
+
+def compile_textbook_knowledge_release_candidate(cards: list[dict[str, Any]]) -> dict[str, Any]:
+    """Sign 2026 教材 knowledge-card points whose claim is verbatim in their block's content_markdown.
+
+    Each input card carries: chunk_id, node_code, content_markdown (the block's OWN), card_type,
+    card_content, key_numbers, exact_quote (LLM proposal), taxonomy_path, point_id, optional
+    _freq_blocklist. external_standard / synthesis -> work_order (NEVER signed). namespace =
+    TEXTBOOK_KNOWLEDGE_NAMESPACE; signature over records only.
+    """
+    signed: list[dict[str, Any]] = []
+    work_order: list[dict[str, Any]] = []
+    dropped: list[dict[str, Any]] = []
+    by_bucket: dict[str, int] = {}
+    seen_point: dict[str, str] = {}
+
+    for c in cards:
+        cid = str(c.get("chunk_id") or c.get("point_id") or "").strip()
+        node = str(c.get("node_code") or "").strip()
+        corpus = str(c.get("content_markdown") or "")  # SAME block only (must-fix #4)
+        pid = str(c.get("point_id") or cid)
+
+        if not cid or not _NODE_RE.match(node):
+            dropped.append({"point_id": pid, "reason": "missing_chunk_or_node_code"})
+            continue
+
+        prov = validate_textbook_provenance(
+            c, corpus, freq_blocklist=set(c.get("_freq_blocklist") or []) or None
+        )
+        pc = prov["provenance_class"]
+        by_bucket[pc] = by_bucket.get(pc, 0) + 1
+
+        if pc not in _TEXTBOOK_SIGNABLE:
+            work_order.append({
+                "point_id": pid, "node_code": node, "provenance_class": pc,
+                "reason": prov["reason"], "external_residual": prov["external_residual"],
+                "promote_to_release": False,
+            })
+            continue
+
+        # Sign ONLY corpus-confirmed fields (must-fix #3). content_hash binds chunk -> corpus
+        # (must-fix #4). Non-authority fields (card_title/mnemonics/logic_chain/assessment) excluded.
+        # printed (textbook fact) vs derived (enrichment-computed result) split — a derived answer
+        # never enters the authoritative key_numbers / required_terms.
+        printed_nums, derived_nums = _split_printed_derived(prov["verified_key_numbers"], corpus)
+        rec = {
+            "point_id": pid,
+            "chunk_id": cid,
+            "node_code": node,
+            "card_type": str(c.get("card_type") or ""),
+            "provenance_class": pc,
+            "textbook_quote": prov["verbatim_quote"],
+            "key_numbers": printed_nums,                 # printed textbook values only (authoritative)
+            "derived_key_numbers": derived_nums,         # enrichment-computed; NOT a textbook fact
+            "has_derived_numbers": bool(derived_nums),
+            "required_terms": list(printed_nums),        # ONLY printed verbatim anchors
+            "taxonomy_path": str(c.get("taxonomy_path") or ""),
+            "content_hash": _sha256_hex(_norm_textbook(corpus)),
+            "answer_key_authority": "verbatim_2026_textbook_content_markdown",
+        }
+        sig = _sha256_hex(rec)
+        if pid in seen_point and seen_point[pid] != sig:
+            work_order.append({"point_id": pid, "reason": "conflict_same_point_different_content",
+                               "promote_to_release": False})
+            continue
+        seen_point[pid] = sig
+        signed.append(rec)
+
+    signed.sort(key=lambda x: x["point_id"])
+    content_hash = _sha256_hex(signed)
+    namespace = TEXTBOOK_KNOWLEDGE_NAMESPACE
+    manifest = {
+        "schema_version": SCHEMA_VERSION,
+        "namespace": namespace,
+        "lane": "textbook_knowledge",
+        "status": STATUS_RELEASE_CANDIDATE,
+        "published": False,
+        "signed_count": len(signed),
+        "work_order_count": len(work_order),
+        "dropped_count": len(dropped),
+        "by_bucket": by_bucket,
+        "content_hash": content_hash,
+        "signature": _sha256_hex([content_hash, namespace, STATUS_RELEASE_CANDIDATE]),
+        # invariants asserted by construction (the signer only signs corpus-confirmed fields):
+        "external_or_reviewonly_auto_signed": 0,
+        "key_number_not_in_text_signed": 0,
+        "assessment_keyword_as_required_term": 0,
+        "official_answer_as_source": 0,
+        "model_vote_as_source": 0,
+        "records_with_derived_numbers": sum(1 for r in signed if r.get("has_derived_numbers")),
+        "derived_numbers_total": sum(len(r.get("derived_key_numbers") or []) for r in signed),
+        "rollback_pointer": "legacy (no textbook_knowledge_full -> runtime uses existing context)",
+        "separate_namespace": True,
+    }
+    return {"manifest": manifest, "records": signed, "work_order": work_order, "dropped": dropped}
+
+
 def verify_lane_bundle(bundle: dict[str, Any], namespace: str) -> bool:
     """Fail-closed: recompute content_hash over records AND signature over (hash|namespace|status)."""
     manifest = bundle.get("manifest") or {}
@@ -432,4 +677,7 @@ __all__ = [
     "verify_lane_bundle",
     "fetch_full_objective_rows",
     "CASE_AUTHORITY_BUCKETS",
+    "TEXTBOOK_KNOWLEDGE_NAMESPACE",
+    "validate_textbook_provenance",
+    "compile_textbook_knowledge_release_candidate",
 ]

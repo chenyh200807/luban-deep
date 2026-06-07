@@ -17,7 +17,7 @@ def _canonical_benchmark_payload(
         "run_manifest": {
             "run_id": run_id,
             "requested_suites": requested_suites
-            or ["pr_gate_core", "regression_watch", "incident_replay"],
+            or ["pr_gate_core", "regression_watch", "real_exam_quality_spine"],
         },
         "release_spine": release,
         "case_results": case_results or [],
@@ -914,7 +914,7 @@ def test_release_gate_quality_mode_blocks_missing_required_benchmark_suites() ->
     p2 = next(item for item in payload["gate_results"] if item["gate"] == "P2 Benchmark Regression")
     assert p2["status"] == "FAIL"
     assert "benchmark_minimum_suite_missing" in payload["blockers"]
-    assert any("missing_required_suites=['regression_watch', 'incident_replay']" == item for item in p2["evidence"])
+    assert any("missing_required_suites=['regression_watch', 'real_exam_quality_spine']" == item for item in p2["evidence"])
 
 
 def test_release_gate_warns_when_real_feedback_path_has_no_samples() -> None:
@@ -1132,6 +1132,45 @@ def test_release_gate_requires_long_dialog_live_ws() -> None:
                     "status": "PASS",
                     "gate_eligible": True,
                     "case_tier": "regression_tier",
+                }
+            ],
+            summary={"pass_rate": 1.0},
+        ),
+        aae_payload=None,
+        oa_payload=None,
+    )
+
+    p2 = next(item for item in payload["gate_results"] if item["gate"] == "P2 Benchmark Regression")
+    assert p2["status"] == "FAIL"
+    assert "long_dialog_not_live_ws" in payload["blockers"]
+
+
+def test_release_gate_detects_canonical_incident_long_dialog_source_suite() -> None:
+    release = {
+        "release_id": "rel-1",
+        "git_sha": "abc",
+        "deployment_environment": "production",
+        "prompt_version": "p",
+        "ff_snapshot_hash": "ff",
+        "git_dirty": "false",
+        "deploy_manifest_hash": "manifest1",
+    }
+    payload = build_release_gate_report(
+        om_payload={
+            "release": release,
+            "health_summary": {"ready": True, "unified_ws_smoke_ok": True},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload=None,
+        benchmark_payload=_canonical_benchmark_payload(
+            release=release,
+            case_results=[
+                {
+                    "suite": "incident_replay",
+                    "source_suite": "long-dialog-focus",
+                    "case_id": "LD_001",
+                    "status": "PASS",
+                    "case_tier": "incident_replay",
                 }
             ],
             summary={"pass_rate": 1.0},

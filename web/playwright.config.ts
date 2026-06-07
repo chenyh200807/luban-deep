@@ -1,9 +1,10 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const WEB_SERVER_PORT = process.env.PW_WEB_PORT || "3000";
 const BASE_URL =
   process.env.WEB_BASE_URL ||
   process.env.NEXT_PUBLIC_API_BASE ||
-  "http://localhost:3000";
+  `http://127.0.0.1:${WEB_SERVER_PORT}`;
 const SHOULD_START_WEB_SERVER =
   process.env.PW_START_WEB_SERVER === "1" &&
   process.env.PW_SKIP_WEB_SERVER !== "1" &&
@@ -34,7 +35,7 @@ export default defineConfig({
   },
   webServer: SHOULD_START_WEB_SERVER
     ? {
-        command: `${BI_V2_SERVER_ENV ? `${BI_V2_SERVER_ENV} ` : ""}npm run dev`,
+        command: `${BI_V2_SERVER_ENV ? `${BI_V2_SERVER_ENV} ` : ""}PORT=${WEB_SERVER_PORT} npm run dev`,
         url: BASE_URL,
         reuseExistingServer: !process.env.CI,
         timeout: 120000,

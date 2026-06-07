@@ -1,0 +1,9 @@
+{
+  "namespace": "textbook_knowledge_full",
+  "status": "release_candidate",
+  "published": false,
+  "expected_content_hash": "01aba5a33736e5b4f17ad085ce7fefc1f0a946a268f9cbff4094b9452bf56fd0",
+  "signed_point_count": 1303,
+  "node_codes": 20,
+  "coverage": "full_650_blocks"
+}

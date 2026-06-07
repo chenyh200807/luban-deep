@@ -87,3 +87,22 @@ def test_namespace_mismatch_falls_through():
     bundle, pointer = _signed_bundle()
     ok, reason = R.verify_bundle(bundle, pointer, namespace="objective_answer_key_full")
     assert ok is False  # signature is over (hash|namespace|status); wrong namespace fails
+
+
+def test_relevance_rank_focuses_and_caps():
+    cards = [
+        {"point_id": "p1", "textbook_quote": "混凝土强度等级C30", "taxonomy_path": "结构 > 材料",
+         "required_terms": ["C30"], "key_numbers": ["30"]},
+        {"point_id": "p2", "textbook_quote": "填方压实分层厚度250mm", "taxonomy_path": "施工 > 土方",
+         "required_terms": ["250mm"], "key_numbers": ["250"]},
+        {"point_id": "p3", "textbook_quote": "桩基低应变法检测桩身缺陷", "taxonomy_path": "施工 > 桩基",
+         "required_terms": [], "key_numbers": []},
+    ]
+    top = R._relevance_rank(cards, "关于混凝土强度C30的问题", limit=1)
+    assert [c["point_id"] for c in top] == ["p1"]  # only the most relevant card
+    # zero-overlap query -> first-by-point_id, still capped (never the whole dump)
+    none = R._relevance_rank(cards, "完全无关的外星语", limit=2)
+    assert [c["point_id"] for c in none] == ["p1", "p2"]
+    # limit<=0 -> all, point_id-sorted
+    allc = R._relevance_rank(cards, "C30", limit=0)
+    assert [c["point_id"] for c in allc] == ["p1", "p2", "p3"]

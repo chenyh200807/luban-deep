@@ -2,7 +2,7 @@
 
 > **2026-06-06 relationship to master plan:** 本文件是 [2026-06-04-luban-grading-engine-master-control-plan.md](2026-06-04-luban-grading-engine-master-control-plan.md) §0.26 的 **Grading-to-Brain integration layer**，不是第三条平行主线。当前总目标固定为：鲁班评分引擎是“诊断仪”，Learning Brain/GBrain 是“长期主治医生”。本文件只定义 grading evidence 如何进入 learner evidence / claim lifecycle / PersonalizationContextPack / next action；它不得成为第二套评分 authority、第二套 RAG、第二套 learner memory，也不得把 shadow/candidate 证据升 canonical truth。
 >
-> Status: `Proposed v0.2`（2026-06-03 起草，2026-06-04 收口）。
+> Status: `Active integration authority / implementation partial`（2026-06-07 状态收口）。
 > 本方案回答一个具体问题：鲁班评分引擎产出的采分点级证据，如何进入 Learning Brain，形成长期、可审计、可压缩、可运维的个性化教学闭环。
 > 边界：不新增第二套 learner memory，不新增第二套 RAG，不新增 GBrain runtime，不把离线 shadow 结果直接宣称为生产门。
 > 术语说明：本文中的 `GradingEvidenceEventV1`、`LearnerClaim`、`PersonalizationContextPack` 是 **existing container 内的 JSON payload / projection contract**，不是新增数据库 schema、不是新表、不是新 runtime authority。
@@ -12,6 +12,58 @@
 > 🚦 **实施策略：按评分来源解耦（2026-06-04 eng review D2，采纳 codex 对抗审查）**：**不把整条 loop 绑死在 DeepSeek 案例题评分器过门之上**。改为按 `engine.gate_status` 分流：MCQ、assessment、人工确认案例题、既有 v1 production 事件**现在就走 production loop**（验证 pack/report/practice/retest/降级/证据点击链）；**case-study list_rule 保持 shadow**，等评分器从 WEAK-GO 升到 production（见 `2026-06-03-luban-deepseek-production-shadow-v0-plan.md` 与 consensus-gold protocol §14-§16）再扩大案例题自动写权。
 > 🧠 **模型分工修订（2026-06-04）**：DeepSeek gate **只约束 DeepSeek 单模型何时获得生产低成本自动写权**，不得阻塞当前打造期用 GPT5.5 + Opus4.8 + DeepSeek + Qwen3.7 四模型 Best-Quality jury 建设评分标准、证据链、teacher-review draft、GBrain pack/claim/next-action 与学员可解释体验。当前能力上限 = `Best-Quality 4-model jury`；未来生产成本线 = `DeepSeek production-cost grader`；Learning Brain 写权仍按 `engine.gate_status`、`artifact_status`、`teacher_final` 分流。
 > **Phase 0/0A 必须现在就建，不得延后**——它就是 shadow 隔离的安全网：统一 eligibility helper + write-time 隔离 + 全读路径过滤 + mixed-claim 语义 + 全读面不变量 golden（详见 §6.1-1）。codex 论点（已采纳）：越等越危险——若因评分器未过门而不建隔离层，系统就没有统一 gate helper、没有读侧过滤、没有 shadow fixture，一旦有人先接 shadow writeback，污染面巨大。先把安全网建好，再按来源放量。
+
+## 0.C 当前产品目标（2026-06-07）
+
+| 系统 | 核心问题 | 产物 |
+|---|---|---|
+| **鲁班评分引擎** | 学生这次作答答得怎么样？ | 采分点命中、得分、错因、`evidence_span`、`high_risk_review`、Learning Evidence draft |
+| **Learning Brain / GBrain** | 这个学生长期是什么状态？下一步怎么教？ | 学习画像、弱点演化、遗忘曲线、`LearnerClaim`、`PersonalizationContextPack`、下一题推荐、复习计划 |
+
+一句话：
+
+```text
+评分引擎是诊断仪，Learning Brain 是长期主治医生。
+```
+
+评分引擎每批一次作答，就产生一批高质量“学习证据”。Learning Brain 把这些证据沉淀成长期记忆、趋势判断和个性化动作。二者的关系必须保持如下分工：
+
+```text
+评分引擎 = 高质量学习证据生产器
+Learning Brain / GBrain = 长期个性化学习决策器
+RAG / 知识编译 = 教材、规范、真题证据供应器
+DeepSeek / Qwen = 在线批改与教学执行器
+```
+
+融合后的最小数据流：
+
+```text
+学生提交答案
+  -> 鲁班评分引擎
+  -> 采分点级评分结果 / 错因 / 知识点 / high_risk_review
+  -> learner_memory_events.learning_evidence
+  -> learning_synthesis / LearnerClaim
+  -> PersonalizationContextPack
+  -> NextBestAction
+  -> AI 老师辅导 / 学习报告 / 下一题推荐 / 复习计划
+  -> 复测 outcome
+  -> claim lifecycle 更新
+```
+
+必须避免三类错误：
+
+1. **让 Learning Brain 再做一次评分。** 评分 authority 仍是鲁班评分引擎；Learning Brain 只消费评分事实和复测事实。
+2. **再建一套 learner memory。** 长期学习事实仍走 `learner_memory_events.learning_evidence -> learning_synthesis -> learning_report_read_model`。
+3. **用 RAG 代替学生画像。** RAG 知道教材和证据；Learning Brain 知道这个学生；两者互补但不互相替代。
+
+当前最小落地对象固定为四个：
+
+| 对象 | 职责 | 当前 canonical 落点 |
+|---|---|---|
+| GradingEvent / Learning Evidence payload | 把每次批改结构化成学习证据 | `deeptutor/services/construction_grading/learning_evidence.py` |
+| LearnerClaim updater | 把多次 evidence 编译成学生画像 claim | `deeptutor/services/learner_state/learning_synthesis.py` |
+| PersonalizationContextPack | 给 AI 老师、报告、练习推荐的 bounded 学生画像摘要 | `deeptutor/services/learner_state/personalization_context.py` |
+| NextBestAction API / read model | 根据画像输出下一步学习动作 | `deeptutor/services/learner_state/next_best_action.py` |
 
 ## 0.0 单一主线 authority 与被吸收的 canonical 制品
 

@@ -14,8 +14,8 @@ from deeptutor.services.construction_grading.artifact_runtime_gate import (
     resolve_runtime_artifact_gate,
 )
 from deeptutor.services.construction_grading.best_quality_ai_draft import (
-    BestQualityUnavailable,
     CACHED_4MODEL,
+    BestQualityUnavailable,
     best_quality_draft,
     load_cached_4model_predictions,
 )
@@ -469,11 +469,51 @@ def _shadow_status_for_error(error: str) -> str:
     return "fail_closed"
 
 
+LUBAN_RUBRIC_V1_SHADOW_MODE = "luban_rubric_v1_shadow"
+
+
+def build_rubric_v1_shadow_result(
+    *,
+    question_id: str,
+    student_answer: str,
+    student_id: str,
+    node_code: str = "",
+    rubric_points: list[dict[str, Any]] | None = None,
+    judge_fn: Callable[..., dict[str, Any]] | None = None,
+    qa_shadow: bool = True,
+) -> dict[str, Any]:
+    """Non-authoritative v1 rubric grading shadow: load the compiled scored rubric (or use the passed
+    open-world rubric), LLM-adjudicate each scoring point, deterministically sum, and emit a
+    GradingEvent + learning_evidence projection. QA/test student ids only when qa_shadow. Never writes
+    DB / Learning Brain / official score (candidate evidence; teacher/governed gate promotes)."""
+    from deeptutor.services.construction_grading import rubric_grader_v1 as _G
+
+    if qa_shadow and not _is_safe_shadow_student_id(student_id):
+        return {"engine": "rubric_v1", "status": "fail_closed", "error": "qa_student_required",
+                "question_id": question_id, "shadow_result": None}
+    points = rubric_points if rubric_points is not None else _G.load_rubric(question_id)
+    if not points:
+        # open-world: no in-bank rubric and none supplied -> signal caller to extract on the fly
+        return {"engine": "rubric_v1", "status": "no_rubric_open_world", "question_id": question_id,
+                "shadow_result": None}
+    if judge_fn is None:
+        return {"engine": "rubric_v1", "status": "fail_closed", "error": "judge_unavailable",
+                "question_id": question_id, "shadow_result": None}
+    event = _G.grade_with_rubric(qid=question_id, student_answer=student_answer,
+                                 rubric_points=points, judge_fn=judge_fn, student_id=student_id)
+    evidence = _G.to_learning_evidence(event, node_code=node_code)
+    return {"engine": "rubric_v1", "status": "ok", "question_id": question_id,
+            "grading_event": event, "learning_evidence": evidence,
+            "official_score_allowed": False}
+
+
 __all__ = [
     "LEGACY_MODE",
     "LUBAN_AI_DRAFT_SHADOW_MODE",
     "LUBAN_BEST_QUALITY_SHADOW_MODE",
+    "LUBAN_RUBRIC_V1_SHADOW_MODE",
     "RuntimeShadowUnavailable",
     "attach_runtime_shadow_result",
     "build_runtime_shadow_result",
+    "build_rubric_v1_shadow_result",
 ]
