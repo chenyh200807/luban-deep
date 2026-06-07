@@ -55,8 +55,55 @@ def test_learning_evidence_projection_lists_missed_points():
     assert le["event_type"] == "learning_evidence"
     weak_ids = {w["concept_label"] for w in le["weak_points"]}
     assert "数控钢筋调直切断机" in weak_ids and "判断不妥并改正" in weak_ids  # the 2 missed
-    assert all(w["concept_id"] == "1A413040" for w in le["weak_points"])
+    # concept_id is canonical-taxonomy authority — a question-level node_code is NOT a per-point
+    # concept, so it is NEVER stamped as concept_id (fail-safe against profile pollution).
+    assert all(w["concept_id"] is None for w in le["weak_points"])
+    assert all(w["concept_provenance"] == "question_level_node_code" for w in le["weak_points"])
     assert le["writeback_performed"] is False
+
+
+def test_normalize_points_to_nominal_scales_to_max_score():
+    # 3 open-world points raw_total=6.0, nominal (V0 max_score)=2.0 -> sum scaled to 2.0
+    pts = [{"point_id": "P1", "text": "a", "score": 3.0, "policy": "list", "required_terms": []},
+           {"point_id": "P2", "text": "b", "score": 2.0, "policy": "list", "required_terms": []},
+           {"point_id": "P3", "text": "c", "score": 1.0, "policy": "list", "required_terms": []}]
+    scaled = G.normalize_points_to_nominal(pts, nominal_total=2.0)
+    assert round(sum(p["score"] for p in scaled), 2) == 2.0
+    # relative weights preserved (P1 largest)
+    assert scaled[0]["score"] > scaled[1]["score"] > scaled[2]["score"]
+    # original not mutated (immutability)
+    assert pts[0]["score"] == 3.0
+
+
+def test_normalize_points_fallback_base_when_no_nominal():
+    pts = [{"point_id": "P1", "text": "a", "score": 1.0, "policy": "list", "required_terms": []},
+           {"point_id": "P2", "text": "b", "score": 1.0, "policy": "list", "required_terms": []}]
+    scaled = G.normalize_points_to_nominal(pts, nominal_total=0)  # no nominal -> base 10
+    assert round(sum(p["score"] for p in scaled), 2) == 10.0
+
+
+def test_normalize_then_grade_max_matches_nominal():
+    pts = [{"point_id": "P1", "text": "a", "score": 5.0, "policy": "list", "required_terms": []},
+           {"point_id": "P2", "text": "b", "score": 5.0, "policy": "list", "required_terms": []}]
+    scaled = G.normalize_points_to_nominal(pts, nominal_total=4.0)
+    ev = G.grade_with_rubric(qid="Q1", student_answer="x", rubric_points=scaled,
+                             judge_fn=lambda p, a: {"status": G.HIT})
+    assert ev["max_score"] == 4.0 and ev["awarded_score"] == 4.0   # comparable to in-bank scale
+
+
+def test_derive_outcome_from_event():
+    # partial -> not correct, percentage, PARTIAL
+    o = G.derive_outcome_from_event({"awarded_score": 1.0, "max_score": 2.0})
+    assert o["is_correct"] is False and o["score"] == 50 and o["diagnosis"] == "PARTIAL"
+    # full -> correct
+    o2 = G.derive_outcome_from_event({"awarded_score": 2.0, "max_score": 2.0})
+    assert o2["is_correct"] is True and o2["score"] == 100 and o2["diagnosis"] == "CORRECT"
+    # zero -> miss vocabulary
+    o3 = G.derive_outcome_from_event({"awarded_score": 0.0, "max_score": 2.0})
+    assert o3["is_correct"] is False and o3["score"] == 0 and o3["diagnosis"] == "采分点遗漏"
+    # max 0 -> safe
+    o4 = G.derive_outcome_from_event({"awarded_score": 0.0, "max_score": 0.0})
+    assert o4["is_correct"] is False and o4["score"] == 0
 
 
 def test_render_case_rubric_feedback_same_source_and_reasons():

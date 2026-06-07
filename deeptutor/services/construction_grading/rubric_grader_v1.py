@@ -17,8 +17,11 @@ This module is the DETERMINISTIC spine + event shaping; the per-point hit judgme
 """
 from __future__ import annotations
 
+import logging
 from collections.abc import Callable
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 # a judge returns one of these per scoring point
 HIT = "hit"
@@ -117,8 +120,13 @@ def to_learning_evidence(event: dict[str, Any], *, node_code: str = "") -> dict[
     weak_points = []
     for sp in event.get("scoring_points") or []:
         if sp.get("hit") != HIT:
+            # concept_id is canonical-taxonomy authority. A question-level node_code does NOT identify a
+            # per-point concept, and on-the-fly P1..Pn are NOT canonical at all — stamping either as
+            # concept_id would poison the learner profile if ever persisted. Emit null + explicit
+            # provenance so any future writer can refuse non-canonical evidence (fail-safe).
             weak_points.append({
-                "concept_id": node_code or sp.get("point_id"),
+                "concept_id": None,
+                "concept_provenance": "question_level_node_code" if node_code else "open_world",
                 "concept_label": sp.get("knowledge_point"),
                 "error_code": sp.get("mistake_type") or MISTAKE_MISS,
                 "evidence_span": sp.get("evidence_span"),
@@ -255,7 +263,7 @@ def _parse_batch_verdicts(raw: Any) -> dict[str, dict[str, Any]]:
             if isinstance(v, dict) and v.get("point_id"):
                 out[str(v["point_id"])] = v
     except Exception:  # noqa: BLE001 — malformed -> empty -> all miss+low_conf (high-risk fallback)
-        pass
+        logger.info("rubric_grader_v1: batch verdict JSON malformed; degrading to all-miss", exc_info=True)
     return out
 
 
@@ -276,6 +284,7 @@ def batch_judge(
         raw = asyncio.run(complete_fn(prompt=prompt, system_prompt=_BATCH_SYSTEM_PROMPT,
                                       model=model, api_key=api_key, max_retries=1))
     except Exception:  # noqa: BLE001 — batch failure -> all miss+low_conf (high-risk fallback)
+        logger.warning("rubric_grader_v1: batch_judge LLM call failed; degrading to all-miss", exc_info=True)
         return {}
     return _parse_batch_verdicts(raw)
 
@@ -291,6 +300,8 @@ async def batch_judge_async(
         raw = await complete_fn(prompt=prompt, system_prompt=_BATCH_SYSTEM_PROMPT,
                                 model=model, api_key=api_key, max_retries=1)
     except Exception:  # noqa: BLE001 — batch failure -> all miss+low_conf (high-risk fallback)
+        logger.warning("rubric_grader_v1: batch_judge_async LLM call failed; degrading to all-miss",
+                       exc_info=True)
         return {}
     return _parse_batch_verdicts(raw)
 
@@ -332,7 +343,8 @@ def _parse_extracted_points(raw: Any) -> list[dict[str, Any]]:
     try:
         s = str(raw)
         arr = _json.loads(s[s.find("["):s.rfind("]") + 1])
-    except Exception:  # noqa: BLE001
+    except Exception:  # noqa: BLE001 — malformed extract JSON -> [] (caller falls back to legacy)
+        logger.info("rubric_grader_v1: extracted-rubric JSON malformed; open-world falls back", exc_info=True)
         return []
     points: list[dict[str, Any]] = []
     for i, v in enumerate(arr, 1):
@@ -371,8 +383,48 @@ async def extract_rubric_from_reference_async(
         raw = await complete_fn(prompt=prompt, system_prompt=_EXTRACT_SYSTEM_PROMPT,
                                 model=model, api_key=api_key, max_retries=1)
     except Exception:  # noqa: BLE001 — extraction failure -> [] (caller falls back to legacy)
+        logger.warning("rubric_grader_v1: open-world rubric extraction LLM call failed", exc_info=True)
         return []
     return _parse_extracted_points(raw)
+
+
+def normalize_points_to_nominal(
+    points: list[dict[str, Any]], *, nominal_total: float = 0.0, fallback_base: float = 10.0,
+) -> list[dict[str, Any]]:
+    """Scale ON-THE-FLY extracted scoring points so sum(score) matches the question's nominal full score
+    (the V0 ``construction_grading_result.max_score``) — making open-world V1 awarded/max comparable to
+    the in-bank scale (LLM-assigned raw weights drift, e.g. 6 points -> max 6.0 vs in-bank 2.0).
+
+    Pure + immutable: returns NEW point dicts, never mutates input, never touches grade_with_rubric's
+    deterministic sum (only the per-point weights are linearly rescaled, relative weights preserved).
+    COMPILED (governed) rubric points carry real signed scores and MUST NOT be passed here."""
+    if not points:
+        return []
+    raw_total = round(sum(float(p.get("score") or 0) for p in points), 2)
+    if raw_total <= 0:
+        return [dict(p) for p in points]
+    target = float(nominal_total) if nominal_total and nominal_total > 0 else float(fallback_base)
+    factor = target / raw_total
+    scaled = [dict(p, score=round(float(p.get("score") or 0) * factor, 2)) for p in points]
+    # repair rounding drift onto the largest point so sum == target exactly (deterministic)
+    drift = round(target - sum(p["score"] for p in scaled), 2)
+    if drift and scaled:
+        k = max(range(len(scaled)), key=lambda i: scaled[i]["score"])
+        scaled[k] = dict(scaled[k], score=round(scaled[k]["score"] + drift, 2))
+    return scaled
+
+
+def derive_outcome_from_event(event: dict[str, Any]) -> dict[str, Any]:
+    """Single-source outcome (is_correct / score / diagnosis) derived from the SAME GradingEvent that
+    rendered the student-facing answer — so recorded state can never disagree with what the student read.
+    ``score`` = percentage (V0 scale, feeds projection/observability), ``is_correct`` = full-score
+    (V0 ``_result_is_full_score`` semantics), ``diagnosis`` = V0 case vocabulary. Pure."""
+    awarded = float(event.get("awarded_score") or 0)
+    maximum = float(event.get("max_score") or 0)
+    is_correct = maximum > 0 and awarded >= maximum
+    pct = int(round(awarded / maximum * 100)) if maximum > 0 else 0
+    diagnosis = "CORRECT" if is_correct else ("PARTIAL" if awarded > 0 else "采分点遗漏")
+    return {"is_correct": is_correct, "score": pct, "diagnosis": diagnosis}
 
 
 def make_batch_judge(complete_fn: Callable[..., Any], api_key: str, *, model: str = "deepseek-chat") -> JudgeFn:
@@ -439,6 +491,8 @@ def make_llm_judge(complete_fn: Callable[..., Any], api_key: str, *, model: str 
             v = _json.loads(str(raw)[str(raw).find("{"):str(raw).rfind("}") + 1])
             return v if isinstance(v, dict) else {"status": MISS, "low_confidence": True}
         except Exception:  # noqa: BLE001 — judge failure -> miss + low_confidence (high-risk fallback)
+            logger.warning("rubric_grader_v1: make_llm_judge per-point call failed; miss+low_conf",
+                           exc_info=True)
             return {"status": MISS, "low_confidence": True}
 
     return judge
@@ -446,6 +500,7 @@ def make_llm_judge(complete_fn: Callable[..., Any], api_key: str, *, model: str 
 
 __all__ = ["grade_with_rubric", "grade_with_batch_judge", "grade_with_batch_judge_async",
            "batch_judge", "batch_judge_async", "make_batch_judge",
-           "extract_rubric_from_reference_async",
+           "extract_rubric_from_reference_async", "normalize_points_to_nominal",
+           "derive_outcome_from_event",
            "to_learning_evidence", "render_case_rubric_feedback", "load_rubric", "make_llm_judge",
            "HIT", "PARTIAL", "MISS", "MISTAKE_MISS", "MISTAKE_NEAR_SYNONYM", "MISTAKE_PARTIAL_LIST"]

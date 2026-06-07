@@ -9,9 +9,12 @@ Wraps the existing ``AgentCoordinator``.
 from __future__ import annotations
 
 import base64
+import logging
 import re
 import tempfile
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 from deeptutor.capabilities.request_contracts import get_capability_request_schema
 from deeptutor.core.capability_protocol import BaseCapability, CapabilityManifest
@@ -1810,6 +1813,10 @@ async def _grade_case_rubric_v1(
             stem = str(graded_context.get("question_stem") or graded_context.get("stem")
                        or graded_context.get("question") or "")
             points = await _G.extract_rubric_from_reference_async(reference, stem, complete, key)
+            # Normalize on-the-fly weights to the question's nominal full score (V0 max_score) so
+            # open-world awarded/max is comparable to the in-bank scale; compiled rubric is untouched.
+            points = _G.normalize_points_to_nominal(
+                points, nominal_total=float((cg or {}).get("max_score") or 0))
             provenance = "on_the_fly_reference"
         if not points:
             return {"status": "unavailable", "reason": "no_scoring_points"}
@@ -1819,7 +1826,8 @@ async def _grade_case_rubric_v1(
             complete_fn=complete, api_key=key, student_id=student_id)
         event["rubric_provenance"] = provenance
         return event
-    except Exception as exc:  # noqa: BLE001 — v1 must never break legacy
+    except Exception as exc:  # noqa: BLE001 — v1 must never break legacy (fail-closed)
+        logger.warning("case_rubric_v1 grading failed; legacy answer unaffected", exc_info=True)
         return {"status": "unavailable", "reason": type(exc).__name__}
 
 
@@ -3389,6 +3397,17 @@ class DeepQuestionCapability(BaseCapability):
                 v1_render = render_case_rubric_feedback(v1_event, question_stem=_stem)
             if v1_render is not None:
                 answer = v1_render
+                # SAME-SOURCE: when V1 renders the student answer, is_correct/score/diagnosis must come
+                # from the SAME event (not V0), so recorded state (recent_outcomes / projection /
+                # observability) can never disagree with what the student read.
+                from deeptutor.services.construction_grading.rubric_grader_v1 import (
+                    derive_outcome_from_event,
+                )
+
+                _v1_outcome = derive_outcome_from_event(v1_event)
+                graded_context["is_correct"] = _v1_outcome["is_correct"]
+                graded_context["score"] = _v1_outcome["score"]
+                graded_context["diagnosis"] = _v1_outcome["diagnosis"]
             elif _should_use_deterministic_grading_feedback(
                 selected_mode=selected_mode,
                 question_context=graded_context,

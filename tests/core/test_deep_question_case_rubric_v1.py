@@ -163,6 +163,9 @@ async def test_case_rubric_v1_grades_for_qa_flag(monkeypatch: pytest.MonkeyPatch
     resp = result["response"]
     assert "逐采分点点评" in resp and "【得分】2.0 / 3.0 分" in resp
     assert resp != "得分：1分（满分3分）。"                        # V1 took over the answer
+    # SAME-SOURCE outcome: is_correct derived from the V1 event (2/3 partial -> not full -> not correct),
+    # so recent_outcomes / projection record what the student actually read.
+    assert result["is_correct"] is False
 
 
 @pytest.mark.asyncio
@@ -198,9 +201,12 @@ async def test_case_rubric_v1_open_world_extracts_and_grades(monkeypatch: pytest
 
     result = await _run_case(monkeypatch, _case_context(rubric_v1=True))
     v1 = result["luban_case_rubric_v1"]
+    ev = v1["grading_event"]
     assert v1["status"] == "ok"                                          # open world STILL grades
-    assert v1["grading_event"]["rubric_provenance"] == "on_the_fly_reference"
-    assert v1["grading_event"]["awarded_score"] == 1.0                   # P1 hit, P2 miss
+    assert ev["rubric_provenance"] == "on_the_fly_reference"
+    # P1 hit, P2 miss; equal-weight points -> hit earns exactly half the (normalized) max, regardless
+    # of the nominal scale the open-world weights were normalized to.
+    assert ev["max_score"] > 0 and abs(ev["awarded_score"] - ev["max_score"] / 2) < 0.01
     assert "共用一个开关箱" in captured_ref["reference"]                  # extracted from THIS question's ref
     assert "逐采分点点评" in result["response"]                          # student sees V1, not V0
 
