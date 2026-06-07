@@ -546,8 +546,8 @@ function stringify(value) {
     assert(loaded.page.data.stage === "result", "successful submit should still land on result stage");
     assert(loaded.page.data.resultScore === 12, "fallback result should preserve server score");
     assert(
-      loaded.page.data.planStrategy.indexOf("已成功提交") >= 0,
-      "fallback result should explain success with simplified display",
+      loaded.page.data.planStrategy.indexOf("先补最薄弱知识点") >= 0,
+      "irregular priority_chapters should not prevent rendering backend action plan strategy",
     );
   });
 

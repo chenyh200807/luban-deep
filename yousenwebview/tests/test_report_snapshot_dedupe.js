@@ -32,6 +32,15 @@ function flushPromises() {
   });
 }
 
+function createDeferred() {
+  var deferred = {};
+  deferred.promise = new Promise(function (resolve, reject) {
+    deferred.resolve = resolve;
+    deferred.reject = reject;
+  });
+  return deferred;
+}
+
 function loadReportPage(stubs) {
   var source = fs.readFileSync(
     path.join(__dirname, "../packageDeeptutor/pages/report/report.js"),
@@ -1393,6 +1402,160 @@ function createPageInstance(pageDef) {
       );
     },
   );
+
+  await run("cached unified report renders before fresh network response", async function () {
+    var freshDeferred = createDeferred();
+    var counters = { report: 0, today: 0, home: 0, assessment: 0, mastery: 0, brain: 0 };
+    var cachedSnapshot = {
+      report: {
+        schema_version: 2,
+        overview: {
+          today_done: 2,
+          daily_target: 6,
+          streak_days: 1,
+          focus_hint: "缓存学情先显示",
+          learner_level: "beginner",
+        },
+        mastery: { overall_mastery: 20, groups: [], hotspots: [], review_summary: {} },
+        radar_dimensions: [{ name: "建筑物的构成与设计要求", value: 0.2 }],
+        learning_brain: {},
+        learner_facing: {},
+      },
+      degraded: false,
+      degradedSources: [],
+      home: { today: { hint: "缓存学情先显示" }, today_focus: { title: "缓存学情先显示" } },
+      assessment: { level: "beginner", chapter_mastery: {} },
+      mastery: { overall_mastery: 20, groups: [], hotspots: [], review_summary: {} },
+      learningBrain: {},
+      learnerFacing: {},
+    };
+    var pageDef = loadReportPage({
+      storageSeed: {
+        "deeptutor.report.unifiedSnapshot.v1": {
+          cachedAt: Date.now(),
+          snapshot: cachedSnapshot,
+        },
+      },
+      api: {
+        unwrapResponse: function (raw) {
+          return raw;
+        },
+        getLearningReport: function () {
+          counters.report += 1;
+          return freshDeferred.promise;
+        },
+        getTodayProgress: function () {
+          counters.today += 1;
+          return Promise.resolve({});
+        },
+        getHomeDashboard: function () {
+          counters.home += 1;
+          return Promise.resolve({});
+        },
+        getAssessmentProfile: function () {
+          counters.assessment += 1;
+          return Promise.resolve({});
+        },
+        getMasteryDashboard: function () {
+          counters.mastery += 1;
+          return Promise.resolve({});
+        },
+        getLearningBrainProjection: function () {
+          counters.brain += 1;
+          return Promise.resolve({});
+        },
+      },
+      auth: {},
+      helpers: {
+        getWindowInfo: function () {
+          return { statusBarHeight: 20, pixelRatio: 2 };
+        },
+        isDark: function () {
+          return false;
+        },
+        syncTabBar: function () {},
+      },
+      runtime: {
+        getWorkspaceBack: function () {
+          return null;
+        },
+        checkAuth: function (cb) {
+          cb();
+        },
+      },
+      route: {
+        report: function () {
+          return "/packageDeeptutor/pages/report/report";
+        },
+        chat: function () {
+          return "/packageDeeptutor/pages/chat/chat";
+        },
+      },
+      flags: {
+        ensureFeatureEnabled: function () {
+          return true;
+        },
+        isFeatureEnabled: function () {
+          return true;
+        },
+        shouldShowWorkspaceShell: function () {
+          return true;
+        },
+      },
+    });
+    var page = createPageInstance(pageDef);
+    var loadPromise = page._loadReportPage();
+    await flushPromises();
+
+    assert(counters.report === 1, "SWR should still start one fresh unified report read");
+    assert(
+      page.data.focusHint === "缓存学情先显示" &&
+        page.data.degradedHint.indexOf("上次学情快照") >= 0,
+      "cached unified report should render immediately while fresh read is pending",
+    );
+    assert(
+      counters.today === 0 &&
+        counters.home === 0 &&
+        counters.assessment === 0 &&
+        counters.mastery === 0 &&
+        counters.brain === 0,
+      "cached report SWR must not revive legacy report readers",
+    );
+
+    freshDeferred.resolve({
+      ok: true,
+      schema_version: 2,
+      authority: {
+        read_model: "learning-report-read-model",
+        progress_source: "learner_memory_events.learning_evidence",
+        learning_brain_source: "dry_run_learning_evidence",
+        deprecated_page_sources: [],
+      },
+      freshness: {
+        event_count: 3,
+        unknown_date_count: 0,
+        window_truncated: false,
+      },
+      overview: {
+        today_done: 5,
+        daily_target: 8,
+        streak_days: 2,
+        focus_hint: "新鲜学情覆盖缓存",
+        learner_level: "intermediate",
+      },
+      mastery: { overall_mastery: 55, groups: [], hotspots: [], review_summary: {} },
+      radar_dimensions: [{ name: "屋面与防水工程施工", value: 0.55 }],
+      learning_brain: {},
+      learner_facing: {},
+    });
+    await loadPromise;
+
+    assert(
+      page.data.focusHint === "新鲜学情覆盖缓存" &&
+        page.data.degradedHint === "",
+      "fresh unified report should replace stale cached report after it returns",
+    );
+  });
 
   if (fail) {
     console.error(errors.join("\n"));

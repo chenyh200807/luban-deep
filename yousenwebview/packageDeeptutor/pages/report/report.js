@@ -9,6 +9,8 @@ const reportViewModel = require("../../utils/learning-report-view-model");
 const taxonomy = require("../../utils/taxonomy");
 
 const REPORT_UNIFIED_READ_TIMEOUT_MS = 8000;
+const REPORT_SNAPSHOT_CACHE_KEY = "deeptutor.report.unifiedSnapshot.v1";
+const REPORT_SNAPSHOT_CACHE_MAX_AGE_MS = 30 * 60 * 1000;
 const REPORT_MODULE_HINT_STORAGE_KEY = "deeptutor.report.moduleHint.v1";
 const ASSESSMENT_PENDING_TRAINING_ACTION_KEY = "deeptutor.report.pendingTrainingAction";
 const RADAR_SELF_SUBJECT = "self";
@@ -1176,6 +1178,31 @@ function _reportOptionalRead(promise, timeoutMs) {
   });
 }
 
+function _readCachedReportSnapshot() {
+  try {
+    if (typeof wx === "undefined" || typeof wx.getStorageSync !== "function") return null;
+    var cached = wx.getStorageSync(REPORT_SNAPSHOT_CACHE_KEY);
+    if (!cached || typeof cached !== "object") return null;
+    if (!cached.snapshot || typeof cached.snapshot !== "object") return null;
+    var cachedAt = Number(cached.cachedAt) || 0;
+    if (!cachedAt || Date.now() - cachedAt > REPORT_SNAPSHOT_CACHE_MAX_AGE_MS) return null;
+    return cached.snapshot;
+  } catch (_) {
+    return null;
+  }
+}
+
+function _writeCachedReportSnapshot(snapshot) {
+  if (!snapshot || typeof snapshot !== "object") return;
+  try {
+    if (typeof wx === "undefined" || typeof wx.setStorageSync !== "function") return;
+    wx.setStorageSync(REPORT_SNAPSHOT_CACHE_KEY, {
+      cachedAt: Date.now(),
+      snapshot: snapshot,
+    });
+  } catch (_) {}
+}
+
 Page({
   data: {
     statusBarHeight: 0,
@@ -1423,10 +1450,31 @@ Page({
   },
 
   async _loadReportPage() {
+    var cachedSnapshot = _readCachedReportSnapshot();
+    if (cachedSnapshot) {
+      this._reportSnapshot = cachedSnapshot;
+      this._hydrateFromUnifiedReport(cachedSnapshot, { cached: true });
+      this._syncExperienceSections();
+    }
     var snapshot = await this._loadReportSnapshot();
     if (snapshot) {
       this._reportSnapshot = snapshot;
+      _writeCachedReportSnapshot(snapshot);
       this._hydrateFromUnifiedReport(snapshot);
+      this._syncExperienceSections();
+      return;
+    }
+    if (cachedSnapshot) {
+      this.setData({
+        radarLoading: false,
+        masteryLoading: false,
+        learningBrainLoading: false,
+        degradedHint: this.data.degradedHint || "网络暂时不稳，已显示上次学情快照",
+        degradedSources: this.data.degradedSources && this.data.degradedSources.length
+          ? this.data.degradedSources
+          : ["learning_report"],
+        reportFallbackActive: false,
+      });
       this._syncExperienceSections();
       return;
     }
@@ -1446,7 +1494,8 @@ Page({
     this._syncExperienceSections();
   },
 
-  _hydrateFromUnifiedReport(snapshot) {
+  _hydrateFromUnifiedReport(snapshot, options) {
+    var opts = options || {};
     var report = (snapshot && snapshot.report) || {};
     var overview = report.overview || {};
     var home = (snapshot && snapshot.home) || {};
@@ -1473,12 +1522,16 @@ Page({
       masteryError: false,
       learningBrainLoading: false,
       learningBrainError: false,
-      degradedHint: snapshot.degraded
-        ? _buildDegradedHint(snapshot.degradedSources)
-        : "",
-      degradedSources: snapshot.degraded
-        ? snapshot.degradedSources.slice()
-        : [],
+      degradedHint: opts.cached
+        ? "正在刷新，先显示上次学情快照"
+        : snapshot.degraded
+          ? _buildDegradedHint(snapshot.degradedSources)
+          : "",
+      degradedSources: opts.cached
+        ? ["learning_report"]
+        : snapshot.degraded
+          ? snapshot.degradedSources.slice()
+          : [],
       prescriptionAuthority: sharedPageData.prescriptionAuthority || "",
       prescriptionEvidenceLabels: sharedPageData.prescriptionEvidenceRefs || [],
       reportFallbackActive: false,
@@ -2225,9 +2278,6 @@ Page({
       await api.saveMistakeBookItem(_mistakeBookPayloadFromCard(card));
       if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
         wx.showToast({ title: "已收藏到云端错题集", icon: "success", duration: 1600 });
-      }
-      if (typeof this._loadReportPage === "function") {
-        this._loadReportPage();
       }
     } catch (_err) {
       if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
