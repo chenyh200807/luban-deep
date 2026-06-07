@@ -1545,7 +1545,6 @@ function toReportPageData(model) {
     prescriptionEvidenceCount: asNumber(asObject(vm.prescription).evidenceCount, 0),
     prescriptionEvidenceRefs: asList(asObject(vm.prescription).evidenceRefs),
     prescriptionAuthority: String(asObject(vm.prescription).authority || ""),
-    sharedLearningReportViewModel: vm,
   };
 }
 
