@@ -274,11 +274,19 @@ def apply_adjudications(registry: dict[str, Any], decisions: list[dict[str, Any]
                         concepts[winner]["lineage"]["merged_from"].append(cid)
                     migration_edges.append({"from": cid, "to": winner, "action": ADJ_MERGE,
                                             "reviewer": reviewer, "reason": reason})
-        elif action in (ADJ_SPLIT, ADJ_DEPRECATED):
+        elif action == ADJ_SPLIT:
             for cid in ids:
                 concepts[cid]["lineage"]["adjudication_status"] = action
                 concepts[cid]["lineage"]["reviewer"] = reviewer
                 concepts[cid]["lineage"]["reason"] = reason
+        elif action == ADJ_DEPRECATED:
+            # dual-model-consensus fabricated/ungrounded concept -> drop from the active set (lifecycle
+            # deprecated), but keep the record for audit. Removed from retrieval/compilation surface.
+            for cid in ids:
+                concepts[cid]["lineage"]["adjudication_status"] = action
+                concepts[cid]["lineage"]["reviewer"] = reviewer
+                concepts[cid]["lineage"]["reason"] = reason
+                concepts[cid]["lifecycle"]["status"] = "deprecated"
     # recompute capability gates (LLM adjudication opens retrieval/compilation, NOT learner_state)
     unresolved = sum(1 for c in concepts.values()
                      if c["lineage"]["adjudication_status"] == ADJ_PENDING)

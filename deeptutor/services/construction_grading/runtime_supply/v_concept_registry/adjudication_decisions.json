@@ -328,5 +328,173 @@
   "canonical_concept_id": "c_f730d84d5466c280",
   "reviewer": "codex-gpt5.5-council",
   "reason": "绿色技术重复"
+ },
+ {
+  "concept_ids": [
+   "c_00fa14988dab1595"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_07a71358e3634569"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_13b6d5a44d79bdd7"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_2d13149770e33bbd"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_2f5c0a89165a7b9e"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_340b8663f792c5dd"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_5921a4e6a6e781cb"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_5e53f6d37075013e"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_5f1edd2257874c2a"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_6da4ad4a39bcd1a5"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_9cc40faca4f188e3"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_ac841b38d1ccd10d"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_d0a6400050059026"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_d551d85f8b5d6bdf"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_df09cfb3b76972a0"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_f2e237e2e43f3bc6"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_f49f6a68d2ddfa3e"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_f879b9bd1d4cb207"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_fa86025f13e06037"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_fc48d53b8b7928f1"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_fe4af741b5a072d5"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-council",
+  "reason": "双模型一致判定源中无据/泛化虚构"
  }
 ]
