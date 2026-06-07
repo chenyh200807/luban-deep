@@ -1,9 +1,10 @@
-"""Capability-layer rubric-v1 case grading (`_maybe_attach_case_rubric_v1`).
+"""Capability-layer rubric-v1 case grading (`_grade_case_rubric_v1` + same-source render).
 
 Hermetic: ``load_rubric`` + ``batch_judge_async`` are stubbed (no LLM, no DB). Proves the flag defaults
-OFF (legacy payload byte-identical), the qa_/test_ cohort gate, the append-only contract (legacy
-``construction_grading_result`` never mutated, official_score_allowed stays False), and open-world
-(no compiled rubric) signalling. Reuses the runtime-shadow test harness shape.
+OFF (legacy answer + payload byte-identical), the qa_/test_ cohort gate, the append-only contract (legacy
+``construction_grading_result`` never mutated, official_score_allowed stays False), open-world (no
+compiled rubric) signalling, AND that when V1 is on the student-facing ``response`` is rendered from the
+very GradingEvent that produced the score (same source). Reuses the runtime-shadow test harness shape.
 """
 from __future__ import annotations
 
@@ -130,6 +131,8 @@ async def test_case_rubric_v1_absent_without_flag(monkeypatch: pytest.MonkeyPatc
     result = await _run_case(monkeypatch, _case_context(rubric_v1=False))
     assert result["construction_grading_result"]["authority"] == "construction_grading"
     assert "luban_case_rubric_v1" not in result
+    # legacy answer path (the fake SubmissionGraderAgent) — V1 did NOT take over the response
+    assert result["response"] == "得分：1分（满分3分）。"
 
 
 @pytest.mark.asyncio
@@ -155,6 +158,10 @@ async def test_case_rubric_v1_grades_for_qa_flag(monkeypatch: pytest.MonkeyPatch
     weak = {w["concept_label"] for w in v1["learning_evidence"]["weak_points"]}
     assert "应编制临时用电方案" in weak                            # the missed point -> weak point
     assert v1["learning_evidence"]["writeback_performed"] is False
+    # SAME-SOURCE: the student-facing response is rendered from this very event (not the V0 agent)
+    resp = result["response"]
+    assert "逐采分点点评" in resp and "【得分】2.0 / 3.0 分" in resp
+    assert resp != "得分：1分（满分3分）。"                        # V1 took over the answer
 
 
 @pytest.mark.asyncio

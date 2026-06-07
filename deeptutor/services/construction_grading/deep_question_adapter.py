@@ -111,10 +111,10 @@ def build_deep_question_grading_result(
         _stamp_compiled_context_and_authority(
             result, row, retrieval_sources=_evidence_rows_from_context(row)
         )
-        # NOTE: rubric-v1 LLM-adjudicated grading is attached in the CAPABILITY layer
-        # (deep_question._maybe_attach_case_rubric_v1) where the learner identity is reachable —
-        # NOT here (this adapter only has the question-face row, no student identity). Wrong-layer
-        # attachment removed (root-cause fix, not a patch).
+        # NOTE: rubric-v1 LLM-adjudicated grading runs in the CAPABILITY layer
+        # (deep_question._grade_case_rubric_v1) where the learner identity is reachable — NOT here
+        # (this adapter only has the question-face row, no student identity). Wrong-layer attachment
+        # removed (root-cause fix, not a patch).
         return result
     return None
 
