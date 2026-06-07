@@ -1,16 +1,7 @@
 /* eslint-disable i18n/no-literal-ui-text */
 'use client'
 
-import {
-  Download,
-  Eye,
-  History,
-  Lock,
-  RefreshCw,
-  Rocket,
-  ShieldAlert,
-  ShieldCheck,
-} from 'lucide-react'
+import { Download, Eye, RefreshCw } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   BiDataTable,
@@ -31,15 +22,6 @@ import {
 } from './data'
 import { OpsCockpit } from '@/components/bi-cockpit/OpsCockpit'
 import { useAuditedAction } from '../useAuditedAction'
-
-const OPS_ICON: Record<string, typeof ShieldCheck> = {
-  'cost-quality': ShieldAlert,
-  'data-trust': ShieldCheck,
-  'audit-actions': History,
-  'audit-perm': Lock,
-  'audit-export': Download,
-  release: Rocket,
-}
 
 const STATUS_TONE: Record<SystemOpsTile['status'], 'emerald' | 'amber' | 'rose'> = {
   ok: 'emerald',

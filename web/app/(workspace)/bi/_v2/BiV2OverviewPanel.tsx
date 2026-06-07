@@ -2,17 +2,12 @@
 'use client'
 
 import {
-  ArrowDownRight,
   ArrowRight,
-  ArrowUpRight,
   CircleDollarSign,
   ClipboardCheck,
-  LineChart,
-  Minus,
   Radar,
   RefreshCw,
   ShieldAlert,
-  Target,
   Users,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -21,10 +16,8 @@ import {
   BiButton,
   BiSidePanel,
   BiStatusPill,
-  BiMoneyCell,
   BiNotice,
   BiV2DataSourceBanner,
-  BI_TRUST_TONE,
   BI_SEVERITY_TONE,
 } from '@/components/bi-v2'
 import {
@@ -158,24 +151,11 @@ function inferTrend(
   return tone ? DELTA_DIRECTION[tone] : 'flat'
 }
 
-function TrendIcon({ trend }: { trend: 'up' | 'down' | 'flat' }) {
-  if (trend === 'up') return <ArrowUpRight className="h-4 w-4 text-emerald-300" aria-hidden />
-  if (trend === 'down') return <ArrowDownRight className="h-4 w-4 text-rose-300" aria-hidden />
-  return <Minus className="h-4 w-4 text-slate-400" aria-hidden />
-}
-
 const ALERT_LEVEL_TO_SEVERITY: Record<string, 'critical' | 'high' | 'medium' | 'low'> = {
   critical: 'critical',
   error: 'critical',
   warning: 'high',
   info: 'medium',
-}
-
-function renderCardValue(card: BiMetricCard, meta: BiV2MetricDef) {
-  if (typeof card.value === 'number' && meta.group === 'unit_economics') {
-    return <BiMoneyCell amount={card.value} currency="CNY" trust={meta.trust} align="left" />
-  }
-  return <span className="tabular-nums text-slate-50">{String(card.value)}</span>
 }
 
 function metricText(card?: BiMetricCard) {
@@ -309,7 +289,6 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
     }
   }, [loadLive])
 
-  const trendMax = Math.max(...bundle.trend.map(p => p.active), 1)
   const activeCard = findCard(bundle.cards, ['活跃学习会话', '活跃学习者', '活跃'])
   const successCard = findCard(bundle.cards, ['成功率', '回合成功'])
   const costCard = findCard(bundle.cards, ['总成本', '成本'])
@@ -322,7 +301,6 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
     successCard,
     alertCount: bundle.alerts.length,
   })
-  const topTrendPoints = bundle.trend.slice(-12)
 
   return (
     <section className="space-y-5">
@@ -462,71 +440,6 @@ function OverviewCommandHero({
           </div>
         </div>
       </div>
-    </div>
-  )
-}
-
-function OverviewSignalChips({
-  activeCard,
-  successCard,
-  costCard,
-  alertCount,
-}: {
-  activeCard?: BiMetricCard
-  successCard?: BiMetricCard
-  costCard?: BiMetricCard
-  alertCount: number
-}) {
-  const chips = [
-    {
-      label: '活跃势能',
-      value: metricText(activeCard),
-      helper: activeCard?.delta || activeCard?.hint || '近窗口学习会话',
-      className: 'border-cyan-300/20 bg-cyan-300/10',
-      icon: LineChart,
-    },
-    {
-      label: '成功质量',
-      value: metricText(successCard),
-      helper: successCard?.delta || successCard?.hint || '回合成功率',
-      className: 'border-emerald-300/20 bg-emerald-300/10',
-      icon: Target,
-    },
-    {
-      label: '成本压力',
-      value: metricText(costCard),
-      helper: costCard?.delta || costCard?.hint || '单位经济口径',
-      className: 'border-amber-300/20 bg-amber-300/10',
-      icon: CircleDollarSign,
-    },
-    {
-      label: '待处理风险',
-      value: String(alertCount),
-      helper: alertCount ? '进入今日行动队列' : '当前无风险项',
-      className: 'border-rose-300/20 bg-rose-300/10',
-      icon: ShieldAlert,
-    },
-  ]
-  return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-      {chips.map(chip => {
-        const Icon = chip.icon
-        return (
-          <div
-            key={chip.label}
-            className={`min-h-[9.5rem] overflow-hidden rounded-3xl border p-4 shadow-lg shadow-black/10 ${chip.className}`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-black text-slate-300">{chip.label}</span>
-              <span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] text-cyan-100">
-                <Icon className="h-4 w-4" aria-hidden />
-              </span>
-            </div>
-            <div className="mt-4 text-3xl font-black tabular-nums text-white">{chip.value}</div>
-            <div className="mt-2 text-[11px] leading-5 text-slate-400">{chip.helper}</div>
-          </div>
-        )
-      })}
     </div>
   )
 }

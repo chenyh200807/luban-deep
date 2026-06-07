@@ -309,31 +309,6 @@ export function BiV2MemberOpsPanel({
     return sortMembers(cohortRows, sortKey, sortDir)
   }, [behaviorCohort, filters, flagEnabled, globalQuery, sortDir, sortKey, sourceRows])
 
-  const behaviorTotals = useMemo(() => {
-    const health = dashboard?.behavior_health
-    if (health) {
-      return {
-        learningReport: health.learning_report_open_count_7d,
-        history: health.history_open_count_7d,
-        actions: health.action_start_count_7d,
-        events:
-          health.event_count_7d ??
-          sourceRows.reduce((sum, row) => sum + (row.behavior_event_count_7d ?? 0), 0),
-        lowTrust: health.low_trust_count,
-      }
-    }
-    return sourceRows.reduce(
-      (acc, row) => {
-        acc.learningReport += row.behavior_learning_report_7d ?? 0
-        acc.history += row.behavior_history_7d ?? 0
-        acc.events += row.behavior_event_count_7d ?? 0
-        acc.lowTrust += row.behavior_trust && row.behavior_trust !== 'A' ? 1 : 0
-        return acc
-      },
-      { learningReport: 0, history: 0, actions: 0, events: 0, lowTrust: 0 }
-    )
-  }, [dashboard, sourceRows])
-
   function handleSort(key: string) {
     const nextKey = key as MemberSortKey
     if (nextKey === sortKey) {
@@ -687,78 +662,6 @@ export function BiV2MemberOpsPanel({
         detail={selectedDetail}
         onClose={() => setDrawer(conversationReturnTo)}
       />
-    </section>
-  )
-}
-
-function MemberSummaryCards({
-  dashboard,
-  loading,
-}: {
-  dashboard: MemberDashboard | null
-  loading: boolean
-}) {
-  const cards = [
-    { label: '全部会员', value: dashboard?.total_count },
-    { label: '活跃会员', value: dashboard?.active_count },
-    { label: '7 日内到期', value: dashboard?.expiring_soon_count },
-    { label: '高风险', value: dashboard?.churn_risk_count },
-    { label: '自动续费覆盖', value: dashboard ? `${dashboard.auto_renew_coverage}%` : undefined },
-  ]
-  return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-      {cards.map(card => (
-        <div
-          key={card.label}
-          className="rounded-3xl border border-white/10 bg-white/[0.045] p-3 shadow-lg shadow-black/10"
-        >
-          <div className="text-[11px] font-bold text-slate-400">{card.label}</div>
-          <div className="mt-1 text-2xl font-black tabular-nums text-slate-50">
-            {loading && card.value === undefined ? '…' : (card.value ?? '—')}
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function BehaviorHealthStrip({
-  totals,
-  loading,
-}: {
-  totals: {
-    learningReport: number
-    history: number
-    actions: number
-    events: number
-    lowTrust: number
-  }
-  loading: boolean
-}) {
-  const cards = [
-    { label: '行为样本 7日', value: totals.events },
-    { label: '学情打开 7日', value: totals.learningReport },
-    { label: '历史打开 7日', value: totals.history },
-    { label: '行动开始 7日', value: totals.actions },
-    { label: '低可信行为', value: totals.lowTrust },
-  ]
-  return (
-    <section
-      data-testid="bi-member-behavior-health-strip"
-      className="grid grid-cols-2 gap-3 md:grid-cols-5"
-      aria-label="会员行为健康摘要"
-    >
-      {cards.map(card => (
-        <div
-          key={card.label}
-          className="rounded-2xl border border-cyan-300/15 bg-cyan-300/[0.055] p-3 shadow-lg shadow-black/10"
-        >
-          <div className="text-[11px] font-bold text-cyan-100/80">{card.label}</div>
-          <div className="mt-1 text-2xl font-black tabular-nums text-slate-50">
-            {loading ? '…' : card.value}
-          </div>
-        </div>
-      ))}
     </section>
   )
 }

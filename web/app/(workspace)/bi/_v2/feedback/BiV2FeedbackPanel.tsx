@@ -1594,11 +1594,6 @@ function LubanFeedbackPanel({
   onRevealDetails: () => void
 }) {
   const summary = stats?.summary
-  const highIntentCount = responses.filter(item =>
-    ['very_willing', 'ok'].includes(item.revisit_willingness)
-  ).length
-  const contactCount = responses.filter(item => item.phone || item.wechat_id).length
-  const topSource = stats?.source_breakdown?.[0]?.source_page || '—'
 
   return (
     <div className="space-y-4">
@@ -1985,72 +1980,6 @@ function LubanFeedbackDetailPanel({
         </div>
       ) : null}
     </BiSidePanel>
-  )
-}
-
-function InvitePrescriptionHero({
-  priorityCount,
-  total,
-  acceptInterviewCount,
-  painPoint,
-  onStartQueue,
-  onExplain,
-}: {
-  priorityCount: number
-  total: number
-  acceptInterviewCount: number
-  painPoint: string
-  onStartQueue: () => void
-  onExplain: () => void
-}) {
-  const queueStrength =
-    total > 0 ? Math.min(92, Math.max(54, Math.round((priorityCount / total) * 100 + 52))) : 54
-  return (
-    <section className="grid gap-5 rounded-3xl border border-sky-300/20 bg-gradient-to-br from-[#1f2959]/90 to-[#141c36]/95 p-5 shadow-xl shadow-black/20 md:grid-cols-[minmax(0,1fr)_170px] md:p-7">
-      <div className="min-w-0">
-        <div className="text-xs font-black text-orange-300">当前筛选提示</div>
-        <h3 className="mt-2 max-w-4xl text-3xl font-black leading-tight tracking-normal text-white md:text-4xl">
-          优先回访「{painPoint || '案例题不会写'}」的高意向申请人
-        </h3>
-        <p className="mt-4 max-w-4xl text-sm leading-7 text-slate-300/85">
-          {formatCount(total)} 条内测申请里，有 {formatCount(acceptInterviewCount)} 条愿意回访，
-          {formatCount(priorityCount)}{' '}
-          条适合立即进入跟进队列。先处理联系方式完整、痛点明确的人，再补齐样本缺口。
-        </p>
-        <div className="mt-5 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={onStartQueue}
-            className="inline-flex h-11 items-center rounded-2xl border border-cyan-200/40 bg-cyan-300 px-4 text-sm font-black text-sky-950 shadow-lg shadow-cyan-300/10"
-          >
-            开始回访队列
-          </button>
-          <button
-            type="button"
-            onClick={onExplain}
-            className="inline-flex h-11 items-center rounded-2xl border border-orange-300/35 bg-orange-300/10 px-4 text-sm font-black text-orange-200"
-          >
-            为什么推荐
-          </button>
-        </div>
-      </div>
-      <div className="relative flex min-h-[150px] items-center justify-center md:min-h-0">
-        <div
-          className="grid h-36 w-36 place-items-center rounded-full shadow-[0_0_0_14px_rgba(125,211,252,0.04)]"
-          style={{
-            background: `conic-gradient(#34d399 0 ${queueStrength * 3.6}deg, rgba(255,226,186,0.9) ${queueStrength * 3.6}deg 360deg)`,
-          }}
-          aria-label={`队列强度 ${queueStrength}%`}
-        >
-          <div className="grid h-24 w-24 place-items-center rounded-full bg-[#172141]">
-            <span className="text-4xl font-black text-cyan-200">{queueStrength}</span>
-          </div>
-        </div>
-        <div className="absolute bottom-0 text-center text-[11px] font-black text-slate-300/70">
-          队列强度 · 前端筛选
-        </div>
-      </div>
-    </section>
   )
 }
 
@@ -3445,11 +3374,6 @@ function topInviteSource(stats: BiInviteTestStats | null): string {
   return top?.source_page || '—'
 }
 
-function topInvitePainPoint(stats: BiInviteTestStats | null): string {
-  const top = [...(stats?.pain_point_breakdown ?? [])].sort((a, b) => b.count - a.count)[0]
-  return top?.pain_point || '案例题不会写'
-}
-
 const countFormatter = new Intl.NumberFormat('zh-CN', { maximumFractionDigits: 1 })
 const inviteDateFormatter = new Intl.DateTimeFormat('zh-CN', {
   month: '2-digit',
@@ -3506,28 +3430,3 @@ function lubanStatusTone(status: string | undefined): BiStatusTone {
   return 'amber'
 }
 
-function Tile({
-  label,
-  value,
-  hint,
-  tone = 'slate',
-}: {
-  label: string
-  value: number
-  hint: string
-  tone?: 'slate' | 'amber' | 'sky' | 'rose'
-}) {
-  const toneClass: Record<typeof tone, string> = {
-    slate: 'border-white/10 bg-white/[0.045]',
-    amber: 'border-amber-300/20 bg-amber-300/10',
-    sky: 'border-cyan-300/20 bg-cyan-300/10',
-    rose: 'border-rose-300/20 bg-rose-300/10',
-  }
-  return (
-    <div className={`rounded-3xl border p-4 shadow-lg shadow-black/10 ${toneClass[tone]}`}>
-      <div className="text-xs font-black text-slate-400">{label}</div>
-      <div className="mt-1 text-3xl font-black tabular-nums text-white">{value}</div>
-      <div className="mt-1 text-[11px] font-bold text-slate-400">{hint}</div>
-    </div>
-  )
-}

@@ -1,15 +1,7 @@
 /* eslint-disable i18n/no-literal-ui-text */
 'use client'
 
-import {
-  AlertTriangle,
-  Calendar,
-  CreditCard,
-  FileText,
-  RefreshCw,
-  Wallet,
-  type LucideIcon,
-} from 'lucide-react'
+import { Calendar, RefreshCw } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   BiButton,
@@ -450,82 +442,6 @@ export function BiV2CommercePanel({ flagEnabled, globalQuery = '' }: BiV2Commerc
         <PackageGrid packages={filteredPackages} loading={loading} error={error} />
       ) : null}
     </section>
-  )
-}
-
-function AnomalyBar({
-  anomalies,
-  loading,
-}: {
-  anomalies: ReadonlyArray<BiCommerceAnomaly>
-  loading: boolean
-}) {
-  if (loading) {
-    return (
-      <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-3 text-xs text-slate-300">
-        正在加载账务异常规则…
-      </div>
-    )
-  }
-  if (anomalies.length === 0) {
-    return (
-      <div className="rounded-2xl border border-emerald-300/25 bg-emerald-300/10 p-3 text-xs text-emerald-100">
-        当前未发现账务异常；高危修账动作仍保持禁用。
-      </div>
-    )
-  }
-  return (
-    <div className="rounded-2xl border border-rose-300/25 bg-rose-300/10 p-3">
-      <div className="flex items-center gap-2 text-sm font-semibold text-rose-100">
-        <AlertTriangle className="h-4 w-4" aria-hidden />
-        账务异常行动条 · {anomalies.reduce((sum, item) => sum + item.affected, 0)} 项待复核
-      </div>
-      <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
-        {anomalies.map(item => (
-          <article
-            key={item.ruleId}
-            className="rounded-2xl border border-white/10 bg-[#101927] px-3 py-2 text-xs"
-          >
-            <div className="flex items-center justify-between gap-2">
-              <BiIdToken value={item.ruleId} className="font-semibold text-slate-100" />
-              <div className="flex gap-1">
-                <BiStatusPill tone={severityTone(item.severity)} label={item.severity} />
-                <BiStatusPill tone={trustTone(item.trust)} label={item.trust || 'N/A'} />
-              </div>
-            </div>
-            <div className="mt-1 text-slate-200">{item.description}</div>
-            <div className="mt-0.5 text-[11px] text-slate-400">
-              <BiDateTime value={item.detectedAt} /> · 影响 {item.affected} 项 · owner:{' '}
-              {item.owner || '--'}
-            </div>
-          </article>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function SummaryTile({
-  icon: Icon,
-  label,
-  value,
-  hint,
-}: {
-  icon: LucideIcon
-  label: string
-  value: number
-  hint: string
-}) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-3 shadow-lg shadow-black/15">
-      <div className="flex items-center gap-2 text-xs font-bold text-slate-300">
-        <Icon className="h-3.5 w-3.5" aria-hidden /> {label}
-      </div>
-      <div className="mt-1 text-2xl font-black tabular-nums text-white">{value}</div>
-      <div className="mt-1 truncate text-[11px] text-slate-400" title={hint}>
-        {hint}
-      </div>
-    </div>
   )
 }
 
