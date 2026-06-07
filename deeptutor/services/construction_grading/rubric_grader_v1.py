@@ -242,26 +242,35 @@ _BATCH_SYSTEM_PROMPT = "你只判采分点命中,输出JSON数组。"
 
 
 def _batch_prompt(rubric_points: list[dict[str, Any]], student_answer: str) -> str:
-    """Pure prompt builder for the one-shot batch adjudication (shared by sync + async paths)."""
+    """Pure prompt builder for the one-shot batch adjudication (shared by sync + async paths).
+
+    The LLM is keyed on a SHORT ordinal ``idx`` (1..n), NOT the real point_id. Production point_ids are
+    long compound strings (``EXAM_1A432000_P0016_02::E0::Q1-1``); asking the model to echo those verbatim
+    as JSON keys invites truncation/mismatch, which silently scores real hits as 0. With a 1..n idx the
+    key is trivial to echo and ``_parse_batch_verdicts`` maps it back to the real point_id internally."""
     import json as _json
 
     lines = []
-    for p in rubric_points:
+    for i, p in enumerate(rubric_points, 1):
         strict = "(术语必须精确,近义不算)" if p.get("policy") == "exact_required" else "(意思对即可,允许近义)"
-        lines.append(f'  {{"point_id":"{p.get("point_id")}","采分点":"{p.get("text")}",'
+        lines.append(f'  {{"idx":{i},"采分点":"{p.get("text")}",'
                      f'"关键词":{_json.dumps(p.get("required_terms") or [], ensure_ascii=False)},"判定标准":"{strict}"}}')
     return (
         "你是一建案例题阅卷员。逐个判断学生作答是否命中每个采分点,只判命中不改分值。\n"
-        "采分点列表:\n[" + ",\n".join(lines) + "]\n\n"
+        "采分点列表(idx 为编号,请原样回填):\n[" + ",\n".join(lines) + "]\n\n"
         f"学生作答:\n{str(student_answer)[:1500]}\n\n"
-        '只输出JSON数组,每个采分点一项: '
-        '[{"point_id":..,"status":"hit|partial|miss","partial_ratio":0-1,'
+        "必须为每个 idx 各输出一项(不可遗漏)。只输出JSON数组: "
+        '[{"idx":1,"status":"hit|partial|miss","partial_ratio":0-1,'
         '"evidence_span":"命中的原句片段","mistake_type":"omitted|wrong_content"}]'
     )
 
 
-def _parse_batch_verdicts(raw: Any) -> dict[str, dict[str, Any]]:
-    """Pure parser: LLM JSON-array text -> {point_id: verdict}. Malformed -> {} (caller fails closed)."""
+def _parse_batch_verdicts(
+    raw: Any, rubric_points: list[dict[str, Any]]
+) -> dict[str, dict[str, Any]]:
+    """Pure parser: LLM JSON-array text -> {point_id: verdict}. The LLM keys on a 1-based ``idx`` which is
+    mapped back to the real point_id via position (out-of-range idx ignored). Malformed -> {} (caller
+    fails closed). The real point_id is never trusted from the LLM, so it cannot be truncated/mismatched."""
     import json as _json
 
     out: dict[str, dict[str, Any]] = {}
@@ -269,9 +278,21 @@ def _parse_batch_verdicts(raw: Any) -> dict[str, dict[str, Any]]:
         s = str(raw)
         arr = _json.loads(s[s.find("["):s.rfind("]") + 1])
         for v in arr:
-            if isinstance(v, dict) and v.get("point_id"):
-                out[str(v["point_id"])] = v
-    except Exception:  # noqa: BLE001 — malformed -> empty -> all miss+low_conf (high-risk fallback)
+            if not isinstance(v, dict):
+                continue
+            raw_idx = v.get("idx")
+            # accept int idx or a numeric string ("1") — DeepSeek occasionally stringifies; reject bools
+            if isinstance(raw_idx, bool):
+                continue
+            if isinstance(raw_idx, int):
+                idx = raw_idx
+            elif isinstance(raw_idx, str) and raw_idx.strip().isdigit():
+                idx = int(raw_idx.strip())
+            else:
+                continue
+            if 1 <= idx <= len(rubric_points):
+                out[str(rubric_points[idx - 1].get("point_id"))] = v
+    except Exception:  # noqa: BLE001 — malformed -> empty -> degraded coverage -> legacy fallback
         logger.info("rubric_grader_v1: batch verdict JSON malformed; degrading to all-miss", exc_info=True)
     return out
 
@@ -295,7 +316,7 @@ def batch_judge(
     except Exception:  # noqa: BLE001 — batch failure -> all miss+low_conf (high-risk fallback)
         logger.warning("rubric_grader_v1: batch_judge LLM call failed; degrading to all-miss", exc_info=True)
         return {}
-    return _parse_batch_verdicts(raw)
+    return _parse_batch_verdicts(raw, rubric_points)
 
 
 async def batch_judge_async(
@@ -312,7 +333,7 @@ async def batch_judge_async(
         logger.warning("rubric_grader_v1: batch_judge_async LLM call failed; degrading to all-miss",
                        exc_info=True)
         return {}
-    return _parse_batch_verdicts(raw)
+    return _parse_batch_verdicts(raw, rubric_points)
 
 
 _EXTRACT_SYSTEM_PROMPT = "你把参考答案拆成采分点,输出JSON数组。"
@@ -450,14 +471,15 @@ def make_batch_judge(complete_fn: Callable[..., Any], api_key: str, *, model: st
 
 
 def _is_degraded_batch(rubric_points: list[dict[str, Any]], verdicts: dict[str, dict[str, Any]]) -> bool:
-    """A batch is DEGRADED when there are points to grade but NOT ONE got a real verdict (LLM call failed
-    /JSON malformed -> empty verdicts, or every point_id mismatched). This is distinct from a low score:
-    a genuinely-empty answer still gets per-point miss verdicts. ``degraded`` means "no trustworthy
-    adjudication happened" so the caller must fall back to the legacy diagnostic path — NOT emit 0/full as
-    if it were an authoritative grade (fail-safe, not fail-to-zero)."""
+    """A batch is DEGRADED unless EVERY scoring point received a real verdict. A point with no verdict is
+    scored as a silent 0 (miss) WITHOUT real adjudication — so a perfect answer the LLM only partially
+    judged would otherwise surface as a catastrophic low score presented as authority. ``degraded`` is
+    distinct from a low score: a genuinely-weak answer still gets a verdict (hit/partial/miss) for EVERY
+    point. ``degraded`` means "the adjudication is incomplete / untrustworthy" -> the caller must fall back
+    to the legacy diagnostic path, never emit the partial sum as an authoritative grade (fail-safe)."""
     if not rubric_points:
         return False
-    return not any(str(p.get("point_id")) in verdicts for p in rubric_points)
+    return not all(str(p.get("point_id")) in verdicts for p in rubric_points)
 
 
 def _grade_from_verdicts(

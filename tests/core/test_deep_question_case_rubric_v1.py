@@ -319,9 +319,41 @@ def test_grade_case_batch_v1_all_degraded_returns_none(monkeypatch: pytest.Monke
     assert ev is None
 
 
+def test_grade_case_batch_v1_partial_degraded_returns_none(monkeypatch: pytest.MonkeyPatch) -> None:
+    # FAIL-SAFE: if ANY case sub-item degrades, the whole batch must fall back to legacy — NEVER surface a
+    # "complete" merged score built from only the survivors (a half-graded case shown as 100% is worse
+    # than a low score). c1 grades, c2 degrades (empty verdicts) -> batch returns None.
+    from deeptutor.capabilities import deep_question as dq
+
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda qid: [
+        {"point_id": "P1", "text": "点1", "score": 1.0, "policy": "list", "required_terms": []}])
+
+    async def _c1_ok_c2_empty(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {"P1": {"status": G.HIT}} if answer == "a1" else {}   # c2 -> no verdict -> degraded
+
+    monkeypatch.setattr(G, "batch_judge_async", _c1_ok_c2_empty)
+
+    async def _noop_complete(**_kw):
+        return "{}"
+
+    graded_context = {
+        "construction_grading_result": {"type": "batch"},
+        "items": [{"question_id": "c1", "user_answer": "a1",
+                   "construction_grading_result": {"type": "case", "max_score": 2.0}},
+                  {"question_id": "c2", "user_answer": "a2",
+                   "construction_grading_result": {"type": "case", "max_score": 2.0}}],
+    }
+    ev = asyncio.run(dq._grade_case_batch_v1(
+        graded_context, student_id="qa_x", complete=_noop_complete, key="k", _G=G))
+    assert ev is None   # partial batch -> legacy, not a misleading "c1-only 100%"
+
+
 def test_batch_judge_async_parses_and_fails_closed() -> None:
+    # LLM returns SHORT idx (1..n); batch_judge maps them back to real point_ids (so long compound ids
+    # never need verbatim echo — eliminating the truncation/mismatch hazard).
     async def _ok_complete(**_kwargs):
-        return '[{"point_id":"P1","status":"hit"},{"point_id":"P2","status":"miss"}]'
+        return '[{"idx":1,"status":"hit"},{"idx":2,"status":"miss"}]'
 
     async def _boom_complete(**_kwargs):
         raise RuntimeError("llm down")
