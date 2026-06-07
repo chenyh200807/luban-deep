@@ -12,14 +12,14 @@ the grading authority (which stays on the local verbatim signed bundle):
 
 RED LINES (AGENTS §3.7 + authority discipline):
   * DEFAULT is ``--dry-run``: builds the rows, writes them to a local JSONL, prints a summary, and
-    performs NO remote write. The actual upsert requires ``--apply`` AND SUPABASE_URL +
-    SUPABASE_SERVICE_ROLE_KEY in the env — i.e. an explicit, credentialed, human-run step.
+    performs NO remote write. The actual upsert requires ``--apply`` AND DATABASE_URL (or DB_URL)
+    in the env — i.e. an explicit, credentialed, human-run direct-Postgres step.
   * This is the catalog layer only. The tutor's grading authority is the local signed textbook bundle;
     Supabase rows here are teaching/navigation metadata, never an answer-key source.
 
 Usage:
   python scripts/export_canonical_knowledge_to_supabase.py              # dry-run (default, no remote)
-  SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... \
+  DATABASE_URL=postgresql://... \
       python scripts/export_canonical_knowledge_to_supabase.py --apply  # upsert (idempotent)
 """
 from __future__ import annotations
@@ -223,7 +223,7 @@ create index if not exists idx_lkge_dst on luban_canonical_knowledge_edges (dst)
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--apply", action="store_true", help="actually upsert to Supabase (needs env creds)")
+    ap.add_argument("--apply", action="store_true", help="actually upsert via DATABASE_URL/DB_URL")
     args = ap.parse_args()
     if args.apply:
         try:
