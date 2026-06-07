@@ -21,8 +21,8 @@
       "lane": "case_rubric_scored",
       "path": "v_case_rubric_scored/case_rubric_scored.json",
       "namespace": "case_rubric_scored",
-      "content_hash": "ce7c9b561094945bf7296e1c5e530f751a12560dd5945785e87bc185173bda6d",
-      "record_count": 1234,
+      "content_hash": "3d6cf2da88e002dfbdf3f53f8d13d1b4c5e28ec99266c036f77c2d4b2a4eddb0",
+      "record_count": 1213,
       "tier": "answer_authority"
     },
     {
@@ -91,6 +91,6 @@
     }
   ],
   "shard_count": 10,
-  "content_hash": "1aa1ccdf3a8855ea9067bad2517333ba6d92d2d4cdee3faa0453dab59df0a0d4",
-  "signature": "1d39e53ad849bd1a41d4f8a5442cc8f3526ece9afc96ad9cd727f66622e33862"
+  "content_hash": "7b4e7ea9cced61aa6924e3aa6f9a8628b7653a398de99a40b6ab8e519b171abd",
+  "signature": "870a2302620372ab530bcba9d1f9c6c2dee86d0f223f01b67ea8209cc1a1439c"
 }
