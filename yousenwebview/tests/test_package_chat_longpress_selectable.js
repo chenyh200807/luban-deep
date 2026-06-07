@@ -26,10 +26,12 @@ var wxss = read("packageDeeptutor/pages/chat/chat.wxss");
 var appJson = JSON.parse(read("app.json"));
 
 assert(
-  appJson.permission &&
-    appJson.permission["scope.writeClipboard"] &&
-    appJson.permission["scope.writeClipboard"].desc,
-  "app.json should declare clipboard usage for WeChat privacy scope checks",
+  !(appJson.permission && appJson.permission["scope.writeClipboard"]),
+  "copy button should not introduce a custom clipboard permission gate",
+);
+assert(
+  appJson.__usePrivacyCheck__ === false,
+  "local package copy button should not be blocked by undeclared clipboard privacy agreement scope",
 );
 assert(
   wxml.indexOf("selectable") < 0,

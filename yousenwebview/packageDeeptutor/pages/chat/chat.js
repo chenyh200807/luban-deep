@@ -3033,7 +3033,18 @@ Page({
       wx.showToast({ title: "暂无可复制内容", icon: "none" });
       return;
     }
-    wx.setClipboardData({ data: text });
+    wx.setClipboardData({
+      data: text,
+      success: function () {
+        wx.showToast({ title: "内容已复制", icon: "success", duration: 1200 });
+      },
+      fail: function (err) {
+        if (typeof console !== "undefined" && console.warn) {
+          console.warn("[chat] copy answer failed", err && err.errMsg ? err.errMsg : err);
+        }
+        wx.showToast({ title: "复制失败，请重试", icon: "none", duration: 1800 });
+      },
+    });
   },
 
   onToggleWorkflowTrace: function (e) {

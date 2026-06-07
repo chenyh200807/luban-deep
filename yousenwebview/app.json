@@ -57,10 +57,5 @@
   "style": "v2",
   "sitemapLocation": "sitemap.json",
   "lazyCodeLoading": "requiredComponents",
-  "permission": {
-    "scope.writeClipboard": {
-      "desc": "用于一键复制 AI 输出内容"
-    }
-  },
-  "__usePrivacyCheck__": true
+  "__usePrivacyCheck__": false
 }
