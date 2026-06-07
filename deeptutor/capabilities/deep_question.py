@@ -1711,6 +1711,71 @@ def _runtime_shadow_flag_enabled(context: UnifiedContext) -> bool:
     )
 
 
+def _case_rubric_v1_flag_enabled(context: UnifiedContext) -> bool:
+    """QA/test case rubric-v1 grading flag. Default OFF -> legacy construction_grading_result untouched."""
+    import os
+    if os.environ.get("LUBAN_CASE_RUBRIC_V1_ENABLED", "").strip().lower() in ("false", "0", "off", "no"):
+        return False
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return bool(
+        metadata.get("grading_engine_case_rubric_v1")
+        or context.config_overrides.get("grading_engine_case_rubric_v1")
+    )
+
+
+async def _maybe_attach_case_rubric_v1(
+    *, context: UnifiedContext, graded_context: dict[str, Any], result_payload: dict[str, Any]
+) -> None:
+    """QA/test-only: rubric-v1 LLM-adjudicated case grading (Grading-to-Brain). Thin wrapper — all
+    scoring logic lives in ``rubric_grader_v1`` (fat skill). Reads flag + cohort + the compiled rubric,
+    runs ONE batched DeepSeek adjudication over the scoring points, sums deterministically, and appends
+    ``luban_case_rubric_v1`` (GradingEvent + learning_evidence). Append-only: legacy
+    ``construction_grading_result`` is NEVER mutated; official_score_allowed stays False. Default OFF;
+    any error fails closed. Only case-type turns with an in-bank compiled rubric run.
+    """
+    if not _case_rubric_v1_flag_enabled(context):
+        return
+    student_id = _learner_user_id_from_context(context)
+    if not str(student_id).startswith(("qa_", "test_")):
+        return  # cohort gate: real students unaffected
+    cg = graded_context.get("construction_grading_result")
+    # The case adapter stamps result["type"] = "case" for ALL written/essay/short-answer variants;
+    # that (not the raw question_type string) is the reliable case signal.
+    if str((cg or {}).get("type") or "").lower() != "case":
+        return
+    qid = str(graded_context.get("question_id") or (cg or {}).get("question_id") or "").strip()
+    answer = str(graded_context.get("user_answer") or "").strip()
+    if not qid or not answer:
+        return
+    try:
+        import os
+
+        from deeptutor.services.construction_grading import rubric_grader_v1 as _G
+
+        points = _G.load_rubric(qid)
+        if not points:
+            result_payload["luban_case_rubric_v1"] = {"authority": "luban_case_rubric_v1",
+                                                      "status": "no_rubric_open_world", "question_id": qid}
+            return
+        key = os.environ.get("DEEPSEEK_API_KEY")
+        if not key:
+            return
+        from deeptutor.services.llm.factory import complete
+        node_code = str(graded_context.get("node_code") or (cg or {}).get("node_code") or "")
+        event = await _G.grade_with_batch_judge_async(
+            qid=qid, student_answer=answer, rubric_points=points,
+            complete_fn=complete, api_key=key, student_id=student_id)
+        result_payload["luban_case_rubric_v1"] = {
+            "authority": "luban_case_rubric_v1", "status": "ok",
+            "grading_event": event,
+            "learning_evidence": _G.to_learning_evidence(event, node_code=node_code),
+            "official_score_allowed": False,
+        }
+    except Exception as exc:  # noqa: BLE001 — v1 must never break legacy
+        result_payload["luban_case_rubric_v1"] = {"authority": "luban_case_rubric_v1",
+                                                  "status": "unavailable", "reason": type(exc).__name__}
+
+
 def _runtime_shadow_engine(context: UnifiedContext) -> str:
     metadata = context.metadata if isinstance(context.metadata, dict) else {}
     return str(
@@ -3392,6 +3457,13 @@ class DeepQuestionCapability(BaseCapability):
                 result_payload["construction_grading_result"] = grading_result
                 # QA/test-only Luban shadow (default off; legacy untouched above).
                 _maybe_attach_runtime_shadow(
+                    context=context,
+                    graded_context=graded_context,
+                    result_payload=result_payload,
+                )
+                # QA/test-only rubric-v1 LLM-adjudicated case grading (default off; flag+env kill+cohort;
+                # append-only GradingEvent + learning_evidence; legacy construction_grading_result intact).
+                await _maybe_attach_case_rubric_v1(
                     context=context,
                     graded_context=graded_context,
                     result_payload=result_payload,

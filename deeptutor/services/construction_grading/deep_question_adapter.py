@@ -111,40 +111,12 @@ def build_deep_question_grading_result(
         _stamp_compiled_context_and_authority(
             result, row, retrieval_sources=_evidence_rows_from_context(row)
         )
-        # v1 rubric-scored shadow (Nexus-like, non-authoritative): per-scoring-point LLM adjudication
-        # over the compiled rubric -> GradingEvent + learning_evidence. Append-only; never replaces the
-        # v0 result or grants official score. QA/test students only. Falls through silently on any issue.
-        _attach_rubric_v1_shadow(result, row, answer)
+        # NOTE: rubric-v1 LLM-adjudicated grading is attached in the CAPABILITY layer
+        # (deep_question._maybe_attach_case_rubric_v1) where the learner identity is reachable —
+        # NOT here (this adapter only has the question-face row, no student identity). Wrong-layer
+        # attachment removed (root-cause fix, not a patch).
         return result
     return None
-
-
-def _attach_rubric_v1_shadow(result: dict[str, Any], row: dict[str, Any], answer: str) -> None:
-    """Run the v1 rubric grader as a non-authoritative shadow and append it to the case result."""
-    try:
-        import os
-
-        from deeptutor.services.construction_grading import rubric_grader_v1 as _G
-        from deeptutor.services.construction_grading import runtime_shadow_adapter as _A
-
-        qid = str(row.get("question_id") or row.get("id") or "").strip()
-        student_id = str(row.get("student_id") or row.get("user_id") or "").strip()
-        node_code = str(row.get("node_code") or "")
-        if not qid or not _A._is_safe_shadow_student_id(student_id):
-            return  # non-cohort / no qid -> no shadow (real students unaffected)
-        key = os.environ.get("DEEPSEEK_API_KEY")
-        if not key:
-            return
-        from deeptutor.services.llm.factory import complete
-        judge = _G.make_llm_judge(complete, key, model="deepseek-chat")
-        shadow = _A.build_rubric_v1_shadow_result(
-            question_id=qid, student_answer=answer, student_id=student_id,
-            node_code=node_code, judge_fn=judge,
-        )
-        if shadow.get("status") == "ok":
-            result["rubric_v1_shadow"] = shadow  # non-authoritative; official_score_allowed=False
-    except Exception:  # noqa: BLE001 — shadow must never break the authoritative v0 result
-        return
 
 
 def _evidence_rows_from_context(question_context: dict[str, Any]) -> list[dict[str, Any]]:

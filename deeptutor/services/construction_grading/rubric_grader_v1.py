@@ -169,6 +169,122 @@ def load_rubric(qid: str) -> list[dict[str, Any]]:
     return _bank().get(str(qid), [])
 
 
+_BATCH_SYSTEM_PROMPT = "你只判采分点命中,输出JSON数组。"
+
+
+def _batch_prompt(rubric_points: list[dict[str, Any]], student_answer: str) -> str:
+    """Pure prompt builder for the one-shot batch adjudication (shared by sync + async paths)."""
+    import json as _json
+
+    lines = []
+    for p in rubric_points:
+        strict = "(术语必须精确,近义不算)" if p.get("policy") == "exact_required" else "(意思对即可,允许近义)"
+        lines.append(f'  {{"point_id":"{p.get("point_id")}","采分点":"{p.get("text")}",'
+                     f'"关键词":{_json.dumps(p.get("required_terms") or [], ensure_ascii=False)},"判定标准":"{strict}"}}')
+    return (
+        "你是一建案例题阅卷员。逐个判断学生作答是否命中每个采分点,只判命中不改分值。\n"
+        "采分点列表:\n[" + ",\n".join(lines) + "]\n\n"
+        f"学生作答:\n{str(student_answer)[:1500]}\n\n"
+        '只输出JSON数组,每个采分点一项: '
+        '[{"point_id":..,"status":"hit|partial|miss","partial_ratio":0-1,'
+        '"evidence_span":"命中的原句片段","mistake_type":"omitted|wrong_content"}]'
+    )
+
+
+def _parse_batch_verdicts(raw: Any) -> dict[str, dict[str, Any]]:
+    """Pure parser: LLM JSON-array text -> {point_id: verdict}. Malformed -> {} (caller fails closed)."""
+    import json as _json
+
+    out: dict[str, dict[str, Any]] = {}
+    try:
+        s = str(raw)
+        arr = _json.loads(s[s.find("["):s.rfind("]") + 1])
+        for v in arr:
+            if isinstance(v, dict) and v.get("point_id"):
+                out[str(v["point_id"])] = v
+    except Exception:  # noqa: BLE001 — malformed -> empty -> all miss+low_conf (high-risk fallback)
+        pass
+    return out
+
+
+def batch_judge(
+    rubric_points: list[dict[str, Any]], student_answer: str,
+    complete_fn: Callable[..., Any], api_key: str, *, model: str = "deepseek-chat",
+) -> dict[str, dict[str, Any]]:
+    """Adjudicate ALL scoring points in ONE LLM call (O(1) cost vs O(n) per-point). Returns
+    {point_id: verdict}. A point missing from the LLM response -> miss+low_confidence (never silent
+    credit). The deterministic sum in grade_with_rubric is unchanged; only the verdict source batches.
+
+    Sync entrypoint — uses ``asyncio.run``; do NOT call from a running event loop (use
+    ``batch_judge_async`` there)."""
+    import asyncio
+
+    prompt = _batch_prompt(rubric_points, student_answer)
+    try:
+        raw = asyncio.run(complete_fn(prompt=prompt, system_prompt=_BATCH_SYSTEM_PROMPT,
+                                      model=model, api_key=api_key, max_retries=1))
+    except Exception:  # noqa: BLE001 — batch failure -> all miss+low_conf (high-risk fallback)
+        return {}
+    return _parse_batch_verdicts(raw)
+
+
+async def batch_judge_async(
+    rubric_points: list[dict[str, Any]], student_answer: str,
+    complete_fn: Callable[..., Any], api_key: str, *, model: str = "deepseek-chat",
+) -> dict[str, dict[str, Any]]:
+    """Async twin of ``batch_judge`` — awaits ``complete_fn`` directly so it is safe to call from inside
+    a running event loop (e.g. the deep_question runtime). Same fail-closed contract."""
+    prompt = _batch_prompt(rubric_points, student_answer)
+    try:
+        raw = await complete_fn(prompt=prompt, system_prompt=_BATCH_SYSTEM_PROMPT,
+                                model=model, api_key=api_key, max_retries=1)
+    except Exception:  # noqa: BLE001 — batch failure -> all miss+low_conf (high-risk fallback)
+        return {}
+    return _parse_batch_verdicts(raw)
+
+
+def make_batch_judge(complete_fn: Callable[..., Any], api_key: str, *, model: str = "deepseek-chat") -> JudgeFn:
+    """A JudgeFn backed by a single batched LLM call (cached per answer). Drop-in for grade_with_rubric."""
+    cache: dict[str, dict[str, dict[str, Any]]] = {}
+
+    def judge(point: dict[str, Any], answer: str, *, _all: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+        # cache keyed by answer; first call populates all verdicts via one batch call
+        if answer not in cache:
+            cache[answer] = batch_judge(_all or [point], answer, complete_fn, api_key, model=model)
+        return cache[answer].get(str(point.get("point_id")), {"status": MISS, "low_confidence": True})
+
+    return judge
+
+
+def grade_with_batch_judge(
+    *, qid: str, student_answer: str, rubric_points: list[dict[str, Any]],
+    complete_fn: Callable[..., Any], api_key: str, student_id: str = "", model: str = "deepseek-chat",
+) -> dict[str, Any]:
+    """grade_with_rubric using a SINGLE batched LLM call for all points (production case path)."""
+    verdicts = batch_judge(rubric_points, student_answer, complete_fn, api_key, model=model)
+
+    def judge(point: dict[str, Any], _answer: str) -> dict[str, Any]:
+        return verdicts.get(str(point.get("point_id")), {"status": MISS, "low_confidence": True})
+
+    return grade_with_rubric(qid=qid, student_answer=student_answer, rubric_points=rubric_points,
+                             judge_fn=judge, student_id=student_id)
+
+
+async def grade_with_batch_judge_async(
+    *, qid: str, student_answer: str, rubric_points: list[dict[str, Any]],
+    complete_fn: Callable[..., Any], api_key: str, student_id: str = "", model: str = "deepseek-chat",
+) -> dict[str, Any]:
+    """Async twin of ``grade_with_batch_judge`` — safe to call from a running event loop. ONE awaited
+    LLM call for all points; the deterministic sum (``grade_with_rubric``) stays unchanged."""
+    verdicts = await batch_judge_async(rubric_points, student_answer, complete_fn, api_key, model=model)
+
+    def judge(point: dict[str, Any], _answer: str) -> dict[str, Any]:
+        return verdicts.get(str(point.get("point_id")), {"status": MISS, "low_confidence": True})
+
+    return grade_with_rubric(qid=qid, student_answer=student_answer, rubric_points=rubric_points,
+                             judge_fn=judge, student_id=student_id)
+
+
 def make_llm_judge(complete_fn: Callable[..., Any], api_key: str, *, model: str = "deepseek-chat") -> JudgeFn:
     """Production judge: an LLM decides hit/partial/miss per scoring point (semantic, near-synonym aware).
     DeepSeek for cost; high-risk results route to a stronger model / human (handled by the caller)."""
@@ -196,5 +312,7 @@ def make_llm_judge(complete_fn: Callable[..., Any], api_key: str, *, model: str 
     return judge
 
 
-__all__ = ["grade_with_rubric", "to_learning_evidence", "load_rubric", "make_llm_judge",
+__all__ = ["grade_with_rubric", "grade_with_batch_judge", "grade_with_batch_judge_async",
+           "batch_judge", "batch_judge_async", "make_batch_judge",
+           "to_learning_evidence", "load_rubric", "make_llm_judge",
            "HIT", "PARTIAL", "MISS", "MISTAKE_MISS", "MISTAKE_NEAR_SYNONYM", "MISTAKE_PARTIAL_LIST"]
