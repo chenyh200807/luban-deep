@@ -59,6 +59,19 @@ def run() -> dict[str, Any]:
         except Exception:  # noqa: BLE001
             prior = None
     reg = CR.compile_registry(nodes, prior=prior)
+    # apply governed adjudications (B) if a decisions file is present (resolves structural_conflicts)
+    dec_path = OUT / "adjudication_decisions.json"
+    if not dec_path.exists():
+        alt = _REPO / "tmp" / "taxonomy_repair" / "adjudication_decisions.json"
+        dec_path = alt if alt.exists() else dec_path
+    if dec_path.exists():
+        try:
+            decisions = json.loads(dec_path.read_text("utf-8"))
+            reg = CR.apply_adjudications(reg, decisions)
+            (OUT / "migration_edges.json").write_text(
+                json.dumps(reg.get("migration_edges", []), ensure_ascii=False, indent=2), "utf-8")
+        except Exception:  # noqa: BLE001
+            pass
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "concept_registry.json").write_text(
         json.dumps(reg, ensure_ascii=False, sort_keys=True, separators=(",", ":")), "utf-8")
@@ -75,6 +88,8 @@ def run() -> dict[str, Any]:
     m = reg["manifest"]
     return {"input_nodes": m["input_nodes"], "concepts": m["concept_count"],
             "merged_confirmed": m["merged_confirmed"], "structural_conflicts": m["structural_conflicts"],
+            "unresolved_adjudications": m.get("unresolved_adjudications"),
+            "learner_state_durable_key_safe": m.get("learner_state_durable_key_safe"),
             "collided_codes": m["collided_codes"], "reused_prior_ids": m["reused_prior_ids"],
             "out": str(OUT)}
 

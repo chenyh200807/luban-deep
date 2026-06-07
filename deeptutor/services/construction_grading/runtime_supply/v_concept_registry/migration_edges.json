@@ -1,0 +1,233 @@
+[
+  {
+    "from": "c_44120ac8a810bc5e",
+    "to": "c_02e73993d5280b55",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "同章容器重复"
+  },
+  {
+    "from": "c_7280dab1cbef7289",
+    "to": "c_02f25921a4571bdb",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "同类信息技术"
+  },
+  {
+    "from": "c_9dac39f9c9cae3bd",
+    "to": "c_07a76e1889dc6e13",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "BIM子项重复"
+  },
+  {
+    "from": "c_217c57692e6c67f9",
+    "to": "c_0b80d728dd5bf142",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "绿色技术重复"
+  },
+  {
+    "from": "c_48d87dfb56ffb298",
+    "to": "c_0e2f7a7ae0c9992b",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "绿色技术重复"
+  },
+  {
+    "from": "c_88dfd4512a07a92d",
+    "to": "c_13e812ae4eae195c",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "父子编码重复"
+  },
+  {
+    "from": "c_e66c5e49a959473c",
+    "to": "c_17d88a69220595de",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "安全语义一致"
+  },
+  {
+    "from": "c_b2131051d4d254d7",
+    "to": "c_2865115e6a5a4ff8",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "父子编码重复"
+  },
+  {
+    "from": "c_6558a52da22bbd8a",
+    "to": "c_2d8804b2d18dcd7d",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "同类信息技术"
+  },
+  {
+    "from": "c_ccad9f34d6ce4356",
+    "to": "c_34744e3ba351089c",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "父子编码重复"
+  },
+  {
+    "from": "c_7018dd2bcae8e7e1",
+    "to": "c_3d6d575416005a4c",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "父子编码重复"
+  },
+  {
+    "from": "c_da1e085d8df143a9",
+    "to": "c_3d7c25c6e6259d25",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "绿色技术重复"
+  },
+  {
+    "from": "c_9fd9d3b9e5764ec7",
+    "to": "c_495b0b498a3ba26c",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "父子编码重复"
+  },
+  {
+    "from": "c_67f4872d2194597b",
+    "to": "c_51ef153b34bada42",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "绿色技术重复"
+  },
+  {
+    "from": "c_d2444720388e9104",
+    "to": "c_53a5bcdc3f805731",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "安全语义一致"
+  },
+  {
+    "from": "c_ea7456d973c312b0",
+    "to": "c_5feb18800fe9713c",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "绿色技术重复"
+  },
+  {
+    "from": "c_d4de60088d7c5612",
+    "to": "c_63115e645ce32cab",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "安全语义一致"
+  },
+  {
+    "from": "c_e48caf06700bda01",
+    "to": "c_658f631793012bd0",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "父子编码重复"
+  },
+  {
+    "from": "c_d110a8977cb4b9f1",
+    "to": "c_659ffe2c1a40182e",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "同章容器重复"
+  },
+  {
+    "from": "c_dfcf9eb26271b829",
+    "to": "c_6c68bc414f13cd61",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "同类信息技术"
+  },
+  {
+    "from": "c_f0fb2c5038a35b6f",
+    "to": "c_6e664c4401e69623",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "父子编码重复"
+  },
+  {
+    "from": "c_c23f17f8ae8cb0ce",
+    "to": "c_7326e1ad6e3e28bc",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "父子编码重复"
+  },
+  {
+    "from": "c_9728b11c8c02b816",
+    "to": "c_7e8af52f46a0e8b2",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "父子编码重复"
+  },
+  {
+    "from": "c_d9d70da84fb43f92",
+    "to": "c_88eab27fcd028dd1",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "同类信息技术"
+  },
+  {
+    "from": "c_8ef9264fe083766d",
+    "to": "c_8e5d9c987eb789fe",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "绿色技术重复"
+  },
+  {
+    "from": "c_fd3460c0a9a4f67a",
+    "to": "c_96d2e122b3355df7",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "BIM子项重复"
+  },
+  {
+    "from": "c_a79e9e552525580f",
+    "to": "c_97c294de87c8dd49",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "同章容器重复"
+  },
+  {
+    "from": "c_f4e03e5dbf1e53b5",
+    "to": "c_9e88eef7ab338637",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "同类信息技术"
+  },
+  {
+    "from": "c_ce8b5a3ae2ccefbd",
+    "to": "c_9fd61f73459d8250",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "父子编码重复"
+  },
+  {
+    "from": "c_f170736c25f32f99",
+    "to": "c_d43d43008193efb9",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "安全语义一致"
+  },
+  {
+    "from": "c_e85368c838f89b9c",
+    "to": "c_dd7bb70a537670f0",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "同类信息技术"
+  },
+  {
+    "from": "c_f120e59552e03b81",
+    "to": "c_ea0d91f7b47841ac",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "同类信息技术"
+  },
+  {
+    "from": "c_fb4582825ed7b240",
+    "to": "c_f730d84d5466c280",
+    "action": "adjudicated_merge",
+    "reviewer": "codex-gpt5.5-council",
+    "reason": "绿色技术重复"
+  }
+]

@@ -72,3 +72,34 @@ def test_concept_id_stable_across_recompile_with_prior():
 def test_deterministic():
     assert CR.compile_registry(_nodes())["manifest"]["content_hash"] == \
         CR.compile_registry(_nodes())["manifest"]["content_hash"]
+
+
+def test_long_id_and_publish_gate():
+    reg = CR.compile_registry(_nodes())
+    # 16-hex (64-bit) ids, collision-safe
+    assert all(len(cid) == 18 for cid in reg["concepts"])  # "c_" + 16 hex
+    m = reg["manifest"]
+    # has structural_conflict (防水层施工) -> NOT learner-key-safe, but usable for retrieval
+    assert m["unresolved_adjudications"] >= 1
+    assert m["learner_state_durable_key_safe"] is False
+    assert "learner_state_durable_key" in m["not_usable_as"]
+    assert "retrieval" in m["usable_as"]
+
+
+def test_apply_adjudications_merge_migrates_and_clears_gate():
+    reg = CR.compile_registry(_nodes())
+    wp = [c["concept_id"] for c in reg["concepts"].values()
+          if c["canonical_path"].endswith("防水层施工")]
+    assert len(wp) == 2
+    winner = sorted(wp)[0]
+    out = CR.apply_adjudications(reg, [{
+        "concept_ids": wp, "action": CR.ADJ_MERGE, "canonical_concept_id": winner,
+        "reviewer": "expert_1", "reason": "同一防水层施工概念"}])
+    # loser re-points to winner + migration edge produced
+    loser = [c for c in wp if c != winner][0]
+    assert out["concepts"][loser]["lineage"]["canonical_concept_id"] == winner
+    assert out["concepts"][loser]["lifecycle"]["status"] == "merged"
+    assert any(e["from"] == loser and e["to"] == winner for e in out["migration_edges"])
+    # all conflicts resolved -> gate opens
+    assert out["manifest"]["unresolved_adjudications"] == 0
+    assert out["manifest"]["learner_state_durable_key_safe"] is True

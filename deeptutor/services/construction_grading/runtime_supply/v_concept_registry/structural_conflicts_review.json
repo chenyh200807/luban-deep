@@ -1,6 +1,6 @@
 [
   {
-    "concept_id": "c_02e739",
+    "concept_id": "c_02e73993d5280b55",
     "canonical_path": "智能建造新技术 > 智慧工地信息技术",
     "parent": "1A413070",
     "alias_codes": [
@@ -8,7 +8,7 @@
     ]
   },
   {
-    "concept_id": "c_02f259",
+    "concept_id": "c_02f25921a4571bdb",
     "canonical_path": "智能建造新技术 > 智慧工地信息技术 > 项目成本分析与控制信息技术",
     "parent": "1A413146",
     "alias_codes": [
@@ -16,7 +16,7 @@
     ]
   },
   {
-    "concept_id": "c_07a76e",
+    "concept_id": "c_07a76e1889dc6e13",
     "canonical_path": "智能建造新技术 > 建筑信息模型(BIM)技术 > 模型创建与使用",
     "parent": "1A413143",
     "alias_codes": [
@@ -24,7 +24,7 @@
     ]
   },
   {
-    "concept_id": "c_0b80d7",
+    "concept_id": "c_0b80d728dd5bf142",
     "canonical_path": "智能建造新技术 > 绿色施工技术 > 垃圾管道垂直运输技术",
     "parent": "1A413160",
     "alias_codes": [
@@ -32,7 +32,7 @@
     ]
   },
   {
-    "concept_id": "c_0e2f7a",
+    "concept_id": "c_0e2f7a7ae0c9992b",
     "canonical_path": "智能建造新技术 > 绿色施工技术 > 工具式定型化临时设施技术",
     "parent": "1A413135",
     "alias_codes": [
@@ -40,7 +40,7 @@
     ]
   },
   {
-    "concept_id": "c_13e812",
+    "concept_id": "c_13e812ae4eae195c",
     "canonical_path": "建筑工程施工技术 > 屋面与防水工程施工 > 保温隔热工程施工 > 种植屋面施工要求",
     "parent": "1A413052-04",
     "alias_codes": [
@@ -48,7 +48,7 @@
     ]
   },
   {
-    "concept_id": "c_17d88a",
+    "concept_id": "c_17d88a69220595de",
     "canonical_path": "建筑工程施工技术 > 装饰装修工程施工 > 轻质隔墙工程施工 > 轻质隔墙施工安全控制 > 临时用电安全管理",
     "parent": "1A413061-02",
     "alias_codes": [
@@ -56,7 +56,7 @@
     ]
   },
   {
-    "concept_id": "c_217c57",
+    "concept_id": "c_217c57692e6c67f9",
     "canonical_path": "智能建造新技术 > 绿色施工技术 > 垃圾管道垂直运输技术",
     "parent": "1A413135",
     "alias_codes": [
@@ -64,7 +64,7 @@
     ]
   },
   {
-    "concept_id": "c_286511",
+    "concept_id": "c_2865115e6a5a4ff8",
     "canonical_path": "建筑工程施工技术 > 土石方工程施工 > 土石方工程与回填施工 > 土方回填施工要求",
     "parent": "1A413024",
     "alias_codes": [
@@ -72,7 +72,7 @@
     ]
   },
   {
-    "concept_id": "c_2d8804",
+    "concept_id": "c_2d8804b2d18dcd7d",
     "canonical_path": "智能建造新技术 > 智慧工地信息技术 > 现场施工管理信息技术",
     "parent": "1A413146",
     "alias_codes": [
@@ -80,7 +80,7 @@
     ]
   },
   {
-    "concept_id": "c_34744e",
+    "concept_id": "c_34744e3ba351089c",
     "canonical_path": "装饰装修工程材料 > 木材和木制品的特性与应用 > 木材的分类与特性",
     "parent": "1A412022",
     "alias_codes": [
@@ -88,7 +88,7 @@
     ]
   },
   {
-    "concept_id": "c_3d6d57",
+    "concept_id": "c_3d6d575416005a4c",
     "canonical_path": "建筑工程施工技术 > 土石方工程施工 > 土石方工程与回填施工 > 粉煤灰地基施工",
     "parent": "1A413024-04",
     "alias_codes": [
@@ -96,7 +96,7 @@
     ]
   },
   {
-    "concept_id": "c_3d7c25",
+    "concept_id": "c_3d7c25c6e6259d25",
     "canonical_path": "智能建造新技术 > 绿色施工技术 > 施工现场水收集综合利用技术",
     "parent": "1A413160",
     "alias_codes": [
@@ -104,7 +104,7 @@
     ]
   },
   {
-    "concept_id": "c_44120a",
+    "concept_id": "c_44120ac8a810bc5e",
     "canonical_path": "智能建造新技术 > 智慧工地信息技术",
     "parent": "1A413000",
     "alias_codes": [
@@ -112,7 +112,7 @@
     ]
   },
   {
-    "concept_id": "c_48d87d",
+    "concept_id": "c_48d87dfb56ffb298",
     "canonical_path": "智能建造新技术 > 绿色施工技术 > 工具式定型化临时设施技术",
     "parent": "1A413160",
     "alias_codes": [
@@ -120,7 +120,7 @@
     ]
   },
   {
-    "concept_id": "c_495b0b",
+    "concept_id": "c_495b0b498a3ba26c",
     "canonical_path": "土石方工程施工 > 土石方工程与回填施工 > 粉煤灰地基施工",
     "parent": "1A413024",
     "alias_codes": [
@@ -128,7 +128,7 @@
     ]
   },
   {
-    "concept_id": "c_51ef15",
+    "concept_id": "c_51ef153b34bada42",
     "canonical_path": "智能建造新技术 > 绿色施工技术 > 施工噪声控制技术",
     "parent": "1A413160",
     "alias_codes": [
@@ -136,7 +136,7 @@
     ]
   },
   {
-    "concept_id": "c_53a5bc",
+    "concept_id": "c_53a5bcdc3f805731",
     "canonical_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 轻质隔墙施工安全控制 > 高空作业安全防护",
     "parent": "1A413061-02",
     "alias_codes": [
@@ -144,7 +144,7 @@
     ]
   },
   {
-    "concept_id": "c_5feb18",
+    "concept_id": "c_5feb18800fe9713c",
     "canonical_path": "智能建造新技术 > 绿色施工技术 > 建筑垃圾减量化与资源化利用技术",
     "parent": "1A413160",
     "alias_codes": [
@@ -152,7 +152,7 @@
     ]
   },
   {
-    "concept_id": "c_63115e",
+    "concept_id": "c_63115e645ce32cab",
     "canonical_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 轻质隔墙施工安全控制 > 临时用电安全管理",
     "parent": "1A413061-03",
     "alias_codes": [
@@ -160,7 +160,7 @@
     ]
   },
   {
-    "concept_id": "c_6558a5",
+    "concept_id": "c_6558a52da22bbd8a",
     "canonical_path": "智能建造新技术 > 智慧工地信息技术 > 现场施工管理信息技术",
     "parent": "1A413180",
     "alias_codes": [
@@ -168,7 +168,7 @@
     ]
   },
   {
-    "concept_id": "c_658f63",
+    "concept_id": "c_658f631793012bd0",
     "canonical_path": "主体结构工程施工 > 常用施工脚手架 > 脚手架安全检查与验收",
     "parent": "1A413046-03",
     "alias_codes": [
@@ -176,7 +176,7 @@
     ]
   },
   {
-    "concept_id": "c_659ffe",
+    "concept_id": "c_659ffe2c1a40182e",
     "canonical_path": "智能建造新技术 > 建筑信息模型(BIM)技术",
     "parent": "1A413070",
     "alias_codes": [
@@ -184,7 +184,7 @@
     ]
   },
   {
-    "concept_id": "c_67f487",
+    "concept_id": "c_67f4872d2194597b",
     "canonical_path": "智能建造新技术 > 绿色施工技术 > 施工噪声控制技术",
     "parent": "1A413135",
     "alias_codes": [
@@ -192,7 +192,7 @@
     ]
   },
   {
-    "concept_id": "c_6c68bc",
+    "concept_id": "c_6c68bc414f13cd61",
     "canonical_path": "智能建造新技术 > 智慧工地信息技术 > 建筑垃圾监管技术",
     "parent": "1A413180",
     "alias_codes": [
@@ -200,7 +200,7 @@
     ]
   },
   {
-    "concept_id": "c_6e664c",
+    "concept_id": "c_6e664c4401e69623",
     "canonical_path": "屋面与防水工程施工 > 保温隔热工程施工 > 种植屋面施工要求",
     "parent": "1A413052-04",
     "alias_codes": [
@@ -208,7 +208,7 @@
     ]
   },
   {
-    "concept_id": "c_7018dd",
+    "concept_id": "c_7018dd2bcae8e7e1",
     "canonical_path": "建筑工程施工技术 > 土石方工程施工 > 土石方工程与回填施工 > 粉煤灰地基施工",
     "parent": "1A413024",
     "alias_codes": [
@@ -216,7 +216,7 @@
     ]
   },
   {
-    "concept_id": "c_7280da",
+    "concept_id": "c_7280dab1cbef7289",
     "canonical_path": "智能建造新技术 > 智慧工地信息技术 > 项目成本分析与控制信息技术",
     "parent": "1A413180",
     "alias_codes": [
@@ -224,7 +224,7 @@
     ]
   },
   {
-    "concept_id": "c_7326e1",
+    "concept_id": "c_7326e1ad6e3e28bc",
     "canonical_path": "土石方工程施工 > 土石方工程与回填施工 > 土方回填施工要求",
     "parent": "1A413024",
     "alias_codes": [
@@ -232,7 +232,7 @@
     ]
   },
   {
-    "concept_id": "c_7e8af5",
+    "concept_id": "c_7e8af52f46a0e8b2",
     "canonical_path": "主要建筑工程材料的性能与应用 > 装饰装修工程材料 > 木材和木制品的特性与应用 > 木材的分类与特性",
     "parent": "1A412022",
     "alias_codes": [
@@ -240,7 +240,7 @@
     ]
   },
   {
-    "concept_id": "c_88dfd4",
+    "concept_id": "c_88dfd4512a07a92d",
     "canonical_path": "建筑工程施工技术 > 屋面与防水工程施工 > 保温隔热工程施工 > 种植屋面施工要求",
     "parent": "1A413052",
     "alias_codes": [
@@ -248,7 +248,7 @@
     ]
   },
   {
-    "concept_id": "c_88eab2",
+    "concept_id": "c_88eab27fcd028dd1",
     "canonical_path": "智能建造新技术 > 智慧工地信息技术 > 项目多方协同管理技术",
     "parent": "1A413146",
     "alias_codes": [
@@ -256,7 +256,7 @@
     ]
   },
   {
-    "concept_id": "c_8e5d9c",
+    "concept_id": "c_8e5d9c987eb789fe",
     "canonical_path": "智能建造新技术 > 绿色施工技术 > 施工现场太阳能、空气能利用技术",
     "parent": "1A413135",
     "alias_codes": [
@@ -264,7 +264,7 @@
     ]
   },
   {
-    "concept_id": "c_8ef926",
+    "concept_id": "c_8ef9264fe083766d",
     "canonical_path": "智能建造新技术 > 绿色施工技术 > 施工现场太阳能、空气能利用技术",
     "parent": "1A413160",
     "alias_codes": [
@@ -272,7 +272,7 @@
     ]
   },
   {
-    "concept_id": "c_96d2e1",
+    "concept_id": "c_96d2e122b3355df7",
     "canonical_path": "智能建造新技术 > 建筑信息模型(BIM)技术 > 建筑信息模型(BIM)软件",
     "parent": "1A413143",
     "alias_codes": [
@@ -280,7 +280,7 @@
     ]
   },
   {
-    "concept_id": "c_9728b1",
+    "concept_id": "c_9728b11c8c02b816",
     "canonical_path": "主要建筑工程材料的性能与应用 > 装饰装修工程材料 > 木材和木制品的特性与应用 > 木材的分类与特性",
     "parent": "1A412022-01",
     "alias_codes": [
@@ -288,7 +288,7 @@
     ]
   },
   {
-    "concept_id": "c_97c294",
+    "concept_id": "c_97c294de87c8dd49",
     "canonical_path": "智能建造新技术 > 绿色施工技术",
     "parent": "1A413000",
     "alias_codes": [
@@ -296,7 +296,7 @@
     ]
   },
   {
-    "concept_id": "c_9dac39",
+    "concept_id": "c_9dac39f9c9cae3bd",
     "canonical_path": "智能建造新技术 > 建筑信息模型(BIM)技术 > 模型创建与使用",
     "parent": "1A413170",
     "alias_codes": [
@@ -304,7 +304,7 @@
     ]
   },
   {
-    "concept_id": "c_9e88ee",
+    "concept_id": "c_9e88eef7ab338637",
     "canonical_path": "智能建造新技术 > 智慧工地信息技术 > 劳务工人信息管理技术",
     "parent": "1A413180",
     "alias_codes": [
@@ -312,7 +312,7 @@
     ]
   },
   {
-    "concept_id": "c_9fd61f",
+    "concept_id": "c_9fd61f73459d8250",
     "canonical_path": "建筑工程施工技术 > 主体结构工程施工 > 常用施工脚手架 > 脚手架安全检查与验收",
     "parent": "1A413046",
     "alias_codes": [
@@ -320,7 +320,7 @@
     ]
   },
   {
-    "concept_id": "c_9fd9d3",
+    "concept_id": "c_9fd9d3b9e5764ec7",
     "canonical_path": "土石方工程施工 > 土石方工程与回填施工 > 粉煤灰地基施工",
     "parent": "1A413024-04",
     "alias_codes": [
@@ -328,7 +328,7 @@
     ]
   },
   {
-    "concept_id": "c_a79e9e",
+    "concept_id": "c_a79e9e552525580f",
     "canonical_path": "智能建造新技术 > 绿色施工技术",
     "parent": "1A413070",
     "alias_codes": [
@@ -336,7 +336,7 @@
     ]
   },
   {
-    "concept_id": "c_b21310",
+    "concept_id": "c_b2131051d4d254d7",
     "canonical_path": "建筑工程施工技术 > 土石方工程施工 > 土石方工程与回填施工 > 土方回填施工要求",
     "parent": "1A413024-04",
     "alias_codes": [
@@ -344,7 +344,7 @@
     ]
   },
   {
-    "concept_id": "c_c23f17",
+    "concept_id": "c_c23f17f8ae8cb0ce",
     "canonical_path": "土石方工程施工 > 土石方工程与回填施工 > 土方回填施工要求",
     "parent": "1A413024-04",
     "alias_codes": [
@@ -352,7 +352,7 @@
     ]
   },
   {
-    "concept_id": "c_ccad9f",
+    "concept_id": "c_ccad9f34d6ce4356",
     "canonical_path": "装饰装修工程材料 > 木材和木制品的特性与应用 > 木材的分类与特性",
     "parent": "1A412022-01",
     "alias_codes": [
@@ -360,7 +360,7 @@
     ]
   },
   {
-    "concept_id": "c_ce8b5a",
+    "concept_id": "c_ce8b5a3ae2ccefbd",
     "canonical_path": "建筑工程施工技术 > 主体结构工程施工 > 常用施工脚手架 > 脚手架安全检查与验收",
     "parent": "1A413046-03",
     "alias_codes": [
@@ -368,7 +368,7 @@
     ]
   },
   {
-    "concept_id": "c_d110a8",
+    "concept_id": "c_d110a8977cb4b9f1",
     "canonical_path": "智能建造新技术 > 建筑信息模型(BIM)技术",
     "parent": "1A413000",
     "alias_codes": [
@@ -376,7 +376,7 @@
     ]
   },
   {
-    "concept_id": "c_d24447",
+    "concept_id": "c_d2444720388e9104",
     "canonical_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 轻质隔墙施工安全控制 > 高空作业安全防护",
     "parent": "1A413061-03",
     "alias_codes": [
@@ -384,7 +384,7 @@
     ]
   },
   {
-    "concept_id": "c_d43d43",
+    "concept_id": "c_d43d43008193efb9",
     "canonical_path": "建筑工程施工技术 > 装饰装修工程施工 > 轻质隔墙工程施工 > 轻质隔墙施工安全控制 > 高空作业安全防护",
     "parent": "1A413061-02",
     "alias_codes": [
@@ -392,7 +392,7 @@
     ]
   },
   {
-    "concept_id": "c_d4de60",
+    "concept_id": "c_d4de60088d7c5612",
     "canonical_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 轻质隔墙施工安全控制 > 临时用电安全管理",
     "parent": "1A413061-02",
     "alias_codes": [
@@ -400,7 +400,7 @@
     ]
   },
   {
-    "concept_id": "c_d9d70d",
+    "concept_id": "c_d9d70da84fb43f92",
     "canonical_path": "智能建造新技术 > 智慧工地信息技术 > 项目多方协同管理技术",
     "parent": "1A413180",
     "alias_codes": [
@@ -408,7 +408,7 @@
     ]
   },
   {
-    "concept_id": "c_da1e08",
+    "concept_id": "c_da1e085d8df143a9",
     "canonical_path": "智能建造新技术 > 绿色施工技术 > 施工现场水收集综合利用技术",
     "parent": "1A413135",
     "alias_codes": [
@@ -416,7 +416,7 @@
     ]
   },
   {
-    "concept_id": "c_dd7bb7",
+    "concept_id": "c_dd7bb70a537670f0",
     "canonical_path": "智能建造新技术 > 智慧工地信息技术 > 项目物资全过程监管技术",
     "parent": "1A413180",
     "alias_codes": [
@@ -424,7 +424,7 @@
     ]
   },
   {
-    "concept_id": "c_dfcf9e",
+    "concept_id": "c_dfcf9eb26271b829",
     "canonical_path": "智能建造新技术 > 智慧工地信息技术 > 建筑垃圾监管技术",
     "parent": "1A413146",
     "alias_codes": [
@@ -432,7 +432,7 @@
     ]
   },
   {
-    "concept_id": "c_e48caf",
+    "concept_id": "c_e48caf06700bda01",
     "canonical_path": "主体结构工程施工 > 常用施工脚手架 > 脚手架安全检查与验收",
     "parent": "1A413046",
     "alias_codes": [
@@ -440,7 +440,7 @@
     ]
   },
   {
-    "concept_id": "c_e66c5e",
+    "concept_id": "c_e66c5e49a959473c",
     "canonical_path": "建筑工程施工技术 > 装饰装修工程施工 > 轻质隔墙工程施工 > 轻质隔墙施工安全控制 > 临时用电安全管理",
     "parent": "1A413061-03",
     "alias_codes": [
@@ -448,7 +448,7 @@
     ]
   },
   {
-    "concept_id": "c_e85368",
+    "concept_id": "c_e85368c838f89b9c",
     "canonical_path": "智能建造新技术 > 智慧工地信息技术 > 项目物资全过程监管技术",
     "parent": "1A413146",
     "alias_codes": [
@@ -456,7 +456,7 @@
     ]
   },
   {
-    "concept_id": "c_ea0d91",
+    "concept_id": "c_ea0d91f7b47841ac",
     "canonical_path": "智能建造新技术 > 智慧工地信息技术 > 电子商务采购技术",
     "parent": "1A413146",
     "alias_codes": [
@@ -464,7 +464,7 @@
     ]
   },
   {
-    "concept_id": "c_ea7456",
+    "concept_id": "c_ea7456d973c312b0",
     "canonical_path": "智能建造新技术 > 绿色施工技术 > 建筑垃圾减量化与资源化利用技术",
     "parent": "1A413135",
     "alias_codes": [
@@ -472,7 +472,7 @@
     ]
   },
   {
-    "concept_id": "c_f0fb2c",
+    "concept_id": "c_f0fb2c5038a35b6f",
     "canonical_path": "屋面与防水工程施工 > 保温隔热工程施工 > 种植屋面施工要求",
     "parent": "1A413052",
     "alias_codes": [
@@ -480,7 +480,7 @@
     ]
   },
   {
-    "concept_id": "c_f120e5",
+    "concept_id": "c_f120e59552e03b81",
     "canonical_path": "智能建造新技术 > 智慧工地信息技术 > 电子商务采购技术",
     "parent": "1A413180",
     "alias_codes": [
@@ -488,7 +488,7 @@
     ]
   },
   {
-    "concept_id": "c_f17073",
+    "concept_id": "c_f170736c25f32f99",
     "canonical_path": "建筑工程施工技术 > 装饰装修工程施工 > 轻质隔墙工程施工 > 轻质隔墙施工安全控制 > 高空作业安全防护",
     "parent": "1A413061-03",
     "alias_codes": [
@@ -496,7 +496,7 @@
     ]
   },
   {
-    "concept_id": "c_f4e03e",
+    "concept_id": "c_f4e03e5dbf1e53b5",
     "canonical_path": "智能建造新技术 > 智慧工地信息技术 > 劳务工人信息管理技术",
     "parent": "1A413146",
     "alias_codes": [
@@ -504,7 +504,7 @@
     ]
   },
   {
-    "concept_id": "c_f730d8",
+    "concept_id": "c_f730d84d5466c280",
     "canonical_path": "智能建造新技术 > 绿色施工技术 > 施工扬尘控制技术",
     "parent": "1A413135",
     "alias_codes": [
@@ -512,7 +512,7 @@
     ]
   },
   {
-    "concept_id": "c_fb4582",
+    "concept_id": "c_fb4582825ed7b240",
     "canonical_path": "智能建造新技术 > 绿色施工技术 > 施工扬尘控制技术",
     "parent": "1A413160",
     "alias_codes": [
@@ -520,7 +520,7 @@
     ]
   },
   {
-    "concept_id": "c_fd3460",
+    "concept_id": "c_fd3460c0a9a4f67a",
     "canonical_path": "智能建造新技术 > 建筑信息模型(BIM)技术 > 建筑信息模型(BIM)软件",
     "parent": "1A413170",
     "alias_codes": [

@@ -25,11 +25,17 @@ from __future__ import annotations
 import hashlib
 from typing import Any
 
-SCHEMA_VERSION = "luban_concept_registry.v2"
+SCHEMA_VERSION = "luban_concept_registry.v3"
 
 STATUS_CONFIRMED = "confirmed_same"
 STATUS_STRUCTURAL_CONFLICT = "structural_conflict"
 STATUS_SINGLETON = "singleton"
+
+# adjudication lifecycle (B): a structural_conflict moves through these via a governed decision.
+ADJ_PENDING = "pending"
+ADJ_MERGE = "adjudicated_merge"
+ADJ_SPLIT = "adjudicated_split"
+ADJ_DEPRECATED = "deprecated_alias"
 
 
 def _norm_path(name_path: str) -> str:
@@ -42,7 +48,8 @@ def name_path_hash(name_path: str) -> str:
 
 
 def _stable_id(seed: str) -> str:
-    return "c_" + hashlib.sha256(seed.encode("utf-8")).hexdigest()[:6]
+    # 16 hex (64-bit) — birthday-collision-safe for the registry size (vs the v2 6-hex/24-bit risk).
+    return "c_" + hashlib.sha256(seed.encode("utf-8")).hexdigest()[:16]
 
 
 def _group_key(name_path: str, parent: str) -> tuple[str, str]:
@@ -122,6 +129,15 @@ def compile_registry(nodes: list[dict[str, Any]], *, prior: dict[str, Any] | Non
             "alias_codes": g["alias_codes"],
             "keywords": g["keywords"],
             "source_nodes": g["source_nodes"],     # full provenance, not just keyword union
+            # lineage (B): governance over the concept's identity lifecycle. adjudication_status is
+            # 'pending' for an unresolved structural_conflict, else 'n/a'. A governed decision later
+            # fills supersedes/merged_from/split_from + flips canonical_concept_id.
+            "lineage": {
+                "adjudication_status": ADJ_PENDING if status == STATUS_STRUCTURAL_CONFLICT else "n/a",
+                "canonical_concept_id": cid,        # self until a merge adjudication re-points it
+                "supersedes": [], "merged_from": [], "split_from": None,
+                "valid_from": None, "valid_to": None,
+            },
             "lifecycle": {"status": "active", "replaced_by": None, "split_into": []},
         }
 
@@ -143,12 +159,23 @@ def compile_registry(nodes: list[dict[str, Any]], *, prior: dict[str, Any] | Non
         repr([(c["concept_id"], c["canonical_path"], c["parent"], c["equivalence_status"],
                tuple(k["text"] for k in c["keywords"])) for c in concepts.values()]).encode("utf-8")
     ).hexdigest()
+    unresolved = sum(1 for c in concepts.values()
+                     if c["lineage"]["adjudication_status"] == ADJ_PENDING)
+    # PUBLISH GATE: identity is a snapshot of the directory topology, NOT an adjudicated semantic
+    # identity. It is safe for retrieval / compilation / coverage indexing, but it MUST NOT be a
+    # learner_state durable key while any structural_conflict is unresolved (would transfer future
+    # adjudication cost onto learner data). Flips only after governance (B) resolves all conflicts.
+    learner_key_safe = unresolved == 0
     manifest = {
         "schema_version": SCHEMA_VERSION, "namespace": "concept_registry",
         "status": "release_candidate", "published": False,
         "input_nodes": len(nodes), "concept_count": len(concepts),
         "merged_confirmed": merged, "structural_conflicts": structural,
+        "unresolved_adjudications": unresolved,
         "collided_codes": collided, "reused_prior_ids": sum(1 for c in concepts if c in prior_by_fp.values()),
+        "usable_as": ["retrieval", "compilation", "coverage_indexing"],
+        "not_usable_as": ([] if learner_key_safe else ["learner_state_durable_key"]),
+        "learner_state_durable_key_safe": learner_key_safe,
         "content_hash": content_hash,
     }
     return {"manifest": manifest, "concepts": concepts, "alias_index": alias_index}
@@ -171,5 +198,58 @@ def resolve_alias(registry: dict[str, Any], code: str, name_path: str = "") -> s
     return hit
 
 
+def apply_adjudications(registry: dict[str, Any], decisions: list[dict[str, Any]]) -> dict[str, Any]:
+    """Apply governed adjudications (B) to resolve structural_conflicts deterministically.
+
+    Each decision: {concept_ids: [...], action: 'adjudicated_merge'|'adjudicated_split'|'deprecated_alias',
+    canonical_concept_id?, reviewer, reason}. MERGE: the listed concepts collapse into canonical_concept_id
+    (others get lineage.canonical_concept_id -> the winner, status adjudicated_merge, recorded in winner's
+    merged_from + a migration edge). KEEP/SPLIT: each stays its own concept, status adjudicated_split.
+    Returns a NEW registry dict + migration_edges (old_concept_id -> canonical_concept_id) so learner_state
+    can migrate. Pure: same registry + decisions -> same output."""
+    import copy
+    reg = copy.deepcopy(registry)
+    concepts = reg["concepts"]
+    migration_edges: list[dict[str, Any]] = []
+    for d in decisions:
+        ids = [c for c in (d.get("concept_ids") or []) if c in concepts]
+        action = str(d.get("action") or "")
+        reviewer = str(d.get("reviewer") or "")
+        reason = str(d.get("reason") or "")
+        if not ids or not reviewer:
+            continue
+        if action == ADJ_MERGE:
+            winner = str(d.get("canonical_concept_id") or ids[0])
+            if winner not in concepts:
+                continue
+            for cid in ids:
+                concepts[cid]["lineage"]["adjudication_status"] = ADJ_MERGE
+                concepts[cid]["lineage"]["canonical_concept_id"] = winner
+                concepts[cid]["lineage"]["reviewer"] = reviewer
+                concepts[cid]["lineage"]["reason"] = reason
+                if cid != winner:
+                    concepts[cid]["lifecycle"]["status"] = "merged"
+                    concepts[cid]["lifecycle"]["replaced_by"] = winner
+                    if cid not in concepts[winner]["lineage"]["merged_from"]:
+                        concepts[winner]["lineage"]["merged_from"].append(cid)
+                    migration_edges.append({"from": cid, "to": winner, "action": ADJ_MERGE,
+                                            "reviewer": reviewer, "reason": reason})
+        elif action in (ADJ_SPLIT, ADJ_DEPRECATED):
+            for cid in ids:
+                concepts[cid]["lineage"]["adjudication_status"] = action
+                concepts[cid]["lineage"]["reviewer"] = reviewer
+                concepts[cid]["lineage"]["reason"] = reason
+    # recompute the publish gate
+    unresolved = sum(1 for c in concepts.values()
+                     if c["lineage"]["adjudication_status"] == ADJ_PENDING)
+    reg["manifest"]["unresolved_adjudications"] = unresolved
+    reg["manifest"]["learner_state_durable_key_safe"] = unresolved == 0
+    reg["manifest"]["not_usable_as"] = [] if unresolved == 0 else ["learner_state_durable_key"]
+    reg["manifest"]["adjudications_applied"] = len([d for d in decisions if d.get("reviewer")])
+    reg["migration_edges"] = migration_edges
+    return reg
+
+
 __all__ = ["SCHEMA_VERSION", "STATUS_CONFIRMED", "STATUS_STRUCTURAL_CONFLICT", "STATUS_SINGLETON",
-           "name_path_hash", "compile_registry", "resolve_alias"]
+           "ADJ_PENDING", "ADJ_MERGE", "ADJ_SPLIT", "ADJ_DEPRECATED",
+           "name_path_hash", "compile_registry", "resolve_alias", "apply_adjudications"]
