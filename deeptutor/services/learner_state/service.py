@@ -1,34 +1,39 @@
 from __future__ import annotations
 
 import asyncio
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 import logging
-import re
-import uuid
-from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
 from pathlib import Path
+import re
 from typing import Any, Literal
+import uuid
 
 from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAULTS
-from deeptutor.services.learning_plan import LearningPlanService
 from deeptutor.services.learner_state.heartbeat import (
     LearnerHeartbeatJob,
     LearnerHeartbeatJobService,
 )
 from deeptutor.services.learner_state.heartbeat.service import _normalize_heartbeat_result_json
 from deeptutor.services.learner_state.heartbeat.store import _coerce_datetime
-from deeptutor.services.learner_state.outbox import (
-    LearnerStateOutbox as LearnerStateOutboxService,
-    LearnerStateOutboxItem,
-)
 from deeptutor.services.learner_state.learning_brain_read_model import (
     extract_learning_brain_projection,
     wrap_learning_brain_projection,
 )
-from deeptutor.services.path_service import PathService, get_path_service
+from deeptutor.services.learner_state.outbox import (
+    LearnerStateOutbox as LearnerStateOutboxService,
+)
+from deeptutor.services.learner_state.outbox import (
+    LearnerStateOutboxItem,
+)
+from deeptutor.services.learner_state.personalization_context import (
+    build_personalization_context_pack,
+)
 from deeptutor.services.learner_state.supabase_store import LearnerStateSupabaseSyncCoreStore
+from deeptutor.services.learning_plan import LearningPlanService
+from deeptutor.services.path_service import PathService, get_path_service
 from deeptutor.services.runtime_env import env_flag, is_production_environment
 
 llm_stream: Any | None = None
@@ -1485,6 +1490,13 @@ class LearnerStateService:
                 max_hits=max_memory_hits,
             )
         candidates = learner_candidates + memory_candidates
+        # Grading-to-Brain loop seam: surface the PersonalizationContextPack as a PROJECTION of the SAME
+        # compiled_learning_truth just read (one authority — NOT a second read / second recommender), so
+        # turn_runtime can inject it into the live turn. Degrades to empty claims when no truth exists.
+        personalization_context = build_personalization_context_pack(
+            user_id=normalized,
+            learning_brain=compiled_learning_truth if isinstance(compiled_learning_truth, dict) else None,
+        )
         return {
             "user_id": normalized,
             "query": query_text,
@@ -1494,6 +1506,7 @@ class LearnerStateService:
             "memory_candidates": memory_candidates,
             "candidates": candidates,
             "compiled_learning_truth": compiled_learning_truth,
+            "personalization_context": personalization_context,
         }
 
     async def refresh_from_turn(
@@ -2148,7 +2161,7 @@ class LearnerStateService:
             ),
             "",
             "## 备考主线" if str(language).lower().startswith("zh") else "## Study Focus",
-            f"- 默认场景：建筑工程类考试与《建筑工程管理与实务》学习" if str(language).lower().startswith("zh") else "- Default context: construction exam preparation and practice learning",
+            "- 默认场景：建筑工程类考试与《建筑工程管理与实务》学习" if str(language).lower().startswith("zh") else "- Default context: construction exam preparation and practice learning",
             f"- 会员等级：{_display(profile.get('tier'))}" if str(language).lower().startswith("zh") else f"- Membership tier: {_display(profile.get('tier'))}",
             f"- 账号状态：{_display(profile.get('status'))}" if str(language).lower().startswith("zh") else f"- Account status: {_display(profile.get('status'))}",
             f"- 考试日期：{_display(profile.get('exam_date'))}" if str(language).lower().startswith("zh") else f"- Exam date: {_display(profile.get('exam_date'))}",

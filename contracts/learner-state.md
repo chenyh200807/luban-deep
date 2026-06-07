@@ -214,6 +214,12 @@ Overlay 必须支持：
 - 兼容历史 construction grading 事件：早期 `memory_kind="learning_evidence"` 但缺少
   `payload.event_type` 的 `source_feature="construction_grading"` 事件仍应被 read model
   读取；新写入事件必须带 `payload.event_type="learning_evidence"`。
+- Grading-to-Brain loop seam：`build_context_candidates` 除 `compiled_learning_truth` 外，必须再返回
+  `personalization_context`（PersonalizationContextPack）。它是**对同一 `compiled_learning_truth` 的投影**
+  （单一 authority，不是第二次读取、不是第二套推荐器），由 `build_personalization_context_pack` 生成；
+  无 compiled truth 时降级为空 claims（`top_claims=[]`），**绝不**伪造。`personalization_context` 与 claims
+  的写入证据仍受 `synthesize_learning_truth` 的 release-eligibility 读过滤约束：shadow/candidate 或
+  `quality.writeback_eligible=False` 的事件即使泄漏进 `learner_memory_events`，也不得进入 claim / PCP。
 - 手动笔记/卡片来源的召回（recall）注入必须可识别且降权：`build_context_candidates`
   对 `memory_kind` 以 `notebook_` 开头或 `payload.metadata.source_label="student_note"`
   的命中，统一打顶层 `source_label="student_note"`、`weight ≤ 0.4`，并在注入文案前缀

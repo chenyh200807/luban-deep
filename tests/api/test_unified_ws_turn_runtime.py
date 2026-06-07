@@ -2,17 +2,19 @@ from __future__ import annotations
 
 import asyncio
 import base64
-import sqlite3
-import importlib
 from contextvars import ContextVar
+import importlib
+import sqlite3
 from types import SimpleNamespace
 
-import pytest
 from pydantic import ValidationError
+import pytest
 
 from deeptutor.capabilities.chat_mode import get_default_chat_mode
+from deeptutor.contracts.unified_turn import UnifiedTurnStartMessage
 from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.services.config.provider_runtime import ResolvedLLMConfig
+from deeptutor.services.semantic_router import build_active_object_from_question_context
 from deeptutor.services.session.sqlite_store import (
     SQLiteSessionStore,
     build_active_object_from_session,
@@ -20,20 +22,18 @@ from deeptutor.services.session.sqlite_store import (
 )
 from deeptutor.services.session.turn_runtime import (
     TurnRuntimeManager,
-    _LiveSubscriber,
-    _TurnExecution,
     _billing_capture_amount_from_usage_summary,
-    _learning_prompt_intent_trace_metadata,
-    _enrich_result_question_authority_from_trace,
-    _request_snapshot_metadata,
     _build_turn_semantic_decision,
+    _enrich_result_question_authority_from_trace,
+    _learning_prompt_intent_trace_metadata,
+    _LiveSubscriber,
+    _request_snapshot_metadata,
+    _resolve_question_followup_context_and_action,
     _result_active_object,
     _result_question_followup_context,
-    _resolve_question_followup_context_and_action,
     _sanitize_public_terminal_event,
+    _TurnExecution,
 )
-from deeptutor.services.semantic_router import build_active_object_from_question_context
-from deeptutor.contracts.unified_turn import UnifiedTurnStartMessage
 
 unified_ws_module = importlib.import_module("deeptutor.api.routers.unified_ws")
 
@@ -9328,6 +9328,14 @@ async def test_turn_runtime_context_orchestration_loads_bot_overlay_into_context
                     "subject": "construction_exam_learning_truth",
                     "weak_points": [{"concept_id": "1A432000", "error_code": "E02"}],
                 },
+                # Grading-to-Brain loop: PCP surfaced by build_context_candidates must reach the live turn.
+                "personalization_context": {
+                    "schema_version": 1,
+                    "source": "PersonalizationContextPack",
+                    "top_claims": [{"claim_id": "claim-1", "concept_id": "1A432000",
+                                    "claim_status": "confirmed"}],
+                    "next_best_action_candidates": [],
+                },
             }
 
         async def refresh_from_turn(self, **_kwargs):
@@ -9411,6 +9419,10 @@ async def test_turn_runtime_context_orchestration_loads_bot_overlay_into_context
 
     metadata = dict(captured["metadata"])
     assert metadata["compiled_learning_truth"]["subject"] == "construction_exam_learning_truth"
+    # Grading-to-Brain loop closed: the PersonalizationContextPack reaches the live turn metadata
+    # (consumers loop.py / RAGAdapterTool / deep_question already read metadata["personalization_context"]).
+    assert metadata["personalization_context"]["source"] == "PersonalizationContextPack"
+    assert metadata["personalization_context"]["top_claims"][0]["concept_id"] == "1A432000"
     trace = dict(metadata["context_pack_trace"])
     learner_selected = list(trace["blocks"]["learner"]["selected_candidates"])
     evidence_selected = list(trace["blocks"]["evidence"]["selected_candidates"])
