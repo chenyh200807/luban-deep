@@ -145,6 +145,7 @@ def run() -> dict[str, Any]:
     (OUT / "prerequisite_dag_removed.jsonl").write_text(
         "\n".join(json.dumps(e, ensure_ascii=False) for e in dag["removed"]), "utf-8")
     _emit_supabase_edges(graph)
+    _persist_runtime_adjacency(graph)
     return {"nodes": graph["stats"]["node_count"], "edges": graph["stats"]["edge_count"],
             "edges_by_type": graph["stats"]["edges_by_type"],
             "lecture_authored_edges": len(lec_edges), "llm_semantic_edges": len(sem_edges),
@@ -165,6 +166,36 @@ create table if not exists luban_canonical_knowledge_edges (
 create index if not exists idx_lkge_src on luban_canonical_knowledge_edges (src);
 create index if not exists idx_lkge_dst on luban_canonical_knowledge_edges (dst);
 """
+
+
+_ADJ_SUPPLY = _REPO / "deeptutor" / "services" / "construction_grading" / "runtime_supply" / "v_canonical_knowledge_graph"
+
+
+def _persist_runtime_adjacency(graph: dict[str, Any]) -> None:
+    """Persist a compact, verify-gated prerequisite/related adjacency the tutor can consume (#6).
+    TEACHING tier (official_score_allowed False); content node flags carried so the runtime can gate to
+    has_content nodes. content_hash for tamper detection — never an answer-key authority."""
+    import hashlib
+    adjacency: dict[str, dict[str, list[str]]] = {}
+    for e in graph["edges"]:
+        if e["type"] not in ("prerequisite", "related"):
+            continue
+        adjacency.setdefault(e["src"], {}).setdefault(e["type"], []).append(e["dst"])
+        if e["type"] == "related":  # related is undirected -> both directions
+            adjacency.setdefault(e["dst"], {}).setdefault("related", []).append(e["src"])
+    has_content = {c for c, n in graph["nodes"].items() if (n.get("counts") or {}) and
+                   sum((n.get("counts") or {}).values()) > 0}
+    name_path = {c: n.get("name_path") for c, n in graph["nodes"].items()}
+    body = {"adjacency": {k: {t: sorted(set(v)) for t, v in d.items()} for k, d in adjacency.items()},
+            "has_content": sorted(has_content), "name_path": name_path}
+    content_hash = hashlib.sha256(json.dumps(body, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
+    bundle = {"manifest": {"namespace": "canonical_knowledge_graph", "status": "release_candidate",
+                           "published": False, "tier": "teaching_context_not_answer_key",
+                           "official_score_allowed": False, "content_hash": content_hash,
+                           "node_count": len(name_path), "edge_nodes": len(adjacency)}, **body}
+    _ADJ_SUPPLY.mkdir(parents=True, exist_ok=True)
+    (_ADJ_SUPPLY / "graph_adjacency.json").write_text(
+        json.dumps(bundle, ensure_ascii=False, sort_keys=True, separators=(",", ":")), "utf-8")
 
 
 def _emit_supabase_edges(graph: dict[str, Any]) -> None:

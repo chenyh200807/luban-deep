@@ -23,7 +23,49 @@ _log = logging.getLogger(__name__)
 AUTHORITY = "luban_canonical_knowledge"
 _SUPPLY_DIR = Path(__file__).parent / "runtime_supply" / "v_canonical_unified_knowledge"
 _BUNDLE_NAME = "canonical_unified_knowledge.json"
+_GRAPH_DIR = Path(__file__).parent / "runtime_supply" / "v_canonical_knowledge_graph"
+_GRAPH_NAME = "graph_adjacency.json"
 _DEFAULT_PER_SOURCE = 6  # cap each source to its most-relevant N for one turn
+
+
+@lru_cache(maxsize=1)
+def _load_graph() -> dict[str, Any] | None:
+    """Load + verify the compact prerequisite/related adjacency (teaching tier). None on any problem."""
+    import hashlib
+    import json
+    p = _GRAPH_DIR / _GRAPH_NAME
+    if not p.exists():
+        return None
+    try:
+        b = json.loads(p.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return None
+    m = b.get("manifest") or {}
+    if m.get("official_score_allowed") is not False or m.get("tier") != "teaching_context_not_answer_key":
+        return None
+    body = {"adjacency": b.get("adjacency"), "has_content": b.get("has_content"), "name_path": b.get("name_path")}
+    if hashlib.sha256(json.dumps(body, ensure_ascii=False, sort_keys=True).encode()).hexdigest() != m.get("content_hash"):
+        _log.warning("knowledge-graph adjacency failed verify -> unavailable")
+        return None
+    return b
+
+
+def _graph_neighbors(node: str) -> dict[str, list[dict[str, str]]]:
+    """Content-gated, DAG-safe prerequisite/related neighbors of a node for teaching context (#6).
+    Returns only has_content neighbors with their name_path; empty if graph supply unavailable."""
+    g = _load_graph()
+    if not g:
+        return {}
+    has_content = set(g.get("has_content") or [])
+    name_path = g.get("name_path") or {}
+    adj = (g.get("adjacency") or {}).get(node) or {}
+    out: dict[str, list[dict[str, str]]] = {}
+    for rel in ("prerequisite", "related"):
+        items = [{"node_code": c, "name_path": name_path.get(c, c)}
+                 for c in (adj.get(rel) or []) if c in has_content]
+        if items:
+            out[rel] = items[:8]
+    return out
 
 
 @lru_cache(maxsize=1)
@@ -109,6 +151,7 @@ def resolve_canonical_knowledge(
         "selected_counts": counts,
         "node_source_totals": total,
         "sources": sources,
+        "graph_neighbors": _graph_neighbors(node),  # #6: prerequisite/related concepts (teaching only)
         "llm_may_decide_correctness": False,
         "writeback_performed": False,
     }

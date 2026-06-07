@@ -35,9 +35,12 @@ def supply(tmp_path, monkeypatch):
     (d / "canonical_unified_knowledge.json").write_text(
         json.dumps(bundle, ensure_ascii=False, sort_keys=True, separators=(",", ":")), "utf-8")
     monkeypatch.setattr(CK, "_SUPPLY_DIR", d)
+    monkeypatch.setattr(CK, "_GRAPH_DIR", tmp_path / "no_graph")  # hermetic: no graph adjacency by default
     CK._load.cache_clear()
+    CK._load_graph.cache_clear()
     yield
     CK._load.cache_clear()
+    CK._load_graph.cache_clear()
 
 
 def test_resolves_four_sources_teaching_tier(supply):
@@ -84,3 +87,23 @@ def test_authority_isolation_never_grants_official_score(supply):
         assert out["writeback_performed"] is False           # never writes learner-truth
         # no answer-key field leaks into the teaching payload
         assert "answer_key_authority" not in out and "required_terms" not in out
+
+
+def test_graph_neighbors_content_gated(supply, tmp_path, monkeypatch):
+    # build a tiny adjacency supply; prereq points to a has_content node + an empty node (gated out)
+    import hashlib
+    body = {"adjacency": {"1A413030-01": {"prerequisite": ["1A412010-01", "1A999999-01"]}},
+            "has_content": ["1A412010-01"], "name_path": {"1A412010-01": "材料 > 水泥"}}
+    ch = hashlib.sha256(json.dumps(body, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
+    gd = tmp_path / "graph"; gd.mkdir()
+    (gd / "graph_adjacency.json").write_text(json.dumps(
+        {"manifest": {"namespace": "canonical_knowledge_graph", "tier": "teaching_context_not_answer_key",
+                      "official_score_allowed": False, "content_hash": ch}, **body},
+        ensure_ascii=False, sort_keys=True, separators=(",", ":")), "utf-8")
+    monkeypatch.setattr(CK, "_GRAPH_DIR", gd)
+    CK._load_graph.cache_clear()
+    out = CK.resolve_canonical_knowledge("1A413030-01")
+    gn = out["graph_neighbors"]
+    assert [x["node_code"] for x in gn["prerequisite"]] == ["1A412010-01"]  # empty 1A999999-01 gated out
+    assert out["official_score_allowed"] is False  # still teaching tier
+    CK._load_graph.cache_clear()
