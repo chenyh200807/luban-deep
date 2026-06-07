@@ -1922,19 +1922,26 @@ async def _grade_case_batch_v1(
 ) -> dict[str, Any] | None:
     """Multi-item turns (type=="batch"): grade each subjective sub-item with the SAME V1 core and merge
     into one case_grading_completed event (deterministic sums), so render + same-source outcome work
-    unchanged. Non-case sub-items (e.g. MCQ) are left to legacy. None if no sub-item was gradable."""
+    unchanged. Non-case sub-items (e.g. MCQ) are left to legacy. None if no sub-item was gradable.
+
+    FAIL-SAFE: EVERY case sub-item must grade to a completed event. If even one degrades (no trustworthy
+    verdict), the whole batch falls back to legacy — a half-graded case merged from only the survivors
+    would render as a misleadingly "complete" score (e.g. 100% on a case where one sub-question was never
+    judged), which is worse than a low score because it looks whole."""
     items = graded_context.get("items") or []
+    case_items = [
+        it for it in items
+        if isinstance(it, dict)
+        and str((it.get("construction_grading_result") or {}).get("type") or "").lower() == "case"
+    ]
     sub_events: list[dict[str, Any]] = []
-    for item in items:
-        if not isinstance(item, dict):
-            continue
-        icg = item.get("construction_grading_result")
-        if str((icg or {}).get("type") or "").lower() != "case":
-            continue
+    for item in case_items:
         ev = await _grade_one_case_v1(item, student_id=student_id, complete=complete, key=key, _G=_G)
         if isinstance(ev, dict) and ev.get("event_type") == "case_grading_completed":
             sub_events.append(ev)
-    if not sub_events:
+    # No gradable case sub-item, OR a partial batch (some sub-item degraded) -> legacy, never a merged
+    # score built from only the survivors.
+    if not sub_events or len(sub_events) != len(case_items):
         return None
     # Preserve real per-sub-question identity (NOT the literal "batch"): the parent case qid if present,
     # else the distinct sub-question qids joined — so to_learning_evidence's source_refs carry true

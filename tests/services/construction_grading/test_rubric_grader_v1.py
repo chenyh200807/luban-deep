@@ -161,16 +161,62 @@ def test_grade_with_batch_judge_marks_degraded_on_empty_verdicts() -> None:
 
 
 def test_grade_with_batch_judge_not_degraded_for_genuine_all_miss() -> None:
-    # A real all-miss grade (student genuinely earned nothing) is NOT degraded — verdicts exist, the
-    # adjudication happened and is trustworthy. degraded must distinguish "no signal" from "low score".
+    # A real all-miss grade (student genuinely earned nothing) is NOT degraded — verdicts exist for EVERY
+    # point, the adjudication happened and is trustworthy. degraded must distinguish "no signal" from
+    # "low score". The LLM returns short idx (1..n), mapped back to real point_ids internally.
     async def _all_miss(**_kw):
-        return ('[{"point_id":"P1","status":"miss"},{"point_id":"P2","status":"miss"},'
-                '{"point_id":"P3","status":"miss"}]')
+        return '[{"idx":1,"status":"miss"},{"idx":2,"status":"miss"},{"idx":3,"status":"miss"}]'
 
     ev = asyncio.run(G.grade_with_batch_judge_async(
         qid="q", student_answer="ans", rubric_points=_rubric(), complete_fn=_all_miss, api_key="k"))
     assert ev["degraded"] is False
     assert ev["awarded_score"] == 0.0
+
+
+def test_batch_prompt_hides_long_pointids_and_uses_idx() -> None:
+    # ROOT-CAUSE: long compound point_ids (EXAM_...::E0::Q1-1) sent as LLM-echo keys get truncated/
+    # mismatched, silently scoring real hits as 0. The prompt must present SHORT ordinals (idx) only;
+    # the real point_id never leaves the process.
+    pts = [{"point_id": "EXAM_1A432000_P0016_02::E0::Q1-1", "text": "采分点甲", "score": 1.0,
+            "policy": "list", "required_terms": []},
+           {"point_id": "EXAM_1A432000_P0016_02::E0::Q1-2", "text": "采分点乙", "score": 1.0,
+            "policy": "list", "required_terms": []}]
+    prompt = G._batch_prompt(pts, "学生作答")
+    assert "EXAM_1A432000_P0016_02" not in prompt          # long id never shown to the LLM
+    assert "采分点甲" in prompt and "采分点乙" in prompt    # the text IS shown
+    assert '"idx":1' in prompt.replace(" ", "")            # short stable ordinal used
+
+
+def test_parse_batch_verdicts_maps_idx_to_real_pointid() -> None:
+    pts = [{"point_id": "EXAM::Q1-1", "text": "a", "score": 1.0, "policy": "list", "required_terms": []},
+           {"point_id": "EXAM::Q1-2", "text": "b", "score": 1.0, "policy": "list", "required_terms": []}]
+    raw = '[{"idx":1,"status":"hit"},{"idx":2,"status":"miss"}]'
+    verdicts = G._parse_batch_verdicts(raw, pts)
+    assert verdicts["EXAM::Q1-1"]["status"] == "hit"      # idx 1 -> real point_id 1
+    assert verdicts["EXAM::Q1-2"]["status"] == "miss"
+    # out-of-range / missing idx is ignored -> that point gets no verdict -> degraded coverage check
+    assert G._parse_batch_verdicts('[{"idx":9,"status":"hit"}]', pts) == {}
+    # robustness: DeepSeek sometimes stringifies idx ("1") — accepted (avoids needless degraded fallback)
+    sv = G._parse_batch_verdicts('[{"idx":"1","status":"hit"},{"idx":"2","status":"miss"}]', pts)
+    assert sv["EXAM::Q1-1"]["status"] == "hit" and sv["EXAM::Q1-2"]["status"] == "miss"
+    # bool is NOT a valid idx (json true coerces to 1 in python int check) — must be rejected
+    assert G._parse_batch_verdicts('[{"idx":true,"status":"hit"}]', pts) == {}
+
+
+def test_partial_coverage_is_degraded() -> None:
+    # STRICT coverage: a perfect answer where the LLM only returned a verdict for SOME points must NOT be
+    # surfaced as an authoritative (low) score — the missing points are silent zeros. Any gap -> degraded.
+    pts = [{"point_id": "P1", "text": "a", "score": 1.0, "policy": "list", "required_terms": []},
+           {"point_id": "P2", "text": "b", "score": 1.0, "policy": "list", "required_terms": []},
+           {"point_id": "P3", "text": "c", "score": 1.0, "policy": "list", "required_terms": []}]
+    partial = {"P1": {"status": "hit"}}                    # only 1 of 3 adjudicated
+    ev = G._grade_from_verdicts(qid="q", student_answer="完美", rubric_points=pts,
+                                verdicts=partial, student_id="s")
+    assert ev["degraded"] is True                          # not "0.33 authoritative", it's untrustworthy
+    full = {"P1": {"status": "hit"}, "P2": {"status": "hit"}, "P3": {"status": "miss"}}
+    ev2 = G._grade_from_verdicts(qid="q", student_answer="x", rubric_points=pts,
+                                 verdicts=full, student_id="s")
+    assert ev2["degraded"] is False                        # full coverage -> trustworthy
 
 
 def test_load_rubric_bank_is_cached_process_wide() -> None:
