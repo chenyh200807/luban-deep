@@ -31,7 +31,9 @@ def test_display_taxonomy_label_can_hide_machine_code() -> None:
 def test_construction_taxonomy_reads_compiled_final_cleaned_authority() -> None:
     source = taxonomy_source_metadata()
 
-    assert source["sha256"] == "01ade710cf7faee4915b6dcfe8075244eaf637613576d4af845326c7a88d5cc1"
+    # single-authority: A recompiled from the canonical 2026 source (identical (code,name) content to
+    # the legacy docs/ copy — verified), now projecting concept_registry deprecations.
+    assert source["sha256"] == "38249e82e4d7a38c5b50341bb0c75ef12e599850381a11160121a8dbbbd09e81"
     assert source["path"].endswith("FINAL_CLEANED_TAXONOMY2026.json")
 
 

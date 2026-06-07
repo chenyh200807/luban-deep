@@ -1,16 +1,18 @@
 from __future__ import annotations
 
 import asyncio
-import json
-import re
-import threading
 from collections import Counter
 from dataclasses import dataclass
 from functools import lru_cache
+import json
+import re
+import threading
 from typing import Any, Callable
 
 from deeptutor.services.taxonomy.taxonomy_authority import (
     normalize_taxonomy_code as _normalize_authority_taxonomy_code,
+)
+from deeptutor.services.taxonomy.taxonomy_authority import (
     taxonomy_index,
 )
 
@@ -69,7 +71,15 @@ def compile_taxonomy_payload(
     *,
     source_path: str,
     content_sha256: str,
+    deprecated_codes: set[str] | None = None,
 ) -> dict[str, Any]:
+    """Compile the canonical outline into the legacy taxonomy authority artifact.
+
+    ``deprecated_codes`` (single-authority projection): codes the concept_registry (B) adjudicated as
+    fabricated via Opus+Codex dual-model review are EXCLUDED here, so this artifact never serves a
+    fabricated concept as a label — A stays a consistent projection of B's truth, not a divergent
+    second authority. Empty/None preserves legacy behaviour."""
+    deprecated = {str(c) for c in (deprecated_codes or set())}
     nodes: list[dict[str, Any]] = []
 
     def walk(items: list[Any], path_names: list[str]) -> None:
@@ -79,6 +89,9 @@ def compile_taxonomy_payload(
             code = str(item.get("code") or item.get("node_code") or "").strip()
             name = normalize_learning_topic_text(item.get("name") or item.get("title"))
             if not code or not name:
+                continue
+            if code in deprecated:  # B-adjudicated fabricated concept -> never serve it
+                walk(list(item.get("children") or []), [*path_names, name])
                 continue
             next_path = [*path_names, name]
             keywords = [
