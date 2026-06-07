@@ -1261,10 +1261,10 @@ Page({
           };
 
           // 优先攻克：掌握度最低的 5 个章节
-	          var priorityChapters = Array.isArray(ap.priority_chapters)
-	            ? ap.priority_chapters
-	            : [];
-	          var priority = priorityChapters.map(function (c) {
+          var priorityChapters = Array.isArray(ap.priority_chapters)
+            ? ap.priority_chapters
+            : [];
+          var priority = priorityChapters.map(function (c) {
             return displayChapterName(typeof c === "object" ? c.name || c.code || "" : c);
           });
           if (!priority.length && chapterList.length) {
