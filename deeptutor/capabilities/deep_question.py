@@ -783,6 +783,10 @@ def _recover_missing_mcq_authority(
         if changed:
             recovered = dict(normalized)
             recovered["items"] = recovered_items
+            if len(recovered_items) == 1:
+                for key, value in recovered_items[0].items():
+                    if key != "items":
+                        recovered[key] = value
             return recovered, "questions_bank", _mcq_correct_answer_present(recovered)
         return normalized, "missing", False
 
@@ -791,6 +795,16 @@ def _recover_missing_mcq_authority(
         return normalized, "missing", False
     recovered = _fill_missing_mcq_authority(normalized, source_item)
     return recovered, "questions_bank", _mcq_correct_answer_present(recovered)
+
+
+def _question_authority_metadata(metadata: dict[str, Any] | None) -> dict[str, Any]:
+    if not isinstance(metadata, dict):
+        return {}
+    authority_metadata = dict(metadata)
+    trace_metadata = metadata.get("trace_metadata")
+    if isinstance(trace_metadata, dict):
+        authority_metadata.update(trace_metadata)
+    return authority_metadata
 
 
 def _mcq_trace_fields(
@@ -1279,7 +1293,21 @@ def _looks_like_wrong_cause_request(user_message: str) -> bool:
     text = str(user_message or "").strip().lower()
     if not text:
         return False
-    return any(marker in text for marker in ("错因", "错在哪", "哪里错", "为什么错"))
+    return any(
+        marker in text
+        for marker in (
+            "错因",
+            "错在哪",
+            "哪里错",
+            "为什么错",
+            "为什么不对",
+            "为啥不对",
+            "不对",
+            "扣分",
+            "怎么扣",
+            "怎么判",
+        )
+    )
 
 
 def _looks_like_missing_selection_check(user_message: str) -> bool:
@@ -1367,6 +1395,77 @@ def _render_targeted_brief_reference_feedback(
     return ""
 
 
+def _looks_like_option_scoring_or_challenge_request(user_message: str) -> bool:
+    text = str(user_message or "").strip().lower()
+    if not text:
+        return False
+    return any(
+        marker in text
+        for marker in (
+            "为什么",
+            "为啥",
+            "不对",
+            "错",
+            "扣分",
+            "怎么扣",
+            "怎么判",
+            "怎么评分",
+            "得几分",
+            "给几分",
+            "能拿",
+            "如果",
+            "假如",
+            "要是",
+        )
+    )
+
+
+def _named_option_letters(user_message: str, item: dict[str, Any]) -> list[str]:
+    options = dict(_option_entries(item))
+    if not options:
+        return []
+    letters: list[str] = []
+    for letter in _answer_letters(user_message):
+        if letter in options and letter not in letters:
+            letters.append(letter)
+    return letters
+
+
+def _render_targeted_option_reference_feedback(
+    user_message: str,
+    question_context: dict[str, Any] | None,
+) -> str:
+    if not _looks_like_option_scoring_or_challenge_request(user_message):
+        return ""
+    items = _reference_items(question_context)
+    if len(items) != 1:
+        return ""
+    item = items[0]
+    options = dict(_option_entries(item))
+    if not options:
+        return ""
+    named_letters = _named_option_letters(user_message, item)
+    if not named_letters:
+        return ""
+    letter = named_letters[0]
+    correct_letters = set(_answer_letters(item.get("correct_answer")))
+    answer = _format_answer_with_option_text(item, item.get("correct_answer"))
+    option = _format_answer_with_option_text(item, letter)
+    verdict = (
+        "它属于标准答案，会按正确项处理。"
+        if letter in correct_letters
+        else "它不属于标准答案；如果按这个选项作答，会判错，客观题通常不得分。"
+    )
+    explanation = _compact_text(str(item.get("explanation") or ""))
+    lines = [
+        f"{option}：{verdict}",
+        f"本题标准答案是 {answer}，我不会因为追问或假设选项改写标准答案。",
+    ]
+    if explanation:
+        lines.append(f"依据：{explanation}")
+    return "\n".join(lines).strip()
+
+
 def _render_brief_reference_feedback(
     user_message: str,
     question_context: dict[str, Any] | None,
@@ -1403,6 +1502,9 @@ def _render_deterministic_reference_feedback(
     *,
     user_message: str = "",
 ) -> str:
+    targeted_option = _render_targeted_option_reference_feedback(user_message, question_context)
+    if targeted_option:
+        return targeted_option
     targeted_brief = _render_targeted_brief_reference_feedback(user_message, question_context)
     if targeted_brief:
         return targeted_brief
@@ -2486,6 +2588,15 @@ class DeepQuestionCapability(BaseCapability):
                 return
 
             if next_action == "route_to_followup_explainer":
+                if self._is_unresolved_switch_followup(turn_semantic_decision):
+                    await self._emit_unresolved_switch_clarification(
+                        stream=stream,
+                        context=context,
+                        active_object=active_object,
+                        suspended_object_stack=suspended_object_stack,
+                        turn_semantic_decision=turn_semantic_decision,
+                    )
+                    return
                 await self._emit_followup_result(
                     stream=stream,
                     context=context,
@@ -2495,6 +2606,7 @@ class DeepQuestionCapability(BaseCapability):
                     suspended_object_stack=suspended_object_stack,
                     turn_semantic_decision=turn_semantic_decision,
                     followup_question_context=followup_question_context,
+                    raw_user_message=raw_user_message,
                 )
                 return
 
@@ -2513,6 +2625,7 @@ class DeepQuestionCapability(BaseCapability):
                     suspended_object_stack=suspended_object_stack,
                     turn_semantic_decision=turn_semantic_decision,
                     followup_question_context=followup_question_context,
+                    raw_user_message=raw_user_message,
                     force_default_decision=True,
                 )
                 return
@@ -2566,6 +2679,7 @@ class DeepQuestionCapability(BaseCapability):
                     suspended_object_stack=suspended_object_stack,
                     turn_semantic_decision=turn_semantic_decision,
                     followup_question_context=followup_question_context,
+                    raw_user_message=raw_user_message,
                 )
                 return
 
@@ -2888,6 +3002,13 @@ class DeepQuestionCapability(BaseCapability):
                 )
                 or {}
             )
+            trace_metadata = _question_authority_metadata(context.metadata)
+            if result_payload["question_followup_context"] and trace_metadata:
+                recovered_context, _, _ = _recover_missing_mcq_authority(
+                    result_payload["question_followup_context"],
+                    trace_metadata,
+                )
+                result_payload["question_followup_context"] = recovered_context
             result_payload["active_object"] = (
                 build_active_object_from_question_context(
                     result_payload["question_followup_context"],
@@ -3040,7 +3161,10 @@ class DeepQuestionCapability(BaseCapability):
                 working_context,
                 authority_source,
                 correct_answer_present,
-            ) = _recover_missing_mcq_authority(working_context, metadata)
+            ) = _recover_missing_mcq_authority(
+                working_context,
+                _question_authority_metadata(metadata),
+            )
             if not correct_answer_present:
                 blocked_context = _clear_blocked_grading_state(working_context)
                 await self._emit_missing_mcq_authority_result(
@@ -3397,21 +3521,22 @@ class DeepQuestionCapability(BaseCapability):
         suspended_object_stack: list[dict[str, Any]] | None,
         turn_semantic_decision: dict[str, Any] | None,
         followup_question_context: dict[str, Any],
+        raw_user_message: str,
         force_default_decision: bool = False,
     ) -> None:
         async with stream.stage("generation", source=self.name):
             if should_block_unanswered_reference_reveal(
-                context.user_message,
+                raw_user_message,
                 followup_question_context,
             ):
                 answer = "练习阶段不公开答案；你先作答，或明确说“我放弃这题/跳过这题”后，我再展示答案和解析。"
             elif _should_render_deterministic_reference_feedback(
-                context.user_message,
+                raw_user_message,
                 followup_question_context,
             ):
                 answer = _render_deterministic_reference_feedback(
                     followup_question_context,
-                    user_message=context.user_message,
+                    user_message=raw_user_message,
                 )
             else:
                 from deeptutor.agents.question.agents.followup_agent import FollowupAgent
@@ -3424,7 +3549,7 @@ class DeepQuestionCapability(BaseCapability):
                 )
                 agent.set_trace_callback(self._build_trace_bridge(stream))
                 answer = await agent.process(
-                    user_message=context.user_message,
+                    user_message=raw_user_message,
                     question_context=followup_question_context,
                     history_context=str(
                         context.metadata.get("conversation_context_text", "") or ""
@@ -3441,7 +3566,7 @@ class DeepQuestionCapability(BaseCapability):
                 next_action="route_to_followup_explainer",
                 active_object=result_active_object or active_object,
                 question_context=followup_question_context,
-                user_message=context.user_message,
+                user_message=raw_user_message,
             )
             followup_payload: dict[str, Any] = {
                 "response": answer or "",
@@ -3467,7 +3592,7 @@ class DeepQuestionCapability(BaseCapability):
             _attach_open_world_diagnostic(
                 followup_payload,
                 followup_question_context=followup_question_context,
-                user_message=str(context.user_message or ""),
+                user_message=raw_user_message,
                 answer=str(answer or ""),
             )
             cost_meta = self._collect_cost_summary("question")
@@ -3480,6 +3605,46 @@ class DeepQuestionCapability(BaseCapability):
                 sources=_citation_sources_from_question_context(followup_question_context),
                 emit_content_when_enabled=bool(answer),
             )
+
+    @staticmethod
+    def _is_unresolved_switch_followup(
+        turn_semantic_decision: dict[str, Any] | None,
+    ) -> bool:
+        if not isinstance(turn_semantic_decision, dict):
+            return False
+        relation = str(turn_semantic_decision.get("relation_to_active_object") or "").strip()
+        next_action = str(turn_semantic_decision.get("next_action") or "").strip()
+        return relation == "switch_to_new_object" and next_action == "route_to_followup_explainer"
+
+    async def _emit_unresolved_switch_clarification(
+        self,
+        *,
+        stream: StreamBus,
+        context: UnifiedContext,
+        active_object: dict[str, Any] | None,
+        suspended_object_stack: list[dict[str, Any]] | None,
+        turn_semantic_decision: dict[str, Any] | None,
+    ) -> None:
+        answer = "这轮没有定位到你说的那道题；我不会拿当前题的答案冒充。请重新粘贴题干/选项，或说清是哪一题。"
+        if not answer_citations_enabled():
+            await stream.content(answer, source=self.name, stage="generation")
+        payload = {
+            "response": answer,
+            "mode": "clarification",
+            "question_authority_source": "unresolved_switch_clarification",
+            "execution_path": "deep_question_unresolved_switch_clarification",
+            "clarification_reason": "unresolved_switch_target",
+            "question_followup_context": {},
+            "active_object": normalize_active_object(active_object) or {},
+            "suspended_object_stack": suspended_object_stack,
+            "turn_semantic_decision": turn_semantic_decision or {},
+        }
+        await self._emit_result_with_citations(
+            stream,
+            payload,
+            stage="generation",
+            emit_content_when_enabled=True,
+        )
 
     @staticmethod
     def _default_turn_semantic_decision(

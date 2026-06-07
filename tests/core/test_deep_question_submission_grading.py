@@ -604,6 +604,71 @@ async def test_deep_question_revealed_objective_answer_honors_explicit_brevity(
 
 
 @pytest.mark.asyncio
+async def test_deep_question_option_hypothetical_followup_gives_targeted_scoring_feedback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeCoordinator:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("Coordinator should not be constructed for follow-up mode")
+
+    class FailingFollowupAgent:
+        def __init__(self, **_kwargs: Any) -> None:
+            raise AssertionError("answered objective option scoring should use question authority")
+
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.coordinator",
+        AgentCoordinator=FakeCoordinator,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.agents.question.agents.followup_agent",
+        FollowupAgent=FailingFollowupAgent,
+    )
+    _install_module(
+        monkeypatch,
+        "deeptutor.services.llm.config",
+        get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
+    )
+
+    context = UnifiedContext(
+        user_message="C",
+        language="zh",
+        metadata={
+            "raw_user_message": "这里的最高点是不是屋脊？如果我选B，你会怎么扣？",
+            "conversation_context_text": "用户刚做完一道选择题。",
+            "turn_semantic_decision": {
+                "next_action": "route_to_followup_explainer",
+            },
+            "question_followup_action": {
+                "intent": "ask_followup",
+            },
+            "question_followup_context": {
+                "question_id": "q_roof",
+                "question": "压型金属板采用轻型屋面时，屋面最小坡度宜为多少？",
+                "question_type": "choice",
+                "options": {"A": "5%", "B": "屋脊", "C": "3%", "D": "最高点"},
+                "correct_answer": "D",
+                "user_answer": "C",
+                "is_correct": False,
+                "explanation": "题干问的是压型金属板屋面构造中的最高点。",
+            },
+        },
+    )
+
+    capability = DeepQuestionCapability()
+    events = await _collect_events(lambda bus: capability.run(context, bus))
+
+    result_event = next(event for event in events if event.type == StreamEventType.RESULT)
+    response = result_event.metadata["response"]
+    assert result_event.metadata["mode"] == "followup"
+    assert "B（屋脊）" in response
+    assert "不得分" in response
+    assert "D（最高点）" in response
+    assert "改写标准答案" in response
+
+
+@pytest.mark.asyncio
 async def test_deep_question_reveals_written_reference_without_followup_llm(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

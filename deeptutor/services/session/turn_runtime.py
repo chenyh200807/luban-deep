@@ -48,6 +48,8 @@ from deeptutor.services.observability.aae_scores import build_turn_aae_metadata
 from deeptutor.services.observability.turn_event_log import build_turn_observation_event
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.question_followup import (
+    build_choice_result_summary_from_exact_question,
+    build_question_followup_context_from_result_summary,
     followup_action_route,
     interpret_question_followup_action,
     looks_like_question_followup,
@@ -416,6 +418,119 @@ def _sanitize_public_terminal_event(event: StreamEvent, metadata: dict[str, Any]
             )
         metadata["metadata"] = nested_metadata
     return metadata
+
+
+def _exact_question_followup_context(trace_metadata: dict[str, Any]) -> dict[str, Any] | None:
+    exact_question = trace_metadata.get("exact_question")
+    if not isinstance(exact_question, dict):
+        return None
+    summary = build_choice_result_summary_from_exact_question(exact_question)
+    if not summary:
+        return None
+    return build_question_followup_context_from_result_summary(
+        summary,
+        "",
+        reveal_answers=bool(trace_metadata.get("reveal_answers", False)),
+        reveal_explanations=bool(trace_metadata.get("reveal_explanations", False)),
+    )
+
+
+def _merge_missing_question_authority(
+    target_context: dict[str, Any] | None,
+    authority_context: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    target = normalize_question_followup_context(target_context)
+    authority = normalize_question_followup_context(authority_context)
+    if not target or not authority:
+        return target
+
+    merged = dict(target)
+    for key in (
+        "correct_answer",
+        "explanation",
+        "grading_key",
+        "evidence_refs",
+        "knowledge_context",
+        "difficulty",
+        "concentration",
+    ):
+        if not merged.get(key) and authority.get(key):
+            merged[key] = authority[key]
+    if not merged.get("options") and authority.get("options"):
+        merged["options"] = authority["options"]
+
+    target_items = target.get("items") if isinstance(target.get("items"), list) else []
+    authority_items = authority.get("items") if isinstance(authority.get("items"), list) else []
+    if target_items and authority_items:
+        authority_by_id = {
+            str(item.get("question_id") or "").strip(): item
+            for item in authority_items
+            if isinstance(item, dict)
+        }
+        merged_items: list[dict[str, Any]] = []
+        for index, item in enumerate(target_items):
+            if not isinstance(item, dict):
+                continue
+            source = authority_by_id.get(str(item.get("question_id") or "").strip())
+            if source is None and index < len(authority_items):
+                source = authority_items[index] if isinstance(authority_items[index], dict) else None
+            merged_item = dict(item)
+            if source:
+                for key in (
+                    "correct_answer",
+                    "explanation",
+                    "grading_key",
+                    "evidence_refs",
+                    "knowledge_context",
+                    "difficulty",
+                    "concentration",
+                ):
+                    if not merged_item.get(key) and source.get(key):
+                        merged_item[key] = source[key]
+                if not merged_item.get("options") and source.get("options"):
+                    merged_item["options"] = source["options"]
+            merged_items.append(merged_item)
+        if merged_items:
+            merged["items"] = merged_items
+            if len(merged_items) == 1:
+                for key, value in merged_items[0].items():
+                    if key != "items":
+                        merged[key] = value
+
+    return normalize_question_followup_context(merged) or merged
+
+
+def _enrich_result_question_authority_from_trace(
+    metadata: dict[str, Any],
+    trace_metadata: dict[str, Any],
+) -> dict[str, Any]:
+    authority_context = _exact_question_followup_context(trace_metadata)
+    if not authority_context:
+        return metadata
+
+    current_context = metadata.get("question_followup_context")
+    active_object = metadata.get("active_object") if isinstance(metadata.get("active_object"), dict) else None
+    active_context = (
+        extract_question_context_from_active_object(active_object)
+        if active_object is not None
+        else None
+    )
+    base_context = (
+        current_context
+        if isinstance(current_context, dict) and current_context
+        else active_context
+    )
+    enriched_context = _merge_missing_question_authority(base_context, authority_context)
+    if not enriched_context:
+        return metadata
+
+    enriched = dict(metadata)
+    enriched["question_followup_context"] = enriched_context
+    if active_object is not None:
+        enriched_active_object = dict(active_object)
+        enriched_active_object["state_snapshot"] = enriched_context
+        enriched["active_object"] = enriched_active_object
+    return enriched
 
 
 def _build_terminal_turn_observation_event(
@@ -4742,6 +4857,15 @@ class TurnRuntimeManager:
                                 with contextlib.suppress(Exception):
                                     usage_scope_state.capability = capability_name
                             context.active_capability = capability_name
+                    if event.type == StreamEventType.RESULT:
+                        result_trace_metadata = {
+                            **trace_metadata,
+                            **dict(event.metadata or {}),
+                        }
+                        event.metadata = _enrich_result_question_authority_from_trace(
+                            dict(event.metadata or {}),
+                            result_trace_metadata,
+                        )
                     payload_event = await self._persist_and_publish(execution, event)
                     if (
                         payload_event.get("type") not in {"done", "session"}
