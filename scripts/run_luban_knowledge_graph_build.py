@@ -32,6 +32,8 @@ SUPPLY = _REPO / "deeptutor" / "services" / "construction_grading" / "runtime_su
 # optional LLM-mined semantic edges (prerequisite/related) to merge on top of authored edges.
 SEMANTIC_EDGES = Path(os.getenv("LUBAN_SEMANTIC_EDGES",
                                 str(_REPO / "tmp" / "unify_workflow" / "semantic_edges.json")))
+# expert-curated cross-chapter prerequisite seed (remediation #4), versioned with the code.
+CURRICULUM_SEED = _REPO / "deeptutor" / "services" / "construction_grading" / "curriculum_prerequisites.json"
 DATA = Path(os.getenv("LUBAN_DATA_DIR", "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026"))
 TAX_PATH = Path(os.getenv("LUBAN_TAX_PATH", str(DATA / "taxonomy" / "FINAL_CLEANED_TAXONOMY2026.json")))
 
@@ -105,6 +107,14 @@ def run() -> dict[str, Any]:
         }
 
     lec_edges = _lecture_edges(tax)
+    # expert-curated cross-chapter prerequisite seed (#4): high-precision, finite, DAG-by-construction.
+    seed_edges: list[dict[str, Any]] = []
+    if CURRICULUM_SEED.exists():
+        for e in json.loads(CURRICULUM_SEED.read_text("utf-8")).get("edges", []):
+            if tax.node(e.get("src")) is not None and tax.node(e.get("dst")) is not None:
+                seed_edges.append({"src": e["src"], "dst": e["dst"], "type": "prerequisite",
+                                   "relation_detail": str(e.get("note") or "")[:120],
+                                   "confidence": 0.95, "provenance": "curriculum_seed"})
     # LLM-mined semantic edges (optional): tag provenance so they're distinguishable from authored ones.
     sem_edges: list[dict[str, Any]] = []
     if SEMANTIC_EDGES.exists():
@@ -114,13 +124,13 @@ def run() -> dict[str, Any]:
                               "relation_detail": str(e.get("reason") or "")[:120],
                               "confidence": e.get("confidence"), "provenance": "llm_semantic"})
     # edge endpoints must be nodes too (else assemble drops them)
-    for e in lec_edges + sem_edges:
+    for e in lec_edges + sem_edges + seed_edges:
         for code in (e["src"], e["dst"]):
             if code not in nodes and tax.node(code) is not None:
                 nodes[code] = {"name_path": tax.name_path(code),
                                "counts": {"textbook": 0, "standard": 0, "lecture": 0, "question": 0},
                                "level": tax.node(code).level, "populated": False}
-    edges = KG.hierarchy_edges(tax, set(nodes)) + lec_edges + sem_edges
+    edges = KG.hierarchy_edges(tax, set(nodes)) + lec_edges + sem_edges + seed_edges
     graph = KG.assemble_graph(nodes, edges)
 
     # CLEANING PASS (remediation #1 + #2): drop tautological same-parent related + symmetric-dedup;
@@ -149,6 +159,7 @@ def run() -> dict[str, Any]:
     return {"nodes": graph["stats"]["node_count"], "edges": graph["stats"]["edge_count"],
             "edges_by_type": graph["stats"]["edges_by_type"],
             "lecture_authored_edges": len(lec_edges), "llm_semantic_edges": len(sem_edges),
+            "curriculum_seed_edges": len(seed_edges),
             "cleaning": graph["stats"]["cleaning"],
             "prerequisite_mutual_pairs": graph["stats"]["prerequisite_mutual_pairs"],
             "isolated_nodes": graph["stats"]["isolated_nodes"]}

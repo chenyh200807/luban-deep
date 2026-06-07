@@ -21,7 +21,7 @@
       "lane": "concept_graph",
       "path": "v_canonical_knowledge_graph/graph_adjacency.json",
       "namespace": "canonical_knowledge_graph",
-      "content_hash": "9f0060cec755f3528c60e744b22d341718e422e2f302df34a0a06061edabd8b4",
+      "content_hash": "421e69484befbdc39b115f10e1838fcc1aba79ca972e5edd8a4a64197448a628",
       "record_count": null,
       "tier": "teaching_context_not_answer_key"
     },
@@ -59,6 +59,6 @@
     }
   ],
   "shard_count": 6,
-  "content_hash": "0aa22e4ef134c48ab9e1bdabf8a09188c12f4b1b9d600d271101dbecfba45763",
-  "signature": "62a63b41a2b0b28106b7b1b31bdb1bdc048ba0bbad6e56dac371240ac4255deb"
+  "content_hash": "331ef838699204a601b6176d09ba29d917a7d1b82d025d651b51ca4f1b74b582",
+  "signature": "a608923a8d3e1874580c631e1dae03c3904bd2c12b49b8aa272a9debcffee15e"
 }

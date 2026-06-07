@@ -2212,7 +2212,8 @@ def _maybe_attach_textbook_knowledge(
             resolve_textbook_knowledge,
         )
 
-        # the turn's question text focuses the coarse node to its most-relevant cards (finer granularity)
+        # the turn's question text focuses the coarse node to its most-relevant cards (finer granularity);
+        # answered_incorrectly drives #6 prerequisite remediation (learner evidence, never written back)
         learner_context = {
             "student_id": student_id,
             "question_stem": str(graded_context.get("question_stem")
@@ -2220,6 +2221,7 @@ def _maybe_attach_textbook_knowledge(
                                  or graded_context.get("question")
                                  or graded_context.get("question_text") or ""),
             "user_answer": str(graded_context.get("user_answer") or ""),
+            "answered_incorrectly": graded_context.get("is_correct") is False,
         }
         payload = resolve_textbook_knowledge(node, learner_context=learner_context)
         if payload is not None:

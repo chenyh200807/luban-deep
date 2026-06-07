@@ -141,6 +141,7 @@ def resolve_canonical_knowledge(
         counts[src] = len(focused)
     if not any(counts.values()):
         return None
+    neighbors = _graph_neighbors(node)
     return {
         "authority": AUTHORITY,
         "mode": "canonical_unified_knowledge_node",
@@ -151,9 +152,30 @@ def resolve_canonical_knowledge(
         "selected_counts": counts,
         "node_source_totals": total,
         "sources": sources,
-        "graph_neighbors": _graph_neighbors(node),  # #6: prerequisite/related concepts (teaching only)
+        "graph_neighbors": neighbors,  # #6: prerequisite/related concepts (teaching only)
+        "remediation": _remediation(neighbors, lc),  # #6 learner_state-driven activation (D3)
         "llm_may_decide_correctness": False,
         "writeback_performed": False,
+    }
+
+
+def _remediation(neighbors: dict[str, list[dict[str, str]]], learner_context: dict[str, Any]) -> dict[str, Any]:
+    """#6 learner_state-driven activation (D3-compliant): the graph answers 'what are the prerequisites';
+    the LEARNER's evidence (this turn answered incorrectly, and/or a mastered-codes set) decides WHICH to
+    surface for 前置补救. We never write learner-truth; we only read it to filter the teaching hint.
+
+    - ``answered_incorrectly`` (turn-local evidence): surface the node's prerequisites to review.
+    - ``mastered_codes`` (optional global mastery from learner_state): drop already-mastered prereqs.
+    Returns an inactive block when there's no remediation trigger (no noise for correct answers)."""
+    prereqs = neighbors.get("prerequisite") or []
+    mastered = set(learner_context.get("mastered_codes") or [])
+    unmastered = [p for p in prereqs if p["node_code"] not in mastered]
+    triggered = bool(learner_context.get("answered_incorrectly")) and bool(unmastered)
+    return {
+        "active": triggered,
+        "trigger": "answered_incorrectly" if triggered else "none",
+        "review_prerequisites": unmastered if triggered else [],
+        "authority": "graph_prerequisite + learner_evidence_trigger; mastery stays learner_state",
     }
 
 

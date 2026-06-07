@@ -95,7 +95,8 @@ def test_graph_neighbors_content_gated(supply, tmp_path, monkeypatch):
     body = {"adjacency": {"1A413030-01": {"prerequisite": ["1A412010-01", "1A999999-01"]}},
             "has_content": ["1A412010-01"], "name_path": {"1A412010-01": "材料 > 水泥"}}
     ch = hashlib.sha256(json.dumps(body, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
-    gd = tmp_path / "graph"; gd.mkdir()
+    gd = tmp_path / "graph"
+    gd.mkdir()
     (gd / "graph_adjacency.json").write_text(json.dumps(
         {"manifest": {"namespace": "canonical_knowledge_graph", "tier": "teaching_context_not_answer_key",
                       "official_score_allowed": False, "content_hash": ch}, **body},
@@ -105,5 +106,41 @@ def test_graph_neighbors_content_gated(supply, tmp_path, monkeypatch):
     out = CK.resolve_canonical_knowledge("1A413030-01")
     gn = out["graph_neighbors"]
     assert [x["node_code"] for x in gn["prerequisite"]] == ["1A412010-01"]  # empty 1A999999-01 gated out
+    assert out["official_score_allowed"] is False  # still teaching tier
+    CK._load_graph.cache_clear()
+
+
+def _graph_supply(tmp_path, monkeypatch):
+    import hashlib
+    body = {"adjacency": {"1A413030-01": {"prerequisite": ["1A412010-01"]}},
+            "has_content": ["1A412010-01"], "name_path": {"1A412010-01": "材料 > 水泥"}}
+    ch = hashlib.sha256(json.dumps(body, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
+    gd = tmp_path / "graph"
+    gd.mkdir()
+    (gd / "graph_adjacency.json").write_text(json.dumps(
+        {"manifest": {"namespace": "canonical_knowledge_graph", "tier": "teaching_context_not_answer_key",
+                      "official_score_allowed": False, "content_hash": ch}, **body},
+        ensure_ascii=False, sort_keys=True, separators=(",", ":")), "utf-8")
+    monkeypatch.setattr(CK, "_GRAPH_DIR", gd)
+    CK._load_graph.cache_clear()
+
+
+def test_remediation_activates_only_on_wrong_answer(supply, tmp_path, monkeypatch):
+    _graph_supply(tmp_path, monkeypatch)
+    # answered incorrectly -> remediation active with the unmastered prerequisite
+    wrong = CK.resolve_canonical_knowledge("1A413030-01", learner_context={"answered_incorrectly": True})
+    assert wrong["remediation"]["active"] is True
+    assert [p["node_code"] for p in wrong["remediation"]["review_prerequisites"]] == ["1A412010-01"]
+    # answered correctly -> no remediation noise
+    right = CK.resolve_canonical_knowledge("1A413030-01", learner_context={"answered_incorrectly": False})
+    assert right["remediation"]["active"] is False and right["remediation"]["review_prerequisites"] == []
+    CK._load_graph.cache_clear()
+
+
+def test_remediation_drops_already_mastered_prerequisite(supply, tmp_path, monkeypatch):
+    _graph_supply(tmp_path, monkeypatch)
+    out = CK.resolve_canonical_knowledge("1A413030-01", learner_context={
+        "answered_incorrectly": True, "mastered_codes": ["1A412010-01"]})  # learner already mastered it
+    assert out["remediation"]["active"] is False  # nothing to remediate -> no noise
     assert out["official_score_allowed"] is False  # still teaching tier
     CK._load_graph.cache_clear()
