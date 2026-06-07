@@ -1,0 +1,56 @@
+{
+  "schema_version": "luban_canonical_knowledge_manifest.v1",
+  "namespace": "canonical_knowledge_manifest",
+  "status": "release_candidate",
+  "published": false,
+  "version": "2026.06.07",
+  "producer": "run_luban_canonical_knowledge_manifest",
+  "rollback_pointer": "legacy (no canonical manifest -> runtime uses per-shard pointers)",
+  "source_inventory_hash": "cdcc65aa2cc0dd8391d86792760270e0ccac2c9a7fb36f1c6b3e7ddecbf2eae4",
+  "source_file_count": 105,
+  "shards": [
+    {
+      "lane": "case_rubric",
+      "path": "v_slice_case_rubric/case_rubric_release_candidate_slice.json",
+      "namespace": "case_rubric_full",
+      "content_hash": "61dad410ba249183972c54c0fe4f37b6c092711bd4405a1abf19fa59bd2dd0db",
+      "record_count": 18,
+      "tier": "answer_authority"
+    },
+    {
+      "lane": "concept_graph",
+      "path": "v_canonical_knowledge_graph/graph_adjacency.json",
+      "namespace": "canonical_knowledge_graph",
+      "content_hash": "9f0060cec755f3528c60e744b22d341718e422e2f302df34a0a06061edabd8b4",
+      "record_count": null,
+      "tier": "teaching_context_not_answer_key"
+    },
+    {
+      "lane": "learning_mapping",
+      "path": "v_canonical_unified_knowledge/canonical_unified_knowledge.json",
+      "namespace": "canonical_unified_knowledge",
+      "content_hash": "7fc8717a2a23ba81d147010903aa7877df88ea8e271294618bc2c3a6366cce99",
+      "record_count": 395,
+      "tier": "teaching_context_not_answer_key"
+    },
+    {
+      "lane": "objective_answer_key",
+      "path": "v3_objective_records_released_m31/objective_answer_key_release_candidate_m31.json",
+      "namespace": "objective_answer_key_full",
+      "content_hash": "672ff9a653adf2d00b6501b4d6934e836b34b5d37608ad4d3169d672b41c1bdd",
+      "record_count": 2640,
+      "tier": "answer_authority"
+    },
+    {
+      "lane": "source_context",
+      "path": "v_textbook_knowledge_full/textbook_knowledge_release_candidate.json",
+      "namespace": "textbook_knowledge_full",
+      "content_hash": "01aba5a33736e5b4f17ad085ce7fefc1f0a946a268f9cbff4094b9452bf56fd0",
+      "record_count": 1303,
+      "tier": "answer_authority"
+    }
+  ],
+  "shard_count": 5,
+  "content_hash": "e5e4cd12b7c08b8f43d51465e46b43971cb1689f2b6a0dd2990a6c9e21c72225",
+  "signature": "3ac32b2a5abee0b11294fdee0b1d86700f9453bb782fa0b5b77fa447ec7a6cc2"
+}
