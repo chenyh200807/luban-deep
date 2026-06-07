@@ -111,6 +111,31 @@ def _row(
     }
 
 
+def _manual_check_status_and_blockers(
+    check_id: str,
+    payload: dict[str, Any],
+) -> tuple[str, list[str]]:
+    status = str(payload.get("status") or _WARN)
+    raw_blockers = payload.get("blockers") or []
+    blockers = (
+        [str(item) for item in raw_blockers]
+        if isinstance(raw_blockers, list)
+        else [str(raw_blockers)]
+    )
+    if check_id != "wechat_devtools":
+        return status, blockers
+
+    scenario_status = str(payload.get("scenario_evidence_status") or "").strip().lower()
+    if scenario_status not in {"pending", "preflight_only", "not_run", "missing"}:
+        return status, blockers
+
+    if "wechat_devtools_true_entry_pending" not in blockers:
+        blockers.append("wechat_devtools_true_entry_pending")
+    if _normalize_status(status) == _PASS:
+        status = _WARN
+    return status, blockers
+
+
 def _missing_row(check_id: str, label: str, summary: str, *, required: bool = True) -> dict[str, Any]:
     return _row(
         check_id=check_id,
@@ -265,18 +290,19 @@ def _manual_check_rows(store: ObservabilityControlPlaneStore, *, release: dict[s
                 )
             )
             continue
+        status, blockers = _manual_check_status_and_blockers(check_id, payload)
         rows.append(
             _row(
                 check_id=check_id,
                 label=str(payload.get("label") or config["label"]),
-                status=str(payload.get("status") or _WARN),
+                status=status,
                 required=bool(payload.get("required", config["required"])),
                 summary=str(payload.get("summary") or ""),
                 evidence=[str(item) for item in payload.get("evidence") or []],
                 run_id=str(record.get("run_id") or payload.get("run_id") or ""),
                 recorded_at=record.get("recorded_at"),
                 source_kind="readiness_checks",
-                blockers=[str(item) for item in payload.get("blockers") or []],
+                blockers=blockers,
             )
         )
     return rows

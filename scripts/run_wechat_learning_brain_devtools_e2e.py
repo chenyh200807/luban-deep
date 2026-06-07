@@ -64,6 +64,13 @@ def _levels(payload: dict[str, Any]) -> set[str]:
     }
 
 
+def _auth_mode_from_code(code: str) -> tuple[str, str]:
+    normalized = str(code or "").strip().lower()
+    if normalized.startswith(("dev-", "dev_", "mock-")):
+        return "qa_token", "local_dev_wechat"
+    return "logged_in", "real_wechat"
+
+
 def _open_devtools(project_path: Path) -> dict[str, Any]:
     if not DEVTOOLS_CLI.exists():
         raise RuntimeError(f"WeChat DevTools CLI not found: {DEVTOOLS_CLI}")
@@ -148,6 +155,7 @@ def _run_synthesis(*, user_id: str, event_limit: int, user_data_dir: str) -> dic
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
     code = args.code or f"dev-learning-brain-e2e-{time.time_ns()}-{uuid.uuid4().hex[:8]}"
+    auth_state, auth_mode = _auth_mode_from_code(code)
     login = _request_json(
         method="POST",
         base_url=args.base_url,
@@ -246,6 +254,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     return {
         "ok": True,
         "user_id": user_id,
+        "auth_state": auth_state,
+        "auth_mode": auth_mode,
         "devtools": devtools,
         "event_count": improved_projection.get("event_count"),
         "l1_levels": sorted(_levels(l1_projection)),

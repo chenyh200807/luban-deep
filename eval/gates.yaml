@@ -94,14 +94,15 @@ gates:
     command: ["npm", "run", "test:wechat-harness:data"]
 
   web_wechat_harness_e2e:
-    description: "Full Playwright /wechat-harness e2e with deterministic install check."
-    category: quick
+    description: "Full Playwright /wechat-harness e2e against an externally hosted web server; do not self-host Next dev in agent automation."
+    category: deep
     workdir: "web"
     timeout_seconds: 420
     slow_seconds: 180
+    deferred_reason: "requires externally hosted web server via WEB_BASE_URL; Codex/automation must not self-host Next dev"
     required_paths:
       - "web/package-lock.json"
-    command: ["npm", "run", "test:wechat-harness:e2e:ci"]
+    command: ["npm", "run", "test:wechat-harness:e2e"]
 
   semantic_router_deep:
     description: "Standalone semantic-router eval for active object and route continuity."

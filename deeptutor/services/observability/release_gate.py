@@ -62,26 +62,24 @@ def _is_long_dialog_case(item: dict[str, Any]) -> bool:
     )
 
 
-def _long_dialog_requires_live_ws(case_results: list[dict[str, Any]]) -> bool:
-    return any(_is_long_dialog_case(item) for item in case_results)
-
-
 def _long_dialog_live_ws_ready(
     *,
     case_results: list[dict[str, Any]],
     execution_context: dict[str, Any],
 ) -> bool:
-    if not _long_dialog_requires_live_ws(case_results):
+    long_dialog_suites = {
+        str(item.get(field) or "").strip()
+        for item in case_results
+        for field in ("suite", "source_suite")
+        if str(item.get(field) or "").strip().startswith("long-dialog")
+    }
+    if not long_dialog_suites:
         return True
     api_base_url = str(execution_context.get("api_base_url") or "").strip()
     suite_modes = execution_context.get("suite_execution_modes") or {}
     if not api_base_url:
         return False
-    return all(
-        mode == "live_ws"
-        for suite, mode in suite_modes.items()
-        if str(suite).startswith("long-dialog")
-    )
+    return all(suite_modes.get(suite) == "live_ws" for suite in long_dialog_suites)
 
 
 def _has_release_value(release: dict[str, Any], key: str) -> bool:

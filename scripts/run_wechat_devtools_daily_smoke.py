@@ -64,6 +64,29 @@ def _login_ok(record: dict[str, Any]) -> bool:
     return '"login":true' in compact or "'login':true" in compact
 
 
+def _auth_boundary_from_devtools_login(login: dict[str, Any]) -> dict[str, str]:
+    devtools_logged_in = _login_ok(login)
+    return {
+        "devtools_account_login_state": "logged_in" if devtools_logged_in else "auth_blocked",
+        "auth_state": "auth_blocked" if not devtools_logged_in else "unknown",
+        "auth_mode": "none",
+    }
+
+
+def _readiness_boundary(*, preflight_ok: bool) -> dict[str, Any]:
+    if not preflight_ok:
+        return {
+            "readiness_status": "FAIL",
+            "scenario_evidence_status": "not_run",
+            "readiness_blockers": ["wechat_devtools_failed"],
+        }
+    return {
+        "readiness_status": "WARN",
+        "scenario_evidence_status": "pending",
+        "readiness_blockers": ["wechat_devtools_true_entry_pending"],
+    }
+
+
 def _coverage_targets() -> list[str]:
     return [
         "real mini-program container",
@@ -88,6 +111,10 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             "trace_source": "devtools_cli_open",
             "project_path": str(project_path),
             "target_subpackage": TARGET_SUBPACKAGE,
+            "devtools_account_login_state": "unknown",
+            "auth_state": "unknown",
+            "auth_mode": "none",
+            **_readiness_boundary(preflight_ok=False),
             "error": f"WeChat DevTools CLI not found: {DEVTOOLS_CLI}",
             "coverage_targets": _coverage_targets(),
         }
@@ -100,6 +127,10 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             "trace_source": "devtools_cli_open",
             "project_path": str(project_path),
             "target_subpackage": TARGET_SUBPACKAGE,
+            "devtools_account_login_state": "unknown",
+            "auth_state": "unknown",
+            "auth_mode": "none",
+            **_readiness_boundary(preflight_ok=False),
             "error": f"WeChat project path not found: {project_path}",
             "coverage_targets": _coverage_targets(),
         }
@@ -148,6 +179,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         )
 
     ok = all(bool(check.get("ok")) for check in checks)
+    auth_boundary = _auth_boundary_from_devtools_login(login)
     return {
         "ok": ok,
         "run_id": f"wechat-devtools-daily-smoke-{int(time.time())}",
@@ -155,11 +187,13 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "trace_source": "devtools_cli_open",
         "project_path": str(project_path),
         "target_subpackage": TARGET_SUBPACKAGE,
+        **auth_boundary,
+        **_readiness_boundary(preflight_ok=ok),
         "devtools_cli": str(DEVTOOLS_CLI),
         "coverage_targets": _coverage_targets(),
         "evidence_boundary": (
             "DevTools CLI smoke covers project-open/runtime-base preflight; page-level "
-            "scenario pass still requires automator or manual page evidence."
+            "scenario pass and app auth still require automator or manual page evidence."
         ),
         "checks": checks,
     }

@@ -85,6 +85,8 @@ def _surface_readiness_missing_evidence(
                 "entry_surface=real_wechat_package",
                 f"project_path={WECHAT_DEVTOOLS_PROJECT_ROOT}",
                 f"target_subpackage={WECHAT_DEVTOOLS_TARGET_SUBPACKAGE}",
+                "auth_state=unknown",
+                "auth_mode=none",
                 "coverage_targets=container,project_config,page_stack,network_baseURL,WS,cache,login",
                 "boundary=islogin/open are preflight until page scenario or automator evidence exists",
             ]
