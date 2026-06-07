@@ -34,6 +34,7 @@ import {
   type BiCommercePackage,
   type BiCommerceRechargeRecord,
 } from '@/lib/bi-api'
+import { CommerceCockpit } from '@/components/bi-cockpit/CommerceCockpit'
 
 type Tab = 'recharges' | 'ledger' | 'packages'
 
@@ -92,7 +93,11 @@ function tableStatus(loading: boolean, error: string, rowCount: number) {
 function matchesQuery(values: Array<string | number | null | undefined>, query: string) {
   if (!query) return true
   const normalized = query.toLowerCase()
-  return values.some(value => String(value ?? '').toLowerCase().includes(normalized))
+  return values.some(value =>
+    String(value ?? '')
+      .toLowerCase()
+      .includes(normalized)
+  )
 }
 
 export function BiV2CommercePanel({ flagEnabled, globalQuery = '' }: BiV2CommercePanelProps) {
@@ -202,7 +207,12 @@ export function BiV2CommercePanel({ flagEnabled, globalQuery = '' }: BiV2Commerc
     } else if (filteredPackages.length > 0) {
       setTab('packages')
     }
-  }, [filteredLedger.length, filteredPackages.length, filteredRecharges.length, normalizedGlobalQuery])
+  }, [
+    filteredLedger.length,
+    filteredPackages.length,
+    filteredRecharges.length,
+    normalizedGlobalQuery,
+  ])
 
   const rechargeColumns = useMemo<BiTableColumn<BiCommerceRechargeRecord>[]>(
     () => [
@@ -220,13 +230,21 @@ export function BiV2CommercePanel({ flagEnabled, globalQuery = '' }: BiV2Commerc
         key: 'points',
         label: '入账(点)',
         align: 'right',
-        render: row => <BiMoneyCell amount={row.points} currency="POINT" trust={row.trust as 'A' | 'B' | 'C' | 'D'} />,
+        render: row => (
+          <BiMoneyCell
+            amount={row.points}
+            currency="POINT"
+            trust={row.trust as 'A' | 'B' | 'C' | 'D'}
+          />
+        ),
       },
       { key: 'channel', label: '来源', render: row => commerceSourceLabel(row.channel) },
       {
         key: 'status',
         label: '状态',
-        render: row => <BiStatusPill tone={STATUS_TONE[row.status] ?? 'slate'} label={row.status || 'unknown'} />,
+        render: row => (
+          <BiStatusPill tone={STATUS_TONE[row.status] ?? 'slate'} label={row.status || 'unknown'} />
+        ),
       },
       { key: 'at', label: '时间', render: row => <BiDateTime value={row.createdAt} /> },
     ],
@@ -248,13 +266,21 @@ export function BiV2CommercePanel({ flagEnabled, globalQuery = '' }: BiV2Commerc
       {
         key: 'kind',
         label: '类型',
-        render: row => <BiStatusPill tone={KIND_TONE[row.kind] ?? 'slate'} label={row.kind || row.eventType} />,
+        render: row => (
+          <BiStatusPill tone={KIND_TONE[row.kind] ?? 'slate'} label={row.kind || row.eventType} />
+        ),
       },
       {
         key: 'amount',
         label: '金额(点)',
         align: 'right',
-        render: row => <BiMoneyCell amount={row.amount} currency="POINT" trust={row.trust as 'A' | 'B' | 'C' | 'D'} />,
+        render: row => (
+          <BiMoneyCell
+            amount={row.amount}
+            currency="POINT"
+            trust={row.trust as 'A' | 'B' | 'C' | 'D'}
+          />
+        ),
       },
       {
         key: 'authority',
@@ -270,8 +296,8 @@ export function BiV2CommercePanel({ flagEnabled, globalQuery = '' }: BiV2Commerc
     return (
       <section className="space-y-4">
         <BiV2DataSourceBanner tone="amber">
-          BI_COMMERCE_V2_ENABLED 未开启 · 商品账务不会展示半成品数据。开启前需完成只读 API、
-          admin 鉴权、mock 边界与前端 smoke。
+          BI_COMMERCE_V2_ENABLED 未开启 · 商品账务不会展示半成品数据。开启前需完成只读 API、 admin
+          鉴权、mock 边界与前端 smoke。
         </BiV2DataSourceBanner>
       </section>
     )
@@ -293,58 +319,25 @@ export function BiV2CommercePanel({ flagEnabled, globalQuery = '' }: BiV2Commerc
           </BiButton>
         }
       >
-          BI_COMMERCE_V2_ENABLED 已开启 · 套餐读取 {data?.authority.packages ?? 'loading'}，入账/钱包流水读取{' '}
-          {data?.authority.wallet_ledger ?? 'loading'}；订单 authority 仍为{' '}
-          {data?.authority.orders ?? 'pending'}，所有修账写动作禁用。
+        BI_COMMERCE_V2_ENABLED 已开启 · 套餐读取 {data?.authority.packages ?? 'loading'}
+        ，入账/钱包流水读取 {data?.authority.wallet_ledger ?? 'loading'}；订单 authority 仍为{' '}
+        {data?.authority.orders ?? 'pending'}，所有修账写动作禁用。
       </BiV2DataSourceBanner>
 
       {error ? (
-        <BiNotice tone="rose">
-          商品账务 API 不可用：{error}。当前不会回退到 mock。
-        </BiNotice>
+        <BiNotice tone="rose">商品账务 API 不可用：{error}。当前不会回退到 mock。</BiNotice>
       ) : null}
 
-      {data?.warnings.length ? (
-        <BiNotice tone="amber">
-          {data.warnings.join(' · ')}
-        </BiNotice>
-      ) : null}
+      {data?.warnings.length ? <BiNotice tone="amber">{data.warnings.join(' · ')}</BiNotice> : null}
 
       {globalQuery.trim() ? (
         <BiNotice tone="slate">
-          全局搜索：<code className="font-mono">{globalQuery.trim()}</code> · 当前按订单 /
-          流水 / 会员 / 套餐字段过滤商品账务读模型。
+          全局搜索：<code className="font-mono">{globalQuery.trim()}</code> · 当前按订单 / 流水 /
+          会员 / 套餐字段过滤商品账务读模型。
         </BiNotice>
       ) : null}
 
-      <AnomalyBar anomalies={data?.anomalies ?? []} loading={loading} />
-
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-        <SummaryTile
-          icon={CreditCard}
-          label="入账流水"
-          value={summary?.rechargeCount ?? 0}
-          hint={`入账 ${summary?.creditPoints ?? 0} 点`}
-        />
-        <SummaryTile
-          icon={Wallet}
-          label="钱包流水"
-          value={summary?.ledgerCount ?? 0}
-          hint={`扣减 ${summary?.debitPoints ?? 0} 点`}
-        />
-        <SummaryTile
-          icon={FileText}
-          label="套餐权益"
-          value={summary?.packageCount ?? 0}
-          hint={data?.authority.packages ?? '加载中'}
-        />
-        <SummaryTile
-          icon={AlertTriangle}
-          label="账务异常"
-          value={summary?.anomalyCount ?? 0}
-          hint={data?.authority.anomalies ?? '规则加载中'}
-        />
-      </div>
+      <CommerceCockpit data={data} />
 
       <div className="flex items-center gap-2 border-b border-white/10">
         <TabBtn
@@ -404,7 +397,11 @@ export function BiV2CommercePanel({ flagEnabled, globalQuery = '' }: BiV2Commerc
             emptyHint="订单 authority 未接入时，只展示 wallet_ledger / member_console 中可证明的入账。"
             rowAction={row => (
               <BiButton
-                onClick={() => setExpandedRechargeId(expandedRechargeId === row.ledgerEventId ? null : row.ledgerEventId)}
+                onClick={() =>
+                  setExpandedRechargeId(
+                    expandedRechargeId === row.ledgerEventId ? null : row.ledgerEventId
+                  )
+                }
                 variant="secondary"
                 size="xs"
                 aria-label={`查看入账流水 ${row.id || row.ledgerEventId} 详情`}
@@ -456,7 +453,13 @@ export function BiV2CommercePanel({ flagEnabled, globalQuery = '' }: BiV2Commerc
   )
 }
 
-function AnomalyBar({ anomalies, loading }: { anomalies: ReadonlyArray<BiCommerceAnomaly>; loading: boolean }) {
+function AnomalyBar({
+  anomalies,
+  loading,
+}: {
+  anomalies: ReadonlyArray<BiCommerceAnomaly>
+  loading: boolean
+}) {
   if (loading) {
     return (
       <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-3 text-xs text-slate-300">
@@ -479,7 +482,10 @@ function AnomalyBar({ anomalies, loading }: { anomalies: ReadonlyArray<BiCommerc
       </div>
       <div className="mt-2 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
         {anomalies.map(item => (
-          <article key={item.ruleId} className="rounded-2xl border border-white/10 bg-[#101927] px-3 py-2 text-xs">
+          <article
+            key={item.ruleId}
+            className="rounded-2xl border border-white/10 bg-[#101927] px-3 py-2 text-xs"
+          >
             <div className="flex items-center justify-between gap-2">
               <BiIdToken value={item.ruleId} className="font-semibold text-slate-100" />
               <div className="flex gap-1">
@@ -561,21 +567,32 @@ function RechargeDetailRow({
       <h4 className="text-sm font-black text-white">入账流水 {row.id || row.ledgerEventId}</h4>
       <ul className="mt-2 space-y-1 text-slate-300">
         <li>
-          会员：<BiIdToken value={row.userId} />
+          会员：
+          <BiIdToken value={row.userId} />
         </li>
         <li>
-          入账：<BiMoneyCell amount={row.points} currency="POINT" align="left" trust={row.trust as 'A' | 'B' | 'C' | 'D'} />
+          入账：
+          <BiMoneyCell
+            amount={row.points}
+            currency="POINT"
+            align="left"
+            trust={row.trust as 'A' | 'B' | 'C' | 'D'}
+          />
         </li>
-        <li>来源：{commerceSourceLabel(row.channel)} · 状态：{row.status}</li>
         <li>
-          idempotency_key：<BiIdToken value={row.idempotencyKey || '--'} />
+          来源：{commerceSourceLabel(row.channel)} · 状态：{row.status}
+        </li>
+        <li>
+          idempotency_key：
+          <BiIdToken value={row.idempotencyKey || '--'} />
         </li>
         <li>
           authority：{row.authority || '--'} · trust {row.trust || '--'}
         </li>
         {ledger ? (
           <li>
-            关联 ledger：<BiIdToken value={ledger.id} /> · {ledger.referenceType || '--'} /{' '}
+            关联 ledger：
+            <BiIdToken value={ledger.id} /> · {ledger.referenceType || '--'} /{' '}
             <BiIdToken value={ledger.referenceId || '--'} />
           </li>
         ) : null}
@@ -588,20 +605,29 @@ function LedgerDetailRow({ row }: { row?: BiCommerceLedgerRow }) {
   if (!row) return null
   return (
     <div className="mt-2 rounded-2xl border border-white/10 bg-white/[0.045] p-3 text-xs">
-      <h4 className="text-sm font-black text-white">ledger <BiIdToken value={row.id} /> 元数据</h4>
+      <h4 className="text-sm font-black text-white">
+        ledger <BiIdToken value={row.id} /> 元数据
+      </h4>
       <ul className="mt-2 space-y-1 text-slate-300">
         <li>
-          会员：<BiIdToken value={row.userId} />
+          会员：
+          <BiIdToken value={row.userId} />
         </li>
         <li>
           类型：{row.kind} · 金额：
-          <BiMoneyCell amount={row.amount} currency="POINT" align="left" trust={row.trust as 'A' | 'B' | 'C' | 'D'} />
+          <BiMoneyCell
+            amount={row.amount}
+            currency="POINT"
+            align="left"
+            trust={row.trust as 'A' | 'B' | 'C' | 'D'}
+          />
         </li>
         <li>
           reference：{row.referenceType || '--'} / <BiIdToken value={row.referenceId || '--'} />
         </li>
         <li>
-          idempotency_key：<BiIdToken value={row.idempotencyKey || '--'} />
+          idempotency_key：
+          <BiIdToken value={row.idempotencyKey || '--'} />
         </li>
         <li>
           authority：{row.authority || '--'} · trust {row.trust || '--'}
@@ -627,35 +653,66 @@ function PackageGrid({
   error: string
 }) {
   if (loading) {
-    return <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-6 text-center text-xs text-slate-400">套餐加载中…</div>
+    return (
+      <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-6 text-center text-xs text-slate-400">
+        套餐加载中…
+      </div>
+    )
   }
   if (error) {
-    return <div className="rounded-2xl border border-rose-300/25 bg-rose-300/10 p-6 text-center text-xs text-rose-100">套餐加载失败：{error}</div>
+    return (
+      <div className="rounded-2xl border border-rose-300/25 bg-rose-300/10 p-6 text-center text-xs text-rose-100">
+        套餐加载失败：{error}
+      </div>
+    )
   }
   if (packages.length === 0) {
-    return <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-6 text-center text-xs text-slate-400">暂无套餐权益数据。</div>
+    return (
+      <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-6 text-center text-xs text-slate-400">
+        暂无套餐权益数据。
+      </div>
+    )
   }
   return (
     <ul className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
       {packages.map(pkg => (
-        <li key={pkg.id} className="rounded-2xl border border-white/10 bg-white/[0.045] p-4 text-xs shadow-lg shadow-black/15">
+        <li
+          key={pkg.id}
+          className="rounded-2xl border border-white/10 bg-white/[0.045] p-4 text-xs shadow-lg shadow-black/15"
+        >
           <div className="flex items-center justify-between gap-2">
             <div>
               <h3 className="text-sm font-black text-white">{pkg.name}</h3>
               <p className="text-[11px] text-slate-400">{pkg.tier.toUpperCase()}</p>
             </div>
-            <BiStatusPill tone={STATUS_TONE[pkg.status] ?? 'slate'} label={pkg.status || 'unknown'} />
+            <BiStatusPill
+              tone={STATUS_TONE[pkg.status] ?? 'slate'}
+              label={pkg.status || 'unknown'}
+            />
           </div>
           <div className="mt-2 flex items-baseline justify-between">
-            <BiMoneyCell amount={pkg.points} currency="POINT" align="left" trust={pkg.trust as 'A' | 'B' | 'C' | 'D'} />
-            <BiMoneyCell amount={pkg.priceCny} currency="CNY" align="right" trust={pkg.trust as 'A' | 'B' | 'C' | 'D'} />
+            <BiMoneyCell
+              amount={pkg.points}
+              currency="POINT"
+              align="left"
+              trust={pkg.trust as 'A' | 'B' | 'C' | 'D'}
+            />
+            <BiMoneyCell
+              amount={pkg.priceCny}
+              currency="CNY"
+              align="right"
+              trust={pkg.trust as 'A' | 'B' | 'C' | 'D'}
+            />
           </div>
           <ul className="mt-2 space-y-0.5 text-[11px] text-slate-300">
             {pkg.features.map((feature, index) => (
               <li key={`${pkg.id}-${index}`}>· {feature}</li>
             ))}
           </ul>
-          <p className="mt-2 truncate text-[10px] text-slate-400" title={`authority: ${pkg.authority || '--'} · trust ${pkg.trust || '--'} · P0 只读`}>
+          <p
+            className="mt-2 truncate text-[10px] text-slate-400"
+            title={`authority: ${pkg.authority || '--'} · trust ${pkg.trust || '--'} · P0 只读`}
+          >
             authority: {pkg.authority || '--'} · trust {pkg.trust || '--'} · P0 只读
           </p>
         </li>
