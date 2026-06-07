@@ -224,7 +224,7 @@ function getAnimConfig() {
   if (level === "low") {
     return {
       enableBreathingOrbs: false, // 低端优先保证输入、滚动和流式响应
-      enableMarquee: false,
+      enableMarquee: true, // 保留首页示例跑马灯；低端降级只关重型动效
       enableMsgAnimation: false, // 关闭消息入场动画
       enableFocusPulse: false, // 关闭焦点脉冲
       orbIntervalMs: 0,
