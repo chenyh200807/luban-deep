@@ -209,7 +209,7 @@ module.exports = {
 
         <!-- 用户消息 -->
         <view class="bubble-user" wx:if="{{item.role === 'user'}}">
-          <text class="user-text" selectable>{{item.content}}</text>
+          <text class="user-text" user-select>{{item.content}}</text>
           <view class="user-bar">
             <view style="flex:1"></view>
             <view class="ub-btn" bindtap="onCopy" data-msgid="{{item.id}}" aria-role="button" aria-label="复制消息">
@@ -230,26 +230,26 @@ module.exports = {
               <view class="thinking-head">
                 <view class="thinking-badge thinking-badge-{{item.thinkingTone ? item.thinkingTone : 'analyze'}}">
                   <view class="dots-bounce"><view class="dot"></view><view class="dot"></view><view class="dot"></view></view>
-                  <text class="thinking-badge-text">{{item.thinkingBadge ? item.thinkingBadge : 'AI 正在分析'}}</text>
+                  <text class="thinking-badge-text" user-select>{{item.thinkingBadge ? item.thinkingBadge : 'AI 正在分析'}}</text>
                 </view>
                 <view class="thinking-scan thinking-scan-{{item.thinkingTone ? item.thinkingTone : 'analyze'}}"></view>
               </view>
-              <text class="thinking-label">{{item.thinkingStatus}}</text>
-              <text class="thinking-sub">{{item.thinkingSub}}</text>
+              <text class="thinking-label" user-select>{{item.thinkingStatus}}</text>
+              <text class="thinking-sub" user-select>{{item.thinkingSub}}</text>
               <view class="workflow-bar" wx:if="{{item.workflowMeta || item.workflowEntries.length}}">
-                <text class="workflow-meta-text" wx:if="{{item.workflowMeta}}">{{item.workflowMeta}}</text>
+                <text class="workflow-meta-text" user-select wx:if="{{item.workflowMeta}}">{{item.workflowMeta}}</text>
                 <view class="workflow-toggle" bindtap="onToggleWorkflowTrace" data-msgid="{{item.id}}" aria-role="button" aria-label="{{item.workflowExpanded ? '收起处理摘要' : '查看处理摘要'}}">
-                  <text class="workflow-toggle-text">{{item.workflowExpanded ? '收起摘要' : (item.workflowToggleText || '查看处理摘要')}}</text>
-                  <text class="workflow-toggle-arrow">{{item.workflowExpanded ? '⌃' : '⌄'}}</text>
+                  <text class="workflow-toggle-text" user-select>{{item.workflowExpanded ? '收起摘要' : (item.workflowToggleText || '查看处理摘要')}}</text>
+                  <text class="workflow-toggle-arrow" user-select>{{item.workflowExpanded ? '⌃' : '⌄'}}</text>
                 </view>
               </view>
               <view class="workflow-trace" wx:if="{{item.workflowExpanded && item.workflowEntries.length}}">
                 <view class="workflow-step" wx:for="{{item.workflowEntries}}" wx:key="id" wx:for-item="wf">
                   <view class="workflow-step-head">
-                    <text class="workflow-step-badge workflow-step-badge-{{wf.tone}}">{{wf.badge}}</text>
-                    <text class="workflow-step-title">{{wf.title}}</text>
+                    <text class="workflow-step-badge workflow-step-badge-{{wf.tone}}" user-select>{{wf.badge}}</text>
+                    <text class="workflow-step-title" user-select>{{wf.title}}</text>
                   </view>
-                  <text class="workflow-step-detail" wx:if="{{wf.detail}}">{{wf.detail}}</text>
+                  <text class="workflow-step-detail" user-select wx:if="{{wf.detail}}">{{wf.detail}}</text>
                 </view>
               </view>
             </view>
@@ -258,30 +258,30 @@ module.exports = {
           <!-- 思考中：生成阶段维持轻量提示 -->
           <view class="thinking thinking-inline" wx:elif="{{showInternalStatus && item.thinkingStatus && !(item.mcqCards && item.mcqCards.length) && !(item.workflowEntries.length && (item.renderableContent || item.blocks.length || (item.mcqCards && item.mcqCards.length)))}}">
             <view class="dots-bounce"><view class="dot"></view><view class="dot"></view><view class="dot"></view></view>
-            <text class="thinking-label">{{item.thinkingStatus}}</text>
+            <text class="thinking-label" user-select>{{item.thinkingStatus}}</text>
           </view>
 
           <view class="workflow-card workflow-card-{{item.workflowTone ? item.workflowTone : 'compose'}}" wx:if="{{showInternalStatus && item.workflowEntries.length && (item.renderableContent || item.blocks.length || (item.mcqCards && item.mcqCards.length))}}">
             <view class="workflow-card-head">
               <view class="workflow-card-title">
-                <text class="workflow-card-badge">{{item.workflowBadge || '本轮推演'}}</text>
-                <text class="workflow-card-label">{{item.workflowTitle || '处理摘要已完成'}}</text>
+                <text class="workflow-card-badge" user-select>{{item.workflowBadge || '本轮推演'}}</text>
+                <text class="workflow-card-label" user-select>{{item.workflowTitle || '处理摘要已完成'}}</text>
               </view>
               <view class="workflow-toggle workflow-toggle-inline" bindtap="onToggleWorkflowTrace" data-msgid="{{item.id}}" aria-role="button" aria-label="{{item.workflowExpanded ? '收起处理摘要' : '查看处理摘要'}}">
-                <text class="workflow-toggle-text">{{item.workflowExpanded ? '收起摘要' : (item.workflowToggleText || '查看处理摘要')}}</text>
-                <text class="workflow-toggle-arrow">{{item.workflowExpanded ? '⌃' : '⌄'}}</text>
+                <text class="workflow-toggle-text" user-select>{{item.workflowExpanded ? '收起摘要' : (item.workflowToggleText || '查看处理摘要')}}</text>
+                <text class="workflow-toggle-arrow" user-select>{{item.workflowExpanded ? '⌃' : '⌄'}}</text>
               </view>
             </view>
-            <text class="workflow-card-sub" wx:if="{{item.workflowSub}}">{{item.workflowSub}}</text>
-            <text class="workflow-meta-text" wx:if="{{item.workflowMeta}}">{{item.workflowMeta}}</text>
-            <text class="workflow-card-count" wx:if="{{item.workflowCountText}}">{{item.workflowCountText}}</text>
+            <text class="workflow-card-sub" user-select wx:if="{{item.workflowSub}}">{{item.workflowSub}}</text>
+            <text class="workflow-meta-text" user-select wx:if="{{item.workflowMeta}}">{{item.workflowMeta}}</text>
+            <text class="workflow-card-count" user-select wx:if="{{item.workflowCountText}}">{{item.workflowCountText}}</text>
             <view class="workflow-trace workflow-trace-inline" wx:if="{{item.workflowExpanded && item.workflowEntries.length}}">
               <view class="workflow-step" wx:for="{{item.workflowEntries}}" wx:key="id" wx:for-item="wf">
                 <view class="workflow-step-head">
-                  <text class="workflow-step-badge workflow-step-badge-{{wf.tone}}">{{wf.badge}}</text>
-                  <text class="workflow-step-title">{{wf.title}}</text>
+                  <text class="workflow-step-badge workflow-step-badge-{{wf.tone}}" user-select>{{wf.badge}}</text>
+                  <text class="workflow-step-title" user-select>{{wf.title}}</text>
                 </view>
-                <text class="workflow-step-detail" wx:if="{{wf.detail}}">{{wf.detail}}</text>
+                <text class="workflow-step-detail" user-select wx:if="{{wf.detail}}">{{wf.detail}}</text>
               </view>
             </view>
           </view>
@@ -299,8 +299,8 @@ module.exports = {
               <view class="mcq-head-side">
                 <text class="mcq-head-hint" user-select>{{item.mcqHint ? item.mcqHint : '点击选项后提交答案'}}</text>
                 <view class="original-toggle" wx:if="{{item.originalContent}}" bindtap="onToggleOriginalContent" data-msgid="{{item.id}}" aria-role="button" aria-label="{{item.originalExpanded ? '收起原文' : (item.mcqReviewMode ? '查看完整解析' : '查看原文')}}">
-                  <text class="original-toggle-text">{{item.originalExpanded ? '收起原文' : (item.mcqReviewMode ? '查看完整解析' : '查看原文')}}</text>
-                  <text class="original-toggle-arrow">{{item.originalExpanded ? '⌃' : '⌄'}}</text>
+                  <text class="original-toggle-text" user-select>{{item.originalExpanded ? '收起原文' : (item.mcqReviewMode ? '查看完整解析' : '查看原文')}}</text>
+                  <text class="original-toggle-arrow" user-select>{{item.originalExpanded ? '⌃' : '⌄'}}</text>
                 </view>
               </view>
             </view>
@@ -362,10 +362,10 @@ module.exports = {
               </view>
             </view>
             <view wx:if="{{item.mcqInteractiveReady}}" class="mcq-submit" bindtap="onMcqSubmit" data-msgid="{{item.id}}" aria-role="button" aria-label="提交答案">
-              <text class="mcq-submit-txt">提交答案</text>
+              <text class="mcq-submit-txt" user-select>提交答案</text>
             </view>
             <view wx:else class="mcq-submit disabled" aria-role="note" aria-label="当前题卡仅供查看">
-              <text class="mcq-submit-txt">{{item.mcqReviewMode ? '已讲评' : '仅供查看'}}</text>
+              <text class="mcq-submit-txt" user-select>{{item.mcqReviewMode ? '已讲评' : '仅供查看'}}</text>
             </view>
           </view>
 
@@ -380,7 +380,7 @@ module.exports = {
 
               <!-- 代码块 -->
               <view class="md-code" wx:elif="{{b.type==='code_block'}}">
-                <text class="md-code-lang">{{b.language}}</text>
+                <text class="md-code-lang" user-select>{{b.language}}</text>
                 <text class="md-code-body" user-select>{{b.content}}</text>
               </view>
 
@@ -389,8 +389,8 @@ module.exports = {
 
               <!-- 结构化表格 -->
               <view wx:elif="{{b.type==='table' && b.isStructured}}">
-                <text class="md-table-caption" wx:if="{{b.caption}}" selectable>{{b.caption}}</text>
-                <text class="md-table-strategy" wx:if="{{b.mobileStrategy}}">手机端策略：{{b.mobileStrategy==='compact_cards' ? '紧凑卡片' : '横向滚动'}}</text>
+                <text class="md-table-caption" user-select wx:if="{{b.caption}}">{{b.caption}}</text>
+                <text class="md-table-strategy" user-select wx:if="{{b.mobileStrategy}}">手机端策略：{{b.mobileStrategy==='compact_cards' ? '紧凑卡片' : '横向滚动'}}</text>
                 <view wx:if="{{b.mobileStrategy==='compact_cards'}}">
                   <view class="md-table-card" wx:for="{{b.rows}}" wx:key="index" wx:for-item="row" wx:for-index="rowIndex">
                     <text class="md-table-card-title" user-select>第{{rowIndex + 1}}行</text>
@@ -456,10 +456,10 @@ module.exports = {
 
               <!-- 结构化公式 -->
               <view wx:elif="{{(b.type==='formula_block' || b.type==='formula_inline') && b.isStructured}}" class="md-formula {{b.type==='formula_inline' ? 'md-formula-inline' : ''}}">
-                <text class="md-formula-label">{{b.type==='formula_inline' ? '行内公式' : '公式'}}</text>
+                <text class="md-formula-label" user-select>{{b.type==='formula_inline' ? '行内公式' : '公式'}}</text>
                 <image wx:if="{{b.svgUrl}}" class="md-formula-svg" src="{{b.svgUrl}}" mode="widthFix" show-menu-by-longpress />
-                <text class="md-formula-text" selectable>{{b.displayText || b.latex || b.copyText}}</text>
-                <text class="md-formula-copy" wx:if="{{b.copyText && b.copyText !== (b.displayText || b.latex)}}" selectable>{{b.copyText}}</text>
+                <text class="md-formula-text" user-select>{{b.displayText || b.latex || b.copyText}}</text>
+                <text class="md-formula-copy" user-select wx:if="{{b.copyText && b.copyText !== (b.displayText || b.latex)}}">{{b.copyText}}</text>
               </view>
 
               <!-- 教学步骤 -->
@@ -477,11 +477,11 @@ module.exports = {
               <!-- 教学总结 -->
               <view class="md-recap" wx:elif="{{b.type==='recap' && b.isStructured}}">
                 <text class="md-recap-title" user-select>{{b.title || '教学总结'}}</text>
-                <text class="md-recap-summary" wx:if="{{b.summary}}" selectable>{{b.summary}}</text>
+                <text class="md-recap-summary" user-select wx:if="{{b.summary}}">{{b.summary}}</text>
                 <view wx:if="{{b.bullets && b.bullets.length}}">
                   <view class="md-recap-bullet" wx:for="{{b.bullets}}" wx:key="index" wx:for-item="bullet">
-                    <text class="md-recap-bullet-mark">•</text>
-                    <text class="md-recap-bullet-text" selectable>{{bullet}}</text>
+                    <text class="md-recap-bullet-mark" user-select>•</text>
+                    <text class="md-recap-bullet-text" user-select>{{bullet}}</text>
                   </view>
                 </view>
               </view>
@@ -489,24 +489,24 @@ module.exports = {
               <!-- 图表数据卡 -->
               <view class="md-chart" wx:elif="{{b.type==='chart' && b.isStructured}}">
                 <view class="md-chart-head">
-                  <text class="md-chart-type">{{b.chartType}}</text>
+                  <text class="md-chart-type" user-select>{{b.chartType}}</text>
                   <text class="md-chart-title" user-select wx:if="{{b.title}}">{{b.title}}</text>
                 </view>
-                <text class="md-chart-summary" wx:if="{{b.summary}}" selectable>{{b.summary}}</text>
+                <text class="md-chart-summary" user-select wx:if="{{b.summary}}">{{b.summary}}</text>
                 <view class="md-chart-series" wx:if="{{b.series && b.series.length}}">
                   <view class="md-chart-series-item" wx:for="{{b.series}}" wx:key="index" wx:for-item="series">
-                    <text class="md-chart-series-name">{{series.name}}</text>
-                    <text class="md-chart-series-summary" wx:if="{{series.summary}}" selectable>{{series.summary}}</text>
+                    <text class="md-chart-series-name" user-select>{{series.name}}</text>
+                    <text class="md-chart-series-summary" user-select wx:if="{{series.summary}}">{{series.summary}}</text>
                   </view>
                 </view>
                 <view class="md-chart-axes" wx:if="{{b.axes && (b.axes.x || b.axes.y)}}">
                   <text class="md-chart-axis" user-select wx:if="{{b.axes.x}}">横轴：{{b.axes.x}}</text>
                   <text class="md-chart-axis" user-select wx:if="{{b.axes.y}}">纵轴：{{b.axes.y}}</text>
                 </view>
-                <text class="md-chart-caption" wx:if="{{b.caption}}" selectable>{{b.caption}}</text>
+                <text class="md-chart-caption" user-select wx:if="{{b.caption}}">{{b.caption}}</text>
                 <view wx:if="{{b.fallbackTable && b.fallbackTable.headers && b.fallbackTable.headers.length}}">
-                  <text class="md-chart-fallback-title">fallback_table</text>
-                  <text class="md-chart-strategy">图形不可用时回退为数据表</text>
+                  <text class="md-chart-fallback-title" user-select>fallback_table</text>
+                  <text class="md-chart-strategy" user-select>图形不可用时回退为数据表</text>
                   <view wx:if="{{b.fallbackTable.mobileStrategy==='compact_cards'}}">
                     <view class="md-table-card" wx:for="{{b.fallbackTable.rows}}" wx:key="index" wx:for-item="row" wx:for-index="rowIndex">
                       <text class="md-table-card-title" user-select>第{{rowIndex + 1}}行</text>
@@ -536,9 +536,9 @@ module.exports = {
               <!-- 无序列表 -->
               <view class="md-ul" wx:elif="{{b.type==='ul'}}">
                 <view class="md-li" wx:for="{{b.items}}" wx:key="index" wx:for-item="li">
-                  <text class="bullet">·</text>
+                  <text class="bullet" user-select>·</text>
                   <view class="li-body">
-                    <rich-text class="md-richtext md-richtext-inline" user-select nodes="{{li.nodes}}"></rich-text>
+                    <text class="md-li-text" user-select>{{li.raw || li.text}}</text>
                   </view>
                 </view>
               </view>
@@ -546,9 +546,9 @@ module.exports = {
               <!-- 有序列表 -->
               <view class="md-ol" wx:elif="{{b.type==='ol'}}">
                 <view class="md-li" wx:for="{{b.items}}" wx:key="index" wx:for-item="li">
-                  <text class="ol-idx">{{li.index}}.</text>
+                  <text class="ol-idx" user-select>{{li.index}}.</text>
                   <view class="li-body">
-                    <rich-text class="md-richtext md-richtext-inline" user-select nodes="{{li.nodes}}"></rich-text>
+                    <text class="md-li-text" user-select>{{li.raw || li.text}}</text>
                   </view>
                 </view>
               </view>
@@ -574,18 +574,18 @@ module.exports = {
 	          <!-- 引用 -->
 	          <view class="cite-list" wx:if="{{item.citations && item.citations.length}}">
 	            <view class="cite-head">
-	              <text class="cite-head-main">依据</text>
-	              <text class="cite-head-sub">References</text>
+	              <text class="cite-head-main" user-select>依据</text>
+	              <text class="cite-head-sub" user-select>References</text>
 	            </view>
 	            <view class="cite" wx:for="{{item.citations}}" wx:key="key" wx:for-item="ct" wx:for-index="ctIndex">
-	              <text class="cite-key">〔{{ct.key}}〕</text>
+	              <text class="cite-key" user-select>〔{{ct.key}}〕</text>
 	              <view class="cite-body">
-	                <text class="cite-title">{{ct.title}}</text>
-	                <text class="cite-locator" wx:if="{{ct.locator}}">{{ct.locator}}</text>
+	                <text class="cite-title" user-select>{{ct.title}}</text>
+	                <text class="cite-locator" user-select wx:if="{{ct.locator}}">{{ct.locator}}</text>
 	                <view class="cite-toggle" wx:if="{{ct.quote}}" bindtap="onToggleCitationQuote" data-msgid="{{item.id}}" data-citeindex="{{ctIndex}}" aria-role="button" aria-label="{{ct.quoteActionText}}">
-	                  <text>{{ct.quoteActionText}}</text>
+	                  <text user-select>{{ct.quoteActionText}}</text>
 	                </view>
-	                <text class="cite-quote" wx:if="{{ct.quote && ct.quoteExpanded}}">摘录：{{ct.quote}}</text>
+	                <text class="cite-quote" user-select wx:if="{{ct.quote && ct.quoteExpanded}}">摘录：{{ct.quote}}</text>
 	              </view>
 	            </view>
 	          </view>
