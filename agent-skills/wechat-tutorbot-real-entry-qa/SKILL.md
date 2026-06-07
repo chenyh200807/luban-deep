@@ -1,6 +1,6 @@
 ---
 name: wechat-tutorbot-real-entry-qa
-description: Use this for DeepTutor WeChat mini-program TutorBot QA, especially when testing real learner conversations, true exam questions, refusal behavior, active-question follow-up, DevTools, /wechat-harness, wx_miniprogram, yousenwebview/packageDeeptutor, Langfuse, or authority ledgers. Use it whenever a result could be mistaken for real WeChat closure.
+description: Use this for DeepTutor WeChat mini-program TutorBot QA, especially when testing real learner conversations, true exam questions, refusal behavior, active-question follow-up, DevTools, /wechat-harness, wx_miniprogram, the yousenwebview project root with packageDeeptutor subpackage pages, Langfuse, or authority ledgers. Use it whenever a result could be mistaken for real WeChat closure.
 ---
 
 # WeChat TutorBot Real-Entry QA
@@ -24,6 +24,22 @@ Always label each row with exactly one surface:
 Only `real_wechat_package` can close the primary WeChat front-end risk. The
 others are useful probes, not production closure.
 
+## Project Root Hard Gate
+
+The WeChat mini-program project is `yousenwebview`.
+
+`packageDeeptutor` is only a subpackage/page target inside that project. Do not
+say "run/open `packageDeeptutor`" or "`yousenwebview/packageDeeptutor` passed"
+as shorthand for real WeChat closure, because that hides the project-root
+authority boundary.
+
+Every `real_wechat_package` row must record:
+
+- `devtools_project_root=yousenwebview`
+- `target_subpackage=packageDeeptutor`
+- `target_page=/packageDeeptutor/pages/chat/chat` or the concrete page exercised
+- `entry_flow=deeptutorEntry_bridge|direct_subpackage_page|real_user_navigation|manual`
+
 ## DevTools CLI
 
 Prefer the WeChat DevTools CLI for real package smoke before falling back to
@@ -46,10 +62,23 @@ CLI evidence rules:
 - `--project` must point to the `yousenwebview` project root. Do not open
   `yousenwebview/packageDeeptutor` as a DevTools project; it is the target
   subpackage surface inside the project.
+- If a plan, transcript, or final report uses `yousenwebview/packageDeeptutor`
+  without separately naming project root and target subpackage/page, mark the
+  evidence wording invalid and correct it before drawing a real-package
+  conclusion.
 - `open --project` is only a project-open preflight until a page/scenario is
   actually exercised.
 - `auto --project` only counts as automation evidence when an automator/Minium
   script drives the page and records scenario output.
+- Record auth separately for every real-package row: `auth_state` should be
+  one of `logged_in`, `qa_token`, `auth_blocked`, or `unknown`; `auth_mode`
+  should be one of `real_wechat`, `local_dev_wechat`, `manual_token`, or
+  `none`.
+- Local/devtools test login may use the existing backend dev/mock WeChat login
+  path only in non-production. It must still obtain a normal auth token from
+  the auth authority, exercise the same `/api/v1/chat/start-turn` and
+  `/api/v1/ws` path, and must not write production DB or create a second
+  learner truth.
 - If DevTools project-open or auto is skipped, report true-entry status as
   `partial` or `pending`, even if Web harness and contract tests pass.
 - Do not run `upload` by default; use upload/preview commands only when the user
@@ -75,6 +104,8 @@ For each scenario record:
 ```text
 round_id:
 entry_surface:
+auth_state:
+auth_mode:
 conversation_id:
 turn_id:
 learner_transcript:
@@ -134,6 +165,9 @@ Lead with:
 
 ```text
 real package status:
+devtools_project_root:
+target_subpackage:
+target_page:
 near-real status:
 shadow/harness status:
 P0/P1/P2 findings:

@@ -6,6 +6,67 @@ DeepTutor is an **agent-native** intelligent learning companion built around
 a two-layer plugin model (Tools + Capabilities) with three entry points:
 CLI, WebSocket API, and Python SDK.
 
+## Claude / Codex Web Memory Guardrails
+
+这些规则来自 2026-06-06 Codex Desktop / Claude Code 内存事故。macOS 曾显示 Codex 172.68 GB；后续 Claude Code 托管 BI `next dev` 时，Terminal coalition 被 Jetsam 记录到约 201.6 GB resident、3,927 个 `node` 进程。当前结论不是“机器内存不够”，而是 Web/BI dev server 在 AI agent 进程树下可能触发 Next/PostCSS/Node worker storm。
+
+### Hard Boundaries
+
+- 默认不要使用 Computer Use 处理 Web / BI / 前端 / 浏览器 / 截图任务；优先用终端命令、Playwright CLI、浏览器 URL、截图文件。
+- 不要让 Codex Desktop、Computer Use、Claude Code 或其他 AI agent 托管长时间 `npm run dev` / `next dev` / `next-server` / 浏览器进程。
+- Web dev server 必须由明确的人工 Terminal/tmux 会话托管，并在任务结束时关闭。
+- 如果 `next dev` / `next-server` / `.next/dev/build/postcss.js` 的父链挂在 Codex app-server、Claude Code、Computer Use 或其他 AI agent 下，直接判为高风险，不要继续观察趋势。
+- 不要把 `--max-old-space-size` 当成总内存上限；它只限制单个 Node 进程，不能阻止几千个 child worker 累计爆内存。
+- 不要把 `next dev --webpack` 当成已验证修复；事故中即使试过 `--webpack`，仍可能出现 `.next/dev/build/postcss.js` worker。
+
+### Required Preflight For Web/BI Work
+
+开始任何 DeepTutor Web、BI、前端、浏览器或截图任务前，先运行：
+
+```bash
+/Users/yehongchen/.codex/bin/codex-memory-snapshot.sh
+/Users/yehongchen/.codex/bin/agent-owned-next-guard.sh --check
+pgrep -af 'SkyComputerUse|SkyComputerUseClient|SkyComputerUseService|next-server|/web/\.next/dev/build/postcss\.js|next/dist/bin/next dev' || true
+```
+
+安全基线：
+
+```text
+No SkyComputerUse process
+No AI-agent-owned Next dev process tree
+No old next-server process
+No postcss.js worker burst
+Codex / Terminal / Claude memory stays in low single-digit GB range
+```
+
+### Stop Conditions
+
+出现任一条件，立即停止当前 Web/BI 任务并清理，不要继续生成代码或等待它“自己降下来”：
+
+```text
+Codex matched memory > 8 GB and rising
+Terminal / Claude coalition memory spikes with many node processes
+other matched > 5 GB with many node processes
+postcss.js workers > 50
+SkyComputerUseService reappears unexpectedly
+next-server remains alive after task end
+next dev / next-server is parented by Codex app-server, Claude Code, Computer Use, or another AI agent
+macOS memory pressure warning appears
+```
+
+第一响应：
+
+```bash
+/Users/yehongchen/.codex/bin/codex-memory-snapshot.sh
+/Users/yehongchen/.codex/bin/agent-owned-next-guard.sh --kill
+pkill -KILL -f 'next-server|/web/\.next/dev/build/postcss\.js|next/dist/bin/next dev'
+/Users/yehongchen/.codex/bin/codex-emergency-cleanup.sh
+```
+
+本地事故记录：
+
+- `/Users/yehongchen/.codex/reports/2026-06-06-codex-desktop-memory-incident.md`
+
 ## Contract Discipline
 
 凡是涉及 turn/session/stream/replay/resume、聊天入口、TutorBot 接入、trace/observability 的改动，必须先遵守：
@@ -167,7 +228,9 @@ CLI, WebSocket API, and Python SDK.
 
 ### 4.1 WeChat DevTools CLI Discipline
 
-微信开发者工具 CLI 是 DeepTutor 微信前端日常 QA 的默认可用工具，不是临时人工补充。涉及 `wx_miniprogram`、`yousenwebview/packageDeeptutor`、TutorBot 微信端、微信渲染、聊天入口、WS、登录态、报告页、题卡或行为埋点的测试时，默认优先用终端调用 DevTools CLI / 自动化端口，而不是让 Codex Desktop 控制 GUI。
+微信开发者工具 CLI 是 DeepTutor 微信前端日常 QA 的默认可用工具，不是临时人工补充。涉及 `wx_miniprogram`、`yousenwebview` 项目根内的 `packageDeeptutor` 分包、TutorBot 微信端、微信渲染、聊天入口、WS、登录态、报告页、题卡或行为埋点的测试时，默认优先用终端调用 DevTools CLI / 自动化端口，而不是让 Codex Desktop 控制 GUI。
+
+术语硬门槛：`yousenwebview` 是微信开发者工具唯一 project root；`packageDeeptutor` 只是该项目内的分包 / 页面目标。不得把“跑 / 打开 `yousenwebview/packageDeeptutor`”写成真实微信执行动作；必须写成“打开 `yousenwebview` 项目根，并进入 `packageDeeptutor` 分包页面”。
 
 CLI 路径固定为：
 
@@ -195,7 +258,10 @@ $WX_DEVTOOLS_CLI auto --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptu
 - `islogin` 只证明微信开发者工具登录态可用，不证明项目打开、页面渲染、网络链路或 TutorBot 对话通过。
 - `open --project` 只证明项目可被 DevTools 打开；必须跑到具体页面、操作或自动化脚本，才能写 `real_wechat_package` pass。
 - `--project` 必须指向 `yousenwebview` 项目根，不得指向 `yousenwebview/packageDeeptutor`；`packageDeeptutor` 是分包验收目标，不是 DevTools project root。
+- 每条 `real_wechat_package` 证据必须分开记录 `devtools_project_root`、`target_subpackage`、`target_page` 和 `entry_flow`；缺任一项只能算 `partial`。报告里出现“跑 `packageDeeptutor`”这类模糊说法时，先修正证据措辞再继续结论。
 - `auto --project ... --auto-port ...` 可作为 miniprogram-automator / Minium 的入口；只有脚本实际驱动页面并记录结果，才算自动化证据。
+- 登录态必须作为独立证据记录：至少写明 `auth_state`（logged_in / qa_token / auth_blocked / unknown）和 `auth_mode`（real_wechat / local_dev_wechat / manual_token / none）。登录不可用时只能报 `partial/auth_blocked`，不能把后续 WS、baseURL 或 TutorBot 场景写成通过。
+- 允许非生产 QA 使用既有微信登录 authority 的 dev/mock code 路径（例如后端 `DEEPTUTOR_ALLOW_DEV_WECHAT_LOGIN` 或 `dev-` / `mock-` code）；它只能用于本地/DevTools 测试身份，不得写 production DB、不得伪造 canonical learner truth、不得绕过 `/api/v1/ws` 或另建聊天入口。
 - `/wechat-harness`、`wx_miniprogram`、backend harness、node contract 仍不能替代 `yousenwebview/packageDeeptutor` 的主微信入口 closure。
 - 如果为了不打扰用户环境没有执行 DevTools project-open / auto，最终结论必须写 `partial` 或 `true-entry pending`，不能把 Web/contract 绿灯说成真微信入口 PASS。
 - 默认不执行 `upload`；小程序上传/预览流水线优先考虑 `miniprogram-ci`，除非用户明确要求使用 DevTools CLI 发布相关命令。
@@ -317,6 +383,7 @@ $WX_DEVTOOLS_CLI auto --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptu
 
 - 是否把 `/wechat-harness`、`wx_miniprogram`、near-real HTTP+WS 或 backend harness 证据误写成真实 `yousenwebview/packageDeeptutor` closure
 - 是否把 DevTools CLI 的 `islogin` 或 `open --project` 误写成真实微信场景已通过；没有页面/操作/自动化脚本结果时只能算环境预检或 partial
+- 是否把 `yousenwebview/packageDeeptutor` 写成 DevTools project root，或把“跑 `packageDeeptutor`”写成真实微信执行动作；正确记录必须拆成 `devtools_project_root=yousenwebview` + `target_subpackage=packageDeeptutor` + 具体页面
 - 是否把 regex / fallback / wrapper 升级成语义 authority
 - 是否至少有一个反例验证没有过拟合某个 marker phrase 或 QA 样例
 - 是否证明 visible terminal answer、hidden answer authority、runtime state / active object 三者一致

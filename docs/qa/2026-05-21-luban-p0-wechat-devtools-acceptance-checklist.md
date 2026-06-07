@@ -23,7 +23,21 @@ $WX_DEVTOOLS_CLI open --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptu
 $WX_DEVTOOLS_CLI auto --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/yousenwebview --auto-port 9420
 ```
 
-`islogin` 只算环境预检；`open --project` 只算项目打开预检。必须完成下方 A-D 场景或自动化脚本输出，才能写 `real_wechat_package` PASS。若只跑到 `/wechat-harness`、node contract、`islogin` 或 `open --project`，结论必须写 `partial / true-entry pending`。
+`islogin` 只算 DevTools 账号环境预检；`open --project` 只算项目打开预检。必须完成下方 A-D 场景或自动化脚本输出，才能写 `real_wechat_package` PASS。若只跑到 `/wechat-harness`、node contract、`islogin` 或 `open --project`，结论必须写 `partial / true-entry pending`。
+
+每次记录登录证据：`auth_state`（logged_in / qa_token / auth_blocked / unknown）和 `auth_mode`（real_wechat / local_dev_wechat / manual_token / none）。登录不可用时只能写 `partial/auth_blocked`；非生产 QA token 必须来自既有 `/api/v1/wechat/mp/login` authority，不能绕过 app auth、不能写 production DB。
+
+## 防复发记录：project root / subpackage 拆分
+
+2026-06-07 复盘：曾再次把“跑 `yousenwebview/packageDeeptutor` / 跑 `packageDeeptutor`”写成真实微信链路目标，说明旧规则只写了正确命令，但没有把模糊措辞设为证据阻断项。之后所有 `real_wechat_package` 记录必须显式拆分：
+
+- 正确：`devtools_project_root=yousenwebview`
+- 正确：`target_subpackage=packageDeeptutor`
+- 正确：`target_page=/packageDeeptutor/pages/chat/chat` 或实际页面
+- 错误：`cli open --project .../yousenwebview/packageDeeptutor`
+- 错误：只写“`packageDeeptutor` PASS”或“跑了 `packageDeeptutor`”
+
+缺少 project root / target subpackage / target page 任一字段时，只能写 `partial`，不能写真实微信入口 PASS。
 
 1. 微信开发者工具 → 项目 → `yousenwebview/`
 2. 详情 → 本地设置 → 启用「不校验合法域名」
