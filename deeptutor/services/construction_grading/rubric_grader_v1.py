@@ -295,6 +295,86 @@ async def batch_judge_async(
     return _parse_batch_verdicts(raw)
 
 
+_EXTRACT_SYSTEM_PROMPT = "你把参考答案拆成采分点,输出JSON数组。"
+
+_VALID_POLICIES = ("list", "exact_required", "boolean_judgment", "qualitative", "calc")
+
+
+def _extract_prompt(reference_answer: str, question_stem: str) -> str:
+    """Pure prompt builder: reference answer -> scoring points (the open-world on-the-fly rubric)."""
+    stem = f"题目:\n{str(question_stem)[:800]}\n\n" if question_stem else ""
+    return (
+        "你是一建案例题命题/阅卷专家。把下面这道题的【参考答案】拆解成最小可独立判定的【原子采分点】,"
+        "给出分值与判定策略。\n\n"
+        + stem +
+        f"参考答案:\n{str(reference_answer)[:2000]}\n\n"
+        "拆点规则(重要):\n"
+        "- 原子化:一个采分点只考一件事。把'指出不妥'和'正确做法'拆成两个独立采分点,不要合并成一句。\n"
+        "- 可列举的答案(如设备清单、材料种类),每一项可单列,或合为一个 list 采分点(允许部分给分)。\n"
+        "- 分值按重要性分配(可不等权)。\n"
+        "policy 取值与判定宽严(关键):\n"
+        "- qualitative: 定性论述/说明,意思对即可,允许换种说法(默认大多数点用它)。\n"
+        "- list: 可列举项,按命中比例给部分分。\n"
+        "- boolean_judgment: 判断妥/不妥、成立/不成立。\n"
+        "- calc: 计算结果(数值)。\n"
+        "- exact_required: 仅当必须一字不差的规范术语/法条号/标准号/精确数值时才用,且 required_terms 必填;"
+        "普通专业表述不要用 exact_required(否则会把答对意思的学生误判为0分)。\n"
+        "- required_terms 只填'体现该点即可命中'的关键词(无则空数组),不要把整句塞进去。\n"
+        '只输出JSON数组: [{"text":"采分点表述","score":数值,"policy":"...","required_terms":[".."]}]'
+    )
+
+
+def _parse_extracted_points(raw: Any) -> list[dict[str, Any]]:
+    """Pure parser: LLM JSON-array -> rubric points [{point_id,text,score,policy,required_terms}].
+    Malformed / empty -> [] (caller falls back). Assigns P1..Pn and clamps policy/score."""
+    import json as _json
+
+    try:
+        s = str(raw)
+        arr = _json.loads(s[s.find("["):s.rfind("]") + 1])
+    except Exception:  # noqa: BLE001
+        return []
+    points: list[dict[str, Any]] = []
+    for i, v in enumerate(arr, 1):
+        if not isinstance(v, dict):
+            continue
+        text = str(v.get("text") or "").strip()
+        if not text:
+            continue
+        try:
+            score = round(float(v.get("score") or 0), 2)
+        except (TypeError, ValueError):
+            score = 0.0
+        if score <= 0:
+            score = 1.0
+        policy = str(v.get("policy") or "qualitative")
+        if policy not in _VALID_POLICIES:
+            policy = "qualitative"
+        terms = [str(t).strip() for t in (v.get("required_terms") or []) if str(t).strip()]
+        points.append({"point_id": f"P{i}", "text": text, "score": score,
+                       "policy": policy, "required_terms": terms})
+    return points
+
+
+async def extract_rubric_from_reference_async(
+    reference_answer: str, question_stem: str,
+    complete_fn: Callable[..., Any], api_key: str, *, model: str = "deepseek-chat",
+) -> list[dict[str, Any]]:
+    """OPEN-WORLD rubric: when a question has no compiled (governed) rubric, extract scoring points
+    on-the-fly from its own reference answer — ONE awaited LLM call — so V1 grades EVERY case question,
+    not only the in-bank ones. The compiled rubric is just higher-quality ammunition; its absence must
+    NOT drop the system back to the deterministic-keyword V0 path. Fail-closed -> [] (caller decides)."""
+    if not str(reference_answer or "").strip():
+        return []
+    prompt = _extract_prompt(reference_answer, question_stem)
+    try:
+        raw = await complete_fn(prompt=prompt, system_prompt=_EXTRACT_SYSTEM_PROMPT,
+                                model=model, api_key=api_key, max_retries=1)
+    except Exception:  # noqa: BLE001 — extraction failure -> [] (caller falls back to legacy)
+        return []
+    return _parse_extracted_points(raw)
+
+
 def make_batch_judge(complete_fn: Callable[..., Any], api_key: str, *, model: str = "deepseek-chat") -> JudgeFn:
     """A JudgeFn backed by a single batched LLM call (cached per answer). Drop-in for grade_with_rubric."""
     cache: dict[str, dict[str, dict[str, Any]]] = {}
@@ -366,5 +446,6 @@ def make_llm_judge(complete_fn: Callable[..., Any], api_key: str, *, model: str 
 
 __all__ = ["grade_with_rubric", "grade_with_batch_judge", "grade_with_batch_judge_async",
            "batch_judge", "batch_judge_async", "make_batch_judge",
+           "extract_rubric_from_reference_async",
            "to_learning_evidence", "render_case_rubric_feedback", "load_rubric", "make_llm_judge",
            "HIT", "PARTIAL", "MISS", "MISTAKE_MISS", "MISTAKE_NEAR_SYNONYM", "MISTAKE_PARTIAL_LIST"]

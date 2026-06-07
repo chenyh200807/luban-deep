@@ -1758,11 +1758,14 @@ async def _grade_case_rubric_v1(
     *, context: UnifiedContext, graded_context: dict[str, Any]
 ) -> dict[str, Any] | None:
     """Run rubric-v1 LLM-adjudicated case grading ONCE (Grading-to-Brain). Thin wrapper — all scoring
-    logic lives in ``rubric_grader_v1`` (fat skill). Gated by flag + cohort + case-type + an in-bank
-    compiled rubric. Returns the GradingEvent (``event_type == case_grading_completed``), or a marker
-    dict (``{"status": "no_rubric_open_world", ...}`` / ``{"status": "unavailable", ...}``), or None when
-    the gate is closed (caller leaves the legacy answer + payload byte-identical). One batched DeepSeek
-    call; never writes the DB / learner truth; official_score_allowed stays False."""
+    logic lives in ``rubric_grader_v1`` (fat skill). NEXUS-LIKE / OPEN WORLD: V1 grades EVERY case
+    question, not only the in-bank ones. The compiled rubric (``load_rubric``) is just higher-quality
+    ammunition; when absent, scoring points are extracted on-the-fly from the question's OWN reference
+    answer and graded the same per-point semantic way — it never drops back to the deterministic-keyword
+    V0 path. Returns the GradingEvent (``event_type == case_grading_completed``), a marker dict
+    (``{"status": "unavailable"/"no_reference", ...}``), or None when the gate is closed (caller leaves
+    the legacy answer byte-identical). One-or-two awaited DeepSeek calls; never writes the DB / learner
+    truth; official_score_allowed stays False."""
     if not _case_rubric_v1_flag_enabled(context):
         return None
     student_id = _learner_user_id_from_context(context)
@@ -1777,23 +1780,45 @@ async def _grade_case_rubric_v1(
         return None
     qid = str(graded_context.get("question_id") or (cg or {}).get("question_id") or "").strip()
     answer = str(graded_context.get("user_answer") or "").strip()
-    if not qid or not answer:
+    if not answer:
         return None
     try:
         import os
 
         from deeptutor.services.construction_grading import rubric_grader_v1 as _G
 
-        points = _G.load_rubric(qid)
-        if not points:
-            return {"status": "no_rubric_open_world", "question_id": qid}
         key = os.environ.get("DEEPSEEK_API_KEY")
         if not key:
             return {"status": "unavailable", "reason": "no_api_key"}
         from deeptutor.services.llm.factory import complete
-        return await _G.grade_with_batch_judge_async(
-            qid=qid, student_answer=answer, rubric_points=points,
+
+        # 1) governed compiled rubric (best ammunition) if this question is in the bank
+        points = _G.load_rubric(qid) if qid else []
+        provenance = "compiled_rubric"
+        # 2) OPEN WORLD: no compiled rubric -> extract scoring points on-the-fly from THIS question's
+        #    own reference answer, so V1 still engages (Nexus-like, not a 173-question lookup).
+        if not points:
+            reference = str(
+                graded_context.get("correct_answer")
+                or (cg or {}).get("correct_answer")
+                or graded_context.get("reference_answer")
+                or graded_context.get("analysis")
+                or ""
+            ).strip()
+            if not reference:
+                return {"status": "no_reference", "question_id": qid}
+            stem = str(graded_context.get("question_stem") or graded_context.get("stem")
+                       or graded_context.get("question") or "")
+            points = await _G.extract_rubric_from_reference_async(reference, stem, complete, key)
+            provenance = "on_the_fly_reference"
+        if not points:
+            return {"status": "unavailable", "reason": "no_scoring_points"}
+
+        event = await _G.grade_with_batch_judge_async(
+            qid=qid or "open_world", student_answer=answer, rubric_points=points,
             complete_fn=complete, api_key=key, student_id=student_id)
+        event["rubric_provenance"] = provenance
+        return event
     except Exception as exc:  # noqa: BLE001 — v1 must never break legacy
         return {"status": "unavailable", "reason": type(exc).__name__}
 

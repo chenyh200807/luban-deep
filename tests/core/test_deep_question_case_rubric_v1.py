@@ -155,6 +155,7 @@ async def test_case_rubric_v1_grades_for_qa_flag(monkeypatch: pytest.MonkeyPatch
     assert v1["official_score_allowed"] is False                  # never official
     assert v1["grading_event"]["awarded_score"] == 2.0           # P1+P2 hit, P3 miss
     assert v1["grading_event"]["max_score"] == 3.0
+    assert v1["grading_event"]["rubric_provenance"] == "compiled_rubric"  # in-bank ammunition used
     weak = {w["concept_label"] for w in v1["learning_evidence"]["weak_points"]}
     assert "应编制临时用电方案" in weak                            # the missed point -> weak point
     assert v1["learning_evidence"]["writeback_performed"] is False
@@ -174,12 +175,34 @@ async def test_case_rubric_v1_non_qa_student_skipped(monkeypatch: pytest.MonkeyP
 
 
 @pytest.mark.asyncio
-async def test_case_rubric_v1_open_world_no_rubric(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_case_rubric_v1_open_world_extracts_and_grades(monkeypatch: pytest.MonkeyPatch) -> None:
+    # NEXUS-like: not in the compiled bank -> extract scoring points on-the-fly from the question's
+    # own reference answer and STILL grade with V1 (never fall back to V0's deterministic keywords).
     monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
-    monkeypatch.setattr(G, "load_rubric", lambda _qid: [])  # not in bank -> open world
+    monkeypatch.setattr(G, "load_rubric", lambda _qid: [])  # not in bank
+
+    captured_ref = {}
+
+    async def _fake_extract(reference, stem, complete_fn, api_key, *, model="deepseek-chat"):
+        captured_ref["reference"] = reference
+        return [{"point_id": "P1", "text": "应采用专用开关箱", "score": 1.0, "policy": "list",
+                 "required_terms": []},
+                {"point_id": "P2", "text": "应编制临时用电方案", "score": 1.0, "policy": "list",
+                 "required_terms": []}]
+
+    async def _fake_batch_async(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {"P1": {"status": G.HIT}, "P2": {"status": G.MISS}}
+
+    monkeypatch.setattr(G, "extract_rubric_from_reference_async", _fake_extract)
+    monkeypatch.setattr(G, "batch_judge_async", _fake_batch_async)
+
     result = await _run_case(monkeypatch, _case_context(rubric_v1=True))
-    assert result["luban_case_rubric_v1"]["status"] == "no_rubric_open_world"
-    assert result["construction_grading_result"]["authority"] == "construction_grading"
+    v1 = result["luban_case_rubric_v1"]
+    assert v1["status"] == "ok"                                          # open world STILL grades
+    assert v1["grading_event"]["rubric_provenance"] == "on_the_fly_reference"
+    assert v1["grading_event"]["awarded_score"] == 1.0                   # P1 hit, P2 miss
+    assert "共用一个开关箱" in captured_ref["reference"]                  # extracted from THIS question's ref
+    assert "逐采分点点评" in result["response"]                          # student sees V1, not V0
 
 
 @pytest.mark.asyncio
