@@ -442,6 +442,9 @@ def is_low_information_exam_query(query: str) -> bool:
         "只要答案",
         "发答案",
         "给答案",
+        "发我",
+        "直接发",
+        "直接给",
     )
     concrete_stem_markers = (
         "下列",
@@ -458,6 +461,21 @@ def is_low_information_exam_query(query: str) -> bool:
     if (
         re.search(case_question_index_pattern, text)
         and any(marker in text for marker in answer_request_markers)
+        and not _FREE_TEXT_MCQ_OPTION_LIST_RE.search(str(query or ""))
+        and not any(marker in text for marker in concrete_stem_markers)
+    ):
+        return True
+    demonstrative_question_ref_pattern = (
+        r"(?:那道|这道|那一道|这一道|上次那道|刚才那道|上面那道|那个|这个)"
+        r"[一-鿿A-Za-z0-9《》]{0,20}题"
+    )
+    # An explanation request ("直接给我讲讲 / 分析这道题") is a teaching followup,
+    # not an answer-delivery demand — do not divert it to clarification.
+    explanation_verb_markers = ("讲", "解释", "说说", "分析", "聊聊", "梳理", "推导", "为什么")
+    if (
+        re.search(demonstrative_question_ref_pattern, text)
+        and any(marker in text for marker in answer_request_markers)
+        and not any(verb in text for verb in explanation_verb_markers)
         and not _FREE_TEXT_MCQ_OPTION_LIST_RE.search(str(query or ""))
         and not any(marker in text for marker in concrete_stem_markers)
     ):

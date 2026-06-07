@@ -24,6 +24,7 @@ from deeptutor.services.session.turn_runtime import (
     _TurnExecution,
     _billing_capture_amount_from_usage_summary,
     _learning_prompt_intent_trace_metadata,
+    _enrich_result_question_authority_from_trace,
     _request_snapshot_metadata,
     _build_turn_semantic_decision,
     _result_active_object,
@@ -96,6 +97,74 @@ def test_turn_runtime_question_domain_decision_uses_canonical_semantic_shape() -
         "reason": "用户修正上一题答案。",
         "target_object_ref": {"object_type": "single_question", "object_id": "q_1"},
     }
+
+
+def test_turn_runtime_enriches_exact_question_authority_before_persisting_active_object() -> None:
+    metadata = {
+        "question_followup_context": {
+            "question_id": "historical:height",
+            "question": "历史建筑高度怎么算？",
+            "question_type": "choice",
+            "options": {"A": "檐口顶点", "B": "屋脊", "C": "墙顶点", "D": "最高点"},
+            "user_answer": "C",
+            "is_correct": False,
+            "items": [
+                {
+                    "question_id": "historical:height",
+                    "question": "历史建筑高度怎么算？",
+                    "question_type": "choice",
+                    "options": {
+                        "A": "檐口顶点",
+                        "B": "屋脊",
+                        "C": "墙顶点",
+                        "D": "最高点",
+                    },
+                    "user_answer": "C",
+                    "is_correct": False,
+                }
+            ],
+        },
+        "active_object": {
+            "object_id": "historical:height",
+            "object_type": "single_question",
+            "state_snapshot": {
+                "question_id": "historical:height",
+                "question": "历史建筑高度怎么算？",
+                "question_type": "choice",
+                "options": {
+                    "A": "檐口顶点",
+                    "B": "屋脊",
+                    "C": "墙顶点",
+                    "D": "最高点",
+                },
+                "user_answer": "C",
+                "is_correct": False,
+            },
+        },
+        "exact_question": {
+            "id": "historical:height",
+            "answer_kind": "mcq",
+            "stem": "历史建筑高度怎么算？",
+            "options": [
+                {"key": "A", "value": "檐口顶点"},
+                {"key": "B", "value": "屋脊"},
+                {"key": "C", "value": "墙顶点"},
+                {"key": "D", "value": "最高点"},
+            ],
+            "analysis": "应按室外设计地坪至建（构）筑物最高点计算。",
+            "metadata": {"canonical_correct_answer": "D"},
+        },
+    }
+
+    enriched = _enrich_result_question_authority_from_trace(metadata, metadata)
+
+    context = enriched["question_followup_context"]
+    snapshot = enriched["active_object"]["state_snapshot"]
+    assert context["correct_answer"] == "D"
+    assert snapshot["correct_answer"] == "D"
+    assert context["items"][0]["correct_answer"] == "D"
+    assert context["user_answer"] == "C"
+    assert context["explanation"] == "应按室外设计地坪至建（构）筑物最高点计算。"
 
 
 def test_learning_prompt_intent_trace_metadata_exports_only_gbrain_observability_fields() -> None:

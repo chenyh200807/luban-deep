@@ -226,7 +226,14 @@ async def test_resolve_turn_semantic_decision_keeps_next_question_explanation_as
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "message",
-    ["为什么不是B？一句话。", "B为什么不对？", "那A呢？", "那A呢？一句话"],
+    [
+        "为什么不是B？一句话。",
+        "B为什么不对？",
+        "那A呢？",
+        "那A呢？一句话",
+        "我不是要重新提交C，是想知道C为什么不对；用刚才那题回答。",
+        "如果我选B，你会怎么扣？",
+    ],
 )
 async def test_resolve_turn_semantic_decision_keeps_option_challenge_as_followup(
     monkeypatch: pytest.MonkeyPatch,

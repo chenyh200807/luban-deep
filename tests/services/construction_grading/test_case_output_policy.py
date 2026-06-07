@@ -173,6 +173,20 @@ def test_unclassified_out_of_bank_case_score_demotes_without_authority() -> None
     )
 
 
+def test_unclassified_bolded_bare_score_verdict_demotes_without_authority() -> None:
+    # P1-A gap (R3-16): a forced bare bolded score verdict ("**0分。**") on an
+    # out-of-bank case turn with no authority must still be demoted.
+    metadata = {
+        "question_lifecycle_scene": None,
+        "authority_applied": False,
+        "exact_question": {},
+    }
+    assert should_demote_case_grading_hard_score(
+        "## 结论\n**0分。**\n## 判断依据\n你写的“妥当”遗漏了关键限定条件。",
+        runtime_metadata=metadata,
+    )
+
+
 def test_unclassified_score_with_active_question_authority_not_demoted() -> None:
     # A turn with real active-question authority (MCQ follow-up grading) must not
     # be demoted even when the lifecycle scene is unset and a score is shown.
