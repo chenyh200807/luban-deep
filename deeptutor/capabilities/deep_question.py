@@ -1712,10 +1712,20 @@ def _runtime_shadow_flag_enabled(context: UnifiedContext) -> bool:
 
 
 def _case_rubric_v1_flag_enabled(context: UnifiedContext) -> bool:
-    """case rubric-v1 grading flag. Default OFF -> legacy answer + construction_grading_result untouched."""
+    """case rubric-v1 grading flag. Default OFF -> legacy answer + construction_grading_result untouched.
+
+    Tri-state env ``LUBAN_CASE_RUBRIC_V1_ENABLED``:
+      - false/0/off/no  -> force OFF (kill switch, beats the per-turn flag)
+      - true/1/on/yes   -> force ON globally (dev/gray rollout; still cohort-gated downstream)
+      - unset/other     -> per-turn flag from request metadata / config_overrides
+    """
     import os
-    if os.environ.get("LUBAN_CASE_RUBRIC_V1_ENABLED", "").strip().lower() in ("false", "0", "off", "no"):
+
+    env = os.environ.get("LUBAN_CASE_RUBRIC_V1_ENABLED", "").strip().lower()
+    if env in ("false", "0", "off", "no"):
         return False
+    if env in ("true", "1", "on", "yes"):
+        return True
     metadata = context.metadata if isinstance(context.metadata, dict) else {}
     return bool(
         metadata.get("grading_engine_case_rubric_v1")
