@@ -18,6 +18,14 @@
       "tier": "answer_authority"
     },
     {
+      "lane": "case_rubric_scored",
+      "path": "v_case_rubric_scored/case_rubric_scored.json",
+      "namespace": "case_rubric_scored",
+      "content_hash": "ce7c9b561094945bf7296e1c5e530f751a12560dd5945785e87bc185173bda6d",
+      "record_count": 1234,
+      "tier": "answer_authority"
+    },
+    {
       "lane": "concept_graph",
       "path": "v_canonical_knowledge_graph/graph_adjacency.json",
       "namespace": "canonical_knowledge_graph",
@@ -58,6 +66,14 @@
       "tier": "answer_authority"
     },
     {
+      "lane": "standard_clauses",
+      "path": "v_standard_clauses/standard_clauses.json",
+      "namespace": "standard_clauses",
+      "content_hash": "6b3c3c902c99dcc7760a015d1d8b264f88790ef35cb49266f310b380aca803b8",
+      "record_count": 2355,
+      "tier": "external_regulation"
+    },
+    {
       "lane": "taxonomy_index",
       "path": "v_canonical_taxonomy_index/canonical_taxonomy_index.json",
       "namespace": "canonical_taxonomy_index",
@@ -74,7 +90,7 @@
       "tier": "teaching_context_not_answer_key"
     }
   ],
-  "shard_count": 8,
-  "content_hash": "e8885c3a71cbfe2225a8c6c6d606d24bc657ddded6688ea557e1968436c1f3a1",
-  "signature": "9b17d51e44698f3e141a70af62866cfd421af57f859922da1ff848066f19aa37"
+  "shard_count": 10,
+  "content_hash": "1aa1ccdf3a8855ea9067bad2517333ba6d92d2d4cdee3faa0453dab59df0a0d4",
+  "signature": "1d39e53ad849bd1a41d4f8a5442cc8f3526ece9afc96ad9cd727f66622e33862"
 }

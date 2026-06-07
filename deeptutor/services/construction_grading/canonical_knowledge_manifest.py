@@ -27,6 +27,8 @@ _LANE_MAP = {
     "v_textbook_knowledge_full": "source_context",
     "v3_objective_records_released_m31": "objective_answer_key",
     "v_slice_case_rubric": "case_rubric",
+    "v_case_rubric_scored": "case_rubric_scored",
+    "v_standard_clauses": "standard_clauses",
     "v_canonical_knowledge_graph": "concept_graph",
     "v_canonical_unified_knowledge": "learning_mapping",
 }
@@ -146,7 +148,9 @@ def enumerate_shards(supply_root: Path) -> list[dict[str, Any]]:
         tier = m.get("tier") or (
             "identity_spine" if lane == "concept_registry"
             else "resolution_index" if lane == "taxonomy_index"
-            else "answer_authority" if lane in ("objective_answer_key", "case_rubric", "source_context")
+            else "answer_authority" if lane in (
+                "objective_answer_key", "case_rubric", "case_rubric_scored", "source_context")
+            else "external_regulation" if lane == "standard_clauses"
             else "teaching")
         out.append({
             "lane": lane, "path": str(bundle.relative_to(supply_root)),
