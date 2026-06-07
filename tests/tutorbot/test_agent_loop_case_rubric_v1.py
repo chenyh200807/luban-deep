@@ -49,7 +49,7 @@ def test_build_v1_case_ctx_extracts_reference_from_covered_subquestions() -> Non
 
 @pytest.mark.asyncio
 async def test_v1_case_render_grades_when_authority_and_flag(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("LUBAN_CASE_RUBRIC_V1_ENABLED", "true")  # global on, bypass cohort
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_V1_ENABLED", "true")  # explicit on (default is also on)
     monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
     monkeypatch.setattr(G, "load_rubric", lambda _qid: [
         {"point_id": "P1", "text": "共用一个开关箱不妥", "score": 1.0, "policy": "boolean_judgment",
@@ -92,15 +92,41 @@ async def test_v1_case_render_skips_when_flag_off(monkeypatch: pytest.MonkeyPatc
 
 
 @pytest.mark.asyncio
-async def test_v1_case_render_skips_non_cohort_when_not_global(monkeypatch: pytest.MonkeyPatch) -> None:
-    # per-turn flag on, but global OFF and student not in qa_/test_ cohort -> V1 must not fire
+async def test_v1_case_render_default_on_for_non_qa_user(monkeypatch: pytest.MonkeyPatch) -> None:
+    # DEFAULT ON (full rollout, no cohort): a real (non-qa) user with NO env flag set still gets V1.
     monkeypatch.delenv("LUBAN_CASE_RUBRIC_V1_ENABLED", raising=False)
     monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
-    monkeypatch.setattr(G, "load_rubric", lambda *_a, **_k: (_ for _ in ()).throw(AssertionError("no run")))
+    monkeypatch.setattr(G, "load_rubric", lambda _qid: [
+        {"point_id": "P1", "text": "共用一个开关箱不妥", "score": 1.0, "policy": "boolean_judgment",
+         "required_terms": []}])
+
+    async def _fake_batch_async(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {"P1": {"status": G.HIT}}
+
+    monkeypatch.setattr(G, "batch_judge_async", _fake_batch_async)
     md = _case_md()
-    md["user_id"] = "real_user_123"               # not qa_/test_
-    md["grading_engine_case_rubric_v1"] = True     # per-turn flag on
-    assert await _loop()._v1_case_render(runtime_metadata=md, user_message="x") == ""
+    md["user_id"] = "real_user_123"               # not qa_/test_ -> still graded (no cohort gate anymore)
+    render = await _loop()._v1_case_render(runtime_metadata=md, user_message="共用一个开关箱不妥")
+    assert "逐采分点点评" in render
+
+
+@pytest.mark.asyncio
+async def test_v1_case_render_degraded_falls_back_to_legacy(monkeypatch: pytest.MonkeyPatch) -> None:
+    # FAIL-SAFE: batch LLM yields no trustworthy verdict (empty) -> V1 returns no render so the turn
+    # falls back to legacy, AND the _v1_case_graded marker is NOT set (legacy demote stays in control).
+    monkeypatch.delenv("LUBAN_CASE_RUBRIC_V1_ENABLED", raising=False)
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda _qid: [
+        {"point_id": "P1", "text": "点1", "score": 1.0, "policy": "list", "required_terms": []}])
+
+    async def _empty(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {}
+
+    monkeypatch.setattr(G, "batch_judge_async", _empty)
+    md = _case_md()
+    render = await _loop()._v1_case_render(runtime_metadata=md, user_message="作答")
+    assert render == ""                              # V1 did NOT surface a 0/满分 grade
+    assert not md.get("_v1_case_graded")             # legacy demote remains in control
 
 
 def test_no_authority_fallback_respects_v1_graded_marker() -> None:

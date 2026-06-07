@@ -1,10 +1,11 @@
 """Capability-layer rubric-v1 case grading (`_grade_case_rubric_v1` + same-source render).
 
-Hermetic: ``load_rubric`` + ``batch_judge_async`` are stubbed (no LLM, no DB). Proves the flag defaults
-OFF (legacy answer + payload byte-identical), the qa_/test_ cohort gate, the append-only contract (legacy
-``construction_grading_result`` never mutated, official_score_allowed stays False), open-world (no
-compiled rubric) signalling, AND that when V1 is on the student-facing ``response`` is rendered from the
-very GradingEvent that produced the score (same source). Reuses the runtime-shadow test harness shape.
+Hermetic: ``load_rubric`` + ``batch_judge_async`` are stubbed (no LLM, no DB). Proves V1 is DEFAULT ON
+(full rollout) with only an env kill switch, the fail-safe degraded fallback (no trustworthy verdict ->
+legacy diagnostic, never a fake 0/full), the append-only contract (legacy ``construction_grading_result``
+never mutated, official_score_allowed stays False), open-world (no compiled rubric) signalling, AND that
+when V1 is on the student-facing ``response`` is rendered from the very GradingEvent that produced the
+score (same source). Reuses the runtime-shadow test harness shape.
 """
 from __future__ import annotations
 
@@ -219,21 +220,22 @@ async def test_case_rubric_v1_open_world_extracts_and_grades(monkeypatch: pytest
 
 
 @pytest.mark.asyncio
-async def test_case_rubric_v1_global_on_bypasses_cohort(monkeypatch: pytest.MonkeyPatch) -> None:
-    # LUBAN_CASE_RUBRIC_V1_ENABLED=true -> on for everyone on the instance, even a non-qa account
-    # (dev/local). No per-turn flag needed.
-    monkeypatch.setenv("LUBAN_CASE_RUBRIC_V1_ENABLED", "true")
+async def test_case_rubric_v1_degraded_falls_back_to_legacy(monkeypatch: pytest.MonkeyPatch) -> None:
+    # FAIL-SAFE: when the batch LLM produces NO trustworthy verdict (call down / JSON malformed -> empty
+    # verdicts), V1 must NOT surface a 0/full score as authority. It returns a degraded marker so the turn
+    # falls back to the legacy diagnostic path — never a fake "0 分".
     monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
     monkeypatch.setattr(G, "load_rubric", lambda qid: _RUBRIC if qid == "case-9006" else [])
 
-    async def _fake_batch_async(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
-        return {"P1": {"status": G.HIT}, "P2": {"status": G.MISS}, "P3": {"status": G.MISS}}
+    async def _empty_verdicts(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {}  # LLM down / malformed -> no verdict for any point
 
-    monkeypatch.setattr(G, "batch_judge_async", _fake_batch_async)
-    # real_student_1 is NOT in the qa_/test_ cohort, but global-on overrides it
-    result = await _run_case(monkeypatch, _case_context(user_id="real_student_1", rubric_v1=False))
-    assert result["luban_case_rubric_v1"]["status"] == "ok"
-    assert "逐采分点点评" in result["response"]
+    monkeypatch.setattr(G, "batch_judge_async", _empty_verdicts)
+    result = await _run_case(monkeypatch, _case_context(rubric_v1=True))
+    # V1 does NOT take over: no authoritative payload, student does not see a "0/满分" V1 render.
+    payload = result.get("luban_case_rubric_v1")
+    assert payload is None or payload.get("status") != "ok"
+    assert "逐采分点点评" not in result["response"]
 
 
 @pytest.mark.asyncio
@@ -284,6 +286,37 @@ def test_grade_case_batch_v1_grades_each_case_item(monkeypatch: pytest.MonkeyPat
     assert ev["awarded_score"] == 2.0                  # each item P1 hit (1.0) -> 1+1
     assert ev["rubric_provenance"] == "batch"
     assert ev["official_score_allowed"] is False
+    # real per-sub-question identity preserved (NOT the literal "batch") so learning-evidence provenance
+    # is true, not a placeholder.
+    assert ev["question_id"] == "c1,c2"
+    assert {sp["source_qid"] for sp in ev["scoring_points"]} == {"c1", "c2"}
+
+
+def test_grade_case_batch_v1_all_degraded_returns_none(monkeypatch: pytest.MonkeyPatch) -> None:
+    # If EVERY case sub-item degrades (no trustworthy verdict), the batch yields no graded sub-event ->
+    # None -> caller falls back to legacy (never a merged 0/full).
+    from deeptutor.capabilities import deep_question as dq
+
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda qid: [
+        {"point_id": "P1", "text": "点1", "score": 1.0, "policy": "list", "required_terms": []}])
+
+    async def _empty(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {}
+
+    monkeypatch.setattr(G, "batch_judge_async", _empty)
+
+    async def _noop_complete(**_kw):
+        return "{}"
+
+    graded_context = {
+        "construction_grading_result": {"type": "batch"},
+        "items": [{"question_id": "c1", "user_answer": "a1",
+                   "construction_grading_result": {"type": "case", "max_score": 2.0}}],
+    }
+    ev = asyncio.run(dq._grade_case_batch_v1(
+        graded_context, student_id="qa_x", complete=_noop_complete, key="k", _G=G))
+    assert ev is None
 
 
 def test_batch_judge_async_parses_and_fails_closed() -> None:

@@ -17,8 +17,9 @@ This module is the DETERMINISTIC spine + event shaping; the per-point hit judgme
 """
 from __future__ import annotations
 
-import logging
 from collections.abc import Callable
+from functools import lru_cache
+import logging
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -199,34 +200,42 @@ def render_case_rubric_feedback(event: dict[str, Any], *, question_stem: str = "
     return "\n".join(lines)
 
 
-def load_rubric(qid: str) -> list[dict[str, Any]]:
-    """Load a question's compiled scoring-point rubric from the tracked supply (empty if not in bank ->
-    caller does open-world on-the-fly extraction). Verify-gated."""
-    from functools import lru_cache
+@lru_cache(maxsize=1)
+def _rubric_bank() -> dict[str, list[dict[str, Any]]]:
+    """Load + verify-gate the compiled scoring-point bank ONCE per process (content_hash must match the
+    manifest, else empty -> every question goes open-world). Module-level so ``lru_cache`` actually
+    persists across ``load_rubric`` calls — a closure redefined inside ``load_rubric`` would rebuild the
+    cache on every call (cache never hits)."""
     import json
     from pathlib import Path
 
-    @lru_cache(maxsize=1)
-    def _bank() -> dict[str, list[dict[str, Any]]]:
-        p = Path(__file__).parent / "runtime_supply" / "v_case_rubric_scored" / "case_rubric_scored.json"
-        if not p.exists():
-            return {}
-        try:
-            b = json.loads(p.read_text("utf-8"))
-        except Exception:  # noqa: BLE001
-            return {}
-        from deeptutor.services.construction_grading.full_knowledge_compiler import _sha256_hex
-        m = b.get("manifest") or {}
-        if _sha256_hex(b.get("records") or []) != m.get("content_hash"):
-            return {}
-        by_q: dict[str, list[dict[str, Any]]] = {}
-        for r in b.get("records") or []:
-            by_q.setdefault(str(r.get("qid")), []).append({
-                "point_id": r.get("point_id"), "text": r.get("text"), "score": r.get("score"),
-                "policy": r.get("policy"), "required_terms": r.get("required_terms") or []})
-        return by_q
+    p = Path(__file__).parent / "runtime_supply" / "v_case_rubric_scored" / "case_rubric_scored.json"
+    if not p.exists():
+        return {}
+    try:
+        b = json.loads(p.read_text("utf-8"))
+    except Exception:  # noqa: BLE001 — unreadable/corrupt bank -> empty -> open-world (fail-safe)
+        logger.warning("rubric_grader_v1: compiled rubric bank unreadable; all questions go open-world",
+                       exc_info=True)
+        return {}
+    from deeptutor.services.construction_grading.full_knowledge_compiler import _sha256_hex
+    m = b.get("manifest") or {}
+    if _sha256_hex(b.get("records") or []) != m.get("content_hash"):
+        logger.warning("rubric_grader_v1: compiled rubric bank content_hash mismatch; refusing bank "
+                       "(open-world only) — re-sign the bank to restore compiled grading")
+        return {}
+    by_q: dict[str, list[dict[str, Any]]] = {}
+    for r in b.get("records") or []:
+        by_q.setdefault(str(r.get("qid")), []).append({
+            "point_id": r.get("point_id"), "text": r.get("text"), "score": r.get("score"),
+            "policy": r.get("policy"), "required_terms": r.get("required_terms") or []})
+    return by_q
 
-    return _bank().get(str(qid), [])
+
+def load_rubric(qid: str) -> list[dict[str, Any]]:
+    """Load a question's compiled scoring-point rubric from the tracked supply (empty if not in bank ->
+    caller does open-world on-the-fly extraction). Verify-gated, cached process-wide via ``_rubric_bank``."""
+    return _rubric_bank().get(str(qid), [])
 
 
 _BATCH_SYSTEM_PROMPT = "你只判采分点命中,输出JSON数组。"
@@ -440,18 +449,39 @@ def make_batch_judge(complete_fn: Callable[..., Any], api_key: str, *, model: st
     return judge
 
 
+def _is_degraded_batch(rubric_points: list[dict[str, Any]], verdicts: dict[str, dict[str, Any]]) -> bool:
+    """A batch is DEGRADED when there are points to grade but NOT ONE got a real verdict (LLM call failed
+    /JSON malformed -> empty verdicts, or every point_id mismatched). This is distinct from a low score:
+    a genuinely-empty answer still gets per-point miss verdicts. ``degraded`` means "no trustworthy
+    adjudication happened" so the caller must fall back to the legacy diagnostic path — NOT emit 0/full as
+    if it were an authoritative grade (fail-safe, not fail-to-zero)."""
+    if not rubric_points:
+        return False
+    return not any(str(p.get("point_id")) in verdicts for p in rubric_points)
+
+
+def _grade_from_verdicts(
+    *, qid: str, student_answer: str, rubric_points: list[dict[str, Any]],
+    verdicts: dict[str, dict[str, Any]], student_id: str,
+) -> dict[str, Any]:
+    """Shared deterministic shaping for both batch paths: build the GradingEvent from verdicts and stamp
+    ``degraded`` so the caller can fail-safe to legacy when no real adjudication happened."""
+    def judge(point: dict[str, Any], _answer: str) -> dict[str, Any]:
+        return verdicts.get(str(point.get("point_id")), {"status": MISS, "low_confidence": True})
+
+    event = grade_with_rubric(qid=qid, student_answer=student_answer, rubric_points=rubric_points,
+                              judge_fn=judge, student_id=student_id)
+    return {**event, "degraded": _is_degraded_batch(rubric_points, verdicts)}
+
+
 def grade_with_batch_judge(
     *, qid: str, student_answer: str, rubric_points: list[dict[str, Any]],
     complete_fn: Callable[..., Any], api_key: str, student_id: str = "", model: str = "deepseek-chat",
 ) -> dict[str, Any]:
     """grade_with_rubric using a SINGLE batched LLM call for all points (production case path)."""
     verdicts = batch_judge(rubric_points, student_answer, complete_fn, api_key, model=model)
-
-    def judge(point: dict[str, Any], _answer: str) -> dict[str, Any]:
-        return verdicts.get(str(point.get("point_id")), {"status": MISS, "low_confidence": True})
-
-    return grade_with_rubric(qid=qid, student_answer=student_answer, rubric_points=rubric_points,
-                             judge_fn=judge, student_id=student_id)
+    return _grade_from_verdicts(qid=qid, student_answer=student_answer, rubric_points=rubric_points,
+                                verdicts=verdicts, student_id=student_id)
 
 
 async def grade_with_batch_judge_async(
@@ -461,12 +491,8 @@ async def grade_with_batch_judge_async(
     """Async twin of ``grade_with_batch_judge`` — safe to call from a running event loop. ONE awaited
     LLM call for all points; the deterministic sum (``grade_with_rubric``) stays unchanged."""
     verdicts = await batch_judge_async(rubric_points, student_answer, complete_fn, api_key, model=model)
-
-    def judge(point: dict[str, Any], _answer: str) -> dict[str, Any]:
-        return verdicts.get(str(point.get("point_id")), {"status": MISS, "low_confidence": True})
-
-    return grade_with_rubric(qid=qid, student_answer=student_answer, rubric_points=rubric_points,
-                             judge_fn=judge, student_id=student_id)
+    return _grade_from_verdicts(qid=qid, student_answer=student_answer, rubric_points=rubric_points,
+                                verdicts=verdicts, student_id=student_id)
 
 
 def make_llm_judge(complete_fn: Callable[..., Any], api_key: str, *, model: str = "deepseek-chat") -> JudgeFn:

@@ -5,6 +5,8 @@ partial credit, high-risk flag, and learning-evidence projection.
 """
 from __future__ import annotations
 
+import asyncio
+
 from deeptutor.services.construction_grading import rubric_grader_v1 as G
 
 
@@ -143,3 +145,41 @@ def test_rubric_v1_shadow_qa_gate_and_grading():
     # no rubric + open-world -> signals caller
     r3 = A.build_rubric_v1_shadow_result(question_id="ZZZ", student_answer="x", student_id="qa_1", judge_fn=judge)
     assert r3["status"] == "no_rubric_open_world"
+
+
+def test_grade_with_batch_judge_marks_degraded_on_empty_verdicts() -> None:
+    # FAIL-SAFE root-cause fix: no trustworthy verdict for ANY point (LLM down / malformed -> empty
+    # verdicts) -> degraded=True. The deterministic sum is still 0, but the flag tells the caller to fall
+    # back to legacy rather than surface "0/满分" as an authoritative grade.
+    async def _boom(**_kw):
+        raise RuntimeError("llm down")
+
+    ev = asyncio.run(G.grade_with_batch_judge_async(
+        qid="q", student_answer="ans", rubric_points=_rubric(), complete_fn=_boom, api_key="k"))
+    assert ev["degraded"] is True
+    assert ev["awarded_score"] == 0.0
+
+
+def test_grade_with_batch_judge_not_degraded_for_genuine_all_miss() -> None:
+    # A real all-miss grade (student genuinely earned nothing) is NOT degraded — verdicts exist, the
+    # adjudication happened and is trustworthy. degraded must distinguish "no signal" from "low score".
+    async def _all_miss(**_kw):
+        return ('[{"point_id":"P1","status":"miss"},{"point_id":"P2","status":"miss"},'
+                '{"point_id":"P3","status":"miss"}]')
+
+    ev = asyncio.run(G.grade_with_batch_judge_async(
+        qid="q", student_answer="ans", rubric_points=_rubric(), complete_fn=_all_miss, api_key="k"))
+    assert ev["degraded"] is False
+    assert ev["awarded_score"] == 0.0
+
+
+def test_load_rubric_bank_is_cached_process_wide() -> None:
+    # C1 regression: the verify-gated bank must load ONCE per process. The old closure-inside-load_rubric
+    # rebuilt its lru_cache on every call (never hit). A module-level cache exposes cache_info() proving
+    # 1 miss + N-1 hits across N calls.
+    G._rubric_bank.cache_clear()
+    for _ in range(5):
+        G.load_rubric("any-qid")
+    info = G._rubric_bank.cache_info()
+    assert info.misses == 1 and info.hits == 4
+    G._rubric_bank.cache_clear()

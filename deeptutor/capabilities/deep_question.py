@@ -1770,28 +1770,6 @@ def _case_rubric_v1_flag_enabled(context: UnifiedContext) -> bool:
         "false", "0", "off", "no")
 
 
-def _case_rubric_v1_global_on() -> bool:
-    """Dev/local global force-on: ``LUBAN_CASE_RUBRIC_V1_ENABLED=true`` turns V1 on for every user on
-    this instance and BYPASSES the cohort allowlist. Never set in production (production leaves it unset
-    and relies on the per-turn flag + cohort for gray rollout)."""
-    import os
-
-    return os.environ.get("LUBAN_CASE_RUBRIC_V1_ENABLED", "").strip().lower() in ("true", "1", "on", "yes")
-
-
-def _case_rubric_v1_cohort_member(student_id: str) -> bool:
-    """Limited-release cohort allowlist (user-id prefixes). Default = ``qa_`` / ``test_`` only. Ops/dev
-    may EXTEND it for a named cohort via env ``LUBAN_CASE_RUBRIC_V1_COHORT="qa_,test_,wx_xxx"``
-    (comma-separated prefixes; the qa_/test_ base is always kept). This is how a real WeChat account is
-    let into the gray rollout for hands-on verification without opening V1 to all users."""
-    import os
-
-    base = ["qa_", "test_"]
-    raw = os.environ.get("LUBAN_CASE_RUBRIC_V1_COHORT", "")
-    prefixes = tuple(dict.fromkeys(base + [p.strip() for p in raw.split(",") if p.strip()]))
-    return str(student_id).startswith(prefixes)
-
-
 def _record_v1_langfuse(
     *, event: dict[str, Any] | None, student_id: str, qid: Any, cg_type: str, status: str = "ok"
 ) -> None:
@@ -1929,6 +1907,12 @@ async def _grade_one_case_v1(
     event = await _G.grade_with_batch_judge_async(
         qid=qid or "open_world", student_answer=answer, rubric_points=points,
         complete_fn=complete, api_key=key, student_id=student_id)
+    # FAIL-SAFE: if the batch adjudication produced no trustworthy verdict at all (LLM down / malformed),
+    # do NOT surface a 0/full score as authority — return a marker so the caller falls back to the legacy
+    # diagnostic path (same as "no rubric"), exactly like an exception would.
+    if event.get("degraded"):
+        logger.info("LUBAN_V1 degraded (no trustworthy verdict); falling back to legacy qid=%s", qid)
+        return {"status": "degraded", "reason": "no_verdict", "question_id": qid}
     event["rubric_provenance"] = provenance
     return event
 
@@ -1952,11 +1936,20 @@ async def _grade_case_batch_v1(
             sub_events.append(ev)
     if not sub_events:
         return None
-    merged_points = [dict(sp) for ev in sub_events for sp in (ev.get("scoring_points") or [])]
+    # Preserve real per-sub-question identity (NOT the literal "batch"): the parent case qid if present,
+    # else the distinct sub-question qids joined — so to_learning_evidence's source_refs carry true
+    # provenance instead of a placeholder. Tag each merged point with its origin qid too.
+    parent_qid = str(graded_context.get("question_id") or "").strip()
+    sub_qids = [q for q in (str(e.get("question_id") or "").strip() for e in sub_events) if q]
+    merged_qid = parent_qid or ",".join(dict.fromkeys(sub_qids)) or "batch"
+    merged_points = [
+        dict(sp, source_qid=str(ev.get("question_id") or ""))
+        for ev in sub_events for sp in (ev.get("scoring_points") or [])
+    ]
     return {
         "event_type": "case_grading_completed",
         "student_id": student_id,
-        "question_id": "batch",
+        "question_id": merged_qid,
         "scoring_points": merged_points,
         "awarded_score": round(sum(float(e.get("awarded_score") or 0) for e in sub_events), 2),
         "max_score": round(sum(float(e.get("max_score") or 0) for e in sub_events), 2),
