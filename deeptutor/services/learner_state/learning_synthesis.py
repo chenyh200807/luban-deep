@@ -871,6 +871,17 @@ def _resolved_improved_keys(*, improvements: list[dict[str, Any]]) -> set[tuple[
 
 
 def _is_improvement(payload: dict[str, Any]) -> bool:
+    # M32 Task 6: a simulated / preview / non-promotable grade is NOT a real retest pass and
+    # must never clear a weakness (simulated_retest_as_real == 0). The real-pipeline guarantee
+    # rides on ``preview_only`` / ``claim_promotion_allowed`` (set by build_learning_evidence_*);
+    # ``qa_simulated`` is the project's explicit simulation marker (runtime_llm_adjudicator /
+    # beta_shadow_loader). Only a real graded attempt — none of these flags — may improve.
+    if (
+        payload.get("qa_simulated") is True
+        or payload.get("preview_only") is True
+        or payload.get("claim_promotion_allowed") is False
+    ):
+        return False
     try:
         max_score = float(payload.get("max_score") or 0)
         score = float(payload.get("score_awarded") or 0)

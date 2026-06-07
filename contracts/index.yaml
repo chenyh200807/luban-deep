@@ -84,6 +84,8 @@ domains:
       - tests/services/learner_state/test_training_intent.py
       - tests/services/learner_state/test_personalization_context.py
       - tests/services/learner_state/test_next_best_action.py
+      - tests/services/learner_state/test_m32_waterproof_personalization_context.py
+      - tests/services/learner_state/test_m32_waterproof_retest_outcome.py
       - tests/services/learner_state/test_scoring_point_map_read_model.py
       - tests/services/learner_state/test_conversation_learning_evidence_event.py
       - tests/services/learner_state/test_learning_evidence_quality_gate.py
@@ -271,6 +273,8 @@ domains:
       - tests/services/learner_state/test_training_intent.py
       - tests/services/learner_state/test_personalization_context.py
       - tests/services/learner_state/test_next_best_action.py
+      - tests/services/learner_state/test_m32_waterproof_personalization_context.py
+      - tests/services/learner_state/test_m32_waterproof_retest_outcome.py
       - tests/services/learner_state/test_scoring_point_map_read_model.py
       - tests/services/learner_state/test_evidence_story_read_model.py
       - tests/services/learner_state/test_prescription_outcomes_read_model.py
