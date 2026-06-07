@@ -80,9 +80,21 @@ def summarize_runtime_tree(user_data_dir: Path) -> Tuple[int, int]:
     file_count = 0
     total_bytes = 0
     for path in iter_runtime_files(user_data_dir):
+        try:
+            size = path.stat().st_size
+        except FileNotFoundError:
+            continue
         file_count += 1
-        total_bytes += path.stat().st_size
+        total_bytes += size
     return file_count, total_bytes
+
+
+def _add_runtime_path(tar: tarfile.TarFile, path: Path, project_root: Path) -> bool:
+    try:
+        tar.add(path, arcname=str(path.relative_to(project_root)), recursive=False)
+    except FileNotFoundError:
+        return False
+    return True
 
 
 def create_backup_archive(
@@ -107,7 +119,9 @@ def create_backup_archive(
     archive_path = backup_dir / safe_archive_name
 
     with tarfile.open(archive_path, "w:gz") as tar:
-        tar.add(user_data_dir, arcname=str(user_data_dir.relative_to(project_root)))
+        _add_runtime_path(tar, user_data_dir, project_root)
+        for path in sorted(user_data_dir.rglob("*")):
+            _add_runtime_path(tar, path, project_root)
 
     return archive_path
 
