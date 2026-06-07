@@ -26,6 +26,14 @@
       "tier": "teaching_context_not_answer_key"
     },
     {
+      "lane": "concept_registry",
+      "path": "v_concept_registry/concept_registry.json",
+      "namespace": "concept_registry",
+      "content_hash": "91059d75469fc402a11597b6eb146926b93faa7fb041665aebce3cdf16315eb2",
+      "record_count": 3638,
+      "tier": "identity_spine"
+    },
+    {
       "lane": "learning_mapping",
       "path": "v_canonical_unified_knowledge/canonical_unified_knowledge.json",
       "namespace": "canonical_unified_knowledge",
@@ -50,6 +58,14 @@
       "tier": "answer_authority"
     },
     {
+      "lane": "taxonomy_index",
+      "path": "v_canonical_taxonomy_index/canonical_taxonomy_index.json",
+      "namespace": "canonical_taxonomy_index",
+      "content_hash": "732d7822052e777f9b3a22d47de42e31cac6103c8819a13e1591156415c47c92",
+      "record_count": 3158,
+      "tier": "resolution_index"
+    },
+    {
       "lane": "topic_waterproof",
       "path": "v_topic_waterproof/topic_waterproof.json",
       "namespace": "topic_waterproof",
@@ -58,7 +74,7 @@
       "tier": "teaching_context_not_answer_key"
     }
   ],
-  "shard_count": 6,
-  "content_hash": "331ef838699204a601b6176d09ba29d917a7d1b82d025d651b51ca4f1b74b582",
-  "signature": "a608923a8d3e1874580c631e1dae03c3904bd2c12b49b8aa272a9debcffee15e"
+  "shard_count": 8,
+  "content_hash": "e8885c3a71cbfe2225a8c6c6d606d24bc657ddded6688ea557e1968436c1f3a1",
+  "signature": "9b17d51e44698f3e141a70af62866cfd421af57f859922da1ff848066f19aa37"
 }

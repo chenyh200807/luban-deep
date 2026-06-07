@@ -496,5 +496,109 @@
   "action": "deprecated_alias",
   "reviewer": "opus4.8+codex-gpt5.5-council",
   "reason": "双模型一致判定源中无据/泛化虚构"
+ },
+ {
+  "concept_ids": [
+   "c_9bd152bcd72cc207"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-arbitration",
+  "reason": "双模型对抗仲裁一致判源中无据/伪考点"
+ },
+ {
+  "concept_ids": [
+   "c_161f53df78bf852c"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-arbitration",
+  "reason": "双模型对抗仲裁一致判源中无据/伪考点"
+ },
+ {
+  "concept_ids": [
+   "c_bdb112d7c16525d0"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-arbitration",
+  "reason": "双模型对抗仲裁一致判源中无据/伪考点"
+ },
+ {
+  "concept_ids": [
+   "c_517523563c906fe5"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-arbitration",
+  "reason": "双模型对抗仲裁一致判源中无据/伪考点"
+ },
+ {
+  "concept_ids": [
+   "c_040cebe460ef818e"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-arbitration",
+  "reason": "双模型对抗仲裁一致判源中无据/伪考点"
+ },
+ {
+  "concept_ids": [
+   "c_3d60181ea2ea5565"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-arbitration",
+  "reason": "双模型对抗仲裁一致判源中无据/伪考点"
+ },
+ {
+  "concept_ids": [
+   "c_28f7203ab0323ec8"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-arbitration",
+  "reason": "双模型对抗仲裁一致判源中无据/伪考点"
+ },
+ {
+  "concept_ids": [
+   "c_19a16ecc8c12f265"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-arbitration",
+  "reason": "双模型对抗仲裁一致判源中无据/伪考点"
+ },
+ {
+  "concept_ids": [
+   "c_7b9d3f2daec21623"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-arbitration",
+  "reason": "双模型对抗仲裁一致判源中无据/伪考点"
+ },
+ {
+  "concept_ids": [
+   "c_42b70d0c1f80bc05"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-arbitration",
+  "reason": "双模型对抗仲裁一致判源中无据/伪考点"
+ },
+ {
+  "concept_ids": [
+   "c_417c2ecb8e1b3f06"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-arbitration",
+  "reason": "双模型对抗仲裁一致判源中无据/伪考点"
+ },
+ {
+  "concept_ids": [
+   "c_3f53b6a06c2e875b"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-arbitration",
+  "reason": "双模型对抗仲裁一致判源中无据/伪考点"
+ },
+ {
+  "concept_ids": [
+   "c_a14044bd06d9d6b1"
+  ],
+  "action": "deprecated_alias",
+  "reviewer": "opus4.8+codex-gpt5.5-arbitration",
+  "reason": "双模型对抗仲裁一致判源中无据/伪考点"
  }
 ]

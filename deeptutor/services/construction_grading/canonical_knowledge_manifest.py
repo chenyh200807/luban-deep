@@ -22,6 +22,8 @@ NAMESPACE = "canonical_knowledge_manifest"
 
 # runtime_supply dir name -> §0.26.14 lane. Only these are indexed as canonical shards.
 _LANE_MAP = {
+    "v_concept_registry": "concept_registry",          # the canonical IDENTITY spine (single authority)
+    "v_canonical_taxonomy_index": "taxonomy_index",     # the resolution index over the spine
     "v_textbook_knowledge_full": "source_context",
     "v3_objective_records_released_m31": "objective_answer_key",
     "v_slice_case_rubric": "case_rubric",
@@ -115,11 +117,17 @@ def enumerate_shards(supply_root: Path) -> list[dict[str, Any]]:
     for td in sorted(supply_root.glob("v_topic_*")):
         if td.is_dir():
             lanes[td.name] = "topic_" + td.name[len("v_topic_"):]
+    # primary bundle file per lane dir (a dir may hold side files: pointer/migration/review/quarantine)
+    _PRIMARY = {"concept_registry": "concept_registry.json",
+                "taxonomy_index": "canonical_taxonomy_index.json"}
     for dirname, lane in lanes.items():
         d = supply_root / dirname
         if not d.is_dir():
             continue
-        bundle = next((f for f in sorted(d.glob("*.json")) if "pointer" not in f.name), None)
+        if lane in _PRIMARY and (d / _PRIMARY[lane]).exists():
+            bundle = d / _PRIMARY[lane]
+        else:
+            bundle = next((f for f in sorted(d.glob("*.json")) if "pointer" not in f.name), None)
         if bundle is None:
             continue
         try:
@@ -129,13 +137,21 @@ def enumerate_shards(supply_root: Path) -> list[dict[str, Any]]:
         m = doc.get("manifest") or {}
         rec = doc.get("records")
         nodes = doc.get("nodes")
+        concepts = doc.get("concepts")
+        leaves = doc.get("leaves")
+        count = (len(rec) if isinstance(rec, list)
+                 else len(concepts) if isinstance(concepts, dict)
+                 else len(nodes) if isinstance(nodes, dict)
+                 else len(leaves) if isinstance(leaves, list) else None)
+        tier = m.get("tier") or (
+            "identity_spine" if lane == "concept_registry"
+            else "resolution_index" if lane == "taxonomy_index"
+            else "answer_authority" if lane in ("objective_answer_key", "case_rubric", "source_context")
+            else "teaching")
         out.append({
-            "lane": lane,
-            "path": str(bundle.relative_to(supply_root)),
-            "namespace": m.get("namespace"),
-            "content_hash": m.get("content_hash"),
-            "record_count": (len(rec) if isinstance(rec, list) else len(nodes) if isinstance(nodes, dict) else None),
-            "tier": m.get("tier") or ("answer_authority" if lane in ("objective_answer_key", "case_rubric", "source_context") else "teaching"),
+            "lane": lane, "path": str(bundle.relative_to(supply_root)),
+            "namespace": m.get("namespace"), "content_hash": m.get("content_hash"),
+            "record_count": count, "tier": tier,
         })
     return out
 
