@@ -1502,7 +1502,12 @@ class LearnerStateService:
             )
         except Exception:  # noqa: BLE001 — PCP is a view projection; never break the turn over it
             logger.warning("build_context_candidates: PCP projection failed; degrading to empty", exc_info=True)
-            personalization_context = {}
+            personalization_context = {
+                "top_claims": [],
+                "next_best_action_candidates": [],
+                "source": "PersonalizationContextPack",
+                "schema_version": 1,
+            }
         return {
             "user_id": normalized,
             "query": query_text,

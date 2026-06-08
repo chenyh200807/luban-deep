@@ -27,9 +27,9 @@ from deeptutor.services.path_service import get_path_service
 from deeptutor.services.question_followup import normalize_question_followup_context
 from deeptutor.services.rag.exact_authority import build_mcq_review_notes_from_exact_question
 from deeptutor.services.search import is_web_search_runtime_available
-from deeptutor.tools.rag_tool import rag_search
 from deeptutor.tools.question.pdf_parser import parse_pdf_with_mineru
 from deeptutor.tools.question.question_extractor import extract_questions_from_paper
+from deeptutor.tools.rag_tool import rag_search
 
 
 def _qa_pair_template_dict(qa_pair: QAPair, templates: list[QuestionTemplate]) -> dict[str, Any]:
