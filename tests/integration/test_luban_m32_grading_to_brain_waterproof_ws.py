@@ -75,23 +75,38 @@ def test_waterproof_case_ws_returns_construction_grading_result() -> None:
 
 
 def test_waterproof_case_ws_no_canonical_truth_written() -> None:
-    """Candidate-grade waterproof domain must never write canonical learner truth via WS."""
+    """Candidate-grade waterproof domain must never write canonical learner truth via WS.
+
+    canonical_truth_written is nested inside learning_evidence_preview (the real field the
+    runtime populates). Checking md["canonical_truth_written"] would always be None — a vacuous
+    pass. Must check md["learning_evidence_preview"]["canonical_truth_written"] instead,
+    matching the gap1 pattern (test_luban_gap1_learning_evidence_preview_ws.py:66).
+    """
     with tempfile.TemporaryDirectory() as tmp, _client(tmp) as c:
         result = wsh._receive_result(c, WATERPROOF_FRAME)
     md = result.get("metadata") or {}
-    assert not md.get("canonical_truth_written"), (
-        "WS path must not write canonical truth for candidate-grade domain — "
-        "authority boundary violated"
-    )
+    preview = md.get("learning_evidence_preview")
+    if preview is not None:
+        assert preview.get("canonical_truth_written") is False, (
+            "learning_evidence_preview.canonical_truth_written must be False — "
+            "authority boundary violated for candidate-grade waterproof domain"
+        )
 
 
 def test_waterproof_case_ws_no_m31_governed_objective_triggered() -> None:
-    """M32 waterproof domain must NOT accidentally trigger M31 governed-objective mode."""
+    """M32 waterproof domain must NOT accidentally trigger M31 governed-objective mode.
+
+    M31 is flag+cohort gated: requires grading_engine_m31_governed_objective=True in the
+    config frame AND a matching cohort prefix (qa_*, test_*, operator_*). WATERPROOF_FRAME
+    has neither flag set, so the key must be absent from metadata.
+    """
     with tempfile.TemporaryDirectory() as tmp, _client(tmp) as c:
         result = wsh._receive_result(c, WATERPROOF_FRAME)
     md = result.get("metadata") or {}
+    # M31 is flag+cohort gated; no flag set in WATERPROOF_FRAME config, so key must be absent.
     assert "luban_grading_engine_m31_governed_objective" not in md, (
-        "waterproof case must not trigger M31 governed objective — wrong authority lane"
+        "waterproof case must not trigger M31 governed objective — "
+        "WATERPROOF_FRAME has no grading_engine_m31_governed_objective=True flag"
     )
 
 
@@ -107,8 +122,20 @@ def test_waterproof_case_ws_cohort_and_non_cohort_both_get_grading() -> None:
 
 
 def test_waterproof_case_ws_pass_answer_still_returns_result() -> None:
-    """A correct waterproof answer also completes the WS turn and returns a grading result."""
+    """A correct waterproof answer completes the WS turn, returns grading, and no canonical write.
+
+    The pass path is where a promoted write could sneak through if counted_as_improvement is
+    accidentally True. Verify the same authority invariants as the miss path.
+    """
     with tempfile.TemporaryDirectory() as tmp, _client(tmp) as c:
         result = wsh._receive_result(c, WATERPROOF_PASS_FRAME)
     md = result.get("metadata") or {}
     assert "construction_grading_result" in md
+    preview = md.get("learning_evidence_preview")
+    if preview is not None:
+        assert preview.get("canonical_truth_written") is False, (
+            "pass path must not write canonical truth — candidate-grade pass is preview only"
+        )
+        assert preview.get("mastery_raised") is False, (
+            "pass path must not raise mastery — candidate-grade pass is preview only"
+        )

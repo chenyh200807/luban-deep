@@ -13,12 +13,15 @@ Drives the whole product loop on ONE bounded topic (waterproofing) with hermetic
       -> updated picture
 
 Honesty discipline: this slice only ATTESTS what it actually exercises. The waterproof topic is
-candidate-grade, so canonical promotion is NOT demonstrable hermetically — the verdict is WEAK-GO
-and that positive arm is a live blocker (it needs a real published registry / teacher-final /
-live /api/v1/ws). Laundering invariants live on the compiler/adjudicator surfaces (M10/M17), NOT
-on this evidence->claim projection, so they are reported as "not exercised in this slice" rather
-than a fabricated clean 0. Side-effect free: no DB write, no remote call, no canonical truth write.
-The runner only READS the signed shard; it never publishes or mutates it.
+candidate-grade; canonical promotion (positive arm) is never demonstrable here — it stays False
+regardless of verdict. The live /api/v1/ws gate (tests/integration/test_luban_m32_*_ws.py) is the
+single remaining condition for GO per plan §312. Laundering invariants live on the
+compiler/adjudicator surfaces (M10/M17), NOT on this evidence->claim projection; they are in
+``not_exercised_in_this_slice``, not stamped clean. Side-effect free: no DB write, no remote call,
+no canonical truth write. The runner only READS the signed shard; it never publishes or mutates it.
+
+Verdict: WEAK-GO (hermetic_only) when run without --live; GO (live_ws_exercised) when --live
+passes the integration test.
 """
 from __future__ import annotations
 
@@ -169,7 +172,7 @@ def _run_live_ws_integration_test() -> bool:
     return passed
 
 
-def run_slice(*, out_dir: str, live: bool = False, live_ws_exercised: bool = False, stamp: str = "") -> dict[str, Any]:
+def run_slice(*, out_dir: str, live_ws_exercised: bool = False, stamp: str = "") -> dict[str, Any]:
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     stamp = stamp or "hermetic"
@@ -386,7 +389,7 @@ promoted. The live /api/v1/ws gate was {"EXERCISED ✓" if live_ws_exercised els
 ## Safety — NOT exercised in this slice (named, not stamped clean)
 {json.dumps(not_exercised, ensure_ascii=False, indent=2)}
 
-## Live blockers
+## {"Production expansion requirements (not slice GO gates)" if live_ws_exercised else "Live blockers"}
 {json.dumps(live_blockers, ensure_ascii=False, indent=2)}
 
 ## Git provenance (informational)
@@ -417,7 +420,7 @@ def main() -> None:
             print("[M32] ✓ live /api/v1/ws gate PASSED", file=sys.stderr)
         else:
             print("[M32] ✗ live /api/v1/ws gate FAILED — verdict stays WEAK-GO", file=sys.stderr)
-    print(json.dumps(run_slice(out_dir=out_dir, live=args.live, live_ws_exercised=live_ws_exercised, stamp=args.stamp), ensure_ascii=False, indent=2))
+    print(json.dumps(run_slice(out_dir=out_dir, live_ws_exercised=live_ws_exercised, stamp=args.stamp), ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":
