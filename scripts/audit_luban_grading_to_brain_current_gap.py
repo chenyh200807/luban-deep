@@ -86,6 +86,36 @@ G4_TEACHER_BRIDGE = (
     "learning_brain_canonical_claim_gate_m13e_20260604/"
     "teacher_review_to_claim_bridge_m13e.jsonl"
 )
+G5_M19E_MANIFEST = (
+    "artifacts/luban_grading_artifacts/"
+    "remote_deployment_authorization_package_m19e_20260605/"
+    "remote_deployment_manifest_m19e.json"
+)
+G5_M19E_NO_REMOTE_WRITE = (
+    "artifacts/luban_grading_artifacts/"
+    "remote_deployment_authorization_package_m19e_20260605/"
+    "no_remote_write_attestation_m19e.json"
+)
+G5_M19E_PROPOSED_COMMANDS = (
+    "artifacts/luban_grading_artifacts/"
+    "remote_deployment_authorization_package_m19e_20260605/"
+    "proposed_remote_commands_m19e.md"
+)
+G5_M19E_ROLLBACK = (
+    "artifacts/luban_grading_artifacts/"
+    "remote_deployment_authorization_package_m19e_20260605/"
+    "rollback_commands_m19e.md"
+)
+G5_M19E_R_READINESS = (
+    "artifacts/luban_grading_artifacts/"
+    "remote_deployment_authorization_package_m19e_r_20260605/"
+    "m19c_m19d_readiness_rollup_m19e_r.json"
+)
+G5_M19E_R_NO_REMOTE_WRITE = (
+    "artifacts/luban_grading_artifacts/"
+    "remote_deployment_authorization_package_m19e_r_20260605/"
+    "no_remote_write_attestation_m19e_r.json"
+)
 G6_DEVTOOLS_E2E_SCRIPT = "scripts/run_wechat_learning_brain_devtools_e2e.py"
 G6_HOME_DASHBOARD_TEST = (
     "tests/services/member_console/test_home_dashboard_learning_projection.py"
@@ -1155,6 +1185,129 @@ def build_g4_canonical_learner_truth_preflight() -> dict[str, Any]:
     }
 
 
+def build_g5_remote_db_write_preflight() -> dict[str, Any]:
+    manifest = _read_json_rel(G5_M19E_MANIFEST)
+    no_remote_write = _read_json_rel(G5_M19E_NO_REMOTE_WRITE)
+    readiness = _read_json_rel(G5_M19E_R_READINESS)
+    no_remote_write_r = _read_json_rel(G5_M19E_R_NO_REMOTE_WRITE)
+
+    evidence_ok = {
+        G5_M19E_MANIFEST: bool(manifest),
+        G5_M19E_NO_REMOTE_WRITE: bool(no_remote_write),
+        G5_M19E_PROPOSED_COMMANDS: _rel_exists(G5_M19E_PROPOSED_COMMANDS),
+        G5_M19E_ROLLBACK: _rel_exists(G5_M19E_ROLLBACK),
+        G5_M19E_R_READINESS: bool(readiness),
+        G5_M19E_R_NO_REMOTE_WRITE: bool(no_remote_write_r),
+    }
+    remote_root = manifest.get("target_remote_root_if_authorized")
+    remote_roots = {
+        remote_root,
+        no_remote_write.get("remote_write_root_if_authorized"),
+        no_remote_write_r.get("remote_write_root_if_authorized"),
+    }
+    remote_write_executed = (
+        manifest.get("remote_write_executed") is True
+        or manifest.get("deploy_or_restart_executed") is True
+        or no_remote_write.get("deploy_or_restart_executed") is True
+        or no_remote_write.get("no_ssh_executed") is False
+        or no_remote_write.get("no_scp_or_rsync_executed") is False
+        or no_remote_write_r.get("no_ssh_write_executed") is False
+        or no_remote_write_r.get("no_deploy_executed") is False
+        or no_remote_write_r.get("no_restart_executed") is False
+    )
+    db_write_executed = (
+        manifest.get("production_db_write") != "NO-GO"
+        or no_remote_write.get("production_db_written") is True
+        or no_remote_write_r.get("production_db_written") is True
+    )
+    preconditions = {
+        "m19e_authorization_package_present": bool(manifest),
+        "m19e_r_readiness_rollup_present": bool(readiness),
+        "no_remote_write_attestation_present": (
+            no_remote_write.get("no_remote_write_attestation") is True
+            and no_remote_write_r.get("no_remote_write") is True
+        ),
+        "remote_write_executed": remote_write_executed,
+        "db_write_executed": db_write_executed,
+        "remote_write_root_is_root_deeptutor": remote_roots == {"/root/deeptutor"},
+        "outside_root_deeptutor_write_allowed": False,
+    }
+    no_write = {
+        "production_write_count": max(
+            int(readiness.get("m19c", {}).get("production_write_count", 999)),
+            int(readiness.get("m19d", {}).get("production_write_count", 999)),
+        ),
+        "canonical_truth_written": any(
+            value is True
+            for value in (
+                manifest.get("canonical_learner_truth_write") != "NO-GO",
+                no_remote_write.get("canonical_truth_written"),
+                no_remote_write_r.get("canonical_truth_written"),
+                readiness.get("m19d", {}).get("canonical_truth_written"),
+                readiness.get("m19c", {}).get("canonical_truth_write_enabled"),
+            )
+        ),
+        "remote_write_count": 1 if remote_write_executed else 0,
+        "db_write_count": 1 if db_write_executed else 0,
+        "published_registry_executed": (
+            manifest.get("formal_registry_emission") != "NO-GO"
+            or no_remote_write.get("published_registry_emitted") is True
+            or no_remote_write_r.get("published_registry_emitted") is True
+        ),
+    }
+
+    return {
+        "schema_version": 1,
+        "generated_by": "audit_luban_grading_to_brain_current_gap",
+        "master_plan": MASTER_PLAN,
+        "gate_id": "G5_remote_or_db_write",
+        "scope": "read_only_pre_authorization_preflight",
+        "verdict": "not_ready_explicit_authorization_required",
+        "blocking_reason": (
+            "remote/DB write requires explicit authorization with exact target path/table and rollback plan"
+        ),
+        "execution_mode": "read_only_no_remote_or_db_write",
+        "without_authorization": "decision_package_only",
+        "required_authorization": "explicit_remote_or_db_write_authorization",
+        "allowed_scope_after_authorization": (
+            "Aliyun writes only under /root/deeptutor; DB writes only named learner/grading tables"
+        ),
+        "promotion_path": "authorized_deploy_or_db_migration_only",
+        "remote_write_root": remote_root,
+        "preconditions": preconditions,
+        "evidence_ok": evidence_ok,
+        "missing_evidence_refs": [
+            path for path, exists in evidence_ok.items() if not exists
+        ],
+        "single_authority": {
+            "no_second_grading_truth": True,
+            "no_second_learner_truth": True,
+            "remote_write_boundary": (
+                "/root/deeptutor only after explicit authorization"
+            ),
+            "learner_truth_source": "Learning Evidence Ledger / Learner Model only",
+            "write_authority": "explicitly authorized deploy/DB plan only",
+        },
+        **no_write,
+        "stop_conditions": [
+            "target path outside /root/deeptutor",
+            "exact target path/table is not named before execution",
+            "rollback command or compensation plan is missing",
+            "secret/raw env dump would be printed",
+            "remote or DB write occurs before explicit authorization",
+            "canonical learner truth write is bundled into remote/DB write",
+        ],
+        "evidence_refs": [
+            G5_M19E_MANIFEST,
+            G5_M19E_NO_REMOTE_WRITE,
+            G5_M19E_PROPOSED_COMMANDS,
+            G5_M19E_ROLLBACK,
+            G5_M19E_R_READINESS,
+            G5_M19E_R_NO_REMOTE_WRITE,
+        ],
+    }
+
+
 def build_g6_real_wechat_package_preflight() -> dict[str, Any]:
     script_text = (REPO / G6_DEVTOOLS_E2E_SCRIPT).read_text(encoding="utf-8")
     evidence_ok = {
@@ -1290,6 +1443,7 @@ def build_final_acceptance_report(
     g2_preflight: dict[str, Any],
     g3_preflight: dict[str, Any],
     g4_preflight: dict[str, Any],
+    g5_preflight: dict[str, Any],
     g6_preflight: dict[str, Any],
 ) -> dict[str, Any]:
     remaining_gate_order = [
@@ -1351,6 +1505,11 @@ def build_final_acceptance_report(
                 "grading_to_brain_current_gap_audit_20260608/"
                 "G4_CANONICAL_LEARNER_TRUTH_PREFLIGHT.json"
             ),
+            "g5_remote_db_write_preflight": (
+                "artifacts/luban_grading_artifacts/"
+                "grading_to_brain_current_gap_audit_20260608/"
+                "G5_REMOTE_DB_WRITE_PREFLIGHT.json"
+            ),
             "g6_real_wechat_package_preflight": (
                 "artifacts/luban_grading_artifacts/"
                 "grading_to_brain_current_gap_audit_20260608/"
@@ -1392,6 +1551,8 @@ def build_final_acceptance_report(
                     "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G3_PUBLISHED_REGISTRY_PREFLIGHT.md "
                     "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G4_CANONICAL_LEARNER_TRUTH_PREFLIGHT.json "
                     "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G4_CANONICAL_LEARNER_TRUTH_PREFLIGHT.md "
+                    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G5_REMOTE_DB_WRITE_PREFLIGHT.json "
+                    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G5_REMOTE_DB_WRITE_PREFLIGHT.md "
                     "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G6_REAL_WECHAT_PACKAGE_PREFLIGHT.json "
                     "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G6_REAL_WECHAT_PACKAGE_PREFLIGHT.md"
                 ),
@@ -1416,6 +1577,7 @@ def build_final_acceptance_report(
             "g2_preflight_verdict": g2_preflight["verdict"],
             "g3_preflight_verdict": g3_preflight["verdict"],
             "g4_preflight_verdict": g4_preflight["verdict"],
+            "g5_preflight_verdict": g5_preflight["verdict"],
             "g6_preflight_verdict": g6_preflight["verdict"],
             "no_write": {
                 "production_write_count": authorization_package["production_write_count"],
@@ -1623,6 +1785,55 @@ def write_g4_preflight_markdown(preflight: dict[str, Any], out_dir: Path) -> Non
 
     lines.append("")
     (out_dir / "G4_CANONICAL_LEARNER_TRUTH_PREFLIGHT.md").write_text(
+        "\n".join(lines),
+        encoding="utf-8",
+    )
+
+
+def write_g5_preflight_markdown(preflight: dict[str, Any], out_dir: Path) -> None:
+    lines = [
+        "# G5 Remote / DB Write Preflight",
+        "",
+        f"- Gate: `{preflight['gate_id']}`",
+        f"- Verdict: `{preflight['verdict']}`",
+        f"- Blocking reason: {preflight['blocking_reason']}",
+        f"- Scope: `{preflight['scope']}`",
+        f"- Execution mode: `{preflight['execution_mode']}`",
+        f"- Without authorization: `{preflight['without_authorization']}`",
+        f"- Required authorization: `{preflight['required_authorization']}`",
+        f"- Remote write root: `{preflight['remote_write_root']}`",
+        f"- Promotion path: `{preflight['promotion_path']}`",
+        "",
+        "This artifact is a read-only pre-authorization gate. It does not run SSH, deploy, restart, publish a registry, write DB rows, or write canonical learner truth.",
+        "",
+        "## No-Write Invariants",
+        "",
+        f"- production_write_count: `{preflight['production_write_count']}`",
+        f"- canonical_truth_written: `{preflight['canonical_truth_written']}`",
+        f"- remote_write_count: `{preflight['remote_write_count']}`",
+        f"- db_write_count: `{preflight['db_write_count']}`",
+        f"- published_registry_executed: `{preflight['published_registry_executed']}`",
+        "",
+        "## Preconditions",
+        "",
+    ]
+    for key, value in preflight["preconditions"].items():
+        lines.append(f"- {key}: `{value}`")
+
+    lines.extend(["", "## Single Authority", ""])
+    for key, value in preflight["single_authority"].items():
+        lines.append(f"- {key}: `{value}`")
+
+    lines.extend(["", "## Evidence", ""])
+    for ref in preflight["evidence_refs"]:
+        lines.append(f"- `{ref}`")
+
+    lines.extend(["", "## Stop Conditions", ""])
+    for condition in preflight["stop_conditions"]:
+        lines.append(f"- {condition}")
+
+    lines.append("")
+    (out_dir / "G5_REMOTE_DB_WRITE_PREFLIGHT.md").write_text(
         "\n".join(lines),
         encoding="utf-8",
     )
@@ -1918,6 +2129,7 @@ def main() -> int:
     g2_preflight = build_g2_broad_default_preflight(g1_preflight)
     g3_preflight = build_g3_published_registry_preflight()
     g4_preflight = build_g4_canonical_learner_truth_preflight()
+    g5_preflight = build_g5_remote_db_write_preflight()
     g6_preflight = build_g6_real_wechat_package_preflight()
     final_report = build_final_acceptance_report(
         matrix,
@@ -1927,6 +2139,7 @@ def main() -> int:
         g2_preflight,
         g3_preflight,
         g4_preflight,
+        g5_preflight,
         g6_preflight,
     )
     (out_dir / "coverage_matrix.json").write_text(
@@ -1993,6 +2206,16 @@ def main() -> int:
         + "\n",
         encoding="utf-8",
     )
+    (out_dir / "G5_REMOTE_DB_WRITE_PREFLIGHT.json").write_text(
+        json.dumps(
+            g5_preflight,
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     (out_dir / "G6_REAL_WECHAT_PACKAGE_PREFLIGHT.json").write_text(
         json.dumps(
             g6_preflight,
@@ -2020,6 +2243,7 @@ def main() -> int:
     write_g2_preflight_markdown(g2_preflight, out_dir)
     write_g3_preflight_markdown(g3_preflight, out_dir)
     write_g4_preflight_markdown(g4_preflight, out_dir)
+    write_g5_preflight_markdown(g5_preflight, out_dir)
     write_g6_preflight_markdown(g6_preflight, out_dir)
     write_final_acceptance_markdown(final_report, out_dir)
 
@@ -2031,6 +2255,7 @@ def main() -> int:
         "g2_preflight": g2_preflight["missing_evidence_refs"],
         "g3_preflight": g3_preflight["missing_evidence_refs"],
         "g4_preflight": g4_preflight["missing_evidence_refs"],
+        "g5_preflight": g5_preflight["missing_evidence_refs"],
         "g6_preflight": g6_preflight["missing_evidence_refs"],
     }
     missing = {key: value for key, value in missing.items() if value}

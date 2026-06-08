@@ -1,0 +1,61 @@
+{
+  "allowed_scope_after_authorization": "Aliyun writes only under /root/deeptutor; DB writes only named learner/grading tables",
+  "blocking_reason": "remote/DB write requires explicit authorization with exact target path/table and rollback plan",
+  "canonical_truth_written": false,
+  "db_write_count": 0,
+  "evidence_ok": {
+    "artifacts/luban_grading_artifacts/remote_deployment_authorization_package_m19e_20260605/no_remote_write_attestation_m19e.json": true,
+    "artifacts/luban_grading_artifacts/remote_deployment_authorization_package_m19e_20260605/proposed_remote_commands_m19e.md": true,
+    "artifacts/luban_grading_artifacts/remote_deployment_authorization_package_m19e_20260605/remote_deployment_manifest_m19e.json": true,
+    "artifacts/luban_grading_artifacts/remote_deployment_authorization_package_m19e_20260605/rollback_commands_m19e.md": true,
+    "artifacts/luban_grading_artifacts/remote_deployment_authorization_package_m19e_r_20260605/m19c_m19d_readiness_rollup_m19e_r.json": true,
+    "artifacts/luban_grading_artifacts/remote_deployment_authorization_package_m19e_r_20260605/no_remote_write_attestation_m19e_r.json": true
+  },
+  "evidence_refs": [
+    "artifacts/luban_grading_artifacts/remote_deployment_authorization_package_m19e_20260605/remote_deployment_manifest_m19e.json",
+    "artifacts/luban_grading_artifacts/remote_deployment_authorization_package_m19e_20260605/no_remote_write_attestation_m19e.json",
+    "artifacts/luban_grading_artifacts/remote_deployment_authorization_package_m19e_20260605/proposed_remote_commands_m19e.md",
+    "artifacts/luban_grading_artifacts/remote_deployment_authorization_package_m19e_20260605/rollback_commands_m19e.md",
+    "artifacts/luban_grading_artifacts/remote_deployment_authorization_package_m19e_r_20260605/m19c_m19d_readiness_rollup_m19e_r.json",
+    "artifacts/luban_grading_artifacts/remote_deployment_authorization_package_m19e_r_20260605/no_remote_write_attestation_m19e_r.json"
+  ],
+  "execution_mode": "read_only_no_remote_or_db_write",
+  "gate_id": "G5_remote_or_db_write",
+  "generated_by": "audit_luban_grading_to_brain_current_gap",
+  "master_plan": "docs/plan/2026-06-04-luban-grading-engine-master-control-plan.md",
+  "missing_evidence_refs": [],
+  "preconditions": {
+    "db_write_executed": false,
+    "m19e_authorization_package_present": true,
+    "m19e_r_readiness_rollup_present": true,
+    "no_remote_write_attestation_present": true,
+    "outside_root_deeptutor_write_allowed": false,
+    "remote_write_executed": false,
+    "remote_write_root_is_root_deeptutor": true
+  },
+  "production_write_count": 0,
+  "promotion_path": "authorized_deploy_or_db_migration_only",
+  "published_registry_executed": false,
+  "remote_write_count": 0,
+  "remote_write_root": "/root/deeptutor",
+  "required_authorization": "explicit_remote_or_db_write_authorization",
+  "schema_version": 1,
+  "scope": "read_only_pre_authorization_preflight",
+  "single_authority": {
+    "learner_truth_source": "Learning Evidence Ledger / Learner Model only",
+    "no_second_grading_truth": true,
+    "no_second_learner_truth": true,
+    "remote_write_boundary": "/root/deeptutor only after explicit authorization",
+    "write_authority": "explicitly authorized deploy/DB plan only"
+  },
+  "stop_conditions": [
+    "target path outside /root/deeptutor",
+    "exact target path/table is not named before execution",
+    "rollback command or compensation plan is missing",
+    "secret/raw env dump would be printed",
+    "remote or DB write occurs before explicit authorization",
+    "canonical learner truth write is bundled into remote/DB write"
+  ],
+  "verdict": "not_ready_explicit_authorization_required",
+  "without_authorization": "decision_package_only"
+}

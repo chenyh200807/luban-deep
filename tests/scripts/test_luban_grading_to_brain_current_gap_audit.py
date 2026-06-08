@@ -255,6 +255,54 @@ def test_current_gap_audit_outputs_g4_canonical_truth_preflight(
     assert (tmp_path / "G4_CANONICAL_LEARNER_TRUTH_PREFLIGHT.md").exists()
 
 
+def test_current_gap_audit_outputs_g5_remote_db_write_preflight(
+    tmp_path: Path,
+) -> None:
+    subprocess.run(
+        [sys.executable, str(SCRIPT), "--out", str(tmp_path)],
+        cwd=REPO,
+        check=True,
+    )
+
+    preflight = json.loads(
+        (tmp_path / "G5_REMOTE_DB_WRITE_PREFLIGHT.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert preflight["gate_id"] == "G5_remote_or_db_write"
+    assert preflight["scope"] == "read_only_pre_authorization_preflight"
+    assert preflight["verdict"] == "not_ready_explicit_authorization_required"
+    assert preflight["execution_mode"] == "read_only_no_remote_or_db_write"
+    assert preflight["without_authorization"] == "decision_package_only"
+    assert preflight["required_authorization"] == "explicit_remote_or_db_write_authorization"
+    assert preflight["remote_write_root"] == "/root/deeptutor"
+    assert preflight["blocking_reason"] == (
+        "remote/DB write requires explicit authorization with exact target path/table and rollback plan"
+    )
+
+    assert preflight["preconditions"]["m19e_authorization_package_present"] is True
+    assert preflight["preconditions"]["m19e_r_readiness_rollup_present"] is True
+    assert preflight["preconditions"]["no_remote_write_attestation_present"] is True
+    assert preflight["preconditions"]["remote_write_executed"] is False
+    assert preflight["preconditions"]["db_write_executed"] is False
+    assert preflight["preconditions"]["remote_write_root_is_root_deeptutor"] is True
+    assert preflight["preconditions"]["outside_root_deeptutor_write_allowed"] is False
+
+    assert preflight["production_write_count"] == 0
+    assert preflight["canonical_truth_written"] is False
+    assert preflight["remote_write_count"] == 0
+    assert preflight["db_write_count"] == 0
+    assert preflight["published_registry_executed"] is False
+    assert all(preflight["evidence_ok"].values())
+    assert preflight["single_authority"]["remote_write_boundary"] == (
+        "/root/deeptutor only after explicit authorization"
+    )
+    assert preflight["single_authority"]["learner_truth_source"] == (
+        "Learning Evidence Ledger / Learner Model only"
+    )
+    assert (tmp_path / "G5_REMOTE_DB_WRITE_PREFLIGHT.md").exists()
+
+
 def test_current_gap_audit_outputs_g6_real_wechat_preflight(
     tmp_path: Path,
 ) -> None:
