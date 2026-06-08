@@ -1923,6 +1923,8 @@ async def _grade_one_case_v1(
     """Grade ONE subjective question context with V1 (compiled rubric -> open-world reference). Reused by
     both the single-question and per-batch-item paths so there is exactly one grading core (no second
     judging logic). Returns a GradingEvent, a marker dict, or None (no gradable answer)."""
+    import os as _os
+    _v1_model = _os.environ.get("LLM_MODEL", "").strip() or "deepseek-chat"
     cg = ctx.get("construction_grading_result")
     qid = str(ctx.get("question_id") or (cg or {}).get("question_id") or "").strip()
     answer = str(ctx.get("user_answer") or "").strip()
@@ -1955,7 +1957,7 @@ async def _grade_one_case_v1(
             bool(reference), len(reference), bool(stem), len(stem),
         )
         if reference:
-            points = await _G.extract_rubric_from_reference_async(reference, stem, complete, key)
+            points = await _G.extract_rubric_from_reference_async(reference, stem, complete, key, model=_v1_model)
             points = _G.normalize_points_to_nominal(
                 points, nominal_total=float((cg or {}).get("max_score") or 0))
             provenance = "on_the_fly_reference"
@@ -1963,7 +1965,7 @@ async def _grade_one_case_v1(
             # 3) STEM-ONLY: no reference answer at all — derive rubric from question stem via LLM
             #    domain knowledge (construction supervision / 一建). Third-tier path so V1 covers
             #    every case grading turn regardless of whether the question is in the bank.
-            points = await _G.derive_rubric_from_stem_async(stem, complete, key)
+            points = await _G.derive_rubric_from_stem_async(stem, complete, key, model=_v1_model)
             points = _G.normalize_points_to_nominal(
                 points, nominal_total=float((cg or {}).get("max_score") or 0))
             provenance = "derived_from_stem"
@@ -1978,7 +1980,7 @@ async def _grade_one_case_v1(
         return {"status": "unavailable", "reason": "no_scoring_points"}
     event = await _G.grade_with_batch_judge_async(
         qid=qid or "open_world", student_answer=answer, rubric_points=points,
-        complete_fn=complete, api_key=key, student_id=student_id)
+        complete_fn=complete, api_key=key, student_id=student_id, model=_v1_model)
     # FAIL-SAFE: if the batch adjudication produced no trustworthy verdict at all (LLM down / malformed),
     # do NOT surface a 0/full score as authority — return a marker so the caller falls back to the legacy
     # diagnostic path (same as "no rubric"), exactly like an exception would.

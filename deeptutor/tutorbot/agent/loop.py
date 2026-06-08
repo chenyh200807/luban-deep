@@ -980,9 +980,18 @@ class AgentLoop:
                 "false", "0", "off", "no"):
                 logger.info("LUBAN_V1 skip: kill-switch LUBAN_CASE_RUBRIC_V1_ENABLED is off")
                 return ""
-            key = os.environ.get("DEEPSEEK_API_KEY")
+            # Use the factory's configured key (DASHSCOPE when LLM_BINDING=dashscope).
+            # Pass None so factory.complete() falls back to config.api_key (correct binding key).
+            # DEEPSEEK_API_KEY is only checked for the kill-switch; the actual call uses config.
+            _deepseek_key = os.environ.get("DEEPSEEK_API_KEY") or None
+            _dashscope_key = os.environ.get("DASHSCOPE_API_KEY") or None
+            _binding = os.environ.get("LLM_BINDING", "").strip().lower()
+            if _binding == "dashscope":
+                key = _dashscope_key
+            else:
+                key = _deepseek_key
             if not key:
-                logger.warning("LUBAN_V1 skip: DEEPSEEK_API_KEY not set")
+                logger.warning("LUBAN_V1 skip: no LLM key for binding={}", _binding or "openai")
                 return ""
             from deeptutor.services.llm.factory import complete
 
@@ -3298,7 +3307,7 @@ class AgentLoop:
             logger.warning(
                 "LUBAN_DIAG fast-policy pre-v1: scene={} looks_case={} pf_qid={}",
                 (runtime_metadata or {}).get("question_lifecycle_scene") or "(none)",
-                _looks_like_free_text_case_grading(current_message),
+                "【题目】" in current_message or "case" in current_message[:30].lower(),
                 str(((runtime_metadata or {}).get("_prefetched_exact_question") or {}).get("question_id") or "(none)")[:20],
             )
             final_content = await self._apply_v1_or_case_fallback(
@@ -3381,7 +3390,7 @@ class AgentLoop:
         logger.warning(
             "LUBAN_DIAG agent-loop pre-v1: scene={} looks_case={} pf_qid={}",
             (runtime_metadata or {}).get("question_lifecycle_scene") or "(none)",
-            _looks_like_free_text_case_grading(current_message),
+            "【题目】" in current_message or "case" in current_message[:30].lower(),
             str(((runtime_metadata or {}).get("_prefetched_exact_question") or {}).get("question_id") or "(none)")[:20],
         )
         final_content = await self._apply_v1_or_case_fallback(
