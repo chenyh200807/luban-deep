@@ -5,6 +5,12 @@ Safety scope:
 - 不写远端 DB / 不推代码 / 不修改任何运行时代码
 - 每个 bundle 独立处理，出错不影响其他 bundle
 
+CRITICAL: 以下 bundles 必须保持 published=False（runtime adapter 反向门控：published is True → 拒绝加载）：
+  - v3_objective_records_released_m31  → objective_runtime_adapter.py:120
+  - v_textbook_knowledge_full          → textbook_knowledge_runtime.py via compiled_registry_resolver.py:36
+  - v_concept_registry                 → compiled_registry_resolver.py:36
+  - v1_limited_default                 → beta_shadow_loader.py:425
+
 运行:
     python scripts/publish_all_runtime_supply_bundles.py
     python scripts/publish_all_runtime_supply_bundles.py --dry-run
@@ -20,10 +26,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SUPPLY_DIR = ROOT / "deeptutor/services/construction_grading/runtime_supply"
 
-# Bundles to publish (all release_candidate bundles that are unpublished)
+# Bundles safe to publish (no reverse published-gate in their runtime adapters).
+# DO NOT add: v3_objective_records_released_m31, v_textbook_knowledge_full,
+#             v_concept_registry, v1_limited_default — they MUST stay published=False.
 TARGETS = [
     ("v_case_rubric_scored", "case_rubric_scored.json"),
-    ("v_textbook_knowledge_full", "textbook_knowledge_release_candidate.json"),
     ("v_canonical_knowledge_graph", "graph_adjacency.json"),
     ("v_canonical_unified_knowledge", "canonical_unified_knowledge.json"),
     ("v_canonical_taxonomy_index", "canonical_taxonomy_index.json"),
@@ -32,7 +39,6 @@ TARGETS = [
     ("v_kb_v5_chunks_full", "kb_v5_chunks_full.json"),
     ("v_topic_waterproof", None),       # auto-detect
     ("v_slice_case_rubric", None),      # auto-detect
-    ("v_concept_registry", None),       # multi-file, skip main bundle
 ]
 
 
