@@ -44,7 +44,8 @@ mobile_http_read_models:
       - When billing enforcement is disabled for internal beta, MemberUsageMeter may
         provide the non-financial usage display source with charging_status=metered_not_charged;
         it must not mutate wallet balance or wallet ledger. The temporary default display
-        budget is 450 turns for every member, configurable by DEEPTUTOR_INTERNAL_BETA_USAGE_LIMIT_TURNS.
+        budget is 450 turns for every member, configurable by DEEPTUTOR_INTERNAL_BETA_USAGE_LIMIT_TURNS;
+        public display labels remain percentage-based rather than exposing remaining turn counts.
       - Usage windows are display read models only; they are not capability routing,
         request config, learner-state, or turn authority.
 

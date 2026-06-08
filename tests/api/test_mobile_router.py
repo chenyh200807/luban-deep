@@ -1220,11 +1220,11 @@ def test_billing_usage_reads_member_usage_meter_when_billing_enforcement_off(
     assert body["status"] == "ok"
     assert body["usage_source"] == "member_usage_meter"
     assert body["charging_status"] == "metered_not_charged"
-    assert body["display"]["primary_label"] == "剩余 405/450 次"
+    assert body["display"]["primary_label"] == "剩余 90%"
     assert body["display"]["primary_percent"] == 90
-    assert body["display"]["primary_used_uses"] == 45
-    assert body["display"]["primary_limit_uses"] == 450
-    assert body["display"]["primary_remaining_uses"] == 405
+    assert "primary_used_uses" not in body["display"]
+    assert "primary_limit_uses" not in body["display"]
+    assert "primary_remaining_uses" not in body["display"]
     assert body["display"]["plan_id"] == "sprint"
 
 

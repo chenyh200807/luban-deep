@@ -632,19 +632,12 @@ def _build_internal_beta_usage_payload(
     now: datetime | None = None,
 ) -> dict[str, Any]:
     current = (now or datetime.now(_BILLING_USAGE_TZ)).astimezone(_BILLING_USAGE_TZ)
-    week_start = (current - timedelta(days=current.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
     limit_turns = _internal_beta_usage_limit_turns()
     unit_points = int(_MINI_PROGRAM_CAPTURE_COST)
     entries = _usage_meter_events_as_ledger_entries(
         events,
         amount_points_per_event=unit_points,
     )
-    used_turns = 0
-    for event in events:
-        created_at = _parse_ledger_datetime(_usage_meter_event_created_at_iso(event))
-        if created_at is not None and created_at >= week_start:
-            used_turns += 1
-    remaining_turns = max(0, limit_turns - used_turns)
     payload = _build_billing_usage_payload(
         entries,
         now=current,
@@ -653,14 +646,6 @@ def _build_internal_beta_usage_payload(
             "five_hour": limit_turns * unit_points,
             "weekly": limit_turns * unit_points,
         },
-    )
-    payload["display"].update(
-        {
-            "primary_label": f"剩余 {remaining_turns}/{limit_turns} 次",
-            "primary_used_uses": used_turns,
-            "primary_limit_uses": limit_turns,
-            "primary_remaining_uses": remaining_turns,
-        }
     )
     payload["quota"]["unit"] = "turn"
     return payload
