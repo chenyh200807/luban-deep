@@ -30,6 +30,18 @@ G1_SAFETY = (
     "artifacts/luban_grading_artifacts/limited_default_soak_monitoring_m19d_20260605/"
     "safety_invariants_m19d.json"
 )
+G2_G1_PREFLIGHT = (
+    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/"
+    "G1_LIMITED_DEFAULT_PREFLIGHT.json"
+)
+G2_M19D_SOAK_METRICS = (
+    "artifacts/luban_grading_artifacts/limited_default_soak_monitoring_m19d_20260605/"
+    "soak_metrics_m19d.json"
+)
+G2_M19E_EVIDENCE_LEDGER = (
+    "artifacts/luban_grading_artifacts/remote_deployment_authorization_package_m19e_20260605/"
+    "m19c_m19d_evidence_ledger_m19e.json"
+)
 G3_SIGNER_REPORT = (
     "artifacts/luban_grading_artifacts/"
     "llm_artifact_compiler_continuous_factory_m20_20260604/"
@@ -706,6 +718,148 @@ def build_g1_limited_default_preflight() -> dict[str, Any]:
     }
 
 
+def build_g2_broad_default_preflight(
+    g1_preflight: dict[str, Any],
+) -> dict[str, Any]:
+    m19c = _read_json_rel(G1_M19C_GO)
+    m19d = _read_json_rel(G1_M19D_VERDICT)
+    soak_metrics = _read_json_rel(G2_M19D_SOAK_METRICS)
+    m19e_ledger = _read_json_rel(G2_M19E_EVIDENCE_LEDGER)
+
+    evidence_ok = {
+        G2_G1_PREFLIGHT: g1_preflight.get("verdict")
+        == "ready_for_user_authorization",
+        G1_M19C_GO: bool(m19c),
+        G1_M19D_VERDICT: bool(m19d),
+        G2_M19D_SOAK_METRICS: bool(soak_metrics),
+        G2_M19E_EVIDENCE_LEDGER: bool(m19e_ledger),
+    }
+    preconditions = {
+        "g1_ready_for_authorization": g1_preflight.get("verdict")
+        == "ready_for_user_authorization",
+        "limited_default_executed_by_this_package": False,
+        "limited_default_current_state": m19c.get("limited_default_current_state"),
+        "m19d_soak_verdict": m19d.get("m19d_soak_verdict"),
+        "m19d_broad_default": m19d.get("broad_default"),
+        "m19c_production_default_broad": m19c.get("production_default_broad"),
+        "m19c_production_v1_broad_default": m19c.get(
+            "production_v1_broad_default"
+        ),
+        "soak_false_positive_count": int(
+            soak_metrics.get("false_positive_count", 999)
+        ),
+        "soak_source_mismatch_count": int(
+            soak_metrics.get("source_mismatch_count", 999)
+        ),
+        "soak_bad_certified_count": int(
+            soak_metrics.get("bad_certified_count", 999)
+        ),
+        "m19e_broad_default_remains_no_go": (
+            "broad default and canonical learner truth write remain NO-GO"
+            in str(m19e_ledger.get("canonical_statement", ""))
+        ),
+    }
+    no_write = {
+        "production_write_count": max(
+            int(m19c.get("production_write_count", 999)),
+            int(m19d.get("production_write_count", 999)),
+            int(soak_metrics.get("production_write_count", 999)),
+            int(m19e_ledger.get("m19c", {}).get("production_write_count", 999)),
+            int(m19e_ledger.get("m19d", {}).get("production_write_count", 999)),
+        ),
+        "canonical_truth_written": any(
+            value is True
+            for value in (
+                m19c.get("canonical_truth_written"),
+                m19d.get("canonical_truth_written"),
+                soak_metrics.get("canonical_truth_written"),
+                m19e_ledger.get("m19c", {}).get("canonical_truth_written"),
+                m19e_ledger.get("m19d", {}).get("canonical_truth_written"),
+            )
+        ),
+        "remote_write_count": 0
+        if m19c.get("remote_deployment_written") is False
+        and m19e_ledger.get("m19c", {}).get("remote_deployment_written") is False
+        else 1,
+        "published_registry_executed": m19c.get("formal_registry_emitted") is True,
+    }
+    ready_for_broad_authorization = (
+        all(evidence_ok.values())
+        and preconditions["limited_default_executed_by_this_package"] is True
+        and preconditions["m19d_broad_default"] == "GO"
+        and preconditions["m19c_production_default_broad"] == "GO"
+        and preconditions["m19c_production_v1_broad_default"] == "GO"
+        and preconditions["soak_false_positive_count"] == 0
+        and preconditions["soak_source_mismatch_count"] == 0
+        and preconditions["soak_bad_certified_count"] == 0
+        and no_write["production_write_count"] == 0
+        and no_write["canonical_truth_written"] is False
+        and no_write["remote_write_count"] == 0
+        and no_write["published_registry_executed"] is False
+    )
+    blocking_reason = ""
+    if preconditions["limited_default_executed_by_this_package"] is False:
+        blocking_reason = (
+            "G1 limited default must be explicitly authorized/executed and reviewed before broad default"
+        )
+    elif not ready_for_broad_authorization:
+        blocking_reason = "broad default preconditions are not satisfied"
+
+    return {
+        "schema_version": 1,
+        "generated_by": "audit_luban_grading_to_brain_current_gap",
+        "master_plan": MASTER_PLAN,
+        "gate_id": "G2_broad_production_default",
+        "scope": "read_only_pre_authorization_preflight",
+        "verdict": "ready_for_user_authorization"
+        if ready_for_broad_authorization
+        else "not_ready_limited_default_not_executed",
+        "blocking_reason": blocking_reason,
+        "execution_mode": "read_only_no_broad_flip",
+        "without_authorization": "decision_package_only",
+        "required_authorization": (
+            "separate_broad_default_authorization_after_limited_soak"
+        ),
+        "allowed_scope_after_authorization": (
+            "explicitly named cohort expansion only"
+        ),
+        "promotion_path": "runtime_default_only_no_mastery_write",
+        "preconditions": preconditions,
+        "evidence_ok": evidence_ok,
+        "missing_evidence_refs": [
+            path for path, exists in evidence_ok.items() if not exists
+        ],
+        "single_authority": {
+            "no_second_grading_truth": True,
+            "no_second_learner_truth": True,
+            "grading_truth_source": (
+                "authorized limited-default runtime evidence before any broad flip"
+            ),
+            "learner_truth_source": (
+                "unchanged Learning Evidence Ledger / Learner Model"
+            ),
+            "pcp_role": "read_only_feedback_context",
+        },
+        **no_write,
+        "stop_conditions": [
+            "G1 limited default not explicitly authorized/executed/reviewed",
+            "false_positive > 0",
+            "bad_certified > 0",
+            "source_mismatch > 0",
+            "teacher review backlog exceeds operator capacity",
+            "unsupported claim or generic fallback drift appears",
+            "any canonical learner truth write is requested by this gate",
+        ],
+        "evidence_refs": [
+            G2_G1_PREFLIGHT,
+            G1_M19C_GO,
+            G1_M19D_VERDICT,
+            G2_M19D_SOAK_METRICS,
+            G2_M19E_EVIDENCE_LEDGER,
+        ],
+    }
+
+
 def build_g3_published_registry_preflight() -> dict[str, Any]:
     signer = _read_json_rel(G3_SIGNER_REPORT)
     signature = _read_json_rel(G3_STAGED_SIGNATURE)
@@ -1036,6 +1190,7 @@ def build_final_acceptance_report(
     authorization_package: dict[str, Any],
     completion_audit: dict[str, Any],
     g1_preflight: dict[str, Any],
+    g2_preflight: dict[str, Any],
     g3_preflight: dict[str, Any],
     g4_preflight: dict[str, Any],
 ) -> dict[str, Any]:
@@ -1083,6 +1238,11 @@ def build_final_acceptance_report(
                 "grading_to_brain_current_gap_audit_20260608/"
                 "G1_LIMITED_DEFAULT_PREFLIGHT.json"
             ),
+            "g2_broad_default_preflight": (
+                "artifacts/luban_grading_artifacts/"
+                "grading_to_brain_current_gap_audit_20260608/"
+                "G2_BROAD_DEFAULT_PREFLIGHT.json"
+            ),
             "g3_published_registry_preflight": (
                 "artifacts/luban_grading_artifacts/"
                 "grading_to_brain_current_gap_audit_20260608/"
@@ -1123,6 +1283,8 @@ def build_final_acceptance_report(
                     "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/FINAL_ACCEPTANCE_REPORT_grading_to_brain.md "
                     "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G1_LIMITED_DEFAULT_PREFLIGHT.json "
                     "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G1_LIMITED_DEFAULT_PREFLIGHT.md "
+                    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G2_BROAD_DEFAULT_PREFLIGHT.json "
+                    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G2_BROAD_DEFAULT_PREFLIGHT.md "
                     "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G3_PUBLISHED_REGISTRY_PREFLIGHT.json "
                     "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G3_PUBLISHED_REGISTRY_PREFLIGHT.md "
                     "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G4_CANONICAL_LEARNER_TRUTH_PREFLIGHT.json "
@@ -1146,6 +1308,7 @@ def build_final_acceptance_report(
                 if gate["recommended_next"]
             ],
             "g1_preflight_verdict": g1_preflight["verdict"],
+            "g2_preflight_verdict": g2_preflight["verdict"],
             "g3_preflight_verdict": g3_preflight["verdict"],
             "g4_preflight_verdict": g4_preflight["verdict"],
             "no_write": {
@@ -1205,6 +1368,54 @@ def write_g1_preflight_markdown(preflight: dict[str, Any], out_dir: Path) -> Non
 
     lines.append("")
     (out_dir / "G1_LIMITED_DEFAULT_PREFLIGHT.md").write_text(
+        "\n".join(lines),
+        encoding="utf-8",
+    )
+
+
+def write_g2_preflight_markdown(preflight: dict[str, Any], out_dir: Path) -> None:
+    lines = [
+        "# G2 Broad Default Preflight",
+        "",
+        f"- Gate: `{preflight['gate_id']}`",
+        f"- Verdict: `{preflight['verdict']}`",
+        f"- Blocking reason: {preflight['blocking_reason']}",
+        f"- Scope: `{preflight['scope']}`",
+        f"- Execution mode: `{preflight['execution_mode']}`",
+        f"- Without authorization: `{preflight['without_authorization']}`",
+        f"- Required authorization: `{preflight['required_authorization']}`",
+        f"- Allowed scope after authorization: `{preflight['allowed_scope_after_authorization']}`",
+        f"- Promotion path: `{preflight['promotion_path']}`",
+        "",
+        "This artifact is a broad-default gate report only. It does not flip broad production default, write canonical learner truth, publish registry, or write remote/DB state.",
+        "",
+        "## No-Write Invariants",
+        "",
+        f"- production_write_count: `{preflight['production_write_count']}`",
+        f"- canonical_truth_written: `{preflight['canonical_truth_written']}`",
+        f"- remote_write_count: `{preflight['remote_write_count']}`",
+        f"- published_registry_executed: `{preflight['published_registry_executed']}`",
+        "",
+        "## Preconditions",
+        "",
+    ]
+    for key, value in preflight["preconditions"].items():
+        lines.append(f"- {key}: `{value}`")
+
+    lines.extend(["", "## Single Authority", ""])
+    for key, value in preflight["single_authority"].items():
+        lines.append(f"- {key}: `{value}`")
+
+    lines.extend(["", "## Evidence", ""])
+    for ref in preflight["evidence_refs"]:
+        lines.append(f"- `{ref}`")
+
+    lines.extend(["", "## Stop Conditions", ""])
+    for condition in preflight["stop_conditions"]:
+        lines.append(f"- {condition}")
+
+    lines.append("")
+    (out_dir / "G2_BROAD_DEFAULT_PREFLIGHT.md").write_text(
         "\n".join(lines),
         encoding="utf-8",
     )
@@ -1542,6 +1753,7 @@ def main() -> int:
     authorization_package = build_authorization_package()
     completion_audit = build_completion_audit()
     g1_preflight = build_g1_limited_default_preflight()
+    g2_preflight = build_g2_broad_default_preflight(g1_preflight)
     g3_preflight = build_g3_published_registry_preflight()
     g4_preflight = build_g4_canonical_learner_truth_preflight()
     final_report = build_final_acceptance_report(
@@ -1549,6 +1761,7 @@ def main() -> int:
         authorization_package,
         completion_audit,
         g1_preflight,
+        g2_preflight,
         g3_preflight,
         g4_preflight,
     )
@@ -1579,6 +1792,16 @@ def main() -> int:
     (out_dir / "G1_LIMITED_DEFAULT_PREFLIGHT.json").write_text(
         json.dumps(
             g1_preflight,
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (out_dir / "G2_BROAD_DEFAULT_PREFLIGHT.json").write_text(
+        json.dumps(
+            g2_preflight,
             ensure_ascii=False,
             indent=2,
             sort_keys=True,
@@ -1620,6 +1843,7 @@ def main() -> int:
     write_authorization_markdown(authorization_package, out_dir)
     write_completion_markdown(completion_audit, out_dir)
     write_g1_preflight_markdown(g1_preflight, out_dir)
+    write_g2_preflight_markdown(g2_preflight, out_dir)
     write_g3_preflight_markdown(g3_preflight, out_dir)
     write_g4_preflight_markdown(g4_preflight, out_dir)
     write_final_acceptance_markdown(final_report, out_dir)
@@ -1629,6 +1853,7 @@ def main() -> int:
         "authorization_package": authorization_package["missing_evidence"],
         "completion_audit": completion_audit["missing_evidence"],
         "g1_preflight": g1_preflight["missing_evidence_refs"],
+        "g2_preflight": g2_preflight["missing_evidence_refs"],
         "g3_preflight": g3_preflight["missing_evidence_refs"],
         "g4_preflight": g4_preflight["missing_evidence_refs"],
     }

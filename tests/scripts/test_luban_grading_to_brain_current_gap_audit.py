@@ -117,6 +117,58 @@ def test_current_gap_audit_outputs_g1_limited_default_preflight(
     assert (tmp_path / "G1_LIMITED_DEFAULT_PREFLIGHT.md").exists()
 
 
+def test_current_gap_audit_outputs_g2_broad_default_preflight(
+    tmp_path: Path,
+) -> None:
+    subprocess.run(
+        [sys.executable, str(SCRIPT), "--out", str(tmp_path)],
+        cwd=REPO,
+        check=True,
+    )
+
+    preflight = json.loads(
+        (tmp_path / "G2_BROAD_DEFAULT_PREFLIGHT.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert preflight["gate_id"] == "G2_broad_production_default"
+    assert preflight["scope"] == "read_only_pre_authorization_preflight"
+    assert preflight["verdict"] == "not_ready_limited_default_not_executed"
+    assert preflight["execution_mode"] == "read_only_no_broad_flip"
+    assert preflight["without_authorization"] == "decision_package_only"
+    assert preflight["promotion_path"] == "runtime_default_only_no_mastery_write"
+    assert preflight["allowed_scope_after_authorization"] == (
+        "explicitly named cohort expansion only"
+    )
+    assert preflight["blocking_reason"] == (
+        "G1 limited default must be explicitly authorized/executed and reviewed before broad default"
+    )
+
+    assert preflight["preconditions"]["g1_ready_for_authorization"] is True
+    assert preflight["preconditions"]["limited_default_executed_by_this_package"] is False
+    assert preflight["preconditions"]["m19d_broad_default"] == "NO-GO"
+    assert preflight["preconditions"]["m19c_production_default_broad"] == "NO-GO"
+    assert preflight["preconditions"]["m19c_production_v1_broad_default"] == "NO-GO"
+    assert preflight["preconditions"]["limited_default_current_state"] == "ON"
+    assert preflight["preconditions"]["m19d_soak_verdict"] == "GO"
+    assert preflight["preconditions"]["soak_false_positive_count"] == 0
+    assert preflight["preconditions"]["soak_source_mismatch_count"] == 0
+    assert preflight["preconditions"]["soak_bad_certified_count"] == 0
+    assert preflight["preconditions"]["m19e_broad_default_remains_no_go"] is True
+
+    assert preflight["production_write_count"] == 0
+    assert preflight["canonical_truth_written"] is False
+    assert preflight["remote_write_count"] == 0
+    assert preflight["published_registry_executed"] is False
+    assert all(preflight["evidence_ok"].values())
+    assert preflight["single_authority"]["no_second_grading_truth"] is True
+    assert preflight["single_authority"]["no_second_learner_truth"] is True
+    assert preflight["single_authority"]["learner_truth_source"] == (
+        "unchanged Learning Evidence Ledger / Learner Model"
+    )
+    assert (tmp_path / "G2_BROAD_DEFAULT_PREFLIGHT.md").exists()
+
+
 def test_current_gap_audit_outputs_g3_published_registry_preflight(
     tmp_path: Path,
 ) -> None:
