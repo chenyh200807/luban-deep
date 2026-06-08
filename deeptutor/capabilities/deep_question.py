@@ -2687,11 +2687,20 @@ def _general_knowledge_cohort_prefixes() -> tuple[str, ...]:
 
 
 def _general_knowledge_flag_enabled(context: UnifiedContext) -> bool:
-    metadata = context.metadata if isinstance(context.metadata, dict) else {}
     config_overrides = getattr(context, "config_overrides", {}) or {}
+    return bool(config_overrides.get("general_knowledge_context"))
+
+
+def _has_active_question_context(followup_question_context: dict[str, Any] | None) -> bool:
+    normalized = normalize_question_followup_context(
+        followup_question_context if isinstance(followup_question_context, dict) else None
+    )
     return bool(
-        metadata.get("general_knowledge_context")
-        or config_overrides.get("general_knowledge_context")
+        normalized
+        and (
+            normalized.get("question")
+            or normalized.get("items")
+        )
     )
 
 
@@ -3409,9 +3418,8 @@ class DeepQuestionCapability(BaseCapability):
                             trace_meta["practice_generation.next_training_signal_concept"] = consumed_concept
 
         require_explanation = reveal_explanations
-        has_active_question_context = (
-            isinstance(followup_question_context, dict)
-            and bool(followup_question_context.get("question"))
+        has_active_question_context = _has_active_question_context(
+            followup_question_context if isinstance(followup_question_context, dict) else None
         )
         general_knowledge_result_payload: dict[str, Any] = {}
         if not has_active_question_context:

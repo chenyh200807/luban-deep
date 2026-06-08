@@ -21,7 +21,11 @@ def test_runner_writes_required_artifacts_and_go_when_live_ws_passes(tmp_path: P
     assert _spec.loader is not None
     _spec.loader.exec_module(m34_runner)
 
-    result = m34_runner.run_slice(output_dir=tmp_path, live_ws_status="pass")
+    result = m34_runner.run_slice(
+        output_dir=tmp_path,
+        live_ws_status="pass",
+        live_ws_evidence="python -m pytest tests/integration/test_luban_m34_general_knowledge_dividend_ws.py -q => 2 passed",
+    )
 
     coverage = _load(tmp_path / "coverage_report_m34.json")
     safety = _load(tmp_path / "safety_invariant_report_m34.json")
@@ -34,6 +38,7 @@ def test_runner_writes_required_artifacts_and_go_when_live_ws_passes(tmp_path: P
     assert safety["answer_key_minted"] == 0
     assert verdict["verdict"] == "GO"
     assert verdict["live_ws_status"] == "pass"
+    assert "test_luban_m34_general_knowledge_dividend_ws.py" in verdict["live_ws_evidence"]
 
 
 def test_runner_stays_weak_go_without_live_ws_attestation(tmp_path: Path) -> None:
@@ -46,3 +51,15 @@ def test_runner_stays_weak_go_without_live_ws_attestation(tmp_path: Path) -> Non
     assert result["verdict"] == "WEAK-GO"
     assert verdict["verdict"] == "WEAK-GO"
     assert "live_ws_status_not_pass" in verdict["blockers"]
+
+
+def test_runner_stays_weak_go_when_live_ws_pass_lacks_evidence(tmp_path: Path) -> None:
+    assert _spec.loader is not None
+    _spec.loader.exec_module(m34_runner)
+
+    result = m34_runner.run_slice(output_dir=tmp_path, live_ws_status="pass")
+
+    verdict = _load(tmp_path / "go_no_go_m34.json")
+    assert result["verdict"] == "WEAK-GO"
+    assert verdict["verdict"] == "WEAK-GO"
+    assert "live_ws_evidence_missing_or_invalid" in verdict["blockers"]

@@ -94,6 +94,7 @@ def run_slice(
     *,
     output_dir: str | Path | None = None,
     live_ws_status: str = "unchecked",
+    live_ws_evidence: str = "",
 ) -> dict[str, Any]:
     out = Path(output_dir) if output_dir is not None else DEFAULT_OUT
     out.mkdir(parents=True, exist_ok=True)
@@ -153,10 +154,19 @@ def run_slice(
         )
     ) or safety["canonical_truth_written"] is not False:
         blockers.append("safety_invariant_violation")
+    live_ws_evidence_text = str(live_ws_evidence or "").strip()
+    live_ws_evidence_valid = (
+        live_ws_status == "pass"
+        and "test_luban_m34_general_knowledge_dividend_ws.py" in live_ws_evidence_text
+        and "passed" in live_ws_evidence_text.lower()
+    )
     if live_ws_status != "pass":
         blockers.append("live_ws_status_not_pass")
+    elif not live_ws_evidence_valid:
+        blockers.append("live_ws_evidence_missing_or_invalid")
 
-    if any(blocker != "live_ws_status_not_pass" for blocker in blockers):
+    live_only_blockers = {"live_ws_status_not_pass", "live_ws_evidence_missing_or_invalid"}
+    if any(blocker not in live_only_blockers for blocker in blockers):
         verdict = "NO-GO"
     elif blockers:
         verdict = "WEAK-GO"
@@ -167,6 +177,7 @@ def run_slice(
         "verdict": verdict,
         "blockers": blockers,
         "live_ws_status": live_ws_status,
+        "live_ws_evidence": live_ws_evidence_text,
         "cohort_default": "qa_,test_,operator_",
         "cohort_broadening_requires_user_confirmation": True,
         "production_write_count": safety["production_write_count"],
@@ -190,8 +201,17 @@ def main(argv: list[str] | None = None) -> int:
         default="unchecked",
         help="Set to pass only after the live /api/v1/ws M34 pytest gate passed in this run.",
     )
+    parser.add_argument(
+        "--live-ws-evidence",
+        default="",
+        help="Required with --live-ws-status pass; include pytest command/nodeid and passed count.",
+    )
     args = parser.parse_args(argv)
-    result = run_slice(output_dir=args.output_dir, live_ws_status=args.live_ws_status)
+    result = run_slice(
+        output_dir=args.output_dir,
+        live_ws_status=args.live_ws_status,
+        live_ws_evidence=args.live_ws_evidence,
+    )
     print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
     return 0 if result["verdict"] in {"GO", "WEAK-GO"} else 1
 

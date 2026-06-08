@@ -10,10 +10,9 @@ def _ctx(*, user_id: str, message: str, flag: bool) -> SimpleNamespace:
     return SimpleNamespace(
         user_message=message,
         metadata={
-            "general_knowledge_context": flag,
             "learner_user_id": user_id,
         },
-        config_overrides={},
+        config_overrides={"general_knowledge_context": flag},
     )
 
 
@@ -35,6 +34,32 @@ def test_flag_on_cohort_on_syllabus_attaches_teaching_context() -> None:
     block = payload.get("luban_general_knowledge_context")
     assert block and block["official_score_allowed"] is False
     assert block["tier"] == "teaching_context_not_answer_key"
+
+
+def test_metadata_flag_is_not_enablement_authority() -> None:
+    context = _ctx(user_id="qa_alice", message="高层住宅的建筑高度怎么界定？", flag=False)
+    context.metadata["general_knowledge_context"] = True
+    payload: dict = {}
+    dq._maybe_attach_general_knowledge_context(
+        context=context,
+        result_payload=payload,
+    )
+    assert "luban_general_knowledge_context" not in payload
+
+
+def test_items_batch_context_counts_as_active_question_context() -> None:
+    assert dq._has_active_question_context(
+        {
+            "items": [
+                {
+                    "question_id": "q1",
+                    "question": "事件一中模板支架搭设有哪些不妥？",
+                    "question_type": "case",
+                }
+            ]
+        }
+    ) is True
+    assert dq._has_active_question_context({}) is False
 
 
 def test_kill_switch_overrides_flag(monkeypatch) -> None:
