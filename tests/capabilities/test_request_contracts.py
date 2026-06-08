@@ -20,3 +20,12 @@ def test_chat_config_strips_runtime_client_turn_id() -> None:
 def test_chat_config_still_rejects_unknown_public_keys() -> None:
     with pytest.raises(ValueError, match="unknown_key"):
         validate_capability_config("chat", {"unknown_key": "still-forbidden"})
+
+
+def test_deep_question_config_allows_general_knowledge_context_flag() -> None:
+    config = validate_capability_config(
+        "deep_question",
+        {"general_knowledge_context": True},
+    )
+
+    assert config["general_knowledge_context"] is True

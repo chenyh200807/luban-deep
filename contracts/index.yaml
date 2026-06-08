@@ -180,6 +180,7 @@ domains:
       - tests/services/test_question_lifecycle_skills.py
       - tests/services/test_question_lifecycle_scene_derivation.py
       - tests/services/test_question_lifecycle_acceptance.py
+      - tests/capabilities/test_request_contracts.py
       - tests/capabilities/test_deep_question_question_review.py
       - tests/capabilities/test_deep_question_lightweight_generation.py
       - tests/capabilities/test_deep_question_reference_feedback.py
