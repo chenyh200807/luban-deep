@@ -1,4 +1,10 @@
 {
+  "actual_verification": {
+    "artifact": "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/VERIFICATION_CLOSURE_grading_to_brain.json",
+    "command_count": 5,
+    "status": "pass",
+    "verified_commit": "6011b79a"
+  },
   "artifacts": {
     "authorization_package": "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/authorization_gate_decision_package.json",
     "completion_audit": "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/completion_audit.json",
@@ -8,7 +14,8 @@
     "g3_published_registry_preflight": "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G3_PUBLISHED_REGISTRY_PREFLIGHT.json",
     "g4_canonical_learner_truth_preflight": "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G4_CANONICAL_LEARNER_TRUTH_PREFLIGHT.json",
     "g5_remote_db_write_preflight": "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G5_REMOTE_DB_WRITE_PREFLIGHT.json",
-    "g6_real_wechat_package_preflight": "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G6_REAL_WECHAT_PACKAGE_PREFLIGHT.json"
+    "g6_real_wechat_package_preflight": "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G6_REAL_WECHAT_PACKAGE_PREFLIGHT.json",
+    "verification_closure": "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/VERIFICATION_CLOSURE_grading_to_brain.json"
   },
   "authorization_package_summary": {
     "g1_preflight_verdict": "ready_for_user_authorization",
@@ -41,7 +48,7 @@
     "evidence_missing_count": 0,
     "partial": 2
   },
-  "current_commit": "549e4a10",
+  "current_commit": "6011b79a",
   "fresh_verification_commands": [
     {
       "command": "python -m pytest tests/scripts/test_luban_grading_to_brain_current_gap_audit.py tests/services/construction_grading/test_m32_grading_event_learning_evidence.py tests/services/learner_state/test_m32_waterproof_learning_synthesis.py tests/services/learner_state/test_m32_waterproof_personalization_context.py tests/services/learner_state/test_m32_waterproof_next_best_action.py tests/services/learner_state/test_m32_waterproof_retest_outcome.py tests/services/member_console/test_home_dashboard_learning_projection.py -q",

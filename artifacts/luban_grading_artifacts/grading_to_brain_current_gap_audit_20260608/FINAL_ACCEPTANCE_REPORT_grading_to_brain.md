@@ -1,8 +1,9 @@
 # Grading-to-Brain Final Acceptance Report
 
 - Verdict: `not_complete_authorization_required`
-- Current commit: `549e4a10`
+- Current commit: `6011b79a`
 - Reason: coverage and objective evidence are present, but canonical learner-truth write, production default, published registry, remote/DB write, and true wechat package-page evidence still require explicit authorization or QA.
+- Actual verification: `pass`
 
 ## Coverage
 
@@ -36,3 +37,4 @@
 - g4_canonical_learner_truth_preflight: `artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G4_CANONICAL_LEARNER_TRUTH_PREFLIGHT.json`
 - g5_remote_db_write_preflight: `artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G5_REMOTE_DB_WRITE_PREFLIGHT.json`
 - g6_real_wechat_package_preflight: `artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G6_REAL_WECHAT_PACKAGE_PREFLIGHT.json`
+- verification_closure: `artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/VERIFICATION_CLOSURE_grading_to_brain.json`

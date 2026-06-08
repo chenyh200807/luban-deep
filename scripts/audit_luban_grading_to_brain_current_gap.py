@@ -516,6 +516,12 @@ def _read_json_rel(path: str) -> dict[str, Any]:
     return json.loads(full_path.read_text(encoding="utf-8"))
 
 
+def _read_json_path(path: Path | None) -> dict[str, Any]:
+    if path is None or not path.exists():
+        return {}
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
 def _read_jsonl_rel(path: str) -> list[dict[str, Any]]:
     full_path = REPO / path
     if not full_path.exists():
@@ -1435,6 +1441,39 @@ def build_completion_audit() -> dict[str, Any]:
     }
 
 
+def build_verification_closure(raw: dict[str, Any]) -> dict[str, Any] | None:
+    if not raw:
+        return None
+
+    commands = raw.get("commands") or []
+    status = raw.get("status") or (
+        "pass"
+        if commands and all(command.get("exit_code") == 0 for command in commands)
+        else "fail"
+    )
+    return {
+        "schema_version": 1,
+        "generated_by": "audit_luban_grading_to_brain_current_gap",
+        "master_plan": MASTER_PLAN,
+        "scope": "actual_verification_closure",
+        "verified_commit": raw.get("verified_commit") or _current_commit(),
+        "status": status,
+        "command_count": len(commands),
+        "commands": commands,
+        "single_authority": {
+            "verification_truth_source": "fresh local command output summarized in this closure",
+            "does_not_write_grading_truth": True,
+            "does_not_write_learner_truth": True,
+        },
+        "no_write": {
+            "production_write_count": 0,
+            "canonical_truth_written": False,
+            "remote_write_count": 0,
+            "published_registry_executed": False,
+        },
+    }
+
+
 def build_final_acceptance_report(
     matrix: dict[str, Any],
     authorization_package: dict[str, Any],
@@ -1445,6 +1484,7 @@ def build_final_acceptance_report(
     g4_preflight: dict[str, Any],
     g5_preflight: dict[str, Any],
     g6_preflight: dict[str, Any],
+    verification_closure: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     remaining_gate_order = [
         "canonical_learner_truth_write",
@@ -1456,6 +1496,70 @@ def build_final_acceptance_report(
     remaining_gates = [
         gate for gate in remaining_gate_order if gate in matrix["remaining_gates"]
     ]
+    artifacts = {
+        "coverage_matrix": (
+            "artifacts/luban_grading_artifacts/"
+            "grading_to_brain_current_gap_audit_20260608/coverage_matrix.json"
+        ),
+        "completion_audit": (
+            "artifacts/luban_grading_artifacts/"
+            "grading_to_brain_current_gap_audit_20260608/completion_audit.json"
+        ),
+        "authorization_package": (
+            "artifacts/luban_grading_artifacts/"
+            "grading_to_brain_current_gap_audit_20260608/"
+            "authorization_gate_decision_package.json"
+        ),
+        "g1_limited_default_preflight": (
+            "artifacts/luban_grading_artifacts/"
+            "grading_to_brain_current_gap_audit_20260608/"
+            "G1_LIMITED_DEFAULT_PREFLIGHT.json"
+        ),
+        "g2_broad_default_preflight": (
+            "artifacts/luban_grading_artifacts/"
+            "grading_to_brain_current_gap_audit_20260608/"
+            "G2_BROAD_DEFAULT_PREFLIGHT.json"
+        ),
+        "g3_published_registry_preflight": (
+            "artifacts/luban_grading_artifacts/"
+            "grading_to_brain_current_gap_audit_20260608/"
+            "G3_PUBLISHED_REGISTRY_PREFLIGHT.json"
+        ),
+        "g4_canonical_learner_truth_preflight": (
+            "artifacts/luban_grading_artifacts/"
+            "grading_to_brain_current_gap_audit_20260608/"
+            "G4_CANONICAL_LEARNER_TRUTH_PREFLIGHT.json"
+        ),
+        "g5_remote_db_write_preflight": (
+            "artifacts/luban_grading_artifacts/"
+            "grading_to_brain_current_gap_audit_20260608/"
+            "G5_REMOTE_DB_WRITE_PREFLIGHT.json"
+        ),
+        "g6_real_wechat_package_preflight": (
+            "artifacts/luban_grading_artifacts/"
+            "grading_to_brain_current_gap_audit_20260608/"
+            "G6_REAL_WECHAT_PACKAGE_PREFLIGHT.json"
+        ),
+    }
+    actual_verification = {
+        "status": "not_recorded",
+        "verified_commit": None,
+        "command_count": 0,
+        "artifact": None,
+    }
+    if verification_closure is not None:
+        artifacts["verification_closure"] = (
+            "artifacts/luban_grading_artifacts/"
+            "grading_to_brain_current_gap_audit_20260608/"
+            "VERIFICATION_CLOSURE_grading_to_brain.json"
+        )
+        actual_verification = {
+            "status": verification_closure["status"],
+            "verified_commit": verification_closure["verified_commit"],
+            "command_count": verification_closure["command_count"],
+            "artifact": artifacts["verification_closure"],
+        }
+
     return {
         "schema_version": 1,
         "generated_by": "audit_luban_grading_to_brain_current_gap",
@@ -1471,51 +1575,8 @@ def build_final_acceptance_report(
         "completion_summary": completion_audit["summary"],
         "quality_gates": matrix["quality_gates"],
         "remaining_authorization_gates": remaining_gates,
-        "artifacts": {
-            "coverage_matrix": (
-                "artifacts/luban_grading_artifacts/"
-                "grading_to_brain_current_gap_audit_20260608/coverage_matrix.json"
-            ),
-            "completion_audit": (
-                "artifacts/luban_grading_artifacts/"
-                "grading_to_brain_current_gap_audit_20260608/completion_audit.json"
-            ),
-            "authorization_package": (
-                "artifacts/luban_grading_artifacts/"
-                "grading_to_brain_current_gap_audit_20260608/"
-                "authorization_gate_decision_package.json"
-            ),
-            "g1_limited_default_preflight": (
-                "artifacts/luban_grading_artifacts/"
-                "grading_to_brain_current_gap_audit_20260608/"
-                "G1_LIMITED_DEFAULT_PREFLIGHT.json"
-            ),
-            "g2_broad_default_preflight": (
-                "artifacts/luban_grading_artifacts/"
-                "grading_to_brain_current_gap_audit_20260608/"
-                "G2_BROAD_DEFAULT_PREFLIGHT.json"
-            ),
-            "g3_published_registry_preflight": (
-                "artifacts/luban_grading_artifacts/"
-                "grading_to_brain_current_gap_audit_20260608/"
-                "G3_PUBLISHED_REGISTRY_PREFLIGHT.json"
-            ),
-            "g4_canonical_learner_truth_preflight": (
-                "artifacts/luban_grading_artifacts/"
-                "grading_to_brain_current_gap_audit_20260608/"
-                "G4_CANONICAL_LEARNER_TRUTH_PREFLIGHT.json"
-            ),
-            "g5_remote_db_write_preflight": (
-                "artifacts/luban_grading_artifacts/"
-                "grading_to_brain_current_gap_audit_20260608/"
-                "G5_REMOTE_DB_WRITE_PREFLIGHT.json"
-            ),
-            "g6_real_wechat_package_preflight": (
-                "artifacts/luban_grading_artifacts/"
-                "grading_to_brain_current_gap_audit_20260608/"
-                "G6_REAL_WECHAT_PACKAGE_PREFLIGHT.json"
-            ),
-        },
+        "artifacts": artifacts,
+        "actual_verification": actual_verification,
         "fresh_verification_commands": [
             {
                 "command": (
@@ -1895,6 +1956,46 @@ def write_g6_preflight_markdown(preflight: dict[str, Any], out_dir: Path) -> Non
     )
 
 
+def write_verification_closure_markdown(
+    closure: dict[str, Any],
+    out_dir: Path,
+) -> None:
+    lines = [
+        "# Grading-to-Brain Verification Closure",
+        "",
+        f"- Status: `{closure['status']}`",
+        f"- Verified commit: `{closure['verified_commit']}`",
+        f"- Command count: `{closure['command_count']}`",
+        "",
+        "This artifact records actual command results. It does not write grading truth, learner truth, production defaults, registry state, remote files, or DB rows.",
+        "",
+        "## Commands",
+        "",
+        "| Command | Exit Code | Observed Result |",
+        "|---|---:|---|",
+    ]
+    for command in closure["commands"]:
+        lines.append(
+            "| "
+            f"`{command['command']}` | {command['exit_code']} | "
+            f"{command.get('observed_result', '')} |"
+        )
+
+    lines.extend(["", "## Single Authority", ""])
+    for key, value in closure["single_authority"].items():
+        lines.append(f"- {key}: `{value}`")
+
+    lines.extend(["", "## No-Write Invariants", ""])
+    for key, value in closure["no_write"].items():
+        lines.append(f"- {key}: `{value}`")
+
+    lines.append("")
+    (out_dir / "VERIFICATION_CLOSURE_grading_to_brain.md").write_text(
+        "\n".join(lines),
+        encoding="utf-8",
+    )
+
+
 def write_markdown(matrix: dict[str, Any], out_dir: Path) -> None:
     lines = [
         "# Grading-to-Brain Current Gap Audit",
@@ -2077,6 +2178,7 @@ def write_final_acceptance_markdown(
         f"- Verdict: `{report['verdict']}`",
         f"- Current commit: `{report['current_commit']}`",
         f"- Reason: {report['verdict_reason']}",
+        f"- Actual verification: `{report['actual_verification']['status']}`",
         "",
         "## Coverage",
         "",
@@ -2114,6 +2216,7 @@ def write_final_acceptance_markdown(
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
+    parser.add_argument("--verification-results", type=Path, default=None)
     return parser.parse_args()
 
 
@@ -2131,6 +2234,9 @@ def main() -> int:
     g4_preflight = build_g4_canonical_learner_truth_preflight()
     g5_preflight = build_g5_remote_db_write_preflight()
     g6_preflight = build_g6_real_wechat_package_preflight()
+    verification_closure = build_verification_closure(
+        _read_json_path(args.verification_results)
+    )
     final_report = build_final_acceptance_report(
         matrix,
         authorization_package,
@@ -2141,6 +2247,7 @@ def main() -> int:
         g4_preflight,
         g5_preflight,
         g6_preflight,
+        verification_closure,
     )
     (out_dir / "coverage_matrix.json").write_text(
         json.dumps(matrix, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
@@ -2226,6 +2333,17 @@ def main() -> int:
         + "\n",
         encoding="utf-8",
     )
+    if verification_closure is not None:
+        (out_dir / "VERIFICATION_CLOSURE_grading_to_brain.json").write_text(
+            json.dumps(
+                verification_closure,
+                ensure_ascii=False,
+                indent=2,
+                sort_keys=True,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
     (out_dir / "FINAL_ACCEPTANCE_REPORT_grading_to_brain.json").write_text(
         json.dumps(
             final_report,
@@ -2245,6 +2363,8 @@ def main() -> int:
     write_g4_preflight_markdown(g4_preflight, out_dir)
     write_g5_preflight_markdown(g5_preflight, out_dir)
     write_g6_preflight_markdown(g6_preflight, out_dir)
+    if verification_closure is not None:
+        write_verification_closure_markdown(verification_closure, out_dir)
     write_final_acceptance_markdown(final_report, out_dir)
 
     missing = {

@@ -433,3 +433,68 @@ def test_current_gap_audit_outputs_final_acceptance_report(tmp_path: Path) -> No
         for command in report["fresh_verification_commands"]
     )
     assert (tmp_path / "FINAL_ACCEPTANCE_REPORT_grading_to_brain.md").exists()
+
+
+def test_current_gap_audit_embeds_actual_verification_closure(
+    tmp_path: Path,
+) -> None:
+    verification_results = tmp_path / "verification_results.json"
+    verification_results.write_text(
+        json.dumps(
+            {
+                "verified_commit": "abc1234",
+                "status": "pass",
+                "commands": [
+                    {
+                        "command": "python -m pytest tests/scripts/test_luban_grading_to_brain_current_gap_audit.py -q",
+                        "exit_code": 0,
+                        "observed_result": "11 passed in 0.50s",
+                    },
+                    {
+                        "command": "git diff --check",
+                        "exit_code": 0,
+                        "observed_result": "no whitespace errors",
+                    },
+                ],
+            },
+            ensure_ascii=False,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    subprocess.run(
+        [
+            sys.executable,
+            str(SCRIPT),
+            "--out",
+            str(tmp_path / "out"),
+            "--verification-results",
+            str(verification_results),
+        ],
+        cwd=REPO,
+        check=True,
+    )
+
+    report = json.loads(
+        (
+            tmp_path
+            / "out"
+            / "FINAL_ACCEPTANCE_REPORT_grading_to_brain.json"
+        ).read_text(encoding="utf-8")
+    )
+    closure = json.loads(
+        (tmp_path / "out" / "VERIFICATION_CLOSURE_grading_to_brain.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    assert report["actual_verification"]["status"] == "pass"
+    assert report["actual_verification"]["verified_commit"] == "abc1234"
+    assert report["actual_verification"]["artifact"].endswith(
+        "VERIFICATION_CLOSURE_grading_to_brain.json"
+    )
+    assert closure["status"] == "pass"
+    assert closure["command_count"] == 2
+    assert all(command["exit_code"] == 0 for command in closure["commands"])
+    assert (tmp_path / "out" / "VERIFICATION_CLOSURE_grading_to_brain.md").exists()
