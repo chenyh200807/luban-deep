@@ -1520,6 +1520,100 @@ def test_learning_report_exposes_arrs_revalidation_queue(monkeypatch) -> None:
     assert probe["intent"]["source"] == "revalidation_queue"
 
 
+def test_learning_report_exposes_grading_to_brain_product_loop(monkeypatch) -> None:
+    monkeypatch.setenv("LEARNING_STATE_INFERENCE_V2_STAGE", "cohort_100")
+    monkeypatch.setenv("LEARNING_STATE_INFERENCE_V2_ACTION_LOOP_STAGE", "cohort_100")
+    monkeypatch.setenv("LEARNING_STATE_INFERENCE_V2_STATE_PROJECTION_STAGE", "cohort_100")
+    monkeypatch.setenv("LEARNING_STATE_INFERENCE_V2_VERIFICATION_STAGE", "cohort_100")
+
+    events = [
+        _prescription_event(
+            "evt_loop_miss_1",
+            training_intent_id="intent_loop",
+            phase="assigned",
+            status="assigned",
+            score_ratio=0.0,
+            days_ago=2,
+        ),
+        _prescription_event(
+            "evt_loop_miss_2",
+            training_intent_id="intent_loop",
+            phase="repair_root",
+            status="in_progress",
+            score_ratio=0.0,
+            days_ago=1,
+        ),
+        _prescription_event(
+            "evt_loop_retest",
+            training_intent_id="intent_loop",
+            phase="verification_probe",
+            status="verified",
+            score_ratio=1.0,
+            days_ago=0,
+        ),
+    ]
+    for event in events:
+        event.payload_json["evidence_source"] = "construction_grading"
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService(events),
+        event_limit=50,
+        schema_version=2,
+    )
+
+    loop = model["grading_to_brain_loop"]
+    assert loop["authority"]["grading_evidence"] == "learner_memory_events.learning_evidence"
+    assert loop["authority"]["learner_model"] == "LearningBrainReadModel"
+    assert loop["authority"]["personalization"] == "PersonalizationContextPack"
+    assert loop["authority"]["action"] == "training_intent"
+    assert loop["status"] == "improved"
+    assert loop["next_required_action"] == "maintain"
+    assert loop["evidence_refs"] == ["evt_loop_miss_1", "evt_loop_miss_2", "evt_loop_retest"]
+    stage_by_key = {stage["key"]: stage for stage in loop["stages"]}
+    assert stage_by_key["grading_result"]["status"] == "ready"
+    assert stage_by_key["learner_claim"]["status"] == "ready"
+    assert stage_by_key["personalization_context"]["status"] == "ready"
+    assert stage_by_key["next_action"]["status"] == "ready"
+    assert stage_by_key["retest"]["status"] == "verified"
+    assert "canonical_truth_written" not in loop
+
+
+def test_grading_to_brain_loop_does_not_treat_simulated_retest_as_improved(monkeypatch) -> None:
+    monkeypatch.setenv("LEARNING_STATE_INFERENCE_V2_STAGE", "cohort_100")
+    monkeypatch.setenv("LEARNING_STATE_INFERENCE_V2_ACTION_LOOP_STAGE", "cohort_100")
+    monkeypatch.setenv("LEARNING_STATE_INFERENCE_V2_STATE_PROJECTION_STAGE", "cohort_100")
+    monkeypatch.setenv("LEARNING_STATE_INFERENCE_V2_VERIFICATION_STAGE", "cohort_100")
+
+    simulated = _prescription_event(
+        "evt_loop_simulated_retest",
+        training_intent_id="intent_loop",
+        phase="verification_probe",
+        status="verified",
+        score_ratio=1.0,
+        days_ago=0,
+    )
+    simulated.payload_json["evidence_source"] = "construction_grading"
+    simulated.payload_json["qa_simulated"] = True
+    simulated.payload_json["preview_only"] = True
+    simulated.payload_json["claim_promotion_allowed"] = False
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([simulated]),
+        event_limit=50,
+        schema_version=2,
+    )
+
+    loop = model["grading_to_brain_loop"]
+    assert loop["status"] != "improved"
+    assert loop["latest_outcome"]["status"] != "verified"
+    assert loop["stages"][-1]["status"] != "verified"
+    assert "canonical_truth_written" not in loop
+
+
 def test_learning_state_inference_kill_switch_hides_action_loop(monkeypatch) -> None:
     monkeypatch.setenv("LEARNING_STATE_INFERENCE_V2_STAGE", "off")
     monkeypatch.setenv("LEARNING_STATE_INFERENCE_V2_ACTION_LOOP_STAGE", "cohort_100")

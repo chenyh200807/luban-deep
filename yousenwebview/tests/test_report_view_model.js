@@ -138,6 +138,30 @@ var loopReport = {
       },
     ],
   },
+  grading_to_brain_loop: {
+    status: "needs_retest",
+    next_required_action: "complete_revalidation_probe",
+    evidence_refs: ["attempt_m32_001", "attempt_m32_002"],
+    current_action: {
+      title: "同类 exact_required 术语题复测",
+      action_type: "retest_or_targeted_practice",
+      prescription_authority: "training_intent",
+    },
+    stages: [
+      { key: "grading_result", label: "本次批改", status: "ready" },
+      { key: "learner_claim", label: "长期画像", status: "ready" },
+      { key: "personalization_context", label: "个性化上下文", status: "ready" },
+      { key: "next_action", label: "下一步动作", status: "ready" },
+      { key: "retest", label: "复测结果", status: "due" },
+    ],
+    authority: {
+      grading_evidence: "learner_memory_events.learning_evidence",
+      learner_model: "LearningBrainReadModel",
+      personalization: "PersonalizationContextPack",
+      action: "training_intent",
+      retest: "prescription_outcomes",
+    },
+  },
 };
 var loopPageData = yousenVm.toReportPageData(
   yousenVm.buildLearningReportViewModel(loopReport),
@@ -163,14 +187,30 @@ assert(
 assert.strictEqual(loopPageData.hotspots[0].name, "建筑工程施工技术");
 assert.strictEqual(loopPageData.reviewSummary.total_due, 1);
 assert.strictEqual(loopPageData.reviewSummary.overdue_count, 0);
+assert.strictEqual(loopPageData.gradingLoopStatus, "needs_retest");
+assert.strictEqual(loopPageData.gradingLoopNextRequiredAction, "complete_revalidation_probe");
+assert.deepStrictEqual(loopPageData.gradingLoopEvidenceRefs, ["attempt_m32_001", "attempt_m32_002"]);
+assert.strictEqual(loopPageData.gradingLoopStages.length, 5);
+assert.strictEqual(loopPageData.gradingLoopAuthority.personalization, "PersonalizationContextPack");
 
 var source = fs.readFileSync(reportPath, "utf8");
+var wxmlSource = fs.readFileSync(
+  path.join(__dirname, "../packageDeeptutor/pages/report/report.wxml"),
+  "utf8",
+);
 assert(
   source.indexOf("learning-report-view-model") >= 0 &&
     source.indexOf("buildLearningReportViewModel") >= 0 &&
     source.indexOf("toReportPageData") >= 0 &&
-    source.indexOf("prescriptionAuthority") >= 0,
+    source.indexOf("prescriptionAuthority") >= 0 &&
+    source.indexOf("gradingLoopStatus") >= 0,
   "yousen report page must consume the shared learning report view model",
+);
+assert(
+  wxmlSource.indexOf("gradingLoopStages") >= 0 &&
+    wxmlSource.indexOf("gradingLoopStatus") >= 0 &&
+    wxmlSource.indexOf("gradingLoopEvidenceRefs") >= 0,
+  "yousen report page must render the Grading-to-Brain loop projection",
 );
 var hydrateBody = source.split("_hydrateFromUnifiedReport(snapshot)")[1].split("onReady()")[0];
 assert(hydrateBody.indexOf("_normalizeRadarDimensions(") < 0);

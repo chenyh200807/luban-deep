@@ -1049,6 +1049,49 @@ function normalizeEvidenceEngineBatchC(body, learningState, scoringPointMap, mas
   };
 }
 
+function normalizeGradingToBrainLoop(source) {
+  var src = asObject(source);
+  var currentAction = asObject(src.current_action || src.currentAction);
+  var latestOutcome = asObject(src.latest_outcome || src.latestOutcome);
+  return {
+    status: String(src.status || ""),
+    nextRequiredAction: String(src.next_required_action || src.nextRequiredAction || ""),
+    evidenceRefs: asList(src.evidence_refs || src.evidenceRefs).map(function (ref) {
+      return String(ref || "");
+    }).filter(Boolean),
+    currentAction: {
+      title: String(currentAction.title || ""),
+      actionType: String(currentAction.action_type || currentAction.actionType || ""),
+      prescriptionAuthority: String(
+        currentAction.prescription_authority || currentAction.prescriptionAuthority || "",
+      ),
+    },
+    latestOutcome: {
+      trainingIntentId: String(latestOutcome.training_intent_id || latestOutcome.trainingIntentId || ""),
+      status: String(latestOutcome.status || ""),
+      scoreRatio: latestOutcome.score_ratio !== undefined ? latestOutcome.score_ratio : latestOutcome.scoreRatio,
+      verifiedAt: String(latestOutcome.verified_at || latestOutcome.verifiedAt || ""),
+    },
+    stages: asList(src.stages).map(function (stage, index) {
+      var item = asObject(stage);
+      return {
+        key: String(item.key || "stage-" + index),
+        label: String(item.label || ""),
+        status: String(item.status || ""),
+        authority: String(item.authority || ""),
+        evidenceCount: asNumber(item.evidence_count || item.evidenceCount, 0),
+        evidenceRefs: asList(item.evidence_refs || item.evidenceRefs).map(function (ref) {
+          return String(ref || "");
+        }).filter(Boolean),
+        actionType: String(item.action_type || item.actionType || ""),
+        nextRequiredAction: String(item.next_required_action || item.nextRequiredAction || ""),
+      };
+    }),
+    authority: asObject(src.authority),
+    sourceStatus: asObject(src.source_status || src.sourceStatus),
+  };
+}
+
 function normalizeVisibleTruths(sections) {
   return asList(asObject(sections).current_truth)
     .map(function (item, index) {
@@ -1228,6 +1271,7 @@ function buildLearningReportViewModel(report) {
     scoringPointMap: scoringPointMap,
     prescription: prescription,
     evidenceEngine: evidenceEngine,
+    gradingToBrainLoop: normalizeGradingToBrainLoop(body.grading_to_brain_loop),
     degraded: Boolean(body.degraded) || degradedSources.length > 0,
     degradedSources: degradedSources,
   };
@@ -1685,6 +1729,7 @@ function toReportPageData(model) {
   var radar = asObject(vm.radar);
   var mastery = asObject(vm.mastery);
   var brain = asObject(vm.learningBrain);
+  var gradingLoop = asObject(vm.gradingToBrainLoop);
   var hasRadar = asList(radar.dims).length > 0;
   var hasMasteryOverall = mastery.hasOverall === true;
   var emptyBrain =
@@ -1750,6 +1795,14 @@ function toReportPageData(model) {
     ),
     engineEvidenceSources: asList(asObject(vm.evidenceEngine).sources),
     engineEvidenceVisible: Boolean(asObject(vm.evidenceEngine).isVisible),
+    gradingLoopStatus: String(gradingLoop.status || ""),
+    gradingLoopNextRequiredAction: String(gradingLoop.nextRequiredAction || ""),
+    gradingLoopEvidenceRefs: asList(gradingLoop.evidenceRefs),
+    gradingLoopCurrentAction: asObject(gradingLoop.currentAction),
+    gradingLoopLatestOutcome: asObject(gradingLoop.latestOutcome),
+    gradingLoopStages: asList(gradingLoop.stages),
+    gradingLoopAuthority: asObject(gradingLoop.authority),
+    gradingLoopSourceStatus: asObject(gradingLoop.sourceStatus),
     // Batch C Task 8: flat page fields for the new sections.
     learningStateKnowledge: asList(asObject(vm.learningState).knowledgeState),
     learningStateAbility: asList(asObject(vm.learningState).abilityState),
