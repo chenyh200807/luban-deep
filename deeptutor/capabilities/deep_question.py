@@ -1926,11 +1926,19 @@ async def _grade_one_case_v1(
     cg = ctx.get("construction_grading_result")
     qid = str(ctx.get("question_id") or (cg or {}).get("question_id") or "").strip()
     answer = str(ctx.get("user_answer") or "").strip()
+    logger.warning(
+        "LUBAN_DIAG _grade_one_case_v1: entered qid=%s answer_len=%d has_cg=%s",
+        qid or "(none)", len(answer), bool(cg),
+    )
     if not answer:
         return None
     # 1) governed compiled rubric (best ammunition) if in the bank
     points = _G.load_rubric(qid) if qid else []
     provenance = "compiled_rubric"
+    logger.warning(
+        "LUBAN_DIAG _grade_one_case_v1: tier1 qid=%s compiled_rubric_points=%d",
+        qid or "(none)", len(points),
+    )
     # 2) OPEN WORLD: no compiled rubric -> extract atomic scoring points on-the-fly from THIS question's
     #    own reference answer (Nexus-like, not a 173-question lookup); never falls back to V0 keywords.
     if not points:
@@ -1942,6 +1950,10 @@ async def _grade_one_case_v1(
             or ""
         ).strip()
         stem = str(ctx.get("question_stem") or ctx.get("stem") or ctx.get("question") or "")
+        logger.warning(
+            "LUBAN_DIAG _grade_one_case_v1: tier2/3 has_reference=%s reference_len=%d has_stem=%s stem_len=%d",
+            bool(reference), len(reference), bool(stem), len(stem),
+        )
         if reference:
             points = await _G.extract_rubric_from_reference_async(reference, stem, complete, key)
             points = _G.normalize_points_to_nominal(
@@ -1956,7 +1968,12 @@ async def _grade_one_case_v1(
                 points, nominal_total=float((cg or {}).get("max_score") or 0))
             provenance = "derived_from_stem"
         else:
+            logger.warning("LUBAN_DIAG _grade_one_case_v1: no_reference fallback qid=%s", qid or "(none)")
             return {"status": "no_reference", "question_id": qid}
+    logger.warning(
+        "LUBAN_DIAG _grade_one_case_v1: post-tier points=%d provenance=%s qid=%s",
+        len(points), provenance, qid or "(none)",
+    )
     if not points:
         return {"status": "unavailable", "reason": "no_scoring_points"}
     event = await _G.grade_with_batch_judge_async(
