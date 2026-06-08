@@ -58,3 +58,15 @@ def test_wechat_taxonomy_shadow_is_derived_from_backend_prefix_labels() -> None:
         source = (repo / relative_path).read_text(encoding="utf-8")
         for code in ("1A411", "1A412", "1A413", "1A438"):
             assert f'"{code}": "{expected[code]}"' in source
+
+
+def test_student_taxonomy_label_never_leaks_code():
+    # SINGLE AUTHORITY for student-facing display: canonical Chinese name, or '' on miss — NEVER a code.
+    from deeptutor.services.taxonomy.taxonomy_authority import student_taxonomy_label
+
+    assert student_taxonomy_label("1A432000") == "工程招标投标与合同管理"   # resolvable -> Chinese
+    # unresolvable / non-concept codes -> '' (caller hides), NEVER the raw code shown to a learner
+    for code in ["1A420000", "E02", "M03", "1B411000", "EXAM_1A432000_P0016_02::E0::Q1-1"]:
+        out = student_taxonomy_label(code)
+        assert out == "" or "工程" in out or "建筑" in out  # Chinese-or-empty
+        assert code not in out                                # the literal code must never appear

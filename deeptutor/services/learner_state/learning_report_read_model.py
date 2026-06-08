@@ -1,42 +1,46 @@
 from __future__ import annotations
 
-import time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from datetime import datetime, timedelta, timezone
 import hashlib
 import os
 import re
+import time
 from typing import Any, Callable
 
-from deeptutor.services.experiments.cohort import current_stage, is_enabled
 from deeptutor.services.construction_grading.learning_evidence import compute_quality_signals
+from deeptutor.services.experiments.cohort import current_stage, is_enabled
 from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
-from deeptutor.services.learner_state.learning_brain_read_model import build_learning_brain_read_model
-from deeptutor.services.learner_state.mastery_estimator import estimate_mastery
-from deeptutor.services.learner_state.progress_feedback import build_progress_feedback
+from deeptutor.services.learner_state.learning_brain_read_model import (
+    build_learning_brain_read_model,
+)
 from deeptutor.services.learner_state.learning_state_projection import (
     project_three_layer_learning_state,
 )
-from deeptutor.services.learner_state.scoring_point_map_read_model import (
-    build_scoring_point_map_read_projection,
+from deeptutor.services.learner_state.mastery_estimator import estimate_mastery
+from deeptutor.services.learner_state.next_best_action import build_next_best_actions
+from deeptutor.services.learner_state.personalization_context import (
+    build_personalization_context_pack,
 )
 from deeptutor.services.learner_state.prescription_outcome_read_model import (
     build_prescription_outcomes_read_projection,
 )
+from deeptutor.services.learner_state.progress_feedback import build_progress_feedback
 from deeptutor.services.learner_state.revalidation_queue import (
     build_revalidation_queue_projection,
 )
-from deeptutor.services.learner_state.next_best_action import build_next_best_actions
-from deeptutor.services.learner_state.personalization_context import build_personalization_context_pack
+from deeptutor.services.learner_state.scoring_point_map_read_model import (
+    build_scoring_point_map_read_projection,
+)
 from deeptutor.services.learner_state.training_intent import (
     PRESCRIPTION_AUTHORITY,
     build_learning_training_intent,
 )
 from deeptutor.services.taxonomy.construction_taxonomy import (
-    display_taxonomy_label,
     is_non_topic_label,
     normalize_taxonomy_code,
+    student_facing_label,
     taxonomy_index,
     taxonomy_tree_stats,
     textbook_directory,
@@ -2139,8 +2143,9 @@ def _display_dimension_label(value: Any) -> str:
         return ""
     if _is_deictic_topic_label(text):
         return ""
-    label = display_taxonomy_label(text, fallback=text)
-    normalized = str(label or text).strip()
+    # student-facing: a code resolves to Chinese (or '' on miss, never the code); human text passes through
+    label = student_facing_label(text)
+    normalized = str(label or "").strip()
     if _is_deictic_topic_label(normalized):
         return ""
     return normalized
@@ -2258,7 +2263,9 @@ def _pick_focus_topic(*, weak_names: list[str], home_dashboard: dict[str, Any]) 
 
 
 def _concept_label(concept_id: str) -> str:
-    return display_taxonomy_label(concept_id, fallback=concept_id or "")
+    # SINGLE AUTHORITY, student-facing: a code -> canonical Chinese (or '' on miss, NEVER the code);
+    # already-Chinese text (callers sometimes pass a label) passes through unchanged.
+    return student_facing_label(concept_id)
 
 
 def _student_safe_topic(value: Any) -> str:

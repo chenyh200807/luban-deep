@@ -1852,3 +1852,15 @@ def test_conversation_only_explanation_does_not_verify_prescription() -> None:
     loop = model["prescription_outcomes"][0]
     assert loop["status"] != "verified"
     assert loop["next_required_action"] == "complete_verification_probe"
+
+
+def test_concept_label_never_leaks_code_to_learner():
+    # SINGLE AUTHORITY (canonical taxonomy): a learner must never see a machine code. A resolvable code
+    # becomes Chinese; an unresolvable / non-concept code becomes '' (caller hides it), NEVER the code.
+    from deeptutor.services.learner_state.learning_report_read_model import _concept_label
+
+    assert _concept_label("1A432000") == "工程招标投标与合同管理"     # resolvable -> Chinese
+    assert _concept_label("地基基础承载力") == "地基基础承载力"        # already-Chinese passes through
+    for code in ["1A420000", "E02", "1B411000", "EXAM_1A432000_P0016_02::E0::Q1-1"]:
+        out = _concept_label(code)
+        assert code not in out                                       # the raw code is NEVER shown

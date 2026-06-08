@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import json
-import re
 from collections import Counter
 from functools import lru_cache
+import json
 from pathlib import Path
+import re
 from typing import Any
 
 _COMPILED_TAXONOMY_PATH = Path(__file__).resolve().parent / "compiled" / "construction_2026_taxonomy.compiled.json"
@@ -43,6 +43,49 @@ def display_taxonomy_label(value: Any, *, with_code: bool = False, fallback: str
     if with_code and code:
         return f"{label}（{code}）"
     return label
+
+
+def student_taxonomy_label(value: Any) -> str:
+    """SINGLE AUTHORITY for student-facing taxonomy display.
+
+    Returns the canonical Chinese name, or '' when the code cannot be resolved — NEVER the raw code.
+    Codes (``1A432000``, ``E02``, ``EXAM_...::Q1-1``, other-track ``1B...``) are meaningless to learners,
+    so every learner-facing read model must resolve through HERE instead of ``display_taxonomy_label(x,
+    fallback=x)`` (which leaks the code on a miss). The caller decides what to show when this is empty
+    (a question topic, an error label, or to omit the row) — but it must never fall back to the code."""
+    return taxonomy_label(value)
+
+
+# Code shapes that must NEVER reach a learner verbatim: construction node codes (1A412000 / 1B.. / 2A..),
+# error codes (E02 / M03), and compound rubric/exam ids (EXAM_...::E0::Q1-1).
+_CODE_SHAPE_RE = re.compile(r"^(?:\d?[A-Za-z]\d{6}|[EM]\d{2})$|::|^EXAM_", re.IGNORECASE)
+
+
+def looks_like_taxonomy_code(value: Any) -> bool:
+    """True when the string is a machine code (taxonomy / error / rubric id), not human-readable text."""
+    text = str(value or "").strip()
+    return bool(text) and bool(_CODE_SHAPE_RE.search(text))
+
+
+def student_facing_label(value: Any, *, generic: str = "") -> str:
+    """SINGLE AUTHORITY for any learner-facing label that MIGHT be a code OR already-human text.
+
+    - A taxonomy/error/rubric CODE -> its canonical Chinese name, or ``generic`` (never the raw code).
+    - Already-human text (a Chinese topic) -> returned unchanged.
+    Use this instead of ``display_taxonomy_label(x, fallback=x)`` on any surface a learner can read."""
+    text = str(value or "").strip()
+    if not text:
+        return generic
+    if looks_like_taxonomy_code(text):
+        return taxonomy_label(text) or generic   # code -> Chinese name or generic, NEVER the code
+    return text                                   # already human-readable text
+
+
+def scrub_codes_for_student(text: Any, *, generic: str = "相关考点") -> str:
+    """Replace any embedded taxonomy code (``1A\\d{6}`` and other-track ``\\dA\\d{6}``) inside free text
+    with its canonical Chinese name (or ``generic`` on a miss) so a learner never sees a code fragment."""
+    out = str(text or "")
+    return re.sub(r"\b\d?[A-Za-z]\d{6}\b", lambda m: taxonomy_label(m.group(0)) or generic, out)
 
 
 def chapter_prefix_labels() -> dict[str, str]:

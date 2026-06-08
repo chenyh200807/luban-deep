@@ -3,7 +3,10 @@ from __future__ import annotations
 import re
 from typing import Any, Literal
 
-from deeptutor.services.taxonomy.construction_taxonomy import display_taxonomy_label
+from deeptutor.services.taxonomy.construction_taxonomy import (
+    scrub_codes_for_student,
+    student_taxonomy_label,
+)
 
 LEARNING_BRAIN_SUBJECT = "construction_exam_learning_truth"
 _ERROR_LABELS = {
@@ -426,7 +429,7 @@ def _concept_label(concept_id: Any) -> str:
     if not code:
         return ""
     if re.match(r"^1A\d{6}$", code):
-        return display_taxonomy_label(code, fallback=code)
+        return student_taxonomy_label(code)   # Chinese name or '' — never the raw code
     text = str(concept_id or "").strip()
     match = re.search(r"我想练习(.+?)相关的题目", text)
     if match:
@@ -440,7 +443,7 @@ def _error_label(error_code: Any) -> str:
     code = str(error_code or "").strip().upper()
     if not code:
         return ""
-    return _ERROR_LABELS.get(code) or f"错因 {code}"
+    return _ERROR_LABELS.get(code) or "错因"   # never append the raw code (meaningless to learners)
 
 
 def _event_label(index: int) -> str:
@@ -529,14 +532,16 @@ def _object_display(raw_id: Any, raw_type: Any = "") -> dict[str, str]:
         return {"display_label": "案例题", "display_title": f"案例题：{label}", "display_meta": f"案例题：{label}"}
     if object_type == "rubric_item":
         part = str(object_id or "").split(":")[-1]
-        return {"display_label": "采分点", "display_title": f"采分点：{_compact_id(part)}", "display_meta": str(object_id or "")}
+        # display_meta must never carry the raw id (a code is meaningless to learners); '' -> UI shows the
+        # Chinese display_label instead.
+        return {"display_label": "采分点", "display_title": f"采分点：{_compact_id(part)}", "display_meta": ""}
     if object_type == "concept" or str(object_id).upper().startswith("1A"):
         label = _concept_label(object_id)
-        return {"display_label": "知识点", "display_title": f"知识点：{label}", "display_meta": str(object_id or "").upper()}
+        return {"display_label": "知识点", "display_title": f"知识点：{label}", "display_meta": ""}
     if object_type == "submission":
         label = _submission_label(object_id)
         return {"display_label": "作答记录", "display_title": f"作答记录：{label}", "display_meta": f"作答记录：{label}"}
-    return {"display_label": "学习对象", "display_title": f"学习对象：{_compact_id(object_id or object_type)}", "display_meta": str(object_id or "")}
+    return {"display_label": "学习对象", "display_title": f"学习对象：{_compact_id(object_id or object_type)}", "display_meta": ""}
 
 
 def _edge_label(edge_type: Any) -> str:
@@ -651,7 +656,7 @@ def _humanize_text(value: Any) -> str:
         text,
         flags=re.IGNORECASE,
     )
-    text = re.sub(r"\b1A\d{6}\b", lambda match: display_taxonomy_label(match.group(0), fallback=match.group(0)), text)
+    text = scrub_codes_for_student(text)   # embedded codes -> Chinese name (or generic), never the code
     for error_code, label in _ERROR_LABELS.items():
         text = text.replace(error_code, label)
     return (
