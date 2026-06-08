@@ -6096,7 +6096,7 @@
         "1A433000_057_0086::C0"
       ]
     },
-    "published": true,
+    "published": false,
     "records_with_derived_numbers": 7,
     "rollback_pointer": "legacy (no textbook_knowledge_full -> runtime uses existing context)",
     "schema_version": "luban_full_knowledge_compiler.m30",
@@ -6104,8 +6104,7 @@
     "signature": "c33c10fb8f5fd910fc0969d1b6a29747081a08d65bafd6668072beb11849d4c4",
     "signed_count": 1303,
     "status": "release_candidate",
-    "work_order_count": 6,
-    "published_date": "2026-06-08"
+    "work_order_count": 6
   },
   "records": [
     {
