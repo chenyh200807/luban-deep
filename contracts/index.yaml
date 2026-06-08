@@ -31,6 +31,17 @@ websocket_routes:
     reason: Knowledge-base ingestion progress fan-out. Non-chat; broadcasts build
       progress events only, creates no turn/session state.
 
+mobile_http_read_models:
+  billing_usage:
+    path: /api/v1/billing/usage
+    authority: wallet_service
+    semantics:
+      - Wallet snapshot read failure returns status=degraded and no quota rows.
+      - Wallet ledger read failure must not make the whole usage read model unavailable;
+        the adapter returns status=ok with empty usage entries and the snapshot plan.
+      - Ledger-derived windows are display read models only; they are not capability
+        routing, request config, learner-state, or turn authority.
+
 domains:
   turn:
     summary: Unified turn, stream, replay, session, trace boundary, and mobile assessment HTTP bridges.
