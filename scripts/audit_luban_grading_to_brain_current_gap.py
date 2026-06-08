@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -401,6 +402,14 @@ def _rel_exists(path: str) -> bool:
     return (REPO / path).exists()
 
 
+def _current_commit() -> str:
+    return subprocess.check_output(
+        ["git", "rev-parse", "--short", "HEAD"],
+        cwd=REPO,
+        text=True,
+    ).strip()
+
+
 def _with_evidence_health(row: dict[str, Any]) -> dict[str, Any]:
     missing = [ref for ref in row["evidence_refs"] if not _rel_exists(ref)]
     return {
@@ -549,6 +558,110 @@ def build_completion_audit() -> dict[str, Any]:
             row["id"]: row["missing_evidence_refs"]
             for row in requirements
             if row["missing_evidence_refs"]
+        },
+    }
+
+
+def build_final_acceptance_report(
+    matrix: dict[str, Any],
+    authorization_package: dict[str, Any],
+    completion_audit: dict[str, Any],
+) -> dict[str, Any]:
+    remaining_gate_order = [
+        "canonical_learner_truth_write",
+        "production_default",
+        "published_registry",
+        "remote_or_db_write",
+        "real_wechat_package_page_automation",
+    ]
+    remaining_gates = [
+        gate for gate in remaining_gate_order if gate in matrix["remaining_gates"]
+    ]
+    return {
+        "schema_version": 1,
+        "generated_by": "audit_luban_grading_to_brain_current_gap",
+        "master_plan": MASTER_PLAN,
+        "verdict": "not_complete_authorization_required",
+        "verdict_reason": (
+            "coverage and objective evidence are present, but canonical learner-truth "
+            "write, production default, published registry, remote/DB write, and true "
+            "wechat package-page evidence still require explicit authorization or QA."
+        ),
+        "current_commit": _current_commit(),
+        "coverage_summary": matrix["summary"],
+        "completion_summary": completion_audit["summary"],
+        "quality_gates": matrix["quality_gates"],
+        "remaining_authorization_gates": remaining_gates,
+        "artifacts": {
+            "coverage_matrix": (
+                "artifacts/luban_grading_artifacts/"
+                "grading_to_brain_current_gap_audit_20260608/coverage_matrix.json"
+            ),
+            "completion_audit": (
+                "artifacts/luban_grading_artifacts/"
+                "grading_to_brain_current_gap_audit_20260608/completion_audit.json"
+            ),
+            "authorization_package": (
+                "artifacts/luban_grading_artifacts/"
+                "grading_to_brain_current_gap_audit_20260608/"
+                "authorization_gate_decision_package.json"
+            ),
+        },
+        "fresh_verification_commands": [
+            {
+                "command": (
+                    "python -m pytest "
+                    "tests/scripts/test_luban_grading_to_brain_current_gap_audit.py "
+                    "tests/services/construction_grading/test_m32_grading_event_learning_evidence.py "
+                    "tests/services/learner_state/test_m32_waterproof_learning_synthesis.py "
+                    "tests/services/learner_state/test_m32_waterproof_personalization_context.py "
+                    "tests/services/learner_state/test_m32_waterproof_next_best_action.py "
+                    "tests/services/learner_state/test_m32_waterproof_retest_outcome.py "
+                    "tests/services/member_console/test_home_dashboard_learning_projection.py -q"
+                ),
+                "expected_result": "pass",
+            },
+            {
+                "command": (
+                    "python scripts/check_contract_guard.py "
+                    "scripts/audit_luban_grading_to_brain_current_gap.py "
+                    "tests/scripts/test_luban_grading_to_brain_current_gap_audit.py "
+                    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/coverage_matrix.json "
+                    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/FINDING_grading_to_brain_current_gap_audit.md "
+                    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/authorization_gate_decision_package.json "
+                    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/AUTHORIZATION_GATES_grading_to_brain.md "
+                    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/completion_audit.json "
+                    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/COMPLETION_AUDIT_grading_to_brain.md "
+                    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/FINAL_ACCEPTANCE_REPORT_grading_to_brain.json "
+                    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/FINAL_ACCEPTANCE_REPORT_grading_to_brain.md"
+                ),
+                "expected_result": "pass",
+            },
+            {
+                "command": "git diff --check",
+                "expected_result": "pass",
+            },
+            {
+                "command": "codegraph sync . && codegraph status .",
+                "expected_result": "up_to_date",
+            },
+        ],
+        "authorization_package_summary": {
+            "recommended_next": [
+                gate_id
+                for gate_id, gate in authorization_package["gates"].items()
+                if gate["recommended_next"]
+            ],
+            "no_write": {
+                "production_write_count": authorization_package["production_write_count"],
+                "canonical_truth_written": authorization_package[
+                    "canonical_truth_written"
+                ],
+                "remote_write_count": authorization_package["remote_write_count"],
+                "published_registry_executed": authorization_package[
+                    "published_registry_executed"
+                ],
+            },
         },
     }
 
@@ -725,6 +838,50 @@ def write_completion_markdown(audit: dict[str, Any], out_dir: Path) -> None:
     )
 
 
+def write_final_acceptance_markdown(
+    report: dict[str, Any],
+    out_dir: Path,
+) -> None:
+    lines = [
+        "# Grading-to-Brain Final Acceptance Report",
+        "",
+        f"- Verdict: `{report['verdict']}`",
+        f"- Current commit: `{report['current_commit']}`",
+        f"- Reason: {report['verdict_reason']}",
+        "",
+        "## Coverage",
+        "",
+        f"- S1-S12: {report['coverage_summary']}",
+        f"- R1-R7: {report['completion_summary']}",
+        f"- Quality gates: {report['quality_gates']}",
+        "",
+        "## Remaining Authorization Gates",
+        "",
+    ]
+    for gate in report["remaining_authorization_gates"]:
+        lines.append(f"- `{gate}`")
+
+    lines.extend(
+        [
+            "",
+            "## Fresh Verification Commands",
+            "",
+        ]
+    )
+    for command in report["fresh_verification_commands"]:
+        lines.append(f"- `{command['command']}` -> `{command['expected_result']}`")
+
+    lines.extend(["", "## Artifacts", ""])
+    for name, path in report["artifacts"].items():
+        lines.append(f"- {name}: `{path}`")
+
+    lines.append("")
+    (out_dir / "FINAL_ACCEPTANCE_REPORT_grading_to_brain.md").write_text(
+        "\n".join(lines),
+        encoding="utf-8",
+    )
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
@@ -739,6 +896,11 @@ def main() -> int:
     matrix = build_matrix()
     authorization_package = build_authorization_package()
     completion_audit = build_completion_audit()
+    final_report = build_final_acceptance_report(
+        matrix,
+        authorization_package,
+        completion_audit,
+    )
     (out_dir / "coverage_matrix.json").write_text(
         json.dumps(matrix, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
@@ -763,9 +925,20 @@ def main() -> int:
         + "\n",
         encoding="utf-8",
     )
+    (out_dir / "FINAL_ACCEPTANCE_REPORT_grading_to_brain.json").write_text(
+        json.dumps(
+            final_report,
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     write_markdown(matrix, out_dir)
     write_authorization_markdown(authorization_package, out_dir)
     write_completion_markdown(completion_audit, out_dir)
+    write_final_acceptance_markdown(final_report, out_dir)
 
     missing = {
         "coverage_matrix": matrix["missing_evidence"],

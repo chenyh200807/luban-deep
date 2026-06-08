@@ -117,3 +117,45 @@ def test_current_gap_audit_outputs_explicit_loop_completion_audit(
     assert audit["summary"]["authorization_gated"] >= 1
     assert audit["single_authority"]["no_second_mastery"] is True
     assert (tmp_path / "COMPLETION_AUDIT_grading_to_brain.md").exists()
+
+
+def test_current_gap_audit_outputs_final_acceptance_report(tmp_path: Path) -> None:
+    subprocess.run(
+        [sys.executable, str(SCRIPT), "--out", str(tmp_path)],
+        cwd=REPO,
+        check=True,
+    )
+
+    report = json.loads(
+        (tmp_path / "FINAL_ACCEPTANCE_REPORT_grading_to_brain.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert report["verdict"] == "not_complete_authorization_required"
+    assert report["coverage_summary"] == {
+        "done": 10,
+        "partial": 2,
+        "blocker": 0,
+        "evidence_missing_count": 0,
+    }
+    assert report["completion_summary"]["authorization_gated"] == 1
+    assert report["quality_gates"]["fp"] == 0
+    assert report["quality_gates"]["production_write"] == 0
+    assert report["remaining_authorization_gates"] == [
+        "canonical_learner_truth_write",
+        "production_default",
+        "published_registry",
+        "remote_or_db_write",
+        "real_wechat_package_page_automation",
+    ]
+    assert report["artifacts"]["coverage_matrix"].endswith("coverage_matrix.json")
+    assert report["artifacts"]["completion_audit"].endswith("completion_audit.json")
+    assert report["artifacts"]["authorization_package"].endswith(
+        "authorization_gate_decision_package.json"
+    )
+    assert report["current_commit"]
+    assert any(
+        "test_luban_grading_to_brain_current_gap_audit.py" in command["command"]
+        for command in report["fresh_verification_commands"]
+    )
+    assert (tmp_path / "FINAL_ACCEPTANCE_REPORT_grading_to_brain.md").exists()
