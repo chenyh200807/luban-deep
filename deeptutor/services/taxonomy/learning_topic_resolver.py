@@ -15,7 +15,11 @@ from deeptutor.services.taxonomy.taxonomy_authority import (
 from deeptutor.services.taxonomy.taxonomy_authority import (
     taxonomy_index,
 )
-from deeptutor.services.taxonomy.textbook_directory import is_non_topic_label
+from deeptutor.services.taxonomy.textbook_directory import (
+    canonical_topic_options,
+    is_non_topic_label,
+    resolve_canonical_option,
+)
 
 _CODE_RE = re.compile(r"1A\d{3,6}(?:-\d{2})?(?:-[a-z])?", re.IGNORECASE)
 _DEICTIC_TOPIC_RE = re.compile(r"^(?:这|这道|这一|这个|本|该|此|当前)(?:道|个|类)?(?:题|题目|选择题|案例题|真题)$")
@@ -213,13 +217,9 @@ def resolve_learning_topic_from_payload(
         and llm_topic_inferer is not None
         and _has_topic_evidence(payload, evidence_candidates)
     ):
-        inferred = normalize_learning_topic_text(llm_topic_inferer(payload, evidence_candidates))
-        if inferred:   # normalize_learning_topic_text drops non-textbook noise (is_non_topic_label)
-            return ResolvedLearningTopic(label=inferred, source="llm_inferred", confidence="low")
-        fallback = _personalized_focus_from_candidates(specific_focus_candidates)
-        if fallback:
-            return fallback
-        return None
+        topic = _classify_to_canonical_option(llm_topic_inferer(payload, evidence_candidates))
+        if topic:
+            return topic
 
     for code in _taxonomy_code_candidates(payload, evidence_candidates):
         node = index["nodes_by_code"].get(code)
@@ -238,10 +238,9 @@ def resolve_learning_topic_from_payload(
             return topic
 
     if llm_topic_inferer is not None and _has_topic_evidence(payload, evidence_candidates):
-        inferred = normalize_learning_topic_text(llm_topic_inferer(payload, evidence_candidates))
-        if inferred:   # normalize_learning_topic_text drops non-textbook noise (is_non_topic_label)
-            return ResolvedLearningTopic(label=inferred, source="llm_inferred", confidence="low")
-        return _personalized_focus_from_candidates(evidence_candidates)
+        topic = _classify_to_canonical_option(llm_topic_inferer(payload, evidence_candidates))
+        if topic:
+            return topic
     return None
 
 
@@ -259,19 +258,24 @@ def _resolve_confirmed_label(label: str, index: dict[str, dict[str, dict[str, An
 
 
 def infer_learning_topic_with_llm(payload: dict[str, Any], candidates: list[str]) -> str:
+    # CANONICAL CLASSIFIER (not free generation): the LLM must PICK ONE canonical chapter/section name from
+    # the fixed option list, or return empty — it may NOT invent a topic. This is what keeps every
+    # recommendation on-canonical (the old free-generation prompt produced off-taxonomy junk, e.g. it would
+    # echo its own role string '一级建造师建筑实务学习主题归纳'). The pick is exact-validated by the caller.
+    option_names = [opt["name"] for opt in canonical_topic_options()]
     prompt = {
-        "task": "infer_one_construction_exam_learning_topic",
+        "task": "classify_evidence_into_one_canonical_construction_exam_topic",
         "rules": [
-            "Return only one concise Chinese learning topic.",
-            "Do not return pronouns such as 这题、本题、当前考点.",
-            "Do not invent a taxonomy code.",
-            "Use the user's evidence text only.",
+            "You MUST return exactly one name copied verbatim from canonical_options, or an empty string.",
+            "Do NOT invent, summarize, paraphrase, or return anything not in canonical_options.",
+            "If no option clearly fits the evidence, return an empty string.",
         ],
-        "candidates": candidates[:8],
+        "canonical_options": option_names,
         "evidence": {
             "question_stem": str(payload.get("question_stem") or "")[:800],
             "simple_explanation": str(payload.get("simple_explanation") or "")[:800],
             "explanation": str(payload.get("explanation") or "")[:800],
+            "hints": candidates[:8],
         },
     }
     try:
@@ -280,7 +284,8 @@ def infer_learning_topic_with_llm(payload: dict[str, Any], candidates: list[str]
         async def call_llm() -> str:
             return await complete(
                 json.dumps(prompt, ensure_ascii=False),
-                system_prompt="你是一级建造师建筑实务学习主题归纳器。只输出一个短主题，不要解释。",
+                system_prompt="你是一建《建筑实务》考点分类器。只能从给定 canonical_options 里原样选一个名称，"
+                "或返回空字符串；不得自创、改写或归纳。",
                 max_retries=0,
                 temperature=0,
                 max_tokens=32,
@@ -410,14 +415,20 @@ def _has_topic_evidence(payload: dict[str, Any], candidates: list[str]) -> bool:
     return any(str(payload.get(key) or "").strip() for key in ("question_stem", "simple_explanation", "explanation"))
 
 
-def _personalized_focus_from_candidates(candidates: list[str]) -> ResolvedLearningTopic | None:
-    # normalize_learning_topic_text drops non-textbook noise (is_non_topic_label) so a personalized focus
-    # is a real topic phrasing, never front/back-matter or marketing garbage.
-    for label in candidates:
-        text = normalize_learning_topic_text(label)
-        if text and not _CODE_RE.fullmatch(text):
-            return ResolvedLearningTopic(label=text, source="evidence_inferred", confidence="low")
-    return None
+def _classify_to_canonical_option(picked: Any) -> ResolvedLearningTopic | None:
+    """Validate the LLM classifier's pick against the FIXED canonical chapter/section option set. The pick
+    is accepted ONLY if it exactly matches a real option (no fuzzy) — so a recommendation is provably
+    on-canonical. Anything else (free text, garbage, '') -> None (recommend nothing)."""
+    text = normalize_learning_topic_text(picked)
+    if not text:
+        return None
+    opt = resolve_canonical_option(text)
+    if not opt:
+        return None
+    return ResolvedLearningTopic(
+        label=str(opt["name"]), source="canonical_classified", confidence="medium",
+        taxonomy_code=str(opt.get("code") or ""), taxonomy_id="",
+    )
 
 
 def _compact(value: Any) -> str:

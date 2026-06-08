@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from functools import lru_cache
 import re
 from typing import Any
 
@@ -186,6 +187,43 @@ _NON_TEXTBOOK_NOISE_MARKERS = (
 )
 
 
+def canonical_topic_options() -> list[dict[str, Any]]:
+    """The FIXED canonical option set a topic recommendation may be classified into: every chapter and
+    section of the 一建《建筑实务》 outline, each carrying its chapter code prefix. Small (~13 chapters +
+    ~60 sections) so an LLM classifier can pick reliably, and every option is canonical by construction."""
+    options: list[dict[str, Any]] = []
+    for chapter in TEXTBOOK_CHAPTERS:
+        code = str((chapter.get("code_prefixes") or ("",))[0])
+        options.append({"name": str(chapter["name"]), "code": code,
+                        "kind": "chapter", "chapter_no": int(chapter["no"])})
+        for section in chapter.get("sections") or ():
+            options.append({"name": str(section), "code": code,
+                            "kind": "section", "chapter_no": int(chapter["no"])})
+    return options
+
+
+@lru_cache(maxsize=1)
+def _canonical_option_index() -> dict[str, dict[str, Any]]:
+    """compact(name/alias) -> option, for EXACT validation of a classifier's pick (no fuzzy)."""
+    index: dict[str, dict[str, Any]] = {}
+    for opt in canonical_topic_options():
+        index.setdefault(_compact(opt["name"]), opt)
+    for chapter in TEXTBOOK_CHAPTERS:
+        code = str((chapter.get("code_prefixes") or ("",))[0])
+        for alias in chapter.get("aliases") or ():
+            index.setdefault(_compact(alias),
+                             {"name": str(chapter["name"]), "code": code,
+                              "kind": "chapter", "chapter_no": int(chapter["no"])})
+    return index
+
+
+def resolve_canonical_option(label: Any) -> dict[str, Any] | None:
+    """EXACT-match a label to a canonical chapter/section option (or chapter alias). Returns the option
+    {name, code, kind, chapter_no} or None. No fuzzy matching — used to validate that an LLM classifier
+    picked a real option from the fixed list, so a recommendation is provably on-canonical."""
+    return _canonical_option_index().get(_compact(label))
+
+
 def textbook_chapter_display_name(chapter: dict[str, Any]) -> str:
     return f"第{int(chapter['no'])}章 {chapter['name']}"
 
@@ -294,7 +332,9 @@ def _strip_number_prefix(value: str) -> str:
 
 __all__ = [
     "TEXTBOOK_CHAPTERS",
+    "canonical_topic_options",
     "is_non_topic_label",
+    "resolve_canonical_option",
     "textbook_chapter_display_name",
     "textbook_directory",
     "textbook_topic_meta",

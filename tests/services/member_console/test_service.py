@@ -1184,8 +1184,9 @@ def test_home_dashboard_uses_canonical_learner_state_for_merged_legacy_user(
     dashboard = service.get_home_dashboard("user_2008")
 
     assert snapshot_user_ids == [canonical_user_id]
-    assert dashboard["today_focus"]["title"] == "今日焦点：招投标与合同"
-    assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练招投标与合同"
+    # canonical classifier maps "招投标与合同" → chapter "工程招标投标与合同管理"
+    assert dashboard["today_focus"]["title"] == "今日焦点：工程招标投标与合同管理"
+    assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练工程招标投标与合同管理"
 
 
 def test_register_with_external_auth_creates_external_user_and_member(
