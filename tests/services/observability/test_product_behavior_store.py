@@ -268,6 +268,77 @@ def test_store_builds_batch_member_summaries_with_one_query_shape(tmp_path: Path
     assert summaries["u2"]["learning_report_open_count_7d"] == 1
 
 
+def test_store_builds_member_summaries_across_identity_group(tmp_path: Path) -> None:
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    now_ms = int(time.time() * 1000)
+    for index, user_id in enumerate(["legacy_u1", "canonical_u1", "canonical_u1"]):
+        store.record_event(
+            {
+                "event_id": f"evt-identity-{index}",
+                "event_name": "module_viewed",
+                "event_version": 1,
+                "occurred_at_ms": now_ms + index,
+                "received_at_ms": now_ms + index,
+                "user_id": user_id,
+                "visit_id": f"visit-identity-{index}",
+                "session_id": "",
+                "turn_id": "",
+                "surface": "web",
+                "module": "learning_report",
+                "section": "",
+                "action": "view",
+                "properties_json": {},
+            }
+        )
+
+    summaries = store.get_member_behavior_summaries_for_identity_groups(
+        {"member_u1": ["legacy_u1", "canonical_u1"]},
+        days=7,
+    )
+
+    assert summaries["member_u1"]["learning_report_open_count_7d"] == 3
+    assert summaries["member_u1"]["cohort"] == "report_high_no_action"
+
+
+def test_store_reads_sections_and_timeline_across_identity_group(tmp_path: Path) -> None:
+    store = SQLiteProductBehaviorStore(tmp_path / "behavior.db")
+    now_ms = int(time.time() * 1000)
+    for index, (user_id, section) in enumerate(
+        [("legacy_u1", "next_action"), ("canonical_u1", "next_action"), ("canonical_u1", "evidence")]
+    ):
+        store.record_event(
+            {
+                "event_id": f"evt-group-section-{index}",
+                "event_name": "section_viewed",
+                "event_version": 1,
+                "occurred_at_ms": now_ms + index,
+                "received_at_ms": now_ms + index,
+                "user_id": user_id,
+                "visit_id": f"visit-group-section-{index}",
+                "session_id": "",
+                "turn_id": "",
+                "surface": "web",
+                "module": "learning_report",
+                "section": section,
+                "action": "view",
+                "properties_json": {},
+            }
+        )
+
+    identities = ["legacy_u1", "canonical_u1"]
+
+    sections = store.get_learning_report_section_breakdown_for_identity_group(identities, days=7)
+    timeline = store.get_member_timeline_for_identity_group(identities, days=7, limit=10)
+
+    assert sections[0] == {"section": "next_action", "view_count": 2}
+    assert sections[1] == {"section": "evidence", "view_count": 1}
+    assert [event["event_id"] for event in timeline] == [
+        "evt-group-section-2",
+        "evt-group-section-1",
+        "evt-group-section-0",
+    ]
+
+
 def test_default_product_behavior_store_uses_independent_sibling_db(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

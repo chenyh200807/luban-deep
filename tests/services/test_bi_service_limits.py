@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -110,9 +111,142 @@ class _BiProjectionMemberService(_QuietMemberService):
         raise AssertionError(f"BI aggregate must not load heavyweight member 360: {user_id}")
 
 
+class _CommerceMemberService(_QuietMemberService):
+    def list_members_for_bi(self) -> list[dict[str, object]]:
+        return [
+            {
+                "user_id": "legacy_member_1",
+                "canonical_user_id": "legacy_member_1",
+                "alias_user_ids": ["legacy_member_1"],
+                "phone": "15558866511",
+                "tier": "trial",
+                "status": "active",
+                "risk_level": "low",
+                "auto_renew": False,
+                "created_at": "2026-04-20T10:00:00+08:00",
+                "expire_at": "2026-05-20T10:00:00+08:00",
+                "last_active_at": "2026-04-22T10:00:00+08:00",
+                "points_balance": 120,
+                "ledger": [
+                    {
+                        "id": "legacy_signup_bonus",
+                        "delta": 120,
+                        "reason": "signup_bonus",
+                        "created_at": "2026-04-20T10:00:00+08:00",
+                    }
+                ],
+            }
+        ]
+
+    @staticmethod
+    def _default_packages() -> list[dict[str, object]]:
+        return [
+            {
+                "id": "advance",
+                "label": "精学版",
+                "points": 4400,
+                "price": "99",
+            }
+        ]
+
+
+class _UnconfiguredWalletService:
+    is_configured = False
+
+
+class _SignupBonusWalletService:
+    is_configured = True
+
+    def list_recent_wallet_ledger(self, *, limit: int = 100, offset: int = 0):
+        rows = [
+            SimpleNamespace(
+                id="wallet_signup_bonus",
+                user_id="legacy_member_1",
+                event_type="grant",
+                delta_micros=120_000_000,
+                balance_after_micros=120_000_000,
+                frozen_after_micros=0,
+                reference_type="signup_bonus",
+                reference_id="legacy_member_1",
+                idempotency_key="signup_bonus:legacy_member_1:member_console_bootstrap",
+                metadata={"source": "member_console_auth_bootstrap"},
+                created_at="2026-04-20T10:00:00+08:00",
+            ),
+            SimpleNamespace(
+                id="wallet_usage",
+                user_id="legacy_member_1",
+                event_type="usage",
+                delta_micros=-20_000_000,
+                balance_after_micros=100_000_000,
+                frozen_after_micros=0,
+                reference_type="usage",
+                reference_id="turn_1",
+                idempotency_key="usage:turn_1",
+                metadata={"capability": "deep_question"},
+                created_at="2026-04-20T11:00:00+08:00",
+            ),
+        ]
+        return rows[offset : offset + limit]
+
+
+class _ErrorWalletService:
+    is_configured = True
+
+    def list_recent_wallet_ledger(self, *, limit: int = 100, offset: int = 0):
+        raise RuntimeError("raw wallet URL should not be shown: https://example.invalid/rest/v1/wallet_ledger")
+
+
 @pytest.fixture
 def store(tmp_path: Path) -> SQLiteSessionStore:
     return SQLiteSessionStore(db_path=tmp_path / "bi-limits.db")
+
+
+def test_commerce_does_not_count_legacy_credit_as_recharge(store: SQLiteSessionStore) -> None:
+    service = BIService(
+        session_store=store,
+        member_service=_CommerceMemberService(),
+        wallet_service=_UnconfiguredWalletService(),
+    )
+
+    payload = asyncio.run(service.get_commerce(limit=10))
+
+    assert payload["authority"]["wallet_ledger"] == "member_console.ledger"
+    assert payload["authority"]["recharge_records"] == "pending_payment_order_authority"
+    assert payload["summary"]["ledger_count"] == 1
+    assert payload["summary"]["recharge_count"] == 0
+    assert payload["recharge_records"] == []
+    assert payload["ledger"][0]["kind"] == "credit"
+    assert any("不计入充值记录" in warning for warning in payload["warnings"])
+
+
+def test_commerce_does_not_count_wallet_signup_bonus_as_recharge(store: SQLiteSessionStore) -> None:
+    service = BIService(
+        session_store=store,
+        member_service=_CommerceMemberService(),
+        wallet_service=_SignupBonusWalletService(),
+    )
+
+    payload = asyncio.run(service.get_commerce(limit=10))
+
+    assert payload["authority"]["wallet_ledger"] == "wallet_ledger"
+    assert payload["authority"]["recharge_records"] == "pending_payment_order_authority"
+    assert payload["summary"]["ledger_count"] == 2
+    assert payload["summary"]["recharge_count"] == 0
+    assert payload["recharge_records"] == []
+    assert any("不计入充值记录" in warning for warning in payload["warnings"])
+
+
+def test_commerce_sanitizes_wallet_reader_errors(store: SQLiteSessionStore) -> None:
+    service = BIService(
+        session_store=store,
+        member_service=_CommerceMemberService(),
+        wallet_service=_ErrorWalletService(),
+    )
+
+    payload = asyncio.run(service.get_commerce(limit=10))
+
+    assert any("RuntimeError" in warning for warning in payload["warnings"])
+    assert not any("https://" in warning for warning in payload["warnings"])
 
 
 def test_bi_context_loader_caps_each_collection(

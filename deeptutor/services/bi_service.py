@@ -2904,8 +2904,16 @@ class BIService:
             entries = list_recent(limit=limit, offset=0)
         except Exception as exc:
             logger.warning("Failed to load commerce wallet_ledger rows", exc_info=True)
-            return "error", [], str(exc)
+            return "error", [], self._safe_exception_summary(exc)
         return "ok", [self._serialize_wallet_commerce_ledger_entry(entry) for entry in entries], ""
+
+    @staticmethod
+    def _safe_exception_summary(exc: Exception) -> str:
+        response = getattr(exc, "response", None)
+        status_code = getattr(response, "status_code", None)
+        if status_code:
+            return f"{type(exc).__name__}: HTTP {status_code}"
+        return type(exc).__name__
 
     def _load_commerce_legacy_ledger_rows(
         self,
@@ -3003,6 +3011,16 @@ class BIService:
             "trust": str(row.get("trust") or ""),
         }
 
+    @staticmethod
+    def _is_commerce_recharge_row(row: dict[str, Any]) -> bool:
+        if _safe_float(row.get("amount")) <= 0:
+            return False
+        reference_type = str(row.get("reference_type") or "").strip().lower()
+        idempotency_key = str(row.get("idempotency_key") or "").strip().lower()
+        return reference_type in {"order", "purchase", "recharge"} or idempotency_key.startswith(
+            ("order:", "purchase:", "recharge:")
+        )
+
     def _build_commerce_anomalies(
         self,
         *,
@@ -3080,10 +3098,12 @@ class BIService:
         wallet_status, wallet_rows, wallet_error = self._load_commerce_wallet_ledger_rows(
             limit=safe_limit,
         )
-        legacy_rows = self._load_commerce_legacy_ledger_rows(
-            members,
-            limit=safe_limit,
-        )
+        legacy_rows = []
+        if wallet_status != "ok" or not wallet_rows:
+            legacy_rows = self._load_commerce_legacy_ledger_rows(
+                members,
+                limit=safe_limit,
+            )
 
         deduped: dict[tuple[str, float, str], dict[str, Any]] = {}
         for row in [*wallet_rows, *legacy_rows]:
@@ -3098,7 +3118,7 @@ class BIService:
         recharge_records = [
             self._commerce_recharge_record(row)
             for row in ledger_rows
-            if _safe_float(row.get("amount")) > 0
+            if self._is_commerce_recharge_row(row)
         ][:safe_limit]
         anomalies = self._build_commerce_anomalies(
             members=members,
@@ -3109,13 +3129,23 @@ class BIService:
         ledger_authority = "wallet_ledger"
         if wallet_status != "ok" or not wallet_rows:
             ledger_authority = "member_console.ledger"
+        recharge_authority = "wallet_ledger.order_refs" if recharge_records else "pending_payment_order_authority"
+        non_recharge_credit_count = sum(
+            1
+            for row in ledger_rows
+            if _safe_float(row.get("amount")) > 0 and not self._is_commerce_recharge_row(row)
+        )
         warnings = []
         if wallet_status != "ok":
             warnings.append(f"wallet_ledger status={wallet_status}: {wallet_error or 'unavailable'}")
         if not wallet_rows and legacy_rows:
             warnings.append("当前使用 member_console legacy ledger 兜底；正式财务对账以 wallet_ledger 为 A 级 authority。")
+        if non_recharge_credit_count:
+            warnings.append(
+                f"{non_recharge_credit_count} 条赠点/初始化/人工授信流水仅计入钱包流水，不计入充值记录。"
+            )
         if not recharge_records:
-            warnings.append("未发现可展示的充值/入账记录；订单 authority 仍为只读待接入。")
+            warnings.append("未发现可展示的充值记录；支付/订单 authority 尚未上线或无订单写入。")
 
         return {
             "status": "ready" if wallet_rows else ("partial" if ledger_rows or packages else "degraded"),
@@ -3130,7 +3160,7 @@ class BIService:
             },
             "authority": {
                 "packages": package_authority,
-                "recharge_records": ledger_authority,
+                "recharge_records": recharge_authority,
                 "wallet_ledger": ledger_authority,
                 "orders": "pending_payment_order_authority",
                 "anomalies": "bi_service.commerce_rules",

@@ -95,7 +95,7 @@ export function CommerceCockpit({ data }: { data: BiCommerceData | null }) {
           icon={<FileText className="h-4 w-4" />}
         />
         <CockpitKpi
-          label="入账笔数"
+          label="充值笔数"
           value={fmt(num(s?.rechargeCount))}
           tone="emerald"
           icon={<CreditCard className="h-4 w-4" />}
@@ -116,7 +116,7 @@ export function CommerceCockpit({ data }: { data: BiCommerceData | null }) {
         <CockpitPanel
           glow
           title="积分收支"
-          hint="入账 vs 扣减"
+          hint="授信/充值 vs 扣减"
           icon={<PieChart className="h-4 w-4" />}
         >
           {creditDebit.length ? (
