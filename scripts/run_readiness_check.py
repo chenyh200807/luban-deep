@@ -90,9 +90,11 @@ def _structured_readiness_metadata(
     for key in (
         "entry_surface",
         "trace_source",
+        "devtools_project_root",
         "project_path",
         "target_subpackage",
         "target_page",
+        "entry_flow",
         "devtools_account_login_state",
         "auth_state",
         "auth_mode",
