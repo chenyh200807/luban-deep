@@ -4528,6 +4528,22 @@ class TurnRuntimeManager:
                                 projection = learner_state_service.read_compiled_learning_truth(user_id)
                                 if isinstance(projection, dict):
                                     compiled_learning_truth = dict(projection)
+                                    try:
+                                        from deeptutor.services.learner_state.personalization_context import (
+                                            build_personalization_context_pack,
+                                        )
+                                        pcp = build_personalization_context_pack(
+                                            user_id=user_id,
+                                            learning_brain=compiled_learning_truth,
+                                        )
+                                        if isinstance(pcp, dict):
+                                            personalization_context = pcp
+                                    except Exception:
+                                        logger.warning(
+                                            "Legacy path: PCP projection failed (%s); degrading to empty",
+                                            "unknown",
+                                            exc_info=True,
+                                        )
                         except Exception:
                             logger.warning(
                                 "Failed to build learner state context for user %s",

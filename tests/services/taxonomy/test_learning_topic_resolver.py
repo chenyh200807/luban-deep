@@ -261,3 +261,25 @@ def test_recommended_topic_drops_non_textbook_garbage_keeps_real_topics():
     out = resolve_learning_topic_from_payload(
         payload, llm_topic_inferer=lambda *_a, **_k: "工程招标投标与合同管理")
     assert out is not None and out.label == "工程招标投标与合同管理" and out.taxonomy_code
+
+
+def test_resolver_branch1_miss_does_not_call_llm_twice() -> None:
+    # Regression guard for the double-LLM-call bug (R3-HIGH):
+    # When next_training_signal.focus is set (branch 1) and the LLM returns a non-canonical
+    # pick, resolve_learning_topic_from_payload must return None immediately — it must NOT
+    # fall through to branch 2 and call llm_topic_inferer a second time.
+    call_count = [0]
+
+    def counting_inferer(payload: dict, candidates: list) -> str:
+        call_count[0] += 1
+        return "非canonical自由文本"  # always off-canonical → _classify_to_canonical_option → None
+
+    result = resolve_learning_topic_from_payload(
+        {
+            "next_training_signal": {"focus": "专家论证程序"},
+            "question_stem": "关于工程专家论证程序的题目。",
+        },
+        llm_topic_inferer=counting_inferer,
+    )
+    assert result is None
+    assert call_count[0] == 1, f"LLM called {call_count[0]} times; expected exactly 1"

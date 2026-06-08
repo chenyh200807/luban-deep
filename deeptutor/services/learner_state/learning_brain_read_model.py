@@ -434,7 +434,7 @@ def _concept_label(concept_id: Any) -> str:
     text = str(concept_id or "").strip()
     match = re.search(r"我想练习(.+?)相关的题目", text)
     if match:
-        return match.group(1).strip()
+        return student_facing_label(match.group(1).strip())
     text = re.sub(r"\s*请严格围绕.*$", "", text).strip()
     text = re.sub(r"\s*当前学习锚点.*$", "", text).strip()
     # other-track / non-1A codes (1B.. / 2A.. / uuid) must not leak as a label — Chinese text passes

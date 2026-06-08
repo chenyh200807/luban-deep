@@ -212,12 +212,14 @@ def resolve_learning_topic_from_payload(
         if topic:
             return topic
 
+    llm_already_tried = False
     if (
         specific_focus_candidates
         and llm_topic_inferer is not None
         and _has_topic_evidence(payload, evidence_candidates)
     ):
         topic = _classify_to_canonical_option(llm_topic_inferer(payload, evidence_candidates))
+        llm_already_tried = True
         if topic:
             return topic
 
@@ -237,7 +239,8 @@ def resolve_learning_topic_from_payload(
         if topic:
             return topic
 
-    if llm_topic_inferer is not None and _has_topic_evidence(payload, evidence_candidates):
+    # branch 2: only invoke LLM when branch 1 did not already try (avoids double LLM call)
+    if not llm_already_tried and llm_topic_inferer is not None and _has_topic_evidence(payload, evidence_candidates):
         topic = _classify_to_canonical_option(llm_topic_inferer(payload, evidence_candidates))
         if topic:
             return topic
@@ -307,7 +310,9 @@ def infer_learning_topic_with_llm(payload: dict[str, Any], candidates: list[str]
 
             thread = threading.Thread(target=runner, name="learning-topic-llm", daemon=True)
             thread.start()
-            thread.join()
+            thread.join(timeout=90.0)  # slightly above LLM_TIMEOUT_TOTAL_S; daemon dies with process
+            if thread.is_alive():
+                return ""  # timed out — treat as LLM miss
             if error_holder:
                 return ""
             result = result_holder.get("value", "")

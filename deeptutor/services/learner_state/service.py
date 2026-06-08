@@ -1500,8 +1500,12 @@ class LearnerStateService:
                 user_id=normalized,
                 learning_brain=compiled_learning_truth if isinstance(compiled_learning_truth, dict) else None,
             )
-        except Exception:  # noqa: BLE001 — PCP is a view projection; never break the turn over it
-            logger.warning("build_context_candidates: PCP projection failed; degrading to empty", exc_info=True)
+        except Exception as _pcp_exc:  # noqa: BLE001 — PCP is a view projection; never break the turn over it
+            logger.warning(
+                "build_context_candidates: PCP projection failed (%s); degrading to empty",
+                type(_pcp_exc).__name__,
+                exc_info=True,
+            )
             personalization_context = {
                 "top_claims": [],
                 "next_best_action_candidates": [],
