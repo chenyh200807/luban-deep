@@ -97,22 +97,29 @@ flowchart TD
 
 ### Task 2: Waterproof Topic Shard and Runtime Resolver Example
 
-**Files:**
+> **命名澄清（"waterproof" 是双关，别混淆）**：本计划标题里的 **"Waterproof Vertical Slice"** 是质量形容词——指一条**滴水不漏 / 不漏权威**的端到端纵切；而 **"防水 / waterproof topic"** 是被选作样本的**建筑实务考试专题**。两者同名纯属顺带的双关。`topic_id=waterproof` 指的是后者（专题样本）。
+>
+> **为什么选防水做样本**：M32 不重跑全量 compiler，只用**一个有界专题**把 Grading-to-Brain 闭环跑成产品级证据（§0.26.15）。防水是 §0.26.14 列出的并列专题之一（`waterproof / concrete / contract_claim / schedule_network`），被选为第一个试验田；它必须是**可丢弃 / 可泛化的标本**，闭环证明后第二个专题应能复用同一机制（`v_topic_<name>` + canonical manifest lane），而不是固化成 `v_topic_waterproof` 专属特例。
 
-- Create or extend: `deeptutor/services/construction_grading/runtime_supply/v_waterproof_topic_m32/`
-- Modify only if needed: `deeptutor/services/construction_grading/compiled_registry_resolver.py`
-- Test: `tests/services/construction_grading/test_m32_waterproof_topic_runtime_supply.py`
+**Files（命名对齐实际已签发产物）：**
 
-- [ ] Build a small signed waterproof topic shard from existing compiled textbook/source supply, with manifest fields: `schema_version`, `topic_id`, `status`, `published`, `content_hash`, `signature`, `source_refs`, `shards`, `rollback_pointer`.
-- [ ] Include source refs for waterproofing concepts, textbook chapter/node, required terms, and at least one practice/retest mapping.
-- [ ] Load the shard through a resolver path that never scans artifacts by mtime or filename.
-- [ ] Prove tampered/missing/malformed shard fails closed to open-world diagnostic, not release truth.
+- Shard（已建，commit `68cf8cd7`）：`deeptutor/services/construction_grading/runtime_supply/v_topic_waterproof/topic_waterproof.json`
+  - 实际命名是 `v_topic_waterproof`，**不是**早期草拟的 `v_waterproof_topic_m32`；以已签发产物为准，不重命名已签 shard（§3 Surgical Changes）。
+  - 生成脚本：`scripts/run_luban_waterproof_topic_shard.py`。
+- Manifest pointer：由 Task 1/7 runner `scripts/run_luban_m32_grading_to_brain_waterproof_slice.py` 产出 `waterproof_topic_manifest_m32.json`（`topic_id=waterproof` + `content_hash` + `signature` + `published=false` + `canonical_pointer` 指向上面的 shard）。
+- Resolver：`deeptutor/services/construction_grading/canonical_knowledge_manifest.py`（`v_topic_*` → lane `topic_<name>`）+ `compiled_registry_resolver.py`。
+
+- [x] Build a small signed waterproof topic shard from existing compiled textbook/source supply（44 节点：教材 21 + 讲义 36 + 题 98 源计数；manifest 含 `schema_version / status=release_candidate / published=false / content_hash / signature / namespace / node_count`）。
+  - 注：shard 内部 manifest 用 `topic` / `namespace` 字段；Task 1/7 的 `waterproof_topic_manifest_m32.json` 把它规范化为 `topic_id` + `canonical_pointer` 对外指针。
+- [x] Include source refs for waterproofing concepts, textbook chapter/node, required terms, and at least one practice/retest mapping（manifest pointer 带 `source_refs`：`point_id` + `required_term` + `knowledge_point`；practice/retest 由 Task 1/7 的 `next_best_action_m32.json` + `retest_outcome_proof_m32.jsonl` 体现）。
+- [x] Load the shard through a resolver path that never scans artifacts by mtime or filename（经 canonical manifest lane + `compiled_registry_resolver`，按 namespace/topic 解析，非目录扫描）。
+- [ ] Prove tampered/missing/malformed shard fails closed to open-world diagnostic, not release truth —— **未做专项测试**：`tests/services/construction_grading/test_m32_waterproof_topic_runtime_supply.py` 尚未创建；fail-closed 目前由 `compiled_registry_resolver` 既有 `verify_bundle`（四层校验）通用覆盖，但缺防水专项断言。M32 GO 已在 `go_no_go_m32.json` 的 live_blockers 中体现 candidate 级限制。
 
 **Acceptance:**
 
-- `waterproof_topic_manifest_m32.json` points to the exact signed shard.
-- Runtime example resolves by `topic_id=waterproof`, not by free-text directory scan.
-- `published=false`, `production_default_connected=false`, `canonical_truth_written=false`.
+- `waterproof_topic_manifest_m32.json` points to the exact signed shard（`canonical_pointer` = `…/v_topic_waterproof/topic_waterproof.json`）。✓
+- Runtime example resolves by `topic_id=waterproof`, not by free-text directory scan. ✓
+- `published=false`, `production_default_connected=false`, `canonical_truth_written=false`. ✓（见 Task 1/7 `safety_invariant_report_m32.json`）
 
 ### Task 3: GradingEvent Schema over Existing Learning Evidence Payload
 
