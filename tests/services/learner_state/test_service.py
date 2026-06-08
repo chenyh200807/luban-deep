@@ -1426,3 +1426,82 @@ def test_build_context_candidates_personalization_context_empty_when_no_truth(tm
     candidates = service.build_context_candidates("student_demo")
     assert "personalization_context" in candidates
     assert candidates["personalization_context"]["top_claims"] == []
+
+
+# ---------------------------------------------------------------------------
+# G4 — canonical learner-truth production write override (master plan §0.26 / M33-ACT G4)
+# ---------------------------------------------------------------------------
+# The override is a fail-closed env gate: in production, canonical learner-truth stays dry-run /
+# preview (never persisted -> canonical_truth_written invariant holds) UNLESS the operator explicitly
+# turns the flag on. Turning it on is itself gated downstream on teacher-final / real-retest authority
+# + per-gate sign-off; the code only makes the capability "one authorization away, instantly revocable".
+
+_G4_FLAG = "LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_ENABLED"
+
+
+def test_canonical_truth_production_write_blocked_by_default(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Default OFF: production + no override flag -> truth is NOT persisted (preview only)."""
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    service = _make_service(tmp_path)
+    returned = service.write_compiled_learning_truth(
+        "student_demo",
+        {
+            "subject": "construction_exam_learning_truth",
+            "weak_points": [{"concept_id": "1A432000", "error_code": "E02"}],
+        },
+    )
+    path = tmp_path / "learner_state" / "student_demo" / "COMPILED_TRUTH.json"
+    assert not path.exists()  # canonical_truth_written invariant preserved
+    # preview projection is still returned, just not persisted
+    assert returned["weak_points"][0]["error_code"] == "E02"
+
+
+def test_canonical_truth_production_write_override_explicit_false_blocked(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Explicit OFF: flag=false -> still not persisted (unauthorized write stays blocked)."""
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.setenv(_G4_FLAG, "false")
+    service = _make_service(tmp_path)
+    service.write_compiled_learning_truth("student_demo", {"subject": "x"})
+    assert not (tmp_path / "learner_state" / "student_demo" / "COMPILED_TRUTH.json").exists()
+
+
+def test_canonical_truth_production_write_override_fail_closed_on_garbage(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Fail-closed: an unrecognized flag value is treated as unauthorized -> not persisted."""
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.setenv(_G4_FLAG, "maybe")
+    service = _make_service(tmp_path)
+    service.write_compiled_learning_truth("student_demo", {"subject": "x"})
+    assert not (tmp_path / "learner_state" / "student_demo" / "COMPILED_TRUTH.json").exists()
+
+
+def test_canonical_truth_production_write_override_enabled_persists(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Authorized: production + flag=true -> canonical learner-truth is persisted (capability on)."""
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.setenv(_G4_FLAG, "true")
+    service = _make_service(tmp_path)
+    service.write_compiled_learning_truth(
+        "student_demo",
+        {
+            "subject": "construction_exam_learning_truth",
+            "weak_points": [{"concept_id": "1A432000", "error_code": "E04"}],
+        },
+    )
+    path = tmp_path / "learner_state" / "student_demo" / "COMPILED_TRUTH.json"
+    assert path.exists()
+    persisted = json.loads(path.read_text(encoding="utf-8"))
+    assert persisted["weak_points"][0]["error_code"] == "E04"
+
+
+def test_canonical_truth_non_production_write_persists_regression(tmp_path) -> None:
+    """Regression: non-production write still persists (override never touches non-prod path)."""
+    service = _make_service(tmp_path)
+    service.write_compiled_learning_truth("student_demo", {"subject": "x", "weak_points": []})
+    assert (tmp_path / "learner_state" / "student_demo" / "COMPILED_TRUTH.json").exists()

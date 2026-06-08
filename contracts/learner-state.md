@@ -184,6 +184,12 @@ Overlay 必须支持：
   只能读取 `learner_summaries.summary_structured_json.learning_brain`，不得让本地缓存
   与 durable store 竞争权威；生产环境即使 Supabase core store 未配置，也不得 fail-open
   读取本地 `COMPILED_TRUTH.json`；在线链路不得为了召回临时重跑 synthesis。
+- 生产环境写 canonical learner-truth 默认 **fail-closed**（M33-ACT G4）：
+  `write_compiled_learning_truth` 在 `is_production_environment()` 下默认只返回 preview 投影、
+  不落盘，从而保持 `canonical_truth_written=false` 安全不变量。该硬挡只能由
+  `LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_ENABLED`（默认 OFF）显式打开；该 flag 的翻转
+  本身还受 teacher-final / real-retest 权威 + 逐门授权约束，且设回 false / 未设即秒退回 preview。
+  非生产路径不受此 flag 影响。
 
 #### `learner_memory_events`
 

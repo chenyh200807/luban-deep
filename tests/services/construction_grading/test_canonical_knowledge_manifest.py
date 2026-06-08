@@ -7,6 +7,8 @@ from __future__ import annotations
 
 import json
 
+import pytest
+
 from deeptutor.services.construction_grading import canonical_knowledge_manifest as M
 
 
@@ -65,3 +67,51 @@ def test_verify_fails_on_missing_shard(tmp_path):
     (tmp_path / "objective_answer_key" / "bundle.json").unlink()
     ok, reason = M.verify_manifest(man, tmp_path)
     assert ok is False and "missing_shard" in reason
+
+
+# --- G3: promote release_candidate -> published (M33-ACT) ---
+
+def test_promote_to_published_rebinds_status_keeps_content_hash(tmp_path):
+    s1 = _shard(tmp_path, "objective_answer_key", "h1")
+    man = M.build_manifest([s1], M.source_inventory([]), version="v2", producer="t", rollback_pointer="v1")
+    assert man["status"] == "release_candidate" and man["published"] is False
+
+    pub = M.promote_to_published(man, superseded_version="v1", published_at="2026-06-08T00:00:00+08:00")
+
+    assert pub["status"] == "published" and pub["published"] is True
+    assert pub["content_hash"] == man["content_hash"]     # content unchanged -> provenance intact
+    assert pub["signature"] != man["signature"]           # signature rebinds the new status
+    assert pub["superseded_version"] == "v1"              # supersession recorded
+    assert pub["published_at"] == "2026-06-08T00:00:00+08:00"
+    assert pub["rollback_pointer"] == "v1"                # rollback pointer preserved
+    assert man["status"] == "release_candidate"           # original untouched (immutable)
+    # a published manifest still verifies fail-closed against the on-disk shards
+    ok, reason = M.verify_manifest(pub, tmp_path)
+    assert ok is True and reason == "ok"
+
+
+def test_promote_to_published_rejects_already_published(tmp_path):
+    s1 = _shard(tmp_path, "objective_answer_key", "h1")
+    man = M.build_manifest([s1], M.source_inventory([]), version="v1", producer="t", rollback_pointer="x")
+    pub = M.promote_to_published(man, superseded_version=None, published_at="t")
+    with pytest.raises(ValueError):
+        M.promote_to_published(pub, superseded_version=None, published_at="t")
+
+
+def test_promote_to_published_rejects_non_release_candidate(tmp_path):
+    bad = {"status": "draft", "published": False, "content_hash": "h", "signature": "s"}
+    with pytest.raises(ValueError):
+        M.promote_to_published(bad, superseded_version=None, published_at="t")
+
+
+def test_promote_to_published_rejects_foreign_namespace(tmp_path):
+    # a release_candidate carrying a non-canonical namespace must not be promoted (the re-sign binds the
+    # constant NAMESPACE, so a foreign namespace would yield a signature inconsistent with its own field)
+    bad = {
+        "status": "release_candidate",
+        "published": False,
+        "content_hash": "h",
+        "namespace": "evil",
+    }
+    with pytest.raises(ValueError):
+        M.promote_to_published(bad, superseded_version=None, published_at="t")

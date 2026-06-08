@@ -81,6 +81,13 @@ _FILENAMES = {
     "compiled_truth": "COMPILED_TRUTH.json",
 }
 
+# G4 (master plan §0.26 / M33-ACT): canonical learner-truth production write gate. Default OFF — in
+# production the synthesizer stays dry-run / preview (truth never persisted, so the
+# ``canonical_truth_written`` safety invariant holds). Flipping this flip is itself gated downstream on
+# teacher-final / real-retest authority + a per-gate sign-off; the flag only makes the capability
+# "one authorization away, instantly revocable" (set to false / unset -> reverts to preview).
+_CANONICAL_TRUTH_PRODUCTION_WRITE_FLAG = "LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_ENABLED"
+
 
 @dataclass
 class LearnerStateEvent:
@@ -405,7 +412,12 @@ class LearnerStateService:
     def write_compiled_learning_truth(self, user_id: str, projection: dict[str, Any]) -> dict[str, Any]:
         normalized = _normalize_user_id(user_id)
         payload = dict(projection or {})
-        if is_production_environment():
+        # G4: fail-closed in production unless the canonical-write override is explicitly authorized.
+        # Default / unset / unrecognized -> preview only (not persisted), preserving the
+        # canonical_truth_written invariant. ``env_flag`` already maps garbage values to ``default``.
+        if is_production_environment() and not env_flag(
+            _CANONICAL_TRUTH_PRODUCTION_WRITE_FLAG, default=False
+        ):
             return extract_learning_brain_projection(payload)
         path = self._path(normalized, "compiled_truth")
         path.parent.mkdir(parents=True, exist_ok=True)

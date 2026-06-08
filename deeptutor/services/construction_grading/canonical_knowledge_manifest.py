@@ -111,6 +111,49 @@ def verify_manifest(manifest: dict[str, Any], supply_root: Path) -> tuple[bool, 
     return (True, "ok")
 
 
+def promote_to_published(
+    manifest: dict[str, Any],
+    *,
+    superseded_version: str | None,
+    published_at: str,
+) -> dict[str, Any]:
+    """Promote a verified ``release_candidate`` manifest to ``status=published`` (M33-ACT G3).
+
+    Pure + immutable: returns a NEW manifest, never mutating the input. ``content_hash`` is UNCHANGED
+    (the shards/content did not change, only the lifecycle status was promoted) so the provenance chain
+    stays intact; the ``signature`` IS recomputed because it binds the status. Records ``superseded_version``
+    (supersession) and ``published_at``; the ``rollback_pointer`` carried since build is preserved.
+
+    Fail-closed: refuses anything that is not currently an unpublished ``release_candidate`` (so a
+    double-publish or a wrong-status input raises instead of silently minting authority). The CALLER
+    (``publish_canonical_registry``) is responsible for verify_manifest + authorization gating; this
+    function only performs the deterministic status promotion + re-signing.
+    """
+    status = str(manifest.get("status") or "")
+    if status != "release_candidate" or manifest.get("published") is True:
+        raise ValueError(
+            f"only an unpublished release_candidate can be promoted "
+            f"(status={status!r}, published={manifest.get('published')!r})"
+        )
+    content_hash = str(manifest.get("content_hash") or "")
+    if not content_hash:
+        raise ValueError("manifest missing content_hash; cannot promote")
+    if str(manifest.get("namespace") or "") != NAMESPACE:
+        # the re-signing below binds the constant NAMESPACE; refuse a foreign namespace so the published
+        # signature can never be inconsistent with the manifest's own namespace field.
+        raise ValueError(
+            f"manifest namespace {manifest.get('namespace')!r} != canonical {NAMESPACE!r}"
+        )
+    promoted = dict(manifest)
+    promoted["status"] = "published"
+    promoted["published"] = True
+    promoted["published_at"] = published_at
+    promoted["superseded_version"] = superseded_version
+    # content_hash stays pinned to the same bytes; the signature rebinds the promoted status.
+    promoted["signature"] = _sha256([content_hash, NAMESPACE, "published"])
+    return promoted
+
+
 def enumerate_shards(supply_root: Path) -> list[dict[str, Any]]:
     """Read the signed lane bundles under runtime_supply into shard descriptors (pinned hashes)."""
     out: list[dict[str, Any]] = []
@@ -161,4 +204,4 @@ def enumerate_shards(supply_root: Path) -> list[dict[str, Any]]:
 
 
 __all__ = ["SCHEMA_VERSION", "NAMESPACE", "source_inventory", "build_manifest",
-           "verify_manifest", "enumerate_shards"]
+           "verify_manifest", "promote_to_published", "enumerate_shards"]

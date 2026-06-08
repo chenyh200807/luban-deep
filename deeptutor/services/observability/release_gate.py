@@ -4,6 +4,7 @@ import time
 from typing import Any
 
 from deeptutor.services.observability.release_lineage import get_release_lineage_snapshot
+from deeptutor.services.runtime_env import env_flag
 
 _PASS = "PASS"
 _FAIL = "FAIL"
@@ -565,4 +566,86 @@ def build_release_gate_report(
             "plan_completion_run_id": (plan_completion_payload or {}).get("run_id"),
             "incident_run_id": ((incident_payload or {}).get("run_manifest") or {}).get("run_id"),
         },
+    }
+
+
+# --- G3: canonical registry publish flow (master plan §0.26 / M33-ACT) ---
+# Default OFF. Publishing the canonical registry (release_candidate -> published) is the production
+# answer-authority flip; it requires a deliberate, instantly-revocable authorization, never an
+# inferred one.
+PUBLISH_ENABLED_FLAG = "LUBAN_REGISTRY_PUBLISH_ENABLED"
+
+
+def publish_canonical_registry(
+    manifest: dict[str, Any],
+    supply_root: Any,
+    *,
+    release_gate_report: dict[str, Any],
+    authorized: bool,
+    published_at: str,
+    superseded_version: str | None = None,
+) -> dict[str, Any]:
+    """Promote a SIGNED ``release_candidate`` canonical manifest to ``status=published`` (M33-ACT G3).
+
+    Triple fail-closed gate — ALL must hold or NOTHING is signed (manifest stays release_candidate):
+      1. env flag ``LUBAN_REGISTRY_PUBLISH_ENABLED`` is on (default OFF -> instantly revocable)
+      2. explicit ``authorized=True`` from the caller (per-gate owner sign-off)
+      3. ``release_gate_report`` is a PASS *and* TRUSTED (not stale vs HEAD)
+    then ``verify_manifest`` (recompute manifest hash/signature + re-check every shard's bytes on disk)
+    before any promotion. On any failure returns a refusal ``{published: False, reason, manifest}``;
+    only full authorization returns ``{published: True, manifest: <published>, rollback_pointer, ...}``.
+    Authority is granted ONLY here by the explicit gates — never inferred from the bundle/manifest.
+    """
+    from pathlib import Path
+
+    from deeptutor.services.construction_grading import canonical_knowledge_manifest as ckm
+
+    def _refusal(reason: str) -> dict[str, Any]:
+        return {"published": False, "reason": reason, "manifest": dict(manifest)}
+
+    if not env_flag(PUBLISH_ENABLED_FLAG, default=False):
+        return _refusal("publish_disabled")
+    if authorized is not True:  # strict: only literal True authorizes (truthy strings must not pass)
+        return _refusal("not_authorized")
+    report = release_gate_report or {}
+    if str(report.get("final_status") or "").upper() != _PASS:
+        return _refusal("release_gate_not_pass")
+    if str(report.get("verdict") or "").upper() != "TRUSTED":
+        return _refusal("release_gate_stale")
+    ok, vreason = ckm.verify_manifest(manifest, Path(supply_root))
+    if not ok:
+        return _refusal(f"manifest_verify_failed:{vreason}")
+    # Defense-in-depth: verify_manifest only checks each shard's manifest-pinned self-reported hash. For
+    # a production publish, additionally re-verify each records-based shard's CONTENT (recompute records
+    # hash + signature) via the lane signer's own verifier, so a records-tampered shard whose
+    # self-reported hash still matches the pin cannot be published. Non-records lanes (concept_registry /
+    # taxonomy index) carry their own structure and stay covered by the manifest pin + the runtime
+    # resolver's fail-closed verification at consumption.
+    import json as _json
+
+    from deeptutor.services.construction_grading.full_knowledge_compiler import verify_lane_bundle
+
+    for s in manifest.get("shards") or []:
+        sp = Path(supply_root) / str(s.get("path") or "")
+        try:
+            sdoc = _json.loads(sp.read_text("utf-8"))
+        except Exception:  # noqa: BLE001
+            return _refusal(f"shard_unreadable:{s.get('lane')}")
+        if isinstance(sdoc.get("records"), list) and not verify_lane_bundle(
+            sdoc, str(s.get("namespace") or "")
+        ):
+            return _refusal(f"shard_content_tamper:{s.get('lane')}")
+    try:
+        published = ckm.promote_to_published(
+            manifest, superseded_version=superseded_version, published_at=published_at
+        )
+    except ValueError as exc:
+        return _refusal(f"promote_rejected:{exc}")
+    return {
+        "published": True,
+        "reason": "ok",
+        "manifest": published,
+        "rollback_pointer": published.get("rollback_pointer"),
+        "superseded_version": superseded_version,
+        "published_at": published_at,
     }
