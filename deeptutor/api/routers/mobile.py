@@ -34,6 +34,7 @@ from deeptutor.services.internal_qa import (
     internal_qa_billing_bypass_enabled,
 )
 from deeptutor.services.member_console import get_member_console_service
+from deeptutor.services.member_usage_meter import get_member_usage_meter
 from deeptutor.services.assessment import AssessmentBlueprintUnavailable
 from deeptutor.services.query_intent import (
     build_grounding_decision,
@@ -544,6 +545,61 @@ def _load_billing_usage_entries(
         else []
     )
     return _merge_wallet_ledger_entries(wallet_rows, legacy_rows)
+
+
+def _usage_meter_event_created_at_iso(event: Any) -> str:
+    created_at = getattr(event, "created_at", None)
+    if isinstance(created_at, (int, float)):
+        return datetime.fromtimestamp(float(created_at), tz=_BILLING_USAGE_TZ).isoformat()
+    parsed = _parse_ledger_datetime(str(created_at or ""))
+    return parsed.isoformat() if parsed else datetime.now(_BILLING_USAGE_TZ).isoformat()
+
+
+def _usage_meter_events_as_ledger_entries(events: Iterable[Any]) -> list[WalletLedgerEntry]:
+    entries: list[WalletLedgerEntry] = []
+    for event in events:
+        amount_points = max(0, int(getattr(event, "amount_points", 0) or 0))
+        if amount_points <= 0:
+            continue
+        wallet_user_id = str(getattr(event, "wallet_user_id", "") or "").strip()
+        event_id = str(getattr(event, "event_id", "") or "").strip()
+        turn_id = str(getattr(event, "turn_id", "") or "").strip()
+        metadata = getattr(event, "metadata", {}) or {}
+        if not isinstance(metadata, dict):
+            metadata = {}
+        entries.append(
+            WalletLedgerEntry(
+                id=f"usage_meter:{event_id or turn_id}",
+                user_id=wallet_user_id,
+                event_type="debit",
+                delta_micros=-(amount_points * 1_000_000),
+                balance_after_micros=0,
+                frozen_after_micros=0,
+                reference_type="ai_usage",
+                reference_id=turn_id,
+                idempotency_key=f"usage_meter:{event_id or turn_id}",
+                metadata={
+                    "reason": "capture",
+                    "usage_meter_status": str(getattr(event, "status", "") or ""),
+                    **metadata,
+                },
+                created_at=_usage_meter_event_created_at_iso(event),
+            )
+        )
+    return entries
+
+
+def _load_member_usage_meter_entries(
+    *,
+    wallet_user_id: str,
+    limit: int,
+) -> list[WalletLedgerEntry]:
+    events = get_member_usage_meter().list_usage_events(
+        wallet_user_id,
+        limit=limit,
+        offset=0,
+    )
+    return _usage_meter_events_as_ledger_entries(events)
 
 
 def _billing_storage_unavailable(exc: Exception, *, source: str) -> HTTPException:
@@ -2210,6 +2266,22 @@ async def billing_usage(authorization: str | None = Header(default=None)) -> dic
     except Exception as exc:
         _billing_storage_unavailable(exc, source="billing_usage_wallet")
         return _degraded_billing_usage_payload()
+    if not is_billing_enforcement_enabled():
+        try:
+            entries = _load_member_usage_meter_entries(
+                wallet_user_id=wallet_user_id,
+                limit=_BILLING_USAGE_LEDGER_WINDOW,
+            )
+        except Exception as exc:
+            _billing_storage_unavailable(exc, source="billing_usage_member_meter")
+            entries = []
+        payload = _build_billing_usage_payload(
+            entries,
+            plan_id=snapshot.plan_id,
+        )
+        payload["usage_source"] = "member_usage_meter"
+        payload["charging_status"] = "metered_not_charged"
+        return payload
     try:
         entries = _load_billing_usage_entries(
             authorization,

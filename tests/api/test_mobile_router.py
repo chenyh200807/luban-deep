@@ -1158,6 +1158,70 @@ def test_billing_usage_falls_back_to_empty_usage_when_ledger_storage_unavailable
     assert [row["key"] for row in body["quota"]["rows"]] == ["five_hour", "weekly"]
 
 
+def test_billing_usage_reads_member_usage_meter_when_billing_enforcement_off(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    now = mobile_module.datetime.now(mobile_module._BILLING_USAGE_TZ)
+
+    class WalletServiceWithoutUsageLedger:
+        is_configured = True
+
+        @staticmethod
+        def get_wallet(user_id: str):
+            return mobile_module.WalletSnapshot(
+                user_id=user_id,
+                balance_micros=100_000_000,
+                frozen_micros=0,
+                plan_id="advance",
+                version=1,
+                created_at=now.isoformat(),
+            )
+
+        @staticmethod
+        def list_wallet_ledger(user_id: str, *, limit: int = 20, offset: int = 0):
+            raise AssertionError("wallet ledger must not be the internal-beta usage authority")
+
+    class FakeUsageMeter:
+        def list_usage_events(self, wallet_user_id: str, *, limit: int, offset: int = 0):
+            assert wallet_user_id == "wallet_demo"
+            assert limit == mobile_module._BILLING_USAGE_LEDGER_WINDOW
+            assert offset == 0
+            return [
+                SimpleNamespace(
+                    event_id=1,
+                    wallet_user_id=wallet_user_id,
+                    amount_points=44,
+                    status="metered_not_charged",
+                    metadata={"billing_amount_source": "measured_cost"},
+                    created_at=now.timestamp(),
+                )
+            ]
+
+    monkeypatch.setattr(mobile_module, "is_billing_enforcement_enabled", lambda: False)
+    monkeypatch.setattr(mobile_module, "wallet_service", WalletServiceWithoutUsageLedger())
+    monkeypatch.setattr(mobile_module, "get_member_usage_meter", lambda: FakeUsageMeter())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_wallet_lookup_user_id",
+        lambda *_args, **_kwargs: "wallet_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.get(
+            "/api/v1/billing/usage",
+            headers={"Authorization": "Bearer test-token"},
+        )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "ok"
+    assert body["usage_source"] == "member_usage_meter"
+    assert body["charging_status"] == "metered_not_charged"
+    assert body["display"]["primary_label"] == "剩余 99%"
+    assert body["display"]["primary_percent"] == 99
+    assert body["display"]["plan_id"] == "advance"
+
+
 def test_billing_usage_returns_degraded_payload_when_wallet_storage_unavailable(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

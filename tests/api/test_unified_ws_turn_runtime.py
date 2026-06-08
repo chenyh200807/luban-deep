@@ -7048,6 +7048,7 @@ async def test_turn_runtime_captures_points_for_mini_program_turns(
     store = SQLiteSessionStore(tmp_path / "chat_history.db")
     runtime = TurnRuntimeManager(store)
     captured: dict[str, object] = {}
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
 
     class FakeContextBuilder:
         def __init__(self, *_args, **_kwargs) -> None:
@@ -7211,6 +7212,7 @@ async def test_turn_runtime_marks_usage_scope_billable_after_wallet_capture(
     store = SQLiteSessionStore(tmp_path / "chat_history.db")
     runtime = TurnRuntimeManager(store)
     marked_billable: dict[str, object] = {}
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
 
     class FakeContextBuilder:
         def __init__(self, *_args, **_kwargs) -> None:
@@ -7475,6 +7477,7 @@ def test_turn_runtime_internal_qa_billing_bypass_keeps_non_qa_wallet_capture(
 ) -> None:
     monkeypatch.setenv("DEEPTUTOR_ENV", "local")
     monkeypatch.setenv("DEEPTUTOR_INTERNAL_QA_BILLING_BYPASS", "true")
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
     runtime = TurnRuntimeManager(SQLiteSessionStore(tmp_path / "chat_history.db"))
     calls: list[dict[str, object]] = []
 
@@ -7507,6 +7510,96 @@ def test_turn_runtime_internal_qa_billing_bypass_keeps_non_qa_wallet_capture(
 
     assert result and result["status"] == "captured"
     assert calls and calls[0]["user_id"] == "wallet_demo"
+
+
+def test_turn_runtime_meters_mini_program_usage_without_charging_when_enforcement_off(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    monkeypatch.delenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", raising=False)
+    runtime = TurnRuntimeManager(SQLiteSessionStore(tmp_path / "chat_history.db"))
+    meter_calls: list[dict[str, object]] = []
+
+    class FailingWalletService:
+        def record_usage_points(self, **_kwargs):
+            raise AssertionError("wallet capture must not run when billing enforcement is disabled")
+
+    class RecordingUsageMeter:
+        def record_usage_event(self, **kwargs):
+            meter_calls.append(dict(kwargs))
+            return True
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.get_wallet_service",
+        lambda: FailingWalletService(),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.member_usage_meter.get_member_usage_meter",
+        lambda: RecordingUsageMeter(),
+    )
+
+    result = runtime._capture_mobile_points(
+        {
+            "source": "wx_miniprogram",
+            "user_id": "student_demo",
+            "wallet_user_id": "wallet_demo",
+            "learning_user_id": "learner_demo",
+        },
+        "这是一次内测计量但不扣费的回复。",
+        session_id="session-1",
+        turn_id="turn-1",
+        usage_summary={
+            "total_cost_usd": 0.0351,
+            "estimated_total_cost_usd": 0.0,
+            "total_tokens": 1250,
+            "usage_accuracy": "measured",
+        },
+    )
+
+    assert result == {
+        "status": "metered_not_charged",
+        "reason": "billing_enforcement_disabled",
+        "wallet_user_id": "wallet_demo",
+        "idempotency_key": "mini_program_capture:turn-1",
+        "amount_points": 36,
+        "billing_amount_source": "measured_cost",
+        "billing_cost_source": "measured_cost",
+        "captured_micros": 0,
+        "requested_micros": 36_000_000,
+        "balance_after_micros": 0,
+    }
+    assert meter_calls == [
+        {
+            "wallet_user_id": "wallet_demo",
+            "learning_user_id": "learner_demo",
+            "source": "wx_miniprogram",
+            "session_id": "session-1",
+            "turn_id": "turn-1",
+            "amount_points": 36,
+            "dedupe_key": "mini_program_meter:turn-1",
+            "status": "metered_not_charged",
+            "metadata": {
+                "source": "wx_miniprogram",
+                "turn_id": "turn-1",
+                "session_id": "session-1",
+                "billing_amount_source": "measured_cost",
+                "billing_cost_source": "measured_cost",
+                "billing_cost_point_scale": 1000,
+                "billing_minimum_points": 20,
+                "billing_measured_cost": 0.0351,
+                "billing_estimated_cost": 0.0,
+                "billing_billable_cost": 0.0351,
+                "billing_cost_points": 36,
+                "usage_accuracy": "measured",
+                "usage_total_input_tokens": 0,
+                "usage_total_output_tokens": 0,
+                "usage_total_tokens": 1250,
+                "usage_estimated_input_tokens": 0,
+                "usage_estimated_output_tokens": 0,
+                "usage_estimated_total_tokens": 0,
+            },
+        }
+    ]
 
 
 @pytest.mark.asyncio

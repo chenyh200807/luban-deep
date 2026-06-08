@@ -2590,6 +2590,62 @@ class TurnRuntimeManager:
                 "idempotency_key": idempotency_key,
             }
         amount_points, billing_metadata = _billing_capture_amount_from_usage_summary(usage_summary)
+        capture_metadata = {
+            "source": "wx_miniprogram",
+            "turn_id": str(turn_id or "").strip(),
+            "session_id": str(session_id or "").strip(),
+            **billing_metadata,
+        }
+        try:
+            from deeptutor.services.wallet import is_billing_enforcement_enabled
+
+            billing_enforcement_enabled = is_billing_enforcement_enabled()
+        except Exception:
+            billing_enforcement_enabled = False
+        if not billing_enforcement_enabled:
+            try:
+                from deeptutor.services.member_usage_meter import get_member_usage_meter
+
+                meter_key = (
+                    f"mini_program_meter:{turn_id}"
+                    if str(turn_id or "").strip()
+                    else f"mini_program_meter:{session_id}"
+                )
+                get_member_usage_meter().record_usage_event(
+                    wallet_user_id=user_id,
+                    learning_user_id=str(
+                        billing_context.get("learning_user_id")
+                        or billing_context.get("user_id")
+                        or ""
+                    ).strip(),
+                    source="wx_miniprogram",
+                    session_id=str(session_id or "").strip(),
+                    turn_id=str(turn_id or "").strip(),
+                    amount_points=amount_points,
+                    dedupe_key=meter_key,
+                    status="metered_not_charged",
+                    metadata=capture_metadata,
+                )
+                return {
+                    "status": "metered_not_charged",
+                    "reason": "billing_enforcement_disabled",
+                    "wallet_user_id": user_id,
+                    "idempotency_key": idempotency_key,
+                    "amount_points": amount_points,
+                    "billing_amount_source": billing_metadata.get("billing_amount_source"),
+                    "billing_cost_source": billing_metadata.get("billing_cost_source"),
+                    "captured_micros": 0,
+                    "requested_micros": int(amount_points) * 1_000_000,
+                    "balance_after_micros": 0,
+                }
+            except Exception as exc:
+                logger.warning("Failed to meter usage for user %s: %s", user_id, exc, exc_info=True)
+                return {
+                    "status": "failed",
+                    "reason": "usage_meter_error",
+                    "wallet_user_id": user_id,
+                    "idempotency_key": idempotency_key,
+                }
         try:
             from deeptutor.services.wallet import WalletInsufficientBalanceError, get_wallet_service
 
@@ -2600,12 +2656,7 @@ class TurnRuntimeManager:
                 idempotency_key=idempotency_key,
                 reference_id=str(turn_id or session_id or "").strip(),
                 reason="capture",
-                metadata={
-                    "source": "wx_miniprogram",
-                    "turn_id": str(turn_id or "").strip(),
-                    "session_id": str(session_id or "").strip(),
-                    **billing_metadata,
-                },
+                metadata=capture_metadata,
             )
             return {
                 "status": "captured",
