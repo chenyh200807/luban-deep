@@ -1,0 +1,9 @@
+{
+  "namespace": "lecture_teaching_cards",
+  "status": "release_candidate",
+  "published": true,
+  "card_count": 540,
+  "content_hash": "f8d8b7bbdd76c8deb8eeba085f4e30130127f6be8274eb6cf2005760665042f2",
+  "bundle_file": "lecture_teaching_cards.json",
+  "published_date": "2026-06-08"
+}
