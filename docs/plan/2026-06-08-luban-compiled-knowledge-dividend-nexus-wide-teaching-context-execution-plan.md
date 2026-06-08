@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. Bug investigation → root-cause-debugging / superpowers:systematic-debugging. Before "完成" → superpowers:verification-before-completion.
 
-> **Status: `Execution plan / M34 / capability track (parallel to M33-ACT authorization track)`.** 这是一条**能力放大**主线，不是生产授权门。它把已编译的知识红利从"做题才有"泛化到"任何知识对话都有"，全程 teaching tier，不碰 published registry / production default flip / canonical learner-truth write / 远端写（那是 M33-ACT 的事）。
+> **Status: `Closed / M34 capability verdict=GO (2026-06-09 local /api/v1/ws TestClient gate with fakes)`.** 这是一条**能力放大**主线，不是生产授权门。它把已编译的知识红利从"做题才有"泛化到"任何知识对话都有"，全程 teaching tier，不碰 published registry / production default flip / canonical learner-truth write / 远端写（那是 M33-ACT 的事）。下方 checkbox 保留为执行计划原文；当前 completion authority 见父计划 §0.26.18 与 `docs/plan/INDEX.md`。
 
 **Goal:** 让系统里**任何一次知识类对话**（不只是做题/评分）都自动吃到鲁班已编译的四源教学知识（教材 + 规范 + 讲义 + 真题），把 Nexus-style 编译层从"题库闸门"变成"全对话能力放大器"。
 

@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
+import sys
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -41,6 +43,16 @@ OFF_SYLLABUS_QUESTIONS = [
 ]
 
 HIT_RATE_THRESHOLD = 0.80
+LIVE_WS_GATE_COMMAND_TEXT = (
+    "python -m pytest tests/integration/test_luban_m34_general_knowledge_dividend_ws.py -q"
+)
+LIVE_WS_GATE_COMMAND = (
+    sys.executable,
+    "-m",
+    "pytest",
+    "tests/integration/test_luban_m34_general_knowledge_dividend_ws.py",
+    "-q",
+)
 
 
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
@@ -48,6 +60,31 @@ def _write_json(path: Path, payload: dict[str, Any]) -> None:
         json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
+
+
+def _tail(text: str, *, limit: int = 4000) -> str:
+    if len(text) <= limit:
+        return text
+    return text[-limit:]
+
+
+def _run_live_ws_gate() -> dict[str, Any]:
+    proc = subprocess.run(
+        LIVE_WS_GATE_COMMAND,
+        cwd=REPO,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    output = "\n".join(part for part in (proc.stdout.strip(), proc.stderr.strip()) if part)
+    return {
+        "live_ws_status": "pass" if proc.returncode == 0 else "fail",
+        "live_ws_command": LIVE_WS_GATE_COMMAND_TEXT,
+        "live_ws_exit_code": proc.returncode,
+        "live_ws_evidence": (
+            f"{LIVE_WS_GATE_COMMAND_TEXT} => exit_code={proc.returncode}\n{_tail(output)}"
+        ).strip(),
+    }
 
 
 def _evaluate_on_syllabus() -> list[dict[str, Any]]:
@@ -93,11 +130,20 @@ def _evaluate_off_syllabus() -> list[dict[str, Any]]:
 def run_slice(
     *,
     output_dir: str | Path | None = None,
-    live_ws_status: str = "unchecked",
-    live_ws_evidence: str = "",
+    run_live_ws_gate: bool = True,
 ) -> dict[str, Any]:
     out = Path(output_dir) if output_dir is not None else DEFAULT_OUT
     out.mkdir(parents=True, exist_ok=True)
+    live_ws_gate = (
+        _run_live_ws_gate()
+        if run_live_ws_gate
+        else {
+            "live_ws_status": "unchecked",
+            "live_ws_command": "",
+            "live_ws_exit_code": None,
+            "live_ws_evidence": "",
+        }
+    )
 
     on_rows = _evaluate_on_syllabus()
     off_rows = _evaluate_off_syllabus()
@@ -154,18 +200,32 @@ def run_slice(
         )
     ) or safety["canonical_truth_written"] is not False:
         blockers.append("safety_invariant_violation")
-    live_ws_evidence_text = str(live_ws_evidence or "").strip()
+    live_ws_status = str(live_ws_gate.get("live_ws_status") or "unchecked")
+    live_ws_evidence_text = str(live_ws_gate.get("live_ws_evidence") or "").strip()
+    live_ws_command_text = str(live_ws_gate.get("live_ws_command") or "").strip()
+    live_ws_exit_code = live_ws_gate.get("live_ws_exit_code")
     live_ws_evidence_valid = (
         live_ws_status == "pass"
+        and live_ws_command_text == LIVE_WS_GATE_COMMAND_TEXT
+        and live_ws_exit_code == 0
         and "test_luban_m34_general_knowledge_dividend_ws.py" in live_ws_evidence_text
         and "passed" in live_ws_evidence_text.lower()
     )
+    if live_ws_command_text != LIVE_WS_GATE_COMMAND_TEXT or live_ws_exit_code is None:
+        blockers.append("live_ws_gate_not_executed")
     if live_ws_status != "pass":
         blockers.append("live_ws_status_not_pass")
+    elif live_ws_exit_code != 0:
+        blockers.append("live_ws_exit_code_not_zero")
     elif not live_ws_evidence_valid:
         blockers.append("live_ws_evidence_missing_or_invalid")
 
-    live_only_blockers = {"live_ws_status_not_pass", "live_ws_evidence_missing_or_invalid"}
+    live_only_blockers = {
+        "live_ws_status_not_pass",
+        "live_ws_gate_not_executed",
+        "live_ws_exit_code_not_zero",
+        "live_ws_evidence_missing_or_invalid",
+    }
     if any(blocker not in live_only_blockers for blocker in blockers):
         verdict = "NO-GO"
     elif blockers:
@@ -177,6 +237,8 @@ def run_slice(
         "verdict": verdict,
         "blockers": blockers,
         "live_ws_status": live_ws_status,
+        "live_ws_command": live_ws_command_text,
+        "live_ws_exit_code": live_ws_exit_code,
         "live_ws_evidence": live_ws_evidence_text,
         "cohort_default": "qa_,test_,operator_",
         "cohort_broadening_requires_user_confirmation": True,
@@ -196,21 +258,14 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", default=str(DEFAULT_OUT))
     parser.add_argument(
-        "--live-ws-status",
-        choices=("pass", "unchecked", "fail"),
-        default="unchecked",
-        help="Set to pass only after the live /api/v1/ws M34 pytest gate passed in this run.",
-    )
-    parser.add_argument(
-        "--live-ws-evidence",
-        default="",
-        help="Required with --live-ws-status pass; include pytest command/nodeid and passed count.",
+        "--skip-live-ws-gate",
+        action="store_true",
+        help="Do not execute the fixed /api/v1/ws pytest gate; verdict can be at most WEAK-GO.",
     )
     args = parser.parse_args(argv)
     result = run_slice(
         output_dir=args.output_dir,
-        live_ws_status=args.live_ws_status,
-        live_ws_evidence=args.live_ws_evidence,
+        run_live_ws_gate=not args.skip_live_ws_gate,
     )
     print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
     return 0 if result["verdict"] in {"GO", "WEAK-GO"} else 1
