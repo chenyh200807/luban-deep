@@ -302,6 +302,8 @@ domains:
       - tests/services/member_console/test_service.py
       - tests/web/test_bi_member_admin_surface.py
       - tests/supabase/test_learner_state_rls_migration.py
+      - tests/services/learner_state/test_d_class_occurrence_timeline.py
+      - tests/services/learner_state/test_d_class_long_term_analytics.py
     schema_files:
       - deeptutor/contracts/learner_state.py
       - supabase/migrations/20260415000100_learner_state_core.sql
