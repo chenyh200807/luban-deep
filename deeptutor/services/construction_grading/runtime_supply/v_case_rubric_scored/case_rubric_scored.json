@@ -5,23 +5,23 @@
       "boolean_judgment": 197,
       "exact_required": 256,
       "qualitative": 83,
-      "calc": 119,
-      "list": 558
+      "calc": 126,
+      "list": 559
     },
-    "content_hash": "975056297aa741d9f71de8b19a44c8b7598c09fe8d7d68991f772b71d21f2863",
+    "content_hash": "45addc2741d687bb55f7f13e3c160753d73f386f2432eb7471a7dc51ae64eb10",
     "lane": "case_rubric_scored",
     "namespace": "case_rubric_scored",
     "published": false,
-    "question_count": 172,
+    "question_count": 174,
     "rejected_count": 0,
     "rollback_pointer": "legacy (no case_rubric_scored -> existing case_rubric_full stays)",
     "schema_version": "luban_rubric_compiler.v1",
-    "scoring_point_count": 1213,
-    "signature": "cb2672362a36930f97c91f936490d41abcf6b301afe40987f9912ea2cf4b5dcc",
+    "scoring_point_count": 1221,
+    "signature": "ed91ea242513ba7657822ddaa9524f906b478f9ae36f249ad653ada65db70bb6",
     "status": "release_candidate",
     "authority_distribution": {
       "textbook_verbatim": 147,
-      "exam_reference_answer": 1066
+      "exam_reference_answer": 1074
     },
     "provenance_enriched": true,
     "provenance_enrich_date": "2026-06-08",
@@ -28208,6 +28208,113 @@
           "quote_snippet": "未经市政工程行政主管部门和公安交通管理部门批准，任何单位或者个人不得占用或者挖掘城市道路。"
         }
       ]
+    },
+    {
+      "answer_key_authority": "exam_reference_answer",
+      "point_id": "NUMERIC_9001::p1",
+      "policy": "calc",
+      "qid": "9001",
+      "required_terms": [
+        "5.74",
+        "E"
+      ],
+      "score": 1.0,
+      "text": "E设备单位成本=(120+3200×8)/(560×8)≈5.74元/m³",
+      "total_score": 6.0
+    },
+    {
+      "answer_key_authority": "exam_reference_answer",
+      "point_id": "NUMERIC_9001::p2",
+      "policy": "calc",
+      "qid": "9001",
+      "required_terms": [
+        "4.87",
+        "F"
+      ],
+      "score": 1.0,
+      "text": "F设备单位成本=(180+3800×8)/(785×8)≈4.87元/m³",
+      "total_score": 6.0
+    },
+    {
+      "answer_key_authority": "exam_reference_answer",
+      "point_id": "NUMERIC_9001::p3",
+      "policy": "calc",
+      "qid": "9001",
+      "required_terms": [
+        "5.32",
+        "G"
+      ],
+      "score": 1.0,
+      "text": "G设备单位成本=(220+4200×8)/(795×8)≈5.32元/m³",
+      "total_score": 6.0
+    },
+    {
+      "answer_key_authority": "exam_reference_answer",
+      "point_id": "NUMERIC_9001::p4",
+      "policy": "calc",
+      "qid": "9001",
+      "required_terms": [
+        "F设备",
+        "最低",
+        "选F"
+      ],
+      "score": 2.0,
+      "text": "结论:F设备单位工程量成本最低(≈4.87元/m³),选F设备",
+      "total_score": 6.0
+    },
+    {
+      "answer_key_authority": "exam_reference_answer",
+      "point_id": "NUMERIC_9001::p5",
+      "policy": "list",
+      "qid": "9001",
+      "required_terms": [
+        "适应性",
+        "高效性",
+        "稳定性",
+        "安全性"
+      ],
+      "score": 2.0,
+      "text": "设备选择考虑因素(经济性外):适应性、高效性、稳定性、安全性",
+      "total_score": 6.0
+    },
+    {
+      "answer_key_authority": "exam_reference_answer",
+      "point_id": "NUMERIC_9534::p1",
+      "policy": "calc",
+      "qid": "9534",
+      "required_terms": [
+        "3个月",
+        "步距"
+      ],
+      "score": 1.0,
+      "text": "成倍节拍流水步距=各节拍最大公约数(3,3,6,3)=3个月",
+      "total_score": 6.0
+    },
+    {
+      "answer_key_authority": "exam_reference_answer",
+      "point_id": "NUMERIC_9534::p2",
+      "policy": "calc",
+      "qid": "9534",
+      "required_terms": [
+        "5",
+        "专业"
+      ],
+      "score": 2.0,
+      "text": "专业施工队数=1+1+2+1=5个(围护1+基础1+上部结构2+装饰1)",
+      "total_score": 6.0
+    },
+    {
+      "answer_key_authority": "exam_reference_answer",
+      "point_id": "NUMERIC_9534::p3",
+      "policy": "calc",
+      "qid": "9534",
+      "required_terms": [
+        "18",
+        "总工期"
+      ],
+      "score": 3.0,
+      "text": "成倍节拍流水总工期=(m+N-1)×K=(2+5-1)×3=18个月",
+      "total_score": 6.0
     }
   ],
   "rejected": []
