@@ -5,7 +5,7 @@
 >
 > 当前 canonical 目标：**鲁班评分引擎 = 高质量学习证据生产器；Learning Brain/GBrain = 长期个性化学习决策器；RAG/知识编译 = 教材、规范、真题、章节与证据供应器；DeepSeek/Qwen = 在线批改与教学执行模型。**
 >
-> 当前已闭合：**M32 Grading-to-Brain Waterproof Vertical Slice = GO**；**M34 compiled-knowledge dividend = GO（qa_/test_/operator_ teaching context scope）**。当前唯一下一步不再是重跑 M32，而是在 M34 允许 cohort 内观察一般知识对话教学红利；broad real-student default、M34 广开真实学员 cohort、远端/DB 写、published registry 仍需独立确认/授权。
+> 当前已闭合：**M32 Grading-to-Brain Waterproof Vertical Slice = GO**；**M33 canonical promotion arm release gate = GO（qa_/operator_ 1% scope）**；**M34 compiled-knowledge dividend = GO（qa_/test_/operator_ teaching context scope）**。当前唯一下一步不再是重跑 M32，而是在 M33 允许流量内推进生产/canonical 激活观察，并在 M34 允许 cohort 内观察一般知识对话教学红利；broad real-student default、M34 广开真实学员 cohort、远端/DB 写、published registry 仍需独立确认/授权。
 >
 > 2026-06-04 §0.12 架构纠偏：Registry/spec/knowledge artifacts 不是最终判题器，而是 Nexus-style runtime LLM adjudication 的高质量上下文底座；未来 production 每次案例题判题必须由 DeepSeek-V4-flash primary / Qwen3.7 plus fallback 参与理解学生答案，deterministic validator 负责防越权和 fail-closed。
 >
@@ -49,9 +49,9 @@
 
 1. 先读本节和 §0.26，确认目标和 authority。
 2. 再读 §0.26.14，确认知识编译 storage / serving / capacity contract。
-3. 当前 Grading-to-Brain 产品闭环读 M32 结果（§0.26.16）、M33-ACT A 类代码就绪结果（§0.26.17）和 M34 compiled-knowledge dividend 结果（§0.26.18），不要按旧 checklist 重跑 M32。
+3. 当前 Grading-to-Brain 产品闭环读 M32 结果（§0.26.16）、M33-ACT A 类代码就绪结果（§0.26.17）、M34 compiled-knowledge dividend 结果（§0.26.18）和 M33 canonical promotion arm 结果（§0.26.19），不要按旧 checklist 重跑 M32。
 4. M26/M27/M30/M31 是已完成能力底座和 ledger，不要按其中旧 checklist 重新执行。
-5. 任何 broad production default、published registry、canonical learner truth write、远端/DB 写仍需单独授权；M34 只放开 `qa_` / `test_` / `operator_` teaching-context scope。
+5. 任何 broad production default、published registry、远端/DB 写仍需单独授权；M33 只放开 `qa_` / `operator_` 1% promotion arm，M34 只放开 `qa_` / `test_` / `operator_` teaching-context scope。
 
 ## 0.0 Canonical update after M5D（2026-06-04）
 
@@ -1071,6 +1071,48 @@ M32 GO 门：
 - kill switch：`LUBAN_GENERAL_KNOWLEDGE_CONTEXT_ENABLED=false`。
 - cohort env：`LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT`，但广开到真实学员前必须人工确认；本轮没有执行 broad real-student rollout。
 - M34 不写 DB / canonical learner truth / 远端 / production default；这些如果出现需求冲动，必须停止并重新授权。
+
+---
+
+### 0.26.19 M33 canonical promotion arm release gate（2026-06-08，promotion arm verdict=GO）
+
+> **本节把 M32 的 teacher-final / real retest 正向臂从 preview 演示升级为 governed promotion arm。** Ledger：`artifacts/luban_grading_artifacts/canonical_promotion_arm_release_gate_m33_20260608/`。runner：`scripts/run_luban_canonical_promotion_arm_release_gate_m33.py`。test：`tests/scripts/test_luban_canonical_promotion_arm_release_gate_m33.py`。
+
+**M33 三门 verdict：**
+
+| Gate | Verdict | Scope |
+| --- | --- | --- |
+| `canonical_write` | **GO** | teacher-final + real retest + improvement promotion 写入同一个 canonical learner truth |
+| `production_default_flip_now` | **GO** | 仅 `qa_` / `operator_` 1% default，可 kill switch / rollback |
+| `formal_registry` | **GO** | v1 canonical promotion arm 是正式候选，不再是 dry-run 脚本 |
+| `production_v1_overall` | **GO** | 只对 M33 promotion arm allowed scope；不等于 broad real-student default |
+
+**单一 authority（硬约束）：**
+
+- 唯一 writer：`LearnerStateService.append_memory_event` 写 `MEMORY_EVENTS.jsonl`。
+- 唯一 projection builder：`LearnerStateService.synthesize_learning_truth(dry_run=False)`。
+- 唯一 canonical store：`COMPILED_TRUTH.json` / `LearnerStateService.COMPILED_TRUTH`。
+- 唯一 reader：`LearnerStateService.read_compiled_learning_truth`，再投影到 Learning Brain read model、learning report read model、`PersonalizationContextPack` 下一题推荐。
+- 禁止：shadow ledger、mirror state、临时 JSON 冒充 canonical learner truth。
+
+**写入与读回证据：**
+
+- `teacher-final` source：`LearnerStateService.MEMORY_EVENTS`，source_id=`m33_teacher_final_canonical`。
+- `real retest` source：`LearnerStateService.MEMORY_EVENTS`，source_id=`m33_real_retest_canonical`。
+- Learning Brain readback source：`LearnerStateService.COMPILED_TRUTH`。
+- 报告页 readback source：`compiled_learning_truth`，v2 compact payload 保留 `output_projection_hash` 作为同源审计指纹。
+- 下一题推荐 source：`PersonalizationContextPack`，由 compiled truth 产生 action candidate。
+- improvement promotion：`improvement_signal_count>=1`，并且 Learning Brain、报告页、context candidates 读取同一个 `output_projection_hash`。
+
+**production default / rollback：**
+
+- 默认流量仅允许：`qa_` / `operator_`。
+- 明确阻断：`real_student_` / `guest_`。
+- kill switch：`LUBAN_V1_BETA_SHADOW_ENABLED=false`。
+- rollback paths：`request_flag_off`、`env_kill_switch`、`registry_unavailable_failclosed`。
+- safety：`false_positive=0`、`source_laundering=0`、`high_risk_fallback_ok=true`、`non_cohort_blocked=true`。
+
+**仍不自动放开的面：** broad real-student default、远端/Aliyun 写、production DB 写、published registry 仍需用户单独授权；M33 本地 gate 明确 `production_write_count=0`、`remote_write_count=0`。
 
 ---
 

@@ -750,10 +750,20 @@ def _compact_learning_brain_v2(learning_brain: dict[str, Any]) -> dict[str, Any]
 
     sections = _safe_dict(learning_brain.get("visible_sections"))
     graph_chain = _safe_dict(learning_brain.get("graph_chain"))
+    synthesis_run = _safe_dict(learning_brain.get("synthesis_run"))
+    output_projection_hash = str(
+        learning_brain.get("output_projection_hash") or synthesis_run.get("output_projection_hash") or ""
+    ).strip()
     return {
         "ok": bool(learning_brain.get("ok", True)),
         "projection_subject": str(learning_brain.get("projection_subject") or "").strip(),
         "schema_version": _safe_int(learning_brain.get("schema_version")) or 2,
+        "output_projection_hash": output_projection_hash,
+        "synthesis_run": {
+            "output_projection_hash": output_projection_hash,
+            "status": str(synthesis_run.get("status") or "").strip(),
+            "input_event_count": _safe_int(synthesis_run.get("input_event_count")),
+        },
         "weak_points": [
             _compact_weak_point(item)
             for item in _safe_list(learning_brain.get("weak_points"))[:5]

@@ -1296,6 +1296,43 @@ def test_compiled_truth_present_skips_dry_run() -> None:
     assert model["source_status"]["dry_run_synthesis"]["ok"] is None
 
 
+def test_compiled_truth_hash_is_preserved_in_v2_learning_brain_payload() -> None:
+    class HotProjectionService(FakeLearnerStateService):
+        def read_compiled_learning_truth(self, user_id: str) -> dict:
+            return {
+                "subject": "construction_exam_learning_truth",
+                "schema_version": 2,
+                "compiled_objects": {},
+                "weak_points": [],
+                "improvement_signals": [],
+                "stale_claims": [],
+                "typed_graph": {"edges": [], "readiness_gaps": []},
+                "synthesis_run": {
+                    "input_event_count": 2,
+                    "created_claim_count": 0,
+                    "status": "persisted_enqueued",
+                    "output_projection_hash": "sha256:compiled-truth-hash",
+                },
+            }
+
+        def synthesize_learning_truth(self, user_id: str, *, dry_run: bool, event_limit: int | None = None) -> dict:
+            raise AssertionError("dry_run should not fire when compiled truth is present")
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=HotProjectionService(
+            [_learning_event("evt_today", days_ago=0, question_id="case_001")]
+        ),
+        event_limit=50,
+        schema_version=2,
+    )
+
+    assert model["authority"]["learning_brain_source"] == "compiled_learning_truth"
+    assert model["learning_brain"]["output_projection_hash"] == "sha256:compiled-truth-hash"
+    assert model["learning_brain"]["synthesis_run"]["output_projection_hash"] == "sha256:compiled-truth-hash"
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 端到端：通过 grading writeback 写入真实 evidence
 # ─────────────────────────────────────────────────────────────────────────────
