@@ -299,7 +299,37 @@ function normalizeMastery(source) {
   }).filter(function (group) {
     return group.chapters.length;
   });
+  var knowledgeSummary = normalizeKnowledgeSummary(mastery.knowledge_summary || mastery.knowledgeSummary);
   var groups = buildMasteryDisplayGroups(rawGroups);
+  if (!groups.length && knowledgeSummary.textbookChapters.length) {
+    groups = buildMasteryDisplayGroups([
+      {
+        name: "教材目录进度",
+        avg_mastery: 0,
+        chapters: knowledgeSummary.textbookChapters.map(function (chapter) {
+          var evaluated = asNumber(chapter.evaluatedTopics, 0);
+          var mastered = asNumber(chapter.masteredTopics, 0);
+          var developing = asNumber(chapter.developingTopics, 0);
+          var weak = asNumber(chapter.weakTopics, 0);
+          var score = 0;
+          if (evaluated > 0) {
+            score = Math.round(
+              (mastered * 100 + developing * 55 + weak * 25) / evaluated,
+            );
+          }
+          return {
+            name: chapter.chapterName,
+            mastery: score,
+            color: score >= 70 ? "#40d99d" : score >= 40 ? "#7fd9ff" : "#ff7185",
+            textbookChapterNo: chapter.chapterNo,
+            textbookChapterName: chapter.chapterName,
+            textbookSectionName: "",
+            taxonomyPath: [chapter.chapterName],
+          };
+        }),
+      },
+    ]);
+  }
   return {
     hasOverall: hasOverall,
     overall: Math.round(asNumber(overall, 0)),
@@ -320,7 +350,7 @@ function normalizeMastery(source) {
         rateText: rate + "%",
       };
     }).filter(Boolean),
-    knowledgeSummary: normalizeKnowledgeSummary(mastery.knowledge_summary || mastery.knowledgeSummary),
+    knowledgeSummary: knowledgeSummary,
     reviewSummary: asObject(mastery.review_summary),
   };
 }
@@ -964,7 +994,6 @@ function normalizeGraphChains(learningBrain) {
 function buildLearningReportViewModel(report) {
   var body = asObject(report);
   var overview = asObject(body.overview);
-  var radar = normalizeRadar(body.radar_dimensions);
   var mastery = normalizeMastery(body.mastery);
   var learningBrain = normalizeLearningBrain(body);
   var truthSections = asObject(body.truth_sections);
@@ -981,6 +1010,10 @@ function buildLearningReportViewModel(report) {
   var mistakeHistoryCards = normalizeMistakeHistoryCards(attempts);
   // Batch C Task 8: three-layer learning state + scoring point map + today's prescription.
   var learningState = normalizeLearningStateBatchC(body.learning_state);
+  var radar = normalizeRadar(body.radar_dimensions);
+  if (!asList(radar.dims).length) {
+    radar = normalizeRadarFromLearningState(learningState);
+  }
   var scoringPointMap = normalizeScoringPointMapBatchC(body.scoring_point_map);
   var prescription = normalizePrescriptionBatchC(
     body.training_prescription,
@@ -1109,6 +1142,60 @@ function normalizeLearningStateBatchC(state) {
     sourceStatus: asObject(src.source_status),
     isEmpty:
       knowledge.length === 0 && ability.length === 0 && behavior.length === 0,
+  };
+}
+
+function normalizeRadarFromLearningState(learningState) {
+  var abilities = asList(asObject(learningState).abilityState);
+  if (!abilities.length) return normalizeRadar([]);
+  var dims = abilities.map(function (ability) {
+    var evidenceCount = asNumber(ability.evidenceCount, 0);
+    var confidence = asNumber(ability.confidence, 0);
+    var state = String(ability.state || "");
+    var value = 0.4;
+    if (state === "stable" || state === "verified") value = 0.78;
+    else if (state === "improving") value = 0.62;
+    else if (state === "weak" || state === "recurring" || state === "not_verified") value = 0.32;
+    if (confidence > 0) value = Math.max(0.1, Math.min(0.95, value * (0.7 + confidence * 0.3)));
+    if (evidenceCount <= 0) value = Math.min(value, 0.3);
+    var score = Math.round(value * 100);
+    return {
+      name: ability.label || ability.dimension,
+      value: value,
+      score: score,
+      level: state,
+      rateText: score + "%",
+    };
+  }).filter(function (item) {
+    return item.name;
+  });
+  var strong = dims.filter(function (item) {
+    return item.level === "strong" || item.level === "stable" || item.level === "verified";
+  }).length;
+  var weak = dims.filter(function (item) {
+    return ["weak", "unstable", "needs_revalidation", "recurring", "not_verified"].indexOf(item.level) >= 0;
+  }).length;
+  var avg = dims.length
+    ? Math.round(
+        dims.reduce(function (sum, item) {
+          return sum + item.score;
+        }, 0) / dims.length,
+      )
+    : 0;
+  return {
+    dims: dims,
+    strongCount: strong,
+    normalCount: Math.max(0, dims.length - strong - weak),
+    weakCount: weak,
+    avgScore: avg,
+    dimList: dims.map(function (item) {
+      return {
+        name: item.name,
+        score: item.score,
+        rateText: item.rateText,
+        level: item.level,
+      };
+    }),
   };
 }
 

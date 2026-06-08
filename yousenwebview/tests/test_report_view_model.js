@@ -53,6 +53,82 @@ assert.deepStrictEqual(vm.prescription.evidenceRefs, ["evt1", "evt2"]);
 assert.strictEqual(vm.prescription.authority, "training_intent");
 assert.strictEqual(yousenVm.toReportPageData(vm).prescriptionAuthority, "training_intent");
 
+var loopReport = {
+  schema_version: 2,
+  mastery: {
+    overall_mastery: {
+      score: 40,
+      confidence: 0.72,
+      status: "needs_confirmation",
+    },
+    groups: [],
+    hotspots: [],
+    knowledge_summary: {
+      total_textbook_chapters: 13,
+      leaf_nodes: 2786,
+      evaluated_topics: 2,
+      weak_topics: 1,
+      textbook_chapters: [
+        {
+          chapter_no: 3,
+          chapter_name: "第3章 建筑工程施工技术",
+          evaluated_topics: 2,
+          weak_topics: 1,
+          top_topics: ["地下室防水工程施工"],
+          status: "weak",
+        },
+      ],
+    },
+    review_summary: { total_due: 1, overdue_count: 0 },
+  },
+  learning_state: {
+    ability_state: [
+      {
+        dimension: "code_application",
+        state: "recurring",
+        evidence_count: 2,
+        confidence: 0.8,
+      },
+    ],
+    knowledge_state: [
+      {
+        knowledge_node_id: "1A413050",
+        label: "地下室防水工程施工",
+        state: "recurring",
+        evidence_count: 2,
+        confidence: 0.8,
+      },
+    ],
+  },
+  learning_brain: {
+    projection_subject: "construction_exam_learning_truth",
+    weak_points: [
+      {
+        concept_id: "1A413050",
+        error_code: "near_synonym_not_accepted",
+        evidence_refs: ["attempt_m32_001", "attempt_m32_002"],
+      },
+    ],
+  },
+};
+var loopPageData = yousenVm.toReportPageData(
+  yousenVm.buildLearningReportViewModel(loopReport),
+);
+assert.strictEqual(loopPageData.overallMastery, 40);
+assert(
+  loopPageData.radarDimensions.length > 0,
+  "ability data must project from unified learning_state when mastery groups are empty",
+);
+assert.strictEqual(loopPageData.knowledgeSummary.totalTextbookChapters, 13);
+assert(
+  loopPageData.textbookChapters.length > 0,
+  "textbook directory progress must project from unified mastery.knowledge_summary",
+);
+assert(
+  loopPageData.masteryGroups.length > 0,
+  "mastery distribution must not stay empty when unified report has Learning Brain evidence",
+);
+
 var source = fs.readFileSync(reportPath, "utf8");
 assert(
   source.indexOf("learning-report-view-model") >= 0 &&
