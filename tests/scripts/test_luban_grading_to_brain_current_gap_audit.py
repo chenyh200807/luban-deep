@@ -117,6 +117,49 @@ def test_current_gap_audit_outputs_g1_limited_default_preflight(
     assert (tmp_path / "G1_LIMITED_DEFAULT_PREFLIGHT.md").exists()
 
 
+def test_current_gap_audit_outputs_g4_canonical_truth_preflight(
+    tmp_path: Path,
+) -> None:
+    subprocess.run(
+        [sys.executable, str(SCRIPT), "--out", str(tmp_path)],
+        cwd=REPO,
+        check=True,
+    )
+
+    preflight = json.loads(
+        (tmp_path / "G4_CANONICAL_LEARNER_TRUTH_PREFLIGHT.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert preflight["gate_id"] == "G4_canonical_learner_truth_write"
+    assert preflight["scope"] == "read_only_pre_authorization_preflight"
+    assert preflight["verdict"] == "not_ready_teacher_final_required"
+    assert preflight["execution_mode"] == "read_only_no_write"
+    assert preflight["without_authorization"] == "decision_package_only"
+    assert preflight["promotion_path"] == "teacher_final_plus_real_retest_only"
+
+    assert preflight["production_write_count"] == 0
+    assert preflight["canonical_truth_written"] is False
+    assert preflight["remote_write_count"] == 0
+    assert preflight["published_registry_executed"] is False
+
+    assert preflight["preconditions"]["real_retest_valid_count"] > 0
+    assert preflight["preconditions"]["dryrun_candidate_count"] > 0
+    assert preflight["preconditions"]["teacher_final_live_count"] == 0
+    assert preflight["preconditions"]["teacher_final_simulated_count"] > 0
+    assert preflight["preconditions"]["requires_real_teacher_signoff_count"] > 0
+    assert preflight["preconditions"]["m32_counted_improvement_count"] == 0
+    assert preflight["preconditions"]["shadow_or_simulated_promotion_attempted"] is False
+    assert preflight["blocking_reason"] == (
+        "teacher-final live signoff is required before canonical learner truth write"
+    )
+    assert all(preflight["evidence_ok"].values())
+    assert preflight["single_authority"]["learner_truth_source"] == (
+        "Learning Evidence Ledger / Learner Model only"
+    )
+    assert (tmp_path / "G4_CANONICAL_LEARNER_TRUTH_PREFLIGHT.md").exists()
+
+
 def test_current_gap_audit_outputs_explicit_loop_completion_audit(
     tmp_path: Path,
 ) -> None:

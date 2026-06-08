@@ -30,6 +30,30 @@ G1_SAFETY = (
     "artifacts/luban_grading_artifacts/limited_default_soak_monitoring_m19d_20260605/"
     "safety_invariants_m19d.json"
 )
+G4_TRUTH_WRITE_GUARD = (
+    "artifacts/luban_grading_artifacts/"
+    "learning_brain_real_retest_canonical_gate_m18d_20260604/"
+    "learning_brain_truth_write_guard_m18d.json"
+)
+G4_DRYRUN_CANDIDATES = (
+    "artifacts/luban_grading_artifacts/"
+    "learning_brain_real_retest_canonical_gate_m18d_20260604/"
+    "canonical_write_dryrun_candidates_m18d.jsonl"
+)
+G4_REAL_RETEST_PROOFS = (
+    "artifacts/luban_grading_artifacts/"
+    "learning_brain_real_retest_canonical_gate_m18d_20260604/"
+    "real_retest_proofs_m18d.jsonl"
+)
+G4_M32_RETEST_OUTCOME = (
+    "artifacts/luban_grading_artifacts/grading_to_brain_m32_waterproof_20260608/"
+    "retest_outcome_proof_m32.jsonl"
+)
+G4_TEACHER_BRIDGE = (
+    "artifacts/luban_grading_artifacts/"
+    "learning_brain_canonical_claim_gate_m13e_20260604/"
+    "teacher_review_to_claim_bridge_m13e.jsonl"
+)
 
 
 SCENARIOS: list[dict[str, Any]] = [
@@ -425,6 +449,17 @@ def _read_json_rel(path: str) -> dict[str, Any]:
     return json.loads(full_path.read_text(encoding="utf-8"))
 
 
+def _read_jsonl_rel(path: str) -> list[dict[str, Any]]:
+    full_path = REPO / path
+    if not full_path.exists():
+        return []
+    rows: list[dict[str, Any]] = []
+    for line in full_path.read_text(encoding="utf-8").splitlines():
+        if line.strip():
+            rows.append(json.loads(line))
+    return rows
+
+
 def _current_commit() -> str:
     return subprocess.check_output(
         ["git", "rev-parse", "--short", "HEAD"],
@@ -651,6 +686,157 @@ def build_g1_limited_default_preflight() -> dict[str, Any]:
     }
 
 
+def build_g4_canonical_learner_truth_preflight() -> dict[str, Any]:
+    guard = _read_json_rel(G4_TRUTH_WRITE_GUARD)
+    dryrun_candidates = _read_jsonl_rel(G4_DRYRUN_CANDIDATES)
+    real_retest_proofs = _read_jsonl_rel(G4_REAL_RETEST_PROOFS)
+    m32_retest_outcomes = _read_jsonl_rel(G4_M32_RETEST_OUTCOME)
+    teacher_bridge = _read_jsonl_rel(G4_TEACHER_BRIDGE)
+
+    evidence_ok = {
+        G4_TRUTH_WRITE_GUARD: bool(guard),
+        G4_DRYRUN_CANDIDATES: bool(dryrun_candidates),
+        G4_REAL_RETEST_PROOFS: bool(real_retest_proofs),
+        G4_M32_RETEST_OUTCOME: bool(m32_retest_outcomes),
+        G4_TEACHER_BRIDGE: bool(teacher_bridge),
+    }
+    real_retest_valid_count = sum(
+        1
+        for row in real_retest_proofs
+        if row.get("proof_valid") is True
+        and row.get("is_real_ws_proof") is True
+        and row.get("is_simulation") is False
+    )
+    dryrun_candidate_count = sum(
+        1
+        for row in dryrun_candidates
+        if row.get("disposition") == "canonical_write_dryrun_candidate"
+        and row.get("canonical_truth_written") is False
+        and row.get("production_write_performed") is False
+        and row.get("promoted_to_canonical_mastery") is False
+    )
+    teacher_final_live_count = sum(
+        1
+        for row in teacher_bridge
+        if row.get("canonical_write_allowed_now") is True
+        and row.get("qa_simulated") is False
+    ) + sum(1 for row in dryrun_candidates if row.get("teacher_reviewed") is True)
+    teacher_final_simulated_count = sum(
+        1 for row in teacher_bridge if row.get("qa_simulated") is True
+    )
+    requires_real_teacher_signoff_count = sum(
+        1 for row in teacher_bridge if row.get("requires_real_teacher_signoff") is True
+    )
+    m32_counted_improvement_count = sum(
+        1
+        for row in m32_retest_outcomes
+        if row.get("counted_as_improvement") is True and row.get("simulated") is False
+    )
+    shadow_or_simulated_promotion_attempted = any(
+        row.get("promoted_to_canonical_mastery") is True
+        or row.get("canonical_truth_written") is True
+        or row.get("production_write_performed") is True
+        for row in dryrun_candidates
+    ) or any(
+        row.get("counted_as_improvement") is True
+        for row in m32_retest_outcomes
+        if row.get("authority") in {"candidate_preview", "simulated"}
+    )
+
+    preconditions = {
+        "truth_write_guard_present": bool(guard),
+        "real_retest_valid_count": real_retest_valid_count,
+        "dryrun_candidate_count": dryrun_candidate_count,
+        "teacher_final_live_count": teacher_final_live_count,
+        "teacher_final_simulated_count": teacher_final_simulated_count,
+        "requires_real_teacher_signoff_count": requires_real_teacher_signoff_count,
+        "m32_counted_improvement_count": m32_counted_improvement_count,
+        "shadow_or_simulated_promotion_attempted": (
+            shadow_or_simulated_promotion_attempted
+        ),
+        "pcp_unique_contract": guard.get("personalization_context_pack_unique_contract")
+        is True,
+        "second_memory_authority": guard.get("second_memory_authority") is True,
+        "second_personalization_authority": (
+            guard.get("second_personalization_authority") is True
+        ),
+    }
+    no_write = {
+        "production_write_count": int(guard.get("production_write_count", 999)),
+        "canonical_truth_written": guard.get("canonical_truth_written") is True
+        or guard.get("any_canonical_write") is True,
+        "remote_write_count": 0,
+        "published_registry_executed": False,
+    }
+    ready_for_write_authorization = (
+        all(evidence_ok.values())
+        and real_retest_valid_count > 0
+        and dryrun_candidate_count > 0
+        and teacher_final_live_count > 0
+        and preconditions["pcp_unique_contract"] is True
+        and preconditions["second_memory_authority"] is False
+        and preconditions["second_personalization_authority"] is False
+        and shadow_or_simulated_promotion_attempted is False
+        and no_write["production_write_count"] == 0
+        and no_write["canonical_truth_written"] is False
+    )
+    blocking_reason = ""
+    if teacher_final_live_count == 0:
+        blocking_reason = (
+            "teacher-final live signoff is required before canonical learner truth write"
+        )
+    elif not ready_for_write_authorization:
+        blocking_reason = "canonical learner truth write preconditions are not satisfied"
+
+    return {
+        "schema_version": 1,
+        "generated_by": "audit_luban_grading_to_brain_current_gap",
+        "master_plan": MASTER_PLAN,
+        "gate_id": "G4_canonical_learner_truth_write",
+        "scope": "read_only_pre_authorization_preflight",
+        "verdict": "ready_for_user_authorization"
+        if ready_for_write_authorization
+        else "not_ready_teacher_final_required",
+        "blocking_reason": blocking_reason,
+        "execution_mode": "read_only_no_write",
+        "without_authorization": "decision_package_only",
+        "required_authorization": (
+            "explicit_canonical_learner_truth_write_authorization"
+        ),
+        "allowed_scope_after_authorization": (
+            "teacher-final plus real retest promotion only"
+        ),
+        "promotion_path": "teacher_final_plus_real_retest_only",
+        "preconditions": preconditions,
+        "evidence_ok": evidence_ok,
+        "missing_evidence_refs": [
+            path for path, exists in evidence_ok.items() if not exists
+        ],
+        "single_authority": {
+            "no_second_grading_truth": True,
+            "no_second_learner_truth": True,
+            "learner_truth_source": "Learning Evidence Ledger / Learner Model only",
+            "write_authority": "LearnerStateService writeback pipeline only",
+            "pcp_role": "read_only_feedback_context",
+        },
+        **no_write,
+        "stop_conditions": [
+            "teacher-final live signoff missing",
+            "real retest proof missing or simulated",
+            "shadow/candidate/simulated event attempts canonical mastery",
+            "second learner memory or personalization authority appears",
+            "production/canonical write occurs before authorization",
+        ],
+        "evidence_refs": [
+            G4_TRUTH_WRITE_GUARD,
+            G4_DRYRUN_CANDIDATES,
+            G4_REAL_RETEST_PROOFS,
+            G4_M32_RETEST_OUTCOME,
+            G4_TEACHER_BRIDGE,
+        ],
+    }
+
+
 def build_completion_audit() -> dict[str, Any]:
     requirements = [_with_evidence_health(row) for row in COMPLETION_REQUIREMENTS]
     statuses = {row["status"] for row in requirements}
@@ -691,6 +877,7 @@ def build_final_acceptance_report(
     authorization_package: dict[str, Any],
     completion_audit: dict[str, Any],
     g1_preflight: dict[str, Any],
+    g4_preflight: dict[str, Any],
 ) -> dict[str, Any]:
     remaining_gate_order = [
         "canonical_learner_truth_write",
@@ -736,6 +923,11 @@ def build_final_acceptance_report(
                 "grading_to_brain_current_gap_audit_20260608/"
                 "G1_LIMITED_DEFAULT_PREFLIGHT.json"
             ),
+            "g4_canonical_learner_truth_preflight": (
+                "artifacts/luban_grading_artifacts/"
+                "grading_to_brain_current_gap_audit_20260608/"
+                "G4_CANONICAL_LEARNER_TRUTH_PREFLIGHT.json"
+            ),
         },
         "fresh_verification_commands": [
             {
@@ -765,7 +957,9 @@ def build_final_acceptance_report(
                     "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/FINAL_ACCEPTANCE_REPORT_grading_to_brain.json "
                     "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/FINAL_ACCEPTANCE_REPORT_grading_to_brain.md "
                     "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G1_LIMITED_DEFAULT_PREFLIGHT.json "
-                    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G1_LIMITED_DEFAULT_PREFLIGHT.md"
+                    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G1_LIMITED_DEFAULT_PREFLIGHT.md "
+                    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G4_CANONICAL_LEARNER_TRUTH_PREFLIGHT.json "
+                    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G4_CANONICAL_LEARNER_TRUTH_PREFLIGHT.md"
                 ),
                 "expected_result": "pass",
             },
@@ -785,6 +979,7 @@ def build_final_acceptance_report(
                 if gate["recommended_next"]
             ],
             "g1_preflight_verdict": g1_preflight["verdict"],
+            "g4_preflight_verdict": g4_preflight["verdict"],
             "no_write": {
                 "production_write_count": authorization_package["production_write_count"],
                 "canonical_truth_written": authorization_package[
@@ -842,6 +1037,53 @@ def write_g1_preflight_markdown(preflight: dict[str, Any], out_dir: Path) -> Non
 
     lines.append("")
     (out_dir / "G1_LIMITED_DEFAULT_PREFLIGHT.md").write_text(
+        "\n".join(lines),
+        encoding="utf-8",
+    )
+
+
+def write_g4_preflight_markdown(preflight: dict[str, Any], out_dir: Path) -> None:
+    lines = [
+        "# G4 Canonical Learner Truth Preflight",
+        "",
+        f"- Gate: `{preflight['gate_id']}`",
+        f"- Verdict: `{preflight['verdict']}`",
+        f"- Blocking reason: {preflight['blocking_reason']}",
+        f"- Scope: `{preflight['scope']}`",
+        f"- Execution mode: `{preflight['execution_mode']}`",
+        f"- Without authorization: `{preflight['without_authorization']}`",
+        f"- Required authorization: `{preflight['required_authorization']}`",
+        f"- Promotion path: `{preflight['promotion_path']}`",
+        "",
+        "This artifact proves the gate state only. It does not write canonical learner truth.",
+        "",
+        "## No-Write Invariants",
+        "",
+        f"- production_write_count: `{preflight['production_write_count']}`",
+        f"- canonical_truth_written: `{preflight['canonical_truth_written']}`",
+        f"- remote_write_count: `{preflight['remote_write_count']}`",
+        f"- published_registry_executed: `{preflight['published_registry_executed']}`",
+        "",
+        "## Preconditions",
+        "",
+    ]
+    for key, value in preflight["preconditions"].items():
+        lines.append(f"- {key}: `{value}`")
+
+    lines.extend(["", "## Single Authority", ""])
+    for key, value in preflight["single_authority"].items():
+        lines.append(f"- {key}: `{value}`")
+
+    lines.extend(["", "## Evidence", ""])
+    for ref in preflight["evidence_refs"]:
+        lines.append(f"- `{ref}`")
+
+    lines.extend(["", "## Stop Conditions", ""])
+    for condition in preflight["stop_conditions"]:
+        lines.append(f"- {condition}")
+
+    lines.append("")
+    (out_dir / "G4_CANONICAL_LEARNER_TRUTH_PREFLIGHT.md").write_text(
         "\n".join(lines),
         encoding="utf-8",
     )
@@ -1078,11 +1320,13 @@ def main() -> int:
     authorization_package = build_authorization_package()
     completion_audit = build_completion_audit()
     g1_preflight = build_g1_limited_default_preflight()
+    g4_preflight = build_g4_canonical_learner_truth_preflight()
     final_report = build_final_acceptance_report(
         matrix,
         authorization_package,
         completion_audit,
         g1_preflight,
+        g4_preflight,
     )
     (out_dir / "coverage_matrix.json").write_text(
         json.dumps(matrix, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
@@ -1118,6 +1362,16 @@ def main() -> int:
         + "\n",
         encoding="utf-8",
     )
+    (out_dir / "G4_CANONICAL_LEARNER_TRUTH_PREFLIGHT.json").write_text(
+        json.dumps(
+            g4_preflight,
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     (out_dir / "FINAL_ACCEPTANCE_REPORT_grading_to_brain.json").write_text(
         json.dumps(
             final_report,
@@ -1132,6 +1386,7 @@ def main() -> int:
     write_authorization_markdown(authorization_package, out_dir)
     write_completion_markdown(completion_audit, out_dir)
     write_g1_preflight_markdown(g1_preflight, out_dir)
+    write_g4_preflight_markdown(g4_preflight, out_dir)
     write_final_acceptance_markdown(final_report, out_dir)
 
     missing = {
@@ -1139,6 +1394,7 @@ def main() -> int:
         "authorization_package": authorization_package["missing_evidence"],
         "completion_audit": completion_audit["missing_evidence"],
         "g1_preflight": g1_preflight["missing_evidence_refs"],
+        "g4_preflight": g4_preflight["missing_evidence_refs"],
     }
     missing = {key: value for key, value in missing.items() if value}
     if missing:
