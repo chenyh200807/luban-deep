@@ -9,6 +9,7 @@ Wraps the existing ``AgentCoordinator``.
 from __future__ import annotations
 
 import base64
+import functools
 import re
 import tempfile
 from typing import Any
@@ -1946,12 +1947,22 @@ async def _grade_case_rubric_v1(
             return {"status": "unavailable", "reason": "no_api_key"}
         from deeptutor.services.llm.factory import complete
 
+        # LLM_BINDING=dashscope in production; without explicit base_url+binding,
+        # factory.complete() falls back to get_llm_config() and routes DEEPSEEK_API_KEY
+        # through dashscope's endpoint → 401. Bind DeepSeek's direct API so the key
+        # reaches the correct endpoint.
+        _complete_v1 = functools.partial(
+            complete,
+            base_url="https://api.deepseek.com",
+            binding="deepseek",
+        )
+
         if cg_type == "batch":
             event = await _grade_case_batch_v1(
-                graded_context, student_id=student_id, complete=complete, key=key, _G=_G)
+                graded_context, student_id=student_id, complete=_complete_v1, key=key, _G=_G)
         else:
             event = await _grade_one_case_v1(
-                graded_context, student_id=student_id, complete=complete, key=key, _G=_G)
+                graded_context, student_id=student_id, complete=_complete_v1, key=key, _G=_G)
         # Gray-rollout observability: did V1 actually grade, with what provenance/score?
         _qid = graded_context.get("question_id") or (cg or {}).get("question_id")
         if isinstance(event, dict) and event.get("event_type") == "case_grading_completed":
