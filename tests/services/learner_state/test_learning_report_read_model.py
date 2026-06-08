@@ -9,7 +9,10 @@ from deeptutor.services.learner_state.learning_report_read_model import (
 )
 from deeptutor.services.learner_state.learning_synthesis import synthesize_learning_truth
 from deeptutor.services.learner_state.service import LearnerStateEvent, LearnerStateService
-from deeptutor.services.construction_grading.writeback import write_grading_error_events
+from deeptutor.services.construction_grading.writeback import (
+    write_case_grading_event_learning_evidence,
+    write_grading_error_events,
+)
 
 _TZ = timezone(timedelta(hours=8))
 
@@ -179,6 +182,36 @@ class FakeLearnerStateService:
     def synthesize_learning_truth(self, user_id: str, *, dry_run: bool, event_limit: int | None = None) -> dict:
         assert dry_run is True
         return {"projection": synthesize_learning_truth(self.list_memory_events(user_id, limit=event_limit))}
+
+
+class AppendableFakeLearnerStateService(FakeLearnerStateService):
+    def __init__(self) -> None:
+        super().__init__([])
+
+    def append_memory_event(
+        self,
+        user_id: str,
+        *,
+        source_feature: str,
+        source_id: str,
+        source_bot_id: str | None = None,
+        memory_kind: str,
+        payload_json: dict,
+        dedupe_key: str,
+    ) -> LearnerStateEvent:
+        event = LearnerStateEvent(
+            event_id=f"evt_writeback_{len(self.events) + 1}",
+            user_id=user_id,
+            source_feature=source_feature,
+            source_id=source_id,
+            source_bot_id=source_bot_id,
+            memory_kind=memory_kind,
+            payload_json=payload_json,
+            dedupe_key=dedupe_key,
+            created_at=_iso(),
+        )
+        self.events.append(event)
+        return event
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1676,6 +1709,75 @@ def test_mastery_map_uses_learning_evidence_when_dashboard_has_only_total_score(
     assert model["mastery"]["groups"][0]["name"] == "练习证据"
     assert model["mastery"]["groups"][0]["chapters"][0]["source"] == "learning_evidence"
     assert model["mastery"]["hotspots"]
+
+
+def test_v1_case_grading_writeback_drives_report_radar_and_textbook_directory() -> None:
+    class SparseMasteryMemberService(FakeMemberService):
+        def get_assessment_profile(self, user_id: str) -> dict:
+            return {"level": "beginner", "chapter_mastery": {}}
+
+        def get_mastery_dashboard(self, user_id: str) -> dict:
+            return {
+                "overall_mastery": 0,
+                "groups": [],
+                "hotspots": [],
+                "review_summary": {"total_due": 0, "overdue_count": 0},
+            }
+
+    learner_service = AppendableFakeLearnerStateService()
+    result = write_case_grading_event_learning_evidence(
+        learner_state_service=learner_service,
+        user_id="student_demo",
+        source_id="turn-case-v1-waterproof",
+        source_bot_id="construction-exam-coach",
+        user_answer="普通防水砂浆即可。",
+        question_stem="指出地下防水施工材料的不妥之处。",
+        node_code="1A413050",
+        grading_event={
+            "event_type": "case_grading_completed",
+            "student_id": "student_demo",
+            "question_id": "case-waterproof-1",
+            "awarded_score": 0.0,
+            "max_score": 1.0,
+            "high_risk_review": True,
+            "scoring_points": [
+                {
+                    "point_id": "P1",
+                    "knowledge_point": "地下防水工程材料术语",
+                    "policy_type": "exact_required",
+                    "hit": "miss",
+                    "score": 0.0,
+                    "max_score": 1.0,
+                    "mistake_type": "near_synonym_not_exact",
+                    "evidence_span": "普通防水砂浆",
+                    "required_terms": ["防水混凝土"],
+                }
+            ],
+        },
+    )
+
+    assert result["writeback_count"] == 1
+    payload = result["learning_evidence_payload"]
+    assert payload["weak_points"][0]["concept_id"] is None
+    assert payload["error_events"][0]["concept_tag"] == "1A413050"
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=SparseMasteryMemberService(),
+        learner_state_service=learner_service,
+        event_limit=50,
+    )
+
+    assert model["overview"]["attempt_count"] == 1
+    assert model["learner_facing"]["recent_attempts"][0]["answer_line"] == "你选：普通防水砂浆即可。"
+    assert any("防水" in item["name"] for item in model["radar_dimensions"])
+    knowledge_summary = model["mastery"]["knowledge_summary"]
+    assert knowledge_summary["evaluated_topics"] >= 1
+    assert knowledge_summary["weak_topics"] >= 1
+    chapters_by_no = {item["chapter_no"]: item for item in knowledge_summary["textbook_chapters"]}
+    assert chapters_by_no[3]["evaluated_topics"] >= 1
+    assert chapters_by_no[3]["weak_topics"] >= 1
+    assert "防水" in "".join(chapters_by_no[3]["top_topics"])
 
 
 # ─── Batch D Task 9: prescription outcome verification ───────────────────

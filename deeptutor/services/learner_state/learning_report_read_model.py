@@ -2505,13 +2505,21 @@ def _error_label(error_code: Any) -> str:
 
 
 def _format_answer(value: Any, options: Any = None) -> str:
-    text = str(value or "").strip().upper()
-    if not text:
+    raw_text = str(value or "").strip()
+    if not raw_text:
         return ""
-    letters = [char for char in text if char.isalpha()]
-    if not letters:
-        return _truncate(_clean_learning_text(text), 28)
     option_map = _option_map(options)
+    text = raw_text.upper()
+    if option_map:
+        compact = re.sub(r"[\s,，、;；|/]+", "", text)
+        if compact and all(char in option_map for char in compact):
+            return "、".join(
+                f"{letter}（{_truncate(option_map.get(letter), 18)}）"
+                for letter in compact
+            )
+    if not re.fullmatch(r"[A-Z]+", text):
+        return _truncate(_clean_learning_text(raw_text), 28)
+    letters = [char for char in text if char.isalpha()]
     parts = []
     for letter in letters:
         option_text = option_map.get(letter)
