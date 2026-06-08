@@ -609,7 +609,7 @@ git add scripts/run_luban_m34_general_knowledge_dividend_slice.py \
 git commit -m "feat(luban): M34 general-knowledge dividend slice runner + go/no-go (teaching tier, off-syllabus fall-open)"
 ```
 
-更新 master plan（新增 §0.26.17 M34 closure）+ 挂 `docs/plan/INDEX.md`（§Plan Directory Discipline）。
+更新 master plan（新增 §0.26.18 M34 closure）+ 挂 `docs/plan/INDEX.md`（§Plan Directory Discipline）。
 
 **Acceptance:**
 

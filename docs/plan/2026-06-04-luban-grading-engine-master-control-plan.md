@@ -1,11 +1,11 @@
 # 鲁班 Grading-to-Brain 总控计划 v2（当前作战图）
 
-> Status: `Active master plan v2`（2026-06-07 当前入口）。
+> Status: `Active master plan v2`（2026-06-08 当前入口）。
 > 本文是鲁班 **Grading-to-Brain Loop** 的总控入口。它的当前目标不是继续堆旧的 registry / shadow 里程碑，而是把“评分引擎产生高质量学习证据”与“Learning Brain/GBrain 沉淀长期学习决策”串成一条可执行、可验证、可产品化的闭环。
 >
 > 当前 canonical 目标：**鲁班评分引擎 = 高质量学习证据生产器；Learning Brain/GBrain = 长期个性化学习决策器；RAG/知识编译 = 教材、规范、真题、章节与证据供应器；DeepSeek/Qwen = 在线批改与教学执行模型。**
 >
-> 当前唯一下一步：执行 **M32 Grading-to-Brain Waterproof Vertical Slice**，用一个防水专题纵切证明 `知识编译 -> Compiled Context -> 批改/诊断 -> Learning Evidence -> LearnerClaim -> PersonalizationContextPack -> NextBestAction -> 复测更新`。M5-M31 只作为历史 ledger、release gate 证据和能力底座，不再提供“当前下一步”。
+> 当前已闭合：**M32 Grading-to-Brain Waterproof Vertical Slice = GO**；**M34 compiled-knowledge dividend = GO（qa_/test_/operator_ teaching context scope）**。当前唯一下一步不再是重跑 M32，而是在 M34 允许 cohort 内观察一般知识对话教学红利；broad real-student default、M34 广开真实学员 cohort、远端/DB 写、published registry 仍需独立确认/授权。
 >
 > 2026-06-04 §0.12 架构纠偏：Registry/spec/knowledge artifacts 不是最终判题器，而是 Nexus-style runtime LLM adjudication 的高质量上下文底座；未来 production 每次案例题判题必须由 DeepSeek-V4-flash primary / Qwen3.7 plus fallback 参与理解学生答案，deterministic validator 负责防越权和 fail-closed。
 >
@@ -15,7 +15,7 @@
 >
 > v2 加强点：补齐历史证据账本、使用场景矩阵、三线详细 backlog、异常处理原则、下一步可交付任务包、验收命令与外来 agent 接手规程。§0.14-§0.15 进一步把计划升级为场景驱动交付：M17/M18 必须同时证明 LLM-native grading、LLM-assisted artifact compiler、GBrain-style evidence-first personalization，而不是只多跑一个 milestone。
 
-## 0.C Current Canonical Target（2026-06-07）
+## 0.C Current Canonical Target（2026-06-08）
 
 | 系统 | 核心问题 | 产物 |
 |---|---|---|
@@ -49,9 +49,9 @@
 
 1. 先读本节和 §0.26，确认目标和 authority。
 2. 再读 §0.26.14，确认知识编译 storage / serving / capacity contract。
-3. 当前执行只读 M32 计划：[2026-06-07-luban-grading-to-brain-m32-waterproof-vertical-slice-execution-plan.md](2026-06-07-luban-grading-to-brain-m32-waterproof-vertical-slice-execution-plan.md)。
+3. 当前 Grading-to-Brain 产品闭环读 M32 结果（§0.26.16）、M33-ACT A 类代码就绪结果（§0.26.17）和 M34 compiled-knowledge dividend 结果（§0.26.18），不要按旧 checklist 重跑 M32。
 4. M26/M27/M30/M31 是已完成能力底座和 ledger，不要按其中旧 checklist 重新执行。
-5. 任何 production default、published registry、canonical learner truth write、远端/DB 写仍需单独授权。
+5. 任何 broad production default、published registry、canonical learner truth write、远端/DB 写仍需单独授权；M34 只放开 `qa_` / `test_` / `operator_` teaching-context scope。
 
 ## 0.0 Canonical update after M5D（2026-06-04）
 
@@ -1045,6 +1045,32 @@ M32 GO 门：
 - **G4（canonical learner-truth write）从「生产硬挡缺 override」→「待授权」**：`write_compiled_learning_truth` 加 env `LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_ENABLED`（默认 OFF）；生产默认仍 dry-run/preview（`canonical_truth_written=false` 不变量保持），非法值 fail-closed，非生产路径不受影响。
 - **TDD + 对抗**：G3/G4 共 23 测试全绿（RED→GREEN，含 records-tamper / 非 bool 授权 / foreign namespace / garbage flag 负向断言）；contract_guard PASS（`contracts/learner-state.md` 同步登记契约边界）；codex 独立对抗审查发现的 3 项 fail-closed 缺口已修（见 M33-ACT §9.5）。
 - **verdict 仍 WEAK-GO**：本节只消除两个「缺代码」缺口，不抬升 §0.26.10 whole-plan 裁决。实际激活仍 blocked：G3 需 formal release gate PASS + 授权；G4 需 teacher-final/real-retest 闭环（**C 类外部**）+ 授权；G2 需大样本准确率 eval infra + GPT5.5 key（**C 类外部**）；G5 需远端写授权 + 生产目标确认。本会话 `published=false / default_flip=0 / canonical_truth_written=0 / production_write=0 / remote_write=0` 全部保持。
+
+### 0.26.18 M34 compiled-knowledge dividend（2026-06-09，capability verdict=GO）
+
+> **本节把 Nexus-style 编译知识红利从“做题/评分链路”扩展到“一般知识对话”。** Ledger：`artifacts/luban_grading_artifacts/general_knowledge_dividend_m34_20260609/`。runner：`scripts/run_luban_m34_general_knowledge_dividend_slice.py`。本地 `/api/v1/ws` TestClient 真路由 gate：`tests/integration/test_luban_m34_general_knowledge_dividend_ws.py`（外部 LLM/DB 依赖为 fake）。
+
+**M34 verdict=GO（`go_no_go_m34.json`）：**
+
+- on-syllabus 建筑实务知识问题：5/5 命中 compiled teaching context，`teaching_context_hit_rate=1.0`（阈值 0.80）。
+- off-syllabus / 低信号问题：5/5 fall-open，`off_syllabus_fall_open_rate=1.0`，不硬塞章节、不伪造引用。
+- 本地 `/api/v1/ws` TestClient gate：一般知识回合 `config.general_knowledge_context=true` 通过统一入口带出 `luban_general_knowledge_context`；off-syllabus 不带出 teaching block。该 gate 证明 FastAPI route / TurnRuntime / DeepQuestionCapability 接线，不冒充线上 provider/live production。
+- safety：`official_score_allowed=false`、`llm_may_decide_correctness=false`、`answer_key_minted=0`、`canonical_truth_written=false`、`production_write_count=0`、`mutable_chunk_as_answer_key=0`、`wrong_chapter_attribution=0`。
+
+**单一 authority（硬约束）：**
+
+- 自由文本归一：仍由 `canonical_resolution.to_canonical(text)` 唯一负责。
+- canonical 节点到四源教学包：仍由 `canonical_knowledge_runtime.resolve_canonical_knowledge(node)` 唯一负责。
+- M34 新增的 `general_knowledge_context` 只是 fat-skill 组合器，串联 leaf→ancestor→teaching pack，不新建 RAG / registry / taxonomy / learner memory / context schema。
+- `deep_question` 只新增 thin wrapper：flag + cohort + env kill + append-only attach；它不做章节判断、不写库、不改判分结果。
+- public config 只新增 `DeepQuestionRequestConfig.general_knowledge_context: bool = False`，用于通过既有 `/api/v1/ws` contract 携带 flag；没有新增路由。
+
+**默认与停止点：**
+
+- 默认 public flag 为 `False`；即使 flag on，也只允许 `qa_` / `test_` / `operator_` cohort。
+- kill switch：`LUBAN_GENERAL_KNOWLEDGE_CONTEXT_ENABLED=false`。
+- cohort env：`LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT`，但广开到真实学员前必须人工确认；本轮没有执行 broad real-student rollout。
+- M34 不写 DB / canonical learner truth / 远端 / production default；这些如果出现需求冲动，必须停止并重新授权。
 
 ---
 
