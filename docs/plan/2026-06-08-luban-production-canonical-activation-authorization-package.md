@@ -32,6 +32,7 @@
 | **stop conditions** | 任一 safety invariant ≠ 0 / non-cohort 泄漏 / p95 异常 → 立即 env kill 回 legacy |
 | **所需授权** | ①远端写授权（§3.7，仅 `/root/deeptutor`）②**确认目标是 test2 还是真实生产环境** |
 | **可逆性** | ✅ 完全可逆（env kill） |
+| **执行状态** | ✅ **已在 test2 执行（2026-06-08）**：`/root/deeptutor/.env` 追加 `LUBAN_V1_LLM_ADJUDICATOR_LIMITED_DEFAULT_ENABLED=true` + `_COHORT=qa_,operator_`（备份 `.env.bak.g1`），redeploy 后容器内行为验证：`qa_alice/operator_bob→默认开`、`real_student_42/test_x→不受影响`，contract_guard PASS。**仅 test2，真实生产环境未动。** 回退：设 ENABLED=false 重部署 |
 
 ---
 
