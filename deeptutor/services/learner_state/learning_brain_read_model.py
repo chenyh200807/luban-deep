@@ -5,6 +5,7 @@ from typing import Any, Literal
 
 from deeptutor.services.taxonomy.construction_taxonomy import (
     scrub_codes_for_student,
+    student_facing_label,
     student_taxonomy_label,
 )
 
@@ -436,7 +437,9 @@ def _concept_label(concept_id: Any) -> str:
         return match.group(1).strip()
     text = re.sub(r"\s*请严格围绕.*$", "", text).strip()
     text = re.sub(r"\s*当前学习锚点.*$", "", text).strip()
-    return text[:24] if len(text) > 24 else text
+    # other-track / non-1A codes (1B.. / 2A.. / uuid) must not leak as a label — Chinese text passes
+    # through, a bare code resolves to '' so the caller omits it (never shows the raw code).
+    return student_facing_label(text[:24] if len(text) > 24 else text)
 
 
 def _error_label(error_code: Any) -> str:
@@ -505,6 +508,13 @@ def _split_object_id(raw_id: Any, raw_type: Any = "") -> tuple[str, str]:
     return object_type, object_id
 
 
+def _titled(label: str, name: Any) -> str:
+    """`类别：名称` only when name is non-empty Chinese-or-readable; else just `类别` — never a `类别：`
+    dangling colon and never a raw code appended after the colon."""
+    text = str(name or "").strip()
+    return f"{label}：{text}" if text else label
+
+
 def _object_display(raw_id: Any, raw_type: Any = "") -> dict[str, str]:
     object_type, object_id = _split_object_id(raw_id, raw_type)
     if object_type in {"training", "next_training"}:
@@ -515,8 +525,8 @@ def _object_display(raw_id: Any, raw_type: Any = "") -> dict[str, str]:
         concept = _concept_label(parts[0]) if parts else ""
         error = _error_label(parts[1]) if len(parts) > 1 and re.match(r"^[EM]\d{2}$", parts[1], flags=re.IGNORECASE) else ""
         focus = " / ".join(_TRAINING_FOCUS_LABELS.get(part, part) for part in parts[2:] if part)
-        title_tail = focus or " / ".join(item for item in (concept, error) if item) or _compact_id(object_id)
-        return {"display_label": "训练建议", "display_title": f"训练建议：{title_tail}", "display_meta": " / ".join(item for item in (concept, error) if item)}
+        title_tail = focus or " / ".join(item for item in (concept, error) if item)   # no raw-id fallback
+        return {"display_label": "训练建议", "display_title": _titled("训练建议", title_tail), "display_meta": " / ".join(item for item in (concept, error) if item)}
     if (
         object_type == "error"
         or re.match(r"^[EM]\d{2}$", str(object_id), flags=re.IGNORECASE)
@@ -526,22 +536,23 @@ def _object_display(raw_id: Any, raw_type: Any = "") -> dict[str, str]:
         concept = _concept_label(parts[0]) if len(parts) > 1 else ""
         error = _error_label(parts[-1])
         meta = " / ".join(item for item in (concept, error) if item)
-        return {"display_label": "错因", "display_title": f"错因：{meta or error}", "display_meta": meta or error}
+        return {"display_label": "错因", "display_title": _titled("错因", meta or error), "display_meta": meta or error}
     if object_type == "question":
         label = _question_label(object_id)
         return {"display_label": "案例题", "display_title": f"案例题：{label}", "display_meta": f"案例题：{label}"}
     if object_type == "rubric_item":
         part = str(object_id or "").split(":")[-1]
-        # display_meta must never carry the raw id (a code is meaningless to learners); '' -> UI shows the
-        # Chinese display_label instead.
-        return {"display_label": "采分点", "display_title": f"采分点：{_compact_id(part)}", "display_meta": ""}
+        # only a short readable point ref (r1 / Q1-1) may show; a long raw id is dropped (no code), and
+        # display_meta never carries the raw id ('' -> UI shows the Chinese display_label).
+        ref = part if re.match(r"^[A-Za-z]?\d+(?:[-.]\d+)?$", part) else ""
+        return {"display_label": "采分点", "display_title": _titled("采分点", ref), "display_meta": ""}
     if object_type == "concept" or str(object_id).upper().startswith("1A"):
         label = _concept_label(object_id)
-        return {"display_label": "知识点", "display_title": f"知识点：{label}", "display_meta": ""}
+        return {"display_label": "知识点", "display_title": _titled("知识点", label), "display_meta": ""}
     if object_type == "submission":
         label = _submission_label(object_id)
         return {"display_label": "作答记录", "display_title": f"作答记录：{label}", "display_meta": f"作答记录：{label}"}
-    return {"display_label": "学习对象", "display_title": f"学习对象：{_compact_id(object_id or object_type)}", "display_meta": ""}
+    return {"display_label": "学习对象", "display_title": "学习对象", "display_meta": ""}
 
 
 def _edge_label(edge_type: Any) -> str:

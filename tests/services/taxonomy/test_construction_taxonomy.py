@@ -70,3 +70,33 @@ def test_student_taxonomy_label_never_leaks_code():
         out = student_taxonomy_label(code)
         assert out == "" or "工程" in out or "建筑" in out  # Chinese-or-empty
         assert code not in out                                # the literal code must never appear
+
+
+def test_student_facing_label_cjk_heuristic_never_leaks_ascii_code():
+    from deeptutor.services.taxonomy.taxonomy_authority import student_facing_label
+
+    assert student_facing_label("1A432000") == "工程招标投标与合同管理"   # resolvable code -> Chinese
+    assert student_facing_label("地基基础承载力") == "地基基础承载力"        # Chinese passes through
+    # any ASCII-only machine code/id -> Chinese or '' (generic) — NEVER the raw string
+    for code in ["12A412000", "knowledge_node_7f3a9b2c-1", "Q1-1", "R12", "1B412000",
+                 "EXAM_1A432000_P0016_02::E0::Q1-1", "abc123", "E02"]:
+        out = student_facing_label(code, generic="相关考点")
+        assert code not in out
+
+
+def test_scrub_codes_for_student_handles_cjk_adjacent_codes():
+    from deeptutor.services.taxonomy.taxonomy_authority import scrub_codes_for_student
+
+    # the code is wedged directly against Chinese (no ASCII boundary) — must still be scrubbed
+    assert "1A412000" not in scrub_codes_for_student("项目1A412000管理")
+    assert "1B412000" not in scrub_codes_for_student("考点1A412000和1B412000")
+    assert scrub_codes_for_student("纯中文没有代码") == "纯中文没有代码"
+
+
+def test_object_display_never_dangling_colon_or_raw_code():
+    from deeptutor.services.learner_state.learning_brain_read_model import _object_display
+
+    for oid, ot in [("1A420000", "concept"), ("EXAM_x::abcdef", "rubric_item"), ("weird_obj_id", "")]:
+        title = _object_display(oid, ot)["display_title"]
+        assert not title.endswith("：")          # no dangling colon
+        assert oid not in title                   # no raw code/id in the learner-facing title

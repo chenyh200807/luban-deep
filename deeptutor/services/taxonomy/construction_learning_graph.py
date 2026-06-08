@@ -27,7 +27,7 @@ from __future__ import annotations
 
 from typing import Any, Iterable
 
-from deeptutor.services.taxonomy.construction_taxonomy import display_taxonomy_label
+from deeptutor.services.taxonomy.construction_taxonomy import student_facing_label
 
 
 def _node(
@@ -38,7 +38,8 @@ def _node(
 ) -> dict[str, Any]:
     return {
         "node_id": node_id,
-        "label": display_taxonomy_label(node_id, fallback=node_id),
+        # single authority: canonical Chinese name or '' — never the raw node code (a learner-facing label)
+        "label": student_facing_label(node_id),
         "node_type": "knowledge_point",
         "exam_weight": exam_weight,
         "child_concepts": [

@@ -56,13 +56,22 @@ def student_taxonomy_label(value: Any) -> str:
     return taxonomy_label(value)
 
 
-# Code shapes that must NEVER reach a learner verbatim: construction node codes (1A412000 / 1B.. / 2A..),
-# error codes (E02 / M03), and compound rubric/exam ids (EXAM_...::E0::Q1-1).
-_CODE_SHAPE_RE = re.compile(r"^(?:\d?[A-Za-z]\d{6}|[EM]\d{2})$|::|^EXAM_", re.IGNORECASE)
+# Machine-code shapes that must NEVER reach a learner verbatim. Broad on purpose: construction node codes
+# of any track/length (1A412000 / 1B.. / 2A.. / 12A4120000 / 7-digit), error codes (E02 / M03), rubric
+# refs (Q1-1 / R12 / r3), UUID-ish ids, and compound rubric/exam ids (EXAM_...::E0::Q1-1).
+_CODE_SHAPE_RE = re.compile(
+    r"^(?:\d{0,2}[A-Za-z]\d{6,}|[EM]\d{2}|[A-Za-z]?\d+(?:-\d+)+|[Rr]\d+)$"
+    r"|::|^EXAM_|[0-9a-f]{8}-[0-9a-f]{4}-|_[0-9a-f]{8,}",
+    re.IGNORECASE,
+)
+# Embedded construction code inside free text — NO \b (Python \b fails between a code and an adjacent CJK
+# char, e.g. "项目1A412000管理"); use explicit ASCII-alnum lookarounds so CJK-adjacent codes are caught.
+_EMBEDDED_CODE_RE = re.compile(r"(?<![A-Za-z0-9])\d{0,2}[A-Za-z]\d{6,}(?![A-Za-z0-9])")
+_CJK_RE = re.compile(r"[㐀-鿿]")
 
 
 def looks_like_taxonomy_code(value: Any) -> bool:
-    """True when the string is a machine code (taxonomy / error / rubric id), not human-readable text."""
+    """True when the string is a machine code (taxonomy / error / rubric / uuid id), not human text."""
     text = str(value or "").strip()
     return bool(text) and bool(_CODE_SHAPE_RE.search(text))
 
@@ -70,22 +79,25 @@ def looks_like_taxonomy_code(value: Any) -> bool:
 def student_facing_label(value: Any, *, generic: str = "") -> str:
     """SINGLE AUTHORITY for any learner-facing label that MIGHT be a code OR already-human text.
 
-    - A taxonomy/error/rubric CODE -> its canonical Chinese name, or ``generic`` (never the raw code).
-    - Already-human text (a Chinese topic) -> returned unchanged.
-    Use this instead of ``display_taxonomy_label(x, fallback=x)`` on any surface a learner can read."""
+    Heuristic that NEVER leaks a code: a string containing ANY Chinese character is human text and passes
+    through; a string with NO Chinese is treated as a machine code/id and is resolved to its canonical
+    Chinese name, or ``generic`` — the raw code is never shown. (A Chinese exam app's learner-facing labels
+    are Chinese; pure-ASCII learner text is almost always a code/id.) Whole-label values only — embedded
+    codes inside free text go through ``scrub_codes_for_student``."""
     text = str(value or "").strip()
     if not text:
         return generic
-    if looks_like_taxonomy_code(text):
-        return taxonomy_label(text) or generic   # code -> Chinese name or generic, NEVER the code
-    return text                                   # already human-readable text
+    if _CJK_RE.search(text):
+        return text                              # human Chinese text — pass through
+    return taxonomy_label(text) or generic       # no Chinese -> a code/id -> Chinese name or generic, never raw
 
 
 def scrub_codes_for_student(text: Any, *, generic: str = "相关考点") -> str:
-    """Replace any embedded taxonomy code (``1A\\d{6}`` and other-track ``\\dA\\d{6}``) inside free text
-    with its canonical Chinese name (or ``generic`` on a miss) so a learner never sees a code fragment."""
+    """Replace any embedded construction code inside free text with its canonical Chinese name (or
+    ``generic`` on a miss) so a learner never sees a code fragment — works even when the code is wedged
+    against Chinese characters (``项目1A412000管理`` -> ``项目主要建筑工程材料……管理``)."""
     out = str(text or "")
-    return re.sub(r"\b\d?[A-Za-z]\d{6}\b", lambda m: taxonomy_label(m.group(0)) or generic, out)
+    return _EMBEDDED_CODE_RE.sub(lambda m: taxonomy_label(m.group(0)) or generic, out)
 
 
 def chapter_prefix_labels() -> dict[str, str]:
