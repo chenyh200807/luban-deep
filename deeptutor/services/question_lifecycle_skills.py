@@ -792,9 +792,12 @@ _FREE_TEXT_CASE_GRADING_CONTEXT_MARKERS: tuple[str, ...] = (
     "案例分析题",
     "背景材料",
     "背景资料",
+    "背景信息",
+    "案例背景",
 )
 _FREE_TEXT_GRADING_ACTION_MARKERS: tuple[str, ...] = (
     "我的答案",
+    "作答",
     "请批改",
     "批改",
     "估分",

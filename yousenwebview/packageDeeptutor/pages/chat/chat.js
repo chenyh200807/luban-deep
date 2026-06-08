@@ -821,6 +821,8 @@ Page({
         engine: "",
         engineSessionId: "",
         engineTurnId: String(m.engine_turn_id || m.turn_id || ""),
+        runtimeMeta: null,
+        runtimeMetaText: "",
         billing: null,
         feedback: "",
       };
@@ -941,6 +943,8 @@ Page({
       engine: "fixture",
       engineSessionId: "",
       engineTurnId: "",
+      runtimeMeta: null,
+      runtimeMetaText: "",
       billing: null,
       feedback: "",
     };
@@ -1504,6 +1508,42 @@ Page({
     }
   },
 
+  _extractRuntimeMeta: function (d) {
+    if (!d || typeof d !== "object") return null;
+    var meta = {
+      api_base: String(d.api_base || "").trim(),
+      release_id: String(d.release_id || "").trim(),
+      grading_engine_version: String(d.grading_engine_version || "").trim(),
+      score_authority: String(d.score_authority || "").trim(),
+      grading_rubric_provenance: String(d.grading_rubric_provenance || "").trim(),
+    };
+    if (Object.prototype.hasOwnProperty.call(d, "v1_case_graded")) {
+      meta.v1_case_graded = d.v1_case_graded === true;
+    }
+    if (
+      !meta.api_base &&
+      !meta.release_id &&
+      !meta.grading_engine_version &&
+      !Object.prototype.hasOwnProperty.call(meta, "v1_case_graded")
+    ) {
+      return null;
+    }
+    return meta;
+  },
+
+  _formatRuntimeMetaText: function (meta) {
+    if (!meta || typeof meta !== "object") return "";
+    var parts = [];
+    var apiBase = String(meta.api_base || "").trim().replace(/^https?:\/\//i, "").replace(/\/$/, "");
+    if (apiBase) parts.push("API " + apiBase);
+    if (meta.release_id) parts.push("release " + meta.release_id);
+    if (Object.prototype.hasOwnProperty.call(meta, "v1_case_graded")) {
+      parts.push(meta.v1_case_graded ? "V1 已评分" : "V1 未命中");
+    }
+    if (meta.grading_engine_version) parts.push(meta.grading_engine_version);
+    return parts.join(" · ");
+  },
+
   _onFinal: function (d) {
     if (!d) return;
     var idx = this._find(this._streamId);
@@ -1533,6 +1573,12 @@ Page({
         updates["messages[" + idx + "].engineTurnId"] = d.engine_turn_id;
         this._surfaceTurnId = d.engine_turn_id;
         this._updatePendingTurn({ turnId: d.engine_turn_id });
+      }
+      var runtimeMeta = this._extractRuntimeMeta(d);
+      if (runtimeMeta) {
+        updates["messages[" + idx + "].runtimeMeta"] = runtimeMeta;
+        updates["messages[" + idx + "].runtimeMetaText"] =
+          this._formatRuntimeMetaText(runtimeMeta);
       }
       if (d.billing && typeof d.billing === "object") {
         updates["messages[" + idx + "].billing"] = d.billing;
@@ -2247,6 +2293,8 @@ Page({
       engine: "deeptutor",
       engineSessionId: "",
       engineTurnId: "",
+      runtimeMeta: null,
+      runtimeMetaText: "",
       billing: null,
       feedback: "",
     };

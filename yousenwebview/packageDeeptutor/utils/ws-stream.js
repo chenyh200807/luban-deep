@@ -38,6 +38,29 @@ function toDisplayCitation(ref) {
   };
 }
 
+function copyRuntimeDiagnosticFields(finalEvent, resultMetadata) {
+  var nested =
+    resultMetadata && resultMetadata.metadata && typeof resultMetadata.metadata === "object"
+      ? resultMetadata.metadata
+      : {};
+  var keys = [
+    "api_base",
+    "release_id",
+    "grading_engine_version",
+    "v1_case_graded",
+    "score_authority",
+    "grading_rubric_provenance",
+  ];
+  for (var i = 0; i < keys.length; i++) {
+    var key = keys[i];
+    if (Object.prototype.hasOwnProperty.call(resultMetadata, key)) {
+      finalEvent[key] = resultMetadata[key];
+    } else if (Object.prototype.hasOwnProperty.call(nested, key)) {
+      finalEvent[key] = nested[key];
+    }
+  }
+}
+
 function buildFinalResponseEvent(resultMetadata) {
   if (!resultMetadata || typeof resultMetadata !== "object") return null;
   var response = resultMetadata.response;
@@ -50,6 +73,7 @@ function buildFinalResponseEvent(resultMetadata) {
     engine: "tutorbot",
     response: response,
   };
+  copyRuntimeDiagnosticFields(finalEvent, resultMetadata);
   var citations = extractResultCitations(resultMetadata);
   if (citations.length) finalEvent.citations = citations;
   return finalEvent;
@@ -96,6 +120,13 @@ function resolveEventVisibility(event) {
 var RECONNECT_BASE_DELAY_MS = 400;
 var RECONNECT_MAX_DELAY_MS = 4000;
 var RECONNECT_MAX_ATTEMPTS = 5;
+
+function socketUrlToApiBase(socketUrl) {
+  var normalized = String(socketUrl || "").trim();
+  if (normalized.indexOf("wss://") === 0) normalized = "https://" + normalized.slice(6);
+  if (normalized.indexOf("ws://") === 0) normalized = "http://" + normalized.slice(5);
+  return normalized.replace(/\/api\/v1\/ws(?:\?.*)?$/i, "");
+}
 
 function computeReconnectDelayMs(attempt) {
   var safeAttempt = Math.max(1, Number(attempt) || 1);
@@ -190,6 +221,7 @@ function streamChat(opts, callbacks) {
   var turnId = "";
   var lastSeq = 0;
   var socketUrls = [];
+  var connectedApiBase = "";
   var reconnectAttempts = 0;
   var socketOpen = false;
   var cancelRequested = false;
@@ -405,6 +437,9 @@ function streamChat(opts, callbacks) {
       }
       var finalResponseEvent = buildFinalResponseEvent(eventMetadata);
       if (finalResponseEvent && cb.onFinal) {
+        if (!finalResponseEvent.api_base) {
+          finalResponseEvent.api_base = connectedApiBase || endpoints.getPrimaryBaseUrl(false);
+        }
         finalResponseEvent.engine_session_id = chatId || sessionId;
         finalResponseEvent.engine_turn_id = turnId;
         finalResponseEvent.bot_id = botId;
@@ -468,6 +503,7 @@ function streamChat(opts, callbacks) {
       .then(function (currentToken) {
         if (aborted || doneReceived) return;
         var socketUrl = socketUrls[Math.min(reconnectAttempts, socketUrls.length - 1)] || socketUrls[0];
+        connectedApiBase = socketUrlToApiBase(socketUrl);
         var headers = {
           "ngrok-skip-browser-warning": "true",
         };

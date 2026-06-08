@@ -952,6 +952,9 @@ class AgentLoop:
         md = runtime_metadata if isinstance(runtime_metadata, dict) else {}
         if str(md.get("question_lifecycle_scene") or "").strip() != "case_grading":
             return ""
+        md["grading_engine_version"] = "luban_case_rubric_v1"
+        md["v1_case_graded"] = False
+        md["score_authority"] = "missing_v1_authority"
         # Gate 2 (score authority check) intentionally removed: _grade_one_case_v1 has a three-tier path
         # (compiled_rubric > on_the_fly_reference > derived_from_stem) and returns a non-event marker when
         # no tier produces scoring points — the caller already falls back to V0 at that point. An upstream
@@ -966,9 +969,11 @@ class AgentLoop:
             # switch disables V1.
             if os.environ.get("LUBAN_CASE_RUBRIC_V1_ENABLED", "").strip().lower() in (
                 "false", "0", "off", "no"):
+                md["score_authority"] = "v1_disabled"
                 return ""
             key = os.environ.get("DEEPSEEK_API_KEY")
             if not key:
+                md["score_authority"] = "v1_provider_unavailable"
                 return ""
             from deeptutor.services.llm.factory import complete
 
@@ -977,6 +982,9 @@ class AgentLoop:
             if not (isinstance(event, dict) and event.get("event_type") == "case_grading_completed"):
                 return ""
             md["_v1_case_graded"] = True  # defensive: downstream demote must not override
+            md["v1_case_graded"] = True
+            md["score_authority"] = "rubric_scored_v1"
+            md["grading_rubric_provenance"] = str(event.get("rubric_provenance") or "").strip()
             try:
                 from deeptutor.capabilities.deep_question import _record_v1_langfuse
 
@@ -996,6 +1004,7 @@ class AgentLoop:
             self._record_v1_grading_to_brain(runtime_metadata=md, event=event, ctx=ctx)
             return _G.render_case_rubric_feedback(event, question_stem=str(ctx.get("question_stem") or ""))
         except Exception:  # noqa: BLE001 — V1 must never break the tutorbot turn
+            md["score_authority"] = "v1_error"
             logger.warning("LUBAN_V1 tutorbot grading failed; legacy answer unaffected", exc_info=True)
             return ""
 
@@ -1122,11 +1131,26 @@ class AgentLoop:
         # Defensive: when V1 already produced the authoritative grade, never demote it.
         if isinstance(runtime_metadata, dict) and runtime_metadata.get("_v1_case_graded"):
             return ""
+        scene = (
+            str(runtime_metadata.get("question_lifecycle_scene") or "").strip()
+            if isinstance(runtime_metadata, dict)
+            else ""
+        )
+        if scene == "case_grading":
+            if isinstance(runtime_metadata, dict):
+                runtime_metadata.setdefault("grading_engine_version", "luban_case_rubric_v1")
+                runtime_metadata["v1_case_graded"] = False
+                runtime_metadata.setdefault("score_authority", "missing_v1_authority")
+            return build_case_grading_diagnostic_only_response(user_message)
         if not should_demote_case_grading_hard_score(
             final_content,
             runtime_metadata=runtime_metadata,
         ):
             return ""
+        if isinstance(runtime_metadata, dict):
+            runtime_metadata.setdefault("grading_engine_version", "luban_case_rubric_v1")
+            runtime_metadata["v1_case_graded"] = False
+            runtime_metadata.setdefault("score_authority", "missing_v1_authority")
         return build_case_grading_diagnostic_only_response(user_message)
 
     @staticmethod

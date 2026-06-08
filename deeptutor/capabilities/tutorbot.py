@@ -242,6 +242,13 @@ class TutorBotCapability(BaseCapability):
                     "question_lifecycle_skill_names",
                     "question_lifecycle_clarification",
                     "active_object",
+                    "release_id",
+                    "git_sha",
+                    "deployment_environment",
+                    "grading_engine_version",
+                    "v1_case_graded",
+                    "score_authority",
+                    "grading_rubric_provenance",
                 ):
                     if metadata_key in session_metadata:
                         result_payload[metadata_key] = session_metadata[metadata_key]
@@ -318,6 +325,13 @@ class TutorBotCapability(BaseCapability):
                     "question_lifecycle_skill_names",
                     "question_lifecycle_clarification",
                     "active_object",
+                    "release_id",
+                    "git_sha",
+                    "deployment_environment",
+                    "grading_engine_version",
+                    "v1_case_graded",
+                    "score_authority",
+                    "grading_rubric_provenance",
                 ):
                     if metadata_key in session_metadata:
                         result_payload[metadata_key] = session_metadata[metadata_key]
@@ -561,6 +575,13 @@ class TutorBotCapability(BaseCapability):
                 "learning_training_intent",
                 "personalization_context",
                 "next_best_action",
+                "release_id",
+                "git_sha",
+                "deployment_environment",
+                "grading_engine_version",
+                "v1_case_graded",
+                "score_authority",
+                "grading_rubric_provenance",
             ):
                 if metadata_key in session_metadata:
                     result_payload[metadata_key] = session_metadata[metadata_key]

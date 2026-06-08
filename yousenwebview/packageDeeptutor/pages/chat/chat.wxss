@@ -675,6 +675,14 @@
   line-height: 1.5;
   color: rgba(148,163,184,0.78);
 }
+.runtime-meta-text {
+  display: block;
+  margin-top: 18rpx;
+  font-size: 20rpx;
+  line-height: 1.5;
+  color: rgba(148,163,184,0.76);
+  overflow-wrap: anywhere;
+}
 .workflow-toggle {
   display: inline-flex;
   align-items: center;
@@ -2037,6 +2045,7 @@
 .page.light .thinking-panel .thinking-label { color: #1f2d45; }
 .page.light .thinking-sub { color: #7b8aa2; }
 .page.light .workflow-meta-text { color: #6b7a90; }
+.page.light .runtime-meta-text { color: #6b7a90; }
 .page.light .workflow-toggle {
   background: rgba(255,255,255,0.92);
   border-color: #d7e3f5;

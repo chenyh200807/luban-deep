@@ -88,6 +88,33 @@ def test_free_text_case_grading_loads_no_fake_score_guard():
     assert "本次不硬估标准分" in skill_ctx.instructions
 
 
+def test_case_grading_detects_exam_sheet_answer_layout():
+    ctx = _FakeContext(
+        user_message=(
+            "【背景资料】某施工单位中标新建教学楼工程。\n"
+            "【问题】\n"
+            "现场质量检查的“三检”制度是哪三检？\n"
+            "回答\n"
+            "作答：\n"
+            "“三检”制度是指自检、互检、专检。"
+        )
+    )
+    scene = attach_question_lifecycle_scene_to_context(ctx)
+    assert scene == "case_grading"
+
+
+def test_case_grading_detects_case_background_answer_layout():
+    ctx = _FakeContext(
+        user_message=(
+            "案例背景：某工程地下室混凝土拆模后发现孔洞。\n"
+            "问题：补充孔洞治理流程。\n"
+            "作答：凿毛、涂刷界面剂、支模、浇筑、养护。"
+        )
+    )
+    scene = attach_question_lifecycle_scene_to_context(ctx)
+    assert scene == "case_grading"
+
+
 def test_pre_submission_followup_loads_question_review_skill():
     """Plan Task 4 Step 1 #1: pre-answer follow-up → question_review."""
     ctx = _FakeContext(

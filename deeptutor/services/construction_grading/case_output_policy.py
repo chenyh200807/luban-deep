@@ -146,6 +146,7 @@ def build_case_grading_diagnostic_only_response(user_message: str) -> str:
         "## 评分口径\n"
         "提分诊断（本轮没有命中题库原题、标准答案或结构化采分点）\n\n"
         "## 预计得分\n"
+        "未命中评分真相层，本轮不硬估分。\n"
         "本次不硬估标准分。"
         f"{answer_line}\n\n"
         "## 先看你的作答\n"

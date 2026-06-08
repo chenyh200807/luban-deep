@@ -439,6 +439,33 @@ assert(
   finalEv2 && finalEv2.response === "嵌套 metadata.response",
   "[buildFinalResponseEvent] falls through to metadata.response",
 );
+var gradingMetaFinalEv = pure.buildFinalResponseEvent({
+  response: "本轮批改诊断",
+  api_base: "https://test2.yousenjiaoyu.com",
+  release_id: "1.0.0+aaac931f+production",
+  grading_engine_version: "luban_case_rubric_v1",
+  v1_case_graded: false,
+});
+assertEqual(
+  gradingMetaFinalEv && gradingMetaFinalEv.api_base,
+  "https://test2.yousenjiaoyu.com",
+  "[buildFinalResponseEvent] exposes api_base",
+);
+assertEqual(
+  gradingMetaFinalEv && gradingMetaFinalEv.release_id,
+  "1.0.0+aaac931f+production",
+  "[buildFinalResponseEvent] exposes release_id",
+);
+assertEqual(
+  gradingMetaFinalEv && gradingMetaFinalEv.grading_engine_version,
+  "luban_case_rubric_v1",
+  "[buildFinalResponseEvent] exposes grading_engine_version",
+);
+assertEqual(
+  gradingMetaFinalEv && gradingMetaFinalEv.v1_case_graded,
+  false,
+  "[buildFinalResponseEvent] exposes v1_case_graded false without dropping it",
+);
 
 // ─────────────────────────────────────────────────────────────
 // Group 8: buildPresentationEvent

@@ -1015,6 +1015,10 @@ class TutorBotManager:
                         "learning_training_intent",
                         "personalization_context",
                         "next_best_action",
+                        "grading_engine_version",
+                        "v1_case_graded",
+                        "score_authority",
+                        "grading_rubric_provenance",
                     ):
                         if metadata_key in runtime_metadata:
                             trace_metadata[metadata_key] = runtime_metadata[metadata_key]
@@ -1125,6 +1129,10 @@ class TutorBotManager:
                             "learning_training_intent",
                             "personalization_context",
                             "next_best_action",
+                            "grading_engine_version",
+                            "v1_case_graded",
+                            "score_authority",
+                            "grading_rubric_provenance",
                         ):
                             if metadata_key in runtime_metadata:
                                 update_metadata[metadata_key] = runtime_metadata[metadata_key]

@@ -20,9 +20,27 @@ def test_case_grading_without_score_authority_demotes_hard_score() -> None:
     fallback = build_case_grading_diagnostic_only_response(
         "案例：墙体施工。我的答案：不妥，应龄期28天。帮我批改"
     )
+    assert "未命中评分真相层，本轮不硬估分" in fallback
     assert "本次不硬估标准分" in fallback
     assert "预计得分\n**4分" not in fallback
     assert "你当前作答：不妥，应龄期28天" in fallback
+
+
+def test_case_grading_without_v1_authority_always_returns_diagnostic() -> None:
+    metadata = {
+        "question_lifecycle_scene": "case_grading",
+        "v1_case_graded": False,
+        "score_authority": "v1_provider_unavailable",
+    }
+
+    fallback = AgentLoop._case_grading_no_authority_score_fallback(
+        "你的作答方向基本正确，我帮你按小问拆解。",
+        runtime_metadata=metadata,
+        user_message="【背景资料】某工程。\n【问题】指出不妥。\n作答：不妥。",
+    )
+
+    assert "未命中评分真相层，本轮不硬估分" in fallback
+    assert metadata["v1_case_graded"] is False
 
 
 def test_case_grading_without_score_authority_demotes_official_grading_tone() -> None:

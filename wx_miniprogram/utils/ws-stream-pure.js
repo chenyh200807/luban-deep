@@ -42,6 +42,29 @@ function toDisplayCitation(ref) {
   };
 }
 
+function copyRuntimeDiagnosticFields(finalEvent, resultMetadata) {
+  var nested =
+    resultMetadata && resultMetadata.metadata && typeof resultMetadata.metadata === "object"
+      ? resultMetadata.metadata
+      : {};
+  var keys = [
+    "api_base",
+    "release_id",
+    "grading_engine_version",
+    "v1_case_graded",
+    "score_authority",
+    "grading_rubric_provenance",
+  ];
+  for (var i = 0; i < keys.length; i++) {
+    var key = keys[i];
+    if (Object.prototype.hasOwnProperty.call(resultMetadata, key)) {
+      finalEvent[key] = resultMetadata[key];
+    } else if (Object.prototype.hasOwnProperty.call(nested, key)) {
+      finalEvent[key] = nested[key];
+    }
+  }
+}
+
 function buildFinalResponseEvent(resultMetadata) {
   if (!resultMetadata || typeof resultMetadata !== "object") return null;
   var response = resultMetadata.response;
@@ -54,6 +77,7 @@ function buildFinalResponseEvent(resultMetadata) {
     engine: "tutorbot",
     response: response,
   };
+  copyRuntimeDiagnosticFields(finalEvent, resultMetadata);
   var citations = extractResultCitations(resultMetadata);
   if (citations.length) finalEvent.citations = citations;
   return finalEvent;

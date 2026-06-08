@@ -589,6 +589,7 @@ module.exports = {
 	              </view>
 	            </view>
 	          </view>
+	          <text class="runtime-meta-text" user-select wx:if="{{item.runtimeMetaText}}">{{item.runtimeMetaText}}</text>
         </view>
         <!-- AI 操作栏 — 气泡外部，左对齐 -->
         <view class="msg-actions msg-actions-left" wx:if="{{item.role !== 'user' && !item.streaming && (item.renderableContent || item.blocks.length || (item.mcqCards && item.mcqCards.length))}}">
