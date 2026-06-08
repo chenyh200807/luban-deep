@@ -30,6 +30,26 @@ G1_SAFETY = (
     "artifacts/luban_grading_artifacts/limited_default_soak_monitoring_m19d_20260605/"
     "safety_invariants_m19d.json"
 )
+G3_SIGNER_REPORT = (
+    "artifacts/luban_grading_artifacts/"
+    "llm_artifact_compiler_continuous_factory_m20_20260604/"
+    "deterministic_signer_report_m20.json"
+)
+G3_STAGED_SIGNATURE = (
+    "artifacts/luban_grading_artifacts/"
+    "delta_to_registry_candidate_staging_m202_20260605/"
+    "staged_registry_signature_m202.json"
+)
+G3_RELEASE_DECISION_INPUT = (
+    "artifacts/luban_grading_artifacts/"
+    "delta_to_registry_candidate_staging_m202_20260605/"
+    "release_decision_input_m202.json"
+)
+G3_STAGED_CANDIDATE = (
+    "artifacts/luban_grading_artifacts/"
+    "delta_to_registry_candidate_staging_m202_20260605/"
+    "staged_registry_candidate_m202.json"
+)
 G4_TRUTH_WRITE_GUARD = (
     "artifacts/luban_grading_artifacts/"
     "learning_brain_real_retest_canonical_gate_m18d_20260604/"
@@ -686,6 +706,145 @@ def build_g1_limited_default_preflight() -> dict[str, Any]:
     }
 
 
+def build_g3_published_registry_preflight() -> dict[str, Any]:
+    signer = _read_json_rel(G3_SIGNER_REPORT)
+    signature = _read_json_rel(G3_STAGED_SIGNATURE)
+    decision = _read_json_rel(G3_RELEASE_DECISION_INPUT)
+    candidate = _read_json_rel(G3_STAGED_CANDIDATE)
+    entries = candidate.get("entries") or []
+
+    evidence_ok = {
+        G3_SIGNER_REPORT: bool(signer),
+        G3_STAGED_SIGNATURE: bool(signature),
+        G3_RELEASE_DECISION_INPUT: bool(decision),
+        G3_STAGED_CANDIDATE: bool(candidate),
+    }
+    candidate_entries_count = len(entries)
+    candidate_entries_published_count = sum(
+        1 for row in entries if row.get("published") is True
+    )
+    candidate_hash_consistent = (
+        bool(candidate.get("candidate_hash"))
+        and candidate.get("candidate_hash") == signature.get("candidate_hash")
+        and candidate.get("candidate_hash") == decision.get("candidate_hash")
+    )
+    delta_hash_consistent = (
+        bool(signer.get("hash_version", {}).get("registry_hash"))
+        and signer.get("hash_version", {}).get("registry_hash")
+        == signature.get("delta_hash")
+        and signature.get("delta_hash") == decision.get("delta_hash")
+        and decision.get("delta_hash") == candidate.get("delta_hash")
+    )
+    preconditions = {
+        "deterministic_signer_pass": signer.get("schema_validation_pass") is True
+        and signer.get("source_boundary_validation_pass") is True
+        and signer.get("release_candidate_delta_signed") is True,
+        "staged_candidate_generated": candidate.get("artifact_kind")
+        == "staged_registry_candidate",
+        "staged_signature_signed": signature.get("signed") is True
+        and signature.get("signed_status") == "staged_release_candidate",
+        "execute_release_decision": decision.get("execute_release_decision") is True,
+        "published_registry_emitted": decision.get("no_runtime_impact", {}).get(
+            "published_registry_emitted"
+        )
+        is True,
+        "candidate_hash_consistent": candidate_hash_consistent,
+        "delta_hash_consistent": delta_hash_consistent,
+        "candidate_entries_count": candidate_entries_count,
+        "candidate_entries_published_count": candidate_entries_published_count,
+        "deterministic_validation_all_pass": decision.get(
+            "deterministic_validation_all_pass"
+        )
+        is True,
+        "runtime_default_changed": decision.get("no_runtime_impact", {}).get(
+            "production_default_changed"
+        )
+        is True,
+    }
+    no_write = {
+        "production_write_count": int(signer.get("production_write_count", 999)),
+        "canonical_truth_written": signer.get("canonical_learner_truth_written")
+        is True
+        or decision.get("lb_claim_mapping_delta", {}).get("canonical_truth_written")
+        is True,
+        "remote_write_count": 0,
+        "published_registry_executed": signature.get("published") is True
+        or decision.get("execute_release_decision") is True
+        or decision.get("no_runtime_impact", {}).get("published_registry_emitted")
+        is True,
+    }
+    ready_for_publish_authorization = (
+        all(evidence_ok.values())
+        and preconditions["deterministic_signer_pass"] is True
+        and preconditions["staged_candidate_generated"] is True
+        and preconditions["staged_signature_signed"] is True
+        and preconditions["execute_release_decision"] is False
+        and preconditions["published_registry_emitted"] is False
+        and preconditions["candidate_hash_consistent"] is True
+        and preconditions["delta_hash_consistent"] is True
+        and candidate_entries_count > 0
+        and candidate_entries_published_count == 0
+        and preconditions["deterministic_validation_all_pass"] is True
+        and decision.get("no_runtime_impact", {}).get("production_default_changed")
+        is False
+        and no_write["production_write_count"] == 0
+        and no_write["canonical_truth_written"] is False
+        and no_write["published_registry_executed"] is False
+    )
+
+    return {
+        "schema_version": 1,
+        "generated_by": "audit_luban_grading_to_brain_current_gap",
+        "master_plan": MASTER_PLAN,
+        "gate_id": "G3_published_registry",
+        "scope": "read_only_pre_authorization_preflight",
+        "verdict": "ready_for_user_authorization"
+        if ready_for_publish_authorization
+        else "not_ready",
+        "execution_mode": "read_only_no_publish",
+        "without_authorization": "decision_package_only",
+        "required_authorization": "explicit_registry_publish_authorization",
+        "allowed_scope_after_authorization": (
+            "promote signed staged candidate to published registry"
+        ),
+        "promotion_path": "candidate_to_signed_to_published_registry",
+        "artifact_layers": {
+            "candidate": candidate.get("artifact_kind") or "missing",
+            "signed_release": signature.get("signed_status") or "missing",
+            "published_registry": "not_published"
+            if no_write["published_registry_executed"] is False
+            else "published",
+        },
+        "preconditions": preconditions,
+        "evidence_ok": evidence_ok,
+        "missing_evidence_refs": [
+            path for path, exists in evidence_ok.items() if not exists
+        ],
+        "single_authority": {
+            "no_second_grading_truth": True,
+            "no_second_learner_truth": True,
+            "registry_truth_source": (
+                "signed release artifact plus explicit publish gate only"
+            ),
+            "runtime_consumption": "manifest/hash/pointer only; never scan artifacts",
+        },
+        **no_write,
+        "stop_conditions": [
+            "hash or signature mismatch",
+            "published registry emitted before explicit authorization",
+            "production default changed by registry staging",
+            "candidate entry has published=true before publish gate",
+            "runtime resolver cannot prove rollback pointer",
+        ],
+        "evidence_refs": [
+            G3_SIGNER_REPORT,
+            G3_STAGED_SIGNATURE,
+            G3_RELEASE_DECISION_INPUT,
+            G3_STAGED_CANDIDATE,
+        ],
+    }
+
+
 def build_g4_canonical_learner_truth_preflight() -> dict[str, Any]:
     guard = _read_json_rel(G4_TRUTH_WRITE_GUARD)
     dryrun_candidates = _read_jsonl_rel(G4_DRYRUN_CANDIDATES)
@@ -877,6 +1036,7 @@ def build_final_acceptance_report(
     authorization_package: dict[str, Any],
     completion_audit: dict[str, Any],
     g1_preflight: dict[str, Any],
+    g3_preflight: dict[str, Any],
     g4_preflight: dict[str, Any],
 ) -> dict[str, Any]:
     remaining_gate_order = [
@@ -923,6 +1083,11 @@ def build_final_acceptance_report(
                 "grading_to_brain_current_gap_audit_20260608/"
                 "G1_LIMITED_DEFAULT_PREFLIGHT.json"
             ),
+            "g3_published_registry_preflight": (
+                "artifacts/luban_grading_artifacts/"
+                "grading_to_brain_current_gap_audit_20260608/"
+                "G3_PUBLISHED_REGISTRY_PREFLIGHT.json"
+            ),
             "g4_canonical_learner_truth_preflight": (
                 "artifacts/luban_grading_artifacts/"
                 "grading_to_brain_current_gap_audit_20260608/"
@@ -958,6 +1123,8 @@ def build_final_acceptance_report(
                     "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/FINAL_ACCEPTANCE_REPORT_grading_to_brain.md "
                     "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G1_LIMITED_DEFAULT_PREFLIGHT.json "
                     "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G1_LIMITED_DEFAULT_PREFLIGHT.md "
+                    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G3_PUBLISHED_REGISTRY_PREFLIGHT.json "
+                    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G3_PUBLISHED_REGISTRY_PREFLIGHT.md "
                     "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G4_CANONICAL_LEARNER_TRUTH_PREFLIGHT.json "
                     "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G4_CANONICAL_LEARNER_TRUTH_PREFLIGHT.md"
                 ),
@@ -979,6 +1146,7 @@ def build_final_acceptance_report(
                 if gate["recommended_next"]
             ],
             "g1_preflight_verdict": g1_preflight["verdict"],
+            "g3_preflight_verdict": g3_preflight["verdict"],
             "g4_preflight_verdict": g4_preflight["verdict"],
             "no_write": {
                 "production_write_count": authorization_package["production_write_count"],
@@ -1037,6 +1205,60 @@ def write_g1_preflight_markdown(preflight: dict[str, Any], out_dir: Path) -> Non
 
     lines.append("")
     (out_dir / "G1_LIMITED_DEFAULT_PREFLIGHT.md").write_text(
+        "\n".join(lines),
+        encoding="utf-8",
+    )
+
+
+def write_g3_preflight_markdown(preflight: dict[str, Any], out_dir: Path) -> None:
+    lines = [
+        "# G3 Published Registry Preflight",
+        "",
+        f"- Gate: `{preflight['gate_id']}`",
+        f"- Verdict: `{preflight['verdict']}`",
+        f"- Scope: `{preflight['scope']}`",
+        f"- Execution mode: `{preflight['execution_mode']}`",
+        f"- Without authorization: `{preflight['without_authorization']}`",
+        f"- Required authorization: `{preflight['required_authorization']}`",
+        f"- Promotion path: `{preflight['promotion_path']}`",
+        "",
+        "This artifact proves staged publish readiness only. It does not publish a registry.",
+        "",
+        "## Artifact Layers",
+        "",
+    ]
+    for key, value in preflight["artifact_layers"].items():
+        lines.append(f"- {key}: `{value}`")
+
+    lines.extend(["", "## No-Write Invariants", ""])
+    lines.extend(
+        [
+            f"- production_write_count: `{preflight['production_write_count']}`",
+            f"- canonical_truth_written: `{preflight['canonical_truth_written']}`",
+            f"- remote_write_count: `{preflight['remote_write_count']}`",
+            f"- published_registry_executed: `{preflight['published_registry_executed']}`",
+            "",
+            "## Preconditions",
+            "",
+        ]
+    )
+    for key, value in preflight["preconditions"].items():
+        lines.append(f"- {key}: `{value}`")
+
+    lines.extend(["", "## Single Authority", ""])
+    for key, value in preflight["single_authority"].items():
+        lines.append(f"- {key}: `{value}`")
+
+    lines.extend(["", "## Evidence", ""])
+    for ref in preflight["evidence_refs"]:
+        lines.append(f"- `{ref}`")
+
+    lines.extend(["", "## Stop Conditions", ""])
+    for condition in preflight["stop_conditions"]:
+        lines.append(f"- {condition}")
+
+    lines.append("")
+    (out_dir / "G3_PUBLISHED_REGISTRY_PREFLIGHT.md").write_text(
         "\n".join(lines),
         encoding="utf-8",
     )
@@ -1320,12 +1542,14 @@ def main() -> int:
     authorization_package = build_authorization_package()
     completion_audit = build_completion_audit()
     g1_preflight = build_g1_limited_default_preflight()
+    g3_preflight = build_g3_published_registry_preflight()
     g4_preflight = build_g4_canonical_learner_truth_preflight()
     final_report = build_final_acceptance_report(
         matrix,
         authorization_package,
         completion_audit,
         g1_preflight,
+        g3_preflight,
         g4_preflight,
     )
     (out_dir / "coverage_matrix.json").write_text(
@@ -1362,6 +1586,16 @@ def main() -> int:
         + "\n",
         encoding="utf-8",
     )
+    (out_dir / "G3_PUBLISHED_REGISTRY_PREFLIGHT.json").write_text(
+        json.dumps(
+            g3_preflight,
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     (out_dir / "G4_CANONICAL_LEARNER_TRUTH_PREFLIGHT.json").write_text(
         json.dumps(
             g4_preflight,
@@ -1386,6 +1620,7 @@ def main() -> int:
     write_authorization_markdown(authorization_package, out_dir)
     write_completion_markdown(completion_audit, out_dir)
     write_g1_preflight_markdown(g1_preflight, out_dir)
+    write_g3_preflight_markdown(g3_preflight, out_dir)
     write_g4_preflight_markdown(g4_preflight, out_dir)
     write_final_acceptance_markdown(final_report, out_dir)
 
@@ -1394,6 +1629,7 @@ def main() -> int:
         "authorization_package": authorization_package["missing_evidence"],
         "completion_audit": completion_audit["missing_evidence"],
         "g1_preflight": g1_preflight["missing_evidence_refs"],
+        "g3_preflight": g3_preflight["missing_evidence_refs"],
         "g4_preflight": g4_preflight["missing_evidence_refs"],
     }
     missing = {key: value for key, value in missing.items() if value}

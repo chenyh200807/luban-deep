@@ -117,6 +117,49 @@ def test_current_gap_audit_outputs_g1_limited_default_preflight(
     assert (tmp_path / "G1_LIMITED_DEFAULT_PREFLIGHT.md").exists()
 
 
+def test_current_gap_audit_outputs_g3_published_registry_preflight(
+    tmp_path: Path,
+) -> None:
+    subprocess.run(
+        [sys.executable, str(SCRIPT), "--out", str(tmp_path)],
+        cwd=REPO,
+        check=True,
+    )
+
+    preflight = json.loads(
+        (tmp_path / "G3_PUBLISHED_REGISTRY_PREFLIGHT.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert preflight["gate_id"] == "G3_published_registry"
+    assert preflight["scope"] == "read_only_pre_authorization_preflight"
+    assert preflight["verdict"] == "ready_for_user_authorization"
+    assert preflight["execution_mode"] == "read_only_no_publish"
+    assert preflight["without_authorization"] == "decision_package_only"
+    assert preflight["promotion_path"] == "candidate_to_signed_to_published_registry"
+
+    assert preflight["artifact_layers"]["candidate"] == "staged_registry_candidate"
+    assert preflight["artifact_layers"]["signed_release"] == "staged_release_candidate"
+    assert preflight["artifact_layers"]["published_registry"] == "not_published"
+    assert preflight["preconditions"]["deterministic_signer_pass"] is True
+    assert preflight["preconditions"]["staged_candidate_generated"] is True
+    assert preflight["preconditions"]["staged_signature_signed"] is True
+    assert preflight["preconditions"]["execute_release_decision"] is False
+    assert preflight["preconditions"]["published_registry_emitted"] is False
+    assert preflight["preconditions"]["candidate_entries_count"] > 0
+    assert preflight["preconditions"]["candidate_entries_published_count"] == 0
+    assert all(preflight["evidence_ok"].values())
+
+    assert preflight["production_write_count"] == 0
+    assert preflight["canonical_truth_written"] is False
+    assert preflight["remote_write_count"] == 0
+    assert preflight["published_registry_executed"] is False
+    assert preflight["single_authority"]["registry_truth_source"] == (
+        "signed release artifact plus explicit publish gate only"
+    )
+    assert (tmp_path / "G3_PUBLISHED_REGISTRY_PREFLIGHT.md").exists()
+
+
 def test_current_gap_audit_outputs_g4_canonical_truth_preflight(
     tmp_path: Path,
 ) -> None:
