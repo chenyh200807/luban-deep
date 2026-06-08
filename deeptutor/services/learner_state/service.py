@@ -1493,10 +1493,16 @@ class LearnerStateService:
         # Grading-to-Brain loop seam: surface the PersonalizationContextPack as a PROJECTION of the SAME
         # compiled_learning_truth just read (one authority — NOT a second read / second recommender), so
         # turn_runtime can inject it into the live turn. Degrades to empty claims when no truth exists.
-        personalization_context = build_personalization_context_pack(
-            user_id=normalized,
-            learning_brain=compiled_learning_truth if isinstance(compiled_learning_truth, dict) else None,
-        )
+        # Fail-safe: this runs on EVERY turn — a PCP build error must NOT break context building / lose
+        # compiled_learning_truth; degrade to an empty PCP instead.
+        try:
+            personalization_context = build_personalization_context_pack(
+                user_id=normalized,
+                learning_brain=compiled_learning_truth if isinstance(compiled_learning_truth, dict) else None,
+            )
+        except Exception:  # noqa: BLE001 — PCP is a view projection; never break the turn over it
+            logger.warning("build_context_candidates: PCP projection failed; degrading to empty", exc_info=True)
+            personalization_context = {}
         return {
             "user_id": normalized,
             "query": query_text,

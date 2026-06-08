@@ -5,6 +5,7 @@ from pathlib import Path
 
 from deeptutor.services.taxonomy.learning_topic_resolver import (
     compile_taxonomy_payload,
+    normalize_learning_topic_text,
     resolve_learning_topic_from_payload,
 )
 
@@ -216,6 +217,16 @@ def test_resolver_can_use_sanitized_evidence_as_low_confidence_personalized_focu
     assert resolved.source == "evidence_inferred"
     assert resolved.confidence == "low"
     assert resolved.taxonomy_code == ""
+
+
+def test_normalize_learning_topic_text_filters_noise_but_keeps_real_exam_topics() -> None:
+    assert normalize_learning_topic_text("施工现场临时用电") == "施工现场临时用电"
+    assert normalize_learning_topic_text("防水工程") == "防水工程"
+    assert normalize_learning_topic_text("专家论证程序") == "专家论证程序"
+
+    assert normalize_learning_topic_text("讲义封底 扫码领取免费资料") == ""
+    assert normalize_learning_topic_text("一级建造师建筑实务知识点归纳") == ""
+    assert normalize_learning_topic_text("关注公众号领取课程二维码") == ""
 
 
 def test_compiled_taxonomy_artifact_is_packaged() -> None:

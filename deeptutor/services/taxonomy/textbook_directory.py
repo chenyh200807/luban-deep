@@ -165,6 +165,12 @@ _NON_TOPIC_LABELS = {
     "练习证据",
 }
 
+_NON_TOPIC_PATTERNS = (
+    re.compile(r"(讲义|资料|教材).{0,8}(封面|封底|页眉|页脚)"),
+    re.compile(r"(免费|领取|扫码|二维码|公众号|听课|课程|网课|资料包|加微信)"),
+    re.compile(r"(一级建造师|一建|建筑实务).{0,12}(主题归纳|知识点归纳|思维导图|考点汇总|复习资料)"),
+)
+
 
 # Distinctive non-textbook substrings (book front/back matter + marketing/lead-gen). Substring match on
 # the compacted label. Kept high-precision on purpose: every marker below would be absurd inside a real
@@ -199,6 +205,8 @@ def is_non_topic_label(value: Any) -> bool:
     # knowledge point and must never surface as a learner topic. Distinctive markers only — none appear in
     # a real 一建 knowledge-point name (deliberately excludes 资源/课程/资料/管理 which DO appear in topics).
     if any(marker in compact.lower() for marker in _NON_TEXTBOOK_NOISE_MARKERS):
+        return True
+    if any(pattern.search(compact) for pattern in _NON_TOPIC_PATTERNS):
         return True
     if "/" in text or "／" in text:
         return True
