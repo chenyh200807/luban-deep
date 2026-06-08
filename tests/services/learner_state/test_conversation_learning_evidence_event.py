@@ -248,6 +248,7 @@ def test_conversation_writeback_updates_home_personalization_projection() -> Non
     assert service.appended[0]["memory_kind"] == "learning_evidence"
     patch = service.progress_patches[0]["patch"]
     projection = patch["home_personalization"]
-    assert projection["today_focus"]["intent"]["concept_label"] == "主体结构"
+    # canonical classifier maps "主体结构" → chapter section "主体结构工程施工"
+    assert projection["today_focus"]["intent"]["concept_label"] == "主体结构工程施工"
     assert projection["recommended_prompts"][0]["intent"]["source"] == "home_dashboard"
     assert projection["source_status"]["learning_report"] == "projection"

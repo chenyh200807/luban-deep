@@ -187,7 +187,9 @@ def test_learning_signal_projection_requires_learnable_focus_topic() -> None:
 
 
 def test_learning_signal_projection_uses_llm_inferred_topic_when_taxonomy_misses() -> None:
-    projection = build_home_personalization_projection_from_learning_signal(
+    # CANONICAL CLASSIFIER: LLM must return a canonical option verbatim; non-canonical picks are rejected.
+    # "雨季混凝土养护" is NOT a canonical option → classifier rejects it → no recommendation.
+    rejected = build_home_personalization_projection_from_learning_signal(
         {
             "subject_id": "construction_exam_1",
             "question_stem": "雨季施工时，混凝土浇筑后的养护措施选择错误。",
@@ -197,11 +199,23 @@ def test_learning_signal_projection_uses_llm_inferred_topic_when_taxonomy_misses
         generated_at=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
         llm_topic_inferer=lambda payload, candidates: "雨季混凝土养护",
     )
+    assert rejected is None  # non-canonical LLM pick → no recommendation
 
+    # LLM returning a canonical section name → accepted with source "canonical_classified"
+    projection = build_home_personalization_projection_from_learning_signal(
+        {
+            "subject_id": "construction_exam_1",
+            "question_stem": "雨季施工时，混凝土浇筑后的养护措施选择错误。",
+            "simple_explanation": "应结合雨季施工和混凝土养护要求判断。",
+            "event_id": "evt-home-llm-topic-canonical",
+        },
+        generated_at=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
+        llm_topic_inferer=lambda payload, candidates: "季节性施工技术",
+    )
     assert projection is not None
-    assert projection["today_focus"]["title"] == "今日焦点：雨季混凝土养护"
-    assert projection["today_focus"]["intent"]["topic_source"] == "llm_inferred"
-    assert projection["today_focus"]["intent"]["topic_confidence"] == "low"
+    assert projection["today_focus"]["title"] == "今日焦点：季节性施工技术"
+    assert projection["today_focus"]["intent"]["topic_source"] == "canonical_classified"
+    assert projection["today_focus"]["intent"]["topic_confidence"] == "medium"
 
 
 def test_learning_signal_projection_generates_six_actionable_prompt_types() -> None:
@@ -300,8 +314,9 @@ def test_fresh_projection_with_deictic_focus_recovers_from_learning_evidence() -
         now=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
     )
 
-    assert dashboard["today_focus"]["title"] == "今日焦点：防水工程"
-    assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练防水工程"
+    # canonical classifier maps "防水工程" → section "屋面与防水工程施工"
+    assert dashboard["today_focus"]["title"] == "今日焦点：屋面与防水工程施工"
+    assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练屋面与防水工程施工"
     assert "这题" not in json.dumps(dashboard, ensure_ascii=False)
     assert dashboard["source_status"]["recovered_from"] == "learner_memory_events.learning_evidence"
 
@@ -341,9 +356,10 @@ def test_missing_projection_recovers_from_assessment_learning_evidence() -> None
         now=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
     )
 
-    assert dashboard["today_focus"]["title"] == "今日焦点：防水工程"
+    # canonical classifier maps "防水工程" → section "屋面与防水工程施工"
+    assert dashboard["today_focus"]["title"] == "今日焦点：屋面与防水工程施工"
     assert dashboard["today_focus"]["meta"] == "来自 learner_state.home_personalization"
-    assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练防水工程"
+    assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练屋面与防水工程施工"
     assert dashboard["recommended_prompts"][0]["intent"]["evidence_refs"] == [
         "evt_assessment_1",
         "attempt-ref-1",
@@ -554,8 +570,9 @@ def test_dashboard_recovers_projection_from_assessment_learning_evidence(
 
     dashboard = service.get_home_dashboard("assessment_projection_user")
 
-    assert dashboard["today_focus"]["title"] == "今日焦点：防水工程"
-    assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练防水工程"
+    # canonical classifier maps "防水工程" → section "屋面与防水工程施工"
+    assert dashboard["today_focus"]["title"] == "今日焦点：屋面与防水工程施工"
+    assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练屋面与防水工程施工"
     assert dashboard["recommended_prompts"][0]["prompt_type"] == "practice_prompt"
     assert dashboard["home_projection"]["source_status"]["recovered_from"] == "learner_memory_events.learning_evidence"
 

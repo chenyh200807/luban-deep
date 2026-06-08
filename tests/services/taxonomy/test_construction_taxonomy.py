@@ -113,3 +113,19 @@ def test_is_non_topic_label_rejects_non_textbook_front_back_matter_and_marketing
     for topic in ["建设工程项目资源管理", "施工现场临时用电", "工程招标投标与合同管理",
                   "施工技术资料管理", "人力资源与劳务管理"]:
         assert is_non_topic_label(topic) is False, topic
+
+
+def test_canonical_topic_options_and_exact_resolution():
+    from deeptutor.services.taxonomy.textbook_directory import (
+        canonical_topic_options,
+        resolve_canonical_option,
+    )
+
+    opts = canonical_topic_options()
+    assert len(opts) >= 13 and all(o.get("name") and o.get("code") for o in opts)
+    # exact chapter/section/alias resolution; non-option -> None (no fuzzy)
+    assert resolve_canonical_option("工程招标投标与合同管理")["code"] == "1A432"
+    assert resolve_canonical_option("屋面与防水工程施工")["kind"] == "section"
+    assert resolve_canonical_option("建筑设计与构造")  # chapter alias
+    assert resolve_canonical_option("专家论证程序") is None
+    assert resolve_canonical_option("讲义封底免费听课资源") is None
