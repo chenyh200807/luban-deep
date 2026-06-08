@@ -1,0 +1,94 @@
+"""M32 Task 1/7: the end-to-end waterproof slice runner must drive the whole
+Grading-to-Brain loop with hermetic fixtures, emit every required artifact, attest ONLY what
+it actually exercises (verified-in-this-run vs not-exercised), prove the SAFETY direction of
+the authority gate, and render an HONEST verdict — WEAK-GO, because canonical promotion on a
+candidate-grade topic is not demonstrable hermetically."""
+from __future__ import annotations
+
+import importlib.util
+import json
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[2]
+_spec = importlib.util.spec_from_file_location(
+    "m32_slice", REPO / "scripts" / "run_luban_m32_grading_to_brain_waterproof_slice.py"
+)
+m32 = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(m32)
+
+REQUIRED = [
+    "waterproof_topic_manifest_m32.json", "compiled_context_consumption_m32.json",
+    "grading_event_ledger_m32.jsonl", "learning_evidence_ledger_m32.jsonl",
+    "learner_claim_projection_m32.jsonl", "personalization_context_pack_m32.json",
+    "next_best_action_m32.json", "retest_outcome_proof_m32.jsonl",
+    "safety_invariant_report_m32.json", "go_no_go_m32.json",
+]
+
+
+def _jsonl(path: Path) -> list[dict]:
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
+def test_slice_emits_all_required_artifacts_and_honest_weak_go(tmp_path) -> None:
+    m32.run_slice(out_dir=str(tmp_path))
+    for name in REQUIRED:
+        assert (tmp_path / name).exists(), f"missing artifact {name}"
+    assert list(tmp_path.glob("FINDING_grading_to_brain_m32_waterproof_*.md")), "missing FINDING"
+    gng = json.loads((tmp_path / "go_no_go_m32.json").read_text(encoding="utf-8"))
+    # Honest verdict: candidate-grade topic cannot demonstrate canonical promotion hermetically.
+    assert gng["verdict"] == "WEAK-GO"
+    assert gng["mode"] == "hermetic_only"
+    assert gng["safety_gate_proven"] is True
+    assert gng["canonical_promotion_demonstrated"] is False
+    assert gng["live_blockers"]
+
+
+def test_safety_report_attests_only_what_it_exercises(tmp_path) -> None:
+    m32.run_slice(out_dir=str(tmp_path))
+    report = json.loads((tmp_path / "safety_invariant_report_m32.json").read_text(encoding="utf-8"))
+    v = report["verified_in_this_run"]
+    assert report["verified_clean"] is True
+    # the invariants this slice genuinely derives are clean
+    assert v["canonical_truth_written"] is False
+    assert v["production_write_count"] == 0
+    assert v["simulated_retest_as_real"] == 0
+    assert v["shadow_promoted_to_mastery"] == 0
+    assert v["candidate_used_as_release_truth"] == 0
+    assert v["candidate_grade_pass_promoted"] == 0
+    assert v["caller_scoping_ok"] is True
+    # laundering / cross-tenant / positive-arm are NAMED as not-exercised, never stamped clean here
+    ne = report["not_exercised_in_this_slice"]
+    for key in ("official_score_laundering", "answer_key_override", "source_laundering", "rag_chunk_as_answer_key"):
+        assert ne.get(key), f"{key} must be explicitly marked not-exercised, not silently 0"
+
+
+def test_authority_gate_safety_direction(tmp_path) -> None:
+    m32.run_slice(out_dir=str(tmp_path))
+    proofs = _jsonl(tmp_path / "retest_outcome_proof_m32.jsonl")
+    by_auth = {p["authority"]: p for p in proofs}
+    assert by_auth["candidate_preview"]["counted_as_improvement"] is False
+    assert by_auth["simulated"]["counted_as_improvement"] is False
+    assert by_auth["simulated"]["simulated"] is True
+
+
+def test_loop_is_explainable_end_to_end(tmp_path) -> None:
+    m32.run_slice(out_dir=str(tmp_path))
+    evidence = _jsonl(tmp_path / "learning_evidence_ledger_m32.jsonl")
+    assert evidence
+    hits = evidence[0]["rubric"]["scoring_point_hits"]
+    assert hits and hits[0].get("mistake_type") and hits[0].get("evidence_span")
+    # evidence is preview (candidate authority threaded through the real consumer)
+    assert evidence[0].get("preview_only") is True
+    assert evidence[0].get("canonical_truth_written") is False
+    claims = _jsonl(tmp_path / "learner_claim_projection_m32.jsonl")
+    assert claims and any(c.get("evidence_span") for c in claims)
+    nba = json.loads((tmp_path / "next_best_action_m32.json").read_text(encoding="utf-8"))
+    assert nba.get("action_type") and nba.get("target") and nba.get("success_measure")
+
+
+def test_topic_manifest_points_to_unpublished_signed_shard(tmp_path) -> None:
+    m32.run_slice(out_dir=str(tmp_path))
+    manifest = json.loads((tmp_path / "waterproof_topic_manifest_m32.json").read_text(encoding="utf-8"))
+    assert manifest["published"] is False
+    assert manifest["content_hash"] and manifest["signature"]
+    assert manifest["canonical_pointer"].endswith("v_topic_waterproof/topic_waterproof.json")
