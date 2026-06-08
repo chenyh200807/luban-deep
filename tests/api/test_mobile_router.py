@@ -1137,6 +1137,7 @@ def test_billing_usage_falls_back_to_empty_usage_when_ledger_storage_unavailable
         def list_wallet_ledger(user_id: str, *, limit: int = 20, offset: int = 0):
             raise RuntimeError("supabase payment required")
 
+    monkeypatch.setattr(mobile_module, "is_billing_enforcement_enabled", lambda: True)
     monkeypatch.setattr(mobile_module, "wallet_service", FailingWalletService())
     monkeypatch.setattr(
         mobile_module,
@@ -1162,6 +1163,17 @@ def test_billing_usage_reads_member_usage_meter_when_billing_enforcement_off(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     now = mobile_module.datetime.now(mobile_module._BILLING_USAGE_TZ)
+    events = [
+        SimpleNamespace(
+            event_id=index,
+            wallet_user_id="wallet_demo",
+            amount_points=99,
+            status="metered_not_charged",
+            metadata={"billing_amount_source": "measured_cost"},
+            created_at=now.timestamp(),
+        )
+        for index in range(45)
+    ]
 
     class WalletServiceWithoutUsageLedger:
         is_configured = True
@@ -1172,7 +1184,7 @@ def test_billing_usage_reads_member_usage_meter_when_billing_enforcement_off(
                 user_id=user_id,
                 balance_micros=100_000_000,
                 frozen_micros=0,
-                plan_id="advance",
+                plan_id="sprint",
                 version=1,
                 created_at=now.isoformat(),
             )
@@ -1186,16 +1198,7 @@ def test_billing_usage_reads_member_usage_meter_when_billing_enforcement_off(
             assert wallet_user_id == "wallet_demo"
             assert limit == mobile_module._BILLING_USAGE_LEDGER_WINDOW
             assert offset == 0
-            return [
-                SimpleNamespace(
-                    event_id=1,
-                    wallet_user_id=wallet_user_id,
-                    amount_points=44,
-                    status="metered_not_charged",
-                    metadata={"billing_amount_source": "measured_cost"},
-                    created_at=now.timestamp(),
-                )
-            ]
+            return events
 
     monkeypatch.setattr(mobile_module, "is_billing_enforcement_enabled", lambda: False)
     monkeypatch.setattr(mobile_module, "wallet_service", WalletServiceWithoutUsageLedger())
@@ -1217,9 +1220,12 @@ def test_billing_usage_reads_member_usage_meter_when_billing_enforcement_off(
     assert body["status"] == "ok"
     assert body["usage_source"] == "member_usage_meter"
     assert body["charging_status"] == "metered_not_charged"
-    assert body["display"]["primary_label"] == "剩余 99%"
-    assert body["display"]["primary_percent"] == 99
-    assert body["display"]["plan_id"] == "advance"
+    assert body["display"]["primary_label"] == "剩余 405/450 次"
+    assert body["display"]["primary_percent"] == 90
+    assert body["display"]["primary_used_uses"] == 45
+    assert body["display"]["primary_limit_uses"] == 450
+    assert body["display"]["primary_remaining_uses"] == 405
+    assert body["display"]["plan_id"] == "sprint"
 
 
 def test_billing_usage_returns_degraded_payload_when_wallet_storage_unavailable(

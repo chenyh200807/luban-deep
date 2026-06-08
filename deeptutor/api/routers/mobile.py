@@ -98,6 +98,7 @@ _BILLING_USAGE_TZ = ZoneInfo("Asia/Shanghai")
 _BILLING_USAGE_LEDGER_WINDOW = 500
 _BILLING_USAGE_FIVE_HOUR_LIMIT_POINTS = "DEEPTUTOR_BILLING_USAGE_5H_LIMIT_POINTS"
 _BILLING_USAGE_WEEKLY_LIMIT_POINTS = "DEEPTUTOR_BILLING_USAGE_WEEKLY_LIMIT_POINTS"
+_INTERNAL_BETA_USAGE_LIMIT_TURNS = "DEEPTUTOR_INTERNAL_BETA_USAGE_LIMIT_TURNS"
 _BILLING_INCLUDE_LEGACY_LEDGER = "DEEPTUTOR_BILLING_INCLUDE_LEGACY_LEDGER"
 _BILLING_SHADOW_COMPARE_LEGACY_WALLET = "DEEPTUTOR_BILLING_SHADOW_COMPARE_LEGACY_WALLET"
 _LOCAL_WALLET_FALLBACK = "DEEPTUTOR_ALLOW_LOCAL_WALLET_FALLBACK"
@@ -409,6 +410,10 @@ def _billing_usage_limit_points(env_name: str, default: int) -> int:
         return default
 
 
+def _internal_beta_usage_limit_turns() -> int:
+    return _billing_usage_limit_points(_INTERNAL_BETA_USAGE_LIMIT_TURNS, 450)
+
+
 def _normalize_billing_plan_id(plan_id: str | None) -> str:
     raw = str(plan_id or "").strip().lower()
     return _BILLING_PLAN_ALIASES.get(raw, "advance")
@@ -469,6 +474,7 @@ def _build_billing_usage_payload(
     *,
     now: datetime | None = None,
     plan_id: str | None = None,
+    limit_points_by_window: dict[str, int] | None = None,
 ) -> dict[str, Any]:
     current = (now or datetime.now(_BILLING_USAGE_TZ)).astimezone(_BILLING_USAGE_TZ)
     five_hour_start = current - timedelta(hours=5)
@@ -497,14 +503,20 @@ def _build_billing_usage_payload(
         _usage_window_payload(
             key="five_hour",
             label="5 小时保护额度",
-            limit_points=_billing_usage_limit_for_plan(plan_id, "five_hour"),
+            limit_points=(
+                int((limit_points_by_window or {}).get("five_hour") or 0)
+                or _billing_usage_limit_for_plan(plan_id, "five_hour")
+            ),
             used_micros=five_hour_used,
             reset_at=five_hour_reset,
         ),
         _usage_window_payload(
             key="weekly",
             label="本周额度",
-            limit_points=_billing_usage_limit_for_plan(plan_id, "weekly"),
+            limit_points=(
+                int((limit_points_by_window or {}).get("weekly") or 0)
+                or _billing_usage_limit_for_plan(plan_id, "weekly")
+            ),
             used_micros=weekly_used,
             reset_at=week_reset,
         ),
@@ -555,10 +567,22 @@ def _usage_meter_event_created_at_iso(event: Any) -> str:
     return parsed.isoformat() if parsed else datetime.now(_BILLING_USAGE_TZ).isoformat()
 
 
-def _usage_meter_events_as_ledger_entries(events: Iterable[Any]) -> list[WalletLedgerEntry]:
+def _usage_meter_events_as_ledger_entries(
+    events: Iterable[Any],
+    *,
+    amount_points_per_event: int | None = None,
+) -> list[WalletLedgerEntry]:
     entries: list[WalletLedgerEntry] = []
     for event in events:
-        amount_points = max(0, int(getattr(event, "amount_points", 0) or 0))
+        amount_points = max(
+            0,
+            int(
+                amount_points_per_event
+                if amount_points_per_event is not None
+                else getattr(event, "amount_points", 0)
+                or 0
+            ),
+        )
         if amount_points <= 0:
             continue
         wallet_user_id = str(getattr(event, "wallet_user_id", "") or "").strip()
@@ -589,17 +613,57 @@ def _usage_meter_events_as_ledger_entries(events: Iterable[Any]) -> list[WalletL
     return entries
 
 
-def _load_member_usage_meter_entries(
+def _load_member_usage_meter_events(
     *,
     wallet_user_id: str,
     limit: int,
-) -> list[WalletLedgerEntry]:
-    events = get_member_usage_meter().list_usage_events(
+) -> list[Any]:
+    return get_member_usage_meter().list_usage_events(
         wallet_user_id,
         limit=limit,
         offset=0,
     )
-    return _usage_meter_events_as_ledger_entries(events)
+
+
+def _build_internal_beta_usage_payload(
+    events: list[Any],
+    *,
+    plan_id: str | None,
+    now: datetime | None = None,
+) -> dict[str, Any]:
+    current = (now or datetime.now(_BILLING_USAGE_TZ)).astimezone(_BILLING_USAGE_TZ)
+    week_start = (current - timedelta(days=current.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
+    limit_turns = _internal_beta_usage_limit_turns()
+    unit_points = int(_MINI_PROGRAM_CAPTURE_COST)
+    entries = _usage_meter_events_as_ledger_entries(
+        events,
+        amount_points_per_event=unit_points,
+    )
+    used_turns = 0
+    for event in events:
+        created_at = _parse_ledger_datetime(_usage_meter_event_created_at_iso(event))
+        if created_at is not None and created_at >= week_start:
+            used_turns += 1
+    remaining_turns = max(0, limit_turns - used_turns)
+    payload = _build_billing_usage_payload(
+        entries,
+        now=current,
+        plan_id=plan_id,
+        limit_points_by_window={
+            "five_hour": limit_turns * unit_points,
+            "weekly": limit_turns * unit_points,
+        },
+    )
+    payload["display"].update(
+        {
+            "primary_label": f"剩余 {remaining_turns}/{limit_turns} 次",
+            "primary_used_uses": used_turns,
+            "primary_limit_uses": limit_turns,
+            "primary_remaining_uses": remaining_turns,
+        }
+    )
+    payload["quota"]["unit"] = "turn"
+    return payload
 
 
 def _billing_storage_unavailable(exc: Exception, *, source: str) -> HTTPException:
@@ -2268,15 +2332,15 @@ async def billing_usage(authorization: str | None = Header(default=None)) -> dic
         return _degraded_billing_usage_payload()
     if not is_billing_enforcement_enabled():
         try:
-            entries = _load_member_usage_meter_entries(
+            events = _load_member_usage_meter_events(
                 wallet_user_id=wallet_user_id,
                 limit=_BILLING_USAGE_LEDGER_WINDOW,
             )
         except Exception as exc:
             _billing_storage_unavailable(exc, source="billing_usage_member_meter")
-            entries = []
-        payload = _build_billing_usage_payload(
-            entries,
+            events = []
+        payload = _build_internal_beta_usage_payload(
+            events,
             plan_id=snapshot.plan_id,
         )
         payload["usage_source"] = "member_usage_meter"
