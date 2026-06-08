@@ -54,12 +54,33 @@ def test_safety_report_attests_only_what_it_exercises(tmp_path) -> None:
     assert v["simulated_retest_as_real"] == 0
     assert v["shadow_promoted_to_mastery"] == 0
     assert v["candidate_used_as_release_truth"] == 0
+    assert v["candidate_shard_published"] == 0
+    assert v["candidate_official_score_allowed"] == 0
+    assert v["candidate_status_allowed"] is True
     assert v["candidate_grade_pass_promoted"] == 0
     assert v["caller_scoping_ok"] is True
     # laundering / cross-tenant / positive-arm are NAMED as not-exercised, never stamped clean here
     ne = report["not_exercised_in_this_slice"]
     for key in ("official_score_laundering", "answer_key_override", "source_laundering", "rag_chunk_as_answer_key"):
         assert ne.get(key), f"{key} must be explicitly marked not-exercised, not silently 0"
+
+
+def test_published_candidate_shard_forces_no_go(tmp_path, monkeypatch) -> None:
+    fake_repo = tmp_path / "repo"
+    shard_path = fake_repo / m32.SHARD_REL
+    shard_path.parent.mkdir(parents=True)
+    shard = json.loads((REPO / m32.SHARD_REL).read_text(encoding="utf-8"))
+    shard["manifest"]["published"] = True
+    shard_path.write_text(json.dumps(shard, ensure_ascii=False, indent=2), encoding="utf-8")
+    monkeypatch.setattr(m32, "REPO", fake_repo)
+
+    m32.run_slice(out_dir=str(tmp_path / "out"))
+    gng = json.loads((tmp_path / "out" / "go_no_go_m32.json").read_text(encoding="utf-8"))
+    v = gng["safety_verified_in_this_run"]
+    assert gng["verdict"] == "NO-GO"
+    assert gng["verified_clean"] is False
+    assert v["candidate_shard_published"] == 1
+    assert v["candidate_used_as_release_truth"] == 1
 
 
 def test_authority_gate_safety_direction(tmp_path) -> None:
@@ -90,5 +111,7 @@ def test_topic_manifest_points_to_unpublished_signed_shard(tmp_path) -> None:
     m32.run_slice(out_dir=str(tmp_path))
     manifest = json.loads((tmp_path / "waterproof_topic_manifest_m32.json").read_text(encoding="utf-8"))
     assert manifest["published"] is False
+    assert manifest["official_score_allowed"] is False
+    assert manifest["status"] in {"release_candidate", "draft"}
     assert manifest["content_hash"] and manifest["signature"]
     assert manifest["canonical_pointer"].endswith("v_topic_waterproof/topic_waterproof.json")

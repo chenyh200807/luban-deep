@@ -5,7 +5,7 @@
     "namespace": "topic_waterproof",
     "node_count": 44,
     "official_score_allowed": false,
-    "published": true,
+    "published": false,
     "schema_version": "luban_topic_shard.v1",
     "signature": "40d098186c7d74226b29db30f0c685491e71fc0e550987ac4d1356e2c683c411",
     "source_counts": {
@@ -16,8 +16,7 @@
     },
     "status": "release_candidate",
     "tier": "teaching_context_not_answer_key",
-    "topic": "waterproof",
-    "published_date": "2026-06-08"
+    "topic": "waterproof"
   },
   "nodes": {
     "1A412031-01": {

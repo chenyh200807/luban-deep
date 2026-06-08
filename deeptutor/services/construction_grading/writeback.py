@@ -102,6 +102,78 @@ def write_grading_error_events(
     return 1
 
 
+def write_case_grading_event_learning_evidence(
+    *,
+    learner_state_service: Any,
+    user_id: str,
+    grading_event: dict[str, Any],
+    source_id: str,
+    source_bot_id: str | None = None,
+    user_answer: str = "",
+    question_stem: str = "",
+    node_code: str = "",
+    session_id: str = "",
+) -> dict[str, Any]:
+    """Persist a V1 ``case_grading_completed`` event as canonical learning_evidence.
+
+    The raw grading event remains the scoring authority. The long-term memory stream
+    receives one append-only learning_evidence payload that points back to that event;
+    Learning Brain may observe it immediately, but candidate/open-world evidence is not
+    promoted into stable mastery here.
+    """
+    normalized_user_id = str(user_id or "").strip()
+    if not normalized_user_id:
+        return {"writeback_count": 0, "reason": "missing_user_id"}
+    if not isinstance(grading_event, dict) or grading_event.get("event_type") != "case_grading_completed":
+        return {"writeback_count": 0, "reason": "not_case_grading_completed"}
+    try:
+        from deeptutor.services.construction_grading import rubric_grader_v1 as _G
+
+        payload_json = _G.to_learning_evidence(grading_event, node_code=node_code)
+    except Exception as exc:  # noqa: BLE001 — writeback must fail closed
+        logger.warning("case grading event learning-evidence projection failed: %s", exc, exc_info=True)
+        return {"writeback_count": 0, "reason": "projection_failed"}
+
+    payload_json.update({
+        "schema_version": 1,
+        "legacy_event_type": "case_grading_completed",
+        "source": "construction_grading",
+        "turn_id": str(source_id or "").strip(),
+        "session_id": str(session_id or "").strip(),
+        "user_answer": str(user_answer or "").strip(),
+        "question_stem": str(question_stem or "").strip(),
+        "grading_event": dict(grading_event),
+        "preview_only": True,
+        "claim_promotion_allowed": False,
+        "mastery_raised": False,
+        "canonical_truth_written": False,
+        "quality": {
+            "writeback_eligible": True,
+            "writeback_reason": "case_grading_completed_v1",
+            "evidence_level": "L0_observed",
+        },
+    })
+    dedupe_key = build_learning_evidence_dedupe_key(
+        user_id=normalized_user_id,
+        payload_json=payload_json,
+    )
+    event = learner_state_service.append_memory_event(
+        normalized_user_id,
+        source_feature="construction_grading",
+        source_id=source_id,
+        source_bot_id=source_bot_id,
+        memory_kind="learning_evidence",
+        payload_json=payload_json,
+        dedupe_key=dedupe_key,
+    )
+    return {
+        "writeback_count": 1,
+        "event_id": str(getattr(event, "event_id", "") or ""),
+        "dedupe_key": dedupe_key,
+        "learning_evidence_payload": payload_json,
+    }
+
+
 def _prescription_result_payload(value: dict[str, Any] | None) -> dict[str, Any]:
     if not isinstance(value, dict):
         return {}

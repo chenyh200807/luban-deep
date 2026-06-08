@@ -249,12 +249,23 @@ def run_slice(*, out_dir: str, live: bool = False, stamp: str = "") -> dict[str,
                          _evidence_payload(_miss_grading_result(), compiled_context, turn_id="m32_turn_other"),
                          created_at="2026-06-07T10:00:00+08:00", user=OTHER_USER, bot="other-subject-bot")
     caller_scoping_ok = (miss_input_user_ids == {USER}) and (other_event.user_id not in miss_input_user_ids)
+    candidate_shard_published = bool(topic_manifest["published"])
+    candidate_official_score_allowed = bool(topic_manifest["official_score_allowed"])
+    candidate_status_allowed = str(topic_manifest.get("status") or "") in {"release_candidate", "draft"}
+    candidate_used_as_release_truth = (
+        candidate_shard_published
+        or candidate_official_score_allowed
+        or cand_improved
+    )
     verified = {
         "canonical_truth_written": bool(miss_evidence.get("canonical_truth_written", False)),
         "production_write_count": 0,  # structural: slice calls only pure projection fns + out_dir writes
         "shadow_promoted_to_mastery": shadow_promoted,
         "simulated_retest_as_real": 1 if sim_improved else 0,
-        "candidate_used_as_release_truth": 1 if (not topic_manifest["published"] and cand_improved) else 0,
+        "candidate_shard_published": 1 if candidate_shard_published else 0,
+        "candidate_official_score_allowed": 1 if candidate_official_score_allowed else 0,
+        "candidate_status_allowed": candidate_status_allowed,
+        "candidate_used_as_release_truth": 1 if candidate_used_as_release_truth else 0,
         "candidate_grade_pass_promoted": 1 if cand_improved else 0,
         "caller_scoping_ok": bool(caller_scoping_ok),
     }
@@ -263,6 +274,9 @@ def run_slice(*, out_dir: str, live: bool = False, stamp: str = "") -> dict[str,
         and verified["production_write_count"] == 0
         and verified["shadow_promoted_to_mastery"] == 0
         and verified["simulated_retest_as_real"] == 0
+        and verified["candidate_shard_published"] == 0
+        and verified["candidate_official_score_allowed"] == 0
+        and verified["candidate_status_allowed"] is True
         and verified["candidate_used_as_release_truth"] == 0
         and verified["candidate_grade_pass_promoted"] == 0
         and verified["caller_scoping_ok"] is True
