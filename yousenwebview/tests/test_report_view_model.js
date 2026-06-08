@@ -79,7 +79,30 @@ var loopReport = {
         },
       ],
     },
-    review_summary: { total_due: 1, overdue_count: 0 },
+    review_summary: {},
+  },
+  long_term_analytics: {
+    recurrent_errors: [
+      {
+        concept_id: "1A413050",
+        error_code: "near_synonym_not_accepted",
+        occurrence_count: 2,
+        last_seen_at: "2026-06-08T08:00:00Z",
+      },
+    ],
+  },
+  revalidation_queue: {
+    items: [
+      {
+        kind: "revalidation_probe",
+        status: "active",
+        intent: {
+          source: "revalidation_queue",
+          concept_id: "1A413050",
+          concept_label: "地下室防水工程施工",
+        },
+      },
+    ],
   },
   learning_state: {
     ability_state: [
@@ -105,8 +128,13 @@ var loopReport = {
     weak_points: [
       {
         concept_id: "1A413050",
+        label: "地下室防水工程施工",
         error_code: "near_synonym_not_accepted",
         evidence_refs: ["attempt_m32_001", "attempt_m32_002"],
+        occurrence_timeline: [
+          { event_id: "attempt_m32_001", observed_at: "2026-06-07T08:00:00Z" },
+          { event_id: "attempt_m32_002", observed_at: "2026-06-08T08:00:00Z" },
+        ],
       },
     ],
   },
@@ -128,6 +156,13 @@ assert(
   loopPageData.masteryGroups.length > 0,
   "mastery distribution must not stay empty when unified report has Learning Brain evidence",
 );
+assert(
+  loopPageData.hotspots.length > 0,
+  "weak hotspot distribution must project from Learning Brain weak_points/recurrent errors when mastery.hotspots is empty",
+);
+assert.strictEqual(loopPageData.hotspots[0].name, "建筑工程施工技术");
+assert.strictEqual(loopPageData.reviewSummary.total_due, 1);
+assert.strictEqual(loopPageData.reviewSummary.overdue_count, 0);
 
 var source = fs.readFileSync(reportPath, "utf8");
 assert(

@@ -355,6 +355,142 @@ function normalizeMastery(source) {
   };
 }
 
+function firstLearningTopicFromValues(values, taxonomyPath) {
+  var path = asList(taxonomyPath).map(function (name) {
+    return String(name || "").trim();
+  }).filter(Boolean);
+  for (var i = 0; i < values.length; i++) {
+    var topic = normalizeLearningTopic(values[i], path);
+    if (topic) return topic;
+  }
+  return null;
+}
+
+function learningSignalHotspotScore(source) {
+  var item = asObject(source);
+  var occurrenceCount = asNumber(
+    item.occurrence_count || item.occurrenceCount,
+    asList(item.occurrence_timeline || item.occurrenceTimeline).length,
+  );
+  var confidence = asNumber(item.confidence, 0);
+  if (occurrenceCount >= 2) return 25;
+  if (confidence > 0) return Math.max(20, Math.round((1 - Math.min(confidence, 0.9)) * 60));
+  return 35;
+}
+
+function buildLearningSignalHotspots(body, learningState) {
+  var rawBrain = asObject(asObject(body).learning_brain);
+  var analytics = asObject(asObject(body).long_term_analytics);
+  var recurrentErrors = asList(analytics.recurrent_errors || analytics.recurrentErrors);
+  var recurrentByKey = {};
+  recurrentErrors.forEach(function (item) {
+    var row = asObject(item);
+    var key = String(row.concept_id || "") + "::" + String(row.error_code || "");
+    recurrentByKey[key] = row;
+  });
+  var rows = [];
+  asList(rawBrain.weak_points || rawBrain.weakPoints).forEach(function (weak) {
+    var item = asObject(weak);
+    var key = String(item.concept_id || "") + "::" + String(item.error_code || "");
+    var recurrent = recurrentByKey[key] || {};
+    var recommended = asObject(item.recommended_training);
+    var topic = firstLearningTopicFromValues(
+      [
+        item.label,
+        item.concept_label,
+        recommended.concept_label,
+        item.display_title,
+        item.current_truth,
+        item.concept_id,
+      ],
+      item.taxonomy_path || item.taxonomyPath,
+    );
+    if (!topic) return;
+    rows.push({
+      name: topic.name,
+      mastery: learningSignalHotspotScore(Object.assign({}, item, recurrent)),
+      rateText: learningSignalHotspotScore(Object.assign({}, item, recurrent)) + "%",
+      occurrenceCount: asNumber(
+        recurrent.occurrence_count || item.occurrence_count || item.occurrenceCount,
+        asList(item.occurrence_timeline || item.occurrenceTimeline).length,
+      ),
+    });
+  });
+  asList(asObject(learningState).knowledgeState).forEach(function (state) {
+    var row = asObject(state);
+    if (["weak", "recurring", "needs_revalidation", "unstable"].indexOf(row.state) < 0) return;
+    var topic = firstLearningTopicFromValues(
+      [row.label, row.nodeId, row.node_id, row.key],
+      row.taxonomyPath || row.taxonomy_path,
+    );
+    if (!topic) return;
+    rows.push({
+      name: topic.name,
+      mastery: row.state === "needs_revalidation" ? 30 : 35,
+      rateText: (row.state === "needs_revalidation" ? 30 : 35) + "%",
+      occurrenceCount: asNumber(row.evidenceCount || row.evidence_count, 0),
+    });
+  });
+  var byName = {};
+  rows.forEach(function (item) {
+    if (!item.name) return;
+    var existing = byName[item.name];
+    if (!existing || item.occurrenceCount > existing.occurrenceCount || item.mastery < existing.mastery) {
+      byName[item.name] = item;
+    }
+  });
+  return Object.keys(byName)
+    .map(function (name) {
+      return byName[name];
+    })
+    .sort(function (a, b) {
+      return b.occurrenceCount - a.occurrenceCount || a.mastery - b.mastery;
+    })
+    .slice(0, 5);
+}
+
+function buildLearningSignalReviewSummary(body, learningState) {
+  var queue = asObject(asObject(body).revalidation_queue || asObject(body).revalidationQueue);
+  var queueItems = asList(queue.items).filter(function (item) {
+    var status = String(asObject(item).status || "active");
+    return status !== "done" && status !== "completed" && status !== "dismissed";
+  });
+  var explicitTotal = asNumber(queue.total_due || queue.totalDue, NaN);
+  var totalDue = Number.isFinite(explicitTotal) ? explicitTotal : queueItems.length;
+  if (!totalDue && queueItems.length) totalDue = queueItems.length;
+  if (!totalDue) {
+    totalDue = asList(asObject(learningState).knowledgeState).filter(function (item) {
+      return String(asObject(item).state || "") === "needs_revalidation";
+    }).length;
+  }
+  var explicitOverdue = asNumber(queue.overdue_count || queue.overdueCount, NaN);
+  var overdueCount = Number.isFinite(explicitOverdue)
+    ? explicitOverdue
+    : queueItems.filter(function (item) {
+        var row = asObject(item);
+        return row.overdue === true || String(row.status || "") === "overdue";
+      }).length;
+  return {
+    total_due: totalDue,
+    overdue_count: overdueCount,
+  };
+}
+
+function enrichMasteryFromLearningSignals(mastery, body, learningState) {
+  var result = Object.assign({}, asObject(mastery));
+  if (!asList(result.hotspots).length) {
+    result.hotspots = buildLearningSignalHotspots(body, learningState);
+  }
+  var review = asObject(result.reviewSummary);
+  if (
+    asNumber(review.total_due || review.totalDue, 0) <= 0 &&
+    asNumber(review.overdue_count || review.overdueCount, 0) <= 0
+  ) {
+    result.reviewSummary = buildLearningSignalReviewSummary(body, learningState);
+  }
+  return result;
+}
+
 function normalizeKnowledgeSummary(source) {
   var summary = asObject(source);
   var chapters = asList(summary.textbook_chapters || summary.textbookChapters).map(function (item) {
@@ -1010,6 +1146,7 @@ function buildLearningReportViewModel(report) {
   var mistakeHistoryCards = normalizeMistakeHistoryCards(attempts);
   // Batch C Task 8: three-layer learning state + scoring point map + today's prescription.
   var learningState = normalizeLearningStateBatchC(body.learning_state);
+  mastery = enrichMasteryFromLearningSignals(mastery, body, learningState);
   var radar = normalizeRadar(body.radar_dimensions);
   if (!asList(radar.dims).length) {
     radar = normalizeRadarFromLearningState(learningState);
