@@ -2331,3 +2331,11 @@ B/C 可并行，但不应抢走 A 线 M7 的主线地位。
 - 把 luban limited-default **运行时供给数据**从 gitignored review artifacts 抽成最小、签名、版本化的 **tracked bundle**：`deeptutor/services/construction_grading/runtime_supply/v1_limited_default/`（9 文件/~156K；machine 45/list 14/source_backed 23/typed_policy 97/signed registry）。
 - loader 默认读 tracked bundle；artifacts 仅 `LUBAN_SUPPLY_DEV_ARTIFACTS=1` 显式 dev fallback；malformed/missing/hash-mismatch fail-closed，legacy intact。
 - **clean checkout 无 artifacts：192 passed / 0 failed**（gate/registry/runtime_shadow/adjudicator/ws/m16/m17a）。review artifacts（FINDING/votes/ledgers/4-model eval cache）仍排除、非 runtime authority。production default 仍 OFF。
+
+
+## 20. M19B canonical production default decision (2026-06-05)
+
+- **M17 scaleout axis = GO**：M17B WEAK-GO（DeepSeek live 28<80）已被 **M17C merged live=80** supersede。
+- **M19B limited 1% qa/operator default candidate = GO**（仅 config DRY-RUN，未执行真实 flip）。
+- **production default 仍 OFF**；flip_now=NO-GO、broad=NO-GO、production_v1=NO-GO、canonical_write=WEAK-GO、ai_council_risk=pass。
+- **下一步：M19C actual default flip authorization (limited 1% qa/operator)**。
