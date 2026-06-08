@@ -931,11 +931,16 @@ class AgentLoop:
             nominal = float(eq.get("max_score") or fc.get("max_score") or 0)
         except (TypeError, ValueError):
             nominal = 0.0
+        # question_stem: bank entry > followup context only.
+        # NOT falling back to user_message: free-text submissions mix question + student answer in
+        # one message, so using it as a Tier-3 stem would have DeepSeek derive a rubric from the
+        # student's own phrasing and trivially produce a near-perfect fabricated score.
+        question_stem = str(eq.get("stem") or eq.get("question") or fc.get("question_stem") or "")
         return {
             "question_id": str(eq.get("question_id") or eq.get("qid") or fc.get("question_id") or ""),
             "user_answer": str(fc.get("user_answer") or user_message or ""),
             "correct_answer": ref,
-            "question_stem": str(eq.get("stem") or eq.get("question") or fc.get("question_stem") or ""),
+            "question_stem": question_stem,
             "construction_grading_result": {"type": "case", "max_score": nominal},
         }
 
@@ -947,9 +952,11 @@ class AgentLoop:
         md = runtime_metadata if isinstance(runtime_metadata, dict) else {}
         if str(md.get("question_lifecycle_scene") or "").strip() != "case_grading":
             return ""
-        # V1 needs a reference answer; "score authority available" == "structured reference present".
-        if not case_grading_score_authority_available(md):
-            return ""
+        # Gate 2 (score authority check) intentionally removed: _grade_one_case_v1 has a three-tier path
+        # (compiled_rubric > on_the_fly_reference > derived_from_stem) and returns a non-event marker when
+        # no tier produces scoring points — the caller already falls back to V0 at that point. An upstream
+        # authority gate that requires authoritative_answer in covered_subquestions would block questions
+        # that have a compiled rubric under question_id but no inline reference field.
         try:
             from deeptutor.capabilities.deep_question import _grade_one_case_v1
             from deeptutor.services.construction_grading import rubric_grader_v1 as _G
@@ -977,6 +984,12 @@ class AgentLoop:
                                     qid=ctx.get("question_id"), cg_type="case")
             except Exception:  # noqa: BLE001 — observability never breaks grading
                 pass
+            if event.get("rubric_provenance") == "derived_from_stem":
+                # Tier-3 path: LLM-derived rubric with no ground-truth anchor. Monitor this
+                # counter in production — unexpected spikes indicate Gate 2 removal side-effects
+                # or data gaps in the compiled rubric bank.
+                logger.warning("LUBAN_V1 DERIVED_FROM_STEM (tutorbot): no compiled rubric or reference; "
+                               "LLM domain knowledge used. student={} qid={}", student_id, ctx.get("question_id"))
             logger.info("LUBAN_V1 GRADED (tutorbot): provenance={} score={}/{} student={} qid={}",
                         event.get("rubric_provenance"), event.get("awarded_score"),
                         event.get("max_score"), student_id, ctx.get("question_id"))

@@ -229,3 +229,40 @@ def test_load_rubric_bank_is_cached_process_wide() -> None:
     info = G._rubric_bank.cache_info()
     assert info.misses == 1 and info.hits == 4
     G._rubric_bank.cache_clear()
+
+
+def test_derive_rubric_from_stem_returns_empty_on_empty_stem() -> None:
+    # Pure: no LLM call when stem is empty — fail-closed behavior.
+    result = asyncio.run(G.derive_rubric_from_stem_async("", lambda **kw: "", api_key="x"))
+    assert result == []
+
+
+def test_derive_rubric_from_stem_returns_empty_on_llm_failure() -> None:
+    # LLM exception -> [] (never raises)
+    async def bad_complete(**kw):
+        raise RuntimeError("network error")
+
+    result = asyncio.run(G.derive_rubric_from_stem_async("检测机构不符，指出并说明正确做法。",
+                                                          bad_complete, api_key="x"))
+    assert result == []
+
+
+def test_derive_rubric_from_stem_parses_valid_llm_response() -> None:
+    # Stub LLM returns well-formed JSON -> parsed into scoring points.
+    stub_response = (
+        '[{"text":"指出监理单位检测机构不符合规定","score":2.0,"policy":"qualitative","required_terms":[]},'
+        '{"text":"说明应由建设单位委托具有资质的检测机构","score":2.0,"policy":"exact_required",'
+        '"required_terms":["资质"]}]'
+    )
+
+    async def stub_complete(**kw):
+        return stub_response
+
+    points = asyncio.run(G.derive_rubric_from_stem_async(
+        "施工现场检测管理不妥之处有哪些？请指出并说明正确做法。",
+        stub_complete, api_key="x",
+    ))
+    assert len(points) == 2
+    assert points[0]["point_id"] == "P1"
+    assert points[1]["policy"] == "exact_required"
+    assert points[1]["required_terms"] == ["资质"]

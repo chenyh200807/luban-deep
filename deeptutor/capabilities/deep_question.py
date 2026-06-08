@@ -1941,15 +1941,22 @@ async def _grade_one_case_v1(
             or ctx.get("analysis")
             or ""
         ).strip()
-        if not reference:
-            return {"status": "no_reference", "question_id": qid}
         stem = str(ctx.get("question_stem") or ctx.get("stem") or ctx.get("question") or "")
-        points = await _G.extract_rubric_from_reference_async(reference, stem, complete, key)
-        # Normalize on-the-fly weights to the question's nominal full score (V0 max_score) so open-world
-        # awarded/max is comparable to the in-bank scale; compiled rubric is untouched.
-        points = _G.normalize_points_to_nominal(
-            points, nominal_total=float((cg or {}).get("max_score") or 0))
-        provenance = "on_the_fly_reference"
+        if reference:
+            points = await _G.extract_rubric_from_reference_async(reference, stem, complete, key)
+            points = _G.normalize_points_to_nominal(
+                points, nominal_total=float((cg or {}).get("max_score") or 0))
+            provenance = "on_the_fly_reference"
+        elif stem:
+            # 3) STEM-ONLY: no reference answer at all — derive rubric from question stem via LLM
+            #    domain knowledge (construction supervision / 一建). Third-tier path so V1 covers
+            #    every case grading turn regardless of whether the question is in the bank.
+            points = await _G.derive_rubric_from_stem_async(stem, complete, key)
+            points = _G.normalize_points_to_nominal(
+                points, nominal_total=float((cg or {}).get("max_score") or 0))
+            provenance = "derived_from_stem"
+        else:
+            return {"status": "no_reference", "question_id": qid}
     if not points:
         return {"status": "unavailable", "reason": "no_scoring_points"}
     event = await _G.grade_with_batch_judge_async(
