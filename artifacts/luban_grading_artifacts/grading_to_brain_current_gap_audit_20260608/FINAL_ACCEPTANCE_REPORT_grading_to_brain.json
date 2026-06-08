@@ -1,9 +1,9 @@
 {
   "actual_verification": {
     "artifact": "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/VERIFICATION_CLOSURE_grading_to_brain.json",
-    "command_count": 5,
+    "command_count": 4,
     "status": "pass",
-    "verified_commit": "6011b79a"
+    "verified_commit": "b40c3649"
   },
   "artifacts": {
     "authorization_package": "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/authorization_gate_decision_package.json",
@@ -48,7 +48,7 @@
     "evidence_missing_count": 0,
     "partial": 2
   },
-  "current_commit": "6011b79a",
+  "current_commit": "b40c3649",
   "fresh_verification_commands": [
     {
       "command": "python -m pytest tests/scripts/test_luban_grading_to_brain_current_gap_audit.py tests/services/construction_grading/test_m32_grading_event_learning_evidence.py tests/services/learner_state/test_m32_waterproof_learning_synthesis.py tests/services/learner_state/test_m32_waterproof_personalization_context.py tests/services/learner_state/test_m32_waterproof_next_best_action.py tests/services/learner_state/test_m32_waterproof_retest_outcome.py tests/services/member_console/test_home_dashboard_learning_projection.py -q",

@@ -1,7 +1,7 @@
 # Grading-to-Brain Final Acceptance Report
 
 - Verdict: `not_complete_authorization_required`
-- Current commit: `6011b79a`
+- Current commit: `b40c3649`
 - Reason: coverage and objective evidence are present, but canonical learner-truth write, production default, published registry, remote/DB write, and true wechat package-page evidence still require explicit authorization or QA.
 - Actual verification: `pass`
 
