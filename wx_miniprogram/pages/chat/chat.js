@@ -43,7 +43,7 @@ var CHAT_PENDING_TURN_KEY = "chat_pending_turn_v1";
 var PENDING_TURN_MAX_AGE_MS = 30 * 60 * 1000;
 var PENDING_TURN_POLL_MAX_ATTEMPTS = 1200;
 var PENDING_TURN_POLL_DELAY_MS = 1500;
-var HOME_DASHBOARD_CACHE_KEY = "deeptutor.chat.homeDashboard.v1";
+var HOME_DASHBOARD_CACHE_KEY = "deeptutor.chat.homeDashboard.v2";
 var HOME_DASHBOARD_CACHE_MAX_AGE_MS = 10 * 60 * 1000;
 
 function normalizePendingTurn(raw) {
@@ -109,31 +109,7 @@ function isGenericFocusQuery(query) {
   );
 }
 
-function extractFocusTopic(title) {
-  var text = String(title || "")
-    .replace(/^今日焦点[:：]\s*/, "")
-    .trim();
-  text = text
-    .replace(/^推进\s*/, "")
-    .replace(/^讲清\s*/, "")
-    .replace(/^梳理\s*/, "")
-    .replace(/^继续推进\s*/, "")
-    .replace(/\s*下一步学习$/, "")
-    .replace(/\s*核心考点$/, "")
-    .replace(/\s*的?专项训练$/, "")
-    .replace(/^先做\s*/, "")
-    .replace(/\s+/g, "");
-  if (
-    !text ||
-    text === "保持节奏，继续推进" ||
-    text === "按当前状态推进建筑实务"
-  )
-    return "建筑实务";
-  return text;
-}
-
 function buildFocusDisplayTitle(focus, title) {
-  var payload = focus && typeof focus === "object" ? focus : {};
   var text = String(title || "")
     .replace(/^今日焦点[:：]\s*/, "")
     .replace(/\s+/g, " ")
@@ -141,17 +117,13 @@ function buildFocusDisplayTitle(focus, title) {
   if (/第一份.*学习证据/.test(text) || /给系统.*学习证据/.test(text))
     return "先做 1 题摸底";
   if (/^先做\s*1\s*题/.test(text)) return text;
-  var topic = String(payload.topic || payload.focus_topic || "").trim();
-  if (topic && /^推进.+下一步学习$/.test(text)) return "推进" + topic;
   if (
     text &&
     text !== "保持节奏，继续推进" &&
     text !== "按当前状态推进建筑实务"
   )
     return text;
-  text = extractFocusTopic(title);
-  if (!text || text === "建筑实务") return "今日推进";
-  return text.length > 12 ? text.slice(0, 12) : text;
+  return "今日推进";
 }
 
 function buildFocusDisplayMeta(focus, meta) {

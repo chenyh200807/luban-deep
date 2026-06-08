@@ -19,6 +19,7 @@ TEXTBOOK_CHAPTERS: tuple[dict[str, Any], ...] = (
         ),
         "code_prefixes": ("1A411",),
         "aliases": ("建筑设计与构造", "建筑设计", "建筑物分类与构成", "建筑构造设计要求"),
+        "section_aliases": {"建筑构造": "建筑构造设计的基本要求"},
     },
     {
         "no": 2,
@@ -42,6 +43,13 @@ TEXTBOOK_CHAPTERS: tuple[dict[str, Any], ...] = (
         ),
         "code_prefixes": ("1A413",),
         "aliases": ("建筑工程施工技术",),
+        "section_aliases": {
+            "防水工程": "屋面与防水工程施工",
+            "地下防水": "屋面与防水工程施工",
+            "装饰装修": "装饰装修工程施工",
+            "地基基础": "地基与基础工程施工",
+            "主体结构": "主体结构工程施工",
+        },
     },
     {
         "no": 4,
@@ -84,14 +92,14 @@ TEXTBOOK_CHAPTERS: tuple[dict[str, Any], ...] = (
         "name": "工程招标投标与合同管理",
         "sections": ("工程招标投标", "工程合同管理"),
         "code_prefixes": ("1A432",),
-        "aliases": (),
+        "aliases": ("合同索赔", "合同管理", "索赔"),
     },
     {
         "no": 8,
         "name": "施工进度管理",
         "sections": ("施工进度控制方法应用", "施工进度计划编制与控制"),
         "code_prefixes": ("1A433",),
-        "aliases": (),
+        "aliases": ("进度计划", "流水施工", "网络计划"),
     },
     {
         "no": 9,
@@ -103,7 +111,7 @@ TEXTBOOK_CHAPTERS: tuple[dict[str, Any], ...] = (
             "工程质量验收管理",
         ),
         "code_prefixes": ("1A434",),
-        "aliases": (),
+        "aliases": ("质量验收",),
     },
     {
         "no": 10,
@@ -214,6 +222,21 @@ def _canonical_option_index() -> dict[str, dict[str, Any]]:
             index.setdefault(_compact(alias),
                              {"name": str(chapter["name"]), "code": code,
                               "kind": "chapter", "chapter_no": int(chapter["no"])})
+        section_aliases = chapter.get("section_aliases") or {}
+        if isinstance(section_aliases, dict):
+            sections = {str(section) for section in chapter.get("sections") or ()}
+            for alias, section in section_aliases.items():
+                section_name = str(section or "")
+                if section_name in sections:
+                    index.setdefault(
+                        _compact(alias),
+                        {
+                            "name": section_name,
+                            "code": code,
+                            "kind": "section",
+                            "chapter_no": int(chapter["no"]),
+                        },
+                    )
     return index
 
 

@@ -88,7 +88,8 @@ def build_grading_packet(question_id: str, student_answer: str, *,
             slice_["textbook_policy"] = {"verified_terms": supply.source_terms[(qid, pid)]}
         point_slices.append(slice_)
 
-    pcp = personalization_context_pack or {}
+    pcp = personalization_context_pack if isinstance(personalization_context_pack, dict) else {}
+    feedback_guidance = _feedback_guidance_from_pcp(pcp)
     packet = {
         "schema_version": ADJUDICATOR_SCHEMA,
         "question_id": question_id,
@@ -103,7 +104,10 @@ def build_grading_packet(question_id: str, student_answer: str, *,
         "blocked_policy": {"official_answer_as_source": False, "model_vote_as_source": False,
                            "list_partial_auto": False, "high_risk_auto": False},
         "personalization_context_pack_readonly": {"read_only": True,
-                                                  "weakness_hint": pcp.get("weakness_hint"),
+                                                  "source": pcp.get("source") or "PersonalizationContextPack",
+                                                  "weakness_hint": feedback_guidance.get("prior_claim_label"),
+                                                  "feedback_guidance": feedback_guidance,
+                                                  "scoring_authority": "rubric_policy_and_validator_only",
                                                   "is_second_learner_memory": False},
         "token_budget": TOKEN_BUDGET,
         "provenance": {"builder": "runtime_llm_adjudicator", "supply_content_hash": supply.content_hash},
@@ -120,11 +124,49 @@ def build_grading_packet(question_id: str, student_answer: str, *,
 def _adjudication_prompt(packet: dict[str, Any]) -> tuple[str, str]:
     system = ("你是建筑实务案例题的点级判分助手。只依据给定 rubric policy 和学生作答判分。"
               "禁止编造未给出的标准答案；reasoning_summary 必须简短且不得泄露隐藏答案。"
+              "personalization_feedback_guidance 只用于讲评语气、错因解释粒度和下一步提示，不得改变采分点命中判断。"
               "只输出 JSON 数组，每个采分点一个对象：{point_id, disposition, evidence_span, confidence, reasoning_summary, blocked_reason}。"
               "disposition ∈ accept|partial|reject|needs_review。evidence_span 必须是学生作答里的原文片段。")
+    pcp = packet.get("personalization_context_pack_readonly") if isinstance(
+        packet.get("personalization_context_pack_readonly"), dict
+    ) else {}
     user = json.dumps({"question_id": packet["question_id"], "student_answer": packet["student_answer"],
-                       "points": packet["source_spec_list_policy_slices"]}, ensure_ascii=False)
+                       "points": packet["source_spec_list_policy_slices"],
+                       "personalization_feedback_guidance": pcp.get("feedback_guidance") or {}}, ensure_ascii=False)
     return system, user
+
+
+def _feedback_guidance_from_pcp(pcp: dict[str, Any]) -> dict[str, str]:
+    """Derive grading-feedback guidance from the single PersonalizationContextPack.
+
+    This is deliberately a read-only projection: it can change tone and next-action wording,
+    but scoring authority stays with rubric policy + validator.
+    """
+    claims = [claim for claim in list(pcp.get("top_claims") or []) if isinstance(claim, dict)]
+    claim = claims[0] if claims else {}
+    status = str(claim.get("claim_status") or "").strip()
+    label = str(claim.get("label") or claim.get("claim_id") or "").strip()
+    actions = [
+        action for action in list(pcp.get("next_best_action_candidates") or [])
+        if isinstance(action, dict)
+    ]
+    action = actions[0] if actions else {}
+    target = str(action.get("target") or action.get("title") or "").strip()
+    if status in {"repeated", "confirmed"}:
+        tone = "advanced_repeat_mistake"
+        depth = "reference_prior_pattern"
+    elif status == "observed":
+        tone = "scaffolded_first_observation"
+        depth = "concept_and_required_term"
+    else:
+        tone = "neutral"
+        depth = "standard_point_explanation"
+    return {
+        "grading_tone": tone,
+        "explanation_depth": depth,
+        "prior_claim_label": label,
+        "next_action_hint": target,
+    }
 
 
 def _timeout_s() -> float:
@@ -385,13 +427,15 @@ def build_llm_adjudication_payload(question_id: str, student_id: str, student_an
                                    provider: Optional[Callable[..., str]] = None,
                                    env: Optional[dict[str, str]] = None,
                                    legacy_summary: dict[str, Any] | None = None,
+                                   personalization_context_pack: dict[str, Any] | None = None,
                                    root=None) -> dict[str, Any]:
     """Runtime entry: build packet -> adjudicate (DeepSeek/Qwen) -> validate -> LB draft. Append-only,
     fail-closed (raises to the wrapper if registry unavailable). No production / canonical write."""
     registry = bsl.load_release_candidate_registry(root)  # fail-closed if malformed/missing
     supply = bsl.load_beta_supply(root)
     packet = build_grading_packet(question_id, student_answer, supply=supply, registry=registry,
-                                  legacy_summary=legacy_summary)
+                                  legacy_summary=legacy_summary,
+                                  personalization_context_pack=personalization_context_pack)
     adjudication = adjudicate(packet, provider=provider, env=env)
     validation = validate(packet, adjudication, supply=supply)
     lb_draft = build_lb_event_draft(packet, validation, student_id)

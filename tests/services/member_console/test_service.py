@@ -591,13 +591,13 @@ def test_home_dashboard_today_focus_uses_learner_state_focus_as_single_projectio
 
     dashboard = service.get_home_dashboard("focus_user")
 
-    expected_query = "请根据我的学习记录、最近进度，围绕建筑构造做一次建筑实务微课：先讲清一个最容易失分的核心考点，再用一个考试场景例子带我判断，最后给我一个简短自查问题；不要展开成长期安排，也不要直接生成整套训练题。"
+    expected_query = "请根据我的学习记录、最近进度，围绕建筑构造设计的基本要求做一次建筑实务微课：先讲清一个最容易失分的核心考点，再用一个考试场景例子带我判断，最后给我一个简短自查问题；不要展开成长期安排，也不要直接生成整套训练题。"
     assert dashboard["today_focus"] == {
         "label": "今日焦点",
-        "title": "推进建筑构造下一步学习",
+        "title": "推进建筑构造设计的基本要求下一步学习",
         "meta": "结合当前进度动态选择讲解/例题/复盘/自测",
         "query": expected_query,
-        "topic": "建筑构造",
+        "topic": "建筑构造设计的基本要求",
         "tone": "practice",
         "reason": "learner_state_focus",
         "source": "learner_state.study_plan",
@@ -645,8 +645,8 @@ def test_home_dashboard_today_focus_never_uses_generic_learning_plan_query(
 
     dashboard = service.get_home_dashboard("generic_focus_user")
 
-    assert dashboard["today_focus"]["title"] == "推进建筑构造下一步学习"
-    assert dashboard["today_focus"]["query"] == "请根据我的学习记录、最近进度，围绕建筑构造做一次建筑实务微课：先讲清一个最容易失分的核心考点，再用一个考试场景例子带我判断，最后给我一个简短自查问题；不要展开成长期安排，也不要直接生成整套训练题。"
+    assert dashboard["today_focus"]["title"] == "推进建筑构造设计的基本要求下一步学习"
+    assert dashboard["today_focus"]["query"] == "请根据我的学习记录、最近进度，围绕建筑构造设计的基本要求做一次建筑实务微课：先讲清一个最容易失分的核心考点，再用一个考试场景例子带我判断，最后给我一个简短自查问题；不要展开成长期安排，也不要直接生成整套训练题。"
     assert "学习计划" not in dashboard["today_focus"]["query"]
     assert "下一步学习推进" not in dashboard["today_focus"]["query"]
     assert "先判断我当前更适合" not in dashboard["today_focus"]["query"]
@@ -725,8 +725,8 @@ def test_home_dashboard_today_focus_incorporates_heartbeat_without_making_it_aut
 
     dashboard = service.get_home_dashboard("heartbeat_focus_user")
 
-    assert dashboard["today_focus"]["title"] == "推进防水工程下一步学习"
-    assert dashboard["today_focus"]["topic"] == "防水工程"
+    assert dashboard["today_focus"]["title"] == "推进屋面与防水工程施工下一步学习"
+    assert dashboard["today_focus"]["topic"] == "屋面与防水工程施工"
     assert dashboard["today_focus"]["source"] == "learner_state.study_plan+heartbeat"
     assert "周期复习节奏" in dashboard["today_focus"]["query"]
     assert "建筑实务微课" in dashboard["today_focus"]["query"]

@@ -5,6 +5,7 @@ from typing import Any
 from deeptutor.contracts.error_codes import check_emitted_error_codes
 from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAULTS
 from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
+from deeptutor.services.taxonomy.taxonomy_authority import normalize_taxonomy_code
 
 
 class AssessmentWritebackService:
@@ -59,6 +60,10 @@ class AssessmentWritebackService:
                 "measurement_confidence": item.get("measurement_confidence"),
                 "simple_explanation": item.get("simple_explanation"),
             }
+            taxonomy_code = normalize_taxonomy_code(concept_id)
+            if taxonomy_code:
+                payload_json["node_code"] = taxonomy_code
+                payload_json["taxonomy_code"] = taxonomy_code
             payload_json["typed_edges"] = _typed_edges_from_assessment_item(
                 question_id=question_id,
                 submission_id=f"{quiz_id}:{question_id}",

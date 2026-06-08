@@ -9,6 +9,7 @@ from typing import Any
 from deeptutor.services.learner_state.training_intent import build_learning_training_intent
 from deeptutor.services.taxonomy.learning_topic_resolver import (
     TopicInferer,
+    canonical_learning_topic_label,
     infer_learning_topic_with_llm,
     normalize_learning_topic_text,
     resolve_learning_topic_from_payload,
@@ -60,6 +61,11 @@ def _is_fresh_projection(projection: dict[str, Any] | None, *, now: datetime) ->
     if not _valid_focus(projection.get("today_focus")):
         return False
     if not _valid_prompts(projection.get("recommended_prompts")):
+        return False
+    if not _valid_focus_prompt_link(
+        projection.get("today_focus"),
+        projection.get("recommended_prompts"),
+    ):
         return False
     generated_at = _parse_time(str(projection.get("generated_at") or ""))
     if generated_at is None:
@@ -162,6 +168,12 @@ def write_home_personalization_projection(
     projection: dict[str, Any] | None,
 ) -> bool:
     if not isinstance(projection, dict):
+        return False
+    if not _valid_focus(projection.get("today_focus")) or not _valid_prompts(
+        projection.get("recommended_prompts")
+    ):
+        return False
+    if not _valid_focus_prompt_link(projection.get("today_focus"), projection.get("recommended_prompts")):
         return False
     merger = getattr(learner_state_service, "merge_progress", None)
     if not callable(merger):
@@ -297,20 +309,72 @@ def _valid_focus(value: Any) -> bool:
     if not title:
         return False
     topic = _topic_from_focus_title(title)
-    if topic and not normalize_home_focus_topic_label(topic):
+    if not topic or not normalize_home_focus_topic_label(topic):
         return False
+    canonical_topic = canonical_learning_topic_label(topic)
+    if not canonical_topic:
+        return False
+    intent = value.get("intent") if isinstance(value.get("intent"), dict) else {}
+    concept_label = str(intent.get("concept_label") or "").strip()
+    if concept_label:
+        intent_topic = canonical_learning_topic_label(concept_label)
+        if intent_topic != canonical_topic:
+            return False
     return True
 
 
 def _valid_prompts(value: Any) -> bool:
     if not isinstance(value, list) or not value:
         return False
-    return all(
-        isinstance(item, dict)
-        and bool(str(item.get("text") or "").strip())
-        and isinstance(item.get("intent"), dict)
-        for item in value
-    )
+    for item in value:
+        if not isinstance(item, dict) or not str(item.get("text") or "").strip():
+            return False
+        intent = item.get("intent") if isinstance(item.get("intent"), dict) else None
+        if not isinstance(intent, dict):
+            return False
+        concept_label = str(intent.get("concept_label") or "").strip()
+        if not concept_label:
+            return False
+        canonical_topic = canonical_learning_topic_label(concept_label)
+        if not canonical_topic:
+            return False
+        prompt_type = str(item.get("prompt_type") or "").strip()
+        if not _valid_prompt_text_for_topic(
+            prompt_type=prompt_type,
+            text=str(item.get("text") or "").strip(),
+            topic=canonical_topic,
+        ):
+            return False
+    return True
+
+
+def _valid_focus_prompt_link(focus: Any, prompts: Any) -> bool:
+    if not isinstance(focus, dict) or not isinstance(prompts, list) or not prompts:
+        return False
+    prompt = str(focus.get("prompt") or "").strip()
+    if not prompt:
+        return True
+    first_prompt = prompts[0] if isinstance(prompts[0], dict) else {}
+    return prompt == str(first_prompt.get("text") or "").strip()
+
+
+def _valid_prompt_text_for_topic(*, prompt_type: str, text: str, topic: str) -> bool:
+    if not text or not topic:
+        return False
+    expected = {
+        "practice_prompt": f"用 3 道题训练{topic}",
+        "concept_explain": f"讲清楚{topic}的关键判断",
+        "exam_transfer": f"用一道真题场景理解{topic}",
+        "knowledge_map": f"梳理{topic}的高频考点",
+        "quick_check": f"用 1 个小问题验证{topic}是否真会了",
+        "assessment": f"再测一次{topic}",
+    }
+    if prompt_type in expected:
+        return text == expected[prompt_type]
+    if prompt_type == "mistake_review":
+        prefix = f"复盘{topic}里的"
+        return text.startswith(prefix) and bool(text[len(prefix):].strip())
+    return False
 
 
 def _build_seed_fallback(*, subject_id: str, fallback_reason: str) -> dict[str, Any]:

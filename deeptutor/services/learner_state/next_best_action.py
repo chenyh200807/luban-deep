@@ -6,6 +6,7 @@ from deeptutor.services.learner_state.training_intent import (
     PRESCRIPTION_AUTHORITY,
     prioritize_training_intents,
 )
+from deeptutor.services.taxonomy.learning_topic_resolver import canonical_learning_topic_label
 
 ACTIONABLE_EDGE_TYPES = frozenset({
     "error_points_to_training",
@@ -52,13 +53,13 @@ def _action_from_intent(intent: dict[str, Any], *, graph: dict[str, Any], index:
 
 
 def _target(intent: dict[str, Any]) -> str:
-    parts = [str(intent.get("concept_label") or "").strip(), str(intent.get("error_label") or "").strip()]
+    parts = [_display_concept(intent), str(intent.get("error_label") or "").strip()]
     return " · ".join(part for part in parts if part) or "诊断练习"
 
 
 def _materials(intent: dict[str, Any]) -> list[str]:
     materials: list[str] = []
-    concept = str(intent.get("concept_label") or "").strip()
+    concept = _display_concept(intent)
     error = str(intent.get("error_label") or "").strip()
     if concept:
         materials.append(f"教材：{concept}相关章节")
@@ -75,13 +76,17 @@ def _success_measure(requires_revalidation: bool) -> str:
 
 
 def _title(intent: dict[str, Any]) -> str:
-    concept = str(intent.get("concept_label") or "").strip()
+    concept = _display_concept(intent)
     error = str(intent.get("error_label") or "").strip()
     if concept and error:
         return f"先练{concept}：{error}"
     if concept:
         return f"先练{concept}"
     return "先补一题可诊断练习"
+
+
+def _display_concept(intent: dict[str, Any]) -> str:
+    return canonical_learning_topic_label(intent.get("taxonomy_code") or intent.get("concept_id") or intent.get("concept_label"))
 
 
 def _why_this_now(intent: dict[str, Any], *, graph: dict[str, Any], evidence_refs: list[str]) -> str:

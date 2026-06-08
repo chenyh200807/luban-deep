@@ -72,11 +72,11 @@ from deeptutor.services.learner_state.progress_feedback import (
     build_progress_feedback,
     build_progress_feedback_from_learner_snapshot,
 )
-from deeptutor.services.learner_state.home_personalization import normalize_home_focus_topic_label
 from deeptutor.services.learner_state.study_plan import (
     build_study_plan,
     build_study_plan_from_learner_snapshot,
 )
+from deeptutor.services.taxonomy.learning_topic_resolver import canonical_learning_topic_label
 from deeptutor.services.internal_qa import internal_qa_billing_bypass_allowed
 from deeptutor.services.member_console.external_auth import (
     create_external_auth_user,
@@ -4355,18 +4355,18 @@ class MemberConsoleService:
 
         if focus_topic:
             weak_names = {
-                str(item.get("name") or "").strip()
+                self._normalize_home_focus_topic(item.get("name"))
                 for item in weak_nodes
-                if str(item.get("name") or "").strip()
+                if self._normalize_home_focus_topic(item.get("name"))
             }
             if snapshot is not None:
                 progress = dict(getattr(snapshot, "progress", {}) or {})
                 knowledge_map = dict(progress.get("knowledge_map") or {})
                 weak_names.update(
-                    str(item or "").strip()
+                    self._normalize_home_focus_topic(item)
                     for item in list(knowledge_map.get("weak_points") or [])
-                    if str(item or "").strip()
-            )
+                    if self._normalize_home_focus_topic(item)
+                )
             tone = "practice" if focus_topic in weak_names else "plan"
             if not focus_query:
                 focus_query = self._build_adaptive_focus_query(
@@ -4419,7 +4419,7 @@ class MemberConsoleService:
 
     @staticmethod
     def _normalize_home_focus_topic(value: Any) -> str:
-        return normalize_home_focus_topic_label(value)
+        return canonical_learning_topic_label(value)
 
     def _pick_home_focus_topic(
         self,

@@ -46,6 +46,7 @@ from deeptutor.services.taxonomy.construction_taxonomy import (
     textbook_directory,
     textbook_topic_meta,
 )
+from deeptutor.services.taxonomy.learning_topic_resolver import canonical_learning_topic_label
 
 
 def _build_scoring_point_map_from(*, events: list[Any], user_id: str) -> dict[str, Any]:
@@ -1125,6 +1126,7 @@ def _study_plan_payload(
     training_prescription: dict[str, Any],
 ) -> dict[str, Any]:
     plan = _safe_dict(home_dashboard.get("study_plan"))
+    plan = _canonicalized_study_plan(plan)
     prescription_plan = _study_plan_from_prescription(training_prescription)
     if any(
         str(plan.get(key) or "").strip()
@@ -1145,6 +1147,7 @@ def _study_plan_payload(
         or str(summary.get("primary_focus") or "").strip()
         or str(_safe_dict(home_dashboard.get("today_focus")).get("title") or "").strip()
     )
+    focus_topic = canonical_learning_topic_label(focus_topic)
     priority_task = str(next_action.get("title") or "").strip()
     coach_note = str(next_action.get("subtitle") or "").strip()
     estimated_minutes = _safe_int(next_action.get("estimated_minutes"))
@@ -1300,7 +1303,7 @@ def _study_plan_from_prescription(prescription: dict[str, Any]) -> dict[str, Any
     if not item:
         return {}
     status = str(item.get("status") or "").strip()
-    topic = _student_safe_topic(item.get("display_topic"))
+    topic = canonical_learning_topic_label(item.get("display_topic")) or _student_safe_topic(item.get("display_topic"))
     estimated = _safe_int(item.get("estimated_minutes"))
     if status == "active" and topic:
         return {
@@ -1337,6 +1340,19 @@ def _is_student_safe_study_plan(plan: dict[str, Any]) -> bool:
         return False
     focus = str(plan.get("focus_topic") or plan.get("focusTopic") or "").strip()
     return not focus or bool(_student_safe_topic(focus))
+
+
+def _canonicalized_study_plan(plan: dict[str, Any]) -> dict[str, Any]:
+    if not plan:
+        return {}
+    payload = dict(plan)
+    raw_focus = payload.get("focus_topic") or payload.get("focusTopic")
+    focus = canonical_learning_topic_label(raw_focus)
+    if focus:
+        payload["focus_topic"] = focus
+    elif raw_focus:
+        return {}
+    return payload
 
 
 def _learner_facing_payload(
@@ -2301,10 +2317,14 @@ def _calibrated_mastery(raw_score: int, stats: dict[str, Any]) -> int:
 
 
 def _pick_focus_topic(*, weak_names: list[str], home_dashboard: dict[str, Any]) -> str:
-    if weak_names:
-        return weak_names[0]
+    for weak_name in weak_names:
+        topic = canonical_learning_topic_label(weak_name)
+        if topic:
+            return topic
     focus = _safe_dict(home_dashboard.get("today_focus"))
-    return str(focus.get("title") or _safe_dict(home_dashboard.get("today")).get("hint") or "").strip()
+    return canonical_learning_topic_label(
+        str(focus.get("title") or _safe_dict(home_dashboard.get("today")).get("hint") or "").strip()
+    )
 
 
 def _concept_label(concept_id: str) -> str:

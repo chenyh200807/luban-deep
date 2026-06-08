@@ -2678,7 +2678,14 @@ def _maybe_attach_v1_llm_adjudication(
         )
 
         payload = build_llm_adjudication_payload(
-            question_id=question_id, student_id=student_id, student_answer=student_answer,
+            question_id=question_id,
+            student_id=student_id,
+            student_answer=student_answer,
+            personalization_context_pack=(
+                context.metadata.get("personalization_context")
+                if isinstance(context.metadata.get("personalization_context"), dict)
+                else None
+            ),
         )
         if limited_default and not explicit_flag:
             payload["limited_default_applied"] = True
