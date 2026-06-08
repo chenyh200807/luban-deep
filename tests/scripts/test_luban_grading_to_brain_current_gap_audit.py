@@ -78,6 +78,45 @@ def test_current_gap_audit_outputs_authorization_gate_decision_package(
     assert (tmp_path / "AUTHORIZATION_GATES_grading_to_brain.md").exists()
 
 
+def test_current_gap_audit_outputs_g1_limited_default_preflight(
+    tmp_path: Path,
+) -> None:
+    subprocess.run(
+        [sys.executable, str(SCRIPT), "--out", str(tmp_path)],
+        cwd=REPO,
+        check=True,
+    )
+
+    preflight = json.loads(
+        (tmp_path / "G1_LIMITED_DEFAULT_PREFLIGHT.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert preflight["gate_id"] == "G1_limited_production_default"
+    assert preflight["scope"] == "read_only_pre_authorization_preflight"
+    assert preflight["verdict"] == "ready_for_user_authorization"
+    assert preflight["execution_mode"] == "read_only_no_flip"
+    assert preflight["without_authorization"] == "decision_package_only"
+    assert preflight["allowed_scope_after_authorization"] == (
+        "qa_/operator_ cohort only"
+    )
+
+    assert preflight["production_write_count"] == 0
+    assert preflight["canonical_truth_written"] is False
+    assert preflight["remote_write_count"] == 0
+    assert preflight["published_registry_executed"] is False
+
+    assert preflight["preconditions"]["m19c_limited_default_flip"] == "GO"
+    assert preflight["preconditions"]["m19d_soak_verdict"] == "GO"
+    assert preflight["preconditions"]["rollback_readiness"] is True
+    assert preflight["preconditions"]["broad_default"] == "NO-GO"
+    assert preflight["preconditions"]["canonical_learner_truth_write"] == "NO-GO"
+    assert all(preflight["evidence_ok"].values())
+    assert preflight["single_authority"]["no_second_grading_truth"] is True
+    assert preflight["single_authority"]["no_second_learner_truth"] is True
+    assert (tmp_path / "G1_LIMITED_DEFAULT_PREFLIGHT.md").exists()
+
+
 def test_current_gap_audit_outputs_explicit_loop_completion_audit(
     tmp_path: Path,
 ) -> None:

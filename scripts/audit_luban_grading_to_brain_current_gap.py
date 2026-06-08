@@ -14,6 +14,22 @@ DEFAULT_OUT = (
 )
 
 MASTER_PLAN = "docs/plan/2026-06-04-luban-grading-engine-master-control-plan.md"
+G1_M19C_GO = (
+    "artifacts/luban_grading_artifacts/limited_default_flip_m19c_20260605/"
+    "go_no_go_m19c.json"
+)
+G1_M19D_VERDICT = (
+    "artifacts/luban_grading_artifacts/limited_default_soak_monitoring_m19d_20260605/"
+    "release_verdict_m19d.json"
+)
+G1_ROLLBACK = (
+    "artifacts/luban_grading_artifacts/limited_default_soak_monitoring_m19d_20260605/"
+    "rollback_readiness_drill_m19d.json"
+)
+G1_SAFETY = (
+    "artifacts/luban_grading_artifacts/limited_default_soak_monitoring_m19d_20260605/"
+    "safety_invariants_m19d.json"
+)
 
 
 SCENARIOS: list[dict[str, Any]] = [
@@ -402,6 +418,13 @@ def _rel_exists(path: str) -> bool:
     return (REPO / path).exists()
 
 
+def _read_json_rel(path: str) -> dict[str, Any]:
+    full_path = REPO / path
+    if not full_path.exists():
+        return {}
+    return json.loads(full_path.read_text(encoding="utf-8"))
+
+
 def _current_commit() -> str:
     return subprocess.check_output(
         ["git", "rev-parse", "--short", "HEAD"],
@@ -527,6 +550,107 @@ def build_authorization_package() -> dict[str, Any]:
     }
 
 
+def build_g1_limited_default_preflight() -> dict[str, Any]:
+    m19c = _read_json_rel(G1_M19C_GO)
+    m19d = _read_json_rel(G1_M19D_VERDICT)
+    rollback = _read_json_rel(G1_ROLLBACK)
+    safety = _read_json_rel(G1_SAFETY)
+
+    evidence_ok = {
+        G1_M19C_GO: bool(m19c),
+        G1_M19D_VERDICT: bool(m19d),
+        G1_ROLLBACK: bool(rollback),
+        G1_SAFETY: bool(safety),
+    }
+    preconditions = {
+        "m19c_limited_default_flip": m19c.get("m19c_limited_default_flip"),
+        "m19d_soak_verdict": m19d.get("m19d_soak_verdict"),
+        "rollback_readiness": rollback.get("all_pass") is True,
+        "safety_invariants": safety.get("all_pass") is True,
+        "rollback_works": safety.get("rollback_works") is True,
+        "broad_default": m19d.get("broad_default") or m19c.get("production_default_broad"),
+        "canonical_learner_truth_write": "NO-GO"
+        if (
+            m19c.get("canonical_truth_written") is False
+            and m19d.get("canonical_truth_written") is False
+            and safety.get("canonical_truth_written") is False
+        )
+        else "UNKNOWN",
+    }
+    no_write = {
+        "production_write_count": max(
+            int(m19c.get("production_write_count", 999)),
+            int(m19d.get("production_write_count", 999)),
+            int(safety.get("production_write_count", 999)),
+        ),
+        "canonical_truth_written": any(
+            value is True
+            for value in (
+                m19c.get("canonical_truth_written"),
+                m19d.get("canonical_truth_written"),
+                safety.get("canonical_truth_written"),
+            )
+        ),
+        "remote_write_count": 0 if m19c.get("remote_deployment_written") is False else 1,
+        "published_registry_executed": m19c.get("formal_registry_emitted") is True,
+    }
+    ready = (
+        all(evidence_ok.values())
+        and preconditions["m19c_limited_default_flip"] == "GO"
+        and preconditions["m19d_soak_verdict"] == "GO"
+        and preconditions["rollback_readiness"] is True
+        and preconditions["safety_invariants"] is True
+        and preconditions["rollback_works"] is True
+        and preconditions["broad_default"] == "NO-GO"
+        and preconditions["canonical_learner_truth_write"] == "NO-GO"
+        and no_write["production_write_count"] == 0
+        and no_write["canonical_truth_written"] is False
+        and no_write["remote_write_count"] == 0
+        and no_write["published_registry_executed"] is False
+    )
+
+    return {
+        "schema_version": 1,
+        "generated_by": "audit_luban_grading_to_brain_current_gap",
+        "master_plan": MASTER_PLAN,
+        "gate_id": "G1_limited_production_default",
+        "scope": "read_only_pre_authorization_preflight",
+        "verdict": "ready_for_user_authorization" if ready else "not_ready",
+        "execution_mode": "read_only_no_flip",
+        "without_authorization": "decision_package_only",
+        "required_authorization": "explicit_user_authorization_for_limited_default",
+        "allowed_scope_after_authorization": "qa_/operator_ cohort only",
+        "promotion_path": "runtime_default_only_no_mastery_write",
+        "preconditions": preconditions,
+        "evidence_ok": evidence_ok,
+        "missing_evidence_refs": [
+            path for path, exists in evidence_ok.items() if not exists
+        ],
+        "single_authority": {
+            "no_second_grading_truth": True,
+            "no_second_learner_truth": True,
+            "grading_truth_source": "existing limited-default runtime gate evidence",
+            "learner_truth_source": "unchanged Learning Evidence Ledger / Learner Model",
+            "pcp_role": "read_only_feedback_context",
+        },
+        **no_write,
+        "stop_conditions": [
+            "false_positive > 0",
+            "bad_certified > 0",
+            "source_mismatch > 0",
+            "legacy_equal < 1.0",
+            "teacher review backlog exceeds operator capacity",
+            "any canonical learner truth write is requested by this gate",
+        ],
+        "evidence_refs": [
+            G1_M19C_GO,
+            G1_M19D_VERDICT,
+            G1_ROLLBACK,
+            G1_SAFETY,
+        ],
+    }
+
+
 def build_completion_audit() -> dict[str, Any]:
     requirements = [_with_evidence_health(row) for row in COMPLETION_REQUIREMENTS]
     statuses = {row["status"] for row in requirements}
@@ -566,6 +690,7 @@ def build_final_acceptance_report(
     matrix: dict[str, Any],
     authorization_package: dict[str, Any],
     completion_audit: dict[str, Any],
+    g1_preflight: dict[str, Any],
 ) -> dict[str, Any]:
     remaining_gate_order = [
         "canonical_learner_truth_write",
@@ -606,6 +731,11 @@ def build_final_acceptance_report(
                 "grading_to_brain_current_gap_audit_20260608/"
                 "authorization_gate_decision_package.json"
             ),
+            "g1_limited_default_preflight": (
+                "artifacts/luban_grading_artifacts/"
+                "grading_to_brain_current_gap_audit_20260608/"
+                "G1_LIMITED_DEFAULT_PREFLIGHT.json"
+            ),
         },
         "fresh_verification_commands": [
             {
@@ -633,7 +763,9 @@ def build_final_acceptance_report(
                     "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/completion_audit.json "
                     "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/COMPLETION_AUDIT_grading_to_brain.md "
                     "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/FINAL_ACCEPTANCE_REPORT_grading_to_brain.json "
-                    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/FINAL_ACCEPTANCE_REPORT_grading_to_brain.md"
+                    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/FINAL_ACCEPTANCE_REPORT_grading_to_brain.md "
+                    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G1_LIMITED_DEFAULT_PREFLIGHT.json "
+                    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G1_LIMITED_DEFAULT_PREFLIGHT.md"
                 ),
                 "expected_result": "pass",
             },
@@ -652,6 +784,7 @@ def build_final_acceptance_report(
                 for gate_id, gate in authorization_package["gates"].items()
                 if gate["recommended_next"]
             ],
+            "g1_preflight_verdict": g1_preflight["verdict"],
             "no_write": {
                 "production_write_count": authorization_package["production_write_count"],
                 "canonical_truth_written": authorization_package[
@@ -664,6 +797,54 @@ def build_final_acceptance_report(
             },
         },
     }
+
+
+def write_g1_preflight_markdown(preflight: dict[str, Any], out_dir: Path) -> None:
+    lines = [
+        "# G1 Limited Default Preflight",
+        "",
+        f"- Gate: `{preflight['gate_id']}`",
+        f"- Verdict: `{preflight['verdict']}`",
+        f"- Scope: `{preflight['scope']}`",
+        f"- Execution mode: `{preflight['execution_mode']}`",
+        f"- Without authorization: `{preflight['without_authorization']}`",
+        f"- Required authorization: `{preflight['required_authorization']}`",
+        f"- Allowed scope after authorization: `{preflight['allowed_scope_after_authorization']}`",
+        "",
+        "This artifact does not flip production default, publish registry, write remote/DB state, or promote canonical learner truth.",
+        "",
+        "## No-Write Invariants",
+        "",
+        f"- production_write_count: `{preflight['production_write_count']}`",
+        f"- canonical_truth_written: `{preflight['canonical_truth_written']}`",
+        f"- remote_write_count: `{preflight['remote_write_count']}`",
+        f"- published_registry_executed: `{preflight['published_registry_executed']}`",
+        "",
+        "## Preconditions",
+        "",
+    ]
+    for key, value in preflight["preconditions"].items():
+        lines.append(f"- {key}: `{value}`")
+
+    lines.extend(["", "## Evidence", ""])
+    for ref in preflight["evidence_refs"]:
+        lines.append(f"- `{ref}`")
+
+    lines.extend(
+        [
+            "",
+            "## Stop Conditions",
+            "",
+        ]
+    )
+    for condition in preflight["stop_conditions"]:
+        lines.append(f"- {condition}")
+
+    lines.append("")
+    (out_dir / "G1_LIMITED_DEFAULT_PREFLIGHT.md").write_text(
+        "\n".join(lines),
+        encoding="utf-8",
+    )
 
 
 def write_markdown(matrix: dict[str, Any], out_dir: Path) -> None:
@@ -896,10 +1077,12 @@ def main() -> int:
     matrix = build_matrix()
     authorization_package = build_authorization_package()
     completion_audit = build_completion_audit()
+    g1_preflight = build_g1_limited_default_preflight()
     final_report = build_final_acceptance_report(
         matrix,
         authorization_package,
         completion_audit,
+        g1_preflight,
     )
     (out_dir / "coverage_matrix.json").write_text(
         json.dumps(matrix, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
@@ -925,6 +1108,16 @@ def main() -> int:
         + "\n",
         encoding="utf-8",
     )
+    (out_dir / "G1_LIMITED_DEFAULT_PREFLIGHT.json").write_text(
+        json.dumps(
+            g1_preflight,
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     (out_dir / "FINAL_ACCEPTANCE_REPORT_grading_to_brain.json").write_text(
         json.dumps(
             final_report,
@@ -938,12 +1131,14 @@ def main() -> int:
     write_markdown(matrix, out_dir)
     write_authorization_markdown(authorization_package, out_dir)
     write_completion_markdown(completion_audit, out_dir)
+    write_g1_preflight_markdown(g1_preflight, out_dir)
     write_final_acceptance_markdown(final_report, out_dir)
 
     missing = {
         "coverage_matrix": matrix["missing_evidence"],
         "authorization_package": authorization_package["missing_evidence"],
         "completion_audit": completion_audit["missing_evidence"],
+        "g1_preflight": g1_preflight["missing_evidence_refs"],
     }
     missing = {key: value for key, value in missing.items() if value}
     if missing:
