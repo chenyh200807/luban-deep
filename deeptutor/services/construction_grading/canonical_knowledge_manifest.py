@@ -144,7 +144,8 @@ def promote_to_published(
         raise ValueError(
             f"manifest namespace {manifest.get('namespace')!r} != canonical {NAMESPACE!r}"
         )
-    promoted = dict(manifest)
+    # immutable: copy the shards list too so the returned manifest never shares mutable state with input
+    promoted = {**manifest, "shards": list(manifest.get("shards") or [])}
     promoted["status"] = "published"
     promoted["published"] = True
     promoted["published_at"] = published_at

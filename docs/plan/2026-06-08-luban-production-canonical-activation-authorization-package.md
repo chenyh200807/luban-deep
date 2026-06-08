@@ -160,4 +160,6 @@ G1 limited default 远端部署(qa_/operator_, 可逆)
 - **[设计边界，不扩散]** `promote_to_published` 是纯确定性函数（不碰 env/disk），公开供编排 + 测试调用；授权门在 `publish_canonical_registry`，且 published manifest 落盘 / 被 runtime 消费仍需 G5 远端写授权——单独调 promote 得到 dict 无法激活。
 - **[既有债，待独立处理]** manifest signature 只绑定 content_hash/namespace/status，不覆盖 rollback_pointer/version 等元数据（既有 `build_manifest` 设计）；属 ops 风险（回退指向错误）非签发绕过，扩大 signature 覆盖面需改 build/verify + 既有测试，单独任务处理。
 
-复验：G3/G4 共 23 测试全绿（含新增 records-tamper / 非 bool 授权 / foreign namespace 负向）、contract_guard PASS。
+**code-reviewer 复审（第二独立 reviewer，2026-06-08）** 又发现并修复 2 项：①零-shard 空 manifest 能过三门 publish（空 manifest 不是可发布权威）→ 加 `manifest_has_no_shards` 拦截；②`None` supply_root 抛未捕获 `Path(None)` TypeError → 加 `supply_root_missing` 结构化 refusal；并按项目 immutability 约束把 `promote_to_published` 的 `shards` 改为深拷贝（返回 manifest 不与输入共享可变状态）。新增对应负向测试 + truthy non-bool 授权（`1`/`"true"`/`[1]`）回归锁。
+
+复验：G3/G4 全套测试绿（含 records-tamper / 非 bool 授权 / foreign namespace / 零-shard / None supply_root / garbage flag 负向断言）、contract_guard PASS。

@@ -578,7 +578,7 @@ PUBLISH_ENABLED_FLAG = "LUBAN_REGISTRY_PUBLISH_ENABLED"
 
 def publish_canonical_registry(
     manifest: dict[str, Any],
-    supply_root: Any,
+    supply_root: "str | Path",
     *,
     release_gate_report: dict[str, Any],
     authorized: bool,
@@ -603,9 +603,13 @@ def publish_canonical_registry(
     def _refusal(reason: str) -> dict[str, Any]:
         return {"published": False, "reason": reason, "manifest": dict(manifest)}
 
+    if supply_root is None:  # structured refusal instead of an uncaught Path(None) TypeError
+        return _refusal("supply_root_missing")
+    if not (manifest.get("shards") or []):  # an empty manifest is not a publishable authority
+        return _refusal("manifest_has_no_shards")
     if not env_flag(PUBLISH_ENABLED_FLAG, default=False):
         return _refusal("publish_disabled")
-    if authorized is not True:  # strict: only literal True authorizes (truthy strings must not pass)
+    if authorized is not True:  # strict: only literal True authorizes (truthy values must not pass)
         return _refusal("not_authorized")
     report = release_gate_report or {}
     if str(report.get("final_status") or "").upper() != _PASS:

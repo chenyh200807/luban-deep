@@ -104,6 +104,15 @@ def test_promote_to_published_rejects_non_release_candidate(tmp_path):
         M.promote_to_published(bad, superseded_version=None, published_at="t")
 
 
+def test_promote_to_published_does_not_share_shards_with_input(tmp_path):
+    # immutable: mutating the promoted manifest's shards must not leak back into the input
+    s1 = _shard(tmp_path, "objective_answer_key", "h1")
+    man = M.build_manifest([s1], M.source_inventory([]), version="v1", producer="t", rollback_pointer="x")
+    pub = M.promote_to_published(man, superseded_version=None, published_at="t")
+    pub["shards"].append({"lane": "injected"})
+    assert len(man["shards"]) == 1 and all(s.get("lane") != "injected" for s in man["shards"])
+
+
 def test_promote_to_published_rejects_foreign_namespace(tmp_path):
     # a release_candidate carrying a non-canonical namespace must not be promoted (the re-sign binds the
     # constant NAMESPACE, so a foreign namespace would yield a signature inconsistent with its own field)

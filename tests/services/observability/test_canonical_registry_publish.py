@@ -82,13 +82,40 @@ def test_publish_requires_explicit_authorization(tmp_path, monkeypatch):
 
 
 def test_publish_rejects_truthy_non_bool_authorization(tmp_path, monkeypatch):
-    """Strict: a truthy non-bool (e.g. the string "false") must NOT authorize."""
+    """Strict: a truthy non-bool (int 1 / non-empty str) must NOT authorize — only literal True does.
+
+    These are exactly the values a naive ``if authorized:`` check would let through; ``is not True``
+    rejects them. Regression-locks the strict identity guard.
+    """
+    monkeypatch.setenv(PUBLISH_ENABLED_FLAG, "true")
+    man = _manifest(tmp_path)
+    for bad_auth in (1, "true", "false", [1]):
+        out = publish_canonical_registry(
+            man, tmp_path, release_gate_report=_PASS_REPORT, authorized=bad_auth, published_at="t"
+        )
+        assert out["published"] is False and out["reason"] == "not_authorized"
+
+
+def test_publish_rejects_zero_shard_manifest(tmp_path, monkeypatch):
+    """An empty manifest (no shards) is not a publishable authority -> refusal."""
+    monkeypatch.setenv(PUBLISH_ENABLED_FLAG, "true")
+    empty = M.build_manifest(
+        [], M.source_inventory([]), version="v2", producer="test", rollback_pointer="v1"
+    )
+    out = publish_canonical_registry(
+        empty, tmp_path, release_gate_report=_PASS_REPORT, authorized=True, published_at="t"
+    )
+    assert out["published"] is False and out["reason"] == "manifest_has_no_shards"
+
+
+def test_publish_rejects_none_supply_root(tmp_path, monkeypatch):
+    """A None supply_root yields a structured refusal, not an uncaught Path(None) TypeError."""
     monkeypatch.setenv(PUBLISH_ENABLED_FLAG, "true")
     man = _manifest(tmp_path)
     out = publish_canonical_registry(
-        man, tmp_path, release_gate_report=_PASS_REPORT, authorized="false", published_at="t"
+        man, None, release_gate_report=_PASS_REPORT, authorized=True, published_at="t"
     )
-    assert out["published"] is False and out["reason"] == "not_authorized"
+    assert out["published"] is False and out["reason"] == "supply_root_missing"
 
 
 def test_publish_requires_release_gate_pass(tmp_path, monkeypatch):
