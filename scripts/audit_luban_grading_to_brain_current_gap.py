@@ -86,6 +86,11 @@ G4_TEACHER_BRIDGE = (
     "learning_brain_canonical_claim_gate_m13e_20260604/"
     "teacher_review_to_claim_bridge_m13e.jsonl"
 )
+G6_DEVTOOLS_E2E_SCRIPT = "scripts/run_wechat_learning_brain_devtools_e2e.py"
+G6_HOME_DASHBOARD_TEST = (
+    "tests/services/member_console/test_home_dashboard_learning_projection.py"
+)
+G6_AGENTS_CONTRACT = "AGENTS.md"
 
 
 SCENARIOS: list[dict[str, Any]] = [
@@ -1150,6 +1155,98 @@ def build_g4_canonical_learner_truth_preflight() -> dict[str, Any]:
     }
 
 
+def build_g6_real_wechat_package_preflight() -> dict[str, Any]:
+    script_text = (REPO / G6_DEVTOOLS_E2E_SCRIPT).read_text(encoding="utf-8")
+    evidence_ok = {
+        G6_AGENTS_CONTRACT: _rel_exists(G6_AGENTS_CONTRACT),
+        G6_DEVTOOLS_E2E_SCRIPT: _rel_exists(G6_DEVTOOLS_E2E_SCRIPT),
+        G6_HOME_DASHBOARD_TEST: _rel_exists(G6_HOME_DASHBOARD_TEST),
+    }
+    devtools_project_root = "yousenwebview"
+    target_subpackage = "packageDeeptutor"
+    preconditions = {
+        "devtools_e2e_script_present": evidence_ok[G6_DEVTOOLS_E2E_SCRIPT],
+        "project_root_is_yousenwebview": (
+            'DEFAULT_DEVTOOLS_PROJECT_PATH = PROJECT_ROOT / "yousenwebview"'
+            in script_text
+        ),
+        "target_subpackage_is_packageDeeptutor": (
+            'DEFAULT_DEVTOOLS_TARGET_SUBPACKAGE = "packageDeeptutor"'
+            in script_text
+        ),
+        "true_package_page_automation_executed": False,
+        "wechat_harness_not_counted_as_real": True,
+        "devtools_login_or_open_not_counted_as_pass": True,
+    }
+    no_write = {
+        "production_write_count": 0,
+        "canonical_truth_written": False,
+        "remote_write_count": 0,
+        "published_registry_executed": False,
+    }
+    ready = (
+        all(evidence_ok.values())
+        and preconditions["true_package_page_automation_executed"] is True
+    )
+
+    return {
+        "schema_version": 1,
+        "generated_by": "audit_luban_grading_to_brain_current_gap",
+        "master_plan": MASTER_PLAN,
+        "gate_id": "G6_real_wechat_package_page_automation",
+        "scope": "read_only_pre_authorization_preflight",
+        "verdict": "ready_for_user_authorization" if ready else "true_entry_pending",
+        "blocking_reason": (
+            "true WeChat package page automation evidence is required; /wechat-harness or DevTools login/open preflight is insufficient"
+        ),
+        "execution_mode": "read_only_no_devtools_launch",
+        "without_authorization": "decision_package_only",
+        "required_authorization": "devtools_or_manual_wechat_qa_window",
+        "allowed_scope_after_authorization": (
+            "open yousenwebview project root and drive packageDeeptutor page flow"
+        ),
+        "promotion_path": "verification_evidence_only_no_mastery_write",
+        "devtools_project_root": devtools_project_root,
+        "target_subpackage": target_subpackage,
+        "auth_state": "unknown",
+        "auth_mode": "none",
+        "preconditions": preconditions,
+        "evidence_classification": {
+            "wechat_harness": "shadow_not_real_wechat_package",
+            "devtools_islogin": "environment_preflight_only",
+            "devtools_open_project": "project_preflight_only",
+            "package_page_automation": "required_missing",
+        },
+        "evidence_ok": evidence_ok,
+        "missing_evidence_refs": [
+            path for path, exists in evidence_ok.items() if not exists
+        ],
+        "single_authority": {
+            "no_second_grading_truth": True,
+            "no_second_learner_truth": True,
+            "real_entry_evidence_source": (
+                "DevTools/miniprogram automation against yousenwebview project root plus packageDeeptutor page flow"
+            ),
+            "wechat_harness_role": "shadow QA only",
+            "pcp_role": "read_only_feedback_context",
+        },
+        **no_write,
+        "stop_conditions": [
+            "only /wechat-harness evidence is available",
+            "DevTools islogin/open is reported as scenario pass",
+            "project root is packageDeeptutor instead of yousenwebview",
+            "auth_state/auth_mode is unknown but reported as pass",
+            "page-level automation result is missing",
+            "any canonical learner truth write is requested by this gate",
+        ],
+        "evidence_refs": [
+            G6_AGENTS_CONTRACT,
+            G6_DEVTOOLS_E2E_SCRIPT,
+            G6_HOME_DASHBOARD_TEST,
+        ],
+    }
+
+
 def build_completion_audit() -> dict[str, Any]:
     requirements = [_with_evidence_health(row) for row in COMPLETION_REQUIREMENTS]
     statuses = {row["status"] for row in requirements}
@@ -1193,6 +1290,7 @@ def build_final_acceptance_report(
     g2_preflight: dict[str, Any],
     g3_preflight: dict[str, Any],
     g4_preflight: dict[str, Any],
+    g6_preflight: dict[str, Any],
 ) -> dict[str, Any]:
     remaining_gate_order = [
         "canonical_learner_truth_write",
@@ -1253,6 +1351,11 @@ def build_final_acceptance_report(
                 "grading_to_brain_current_gap_audit_20260608/"
                 "G4_CANONICAL_LEARNER_TRUTH_PREFLIGHT.json"
             ),
+            "g6_real_wechat_package_preflight": (
+                "artifacts/luban_grading_artifacts/"
+                "grading_to_brain_current_gap_audit_20260608/"
+                "G6_REAL_WECHAT_PACKAGE_PREFLIGHT.json"
+            ),
         },
         "fresh_verification_commands": [
             {
@@ -1288,7 +1391,9 @@ def build_final_acceptance_report(
                     "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G3_PUBLISHED_REGISTRY_PREFLIGHT.json "
                     "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G3_PUBLISHED_REGISTRY_PREFLIGHT.md "
                     "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G4_CANONICAL_LEARNER_TRUTH_PREFLIGHT.json "
-                    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G4_CANONICAL_LEARNER_TRUTH_PREFLIGHT.md"
+                    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G4_CANONICAL_LEARNER_TRUTH_PREFLIGHT.md "
+                    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G6_REAL_WECHAT_PACKAGE_PREFLIGHT.json "
+                    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G6_REAL_WECHAT_PACKAGE_PREFLIGHT.md"
                 ),
                 "expected_result": "pass",
             },
@@ -1311,6 +1416,7 @@ def build_final_acceptance_report(
             "g2_preflight_verdict": g2_preflight["verdict"],
             "g3_preflight_verdict": g3_preflight["verdict"],
             "g4_preflight_verdict": g4_preflight["verdict"],
+            "g6_preflight_verdict": g6_preflight["verdict"],
             "no_write": {
                 "production_write_count": authorization_package["production_write_count"],
                 "canonical_truth_written": authorization_package[
@@ -1517,6 +1623,62 @@ def write_g4_preflight_markdown(preflight: dict[str, Any], out_dir: Path) -> Non
 
     lines.append("")
     (out_dir / "G4_CANONICAL_LEARNER_TRUTH_PREFLIGHT.md").write_text(
+        "\n".join(lines),
+        encoding="utf-8",
+    )
+
+
+def write_g6_preflight_markdown(preflight: dict[str, Any], out_dir: Path) -> None:
+    lines = [
+        "# G6 Real WeChat Package Preflight",
+        "",
+        f"- Gate: `{preflight['gate_id']}`",
+        f"- Verdict: `{preflight['verdict']}`",
+        f"- Blocking reason: {preflight['blocking_reason']}",
+        f"- Scope: `{preflight['scope']}`",
+        f"- Execution mode: `{preflight['execution_mode']}`",
+        f"- Without authorization: `{preflight['without_authorization']}`",
+        f"- Required authorization: `{preflight['required_authorization']}`",
+        f"- DevTools project root: `{preflight['devtools_project_root']}`",
+        f"- Target subpackage: `{preflight['target_subpackage']}`",
+        "",
+        "This artifact does not launch DevTools, open the project, drive pages, or write product state. It only defines the evidence boundary for true WeChat package-page acceptance.",
+        "",
+        "## Evidence Classification",
+        "",
+    ]
+    for key, value in preflight["evidence_classification"].items():
+        lines.append(f"- {key}: `{value}`")
+
+    lines.extend(["", "## No-Write Invariants", ""])
+    lines.extend(
+        [
+            f"- production_write_count: `{preflight['production_write_count']}`",
+            f"- canonical_truth_written: `{preflight['canonical_truth_written']}`",
+            f"- remote_write_count: `{preflight['remote_write_count']}`",
+            f"- published_registry_executed: `{preflight['published_registry_executed']}`",
+            "",
+            "## Preconditions",
+            "",
+        ]
+    )
+    for key, value in preflight["preconditions"].items():
+        lines.append(f"- {key}: `{value}`")
+
+    lines.extend(["", "## Single Authority", ""])
+    for key, value in preflight["single_authority"].items():
+        lines.append(f"- {key}: `{value}`")
+
+    lines.extend(["", "## Evidence", ""])
+    for ref in preflight["evidence_refs"]:
+        lines.append(f"- `{ref}`")
+
+    lines.extend(["", "## Stop Conditions", ""])
+    for condition in preflight["stop_conditions"]:
+        lines.append(f"- {condition}")
+
+    lines.append("")
+    (out_dir / "G6_REAL_WECHAT_PACKAGE_PREFLIGHT.md").write_text(
         "\n".join(lines),
         encoding="utf-8",
     )
@@ -1756,6 +1918,7 @@ def main() -> int:
     g2_preflight = build_g2_broad_default_preflight(g1_preflight)
     g3_preflight = build_g3_published_registry_preflight()
     g4_preflight = build_g4_canonical_learner_truth_preflight()
+    g6_preflight = build_g6_real_wechat_package_preflight()
     final_report = build_final_acceptance_report(
         matrix,
         authorization_package,
@@ -1764,6 +1927,7 @@ def main() -> int:
         g2_preflight,
         g3_preflight,
         g4_preflight,
+        g6_preflight,
     )
     (out_dir / "coverage_matrix.json").write_text(
         json.dumps(matrix, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
@@ -1829,6 +1993,16 @@ def main() -> int:
         + "\n",
         encoding="utf-8",
     )
+    (out_dir / "G6_REAL_WECHAT_PACKAGE_PREFLIGHT.json").write_text(
+        json.dumps(
+            g6_preflight,
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     (out_dir / "FINAL_ACCEPTANCE_REPORT_grading_to_brain.json").write_text(
         json.dumps(
             final_report,
@@ -1846,6 +2020,7 @@ def main() -> int:
     write_g2_preflight_markdown(g2_preflight, out_dir)
     write_g3_preflight_markdown(g3_preflight, out_dir)
     write_g4_preflight_markdown(g4_preflight, out_dir)
+    write_g6_preflight_markdown(g6_preflight, out_dir)
     write_final_acceptance_markdown(final_report, out_dir)
 
     missing = {
@@ -1856,6 +2031,7 @@ def main() -> int:
         "g2_preflight": g2_preflight["missing_evidence_refs"],
         "g3_preflight": g3_preflight["missing_evidence_refs"],
         "g4_preflight": g4_preflight["missing_evidence_refs"],
+        "g6_preflight": g6_preflight["missing_evidence_refs"],
     }
     missing = {key: value for key, value in missing.items() if value}
     if missing:

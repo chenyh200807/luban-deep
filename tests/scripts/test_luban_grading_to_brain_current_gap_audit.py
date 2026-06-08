@@ -255,6 +255,55 @@ def test_current_gap_audit_outputs_g4_canonical_truth_preflight(
     assert (tmp_path / "G4_CANONICAL_LEARNER_TRUTH_PREFLIGHT.md").exists()
 
 
+def test_current_gap_audit_outputs_g6_real_wechat_preflight(
+    tmp_path: Path,
+) -> None:
+    subprocess.run(
+        [sys.executable, str(SCRIPT), "--out", str(tmp_path)],
+        cwd=REPO,
+        check=True,
+    )
+
+    preflight = json.loads(
+        (tmp_path / "G6_REAL_WECHAT_PACKAGE_PREFLIGHT.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert preflight["gate_id"] == "G6_real_wechat_package_page_automation"
+    assert preflight["scope"] == "read_only_pre_authorization_preflight"
+    assert preflight["verdict"] == "true_entry_pending"
+    assert preflight["execution_mode"] == "read_only_no_devtools_launch"
+    assert preflight["without_authorization"] == "decision_package_only"
+    assert preflight["blocking_reason"] == (
+        "true WeChat package page automation evidence is required; /wechat-harness or DevTools login/open preflight is insufficient"
+    )
+
+    assert preflight["devtools_project_root"] == "yousenwebview"
+    assert preflight["target_subpackage"] == "packageDeeptutor"
+    assert preflight["preconditions"]["devtools_e2e_script_present"] is True
+    assert preflight["preconditions"]["project_root_is_yousenwebview"] is True
+    assert preflight["preconditions"]["target_subpackage_is_packageDeeptutor"] is True
+    assert preflight["preconditions"]["true_package_page_automation_executed"] is False
+    assert preflight["preconditions"]["wechat_harness_not_counted_as_real"] is True
+    assert preflight["preconditions"]["devtools_login_or_open_not_counted_as_pass"] is True
+
+    classification = preflight["evidence_classification"]
+    assert classification["wechat_harness"] == "shadow_not_real_wechat_package"
+    assert classification["devtools_islogin"] == "environment_preflight_only"
+    assert classification["devtools_open_project"] == "project_preflight_only"
+    assert classification["package_page_automation"] == "required_missing"
+
+    assert preflight["production_write_count"] == 0
+    assert preflight["canonical_truth_written"] is False
+    assert preflight["remote_write_count"] == 0
+    assert preflight["published_registry_executed"] is False
+    assert all(preflight["evidence_ok"].values())
+    assert preflight["single_authority"]["real_entry_evidence_source"] == (
+        "DevTools/miniprogram automation against yousenwebview project root plus packageDeeptutor page flow"
+    )
+    assert (tmp_path / "G6_REAL_WECHAT_PACKAGE_PREFLIGHT.md").exists()
+
+
 def test_current_gap_audit_outputs_explicit_loop_completion_audit(
     tmp_path: Path,
 ) -> None:
