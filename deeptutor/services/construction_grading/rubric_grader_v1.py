@@ -418,6 +418,51 @@ async def extract_rubric_from_reference_async(
     return _parse_extracted_points(raw)
 
 
+_DERIVE_SYSTEM_PROMPT = "你是一建案例题命题/阅卷专家。根据题干用专业知识推导采分点，输出JSON数组。"
+
+_DERIVE_PROMPT_TMPL = (
+    "你是一建案例题命题/阅卷专家，精通建设监理、施工管理、工程法规等考试内容。\n"
+    "以下是一道案例题的题干（含问题），请用你掌握的专业知识，给出该问题的标准采分点，\n"
+    "拆解成最小可独立判定的原子采分点，给出分值与判定策略。\n\n"
+    "题干:\n{stem}\n\n"
+    "拆点规则(重要):\n"
+    "- 原子化:一个采分点只考一件事。把'指出不妥'和'正确做法'拆成两个独立采分点，不要合并。\n"
+    "- 可列举的答案(如设备清单、材料种类)，每一项可单列，或合为一个 list 采分点(允许部分给分)。\n"
+    "- 分值按重要性分配(可不等权)。\n"
+    "policy 取值与判定宽严(关键):\n"
+    "- qualitative: 定性论述/说明，意思对即可，允许换种说法(默认大多数点用它)。\n"
+    "- list: 可列举项，按命中比例给部分分。\n"
+    "- boolean_judgment: 判断妥/不妥、成立/不成立。\n"
+    "- calc: 计算结果(数值)。\n"
+    "- exact_required: 仅当必须一字不差的规范术语/法条号/标准号/精确数值时才用，且 required_terms 必填；\n"
+    "  普通专业表述不要用 exact_required。\n"
+    "- required_terms 只填'体现该点即可命中'的关键词(无则空数组)，不要把整句塞进去。\n"
+    '只输出JSON数组: [{{"text":"采分点表述","score":数值,"policy":"...","required_terms":[".."]}}]'
+)
+
+
+async def derive_rubric_from_stem_async(
+    question_stem: str,
+    complete_fn: Callable[..., Any], api_key: str, *, model: str = "deepseek-chat",
+) -> list[dict[str, Any]]:
+    """OPEN-WORLD rubric derivation from question stem alone (no reference answer available).
+    Uses LLM domain knowledge about construction supervision / 一建 exam content to derive
+    scoring points when neither a compiled rubric nor a reference answer exists. This is the
+    third-tier path: compiled_rubric > on_the_fly_reference > derived_from_stem.
+    Fail-closed -> [] (caller falls back to V0)."""
+    stem = str(question_stem or "").strip()
+    if not stem:
+        return []
+    prompt = _DERIVE_PROMPT_TMPL.format(stem=stem[:2000])
+    try:
+        raw = await complete_fn(prompt=prompt, system_prompt=_DERIVE_SYSTEM_PROMPT,
+                                model=model, api_key=api_key, max_retries=1)
+    except Exception:  # noqa: BLE001 — derivation failure -> [] (caller falls back to legacy)
+        logger.warning("rubric_grader_v1: stem-based rubric derivation LLM call failed", exc_info=True)
+        return []
+    return _parse_extracted_points(raw)
+
+
 def normalize_points_to_nominal(
     points: list[dict[str, Any]], *, nominal_total: float = 0.0, fallback_base: float = 10.0,
 ) -> list[dict[str, Any]]:

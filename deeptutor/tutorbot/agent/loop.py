@@ -931,11 +931,16 @@ class AgentLoop:
             nominal = float(eq.get("max_score") or fc.get("max_score") or 0)
         except (TypeError, ValueError):
             nominal = 0.0
+        # question_stem: bank entry > followup context > user_message (free-text case: the message
+        # contains the entire case exam so the stem path uses it for derive_rubric_from_stem_async)
+        question_stem = str(eq.get("stem") or eq.get("question") or fc.get("question_stem") or "")
+        if not question_stem:
+            question_stem = str(user_message or "")
         return {
             "question_id": str(eq.get("question_id") or eq.get("qid") or fc.get("question_id") or ""),
             "user_answer": str(fc.get("user_answer") or user_message or ""),
             "correct_answer": ref,
-            "question_stem": str(eq.get("stem") or eq.get("question") or fc.get("question_stem") or ""),
+            "question_stem": question_stem,
             "construction_grading_result": {"type": "case", "max_score": nominal},
         }
 
@@ -947,9 +952,11 @@ class AgentLoop:
         md = runtime_metadata if isinstance(runtime_metadata, dict) else {}
         if str(md.get("question_lifecycle_scene") or "").strip() != "case_grading":
             return ""
-        # V1 needs a reference answer; "score authority available" == "structured reference present".
-        if not case_grading_score_authority_available(md):
-            return ""
+        # Gate 2 (score authority check) intentionally removed: _grade_one_case_v1 has a three-tier path
+        # (compiled_rubric > on_the_fly_reference > derived_from_stem) and returns a non-event marker when
+        # no tier produces scoring points — the caller already falls back to V0 at that point. An upstream
+        # authority gate that requires authoritative_answer in covered_subquestions would block questions
+        # that have a compiled rubric under question_id but no inline reference field.
         try:
             from deeptutor.capabilities.deep_question import _grade_one_case_v1
             from deeptutor.services.construction_grading import rubric_grader_v1 as _G
