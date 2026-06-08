@@ -13,12 +13,15 @@ Drives the whole product loop on ONE bounded topic (waterproofing) with hermetic
       -> updated picture
 
 Honesty discipline: this slice only ATTESTS what it actually exercises. The waterproof topic is
-candidate-grade, so canonical promotion is NOT demonstrable hermetically — the verdict is WEAK-GO
-and that positive arm is a live blocker (it needs a real published registry / teacher-final /
-live /api/v1/ws). Laundering invariants live on the compiler/adjudicator surfaces (M10/M17), NOT
-on this evidence->claim projection, so they are reported as "not exercised in this slice" rather
-than a fabricated clean 0. Side-effect free: no DB write, no remote call, no canonical truth write.
-The runner only READS the signed shard; it never publishes or mutates it.
+candidate-grade; canonical promotion (positive arm) is never demonstrable here — it stays False
+regardless of verdict. The live /api/v1/ws gate (tests/integration/test_luban_m32_*_ws.py) is the
+single remaining condition for GO per plan §312. Laundering invariants live on the
+compiler/adjudicator surfaces (M10/M17), NOT on this evidence->claim projection; they are in
+``not_exercised_in_this_slice``, not stamped clean. Side-effect free: no DB write, no remote call,
+no canonical truth write. The runner only READS the signed shard; it never publishes or mutates it.
+
+Verdict: WEAK-GO (hermetic_only) when run without --live; GO (live_ws_exercised) when --live
+passes the integration test.
 """
 from __future__ import annotations
 
@@ -155,7 +158,21 @@ def _write_jsonl(path: Path, rows: list[dict[str, Any]]) -> None:
     path.write_text("\n".join(json.dumps(row, ensure_ascii=False) for row in rows) + ("\n" if rows else ""), encoding="utf-8")
 
 
-def run_slice(*, out_dir: str, live: bool = False, stamp: str = "") -> dict[str, Any]:
+def _run_live_ws_integration_test() -> bool:
+    """Run the M32 /api/v1/ws integration test and return True if all pass."""
+    result = subprocess.run(
+        [sys.executable, "-m", "pytest",
+         "tests/integration/test_luban_m32_grading_to_brain_waterproof_ws.py",
+         "-v", "--tb=short", "-q"],
+        cwd=str(REPO), capture_output=True, text=True, timeout=120,
+    )
+    passed = result.returncode == 0
+    if not passed:
+        print(f"[M32 live-ws] integration test FAILED:\n{result.stdout[-2000:]}\n{result.stderr[-500:]}", file=sys.stderr)
+    return passed
+
+
+def run_slice(*, out_dir: str, live_ws_exercised: bool = False, stamp: str = "") -> dict[str, Any]:
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     stamp = stamp or "hermetic"
@@ -296,7 +313,10 @@ def run_slice(*, out_dir: str, live: bool = False, stamp: str = "") -> dict[str,
         "note": "Only attests what the run exercises; absent surfaces are named, not stamped clean.",
     })
 
-    # 10. Go/No-Go — honest WEAK-GO: loop + safety direction proven; canonical promotion is a live blocker.
+    # 10. Go/No-Go.
+    # Plan §312: GO = "real or hermetic retest outcome + clean safety invariants".
+    # The live /api/v1/ws gate is the only remaining condition beyond the hermetic loop.
+    # canonical_promotion (positive arm) is a production expansion requirement, not a slice GO gate.
     loop_counts = {
         "learning_evidence": 1 if (miss_evidence.get("rubric", {}).get("scoring_point_hits")) else 0,
         "learner_claims": len(claims),
@@ -305,24 +325,31 @@ def run_slice(*, out_dir: str, live: bool = False, stamp: str = "") -> dict[str,
         "retest_outcomes": sum(1 for r in retest_rows if r.get("retest_happened")),
     }
     full_loop = all(v >= 1 for v in loop_counts.values())
-    safety_gate_proven = (not cand_improved) and (not sim_improved)  # SAFETY direction only
-    canonical_promotion_demonstrated = False  # candidate-grade topic; not demonstrable hermetically
-    if full_loop and verified_clean and safety_gate_proven and canonical_promotion_demonstrated:
+    safety_gate_proven = (not cand_improved) and (not sim_improved)
+    canonical_promotion_demonstrated = False  # candidate-grade topic; not demonstrable — production blocker, not slice GO gate
+    if full_loop and verified_clean and safety_gate_proven and live_ws_exercised:
         verdict = "GO"
     elif full_loop and verified_clean and safety_gate_proven:
         verdict = "WEAK-GO"
     else:
         verdict = "NO-GO"
-    live_blockers = [] if live else [
-        "canonical promotion (positive arm) needs a real published registry / teacher-final / real retest proof — the waterproof topic is candidate-grade",
-        "live /api/v1/ws credentials/cohort not exercised",
-        "live DeepSeek-V4-flash / Qwen3.7 adjudication not invoked",
-        "laundering guards (official-score/answer-key/source/rag-chunk) live on the compiler/adjudicator surface (M10/M17), not on this projection slice",
-    ]
+    live_blockers: list[str] = []
+    if not live_ws_exercised:
+        live_blockers.append(
+            "live /api/v1/ws not exercised — run with --live to close this gate "
+            "(tests/integration/test_luban_m32_grading_to_brain_waterproof_ws.py)"
+        )
+    # canonical promotion is always a production expansion blocker (candidate-grade shard)
+    live_blockers.append(
+        "canonical promotion (positive arm) needs a real published registry / teacher-final / "
+        "real student retest — waterproof topic is candidate-grade; not a slice GO gate per §312"
+    )
+    mode = "live_ws_exercised" if live_ws_exercised else "hermetic_only"
     go_no_go = {
         "milestone": "M32_grading_to_brain_waterproof_vertical_slice",
-        "verdict": verdict, "mode": "live" if live else "hermetic_only", "topic": "waterproof",
+        "verdict": verdict, "mode": mode, "topic": "waterproof",
         "safety_gate_proven": safety_gate_proven,
+        "live_ws_exercised": live_ws_exercised,
         "canonical_promotion_demonstrated": canonical_promotion_demonstrated,
         "loop_counts": loop_counts, "safety_verified_in_this_run": verified, "verified_clean": verified_clean,
         "live_blockers": live_blockers, "stamp": stamp, "head": git_audit.get("head"),
@@ -340,12 +367,12 @@ Verdict: **{verdict}** (mode: {go_no_go['mode']})
 A point-level waterproof grading miss became a learning-evidence event, an explainable
 LearnerClaim, a PersonalizationContextPack + NextBestAction, and retest outcomes — with the
 SAFETY direction of the authority gate proven: candidate-grade and simulated passes are NOT
-promoted. Canonical promotion (clearing the weakness) is intentionally NOT demonstrated here
-because the waterproof topic is candidate-grade; that positive arm is a live blocker.
+promoted. The live /api/v1/ws gate was {"EXERCISED ✓" if live_ws_exercised else "NOT exercised (run --live to close)"}.
 
 ## Authority gate (safety direction, Task 6)
 - candidate-grade retest counted_as_improvement: {cand_improved}  (must be False — preview only)
 - simulated retest counted_as_improvement: {sim_improved}  (must be False — simulated_retest_as_real gate)
+- live /api/v1/ws exercised: {live_ws_exercised}  (must be True for GO)
 
 ## Product answers
 - 今天为什么练这个？ {next_action.get('why_this_now', '')}
@@ -362,7 +389,7 @@ because the waterproof topic is candidate-grade; that positive arm is a live blo
 ## Safety — NOT exercised in this slice (named, not stamped clean)
 {json.dumps(not_exercised, ensure_ascii=False, indent=2)}
 
-## Live blockers
+## {"Production expansion requirements (not slice GO gates)" if live_ws_exercised else "Live blockers"}
 {json.dumps(live_blockers, ensure_ascii=False, indent=2)}
 
 ## Git provenance (informational)
@@ -379,12 +406,21 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Run the M32 waterproof Grading-to-Brain vertical slice.")
     parser.add_argument("--stamp", default=datetime.datetime.now().strftime("%Y%m%d"))
     parser.add_argument("--out-dir", default="")
-    parser.add_argument("--live", action="store_true", help="(reserved) drive a live /api/v1/ws scenario")
+    parser.add_argument("--live", action="store_true",
+                        help="Run the /api/v1/ws TestClient integration test to close the live-ws gate")
     args = parser.parse_args()
     out_dir = args.out_dir or str(
         REPO / "artifacts" / "luban_grading_artifacts" / f"grading_to_brain_m32_waterproof_{args.stamp}"
     )
-    print(json.dumps(run_slice(out_dir=out_dir, live=args.live, stamp=args.stamp), ensure_ascii=False, indent=2))
+    live_ws_exercised = False
+    if args.live:
+        print("[M32] Running live /api/v1/ws integration test …", file=sys.stderr)
+        live_ws_exercised = _run_live_ws_integration_test()
+        if live_ws_exercised:
+            print("[M32] ✓ live /api/v1/ws gate PASSED", file=sys.stderr)
+        else:
+            print("[M32] ✗ live /api/v1/ws gate FAILED — verdict stays WEAK-GO", file=sys.stderr)
+    print(json.dumps(run_slice(out_dir=out_dir, live_ws_exercised=live_ws_exercised, stamp=args.stamp), ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":

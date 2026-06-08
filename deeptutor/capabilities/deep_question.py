@@ -1923,14 +1923,24 @@ async def _grade_one_case_v1(
     """Grade ONE subjective question context with V1 (compiled rubric -> open-world reference). Reused by
     both the single-question and per-batch-item paths so there is exactly one grading core (no second
     judging logic). Returns a GradingEvent, a marker dict, or None (no gradable answer)."""
+    import os as _os
+    _v1_model = _os.environ.get("LLM_MODEL", "").strip() or "deepseek-chat"
     cg = ctx.get("construction_grading_result")
     qid = str(ctx.get("question_id") or (cg or {}).get("question_id") or "").strip()
     answer = str(ctx.get("user_answer") or "").strip()
+    logger.warning(
+        "LUBAN_DIAG _grade_one_case_v1: entered qid=%s answer_len=%d has_cg=%s",
+        qid or "(none)", len(answer), bool(cg),
+    )
     if not answer:
         return None
     # 1) governed compiled rubric (best ammunition) if in the bank
     points = _G.load_rubric(qid) if qid else []
     provenance = "compiled_rubric"
+    logger.warning(
+        "LUBAN_DIAG _grade_one_case_v1: tier1 qid=%s compiled_rubric_points=%d",
+        qid or "(none)", len(points),
+    )
     # 2) OPEN WORLD: no compiled rubric -> extract atomic scoring points on-the-fly from THIS question's
     #    own reference answer (Nexus-like, not a 173-question lookup); never falls back to V0 keywords.
     if not points:
@@ -1942,8 +1952,12 @@ async def _grade_one_case_v1(
             or ""
         ).strip()
         stem = str(ctx.get("question_stem") or ctx.get("stem") or ctx.get("question") or "")
+        logger.warning(
+            "LUBAN_DIAG _grade_one_case_v1: tier2/3 has_reference=%s reference_len=%d has_stem=%s stem_len=%d",
+            bool(reference), len(reference), bool(stem), len(stem),
+        )
         if reference:
-            points = await _G.extract_rubric_from_reference_async(reference, stem, complete, key)
+            points = await _G.extract_rubric_from_reference_async(reference, stem, complete, key, model=_v1_model)
             points = _G.normalize_points_to_nominal(
                 points, nominal_total=float((cg or {}).get("max_score") or 0))
             provenance = "on_the_fly_reference"
@@ -1951,17 +1965,22 @@ async def _grade_one_case_v1(
             # 3) STEM-ONLY: no reference answer at all — derive rubric from question stem via LLM
             #    domain knowledge (construction supervision / 一建). Third-tier path so V1 covers
             #    every case grading turn regardless of whether the question is in the bank.
-            points = await _G.derive_rubric_from_stem_async(stem, complete, key)
+            points = await _G.derive_rubric_from_stem_async(stem, complete, key, model=_v1_model)
             points = _G.normalize_points_to_nominal(
                 points, nominal_total=float((cg or {}).get("max_score") or 0))
             provenance = "derived_from_stem"
         else:
+            logger.warning("LUBAN_DIAG _grade_one_case_v1: no_reference fallback qid=%s", qid or "(none)")
             return {"status": "no_reference", "question_id": qid}
+    logger.warning(
+        "LUBAN_DIAG _grade_one_case_v1: post-tier points=%d provenance=%s qid=%s",
+        len(points), provenance, qid or "(none)",
+    )
     if not points:
         return {"status": "unavailable", "reason": "no_scoring_points"}
     event = await _G.grade_with_batch_judge_async(
         qid=qid or "open_world", student_answer=answer, rubric_points=points,
-        complete_fn=complete, api_key=key, student_id=student_id)
+        complete_fn=complete, api_key=key, student_id=student_id, model=_v1_model)
     # FAIL-SAFE: if the batch adjudication produced no trustworthy verdict at all (LLM down / malformed),
     # do NOT surface a 0/full score as authority — return a marker so the caller falls back to the legacy
     # diagnostic path (same as "no rubric"), exactly like an exception would.
