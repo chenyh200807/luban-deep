@@ -388,6 +388,7 @@ def build_learning_report_read_model(
             "mastery_dashboard": mastery_dashboard,
         },
     }
+    report["grading_to_brain_loop"] = _build_grading_to_brain_loop(report)
     if int(schema_version or 1) == 2:
         return _learning_report_v2(
             report,
@@ -395,6 +396,172 @@ def build_learning_report_read_model(
             evidence_stats=evidence_stats,
         )
     return report
+
+
+def _build_grading_to_brain_loop(report: dict[str, Any]) -> dict[str, Any]:
+    """Student/product-facing Grading-to-Brain loop projection.
+
+    This is deliberately a read-only composer over existing authorities:
+    grading evidence -> Learning Brain -> PersonalizationContextPack ->
+    training_intent/revalidation -> prescription outcome.
+    """
+    freshness = _safe_dict(report.get("freshness"))
+    learning_brain = _safe_dict(report.get("learning_brain"))
+    personalization = _safe_dict(report.get("personalization_context"))
+    next_best_actions = _safe_list(report.get("next_best_actions"))
+    prescription_outcomes = _safe_list(report.get("prescription_outcomes"))
+    revalidation_queue = _safe_dict(report.get("revalidation_queue"))
+    learner_facing = _safe_dict(report.get("learner_facing"))
+
+    primary_outcome = _safe_dict(prescription_outcomes[0] if prescription_outcomes else {})
+    next_action = _safe_dict(next_best_actions[0] if next_best_actions else {})
+    top_claims = _safe_list(personalization.get("top_claims"))
+    weak_points = _safe_list(learning_brain.get("weak_points"))
+    observed = _safe_list(learning_brain.get("observed_candidates"))
+    stale_claims = _safe_list(learning_brain.get("stale_claims"))
+    improvements = _safe_list(learning_brain.get("improvement_signals"))
+    compiled_objects = learning_brain.get("compiled_objects")
+    if isinstance(compiled_objects, dict):
+        compiled_count = len(compiled_objects)
+    else:
+        compiled_count = len(_safe_list(compiled_objects))
+
+    evidence_refs = _dedupe_strings(
+        _safe_list(primary_outcome.get("evidence_refs"))
+        or _safe_list(next_action.get("evidence_refs"))
+        or _evidence_refs_from_learner_facing(learner_facing)
+    )
+    event_count = _safe_int(freshness.get("event_count"))
+    claim_count = len(top_claims) or len(weak_points) or len(observed) or len(stale_claims) or compiled_count
+    has_personalization = bool(
+        personalization.get("source") == "PersonalizationContextPack"
+        or personalization.get("authority")
+        or top_claims
+        or personalization.get("feedback_guidance")
+    )
+    has_next_action = bool(next_action or _safe_dict(learner_facing.get("next_action")).get("title"))
+    queue_items = _safe_list(revalidation_queue.get("items"))
+
+    outcome_status = str(primary_outcome.get("status") or "").strip()
+    if improvements or outcome_status == "verified":
+        status = "improved"
+    elif queue_items:
+        status = "needs_retest"
+    elif has_next_action:
+        status = "action_ready"
+    elif claim_count:
+        status = "claim_ready"
+    elif event_count:
+        status = "evidence_ready"
+    else:
+        status = "needs_first_grading"
+
+    next_required_action = str(primary_outcome.get("next_required_action") or "").strip()
+    if not next_required_action:
+        if queue_items:
+            next_required_action = "complete_revalidation_probe"
+        elif has_next_action:
+            next_required_action = "start_next_action"
+        elif event_count:
+            next_required_action = "wait_for_learning_brain_projection"
+        else:
+            next_required_action = "submit_first_case_answer"
+
+    stages = [
+        {
+            "key": "grading_result",
+            "label": "本次批改",
+            "status": "ready" if event_count else "missing",
+            "evidence_count": event_count,
+            "authority": "learner_memory_events.learning_evidence",
+        },
+        {
+            "key": "learning_evidence",
+            "label": "学习证据",
+            "status": "ready" if event_count else "missing",
+            "evidence_refs": evidence_refs[:5],
+            "authority": "learner_memory_events.learning_evidence",
+        },
+        {
+            "key": "learner_claim",
+            "label": "长期画像",
+            "status": "ready" if claim_count else "pending",
+            "claim_count": claim_count,
+            "authority": "LearningBrainReadModel",
+        },
+        {
+            "key": "personalization_context",
+            "label": "个性化上下文",
+            "status": "ready" if has_personalization else "pending",
+            "authority": "PersonalizationContextPack",
+        },
+        {
+            "key": "next_action",
+            "label": "下一步动作",
+            "status": "ready" if has_next_action else "pending",
+            "action_type": str(next_action.get("action_type") or ""),
+            "authority": "training_intent",
+        },
+        {
+            "key": "retest",
+            "label": "复测结果",
+            "status": "verified" if outcome_status == "verified" else ("due" if queue_items else "pending"),
+            "next_required_action": next_required_action,
+            "authority": "prescription_outcomes",
+        },
+    ]
+
+    return {
+        "status": status,
+        "next_required_action": next_required_action,
+        "evidence_refs": evidence_refs[:8],
+        "current_action": {
+            "title": str(next_action.get("title") or _safe_dict(learner_facing.get("next_action")).get("title") or "").strip(),
+            "action_type": str(next_action.get("action_type") or "").strip(),
+            "prescription_authority": str(next_action.get("prescription_authority") or PRESCRIPTION_AUTHORITY),
+        },
+        "latest_outcome": {
+            "training_intent_id": str(primary_outcome.get("training_intent_id") or "").strip(),
+            "status": outcome_status,
+            "score_ratio": primary_outcome.get("score_ratio"),
+            "verified_at": str(primary_outcome.get("verified_at") or "").strip(),
+        },
+        "stages": stages,
+        "authority": {
+            "grading_evidence": "learner_memory_events.learning_evidence",
+            "learner_model": "LearningBrainReadModel",
+            "personalization": "PersonalizationContextPack",
+            "action": "training_intent",
+            "retest": "prescription_outcomes",
+        },
+        "source_status": {
+            "degraded": bool(report.get("degraded")),
+            "learning_brain_degraded": bool(_safe_dict(report.get("authority")).get("learning_brain_degraded")),
+        },
+    }
+
+
+def _dedupe_strings(values: list[Any]) -> list[str]:
+    seen: set[str] = set()
+    result: list[str] = []
+    for value in values:
+        text = str(value or "").strip()
+        if not text or text in seen:
+            continue
+        seen.add(text)
+        result.append(text)
+    return result
+
+
+def _evidence_refs_from_learner_facing(learner_facing: dict[str, Any]) -> list[str]:
+    refs: list[Any] = []
+    for attempt in _safe_list(learner_facing.get("recent_attempts")):
+        item = _safe_dict(attempt)
+        refs.append(item.get("key"))
+    for evidence in _safe_list(learner_facing.get("evidence_timeline")):
+        item = _safe_dict(evidence)
+        refs.append(item.get("key"))
+    return _dedupe_strings(refs)
 
 
 def _build_long_term_analytics(learning_brain: dict[str, Any]) -> dict[str, Any]:
@@ -2525,13 +2692,21 @@ def _error_label(error_code: Any) -> str:
 
 
 def _format_answer(value: Any, options: Any = None) -> str:
-    text = str(value or "").strip().upper()
-    if not text:
+    raw_text = str(value or "").strip()
+    if not raw_text:
         return ""
-    letters = [char for char in text if char.isalpha()]
-    if not letters:
-        return _truncate(_clean_learning_text(text), 28)
     option_map = _option_map(options)
+    text = raw_text.upper()
+    if option_map:
+        compact = re.sub(r"[\s,，、;；|/]+", "", text)
+        if compact and all(char in option_map for char in compact):
+            return "、".join(
+                f"{letter}（{_truncate(option_map.get(letter), 18)}）"
+                for letter in compact
+            )
+    if not re.fullmatch(r"[A-Z]+", text):
+        return _truncate(_clean_learning_text(raw_text), 28)
+    letters = [char for char in text if char.isalpha()]
     parts = []
     for letter in letters:
         option_text = option_map.get(letter)

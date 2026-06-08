@@ -212,7 +212,7 @@ def _persist_launch_readiness_check(app: FastAPI) -> None:
             payload=payload,
         )
     except Exception as exc:
-        logger.warning("Failed to persist launch readiness check: %s", exc, exc_info=True)
+        logger.warning(f"Failed to persist launch readiness check: {exc}", exc_info=True)
 
 
 def get_readyz_payload(app: FastAPI | None = None) -> tuple[int, dict[str, object]]:

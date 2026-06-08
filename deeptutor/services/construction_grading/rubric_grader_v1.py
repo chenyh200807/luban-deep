@@ -118,37 +118,139 @@ def grade_with_rubric(
 def to_learning_evidence(event: dict[str, Any], *, node_code: str = "") -> dict[str, Any]:
     """Project a GradingEvent into a learner_state learning_evidence payload (weak points = missed
     scoring points). Append-only producer; never writes learner truth itself."""
+    normalized_node_code = str(node_code or "").strip()
+    scoring_points = [dict(sp) for sp in list(event.get("scoring_points") or []) if isinstance(sp, dict)]
     weak_points = []
-    for sp in event.get("scoring_points") or []:
+    error_events: list[dict[str, Any]] = []
+    scoring_specs: list[dict[str, Any]] = []
+    scoring_hits: list[dict[str, Any]] = []
+    first_weak_label = ""
+    first_error_code = ""
+    high_risk = bool(event.get("high_risk_review"))
+
+    for sp in scoring_points:
+        point_id = str(sp.get("point_id") or "").strip()
+        knowledge_point = str(sp.get("knowledge_point") or "").strip()
+        max_score = sp.get("max_score")
+        score = sp.get("score")
+        mistake_type = str(sp.get("mistake_type") or MISTAKE_MISS).strip()
+        error_code = _registered_learning_error_code(mistake_type)
+        evidence_span = str(sp.get("evidence_span") or "").strip()
+        is_hit = sp.get("hit") == HIT
+        required_terms = [
+            str(term or "").strip()
+            for term in list(sp.get("required_terms") or [])
+            if str(term or "").strip()
+        ]
+        if point_id:
+            scoring_specs.append({
+                "point_id": point_id,
+                "label": knowledge_point,
+                "max_score": max_score,
+                "knowledge_node_id": normalized_node_code,
+            })
+            scoring_hits.append({
+                "point_id": point_id,
+                "hit": is_hit,
+                "awarded_score": score,
+                "miss_reason": "" if is_hit else mistake_type,
+                "evidence_text": evidence_span,
+                "error_code": "" if is_hit else error_code,
+                "mistake_type": "" if is_hit else mistake_type,
+                "evidence_span": evidence_span,
+                "policy_type": sp.get("policy_type"),
+                "required_terms": required_terms,
+                "high_risk_review": high_risk,
+            })
         if sp.get("hit") != HIT:
             # concept_id is canonical-taxonomy authority. A question-level node_code does NOT identify a
             # per-point concept, and on-the-fly P1..Pn are NOT canonical at all — stamping either as
             # concept_id would poison the learner profile if ever persisted. Emit null + explicit
             # provenance so any future writer can refuse non-canonical evidence (fail-safe).
+            first_weak_label = first_weak_label or knowledge_point
+            first_error_code = first_error_code or error_code
             weak_points.append({
                 "concept_id": None,
-                "concept_provenance": "question_level_node_code" if node_code else "open_world",
-                "concept_label": sp.get("knowledge_point"),
-                "error_code": sp.get("mistake_type") or MISTAKE_MISS,
-                "evidence_span": sp.get("evidence_span"),
+                "concept_provenance": "question_level_node_code" if normalized_node_code else "open_world",
+                "concept_label": knowledge_point,
+                "error_code": error_code,
+                "mistake_type": mistake_type,
+                "evidence_span": evidence_span,
                 "policy_type": sp.get("policy_type"),
                 "lost_score": round(sp.get("max_score", 0) - sp.get("score", 0), 2),
             })
-    return {
-        "event_type": "learning_evidence",
+            if normalized_node_code:
+                error_events.append({
+                    "error_code": error_code,
+                    "mistake_type": mistake_type,
+                    "concept_tag": normalized_node_code,
+                    "rubric_item_id": point_id,
+                    "diagnosis": knowledge_point,
+                    "evidence": evidence_span,
+                    "evidence_span": evidence_span,
+                    "policy_type": sp.get("policy_type"),
+                    "required_terms": required_terms,
+                    "lost_score": round(sp.get("max_score", 0) - sp.get("score", 0), 2),
+                })
+
+    next_training_signal: dict[str, Any] = {}
+    if normalized_node_code:
+        next_training_signal = {
+            "concept": normalized_node_code,
+            "focus": first_weak_label or normalized_node_code,
+            "mode": "case_repair",
+            "error_code": first_error_code or "E02",
+            "grading_source": "rubric_scored_v1",
+        }
+
+    from deeptutor.services.construction_grading.learning_evidence import build_learning_evidence_payload
+
+    payload = build_learning_evidence_payload(
+        grading_result={
+            "type": "case",
+            "question_id": event.get("question_id"),
+            "score_awarded": event.get("awarded_score"),
+            "max_score": event.get("max_score"),
+            "error_events": error_events,
+            "next_training_signal": next_training_signal,
+            "grading_mode": "curated_rubric",
+            "rubric": {
+                "rubric_mode": "curated_rubric",
+                "scoring_points": scoring_specs,
+                "scoring_point_hits": scoring_hits,
+            },
+        },
+    )
+    payload.update({
         "learning_signal_type": "case_grading",
         "student_id": event.get("student_id"),
-        "question_id": event.get("question_id"),
         "awarded_score": event.get("awarded_score"),
-        "max_score": event.get("max_score"),
         "weak_points": weak_points,
         "high_risk_review": event.get("high_risk_review"),
         "source_refs": [{"kind": "exam_reference_answer", "qid": event.get("question_id")}],
+        "question_node_code": normalized_node_code,
+        "projection_taxonomy_code": normalized_node_code,
         "writeback_performed": False,
-    }
+    })
+    return payload
 
 
-def render_case_rubric_feedback(event: dict[str, Any], *, question_stem: str = "") -> str:
+def _registered_learning_error_code(mistake_type: str) -> str:
+    """Map v1-specific mistake types to the shared Learning Brain error-code registry."""
+    normalized = str(mistake_type or "").strip()
+    if normalized == MISTAKE_WRONG:
+        return "E07"
+    if normalized in {MISTAKE_NEAR_SYNONYM, MISTAKE_PARTIAL_LIST, MISTAKE_MISS}:
+        return "E02"
+    return "E02"
+
+
+def render_case_rubric_feedback(
+    event: dict[str, Any],
+    *,
+    question_stem: str = "",
+    personalization_context_pack: dict[str, Any] | None = None,
+) -> str:
     """Render a GradingEvent into the student-facing case feedback (the text shown in chat).
 
     SAME-SOURCE rendering (the ④ fix): the displayed words are derived purely and deterministically from
@@ -193,11 +295,27 @@ def render_case_rubric_feedback(event: dict[str, Any], *, question_stem: str = "
     if weak:
         lines.append("")
         lines.append("【薄弱点（需重点复习）】" + "；".join(w for w in weak if w))
+    profile_note = _personalized_feedback_note(personalization_context_pack)
+    if profile_note:
+        lines.append("")
+        lines.append(profile_note)
     lines.append("")
     note = "本评分为 AI 阅卷草稿，需教师复核后方可作为正式成绩。" if event.get("high_risk_review") \
         else "本评分为 AI 阅卷草稿，非正式成绩。"
     lines.append(f"（{note}）")
     return "\n".join(lines)
+
+
+def _personalized_feedback_note(personalization_context_pack: dict[str, Any] | None) -> str:
+    pcp = personalization_context_pack if isinstance(personalization_context_pack, dict) else {}
+    claims = [claim for claim in list(pcp.get("top_claims") or []) if isinstance(claim, dict)]
+    if not claims:
+        return ""
+    claim = claims[0]
+    label = str(claim.get("label") or claim.get("claim_id") or "").strip()
+    if not label:
+        return ""
+    return f"【长期画像提示】你之前也出现过同类问题：{label}。这个提示只用于调整讲评侧重点，不会改变本次采分点得分。"
 
 
 @lru_cache(maxsize=1)

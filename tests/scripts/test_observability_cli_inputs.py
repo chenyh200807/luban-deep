@@ -381,6 +381,33 @@ def test_run_readiness_check_default_wechat_devtools_command() -> None:
     ]
 
 
+def test_run_readiness_check_preserves_real_wechat_project_root_fields() -> None:
+    class _Result:
+        stdout = json.dumps(
+            {
+                "readiness_status": "PASS",
+                "entry_surface": "real_wechat_package",
+                "devtools_project_root": "yousenwebview",
+                "project_path": "/repo/yousenwebview",
+                "target_subpackage": "packageDeeptutor",
+                "target_page": "/packageDeeptutor/pages/report/report",
+                "entry_flow": "direct_subpackage_page",
+                "scenario_evidence_status": "passed",
+            },
+            ensure_ascii=False,
+        )
+
+    meta = READINESS_CHECK_MODULE._structured_readiness_metadata(
+        check_id="wechat_devtools",
+        result=_Result(),
+    )
+
+    assert meta["devtools_project_root"] == "yousenwebview"
+    assert meta["target_subpackage"] == "packageDeeptutor"
+    assert meta["target_page"] == "/packageDeeptutor/pages/report/report"
+    assert meta["entry_flow"] == "direct_subpackage_page"
+
+
 @pytest.mark.asyncio
 async def test_run_arr_lite_cli_fails_closed_on_fail_or_skip(monkeypatch, tmp_path) -> None:
     reset_control_plane_store(base_dir=tmp_path / "control_plane")

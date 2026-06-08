@@ -3852,3 +3852,59 @@ def test_list_members_loads_behavior_summaries_in_one_batch(
     assert fake_store.single_calls == 0
     assert payload["items"]
     assert payload["items"][0]["behavior"]["learning_report_open_count_7d"] == 1
+
+
+def test_list_members_loads_behavior_with_canonical_alias_group(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.services import observability
+
+    canonical_user_id = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+
+    class FakeBehaviorStore:
+        def __init__(self):
+            self.identity_groups = {}
+
+        def get_member_behavior_summaries_for_identity_groups(self, identity_groups, *, days=7):
+            self.identity_groups = identity_groups
+            return {
+                "legacy_member_1": {
+                    "learning_report_open_count_7d": 3,
+                    "history_open_count_7d": 0,
+                    "action_start_count_7d": 0,
+                    "event_count_7d": 3,
+                    "last_event_at_ms": 1,
+                    "cohort": "report_high_no_action",
+                    "cohort_reasons": ["alias events were merged"],
+                    "next_action": "推送下一步训练",
+                    "trust_level": "B",
+                }
+            }
+
+        def get_member_behavior_summaries(self, user_ids, *, days=7):
+            raise AssertionError("member list should use identity-group behavior summaries")
+
+    fake_store = FakeBehaviorStore()
+    monkeypatch.setattr(observability, "get_product_behavior_store", lambda: fake_store)
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    def _seed_registered_member(data: dict[str, object]) -> None:
+        member = service._build_default_member("legacy_member_1")
+        member["phone"] = "13800138000"
+        member["display_name"] = "真实会员"
+        member["external_auth_user_id"] = canonical_user_id
+        member["alias_user_ids"] = ["legacy_member_1", "wx_member_1"]
+        data["members"].append(member)
+
+    service._mutate(_seed_registered_member)
+    payload = service.list_members(page=1, page_size=20)
+
+    assert payload["items"][0]["behavior"]["learning_report_open_count_7d"] == 3
+    assert set(fake_store.identity_groups["legacy_member_1"]) >= {
+        "legacy_member_1",
+        "wx_member_1",
+        canonical_user_id,
+    }

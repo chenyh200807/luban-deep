@@ -238,10 +238,14 @@ Overlay 必须支持：
   `learner_memory_events.learning_evidence` 恢复一次同形态 projection；若没有有效证据，
   再降级到 `data/seed/<subject_id>/starter_prompts.json`。该 starter pool 是 fallback
   projection，不是第二套推荐 authority。
-- Home dashboard 用户可见的 `today_focus` 与 recommended prompt topic 必须经
-  taxonomy canonical resolver 对齐到教材目录 canonical 章/节名称；学情、每日任务、
-  assessment evidence 和 next-best-action 只能提供证据与行动信号，不能把题干、
-  自由文本、旧缓存 topic、frontend 解析结果或未入教材目录的短语提升为推荐主题。
+- 学情 / 首页展示 topic、Home dashboard 用户可见的 `today_focus` 与 recommended prompt
+  topic 必须来自同一 learner-state / taxonomy authority 的 canonical label，并经
+  taxonomy canonical resolver 对齐到教材目录 canonical 章/节名称。学情、每日任务、
+  assessment evidence、next-best-action、`member_console`、learning report read model
+  和微信 view model 只能提供证据与行动信号，不得从题干句子、prompt 文案、泛指词
+  （如“本题为”“这题”）、自由文本、旧缓存 topic、frontend 解析结果或未入教材目录的
+  短语反推出新的 focus / 推荐；无法映射到 canonical 教材章节或小节时必须丢弃或回退到
+  最近有效 `learning_evidence` / starter projection。
 - 生产 Supabase 写入任何 learner-state 外键表（包括 `learner_memory_events`、
   `learner_summaries`、`learning_plans`、`learning_plan_pages`、`heartbeat_jobs` 和
   overlay 表）前，writeback pipeline 必须先确保同一个 canonical `user_id` 已存在于

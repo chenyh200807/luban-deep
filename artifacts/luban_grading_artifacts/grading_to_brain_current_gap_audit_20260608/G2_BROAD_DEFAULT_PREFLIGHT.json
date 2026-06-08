@@ -1,0 +1,62 @@
+{
+  "allowed_scope_after_authorization": "explicitly named cohort expansion only",
+  "blocking_reason": "G1 limited default must be explicitly authorized/executed and reviewed before broad default",
+  "canonical_truth_written": false,
+  "evidence_ok": {
+    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G1_LIMITED_DEFAULT_PREFLIGHT.json": true,
+    "artifacts/luban_grading_artifacts/limited_default_flip_m19c_20260605/go_no_go_m19c.json": true,
+    "artifacts/luban_grading_artifacts/limited_default_soak_monitoring_m19d_20260605/release_verdict_m19d.json": true,
+    "artifacts/luban_grading_artifacts/limited_default_soak_monitoring_m19d_20260605/soak_metrics_m19d.json": true,
+    "artifacts/luban_grading_artifacts/remote_deployment_authorization_package_m19e_20260605/m19c_m19d_evidence_ledger_m19e.json": true
+  },
+  "evidence_refs": [
+    "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608/G1_LIMITED_DEFAULT_PREFLIGHT.json",
+    "artifacts/luban_grading_artifacts/limited_default_flip_m19c_20260605/go_no_go_m19c.json",
+    "artifacts/luban_grading_artifacts/limited_default_soak_monitoring_m19d_20260605/release_verdict_m19d.json",
+    "artifacts/luban_grading_artifacts/limited_default_soak_monitoring_m19d_20260605/soak_metrics_m19d.json",
+    "artifacts/luban_grading_artifacts/remote_deployment_authorization_package_m19e_20260605/m19c_m19d_evidence_ledger_m19e.json"
+  ],
+  "execution_mode": "read_only_no_broad_flip",
+  "gate_id": "G2_broad_production_default",
+  "generated_by": "audit_luban_grading_to_brain_current_gap",
+  "master_plan": "docs/plan/2026-06-04-luban-grading-engine-master-control-plan.md",
+  "missing_evidence_refs": [],
+  "preconditions": {
+    "g1_ready_for_authorization": true,
+    "limited_default_current_state": "ON",
+    "limited_default_executed_by_this_package": false,
+    "m19c_production_default_broad": "NO-GO",
+    "m19c_production_v1_broad_default": "NO-GO",
+    "m19d_broad_default": "NO-GO",
+    "m19d_soak_verdict": "GO",
+    "m19e_broad_default_remains_no_go": true,
+    "soak_bad_certified_count": 0,
+    "soak_false_positive_count": 0,
+    "soak_source_mismatch_count": 0
+  },
+  "production_write_count": 0,
+  "promotion_path": "runtime_default_only_no_mastery_write",
+  "published_registry_executed": false,
+  "remote_write_count": 0,
+  "required_authorization": "separate_broad_default_authorization_after_limited_soak",
+  "schema_version": 1,
+  "scope": "read_only_pre_authorization_preflight",
+  "single_authority": {
+    "grading_truth_source": "authorized limited-default runtime evidence before any broad flip",
+    "learner_truth_source": "unchanged Learning Evidence Ledger / Learner Model",
+    "no_second_grading_truth": true,
+    "no_second_learner_truth": true,
+    "pcp_role": "read_only_feedback_context"
+  },
+  "stop_conditions": [
+    "G1 limited default not explicitly authorized/executed/reviewed",
+    "false_positive > 0",
+    "bad_certified > 0",
+    "source_mismatch > 0",
+    "teacher review backlog exceeds operator capacity",
+    "unsupported claim or generic fallback drift appears",
+    "any canonical learner truth write is requested by this gate"
+  ],
+  "verdict": "not_ready_limited_default_not_executed",
+  "without_authorization": "decision_package_only"
+}

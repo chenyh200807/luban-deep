@@ -312,7 +312,8 @@ export function BiV2CommercePanel({ flagEnabled, globalQuery = '' }: BiV2Commerc
         }
       >
         BI_COMMERCE_V2_ENABLED 已开启 · 套餐读取 {data?.authority.packages ?? 'loading'}
-        ，入账/钱包流水读取 {data?.authority.wallet_ledger ?? 'loading'}；订单 authority 仍为{' '}
+        ，充值记录读取 {data?.authority.recharge_records ?? 'loading'}，钱包流水读取{' '}
+        {data?.authority.wallet_ledger ?? 'loading'}；订单 authority 仍为{' '}
         {data?.authority.orders ?? 'pending'}，所有修账写动作禁用。
       </BiV2DataSourceBanner>
 
@@ -335,7 +336,7 @@ export function BiV2CommercePanel({ flagEnabled, globalQuery = '' }: BiV2Commerc
         <TabBtn
           active={tab === 'recharges'}
           onClick={() => setTab('recharges')}
-          label={`入账流水 (${filteredRecharges.length})`}
+          label={`充值记录 (${filteredRecharges.length})`}
         />
         <TabBtn
           active={tab === 'ledger'}
@@ -385,8 +386,8 @@ export function BiV2CommercePanel({ flagEnabled, globalQuery = '' }: BiV2Commerc
             rowKey={row => row.ledgerEventId || row.id}
             status={tableStatus(loading, error, filteredRecharges.length)}
             errorMessage={error}
-            emptyTitle="暂无入账流水"
-            emptyHint="订单 authority 未接入时，只展示 wallet_ledger / member_console 中可证明的入账。"
+            emptyTitle="暂无充值记录"
+            emptyHint="支付/订单 authority 未上线或无订单写入；赠点、初始化、人工授信只在钱包流水中展示。"
             rowAction={row => (
               <BiButton
                 onClick={() =>
@@ -396,7 +397,7 @@ export function BiV2CommercePanel({ flagEnabled, globalQuery = '' }: BiV2Commerc
                 }
                 variant="secondary"
                 size="xs"
-                aria-label={`查看入账流水 ${row.id || row.ledgerEventId} 详情`}
+                aria-label={`查看充值记录 ${row.id || row.ledgerEventId} 详情`}
               >
                 {expandedRechargeId === row.ledgerEventId ? '收起' : '详情'}
               </BiButton>
@@ -480,14 +481,14 @@ function RechargeDetailRow({
   if (!row) return null
   return (
     <div className="mt-2 rounded-2xl border border-white/10 bg-white/[0.045] p-3 text-xs">
-      <h4 className="text-sm font-black text-white">入账流水 {row.id || row.ledgerEventId}</h4>
+      <h4 className="text-sm font-black text-white">充值记录 {row.id || row.ledgerEventId}</h4>
       <ul className="mt-2 space-y-1 text-slate-300">
         <li>
           会员：
           <BiIdToken value={row.userId} />
         </li>
         <li>
-          入账：
+          充值：
           <BiMoneyCell
             amount={row.points}
             currency="POINT"

@@ -139,6 +139,7 @@ def test_v1_case_grading_event_writeback_uses_learning_evidence_stream() -> None
         source_bot_id="construction-exam-coach",
         user_answer="普通钢筋调直机",
         question_stem="指出钢筋调直设备的不妥之处。",
+        node_code="1A413050",
         grading_event={
             "event_type": "case_grading_completed",
             "student_id": "student-1",
@@ -156,6 +157,7 @@ def test_v1_case_grading_event_writeback_uses_learning_evidence_stream() -> None
                     "max_score": 1.0,
                     "mistake_type": "near_synonym_not_exact",
                     "evidence_span": "普通钢筋调直机",
+                    "required_terms": ["数控钢筋调直切断机"],
                 }
             ],
         },
@@ -174,7 +176,24 @@ def test_v1_case_grading_event_writeback_uses_learning_evidence_stream() -> None
     assert payload["preview_only"] is True
     assert payload["claim_promotion_allowed"] is False
     assert payload["canonical_truth_written"] is False
+    assert payload["score_awarded"] == 0.0
+    assert payload["awarded_score"] == 0.0
+    assert payload["next_training_signal"]["concept"] == "1A413050"
+    assert payload["next_training_signal"]["focus"] == "钢筋调直工艺"
+    assert payload["next_training_signal"]["error_code"] == "E02"
+    error = payload["error_events"][0]
+    assert error["concept_tag"] == "1A413050"
+    assert error["error_code"] == "E02"
+    assert error["mistake_type"] == "near_synonym_not_exact"
+    assert error["evidence_span"] == "普通钢筋调直机"
+    assert payload["errors"] == payload["error_events"]
+    hit = payload["rubric"]["scoring_point_hits"][0]
+    assert hit["point_id"] == "P4"
+    assert hit["hit"] is False
+    assert hit["policy_type"] == "exact_required"
+    assert hit["required_terms"] == ["数控钢筋调直切断机"]
     assert payload["weak_points"][0]["concept_label"] == "钢筋调直工艺"
+    assert payload["weak_points"][0]["concept_id"] is None
 
 
 def test_writeback_auto_saves_wrong_attempt_to_mistake_book() -> None:

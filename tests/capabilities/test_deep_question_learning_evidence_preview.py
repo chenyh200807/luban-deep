@@ -98,3 +98,15 @@ def test_wired_into_live_grading_surface() -> None:
     src = inspect.getsource(DeepQuestionCapability._emit_grading_result)
     assert "_maybe_attach_learning_evidence_preview" in src
     assert "session_id=str(context.session_id" in src
+
+
+def test_v1_llm_adjudication_receives_personalization_context_readonly() -> None:
+    """Grading-to-Brain regression: the v1 adjudication wrapper must forward the
+    single PersonalizationContextPack from turn metadata into the fat skill.
+    The wrapper may not synthesize its own learner profile or recommendation."""
+    import deeptutor.capabilities.deep_question as deep_question
+
+    src = inspect.getsource(deep_question._maybe_attach_v1_llm_adjudication)
+    assert 'context.metadata.get("personalization_context")' in src
+    assert "personalization_context_pack=" in src
+    assert "build_personalization_context_pack" not in src

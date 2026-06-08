@@ -1,0 +1,144 @@
+{
+  "generated_by": "audit_luban_grading_to_brain_current_gap",
+  "master_plan": "docs/plan/2026-06-04-luban-grading-engine-master-control-plan.md",
+  "missing_evidence": {},
+  "requirements": [
+    {
+      "authority": "grading truth/artifact authority",
+      "evidence_ok": true,
+      "evidence_refs": [
+        "tests/scripts/test_luban_runtime_llm_adjudicator_m17a.py",
+        "tests/services/construction_grading/test_m32_grading_event_learning_evidence.py",
+        "artifacts/luban_grading_artifacts/runtime_llm_adjudicator_m17a_20260604/grading_packet_schema_m17a.json",
+        "artifacts/luban_grading_artifacts/grading_to_brain_m32_waterproof_20260608/grading_event_ledger_m32.jsonl"
+      ],
+      "id": "R1",
+      "missing_evidence_refs": [],
+      "required_fields": [
+        "point_id",
+        "knowledge_point",
+        "policy_type",
+        "hit",
+        "score",
+        "max_score",
+        "mistake_type",
+        "evidence_span",
+        "required_term",
+        "high_risk_review"
+      ],
+      "status": "done",
+      "title": "runtime_grading_point_level_result"
+    },
+    {
+      "authority": "Learning Evidence Ledger",
+      "evidence_ok": true,
+      "evidence_refs": [
+        "tests/services/construction_grading/test_learning_evidence_payload.py",
+        "tests/services/construction_grading/test_m32_grading_event_learning_evidence.py",
+        "artifacts/luban_grading_artifacts/grading_to_brain_m32_waterproof_20260608/learning_evidence_ledger_m32.jsonl",
+        "artifacts/luban_grading_artifacts/runtime_llm_adjudicator_m17a_20260604/learning_brain_event_drafts_m17a.jsonl"
+      ],
+      "id": "R2",
+      "missing_evidence_refs": [],
+      "status": "done",
+      "title": "grading_result_to_standard_learning_evidence_event"
+    },
+    {
+      "authority": "Learner Model synthesis",
+      "evidence_ok": true,
+      "evidence_refs": [
+        "tests/services/learner_state/test_m32_waterproof_learning_synthesis.py",
+        "tests/services/construction_grading/test_learning_brain_synthesis.py",
+        "artifacts/luban_grading_artifacts/grading_to_brain_m32_waterproof_20260608/learner_claim_projection_m32.jsonl",
+        "artifacts/luban_grading_artifacts/learning_brain_canonical_claim_gate_m13e_20260604/claim_gate_decision_matrix_m13e.json"
+      ],
+      "id": "R3",
+      "missing_evidence_refs": [],
+      "status": "done",
+      "title": "learning_evidence_to_learner_claim_profile"
+    },
+    {
+      "authority": "PersonalizationContextPack read model",
+      "evidence_ok": true,
+      "evidence_refs": [
+        "tests/services/learner_state/test_personalization_context.py",
+        "tests/services/learner_state/test_m32_waterproof_personalization_context.py",
+        "tests/services/learner_state/test_m32_waterproof_next_best_action.py",
+        "artifacts/luban_grading_artifacts/grading_to_brain_m32_waterproof_20260608/personalization_context_pack_m32.json",
+        "artifacts/luban_grading_artifacts/grading_to_brain_m32_waterproof_20260608/next_best_action_m32.json"
+      ],
+      "id": "R4",
+      "missing_evidence_refs": [],
+      "pcp_role": "read_only_feedback_to_grading",
+      "status": "done",
+      "title": "pcp_feedback_to_tone_diagnosis_next_action_retest"
+    },
+    {
+      "authority": "teacher-final review writeback",
+      "evidence_ok": true,
+      "evidence_refs": [
+        "tests/services/construction_grading/test_teacher_review_writeback.py",
+        "tests/api/test_learning_brain_teacher_review_writeback.py",
+        "artifacts/luban_grading_artifacts/learning_brain_canonical_claim_gate_m13e_20260604/teacher_review_to_claim_bridge_m13e.jsonl",
+        "artifacts/luban_grading_artifacts/teacher_review_ops_hardening_m13d_20260604/teacher_action_dryrun_m13d.jsonl"
+      ],
+      "id": "R5",
+      "missing_evidence_refs": [],
+      "promotion_path": "teacher_final_only",
+      "status": "done",
+      "title": "teacher_final_override_reject_confirm_promotion_arm"
+    },
+    {
+      "authority": "real retest proof plus learner claim gate",
+      "evidence_ok": true,
+      "evidence_refs": [
+        "tests/scripts/test_luban_learning_brain_real_retest_canonical_gate_m18d.py",
+        "tests/services/learner_state/test_m32_waterproof_retest_outcome.py",
+        "artifacts/luban_grading_artifacts/learning_brain_real_retest_canonical_gate_m18d_20260604/real_retest_proofs_m18d.jsonl",
+        "artifacts/luban_grading_artifacts/learning_brain_real_retest_canonical_gate_m18d_20260604/canonical_write_dryrun_candidates_m18d.jsonl",
+        "artifacts/luban_grading_artifacts/grading_to_brain_m32_waterproof_20260608/retest_outcome_proof_m32.jsonl"
+      ],
+      "gate": "canonical_learner_truth_write",
+      "id": "R6",
+      "missing_evidence_refs": [],
+      "promotion_path": "real_retest_only",
+      "reason": "real retest proof and dry-run promotion exist; production canonical learner-truth write still requires explicit authorization",
+      "status": "authorization_gated",
+      "title": "real_retest_improvement_updates_profile"
+    },
+    {
+      "authority": "Learning Brain read model",
+      "empty_spin_prevented": true,
+      "evidence_ok": true,
+      "evidence_refs": [
+        "tests/services/member_console/test_home_dashboard_learning_projection.py",
+        "tests/services/learner_state/test_scoring_point_map_read_model.py",
+        "tests/services/learner_state/test_learning_report_read_model.py",
+        "deeptutor/services/learner_state/learning_report_read_model.py",
+        "deeptutor/services/learner_state/scoring_point_map_read_model.py",
+        "deeptutor/services/taxonomy/textbook_directory.py"
+      ],
+      "id": "R7",
+      "missing_evidence_refs": [],
+      "status": "done",
+      "title": "learning_surfaces_use_same_learning_brain_authority"
+    }
+  ],
+  "schema_version": 1,
+  "scope": "explicit_objective_completion_audit",
+  "single_authority": {
+    "grading_truth_source": "grading truth/artifact authority",
+    "learner_truth_source": "Learning Evidence Ledger / Learner Model",
+    "no_second_grading_truth": true,
+    "no_second_learner_truth": true,
+    "no_second_mastery": true
+  },
+  "summary": {
+    "authorization_gated": 1,
+    "blocker": 0,
+    "done": 6,
+    "evidence_missing_count": 0,
+    "missing": 0,
+    "partial": 0
+  }
+}

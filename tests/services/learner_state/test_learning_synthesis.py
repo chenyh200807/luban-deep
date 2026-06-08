@@ -190,6 +190,67 @@ def test_synthesis_outputs_p0_claim_lifecycle_states() -> None:
     assert repeated_projection["weak_points"][0]["lifecycle"]["status"] == "repeated"
 
 
+def test_teacher_final_single_error_promotes_to_confirmed_claim() -> None:
+    event = _learning_event(
+        "teacher_final_evt",
+        quality={
+            "evidence_level": "L0_observed",
+            "writeback_eligible": True,
+            "teacher_reviewed": True,
+            "teacher_review_authority": "teacher_final_grading_result",
+        },
+    )
+    event.payload_json["next_training_signal"]["teacher_final_grading_result"] = {
+        "teacher_reviewed": True,
+        "points": [{"point_id": "r1", "mastery_eligible": False}],
+    }
+
+    projection = synthesize_learning_truth([event])
+
+    assert projection["observed_candidates"] == []
+    weak = projection["weak_points"][0]
+    assert weak["concept_id"] == "1A432000"
+    assert weak["error_code"] == "E02"
+    assert weak["evidence_level"] == "L2_confirmed"
+    assert weak["claim_status"] == "confirmed"
+    assert weak["lifecycle"]["status"] == "confirmed"
+
+
+def test_real_retest_improvement_decays_teacher_final_confirmed_claim() -> None:
+    teacher_final = _learning_event(
+        "teacher_final_evt",
+        quality={
+            "evidence_level": "L0_observed",
+            "writeback_eligible": True,
+            "teacher_reviewed": True,
+            "teacher_review_authority": "teacher_final_grading_result",
+        },
+    )
+    teacher_final.payload_json["next_training_signal"]["teacher_final_grading_result"] = {
+        "teacher_reviewed": True,
+        "points": [{"point_id": "r1", "mastery_eligible": False}],
+    }
+    real_retest = _learning_event(
+        "real_retest_pass",
+        improved=True,
+        observed_at="2026-05-18T14:00:00+08:00",
+        quality={
+            "evidence_level": "L2_real_retest",
+            "writeback_eligible": True,
+            "retest_happened": True,
+            "retest_authority": "real_student_retest",
+        },
+    )
+    real_retest.payload_json["claim_promotion_allowed"] = True
+
+    projection = synthesize_learning_truth([teacher_final, real_retest])
+
+    assert projection["weak_points"] == []
+    assert projection["improvement_signals"][0]["event_id"] == "real_retest_pass"
+    assert projection["stale_claims"][0]["claim_status"] == "stale"
+    assert projection["compiled_objects"]["error:1A432000:E02"]["decay_state"] == "improving"
+
+
 def test_synthesis_expands_all_errors_in_event() -> None:
     event1 = _learning_event("evt1")
     event1.payload_json["error_events"].append({

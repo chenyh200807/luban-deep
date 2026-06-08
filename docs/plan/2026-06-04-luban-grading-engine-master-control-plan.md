@@ -1019,6 +1019,24 @@ M32 GO 门：
 
 ---
 
+### 0.26.16 M32 执行结果（2026-06-08，slice verdict=GO via live /api/v1/ws）
+
+> **本节把 §0.26.15 的 M32 GO 门从「定义」升级为「已达成裁决」。M32 Grading-to-Brain Waterproof Vertical Slice 闭环已被真实链路证明；不要再把 M32 当作未完成的下一步重跑。** Ledger：`artifacts/luban_grading_artifacts/grading_to_brain_m32_waterproof_20260608/`。runner：`scripts/run_luban_m32_grading_to_brain_waterproof_slice.py`。live gate：`tests/integration/test_luban_m32_grading_to_brain_waterproof_ws.py`。已落 main（`3cea052a` + 代码评审修复 `f052f8be`）。
+
+**M32 slice verdict=GO（`mode=live_ws_exercised`，`go_no_go_m32.json`）：**
+
+- 完整闭环已跑通：1 grading evidence event → 1 LearnerClaim → 1 PersonalizationContextPack → 1 NextBestAction → 2 retest outcomes（含 teacher-final confirmed + real retest 改善正向臂）。`live_blockers=[]`。
+- live gate 已 exercised：真实 `/api/v1/ws`（FastAPI TestClient → TurnRuntime → DeepQuestionCapability）对防水案例题产出 `construction_grading_result`，并验证 `learning_evidence_preview.canonical_truth_written=false`、未误触 M31 governed-objective（flag+cohort gated）。这是把 verdict 从 `WEAK-GO(hermetic_only)` 升到 `GO` 的唯一缺口闭合。
+- 测试：M32 全套 **41/41 绿**（7 个 §5 required unit + slice runner + live WS integration gate）。
+- safety 全清（`safety_invariant_report_m32.json`，`verified_clean=true`）：`canonical_truth_written=false`、`production_write_count=0`、`shadow_promoted_to_mastery=0`、`simulated_retest_as_real=0`、`candidate_shard_published=0`、`candidate_official_score_allowed=0`、`candidate_used_as_release_truth=0`、`candidate_grade_pass_promoted=0`、`caller_scoping_ok=true`。未在本 slice 触及的面（official_score_laundering / answer_key_override / source_laundering / rag_chunk_as_answer_key / cross-tenant）被**显式标注 not-exercised，不冒充 clean**。
+- `canonical_promotion_demonstrated=true` 仅指**正向臂（teacher-final confirmed claim + real retest 改善）在 dry-run/preview 下被演示**，`canonical_truth_written` 仍为 `false`——不等于已打开 canonical learner-truth write。
+
+**为何不是 whole-plan GO：** M32 设计上限即 slice-scope GO（防水单专题闭环 + preview）。§0.26.10 的 whole-plan verdict 仍是 **WEAK-GO**。**仍 OUT OF SCOPE 且需用户单独授权**：published registry、production default flip、canonical learner-truth write、远端/Aliyun/DB 写（本轮 `published=false`、`default_flip=0`、`canonical_truth_written=false`、`production_write=0`、`remote_write=0`）。
+
+**M32 之后的下一步（§6 GO 解释「expand to next topic」）：** 用第二个有界专题（`concrete` / `contract_claim` / `schedule_network` 之一，§0.26.14）复用同一 `v_topic_<name>` + canonical manifest lane 机制，证明 Grading-to-Brain 闭环**泛化**而非防水专属特例。第二专题纵切全程停在 `release_candidate` / preview scope，不需要新授权；类别二的四项（publish / default flip / canonical write / 远端写）仍各自需用户单独授权后才能动。
+
+---
+
 ## 0.16 Canonical update after M17A runtime LLM adjudicator（2026-06-04）
 
 > **本节落实 §0.12 的 M17 Nexus-style runtime LLM adjudication（vertical slice = M17A）。production default 仍 OFF；下一步是 M17B/M18 扩面 + M19 default decision，不是 default flip。**
@@ -2313,3 +2331,11 @@ B/C 可并行，但不应抢走 A 线 M7 的主线地位。
 - 把 luban limited-default **运行时供给数据**从 gitignored review artifacts 抽成最小、签名、版本化的 **tracked bundle**：`deeptutor/services/construction_grading/runtime_supply/v1_limited_default/`（9 文件/~156K；machine 45/list 14/source_backed 23/typed_policy 97/signed registry）。
 - loader 默认读 tracked bundle；artifacts 仅 `LUBAN_SUPPLY_DEV_ARTIFACTS=1` 显式 dev fallback；malformed/missing/hash-mismatch fail-closed，legacy intact。
 - **clean checkout 无 artifacts：192 passed / 0 failed**（gate/registry/runtime_shadow/adjudicator/ws/m16/m17a）。review artifacts（FINDING/votes/ledgers/4-model eval cache）仍排除、非 runtime authority。production default 仍 OFF。
+
+
+## 20. M19B canonical production default decision (2026-06-05)
+
+- **M17 scaleout axis = GO**：M17B WEAK-GO（DeepSeek live 28<80）已被 **M17C merged live=80** supersede。
+- **M19B limited 1% qa/operator default candidate = GO**（仅 config DRY-RUN，未执行真实 flip）。
+- **production default 仍 OFF**；flip_now=NO-GO、broad=NO-GO、production_v1=NO-GO、canonical_write=WEAK-GO、ai_council_risk=pass。
+- **下一步：M19C actual default flip authorization (limited 1% qa/operator)**。

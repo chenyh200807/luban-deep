@@ -1,0 +1,61 @@
+{
+  "allowed_scope_after_authorization": "promote signed staged candidate to published registry",
+  "artifact_layers": {
+    "candidate": "staged_registry_candidate",
+    "published_registry": "not_published",
+    "signed_release": "staged_release_candidate"
+  },
+  "canonical_truth_written": false,
+  "evidence_ok": {
+    "artifacts/luban_grading_artifacts/delta_to_registry_candidate_staging_m202_20260605/release_decision_input_m202.json": true,
+    "artifacts/luban_grading_artifacts/delta_to_registry_candidate_staging_m202_20260605/staged_registry_candidate_m202.json": true,
+    "artifacts/luban_grading_artifacts/delta_to_registry_candidate_staging_m202_20260605/staged_registry_signature_m202.json": true,
+    "artifacts/luban_grading_artifacts/llm_artifact_compiler_continuous_factory_m20_20260604/deterministic_signer_report_m20.json": true
+  },
+  "evidence_refs": [
+    "artifacts/luban_grading_artifacts/llm_artifact_compiler_continuous_factory_m20_20260604/deterministic_signer_report_m20.json",
+    "artifacts/luban_grading_artifacts/delta_to_registry_candidate_staging_m202_20260605/staged_registry_signature_m202.json",
+    "artifacts/luban_grading_artifacts/delta_to_registry_candidate_staging_m202_20260605/release_decision_input_m202.json",
+    "artifacts/luban_grading_artifacts/delta_to_registry_candidate_staging_m202_20260605/staged_registry_candidate_m202.json"
+  ],
+  "execution_mode": "read_only_no_publish",
+  "gate_id": "G3_published_registry",
+  "generated_by": "audit_luban_grading_to_brain_current_gap",
+  "master_plan": "docs/plan/2026-06-04-luban-grading-engine-master-control-plan.md",
+  "missing_evidence_refs": [],
+  "preconditions": {
+    "candidate_entries_count": 69,
+    "candidate_entries_published_count": 0,
+    "candidate_hash_consistent": true,
+    "delta_hash_consistent": true,
+    "deterministic_signer_pass": true,
+    "deterministic_validation_all_pass": true,
+    "execute_release_decision": false,
+    "published_registry_emitted": false,
+    "runtime_default_changed": false,
+    "staged_candidate_generated": true,
+    "staged_signature_signed": true
+  },
+  "production_write_count": 0,
+  "promotion_path": "candidate_to_signed_to_published_registry",
+  "published_registry_executed": false,
+  "remote_write_count": 0,
+  "required_authorization": "explicit_registry_publish_authorization",
+  "schema_version": 1,
+  "scope": "read_only_pre_authorization_preflight",
+  "single_authority": {
+    "no_second_grading_truth": true,
+    "no_second_learner_truth": true,
+    "registry_truth_source": "signed release artifact plus explicit publish gate only",
+    "runtime_consumption": "manifest/hash/pointer only; never scan artifacts"
+  },
+  "stop_conditions": [
+    "hash or signature mismatch",
+    "published registry emitted before explicit authorization",
+    "production default changed by registry staging",
+    "candidate entry has published=true before publish gate",
+    "runtime resolver cannot prove rollback pointer"
+  ],
+  "verdict": "ready_for_user_authorization",
+  "without_authorization": "decision_package_only"
+}

@@ -41,7 +41,11 @@ from deeptutor.services.construction_grading.compiled_context import (  # noqa: 
     build_pack_from_question_context,
 )
 from deeptutor.services.construction_grading.learning_evidence import (  # noqa: E402
+    build_learning_evidence_payload,
     build_learning_evidence_from_context_pack,
+)
+from deeptutor.services.construction_grading.teacher_review_writeback import (  # noqa: E402
+    build_teacher_review_writeback,
 )
 from deeptutor.services.learner_state.learning_synthesis import (  # noqa: E402
     synthesize_learning_truth,
@@ -113,6 +117,74 @@ def _pass_grading_result() -> dict[str, Any]:
         "error_events": [],
         "next_training_signal": {"concept": CONCEPT, "error_code": ERROR_CODE, "mode": "case_repair"},
     }
+
+
+def _teacher_final_review() -> dict[str, Any]:
+    return {
+        "case_id": WATERPROOF_QC["question_id"],
+        "student_id": USER,
+        "engine": "best_quality_4model",
+        "teacher_reviewed": True,
+        "review_source": "m32_positive_arm_fixture",
+        "authority_label": "teacher_final",
+        "point_reviews": [
+            {
+                "point_id": POINT_ID,
+                "label": CONCEPT,
+                "policy_type": "list_rule",
+                "max_score": 1,
+                "ai_hit": "partial",
+                "ai_score": 0.5,
+                "high_risk_review": True,
+                "review_action": "override",
+                "teacher_hit": "miss",
+                "teacher_score": 0,
+                "teacher_note": "老师终审确认：近义替代原文术语，本采分点不得分。",
+                "evidence_span": STUDENT_ANSWER,
+            }
+        ],
+    }
+
+
+def _real_retest_pass_payload() -> dict[str, Any]:
+    payload = build_learning_evidence_payload(
+        grading_result={
+            "type": "case",
+            "question_id": WATERPROOF_QC["question_id"],
+            "user_answer": REQUIRED_TERM,
+            "score_awarded": 1,
+            "max_score": 1,
+            "rubric": {
+                "rubric_id": "rb_waterproof_teacher_final",
+                "rubric_mode": "grading_key",
+                "scoring_points": [
+                    {"point_id": POINT_ID, "label": "防水施工规范术语", "max_score": 1}
+                ],
+                "scoring_point_hits": [
+                    {"point_id": POINT_ID, "hit": True, "awarded_score": 1}
+                ],
+            },
+            "error_events": [],
+            "next_training_signal": {
+                "concept": CONCEPT,
+                "error_code": ERROR_CODE,
+                "focus": "防水 exact_required 术语",
+                "mode": "case_repair",
+                "retest_authority": "real_student_retest",
+            },
+        },
+        turn_id="m32_turn_real_retest",
+        session_id="m32_session",
+    )
+    payload["claim_promotion_allowed"] = True
+    payload["quality"] = {
+        **dict(payload.get("quality") or {}),
+        "writeback_eligible": True,
+        "evidence_level": "L2_real_retest",
+        "retest_happened": True,
+        "retest_authority": "real_student_retest",
+    }
+    return payload
 
 
 def _event(event_id: str, payload: dict[str, Any], *, created_at: str, user: str = USER, bot: str = BOT) -> LearnerStateEvent:
@@ -256,6 +328,50 @@ def run_slice(*, out_dir: str, live_ws_exercised: bool = False, stamp: str = "")
     ]
     _write_jsonl(out / "retest_outcome_proof_m32.jsonl", retest_rows)
 
+    # 8b. Promotion positive arm — teacher-final + real retest. This is still side-effect-free
+    # (pure projection + out_dir artifact), but it proves the promotion authority path without
+    # pretending the candidate waterproof shard is release truth.
+    teacher_final_payload = build_teacher_review_writeback(_teacher_final_review(), dry_run=True)[
+        "learning_evidence_payload"
+    ]
+    teacher_final_event = _event(
+        "m32_evt_teacher_final",
+        teacher_final_payload,
+        created_at="2026-06-07T14:00:00+08:00",
+    )
+    teacher_final_projection = synthesize_learning_truth([teacher_final_event])
+    teacher_final_claim = (teacher_final_projection.get("weak_points") or [{}])[0]
+    teacher_final_pcp = build_personalization_context_pack(
+        user_id=USER,
+        learning_brain={"compiled_objects": list((teacher_final_projection.get("compiled_objects") or {}).values())},
+        active_training_intent=None,
+        recent_events=[{"event_id": "m32_evt_teacher_final"}],
+    )
+    real_retest_payload = _real_retest_pass_payload()
+    real_retest_event = _event(
+        "m32_evt_real_retest",
+        real_retest_payload,
+        created_at="2026-06-07T15:00:00+08:00",
+    )
+    post_retest_projection = synthesize_learning_truth([teacher_final_event, real_retest_event])
+    real_retest_improved = _improved(post_retest_projection)
+    teacher_final_real_retest_promotion = {
+        "teacher_final_confirmed_claim": teacher_final_claim,
+        "personalization_context_after_teacher_final": teacher_final_pcp,
+        "real_retest": {
+            "event_id": "m32_evt_real_retest",
+            "retest_happened": True,
+            "retest_authority": "real_student_retest",
+            "counted_as_improvement": real_retest_improved,
+        },
+        "post_retest_projection": {
+            "weak_points": list(post_retest_projection.get("weak_points") or []),
+            "stale_claims": list(post_retest_projection.get("stale_claims") or []),
+            "improvement_signals": list(post_retest_projection.get("improvement_signals") or []),
+        },
+    }
+    _write_json(out / "teacher_final_real_retest_promotion_m32.json", teacher_final_real_retest_promotion)
+
     # 9. Safety — DERIVED for what this slice exercises; explicitly NOT-EXERCISED for what it does not.
     mastery_levels = {"L2_confirmed", "L3_mastery_signal"}
     shadow_promoted = sum(1 for c in claims if str(c.get("evidence_level") or "") in mastery_levels)
@@ -285,6 +401,8 @@ def run_slice(*, out_dir: str, live_ws_exercised: bool = False, stamp: str = "")
         "candidate_used_as_release_truth": 1 if candidate_used_as_release_truth else 0,
         "candidate_grade_pass_promoted": 1 if cand_improved else 0,
         "caller_scoping_ok": bool(caller_scoping_ok),
+        "teacher_final_claim_confirmed": 1 if teacher_final_claim.get("claim_status") == "confirmed" else 0,
+        "real_retest_promoted_to_improvement": 1 if real_retest_improved else 0,
     }
     verified_clean = (
         verified["canonical_truth_written"] is False
@@ -297,6 +415,8 @@ def run_slice(*, out_dir: str, live_ws_exercised: bool = False, stamp: str = "")
         and verified["candidate_used_as_release_truth"] == 0
         and verified["candidate_grade_pass_promoted"] == 0
         and verified["caller_scoping_ok"] is True
+        and verified["teacher_final_claim_confirmed"] == 1
+        and verified["real_retest_promoted_to_improvement"] == 1
     )
     not_exercised = {
         "official_score_laundering": "compiler/adjudicator surface (M10/M17); not on this evidence->claim projection",
@@ -304,7 +424,6 @@ def run_slice(*, out_dir: str, live_ws_exercised: bool = False, stamp: str = "")
         "source_laundering": "compiler/adjudicator surface (runtime_llm_adjudicator source_laundering_blocked)",
         "rag_chunk_as_answer_key": "compiler/adjudicator surface; diagnostic_policy.retrieval_may_become_answer_key is False by construction here",
         "cross_user_leak / cross_subject_leak": "single-tenant slice; isolation is caller-scoped per user_id (see caller_scoping_ok). Multi-tenant partition is verified by the read-model/redaction tests, not this projection slice",
-        "canonical_promotion (positive arm)": "candidate-grade topic; needs real signed registry / teacher-final / live — NOT fabricated here",
     }
     _write_json(out / "safety_invariant_report_m32.json", {
         "verified_in_this_run": verified,
@@ -326,7 +445,12 @@ def run_slice(*, out_dir: str, live_ws_exercised: bool = False, stamp: str = "")
     }
     full_loop = all(v >= 1 for v in loop_counts.values())
     safety_gate_proven = (not cand_improved) and (not sim_improved)
-    canonical_promotion_demonstrated = False  # candidate-grade topic; not demonstrable — production blocker, not slice GO gate
+    canonical_promotion_demonstrated = bool(
+        teacher_final_claim.get("claim_status") == "confirmed"
+        and real_retest_improved
+        and not (post_retest_projection.get("weak_points") or [])
+        and (post_retest_projection.get("stale_claims") or [])
+    )
     if full_loop and verified_clean and safety_gate_proven and live_ws_exercised:
         verdict = "GO"
     elif full_loop and verified_clean and safety_gate_proven:
@@ -339,11 +463,6 @@ def run_slice(*, out_dir: str, live_ws_exercised: bool = False, stamp: str = "")
             "live /api/v1/ws not exercised — run with --live to close this gate "
             "(tests/integration/test_luban_m32_grading_to_brain_waterproof_ws.py)"
         )
-    # canonical promotion is always a production expansion blocker (candidate-grade shard)
-    live_blockers.append(
-        "canonical promotion (positive arm) needs a real published registry / teacher-final / "
-        "real student retest — waterproof topic is candidate-grade; not a slice GO gate per §312"
-    )
     mode = "live_ws_exercised" if live_ws_exercised else "hermetic_only"
     go_no_go = {
         "milestone": "M32_grading_to_brain_waterproof_vertical_slice",
@@ -378,7 +497,8 @@ promoted. The live /api/v1/ws gate was {"EXERCISED ✓" if live_ws_exercised els
 - 今天为什么练这个？ {next_action.get('why_this_now', '')}
 - 证据来自哪段作答？ {claim0.get('evidence_span', '')}（采分点 {POINT_ID}）
 - 这次训练要证明什么？ {next_action.get('success_measure', '')}
-- 练完后如何更新画像？ 仅签名授权 / 教师终审的真实复测才会清除弱点；candidate / 模拟复测保持 preview。
+- 练完后如何更新画像？ teacher-final 先把错因确认为长期画像；真实 retest 通过后该 claim 进入 stale/improving；candidate / 模拟复测保持 preview。
+- canonical promotion positive arm demonstrated: {canonical_promotion_demonstrated}
 
 ## Loop counts
 {json.dumps(loop_counts, ensure_ascii=False, indent=2)}

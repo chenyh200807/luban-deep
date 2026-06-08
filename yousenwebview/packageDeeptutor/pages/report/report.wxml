@@ -780,22 +780,28 @@
         <view class="training-loop-head">
           <view>
             <text class="training-loop-kicker">训练闭环</text>
-            <text class="training-loop-title">{{prescriptionStatus == 'degraded' ? '先补证据，再生成专项训练' : '先修根因，再做验证'}}</text>
+            <text class="training-loop-title">{{gradingLoopStatus == 'improved' ? '复测已验证，继续巩固' : gradingLoopStatus == 'needs_retest' ? '证据已形成，下一步做复测' : prescriptionStatus == 'degraded' ? '先补证据，再生成专项训练' : '先修根因，再做验证'}}</text>
           </view>
-          <text class="training-loop-badge">{{prescriptionCtaLabel || '开始训练'}}</text>
+          <text class="training-loop-badge">{{gradingLoopCurrentAction.actionType || prescriptionCtaLabel || '开始训练'}}</text>
         </view>
-        <text class="training-loop-desc">{{prescriptionStatus == 'degraded' ? '这里不是重复摸底。系统已经看到你的学习记录，但还缺少稳定的题目主题或错因链，所以先用一题高质量作答校准处方。' : '按诊断、补弱、验证三步执行：先定位错因，再做同类专项，最后用新题确认是否真正回到主线。'}}</text>
-        <view class="training-loop-meter">
+        <text class="training-loop-desc">{{gradingLoopStatus ? '这条闭环来自同一份 Learning Brain：批改证据进入长期画像，再生成个性化动作和复测要求。' : prescriptionStatus == 'degraded' ? '这里不是重复摸底。系统已经看到你的学习记录，但还缺少稳定的题目主题或错因链，所以先用一题高质量作答校准处方。' : '按诊断、补弱、验证三步执行：先定位错因，再做同类专项，最后用新题确认是否真正回到主线。'}}</text>
+        <view class="training-loop-meter" wx:if="{{!gradingLoopStages.length}}">
           <view class="training-loop-dot active"><text>1</text></view>
           <view class="training-loop-line"></view>
           <view class="training-loop-dot"><text>2</text></view>
           <view class="training-loop-line"></view>
           <view class="training-loop-dot"><text>3</text></view>
         </view>
+        <view class="grading-loop-stages" wx:if="{{gradingLoopStages.length}}">
+          <view class="grading-loop-stage status-{{item.status}}" wx:for="{{gradingLoopStages}}" wx:key="key">
+            <text class="grading-loop-stage-label">{{item.label}}</text>
+            <text class="grading-loop-stage-status">{{item.status == 'ready' ? '已接入' : item.status == 'verified' ? '已验证' : item.status == 'due' ? '待复测' : '待补齐'}}</text>
+          </view>
+        </view>
         <view class="training-loop-stats">
-          <text>{{prescriptionEvidenceCount || 0}} 条证据</text>
+          <text>{{gradingLoopEvidenceRefs.length || prescriptionEvidenceCount || 0}} 条证据</text>
           <text>{{prescriptionSteps.length || 1}} 个步骤</text>
-          <text>{{prescriptionStatus == 'degraded' ? '待校准' : '可执行'}}</text>
+          <text>{{gradingLoopStatus == 'improved' ? '已改善' : gradingLoopStatus == 'needs_retest' ? '待复测' : prescriptionStatus == 'degraded' ? '待校准' : '可执行'}}</text>
         </view>
         <view class="training-action-card" bindtap="executeTrainingAction" hover-class="training-action-card-pressed">
           <view>

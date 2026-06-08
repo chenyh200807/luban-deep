@@ -1634,7 +1634,18 @@ class MemberConsoleService:
             matched_indexes = sorted({key_to_index[key] for key in keys if key in key_to_index})
             if not matched_indexes:
                 index = len(members)
-                member["alias_user_ids"] = [str(member.get("user_id") or "").strip()]
+                member["alias_user_ids"] = sorted(
+                    {
+                        str(value or "").strip()
+                        for value in [
+                            member.get("user_id"),
+                            member.get("canonical_user_id"),
+                            member.get("external_auth_user_id"),
+                            *list(member.get("alias_user_ids") or []),
+                        ]
+                        if str(value or "").strip()
+                    }
+                )
                 member["canonical_user_id"] = (
                     str(member.get("external_auth_user_id") or "").strip()
                     if is_uuid_like(str(member.get("external_auth_user_id") or "").strip())
@@ -2790,6 +2801,72 @@ class MemberConsoleService:
                 "timeline": [],
             }
 
+    @staticmethod
+    def _member_behavior_identity_group(member: dict[str, Any]) -> list[str]:
+        identities = [
+            member.get("user_id"),
+            member.get("canonical_user_id"),
+            member.get("external_auth_user_id"),
+            *list(member.get("alias_user_ids") or []),
+        ]
+        seen: set[str] = set()
+        out: list[str] = []
+        for value in identities:
+            normalized = str(value or "").strip()
+            if not normalized or normalized in seen:
+                continue
+            seen.add(normalized)
+            out.append(normalized)
+        return out
+
+    def _load_member_behavior_payload_for_member(self, member: dict[str, Any]) -> dict[str, Any]:
+        user_id = str(member.get("user_id") or "").strip()
+        identities = self._member_behavior_identity_group(member)
+        try:
+            store = self._get_product_behavior_store()
+            summary_groups = getattr(store, "get_member_behavior_summaries_for_identity_groups", None)
+            section_groups = getattr(store, "get_learning_report_section_breakdown_for_identity_group", None)
+            timeline_groups = getattr(store, "get_member_timeline_for_identity_group", None)
+            if callable(summary_groups) and callable(section_groups) and callable(timeline_groups):
+                return {
+                    "summary": summary_groups({user_id: identities}, days=7).get(
+                        user_id,
+                        self._fallback_member_behavior_summary(),
+                    ),
+                    "learning_report_sections": section_groups(identities, days=7),
+                    "timeline": timeline_groups(identities, days=7, limit=20),
+                }
+            return self._load_member_behavior_payload(user_id)
+        except Exception:
+            logger.warning("Failed to load product behavior for member: user_id=%s", user_id, exc_info=True)
+            return {
+                "summary": self._fallback_member_behavior_summary(),
+                "learning_report_sections": [],
+                "timeline": [],
+            }
+
+    def _load_member_behavior_summaries_for_members(
+        self,
+        members: list[dict[str, Any]],
+    ) -> dict[str, dict[str, Any]]:
+        group_by_user_id = {
+            str(item.get("user_id") or "").strip(): self._member_behavior_identity_group(item)
+            for item in members
+            if str(item.get("user_id") or "").strip()
+        }
+        try:
+            store = self._get_product_behavior_store()
+            grouped_loader = getattr(store, "get_member_behavior_summaries_for_identity_groups", None)
+            if callable(grouped_loader):
+                return grouped_loader(group_by_user_id, days=7)
+            return self._load_member_behavior_summaries(list(group_by_user_id))
+        except Exception:
+            logger.warning("Failed to load product behavior summaries for member list", exc_info=True)
+            return {
+                user_id: self._fallback_member_behavior_summary()
+                for user_id in group_by_user_id
+            }
+
     def _load_member_behavior_summaries(self, user_ids: list[str]) -> dict[str, dict[str, Any]]:
         try:
             return self._get_product_behavior_store().get_member_behavior_summaries(user_ids, days=7)
@@ -2803,7 +2880,7 @@ class MemberConsoleService:
     def get_dashboard(self, days: int = 30) -> dict[str, Any]:
         data = self._load()
         members = self._members_for_bi(data)
-        behavior_summaries = self._load_member_behavior_summaries([item["user_id"] for item in members])
+        behavior_summaries = self._load_member_behavior_summaries_for_members(members)
         behavior_health = {
             "learning_report_open_count_7d": sum(
                 int(summary.get("learning_report_open_count_7d") or 0)
@@ -2975,7 +3052,7 @@ class MemberConsoleService:
         start = max(0, (page - 1) * page_size)
         end = start + page_size
         page_items = filtered[start:end]
-        behavior_summaries = self._load_member_behavior_summaries([item["user_id"] for item in page_items])
+        behavior_summaries = self._load_member_behavior_summaries_for_members(page_items)
         items = []
         for item in page_items:
             items.append(
@@ -3087,7 +3164,7 @@ class MemberConsoleService:
             logger.warning("Failed to load bot overlays for member 360: user_id=%s", user_id, exc_info=True)
             member["bot_overlays"] = []
         member["recent_conversations"] = self._load_recent_conversations_for_member(member, user_id)
-        member["behavior"] = self._load_member_behavior_payload(user_id)
+        member["behavior"] = self._load_member_behavior_payload_for_member(member)
         return member
 
     def get_member_learner_state_panel(self, user_id: str, *, limit: int = 20) -> dict[str, Any]:

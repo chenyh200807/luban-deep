@@ -1,0 +1,60 @@
+{
+  "allowed_scope_after_authorization": "teacher-final plus real retest promotion only",
+  "blocking_reason": "teacher-final live signoff is required before canonical learner truth write",
+  "canonical_truth_written": false,
+  "evidence_ok": {
+    "artifacts/luban_grading_artifacts/grading_to_brain_m32_waterproof_20260608/retest_outcome_proof_m32.jsonl": true,
+    "artifacts/luban_grading_artifacts/learning_brain_canonical_claim_gate_m13e_20260604/teacher_review_to_claim_bridge_m13e.jsonl": true,
+    "artifacts/luban_grading_artifacts/learning_brain_real_retest_canonical_gate_m18d_20260604/canonical_write_dryrun_candidates_m18d.jsonl": true,
+    "artifacts/luban_grading_artifacts/learning_brain_real_retest_canonical_gate_m18d_20260604/learning_brain_truth_write_guard_m18d.json": true,
+    "artifacts/luban_grading_artifacts/learning_brain_real_retest_canonical_gate_m18d_20260604/real_retest_proofs_m18d.jsonl": true
+  },
+  "evidence_refs": [
+    "artifacts/luban_grading_artifacts/learning_brain_real_retest_canonical_gate_m18d_20260604/learning_brain_truth_write_guard_m18d.json",
+    "artifacts/luban_grading_artifacts/learning_brain_real_retest_canonical_gate_m18d_20260604/canonical_write_dryrun_candidates_m18d.jsonl",
+    "artifacts/luban_grading_artifacts/learning_brain_real_retest_canonical_gate_m18d_20260604/real_retest_proofs_m18d.jsonl",
+    "artifacts/luban_grading_artifacts/grading_to_brain_m32_waterproof_20260608/retest_outcome_proof_m32.jsonl",
+    "artifacts/luban_grading_artifacts/learning_brain_canonical_claim_gate_m13e_20260604/teacher_review_to_claim_bridge_m13e.jsonl"
+  ],
+  "execution_mode": "read_only_no_write",
+  "gate_id": "G4_canonical_learner_truth_write",
+  "generated_by": "audit_luban_grading_to_brain_current_gap",
+  "master_plan": "docs/plan/2026-06-04-luban-grading-engine-master-control-plan.md",
+  "missing_evidence_refs": [],
+  "preconditions": {
+    "dryrun_candidate_count": 16,
+    "m32_counted_improvement_count": 0,
+    "pcp_unique_contract": true,
+    "real_retest_valid_count": 16,
+    "requires_real_teacher_signoff_count": 3,
+    "second_memory_authority": false,
+    "second_personalization_authority": false,
+    "shadow_or_simulated_promotion_attempted": false,
+    "teacher_final_live_count": 0,
+    "teacher_final_simulated_count": 3,
+    "truth_write_guard_present": true
+  },
+  "production_write_count": 0,
+  "promotion_path": "teacher_final_plus_real_retest_only",
+  "published_registry_executed": false,
+  "remote_write_count": 0,
+  "required_authorization": "explicit_canonical_learner_truth_write_authorization",
+  "schema_version": 1,
+  "scope": "read_only_pre_authorization_preflight",
+  "single_authority": {
+    "learner_truth_source": "Learning Evidence Ledger / Learner Model only",
+    "no_second_grading_truth": true,
+    "no_second_learner_truth": true,
+    "pcp_role": "read_only_feedback_context",
+    "write_authority": "LearnerStateService writeback pipeline only"
+  },
+  "stop_conditions": [
+    "teacher-final live signoff missing",
+    "real retest proof missing or simulated",
+    "shadow/candidate/simulated event attempts canonical mastery",
+    "second learner memory or personalization authority appears",
+    "production/canonical write occurs before authorization"
+  ],
+  "verdict": "not_ready_teacher_final_required",
+  "without_authorization": "decision_package_only"
+}

@@ -1,0 +1,54 @@
+{
+  "allowed_scope_after_authorization": "qa_/operator_ cohort only",
+  "canonical_truth_written": false,
+  "evidence_ok": {
+    "artifacts/luban_grading_artifacts/limited_default_flip_m19c_20260605/go_no_go_m19c.json": true,
+    "artifacts/luban_grading_artifacts/limited_default_soak_monitoring_m19d_20260605/release_verdict_m19d.json": true,
+    "artifacts/luban_grading_artifacts/limited_default_soak_monitoring_m19d_20260605/rollback_readiness_drill_m19d.json": true,
+    "artifacts/luban_grading_artifacts/limited_default_soak_monitoring_m19d_20260605/safety_invariants_m19d.json": true
+  },
+  "evidence_refs": [
+    "artifacts/luban_grading_artifacts/limited_default_flip_m19c_20260605/go_no_go_m19c.json",
+    "artifacts/luban_grading_artifacts/limited_default_soak_monitoring_m19d_20260605/release_verdict_m19d.json",
+    "artifacts/luban_grading_artifacts/limited_default_soak_monitoring_m19d_20260605/rollback_readiness_drill_m19d.json",
+    "artifacts/luban_grading_artifacts/limited_default_soak_monitoring_m19d_20260605/safety_invariants_m19d.json"
+  ],
+  "execution_mode": "read_only_no_flip",
+  "gate_id": "G1_limited_production_default",
+  "generated_by": "audit_luban_grading_to_brain_current_gap",
+  "master_plan": "docs/plan/2026-06-04-luban-grading-engine-master-control-plan.md",
+  "missing_evidence_refs": [],
+  "preconditions": {
+    "broad_default": "NO-GO",
+    "canonical_learner_truth_write": "NO-GO",
+    "m19c_limited_default_flip": "GO",
+    "m19d_soak_verdict": "GO",
+    "rollback_readiness": true,
+    "rollback_works": true,
+    "safety_invariants": true
+  },
+  "production_write_count": 0,
+  "promotion_path": "runtime_default_only_no_mastery_write",
+  "published_registry_executed": false,
+  "remote_write_count": 0,
+  "required_authorization": "explicit_user_authorization_for_limited_default",
+  "schema_version": 1,
+  "scope": "read_only_pre_authorization_preflight",
+  "single_authority": {
+    "grading_truth_source": "existing limited-default runtime gate evidence",
+    "learner_truth_source": "unchanged Learning Evidence Ledger / Learner Model",
+    "no_second_grading_truth": true,
+    "no_second_learner_truth": true,
+    "pcp_role": "read_only_feedback_context"
+  },
+  "stop_conditions": [
+    "false_positive > 0",
+    "bad_certified > 0",
+    "source_mismatch > 0",
+    "legacy_equal < 1.0",
+    "teacher review backlog exceeds operator capacity",
+    "any canonical learner truth write is requested by this gate"
+  ],
+  "verdict": "ready_for_user_authorization",
+  "without_authorization": "decision_package_only"
+}

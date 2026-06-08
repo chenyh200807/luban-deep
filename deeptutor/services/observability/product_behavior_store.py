@@ -190,10 +190,29 @@ class SQLiteProductBehaviorStore:
             "trust_level": "B",
         }
 
-    def get_member_behavior_summaries(self, user_ids: list[str], *, days: int = 7) -> dict[str, dict[str, Any]]:
-        unique_user_ids = sorted({str(user_id) for user_id in user_ids if str(user_id)})
-        if not unique_user_ids:
+    def get_member_behavior_summaries_for_identity_groups(
+        self,
+        identity_groups: dict[str, list[str]],
+        *,
+        days: int = 7,
+    ) -> dict[str, dict[str, Any]]:
+        normalized_groups: dict[str, list[str]] = {}
+        identity_to_group_keys: dict[str, set[str]] = {}
+        for group_key, identities in (identity_groups or {}).items():
+            key = str(group_key or "").strip()
+            if not key:
+                continue
+            normalized = sorted({str(identity or "").strip() for identity in identities if str(identity or "").strip()})
+            normalized_groups[key] = normalized
+            for identity in normalized:
+                identity_to_group_keys.setdefault(identity, set()).add(key)
+
+        if not normalized_groups:
             return {}
+
+        unique_user_ids = sorted(identity_to_group_keys)
+        if not unique_user_ids:
+            return {key: self._empty_summary() for key in normalized_groups}
 
         since = self._since_ms(days)
         placeholders = ",".join("?" for _ in unique_user_ids)
@@ -208,23 +227,27 @@ class SQLiteProductBehaviorStore:
                 (*unique_user_ids, since),
             ).fetchall()
 
-        counts_by_user: dict[str, dict[tuple[str, str], int]] = {user_id: {} for user_id in unique_user_ids}
-        action_counts_by_user: dict[str, dict[tuple[str, str], int]] = {user_id: {} for user_id in unique_user_ids}
-        event_counts_by_user: dict[str, int] = {user_id: 0 for user_id in unique_user_ids}
-        last_event_by_user: dict[str, int] = {user_id: 0 for user_id in unique_user_ids}
+        counts_by_user: dict[str, dict[tuple[str, str], int]] = {key: {} for key in normalized_groups}
+        action_counts_by_user: dict[str, dict[tuple[str, str], int]] = {key: {} for key in normalized_groups}
+        event_counts_by_user: dict[str, int] = {key: 0 for key in normalized_groups}
+        last_event_by_user: dict[str, int] = {key: 0 for key in normalized_groups}
         for row in rows:
             user_id = str(row["user_id"])
             count = int(row["count"])
             event_name = str(row["event_name"])
             action = str(row["action"])
-            counts_by_user[user_id][(str(row["module"]), event_name)] = (
-                counts_by_user[user_id].get((str(row["module"]), event_name), 0) + count
-            )
-            action_counts_by_user[user_id][(event_name, action)] = (
-                action_counts_by_user[user_id].get((event_name, action), 0) + count
-            )
-            event_counts_by_user[user_id] += count
-            last_event_by_user[user_id] = max(last_event_by_user[user_id], int(row["last_event_at_ms"] or 0))
+            for group_key in identity_to_group_keys.get(user_id, set()):
+                counts_by_user[group_key][(str(row["module"]), event_name)] = (
+                    counts_by_user[group_key].get((str(row["module"]), event_name), 0) + count
+                )
+                action_counts_by_user[group_key][(event_name, action)] = (
+                    action_counts_by_user[group_key].get((event_name, action), 0) + count
+                )
+                event_counts_by_user[group_key] += count
+                last_event_by_user[group_key] = max(
+                    last_event_by_user[group_key],
+                    int(row["last_event_at_ms"] or 0),
+                )
 
         summaries: dict[str, dict[str, Any]] = {}
         for user_id, counts in counts_by_user.items():
@@ -268,17 +291,33 @@ class SQLiteProductBehaviorStore:
             }
         return summaries
 
+    def get_member_behavior_summaries(self, user_ids: list[str], *, days: int = 7) -> dict[str, dict[str, Any]]:
+        unique_user_ids = sorted({str(user_id) for user_id in user_ids if str(user_id)})
+        return self.get_member_behavior_summaries_for_identity_groups(
+            {user_id: [user_id] for user_id in unique_user_ids},
+            days=days,
+        )
+
     def get_member_behavior_summary(self, user_id: str, *, days: int = 7) -> dict[str, Any]:
         return self.get_member_behavior_summaries([user_id], days=days).get(user_id, self._empty_summary())
 
-    def get_learning_report_section_breakdown(self, user_id: str, *, days: int = 7) -> list[dict[str, Any]]:
+    def get_learning_report_section_breakdown_for_identity_group(
+        self,
+        user_ids: list[str],
+        *,
+        days: int = 7,
+    ) -> list[dict[str, Any]]:
+        unique_user_ids = sorted({str(user_id) for user_id in user_ids if str(user_id)})
+        if not unique_user_ids:
+            return []
         since = self._since_ms(days)
+        placeholders = ",".join("?" for _ in unique_user_ids)
         with self._connect() as conn:
             rows = conn.execute(
-                """
+                f"""
                 select section, count(*) as view_count
                 from product_behavior_events
-                where user_id = ?
+                where user_id in ({placeholders})
                   and occurred_at_ms >= ?
                   and module = 'learning_report'
                   and event_name = 'section_viewed'
@@ -286,27 +325,43 @@ class SQLiteProductBehaviorStore:
                 group by section
                 order by view_count desc, section asc
                 """,
-                (user_id, since),
+                (*unique_user_ids, since),
             ).fetchall()
         return [{"section": str(row["section"]), "view_count": int(row["view_count"])} for row in rows]
 
-    def get_member_timeline(self, user_id: str, *, days: int = 7, limit: int = 20) -> list[dict[str, Any]]:
+    def get_learning_report_section_breakdown(self, user_id: str, *, days: int = 7) -> list[dict[str, Any]]:
+        return self.get_learning_report_section_breakdown_for_identity_group([user_id], days=days)
+
+    def get_member_timeline_for_identity_group(
+        self,
+        user_ids: list[str],
+        *,
+        days: int = 7,
+        limit: int = 20,
+    ) -> list[dict[str, Any]]:
+        unique_user_ids = sorted({str(user_id) for user_id in user_ids if str(user_id)})
+        if not unique_user_ids:
+            return []
         since = self._since_ms(days)
+        placeholders = ",".join("?" for _ in unique_user_ids)
         with self._connect() as conn:
             rows = conn.execute(
-                """
+                f"""
                 select event_id, event_name, occurred_at_ms, surface, module, section, action,
                        visit_id, session_id, turn_id, object_type, object_id, entry_source,
                        referrer_module, duration_ms, visible_ms, result, error_code, release_id,
                        app_version, platform
                 from product_behavior_events
-                where user_id = ? and occurred_at_ms >= ?
+                where user_id in ({placeholders}) and occurred_at_ms >= ?
                 order by occurred_at_ms desc
                 limit ?
                 """,
-                (user_id, since, max(1, min(limit, 100))),
+                (*unique_user_ids, since, max(1, min(limit, 100))),
             ).fetchall()
         return [dict(row) for row in rows]
+
+    def get_member_timeline(self, user_id: str, *, days: int = 7, limit: int = 20) -> list[dict[str, Any]]:
+        return self.get_member_timeline_for_identity_group([user_id], days=days, limit=limit)
 
     def query_raw_events(self, filters: dict[str, Any] | None = None, *, limit: int = 1000) -> list[dict[str, Any]]:
         filters = filters or {}

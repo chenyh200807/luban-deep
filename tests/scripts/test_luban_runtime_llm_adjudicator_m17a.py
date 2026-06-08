@@ -30,6 +30,81 @@ def test_packet_has_required_fields():
     assert packet["personalization_context_pack_readonly"]["is_second_learner_memory"] is False
 
 
+def test_personalization_context_guides_tone_without_becoming_scoring_authority():
+    supply = bsl.load_beta_supply()
+    reg = bsl.load_release_candidate_registry()
+    qid = next(p["question_id"] for p in reg["points"])
+    pcp = {
+        "source": "PersonalizationContextPack",
+        "top_claims": [
+            {
+                "claim_status": "repeated",
+                "label": "exact_required 术语经常用近义词替代",
+                "evidence_refs": ["teacher_final_evt", "real_retest_evt"],
+            }
+        ],
+        "next_best_action_candidates": [
+            {
+                "action_type": "retest_or_targeted_practice",
+                "target": "同类 exact_required 术语题",
+                "evidence_refs": ["teacher_final_evt"],
+            }
+        ],
+    }
+
+    packet = adj.build_grading_packet(
+        qid,
+        "我写成了普通钢筋调直机。",
+        supply=supply,
+        registry=reg,
+        personalization_context_pack=pcp,
+    )
+
+    pcp_block = packet["personalization_context_pack_readonly"]
+    assert pcp_block["read_only"] is True
+    assert pcp_block["is_second_learner_memory"] is False
+    assert pcp_block["scoring_authority"] == "rubric_policy_and_validator_only"
+    assert pcp_block["feedback_guidance"]["grading_tone"] == "advanced_repeat_mistake"
+    assert pcp_block["feedback_guidance"]["explanation_depth"] == "reference_prior_pattern"
+    assert pcp_block["feedback_guidance"]["next_action_hint"] == "同类 exact_required 术语题"
+
+    _system, user = adj._adjudication_prompt(packet)
+    prompt_payload = json.loads(user)
+    assert prompt_payload["personalization_feedback_guidance"] == pcp_block["feedback_guidance"]
+    assert "personalization_feedback_guidance" not in json.dumps(
+        prompt_payload["points"], ensure_ascii=False
+    )
+
+
+def test_grading_packet_uses_pcp_feedback_guidance_as_single_feedback_projection():
+    supply = bsl.load_beta_supply()
+    reg = bsl.load_release_candidate_registry()
+    qid = next(p["question_id"] for p in reg["points"])
+    guidance = {
+        "authority": "PersonalizationContextPack_read_only",
+        "grading_tone": "retest_improvement_followup",
+        "explanation_depth": "compare_retest_delta",
+        "prior_claim_label": "防水 exact_required 术语近义替代",
+        "next_action_hint": "复测已有改善，下一题继续验证。",
+    }
+    pcp = {
+        "source": "PersonalizationContextPack",
+        "top_claims": [{"claim_status": "stale", "label": "old derived view"}],
+        "next_best_action_candidates": [{"target": "old derived action"}],
+        "feedback_guidance": guidance,
+    }
+
+    packet = adj.build_grading_packet(
+        qid,
+        "这次我写对了规范术语。",
+        supply=supply,
+        registry=reg,
+        personalization_context_pack=pcp,
+    )
+
+    assert packet["personalization_context_pack_readonly"]["feedback_guidance"] == guidance
+
+
 def test_validator_floor_blocks_llm_accept_when_deterministic_rejects():
     packet, supply, _reg, _qid, _ans = _packet()
     pid = packet["point_ids"][0]
