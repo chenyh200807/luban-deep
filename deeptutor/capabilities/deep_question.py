@@ -1464,6 +1464,9 @@ def _render_targeted_brief_reference_feedback(
     item = items[0]
     if _looks_like_wrong_cause_request(user_message):
         return _render_brief_wrong_cause(item, user_message)
+    # brevity + named option letter ("为什么A错？一句话", "那B呢？一句话") → brief option focus
+    if _named_option_letters_from_item(user_message, item):
+        return _render_brief_wrong_cause(item, user_message)
     if _looks_like_missing_selection_check(user_message):
         return _render_brief_missing_selection_check(item)
     return ""
@@ -1506,6 +1509,10 @@ def _render_targeted_option_reference_feedback(
     question_context: dict[str, Any] | None,
 ) -> str:
     if not _looks_like_option_scoring_or_challenge_request(user_message):
+        return ""
+    # brevity requests defer to the brief path (already ran first); the verbose verdict
+    # template does not honour "一句话" and should not override a brief answer.
+    if looks_like_explicit_brevity_request(user_message):
         return ""
     items = _reference_items(question_context)
     if len(items) != 1:

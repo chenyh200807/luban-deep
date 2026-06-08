@@ -126,6 +126,30 @@ def test_brief_wrong_cause_confirms_named_correct_option() -> None:
     assert "正确选项" in response
 
 
+def test_why_option_brevity_routes_to_brief_not_verdict_template() -> None:
+    # R3-07: "为什么A错？一句话" must NOT give the verbose verdict template
+    # ("我不会因为追问改写标准答案"); it should give a brief distractor focus.
+    response = _render_deterministic_reference_feedback(
+        _wall_context(user_answer="CDE", is_correct=True),
+        user_message="为什么A错？一句话",
+    )
+    assert "我不会因为追问" not in response
+    assert response.startswith("A")
+    assert ("干扰项" in response) or ("不在标准答案" in response)
+
+
+def test_named_option_brevity_routes_to_brief_option_focus() -> None:
+    # R3-08: "那B呢？一句话" should give a brief option focus (B is also a distractor
+    # in this context), not the full answer dump.
+    response = _render_deterministic_reference_feedback(
+        _wall_context(user_answer="CDE", is_correct=True),
+        user_message="那B呢？一句话",
+    )
+    assert "我不会因为追问" not in response
+    assert response.startswith("B")
+    assert ("干扰项" in response) or ("不在标准答案" in response)
+
+
 def test_option_challenge_without_brevity_keeps_detailed_reference_feedback() -> None:
     response = _render_deterministic_reference_feedback(
         _wall_context(user_answer="CDE", is_correct=True),
