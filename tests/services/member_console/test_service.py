@@ -3216,6 +3216,98 @@ def test_verify_phone_code_rejects_invalid_code(tmp_path: Path) -> None:
         service.verify_phone_code("13955556666", "000000")
 
 
+def test_reset_password_with_phone_code_updates_external_auth_password(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    external_auth_module.create_external_auth_user(
+        "reset_student",
+        "OldPass123",
+        phone="13955556666",
+    )
+    send_result = service.send_phone_code("13955556666")
+
+    result = service.reset_password_with_phone_code(
+        "reset_student",
+        "13955556666",
+        send_result["debug_code"],
+        "NewPass123",
+    )
+
+    assert result["success"] is True
+    assert result["message"] == "密码已重置，请使用新密码登录"
+    assert external_auth_module.verify_external_auth_user("reset_student", "OldPass123") is None
+    assert external_auth_module.verify_external_auth_user("reset_student", "NewPass123") is not None
+    with pytest.raises(ValueError, match="验证码不存在"):
+        service.verify_phone_code("13955556666", send_result["debug_code"])
+
+
+def test_reset_password_rejects_mismatched_phone_without_consuming_code(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    external_auth_module.create_external_auth_user(
+        "reset_student",
+        "OldPass123",
+        phone="13955556666",
+    )
+    send_result = service.send_phone_code("13955556666")
+
+    with pytest.raises(ValueError, match="账号或手机号不匹配"):
+        service.reset_password_with_phone_code(
+            "reset_student",
+            "13800000000",
+            send_result["debug_code"],
+            "NewPass123",
+        )
+
+    service.reset_password_with_phone_code(
+        "reset_student",
+        "13955556666",
+        send_result["debug_code"],
+        "NewPass123",
+    )
+    assert external_auth_module.verify_external_auth_user("reset_student", "NewPass123") is not None
+
+
+def test_reset_password_rejects_weak_password_without_consuming_code(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    external_auth_module.create_external_auth_user(
+        "reset_student",
+        "OldPass123",
+        phone="13955556666",
+    )
+    send_result = service.send_phone_code("13955556666")
+
+    with pytest.raises(ValueError, match="密码必须包含至少一个大写字母"):
+        service.reset_password_with_phone_code(
+            "reset_student",
+            "13955556666",
+            send_result["debug_code"],
+            "weak123",
+        )
+
+    assert service._load()["phone_codes"].get("13955556666")
+    assert external_auth_module.verify_external_auth_user("reset_student", "OldPass123") is not None
+
+
 def test_send_phone_code_rejects_invalid_phone_input(tmp_path: Path) -> None:
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"

@@ -180,6 +180,10 @@ def _validate_password(password: str) -> None:
         raise ValueError("密码必须包含至少一个大写字母")
 
 
+def validate_external_auth_password(password: str) -> None:
+    _validate_password(str(password or ""))
+
+
 def _pre_hash(password: str) -> bytes:
     return hashlib.sha256(password.encode("utf-8")).hexdigest().encode("utf-8")
 

@@ -83,6 +83,8 @@ from deeptutor.services.member_console.external_auth import (
     ensure_external_auth_user_for_phone,
     get_external_auth_user,
     load_external_auth_users,
+    reset_external_auth_password_by_phone,
+    validate_external_auth_password,
     verify_external_auth_user,
 )
 from deeptutor.services.path_service import get_path_service
@@ -6022,6 +6024,50 @@ class MemberConsoleService:
             canonical_uid=str(auth_identity.get("canonical_uid") or "").strip(),
         )
         return self._build_auth_response(user_id=auth_identity["user_id"], token=token)
+
+    def reset_password_with_phone_code(
+        self,
+        username: str,
+        phone: str,
+        code: str,
+        password: str,
+    ) -> dict[str, Any]:
+        normalized_phone = _normalize_phone_input(phone)
+        if not normalized_phone:
+            raise ValueError("手机号格式不正确")
+        normalized_username = str(username or "").strip()
+        external_user = get_external_auth_user(normalized_username)
+        if not external_user or _slugify_phone(str(external_user.get("phone") or "")) != normalized_phone:
+            raise ValueError("账号或手机号不匹配")
+        normalized_password = str(password or "")
+        validate_external_auth_password(normalized_password)
+
+        provided_code = str(code or "").strip()
+
+        def _consume_verified_code(data: dict[str, Any]) -> bool:
+            current = (data.get("phone_codes") or {}).get(normalized_phone) or {}
+            expected_code = str(current.get("code") or "").strip()
+            expires_at = _parse_time(current.get("expires_at"))
+            if not expected_code:
+                raise ValueError("验证码不存在，请先获取验证码")
+            if expires_at < _now():
+                raise ValueError("验证码已过期，请重新获取")
+            if provided_code != expected_code:
+                raise ValueError("验证码错误")
+            data.get("phone_codes", {}).pop(normalized_phone, None)
+            return True
+
+        self._mutate(_consume_verified_code)
+        reset_result = reset_external_auth_password_by_phone(
+            normalized_username,
+            normalized_phone,
+            normalized_password,
+        )
+        return {
+            "success": True,
+            "message": "密码已重置，请使用新密码登录",
+            "sessions_invalidated": int(reset_result.get("sessions_invalidated") or 0),
+        }
 
     def create_demo_token(self, user_id: str) -> str:
         return f"demo-token-{user_id}-{secrets.token_hex(4)}"

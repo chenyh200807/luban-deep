@@ -56,6 +56,8 @@
 
       <view class="link-row">
         <text class="manual-link" bindtap="goManualLogin">手机号验证码 / 账号密码</text>
+        <text class="link-sep">|</text>
+        <text class="manual-link" bindtap="goPasswordReset">忘记密码</text>
       </view>
     </view>
   </view>

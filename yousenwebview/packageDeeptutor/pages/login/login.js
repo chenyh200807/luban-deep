@@ -364,6 +364,14 @@ Page({
       }),
     });
   },
+  goPasswordReset: function () {
+    wx.navigateTo({
+      url: route.passwordReset({
+        entrySource: this.data.entrySource,
+        returnTo: this.data.returnTo,
+      }),
+    });
+  },
   _completeWechatAuth: function (payload) {
     var inner = payload && (payload.data || payload);
     var token = inner && inner.token;

@@ -1,8 +1,14 @@
 var api = require("../../utils/api");
-var auth = require("../../utils/auth");
 var helpers = require("../../utils/helpers");
 var route = require("../../utils/route");
 var analytics = require("../../utils/analytics");
+
+var CN_MOBILE_RE = /^1[3-9]\d{9}$/;
+
+function canShowDebugCode() {
+  var cfg = typeof __wxConfig !== "undefined" ? __wxConfig : {};
+  return cfg.platform === "devtools" || cfg.envVersion === "develop" || cfg.envVersion === "trial";
+}
 
 function showSmsSentFeedback(message) {
   wx.showToast({
@@ -11,9 +17,23 @@ function showSmsSentFeedback(message) {
   });
 }
 
-function canShowDebugCode() {
-  var cfg = typeof __wxConfig !== "undefined" ? __wxConfig : {};
-  return cfg.platform === "devtools" || cfg.envVersion === "develop" || cfg.envVersion === "trial";
+function validateResetForm(username, phone, code, password, confirmPassword) {
+  if (!username) return "请输入用户名或邮箱";
+  if (username.length < 2) return "账号至少需要 2 个字符";
+  if (username.length > 50) return "账号不能超过 50 个字符";
+  if (!phone) return "请输入手机号";
+  if (!CN_MOBILE_RE.test(phone)) return "请输入正确的手机号";
+  if (!code) return "请输入验证码";
+  if (code.length !== 6) return "请输入 6 位验证码";
+  if (!password) return "请设置新密码";
+  if (password.length < 6) return "密码至少 6 位";
+  if (password.length > 128) return "密码不能超过 128 个字符";
+  if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\d/.test(password)) {
+    return "密码需包含大写字母、小写字母和数字";
+  }
+  if (!confirmPassword) return "请再次输入新密码";
+  if (password !== confirmPassword) return "两次输入的密码不一致";
+  return "";
 }
 
 Page({
@@ -23,10 +43,12 @@ Page({
     loading: false,
     errorMsg: "",
     username: "",
-    password: "",
-    showPassword: false,
-    loginMode: "phone_code",
+    phone: "",
     phoneCode: "",
+    password: "",
+    confirmPassword: "",
+    showPassword: false,
+    showConfirmPassword: false,
     codeCountdown: 0,
     entrySource: "",
     returnTo: "",
@@ -42,10 +64,6 @@ Page({
       });
     } catch (_) {}
     this._captureEntryContext(options);
-    if (auth.isLoggedIn()) {
-      this._reLaunchAfterAuth();
-      return;
-    }
   },
 
   onUnload: function () {
@@ -53,18 +71,6 @@ Page({
       clearInterval(this._codeTimer);
       this._codeTimer = null;
     }
-  },
-
-  onUsernameInput: function (e) {
-    this.setData({ username: e.detail.value, errorMsg: "" });
-  },
-
-  onPasswordInput: function (e) {
-    this.setData({ password: e.detail.value, errorMsg: "" });
-  },
-
-  onPhoneCodeInput: function (e) {
-    this.setData({ phoneCode: e.detail.value, errorMsg: "" });
   },
 
   _captureEntryContext: function (options) {
@@ -79,33 +85,11 @@ Page({
       entrySource: String(source || "").trim(),
       returnTo: returnTo,
     };
-    var mode = String((options && options.loginMode) || "").trim();
-    if (mode === "password" || mode === "phone_code") {
-      nextData.loginMode = mode;
-    }
     var username = String((options && options.username) || "").trim();
-    if (username) {
-      nextData.username = username;
-    }
+    if (username) nextData.username = username;
     this.setData(nextData);
   },
 
-  _reLaunchAfterAuth: function () {
-    var source = this.data.entrySource;
-    var fallback = route.chat(source ? { entry_source: source } : null);
-    wx.reLaunch({
-      url: route.resolveInternalUrl(this.data.returnTo, fallback),
-    });
-  },
-
-  _trackLoginSuccess: function (method) {
-    analytics.track("deeptutor_login_success", {
-      login_method: method,
-      entry_source: this.data.entrySource,
-      return_to: this.data.returnTo,
-      page: "manual_login",
-    });
-  },
   _describeAuthError: function (err, fallbackMsg, options) {
     if (!api || typeof api.describeRequestError !== "function") {
       return fallbackMsg;
@@ -113,33 +97,50 @@ Page({
     return api.describeRequestError(err, fallbackMsg, options || {});
   },
 
+  _trackResetEvent: function (eventName, extra) {
+    analytics.track(eventName, Object.assign(
+      {
+        entry_source: this.data.entrySource,
+        return_to: this.data.returnTo,
+        page: "reset_password",
+      },
+      extra || {},
+    ));
+  },
+
+  onUsernameInput: function (e) {
+    this.setData({ username: e.detail.value, errorMsg: "" });
+  },
+
+  onPhoneInput: function (e) {
+    this.setData({ phone: e.detail.value, errorMsg: "" });
+  },
+
+  onPhoneCodeInput: function (e) {
+    this.setData({ phoneCode: e.detail.value, errorMsg: "" });
+  },
+
+  onPasswordInput: function (e) {
+    this.setData({ password: e.detail.value, errorMsg: "" });
+  },
+
+  onConfirmPasswordInput: function (e) {
+    this.setData({ confirmPassword: e.detail.value, errorMsg: "" });
+  },
+
   togglePassword: function () {
     this.setData({ showPassword: !this.data.showPassword });
   },
 
-  switchLoginMode: function (e) {
-    var nextMode =
-      e &&
-      e.currentTarget &&
-      e.currentTarget.dataset &&
-      e.currentTarget.dataset.mode;
-    if (!nextMode) {
-      nextMode = this.data.loginMode === "password" ? "phone_code" : "password";
-    }
-    if (nextMode === this.data.loginMode) {
-      return;
-    }
-    this.setData({
-      loginMode: nextMode,
-      errorMsg: "",
-    });
+  toggleConfirmPassword: function () {
+    this.setData({ showConfirmPassword: !this.data.showConfirmPassword });
   },
 
   sendCode: function () {
     var self = this;
     if (self.data.codeCountdown > 0 || self.data.loading) return;
-    var phone = (self.data.username || "").trim();
-    if (!phone || phone.length < 11) {
+    var phone = (self.data.phone || "").trim();
+    if (!CN_MOBILE_RE.test(phone)) {
       self.setData({ errorMsg: "请输入正确的手机号" });
       return;
     }
@@ -168,6 +169,7 @@ Page({
           if (showDebugCode) nextData.phoneCode = debugCode;
           self.setData(nextData);
           self._startCountdown(retryAfter);
+          self._trackResetEvent("deeptutor_password_reset_code_sent");
           showSmsSentFeedback(successMsg);
           if (showDebugCode) {
             wx.showModal({
@@ -177,7 +179,10 @@ Page({
             });
           }
         } else {
-          self.setData({ errorMsg: outerMsg, loading: false });
+          self.setData({
+            errorMsg: outerMsg,
+            loading: false,
+          });
         }
       })
       .catch(function (err) {
@@ -207,35 +212,51 @@ Page({
     }, 1000);
   },
 
-  verifyCode: function () {
+  handleResetPassword: function () {
+    if (this.data.loading) return;
     var self = this;
-    var phone = (self.data.username || "").trim();
+    var username = (self.data.username || "").trim();
+    var phone = (self.data.phone || "").trim();
     var code = (self.data.phoneCode || "").trim();
-    if (!phone || !code) {
-      self.setData({ errorMsg: "请输入手机号和验证码" });
+    var password = self.data.password || "";
+    var confirmPassword = self.data.confirmPassword || "";
+    var formError = validateResetForm(username, phone, code, password, confirmPassword);
+    if (formError) {
+      self.setData({ errorMsg: formError });
       return;
     }
+
     self.setData({ loading: true, errorMsg: "" });
     api
       .request({
-        url: "/api/v1/auth/verify-code",
+        url: "/api/v1/auth/reset-password",
         method: "POST",
-        data: { phone: phone, code: code },
+        data: {
+          username: username,
+          phone: phone,
+          code: code,
+          password: password,
+        },
         noAuth: true,
       })
       .then(function (resp) {
         var inner = resp.data || resp;
-        var token = inner.token;
-        if (!token) throw new Error(resp.error || resp.message || "验证失败");
-        auth.setToken(token, inner.expires_at, inner);
-        self._trackLoginSuccess("phone_code");
-        self._reLaunchAfterAuth();
+        self._trackResetEvent("deeptutor_password_reset_success");
+        wx.showModal({
+          title: "密码已重置",
+          content: inner.message || "请使用新密码登录鲁班智考。",
+          confirmText: "去登录",
+          showCancel: false,
+          success: function () {
+            self._goPasswordLogin();
+          },
+        });
       })
       .catch(function (err) {
-        var msg = self._describeAuthError(err, "验证失败，请重试", {
+        var msg = self._describeAuthError(err, "重置失败，请重试", {
           customMap: function (info) {
-            if (info.status === 400 || info.detailText.indexOf("验证码") >= 0) {
-              return "验证码错误或已过期";
+            if (info.status === 400) {
+              return "账号、手机号或验证码不匹配";
             }
             if (info.status === 429) {
               return "操作过于频繁";
@@ -255,88 +276,28 @@ Page({
       );
   },
 
-  handlePasswordLogin: function () {
-    if (this.data.loading) return;
-    var self = this;
-    var u = self.data.username;
-    var p = self.data.password;
-    if (!u || !u.trim()) return self.setData({ errorMsg: "请输入用户名" });
-    if (!p) return self.setData({ errorMsg: "请输入密码" });
-    if (p.length < 6) return self.setData({ errorMsg: "密码至少 6 位" });
-    self.setData({ loading: true, errorMsg: "" });
-    api
-      .request({
-        url: "/api/v1/auth/login",
-        method: "POST",
-        data: { username: u.trim(), password: p },
-        noAuth: true,
-      })
-      .then(function (resp) {
-        var inner = resp.data || resp;
-        var user = inner.user || resp.user || {};
-        var token = inner.token || inner._token || resp.token || resp._token || user._token;
-        if (!token) throw new Error(resp.error || resp.message || "登录失败");
-        auth.setToken(token, inner.expires_at, inner);
-        self._trackLoginSuccess("password");
-        self._reLaunchAfterAuth();
-      })
-      .catch(function (err) {
-        var msg = self._describeAuthError(err, "登录失败，请重试", {
-          customMap: function (info) {
-            if (info.status === 401 || info.detailText.indexOf("密码") >= 0) {
-              return "用户名或密码错误";
-            }
-            if (info.status === 429) {
-              return "登录过于频繁";
-            }
-            if (
-              info.rawMessage.indexOf("token") >= 0 ||
-              info.rawMessage.indexOf("凭证") >= 0
-            ) {
-              return "服务端未返回凭证";
-            }
-            return "";
-          },
-        });
-        self.setData({ errorMsg: msg });
-      })
-      .then(
-        function () {
-          self.setData({ loading: false });
-        },
-        function () {
-          self.setData({ loading: false });
-        },
-      );
+  _goPasswordLogin: function () {
+    wx.redirectTo({
+      url: route.manualLogin({
+        loginMode: "password",
+        username: (this.data.username || "").trim(),
+        entrySource: this.data.entrySource,
+        returnTo: this.data.returnTo,
+      }),
+    });
   },
 
   goBack: function () {
-    var fallbackUrl = route.login({
+    var fallbackUrl = route.manualLogin({
+      loginMode: "password",
+      username: (this.data.username || "").trim(),
       entrySource: this.data.entrySource,
       returnTo: this.data.returnTo,
     });
     wx.navigateBack({
       fail: function () {
-        wx.reLaunch({ url: fallbackUrl });
+        wx.redirectTo({ url: fallbackUrl });
       },
-    });
-  },
-
-  goRegister: function () {
-    wx.navigateTo({
-      url: route.register({
-        entrySource: this.data.entrySource,
-        returnTo: this.data.returnTo,
-      }),
-    });
-  },
-  goPasswordReset: function () {
-    wx.navigateTo({
-      url: route.passwordReset({
-        entrySource: this.data.entrySource,
-        returnTo: this.data.returnTo,
-        username: (this.data.username || "").trim(),
-      }),
     });
   },
 });

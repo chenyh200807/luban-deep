@@ -29,6 +29,7 @@
         "pages/profile/profile",
         "pages/login/login",
         "pages/login/manual",
+        "pages/login/reset-password",
         "pages/register/register",
         "pages/billing/billing",
         "pages/practice/practice",

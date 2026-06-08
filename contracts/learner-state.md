@@ -35,6 +35,11 @@
   `learner_memory_events`、profile、progress、goals、heartbeat 或 overlay 真相。
 - 如果某个运营动作需要改变 learner state，必须走 learner-state writeback / promotion
   authority，不能通过 member-console audit helper 旁路写入。
+- 账号凭证事实与 learner-state 分权：`MemberConsoleService` 可以通过 external auth 管理
+  登录密码、手机号验证码和密码找回；这些是账户凭证 authority，不是 learner-state
+  writeback。`/api/v1/auth/reset-password` 成功后只能更新 external auth 密码、消费验证码并
+  失效旧 auth session，不得写 `learner_summaries`、`learner_memory_events`、profile、
+  progress、goals、heartbeat 或 assessment / turn state，也不得返回登录 token。
 - Assessment TestSet session durability belongs to the assessment authority. In production,
   if Supabase `assessment_sessions` is required but not configured, member-console
   initialization and non-assessment auth/admin paths may still load, but assessment
