@@ -104,10 +104,29 @@ tmp/arr_*/
 tmp/prelaunch-audit-*/
 tmp/pdfs/
 tmp/plan-completion-audits/
+tmp/arr-lite-current-check/
+tmp/codex_*.txt
+tmp/e2e_case.json
+tmp/e2e_result.json
+tmp/luban_promo_page_v1/
+tmp/luban_promo_pages_selected/
+tmp/luban_sales_100q_manual_v1/
+tmp/luban_sales_manual/
+tmp/luban_sales_manual_pain_v1/
+tmp/luban_sales_manual_v2/
+tmp/luban_sales_manual_v21/
+tmp/paraphrase_council/
+tmp/recompile_spans.json
+tmp/rubric_*.json
+tmp/taxonomy_repair/
+tmp/unify_workflow/
 web/tmp/
 web/test-results/
 web/test-results*/
 deeptutor/tutorbot/.understand-anything/
+
+# Imported external runtime snapshots are local reference material, not deploy authority.
+imported_fastapi_aliyun_ssh_*/
 
 # Cache directories
 cache/
