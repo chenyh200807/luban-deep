@@ -1037,6 +1037,17 @@ M32 GO 门：
 
 ---
 
+### 0.26.17 M33-ACT A 类代码落地：G3 publish() + G4 生产 override（2026-06-08，默认全关，verdict 仍 WEAK-GO）
+
+> **本节记录在 §0.26.10 whole-plan WEAK-GO 下，把生产/canonical 激活门的两个「缺代码」缺口补齐为「待授权」的 A 类自主代码。详细逐门就绪报告见 [M33-ACT 决策包](2026-06-08-luban-production-canonical-activation-authorization-package.md) §9。零 flip / 零 publish / 零 canonical write / 零远端写。** 隔离分支 `feat/luban-g3-publish-g4-canonical-override`（base=最新 origin/main）。
+
+- **G3（published registry）从「缺代码」→「待授权」**：`release_gate.py::publish_canonical_registry` 三重 fail-closed 门（env `LUBAN_REGISTRY_PUBLISH_ENABLED` 默认 OFF + 严格 `authorized is True` + release gate PASS/TRUSTED）+ `verify_manifest` + 每个 records-based shard 的 `verify_lane_bundle` deep verify（defense-in-depth）→ `canonical_knowledge_manifest.py::promote_to_published`（content_hash 不变保 provenance、signature 重绑 `published`、记 `superseded_version`+`published_at`、保留 `rollback_pointer`、`namespace` 校验）。任一门不满足即 refusal，manifest 仍 `release_candidate`。
+- **G4（canonical learner-truth write）从「生产硬挡缺 override」→「待授权」**：`write_compiled_learning_truth` 加 env `LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_ENABLED`（默认 OFF）；生产默认仍 dry-run/preview（`canonical_truth_written=false` 不变量保持），非法值 fail-closed，非生产路径不受影响。
+- **TDD + 对抗**：G3/G4 共 23 测试全绿（RED→GREEN，含 records-tamper / 非 bool 授权 / foreign namespace / garbage flag 负向断言）；contract_guard PASS（`contracts/learner-state.md` 同步登记契约边界）；codex 独立对抗审查发现的 3 项 fail-closed 缺口已修（见 M33-ACT §9.5）。
+- **verdict 仍 WEAK-GO**：本节只消除两个「缺代码」缺口，不抬升 §0.26.10 whole-plan 裁决。实际激活仍 blocked：G3 需 formal release gate PASS + 授权；G4 需 teacher-final/real-retest 闭环（**C 类外部**）+ 授权；G2 需大样本准确率 eval infra + GPT5.5 key（**C 类外部**）；G5 需远端写授权 + 生产目标确认。本会话 `published=false / default_flip=0 / canonical_truth_written=0 / production_write=0 / remote_write=0` 全部保持。
+
+---
+
 ## 0.16 Canonical update after M17A runtime LLM adjudicator（2026-06-04）
 
 > **本节落实 §0.12 的 M17 Nexus-style runtime LLM adjudication（vertical slice = M17A）。production default 仍 OFF；下一步是 M17B/M18 扩面 + M19 default decision，不是 default flip。**
