@@ -76,3 +76,44 @@ def test_current_gap_audit_outputs_authorization_gate_decision_package(
     assert package["single_authority"]["no_second_grading_truth"] is True
     assert package["single_authority"]["no_second_learner_truth"] is True
     assert (tmp_path / "AUTHORIZATION_GATES_grading_to_brain.md").exists()
+
+
+def test_current_gap_audit_outputs_explicit_loop_completion_audit(
+    tmp_path: Path,
+) -> None:
+    subprocess.run(
+        [sys.executable, str(SCRIPT), "--out", str(tmp_path)],
+        cwd=REPO,
+        check=True,
+    )
+
+    audit = json.loads((tmp_path / "completion_audit.json").read_text(encoding="utf-8"))
+    requirements = audit["requirements"]
+    assert [row["id"] for row in requirements] == [f"R{i}" for i in range(1, 8)]
+    assert all(row["evidence_refs"] for row in requirements)
+    assert all(row["evidence_ok"] for row in requirements)
+
+    by_id = {row["id"]: row for row in requirements}
+    assert by_id["R1"]["status"] == "done"
+    assert set(by_id["R1"]["required_fields"]) == {
+        "point_id",
+        "knowledge_point",
+        "policy_type",
+        "hit",
+        "score",
+        "max_score",
+        "mistake_type",
+        "evidence_span",
+        "required_term",
+        "high_risk_review",
+    }
+    assert by_id["R4"]["pcp_role"] == "read_only_feedback_to_grading"
+    assert by_id["R5"]["promotion_path"] == "teacher_final_only"
+    assert by_id["R6"]["promotion_path"] == "real_retest_only"
+    assert by_id["R7"]["authority"] == "Learning Brain read model"
+    assert by_id["R7"]["empty_spin_prevented"] is True
+
+    assert audit["summary"]["done"] >= 6
+    assert audit["summary"]["authorization_gated"] >= 1
+    assert audit["single_authority"]["no_second_mastery"] is True
+    assert (tmp_path / "COMPLETION_AUDIT_grading_to_brain.md").exists()

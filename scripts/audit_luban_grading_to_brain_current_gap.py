@@ -287,6 +287,116 @@ AUTHORIZATION_GATES: dict[str, dict[str, Any]] = {
 }
 
 
+COMPLETION_REQUIREMENTS: list[dict[str, Any]] = [
+    {
+        "id": "R1",
+        "title": "runtime_grading_point_level_result",
+        "status": "done",
+        "authority": "grading truth/artifact authority",
+        "required_fields": [
+            "point_id",
+            "knowledge_point",
+            "policy_type",
+            "hit",
+            "score",
+            "max_score",
+            "mistake_type",
+            "evidence_span",
+            "required_term",
+            "high_risk_review",
+        ],
+        "evidence_refs": [
+            "tests/scripts/test_luban_runtime_llm_adjudicator_m17a.py",
+            "tests/services/construction_grading/test_m32_grading_event_learning_evidence.py",
+            "artifacts/luban_grading_artifacts/runtime_llm_adjudicator_m17a_20260604/grading_packet_schema_m17a.json",
+            "artifacts/luban_grading_artifacts/grading_to_brain_m32_waterproof_20260608/grading_event_ledger_m32.jsonl",
+        ],
+    },
+    {
+        "id": "R2",
+        "title": "grading_result_to_standard_learning_evidence_event",
+        "status": "done",
+        "authority": "Learning Evidence Ledger",
+        "evidence_refs": [
+            "tests/services/construction_grading/test_learning_evidence_payload.py",
+            "tests/services/construction_grading/test_m32_grading_event_learning_evidence.py",
+            "artifacts/luban_grading_artifacts/grading_to_brain_m32_waterproof_20260608/learning_evidence_ledger_m32.jsonl",
+            "artifacts/luban_grading_artifacts/runtime_llm_adjudicator_m17a_20260604/learning_brain_event_drafts_m17a.jsonl",
+        ],
+    },
+    {
+        "id": "R3",
+        "title": "learning_evidence_to_learner_claim_profile",
+        "status": "done",
+        "authority": "Learner Model synthesis",
+        "evidence_refs": [
+            "tests/services/learner_state/test_m32_waterproof_learning_synthesis.py",
+            "tests/services/construction_grading/test_learning_brain_synthesis.py",
+            "artifacts/luban_grading_artifacts/grading_to_brain_m32_waterproof_20260608/learner_claim_projection_m32.jsonl",
+            "artifacts/luban_grading_artifacts/learning_brain_canonical_claim_gate_m13e_20260604/claim_gate_decision_matrix_m13e.json",
+        ],
+    },
+    {
+        "id": "R4",
+        "title": "pcp_feedback_to_tone_diagnosis_next_action_retest",
+        "status": "done",
+        "authority": "PersonalizationContextPack read model",
+        "pcp_role": "read_only_feedback_to_grading",
+        "evidence_refs": [
+            "tests/services/learner_state/test_personalization_context.py",
+            "tests/services/learner_state/test_m32_waterproof_personalization_context.py",
+            "tests/services/learner_state/test_m32_waterproof_next_best_action.py",
+            "artifacts/luban_grading_artifacts/grading_to_brain_m32_waterproof_20260608/personalization_context_pack_m32.json",
+            "artifacts/luban_grading_artifacts/grading_to_brain_m32_waterproof_20260608/next_best_action_m32.json",
+        ],
+    },
+    {
+        "id": "R5",
+        "title": "teacher_final_override_reject_confirm_promotion_arm",
+        "status": "done",
+        "authority": "teacher-final review writeback",
+        "promotion_path": "teacher_final_only",
+        "evidence_refs": [
+            "tests/services/construction_grading/test_teacher_review_writeback.py",
+            "tests/api/test_learning_brain_teacher_review_writeback.py",
+            "artifacts/luban_grading_artifacts/learning_brain_canonical_claim_gate_m13e_20260604/teacher_review_to_claim_bridge_m13e.jsonl",
+            "artifacts/luban_grading_artifacts/teacher_review_ops_hardening_m13d_20260604/teacher_action_dryrun_m13d.jsonl",
+        ],
+    },
+    {
+        "id": "R6",
+        "title": "real_retest_improvement_updates_profile",
+        "status": "authorization_gated",
+        "authority": "real retest proof plus learner claim gate",
+        "promotion_path": "real_retest_only",
+        "gate": "canonical_learner_truth_write",
+        "reason": "real retest proof and dry-run promotion exist; production canonical learner-truth write still requires explicit authorization",
+        "evidence_refs": [
+            "tests/scripts/test_luban_learning_brain_real_retest_canonical_gate_m18d.py",
+            "tests/services/learner_state/test_m32_waterproof_retest_outcome.py",
+            "artifacts/luban_grading_artifacts/learning_brain_real_retest_canonical_gate_m18d_20260604/real_retest_proofs_m18d.jsonl",
+            "artifacts/luban_grading_artifacts/learning_brain_real_retest_canonical_gate_m18d_20260604/canonical_write_dryrun_candidates_m18d.jsonl",
+            "artifacts/luban_grading_artifacts/grading_to_brain_m32_waterproof_20260608/retest_outcome_proof_m32.jsonl",
+        ],
+    },
+    {
+        "id": "R7",
+        "title": "learning_surfaces_use_same_learning_brain_authority",
+        "status": "done",
+        "authority": "Learning Brain read model",
+        "empty_spin_prevented": True,
+        "evidence_refs": [
+            "tests/services/member_console/test_home_dashboard_learning_projection.py",
+            "tests/services/learner_state/test_scoring_point_map_read_model.py",
+            "tests/services/learner_state/test_learning_report_read_model.py",
+            "deeptutor/services/learner_state/learning_report_read_model.py",
+            "deeptutor/services/learner_state/scoring_point_map_read_model.py",
+            "deeptutor/services/taxonomy/textbook_directory.py",
+        ],
+    },
+]
+
+
 def _rel_exists(path: str) -> bool:
     return (REPO / path).exists()
 
@@ -404,6 +514,41 @@ def build_authorization_package() -> dict[str, Any]:
             gate_id: gate["missing_evidence_refs"]
             for gate_id, gate in gates.items()
             if gate["missing_evidence_refs"]
+        },
+    }
+
+
+def build_completion_audit() -> dict[str, Any]:
+    requirements = [_with_evidence_health(row) for row in COMPLETION_REQUIREMENTS]
+    statuses = {row["status"] for row in requirements}
+    summary = {
+        status: sum(1 for row in requirements if row["status"] == status)
+        for status in sorted(statuses)
+    }
+    for status in ("done", "partial", "missing", "blocker", "authorization_gated"):
+        summary.setdefault(status, 0)
+    summary["evidence_missing_count"] = sum(
+        len(row["missing_evidence_refs"]) for row in requirements
+    )
+
+    return {
+        "schema_version": 1,
+        "generated_by": "audit_luban_grading_to_brain_current_gap",
+        "master_plan": MASTER_PLAN,
+        "scope": "explicit_objective_completion_audit",
+        "requirements": requirements,
+        "summary": summary,
+        "single_authority": {
+            "no_second_grading_truth": True,
+            "no_second_learner_truth": True,
+            "no_second_mastery": True,
+            "grading_truth_source": "grading truth/artifact authority",
+            "learner_truth_source": "Learning Evidence Ledger / Learner Model",
+        },
+        "missing_evidence": {
+            row["id"]: row["missing_evidence_refs"]
+            for row in requirements
+            if row["missing_evidence_refs"]
         },
     }
 
@@ -535,6 +680,51 @@ def write_authorization_markdown(package: dict[str, Any], out_dir: Path) -> None
     )
 
 
+def write_completion_markdown(audit: dict[str, Any], out_dir: Path) -> None:
+    lines = [
+        "# Grading-to-Brain Completion Audit",
+        "",
+        f"- Master plan: `{audit['master_plan']}`",
+        f"- Scope: `{audit['scope']}`",
+        "- This audit maps the objective's seven explicit loop requirements to evidence.",
+        "",
+        "## Single Authority",
+        "",
+        f"- Grading truth: {audit['single_authority']['grading_truth_source']}",
+        f"- Learner truth: {audit['single_authority']['learner_truth_source']}",
+        "- No second mastery/profile/recommendation truth is introduced by this audit.",
+        "",
+        "## Requirement Matrix",
+        "",
+        "| ID | Requirement | Status | Authority | Evidence |",
+        "|---|---|---:|---|---|",
+    ]
+    for row in audit["requirements"]:
+        evidence = "<br>".join(f"`{ref}`" for ref in row["evidence_refs"])
+        lines.append(
+            f"| {row['id']} | {row['title']} | {row['status']} | "
+            f"{row['authority']} | {evidence} |"
+        )
+
+    lines.extend(
+        [
+            "",
+            "## Remaining Gate",
+            "",
+            (
+                "R6 remains `authorization_gated`: real retest proof and dry-run "
+                "promotion evidence exist, but production canonical learner-truth "
+                "write still requires explicit authorization."
+            ),
+            "",
+        ]
+    )
+    (out_dir / "COMPLETION_AUDIT_grading_to_brain.md").write_text(
+        "\n".join(lines),
+        encoding="utf-8",
+    )
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
@@ -548,6 +738,7 @@ def main() -> int:
 
     matrix = build_matrix()
     authorization_package = build_authorization_package()
+    completion_audit = build_completion_audit()
     (out_dir / "coverage_matrix.json").write_text(
         json.dumps(matrix, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
@@ -562,12 +753,24 @@ def main() -> int:
         + "\n",
         encoding="utf-8",
     )
+    (out_dir / "completion_audit.json").write_text(
+        json.dumps(
+            completion_audit,
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     write_markdown(matrix, out_dir)
     write_authorization_markdown(authorization_package, out_dir)
+    write_completion_markdown(completion_audit, out_dir)
 
     missing = {
         "coverage_matrix": matrix["missing_evidence"],
         "authorization_package": authorization_package["missing_evidence"],
+        "completion_audit": completion_audit["missing_evidence"],
     }
     missing = {key: value for key, value in missing.items() if value}
     if missing:
