@@ -1639,6 +1639,26 @@ def _question_review_bank_hit(summary: dict[str, Any] | None) -> bool:
     return False
 
 
+def _question_review_variant_hit(summary: dict[str, Any] | None) -> bool:
+    if not isinstance(summary, dict):
+        return False
+    for item in list(summary.get("results") or []):
+        if not isinstance(item, dict):
+            continue
+        qa_pair = item.get("qa_pair")
+        if not isinstance(qa_pair, dict):
+            continue
+        grading_key = qa_pair.get("grading_key") if isinstance(qa_pair.get("grading_key"), dict) else {}
+        metadata = qa_pair.get("metadata") if isinstance(qa_pair.get("metadata"), dict) else {}
+        if (
+            metadata.get("question_review_variant_mode") is True
+            or metadata.get("source") == "similar_question_variant"
+            or grading_key.get("source") == "similar_question_variant"
+        ):
+            return True
+    return False
+
+
 def _question_review_explanation_from_qa_pair(qa_pair: dict[str, Any]) -> str:
     explanation = str(qa_pair.get("explanation") or "").strip()
     if explanation:
@@ -3344,6 +3364,7 @@ class DeepQuestionCapability(BaseCapability):
                     lightweight_generation=lightweight_generation,
                     require_explanation=require_explanation,
                     allow_lightweight_fallback=not question_review_mode,
+                    allow_similar_source_variant=question_review_mode,
                 )
 
         if question_review_mode:
@@ -3354,12 +3375,14 @@ class DeepQuestionCapability(BaseCapability):
                     if isinstance(trace_meta, dict):
                         trace_meta["question_review.bank_hit"] = _question_review_bank_hit(result)
                         trace_meta["question_review.renderable"] = True
+                        trace_meta["question_review.variant_mode"] = _question_review_variant_hit(result)
             else:
                 if isinstance(context.metadata, dict):
                     trace_meta = context.metadata.setdefault("trace_metadata", {})
                     if isinstance(trace_meta, dict):
                         trace_meta["question_review.bank_hit"] = False
                         trace_meta["question_review.renderable"] = False
+                        trace_meta["question_review.variant_mode"] = False
                         trace_meta["question_review.degraded_reason"] = "missing_question_bank_hit"
                 content = _render_missing_question_review_feedback(topic)
                 if not answer_citations_enabled():
@@ -4532,6 +4555,13 @@ class DeepQuestionCapability(BaseCapability):
             if review_mode:
                 grading_key = qa_pair.get("grading_key") if isinstance(qa_pair.get("grading_key"), dict) else {}
                 metadata = qa_pair.get("metadata") if isinstance(qa_pair.get("metadata"), dict) else {}
+                if metadata.get("question_review_variant_mode") is True:
+                    notice = str(
+                        metadata.get("variant_notice")
+                        or "基于题库/知识库相似来源生成的变式题，不是原题复刻。"
+                    ).strip()
+                    if notice:
+                        lines.append(f"\n> {notice}")
                 display_answer = str(answer or grading_key.get("correct_answer") or "").strip()
                 if display_answer:
                     lines.append(f"\n**正确答案：** {display_answer}")

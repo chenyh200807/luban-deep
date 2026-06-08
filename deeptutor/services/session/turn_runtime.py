@@ -2815,6 +2815,7 @@ class TurnRuntimeManager:
         learner_candidates_payload: dict[str, Any] | None = None
         overlay_payload: dict[str, Any] | None = None
         compiled_learning_truth: dict[str, Any] = {}
+        personalization_context: dict[str, Any] = {}
         compact_memory_context = ""
         try:
             if user_id and hasattr(learner_state_service, "build_context_candidates"):
@@ -2827,6 +2828,11 @@ class TurnRuntimeManager:
                 projection = learner_candidates_payload.get("compiled_learning_truth")
                 if isinstance(projection, dict):
                     compiled_learning_truth = dict(projection)
+                # Grading-to-Brain loop: carry the PersonalizationContextPack (a projection of the same
+                # compiled truth) so it can be injected into the live turn alongside compiled_learning_truth.
+                pcp = learner_candidates_payload.get("personalization_context")
+                if isinstance(pcp, dict):
+                    personalization_context = dict(pcp)
             elif user_id:
                 compact_memory_context = learner_state_service.build_context(
                     user_id=user_id,
@@ -3293,6 +3299,7 @@ class TurnRuntimeManager:
             "notebook_context": notebook_context,
             "history_context": history_context,
             "compiled_learning_truth": compiled_learning_truth,
+            "personalization_context": personalization_context,
         }
 
     async def start_turn(self, payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -4425,6 +4432,7 @@ class TurnRuntimeManager:
                 history_result = None
                 memory_context = ""
                 compiled_learning_truth: dict[str, Any] = {}
+                personalization_context: dict[str, Any] = {}
                 effective_user_message = raw_user_content
                 context_trace: dict[str, Any] = {
                     "fallback_path": "legacy",
@@ -4461,6 +4469,7 @@ class TurnRuntimeManager:
                         notebook_context = orchestrated["notebook_context"]
                         history_context = orchestrated["history_context"]
                         compiled_learning_truth = dict(orchestrated.get("compiled_learning_truth") or {})
+                        personalization_context = dict(orchestrated.get("personalization_context") or {})
                         context_route = orchestrated["route_decision"].route_label
                         task_anchor_type = orchestrated["route_decision"].task_anchor_type.value
                         route_confidence = float(orchestrated["route_decision"].confidence or 0.0)
@@ -4757,6 +4766,11 @@ class TurnRuntimeManager:
                         **(
                             {"compiled_learning_truth": compiled_learning_truth}
                             if compiled_learning_truth
+                            else {}
+                        ),
+                        **(
+                            {"personalization_context": personalization_context}
+                            if personalization_context
                             else {}
                         ),
                         **(

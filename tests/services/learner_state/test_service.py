@@ -6,9 +6,15 @@ import sqlite3
 
 import pytest
 
+from deeptutor.services.learner_state.learning_brain_read_model import (
+    build_learning_brain_read_model,
+)
 import deeptutor.services.learner_state.service as learner_state_service_module
-from deeptutor.services.learner_state.learning_brain_read_model import build_learning_brain_read_model
-from deeptutor.services.learner_state.service import LearnerStateEvent, LearnerStateOutboxService, LearnerStateService
+from deeptutor.services.learner_state.service import (
+    LearnerStateEvent,
+    LearnerStateOutboxService,
+    LearnerStateService,
+)
 
 
 class _PathServiceStub:
@@ -1382,3 +1388,41 @@ def test_learner_state_heartbeat_job_sync_enqueues_outbox_event(tmp_path) -> Non
     assert delivery_event.payload_json["payload_json"]["delivery"]["state"] == "sent"
     assert delivery_event.payload_json["payload_json"]["audit"]["status"] == "ok"
     assert job_event.id != first.id
+
+
+def test_build_context_candidates_includes_personalization_context_single_source(tmp_path) -> None:
+    # Grading-to-Brain loop Step 2: build_context_candidates must ALSO surface the PersonalizationContextPack
+    # so the runtime can inject it. It must be a PROJECTION of the SAME compiled_learning_truth (one
+    # authority) — byte-identical to building the PCP directly from that compiled truth.
+    from deeptutor.services.learner_state.personalization_context import (
+        build_personalization_context_pack,
+    )
+
+    core_store = _CoreStoreStub()
+    core_store.compiled_learning_truth = {
+        "learning_brain": {
+            "subject": "construction_exam_learning_truth",
+            "compiled_objects": [
+                {"object_id": "claim-1", "object_type": "learner_claim", "claim_status": "confirmed",
+                 "concept_id": "1A432000", "label": "防水卷材搭接", "evidence_refs": ["ev-1"]},
+            ],
+        },
+    }
+    service = _make_service(tmp_path, core_store=core_store)
+
+    candidates = service.build_context_candidates("student_demo")
+    assert "personalization_context" in candidates                      # the loop-closing seam
+    pcp = candidates["personalization_context"]
+    # single source: PCP is a projection of the SAME compiled truth the candidates already read
+    expected = build_personalization_context_pack(
+        user_id="student_demo", learning_brain=candidates["compiled_learning_truth"])
+    assert pcp["top_claims"] == expected["top_claims"]
+    assert pcp["source"] == "PersonalizationContextPack"
+
+
+def test_build_context_candidates_personalization_context_empty_when_no_truth(tmp_path) -> None:
+    # No compiled truth -> PCP degrades gracefully (empty claims), never fabricated / never absent-key.
+    service = _make_service(tmp_path)
+    candidates = service.build_context_candidates("student_demo")
+    assert "personalization_context" in candidates
+    assert candidates["personalization_context"]["top_claims"] == []
