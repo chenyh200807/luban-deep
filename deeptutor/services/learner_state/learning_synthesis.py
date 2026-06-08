@@ -530,6 +530,8 @@ def _candidate(item: dict[str, Any], *, evidence_level: str) -> dict[str, Any]:
         "recommended_training": dict(item.get("recommended_training") or {}),
         "evidence_level": evidence_level,
         "evidence_cap_reasons": list(item.get("evidence_cap_reasons") or []),
+        # D-class: 1-element timeline for the single-observation path (append-only).
+        "occurrence_timeline": _occurrence_timeline([item]),
     }
     # M32 Task 4: explainable claim — surface the answer span / diagnosis when present.
     # Append-only: absent on a legacy item -> claim stays byte-identical to the legacy shape.
@@ -547,6 +549,24 @@ def _attach_claim_evidence(claim: dict[str, Any], source: dict[str, Any]) -> Non
         claim["evidence_span"] = evidence_span
 
 
+def _occurrence_timeline(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """D-class: chronological error recurrence timeline (append-only, oldest-first)."""
+    seen: set[str] = set()
+    entries: list[dict[str, Any]] = []
+    for item in sorted(items, key=lambda i: str(i.get("observed_at") or "")):
+        eid = str(item.get("event_id") or "")
+        if eid in seen:
+            continue
+        seen.add(eid)
+        entries.append({
+            "event_id": eid,
+            "observed_at": str(item.get("observed_at") or ""),
+            "question_id": _clean_text(item.get("question_id")),
+            "turn_id": _clean_text(item.get("turn_id")),
+        })
+    return entries
+
+
 def _candidate_from_items(concept_id: str, error_code: str, items: list[dict[str, Any]]) -> dict[str, Any]:
     def _latest(field: str) -> str:
         for entry in reversed(items):
@@ -562,6 +582,8 @@ def _candidate_from_items(concept_id: str, error_code: str, items: list[dict[str
         "supporting_event_ids": [item["event_id"] for item in items],
         "last_observed_at": items[-1]["observed_at"],
         "recommended_training": _first_training_signal(items),
+        # D-class: error time-series — when did each mistake recur? (append-only)
+        "occurrence_timeline": _occurrence_timeline(items),
     }
     # M32 Task 4: surface the most recent answer span / diagnosis (append-only). The mistake
     # TYPE is already the claim's error_code — not duplicated under a second key.

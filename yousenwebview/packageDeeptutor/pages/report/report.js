@@ -191,14 +191,22 @@ function _learningBrainEdgeLabel(edgeType) {
   return key ? "学习关系" : "";
 }
 
-// SINGLE AUTHORITY: the canonical taxonomy + backend error registry decide all Chinese names; the
-// backend already sends sanitized Chinese (display_title / display_meta / diagnosis / current_truth) and
-// NEVER a raw code. The frontend must NOT keep its own competing taxonomy/error dictionary — these two
-// helpers are pure no-code SAFETY NETS: if a stray code ever reaches the client, show a generic Chinese
-// word, never the code, and never invent a specific meaning the backend didn't assign.
+// Display-only mirror of docs/contracts/error_code_registry.md for stale Learning Brain rows.
+// Backend registry remains the scoring/write authority; this client fallback only prevents raw
+// M-codes from leaking into learner-facing copy when historical rows arrive without labels.
 function _learningBrainErrorLabel(errorCode) {
-  // backend supplies the specific Chinese error label; here we only genericize a bare code.
-  return String(errorCode || "").trim() ? "错因" : "";
+  var code = String(errorCode || "").trim().toUpperCase();
+  if (code === "M01") return "知识点不熟";
+  if (code === "M02") return "关键词误读";
+  if (code === "M03") return "概念混淆";
+  if (code === "M04") return "选项陷阱";
+  if (code === "M05") return "审题方向错误";
+  if (code === "M06") return "多选漏选";
+  if (code === "M07") return "多选错选";
+  if (code === "M08") return "规范数字混淆";
+  if (code === "M09") return "题干条件提取不完整";
+  if (code === "M10") return "用常识替代规范判断";
+  return code ? "错因" : "";
 }
 
 function _learningBrainConceptLabel(code, withCode) {
@@ -1417,10 +1425,7 @@ Page({
     var optionalReadOpts = { suppressAuthRedirect: true };
     optionalReadOpts.schemaVersion = 2;
     const report = _unwrapSnapshotItem(
-      await _reportOptionalRead(
-        api.getLearningReport(100, optionalReadOpts),
-        REPORT_UNIFIED_READ_TIMEOUT_MS,
-      ),
+      await _reportOptionalRead(api.getLearningReport(100, optionalReadOpts), REPORT_UNIFIED_READ_TIMEOUT_MS),
     );
     if (!report) {
       // 5xx / network failure / payload contract 断裂 → 返回 null 让 _loadReportPage 走显式 fallback
