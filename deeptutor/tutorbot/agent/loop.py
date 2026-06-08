@@ -931,11 +931,11 @@ class AgentLoop:
             nominal = float(eq.get("max_score") or fc.get("max_score") or 0)
         except (TypeError, ValueError):
             nominal = 0.0
-        # question_stem: bank entry > followup context > user_message (free-text case: the message
-        # contains the entire case exam so the stem path uses it for derive_rubric_from_stem_async)
+        # question_stem: bank entry > followup context only.
+        # NOT falling back to user_message: free-text submissions mix question + student answer in
+        # one message, so using it as a Tier-3 stem would have DeepSeek derive a rubric from the
+        # student's own phrasing and trivially produce a near-perfect fabricated score.
         question_stem = str(eq.get("stem") or eq.get("question") or fc.get("question_stem") or "")
-        if not question_stem:
-            question_stem = str(user_message or "")
         return {
             "question_id": str(eq.get("question_id") or eq.get("qid") or fc.get("question_id") or ""),
             "user_answer": str(fc.get("user_answer") or user_message or ""),
@@ -984,6 +984,12 @@ class AgentLoop:
                                     qid=ctx.get("question_id"), cg_type="case")
             except Exception:  # noqa: BLE001 — observability never breaks grading
                 pass
+            if event.get("rubric_provenance") == "derived_from_stem":
+                # Tier-3 path: LLM-derived rubric with no ground-truth anchor. Monitor this
+                # counter in production — unexpected spikes indicate Gate 2 removal side-effects
+                # or data gaps in the compiled rubric bank.
+                logger.warning("LUBAN_V1 DERIVED_FROM_STEM (tutorbot): no compiled rubric or reference; "
+                               "LLM domain knowledge used. student={} qid={}", student_id, ctx.get("question_id"))
             logger.info("LUBAN_V1 GRADED (tutorbot): provenance={} score={}/{} student={} qid={}",
                         event.get("rubric_provenance"), event.get("awarded_score"),
                         event.get("max_score"), student_id, ctx.get("question_id"))
