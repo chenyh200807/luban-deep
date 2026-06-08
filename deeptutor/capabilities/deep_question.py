@@ -9,12 +9,11 @@ Wraps the existing ``AgentCoordinator``.
 from __future__ import annotations
 
 import base64
-import logging
 import re
 import tempfile
 from typing import Any
 
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 from deeptutor.capabilities.request_contracts import get_capability_request_schema
 from deeptutor.core.capability_protocol import BaseCapability, CapabilityManifest
