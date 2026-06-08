@@ -345,3 +345,13 @@ learning_state_inference:
     - unregistered error_code in payload outside docs/contracts/error_code_registry.md
     - keyword-only rubric items rendered as "采分点" instead of "审题要点"
     - write-back into questions_bank.grading_rubric
+
+# Luban grading engine — compiled rubric, registry resolver, knowledge compiler.
+# I-5: These test files were added during M7/M32 but not registered in contract guard.
+luban_grading_engine:
+  authority: construction_grading -> v1_case_rubric_scored -> rubric_grader_v1 -> learning_evidence
+  test_files:
+    - tests/services/construction_grading/test_rubric_grader_v1.py
+    - tests/services/construction_grading/test_case_grading_fusion.py
+    - tests/services/construction_grading/test_compiled_registry_resolver.py
+    - tests/services/construction_grading/test_full_knowledge_compiler_m30.py

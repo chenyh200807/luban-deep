@@ -11,7 +11,7 @@
     "content_hash": "975056297aa741d9f71de8b19a44c8b7598c09fe8d7d68991f772b71d21f2863",
     "lane": "case_rubric_scored",
     "namespace": "case_rubric_scored",
-    "published": true,
+    "published": false,
     "question_count": 172,
     "rejected_count": 0,
     "rollback_pointer": "legacy (no case_rubric_scored -> existing case_rubric_full stays)",
