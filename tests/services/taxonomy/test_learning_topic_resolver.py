@@ -238,6 +238,16 @@ def test_canonical_learning_topic_label_is_the_cross_surface_topic_authority() -
     assert canonical_learning_topic_label("专家论证程序") == ""
 
 
+def test_normalize_learning_topic_text_filters_noise_but_keeps_real_exam_topics() -> None:
+    assert normalize_learning_topic_text("施工现场临时用电") == "施工现场临时用电"
+    assert normalize_learning_topic_text("防水工程") == "防水工程"
+    assert normalize_learning_topic_text("专家论证程序") == "专家论证程序"
+
+    assert normalize_learning_topic_text("讲义封底 扫码领取免费资料") == ""
+    assert normalize_learning_topic_text("一级建造师建筑实务知识点归纳") == ""
+    assert normalize_learning_topic_text("关注公众号领取课程二维码") == ""
+
+
 def test_compiled_taxonomy_artifact_is_packaged() -> None:
     pyproject = tomllib.loads((Path(__file__).parents[3] / "pyproject.toml").read_text())
 
