@@ -5,6 +5,7 @@ from pathlib import Path
 
 from deeptutor.services.taxonomy.learning_topic_resolver import (
     compile_taxonomy_payload,
+    normalize_learning_topic_text,
     resolve_learning_topic_from_payload,
 )
 
@@ -107,7 +108,9 @@ def test_resolver_does_not_resolve_ambiguous_duplicate_taxonomy_code() -> None:
     assert resolved is None
 
 
-def test_resolver_prefers_specific_focus_over_broad_concept_code() -> None:
+def test_resolver_falls_to_canonical_concept_when_classifier_misses() -> None:
+    # CANONICAL CLASSIFIER: a non-canonical free phrase ('专家论证程序') is not a valid option, so it is
+    # NOT emitted; the recommendation falls to the canonical concept anchor (1A432000) instead.
     resolved = resolve_learning_topic_from_payload(
         {
             "next_training_signal": {
@@ -119,9 +122,9 @@ def test_resolver_prefers_specific_focus_over_broad_concept_code() -> None:
     )
 
     assert resolved is not None
-    assert resolved.label == "专家论证程序"
-    assert resolved.source == "llm_inferred"
-    assert resolved.taxonomy_code == ""
+    assert resolved.taxonomy_code == "1A432000"
+    assert resolved.label == "工程招标投标与合同管理"
+    assert resolved.source == "taxonomy_code"
 
 
 def test_resolver_falls_back_to_concept_code_when_focus_is_deictic() -> None:
@@ -183,39 +186,44 @@ def test_resolver_does_not_promote_topic_catalog_label_as_taxonomy_authority() -
     assert resolved is None
 
 
-def test_resolver_allows_llm_inferred_topic_when_taxonomy_misses() -> None:
-    calls: list[dict[str, object]] = []
-
-    def inferer(payload: dict[str, object], candidates: list[str]) -> str:
-        calls.append({"payload": payload, "candidates": candidates})
-        return "雨季混凝土养护"
-
-    resolved = resolve_learning_topic_from_payload(
-        {
-            "question_stem": "雨季施工时，混凝土浇筑后养护措施选择错误。",
-            "simple_explanation": "应结合雨季施工和混凝土养护要求判断。",
-        },
-        llm_topic_inferer=inferer,
+def test_resolver_classifier_accepts_only_canonical_option() -> None:
+    # The classifier must PICK a canonical chapter/section name. A real option name -> recommended (canonical
+    # name + code); a free phrase not in the option list -> NOT recommended.
+    canonical = resolve_learning_topic_from_payload(
+        {"question_stem": "雨季施工混凝土养护出错。", "simple_explanation": "季节性施工。"},
+        llm_topic_inferer=lambda _p, _c: "屋面与防水工程施工",   # a real canonical section name
     )
+    assert canonical is not None
+    assert canonical.label == "屋面与防水工程施工"
+    assert canonical.taxonomy_code == "1A413"
+    assert canonical.source == "canonical_classified"
 
-    assert resolved is not None
-    assert resolved.label == "雨季混凝土养护"
-    assert resolved.source == "llm_inferred"
-    assert resolved.confidence == "low"
-    assert calls
+    off_taxonomy = resolve_learning_topic_from_payload(
+        {"question_stem": "雨季施工混凝土养护出错。", "simple_explanation": "季节性施工。"},
+        llm_topic_inferer=lambda _p, _c: "雨季混凝土养护",       # not a canonical option -> dropped
+    )
+    assert off_taxonomy is None
 
 
-def test_resolver_can_use_sanitized_evidence_as_low_confidence_personalized_focus_after_llm_miss() -> None:
+def test_resolver_drops_non_canonical_evidence_label() -> None:
+    # a raw evidence label that isn't a canonical option ('防水工程') and no classifier hit -> recommend
+    # nothing (never fuzzy-guess which 防水 node, never emit off-taxonomy free text).
     resolved = resolve_learning_topic_from_payload(
         {"knowledge_points": ["防水工程"]},
         llm_topic_inferer=lambda _payload, _candidates: "",
     )
 
-    assert resolved is not None
-    assert resolved.label == "防水工程"
-    assert resolved.source == "evidence_inferred"
-    assert resolved.confidence == "low"
-    assert resolved.taxonomy_code == ""
+    assert resolved is None
+
+
+def test_normalize_learning_topic_text_filters_noise_but_keeps_real_exam_topics() -> None:
+    assert normalize_learning_topic_text("施工现场临时用电") == "施工现场临时用电"
+    assert normalize_learning_topic_text("防水工程") == "防水工程"
+    assert normalize_learning_topic_text("专家论证程序") == "专家论证程序"
+
+    assert normalize_learning_topic_text("讲义封底 扫码领取免费资料") == ""
+    assert normalize_learning_topic_text("一级建造师建筑实务知识点归纳") == ""
+    assert normalize_learning_topic_text("关注公众号领取课程二维码") == ""
 
 
 def test_compiled_taxonomy_artifact_is_packaged() -> None:
@@ -224,3 +232,54 @@ def test_compiled_taxonomy_artifact_is_packaged() -> None:
     package_data = pyproject["tool"]["setuptools"]["package-data"]
 
     assert "compiled/*.json" in package_data["deeptutor.services.taxonomy"]
+
+
+def test_normalize_learning_topic_text_drops_non_textbook_noise():
+    # The chat/home recommended-topic label authority must drop non-textbook noise (it feeds the
+    # conversation page's recommended prompts).
+    from deeptutor.services.taxonomy.learning_topic_resolver import normalize_learning_topic_text
+
+    assert normalize_learning_topic_text("讲义封底免费听课资源") == ""
+    assert normalize_learning_topic_text("扫码领取课程资料") == ""
+    # real topics survive
+    assert normalize_learning_topic_text("施工现场临时用电") == "施工现场临时用电"
+    assert normalize_learning_topic_text("建设工程项目资源管理") == "建设工程项目资源管理"
+
+
+def test_recommended_topic_drops_non_textbook_garbage_keeps_real_topics():
+    # STANDING REQUIREMENT (no garbage in recommendations): non-textbook noise / book-title / meta-title
+    # phrasings must NEVER be recommended, even when the LLM emits them; real exam topics still pass.
+    from deeptutor.services.taxonomy.learning_topic_resolver import resolve_learning_topic_from_payload
+
+    payload = {"question_stem": "雨季施工混凝土养护", "simple_explanation": "结合季节性施工判断。"}
+
+    for junk in ["一级建造师建筑实务学习主题归纳", "讲义封底免费听课资源", "扫码领取课程资料",
+                 "建筑实务知识点归纳", "学习方法与思维导图"]:
+        assert resolve_learning_topic_from_payload(payload, llm_topic_inferer=lambda *_a, **_k: junk) is None
+
+    # only an exact canonical chapter/section option is recommended (true canonical allowlist)
+    out = resolve_learning_topic_from_payload(
+        payload, llm_topic_inferer=lambda *_a, **_k: "工程招标投标与合同管理")
+    assert out is not None and out.label == "工程招标投标与合同管理" and out.taxonomy_code
+
+
+def test_resolver_branch1_miss_does_not_call_llm_twice() -> None:
+    # Regression guard for the double-LLM-call bug (R3-HIGH):
+    # When next_training_signal.focus is set (branch 1) and the LLM returns a non-canonical
+    # pick, resolve_learning_topic_from_payload must return None immediately — it must NOT
+    # fall through to branch 2 and call llm_topic_inferer a second time.
+    call_count = [0]
+
+    def counting_inferer(payload: dict, candidates: list) -> str:
+        call_count[0] += 1
+        return "非canonical自由文本"  # always off-canonical → _classify_to_canonical_option → None
+
+    result = resolve_learning_topic_from_payload(
+        {
+            "next_training_signal": {"focus": "专家论证程序"},
+            "question_stem": "关于工程专家论证程序的题目。",
+        },
+        llm_topic_inferer=counting_inferer,
+    )
+    assert result is None
+    assert call_count[0] == 1, f"LLM called {call_count[0]} times; expected exactly 1"

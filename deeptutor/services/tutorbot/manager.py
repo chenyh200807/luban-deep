@@ -1010,6 +1010,11 @@ class TutorBotManager:
                         "skill_trace",
                         "loader_source",
                         "skill_source_status",
+                        "grading_to_brain_loop",
+                        "learning_evidence_event_id",
+                        "learning_training_intent",
+                        "personalization_context",
+                        "next_best_action",
                     ):
                         if metadata_key in runtime_metadata:
                             trace_metadata[metadata_key] = runtime_metadata[metadata_key]
@@ -1115,6 +1120,11 @@ class TutorBotManager:
                             "skill_trace",
                             "loader_source",
                             "skill_source_status",
+                            "grading_to_brain_loop",
+                            "learning_evidence_event_id",
+                            "learning_training_intent",
+                            "personalization_context",
+                            "next_best_action",
                         ):
                             if metadata_key in runtime_metadata:
                                 update_metadata[metadata_key] = runtime_metadata[metadata_key]

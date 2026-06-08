@@ -250,6 +250,7 @@ async def test_turn_runtime_demotes_tutorbot_capability_hint_before_lifecycle_au
             "capability": "tutorbot",
             "config": {
                 "bot_id": "construction-exam-coach",
+                "grading_engine_textbook_knowledge": True,
                 "interaction_profile": "tutorbot",
             },
             "language": "zh",
@@ -262,6 +263,7 @@ async def test_turn_runtime_demotes_tutorbot_capability_hint_before_lifecycle_au
     assert execution.capability == ""
     assert execution.payload["capability"] is None
     assert execution.payload["config"]["_entry_capability_hint"] == "tutorbot"
+    assert execution.payload["config"]["grading_engine_textbook_knowledge"] is True
     if execution.task is not None:
         await asyncio.wait_for(execution.task, timeout=1)
 

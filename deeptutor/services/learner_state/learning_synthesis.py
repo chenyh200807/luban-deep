@@ -406,7 +406,15 @@ def _learning_items(event: LearnerStateEvent) -> list[dict[str, Any]]:
             "concept_id": concept,
             "error_code": error_code,
             "rubric_item_id": rubric_item_id,
-            "diagnosis": _clean_text(error.get("diagnosis") or error.get("evidence")),
+            # M32 Task 4: make the claim explainable. The canonical GradingErrorEvent
+            # (construction_grading/schema.py) carries the answer span in ``evidence``;
+            # the v1 rubric path may instead use ``evidence_span``. The mistake TYPE is
+            # already the claim's ``error_code`` — we do not duplicate it under a second
+            # key (single authority per fact). Diagnosis falls back to the span.
+            "diagnosis": _clean_text(
+                error.get("diagnosis") or error.get("evidence") or error.get("evidence_span")
+            ),
+            "evidence_span": _clean_text(error.get("evidence_span") or error.get("evidence")),
             "recommended_training": dict(signal),
             "conflicting_event_ids": conflicting_event_ids,
             "evidence_cap_reasons": _evidence_cap_reasons(quality),
@@ -513,7 +521,7 @@ def _manual_correction(event: LearnerStateEvent) -> dict[str, Any] | None:
 
 
 def _candidate(item: dict[str, Any], *, evidence_level: str) -> dict[str, Any]:
-    return _with_claim_lifecycle({
+    claim: dict[str, Any] = {
         "concept_id": item.get("concept_id", ""),
         "error_code": item.get("error_code", ""),
         "claim": _claim_text(item.get("concept_id", ""), item.get("error_code", "")),
@@ -522,18 +530,65 @@ def _candidate(item: dict[str, Any], *, evidence_level: str) -> dict[str, Any]:
         "recommended_training": dict(item.get("recommended_training") or {}),
         "evidence_level": evidence_level,
         "evidence_cap_reasons": list(item.get("evidence_cap_reasons") or []),
-    })
+        # D-class: 1-element timeline for the single-observation path (append-only).
+        "occurrence_timeline": _occurrence_timeline([item]),
+    }
+    # M32 Task 4: explainable claim — surface the answer span / diagnosis when present.
+    # Append-only: absent on a legacy item -> claim stays byte-identical to the legacy shape.
+    _attach_claim_evidence(claim, item)
+    return _with_claim_lifecycle(claim)
+
+
+def _attach_claim_evidence(claim: dict[str, Any], source: dict[str, Any]) -> None:
+    """Add the M32 explainability fields only when non-empty (append-only)."""
+    diagnosis = _clean_text(source.get("diagnosis"))
+    if diagnosis:
+        claim["diagnosis"] = diagnosis
+    evidence_span = _clean_text(source.get("evidence_span"))
+    if evidence_span:
+        claim["evidence_span"] = evidence_span
+
+
+def _occurrence_timeline(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """D-class: chronological error recurrence timeline (append-only, oldest-first)."""
+    seen: set[str] = set()
+    entries: list[dict[str, Any]] = []
+    for item in sorted(items, key=lambda i: str(i.get("observed_at") or "")):
+        eid = str(item.get("event_id") or "")
+        if eid in seen:
+            continue
+        seen.add(eid)
+        entries.append({
+            "event_id": eid,
+            "observed_at": str(item.get("observed_at") or ""),
+            "question_id": _clean_text(item.get("question_id")),
+            "turn_id": _clean_text(item.get("turn_id")),
+        })
+    return entries
 
 
 def _candidate_from_items(concept_id: str, error_code: str, items: list[dict[str, Any]]) -> dict[str, Any]:
-    return {
+    def _latest(field: str) -> str:
+        for entry in reversed(items):
+            value = _clean_text(entry.get(field))
+            if value:
+                return value
+        return ""
+
+    candidate: dict[str, Any] = {
         "concept_id": concept_id,
         "error_code": error_code,
         "claim": _claim_text(concept_id, error_code),
         "supporting_event_ids": [item["event_id"] for item in items],
         "last_observed_at": items[-1]["observed_at"],
         "recommended_training": _first_training_signal(items),
+        # D-class: error time-series — when did each mistake recur? (append-only)
+        "occurrence_timeline": _occurrence_timeline(items),
     }
+    # M32 Task 4: surface the most recent answer span / diagnosis (append-only). The mistake
+    # TYPE is already the claim's error_code — not duplicated under a second key.
+    _attach_claim_evidence(candidate, {"diagnosis": _latest("diagnosis"), "evidence_span": _latest("evidence_span")})
+    return candidate
 
 
 def _build_compiled_objects(
@@ -859,6 +914,17 @@ def _resolved_improved_keys(*, improvements: list[dict[str, Any]]) -> set[tuple[
 
 
 def _is_improvement(payload: dict[str, Any]) -> bool:
+    # M32 Task 6: a simulated / preview / non-promotable grade is NOT a real retest pass and
+    # must never clear a weakness (simulated_retest_as_real == 0). The real-pipeline guarantee
+    # rides on ``preview_only`` / ``claim_promotion_allowed`` (set by build_learning_evidence_*);
+    # ``qa_simulated`` is the project's explicit simulation marker (runtime_llm_adjudicator /
+    # beta_shadow_loader). Only a real graded attempt — none of these flags — may improve.
+    if (
+        payload.get("qa_simulated") is True
+        or payload.get("preview_only") is True
+        or payload.get("claim_promotion_allowed") is False
+    ):
+        return False
     try:
         max_score = float(payload.get("max_score") or 0)
         score = float(payload.get("score_awarded") or 0)

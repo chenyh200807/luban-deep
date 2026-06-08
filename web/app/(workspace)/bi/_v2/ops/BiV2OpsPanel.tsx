@@ -1,7 +1,7 @@
 /* eslint-disable i18n/no-literal-ui-text */
 'use client'
 
-import { Download, Eye, History, Lock, RefreshCw, Rocket, ShieldAlert, ShieldCheck } from 'lucide-react'
+import { Download, Eye, RefreshCw } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   BiDataTable,
@@ -20,16 +20,8 @@ import {
   type ExportJob,
   type SystemOpsTile,
 } from './data'
+import { OpsCockpit } from '@/components/bi-cockpit/OpsCockpit'
 import { useAuditedAction } from '../useAuditedAction'
-
-const OPS_ICON: Record<string, typeof ShieldCheck> = {
-  'cost-quality': ShieldAlert,
-  'data-trust': ShieldCheck,
-  'audit-actions': History,
-  'audit-perm': Lock,
-  'audit-export': Download,
-  release: Rocket,
-}
 
 const STATUS_TONE: Record<SystemOpsTile['status'], 'emerald' | 'amber' | 'rose'> = {
   ok: 'emerald',
@@ -73,7 +65,8 @@ export type BiV2OpsPanelProps = {
 
 function auditCategory(action: string): AuditLogEntry['category'] {
   const lower = action.toLowerCase()
-  if (lower.includes('wallet') || lower.includes('ledger') || lower.includes('point')) return 'wallet'
+  if (lower.includes('wallet') || lower.includes('ledger') || lower.includes('point'))
+    return 'wallet'
   if (lower.includes('feedback')) return 'feedback'
   if (lower.includes('export')) return 'export'
   if (lower.includes('admin') || lower.includes('permission')) return 'permission'
@@ -194,7 +187,9 @@ export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
         key: 'audit-actions',
         label: '操作审计',
         status: auditError ? 'fail' : auditLoading ? 'warn' : 'ok',
-        detail: auditError || `已接 member_console.audit_log，当前窗口返回 ${liveAudit.length} / ${auditTotal} 条。`,
+        detail:
+          auditError ||
+          `已接 member_console.audit_log，当前窗口返回 ${liveAudit.length} / ${auditTotal} 条。`,
         owner: 'ops',
         trust: 'A',
         authority: 'member_console.audit_log',
@@ -212,13 +207,23 @@ export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
         key: 'audit-export',
         label: '导出审计',
         status: exportError ? 'fail' : liveExportJobs.length > 0 ? 'ok' : 'warn',
-        detail: exportError || `导出请求写入 /api/v1/bi/export-jobs，当前队列 ${liveExportJobs.length} 个。`,
+        detail:
+          exportError ||
+          `导出请求写入 /api/v1/bi/export-jobs，当前队列 ${liveExportJobs.length} 个。`,
         owner: 'ops',
         trust: 'B',
         authority: 'member_console.audit_log',
       },
     ]
-  }, [auditError, auditLoading, auditTotal, exportError, flagEnabled, liveAudit.length, liveExportJobs.length])
+  }, [
+    auditError,
+    auditLoading,
+    auditTotal,
+    exportError,
+    flagEnabled,
+    liveAudit.length,
+    liveExportJobs.length,
+  ])
 
   const auditColumns = useMemo<BiTableColumn<AuditLogEntry>[]>(
     () => [
@@ -330,47 +335,19 @@ export function BiV2OpsPanel({ flagEnabled }: BiV2OpsPanelProps) {
             </button>
           }
         >
-            BI_SYSTEM_OPS_V2_ENABLED 已开启 · 操作审计读取{' '}
-            <code className="font-mono">/api/v1/member/audit-log</code>；导出请求写入{' '}
-            <code className="font-mono">/api/v1/bi/export-jobs</code> audit。
+          BI_SYSTEM_OPS_V2_ENABLED 已开启 · 操作审计读取{' '}
+          <code className="font-mono">/api/v1/member/audit-log</code>；导出请求写入{' '}
+          <code className="font-mono">/api/v1/bi/export-jobs</code> audit。
         </BiV2DataSourceBanner>
       )}
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {opsTiles.map(tile => {
-          const Icon = OPS_ICON[tile.key] ?? ShieldCheck
-          return (
-            <article
-              key={tile.key}
-              className="rounded-2xl border border-white/10 bg-white/[0.045] p-4 shadow-lg shadow-black/10"
-              title={`${tile.label} · authority: ${tile.authority} · owner: ${tile.owner}`}
-            >
-              <header className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm font-black text-slate-100">
-                  <Icon className="h-4 w-4" aria-hidden /> {tile.label}
-                </div>
-                <div className="flex gap-1">
-                  <BiStatusPill tone={STATUS_TONE[tile.status]} label={tile.status} />
-                  <BiStatusPill tone={BI_TRUST_TONE[tile.trust]} label={`${tile.trust} 级`} />
-                </div>
-              </header>
-              <p className="mt-2 text-xs leading-5 text-slate-300">{tile.detail}</p>
-              <p className="mt-2 text-[11px] text-slate-400">
-                authority: {tile.authority} · owner: {tile.owner}
-              </p>
-              <button
-                type="button"
-                onClick={() => setSelectedTile(tile)}
-                className="mt-3 inline-flex items-center gap-1 rounded-xl border border-white/10 bg-white/[0.06] px-2 py-1 text-[11px] font-bold text-slate-100 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-cyan-300/30"
-                aria-label={`查看 ${tile.label} 详情`}
-              >
-                <Eye className="h-3 w-3" aria-hidden />
-                查看详情
-              </button>
-            </article>
-          )
-        })}
-      </div>
+      <OpsCockpit
+        tiles={opsTiles}
+        audit={flagEnabled ? liveAudit : AUDIT_ENTRIES}
+        exportJobs={flagEnabled ? liveExportJobs : EXPORT_JOBS}
+        auditTotal={flagEnabled ? auditTotal : AUDIT_ENTRIES.length}
+        onTile={setSelectedTile}
+      />
 
       <section className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] shadow-lg shadow-black/15">
         <header className="flex items-center justify-between border-b border-white/10 px-4 py-3">

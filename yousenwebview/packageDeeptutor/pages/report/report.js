@@ -12,7 +12,8 @@ const REPORT_UNIFIED_READ_TIMEOUT_MS = 8000;
 const REPORT_SNAPSHOT_CACHE_KEY = "deeptutor.report.unifiedSnapshot.v1";
 const REPORT_SNAPSHOT_CACHE_MAX_AGE_MS = 30 * 60 * 1000;
 const REPORT_MODULE_HINT_STORAGE_KEY = "deeptutor.report.moduleHint.v1";
-const ASSESSMENT_PENDING_TRAINING_ACTION_KEY = "deeptutor.report.pendingTrainingAction";
+const ASSESSMENT_PENDING_TRAINING_ACTION_KEY =
+  "deeptutor.report.pendingTrainingAction";
 const RADAR_SELF_SUBJECT = "self";
 const LEVEL_NAMES = {
   beginner: "入门",
@@ -69,7 +70,12 @@ function _buildRadarDimensionsFromAssessment(data) {
         (typeof item === "object" ? item.name : key) || key,
       ),
       value: normalizedMastery / 100,
-      status: normalizedMastery >= 70 ? "strong" : normalizedMastery > 0 ? "normal" : "weak",
+      status:
+        normalizedMastery >= 70
+          ? "strong"
+          : normalizedMastery > 0
+            ? "normal"
+            : "weak",
     };
   });
 }
@@ -133,7 +139,12 @@ function _asLearningBrainNumber(value, fallback) {
 }
 
 function _hasExplicitNumericValue(value) {
-  return value !== undefined && value !== null && value !== "" && Number.isFinite(Number(value));
+  return (
+    value !== undefined &&
+    value !== null &&
+    value !== "" &&
+    Number.isFinite(Number(value))
+  );
 }
 
 function _learningBrainEventIds(ids) {
@@ -180,11 +191,11 @@ function _learningBrainEdgeLabel(edgeType) {
   return key ? "学习关系" : "";
 }
 
+// Display-only mirror of docs/contracts/error_code_registry.md for stale Learning Brain rows.
+// Backend registry remains the scoring/write authority; this client fallback only prevents raw
+// M-codes from leaking into learner-facing copy when historical rows arrive without labels.
 function _learningBrainErrorLabel(errorCode) {
-  var code = String(errorCode || "")
-    .trim()
-    .toUpperCase();
-  if (!code) return "";
+  var code = String(errorCode || "").trim().toUpperCase();
   if (code === "M01") return "知识点不熟";
   if (code === "M02") return "关键词误读";
   if (code === "M03") return "概念混淆";
@@ -195,18 +206,15 @@ function _learningBrainErrorLabel(errorCode) {
   if (code === "M08") return "规范数字混淆";
   if (code === "M09") return "题干条件提取不完整";
   if (code === "M10") return "用常识替代规范判断";
-  return "错因";
+  return code ? "错因" : "";
 }
 
 function _learningBrainConceptLabel(code, withCode) {
-  var text = String(code || "")
-    .trim()
-    .toUpperCase();
-  if (!text) return "";
   var original = String(code || "").trim();
+  if (!original) return "";
   var topic = original.match(/我想练习(.+?)相关的题目/);
   if (topic && topic[1]) return topic[1].trim();
-  return withCode ? "知识点" : "知识点";
+  return "知识点";
 }
 
 function _learningBrainQuestionLabel(id) {
@@ -680,7 +688,8 @@ function _buildRadarViewModel(dims) {
     // engine emits mastered / developing / needs_attention); otherwise
     // derive from pct so chapter_mastery payloads still classify correctly.
     var pct = Math.round((d.value || 0) * 100);
-    var status = d.status || (pct >= 70 ? "strong" : pct >= 40 ? "normal" : "weak");
+    var status =
+      d.status || (pct >= 70 ? "strong" : pct >= 40 ? "normal" : "weak");
     if (status === "strong" || status === "mastered") strong++;
     else if (status === "normal" || status === "developing") normal++;
     else if (status === "weak" || status === "needs_attention") weak++;
@@ -699,7 +708,8 @@ function _buildRadarViewModel(dims) {
     })
     .map(function (d, index) {
       var pct = Math.round((d.value || 0) * 100);
-      var status = d.status || (pct >= 70 ? "strong" : pct >= 40 ? "normal" : "weak");
+      var status =
+        d.status || (pct >= 70 ? "strong" : pct >= 40 ? "normal" : "weak");
       return {
         rank: index + 1,
         name: d.name,
@@ -767,7 +777,9 @@ function _buildBattlePlanFromPrescription(data) {
   var source = data || {};
   var title = String(source.prescriptionTitle || "").trim();
   var topic = String(source.prescriptionTopic || "").trim();
-  var reason = String(source.prescriptionReason || source.prescriptionSubtitle || "").trim();
+  var reason = String(
+    source.prescriptionReason || source.prescriptionSubtitle || "",
+  ).trim();
   var status = String(source.prescriptionStatus || "").trim();
   if (!(title || topic || reason)) return null;
   return _normalizeBattlePlan({
@@ -785,7 +797,8 @@ function _buildBattlePlanFromPrescription(data) {
 function _buildTrainingExecutionAction(input) {
   var source = input || {};
   var assessmentAction =
-    source.assessmentTrainingAction && typeof source.assessmentTrainingAction === "object"
+    source.assessmentTrainingAction &&
+    typeof source.assessmentTrainingAction === "object"
       ? source.assessmentTrainingAction
       : null;
   if (assessmentAction) {
@@ -819,7 +832,10 @@ function _buildTrainingExecutionAction(input) {
   var plan = source.battlePlan || {};
   var status = String(source.prescriptionStatus || "").trim();
   var topic = String(
-    source.prescriptionTopic || plan.focusTopic || source.focusHint || "当前薄弱点",
+    source.prescriptionTopic ||
+      plan.focusTopic ||
+      source.focusHint ||
+      "当前薄弱点",
   ).trim();
   var task = String(plan.priorityTask || source.nextActionTitle || "").trim();
   var method = String(plan.studyMethod || "").trim();
@@ -1180,12 +1196,14 @@ function _reportOptionalRead(promise, timeoutMs) {
 
 function _readCachedReportSnapshot() {
   try {
-    if (typeof wx === "undefined" || typeof wx.getStorageSync !== "function") return null;
+    if (typeof wx === "undefined" || typeof wx.getStorageSync !== "function")
+      return null;
     var cached = wx.getStorageSync(REPORT_SNAPSHOT_CACHE_KEY);
     if (!cached || typeof cached !== "object") return null;
     if (!cached.snapshot || typeof cached.snapshot !== "object") return null;
     var cachedAt = Number(cached.cachedAt) || 0;
-    if (!cachedAt || Date.now() - cachedAt > REPORT_SNAPSHOT_CACHE_MAX_AGE_MS) return null;
+    if (!cachedAt || Date.now() - cachedAt > REPORT_SNAPSHOT_CACHE_MAX_AGE_MS)
+      return null;
     return cached.snapshot;
   } catch (_) {
     return null;
@@ -1195,7 +1213,8 @@ function _readCachedReportSnapshot() {
 function _writeCachedReportSnapshot(snapshot) {
   if (!snapshot || typeof snapshot !== "object") return;
   try {
-    if (typeof wx === "undefined" || typeof wx.setStorageSync !== "function") return;
+    if (typeof wx === "undefined" || typeof wx.setStorageSync !== "function")
+      return;
     wx.setStorageSync(REPORT_SNAPSHOT_CACHE_KEY, {
       cachedAt: Date.now(),
       snapshot: snapshot,
@@ -1320,14 +1339,20 @@ Page({
   onLoad(options) {
     const windowInfo = helpers.getWindowInfo();
     const navHeight = windowInfo.statusBarHeight + 44;
-    const requestedDetail = options && options.detail ? String(options.detail) : "";
+    const requestedDetail =
+      options && options.detail ? String(options.detail) : "";
     const assessmentTrainingAction =
-      requestedDetail === "training" ? this._readPendingAssessmentTrainingAction(options) : null;
+      requestedDetail === "training"
+        ? this._readPendingAssessmentTrainingAction(options)
+        : null;
     this.setData({
       statusBarHeight: windowInfo.statusBarHeight,
       navHeight,
-      reportDetailView: REPORT_DETAIL_TITLES[requestedDetail] ? requestedDetail : this.data.reportDetailView,
-      reportDetailTitle: REPORT_DETAIL_TITLES[requestedDetail] || this.data.reportDetailTitle,
+      reportDetailView: REPORT_DETAIL_TITLES[requestedDetail]
+        ? requestedDetail
+        : this.data.reportDetailView,
+      reportDetailTitle:
+        REPORT_DETAIL_TITLES[requestedDetail] || this.data.reportDetailTitle,
       reportModuleHintVisible: this._shouldShowReportModuleHint(),
       assessmentTrainingAction: assessmentTrainingAction,
     });
@@ -1343,16 +1368,25 @@ Page({
     } catch (_) {
       stored = null;
     }
-    var intent = stored && typeof stored === "object" ? Object.assign({}, stored) : {};
-    var attemptRef = String(intent.attempt_ref || (options && options.attempt_ref) || "").trim();
-    var concept = String(intent.concept_label || (options && options.knowledge_point) || "").trim();
-    var error = String(intent.error_label || (options && options.error_code) || "").trim();
+    var intent =
+      stored && typeof stored === "object" ? Object.assign({}, stored) : {};
+    var attemptRef = String(
+      intent.attempt_ref || (options && options.attempt_ref) || "",
+    ).trim();
+    var concept = String(
+      intent.concept_label || (options && options.knowledge_point) || "",
+    ).trim();
+    var error = String(
+      intent.error_label || (options && options.error_code) || "",
+    ).trim();
     if (!attemptRef && !concept && !error) return null;
     if (attemptRef) intent.attempt_ref = attemptRef;
     if (concept) intent.concept_label = concept;
     if (error) intent.error_label = error;
     intent.source = String(intent.source || "assessment_result_wrong_item");
-    intent.learning_signal_type = String(intent.learning_signal_type || "assessment_wrong_item_practice");
+    intent.learning_signal_type = String(
+      intent.learning_signal_type || "assessment_wrong_item_practice",
+    );
     intent.subject_id = String(intent.subject_id || "construction_exam");
     intent.question_count = Math.max(1, Number(intent.question_count) || 3);
     intent.training_mode = String(intent.training_mode || "same_type_repair");
@@ -1469,10 +1503,12 @@ Page({
         radarLoading: false,
         masteryLoading: false,
         learningBrainLoading: false,
-        degradedHint: this.data.degradedHint || "网络暂时不稳，已显示上次学情快照",
-        degradedSources: this.data.degradedSources && this.data.degradedSources.length
-          ? this.data.degradedSources
-          : ["learning_report"],
+        degradedHint:
+          this.data.degradedHint || "网络暂时不稳，已显示上次学情快照",
+        degradedSources:
+          this.data.degradedSources && this.data.degradedSources.length
+            ? this.data.degradedSources
+            : ["learning_report"],
         reportFallbackActive: false,
       });
       this._syncExperienceSections();
@@ -1501,44 +1537,52 @@ Page({
     var home = (snapshot && snapshot.home) || {};
     var sharedReport = reportViewModel.buildLearningReportViewModel(report);
     var sharedPageData = reportViewModel.toReportPageData(sharedReport);
-    this.setData(Object.assign({}, sharedPageData, {
-      todayDone: overview.today_done || 0,
-      dailyTarget: overview.daily_target || 0,
-      streakDays: overview.streak_days || 0,
-      dueTodayCount: overview.due_today_count || 0,
-      weakNodeCount: overview.weak_node_count || 0,
-      focusHint: overview.focus_hint || "",
-      homeStudyPlan: home.study_plan || null,
-      homeProgressFeedback: home.progress_feedback || null,
-      learnerLevel: _displayLevelName(overview.learner_level || ""),
-      learnerLevelName: _displayLevelName(overview.learner_level || ""),
-      learnerStageTitle: overview.learner_level
-        ? _displayLevelName(overview.learner_level) + "阶段"
-        : "当前学习状态",
-      studyTip: overview.study_tip || "",
-      radarLoading: false,
-      radarError: false,
-      masteryLoading: false,
-      masteryError: false,
-      learningBrainLoading: false,
-      learningBrainError: false,
-      degradedHint: opts.cached
-        ? "正在刷新，先显示上次学情快照"
-        : snapshot.degraded
-          ? _buildDegradedHint(snapshot.degradedSources)
-          : "",
-      degradedSources: opts.cached
-        ? ["learning_report"]
-        : snapshot.degraded
-          ? snapshot.degradedSources.slice()
-          : [],
-      prescriptionAuthority: sharedPageData.prescriptionAuthority || "",
-      prescriptionEvidenceLabels: sharedPageData.prescriptionEvidenceRefs || [],
-      reportFallbackActive: false,
-    }));
+    this.setData(
+      Object.assign({}, sharedPageData, {
+        todayDone: overview.today_done || 0,
+        dailyTarget: overview.daily_target || 0,
+        streakDays: overview.streak_days || 0,
+        dueTodayCount: overview.due_today_count || 0,
+        weakNodeCount: overview.weak_node_count || 0,
+        focusHint: overview.focus_hint || "",
+        homeStudyPlan: home.study_plan || null,
+        homeProgressFeedback: home.progress_feedback || null,
+        learnerLevel: _displayLevelName(overview.learner_level || ""),
+        learnerLevelName: _displayLevelName(overview.learner_level || ""),
+        learnerStageTitle: overview.learner_level
+          ? _displayLevelName(overview.learner_level) + "阶段"
+          : "当前学习状态",
+        studyTip: overview.study_tip || "",
+        radarLoading: false,
+        radarError: false,
+        masteryLoading: false,
+        masteryError: false,
+        learningBrainLoading: false,
+        learningBrainError: false,
+        degradedHint: opts.cached
+          ? "正在刷新，先显示上次学情快照"
+          : snapshot.degraded
+            ? _buildDegradedHint(snapshot.degradedSources)
+            : "",
+        degradedSources: opts.cached
+          ? ["learning_report"]
+          : snapshot.degraded
+            ? snapshot.degradedSources.slice()
+            : [],
+        prescriptionAuthority: sharedPageData.prescriptionAuthority || "",
+        prescriptionEvidenceLabels:
+          sharedPageData.prescriptionEvidenceRefs || [],
+        reportFallbackActive: false,
+      }),
+    );
     if (sharedPageData.radarDimensions.length) {
-      this._radarSignature = _buildRadarSignature(sharedPageData.radarDimensions);
-      this._ensureRadarRendered(sharedPageData.radarDimensions, this._radarSignature);
+      this._radarSignature = _buildRadarSignature(
+        sharedPageData.radarDimensions,
+      );
+      this._ensureRadarRendered(
+        sharedPageData.radarDimensions,
+        this._radarSignature,
+      );
     }
   },
 
@@ -1576,10 +1620,12 @@ Page({
 
   toggleMasteryGroup(e) {
     var index = Number(e && e.currentTarget && e.currentTarget.dataset.index);
-    var groups = (this.data.masteryGroups || []).map(function (group, groupIndex) {
-      if (groupIndex !== index) return group;
-      return Object.assign({}, group, { expanded: !group.expanded });
-    });
+    var groups = (this.data.masteryGroups || []).map(
+      function (group, groupIndex) {
+        if (groupIndex !== index) return group;
+        return Object.assign({}, group, { expanded: !group.expanded });
+      },
+    );
     helpers.vibrate("light");
     this.setData({ masteryGroups: groups });
   },
@@ -1596,7 +1642,8 @@ Page({
       wx.nextTick(() => {
         this._ensureRadarRendered(
           this.data.radarDimensions,
-          this._radarSignature || _buildRadarSignature(this.data.radarDimensions),
+          this._radarSignature ||
+            _buildRadarSignature(this.data.radarDimensions),
         );
       });
     }
@@ -1616,7 +1663,8 @@ Page({
   _dismissReportModuleHint() {
     if (!this.data.reportModuleHintVisible) return;
     this.setData({ reportModuleHintVisible: false });
-    if (typeof wx === "undefined" || typeof wx.setStorageSync !== "function") return;
+    if (typeof wx === "undefined" || typeof wx.setStorageSync !== "function")
+      return;
     try {
       wx.setStorageSync(REPORT_MODULE_HINT_STORAGE_KEY, "dismissed");
     } catch (err) {}
@@ -1863,7 +1911,8 @@ Page({
         total_due: 0,
         overdue_count: 0,
       };
-      var knowledgeSummary = data.knowledge_summary || data.knowledgeSummary || {};
+      var knowledgeSummary =
+        data.knowledge_summary || data.knowledgeSummary || {};
 
       if (!groups.length && !hasOverall) {
         var fallbackData =
@@ -1931,7 +1980,10 @@ Page({
         masteryGroups: groups,
         hotspots: hotspots,
         knowledgeSummary: knowledgeSummary,
-        textbookChapters: knowledgeSummary.textbook_chapters || knowledgeSummary.textbookChapters || [],
+        textbookChapters:
+          knowledgeSummary.textbook_chapters ||
+          knowledgeSummary.textbookChapters ||
+          [],
         reviewSummary: reviewSummary,
         masteryLoading: false,
       });
@@ -1965,15 +2017,17 @@ Page({
     var prescriptionBattlePlan = _buildBattlePlanFromPrescription(this.data);
     var shouldUsePrescriptionPlan =
       prescriptionBattlePlan &&
-      (!homeBattlePlan || String(this.data.prescriptionStatus || "") === "active");
-    var battlePlan =
-      (shouldUsePrescriptionPlan ? prescriptionBattlePlan : homeBattlePlan) || {
-        focusTopic: "",
-        priorityTask: "",
-        studyMethod: "",
-        timeBudget: "",
-        coachNote: "",
-      };
+      (!homeBattlePlan ||
+        String(this.data.prescriptionStatus || "") === "active");
+    var battlePlan = (shouldUsePrescriptionPlan
+      ? prescriptionBattlePlan
+      : homeBattlePlan) || {
+      focusTopic: "",
+      priorityTask: "",
+      studyMethod: "",
+      timeBudget: "",
+      coachNote: "",
+    };
 
     this.setData({
       diagnosticScore: diagnosticScore,
@@ -2241,7 +2295,9 @@ Page({
       return item.key === key;
     });
     if (!card) return;
-    var cacheKey = "learning_attempt_detail_preview:" + String(card.key || Date.now()).replace(/[^a-zA-Z0-9:_-]/g, "_");
+    var cacheKey =
+      "learning_attempt_detail_preview:" +
+      String(card.key || Date.now()).replace(/[^a-zA-Z0-9:_-]/g, "_");
     if (typeof wx !== "undefined" && typeof wx.setStorageSync === "function") {
       try {
         wx.setStorageSync(cacheKey, { card: card, savedAt: Date.now() });
@@ -2249,8 +2305,13 @@ Page({
     }
     if (typeof wx !== "undefined" && typeof wx.navigateTo === "function") {
       var params = ["cacheKey=" + encodeURIComponent(cacheKey)];
-      if (card.attemptRef) params.push("attemptRef=" + encodeURIComponent(card.attemptRef));
-      wx.navigateTo({ url: "/packageDeeptutor/pages/attempt-detail/attempt-detail?" + params.join("&") });
+      if (card.attemptRef)
+        params.push("attemptRef=" + encodeURIComponent(card.attemptRef));
+      wx.navigateTo({
+        url:
+          "/packageDeeptutor/pages/attempt-detail/attempt-detail?" +
+          params.join("&"),
+      });
     }
   },
 
@@ -2262,9 +2323,18 @@ Page({
     var card = (this.data.learningAttemptCards || []).find(function (item) {
       return item.key === key;
     });
-    if (!card || !card.attemptRef || !card.subjectId || !api.saveMistakeBookItem) {
+    if (
+      !card ||
+      !card.attemptRef ||
+      !card.subjectId ||
+      !api.saveMistakeBookItem
+    ) {
       if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
-        wx.showToast({ title: "这条作答暂不能收藏", icon: "none", duration: 1800 });
+        wx.showToast({
+          title: "这条作答暂不能收藏",
+          icon: "none",
+          duration: 1800,
+        });
       }
       return;
     }
@@ -2277,11 +2347,19 @@ Page({
     try {
       await api.saveMistakeBookItem(_mistakeBookPayloadFromCard(card));
       if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
-        wx.showToast({ title: "已收藏到云端错题集", icon: "success", duration: 1600 });
+        wx.showToast({
+          title: "已收藏到云端错题集",
+          icon: "success",
+          duration: 1600,
+        });
       }
     } catch (_err) {
       if (typeof wx !== "undefined" && typeof wx.showToast === "function") {
-        wx.showToast({ title: "收藏失败，请稍后重试", icon: "none", duration: 1800 });
+        wx.showToast({
+          title: "收藏失败，请稍后重试",
+          icon: "none",
+          duration: 1800,
+        });
       }
     }
   },

@@ -548,8 +548,16 @@ function isReadableLearningText(value) {
 function cleanLearningText(value) {
   var text = String(value || "");
   var labels = {
+    M01: "知识点不熟",
+    M02: "关键词误读",
+    M03: "概念混淆",
+    M04: "选项陷阱",
+    M05: "审题方向错误",
     M06: "多选漏选",
     M07: "多选错选",
+    M08: "规范数字混淆",
+    M09: "题干条件提取不完整",
+    M10: "用常识替代规范判断",
   };
   Object.keys(labels).forEach(function (code) {
     text = text.replace(new RegExp("错因\\s*" + code, "gi"), labels[code]);

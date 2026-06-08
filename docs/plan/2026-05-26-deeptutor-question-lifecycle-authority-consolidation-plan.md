@@ -138,7 +138,7 @@ These cases are release gates, not optional manual checks.
 | --- | --- | --- |
 | `2025真题` | `exam_catalog_query` / clarification | Directory or choices; no `标准答案`, no `阅卷结论`, no exact question claim |
 | `防水真题` | `exam_catalog_query` / clarification | Same as above |
-| `分析一道钢筋保护层真题` | `question_review` | Stem and A/B/C/D first, then answer, analysis, option-by-option reasoning, scoring points, pitfalls, memory cue |
+| `分析一道钢筋保护层真题` | `question_review` | 原题命中时先给 stem 和 A/B/C/D，再给答案、解析、逐项分析、采分点、易错点、口诀；无原题但有相似题库/RAG 来源时，生成并明确标注 source-backed 变式讲评卡；无相似来源时再要求补完整题干/选项 |
 | `分析一道2025真题` | `question_review` only if concrete candidate has stem/options | Must anchor stem/options before analysis |
 | `用3道题训练项目质量计划管理` | `practice_generation` | Three submit-able questions; no answer reveal |
 | `再出3题练地下防水` | `practice_generation` | More practice questions; no review mode |

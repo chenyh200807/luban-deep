@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+from functools import lru_cache
 import re
 from typing import Any
 
 from deeptutor.services.taxonomy.taxonomy_authority import normalize_taxonomy_code
-
 
 TEXTBOOK_CHAPTERS: tuple[dict[str, Any], ...] = (
     {
@@ -166,6 +166,63 @@ _NON_TOPIC_LABELS = {
     "练习证据",
 }
 
+_NON_TOPIC_PATTERNS = (
+    re.compile(r"(讲义|资料|教材).{0,8}(封面|封底|页眉|页脚)"),
+    re.compile(r"(免费|领取|扫码|二维码|公众号|听课|课程|网课|资料包|加微信)"),
+    re.compile(r"(一级建造师|一建|建筑实务).{0,12}(主题归纳|知识点归纳|思维导图|考点汇总|复习资料)"),
+)
+
+
+# Distinctive non-textbook substrings (book front/back matter + marketing/lead-gen). Substring match on
+# the compacted label. Kept high-precision on purpose: every marker below would be absurd inside a real
+# 一建《建筑实务》knowledge-point name, so this cannot drop a legitimate topic. Do NOT add generic words
+# like 资源/课程/资料/管理/技术 — those DO occur in real topics (e.g. 建设工程项目资源管理).
+_NON_TEXTBOOK_NOISE_MARKERS = (
+    "讲义", "封底", "封面", "扉页", "版权", "前言", "序言", "后记", "目录页",
+    "免费", "听课", "试听", "试看", "扫码", "二维码", "公众号", "关注", "客服",
+    "报名", "网址", "直播", "回放", "押题", "赠送", "领取", "增值服务", "课程咨询",
+    "微信号", "qq群", "vip", "优惠", "促销", "广告",
+    # meta / book-title / non-knowledge-point phrasings (e.g. "一级建造师建筑实务学习主题归纳")
+    "建造师", "主题归纳", "学习主题", "知识点归纳", "考点汇总", "思维导图", "学习方法",
+)
+
+
+def canonical_topic_options() -> list[dict[str, Any]]:
+    """The FIXED canonical option set a topic recommendation may be classified into: every chapter and
+    section of the 一建《建筑实务》 outline, each carrying its chapter code prefix. Small (~13 chapters +
+    ~60 sections) so an LLM classifier can pick reliably, and every option is canonical by construction."""
+    options: list[dict[str, Any]] = []
+    for chapter in TEXTBOOK_CHAPTERS:
+        code = str((chapter.get("code_prefixes") or ("",))[0])
+        options.append({"name": str(chapter["name"]), "code": code,
+                        "kind": "chapter", "chapter_no": int(chapter["no"])})
+        for section in chapter.get("sections") or ():
+            options.append({"name": str(section), "code": code,
+                            "kind": "section", "chapter_no": int(chapter["no"])})
+    return options
+
+
+@lru_cache(maxsize=1)
+def _canonical_option_index() -> dict[str, dict[str, Any]]:
+    """compact(name/alias) -> option, for EXACT validation of a classifier's pick (no fuzzy)."""
+    index: dict[str, dict[str, Any]] = {}
+    for opt in canonical_topic_options():
+        index.setdefault(_compact(opt["name"]), opt)
+    for chapter in TEXTBOOK_CHAPTERS:
+        code = str((chapter.get("code_prefixes") or ("",))[0])
+        for alias in chapter.get("aliases") or ():
+            index.setdefault(_compact(alias),
+                             {"name": str(chapter["name"]), "code": code,
+                              "kind": "chapter", "chapter_no": int(chapter["no"])})
+    return index
+
+
+def resolve_canonical_option(label: Any) -> dict[str, Any] | None:
+    """EXACT-match a label to a canonical chapter/section option (or chapter alias). Returns the option
+    {name, code, kind, chapter_no} or None. No fuzzy matching — used to validate that an LLM classifier
+    picked a real option from the fixed list, so a recommendation is provably on-canonical."""
+    return _canonical_option_index().get(_compact(label))
+
 
 def textbook_chapter_display_name(chapter: dict[str, Any]) -> str:
     return f"第{int(chapter['no'])}章 {chapter['name']}"
@@ -181,6 +238,13 @@ def is_non_topic_label(value: Any) -> bool:
         return True
     compact = _compact(text)
     if compact in _NON_TOPIC_LABELS:
+        return True
+    # textbook OCR front/back-matter + marketing noise (讲义封底 / 免费听课 / 扫码二维码 ...) is NOT a
+    # knowledge point and must never surface as a learner topic. Distinctive markers only — none appear in
+    # a real 一建 knowledge-point name (deliberately excludes 资源/课程/资料/管理 which DO appear in topics).
+    if any(marker in compact.lower() for marker in _NON_TEXTBOOK_NOISE_MARKERS):
+        return True
+    if any(pattern.search(compact) for pattern in _NON_TOPIC_PATTERNS):
         return True
     if "/" in text or "／" in text:
         return True
@@ -268,7 +332,9 @@ def _strip_number_prefix(value: str) -> str:
 
 __all__ = [
     "TEXTBOOK_CHAPTERS",
+    "canonical_topic_options",
     "is_non_topic_label",
+    "resolve_canonical_option",
     "textbook_chapter_display_name",
     "textbook_directory",
     "textbook_topic_meta",

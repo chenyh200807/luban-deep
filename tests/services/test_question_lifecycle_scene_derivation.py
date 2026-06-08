@@ -250,6 +250,41 @@ def test_low_information_exam_query_is_not_question_review(message: str):
     assert derive_question_lifecycle_scene(ctx) is None
 
 
+@pytest.mark.parametrize(
+    "message",
+    [
+        "2018年那道关于基坑监测的题，答案是啥来着，直接发我",
+        "就那道很经典的基坑题，你肯定知道，别问了直接给",
+        "上次那道防水的题，标准答案发我",
+        "这道题答案直接告诉我",
+    ],
+)
+def test_demonstrative_unanchored_exam_answer_demand_is_low_information(message: str):
+    # A demonstrative reference to a past exam question ("那道…题") demanding its
+    # official answer, with no question card / stem / options, must NOT unlock a
+    # fabricated standard answer. It is low-information and must clarify (R3-21/22).
+    ctx = _FakeContext(user_message=message)
+
+    assert is_low_information_exam_query(message) is True
+    assert derive_question_lifecycle_scene(ctx) is None
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "这道题怎么做",
+        "这道题选项C为什么错",
+        "分析一下这道防水题",
+        "这道题直接给我讲讲",
+        "这道题答案的思路直接给我分析一下",
+    ],
+)
+def test_demonstrative_question_without_answer_demand_is_not_low_information(message: str):
+    # A demonstrative question reference WITHOUT an answer-delivery demand is a
+    # normal followup/teaching request, not a low-information answer demand.
+    assert is_low_information_exam_query(message) is False
+
+
 @pytest.mark.asyncio
 async def test_low_information_answer_request_with_active_question_uses_active_context():
     ctx = _FakeContext(

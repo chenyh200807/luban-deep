@@ -8,7 +8,7 @@ from typing import Any
 from deeptutor.services.learner_state.attempt_refs import verify_attempt_ref
 from deeptutor.services.learner_state.redaction import redact_chat_text
 from deeptutor.services.session import build_user_owner_key
-from deeptutor.services.taxonomy.construction_taxonomy import display_taxonomy_label
+from deeptutor.services.taxonomy.construction_taxonomy import student_facing_label
 
 _HISTORY_CONTEXT_BLOCK_RE = re.compile(
     r"\[\s*history\s*context\s*\].*?\[\s*/\s*history\s*context\s*\]",
@@ -331,8 +331,8 @@ def _event_concept(payload: dict[str, Any], errors: list[dict[str, Any]]) -> str
 
 
 def _concept_label(value: str) -> str:
-    text = str(value or "").strip()
-    return str(display_taxonomy_label(text, fallback=text) or text).strip()
+    # student-facing: code -> Chinese (or '' on miss, never the code); human text passes through
+    return str(student_facing_label(value) or "").strip()
 
 
 def _error_label(errors: list[dict[str, Any]]) -> str:

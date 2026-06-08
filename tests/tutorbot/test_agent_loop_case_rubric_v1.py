@@ -37,6 +37,19 @@ def _case_md() -> dict:
     }
 
 
+class _FakeEvent:
+    event_id = "evt_v1_case_1"
+
+
+class _FakeLearnerStateService:
+    def __init__(self) -> None:
+        self.calls: list[dict] = []
+
+    def append_memory_event(self, user_id: str, **kwargs):
+        self.calls.append({"user_id": user_id, **kwargs})
+        return _FakeEvent()
+
+
 def test_build_v1_case_ctx_extracts_reference_from_covered_subquestions() -> None:
     ctx = AgentLoop._build_v1_case_ctx(_case_md(), "我的作答：共用一个开关箱不妥")
     assert ctx["question_id"] == "CASE-1"
@@ -160,6 +173,83 @@ async def test_apply_v1_or_case_fallback_prefers_v1(monkeypatch: pytest.MonkeyPa
         return {"P1": {"status": G.HIT}}
 
     monkeypatch.setattr(G, "batch_judge_async", _fake_batch_async)
+    md = _case_md()
     out = await _loop()._apply_v1_or_case_fallback(
-        "智能体自由打分：3分", runtime_metadata=_case_md(), user_message="点1")
+        "智能体自由答复：你写得不错，继续保持。", runtime_metadata=md, user_message="点1")
     assert "逐采分点点评" in out                                      # V1 took over (not the agent text)
+    assert md.get("_v1_case_graded") is True
+
+
+@pytest.mark.asyncio
+async def test_apply_v1_or_case_fallback_no_scene_no_authority_does_not_invent_score(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # This mirrors the 2026-06-08 production trace failure shape: TutorBot produced
+    # teaching feedback, but the turn carried no case_grading scene or exact-question
+    # authority. The loop must not fabricate a score from that shape.
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_V1_ENABLED", "true")
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda *_a, **_k: (_ for _ in ()).throw(AssertionError("no authority")))
+    md = {
+        "question_lifecycle_scene": None,
+        "_prefetched_exact_question": None,
+        "active_object": None,
+        "construction_grading_result": None,
+    }
+    out = await _loop()._apply_v1_or_case_fallback(
+        "你这个答案方向上有可取之处，但还需要补充关键采分点。",
+        runtime_metadata=md,
+        user_message="帮我批改这道案例题",
+    )
+    assert out == ""
+
+
+@pytest.mark.asyncio
+async def test_v1_case_render_writes_grading_to_brain_loop(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_V1_ENABLED", "true")
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda _qid: [
+        {
+            "point_id": "P1",
+            "text": "应编制临时用电施工组织设计",
+            "score": 1.0,
+            "policy": "exact_required",
+            "required_terms": ["临时用电施工组织设计"],
+        }
+    ])
+
+    async def _fake_batch_async(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {
+            "P1": {
+                "status": G.MISS,
+                "mistake_type": "near_synonym_not_exact",
+                "evidence_span": "普通施工方案",
+            }
+        }
+
+    fake_service = _FakeLearnerStateService()
+    monkeypatch.setattr(G, "batch_judge_async", _fake_batch_async)
+    monkeypatch.setattr(
+        "deeptutor.services.learner_state.get_learner_state_service",
+        lambda: fake_service,
+    )
+
+    md = _case_md()
+    md["turn_id"] = "turn_v1_case"
+    md["bot_id"] = "construction-exam-coach"
+    out = await _loop()._apply_v1_or_case_fallback(
+        "智能体自由答复：我先不打分。", runtime_metadata=md, user_message="普通施工方案")
+
+    assert "逐采分点点评" in out
+    assert len(fake_service.calls) == 1
+    call = fake_service.calls[0]
+    assert call["user_id"] == "qa_loop_v1"
+    assert call["memory_kind"] == "learning_evidence"
+    assert call["payload_json"]["legacy_event_type"] == "case_grading_completed"
+    assert md["grading_to_brain_loop"]["writeback_count"] == 1
+    assert md["learning_evidence_event_id"] == "evt_v1_case_1"
+    assert md["learning_training_intent"]["source"] == "grading_to_brain_loop"
+    assert md["personalization_context"]["source"] == "PersonalizationContextPack"
+    assert md["next_best_action"]["source"] == "training_intent"

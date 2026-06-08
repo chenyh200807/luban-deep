@@ -33,6 +33,8 @@ export type OverviewLiveBundle = {
   generatedAt: number
   partial: boolean
   errors: string[]
+  /** 完整 overview payload（含增长漏斗/会员健康/AI质量等），可选；仅 overview 拉取成功时携带 */
+  overview?: BiOverviewData | null
 }
 
 export type OverviewReducerSource = 'live' | 'error'
@@ -85,8 +87,7 @@ export function reduceOverviewBundle({
   if (overview.status === 'fulfilled') {
     const overviewValue = overview.value
     const overviewAlerts = overviewValue.alerts
-    const mergedAlerts =
-      overviewAlerts.length > 0 ? overviewAlerts : anomaliesAlerts
+    const mergedAlerts = overviewAlerts.length > 0 ? overviewAlerts : anomaliesAlerts
     return {
       bundle: {
         cards: overviewValue.cards,
@@ -95,6 +96,7 @@ export function reduceOverviewBundle({
         generatedAt: now,
         partial: errors.length > 0,
         errors,
+        overview: overviewValue,
       },
       source: errors.length > 0 ? 'error' : 'live',
     }

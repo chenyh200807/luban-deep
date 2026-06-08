@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import json
-import re
 from collections import Counter
 from functools import lru_cache
+import json
 from pathlib import Path
+import re
 from typing import Any
 
 _COMPILED_TAXONOMY_PATH = Path(__file__).resolve().parent / "compiled" / "construction_2026_taxonomy.compiled.json"
@@ -43,6 +43,61 @@ def display_taxonomy_label(value: Any, *, with_code: bool = False, fallback: str
     if with_code and code:
         return f"{label}（{code}）"
     return label
+
+
+def student_taxonomy_label(value: Any) -> str:
+    """SINGLE AUTHORITY for student-facing taxonomy display.
+
+    Returns the canonical Chinese name, or '' when the code cannot be resolved — NEVER the raw code.
+    Codes (``1A432000``, ``E02``, ``EXAM_...::Q1-1``, other-track ``1B...``) are meaningless to learners,
+    so every learner-facing read model must resolve through HERE instead of ``display_taxonomy_label(x,
+    fallback=x)`` (which leaks the code on a miss). The caller decides what to show when this is empty
+    (a question topic, an error label, or to omit the row) — but it must never fall back to the code."""
+    return taxonomy_label(value)
+
+
+# Machine-code shapes that must NEVER reach a learner verbatim. Broad on purpose: construction node codes
+# of any track/length (1A412000 / 1B.. / 2A.. / 12A4120000 / 7-digit), error codes (E02 / M03), rubric
+# refs (Q1-1 / R12 / r3), UUID-ish ids, and compound rubric/exam ids (EXAM_...::E0::Q1-1).
+_CODE_SHAPE_RE = re.compile(
+    r"^(?:\d{0,2}[A-Za-z]\d{6,}|[EM]\d{2}|[A-Za-z]?\d+(?:-\d+)+|[Rr]\d+)$"
+    r"|::|^EXAM_|[0-9a-f]{8}-[0-9a-f]{4}-|_[0-9a-f]{8,}",
+    re.IGNORECASE,
+)
+# Embedded construction code inside free text — NO \b (Python \b fails between a code and an adjacent CJK
+# char, e.g. "项目1A412000管理"); use explicit ASCII-alnum lookarounds so CJK-adjacent codes are caught.
+_EMBEDDED_CODE_RE = re.compile(r"(?<![A-Za-z0-9])\d{0,2}[A-Za-z]\d{6,}(?![A-Za-z0-9])")
+_CJK_RE = re.compile(r"[㐀-鿿]")
+
+
+def looks_like_taxonomy_code(value: Any) -> bool:
+    """True when the string is a machine code (taxonomy / error / rubric / uuid id), not human text."""
+    text = str(value or "").strip()
+    return bool(text) and bool(_CODE_SHAPE_RE.search(text))
+
+
+def student_facing_label(value: Any, *, generic: str = "") -> str:
+    """SINGLE AUTHORITY for any learner-facing label that MIGHT be a code OR already-human text.
+
+    Heuristic that NEVER leaks a code: a string containing ANY Chinese character is human text and passes
+    through; a string with NO Chinese is treated as a machine code/id and is resolved to its canonical
+    Chinese name, or ``generic`` — the raw code is never shown. (A Chinese exam app's learner-facing labels
+    are Chinese; pure-ASCII learner text is almost always a code/id.) Whole-label values only — embedded
+    codes inside free text go through ``scrub_codes_for_student``."""
+    text = str(value or "").strip()
+    if not text:
+        return generic
+    if _CJK_RE.search(text):
+        return text                              # human Chinese text — pass through
+    return taxonomy_label(text) or generic       # no Chinese -> a code/id -> Chinese name or generic, never raw
+
+
+def scrub_codes_for_student(text: Any, *, generic: str = "相关考点") -> str:
+    """Replace any embedded construction code inside free text with its canonical Chinese name (or
+    ``generic`` on a miss) so a learner never sees a code fragment — works even when the code is wedged
+    against Chinese characters (``项目1A412000管理`` -> ``项目主要建筑工程材料……管理``)."""
+    out = str(text or "")
+    return _EMBEDDED_CODE_RE.sub(lambda m: taxonomy_label(m.group(0)) or generic, out)
 
 
 def chapter_prefix_labels() -> dict[str, str]:

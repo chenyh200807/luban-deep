@@ -102,6 +102,10 @@ def build_learning_evidence_from_conversation_turn(
         "evidence_level": "exposed",
         "confidence": 0.45 if signal_type != "still_confused" else 0.3,
         "source_refs": refs,
+        # C-4: conversation signals must never promote/clear grading-established weak points.
+        # _is_improvement() in learning_synthesis gates on claim_promotion_allowed is False;
+        # without this a client-supplied training_outcome='improved' bypasses grading authority.
+        "claim_promotion_allowed": False,
         "quality": {
             "detail_ready": bool(summary and concept_label),
             "progress_countable": False,

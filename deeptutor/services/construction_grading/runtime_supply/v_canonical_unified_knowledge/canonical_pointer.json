@@ -1,7 +1,8 @@
 {
   "namespace": "canonical_unified_knowledge",
   "status": "release_candidate",
-  "published": false,
+  "published": true,
   "expected_content_hash": "7fc8717a2a23ba81d147010903aa7877df88ea8e271294618bc2c3a6366cce99",
-  "tier": "teaching_context_not_answer_key"
+  "tier": "teaching_context_not_answer_key",
+  "published_date": "2026-06-08"
 }

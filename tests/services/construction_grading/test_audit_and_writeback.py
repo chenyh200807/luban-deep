@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from deeptutor.services.construction_grading.audit import evaluate_grading_supabase_audit
 from deeptutor.services.construction_grading.case_kernel import CaseGradingSkillKernel
-from deeptutor.services.construction_grading.writeback import write_grading_error_events
+from deeptutor.services.construction_grading.writeback import (
+    write_case_grading_event_learning_evidence,
+    write_grading_error_events,
+)
 
 
 class _FakeEvent:
@@ -124,6 +127,54 @@ def test_writeback_uses_existing_learner_memory_events() -> None:
     projection = service.progress_patches[0]["patch"]["home_personalization"]
     assert projection["recommended_prompts"][0]["intent"]["source"] == "home_dashboard"
     assert projection["source_status"]["learning_report"] == "projection"
+
+
+def test_v1_case_grading_event_writeback_uses_learning_evidence_stream() -> None:
+    service = _FakeLearnerStateService()
+
+    result = write_case_grading_event_learning_evidence(
+        learner_state_service=service,
+        user_id="student-1",
+        source_id="turn-case-v1",
+        source_bot_id="construction-exam-coach",
+        user_answer="普通钢筋调直机",
+        question_stem="指出钢筋调直设备的不妥之处。",
+        grading_event={
+            "event_type": "case_grading_completed",
+            "student_id": "student-1",
+            "question_id": "Q10",
+            "awarded_score": 0.0,
+            "max_score": 1.0,
+            "high_risk_review": True,
+            "scoring_points": [
+                {
+                    "point_id": "P4",
+                    "knowledge_point": "钢筋调直工艺",
+                    "policy_type": "exact_required",
+                    "hit": "miss",
+                    "score": 0.0,
+                    "max_score": 1.0,
+                    "mistake_type": "near_synonym_not_exact",
+                    "evidence_span": "普通钢筋调直机",
+                }
+            ],
+        },
+    )
+
+    assert result["writeback_count"] == 1
+    assert len(service.calls) == 1
+    call = service.calls[0]
+    assert call["source_feature"] == "construction_grading"
+    assert call["memory_kind"] == "learning_evidence"
+    assert call["source_bot_id"] == "construction-exam-coach"
+    payload = call["payload_json"]
+    assert payload["event_type"] == "learning_evidence"
+    assert payload["legacy_event_type"] == "case_grading_completed"
+    assert payload["grading_event"]["event_type"] == "case_grading_completed"
+    assert payload["preview_only"] is True
+    assert payload["claim_promotion_allowed"] is False
+    assert payload["canonical_truth_written"] is False
+    assert payload["weak_points"][0]["concept_label"] == "钢筋调直工艺"
 
 
 def test_writeback_auto_saves_wrong_attempt_to_mistake_book() -> None:

@@ -293,7 +293,7 @@ def _parse_batch_verdicts(
             if 1 <= idx <= len(rubric_points):
                 out[str(rubric_points[idx - 1].get("point_id"))] = v
     except Exception:  # noqa: BLE001 — malformed -> empty -> degraded coverage -> legacy fallback
-        logger.info("rubric_grader_v1: batch verdict JSON malformed; degrading to all-miss", exc_info=True)
+        logger.info("rubric_grader_v1: batch verdict JSON malformed; degrading to legacy fallback", exc_info=True)
     return out
 
 

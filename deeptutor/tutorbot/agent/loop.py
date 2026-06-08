@@ -993,10 +993,113 @@ class AgentLoop:
             logger.info("LUBAN_V1 GRADED (tutorbot): provenance={} score={}/{} student={} qid={}",
                         event.get("rubric_provenance"), event.get("awarded_score"),
                         event.get("max_score"), student_id, ctx.get("question_id"))
+            self._record_v1_grading_to_brain(runtime_metadata=md, event=event, ctx=ctx)
             return _G.render_case_rubric_feedback(event, question_stem=str(ctx.get("question_stem") or ""))
         except Exception:  # noqa: BLE001 — V1 must never break the tutorbot turn
             logger.warning("LUBAN_V1 tutorbot grading failed; legacy answer unaffected", exc_info=True)
             return ""
+
+    @staticmethod
+    def _record_v1_grading_to_brain(
+        *,
+        runtime_metadata: dict[str, Any],
+        event: dict[str, Any],
+        ctx: dict[str, Any],
+    ) -> None:
+        student_id = str(runtime_metadata.get("user_id") or runtime_metadata.get("learner_user_id") or "").strip()
+        if not student_id:
+            return
+        source_id = str(
+            runtime_metadata.get("turn_id")
+            or runtime_metadata.get("message_id")
+            or runtime_metadata.get("session_id")
+            or event.get("question_id")
+            or "tutorbot_case_grading"
+        ).strip()
+        try:
+            from deeptutor.services.construction_grading.writeback import (
+                write_case_grading_event_learning_evidence,
+            )
+            from deeptutor.services.learner_state import get_learner_state_service
+
+            writeback = write_case_grading_event_learning_evidence(
+                learner_state_service=get_learner_state_service(),
+                user_id=student_id,
+                grading_event=event,
+                source_id=source_id,
+                source_bot_id=str(runtime_metadata.get("bot_id") or "").strip() or None,
+                user_answer=str(ctx.get("user_answer") or ""),
+                question_stem=str(ctx.get("question_stem") or ""),
+                node_code=str(runtime_metadata.get("node_code") or ""),
+                session_id=str(runtime_metadata.get("session_id") or ""),
+            )
+        except Exception:  # noqa: BLE001 — memory write must not break visible grading
+            logger.warning("LUBAN_V1 tutorbot Grading-to-Brain writeback failed", exc_info=True)
+            return
+        if not isinstance(writeback, dict) or not int(writeback.get("writeback_count") or 0):
+            return
+        runtime_metadata["grading_to_brain_loop"] = {
+            "writeback_count": int(writeback.get("writeback_count") or 0),
+            "event_id": str(writeback.get("event_id") or ""),
+            "memory_kind": "learning_evidence",
+            "authority": "learner_memory_events.learning_evidence",
+        }
+        runtime_metadata["learning_evidence_event_id"] = str(writeback.get("event_id") or "")
+        payload = writeback.get("learning_evidence_payload") if isinstance(writeback.get("learning_evidence_payload"), dict) else {}
+        intent = AgentLoop._build_v1_training_intent(
+            user_id=student_id,
+            payload_json=payload,
+            event_id=str(writeback.get("event_id") or ""),
+        )
+        if intent:
+            try:
+                from deeptutor.services.learner_state.personalization_context import (
+                    build_personalization_context_pack,
+                )
+
+                pcp = build_personalization_context_pack(
+                    user_id=student_id,
+                    learning_brain=None,
+                    active_training_intent=intent,
+                    recent_events=[{"event_id": str(writeback.get("event_id") or "")}],
+                )
+            except Exception:  # noqa: BLE001 — PCP is a projection; keep writeback even if view fails
+                logger.warning("LUBAN_V1 tutorbot PCP projection failed", exc_info=True)
+                return
+            runtime_metadata["learning_training_intent"] = intent
+            runtime_metadata["personalization_context"] = pcp
+            actions = pcp.get("next_best_action_candidates") if isinstance(pcp, dict) else []
+            if isinstance(actions, list) and actions:
+                runtime_metadata["next_best_action"] = dict(actions[0])
+
+    @staticmethod
+    def _build_v1_training_intent(
+        *,
+        user_id: str,
+        payload_json: dict[str, Any],
+        event_id: str,
+    ) -> dict[str, Any]:
+        weak_points = payload_json.get("weak_points") if isinstance(payload_json, dict) else []
+        first = next((item for item in list(weak_points or []) if isinstance(item, dict)), None)
+        if not first:
+            return {}
+        try:
+            from deeptutor.services.learner_state.training_intent import build_learning_training_intent
+
+            return build_learning_training_intent(
+                user_id=user_id,
+                concept_id=str(first.get("concept_id") or "").strip(),
+                concept_label=str(first.get("concept_label") or "").strip(),
+                error_code=str(first.get("error_code") or "").strip(),
+                error_label=str(first.get("policy_type") or first.get("error_code") or "").strip(),
+                evidence_refs=[event_id] if event_id else [],
+                training_mode="case_repair",
+                source="grading_to_brain_loop",
+                reason="case_grading_completed -> learner_memory_events.learning_evidence",
+            )
+        except Exception:  # noqa: BLE001
+            logger.warning("LUBAN_V1 tutorbot training_intent projection failed", exc_info=True)
+            return {}
 
     async def _apply_v1_or_case_fallback(
         self, final_content: str | None, *, runtime_metadata: dict[str, Any] | None, user_message: str

@@ -1852,3 +1852,28 @@ def test_conversation_only_explanation_does_not_verify_prescription() -> None:
     loop = model["prescription_outcomes"][0]
     assert loop["status"] != "verified"
     assert loop["next_required_action"] == "complete_verification_probe"
+
+
+def test_concept_label_never_leaks_code_to_learner():
+    # SINGLE AUTHORITY (canonical taxonomy): a learner must never see a machine code. A resolvable code
+    # becomes Chinese; an unresolvable / non-concept code becomes '' (caller hides it), NEVER the code.
+    from deeptutor.services.learner_state.learning_report_read_model import _concept_label
+
+    assert _concept_label("1A432000") == "工程招标投标与合同管理"     # resolvable -> Chinese
+    assert _concept_label("地基基础承载力") == "地基基础承载力"        # already-Chinese passes through
+    for code in ["1A420000", "E02", "1B411000", "EXAM_1A432000_P0016_02::E0::Q1-1"]:
+        out = _concept_label(code)
+        assert code not in out                                       # the raw code is NEVER shown
+
+
+def test_learning_brain_object_display_never_leaks_code_or_dangling_colon():
+    # learner-facing learning-brain object titles must be Chinese-or-category, never a raw code/id and
+    # never a dangling '类别：' colon (canonical single authority).
+    from deeptutor.services.learner_state.learning_brain_read_model import _object_display
+
+    assert _object_display("1A432000", "concept")["display_title"] == "知识点：工程招标投标与合同管理"
+    for oid, ot in [("1A420000", "concept"), ("1B412000", "concept"),
+                    ("EXAM_x::abcdef", "rubric_item"), ("weird_obj_id", "")]:
+        title = _object_display(oid, ot)["display_title"]
+        assert not title.endswith("：")
+        assert oid not in title

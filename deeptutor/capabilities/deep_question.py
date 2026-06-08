@@ -9,12 +9,11 @@ Wraps the existing ``AgentCoordinator``.
 from __future__ import annotations
 
 import base64
-import logging
 import re
 import tempfile
 from typing import Any
 
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 from deeptutor.capabilities.request_contracts import get_capability_request_schema
 from deeptutor.core.capability_protocol import BaseCapability, CapabilityManifest
@@ -1372,6 +1371,24 @@ def _brief_option_focus(option_text: str, *, fallback: str) -> str:
     return text[:8] or fallback
 
 
+def _named_option_letters(user_message: str, options: dict[str, str]) -> list[str]:
+    """Option letters the learner explicitly names, in ABCDE order.
+
+    A letter counts only when it is an existing option and appears standalone
+    (not surrounded by other ASCII letters), so incidental letters inside English
+    prose like "Cause" are never mistaken for an option reference.
+    """
+
+    text = str(user_message or "").upper()
+    named: list[str] = []
+    for letter in "ABCDE":
+        if letter not in options:
+            continue
+        if re.search(rf"(?<![A-Z]){letter}(?![A-Z])", text):
+            named.append(letter)
+    return named
+
+
 def _render_brief_wrong_cause(item: dict[str, Any], user_message: str = "") -> str:
     correct_letters = set(_answer_letters(item.get("correct_answer")))
     user_letters = set(_answer_letters(item.get("user_answer")))
@@ -1380,18 +1397,26 @@ def _render_brief_wrong_cause(item: dict[str, Any], user_message: str = "") -> s
     # option using the question's own standard answer as the single authority.
     # Otherwise a correct-answer learner falls through to "没错，答案正确", which
     # reads as "A is fine" and misleads them about the named distractor.
-    named_letters = [letter for letter in _answer_letters(user_message) if letter in options]
+    # Match a letter only when it stands alone (not inside an ASCII word), so
+    # incidental letters in prose ("Cause") never count as an option reference.
+    named_letters = _named_option_letters(user_message, options)
     named_distractors = [letter for letter in named_letters if letter not in correct_letters]
     if named_distractors:
-        letter = named_distractors[0]
-        focus = _brief_option_focus(options.get(letter, ""), fallback=f"{letter}项")
+        focus = "、".join(
+            f"{letter}（{_brief_option_focus(options.get(letter, ''), fallback=f'{letter}项')}）"
+            for letter in named_distractors
+        )
         correct_text = "".join(sorted(correct_letters)) or "标准答案"
-        return f"{letter}（{focus}）不在标准答案（{correct_text}）内，是干扰项。"
+        tail = "均为" if len(named_distractors) > 1 else "是"
+        return f"{focus}不在标准答案（{correct_text}）内，{tail}干扰项。"
     named_correct = [letter for letter in named_letters if letter in correct_letters]
     if named_correct:
-        letter = named_correct[0]
-        focus = _brief_option_focus(options.get(letter, ""), fallback=f"{letter}项")
-        return f"{letter}（{focus}）是正确选项，应选。"
+        focus = "、".join(
+            f"{letter}（{_brief_option_focus(options.get(letter, ''), fallback=f'{letter}项')}）"
+            for letter in named_correct
+        )
+        tail = "都是正确选项" if len(named_correct) > 1 else "是正确选项"
+        return f"{focus}{tail}，应选。"
     extra_letters = sorted(user_letters - correct_letters)
     missing_letters = sorted(correct_letters - user_letters)
     if extra_letters:
@@ -1438,8 +1463,8 @@ def _render_targeted_brief_reference_feedback(
     item = items[0]
     if _looks_like_wrong_cause_request(user_message):
         return _render_brief_wrong_cause(item, user_message)
-    # brevity + named option letter ("那B呢？一句话", "为什么A错？一句话") → brief option focus
-    if _named_option_letters(user_message, item):
+    # brevity + named option letter ("为什么A错？一句话", "那B呢？一句话") → brief option focus
+    if _named_option_letters_from_item(user_message, item):
         return _render_brief_wrong_cause(item, user_message)
     if _looks_like_missing_selection_check(user_message):
         return _render_brief_missing_selection_check(item)
@@ -1471,15 +1496,11 @@ def _looks_like_option_scoring_or_challenge_request(user_message: str) -> bool:
     )
 
 
-def _named_option_letters(user_message: str, item: dict[str, Any]) -> list[str]:
+def _named_option_letters_from_item(user_message: str, item: dict[str, Any]) -> list[str]:
     options = dict(_option_entries(item))
     if not options:
         return []
-    letters: list[str] = []
-    for letter in _answer_letters(user_message):
-        if letter in options and letter not in letters:
-            letters.append(letter)
-    return letters
+    return _named_option_letters(user_message, options)
 
 
 def _render_targeted_option_reference_feedback(
@@ -1488,8 +1509,8 @@ def _render_targeted_option_reference_feedback(
 ) -> str:
     if not _looks_like_option_scoring_or_challenge_request(user_message):
         return ""
-    # brevity requests ("为什么A错？一句话") need a focused one-line answer, not the verbose
-    # verdict template ("我不会因为追问改写标准答案"); defer to the brief path.
+    # brevity requests defer to the brief path (already ran first); the verbose verdict
+    # template does not honour "一句话" and should not override a brief answer.
     if looks_like_explicit_brevity_request(user_message):
         return ""
     items = _reference_items(question_context)
@@ -1499,7 +1520,7 @@ def _render_targeted_option_reference_feedback(
     options = dict(_option_entries(item))
     if not options:
         return ""
-    named_letters = _named_option_letters(user_message, item)
+    named_letters = _named_option_letters_from_item(user_message, item)
     if not named_letters:
         return ""
     letter = named_letters[0]
@@ -1557,12 +1578,12 @@ def _render_deterministic_reference_feedback(
     *,
     user_message: str = "",
 ) -> str:
-    targeted_option = _render_targeted_option_reference_feedback(user_message, question_context)
-    if targeted_option:
-        return targeted_option
     targeted_brief = _render_targeted_brief_reference_feedback(user_message, question_context)
     if targeted_brief:
         return targeted_brief
+    targeted_option = _render_targeted_option_reference_feedback(user_message, question_context)
+    if targeted_option:
+        return targeted_option
     if looks_like_explicit_brevity_request(user_message):
         return _render_brief_reference_feedback(user_message, question_context)
 
@@ -1620,6 +1641,26 @@ def _question_review_bank_hit(summary: dict[str, Any] | None) -> bool:
         grading_key = qa_pair.get("grading_key") if isinstance(qa_pair.get("grading_key"), dict) else {}
         metadata = qa_pair.get("metadata") if isinstance(qa_pair.get("metadata"), dict) else {}
         if grading_key.get("source") == "questions_bank" or metadata.get("source") == "questions_bank":
+            return True
+    return False
+
+
+def _question_review_variant_hit(summary: dict[str, Any] | None) -> bool:
+    if not isinstance(summary, dict):
+        return False
+    for item in list(summary.get("results") or []):
+        if not isinstance(item, dict):
+            continue
+        qa_pair = item.get("qa_pair")
+        if not isinstance(qa_pair, dict):
+            continue
+        grading_key = qa_pair.get("grading_key") if isinstance(qa_pair.get("grading_key"), dict) else {}
+        metadata = qa_pair.get("metadata") if isinstance(qa_pair.get("metadata"), dict) else {}
+        if (
+            metadata.get("question_review_variant_mode") is True
+            or metadata.get("source") == "similar_question_variant"
+            or grading_key.get("source") == "similar_question_variant"
+        ):
             return True
     return False
 
@@ -2675,6 +2716,71 @@ def _attach_open_world_diagnostic(
     payload["open_world_diagnostic"] = diag.to_unified_schema()
 
 
+def _learning_evidence_preview_disabled() -> bool:
+    """Emergency kill switch for the gap_1 Learning-Brain preview emission.
+
+    Default ENABLED so the live grading surface actually exercises the unified
+    ``build_learning_evidence_from_context_pack`` consumer (production calls were 0).
+    Set ``LUBAN_LEARNING_EVIDENCE_PREVIEW_DISABLED=1`` to fall back to legacy
+    byte-identical payloads."""
+    import os
+
+    return str(os.getenv("LUBAN_LEARNING_EVIDENCE_PREVIEW_DISABLED", "")).strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+
+def _maybe_attach_learning_evidence_preview(
+    *,
+    graded_context: dict[str, Any],
+    result_payload: dict[str, Any],
+    turn_id: str = "",
+    session_id: str = "",
+) -> None:
+    """gap_1 / M28: emit a Learning-Brain PREVIEW from the SAME compiled context the
+    grading surface used, so the live ``/api/v1/ws`` grading runtime — not only offline
+    scripts — feeds ``build_learning_evidence_from_context_pack``.
+
+    Thin wrapper: ALL policy lives in the fat skill (``learning_evidence``). This only
+    routes the already-graded result + its compiled context into the consumer and
+    appends the preview. It NEVER raises mastery (``mastery_raised`` is always False),
+    NEVER writes canonical truth (``canonical_truth_written`` is always False), and
+    NEVER mutates the legacy ``construction_grading_result``. The fat skill decides the
+    per-question ``preview_only`` / ``claim_promotion_allowed`` flags from the pack's
+    ``diagnostic_policy`` (governed/official questions may set them so the Learning Brain
+    can promote; candidate/open-world questions stay preview). Best-effort: any failure
+    leaves legacy behaviour untouched (fail-closed)."""
+    if _learning_evidence_preview_disabled():
+        return
+    grading_result = graded_context.get("construction_grading_result")
+    if not isinstance(grading_result, dict) or not grading_result:
+        return
+    try:
+        compiled_context = grading_result.get("compiled_context")
+        if not isinstance(compiled_context, dict) or not compiled_context:
+            from deeptutor.services.construction_grading.compiled_context import (
+                build_pack_from_question_context,
+            )
+
+            compiled_context = build_pack_from_question_context(graded_context).to_dict()
+        from deeptutor.services.construction_grading.learning_evidence import (
+            build_learning_evidence_from_context_pack,
+        )
+
+        preview = build_learning_evidence_from_context_pack(
+            grading_result=grading_result,
+            compiled_context=compiled_context,
+            turn_id=turn_id,
+            session_id=session_id,
+        )
+    except Exception:  # noqa: BLE001 — preview must never break legacy grading
+        return
+    result_payload["learning_evidence_preview"] = preview
+
+
 class DeepQuestionCapability(BaseCapability):
     manifest = CapabilityManifest(
         name="deep_question",
@@ -2961,9 +3067,14 @@ class DeepQuestionCapability(BaseCapability):
 
             if next_action == "route_to_followup_explainer":
                 if self._is_unresolved_switch_followup(turn_semantic_decision):
+                    # P1-Y: the learner referenced switching/returning to a DIFFERENT
+                    # question ("回到刚才屋面那道") but the runtime could not resolve it,
+                    # so the decision fell back to a followup on the current (stale)
+                    # active object. Do NOT answer the stale question as if it were the
+                    # referenced one — clarify instead (no context-guess authority grab).
                     await self._emit_unresolved_switch_clarification(
                         stream=stream,
-                        context=context,
+                        turn_id=turn_id,
                         active_object=active_object,
                         suspended_object_stack=suspended_object_stack,
                         turn_semantic_decision=turn_semantic_decision,
@@ -3266,6 +3377,7 @@ class DeepQuestionCapability(BaseCapability):
                     lightweight_generation=lightweight_generation,
                     require_explanation=require_explanation,
                     allow_lightweight_fallback=not question_review_mode,
+                    allow_similar_source_variant=question_review_mode,
                 )
 
         if question_review_mode:
@@ -3276,12 +3388,14 @@ class DeepQuestionCapability(BaseCapability):
                     if isinstance(trace_meta, dict):
                         trace_meta["question_review.bank_hit"] = _question_review_bank_hit(result)
                         trace_meta["question_review.renderable"] = True
+                        trace_meta["question_review.variant_mode"] = _question_review_variant_hit(result)
             else:
                 if isinstance(context.metadata, dict):
                     trace_meta = context.metadata.setdefault("trace_metadata", {})
                     if isinstance(trace_meta, dict):
                         trace_meta["question_review.bank_hit"] = False
                         trace_meta["question_review.renderable"] = False
+                        trace_meta["question_review.variant_mode"] = False
                         trace_meta["question_review.degraded_reason"] = "missing_question_bank_hit"
                 content = _render_missing_question_review_feedback(topic)
                 if not answer_citations_enabled():
@@ -3833,6 +3947,15 @@ class DeepQuestionCapability(BaseCapability):
                     graded_context=graded_context,
                     result_payload=result_payload,
                 )
+                # gap_1 / M28: feed the SAME compiled context into the Learning-Brain
+                # consumer from the LIVE grading runtime (preview only; env kill switch;
+                # append-only; never raises mastery / writes canonical truth / mutates legacy).
+                _maybe_attach_learning_evidence_preview(
+                    graded_context=graded_context,
+                    result_payload=result_payload,
+                    turn_id=turn_id,
+                    session_id=str(context.session_id or ""),
+                )
 
             # plan §Phase 5 / Batch E.2 Gap 5 — progressive disclosure payload.
             # 从 grader_trace 拿到 parsed sections，结合 grading_result 与 is_correct 输出
@@ -4023,44 +4146,72 @@ class DeepQuestionCapability(BaseCapability):
             )
 
     @staticmethod
-    def _is_unresolved_switch_followup(
-        turn_semantic_decision: dict[str, Any] | None,
-    ) -> bool:
-        if not isinstance(turn_semantic_decision, dict):
-            return False
-        relation = str(turn_semantic_decision.get("relation_to_active_object") or "").strip()
-        next_action = str(turn_semantic_decision.get("next_action") or "").strip()
-        return relation == "switch_to_new_object" and next_action == "route_to_followup_explainer"
+    def _is_unresolved_switch_followup(turn_semantic_decision: dict[str, Any] | None) -> bool:
+        """True for the failed-switch signature (P1-Y).
+
+        The learner asked to switch/return to a DIFFERENT question, but the runtime
+        could not resolve a concrete target, so the decision degraded to a followup
+        on the current active object. ``switch_to_new_object`` never legitimately
+        co-occurs with ``route_to_followup_explainer`` (a real switch resolves a new
+        active object and routes to generation/grading; a real followup carries
+        ``ask_about_active_object`` / ``answer_active_object``). So this exact combo
+        is the unambiguous "wanted a different question, fell back to the stale one"
+        case — answer it as a clarification, not a stale-object followup.
+        """
+
+        decision = turn_semantic_decision if isinstance(turn_semantic_decision, dict) else {}
+        return (
+            str(decision.get("relation_to_active_object") or "").strip() == "switch_to_new_object"
+            and str(decision.get("next_action") or "").strip() == "route_to_followup_explainer"
+        )
 
     async def _emit_unresolved_switch_clarification(
         self,
         *,
         stream: StreamBus,
-        context: UnifiedContext,
+        turn_id: str,
         active_object: dict[str, Any] | None,
         suspended_object_stack: list[dict[str, Any]] | None,
         turn_semantic_decision: dict[str, Any] | None,
     ) -> None:
-        answer = "这轮没有定位到你说的那道题；我不会拿当前题的答案冒充。请重新粘贴题干/选项，或说清是哪一题。"
-        if not answer_citations_enabled():
-            await stream.content(answer, source=self.name, stage="generation")
-        payload = {
-            "response": answer,
-            "mode": "clarification",
-            "question_authority_source": "unresolved_switch_clarification",
-            "execution_path": "deep_question_unresolved_switch_clarification",
-            "clarification_reason": "unresolved_switch_target",
-            "question_followup_context": {},
-            "active_object": normalize_active_object(active_object) or {},
-            "suspended_object_stack": suspended_object_stack,
-            "turn_semantic_decision": turn_semantic_decision or {},
-        }
-        await self._emit_result_with_citations(
-            stream,
-            payload,
-            stage="generation",
-            emit_content_when_enabled=True,
-        )
+        """Fail-closed clarification when a switch/return target cannot be resolved.
+
+        Keeps the current active object untouched (state is not lost) and refuses to
+        present the current question's answer as if it were the referenced one.
+        """
+
+        async with stream.stage("generation", source=self.name):
+            answer = (
+                "你想回到/切换到的那道题，这一轮我没能定位到——当前正在进行的不是它。\n\n"
+                "请把那道题的题干和选项重新发我，或告诉我题号，我再按那道题讲解。"
+                "我不会拿当前这道题的答案，冒充你问的那道题。"
+            )
+            if not answer_citations_enabled():
+                await stream.content(answer, source=self.name, stage="generation")
+            payload: dict[str, Any] = {
+                "response": answer,
+                "mode": "clarification",
+                "question_authority_source": "unresolved_switch_clarification",
+                "execution_path": "deep_question_unresolved_switch_clarification",
+                "clarification_reason": "unresolved_switch_target",
+                "question_followup_context": {},
+                "active_object": normalize_active_object(active_object) or {},
+                "suspended_object_stack": suspended_object_stack or [],
+                "turn_semantic_decision": turn_semantic_decision or {},
+                "reveal_answers": False,
+                "reveal_explanations": False,
+                "metadata": {
+                    "needs_clarification": True,
+                    "clarification_reason": "unresolved_switch_target",
+                    "turn_id": turn_id,
+                },
+            }
+            await self._emit_result_with_citations(
+                stream,
+                payload,
+                stage="generation",
+                emit_content_when_enabled=True,
+            )
 
     @staticmethod
     def _default_turn_semantic_decision(
@@ -4417,6 +4568,13 @@ class DeepQuestionCapability(BaseCapability):
             if review_mode:
                 grading_key = qa_pair.get("grading_key") if isinstance(qa_pair.get("grading_key"), dict) else {}
                 metadata = qa_pair.get("metadata") if isinstance(qa_pair.get("metadata"), dict) else {}
+                if metadata.get("question_review_variant_mode") is True:
+                    notice = str(
+                        metadata.get("variant_notice")
+                        or "基于题库/知识库相似来源生成的变式题，不是原题复刻。"
+                    ).strip()
+                    if notice:
+                        lines.append(f"\n> {notice}")
                 display_answer = str(answer or grading_key.get("correct_answer") or "").strip()
                 if display_answer:
                     lines.append(f"\n**正确答案：** {display_answer}")

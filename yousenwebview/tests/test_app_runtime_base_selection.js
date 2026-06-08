@@ -86,18 +86,18 @@ function loadAppModule(options) {
   });
   assert(!!defaultDevtools, "App config should be registered");
   assert(
-    defaultDevtools.globalData.apiUrl === "http://127.0.0.1:8001",
-    "develop devtools should default to localhost API first",
+    defaultDevtools.globalData.apiUrl === "https://test2.yousenjiaoyu.com",
+    "develop devtools should default to configured remote API",
   );
   assert(
-    defaultDevtools.globalData.gatewayUrl === "http://127.0.0.1:8001",
-    "develop devtools should default to localhost gateway first",
+    defaultDevtools.globalData.gatewayUrl === "https://test2.yousenjiaoyu.com",
+    "develop devtools should default to configured remote gateway",
   );
   assert(
     Array.isArray(defaultDevtools.globalData.apiCandidates) &&
-      defaultDevtools.globalData.apiCandidates[0] === "http://127.0.0.1:8001" &&
-      defaultDevtools.globalData.apiCandidates.indexOf("https://test2.yousenjiaoyu.com") < 0,
-    "develop devtools runtime candidates should keep local direct isolated from remote",
+      defaultDevtools.globalData.apiCandidates.length === 1 &&
+      defaultDevtools.globalData.apiCandidates[0] === "https://test2.yousenjiaoyu.com",
+    "develop devtools runtime candidates should default to remote only",
   );
 
   var explicitRemote = loadAppModule({

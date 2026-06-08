@@ -283,6 +283,23 @@ def _normalize_scoring_hit(hit: dict[str, Any]) -> dict[str, Any]:
     raw_code = _clean_text(hit.get("error_code"))
     if raw_code:
         cleaned["error_code"] = raw_code if raw_code in ERROR_CODE_REGISTRY else "unknown_error"
+    # M32 Task 3: propagate the point-level diagnostic fields the grader already produces
+    # (rubric_grader_v1) so the Learning Brain can explain "哪里错、为什么错、证据来自哪段作答".
+    # Append-only: a hit without these fields stays byte-identical to the legacy shape.
+    mistake_type = _clean_text(hit.get("mistake_type"))
+    if mistake_type:
+        cleaned["mistake_type"] = mistake_type
+    evidence_span = _clean_text(hit.get("evidence_span"))
+    if evidence_span:
+        cleaned["evidence_span"] = evidence_span
+    policy_type = _clean_text(hit.get("policy_type"))
+    if policy_type:
+        cleaned["policy_type"] = policy_type
+    required_terms = [term for term in (_clean_text(t) for t in (hit.get("required_terms") or [])) if term]
+    if required_terms:
+        cleaned["required_terms"] = required_terms
+    if "high_risk_review" in hit:
+        cleaned["high_risk_review"] = bool(hit.get("high_risk_review"))
     return cleaned
 
 

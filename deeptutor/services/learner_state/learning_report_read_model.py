@@ -1,42 +1,46 @@
 from __future__ import annotations
 
-import time
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from datetime import datetime, timedelta, timezone
 import hashlib
 import os
 import re
+import time
 from typing import Any, Callable
 
-from deeptutor.services.experiments.cohort import current_stage, is_enabled
 from deeptutor.services.construction_grading.learning_evidence import compute_quality_signals
+from deeptutor.services.experiments.cohort import current_stage, is_enabled
 from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
-from deeptutor.services.learner_state.learning_brain_read_model import build_learning_brain_read_model
-from deeptutor.services.learner_state.mastery_estimator import estimate_mastery
-from deeptutor.services.learner_state.progress_feedback import build_progress_feedback
+from deeptutor.services.learner_state.learning_brain_read_model import (
+    build_learning_brain_read_model,
+)
 from deeptutor.services.learner_state.learning_state_projection import (
     project_three_layer_learning_state,
 )
-from deeptutor.services.learner_state.scoring_point_map_read_model import (
-    build_scoring_point_map_read_projection,
+from deeptutor.services.learner_state.mastery_estimator import estimate_mastery
+from deeptutor.services.learner_state.next_best_action import build_next_best_actions
+from deeptutor.services.learner_state.personalization_context import (
+    build_personalization_context_pack,
 )
 from deeptutor.services.learner_state.prescription_outcome_read_model import (
     build_prescription_outcomes_read_projection,
 )
+from deeptutor.services.learner_state.progress_feedback import build_progress_feedback
 from deeptutor.services.learner_state.revalidation_queue import (
     build_revalidation_queue_projection,
 )
-from deeptutor.services.learner_state.next_best_action import build_next_best_actions
-from deeptutor.services.learner_state.personalization_context import build_personalization_context_pack
+from deeptutor.services.learner_state.scoring_point_map_read_model import (
+    build_scoring_point_map_read_projection,
+)
 from deeptutor.services.learner_state.training_intent import (
     PRESCRIPTION_AUTHORITY,
     build_learning_training_intent,
 )
 from deeptutor.services.taxonomy.construction_taxonomy import (
-    display_taxonomy_label,
     is_non_topic_label,
     normalize_taxonomy_code,
+    student_facing_label,
     taxonomy_index,
     taxonomy_tree_stats,
     textbook_directory,
@@ -373,6 +377,9 @@ def build_learning_report_read_model(
         # state -> reason -> action -> evidence without traversing into
         # learning_brain internals.
         "learning_state": learning_state,
+        # D-class: student-visible long-term analytics (recurrent errors + trend).
+        # Pure read projection — derived from learning_brain.weak_points.occurrence_timeline.
+        "long_term_analytics": _build_long_term_analytics(learning_brain),
         "legacy_compat": {
             "today_progress": legacy_today,
             "home_dashboard": home_dashboard,
@@ -387,6 +394,48 @@ def build_learning_report_read_model(
             evidence_stats=evidence_stats,
         )
     return report
+
+
+def _build_long_term_analytics(learning_brain: dict[str, Any]) -> dict[str, Any]:
+    """D-class: project student-visible long-term analytics from learning_brain.weak_points.
+
+    Purely read — derives from occurrence_timeline already on each weak_point.
+    No new DB reads, no new authority, append-only section on the report.
+    """
+    weak_points = list((learning_brain or {}).get("weak_points") or [])
+
+    recurrent_errors: list[dict[str, Any]] = []
+    for wp in weak_points:
+        timeline = list(wp.get("occurrence_timeline") or [])
+        if len(timeline) < 2:
+            continue
+        dates = sorted(str(e.get("observed_at") or "") for e in timeline)
+        recurrent_errors.append({
+            "concept_id": str(wp.get("concept_id") or ""),
+            "error_code": str(wp.get("error_code") or ""),
+            "occurrence_count": len(timeline),
+            "first_seen_at": dates[0],
+            "last_seen_at": dates[-1],
+        })
+    recurrent_errors.sort(key=lambda x: (-x["occurrence_count"], x["last_seen_at"]))
+
+    active_weak_count = len(weak_points)
+    recurrent_count = len(recurrent_errors)
+    if recurrent_count == 0:
+        trend = "improving"
+    elif recurrent_count > max(1, active_weak_count // 2):
+        trend = "declining"
+    else:
+        trend = "stable"
+
+    return {
+        "recurrent_errors": recurrent_errors,
+        "progression_summary": {
+            "trend_direction": trend,
+            "active_weak_count": active_weak_count,
+            "recurrent_error_count": recurrent_count,
+        },
+    }
 
 
 def _learning_state_inference_flag_state(user_id: str) -> dict[str, Any]:
@@ -2139,8 +2188,9 @@ def _display_dimension_label(value: Any) -> str:
         return ""
     if _is_deictic_topic_label(text):
         return ""
-    label = display_taxonomy_label(text, fallback=text)
-    normalized = str(label or text).strip()
+    # student-facing: a code resolves to Chinese (or '' on miss, never the code); human text passes through
+    label = student_facing_label(text)
+    normalized = str(label or "").strip()
     if _is_deictic_topic_label(normalized):
         return ""
     return normalized
@@ -2258,7 +2308,9 @@ def _pick_focus_topic(*, weak_names: list[str], home_dashboard: dict[str, Any]) 
 
 
 def _concept_label(concept_id: str) -> str:
-    return display_taxonomy_label(concept_id, fallback=concept_id or "")
+    # SINGLE AUTHORITY, student-facing: a code -> canonical Chinese (or '' on miss, NEVER the code);
+    # already-Chinese text (callers sometimes pass a label) passes through unchanged.
+    return student_facing_label(concept_id)
 
 
 def _student_safe_topic(value: Any) -> str:
