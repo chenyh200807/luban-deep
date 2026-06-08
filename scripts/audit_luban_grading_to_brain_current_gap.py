@@ -155,6 +155,138 @@ SCENARIOS: list[dict[str, Any]] = [
 ]
 
 
+AUTHORIZATION_GATES: dict[str, dict[str, Any]] = {
+    "G1_limited_production_default": {
+        "title": "qa_operator_limited_default_flip",
+        "current_state": "candidate_ready_not_executed",
+        "recommended_next": True,
+        "required_authorization": "explicit_user_authorization_for_limited_default",
+        "allowed_scope_after_authorization": "qa_/operator_ cohort only",
+        "promotion_path": "runtime_default_only_no_mastery_write",
+        "without_authorization": "decision_package_only",
+        "flip_mechanism": "env-gated limited default; keep broad default off",
+        "rollback": "env kill switch / cohort rollback",
+        "stop_conditions": [
+            "false_positive > 0",
+            "source_mismatch > 0",
+            "fallback failclosed spike",
+            "latency/cost crosses operator threshold",
+        ],
+        "evidence_refs": [
+            "artifacts/luban_grading_artifacts/limited_default_flip_m19c_20260605/go_no_go_m19c.json",
+            "artifacts/luban_grading_artifacts/limited_default_soak_monitoring_m19d_20260605/release_verdict_m19d.json",
+            "artifacts/luban_grading_artifacts/limited_default_soak_monitoring_m19d_20260605/rollback_readiness_drill_m19d.json",
+        ],
+    },
+    "G2_broad_production_default": {
+        "title": "broad_default_flip",
+        "current_state": "not_recommended",
+        "recommended_next": False,
+        "required_authorization": "separate_broad_default_authorization_after_limited_soak",
+        "allowed_scope_after_authorization": "explicitly named cohort expansion only",
+        "promotion_path": "runtime_default_only_no_mastery_write",
+        "without_authorization": "decision_package_only",
+        "flip_mechanism": "progressive cohort expansion after G1 evidence review",
+        "rollback": "same kill switch plus registry/runtime pointer rollback",
+        "stop_conditions": [
+            "limited default evidence stale",
+            "teacher review backlog exceeds operator capacity",
+            "unsupported claim/generic fallback drift",
+        ],
+        "evidence_refs": [
+            "artifacts/luban_grading_artifacts/limited_default_soak_monitoring_m19d_20260605/soak_metrics_m19d.json",
+            "artifacts/luban_grading_artifacts/remote_deployment_authorization_package_m19e_20260605/m19c_m19d_evidence_ledger_m19e.json",
+            MASTER_PLAN,
+        ],
+    },
+    "G3_published_registry": {
+        "title": "published_registry_promotion",
+        "current_state": "staged_candidate_only",
+        "recommended_next": False,
+        "required_authorization": "explicit_registry_publish_authorization",
+        "allowed_scope_after_authorization": "promote signed candidate to published registry",
+        "promotion_path": "candidate_to_signed_to_published_registry",
+        "without_authorization": "decision_package_only",
+        "flip_mechanism": "publish only a signed hash/version bundle; never edit in place",
+        "rollback": "version/hash supersession pointer rollback",
+        "stop_conditions": [
+            "missing deterministic signer report",
+            "hash/schema mismatch",
+            "runtime resolver cannot prove previous version rollback",
+        ],
+        "evidence_refs": [
+            "artifacts/luban_grading_artifacts/llm_artifact_compiler_continuous_factory_m20_20260604/deterministic_signer_report_m20.json",
+            "artifacts/luban_grading_artifacts/delta_to_registry_candidate_staging_m202_20260605/staged_registry_signature_m202.json",
+            "artifacts/luban_grading_artifacts/delta_to_registry_candidate_staging_m202_20260605/release_decision_input_m202.json",
+        ],
+    },
+    "G4_canonical_learner_truth_write": {
+        "title": "canonical_learner_truth_write",
+        "current_state": "dryrun_candidate_only",
+        "recommended_next": False,
+        "required_authorization": "explicit_canonical_learner_truth_write_authorization",
+        "allowed_scope_after_authorization": "teacher-final plus real retest promotion only",
+        "promotion_path": "teacher_final_plus_real_retest_only",
+        "without_authorization": "decision_package_only",
+        "flip_mechanism": "append-only Learning Evidence Ledger write through learner authority",
+        "rollback": "append compensating review/retest event; never rewrite history",
+        "stop_conditions": [
+            "shadow/candidate/simulated evidence attempts mastery promotion",
+            "high-risk item lacks teacher-final",
+            "real retest proof missing or stale",
+        ],
+        "evidence_refs": [
+            "artifacts/luban_grading_artifacts/learning_brain_real_retest_canonical_gate_m18d_20260604/learning_brain_truth_write_guard_m18d.json",
+            "artifacts/luban_grading_artifacts/learning_brain_real_retest_canonical_gate_m18d_20260604/canonical_write_dryrun_candidates_m18d.jsonl",
+            "artifacts/luban_grading_artifacts/grading_to_brain_m32_waterproof_20260608/retest_outcome_proof_m32.jsonl",
+            "tests/services/construction_grading/test_teacher_review_writeback.py",
+        ],
+    },
+    "G5_remote_or_db_write": {
+        "title": "remote_or_db_write",
+        "current_state": "not_executed",
+        "recommended_next": False,
+        "required_authorization": "explicit_remote_or_db_write_authorization",
+        "allowed_scope_after_authorization": "Aliyun writes only under /root/deeptutor; DB writes only named learner/grading tables",
+        "promotion_path": "authorized_deploy_or_db_migration_only",
+        "without_authorization": "decision_package_only",
+        "flip_mechanism": "run deployment/write plan with exact target path and rollback command",
+        "rollback": "predeclared rollback commands and DB compensation plan",
+        "stop_conditions": [
+            "target path outside /root/deeptutor",
+            "secret/raw env dump required",
+            "write target not named before execution",
+        ],
+        "evidence_refs": [
+            "AGENTS.md",
+            "artifacts/luban_grading_artifacts/remote_deployment_authorization_package_m19e_20260605/rollback_commands_m19e.md",
+            "artifacts/luban_grading_artifacts/remote_deployment_authorization_package_m19e_r_20260605/m19c_m19d_readiness_rollup_m19e_r.json",
+        ],
+    },
+    "G6_real_wechat_package_page_automation": {
+        "title": "real_wechat_package_page_automation",
+        "current_state": "verification_required",
+        "recommended_next": False,
+        "required_authorization": "devtools_or_manual_wechat_qa_window",
+        "allowed_scope_after_authorization": "open yousenwebview project root and drive packageDeeptutor page flow",
+        "promotion_path": "verification_evidence_only_no_mastery_write",
+        "without_authorization": "decision_package_only",
+        "flip_mechanism": "DevTools CLI auto or miniprogram automator against project root",
+        "rollback": "not applicable; verification gate does not write product state",
+        "stop_conditions": [
+            "only /wechat-harness evidence is available",
+            "project root is packageDeeptutor instead of yousenwebview",
+            "login state is unknown but reported as pass",
+        ],
+        "evidence_refs": [
+            "AGENTS.md",
+            "scripts/run_wechat_learning_brain_devtools_e2e.py",
+            "tests/services/member_console/test_home_dashboard_learning_projection.py",
+        ],
+    },
+}
+
+
 def _rel_exists(path: str) -> bool:
     return (REPO / path).exists()
 
@@ -233,6 +365,49 @@ def build_matrix() -> dict[str, Any]:
     }
 
 
+def build_authorization_package() -> dict[str, Any]:
+    gates: dict[str, dict[str, Any]] = {}
+    for gate_id, gate in AUTHORIZATION_GATES.items():
+        missing = [ref for ref in gate["evidence_refs"] if not _rel_exists(ref)]
+        gates[gate_id] = {
+            **gate,
+            "evidence_ok": not missing,
+            "missing_evidence_refs": missing,
+        }
+
+    return {
+        "schema_version": 1,
+        "generated_by": "audit_luban_grading_to_brain_current_gap",
+        "master_plan": MASTER_PLAN,
+        "scope": "read_only_authorization_decision_package",
+        "production_write_count": 0,
+        "canonical_truth_written": False,
+        "remote_write_count": 0,
+        "published_registry_executed": False,
+        "single_authority": {
+            "no_second_grading_truth": True,
+            "no_second_learner_truth": True,
+            "grading_truth_source": "signed artifacts + runtime adjudicator + validator",
+            "learner_truth_source": "Learning Evidence Ledger + Learner Model",
+            "pcp_role": "read_only_feedback_context",
+        },
+        "execution_order": [
+            "G1_limited_production_default",
+            "G6_real_wechat_package_page_automation",
+            "G3_published_registry",
+            "G4_canonical_learner_truth_write",
+            "G2_broad_production_default",
+            "G5_remote_or_db_write",
+        ],
+        "gates": gates,
+        "missing_evidence": {
+            gate_id: gate["missing_evidence_refs"]
+            for gate_id, gate in gates.items()
+            if gate["missing_evidence_refs"]
+        },
+    }
+
+
 def write_markdown(matrix: dict[str, Any], out_dir: Path) -> None:
     lines = [
         "# Grading-to-Brain Current Gap Audit",
@@ -304,6 +479,62 @@ def write_markdown(matrix: dict[str, Any], out_dir: Path) -> None:
     )
 
 
+def write_authorization_markdown(package: dict[str, Any], out_dir: Path) -> None:
+    lines = [
+        "# Grading-to-Brain Authorization Gates",
+        "",
+        f"- Master plan: `{package['master_plan']}`",
+        f"- Scope: `{package['scope']}`",
+        "- This package is read-only and executes no production, registry, learner-truth, remote, or DB write.",
+        "",
+        "## Single Authority",
+        "",
+        f"- Grading truth source: {package['single_authority']['grading_truth_source']}",
+        f"- Learner truth source: {package['single_authority']['learner_truth_source']}",
+        "- PersonalizationContextPack remains read-only feedback context.",
+        "",
+        "## Recommended Order",
+        "",
+    ]
+    for gate_id in package["execution_order"]:
+        lines.append(f"- `{gate_id}`")
+
+    lines.extend(
+        [
+            "",
+            "## Gate Table",
+            "",
+            "| Gate | Current State | Recommended Next | Required Authorization | Without Authorization | Evidence |",
+            "|---|---|---:|---|---|---|",
+        ]
+    )
+    for gate_id, gate in package["gates"].items():
+        evidence = "<br>".join(f"`{ref}`" for ref in gate["evidence_refs"])
+        lines.append(
+            "| "
+            f"{gate_id} | {gate['current_state']} | {gate['recommended_next']} | "
+            f"{gate['required_authorization']} | `{gate['without_authorization']}` | "
+            f"{evidence} |"
+        )
+
+    lines.extend(
+        [
+            "",
+            "## Non-Negotiables",
+            "",
+            "- Do not promote shadow, candidate, simulated, or test-runner output to canonical mastery.",
+            "- Do not publish registry versions without signed hash/version evidence and rollback pointer.",
+            "- Do not write remote files outside `/root/deeptutor`.",
+            "- Do not count `/wechat-harness` as true `packageDeeptutor` evidence.",
+            "",
+        ]
+    )
+    (out_dir / "AUTHORIZATION_GATES_grading_to_brain.md").write_text(
+        "\n".join(lines),
+        encoding="utf-8",
+    )
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
@@ -316,14 +547,31 @@ def main() -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     matrix = build_matrix()
+    authorization_package = build_authorization_package()
     (out_dir / "coverage_matrix.json").write_text(
         json.dumps(matrix, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
+    (out_dir / "authorization_gate_decision_package.json").write_text(
+        json.dumps(
+            authorization_package,
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     write_markdown(matrix, out_dir)
+    write_authorization_markdown(authorization_package, out_dir)
 
-    if matrix["missing_evidence"]:
-        print(json.dumps(matrix["missing_evidence"], indent=2, sort_keys=True))
+    missing = {
+        "coverage_matrix": matrix["missing_evidence"],
+        "authorization_package": authorization_package["missing_evidence"],
+    }
+    missing = {key: value for key, value in missing.items() if value}
+    if missing:
+        print(json.dumps(missing, indent=2, sort_keys=True))
         return 1
     print(f"wrote {out_dir}")
     return 0
