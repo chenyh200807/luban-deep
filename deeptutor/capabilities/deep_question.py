@@ -1756,19 +1756,22 @@ def _render_missing_question_review_feedback(topic: str) -> str:
 def _learner_user_id_from_context(context: UnifiedContext) -> str:
     metadata = context.metadata if isinstance(context.metadata, dict) else {}
     billing_context = metadata.get("billing_context") if isinstance(metadata.get("billing_context"), dict) else {}
+    config_overrides = getattr(context, "config_overrides", {}) or {}
     return str(
         metadata.get("user_id")
+        or metadata.get("learner_user_id")
         or billing_context.get("user_id")
-        or context.config_overrides.get("user_id")
+        or config_overrides.get("user_id")
         or ""
     ).strip()
 
 
 def _source_bot_id_from_context(context: UnifiedContext) -> str:
     metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    config_overrides = getattr(context, "config_overrides", {}) or {}
     return str(
         metadata.get("bot_id")
-        or context.config_overrides.get("bot_id")
+        or config_overrides.get("bot_id")
         or ""
     ).strip()
 
@@ -2620,6 +2623,74 @@ def _maybe_attach_textbook_knowledge(
         result_payload["luban_canonical_knowledge"] = {
             "authority": "luban_canonical_knowledge", "status": "unavailable",
             "unavailable_reason": type(exc).__name__}
+
+
+def _general_knowledge_cohort_prefixes() -> tuple[str, ...]:
+    import os
+
+    raw = os.environ.get("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT", "qa_,test_,operator_")
+    return tuple(prefix.strip() for prefix in raw.split(",") if prefix.strip())
+
+
+def _general_knowledge_flag_enabled(context: UnifiedContext) -> bool:
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    config_overrides = getattr(context, "config_overrides", {}) or {}
+    return bool(
+        metadata.get("general_knowledge_context")
+        or config_overrides.get("general_knowledge_context")
+    )
+
+
+def _maybe_attach_general_knowledge_context(
+    *,
+    context: UnifiedContext,
+    result_payload: dict[str, Any],
+) -> None:
+    """Attach compiled four-source TEACHING context for a general knowledge turn.
+
+    Thin wrapper: flag/cohort/kill only. Resolution policy lives in
+    construction_grading.general_knowledge_context. This is append-only and
+    never writes DB, canonical learner truth, or official grading fields.
+    """
+    import os
+
+    key = "luban_general_knowledge_context"
+    if not _general_knowledge_flag_enabled(context):
+        return
+    if os.environ.get("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_ENABLED", "").strip().lower() in (
+        "false",
+        "0",
+        "off",
+        "no",
+    ):
+        result_payload[key] = {"authority": key, "status": "killed_by_switch", "killed_by_switch": True}
+        return
+
+    student_id = _learner_user_id_from_context(context)
+    if not str(student_id).startswith(_general_knowledge_cohort_prefixes()):
+        return
+
+    try:
+        from deeptutor.services.construction_grading.general_knowledge_context import (
+            resolve_general_knowledge_context,
+        )
+
+        learner_context = {
+            "student_id": student_id,
+            "weak_codes": _learner_weak_canonical_codes({}),
+        }
+        pack = resolve_general_knowledge_context(
+            str(getattr(context, "user_message", "") or ""),
+            learner_context=learner_context,
+        )
+        if pack is not None:
+            result_payload[key] = pack
+    except Exception as exc:  # noqa: BLE001 - this teaching lane must never break legacy turns
+        result_payload[key] = {
+            "authority": key,
+            "status": "unavailable",
+            "unavailable_reason": type(exc).__name__,
+        }
 
 
 def _v1_llm_adjudication_dev_force_on() -> bool:
@@ -3558,6 +3629,14 @@ class DeepQuestionCapability(BaseCapability):
         result_payload["suspended_object_stack"] = transitioned_stack
         if presentation:
             result_payload["presentation"] = presentation
+        if not (
+            isinstance(followup_question_context, dict)
+            and followup_question_context.get("question")
+        ):
+            _maybe_attach_general_knowledge_context(
+                context=context,
+                result_payload=result_payload,
+            )
         cost_meta = self._collect_cost_summary("question")
         if cost_meta:
             result_payload["metadata"] = {"cost_summary": cost_meta}
