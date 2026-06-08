@@ -66,16 +66,18 @@ def _client(tmp: str, *, user: str = "qa_m34_ws") -> TestClient:
     return TestClient(wsh._build_ws_app())
 
 
-def _frame(content: str) -> dict[str, Any]:
-    return {
+def _frame(content: str, *, include_config: bool = True) -> dict[str, Any]:
+    frame = {
         "type": "start_turn",
         "content": content,
         "capability": "deep_question",
         "language": "zh",
-        "config": {
-            "general_knowledge_context": True,
-        },
     }
+    if include_config:
+        frame["config"] = {
+            "general_knowledge_context": True,
+        }
+    return frame
 
 
 def test_general_knowledge_question_ws_attaches_teaching_context() -> None:
@@ -91,6 +93,24 @@ def test_general_knowledge_question_ws_attaches_teaching_context() -> None:
     preview = metadata.get("learning_evidence_preview")
     if preview is not None:
         assert preview.get("canonical_truth_written") is False
+    assert FakeAgentCoordinator.calls
+    assert "编译教学上下文" in str(FakeAgentCoordinator.calls[-1].get("history_context") or "")
+
+
+def test_general_knowledge_question_ws_defaults_on_for_real_user_without_config() -> None:
+    with tempfile.TemporaryDirectory() as tmp, _client(tmp, user="real_student_42") as client:
+        result = wsh._receive_result(
+            client,
+            _frame("高层住宅的建筑高度是怎么界定的？", include_config=False),
+        )
+
+    metadata = result.get("metadata") or {}
+    block = metadata.get("luban_general_knowledge_context")
+    assert block, "production default should attach compiled teaching context without request flag"
+    assert block["official_score_allowed"] is False
+    assert block["llm_may_decide_correctness"] is False
+    assert block["tier"] == "teaching_context_not_answer_key"
+    assert "construction_grading_result" not in metadata
     assert FakeAgentCoordinator.calls
     assert "编译教学上下文" in str(FakeAgentCoordinator.calls[-1].get("history_context") or "")
 

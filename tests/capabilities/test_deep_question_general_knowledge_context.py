@@ -1,4 +1,4 @@
-"""M34 Task 2: thin wrapper attaches general-knowledge teaching context only when gated."""
+"""M34: general-knowledge teaching context is production-default but killable."""
 from __future__ import annotations
 
 from types import SimpleNamespace
@@ -6,20 +6,35 @@ from types import SimpleNamespace
 import deeptutor.capabilities.deep_question as dq
 
 
-def _ctx(*, user_id: str, message: str, flag: bool) -> SimpleNamespace:
+def _ctx(*, user_id: str, message: str, flag: bool | None = None) -> SimpleNamespace:
+    config_overrides = {}
+    if flag is not None:
+        config_overrides["general_knowledge_context"] = flag
     return SimpleNamespace(
         user_message=message,
         metadata={
             "learner_user_id": user_id,
         },
-        config_overrides={"general_knowledge_context": flag},
+        config_overrides=config_overrides,
     )
 
 
-def test_default_off_attaches_nothing() -> None:
+def test_default_on_real_user_attaches_teaching_context() -> None:
     payload: dict = {}
     dq._maybe_attach_general_knowledge_context(
-        context=_ctx(user_id="qa_alice", message="高层住宅的建筑高度怎么界定？", flag=False),
+        context=_ctx(user_id="real_student_42", message="高层住宅的建筑高度怎么界定？"),
+        result_payload=payload,
+    )
+    block = payload.get("luban_general_knowledge_context")
+    assert block and block["official_score_allowed"] is False
+    assert block["llm_may_decide_correctness"] is False
+    assert block["tier"] == "teaching_context_not_answer_key"
+
+
+def test_explicit_false_disables_production_default() -> None:
+    payload: dict = {}
+    dq._maybe_attach_general_knowledge_context(
+        context=_ctx(user_id="real_student_42", message="高层住宅的建筑高度怎么界定？", flag=False),
         result_payload=payload,
     )
     assert "luban_general_knowledge_context" not in payload
@@ -72,10 +87,11 @@ def test_kill_switch_overrides_flag(monkeypatch) -> None:
     assert payload.get("luban_general_knowledge_context", {}).get("killed_by_switch") is True
 
 
-def test_non_cohort_user_attaches_nothing() -> None:
+def test_optional_cohort_env_can_restrict_rollout(monkeypatch) -> None:
+    monkeypatch.setenv("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT", "qa_,operator_")
     payload: dict = {}
     dq._maybe_attach_general_knowledge_context(
-        context=_ctx(user_id="real_student_42", message="高层住宅的建筑高度怎么界定？", flag=True),
+        context=_ctx(user_id="real_student_42", message="高层住宅的建筑高度怎么界定？"),
         result_payload=payload,
     )
     assert "luban_general_knowledge_context" not in payload
@@ -84,7 +100,7 @@ def test_non_cohort_user_attaches_nothing() -> None:
 def test_off_syllabus_falls_open_no_block() -> None:
     payload: dict = {}
     dq._maybe_attach_general_knowledge_context(
-        context=_ctx(user_id="qa_alice", message="今天天气怎么样随便聊聊", flag=True),
+        context=_ctx(user_id="real_student_42", message="今天天气怎么样随便聊聊"),
         result_payload=payload,
     )
     assert "luban_general_knowledge_context" not in payload

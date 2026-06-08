@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. Bug investigation → root-cause-debugging / superpowers:systematic-debugging. Before "完成" → superpowers:verification-before-completion.
 
-> **Status: `Closed / M34 capability verdict=GO (2026-06-09 local /api/v1/ws TestClient gate with fakes)`.** 这是一条**能力放大**主线，不是生产授权门。它把已编译的知识红利从"做题才有"泛化到"任何知识对话都有"，全程 teaching tier，不碰 published registry / production default flip / canonical learner-truth write / 远端写（那是 M33-ACT 的事）。下方 checkbox 保留为执行计划原文；当前 completion authority 见父计划 §0.26.18 与 `docs/plan/INDEX.md`。
+> **Status: `Closed / M34 capability verdict=GO (2026-06-09 local /api/v1/ws TestClient gate with fakes); production default authorized 2026-06-09`.** 这是一条**能力放大**主线，把已编译的知识红利从"做题才有"泛化到"任何知识对话都有"；生产默认只打开 teaching context 注入，不打开 published registry / official scoring / answer key / canonical learner-truth write / DB 写。下方 checkbox 保留为执行计划原文；当前 completion authority 见父计划 §0.26.18 与 `docs/plan/INDEX.md`。
 
 **Goal:** 让系统里**任何一次知识类对话**（不只是做题/评分）都自动吃到鲁班已编译的四源教学知识（教材 + 规范 + 讲义 + 真题），把 Nexus-style 编译层从"题库闸门"变成"全对话能力放大器"。
 
-**Architecture:** 纯接线，零新权威。三个组件**都已存在**：① `canonical_resolution.to_canonical(text)` 把自由问题文本确定性解析成 canonical 叶子码（IDF 加权、registry 去重、从签名 `v_canonical_taxonomy_index` 加载、fall-open）；② `canonical_knowledge_runtime.resolve_canonical_knowledge(node)` 把一个 canonical 节点解析成四源教学包（teaching tier，`official_score_allowed=False`，fall-open）；③ `deep_question` 现有 `_maybe_attach_*` thin-wrapper 模式 + RAG grounding 注入点。本计划只新增**一个 fat-skill 组合器**（把 ①→②串起来 + 节点粒度桥接）和**一个 thin wrapper**（在一般对话回合注入，flag/cohort gated，append-only，fail-closed），并把教学包喂进 LLM grounding 让回答真正变好。
+**Architecture:** 纯接线，零新权威。三个组件**都已存在**：① `canonical_resolution.to_canonical(text)` 把自由问题文本确定性解析成 canonical 叶子码（IDF 加权、registry 去重、从签名 `v_canonical_taxonomy_index` 加载、fall-open）；② `canonical_knowledge_runtime.resolve_canonical_knowledge(node)` 把一个 canonical 节点解析成四源教学包（teaching tier，`official_score_allowed=False`，fall-open）；③ `deep_question` 现有 `_maybe_attach_*` thin-wrapper 模式 + RAG grounding 注入点。本计划只新增**一个 fat-skill 组合器**（把 ①→②串起来 + 节点粒度桥接）和**一个 thin wrapper**（在一般对话回合注入，request-config default ON + explicit false / kill switch / optional cohort 可收窄，append-only，fail-open），并把教学包喂进 LLM grounding 让回答真正变好。
 
 **Tech Stack:** Python（`deeptutor/services/construction_grading`、`deeptutor/capabilities/deep_question.py`）、签名 runtime_supply bundles、现有 `/api/v1/ws` TestClient、pytest、hermetic fixtures。
 
@@ -36,7 +36,7 @@ canonical_knowledge_runtime = 唯一的「canonical 节点 → 四源教学包�
 
 - **不开第二套** RAG / registry / taxonomy / route / learner memory / context schema。复用 `canonical_resolution`、`resolve_canonical_knowledge`、`LubanContextPack`。
 - **不把教学知识当 answer key / official score**。注入物结构上 `official_score_allowed=False`、`tier="teaching_context_not_answer_key"`、`llm_may_decide_correctness=False`。mutable KB chunk 永不当答案权威（§0.26.14）。
-- **不写** DB / canonical learner truth / 远端 / production default。`production_write_count=0`、`canonical_truth_written=false` 全程。
+- **不写** DB / canonical learner truth / 远端；production default 仅限 teaching-context 注入。`production_write_count=0`、`canonical_truth_written=false` 全程。
 - **不碰判分链路**：grading-followup 分支（有 active question 对象）行为字节不变；本计划只作用于**没有 active 题对象的一般知识回合**。
 - **off-syllabus / 低置信 → fail-open**：解析不到或低置信就回落现有 open-world / RAG 行为，绝不硬塞错章节、不伪造引用。
 - 不为省 token 牺牲能力；不顺手重构无关代码（§3 Surgical Changes）。
@@ -58,7 +58,7 @@ flowchart TD
   B -->|"叶子码 1A411011-01 / '' fall-open"| C["_anchor_candidates: 叶子→可解析祖先"]
   C --> D["resolve_canonical_knowledge(anchor)"]
   D -->|"四源教学包 teaching tier / None fall-open"| E["general_knowledge_context 组合器"]
-  E --> F["_maybe_attach_general_knowledge_context<br/>(thin wrapper, flag+cohort, append-only)"]
+  E --> F["_maybe_attach_general_knowledge_context<br/>(thin wrapper, default-on request config + kill/optional cohort, append-only)"]
   F --> G["注入 LLM grounding（教材/规范/讲义/真题 + provenance）"]
   G --> H["TutorBot 回答被编译知识 grounding<br/>official_score_allowed=false, 无 canonical write"]
 ```
@@ -249,12 +249,13 @@ git commit -m "feat(luban): M34 general-knowledge compiled teaching-context comp
 - Modify: `deeptutor/capabilities/deep_question.py`（新增 `_maybe_attach_general_knowledge_context` + 两个 gating helper；在一般回合分支调用）
 - Test: `tests/capabilities/test_deep_question_general_knowledge_context.py`
 
-- [ ] **Step 2.1：写失败测试 —— wrapper 行为（默认关 / flag 开 / kill / cohort / fail-open）**
+- [ ] **Step 2.1：写失败测试 —— wrapper 行为（生产默认 / 显式 false / kill / optional cohort / fail-open）**
 
 ```python
 # tests/capabilities/test_deep_question_general_knowledge_context.py
 """M34 Task 2: the thin wrapper attaches general-knowledge teaching context ONLY on a general turn,
-ONLY when flag+cohort allow, append-only, default OFF -> legacy byte-identical. Fail-open on any error."""
+production-default teaching context, append-only, explicit false/kill/optional cohort can disable.
+Fail-open on any error."""
 from __future__ import annotations
 
 from types import SimpleNamespace
@@ -262,23 +263,26 @@ from types import SimpleNamespace
 import deeptutor.capabilities.deep_question as dq
 
 
-def _ctx(*, user_id: str, message: str, flag: bool) -> SimpleNamespace:
+def _ctx(*, user_id: str, message: str, flag: bool | None = None) -> SimpleNamespace:
+    config_overrides = {}
+    if flag is not None:
+        config_overrides["general_knowledge_context"] = flag
     return SimpleNamespace(
         user_message=message,
         metadata={
-            "general_knowledge_context": flag,
             "learner_user_id": user_id,
         },
+        config_overrides=config_overrides,
     )
 
 
-def test_default_off_attaches_nothing() -> None:
+def test_default_on_real_user_attaches_teaching_context() -> None:
     payload: dict = {}
     dq._maybe_attach_general_knowledge_context(
-        context=_ctx(user_id="qa_alice", message="高层住宅的建筑高度怎么界定？", flag=False),
+        context=_ctx(user_id="real_student_42", message="高层住宅的建筑高度怎么界定？"),
         result_payload=payload,
     )
-    assert "luban_general_knowledge_context" not in payload  # flag off -> legacy unchanged
+    assert payload["luban_general_knowledge_context"]["official_score_allowed"] is False
 
 
 def test_flag_on_cohort_on_syllabus_attaches_teaching_context() -> None:
@@ -302,10 +306,11 @@ def test_kill_switch_overrides_flag(monkeypatch) -> None:
     assert payload.get("luban_general_knowledge_context", {}).get("killed_by_switch") is True
 
 
-def test_non_cohort_user_attaches_nothing() -> None:
+def test_optional_cohort_env_can_restrict_rollout(monkeypatch) -> None:
+    monkeypatch.setenv("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT", "qa_,operator_")
     payload: dict = {}
     dq._maybe_attach_general_knowledge_context(
-        context=_ctx(user_id="real_student_42", message="高层住宅的建筑高度怎么界定？", flag=True),
+        context=_ctx(user_id="real_student_42", message="高层住宅的建筑高度怎么界定？"),
         result_payload=payload,
     )
     assert "luban_general_knowledge_context" not in payload
@@ -325,27 +330,32 @@ def test_off_syllabus_falls_open_no_block() -> None:
 Run: `python -m pytest tests/capabilities/test_deep_question_general_knowledge_context.py -q`
 Expected: FAIL（`_maybe_attach_general_knowledge_context` 不存在）。
 
-- [ ] **Step 2.3：实现 thin wrapper（复用现有 cohort/flag 取值约定）**
+- [ ] **Step 2.3：实现 thin wrapper（生产默认；复用 request config / env kill / optional cohort 取值约定）**
 
-在 `deep_question.py` 紧挨 `_maybe_attach_textbook_knowledge`（2554 区段）新增。**只读 flag/cohort/user_message，调用 fat skill，append 一个字段；绝不 mutate legacy、绝不碰 `construction_grading_result`、绝不写库。** 复用文件里既有的 `_learner_user_id_from_context` 取 user_id。
+在 `deep_question.py` 紧挨 `_maybe_attach_textbook_knowledge`（2554 区段）新增。**只读 request config / optional cohort / user_message，调用 fat skill，append 一个字段；绝不 mutate legacy、绝不碰 `construction_grading_result`、绝不写库。** 复用文件里既有的 `_learner_user_id_from_context` 取 user_id。
 
 ```python
 def _general_knowledge_cohort_prefixes() -> tuple[str, ...]:
-    """Default cohort for the general-knowledge dividend. Broadened later via env (Task 5), gated now."""
+    """Optional cohort narrowing for the general-knowledge dividend. Empty means all users."""
     import os
-    raw = os.environ.get("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT", "qa_,test_,operator_")
+    raw = os.environ.get("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT", "")
     return tuple(p.strip() for p in raw.split(",") if p.strip())
 
 
 def _general_knowledge_flag_enabled(context) -> bool:
-    md = getattr(context, "metadata", None) or {}
-    return bool(md.get("general_knowledge_context"))
+    config_overrides = getattr(context, "config_overrides", {}) or {}
+    return bool(config_overrides.get("general_knowledge_context", True))
+
+
+def _general_knowledge_cohort_member(student_id: str) -> bool:
+    prefixes = _general_knowledge_cohort_prefixes()
+    return not prefixes or str(student_id).startswith(prefixes)
 
 
 def _maybe_attach_general_knowledge_context(*, context, result_payload: dict) -> None:
     """Attach four-source compiled TEACHING context for a GENERAL knowledge turn (no active question
-    object). Thin wrapper — ALL policy lives in ``general_knowledge_context`` (fat skill). flag + env
-    kill + cohort; default OFF -> legacy byte-identical. Never mutates legacy result, never writes DB /
+    object). Thin wrapper — ALL policy lives in ``general_knowledge_context`` (fat skill). request override + env
+    kill + optional cohort; production default is teaching-context only. Never mutates legacy result, never writes DB /
     canonical truth; the attached pack is teaching/source context (official_score_allowed False)."""
     import os
 
@@ -358,7 +368,7 @@ def _maybe_attach_general_knowledge_context(*, context, result_payload: dict) ->
         result_payload[KEY] = {"authority": KEY, "status": "killed_by_switch", "killed_by_switch": True}
         return
     student_id = _learner_user_id_from_context(context)
-    if not str(student_id).startswith(_general_knowledge_cohort_prefixes()):
+    if not _general_knowledge_cohort_member(student_id):
         return
     try:
         from deeptutor.services.construction_grading.general_knowledge_context import (
@@ -402,7 +412,7 @@ git commit -m "feat(luban): M34 thin wrapper attaches general-knowledge teaching
 
 **Acceptance:**
 
-- 默认 OFF → legacy 字节不变；flag on + cohort + on-syllabus → 附 teaching context；kill switch 立即关闭；非 cohort 不附；off-syllabus fall-open。
+- 默认 ON → on-syllabus 一般知识回合附 teaching context；显式 false / kill switch 立即关闭；optional cohort env 可收窄；off-syllabus fall-open。
 - 只在**无 active 题对象**的一般回合触发；判分链路零回归。
 - protected 文件改动已登记 domain 测试（见 memory `contract-guard-protected-files-need-registered-domain-test`）。
 
@@ -566,7 +576,7 @@ git commit -m "test(luban): M34 live /api/v1/ws general-knowledge dividend gate 
 - 真实 `/api/v1/ws` 一般知识问题 → 附编译教学上下文；off-syllabus → fall-open。
 - 一般回合**不**产出 `construction_grading_result`、`canonical_truth_written=false`。
 
-### Task 5: Observability + Cohort 广开（gated）+ Go/No-Go
+### Task 5: Observability + Production Default / Optional Cohort Narrowing + Go/No-Go
 
 **Files:**
 
@@ -597,9 +607,9 @@ python -m pytest \
   tests/scripts/test_luban_m34_general_knowledge_dividend_slice.py -q
 ```
 
-- [ ] **Step 5.4：cohort 广开开关（gated，默认仍窄）**
+- [ ] **Step 5.4：生产默认与 optional cohort 收窄开关**
 
-`LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT` 已支持广开（Task 2）。**广开到真实学员**前必须：runner GO + off-syllabus fall-open=1.0 稳定 + 无 wrong-chapter 误塞 + 你确认。**本计划默认 cohort 仍 `qa_,test_,operator_`**；广开是单独一步（改 env，可秒退），写进 go_no_go 的"广开前置"。
+`general_knowledge_context` 已获生产默认授权。默认不限制真实学员；`LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT` 仅作为紧急收窄/灰度 allowlist（改 env，可秒退）。上线前仍必须：runner GO + off-syllabus fall-open=1.0 稳定 + 无 wrong-chapter 误塞 + safety 全清。
 
 - [ ] **Step 5.5：commit + 文档回写**
 
@@ -614,7 +624,7 @@ git commit -m "feat(luban): M34 general-knowledge dividend slice runner + go/no-
 **Acceptance:**
 
 - on-syllabus 命中率达阈值；off-syllabus fall-open=1.0；安全不变量全清。
-- 广开 cohort 是独立、可逆、需确认的一步；默认仍窄。
+- 生产默认只打开 teaching context；optional cohort 是独立、可逆的收窄杆。
 
 ## 6. Required Test Command
 
@@ -632,7 +642,7 @@ python -m pytest \
 
 | Verdict | Meaning |
 |---|---|
-| `GO` | 一般知识对话能确定性吃到四源编译教学红利，回答被 grounding，off-syllabus 全 fall-open，安全全清，live WS 通过。可广开 cohort（独立确认）。|
+| `GO` | 一般知识对话能确定性吃到四源编译教学红利，回答被 grounding，off-syllabus 全 fall-open，安全全清，live WS 通过；生产默认仅限 teaching context。|
 | `WEAK-GO` | 组合器/wrapper/grounding 已建且 hermetic 安全，但缺 live `/api/v1/ws` 证据或命中率未达阈值。不广开。|
 | `NO-GO` | 任一：冒充官方答案 / mutable chunk 当 answer key / off-syllabus 误塞错章节 / 写 canonical/DB/远端 / 判分链路回归。先修。|
 

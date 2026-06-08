@@ -58,6 +58,10 @@ def test_runner_writes_required_artifacts_and_go_when_live_ws_passes(
     assert verdict["live_ws_status"] == "pass"
     assert "test_luban_m34_general_knowledge_dividend_ws.py" in verdict["live_ws_evidence"]
     assert verdict["live_ws_exit_code"] == 0
+    assert verdict["production_default"] == "on_teaching_context_only"
+    assert verdict["default_cohort_scope"] == "all_users"
+    assert verdict["optional_cohort_env"] == "LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT"
+    assert verdict["kill_switch"] == "LUBAN_GENERAL_KNOWLEDGE_CONTEXT_ENABLED=false"
 
 
 def test_runner_rejects_forged_live_ws_attestation_without_exit_code(

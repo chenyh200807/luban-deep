@@ -2693,13 +2693,18 @@ def _maybe_attach_textbook_knowledge(
 def _general_knowledge_cohort_prefixes() -> tuple[str, ...]:
     import os
 
-    raw = os.environ.get("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT", "qa_,test_,operator_")
+    raw = os.environ.get("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT", "")
     return tuple(prefix.strip() for prefix in raw.split(",") if prefix.strip())
+
+
+def _general_knowledge_cohort_member(student_id: str) -> bool:
+    prefixes = _general_knowledge_cohort_prefixes()
+    return not prefixes or str(student_id).startswith(prefixes)
 
 
 def _general_knowledge_flag_enabled(context: UnifiedContext) -> bool:
     config_overrides = getattr(context, "config_overrides", {}) or {}
-    return bool(config_overrides.get("general_knowledge_context"))
+    return bool(config_overrides.get("general_knowledge_context", True))
 
 
 def _has_active_question_context(followup_question_context: dict[str, Any] | None) -> bool:
@@ -2722,7 +2727,7 @@ def _maybe_attach_general_knowledge_context(
 ) -> None:
     """Attach compiled four-source TEACHING context for a general knowledge turn.
 
-    Thin wrapper: flag/cohort/kill only. Resolution policy lives in
+    Thin wrapper: request override / optional cohort / kill only. Resolution policy lives in
     construction_grading.general_knowledge_context. This is append-only and
     never writes DB, canonical learner truth, or official grading fields.
     """
@@ -2741,7 +2746,7 @@ def _maybe_attach_general_knowledge_context(
         return
 
     student_id = _learner_user_id_from_context(context)
-    if not str(student_id).startswith(_general_knowledge_cohort_prefixes()):
+    if not _general_knowledge_cohort_member(student_id):
         return
 
     try:

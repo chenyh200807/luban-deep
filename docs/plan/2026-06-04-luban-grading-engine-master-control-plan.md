@@ -5,7 +5,7 @@
 >
 > 当前 canonical 目标：**鲁班评分引擎 = 高质量学习证据生产器；Learning Brain/GBrain = 长期个性化学习决策器；RAG/知识编译 = 教材、规范、真题、章节与证据供应器；DeepSeek/Qwen = 在线批改与教学执行模型。**
 >
-> 当前已闭合：**M32 Grading-to-Brain Waterproof Vertical Slice = GO**；**M33 canonical promotion arm release gate = GO（qa_/operator_ 1% scope）**；**M34 compiled-knowledge dividend = GO（qa_/test_/operator_ teaching context scope）**。当前唯一下一步不再是重跑 M32，而是在 M33 允许流量内推进生产/canonical 激活观察，并在 M34 允许 cohort 内观察一般知识对话教学红利；broad real-student default、M34 广开真实学员 cohort、远端/DB 写、published registry 仍需独立确认/授权。
+> 当前已闭合：**M32 Grading-to-Brain Waterproof Vertical Slice = GO**；**M33 canonical promotion arm release gate = GO（qa_/operator_ 1% scope）**；**M34 compiled-knowledge dividend = GO + production default authorized（teaching context only）**。当前唯一下一步不再是重跑 M32，而是在 M33 允许流量内推进生产/canonical 激活观察，并对 M34 生产默认的一般知识对话教学红利做线上观察；M34 仍是 teaching tier（非官方判分、非 answer key、无 canonical 写），远端/DB 写、published registry 仍需独立确认/授权。
 >
 > 2026-06-04 §0.12 架构纠偏：Registry/spec/knowledge artifacts 不是最终判题器，而是 Nexus-style runtime LLM adjudication 的高质量上下文底座；未来 production 每次案例题判题必须由 DeepSeek-V4-flash primary / Qwen3.7 plus fallback 参与理解学生答案，deterministic validator 负责防越权和 fail-closed。
 >
@@ -51,7 +51,7 @@
 2. 再读 §0.26.14，确认知识编译 storage / serving / capacity contract。
 3. 当前 Grading-to-Brain 产品闭环读 M32 结果（§0.26.16）、M33-ACT A 类代码就绪结果（§0.26.17）、M34 compiled-knowledge dividend 结果（§0.26.18）和 M33 canonical promotion arm 结果（§0.26.19），不要按旧 checklist 重跑 M32。
 4. M26/M27/M30/M31 是已完成能力底座和 ledger，不要按其中旧 checklist 重新执行。
-5. 任何 broad production default、published registry、远端/DB 写仍需单独授权；M33 只放开 `qa_` / `operator_` 1% promotion arm，M34 只放开 `qa_` / `test_` / `operator_` teaching-context scope。
+5. 任何 published registry、远端/DB 写仍需单独授权；M33 只放开 `qa_` / `operator_` 1% promotion arm；M34 一般知识对话 teaching-context 已获生产默认授权，但仍必须保持 `official_score_allowed=false`、`llm_may_decide_correctness=false`、`canonical_truth_written=false`。
 
 ## 0.0 Canonical update after M5D（2026-06-04）
 
@@ -1046,7 +1046,7 @@ M32 GO 门：
 - **TDD + 对抗**：G3/G4 共 23 测试全绿（RED→GREEN，含 records-tamper / 非 bool 授权 / foreign namespace / garbage flag 负向断言）；contract_guard PASS（`contracts/learner-state.md` 同步登记契约边界）；codex 独立对抗审查发现的 3 项 fail-closed 缺口已修（见 M33-ACT §9.5）。
 - **verdict 仍 WEAK-GO**：本节只消除两个「缺代码」缺口，不抬升 §0.26.10 whole-plan 裁决。实际激活仍 blocked：G3 需 formal release gate PASS + 授权；G4 需 teacher-final/real-retest 闭环（**C 类外部**）+ 授权；G2 需大样本准确率 eval infra + GPT5.5 key（**C 类外部**）；G5 需远端写授权 + 生产目标确认。本会话 `published=false / default_flip=0 / canonical_truth_written=0 / production_write=0 / remote_write=0` 全部保持。
 
-### 0.26.18 M34 compiled-knowledge dividend（2026-06-09，capability verdict=GO）
+### 0.26.18 M34 compiled-knowledge dividend（2026-06-09，capability verdict=GO；production default authorized）
 
 > **本节把 Nexus-style 编译知识红利从“做题/评分链路”扩展到“一般知识对话”。** Ledger：`artifacts/luban_grading_artifacts/general_knowledge_dividend_m34_20260609/`。runner：`scripts/run_luban_m34_general_knowledge_dividend_slice.py`。本地 `/api/v1/ws` TestClient 真路由 gate：`tests/integration/test_luban_m34_general_knowledge_dividend_ws.py`（外部 LLM/DB 依赖为 fake）。
 
@@ -1062,15 +1062,16 @@ M32 GO 门：
 - 自由文本归一：仍由 `canonical_resolution.to_canonical(text)` 唯一负责。
 - canonical 节点到四源教学包：仍由 `canonical_knowledge_runtime.resolve_canonical_knowledge(node)` 唯一负责。
 - M34 新增的 `general_knowledge_context` 只是 fat-skill 组合器，串联 leaf→ancestor→teaching pack，不新建 RAG / registry / taxonomy / learner memory / context schema。
-- `deep_question` 只新增 thin wrapper：flag + cohort + env kill + append-only attach；它不做章节判断、不写库、不改判分结果。
-- public config 只新增 `DeepQuestionRequestConfig.general_knowledge_context: bool = False`，用于通过既有 `/api/v1/ws` contract 携带 flag；没有新增路由。
+- `deep_question` 只新增 thin wrapper：request override + optional cohort + env kill + append-only attach；它不做章节判断、不写库、不改判分结果。
+- public config `DeepQuestionRequestConfig.general_knowledge_context: bool = True`，通过既有 `/api/v1/ws` contract 生产默认启用；显式 `false` 仍可按请求关闭；没有新增路由。
 
 **默认与停止点：**
 
-- 默认 public flag 为 `False`；即使 flag on，也只允许 `qa_` / `test_` / `operator_` cohort。
+- 默认 public flag 为 `True`：无 active 题对象的一般知识回合默认尝试注入 M34 compiled teaching context。
+- 显式 request config `general_knowledge_context=false` 可关闭本次请求。
 - kill switch：`LUBAN_GENERAL_KNOWLEDGE_CONTEXT_ENABLED=false`。
-- cohort env：`LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT`，但广开到真实学员前必须人工确认；本轮没有执行 broad real-student rollout。
-- M34 不写 DB / canonical learner truth / 远端 / production default；这些如果出现需求冲动，必须停止并重新授权。
+- optional cohort env：`LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT`；未设置时不限制真实学员，设置后只允许匹配前缀，用于紧急收窄/灰度。
+- M34 生产默认只改变 teaching-context 注入面；仍不写 DB / canonical learner truth，不生成 answer key，不允许 `official_score_allowed=true`。远端发布仍必须走独立 release runbook。
 
 ---
 
