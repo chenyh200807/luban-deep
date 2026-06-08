@@ -31,6 +31,17 @@ websocket_routes:
     reason: Knowledge-base ingestion progress fan-out. Non-chat; broadcasts build
       progress events only, creates no turn/session state.
 
+mobile_http_read_models:
+  billing_usage:
+    path: /api/v1/billing/usage
+    authority: wallet_service
+    semantics:
+      - Wallet snapshot read failure returns status=degraded and no quota rows.
+      - Wallet ledger read failure must not make the whole usage read model unavailable;
+        the adapter returns status=ok with empty usage entries and the snapshot plan.
+      - Ledger-derived windows are display read models only; they are not capability
+        routing, request config, learner-state, or turn authority.
+
 domains:
   turn:
     summary: Unified turn, stream, replay, session, trace boundary, and mobile assessment HTTP bridges.
@@ -84,6 +95,8 @@ domains:
       - tests/services/learner_state/test_training_intent.py
       - tests/services/learner_state/test_personalization_context.py
       - tests/services/learner_state/test_next_best_action.py
+      - tests/services/learner_state/test_m32_waterproof_personalization_context.py
+      - tests/services/learner_state/test_m32_waterproof_retest_outcome.py
       - tests/services/learner_state/test_scoring_point_map_read_model.py
       - tests/services/learner_state/test_conversation_learning_evidence_event.py
       - tests/services/learner_state/test_learning_evidence_quality_gate.py
@@ -130,6 +143,11 @@ domains:
       - tests/services/test_question_lifecycle_acceptance.py
       - tests/capabilities/test_deep_question_question_review.py
       - tests/capabilities/test_deep_question_lightweight_generation.py
+      - tests/capabilities/test_deep_question_reference_feedback.py
+      - tests/capabilities/test_deep_question_unresolved_switch.py
+      - tests/core/test_deep_question_active_object.py
+      - tests/capabilities/test_deep_question_learning_evidence_preview.py
+      - tests/core/test_deep_question_case_rubric_v1.py
       - tests/services/test_render_presentation.py
       - wx_miniprogram/tests/test_ai_message_state.js
       - yousenwebview/tests/test_question_review_readonly_mcq.js
@@ -261,10 +279,13 @@ domains:
       - tests/services/learner_state/test_attempt_detail_read_model.py
       - tests/services/learner_state/test_learning_report_read_model.py
       - tests/services/learner_state/test_learning_state_projection.py
+      - tests/services/learner_state/test_m32_waterproof_learning_synthesis.py
       - tests/services/learner_state/test_mastery_estimator.py
       - tests/services/learner_state/test_training_intent.py
       - tests/services/learner_state/test_personalization_context.py
       - tests/services/learner_state/test_next_best_action.py
+      - tests/services/learner_state/test_m32_waterproof_personalization_context.py
+      - tests/services/learner_state/test_m32_waterproof_retest_outcome.py
       - tests/services/learner_state/test_scoring_point_map_read_model.py
       - tests/services/learner_state/test_evidence_story_read_model.py
       - tests/services/learner_state/test_prescription_outcomes_read_model.py

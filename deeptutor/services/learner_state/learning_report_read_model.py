@@ -377,6 +377,9 @@ def build_learning_report_read_model(
         # state -> reason -> action -> evidence without traversing into
         # learning_brain internals.
         "learning_state": learning_state,
+        # D-class: student-visible long-term analytics (recurrent errors + trend).
+        # Pure read projection — derived from learning_brain.weak_points.occurrence_timeline.
+        "long_term_analytics": _build_long_term_analytics(learning_brain),
         "legacy_compat": {
             "today_progress": legacy_today,
             "home_dashboard": home_dashboard,
@@ -391,6 +394,48 @@ def build_learning_report_read_model(
             evidence_stats=evidence_stats,
         )
     return report
+
+
+def _build_long_term_analytics(learning_brain: dict[str, Any]) -> dict[str, Any]:
+    """D-class: project student-visible long-term analytics from learning_brain.weak_points.
+
+    Purely read — derives from occurrence_timeline already on each weak_point.
+    No new DB reads, no new authority, append-only section on the report.
+    """
+    weak_points = list((learning_brain or {}).get("weak_points") or [])
+
+    recurrent_errors: list[dict[str, Any]] = []
+    for wp in weak_points:
+        timeline = list(wp.get("occurrence_timeline") or [])
+        if len(timeline) < 2:
+            continue
+        dates = sorted(str(e.get("observed_at") or "") for e in timeline)
+        recurrent_errors.append({
+            "concept_id": str(wp.get("concept_id") or ""),
+            "error_code": str(wp.get("error_code") or ""),
+            "occurrence_count": len(timeline),
+            "first_seen_at": dates[0],
+            "last_seen_at": dates[-1],
+        })
+    recurrent_errors.sort(key=lambda x: (-x["occurrence_count"], x["last_seen_at"]))
+
+    active_weak_count = len(weak_points)
+    recurrent_count = len(recurrent_errors)
+    if recurrent_count == 0:
+        trend = "improving"
+    elif recurrent_count > max(1, active_weak_count // 2):
+        trend = "declining"
+    else:
+        trend = "stable"
+
+    return {
+        "recurrent_errors": recurrent_errors,
+        "progression_summary": {
+            "trend_direction": trend,
+            "active_weak_count": active_weak_count,
+            "recurrent_error_count": recurrent_count,
+        },
+    }
 
 
 def _learning_state_inference_flag_state(user_id: str) -> dict[str, Any]:
