@@ -15,6 +15,7 @@ from deeptutor.services.taxonomy.taxonomy_authority import (
 from deeptutor.services.taxonomy.taxonomy_authority import (
     taxonomy_index,
 )
+from deeptutor.services.taxonomy.textbook_directory import is_non_topic_label
 
 _CODE_RE = re.compile(r"1A\d{3,6}(?:-\d{2})?(?:-[a-z])?", re.IGNORECASE)
 _DEICTIC_TOPIC_RE = re.compile(r"^(?:这|这道|这一|这个|本|该|此|当前)(?:道|个|类)?(?:题|题目|选择题|案例题|真题)$")
@@ -213,7 +214,7 @@ def resolve_learning_topic_from_payload(
         and _has_topic_evidence(payload, evidence_candidates)
     ):
         inferred = normalize_learning_topic_text(llm_topic_inferer(payload, evidence_candidates))
-        if inferred:
+        if inferred:   # normalize_learning_topic_text drops non-textbook noise (is_non_topic_label)
             return ResolvedLearningTopic(label=inferred, source="llm_inferred", confidence="low")
         fallback = _personalized_focus_from_candidates(specific_focus_candidates)
         if fallback:
@@ -238,7 +239,7 @@ def resolve_learning_topic_from_payload(
 
     if llm_topic_inferer is not None and _has_topic_evidence(payload, evidence_candidates):
         inferred = normalize_learning_topic_text(llm_topic_inferer(payload, evidence_candidates))
-        if inferred:
+        if inferred:   # normalize_learning_topic_text drops non-textbook noise (is_non_topic_label)
             return ResolvedLearningTopic(label=inferred, source="llm_inferred", confidence="low")
         return _personalized_focus_from_candidates(evidence_candidates)
     return None
@@ -321,6 +322,10 @@ def normalize_learning_topic_text(value: Any) -> str:
     if compact in _GENERIC_TOPIC_LABELS:
         return ""
     if _DEICTIC_TOPIC_RE.fullmatch(compact):
+        return ""
+    # single authority for "is this a real textbook topic" — drops front/back-matter + marketing noise
+    # (讲义封底免费听课资源 …) so it never reaches the conversation page's recommended topics.
+    if is_non_topic_label(text):
         return ""
     return text
 
@@ -406,6 +411,8 @@ def _has_topic_evidence(payload: dict[str, Any], candidates: list[str]) -> bool:
 
 
 def _personalized_focus_from_candidates(candidates: list[str]) -> ResolvedLearningTopic | None:
+    # normalize_learning_topic_text drops non-textbook noise (is_non_topic_label) so a personalized focus
+    # is a real topic phrasing, never front/back-matter or marketing garbage.
     for label in candidates:
         text = normalize_learning_topic_text(label)
         if text and not _CODE_RE.fullmatch(text):

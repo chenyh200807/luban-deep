@@ -100,3 +100,16 @@ def test_object_display_never_dangling_colon_or_raw_code():
         title = _object_display(oid, ot)["display_title"]
         assert not title.endswith("：")          # no dangling colon
         assert oid not in title                   # no raw code/id in the learner-facing title
+
+
+def test_is_non_topic_label_rejects_non_textbook_front_back_matter_and_marketing():
+    # Front/back-matter + marketing noise from textbook OCR must NEVER surface as a learner topic.
+    from deeptutor.services.taxonomy.textbook_directory import is_non_topic_label
+
+    for noise in ["讲义封底免费听课资源", "扫码领取课程资料", "关注公众号免费试听",
+                  "讲义封面", "版权页", "增值服务二维码", "直播回放入口", "押题密卷领取"]:
+        assert is_non_topic_label(noise) is True, noise
+    # real 一建 knowledge points (some contain 资源/管理/技术) must be KEPT
+    for topic in ["建设工程项目资源管理", "施工现场临时用电", "工程招标投标与合同管理",
+                  "施工技术资料管理", "人力资源与劳务管理"]:
+        assert is_non_topic_label(topic) is False, topic

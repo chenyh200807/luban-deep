@@ -5,7 +5,6 @@ from typing import Any
 
 from deeptutor.services.taxonomy.taxonomy_authority import normalize_taxonomy_code
 
-
 TEXTBOOK_CHAPTERS: tuple[dict[str, Any], ...] = (
     {
         "no": 1,
@@ -167,6 +166,20 @@ _NON_TOPIC_LABELS = {
 }
 
 
+# Distinctive non-textbook substrings (book front/back matter + marketing/lead-gen). Substring match on
+# the compacted label. Kept high-precision on purpose: every marker below would be absurd inside a real
+# 一建《建筑实务》knowledge-point name, so this cannot drop a legitimate topic. Do NOT add generic words
+# like 资源/课程/资料/管理/技术 — those DO occur in real topics (e.g. 建设工程项目资源管理).
+_NON_TEXTBOOK_NOISE_MARKERS = (
+    "讲义", "封底", "封面", "扉页", "版权", "前言", "序言", "后记", "目录页",
+    "免费", "听课", "试听", "试看", "扫码", "二维码", "公众号", "关注", "客服",
+    "报名", "网址", "直播", "回放", "押题", "赠送", "领取", "增值服务", "课程咨询",
+    "微信号", "qq群", "vip", "优惠", "促销", "广告",
+    # meta / book-title / non-knowledge-point phrasings (e.g. "一级建造师建筑实务学习主题归纳")
+    "建造师", "主题归纳", "学习主题", "知识点归纳", "考点汇总", "思维导图", "学习方法",
+)
+
+
 def textbook_chapter_display_name(chapter: dict[str, Any]) -> str:
     return f"第{int(chapter['no'])}章 {chapter['name']}"
 
@@ -181,6 +194,11 @@ def is_non_topic_label(value: Any) -> bool:
         return True
     compact = _compact(text)
     if compact in _NON_TOPIC_LABELS:
+        return True
+    # textbook OCR front/back-matter + marketing noise (讲义封底 / 免费听课 / 扫码二维码 ...) is NOT a
+    # knowledge point and must never surface as a learner topic. Distinctive markers only — none appear in
+    # a real 一建 knowledge-point name (deliberately excludes 资源/课程/资料/管理 which DO appear in topics).
+    if any(marker in compact.lower() for marker in _NON_TEXTBOOK_NOISE_MARKERS):
         return True
     if "/" in text or "／" in text:
         return True

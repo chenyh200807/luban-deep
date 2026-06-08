@@ -224,3 +224,30 @@ def test_compiled_taxonomy_artifact_is_packaged() -> None:
     package_data = pyproject["tool"]["setuptools"]["package-data"]
 
     assert "compiled/*.json" in package_data["deeptutor.services.taxonomy"]
+
+
+def test_normalize_learning_topic_text_drops_non_textbook_noise():
+    # The chat/home recommended-topic label authority must drop non-textbook noise (it feeds the
+    # conversation page's recommended prompts).
+    from deeptutor.services.taxonomy.learning_topic_resolver import normalize_learning_topic_text
+
+    assert normalize_learning_topic_text("讲义封底免费听课资源") == ""
+    assert normalize_learning_topic_text("扫码领取课程资料") == ""
+    # real topics survive
+    assert normalize_learning_topic_text("施工现场临时用电") == "施工现场临时用电"
+    assert normalize_learning_topic_text("建设工程项目资源管理") == "建设工程项目资源管理"
+
+
+def test_recommended_topic_drops_non_textbook_garbage_keeps_real_topics():
+    # STANDING REQUIREMENT (no garbage in recommendations): non-textbook noise / book-title / meta-title
+    # phrasings must NEVER be recommended, even when the LLM emits them; real exam topics still pass.
+    from deeptutor.services.taxonomy.learning_topic_resolver import resolve_learning_topic_from_payload
+
+    payload = {"question_stem": "雨季施工混凝土养护", "simple_explanation": "结合季节性施工判断。"}
+
+    for junk in ["一级建造师建筑实务学习主题归纳", "讲义封底免费听课资源", "扫码领取课程资料",
+                 "建筑实务知识点归纳", "学习方法与思维导图"]:
+        assert resolve_learning_topic_from_payload(payload, llm_topic_inferer=lambda *_a, **_k: junk) is None
+
+    out = resolve_learning_topic_from_payload(payload, llm_topic_inferer=lambda *_a, **_k: "雨季混凝土养护")
+    assert out is not None and out.label == "雨季混凝土养护"
