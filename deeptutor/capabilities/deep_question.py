@@ -991,6 +991,60 @@ def _format_grading_grounding_context(rag_result: dict[str, Any] | None) -> tupl
     return "\n\n".join(lines).strip(), sources
 
 
+def _format_general_knowledge_grounding(pack: dict[str, Any] | None) -> str:
+    """Render a compiled TEACHING pack into LLM grounding text for general answers."""
+    if not isinstance(pack, dict):
+        return ""
+    sources = pack.get("sources") if isinstance(pack.get("sources"), dict) else {}
+    if not any(sources.get(key) for key in ("textbook", "standard", "lecture", "question")):
+        return ""
+
+    labels = {
+        "textbook": "教材",
+        "standard": "规范",
+        "lecture": "讲义",
+        "question": "真题",
+    }
+    lines = [
+        "【编译教学上下文 - 仅供讲解，非官方答案，不得作为官方判分依据】",
+        f"知识点路径：{pack.get('leaf_name_path') or pack.get('resolved_anchor') or ''}",
+    ]
+    for source_key in ("textbook", "standard", "lecture", "question"):
+        raw_items = sources.get(source_key) or []
+        if not isinstance(raw_items, list):
+            continue
+        for raw_item in raw_items[:6]:
+            item = raw_item if isinstance(raw_item, dict) else {}
+            preview = str(
+                item.get("text_preview")
+                or item.get("content_preview")
+                or item.get("public_quote")
+                or item.get("content")
+                or item.get("text")
+                or ""
+            ).strip()
+            if not preview:
+                continue
+            provenance = item.get("provenance")
+            if isinstance(provenance, dict):
+                provenance_label = " / ".join(
+                    str(provenance.get(key) or "").strip()
+                    for key in ("title", "source", "source_id", "stable_source_id", "span")
+                    if str(provenance.get(key) or "").strip()
+                )
+            else:
+                provenance_label = str(provenance or "").strip()
+            if not provenance_label:
+                provenance_label = str(
+                    item.get("title")
+                    or item.get("source")
+                    or item.get("source_id")
+                    or labels[source_key]
+                ).strip()
+            lines.append(f"- [{labels[source_key]}·{provenance_label}] {_clip_text(preview, limit=700)}")
+    return "\n".join(lines) if len(lines) > 2 else ""
+
+
 def _citation_sources_from_question_context(question_context: dict[str, Any] | None) -> list[dict[str, Any]]:
     items = _grading_items(question_context)
     sources: list[dict[str, Any]] = []
@@ -3355,8 +3409,26 @@ class DeepQuestionCapability(BaseCapability):
                             trace_meta["practice_generation.next_training_signal_concept"] = consumed_concept
 
         require_explanation = reveal_explanations
-        history_context = str(
-            context.metadata.get("conversation_context_text", "") or ""
+        has_active_question_context = (
+            isinstance(followup_question_context, dict)
+            and bool(followup_question_context.get("question"))
+        )
+        general_knowledge_result_payload: dict[str, Any] = {}
+        if not has_active_question_context:
+            _maybe_attach_general_knowledge_context(
+                context=context,
+                result_payload=general_knowledge_result_payload,
+            )
+        general_knowledge_grounding = _format_general_knowledge_grounding(
+            general_knowledge_result_payload.get("luban_general_knowledge_context")
+        )
+        history_context = "\n\n".join(
+            part
+            for part in [
+                str(context.metadata.get("conversation_context_text", "") or "").strip(),
+                general_knowledge_grounding,
+            ]
+            if part
         ).strip()
         enabled_tools = set(
             self.manifest.tools_used
@@ -3629,14 +3701,8 @@ class DeepQuestionCapability(BaseCapability):
         result_payload["suspended_object_stack"] = transitioned_stack
         if presentation:
             result_payload["presentation"] = presentation
-        if not (
-            isinstance(followup_question_context, dict)
-            and followup_question_context.get("question")
-        ):
-            _maybe_attach_general_knowledge_context(
-                context=context,
-                result_payload=result_payload,
-            )
+        if general_knowledge_result_payload:
+            result_payload.update(general_knowledge_result_payload)
         cost_meta = self._collect_cost_summary("question")
         if cost_meta:
             result_payload["metadata"] = {"cost_summary": cost_meta}

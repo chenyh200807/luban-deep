@@ -184,6 +184,7 @@ domains:
       - tests/capabilities/test_deep_question_lightweight_generation.py
       - tests/capabilities/test_deep_question_reference_feedback.py
       - tests/capabilities/test_deep_question_general_knowledge_context.py
+      - tests/capabilities/test_deep_question_general_knowledge_grounding.py
       - tests/capabilities/test_deep_question_unresolved_switch.py
       - tests/core/test_deep_question_active_object.py
       - tests/capabilities/test_deep_question_learning_evidence_preview.py
