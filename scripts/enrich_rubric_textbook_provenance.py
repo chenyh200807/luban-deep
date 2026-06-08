@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import argparse
+import datetime
 import hashlib
 import json
 import sys
@@ -185,6 +186,25 @@ def enrich(dry_run: bool = False) -> None:
     with open(TEXTBOOK_PATH) as f:
         textbook_bundle = json.load(f)
 
+    # C-3: entry guard — refuse to enrich a published or non-candidate bundle.
+    # Enriching a published bundle would silently re-open it under a new hash,
+    # bypassing the reverse-gate check in compiled_registry_resolver.
+    old_manifest_check = rubric_bundle.get("manifest") or {}
+    if old_manifest_check.get("status") not in ("release_candidate", "released"):
+        print(
+            f"ERROR: unexpected bundle status={old_manifest_check.get('status')!r}. "
+            "Expected 'release_candidate' or 'released'. Aborting.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    if old_manifest_check.get("published") is True:
+        print(
+            "ERROR: bundle is published=True. Cannot safely enrich a live-published bundle. "
+            "Unpublish it first (set published=False in the manifest and pointer).",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
     rubric_records: list[dict] = rubric_bundle["records"]
     textbook_records: list[dict] = textbook_bundle["records"]
 
@@ -245,7 +265,11 @@ def enrich(dry_run: bool = False) -> None:
         "question_count": len({r["qid"] for r in enriched}),
         "authority_distribution": dict(auth_dist),
         "provenance_enriched": True,
-        "provenance_enrich_date": "2026-06-08",
+        "provenance_enrich_date": datetime.date.today().isoformat(),
+        # C-1: explicitly reset published=False after enrichment re-signs the bundle.
+        # The compiled_registry_resolver reverse-gate rejects published=True bundles,
+        # so any new hash must not carry the old published flag forward.
+        "published": False,
     }
 
     new_bundle = {
@@ -278,7 +302,12 @@ def enrich(dry_run: bool = False) -> None:
         with open(POINTER_PATH) as f:
             pointer = json.load(f)
         pointer["content_hash"] = content_hash
+        # C-2: sync expected_content_hash to the newly-signed bundle hash so that
+        # compiled_registry_resolver integrity check passes after enrichment.
+        pointer["expected_content_hash"] = content_hash
         pointer["provenance_enriched"] = True
+        # C-2: keep pointer published=False to match the bundle manifest.
+        pointer["published"] = False
         with open(POINTER_PATH, "w", encoding="utf-8") as f:
             json.dump(pointer, f, ensure_ascii=False, indent=2)
         print(f"Updated pointer: {POINTER_PATH}")

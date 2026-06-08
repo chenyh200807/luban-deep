@@ -292,7 +292,7 @@ def test_list_available_providers() -> None:
     from deeptutor.tools.rag_tool import get_available_providers
 
     providers = get_available_providers()
-    assert [p["id"] for p in providers] == ["llamaindex", "supabase"]
+    assert [p["id"] for p in providers] == ["llamaindex", "supabase", "kbv5"]
 
 
 def test_factory_has_pipeline() -> None:
