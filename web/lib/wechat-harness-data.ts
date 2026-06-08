@@ -103,7 +103,7 @@ function loadLocalCommonJsModule(modulePath: string): unknown {
   if (cached !== undefined) return cached
 
   const source = fs.readFileSync(resolvedPath, 'utf8')
-  const module = { exports: {} as unknown }
+  const commonJsModule = { exports: {} as unknown }
   const dirname = path.dirname(resolvedPath)
 
   const localRequire = (specifier: string): unknown => {
@@ -114,9 +114,9 @@ function loadLocalCommonJsModule(modulePath: string): unknown {
   }
 
   const wrapper = new Function('require', 'module', 'exports', '__filename', '__dirname', source)
-  wrapper(localRequire, module, module.exports, resolvedPath, dirname)
-  localCommonJsCache.set(resolvedPath, module.exports)
-  return module.exports
+  wrapper(localRequire, commonJsModule, commonJsModule.exports, resolvedPath, dirname)
+  localCommonJsCache.set(resolvedPath, commonJsModule.exports)
+  return commonJsModule.exports
 }
 
 function readJson<T>(relativePath: string): T {
