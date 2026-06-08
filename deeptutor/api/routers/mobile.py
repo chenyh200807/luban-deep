@@ -2182,17 +2182,22 @@ async def billing_usage(authorization: str | None = Header(default=None)) -> dic
         return _build_billing_usage_payload([])
     try:
         snapshot = _wallet_snapshot_or_zero(wallet_user_id)
-        return _build_billing_usage_payload(
-            _load_billing_usage_entries(
-                authorization,
-                wallet_user_id=wallet_user_id,
-                limit=_BILLING_USAGE_LEDGER_WINDOW,
-            ),
-            plan_id=snapshot.plan_id,
+    except Exception as exc:
+        _billing_storage_unavailable(exc, source="billing_usage_wallet")
+        return _degraded_billing_usage_payload()
+    try:
+        entries = _load_billing_usage_entries(
+            authorization,
+            wallet_user_id=wallet_user_id,
+            limit=_BILLING_USAGE_LEDGER_WINDOW,
         )
     except Exception as exc:
-        _billing_storage_unavailable(exc, source="billing_usage")
-        return _degraded_billing_usage_payload()
+        _billing_storage_unavailable(exc, source="billing_usage_ledger")
+        entries = []
+    return _build_billing_usage_payload(
+        entries,
+        plan_id=snapshot.plan_id,
+    )
 
 
 @router.get("/billing/ledger")

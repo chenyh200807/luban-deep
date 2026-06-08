@@ -1116,7 +1116,7 @@ def test_mobile_chat_start_turn_skips_quota_gate_when_billing_storage_unavailabl
     assert captured["payload"]["config"]["billing_context"]["wallet_user_id"] == "wallet_demo"
 
 
-def test_billing_usage_returns_degraded_payload_when_billing_storage_unavailable(
+def test_billing_usage_falls_back_to_empty_usage_when_ledger_storage_unavailable(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     class FailingWalletService:
@@ -1136,6 +1136,41 @@ def test_billing_usage_returns_degraded_payload_when_billing_storage_unavailable
         @staticmethod
         def list_wallet_ledger(user_id: str, *, limit: int = 20, offset: int = 0):
             raise RuntimeError("supabase payment required")
+
+    monkeypatch.setattr(mobile_module, "wallet_service", FailingWalletService())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_wallet_lookup_user_id",
+        lambda *_args, **_kwargs: "wallet_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.get(
+            "/api/v1/billing/usage",
+            headers={"Authorization": "Bearer test-token"},
+        )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "ok"
+    assert body["display"]["primary_label"] == "剩余 100%"
+    assert body["display"]["plan_id"] == "advance"
+    assert [row["key"] for row in body["quota"]["rows"]] == ["five_hour", "weekly"]
+
+
+def test_billing_usage_returns_degraded_payload_when_wallet_storage_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FailingWalletService:
+        is_configured = True
+
+        @staticmethod
+        def get_wallet(user_id: str):
+            raise RuntimeError("supabase payment required")
+
+        @staticmethod
+        def list_wallet_ledger(user_id: str, *, limit: int = 20, offset: int = 0):
+            return []
 
     monkeypatch.setattr(mobile_module, "wallet_service", FailingWalletService())
     monkeypatch.setattr(
