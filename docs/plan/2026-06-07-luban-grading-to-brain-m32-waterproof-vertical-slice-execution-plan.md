@@ -1,5 +1,7 @@
 # Luban M32 Grading-to-Brain Waterproof Vertical Slice Implementation Plan
 
+> **Status: COMPLETE — slice verdict=GO（2026-06-08）。** 全部 7 个 Task 已实现并测试（M32 全套 41/41 绿）；`--live` 真实 `/api/v1/ws` gate 已 exercised，`go_no_go_m32.json` verdict=GO（`mode=live_ws_exercised`），safety 全清（`canonical_truth_written=false`、`production_write_count=0`）。已落 main（`3cea052a` + `f052f8be`）。Canonical closure 见 master plan §0.26.16。**不要重跑本计划**；下一步是第二专题泛化纵切（`concrete` / `contract_claim` / `schedule_network`，复用同一 `v_topic_<name>` 机制）。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Prove the product loop where Luban grading produces point-level learning evidence and Learning Brain/GBrain turns it into learner claims, a PersonalizationContextPack, next action, retest, and updated learner state.
@@ -74,8 +76,8 @@ flowchart TD
 - Create: `tests/scripts/test_luban_m32_grading_to_brain_waterproof_slice.py`
 - Output: `artifacts/luban_grading_artifacts/grading_to_brain_m32_waterproof_YYYYMMDD/`
 
-- [ ] Record `git status --short --branch`, `realpath .`, current HEAD, and dirty file groups.
-- [ ] Create the artifact skeleton with these required files:
+- [x] Record `git status --short --branch`, `realpath .`, current HEAD, and dirty file groups.
+- [x] Create the artifact skeleton with these required files:
   - `waterproof_topic_manifest_m32.json`
   - `compiled_context_consumption_m32.json`
   - `grading_event_ledger_m32.jsonl`
@@ -87,7 +89,7 @@ flowchart TD
   - `safety_invariant_report_m32.json`
   - `go_no_go_m32.json`
   - `FINDING_grading_to_brain_m32_waterproof_YYYYMMDD.md`
-- [ ] Add a script test that fails if any required artifact is missing.
+- [x] Add a script test that fails if any required artifact is missing.（`tests/scripts/test_luban_m32_grading_to_brain_waterproof_slice.py::test_slice_emits_all_required_artifacts_and_honest_weak_go`）
 
 **Acceptance:**
 
@@ -113,7 +115,7 @@ flowchart TD
   - 注：shard 内部 manifest 用 `topic` / `namespace` 字段；Task 1/7 的 `waterproof_topic_manifest_m32.json` 把它规范化为 `topic_id` + `canonical_pointer` 对外指针。
 - [x] Include source refs for waterproofing concepts, textbook chapter/node, required terms, and at least one practice/retest mapping（manifest pointer 带 `source_refs`：`point_id` + `required_term` + `knowledge_point`；practice/retest 由 Task 1/7 的 `next_best_action_m32.json` + `retest_outcome_proof_m32.jsonl` 体现）。
 - [x] Load the shard through a resolver path that never scans artifacts by mtime or filename（经 canonical manifest lane + `compiled_registry_resolver`，按 namespace/topic 解析，非目录扫描）。
-- [ ] Prove tampered/missing/malformed shard fails closed to open-world diagnostic, not release truth —— **未做专项测试**：`tests/services/construction_grading/test_m32_waterproof_topic_runtime_supply.py` 尚未创建；fail-closed 目前由 `compiled_registry_resolver` 既有 `verify_bundle`（四层校验）通用覆盖，但缺防水专项断言。M32 GO 已在 `go_no_go_m32.json` 的 live_blockers 中体现 candidate 级限制。
+- [x] Prove tampered/missing/malformed shard fails closed to open-world diagnostic, not release truth —— **已建专项测试** `tests/services/construction_grading/test_m32_waterproof_topic_runtime_supply.py`：覆盖 unpublished/candidate-grade、required manifest fields、signed content hash（防手写/篡改）、namespace 解析（非目录扫描）、missing shard 返回 None 而非抛异常（fail-closed 到 open-world）、tier=teaching_context 非 answer_key。
 
 **Acceptance:**
 
@@ -129,8 +131,8 @@ flowchart TD
 - Modify only if needed: `deeptutor/services/construction_grading/writeback.py`
 - Test: `tests/services/construction_grading/test_m32_grading_event_learning_evidence.py`
 
-- [ ] Extend the existing flat `learning_evidence` payload shape; do not introduce a new DB table or string schema namespace.
-- [ ] Add point-level fields needed by Learning Brain:
+- [x] Extend the existing flat `learning_evidence` payload shape; do not introduce a new DB table or string schema namespace.
+- [x] Add point-level fields needed by Learning Brain:
   - `point_id`
   - `knowledge_point`
   - `policy_type`
@@ -143,7 +145,7 @@ flowchart TD
   - `high_risk_review`
   - `engine.gate_status`
   - `artifact_status`
-- [ ] Use this concrete waterproof example as a fixture seed:
+- [x] Use this concrete waterproof example as a fixture seed:
 
 ```json
 {
@@ -181,7 +183,7 @@ flowchart TD
 - Modify: `deeptutor/services/learner_state/learning_synthesis.py`
 - Test: `tests/services/learner_state/test_m32_waterproof_learning_synthesis.py`
 
-- [ ] Convert repeated waterproof learning evidence into a `LearnerClaim` with:
+- [x] Convert repeated waterproof learning evidence into a `LearnerClaim` with:
   - `claim_id`
   - `subject_id`
   - `concept_id`
@@ -191,9 +193,9 @@ flowchart TD
   - `evidence_refs`
   - `requires_retest`
   - `last_seen_at`
-- [ ] Ensure near-synonym exact-required misses can create `observed` or `needs_retest`, but not mastery.
-- [ ] Ensure a real retest pass can move the claim toward `confirmed` or clear a stale weakness according to existing claim lifecycle rules.
-- [ ] Ensure missing evidence, cross-user, cross-subject, or shadow-only events do not produce a promoted claim.
+- [x] Ensure near-synonym exact-required misses can create `observed` or `needs_retest`, but not mastery.
+- [x] Ensure a real retest pass can move the claim toward `confirmed` or clear a stale weakness according to existing claim lifecycle rules.
+- [x] Ensure missing evidence, cross-user, cross-subject, or shadow-only events do not produce a promoted claim.
 
 **Acceptance:**
 
@@ -212,8 +214,8 @@ flowchart TD
 - Test: `tests/services/learner_state/test_m32_waterproof_personalization_context.py`
 - Test: `tests/services/learner_state/test_m32_waterproof_next_best_action.py`
 
-- [ ] Build a PCP that includes the waterproof claim, evidence refs, active training intent, and one next action candidate.
-- [ ] Generate a next action of this shape:
+- [x] Build a PCP that includes the waterproof claim, evidence refs, active training intent, and one next action candidate.
+- [x] Generate a next action of this shape:
 
 ```json
 {
@@ -226,8 +228,8 @@ flowchart TD
 }
 ```
 
-- [ ] Ensure report, TutorBot, and practice surfaces read PCP / next action from the same backend projection.
-- [ ] Add a negative test proving the frontend or wrapper cannot invent a different recommendation when PCP exists.
+- [x] Ensure report, TutorBot, and practice surfaces read PCP / next action from the same backend projection.
+- [x] Add a negative test proving the frontend or wrapper cannot invent a different recommendation when PCP exists.
 
 **Acceptance:**
 
@@ -243,8 +245,8 @@ flowchart TD
 - Modify only if needed: `deeptutor/services/learner_state/learning_synthesis.py`
 - Test: `tests/services/learner_state/test_m32_waterproof_retest_outcome.py`
 
-- [ ] Generate a retest event linked to the waterproof claim and action id.
-- [ ] Record outcome fields:
+- [x] Generate a retest event linked to the waterproof claim and action id.
+- [x] Record outcome fields:
   - `retest_happened`
   - `passed`
   - `target_point_id`
@@ -252,9 +254,9 @@ flowchart TD
   - `new_event_id`
   - `improved_points`
   - `not_improved_points`
-- [ ] If retest passes, update the claim or produce an improvement edge.
-- [ ] If retest fails, keep the claim active and generate a different strategy, such as textbook review before another practice.
-- [ ] If retest is simulated, keep it preview-only and do not update canonical claim.
+- [x] If retest passes, update the claim or produce an improvement edge.
+- [x] If retest fails, keep the claim active and generate a different strategy, such as textbook review before another practice.
+- [x] If retest is simulated, keep it preview-only and do not update canonical claim.
 
 **Acceptance:**
 
@@ -269,9 +271,9 @@ flowchart TD
 - Modify: `scripts/run_luban_m32_grading_to_brain_waterproof_slice.py`
 - Test: `tests/scripts/test_luban_m32_grading_to_brain_waterproof_slice.py`
 
-- [ ] Run the waterproof slice end-to-end using hermetic fixtures.
-- [ ] Optionally run a live `/api/v1/ws` TestClient scenario when credentials and safe environment are available.
-- [ ] Write `safety_invariant_report_m32.json` with:
+- [x] Run the waterproof slice end-to-end using hermetic fixtures.
+- [x] Optionally run a live `/api/v1/ws` TestClient scenario when credentials and safe environment are available.（已实现 `--live` → `tests/integration/test_luban_m32_grading_to_brain_waterproof_ws.py`，5/5 绿，verdict 升 GO）
+- [x] Write `safety_invariant_report_m32.json` with:
   - `official_score_laundering`
   - `answer_key_override`
   - `source_laundering`
@@ -283,7 +285,7 @@ flowchart TD
   - `cross_subject_leak`
   - `production_write_count`
   - `canonical_truth_written`
-- [ ] Write `go_no_go_m32.json` with verdict `GO`, `WEAK-GO`, or `NO-GO`.
+- [x] Write `go_no_go_m32.json` with verdict `GO`, `WEAK-GO`, or `NO-GO`.（实测 `--live` → `verdict=GO`，`mode=live_ws_exercised`；无 `--live` → `WEAK-GO`，`hermetic_only`）
 
 **Acceptance:**
 
