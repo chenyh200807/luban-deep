@@ -1017,7 +1017,12 @@ class AgentLoop:
                         event.get("rubric_provenance"), event.get("awarded_score"),
                         event.get("max_score"), student_id, ctx.get("question_id"))
             self._record_v1_grading_to_brain(runtime_metadata=md, event=event, ctx=ctx)
-            return _G.render_case_rubric_feedback(event, question_stem=str(ctx.get("question_stem") or ""))
+            pcp = md.get("personalization_context") if isinstance(md.get("personalization_context"), dict) else None
+            return _G.render_case_rubric_feedback(
+                event,
+                question_stem=str(ctx.get("question_stem") or ""),
+                personalization_context_pack=pcp,
+            )
         except Exception:  # noqa: BLE001 — V1 must never break the tutorbot turn
             logger.warning("LUBAN_V1 tutorbot grading failed; legacy answer unaffected", exc_info=True)
             return ""
@@ -1045,8 +1050,9 @@ class AgentLoop:
             )
             from deeptutor.services.learner_state import get_learner_state_service
 
+            learner_state_service = get_learner_state_service()
             writeback = write_case_grading_event_learning_evidence(
-                learner_state_service=get_learner_state_service(),
+                learner_state_service=learner_state_service,
                 user_id=student_id,
                 grading_event=event,
                 source_id=source_id,
@@ -1080,9 +1086,17 @@ class AgentLoop:
                     build_personalization_context_pack,
                 )
 
+                learning_brain = None
+                if hasattr(learner_state_service, "synthesize_learning_truth"):
+                    synthesized = learner_state_service.synthesize_learning_truth(
+                        student_id,
+                        dry_run=True,
+                        event_limit=50,
+                    )
+                    learning_brain = synthesized.get("projection") if isinstance(synthesized, dict) else None
                 pcp = build_personalization_context_pack(
                     user_id=student_id,
-                    learning_brain=None,
+                    learning_brain=learning_brain,
                     active_training_intent=intent,
                     recent_events=[{"event_id": str(writeback.get("event_id") or "")}],
                 )

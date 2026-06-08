@@ -76,7 +76,9 @@ def synthesize_learning_truth(
     raw_weak_points: list[dict[str, Any]] = []
     for (concept_id, error_code), items in sorted(grouped.items()):
         candidate = _candidate_from_items(concept_id, error_code, items)
-        if len(items) >= 2:
+        if any(_clean_text(item.get("evidence_level")) == "L2_confirmed" for item in items):
+            raw_weak_points.append({**candidate, "evidence_level": "L2_confirmed"})
+        elif len(items) >= 2:
             raw_weak_points.append({**candidate, "evidence_level": "L1_repeated"})
         else:
             observed_candidates.append({**candidate, "evidence_level": "L0_observed"})
@@ -365,6 +367,7 @@ def _learning_items(event: LearnerStateEvent) -> list[dict[str, Any]]:
     question_id = _clean_text(payload.get("question_id"))
     turn_id = _clean_text(payload.get("turn_id")) or _clean_text(event.source_id)
     quality = payload.get("quality") if isinstance(payload.get("quality"), dict) else {}
+    evidence_level = _learning_item_evidence_level(quality=quality, signal=signal)
     conflicting_event_ids = [
         _clean_text(item)
         for item in list(quality.get("conflicting_event_ids") or payload.get("conflicting_event_ids") or [])
@@ -387,6 +390,7 @@ def _learning_items(event: LearnerStateEvent) -> list[dict[str, Any]]:
             "recommended_training": dict(signal),
             "conflicting_event_ids": conflicting_event_ids,
             "evidence_cap_reasons": _evidence_cap_reasons(quality),
+            "evidence_level": evidence_level,
             "is_improvement": True,
         }]
     if not errors:
@@ -418,9 +422,21 @@ def _learning_items(event: LearnerStateEvent) -> list[dict[str, Any]]:
             "recommended_training": dict(signal),
             "conflicting_event_ids": conflicting_event_ids,
             "evidence_cap_reasons": _evidence_cap_reasons(quality),
+            "evidence_level": evidence_level,
             "is_improvement": False,
         })
     return items
+
+
+def _learning_item_evidence_level(*, quality: dict[str, Any], signal: dict[str, Any]) -> str:
+    teacher_final = (
+        signal.get("teacher_final_grading_result")
+        if isinstance(signal.get("teacher_final_grading_result"), dict)
+        else {}
+    )
+    if quality.get("teacher_reviewed") is True and teacher_final.get("teacher_reviewed") is True:
+        return "L2_confirmed"
+    return _clean_text(quality.get("evidence_level"))
 
 
 def _evidence_cap_reasons(quality: dict[str, Any]) -> list[str]:

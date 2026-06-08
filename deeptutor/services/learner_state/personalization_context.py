@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from deeptutor.services.learner_state.next_best_action import build_next_best_actions
+from deeptutor.services.learner_state.training_intent import build_learning_training_intent
 
 
 _STABLE_CLAIM_STATUSES = {"confirmed", "repeated", "observed"}
@@ -19,6 +20,8 @@ def build_personalization_context_pack(
 ) -> dict[str, Any]:
     claims = _claim_views(learning_brain, max_claims=max_claims)
     intent = dict(active_training_intent or {}) if isinstance(active_training_intent, dict) else {}
+    if not intent:
+        intent = _training_intent_from_claim(user_id=user_id, claim=claims[0] if claims else {})
     actions = build_next_best_actions(
         user_id=user_id,
         training_intents=[intent] if intent else [],
@@ -99,6 +102,32 @@ def _compiled_objects(learning_brain: dict[str, Any] | None) -> list[dict[str, A
     if isinstance(objects, dict):
         return [dict(item) for item in objects.values() if isinstance(item, dict)]
     return [dict(item) for item in list(objects or []) if isinstance(item, dict)]
+
+
+def _training_intent_from_claim(*, user_id: str, claim: dict[str, Any]) -> dict[str, Any]:
+    if not isinstance(claim, dict):
+        return {}
+    evidence_refs = _refs(claim.get("evidence_refs"))
+    if not evidence_refs:
+        return {}
+    concept_id = str(claim.get("concept_id") or "").strip()
+    error_code = ""
+    claim_id = str(claim.get("claim_id") or "").strip()
+    if not concept_id and ":" in claim_id:
+        concept_id = claim_id.split(":", 1)[0].strip()
+    if ":" in claim_id:
+        error_code = claim_id.rsplit(":", 1)[-1].strip()
+    return build_learning_training_intent(
+        user_id=str(user_id or "").strip(),
+        concept_id=concept_id,
+        concept_label=str(claim.get("label") or claim.get("claim_id") or "").strip(),
+        error_code=error_code,
+        error_label=error_code,
+        evidence_refs=evidence_refs,
+        training_mode="case_repair",
+        source="PersonalizationContextPack",
+        reason="confirmed_or_repeated_learning_claim",
+    )
 
 
 def _refs(value: Any) -> list[str]:

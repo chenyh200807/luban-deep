@@ -245,7 +245,12 @@ def _registered_learning_error_code(mistake_type: str) -> str:
     return "E02"
 
 
-def render_case_rubric_feedback(event: dict[str, Any], *, question_stem: str = "") -> str:
+def render_case_rubric_feedback(
+    event: dict[str, Any],
+    *,
+    question_stem: str = "",
+    personalization_context_pack: dict[str, Any] | None = None,
+) -> str:
     """Render a GradingEvent into the student-facing case feedback (the text shown in chat).
 
     SAME-SOURCE rendering (the ④ fix): the displayed words are derived purely and deterministically from
@@ -290,11 +295,27 @@ def render_case_rubric_feedback(event: dict[str, Any], *, question_stem: str = "
     if weak:
         lines.append("")
         lines.append("【薄弱点（需重点复习）】" + "；".join(w for w in weak if w))
+    profile_note = _personalized_feedback_note(personalization_context_pack)
+    if profile_note:
+        lines.append("")
+        lines.append(profile_note)
     lines.append("")
     note = "本评分为 AI 阅卷草稿，需教师复核后方可作为正式成绩。" if event.get("high_risk_review") \
         else "本评分为 AI 阅卷草稿，非正式成绩。"
     lines.append(f"（{note}）")
     return "\n".join(lines)
+
+
+def _personalized_feedback_note(personalization_context_pack: dict[str, Any] | None) -> str:
+    pcp = personalization_context_pack if isinstance(personalization_context_pack, dict) else {}
+    claims = [claim for claim in list(pcp.get("top_claims") or []) if isinstance(claim, dict)]
+    if not claims:
+        return ""
+    claim = claims[0]
+    label = str(claim.get("label") or claim.get("claim_id") or "").strip()
+    if not label:
+        return ""
+    return f"【长期画像提示】你之前也出现过同类问题：{label}。这个提示只用于调整讲评侧重点，不会改变本次采分点得分。"
 
 
 @lru_cache(maxsize=1)

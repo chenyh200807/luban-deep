@@ -21,6 +21,7 @@ REQUIRED = [
     "grading_event_ledger_m32.jsonl", "learning_evidence_ledger_m32.jsonl",
     "learner_claim_projection_m32.jsonl", "personalization_context_pack_m32.json",
     "next_best_action_m32.json", "retest_outcome_proof_m32.jsonl",
+    "teacher_final_real_retest_promotion_m32.json",
     "safety_invariant_report_m32.json", "go_no_go_m32.json",
 ]
 
@@ -40,7 +41,7 @@ def test_slice_emits_all_required_artifacts_and_honest_weak_go(tmp_path) -> None
     assert gng["mode"] == "hermetic_only"
     assert gng["safety_gate_proven"] is True
     assert gng["live_ws_exercised"] is False
-    assert gng["canonical_promotion_demonstrated"] is False
+    assert gng["canonical_promotion_demonstrated"] is True
     assert gng["live_blockers"]
     # live_ws gate must be present in live_blockers when not exercised
     assert any("live /api/v1/ws" in b for b in gng["live_blockers"])
@@ -56,8 +57,7 @@ def test_live_ws_gate_upgrades_verdict_to_go(tmp_path) -> None:
     assert gng["mode"] == "live_ws_exercised"
     assert gng["live_ws_exercised"] is True
     assert gng["safety_gate_proven"] is True
-    # canonical promotion is a production blocker, never closes in this slice
-    assert gng["canonical_promotion_demonstrated"] is False
+    assert gng["canonical_promotion_demonstrated"] is True
     # live_ws blocker must be absent when exercised
     assert not any("live /api/v1/ws not exercised" in b for b in gng["live_blockers"])
 
@@ -109,6 +109,18 @@ def test_authority_gate_safety_direction(tmp_path) -> None:
     assert by_auth["candidate_preview"]["counted_as_improvement"] is False
     assert by_auth["simulated"]["counted_as_improvement"] is False
     assert by_auth["simulated"]["simulated"] is True
+
+
+def test_teacher_final_real_retest_positive_arm_is_demonstrated(tmp_path) -> None:
+    m32.run_slice(out_dir=str(tmp_path))
+    proof = json.loads((tmp_path / "teacher_final_real_retest_promotion_m32.json").read_text(encoding="utf-8"))
+
+    assert proof["teacher_final_confirmed_claim"]["claim_status"] == "confirmed"
+    assert proof["teacher_final_confirmed_claim"]["evidence_level"] == "L2_confirmed"
+    assert proof["real_retest"]["counted_as_improvement"] is True
+    assert proof["post_retest_projection"]["weak_points"] == []
+    assert proof["post_retest_projection"]["stale_claims"][0]["claim_status"] == "stale"
+    assert proof["personalization_context_after_teacher_final"]["next_best_action_candidates"]
 
 
 def test_loop_is_explainable_end_to_end(tmp_path) -> None:

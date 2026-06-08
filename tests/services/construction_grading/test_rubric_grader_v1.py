@@ -126,6 +126,35 @@ def test_render_case_rubric_feedback_same_source_and_reasons():
     assert "薄弱点" in text and "列举6项检验" in text       # P2 (partial) is a weak point
 
 
+def test_render_case_rubric_feedback_uses_long_term_profile_for_tone_only() -> None:
+    judge = _judge({
+        "P1": {"status": G.MISS, "evidence_span": "普通钢筋调直机"},
+        "P2": {"status": G.HIT},
+        "P3": {"status": G.HIT},
+    })
+    ev = G.grade_with_rubric(qid="Q1", student_answer="x", rubric_points=_rubric(), judge_fn=judge)
+
+    text = G.render_case_rubric_feedback(
+        ev,
+        question_stem="某案例题",
+        personalization_context_pack={
+            "source": "PersonalizationContextPack",
+            "top_claims": [
+                {
+                    "claim_status": "confirmed",
+                    "label": "你多次出现 exact_required 术语近义替代问题",
+                    "evidence_refs": ["teacher_final_evt"],
+                }
+            ],
+        },
+    )
+
+    assert f"【得分】{ev['awarded_score']} / {ev['max_score']} 分" in text
+    assert "长期画像提示" in text
+    assert "exact_required" in text
+    assert "不会改变本次采分点得分" in text
+
+
 def test_rubric_v1_shadow_qa_gate_and_grading():
     from deeptutor.services.construction_grading import runtime_shadow_adapter as A
     pts = [{"point_id": "P1", "text": "数控钢筋调直切断机", "score": 1.0, "policy": "exact_required",

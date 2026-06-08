@@ -74,3 +74,32 @@ def test_personalization_context_treats_string_evidence_ref_as_single_ref() -> N
     )
 
     assert pack["top_claims"][0]["evidence_refs"] == ["evt_string"]
+
+
+def test_personalization_context_derives_next_action_from_confirmed_long_term_claim() -> None:
+    pack = build_personalization_context_pack(
+        user_id="student_demo",
+        learning_brain={
+            "compiled_objects": [
+                {
+                    "object_id": "1A413050:E02",
+                    "object_type": "error",
+                    "claim_status": "confirmed",
+                    "concept_id": "1A413050",
+                    "label": "屋面与防水工程施工：采分点遗漏",
+                    "supporting_event_ids": ["teacher_final_evt"],
+                    "evidence_refs": ["teacher_final_evt"],
+                    "confidence": 0.92,
+                }
+            ]
+        },
+        active_training_intent=None,
+    )
+
+    assert pack["active_training_intent"]["source"] == "PersonalizationContextPack"
+    assert pack["active_training_intent"]["concept_id"] == "1A413050"
+    assert pack["active_training_intent"]["evidence_refs"] == ["teacher_final_evt"]
+    nba = pack["next_best_action_candidates"][0]
+    assert nba["prescription_authority"] == "training_intent"
+    assert nba["evidence_refs"] == ["teacher_final_evt"]
+    assert "防水" in nba["target"]
