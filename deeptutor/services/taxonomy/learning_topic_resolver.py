@@ -36,6 +36,11 @@ _GENERIC_TOPIC_LABELS = {
     "当前题目",
     "当前考点",
     "当前知识点",
+    "本题为",
+    "题干",
+    "问题",
+    "案例题",
+    "选择题",
     "本次错因",
     "薄弱点",
     "知识点",
@@ -47,6 +52,9 @@ _GENERIC_TOPIC_LABELS = {
     "建筑实务入门诊断",
     "入门摸底",
 }
+_QUESTION_STEM_MARKER_RE = re.compile(
+    r"(?:什么|如何|为什么|怎么|是否|哪些|哪项|指出|写出|说明|分析|判断|应考虑|正确做法|不妥|多答不得分|本题)"
+)
 
 TopicInferer = Callable[[dict[str, Any], list[str]], str]
 
@@ -333,11 +341,38 @@ def normalize_learning_topic_text(value: Any) -> str:
         return ""
     if _DEICTIC_TOPIC_RE.fullmatch(compact):
         return ""
+    if _looks_like_question_stem_label(text):
+        return ""
     # single authority for "is this a real textbook topic" — drops front/back-matter + marketing noise
     # (讲义封底免费听课资源 …) so it never reaches the conversation page's recommended topics.
     if is_non_topic_label(text):
         return ""
     return text
+
+
+def canonical_learning_topic_label(value: Any) -> str:
+    text = normalize_learning_topic_text(value)
+    if not text:
+        return ""
+    topic = resolve_learning_topic_from_payload({"knowledge_points": [text]}, llm_topic_inferer=None)
+    if topic:
+        return topic.label
+    option = resolve_canonical_option(text)
+    if option:
+        return str(option.get("name") or "").strip()
+    return ""
+
+
+def _looks_like_question_stem_label(text: str) -> bool:
+    compact = _compact(text)
+    if compact.startswith(("本题为", "题目为", "问题为", "案例背景")):
+        return True
+    if len(compact) > 48:
+        return True
+    if len(compact) > 18 and _QUESTION_STEM_MARKER_RE.search(compact):
+        return True
+    has_question_shape = any(marker in text for marker in ("?", "？", "\n", "\r", "（", "）", "(", ")"))
+    return bool(len(compact) > 4 and has_question_shape and _QUESTION_STEM_MARKER_RE.search(compact))
 
 
 @lru_cache(maxsize=1)
@@ -443,6 +478,7 @@ def _compact(value: Any) -> str:
 __all__ = [
     "ResolvedLearningTopic",
     "TopicInferer",
+    "canonical_learning_topic_label",
     "compile_taxonomy_payload",
     "infer_learning_topic_with_llm",
     "normalize_learning_topic_text",

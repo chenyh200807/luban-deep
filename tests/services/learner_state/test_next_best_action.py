@@ -60,3 +60,24 @@ def test_next_best_action_treats_string_evidence_ref_as_single_ref() -> None:
     )[0]
 
     assert action["evidence_refs"] == ["evt_string"]
+    assert action["title"] == "先练屋面与防水工程施工"
+    assert action["target"] == "屋面与防水工程施工"
+    assert action["materials"][0] == "教材：屋面与防水工程施工相关章节"
+
+
+def test_next_best_action_does_not_surface_unmapped_raw_concept_label() -> None:
+    action = build_next_best_actions(
+        user_id="student_demo",
+        training_intents=[
+            {
+                "training_intent_id": "lti_raw_topic",
+                "status": "active",
+                "concept_label": "专家论证程序",
+                "evidence_refs": ["evt_raw"],
+            }
+        ],
+    )[0]
+
+    assert action["title"] == "先补一题可诊断练习"
+    assert action["target"] == "诊断练习"
+    assert "专家论证程序" not in str(action["materials"])

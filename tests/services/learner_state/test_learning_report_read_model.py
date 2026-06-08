@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+import json
 
 import pytest
 
@@ -136,6 +137,21 @@ class NoStudyPlanMemberService(FakeMemberService):
         return data
 
 
+class RawStudyPlanMemberService(FakeMemberService):
+    def get_home_dashboard(self, user_id: str) -> dict:
+        data = dict(super().get_home_dashboard(user_id))
+        data["today"] = {"hint": "优先补强 专家论证程序"}
+        data["today_focus"] = {"title": "推进专家论证程序下一步学习"}
+        data["study_plan"] = {
+            "focus_topic": "专家论证程序",
+            "priority_task": "先围绕专家论证程序速练 5 题",
+            "study_method": "先看专家论证程序，再做题",
+            "coach_note": "当前优先补强专家论证程序",
+            "source": "legacy_home_dashboard",
+        }
+        return data
+
+
 class PathServiceStub:
     def __init__(self, root):
         self._root = root
@@ -207,7 +223,7 @@ def test_attempt_count_treats_same_question_replay_as_two_attempts() -> None:
     assert overview["today_unique_questions"] == 1
     assert overview["recent_three_unique_questions"] == 1
     assert overview["unique_question_count"] == 1
-    assert model["study_plan"]["focus_topic"] == "建筑构造"
+    assert model["study_plan"]["focus_topic"] == "建筑构造设计的基本要求"
     assert model["study_plan"]["priority_task"] == "先围绕薄弱点速练 5 题"
     assert model["study_plan"]["source"] == "training_intent"
 
@@ -241,11 +257,26 @@ def test_learning_report_derives_study_plan_from_next_training_when_home_plan_mi
         event_limit=50,
     )
 
-    assert model["study_plan"]["focus_topic"] == "建筑构造"
+    assert model["study_plan"]["focus_topic"] == "建筑构造设计的基本要求"
     assert model["study_plan"]["priority_task"].startswith("先做 3 道")
     assert model["study_plan"]["study_method"]
     assert model["study_plan"]["time_budget"] == "约 8 分钟"
     assert model["study_plan"]["source"] == "training_prescription"
+
+
+def test_learning_report_does_not_project_raw_home_study_plan_topic() -> None:
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=RawStudyPlanMemberService(),
+        learner_state_service=FakeLearnerStateService([
+            _learning_event("evt_raw_plan", days_ago=0, concept_id="1A432000"),
+        ]),
+        event_limit=50,
+    )
+
+    rendered = json.dumps(model["study_plan"], ensure_ascii=False)
+    assert model["study_plan"]["focus_topic"] == "工程招标投标与合同管理"
+    assert "专家论证程序" not in rendered
 
 
 def test_training_prescription_uses_specific_evidence_topic_not_prompt_text() -> None:
@@ -1079,7 +1110,7 @@ def test_schema_v2_dual_emits_v1_fields_and_v2_surfaces() -> None:
     )
     assert model["authority"]["attempt_detail_source"] == "attempt-detail-read-model"
     assert model["authority"]["mistake_book_source"] == "learner_mistake_book_items"
-    assert model["study_plan"]["focus_topic"] == "建筑构造"
+    assert model["study_plan"]["focus_topic"] == "建筑构造设计的基本要求"
     assert model["study_plan"]["priority_task"] == "先围绕薄弱点速练 5 题"
     assert model["attempts"][0]["attempt_ref"]
     assert model["hero"]["primary_cta"]["intent"]["source"] == "learning_report"

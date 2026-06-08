@@ -35,7 +35,8 @@ var model = vm.buildLearningHomeViewModel({
 });
 assert.strictEqual(model.focusTitle, "按当前状态推进建筑实务");
 assert.strictEqual(model.recommendedPrompts[0].text, "练 3 道主体结构题");
-assert.strictEqual(model.focusActionType, "prompt");
+assert.strictEqual(model.focusQuery, "");
+assert.strictEqual(model.focusActionType, "");
 
 var assessmentModel = vm.buildLearningHomeViewModel({
   today_focus: { title: "一题，给系统第一份学习证据" },
@@ -54,7 +55,7 @@ var assessmentLessonModel = vm.buildLearningHomeViewModel({
     { text: "讲一下阶段测评后应该怎么复盘", prompt_type: "concept_explain" },
   ],
 });
-assert.strictEqual(assessmentLessonModel.focusActionType, "prompt");
+assert.strictEqual(assessmentLessonModel.focusActionType, "");
 assert.strictEqual(assessmentLessonModel.recommendedPrompts.length, 1);
 
 var legacyThreePromptModel = vm.buildLearningHomeViewModel({
@@ -82,14 +83,11 @@ assert.deepStrictEqual(
     "practice_prompt",
     "mistake_review",
     "concept_explain",
-    "exam_transfer",
-    "knowledge_map",
-    "quick_check",
   ],
 );
 assert.deepStrictEqual(
   legacyThreePromptModel.recommendedPrompts.map(function (item) { return item.displayTitle; }),
-  ["专项训练", "错题复盘", "关键判断", "真题迁移", "考点梳理", "自测验证"],
+  ["专项训练", "错题复盘", "关键判断"],
 );
 
 var sixPromptModel = vm.buildLearningHomeViewModel({

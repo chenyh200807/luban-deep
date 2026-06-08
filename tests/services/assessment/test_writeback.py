@@ -109,14 +109,40 @@ def test_assessment_writeback_updates_home_personalization_projection(monkeypatc
 
     assert len(learner.progress_patches) == 1
     projection = learner.progress_patches[0]["patch"]["home_personalization"]
-    assert projection["today_focus"]["title"] == "今日焦点：防水工程"
-    assert projection["today_focus"]["prompt"] == "用 3 道题训练防水工程"
+    assert projection["today_focus"]["title"] == "今日焦点：屋面与防水工程施工"
+    assert projection["today_focus"]["prompt"] == "用 3 道题训练屋面与防水工程施工"
     assert projection["recommended_prompts"][0]["prompt_type"] == "practice_prompt"
     assert projection["recommended_prompts"][0]["intent"]["evidence_refs"] == [
         "evt_2",
         refs["learning_event_refs"][1]["attempt_ref"],
     ]
     assert projection["source_status"]["learning_report"] == "projection"
+
+
+def test_assessment_writeback_uses_question_taxonomy_code_for_home_projection_without_llm(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service, learner, _mistake_book = _service(monkeypatch)
+    monkeypatch.setattr(
+        "deeptutor.services.learner_state.home_personalization.infer_learning_topic_with_llm",
+        lambda _payload, _candidates: "",
+    )
+    scored = _scored_result()
+    scored["items"][1]["node_code"] = "1A413050"
+
+    service.writeback(
+        user_id="student_demo",
+        quiz_id="quiz_1",
+        form_id="form_1",
+        assessment_type="topic_diagnostic",
+        subject_id="construction_exam_1",
+        scored_result=scored,
+    )
+
+    projection = learner.progress_patches[0]["patch"]["home_personalization"]
+    assert projection["today_focus"]["title"] == "今日焦点：屋面与防水工程施工"
+    assert projection["today_focus"]["intent"]["taxonomy_code"] == "1A413050"
+    assert projection["recommended_prompts"][0]["text"] == "用 3 道题训练屋面与防水工程施工"
 
 
 def test_submit_duplicate_does_not_duplicate_learning_events(monkeypatch: pytest.MonkeyPatch) -> None:

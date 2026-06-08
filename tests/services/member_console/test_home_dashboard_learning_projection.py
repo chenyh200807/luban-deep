@@ -9,6 +9,7 @@ import deeptutor.services.learner_state.home_personalization as home_personaliza
 from deeptutor.services.learner_state.home_personalization import (
     build_home_dashboard_learning_projection,
     build_home_personalization_projection_from_learning_signal,
+    write_home_personalization_projection,
 )
 from deeptutor.services.member_console.service import MemberConsoleService
 
@@ -22,15 +23,18 @@ def test_home_dashboard_uses_fresh_home_personalization_projection() -> None:
         "generated_at": generated_at,
         "source_status": {"fallback_used": False, "learning_report": "projection"},
         "today_focus": {
-            "title": "今日焦点：流水施工",
+            "title": "今日焦点：项目质量计划管理",
             "meta": "刚生成的学情投影",
-            "intent": {"source": "learner_state.home_personalization", "concept_label": "流水施工"},
+            "intent": {"source": "learner_state.home_personalization", "concept_label": "项目质量计划管理"},
         },
         "recommended_prompts": [
             {
                 "prompt_type": "mistake_review",
-                "text": "复盘流水施工错因",
-                "intent": {"source": "learner_state.home_personalization"},
+                "text": "复盘项目质量计划管理里的错因",
+                "intent": {
+                    "source": "learner_state.home_personalization",
+                    "concept_label": "项目质量计划管理",
+                },
             }
         ],
     }
@@ -41,8 +45,8 @@ def test_home_dashboard_uses_fresh_home_personalization_projection() -> None:
         now=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
     )
 
-    assert dashboard["today_focus"]["title"] == "今日焦点：流水施工"
-    assert dashboard["recommended_prompts"][0]["text"] == "复盘流水施工错因"
+    assert dashboard["today_focus"]["title"] == "今日焦点：项目质量计划管理"
+    assert dashboard["recommended_prompts"][0]["text"] == "复盘项目质量计划管理里的错因"
     assert dashboard["source_status"]["fallback_used"] is False
     assert dashboard["source_status"]["learning_report"] == "projection"
 
@@ -249,6 +253,44 @@ def test_learning_signal_projection_generates_six_actionable_prompt_types() -> N
     ]
 
 
+def test_home_personalization_write_rejects_non_canonical_focus_projection() -> None:
+    class _LearnerState:
+        def __init__(self) -> None:
+            self.patches: list[dict[str, object]] = []
+
+        def merge_progress(self, user_id: str, patch: dict[str, object]) -> None:
+            self.patches.append({"user_id": user_id, "patch": patch})
+
+    learner_state = _LearnerState()
+    bad_projection = {
+        "generated_at": datetime(2026, 5, 21, 10, 0, tzinfo=_TZ).isoformat(),
+        "today_focus": {
+            "title": "今日焦点：本题为",
+            "intent": {
+                "source": "learner_state.home_personalization",
+                "concept_label": "本题为",
+            },
+        },
+        "recommended_prompts": [
+            {
+                "prompt_type": "practice_prompt",
+                "text": "用 3 道题训练施工现场布置塔吊时应考虑的因素还有哪些？",
+                "intent": {
+                    "source": "learner_state.home_personalization",
+                    "concept_label": "施工现场布置塔吊时应考虑的因素还有哪些？",
+                },
+            }
+        ],
+    }
+
+    assert write_home_personalization_projection(
+        learner_state,
+        user_id="student_demo",
+        projection=bad_projection,
+    ) is False
+    assert learner_state.patches == []
+
+
 def test_stale_or_missing_projection_falls_back_to_seed_starters() -> None:
     stale_projection = {
         "generated_at": datetime(2026, 5, 21, 2, 0, tzinfo=_TZ).isoformat(),
@@ -318,6 +360,116 @@ def test_fresh_projection_with_deictic_focus_recovers_from_learning_evidence() -
     assert dashboard["today_focus"]["title"] == "今日焦点：屋面与防水工程施工"
     assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练屋面与防水工程施工"
     assert "这题" not in json.dumps(dashboard, ensure_ascii=False)
+    assert dashboard["source_status"]["recovered_from"] == "learner_memory_events.learning_evidence"
+
+
+def test_fresh_projection_with_question_stem_focus_recovers_to_canonical_textbook_topic() -> None:
+    generated_at = datetime(2026, 5, 21, 9, 0, tzinfo=_TZ).isoformat()
+    bad_projection = {
+        "generated_at": generated_at,
+        "source_status": {"fallback_used": False, "learning_report": "projection"},
+        "today_focus": {
+            "title": "今日焦点：本题为",
+            "meta": "来自 learner_state.home_personalization",
+            "intent": {
+                "source": "learner_state.home_personalization",
+                "concept_label": "本题为",
+                "topic_source": "llm_inferred",
+                "topic_confidence": "low",
+            },
+        },
+        "recommended_prompts": [
+            {
+                "prompt_type": "practice_prompt",
+                "text": "用 3 道题训练施工现场布置塔吊时应考虑的因素还有哪些？",
+                "intent": {
+                    "source": "learner_state.home_personalization",
+                    "concept_label": "施工现场布置塔吊时应考虑的因素还有哪些？",
+                    "topic_source": "llm_inferred",
+                    "topic_confidence": "low",
+                },
+            }
+        ],
+    }
+    latest_event = SimpleNamespace(
+        event_id="evt_recover_question_stem",
+        memory_kind="learning_evidence",
+        source_feature="assessment_testset",
+        payload_json={
+            "event_type": "learning_evidence",
+            "assessment_type": "topic_diagnostic",
+            "learning_state_ref": "knowledge:1A431050",
+            "knowledge_points": ["临时用电"],
+            "question_stem": "施工现场布置塔吊时应考虑的因素还有哪些？",
+            "error_codes": ["M01"],
+            "attempt_ref": "attempt-ref-tower-crane",
+        },
+    )
+
+    dashboard = build_home_dashboard_learning_projection(
+        projection=bad_projection,
+        conversation_events=[latest_event],
+        subject_id="construction_exam_1",
+        now=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
+    )
+
+    rendered = json.dumps(dashboard, ensure_ascii=False)
+    assert dashboard["today_focus"]["title"] == "今日焦点：施工临时用电"
+    assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练施工临时用电"
+    assert "本题为" not in rendered
+    assert "施工现场布置塔吊时应考虑的因素还有哪些" not in rendered
+    assert dashboard["today_focus"]["intent"]["taxonomy_code"] == "1A431050"
+    assert dashboard["source_status"]["recovered_from"] == "learner_memory_events.learning_evidence"
+
+
+def test_fresh_projection_with_canonical_focus_but_bad_prompt_text_recovers() -> None:
+    generated_at = datetime(2026, 5, 21, 9, 0, tzinfo=_TZ).isoformat()
+    bad_projection = {
+        "generated_at": generated_at,
+        "source_status": {"fallback_used": False, "learning_report": "projection"},
+        "today_focus": {
+            "title": "今日焦点：施工临时用电",
+            "meta": "来自 learner_state.home_personalization",
+            "prompt": "用 3 道题训练施工临时用电：施工现场布置塔吊时应考虑的因素还有哪些？",
+            "intent": {
+                "source": "learner_state.home_personalization",
+                "concept_label": "施工临时用电",
+            },
+        },
+        "recommended_prompts": [
+            {
+                "prompt_type": "practice_prompt",
+                "text": "用 3 道题训练施工临时用电：施工现场布置塔吊时应考虑的因素还有哪些？",
+                "intent": {
+                    "source": "learner_state.home_personalization",
+                    "concept_label": "施工临时用电",
+                },
+            }
+        ],
+    }
+    latest_event = SimpleNamespace(
+        event_id="evt_recover_bad_prompt_text",
+        memory_kind="learning_evidence",
+        source_feature="assessment_testset",
+        payload_json={
+            "event_type": "learning_evidence",
+            "learning_state_ref": "knowledge:1A431050",
+            "error_codes": ["M01"],
+            "attempt_ref": "attempt-ref-bad-prompt",
+        },
+    )
+
+    dashboard = build_home_dashboard_learning_projection(
+        projection=bad_projection,
+        conversation_events=[latest_event],
+        subject_id="construction_exam_1",
+        now=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
+    )
+
+    rendered = json.dumps(dashboard, ensure_ascii=False)
+    assert dashboard["today_focus"]["title"] == "今日焦点：施工临时用电"
+    assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练施工临时用电"
+    assert "施工现场布置塔吊时应考虑的因素还有哪些" not in rendered
     assert dashboard["source_status"]["recovered_from"] == "learner_memory_events.learning_evidence"
 
 
@@ -486,15 +638,18 @@ def test_dashboard_reads_projection_from_learner_snapshot_not_weak_nodes(
         "generated_at": generated_at,
         "source_status": {"fallback_used": False, "learning_report": "projection"},
         "today_focus": {
-            "title": "今日焦点：施工进度索赔",
+            "title": "今日焦点：施工进度计划编制与控制",
             "meta": "来自 learner_state.home_personalization",
-            "intent": {"source": "learner_state.home_personalization", "concept_label": "施工进度索赔"},
+            "intent": {"source": "learner_state.home_personalization", "concept_label": "施工进度计划编制与控制"},
         },
         "recommended_prompts": [
             {
                 "prompt_type": "practice_prompt",
-                "text": "用案例题练施工进度索赔",
-                "intent": {"source": "learner_state.home_personalization"},
+                "text": "用 3 道题训练施工进度计划编制与控制",
+                "intent": {
+                    "source": "learner_state.home_personalization",
+                    "concept_label": "施工进度计划编制与控制",
+                },
             }
         ],
     }
@@ -519,12 +674,12 @@ def test_dashboard_reads_projection_from_learner_snapshot_not_weak_nodes(
 
     dashboard = service.get_home_dashboard("projection_user")
 
-    assert dashboard["today_focus"]["title"] == "今日焦点：施工进度索赔"
+    assert dashboard["today_focus"]["title"] == "今日焦点：施工进度计划编制与控制"
     assert dashboard["today"]["focus"] == dashboard["today_focus"]
-    assert dashboard["recommended_prompts"][0]["text"] == "用案例题练施工进度索赔"
+    assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练施工进度计划编制与控制"
     assert dashboard["recommended_prompts"][0]["prompt_type"] == "practice_prompt"
-    assert dashboard["home_projection"]["today_focus"]["title"] == "今日焦点：施工进度索赔"
-    assert dashboard["home_projection"]["recommended_prompts"][0]["text"] == "用案例题练施工进度索赔"
+    assert dashboard["home_projection"]["today_focus"]["title"] == "今日焦点：施工进度计划编制与控制"
+    assert dashboard["home_projection"]["recommended_prompts"][0]["text"] == "用 3 道题训练施工进度计划编制与控制"
     assert dashboard["home_projection"]["recommended_prompts"][0]["prompt_type"] == "practice_prompt"
 
 
@@ -721,6 +876,53 @@ def test_member_console_today_focus_skips_deictic_topics() -> None:
         study_plan={"focus_topic": "这题"},
     )
 
-    assert focus["topic"] == "防水工程"
-    assert focus["title"] == "推进防水工程下一步学习"
+    assert focus["topic"] == "屋面与防水工程施工"
+    assert focus["title"] == "推进屋面与防水工程施工下一步学习"
     assert "这题" not in json.dumps(focus, ensure_ascii=False)
+
+
+def test_member_console_today_focus_skips_question_stem_topics() -> None:
+    service = MemberConsoleService()
+    bad_topic = "施工现场布置塔吊时应考虑的因素还有哪些？"
+    snapshot = SimpleNamespace(
+        profile={"focus_topic": bad_topic},
+        progress={"knowledge_map": {"weak_points": ["施工安全生产检查"]}},
+        summary=f"当前聚焦：{bad_topic}",
+    )
+
+    focus = service._build_home_today_focus(
+        {"focus_topic": bad_topic},
+        weak_nodes=[{"name": "施工安全生产检查"}],
+        review={},
+        snapshot=snapshot,
+        study_plan={"focus_topic": "本题为"},
+    )
+
+    assert focus["topic"] == "施工安全生产检查"
+    assert focus["title"] == "推进施工安全生产检查下一步学习"
+    assert "施工现场布置塔吊时应考虑的因素还有哪些" not in json.dumps(focus, ensure_ascii=False)
+    assert "本题为" not in json.dumps(focus, ensure_ascii=False)
+
+
+def test_member_console_today_focus_uses_canonical_alias_and_skips_unmapped_topics() -> None:
+    service = MemberConsoleService()
+    snapshot = SimpleNamespace(
+        profile={"focus_topic": "流水施工"},
+        progress={"knowledge_map": {"weak_points": ["专家论证程序"]}},
+        summary="当前聚焦：专家论证程序",
+    )
+
+    focus = service._build_home_today_focus(
+        {"focus_topic": "专家论证程序"},
+        weak_nodes=[{"name": "防水工程"}],
+        review={},
+        snapshot=snapshot,
+        study_plan={"focus_topic": "专家论证程序"},
+    )
+
+    rendered = json.dumps(focus, ensure_ascii=False)
+    assert focus["topic"] == "施工进度管理"
+    assert focus["title"] == "推进施工进度管理下一步学习"
+    assert "流水施工" not in rendered
+    assert "专家论证程序" not in rendered
+    assert "防水工程" not in rendered
