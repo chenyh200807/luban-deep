@@ -76,6 +76,35 @@ def test_personalization_context_guides_tone_without_becoming_scoring_authority(
     )
 
 
+def test_grading_packet_uses_pcp_feedback_guidance_as_single_feedback_projection():
+    supply = bsl.load_beta_supply()
+    reg = bsl.load_release_candidate_registry()
+    qid = next(p["question_id"] for p in reg["points"])
+    guidance = {
+        "authority": "PersonalizationContextPack_read_only",
+        "grading_tone": "retest_improvement_followup",
+        "explanation_depth": "compare_retest_delta",
+        "prior_claim_label": "防水 exact_required 术语近义替代",
+        "next_action_hint": "复测已有改善，下一题继续验证。",
+    }
+    pcp = {
+        "source": "PersonalizationContextPack",
+        "top_claims": [{"claim_status": "stale", "label": "old derived view"}],
+        "next_best_action_candidates": [{"target": "old derived action"}],
+        "feedback_guidance": guidance,
+    }
+
+    packet = adj.build_grading_packet(
+        qid,
+        "这次我写对了规范术语。",
+        supply=supply,
+        registry=reg,
+        personalization_context_pack=pcp,
+    )
+
+    assert packet["personalization_context_pack_readonly"]["feedback_guidance"] == guidance
+
+
 def test_validator_floor_blocks_llm_accept_when_deterministic_rejects():
     packet, supply, _reg, _qid, _ans = _packet()
     pid = packet["point_ids"][0]

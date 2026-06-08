@@ -19,6 +19,7 @@ def build_personalization_context_pack(
     max_claims: int = 5,
 ) -> dict[str, Any]:
     claims = _claim_views(learning_brain, max_claims=max_claims)
+    improvement_signals = _improvement_signals(learning_brain)
     intent = dict(active_training_intent or {}) if isinstance(active_training_intent, dict) else {}
     if not intent:
         intent = _training_intent_from_claim(user_id=user_id, claim=claims[0] if claims else {})
@@ -37,9 +38,15 @@ def build_personalization_context_pack(
             "prescription": "training_intent",
         },
         "top_claims": claims,
+        "recent_improvement_signals": improvement_signals,
         "recent_evidence_refs": _recent_evidence_refs(recent_events, claims),
         "active_training_intent": intent,
         "next_best_action_candidates": actions,
+        "feedback_guidance": _feedback_guidance(
+            claims=claims,
+            improvement_signals=improvement_signals,
+            actions=actions,
+        ),
         "gaps": _claim_gaps(learning_brain),
     }
 
@@ -53,10 +60,19 @@ def _claim_views(learning_brain: dict[str, Any] | None, *, max_claims: int) -> l
         evidence_refs = _refs(item.get("evidence_refs")) or _refs(item.get("supporting_event_ids"))
         if not evidence_refs:
             continue
+        timeline = _timeline_entries(item.get("occurrence_timeline") or item.get("timeline_refs"))
+        occurrence_count = max(len(timeline), len(evidence_refs))
+        decay_state = str(item.get("decay_state") or "active").strip() or "active"
         views.append({
             "claim_id": str(item.get("object_id") or item.get("claim_id") or "").strip(),
             "object_type": str(item.get("object_type") or "").strip(),
             "claim_status": status,
+            "decay_state": decay_state,
+            "trend_state": _trend_state(
+                claim_status=status,
+                decay_state=decay_state,
+                occurrence_count=occurrence_count,
+            ),
             "concept_id": str(item.get("concept_id") or "").strip(),
             "label": str(
                 item.get("label")
@@ -67,6 +83,8 @@ def _claim_views(learning_brain: dict[str, Any] | None, *, max_claims: int) -> l
             ).strip(),
             "confidence": item.get("confidence"),
             "evidence_refs": evidence_refs[:5],
+            "occurrence_count": occurrence_count,
+            "occurrence_timeline": timeline[:5],
         })
     views.sort(key=lambda item: (_status_rank(item.get("claim_status")), -float(item.get("confidence") or 0)))
     return views[: max(1, int(max_claims or 5))]
@@ -82,6 +100,62 @@ def _claim_gaps(learning_brain: dict[str, Any] | None) -> list[dict[str, str]]:
                 "reason": f"claim_{status}",
             })
     return gaps
+
+
+def _improvement_signals(learning_brain: dict[str, Any] | None) -> list[dict[str, str]]:
+    brain = dict(learning_brain or {}) if isinstance(learning_brain, dict) else {}
+    signals: list[dict[str, str]] = []
+    for item in list(brain.get("improvement_signals") or []):
+        if not isinstance(item, dict):
+            continue
+        event_id = str(item.get("event_id") or "").strip()
+        if not event_id:
+            continue
+        signals.append({
+            "concept_id": str(item.get("concept_id") or "").strip(),
+            "error_code": str(item.get("error_code") or "").strip(),
+            "event_id": event_id,
+            "observed_at": str(item.get("observed_at") or "").strip(),
+        })
+    return signals[:5]
+
+
+def _feedback_guidance(
+    *,
+    claims: list[dict[str, Any]],
+    improvement_signals: list[dict[str, str]],
+    actions: list[dict[str, Any]],
+) -> dict[str, str]:
+    action = actions[0] if actions else {}
+    action_target = str(action.get("target") or action.get("title") or "").strip()
+    if improvement_signals:
+        return {
+            "authority": "PersonalizationContextPack_read_only",
+            "grading_tone": "retest_improvement_followup",
+            "explanation_depth": "compare_retest_delta",
+            "prior_claim_label": "",
+            "next_action_hint": f"复测已有改善，下一题继续验证：{action_target}" if action_target else "复测已有改善，下一题继续验证。",
+        }
+    claim = claims[0] if claims else {}
+    status = str(claim.get("claim_status") or "").strip()
+    trend_state = str(claim.get("trend_state") or "").strip()
+    label = str(claim.get("label") or claim.get("claim_id") or "").strip()
+    if status in {"repeated", "confirmed"} or trend_state == "repeated_active":
+        tone = "advanced_repeat_mistake"
+        depth = "reference_prior_pattern"
+    elif status == "observed":
+        tone = "scaffolded_first_observation"
+        depth = "concept_and_required_term"
+    else:
+        tone = "neutral"
+        depth = "standard_point_explanation"
+    return {
+        "authority": "PersonalizationContextPack_read_only",
+        "grading_tone": tone,
+        "explanation_depth": depth,
+        "prior_claim_label": label,
+        "next_action_hint": f"下一题：{action_target}" if action_target else "",
+    }
 
 
 def _recent_evidence_refs(recent_events: list[Any] | None, claims: list[dict[str, Any]]) -> list[str]:
@@ -117,7 +191,7 @@ def _training_intent_from_claim(*, user_id: str, claim: dict[str, Any]) -> dict[
         concept_id = claim_id.split(":", 1)[0].strip()
     if ":" in claim_id:
         error_code = claim_id.rsplit(":", 1)[-1].strip()
-    return build_learning_training_intent(
+    intent = build_learning_training_intent(
         user_id=str(user_id or "").strip(),
         concept_id=concept_id,
         concept_label=str(claim.get("label") or claim.get("claim_id") or "").strip(),
@@ -128,6 +202,38 @@ def _training_intent_from_claim(*, user_id: str, claim: dict[str, Any]) -> dict[
         source="PersonalizationContextPack",
         reason="confirmed_or_repeated_learning_claim",
     )
+    intent["recurrence"] = int(claim.get("occurrence_count") or len(evidence_refs))
+    return intent
+
+
+def _trend_state(*, claim_status: str, decay_state: str, occurrence_count: int) -> str:
+    if decay_state == "improving":
+        return "retest_improving"
+    if claim_status in {"repeated", "confirmed"} or occurrence_count >= 2:
+        return "repeated_active"
+    return "first_observation"
+
+
+def _timeline_entries(value: Any) -> list[dict[str, str]]:
+    if not isinstance(value, (list, tuple)):
+        return []
+    entries: list[dict[str, str]] = []
+    seen: set[str] = set()
+    for item in list(value or []):
+        if not isinstance(item, dict):
+            continue
+        event_id = str(item.get("event_id") or "").strip()
+        if not event_id or event_id in seen:
+            continue
+        seen.add(event_id)
+        entries.append({
+            "event_id": event_id,
+            "observed_at": str(item.get("observed_at") or "").strip(),
+            "question_id": str(item.get("question_id") or "").strip(),
+            "turn_id": str(item.get("turn_id") or "").strip(),
+        })
+    entries.sort(key=lambda item: (item["observed_at"], item["event_id"]))
+    return entries
 
 
 def _refs(value: Any) -> list[str]:

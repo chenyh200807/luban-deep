@@ -142,6 +142,13 @@ def _feedback_guidance_from_pcp(pcp: dict[str, Any]) -> dict[str, str]:
     This is deliberately a read-only projection: it can change tone and next-action wording,
     but scoring authority stays with rubric policy + validator.
     """
+    guidance = pcp.get("feedback_guidance") if isinstance(pcp, dict) else {}
+    if isinstance(guidance, dict) and guidance:
+        return {
+            str(key): str(value or "").strip()
+            for key, value in guidance.items()
+            if str(key or "").strip()
+        }
     claims = [claim for claim in list(pcp.get("top_claims") or []) if isinstance(claim, dict)]
     claim = claims[0] if claims else {}
     status = str(claim.get("claim_status") or "").strip()
