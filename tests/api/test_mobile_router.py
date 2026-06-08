@@ -2822,6 +2822,69 @@ def test_auth_register_seeds_learner_state_when_user_id_is_nested_under_user(
     assert calls == ["student_demo"]
 
 
+def test_auth_reset_password_calls_member_service_without_issuing_token(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, str] = {}
+
+    def _reset_password(username: str, phone: str, code: str, password: str) -> dict[str, object]:
+        captured.update(
+            {
+                "username": username,
+                "phone": phone,
+                "code": code,
+                "password": password,
+            }
+        )
+        return {"success": True, "message": "密码已重置，请使用新密码登录"}
+
+    monkeypatch.setattr(mobile_module.member_service, "reset_password_with_phone_code", _reset_password)
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/auth/reset-password",
+            json={
+                "username": "reset_student",
+                "phone": "13955556666",
+                "code": "123456",
+                "password": "NewPass123",
+            },
+        )
+
+    assert response.status_code == 200
+    assert response.json() == {"success": True, "message": "密码已重置，请使用新密码登录"}
+    assert "token" not in response.json()
+    assert captured == {
+        "username": "reset_student",
+        "phone": "13955556666",
+        "code": "123456",
+        "password": "NewPass123",
+    }
+
+
+def test_auth_reset_password_maps_validation_error_to_400(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def _reset_password(_username: str, _phone: str, _code: str, _password: str) -> dict[str, object]:
+        raise ValueError("账号或手机号不匹配")
+
+    monkeypatch.setattr(mobile_module.member_service, "reset_password_with_phone_code", _reset_password)
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/auth/reset-password",
+            json={
+                "username": "reset_student",
+                "phone": "13955556666",
+                "code": "123456",
+                "password": "NewPass123",
+            },
+        )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "账号或手机号不匹配"
+
+
 def test_auth_profile_settings_syncs_learner_profile_and_goals(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

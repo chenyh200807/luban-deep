@@ -42,6 +42,20 @@ mobile_http_read_models:
       - Ledger-derived windows are display read models only; they are not capability
         routing, request config, learner-state, or turn authority.
 
+mobile_http_auth_controls:
+  password_reset:
+    path: /api/v1/auth/reset-password
+    authority: MemberConsoleService -> external_auth
+    semantics:
+      - Account recovery is a public, rate-limited HTTP auth adapter, not a
+        turn/session/capability entrypoint.
+      - Request must prove username, registered phone, and SMS code before changing
+        the external auth password.
+      - Successful reset invalidates existing external auth sessions, consumes the
+        SMS code, returns no token, and never auto-logs in.
+      - Reset must not write learner summaries, learner memory events, profile,
+        progress, goals, wallet, capability route state, or turn/session state.
+
 domains:
   turn:
     summary: Unified turn, stream, replay, session, trace boundary, and mobile assessment HTTP bridges.

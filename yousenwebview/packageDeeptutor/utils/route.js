@@ -7,6 +7,7 @@ var KNOWN_PACKAGE_PATHS = {
   "pages/legal/terms": true,
   "pages/login/login": true,
   "pages/login/manual": true,
+  "pages/login/reset-password": true,
   "pages/mistake-book/mistake-book": true,
   "pages/practice/practice": true,
   "pages/feedback/feedback": true,
@@ -78,6 +79,9 @@ module.exports = {
   },
   manualLogin: function (query) {
     return withQuery("pages/login/manual", query);
+  },
+  passwordReset: function (query) {
+    return withQuery("pages/login/reset-password", query);
   },
   register: function (query) {
     return withQuery("pages/register/register", query);

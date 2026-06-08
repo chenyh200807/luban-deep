@@ -1875,6 +1875,13 @@ class VerifyCodeRequest(BaseModel):
     code: str
 
 
+class PasswordResetRequest(BaseModel):
+    username: str
+    phone: str
+    code: str
+    password: str
+
+
 class RegisterRequest(BaseModel):
     username: str
     password: str
@@ -2004,6 +2011,24 @@ async def auth_send_code(body: PhoneRequest) -> dict[str, Any]:
 async def auth_verify_code(body: VerifyCodeRequest) -> dict[str, Any]:
     try:
         return member_service.verify_phone_code(body.phone, body.code)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post(
+    "/auth/reset-password",
+    dependencies=[
+        Depends(route_rate_limit("mobile_auth_reset_password", default_max_requests=5, default_window_seconds=60.0))
+    ],
+)
+async def auth_reset_password(body: PasswordResetRequest) -> dict[str, Any]:
+    try:
+        return member_service.reset_password_with_phone_code(
+            body.username,
+            body.phone,
+            body.code,
+            body.password,
+        )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
