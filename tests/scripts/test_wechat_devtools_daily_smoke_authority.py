@@ -90,6 +90,7 @@ def test_devtools_smoke_can_record_page_automation_pass_without_promoting_projec
     assert payload["devtools_project_root"] == "yousenwebview"
     assert "--auto-port" not in commands["devtools_auto_port"]
     assert commands["devtools_auto_port"][-2:] == ["--port", "9420"]
+    assert commands["devtools_page_automation"][-2:] == ["--base-url", "http://127.0.0.1:8001"]
 
 
 def test_devtools_smoke_records_login_redirect_as_auth_blocked_evidence(monkeypatch) -> None:

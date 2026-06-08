@@ -2,13 +2,19 @@
 "use strict";
 
 function parseArgs(argv) {
-  const out = { port: 9420, targetPage: "/packageDeeptutor/pages/report/report" };
+  const out = {
+    port: 9420,
+    targetPage: "/packageDeeptutor/pages/report/report",
+    baseUrl: process.env.WECHAT_QA_BASE_URL || "http://127.0.0.1:8001",
+  };
   for (let i = 2; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === "--port") {
       out.port = Number(argv[++i]);
     } else if (arg === "--target-page") {
       out.targetPage = String(argv[++i] || "");
+    } else if (arg === "--base-url") {
+      out.baseUrl = String(argv[++i] || "");
     }
   }
   return out;
@@ -39,7 +45,7 @@ function loadAutomator() {
 }
 
 function emit(payload, exitCode) {
-  process.stdout.write(JSON.stringify(payload, null, 2) + "\n");
+  process.stdout.write(JSON.stringify(payload) + "\n");
   process.exit(exitCode);
 }
 
@@ -65,6 +71,24 @@ async function currentPageSnapshot(miniProgram) {
   const currentPage = current && current.path ? current.path : "";
   const pageData = current && typeof current.data === "function" ? await current.data() : {};
   return { current, currentPage, pageData: pageData || {} };
+}
+
+async function forceQaBaseUrl(miniProgram, baseUrl) {
+  const normalized = String(baseUrl || "").trim();
+  if (!normalized) return "";
+  return await miniProgram.evaluate(function (nextBaseUrl) {
+    const app = getApp();
+    if (!app.globalData) app.globalData = {};
+    app.globalData.apiUrl = nextBaseUrl;
+    app.globalData.gatewayUrl = nextBaseUrl;
+    app.globalData.apiCandidates = [nextBaseUrl];
+    app.globalData.gatewayCandidates = [nextBaseUrl];
+    return {
+      apiUrl: app.globalData.apiUrl,
+      gatewayUrl: app.globalData.gatewayUrl,
+      apiCandidates: app.globalData.apiCandidates,
+    };
+  }, normalized);
 }
 
 async function waitForCurrentPage(miniProgram, targetPage, timeoutMs) {
@@ -115,11 +139,13 @@ async function loginWithPasswordIfAvailable(miniProgram, targetPage) {
 (async function main() {
   const args = parseArgs(process.argv);
   const targetPage = args.targetPage || "/packageDeeptutor/pages/report/report";
+  const qaBaseUrl = String(args.baseUrl || "").trim();
   const wsEndpoint = "ws://127.0.0.1:" + Number(args.port || 9420);
   let miniProgram;
   try {
     const automator = loadAutomator();
     miniProgram = await connectWithRetry(automator, wsEndpoint);
+    const qaBase = await forceQaBaseUrl(miniProgram, qaBaseUrl);
     const page = await miniProgram.reLaunch(targetPage);
     if (!page) {
       throw new Error("DevTools automator did not return a Page for " + targetPage);
@@ -142,6 +168,8 @@ async function loginWithPasswordIfAvailable(miniProgram, targetPage) {
         target_subpackage: "packageDeeptutor",
         target_page: targetPage,
         entry_flow: "direct_subpackage_page",
+        qa_base_url: qaBaseUrl,
+        qa_base_applied: qaBase,
         auth_attempted: auth.attempted,
         credential_source: auth.credential_source,
         login_error_present: !!auth.login_error_present,
@@ -160,6 +188,7 @@ async function loginWithPasswordIfAvailable(miniProgram, targetPage) {
         target_subpackage: "packageDeeptutor",
         target_page: targetPage,
         entry_flow: "direct_subpackage_page",
+        qa_base_url: String(args.baseUrl || "").trim(),
         error: String(error && error.message ? error.message : error),
         details: error && error.details ? error.details : undefined,
       },

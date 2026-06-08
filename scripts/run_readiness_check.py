@@ -95,6 +95,7 @@ def _structured_readiness_metadata(
         "target_subpackage",
         "target_page",
         "entry_flow",
+        "qa_base_url",
         "devtools_account_login_state",
         "auth_state",
         "auth_mode",

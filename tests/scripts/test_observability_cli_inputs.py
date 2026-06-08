@@ -392,6 +392,7 @@ def test_run_readiness_check_preserves_real_wechat_project_root_fields() -> None
                 "target_subpackage": "packageDeeptutor",
                 "target_page": "/packageDeeptutor/pages/report/report",
                 "entry_flow": "direct_subpackage_page",
+                "qa_base_url": "http://127.0.0.1:8001",
                 "scenario_evidence_status": "passed",
             },
             ensure_ascii=False,
@@ -406,6 +407,7 @@ def test_run_readiness_check_preserves_real_wechat_project_root_fields() -> None
     assert meta["target_subpackage"] == "packageDeeptutor"
     assert meta["target_page"] == "/packageDeeptutor/pages/report/report"
     assert meta["entry_flow"] == "direct_subpackage_page"
+    assert meta["qa_base_url"] == "http://127.0.0.1:8001"
 
 
 @pytest.mark.asyncio

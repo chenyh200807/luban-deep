@@ -23,6 +23,7 @@ TARGET_PAGE = "/packageDeeptutor/pages/report/report"
 ENTRY_FLOW = "direct_subpackage_page"
 RUNTIME_BASE_CONTRACT = PROJECT_ROOT / "yousenwebview" / "tests" / "test_app_runtime_base_selection.js"
 PAGE_AUTOMATION = PROJECT_ROOT / "scripts" / "run_wechat_devtools_page_automation.js"
+LOCAL_ENV = PROJECT_ROOT / ".env"
 
 
 def _command_record(
@@ -56,9 +57,32 @@ def _command_record(
         "ok": completed.returncode == 0,
         "command": " ".join(command),
         "exit_code": completed.returncode,
-        "stdout": stdout[:1200],
-        "stderr": stderr[:1200],
+        "stdout": stdout[:8000],
+        "stderr": stderr[:8000],
     }
+
+
+def _load_local_wechat_qa_env() -> None:
+    if not LOCAL_ENV.exists():
+        return
+    allowed = {
+        "WECHAT_QA_USERNAME",
+        "WECHAT_QA_PASSWORD",
+        "WECHAT_QA_PHONE",
+        "WECHAT_QA_BASE_URL",
+    }
+    for raw_line in LOCAL_ENV.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, raw_value = line.split("=", 1)
+        key = key.strip()
+        if key not in allowed or os.environ.get(key):
+            continue
+        value = raw_value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
+            value = value[1:-1]
+        os.environ[key] = value
 
 
 def _login_ok(record: dict[str, Any]) -> bool:
@@ -161,7 +185,9 @@ def _page_automation_auth_failed(payload: dict[str, Any]) -> bool:
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
+    _load_local_wechat_qa_env()
     project_path = Path(args.project_path).expanduser().resolve()
+    qa_base_url = os.environ.get("WECHAT_QA_BASE_URL") or "http://127.0.0.1:8001"
     checks: list[dict[str, Any]] = []
 
     if not DEVTOOLS_CLI.exists():
@@ -254,6 +280,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                     str(int(args.auto_port)),
                     "--target-page",
                     TARGET_PAGE,
+                    "--base-url",
+                    qa_base_url,
                 ],
                 timeout_seconds=args.timeout_seconds,
             )
@@ -301,6 +329,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "target_subpackage": TARGET_SUBPACKAGE,
         "target_page": TARGET_PAGE,
         "entry_flow": ENTRY_FLOW,
+        "qa_base_url": qa_base_url,
         **auth_boundary,
         **_readiness_boundary(
             preflight_ok=preflight_ok,
