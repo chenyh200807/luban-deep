@@ -17,6 +17,7 @@ EXCLUDES=(
     ".git"
     ".github"
     ".git.disabled*"
+    ".claude"
     ".codex"
     ".gstack"
     ".local-runs"
