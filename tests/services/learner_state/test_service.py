@@ -98,6 +98,10 @@ class _CoreStoreStub:
     def read_compiled_learning_truth(self, _user_id: str):
         return dict(self.compiled_learning_truth)
 
+    def write_compiled_learning_truth(self, _user_id: str, projection: dict[str, object]):
+        self.compiled_learning_truth = {"learning_brain": dict(projection)}
+        return dict(projection)
+
     def read_memory_events(self, _user_id: str, limit: int | None = 20):
         rows = [dict(item) for item in self.memory_events]
         if limit is None or limit < 0:
@@ -141,6 +145,11 @@ class _CoreStoreStub:
 
 class _DisabledCoreStoreStub:
     is_configured = False
+
+
+class _FailingCompiledTruthCoreStore(_CoreStoreStub):
+    def write_compiled_learning_truth(self, _user_id: str, _projection: dict[str, object]):
+        raise RuntimeError("compiled truth sync failed")
 
 
 def _make_service(tmp_path, *, core_store=None):
@@ -688,12 +697,17 @@ def test_learner_state_reads_remote_compiled_truth_before_local_cache(tmp_path) 
         "weak_points": [{"concept_id": "1A432000", "error_code": "E04"}],
     }
     service = _make_service(tmp_path, core_store=core_store)
-    service.write_compiled_learning_truth(
-        "student_demo",
-        {
-            "subject": "stale_local_projection",
-            "weak_points": [{"concept_id": "1A421000", "error_code": "E01"}],
-        },
+    path = tmp_path / "learner_state" / "student_demo" / "COMPILED_TRUTH.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(
+            {
+                "subject": "stale_local_projection",
+                "weak_points": [{"concept_id": "1A421000", "error_code": "E01"}],
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
     )
 
     projection = service.read_compiled_learning_truth("student_demo")
@@ -732,8 +746,9 @@ def test_learner_state_configured_core_store_is_compiled_truth_authority(tmp_pat
 
     projection = service.read_compiled_learning_truth("student_demo")
 
-    assert projection["synthesis_run"]["output_projection_hash"] == "sha256:old"
-    assert projection["weak_points"][0]["error_code"] == "E02"
+    assert projection["synthesis_run"]["output_projection_hash"] == "sha256:new"
+    assert projection["weak_points"][0]["error_code"] == "E04"
+    assert not (tmp_path / "learner_state" / "student_demo" / "COMPILED_TRUTH.json").exists()
 
 
 def test_learner_state_production_without_core_store_does_not_read_local_compiled_truth(
@@ -1480,10 +1495,10 @@ def test_canonical_truth_production_write_override_fail_closed_on_garbage(
     assert not (tmp_path / "learner_state" / "student_demo" / "COMPILED_TRUTH.json").exists()
 
 
-def test_canonical_truth_production_write_override_enabled_persists(
+def test_canonical_truth_production_write_override_enabled_requires_core_store(
     tmp_path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Authorized: production + flag=true -> canonical learner-truth is persisted (capability on)."""
+    """Authorized production still needs configured core-store; local JSON is not production authority."""
     monkeypatch.setenv("DEEPTUTOR_ENV", "production")
     monkeypatch.setenv(_G4_FLAG, "true")
     service = _make_service(tmp_path)
@@ -1494,10 +1509,53 @@ def test_canonical_truth_production_write_override_enabled_persists(
             "weak_points": [{"concept_id": "1A432000", "error_code": "E04"}],
         },
     )
-    path = tmp_path / "learner_state" / "student_demo" / "COMPILED_TRUTH.json"
-    assert path.exists()
-    persisted = json.loads(path.read_text(encoding="utf-8"))
-    assert persisted["weak_points"][0]["error_code"] == "E04"
+    assert not (tmp_path / "learner_state" / "student_demo" / "COMPILED_TRUTH.json").exists()
+    assert service.read_compiled_learning_truth("student_demo") == {}
+
+
+def test_canonical_truth_production_write_override_enabled_writes_core_store(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Authorized: production + flag=true + core-store -> canonical learner-truth is persisted remotely."""
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.setenv(_G4_FLAG, "true")
+    core_store = _CoreStoreStub()
+    service = _make_service(tmp_path, core_store=core_store)
+    service.write_compiled_learning_truth(
+        "student_demo",
+        {
+            "subject": "construction_exam_learning_truth",
+            "weak_points": [{"concept_id": "1A432000", "error_code": "E04"}],
+            "synthesis_run": {"output_projection_hash": "sha256:test2"},
+        },
+    )
+
+    projection = service.read_compiled_learning_truth("student_demo")
+
+    assert projection["synthesis_run"]["output_projection_hash"] == "sha256:test2"
+    assert projection["weak_points"][0]["error_code"] == "E04"
+    assert not (tmp_path / "learner_state" / "student_demo" / "COMPILED_TRUTH.json").exists()
+
+
+def test_canonical_truth_production_core_store_write_failure_fails_closed(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Fail-closed: production core-store write errors return preview and do not write local fallback."""
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.setenv(_G4_FLAG, "true")
+    service = _make_service(tmp_path, core_store=_FailingCompiledTruthCoreStore())
+
+    returned = service.write_compiled_learning_truth(
+        "student_demo",
+        {
+            "subject": "construction_exam_learning_truth",
+            "weak_points": [{"concept_id": "1A432000", "error_code": "E04"}],
+        },
+    )
+
+    assert returned["weak_points"][0]["error_code"] == "E04"
+    assert service.read_compiled_learning_truth("student_demo") == {}
+    assert not (tmp_path / "learner_state" / "student_demo" / "COMPILED_TRUTH.json").exists()
 
 
 def test_canonical_truth_non_production_write_persists_regression(tmp_path) -> None:

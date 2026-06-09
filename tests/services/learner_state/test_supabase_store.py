@@ -5,7 +5,11 @@ import json
 
 import httpx
 
-from deeptutor.services.learner_state.supabase_store import LearnerStateSupabaseClient, LearnerStateSupabaseCoreStore
+from deeptutor.services.learner_state.supabase_store import (
+    LearnerStateSupabaseClient,
+    LearnerStateSupabaseCoreStore,
+    LearnerStateSupabaseSyncCoreStore,
+)
 
 
 def _make_client(requests: list[dict[str, object]], state: dict[str, object]) -> httpx.AsyncClient:
@@ -73,6 +77,8 @@ def _make_client(requests: list[dict[str, object]], state: dict[str, object]) ->
                     row["id"] = max(numeric_ids + [0]) + 1
                 goals[:] = [item for item in goals if str(item.get("id", "")).strip() != str(row.get("id", "")).strip()]
                 goals.append(row)
+            elif table == "learner_summaries":
+                state.setdefault("learner_summaries", {})[row["user_id"]] = row
             return httpx.Response(200, json=[row], request=request)
 
         if request.method == "DELETE" and table == "user_goals":
@@ -314,6 +320,111 @@ def test_read_compiled_learning_truth_uses_summary_structured_json() -> None:
     assert requests[0]["params"]["limit"] == "1"
 
     asyncio.run(transport_client.aclose())
+
+
+def test_write_compiled_learning_truth_key_merges_summary_structured_json() -> None:
+    requests: list[dict[str, object]] = []
+    state = {
+        "user_profiles": {},
+        "user_stats": {},
+        "user_goals": [],
+        "learner_summaries": {
+            "student_demo": {
+                "user_id": "student_demo",
+                "summary_md": "## 既有摘要",
+                "summary_structured_json": {
+                    "guide_completion": {"guide_id": "guide_42"},
+                    "learning_brain": {
+                        "subject": "old",
+                        "weak_points": [{"concept_id": "old"}],
+                    },
+                },
+            }
+        },
+    }
+    transport_client = _make_client(requests, state)
+    client = LearnerStateSupabaseClient(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=transport_client,
+    )
+    store = LearnerStateSupabaseCoreStore(client=client)
+
+    async def _run() -> None:
+        saved = await store.write_compiled_learning_truth(
+            "student_demo",
+            {
+                "subject": "construction_exam_learning_truth",
+                "weak_points": [{"concept_id": "1A432000", "error_code": "E04"}],
+                "synthesis_run": {"output_projection_hash": "sha256:new"},
+            },
+        )
+        assert saved["synthesis_run"]["output_projection_hash"] == "sha256:new"
+
+    asyncio.run(_run())
+    post = [request for request in requests if request["method"] == "POST"][-1]
+    assert post["path"] == "/rest/v1/learner_summaries"
+    assert post["params"]["on_conflict"] == "user_id"
+    structured = post["json"][0]["summary_structured_json"]
+    assert structured["guide_completion"]["guide_id"] == "guide_42"
+    assert structured["learning_brain"]["weak_points"][0]["error_code"] == "E04"
+
+    asyncio.run(transport_client.aclose())
+
+
+def test_sync_write_compiled_learning_truth_key_merges_summary_structured_json() -> None:
+    requests: list[dict[str, object]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        body = request.content.decode("utf-8") if request.content else ""
+        requests.append(
+            {
+                "method": request.method,
+                "path": request.url.path,
+                "params": dict(request.url.params),
+                "json": json.loads(body) if body else None,
+            }
+        )
+        if request.method == "GET":
+            return httpx.Response(
+                200,
+                json=[
+                    {
+                        "user_id": "student_demo",
+                        "summary_md": "## 既有摘要",
+                        "summary_structured_json": {
+                            "guide_completion": {"guide_id": "guide_42"},
+                            "learning_brain": {"subject": "old"},
+                        },
+                    }
+                ],
+                request=request,
+            )
+        if request.method == "POST":
+            return httpx.Response(200, json=json.loads(body), request=request)
+        return httpx.Response(400, json={"error": "unsupported"}, request=request)
+
+    client = httpx.Client(transport=httpx.MockTransport(handler), base_url="https://example.supabase.co")
+    store = LearnerStateSupabaseSyncCoreStore(
+        base_url="https://example.supabase.co",
+        service_key="service-key",
+        client=client,
+    )
+
+    saved = store.write_compiled_learning_truth(
+        "student_demo",
+        {
+            "subject": "construction_exam_learning_truth",
+            "weak_points": [{"concept_id": "1A432000", "error_code": "E04"}],
+            "synthesis_run": {"output_projection_hash": "sha256:new"},
+        },
+    )
+
+    post = [request for request in requests if request["method"] == "POST"][-1]
+    structured = post["json"][0]["summary_structured_json"]
+    assert saved["synthesis_run"]["output_projection_hash"] == "sha256:new"
+    assert structured["guide_completion"]["guide_id"] == "guide_42"
+    assert structured["learning_brain"]["weak_points"][0]["error_code"] == "E04"
 
 
 def test_read_learning_evidence_event_uses_user_event_and_memory_kind_filters() -> None:

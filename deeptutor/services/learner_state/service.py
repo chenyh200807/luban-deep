@@ -419,6 +419,21 @@ class LearnerStateService:
             _CANONICAL_TRUTH_PRODUCTION_WRITE_FLAG, default=False
         ):
             return extract_learning_brain_projection(payload)
+        if bool(getattr(self._core_store, "is_configured", False)):
+            writer = getattr(self._core_store, "write_compiled_learning_truth", None)
+            if callable(writer):
+                try:
+                    remote = writer(normalized, payload)
+                except Exception:
+                    logger.exception("write_compiled_learning_truth core-store write failed: user_id=%s", normalized)
+                    if is_production_environment():
+                        return extract_learning_brain_projection(payload)
+                else:
+                    return extract_learning_brain_projection(remote if isinstance(remote, dict) else payload)
+            if is_production_environment():
+                return extract_learning_brain_projection(payload)
+        if is_production_environment():
+            return extract_learning_brain_projection(payload)
         path = self._path(normalized, "compiled_truth")
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(_json_dump(payload) + "\n", encoding="utf-8")
