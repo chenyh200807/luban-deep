@@ -123,6 +123,7 @@ def test_writeback_uses_existing_learner_memory_events() -> None:
     assert call["payload_json"]["error_events"][0]["error_code"] in {"E02", "E03", "E04"}
     assert call["payload_json"]["errors"][0]["error_code"] in {"E02", "E03", "E04"}
     assert call["payload_json"]["quality"]["evidence_level"] == "L0_observed"
+    assert call["payload_json"]["memory_lifecycle_stage"] == "short_term_learning_memory"
     assert service.progress_patches
     projection = service.progress_patches[0]["patch"]["home_personalization"]
     assert projection["recommended_prompts"][0]["intent"]["source"] == "home_dashboard"
@@ -176,6 +177,7 @@ def test_v1_case_grading_event_writeback_uses_learning_evidence_stream() -> None
     assert payload["preview_only"] is True
     assert payload["claim_promotion_allowed"] is False
     assert payload["canonical_truth_written"] is False
+    assert payload["memory_lifecycle_stage"] == "short_term_learning_memory"
     assert payload["score_awarded"] == 0.0
     assert payload["awarded_score"] == 0.0
     assert payload["next_training_signal"]["concept"] == "1A413050"

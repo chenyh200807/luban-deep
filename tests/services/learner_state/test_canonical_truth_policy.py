@@ -75,6 +75,62 @@ def test_broad_ai_jury_requires_confident_resolved_adjudication(monkeypatch) -> 
     assert resolved.reason == "trusted_adjudication_authorized"
 
 
+def test_broad_certified_grading_policy_requires_confident_resolved_adjudication(monkeypatch) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.setenv("LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_ENABLED", "1")
+    monkeypatch.setenv("LUBAN_CANONICAL_LEARNER_TRUTH_BROAD_TRUSTED_ADJUDICATION_ENABLED", "1")
+
+    low_confidence = canonical_truth_promotion_decision(
+        user_id="real_student_1",
+        projection={
+            "synthesis_run": {
+                "trusted_adjudication": {
+                    "source": "certified_grading_policy",
+                    "confidence": 0.62,
+                    "conflict_status": "resolved",
+                    "requires_human": False,
+                }
+            }
+        },
+    )
+    unresolved = canonical_truth_promotion_decision(
+        user_id="real_student_1",
+        projection={
+            "synthesis_run": {
+                "trusted_adjudication": {
+                    "source": "certified_grading_policy",
+                    "confidence": 0.95,
+                    "conflict_status": "unresolved",
+                    "requires_human": False,
+                }
+            }
+        },
+    )
+    resolved = canonical_truth_promotion_decision(
+        user_id="real_student_1",
+        projection={
+            "synthesis_run": {
+                "trusted_adjudication": {
+                    "source": "certified_grading_policy",
+                    "confidence": 0.95,
+                    "conflict_status": "resolved",
+                    "requires_human": False,
+                    "policy_id": "policy-case-v1",
+                    "rubric_hash": "sha256:rubric",
+                    "grader_version": "rubric-grader-v1",
+                }
+            }
+        },
+    )
+
+    assert low_confidence.allowed is False
+    assert low_confidence.reason == "certified_grading_policy_confidence_too_low"
+    assert unresolved.allowed is False
+    assert unresolved.reason == "certified_grading_policy_conflict_unresolved"
+    assert resolved.allowed is True
+    assert resolved.reason == "trusted_adjudication_authorized"
+
+
 def test_legacy_teacher_final_quality_maps_to_trusted_adjudication() -> None:
     trusted = trusted_adjudication_from_quality(
         {

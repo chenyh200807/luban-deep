@@ -8,6 +8,7 @@ from deeptutor.services.construction_grading.learning_evidence import (
     build_learning_evidence_dedupe_key,
     build_learning_evidence_payload,
 )
+from deeptutor.services.learner_state.memory_lifecycle import LIFECYCLE_STAGE_SHORT_TERM
 from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
 
 
@@ -147,6 +148,7 @@ def write_case_grading_event_learning_evidence(
         "claim_promotion_allowed": False,
         "mastery_raised": False,
         "canonical_truth_written": False,
+        "memory_lifecycle_stage": LIFECYCLE_STAGE_SHORT_TERM,
         "quality": {
             "writeback_eligible": True,
             "writeback_reason": "case_grading_completed_v1",

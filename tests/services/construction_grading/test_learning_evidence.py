@@ -32,6 +32,7 @@ def test_build_learning_evidence_payload_preserves_grading_authority() -> None:
     assert payload["question_id"] == "case-1"
     assert payload["question_type"] == "case"
     assert payload["quality"]["evidence_level"] == "L0_observed"
+    assert payload["memory_lifecycle_stage"] == "short_term_learning_memory"
     assert payload["quality"]["writeback_eligible"] is True
     assert payload["error_events"][0]["error_code"] in {"E02", "E03", "E04"}
     assert payload["evidence_refs"]
@@ -138,6 +139,73 @@ def test_learning_evidence_removes_unclosed_reasoning_block() -> None:
     )
 
     assert payload["user_answer"] == "可见答案"
+
+
+def test_certified_grading_policy_marks_trusted_adjudication() -> None:
+    payload = build_learning_evidence_payload(
+        grading_result={
+            "type": "case",
+            "question_id": "case-1",
+            "score_awarded": 0,
+            "max_score": 1,
+            "error_events": [{"error_code": "E02", "concept_tag": "1A432000"}],
+            "next_training_signal": {
+                "concept": "1A432000",
+                "certified_grading_policy": {
+                    "status": "published",
+                    "policy_id": "policy-case-v1",
+                    "rubric_hash": "sha256:rubric",
+                    "grader_version": "rubric-grader-v1",
+                    "confidence": 0.93,
+                    "conflict_status": "resolved",
+                },
+            },
+        },
+        turn_id="turn-1",
+    )
+
+    trusted = payload["quality"]["trusted_adjudication"]
+    assert trusted["source"] == "certified_grading_policy"
+    assert trusted["policy_id"] == "policy-case-v1"
+    assert trusted["rubric_hash"] == "sha256:rubric"
+    assert trusted["grader_version"] == "rubric-grader-v1"
+    assert trusted["requires_human"] is False
+    assert payload["quality"]["evidence_level"] == "L2_confirmed"
+    assert payload["quality"]["stable_truth_eligible"] is True
+    assert payload["quality"]["adjudication_authority"] == "trusted_adjudication"
+    assert "teacher_reviewed" not in payload["quality"]
+    assert "teacher_review_authority" not in payload["quality"]
+    assert payload["memory_lifecycle_stage"] == "stable_learner_claim"
+    assert payload["claim_promotion_allowed"] is True
+    assert payload["preview_only"] is False
+
+
+def test_uncertified_grading_policy_stays_l0_observed() -> None:
+    payload = build_learning_evidence_payload(
+        grading_result={
+            "type": "case",
+            "question_id": "case-1",
+            "score_awarded": 0,
+            "max_score": 1,
+            "error_events": [{"error_code": "E02", "concept_tag": "1A432000"}],
+            "next_training_signal": {
+                "concept": "1A432000",
+                "certified_grading_policy": {
+                    "status": "draft",
+                    "policy_id": "policy-case-v1",
+                    "rubric_hash": "sha256:rubric",
+                    "grader_version": "rubric-grader-v1",
+                    "confidence": 0.93,
+                },
+            },
+        },
+        turn_id="turn-1",
+    )
+
+    assert "trusted_adjudication" not in payload["quality"]
+    assert payload["quality"]["evidence_level"] == "L0_observed"
+    assert payload["memory_lifecycle_stage"] == "short_term_learning_memory"
+    assert "claim_promotion_allowed" not in payload
 
 
 def test_missing_question_id_caps_evidence_at_l0() -> None:

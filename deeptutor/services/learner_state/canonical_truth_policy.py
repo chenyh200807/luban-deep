@@ -29,6 +29,7 @@ _AI_ADJUDICATION_SOURCES = frozenset(
 )
 _TRUSTED_NON_AI_SOURCES = frozenset(
     {
+        "certified_grading_policy",
         "human_teacher",
         "human_qa_teacher",
         "manual_qa_teacher",
@@ -39,6 +40,7 @@ _TRUSTED_NON_AI_SOURCES = frozenset(
         "golden_label",
     }
 )
+_CONFIDENCE_GATED_TRUSTED_SOURCES = _AI_ADJUDICATION_SOURCES | frozenset({"certified_grading_policy"})
 _RESOLVED_CONFLICT_STATUSES = frozenset({"", "none", "no_conflict", "resolved", "not_applicable"})
 
 
@@ -99,12 +101,22 @@ def canonical_truth_promotion_decision(
         return CanonicalTruthPromotionDecision(False, "human_adjudication_required", source, True)
 
     confidence = _confidence(trusted.get("confidence"))
-    if source in _AI_ADJUDICATION_SOURCES:
+    if source in _CONFIDENCE_GATED_TRUSTED_SOURCES:
         if confidence is None or confidence < _ai_min_confidence():
-            return CanonicalTruthPromotionDecision(False, "ai_adjudication_confidence_too_low", source, False, confidence)
+            reason = (
+                "certified_grading_policy_confidence_too_low"
+                if source == "certified_grading_policy"
+                else "ai_adjudication_confidence_too_low"
+            )
+            return CanonicalTruthPromotionDecision(False, reason, source, False, confidence)
         conflict_status = _text(trusted.get("conflict_status")).lower()
         if conflict_status not in _RESOLVED_CONFLICT_STATUSES:
-            return CanonicalTruthPromotionDecision(False, "ai_adjudication_conflict_unresolved", source, False, confidence)
+            reason = (
+                "certified_grading_policy_conflict_unresolved"
+                if source == "certified_grading_policy"
+                else "ai_adjudication_conflict_unresolved"
+            )
+            return CanonicalTruthPromotionDecision(False, reason, source, False, confidence)
 
     return CanonicalTruthPromotionDecision(True, "trusted_adjudication_authorized", source, False, confidence)
 

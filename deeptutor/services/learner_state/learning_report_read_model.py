@@ -985,6 +985,8 @@ def _compact_weak_point(item: dict[str, Any]) -> dict[str, Any]:
         "concept_id": str(item.get("concept_id") or "").strip(),
         "label": str(item.get("label") or item.get("display_title") or "").strip(),
         "evidence_level": str(item.get("evidence_level") or "").strip(),
+        "memory_lifecycle_stage": str(item.get("memory_lifecycle_stage") or "").strip(),
+        "memory_lifecycle_label": str(item.get("memory_lifecycle_label") or "").strip(),
         "confidence": item.get("confidence"),
         "recommended_training": _safe_dict(item.get("recommended_training")),
     }
@@ -996,6 +998,8 @@ def _compact_visible_truth(item: dict[str, Any], *, index: int) -> dict[str, Any
         "current_truth": str(item.get("current_truth") or "").strip(),
         "evidence_level": str(item.get("evidence_level") or "").strip(),
         "evidence_level_label": str(item.get("evidence_level_label") or "").strip(),
+        "memory_lifecycle_stage": str(item.get("memory_lifecycle_stage") or "").strip(),
+        "memory_lifecycle_label": str(item.get("memory_lifecycle_label") or "").strip(),
         "confidence": item.get("confidence"),
         "display_title": str(item.get("display_title") or item.get("current_truth") or "").strip(),
         "display_meta": str(item.get("display_meta") or "").strip(),
