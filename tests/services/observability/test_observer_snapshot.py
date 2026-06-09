@@ -133,6 +133,12 @@ def test_build_observer_snapshot_collects_store_and_turn_event_evidence(tmp_path
             latency_ms=1000,
             token_total=42,
             retrieval_hit=True,
+            metadata={
+                "latency_stages_ms": {
+                    "context_build": 100.0,
+                    "capability_stream": 800.0,
+                }
+            },
         )
     )
     event_log.append(
@@ -145,6 +151,12 @@ def test_build_observer_snapshot_collects_store_and_turn_event_evidence(tmp_path
             latency_ms=3000,
             token_total=84,
             retrieval_hit=False,
+            metadata={
+                "latency_stages_ms": {
+                    "context_build": 300.0,
+                    "capability_stream": 2400.0,
+                }
+            },
         )
     )
 
@@ -162,6 +174,10 @@ def test_build_observer_snapshot_collects_store_and_turn_event_evidence(tmp_path
     assert payload["turn_events"]["event_count"] == 2
     assert payload["turn_events"]["error_count"] == 1
     assert payload["turn_events"]["avg_latency_ms"] == 2000.0
+    assert payload["turn_events"]["latency_stage_avg_ms"] == {
+        "capability_stream": 1600.0,
+        "context_build": 200.0,
+    }
     assert payload["turn_events"]["retrieval_hit_ratio"] == 0.5
     assert payload["turn_event_log"]["last_write_error"] == ""
     assert payload["source_runs"]["om_run_id"] == "om-1"

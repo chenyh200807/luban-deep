@@ -6,10 +6,13 @@ import re
 import sqlite3
 import time
 from collections import Counter
+from collections import defaultdict
 from datetime import datetime
 from datetime import timedelta
 from pathlib import Path
 from typing import Any
+
+from deeptutor.api.runtime_metrics import normalize_latency_stage_timings
 
 from deeptutor.services.observability import get_control_plane_store
 from deeptutor.services.observability.control_plane_store import ObservabilityControlPlaneStore
@@ -450,6 +453,15 @@ def _summarize_turn_events(events: list[dict[str, Any]]) -> dict[str, Any]:
         for item in events
         if isinstance(item.get("retrieval_hit"), bool)
     ]
+    stage_latency_totals: dict[str, float] = defaultdict(float)
+    stage_latency_counts: Counter[str] = Counter()
+    for item in events:
+        metadata = item.get("metadata") if isinstance(item.get("metadata"), dict) else {}
+        for stage, duration_ms in normalize_latency_stage_timings(
+            metadata.get("latency_stages_ms")
+        ).items():
+            stage_latency_totals[stage] += duration_ms
+            stage_latency_counts[stage] += 1
     error_count = sum(
         count
         for status, count in status_counter.items()
@@ -465,6 +477,11 @@ def _summarize_turn_events(events: list[dict[str, Any]]) -> dict[str, Any]:
         "error_ratio": round(error_count / event_count, 4) if event_count else None,
         "avg_latency_ms": round(sum(latencies) / len(latencies), 1) if latencies else None,
         "p95_latency_ms": _percentile(latencies, 0.95),
+        "latency_stage_avg_ms": {
+            stage: round(stage_latency_totals[stage] / count, 1)
+            for stage, count in sorted(stage_latency_counts.items(), key=lambda item: item[0])
+            if count
+        },
         "avg_tokens": round(sum(token_values) / len(token_values), 1) if token_values else None,
         "retrieval_hit_ratio": round(sum(1 for item in retrieval_values if item) / len(retrieval_values), 4)
         if retrieval_values

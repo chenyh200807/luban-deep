@@ -20,7 +20,10 @@ import time
 from types import SimpleNamespace
 from typing import Any
 
-from deeptutor.api.runtime_metrics import get_turn_runtime_metrics
+from deeptutor.api.runtime_metrics import (
+    get_turn_runtime_metrics,
+    normalize_latency_stage_timings,
+)
 from deeptutor.capabilities.chat_mode import get_default_chat_mode
 from deeptutor.contracts.bot_runtime_defaults import (
     resolve_bot_runtime_defaults as resolve_bot_binding_defaults,
@@ -561,6 +564,25 @@ def _enrich_result_question_authority_from_trace(
     return enriched
 
 
+class _TurnLatencyStages:
+    def __init__(self) -> None:
+        self._stages_ms: dict[str, float] = {}
+
+    def record_since(self, stage: str, started_at: float) -> None:
+        self._stages_ms[stage] = (time.perf_counter() - started_at) * 1000.0
+
+    @contextlib.contextmanager
+    def measure(self, stage: str):
+        started_at = time.perf_counter()
+        try:
+            yield
+        finally:
+            self.record_since(stage, started_at)
+
+    def snapshot(self) -> dict[str, float]:
+        return normalize_latency_stage_timings(self._stages_ms)
+
+
 def _build_terminal_turn_observation_event(
     *,
     session_id: str,
@@ -583,6 +605,9 @@ def _build_terminal_turn_observation_event(
         "total_output_tokens": int(usage.get("total_output_tokens") or 0),
         "total_calls": int(usage.get("total_calls") or 0),
     }
+    latency_stages_ms = normalize_latency_stage_timings(trace_metadata.get("latency_stages_ms"))
+    if latency_stages_ms:
+        metadata["latency_stages_ms"] = latency_stages_ms
     for metadata_key in (
         "authority_applied",
         "exact_fast_path_hit",
@@ -3911,6 +3936,7 @@ class TurnRuntimeManager:
         terminal_status = "failed"
         llm_selection_token = None
         turn_started_at = time.perf_counter()
+        latency_stages = _TurnLatencyStages()
         deadline_task = self._schedule_turn_deadline(execution)
         surface_event_store = get_surface_event_store()
         trace_metadata = {
@@ -4285,28 +4311,29 @@ class TurnRuntimeManager:
             context_route: str = ""
             task_anchor_type: str = ""
             route_confidence = 0.0
-            try:
-                from deeptutor.services.session.context_router import (
-                    ContextRouteInput,
-                    decide_context_route,
-                )
-
-                preview_route = decide_context_route(
-                    ContextRouteInput(
-                        user_message=raw_user_content,
-                        has_active_question=bool(followup_question_context),
-                        has_active_plan=bool(active_plan_id or _active_object_plan_id(active_object)),
-                        notebook_references=_normalize_reference_tokens(notebook_references),
-                        history_references=_normalize_reference_tokens(history_references),
-                        explicit_grounding=False,
-                        session_followup_hint=False,
+            with latency_stages.measure("context_route_preview"):
+                try:
+                    from deeptutor.services.session.context_router import (
+                        ContextRouteInput,
+                        decide_context_route,
                     )
-                )
-                context_route = preview_route.route_label
-                task_anchor_type = preview_route.task_anchor_type.value
-                route_confidence = float(preview_route.confidence or 0.0)
-            except Exception:
-                logger.debug("Failed to preview context route", exc_info=True)
+
+                    preview_route = decide_context_route(
+                        ContextRouteInput(
+                            user_message=raw_user_content,
+                            has_active_question=bool(followup_question_context),
+                            has_active_plan=bool(active_plan_id or _active_object_plan_id(active_object)),
+                            notebook_references=_normalize_reference_tokens(notebook_references),
+                            history_references=_normalize_reference_tokens(history_references),
+                            explicit_grounding=False,
+                            session_followup_hint=False,
+                        )
+                    )
+                    context_route = preview_route.route_label
+                    task_anchor_type = preview_route.task_anchor_type.value
+                    route_confidence = float(preview_route.confidence or 0.0)
+                except Exception:
+                    logger.debug("Failed to preview context route", exc_info=True)
             trace_metadata["language"] = payload.get("language", "en")
             raw_interaction_hints = (
                 (payload.get("config", {}) or {}).get("interaction_hints")
@@ -4369,36 +4396,37 @@ class TurnRuntimeManager:
                 _learning_prompt_intent_trace_metadata(request_config.get("learning_prompt_intent"))
             )
             try:
-                usage_scope_cm = observability.usage_scope(
-                    scope_id=turn_id,
-                    session_id=session_id,
-                    turn_id=turn_id,
-                    capability=capability_name,
-                )
-                usage_scope_state = usage_scope_cm.__enter__()
-                turn_observation_cm = observability.start_observation(
-                    name=self._initial_turn_trace_name(
-                        capability_name=capability_name,
-                    ),
-                    as_type="chain",
-                    input_payload={"content": raw_user_content},
-                    metadata=trace_metadata,
-                )
-                turn_observation = turn_observation_cm.__enter__()
-                observation_trace_id = ""
-                trace_id_reader = getattr(observability, "observation_trace_id", None)
-                if callable(trace_id_reader):
-                    observation_trace_id = str(
-                        trace_id_reader(turn_observation) or ""
-                    ).strip()
-                if observation_trace_id:
-                    trace_metadata["trace_id"] = observation_trace_id
-                    _append_trace_link_event(
-                        assistant_events,
+                with latency_stages.measure("observability_start"):
+                    usage_scope_cm = observability.usage_scope(
+                        scope_id=turn_id,
                         session_id=session_id,
                         turn_id=turn_id,
-                        trace_id=observation_trace_id,
+                        capability=capability_name,
                     )
+                    usage_scope_state = usage_scope_cm.__enter__()
+                    turn_observation_cm = observability.start_observation(
+                        name=self._initial_turn_trace_name(
+                            capability_name=capability_name,
+                        ),
+                        as_type="chain",
+                        input_payload={"content": raw_user_content},
+                        metadata=trace_metadata,
+                    )
+                    turn_observation = turn_observation_cm.__enter__()
+                    observation_trace_id = ""
+                    trace_id_reader = getattr(observability, "observation_trace_id", None)
+                    if callable(trace_id_reader):
+                        observation_trace_id = str(
+                            trace_id_reader(turn_observation) or ""
+                        ).strip()
+                    if observation_trace_id:
+                        trace_metadata["trace_id"] = observation_trace_id
+                        _append_trace_link_event(
+                            assistant_events,
+                            session_id=session_id,
+                            turn_id=turn_id,
+                            trace_id=observation_trace_id,
+                        )
             except Exception:
                 if turn_observation_cm is not None:
                     with contextlib.suppress(Exception):
@@ -4521,6 +4549,7 @@ class TurnRuntimeManager:
                 compiled_learning_truth: dict[str, Any] = {}
                 personalization_context: dict[str, Any] = {}
                 effective_user_message = raw_user_content
+                context_build_started_at = time.perf_counter()
                 context_trace: dict[str, Any] = {
                     "fallback_path": "legacy",
                     "fallback_stage": "legacy_flag",
@@ -4756,6 +4785,7 @@ class TurnRuntimeManager:
                     if context_parts:
                         context_parts.append(f"[User Question]\n{raw_user_content}")
                         effective_user_message = "\n\n".join(context_parts)
+                latency_stages.record_since("context_build", context_build_started_at)
 
                 if document_texts and "[Attached Documents]" not in effective_user_message:
                     effective_user_message = (
@@ -4900,6 +4930,7 @@ class TurnRuntimeManager:
 
                 selector_orchestrator = ChatOrchestrator()
                 selector = getattr(selector_orchestrator, "_select_capability", None)
+                capability_selection_started_at = time.perf_counter()
                 if not capability_name and callable(selector):
                     resolved_capability = await selector(context)
                     capability_name = await self._canonicalize_execution_capability(
@@ -4914,6 +4945,7 @@ class TurnRuntimeManager:
                         with contextlib.suppress(Exception):
                             usage_scope_state.capability = capability_name
                     context.active_capability = capability_name
+                latency_stages.record_since("capability_selection", capability_selection_started_at)
 
                 log_context_tokens = bind_log_context(
                     user_id=user_id,
@@ -4922,6 +4954,7 @@ class TurnRuntimeManager:
                 )
 
                 if persist_user_message:
+                    user_message_persist_started_at = time.perf_counter()
                     await self._safe_store_call(
                         execution,
                         "add_user_message",
@@ -4952,8 +4985,10 @@ class TurnRuntimeManager:
                         ),
                         default=None,
                     )
+                    latency_stages.record_since("user_message_persist", user_message_persist_started_at)
 
                 orch = selector_orchestrator
+                capability_stream_started_at = time.perf_counter()
                 async for event in orch.handle(context):
                     if event.type == StreamEventType.SESSION:
                         continue
@@ -5003,6 +5038,7 @@ class TurnRuntimeManager:
                         )
                     elif _should_capture_assistant_content(event):
                         assistant_content += event.content
+                latency_stages.record_since("capability_stream", capability_stream_started_at)
                 trace_metadata.update(
                     {
                         "active_object": dict(context.metadata.get("active_object", {}) or {}),
@@ -5287,9 +5323,11 @@ class TurnRuntimeManager:
                 with contextlib.suppress(Exception):
                     usage_scope_cm.__exit__(None, None, None)
             turn_duration_ms = (time.perf_counter() - turn_started_at) * 1000.0
+            trace_metadata["latency_stages_ms"] = latency_stages.snapshot()
             get_turn_runtime_metrics().record_turn_finished(
                 status=terminal_status,
                 duration_ms=turn_duration_ms,
+                stage_timings_ms=trace_metadata.get("latency_stages_ms"),
             )
             with contextlib.suppress(Exception):
                 event_log = get_turn_event_log()
