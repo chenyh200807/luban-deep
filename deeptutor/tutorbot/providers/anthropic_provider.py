@@ -510,11 +510,12 @@ class AnthropicProvider(LLMProvider):
                 stage_timings_ms=stage_timings_ms,
             )
 
+        provider_metadata = {"provider_name": "anthropic", "streaming": True}
         with observability.start_observation(
             name="tutorbot.llm.stream",
             as_type="generation",
             input_payload=messages,
-            metadata={"provider_name": "anthropic", "streaming": True},
+            metadata=provider_metadata,
             model=model_name,
             model_parameters={
                 "max_tokens": max_tokens,
@@ -566,7 +567,7 @@ class AnthropicProvider(LLMProvider):
             except asyncio.TimeoutError:
                 observability.update_observation(
                     observation,
-                    metadata={"provider_name": "anthropic", "streaming": True},
+                    metadata={**provider_metadata, **_stream_telemetry()},
                     level="ERROR",
                     status_message=f"stream stalled for more than {idle_timeout_s} seconds",
                 )
@@ -578,7 +579,7 @@ class AnthropicProvider(LLMProvider):
             except Exception as e:
                 observability.update_observation(
                     observation,
-                    metadata={"provider_name": "anthropic", "streaming": True},
+                    metadata={**provider_metadata, **_stream_telemetry()},
                     level="ERROR",
                     status_message=str(e),
                 )
@@ -597,7 +598,7 @@ class AnthropicProvider(LLMProvider):
             observability.update_observation(
                 observation,
                 output_payload=parsed.content,
-                metadata={"provider_name": "anthropic", "streaming": True},
+                metadata={**provider_metadata, **_stream_telemetry()},
                 usage_details=usage_details,
                 usage_source=usage_source,
                 model=model_name,

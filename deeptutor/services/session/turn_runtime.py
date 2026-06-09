@@ -1551,6 +1551,7 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
     loader_source: dict[str, Any] = {}
     skill_source_status: dict[str, Any] = {}
     lifecycle_metadata: dict[str, Any] = {}
+    llm_stream_telemetry: dict[str, Any] = {}
     lifecycle_metadata_keys = (
         "question_lifecycle_decision",
         "decision_source",
@@ -1634,6 +1635,10 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
                 loader_source.update(dict(candidate.get("loader_source") or {}))
             if isinstance(candidate.get("skill_source_status"), dict):
                 skill_source_status = dict(candidate.get("skill_source_status") or {})
+            if not llm_stream_telemetry:
+                llm_stream_telemetry = _normalize_llm_stream_telemetry(
+                    candidate.get("llm_stream_telemetry")
+                )
             if not exact_question_summary and isinstance(candidate.get("exact_question"), dict):
                 exact_question_summary = _summarize_exact_question_for_observer(
                     candidate.get("exact_question")
@@ -1673,6 +1678,8 @@ def _summarize_assistant_events(events: list[dict[str, Any]]) -> dict[str, Any]:
         summary["loader_source"] = loader_source
     if skill_source_status:
         summary["skill_source_status"] = skill_source_status
+    if llm_stream_telemetry:
+        summary["llm_stream_telemetry"] = llm_stream_telemetry
     return summary
 
 

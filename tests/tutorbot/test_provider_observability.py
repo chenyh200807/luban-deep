@@ -350,6 +350,10 @@ async def test_openai_compat_provider_records_stream_first_token_telemetry(
         "provider_first_content_delta",
         "provider_stream_read",
     }
+    final_metadata = fake_observability.updated[-1]["metadata"]
+    assert final_metadata["stream_chunk_count"] == 2
+    assert final_metadata["stream_content_chunk_count"] == 2
+    assert final_metadata["stage_timings_ms"]["provider_first_content_delta"] >= 0
 
 
 @pytest.mark.asyncio

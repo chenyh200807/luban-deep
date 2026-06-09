@@ -3738,7 +3738,27 @@ async def test_turn_runtime_observer_breaks_down_start_setup_and_capability_stre
             yield StreamEvent(
                 type=StreamEventType.RESULT,
                 source="chat",
-                metadata={"response": "hello", "metadata": {}},
+                metadata={
+                    "response": "hello",
+                    "metadata": {
+                        "llm_stream_telemetry": {
+                            "call_count": 1,
+                            "calls": [
+                                {
+                                    "call_site": "fast_policy",
+                                    "provider_name": "dashscope",
+                                    "model": "deepseek-v4-flash",
+                                    "stream_chunk_count": 4,
+                                    "stream_content_chunk_count": 3,
+                                    "stage_timings_ms": {
+                                        "provider_first_content_delta": 123.4,
+                                        "provider_stream_read": 456.7,
+                                    },
+                                }
+                            ],
+                        }
+                    },
+                },
             )
             yield StreamEvent(type=StreamEventType.DONE, source="chat")
 
@@ -3782,6 +3802,13 @@ async def test_turn_runtime_observer_breaks_down_start_setup_and_capability_stre
     assert metadata["capability_stream_event_counts"]["content"] == 1
     assert metadata["capability_stream_event_counts"]["result"] == 1
     assert metadata["capability_stream_event_counts"]["done"] == 1
+    assert metadata["llm_stream_telemetry"]["calls"][0]["provider_name"] == "dashscope"
+    assert (
+        metadata["llm_stream_telemetry"]["calls"][0]["stage_timings_ms"][
+            "provider_first_content_delta"
+        ]
+        == 123.4
+    )
 
 
 @pytest.mark.asyncio
