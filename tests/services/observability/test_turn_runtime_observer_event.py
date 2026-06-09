@@ -84,6 +84,31 @@ def test_terminal_turn_observation_event_keeps_latency_stage_breakdown() -> None
     }
 
 
+def test_terminal_turn_observation_event_keeps_context_build_stage_breakdown() -> None:
+    event = _build_terminal_turn_observation_event(
+        session_id="session-1",
+        turn_id="turn-1",
+        status="completed",
+        capability_name="tutorbot",
+        duration_ms=1234.5,
+        trace_metadata={
+            "context_route": "question_followup",
+            "context_build_stage_timings_ms": {
+                "session_history": 12.345,
+                "learner_state": 90,
+                "negative_noise": -1,
+                "bad_noise": "n/a",
+            },
+        },
+        usage_summary={"total_tokens": 15},
+    )
+
+    assert event["metadata"]["context_build_stage_timings_ms"] == {
+        "learner_state": 90.0,
+        "session_history": 12.35,
+    }
+
+
 def test_trace_link_event_persists_turn_trace_identity_for_feedback() -> None:
     events: list[dict] = []
 

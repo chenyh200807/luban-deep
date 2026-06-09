@@ -608,6 +608,11 @@ def _build_terminal_turn_observation_event(
     latency_stages_ms = normalize_latency_stage_timings(trace_metadata.get("latency_stages_ms"))
     if latency_stages_ms:
         metadata["latency_stages_ms"] = latency_stages_ms
+    context_build_stage_timings_ms = normalize_latency_stage_timings(
+        trace_metadata.get("context_build_stage_timings_ms")
+    )
+    if context_build_stage_timings_ms:
+        metadata["context_build_stage_timings_ms"] = context_build_stage_timings_ms
     for metadata_key in (
         "authority_applied",
         "exact_fast_path_hit",
@@ -4859,6 +4864,7 @@ class TurnRuntimeManager:
                         "token_budget_by_source": dict(context_trace.get("token_budget_by_source", {}) or {}),
                         "compression_applied": context_trace.get("compression_applied"),
                         "history_search_applied": context_trace.get("history_search_applied"),
+                        "context_build_stage_timings_ms": context_trace.get("build_stage_timings_ms"),
                             "fallback_path": context_trace.get("fallback_path", ""),
                         }
                 )
