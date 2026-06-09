@@ -732,6 +732,49 @@ def test_mobile_chat_start_turn_accepts_custom_interaction_hints(
     assert config["interaction_hints"]["allow_general_chat_fallback"] is False
 
 
+def test_mobile_chat_start_turn_carries_general_knowledge_shadow_flag(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class FakeTurnRuntime:
+        async def start_turn(self, payload):
+            captured["payload"] = payload
+            return (
+                {
+                    "id": "session_compiled_shadow",
+                    "title": "学习会话",
+                    "created_at": 1_700_000_021.0,
+                },
+                {
+                    "id": "turn_compiled_shadow",
+                    "status": "running",
+                    "capability": "",
+                },
+            )
+
+    monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
+    monkeypatch.setattr(
+        mobile_module,
+        "_resolve_authenticated_user_id",
+        lambda *_args, **_kwargs: "student_demo",
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={
+                "query": "高层住宅的建筑高度是怎么界定的？",
+                "interaction_profile": "tutorbot",
+                "general_knowledge_context": True,
+            },
+        )
+
+    assert response.status_code == 200
+    config = captured["payload"]["config"]
+    assert config["general_knowledge_context"] is True
+
+
 def test_mobile_chat_start_turn_enables_web_search_for_current_info_queries(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

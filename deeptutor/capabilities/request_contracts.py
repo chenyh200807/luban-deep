@@ -52,7 +52,7 @@ class DeepQuestionRequestConfig(BaseModel):
     paper_path: str = ""
     max_questions: int = Field(default=10, ge=1, le=100)
     learning_training_intent: dict[str, Any] | None = None
-    general_knowledge_context: bool = True
+    general_knowledge_context: bool | None = None
 
 
 class VisualizeRequestConfig(BaseModel):

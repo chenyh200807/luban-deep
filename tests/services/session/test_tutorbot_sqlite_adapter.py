@@ -24,6 +24,7 @@ fake_tiktoken.get_encoding = lambda _name: SimpleNamespace(encode=lambda text: l
 sys.modules.setdefault("tiktoken", fake_tiktoken)
 
 from deeptutor.services.session.sqlite_store import SQLiteSessionStore, build_user_owner_key
+import deeptutor.services.tutorbot.manager as tutorbot_manager
 from deeptutor.services.tutorbot.manager import BotConfig, TutorBotManager
 from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.tutorbot.session.manager import Session
@@ -81,6 +82,88 @@ def test_tutorbot_sqlite_adapter_persists_metadata_and_stable_messages(tmp_path)
     assert row["preferences"]["bot_id"] == "construction-exam-coach"
     assert row["preferences"]["conversation_id"] == "c1"
     assert row["preferences"]["user_id"] == "u1"
+
+
+def test_tutorbot_general_knowledge_context_respects_kill_switch(monkeypatch: pytest.MonkeyPatch) -> None:
+    def _fail_resolve(*args, **kwargs):
+        raise AssertionError("resolver should not run when kill switch is off")
+
+    monkeypatch.setenv("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_ENABLED", "false")
+    monkeypatch.setattr(tutorbot_manager, "resolve_general_knowledge_context", _fail_resolve)
+    metadata = {"user_id": "qa_user_1", "conversation_context_text": "已有上下文"}
+
+    tutorbot_manager._attach_general_knowledge_context(
+        content="高层住宅的建筑高度是怎么界定的？",
+        runtime_metadata=metadata,
+    )
+
+    assert metadata["conversation_context_text"] == "已有上下文"
+    assert metadata["luban_general_knowledge_context_status"] == "killed_by_switch"
+    assert "luban_general_knowledge_context" not in metadata
+
+
+def test_tutorbot_general_knowledge_context_respects_optional_cohort(monkeypatch: pytest.MonkeyPatch) -> None:
+    def _fail_resolve(*args, **kwargs):
+        raise AssertionError("resolver should not run outside configured cohort")
+
+    monkeypatch.setenv("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT", "qa_,operator_")
+    monkeypatch.setattr(tutorbot_manager, "resolve_general_knowledge_context", _fail_resolve)
+    metadata = {"user_id": "real_user_1"}
+
+    tutorbot_manager._attach_general_knowledge_context(
+        content="高层住宅的建筑高度是怎么界定的？",
+        runtime_metadata=metadata,
+    )
+
+    assert metadata["luban_general_knowledge_context_status"] == "cohort_miss"
+    assert "luban_general_knowledge_context" not in metadata
+
+
+def test_tutorbot_general_knowledge_context_defaults_to_shadow_only(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def _fail_resolve(*args, **kwargs):
+        raise AssertionError("resolver should not run without explicit shadow opt-in")
+
+    monkeypatch.delenv("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT", raising=False)
+    monkeypatch.delenv("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_ENABLED", raising=False)
+    monkeypatch.setattr(tutorbot_manager, "resolve_general_knowledge_context", _fail_resolve)
+    metadata = {"user_id": "real_user_1"}
+
+    tutorbot_manager._attach_general_knowledge_context(
+        content="高层住宅的建筑高度是怎么界定的？",
+        runtime_metadata=metadata,
+    )
+
+    assert metadata["luban_general_knowledge_context_status"] == "shadow_not_enabled"
+    assert "luban_general_knowledge_context" not in metadata
+
+
+def test_tutorbot_general_knowledge_context_allows_explicit_shadow_opt_in(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pack = {
+        "authority": "luban_general_knowledge_context",
+        "tier": "teaching_context_not_answer_key",
+        "official_score_allowed": False,
+        "llm_may_decide_correctness": False,
+        "confidence": {"status": "high"},
+        "sources": {"textbook": [{"text_preview": "建筑高度大于27m的住宅为高层住宅"}]},
+    }
+
+    monkeypatch.delenv("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT", raising=False)
+    monkeypatch.delenv("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_ENABLED", raising=False)
+    monkeypatch.setattr(tutorbot_manager, "resolve_general_knowledge_context", lambda *args, **kwargs: pack)
+    monkeypatch.setattr(tutorbot_manager, "format_general_knowledge_grounding", lambda _pack: "compiled grounding")
+    metadata = {"user_id": "real_user_1", "general_knowledge_context": True}
+
+    tutorbot_manager._attach_general_knowledge_context(
+        content="高层住宅的建筑高度是怎么界定的？",
+        runtime_metadata=metadata,
+    )
+
+    assert metadata["luban_general_knowledge_context"] == pack
+    assert metadata["conversation_context_text"] == "compiled grounding"
 
 
 def test_tutorbot_sqlite_adapter_repeated_save_does_not_duplicate_final_answer(tmp_path) -> None:
@@ -601,3 +684,93 @@ async def test_tutorbot_manager_send_message_reuses_outer_usage_scope_for_extern
     assert metadata_keys.index("skill_trace") < 20
     assert captured_update["metadata"]["skill_trace"][0]["name"] == "construction-exam-tutor"
     assert captured_update["metadata"]["skill_stack"] == ["construction-exam-tutor"]
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_manager_injects_high_confidence_general_knowledge_context(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    manager = TutorBotManager()
+    captured_metadata: dict[str, object] = {}
+    pack = {
+        "authority": "luban_general_knowledge_context",
+        "tier": "teaching_context_not_answer_key",
+        "official_score_allowed": False,
+        "llm_may_decide_correctness": False,
+        "leaf_name_path": "建筑工程技术 > 建筑高度分类",
+        "confidence": {"status": "high", "policy": "query_path_source_alignment_v1"},
+        "sources": {"textbook": [{"text_preview": "建筑高度大于27m的住宅为高层住宅"}]},
+    }
+
+    def _fake_resolve(question_text, *, learner_context=None, per_source=6):
+        assert question_text == "高层住宅的建筑高度是怎么界定的？"
+        assert learner_context["question_text"] == question_text
+        return pack
+
+    monkeypatch.setattr(
+        tutorbot_manager,
+        "resolve_general_knowledge_context",
+        _fake_resolve,
+        raising=False,
+    )
+    monkeypatch.setattr(
+        tutorbot_manager,
+        "format_general_knowledge_grounding",
+        lambda resolved: "【编译教学上下文】建筑高度大于27m的住宅为高层住宅",
+        raising=False,
+    )
+
+    class _FakeSessions:
+        def __init__(self) -> None:
+            self._session = Session(key="bot:demo:user:u1:chat:c1", metadata={})
+
+        def get_or_create(self, key: str) -> Session:
+            self._session.key = key
+            return self._session
+
+        def save(self, session: Session) -> None:
+            self._session = session
+
+    class _FakeAgentLoop:
+        def __init__(self) -> None:
+            self.sessions = _FakeSessions()
+
+        async def process_direct(self, *args, **kwargs) -> str:
+            captured_metadata.update(kwargs.get("metadata") or {})
+            return "TutorBot reply"
+
+    pending_task = asyncio.create_task(asyncio.sleep(60))
+    manager._bots["demo-bot"] = SimpleNamespace(
+        bot_id="demo-bot",
+        running=True,
+        tasks=[pending_task],
+        agent_loop=_FakeAgentLoop(),
+        channel_manager=None,
+        channel_bindings={},
+    )
+
+    try:
+        session_metadata = {
+            "session_id": "mobile-session",
+            "turn_id": "turn-1",
+            "user_id": "u1",
+            "source": "wx_miniprogram",
+            "general_knowledge_context": True,
+            "conversation_context_text": "已有对话上下文",
+        }
+        response = await manager.send_message(
+            "demo-bot",
+            "高层住宅的建筑高度是怎么界定的？",
+            chat_id="c1",
+            session_metadata=session_metadata,
+        )
+    finally:
+        pending_task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await pending_task
+
+    assert response == "TutorBot reply"
+    assert captured_metadata["luban_general_knowledge_context"] == pack
+    assert session_metadata["luban_general_knowledge_context"] == pack
+    assert "已有对话上下文" in str(captured_metadata["conversation_context_text"])
+    assert "【编译教学上下文】" in str(captured_metadata["conversation_context_text"])

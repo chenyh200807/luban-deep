@@ -124,6 +124,7 @@ domains:
       - tests/services/session/test_context_builder.py
       - tests/services/session/test_prompt_partition.py
       - tests/services/session/test_sqlite_store.py
+      - tests/services/session/test_tutorbot_sqlite_adapter.py
       - tests/services/learner_state/test_attempt_refs.py
       - tests/services/learner_state/test_attempt_detail_read_model.py
       - tests/services/learner_state/test_mistake_book.py
@@ -181,6 +182,7 @@ domains:
       - tests/services/test_question_lifecycle_scene_derivation.py
       - tests/services/test_question_lifecycle_acceptance.py
       - tests/capabilities/test_request_contracts.py
+      - tests/capabilities/test_tutorbot_authority.py
       - tests/capabilities/test_deep_question_question_review.py
       - tests/capabilities/test_deep_question_lightweight_generation.py
       - tests/capabilities/test_deep_question_reference_feedback.py

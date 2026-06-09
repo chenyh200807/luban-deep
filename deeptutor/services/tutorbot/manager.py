@@ -12,6 +12,7 @@ from __future__ import annotations
 import asyncio
 from contextlib import ExitStack
 import logging
+import os
 import shutil
 import sys
 from collections.abc import Awaitable, Callable
@@ -22,6 +23,10 @@ from typing import Any
 
 import yaml
 
+from deeptutor.services.compiled_knowledge.general_knowledge import (
+    format_general_knowledge_grounding,
+    resolve_general_knowledge_context,
+)
 from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.user_visible_output import coerce_user_visible_answer
 from deeptutor.services.path_service import get_path_service
@@ -62,6 +67,100 @@ def _append_web_search_sources_if_missing(response: str, sources: Any) -> str:
     if not lines:
         return content
     return content + "\n\n### 联网来源\n" + "\n".join(lines)
+
+
+def _has_active_question_context(metadata: dict[str, Any]) -> bool:
+    if any(
+        isinstance(metadata.get(key), dict) and metadata.get(key)
+        for key in (
+            "active_object",
+            "question_followup_context",
+            "followup_question_context",
+            "_prefetched_exact_question",
+        )
+    ):
+        return True
+    scene = str(metadata.get("question_lifecycle_scene") or "").strip()
+    return scene in {"case_grading", "question_review", "question_followup"}
+
+
+def _append_conversation_context(existing: Any, addition: str) -> str:
+    current = str(existing or "").strip()
+    new_text = str(addition or "").strip()
+    if not current:
+        return new_text
+    if not new_text:
+        return current
+    return current + "\n\n" + new_text
+
+
+def _general_knowledge_env_disabled() -> bool:
+    return os.environ.get("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_ENABLED", "").strip().lower() in {
+        "false",
+        "0",
+        "off",
+        "no",
+    }
+
+
+def _general_knowledge_cohort_member(student_id: str) -> bool:
+    raw = os.environ.get("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT", "")
+    prefixes = tuple(prefix.strip() for prefix in raw.split(",") if prefix.strip())
+    return bool(prefixes) and str(student_id or "").startswith(prefixes)
+
+
+def _general_knowledge_cohort_configured() -> bool:
+    raw = os.environ.get("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT", "")
+    return any(prefix.strip() for prefix in raw.split(","))
+
+
+def _attach_general_knowledge_context(
+    *,
+    content: str,
+    runtime_metadata: dict[str, Any],
+) -> None:
+    if _has_active_question_context(runtime_metadata):
+        return
+    if (
+        runtime_metadata.get("disable_luban_general_knowledge_context") is True
+        or runtime_metadata.get("general_knowledge_context") is False
+    ):
+        return
+    if _general_knowledge_env_disabled():
+        runtime_metadata["luban_general_knowledge_context_status"] = "killed_by_switch"
+        return
+
+    explicit_shadow_opt_in = runtime_metadata.get("general_knowledge_context") is True
+    student_id = str(
+        runtime_metadata.get("user_id") or runtime_metadata.get("learner_user_id") or ""
+    ).strip()
+    if not explicit_shadow_opt_in and not _general_knowledge_cohort_member(student_id):
+        runtime_metadata["luban_general_knowledge_context_status"] = (
+            "cohort_miss" if _general_knowledge_cohort_configured() else "shadow_not_enabled"
+        )
+        return
+
+    learner_context = {
+        "question_text": content,
+        "student_id": student_id,
+        "source": str(runtime_metadata.get("source") or "tutorbot").strip(),
+        "bot_id": str(runtime_metadata.get("bot_id") or "").strip(),
+        "conversation_id": str(runtime_metadata.get("conversation_id") or "").strip(),
+    }
+    pack = resolve_general_knowledge_context(
+        content,
+        learner_context=learner_context,
+    )
+    if not pack:
+        return
+    grounding = format_general_knowledge_grounding(pack)
+    if not grounding:
+        return
+    runtime_metadata["luban_general_knowledge_context"] = pack
+    runtime_metadata["conversation_context_text"] = _append_conversation_context(
+        runtime_metadata.get("conversation_context_text"),
+        grounding,
+    )
 
 
 @dataclass
@@ -923,12 +1022,18 @@ class TutorBotManager:
                 await on_tool_result(tool_name, result, metadata)
 
         runtime_metadata = dict(merged_metadata)
+        runtime_metadata.setdefault("bot_id", bot_id)
+        runtime_metadata.setdefault("conversation_id", effective_chat_id)
         runtime_metadata["selected_mode"] = (
             str(merged_metadata.get("selected_mode") or merged_metadata.get("effective_response_mode") or mode).strip()
             or mode
         )
         runtime_metadata["effective_response_mode"] = (
             str(merged_metadata.get("effective_response_mode") or mode).strip() or mode
+        )
+        _attach_general_knowledge_context(
+            content=content,
+            runtime_metadata=runtime_metadata,
         )
 
         def _observation_metadata(usage_summary: Any) -> dict[str, Any]:
@@ -1133,6 +1238,8 @@ class TutorBotManager:
                             "v1_case_graded",
                             "score_authority",
                             "grading_rubric_provenance",
+                            "luban_general_knowledge_context",
+                            "luban_general_knowledge_context_status",
                         ):
                             if metadata_key in runtime_metadata:
                                 update_metadata[metadata_key] = runtime_metadata[metadata_key]

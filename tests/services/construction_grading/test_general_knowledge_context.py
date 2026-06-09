@@ -24,6 +24,33 @@ def test_free_text_resolves_to_teaching_pack() -> None:
     assert out["resolved_anchor"]
     assert isinstance(out["sources"], dict)
     assert any(out["sources"].get(s) for s in ("textbook", "standard", "lecture", "question"))
+    assert out["confidence"]["status"] == "high"
+    assert out["confidence"]["policy"] == "query_path_source_alignment_v1"
+
+
+def test_wrong_chapter_candidate_falls_open_before_injection() -> None:
+    assert gkc.resolve_general_knowledge_context("建筑防火分区面积怎么理解？") is None
+
+
+def test_top_k_query_plan_reranks_contract_claim_to_claim_path() -> None:
+    out = gkc.resolve_general_knowledge_context("施工合同索赔成立条件是什么？")
+
+    assert out is not None
+    assert "索赔" in out["leaf_name_path"]
+    assert out["query_plan"]["intent"] == "case_judgment"
+    assert out["confidence"]["status"] == "high"
+
+
+def test_query_plan_rejects_source_polluted_wrong_path_for_total_float() -> None:
+    plan = gkc.build_general_knowledge_query_plan("双代号网络计划总时差怎么算？")
+
+    assert plan["intent"] == "calculation"
+    assert any(
+        "source_path_conflict" in candidate.get("negative_evidence", [])
+        for candidate in plan["candidates"]
+        if "水泥" in candidate.get("leaf_name_path", "")
+    )
+    assert gkc.resolve_general_knowledge_context("双代号网络计划总时差怎么算？") is None
 
 
 def test_off_syllabus_text_falls_open_to_none() -> None:

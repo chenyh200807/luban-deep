@@ -97,7 +97,7 @@ def test_general_knowledge_question_ws_attaches_teaching_context() -> None:
     assert "编译教学上下文" in str(FakeAgentCoordinator.calls[-1].get("history_context") or "")
 
 
-def test_general_knowledge_question_ws_defaults_on_for_real_user_without_config() -> None:
+def test_general_knowledge_question_ws_defaults_shadow_off_for_real_user_without_config() -> None:
     with tempfile.TemporaryDirectory() as tmp, _client(tmp, user="real_student_42") as client:
         result = wsh._receive_result(
             client,
@@ -105,14 +105,8 @@ def test_general_knowledge_question_ws_defaults_on_for_real_user_without_config(
         )
 
     metadata = result.get("metadata") or {}
-    block = metadata.get("luban_general_knowledge_context")
-    assert block, "production default should attach compiled teaching context without request flag"
-    assert block["official_score_allowed"] is False
-    assert block["llm_may_decide_correctness"] is False
-    assert block["tier"] == "teaching_context_not_answer_key"
+    assert "luban_general_knowledge_context" not in metadata
     assert "construction_grading_result" not in metadata
-    assert FakeAgentCoordinator.calls
-    assert "编译教学上下文" in str(FakeAgentCoordinator.calls[-1].get("history_context") or "")
 
 
 def test_off_syllabus_ws_falls_open_no_teaching_block() -> None:

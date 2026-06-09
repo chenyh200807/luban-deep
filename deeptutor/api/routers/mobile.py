@@ -1878,6 +1878,8 @@ def _build_mobile_turn_payload(
             str(body.grading_engine_runtime_shadow_engine or "deepseek_fast").strip()
             or "deepseek_fast"
         )
+    if body.general_knowledge_context is not None:
+        config["general_knowledge_context"] = bool(body.general_knowledge_context)
     if body.prompt_intent:
         intent_key = "learning_training_intent" if capability == "deep_question" else "learning_prompt_intent"
         config[intent_key] = dict(body.prompt_intent)
@@ -2018,6 +2020,7 @@ class MobileStartTurnRequest(BaseModel):
     persist_user_message: bool = True
     grading_engine_runtime_shadow: bool = False
     grading_engine_runtime_shadow_engine: str = "deepseek_fast"
+    general_knowledge_context: bool | None = None
 
 
 class ChatFeedbackRequest(BaseModel):

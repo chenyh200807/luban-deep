@@ -582,6 +582,8 @@ class TutorBotCapability(BaseCapability):
                 "v1_case_graded",
                 "score_authority",
                 "grading_rubric_provenance",
+                "luban_general_knowledge_context",
+                "luban_general_knowledge_context_status",
             ):
                 if metadata_key in session_metadata:
                     result_payload[metadata_key] = session_metadata[metadata_key]

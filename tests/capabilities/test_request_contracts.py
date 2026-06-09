@@ -31,7 +31,7 @@ def test_deep_question_config_allows_general_knowledge_context_flag() -> None:
     assert config["general_knowledge_context"] is True
 
 
-def test_deep_question_config_defaults_general_knowledge_context_on() -> None:
+def test_deep_question_config_omits_general_knowledge_context_by_default() -> None:
     config = validate_capability_config("deep_question", {})
 
-    assert config["general_knowledge_context"] is True
+    assert "general_knowledge_context" not in config

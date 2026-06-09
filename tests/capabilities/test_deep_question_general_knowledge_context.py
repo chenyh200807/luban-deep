@@ -1,4 +1,4 @@
-"""M34: general-knowledge teaching context is production-default but killable."""
+"""M34: general-knowledge teaching context is shadow/cohort gated and killable."""
 from __future__ import annotations
 
 from types import SimpleNamespace
@@ -19,16 +19,13 @@ def _ctx(*, user_id: str, message: str, flag: bool | None = None) -> SimpleNames
     )
 
 
-def test_default_on_real_user_attaches_teaching_context() -> None:
+def test_default_off_real_user_does_not_attach_teaching_context() -> None:
     payload: dict = {}
     dq._maybe_attach_general_knowledge_context(
         context=_ctx(user_id="real_student_42", message="高层住宅的建筑高度怎么界定？"),
         result_payload=payload,
     )
-    block = payload.get("luban_general_knowledge_context")
-    assert block and block["official_score_allowed"] is False
-    assert block["llm_may_decide_correctness"] is False
-    assert block["tier"] == "teaching_context_not_answer_key"
+    assert "luban_general_knowledge_context" not in payload
 
 
 def test_explicit_false_disables_production_default() -> None:
@@ -95,6 +92,18 @@ def test_optional_cohort_env_can_restrict_rollout(monkeypatch) -> None:
         result_payload=payload,
     )
     assert "luban_general_knowledge_context" not in payload
+
+
+def test_optional_cohort_env_can_enable_shadow_rollout(monkeypatch) -> None:
+    monkeypatch.setenv("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT", "qa_,operator_")
+    payload: dict = {}
+    dq._maybe_attach_general_knowledge_context(
+        context=_ctx(user_id="qa_alice", message="高层住宅的建筑高度怎么界定？"),
+        result_payload=payload,
+    )
+    block = payload.get("luban_general_knowledge_context")
+    assert block and block["official_score_allowed"] is False
+    assert block["tier"] == "teaching_context_not_answer_key"
 
 
 def test_off_syllabus_falls_open_no_block() -> None:

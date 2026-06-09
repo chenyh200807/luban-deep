@@ -66,6 +66,54 @@ async def test_tutorbot_does_not_turn_free_text_mcq_into_submitable_presentation
 
 
 @pytest.mark.asyncio
+async def test_tutorbot_result_propagates_compiled_knowledge_shadow_metadata(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pack = {
+        "authority": "luban_general_knowledge_context",
+        "tier": "teaching_context_not_answer_key",
+        "official_score_allowed": False,
+        "llm_may_decide_correctness": False,
+        "confidence": {"status": "high", "source_category_count": 2},
+        "leaf_name_path": "建筑工程技术 > 建筑高度分类",
+        "sources": {"textbook": [{"text_preview": "27m"}], "lecture": [{"text_preview": "高层住宅"}]},
+    }
+
+    class FakeManager(_FakeTutorBotManager):
+        async def send_message(self, **kwargs) -> str:
+            session_metadata = kwargs["session_metadata"]
+            session_metadata["luban_general_knowledge_context"] = pack
+            session_metadata["luban_general_knowledge_context_status"] = "attached"
+            return "高层住宅大于 27m。"
+
+    monkeypatch.setattr(
+        tutorbot_capability,
+        "get_tutorbot_manager",
+        lambda: FakeManager(),
+    )
+
+    stream = StreamBus()
+    context = UnifiedContext(
+        session_id="s-tutorbot-compiled-shadow",
+        user_message="高层住宅的建筑高度是怎么界定的？",
+        config_overrides={
+            "bot_id": "construction-exam-coach",
+            "chat_mode": "smart",
+            "general_knowledge_context": True,
+        },
+        language="zh",
+    )
+
+    await TutorBotCapability().run(context, stream)
+
+    result_events = [event for event in stream._history if event.type == StreamEventType.RESULT]
+    assert result_events
+    result_payload = result_events[-1].metadata
+    assert result_payload["luban_general_knowledge_context"] == pack
+    assert result_payload["luban_general_knowledge_context_status"] == "attached"
+
+
+@pytest.mark.asyncio
 async def test_tutorbot_low_information_exam_query_returns_clarification(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

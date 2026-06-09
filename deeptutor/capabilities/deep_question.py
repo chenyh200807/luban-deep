@@ -2699,12 +2699,14 @@ def _general_knowledge_cohort_prefixes() -> tuple[str, ...]:
 
 def _general_knowledge_cohort_member(student_id: str) -> bool:
     prefixes = _general_knowledge_cohort_prefixes()
-    return not prefixes or str(student_id).startswith(prefixes)
+    return bool(prefixes) and str(student_id).startswith(prefixes)
 
 
-def _general_knowledge_flag_enabled(context: UnifiedContext) -> bool:
+def _general_knowledge_flag_value(context: UnifiedContext) -> bool | None:
     config_overrides = getattr(context, "config_overrides", {}) or {}
-    return bool(config_overrides.get("general_knowledge_context", True))
+    if "general_knowledge_context" not in config_overrides:
+        return None
+    return bool(config_overrides.get("general_knowledge_context"))
 
 
 def _has_active_question_context(followup_question_context: dict[str, Any] | None) -> bool:
@@ -2734,7 +2736,8 @@ def _maybe_attach_general_knowledge_context(
     import os
 
     key = "luban_general_knowledge_context"
-    if not _general_knowledge_flag_enabled(context):
+    flag_value = _general_knowledge_flag_value(context)
+    if flag_value is False:
         return
     if os.environ.get("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_ENABLED", "").strip().lower() in (
         "false",
@@ -2746,7 +2749,7 @@ def _maybe_attach_general_knowledge_context(
         return
 
     student_id = _learner_user_id_from_context(context)
-    if not _general_knowledge_cohort_member(student_id):
+    if flag_value is not True and not _general_knowledge_cohort_member(student_id):
         return
 
     try:
