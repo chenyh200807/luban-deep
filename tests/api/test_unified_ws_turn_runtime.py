@@ -43,6 +43,10 @@ async def _noop_refresh(**_kwargs):
     return None
 
 
+def _event_types_without_progress(events: list[dict[str, object]]) -> list[str]:
+    return [str(event.get("type") or "") for event in events if event.get("type") != "progress"]
+
+
 def test_unified_turn_start_schema_rejects_internal_snapshot_fields() -> None:
     with pytest.raises(ValidationError):
         UnifiedTurnStartMessage.model_validate(
@@ -1472,7 +1476,8 @@ async def test_turn_runtime_replays_events_and_materializes_messages(
     async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
         events.append(event)
 
-    assert [event["type"] for event in events] == ["session", "progress", "content", "done"]
+    assert _event_types_without_progress(events) == ["session", "content", "done"]
+    assert any(event["type"] == "progress" for event in events)
     assert events[-1]["metadata"]["status"] == "completed"
 
     detail = await store.get_session_with_messages(session["id"])
@@ -4085,7 +4090,7 @@ async def test_turn_runtime_bootstraps_question_followup_context_once(
     if runtime._background_tasks:
         await asyncio.gather(*list(runtime._background_tasks))
 
-    assert [event["type"] for event in events] == ["session", "content", "done"]
+    assert _event_types_without_progress(events) == ["session", "content", "done"]
     detail = await store.get_session_with_messages(session["id"])
     assert detail is not None
     assert [message["role"] for message in detail["messages"]] == ["system", "user", "assistant"]
@@ -6494,7 +6499,7 @@ async def test_turn_runtime_bootstraps_interaction_hints_as_soft_system_guidance
     async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
         events.append(event)
 
-    assert [event["type"] for event in events] == ["session", "content", "done"]
+    assert _event_types_without_progress(events) == ["session", "content", "done"]
     detail = await store.get_session_with_messages(session["id"])
     assert detail is not None
     assert [message["role"] for message in detail["messages"]] == ["user", "assistant"]
@@ -6590,7 +6595,7 @@ async def test_turn_runtime_preserves_current_info_hint_for_mode_selection(
     assert metadata["interaction_hints"]["current_info_required"] is True
     assert metadata["selected_mode"] == "deep"
     assert metadata["response_mode_selection_reason"] == "current_info_required"
-    assert [event["type"] for event in events] == ["session", "content", "done"]
+    assert _event_types_without_progress(events) == ["session", "content", "done"]
 
 
 @pytest.mark.asyncio
@@ -6965,7 +6970,7 @@ async def test_turn_runtime_preserves_auto_capability_selection_when_unspecified
     persisted_turn = await store.get_turn(turn["id"])
     assert persisted_turn is not None
     assert persisted_turn["capability"] == "deep_question"
-    assert [event["type"] for event in events] == ["session", "content", "done"]
+    assert _event_types_without_progress(events) == ["session", "content", "done"]
 
 
 @pytest.mark.asyncio
@@ -7032,7 +7037,7 @@ async def test_turn_runtime_marks_explicit_chat_mode_in_metadata(
         events.append(event)
 
     assert captured["chat_mode_explicit"] is True
-    assert [event["type"] for event in events] == ["session", "content", "done"]
+    assert _event_types_without_progress(events) == ["session", "content", "done"]
 
 
 @pytest.mark.asyncio
@@ -7110,7 +7115,7 @@ async def test_turn_runtime_uses_canonical_requested_response_mode_to_set_explic
     assert captured["chat_mode"] == "fast"
     assert captured["chat_mode_explicit"] is True
     assert detail["preferences"]["chat_mode"] == "fast"
-    assert [event["type"] for event in events] == ["session", "content", "done"]
+    assert _event_types_without_progress(events) == ["session", "content", "done"]
 
 
 @pytest.mark.asyncio
@@ -7188,7 +7193,7 @@ async def test_turn_runtime_prefers_requested_response_mode_hint_when_chat_mode_
     assert captured["chat_mode"] == "fast"
     assert captured["chat_mode_explicit"] is True
     assert detail["preferences"]["chat_mode"] == "fast"
-    assert [event["type"] for event in events] == ["session", "content", "done"]
+    assert _event_types_without_progress(events) == ["session", "content", "done"]
 
 
 @pytest.mark.asyncio
@@ -7627,7 +7632,7 @@ async def test_turn_runtime_captures_points_for_mini_program_turns(
     async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
         events.append(event)
 
-    assert [event["type"] for event in events] == ["session", "content", "done"]
+    assert _event_types_without_progress(events) == ["session", "content", "done"]
     assert captured == {
         "wallet_user_id": "wallet_demo",
         "amount_points": 36,
@@ -7875,7 +7880,7 @@ async def test_turn_runtime_skips_mini_program_capture_without_wallet_authority(
     async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
         events.append(event)
 
-    assert [event["type"] for event in events] == ["session", "content", "done"]
+    assert _event_types_without_progress(events) == ["session", "content", "done"]
     assert captured == {
         "learning_user_id": "learner_demo",
         "learning_query": "继续解释这道题",
@@ -8152,7 +8157,7 @@ async def test_turn_runtime_persists_deep_research_session_preference(
     async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
         events.append(event)
 
-    assert [event["type"] for event in events] == ["session", "content", "done"]
+    assert _event_types_without_progress(events) == ["session", "content", "done"]
     detail = await store.get_session_with_messages(session["id"])
     assert detail is not None
     assert detail["preferences"]["capability"] == "deep_research"
@@ -8307,7 +8312,7 @@ async def test_turn_runtime_does_not_block_done_on_background_memory_refresh(
         return events
 
     events = await asyncio.wait_for(_collect(), timeout=0.5)
-    assert [event["type"] for event in events] == ["session", "content", "done"]
+    assert _event_types_without_progress(events) == ["session", "content", "done"]
 
     await asyncio.wait_for(refresh_started.wait(), timeout=0.5)
     release_refresh.set()
@@ -9665,7 +9670,7 @@ async def test_turn_runtime_uses_user_scoped_learner_state_when_user_id_is_avail
     async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
         events.append(event)
 
-    assert [event["type"] for event in events] == ["session", "content", "done"]
+    assert _event_types_without_progress(events) == ["session", "content", "done"]
     assert captured["memory_context"] == "## 学员级长期状态\n### Student Profile\n- user: student_demo"
     assert captured["learner_user_id"] == "student_demo"
     assert captured["global_memory_called"] is False
@@ -10288,7 +10293,7 @@ async def test_turn_runtime_injects_tutorbot_default_knowledge_chain(
     async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
         events.append(event)
 
-    assert [event["type"] for event in events] == ["session", "content", "done"]
+    assert _event_types_without_progress(events) == ["session", "content", "done"]
     assert captured["enabled_tools"] == ["rag"]
     assert captured["knowledge_bases"] == ["construction-exam"]
 
