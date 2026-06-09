@@ -4,6 +4,8 @@ import importlib.util
 import sys
 from pathlib import Path
 
+import pytest
+
 
 REPO = Path(__file__).resolve().parents[2]
 _spec = importlib.util.spec_from_file_location(
@@ -103,3 +105,32 @@ def test_pair_metrics_treat_low_confidence_hit_as_wrong_path() -> None:
     assert row["fail_open"] is False
     assert row["wrong_path"] is True
     assert row["source_valid"] is False
+
+
+@pytest.mark.asyncio
+async def test_run_turn_or_error_records_recoverable_shadow_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    assert _spec.loader is not None
+    _spec.loader.exec_module(shadow)
+
+    async def _raise_recoverable(**_kwargs):
+        raise shadow.ShadowRecoverableServiceError("service_restart")
+
+    monkeypatch.setattr(shadow, "_run_turn", _raise_recoverable)
+    case = shadow.ShadowCase(case_id="c3", query="高层住宅的建筑高度是怎么界定的？", expected="hit")
+
+    result = await shadow._run_turn_or_error(
+        client=None,
+        ws_url="wss://example.test/api/v1/ws",
+        token="token",
+        headers={},
+        conversation_id="conv",
+        case=case,
+        arm="compiled",
+        timeout_seconds=1,
+    )
+
+    assert result["shadow_error"] == "ShadowRecoverableServiceError: service_restart"
+    assert result["shadow_error_stage"] == "turn_transport"
+    assert result["case_id"] == "c3"

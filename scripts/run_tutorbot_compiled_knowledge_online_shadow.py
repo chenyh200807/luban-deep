@@ -42,6 +42,11 @@ class ShadowRecoverableServiceError(RuntimeError):
     """Server-side shadow turn failure that should not abort the whole batch."""
 
 
+RECOVERABLE_SHADOW_EXCEPTION_TYPES = RECOVERABLE_SHADOW_ERRORS + (
+    ShadowRecoverableServiceError,
+)
+
+
 @dataclass(frozen=True, slots=True)
 class ShadowCase:
     case_id: str
@@ -242,7 +247,7 @@ async def _create_conversation_or_error(
 ) -> tuple[str, dict[str, Any] | None]:
     try:
         return await _create_conversation(client, headers), None
-    except (RECOVERABLE_SHADOW_ERRORS, ShadowRecoverableServiceError) as exc:
+    except RECOVERABLE_SHADOW_EXCEPTION_TYPES as exc:
         return "", _failure_result(case=case, arm=arm, error_stage="create_conversation", exc=exc)
 
 
@@ -368,7 +373,7 @@ async def _run_turn(
                     raise ShadowRecoverableServiceError(f"ws_error:{case.case_id}:{arm}:{event}")
                 elif event_type == "done":
                     break
-    except (RECOVERABLE_SHADOW_ERRORS, ShadowRecoverableServiceError) as exc:
+    except RECOVERABLE_SHADOW_EXCEPTION_TYPES as exc:
         return _failure_result(
             case=case,
             arm=arm,
@@ -395,7 +400,7 @@ async def _run_turn_or_error(**kwargs: Any) -> dict[str, Any]:
     arm = str(kwargs["arm"])
     try:
         return await _run_turn(**kwargs)
-    except (RECOVERABLE_SHADOW_ERRORS, ShadowRecoverableServiceError) as exc:
+    except RECOVERABLE_SHADOW_EXCEPTION_TYPES as exc:
         return _failure_result(case=case, arm=arm, error_stage="turn_transport", exc=exc)
 
 
