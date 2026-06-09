@@ -2883,46 +2883,59 @@ class TurnRuntimeManager:
             resolve_target_escalation_level,
         )
 
+        build_stage_timings_ms: dict[str, float] = {}
+
+        @contextlib.contextmanager
+        def measure_build_stage(stage: str):
+            started_at = time.perf_counter()
+            try:
+                yield
+            finally:
+                build_stage_timings_ms[stage] = (time.perf_counter() - started_at) * 1000.0
+
         active_plan_id = str(active_plan_id or "").strip() or _active_object_plan_id(active_object)
         try:
-            route_decision = decide_context_route(
-                ContextRouteInput(
-                    user_message=raw_user_content,
-                    has_active_question=bool(followup_question_context),
-                    has_active_plan=bool(active_plan_id),
-                    notebook_references=_normalize_reference_tokens(notebook_references),
-                    history_references=_normalize_reference_tokens(history_references),
-                    memory_references=(),
-                    explicit_grounding=False,
-                    session_followup_hint=False,
-                    personal_recall_hint=False,
+            with measure_build_stage("route_resolver"):
+                route_decision = decide_context_route(
+                    ContextRouteInput(
+                        user_message=raw_user_content,
+                        has_active_question=bool(followup_question_context),
+                        has_active_plan=bool(active_plan_id),
+                        notebook_references=_normalize_reference_tokens(notebook_references),
+                        history_references=_normalize_reference_tokens(history_references),
+                        memory_references=(),
+                        explicit_grounding=False,
+                        session_followup_hint=False,
+                        personal_recall_hint=False,
+                    )
                 )
-            )
         except Exception as exc:
             raise _ContextOrchestrationStageError("route_resolver", exc) from exc
-        context_window_tokens = (
-            int(builder.context_window_tokens(llm_config))
-            if hasattr(builder, "context_window_tokens")
-            else max(
-                8192,
-                int(getattr(llm_config, "context_window_tokens", 0) or 0)
-                or int(getattr(llm_config, "max_tokens", 4096) or 4096),
+        with measure_build_stage("context_budget"):
+            context_window_tokens = (
+                int(builder.context_window_tokens(llm_config))
+                if hasattr(builder, "context_window_tokens")
+                else max(
+                    8192,
+                    int(getattr(llm_config, "context_window_tokens", 0) or 0)
+                    or int(getattr(llm_config, "max_tokens", 4096) or 4096),
+                )
             )
-        )
-        budget_parts = self._build_context_budget(
-            context_window_tokens=context_window_tokens,
-            output_reserve_tokens=int(getattr(llm_config, "max_tokens", 1024) or 1024),
-            tools_enabled=bool(payload.get("tools") or payload.get("knowledge_bases")),
-            route_label=route_decision.route_label,
-        )
+            budget_parts = self._build_context_budget(
+                context_window_tokens=context_window_tokens,
+                output_reserve_tokens=int(getattr(llm_config, "max_tokens", 1024) or 1024),
+                tools_enabled=bool(payload.get("tools") or payload.get("knowledge_bases")),
+                route_label=route_decision.route_label,
+            )
         try:
-            history_result = await builder.build(
-                session_id=execution.session_id,
-                llm_config=llm_config,
-                language=language,
-                budget_override=budget_parts["session_budget"],
-                on_event=lambda event: self._persist_and_publish(execution, event),
-            )
+            with measure_build_stage("session_history"):
+                history_result = await builder.build(
+                    session_id=execution.session_id,
+                    llm_config=llm_config,
+                    language=language,
+                    budget_override=budget_parts["session_budget"],
+                    on_event=lambda event: self._persist_and_publish(execution, event),
+                )
         except Exception as exc:
             raise _ContextOrchestrationStageError("session_history", exc) from exc
 
@@ -2932,28 +2945,29 @@ class TurnRuntimeManager:
         personalization_context: dict[str, Any] = {}
         compact_memory_context = ""
         try:
-            if user_id and hasattr(learner_state_service, "build_context_candidates"):
-                learner_candidates_payload = learner_state_service.build_context_candidates(
-                    user_id=user_id,
-                    query=raw_user_content,
-                    route=route_decision.route_label,
-                    language=language,
-                )
-                projection = learner_candidates_payload.get("compiled_learning_truth")
-                if isinstance(projection, dict):
-                    compiled_learning_truth = dict(projection)
-                # Grading-to-Brain loop: carry the PersonalizationContextPack (a projection of the same
-                # compiled truth) so it can be injected into the live turn alongside compiled_learning_truth.
-                pcp = learner_candidates_payload.get("personalization_context")
-                if isinstance(pcp, dict):
-                    personalization_context = dict(pcp)
-            elif user_id:
-                compact_memory_context = learner_state_service.build_context(
-                    user_id=user_id,
-                    language=language,
-                )
-            else:
-                compact_memory_context = memory_service.build_memory_context()
+            with measure_build_stage("learner_state"):
+                if user_id and hasattr(learner_state_service, "build_context_candidates"):
+                    learner_candidates_payload = learner_state_service.build_context_candidates(
+                        user_id=user_id,
+                        query=raw_user_content,
+                        route=route_decision.route_label,
+                        language=language,
+                    )
+                    projection = learner_candidates_payload.get("compiled_learning_truth")
+                    if isinstance(projection, dict):
+                        compiled_learning_truth = dict(projection)
+                    # Grading-to-Brain loop: carry the PersonalizationContextPack (a projection of the same
+                    # compiled truth) so it can be injected into the live turn alongside compiled_learning_truth.
+                    pcp = learner_candidates_payload.get("personalization_context")
+                    if isinstance(pcp, dict):
+                        personalization_context = dict(pcp)
+                elif user_id:
+                    compact_memory_context = learner_state_service.build_context(
+                        user_id=user_id,
+                        language=language,
+                    )
+                else:
+                    compact_memory_context = memory_service.build_memory_context()
         except Exception as exc:
             raise _ContextOrchestrationStageError("learner_state", exc) from exc
 
@@ -2972,9 +2986,10 @@ class TurnRuntimeManager:
             and source_flags_snapshot["overlay"]
         ):
             try:
-                from deeptutor.services.learner_state import get_bot_learner_overlay_service
+                with measure_build_stage("overlay_read"):
+                    from deeptutor.services.learner_state import get_bot_learner_overlay_service
 
-                overlay_payload = get_bot_learner_overlay_service().read_overlay(source_bot_id, user_id)
+                    overlay_payload = get_bot_learner_overlay_service().read_overlay(source_bot_id, user_id)
             except Exception:
                 logger.debug(
                     "Failed to load bot learner overlay for user %s bot %s",
@@ -3000,79 +3015,82 @@ class TurnRuntimeManager:
         history_source_candidates: list[Any] = []
         if target_escalation_level >= 2:
             try:
-                if notebook_loading_allowed and source_flags_snapshot["notebook"]:
-                    notebook_source_candidates = loader.load_notebook_candidates(
-                        user_question=raw_user_content,
-                        notebook_references=notebook_references,
-                        max_candidates=3,
-                        max_excerpt_chars=360,
-                    )
-                    plan_source_candidates = loader.load_active_plan_page_candidates(
-                        user_question=raw_user_content,
-                        user_id=user_id,
-                        plan_id=active_plan_id,
-                        max_candidates=3,
-                        max_excerpt_chars=360,
-                    )
+                with measure_build_stage("source_loader_notebook_plan"):
+                    if notebook_loading_allowed and source_flags_snapshot["notebook"]:
+                        notebook_source_candidates = loader.load_notebook_candidates(
+                            user_question=raw_user_content,
+                            notebook_references=notebook_references,
+                            max_candidates=3,
+                            max_excerpt_chars=360,
+                        )
+                        plan_source_candidates = loader.load_active_plan_page_candidates(
+                            user_question=raw_user_content,
+                            user_id=user_id,
+                            plan_id=active_plan_id,
+                            max_candidates=3,
+                            max_excerpt_chars=360,
+                        )
             except Exception as exc:
                 raise _ContextOrchestrationStageError("source_loader:notebook_plan", exc) from exc
         if target_escalation_level >= 3 and history_loading_allowed and source_flags_snapshot["history"]:
             try:
-                history_source_candidates = await loader.load_history_candidates(
-                    user_question=raw_user_content,
-                    user_id=user_id,
-                    current_session_id=execution.session_id,
-                    history_references=history_references,
-                    max_candidates=2,
-                    max_excerpt_chars=600,
-                )
+                with measure_build_stage("source_loader_history"):
+                    history_source_candidates = await loader.load_history_candidates(
+                        user_question=raw_user_content,
+                        user_id=user_id,
+                        current_session_id=execution.session_id,
+                        history_references=history_references,
+                        max_candidates=2,
+                        max_excerpt_chars=600,
+                    )
             except Exception as exc:
                 raise _ContextOrchestrationStageError("source_loader:history", exc) from exc
 
-        source_priority = {
-            "current_question": 0,
-            "active_plan": 1,
-            "session_history": 2,
-            "learner_card": 3,
-            "overlay": 4,
-            "notebook": 4,
-            "memory": 5,
-            "history": 6,
-        }
-        source_budgets = {
-            "current_question": budget_parts["anchor_budget"],
-            "active_plan": max(0, min(budget_parts["anchor_budget"], int(budget_parts["evidence_budget"] * 0.7)) or budget_parts["anchor_budget"]),
-            "session_history": budget_parts["session_budget"],
-            "learner_card": budget_parts["learner_budget"],
-            "overlay": max(0, int(budget_parts["evidence_budget"] * 0.45)),
-            "notebook": max(0, int(budget_parts["evidence_budget"] * 0.7)),
-            "memory": max(0, int(budget_parts["evidence_budget"] * 0.55)),
-            "history": max(0, int(budget_parts["evidence_budget"] * (0.8 if route_decision.route_label == "cross_session_recall" else 0.45))),
-        }
-        budget = ContextBudget(
-            total_tokens=budget_parts["effective_input_budget"],
-            block_budgets={
-                ContextBlockType.ANCHOR: budget_parts["anchor_budget"],
-                ContextBlockType.SESSION: budget_parts["session_budget"],
-                ContextBlockType.LEARNER: budget_parts["learner_budget"],
-                ContextBlockType.EVIDENCE: budget_parts["evidence_budget"],
-            },
-            source_budgets=source_budgets,
-            source_priority=source_priority,
-            trace_metadata={
-                "route_confidence": route_decision.confidence,
-                "anchor_confidence": 1.0 if route_decision.task_anchor_type.value != "none" else 0.0,
-                "compression_applied": bool(history_result.conversation_summary),
-                "history_search_applied": False,
-                "cache_hits": [],
-                "fallback_path": "",
-                "target_escalation_level": target_escalation_level,
-                "source_flags": dict(source_flags_snapshot),
-                "token_budget_reserved_output": budget_parts["output_reserve_tokens"],
-                "token_budget_tool_reserve": budget_parts["tool_reserve_tokens"],
-                "token_budget_safety_margin": budget_parts["safety_margin_tokens"],
-            },
-        )
+        with measure_build_stage("candidate_build"):
+            source_priority = {
+                "current_question": 0,
+                "active_plan": 1,
+                "session_history": 2,
+                "learner_card": 3,
+                "overlay": 4,
+                "notebook": 4,
+                "memory": 5,
+                "history": 6,
+            }
+            source_budgets = {
+                "current_question": budget_parts["anchor_budget"],
+                "active_plan": max(0, min(budget_parts["anchor_budget"], int(budget_parts["evidence_budget"] * 0.7)) or budget_parts["anchor_budget"]),
+                "session_history": budget_parts["session_budget"],
+                "learner_card": budget_parts["learner_budget"],
+                "overlay": max(0, int(budget_parts["evidence_budget"] * 0.45)),
+                "notebook": max(0, int(budget_parts["evidence_budget"] * 0.7)),
+                "memory": max(0, int(budget_parts["evidence_budget"] * 0.55)),
+                "history": max(0, int(budget_parts["evidence_budget"] * (0.8 if route_decision.route_label == "cross_session_recall" else 0.45))),
+            }
+            budget = ContextBudget(
+                total_tokens=budget_parts["effective_input_budget"],
+                block_budgets={
+                    ContextBlockType.ANCHOR: budget_parts["anchor_budget"],
+                    ContextBlockType.SESSION: budget_parts["session_budget"],
+                    ContextBlockType.LEARNER: budget_parts["learner_budget"],
+                    ContextBlockType.EVIDENCE: budget_parts["evidence_budget"],
+                },
+                source_budgets=source_budgets,
+                source_priority=source_priority,
+                trace_metadata={
+                    "route_confidence": route_decision.confidence,
+                    "anchor_confidence": 1.0 if route_decision.task_anchor_type.value != "none" else 0.0,
+                    "compression_applied": bool(history_result.conversation_summary),
+                    "history_search_applied": False,
+                    "cache_hits": [],
+                    "fallback_path": "",
+                    "target_escalation_level": target_escalation_level,
+                    "source_flags": dict(source_flags_snapshot),
+                    "token_budget_reserved_output": budget_parts["output_reserve_tokens"],
+                    "token_budget_tool_reserve": budget_parts["tool_reserve_tokens"],
+                    "token_budget_safety_margin": budget_parts["safety_margin_tokens"],
+                },
+            )
 
         base_candidates: list[Any] = []
         level2_candidates: list[Any] = []
@@ -3332,76 +3350,79 @@ class TurnRuntimeManager:
             )
 
         try:
-            escalation_attempts: list[int] = [1]
-            pack = pack_context_candidates(base_candidates, budget, route=route_decision)
-            escalation_stop_reason = "target_level_reached" if target_escalation_level <= 1 else ""
-            if target_escalation_level >= 2:
-                escalation_attempts.append(2)
-                if level2_candidates:
-                    pack = pack_context_candidates([*base_candidates, *level2_candidates], budget, route=route_decision)
-                elif route_decision.route_label in {"guided_plan_continuation", "notebook_followup", "personal_recall", "tool_or_grounding_needed"}:
-                    escalation_stop_reason = "no_level2_candidates"
-                else:
-                    escalation_stop_reason = "level2_not_required"
-            if target_escalation_level >= 3:
-                escalation_attempts.append(3)
-                if level3_candidates:
-                    pack = pack_context_candidates(
-                        [*base_candidates, *level2_candidates, *level3_candidates],
-                        budget,
-                        route=route_decision,
-                    )
+            with measure_build_stage("context_pack"):
+                escalation_attempts: list[int] = [1]
+                pack = pack_context_candidates(base_candidates, budget, route=route_decision)
+                escalation_stop_reason = "target_level_reached" if target_escalation_level <= 1 else ""
+                if target_escalation_level >= 2:
+                    escalation_attempts.append(2)
+                    if level2_candidates:
+                        pack = pack_context_candidates([*base_candidates, *level2_candidates], budget, route=route_decision)
+                    elif route_decision.route_label in {"guided_plan_continuation", "notebook_followup", "personal_recall", "tool_or_grounding_needed"}:
+                        escalation_stop_reason = "no_level2_candidates"
+                    else:
+                        escalation_stop_reason = "level2_not_required"
+                if target_escalation_level >= 3:
+                    escalation_attempts.append(3)
+                    if level3_candidates:
+                        pack = pack_context_candidates(
+                            [*base_candidates, *level2_candidates, *level3_candidates],
+                            budget,
+                            route=route_decision,
+                        )
+                        escalation_stop_reason = "target_level_reached"
+                    elif not source_flags_snapshot["history"]:
+                        escalation_stop_reason = "source_flag_disabled:history"
+                    else:
+                        escalation_stop_reason = "no_level3_candidates"
+                if not escalation_stop_reason:
                     escalation_stop_reason = "target_level_reached"
-                elif not source_flags_snapshot["history"]:
-                    escalation_stop_reason = "source_flag_disabled:history"
-                else:
-                    escalation_stop_reason = "no_level3_candidates"
-            if not escalation_stop_reason:
-                escalation_stop_reason = "target_level_reached"
-            pack.trace_metadata["escalation_attempts"] = escalation_attempts
-            pack.trace_metadata["escalation_stop_reason"] = escalation_stop_reason
+                pack.trace_metadata["escalation_attempts"] = escalation_attempts
+                pack.trace_metadata["escalation_stop_reason"] = escalation_stop_reason
         except Exception as exc:
             raise _ContextOrchestrationStageError("context_pack", exc) from exc
-        anchor_text = _render_evidence_block(pack.anchor_block.selected_candidates, language=language)
-        evidence_text = _render_evidence_block(pack.evidence_block.selected_candidates, language=language)
-        memory_context = compact_memory_context or _render_memory_context_from_candidates(
-            pack.learner_block.selected_candidates,
-            language=language,
-        )
-        user_sections: list[str] = []
-        if anchor_text:
-            user_sections.append(anchor_text)
-        if evidence_text:
-            user_sections.append(evidence_text)
-        if user_sections:
-            user_sections.append(
-                ("## 当前用户问题" if language.startswith("zh") else "## Current User Question")
-                + f"\n{raw_user_content}"
+        with measure_build_stage("pack_render"):
+            anchor_text = _render_evidence_block(pack.anchor_block.selected_candidates, language=language)
+            evidence_text = _render_evidence_block(pack.evidence_block.selected_candidates, language=language)
+            memory_context = compact_memory_context or _render_memory_context_from_candidates(
+                pack.learner_block.selected_candidates,
+                language=language,
             )
-            effective_user_message = "\n\n".join(user_sections)
-        else:
-            effective_user_message = raw_user_content
+            user_sections: list[str] = []
+            if anchor_text:
+                user_sections.append(anchor_text)
+            if evidence_text:
+                user_sections.append(evidence_text)
+            if user_sections:
+                user_sections.append(
+                    ("## 当前用户问题" if language.startswith("zh") else "## Current User Question")
+                    + f"\n{raw_user_content}"
+                )
+                effective_user_message = "\n\n".join(user_sections)
+            else:
+                effective_user_message = raw_user_content
 
-        notebook_context = _render_evidence_block(
-            [
-                candidate
-                for candidate in pack.evidence_block.selected_candidates
-                if str(getattr(candidate, "source_bucket", "")) in {"notebook", "active_plan"}
-            ],
-            language=language,
-        )
-        history_context = _render_evidence_block(
-            [
-                candidate
-                for candidate in pack.evidence_block.selected_candidates
-                if str(getattr(candidate, "source_bucket", "")) == "history"
-            ],
-            language=language,
-        )
+            notebook_context = _render_evidence_block(
+                [
+                    candidate
+                    for candidate in pack.evidence_block.selected_candidates
+                    if str(getattr(candidate, "source_bucket", "")) in {"notebook", "active_plan"}
+                ],
+                language=language,
+            )
+            history_context = _render_evidence_block(
+                [
+                    candidate
+                    for candidate in pack.evidence_block.selected_candidates
+                    if str(getattr(candidate, "source_bucket", "")) == "history"
+                ],
+                language=language,
+            )
         history_search_applied = bool(history_context.strip())
         budget.trace_metadata["history_search_applied"] = history_search_applied
         pack.trace_metadata["history_search_applied"] = history_search_applied
         context_trace = build_context_trace_summary(pack, fallback_path="")
+        context_trace["build_stage_timings_ms"] = normalize_latency_stage_timings(build_stage_timings_ms)
         return {
             "route_decision": route_decision,
             "budget": budget,

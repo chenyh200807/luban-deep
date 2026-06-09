@@ -9165,6 +9165,18 @@ async def test_turn_runtime_context_orchestration_prioritizes_active_plan_page(
     assert "active_plan" in captured["metadata"]["loaded_sources"]
     assert "网络计划关键线路" in captured["user_message"]
     assert "当前用户问题" in captured["user_message"]
+    build_stage_timings = captured["metadata"]["context_pack_trace"]["build_stage_timings_ms"]
+    for stage in (
+        "route_resolver",
+        "context_budget",
+        "session_history",
+        "learner_state",
+        "source_loader_notebook_plan",
+        "candidate_build",
+        "context_pack",
+        "pack_render",
+    ):
+        assert build_stage_timings[stage] >= 0
 
     stored_active_object = await store.get_active_object(session["id"])
     assert stored_active_object is not None
