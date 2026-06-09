@@ -22,6 +22,7 @@ from deeptutor.services.session.sqlite_store import (
 )
 from deeptutor.services.session.turn_runtime import (
     TurnRuntimeManager,
+    _assistant_message_metadata,
     _billing_capture_amount_from_usage_summary,
     _build_turn_semantic_decision,
     _enrich_result_question_authority_from_trace,
@@ -391,6 +392,43 @@ def test_request_snapshot_metadata_redacts_sensitive_fields() -> None:
             "mime_type": "image/png",
         }
     ]
+
+
+def test_request_snapshot_metadata_persists_turn_identity_for_recovery() -> None:
+    metadata = _request_snapshot_metadata(
+        payload={"tools": [], "knowledge_bases": [], "language": "zh"},
+        content="请批改这道案例题",
+        capability="chat",
+        config={"client_turn_id": "surface_turn_1"},
+        attachments=[],
+        notebook_references=[],
+        history_references=[],
+        question_notebook_references=[],
+        book_references=[],
+        requested_skills=[],
+        memory_references=[],
+        llm_selection=None,
+        turn_id="turn_1",
+    )
+
+    assert metadata["turn_id"] == "turn_1"
+    assert metadata["client_turn_id"] == "surface_turn_1"
+    assert metadata["request_snapshot"]["config"]["client_turn_id"] == "surface_turn_1"
+
+
+def test_assistant_message_metadata_persists_turn_identity_for_recovery() -> None:
+    metadata = _assistant_message_metadata(
+        turn_id="turn_1",
+        config={"client_turn_id": "surface_turn_1"},
+        terminal_status="completed",
+    )
+
+    assert metadata == {
+        "turn_id": "turn_1",
+        "engine_turn_id": "turn_1",
+        "client_turn_id": "surface_turn_1",
+        "terminal_status": "completed",
+    }
 
 
 @pytest.mark.asyncio
@@ -1918,6 +1956,78 @@ async def test_turn_runtime_prefers_result_response_as_assistant_content(
     detail = await store.get_session_with_messages(session["id"])
     assert detail is not None
     assert detail["messages"][-1]["content"] == "建筑构造是研究建筑物组成与连接方式的技术。"
+
+
+@pytest.mark.asyncio
+async def test_turn_runtime_persists_message_turn_identity_for_resume_recovery(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, _context):
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="chat",
+                metadata={"response": "后台恢复可读取这条回答。"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "后台回来后继续同步本轮回答",
+            "session_id": "session_resume_identity",
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {"client_turn_id": "surface_turn_resume_1"},
+        }
+    )
+
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    detail = await store.get_session_with_messages(session["id"])
+    assert detail is not None
+    messages = detail["messages"]
+    user_message = next(message for message in messages if message["role"] == "user")
+    assistant_message = next(message for message in messages if message["role"] == "assistant")
+
+    assert user_message["metadata"]["turn_id"] == turn["id"]
+    assert user_message["metadata"]["client_turn_id"] == "surface_turn_resume_1"
+    assert assistant_message["metadata"]["turn_id"] == turn["id"]
+    assert assistant_message["metadata"]["engine_turn_id"] == turn["id"]
+    assert assistant_message["metadata"]["client_turn_id"] == "surface_turn_resume_1"
+    assert assistant_message["metadata"]["terminal_status"] == "completed"
 
 
 @pytest.mark.asyncio

@@ -33,6 +33,24 @@ def _build_app() -> FastAPI:
     return app
 
 
+def test_serialize_mobile_message_projects_engine_turn_id_from_message_metadata() -> None:
+    serialized = mobile_module._serialize_mobile_message(
+        {
+            "id": "message_1",
+            "role": "assistant",
+            "content": "已完成批改。",
+            "created_at": 1_700_000_000.0,
+            "metadata": {
+                "engine_turn_id": "turn_resume_1",
+                "turn_id": "turn_resume_1",
+            },
+            "events": [],
+        }
+    )
+
+    assert serialized["engine_turn_id"] == "turn_resume_1"
+
+
 @pytest.fixture(autouse=True)
 def _clear_rate_limit_state() -> None:
     PathService.get_instance()._user_data_dir = _TEST_USER_DATA_DIR
