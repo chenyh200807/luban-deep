@@ -336,3 +336,31 @@ def test_learning_evidence_keeps_trace_reference() -> None:
     )
 
     assert {"source_type": "trace", "source_id": "trace-123"} in payload["evidence_refs"]
+
+
+def test_learning_evidence_attaches_canonical_topic_before_code_fallback() -> None:
+    payload = build_learning_evidence_payload(
+        grading_result={
+            "type": "case",
+            "question_id": "case-temporary-electricity",
+            "question_stem": "指出施工现场临时用电管理中的不妥之处。",
+            "score_awarded": 0,
+            "max_score": 5,
+            "node_code": "1A432000",
+            "error_events": [
+                {
+                    "error_code": "E02",
+                    "concept_tag": "1A432000",
+                    "diagnosis": "漏写临时用电组织设计。",
+                }
+            ],
+            "next_training_signal": {
+                "concept": "1A432000",
+                "focus": "施工现场临时用电",
+            },
+        },
+        turn_id="turn-1",
+    )
+
+    assert payload["canonical_topic"]["label"] == "施工临时用电"
+    assert payload["canonical_topic"]["taxonomy_code"] == "1A431050"

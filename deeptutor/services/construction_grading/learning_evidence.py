@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from difflib import SequenceMatcher
 from typing import Any
 
 from deeptutor.contracts.error_codes import ERROR_CODE_REGISTRY
@@ -15,6 +16,11 @@ from deeptutor.services.construction_grading.certified_grading_adjudication impo
 )
 from deeptutor.services.construction_grading.schema import CaseGradingResult, MCQGradingResult
 from deeptutor.services.learner_state.memory_lifecycle import lifecycle_stage_for_evidence_level
+from deeptutor.services.taxonomy.learning_topic_resolver import (
+    ResolvedLearningTopic,
+    resolve_learning_topic_from_payload,
+)
+from deeptutor.services.taxonomy.textbook_directory import canonical_topic_options
 
 _REASONING_BLOCK_RE = re.compile(r"<(?:think|thinking)\b[^>]*>.*?</(?:think|thinking)>", re.IGNORECASE | re.DOTALL)
 _REASONING_OPEN_RE = re.compile(r"<(?:think|thinking)\b[^>]*>.*$", re.IGNORECASE | re.DOTALL)
@@ -122,6 +128,9 @@ def build_learning_evidence_payload(
     result["memory_lifecycle_stage"] = lifecycle_stage_for_evidence_level(
         result["quality"].get("evidence_level")
     )
+    canonical_topic = _canonical_topic_from_payload(payload)
+    if canonical_topic:
+        result["canonical_topic"] = _canonical_topic_payload(canonical_topic)
     for key in (
         "certified_grading_policy",
         "claim_promotion_allowed",
@@ -132,6 +141,54 @@ def build_learning_evidence_payload(
         if key in payload:
             result[key] = payload[key]
     return result
+
+
+def _canonical_topic_from_payload(payload: dict[str, Any]) -> ResolvedLearningTopic | None:
+    return resolve_learning_topic_from_payload(
+        payload,
+        llm_topic_inferer=_deterministic_canonical_topic_inferer,
+    )
+
+
+def _canonical_topic_payload(topic: ResolvedLearningTopic) -> dict[str, str]:
+    return {
+        "label": topic.label,
+        "source": topic.source,
+        "confidence": topic.confidence,
+        "taxonomy_code": topic.taxonomy_code,
+        "taxonomy_id": topic.taxonomy_id,
+        "topic_id": topic.topic_id,
+    }
+
+
+def _deterministic_canonical_topic_inferer(payload: dict[str, Any], candidates: list[str]) -> str:
+    texts = [
+        *[str(item or "") for item in candidates],
+        str(payload.get("question_stem") or payload.get("stem") or payload.get("question_text") or ""),
+        str(payload.get("explanation") or ""),
+    ]
+    best_name = ""
+    best_score = 0.0
+    for text in texts:
+        compact_text = _compact_topic_text(text)
+        if len(compact_text) < 4:
+            continue
+        for option in canonical_topic_options():
+            name = str(option.get("name") or "").strip()
+            compact_name = _compact_topic_text(name)
+            if len(compact_name) < 4:
+                continue
+            score = SequenceMatcher(None, compact_text, compact_name).ratio()
+            if compact_name in compact_text or compact_text in compact_name:
+                score = max(score, 0.95)
+            if score > best_score:
+                best_score = score
+                best_name = name
+    return best_name if best_score >= 0.72 else ""
+
+
+def _compact_topic_text(value: Any) -> str:
+    return re.sub(r"\s+", "", str(value or "").strip())
 
 
 def build_learning_evidence_from_context_pack(

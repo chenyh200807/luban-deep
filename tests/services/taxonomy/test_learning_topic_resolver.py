@@ -196,7 +196,7 @@ def test_resolver_classifier_accepts_only_canonical_option() -> None:
     )
     assert canonical is not None
     assert canonical.label == "屋面与防水工程施工"
-    assert canonical.taxonomy_code == "1A413"
+    assert canonical.taxonomy_code == "1A413050"
     assert canonical.source == "canonical_classified"
 
     off_taxonomy = resolve_learning_topic_from_payload(

@@ -376,13 +376,14 @@ def _learning_items(event: LearnerStateEvent) -> list[dict[str, Any]]:
     turn_id = _clean_text(payload.get("turn_id")) or _clean_text(event.source_id)
     quality = payload.get("quality") if isinstance(payload.get("quality"), dict) else {}
     evidence_level = _learning_item_evidence_level(quality=quality, signal=signal)
+    canonical_concept = _canonical_topic_concept_id(payload)
     conflicting_event_ids = [
         _clean_text(item)
         for item in list(quality.get("conflicting_event_ids") or payload.get("conflicting_event_ids") or [])
         if _clean_text(item)
     ]
     if not errors and _is_improvement(payload):
-        concept = _clean_text(signal.get("concept"))
+        concept = canonical_concept or _clean_text(signal.get("concept"))
         if not concept:
             return []
         error_code = _improvement_error_code(payload, concept_id=concept)
@@ -407,7 +408,7 @@ def _learning_items(event: LearnerStateEvent) -> list[dict[str, Any]]:
     items: list[dict[str, Any]] = []
     fallback_rubric_id = _rubric_from_edges(payload)
     for error in errors:
-        concept = _clean_text(error.get("concept_tag") or signal.get("concept"))
+        concept = canonical_concept or _clean_text(error.get("concept_tag") or signal.get("concept"))
         error_code = _clean_text(error.get("error_code"))
         rubric_item_id = _clean_text(error.get("rubric_item_id")) or fallback_rubric_id
         items.append({
@@ -434,6 +435,11 @@ def _learning_items(event: LearnerStateEvent) -> list[dict[str, Any]]:
             "is_improvement": False,
         })
     return items
+
+
+def _canonical_topic_concept_id(payload: dict[str, Any]) -> str:
+    topic = payload.get("canonical_topic") if isinstance(payload.get("canonical_topic"), dict) else {}
+    return _clean_text(topic.get("taxonomy_code") or topic.get("taxonomy_id") or topic.get("label"))
 
 
 def _learning_item_evidence_level(*, quality: dict[str, Any], signal: dict[str, Any]) -> str:

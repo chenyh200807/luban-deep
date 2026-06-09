@@ -220,6 +220,23 @@ def test_synthesis_promotes_single_certified_policy_evidence_to_l2() -> None:
     assert trusted["grader_version"] == "rubric-grader-v1"
 
 
+def test_synthesis_uses_canonical_topic_over_conflicting_legacy_concept_tag() -> None:
+    event = _learning_event("evt1")
+    event.payload_json["canonical_topic"] = {
+        "label": "施工临时用电",
+        "taxonomy_code": "1A431050",
+        "taxonomy_id": "1A431050",
+        "source": "canonical_classified",
+        "confidence": "medium",
+    }
+
+    projection = synthesize_learning_truth([event])
+
+    assert projection["observed_candidates"][0]["concept_id"] == "1A431050"
+    assert "concept:1A431050" in projection["compiled_objects"]
+    assert "concept:1A432000" not in projection["compiled_objects"]
+
+
 def test_synthesis_outputs_p0_claim_lifecycle_states() -> None:
     observed_projection = synthesize_learning_truth([_learning_event("evt1")])
     repeated_projection = synthesize_learning_truth([

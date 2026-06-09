@@ -4,6 +4,7 @@ from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from datetime import datetime, timedelta, timezone
 import hashlib
+import json
 import os
 import re
 import time
@@ -1281,12 +1282,46 @@ def _build_learning_brain(
 
 
 def _learning_evidence_events(events: list[Any]) -> list[Any]:
-    return [
+    return _dedupe_learning_evidence_events([
         event
         for event in list(events or [])
         if str(getattr(event, "memory_kind", "") or "") == "learning_evidence"
         and _is_learning_evidence_payload(event)
-    ]
+    ])
+
+
+def _dedupe_learning_evidence_events(events: list[Any]) -> list[Any]:
+    seen: set[str] = set()
+    result: list[Any] = []
+    for event in events:
+        key = _learning_evidence_identity(event)
+        if key in seen:
+            continue
+        seen.add(key)
+        result.append(event)
+    return result
+
+
+def _learning_evidence_identity(event: Any) -> str:
+    dedupe_key = str(getattr(event, "dedupe_key", "") or "").strip()
+    if dedupe_key:
+        return f"dedupe:{dedupe_key}"
+    payload = _safe_dict(getattr(event, "payload_json", {}))
+    raw = {
+        "source_id": str(getattr(event, "source_id", "") or ""),
+        "turn_id": payload.get("turn_id"),
+        "session_id": payload.get("session_id"),
+        "question_id": payload.get("question_id"),
+        "question_type": payload.get("question_type"),
+        "user_answer": payload.get("user_answer"),
+        "score_awarded": payload.get("score_awarded"),
+        "max_score": payload.get("max_score"),
+        "error_events": payload.get("error_events") or payload.get("errors") or [],
+    }
+    digest = hashlib.sha1(
+        json.dumps(raw, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+    return f"fingerprint:{digest}"
 
 
 def _is_learning_evidence_payload(event: Any) -> bool:
@@ -1401,6 +1436,15 @@ def _mastery_attempt_payload(*, event: Any, payload: dict[str, Any]) -> dict[str
 
 
 def _event_concept(payload: dict[str, Any]) -> str:
+    canonical_topic = _safe_dict(payload.get("canonical_topic"))
+    canonical = str(
+        canonical_topic.get("label")
+        or canonical_topic.get("taxonomy_code")
+        or canonical_topic.get("taxonomy_id")
+        or ""
+    ).strip()
+    if canonical:
+        return canonical
     signal = _safe_dict(payload.get("next_training_signal"))
     if str(signal.get("concept") or "").strip():
         return str(signal.get("concept") or "").strip()

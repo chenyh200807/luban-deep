@@ -793,6 +793,84 @@ def test_append_memory_event_dedupe_returns_existing_event_without_second_outbox
     assert len(pending_learning_events) == 1
 
 
+def test_learning_evidence_append_auto_synthesizes_for_enabled_cohort(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("LUBAN_LEARNING_EVIDENCE_AUTO_SYNTHESIS_ENABLED", "1")
+    core_store = _CoreStoreStub()
+    service = _make_service(tmp_path, core_store=core_store)
+
+    service.append_memory_event(
+        "qa_auto_synthesis_user",
+        source_feature="construction_grading",
+        source_id="turn-1",
+        source_bot_id="construction-exam",
+        memory_kind="learning_evidence",
+        payload_json={
+            "event_type": "learning_evidence",
+            "turn_id": "turn-1",
+            "question_id": "case-1",
+            "question_type": "case",
+            "score_awarded": 0,
+            "max_score": 1,
+            "error_events": [
+                {"error_code": "E02", "concept_tag": "1A431050", "diagnosis": "漏写临时用电组织设计。"}
+            ],
+            "next_training_signal": {"concept": "1A431050", "focus": "施工临时用电"},
+            "quality": {"evidence_level": "L0_observed", "writeback_eligible": True},
+        },
+        dedupe_key="turn-1",
+    )
+
+    compiled = service.read_compiled_learning_truth("qa_auto_synthesis_user")
+
+    assert compiled["subject"] == "construction_exam_learning_truth"
+    assert compiled["observed_candidates"][0]["concept_id"] == "1A431050"
+
+
+def test_learning_evidence_auto_synthesis_does_not_rerun_for_duplicate_dedupe(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("LUBAN_LEARNING_EVIDENCE_AUTO_SYNTHESIS_ENABLED", "1")
+    service = _make_service(tmp_path, core_store=_CoreStoreStub())
+    calls = 0
+    original = service.synthesize_learning_truth
+
+    def counted_synthesis(*args, **kwargs):
+        nonlocal calls
+        calls += 1
+        return original(*args, **kwargs)
+
+    service.synthesize_learning_truth = counted_synthesis  # type: ignore[method-assign]
+    payload = {
+        "event_type": "learning_evidence",
+        "question_id": "case-1",
+        "score_awarded": 0,
+        "max_score": 1,
+        "error_events": [{"error_code": "E02", "concept_tag": "1A431050"}],
+        "next_training_signal": {"concept": "1A431050", "focus": "施工临时用电"},
+        "quality": {"evidence_level": "L0_observed", "writeback_eligible": True},
+    }
+
+    service.append_memory_event(
+        "qa_auto_synthesis_user",
+        source_feature="construction_grading",
+        source_id="turn-1",
+        memory_kind="learning_evidence",
+        payload_json=payload,
+        dedupe_key="same-event",
+    )
+    service.append_memory_event(
+        "qa_auto_synthesis_user",
+        source_feature="construction_grading",
+        source_id="turn-1-retry",
+        memory_kind="learning_evidence",
+        payload_json=payload,
+        dedupe_key="same-event",
+    )
+
+    assert calls == 1
+
+
 def test_learner_state_reads_remote_compiled_truth_before_local_cache(tmp_path) -> None:
     core_store = _CoreStoreStub()
     core_store.compiled_learning_truth = {

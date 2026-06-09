@@ -38,7 +38,13 @@ Subagent review found Tasks 1-6 are implemented and locally tested. The remainin
 - **Producer authority gap closed in this follow-up:** `deep_question` grading producer can now carry sanitized `certified_grading_policy` only when a trusted server caller passes `governed_registry_status` plus a valid certified policy block. `learning_evidence` also refuses to mint or consume `trusted_adjudication.source=certified_grading_policy` unless the caller explicitly passes `governed_certified_authority=True` and the grading payload already has governed release authority (`release_truth=true`, `official_release_score=true`, `answer_key_authority=governed_signed_registry`, and compiled-context official scoring allowed). Client/context-injected `registry_status`, `certified_grading_policy`, `trusted_adjudication`, or forged authority fields still cannot mint trusted adjudication.
 - **Canonical gate hardening closed in this follow-up:** broad production canonical promotion now requires both `trusted_adjudication` and at least one stable learner claim (`stable_learner_claim` or L1/L2/L3 equivalent). `certified_grading_policy` sources must also carry `policy_id`, `rubric_hash`, and `grader_version`. L0-only projections cannot write canonical truth even if a malformed projection includes a trusted block.
 - **Repeatable soak artifact contract added:** `scripts/run_learner_memory_lifecycle_test2_cohort_soak.py` generates `artifacts/luban_grading_artifacts/learner_memory_lifecycle_<timestamp>/`-shaped evidence locally without network/SSH/remote writes. Its status is explicitly `LOCAL_ARTIFACT_GO`, with `evidence_scope=local_core_store_artifact_contract`, so it cannot be mistaken for deployed test2 proof. It proves the evidence format for `grading -> learning_evidence -> stable claim -> PCP -> NBA -> retest -> certified trusted_adjudication -> canonical write/readback`.
-- **Still not claimed as remote test2 proof:** the new runner is a local core-store artifact contract. A real test2 run still needs clean release deployment, public `/api/v1/ws`, qa_/operator_ cohort user, and readback evidence from the deployed environment.
+- **Remote test2 runner contract closed:** the same runner now supports `--mode remote-test2-ws`. It authenticates against test2, verifies a `qa_`/`operator_` cohort identity, sends two real authenticated `/api/v1/ws` `deep_question` turns, optionally triggers authorized remote synthesis inside `Aliyun-ECS-2:/root/deeptutor`, then reads back `GET /api/v1/learning-brain/projection` and `GET /api/v1/mobile/learning-report?schema_version=2`. It emits `REMOTE_TEST2_WS_GO` only when both WS turns produce `construction_grading_result`, canonical synthesis/readback succeeds, and both read models expose the same non-empty `output_projection_hash`.
+- **Deployed test2 proof captured:** `artifacts/luban_grading_artifacts/learner_memory_lifecycle_test2_remote_20260609_182651/` returned `REMOTE_TEST2_WS_GO`: `ws_grading_ok=true`, `remote_synthesis.payload.canonical_truth_promotion.reason=production_cohort_authorized`, `requires_human=false`, and Learning Brain/report readback shared `sha256:9515e22869a3c40d18138d4cd6f73e444c2df42eaad20424f1597b71f73517a8`.
+- **Canonical taxonomy binding closed:** `learning_evidence` now attaches `canonical_topic` via the existing taxonomy resolver before report/synthesis consumers run. The resolver validates classifier picks against canonical options and then resolves them back to compiled taxonomy node codes, so learner-facing reports and long-term claims do not get pulled to a wrong legacy `node_code`.
+- **Evidence idempotency/read-model dedupe closed:** `LearnerStateService.append_memory_event()` remains the write authority for dedupe; the learning-report read model now also folds same `dedupe_key`/fingerprint events so local+remote replay cannot show one attempt twice. Same-question real retests remain separate when their dedupe keys differ.
+- **Automatic synthesis trigger added:** when `LUBAN_LEARNING_EVIDENCE_AUTO_SYNTHESIS_ENABLED=1`, new `learning_evidence` appends trigger `synthesize_learning_truth(..., dry_run=False)` once per new deduped event. In production this auto path is cohort-gated to the existing `qa_`/`operator_` canonical cohort; broad users still require explicit promotion gates.
+- **Real long-case soak scenario added:** the remote runner now supports `--scenario construction-long-case`, sending the commodity-residential long case through the same authenticated `/api/v1/ws` initial/retest flow and writing the scenario id/question id into the artifact manifest.
+- **Real long-case deployed proof captured:** `artifacts/luban_grading_artifacts/learner_memory_lifecycle_remote_1781003089/` returned `REMOTE_TEST2_WS_GO` for `scenario_id=construction-long-case`: both WS turns had `construction_grading_result`, remote synthesis was triggered, `canonical_truth_promotion.reason=production_cohort_authorized`, `requires_human=false`, and Learning Brain/report readback shared `sha256:3fab684bcbdb341a52f69e3ab6c47521cf9a0b2333b27c735557a24179311380`.
 
 ## Non-Goals
 
@@ -498,7 +504,24 @@ python scripts/run_learner_memory_lifecycle_test2_cohort_soak.py --mode local-co
 
 Expected: local-only `LOCAL_ARTIFACT_GO` artifact with `evidence_scope=local_core_store_artifact_contract`, `local_canonical_write/readback` stage names, `remote_write_performed=false`, `remote_write_root_if_authorized=/root/deeptutor`, qa_ cohort allowed, non-cohort blocked, same `output_projection_hash` in projection/readback/read model.
 
-- [ ] **Step 1: Deploy only after main is clean and released**
+- [x] **Step 1: Add remote test2 `/api/v1/ws` runner mode**
+
+Run:
+
+```bash
+python scripts/run_learner_memory_lifecycle_test2_cohort_soak.py \
+  --mode remote-test2-ws \
+  --api-base-url https://test2.yousenjiaoyu.com \
+  --auth-token "$DEEPTUTOR_TEST2_COHORT_AUTH_TOKEN" \
+  --scenario construction-long-case \
+  --remote-synthesis-ssh-host Aliyun-ECS-2 \
+  --remote-synthesis-project-root /root/deeptutor \
+  --remote-synthesis-container deeptutor
+```
+
+Expected: the runner fails closed with `REMOTE_AUTH_BLOCKED` unless the resolved identity is `qa_`/`operator_`. For canonical write/readback proof, the canonical authenticated `user_id` must also be cohort-scoped; external-auth QA usernames with UUID canonical ids can prove WS/evidence/report dry-run, but cannot prove G4 canonical write. When authenticated, the runner sends two real `/api/v1/ws` `start_turn` frames, requires `construction_grading_result` in both result metadata, triggers remote synthesis only when explicitly configured, then polls `learning-brain/projection` and `mobile/learning-report` for the same non-empty `output_projection_hash`.
+
+- [ ] **Step 2: Deploy only after main is clean and released**
 
 Required before remote write:
 
@@ -510,7 +533,7 @@ python scripts/verify_runtime_assets.py
 
 Expected: clean release worktree, contract guard pass, runtime assets pass.
 
-- [ ] **Step 2: Run test2 qa_/operator_ cohort proof**
+- [x] **Step 3: Run test2 qa_/operator_ cohort proof**
 
 Execute:
 
@@ -558,4 +581,4 @@ Learning Brain/report readback of same output_projection_hash
 
 ## Current Execution Slice
 
-Tasks 1-6 are implemented locally. This follow-up hardens Task 7 producer authority and adds the Task 8 repeatable artifact contract. The next execution slice is the real deployed test2 run: clean release worktree -> deploy -> public `/api/v1/ws` qa_/operator_ loop -> canonical readback -> checked-in `learner_memory_lifecycle_<timestamp>` evidence summary.
+Tasks 1-8 are implemented locally. The follow-up hardens Task 7 producer authority, adds the Task 8 repeatable local artifact contract, closes the deployed test2 proof with `--mode remote-test2-ws` plus explicit remote synthesis trigger, and adds the production-quality follow-ups requested after test2: canonical taxonomy binding, evidence dedupe, auto synthesis trigger, and a real long-case scenario. A live test2 long-case cohort run has emitted `REMOTE_TEST2_WS_GO`. The next execution slice is release hygiene: narrow commit, review, merge/push, Aliyun redeploy if needed, then re-run `--scenario construction-long-case` from released `origin/main` to prove the shipped code still emits `REMOTE_TEST2_WS_GO`.

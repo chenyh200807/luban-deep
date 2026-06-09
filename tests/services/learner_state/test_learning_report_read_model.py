@@ -261,6 +261,23 @@ def test_attempt_count_treats_same_question_replay_as_two_attempts() -> None:
     assert model["study_plan"]["source"] == "training_intent"
 
 
+def test_report_read_model_dedupes_same_learning_evidence_dedupe_key() -> None:
+    first = _learning_event("evt_today_1", days_ago=0, question_id="case_001")
+    duplicate = _learning_event("evt_today_2", days_ago=0, question_id="case_001")
+    duplicate.dedupe_key = first.dedupe_key
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([first, duplicate]),
+        event_limit=50,
+    )
+
+    assert model["overview"]["today_done"] == 1
+    assert model["overview"]["attempt_count"] == 1
+    assert len(model["learner_facing"]["recent_attempts"]) == 1
+
+
 def test_learning_report_derives_study_plan_from_next_training_when_home_plan_missing() -> None:
     model = build_learning_report_read_model(
         user_id="student_demo",

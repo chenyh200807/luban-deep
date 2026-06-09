@@ -23,6 +23,7 @@ from deeptutor.services.learner_state.learning_brain_read_model import (
     wrap_learning_brain_projection,
 )
 from deeptutor.services.learner_state.canonical_truth_policy import (
+    canonical_truth_production_write_cohort_allowed,
     canonical_truth_promotion_decision,
 )
 from deeptutor.services.learner_state.outbox import (
@@ -783,7 +784,18 @@ class LearnerStateService:
             with path.open("a", encoding="utf-8") as handle:
                 handle.write(_json_dump(self._event_to_dict(event)) + "\n")
         self._enqueue_memory_event_outbox(event)
+        self._maybe_auto_synthesize_learning_truth(event)
         return event
+
+    def _maybe_auto_synthesize_learning_truth(self, event: LearnerStateEvent) -> None:
+        if event.memory_kind != "learning_evidence":
+            return
+        if not _auto_synthesis_enabled_for_user(event.user_id):
+            return
+        try:
+            self.synthesize_learning_truth(event.user_id, dry_run=False)
+        except Exception:
+            logger.exception("learning evidence auto synthesis failed: user_id=%s event_id=%s", event.user_id, event.event_id)
 
     def _enqueue_memory_event_outbox(self, event: LearnerStateEvent) -> None:
         self._outbox_service.enqueue(
@@ -2390,6 +2402,14 @@ def get_learner_state_service() -> LearnerStateService:
     if _learner_state_service is None:
         _learner_state_service = LearnerStateService()
     return _learner_state_service
+
+
+def _auto_synthesis_enabled_for_user(user_id: str) -> bool:
+    if not env_flag("LUBAN_LEARNING_EVIDENCE_AUTO_SYNTHESIS_ENABLED", default=False):
+        return False
+    if is_production_environment():
+        return canonical_truth_production_write_cohort_allowed(user_id)
+    return True
 
 
 def _normalize_user_id(user_id: str) -> str:

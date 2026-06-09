@@ -465,6 +465,15 @@ def _classify_to_canonical_option(picked: Any) -> ResolvedLearningTopic | None:
     opt = resolve_canonical_option(text)
     if not opt:
         return None
+    node = _load_topic_index()["nodes_by_name"].get(_compact(str(opt.get("name") or "")))
+    if node:
+        return ResolvedLearningTopic(
+            label=str(node.get("name") or opt["name"]),
+            source="canonical_classified",
+            confidence="medium",
+            taxonomy_code=str(node.get("code") or ""),
+            taxonomy_id=str(node.get("id") or ""),
+        )
     return ResolvedLearningTopic(
         label=str(opt["name"]), source="canonical_classified", confidence="medium",
         taxonomy_code=str(opt.get("code") or ""), taxonomy_id="",
