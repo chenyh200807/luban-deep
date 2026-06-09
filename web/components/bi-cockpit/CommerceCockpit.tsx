@@ -89,7 +89,7 @@ export function CommerceCockpit({ data }: { data: BiCommerceData | null }) {
           icon={<Wallet className="h-4 w-4" />}
         />
         <CockpitKpi
-          label="套餐数"
+          label="套餐目录"
           value={fmt(num(s?.packageCount))}
           tone="violet"
           icon={<FileText className="h-4 w-4" />}
@@ -155,11 +155,11 @@ export function CommerceCockpit({ data }: { data: BiCommerceData | null }) {
 
       <SectionLabel icon={<BarChart3 className="h-4 w-4" />}>套餐 · 异常</SectionLabel>
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-        <CockpitPanel title="套餐 Tier 分布" icon={<PieChart className="h-4 w-4" />}>
+        <CockpitPanel title="套餐目录 Tier 分布" icon={<PieChart className="h-4 w-4" />}>
           {pkgTier.length ? (
             <CockpitDonut
               data={pkgTier}
-              centerLabel="套餐"
+              centerLabel="目录"
               centerValue={fmt(num(s?.packageCount))}
             />
           ) : (
