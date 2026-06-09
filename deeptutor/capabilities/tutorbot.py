@@ -138,6 +138,9 @@ class TutorBotCapability(BaseCapability):
         )
         if self._current_info_required(context):
             session_metadata["current_info_required"] = True
+        general_knowledge_context_flag = context.config_overrides.get("general_knowledge_context")
+        if isinstance(general_knowledge_context_flag, bool):
+            session_metadata["general_knowledge_context"] = general_knowledge_context_flag
         for metadata_key in (
             "question_lifecycle_decision",
             "decision_source",
@@ -153,6 +156,7 @@ class TutorBotCapability(BaseCapability):
             "question_lifecycle_scene_reason",
             "question_lifecycle_skill_names",
             "question_lifecycle_clarification",
+            "general_knowledge_context",
         ):
             if metadata_key in context.metadata:
                 session_metadata[metadata_key] = context.metadata[metadata_key]

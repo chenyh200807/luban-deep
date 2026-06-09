@@ -34,17 +34,58 @@ websocket_routes:
 mobile_http_read_models:
   billing_usage:
     path: /api/v1/billing/usage
-    authority: wallet_service
+    authority: wallet_snapshot + wallet_ledger_or_member_usage_meter
     semantics:
       - Wallet snapshot read failure returns status=degraded and no quota rows.
-      - Wallet ledger read failure must not make the whole usage read model unavailable;
-        the adapter returns status=ok with empty usage entries and the snapshot plan.
-      - Ledger-derived windows are display read models only; they are not capability
-        routing, request config, learner-state, or turn authority.
+      - When billing enforcement is enabled, wallet ledger is the canonical commerce
+        usage authority; ledger read failure must not make the whole usage read model
+        unavailable, and the adapter returns status=ok with empty usage entries and
+        the snapshot plan.
+      - When billing enforcement is disabled for internal beta, MemberUsageMeter may
+        provide the non-financial usage display source with charging_status=metered_not_charged;
+        it must not mutate wallet balance or wallet ledger. The temporary default display
+        budget is 450 turns for every member, configurable by DEEPTUTOR_INTERNAL_BETA_USAGE_LIMIT_TURNS;
+        public display labels remain percentage-based rather than exposing remaining turn counts.
+      - Usage windows are display read models only; they are not capability routing,
+        request config, learner-state, or turn authority.
+
+mobile_http_auth_controls:
+  password_reset:
+    path: /api/v1/auth/reset-password
+    authority: MemberConsoleService -> external_auth
+    semantics:
+      - Account recovery is a public, rate-limited HTTP auth adapter, not a
+        turn/session/capability entrypoint.
+      - Request must prove username, registered phone, and SMS code before changing
+        the external auth password.
+      - Successful reset invalidates existing external auth sessions, consumes the
+        SMS code, returns no token, and never auto-logs in.
+      - Reset must not write learner summaries, learner memory events, profile,
+        progress, goals, wallet, capability route state, or turn/session state.
+
+mobile_http_auth_controls:
+  password_reset:
+    path: /api/v1/auth/reset-password
+    authority: MemberConsoleService -> external_auth
+    semantics:
+      - Account recovery is a public, rate-limited HTTP auth adapter, not a
+        turn/session/capability entrypoint.
+      - Request must prove username, registered phone, and SMS code before changing
+        the external auth password.
+      - Successful reset invalidates existing external auth sessions, consumes the
+        SMS code, returns no token, and never auto-logs in.
+      - Reset must not write learner summaries, learner memory events, profile,
+        progress, goals, wallet, capability route state, or turn/session state.
 
 domains:
   turn:
     summary: Unified turn, stream, replay, session, trace boundary, and mobile assessment HTTP bridges.
+    runtime_metadata_contracts:
+      - general_knowledge_context is a runtime-only TutorBot shadow opt-in. When
+        present in start-turn config, turn runtime must project it into
+        UnifiedContext.metadata for the TutorBot compiled teaching-context service;
+        it must not create a second knowledge authority, mutate canonical learner
+        truth, or open any WebSocket route other than /api/v1/ws.
     contract_files:
       - CONTRACT.md
       - contracts/turn.md
@@ -89,6 +130,7 @@ domains:
       - tests/services/session/test_context_builder.py
       - tests/services/session/test_prompt_partition.py
       - tests/services/session/test_sqlite_store.py
+      - tests/services/session/test_tutorbot_sqlite_adapter.py
       - tests/services/learner_state/test_attempt_refs.py
       - tests/services/learner_state/test_attempt_detail_read_model.py
       - tests/services/learner_state/test_mistake_book.py
@@ -145,9 +187,13 @@ domains:
       - tests/services/test_question_lifecycle_skills.py
       - tests/services/test_question_lifecycle_scene_derivation.py
       - tests/services/test_question_lifecycle_acceptance.py
+      - tests/capabilities/test_request_contracts.py
+      - tests/capabilities/test_tutorbot_authority.py
       - tests/capabilities/test_deep_question_question_review.py
       - tests/capabilities/test_deep_question_lightweight_generation.py
       - tests/capabilities/test_deep_question_reference_feedback.py
+      - tests/capabilities/test_deep_question_general_knowledge_context.py
+      - tests/capabilities/test_deep_question_general_knowledge_grounding.py
       - tests/capabilities/test_deep_question_unresolved_switch.py
       - tests/core/test_deep_question_active_object.py
       - tests/capabilities/test_deep_question_learning_evidence_preview.py
@@ -224,7 +270,7 @@ domains:
     schema_files: []
 
   learner_state:
-    summary: Learner long-term state, summary/profile/progress ownership, guide and heartbeat writeback boundaries.
+    summary: Learner long-term state, summary/profile/progress ownership, guide/notebook-card asset boundaries, and heartbeat writeback boundaries.
     contract_files:
       - CONTRACT.md
       - contracts/learner-state.md
@@ -250,6 +296,8 @@ domains:
       - deeptutor/agents/guide/**/*.py
       - deeptutor/services/notebook/*.py
       - deeptutor/services/notebook/**/*.py
+      - deeptutor/services/notebook_card/*.py
+      - deeptutor/services/notebook_card/**/*.py
       - deeptutor/api/routers/guide.py
       - deeptutor/api/routers/notebook.py
       - deeptutor/api/routers/tutor_state.py
@@ -269,6 +317,7 @@ domains:
       - deeptutor/tutorbot/agent/memory.py
       - deeptutor/agents/guide/guide_manager.py
       - deeptutor/services/notebook/service.py
+      - deeptutor/services/notebook_card/service.py
       - deeptutor/contracts/learner_state.py
     test_files:
       - tests/api/test_system_router.py
@@ -309,11 +358,14 @@ domains:
       - tests/supabase/test_learner_state_rls_migration.py
       - tests/services/learner_state/test_d_class_occurrence_timeline.py
       - tests/services/learner_state/test_d_class_long_term_analytics.py
+      - tests/services/notebook_card/test_service.py
+      - tests/api/test_notebook_card_routing.py
     schema_files:
       - deeptutor/contracts/learner_state.py
       - supabase/migrations/20260415000100_learner_state_core.sql
       - supabase/migrations/20260415000200_bot_learner_overlay.sql
       - supabase/migrations/20260419000100_learner_state_rls.sql
+      - supabase/migrations/20260531000100_learner_notebook_cards.sql
 
 # Batch A Task 1 — layered addendum on top of the learner_state and turn
 # domains. Records authority / allowed event types / projection grammar /
@@ -345,3 +397,13 @@ learning_state_inference:
     - unregistered error_code in payload outside docs/contracts/error_code_registry.md
     - keyword-only rubric items rendered as "采分点" instead of "审题要点"
     - write-back into questions_bank.grading_rubric
+
+# Luban grading engine — compiled rubric, registry resolver, knowledge compiler.
+# I-5: These test files were added during M7/M32 but not registered in contract guard.
+luban_grading_engine:
+  authority: construction_grading -> v1_case_rubric_scored -> rubric_grader_v1 -> learning_evidence
+  test_files:
+    - tests/services/construction_grading/test_rubric_grader_v1.py
+    - tests/services/construction_grading/test_case_grading_fusion.py
+    - tests/services/construction_grading/test_compiled_registry_resolver.py
+    - tests/services/construction_grading/test_full_knowledge_compiler_m30.py

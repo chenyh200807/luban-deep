@@ -4796,6 +4796,11 @@ class TurnRuntimeManager:
                         "turn_semantic_decision": turn_semantic_decision or {},
                         "interaction_hints": interaction_hints or {},
                         **(
+                            {"general_knowledge_context": request_config["general_knowledge_context"]}
+                            if isinstance(request_config.get("general_knowledge_context"), bool)
+                            else {}
+                        ),
+                        **(
                             {
                                 "exam_track": exam_track,
                                 "exam_track_label": exam_track_label(exam_track),

@@ -1080,6 +1080,158 @@ async def test_start_turn_merges_redacted_public_submission_with_stored_active_q
 
 
 @pytest.mark.asyncio
+async def test_start_turn_projects_general_knowledge_shadow_flag_to_tutorbot_metadata(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, object] = {}
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def _select_capability(self, context):
+            return "tutorbot"
+
+        async def handle(self, context):
+            captured["config_overrides"] = dict(context.config_overrides)
+            captured["metadata"] = dict(context.metadata)
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="tutorbot",
+                metadata={"response": "TutorBot reply"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="tutorbot")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "高层住宅的建筑高度是怎么界定的？",
+            "session_id": "session_general_knowledge_shadow",
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "bot_id": "construction-exam-coach",
+                "interaction_profile": "tutorbot",
+                "general_knowledge_context": True,
+                "billing_context": {
+                    "source": "online_shadow",
+                    "user_id": "qa_compiled_shadow",
+                    "wallet_user_id": "qa_compiled_shadow",
+                    "learning_user_id": "qa_compiled_shadow",
+                },
+            },
+        }
+    )
+
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        if event["type"] == "done":
+            break
+
+    assert session["id"] == "session_general_knowledge_shadow"
+    assert captured["config_overrides"]["general_knowledge_context"] is True
+    assert captured["metadata"]["general_knowledge_context"] is True
+    assert captured["metadata"]["source"] == "online_shadow"
+
+
+@pytest.mark.asyncio
+async def test_start_turn_does_not_coerce_string_general_knowledge_flag_to_true(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, object] = {}
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def _select_capability(self, context):
+            return "tutorbot"
+
+        async def handle(self, context):
+            captured["metadata"] = dict(context.metadata)
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="tutorbot",
+                metadata={"response": "TutorBot reply"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="tutorbot")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "高层住宅的建筑高度是怎么界定的？",
+            "session_id": "session_general_knowledge_string_flag",
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "bot_id": "construction-exam-coach",
+                "interaction_profile": "tutorbot",
+                "general_knowledge_context": "false",
+            },
+        }
+    )
+
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        if event["type"] == "done":
+            break
+
+    assert "general_knowledge_context" not in captured["metadata"]
+
+
+@pytest.mark.asyncio
 async def test_start_turn_recovers_stored_active_question_for_plain_text_option_followup(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,

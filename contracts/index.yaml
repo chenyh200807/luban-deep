@@ -80,6 +80,12 @@ mobile_http_auth_controls:
 domains:
   turn:
     summary: Unified turn, stream, replay, session, trace boundary, and mobile assessment HTTP bridges.
+    runtime_metadata_contracts:
+      - general_knowledge_context is a runtime-only TutorBot shadow opt-in. When
+        present in start-turn config, turn runtime must project it into
+        UnifiedContext.metadata for the TutorBot compiled teaching-context service;
+        it must not create a second knowledge authority, mutate canonical learner
+        truth, or open any WebSocket route other than /api/v1/ws.
     contract_files:
       - CONTRACT.md
       - contracts/turn.md
