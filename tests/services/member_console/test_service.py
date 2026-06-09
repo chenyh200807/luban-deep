@@ -50,6 +50,18 @@ class _FakeWalletBootstrapService:
         return snapshot
 
 
+class _FakeMemberDirectory:
+    is_configured = True
+
+    def __init__(self, rows: list[dict[str, object]]) -> None:
+        self.rows = rows
+        self.calls: list[dict[str, int]] = []
+
+    def list_members(self, *, limit: int = 5000) -> list[dict[str, object]]:
+        self.calls.append({"limit": limit})
+        return [dict(row) for row in self.rows]
+
+
 @pytest.mark.asyncio
 async def test_login_with_wechat_code_issues_signed_token_and_persists_identity(
     monkeypatch: pytest.MonkeyPatch,
@@ -3600,6 +3612,142 @@ def test_list_members_and_dashboard_use_canonical_phone_backed_members(tmp_path:
     assert result["items"][0]["points_balance"] == 260
     assert dashboard["total_count"] == 1
     assert dashboard["active_count"] == 1
+
+
+def test_list_members_and_dashboard_use_supabase_member_directory_when_configured(tmp_path: Path) -> None:
+    directory = _FakeMemberDirectory(
+        [
+            {
+                "user_id": "canonical_member_1",
+                "canonical_user_id": "canonical_member_1",
+                "alias_user_ids": ["canonical_member_1"],
+                "display_name": "正式会员 1",
+                "phone": "15558866508",
+                "tier": "sprint",
+                "status": "active",
+                "segment": "general",
+                "risk_level": "low",
+                "auto_renew": False,
+                "created_at": "2026-04-20T10:00:00+08:00",
+                "last_active_at": "2026-04-22T10:00:00+08:00",
+                "expire_at": "9999-12-31T00:00:00+00:00",
+                "points_balance": 260,
+                "review_due": 0,
+                "member_directory_source": "supabase.v_members",
+            },
+            {
+                "user_id": "canonical_member_2",
+                "canonical_user_id": "canonical_member_2",
+                "alias_user_ids": ["canonical_member_2"],
+                "display_name": "正式会员 2",
+                "phone": "",
+                "tier": "trial",
+                "status": "active",
+                "segment": "general",
+                "risk_level": "low",
+                "auto_renew": False,
+                "created_at": "2026-04-21T10:00:00+08:00",
+                "last_active_at": "2026-04-23T10:00:00+08:00",
+                "expire_at": "9999-12-31T00:00:00+00:00",
+                "points_balance": 0,
+                "review_due": 0,
+                "member_directory_source": "supabase.v_members",
+            },
+        ]
+    )
+    service = MemberConsoleService(member_directory=directory)
+    service._data_path = tmp_path / "member_console.json"
+
+    def _seed_local_member(data: dict[str, object]) -> None:
+        member = service._build_default_member("local_only_member")
+        member["phone"] = "13800138000"
+        data["members"].append(member)
+
+    service._mutate(_seed_local_member)
+
+    payload = service.list_members(page=1, page_size=20, sort="created_at", order="asc")
+    dashboard = service.get_dashboard()
+
+    assert payload["total"] == 2
+    assert [item["user_id"] for item in payload["items"]] == ["canonical_member_1", "canonical_member_2"]
+    assert payload["authority"]["members"] == "supabase.v_members"
+    assert dashboard["total_count"] == 2
+    assert dashboard["authority"]["members"] == "supabase.v_members"
+    assert directory.calls
+
+
+def test_member_directory_merges_member_console_overlay_without_owning_member_pool(tmp_path: Path) -> None:
+    directory = _FakeMemberDirectory(
+        [
+            {
+                "user_id": "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+                "canonical_user_id": "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+                "alias_user_ids": ["2d9eac15-5d26-4e93-941b-9ec6345ce6d9"],
+                "display_name": "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+                "phone": "15558866508",
+                "tier": "sprint",
+                "status": "active",
+                "segment": "general",
+                "risk_level": "low",
+                "auto_renew": False,
+                "created_at": "2026-04-20T10:00:00+08:00",
+                "last_active_at": "2026-04-22T10:00:00+08:00",
+                "expire_at": "9999-12-31T00:00:00+00:00",
+                "points_balance": 260,
+                "review_due": 0,
+                "ledger": [],
+                "notes": [],
+                "member_directory_source": "supabase.v_members",
+            }
+        ]
+    )
+    service = MemberConsoleService(member_directory=directory)
+    service._data_path = tmp_path / "member_console.json"
+
+    def _seed_overlay(data: dict[str, object]) -> None:
+        member = service._build_default_member("legacy_member_1")
+        member["phone"] = "15558866508"
+        member["display_name"] = "运营备注名"
+        member["external_auth_user_id"] = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+        member["notes"] = [{"id": "note_1", "content": "需要回访", "created_at": "2026-04-21T10:00:00+08:00"}]
+        data["members"].append(member)
+
+    service._mutate(_seed_overlay)
+
+    payload = service.list_members(page=1, page_size=20)
+    detail = service.get_member_360("2d9eac15-5d26-4e93-941b-9ec6345ce6d9")
+
+    assert payload["total"] == 1
+    assert payload["items"][0]["display_name"] == "运营备注名"
+    assert set(payload["items"][0]["alias_user_ids"]) >= {
+        "legacy_member_1",
+        "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+    }
+    assert detail["wallet"]["balance"] == 260
+    assert detail["recent_notes"][0]["content"] == "需要回访"
+
+
+def test_configured_member_directory_error_does_not_fallback_to_member_console_pool(tmp_path: Path) -> None:
+    class ErrorDirectory:
+        is_configured = True
+
+        def list_members(self, *, limit: int = 5000):
+            raise RuntimeError("supabase unavailable")
+
+    service = MemberConsoleService(member_directory=ErrorDirectory())
+    service._data_path = tmp_path / "member_console.json"
+
+    def _seed_local_member(data: dict[str, object]) -> None:
+        member = service._build_default_member("local_only_member")
+        member["phone"] = "13800138000"
+        data["members"].append(member)
+
+    service._mutate(_seed_local_member)
+
+    payload = service.list_members(page=1, page_size=20)
+
+    assert payload["total"] == 0
+    assert payload["authority"]["members"] == "supabase.v_members"
 
 
 def test_batch_update_members_returns_success_and_failure_buckets(tmp_path: Path) -> None:

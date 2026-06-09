@@ -87,6 +87,7 @@ from deeptutor.services.member_console.external_auth import (
     validate_external_auth_password,
     verify_external_auth_user,
 )
+from deeptutor.services.member_console.directory import get_member_directory_read_model
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.runtime_env import env_flag, is_production_environment
 from deeptutor.services.session import build_user_owner_key, get_sqlite_session_store
@@ -533,12 +534,14 @@ AUDIT_IDEMPOTENCY_INDEX_MAX = 10_000
 
 
 class MemberConsoleService:
-    def __init__(self) -> None:
+    def __init__(self, *, member_directory: Any | None = None) -> None:
         self._lock = threading.RLock()
         self._path_service = get_path_service()
         self._store = get_sqlite_session_store()
         self._data_path = self._path_service.get_settings_file("member_console")
         self._data_path.parent.mkdir(parents=True, exist_ok=True)
+        self._member_directory_explicit = member_directory is not None
+        self._member_directory = member_directory or get_member_directory_read_model()
         self._assessment_sessions_supabase_required_but_missing = False
         self._assessment_session_repository = self._build_assessment_session_repository()
         self._wechat_access_token: str = ""
@@ -1670,6 +1673,120 @@ class MemberConsoleService:
                 key_to_index[key] = index
 
         return members
+
+    def _member_overlay_keys_for_directory(self, member: dict[str, Any]) -> set[str]:
+        keys = {
+            str(member.get("user_id") or "").strip(),
+            str(member.get("canonical_user_id") or "").strip(),
+            str(member.get("external_auth_user_id") or "").strip(),
+            *[str(value or "").strip() for value in list(member.get("alias_user_ids") or [])],
+        }
+        phone = _normalize_phone_input(str(member.get("phone") or ""))
+        if phone:
+            keys.add(f"phone:{phone}")
+        return {key for key in keys if key}
+
+    def _member_console_overlay_index(self, data: dict[str, Any]) -> dict[str, dict[str, Any]]:
+        overlays: dict[str, dict[str, Any]] = {}
+        for raw_member in data.get("members") or []:
+            if not isinstance(raw_member, dict):
+                continue
+            for key in self._member_overlay_keys_for_directory(raw_member):
+                overlays.setdefault(key, raw_member)
+        return overlays
+
+    def _merge_member_console_overlay(
+        self,
+        member: dict[str, Any],
+        overlay: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        if not overlay:
+            return member
+        merged = deepcopy(member)
+        overlay_aliases = {
+            str(value or "").strip()
+            for value in [
+                overlay.get("user_id"),
+                overlay.get("canonical_user_id"),
+                overlay.get("external_auth_user_id"),
+                *list(overlay.get("alias_user_ids") or []),
+            ]
+            if str(value or "").strip()
+        }
+        merged["alias_user_ids"] = sorted(
+            {
+                str(value or "").strip()
+                for value in [
+                    *list(merged.get("alias_user_ids") or []),
+                    *list(overlay_aliases),
+                ]
+                if str(value or "").strip()
+            }
+        )
+        if not str(merged.get("phone") or "").strip():
+            phone = self._registered_phone_for_bi(overlay)
+            if phone:
+                merged["phone"] = phone
+        if str(merged.get("display_name") or "").strip() in {"", str(merged.get("user_id") or "").strip()}:
+            display_name = str(overlay.get("display_name") or "").strip()
+            if display_name:
+                merged["display_name"] = display_name
+        for field in (
+            "avatar_url",
+            "level",
+            "xp",
+            "study_days",
+            "review_due",
+            "focus_topic",
+            "chapter_mastery",
+            "chapter_practice_stats",
+            "daily_practice_counts",
+            "ledger",
+            "notes",
+            "badges",
+            "earned_badge_ids",
+        ):
+            value = overlay.get(field)
+            if value not in (None, "", [], {}):
+                merged[field] = deepcopy(value)
+        return merged
+
+    def _member_directory_authority(self) -> str:
+        return (
+            "supabase.v_members"
+            if self._member_directory_explicit
+            or is_production_environment()
+            or env_flag("MEMBER_CONSOLE_USE_SUPABASE_MEMBER_DIRECTORY", default=False)
+            else "member_console"
+        )
+
+    def _member_directory_enabled(self) -> bool:
+        return self._member_directory_authority() == "supabase.v_members"
+
+    def _load_member_directory_members_for_bi(self, data: dict[str, Any]) -> list[dict[str, Any]]:
+        directory = self._member_directory
+        if not self._member_directory_enabled() or not bool(getattr(directory, "is_configured", False)):
+            members = self._members_for_bi(data)
+            for member in members:
+                member.setdefault("member_directory_source", "member_console")
+            return members
+        try:
+            members = list(directory.list_members(limit=5000))
+        except Exception:
+            logger.warning("Failed to load Supabase member directory read model", exc_info=True)
+            return []
+        overlay_index = self._member_console_overlay_index(data)
+        merged_members: list[dict[str, Any]] = []
+        for member in members:
+            overlay = None
+            for key in self._member_overlay_keys_for_directory(member):
+                overlay = overlay_index.get(key)
+                if overlay is not None:
+                    break
+            normalized = self._merge_member_console_overlay(deepcopy(member), overlay)
+            normalized.setdefault("member_directory_source", "supabase.v_members")
+            merged_members.append(normalized)
+        return merged_members
 
     @staticmethod
     def _member_signal_score(member: dict[str, Any]) -> int:
@@ -2879,7 +2996,7 @@ class MemberConsoleService:
 
     def get_dashboard(self, days: int = 30) -> dict[str, Any]:
         data = self._load()
-        members = self._members_for_bi(data)
+        members = self._load_member_directory_members_for_bi(data)
         behavior_summaries = self._load_member_behavior_summaries_for_members(members)
         behavior_health = {
             "learning_report_open_count_7d": sum(
@@ -2941,6 +3058,11 @@ class MemberConsoleService:
             "churn_risk_count": churn_risk_count,
             "health_score": round((active_count / max(len(members), 1)) * 100),
             "auto_renew_coverage": round((auto_renew_count / max(len(members), 1)) * 100),
+            "authority": {
+                "members": self._member_directory_authority(),
+                "member_overlay": "member_console",
+                "behavior": "product_behavior_events",
+            },
             "tier_breakdown": [
                 {"tier": tier, "count": count}
                 for tier, count in sorted(tiers.items(), key=lambda item: item[0])
@@ -2984,7 +3106,7 @@ class MemberConsoleService:
         has_overlay_candidates: bool | None = None,
     ) -> dict[str, Any]:
         data = self._load()
-        members = self._members_for_bi(data)
+        members = self._load_member_directory_members_for_bi(data)
         search_text = str(search or "").strip().lower()
         now = _now()
         heartbeat_user_ids: set[str] | None = None
@@ -3095,14 +3217,29 @@ class MemberConsoleService:
                 "has_heartbeat_job": has_heartbeat_job,
                 "has_overlay_candidates": has_overlay_candidates,
             },
+            "authority": {
+                "members": self._member_directory_authority(),
+                "member_overlay": "member_console",
+                "behavior": "product_behavior_events",
+            },
         }
 
     def list_members_for_bi(self) -> list[dict[str, Any]]:
-        return deepcopy(self._members_for_bi(self._load()))
+        data = self._load()
+        return deepcopy(self._load_member_directory_members_for_bi(data))
 
     def get_member_360(self, user_id: str) -> dict[str, Any]:
         data = self._load()
-        member = deepcopy(self._find_member(data, user_id))
+        try:
+            member = deepcopy(self._find_member(data, user_id))
+        except KeyError:
+            member = None
+            for item in self._load_member_directory_members_for_bi(data):
+                if str(item.get("user_id") or "").strip() == user_id or user_id in set(item.get("alias_user_ids") or []):
+                    member = deepcopy(item)
+                    break
+            if member is None:
+                raise
         member["wallet"] = {
             "balance": member.pop("points_balance"),
             "packages": data["packages"],
