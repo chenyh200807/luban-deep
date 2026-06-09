@@ -2141,3 +2141,83 @@ def test_learning_brain_object_display_never_leaks_code_or_dangling_colon():
         title = _object_display(oid, ot)["display_title"]
         assert not title.endswith("：")
         assert oid not in title
+
+
+def test_learning_report_projects_notebook_card_assets_without_promoting_truth() -> None:
+    class FakeNotebookCardService:
+        def list_cards(self, user_id: str, *, subject_id: str = "", card_type: str = "") -> list[dict]:
+            assert user_id == "student_demo"
+            return [
+                {
+                    "note_id": "note_scoring",
+                    "user_id": "student_demo",
+                    "subject_id": "construction_exam_1",
+                    "card_type": "scoring_card",
+                    "source_type": "grading",
+                    "source_ref": {"attempt_ref": "signed-ref"},
+                    "title": "主体结构采分点",
+                    "ai_enhanced_content": {"summary": "漏写验收前置条件。"},
+                    "version": 2,
+                    "updated_at": _iso(),
+                },
+                {
+                    "note_id": "note_manual",
+                    "user_id": "student_demo",
+                    "subject_id": "construction_exam_1",
+                    "card_type": "manual_note",
+                    "source_type": "manual",
+                    "source_ref": {},
+                    "title": "自记口诀",
+                    "ai_enhanced_content": {"summary": "这只是学员自记。"},
+                    "version": 1,
+                    "updated_at": _iso(),
+                },
+            ]
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([]),
+        notebook_card_service=FakeNotebookCardService(),
+        schema_version=2,
+    )
+
+    assets = model["note_assets"]["items"]
+    assert [item["note_id"] for item in assets] == ["note_scoring", "note_manual"]
+    assert assets[0]["source_linked"] is True
+    assert assets[0]["evidence_label"] == "可追溯到原始学习证据"
+    assert assets[1]["source_linked"] is False
+    assert assets[1]["evidence_label"] == ""
+    assert model["authority"]["note_assets_source"] == "learner_notebook_cards"
+    assert model["authority"]["today_tasks_source"] == "learning-report-read-model.note_assets"
+
+
+def test_learning_report_today_tasks_are_read_only_from_note_assets_and_capped() -> None:
+    class FakeNotebookCardService:
+        def list_cards(self, user_id: str, *, subject_id: str = "", card_type: str = "") -> list[dict]:
+            return [
+                {
+                    "note_id": f"note_{idx}",
+                    "user_id": user_id,
+                    "card_type": "review_note",
+                    "source_type": "chat",
+                    "source_ref": {"turn_id": f"turn_{idx}"},
+                    "title": f"学习卡 {idx}",
+                    "ai_enhanced_content": {"summary": f"复习点 {idx}"},
+                    "version": 1,
+                    "updated_at": _iso(),
+                }
+                for idx in range(5)
+            ]
+
+    model = build_learning_report_read_model(
+        user_id="student_demo",
+        member_service=FakeMemberService(),
+        learner_state_service=FakeLearnerStateService([]),
+        notebook_card_service=FakeNotebookCardService(),
+        schema_version=2,
+    )
+
+    assert len(model["today_tasks"]) == 3
+    assert all(item["source"] == "note_assets" for item in model["today_tasks"])
+    assert [item["note_id"] for item in model["today_tasks"]] == ["note_0", "note_1", "note_2"]

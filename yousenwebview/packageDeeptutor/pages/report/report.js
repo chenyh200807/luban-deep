@@ -1,6 +1,7 @@
 // pages/report/report.js — 学情页：诊断 + AI作战方案 + 进步反馈
 
 const api = require("../../utils/api");
+const surfaceTelemetry = require("../../utils/surface-telemetry");
 const helpers = require("../../utils/helpers");
 const runtime = require("../../utils/runtime");
 const route = require("../../utils/route");
@@ -679,6 +680,26 @@ function _mistakeBookPayloadFromCard(card) {
   };
 }
 
+function _notebookCardPayloadFromAttempt(card) {
+  var item = _asLearningBrainObject(card);
+  var attemptRef = String(item.attemptRef || "").trim();
+  var diagnosis = String(item.diagnosisDetail || item.diagnosis || "").trim();
+  return {
+    card_type: diagnosis ? "error_pattern_note" : "scoring_card",
+    subject_id: String(item.subjectId || ""),
+    source_bot_id: String(item.botId || "construction-exam"),
+    source_type: "grading",
+    source_ref: attemptRef ? { attempt_ref: attemptRef } : {},
+    evidence_event_ids: [],
+    title: String(item.title || "批改学习卡").slice(0, 80),
+    user_query: diagnosis || "保存这次批改的学习卡",
+    output: "",
+    ai_enhanced_content: {
+      summary: diagnosis || String(item.resultLabel || "一次作答复盘"),
+    },
+  };
+}
+
 function _buildRadarViewModel(dims) {
   var strong = 0;
   var normal = 0;
@@ -1292,6 +1313,8 @@ Page({
       weakCount: 0,
     },
     learningAttemptCards: [],
+    noteAssets: [],
+    todayTasks: [],
     learningDiagnosisCards: [],
     learningTrainingLoops: [],
     learningNextAction: { title: "", subtitle: "", cta: "开始训练" },
@@ -1545,6 +1568,14 @@ Page({
     var home = (snapshot && snapshot.home) || {};
     var sharedReport = reportViewModel.buildLearningReportViewModel(report);
     var sharedPageData = reportViewModel.toReportPageData(sharedReport);
+    if ((sharedPageData.todayTasks || []).length) {
+      this._trackLearningNoteBehavior("today_task_rendered", {
+        section: "today_tasks",
+        action: "render",
+        objectId: "today_tasks",
+        result: String((sharedPageData.todayTasks || []).length),
+      });
+    }
     this.setData(
       Object.assign({}, sharedPageData, {
         todayDone: overview.today_done || 0,
@@ -2292,6 +2323,133 @@ Page({
       action.followupQuestionContext || null,
     );
     wx.reLaunch({ url: route.chat() });
+  },
+
+  _trackLearningNoteBehavior(eventName, options) {
+    var opts = options || {};
+    if (!surfaceTelemetry || !surfaceTelemetry.trackProductBehavior) return;
+    surfaceTelemetry.trackProductBehavior(eventName, {
+      module: "learning_report",
+      section: opts.section || "note_assets",
+      action: opts.action || "view",
+      objectType: opts.objectType || "notebook_card",
+      objectId: opts.objectId || "",
+      entrySource: opts.entrySource || "learning_report",
+      result: opts.result || "",
+      errorCode: opts.errorCode || "",
+    });
+  },
+
+  async saveAttemptNotebookCard(event) {
+    var key =
+      event && event.currentTarget && event.currentTarget.dataset
+        ? event.currentTarget.dataset.key
+        : "";
+    var card = (this.data.learningAttemptCards || []).find(function (item) {
+      return item.key === key;
+    });
+    if (!card || !api.saveNotebookCard) {
+      wx.showToast({ title: "这条记录暂不能存卡片", icon: "none", duration: 1600 });
+      return;
+    }
+    try {
+      this._trackLearningNoteBehavior("note_card_suggested", {
+        action: "suggest",
+        objectId: String(card.key || ""),
+      });
+      var saved = await api.saveNotebookCard(_notebookCardPayloadFromAttempt(card));
+      var noteId = String(
+        (saved && saved.note_id) ||
+          (saved && saved.card && saved.card.note_id) ||
+          card.key ||
+          "",
+      );
+      this._trackLearningNoteBehavior("note_card_saved", {
+        action: "save_note",
+        objectId: noteId,
+        result: "success",
+      });
+      wx.showToast({ title: "已保存学习卡", icon: "success", duration: 1400 });
+    } catch (_err) {
+      this._trackLearningNoteBehavior("note_card_rejected", {
+        action: "reject",
+        objectId: String(card.key || ""),
+        result: "failed",
+        errorCode: "save_failed",
+      });
+      wx.showToast({ title: "保存失败，请稍后重试", icon: "none", duration: 1800 });
+    }
+  },
+
+  startAttemptProbe(event) {
+    var key =
+      event && event.currentTarget && event.currentTarget.dataset
+        ? event.currentTarget.dataset.key
+        : "";
+    var card = (this.data.learningAttemptCards || []).find(function (item) {
+      return item.key === key;
+    });
+    if (!card) return;
+    this._trackLearningNoteBehavior("probe_requested_from_note", {
+      action: card.attemptRef ? "start_retest" : "start_probe",
+      objectId: String(card.key || ""),
+    });
+    runtime.setWorkspaceBack(route.report(), "学情");
+    runtime.setPendingChatIntent(
+      "请围绕这次批改暴露的问题，出一道同类题让我重新作答。",
+      "AUTO",
+      {
+        source: "note_asset",
+        attempt_ref: String(card.attemptRef || ""),
+        subject_id: String(card.subjectId || ""),
+      },
+      null,
+    );
+    wx.reLaunch({ url: route.chat() });
+  },
+
+  startNoteAssetAction(event) {
+    var noteId =
+      event && event.currentTarget && event.currentTarget.dataset
+        ? event.currentTarget.dataset.noteid
+        : "";
+    var asset = (this.data.noteAssets || []).find(function (item) {
+      return item.noteId === noteId;
+    });
+    if (!asset) return;
+    this._trackLearningNoteBehavior("note_action_started", {
+      action: asset.action && asset.action.type === "reanswer" ? "start_retest" : "start_probe",
+      objectId: noteId,
+    });
+    runtime.setWorkspaceBack(route.report(), "学情");
+    runtime.setPendingChatIntent(
+      "请根据这张学习卡片安排一道复测题，先出题，不要直接给答案。",
+      "AUTO",
+      {
+        source: "note_asset",
+        note_id: noteId,
+        attempt_ref: String(asset.action && asset.action.attemptRef || ""),
+      },
+      null,
+    );
+    wx.reLaunch({ url: route.chat() });
+  },
+
+  startTodayTask(event) {
+    var taskId =
+      event && event.currentTarget && event.currentTarget.dataset
+        ? event.currentTarget.dataset.taskid
+        : "";
+    var task = (this.data.todayTasks || []).find(function (item) {
+      return item.taskId === taskId || item.key === taskId;
+    });
+    if (!task) return;
+    this._trackLearningNoteBehavior("today_task_started", {
+      section: "today_tasks",
+      action: task.action && task.action.type === "reanswer" ? "start_retest" : "start_probe",
+      objectId: String(task.noteId || task.key || ""),
+    });
+    this.startNoteAssetAction({ currentTarget: { dataset: { noteid: task.noteId } } });
   },
 
   async openAttemptDetail(event) {

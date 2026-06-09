@@ -3474,6 +3474,10 @@ def test_mobile_learning_report_uses_learning_evidence_for_recent_progress(
                 }
             }
 
+    class FakeNotebookCardService:
+        def list_cards(self, user_id, *, subject_id: str = "", card_type: str = ""):
+            return []
+
     monkeypatch.setattr(
         mobile_module,
         "_resolve_authenticated_user_id",
@@ -3481,6 +3485,7 @@ def test_mobile_learning_report_uses_learning_evidence_for_recent_progress(
     )
     monkeypatch.setattr(mobile_module, "member_service", FakeMemberService())
     monkeypatch.setattr(mobile_module, "learner_state_service", FakeLearnerStateService())
+    monkeypatch.setattr(mobile_module, "get_notebook_card_service", lambda: FakeNotebookCardService())
 
     with TestClient(_build_app()) as client:
         response = client.get("/api/v1/mobile/learning-report?event_limit=25")
@@ -3508,6 +3513,64 @@ def test_mobile_learning_report_uses_learning_evidence_for_recent_progress(
         assert status["ok"] in (True, None)
     assert body["freshness"]["window_truncated"] is False
     assert body["freshness"]["unknown_date_count"] == 0
+
+
+def test_mobile_learning_report_projects_notebook_card_assets_from_single_authority(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeMemberService:
+        def get_today_progress(self, user_id):
+            return {"today_done": 0, "daily_target": 30, "streak_days": 0}
+
+        def get_home_dashboard(self, user_id):
+            return {"review": {"due_today": 0}, "mastery": {"weak_nodes": []}, "today": {"hint": ""}}
+
+        def get_assessment_profile(self, user_id):
+            return {"level": "beginner", "chapter_mastery": {}}
+
+        def get_mastery_dashboard(self, user_id):
+            return {"overall_mastery": 0, "groups": [], "hotspots": [], "review_summary": {"total_due": 0}}
+
+    class FakeLearnerStateService:
+        def list_memory_events(self, user_id, limit=100):
+            return []
+
+        def read_compiled_learning_truth(self, user_id):
+            return {}
+
+        def synthesize_learning_truth(self, user_id, *, dry_run, event_limit):
+            return {"projection": {}}
+
+    class FakeNotebookCardService:
+        def list_cards(self, user_id, *, subject_id: str = "", card_type: str = ""):
+            assert user_id == "student_demo"
+            return [
+                {
+                    "note_id": "note_mobile_1",
+                    "user_id": user_id,
+                    "card_type": "review_note",
+                    "source_type": "chat",
+                    "source_ref": {"turn_id": "turn_mobile_1"},
+                    "title": "移动端学习卡",
+                    "ai_enhanced_content": {"summary": "来自答疑收藏。"},
+                    "version": 1,
+                    "updated_at": datetime.now(_SH_TZ).replace(microsecond=0).isoformat(),
+                }
+            ]
+
+    monkeypatch.setattr(mobile_module, "_resolve_authenticated_user_id", lambda *_args, **_kwargs: "student_demo")
+    monkeypatch.setattr(mobile_module, "member_service", FakeMemberService())
+    monkeypatch.setattr(mobile_module, "learner_state_service", FakeLearnerStateService())
+    monkeypatch.setattr(mobile_module, "get_notebook_card_service", lambda: FakeNotebookCardService())
+
+    with TestClient(_build_app()) as client:
+        response = client.get("/api/v1/mobile/learning-report?schema_version=2")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["authority"]["note_assets_source"] == "learner_notebook_cards"
+    assert body["note_assets"]["items"][0]["note_id"] == "note_mobile_1"
+    assert body["today_tasks"][0]["source"] == "note_assets"
 
 
 def test_mobile_assessment_topics_returns_catalog_without_chat_side_effects(

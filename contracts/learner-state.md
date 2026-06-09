@@ -75,6 +75,43 @@ TutorBot 侧同步正名：
 - `bot overlay -> global weak point`
 - `per-user workspace -> copied rubric / KB / runtime_supply`
 
+## P0A NotebookCard / NoteAssets Contract
+
+`NotebookCardService` 是 P0A 学习卡片的唯一写/读/删 authority。它管理的是
+owner-scoped 用户资产，不是 learner truth。生产持久化表为
+`learner_notebook_cards`，按 `user_id + note_id` 隔离，带 RLS 与 `version` 乐观并发。
+
+卡片写入边界：
+
+- 入口复用 `POST /api/v1/notebook/add_record`，以 `metadata.card_type` 作为分流键。
+- 命中 `scoring_card / error_pattern_note / review_note / manual_note` 时，必须走
+  `NotebookCardService.save_card()`；未命中时 legacy `NotebookManager` 行为保持不变。
+- 卡片保存只能调用 `LearnerStateService.record_notebook_writeback()` 追加一条低权重
+  `student_note` recall 事件。
+- 卡片保存、更新、删除不得调用 `refresh_from_turn()`、`_rewrite_summary()`、
+  `patch_overlay()`、compiled-truth refresh 或任何 mastery/profile/progress promotion。
+- `mastery_effect` 在 P0A 固定为 `none`；调用方传入其他值必须被忽略。
+- 删除语义是 archive 用户资产，`learning_evidence` 不物理删除。
+
+读取投影边界：
+
+- `GET /api/v1/mobile/learning-report` 可以只读投影 `note_assets` 与最多 3 条
+  `today_tasks`。
+- `note_assets` 的 authority 字段必须指向 `learner_notebook_cards`。
+- `today_tasks` 是 read-only projection，只能从 learning-report read model 生成；P0A
+  不允许新增 planner CRUD、完成状态落库、延期、周/月日历或第二首页 reader。
+- 若卡片缺少 `source_ref`，前端不得展示“可追溯到历史证据/稳定诊断”的判断，只能把它当作
+  学员自记资产。
+
+行为埋点边界：
+
+- P0A 事件必须复用 `surface-events -> product_behavior_events`，不得新增 learner-workspace
+  专用埋点 endpoint。
+- 允许事件名：`note_card_suggested`、`note_card_saved`、`note_card_rejected`、
+  `note_action_started`、`probe_requested_from_note`、`today_task_rendered`、
+  `today_task_started`。
+- 行为事件 metadata 不得包含原始作答、完整聊天文本、手机号、验证码或完整自由文本。
+
 ## Member Console / BI Audit Boundary
 
 - `deeptutor/services/member_console/*` 可以记录 admin-facing 运营备注和 BI 审计流水，例如

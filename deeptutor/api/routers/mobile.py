@@ -29,6 +29,7 @@ from deeptutor.services.learner_state.attempt_detail_read_model import build_att
 from deeptutor.services.learner_state.learning_brain_read_model import build_learning_brain_read_model
 from deeptutor.services.learner_state.learning_report_read_model import build_learning_report_read_model
 from deeptutor.services.learner_state.mistake_book import MistakeBookConflict, MistakeBookService
+from deeptutor.services.notebook_card.service import get_notebook_card_service
 from deeptutor.services.internal_qa import (
     internal_qa_billing_bypass_allowed,
     internal_qa_billing_bypass_enabled,
@@ -2493,6 +2494,7 @@ def _build_mobile_learning_report_read_model(
         member_service=member_service,
         learner_state_service=learner_state_service,
         mistake_book_service=mistake_book_service,
+        notebook_card_service=get_notebook_card_service(),
         event_limit=event_limit,
         schema_version=schema_version,
     )

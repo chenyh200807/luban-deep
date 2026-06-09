@@ -1208,6 +1208,8 @@ function buildLearningReportViewModel(report) {
     mastery,
     learningBrain,
   );
+  var noteAssets = normalizeNoteAssets(body.note_assets);
+  var todayTasks = normalizeTodayTasks(body.today_tasks);
   return {
     schemaVersion: asNumber(body.schema_version, 1),
     hero: {
@@ -1248,6 +1250,8 @@ function buildLearningReportViewModel(report) {
     attempts: attempts,
     mistakeHistoryCards: mistakeHistoryCards,
     mistakeBook: asObject(body.mistake_book),
+    noteAssets: noteAssets,
+    todayTasks: todayTasks,
     nextTraining: nextTraining,
     masteryDimensions: normalizeMasteryDimensions(body.mastery),
     overview: {
@@ -1275,6 +1279,56 @@ function buildLearningReportViewModel(report) {
     degraded: Boolean(body.degraded) || degradedSources.length > 0,
     degradedSources: degradedSources,
   };
+}
+
+function normalizeNoteAssets(source) {
+  return asList(asObject(source).items).map(function (item, index) {
+    var row = asObject(item);
+    var action = asObject(row.action);
+    var noteId = String(row.note_id || row.noteId || row.key || "").trim();
+    return {
+      key: noteId || "note-" + index,
+      noteId: noteId,
+      cardType: String(row.card_type || row.cardType || "manual_note"),
+      title: String(row.title || "学习卡片"),
+      summary: String(row.summary || ""),
+      subjectId: String(row.subject_id || row.subjectId || ""),
+      sourceType: String(row.source_type || row.sourceType || ""),
+      sourceLinked: Boolean(row.source_linked || row.sourceLinked),
+      sourceLabel: String(row.source_label || row.sourceLabel || ""),
+      evidenceLabel: String(row.evidence_label || row.evidenceLabel || ""),
+      version: asNumber(row.version, 1),
+      action: {
+        label: String(action.label || "测一下"),
+        type: String(action.type || "probe"),
+        attemptRef: String(action.attempt_ref || action.attemptRef || ""),
+        turnId: String(action.turn_id || action.turnId || ""),
+        entrySource: String(action.entry_source || action.entrySource || "note_asset"),
+      },
+    };
+  });
+}
+
+function normalizeTodayTasks(source) {
+  return asList(source).slice(0, 3).map(function (item, index) {
+    var row = asObject(item);
+    var action = asObject(row.action);
+    return {
+      key: String(row.task_id || row.taskId || "task-" + index),
+      taskId: String(row.task_id || row.taskId || ""),
+      title: String(row.title || "复习学习卡片"),
+      subtitle: String(row.subtitle || ""),
+      source: String(row.source || ""),
+      noteId: String(row.note_id || row.noteId || ""),
+      action: {
+        label: String(action.label || "开始"),
+        type: String(action.type || "probe"),
+        attemptRef: String(action.attempt_ref || action.attemptRef || ""),
+        turnId: String(action.turn_id || action.turnId || ""),
+        entrySource: String(action.entry_source || action.entrySource || "today_task"),
+      },
+    };
+  });
 }
 
 // ─── Batch C Task 8: three-layer learning state + scoring point map ───
@@ -1783,6 +1837,8 @@ function toReportPageData(model) {
     learningAttemptCards: asList(vm.attempts).length
       ? asList(vm.attempts)
       : asList(brain.attempts),
+    noteAssets: asList(vm.noteAssets),
+    todayTasks: asList(vm.todayTasks),
     mistakeHistoryCards: asList(vm.mistakeHistoryCards),
     learningDiagnosisCards: asList(brain.diagnoses),
     learningTrainingLoops: asList(brain.chains),

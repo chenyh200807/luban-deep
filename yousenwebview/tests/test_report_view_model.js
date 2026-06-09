@@ -41,6 +41,29 @@ var report = {
     recent_attempts: [{ key: "a1", title: "防水节点", diagnosis: "概念混淆" }],
     next_action: { title: "防水工程专项", intent: { source: "learning_report" } },
   },
+  note_assets: {
+    items: [
+      {
+        note_id: "note_1",
+        card_type: "review_note",
+        title: "防水节点学习卡",
+        summary: "复测节点构造。",
+        source_linked: true,
+        source_label: "来自一次答疑",
+        action: { label: "测一下", type: "probe", turn_id: "turn_1" },
+      },
+    ],
+  },
+  today_tasks: [
+    {
+      task_id: "note:note_1",
+      title: "防水节点学习卡",
+      subtitle: "复测节点构造。",
+      source: "note_assets",
+      note_id: "note_1",
+      action: { label: "测一下", type: "probe" },
+    },
+  ],
 };
 
 assert.deepStrictEqual(
@@ -52,6 +75,8 @@ assert.strictEqual(vm.prescription.reason, report.today_prescription.why_this_no
 assert.deepStrictEqual(vm.prescription.evidenceRefs, ["evt1", "evt2"]);
 assert.strictEqual(vm.prescription.authority, "training_intent");
 assert.strictEqual(yousenVm.toReportPageData(vm).prescriptionAuthority, "training_intent");
+assert.strictEqual(yousenVm.toReportPageData(vm).noteAssets[0].noteId, "note_1");
+assert.strictEqual(yousenVm.toReportPageData(vm).todayTasks[0].source, "note_assets");
 
 var loopReport = {
   schema_version: 2,

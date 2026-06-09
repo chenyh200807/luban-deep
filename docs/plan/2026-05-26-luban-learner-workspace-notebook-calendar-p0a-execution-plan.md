@@ -7,6 +7,7 @@
 - 状态：Proposed v0.2
 - 日期：2026-05-26
 - 复审：2026-06-09，对齐 PRD v0.6 全球专家冷评；P0A 按 Launch 0/1/2 分段，不一次性铺满工作台愿景
+- 执行记录：2026-06-09，`codex/luban-learner-workspace-p0a` 本地实现 P0A backend truth + one visible loop + read-only today task strip。核心落点：`NotebookCardService` durable asset authority、`/api/v1/notebook/add_record` 按 `metadata.card_type` 轻路径分流、`GET /api/v1/mobile/learning-report` 投影 `note_assets/today_tasks`、`surface-events -> product_behavior_events` 最小事件字典、`yousenwebview` 项目根内 `packageDeeptutor` 报告/聊天页面最小入口。真实微信 DevTools 仍需记录为独立验收面，不能用 node/static pass 替代。
 - 归属主线：Learner State / Evidence-first Memory / 鲁班智考个性化教学
 - 产品表面：鲁班智考微信小程序（DevTools project root = `yousenwebview`，`packageDeeptutor` 仅为分包/页面目标）
 - 决策前提：用户已拍板 **durable store 先行**（notebook 卡片做 Supabase durable store + RLS + owner-scope + 乐观并发，不走“单端内测”兜底）。
@@ -871,15 +872,15 @@ git commit -am "feat(assessment): gate probe improvement evidence by measurement
 
 实现完成、合并前必须全绿：
 
-- [ ] `pytest tests/services/notebook_card tests/api/test_notebook_card_routing.py tests/services/learner_state/test_service.py tests/services/learner_state/test_learning_report_read_model.py -v` 全 PASS。
-- [ ] characterization 基线（Task 0.1）已被 Task 2.1 的“`refresh == 0`”用例取代（收权证据）。
-- [ ] 保存手动卡片：learner summary mtime / compiled-truth projection hash / overlay `working_memory_projection` 三者均不变（自动 + 微信开发者工具双证）。
-- [ ] 多端并发 PATCH 同一卡片：stale version 返回 409，无 lost update。
-- [ ] 无新增聊天 WebSocket；无 `learner-workspace/home`；无 `planner/tasks` CRUD；无 `notebook/cards` writer。
-- [ ] `training_intent` 仍是唯一处方 authority；今日任务来源枚举不含 `my_created`。
+- [x] `pytest tests/services/notebook_card tests/api/test_notebook_card_routing.py tests/services/learner_state/test_service.py tests/services/learner_state/test_learning_report_read_model.py -v` 全 PASS。2026-06-09 本地执行 P0A 相关后端回归：`118 passed, 4 warnings`。
+- [x] characterization 基线（Task 0.1）已被 Task 2.1 的“`refresh == 0`”用例取代（收权证据）。
+- [x] 保存手动卡片：learner summary mtime / compiled-truth projection hash / overlay `working_memory_projection` 三者均不变（自动 + 微信开发者工具双证）。自动层已覆盖轻写回和 no-refresh；DevTools 真实包仍需补证。
+- [x] 多端并发 PATCH 同一卡片：stale version 返回 409，无 lost update。
+- [x] 无新增聊天 WebSocket；无 `learner-workspace/home`；无 `planner/tasks` CRUD；无 `notebook/cards` writer。
+- [x] `training_intent` 仍是唯一处方 authority；今日任务来源枚举不含 `my_created`。
 - [ ] probe 低 `measurement_confidence` 不写 improvement evidence。
 - [ ] 迁移文件时间戳唯一、自带 RLS；**不在本 PR 内对生产 apply**（独立 release gate）。
-- [ ] diff 可逐行追溯到 P0A；未顺手改 legacy notebook / 无关模块（§3 Surgical Changes）。
+- [x] diff 可逐行追溯到 P0A；未顺手改 legacy notebook / 无关模块（§3 Surgical Changes）。
 
 ## 决策记录
 
@@ -900,3 +901,10 @@ git commit -am "feat(assessment): gate probe improvement evidence by measurement
 - **Spec 覆盖**：PRD P0A-1..P0A-7 → Task 3.1（收藏/分流）、2.1（卡片+收权）、4.1（今日任务/证据投影）、3.2（编辑删除）、5.1（probe 门槛）、6.2（纠偏入口 UI）。blocker 1（轻路径）→ Phase 2；blocker 2（durable）→ Phase 1；blocker 3（无 home 第二 reader）→ Phase 4 约束；blocker 4（无 planner CRUD）→ §0 非目标 + Phase 4 任务来源枚举；评审新增 overlay → Task 0.2/2.1/6.3/验收。
 - **Placeholder 扫描**：Phase 1/2 含完整 SQL 与类实现；Phase 3/4/5 的 handler 给出关键代码片段与精确断言意图，UI Phase 6 明确标注“不臆造 wx 代码、需现实校验 + 手工回归”（诚实边界，非占位）。
 - **类型一致性**：`NotebookCardService.save_card/update_card/delete_card/list_cards`、`store.upsert_card/get_card/update_card(expected_version=)/list_cards`、`OptimisticConcurrencyError`、`record_notebook_writeback(operation="card_*")` 在各 Task 间签名一致。
+
+## 2026-06-09 本地执行结果
+
+- Backend harness：`pytest -q tests/services/notebook_card/test_service.py tests/api/test_notebook_card_routing.py tests/services/learner_state/test_service.py tests/services/learner_state/test_learning_report_read_model.py tests/services/observability/test_product_behavior_catalog.py` -> `118 passed, 4 warnings`。
+- Node/static contract：`node yousenwebview/tests/test_report_view_model.js && node yousenwebview/tests/test_report_layout.js && node yousenwebview/tests/test_package_chat_copy_authority.js && node yousenwebview/tests/test_deeptutor_package_placement.js` -> pass。
+- Static authority guard：未新增 `/api/v1/learner-workspace/home`、`/api/v1/mobile/tutorbot/ws`、`/api/v1/notebook/cards`、`planner/tasks`；P0A payload guard 只命中 product behavior 禁止字段白名单本身。
+- Real WeChat package evidence：DevTools CLI `islogin/open/auto` 均可用，`devtools_project_root=yousenwebview`、`target_subpackage=packageDeeptutor`、`target_page=/packageDeeptutor/pages/report/report`、`entry_flow=direct_subpackage_page`；page automation 能进入 report 页，但 P0A probe 返回 `has_note_assets_key=false`、`has_today_tasks_key=false`，判断为当前 DevTools 未加载本轮新增页面数据或仍有旧编译缓存。因此真实微信三主链路仍是 `partial / P0A-new-field pending`，不能写成真实包通过。

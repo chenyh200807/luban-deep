@@ -453,6 +453,34 @@ function saveMistakeBookItem(payload) {
   });
 }
 
+/** 保存 source-linked 学习卡片；后端按 metadata.card_type 分流到 NotebookCardService */
+function saveNotebookCard(payload) {
+  var input = payload && typeof payload === "object" ? payload : {};
+  var metadata = Object.assign({}, input.metadata || {}, {
+    card_type: input.card_type || input.cardType || "manual_note",
+    subject_id: input.subject_id || input.subjectId || "",
+    source_bot_id: input.source_bot_id || input.sourceBotId || "",
+    source_type: input.source_type || input.sourceType || "manual",
+    source_ref: input.source_ref || input.sourceRef || {},
+    evidence_event_ids: input.evidence_event_ids || input.evidenceEventIds || [],
+    ai_enhanced_content: input.ai_enhanced_content || input.aiEnhancedContent || {},
+  });
+  return request({
+    url: "/api/v1/notebook/add_record",
+    method: "POST",
+    data: {
+      notebook_ids: input.notebook_ids || input.notebookIds || [],
+      record_type: input.record_type || input.recordType || "chat",
+      title: input.title || "学习卡片",
+      summary: "",
+      user_query: input.user_query || input.userQuery || "",
+      output: input.output || "",
+      metadata: metadata,
+      kb_name: input.kb_name || input.kbName || null,
+    },
+  });
+}
+
 /** 本地 QA：写入案例题阅卷事件并触发合成，只在本地后端开启 QA router 时可用 */
 function runLearningBrainHarnessCaseGrading(payload) {
   return request({
@@ -661,6 +689,7 @@ module.exports = {
   getLearningReport: getLearningReport,
   getLearningAttemptDetail: getLearningAttemptDetail,
   saveMistakeBookItem: saveMistakeBookItem,
+  saveNotebookCard: saveNotebookCard,
   getLearningBrainProjection: getLearningBrainProjection,
   runLearningBrainHarnessCaseGrading: runLearningBrainHarnessCaseGrading,
   getMasteryDashboard: getMasteryDashboard,

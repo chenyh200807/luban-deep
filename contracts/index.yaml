@@ -264,7 +264,7 @@ domains:
     schema_files: []
 
   learner_state:
-    summary: Learner long-term state, summary/profile/progress ownership, guide and heartbeat writeback boundaries.
+    summary: Learner long-term state, summary/profile/progress ownership, guide/notebook-card asset boundaries, and heartbeat writeback boundaries.
     contract_files:
       - CONTRACT.md
       - contracts/learner-state.md
@@ -290,6 +290,8 @@ domains:
       - deeptutor/agents/guide/**/*.py
       - deeptutor/services/notebook/*.py
       - deeptutor/services/notebook/**/*.py
+      - deeptutor/services/notebook_card/*.py
+      - deeptutor/services/notebook_card/**/*.py
       - deeptutor/api/routers/guide.py
       - deeptutor/api/routers/notebook.py
       - deeptutor/api/routers/tutor_state.py
@@ -309,6 +311,7 @@ domains:
       - deeptutor/tutorbot/agent/memory.py
       - deeptutor/agents/guide/guide_manager.py
       - deeptutor/services/notebook/service.py
+      - deeptutor/services/notebook_card/service.py
       - deeptutor/contracts/learner_state.py
     test_files:
       - tests/api/test_system_router.py
@@ -349,11 +352,14 @@ domains:
       - tests/supabase/test_learner_state_rls_migration.py
       - tests/services/learner_state/test_d_class_occurrence_timeline.py
       - tests/services/learner_state/test_d_class_long_term_analytics.py
+      - tests/services/notebook_card/test_service.py
+      - tests/api/test_notebook_card_routing.py
     schema_files:
       - deeptutor/contracts/learner_state.py
       - supabase/migrations/20260415000100_learner_state_core.sql
       - supabase/migrations/20260415000200_bot_learner_overlay.sql
       - supabase/migrations/20260419000100_learner_state_rls.sql
+      - supabase/migrations/20260531000100_learner_notebook_cards.sql
 
 # Batch A Task 1 — layered addendum on top of the learner_state and turn
 # domains. Records authority / allowed event types / projection grammar /

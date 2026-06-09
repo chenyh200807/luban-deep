@@ -151,6 +151,25 @@ function loadChatPage(options) {
 }
 
 var loaded = loadChatPage();
+var chatSource = fs.readFileSync(
+  path.join(__dirname, "../packageDeeptutor/pages/chat/chat.js"),
+  "utf8",
+);
+var chatWxml = fs.readFileSync(
+  path.join(__dirname, "../packageDeeptutor/pages/chat/chat.wxml"),
+  "utf8",
+);
+assert(
+  chatWxml.indexOf("onSaveNotebookCard") >= 0 &&
+    chatWxml.indexOf("存卡") >= 0,
+  "chat AI answer actions should expose the P0A save-card entry",
+);
+assert(
+  chatSource.indexOf("api.saveNotebookCard") >= 0 &&
+    chatSource.indexOf("note_card_saved") >= 0 &&
+    chatSource.indexOf("surfaceTelemetry.trackProductBehavior") >= 0,
+  "chat save-card entry should use NotebookCardService routing and product_behavior authority",
+);
 loaded.page.setData({
   messages: [
     {

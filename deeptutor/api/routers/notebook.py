@@ -15,6 +15,7 @@ from deeptutor.api._secure_router import secure_router
 from deeptutor.api.dependencies import AuthContext, get_current_user
 from deeptutor.services.notebook import notebook_manager
 from deeptutor.services.notebook_card.service import get_notebook_card_service
+from deeptutor.services.notebook_card.store import OptimisticConcurrencyError
 from deeptutor.services.session import build_user_owner_key
 from deeptutor.utils.error_utils import public_error_detail
 
@@ -70,6 +71,23 @@ class UpdateRecordRequest(BaseModel):
     output: str | None = None
     metadata: dict | None = None
     kb_name: str | None = None
+
+
+class UpdateNotebookCardRequest(BaseModel):
+    """Update an owner-scoped notebook card asset."""
+
+    expected_version: int
+    title: str | None = None
+    raw_user_content: str | None = None
+    ai_enhanced_content: dict | None = None
+    user_control_status: str | None = None
+    use_for_personalization: bool | None = None
+
+
+class DeleteNotebookCardRequest(BaseModel):
+    """Archive an owner-scoped notebook card asset."""
+
+    expected_version: int
 
 
 # === API Endpoints ===
@@ -286,6 +304,66 @@ async def delete_notebook(
     except HTTPException:
         raise
     except Exception as e:
+        raise HTTPException(status_code=500, detail=public_error_detail("Notebook operation"))
+
+
+@router.patch("/card/{note_id}")
+async def update_notebook_card(
+    note_id: str,
+    request: UpdateNotebookCardRequest,
+    current_user: AuthContext = Depends(get_current_user),
+):
+    """Update a durable learning-card asset without touching learner truth."""
+    try:
+        patch = {
+            key: value
+            for key, value in {
+                "title": request.title,
+                "raw_user_content": request.raw_user_content,
+                "ai_enhanced_content": request.ai_enhanced_content,
+                "user_control_status": request.user_control_status,
+                "use_for_personalization": request.use_for_personalization,
+            }.items()
+            if value is not None
+        }
+        card = await get_notebook_card_service().update_card(
+            user_id=current_user.user_id,
+            note_id=note_id,
+            expected_version=request.expected_version,
+            patch=patch,
+        )
+        return {"success": True, "card": card, "note_id": card["note_id"]}
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Notebook card not found")
+    except OptimisticConcurrencyError:
+        raise HTTPException(status_code=409, detail="notebook_card_version_conflict")
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=500, detail=public_error_detail("Notebook operation"))
+
+
+@router.delete("/card/{note_id}")
+async def delete_notebook_card(
+    note_id: str,
+    request: DeleteNotebookCardRequest,
+    current_user: AuthContext = Depends(get_current_user),
+):
+    """Archive a durable learning-card asset; learning evidence is not deleted."""
+    try:
+        card = await get_notebook_card_service().delete_card(
+            user_id=current_user.user_id,
+            note_id=note_id,
+            expected_version=request.expected_version,
+        )
+        return {"success": True, "card": card, "note_id": card["note_id"]}
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Notebook card not found")
+    except OptimisticConcurrencyError:
+        raise HTTPException(status_code=409, detail="notebook_card_version_conflict")
+    except HTTPException:
+        raise
+    except Exception:
         raise HTTPException(status_code=500, detail=public_error_detail("Notebook operation"))
 
 

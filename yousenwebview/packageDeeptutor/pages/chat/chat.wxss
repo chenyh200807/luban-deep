@@ -431,6 +431,16 @@
   background: rgba(255,255,255,0.08);
   display: flex; align-items: center; justify-content: center;
 }
+.act-btn-note {
+  width: auto;
+  min-width: 72rpx;
+  padding: 0 12rpx;
+}
+.act-note-text {
+  font-size: 20rpx;
+  font-weight: 800;
+  color: rgba(191,219,254,0.82);
+}
 .act-btn:active { background: rgba(255,255,255,0.18); }
 .act-on { background: rgba(59,130,246,0.2); }
 .act-sep { width: 1rpx; height: 24rpx; background: rgba(255,255,255,0.08); margin: 0 2rpx; }

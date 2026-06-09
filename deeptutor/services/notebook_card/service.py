@@ -94,4 +94,10 @@ def get_notebook_card_service() -> NotebookCardService:
     return _singleton
 
 
-__all__ = ["NotebookCardService", "get_notebook_card_service"]
+def reset_notebook_card_service_for_tests(service: NotebookCardService | None = None) -> NotebookCardService | None:
+    global _singleton
+    _singleton = service
+    return _singleton
+
+
+__all__ = ["NotebookCardService", "get_notebook_card_service", "reset_notebook_card_service_for_tests"]

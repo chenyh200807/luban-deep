@@ -108,6 +108,7 @@ _SOURCE_NAMES = (
     "assessment_profile",
     "mastery_dashboard",
     "learner_events",
+    "note_assets",
     "compiled_truth",
     "dry_run_synthesis",
 )
@@ -154,6 +155,7 @@ def build_learning_report_read_model(
     member_service: Any,
     learner_state_service: Any,
     mistake_book_service: Any | None = None,
+    notebook_card_service: Any | None = None,
     event_limit: int = 100,
     schema_version: int = 1,
 ) -> dict[str, Any]:
@@ -250,6 +252,11 @@ def build_learning_report_read_model(
         user_id=normalized_user,
         mistake_book_service=mistake_book_service,
     )
+    note_assets = _note_assets_projection(
+        user_id=normalized_user,
+        notebook_card_service=notebook_card_service,
+        source_status=source_status,
+    )
     learner_facing = _learner_facing_payload(
         events=events,
         evidence_stats=evidence_stats,
@@ -339,6 +346,8 @@ def build_learning_report_read_model(
             "learning_brain_degraded": learning_brain_degraded,
             "personalization_context_source": "PersonalizationContextPack",
             "next_best_action_source": "training_intent",
+            "note_assets_source": "learner_notebook_cards",
+            "today_tasks_source": "learning-report-read-model.note_assets",
             "deprecated_page_sources": list(_DEPRECATED_PAGE_SOURCES),
         },
         "degraded": degraded,
@@ -369,6 +378,8 @@ def build_learning_report_read_model(
         "next_best_actions": next_best_actions,
         "next_training": next_training,
         "training_prescription": training_prescription,
+        "note_assets": note_assets,
+        "today_tasks": _today_tasks_from_note_assets(note_assets),
         # Batch C Task 7: scoring point map projection (read-only sibling).
         "scoring_point_map": scoring_point_map,
         "prescription_outcomes": prescription_outcomes,
@@ -665,6 +676,127 @@ def _empty_revalidation_queue(reason: str) -> dict[str, Any]:
             "blocked_reasons": [reason],
         },
     }
+
+
+def _note_assets_projection(
+    *,
+    user_id: str,
+    notebook_card_service: Any | None,
+    source_status: dict[str, dict[str, Any]],
+) -> dict[str, Any]:
+    if notebook_card_service is None:
+        source_status["note_assets"] = _idle_status()
+        return {
+            "items": [],
+            "count": 0,
+            "source_status": {
+                "ok": None,
+                "authority": "learner_notebook_cards",
+                "reason": "notebook_card_service_not_configured",
+            },
+        }
+    lister = getattr(notebook_card_service, "list_cards", None)
+    if not callable(lister):
+        source_status["note_assets"] = {"ok": False, "latency_ms": 0, "error": "list_cards_unavailable"}
+        return {
+            "items": [],
+            "count": 0,
+            "source_status": {
+                "ok": False,
+                "authority": "learner_notebook_cards",
+                "reason": "list_cards_unavailable",
+            },
+        }
+    try:
+        cards = list(lister(user_id) or [])
+    except Exception as exc:
+        source_status["note_assets"] = {"ok": False, "latency_ms": 0, "error": type(exc).__name__}
+        return {
+            "items": [],
+            "count": 0,
+            "source_status": {
+                "ok": False,
+                "authority": "learner_notebook_cards",
+                "reason": type(exc).__name__,
+            },
+        }
+    items = [_note_asset_item(card, index) for index, card in enumerate(cards[:20])]
+    source_status["note_assets"] = {"ok": True, "latency_ms": 0, "error": None, "count": len(items)}
+    return {
+        "items": items,
+        "count": len(items),
+        "source_status": {
+            "ok": True,
+            "authority": "learner_notebook_cards",
+            "generated_at": datetime.now(_TZ).isoformat(),
+        },
+    }
+
+
+def _note_asset_item(card: dict[str, Any], index: int) -> dict[str, Any]:
+    source_ref = _safe_dict(card.get("source_ref"))
+    card_type = str(card.get("card_type") or "manual_note").strip() or "manual_note"
+    summary = str(_safe_dict(card.get("ai_enhanced_content")).get("summary") or "").strip()
+    has_source_ref = bool(
+        str(source_ref.get("event_id") or source_ref.get("attempt_ref") or source_ref.get("turn_id") or "").strip()
+    )
+    action = _note_asset_action(card_type=card_type, source_ref=source_ref)
+    return {
+        "key": str(card.get("note_id") or f"note-{index}").strip(),
+        "note_id": str(card.get("note_id") or "").strip(),
+        "card_type": card_type,
+        "title": str(card.get("title") or "学习卡片").strip()[:80],
+        "summary": summary[:180],
+        "subject_id": str(card.get("subject_id") or "").strip(),
+        "source_type": str(card.get("source_type") or "").strip(),
+        "source_linked": has_source_ref,
+        "source_label": "来自一次批改/答疑" if has_source_ref else "",
+        "evidence_label": "可追溯到原始学习证据" if has_source_ref else "",
+        "action": action,
+        "updated_at": str(card.get("updated_at") or "").strip(),
+        "version": _safe_int(card.get("version")) or 1,
+    }
+
+
+def _note_asset_action(*, card_type: str, source_ref: dict[str, Any]) -> dict[str, Any]:
+    attempt_ref = str(source_ref.get("attempt_ref") or "").strip()
+    turn_id = str(source_ref.get("turn_id") or "").strip()
+    if card_type in {"scoring_card", "error_pattern_note"}:
+        return {
+            "label": "重新作答" if attempt_ref else "练同类题",
+            "type": "reanswer" if attempt_ref else "probe",
+            "attempt_ref": attempt_ref,
+            "entry_source": "note_asset",
+        }
+    return {
+        "label": "测一下",
+        "type": "probe",
+        "turn_id": turn_id,
+        "entry_source": "note_asset",
+    }
+
+
+def _today_tasks_from_note_assets(note_assets: dict[str, Any]) -> list[dict[str, Any]]:
+    tasks: list[dict[str, Any]] = []
+    for asset in _safe_list(note_assets.get("items")):
+        item = _safe_dict(asset)
+        action = _safe_dict(item.get("action"))
+        note_id = str(item.get("note_id") or "").strip()
+        if not note_id or not action:
+            continue
+        tasks.append(
+            {
+                "task_id": f"note:{note_id}",
+                "title": str(item.get("title") or "复习学习卡片").strip()[:80],
+                "subtitle": str(item.get("summary") or item.get("source_label") or "").strip()[:120],
+                "source": "note_assets",
+                "note_id": note_id,
+                "action": action,
+            }
+        )
+        if len(tasks) >= 3:
+            break
+    return tasks
 
 
 def _learning_report_v2(

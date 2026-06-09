@@ -433,6 +433,53 @@
   color: #fbbf24;
 }
 
+.today-task-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.today-task-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14rpx;
+  padding: 14rpx 16rpx;
+  border-radius: 12rpx;
+  background: rgba(14, 165, 233, 0.1);
+  border: 1rpx solid rgba(125, 211, 252, 0.16);
+}
+
+.today-task-title,
+.today-task-sub,
+.today-task-action {
+  display: block;
+}
+
+.today-task-title {
+  font-size: 23rpx;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.today-task-sub {
+  max-width: 500rpx;
+  margin-top: 4rpx;
+  font-size: 20rpx;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
+.today-task-action {
+  flex-shrink: 0;
+  padding: 8rpx 12rpx;
+  border-radius: 10rpx;
+  background: rgba(52, 211, 153, 0.14);
+  color: #6ee7b7;
+  font-size: 20rpx;
+  font-weight: 800;
+}
+
 /* ── 学情主页：少量结论 + 可点击细节 ───────────── */
 .report-home-shell {
   display: flex;
@@ -1924,6 +1971,7 @@
 .brain-edge-row,
 .brain-training-row,
 .brain-chain-row,
+.note-asset-row,
 .attempt-card,
 .brain-next-action {
   padding: 16rpx;
@@ -2115,6 +2163,61 @@
 
 .bookmark-action.saved {
   opacity: 0.72;
+}
+
+.note-card-action {
+  background: rgba(52, 211, 153, 0.1);
+  border-color: rgba(52, 211, 153, 0.2);
+  color: #86efac;
+}
+
+.note-card-action.primary {
+  background: rgba(14, 165, 233, 0.16);
+  border-color: rgba(125, 211, 252, 0.24);
+  color: #7dd3fc;
+}
+
+.note-asset-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.note-asset-title,
+.note-asset-summary,
+.note-asset-source {
+  display: block;
+}
+
+.note-asset-title {
+  font-size: 23rpx;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.note-asset-summary {
+  margin-top: 4rpx;
+  font-size: 21rpx;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+.note-asset-source {
+  margin-top: 6rpx;
+  font-size: 19rpx;
+  color: #a7f3d0;
+}
+
+.note-asset-action {
+  flex-shrink: 0;
+  padding: 8rpx 12rpx;
+  border-radius: 10rpx;
+  background: rgba(96, 165, 250, 0.14);
+  border: 1rpx solid rgba(147, 197, 253, 0.2);
+  color: #bfdbfe;
+  font-size: 20rpx;
+  font-weight: 800;
 }
 
 .brain-event-list {

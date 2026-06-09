@@ -3233,6 +3233,74 @@ Page({
     });
   },
 
+  _trackNotebookCardEvent: function (eventName, opts) {
+    var options = opts || {};
+    if (!surfaceTelemetry || !surfaceTelemetry.trackProductBehavior) return;
+    surfaceTelemetry.trackProductBehavior(eventName, {
+      module: "chat",
+      section: "note_assets",
+      action: options.action || "save_note",
+      objectType: "notebook_card",
+      objectId: options.objectId || "",
+      entrySource: "chat_answer",
+      result: options.result || "",
+      errorCode: options.errorCode || "",
+      sessionId: String(this.data.currentSessionId || this.data.conversationId || ""),
+      turnId: options.turnId || "",
+    });
+  },
+
+  onSaveNotebookCard: function (e) {
+    helpers.vibrate("light");
+    var msg = this._getMessageById(e.currentTarget.dataset.msgid);
+    if (!msg || !api.saveNotebookCard) {
+      wx.showToast({ title: "这条回答暂不能存卡", icon: "none", duration: 1600 });
+      return;
+    }
+    var msgId = String(msg.id || "").trim();
+    var turnId = String(msg.turnId || msg.turn_id || "").trim();
+    var text = this._copyTextForMessage(msg).slice(0, 500);
+    var title = String(msg.title || text.split("\n")[0] || "答疑学习卡").slice(0, 80);
+    var self = this;
+    this._trackNotebookCardEvent("note_card_suggested", {
+      action: "suggest",
+      objectId: msgId,
+      turnId: turnId,
+    });
+    api.saveNotebookCard({
+      card_type: "review_note",
+      source_type: "chat",
+      source_ref: { message_id: msgId, turn_id: turnId },
+      title: title,
+      user_query: "保存答疑学习卡",
+      output: "",
+      ai_enhanced_content: { summary: text.slice(0, 180) },
+    }).then(function (saved) {
+      var noteId = String(
+        (saved && saved.note_id) ||
+          (saved && saved.card && saved.card.note_id) ||
+          msgId ||
+          "",
+      );
+      self._trackNotebookCardEvent("note_card_saved", {
+        action: "save_note",
+        objectId: noteId,
+        turnId: turnId,
+        result: "success",
+      });
+      wx.showToast({ title: "已保存学习卡", icon: "success", duration: 1400 });
+    }).catch(function () {
+      self._trackNotebookCardEvent("note_card_rejected", {
+        action: "reject",
+        objectId: msgId,
+        turnId: turnId,
+        result: "failed",
+        errorCode: "save_failed",
+      });
+      wx.showToast({ title: "保存失败，请稍后重试", icon: "none", duration: 1800 });
+    });
+  },
+
   onToggleWorkflowTrace: function (e) {
     helpers.vibrate("light");
     var idx = this._find(e.currentTarget.dataset.msgid);

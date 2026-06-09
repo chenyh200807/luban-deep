@@ -160,6 +160,13 @@ async function loginWithPasswordIfAvailable(miniProgram, targetPage) {
     const currentPage = snapshot.currentPage;
     const pageData = snapshot.pageData;
     const reachedTarget = normalizePagePath(currentPage) === targetPage;
+    const p0aProbe = {
+      has_note_assets_key: Object.prototype.hasOwnProperty.call(pageData || {}, "noteAssets"),
+      has_today_tasks_key: Object.prototype.hasOwnProperty.call(pageData || {}, "todayTasks"),
+      note_assets_count: Array.isArray((pageData || {}).noteAssets) ? pageData.noteAssets.length : -1,
+      today_tasks_count: Array.isArray((pageData || {}).todayTasks) ? pageData.todayTasks.length : -1,
+      has_save_attempt_method: Boolean(snapshot.current && typeof snapshot.current.callMethod === "function"),
+    };
     emit(
       {
         ok: reachedTarget,
@@ -175,6 +182,7 @@ async function loginWithPasswordIfAvailable(miniProgram, targetPage) {
         login_error_present: !!auth.login_error_present,
         login_error_message: auth.login_error_message,
         current_page: currentPage,
+        p0a_probe: p0aProbe,
         page_data_keys: Object.keys(pageData || {}).sort().slice(0, 80),
       },
       reachedTarget ? 0 : 1,

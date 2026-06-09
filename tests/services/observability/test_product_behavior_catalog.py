@@ -13,6 +13,13 @@ def test_product_behavior_catalog_includes_p0_events() -> None:
         "module_viewed",
         "section_viewed",
         "section_expanded",
+        "note_card_suggested",
+        "note_card_saved",
+        "note_card_rejected",
+        "note_action_started",
+        "probe_requested_from_note",
+        "today_task_rendered",
+        "today_task_started",
         "learning_action_started",
         "learning_action_completed",
         "module_returned",
@@ -37,6 +44,41 @@ def test_validate_product_behavior_event_accepts_learning_report_section() -> No
     assert event["module"] == "learning_report"
     assert event["section"] == "next_action"
     assert event["visit_id"] == "visit-u1-1"
+
+
+def test_validate_product_behavior_event_accepts_p0_note_asset_event() -> None:
+    event = validate_product_behavior_event(
+        event_name="note_card_saved",
+        metadata={
+            "visit_id": "visit-u1-1",
+            "module": "learning_report",
+            "section": "note_assets",
+            "action": "save_note",
+            "surface": "wechat_yousenwebview",
+            "object_type": "notebook_card",
+            "object_id": "note_abc",
+        },
+    )
+
+    assert event["event_name"] == "note_card_saved"
+    assert event["section"] == "note_assets"
+    assert event["surface"] == "wechat_yousenwebview"
+
+
+def test_validate_product_behavior_event_rejects_raw_learning_text_for_p0_note_event() -> None:
+    with pytest.raises(ValueError, match="Forbidden product behavior field"):
+        validate_product_behavior_event(
+            event_name="note_card_saved",
+            metadata={
+                "visit_id": "visit-u1-1",
+                "module": "learning_report",
+                "section": "note_assets",
+                "action": "save_note",
+                "surface": "wechat_yousenwebview",
+                "object_type": "notebook_card",
+                "full_chat_text": "raw transcript must not enter product_behavior_events",
+            },
+        )
 
 
 def test_validate_product_behavior_event_rejects_unknown_module() -> None:

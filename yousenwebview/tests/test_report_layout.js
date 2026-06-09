@@ -167,6 +167,12 @@ assertIncludes(reportWxml, "{{item.bookmarkLabel || '已加入错题'}}", "attem
 assertIncludes(reportWxml, "wx:elif=\"{{item.collectable}}\"", "attempt card should only expose save action when not already bookmarked");
 assertIncludes(reportWxml, "收藏错题", "attempt card should expose mistake-book action without local inference");
 assertIncludes(reportSource, "api.saveMistakeBookItem", "mistake-book action should call the cloud mistake-book authority");
+assertIncludes(reportWxml, "保存学习卡", "attempt card should expose the P0A source-linked notebook-card save action");
+assertIncludes(reportWxml, "today-task-strip", "report home should render the read-only today task strip from learning-report");
+assertIncludes(reportWxml, "学习卡片", "evidence detail should render notebook-card note_assets from the read model");
+assertIncludes(reportSource, "api.saveNotebookCard", "notebook-card action should call the existing notebook add_record authority");
+assertIncludes(reportSource, "note_card_saved", "notebook-card save should emit product behavior through surface-events");
+assertIncludes(reportSource, "today_task_started", "today task action should reuse product behavior authority");
 assertIncludes(appConfig, "pages/mistake-book/mistake-book", "host mistake-book page should be registered");
 assertIncludes(reportWxml, "module-mistake-book", "report page should expose a dedicated mistake-book module");
 assertIncludes(reportWxml, "bindtap=\"openMistakeBook\"", "mistake-book module should navigate to the dedicated page");
