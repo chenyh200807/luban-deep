@@ -375,6 +375,94 @@ class AgentLoop:
                 tool.set_runtime_context(metadata=runtime_metadata)
 
     @staticmethod
+    def _normalize_llm_stream_telemetry_call(
+        telemetry: Any,
+        *,
+        call_site: str,
+        iteration: int | None = None,
+    ) -> dict[str, Any] | None:
+        if not isinstance(telemetry, dict):
+            return None
+        call: dict[str, Any] = {"call_site": str(call_site or "").strip()}
+        if not call["call_site"]:
+            return None
+        for key in ("provider_name", "model"):
+            value = str(telemetry.get(key) or "").strip()
+            if value:
+                call[key] = value
+        for key in ("stream_chunk_count", "stream_content_chunk_count"):
+            try:
+                count = int(telemetry.get(key) or 0)
+            except (TypeError, ValueError):
+                continue
+            if count >= 0:
+                call[key] = count
+        raw_timings = telemetry.get("stage_timings_ms")
+        timings: dict[str, float] = {}
+        if isinstance(raw_timings, dict):
+            for raw_stage, raw_ms in raw_timings.items():
+                stage = str(raw_stage or "").strip()
+                if not stage or len(stage) > 80:
+                    continue
+                if not all(ch.isalnum() or ch in {"_", "-", ".", ":"} for ch in stage):
+                    continue
+                try:
+                    duration_ms = float(raw_ms)
+                except (TypeError, ValueError):
+                    continue
+                if duration_ms >= 0:
+                    timings[stage] = round(duration_ms, 2)
+        if timings:
+            call["stage_timings_ms"] = dict(sorted(timings.items()))
+        if iteration is not None:
+            try:
+                normalized_iteration = int(iteration)
+            except (TypeError, ValueError):
+                normalized_iteration = 0
+            if normalized_iteration > 0:
+                call["iteration"] = normalized_iteration
+        return call
+
+    @classmethod
+    def _record_llm_stream_telemetry(
+        cls,
+        runtime_metadata: dict[str, Any],
+        response: Any,
+        *,
+        call_site: str,
+        iteration: int | None = None,
+    ) -> None:
+        if not isinstance(runtime_metadata, dict):
+            return
+        call = cls._normalize_llm_stream_telemetry_call(
+            getattr(response, "telemetry", None),
+            call_site=call_site,
+            iteration=iteration,
+        )
+        if not call:
+            return
+        existing = runtime_metadata.get("llm_stream_telemetry")
+        bucket = existing if isinstance(existing, dict) else {}
+        calls = bucket.get("calls") if isinstance(bucket.get("calls"), list) else []
+        calls = [item for item in calls if isinstance(item, dict)]
+        calls.append(call)
+        runtime_metadata["llm_stream_telemetry"] = {
+            "call_count": len(calls),
+            "calls": calls,
+        }
+
+    @staticmethod
+    def _export_llm_stream_telemetry(
+        runtime_metadata: dict[str, Any],
+        target_metadata: dict[str, Any] | None,
+    ) -> None:
+        if not isinstance(runtime_metadata, dict) or not isinstance(target_metadata, dict):
+            return
+        telemetry = runtime_metadata.get("llm_stream_telemetry")
+        if isinstance(telemetry, dict):
+            target_metadata["llm_stream_telemetry"] = telemetry
+
+    @staticmethod
     def _strip_think(text: str | None) -> str | None:
         """Remove <think>…</think> blocks that some models embed in content."""
         if not text:
@@ -1272,6 +1360,7 @@ class AgentLoop:
         allow_exact_authority_override: bool = False,
     ) -> tuple[str | None, list[str], list[dict]]:
         """Run the agent iteration loop."""
+        external_runtime_metadata = runtime_metadata if isinstance(runtime_metadata, dict) else None
         runtime_metadata = dict(runtime_metadata or {})
         messages = initial_messages
         iteration = 0
@@ -1325,6 +1414,12 @@ class AgentLoop:
                 tools=tool_defs,
                 model=effective_model,
                 on_content_delta=_stream_delta if on_content_delta else None,
+            )
+            self._record_llm_stream_telemetry(
+                runtime_metadata,
+                response,
+                call_site="agent_loop",
+                iteration=iteration,
             )
 
             if response.has_tool_calls:
@@ -1476,6 +1571,12 @@ class AgentLoop:
                         model=effective_model,
                         on_content_delta=_capture_retry_delta,
                     )
+                    self._record_llm_stream_telemetry(
+                        runtime_metadata,
+                        response,
+                        call_site="agent_loop_repair",
+                        iteration=iteration,
+                    )
                     clean = self._strip_think(response.content) or "".join(retry_parts).strip() or None
                     if response.finish_reason == "error":
                         logger.error("LLM retry returned error: {}", (clean or "")[:200])
@@ -1536,6 +1637,7 @@ class AgentLoop:
             final_content = no_score_fallback
             self._replace_last_assistant_message(messages, no_score_fallback)
 
+        self._export_llm_stream_telemetry(runtime_metadata, external_runtime_metadata)
         return final_content, tools_used, messages
 
     @staticmethod
@@ -2119,6 +2221,7 @@ class AgentLoop:
         runtime_metadata: dict[str, Any] | None = None,
         on_content_delta: Callable[[str], Awaitable[None]] | None = None,
     ) -> tuple[str | None, list[dict[str, Any]], str]:
+        external_runtime_metadata = runtime_metadata if isinstance(runtime_metadata, dict) else None
         runtime_metadata = dict(runtime_metadata or {})
         effective_model = str(runtime_metadata.get("preferred_model") or self.model).strip() or self.model
         reasoning_effort = self._fast_policy_reasoning_effort()
@@ -2166,6 +2269,11 @@ class AgentLoop:
                 reasoning_effort=reasoning_effort,
                 on_content_delta=_capture_content_delta,
             )
+            self._record_llm_stream_telemetry(
+                runtime_metadata,
+                response,
+                call_site="fast_policy",
+            )
             clean = self._strip_think(response.content)
             candidate = clean or "".join(streamed_parts).strip()
             if response.finish_reason == "error":
@@ -2190,6 +2298,7 @@ class AgentLoop:
             reasoning_content=response.reasoning_content if response is not None else None,
             thinking_blocks=response.thinking_blocks if response is not None else None,
         )
+        self._export_llm_stream_telemetry(runtime_metadata, external_runtime_metadata)
         return final_content, messages, public_streamed_text
 
     def _fast_policy_reasoning_effort(self) -> str | None:
@@ -3374,6 +3483,7 @@ class AgentLoop:
             await self.memory_consolidator.maybe_consolidate_by_tokens(session)
             preview = final_content[:120] + "..." if len(final_content) > 120 else final_content
             logger.info("Fast policy response to {}:{}: {}", msg.channel, msg.sender_id, preview)
+            self._export_llm_stream_telemetry(runtime_metadata, msg.metadata)
             return OutboundMessage(
                 channel=msg.channel,
                 chat_id=msg.chat_id,
@@ -3460,6 +3570,7 @@ class AgentLoop:
 
         preview = final_content[:120] + "..." if len(final_content) > 120 else final_content
         logger.info("Response to {}:{}: {}", msg.channel, msg.sender_id, preview)
+        self._export_llm_stream_telemetry(runtime_metadata, msg.metadata)
         return OutboundMessage(
             channel=msg.channel, chat_id=msg.chat_id, content=final_content,
             metadata=msg.metadata or {},

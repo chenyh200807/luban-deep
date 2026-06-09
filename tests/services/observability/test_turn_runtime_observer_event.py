@@ -170,6 +170,59 @@ def test_terminal_turn_observation_event_keeps_capability_stream_breakdown() -> 
     }
 
 
+def test_terminal_turn_observation_event_keeps_llm_stream_telemetry() -> None:
+    event = _build_terminal_turn_observation_event(
+        session_id="session-1",
+        turn_id="turn-1",
+        status="completed",
+        capability_name="tutorbot",
+        duration_ms=1234.5,
+        trace_metadata={
+            "context_route": "question_followup",
+            "llm_stream_telemetry": {
+                "call_count": 1,
+                "calls": [
+                    {
+                        "call_site": "fast_policy",
+                        "provider_name": "openai",
+                        "model": "gpt-test",
+                        "stream_chunk_count": 3,
+                        "stream_content_chunk_count": 2,
+                        "stage_timings_ms": {
+                            "provider_stream_create": 10.0,
+                            "provider_first_chunk": 20.0,
+                            "provider_first_content_delta": 21.0,
+                            "provider_stream_read": 40.0,
+                            "bad_noise": "n/a",
+                            "negative_noise": -1,
+                        },
+                    }
+                ],
+            },
+        },
+        usage_summary={"total_tokens": 15},
+    )
+
+    assert event["metadata"]["llm_stream_telemetry"] == {
+        "call_count": 1,
+        "calls": [
+            {
+                "call_site": "fast_policy",
+                "provider_name": "openai",
+                "model": "gpt-test",
+                "stream_chunk_count": 3,
+                "stream_content_chunk_count": 2,
+                "stage_timings_ms": {
+                    "provider_first_chunk": 20.0,
+                    "provider_first_content_delta": 21.0,
+                    "provider_stream_create": 10.0,
+                    "provider_stream_read": 40.0,
+                },
+            }
+        ],
+    }
+
+
 def test_trace_link_event_persists_turn_trace_identity_for_feedback() -> None:
     events: list[dict] = []
 

@@ -11,6 +11,7 @@ import hashlib
 import os
 import secrets
 import string
+import time
 import uuid
 from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, Any
@@ -639,6 +640,21 @@ class OpenAICompatProvider(LLMProvider):
         idle_timeout_s = 90
         model_name = str(kwargs.get("model") or model or self.default_model)
         provider_metadata = self._provider_metadata(streaming=True, model=model_name)
+        provider_name = str(provider_metadata.get("provider_name") or "").strip()
+        call_started_at = time.perf_counter()
+        stage_timings_ms: dict[str, float] = {}
+        stream_chunk_count = 0
+        stream_content_chunk_count = 0
+
+        def _stream_telemetry() -> dict[str, Any]:
+            return self._build_stream_telemetry(
+                provider_name=provider_name,
+                model=model_name,
+                stream_chunk_count=stream_chunk_count,
+                stream_content_chunk_count=stream_content_chunk_count,
+                stage_timings_ms=stage_timings_ms,
+            )
+
         with observability.start_observation(
             name="tutorbot.llm.stream",
             as_type="generation",
@@ -654,7 +670,12 @@ class OpenAICompatProvider(LLMProvider):
             },
         ) as observation:
             try:
+                create_started_at = time.perf_counter()
                 stream = await self._client.chat.completions.create(**kwargs)
+                stream_created_at = time.perf_counter()
+                stage_timings_ms["provider_stream_create"] = (
+                    stream_created_at - create_started_at
+                ) * 1000
                 chunks: list[Any] = []
                 stream_iter = stream.__aiter__()
                 while True:
@@ -665,12 +686,28 @@ class OpenAICompatProvider(LLMProvider):
                         )
                     except StopAsyncIteration:
                         break
+                    chunk_received_at = time.perf_counter()
+                    if stream_chunk_count == 0:
+                        stage_timings_ms["provider_first_chunk"] = (
+                            chunk_received_at - call_started_at
+                        ) * 1000
+                    stream_chunk_count += 1
                     chunks.append(chunk)
-                    if on_content_delta and chunk.choices:
+                    if chunk.choices:
                         text = getattr(chunk.choices[0].delta, "content", None)
                         if text:
-                            await on_content_delta(text)
+                            stream_content_chunk_count += 1
+                            if "provider_first_content_delta" not in stage_timings_ms:
+                                stage_timings_ms["provider_first_content_delta"] = (
+                                    time.perf_counter() - call_started_at
+                                ) * 1000
+                            if on_content_delta:
+                                await on_content_delta(text)
+                stage_timings_ms["provider_stream_read"] = (
+                    time.perf_counter() - stream_created_at
+                ) * 1000
                 parsed = self._parse_chunks(chunks)
+                parsed.telemetry = _stream_telemetry()
             except asyncio.TimeoutError:
                 observability.update_observation(
                     observation,
@@ -681,6 +718,7 @@ class OpenAICompatProvider(LLMProvider):
                 return LLMResponse(
                     content=f"Error calling LLM: stream stalled for more than {idle_timeout_s} seconds",
                     finish_reason="error",
+                    telemetry=_stream_telemetry(),
                 )
             except Exception as e:
                 observability.update_observation(
@@ -689,7 +727,9 @@ class OpenAICompatProvider(LLMProvider):
                     level="ERROR",
                     status_message=str(e),
                 )
-                return self._handle_error(e)
+                parsed_error = self._handle_error(e)
+                parsed_error.telemetry = _stream_telemetry()
+                return parsed_error
 
             usage_details = self._normalize_usage_details(parsed.usage)
             usage_source = "provider"

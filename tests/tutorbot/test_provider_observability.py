@@ -275,6 +275,84 @@ async def test_openai_compat_provider_records_provider_usage(monkeypatch: pytest
 
 
 @pytest.mark.asyncio
+async def test_openai_compat_provider_records_stream_first_token_telemetry(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake_observability = _FakeObservability()
+    monkeypatch.setattr(
+        "deeptutor.tutorbot.providers.openai_compat_provider.observability",
+        fake_observability,
+    )
+
+    class _FakeStream:
+        def __init__(self, chunks):
+            self._chunks = list(chunks)
+
+        def __aiter__(self):
+            return self
+
+        async def __anext__(self):
+            if not self._chunks:
+                raise StopAsyncIteration
+            return self._chunks.pop(0)
+
+    provider = OpenAICompatProvider.__new__(OpenAICompatProvider)
+    LLMProvider.__init__(provider, api_key="sk-test", api_base="https://example.com")
+    provider.default_model = "gpt-test"
+    provider.extra_headers = {}
+    provider._spec = None
+    provider._provider_name = "openai"
+    provider._client = SimpleNamespace(
+        chat=SimpleNamespace(
+            completions=SimpleNamespace(
+                create=_async_return(
+                    _FakeStream(
+                        [
+                            SimpleNamespace(
+                                choices=[
+                                    SimpleNamespace(
+                                        delta=SimpleNamespace(content="你", tool_calls=[]),
+                                        finish_reason=None,
+                                    )
+                                ]
+                            ),
+                            SimpleNamespace(
+                                choices=[
+                                    SimpleNamespace(
+                                        delta=SimpleNamespace(content="好", tool_calls=[]),
+                                        finish_reason="stop",
+                                    )
+                                ]
+                            ),
+                        ]
+                    )
+                )
+            )
+        )
+    )
+    deltas: list[str] = []
+
+    response = await provider.chat(
+        messages=[{"role": "user", "content": "hi"}],
+        model="gpt-test",
+        on_content_delta=lambda text: _capture_async(deltas, text),
+    )
+
+    assert response.content == "你好"
+    assert deltas == ["你", "好"]
+    assert response.telemetry["provider_name"] == "openai"
+    assert response.telemetry["model"] == "gpt-test"
+    assert response.telemetry["stream_chunk_count"] == 2
+    assert response.telemetry["stream_content_chunk_count"] == 2
+    assert set(response.telemetry["stage_timings_ms"]) >= {
+        "provider_stream_create",
+        "provider_first_chunk",
+        "provider_first_content_delta",
+        "provider_stream_read",
+    }
+
+
+@pytest.mark.asyncio
 async def test_openai_compat_provider_does_not_promote_reasoning_to_content(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -365,3 +443,7 @@ def _async_return(value):
         return value
 
     return _inner
+
+
+async def _capture_async(bucket: list[str], value: str) -> None:
+    bucket.append(value)

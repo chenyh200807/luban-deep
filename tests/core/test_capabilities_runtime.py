@@ -695,6 +695,78 @@ async def test_tutorbot_process_direct_exports_skill_trace_to_runtime_metadata(t
     )
 
 
+@pytest.mark.asyncio
+async def test_tutorbot_process_direct_exports_llm_stream_telemetry_to_runtime_metadata(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    import deeptutor.tutorbot.agent.loop as loop_module
+    import deeptutor.tutorbot.agent.memory as memory_module
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse
+
+    logger_stub = SimpleNamespace(
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setattr(
+        loop_module,
+        "logger",
+        logger_stub,
+    )
+    monkeypatch.setattr(memory_module, "logger", logger_stub)
+
+    class TelemetryProvider(LLMProvider):
+        async def chat(self, *args: Any, **kwargs: Any) -> LLMResponse:
+            response = LLMResponse(content="快速回答")
+            response.telemetry = {
+                "provider_name": "openai",
+                "model": "gpt-test",
+                "stream_chunk_count": 2,
+                "stream_content_chunk_count": 2,
+                "stage_timings_ms": {
+                    "provider_stream_create": 10.0,
+                    "provider_first_chunk": 20.0,
+                    "provider_first_content_delta": 21.0,
+                    "provider_stream_read": 40.0,
+                },
+            }
+            return response
+
+        def get_default_model(self) -> str:
+            return "gpt-test"
+
+    loop = AgentLoop(MessageBus(), TelemetryProvider(), tmp_path)
+
+    async def _no_fast_path(*_args, **_kwargs):
+        return None
+
+    async def _no_prefetch(*, initial_messages, **_kwargs):
+        return initial_messages
+
+    async def _fail_agent_loop(*_args, **_kwargs):
+        raise AssertionError("fast mode should not enter generic agent loop")
+
+    monkeypatch.setattr(loop, "_maybe_run_exact_rag_fast_path", _no_fast_path)
+    monkeypatch.setattr(loop, "_maybe_prefetch_grounded_rag", _no_prefetch)
+    monkeypatch.setattr(loop, "_run_agent_loop", _fail_agent_loop)
+
+    metadata = {"effective_response_mode": "fast"}
+    content = await loop.process_direct("请直接回答", metadata=metadata)
+
+    assert content == "快速回答"
+    telemetry = metadata["llm_stream_telemetry"]
+    assert telemetry["call_count"] == 1
+    assert telemetry["calls"][0]["call_site"] == "fast_policy"
+    assert telemetry["calls"][0]["provider_name"] == "openai"
+    assert telemetry["calls"][0]["stream_content_chunk_count"] == 2
+    assert telemetry["calls"][0]["stage_timings_ms"]["provider_first_content_delta"] == 21.0
+
+
 def test_tutorbot_fast_uses_tool_skill_boundary_without_loading_tool_steps(tmp_path) -> None:
     from deeptutor.tutorbot.agent.loop import AgentLoop
     from deeptutor.tutorbot.bus.queue import MessageBus

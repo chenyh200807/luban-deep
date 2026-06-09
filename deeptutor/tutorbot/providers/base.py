@@ -45,6 +45,7 @@ class LLMResponse:
     usage: dict[str, int] = field(default_factory=dict)
     reasoning_content: str | None = None  # Kimi, DeepSeek-R1 etc.
     thinking_blocks: list[dict] | None = None  # Anthropic extended thinking
+    telemetry: dict[str, Any] = field(default_factory=dict)
     
     @property
     def has_tool_calls(self) -> bool:
@@ -200,6 +201,38 @@ class LLMProvider(ABC):
             normalized["input_cache_hit"] = cache_hit_tokens
             normalized["input_cache_miss"] = cache_miss_tokens
         return normalized
+
+    @staticmethod
+    def _build_stream_telemetry(
+        *,
+        provider_name: str,
+        model: str,
+        stream_chunk_count: int,
+        stream_content_chunk_count: int,
+        stage_timings_ms: dict[str, float],
+    ) -> dict[str, Any]:
+        """Return safe provider stream telemetry without prompts or content."""
+        timings: dict[str, float] = {}
+        for raw_stage, raw_ms in stage_timings_ms.items():
+            stage = str(raw_stage or "").strip()
+            if not stage or len(stage) > 80:
+                continue
+            if not all(ch.isalnum() or ch in {"_", "-", ".", ":"} for ch in stage):
+                continue
+            try:
+                duration_ms = float(raw_ms)
+            except (TypeError, ValueError):
+                continue
+            if duration_ms < 0:
+                continue
+            timings[stage] = round(duration_ms, 2)
+        return {
+            "provider_name": str(provider_name or "").strip(),
+            "model": str(model or "").strip(),
+            "stream_chunk_count": max(int(stream_chunk_count), 0),
+            "stream_content_chunk_count": max(int(stream_content_chunk_count), 0),
+            "stage_timings_ms": dict(sorted(timings.items())),
+        }
 
     @abstractmethod
     async def chat(

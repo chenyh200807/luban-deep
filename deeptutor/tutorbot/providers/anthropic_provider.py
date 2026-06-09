@@ -10,6 +10,7 @@ import asyncio
 import re
 import secrets
 import string
+import time
 from collections.abc import Awaitable, Callable
 from typing import Any
 
@@ -495,6 +496,20 @@ class AnthropicProvider(LLMProvider):
         )
         idle_timeout_s = 90
         model_name = str(kwargs.get("model") or model or self.default_model)
+        call_started_at = time.perf_counter()
+        stage_timings_ms: dict[str, float] = {}
+        stream_chunk_count = 0
+        stream_content_chunk_count = 0
+
+        def _stream_telemetry() -> dict[str, Any]:
+            return self._build_stream_telemetry(
+                provider_name="anthropic",
+                model=model_name,
+                stream_chunk_count=stream_chunk_count,
+                stream_content_chunk_count=stream_content_chunk_count,
+                stage_timings_ms=stage_timings_ms,
+            )
+
         with observability.start_observation(
             name="tutorbot.llm.stream",
             as_type="generation",
@@ -510,7 +525,12 @@ class AnthropicProvider(LLMProvider):
             },
         ) as observation:
             try:
+                create_started_at = time.perf_counter()
                 async with self._client.messages.stream(**kwargs) as stream:
+                    stream_created_at = time.perf_counter()
+                    stage_timings_ms["provider_stream_create"] = (
+                        stream_created_at - create_started_at
+                    ) * 1000
                     if on_content_delta:
                         stream_iter = stream.text_stream.__aiter__()
                         while True:
@@ -521,12 +541,28 @@ class AnthropicProvider(LLMProvider):
                                 )
                             except StopAsyncIteration:
                                 break
+                            chunk_received_at = time.perf_counter()
+                            if stream_chunk_count == 0:
+                                stage_timings_ms["provider_first_chunk"] = (
+                                    chunk_received_at - call_started_at
+                                ) * 1000
+                            stream_chunk_count += 1
+                            if text:
+                                stream_content_chunk_count += 1
+                                if "provider_first_content_delta" not in stage_timings_ms:
+                                    stage_timings_ms["provider_first_content_delta"] = (
+                                        time.perf_counter() - call_started_at
+                                    ) * 1000
                             await on_content_delta(text)
+                    stage_timings_ms["provider_stream_read"] = (
+                        time.perf_counter() - stream_created_at
+                    ) * 1000
                     response = await asyncio.wait_for(
                         stream.get_final_message(),
                         timeout=idle_timeout_s,
                     )
                 parsed = self._parse_response(response)
+                parsed.telemetry = _stream_telemetry()
             except asyncio.TimeoutError:
                 observability.update_observation(
                     observation,
@@ -537,6 +573,7 @@ class AnthropicProvider(LLMProvider):
                 return LLMResponse(
                     content=f"Error calling LLM: stream stalled for more than {idle_timeout_s} seconds",
                     finish_reason="error",
+                    telemetry=_stream_telemetry(),
                 )
             except Exception as e:
                 observability.update_observation(
@@ -545,7 +582,9 @@ class AnthropicProvider(LLMProvider):
                     level="ERROR",
                     status_message=str(e),
                 )
-                return self._handle_error(e)
+                parsed_error = self._handle_error(e)
+                parsed_error.telemetry = _stream_telemetry()
+                return parsed_error
 
             usage_details = self._normalize_usage_details(parsed.usage)
             usage_source = "provider"

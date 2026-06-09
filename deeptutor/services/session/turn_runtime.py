@@ -613,6 +613,51 @@ def _normalize_non_negative_event_counts(value: Any) -> dict[str, int]:
     return dict(sorted(normalized.items()))
 
 
+def _normalize_llm_stream_telemetry(value: Any) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        return {}
+    raw_calls = value.get("calls")
+    if not isinstance(raw_calls, list):
+        return {}
+    calls: list[dict[str, Any]] = []
+    for raw_call in raw_calls:
+        if not isinstance(raw_call, dict):
+            continue
+        call_site = str(raw_call.get("call_site") or "").strip()
+        if not call_site:
+            continue
+        call: dict[str, Any] = {"call_site": call_site}
+        for key in ("provider_name", "model"):
+            item = str(raw_call.get(key) or "").strip()
+            if item:
+                call[key] = item
+        for key in ("stream_chunk_count", "stream_content_chunk_count"):
+            try:
+                count = int(raw_call.get(key) or 0)
+            except (TypeError, ValueError):
+                continue
+            if count >= 0:
+                call[key] = count
+        stage_timings_ms = normalize_latency_stage_timings(
+            raw_call.get("stage_timings_ms")
+        )
+        if stage_timings_ms:
+            call["stage_timings_ms"] = stage_timings_ms
+        try:
+            iteration = int(raw_call.get("iteration") or 0)
+        except (TypeError, ValueError):
+            iteration = 0
+        if iteration > 0:
+            call["iteration"] = iteration
+        calls.append(call)
+    if not calls:
+        return {}
+    return {
+        "call_count": len(calls),
+        "calls": calls,
+    }
+
+
 def _build_terminal_turn_observation_event(
     *,
     session_id: str,
@@ -658,6 +703,11 @@ def _build_terminal_turn_observation_event(
     )
     if capability_stream_event_counts:
         metadata["capability_stream_event_counts"] = capability_stream_event_counts
+    llm_stream_telemetry = _normalize_llm_stream_telemetry(
+        trace_metadata.get("llm_stream_telemetry")
+    )
+    if llm_stream_telemetry:
+        metadata["llm_stream_telemetry"] = llm_stream_telemetry
     for metadata_key in (
         "authority_applied",
         "exact_fast_path_hit",
