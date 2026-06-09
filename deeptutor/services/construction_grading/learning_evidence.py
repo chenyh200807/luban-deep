@@ -8,7 +8,10 @@ from typing import Any
 from deeptutor.contracts.error_codes import ERROR_CODE_REGISTRY
 from deeptutor.services.construction_grading.audit import reconcile_grader_output
 from deeptutor.services.construction_grading.certified_grading_adjudication import (
+    GOVERNED_CERTIFIED_AUTHORITY_KEY,
     attach_certified_grading_adjudication,
+    certified_grading_policy_from_payload,
+    payload_has_governed_certified_grading_authority,
 )
 from deeptutor.services.construction_grading.schema import CaseGradingResult, MCQGradingResult
 from deeptutor.services.learner_state.memory_lifecycle import lifecycle_stage_for_evidence_level
@@ -24,8 +27,10 @@ def build_learning_evidence_payload(
     grading_result: CaseGradingResult | MCQGradingResult | dict[str, Any],
     turn_id: str = "",
     session_id: str = "",
+    governed_certified_authority: bool = False,
 ) -> dict[str, Any]:
     payload = _grading_result_payload(grading_result)
+    payload.pop(GOVERNED_CERTIFIED_AUTHORITY_KEY, None)
     question_id = _clean_text(payload.get("question_id") or payload.get("id"))
     question_type = _normalize_question_type(payload.get("type") or payload.get("question_type"))
     errors = [_clean_dict(error) for error in list(payload.get("error_events") or [])]
@@ -41,7 +46,10 @@ def build_learning_evidence_payload(
     max_score = payload.get("max_score")
     next_training_signal = _clean_dict(payload.get("next_training_signal"))
     payload["next_training_signal"] = next_training_signal
-    payload = attach_certified_grading_adjudication(payload)
+    payload = attach_certified_grading_adjudication(
+        payload,
+        governed_certified_authority=governed_certified_authority,
+    )
     next_training_signal = _clean_dict(payload.get("next_training_signal"))
     grading_mode = _clean_text(payload.get("grading_mode"))
     question_stem = _clean_text(
@@ -52,18 +60,22 @@ def build_learning_evidence_payload(
     )
     explanation = payload.get("explanation")
     explanation_missing_reason = _clean_text(payload.get("explanation_missing_reason"))
-    quality = _quality_from_payload(
-        question_id=question_id,
-        question_stem=question_stem,
-        errors=errors,
-        evidence_refs=evidence_refs,
-        grading_mode=grading_mode,
-        score_awarded=score_awarded,
-        max_score=max_score,
-        explanation=explanation,
-        explanation_missing_reason=explanation_missing_reason,
-        next_training_signal=next_training_signal,
+    quality_input = dict(payload)
+    quality_input.update(
+        {
+            "question_id": question_id,
+            "question_stem": question_stem,
+            "score_awarded": score_awarded,
+            "max_score": max_score,
+            "explanation": explanation,
+            "explanation_missing_reason": explanation_missing_reason,
+            "error_events": errors,
+            "evidence_refs": evidence_refs,
+            "grading_mode": grading_mode,
+            "next_training_signal": next_training_signal,
+        }
     )
+    quality = compute_quality_signals(quality_input)
 
     result = {
         "schema_version": 1,
@@ -524,6 +536,11 @@ def compute_quality_signals(payload: dict[str, Any]) -> dict[str, Any]:
         if isinstance(teacher_final.get("trusted_adjudication"), dict)
         else {}
     )
+    has_governed_certified_authority = payload_has_governed_certified_grading_authority(payload)
+    if certified_grading_policy_from_payload(payload) and not has_governed_certified_authority:
+        cap_reasons.append("certified_grading_policy_requires_governed_release_authority")
+    if _clean_text(trusted_adjudication.get("source")) == "certified_grading_policy" and not has_governed_certified_authority:
+        trusted_adjudication = {}
     trusted_reviewed = bool(
         teacher_final.get("teacher_reviewed") is True
         or trusted_adjudication.get("eligible") is True

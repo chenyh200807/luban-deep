@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from deeptutor.services.construction_grading.deep_question_adapter import build_deep_question_grading_result
 from deeptutor.services.construction_grading.learning_evidence import build_learning_evidence_payload
 from deeptutor.services.learner_state.canonical_truth_policy import canonical_truth_promotion_decision
 from deeptutor.services.learner_state.learning_synthesis import synthesize_learning_truth
@@ -7,36 +8,42 @@ from deeptutor.services.learner_state.service import LearnerStateEvent
 
 
 def test_certified_policy_evidence_reaches_stable_claim_and_canonical_gate(monkeypatch) -> None:
-    payload = build_learning_evidence_payload(
-        grading_result={
-            "type": "case",
+    grading_result = build_deep_question_grading_result(
+        {
             "question_id": "certified-case-1",
-            "question_stem": "说明专项施工方案专家论证要求。",
-            "score_awarded": 0,
-            "max_score": 1,
-            "error_events": [
+            "question_type": "case",
+            "question": "说明专项施工方案专家论证要求。",
+            "correct_answer": "应组织专家论证，并按规定审批专项施工方案。",
+            "answer_key": "应组织专家论证，并按规定审批专项施工方案。",
+            "grading_keywords": ["专家论证", "专项施工方案"],
+            "node_code": "1A432000",
+            "testing_focus": "专项施工方案专家论证程序",
+            "evidence_refs": [
                 {
-                    "error_code": "E02",
-                    "concept_tag": "1A432000",
-                    "diagnosis": "漏写专家论证程序。",
+                    "source": "evidence_bundle",
+                    "field": "kb_chunks",
+                    "content": "超过一定规模的危险性较大的分部分项工程专项施工方案应组织专家论证。",
                 }
             ],
-            "next_training_signal": {
-                "concept": "1A432000",
-                "focus": "专家论证程序",
-                "mode": "case_repair",
-                "certified_grading_policy": {
-                    "status": "published",
-                    "policy_id": "policy-case-v1",
-                    "rubric_hash": "sha256:rubric-v1",
-                    "grader_version": "rubric-grader-v1",
-                    "confidence": 0.94,
-                    "conflict_status": "resolved",
-                },
-            },
         },
+        user_answer="仅加强管理。",
+        governed_registry_status="published",
+        certified_grading_policy={
+            "status": "published",
+            "policy_id": "policy-case-v1",
+            "rubric_hash": "sha256:rubric-v1",
+            "grader_version": "rubric-grader-v1",
+            "confidence": 0.94,
+            "conflict_status": "resolved",
+        },
+    )
+    assert grading_result is not None
+
+    payload = build_learning_evidence_payload(
+        grading_result=grading_result,
         turn_id="turn-certified-1",
         session_id="session-certified-1",
+        governed_certified_authority=True,
     )
 
     assert payload["memory_lifecycle_stage"] == "stable_learner_claim"

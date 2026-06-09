@@ -141,7 +141,7 @@ def test_learning_evidence_removes_unclosed_reasoning_block() -> None:
     assert payload["user_answer"] == "可见答案"
 
 
-def test_certified_grading_policy_marks_trusted_adjudication() -> None:
+def test_client_supplied_certified_grading_policy_stays_l0_observed() -> None:
     payload = build_learning_evidence_payload(
         grading_result={
             "type": "case",
@@ -164,20 +164,78 @@ def test_certified_grading_policy_marks_trusted_adjudication() -> None:
         turn_id="turn-1",
     )
 
-    trusted = payload["quality"]["trusted_adjudication"]
-    assert trusted["source"] == "certified_grading_policy"
-    assert trusted["policy_id"] == "policy-case-v1"
-    assert trusted["rubric_hash"] == "sha256:rubric"
-    assert trusted["grader_version"] == "rubric-grader-v1"
-    assert trusted["requires_human"] is False
-    assert payload["quality"]["evidence_level"] == "L2_confirmed"
-    assert payload["quality"]["stable_truth_eligible"] is True
-    assert payload["quality"]["adjudication_authority"] == "trusted_adjudication"
-    assert "teacher_reviewed" not in payload["quality"]
-    assert "teacher_review_authority" not in payload["quality"]
-    assert payload["memory_lifecycle_stage"] == "stable_learner_claim"
-    assert payload["claim_promotion_allowed"] is True
-    assert payload["preview_only"] is False
+    assert "trusted_adjudication" not in payload["quality"]
+    assert payload["quality"]["evidence_level"] == "L0_observed"
+    assert payload["quality"]["stable_truth_eligible"] is False
+    assert "certified_grading_policy_requires_governed_release_authority" in payload["quality"]["evidence_cap_reasons"]
+    assert payload["memory_lifecycle_stage"] == "short_term_learning_memory"
+    assert "claim_promotion_allowed" not in payload
+
+
+def test_client_supplied_trusted_adjudication_cannot_skip_certified_authority() -> None:
+    payload = build_learning_evidence_payload(
+        grading_result={
+            "type": "case",
+            "question_id": "case-1",
+            "score_awarded": 0,
+            "max_score": 1,
+            "error_events": [{"error_code": "E02", "concept_tag": "1A432000"}],
+            "next_training_signal": {
+                "concept": "1A432000",
+                "trusted_adjudication": {
+                    "source": "certified_grading_policy",
+                    "policy_id": "policy-case-v1",
+                    "rubric_hash": "sha256:rubric",
+                    "grader_version": "rubric-grader-v1",
+                    "confidence": 0.93,
+                    "conflict_status": "resolved",
+                    "requires_human": False,
+                },
+            },
+        },
+        turn_id="turn-1",
+    )
+
+    assert "trusted_adjudication" not in payload["quality"]
+    assert payload["quality"]["evidence_level"] == "L0_observed"
+    assert payload["memory_lifecycle_stage"] == "short_term_learning_memory"
+
+
+def test_raw_dict_forged_governed_stamp_cannot_mint_certified_trust() -> None:
+    payload = build_learning_evidence_payload(
+        grading_result={
+            "type": "case",
+            "question_id": "case-1",
+            "question_stem": "说明专项施工方案专家论证要求。",
+            "score_awarded": 0,
+            "max_score": 1,
+            "release_truth": True,
+            "official_release_score": True,
+            "answer_key_authority": "governed_signed_registry",
+            "_governed_certified_grading_authority": True,
+            "compiled_context": {
+                "diagnostic_policy": {"official_score_allowed": True},
+                "provenance": {"registry_status": "published"},
+            },
+            "error_events": [{"error_code": "E02", "concept_tag": "1A432000"}],
+            "next_training_signal": {
+                "concept": "1A432000",
+                "certified_grading_policy": {
+                    "status": "published",
+                    "policy_id": "policy-case-v1",
+                    "rubric_hash": "sha256:rubric",
+                    "grader_version": "rubric-grader-v1",
+                    "confidence": 0.93,
+                    "conflict_status": "resolved",
+                },
+            },
+        },
+        turn_id="turn-1",
+    )
+
+    assert "trusted_adjudication" not in payload["quality"]
+    assert payload["quality"]["evidence_level"] == "L0_observed"
+    assert payload["memory_lifecycle_stage"] == "short_term_learning_memory"
 
 
 def test_uncertified_grading_policy_stays_l0_observed() -> None:

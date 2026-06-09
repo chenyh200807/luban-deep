@@ -117,6 +117,17 @@ def canonical_truth_promotion_decision(
                 else "ai_adjudication_conflict_unresolved"
             )
             return CanonicalTruthPromotionDecision(False, reason, source, False, confidence)
+        if source == "certified_grading_policy" and not _has_certified_policy_metadata(trusted):
+            return CanonicalTruthPromotionDecision(
+                False,
+                "certified_grading_policy_metadata_required",
+                source,
+                False,
+                confidence,
+            )
+
+    if not _has_stable_learner_claim(projection):
+        return CanonicalTruthPromotionDecision(False, "stable_learner_claim_required", source, False, confidence)
 
     return CanonicalTruthPromotionDecision(True, "trusted_adjudication_authorized", source, False, confidence)
 
@@ -171,6 +182,27 @@ def _ai_min_confidence() -> float:
         return float(raw)
     except (TypeError, ValueError):
         return 0.85
+
+
+def _has_stable_learner_claim(projection: dict[str, Any]) -> bool:
+    for claim in list(projection.get("weak_points") or []):
+        if not isinstance(claim, dict):
+            continue
+        stage = _text(claim.get("memory_lifecycle_stage"))
+        if stage == "stable_learner_claim":
+            return True
+        level = _text(claim.get("evidence_level"))
+        if level in {"L1_repeated", "L2_confirmed", "L2_real_retest", "L3_mastery_signal"}:
+            return True
+    return False
+
+
+def _has_certified_policy_metadata(trusted: dict[str, Any]) -> bool:
+    return bool(
+        _text(trusted.get("policy_id"))
+        and _text(trusted.get("rubric_hash"))
+        and _text(trusted.get("grader_version"))
+    )
 
 
 def _confidence(value: Any) -> float | None:

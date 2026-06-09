@@ -3,6 +3,10 @@ from __future__ import annotations
 from typing import Any
 
 from deeptutor.services.construction_grading.case_kernel import CaseGradingSkillKernel
+from deeptutor.services.construction_grading.certified_grading_adjudication import (
+    policy_public_payload,
+    trusted_adjudication_from_certified_policy,
+)
 from deeptutor.services.construction_grading.compiled_context import (
     build_pack_from_question_context,
 )
@@ -39,6 +43,8 @@ def _stamp_compiled_context_and_authority(
     row: dict[str, Any],
     *,
     retrieval_sources: list[dict[str, Any]] | None = None,
+    governed_registry_status: str = "",
+    certified_grading_policy: dict[str, Any] | None = None,
 ) -> None:
     """Attach the unified compiled_context AND an honest answer-key authority stamp (M27 closure).
 
@@ -53,7 +59,11 @@ def _stamp_compiled_context_and_authority(
     When the pack reports ``official_score_allowed`` (a signed release/published registry resolved
     the answer key server-side), the result is marked governed release-truth instead.
     """
-    pack = build_pack_from_question_context(row, retrieval_sources=retrieval_sources)
+    pack = build_pack_from_question_context(
+        row,
+        retrieval_sources=retrieval_sources,
+        governed_registry_status=governed_registry_status,
+    )
     result["compiled_context"] = pack.to_dict()
     official = pack.official_score_allowed
     result["release_truth"] = bool(official)
@@ -66,12 +76,25 @@ def _stamp_compiled_context_and_authority(
         result["official_release_score"] = False
         result["not_production_grade"] = True
         result["official_score_laundering_guard"] = "client_or_context_answer_key_not_release_truth"
+        return
+
+    result["official_release_score"] = True
+    policy = dict(certified_grading_policy or {})
+    if policy and trusted_adjudication_from_certified_policy(policy):
+        public_policy = policy_public_payload(policy)
+        signal = result.get("next_training_signal") if isinstance(result.get("next_training_signal"), dict) else {}
+        signal = dict(signal)
+        signal["certified_grading_policy"] = public_policy
+        result["next_training_signal"] = signal
+        result["certified_grading_policy"] = public_policy
 
 
 def build_deep_question_grading_result(
     question_context: dict[str, Any],
     *,
     user_answer: str,
+    governed_registry_status: str = "",
+    certified_grading_policy: dict[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     """Build the single authoritative grading result for deep_question submissions."""
 
@@ -100,7 +123,12 @@ def build_deep_question_grading_result(
                 result[key] = row.get(key)
         result["type"] = "mcq"
         result["authority"] = "construction_grading"
-        _stamp_compiled_context_and_authority(result, row)
+        _stamp_compiled_context_and_authority(
+            result,
+            row,
+            governed_registry_status=governed_registry_status,
+            certified_grading_policy=certified_grading_policy,
+        )
         return result
     if _is_subjective_context(row):
         result = CaseGradingSkillKernel().grade(
@@ -113,7 +141,11 @@ def build_deep_question_grading_result(
         result["question_type"] = question_type or "case"
         result["user_answer"] = answer
         _stamp_compiled_context_and_authority(
-            result, row, retrieval_sources=_evidence_rows_from_context(row)
+            result,
+            row,
+            retrieval_sources=_evidence_rows_from_context(row),
+            governed_registry_status=governed_registry_status,
+            certified_grading_policy=certified_grading_policy,
         )
         # NOTE: rubric-v1 LLM-adjudicated grading runs in the CAPABILITY layer
         # (deep_question._grade_case_rubric_v1) where the learner identity is reachable — NOT here

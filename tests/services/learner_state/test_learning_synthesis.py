@@ -215,6 +215,9 @@ def test_synthesis_promotes_single_certified_policy_evidence_to_l2() -> None:
     assert trusted["source"] == "certified_grading_policy"
     assert trusted["confidence"] == 0.93
     assert trusted["requires_human"] is False
+    assert trusted["policy_id"] == "policy-case-v1"
+    assert trusted["rubric_hash"] == "sha256:rubric"
+    assert trusted["grader_version"] == "rubric-grader-v1"
 
 
 def test_synthesis_outputs_p0_claim_lifecycle_states() -> None:
@@ -322,6 +325,9 @@ def test_real_retest_improvement_keeps_certified_policy_trusted_summary() -> Non
                 "confidence": 0.94,
                 "conflict_status": "resolved",
                 "requires_human": False,
+                "policy_id": "policy-case-v1",
+                "rubric_hash": "sha256:rubric",
+                "grader_version": "rubric-grader-v1",
             },
         },
     )
@@ -347,6 +353,7 @@ def test_real_retest_improvement_keeps_certified_policy_trusted_summary() -> Non
     assert trusted["confidence"] == 0.94
     assert trusted["conflict_status"] == "resolved"
     assert trusted["requires_human"] is False
+    assert trusted["policy_id"] == "policy-case-v1"
 
 
 def test_low_measurement_confidence_retest_does_not_clear_weakness() -> None:

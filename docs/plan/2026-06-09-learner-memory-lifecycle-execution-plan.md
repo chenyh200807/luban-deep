@@ -31,6 +31,15 @@ What is still weak:
 - `certified_grading_policy` exists as the preferred production authority, but upstream grading packages still need to attach it consistently.
 - Reports and TutorBot personalization should read lifecycle stage semantics instead of guessing from raw quality fields.
 
+## Execution Status — 2026-06-09 Follow-Up
+
+Subagent review found Tasks 1-6 are implemented and locally tested. The remaining high-risk gaps are not another memory store; they are authority and evidence gaps:
+
+- **Producer authority gap closed in this follow-up:** `deep_question` grading producer can now carry sanitized `certified_grading_policy` only when a trusted server caller passes `governed_registry_status` plus a valid certified policy block. `learning_evidence` also refuses to mint or consume `trusted_adjudication.source=certified_grading_policy` unless the caller explicitly passes `governed_certified_authority=True` and the grading payload already has governed release authority (`release_truth=true`, `official_release_score=true`, `answer_key_authority=governed_signed_registry`, and compiled-context official scoring allowed). Client/context-injected `registry_status`, `certified_grading_policy`, `trusted_adjudication`, or forged authority fields still cannot mint trusted adjudication.
+- **Canonical gate hardening closed in this follow-up:** broad production canonical promotion now requires both `trusted_adjudication` and at least one stable learner claim (`stable_learner_claim` or L1/L2/L3 equivalent). `certified_grading_policy` sources must also carry `policy_id`, `rubric_hash`, and `grader_version`. L0-only projections cannot write canonical truth even if a malformed projection includes a trusted block.
+- **Repeatable soak artifact contract added:** `scripts/run_learner_memory_lifecycle_test2_cohort_soak.py` generates `artifacts/luban_grading_artifacts/learner_memory_lifecycle_<timestamp>/`-shaped evidence locally without network/SSH/remote writes. Its status is explicitly `LOCAL_ARTIFACT_GO`, with `evidence_scope=local_core_store_artifact_contract`, so it cannot be mistaken for deployed test2 proof. It proves the evidence format for `grading -> learning_evidence -> stable claim -> PCP -> NBA -> retest -> certified trusted_adjudication -> canonical write/readback`.
+- **Still not claimed as remote test2 proof:** the new runner is a local core-store artifact contract. A real test2 run still needs clean release deployment, public `/api/v1/ws`, qa_/operator_ cohort user, and readback evidence from the deployed environment.
+
 ## Non-Goals
 
 - Do not create a second learner memory table, second RAG, second WebSocket, or second profile.
@@ -475,8 +484,19 @@ Expected: pass.
 ### Task 8: Test2 Cohort Closure
 
 **Files:**
-- No code change unless runner gap is found.
+- Created: `scripts/run_learner_memory_lifecycle_test2_cohort_soak.py`
+- Test: `tests/scripts/test_learner_memory_lifecycle_test2_cohort_soak.py`
 - Evidence path: `artifacts/luban_grading_artifacts/learner_memory_lifecycle_<timestamp>/`
+
+- [x] **Step 0: Add repeatable local artifact contract**
+
+Run:
+
+```bash
+python scripts/run_learner_memory_lifecycle_test2_cohort_soak.py --mode local-core-store
+```
+
+Expected: local-only `LOCAL_ARTIFACT_GO` artifact with `evidence_scope=local_core_store_artifact_contract`, `local_canonical_write/readback` stage names, `remote_write_performed=false`, `remote_write_root_if_authorized=/root/deeptutor`, qa_ cohort allowed, non-cohort blocked, same `output_projection_hash` in projection/readback/read model.
 
 - [ ] **Step 1: Deploy only after main is clean and released**
 
@@ -538,4 +558,4 @@ Learning Brain/report readback of same output_projection_hash
 
 ## Current Execution Slice
 
-The first implementation slice should complete Tasks 1-5 locally. Tasks 6-8 can follow after the read-model language is reviewed and the current dirty `main...origin/main` divergence is resolved.
+Tasks 1-6 are implemented locally. This follow-up hardens Task 7 producer authority and adds the Task 8 repeatable artifact contract. The next execution slice is the real deployed test2 run: clean release worktree -> deploy -> public `/api/v1/ws` qa_/operator_ loop -> canonical readback -> checked-in `learner_memory_lifecycle_<timestamp>` evidence summary.

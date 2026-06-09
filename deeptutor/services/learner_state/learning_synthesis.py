@@ -912,13 +912,22 @@ def _trusted_adjudication_summary(
         for item in trusted_entries
     }
     conflict_status = "resolved" if statuses.issubset({"resolved", "none", "no_conflict", "not_applicable"}) else "unresolved"
-    return {
+    summary = {
         "source": source,
         "confidence": min(confidences) if confidences else None,
         "conflict_status": conflict_status,
         "requires_human": any(bool(item.get("requires_human")) for item in trusted_entries),
         "supporting_event_count": len(supporting_ids),
     }
+    if source == "certified_grading_policy":
+        for key in ("policy_id", "rubric_hash", "grader_version"):
+            values = {_clean_text(item.get(key)) for item in trusted_entries if _clean_text(item.get(key))}
+            if len(values) == 1:
+                summary[key] = values.pop()
+            else:
+                summary["conflict_status"] = "unresolved"
+                summary["requires_human"] = True
+    return summary
 
 
 def _is_float_like(value: Any) -> bool:

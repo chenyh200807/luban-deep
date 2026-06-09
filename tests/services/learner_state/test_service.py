@@ -1683,6 +1683,42 @@ def test_canonical_truth_production_write_override_blocks_non_cohort_core_store(
     assert core_store.compiled_learning_truth == {}
 
 
+def test_canonical_truth_broad_trusted_adjudication_still_requires_stable_claim(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Broad AI-first authority cannot promote L0-only observations into canonical truth."""
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.setenv(_G4_FLAG, "true")
+    monkeypatch.setenv(_G4_COHORT, "qa_,operator_")
+    monkeypatch.setenv("LUBAN_CANONICAL_LEARNER_TRUTH_BROAD_TRUSTED_ADJUDICATION_ENABLED", "true")
+    core_store = _CoreStoreStub()
+    service = _make_service(tmp_path, core_store=core_store)
+
+    returned = service.write_compiled_learning_truth(
+        "real_student_demo",
+        {
+            "subject": "construction_exam_learning_truth",
+            "observed_candidates": [{"memory_lifecycle_stage": "short_term_learning_memory"}],
+            "synthesis_run": {
+                "output_projection_hash": "sha256:l0-only",
+                "trusted_adjudication": {
+                    "source": "certified_grading_policy",
+                    "confidence": 0.95,
+                    "conflict_status": "resolved",
+                    "requires_human": False,
+                    "policy_id": "policy-case-v1",
+                    "rubric_hash": "sha256:rubric",
+                    "grader_version": "rubric-grader-v1",
+                },
+            },
+        },
+    )
+
+    assert returned["synthesis_run"]["output_projection_hash"] == "sha256:l0-only"
+    assert service.read_compiled_learning_truth("real_student_demo") == {}
+    assert core_store.compiled_learning_truth == {}
+
+
 def test_canonical_truth_production_core_store_write_failure_fails_closed(
     tmp_path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

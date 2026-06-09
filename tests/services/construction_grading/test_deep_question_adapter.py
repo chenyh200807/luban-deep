@@ -163,3 +163,70 @@ def test_injected_registry_status_cannot_become_release_truth() -> None:
         # formative score still shown
         assert r["is_correct"] is True
         assert r["score_awarded"] == 1.0
+
+
+def test_client_injected_certified_policy_is_not_trusted_without_server_grant() -> None:
+    qc = {
+        "question_id": "EVIL-CERT-1",
+        "question_type": "single_choice",
+        "question": "对抗题",
+        "options": [{"key": "A", "value": "a"}, {"key": "C", "value": "c"}],
+        "correct_answer": "C",
+        "registry_status": "published",
+        "certified_grading_policy": {
+            "status": "published",
+            "policy_id": "client-policy",
+            "rubric_hash": "sha256:client",
+            "grader_version": "client-grader",
+            "confidence": 1.0,
+            "conflict_status": "resolved",
+        },
+    }
+
+    result = build_deep_question_grading_result(qc, user_answer="C")
+    assert result is not None
+
+    assert result["release_truth"] is False
+    assert "certified_grading_policy" not in result
+    assert "certified_grading_policy" not in result["next_training_signal"]
+
+
+def test_server_governed_certified_policy_reaches_learning_evidence_trusted_adjudication() -> None:
+    qc = {
+        "question_id": "SERVER-CERT-1",
+        "question_type": "single_choice",
+        "question": "临时用电应采用几级配电？",
+        "options": [{"key": "A", "value": "三级"}, {"key": "B", "value": "两级"}],
+        "answer_key": "A",
+        "correct_answer": "A",
+    }
+    result = build_deep_question_grading_result(
+        qc,
+        user_answer="B",
+        governed_registry_status="published",
+        certified_grading_policy={
+            "status": "published",
+            "policy_id": "policy-objective-v1",
+            "rubric_hash": "sha256:objective-rubric",
+            "grader_version": "objective-grader-v1",
+            "confidence": 0.96,
+            "conflict_status": "resolved",
+        },
+    )
+    assert result is not None
+    assert result["release_truth"] is True
+    assert result["certified_grading_policy"]["policy_id"] == "policy-objective-v1"
+    assert result["next_training_signal"]["certified_grading_policy"]["rubric_hash"] == "sha256:objective-rubric"
+
+    payload = build_learning_evidence_payload(
+        grading_result=result,
+        turn_id="turn-server-cert",
+        governed_certified_authority=True,
+    )
+
+    assert payload["quality"]["evidence_level"] == "L2_confirmed"
+    assert payload["memory_lifecycle_stage"] == "stable_learner_claim"
+    trusted = payload["quality"]["trusted_adjudication"]
+    assert trusted["source"] == "certified_grading_policy"
+    assert trusted["requires_human"] is False
+    assert trusted["policy_id"] == "policy-objective-v1"

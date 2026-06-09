@@ -56,6 +56,7 @@ def test_broad_ai_jury_requires_confident_resolved_adjudication(monkeypatch) -> 
     resolved = canonical_truth_promotion_decision(
         user_id="real_student_1",
         projection={
+            "weak_points": [{"memory_lifecycle_stage": "stable_learner_claim"}],
             "synthesis_run": {
                 "trusted_adjudication": {
                     "source": "llm_jury",
@@ -109,6 +110,7 @@ def test_broad_certified_grading_policy_requires_confident_resolved_adjudication
     resolved = canonical_truth_promotion_decision(
         user_id="real_student_1",
         projection={
+            "weak_points": [{"memory_lifecycle_stage": "stable_learner_claim"}],
             "synthesis_run": {
                 "trusted_adjudication": {
                     "source": "certified_grading_policy",
@@ -129,6 +131,57 @@ def test_broad_certified_grading_policy_requires_confident_resolved_adjudication
     assert unresolved.reason == "certified_grading_policy_conflict_unresolved"
     assert resolved.allowed is True
     assert resolved.reason == "trusted_adjudication_authorized"
+
+
+def test_broad_trusted_adjudication_still_requires_stable_claim(monkeypatch) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.setenv("LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_ENABLED", "1")
+    monkeypatch.setenv("LUBAN_CANONICAL_LEARNER_TRUTH_BROAD_TRUSTED_ADJUDICATION_ENABLED", "1")
+
+    decision = canonical_truth_promotion_decision(
+        user_id="real_student_1",
+        projection={
+            "observed_candidates": [{"memory_lifecycle_stage": "short_term_learning_memory"}],
+            "synthesis_run": {
+                "trusted_adjudication": {
+                    "source": "certified_grading_policy",
+                    "confidence": 0.95,
+                    "conflict_status": "resolved",
+                    "requires_human": False,
+                    "policy_id": "policy-case-v1",
+                    "rubric_hash": "sha256:rubric",
+                    "grader_version": "rubric-grader-v1",
+                }
+            },
+        },
+    )
+
+    assert decision.allowed is False
+    assert decision.reason == "stable_learner_claim_required"
+
+
+def test_broad_certified_grading_policy_requires_metadata(monkeypatch) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.setenv("LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_ENABLED", "1")
+    monkeypatch.setenv("LUBAN_CANONICAL_LEARNER_TRUTH_BROAD_TRUSTED_ADJUDICATION_ENABLED", "1")
+
+    decision = canonical_truth_promotion_decision(
+        user_id="real_student_1",
+        projection={
+            "weak_points": [{"memory_lifecycle_stage": "stable_learner_claim"}],
+            "synthesis_run": {
+                "trusted_adjudication": {
+                    "source": "certified_grading_policy",
+                    "confidence": 0.95,
+                    "conflict_status": "resolved",
+                    "requires_human": False,
+                }
+            },
+        },
+    )
+
+    assert decision.allowed is False
+    assert decision.reason == "certified_grading_policy_metadata_required"
 
 
 def test_legacy_teacher_final_quality_maps_to_trusted_adjudication() -> None:
