@@ -1400,6 +1400,57 @@ def test_build_messages_partitions_stable_prefix_ahead_of_dynamic_memory() -> No
     assert messages[-1] == {"role": "user", "content": "user turn content"}
 
 
+def test_build_messages_includes_compiled_teaching_overlay() -> None:
+    pipeline = AgenticChatPipeline(language="zh")
+    context = UnifiedContext(
+        session_id="compiled-chat",
+        user_message="高层住宅的建筑高度是怎么界定的？",
+        metadata={
+            "bot_id": "construction-exam-coach",
+            "luban_general_knowledge_context_grounding": "编译教学上下文\n高层住宅判定标准",
+        },
+        config_overrides={"general_knowledge_context": True},
+    )
+
+    messages = pipeline._build_messages(context, "STABLE_STAGE_PROMPT", "user turn content")
+
+    assert messages[0] == {"role": "system", "content": "STABLE_STAGE_PROMPT"}
+    assert any(
+        message["role"] == "system" and "编译教学上下文" in str(message["content"])
+        for message in messages
+    )
+    assert messages[-1] == {"role": "user", "content": "user turn content"}
+
+
+@pytest.mark.asyncio
+async def test_emit_result_exports_compiled_teaching_context_metadata() -> None:
+    pipeline = AgenticChatPipeline(language="zh")
+    bus = StreamBus()
+    pack = {
+        "authority": "luban_general_knowledge_context",
+        "tier": "teaching_context_not_answer_key",
+        "official_score_allowed": False,
+        "llm_may_decide_correctness": False,
+        "leaf_name_path": "建筑工程技术 > 高层住宅判定标准",
+    }
+    context = UnifiedContext(
+        session_id="compiled-chat",
+        user_message="高层住宅的建筑高度是怎么界定的？",
+        metadata={
+            "bot_id": "construction-exam-coach",
+            "luban_general_knowledge_context": pack,
+            "luban_general_knowledge_context_status": "attached",
+        },
+        config_overrides={"general_knowledge_context": True},
+    )
+
+    await pipeline._emit_result(bus, {"response": "ok"}, context=context)
+
+    result = next(event for event in bus._history if event.type == StreamEventType.RESULT)
+    assert result.metadata["luban_general_knowledge_context"] == pack
+    assert result.metadata["luban_general_knowledge_context_status"] == "attached"
+
+
 def test_teaching_overlay_falls_back_to_default_skill_without_scene() -> None:
     """No attached scene → the shell loads the default construction tutor skill
     (not an independently re-derived scene)."""

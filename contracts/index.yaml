@@ -205,7 +205,14 @@ domains:
       - deeptutor/capabilities/request_contracts.py
 
   rag:
-    summary: Grounding entry point, retrieval contract, exact-question and authority semantics.
+    summary: Grounding entry point, retrieval contract, exact-question, compiled teaching overlay, and authority semantics.
+    runtime_metadata_contracts:
+      - general_knowledge_context is a runtime-only compiled teaching overlay
+        opt-in for TutorBot / Chat agent execution. Consumers must reuse
+        deeptutor.services.compiled_knowledge.general_knowledge, emit only
+        teaching-tier metadata, fail open on low confidence or active question
+        context, and must not create a second RAG/KB/taxonomy/learner-memory
+        authority or write canonical learner truth.
     contract_files:
       - CONTRACT.md
       - contracts/rag.md

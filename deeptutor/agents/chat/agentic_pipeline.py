@@ -56,6 +56,10 @@ from deeptutor.services.citations import (
     answer_citations_enabled,
     apply_answer_citation_metadata,
 )
+from deeptutor.services.compiled_knowledge.general_knowledge import (
+    format_general_knowledge_grounding,
+    resolve_general_knowledge_context,
+)
 from deeptutor.services.session.prompt_partition import (
     partition_system_prompt,
     to_system_messages,
@@ -260,11 +264,13 @@ class AgenticChatPipeline:
             await self._emit_result(
                 stream,
                 result_payload,
+                context=context,
                 already_streamed_text=self._streamed_public_text(trace_meta),
             )
             return
 
         answer_type = self._infer_answer_type(context.user_message)
+        self._attach_general_knowledge_context(context, answer_type)
         if self._should_use_social_greeting_shortcut(context, answer_type):
             final_response, trace_meta = await self._stage_social_greeting_response(
                 context=context,
@@ -280,6 +286,7 @@ class AgenticChatPipeline:
             await self._emit_result(
                 stream,
                 result_payload,
+                context=context,
                 already_streamed_text=self._streamed_public_text(trace_meta),
             )
             return
@@ -304,6 +311,7 @@ class AgenticChatPipeline:
             await self._emit_result(
                 stream,
                 result_payload,
+                context=context,
                 already_streamed_text=self._streamed_public_text(trace_meta),
             )
             return
@@ -336,6 +344,7 @@ class AgenticChatPipeline:
                 )
                 await self._emit_sources_and_result(
                     stream=stream,
+                    context=context,
                     responding_trace=responding_trace,
                     tool_traces=retrieval_first_traces,
                     final_response=final_response,
@@ -373,6 +382,7 @@ class AgenticChatPipeline:
         )
         await self._emit_sources_and_result(
             stream=stream,
+            context=context,
             responding_trace=responding_trace,
             tool_traces=tool_traces,
             final_response=final_response,
@@ -1428,7 +1438,11 @@ class AgenticChatPipeline:
         # message boundaries change so the provider can reuse the cached prefix.
         partition = partition_system_prompt(
             stable=[system_prompt],
-            dynamic=[context.memory_context, self._teaching_mode_overlay(context)],
+            dynamic=[
+                context.memory_context,
+                self._teaching_mode_overlay(context),
+                self._compiled_teaching_overlay(context),
+            ],
         )
         messages: list[dict[str, Any]] = to_system_messages(partition)
         for item in context.conversation_history:
@@ -2246,6 +2260,7 @@ class AgenticChatPipeline:
         self,
         *,
         stream: StreamBus,
+        context: UnifiedContext | None = None,
         responding_trace: dict[str, Any],
         tool_traces: list[ToolTrace],
         final_response: str,
@@ -2301,15 +2316,17 @@ class AgenticChatPipeline:
         result_payload.update(result_metadata)
         if source_trace_label:
             result_payload["source_trace"] = source_trace_label
-        await self._emit_result(stream, result_payload)
+        await self._emit_result(stream, result_payload, context=context)
 
     async def _emit_result(
         self,
         stream: StreamBus,
         result_payload: dict[str, Any],
         *,
+        context: UnifiedContext | None = None,
         already_streamed_text: str = "",
     ) -> None:
+        result_payload.update(self._compiled_result_metadata(context))
         if (
             "response" in result_payload
             and "citation_bundle" not in result_payload
@@ -2343,6 +2360,87 @@ class AgenticChatPipeline:
             nested["cost_summary"] = cs
             result_payload["metadata"] = nested
         await stream.result(result_payload, source="chat")
+
+    def _attach_general_knowledge_context(
+        self,
+        context: UnifiedContext,
+        answer_type: str,
+    ) -> None:
+        metadata = context.metadata if isinstance(context.metadata, dict) else {}
+        if metadata.get("luban_general_knowledge_context"):
+            return
+        if context.config_overrides.get("general_knowledge_context") is not True:
+            return
+        if answer_type not in {ANSWER_TYPE_KNOWLEDGE, ANSWER_TYPE_PROBLEM}:
+            metadata["luban_general_knowledge_context_status"] = "fail_open_non_knowledge"
+            context.metadata = metadata
+            return
+        if self._has_active_question_context(metadata):
+            metadata["luban_general_knowledge_context_status"] = "skipped_active_question_context"
+            context.metadata = metadata
+            return
+
+        raw_query = str(metadata.get("raw_user_message") or context.user_message or "").strip()
+        billing_context = metadata.get("billing_context") if isinstance(metadata.get("billing_context"), dict) else {}
+        learner_context = {
+            "question_text": raw_query,
+            "student_id": str(
+                billing_context.get("learning_user_id")
+                or billing_context.get("user_id")
+                or billing_context.get("wallet_user_id")
+                or ""
+            ).strip(),
+            "source": str(metadata.get("source") or "tutorbot").strip(),
+            "bot_id": self._bot_id(context),
+            "conversation_id": str(context.session_id or "").strip(),
+        }
+        pack = resolve_general_knowledge_context(raw_query, learner_context=learner_context)
+        if not pack:
+            metadata["luban_general_knowledge_context_status"] = "fail_open_low_confidence"
+            context.metadata = metadata
+            return
+        grounding = format_general_knowledge_grounding(pack)
+        if not grounding:
+            metadata["luban_general_knowledge_context_status"] = "fail_open_empty_grounding"
+            context.metadata = metadata
+            return
+        metadata["luban_general_knowledge_context"] = pack
+        metadata["luban_general_knowledge_context_status"] = "attached"
+        metadata["luban_general_knowledge_context_grounding"] = grounding
+        context.metadata = metadata
+
+    @staticmethod
+    def _has_active_question_context(metadata: dict[str, Any]) -> bool:
+        if any(
+            isinstance(metadata.get(key), dict) and metadata.get(key)
+            for key in (
+                "active_object",
+                "question_followup_context",
+                "followup_question_context",
+                "_prefetched_exact_question",
+            )
+        ):
+            return True
+        scene = str(metadata.get("question_lifecycle_scene") or "").strip()
+        return scene in {"case_grading", "question_review", "question_followup"}
+
+    @staticmethod
+    def _compiled_teaching_overlay(context: UnifiedContext) -> str:
+        metadata = context.metadata if isinstance(context.metadata, dict) else {}
+        return str(metadata.get("luban_general_knowledge_context_grounding") or "").strip()
+
+    @staticmethod
+    def _compiled_result_metadata(context: UnifiedContext | None) -> dict[str, Any]:
+        if context is None or not isinstance(context.metadata, dict):
+            return {}
+        out: dict[str, Any] = {}
+        for key in (
+            "luban_general_knowledge_context",
+            "luban_general_knowledge_context_status",
+        ):
+            if key in context.metadata:
+                out[key] = context.metadata[key]
+        return out
 
     async def _apply_exact_question_authority(
         self,
