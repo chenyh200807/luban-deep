@@ -166,6 +166,40 @@ def test_tutorbot_general_knowledge_context_allows_explicit_shadow_opt_in(
     assert metadata["conversation_context_text"] == "compiled grounding"
 
 
+def test_tutorbot_general_knowledge_context_ignores_open_chat_topic_guard(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pack = {
+        "authority": "luban_general_knowledge_context",
+        "tier": "teaching_context_not_answer_key",
+        "official_score_allowed": False,
+        "llm_may_decide_correctness": False,
+        "confidence": {"status": "high"},
+        "sources": {"textbook": [{"text_preview": "建筑高度大于27m的住宅为高层住宅"}]},
+    }
+
+    monkeypatch.delenv("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT", raising=False)
+    monkeypatch.delenv("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_ENABLED", raising=False)
+    monkeypatch.setattr(tutorbot_manager, "resolve_general_knowledge_context", lambda *args, **kwargs: pack)
+    monkeypatch.setattr(tutorbot_manager, "format_general_knowledge_grounding", lambda _pack: "compiled grounding")
+    metadata = {
+        "user_id": "real_user_1",
+        "general_knowledge_context": True,
+        "active_object": {
+            "object_type": "open_chat_topic",
+            "state_snapshot": {"title": "高层住宅"},
+        },
+    }
+
+    tutorbot_manager._attach_general_knowledge_context(
+        content="高层住宅的建筑高度是怎么界定的？",
+        runtime_metadata=metadata,
+    )
+
+    assert metadata["luban_general_knowledge_context"] == pack
+    assert metadata["conversation_context_text"] == "compiled grounding"
+
+
 def test_tutorbot_sqlite_adapter_repeated_save_does_not_duplicate_final_answer(tmp_path) -> None:
     store = SQLiteSessionStore(db_path=tmp_path / "chat_history.db")
     adapter = SQLiteSessionAdapter(store)

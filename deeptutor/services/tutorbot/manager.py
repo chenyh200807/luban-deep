@@ -31,6 +31,7 @@ from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.user_visible_output import coerce_user_visible_answer
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.session import build_user_owner_key, get_sqlite_session_store
+from deeptutor.services.session.sqlite_store import extract_question_context_from_active_object
 from deeptutor.tutorbot.utils.helpers import safe_filename
 
 logger = logging.getLogger(__name__)
@@ -70,10 +71,15 @@ def _append_web_search_sources_if_missing(response: str, sources: Any) -> str:
 
 
 def _has_active_question_context(metadata: dict[str, Any]) -> bool:
+    active_object = metadata.get("active_object")
+    if (
+        isinstance(active_object, dict)
+        and extract_question_context_from_active_object(active_object) is not None
+    ):
+        return True
     if any(
         isinstance(metadata.get(key), dict) and metadata.get(key)
         for key in (
-            "active_object",
             "question_followup_context",
             "followup_question_context",
             "_prefetched_exact_question",
