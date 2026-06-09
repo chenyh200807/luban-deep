@@ -130,6 +130,10 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
   phone-backed identities 补充钱包、画像和聊天汇总 read model。`member_console` 本地 JSON
   只能作为运营备注、审计流水、conversation view audit 和低风险动作记录的 overlay；不得再作为
   生产会员池、注册手机号池、钱包存在性或学习事实的 canonical source。
+- BI 会员运营新增窗口指标（例如今日、近 7 天、近 30 天新增）只能在上述可信会员目录内按
+  canonical member `created_at` 计算；它们是 dashboard read model，不得从前端分页结果、
+  行为事件、钱包流水、运营备注或 learner-state projection 反推，也不得写入
+  `learner_summaries`、`learner_memory_events`、profile、progress、goals 或 heartbeat。
 - 如果某个运营动作需要改变 learner state，必须走 learner-state writeback / promotion
   authority，不能通过 member-console audit helper 旁路写入。
 - 账号凭证事实与 learner-state 分权：`MemberConsoleService` 可以通过 external auth 管理

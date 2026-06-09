@@ -1139,6 +1139,19 @@ class BIService:
         return items
 
     @staticmethod
+    def _is_member_created_within_days(value: str, *, now: datetime, days: int) -> bool:
+        if not value:
+            return False
+        try:
+            created_at = datetime.fromisoformat(value.replace("Z", "+00:00"))
+            if created_at.tzinfo is None:
+                created_at = created_at.replace(tzinfo=now.tzinfo)
+            age = now - created_at.astimezone(now.tzinfo)
+            return timedelta(0) <= age <= timedelta(days=days)
+        except (TypeError, ValueError):
+            return False
+
+    @staticmethod
     def _build_member_dashboard_from_items(
         members: list[dict[str, Any]],
         *,
@@ -1148,6 +1161,8 @@ class BIService:
         active_count = sum(1 for item in members if item.get("status") == "active")
         expiring_soon_count = 0
         new_today_count = 0
+        new_7d_count = 0
+        new_30d_count = 0
         churn_risk_count = 0
         tiers: Counter[str] = Counter()
         expiry_buckets: Counter[str] = Counter()
@@ -1175,12 +1190,12 @@ class BIService:
                 except ValueError:
                     pass
             if created_at_raw:
-                try:
-                    created_at = datetime.fromisoformat(created_at_raw.replace("Z", "+00:00"))
-                    if (now - created_at).days <= 1:
-                        new_today_count += 1
-                except ValueError:
-                    pass
+                if BIService._is_member_created_within_days(created_at_raw, now=now, days=1):
+                    new_today_count += 1
+                if BIService._is_member_created_within_days(created_at_raw, now=now, days=7):
+                    new_7d_count += 1
+                if BIService._is_member_created_within_days(created_at_raw, now=now, days=30):
+                    new_30d_count += 1
 
         recommendations: list[str] = []
         if expiring_soon_count:
@@ -1195,6 +1210,8 @@ class BIService:
             "active_count": active_count,
             "expiring_soon_count": expiring_soon_count,
             "new_today_count": new_today_count,
+            "new_7d_count": new_7d_count,
+            "new_30d_count": new_30d_count,
             "churn_risk_count": churn_risk_count,
             "health_score": round((active_count / max(len(members), 1)) * 100),
             "auto_renew_coverage": round((auto_renew_count / max(len(members), 1)) * 100),

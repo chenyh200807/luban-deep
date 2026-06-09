@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -18,6 +19,8 @@ class _QuietMemberService:
             "active_count": 0,
             "expiring_soon_count": 0,
             "new_today_count": 0,
+            "new_7d_count": 0,
+            "new_30d_count": 0,
             "churn_risk_count": 0,
             "health_score": 100,
             "auto_renew_coverage": 100,
@@ -109,6 +112,34 @@ class _BiProjectionMemberService(_QuietMemberService):
 
     def get_member_360(self, user_id: str) -> dict[str, object]:
         raise AssertionError(f"BI aggregate must not load heavyweight member 360: {user_id}")
+
+
+class _RecentMemberProjectionService(_QuietMemberService):
+    def list_members_for_bi(self) -> list[dict[str, object]]:
+        now = datetime.now().astimezone()
+
+        def _member(user_id: str, *, days_ago: int, phone: str = "15558866508") -> dict[str, object]:
+            return {
+                "user_id": user_id,
+                "canonical_user_id": user_id,
+                "alias_user_ids": [user_id],
+                "phone": phone,
+                "tier": "trial",
+                "status": "active",
+                "risk_level": "low",
+                "auto_renew": False,
+                "created_at": (now - timedelta(days=days_ago)).isoformat(),
+                "expire_at": (now + timedelta(days=60)).isoformat(),
+                "last_active_at": now.isoformat(),
+            }
+
+        return [
+            _member("member_today", days_ago=0),
+            _member("member_3d", days_ago=3, phone="15558866509"),
+            _member("member_20d", days_ago=20, phone="15558866510"),
+            _member("member_40d", days_ago=40, phone="15558866511"),
+            _member("internal_no_phone", days_ago=0, phone=""),
+        ]
 
 
 class _CommerceMemberService(_QuietMemberService):
@@ -521,6 +552,19 @@ def test_member_stats_uses_lightweight_bi_projection_not_member_360(
             "evidence": "1 名真实会员样本平均掌握度 62%",
         }
     ]
+
+
+def test_member_stats_counts_recent_registered_members_by_created_window(
+    store: SQLiteSessionStore,
+) -> None:
+    service = BIService(session_store=store, member_service=_RecentMemberProjectionService())
+
+    stats = asyncio.run(service.get_member_stats(days=30))
+
+    assert stats["dashboard"]["total_count"] == 4
+    assert stats["dashboard"]["new_today_count"] == 1
+    assert stats["dashboard"]["new_7d_count"] == 2
+    assert stats["dashboard"]["new_30d_count"] == 3
 
 
 def test_growth_funnel_does_not_use_renewal_risk_as_paid_proxy(

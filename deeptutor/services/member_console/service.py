@@ -123,9 +123,25 @@ def _parse_time(value: str | None) -> datetime:
     if not value:
         return _now()
     try:
-        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            return parsed.replace(tzinfo=_TZ)
+        return parsed.astimezone(_TZ)
     except ValueError:
         return _now()
+
+
+def _is_created_within_days(value: str | None, *, now: datetime, days: int) -> bool:
+    if not value:
+        return False
+    try:
+        created_at = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    if created_at.tzinfo is None:
+        created_at = created_at.replace(tzinfo=_TZ)
+    age = now - created_at.astimezone(_TZ)
+    return timedelta(0) <= age <= timedelta(days=days)
 
 
 def _slugify_phone(value: str) -> str:
@@ -3035,7 +3051,17 @@ class MemberConsoleService:
         new_today_count = sum(
             1
             for item in members
-            if (_now() - _parse_time(item["created_at"])) <= timedelta(days=1)
+            if _is_created_within_days(item.get("created_at"), now=now, days=1)
+        )
+        new_7d_count = sum(
+            1
+            for item in members
+            if _is_created_within_days(item.get("created_at"), now=now, days=7)
+        )
+        new_30d_count = sum(
+            1
+            for item in members
+            if _is_created_within_days(item.get("created_at"), now=now, days=30)
         )
         churn_risk_count = sum(1 for item in members if item["risk_level"] == "high")
         tiers: dict[str, int] = {}
@@ -3059,6 +3085,8 @@ class MemberConsoleService:
             "active_count": active_count,
             "expiring_soon_count": expiring_soon_count,
             "new_today_count": new_today_count,
+            "new_7d_count": new_7d_count,
+            "new_30d_count": new_30d_count,
             "churn_risk_count": churn_risk_count,
             "health_score": round((active_count / max(len(members), 1)) * 100),
             "auto_renew_coverage": round((auto_renew_count / max(len(members), 1)) * 100),

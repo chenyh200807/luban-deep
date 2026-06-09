@@ -6,6 +6,8 @@ export interface MemberDashboard {
   active_count: number
   expiring_soon_count: number
   new_today_count: number
+  new_7d_count: number
+  new_30d_count: number
   churn_risk_count: number
   health_score: number
   auto_renew_coverage: number

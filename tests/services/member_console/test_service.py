@@ -3676,6 +3676,61 @@ def test_list_members_and_dashboard_use_supabase_member_directory_when_configure
     assert directory.calls
 
 
+def test_dashboard_counts_recent_registered_member_windows(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    now = datetime(2026, 6, 9, 12, 0, tzinfo=timezone.utc)
+    monkeypatch.setattr(member_service_module, "_now", lambda: now)
+
+    def _member(
+        user_id: str,
+        *,
+        days_ago: int,
+        phone: str = "15558866508",
+        created_at: str | None = None,
+    ) -> dict[str, object]:
+        return {
+            "user_id": user_id,
+            "canonical_user_id": user_id,
+            "alias_user_ids": [user_id],
+            "display_name": user_id,
+            "phone": phone,
+            "tier": "trial",
+            "status": "active",
+            "segment": "general",
+            "risk_level": "low",
+            "auto_renew": False,
+            "created_at": created_at if created_at is not None else (now - timedelta(days=days_ago)).isoformat(),
+            "last_active_at": now.isoformat(),
+            "expire_at": "9999-12-31T00:00:00+00:00",
+            "points_balance": 0,
+            "review_due": 0,
+            "member_directory_source": "supabase.phone_identity_aliases+v_members",
+        }
+
+    directory = _FakeMemberDirectory(
+        [
+            _member("member_today", days_ago=0),
+            _member("member_3d", days_ago=3, phone="15558866509"),
+            _member("member_20d", days_ago=20, phone="15558866510"),
+            _member("member_40d", days_ago=40, phone="15558866511"),
+            _member("internal_no_phone", days_ago=0, phone=""),
+            _member("invalid_created_at", days_ago=0, phone="15558866512", created_at="not-a-time"),
+            _member("future_created_at", days_ago=0, phone="15558866513", created_at=(now + timedelta(days=1)).isoformat()),
+        ]
+    )
+    service = MemberConsoleService(member_directory=directory)
+    service._data_path = tmp_path / "member_console.json"
+
+    dashboard = service.get_dashboard()
+
+    assert dashboard["total_count"] == 6
+    assert dashboard["new_today_count"] == 1
+    assert dashboard["new_7d_count"] == 2
+    assert dashboard["new_30d_count"] == 3
+
+
 def test_member_directory_merges_member_console_overlay_without_owning_member_pool(tmp_path: Path) -> None:
     directory = _FakeMemberDirectory(
         [

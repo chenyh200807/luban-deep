@@ -34,6 +34,8 @@ class _FakeMemberService:
             "active_count": 1,
             "expiring_soon_count": 1,
             "new_today_count": 0,
+            "new_7d_count": 0,
+            "new_30d_count": 0,
             "churn_risk_count": 1,
             "health_score": 50,
             "auto_renew_coverage": 50,

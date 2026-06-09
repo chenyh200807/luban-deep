@@ -56,11 +56,13 @@ export function MemberOpsCockpit({ dashboard }: { dashboard: MemberDashboard | n
         Member Operations Cockpit
       </div>
 
-      <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
+      <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-9">
         <CockpitKpi label="会员总数" value={fmt(total)} tone="cyan" icon={<Users className="h-4 w-4" />} />
         <CockpitKpi label="活跃" value={fmt(active)} tone="emerald" sub={total > 0 ? `${Math.round((active / total) * 100)}%` : undefined} />
         <CockpitKpi label="即将到期" value={fmt(expiring)} tone="amber" />
         <CockpitKpi label="今日新增" value={fmt(num(d?.new_today_count))} tone="teal" />
+        <CockpitKpi label="近7天新增" value={fmt(num(d?.new_7d_count))} tone="sky" />
+        <CockpitKpi label="近30天新增" value={fmt(num(d?.new_30d_count))} tone="violet" />
         <CockpitKpi label="流失风险" value={fmt(churn)} tone="rose" />
         <CockpitKpi label="健康分" value={num(d?.health_score)} tone="violet" icon={<HeartPulse className="h-4 w-4" />} />
         <CockpitKpi label="自动续费覆盖" value={num(d?.auto_renew_coverage)} unit="%" tone="gold" />
