@@ -737,6 +737,16 @@ def _append_trace_link_event(
     )
 
 
+def _public_turn_status_text(*, phase: str, language: str) -> str:
+    normalized_language = str(language or "").strip().lower()
+    zh = normalized_language.startswith("zh")
+    if phase == "understanding":
+        return "已收到，正在理解问题。" if zh else "Received. Understanding your question."
+    if phase == "writing":
+        return "正在组织回答。" if zh else "Preparing the answer."
+    return "正在处理。" if zh else "Working on it."
+
+
 def _env_flag(name: str, default: bool = True) -> bool:
     raw = str(os.getenv(name, "1" if default else "0") or "").strip().lower()
     if not raw:
@@ -3950,6 +3960,24 @@ class TurnRuntimeManager:
                 (payload.get("config", {}) or {}).get("interaction_profile", "") or ""
             ).strip(),
         }
+        await self._persist_and_publish(
+            execution,
+            StreamEvent(
+                type=StreamEventType.PROGRESS,
+                source="turn_runtime",
+                stage="understanding",
+                content=_public_turn_status_text(
+                    phase="understanding",
+                    language=str(payload.get("language", "en") or "en"),
+                ),
+                metadata={
+                    "status_kind": "turn_status",
+                    "phase": "understanding",
+                    "public_safe": True,
+                },
+                visibility=_PUBLIC_VISIBILITY,
+            ),
+        )
         log_context_tokens: dict[str, Any] | None = None
 
         def _build_final_observation_metadata(
@@ -4988,6 +5016,24 @@ class TurnRuntimeManager:
                     latency_stages.record_since("user_message_persist", user_message_persist_started_at)
 
                 orch = selector_orchestrator
+                await self._persist_and_publish(
+                    execution,
+                    StreamEvent(
+                        type=StreamEventType.PROGRESS,
+                        source="turn_runtime",
+                        stage="writing",
+                        content=_public_turn_status_text(
+                            phase="writing",
+                            language=str(payload.get("language", "en") or "en"),
+                        ),
+                        metadata={
+                            "status_kind": "turn_status",
+                            "phase": "writing",
+                            "public_safe": True,
+                        },
+                        visibility=_PUBLIC_VISIBILITY,
+                    ),
+                )
                 capability_stream_started_at = time.perf_counter()
                 async for event in orch.handle(context):
                     if event.type == StreamEventType.SESSION:

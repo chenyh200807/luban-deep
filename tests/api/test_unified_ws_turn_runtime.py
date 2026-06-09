@@ -2270,6 +2270,96 @@ async def test_start_turn_waits_for_first_subscriber_before_running(
 
 
 @pytest.mark.asyncio
+async def test_start_turn_emits_public_status_before_capability_content(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, context):
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="chat",
+                stage="responding",
+                content="streamed reply",
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "你好",
+            "session_id": None,
+            "capability": "chat",
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {},
+        }
+    )
+
+    events = []
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        events.append(event)
+        if event["type"] == "done":
+            break
+
+    public_status_index = next(
+        index
+        for index, event in enumerate(events)
+        if event["type"] == "progress"
+        and event.get("visibility") == "public"
+        and event.get("metadata", {}).get("status_kind") == "turn_status"
+        and event.get("metadata", {}).get("phase") == "understanding"
+    )
+    public_writing_status_index = next(
+        index
+        for index, event in enumerate(events)
+        if event["type"] == "progress"
+        and event.get("visibility") == "public"
+        and event.get("metadata", {}).get("status_kind") == "turn_status"
+        and event.get("metadata", {}).get("phase") == "writing"
+    )
+    first_capability_content_index = next(
+        index
+        for index, event in enumerate(events)
+        if event["type"] == "content" and event.get("source") == "chat"
+    )
+
+    assert public_status_index < first_capability_content_index
+    assert public_status_index < public_writing_status_index < first_capability_content_index
+    assert events[public_status_index]["content"]
+    assert events[public_writing_status_index]["content"]
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_routes_tutorbot_practice_generation_to_deep_question_authority(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
