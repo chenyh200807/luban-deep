@@ -1889,8 +1889,12 @@ def _build_mobile_turn_payload(
             str(body.grading_engine_runtime_shadow_engine or "deepseek_fast").strip()
             or "deepseek_fast"
         )
+    request_config = body.config if isinstance(body.config, dict) else {}
+    config_general_knowledge_context = request_config.get("general_knowledge_context")
     if body.general_knowledge_context is not None:
         config["general_knowledge_context"] = bool(body.general_knowledge_context)
+    elif isinstance(config_general_knowledge_context, bool):
+        config["general_knowledge_context"] = config_general_knowledge_context
     if body.prompt_intent:
         intent_key = "learning_training_intent" if capability == "deep_question" else "learning_prompt_intent"
         config[intent_key] = dict(body.prompt_intent)
@@ -2023,6 +2027,7 @@ class MobileStartTurnRequest(BaseModel):
     language: str = "zh"
     interaction_profile: str = "tutorbot"
     interaction_hints: dict[str, Any] | None = None
+    config: dict[str, Any] | None = None
     tools: list[str] = Field(default_factory=list)
     knowledge_bases: list[str] = Field(default_factory=list)
     attachments: list[dict[str, Any]] = Field(default_factory=list)

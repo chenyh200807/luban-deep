@@ -311,6 +311,7 @@ def _build_start_turn_body(
         "general_knowledge_context": arm == "compiled",
         "config": {
             "bot_id": "construction-exam-coach",
+            "general_knowledge_context": arm == "compiled",
         },
         "interaction_profile": "tutorbot",
         "interaction_hints": {

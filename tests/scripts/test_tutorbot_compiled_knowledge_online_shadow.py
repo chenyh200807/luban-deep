@@ -71,8 +71,14 @@ def test_start_turn_body_uses_mobile_top_level_shadow_flag() -> None:
 
     assert control["general_knowledge_context"] is False
     assert treatment["general_knowledge_context"] is True
-    assert control["config"] == {"bot_id": "construction-exam-coach"}
-    assert treatment["config"] == {"bot_id": "construction-exam-coach"}
+    assert control["config"] == {
+        "bot_id": "construction-exam-coach",
+        "general_knowledge_context": False,
+    }
+    assert treatment["config"] == {
+        "bot_id": "construction-exam-coach",
+        "general_knowledge_context": True,
+    }
 
 
 def test_pair_metrics_treat_low_confidence_hit_as_wrong_path() -> None:
