@@ -3704,6 +3704,87 @@ async def test_turn_runtime_metrics_track_completed_and_failed_turns(
 
 
 @pytest.mark.asyncio
+async def test_turn_runtime_observer_breaks_down_start_setup_and_capability_stream(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    from deeptutor.services.observability import get_turn_event_log, reset_turn_event_log
+
+    reset_turn_event_log(events_dir=tmp_path / "observer_events")
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, _context):
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="chat",
+                content="hello",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="chat",
+                metadata={"response": "hello", "metadata": {}},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="chat")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "hello",
+            "session_id": None,
+            "capability": None,
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "en",
+            "config": {},
+        }
+    )
+    async for _event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        pass
+
+    turn_events = get_turn_event_log().load_events()
+    assert len(turn_events) == 1
+    metadata = turn_events[0]["metadata"]
+    assert "ensure_session" in metadata["start_turn_setup_stage_timings_ms"]
+    assert "create_turn" in metadata["start_turn_setup_stage_timings_ms"]
+    assert "publish_session_event" in metadata["start_turn_setup_stage_timings_ms"]
+    assert "first_event" in metadata["capability_stream_stage_timings_ms"]
+    assert "first_content" in metadata["capability_stream_stage_timings_ms"]
+    assert "first_result" in metadata["capability_stream_stage_timings_ms"]
+    assert "event_persist_total" in metadata["capability_stream_stage_timings_ms"]
+    assert metadata["capability_stream_event_counts"]["content"] == 1
+    assert metadata["capability_stream_event_counts"]["result"] == 1
+    assert metadata["capability_stream_event_counts"]["done"] == 1
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_deadline_marks_stuck_turn_failed(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,

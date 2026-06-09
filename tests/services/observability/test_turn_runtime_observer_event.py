@@ -109,6 +109,67 @@ def test_terminal_turn_observation_event_keeps_context_build_stage_breakdown() -
     }
 
 
+def test_terminal_turn_observation_event_keeps_start_turn_setup_stage_breakdown() -> None:
+    event = _build_terminal_turn_observation_event(
+        session_id="session-1",
+        turn_id="turn-1",
+        status="completed",
+        capability_name="tutorbot",
+        duration_ms=1234.5,
+        trace_metadata={
+            "context_route": "question_followup",
+            "start_turn_setup_stage_timings_ms": {
+                "ensure_session": 45.678,
+                "create_turn": 20,
+                "negative_noise": -1,
+                "bad_noise": "n/a",
+            },
+        },
+        usage_summary={"total_tokens": 15},
+    )
+
+    assert event["metadata"]["start_turn_setup_stage_timings_ms"] == {
+        "create_turn": 20.0,
+        "ensure_session": 45.68,
+    }
+
+
+def test_terminal_turn_observation_event_keeps_capability_stream_breakdown() -> None:
+    event = _build_terminal_turn_observation_event(
+        session_id="session-1",
+        turn_id="turn-1",
+        status="completed",
+        capability_name="tutorbot",
+        duration_ms=1234.5,
+        trace_metadata={
+            "context_route": "question_followup",
+            "capability_stream_stage_timings_ms": {
+                "first_event": 100.123,
+                "first_content": 300,
+                "event_persist_total": 25.555,
+                "negative_noise": -1,
+                "bad_noise": "n/a",
+            },
+            "capability_stream_event_counts": {
+                "content": 2,
+                "result": 1,
+                "bad_noise": -1,
+            },
+        },
+        usage_summary={"total_tokens": 15},
+    )
+
+    assert event["metadata"]["capability_stream_stage_timings_ms"] == {
+        "event_persist_total": 25.55,
+        "first_content": 300.0,
+        "first_event": 100.12,
+    }
+    assert event["metadata"]["capability_stream_event_counts"] == {
+        "content": 2,
+        "result": 1,
+    }
+
+
 def test_trace_link_event_persists_turn_trace_identity_for_feedback() -> None:
     events: list[dict] = []
 

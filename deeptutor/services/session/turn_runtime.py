@@ -571,6 +571,18 @@ class _TurnLatencyStages:
     def record_since(self, stage: str, started_at: float) -> None:
         self._stages_ms[stage] = (time.perf_counter() - started_at) * 1000.0
 
+    def add_duration(self, stage: str, duration_ms: float) -> None:
+        try:
+            value = float(duration_ms)
+        except (TypeError, ValueError):
+            return
+        if value < 0:
+            return
+        self._stages_ms[stage] = self._stages_ms.get(stage, 0.0) + value
+
+    def has_stage(self, stage: str) -> bool:
+        return stage in self._stages_ms
+
     @contextlib.contextmanager
     def measure(self, stage: str):
         started_at = time.perf_counter()
@@ -581,6 +593,24 @@ class _TurnLatencyStages:
 
     def snapshot(self) -> dict[str, float]:
         return normalize_latency_stage_timings(self._stages_ms)
+
+
+def _normalize_non_negative_event_counts(value: Any) -> dict[str, int]:
+    if not isinstance(value, dict):
+        return {}
+    normalized: dict[str, int] = {}
+    for key, item in value.items():
+        label = str(key or "").strip()
+        if not label:
+            continue
+        try:
+            count = int(item)
+        except (TypeError, ValueError):
+            continue
+        if count < 0:
+            continue
+        normalized[label] = count
+    return dict(sorted(normalized.items()))
 
 
 def _build_terminal_turn_observation_event(
@@ -613,6 +643,21 @@ def _build_terminal_turn_observation_event(
     )
     if context_build_stage_timings_ms:
         metadata["context_build_stage_timings_ms"] = context_build_stage_timings_ms
+    start_turn_setup_stage_timings_ms = normalize_latency_stage_timings(
+        trace_metadata.get("start_turn_setup_stage_timings_ms")
+    )
+    if start_turn_setup_stage_timings_ms:
+        metadata["start_turn_setup_stage_timings_ms"] = start_turn_setup_stage_timings_ms
+    capability_stream_stage_timings_ms = normalize_latency_stage_timings(
+        trace_metadata.get("capability_stream_stage_timings_ms")
+    )
+    if capability_stream_stage_timings_ms:
+        metadata["capability_stream_stage_timings_ms"] = capability_stream_stage_timings_ms
+    capability_stream_event_counts = _normalize_non_negative_event_counts(
+        trace_metadata.get("capability_stream_event_counts")
+    )
+    if capability_stream_event_counts:
+        metadata["capability_stream_event_counts"] = capability_stream_event_counts
     for metadata_key in (
         "authority_applied",
         "exact_fast_path_hit",
@@ -2161,6 +2206,7 @@ class _TurnExecution:
     capability: str
     payload: dict[str, Any]
     turn_view: dict[str, Any] | None = None
+    start_turn_setup_stage_timings_ms: dict[str, float] = field(default_factory=dict)
     task: asyncio.Task[None] | None = None
     subscribers: list[_LiveSubscriber] = field(default_factory=list)
     first_subscriber_attached: asyncio.Event = field(default_factory=asyncio.Event)
@@ -3443,6 +3489,8 @@ class TurnRuntimeManager:
         }
 
     async def start_turn(self, payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
+        setup_stages = _TurnLatencyStages()
+        payload_normalize_started_at = time.perf_counter()
         requested_capability = str(payload.get("capability") or "").strip() or None
         capability = requested_capability or ""
         config_capability = requested_capability or "chat"
@@ -3503,6 +3551,7 @@ class TurnRuntimeManager:
         multiple_exam_track_mentions = has_multiple_exam_track_mentions(raw_user_content)
         denied_exam_tracks = infer_denied_exam_tracks_from_text(raw_user_content)
         clear_stored_exam_track = False
+        setup_stages.record_since("payload_normalize", payload_normalize_started_at)
         if explicit_exam_track:
             runtime_only_config["exam_track"] = explicit_exam_track
             runtime_interaction_hints = {
@@ -3518,6 +3567,7 @@ class TurnRuntimeManager:
         )
         stored_active_object = None
         candidate_followup_contexts: list[dict[str, Any] | None] = []
+        active_object_lookup_started_at = time.perf_counter()
         if session_id:
             stored_active_object = await self._safe_store_call(
                 None,
@@ -3561,6 +3611,8 @@ class TurnRuntimeManager:
                 )
                 if mirror_followup_context is not None:
                     candidate_followup_contexts.append(mirror_followup_context)
+        setup_stages.record_since("active_object_lookup", active_object_lookup_started_at)
+        followup_resolution_started_at = time.perf_counter()
         (
             runtime_followup_question_context,
             runtime_followup_action,
@@ -3570,6 +3622,7 @@ class TurnRuntimeManager:
             explicit_action=runtime_followup_action,
             candidate_contexts=candidate_followup_contexts,
         )
+        setup_stages.record_since("followup_resolution", followup_resolution_started_at)
         entry_capability_hint = (
             requested_capability
             if requested_capability in {"chat", "tutorbot"}
@@ -3603,6 +3656,7 @@ class TurnRuntimeManager:
             )
         if runtime_followup_action is not None:
             runtime_only_config["_question_followup_action"] = dict(runtime_followup_action)
+        public_config_validation_started_at = time.perf_counter()
         try:
             from deeptutor.capabilities.request_contracts import validate_capability_config
             from deeptutor.services.config import get_model_catalog_service
@@ -3621,6 +3675,7 @@ class TurnRuntimeManager:
                 payload = {**payload, "llm_selection": llm_selection.to_dict()}
         except ValueError as exc:
             raise RuntimeError(str(exc)) from exc
+        setup_stages.record_since("public_config_validation", public_config_validation_started_at)
         bot_id = str(validated_public_config.get("bot_id") or "").strip()
         interaction_profile = _normalize_interaction_profile_name(
             runtime_only_config.get("interaction_profile")
@@ -3662,11 +3717,13 @@ class TurnRuntimeManager:
             }
             runtime_only_config["interaction_hints"] = runtime_interaction_hints
             effective_chat_mode_explicit = True
+        bot_runtime_defaults_started_at = time.perf_counter()
         knowledge_chain_defaults = _resolve_bot_runtime_defaults(
             bot_id=bot_id,
             tools=payload.get("tools"),
             knowledge_bases=payload.get("knowledge_bases"),
         )
+        setup_stages.record_since("bot_runtime_defaults", bot_runtime_defaults_started_at)
         selected_capability = requested_capability
         capability = selected_capability or (
             ""
@@ -3688,10 +3745,12 @@ class TurnRuntimeManager:
             },
         }
         billing_context = _extract_billing_context(dict(runtime_only_config)) or {}
+        ensure_session_started_at = time.perf_counter()
         session = await self.store.ensure_session(
             payload.get("session_id"),
             owner_key=build_user_owner_key(billing_context.get("user_id")),
         )
+        setup_stages.record_since("ensure_session", ensure_session_started_at)
         session_preferences = session.get("preferences") if isinstance(session, dict) else {}
         if not explicit_exam_track:
             stored_exam_track = normalize_exam_track(
@@ -3764,18 +3823,25 @@ class TurnRuntimeManager:
             preference_updates["interaction_hints"] = runtime_interaction_hints
         elif clear_stored_exam_track:
             preference_updates["interaction_hints"] = {}
+        update_preferences_started_at = time.perf_counter()
         await self.store.update_session_preferences(
             session["id"],
             preference_updates,
         )
+        setup_stages.record_since("update_session_preferences", update_preferences_started_at)
+        recover_orphaned_turns_started_at = time.perf_counter()
         await self._recover_orphaned_running_turns(
             session["id"],
             reason="Recovered orphaned running turn before starting a new turn",
         )
+        setup_stages.record_since("recover_orphaned_turns", recover_orphaned_turns_started_at)
+        cancel_active_turn_started_at = time.perf_counter()
         await self._cancel_active_turn_for_new_request(
             session["id"],
             reason="Cancelled superseded running turn before starting a new turn",
         )
+        setup_stages.record_since("cancel_active_turn", cancel_active_turn_started_at)
+        create_turn_started_at = time.perf_counter()
         try:
             turn = await self.store.create_turn(session["id"], capability=capability)
         except RuntimeError as exc:
@@ -3803,6 +3869,7 @@ class TurnRuntimeManager:
                     f"[turn_runtime] start_turn conflict on session {session['id']}: "
                     "active turn persists after cancel/recovery. Concurrent request detected."
                 ) from retry_exc
+        setup_stages.record_since("create_turn", create_turn_started_at)
         execution = _TurnExecution(
             turn_id=turn["id"],
             session_id=session["id"],
@@ -3810,9 +3877,12 @@ class TurnRuntimeManager:
             payload=dict(payload),
             turn_view=turn,
         )
+        register_execution_started_at = time.perf_counter()
         async with self._lock:
             self._executions[turn["id"]] = execution
+        setup_stages.record_since("register_execution", register_execution_started_at)
         get_turn_runtime_metrics().record_turn_started()
+        publish_session_event_started_at = time.perf_counter()
         await self._persist_and_publish(
             execution,
             StreamEvent(
@@ -3821,6 +3891,8 @@ class TurnRuntimeManager:
                 metadata={"session_id": session["id"], "turn_id": turn["id"]},
             ),
         )
+        setup_stages.record_since("publish_session_event", publish_session_event_started_at)
+        execution.start_turn_setup_stage_timings_ms = setup_stages.snapshot()
         async with self._lock:
             execution.task = asyncio.create_task(self._run_turn(execution))
         return session, turn
@@ -3985,6 +4057,9 @@ class TurnRuntimeManager:
             "interaction_profile": str(
                 (payload.get("config", {}) or {}).get("interaction_profile", "") or ""
             ).strip(),
+            "start_turn_setup_stage_timings_ms": dict(
+                execution.start_turn_setup_stage_timings_ms or {}
+            ),
         }
         await self._persist_and_publish(
             execution,
@@ -5062,9 +5137,33 @@ class TurnRuntimeManager:
                     ),
                 )
                 capability_stream_started_at = time.perf_counter()
+                capability_stream_stage_timings = _TurnLatencyStages()
+                capability_stream_event_counts: dict[str, int] = {}
+
+                def _record_capability_stream_since_once(stage: str) -> None:
+                    if capability_stream_stage_timings.has_stage(stage):
+                        return
+                    capability_stream_stage_timings.record_since(stage, capability_stream_started_at)
+
                 async for event in orch.handle(context):
+                    _record_capability_stream_since_once("first_event")
+                    event_type_name = str(getattr(event.type, "value", event.type) or "").strip()
+                    if event_type_name:
+                        capability_stream_event_counts[event_type_name] = (
+                            capability_stream_event_counts.get(event_type_name, 0) + 1
+                        )
+                    if event_type_name == "content":
+                        _record_capability_stream_since_once("first_content")
+                    elif event_type_name == "result":
+                        _record_capability_stream_since_once("first_result")
+                    elif event_type_name == "tool_call":
+                        _record_capability_stream_since_once("first_tool_call")
+                    elif event_type_name == "tool_result":
+                        _record_capability_stream_since_once("first_tool_result")
                     if event.type == StreamEventType.SESSION:
                         continue
+                    if _event_visibility(event) == _PUBLIC_VISIBILITY:
+                        _record_capability_stream_since_once("first_public_event")
                     event_source = str(event.source or "").strip()
                     if (
                         event_source
@@ -5097,7 +5196,12 @@ class TurnRuntimeManager:
                             dict(event.metadata or {}),
                             result_trace_metadata,
                         )
+                    event_persist_started_at = time.perf_counter()
                     payload_event = await self._persist_and_publish(execution, event)
+                    capability_stream_stage_timings.add_duration(
+                        "event_persist_total",
+                        (time.perf_counter() - event_persist_started_at) * 1000.0,
+                    )
                     if (
                         payload_event.get("type") not in {"done", "session"}
                         and _event_visibility(payload_event) == _PUBLIC_VISIBILITY
@@ -5112,6 +5216,12 @@ class TurnRuntimeManager:
                     elif _should_capture_assistant_content(event):
                         assistant_content += event.content
                 latency_stages.record_since("capability_stream", capability_stream_started_at)
+                trace_metadata["capability_stream_stage_timings_ms"] = (
+                    capability_stream_stage_timings.snapshot()
+                )
+                trace_metadata["capability_stream_event_counts"] = _normalize_non_negative_event_counts(
+                    capability_stream_event_counts
+                )
                 trace_metadata.update(
                     {
                         "active_object": dict(context.metadata.get("active_object", {}) or {}),
