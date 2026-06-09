@@ -313,9 +313,16 @@ def run_ws_shadow(question_id: str, *, user_id: str, runtime_db: Path) -> tuple[
 def next_suggestions(projection: dict[str, Any], read_model: dict[str, Any]) -> dict[str, Any]:
     weaknesses = [
         {"concept_id": c.get("concept_id"), "error_code": c.get("error_code"),
-         "claim": c.get("claim"), "recommended_training": c.get("recommended_training")}
+         "claim": c.get("claim"), "recommended_training": c.get("recommended_training"),
+         "evidence_level": c.get("evidence_level")}
         for c in projection.get("observed_candidates") or []
     ]
+    weaknesses.extend(
+        {"concept_id": c.get("concept_id"), "error_code": c.get("error_code"),
+         "claim": c.get("claim"), "recommended_training": c.get("recommended_training"),
+         "evidence_level": c.get("evidence_level")}
+        for c in read_model.get("weak_points") or []
+    )
     suggestions = [
         {"type": "remediate_weakness", "concept_id": w["concept_id"],
          "why": w["claim"] or w["error_code"], "next_training": w["recommended_training"]}

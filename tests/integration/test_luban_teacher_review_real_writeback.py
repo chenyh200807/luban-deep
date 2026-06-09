@@ -199,8 +199,9 @@ def test_learning_brain_reads_back_weakness_and_mastery(real_service):
     }
     assert "官方术语：专项施工方案" in weakness_concepts
     # the weakness candidate carries a next-step training recommendation (next suggestion).
+    candidates = (read_model.get("weak_points") or []) + (projection.get("observed_candidates") or [])
     exact_candidate = next(
-        c for c in projection["observed_candidates"]
+        c for c in candidates
         if c.get("concept_id") == "官方术语：专项施工方案"
     )
     assert exact_candidate.get("recommended_training")
@@ -215,7 +216,7 @@ def test_non_qa_user_is_fail_closed_no_write(real_service):
     assert not (tmp_path / "learner_state" / NON_QA_STUDENT / "MEMORY_EVENTS.jsonl").exists()
 
 
-def test_ai_draft_without_teacher_review_is_not_written(real_service):
+def test_ai_draft_without_trusted_adjudication_is_not_written(real_service):
     service, tmp_path = real_service
     review = _reviews(QA_STUDENT)[0]
     review = {**review, "teacher_reviewed": False}  # un-reviewed AI draft
@@ -223,5 +224,5 @@ def test_ai_draft_without_teacher_review_is_not_written(real_service):
         review, dry_run=False, learner_state_service=service, user_id=QA_STUDENT
     )
     assert out["writeback_count"] == 0
-    assert out["writeback_skipped_reason"] == "teacher_reviewed_required"
+    assert out["writeback_skipped_reason"] == "trusted_adjudication_required"
     assert not (tmp_path / "learner_state" / QA_STUDENT / "MEMORY_EVENTS.jsonl").exists()

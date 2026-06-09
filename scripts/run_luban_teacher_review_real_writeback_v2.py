@@ -107,6 +107,14 @@ def _next_suggestions(projection: dict[str, Any], read_model: dict[str, Any]) ->
             "evidence_level": c.get("evidence_level"),
             "recommended_training": c.get("recommended_training"),
         })
+    for c in read_model.get("weak_points") or []:
+        weaknesses.append({
+            "concept_id": c.get("concept_id"),
+            "error_code": c.get("error_code"),
+            "claim": c.get("claim"),
+            "evidence_level": c.get("evidence_level"),
+            "recommended_training": c.get("recommended_training"),
+        })
     improvements = [
         {"concept_id": i.get("concept_id"), "claim": i.get("claim")}
         for i in read_model.get("improvement_signals") or []

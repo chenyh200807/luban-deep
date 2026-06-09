@@ -43,7 +43,8 @@ def test_review_is_llm_jury_not_manual_human():
     assert review["review_source"] == "model_jury_teacher_review"
     assert review["review_source"] != "manual_qa_teacher"
     assert review["reviewer_type"] == "llm_jury"
-    assert review["authority_label"] == "model_jury_teacher_final"
+    assert review["authority_label"] == "trusted_adjudication"
+    assert review["requires_human"] is False
     assert set(review["jury_models"]) >= {"gpt55", "opus48", "deepseek_v4", "qwen37"} - {"qwen37"}
     assert len(review["jury_models"]) >= 3  # >=3 real models or stop
     assert "manual_qa_teacher" not in json.dumps(review, ensure_ascii=False)
@@ -58,7 +59,8 @@ def test_jury_metadata_reaches_learning_brain_payload(real_service):
     audit = events[0].payload_json["next_training_signal"]["teacher_review_audit"]
     assert audit["reviewer_type"] == "llm_jury"
     assert audit["review_source"] == "model_jury_teacher_review"
-    assert audit["adjudication_protocol"] == "teacher_review_jury_v0"
+    assert audit["adjudication_protocol"] == "trusted_adjudication_jury_v1"
+    assert audit["authority_label"] == "trusted_adjudication"
     assert set(audit["jury_models"]) and "manual_qa_teacher" not in json.dumps(audit, ensure_ascii=False)
 
 
@@ -95,13 +97,28 @@ def test_needs_human_review_and_high_risk_not_auto_mastery(real_service):
             assert pr["point_id"] not in mastery
 
 
-def test_teacher_reviewed_false_not_written(real_service):
+def test_teacher_reviewed_false_with_trusted_jury_still_writes(real_service):
     service, tmp_path = real_service
     review, _ = build_jury_review(CASE, STUDENT)
     review = {**review, "teacher_reviewed": False}
     out = build_teacher_review_writeback(review, dry_run=False, learner_state_service=service, user_id=QA_USER)
+    assert out["writeback_count"] == 1
+    assert (tmp_path / "learner_state" / QA_USER / "MEMORY_EVENTS.jsonl").exists()
+
+
+def test_missing_trusted_adjudication_not_written(real_service):
+    service, tmp_path = real_service
+    review, _ = build_jury_review(CASE, STUDENT)
+    review = {
+        **review,
+        "teacher_reviewed": False,
+        "review_source": "",
+        "reviewer_type": "",
+        "authority_label": "",
+    }
+    out = build_teacher_review_writeback(review, dry_run=False, learner_state_service=service, user_id=QA_USER)
     assert out["writeback_count"] == 0
-    assert out["writeback_skipped_reason"] == "teacher_reviewed_required"
+    assert out["writeback_skipped_reason"] == "trusted_adjudication_required"
     assert not (tmp_path / "learner_state" / QA_USER / "MEMORY_EVENTS.jsonl").exists()
 
 

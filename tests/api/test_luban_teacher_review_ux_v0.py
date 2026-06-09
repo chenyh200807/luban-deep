@@ -27,12 +27,13 @@ def test_wechat_harness_reuses_existing_teacher_review_writeback_route():
     html = lb.render_learning_brain_harness_html()
 
     assert "/api/v1/learning-brain/harness-case-grading-review" in html
-    assert "teacher_reviewed" in html
+    assert "trusted_adjudication confirmed" in html
+    assert "legacy alias" in html
     assert "dry_run:true" in html
     assert "writeback:false" in html
     assert "dry_run:false" in html
     assert "writeback:true" in html
-    assert "AI shadow draft 不是最终事实" in html
+    assert "不替代正式评分 authority" in html
 
 
 def test_wechat_harness_exports_manual_review_audit_metadata():
@@ -63,8 +64,8 @@ def test_wechat_harness_review_source_is_explicit_selector_not_hardcoded():
         assert f'value="{value}"' in html
     assert 'value="operator_smoke" selected' in html
     assert 'review_source:"manual_qa_teacher"' not in html  # old hardcoded default gone
-    for token in ("reviewer_type", "authority_label", "model_jury_teacher_final",
-                  "operator_smoke_final", "teacher_final", "teacher_review_jury_v0", "llm_jury"):
+    for token in ("reviewer_type", "authority_label", "trusted_adjudication",
+                  "operator_smoke_final", "trusted_adjudication_jury_v1", "llm_jury"):
         assert token in html
 
 
@@ -91,11 +92,11 @@ def test_review_audit_carries_authority_label_and_jury_provenance():
 
     jury = build_teacher_review_writeback(
         {**base, "review_source": "model_jury_teacher_review", "reviewer_type": "llm_jury",
-         "authority_label": "model_jury_teacher_final",
+         "authority_label": "trusted_adjudication",
          "jury_models": ["gpt55", "opus48", "deepseek_v4", "qwen37"],
-         "adjudication_protocol": "teacher_review_jury_v0"}, dry_run=True)
+         "adjudication_protocol": "trusted_adjudication_jury_v1"}, dry_run=True)
     jury_audit = jury["learning_evidence_payload"]["next_training_signal"]["teacher_review_audit"]
     assert jury_audit["reviewer_type"] == "llm_jury"
     assert jury_audit["jury_models"] == ["gpt55", "opus48", "deepseek_v4", "qwen37"]
-    assert jury_audit["adjudication_protocol"] == "teacher_review_jury_v0"
-    assert jury_audit["authority_label"] == "model_jury_teacher_final"
+    assert jury_audit["adjudication_protocol"] == "trusted_adjudication_jury_v1"
+    assert jury_audit["authority_label"] == "trusted_adjudication"

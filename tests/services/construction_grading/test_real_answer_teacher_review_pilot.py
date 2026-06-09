@@ -39,12 +39,12 @@ def test_artifact_missing_sample_is_not_auto_certified() -> None:
     assert record["writeback_candidate"] is False
 
 
-def test_teacher_reviewed_gate_controls_writeback() -> None:
+def test_trusted_adjudication_gate_controls_writeback() -> None:
     blocked = run_real_answer_teacher_review_pilot(teacher_reviewed=False)
 
     assert blocked["writeback_outputs"]
     assert all(item["written_event_count"] == 0 for item in blocked["writeback_outputs"])
-    assert all(item["blocked_reason"] == "teacher_reviewed_required" for item in blocked["writeback_outputs"])
+    assert all(item["blocked_reason"] == "trusted_adjudication_required" for item in blocked["writeback_outputs"])
 
 
 def test_fake_writeback_can_read_back_learning_events() -> None:
@@ -71,7 +71,7 @@ def test_high_risk_unconfirmed_points_do_not_become_mastery() -> None:
     assert all(point["teacher_score"] == 0 for point in high_risk_points)
 
 
-def test_teacher_final_score_overrides_ai_draft() -> None:
+def test_trusted_adjudication_score_overrides_ai_draft() -> None:
     out = run_real_answer_teacher_review_pilot()
 
     override_points = [

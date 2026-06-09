@@ -214,13 +214,13 @@ def render_learning_brain_harness_html() -> str:
       <input id="aiStudent" placeholder="如 S2">
       <label for="writebackUserId">writeback user_id（QA/test 文件后端，和缓存 student_id 分离）</label>
       <input id="writebackUserId" value="qa_luban_teacher_review_manual_v0">
-      <label for="reviewSource">review_source（复核来源 authority；本地 QA 默认 operator_smoke，不冒充真人）</label>
+      <label for="reviewSource">trusted_adjudication source（本地 QA 默认 operator_smoke，不冒充真人）</label>
       <select id="reviewSource">
         <option value="operator_smoke" selected>Operator Smoke（工程验证，非真人结论）</option>
-        <option value="model_jury_teacher_review">LLM Jury（四模型复核，非真人）</option>
-        <option value="manual_qa_teacher">Manual QA Teacher（真人 QA 老师）</option>
+        <option value="model_jury_teacher_review">AI Jury Trusted Adjudication（四模型裁决，非真人）</option>
+        <option value="manual_qa_teacher">Manual QA Review（兼容来源，非主链路命名）</option>
       </select>
-      <label for="reviewerId">reviewer_id（QA 老师/复核人）</label>
+      <label for="reviewerId">reviewer_id（QA/operator/adjudicator）</label>
       <input id="reviewerId" placeholder="如 qa_teacher_01">
       <label for="aiAnswer">学生案例题作答（DeepSeek Fast 评此答案；Best-Quality 评 golden 答案）</label>
       <textarea id="aiAnswer" placeholder="粘贴一建《建筑实务》案例题答案…"></textarea>
@@ -233,8 +233,8 @@ def render_learning_brain_harness_html() -> str:
       <div id="writebackOut" class="panel" style="display:none;margin-top:12px;background:#f0fdf4;border-color:#bbf7d0;"></div>
       <div id="nextSuggestionPreview" class="panel next-suggestion" style="display:none;margin-top:12px;"></div>
       <div id="teacherReviewPanel" class="review-box" style="display:none;">
-        <label><input id="teacherReviewedCheckbox" type="checkbox"> teacher_reviewed=true（兼容字段；AI jury / operator / human 的可信最终裁决才可写 Learning Brain）</label>
-        <div class="meta">teacher_final_score preview: <b id="teacherFinalScorePreview">0</b></div>
+        <label><input id="teacherReviewedCheckbox" type="checkbox"> trusted_adjudication confirmed（旧 teacher_reviewed 仅作 legacy alias）</label>
+        <div class="meta">trusted adjudication score preview: <b id="teacherFinalScorePreview">0</b></div>
       </div>
       <div id="aiPoints"></div>
     </section>
@@ -368,7 +368,7 @@ def render_learning_brain_harness_html() -> str:
         + "<div class='score-card'>模型草稿分<b>"+escAi(d.model_draft_score)+"</b></div>"
         + "<div class='score-card'>自动认证分<b>"+escAi(d.auto_certified_score)+"</b></div>"
         + "<div class='score-card' style='background:#fffbeb'>待复核分<b>"+escAi(d.pending_review_score)+"</b></div>"
-        + "<div class='score-card'>teacher-final预览<b id='teacherFinalScorePreviewMirror'>0</b></div>"
+        + "<div class='score-card'>trusted裁决预览<b id='teacherFinalScorePreviewMirror'>0</b></div>"
         + "<div class='score-card'>bad_certified<b>"+escAi(d.bad_certified_count)+"</b></div>"
         + "</div>"
         + "<div class='meta'>auto_certified "+(counts.auto_certified||0)+" · pending_review "+(counts.pending_review||0)+" · unsupported "+(counts.unsupported||0)+" · 待复核分为复核分非0</div>";
@@ -380,7 +380,7 @@ def render_learning_brain_harness_html() -> str:
         const cls = p.display_status==="auto_certified" ? "st-auto" : (p.display_status==="unsupported" ? "st-unsupported" : "st-pending");
         const bdg = p.display_status==="auto_certified" ? "b-auto" : (p.display_status==="unsupported" ? "b-unsupported" : "b-pending");
         const reviewAction = defaultReviewAction(p, g);
-        const pendingText = reviewAction ? "" : "<span class='review-pending'>pending teacher review</span>";
+        const pendingText = reviewAction ? "" : "<span class='review-pending'>pending trusted adjudication</span>";
         const votes = p.model_votes ? Object.keys(p.model_votes).map(m=>m.toUpperCase()+":"+escAi(p.model_votes[m].hit)).join(" / ") : "";
         return "<div class='pt "+cls+"' data-idx='"+idx+"'>"
           + "<div><span class='badge "+bdg+"'>"+escAi(p.display_status)+"</span> "
@@ -394,7 +394,7 @@ def render_learning_brain_harness_html() -> str:
           + "<div class='ev evidence-span'>证据: "+highlightSpan(answer, p.evidence_span)+"</div>"
           + "<div class='meta'>理由: "+escAi(p.rationale)+(p.review_reason ? (" · review_reason: "+escAi(p.review_reason)) : "")+"</div>"
           + "<div class='meta'>默认复核状态: "+(reviewAction ? "<b>confirm</b>" : pendingText)+"</div>"
-          + "<div class='tr-row'>老师复核: "
+          + "<div class='tr-row'>可信裁决: "
           + "<select class='tr-action' data-review-action><option value=''>pending</option><option value='confirm' "+(reviewAction==="confirm"?"selected":"")+">confirm AI</option><option value='override'>override</option></select>"
           + "<select class='tr-hit' data-teacher-hit><option value=''>teacher_hit</option><option value='hit'>hit</option><option value='partial'>partial</option><option value='miss'>miss</option></select>"
           + "<input class='tr-score' data-teacher-score type='number' min='0' max='"+escAi(p.max_score)+"' step='0.1' placeholder='teacher_score'>"
@@ -424,8 +424,8 @@ def render_learning_brain_harness_html() -> str:
       return {engine:d.engine||"deepseek_fast", authority:d.authority, prediction_source:d.prediction_source||null,
         teacher_reviewed:document.getElementById("teacherReviewedCheckbox").checked, case_id:d.case_id, student_id:(document.getElementById("aiStudent").value.trim()||"S1"),
         ...(()=>{const s=(document.getElementById("reviewSource")||{}).value||"operator_smoke";
-          const M={manual_qa_teacher:{reviewer_type:"human_qa_teacher",authority_label:"teacher_final",jury_models:[],adjudication_protocol:""},
-            model_jury_teacher_review:{reviewer_type:"llm_jury",authority_label:"model_jury_teacher_final",jury_models:["gpt55","opus48","deepseek_v4","qwen37"],adjudication_protocol:"teacher_review_jury_v0"},
+          const M={manual_qa_teacher:{reviewer_type:"manual_qa",authority_label:"trusted_adjudication",jury_models:[],adjudication_protocol:""},
+            model_jury_teacher_review:{reviewer_type:"llm_jury",authority_label:"trusted_adjudication",jury_models:["gpt55","opus48","deepseek_v4","qwen37"],adjudication_protocol:"trusted_adjudication_jury_v1"},
             operator_smoke:{reviewer_type:"operator",authority_label:"operator_smoke_final",jury_models:[],adjudication_protocol:""}};
           const p=M[s]||M.operator_smoke;
           return {review_source:s,reviewer_type:p.reviewer_type,authority_label:p.authority_label,jury_models:p.jury_models,adjudication_protocol:p.adjudication_protocol};})(),
@@ -465,7 +465,7 @@ def render_learning_brain_harness_html() -> str:
     }
     async function writebackNow(){
       if(!aiDraftState){ alert("先运行 AI-Draft"); return; }
-      if(!document.getElementById("teacherReviewedCheckbox").checked && document.getElementById("reviewSource").value !== "model_jury_teacher_review"){ alert("请先提供 teacher_reviewed=true 或选择 LLM Jury 可信裁决"); return; }
+      if(!document.getElementById("teacherReviewedCheckbox").checked && document.getElementById("reviewSource").value !== "model_jury_teacher_review"){ alert("请先提供 trusted_adjudication，或选择 AI Jury 可信裁决"); return; }
       const out = document.getElementById("writebackOut");
       const next = document.getElementById("nextSuggestionPreview");
       out.style.display = "block"; out.innerHTML = "<div class='meta'>QA/test 写入中…</div>";
@@ -477,7 +477,7 @@ def render_learning_brain_harness_html() -> str:
         if(!res.ok){ const t=await res.text(); throw new Error("HTTP "+res.status+" "+t.slice(0,180)); }
         const r = await res.json();
         const s = r.point_event_summary||{};
-        out.innerHTML = "<b>Teacher-final 写回结果</b>"
+        out.innerHTML = "<b>Trusted adjudication 写回结果</b>"
           + "<div class='meta'>authority="+escAi(r.authority)+" · dry_run="+r.dry_run+" · writeback_performed="+r.writeback_performed+" · events="+r.learner_memory_event_count+"</div>"
           + "<div class='meta'>override "+(s.overridden||0)+" · confirm "+(s.confirmed||0)+" · mastery "+(s.mastery_eligible||0)+" · skipped "+(r.skipped_points||[]).length+"</div>";
         next.style.display = "block";
@@ -724,7 +724,7 @@ async def run_learning_brain_teacher_review_writeback(payload: TeacherReviewWrit
         if not row.get("mastery_eligible")
     ]
     return {
-        "authority": "teacher_reviewed_grading",
+        "authority": "trusted_adjudication",
         "qa_gated": True,
         "dry_run": result.get("dry_run", True),
         "writeback_performed": do_write and memory_event_count > 0,
@@ -738,13 +738,13 @@ async def run_learning_brain_teacher_review_writeback(payload: TeacherReviewWrit
         "write_plan": plan,
         "learning_evidence_payload_preview": result.get("learning_evidence_payload"),
         "memory_write_policy": {
-            "ai_draft_without_teacher_review": "not_written",
-            "high_risk_without_teacher_review": "downweighted_not_mastery",
-            "unsupported_without_teacher_review": "downweighted_not_mastery",
+            "ai_draft_without_legacy_teacher_review": "not_written",
+            "high_risk_without_legacy_teacher_review": "downweighted_not_mastery",
+            "unsupported_without_legacy_teacher_review": "downweighted_not_mastery",
             "ai_draft_without_trusted_adjudication": "not_written",
             "high_risk_without_trusted_adjudication": "downweighted_not_mastery",
             "unsupported_without_trusted_adjudication": "downweighted_not_mastery",
-            "teacher_reviewed": "compat_eligible",
+            "legacy_teacher_reviewed": "compat_alias_only",
             "ai_jury_adjudicated": "eligible_when_confident_and_resolved",
         },
         "note": "Trusted final adjudication is the higher authority; AI-Draft alone is never written. Reuses existing learning_evidence/learner_memory_events; no new table.",

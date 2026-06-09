@@ -1,11 +1,11 @@
-"""Tests for Stream C — teacher-review writeback preview (dry-run first).
+"""Tests for Stream C — trusted-adjudication writeback preview (dry-run first).
 
 Authority rules under test:
-  - auto_certified points (teacher confirm OR AI auto_certified not overturned by
-    an override) may generate confident mastery evidence.
+  - auto_certified points (trusted confirm OR AI auto_certified not overturned
+    by an override) may generate confident mastery evidence.
   - high_risk / unsupported points must NOT become confident mastery evidence —
     they are downweighted / marked non-mastery, never counted as correct.
-  - teacher override覆盖 AI draft: final hit/score uses teacher_hit/teacher_score.
+  - trusted override覆盖 AI draft: final hit/score uses legacy teacher_hit/teacher_score.
   - dry_run (default) never touches a DB; learner_state_service=None must not raise.
   - pure-function conversion: no new table, reuses build_learning_evidence_payload.
 """
@@ -264,6 +264,8 @@ def test_writeback_when_explicitly_enabled_calls_service() -> None:
     assert point_events[0]["mastery_eligible"] is False
     assert point_events[0]["diagnosis"] == "缺少规范术语"
     teacher_final = payload["next_training_signal"]["teacher_final_grading_result"]
+    assert teacher_final["adjudication_authority"] == "trusted_adjudication"
+    assert teacher_final["legacy_aliases"]["teacher_final_grading_result"] is True
     assert teacher_final["teacher_reviewed"] is True
     assert teacher_final["points"][0]["point_id"] == "P1"
     assert teacher_final["points"][0]["final_hit"] == "miss"
@@ -417,9 +419,13 @@ def test_ai_jury_final_adjudication_can_write_without_human_teacher_review() -> 
     signal = payload["next_training_signal"]
     assert signal["final_adjudication_result"]["trusted_adjudication"]["source"] == "llm_jury"
     assert signal["final_adjudication_result"]["trusted_adjudication"]["requires_human"] is False
+    assert signal["trusted_adjudication"]["source"] == "llm_jury"
     assert signal["teacher_final_grading_result"] == signal["final_adjudication_result"]
-    assert payload["quality"]["teacher_reviewed"] is True
-    assert payload["quality"]["teacher_review_authority"] == "trusted_adjudication"
+    assert payload["quality"]["adjudication_authority"] == "trusted_adjudication"
+    assert payload["quality"]["evidence_level"] == "L2_confirmed"
+    assert "teacher_reviewed" not in payload["quality"]
+    assert "teacher_review_authority" not in payload["quality"]
+    assert payload["quality"]["legacy_aliases"]["teacher_reviewed"] is True
     assert payload["quality"]["trusted_adjudication"]["source"] == "llm_jury"
 
 

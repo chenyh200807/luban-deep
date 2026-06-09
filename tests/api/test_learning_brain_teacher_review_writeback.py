@@ -59,7 +59,7 @@ def test_dry_run_default_does_not_write(monkeypatch):
     assert b["dry_run"] is True and b["writeback_performed"] is False
     assert b["learner_memory_event_count"] == 0
     assert isinstance(b["skipped_points"], list)
-    assert b["authority"] == "teacher_reviewed_grading"
+    assert b["authority"] == "trusted_adjudication"
     assert isinstance(b["learning_evidence_payload_preview"], dict)
 
 
@@ -79,7 +79,7 @@ def test_high_risk_without_review_is_downweighted_not_mastery(monkeypatch):
         b = client.post("/api/v1/learning-brain/harness-case-grading-review", json={"review": _review()}).json()
     plan = {r["point_id"]: r for r in b["write_plan"]}
     assert plan["P5"]["mastery_eligible"] is False
-    assert b["memory_write_policy"]["high_risk_without_teacher_review"].startswith("downweighted")
+    assert b["memory_write_policy"]["high_risk_without_trusted_adjudication"].startswith("downweighted")
 
 
 def test_writeback_blocked_without_trusted_adjudication(monkeypatch):
@@ -119,6 +119,8 @@ def test_ai_jury_final_adjudication_is_accepted_without_teacher_reviewed(monkeyp
     assert r.status_code == 200
     preview = r.json()["learning_evidence_payload_preview"]
     assert preview["next_training_signal"]["final_adjudication_result"]["trusted_adjudication"]["source"] == "llm_jury"
+    assert preview["quality"]["adjudication_authority"] == "trusted_adjudication"
+    assert "teacher_reviewed" not in preview["quality"]
     assert preview["quality"]["trusted_adjudication"]["source"] == "llm_jury"
 
 
@@ -196,7 +198,8 @@ def test_manual_review_audit_metadata_is_preserved_in_preview(monkeypatch):
     review.update(
         {
             "review_source": "manual_qa_teacher",
-            "authority_label": "teacher_final",
+            "reviewer_type": "manual_qa",
+            "authority_label": "trusted_adjudication",
             "reviewer_id": "qa_reviewer_01",
             "reviewed_at": "2026-06-04T12:00:00+08:00",
             "review_duration_seconds": 184,
@@ -212,10 +215,15 @@ def test_manual_review_audit_metadata_is_preserved_in_preview(monkeypatch):
     signal = preview["next_training_signal"]
     assert signal["teacher_review_audit"] == {
         "review_source": "manual_qa_teacher",
-        "authority_label": "teacher_final",
+        "authority_label": "trusted_adjudication",
         "reviewer_id": "qa_reviewer_01",
         "reviewed_at": "2026-06-04T12:00:00+08:00",
         "review_duration_seconds": 184,
         "review_ui_version": "teacher_review_ux_v0",
+        "reviewer_type": "manual_qa",
+        "jury_models": [],
+        "adjudication_protocol": "",
+        "confidence": 0.0,
+        "conflict_status": "resolved",
     }
     assert signal["teacher_final_grading_result"]["teacher_review_audit"]["reviewer_id"] == "qa_reviewer_01"

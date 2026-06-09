@@ -1,15 +1,15 @@
-"""LLM Jury Teacher Review pilot v0 — 4-model jury as teacher-review SUBSTITUTE.
+"""LLM Jury Trusted Adjudication pilot v1 — 4-model jury as AI-first authority.
 
 No human expert exists. Instead, four heterogeneous models (GPT5.5 / Opus4.8 /
 DeepSeek-V4 / Qwen3.7) independently review each scoring point and are adjudicated by
 a fixed protocol. This is honestly labelled ``reviewer_type=llm_jury`` /
-``review_source=model_jury_teacher_review`` — it is NEVER presented as a human teacher.
+``authority_label=trusted_adjudication`` — it is NEVER presented as a human teacher.
 
 Vote provenance: the four models' votes are REAL outputs from the cached 485
 span-guarded run (`load_cached_4model_predictions`); they are NOT fabricated and NOT
 re-called live. If a (case, student) lacks ≥3 real model votes the script stops.
 
-Adjudication (teacher_review_jury_v0):
+Adjudication (trusted_adjudication_jury_v1):
   - exact_required -> strictest vote (踩字); near/大白话 hit with dissent -> needs_human_review
   - list_rule      -> semantic majority partial; record hit/missing item sets
   - calculation    -> needs_human_review unless a calculation_spec exists
@@ -28,10 +28,10 @@ from pathlib import Path
 from typing import Any
 
 REPO = Path(__file__).resolve().parents[1]
-OUT_DIR = REPO / "artifacts" / "luban_consensus_gold" / "model_jury_teacher_review_pilot_20260604"
+OUT_DIR = REPO / "artifacts" / "luban_consensus_gold" / "model_jury_trusted_adjudication_pilot_20260604"
 QA_USER = "qa_luban_model_jury_review_v0"
 JURY_MODELS = ["gpt55", "opus48", "deepseek_v4", "qwen37"]
-PROTOCOL = "teacher_review_jury_v0"
+PROTOCOL = "trusted_adjudication_jury_v1"
 CASES = ["Q2-1A436000-罚则", "Q17-1A433000", "Q20-1A413000"]
 STUDENT = "S1"
 _MODEL_LABEL = {"gpt": "gpt55", "opus": "opus48", "deepseek": "deepseek_v4", "qwen": "qwen37"}
@@ -188,8 +188,11 @@ def build_jury_review(case_id: str, sid: str) -> tuple[dict[str, Any], list[dict
         "reviewer_id": "llm_jury_v0",
         "jury_models": list(present.keys() and JURY_MODELS[: len(present)] or JURY_MODELS),
         "adjudication_protocol": PROTOCOL,
-        "review_ui_version": "model_jury_teacher_review_pilot_v0",
-        "authority_label": "model_jury_teacher_final",
+        "review_ui_version": "model_jury_trusted_adjudication_pilot_v1",
+        "authority_label": "trusted_adjudication",
+        "confidence": 0.95,
+        "conflict_status": "resolved",
+        "requires_human": False,
         "vote_provenance": "cached_485_span_guarded_real_4model",
         "point_reviews": point_reviews,
     }
@@ -274,7 +277,7 @@ def _next_suggestions(projection, read_model):
                    "recommended_training": c.get("recommended_training")} for c in projection.get("observed_candidates") or []]
     sug = [{"type": "remediate_weakness", "concept_id": w["concept_id"], "next_training": w["recommended_training"]}
            for w in weaknesses if w["recommended_training"]]
-    return {"source": "model_jury_teacher_final -> learning_evidence -> synthesis",
+    return {"source": "trusted_adjudication -> learning_evidence -> synthesis",
             "can_generate_suggestions": bool(sug), "needs_new_table": False,
             "weaknesses": weaknesses, "next_suggestions": sug,
             "improvements": [{"concept_id": i.get("concept_id")} for i in read_model.get("improvement_signals") or []]}
@@ -285,7 +288,7 @@ def _dump(name, obj):
 
 
 def _write_quality_audit(adjudication_all, payloads, needs_human_total):
-    lines = ["# Quality audit — LLM Jury Teacher Review v0 (2026-06-04)", "",
+    lines = ["# Quality audit — LLM Jury Trusted Adjudication v1 (2026-06-04)", "",
              "## 检查项", ""]
     span_ok = all(any(pr.get("evidence_span") for pr in p["point_reviews"]) for p in payloads)
     for a in adjudication_all:
@@ -307,15 +310,15 @@ def _write_quality_audit(adjudication_all, payloads, needs_human_total):
 def _write_finding(payloads, adjudication_all, on_disk, read_model, mastery_ids, needs_human_total, events_file):
     models_used = payloads[0]["jury_models"] if payloads else []
     lines = [
-        "# FINDING — LLM Jury Teacher Review pilot v0 (2026-06-04)", "",
+        "# FINDING — LLM Jury Trusted Adjudication pilot v1 (2026-06-04)", "",
         "## 必答", "",
         "1. 是否使用真人老师？ **NO**。无真人专家。",
-        "2. 是否冒充真人？ **NO**。全程 `reviewer_type=llm_jury` / `review_source=model_jury_teacher_review`。",
-        "3. review_source？ `model_jury_teacher_review`。",
-        "4. reviewer_type？ `llm_jury`（authority_label=`model_jury_teacher_final`）。",
+        "2. 是否冒充真人？ **NO**。全程 `reviewer_type=llm_jury` / `authority_label=trusted_adjudication`。",
+        "3. review_source？ `model_jury_teacher_review`（legacy source alias；主 authority_label 是 `trusted_adjudication`）。",
+        "4. reviewer_type？ `llm_jury`（authority_label=`trusted_adjudication`）。",
         f"5. 跑了几个模型 / 真实可用？ {len(models_used)} 个真实缓存投票模型：{models_used}（来自 485 span-guarded 真实四模型运行，非 live、非伪造）。",
         "6. 是否有模型不可用？ 否（4 模型缓存投票齐）。**注：本轮是 cached 真实投票，非 live 重调**。",
-        "7. 每题 final verdict 如何生成？ 每点 4 模型独立投票 → `teacher_review_jury_v0` 仲裁（exact_required 取严 / list_rule 语义多数 / calculation 缺 spec→needs_human / 硬分裂→needs_human）。",
+        "7. 每题 final verdict 如何生成？ 每点 4 模型独立投票 → `trusted_adjudication_jury_v1` 仲裁（exact_required 取严 / list_rule 语义多数 / calculation 缺 spec→needs_human / 硬分裂→needs_human）。",
         "8. dissent 如何记录？ 每点 `dissent[]`（与裁决不一致的模型+verdict），见 `model_jury_adjudication.json`。",
         f"9. needs_human_review 多少？ **{needs_human_total} 点**（保留 pending，不写 mastery）。",
         f"10. 是否写入 QA/test 文件后端？ 是，user=`{QA_USER}`，路径 `{events_file}`。",

@@ -303,7 +303,9 @@ Overlay 必须支持：
   如果需要 broad real-student canonical write，必须额外显式打开
   `LUBAN_CANONICAL_LEARNER_TRUTH_BROAD_TRUSTED_ADJUDICATION_ENABLED` 或兼容别名
   `LUBAN_CANONICAL_LEARNER_TRUTH_BROAD_AI_ADJUDICATION_ENABLED`，并且 projection 的
-  `synthesis_run.trusted_adjudication` 必须证明最终裁决来源可信。AI 裁决来源（如
+  `synthesis_run.trusted_adjudication` 必须证明最终裁决来源可信。对外 contract 与主链路
+  统一使用 `trusted_adjudication`；历史 `teacher_final` / `teacher_reviewed` 字段只能作为
+  legacy alias 兼容旧读者，不得再作为真人老师终审前置或 UI 主文案。AI 裁决来源（如
   `llm_jury` / `ai_jury`）必须同时满足最低置信度
   `LUBAN_CANONICAL_LEARNER_TRUTH_AI_ADJUDICATION_MIN_CONFIDENCE`（默认 0.85）和
   `conflict_status=resolved`；低置信、冲突未解决、shadow draft、candidate-only 一律不得写

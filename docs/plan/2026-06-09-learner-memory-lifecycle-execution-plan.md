@@ -52,6 +52,7 @@ Subagent review found Tasks 1-6 are implemented and locally tested. The remainin
 - Do not let raw chat text become long-term truth without a learning-signal extractor.
 - Do not let LLM-only subjective judgement write canonical truth.
 - Do not remove teacher-final compatibility fields in one step; demote them behind `trusted_adjudication`.
+- Do not present `teacher_final` / `teacher_reviewed` as the external or main-chain authority; they are legacy aliases only. AI-first trusted adjudication is the production naming and policy surface.
 - Do not enable broad production canonical writes until test2 evidence proves write/readback safety.
 
 ## Single Authority
@@ -356,7 +357,8 @@ But assert the primary path is:
 ```python
 assert signal["final_adjudication_result"]
 assert signal["trusted_adjudication"]
-assert payload["quality"]["teacher_review_authority"] == "trusted_adjudication"
+assert payload["quality"]["adjudication_authority"] == "trusted_adjudication"
+assert "teacher_reviewed" not in payload["quality"]
 ```
 
 For certified policy evidence, assert no teacher fields:

@@ -443,12 +443,8 @@ def _canonical_topic_concept_id(payload: dict[str, Any]) -> str:
 
 
 def _learning_item_evidence_level(*, quality: dict[str, Any], signal: dict[str, Any]) -> str:
-    teacher_final = (
-        signal.get("teacher_final_grading_result")
-        if isinstance(signal.get("teacher_final_grading_result"), dict)
-        else {}
-    )
-    if quality.get("teacher_reviewed") is True and teacher_final.get("teacher_reviewed") is True:
+    trusted = trusted_adjudication_from_quality(quality, signal)
+    if trusted and trusted.get("requires_human") is not True:
         return "L2_confirmed"
     return _clean_text(quality.get("evidence_level"))
 

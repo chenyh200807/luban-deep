@@ -593,15 +593,24 @@ def compute_quality_signals(payload: dict[str, Any]) -> dict[str, Any]:
         if isinstance(teacher_final.get("trusted_adjudication"), dict)
         else {}
     )
+    if not trusted_adjudication and teacher_final.get("teacher_reviewed") is True:
+        trusted_adjudication = {
+            "source": "teacher_final",
+            "confidence": 1.0,
+            "conflict_status": "resolved",
+            "requires_human": False,
+            "legacy_alias": True,
+        }
     has_governed_certified_authority = payload_has_governed_certified_grading_authority(payload)
     if certified_grading_policy_from_payload(payload) and not has_governed_certified_authority:
         cap_reasons.append("certified_grading_policy_requires_governed_release_authority")
     if _clean_text(trusted_adjudication.get("source")) == "certified_grading_policy" and not has_governed_certified_authority:
         trusted_adjudication = {}
+    trusted_source = str(trusted_adjudication.get("source") or "").strip()
     trusted_reviewed = bool(
-        teacher_final.get("teacher_reviewed") is True
-        or trusted_adjudication.get("eligible") is True
-        or str(trusted_adjudication.get("source") or "").strip()
+        trusted_adjudication.get("eligible") is True
+        or trusted_source == "certified_grading_policy"
+        or trusted_adjudication.get("legacy_alias") is True
     )
     if trusted_reviewed:
         cap_reasons = [reason for reason in cap_reasons if reason != "missing_rag_evidence"]
@@ -664,13 +673,15 @@ def compute_quality_signals(payload: dict[str, Any]) -> dict[str, Any]:
     }
     if trusted_reviewed:
         source = _clean_text(trusted_adjudication.get("source"))
+        quality["evidence_level"] = "L2_confirmed"
+        quality["stable_truth_eligible"] = True
+        quality["adjudication_authority"] = "trusted_adjudication"
         if source == "certified_grading_policy":
-            quality["evidence_level"] = "L2_confirmed"
-            quality["stable_truth_eligible"] = True
-            quality["adjudication_authority"] = "trusted_adjudication"
-        else:
-            quality["teacher_reviewed"] = True
-            quality["teacher_review_authority"] = "trusted_adjudication"
+            quality["certified_grading_policy_authority"] = True
+        quality["legacy_aliases"] = {
+            "teacher_reviewed": True,
+            "teacher_review_authority": "trusted_adjudication",
+        }
         quality["trusted_adjudication"] = {
             key: value
             for key, value in dict(trusted_adjudication or {}).items()

@@ -269,20 +269,22 @@ def test_synthesis_outputs_p0_claim_lifecycle_states() -> None:
     assert repeated_projection["weak_points"][0]["lifecycle"]["status"] == "repeated"
 
 
-def test_teacher_final_single_error_promotes_to_confirmed_claim() -> None:
+def test_trusted_adjudication_single_error_promotes_to_confirmed_claim() -> None:
     event = _learning_event(
-        "teacher_final_evt",
+        "trusted_adjudication_evt",
         quality={
-            "evidence_level": "L0_observed",
+            "evidence_level": "L2_confirmed",
             "writeback_eligible": True,
-            "teacher_reviewed": True,
-            "teacher_review_authority": "teacher_final_grading_result",
+            "adjudication_authority": "trusted_adjudication",
+            "trusted_adjudication": {
+                "source": "llm_jury",
+                "confidence": 0.92,
+                "conflict_status": "resolved",
+                "requires_human": False,
+            },
         },
     )
-    event.payload_json["next_training_signal"]["teacher_final_grading_result"] = {
-        "teacher_reviewed": True,
-        "points": [{"point_id": "r1", "mastery_eligible": False}],
-    }
+    event.payload_json["next_training_signal"]["trusted_adjudication"] = event.payload_json["quality"]["trusted_adjudication"]
 
     projection = synthesize_learning_truth([event])
 
@@ -293,6 +295,7 @@ def test_teacher_final_single_error_promotes_to_confirmed_claim() -> None:
     assert weak["evidence_level"] == "L2_confirmed"
     assert weak["claim_status"] == "confirmed"
     assert weak["lifecycle"]["status"] == "confirmed"
+    assert projection["synthesis_run"]["trusted_adjudication"]["source"] == "llm_jury"
 
 
 def test_real_retest_improvement_decays_teacher_final_confirmed_claim() -> None:

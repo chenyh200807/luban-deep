@@ -135,7 +135,7 @@ def run_real_answer_teacher_review_pilot(
             blocked_reason = ""
         else:
             writeback = {"dry_run": True, "writeback_count": 0}
-            blocked_reason = "teacher_reviewed_required"
+            blocked_reason = "trusted_adjudication_required"
 
         written_count = int(writeback.get("writeback_count", 0))
         new_events = service.events[-written_count:] if written_count else []
@@ -295,14 +295,19 @@ def _build_teacher_review(
             "teacher_hit": teacher_hit,
             "teacher_score": teacher_score,
             "teacher_note": teacher_note,
-            "reviewer_type": "pilot_teacher_review",
+            "reviewer_type": "pilot_trusted_adjudication",
         })
     return {
         "engine": "best_quality_4model",
-        "authority": "teacher_reviewed_grading",
+        "authority": "trusted_adjudication",
         "prediction_source": draft.get("prediction_source"),
         "teacher_reviewed": bool(teacher_reviewed),
-        "reviewer_type": "pilot_teacher_review",
+        "review_source": "manual_qa_teacher",
+        "reviewer_type": "manual_qa",
+        "authority_label": "trusted_adjudication",
+        "confidence": 1.0,
+        "conflict_status": "resolved",
+        "requires_human": False,
         "case_id": spec["case_id"],
         "student_id": spec["student_id"],
         "pilot_user_id": spec["pilot_user_id"],

@@ -1,9 +1,9 @@
-"""Stream C — teacher-review writeback preview (dry-run first, no second memory).
+"""Stream C — trusted-adjudication writeback preview (dry-run first, no second memory).
 
-A QA reviewer adjudicates an AI draft (``engine="best_quality_4model"``) point by
-point. This module turns that review JSON into the EXISTING learning_evidence
-payload — it owns NO grading authority and creates NO new table / no second
-memory store. It reuses:
+An AI jury, operator QA, or legacy review alias adjudicates an AI draft
+(``engine="best_quality_4model"``) point by point. This module turns that
+adjudication JSON into the EXISTING learning_evidence payload — it owns NO
+grading authority and creates NO new table / no second memory store. It reuses:
 
   - ``CaseGradingResult`` / ``CaseRubricItemResult`` (schema.py)
   - ``build_learning_evidence_payload`` (learning_evidence.py)
@@ -16,9 +16,10 @@ Authority rules (hard):
     and it is NOT high_risk / unsupported — UNLESS a trusted override upgrades it.
   - high_risk / unsupported points are downweighted: awarded_score=0, status
     never ``full``, mastery_eligible=False. They are never counted as correct.
-  - ``review_action == "override"`` -> teacher_hit / teacher_score replace AI's;
-    a teacher override is the higher authority and may upgrade an AI high_risk
-    point to mastery.
+  - ``review_action == "override"`` -> reviewer_hit / reviewer_score
+    (legacy input names: teacher_hit / teacher_score) replace AI's; a trusted
+    override is the higher authority and may upgrade an AI high_risk point to
+    mastery.
   - Default ``dry_run=True``: pure conversion, returns the payload + write_plan,
     never calls the DB. ``learner_state_service=None`` is always safe.
 """
@@ -74,6 +75,11 @@ def build_teacher_review_writeback(
     final_adjudication_result = {
         "case_id": case_id,
         "student_id": student_id,
+        "adjudication_authority": "trusted_adjudication",
+        "legacy_aliases": {
+            "teacher_reviewed": teacher_reviewed,
+            "teacher_final_grading_result": True,
+        },
         "teacher_reviewed": teacher_reviewed,
         "trusted_adjudication": trusted_adjudication,
         "teacher_review_audit": review_audit,
@@ -113,7 +119,7 @@ def build_teacher_review_writeback(
         session_id=student_id,
     )
     if trusted_reviewed:
-        _mark_teacher_reviewed_quality(payload, trusted_adjudication)
+        _mark_trusted_adjudication_quality(payload, trusted_adjudication)
 
     result: dict[str, Any] = {
         "dry_run": bool(dry_run),
@@ -340,7 +346,7 @@ def review_has_trusted_adjudication(review_json: dict[str, Any]) -> bool:
     return bool(_trusted_adjudication(review_json, _review_audit(review_json)).get("eligible"))
 
 
-def _mark_teacher_reviewed_quality(payload: dict[str, Any], trusted_adjudication: dict[str, Any]) -> None:
+def _mark_trusted_adjudication_quality(payload: dict[str, Any], trusted_adjudication: dict[str, Any]) -> None:
     quality = dict(payload.get("quality") or {})
     cap_reasons = [
         reason
@@ -348,8 +354,13 @@ def _mark_teacher_reviewed_quality(payload: dict[str, Any], trusted_adjudication
         if _text(reason) != "missing_rag_evidence"
     ]
     quality["evidence_cap_reasons"] = cap_reasons
-    quality["teacher_reviewed"] = True
-    quality["teacher_review_authority"] = "trusted_adjudication"
+    quality["evidence_level"] = "L2_confirmed"
+    quality["stable_truth_eligible"] = True
+    quality["adjudication_authority"] = "trusted_adjudication"
+    quality["legacy_aliases"] = {
+        "teacher_reviewed": True,
+        "teacher_review_authority": "trusted_adjudication",
+    }
     quality["trusted_adjudication"] = {
         key: value
         for key, value in dict(trusted_adjudication or {}).items()
@@ -409,7 +420,7 @@ def _trusted_adjudication(review_json: dict[str, Any], review_audit: dict[str, A
             "conflict_status": conflict_status,
             "requires_human": requires_human,
         }
-    if source in {"operator", "operator_smoke", "operator_soak", "human_qa_teacher", "manual_qa_teacher", "teacher_final"}:
+    if source in {"operator", "operator_smoke", "operator_soak", "manual_qa", "human_qa_teacher", "manual_qa_teacher", "teacher_final"}:
         return {
             "eligible": True,
             "source": source,
