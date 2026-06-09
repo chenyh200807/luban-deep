@@ -1130,6 +1130,7 @@ class TutorBotManager:
                         "v1_case_graded",
                         "score_authority",
                         "grading_rubric_provenance",
+                        "llm_stream_telemetry",
                     ):
                         if metadata_key in runtime_metadata:
                             trace_metadata[metadata_key] = runtime_metadata[metadata_key]
@@ -1246,6 +1247,7 @@ class TutorBotManager:
                             "grading_rubric_provenance",
                             "luban_general_knowledge_context",
                             "luban_general_knowledge_context_status",
+                            "llm_stream_telemetry",
                         ):
                             if metadata_key in runtime_metadata:
                                 update_metadata[metadata_key] = runtime_metadata[metadata_key]

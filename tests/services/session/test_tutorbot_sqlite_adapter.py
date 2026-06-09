@@ -667,6 +667,21 @@ async def test_tutorbot_manager_send_message_reuses_outer_usage_scope_for_extern
                     "missing_skills": [],
                     "missing_assets": [],
                 }
+                metadata["llm_stream_telemetry"] = {
+                    "call_count": 1,
+                    "calls": [
+                        {
+                            "call_site": "fast_policy",
+                            "provider_name": "openai",
+                            "stream_content_chunk_count": 2,
+                            "stage_timings_ms": {
+                                "provider_stream_create": 10.0,
+                                "provider_first_content_delta": 25.0,
+                                "provider_stream_read": 80.0,
+                            },
+                        }
+                    ],
+                }
             observability.record_usage(
                 usage_details={"input": 100.0, "output": 20.0, "total": 120.0},
                 cost_details={"input": 0.0, "output": 0.0, "total": 0.001},
@@ -692,15 +707,16 @@ async def test_tutorbot_manager_send_message_reuses_outer_usage_scope_for_extern
             turn_id="turn-1",
             capability="tutorbot",
         ):
+            session_metadata = {
+                "session_id": "mobile-session",
+                "turn_id": "turn-1",
+                "user_id": "u1",
+                "source": "wx_miniprogram",
+            }
             response = await manager.send_message(
                 "demo-bot",
                 "建筑构造是什么？",
-                session_metadata={
-                    "session_id": "mobile-session",
-                    "turn_id": "turn-1",
-                    "user_id": "u1",
-                    "source": "wx_miniprogram",
-                },
+                session_metadata=session_metadata,
             )
             summary = observability.get_current_usage_summary()
     finally:
@@ -718,6 +734,10 @@ async def test_tutorbot_manager_send_message_reuses_outer_usage_scope_for_extern
     assert metadata_keys.index("skill_trace") < 20
     assert captured_update["metadata"]["skill_trace"][0]["name"] == "construction-exam-tutor"
     assert captured_update["metadata"]["skill_stack"] == ["construction-exam-tutor"]
+    assert captured_update["metadata"]["llm_stream_telemetry"]["calls"][0]["call_site"] == "fast_policy"
+    assert session_metadata["llm_stream_telemetry"]["calls"][0]["stage_timings_ms"][
+        "provider_first_content_delta"
+    ] == 25.0
 
 
 @pytest.mark.asyncio
