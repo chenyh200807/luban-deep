@@ -242,6 +242,66 @@ async def test_login_with_wechat_code_fails_closed_in_production_even_for_dev_pr
         await service.login_with_wechat_code("dev-local-user")
 
 
+def test_trace_identity_resolution_maps_aliases_to_bi_canonical_member(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+
+    def _seed(data: dict[str, object]) -> None:
+        data["members"] = [
+            {
+                **service._build_default_member("wx_live_alias"),
+                "user_id": "wx_live_alias",
+                "canonical_user_id": canonical_uid,
+                "external_auth_user_id": canonical_uid,
+                "alias_user_ids": ["legacy_chat_user_1"],
+                "display_name": "微信学员",
+                "phone": "13912345678",
+                "wx_openid": "oTHl56liveOpenid",
+                "wx_unionid": "union_live_user",
+            }
+        ]
+
+    service._mutate(_seed)
+
+    for raw_user_id, metadata in [
+        ("legacy_chat_user_1", {}),
+        ("wx_live_alias", {}),
+        (canonical_uid, {}),
+        ("", {"wx_openid": "oTHl56liveOpenid"}),
+        ("", {"openid": "oTHl56liveOpenid"}),
+        ("", {"wx_unionid": "union_live_user"}),
+        ("", {"phone": "13912345678"}),
+    ]:
+        resolution = service.resolve_trace_identity_for_bi(
+            raw_user_id=raw_user_id,
+            metadata=metadata,
+        )
+        assert resolution["status"] == "resolved"
+        assert resolution["canonical_user_id"] == canonical_uid
+        assert resolution["member_user_id"] == "wx_live_alias"
+        assert resolution["raw_user_id"] == raw_user_id
+        assert "phone" not in resolution
+
+
+def test_trace_identity_resolution_keeps_unmapped_trace_identity(tmp_path: Path) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    resolution = service.resolve_trace_identity_for_bi(
+        raw_user_id="72af0948-a253-45b8-8b3b-a9eba9e5a1d6",
+        metadata={"session_id": "trace-session"},
+    )
+
+    assert resolution == {
+        "status": "unmapped",
+        "canonical_user_id": "",
+        "member_user_id": "",
+        "raw_user_id": "72af0948-a253-45b8-8b3b-a9eba9e5a1d6",
+        "matched_identity": "",
+    }
+
+
 @pytest.mark.asyncio
 async def test_login_with_wechat_code_maps_upstream_timeout_to_runtime_error(
     monkeypatch: pytest.MonkeyPatch,

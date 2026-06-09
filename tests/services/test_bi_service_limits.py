@@ -185,6 +185,29 @@ class _UnconfiguredWalletService:
     is_configured = False
 
 
+def test_registered_member_identity_index_supports_trace_aliases_without_unmapped_ids() -> None:
+    service = BIService(member_service=_QuietMemberService())
+    service._load_all_members = lambda: [
+        {
+            "user_id": "wx_live_alias",
+            "canonical_user_id": "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+            "external_auth_user_id": "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+            "alias_user_ids": ["legacy_chat_user_1"],
+            "phone": "13912345678",
+            "wx_openid": "oTHl56liveOpenid",
+            "wx_unionid": "union_live_user",
+        }
+    ]
+
+    identity_index = service._registered_member_identity_index()
+
+    assert identity_index["wx_live_alias"] == "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+    assert identity_index["legacy_chat_user_1"] == "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+    assert identity_index["oTHl56liveOpenid"] == "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+    assert identity_index["13912345678"] == "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+    assert "72af0948-a253-45b8-8b3b-a9eba9e5a1d6" not in identity_index
+
+
 class _SignupBonusWalletService:
     is_configured = True
 

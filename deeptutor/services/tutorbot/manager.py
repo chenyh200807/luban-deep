@@ -28,6 +28,7 @@ from deeptutor.services.compiled_knowledge.general_knowledge import (
     resolve_general_knowledge_context,
 )
 from deeptutor.services.observability import get_langfuse_observability
+from deeptutor.services.observability.identity_bridge import enrich_trace_metadata_with_bi_identity
 from deeptutor.services.user_visible_output import coerce_user_visible_answer
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.session import build_user_owner_key, get_sqlite_session_store
@@ -974,6 +975,7 @@ class TutorBotManager:
             "knowledge_bases": list(merged_metadata.get("knowledge_bases") or []),
             "default_kb": str(merged_metadata.get("default_kb") or "").strip(),
         }
+        enrich_trace_metadata_with_bi_identity(trace_metadata)
 
         async def _progress(text: str, *, tool_hint: bool = False) -> None:
             if on_progress:

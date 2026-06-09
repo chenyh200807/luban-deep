@@ -1809,6 +1809,123 @@ class MemberConsoleService:
         return merged_members
 
     @staticmethod
+    def _normalize_trace_identity(value: Any, *, phone_field: bool = False) -> str:
+        raw = str(value or "").strip()
+        if not raw:
+            return ""
+        phone = _normalize_phone_input(raw)
+        if phone_field and len(phone) == 11:
+            return phone
+        if len(phone) == 11 and (raw == phone or raw.startswith("+86") or raw.startswith("86")):
+            return phone
+        return raw
+
+    @classmethod
+    def _trace_identity_values(
+        cls,
+        *,
+        raw_user_id: str = "",
+        metadata: dict[str, Any] | None = None,
+    ) -> list[str]:
+        values: list[str] = []
+        seen: set[str] = set()
+
+        def add(value: Any, *, phone_field: bool = False) -> None:
+            normalized = cls._normalize_trace_identity(value, phone_field=phone_field)
+            if normalized and normalized not in seen:
+                values.append(normalized)
+                seen.add(normalized)
+
+        add(raw_user_id)
+        if isinstance(metadata, dict):
+            for key in (
+                "user_id",
+                "uid",
+                "canonical_uid",
+                "canonical_user_id",
+                "member_id",
+                "external_auth_user_id",
+                "openid",
+                "wx_openid",
+                "unionid",
+                "wx_unionid",
+            ):
+                add(metadata.get(key))
+            for key in ("phone", "mobile", "mobile_phone"):
+                add(metadata.get(key), phone_field=True)
+        return values
+
+    def resolve_trace_identity_for_bi(
+        self,
+        *,
+        raw_user_id: str = "",
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, str]:
+        raw = str(raw_user_id or "").strip()
+        candidates = self._trace_identity_values(raw_user_id=raw, metadata=metadata)
+        if not candidates:
+            return {
+                "status": "missing",
+                "canonical_user_id": "",
+                "member_user_id": "",
+                "raw_user_id": raw,
+                "matched_identity": "",
+            }
+
+        identity_index: dict[str, dict[str, str]] = {}
+        for member in self._members_for_bi(self._load()):
+            member_user_id = str(member.get("user_id") or "").strip()
+            canonical_user_id = (
+                str(member.get("canonical_user_id") or "").strip()
+                or str(member.get("external_auth_user_id") or "").strip()
+                or member_user_id
+            )
+            if not member_user_id or not canonical_user_id:
+                continue
+            for key in (
+                "user_id",
+                "canonical_user_id",
+                "external_auth_user_id",
+                "phone",
+                "wx_openid",
+                "wx_unionid",
+            ):
+                identity = self._normalize_trace_identity(
+                    member.get(key),
+                    phone_field=(key == "phone"),
+                )
+                if identity:
+                    identity_index[identity] = {
+                        "canonical_user_id": canonical_user_id,
+                        "member_user_id": member_user_id,
+                    }
+            for alias in list(member.get("alias_user_ids") or []):
+                identity = self._normalize_trace_identity(alias)
+                if identity:
+                    identity_index[identity] = {
+                        "canonical_user_id": canonical_user_id,
+                        "member_user_id": member_user_id,
+                    }
+
+        for candidate in candidates:
+            match = identity_index.get(candidate)
+            if match:
+                return {
+                    "status": "resolved",
+                    "canonical_user_id": match["canonical_user_id"],
+                    "member_user_id": match["member_user_id"],
+                    "raw_user_id": raw,
+                    "matched_identity": candidate,
+                }
+        return {
+            "status": "unmapped",
+            "canonical_user_id": "",
+            "member_user_id": "",
+            "raw_user_id": raw,
+            "matched_identity": "",
+        }
+
+    @staticmethod
     def _member_signal_score(member: dict[str, Any]) -> int:
         chapter_mastery = member.get("chapter_mastery") or {}
         chapter_stats = member.get("chapter_practice_stats") or {}

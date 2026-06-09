@@ -48,6 +48,7 @@ from deeptutor.services.observability import (
     get_turn_event_log,
 )
 from deeptutor.services.observability.aae_scores import build_turn_aae_metadata
+from deeptutor.services.observability.identity_bridge import enrich_trace_metadata_with_bi_identity
 from deeptutor.services.observability.turn_event_log import build_turn_observation_event
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.question_followup import (
@@ -718,6 +719,11 @@ def _build_terminal_turn_observation_event(
         "rag_retrieval_error_type",
         "degraded_exact_answer_guard_applied",
         "degraded_mcq_grading_guard_applied",
+        "raw_user_id",
+        "member_user_id",
+        "identity_resolution_status",
+        "identity_resolution_source",
+        "identity_matched",
     ):
         if metadata_key in trace_metadata:
             metadata[metadata_key] = trace_metadata[metadata_key]
@@ -4578,6 +4584,7 @@ class TurnRuntimeManager:
             user_id = str((billing_context or {}).get("user_id", "") or "").strip()
             if user_id:
                 trace_metadata["user_id"] = user_id
+            enrich_trace_metadata_with_bi_identity(trace_metadata)
             trace_metadata.update(
                 _learning_prompt_intent_trace_metadata(request_config.get("learning_prompt_intent"))
             )

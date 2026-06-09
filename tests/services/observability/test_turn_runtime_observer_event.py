@@ -223,6 +223,35 @@ def test_terminal_turn_observation_event_keeps_llm_stream_telemetry() -> None:
     }
 
 
+def test_terminal_turn_observation_event_keeps_bi_identity_resolution_metadata() -> None:
+    event = _build_terminal_turn_observation_event(
+        session_id="session-1",
+        turn_id="turn-1",
+        status="completed",
+        capability_name="tutorbot",
+        duration_ms=1234.5,
+        trace_metadata={
+            "execution_engine": "tutorbot_runtime",
+            "source": "authenticated_ws",
+            "user_id": "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+            "raw_user_id": "legacy_chat_user_1",
+            "member_user_id": "wx_live_alias",
+            "identity_resolution_status": "resolved",
+            "identity_resolution_source": "member_console",
+            "identity_matched": "legacy_chat_user_1",
+        },
+        usage_summary={"total_tokens": 15},
+    )
+
+    assert event["user_id"] == "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+    assert event["metadata"]["raw_user_id"] == "legacy_chat_user_1"
+    assert event["metadata"]["member_user_id"] == "wx_live_alias"
+    assert event["metadata"]["identity_resolution_status"] == "resolved"
+    assert event["metadata"]["identity_resolution_source"] == "member_console"
+    assert event["metadata"]["identity_matched"] == "legacy_chat_user_1"
+    assert "phone" not in event["metadata"]
+
+
 def test_trace_link_event_persists_turn_trace_identity_for_feedback() -> None:
     events: list[dict] = []
 

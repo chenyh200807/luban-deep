@@ -703,11 +703,19 @@ conversation view-audit 等）必须遵守的横切契约。所有 `member_conso
    所有写动作经 `useAuditedAction` → 注册在
    `deeptutor/contracts/bi_v2_write_endpoints.py` 的真实 endpoint。
 
+7. **Langfuse / BI 身份互证边界**：Langfuse trace 可以记录
+   `identity_resolution_status`、`raw_user_id`、`member_user_id` 和
+   `identity_matched`，用于把观测 user/session 归一到
+   `MemberConsoleService` 输出的 canonical member id。Langfuse 不得成为第二套会员
+   authority，不得反写会员资料，不得把手机号作为 trace user id 或额外 PII 扩散；未映射
+   trace 只能标记为 `unmapped`，进入待绑定/排查队列。
+
 ### 单一权威清单
 
 | 子事实 | 唯一 authority | BI v2 前端职责 |
 |---|---|---|
 | 会员身份 / Tier / 状态 | Supabase trusted phone aliases + `public.v_members` read model；`member_console` 仅 overlay 运营备注 / 审计 | 只读 + 受控写经 audited endpoint |
+| Langfuse trace 身份归一 | Supabase trusted identity projection exposed through `MemberConsoleService` | 只读互证；unmapped 只排查，不创建会员 |
 | 钱包余额 / 流水 | `WalletService` | 只读 + idempotency 兜底（P1 接 etag/undo） |
 | 学习事实 / 掌握度 | `learner_state` read model | 只读，禁止前端写 |
 | 反馈 | `FeedbackService` (P0) | 列表读，triage 在 useAuditedAction 接入后才启用 |
