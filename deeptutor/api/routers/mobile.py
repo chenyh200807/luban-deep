@@ -1622,6 +1622,16 @@ def _event_identity(event: dict[str, Any], key: str) -> str:
 
 
 def _assistant_message_turn_id(message: dict[str, Any] | None) -> str:
+    if isinstance(message, dict):
+        for key in ("engine_turn_id", "turn_id"):
+            direct = str(message.get(key) or "").strip()
+            if direct:
+                return direct
+        for metadata in _iter_mobile_message_metadata(message):
+            for key in ("engine_turn_id", "turn_id"):
+                candidate = str(metadata.get(key) or "").strip()
+                if candidate:
+                    return candidate
     for event in reversed(_message_events(message)):
         turn_id = _event_identity(event, "turn_id")
         if turn_id:

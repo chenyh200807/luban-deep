@@ -266,6 +266,7 @@ def _request_snapshot_metadata(
     requested_skills: Sequence[str],
     memory_references: Sequence[str],
     llm_selection: dict[str, Any] | None,
+    turn_id: str = "",
 ) -> dict[str, Any]:
     snapshot: dict[str, Any] = {
         "content": content,
@@ -306,7 +307,34 @@ def _request_snapshot_metadata(
         snapshot["content"] = _clip_text(str(snapshot.get("content") or ""), 1000)
         snapshot.pop("config", None)
         snapshot["_truncated"] = True
-    return {"request_snapshot": snapshot}
+    metadata: dict[str, Any] = {"request_snapshot": snapshot}
+    normalized_turn_id = str(turn_id or "").strip()
+    if normalized_turn_id:
+        metadata["turn_id"] = normalized_turn_id
+    client_turn_id = str(config.get("client_turn_id") or payload.get("client_turn_id") or "").strip()
+    if client_turn_id:
+        metadata["client_turn_id"] = client_turn_id
+    return metadata
+
+
+def _assistant_message_metadata(
+    *,
+    turn_id: str,
+    config: dict[str, Any],
+    terminal_status: str,
+) -> dict[str, Any]:
+    metadata: dict[str, Any] = {}
+    normalized_turn_id = str(turn_id or "").strip()
+    if normalized_turn_id:
+        metadata["turn_id"] = normalized_turn_id
+        metadata["engine_turn_id"] = normalized_turn_id
+    client_turn_id = str((config or {}).get("client_turn_id") or "").strip()
+    if client_turn_id:
+        metadata["client_turn_id"] = client_turn_id
+    normalized_status = str(terminal_status or "").strip()
+    if normalized_status:
+        metadata["terminal_status"] = normalized_status
+    return metadata
 
 
 def _tutorbot_mirror_session_ids(
@@ -3364,6 +3392,7 @@ class TurnRuntimeManager:
         effective_chat_mode_explicit = explicit_chat_mode
         runtime_only_keys = (
             "_persist_user_message",
+            "client_turn_id",
             "followup_question_context",
             "_question_followup_action",
             "semantic_router_enabled",
@@ -4013,6 +4042,11 @@ class TurnRuntimeManager:
                 content=assistant_content,
                 capability=public_source,
                 events=assistant_events,
+                metadata=_assistant_message_metadata(
+                    turn_id=turn_id,
+                    config=dict(payload.get("config", {}) or {}),
+                    terminal_status="completed",
+                ),
                 default=None,
             )
             await self._safe_store_call(
@@ -4086,6 +4120,7 @@ class TurnRuntimeManager:
                                 if isinstance(payload.get("llm_selection"), dict)
                                 else None
                             ),
+                            turn_id=turn_id,
                         ),
                         default=None,
                     )
@@ -4913,6 +4948,7 @@ class TurnRuntimeManager:
                                 if isinstance(payload.get("llm_selection"), dict)
                                 else None
                             ),
+                            turn_id=turn_id,
                         ),
                         default=None,
                     )
@@ -5023,6 +5059,11 @@ class TurnRuntimeManager:
                     content=assistant_content,
                     capability=capability_name,
                     events=assistant_events,
+                    metadata=_assistant_message_metadata(
+                        turn_id=turn_id,
+                        config=request_config,
+                        terminal_status="completed",
+                    ),
                     default=None,
                 )
                 usage_summary = observability.get_current_usage_summary()
@@ -5127,6 +5168,11 @@ class TurnRuntimeManager:
                 content=public_assistant_content,
                 capability=capability_name,
                 events=assistant_events,
+                metadata=_assistant_message_metadata(
+                    turn_id=turn_id,
+                    config=request_config,
+                    terminal_status=cancelled_status,
+                ),
                 default=None,
             )
             await self._safe_store_call(
@@ -5188,6 +5234,11 @@ class TurnRuntimeManager:
                 content=public_assistant_content,
                 capability=capability_name,
                 events=assistant_events,
+                metadata=_assistant_message_metadata(
+                    turn_id=turn_id,
+                    config=request_config,
+                    terminal_status="failed",
+                ),
                 default=None,
             )
             await self._safe_store_call(

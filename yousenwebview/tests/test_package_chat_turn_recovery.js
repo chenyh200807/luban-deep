@@ -91,6 +91,26 @@ run("can recover by client turn id before server turn id is known", function () 
   assertEqual(found.assistantIndex, 1, "client turn id should bind to the assistant after that user turn");
 });
 
+run("can recover by client turn id when server turn id is not projected after resume", function () {
+  var messages = [
+    { role: "user", content: "案例题批改", metadata: { client_turn_id: "client_resume_1" } },
+    { role: "assistant", content: "当前批改结果" },
+  ];
+
+  var found = recovery.findRecoveredAssistant(messages, {
+    baselineCount: 100,
+    query: "案例题批改",
+    turnId: "turn_resume_1",
+    clientTurnId: "client_resume_1",
+  });
+
+  assert(
+    !!found,
+    "client turn id should recover the pending answer when server turn id is temporarily absent",
+  );
+  assertEqual(found.assistantIndex, 1, "client turn id fallback should bind to the same user turn");
+});
+
 if (fail) {
   console.error(errors.join("\n"));
   process.exit(1);
