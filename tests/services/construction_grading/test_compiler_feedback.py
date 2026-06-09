@@ -54,6 +54,48 @@ def test_open_world_diagnostic_creates_question_and_work_order() -> None:
     assert pair["work_order"]["payload"]["needs_governed_source"] is True
 
 
+def test_source_pollution_generates_reanchor_work_order() -> None:
+    work_order = cf.work_order_from_source_path_conflict(
+        question_id="Q-schedule-total-float",
+        failed_path="cement_code",
+        reason="query_path_source_mismatch",
+        evidence={"query": "总时差怎么计算", "source_text": "水泥代号 P.O 42.5"},
+    )
+
+    assert work_order["namespace"] == cf.NAMESPACE
+    assert work_order["kind"] == cf.KIND_WORK_ORDER
+    assert work_order["origin"] == "m35_scoring_artifact_gate"
+    assert work_order["reason"] == "query_path_source_mismatch"
+    assert work_order["promote_to_release"] is False
+    assert work_order["is_release_truth"] is False
+    assert work_order["payload"]["work_order_type"] == "scoring_artifact_reanchor"
+    assert work_order["payload"]["question_id"] == "Q-schedule-total-float"
+    assert work_order["payload"]["failed_path"] == "cement_code"
+    assert work_order["payload"]["runtime_usable_as_truth"] is False
+
+
+def test_source_pollution_work_order_types_are_never_runtime_truth() -> None:
+    cases = [
+        ("query_path_source_mismatch", "scoring_artifact_reanchor"),
+        ("source_supports_sibling_node_only", "scoring_artifact_detach"),
+        ("low_confidence_but_plausible", "scoring_artifact_needs_review"),
+    ]
+
+    for reason, expected_type in cases:
+        work_order = cf.work_order_from_source_path_conflict(
+            question_id="Q1",
+            failed_path="path-a",
+            reason=reason,
+            evidence={"source_text": "candidate only"},
+        )
+
+        assert work_order["kind"] == cf.KIND_WORK_ORDER
+        assert work_order["payload"]["work_order_type"] == expected_type
+        assert work_order["payload"]["runtime_usable_as_truth"] is False
+        assert work_order["promote_to_release"] is False
+        assert work_order["is_release_truth"] is False
+
+
 def test_ledger_invariants_all_separate_no_promotion() -> None:
     entries = [
         cf.make_candidate(kind=cf.KIND_ANSWER_KEY, origin="questions_bank", payload={"a": 1}),

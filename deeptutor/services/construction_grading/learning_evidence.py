@@ -116,9 +116,15 @@ def build_learning_evidence_payload(
         "preview_only",
         "mastery_raised",
         "canonical_truth_written",
+        "high_risk_review",
     ):
         if key in payload:
             result[key] = payload[key]
+    if _is_m35_artifact_rubric(result["rubric"]):
+        result["claim_promotion_allowed"] = False
+        result["preview_only"] = True
+        result["mastery_raised"] = False
+        result["canonical_truth_written"] = False
     return result
 
 
@@ -248,6 +254,9 @@ def _normalized_rubric_block(payload: dict[str, Any]) -> dict[str, Any]:
         "scoring_point_hits": accepted_hits,
         "grader_disagreement": disagreement,
     }
+    artifact_version = _clean_text(raw_rubric.get("artifact_version") or raw_rubric.get("version_id"))
+    if artifact_version:
+        block["artifact_version"] = artifact_version
     return block
 
 
@@ -293,11 +302,15 @@ def _normalize_rubric_specs(raw: Any) -> list[dict[str, Any]]:
 
 
 def _normalize_scoring_hit(hit: dict[str, Any]) -> dict[str, Any]:
+    match_status = _normalize_point_match_status(hit.get("hit") if "hit" in hit else hit.get("status"))
+    mistake_type = _clean_text(hit.get("mistake_type"))
+    miss_reason = _clean_text(hit.get("miss_reason")) or mistake_type
     cleaned: dict[str, Any] = {
         "point_id": _clean_text(hit.get("point_id")),
-        "hit": bool(hit.get("hit")),
+        "hit": match_status == "hit",
+        "match_status": match_status,
         "awarded_score": hit.get("awarded_score"),
-        "miss_reason": _clean_text(hit.get("miss_reason")),
+        "miss_reason": miss_reason,
         "evidence_text": _clean_text(hit.get("evidence_text")),
     }
     raw_code = _clean_text(hit.get("error_code"))
@@ -306,11 +319,10 @@ def _normalize_scoring_hit(hit: dict[str, Any]) -> dict[str, Any]:
     # M32 Task 3: propagate the point-level diagnostic fields the grader already produces
     # (rubric_grader_v1) so the Learning Brain can explain "哪里错、为什么错、证据来自哪段作答".
     # Append-only: a hit without these fields stays byte-identical to the legacy shape.
-    mistake_type = _clean_text(hit.get("mistake_type"))
     if mistake_type:
         cleaned["mistake_type"] = mistake_type
-    evidence_span = _clean_text(hit.get("evidence_span"))
-    if evidence_span:
+    if "evidence_span" in hit:
+        evidence_span = _clean_text(hit.get("evidence_span"))
         cleaned["evidence_span"] = evidence_span
     policy_type = _clean_text(hit.get("policy_type"))
     if policy_type:
@@ -320,7 +332,45 @@ def _normalize_scoring_hit(hit: dict[str, Any]) -> dict[str, Any]:
         cleaned["required_terms"] = required_terms
     if "high_risk_review" in hit:
         cleaned["high_risk_review"] = bool(hit.get("high_risk_review"))
+    source_refs = [_clean_dict(ref) for ref in list(hit.get("source_refs") or []) if isinstance(ref, dict)]
+    source_ref_ids = _normalize_source_ref_ids(hit.get("source_ref_ids"), source_refs=source_refs)
+    if source_ref_ids:
+        cleaned["source_ref_ids"] = source_ref_ids
+    if source_refs:
+        cleaned["source_refs"] = source_refs
     return cleaned
+
+
+def _normalize_point_match_status(value: Any) -> str:
+    if isinstance(value, bool):
+        return "hit" if value else "miss"
+    text = _clean_text(value).lower()
+    if text in {"hit", "partial", "miss"}:
+        return text
+    if text in {"true", "yes", "full"}:
+        return "hit"
+    return "miss"
+
+
+def _normalize_source_ref_ids(raw: Any, *, source_refs: list[dict[str, Any]]) -> list[str]:
+    ids = [_clean_text(item) for item in list(raw or []) if _clean_text(item)]
+    for ref in source_refs:
+        ref_id = _clean_text(ref.get("ref_id") or ref.get("source_id") or ref.get("id") or ref.get("ref"))
+        if ref_id:
+            ids.append(ref_id)
+    return list(dict.fromkeys(ids))
+
+
+def _is_m35_artifact_rubric(rubric: dict[str, Any]) -> bool:
+    artifact_version = _clean_text(rubric.get("artifact_version") or rubric.get("version_id")).lower()
+    artifact_family = _clean_text(
+        rubric.get("artifact_family") or rubric.get("artifact_type") or rubric.get("artifact_namespace")
+    ).lower()
+    return artifact_version.startswith("m35_") or artifact_family in {
+        "m35",
+        "m35_scoring_artifact",
+        "luban_m35_scoring_artifact",
+    }
 
 
 def _explanation_payload(value: Any) -> dict[str, Any] | str:

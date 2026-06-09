@@ -207,7 +207,7 @@ def _bind_authenticated_user(
         "source": str(billing_context.get("source") or "authenticated_ws").strip() or "authenticated_ws",
         "user_id": requested_user_id or current_user.user_id,
     }
-    return {**payload, "config": config}
+    return {**payload, "config": config, "_authenticated_user_id": current_user.user_id}
 
 
 # plan §Phase 3 Step 3.2 / Batch C Gap 3 — public payload redaction at the

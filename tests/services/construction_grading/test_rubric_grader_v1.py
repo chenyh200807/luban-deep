@@ -44,6 +44,92 @@ def test_deterministic_sum_and_exact_required_binary():
     assert ev["official_score_allowed"] is False
 
 
+def test_grade_artifact_shadow_emits_point_matches_and_stays_non_official() -> None:
+    artifact = {
+        "version_id": "qga_v0_20260604",
+        "status": "published",
+        "quality_gates": {"source_refs_verified_rate": 1.0},
+        "scoring_points": [
+            {
+                "point_id": "P1",
+                "label": "应组织专家论证",
+                "max_score": 2,
+                "policy_type": "semantic_allowed",
+                "required_terms": ["专家论证"],
+                "source_refs": [{"ref_id": "textbook#p1", "verified": True}],
+                "source_status": "ok",
+                "knowledge_point_refs": ["kp-expert-review"],
+            },
+            {
+                "point_id": "P2",
+                "label": "应进行安全技术交底",
+                "max_score": 1,
+                "policy_type": "exact_required",
+                "required_terms": ["安全技术交底"],
+            },
+        ],
+    }
+    judge = _judge({
+        "P1": {"status": G.HIT, "evidence_span": "组织专家论证"},
+        "P2": {"status": G.MISS},
+    })
+
+    ev = G.grade_artifact_shadow(
+        qid="Q1-NA",
+        student_answer="需要组织专家论证。",
+        artifact=artifact,
+        judge_fn=judge,
+    )
+
+    assert ev is not None
+    assert ev["point_matches"] == ev["scoring_points"]
+    assert ev["point_matches"][0]["point_id"] == "P1"
+    assert ev["point_matches"][0]["source_ref_ids"] == ["textbook#p1"]
+    assert ev["point_matches"][0]["source_status"] == "ok"
+    assert ev["point_matches"][0]["knowledge_point_refs"] == ["kp-expert-review"]
+    assert ev["awarded_score"] == 2
+    assert ev["max_score"] == 3
+    assert ev["official_score_allowed"] is False
+
+
+def test_rubric_points_from_artifact_preserves_policy_and_provenance_context() -> None:
+    artifact = {
+        "version_id": "qga_v0_20260604",
+        "status": "published",
+        "scoring_points": [
+            {
+                "point_id": "P1",
+                "label": "总时差计算",
+                "max_score": 2,
+                "policy_type": "calculation",
+                "required_terms": ["总时差"],
+                "negative_evidence": ["把自由时差当总时差"],
+                "calculation_spec": {"formula": "LS-ES"},
+                "source_refs": [{"ref_id": "textbook#tf", "verified": True}],
+                "knowledge_point_refs": ["kp-total-float"],
+            },
+            {
+                "point_id": "P2",
+                "label": "多答不得分",
+                "max_score": 1,
+                "policy_type": "penalty_rule",
+                "penalty_rule": "多选不得分",
+            },
+        ],
+    }
+
+    points = G.rubric_points_from_artifact(artifact)
+
+    assert points[0]["policy"] == "calculation"
+    assert points[0]["policy_type"] == "calculation"
+    assert points[0]["negative_evidence"] == ["把自由时差当总时差"]
+    assert points[0]["calculation_spec"] == {"formula": "LS-ES"}
+    assert points[0]["source_refs"] == [{"ref_id": "textbook#tf", "verified": True}]
+    assert points[0]["knowledge_point_refs"] == ["kp-total-float"]
+    assert points[1]["policy"] == "penalty_rule"
+    assert points[1]["penalty_rule"] == "多选不得分"
+
+
 def test_high_risk_on_low_confidence():
     judge = _judge({"P1": {"status": G.HIT, "low_confidence": True}, "P2": {"status": G.MISS}, "P3": {"status": G.MISS}})
     ev = G.grade_with_rubric(qid="Q1", student_answer="x", rubric_points=_rubric(), judge_fn=judge)

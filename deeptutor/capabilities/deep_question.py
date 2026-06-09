@@ -2285,6 +2285,98 @@ def _maybe_attach_v1_beta_shadow(
         }
 
 
+def _m35_artifact_shadow_flag_enabled(context: UnifiedContext) -> bool:
+    """M35 scoring-artifact shadow flag. Default OFF -> legacy payload byte-identical."""
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return bool(
+        metadata.get("grading_engine_m35_artifact_shadow")
+        or context.config_overrides.get("grading_engine_m35_artifact_shadow")
+    )
+
+
+def _m35_artifact_shadow_kill_switch_active() -> bool:
+    """``LUBAN_M35_ARTIFACT_SHADOW_ENABLED=false`` force-disables the M35 shadow block."""
+    import os
+
+    return os.environ.get("LUBAN_M35_ARTIFACT_SHADOW_ENABLED", "").strip().lower() in (
+        "false", "0", "off", "no",
+    )
+
+
+def _m35_artifact_shadow_cohort_prefixes() -> tuple[str, ...]:
+    """Server-governed QA/operator-only cohort.
+
+    Do not allow request or env-controlled real-student prefix expansion here:
+    M35 shadow visibility is not a production/default authorization path.
+    """
+    return ("qa_", "test_", "operator_")
+
+
+def _m35_artifact_shadow_cohort_member(student_id: str) -> bool:
+    return str(student_id).startswith(_m35_artifact_shadow_cohort_prefixes())
+
+
+def _m35_authenticated_user_id_from_context(context: UnifiedContext) -> str:
+    """Server-authenticated user id for M35 visibility gates.
+
+    Deliberately does not read billing_context, config_overrides, or learner
+    display fields. Those are business context and can be request-shaped; they
+    must not authorize shadow metadata for real students.
+    """
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return str(metadata.get("authenticated_user_id") or "").strip()
+
+
+def _maybe_attach_m35_artifact_shadow(
+    *,
+    context: UnifiedContext,
+    graded_context: dict[str, Any],
+    result_payload: dict[str, Any],
+) -> None:
+    """Append M35 scoring-artifact shadow metadata without changing legacy grading.
+
+    Thin wrapper: this reads only flag/env kill switch/cohort and forwards the
+    real case grading fields to ``m35_artifact_shadow``. No DB, RAG, learner truth,
+    or WebSocket route is introduced here.
+    """
+    if not _m35_artifact_shadow_flag_enabled(context):
+        return
+    if _m35_artifact_shadow_kill_switch_active():
+        return
+    student_id = _m35_authenticated_user_id_from_context(context)
+    if not _m35_artifact_shadow_cohort_member(student_id):
+        return
+    question_id = str(graded_context.get("question_id") or "").strip()
+    student_answer = str(graded_context.get("user_answer") or "").strip()
+    try:
+        from deeptutor.services.construction_grading.m35_artifact_shadow import (
+            build_m35_artifact_shadow_payload,
+        )
+
+        result_payload["luban_m35_scoring_artifact_shadow"] = build_m35_artifact_shadow_payload(
+            question_id=question_id,
+            student_id=student_id,
+            student_answer=student_answer,
+        )
+    except Exception as exc:  # noqa: BLE001 - shadow must never break legacy grading.
+        result_payload["luban_m35_scoring_artifact_shadow"] = {
+            "authority": "grading_engine_m35_artifact_shadow",
+            "shadow_status": "artifact_shadow_unavailable",
+            "unavailable_reason": str(exc)[:200],
+            "evaluation_tier": "shape_stub",
+            "quality_claim_allowed": False,
+            "verdict_ceiling": "NO-GO_OR_SHAPE_ONLY",
+            "official_score_allowed": False,
+            "production_write_count": 0,
+            "canonical_truth_written": False,
+            "writeback_performed": False,
+            "db_write_count": 0,
+            "remote_write_count": 0,
+            "rag_lookup_count": 0,
+            "point_matches": [],
+        }
+
+
 def _v1_controlled_runtime_flag_enabled(context: UnifiedContext) -> bool:
     """v1 controlled-runtime request flag. Default OFF -> legacy payload byte-identical."""
     metadata = context.metadata if isinstance(context.metadata, dict) else {}
@@ -4103,6 +4195,13 @@ class DeepQuestionCapability(BaseCapability):
                 # QA/test-only Luban v1 beta_shadow (default off; flag + env kill switch;
                 # append-only; legacy construction_grading_result untouched above).
                 _maybe_attach_v1_beta_shadow(
+                    context=context,
+                    graded_context=graded_context,
+                    result_payload=result_payload,
+                )
+                # M35 scoring-artifact shadow drill (default off; env kill switch + cohort;
+                # append-only; legacy construction_grading_result untouched).
+                _maybe_attach_m35_artifact_shadow(
                     context=context,
                     graded_context=graded_context,
                     result_payload=result_payload,

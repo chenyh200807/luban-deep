@@ -36,6 +36,60 @@ def test_build_known_case_returns_artifact_shape():
     assert "artifact_missing" not in art
 
 
+def test_m35_artifact_reports_score_sum_source_and_negative_evidence_gates():
+    art = qga.build_question_grading_artifact("Q1-NA")
+    gates = art["quality_gates"]
+    assert "score_sum_ok" in gates
+    assert "source_refs_verified_rate" in gates
+    assert "source_pollution_count" in gates
+    assert "source_pollution_reasons" in gates
+    assert "negative_evidence_present" in gates
+    assert gates["source_pollution_count"] == 0
+    assert gates["source_pollution_reasons"] == []
+
+
+def test_m35_quality_gate_detects_rag_chunk_as_answer_key_pollution():
+    gates = qga._quality_gates(
+        [
+            {
+                "point_id": "P1",
+                "max_score": 1,
+                "policy_type": "semantic_allowed",
+                "source_status": "ok",
+                "auto_certifiable": True,
+                "negative_evidence": [],
+                "source_refs": [
+                    {
+                        "source_type": "rag_chunk",
+                        "quote": "retrieved chunk text",
+                        "verified": True,
+                        "used_as_answer_key": True,
+                    }
+                ],
+            }
+        ],
+        expected_total=1,
+    )
+
+    assert gates["source_pollution_count"] == 1
+    assert gates["source_pollution_reasons"] == [
+        {"point_id": "P1", "reason": "rag_or_kb_chunk_as_answer_key"}
+    ]
+
+
+def test_m35_artifact_version_is_explicit_and_runtime_readable():
+    art = qga.build_question_grading_artifact("Q1-NA")
+    assert art["schema_version"].startswith("question_grading_artifact")
+    assert art["version_id"]
+    assert art["content_hash"]
+
+
+def test_v0_published_status_does_not_grant_official_score_authority():
+    art = qga.build_question_grading_artifact("Q1-NA")
+    assert art["status"] == "published"
+    assert art.get("official_score_allowed") is not True
+
+
 def test_unknown_case_id_returns_artifact_missing():
     art = qga.build_question_grading_artifact("DOES-NOT-EXIST")
     assert art == {"artifact_missing": True, "case_id": "DOES-NOT-EXIST"}
@@ -55,6 +109,7 @@ def test_every_scoring_point_has_policy_type_and_max_score():
         for sp in art["scoring_points"]:
             assert sp.get("policy_type"), f"{cid}/{sp.get('point_id')} missing policy_type"
             assert sp.get("max_score") is not None, f"{cid}/{sp.get('point_id')} missing max_score"
+            assert isinstance(sp.get("negative_evidence"), list)
             assert "point_id" in sp
 
 

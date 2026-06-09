@@ -85,7 +85,7 @@ def grade_with_rubric(
                        else str(verdict.get("mistake_type") or MISTAKE_MISS))
         if verdict.get("low_confidence"):
             low_conf += 1
-        points_out.append({
+        point_out = {
             "point_id": p.get("point_id"),
             "knowledge_point": p.get("text"),
             "policy_type": policy,
@@ -95,7 +95,9 @@ def grade_with_rubric(
             "mistake_type": mistake,
             "evidence_span": str(verdict.get("evidence_span") or ""),
             "required_terms": list(p.get("required_terms") or []),
-        })
+        }
+        _attach_shadow_point_provenance(point_out, p)
+        points_out.append(point_out)
     awarded_total = round(awarded_total, 2)
     # high-risk: any low-confidence judgment, or near a scoring boundary -> route to human review
     near_boundary = bool(max_total) and (0 < abs(awarded_total - round(awarded_total)) < high_risk_margin)
@@ -113,6 +115,113 @@ def grade_with_rubric(
         "llm_adjudicated": True,
         "official_score_allowed": False,   # v1 is candidate evidence; teacher/governed gate promotes
     }
+
+
+def rubric_points_from_artifact(artifact: dict[str, Any]) -> list[dict[str, Any]]:
+    """Project a question grading artifact into ``grade_with_rubric`` points.
+
+    The artifact is runtime-readable candidate evidence. This adapter only maps
+    shape; it does not promote artifact status, query RAG, or change score
+    authority.
+    """
+    if not isinstance(artifact, dict) or artifact.get("artifact_missing"):
+        return []
+    points: list[dict[str, Any]] = []
+    for raw in list(artifact.get("scoring_points") or []):
+        if not isinstance(raw, dict):
+            continue
+        point_id = str(raw.get("point_id") or "").strip()
+        text = str(raw.get("label") or raw.get("text") or "").strip()
+        score = raw.get("max_score")
+        if not point_id or not text or score is None:
+            continue
+        try:
+            normalized_score = float(score)
+        except (TypeError, ValueError):
+            continue
+        point = {
+            "point_id": point_id,
+            "text": text,
+            "score": normalized_score,
+            "policy": _artifact_policy_to_rubric_policy(raw.get("policy_type")),
+            "policy_type": str(raw.get("policy_type") or "").strip(),
+            "required_terms": list(raw.get("required_terms") or []),
+        }
+        for key in (
+            "negative_evidence",
+            "list_rule",
+            "calculation_spec",
+            "penalty_rule",
+            "source_refs",
+            "source_status",
+            "meets_policy_minimum",
+            "auto_certifiable",
+            "knowledge_point_refs",
+        ):
+            if key in raw:
+                point[key] = raw.get(key)
+        points.append(point)
+    return points
+
+
+def _attach_shadow_point_provenance(
+    point_out: dict[str, Any],
+    rubric_point: dict[str, Any],
+) -> None:
+    source_refs = [dict(ref) for ref in list(rubric_point.get("source_refs") or []) if isinstance(ref, dict)]
+    if source_refs:
+        point_out["source_refs"] = source_refs
+        ref_ids = [
+            str(ref.get("ref_id") or ref.get("source_id") or ref.get("id") or "").strip()
+            for ref in source_refs
+        ]
+        point_out["source_ref_ids"] = [ref_id for ref_id in ref_ids if ref_id]
+    for key in (
+        "source_status",
+        "knowledge_point_refs",
+        "negative_evidence",
+        "list_rule",
+        "calculation_spec",
+        "penalty_rule",
+    ):
+        value = rubric_point.get(key)
+        if value:
+            point_out[key] = value
+
+
+def grade_artifact_shadow(
+    *,
+    qid: str,
+    student_answer: str,
+    artifact: dict[str, Any],
+    judge_fn: JudgeFn,
+    student_id: str = "",
+) -> dict[str, Any] | None:
+    """Grade with artifact points in shadow mode.
+
+    Returns ``None`` when the artifact is missing/unusable so callers can keep
+    legacy grading unchanged.
+    """
+    points = rubric_points_from_artifact(artifact)
+    if not points:
+        return None
+    event = grade_with_rubric(
+        qid=qid,
+        student_answer=student_answer,
+        rubric_points=points,
+        judge_fn=judge_fn,
+        student_id=student_id,
+    )
+    return {
+        **event,
+        "point_matches": [dict(point) for point in list(event.get("scoring_points") or [])],
+        "official_score_allowed": False,
+    }
+
+
+def _artifact_policy_to_rubric_policy(policy_type: Any) -> str:
+    policy = str(policy_type or "").strip()
+    return policy or "qualitative"
 
 
 def to_learning_evidence(event: dict[str, Any], *, node_code: str = "") -> dict[str, Any]:
@@ -709,7 +818,8 @@ def make_llm_judge(complete_fn: Callable[..., Any], api_key: str, *, model: str 
     return judge
 
 
-__all__ = ["grade_with_rubric", "grade_with_batch_judge", "grade_with_batch_judge_async",
+__all__ = ["grade_with_rubric", "grade_artifact_shadow", "rubric_points_from_artifact",
+           "grade_with_batch_judge", "grade_with_batch_judge_async",
            "batch_judge", "batch_judge_async", "make_batch_judge",
            "extract_rubric_from_reference_async", "normalize_points_to_nominal",
            "derive_outcome_from_event",
