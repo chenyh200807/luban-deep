@@ -75,17 +75,13 @@ def _main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--fixture", required=True)
     parser.add_argument("--mode", choices=["hermetic_trace", "live_readback"], default="hermetic_trace")
+    parser.add_argument("--live-readback-file", default="")
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
 
     live_readback = None
-    if args.mode == "live_readback":
-        live_readback = {
-            "learner_memory_event_id": "evt_m35_live_fixture",
-            "weakness_projection_id": "weak_m35_live_fixture",
-            "next_action_id": "nba_m35_live_fixture",
-            "retest_condition_id": "retest_m35_live_fixture",
-        }
+    if args.live_readback_file:
+        live_readback = json.loads(Path(args.live_readback_file).read_text(encoding="utf-8"))
 
     trace = build_m35_loop_trace(
         attempt={

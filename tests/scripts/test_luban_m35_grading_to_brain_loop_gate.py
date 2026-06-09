@@ -1,3 +1,6 @@
+import json
+import subprocess
+
 from scripts.run_luban_m35_grading_to_brain_loop_gate import build_m35_loop_trace
 
 
@@ -73,3 +76,26 @@ def test_m35_live_readback_without_all_ids_cannot_claim_convergence():
     assert trace["mode"] == "live_readback"
     assert trace["required_readbacks_present"] is False
     assert trace["convergence_claim_allowed"] is False
+
+
+def test_cli_live_readback_without_external_readback_file_cannot_claim_convergence(tmp_path):
+    out = tmp_path / "live_readback.json"
+
+    subprocess.run(
+        [
+            "python",
+            "scripts/run_luban_m35_grading_to_brain_loop_gate.py",
+            "--fixture",
+            "tests/fixtures/luban_m35_case_scoring",
+            "--mode",
+            "live_readback",
+            "--output",
+            str(out),
+        ],
+        check=True,
+    )
+
+    payload = json.loads(out.read_text(encoding="utf-8"))
+    assert payload["mode"] == "live_readback"
+    assert payload["convergence_claim_allowed"] is False
+    assert payload["trace"]["required_readbacks_present"] is False

@@ -17,14 +17,14 @@ The implementation has enough evidence to continue QA/operator shadow drills, bu
 | Gate | Result | Evidence |
 | --- | --- | --- |
 | Sample size | 20 questions / 100 answers | `tests/fixtures/luban_m35_case_scoring/student_answers.jsonl` |
-| Label authority | `generated_self_label=100` | `/tmp/m35_label_audit_task9.json` |
+| Label authority | `generated_self_label=100` | `artifacts/luban_grading_artifacts/m35_label_authority_audit/report.json` |
 | Verdict ceiling | `SHAPE_ONLY` | label audit: `quality_claim_allowed=false`, `poc_go_allowed=false`, `weak_go_allowed=false` |
-| Shape evaluation | NO-GO | `/tmp/m35_ab_shape_parent.json`, `quality_claim_allowed=false` |
-| Cached replay evaluation | NO-GO | `/tmp/m35_ab_cached_parent.json`, `quality_claim_allowed=false` |
-| Live provider sample tier | NO-GO | `/tmp/m35_ab_live_parent.json`, `provider_call_count=0`; tier shape exercised only |
+| Shape evaluation | NO-GO | `artifacts/luban_grading_artifacts/m35_scoring_artifact_ab/report_shape.json`, `quality_claim_allowed=false` |
+| Cached replay evaluation | NO-GO | `artifacts/luban_grading_artifacts/m35_scoring_artifact_ab/report_cached.json`, `quality_claim_allowed=false`; no quality claim |
+| Live provider sample tier | NO-GO | live-provider scoring-quality tier not exercised in release gate; DeepSeek adversarial probe is candidate review only |
 | WS shadow route | Pass as shadow only | `/api/v1/ws` integration tests pass; no new WebSocket route |
 | Release gate artifact | NO-GO | `artifacts/luban_grading_artifacts/m35_scoring_artifact_gate/go_no_go_m35.json` |
-| Learning Brain readback | Shape proof only | point evidence can project to read model; `canonical_truth_written=false` |
+| Learning Brain readback | Shape proof only | `artifacts/luban_grading_artifacts/m35_grading_to_brain_loop/report_hermetic.json`; point evidence can project to read model; `canonical_truth_written=false` |
 | Safety invariants | Pass | production/db/remote/RAG/provider/published/canonical writes all zero |
 
 ## Metrics
