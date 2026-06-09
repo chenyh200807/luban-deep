@@ -1478,11 +1478,18 @@ class LearnerStateService:
         max_chars: int = 1400,
     ) -> dict[str, Any]:
         normalized = _normalize_user_id(user_id)
-        snapshot = self.read_snapshot(normalized, event_limit=3)
+        profile = self._read_profile_raw(normalized)
+        summary = self._read_summary_raw(normalized)
+        progress = self._read_progress_raw(normalized)
+        if not profile or not summary.strip() or not progress:
+            self._ensure_seed_state(normalized)
+            profile = self._read_profile_raw(normalized)
+            summary = self._read_summary_raw(normalized)
+            progress = self._read_progress_raw(normalized)
         segments = [
-            self._compact_profile_segment(snapshot.profile, language=language),
-            self._compact_summary_segment(snapshot.summary, language=language),
-            self._compact_progress_segment(snapshot.progress, language=language),
+            self._compact_profile_segment(profile, language=language),
+            self._compact_summary_segment(summary, language=language),
+            self._compact_progress_segment(progress, language=language),
             self._compact_goals_segment(self.read_goals(normalized), language=language),
         ]
         segments = [segment for segment in segments if segment.get("content")]

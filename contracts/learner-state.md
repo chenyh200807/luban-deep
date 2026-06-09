@@ -27,6 +27,11 @@
 5. Markdown 文件只能是 projection / cache / 可读视图，不能再承担唯一真相。
 6. `TutorBot workspace memory` 的 consolidation lock 只负责同一 session 内的并发互斥；它不得成为 learner-state 写回 authority，也不得用弱引用等可被 GC 回收的锁破坏同 session consolidation 的串行化。长期学习事实仍只能通过 `learner_memory_events` / learner-state writeback pipeline 进入 durable truth。
 
+### Compact Context 读取边界
+
+- `LearnerStateService.build_compact_context()` 只渲染 learner profile、summary、progress、goals 这类稳定学员事实；它不得读取 `learner_memory_events`，也不得把 recall evidence 当作每轮默认上下文。
+- `learner_memory_events` 只在明确 recall-like 路由或 `build_context_candidates()` 判定需要 memory hits 时读取。普通问答的 compact learner context 必须避免额外 memory-event read，以降低每轮上下文构建延迟，同时保持 memory events 作为 durable learner evidence authority。
+
 ## 2026-06-09 Workspace 撤回与正名决策
 
 撤回旧解释：不得再把“每个会员一个独立 workspace”理解成“每个会员或每个 TutorBot 都有一套独立长期学习记忆系统”。该解释会制造第二套 learner truth，已被本 contract 退役。

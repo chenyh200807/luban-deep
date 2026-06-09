@@ -963,6 +963,25 @@ def test_learner_state_build_compact_context_returns_learner_facts_only(tmp_path
     assert any(segment["source_tag"] == "learner_goals" for segment in compact["segments"])
 
 
+def test_learner_state_build_compact_context_does_not_read_memory_events(tmp_path) -> None:
+    class CountingCoreStore(_CoreStoreStub):
+        def __init__(self) -> None:
+            super().__init__()
+            self.memory_event_reads = 0
+
+        def read_memory_events(self, _user_id: str, limit: int | None = 20):
+            self.memory_event_reads += 1
+            return super().read_memory_events(_user_id, limit=limit)
+
+    core_store = CountingCoreStore()
+    service = _make_service(tmp_path, core_store=core_store)
+
+    compact = service.build_compact_context("student_demo", language="zh")
+
+    assert compact["segments"]
+    assert core_store.memory_event_reads == 0
+
+
 def test_learner_state_build_context_candidates_default_skips_memory_hits(tmp_path) -> None:
     core_store = _CoreStoreStub()
     core_store.goals = [
