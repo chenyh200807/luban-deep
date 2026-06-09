@@ -76,6 +76,10 @@
       </view>
 
       <view class="today-task-strip" wx:if="{{reportDetailView == 'home' && todayTasks.length}}">
+        <view class="today-task-controls">
+          <text class="today-task-control" catchtap="compressTodayTasks">今天时间少</text>
+          <text class="today-task-control" catchtap="rotateTodayTasks">换一组</text>
+        </view>
         <view class="today-task-item" wx:for="{{todayTasks}}" wx:key="key" data-taskid="{{item.taskId || item.key}}" bindtap="startTodayTask">
           <view>
             <text class="today-task-title">{{item.title}}</text>
@@ -434,6 +438,7 @@
                   <text class="brain-row-meta">{{item.meta}}</text>
                   <text class="brain-diagnosis-detail" wx:if="{{item.detail}}">{{item.detail}}</text>
                   <text class="brain-action-line">{{item.action}}</text>
+                  <text class="brain-challenge-action" data-key="{{item.key}}" catchtap="challengeDiagnosis">我其实会，测一下</text>
                 </view>
               </view>
             </block>

@@ -439,6 +439,23 @@
   gap: 10rpx;
 }
 
+.today-task-controls {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10rpx;
+}
+
+.today-task-control {
+  min-height: 44rpx;
+  padding: 8rpx 14rpx;
+  border-radius: 10rpx;
+  background: rgba(148, 163, 184, 0.1);
+  border: 1rpx solid rgba(148, 163, 184, 0.16);
+  color: var(--text-muted);
+  font-size: 20rpx;
+  font-weight: 800;
+}
+
 .today-task-item {
   display: flex;
   align-items: center;
@@ -2056,6 +2073,19 @@
 
 .brain-action-line {
   color: #bfdbfe;
+}
+
+.brain-challenge-action {
+  align-self: flex-start;
+  min-height: 44rpx;
+  margin-top: 4rpx;
+  padding: 8rpx 12rpx;
+  border-radius: 10rpx;
+  background: rgba(14, 165, 233, 0.12);
+  border: 1rpx solid rgba(125, 211, 252, 0.2);
+  color: #7dd3fc;
+  font-size: 20rpx;
+  font-weight: 800;
 }
 
 .attempt-card {

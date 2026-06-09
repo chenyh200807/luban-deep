@@ -1001,10 +1001,13 @@ def _is_improvement(payload: dict[str, Any]) -> bool:
     # rides on ``preview_only`` / ``claim_promotion_allowed`` (set by build_learning_evidence_*);
     # ``qa_simulated`` is the project's explicit simulation marker (runtime_llm_adjudicator /
     # beta_shadow_loader). Only a real graded attempt — none of these flags — may improve.
+    quality = payload.get("quality") if isinstance(payload.get("quality"), dict) else {}
     if (
         payload.get("qa_simulated") is True
         or payload.get("preview_only") is True
         or payload.get("claim_promotion_allowed") is False
+        or _is_low_measurement_confidence(payload.get("measurement_confidence"))
+        or _is_low_measurement_confidence(quality.get("measurement_confidence"))
     ):
         return False
     try:
@@ -1013,6 +1016,13 @@ def _is_improvement(payload: dict[str, Any]) -> bool:
         return max_score > 0 and score >= max_score and not payload.get("error_events")
     except (TypeError, ValueError):
         return False
+
+
+def _is_low_measurement_confidence(value: Any) -> bool:
+    if isinstance(value, dict):
+        level = _clean_text(value.get("level")).lower()
+        return level == "low"
+    return _clean_text(value).lower() == "low"
 
 
 def _improvement_error_code(payload: dict[str, Any], *, concept_id: str) -> str:

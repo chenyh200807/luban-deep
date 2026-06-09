@@ -85,11 +85,19 @@ def get_notebook_card_service() -> NotebookCardService:
         from deeptutor.services.learner_state.service import get_learner_state_service
         from deeptutor.services.notebook_card.store import (
             InMemoryNotebookCardStore,
+            PostgresNotebookCardStore,
             SupabaseNotebookCardStore,
         )
 
+        postgres_store = PostgresNotebookCardStore()
         supabase_store = SupabaseNotebookCardStore()
-        store = supabase_store if supabase_store.is_configured else InMemoryNotebookCardStore()
+        store = (
+            postgres_store
+            if postgres_store.is_configured
+            else supabase_store
+            if supabase_store.is_configured
+            else InMemoryNotebookCardStore()
+        )
         _singleton = NotebookCardService(store=store, learner_state_service=get_learner_state_service())
     return _singleton
 

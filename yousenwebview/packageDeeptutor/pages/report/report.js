@@ -1315,6 +1315,8 @@ Page({
     learningAttemptCards: [],
     noteAssets: [],
     todayTasks: [],
+    allTodayTasks: [],
+    todayTaskCompact: false,
     learningDiagnosisCards: [],
     learningTrainingLoops: [],
     learningNextAction: { title: "", subtitle: "", cta: "开始训练" },
@@ -1578,6 +1580,8 @@ Page({
     }
     this.setData(
       Object.assign({}, sharedPageData, {
+        allTodayTasks: sharedPageData.todayTasks || [],
+        todayTaskCompact: false,
         todayDone: overview.today_done || 0,
         dailyTarget: overview.daily_target || 0,
         streakDays: overview.streak_days || 0,
@@ -2450,6 +2454,84 @@ Page({
       objectId: String(task.noteId || task.key || ""),
     });
     this.startNoteAssetAction({ currentTarget: { dataset: { noteid: task.noteId } } });
+  },
+
+  compressTodayTasks() {
+    helpers.vibrate("light");
+    var base = (this.data.allTodayTasks || []).length
+      ? this.data.allTodayTasks
+      : this.data.todayTasks || [];
+    if (!base.length) return;
+    this.setData({
+      todayTasks: base.slice(0, 1),
+      todayTaskCompact: true,
+    });
+    this._trackLearningNoteBehavior("today_task_rendered", {
+      section: "today_tasks",
+      action: "render",
+      objectId: "today_tasks",
+      result: "compressed:1",
+    });
+  },
+
+  rotateTodayTasks() {
+    helpers.vibrate("light");
+    var base = (this.data.allTodayTasks || []).length
+      ? this.data.allTodayTasks.slice()
+      : (this.data.todayTasks || []).slice();
+    if (base.length <= 1) {
+      wx.showToast({ title: "暂时只有这一项", icon: "none", duration: 1400 });
+      return;
+    }
+    var rotated = base.slice(1).concat(base[0]).slice(0, 3);
+    this.setData({
+      todayTasks: rotated,
+      allTodayTasks: rotated,
+      todayTaskCompact: false,
+    });
+    this._trackLearningNoteBehavior("today_task_rendered", {
+      section: "today_tasks",
+      action: "render",
+      objectId: "today_tasks",
+      result: "rotated:" + String(rotated.length),
+    });
+  },
+
+  challengeDiagnosis(event) {
+    var key =
+      event && event.currentTarget && event.currentTarget.dataset
+        ? event.currentTarget.dataset.key
+        : "";
+    var card = (this.data.learningDiagnosisCards || []).find(function (item) {
+      return item.key === key;
+    });
+    if (!card) return;
+    if (surfaceTelemetry && surfaceTelemetry.trackProductBehavior) {
+      surfaceTelemetry.trackProductBehavior("learning_action_started", {
+        module: "learning_report",
+        section: "why",
+        action: "start_retest",
+        objectType: "diagnosis",
+        objectId: String(card.key || ""),
+        entrySource: "learner_challenge",
+        result: "probe_requested",
+      });
+    }
+    runtime.setWorkspaceBack(route.report(), "学情");
+    runtime.setPendingChatIntent(
+      "我觉得这个学情判断可能不准确。请围绕“" +
+        String(card.title || card.meta || "当前薄弱点") +
+        "”给我一题复测，先出题，不要直接给答案。",
+      "AUTO",
+      {
+        source: "learning_report",
+        reason: "learner_challenge_mastery",
+        diagnosis_key: String(card.key || ""),
+        evidence_refs: card.evidenceRefs || [],
+      },
+      null,
+    );
+    wx.reLaunch({ url: route.chat() });
   },
 
   async openAttemptDetail(event) {

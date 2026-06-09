@@ -18,7 +18,7 @@
 
 **Architecture:** 新增一个 owner-scoped 的 `learner_notebook_cards` Supabase 表（仿 `learner_mistake_book_items`，per-row、RLS、乐观并发），由新 fat-skill 权威 `NotebookCardService` 唯一负责卡片的写/读/删。workspace 卡片**不**经过既有 `NotebookManager._writeback_learner_state()` 重路径，因此 `refresh_from_turn()`（summary LLM 改写）、`patch_overlay()`（overlay 污染）一次性被收权；卡片只产出一条带 `source_label="student_note"`、低权重的 recall 事件。学情首页只扩展既有 `build_learning_report_read_model()`，不新增首页接口、不新增 planner CRUD。
 
-**Tech Stack:** Python 3 / FastAPI、Supabase PostgREST（httpx 同步客户端，仿 `SupabaseMistakeBookStore`）、pytest；微信小程序真实项目根 `yousenwebview/` + 其中 `packageDeeptutor` 分包目标页面 + 微信开发者工具手工/自动化回归；`wx_miniprogram/` 只作为 shadow / 辅助前端面，不能替代真实入口验收。
+**Tech Stack:** Python 3 / FastAPI、Supabase app DB（`DB_URL` direct Postgres store 优先；PostgREST store 仅作兼容 fallback）、pytest；微信小程序真实项目根 `yousenwebview/` + 其中 `packageDeeptutor` 分包目标页面 + 微信开发者工具手工/自动化回归；`wx_miniprogram/` 只作为 shadow / 辅助前端面，不能替代真实入口验收。
 
 ---
 
@@ -878,8 +878,8 @@ git commit -am "feat(assessment): gate probe improvement evidence by measurement
 - [x] 多端并发 PATCH 同一卡片：stale version 返回 409，无 lost update。
 - [x] 无新增聊天 WebSocket；无 `learner-workspace/home`；无 `planner/tasks` CRUD；无 `notebook/cards` writer。
 - [x] `training_intent` 仍是唯一处方 authority；今日任务来源枚举不含 `my_created`。
-- [ ] probe 低 `measurement_confidence` 不写 improvement evidence。
-- [ ] 迁移文件时间戳唯一、自带 RLS；**不在本 PR 内对生产 apply**（独立 release gate）。
+- [x] probe 低 `measurement_confidence` 不写 improvement evidence。2026-06-09 补 `learning_synthesis` 防线与回归测试：低置信满分复测不产生 `improvement_signals`，不清掉已确认弱点。
+- [x] 迁移文件时间戳唯一、自带 RLS；2026-06-09 只读复验 `DB_URL` app DB 中 `public.learner_notebook_cards` 存在、RLS=true、policy_count=4；PostgREST 项目未暴露该表，因此 runtime store 使用 `DB_URL` direct Postgres 优先。
 - [x] diff 可逐行追溯到 P0A；未顺手改 legacy notebook / 无关模块（§3 Surgical Changes）。
 
 ## 决策记录
@@ -907,4 +907,14 @@ git commit -am "feat(assessment): gate probe improvement evidence by measurement
 - Backend harness：`pytest -q tests/services/notebook_card/test_service.py tests/api/test_notebook_card_routing.py tests/services/learner_state/test_service.py tests/services/learner_state/test_learning_report_read_model.py tests/services/observability/test_product_behavior_catalog.py` -> `118 passed, 4 warnings`。
 - Node/static contract：`node yousenwebview/tests/test_report_view_model.js && node yousenwebview/tests/test_report_layout.js && node yousenwebview/tests/test_package_chat_copy_authority.js && node yousenwebview/tests/test_deeptutor_package_placement.js` -> pass。
 - Static authority guard：未新增 `/api/v1/learner-workspace/home`、`/api/v1/mobile/tutorbot/ws`、`/api/v1/notebook/cards`、`planner/tasks`；P0A payload guard 只命中 product behavior 禁止字段白名单本身。
-- Real WeChat package evidence：DevTools CLI `islogin/open/auto` 均可用，`devtools_project_root=yousenwebview`、`target_subpackage=packageDeeptutor`、`target_page=/packageDeeptutor/pages/report/report`、`entry_flow=direct_subpackage_page`；page automation 能进入 report 页，但 P0A probe 返回 `has_note_assets_key=false`、`has_today_tasks_key=false`，判断为当前 DevTools 未加载本轮新增页面数据或仍有旧编译缓存。因此真实微信三主链路仍是 `partial / P0A-new-field pending`，不能写成真实包通过。
+- Real WeChat package evidence（superseded by 2026-06-09 继续闭环结果）：DevTools CLI `islogin/open/auto` 均可用，`devtools_project_root=yousenwebview`、`target_subpackage=packageDeeptutor`、`target_page=/packageDeeptutor/pages/report/report`、`entry_flow=direct_subpackage_page`；第一次 page automation 能进入 report 页但 P0A probe 返回 `has_note_assets_key=false`、`has_today_tasks_key=false`，后续已确认是旧页面数据/编译缓存与未认证链路问题，不再作为当前结论。
+
+## 2026-06-09 继续闭环结果
+
+- Backend / synthesis gate：`pytest -q tests/services/learner_state/test_learning_synthesis.py tests/services/learner_state/test_learning_report_read_model.py tests/api/test_mobile_router.py tests/services/notebook_card/test_service.py tests/api/test_notebook_card_routing.py tests/services/observability/test_product_behavior_catalog.py` -> `220 passed, 4 warnings`。
+- Node/static contract：`node yousenwebview/tests/test_report_layout.js && node yousenwebview/tests/test_report_view_model.js && node yousenwebview/tests/test_package_chat_copy_authority.js` -> pass；`test_report_layout.js` 现覆盖“今天时间少 / 换一组 / 我其实会，测一下”均为前端动作或复测 intent，不新增 planner/mastery writer。
+- Contract/runtime guard：`python scripts/check_contract_guard.py && python scripts/verify_runtime_assets.py` -> pass；`contracts/index.yaml` 已登记 `tests/services/learner_state/test_learning_synthesis.py` 为 learner_state 域测试。
+- Real WeChat package page evidence：DevTools CLI `auto --project <clean-worktree>/yousenwebview --auto-port 9420` + `run_wechat_devtools_page_automation.js` 进入 `target_page=/packageDeeptutor/pages/report/report`，`p0a_probe.has_note_assets_key=true`、`has_today_tasks_key=true`、`has_save_attempt_method=true`。证据字段：`devtools_project_root=yousenwebview`、`target_subpackage=packageDeeptutor`、`entry_flow=direct_subpackage_page`。
+- Store authority reconciliation：`.env` 中 `SUPABASE_URL` / `SUPABASE_URL_V5` 对应 PostgREST 项目均返回 `PGRST205 public.learner_notebook_cards not found`，但 `DB_URL` 所在 app DB 只读确认 `public.learner_notebook_cards` 已存在。因此 `NotebookCardService` durable store 修正为 `PostgresNotebookCardStore(DB_URL)` 优先、PostgREST 兼容 fallback；未新增第二套 table / endpoint / learner memory。
+- Real account backend closure：用 `.env` 的 `WECHAT_QA_USERNAME/WECHAT_QA_PASSWORD` 通过现有 8001 auth authority 取 token，当前 worktree 临时后端 8017 完成 `/api/v1/notebook/add_record` 保存 QA 学习卡 -> `/api/v1/mobile/learning-report?schema_version=2` 投影 `note_assets_count=1`、`today_tasks_count=1` -> `DELETE /api/v1/notebook/card/{note_id}` 归档 -> 投影回 `0/0`；DB 只读复验 QA note `archived_at is not null`。
+- Real WeChat account package evidence：DevTools CLI `islogin/open/auto` + `run_wechat_devtools_page_automation.js --project_root=yousenwebview --target_page=/packageDeeptutor/pages/report/report --base-url=http://127.0.0.1:8017 --auth-base-url=http://127.0.0.1:8001 --wait-ms=8000`，证据字段 `devtools_project_root=yousenwebview`、`target_subpackage=packageDeeptutor`、`entry_flow=direct_subpackage_page`、`auth_state=qa_token`、`auth_mode=manual_token`、`p0a_probe.note_assets_count=1`、`today_tasks_count=1`、`has_save_attempt_method=true`。这关闭本地 QA 真实账号读取/投影链路；线上生产发布仍需 merge/push/Aliyun 后复验，不能把 local QA pass 写成 production closure。
