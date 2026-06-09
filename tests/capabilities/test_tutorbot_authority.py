@@ -7,6 +7,7 @@ from deeptutor.capabilities.tutorbot import TutorBotCapability
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream import StreamEventType
 from deeptutor.core.stream_bus import StreamBus
+import deeptutor.services.tutorbot.manager as tutorbot_manager
 
 
 class _FakeTutorBotManager:
@@ -82,6 +83,7 @@ async def test_tutorbot_result_propagates_compiled_knowledge_shadow_metadata(
     class FakeManager(_FakeTutorBotManager):
         async def send_message(self, **kwargs) -> str:
             session_metadata = kwargs["session_metadata"]
+            assert session_metadata["general_knowledge_context"] is True
             session_metadata["luban_general_knowledge_context"] = pack
             session_metadata["luban_general_knowledge_context_status"] = "attached"
             return "高层住宅大于 27m。"
@@ -111,6 +113,36 @@ async def test_tutorbot_result_propagates_compiled_knowledge_shadow_metadata(
     result_payload = result_events[-1].metadata
     assert result_payload["luban_general_knowledge_context"] == pack
     assert result_payload["luban_general_knowledge_context_status"] == "attached"
+
+
+def test_tutorbot_general_knowledge_shadow_opt_in_does_not_attach_with_active_question(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def _fail_resolve(*args, **kwargs):
+        raise AssertionError("resolver must not run while active question context exists")
+
+    monkeypatch.setattr(
+        tutorbot_manager,
+        "resolve_general_knowledge_context",
+        _fail_resolve,
+        raising=False,
+    )
+    metadata = {
+        "general_knowledge_context": True,
+        "active_object": {
+            "type": "question",
+            "question_id": "q_active",
+            "question": "既有题对象",
+        },
+    }
+
+    tutorbot_manager._attach_general_knowledge_context(
+        content="高层住宅的建筑高度是怎么界定的？",
+        runtime_metadata=metadata,
+    )
+
+    assert "luban_general_knowledge_context" not in metadata
+    assert "luban_general_knowledge_context_status" not in metadata
 
 
 @pytest.mark.asyncio
