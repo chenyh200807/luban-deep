@@ -363,6 +363,7 @@ domains:
       - tests/services/learner_state/heartbeat/test_service.py
       - tests/services/learner_state/heartbeat/test_scheduler.py
       - tests/services/learner_state/heartbeat/test_arbitration.py
+      - tests/services/member_console/test_directory.py
       - tests/services/member_console/test_service.py
       - tests/web/test_bi_member_admin_surface.py
       - tests/supabase/test_learner_state_rls_migration.py

@@ -10,6 +10,8 @@ logger = logging.getLogger(__name__)
 
 _UNKNOWN_CREATED_AT = "1970-01-01T00:00:00+00:00"
 _UNKNOWN_EXPIRE_AT = "9999-12-31T00:00:00+00:00"
+_MAX_MEMBER_DIRECTORY_ROWS = 10000
+_MEMBER_DIRECTORY_PAGE_SIZE = 1000
 
 
 def _normalize_text(value: Any) -> str:
@@ -63,7 +65,8 @@ class SupabaseMemberDirectoryReadModel:
     def list_members(self, *, limit: int = 5000) -> list[dict[str, Any]]:
         if not self.is_configured:
             return []
-        rows = self._select_rows(
+        requested_limit = max(1, min(int(limit), _MAX_MEMBER_DIRECTORY_ROWS))
+        rows = self._select_rows_paginated(
             table="v_members",
             params={
                 "select": (
@@ -73,8 +76,8 @@ class SupabaseMemberDirectoryReadModel:
                     "has_user_record,has_wallet,has_profile,has_chat_history"
                 ),
                 "order": "last_chat_at.desc.nullslast,wallet_updated_at.desc.nullslast,user_id.asc",
-                "limit": max(1, min(int(limit), 10000)),
             },
+            limit=requested_limit,
         )
         members = [self._member_from_row(row) for row in rows]
         return [member for member in members if member.get("user_id")]
@@ -104,6 +107,34 @@ class SupabaseMemberDirectoryReadModel:
             logger.warning("Supabase member directory returned non-list payload: table=%s", table)
             return []
         return [row for row in payload if isinstance(row, dict)]
+
+    def _select_rows_paginated(
+        self,
+        *,
+        table: str,
+        params: dict[str, Any],
+        limit: int,
+        page_size: int = _MEMBER_DIRECTORY_PAGE_SIZE,
+    ) -> list[dict[str, Any]]:
+        rows: list[dict[str, Any]] = []
+        offset = 0
+        bounded_page_size = max(1, min(page_size, _MEMBER_DIRECTORY_PAGE_SIZE, limit))
+        while len(rows) < limit:
+            remaining = limit - len(rows)
+            batch_limit = min(bounded_page_size, remaining)
+            batch = self._select_rows(
+                table=table,
+                params={
+                    **params,
+                    "limit": batch_limit,
+                    "offset": offset,
+                },
+            )
+            rows.extend(batch[:remaining])
+            if len(batch) < batch_limit:
+                break
+            offset += batch_limit
+        return rows
 
     @staticmethod
     def _member_from_row(row: dict[str, Any]) -> dict[str, Any]:
