@@ -28,6 +28,11 @@ KIND_MACHINE_SPEC = "machine_spec_candidate"
 KIND_REJECTED = "rejected"
 KIND_WORK_ORDER = "work_order"
 KIND_RELEASE_DELTA = "release_candidate_delta"
+SOURCE_PATH_CONFLICT_MARKERS = {
+    "source_path_conflict",
+    "primary_path_mismatch",
+    "single_winner_path_mismatch",
+}
 
 _VALID_KINDS = {
     KIND_QUESTION, KIND_ANSWER_KEY, KIND_RUBRIC, KIND_SOURCE,
@@ -118,6 +123,56 @@ def work_order_from_open_world(diagnostic: dict[str, Any]) -> dict[str, Any]:
     return {"question_candidate": question_candidate, "work_order": work_order}
 
 
+def work_orders_from_source_path_conflicts(
+    *,
+    query_text: str,
+    query_plan: dict[str, Any],
+    limit: int = 20,
+) -> list[dict[str, Any]]:
+    """Turn compiled source/path mismatch evidence into compiler repair work orders.
+
+    Runtime should fail open on these candidates. The compiler still needs an
+    explicit candidate ledger so polluted source attachments can be fixed at the
+    bundle, not papered over in every caller.
+    """
+    entries: list[dict[str, Any]] = []
+    for candidate in query_plan.get("candidates") or []:
+        if not isinstance(candidate, dict):
+            continue
+        negative_evidence = sorted(str(item) for item in (candidate.get("negative_evidence") or []))
+        conflict_markers = [item for item in negative_evidence if item in SOURCE_PATH_CONFLICT_MARKERS]
+        if not conflict_markers:
+            continue
+        source_hits = [str(item) for item in (candidate.get("source_hits") or []) if str(item).strip()]
+        if not source_hits:
+            continue
+        entries.append(
+            make_candidate(
+                kind=KIND_WORK_ORDER,
+                origin="compiled_knowledge_query_plan",
+                payload={
+                    "task": "repair_compiled_source_path_alignment",
+                    "query_text": str(query_text or "").strip(),
+                    "query_plan_policy": query_plan.get("policy"),
+                    "intent": query_plan.get("intent"),
+                    "node_code": str(candidate.get("node_code") or "").strip(),
+                    "leaf_name_path": str(candidate.get("leaf_name_path") or "").strip(),
+                    "origin": candidate.get("origin"),
+                    "path_hits": list(candidate.get("path_hits") or []),
+                    "critical_path_hits": list(candidate.get("critical_path_hits") or []),
+                    "source_hits": source_hits,
+                    "negative_evidence": negative_evidence,
+                    "runtime_action": "fail_open_do_not_inject_polluted_compiled_context",
+                    "compiler_action": "detach_or_reanchor_source_snippets_before_release",
+                },
+                reason="compiled_source_path_conflict_requires_compiler_repair",
+            )
+        )
+        if len(entries) >= limit:
+            break
+    return entries
+
+
 def build_ledger(entries: list[dict[str, Any]]) -> dict[str, Any]:
     """Summarize a candidate ledger; computes laundering invariants for the M26 safety report."""
     by_kind: dict[str, int] = {}
@@ -144,6 +199,7 @@ __all__ = [
     "NAMESPACE",
     "make_candidate",
     "work_order_from_open_world",
+    "work_orders_from_source_path_conflicts",
     "build_ledger",
     "KIND_QUESTION",
     "KIND_ANSWER_KEY",

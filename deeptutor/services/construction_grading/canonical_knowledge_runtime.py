@@ -23,9 +23,14 @@ _log = logging.getLogger(__name__)
 AUTHORITY = "luban_canonical_knowledge"
 _SUPPLY_DIR = Path(__file__).parent / "runtime_supply" / "v_canonical_unified_knowledge"
 _BUNDLE_NAME = "canonical_unified_knowledge.json"
+_SOURCE_ALIGNMENT_REPAIRS_NAME = "source_alignment_repairs.json"
 _GRAPH_DIR = Path(__file__).parent / "runtime_supply" / "v_canonical_knowledge_graph"
 _GRAPH_NAME = "graph_adjacency.json"
 _DEFAULT_PER_SOURCE = 6  # cap each source to its most-relevant N for one turn
+
+
+def _empty_source_alignment_repairs() -> dict[str, Any]:
+    return {"general_detached_nodes": set(), "detached_units": set()}
 
 
 @lru_cache(maxsize=1)
@@ -85,12 +90,99 @@ def _load() -> dict[str, Any] | None:
     return bundle
 
 
+@lru_cache(maxsize=1)
+def _load_source_alignment_repairs() -> dict[str, Any]:
+    """Load compiler-authored source/path repair overlay for the verified unified bundle.
+
+    This is a repair ledger for the same compiled supply, not a second registry. Invalid or stale
+    ledgers are ignored so callers keep the existing fail-open behavior.
+    """
+    import json
+    p = _SUPPLY_DIR / _SOURCE_ALIGNMENT_REPAIRS_NAME
+    if not p.exists():
+        return _empty_source_alignment_repairs()
+    try:
+        overlay = json.loads(p.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        _log.warning("source alignment repair overlay unreadable -> ignored")
+        return _empty_source_alignment_repairs()
+
+    manifest = overlay.get("manifest") or {}
+    try:
+        production_write_count = int(manifest.get("production_write_count") or 0)
+    except (TypeError, ValueError):
+        _log.warning("source alignment repair overlay has invalid production_write_count -> ignored")
+        return _empty_source_alignment_repairs()
+    if (
+        manifest.get("schema") != "luban_canonical_unified_knowledge_source_alignment_repairs.v1"
+        or manifest.get("namespace") != "canonical_unified_knowledge.source_alignment_repairs"
+        or manifest.get("tier") != "teaching_context_not_answer_key"
+        or manifest.get("official_score_allowed") is not False
+        or manifest.get("llm_may_decide_correctness") is not False
+        or manifest.get("canonical_truth_written") is not False
+        or production_write_count != 0
+        or manifest.get("source_bundle_namespace") != _KU.UNIFIED_NAMESPACE
+    ):
+        _log.warning("source alignment repair overlay failed authority checks -> ignored")
+        return _empty_source_alignment_repairs()
+
+    bundle = _load()
+    bundle_hash = ((bundle or {}).get("manifest") or {}).get("content_hash")
+    if not bundle_hash or manifest.get("source_bundle_content_hash") != bundle_hash:
+        _log.warning("source alignment repair overlay hash mismatch -> ignored")
+        return _empty_source_alignment_repairs()
+
+    general_detached_nodes: set[str] = set()
+    detached_units: set[tuple[str, str, str]] = set()
+    for repair in overlay.get("repairs") or []:
+        if not isinstance(repair, dict):
+            continue
+        node_code = str(repair.get("node_code") or "").strip()
+        if not node_code:
+            continue
+        action = str(repair.get("action") or "").strip()
+        if action == "detach_node_from_general_compiled_context":
+            general_detached_nodes.add(node_code)
+        by_source = repair.get("detached_unit_ids_by_source") or {}
+        if isinstance(by_source, dict):
+            for source, unit_ids in by_source.items():
+                source_key = str(source or "").strip()
+                if source_key not in {"textbook", "standard", "lecture", "question"}:
+                    continue
+                for unit_id in unit_ids or []:
+                    unit_key = str(unit_id or "").strip()
+                    if unit_key:
+                        detached_units.add((node_code, source_key, unit_key))
+    return {"general_detached_nodes": general_detached_nodes, "detached_units": detached_units}
+
+
+def _node_is_detached(node_code: str, detached_nodes: set[str]) -> bool:
+    node = str(node_code or "").strip()
+    return any(node == detached or node.startswith(detached + "-") for detached in detached_nodes)
+
+
+def is_general_compiled_context_detached(node_code: str) -> bool:
+    repairs = _load_source_alignment_repairs()
+    return _node_is_detached(str(node_code or ""), repairs["general_detached_nodes"])
+
+
+def source_items_for_node(bundle: dict[str, Any], node_code: str, source: str) -> list[dict[str, Any]]:
+    node = ((bundle.get("nodes") or {}).get(str(node_code or "")) or {})
+    items = list(((node.get("sources") or {}).get(source) or []))
+    repairs = _load_source_alignment_repairs()
+    detached_units = repairs["detached_units"]
+    return [
+        item for item in items
+        if (str(node_code), source, str(item.get("unit_id") or "")) not in detached_units
+    ]
+
+
 def _subtree_items(bundle: dict[str, Any], node: str, source: str) -> list[dict[str, Any]]:
     """All items of ``source`` for canonical ``node`` and its descendants (anchor or leaf)."""
     out: list[dict[str, Any]] = []
     for code, n in (bundle.get("nodes") or {}).items():
         if code == node or str(code).startswith(node + "-"):
-            out.extend((n.get("sources") or {}).get(source, []))
+            out.extend(source_items_for_node(bundle, str(code), source))
     return out
 
 
@@ -186,4 +278,10 @@ def _remediation(neighbors: dict[str, list[dict[str, str]]], learner_context: di
     }
 
 
-__all__ = ["AUTHORITY", "available_nodes", "resolve_canonical_knowledge"]
+__all__ = [
+    "AUTHORITY",
+    "available_nodes",
+    "is_general_compiled_context_detached",
+    "resolve_canonical_knowledge",
+    "source_items_for_node",
+]

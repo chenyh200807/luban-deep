@@ -64,3 +64,24 @@ def test_ledger_invariants_all_separate_no_promotion() -> None:
     assert ledger["all_separate_from_release"] is True
     assert ledger["candidate_used_as_release_truth"] == 0
     assert ledger["source_laundering_blocked"] == 1
+
+
+def test_source_path_conflicts_become_compiler_repair_work_orders() -> None:
+    from deeptutor.services.compiled_knowledge import general_knowledge
+
+    plan = general_knowledge.build_general_knowledge_query_plan("双代号网络计划总时差怎么算？")
+
+    entries = cf.work_orders_from_source_path_conflicts(
+        query_text="双代号网络计划总时差怎么算？",
+        query_plan=plan,
+    )
+
+    assert entries
+    assert all(entry["kind"] == cf.KIND_WORK_ORDER for entry in entries)
+    assert all(entry["promote_to_release"] is False for entry in entries)
+    assert any("水泥" in entry["payload"]["leaf_name_path"] for entry in entries)
+    assert any(
+        "source_path_conflict" in entry["payload"]["negative_evidence"]
+        for entry in entries
+    )
+    assert entries[0]["payload"]["task"] == "repair_compiled_source_path_alignment"

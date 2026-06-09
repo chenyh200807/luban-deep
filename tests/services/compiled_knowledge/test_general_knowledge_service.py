@@ -48,6 +48,31 @@ def test_strict_primary_path_terms_reject_source_only_acceptance_match() -> None
     assert general_knowledge.resolve_general_knowledge_context("分部工程质量验收谁组织？") is None
 
 
+def test_compiler_source_alignment_repairs_fail_open_known_wrong_path_shadow_cases() -> None:
+    from deeptutor.services.compiled_knowledge import general_knowledge
+
+    wrong_path_queries = [
+        "建筑幕墙防火封堵有什么要求？",
+        "绿色施工四节一环保分别是什么？",
+        "地下防水等级一级和二级有什么区别？",
+        "施工组织设计谁审批？",
+        "冬期施工混凝土养护怎么做？",
+    ]
+
+    for query in wrong_path_queries:
+        assert general_knowledge.resolve_general_knowledge_context(query) is None, query
+
+
+def test_compiler_detached_candidate_stops_before_wrong_sibling_takeover() -> None:
+    from deeptutor.services.compiled_knowledge import general_knowledge
+
+    plan = general_knowledge.build_general_knowledge_query_plan("绿色施工四节一环保分别是什么？")
+
+    assert plan["detached_candidate_count"] > 0
+    assert general_knowledge.resolve_general_knowledge_context("绿色施工四节一环保分别是什么？") is None
+    assert general_knowledge.resolve_general_knowledge_context("脚手架连墙件设置有什么要求？") is not None
+
+
 def test_legacy_construction_grading_import_stays_compatible() -> None:
     from deeptutor.services.compiled_knowledge import general_knowledge
     from deeptutor.services.construction_grading import general_knowledge_context

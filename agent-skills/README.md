@@ -10,6 +10,9 @@ Use them when planning, debugging, reviewing, or QA'ing DeepTutor work:
   route, follow-up, refusal, and terminal-truth bugs.
 - `wechat-tutorbot-real-entry-qa`: QA workflow for the real WeChat TutorBot
   path, with explicit evidence-surface boundaries.
+- `compiled-knowledge-shadow-eval`: QA and rollout workflow for Nexus-like
+  RAG+compiled TutorBot knowledge conversations, source pollution feedback,
+  and system-wide default decisions.
 - `anti-overfit-repair-review`: review workflow for regex, fallback,
   classifier, and special-case repairs.
 

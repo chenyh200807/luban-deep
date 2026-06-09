@@ -76,7 +76,7 @@ DEFAULT_CASES: tuple[ShadowCase, ...] = (
     ShadowCase("open_017", "外墙保温施工有哪些质量控制点？", "open", ("外墙保温",), ("保温",)),
     ShadowCase("open_018", "分部工程质量验收谁组织？", "open", ("分部工程", "验收"), ("验收",)),
     ShadowCase("open_019", "建筑幕墙防火封堵有什么要求？", "open", ("幕墙", "防火"), ("幕墙", "防火")),
-    ShadowCase("open_020", "绿色施工四节一环保分别是什么？", "open", ("绿色施工",), ("节能", "环保")),
+    ShadowCase("open_020", "绿色施工四节一环保分别是什么？", "open", ("绿色施工", "四节"), ("节能", "环保")),
     ShadowCase("off_021", "今天天气怎么样随便聊聊", "open"),
     ShadowCase("off_022", "帮我写一首关于咖啡的诗", "open"),
     ShadowCase("off_023", "NBA昨天谁赢了", "open"),
@@ -90,19 +90,19 @@ DEFAULT_CASES: tuple[ShadowCase, ...] = (
     ShadowCase("open_031", "防火卷帘能不能替代防火墙？", "open", ("防火卷帘",), ("防火卷帘",)),
     ShadowCase("open_032", "钢筋保护层厚度怎么确定？", "open", ("保护层",), ("保护层",)),
     ShadowCase("open_033", "大体积混凝土温控有哪些要点？", "open", ("大体积混凝土",), ("温控",)),
-    ShadowCase("open_034", "混凝土强度等级 C30 是什么意思？", "open", ("混凝土强度",), ("C30",)),
+    ShadowCase("open_034", "混凝土强度等级 C30 是什么意思？", "open", ("强度等级",), ("C30",)),
     ShadowCase("open_035", "水泥初凝和终凝时间怎么理解？", "open", ("凝结时间",), ("初凝", "终凝")),
     ShadowCase("open_036", "地下防水等级一级和二级有什么区别？", "open", ("地下防水",), ("防水",)),
     ShadowCase("open_037", "钢结构高强螺栓终拧有什么要求？", "open", ("高强螺栓",), ("终拧",)),
     ShadowCase("open_038", "砖砌体灰缝厚度一般是多少？", "open", ("灰缝",), ("灰缝",)),
-    ShadowCase("open_039", "屋面卷材搭接宽度怎么控制？", "open", ("卷材",), ("搭接",)),
+    ShadowCase("open_039", "屋面卷材搭接宽度怎么控制？", "open", ("卷材", "搭接"), ("搭接",)),
     ShadowCase("open_040", "基坑降水什么时候需要专项方案？", "open", ("基坑",), ("专项方案",)),
     ShadowCase("off_041", "给我推荐一部电影", "open"),
     ShadowCase("off_042", "帮我翻译 hello world", "open"),
     ShadowCase("off_043", "今天人民币兑美元是多少", "open"),
     ShadowCase("off_044", "写一段朋友圈文案", "open"),
     ShadowCase("off_045", "帮我做一个健身计划", "open"),
-    ShadowCase("open_046", "施工组织设计谁审批？", "open", ("施工组织设计",), ("审批",)),
+    ShadowCase("open_046", "施工组织设计谁审批？", "open", ("施工组织设计", "审批"), ("审批",)),
     ShadowCase("open_047", "单位工程验收和分部工程验收区别是什么？", "open", ("验收",), ("单位工程", "分部工程")),
     ShadowCase("open_048", "安全技术交底要交底哪些内容？", "open", ("安全技术交底",), ("交底",)),
     ShadowCase("open_049", "冬期施工混凝土养护怎么做？", "open", ("冬期施工",), ("养护",)),
@@ -194,10 +194,10 @@ def evaluate_pair(
     pack = {} if round_failed else _pack_from(treatment)
     compiled_hit = bool(pack)
     leaf_name_path = str(pack.get("leaf_name_path") or "")
-    path_ok = compiled_hit and all(term in leaf_name_path for term in case.path_terms)
-    expected_hit = case.expected == "hit"
+    has_path_expectation = bool(case.path_terms)
+    path_ok = compiled_hit and has_path_expectation and all(term in leaf_name_path for term in case.path_terms)
     fail_open = (not round_failed) and (not compiled_hit)
-    wrong_path = compiled_hit and (not path_ok or not expected_hit)
+    wrong_path = compiled_hit and not path_ok
     source_valid = compiled_hit and path_ok and _source_valid(pack)
     control_score = _answer_score(str(control.get("visible_response") or ""), case.answer_terms)
     treatment_score = _answer_score(str(treatment.get("visible_response") or ""), case.answer_terms)
@@ -323,6 +323,18 @@ def _build_start_turn_body(
     }
 
 
+def _select_cases(*, limit: int, case_ids: list[str] | None = None) -> list[ShadowCase]:
+    cases = list(DEFAULT_CASES)[: max(1, int(limit))]
+    requested = [str(item).strip() for item in (case_ids or []) if str(item).strip()]
+    if not requested:
+        return cases
+    by_id = {case.case_id: case for case in DEFAULT_CASES}
+    missing = [case_id for case_id in requested if case_id not in by_id]
+    if missing:
+        raise ValueError(f"unknown_case_id:{','.join(missing)}")
+    return [by_id[case_id] for case_id in requested]
+
+
 async def _run_turn(
     client: httpx.AsyncClient,
     *,
@@ -445,10 +457,11 @@ async def run_shadow(
     output_dir: Path,
     limit: int,
     timeout_seconds: float,
+    case_ids: list[str] | None = None,
 ) -> dict[str, Any]:
     output_dir.mkdir(parents=True, exist_ok=True)
     ws_url = _build_ws_url(api_base_url.rstrip("/"))
-    cases = list(DEFAULT_CASES)[:limit]
+    cases = _select_cases(limit=limit, case_ids=case_ids)
     rows: list[dict[str, Any]] = []
     transcript = output_dir / "transcript.jsonl"
     transcript.write_text("", encoding="utf-8")
@@ -528,6 +541,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--register", action="store_true")
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--limit", type=int, default=50)
+    parser.add_argument("--case-id", action="append", default=[])
     parser.add_argument("--timeout-seconds", type=float, default=120.0)
     return parser
 
@@ -544,6 +558,7 @@ def main(argv: list[str] | None = None) -> int:
             output_dir=args.output_dir,
             limit=int(args.limit),
             timeout_seconds=float(args.timeout_seconds),
+            case_ids=list(args.case_id or []),
         )
     )
     print(json.dumps(summary, ensure_ascii=False, indent=2))

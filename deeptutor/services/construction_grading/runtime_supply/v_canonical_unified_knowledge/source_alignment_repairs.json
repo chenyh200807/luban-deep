@@ -1,0 +1,117 @@
+{
+  "manifest": {
+    "schema": "luban_canonical_unified_knowledge_source_alignment_repairs.v1",
+    "namespace": "canonical_unified_knowledge.source_alignment_repairs",
+    "status": "release_candidate",
+    "tier": "teaching_context_not_answer_key",
+    "official_score_allowed": false,
+    "llm_may_decide_correctness": false,
+    "canonical_truth_written": false,
+    "production_write_count": 0,
+    "source_bundle_namespace": "canonical_unified_knowledge",
+    "source_bundle_content_hash": "7fc8717a2a23ba81d147010903aa7877df88ea8e271294618bc2c3a6366cce99",
+    "repair_count": 11,
+    "generated_from": "artifacts/qa/tutorbot-compiled-knowledge-shadow-50-merged-20260609-151900/summary.json"
+  },
+  "repairs": [
+    {
+      "node_code": "1A413061-16",
+      "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 建筑幕墙分类",
+      "action": "detach_node_from_general_compiled_context",
+      "reason": "open_019 still fell back from the polluted leaf to the same 建筑幕墙分类 parent; 防火封堵 has no precise governed re-anchor in this taxonomy.",
+      "evidence_queries": ["建筑幕墙防火封堵有什么要求？"],
+      "reanchor_to_node_code": null,
+      "runtime_action": "fail_open_to_existing_tutorbot_rag"
+    },
+    {
+      "node_code": "1A413061-16-a",
+      "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 建筑幕墙分类 > 按面板材料分类",
+      "action": "detach_node_from_general_compiled_context",
+      "reason": "open_019 matched 建筑幕墙防火封堵 to a幕墙分类 leaf; no governed precise canonical re-anchor exists in the current taxonomy.",
+      "evidence_queries": ["建筑幕墙防火封堵有什么要求？"],
+      "reanchor_to_node_code": null,
+      "runtime_action": "fail_open_to_existing_tutorbot_rag"
+    },
+    {
+      "node_code": "1A413046-10",
+      "name_path": "主体结构工程施工 > 常用施工脚手架 > 脚手架绿色施工与可持续发展",
+      "action": "detach_node_from_general_compiled_context",
+      "reason": "open_020 can drift to a local scaffold green-construction node; 四节一环保 requires a governed general green-construction re-anchor that is absent.",
+      "evidence_queries": ["绿色施工四节一环保分别是什么？"],
+      "reanchor_to_node_code": null,
+      "runtime_action": "fail_open_to_existing_tutorbot_rag"
+    },
+    {
+      "node_code": "1A413061-10",
+      "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 绿色施工创新技术",
+      "action": "detach_node_from_general_compiled_context",
+      "reason": "open_020 fell from 信息化系统 to another local 绿色施工 leaf, but the query asks 四节一环保 and current taxonomy lacks that governed general green-construction node.",
+      "evidence_queries": ["绿色施工四节一环保分别是什么？"],
+      "reanchor_to_node_code": null,
+      "runtime_action": "fail_open_to_existing_tutorbot_rag"
+    },
+    {
+      "node_code": "1A413061-12",
+      "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 绿色施工方案与场地管理",
+      "action": "detach_node_from_general_compiled_context",
+      "reason": "open_020 can drift to local green-construction site-layout nodes; these do not answer 四节一环保.",
+      "evidence_queries": ["绿色施工四节一环保分别是什么？"],
+      "reanchor_to_node_code": null,
+      "runtime_action": "fail_open_to_existing_tutorbot_rag"
+    },
+    {
+      "node_code": "1A413061-07-d",
+      "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 绿色施工信息化系统应用 > 项目管理信息系统子系统",
+      "action": "detach_node_from_general_compiled_context",
+      "reason": "open_020 matched 四节一环保 to an information-system subnode; current taxonomy lacks a precise 四节一环保 canonical leaf.",
+      "evidence_queries": ["绿色施工四节一环保分别是什么？"],
+      "reanchor_to_node_code": null,
+      "runtime_action": "fail_open_to_existing_tutorbot_rag"
+    },
+    {
+      "node_code": "1A412031-01-c",
+      "name_path": "建筑功能材料 > 建筑防水材料的特性与应用 > 建筑防水材料特性 > 屋面防水等级",
+      "action": "detach_node_from_general_compiled_context",
+      "reason": "open_036 fell from 种植屋面防水等级 to 屋面防水等级; neither is a governed 地下防水等级 re-anchor.",
+      "evidence_queries": ["地下防水等级一级和二级有什么区别？"],
+      "reanchor_to_node_code": null,
+      "runtime_action": "fail_open_to_existing_tutorbot_rag"
+    },
+    {
+      "node_code": "1A413052-04-a",
+      "name_path": "屋面与防水工程施工 > 保温隔热工程施工 > 种植屋面施工要求 > 种植屋面防水等级",
+      "action": "detach_node_from_general_compiled_context",
+      "reason": "open_036 matched 地下防水等级 to 种植屋面防水等级; no governed 地下防水等级 re-anchor exists in the current canonical taxonomy.",
+      "evidence_queries": ["地下防水等级一级和二级有什么区别？"],
+      "reanchor_to_node_code": null,
+      "runtime_action": "fail_open_to_existing_tutorbot_rag"
+    },
+    {
+      "node_code": "1A413041-12-a",
+      "name_path": "主体结构工程施工 > 混凝土结构工程施工 > 装配式混凝土结构施工 > 施工组织设计要求",
+      "action": "detach_node_from_general_compiled_context",
+      "reason": "open_046 matched general 施工组织设计审批 to an 装配式混凝土施工 subnode with cross-chapter management sources.",
+      "evidence_queries": ["施工组织设计谁审批？"],
+      "reanchor_to_node_code": null,
+      "runtime_action": "fail_open_to_existing_tutorbot_rag"
+    },
+    {
+      "node_code": "1A413041-05-a",
+      "name_path": "主体结构工程施工 > 混凝土结构工程施工 > 混凝土养护要求 > 养护方式选择",
+      "action": "detach_node_from_general_compiled_context",
+      "reason": "open_049 fell from general 混凝土养护 to 养护方式选择; neither is precise 冬期施工混凝土养护.",
+      "evidence_queries": ["冬期施工混凝土养护怎么做？"],
+      "reanchor_to_node_code": null,
+      "runtime_action": "fail_open_to_existing_tutorbot_rag"
+    },
+    {
+      "node_code": "1A413041-05",
+      "name_path": "主体结构工程施工 > 混凝土结构工程施工 > 混凝土养护要求",
+      "action": "detach_node_from_general_compiled_context",
+      "reason": "open_049 matched 冬期施工混凝土养护 to the general 混凝土养护 leaf; current taxonomy has no precise 冬期施工混凝土养护 leaf.",
+      "evidence_queries": ["冬期施工混凝土养护怎么做？"],
+      "reanchor_to_node_code": null,
+      "runtime_action": "fail_open_to_existing_tutorbot_rag"
+    }
+  ]
+}

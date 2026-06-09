@@ -274,12 +274,24 @@ def _source_item_text(item: Any) -> str:
     return "\n".join(parts)
 
 
+def _source_alignment_detached(node_code: str) -> bool:
+    return (
+        hasattr(_CKR, "is_general_compiled_context_detached")
+        and _CKR.is_general_compiled_context_detached(str(node_code or ""))
+    )
+
+
 def _node_source_text(node_code: str, *, limit_per_source: int = 4) -> str:
     bundle = _CKR._load() if hasattr(_CKR, "_load") else None
-    node = ((bundle or {}).get("nodes") or {}).get(str(node_code or "")) or {}
+    if not bundle:
+        return ""
     parts: list[str] = []
     for source_key in SOURCE_KEYS:
-        items = ((node.get("sources") or {}).get(source_key) or [])[:limit_per_source]
+        if hasattr(_CKR, "source_items_for_node"):
+            items = _CKR.source_items_for_node(bundle, str(node_code or ""), source_key)[:limit_per_source]
+        else:
+            node = ((bundle.get("nodes") or {}).get(str(node_code or "")) or {})
+            items = ((node.get("sources") or {}).get(source_key) or [])[:limit_per_source]
         parts.extend(_source_item_text(item) for item in items)
     return "\n".join(parts)
 
@@ -336,7 +348,8 @@ def _taxonomy_candidates(query_terms: list[str], *, limit: int) -> list[dict[str
                 "keyword_hits": sorted(set(keyword_hits)),
                 "source_hits": [],
                 "preliminary_score": round(preliminary_score, 4),
-                "negative_evidence": [],
+                "negative_evidence": ["compiler_source_alignment_detached"] if _source_alignment_detached(code) else [],
+                "source_alignment_detached": _source_alignment_detached(code),
             }
         )
     rows.sort(key=lambda row: (-float(row["preliminary_score"]), str(row["node_code"])))
@@ -369,7 +382,10 @@ def _source_candidates(query_terms: list[str], *, limit: int) -> list[dict[str, 
                 "keyword_hits": [],
                 "source_hits": sorted(set(source_hits))[:8],
                 "preliminary_score": round(preliminary_score, 4),
-                "negative_evidence": negative,
+                "negative_evidence": sorted(
+                    set(negative + (["compiler_source_alignment_detached"] if _source_alignment_detached(node_code) else []))
+                ),
+                "source_alignment_detached": _source_alignment_detached(node_code),
             }
         )
     rows.sort(key=lambda row: (-float(row["preliminary_score"]), str(row["node_code"])))
@@ -390,6 +406,9 @@ def _merge_candidates(*candidate_groups: list[dict[str, Any]], limit: int) -> li
             existing["origin"] = "+".join(sorted(set(str(existing.get("origin", "")).split("+") + [str(candidate.get("origin"))])))
             for key in ("path_hits", "critical_path_hits", "keyword_hits", "source_hits", "negative_evidence"):
                 existing[key] = sorted(set((existing.get(key) or []) + (candidate.get(key) or [])))
+            existing["source_alignment_detached"] = bool(
+                existing.get("source_alignment_detached") or candidate.get("source_alignment_detached")
+            )
             existing["preliminary_score"] = max(
                 float(existing.get("preliminary_score") or 0.0),
                 float(candidate.get("preliminary_score") or 0.0),
@@ -405,6 +424,13 @@ def _merge_candidates(*candidate_groups: list[dict[str, Any]], limit: int) -> li
     return rows[:limit]
 
 
+def _detached_stop_candidates(candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [
+        candidate for candidate in candidates
+        if candidate.get("source_alignment_detached") and bool(candidate.get("path_hits"))
+    ]
+
+
 def build_general_knowledge_query_plan(question_text: str, *, top_k: int = DEFAULT_TOP_K) -> dict[str, Any]:
     text = str(question_text or "").strip()
     query_terms = _extract_query_terms(text)
@@ -418,6 +444,9 @@ def build_general_knowledge_query_plan(question_text: str, *, top_k: int = DEFAU
         path_hits = _matched_terms(name_path, query_terms)
         path_hits.extend(_path_compatible_hits(name_path, query_terms))
         critical_hits = _matched_terms(name_path, critical_path_terms)
+        initial_negative = [] if critical_hits or not critical_path_terms else ["single_winner_path_mismatch"]
+        if _source_alignment_detached(initial_leaf):
+            initial_negative.append("compiler_source_alignment_detached")
         initial_candidate.append(
             {
                 "node_code": initial_leaf,
@@ -428,7 +457,8 @@ def build_general_knowledge_query_plan(question_text: str, *, top_k: int = DEFAU
                 "keyword_hits": [],
                 "source_hits": [],
                 "preliminary_score": 2.0 + len(set(path_hits)) * 3.0 + len(set(critical_hits)) * 6.0,
-                "negative_evidence": [] if critical_hits or not critical_path_terms else ["single_winner_path_mismatch"],
+                "negative_evidence": sorted(set(initial_negative)),
+                "source_alignment_detached": _source_alignment_detached(initial_leaf),
             }
         )
 
@@ -455,12 +485,18 @@ def build_general_knowledge_query_plan(question_text: str, *, top_k: int = DEFAU
         else:
             candidate["preliminary_score"] = float(candidate.get("preliminary_score") or 0.0) + len(set(critical_hits)) * 6.0
 
-    candidates = _merge_candidates(
+    merged = _merge_candidates(
         initial_candidate,
         taxonomy,
         source,
-        limit=top_k,
+        limit=max(top_k * 3, top_k),
     )
+    detached_candidates = [candidate for candidate in merged if candidate.get("source_alignment_detached")]
+    detached_stop_candidates = _detached_stop_candidates(detached_candidates)
+    candidates = [
+        candidate for candidate in merged
+        if not candidate.get("source_alignment_detached")
+    ][:top_k]
     return {
         "authority": AUTHORITY,
         "policy": QUERY_PLAN_POLICY,
@@ -470,6 +506,9 @@ def build_general_knowledge_query_plan(question_text: str, *, top_k: int = DEFAU
         "critical_path_terms": critical_path_terms,
         "initial_leaf": initial_leaf,
         "candidate_count": len(candidates),
+        "detached_candidate_count": len(detached_candidates),
+        "detached_stop_candidate_count": len(detached_stop_candidates),
+        "detached_candidates": detached_candidates[:top_k],
         "candidates": candidates,
         "fallback_contract": "low_confidence_returns_none_so_tutorbot_rag_remains_authority",
     }
@@ -619,9 +658,13 @@ def resolve_general_knowledge_context(
     focused_context = dict(learner_context or {})
     focused_context.setdefault("question_text", text)
     query_plan = build_general_knowledge_query_plan(text)
+    if query_plan.get("detached_stop_candidate_count"):
+        return None
     for candidate in query_plan.get("candidates") or []:
         candidate_code = str(candidate.get("node_code") or "").strip()
         if not candidate_code:
+            continue
+        if _source_alignment_detached(candidate_code):
             continue
         for anchor in _anchor_candidates(candidate_code):
             pack = _CKR.resolve_canonical_knowledge(

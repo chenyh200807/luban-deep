@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. Bug investigation → root-cause-debugging / superpowers:systematic-debugging. Before "完成" → superpowers:verification-before-completion.
 
-> **Status: `Closed / M34 capability verdict=GO (2026-06-09 local /api/v1/ws TestClient gate with fakes); production default authorized 2026-06-09`.** 这是一条**能力放大**主线，把已编译的知识红利从"做题才有"泛化到"任何知识对话都有"；生产默认只打开 teaching context 注入，不打开 published registry / official scoring / answer key / canonical learner-truth write / DB 写。下方 checkbox 保留为执行计划原文；当前 completion authority 见父计划 §0.26.18 与 `docs/plan/INDEX.md`。
+> **Status: `Closed / M34 capability verdict=GO (2026-06-09 local /api/v1/ws TestClient gate with fakes); online TutorBot shadow bridge verified on test2; system-wide default pending`.** 这是一条**能力放大**主线，把已编译的知识红利从"做题才有"泛化到"任何知识对话都有"；当前只证明 capability + shadow/opt-in 接线可行，不等于 broad/system-wide production default。任何默认打开前必须先完成 50/100+ 线上 TutorBot shadow、source pollution compiler repair、wrong-path/source-validity/token/fail-open gate；仍不打开 published registry / official scoring / answer key / canonical learner-truth write / DB 写。下方 checkbox 保留为执行计划原文；当前 completion authority 见父计划 §0.26.18 与 `docs/plan/INDEX.md`。
 
 **Goal:** 让系统里**任何一次知识类对话**（不只是做题/评分）都自动吃到鲁班已编译的四源教学知识（教材 + 规范 + 讲义 + 真题），把 Nexus-style 编译层从"题库闸门"变成"全对话能力放大器"。
 
-**Architecture:** 纯接线，零新权威。三个组件**都已存在**：① `canonical_resolution.to_canonical(text)` 把自由问题文本确定性解析成 canonical 叶子码（IDF 加权、registry 去重、从签名 `v_canonical_taxonomy_index` 加载、fall-open）；② `canonical_knowledge_runtime.resolve_canonical_knowledge(node)` 把一个 canonical 节点解析成四源教学包（teaching tier，`official_score_allowed=False`，fall-open）；③ `deep_question` 现有 `_maybe_attach_*` thin-wrapper 模式 + RAG grounding 注入点。本计划只新增**一个 fat-skill 组合器**（把 ①→②串起来 + 节点粒度桥接）和**一个 thin wrapper**（在一般对话回合注入，request-config default ON + explicit false / kill switch / optional cohort 可收窄，append-only，fail-open），并把教学包喂进 LLM grounding 让回答真正变好。
+**Architecture:** 纯接线，零新权威。三个组件**都已存在**：① `canonical_resolution.to_canonical(text)` 把自由问题文本确定性解析成 canonical 叶子码（IDF 加权、registry 去重、从签名 `v_canonical_taxonomy_index` 加载、fall-open）；② `canonical_knowledge_runtime.resolve_canonical_knowledge(node)` 把一个 canonical 节点解析成四源教学包（teaching tier，`official_score_allowed=False`，fall-open）；③ `deep_question` 现有 `_maybe_attach_*` thin-wrapper 模式 + RAG grounding 注入点。本计划只新增**一个 fat-skill 组合器**（把 ①→②串起来 + 节点粒度桥接）和**一个 thin wrapper**（在一般对话回合按 request config / shadow / cohort gate 注入，explicit false / kill switch 可关闭，append-only，fail-open），并把教学包喂进 LLM grounding 让回答真正变好。
 
 **Tech Stack:** Python（`deeptutor/services/construction_grading`、`deeptutor/capabilities/deep_question.py`）、签名 runtime_supply bundles、现有 `/api/v1/ws` TestClient、pytest、hermetic fixtures。
 
@@ -607,9 +607,9 @@ python -m pytest \
   tests/scripts/test_luban_m34_general_knowledge_dividend_slice.py -q
 ```
 
-- [ ] **Step 5.4：生产默认与 optional cohort 收窄开关**
+- [ ] **Step 5.4：shadow/opt-in gate 与 optional cohort 收窄开关**
 
-`general_knowledge_context` 已获生产默认授权。默认不限制真实学员；`LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT` 仅作为紧急收窄/灰度 allowlist（改 env，可秒退）。上线前仍必须：runner GO + off-syllabus fall-open=1.0 稳定 + 无 wrong-chapter 误塞 + safety 全清。
+`general_knowledge_context` 已证明 capability GO 与 test2 shadow opt-in 接线有效，但尚未获 system-wide production default 授权。真实学员默认广开前仍必须完成 50/100+ online TutorBot shadow、source pollution compiler repair、wrong-path/source-validity/token/fail-open gate；`LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT` 只可作为灰度 allowlist / 紧急收窄杆（改 env，可秒退）。
 
 - [ ] **Step 5.5：commit + 文档回写**
 
@@ -624,7 +624,7 @@ git commit -m "feat(luban): M34 general-knowledge dividend slice runner + go/no-
 **Acceptance:**
 
 - on-syllabus 命中率达阈值；off-syllabus fall-open=1.0；安全不变量全清。
-- 生产默认只打开 teaching context；optional cohort 是独立、可逆的收窄杆。
+- 默认裁决只允许讨论 teaching context；optional cohort 是独立、可逆的收窄杆。system-wide default 仍 pending 50/100+ online shadow 与 compiler pollution repair。
 
 ## 6. Required Test Command
 
@@ -656,3 +656,42 @@ python -m pytest \
 4. 问到题库外/非建筑实务 → 正常 open-world 回答，不硬塞错知识点。
 
 若一般知识问题的回答和接入前**毫无差别**（没吃到任何编译），M34 未达成。
+
+## 9. Online Shadow Lessons And Default Gate（2026-06-09 复盘更新）
+
+本节 supersede 本文件中所有“生产默认已广开”的旧口径。M34 的正确当前状态是：
+
+```text
+capability GO
+test2 online shadow opt-in bridge verified
+local compiler repair overlay reduces observed wrong-path to 0 in resolver-only 50-case recheck
+system-wide default NO-GO until repair is deployed + clean 50/100+ online shadow
+```
+
+### 9.1 Lessons
+
+- 先证明 compiled pack 进入 TutorBot prompt metadata，再评估回答质量。否则 A/B 测到的是接线失败，不是 compiled 知识是否有效。
+- 10 条线上小样本是必要闸门；若 compiled hit=0，应先查 `general_knowledge_context` flag、mobile start-turn config、TutorBot metadata、active-object guard，不应直接扩大到 50 条。
+- 每个 fail-open 要分型：正确低置信、off-domain、transport/service error、source/path/query 不一致、或接线缺失。
+- 命中率高不是无条件好事。没有 query/path/source 三方一致的高命中，会把污染 source 塞进 prompt，形成错章节风险。
+- runtime confidence/rerank gate 只能防止污染注入 prompt；“网络计划/总时差”材料挂到水泥/混凝土/金属板节点这类问题必须回流 compiler detach/re-anchor。
+- shadow pass 不等于 production default GO；线上默认打开前必须同时看 hit rate、wrong path、source validity、answer improvement/regression、token cost、fail-open rate。
+
+### 9.2 Evidence Snapshot
+
+- test2 10 条线上 TutorBot RAG-only vs RAG+compiled 小测：9 条可评估；compiled hit `7/9=77.8%`；wrong path `0%`；source validity `7/7=100%`；fail-open `2/9=22.2%`；answer improvement `1/9=11.1%`；answer regression `0%`；token delta avg `-25.6`。1 条 control arm WS stream 中断，按 `shadow_transport_or_service_error` 排除。
+- 本地 50 query compiler pollution audit：`103` 个 `repair_compiled_source_path_alignment` work orders、`88` 个 affected nodes，典型污染是“网络计划/总时差”source snippets 出现在水泥、混凝土、压型金属板等节点。所有 work order 均为 `namespace=luban_compiler_candidate`、`promote_to_release=false`、`release_truth_written=false`。
+- test2 50-case online shadow（dedupe first successful pair）：50/50 case 最终可评估，但需要 122 次 attempted turn pairs；期间出现 WS `1012 service restart` / nginx `502`，并观察到 test2 容器被重新创建。最终 compiled hit `19/50=38%`，wrong path `5/50=10%`，source validity `14/19=73.7%`，fail-open `31/50=62%`，answer improvement/regression `0%/0%`，token delta avg `+25.08`。结论：**system-wide default NO-GO**。
+- 线上 wrong-path 回流 compiler：5 个 wrong-path query 生成 `21` 个追加 `repair_compiled_source_path_alignment` work orders / `21` affected nodes，仍全部是 candidate ledger，不写 release/canonical truth。
+- compiler repair overlay（本地，尚未替代线上 shadow）：新增 `v_canonical_unified_knowledge/source_alignment_repairs.json`，绑定当前 compiled bundle `content_hash`，对五个线上 wrong-path 的污染 source/path cluster 做 general-query subtree detach；安全不变量保持 `official_score_allowed=false`、`llm_may_decide_correctness=false`、`canonical_truth_written=false`、`production_write_count=0`。review 修正后该 detach 只影响 general query planning，不删除 direct canonical pack。最终本地 50-case resolver-only 复测：compiled hit `13/50=26%`，wrong path `0/50=0%`，source validity `13/13=100%`，fail-open `37/50=74%`。repair 后污染审计仍有 `106` 个 candidate work orders / `90` affected nodes，说明底层 compiler source attach 仍需继续治理。
+
+### 9.3 Default Gate
+
+当前 default 裁决：**NO-GO**。本地 repair overlay 只是把已观测高风险错章节隔离，不能等同线上默认 GO。只有满足以下条件，才允许重新讨论 system-wide default：
+
+1. repair overlay / next compiler bundle 已部署到 test2 shadow cohort，并完成 50/100+ online TutorBot shadow on `/api/v1/ws` with evaluable sample accounting.
+2. compiled hit rate 达到预设阈值，同时 wrong path rate 低于阈值。
+3. source validity 对 compiled-hit 样本达标，且 source/path/query 不一致样本 fail-open。
+4. answer regression rate 可接受，token cost 在预算内。
+5. compiler pollution work orders 已进入下一轮 compiler repair queue，并对高风险污染（如网络计划→水泥）完成 detach/re-anchor 或明确隔离。
+6. safety invariants 全清：`official_score_allowed=false`、`llm_may_decide_correctness=false`、`canonical_truth_written=false`、`production_write_count=0`。

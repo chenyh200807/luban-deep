@@ -38,9 +38,11 @@ def supply(tmp_path, monkeypatch):
     monkeypatch.setattr(CK, "_GRAPH_DIR", tmp_path / "no_graph")  # hermetic: no graph adjacency by default
     CK._load.cache_clear()
     CK._load_graph.cache_clear()
+    CK._load_source_alignment_repairs.cache_clear()
     yield
     CK._load.cache_clear()
     CK._load_graph.cache_clear()
+    CK._load_source_alignment_repairs.cache_clear()
 
 
 def test_resolves_four_sources_teaching_tier(supply):
@@ -72,6 +74,111 @@ def test_missing_supply_falls_through(tmp_path, monkeypatch):
     assert CK.resolve_canonical_knowledge("1A413030-01") is None
     assert CK.available_nodes() == []
     CK._load.cache_clear()
+
+
+def test_source_alignment_repair_detaches_polluted_source_items(supply):
+    bundle = CK._load()
+    assert bundle is not None
+    repair = {
+        "manifest": {
+            "schema": "luban_canonical_unified_knowledge_source_alignment_repairs.v1",
+            "namespace": "canonical_unified_knowledge.source_alignment_repairs",
+            "status": "release_candidate",
+            "tier": "teaching_context_not_answer_key",
+            "official_score_allowed": False,
+            "llm_may_decide_correctness": False,
+            "canonical_truth_written": False,
+            "production_write_count": 0,
+            "source_bundle_namespace": "canonical_unified_knowledge",
+            "source_bundle_content_hash": bundle["manifest"]["content_hash"],
+        },
+        "repairs": [
+            {
+                "node_code": "1A413030-01",
+                "action": "detach_source_units",
+                "reason": "test source/path pollution repair",
+                "detached_unit_ids_by_source": {
+                    "textbook": ["tb1"],
+                    "standard": ["st1"],
+                    "lecture": ["lec1"],
+                    "question": ["q1"],
+                },
+            }
+        ],
+    }
+    (CK._SUPPLY_DIR / "source_alignment_repairs.json").write_text(
+        json.dumps(repair, ensure_ascii=False, sort_keys=True, separators=(",", ":")), "utf-8")
+    CK._load_source_alignment_repairs.cache_clear()
+
+    assert CK.resolve_canonical_knowledge("1A413030-01") is None
+
+
+def test_general_context_detach_does_not_remove_direct_canonical_pack(supply):
+    bundle = CK._load()
+    assert bundle is not None
+    repair = {
+        "manifest": {
+            "schema": "luban_canonical_unified_knowledge_source_alignment_repairs.v1",
+            "namespace": "canonical_unified_knowledge.source_alignment_repairs",
+            "status": "release_candidate",
+            "tier": "teaching_context_not_answer_key",
+            "official_score_allowed": False,
+            "llm_may_decide_correctness": False,
+            "canonical_truth_written": False,
+            "production_write_count": 0,
+            "source_bundle_namespace": "canonical_unified_knowledge",
+            "source_bundle_content_hash": bundle["manifest"]["content_hash"],
+        },
+        "repairs": [
+            {
+                "node_code": "1A413030-01",
+                "action": "detach_node_from_general_compiled_context",
+                "reason": "general query planning should fail open, but direct canonical packs remain available",
+            }
+        ],
+    }
+    (CK._SUPPLY_DIR / "source_alignment_repairs.json").write_text(
+        json.dumps(repair, ensure_ascii=False, sort_keys=True, separators=(",", ":")), "utf-8")
+    CK._load_source_alignment_repairs.cache_clear()
+
+    out = CK.resolve_canonical_knowledge("1A413030-01", learner_context={"question_stem": "强夯夯锤"})
+
+    assert out is not None
+    assert out["selected_counts"] == {"textbook": 1, "standard": 1, "lecture": 1, "question": 1}
+
+
+def test_malformed_source_alignment_repair_overlay_is_ignored(supply):
+    bundle = CK._load()
+    assert bundle is not None
+    repair = {
+        "manifest": {
+            "schema": "luban_canonical_unified_knowledge_source_alignment_repairs.v1",
+            "namespace": "canonical_unified_knowledge.source_alignment_repairs",
+            "status": "release_candidate",
+            "tier": "teaching_context_not_answer_key",
+            "official_score_allowed": False,
+            "llm_may_decide_correctness": False,
+            "canonical_truth_written": False,
+            "production_write_count": "not-an-int",
+            "source_bundle_namespace": "canonical_unified_knowledge",
+            "source_bundle_content_hash": bundle["manifest"]["content_hash"],
+        },
+        "repairs": [
+            {
+                "node_code": "1A413030-01",
+                "action": "detach_source_units",
+                "detached_unit_ids_by_source": {"textbook": ["tb1"]},
+            }
+        ],
+    }
+    (CK._SUPPLY_DIR / "source_alignment_repairs.json").write_text(
+        json.dumps(repair, ensure_ascii=False, sort_keys=True, separators=(",", ":")), "utf-8")
+    CK._load_source_alignment_repairs.cache_clear()
+
+    out = CK.resolve_canonical_knowledge("1A413030-01", learner_context={"question_stem": "强夯夯锤"})
+
+    assert out is not None
+    assert out["selected_counts"]["textbook"] == 1
 
 
 def test_authority_isolation_never_grants_official_score(supply):

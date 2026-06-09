@@ -5,7 +5,7 @@
 >
 > 当前 canonical 目标：**鲁班评分引擎 = 高质量学习证据生产器；Learning Brain/GBrain = 长期个性化学习决策器；RAG/知识编译 = 教材、规范、真题、章节与证据供应器；DeepSeek/Qwen = 在线批改与教学执行模型。**
 >
-> 当前已闭合：**M32 Grading-to-Brain Waterproof Vertical Slice = GO**；**M33 canonical promotion arm release gate = GO（qa_/operator_ 1% scope）**；**M34 compiled-knowledge dividend = GO + production default authorized（teaching context only）**。当前唯一下一步不再是重跑 M32，而是在 M33 允许流量内推进生产/canonical 激活观察，并对 M34 生产默认的一般知识对话教学红利做线上观察；M34 仍是 teaching tier（非官方判分、非 answer key、无 canonical 写），远端/DB 写、published registry 仍需独立确认/授权。
+> 当前已闭合：**M32 Grading-to-Brain Waterproof Vertical Slice = GO**；**M33 canonical promotion arm release gate = GO（qa_/operator_ 1% scope）**；**M34 compiled-knowledge dividend = capability GO + test2 shadow cohort bridge verified（teaching context only）**。当前唯一下一步不再是重跑 M32，而是在 M33 允许流量内推进生产/canonical 激活观察，并对 M34 一般知识对话教学红利先跑 50/100+ 线上 shadow + compiler pollution repair，再谈 system-wide default；M34 仍是 teaching tier（非官方判分、非 answer key、无 canonical 写），远端/DB 写、published registry 仍需独立确认/授权。
 >
 > 2026-06-04 §0.12 架构纠偏：Registry/spec/knowledge artifacts 不是最终判题器，而是 Nexus-style runtime LLM adjudication 的高质量上下文底座；未来 production 每次案例题判题必须由 DeepSeek-V4-flash primary / Qwen3.7 plus fallback 参与理解学生答案，deterministic validator 负责防越权和 fail-closed。
 >
@@ -51,7 +51,7 @@
 2. 再读 §0.26.14，确认知识编译 storage / serving / capacity contract。
 3. 当前 Grading-to-Brain 产品闭环读 M32 结果（§0.26.16）、M33-ACT A 类代码就绪结果（§0.26.17）、M34 compiled-knowledge dividend 结果（§0.26.18）和 M33 canonical promotion arm 结果（§0.26.19），不要按旧 checklist 重跑 M32。
 4. M26/M27/M30/M31 是已完成能力底座和 ledger，不要按其中旧 checklist 重新执行。
-5. 任何 published registry、远端/DB 写仍需单独授权；M33 只放开 `qa_` / `operator_` 1% promotion arm；M34 一般知识对话 teaching-context 已获生产默认授权，但仍必须保持 `official_score_allowed=false`、`llm_may_decide_correctness=false`、`canonical_truth_written=false`。
+5. 任何 published registry、远端/DB 写仍需单独授权；M33 只放开 `qa_` / `operator_` 1% promotion arm；M34 一般知识对话 teaching-context 当前只按 shadow / opt-in / cohort gate 验证，system-wide default 需等 50/100+ online shadow 与 compiler pollution repair 后再裁决；全程必须保持 `official_score_allowed=false`、`llm_may_decide_correctness=false`、`canonical_truth_written=false`。
 
 ## 0.0 Canonical update after M5D（2026-06-04）
 
@@ -1046,16 +1046,21 @@ M32 GO 门：
 - **TDD + 对抗**：G3/G4 共 23 测试全绿（RED→GREEN，含 records-tamper / 非 bool 授权 / foreign namespace / garbage flag 负向断言）；contract_guard PASS（`contracts/learner-state.md` 同步登记契约边界）；codex 独立对抗审查发现的 3 项 fail-closed 缺口已修（见 M33-ACT §9.5）。
 - **verdict 仍 WEAK-GO**：本节只消除两个「缺代码」缺口，不抬升 §0.26.10 whole-plan 裁决。实际激活仍 blocked：G3 需 formal release gate PASS + 授权；G4 需 teacher-final/real-retest 闭环（**C 类外部**）+ 授权；G2 需大样本准确率 eval infra + GPT5.5 key（**C 类外部**）；G5 需远端写授权 + 生产目标确认。本会话 `published=false / default_flip=0 / canonical_truth_written=0 / production_write=0 / remote_write=0` 全部保持。
 
-### 0.26.18 M34 compiled-knowledge dividend（2026-06-09，capability verdict=GO；production default authorized）
+### 0.26.18 M34 compiled-knowledge dividend（2026-06-09，capability verdict=GO；online shadow default decision pending）
 
 > **本节把 Nexus-style 编译知识红利从“做题/评分链路”扩展到“一般知识对话”。** Ledger：`artifacts/luban_grading_artifacts/general_knowledge_dividend_m34_20260609/`。runner：`scripts/run_luban_m34_general_knowledge_dividend_slice.py`。本地 `/api/v1/ws` TestClient 真路由 gate：`tests/integration/test_luban_m34_general_knowledge_dividend_ws.py`（外部 LLM/DB 依赖为 fake）。
 
-**M34 verdict=GO（`go_no_go_m34.json`）：**
+**M34 capability verdict=GO（`go_no_go_m34.json`）：**
 
 - on-syllabus 建筑实务知识问题：5/5 命中 compiled teaching context，`teaching_context_hit_rate=1.0`（阈值 0.80）。
 - off-syllabus / 低信号问题：5/5 fall-open，`off_syllabus_fall_open_rate=1.0`，不硬塞章节、不伪造引用。
 - 本地 `/api/v1/ws` TestClient gate：一般知识回合 `config.general_knowledge_context=true` 通过统一入口带出 `luban_general_knowledge_context`；off-syllabus 不带出 teaching block。该 gate 证明 FastAPI route / TurnRuntime / DeepQuestionCapability 接线，不冒充线上 provider/live production。
 - safety：`official_score_allowed=false`、`llm_may_decide_correctness=false`、`answer_key_minted=0`、`canonical_truth_written=false`、`production_write_count=0`、`mutable_chunk_as_answer_key=0`、`wrong_chapter_attribution=0`。
+- online test2 shadow bridge（2026-06-09 小样本）：10 条线上 TutorBot RAG-only vs RAG+compiled，9 条可评估，compiled hit `7/9=77.8%`、wrong path `0%`、source validity `7/7=100%`、fail-open `2/9=22.2%`、answer regression `0%`、token delta avg `-25.6`。这只证明 opt-in shadow 链路已接通，不足以打开 system-wide default。
+- online test2 50-case shadow（2026-06-09，dedupe first successful control+treatment pair）：50/50 case 最终可评估，但需要 122 次 attempted turn pairs；期间 test2 多次出现 WS `1012 service restart` / nginx `502`，并观察到容器被重新创建。最终指标：compiled hit `19/50=38%`、wrong path `5/50=10%`、source validity `14/19=73.7%`、fail-open `31/50=62%`、answer improvement `0%`、answer regression `0%`、token delta avg `+25.08`。**default decision=NO-GO**：命中率低、wrong path 非零、source validity 不足、无回答改善且线上稳定性有风险。
+- compiler pollution audit（2026-06-09 本地 50 query）：发现 103 个 `repair_compiled_source_path_alignment` work orders / 88 个 affected nodes，典型问题为“网络计划/总时差”source snippets 误挂到水泥、混凝土、压型金属板等节点。runtime gate 可 fail-open 防止污染注入 prompt，但根因必须回流 compiler detach/re-anchor，不得只靠 runtime 阈值掩盖。
+- online wrong-path feedback（2026-06-09）：5 个线上 wrong-path query 追加生成 21 个 `repair_compiled_source_path_alignment` work orders / 21 affected nodes，仍全部是 `namespace=luban_compiler_candidate`、`promote_to_release=false`、`release_truth_written=false`。
+- compiler repair overlay（2026-06-09 本地）：新增 `v_canonical_unified_knowledge/source_alignment_repairs.json`，绑定当前 compiled bundle `content_hash`，对线上 5 个 wrong-path 的污染 source/path cluster 做 general-query subtree detach；不 re-anchor 到不存在或未治理的节点。安全不变量仍为 `official_score_allowed=false`、`llm_may_decide_correctness=false`、`canonical_truth_written=false`、`production_write_count=0`。review 修正后该 detach 只影响 general query planning，不删除 direct canonical pack。本地 resolver-only 50-case 复测：compiled hit `13/50=26%`、wrong path `0/50=0%`、source validity `13/13=100%`、fail-open `37/50=74%`。repair 后污染审计仍有 `106` 个 candidate work orders / `90` affected nodes；因此这是局部隔离，不是 system-wide default GO。
 
 **单一 authority（硬约束）：**
 
@@ -1063,15 +1068,15 @@ M32 GO 门：
 - canonical 节点到四源教学包：仍由 `canonical_knowledge_runtime.resolve_canonical_knowledge(node)` 唯一负责。
 - M34 新增的 `general_knowledge_context` 只是 fat-skill 组合器，串联 leaf→ancestor→teaching pack，不新建 RAG / registry / taxonomy / learner memory / context schema。
 - `deep_question` 只新增 thin wrapper：request override + optional cohort + env kill + append-only attach；它不做章节判断、不写库、不改判分结果。
-- public config `DeepQuestionRequestConfig.general_knowledge_context: bool = True`，通过既有 `/api/v1/ws` contract 生产默认启用；显式 `false` 仍可按请求关闭；没有新增路由。
+- request config `general_knowledge_context` 仍通过既有 `/api/v1/ws` contract 控制；显式 `false` 必须关闭；没有新增路由。当前线上验证口径为 shadow opt-in / cohort gate，不把本地 capability GO 解释成 broad production default GO。
 
-**默认与停止点：**
+**default decision stop point：**
 
-- 默认 public flag 为 `True`：无 active 题对象的一般知识回合默认尝试注入 M34 compiled teaching context。
-- 显式 request config `general_knowledge_context=false` 可关闭本次请求。
-- kill switch：`LUBAN_GENERAL_KNOWLEDGE_CONTEXT_ENABLED=false`。
-- optional cohort env：`LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT`；未设置时不限制真实学员，设置后只允许匹配前缀，用于紧急收窄/灰度。
-- M34 生产默认只改变 teaching-context 注入面；仍不写 DB / canonical learner truth，不生成 answer key，不允许 `official_score_allowed=true`。远端发布仍必须走独立 release runbook。
+- 先证明 compiled pack 进入 TutorBot prompt metadata，再评估回答质量；0-hit 时先查接线，不跑大样本硬评估。
+- 先 10 条线上小样本确认链路，再跑 50/100+ RAG-only vs RAG+compiled shadow；指标固定为 compiled hit、wrong path、source validity、answer improvement/regression、token cost、fail-open。
+- low confidence / source-path-query 不一致必须 fail-open，继续原 TutorBot RAG，不污染 prompt。
+- source 污染必须产出 compiler feedback ledger / work order，进入下一轮 compiler detach/re-anchor；runtime gate 只算防护，不算根治。
+- system-wide default 当前判定 **NO-GO**。只有在 repair overlay / next compiler bundle 部署到 test2 shadow cohort、compiler pollution work orders 闭环、fresh 50/100+ online `/api/v1/ws` shadow 证明 wrong path 降到阈值内、source validity 与回答改善达标、token 成本可接受，并且线上评估不再依赖大量重试时，才能讨论默认打开。远端发布仍必须走独立 release runbook；仍不写 DB / canonical learner truth，不生成 answer key，不允许 `official_score_allowed=true`。
 
 ---
 
