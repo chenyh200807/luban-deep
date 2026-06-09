@@ -3633,7 +3633,7 @@ def test_list_members_and_dashboard_use_supabase_member_directory_when_configure
                 "expire_at": "9999-12-31T00:00:00+00:00",
                 "points_balance": 260,
                 "review_due": 0,
-                "member_directory_source": "supabase.v_members",
+                "member_directory_source": "supabase.phone_identity_aliases+v_members",
             },
             {
                 "user_id": "canonical_member_2",
@@ -3651,7 +3651,7 @@ def test_list_members_and_dashboard_use_supabase_member_directory_when_configure
                 "expire_at": "9999-12-31T00:00:00+00:00",
                 "points_balance": 0,
                 "review_due": 0,
-                "member_directory_source": "supabase.v_members",
+                "member_directory_source": "supabase.phone_identity_aliases+v_members",
             },
         ]
     )
@@ -3668,11 +3668,11 @@ def test_list_members_and_dashboard_use_supabase_member_directory_when_configure
     payload = service.list_members(page=1, page_size=20, sort="created_at", order="asc")
     dashboard = service.get_dashboard()
 
-    assert payload["total"] == 2
-    assert [item["user_id"] for item in payload["items"]] == ["canonical_member_1", "canonical_member_2"]
-    assert payload["authority"]["members"] == "supabase.v_members"
-    assert dashboard["total_count"] == 2
-    assert dashboard["authority"]["members"] == "supabase.v_members"
+    assert payload["total"] == 1
+    assert [item["user_id"] for item in payload["items"]] == ["canonical_member_1"]
+    assert payload["authority"]["members"] == "supabase.phone_identity_aliases+v_members"
+    assert dashboard["total_count"] == 1
+    assert dashboard["authority"]["members"] == "supabase.phone_identity_aliases+v_members"
     assert directory.calls
 
 
@@ -3697,7 +3697,7 @@ def test_member_directory_merges_member_console_overlay_without_owning_member_po
                 "review_due": 0,
                 "ledger": [],
                 "notes": [],
-                "member_directory_source": "supabase.v_members",
+                "member_directory_source": "supabase.phone_identity_aliases+v_members",
             }
         ]
     )
@@ -3747,7 +3747,7 @@ def test_configured_member_directory_error_does_not_fallback_to_member_console_p
     payload = service.list_members(page=1, page_size=20)
 
     assert payload["total"] == 0
-    assert payload["authority"]["members"] == "supabase.v_members"
+    assert payload["authority"]["members"] == "supabase.phone_identity_aliases+v_members"
 
 
 def test_batch_update_members_returns_success_and_failure_buckets(tmp_path: Path) -> None:

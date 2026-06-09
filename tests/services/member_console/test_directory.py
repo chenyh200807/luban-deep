@@ -17,25 +17,36 @@ class _FakeResponse:
 
 
 class _PagedClient:
-    def __init__(self, rows: list[dict[str, Any]], *, page_cap: int = 1000) -> None:
-        self.rows = rows
+    def __init__(
+        self,
+        *,
+        member_rows: list[dict[str, Any]],
+        alias_rows: list[dict[str, Any]],
+        page_cap: int = 1000,
+    ) -> None:
+        self.rows_by_table = {
+            "v_members": member_rows,
+            "user_identity_aliases": alias_rows,
+        }
         self.page_cap = page_cap
         self.calls: list[dict[str, Any]] = []
 
-    def get(self, _url: str, *, headers: dict[str, str], params: dict[str, Any]) -> _FakeResponse:
+    def get(self, url: str, *, headers: dict[str, str], params: dict[str, Any]) -> _FakeResponse:
         del headers
-        self.calls.append(dict(params))
+        table = url.rstrip("/").rsplit("/", 1)[-1]
+        self.calls.append({"table": table, **dict(params)})
+        rows = self.rows_by_table[table]
         offset = int(params.get("offset") or 0)
         requested_limit = int(params.get("limit") or self.page_cap)
         capped_limit = min(requested_limit, self.page_cap)
-        return _FakeResponse(self.rows[offset : offset + capped_limit])
+        return _FakeResponse(rows[offset : offset + capped_limit])
 
 
-def _row(index: int) -> dict[str, Any]:
+def _member_row(index: int, *, phone: str = "") -> dict[str, Any]:
     return {
         "user_id": f"user-{index:04d}",
         "identifier": f"user-{index:04d}",
-        "phone": "",
+        "phone": phone,
         "display_name": "",
         "profession": "",
         "exam_target": "",
@@ -55,33 +66,78 @@ def _row(index: int) -> dict[str, Any]:
     }
 
 
-def test_member_directory_paginates_past_single_postgrest_page_cap() -> None:
-    client = _PagedClient([_row(index) for index in range(2401)], page_cap=1000)
-    directory = SupabaseMemberDirectoryReadModel(
+def _phone_alias(index: int, *, source: str = "phone_backfill", phone: str | None = None) -> dict[str, Any]:
+    return {
+        "user_id": f"user-{index:04d}",
+        "alias_value": phone or f"1555886{index:04d}",
+        "source": source,
+    }
+
+
+def _directory(client: _PagedClient) -> SupabaseMemberDirectoryReadModel:
+    return SupabaseMemberDirectoryReadModel(
         base_url="https://example.supabase.co",
         service_key="service-key",
         client=client,
     )
 
-    members = directory.list_members(limit=2401)
+
+def test_member_directory_paginates_trusted_phone_aliases_past_single_postgrest_page_cap() -> None:
+    client = _PagedClient(
+        member_rows=[_member_row(index) for index in range(2401)],
+        alias_rows=[_phone_alias(index) for index in range(2401)],
+        page_cap=1000,
+    )
+
+    members = _directory(client).list_members(limit=2401)
 
     assert len(members) == 2401
     assert members[0]["user_id"] == "user-0000"
     assert members[-1]["user_id"] == "user-2400"
-    assert [call["offset"] for call in client.calls] == [0, 1000, 2000]
-    assert [call["limit"] for call in client.calls] == [1000, 1000, 401]
+    alias_calls = [call for call in client.calls if call["table"] == "user_identity_aliases"]
+    assert [call["offset"] for call in alias_calls] == [0, 1000, 2000]
+    assert [call["limit"] for call in alias_calls] == [1000, 1000, 1000]
 
 
-def test_member_directory_stops_on_short_page() -> None:
-    client = _PagedClient([_row(index) for index in range(1001)], page_cap=1000)
-    directory = SupabaseMemberDirectoryReadModel(
-        base_url="https://example.supabase.co",
-        service_key="service-key",
-        client=client,
+def test_member_directory_stops_on_short_phone_alias_page() -> None:
+    client = _PagedClient(
+        member_rows=[_member_row(index) for index in range(1001)],
+        alias_rows=[_phone_alias(index) for index in range(1001)],
+        page_cap=1000,
     )
 
-    members = directory.list_members(limit=5000)
+    members = _directory(client).list_members(limit=5000)
 
     assert len(members) == 1001
-    assert [call["offset"] for call in client.calls] == [0, 1000]
-    assert [call["limit"] for call in client.calls] == [1000, 1000]
+    alias_calls = [call for call in client.calls if call["table"] == "user_identity_aliases"]
+    assert [call["offset"] for call in alias_calls] == [0, 1000]
+    assert [call["limit"] for call in alias_calls] == [1000, 1000]
+
+
+def test_member_directory_excludes_public_users_backfill_phone_aliases() -> None:
+    client = _PagedClient(
+        member_rows=[_member_row(1), _member_row(2)],
+        alias_rows=[
+            _phone_alias(1, source="public_users_backfill", phone="15558860001"),
+            _phone_alias(2, source="phone_backfill", phone="15558860002"),
+        ],
+    )
+
+    members = _directory(client).list_members(limit=10)
+
+    assert [member["user_id"] for member in members] == ["user-0002"]
+    assert members[0]["phone"] == "15558860002"
+
+
+def test_member_directory_uses_phone_alias_when_member_view_has_no_row() -> None:
+    client = _PagedClient(
+        member_rows=[],
+        alias_rows=[_phone_alias(1, source="phone_verification", phone="15558860001")],
+    )
+
+    members = _directory(client).list_members(limit=10)
+
+    assert len(members) == 1
+    assert members[0]["user_id"] == "user-0001"
+    assert members[0]["phone"] == "15558860001"
+    assert members[0]["member_directory_source"] == "supabase.phone_identity_aliases+v_members"

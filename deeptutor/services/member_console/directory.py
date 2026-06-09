@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 from typing import Any
 
 import httpx
@@ -12,6 +13,13 @@ _UNKNOWN_CREATED_AT = "1970-01-01T00:00:00+00:00"
 _UNKNOWN_EXPIRE_AT = "9999-12-31T00:00:00+00:00"
 _MAX_MEMBER_DIRECTORY_ROWS = 10000
 _MEMBER_DIRECTORY_PAGE_SIZE = 1000
+_TRUSTED_PHONE_ALIAS_SOURCES = frozenset(
+    {
+        "phone_backfill",
+        "member_console_backfill",
+        "phone_verification",
+    }
+)
 
 
 def _normalize_text(value: Any) -> str:
@@ -29,6 +37,21 @@ def _coerce_int(value: Any) -> int:
         return int(value or 0)
     except (TypeError, ValueError):
         return 0
+
+
+def _normalize_phone(value: Any) -> str:
+    digits = "".join(ch for ch in str(value or "") if ch.isdigit())
+    return digits[-11:] if len(digits) >= 11 else ""
+
+
+def _is_cn_mainland_mobile(value: Any) -> bool:
+    phone = _normalize_phone(value)
+    return bool(re.fullmatch(r"1[3-9]\d{9}", phone)) and phone not in {
+        "13800000000",
+        "13900000000",
+        "18888888888",
+        "19999999999",
+    } and not re.fullmatch(r"1380000000\d", phone)
 
 
 class SupabaseMemberDirectoryReadModel:
@@ -66,6 +89,9 @@ class SupabaseMemberDirectoryReadModel:
         if not self.is_configured:
             return []
         requested_limit = max(1, min(int(limit), _MAX_MEMBER_DIRECTORY_ROWS))
+        eligible_phones = self._eligible_phone_aliases(limit=requested_limit)
+        if not eligible_phones:
+            return []
         rows = self._select_rows_paginated(
             table="v_members",
             params={
@@ -79,7 +105,13 @@ class SupabaseMemberDirectoryReadModel:
             },
             limit=requested_limit,
         )
-        members = [self._member_from_row(row) for row in rows]
+        rows_by_user_id = {_normalize_text(row.get("user_id")): row for row in rows}
+        eligible_rows: list[dict[str, Any]] = []
+        for user_id, phone in eligible_phones.items():
+            row = dict(rows_by_user_id.get(user_id) or {"user_id": user_id, "identifier": user_id})
+            row["phone"] = phone
+            eligible_rows.append(row)
+        members = [self._member_from_row(row) for row in eligible_rows]
         return [member for member in members if member.get("user_id")]
 
     def _headers(self) -> dict[str, str]:
@@ -136,6 +168,31 @@ class SupabaseMemberDirectoryReadModel:
             offset += batch_limit
         return rows
 
+    def _eligible_phone_aliases(self, *, limit: int) -> dict[str, str]:
+        rows = self._select_rows_paginated(
+            table="user_identity_aliases",
+            params={
+                "select": "user_id,alias_value,source",
+                "alias_type": "eq.phone",
+            },
+            limit=min(limit * 4, _MAX_MEMBER_DIRECTORY_ROWS),
+        )
+        aliases: dict[str, str] = {}
+        for row in rows:
+            user_id = _normalize_text(row.get("user_id"))
+            source = _normalize_text(row.get("source"))
+            phone = _normalize_phone(row.get("alias_value"))
+            if (
+                not user_id
+                or source not in _TRUSTED_PHONE_ALIAS_SOURCES
+                or not _is_cn_mainland_mobile(phone)
+            ):
+                continue
+            aliases.setdefault(user_id, phone)
+            if len(aliases) >= limit:
+                break
+        return aliases
+
     @staticmethod
     def _member_from_row(row: dict[str, Any]) -> dict[str, Any]:
         user_id = _normalize_text(row.get("user_id") or row.get("identifier"))
@@ -183,7 +240,7 @@ class SupabaseMemberDirectoryReadModel:
             "notes": [],
             "badges": [],
             "earned_badge_ids": [],
-            "member_directory_source": "supabase.v_members",
+            "member_directory_source": "supabase.phone_identity_aliases+v_members",
             "member_directory_metrics": {
                 "total_conversations": _coerce_int(row.get("total_conversations")),
                 "total_messages": _coerce_int(row.get("total_messages")),

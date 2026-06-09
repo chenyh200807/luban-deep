@@ -1753,7 +1753,7 @@ class MemberConsoleService:
 
     def _member_directory_authority(self) -> str:
         return (
-            "supabase.v_members"
+            "supabase.phone_identity_aliases+v_members"
             if self._member_directory_explicit
             or is_production_environment()
             or env_flag("MEMBER_CONSOLE_USE_SUPABASE_MEMBER_DIRECTORY", default=False)
@@ -1761,7 +1761,7 @@ class MemberConsoleService:
         )
 
     def _member_directory_enabled(self) -> bool:
-        return self._member_directory_authority() == "supabase.v_members"
+        return self._member_directory_authority() == "supabase.phone_identity_aliases+v_members"
 
     def _load_member_directory_members_for_bi(self, data: dict[str, Any]) -> list[dict[str, Any]]:
         directory = self._member_directory
@@ -1778,13 +1778,17 @@ class MemberConsoleService:
         overlay_index = self._member_console_overlay_index(data)
         merged_members: list[dict[str, Any]] = []
         for member in members:
+            if not isinstance(member, dict) or not self._is_registered_member_for_bi(member):
+                continue
             overlay = None
             for key in self._member_overlay_keys_for_directory(member):
                 overlay = overlay_index.get(key)
                 if overlay is not None:
                     break
             normalized = self._merge_member_console_overlay(deepcopy(member), overlay)
-            normalized.setdefault("member_directory_source", "supabase.v_members")
+            if not self._is_registered_member_for_bi(normalized):
+                continue
+            normalized.setdefault("member_directory_source", "supabase.phone_identity_aliases+v_members")
             merged_members.append(normalized)
         return merged_members
 
