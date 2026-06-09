@@ -8,6 +8,7 @@ from deeptutor.services.taxonomy.construction_taxonomy import (
     student_facing_label,
     student_taxonomy_label,
 )
+from deeptutor.services.learner_state.memory_lifecycle import lifecycle_stage_for_evidence_level
 
 LEARNING_BRAIN_SUBJECT = "construction_exam_learning_truth"
 _ERROR_LABELS = {
@@ -44,6 +45,12 @@ _EVIDENCE_LEVEL_LABELS = {
     "L2_confirmed": "已确认",
     "L3_mastery_signal": "改善信号",
     "unclassified": "待确认",
+}
+_MEMORY_LIFECYCLE_LABELS = {
+    "evidence_ledger": "证据账本",
+    "short_term_learning_memory": "短期观察",
+    "stable_learner_claim": "稳定学情判断",
+    "canonical_learner_truth": "长期画像",
 }
 _EDGE_LABELS = {
     "question_tests_concept": "题目考查知识点",
@@ -268,6 +275,14 @@ def _mobile_sections(
             "current_truth": _humanize_text(value.get("current_truth", "")),
             "evidence_level": value.get("evidence_level", ""),
             "evidence_level_label": _evidence_level_label(value.get("evidence_level", "")),
+            "memory_lifecycle_stage": value.get(
+                "memory_lifecycle_stage",
+                lifecycle_stage_for_evidence_level(value.get("evidence_level", "")),
+            ),
+            "memory_lifecycle_label": _memory_lifecycle_label(
+                value.get("memory_lifecycle_stage")
+                or lifecycle_stage_for_evidence_level(value.get("evidence_level", ""))
+            ),
             "confidence": value.get("confidence", 0),
             "decay_state": value.get("decay_state", ""),
             "supporting_event_ids": list(value.get("supporting_event_ids") or []),
@@ -285,6 +300,8 @@ def _mobile_sections(
             "object_type": item["object_type"],
             "evidence_level": item["evidence_level"],
             "evidence_level_label": item.get("evidence_level_label", ""),
+            "memory_lifecycle_stage": item.get("memory_lifecycle_stage", ""),
+            "memory_lifecycle_label": item.get("memory_lifecycle_label", ""),
             "edge_type": "",
             "path": item.get("display_title") or item["object_key"],
             "display_label": item.get("display_label", ""),
@@ -324,6 +341,14 @@ def _mobile_sections(
             "claim": _humanize_text(weak.get("claim", "")),
             "evidence_level": weak.get("evidence_level", ""),
             "evidence_level_label": _evidence_level_label(weak.get("evidence_level", "")),
+            "memory_lifecycle_stage": weak.get(
+                "memory_lifecycle_stage",
+                lifecycle_stage_for_evidence_level(weak.get("evidence_level", "")),
+            ),
+            "memory_lifecycle_label": _memory_lifecycle_label(
+                weak.get("memory_lifecycle_stage")
+                or lifecycle_stage_for_evidence_level(weak.get("evidence_level", ""))
+            ),
             "recommended_training": dict(weak.get("recommended_training") or {}),
             "supporting_event_ids": list(weak.get("supporting_event_ids") or []),
             "supporting_event_labels": _event_labels(weak.get("supporting_event_ids")),
@@ -389,6 +414,11 @@ def _refs(value: Any) -> list[str]:
 
 def _normalize_claim_payload(item: dict[str, Any]) -> dict[str, Any]:
     normalized = dict(item)
+    stage = str(normalized.get("memory_lifecycle_stage") or "").strip()
+    if not stage:
+        stage = lifecycle_stage_for_evidence_level(normalized.get("evidence_level"))
+    normalized["memory_lifecycle_stage"] = stage
+    normalized["memory_lifecycle_label"] = _memory_lifecycle_label(stage)
     evidence_refs = _refs(normalized.get("evidence_refs"))
     if not evidence_refs:
         evidence_refs = _refs(normalized.get("supporting_event_ids"))
@@ -423,6 +453,11 @@ def _concept_from_error_id(error_id: str) -> str:
 def _evidence_level_label(level: Any) -> str:
     key = str(level or "").strip()
     return _EVIDENCE_LEVEL_LABELS.get(key) or key or _EVIDENCE_LEVEL_LABELS["unclassified"]
+
+
+def _memory_lifecycle_label(stage: Any) -> str:
+    key = str(stage or "").strip()
+    return _MEMORY_LIFECYCLE_LABELS.get(key) or key or _MEMORY_LIFECYCLE_LABELS["evidence_ledger"]
 
 
 def _concept_label(concept_id: Any) -> str:

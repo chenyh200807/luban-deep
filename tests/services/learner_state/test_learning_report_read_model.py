@@ -1353,7 +1353,10 @@ def test_learning_report_exposes_weak_points_learning_brain_evidence_and_next_tr
 
     learning_brain = model["learning_brain"]
     assert learning_brain["weak_points"][0]["evidence_level"] == "L1_repeated"
+    assert learning_brain["weak_points"][0]["memory_lifecycle_stage"] == "stable_learner_claim"
+    assert learning_brain["weak_points"][0]["memory_lifecycle_label"] == "稳定学情判断"
     assert learning_brain["visible_sections"]["current_truth"]
+    assert learning_brain["visible_sections"]["current_truth"][0]["memory_lifecycle_label"]
     assert learning_brain["visible_sections"]["evidence_flow"]
     assert learning_brain["visible_sections"]["next_training"]
     assert model["next_training"]
@@ -1418,6 +1421,8 @@ def test_realistic_chinese_grading_event_updates_report_progress_learning_brain_
     assert model["overview"]["attempt_count"] == 2
     assert model["overview"]["unique_question_count"] == 2
     assert model["learning_brain"]["weak_points"][0]["evidence_level"] == "L1_repeated"
+    assert model["learning_brain"]["weak_points"][0]["memory_lifecycle_stage"] == "stable_learner_claim"
+    assert model["learning_brain"]["weak_points"][0]["memory_lifecycle_label"] == "稳定学情判断"
     assert model["learning_brain"]["visible_sections"]["evidence_flow"]
     assert model["learning_brain"]["visible_sections"]["next_training"][0]["display_meta"]
     assert model["learning_brain"]["graph_chain"]["has_training_uses_question"] is True

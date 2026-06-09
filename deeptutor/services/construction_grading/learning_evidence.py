@@ -7,7 +7,11 @@ from typing import Any
 
 from deeptutor.contracts.error_codes import ERROR_CODE_REGISTRY
 from deeptutor.services.construction_grading.audit import reconcile_grader_output
+from deeptutor.services.construction_grading.certified_grading_adjudication import (
+    attach_certified_grading_adjudication,
+)
 from deeptutor.services.construction_grading.schema import CaseGradingResult, MCQGradingResult
+from deeptutor.services.learner_state.memory_lifecycle import lifecycle_stage_for_evidence_level
 
 _REASONING_BLOCK_RE = re.compile(r"<(?:think|thinking)\b[^>]*>.*?</(?:think|thinking)>", re.IGNORECASE | re.DOTALL)
 _REASONING_OPEN_RE = re.compile(r"<(?:think|thinking)\b[^>]*>.*$", re.IGNORECASE | re.DOTALL)
@@ -36,6 +40,9 @@ def build_learning_evidence_payload(
     score_awarded = payload.get("score_awarded")
     max_score = payload.get("max_score")
     next_training_signal = _clean_dict(payload.get("next_training_signal"))
+    payload["next_training_signal"] = next_training_signal
+    payload = attach_certified_grading_adjudication(payload)
+    next_training_signal = _clean_dict(payload.get("next_training_signal"))
     grading_mode = _clean_text(payload.get("grading_mode"))
     question_stem = _clean_text(
         payload.get("question_stem")
@@ -58,7 +65,7 @@ def build_learning_evidence_payload(
         next_training_signal=next_training_signal,
     )
 
-    return {
+    result = {
         "schema_version": 1,
         "event_type": "learning_evidence",
         "legacy_event_type": "construction_grading_error",
@@ -100,6 +107,19 @@ def build_learning_evidence_payload(
         ),
         "quality": quality,
     }
+    result["memory_lifecycle_stage"] = lifecycle_stage_for_evidence_level(
+        result["quality"].get("evidence_level")
+    )
+    for key in (
+        "certified_grading_policy",
+        "claim_promotion_allowed",
+        "preview_only",
+        "mastery_raised",
+        "canonical_truth_written",
+    ):
+        if key in payload:
+            result[key] = payload[key]
+    return result
 
 
 def build_learning_evidence_from_context_pack(
@@ -569,8 +589,14 @@ def compute_quality_signals(payload: dict[str, Any]) -> dict[str, Any]:
         "degraded_reason": degraded_reason,
     }
     if trusted_reviewed:
-        quality["teacher_reviewed"] = True
-        quality["teacher_review_authority"] = "trusted_adjudication"
+        source = _clean_text(trusted_adjudication.get("source"))
+        if source == "certified_grading_policy":
+            quality["evidence_level"] = "L2_confirmed"
+            quality["stable_truth_eligible"] = True
+            quality["adjudication_authority"] = "trusted_adjudication"
+        else:
+            quality["teacher_reviewed"] = True
+            quality["teacher_review_authority"] = "trusted_adjudication"
         quality["trusted_adjudication"] = {
             key: value
             for key, value in dict(trusted_adjudication or {}).items()

@@ -145,6 +145,7 @@ def test_synthesis_keeps_single_observation_out_of_stable_truth() -> None:
 
     assert projection["weak_points"] == []
     assert projection["observed_candidates"][0]["evidence_level"] == "L0_observed"
+    assert projection["observed_candidates"][0]["memory_lifecycle_stage"] == "short_term_learning_memory"
     assert projection["compiled_objects"]["concept:1A432000"]["evidence_level"] == "L0_observed"
 
 
@@ -158,6 +159,7 @@ def test_synthesis_promotes_repeated_error_to_l1() -> None:
     assert weak["concept_id"] == "1A432000"
     assert weak["error_code"] == "E02"
     assert weak["evidence_level"] == "L1_repeated"
+    assert weak["memory_lifecycle_stage"] == "stable_learner_claim"
     assert weak["supporting_event_ids"] == ["evt1", "evt2"]
 
 
@@ -185,6 +187,36 @@ def test_synthesis_projects_trusted_ai_adjudication_from_supporting_evidence() -
     assert trusted["requires_human"] is False
 
 
+def test_synthesis_promotes_single_certified_policy_evidence_to_l2() -> None:
+    quality = {
+        "evidence_level": "L2_confirmed",
+        "writeback_eligible": True,
+        "stable_truth_eligible": True,
+        "trusted_adjudication": {
+            "source": "certified_grading_policy",
+            "confidence": 0.93,
+            "conflict_status": "resolved",
+            "requires_human": False,
+            "policy_id": "policy-case-v1",
+            "rubric_hash": "sha256:rubric",
+            "grader_version": "rubric-grader-v1",
+        },
+    }
+
+    projection = synthesize_learning_truth([
+        _learning_event("evt1", quality=quality),
+    ])
+
+    weak = projection["weak_points"][0]
+    assert weak["evidence_level"] == "L2_confirmed"
+    assert weak["memory_lifecycle_stage"] == "stable_learner_claim"
+    assert weak["supporting_event_ids"] == ["evt1"]
+    trusted = projection["synthesis_run"]["trusted_adjudication"]
+    assert trusted["source"] == "certified_grading_policy"
+    assert trusted["confidence"] == 0.93
+    assert trusted["requires_human"] is False
+
+
 def test_synthesis_outputs_p0_claim_lifecycle_states() -> None:
     observed_projection = synthesize_learning_truth([_learning_event("evt1")])
     repeated_projection = synthesize_learning_truth([
@@ -207,8 +239,11 @@ def test_synthesis_outputs_p0_claim_lifecycle_states() -> None:
     ])
 
     assert observed_projection["observed_candidates"][0]["claim_status"] == "observed"
+    assert observed_projection["observed_candidates"][0]["memory_lifecycle_stage"] == "short_term_learning_memory"
     assert repeated_projection["weak_points"][0]["claim_status"] == "repeated"
+    assert repeated_projection["weak_points"][0]["memory_lifecycle_stage"] == "stable_learner_claim"
     assert confirmed_projection["weak_points"][0]["claim_status"] == "confirmed"
+    assert confirmed_projection["weak_points"][0]["memory_lifecycle_stage"] == "stable_learner_claim"
     assert stale_projection["stale_claims"][0]["claim_status"] == "stale"
     assert superseded_projection["compiled_objects"]["error:1A432000:E02"]["claim_status"] == "superseded"
     assert repeated_projection["weak_points"][0]["lifecycle"]["status"] == "repeated"

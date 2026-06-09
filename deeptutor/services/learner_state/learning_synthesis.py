@@ -8,6 +8,7 @@ from typing import Any, Iterable
 from deeptutor.services.learner_state.learning_state_projection import (
     project_three_layer_learning_state,
 )
+from deeptutor.services.learner_state.memory_lifecycle import lifecycle_stage_for_evidence_level
 from deeptutor.services.learner_state.canonical_truth_policy import (
     trusted_adjudication_from_quality,
 )
@@ -552,6 +553,7 @@ def _candidate(item: dict[str, Any], *, evidence_level: str) -> dict[str, Any]:
         "last_observed_at": item["observed_at"],
         "recommended_training": dict(item.get("recommended_training") or {}),
         "evidence_level": evidence_level,
+        "memory_lifecycle_stage": lifecycle_stage_for_evidence_level(evidence_level),
         "evidence_cap_reasons": list(item.get("evidence_cap_reasons") or []),
         # D-class: 1-element timeline for the single-observation path (append-only).
         "occurrence_timeline": _occurrence_timeline([item]),
@@ -791,6 +793,7 @@ def _with_claim_lifecycle(item: dict[str, Any]) -> dict[str, Any]:
     decay_state = _clean_text(enriched.get("decay_state")) or "active"
     supporting_event_ids = _dedupe([_clean_text(item) for item in list(enriched.get("supporting_event_ids") or [])])
     status = _claim_status(evidence_level, decay_state)
+    enriched["memory_lifecycle_stage"] = lifecycle_stage_for_evidence_level(evidence_level)
     enriched["claim_status"] = status
     enriched["evidence_refs"] = supporting_event_ids
     enriched["supporting_event_ids"] = supporting_event_ids
