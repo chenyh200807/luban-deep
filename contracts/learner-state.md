@@ -273,14 +273,26 @@ Overlay 必须支持：
   `write_compiled_learning_truth` 在 `is_production_environment()` 下默认只返回 preview 投影、
   不落盘，从而保持 `canonical_truth_written=false` 安全不变量。该硬挡只能由
   `LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_ENABLED`（默认 OFF）显式打开；该 flag 的翻转
-  本身还受 teacher-final / real-retest 权威 + 逐门授权约束，且设回 false / 未设即秒退回 preview。
+  本身还受 trusted adjudication / real-retest 权威 + 逐门授权约束，且设回 false / 未设即秒退回 preview。
   即使 flag=true，生产写入仍必须受
   `LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_COHORT` 前缀门约束，默认只允许
   `qa_,operator_`；非 cohort 用户继续 preview/fail-closed，不得写入 durable store。
+  如果需要 broad real-student canonical write，必须额外显式打开
+  `LUBAN_CANONICAL_LEARNER_TRUTH_BROAD_TRUSTED_ADJUDICATION_ENABLED` 或兼容别名
+  `LUBAN_CANONICAL_LEARNER_TRUTH_BROAD_AI_ADJUDICATION_ENABLED`，并且 projection 的
+  `synthesis_run.trusted_adjudication` 必须证明最终裁决来源可信。AI 裁决来源（如
+  `llm_jury` / `ai_jury`）必须同时满足最低置信度
+  `LUBAN_CANONICAL_LEARNER_TRUTH_AI_ADJUDICATION_MIN_CONFIDENCE`（默认 0.85）和
+  `conflict_status=resolved`；低置信、冲突未解决、shadow draft、candidate-only 一律不得写
+  canonical truth。真人老师只能作为 `human_teacher` / `human_qa_teacher` 等 trusted
+  adjudication source 之一，不得成为 broad 默认链路的必需前置。
   生产环境即使 flag=true，也必须写入 Supabase/core-store 的
   `learner_summaries.summary_structured_json.learning_brain` 并从同一 core-store 读回；
   core-store 未配置或 writer 失败时继续 preview/fail-closed，不得退回本地
   `COMPILED_TRUTH.json` 作为 production authority。
+  `synthesize_learning_truth(dry_run=False)` 生成的 `summary_refresh` 不得绕过同一 promotion
+  policy 写入 `summary_structured_json.learning_brain`；promotion 不允许时只能刷新摘要文本，
+  不得把 projection 通过 learner summary 旁路写成 durable canonical-ish truth。
   非生产路径不受此 flag 影响。
 
 #### `learner_memory_events`

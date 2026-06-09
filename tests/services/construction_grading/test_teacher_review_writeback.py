@@ -379,7 +379,77 @@ def test_teacher_reviewed_false_does_not_write_when_explicitly_enabled() -> None
     )
 
     assert out["writeback_count"] == 0
-    assert out["writeback_skipped_reason"] == "teacher_reviewed_required"
+    assert out["writeback_skipped_reason"] == "trusted_adjudication_required"
+    assert service.calls == []
+
+
+def test_ai_jury_final_adjudication_can_write_without_human_teacher_review() -> None:
+    service = _RecordingLearnerStateService()
+    review = _review([
+        {
+            "point_id": "P1",
+            "label": "专项施工方案",
+            "max_score": 5,
+            "ai_hit": "miss",
+            "ai_score": 0,
+            "review_action": "confirm",
+        },
+    ])
+    review.update(
+        {
+            "teacher_reviewed": False,
+            "review_source": "model_jury_teacher_review",
+            "reviewer_type": "llm_jury",
+            "authority_label": "model_jury_final",
+            "jury_models": ["gpt55", "opus48", "deepseek_v4", "qwen37"],
+            "adjudication_protocol": "teacher_review_jury_v1",
+            "confidence": 0.92,
+            "conflict_status": "resolved",
+        }
+    )
+
+    out = build_teacher_review_writeback(
+        review, dry_run=False, learner_state_service=service, user_id="qa_stu_1"
+    )
+
+    assert out["writeback_count"] == 1
+    payload = service.calls[0]["payload_json"]
+    signal = payload["next_training_signal"]
+    assert signal["final_adjudication_result"]["trusted_adjudication"]["source"] == "llm_jury"
+    assert signal["final_adjudication_result"]["trusted_adjudication"]["requires_human"] is False
+    assert signal["teacher_final_grading_result"] == signal["final_adjudication_result"]
+    assert payload["quality"]["teacher_reviewed"] is True
+    assert payload["quality"]["teacher_review_authority"] == "trusted_adjudication"
+    assert payload["quality"]["trusted_adjudication"]["source"] == "llm_jury"
+
+
+def test_low_confidence_ai_jury_does_not_write() -> None:
+    service = _RecordingLearnerStateService()
+    review = _review([
+        {
+            "point_id": "P1",
+            "max_score": 5,
+            "ai_hit": "miss",
+            "ai_score": 0,
+            "review_action": "confirm",
+        },
+    ])
+    review.update(
+        {
+            "teacher_reviewed": False,
+            "reviewer_type": "llm_jury",
+            "authority_label": "model_jury_final",
+            "confidence": 0.62,
+            "conflict_status": "unresolved",
+        }
+    )
+
+    out = build_teacher_review_writeback(
+        review, dry_run=False, learner_state_service=service, user_id="qa_stu_1"
+    )
+
+    assert out["writeback_count"] == 0
+    assert out["writeback_skipped_reason"] == "trusted_adjudication_required"
     assert service.calls == []
 
 

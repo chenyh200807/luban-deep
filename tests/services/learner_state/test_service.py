@@ -536,6 +536,109 @@ def test_learner_state_synthesize_learning_truth_enqueues_summary_refresh(tmp_pa
     assert "E02" not in visible_text
 
 
+def test_production_summary_refresh_does_not_bypass_canonical_truth_cohort_gate(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.setenv("LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_ENABLED", "1")
+    monkeypatch.setenv("LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_COHORT", "qa_,operator_")
+    monkeypatch.delenv("LUBAN_CANONICAL_LEARNER_TRUTH_BROAD_TRUSTED_ADJUDICATION_ENABLED", raising=False)
+    monkeypatch.delenv("LUBAN_CANONICAL_LEARNER_TRUTH_BROAD_AI_ADJUDICATION_ENABLED", raising=False)
+    core_store = _CoreStoreStub()
+    service = _make_service(tmp_path, core_store=core_store)
+    for index in range(2):
+        service.append_memory_event(
+            "real_student_1",
+            source_feature="construction_grading",
+            source_id=f"turn-{index}",
+            source_bot_id="construction-exam",
+            memory_kind="learning_evidence",
+            payload_json={
+                "event_type": "learning_evidence",
+                "turn_id": f"turn-{index}",
+                "question_id": f"q-{index}",
+                "question_type": "case",
+                "score_awarded": 0,
+                "max_score": 1,
+                "error_events": [
+                    {"error_code": "E02", "concept_tag": "1A432000", "diagnosis": "漏专家论证。"}
+                ],
+                "next_training_signal": {"concept": "1A432000", "focus": "专家论证程序"},
+                "quality": {"evidence_level": "L0_observed", "writeback_eligible": True},
+            },
+        )
+
+    result = service.synthesize_learning_truth("real_student_1", dry_run=False)
+
+    pending = [
+        item for item in service.outbox_service.list_pending("real_student_1", limit=None)
+        if item.event_type == "summary_refresh"
+    ]
+    assert result["canonical_truth_promotion"]["allowed"] is False
+    assert result["canonical_truth_promotion"]["reason"] == "production_cohort_required"
+    assert core_store.compiled_learning_truth == {}
+    assert "summary_structured_json" not in pending[-1].payload_json
+
+
+def test_production_broad_ai_jury_adjudication_writes_canonical_truth_and_summary_projection(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.setenv("LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_ENABLED", "1")
+    monkeypatch.setenv("LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_COHORT", "qa_,operator_")
+    monkeypatch.setenv("LUBAN_CANONICAL_LEARNER_TRUTH_BROAD_AI_ADJUDICATION_ENABLED", "1")
+    core_store = _CoreStoreStub()
+    service = _make_service(tmp_path, core_store=core_store)
+    for index in range(2):
+        service.append_memory_event(
+            "real_student_1",
+            source_feature="construction_grading",
+            source_id=f"turn-{index}",
+            source_bot_id="construction-exam",
+            memory_kind="learning_evidence",
+            payload_json={
+                "event_type": "learning_evidence",
+                "turn_id": f"turn-{index}",
+                "question_id": f"q-{index}",
+                "question_type": "case",
+                "score_awarded": 0,
+                "max_score": 1,
+                "error_events": [
+                    {"error_code": "E02", "concept_tag": "1A432000", "diagnosis": "漏专家论证。"}
+                ],
+                "next_training_signal": {"concept": "1A432000", "focus": "专家论证程序"},
+                "quality": {
+                    "evidence_level": "L0_observed",
+                    "writeback_eligible": True,
+                    "trusted_adjudication": {
+                        "source": "llm_jury",
+                        "confidence": 0.93,
+                        "conflict_status": "resolved",
+                        "requires_human": False,
+                    },
+                },
+            },
+        )
+
+    result = service.synthesize_learning_truth("real_student_1", dry_run=False)
+
+    pending = [
+        item for item in service.outbox_service.list_pending("real_student_1", limit=None)
+        if item.event_type == "summary_refresh"
+    ]
+    assert result["canonical_truth_promotion"]["allowed"] is True
+    assert result["canonical_truth_promotion"]["adjudication_source"] == "llm_jury"
+    assert core_store.compiled_learning_truth["learning_brain"]["subject"] == "construction_exam_learning_truth"
+    assert (
+        pending[-1].payload_json["summary_structured_json"]["learning_brain"]["synthesis_run"][
+            "trusted_adjudication"
+        ]["source"]
+        == "llm_jury"
+    )
+
+
 def test_learner_state_synthesis_reads_remote_memory_events_when_configured(tmp_path) -> None:
     core_store = _CoreStoreStub()
     core_store.memory_events = [

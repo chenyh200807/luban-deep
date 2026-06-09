@@ -82,22 +82,44 @@ def test_high_risk_without_review_is_downweighted_not_mastery(monkeypatch):
     assert b["memory_write_policy"]["high_risk_without_teacher_review"].startswith("downweighted")
 
 
-def test_writeback_blocked_when_not_teacher_reviewed(monkeypatch):
+def test_writeback_blocked_without_trusted_adjudication(monkeypatch):
     monkeypatch.setattr(lb, "get_learner_state_service", lambda: object())
     with TestClient(_build_app()) as client:
         r = client.post("/api/v1/learning-brain/harness-case-grading-review",
                         json={"review": _review(teacher_reviewed=False), "dry_run": False, "writeback": True})
-    assert r.status_code == 400  # teacher_reviewed must be true to write
+    assert r.status_code == 400  # trusted adjudication is required to write
 
 
-def test_teacher_reviewed_false_payload_is_rejected_even_for_dry_run(monkeypatch):
+def test_payload_without_trusted_adjudication_is_rejected_even_for_dry_run(monkeypatch):
     monkeypatch.setattr(lb, "get_learner_state_service", lambda: (_ for _ in ()).throw(AssertionError("must not write")))
     with TestClient(_build_app()) as client:
         r = client.post(
             "/api/v1/learning-brain/harness-case-grading-review",
             json={"review": _review(teacher_reviewed=False)},
-        )
+    )
     assert r.status_code == 400
+
+
+def test_ai_jury_final_adjudication_is_accepted_without_teacher_reviewed(monkeypatch):
+    review = _review(teacher_reviewed=False)
+    review.update(
+        {
+            "review_source": "model_jury_teacher_review",
+            "reviewer_type": "llm_jury",
+            "authority_label": "model_jury_final",
+            "jury_models": ["gpt55", "opus48", "deepseek_v4", "qwen37"],
+            "adjudication_protocol": "teacher_review_jury_v1",
+            "confidence": 0.93,
+            "conflict_status": "resolved",
+        }
+    )
+    with TestClient(_build_app()) as client:
+        r = client.post("/api/v1/learning-brain/harness-case-grading-review", json={"review": review})
+
+    assert r.status_code == 200
+    preview = r.json()["learning_evidence_payload_preview"]
+    assert preview["next_training_signal"]["final_adjudication_result"]["trusted_adjudication"]["source"] == "llm_jury"
+    assert preview["quality"]["trusted_adjudication"]["source"] == "llm_jury"
 
 
 def test_writeback_true_uses_existing_write_authority(monkeypatch):

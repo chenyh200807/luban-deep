@@ -8,6 +8,9 @@ from typing import Any, Iterable
 from deeptutor.services.learner_state.learning_state_projection import (
     project_three_layer_learning_state,
 )
+from deeptutor.services.learner_state.canonical_truth_policy import (
+    trusted_adjudication_from_quality,
+)
 from deeptutor.services.learner_state.service import LearnerStateEvent
 
 _ALLOWED_EDGE_TYPES = {
@@ -132,6 +135,10 @@ def synthesize_learning_truth(
         decayed_claim_count=len(stale_claims),
         conflict_count=conflict_count,
         manual_override_count=len(manual_events),
+        trusted_adjudication=_trusted_adjudication_summary(
+            events=ordered_events,
+            weak_points=weak_points,
+        ),
         status=synthesis_status,
     )
     return projection
@@ -832,6 +839,7 @@ def _synthesis_run(
     decayed_claim_count: int,
     conflict_count: int,
     manual_override_count: int,
+    trusted_adjudication: dict[str, Any],
     status: str,
 ) -> dict[str, Any]:
     input_hash = _hash_json([
@@ -856,8 +864,66 @@ def _synthesis_run(
         "decayed_claim_count": decayed_claim_count,
         "conflict_count": conflict_count,
         "manual_override_count": manual_override_count,
+        "trusted_adjudication": dict(trusted_adjudication or {}),
         "status": _clean_text(status) or "dry_run_ok",
     }
+
+
+def _trusted_adjudication_summary(
+    *,
+    events: list[LearnerStateEvent],
+    weak_points: list[dict[str, Any]],
+) -> dict[str, Any]:
+    supporting_ids = {
+        _clean_text(event_id)
+        for weak in weak_points
+        for event_id in list(weak.get("supporting_event_ids") or [])
+        if _clean_text(event_id)
+    }
+    if not supporting_ids:
+        return {}
+
+    events_by_id = {event.event_id: event for event in events}
+    trusted_entries: list[dict[str, Any]] = []
+    for event_id in sorted(supporting_ids):
+        event = events_by_id.get(event_id)
+        if event is None:
+            return {"source": "", "conflict_status": "missing_supporting_event", "requires_human": True}
+        payload = dict(event.payload_json or {})
+        quality = payload.get("quality") if isinstance(payload.get("quality"), dict) else {}
+        signal = payload.get("next_training_signal") if isinstance(payload.get("next_training_signal"), dict) else {}
+        trusted = trusted_adjudication_from_quality(quality, signal)
+        if not trusted:
+            return {"source": "", "conflict_status": "missing_trusted_adjudication", "requires_human": True}
+        trusted_entries.append(trusted)
+
+    sources = {_clean_text(item.get("source")).lower() for item in trusted_entries if _clean_text(item.get("source"))}
+    source = sorted(sources)[0] if len(sources) == 1 else "mixed_trusted_adjudication"
+    confidences = [
+        float(item["confidence"])
+        for item in trusted_entries
+        if _is_float_like(item.get("confidence"))
+    ]
+    statuses = {
+        _clean_text(item.get("conflict_status")).lower() or "resolved"
+        for item in trusted_entries
+    }
+    conflict_status = "resolved" if statuses.issubset({"resolved", "none", "no_conflict", "not_applicable"}) else "unresolved"
+    return {
+        "source": source,
+        "confidence": min(confidences) if confidences else None,
+        "conflict_status": conflict_status,
+        "requires_human": any(bool(item.get("requires_human")) for item in trusted_entries),
+        "supporting_event_count": len(supporting_ids),
+    }
+
+
+def _is_float_like(value: Any) -> bool:
+    try:
+        float(value)
+    except (TypeError, ValueError):
+        return False
+    return True
 
 
 def _valid_edge(edge: dict[str, Any]) -> bool:

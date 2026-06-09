@@ -233,7 +233,7 @@ def render_learning_brain_harness_html() -> str:
       <div id="writebackOut" class="panel" style="display:none;margin-top:12px;background:#f0fdf4;border-color:#bbf7d0;"></div>
       <div id="nextSuggestionPreview" class="panel next-suggestion" style="display:none;margin-top:12px;"></div>
       <div id="teacherReviewPanel" class="review-box" style="display:none;">
-        <label><input id="teacherReviewedCheckbox" type="checkbox"> teacher_reviewed=true（AI shadow draft 不是最终事实；老师逐点确认/覆盖后才可写 Learning Brain）</label>
+        <label><input id="teacherReviewedCheckbox" type="checkbox"> teacher_reviewed=true（兼容字段；AI jury / operator / human 的可信最终裁决才可写 Learning Brain）</label>
         <div class="meta">teacher_final_score preview: <b id="teacherFinalScorePreview">0</b></div>
       </div>
       <div id="aiPoints"></div>
@@ -459,13 +459,13 @@ def render_learning_brain_harness_html() -> str:
           + "<div class='meta'>authority="+escAi(r.authority)+" · dry_run="+r.dry_run+" · writeback_performed="+r.writeback_performed+"</div>"
           + "<div class='meta'>override "+(s.overridden||0)+" · confirm "+(s.confirmed||0)+" · reject "+(s.rejected||0)+" · 可计 mastery "+(s.mastery_eligible||0)+" · high_risk/unsupported 降权 "+(s.downweighted_high_risk_or_unsupported||0)+"</div>"
           + "<div class='meta'>将写入 learning_evidence 摘要: 题="+escAi(r.case_id)+" · mastery点="+JSON.stringify(r.mastery_point_ids||[])+"</div>"
-          + "<div class='meta'>策略: AI未复核="+escAi(r.memory_write_policy.ai_draft_without_teacher_review)+" / high_risk未复核="+escAi(r.memory_write_policy.high_risk_without_teacher_review)+"</div>"
-          + "<div class='meta' style='color:#92400e'>仅预览，未写 learner_memory_events。真实写回需 QA/test user + teacher_reviewed=true + dry_run=false。</div>";
+          + "<div class='meta'>策略: AI未裁决="+escAi(r.memory_write_policy.ai_draft_without_trusted_adjudication)+" / high_risk未裁决="+escAi(r.memory_write_policy.high_risk_without_trusted_adjudication)+"</div>"
+          + "<div class='meta' style='color:#92400e'>仅预览，未写 learner_memory_events。真实写回需 QA/test user + trusted adjudication + dry_run=false。</div>";
       }catch(e){ out.innerHTML = "<div class='meta'>错误: "+escAi(e.message)+"</div>"; }
     }
     async function writebackNow(){
       if(!aiDraftState){ alert("先运行 AI-Draft"); return; }
-      if(!document.getElementById("teacherReviewedCheckbox").checked){ alert("请先勾选 teacher_reviewed=true"); return; }
+      if(!document.getElementById("teacherReviewedCheckbox").checked && document.getElementById("reviewSource").value !== "model_jury_teacher_review"){ alert("请先提供 teacher_reviewed=true 或选择 LLM Jury 可信裁决"); return; }
       const out = document.getElementById("writebackOut");
       const next = document.getElementById("nextSuggestionPreview");
       out.style.display = "block"; out.innerHTML = "<div class='meta'>QA/test 写入中…</div>";
@@ -651,8 +651,8 @@ async def run_learning_brain_harness_case_grading(
 
 
 class TeacherReviewWritebackRequest(BaseModel):
-    """QA-panel teacher review submission. dry_run preview by default; writeback only
-    when QA enabled AND teacher_reviewed AND writeback=true."""
+    """QA-panel final-adjudication submission. dry_run preview by default; writeback only
+    when QA enabled AND trusted adjudication AND writeback=true."""
     review: dict[str, Any] = Field(default_factory=dict)
     dry_run: bool = True
     writeback: bool = False
@@ -668,13 +668,15 @@ def _teacher_review_grader(review: dict[str, Any], *, dry_run: bool,
 
 @router.post("/harness-case-grading-review")
 async def run_learning_brain_teacher_review_writeback(payload: TeacherReviewWritebackRequest) -> dict[str, Any]:
-    """Teacher-review writeback (QA-only). AI-Draft alone is never written; only a
-    teacher-reviewed result becomes learning evidence, via the EXISTING writeback path."""
+    """Trusted-adjudication writeback (QA-only). AI-Draft alone is never written; only a
+    trusted final result becomes learning evidence, via the EXISTING writeback path."""
     if not _qa_enabled():
         raise HTTPException(status_code=404, detail="Learning Brain QA harness is disabled")
     review = payload.review or {}
-    if review.get("teacher_reviewed") is not True:
-        raise HTTPException(status_code=400, detail="teacher_reviewed must be true")
+    from deeptutor.services.construction_grading.teacher_review_writeback import review_has_trusted_adjudication
+
+    if not review_has_trusted_adjudication(review):
+        raise HTTPException(status_code=400, detail="trusted adjudication must be present")
     user_id = payload.user_id.strip()
     if bool(payload.writeback) and not payload.dry_run and not _is_qa_teacher_review_user_id(user_id):
         raise HTTPException(status_code=400, detail="writeback user_id must be QA/test scoped")
@@ -739,9 +741,13 @@ async def run_learning_brain_teacher_review_writeback(payload: TeacherReviewWrit
             "ai_draft_without_teacher_review": "not_written",
             "high_risk_without_teacher_review": "downweighted_not_mastery",
             "unsupported_without_teacher_review": "downweighted_not_mastery",
-            "teacher_reviewed": "eligible",
+            "ai_draft_without_trusted_adjudication": "not_written",
+            "high_risk_without_trusted_adjudication": "downweighted_not_mastery",
+            "unsupported_without_trusted_adjudication": "downweighted_not_mastery",
+            "teacher_reviewed": "compat_eligible",
+            "ai_jury_adjudicated": "eligible_when_confident_and_resolved",
         },
-        "note": "Teacher-final is the higher authority; AI-Draft alone is never written. Reuses existing learning_evidence/learner_memory_events; no new table.",
+        "note": "Trusted final adjudication is the higher authority; AI-Draft alone is never written. Reuses existing learning_evidence/learner_memory_events; no new table.",
     }
 
 

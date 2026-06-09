@@ -12,8 +12,8 @@ memory store. It reuses:
 
 Authority rules (hard):
   - A point becomes confident MASTERY evidence only when its final disposition is
-    a full hit that is either teacher-confirmed or AI-auto_certified, and it is
-    NOT high_risk / unsupported — UNLESS a teacher override upgrades it.
+    a full hit that is either trusted-adjudication-confirmed or AI-auto_certified,
+    and it is NOT high_risk / unsupported — UNLESS a trusted override upgrades it.
   - high_risk / unsupported points are downweighted: awarded_score=0, status
     never ``full``, mastery_eligible=False. They are never counted as correct.
   - ``review_action == "override"`` -> teacher_hit / teacher_score replace AI's;
@@ -68,6 +68,19 @@ def build_teacher_review_writeback(
     score_awarded = round(sum(item.awarded_score for item in rubric_items), 3)
     max_score = round(sum(item.max_score for item in rubric_items), 3)
     review_audit = _review_audit(review_json)
+    trusted_adjudication = _trusted_adjudication(review_json, review_audit)
+    trusted_reviewed = bool(trusted_adjudication.get("eligible"))
+    teacher_reviewed = bool(review_json.get("teacher_reviewed") is True)
+    final_adjudication_result = {
+        "case_id": case_id,
+        "student_id": student_id,
+        "teacher_reviewed": teacher_reviewed,
+        "trusted_adjudication": trusted_adjudication,
+        "teacher_review_audit": review_audit,
+        "score_awarded": score_awarded,
+        "max_score": max_score,
+        "points": point_events,
+    }
 
     grading_result = CaseGradingResult(
         question_id=case_id,
@@ -78,23 +91,19 @@ def build_teacher_review_writeback(
         error_events=error_events,
         next_training_signal={
             "grading_source": "teacher_review",
+            "adjudication_source": "trusted_adjudication",
             "engine": engine or "best_quality_4model",
             "concept": _training_concept(write_plan),
             "focus": _training_concept(write_plan),
             "case_id": case_id,
             "student_id": student_id,
-            "teacher_reviewed": bool(review_json.get("teacher_reviewed") is True),
+            "teacher_reviewed": teacher_reviewed,
+            "trusted_adjudication": trusted_adjudication,
             "teacher_review_audit": review_audit,
             "teacher_review_points": point_events,
-            "teacher_final_grading_result": {
-                "case_id": case_id,
-                "student_id": student_id,
-                "teacher_reviewed": bool(review_json.get("teacher_reviewed") is True),
-                "teacher_review_audit": review_audit,
-                "score_awarded": score_awarded,
-                "max_score": max_score,
-                "points": point_events,
-            },
+            "final_adjudication_result": final_adjudication_result,
+            # Compatibility: old Learning Brain readers still look for this key.
+            "teacher_final_grading_result": final_adjudication_result,
         },
     )
 
@@ -103,8 +112,8 @@ def build_teacher_review_writeback(
         turn_id=_turn_id(case_id, student_id),
         session_id=student_id,
     )
-    if review_json.get("teacher_reviewed") is True:
-        _mark_teacher_reviewed_quality(payload)
+    if trusted_reviewed:
+        _mark_teacher_reviewed_quality(payload, trusted_adjudication)
 
     result: dict[str, Any] = {
         "dry_run": bool(dry_run),
@@ -119,9 +128,9 @@ def build_teacher_review_writeback(
     if dry_run:
         return result
 
-    if review_json.get("teacher_reviewed") is not True:
+    if not trusted_reviewed:
         result["writeback_count"] = 0
-        result["writeback_skipped_reason"] = "teacher_reviewed_required"
+        result["writeback_skipped_reason"] = "trusted_adjudication_required"
         return result
 
     write_user_id = _text(user_id) or student_id
@@ -327,7 +336,11 @@ def _training_concept(write_plan: list[dict[str, Any]]) -> str:
     return ""
 
 
-def _mark_teacher_reviewed_quality(payload: dict[str, Any]) -> None:
+def review_has_trusted_adjudication(review_json: dict[str, Any]) -> bool:
+    return bool(_trusted_adjudication(review_json, _review_audit(review_json)).get("eligible"))
+
+
+def _mark_teacher_reviewed_quality(payload: dict[str, Any], trusted_adjudication: dict[str, Any]) -> None:
     quality = dict(payload.get("quality") or {})
     cap_reasons = [
         reason
@@ -336,7 +349,12 @@ def _mark_teacher_reviewed_quality(payload: dict[str, Any]) -> None:
     ]
     quality["evidence_cap_reasons"] = cap_reasons
     quality["teacher_reviewed"] = True
-    quality["teacher_review_authority"] = "teacher_final_grading_result"
+    quality["teacher_review_authority"] = "trusted_adjudication"
+    quality["trusted_adjudication"] = {
+        key: value
+        for key, value in dict(trusted_adjudication or {}).items()
+        if key != "eligible"
+    }
     payload["quality"] = quality
 
 
@@ -356,7 +374,58 @@ def _review_audit(review_json: dict[str, Any]) -> dict[str, Any]:
         audit["reviewer_type"] = reviewer_type
         audit["jury_models"] = list(review_json.get("jury_models") or [])
         audit["adjudication_protocol"] = _text(review_json.get("adjudication_protocol"))
+        audit["confidence"] = _to_float(_first_present(review_json.get("confidence"), review_json.get("adjudication_confidence")))
+        audit["conflict_status"] = _text(review_json.get("conflict_status") or "resolved")
     return audit
+
+
+def _trusted_adjudication(review_json: dict[str, Any], review_audit: dict[str, Any]) -> dict[str, Any]:
+    teacher_reviewed = bool(review_json.get("teacher_reviewed") is True)
+    reviewer_type = _text(review_audit.get("reviewer_type")).lower()
+    authority_label = _text(review_audit.get("authority_label")).lower()
+    review_source = _text(review_audit.get("review_source")).lower()
+
+    if teacher_reviewed and not reviewer_type:
+        return {
+            "eligible": True,
+            "source": "teacher_final",
+            "authority_label": authority_label or "teacher_final",
+            "confidence": 1.0,
+            "conflict_status": "resolved",
+            "requires_human": False,
+        }
+
+    source = reviewer_type or review_source or authority_label
+    confidence = _to_float(_first_present(review_audit.get("confidence"), review_json.get("confidence"), 1.0))
+    conflict_status = _text(review_audit.get("conflict_status") or review_json.get("conflict_status") or "resolved").lower()
+    requires_human = bool(review_json.get("requires_human"))
+    if source in {"llm_jury", "ai_jury", "model_jury_teacher_review", "model_jury_teacher_final"}:
+        eligible = confidence >= 0.85 and conflict_status in {"resolved", "none", "no_conflict", "not_applicable"} and not requires_human
+        return {
+            "eligible": eligible,
+            "source": "llm_jury" if source == "model_jury_teacher_review" else source,
+            "authority_label": authority_label or "model_jury_final",
+            "confidence": confidence,
+            "conflict_status": conflict_status,
+            "requires_human": requires_human,
+        }
+    if source in {"operator", "operator_smoke", "operator_soak", "human_qa_teacher", "manual_qa_teacher", "teacher_final"}:
+        return {
+            "eligible": True,
+            "source": source,
+            "authority_label": authority_label or source,
+            "confidence": confidence,
+            "conflict_status": conflict_status or "resolved",
+            "requires_human": False,
+        }
+    return {
+        "eligible": False,
+        "source": source,
+        "authority_label": authority_label,
+        "confidence": confidence,
+        "conflict_status": conflict_status or "unresolved",
+        "requires_human": True,
+    }
 
 
 def _error_code(row: dict[str, Any]) -> str:
@@ -392,6 +461,13 @@ def _to_float(value: Any) -> float:
         return float(value or 0)
     except (TypeError, ValueError):
         return 0.0
+
+
+def _first_present(*values: Any) -> Any:
+    for value in values:
+        if value is not None and value != "":
+            return value
+    return None
 
 
 def _text(value: Any) -> str:

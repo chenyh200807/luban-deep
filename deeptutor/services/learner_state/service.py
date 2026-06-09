@@ -22,6 +22,9 @@ from deeptutor.services.learner_state.learning_brain_read_model import (
     extract_learning_brain_projection,
     wrap_learning_brain_projection,
 )
+from deeptutor.services.learner_state.canonical_truth_policy import (
+    canonical_truth_promotion_decision,
+)
 from deeptutor.services.learner_state.outbox import (
     LearnerStateOutbox as LearnerStateOutboxService,
 )
@@ -80,28 +83,6 @@ _FILENAMES = {
     "events": "MEMORY_EVENTS.jsonl",
     "compiled_truth": "COMPILED_TRUTH.json",
 }
-
-# G4 (master plan §0.26 / M33-ACT): canonical learner-truth production write gate. Default OFF — in
-# production the synthesizer stays dry-run / preview (truth never persisted, so the
-# ``canonical_truth_written`` safety invariant holds). Flipping this flip is itself gated downstream on
-# teacher-final / real-retest authority + a per-gate sign-off; the flag only makes the capability
-# "one authorization away, instantly revocable" (set to false / unset -> reverts to preview).
-_CANONICAL_TRUTH_PRODUCTION_WRITE_FLAG = "LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_ENABLED"
-_CANONICAL_TRUTH_PRODUCTION_WRITE_COHORT = "LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_COHORT"
-_CANONICAL_TRUTH_PRODUCTION_WRITE_COHORT_DEFAULT = "qa_,operator_"
-
-
-def _canonical_truth_production_write_cohort_allowed(user_id: str) -> bool:
-    from deeptutor.services.config.env_store import get_env_store
-
-    normalized = _normalize_user_id(user_id)
-    raw = get_env_store().get(
-        _CANONICAL_TRUTH_PRODUCTION_WRITE_COHORT,
-        _CANONICAL_TRUTH_PRODUCTION_WRITE_COHORT_DEFAULT,
-    )
-    prefixes = [item.strip() for item in str(raw or "").split(",") if item.strip()]
-    return bool(prefixes) and any(normalized.startswith(prefix) for prefix in prefixes)
-
 
 @dataclass
 class LearnerStateEvent:
@@ -426,14 +407,9 @@ class LearnerStateService:
     def write_compiled_learning_truth(self, user_id: str, projection: dict[str, Any]) -> dict[str, Any]:
         normalized = _normalize_user_id(user_id)
         payload = dict(projection or {})
-        # G4: fail-closed in production unless the canonical-write override is explicitly authorized.
-        # Default / unset / unrecognized -> preview only (not persisted), preserving the
-        # canonical_truth_written invariant. ``env_flag`` already maps garbage values to ``default``.
-        if is_production_environment():
-            if not env_flag(_CANONICAL_TRUTH_PRODUCTION_WRITE_FLAG, default=False):
-                return extract_learning_brain_projection(payload)
-            if not _canonical_truth_production_write_cohort_allowed(normalized):
-                return extract_learning_brain_projection(payload)
+        promotion = canonical_truth_promotion_decision(user_id=normalized, projection=payload)
+        if is_production_environment() and not promotion.allowed:
+            return extract_learning_brain_projection(payload)
         if bool(getattr(self._core_store, "is_configured", False)):
             writer = getattr(self._core_store, "write_compiled_learning_truth", None)
             if callable(writer):
@@ -850,16 +826,27 @@ class LearnerStateService:
         summary_md = render_learning_truth_summary_md(projection)
         if dry_run:
             return {"projection": projection, "summary_md": summary_md, "outbox_item": None}
+        promotion = canonical_truth_promotion_decision(user_id=normalized, projection=projection)
         self.write_compiled_learning_truth(normalized, projection)
+        summary_structured_json = (
+            wrap_learning_brain_projection(projection)
+            if promotion.allowed
+            else None
+        )
         outbox_item = self._enqueue_summary_refresh(
             user_id=normalized,
             summary_md=summary_md,
             source_feature="learning_synthesis",
             source_id="nightly_synthesis",
             source_bot_id=None,
-            summary_structured_json=wrap_learning_brain_projection(projection),
+            summary_structured_json=summary_structured_json,
         )
-        return {"projection": projection, "summary_md": summary_md, "outbox_item": outbox_item}
+        return {
+            "projection": projection,
+            "summary_md": summary_md,
+            "outbox_item": outbox_item,
+            "canonical_truth_promotion": promotion.to_dict(),
+        }
 
     def record_turn_event(
         self,

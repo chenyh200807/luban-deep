@@ -161,6 +161,30 @@ def test_synthesis_promotes_repeated_error_to_l1() -> None:
     assert weak["supporting_event_ids"] == ["evt1", "evt2"]
 
 
+def test_synthesis_projects_trusted_ai_adjudication_from_supporting_evidence() -> None:
+    quality = {
+        "evidence_level": "L0_observed",
+        "writeback_eligible": True,
+        "trusted_adjudication": {
+            "source": "llm_jury",
+            "confidence": 0.91,
+            "conflict_status": "resolved",
+            "requires_human": False,
+        },
+    }
+
+    projection = synthesize_learning_truth([
+        _learning_event("evt1", quality=quality),
+        _learning_event("evt2", question_id="case_002", rubric_item_id="r9", quality=quality),
+    ])
+
+    trusted = projection["synthesis_run"]["trusted_adjudication"]
+    assert trusted["source"] == "llm_jury"
+    assert trusted["confidence"] == 0.91
+    assert trusted["conflict_status"] == "resolved"
+    assert trusted["requires_human"] is False
+
+
 def test_synthesis_outputs_p0_claim_lifecycle_states() -> None:
     observed_projection = synthesize_learning_truth([_learning_event("evt1")])
     repeated_projection = synthesize_learning_truth([

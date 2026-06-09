@@ -497,8 +497,19 @@ def compute_quality_signals(payload: dict[str, Any]) -> dict[str, Any]:
         if isinstance(next_training_signal.get("teacher_final_grading_result"), dict)
         else {}
     )
-    teacher_reviewed = bool(teacher_final.get("teacher_reviewed") is True)
-    if teacher_reviewed:
+    trusted_adjudication = (
+        next_training_signal.get("trusted_adjudication")
+        if isinstance(next_training_signal.get("trusted_adjudication"), dict)
+        else teacher_final.get("trusted_adjudication")
+        if isinstance(teacher_final.get("trusted_adjudication"), dict)
+        else {}
+    )
+    trusted_reviewed = bool(
+        teacher_final.get("teacher_reviewed") is True
+        or trusted_adjudication.get("eligible") is True
+        or str(trusted_adjudication.get("source") or "").strip()
+    )
+    if trusted_reviewed:
         cap_reasons = [reason for reason in cap_reasons if reason != "missing_rag_evidence"]
 
     # ── New quality-gate fields ───────────────────────────────────────────────
@@ -557,9 +568,14 @@ def compute_quality_signals(payload: dict[str, Any]) -> dict[str, Any]:
         "missing_fields": missing_fields,
         "degraded_reason": degraded_reason,
     }
-    if teacher_reviewed:
+    if trusted_reviewed:
         quality["teacher_reviewed"] = True
-        quality["teacher_review_authority"] = "teacher_final_grading_result"
+        quality["teacher_review_authority"] = "trusted_adjudication"
+        quality["trusted_adjudication"] = {
+            key: value
+            for key, value in dict(trusted_adjudication or {}).items()
+            if key != "eligible"
+        }
     return quality
 
 
