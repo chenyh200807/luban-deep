@@ -118,6 +118,10 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
   `ops_action_result`、`feedback_triage`、`bi_export_request`。
 - 这些记录不是 learner state writeback，不得修改 `learner_summaries`、
   `learner_memory_events`、profile、progress、goals、heartbeat 或 overlay 真相。
+- BI 会员列表 / 会员经营总量的 read authority 是 Supabase read model
+  `public.v_members`。`member_console` 本地 JSON 只能作为运营备注、审计流水、
+  conversation view audit 和低风险动作记录的 overlay；不得再作为生产会员池、
+  注册手机号池、钱包存在性或学习事实的 canonical source。
 - 如果某个运营动作需要改变 learner state，必须走 learner-state writeback / promotion
   authority，不能通过 member-console audit helper 旁路写入。
 - 账号凭证事实与 learner-state 分权：`MemberConsoleService` 可以通过 external auth 管理
@@ -684,7 +688,7 @@ conversation view-audit 等）必须遵守的横切契约。所有 `member_conso
 
 | 子事实 | 唯一 authority | BI v2 前端职责 |
 |---|---|---|
-| 会员身份 / Tier / 状态 | `MemberConsoleService` + auth identity | 只读 + 受控写经 audited endpoint |
+| 会员身份 / Tier / 状态 | Supabase `public.v_members` read model；`member_console` 仅 overlay 运营备注 / 审计 | 只读 + 受控写经 audited endpoint |
 | 钱包余额 / 流水 | `WalletService` | 只读 + idempotency 兜底（P1 接 etag/undo） |
 | 学习事实 / 掌握度 | `learner_state` read model | 只读，禁止前端写 |
 | 反馈 | `FeedbackService` (P0) | 列表读，triage 在 useAuditedAction 接入后才启用 |
