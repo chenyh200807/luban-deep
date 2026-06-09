@@ -1502,6 +1502,7 @@ def test_bi_router_endpoints_return_expected_shapes(bi_service: BIService) -> No
         assert commerce.status_code == 200
         commerce_body = commerce.json()
         assert commerce_body["authority"]["wallet_ledger"] == "wallet_ledger"
+        assert commerce_body["summary"]["member_count"] == 1
         assert commerce_body["summary"]["recharge_count"] == 1
         assert commerce_body["summary"]["ledger_count"] >= 2
         recharge_records = _assert_non_empty_list(commerce_body["recharge_records"], "commerce.recharge_records")

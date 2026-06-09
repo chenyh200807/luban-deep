@@ -3115,11 +3115,13 @@ class BIService:
             if key not in deduped or deduped[key].get("authority") != "wallet_ledger":
                 deduped[key] = row
         ledger_rows = sorted(deduped.values(), key=self._commerce_ledger_sort_key, reverse=True)[:safe_limit]
-        recharge_records = [
-            self._commerce_recharge_record(row)
-            for row in ledger_rows
-            if self._is_commerce_recharge_row(row)
-        ][:safe_limit]
+        recharge_rows = [row for row in ledger_rows if self._is_commerce_recharge_row(row)][:safe_limit]
+        recharge_records = [self._commerce_recharge_record(row) for row in recharge_rows]
+        paid_member_ids = {
+            user_id
+            for row in recharge_rows
+            if (user_id := str(row.get("user_id") or "").strip())
+        }
         anomalies = self._build_commerce_anomalies(
             members=members,
             ledger_rows=ledger_rows,
@@ -3150,7 +3152,7 @@ class BIService:
         return {
             "status": "ready" if wallet_rows else ("partial" if ledger_rows or packages else "degraded"),
             "summary": {
-                "member_count": len(members),
+                "member_count": len(paid_member_ids),
                 "package_count": len(packages),
                 "recharge_count": len(recharge_records),
                 "ledger_count": len(ledger_rows),

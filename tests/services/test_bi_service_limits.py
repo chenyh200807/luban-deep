@@ -213,6 +213,7 @@ def test_commerce_does_not_count_legacy_credit_as_recharge(store: SQLiteSessionS
     assert payload["authority"]["wallet_ledger"] == "member_console.ledger"
     assert payload["authority"]["recharge_records"] == "pending_payment_order_authority"
     assert payload["summary"]["ledger_count"] == 1
+    assert payload["summary"]["member_count"] == 0
     assert payload["summary"]["recharge_count"] == 0
     assert payload["recharge_records"] == []
     assert payload["ledger"][0]["kind"] == "credit"
@@ -231,6 +232,7 @@ def test_commerce_does_not_count_wallet_signup_bonus_as_recharge(store: SQLiteSe
     assert payload["authority"]["wallet_ledger"] == "wallet_ledger"
     assert payload["authority"]["recharge_records"] == "pending_payment_order_authority"
     assert payload["summary"]["ledger_count"] == 2
+    assert payload["summary"]["member_count"] == 0
     assert payload["summary"]["recharge_count"] == 0
     assert payload["recharge_records"] == []
     assert any("不计入充值记录" in warning for warning in payload["warnings"])
