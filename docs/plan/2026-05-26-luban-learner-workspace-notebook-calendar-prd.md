@@ -1,11 +1,14 @@
 # 鲁班学情工作台：个人笔记本 + 计划日历 + 学情看板 PRD
 
-- 状态：Proposed v0.4
+- 状态：Proposed v0.6
 - 日期：2026-05-26
 - 复审：2026-05-26，基于产品/CEO 视角、移动端交互视角、现有 learner-state/notebook 代码现实做可交付性加固
 - 复审：2026-05-27，补入 GBrain / Obsidian Wiki 分层、Learning Brain 后续吸收项与 P0A 边界
+- 复审：2026-06-09，撤回“每会员独立长期记忆 workspace”误读，将 learner workspace 正名为 owner-scoped 用户资产空间；TutorBot workspace 业务概念降级为 RuntimeSandbox
+- 复审：2026-06-09，CEO / 工程 / 设计联合冷评：P0A 进一步收窄为“行动闭环发布切片”，补行为埋点、隐私删除、真实微信验收、升级/降级门槛
+- 复审：2026-06-09，纠正微信术语：微信小程序项目是 `yousenwebview`；`packageDeeptutor` 只是其中的分包/页面目标，不能写成小程序本体或 DevTools project root
 - 归属主线：Learner State / Evidence-first Memory / 鲁班智考个性化教学
-- 产品表面：鲁班智考微信小程序、佑森融合包、后续教师端
+- 产品表面：鲁班智考微信小程序（DevTools project root = `yousenwebview`，`packageDeeptutor` 仅为分包/页面目标）、后续教师端
 - 相关 contract：[contracts/learner-state.md](../../contracts/learner-state.md)、[docs/contracts/learning-state-inference.md](../contracts/learning-state-inference.md)
 - 相关计划：[2026-05-18-luban-learning-brain-gbrain-absorption-prd.md](2026-05-18-luban-learning-brain-gbrain-absorption-prd.md)、[2026-05-21-luban-learning-report-world-class-optimization-plan.md](2026-05-21-luban-learning-report-world-class-optimization-plan.md)、[2026-05-22-luban-learning-state-inference-engine-transformation-plan.md](2026-05-22-luban-learning-state-inference-engine-transformation-plan.md)、[2026-05-23-luban-learning-history-evidence-closed-loop-plan.md](2026-05-23-luban-learning-history-evidence-closed-loop-plan.md)
 
@@ -26,6 +29,7 @@ AI 自动整理负责发现问题、归因、沉淀结构和推荐路径；学�
 3. 日历任务不是第二套 recommendation authority，推荐仍以 `training_intent` / learner-state projection 为准。
 4. 任何“学员会什么、不会什么、后来有没有练会”的判断，仍必须回到 `learner_memory_events.memory_kind=learning_evidence` 及其 read model。
 5. 手动笔记不仅不能写 `learning_evidence`，也不能通过 summary rewrite 或 recall 注入暗中污染学情判断。
+6. “每个会员有自己的 workspace”只表示每个会员有 owner-scoped 学习资产空间，不表示每个会员或每个 TutorBot 拥有一套独立长期学习记忆。
 
 ## 1.1 v0.2 复审后的关键加强
 
@@ -75,6 +79,101 @@ v0.4 明确：本工作台同时吸收 Obsidian Wiki 与 GBrain，但两者落�
 
 这六件事只增强 Learning Brain 主线，不新增 `gbrain` 运行时、不新增第二套 memory DB、不新增第二套 RAG provider、不新增独立“GBrain”小程序入口。
 
+## 1.4 v0.5 Workspace 正名与撤回旧要求
+
+2026-06-09 复盘后，本 PRD 正式撤回旧需求中容易误导的解释：
+
+> 错误解释：每个新会员都要创建一套独立长期记忆 workspace，workspace 内保存 profile、summary、progress、mastery、compiled truth。
+
+正确解释：
+
+> 每个会员可以有独立 learner workspace，但它只是用户资产空间、权限 namespace 和产品表面。它不能成为 learner memory、learning brain、recommendation 或 TutorBot memory 的第二套 authority。
+
+### 正确分层
+
+| 名称 | 一等职责 | 不允许承担 |
+| --- | --- | --- |
+| `LearnerWorkspace` | 笔记、附件、收藏、导出、学习页 projection、用户可控资产 | mastery、weak point、profile、summary、compiled truth |
+| `LearnerStateService` | 学习证据时间线、长期画像、弱点、复测变化、next action | 用户资产管理 UI、附件目录 |
+| `SessionStore` | 对话历史、session replay、channel conversation continuity | 长期学习事实 |
+| `BotProfile` | TutorBot 人格、风格、技能和 channel 绑定 | 学员长期状态 |
+| `RuntimeSandbox` | 工具运行隔离、临时文件、debug artifact、短期 cache | durable learner truth |
+
+### TutorBot workspace 能力吸收
+
+旧 `TutorBot workspace` 作为业务概念退役；它的能力按下表收权：
+
+| 旧内容 | 新 authority |
+| --- | --- |
+| soul / persona | `BotProfile` / bot template registry |
+| skills | Skill / Capability registry |
+| sessions | `SessionStore` |
+| cron / heartbeat | learner heartbeat service + global arbitration |
+| memory consolidation | `LearnerStateService` evidence/synthesis pipeline，或 conversation-only session summary |
+| media / attachments | owner-scoped attachment store |
+| logs / replay | observability / trace |
+| temporary files | `RuntimeSandbox` |
+
+### 实施要求
+
+1. 注册新会员时可以 lazy-create learner asset namespace，但不得创建 `PROFILE/SUMMARY/PROGRESS/COMPILED_TRUTH` 这类 workspace-local learner truth。
+2. Workspace 卡片、笔记、附件只允许引用 `evidence_event_ids`、`attempt_ref`、`source_bot_id`，不得直接改写学习判断。
+3. TutorBot 的 `source_bot_id` 只能作为来源标签或局部行为 lens，不能形成第二套 learner state。
+4. 所有“会/不会/是否改善/下一步练什么”的判断仍必须走 `learner_memory_events -> learning_synthesis -> learning_report_read_model`。
+5. 任何新增接口若看起来像 `learner-workspace/home`、workspace-local summary、workspace-local recommendation，必须先证明不会和 `GET /api/v1/mobile/learning-report` 或 LearnerState 抢权；默认禁止。
+
+## 1.5 v0.6 全球专家冷评结论
+
+综合 CEO / 工程 / 设计视角，本计划方向正确，但 P0A 仍有“看起来小、实际横跨笔记、学情、训练、埋点、微信双端”的交付风险。当前最优策略不是继续加功能，而是把 P0A 定义成一个可上线、可回滚、可衡量的行动闭环：
+
+```text
+一次答疑或批改
+  -> 保存 1 张 source-linked 学习卡片
+  -> 卡片出现 1 个明确下一步动作
+  -> 进入练一道 / 测一下 / 改写
+  -> 训练或复测 evidence 回流
+  -> learning-report 展示是否改善
+```
+
+### 评分
+
+| 维度 | 当前评分 | 主要短板 | v0.6 加强方向 |
+| --- | ---: | --- | --- |
+| 战略价值 | 8.5/10 | 已击中“AI 答完就散”的核心痛点 | 只发布能证明留存/复测改善的闭环 |
+| 单一权威 | 8/10 | 已收权 workspace，但 notebook / task / telemetry 仍需硬门 | 每个新字段必须标明 writer / reader / non-authority |
+| 工程可交付性 | 7/10 | P0A 涉及 durable store、双端 UI、read model、训练闭环 | 分成 Launch 0/1/2，不一次铺满 |
+| 移动端体验 | 7/10 | 五 Tab 愿景合理，但首版切 tab 风险高 | P0A 可先嵌入现有学情页 / 答疑页，不强改主导航 |
+| 运营可衡量 | 6.5/10 | 指标有了，但埋点 authority 和事件字典不足 | 复用 `surface-events -> product_behavior_events` |
+| 隐私与信任 | 6.5/10 | 删除、导出、教师可见范围还不够硬 | P0A 明确删除语义、原文权限、导出边界 |
+
+结论：可以继续推进，但只能以 `SELECTIVE EXPANSION + STRICT SCOPE REDUCTION` 执行。产品愿景保留，P0A 发布面收窄。
+
+### P0A 发布切片
+
+| Slice | 允许上线内容 | 禁止内容 | 进入下一 Slice 条件 |
+| --- | --- | --- | --- |
+| Launch 0: backend truth | `NotebookCardService`、durable card store、轻写回、learning-report projection、contract tests | 任何新 UI 承诺、planner store、workspace-local truth | summary 污染测试、RLS/owner-scope、source_ref gate 全绿 |
+| Launch 1: one visible loop | 答疑或案例批改后 1 个收藏入口、1 张学习卡、1 个动作按钮 | 五 Tab 大改、AI 待确认箱、完整错因地图 | 保存成功率、证据覆盖、真实微信 smoke 达标 |
+| Launch 2: today task strip | 学情页/学习页顶部最多 3 个只读任务 | 用户自建任务、延期、完成状态落库、周/月日历 | note_to_action / task_start / retest evidence 回流达标 |
+| P0B | AI 待确认箱、简版计划列表、采分点手册入口、错因地图入口 | 第二首页 reader、第二 memory、第二 recommendation | P0A 指标连续 7 天达标且确认疲劳可控 |
+
+### 必须回答的业务问题
+
+P0A 只服务三个高价值场景，其他场景默认延后：
+
+1. **刚做完题或刚被批改**：把这次错误变成下一次训练。
+2. **主动问完一个问题**：把有价值答案沉淀成可复习卡片。
+3. **打开学情页不知道干什么**：只给 1-3 个有证据的下一步动作。
+
+以下场景不要在 P0A 做重：
+
+- 通用知识库/笔记树整理。
+- 复杂周/月计划。
+- 教师布置任务。
+- 班级共性分析。
+- 全量错因地图。
+- AI 自动批量整理箱。
+
 ## 2. Karpathy Gate
 
 ### assumptions
@@ -116,6 +215,7 @@ P0A 不做完整日历、不做复杂图谱、不做通用笔记编辑器。
 - `GET /api/v1/mobile/learning-report` 作为学情首页/工作台 read model 的唯一扩展点。
 - notebook 手动收藏写回必须从 summary LLM rewrite / compiled-truth refresh 重路径中收权。
 - assessment、grading、RAG、TutorBot 的既有责任边界。
+- product behavior telemetry 只能复用 `surface-events -> product_behavior_events`；不得为本 PRD 新增第二套行为上报 endpoint。
 
 ### verification target
 
@@ -177,6 +277,8 @@ P0A 不做以下事情：
 | 下一步训练处方 | `training_intent` | 日历和今日任务可呈现、排程、完成反馈，但不另算处方。 |
 | 学情首页 / 工作台 view model | `GET /api/v1/mobile/learning-report` / `learning_report_read_model` | P0A 只扩展既有 read model，不新增 `learner-workspace/home`。 |
 | learner summary / recall context | `LearnerStateService` summary / context candidates | 手动笔记不得触发 summary LLM 改写；进入 recall 必须带“学员自记/主观关注”来源标签并降权。 |
+| 学员可见 workspace / 用户资产空间 | owner-scoped Notebook / attachment / export asset services | 只保存资产与 projection 引用，不保存 profile / summary / progress / compiled truth。 |
+| TutorBot runtime sandbox | RuntimeSandbox + BotProfile + SessionStore | 旧 TutorBot workspace 只保留运行隔离能力，不再作为学习空间或记忆 authority。 |
 | 个性化召回 / brain-first lookup | `RAGService` + runtime learner context + compiled truth projection | 只作为 source-aware context / source group，不覆盖 exact question、标准、教材事实。 |
 | 学员长期目标 | `user_goals` | 月目标/阶段目标应读取或写入既有 goals authority。 |
 | 用户手动收藏、手动笔记 | Notebook 用户资产服务 | 代表主观关注和复习资产，不代表掌握事实。 |
@@ -195,6 +297,10 @@ P0A 不做以下事情：
 - `manual_note -> bot_learner_overlay.working_memory_projection`
 - `notebook_card -> compiled_truth` 无 evidence 直接升格
 - `compiled_truth -> exact_question / standard / textbook authority` 覆盖
+- `per_user_workspace -> PROFILE/SUMMARY/PROGRESS/COMPILED_TRUTH`
+- `TutorBot workspace memory -> LearnerState overwrite`
+- `workspace_summary -> learner profile`
+- `per-user workspace -> copied rubric / KB / runtime_supply`
 - 新增独立 `gbrain` 入口、第二套 RAG 或第二套 learner memory
 - `GET /api/v1/learner-workspace/home` 与 `/api/v1/mobile/learning-report` 并行服务同一首页
 - P0A 新增 `planner/tasks` CRUD 或把 `learning_plans` 改造成日历任务
@@ -292,6 +398,21 @@ P0A 仍可把“今日建议”放在 `学习` 首屏或学情页顶部做灰度
 | 用户不认同系统判断 | 觉得“我其实会” | 给“测一下”作为事实校验入口 | 让用户一键把 weak point 改成 mastered |
 | 老师课后辅导 | 老师想知道怎么干预 | 提供聚合证据、错因复发、下一步训练建议 | 默认暴露完整聊天原文 |
 | 无网络/弱网 | 小程序加载慢 | 保留最近任务和笔记只读缓存，写操作 pending | 让用户以为保存成功但后台丢失 |
+| 多设备连续学习 | 手机收藏、Web 查看或反向操作 | 以 durable store + version 冲突提示为准，旧端只读降级 | 靠 file-backed JSON 或前端本地状态合并 |
+| 机构试用学员 | 老师/销售想证明效果 | 展示聚合证据、训练动作和复测变化 | 用笔记数量代替学习效果 |
+| 高焦虑考生 | 只剩几天，怕系统增加负担 | 默认只给最短提分动作和复测，不推整理任务 | 推日历规划和长线知识整理 |
+
+### 7.1.1 场景优先级
+
+P0A 不按页面交付，按场景交付：
+
+| 优先级 | 场景 | 发布条件 |
+| --- | --- | --- |
+| P0A 必做 | 答疑/批改后收藏 -> 练一道/测一下 | 端到端证据闭环可回放 |
+| P0A 必做 | 新用户无证据 starter task | 不伪造薄弱点 |
+| P0A 可选 | 今日 3 任务条 | learning-report projection 已有来源、原因、动作 |
+| P0B | AI 待确认箱 | inline 单条建议接受率达标 |
+| P0B | 错因地图 / 采分点手册独立入口 | 证据覆盖和 rubric 置信度达标 |
 
 ## 7.2 状态机
 
@@ -348,11 +469,11 @@ source content
 1. 学员提交案例题答案。
 2. 系统给出得分、漏分点、标准表达。
 3. 批改底部显示：
-   - 加入错因地图
-   - 加入采分点手册
+   - 保存为错因卡片
+   - 保存为采分点卡片
    - 重新作答
    - 练同类题
-4. 用户选择“加入采分点手册”。
+4. 用户选择“保存为采分点卡片”。
 5. 系统生成个人采分点卡片：
    - 本题可得分表达
    - 用户原答案差距
@@ -360,7 +481,7 @@ source content
    - 下次作答模板
 6. 用户选择“重新作答”或“练同类题”后，进入训练闭环。
 
-验收重点：错因判断必须能点回 `learning_evidence` 或 attempt detail。
+验收重点：P0A 只保存 source-linked 卡片，不上线独立错因地图/采分点手册入口；错因判断必须能点回 `learning_evidence` 或 attempt detail。
 
 ### Flow C：AI 待确认笔记箱（P0B）
 
@@ -465,7 +586,7 @@ source content
 
 ### 9.3 简版计划页
 
-P0A 不做独立计划页，只在首页/学情页顶部显示“今日任务条”。P0B 再做简版计划列表，不做完整日历网格：
+P0A 不做独立计划页，只在首页/学情页顶部显示“今日任务条”。如果双端导航改造风险高，P0A 允许只嵌入现有学情页，不改底部 Tab。P0B 再做简版计划列表，不做完整日历网格：
 
 - 今天
 - 本周
@@ -523,6 +644,8 @@ P0A 有两个工程前置阻断：
 | P0A-5 | 笔记转训练 | 笔记可生成同类题、改写或复测 | 训练结果经既有 grading/evidence 链路回写。 |
 | P0A-6 | 证据抽屉 | 诊断类卡片可展开证据 | 无证据时只能显示“待确认观察”，不能显示稳定结论。 |
 | P0A-7 | 用户纠偏入口 | 支持“不准确/我其实会/不再提醒/测一下” | “我其实会”触发 probe，不直接更新 mastery。 |
+
+P0A-4 在工程上低于 P0A-1/2/5：若 Launch 1 的收藏 -> 训练闭环未达标，今日任务条不得先上线成新首页。
 
 ### P0B：第一版可用后的增强
 
@@ -766,6 +889,24 @@ P0A 不新增第二套首页接口，不新增 planner CRUD，不新增 cards wr
 | `provenance_trace_coverage` | 个性化建议可展示 supporting event ids 的比例。 |
 | `nightly_lint_actionable_rate` | nightly lint 发现的问题中可转成修复/复测动作的比例。 |
 
+### 13.1 行为埋点 authority
+
+本 PRD 的产品指标必须复用 Product Behavior Intelligence 主线：`surface-telemetry` / `POST /api/v1/observability/surface-events` / `product_behavior_events`。不得新增 `/api/v1/learner-workspace/events` 或前端私有埋点 SDK。
+
+P0A 最小事件字典：
+
+| event_name | module | 触发 | 必需 metadata | 不得携带 |
+| --- | --- | --- | --- | --- |
+| `note_card_suggested` | `notebook` | 价值发生点出现建议卡 | `user_id_hash`、`source_type`、`source_ref_kind`、`card_type`、`confidence_bucket` | 原始答案、聊天原文、手机号 |
+| `note_card_saved` | `notebook` | 用户保存或修改保存 | `note_id`、`card_type`、`source_type`、`has_evidence_ref` | 原始笔记全文 |
+| `note_card_rejected` | `notebook` | 用户点不准确/以后再说 | `candidate_id`、`reason_code` | 原始 AI 文案全文 |
+| `note_action_started` | `notebook` | 从卡片进入练一道/测一下/改写 | `note_id`、`action_type`、`training_intent_id` 或 `source_ref` | 题目完整答案 |
+| `today_task_rendered` | `study_plan` | 今日任务条曝光 | `task_count`、`source_mix`、`schema_version` | 任务完整文本 |
+| `today_task_started` | `study_plan` | 用户点击开始 | `task_source`、`action_type`、`training_intent_id` | 用户自由文本 |
+| `probe_requested_from_note` | `notebook` | 用户点“我已掌握，测一下” | `note_id`、`source_ref_kind` | 原始作答 |
+
+这些事件只衡量行为，不写 learner-state truth。任何改善率仍必须从 grading / assessment / learner evidence read model 计算。
+
 ## 14. 风险与缓解
 
 | 风险 | 表现 | 缓解 |
@@ -788,6 +929,12 @@ P0A 不新增第二套首页接口，不新增 planner CRUD，不新增 cards wr
 | 低可信复测假改善 | rubric 覆盖不足时，“测一下”误把弱点刷成已掌握 | probe evidence 必须带 `measurement_confidence`；低于门槛不写 improvement evidence。 |
 | 用户编辑错误内容回流 | 用户把 AI 内容改错，后续被 recall 注入 | user-edited 内容进入 recall 时标“学员自记，仅供参考”，不能作为教学事实。 |
 | 跨 bot 笔记归属混乱 | 佑森包、鲁班 bot、教师 bot 各自写局部笔记 | 工作台按 learner 聚合，`source_bot_id` 只作来源标签，不形成第二套 learner truth。 |
+| 会员 workspace 变第二套记忆系统 | 每个会员目录下沉淀 profile、summary、progress、compiled truth | workspace 正名为 owner-scoped asset namespace；长期学习事实只进 LearnerState。 |
+| TutorBot workspace 变第二套业务身份 | persona、skills、session、memory、cron 都被解释成独立学习空间 | 拆成 `BotProfile`、`SessionStore`、heartbeat service、RuntimeSandbox；禁止 workspace memory 写 learner truth。 |
+| 指标看起来完整但无真实埋点 | PRD 有 KPI，后台没有可审计事件 | P0A 必须接 `surface-events -> product_behavior_events` 最小事件字典；无埋点不允许宣称转化率。 |
+| 今日任务条抢走首屏注意力 | 新用户还没证据却看到“个性化任务” | 无 evidence 时显示 starter task，并标明“先做诊断”；不得伪个性化。 |
+| 五 Tab 改造拖慢发布 | 导航、图标、页面结构联动，影响既有入口 | P0A 可嵌入现有学情页/答疑页；底部 Tab 重构推迟到独立 UI PR。 |
+| 删除/导出不可信 | 用户删了笔记但后台仍展示，或导出缺失来源 | P0A 明确删除只删资产，evidence 保留；导出只含用户资产和 source refs，不导出未授权聊天原文。 |
 | GBrain 变第二套 authority | 新增独立 memory / retriever / dashboard reader | 只增强 `LearnerStateService`、`RAGService`、`learning-report` 主链，不新增独立入口。 |
 | compiled truth 盖过考试事实 | 个性化判断影响标准答案或 exact question 排序 | authority 顺序固定：exact question / 标准 / 教材 > compiled truth > 普通语义 chunk。 |
 | 图谱黑箱化 | 用户看到复杂关系但不知道该做什么 | 只展示局部链路和下一步动作；完整 graph 先留在系统层。 |
@@ -838,8 +985,11 @@ P0A 不新增第二套首页接口，不新增 planner CRUD，不新增 cards wr
 - P0A 今日任务只能扩展 `GET /api/v1/mobile/learning-report` view model，不新增 `learner-workspace/home`。
 - P0A 不新增 planner CRUD；`我创建`、延期、完成任务状态推到 P0B。
 - notebook 数据必须 owner-scoped；生产 P0A 必须有 durable store + RLS + 乐观并发，或明确标为单端内测。
-- 微信小程序和佑森融合包 view model 不漂移。
+- `yousenwebview` 真实微信小程序项目与 `wx_miniprogram` shadow / 辅助前端面的 view model 不漂移。
 - source ref 缺失时，不得展示“根据历史证据判断”的文案。
+- P0A 行为指标必须能从 `product_behavior_events` 或同一 ingestion authority 复算；无埋点不得汇报 KPI。
+- 删除笔记后，用户资产列表不再显示该卡；原始 learning evidence 仍可在证据链审计中存在，但不得被描述成“用户仍收藏”。
+- 新增字段若进入 `/api/v1/mobile/learning-report` 稳定输出，必须按 learning-report contract / schema version 规则处理。
 
 ### P0A 量化 gate
 
@@ -855,6 +1005,9 @@ P0A 不新增第二套首页接口，不新增 planner CRUD，不新增 cards wr
 | 首屏负担 | 新用户首屏最多 3 个任务 + 1 个次级入口。 |
 | summary 污染 | 保存手动笔记后 learner summary / compiled-truth projection 不应变化。 |
 | 首页 reader | 今日任务字段只来自 `/api/v1/mobile/learning-report`，不存在第二个首页接口。 |
+| 行为埋点覆盖 | P0A 最小事件字典覆盖率 >= 95%，且不含原始作答/手机号/聊天原文。 |
+| 删除语义 | 删除笔记后 100% 不再出现在用户资产列表；learning evidence 不被物理删除。 |
+| 真实微信入口 | 微信小程序项目根必须是 `yousenwebview`；在其中进入 `packageDeeptutor` 分包目标页面，完成 3 条主链路手工或自动化证据。 |
 
 ### P1 Learning Brain 增强 gate
 
@@ -878,6 +1031,9 @@ P0A 不新增第二套首页接口，不新增 planner CRUD，不新增 cards wr
 4. 今日任务条 -> 今天时间少，前端压缩到 1 个任务。
 5. 我其实会 -> 给我测一下 -> 复测结果刷新。
 6. 保存手动笔记后，learner summary / compiled-truth projection 不变化。
+7. 删除笔记 -> 用户资产消失 -> 原始 evidence 仍可审计但不展示为用户收藏。
+8. 新用户无证据 -> starter task -> 首次诊断后再出现个性化原因。
+9. 弱网 pending 保存 -> 断网重试 -> 不出现“已保存但服务端无记录”。
 
 ## 16. 相关代码入口
 
@@ -895,8 +1051,12 @@ P0A 不新增第二套首页接口，不新增 planner CRUD，不新增 cards wr
 - `deeptutor/services/notebook/service.py`
 - `deeptutor/api/routers/notebook.py`
 - `deeptutor/api/routers/mobile.py`
-- `yousenwebview/packageDeeptutor/`
-- `wx_miniprogram/`
+- `deeptutor/api/routers/observability.py`
+- `deeptutor/services/observability/product_behavior_catalog.py`
+- `deeptutor/services/observability/product_behavior_store.py`
+- `yousenwebview/`（微信小程序 DevTools project root，唯一真实小程序项目）
+- `yousenwebview/packageDeeptutor/`（`yousenwebview` 内的分包/页面目标，不是小程序项目根）
+- `wx_miniprogram/`（shadow / 辅助前端面，不能替代 `yousenwebview` 真实入口验收）
 
 ## 17. 分阶段实施建议
 
@@ -908,6 +1068,7 @@ P0A 不新增第二套首页接口，不新增 planner CRUD，不新增 cards wr
 - 明确 P0A 不做用户自建 planner task，`learning_plans` 不承载日历任务。
 - 审查小程序现有导航和学情页首屏可用空间。
 - 定义 notebook card / today task 最小 view model。
+- 定义 P0A 行为事件字典，并确认复用 `surface-events` ingestion。
 - 验证 notebook writeback 产生的 `notebook_*` event 不会被 learning-state inference、summary、recall 当作 mastery evidence。
 - 验证 probe evidence 的 `measurement_confidence` 门槛。
 
@@ -973,6 +1134,9 @@ P0A 不新增第二套首页接口，不新增 planner CRUD，不新增 cards wr
 | brain-first lookup 会不会干扰标准答案 | 有风险，尤其学员画像与题目标准事实冲突时 | fixture 覆盖 exact question / standard clause / weak-point review / next-training 四类 query | 先 shadow trace；只在 weak-point / next-training 开启 final source。 |
 | claim lifecycle 是否会让学员困惑 | L0/L1/L2 对用户不可读 | 可用性测试中只展示“待确认观察 / 反复出现 / 已复测确认 / 待复测” | 专业标签只给教师端和审计日志。 |
 | nightly lint 自动维护是否可靠 | 可能误判 stale / conflict | P1 只 dry-run + 人工抽检，不自动修复 | P2 再加可回滚修复和审计。 |
+| 真实微信入口是否容纳新交互 | 不确定，尤其 `yousenwebview` 项目内的 `packageDeeptutor` 分包目标页面空间有限 | 先做不改 Tab 的嵌入式 smoke，再决定是否改底部导航 | P0A 只放在现有答疑/批改/学情页；五 Tab 重构延后。 |
+| 行为事件量是否会影响性能 | P0A 事件少，但 5 万会员后需要验证 | 用 Product Behavior 计划的 100/1000/50000 DAU 三档测算 | P0 用 indexed raw read；达到 volume gate 再聚合。 |
+| 教师侧是否需要看到笔记全文 | 未定，涉及隐私授权 | 内测前用 5 个教师/运营场景访谈验证 | P0/P1 只显示摘要和 evidence count，不给全文。 |
 
 ## 19. 最优交付切片
 

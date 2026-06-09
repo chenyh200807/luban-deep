@@ -7,7 +7,7 @@
 - 学员级长期状态的单一权威
 - `Summary / Profile / Progress / Goals / Memory Events / Heartbeat`
 - Guided Learning / Notebook / Quiz / TutorBot 对长期状态的写回边界
-- 学员级状态与 TutorBot workspace memory 的边界
+- 学员级状态与 TutorBot runtime sandbox / session cache 的边界
 - 第一阶段 Supabase 复用表与新增表的职责
 
 ## 单一控制面
@@ -26,6 +26,54 @@
 4. `TutorBot workspace memory` 不是学员长期真相，不能反向覆盖 learner state。
 5. Markdown 文件只能是 projection / cache / 可读视图，不能再承担唯一真相。
 6. `TutorBot workspace memory` 的 consolidation lock 只负责同一 session 内的并发互斥；它不得成为 learner-state 写回 authority，也不得用弱引用等可被 GC 回收的锁破坏同 session consolidation 的串行化。长期学习事实仍只能通过 `learner_memory_events` / learner-state writeback pipeline 进入 durable truth。
+
+## 2026-06-09 Workspace 撤回与正名决策
+
+撤回旧解释：不得再把“每个会员一个独立 workspace”理解成“每个会员或每个 TutorBot 都有一套独立长期学习记忆系统”。该解释会制造第二套 learner truth，已被本 contract 退役。
+
+保留正确目标：每个会员可以拥有独立的学员可见资产空间，用于笔记、附件、收藏、导出、学习页 projection、权限隔离和用户掌控感。但这个空间只是 `owner-scoped learner asset namespace`，不是 learner-state authority。
+
+TutorBot 侧同步正名：
+
+- 退役概念：`TutorBot workspace = 独立学习空间 / 独立长期记忆`。
+- 保留能力：`TutorBot RuntimeSandbox = 工具运行隔离 / 临时产物 / channel cache / debug replay`。
+- 长期学习事实只允许进入 `LearnerStateService` 和其 durable store。
+
+### 五个一等概念
+
+后续设计只允许围绕以下五个一等概念扩展，禁止再把 workspace 扩张成第六套学习真相：
+
+| 概念 | 职责 | 禁止承担 |
+| --- | --- | --- |
+| `LearnerState` | 学习证据、画像、弱点、掌握度、复测变化、next action 的长期 truth | bot 局部猜测、手动笔记直接改 mastery |
+| `SessionStore` | 所有聊天/session 历史、turn replay、channel conversation continuity | 长期 profile / progress / weak point |
+| `BotProfile` | TutorBot 人格、教学风格、技能绑定、channel 绑定 | 学员长期状态 |
+| `LearnerWorkspace` | 学员可见资产空间：笔记、附件、收藏、导出、学习页 projection | 学习事实判断、推荐处方、compiled truth |
+| `RuntimeSandbox` | 工具执行隔离、临时文件、短期 cache、debug artifact | 任何 durable learner truth |
+
+### 迁移映射
+
+| 旧 TutorBot workspace 内容 | 收敛后的 authority |
+| --- | --- |
+| persona / soul | `BotProfile` / bot template registry |
+| skills | Skill / Capability registry + `bot_id` binding |
+| sessions | `SessionStore` |
+| channel config | TutorBot channel config service |
+| cron / heartbeat | learner heartbeat service + global arbitration |
+| memory consolidation | `LearnerStateService` event/synthesis pipeline, or conversation-only session summary |
+| media / attachments | owner-scoped attachment store with quota / retention |
+| logs / replay | observability / trace / session replay |
+| tool scratch files | `RuntimeSandbox` |
+
+### 禁止模式
+
+- `per_user_workspace -> PROFILE/SUMMARY/PROGRESS/COMPILED_TRUTH`
+- `TutorBot workspace memory -> LearnerState overwrite`
+- `workspace_summary -> learner profile`
+- `manual_note -> mastery++`
+- `calendar_completed -> mastered`
+- `bot overlay -> global weak point`
+- `per-user workspace -> copied rubric / KB / runtime_supply`
 
 ## Member Console / BI Audit Boundary
 
@@ -189,6 +237,10 @@ Overlay 必须支持：
   不落盘，从而保持 `canonical_truth_written=false` 安全不变量。该硬挡只能由
   `LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_ENABLED`（默认 OFF）显式打开；该 flag 的翻转
   本身还受 teacher-final / real-retest 权威 + 逐门授权约束，且设回 false / 未设即秒退回 preview。
+  生产环境即使 flag=true，也必须写入 Supabase/core-store 的
+  `learner_summaries.summary_structured_json.learning_brain` 并从同一 core-store 读回；
+  core-store 未配置或 writer 失败时继续 preview/fail-closed，不得退回本地
+  `COMPILED_TRUTH.json` 作为 production authority。
   非生产路径不受此 flag 影响。
 
 #### `learner_memory_events`

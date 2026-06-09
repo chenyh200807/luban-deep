@@ -2,23 +2,41 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: 用 `superpowers:subagent-driven-development`（推荐）或 `superpowers:executing-plans` 逐任务实现本计划。步骤用 `- [ ]` 复选框跟踪。
 >
-> **上游 PRD（单一权威，先读）：** [2026-05-26-luban-learner-workspace-notebook-calendar-prd.md](2026-05-26-luban-learner-workspace-notebook-calendar-prd.md)（Proposed v0.4）。本执行计划只把 PRD 的 P0A 落成可执行任务，**不得**扩大 PRD 边界；任何与 PRD 冲突处以 PRD 为准。
+> **上游 PRD（单一权威，先读）：** [2026-05-26-luban-learner-workspace-notebook-calendar-prd.md](2026-05-26-luban-learner-workspace-notebook-calendar-prd.md)（Proposed v0.6）。本执行计划只把 PRD 的 P0A 落成可执行任务，**不得**扩大 PRD 边界；任何与 PRD 冲突处以 PRD 为准。
 
-- 状态：Proposed v0.1
+- 状态：Proposed v0.2
 - 日期：2026-05-26
+- 复审：2026-06-09，对齐 PRD v0.6 全球专家冷评；P0A 按 Launch 0/1/2 分段，不一次性铺满工作台愿景
 - 归属主线：Learner State / Evidence-first Memory / 鲁班智考个性化教学
-- 产品表面：鲁班智考微信小程序、佑森融合包
+- 产品表面：鲁班智考微信小程序（DevTools project root = `yousenwebview`，`packageDeeptutor` 仅为分包/页面目标）
 - 决策前提：用户已拍板 **durable store 先行**（notebook 卡片做 Supabase durable store + RLS + owner-scope + 乐观并发，不走“单端内测”兜底）。
 
 ---
 
-**Goal:** 把“答疑/批改 -> 一键收藏 -> source-linked 学习卡片 -> 今日任务 -> 练一道/测一下 -> evidence 回流”最小闭环落地，且手动收藏既不污染 learner-state（summary / compiled-truth / overlay / recall），又有生产级多端持久化。
+**Goal:** 把“答疑/批改 -> 一键收藏 -> source-linked 学习卡片 -> 练一道/测一下 -> evidence 回流”最小闭环先落地；`今日任务` 只能在前一闭环达标后作为只读投影上线。手动收藏既不污染 learner-state（summary / compiled-truth / overlay / recall），又有生产级多端持久化。
 
 **Architecture:** 新增一个 owner-scoped 的 `learner_notebook_cards` Supabase 表（仿 `learner_mistake_book_items`，per-row、RLS、乐观并发），由新 fat-skill 权威 `NotebookCardService` 唯一负责卡片的写/读/删。workspace 卡片**不**经过既有 `NotebookManager._writeback_learner_state()` 重路径，因此 `refresh_from_turn()`（summary LLM 改写）、`patch_overlay()`（overlay 污染）一次性被收权；卡片只产出一条带 `source_label="student_note"`、低权重的 recall 事件。学情首页只扩展既有 `build_learning_report_read_model()`，不新增首页接口、不新增 planner CRUD。
 
-**Tech Stack:** Python 3 / FastAPI、Supabase PostgREST（httpx 同步客户端，仿 `SupabaseMistakeBookStore`）、pytest；微信小程序（`wx_miniprogram/`）+ 佑森融合包（`yousenwebview/packageDeeptutor/`）+ 微信开发者工具手工回归。
+**Tech Stack:** Python 3 / FastAPI、Supabase PostgREST（httpx 同步客户端，仿 `SupabaseMistakeBookStore`）、pytest；微信小程序真实项目根 `yousenwebview/` + 其中 `packageDeeptutor` 分包目标页面 + 微信开发者工具手工/自动化回归；`wx_miniprogram/` 只作为 shadow / 辅助前端面，不能替代真实入口验收。
 
 ---
+
+## 0.0 v0.6 执行收缩：只按三段发布
+
+PRD v0.6 后，本执行计划不得被解释成“一次性重做学习工作台”。执行顺序固定为：
+
+| Slice | 本计划可做 | 必须等到下一 Slice 的内容 | Gate |
+| --- | --- | --- | --- |
+| Launch 0: backend truth | `NotebookCardService`、durable card store、轻写回、learning-report projection、contract tests | 新 UI 承诺、planner store、workspace-local truth | summary 污染、RLS/owner-scope、source_ref gate 全绿 |
+| Launch 1: one visible loop | 答疑或批改后 1 个收藏入口、1 张学习卡、1 个动作按钮 | 五 Tab 大改、AI 待确认箱、完整错因地图/采分点手册 | 保存成功率、证据覆盖、真实微信 smoke 达标 |
+| Launch 2: today task strip | 学情页或学习页顶部最多 3 个只读任务 | 用户自建任务、延期、完成状态落库、周/月日历 | note_to_action / task_start / retest evidence 回流达标 |
+
+硬约束：
+
+- `P0A-4 今日任务条` 低于 `P0A-1/2/5 收藏 -> 训练/复测` 优先级；前者不能先上线成新首页。
+- 行为指标只能复用 `surface-events -> product_behavior_events`，不得新增 `/api/v1/learner-workspace/events` 或前端私有埋点 SDK。
+- 底部五 Tab、完整错因地图、采分点手册独立入口、AI 待确认箱均不是 P0A release blocker。
+- 真实入口验收必须记录 `devtools_project_root=yousenwebview`、`target_subpackage=packageDeeptutor`、`target_page`、`entry_flow`；`/wechat-harness` 只能算 shadow evidence。
 
 ## 0. 单一 authority 与非目标（硬约束，逐条对齐 PRD §5 / §11 / §12）
 
@@ -31,6 +49,7 @@
 | 下一步训练处方 | `training_intent`（**不改**） | 今日任务只读投影 |
 | 学情首页 / 工作台 / 今日任务 view model | `build_learning_report_read_model()`（**只扩展**） | 新增 `note_assets` + `today_tasks` 字段 |
 | learner summary / recall context | `LearnerStateService`（**收权**） | 卡片只允许 `record_notebook_writeback`（轻事件），**禁止** `refresh_from_turn` / `patch_overlay` |
+| 产品行为指标 | `surface-events -> product_behavior_events`（**复用**） | 只记录行为，不写 learner-state truth |
 
 **非目标（P0A 不做，做了即越界）：**
 
@@ -40,6 +59,9 @@
 - 不扩 `RecordType` 枚举（卡片类型走 `metadata.card_type`）。
 - 不新增聊天 WebSocket；不让前端计算 mastery/错因/处方。
 - 不在 P0A 实现独立 GBrain 运行时、第二套 RAG、第二套 learner memory、复杂 graph UI、nightly auto-fix 或 Learning Brain eval harness。
+- 不创建 per-user workspace-local `PROFILE/SUMMARY/PROGRESS/COMPILED_TRUTH`；workspace 只表示 owner-scoped 用户资产空间。
+- 不让 TutorBot workspace memory 写 learner truth；TutorBot 只通过 `BotProfile` / `SessionStore` / `RuntimeSandbox` / source label 参与。
+- 不新增 workspace 专用行为上报 endpoint；所有 KPI 必须能从 `product_behavior_events` 或同一 ingestion authority 复算。
 
 ## 0.1 GBrain / Obsidian 分层在 P0A 的落点
 
@@ -67,7 +89,10 @@ GBrain 启发的“学习事实引擎层”在 P0A 只做预留，不做新 auth
 - `supabase/migrations/20260521000100_learner_mistake_book_items.sql`（**迁移 + RLS 模板**）。
 - `deeptutor/services/learner_state/learning_report_read_model.py`（`build_learning_report_read_model`，**唯一首页扩展点**）；`deeptutor/api/routers/mobile.py`（`GET /api/v1/mobile/learning-report` 路由）。
 - `deeptutor/services/assessment/writeback.py`（probe 写 evidence 时 `measurement_confidence` 范式）。
-- `yousenwebview/packageDeeptutor/`、`wx_miniprogram/`（双端 UI + 微信开发者工具回归）。
+- `deeptutor/api/routers/observability.py`、`deeptutor/services/observability/product_behavior_catalog.py`、`deeptutor/services/observability/product_behavior_store.py`（P0A 行为事件复用入口）。
+- `yousenwebview/`（微信小程序 DevTools project root，唯一真实小程序项目）。
+- `yousenwebview/packageDeeptutor/`（`yousenwebview` 内的分包/页面目标，不是小程序项目根）。
+- `wx_miniprogram/`（shadow / 辅助前端面，不能替代 `yousenwebview` 真实入口验收）。
 
 ---
 
@@ -818,11 +843,11 @@ git commit -am "feat(assessment): gate probe improvement evidence by measurement
 
 ## Phase 6：双端 UI + 微信开发者工具回归（contract 驱动）
 
-> 本阶段动 `wx_miniprogram/` 与 `yousenwebview/packageDeeptutor/`。**先做前端现实校验**（导航是否能容纳“今日”入口、学情页首屏空间），再实现；前端改动除自动化外，**必须**完成一次微信开发者工具模拟器/真机回归（AGENTS §4）。本计划不臆造 wx 组件代码，由执行者按现网组件结构落地。
+> 本阶段以 `yousenwebview/` 作为真实微信小程序项目根，并进入其中 `packageDeeptutor` 分包目标页面；`wx_miniprogram/` 只作为 shadow / 辅助前端面。**先做前端现实校验**（导航是否能容纳“今日”入口、学情页首屏空间），再实现；前端改动除自动化外，**必须**完成一次微信开发者工具模拟器/真机回归（AGENTS §4）。本计划不臆造 wx 组件代码，由执行者按现网组件结构落地。
 
 ### Task 6.1：前端现实校验（只读，产出 view model 映射）
-- [ ] 读 `wx_miniprogram/` 与 `yousenwebview/packageDeeptutor/` 现有学情页/答疑页结构，确认：答疑/批改底部操作位、学情页首屏“今日任务条”落点、收藏按钮触控区 ≥44x44。
-- [ ] 产出 `note_assets`/`today_tasks` 到双端组件字段的映射表，确保 wx 与 yousen 共用同一 `/api/v1/mobile/learning-report` 投影，无第二 reader。
+- [ ] 读 `yousenwebview/` 项目根，并定位其中 `packageDeeptutor` 分包现有学情页/答疑页结构；`wx_miniprogram/` 仅作 shadow 对照。确认：答疑/批改底部操作位、学情页首屏“今日任务条”落点、收藏按钮触控区 >=44x44。
+- [ ] 产出 `note_assets`/`today_tasks` 到真实微信项目与 shadow 面组件字段的映射表，确保两者共用同一 `/api/v1/mobile/learning-report` 投影，无第二 reader。
 
 ### Task 6.2：实现 Flow A/B/D/E 的最小交互（双端 parity）
 - [ ] Flow A 答疑后“收藏到笔记”→ `POST add_record`（带 `card_type`）→ 卡片详情页。
