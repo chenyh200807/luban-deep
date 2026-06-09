@@ -237,6 +237,9 @@ Overlay 必须支持：
   不落盘，从而保持 `canonical_truth_written=false` 安全不变量。该硬挡只能由
   `LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_ENABLED`（默认 OFF）显式打开；该 flag 的翻转
   本身还受 teacher-final / real-retest 权威 + 逐门授权约束，且设回 false / 未设即秒退回 preview。
+  即使 flag=true，生产写入仍必须受
+  `LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_COHORT` 前缀门约束，默认只允许
+  `qa_,operator_`；非 cohort 用户继续 preview/fail-closed，不得写入 durable store。
   生产环境即使 flag=true，也必须写入 Supabase/core-store 的
   `learner_summaries.summary_structured_json.learning_brain` 并从同一 core-store 读回；
   core-store 未配置或 writer 失败时继续 preview/fail-closed，不得退回本地

@@ -1452,6 +1452,7 @@ def test_build_context_candidates_personalization_context_empty_when_no_truth(tm
 # + per-gate sign-off; the code only makes the capability "one authorization away, instantly revocable".
 
 _G4_FLAG = "LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_ENABLED"
+_G4_COHORT = "LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_COHORT"
 
 
 def test_canonical_truth_production_write_blocked_by_default(
@@ -1522,7 +1523,7 @@ def test_canonical_truth_production_write_override_enabled_writes_core_store(
     core_store = _CoreStoreStub()
     service = _make_service(tmp_path, core_store=core_store)
     service.write_compiled_learning_truth(
-        "student_demo",
+        "qa_student_demo",
         {
             "subject": "construction_exam_learning_truth",
             "weak_points": [{"concept_id": "1A432000", "error_code": "E04"}],
@@ -1530,11 +1531,34 @@ def test_canonical_truth_production_write_override_enabled_writes_core_store(
         },
     )
 
-    projection = service.read_compiled_learning_truth("student_demo")
+    projection = service.read_compiled_learning_truth("qa_student_demo")
 
     assert projection["synthesis_run"]["output_projection_hash"] == "sha256:test2"
     assert projection["weak_points"][0]["error_code"] == "E04"
-    assert not (tmp_path / "learner_state" / "student_demo" / "COMPILED_TRUTH.json").exists()
+    assert not (tmp_path / "learner_state" / "qa_student_demo" / "COMPILED_TRUTH.json").exists()
+
+
+def test_canonical_truth_production_write_override_blocks_non_cohort_core_store(
+    tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Authorized G4 still remains qa_/operator_ scoped; non-cohort users stay preview-only."""
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.setenv(_G4_FLAG, "true")
+    monkeypatch.setenv(_G4_COHORT, "qa_,operator_")
+    core_store = _CoreStoreStub()
+    service = _make_service(tmp_path, core_store=core_store)
+    returned = service.write_compiled_learning_truth(
+        "real_student_demo",
+        {
+            "subject": "construction_exam_learning_truth",
+            "weak_points": [{"concept_id": "1A432000", "error_code": "E04"}],
+            "synthesis_run": {"output_projection_hash": "sha256:blocked"},
+        },
+    )
+
+    assert returned["synthesis_run"]["output_projection_hash"] == "sha256:blocked"
+    assert service.read_compiled_learning_truth("real_student_demo") == {}
+    assert core_store.compiled_learning_truth == {}
 
 
 def test_canonical_truth_production_core_store_write_failure_fails_closed(

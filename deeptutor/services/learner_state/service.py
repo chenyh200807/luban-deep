@@ -87,6 +87,20 @@ _FILENAMES = {
 # teacher-final / real-retest authority + a per-gate sign-off; the flag only makes the capability
 # "one authorization away, instantly revocable" (set to false / unset -> reverts to preview).
 _CANONICAL_TRUTH_PRODUCTION_WRITE_FLAG = "LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_ENABLED"
+_CANONICAL_TRUTH_PRODUCTION_WRITE_COHORT = "LUBAN_CANONICAL_LEARNER_TRUTH_PRODUCTION_WRITE_COHORT"
+_CANONICAL_TRUTH_PRODUCTION_WRITE_COHORT_DEFAULT = "qa_,operator_"
+
+
+def _canonical_truth_production_write_cohort_allowed(user_id: str) -> bool:
+    from deeptutor.services.config.env_store import get_env_store
+
+    normalized = _normalize_user_id(user_id)
+    raw = get_env_store().get(
+        _CANONICAL_TRUTH_PRODUCTION_WRITE_COHORT,
+        _CANONICAL_TRUTH_PRODUCTION_WRITE_COHORT_DEFAULT,
+    )
+    prefixes = [item.strip() for item in str(raw or "").split(",") if item.strip()]
+    return bool(prefixes) and any(normalized.startswith(prefix) for prefix in prefixes)
 
 
 @dataclass
@@ -415,10 +429,11 @@ class LearnerStateService:
         # G4: fail-closed in production unless the canonical-write override is explicitly authorized.
         # Default / unset / unrecognized -> preview only (not persisted), preserving the
         # canonical_truth_written invariant. ``env_flag`` already maps garbage values to ``default``.
-        if is_production_environment() and not env_flag(
-            _CANONICAL_TRUTH_PRODUCTION_WRITE_FLAG, default=False
-        ):
-            return extract_learning_brain_projection(payload)
+        if is_production_environment():
+            if not env_flag(_CANONICAL_TRUTH_PRODUCTION_WRITE_FLAG, default=False):
+                return extract_learning_brain_projection(payload)
+            if not _canonical_truth_production_write_cohort_allowed(normalized):
+                return extract_learning_brain_projection(payload)
         if bool(getattr(self._core_store, "is_configured", False)):
             writer = getattr(self._core_store, "write_compiled_learning_truth", None)
             if callable(writer):
