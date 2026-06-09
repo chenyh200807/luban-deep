@@ -310,6 +310,45 @@ def test_real_retest_improvement_decays_teacher_final_confirmed_claim() -> None:
     assert projection["compiled_objects"]["error:1A432000:E02"]["decay_state"] == "improving"
 
 
+def test_real_retest_improvement_keeps_certified_policy_trusted_summary() -> None:
+    certified_final = _learning_event(
+        "certified_final_evt",
+        quality={
+            "evidence_level": "L2_confirmed",
+            "writeback_eligible": True,
+            "stable_truth_eligible": True,
+            "trusted_adjudication": {
+                "source": "certified_grading_policy",
+                "confidence": 0.94,
+                "conflict_status": "resolved",
+                "requires_human": False,
+            },
+        },
+    )
+    real_retest = _learning_event(
+        "real_retest_pass",
+        improved=True,
+        observed_at="2026-05-18T14:00:00+08:00",
+        quality={
+            "evidence_level": "L2_real_retest",
+            "writeback_eligible": True,
+            "retest_happened": True,
+            "retest_authority": "real_student_retest",
+        },
+    )
+    real_retest.payload_json["claim_promotion_allowed"] = True
+
+    projection = synthesize_learning_truth([certified_final, real_retest])
+
+    assert projection["weak_points"] == []
+    assert projection["stale_claims"][0]["claim_status"] == "stale"
+    trusted = projection["synthesis_run"]["trusted_adjudication"]
+    assert trusted["source"] == "certified_grading_policy"
+    assert trusted["confidence"] == 0.94
+    assert trusted["conflict_status"] == "resolved"
+    assert trusted["requires_human"] is False
+
+
 def test_low_measurement_confidence_retest_does_not_clear_weakness() -> None:
     teacher_final = _learning_event(
         "teacher_final_evt",

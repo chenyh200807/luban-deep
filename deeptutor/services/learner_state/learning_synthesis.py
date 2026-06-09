@@ -138,7 +138,7 @@ def synthesize_learning_truth(
         manual_override_count=len(manual_events),
         trusted_adjudication=_trusted_adjudication_summary(
             events=ordered_events,
-            weak_points=weak_points,
+            weak_points=[*weak_points, *stale_claims],
         ),
         status=synthesis_status,
     )
