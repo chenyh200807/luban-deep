@@ -3,13 +3,23 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import sys
 from collections import Counter
 from pathlib import Path
 from typing import Any
 
+REPO = Path(__file__).resolve().parents[1]
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
+
+from deeptutor.services.construction_grading.m35_ai_governed_gold import (
+    validate_ai_governed_gold_protocol,
+)
+
 
 LEVELS = {
     "teacher_validated": ("POC_GO_ALLOWED", True),
+    "ai_governed_gold": ("POC_GO_ALLOWED", True),
     "po_directional_single_reviewer": ("WEAK_GO_MAX", True),
     "ai_council_directional": ("DIRECTIONAL_SHADOW", False),
     "generated_self_label": ("SHAPE_ONLY", False),
@@ -30,6 +40,7 @@ BUCKET_MINIMUMS = {
 
 VALID_DIRECTIONALITY = {
     "human_validated",
+    "ai_governed_gold",
     "po_directional",
     "ai_council_directional",
     "generated_self_label",
@@ -37,6 +48,7 @@ VALID_DIRECTIONALITY = {
 
 EXPECTED_DIRECTIONALITY_BY_AUTHORITY = {
     "teacher_validated": "human_validated",
+    "ai_governed_gold": "ai_governed_gold",
     "po_directional_single_reviewer": "po_directional",
     "ai_council_directional": "ai_council_directional",
     "generated_self_label": "generated_self_label",
@@ -77,6 +89,7 @@ def audit(path: Path) -> dict[str, Any]:
         or not _point_provenance_covers_gold_matches(row)
         or _point_provenance_has_duplicate_points(row)
         or not _point_provenance_authority_matches(row)
+        or not _ai_governed_gold_protocol_is_valid(row)
         or not row.get("sample_bucket")
     ]
     missing_bucket_minimums = {
@@ -95,6 +108,8 @@ def audit(path: Path) -> dict[str, Any]:
         verdict_ceiling, quality_claim_allowed = "NO_GO_BUCKET_COVERAGE", False
     elif label_authority_counts.get("ai_council_directional"):
         verdict_ceiling, quality_claim_allowed = LEVELS["ai_council_directional"]
+    elif set(label_authority_counts) == {"ai_governed_gold"}:
+        verdict_ceiling, quality_claim_allowed = LEVELS["ai_governed_gold"]
     elif label_authority_counts.get("teacher_validated"):
         if set(label_authority_counts) == {"teacher_validated"}:
             verdict_ceiling, quality_claim_allowed = LEVELS["teacher_validated"]
@@ -121,6 +136,10 @@ def audit(path: Path) -> dict[str, Any]:
         "verdict_ceiling": verdict_ceiling,
         "quality_claim_allowed": quality_claim_allowed,
         "poc_go_allowed": verdict_ceiling == "POC_GO_ALLOWED",
+        "ai_governed_gold_allowed": (
+            verdict_ceiling == "POC_GO_ALLOWED"
+            and set(label_authority_counts) == {"ai_governed_gold"}
+        ),
         "weak_go_allowed": verdict_ceiling in {"POC_GO_ALLOWED", "WEAK_GO_MAX"},
         "spot_check_required": verdict_ceiling == "WEAK_GO_MAX",
     }
@@ -168,6 +187,15 @@ def _directionality_matches_authority(row: dict[str, Any]) -> bool:
     label_authority = str(row.get("label_authority") or "")
     expected = EXPECTED_DIRECTIONALITY_BY_AUTHORITY.get(label_authority)
     return expected is not None and str(row.get("directionality_flag") or "") == expected
+
+
+def _ai_governed_gold_protocol_is_valid(row: dict[str, Any]) -> bool:
+    if str(row.get("label_authority") or "") != "ai_governed_gold":
+        return True
+    protocol = row.get("ai_governed_gold")
+    if not isinstance(protocol, dict):
+        return False
+    return validate_ai_governed_gold_protocol(protocol)["valid"] is True
 
 
 def _has_numeric_gold_score(row: dict[str, Any]) -> bool:

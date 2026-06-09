@@ -8,6 +8,7 @@ _DIRECTIONALITY_BY_AUTHORITY = {
     "teacher_validated": "human_validated",
     "po_directional_single_reviewer": "po_directional",
     "ai_council_directional": "ai_council_directional",
+    "ai_governed_gold": "ai_governed_gold",
     "generated_self_label": "generated_self_label",
 }
 
@@ -37,7 +38,7 @@ def _row(
     sample_bucket: str = "hit",
     index: int = 0,
 ) -> dict:
-    return {
+    row = {
         "answer_id": f"A-{index}-{label_authority}-{sample_bucket}",
         "question_id": f"Q{index % 20:02d}-NA",
         "label_authority": label_authority,
@@ -48,6 +49,39 @@ def _row(
         "point_label_provenance": [{"point_id": "P1", "authority": label_authority}],
         "sample_bucket": sample_bucket,
     }
+    if label_authority == "ai_governed_gold":
+        row["ai_governed_gold"] = _ai_governed_gold_protocol()
+    return row
+
+
+def _ai_governed_gold_protocol(**overrides) -> dict:
+    protocol = {
+        "protocol_version": "m35_ai_governed_gold.v1",
+        "blind_model_votes": [
+            {"model_id": "gpt-5.5", "independent": True, "verdict": "accept"},
+            {"model_id": "claude-opus-4.8", "independent": True, "verdict": "accept"},
+            {"model_id": "qwen-3.7-plus", "independent": True, "verdict": "accept"},
+        ],
+        "adversarial_review": {
+            "model_id": "deepseek-v4-pro",
+            "role": "adversarial_prosecutor",
+            "unresolved_objection_count": 0,
+        },
+        "source_anchor": {
+            "source_ref_count": 2,
+            "field_level_citations": True,
+        },
+        "mutation_test": {
+            "passed": True,
+            "case_count": 8,
+        },
+        "reproducibility_hash": "sha256:test",
+        "deterministic_gate": {
+            "passed": True,
+        },
+    }
+    protocol.update(overrides)
+    return protocol
 
 
 def _valid_pack(label_authority: str = "teacher_validated") -> list[dict]:
@@ -153,6 +187,33 @@ def test_ai_council_directional_is_directional_shadow_without_quality_claim(tmp_
     payload = _run_audit(tmp_path, _valid_pack("ai_council_directional"))
 
     assert payload["verdict_ceiling"] == "DIRECTIONAL_SHADOW"
+    assert payload["quality_claim_allowed"] is False
+
+
+def test_ai_governed_gold_can_replace_human_label_authority_for_poc_ceiling(tmp_path):
+    payload = _run_audit(tmp_path, _valid_pack("ai_governed_gold"))
+
+    assert payload["label_authority_counts"] == {"ai_governed_gold": 100}
+    assert payload["verdict_ceiling"] == "POC_GO_ALLOWED"
+    assert payload["quality_claim_allowed"] is True
+    assert payload["poc_go_allowed"] is True
+    assert payload["ai_governed_gold_allowed"] is True
+
+
+def test_ai_governed_gold_unresolved_deepseek_objection_blocks_quality_claim(tmp_path):
+    rows = _valid_pack("ai_governed_gold")
+    rows[0]["ai_governed_gold"] = _ai_governed_gold_protocol(
+        adversarial_review={
+            "model_id": "deepseek-v4-pro",
+            "role": "adversarial_prosecutor",
+            "unresolved_objection_count": 1,
+        }
+    )
+
+    payload = _run_audit(tmp_path, rows)
+
+    assert payload["missing_contract_answer_ids"] == [rows[0]["answer_id"]]
+    assert payload["verdict_ceiling"] == "NO_GO_LABEL_CONTRACT"
     assert payload["quality_claim_allowed"] is False
 
 
