@@ -147,8 +147,9 @@ def test_blocked_question_never_auto_certifies():
 
 def test_zero_auto_without_high_risk_stays_draft():
     # 0 auto-certifiable points without a high_risk_review point -> draft, not blocked.
-    # (Q20 used to pin this case but its declared total mismatches its point sum,
-    # so the score-sum gate now correctly blocks it; a synthetic artifact pins the rule.)
+    # (Q20 used to pin this case while its point sum mismatched its declared total;
+    # the split has since been repaired from official chunks, so a synthetic
+    # artifact keeps pinning the rule independent of golden-data repairs.)
     synthetic = {
         "question_id": "QD-SYNTH-DRAFT",
         "version_id": "qga_v0_synth",
@@ -167,8 +168,11 @@ def test_zero_auto_without_high_risk_stays_draft():
     }
     r = reg.QuestionGradingRegistry([synthetic])
     assert r.lookup("QD-SYNTH-DRAFT").status == "draft"
-    # And the genuine mismatch case stays blocked, never draft.
-    assert _registry().lookup("Q20-1A413000").status == "blocked"
+    # And the genuine mismatch case stays blocked, never draft. (Q18's declared
+    # total is officially unconfirmable — 2017 chunks conflict 15.0 vs 10.0 — so
+    # its point sum 14.5 != declared 15 stays a real mismatch; Q20 was repaired
+    # from official 2019 chunks and no longer serves as the mismatch exemplar.)
+    assert _registry().lookup("Q18-1A434000").status == "blocked"
 
 
 def test_per_point_auto_certification_respects_point_flag():

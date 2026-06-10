@@ -24,7 +24,9 @@
     "note": "v3踩字口径;conc为两AI角色同踩字标准下的一致性"
   },
   "known_issues": [
-    "分值已缩放对齐总分的题:['Q16-1A436000', 'Q19-1A432000'](agent未严格满足和=总分,机械缩放修复)"
+    "分值已缩放对齐总分的题:['Q16-1A436000', 'Q19-1A432000'](agent未严格满足和=总分,机械缩放修复)",
+    "Q20-1A413000 P9 0.6→0.7(官方2019题库双chunk EXAM_1A435000_P0011_01/EXAM_1A413030_P0012_04 确证总分5.5,施工配合比五项统一0.7,sum=总分,见 official_total_provenance)",
+    "compiler work order: Q18-1A434000 总分无法官方确证(2017题库 EXAM_1A434000_P0010_02=15.0 与 EXAM_1A434000_P0011_01=10.0 冲突),sp合计14.5≠声明15,不猜不改,score_sum gate 保持 blocked 待上游裁决"
   ],
   "cases": [
     {
@@ -9262,7 +9264,7 @@
         {
           "point_id": "P9",
           "label": "施工配合比 水用量 = 143.36kg",
-          "max_score": 0.6,
+          "max_score": 0.7,
           "official_basis": "施工配合比:...水143.36kg",
           "boundary": false,
           "list_rule": ""
@@ -9996,6 +9998,17 @@
       "agreement": {
         "point_concordance": 1,
         "penalty_match": "5/5"
+      },
+      "official_total_provenance": {
+        "answer_key_authority": "exam_reference_answer",
+        "official_total": 5.5,
+        "source_year": 2019,
+        "source_chunk_ids": [
+          "EXAM_1A435000_P0011_01",
+          "EXAM_1A413030_P0012_04"
+        ],
+        "source_file": "FastAPI20251222/docs/2026/题库/2019年一级建造师《建筑实务》考试真题及答案解析/FINAL_CLEANED_EXAM_V2019.json",
+        "note": "P9 0.6→0.7：官方双chunk确证小题总分5.5；官方无逐点分值，施工配合比五项(P5-P9)统一0.7，allocation_rule=uniform_within_group；历史 blind_grade 记录保持原样(当时按0.6评)。"
       }
     }
   ],
