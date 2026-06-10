@@ -155,3 +155,48 @@ def test_calculation_point_carries_calculation_spec():
     p1 = next(sp for sp in art["scoring_points"] if sp["point_id"] == "P1")
     assert p1["policy_type"] == "calculation"
     assert p1["calculation_spec"] is not None
+
+
+def test_score_sum_mismatch_enters_blocked_reasons_and_blocks_status():
+    gates = qga._quality_gates(
+        [
+            {
+                "point_id": "P1",
+                "label": "x",
+                "max_score": 1.0,
+                "policy_type": "qualitative",
+                "source_status": "ok",
+                "auto_certifiable": True,
+            }
+        ],
+        2.0,
+    )
+    assert gates["score_sum_ok"] is False
+    assert "score_sum_mismatch" in gates["blocked_reasons"]
+    assert qga._resolve_status(gates)[0] == "blocked"
+
+
+def test_source_pollution_enters_blocked_reasons_and_blocks_status():
+    gates = qga._quality_gates(
+        [
+            {
+                "point_id": "P1",
+                "label": "x",
+                "max_score": 1.0,
+                "policy_type": "qualitative",
+                "source_status": "ok",
+                "auto_certifiable": True,
+                "source_refs": [{"source_type": "rag_chunk", "used_as_answer_key": True}],
+            }
+        ],
+        1.0,
+    )
+    assert gates["source_pollution_count"] >= 1
+    assert "source_pollution" in gates["blocked_reasons"]
+    assert qga._resolve_status(gates)[0] == "blocked"
+
+
+def test_quality_gates_expose_canonical_source_validity_alias():
+    art = qga.build_question_grading_artifact("Q1-NA")
+    gates = art["quality_gates"]
+    assert gates["source_validity"] == gates["source_refs_verified_rate"]

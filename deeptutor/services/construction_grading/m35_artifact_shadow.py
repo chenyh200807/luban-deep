@@ -15,13 +15,18 @@ def build_m35_artifact_shadow_payload(
     no official score authority. The artifact service supplies scoring points;
     rubric_grader_v1 owns the point-match projection.
     """
-    from deeptutor.services.construction_grading import rubric_grader_v1
-    from deeptutor.services.construction_grading.m35_status import m35_runtime_status_from_v0
-    from deeptutor.services.construction_grading.question_grading_artifacts import (
-        build_question_grading_artifact,
+    from deeptutor.services.construction_grading import (
+        question_grading_artifacts,
+        rubric_grader_v1,
+    )
+    from deeptutor.services.construction_grading.m35_status import (
+        m35_artifact_shadow_blocked,
+        m35_runtime_status_from_v0,
     )
 
-    artifact = build_question_grading_artifact(str(question_id or "").strip())
+    artifact = question_grading_artifacts.build_question_grading_artifact(
+        str(question_id or "").strip()
+    )
     status_map = m35_runtime_status_from_v0(artifact if isinstance(artifact, dict) else {})
     quality_gates = artifact.get("quality_gates") if isinstance(artifact.get("quality_gates"), dict) else {}
     base = {
@@ -42,12 +47,21 @@ def build_m35_artifact_shadow_payload(
         "db_write_count": 0,
         "remote_write_count": 0,
         "rag_lookup_count": 0,
-        "source_validity": quality_gates.get("source_refs_verified_rate"),
+        "source_validity": quality_gates.get(
+            "source_validity", quality_gates.get("source_refs_verified_rate")
+        ),
     }
     if artifact.get("artifact_missing"):
         return {
             **base,
             "shadow_status": "artifact_missing",
+            "point_matches": [],
+            "teacher_review_required": True,
+        }
+    if m35_artifact_shadow_blocked(status_map=status_map, quality_gates=quality_gates):
+        return {
+            **base,
+            "shadow_status": "artifact_blocked",
             "point_matches": [],
             "teacher_review_required": True,
         }

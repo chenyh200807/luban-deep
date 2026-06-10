@@ -188,7 +188,17 @@ def build_report(
     artifact_summary = _artifact_summary(sampled_rows)
 
     label_quality_allowed = bool(label_audit.get("quality_claim_allowed"))
-    quality_claim_allowed = label_quality_allowed and tier != "shape_stub"
+    metrics = _metrics(sampled_rows, artifact_summary)
+    # Quality may only be claimed when governed labels allow it, the tier is not
+    # a shape stub, AND the quality metrics were actually computed (never None).
+    quality_metrics_computed = (
+        metrics.get("point_precision") is not None
+        and metrics.get("point_recall") is not None
+        and metrics.get("score_mae") is not None
+    )
+    quality_claim_allowed = (
+        label_quality_allowed and tier != "shape_stub" and quality_metrics_computed
+    )
     verdict_ceiling = (
         str(label_audit.get("verdict_ceiling") or "NO-GO_LABEL_UNKNOWN")
         if quality_claim_allowed
@@ -214,7 +224,7 @@ def build_report(
             "answer_label_authority": manifest.get("answer_label_authority"),
         },
         "label_audit": label_audit,
-        "metrics": _metrics(sampled_rows, artifact_summary),
+        "metrics": metrics,
         "prior_failure_comparison": _prior_failure_comparison(quality_claim_allowed),
         "safety": _safety(),
         "arms": _arms(tier, live_enabled),

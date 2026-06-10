@@ -123,6 +123,11 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--fixture", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument(
+        "--fail-on-no-go",
+        action="store_true",
+        help="Exit nonzero unless verdict is GO, so CI can use the gate deterministically.",
+    )
     args = parser.parse_args()
 
     report = build_report(fixture=args.fixture)
@@ -131,6 +136,8 @@ def main() -> int:
         json.dumps(report, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
+    if args.fail_on_no_go and report.get("verdict") != "GO":
+        return 1
     return 0
 
 

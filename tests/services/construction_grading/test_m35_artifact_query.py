@@ -108,3 +108,26 @@ def test_request_never_returns_chunks_even_if_artifact_contains_legacy_chunks():
     assert "raw_chunks" not in result
     assert result["purpose"] == "explanation"
     assert result["shape"] == "review_action"
+
+
+def test_query_reads_legacy_source_refs_verified_rate_as_validity():
+    artifact = {
+        "artifact_version": "qga_v0_20260604",
+        "question_id": "Q1-NA",
+        "status": "release_candidate",
+        "scoring_points": [
+            {"point_id": "P1", "criterion": "指出需要专家论证", "source_refs": ["s1"]}
+        ],
+        "quality_gates": {"source_refs_verified_rate": 1.0},
+    }
+    result = retrieve_m35_scoring_context(
+        M35ArtifactQuery(
+            question_id="Q1-NA",
+            purpose="grading",
+            shape="rubric_table",
+            citation_required=True,
+            budget_tier="low",
+        ),
+        artifact_store={"Q1-NA": artifact},
+    )
+    assert result["confidence"]["source_validity"] == 1.0

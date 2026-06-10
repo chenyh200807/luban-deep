@@ -55,7 +55,9 @@ def evaluate_m35_artifact_governance(artifact: dict[str, Any]) -> dict[str, Any]
     if quality_gates.get("score_sum_ok") is not True:
         blocking_reasons.append("score_sum_not_verified")
 
-    if _as_float(quality_gates.get("source_validity")) < 0.95:
+    if _as_float(
+        quality_gates.get("source_validity", quality_gates.get("source_refs_verified_rate"))
+    ) < 0.95:
         blocking_reasons.append("source_validity_below_gate")
 
     runtime_consumable = not blocking_reasons and status in RUNTIME_CONSUMABLE_STATUSES

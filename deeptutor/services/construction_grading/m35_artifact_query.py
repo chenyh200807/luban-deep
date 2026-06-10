@@ -57,7 +57,9 @@ def retrieve_m35_scoring_context(
         "budget": {"tier": query.budget_tier},
         "ground": {"source_ref_count": source_ref_count},
         "confidence": {
-            "source_validity": _as_float(quality_gates.get("source_validity")),
+            "source_validity": _as_float(
+                quality_gates.get("source_validity", quality_gates.get("source_refs_verified_rate"))
+            ),
         },
         "scoring_points": scoring_points,
     }

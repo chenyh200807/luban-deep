@@ -497,3 +497,26 @@ def test_grading_key_answer_label_prevents_fill_blank_cross_match() -> None:
 
     assert result.score_awarded == 0
     assert [item.status for item in result.rubric_items] == ["miss", "miss"]
+
+
+def test_kernel_shadow_respects_env_kill_switch(monkeypatch):
+    from deeptutor.services.construction_grading.case_kernel import (
+        _build_m35_artifact_shadow,
+    )
+
+    monkeypatch.setenv("LUBAN_M35_ARTIFACT_SHADOW_ENABLED", "false")
+    shadow = _build_m35_artifact_shadow(
+        enabled=True,
+        question_id="Q1-NA",
+        student_answer="需要组织专家论证",
+        artifact={
+            "version_id": "qga_v0_test",
+            "status": "published",
+            "quality_gates": {"score_sum_ok": True, "source_pollution_count": 0},
+            "scoring_points": [
+                {"point_id": "P1", "label": "x", "max_score": 1.0, "policy_type": "qualitative"}
+            ],
+        },
+        judge_fn=lambda *_a, **_k: {"status": "hit", "partial_ratio": 1.0},
+    )
+    assert shadow is None

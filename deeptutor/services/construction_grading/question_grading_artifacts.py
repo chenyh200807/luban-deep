@@ -238,6 +238,12 @@ def _quality_gates(
         and sp.get("required_terms")
         and sp.get("source_status") != "ok"
     ]
+    # A missing official total is a data gap (cannot verify); a declared total
+    # that disagrees with the point sum is a hard contract violation (blocked).
+    # Either way score_sum_ok stays False so the M35 shadow lane refuses to
+    # produce score-bearing point matches without a verified sum.
+    expected_total_present = expected_total is not None and expected_score > 0
+    score_sum_ok = expected_total_present and abs(score_sum - expected_score) <= 0.01
     blocked_reasons: list[str] = []
     if total < 1:
         blocked_reasons.append("no_scoring_points")
@@ -245,12 +251,19 @@ def _quality_gates(
         blocked_reasons.append("missing_policy_type")
     if not has_max:
         blocked_reasons.append("missing_max_score")
+    if expected_total_present and not score_sum_ok:
+        blocked_reasons.append("score_sum_mismatch")
+    if source_pollution_reasons:
+        blocked_reasons.append("source_pollution")
+    verified_rate = (verified / total) if total else 0.0
     return {
         "has_scoring_points": total >= 1,
         "has_policy_type": has_policy,
         "has_max_score": has_max,
-        "score_sum_ok": abs(score_sum - expected_score) <= 0.01,
-        "source_refs_verified_rate": (verified / total) if total else 0.0,
+        "score_sum_ok": score_sum_ok,
+        "expected_total_present": expected_total_present,
+        "source_refs_verified_rate": verified_rate,
+        "source_validity": verified_rate,
         "source_pollution_count": len(source_pollution_reasons),
         "source_pollution_reasons": source_pollution_reasons,
         "negative_evidence_present": any(

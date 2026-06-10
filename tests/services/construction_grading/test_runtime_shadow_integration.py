@@ -19,9 +19,43 @@ from deeptutor.services.construction_grading import runtime_shadow_adapter as ad
 
 # real golden questions with known runtime-gate status
 PUBLISHED = "Q17-1A433000"  # published, has auto-certifiable + weak points
-DRAFT = "Q20-1A413000"      # draft (0 auto-certifiable, no high_risk)
+DRAFT = "QD-SYNTH-DRAFT"    # synthetic draft (0 auto-certifiable, no high_risk); the
+                            # bank's former draft (Q20) is now correctly blocked by the
+                            # declared-total/point-sum gate
 BLOCKED = "Q15-NA"          # blocked (0 auto + high_risk)
 MISSING = "Q-DOES-NOT-EXIST"
+
+
+def _synthetic_draft_registry():
+    from deeptutor.services.construction_grading import artifact_runtime_gate as arg
+    from deeptutor.services.construction_grading.question_grading_registry import (
+        QuestionGradingRegistry,
+        build_default_registry,
+    )
+
+    base = build_default_registry()
+    registry = QuestionGradingRegistry(
+        [base.get_artifact(qid) for qid in base.question_ids()]
+    )
+    registry.add(
+        {
+            "question_id": DRAFT,
+            "version_id": "qga_v0_synth",
+            "status": "draft",
+            "scoring_points": [
+                {
+                    "point_id": "P1",
+                    "label": "x",
+                    "max_score": 2.0,
+                    "policy_type": "qualitative",
+                    "auto_certifiable": False,
+                    "source_status": "missing",
+                }
+            ],
+            "quality_gates": {"auto_certifiable_point_count": 0, "blocked_reasons": []},
+        }
+    )
+    return registry
 
 
 def _legacy() -> dict[str, Any]:
@@ -120,6 +154,10 @@ def test_flag_plus_non_qa_student_is_qa_student_required(monkeypatch):
 
 def test_draft_case_no_auto_certification(monkeypatch):
     monkeypatch.setattr(adapter, "_build_deepseek_fast_draft", _deterministic_builder)
+    from deeptutor.services.construction_grading import artifact_runtime_gate as arg
+
+    registry = _synthetic_draft_registry()
+    monkeypatch.setattr(arg, "_default_registry", lambda: registry)
     shadow = _run(DRAFT, user_id="qa_runtime_20260604", flag=True)["luban_grading_engine_shadow"]
     assert shadow["artifact_gate"]["artifact_status"] == "draft"
     assert shadow["scores"]["auto_certified_score"] == 0.0

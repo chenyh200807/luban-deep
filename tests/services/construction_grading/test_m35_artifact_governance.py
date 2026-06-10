@@ -107,3 +107,21 @@ def test_blocked_artifact_is_not_runtime_consumable_even_when_governed():
     assert report["runtime_consumable"] is False
     assert report["official_score_allowed"] is False
     assert report["blocking_reasons"] == []
+
+
+def test_governance_reads_legacy_source_refs_verified_rate_as_validity():
+    artifact = {
+        "artifact_version": "m35_case_scoring_20260609",
+        "question_id": "Q1-NA",
+        "status": "shadow_candidate",
+        "lifecycle_status": "shadow_candidate",
+        "owner_role": "construction_grading_artifact_owner",
+        "review_authority": "po_directional_single_reviewer",
+        "supersede_policy": "supersede_by_artifact_version",
+        "rollback_policy": "disable_m35_artifact_shadow_flag",
+        "source_refs": [{"verified": True}],
+        "quality_gates": {"score_sum_ok": True, "source_refs_verified_rate": 1.0},
+    }
+    report = evaluate_m35_artifact_governance(artifact)
+    assert "source_validity_below_gate" not in report["blocking_reasons"]
+    assert report["runtime_consumable"] is True

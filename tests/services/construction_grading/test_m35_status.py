@@ -66,3 +66,38 @@ def test_only_server_governed_published_registry_can_allow_official_score():
     )
 
     assert mapped is True
+
+
+def test_shadow_blocked_for_blocked_status_or_failed_gates():
+    from deeptutor.services.construction_grading.m35_status import (
+        m35_artifact_shadow_blocked,
+    )
+
+    assert m35_artifact_shadow_blocked(
+        status_map={"m35_runtime_status": "blocked"}, quality_gates={}
+    ) is True
+    assert m35_artifact_shadow_blocked(
+        status_map={"m35_runtime_status": "release_candidate"},
+        quality_gates={"score_sum_ok": False},
+    ) is True
+    assert m35_artifact_shadow_blocked(
+        status_map={"m35_runtime_status": "release_candidate"},
+        quality_gates={"score_sum_ok": True, "source_pollution_count": 1},
+    ) is True
+    assert m35_artifact_shadow_blocked(
+        status_map={"m35_runtime_status": "release_candidate"},
+        quality_gates={"score_sum_ok": True, "source_pollution_count": 0},
+    ) is False
+
+
+def test_kill_switch_active_only_when_explicitly_false(monkeypatch):
+    from deeptutor.services.construction_grading.m35_status import (
+        m35_kill_switch_active,
+    )
+
+    monkeypatch.delenv("LUBAN_M35_ARTIFACT_SHADOW_ENABLED", raising=False)
+    assert m35_kill_switch_active() is False
+    monkeypatch.setenv("LUBAN_M35_ARTIFACT_SHADOW_ENABLED", "false")
+    assert m35_kill_switch_active() is True
+    monkeypatch.setenv("LUBAN_M35_ARTIFACT_SHADOW_ENABLED", "true")
+    assert m35_kill_switch_active() is False

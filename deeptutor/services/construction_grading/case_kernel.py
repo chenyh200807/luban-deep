@@ -204,7 +204,13 @@ def _build_m35_artifact_shadow(
         return None
 
     from deeptutor.services.construction_grading import rubric_grader_v1
-    from deeptutor.services.construction_grading.m35_status import m35_runtime_status_from_v0
+    from deeptutor.services.construction_grading.m35_status import (
+        m35_kill_switch_active,
+        m35_runtime_status_from_v0,
+    )
+
+    if m35_kill_switch_active():
+        return None
 
     status_map = m35_runtime_status_from_v0(artifact)
     quality_gates = artifact.get("quality_gates") if isinstance(artifact.get("quality_gates"), dict) else {}
@@ -233,16 +239,11 @@ def _m35_artifact_shadow_blocked(
     status_map: dict[str, Any],
     quality_gates: dict[str, Any],
 ) -> bool:
-    if status_map.get("m35_runtime_status") == "blocked":
-        return True
-    if quality_gates.get("score_sum_ok") is False:
-        return True
-    try:
-        if int(quality_gates.get("source_pollution_count") or 0) > 0:
-            return True
-    except (TypeError, ValueError):
-        return True
-    return bool(quality_gates.get("blocked_reasons"))
+    from deeptutor.services.construction_grading.m35_status import (
+        m35_artifact_shadow_blocked,
+    )
+
+    return m35_artifact_shadow_blocked(status_map=status_map, quality_gates=quality_gates)
 
 
 def _question_evidence_refs(row: dict[str, Any]) -> list[EvidenceRef]:

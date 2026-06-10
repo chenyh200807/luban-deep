@@ -7,6 +7,9 @@ from __future__ import annotations
 
 from deeptutor.services.construction_grading import artifact_runtime_gate as gate
 from deeptutor.services.construction_grading.ai_draft_shadow import build_ai_draft
+from deeptutor.services.construction_grading.question_grading_registry import (
+    QuestionGradingRegistry,
+)
 
 
 def _draft(points):
@@ -14,8 +17,53 @@ def _draft(points):
 
 
 _PUBLISHED = "Q1-NA"  # published, P1 auto_certifiable
-_DRAFT = "Q20-1A413000"  # 0 auto-certifiable points, no high_risk -> draft
+_DRAFT = "QD-SYNTH-DRAFT"  # synthetic: 0 auto-certifiable points, no high_risk -> draft
+_SUM_MISMATCH = "Q20-1A413000"  # declared total != point sum -> blocked by score-sum gate
 _BLOCKED = "Q15-NA"  # 0 auto-certifiable + high_risk_review point -> blocked
+
+def _synthetic_draft_artifact(qid: str = "QD-SYNTH-DRAFT") -> dict:
+    """A structurally valid artifact with 0 auto-certifiable points and no
+    high-risk policy point: the canonical *draft* shape. The golden bank no
+    longer contains a draft sample because its former drafts (Q18/Q20) carry
+    genuine declared-total/point-sum mismatches and are now correctly blocked."""
+    return {
+        "question_id": qid,
+        "case_id": qid,
+        "version_id": "qga_v0_synth",
+        "status": "draft",
+        "status_reason": "no_auto_certifiable_points",
+        "scoring_points": [
+            {
+                "point_id": "P1",
+                "label": "x",
+                "max_score": 2.0,
+                "policy_type": "qualitative",
+                "auto_certifiable": False,
+                "source_status": "missing",
+            }
+        ],
+        "quality_gates": {
+            "has_scoring_points": True,
+            "has_policy_type": True,
+            "has_max_score": True,
+            "score_sum_ok": True,
+            "expected_total_present": True,
+            "source_refs_verified_rate": 0.0,
+            "source_validity": 0.0,
+            "source_pollution_count": 0,
+            "source_pollution_reasons": [],
+            "negative_evidence_present": False,
+            "auto_certifiable_point_count": 0,
+            "unsupported_required_terms": [],
+            "blocked_reasons": [],
+        },
+    }
+
+
+def _resolve_draft_gate():
+    return gate.resolve_runtime_artifact_gate(
+        _DRAFT, registry=QuestionGradingRegistry([_synthetic_draft_artifact(_DRAFT)])
+    )
 
 
 def test_resolve_missing_question_fails_closed():
@@ -28,7 +76,8 @@ def test_resolve_missing_question_fails_closed():
 
 def test_resolve_published_draft_blocked_status():
     assert gate.resolve_runtime_artifact_gate(_PUBLISHED).artifact_status == "published"
-    assert gate.resolve_runtime_artifact_gate(_DRAFT).artifact_status == "draft"
+    assert _resolve_draft_gate().artifact_status == "draft"
+    assert gate.resolve_runtime_artifact_gate(_SUM_MISMATCH).artifact_status == "blocked"
     assert gate.resolve_runtime_artifact_gate(_BLOCKED).artifact_status == "blocked"
 
 
@@ -59,7 +108,7 @@ def test_published_weak_point_is_downgraded_not_auto():
 
 
 def test_draft_artifact_blocks_all_points():
-    g = gate.resolve_runtime_artifact_gate(_DRAFT)
+    g = _resolve_draft_gate()
     draft = _draft([{"point_id": "P1", "score": 2, "auto_certified": True,
                      "high_risk_review": False, "unsupported": False}])
     out = gate.apply_runtime_artifact_gate(draft, g)
@@ -123,7 +172,7 @@ def test_build_ai_draft_with_gate_applies_same_rule():
                 "scoring_points": [{"point_id": "P1", "max_score": 2, "label": "x",
                                     "typed_policy": {"policy_type": "exact_required", "required_terms": ["甲"]}}]}
     preds = [{"point_id": "P1", "hit": "hit", "score": 2, "evidence_span": "甲", "rationale": "命中"}]
-    g = gate.resolve_runtime_artifact_gate(_DRAFT)
+    g = _resolve_draft_gate()
     draft = build_ai_draft(question, "甲", preds, points=question["scoring_points"], artifact_gate=g)
     assert draft["artifact_gate"]["artifact_status"] == "draft"
     assert draft["point_results"][0]["auto_certified"] is False
@@ -142,7 +191,7 @@ def test_best_quality_uses_same_gate():
         "opus": {"P1": {"point_id": "P1", "hit": "hit", "score": 2, "evidence_span": "甲"}},
         "deepseek": {"P1": {"point_id": "P1", "hit": "hit", "score": 2, "evidence_span": "甲"}},
     }
-    g = gate.resolve_runtime_artifact_gate(_DRAFT)
+    g = _resolve_draft_gate()
     draft = best_quality_draft(question, "甲", model_outputs,
                                points=question["scoring_points"], artifact_gate=g)
     assert draft["artifact_gate"]["artifact_status"] == "draft"
