@@ -139,11 +139,18 @@ function buildFocusDisplayMeta(focus, meta) {
 
 function readCachedHomeDashboard() {
   try {
-    if (typeof wx === "undefined" || typeof wx.getStorageSync !== "function") return null;
+    if (typeof wx === "undefined" || typeof wx.getStorageSync !== "function")
+      return null;
     var cached = wx.getStorageSync(HOME_DASHBOARD_CACHE_KEY);
     if (!cached || typeof cached !== "object") return null;
-    if (Date.now() - (Number(cached.cachedAt) || 0) > HOME_DASHBOARD_CACHE_MAX_AGE_MS) return null;
-    return cached.dashboard && typeof cached.dashboard === "object" ? cached.dashboard : null;
+    if (
+      Date.now() - (Number(cached.cachedAt) || 0) >
+      HOME_DASHBOARD_CACHE_MAX_AGE_MS
+    )
+      return null;
+    return cached.dashboard && typeof cached.dashboard === "object"
+      ? cached.dashboard
+      : null;
   } catch (_) {
     return null;
   }
@@ -151,7 +158,8 @@ function readCachedHomeDashboard() {
 
 function writeCachedHomeDashboard(dashboard) {
   try {
-    if (typeof wx === "undefined" || typeof wx.setStorageSync !== "function") return;
+    if (typeof wx === "undefined" || typeof wx.setStorageSync !== "function")
+      return;
     if (!dashboard || typeof dashboard !== "object") return;
     wx.setStorageSync(HOME_DASHBOARD_CACHE_KEY, {
       cachedAt: Date.now(),
@@ -494,6 +502,21 @@ Page({
     if (app.globalData.goHomeFlag) {
       app.globalData.goHomeFlag = false;
       this.clearMessages();
+    }
+    // 拍照作答确认稿回填（confirm 页写入 globalData，消费后即清，用户检查后手动发送）
+    if (app.globalData.photoAnswerPayload) {
+      var photoPayload = app.globalData.photoAnswerPayload;
+      app.globalData.photoAnswerPayload = null;
+      var photoText = String(photoPayload.confirmed_text || "").trim();
+      if (photoText) {
+        this._inputText = photoText;
+        this.setData({ inputText: photoText });
+        wx.showToast({
+          title: "识别稿已填入输入框，请检查后发送",
+          icon: "none",
+          duration: 2500,
+        });
+      }
     }
     if (
       isDeletedConversationId(
@@ -1005,7 +1028,9 @@ Page({
         })
         .catch(function (err) {
           if (err && err.statusCode === 404) {
-            if (wx.getStorageSync("current_session_id") === pending.conversationId) {
+            if (
+              wx.getStorageSync("current_session_id") === pending.conversationId
+            ) {
               self._sid = "s_" + Date.now();
               self._convId = null;
               wx.removeStorageSync("current_session_id");
@@ -1513,7 +1538,9 @@ Page({
     var options = Array.isArray(source.options) ? source.options : [];
     for (var i = 0; i < options.length; i++) {
       var option = options[i] || {};
-      var key = String(option.key || "").trim().toUpperCase();
+      var key = String(option.key || "")
+        .trim()
+        .toUpperCase();
       var text = String(option.text || option.value || "").trim();
       if (key && text) optionMap[key] = text;
     }
@@ -1528,7 +1555,11 @@ Page({
       options: optionMap,
       user_answer: String(userAnswer || "").trim(),
     };
-    if (!context.question && !context.question_id && !Object.keys(optionMap).length) {
+    if (
+      !context.question &&
+      !context.question_id &&
+      !Object.keys(optionMap).length
+    ) {
       return null;
     }
     return context;
@@ -1597,11 +1628,22 @@ Page({
         if (!singleCard) continue;
         if (Number(singleCard.index) !== Number(selections[0].index)) continue;
         var singleUserAnswer = selections[0].keys.join("");
-        var visibleSingleContext = this._buildVisibleCardFollowupContext(singleCard, singleUserAnswer);
-        followupQuestionContext = Object.assign({}, visibleSingleContext || {}, singleCard.followupContext || {}, {
-          user_answer: singleUserAnswer,
-        });
-        if (!followupQuestionContext.question && !followupQuestionContext.question_id) {
+        var visibleSingleContext = this._buildVisibleCardFollowupContext(
+          singleCard,
+          singleUserAnswer,
+        );
+        followupQuestionContext = Object.assign(
+          {},
+          visibleSingleContext || {},
+          singleCard.followupContext || {},
+          {
+            user_answer: singleUserAnswer,
+          },
+        );
+        if (
+          !followupQuestionContext.question &&
+          !followupQuestionContext.question_id
+        ) {
           followupQuestionContext = null;
         }
         break;
@@ -1625,10 +1667,9 @@ Page({
             user_answer: compositeUserAnswer,
           },
         );
-        if (!compositeContext.question && !compositeContext.question_id) continue;
-        compositeItems.push(
-          compositeContext,
-        );
+        if (!compositeContext.question && !compositeContext.question_id)
+          continue;
+        compositeItems.push(compositeContext);
         questionLines.push(
           "第" +
             (compositeCard.index || n + 1) +
@@ -1800,6 +1841,22 @@ Page({
       enableReason: nextReason,
       answerMode: nextMode,
       modeHintText: this._getModeHintText(nextMode),
+    });
+  },
+
+  // 拍照作答入口：跳拍照页；确认稿经 app.globalData.photoAnswerPayload 在 onShow 回填
+  onPhotoAnswer: function () {
+    helpers.vibrate("light");
+    var questionId =
+      "chat-" +
+      (this._convId ||
+        this._sid ||
+        wx.getStorageSync("current_session_id") ||
+        "freeform");
+    wx.navigateTo({
+      url:
+        "/pages/photo-answer/capture?question_id=" +
+        encodeURIComponent(questionId),
     });
   },
 
@@ -2051,13 +2108,22 @@ Page({
     wx.setStorageSync("current_session_ts", Date.now());
 
     var userMsg = { id: "u" + self._counter++, role: "user", content: query };
-    if (sendOptions.followupQuestionContext && typeof sendOptions.followupQuestionContext === "object") {
+    if (
+      sendOptions.followupQuestionContext &&
+      typeof sendOptions.followupQuestionContext === "object"
+    ) {
       userMsg.followupQuestionContext = sendOptions.followupQuestionContext;
     }
-    if (sendOptions.structuredSubmitContext && typeof sendOptions.structuredSubmitContext === "object") {
+    if (
+      sendOptions.structuredSubmitContext &&
+      typeof sendOptions.structuredSubmitContext === "object"
+    ) {
       userMsg.structuredSubmitContext = sendOptions.structuredSubmitContext;
     }
-    if (sendOptions.promptIntent && typeof sendOptions.promptIntent === "object") {
+    if (
+      sendOptions.promptIntent &&
+      typeof sendOptions.promptIntent === "object"
+    ) {
       userMsg.promptIntent = sendOptions.promptIntent;
     }
     var aiMsg = {
@@ -2110,7 +2176,9 @@ Page({
         existing.length - (MAX_MESSAGES - messageReserve),
       );
     }
-    var msgs = reuseUserMessage ? existing.concat([aiMsg]) : existing.concat([userMsg, aiMsg]);
+    var msgs = reuseUserMessage
+      ? existing.concat([aiMsg])
+      : existing.concat([userMsg, aiMsg]);
     // 同一轮消息在网络重连时复用同一个客户端侧标识。
     var _turnId =
       self._sid +
@@ -2897,10 +2965,16 @@ Page({
       reuseUserMessage: true,
       persistUserMessage: false,
     };
-    if (userMsg.followupQuestionContext && typeof userMsg.followupQuestionContext === "object") {
+    if (
+      userMsg.followupQuestionContext &&
+      typeof userMsg.followupQuestionContext === "object"
+    ) {
       retryOptions.followupQuestionContext = userMsg.followupQuestionContext;
     }
-    if (userMsg.structuredSubmitContext && typeof userMsg.structuredSubmitContext === "object") {
+    if (
+      userMsg.structuredSubmitContext &&
+      typeof userMsg.structuredSubmitContext === "object"
+    ) {
       retryOptions.structuredSubmitContext = userMsg.structuredSubmitContext;
     }
     if (userMsg.promptIntent && typeof userMsg.promptIntent === "object") {
