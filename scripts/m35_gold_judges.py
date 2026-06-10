@@ -414,6 +414,26 @@ def make_qwen_judge(api_key: str, stats: JudgeStats, base_url: str | None = None
     )
 
 
+def _codex_error_message(stdout: str) -> str | None:
+    """Extract the real failure cause from codex JSONL error events."""
+    message: str | None = None
+    for line in stdout.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            event = json.loads(line)
+        except ValueError:
+            continue
+        if not isinstance(event, dict):
+            continue
+        if event.get("type") == "error" and event.get("message"):
+            message = str(event["message"])
+        elif event.get("type") == "turn.failed" and isinstance(event.get("error"), dict):
+            message = str(event["error"].get("message") or message or "")
+    return message or None
+
+
 def _codex_call(prompt: str) -> tuple[str | None, dict[str, int] | None]:
     returncode, stdout, stderr = _run_cli(
         [
@@ -429,7 +449,10 @@ def _codex_call(prompt: str) -> tuple[str | None, dict[str, int] | None]:
         JUDGE_TIMEOUT_SECONDS,
     )
     if returncode != 0:
-        raise JudgeTransportError(f"codex_exit_{returncode}: {stderr[:200]}")
+        # The JSONL error event carries the real cause (e.g. usage limits);
+        # stderr is usually just "Reading additional input from stdin...".
+        detail = _codex_error_message(stdout) or stderr
+        raise JudgeTransportError(f"codex_exit_{returncode}: {detail[:200]}")
     return parse_codex_jsonl(stdout)
 
 
