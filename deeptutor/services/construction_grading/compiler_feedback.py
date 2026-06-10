@@ -171,6 +171,59 @@ def work_orders_from_source_path_conflicts(
         if len(entries) >= limit:
             break
     return entries
+_SOURCE_CONFLICT_WORK_ORDER_TYPES = {
+    "query_path_source_mismatch": "scoring_artifact_reanchor",
+    "source_supports_sibling_node_only": "scoring_artifact_detach",
+    "low_confidence_but_plausible": "scoring_artifact_needs_review",
+}
+
+
+def work_order_from_source_path_conflict(
+    *,
+    question_id: str,
+    failed_path: str,
+    reason: str,
+    evidence: dict[str, Any],
+) -> dict[str, Any]:
+    """Route M35 source/path conflicts into the existing compiler candidate ledger."""
+
+    normalized_reason = str(reason or "").strip() or "source_path_conflict"
+    return make_candidate(
+        kind=KIND_WORK_ORDER,
+        origin="m35_scoring_artifact_gate",
+        payload={
+            "work_order_type": _SOURCE_CONFLICT_WORK_ORDER_TYPES.get(
+                normalized_reason,
+                "scoring_artifact_needs_review",
+            ),
+            "question_id": str(question_id or "").strip(),
+            "failed_path": str(failed_path or "").strip(),
+            "evidence": dict(evidence or {}),
+            "runtime_usable_as_truth": False,
+        },
+        reason=normalized_reason,
+    )
+
+
+def work_order_from_teacher_override(event: dict[str, Any]) -> dict[str, Any]:
+    """Route M35 teacher overrides back into the compiler candidate flywheel."""
+
+    return make_candidate(
+        kind=KIND_WORK_ORDER,
+        origin="m35_teacher_review",
+        payload={
+            "work_order_type": "teacher_override_review",
+            "promote_to_release": False,
+            "runtime_usable_as_truth": False,
+            "question_id": str(event["question_id"]).strip(),
+            "artifact_version": str(event["artifact_version"]).strip(),
+            "point_id": str(event["point_id"]).strip(),
+            "override_type": str(event["override_type"]).strip(),
+            "teacher_evidence": str(event["teacher_evidence"]).strip(),
+            "source_ref_ids": list(event.get("source_ref_ids") or []),
+        },
+        reason="route_teacher_override_to_compiler_review",
+    )
 
 
 def build_ledger(entries: list[dict[str, Any]]) -> dict[str, Any]:
@@ -200,6 +253,8 @@ __all__ = [
     "make_candidate",
     "work_order_from_open_world",
     "work_orders_from_source_path_conflicts",
+    "work_order_from_source_path_conflict",
+    "work_order_from_teacher_override",
     "build_ledger",
     "KIND_QUESTION",
     "KIND_ANSWER_KEY",

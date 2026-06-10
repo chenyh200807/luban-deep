@@ -32,6 +32,7 @@ from scripts.run_luban_ai_draft_grading import GOLDEN, _golden_typed_policy
 VERSION_ID = "qga_v0_20260604"
 SCHEMA_VERSION = "question_grading_artifact.v0"
 COMPILER_VERSION = "qga_compiler_v0"
+POLLUTED_SOURCE_TYPES = {"rag", "rag_chunk", "kb_chunk"}
 
 # Publish gate threshold (v0): a structurally complete question is *published* only
 # if at least this many of its points carry a verified (textbook-strong) source and
@@ -181,6 +182,11 @@ def _scoring_point(case: dict[str, Any], gold_sp: dict[str, Any]) -> dict[str, A
         "max_score": gold_sp.get("max_score"),
         "policy_type": policy_type,
         "required_terms": required_terms,
+        "negative_evidence": [
+            str(item).strip()
+            for item in (gold_sp.get("negative_evidence") or [])
+            if str(item).strip()
+        ],
         "list_rule": list_rule,
         "calculation_spec": calculation_spec,
         "penalty_rule": penalty_rule,
@@ -213,12 +219,17 @@ def _content_hash(question_id: str, scoring_points: list[dict[str, Any]]) -> str
     return hashlib.sha256(blob).hexdigest()
 
 
-def _quality_gates(scoring_points: list[dict[str, Any]]) -> dict[str, Any]:
+def _quality_gates(
+    scoring_points: list[dict[str, Any]], expected_total: Any
+) -> dict[str, Any]:
     total = len(scoring_points)
     verified = sum(1 for sp in scoring_points if sp.get("source_status") == "ok")
     auto_pts = sum(1 for sp in scoring_points if sp.get("auto_certifiable"))
     has_policy = all(sp.get("policy_type") for sp in scoring_points)
     has_max = all(sp.get("max_score") is not None for sp in scoring_points)
+    score_sum = sum(float(sp.get("max_score") or 0) for sp in scoring_points)
+    expected_score = float(expected_total or 0)
+    source_pollution_reasons = _source_pollution_reasons(scoring_points)
     # exact_required points whose required_terms cannot be backed by a verified source.
     unsupported_required = [
         sp.get("point_id")
@@ -227,6 +238,12 @@ def _quality_gates(scoring_points: list[dict[str, Any]]) -> dict[str, Any]:
         and sp.get("required_terms")
         and sp.get("source_status") != "ok"
     ]
+    # A missing official total is a data gap (cannot verify); a declared total
+    # that disagrees with the point sum is a hard contract violation (blocked).
+    # Either way score_sum_ok stays False so the M35 shadow lane refuses to
+    # produce score-bearing point matches without a verified sum.
+    expected_total_present = expected_total is not None and expected_score > 0
+    score_sum_ok = expected_total_present and abs(score_sum - expected_score) <= 0.01
     blocked_reasons: list[str] = []
     if total < 1:
         blocked_reasons.append("no_scoring_points")
@@ -234,15 +251,53 @@ def _quality_gates(scoring_points: list[dict[str, Any]]) -> dict[str, Any]:
         blocked_reasons.append("missing_policy_type")
     if not has_max:
         blocked_reasons.append("missing_max_score")
+    if expected_total_present and not score_sum_ok:
+        blocked_reasons.append("score_sum_mismatch")
+    if source_pollution_reasons:
+        blocked_reasons.append("source_pollution")
+    verified_rate = (verified / total) if total else 0.0
     return {
         "has_scoring_points": total >= 1,
         "has_policy_type": has_policy,
         "has_max_score": has_max,
-        "source_refs_verified_rate": (verified / total) if total else 0.0,
+        "score_sum_ok": score_sum_ok,
+        "expected_total_present": expected_total_present,
+        "source_refs_verified_rate": verified_rate,
+        "source_validity": verified_rate,
+        "source_pollution_count": len(source_pollution_reasons),
+        "source_pollution_reasons": source_pollution_reasons,
+        "negative_evidence_present": any(
+            bool(sp.get("negative_evidence")) for sp in scoring_points
+        ),
         "auto_certifiable_point_count": auto_pts,
         "unsupported_required_terms": unsupported_required,
         "blocked_reasons": blocked_reasons,
     }
+
+
+def _source_pollution_reasons(
+    scoring_points: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    reasons: list[dict[str, Any]] = []
+    for sp in scoring_points:
+        point_id = sp.get("point_id")
+        for ref in sp.get("source_refs") or []:
+            source_type = str(ref.get("source_type") or "")
+            if source_type in POLLUTED_SOURCE_TYPES or ref.get("used_as_answer_key") is True:
+                reasons.append(
+                    {
+                        "point_id": point_id,
+                        "reason": "rag_or_kb_chunk_as_answer_key",
+                    }
+                )
+            elif ref.get("verified") is True and source_type != "textbook":
+                reasons.append(
+                    {
+                        "point_id": point_id,
+                        "reason": "verified_non_textbook_source_ref",
+                    }
+                )
+    return reasons
 
 
 def _resolve_status(gates: dict[str, Any]) -> tuple[str, str]:
@@ -267,7 +322,7 @@ def build_question_grading_artifact(case_id: str) -> dict[str, Any]:
         _scoring_point(case, gold_sp)
         for gold_sp in (case.get("gold_scoring_points") or [])
     ]
-    gates = _quality_gates(scoring_points)
+    gates = _quality_gates(scoring_points, case.get("max_score"))
     status, status_reason = _resolve_status(gates)
     content_hash = _content_hash(case_id, scoring_points)
     return {
@@ -275,6 +330,7 @@ def build_question_grading_artifact(case_id: str) -> dict[str, Any]:
         "artifact_id": f"{case_id}::{VERSION_ID}",
         "question_id": case_id,
         "version_id": VERSION_ID,
+        "content_hash": content_hash,
         "status": status,
         "status_reason": status_reason,
         "source_profile": {

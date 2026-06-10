@@ -108,11 +108,32 @@ def test_published_allows_auto_certification():
 
 
 def test_draft_does_not_allow_auto_certification():
-    r = _registry()
-    drafts = [q for q in r.question_ids() if r.lookup(q).status == "draft"]
-    assert drafts, "expected at least one draft question in v0"
-    for qid in drafts:
-        assert reg.auto_certification_allowed(qid, registry=r) is False
+    # The golden bank no longer guarantees a draft sample (its former drafts carry
+    # genuine declared-total/point-sum mismatches and are correctly blocked), so the
+    # draft invariant is pinned with a synthetic structurally-valid draft artifact.
+    synthetic = {
+        "question_id": "QD-SYNTH-DRAFT",
+        "version_id": "qga_v0_synth",
+        "status": "draft",
+        "scoring_points": [
+            {
+                "point_id": "P1",
+                "label": "x",
+                "max_score": 2.0,
+                "policy_type": "qualitative",
+                "auto_certifiable": False,
+                "source_status": "missing",
+            }
+        ],
+        "quality_gates": {"auto_certifiable_point_count": 0, "blocked_reasons": []},
+    }
+    r = reg.QuestionGradingRegistry([synthetic])
+    assert r.lookup("QD-SYNTH-DRAFT").status == "draft"
+    assert reg.auto_certification_allowed("QD-SYNTH-DRAFT", registry=r) is False
+    # Any drafts that DO exist in the live bank must also never auto-certify.
+    live = _registry()
+    for qid in [q for q in live.question_ids() if live.lookup(q).status == "draft"]:
+        assert reg.auto_certification_allowed(qid, registry=live) is False
 
 
 def test_blocked_question_never_auto_certifies():
@@ -125,9 +146,29 @@ def test_blocked_question_never_auto_certifies():
 
 
 def test_zero_auto_without_high_risk_stays_draft():
-    # Q20 has 0 auto-certifiable points but no high_risk_review point -> draft, not blocked.
-    r = _registry()
-    assert r.lookup("Q20-1A413000").status == "draft"
+    # 0 auto-certifiable points without a high_risk_review point -> draft, not blocked.
+    # (Q20 used to pin this case but its declared total mismatches its point sum,
+    # so the score-sum gate now correctly blocks it; a synthetic artifact pins the rule.)
+    synthetic = {
+        "question_id": "QD-SYNTH-DRAFT",
+        "version_id": "qga_v0_synth",
+        "status": "draft",
+        "scoring_points": [
+            {
+                "point_id": "P1",
+                "label": "x",
+                "max_score": 2.0,
+                "policy_type": "qualitative",
+                "auto_certifiable": False,
+                "source_status": "missing",
+            }
+        ],
+        "quality_gates": {"auto_certifiable_point_count": 0, "blocked_reasons": []},
+    }
+    r = reg.QuestionGradingRegistry([synthetic])
+    assert r.lookup("QD-SYNTH-DRAFT").status == "draft"
+    # And the genuine mismatch case stays blocked, never draft.
+    assert _registry().lookup("Q20-1A413000").status == "blocked"
 
 
 def test_per_point_auto_certification_respects_point_flag():

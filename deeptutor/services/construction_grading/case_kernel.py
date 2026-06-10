@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import logging
 import re
+from collections.abc import Callable
 from typing import Any
 
 from deeptutor.services.construction_grading.normalization import (
@@ -19,6 +21,7 @@ from deeptutor.services.construction_grading.schema import (
 
 _VAGUE_PHRASES = ("加强管理", "加强现场管理", "严格检查", "注意安全", "落实责任", "提高意识")
 _OVERBROAD_GRADING_KEYWORDS = {"原则", "材料"}
+logger = logging.getLogger(__name__)
 
 
 class CaseGradingSkillKernel:
@@ -31,6 +34,9 @@ class CaseGradingSkillKernel:
         user_answer: str,
         evidence_rows: list[dict[str, Any]] | None = None,
         grading_key: dict[str, Any] | None = None,
+        artifact_shadow: bool = False,
+        grading_artifact: dict[str, Any] | None = None,
+        artifact_judge_fn: Callable[[dict[str, Any], str], dict[str, Any]] | None = None,
     ) -> CaseGradingResult:
         """Grade a case-type submission.
 
@@ -125,7 +131,7 @@ class CaseGradingSkillKernel:
         score_awarded = sum(item.awarded_score for item in item_results)
         max_score = sum(item.max_score for item in item_results)
         rewrite = _build_rewrite_answer(item_results)
-        return CaseGradingResult(
+        result = CaseGradingResult(
             question_id=str(row.get("id") or row.get("original_id") or row.get("question_id") or "").strip(),
             grading_mode=mode,
             score_awarded=score_awarded,
@@ -144,6 +150,100 @@ class CaseGradingSkillKernel:
                 "penalty_rules_applied": applied_penalties,
             },
         )
+        try:
+            shadow = _build_m35_artifact_shadow(
+                enabled=artifact_shadow,
+                question_id=result.question_id,
+                student_answer=answer_text,
+                artifact=grading_artifact,
+                judge_fn=artifact_judge_fn,
+            )
+        except Exception as exc:  # noqa: BLE001 - shadow must never break legacy grading.
+            logger.debug("M35 artifact shadow skipped: %s", exc, exc_info=True)
+            shadow = None
+        if shadow:
+            return _with_m35_artifact_shadow(result, shadow)
+        return result
+
+
+class _CaseGradingResultWithM35Shadow(CaseGradingResult):
+    def to_dict(self) -> dict[str, Any]:
+        payload = super().to_dict()
+        payload["luban_m35_artifact_shadow"] = dict(self._luban_m35_artifact_shadow)
+        return payload
+
+
+def _with_m35_artifact_shadow(
+    result: CaseGradingResult,
+    shadow: dict[str, Any],
+) -> CaseGradingResult:
+    wrapped = _CaseGradingResultWithM35Shadow(
+        question_id=result.question_id,
+        grading_mode=result.grading_mode,
+        score_awarded=result.score_awarded,
+        max_score=result.max_score,
+        rubric_items=result.rubric_items,
+        evidence_refs=result.evidence_refs,
+        error_events=result.error_events,
+        rewrite_answer=result.rewrite_answer,
+        next_training_signal=result.next_training_signal,
+    )
+    object.__setattr__(wrapped, "_luban_m35_artifact_shadow", shadow)
+    return wrapped
+
+
+def _build_m35_artifact_shadow(
+    *,
+    enabled: bool,
+    question_id: str,
+    student_answer: str,
+    artifact: dict[str, Any] | None,
+    judge_fn: Callable[[dict[str, Any], str], dict[str, Any]] | None,
+) -> dict[str, Any] | None:
+    if not enabled or not isinstance(artifact, dict) or artifact.get("artifact_missing") or judge_fn is None:
+        return None
+
+    from deeptutor.services.construction_grading import rubric_grader_v1
+    from deeptutor.services.construction_grading.m35_status import (
+        m35_kill_switch_active,
+        m35_runtime_status_from_v0,
+    )
+
+    if m35_kill_switch_active():
+        return None
+
+    status_map = m35_runtime_status_from_v0(artifact)
+    quality_gates = artifact.get("quality_gates") if isinstance(artifact.get("quality_gates"), dict) else {}
+    if _m35_artifact_shadow_blocked(status_map=status_map, quality_gates=quality_gates):
+        return None
+    event = rubric_grader_v1.grade_artifact_shadow(
+        qid=question_id,
+        student_answer=student_answer,
+        artifact=artifact,
+        judge_fn=judge_fn,
+    )
+    if not event:
+        return None
+    return {
+        "artifact_version": artifact.get("version_id"),
+        "legacy_artifact_status": status_map["legacy_artifact_status"],
+        "m35_runtime_status": status_map["m35_runtime_status"],
+        "point_matches": [dict(point) for point in list(event.get("point_matches") or [])],
+        "official_score_allowed": bool(status_map["official_score_allowed"]),
+        "source_validity": quality_gates.get("source_refs_verified_rate"),
+    }
+
+
+def _m35_artifact_shadow_blocked(
+    *,
+    status_map: dict[str, Any],
+    quality_gates: dict[str, Any],
+) -> bool:
+    from deeptutor.services.construction_grading.m35_status import (
+        m35_artifact_shadow_blocked,
+    )
+
+    return m35_artifact_shadow_blocked(status_map=status_map, quality_gates=quality_gates)
 
 
 def _question_evidence_refs(row: dict[str, Any]) -> list[EvidenceRef]:

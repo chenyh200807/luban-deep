@@ -411,3 +411,53 @@ def test_writeback_persists_prescription_verification_payload() -> None:
         "score_ratio": 1.0,
         "verified_at": "2026-05-22T10:00:00+08:00",
     }
+
+
+def test_writeback_preserves_m35_point_evidence_without_canonical_truth() -> None:
+    service = _FakeLearnerStateService()
+
+    count = write_grading_error_events(
+        learner_state_service=service,
+        user_id="student-1",
+        source_id="turn-m35-q1",
+        source_bot_id="construction-exam",
+        grading_result={
+            "type": "case",
+            "question_id": "Q1-NA",
+            "score_awarded": 6,
+            "max_score": 10,
+            "error_events": [{"error_code": "E02", "concept_tag": "1A432000"}],
+            "next_training_signal": {"concept": "1A432000", "focus": "专项方案审批"},
+            "rubric": {
+                "artifact_version": "m35_case_scoring_20260609",
+                "rubric_mode": "curated_rubric",
+                "scoring_points": [
+                    {"point_id": "Q1-NA::P2", "label": "专项方案审批", "max_score": 2},
+                ],
+                "scoring_point_hits": [
+                    {
+                        "point_id": "Q1-NA::P2",
+                        "hit": False,
+                        "awarded_score": 0,
+                        "error_code": "E02",
+                        "mistake_type": "omitted",
+                        "evidence_span": "",
+                        "source_ref_ids": ["2026_case_set_x#p2"],
+                        "high_risk_review": True,
+                    },
+                ],
+            },
+        },
+    )
+
+    assert count == 1
+    payload = service.calls[0]["payload_json"]
+    assert payload["rubric"]["artifact_version"] == "m35_case_scoring_20260609"
+    hit = payload["rubric"]["scoring_point_hits"][0]
+    assert hit["point_id"] == "Q1-NA::P2"
+    assert hit["match_status"] == "miss"
+    assert hit["awarded_score"] == 0
+    assert hit["mistake_type"] == "omitted"
+    assert hit["source_ref_ids"] == ["2026_case_set_x#p2"]
+    assert hit["high_risk_review"] is True
+    assert payload["canonical_truth_written"] is False

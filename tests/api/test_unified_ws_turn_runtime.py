@@ -6515,6 +6515,83 @@ async def test_turn_runtime_bootstraps_interaction_hints_as_soft_system_guidance
 
 
 @pytest.mark.asyncio
+async def test_turn_runtime_allows_m35_artifact_shadow_flags_as_runtime_only_config(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "m35_runtime_only.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, object] = {}
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def handle(self, context):
+            captured["config_overrides"] = dict(context.config_overrides)
+            captured["metadata"] = dict(context.metadata)
+            yield StreamEvent(
+                type=StreamEventType.CONTENT,
+                source="deep_question",
+                stage="responding",
+                content="已进入 M35 shadow drill。",
+                metadata={"call_kind": "llm_final_response"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="deep_question")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "提交案例题答案",
+            "session_id": None,
+            "capability": "deep_question",
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "grading_engine_m35_artifact_shadow": True,
+            },
+        }
+    )
+
+    async def _collect_events() -> list[dict[str, object]]:
+        events: list[dict[str, object]] = []
+        async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+            events.append(event)
+        return events
+
+    events = await asyncio.wait_for(_collect_events(), timeout=5)
+
+    assert _event_types_without_progress(events) == ["session", "content", "done"]
+    config = captured["config_overrides"]
+    assert config["grading_engine_m35_artifact_shadow"] is True
+    metadata = captured["metadata"]
+    assert metadata["context_route"] == "general_learning_query"
+
+
+@pytest.mark.asyncio
 async def test_turn_runtime_preserves_current_info_hint_for_mode_selection(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,

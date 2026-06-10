@@ -78,6 +78,172 @@ def test_case_kernel_uses_curated_rubric_when_available() -> None:
     assert result.rubric_items[0].status == "full"
 
 
+def test_case_kernel_shadow_artifact_path_keeps_legacy_score_and_adds_point_matches() -> None:
+    artifact = {
+        "version_id": "qga_v0_20260604",
+        "status": "published",
+        "quality_gates": {"source_refs_verified_rate": 1.0},
+        "scoring_points": [
+            {
+                "point_id": "P1",
+                "label": "应组织专家论证",
+                "max_score": 2,
+                "policy_type": "semantic_allowed",
+                "required_terms": ["专家论证"],
+            },
+            {
+                "point_id": "P2",
+                "label": "应进行安全技术交底",
+                "max_score": 1,
+                "policy_type": "exact_required",
+                "required_terms": ["安全技术交底"],
+            },
+        ],
+    }
+    result = CaseGradingSkillKernel().grade(
+        question_row={"id": "Q1-NA", "node_code": "1A432000"},
+        user_answer="需要组织专家论证，并进行安全技术交底。",
+        grading_key={
+            "scoring_points": [
+                {"criterion": "专家论证", "keywords": ["专家论证"], "score": 1},
+            ]
+        },
+        artifact_shadow=True,
+        grading_artifact=artifact,
+        artifact_judge_fn=lambda point, answer: {"status": "hit", "evidence_span": answer}
+        if point["point_id"] in {"P1", "P2"}
+        else {"status": "miss"},
+    ).to_dict()
+
+    assert result["score_awarded"] == 1
+    assert result["rubric_items"][0]["criterion"] == "专家论证"
+    shadow = result["luban_m35_artifact_shadow"]
+    assert shadow["artifact_version"] == "qga_v0_20260604"
+    assert shadow["legacy_artifact_status"] == "published"
+    assert shadow["m35_runtime_status"] == "release_candidate"
+    assert shadow["point_matches"]
+    assert shadow["point_matches"][0]["point_id"] == "P1"
+    assert shadow["official_score_allowed"] is False
+    assert shadow["source_validity"] == 1.0
+
+
+def test_case_kernel_shadow_artifact_missing_falls_back_to_legacy_only() -> None:
+    result = CaseGradingSkillKernel().grade(
+        question_row={"id": "Q-missing", "node_code": "1A432000"},
+        user_answer="需要组织专家论证。",
+        grading_key={
+            "scoring_points": [
+                {"criterion": "专家论证", "keywords": ["专家论证"], "score": 1},
+            ]
+        },
+        artifact_shadow=True,
+        grading_artifact={"artifact_missing": True, "case_id": "Q-missing"},
+        artifact_judge_fn=lambda _point, _answer: {"status": "hit"},
+    ).to_dict()
+
+    assert result["score_awarded"] == 1
+    assert result["max_score"] == 1
+    assert "luban_m35_artifact_shadow" not in result
+
+
+def test_case_kernel_shadow_failure_falls_back_to_legacy_only() -> None:
+    def broken_judge(_point: dict[str, object], _answer: str) -> dict[str, object]:
+        raise RuntimeError("judge unavailable")
+
+    result = CaseGradingSkillKernel().grade(
+        question_row={"id": "Q-fail-closed", "node_code": "1A432000"},
+        user_answer="需要组织专家论证。",
+        grading_key={
+            "scoring_points": [
+                {"criterion": "专家论证", "keywords": ["专家论证"], "score": 1},
+            ]
+        },
+        artifact_shadow=True,
+        grading_artifact={
+            "version_id": "qga_v0_20260604",
+            "status": "published",
+            "scoring_points": [
+                {
+                    "point_id": "P1",
+                    "label": "应组织专家论证",
+                    "max_score": 1,
+                    "policy_type": "semantic_allowed",
+                }
+            ],
+        },
+        artifact_judge_fn=broken_judge,
+    ).to_dict()
+
+    assert result["score_awarded"] == 1
+    assert "luban_m35_artifact_shadow" not in result
+
+
+def test_case_kernel_blocked_or_polluted_artifact_falls_back_to_legacy_only() -> None:
+    result = CaseGradingSkillKernel().grade(
+        question_row={"id": "Q-blocked", "node_code": "1A432000"},
+        user_answer="需要组织专家论证。",
+        grading_key={
+            "scoring_points": [
+                {"criterion": "专家论证", "keywords": ["专家论证"], "score": 1},
+            ]
+        },
+        artifact_shadow=True,
+        grading_artifact={
+            "version_id": "qga_v0_20260604",
+            "status": "blocked",
+            "quality_gates": {
+                "score_sum_ok": False,
+                "source_pollution_count": 1,
+                "blocked_reasons": ["source_pollution"],
+            },
+            "scoring_points": [
+                {
+                    "point_id": "P1",
+                    "label": "应组织专家论证",
+                    "max_score": 1,
+                    "policy_type": "semantic_allowed",
+                }
+            ],
+        },
+        artifact_judge_fn=lambda _point, _answer: {"status": "hit"},
+    ).to_dict()
+
+    assert result["score_awarded"] == 1
+    assert "luban_m35_artifact_shadow" not in result
+
+
+def test_case_kernel_shadow_off_never_calls_artifact_judge() -> None:
+    def forbidden_judge(_point: dict[str, object], _answer: str) -> dict[str, object]:
+        raise AssertionError("shadow judge should not run when artifact_shadow is false")
+
+    result = CaseGradingSkillKernel().grade(
+        question_row={"id": "Q-shadow-off", "node_code": "1A432000"},
+        user_answer="需要组织专家论证。",
+        grading_key={
+            "scoring_points": [
+                {"criterion": "专家论证", "keywords": ["专家论证"], "score": 1},
+            ]
+        },
+        artifact_shadow=False,
+        grading_artifact={
+            "version_id": "qga_v0_20260604",
+            "status": "published",
+            "scoring_points": [
+                {
+                    "point_id": "P1",
+                    "label": "应组织专家论证",
+                    "max_score": 1,
+                    "policy_type": "semantic_allowed",
+                }
+            ],
+        },
+        artifact_judge_fn=forbidden_judge,
+    ).to_dict()
+
+    assert result["score_awarded"] == 1
+    assert "luban_m35_artifact_shadow" not in result
+
+
 def test_case_kernel_demotes_drifted_grading_keywords_to_answer_authority() -> None:
     row = {
         "id": 9006,
@@ -331,3 +497,26 @@ def test_grading_key_answer_label_prevents_fill_blank_cross_match() -> None:
 
     assert result.score_awarded == 0
     assert [item.status for item in result.rubric_items] == ["miss", "miss"]
+
+
+def test_kernel_shadow_respects_env_kill_switch(monkeypatch):
+    from deeptutor.services.construction_grading.case_kernel import (
+        _build_m35_artifact_shadow,
+    )
+
+    monkeypatch.setenv("LUBAN_M35_ARTIFACT_SHADOW_ENABLED", "false")
+    shadow = _build_m35_artifact_shadow(
+        enabled=True,
+        question_id="Q1-NA",
+        student_answer="需要组织专家论证",
+        artifact={
+            "version_id": "qga_v0_test",
+            "status": "published",
+            "quality_gates": {"score_sum_ok": True, "source_pollution_count": 0},
+            "scoring_points": [
+                {"point_id": "P1", "label": "x", "max_score": 1.0, "policy_type": "qualitative"}
+            ],
+        },
+        judge_fn=lambda *_a, **_k: {"status": "hit", "partial_ratio": 1.0},
+    )
+    assert shadow is None

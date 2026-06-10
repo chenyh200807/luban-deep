@@ -46,10 +46,16 @@ def validate_rubric(rubric: dict[str, Any]) -> dict[str, Any]:
         if score <= 0:
             return {"ok": False, "reason": f"nonpositive_score_at_{i}", "normalized": None}
         ssum += score
+        negative_evidence = [
+            str(item).strip()
+            for item in (p.get("negative_evidence") or [])
+            if str(item).strip()
+        ]
         norm_points.append({
             "point_id": str(p.get("point_id") or f"SP{i}"),
             "text": text, "score": score, "policy": policy,
             "required_terms": [str(t) for t in (p.get("required_terms") or []) if str(t).strip()],
+            "negative_evidence": negative_evidence,
         })
     # HARD GATE: the score split must reconstruct the official total — this is what makes "2 or 3 points"
     # a deterministic sum, not an LLM guess.

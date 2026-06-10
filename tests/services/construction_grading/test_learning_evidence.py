@@ -364,3 +364,100 @@ def test_learning_evidence_attaches_canonical_topic_before_code_fallback() -> No
 
     assert payload["canonical_topic"]["label"] == "施工临时用电"
     assert payload["canonical_topic"]["taxonomy_code"] == "1A431050"
+def test_learning_evidence_carries_m35_artifact_version_and_point_matches() -> None:
+    payload = build_learning_evidence_payload(
+        grading_result={
+            "type": "case",
+            "question_id": "Q1-NA",
+            "score_awarded": 6,
+            "max_score": 10,
+            "rubric": {
+                "artifact_version": "m35_case_scoring_20260609",
+                "rubric_mode": "curated_rubric",
+                "scoring_points": [
+                    {"point_id": "Q1-NA::P1", "label": "专家论证", "max_score": 2},
+                    {"point_id": "Q1-NA::P2", "label": "专项方案审批", "max_score": 2},
+                    {"point_id": "Q1-NA::P3", "label": "安全技术交底", "max_score": 2},
+                ],
+                "scoring_point_hits": [
+                    {
+                        "point_id": "Q1-NA::P1",
+                        "hit": True,
+                        "awarded_score": 2,
+                        "evidence_span": "专家论证",
+                        "source_ref_ids": ["2026_case_set_x#p1"],
+                    },
+                    {
+                        "point_id": "Q1-NA::P2",
+                        "hit": "partial",
+                        "awarded_score": 1,
+                        "evidence_span": "编制专项方案",
+                        "error_code": "E02",
+                        "mistake_type": "list_incomplete",
+                        "source_refs": [{"ref_id": "2026_case_set_x#p2", "kind": "exam_reference_answer"}],
+                    },
+                    {
+                        "point_id": "Q1-NA::P3",
+                        "hit": False,
+                        "awarded_score": 0,
+                        "error_code": "E02",
+                        "mistake_type": "omitted",
+                        "evidence_span": "",
+                        "source_ref_ids": ["2026_case_set_x#p3"],
+                        "high_risk_review": True,
+                    },
+                ],
+            },
+        },
+    )
+
+    assert payload["rubric"]["artifact_version"] == "m35_case_scoring_20260609"
+    assert payload["canonical_truth_written"] is False
+    hits = payload["rubric"]["scoring_point_hits"]
+    assert hits[0]["point_id"] == "Q1-NA::P1"
+    assert hits[0]["match_status"] == "hit"
+    assert hits[0]["source_ref_ids"] == ["2026_case_set_x#p1"]
+    assert hits[1]["match_status"] == "partial"
+    assert hits[1]["awarded_score"] == 1
+    assert hits[1]["evidence_span"] == "编制专项方案"
+    assert hits[1]["miss_reason"] == "list_incomplete"
+    assert hits[1]["mistake_type"] == "list_incomplete"
+    assert hits[1]["source_ref_ids"] == ["2026_case_set_x#p2"]
+    assert hits[2]["match_status"] == "miss"
+    assert hits[2]["evidence_span"] == ""
+    assert hits[2]["high_risk_review"] is True
+
+
+def test_non_m35_certified_artifact_version_is_not_force_clamped_to_preview() -> None:
+    payload = build_learning_evidence_payload(
+        grading_result={
+            "type": "case",
+            "question_id": "case-1",
+            "score_awarded": 1,
+            "max_score": 1,
+            "rubric": {
+                "artifact_version": "certified_policy_case_v1",
+                "rubric_mode": "curated_rubric",
+            },
+            "error_events": [{"error_code": "E02", "concept_tag": "1A432000"}],
+            "next_training_signal": {
+                "concept": "1A432000",
+                "certified_grading_policy": {
+                    "status": "published",
+                    "policy_id": "policy-case-v1",
+                    "rubric_hash": "sha256:rubric",
+                    "grader_version": "rubric-grader-v1",
+                    "confidence": 0.93,
+                    "conflict_status": "resolved",
+                },
+            },
+        },
+    )
+
+    assert payload["rubric"]["artifact_version"] == "certified_policy_case_v1"
+    # Not an M35 artifact: the M35 preview clamp must NOT force these keys on.
+    assert "preview_only" not in payload
+    assert "claim_promotion_allowed" not in payload
+    # Client-supplied certified policy without a governed release authority stamp
+    # stays formative evidence (main's trusted-adjudication hardening).
+    assert payload["quality"]["evidence_level"] == "L0_observed"

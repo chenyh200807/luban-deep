@@ -28,7 +28,19 @@ def test_real_answer_pilot_generates_best_quality_drafts() -> None:
     assert len(out["ai_draft_outputs"]) == 5
     assert {case["answer_type"] for case in out["pilot_cases"]} == {"existing_fixture"}
     assert all(draft["engine"] == "best_quality_4model" for draft in out["ai_draft_outputs"])
-    assert all(case["artifact_status"] in {"published", "draft"} for case in out["pilot_cases"])
+    # Q20 carries a genuine declared-total/point-sum mismatch, so the score-sum gate
+    # correctly reports it as blocked; the pilot still routes it to teacher review,
+    # but a blocked artifact must never auto-certify any score.
+    assert all(
+        case["artifact_status"] in {"published", "draft", "blocked"}
+        for case in out["pilot_cases"]
+    )
+    blocked_case_ids = {
+        case["case_id"] for case in out["pilot_cases"] if case["artifact_status"] == "blocked"
+    }
+    for draft in out["ai_draft_outputs"]:
+        if draft["case_id"] in blocked_case_ids:
+            assert draft["auto_certified_score"] == 0
 
 
 def test_artifact_missing_sample_is_not_auto_certified() -> None:

@@ -18,6 +18,26 @@ def test_valid_rubric_passes_score_sum_gate():
     assert v["ok"] and len(v["normalized"]["scoring_points"]) == 3
 
 
+def test_validate_rubric_accepts_negative_evidence_list():
+    rubric = {
+        "qid": "QX",
+        "total_score": 2,
+        "scoring_points": [
+            {
+                "point_id": "P1",
+                "text": "写明总时差不影响总工期",
+                "score": 2,
+                "policy": "qualitative",
+                "required_terms": ["总时差"],
+                "negative_evidence": ["水泥代号", "混凝土强度等级"],
+            }
+        ],
+    }
+    out = RC.validate_rubric(rubric)
+    assert out["ok"] is True
+    assert out["normalized"]["scoring_points"][0]["negative_evidence"] == ["水泥代号", "混凝土强度等级"]
+
+
 def test_score_sum_mismatch_rejected():
     r = _rubric([("a", 2, "list", []), ("b", 2, "list", [])], total=7)  # 4 != 7
     v = RC.validate_rubric(r)
