@@ -332,14 +332,16 @@ def test_fewer_than_five_judge_models_is_rejected(tmp_path):
         )
 
 
-def test_live_adapter_factory_is_an_unimplemented_double_opt_in_stub():
+def test_live_adapter_factory_keeps_double_opt_in_and_demands_prerequisites():
     from scripts.run_luban_m35_ai_governed_gold_labeling import build_live_judge_fns
 
     with pytest.raises(PermissionError):
         build_live_judge_fns(cli_live_flag=False, env={"LUBAN_M35_GOLD_LABELING_LIVE": "1"})
     with pytest.raises(PermissionError):
         build_live_judge_fns(cli_live_flag=True, env={})
-    with pytest.raises(NotImplementedError):
+    # Explicit env is the complete environment (no os.environ / .env leakage):
+    # a missing DASHSCOPE_API_KEY must abort regardless of local key files.
+    with pytest.raises(RuntimeError, match="DASHSCOPE_API_KEY"):
         build_live_judge_fns(
             cli_live_flag=True,
             env={"LUBAN_M35_GOLD_LABELING_LIVE": "1", "DEEPSEEK_API_KEY": "test-key-not-real"},
@@ -374,16 +376,20 @@ def test_cli_blocks_without_double_opt_in_and_never_labels(tmp_path):
     assert not (output_dir / "student_answers.jsonl").exists()
 
 
-def test_cli_with_double_opt_in_reports_not_exercised_stub(tmp_path):
+def test_cli_with_double_opt_in_but_missing_prerequisites_blocks_loudly(tmp_path):
     answers_path, manifest_path, _ = _build_slice(tmp_path)
     output_dir = tmp_path / "cli-out-live"
     env = {
         **os.environ,
         "LUBAN_M35_GOLD_LABELING_LIVE": "1",
-        "DEEPSEEK_API_KEY": "test-key-not-real",
+        # Empty keys override any .env fallback; a bare PATH hides the CLI
+        # judges, so prerequisites fail and no provider is ever called.
+        "DEEPSEEK_API_KEY": "",
+        "DASHSCOPE_API_KEY": "",
+        "PATH": "/usr/bin:/bin",
     }
 
-    subprocess.run(
+    proc = subprocess.run(
         [
             sys.executable,
             str(SCRIPT),
@@ -395,16 +401,124 @@ def test_cli_with_double_opt_in_reports_not_exercised_stub(tmp_path):
             str(output_dir),
             "--live",
         ],
-        check=True,
+        check=False,
         cwd=REPO,
         env=env,
     )
 
+    assert proc.returncode == 2
     report = json.loads((output_dir / "live_gate_report.json").read_text(encoding="utf-8"))
     assert report["labeling_run"] is False
-    assert report["live"]["status"] == "not_exercised_live_adapter_not_implemented"
-    assert "DEEPSEEK_API_KEY" in report["live"]["api_key_envs_present"]
+    assert report["live"]["status"] == "blocked_live_prerequisites_missing"
     assert not (output_dir / "student_answers.jsonl").exists()
+
+
+def _abstain_judge(point: dict, student_answer: str, official_anchor: dict) -> dict:
+    return {
+        "verdict": "abstain",
+        "evidence_span": "",
+        "confidence": 0.0,
+        "abstain_reason": "stub_timeout",
+    }
+
+
+def test_single_panel_abstention_is_recorded_and_never_counts_as_accept(tmp_path):
+    judges = {
+        "stub-judge-1": _term_judge,
+        "stub-judge-2": _abstain_judge,
+        "stub-judge-3": _term_judge,
+        "stub-judge-4": _term_judge,
+        "stub-judge-5": _term_judge,
+    }
+    _, rows, manifest, _, _ = _run(tmp_path, judges)
+
+    for row in rows:
+        # Remaining 2 panel votes + arbiter = 3 independent accepts -> still gold.
+        assert row["label_authority"] == "ai_governed_gold"
+        votes = {vote["model_id"]: vote["verdict"] for vote in row["ai_governed_gold"]["blind_model_votes"]}
+        assert votes["stub-judge-2"] == "abstain"
+        accepts = [model for model, verdict in votes.items() if verdict == "accept"]
+        assert sorted(accepts) == ["stub-judge-1", "stub-judge-3", "stub-judge-4"]
+        assert validate_ai_governed_gold_protocol(row["ai_governed_gold"])["valid"] is True
+    # Abstaining points carry incomplete panels and are excluded from kappa.
+    assert manifest["fleiss_kappa"] is None
+    assert manifest["kappa_item_count"] == 0
+    assert manifest["kappa_items_excluded_for_abstention"] > 0
+
+
+def test_all_panel_abstain_leaves_arbiter_alone_and_downgrades(tmp_path):
+    judges = {
+        "stub-judge-1": _abstain_judge,
+        "stub-judge-2": _abstain_judge,
+        "stub-judge-3": _abstain_judge,
+        "stub-judge-4": _term_judge,
+        "stub-judge-5": _term_judge,
+    }
+    _, rows, manifest, _, _ = _run(tmp_path, judges)
+
+    for row in rows:
+        assert row["label_authority"] == "ai_council_directional"
+        assert "insufficient_independent_blind_accepts" in row["downgrade_reasons"]
+        for provenance in row["point_label_provenance"]:
+            assert provenance["route"] == "arbitration"
+    assert manifest["gold_row_count"] == 0
+
+
+def test_arbiter_abstention_on_split_yields_unadjudicated_downgrade(tmp_path):
+    judges = {
+        "stub-judge-1": _verdict_judge("hit"),
+        "stub-judge-2": _verdict_judge("partial"),
+        "stub-judge-3": _verdict_judge("miss"),
+        "stub-judge-4": _abstain_judge,
+        "stub-judge-5": _term_judge,
+    }
+    _, rows, manifest, _, _ = _run(tmp_path, judges)
+
+    for row in rows:
+        assert row["label_authority"] == "ai_council_directional"
+        assert "unadjudicated_point_due_to_abstention" in row["downgrade_reasons"]
+        for provenance in row["point_label_provenance"]:
+            assert provenance["route"] == "arbitration_unresolved"
+            assert provenance["consolidated_verdict"] == "unadjudicated"
+        for match in row["gold_point_matches"]:
+            assert match["status"] == "unadjudicated"
+            assert match["awarded_score"] == 0.0
+    assert manifest["gold_row_count"] == 0
+
+
+def test_prosecutor_abstention_downgrades_row(tmp_path):
+    judges = {
+        "stub-judge-1": _term_judge,
+        "stub-judge-2": _term_judge,
+        "stub-judge-3": _term_judge,
+        "stub-judge-4": _term_judge,
+        "stub-judge-5": _abstain_judge,
+    }
+    _, rows, manifest, _, _ = _run(tmp_path, judges)
+
+    for row in rows:
+        assert row["label_authority"] == "ai_council_directional"
+        assert "adversarial_prosecutor_abstained" in row["downgrade_reasons"]
+        assert row["adversarial_review"]["abstained_point_count"] >= 1
+    assert manifest["gold_row_count"] == 0
+
+
+def test_question_ids_filter_and_row_workers_parallelism(tmp_path):
+    from scripts.run_luban_m35_ai_governed_gold_labeling import run_labeling
+
+    answers_path, manifest_path, _ = _build_slice(tmp_path, per_question=2)
+    result = run_labeling(
+        answers_path=answers_path,
+        manifest_path=manifest_path,
+        judge_fns=_stub_judges(),
+        output_dir=tmp_path / "out-filtered",
+        question_ids=("Q2023-01__P02",),
+        row_workers=3,
+    )
+    rows = result["rows"]
+    assert len(rows) == 2
+    assert {row["question_id"] for row in rows} == {"Q2023-01__P02"}
+    assert result["manifest"]["gold_row_count"] == 2
 
 
 def test_pipeline_source_has_no_network_imports():
