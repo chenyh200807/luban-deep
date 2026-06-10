@@ -332,6 +332,63 @@ def test_fewer_than_five_judge_models_is_rejected(tmp_path):
         )
 
 
+def test_explicit_live_roles_pin_the_user_mandated_panel(tmp_path):
+    """2026-06-10 panel: blind = deepseek-chat + fable + qwen-max,
+    arbiter = deepseek-reasoner, prosecutor = opus (gpt-codex benched)."""
+    from scripts.run_luban_m35_ai_governed_gold_labeling import (
+        LIVE_MODEL_ROLES,
+        run_labeling,
+    )
+
+    live_ids = [*LIVE_MODEL_ROLES["blind_panel"], LIVE_MODEL_ROLES["arbiter"],
+                LIVE_MODEL_ROLES["adversarial_prosecutor"]]
+    assert sorted(live_ids) == [
+        "deepseek-chat",
+        "deepseek-reasoner",
+        "fable",
+        "opus",
+        "qwen-max",
+    ]
+    judge_fns = {model_id: _term_judge for model_id in live_ids}
+    answers_path, manifest_path, _ = _build_slice(tmp_path)
+    result = run_labeling(
+        answers_path=answers_path,
+        manifest_path=manifest_path,
+        judge_fns=judge_fns,
+        output_dir=tmp_path / "out-live-roles",
+        explicit_roles=LIVE_MODEL_ROLES,
+    )
+    roles = result["manifest"]["model_roles"]
+    assert roles["blind_panel"] == ["deepseek-chat", "fable", "qwen-max"]
+    assert roles["arbiter"] == "deepseek-reasoner"
+    assert roles["adversarial_prosecutor"] == "opus"
+    assert "gpt-codex" not in json.dumps(roles)
+
+
+def test_explicit_roles_must_cover_exactly_the_judge_set(tmp_path):
+    from scripts.run_luban_m35_ai_governed_gold_labeling import assign_roles
+
+    judge_fns = {f"stub-judge-{index}": _term_judge for index in range(1, 6)}
+    with pytest.raises(ValueError, match="cover exactly"):
+        assign_roles(
+            judge_fns,
+            explicit_roles={
+                "blind_panel": ["stub-judge-1", "stub-judge-2", "stub-judge-3"],
+                "arbiter": "stub-judge-4",
+                "adversarial_prosecutor": "not-a-judge",
+            },
+        )
+    with pytest.raises(ValueError, match="reuse"):
+        assign_roles(
+            judge_fns,
+            explicit_roles={
+                "blind_panel": ["stub-judge-1", "stub-judge-2", "stub-judge-3"],
+                "arbiter": "stub-judge-3",
+                "adversarial_prosecutor": "stub-judge-5",
+            },
+        )
+
+
 def test_live_adapter_factory_keeps_double_opt_in_and_demands_prerequisites():
     from scripts.run_luban_m35_ai_governed_gold_labeling import build_live_judge_fns
 

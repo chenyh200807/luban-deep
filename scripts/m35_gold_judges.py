@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
 """Live judge adapters for the M35 R2 AI-governed gold labeling pipeline.
 
-Five judges across four providers (sorted ids drive role assignment in
-``run_luban_m35_ai_governed_gold_labeling.assign_roles``):
+Five judges across three providers (explicit roles pinned by
+``run_luban_m35_ai_governed_gold_labeling.LIVE_MODEL_ROLES``):
 
-  - ``deepseek-chat`` (DeepSeek HTTP, ``DEEPSEEK_API_KEY``)       -> blind panel
-  - ``fable``         (claude CLI, ``claude-fable-5``)            -> blind panel
-  - ``gpt-codex``     (codex CLI, default codex model)            -> blind panel
-  - ``opus``          (claude CLI, ``claude-opus-4-8``)           -> arbiter
-  - ``qwen-max``      (DashScope compatible-mode HTTP,
-                       ``DASHSCOPE_API_KEY``)                     -> adversarial prosecutor
+  - ``deepseek-chat``     (DeepSeek HTTP, ``DEEPSEEK_API_KEY``)   -> blind panel
+  - ``fable``             (claude CLI, ``claude-fable-5``)        -> blind panel
+  - ``qwen-max``          (DashScope compatible-mode HTTP,
+                           ``DASHSCOPE_API_KEY``)                 -> blind panel
+  - ``deepseek-reasoner`` (DeepSeek HTTP, ``DEEPSEEK_API_KEY``)   -> arbiter
+  - ``opus``              (claude CLI, ``claude-opus-4-8``)       -> adversarial prosecutor
+
+``gpt-codex`` (codex CLI) is benched from the live panel on 2026-06-10: the
+Codex subscription quota is exhausted until the 2026-06-11 08:31 reset (48.7%
+abstain rate in the R2 sample run). Its adapter is kept below so the panel
+can be restored once quota returns.
 
 Every adapter takes ``(scoring_point, student_answer, official_anchor)`` and
 returns ``{"verdict": hit|partial|miss, "evidence_span", "confidence"}``.
@@ -42,12 +47,15 @@ DOTENV_PATH = REPO / ".env"
 JudgeFn = Callable[[dict[str, Any], str, dict[str, Any]], dict[str, Any]]
 
 JUDGE_TIMEOUT_SECONDS = 60
+# deepseek-reasoner emits chain-of-thought before its answer; allow longer.
+REASONER_TIMEOUT_SECONDS = 300
 VALID_VERDICTS = ("hit", "partial", "miss")
 ABSTAIN_VERDICT = "abstain"
 
 DEEPSEEK_DEFAULT_BASE_URL = "https://api.deepseek.com/v1"
 DASHSCOPE_DEFAULT_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
 DEEPSEEK_MODEL = "deepseek-chat"
+DEEPSEEK_REASONER_MODEL = "deepseek-reasoner"
 QWEN_MODEL = "qwen-max"
 CLAUDE_MODELS = {"opus": "claude-opus-4-8", "fable": "claude-fable-5"}
 
@@ -56,6 +64,7 @@ CLAUDE_MODELS = {"opus": "claude-opus-4-8", "fable": "claude-fable-5"}
 # the transport exposes them but no dollar estimate is fabricated.
 PRICING_USD_PER_MTOKEN = {
     "deepseek-chat": {"input": 0.28, "output": 0.42, "basis": "deepseek list price, cache-miss"},
+    "deepseek-reasoner": {"input": 0.28, "output": 0.42, "basis": "deepseek list price, cache-miss"},
     "qwen-max": {"input": 0.33, "output": 1.32, "basis": "dashscope qwen-max CNY2.4/9.6 per 1M at 7.25 CNY/USD"},
 }
 
@@ -369,7 +378,11 @@ def _wrap_judge(
 
 
 def _chat_completions_call(
-    url: str, api_key: str, model: str, prompt: str
+    url: str,
+    api_key: str,
+    model: str,
+    prompt: str,
+    timeout: float = JUDGE_TIMEOUT_SECONDS,
 ) -> tuple[str | None, dict[str, int] | None]:
     body = _http_post_json(
         url,
@@ -381,7 +394,7 @@ def _chat_completions_call(
             "max_tokens": 400,
             "stream": False,
         },
-        JUDGE_TIMEOUT_SECONDS,
+        timeout,
     )
     choices = body.get("choices") or []
     content = None
@@ -402,6 +415,20 @@ def make_deepseek_judge(api_key: str, stats: JudgeStats, base_url: str | None = 
         "deepseek-chat",
         stats,
         lambda prompt: _chat_completions_call(url, api_key, DEEPSEEK_MODEL, prompt),
+    )
+
+
+def make_deepseek_reasoner_judge(
+    api_key: str, stats: JudgeStats, base_url: str | None = None
+) -> JudgeFn:
+    """Same DeepSeek chat-completions transport, reasoner model + longer timeout."""
+    url = f"{(base_url or DEEPSEEK_DEFAULT_BASE_URL).rstrip('/')}/chat/completions"
+    return _wrap_judge(
+        "deepseek-reasoner",
+        stats,
+        lambda prompt: _chat_completions_call(
+            url, api_key, DEEPSEEK_REASONER_MODEL, prompt, timeout=REASONER_TIMEOUT_SECONDS
+        ),
     )
 
 
@@ -514,8 +541,6 @@ def build_live_judges(
         missing.append("DEEPSEEK_API_KEY")
     if not dashscope_key:
         missing.append("DASHSCOPE_API_KEY")
-    if not shutil.which("codex"):
-        missing.append("codex binary on PATH")
     if not shutil.which("claude"):
         missing.append("claude binary on PATH")
     if missing:
@@ -528,10 +553,12 @@ def build_live_judges(
         "deepseek-chat": make_deepseek_judge(
             deepseek_key, stats, base_url=key_of("DEEPSEEK_BASE_URL") or None
         ),
+        "deepseek-reasoner": make_deepseek_reasoner_judge(
+            deepseek_key, stats, base_url=key_of("DEEPSEEK_BASE_URL") or None
+        ),
         "qwen-max": make_qwen_judge(
             dashscope_key, stats, base_url=key_of("DASHSCOPE_BASE_URL") or None
         ),
-        "gpt-codex": make_codex_judge(stats),
         "opus": make_claude_judge("opus", CLAUDE_MODELS["opus"], stats),
         "fable": make_claude_judge("fable", CLAUDE_MODELS["fable"], stats),
     }
