@@ -55,6 +55,13 @@ SCHEMA_VERSION = "luban_m35_ai_governed_gold_labeling.v1"
 DEFAULT_FIXTURE_DIR = REPO / "tests/fixtures/luban_m35_fastapi_case_subquestions_20q_100a"
 DOWNGRADE_LABEL_AUTHORITY = "ai_council_directional"
 MIN_JUDGE_MODELS = 5
+# Explicit live panel (2026-06-10): gpt-codex is benched until the Codex
+# quota reset (2026-06-11 08:31), so roles cannot follow sorted-id order.
+LIVE_MODEL_ROLES: dict[str, Any] = {
+    "blind_panel": ["deepseek-chat", "fable", "qwen-max"],
+    "arbiter": "deepseek-reasoner",
+    "adversarial_prosecutor": "opus",
+}
 MIN_INDEPENDENT_ACCEPTS = 3
 KAPPA_STOP_THRESHOLD = 0.6
 MUTATION_PASS_RATE_STOP_THRESHOLD = 0.8
@@ -121,7 +128,9 @@ def _read_jsonl(path: Path) -> list[dict[str, Any]]:
     ]
 
 
-def assign_roles(judge_fns: Mapping[str, JudgeFn]) -> dict[str, Any]:
+def assign_roles(
+    judge_fns: Mapping[str, JudgeFn], explicit_roles: Mapping[str, Any] | None = None
+) -> dict[str, Any]:
     model_ids = sorted(str(model_id).strip() for model_id in judge_fns)
     if any(not model_id for model_id in model_ids) or len(model_ids) != len(set(model_ids)):
         raise ValueError("judge_fns requires unique non-empty model ids")
@@ -130,10 +139,29 @@ def assign_roles(judge_fns: Mapping[str, JudgeFn]) -> dict[str, Any]:
             f"ai-governed gold labeling requires >={MIN_JUDGE_MODELS} judge models "
             "(>=3 blind panel + arbiter + adversarial prosecutor)"
         )
+    if explicit_roles is None:
+        return {
+            "blind_panel": model_ids[:-2],
+            "arbiter": model_ids[-2],
+            "adversarial_prosecutor": model_ids[-1],
+        }
+    blind_panel = [str(model_id) for model_id in explicit_roles.get("blind_panel") or []]
+    arbiter = str(explicit_roles.get("arbiter") or "")
+    prosecutor = str(explicit_roles.get("adversarial_prosecutor") or "")
+    assigned = [*blind_panel, arbiter, prosecutor]
+    if len(blind_panel) < 3:
+        raise ValueError("explicit roles require a blind panel of >=3 models")
+    if len(assigned) != len(set(assigned)):
+        raise ValueError("explicit roles must not reuse a model across roles")
+    if set(assigned) != set(model_ids):
+        raise ValueError(
+            "explicit roles must cover exactly the provided judge models; "
+            f"roles={sorted(assigned)} judges={model_ids}"
+        )
     return {
-        "blind_panel": model_ids[:-2],
-        "arbiter": model_ids[-2],
-        "adversarial_prosecutor": model_ids[-1],
+        "blind_panel": sorted(blind_panel),
+        "arbiter": arbiter,
+        "adversarial_prosecutor": prosecutor,
     }
 
 
@@ -639,8 +667,9 @@ def run_labeling(
     limit: int = 0,
     question_ids: tuple[str, ...] | None = None,
     row_workers: int = 1,
+    explicit_roles: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    roles = assign_roles(judge_fns)
+    roles = assign_roles(judge_fns, explicit_roles=explicit_roles)
     rows = _read_jsonl(Path(answers_path))
     if question_ids:
         wanted = {str(question_id) for question_id in question_ids}
@@ -862,6 +891,7 @@ def main() -> int:
         limit=args.limit,
         question_ids=question_ids or None,
         row_workers=args.row_workers,
+        explicit_roles=LIVE_MODEL_ROLES,
     )
     stats_snapshot = stats.snapshot()
     manifest = _patch_manifest_provider_calls(result["manifest"], stats_snapshot)

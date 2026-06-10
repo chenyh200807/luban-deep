@@ -19,6 +19,7 @@ from scripts.m35_gold_judges import (
     make_claude_judge,
     make_codex_judge,
     make_deepseek_judge,
+    make_deepseek_reasoner_judge,
     make_qwen_judge,
     parse_codex_jsonl,
     parse_judge_output,
@@ -167,6 +168,24 @@ def test_deepseek_judge_parses_verdict_and_records_usage(monkeypatch):
     assert snap["abstains"] == 0
     assert snap["prompt_tokens"] == 100
     assert snap["completion_tokens"] == 20
+    assert snap["estimated_cost_usd"] is not None and snap["estimated_cost_usd"] > 0
+
+
+def test_deepseek_reasoner_judge_uses_reasoner_model_and_longer_timeout(monkeypatch):
+    calls = []
+
+    def fake_post(url, headers, payload, timeout):
+        calls.append((url, payload["model"], timeout))
+        return _chat_body(GOOD_JSON, {"prompt_tokens": 80, "completion_tokens": 30, "total_tokens": 110})
+
+    monkeypatch.setattr(judges, "_http_post_json", fake_post)
+    stats = JudgeStats()
+    vote = make_deepseek_reasoner_judge("sk-test", stats)(POINT, ANSWER, ANCHOR)
+    assert vote["verdict"] == "hit"
+    assert calls[0][1] == "deepseek-reasoner"
+    assert calls[0][2] == judges.REASONER_TIMEOUT_SECONDS
+    snap = stats.snapshot()["deepseek-reasoner"]
+    assert snap["calls"] == 1
     assert snap["estimated_cost_usd"] is not None and snap["estimated_cost_usd"] > 0
 
 
@@ -360,8 +379,9 @@ def test_build_live_judges_requires_all_prerequisites(monkeypatch):
     message = str(exc_info.value)
     assert "DEEPSEEK_API_KEY" in message
     assert "DASHSCOPE_API_KEY" in message
-    assert "codex" in message
     assert "claude" in message
+    # gpt-codex is benched (quota until 2026-06-11 08:31): not a prerequisite.
+    assert "codex" not in message
 
 
 def test_build_live_judges_returns_five_judges_and_stats(monkeypatch):
@@ -369,7 +389,13 @@ def test_build_live_judges_returns_five_judges_and_stats(monkeypatch):
     judge_fns, stats = build_live_judges(
         env={"DEEPSEEK_API_KEY": "sk-d", "DASHSCOPE_API_KEY": "sk-q"}
     )
-    assert sorted(judge_fns) == ["deepseek-chat", "fable", "gpt-codex", "opus", "qwen-max"]
+    assert sorted(judge_fns) == [
+        "deepseek-chat",
+        "deepseek-reasoner",
+        "fable",
+        "opus",
+        "qwen-max",
+    ]
     assert all(callable(fn) for fn in judge_fns.values())
     assert isinstance(stats, JudgeStats)
 
