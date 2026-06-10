@@ -165,7 +165,8 @@ function rawRequest(opts) {
   var noAuth = opts.noAuth || false;
   var retryCount = opts._retryCount || 0;
   var baseIndex = opts._baseIndex || 0;
-  var baseCandidates = opts._baseCandidates ||
+  var baseCandidates =
+    opts._baseCandidates ||
     endpoints.getBaseUrlCandidates(useGateway, opts.baseUrl);
 
   var baseUrl = baseCandidates[baseIndex] || getBaseUrl(useGateway);
@@ -415,7 +416,9 @@ function getLearningBrainProjection(eventLimit) {
   var limit = Number(eventLimit || 100);
   if (!Number.isFinite(limit) || limit <= 0) limit = 100;
   return request({
-    url: "/api/v1/learning-brain/projection?event_limit=" + Math.min(Math.round(limit), 500),
+    url:
+      "/api/v1/learning-brain/projection?event_limit=" +
+      Math.min(Math.round(limit), 500),
     method: "GET",
   });
 }
@@ -425,7 +428,9 @@ function getLearningReport(eventLimit, opts) {
   var limit = Number(eventLimit || 100);
   if (!Number.isFinite(limit) || limit <= 0) limit = 100;
   var options = opts && typeof opts === "object" ? opts : {};
-  var schemaVersion = Number(options.schemaVersion || options.schema_version || 1);
+  var schemaVersion = Number(
+    options.schemaVersion || options.schema_version || 1,
+  );
   var query =
     "/api/v1/mobile/learning-report?event_limit=" +
     Math.min(Math.round(limit), 500);
@@ -439,7 +444,9 @@ function getLearningReport(eventLimit, opts) {
 /** 获取单次作答详情 */
 function getLearningAttemptDetail(attemptRef) {
   return request({
-    url: "/api/v1/mobile/learning-attempts/" + encodeURIComponent(String(attemptRef || "")),
+    url:
+      "/api/v1/mobile/learning-attempts/" +
+      encodeURIComponent(String(attemptRef || "")),
     method: "GET",
   });
 }
@@ -462,8 +469,10 @@ function saveNotebookCard(payload) {
     source_bot_id: input.source_bot_id || input.sourceBotId || "",
     source_type: input.source_type || input.sourceType || "manual",
     source_ref: input.source_ref || input.sourceRef || {},
-    evidence_event_ids: input.evidence_event_ids || input.evidenceEventIds || [],
-    ai_enhanced_content: input.ai_enhanced_content || input.aiEnhancedContent || {},
+    evidence_event_ids:
+      input.evidence_event_ids || input.evidenceEventIds || [],
+    ai_enhanced_content:
+      input.ai_enhanced_content || input.aiEnhancedContent || {},
   });
   return request({
     url: "/api/v1/notebook/add_record",
@@ -598,7 +607,9 @@ function submitFeedback(data) {
 /** 上传意见反馈截图/录屏，返回可被 BI 打开的附件 URL */
 function uploadFeedbackAttachment(file) {
   var input = file || {};
-  var filePath = String(input.temp_path || input.tempFilePath || input.path || "").trim();
+  var filePath = String(
+    input.temp_path || input.tempFilePath || input.path || "",
+  ).trim();
   if (!filePath) {
     return Promise.reject(new Error("ATTACHMENT_FILE_REQUIRED"));
   }
@@ -641,6 +652,98 @@ function uploadFeedbackAttachment(file) {
         reject(err || new Error("UPLOAD_FAILED"));
       },
     });
+  });
+}
+
+// ── 拍照识题（photo-answer OCR 输入层）────────────────────
+// 后端 feature flag DEEPTUTOR_PHOTO_ANSWER_ENABLED 默认关闭（404）。
+// 计划：docs/plan/2026-06-10-luban-photo-answer-ocr-input-layer-implementation-plan.md
+
+/** 拍照识题 — 创建拍题会话（绑定题号；换题需新建会话） */
+function createPhotoAnswerSession(questionId, questionStem) {
+  return request({
+    url: "/api/v1/photo-answer/sessions",
+    method: "POST",
+    data: { question_id: questionId, question_stem: questionStem || "" },
+  });
+}
+
+/** 拍照识题 — 上传单页图片 */
+function uploadPhotoAnswerPage(sessionId, pageIndex, filePath) {
+  var path = String(filePath || "").trim();
+  if (!path) {
+    return Promise.reject(new Error("PHOTO_FILE_REQUIRED"));
+  }
+  var baseUrl = getBaseUrl(false);
+  var token = auth.getToken();
+  return new Promise(function (resolve, reject) {
+    wx.uploadFile({
+      url: baseUrl + "/api/v1/photo-answer/sessions/" + sessionId + "/pages",
+      filePath: path,
+      name: "file",
+      formData: { page_index: String(pageIndex) },
+      header: token
+        ? {
+            Authorization: "Bearer " + token,
+            "ngrok-skip-browser-warning": "true",
+          }
+        : { "ngrok-skip-browser-warning": "true" },
+      timeout: REQUEST_TIMEOUT,
+      success: function (res) {
+        if (res.statusCode < 200 || res.statusCode >= 300) {
+          reject(createHttpError(res.statusCode));
+          return;
+        }
+        var body = res.data;
+        if (typeof body === "string") {
+          try {
+            body = JSON.parse(body);
+          } catch (err) {
+            reject(new Error("INVALID_UPLOAD_RESPONSE"));
+            return;
+          }
+        }
+        resolve((body && body.page) || body || {});
+      },
+      fail: function (err) {
+        reject(err || new Error("UPLOAD_FAILED"));
+      },
+    });
+  });
+}
+
+/** 拍照识题 — 触发 OCR 任务 */
+function submitPhotoAnswerSession(sessionId) {
+  return request({
+    url: "/api/v1/photo-answer/sessions/" + sessionId + "/submit",
+    method: "POST",
+    data: {},
+  });
+}
+
+/** 拍照识题 — 轮询状态与识别结果 */
+function getPhotoAnswerSession(sessionId) {
+  return request({
+    url: "/api/v1/photo-answer/sessions/" + sessionId,
+    method: "GET",
+  });
+}
+
+/** 拍照识题 — 提交确认稿（返回可送批改的 grader_payload） */
+function confirmPhotoAnswerSession(sessionId, payload) {
+  return request({
+    url: "/api/v1/photo-answer/sessions/" + sessionId + "/confirm",
+    method: "POST",
+    data: payload || {},
+  });
+}
+
+/** 拍照识题 — 重试/主动升级重识别（mode: rerun|escalate） */
+function retryPhotoAnswerSession(sessionId, payload) {
+  return request({
+    url: "/api/v1/photo-answer/sessions/" + sessionId + "/retry",
+    method: "POST",
+    data: payload || {},
   });
 }
 
@@ -705,6 +808,12 @@ module.exports = {
   createBillingCheckout: createBillingCheckout,
   submitFeedback: submitFeedback,
   uploadFeedbackAttachment: uploadFeedbackAttachment,
+  createPhotoAnswerSession: createPhotoAnswerSession,
+  uploadPhotoAnswerPage: uploadPhotoAnswerPage,
+  submitPhotoAnswerSession: submitPhotoAnswerSession,
+  getPhotoAnswerSession: getPhotoAnswerSession,
+  confirmPhotoAnswerSession: confirmPhotoAnswerSession,
+  retryPhotoAnswerSession: retryPhotoAnswerSession,
   getHomeDashboard: getHomeDashboard,
   getAssessmentProfile: getAssessmentProfile,
   createAssessment: createAssessment,
