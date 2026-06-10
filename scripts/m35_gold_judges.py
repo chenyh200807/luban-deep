@@ -1,0 +1,515 @@
+#!/usr/bin/env python3
+"""Live judge adapters for the M35 R2 AI-governed gold labeling pipeline.
+
+Five judges across four providers (sorted ids drive role assignment in
+``run_luban_m35_ai_governed_gold_labeling.assign_roles``):
+
+  - ``deepseek-chat`` (DeepSeek HTTP, ``DEEPSEEK_API_KEY``)       -> blind panel
+  - ``fable``         (claude CLI, ``claude-fable-5``)            -> blind panel
+  - ``gpt-codex``     (codex CLI, default codex model)            -> blind panel
+  - ``opus``          (claude CLI, ``claude-opus-4-8``)           -> arbiter
+  - ``qwen-max``      (DashScope compatible-mode HTTP,
+                       ``DASHSCOPE_API_KEY``)                     -> adversarial prosecutor
+
+Every adapter takes ``(scoring_point, student_answer, official_anchor)`` and
+returns ``{"verdict": hit|partial|miss, "evidence_span", "confidence"}``.
+Any transport failure, timeout (60s) or unparseable output makes the judge
+abstain: ``{"verdict": "abstain", ..., "abstain_reason": ...}`` -- never a
+fabricated verdict, never counted as an accept.
+
+Per-call token usage (when the transport exposes it) and abstentions are
+accumulated in :class:`JudgeStats` for the run report. Successful verdicts
+for identical prompts are memoized per judge (mutation cases frequently
+reproduce the original text verbatim); abstains are never cached.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+from pathlib import Path
+import shutil
+import subprocess
+import tempfile
+import threading
+from typing import Any, Callable, Mapping
+import urllib.error
+import urllib.request
+
+REPO = Path(__file__).resolve().parents[1]
+DOTENV_PATH = REPO / ".env"
+
+JudgeFn = Callable[[dict[str, Any], str, dict[str, Any]], dict[str, Any]]
+
+JUDGE_TIMEOUT_SECONDS = 60
+VALID_VERDICTS = ("hit", "partial", "miss")
+ABSTAIN_VERDICT = "abstain"
+
+DEEPSEEK_DEFAULT_BASE_URL = "https://api.deepseek.com/v1"
+DASHSCOPE_DEFAULT_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+DEEPSEEK_MODEL = "deepseek-chat"
+QWEN_MODEL = "qwen-max"
+CLAUDE_MODELS = {"opus": "claude-opus-4-8", "fable": "claude-fable-5"}
+
+# List-price estimates (USD per 1M tokens) for metered HTTP providers only.
+# CLI judges (codex / claude) run on subscriptions: tokens are reported when
+# the transport exposes them but no dollar estimate is fabricated.
+PRICING_USD_PER_MTOKEN = {
+    "deepseek-chat": {"input": 0.28, "output": 0.42, "basis": "deepseek list price, cache-miss"},
+    "qwen-max": {"input": 0.33, "output": 1.32, "basis": "dashscope qwen-max CNY2.4/9.6 per 1M at 7.25 CNY/USD"},
+}
+
+
+class JudgeTransportError(Exception):
+    """Transport-level failure (HTTP error, timeout, CLI failure)."""
+
+
+class JudgeStats:
+    """Thread-safe per-model call/abstention/token accounting."""
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._models: dict[str, dict[str, Any]] = {}
+
+    def record(
+        self,
+        model_id: str,
+        *,
+        abstained: bool,
+        cached: bool = False,
+        usage: dict[str, int] | None = None,
+        abstain_reason: str | None = None,
+    ) -> None:
+        with self._lock:
+            entry = self._models.setdefault(
+                model_id,
+                {
+                    "calls": 0,
+                    "cached_hits": 0,
+                    "abstains": 0,
+                    "prompt_tokens": 0,
+                    "completion_tokens": 0,
+                    "total_tokens": 0,
+                    "abstain_reasons": {},
+                },
+            )
+            entry["calls"] += 1
+            if cached:
+                entry["cached_hits"] += 1
+            if abstained:
+                entry["abstains"] += 1
+                reason = abstain_reason or "unknown"
+                entry["abstain_reasons"][reason] = entry["abstain_reasons"].get(reason, 0) + 1
+            if usage:
+                entry["prompt_tokens"] += int(usage.get("prompt_tokens") or 0)
+                entry["completion_tokens"] += int(usage.get("completion_tokens") or 0)
+                entry["total_tokens"] += int(usage.get("total_tokens") or 0)
+
+    def snapshot(self) -> dict[str, dict[str, Any]]:
+        with self._lock:
+            out: dict[str, dict[str, Any]] = {}
+            for model_id, entry in self._models.items():
+                pricing = PRICING_USD_PER_MTOKEN.get(model_id)
+                if pricing is not None:
+                    cost = round(
+                        entry["prompt_tokens"] / 1_000_000 * pricing["input"]
+                        + entry["completion_tokens"] / 1_000_000 * pricing["output"],
+                        6,
+                    )
+                    basis = pricing["basis"]
+                else:
+                    cost = None
+                    basis = "subscription_unmetered"
+                out[model_id] = {
+                    **{key: value for key, value in entry.items() if key != "abstain_reasons"},
+                    "abstain_reasons": dict(entry["abstain_reasons"]),
+                    "abstain_rate": round(entry["abstains"] / entry["calls"], 6) if entry["calls"] else 0.0,
+                    "estimated_cost_usd": cost,
+                    "pricing_basis": basis,
+                }
+            return out
+
+    def total_known_cost_usd(self) -> float:
+        return round(
+            sum(entry["estimated_cost_usd"] or 0.0 for entry in self.snapshot().values()), 6
+        )
+
+
+def load_dotenv_file(path: Path) -> dict[str, str]:
+    """Minimal KEY=VALUE .env parser (no ${VAR} expansion, no shell features)."""
+    if not Path(path).is_file():
+        return {}
+    parsed: dict[str, str] = {}
+    for line in Path(path).read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        if line.startswith("export "):
+            line = line[len("export "):]
+        key, _, value = line.partition("=")
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key:
+            parsed[key] = value
+    return parsed
+
+
+def build_judge_prompt(
+    point: dict[str, Any], student_answer: str, official_anchor: dict[str, Any]
+) -> str:
+    """Prompt anchored exclusively to the official scoring criterion."""
+    return (
+        "你是一级建造师《建筑工程管理与实务》案例题阅卷专家。\n"
+        "你的唯一判定依据是下面给出的官方评分标准（采分点）。不得使用其他评分依据，不得自创采分点。\n\n"
+        f"【题目编号】{official_anchor.get('question_id') or ''}\n"
+        f"【题目背景与问题】\n{official_anchor.get('stem') or ''}\n\n"
+        f"【官方评分标准·本采分点（满分 {point.get('max_score')} 分）】\n{point.get('criterion') or ''}\n\n"
+        f"【学生作答】\n{student_answer}\n\n"
+        "【判定规则】\n"
+        "- hit：学生作答完整覆盖该采分点要求的关键判断和关键内容（允许同义改写）。\n"
+        "- partial：只覆盖了该采分点的一部分关键内容，或关键判断正确但理由/做法不完整。\n"
+        "- miss：未覆盖该采分点，或关键判断错误，或仅复述题干/口号式表述而无具体内容。\n"
+        "- evidence_span 必须是从学生作答中逐字摘录的最短支撑片段；miss 时为空字符串。\n\n"
+        "只输出一行 JSON（不要 markdown 代码块、不要任何解释文字）：\n"
+        '{"verdict":"hit|partial|miss","evidence_span":"...","confidence":0.0到1.0}'
+    )
+
+
+def parse_judge_output(text: str) -> dict[str, Any] | None:
+    """Extract ``{verdict, evidence_span, confidence}`` from model output.
+
+    Returns ``None`` when no valid judgment JSON can be located (the caller
+    abstains; nothing is fabricated).
+    """
+    if not text or not text.strip():
+        return None
+    decoder = json.JSONDecoder()
+    candidates: list[dict[str, Any]] = []
+    stripped = text.strip()
+    try:
+        direct = json.loads(stripped)
+        if isinstance(direct, dict):
+            candidates.append(direct)
+    except ValueError:
+        pass
+    if not candidates:
+        index = stripped.find("{")
+        while index != -1:
+            try:
+                obj, _ = decoder.raw_decode(stripped, index)
+            except ValueError:
+                index = stripped.find("{", index + 1)
+                continue
+            if isinstance(obj, dict) and "verdict" in obj:
+                candidates.append(obj)
+                break
+            index = stripped.find("{", index + 1)
+    for candidate in candidates:
+        verdict = str(candidate.get("verdict") or "").strip().lower()
+        if verdict not in VALID_VERDICTS:
+            continue
+        try:
+            confidence = float(candidate.get("confidence") or 0.0)
+        except (TypeError, ValueError):
+            confidence = 0.0
+        return {
+            "verdict": verdict,
+            "evidence_span": str(candidate.get("evidence_span") or ""),
+            "confidence": min(1.0, max(0.0, confidence)),
+        }
+    return None
+
+
+def parse_codex_jsonl(stdout: str) -> tuple[str | None, dict[str, int] | None]:
+    """Parse ``codex exec --json`` JSONL: last agent_message text + token usage."""
+    message: str | None = None
+    usage: dict[str, int] | None = None
+    for line in stdout.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            event = json.loads(line)
+        except ValueError:
+            continue
+        if not isinstance(event, dict):
+            continue
+        item = event.get("item")
+        msg = event.get("msg")
+        if isinstance(item, dict) and item.get("type") == "agent_message":
+            message = str(item.get("text") or item.get("message") or "")
+        elif isinstance(msg, dict) and msg.get("type") == "agent_message":
+            message = str(msg.get("message") or msg.get("text") or "")
+        elif event.get("type") == "agent_message":
+            message = str(event.get("message") or event.get("text") or "")
+        raw_usage = None
+        if isinstance(event.get("usage"), dict):
+            raw_usage = event["usage"]
+        elif isinstance(msg, dict) and msg.get("type") == "token_count":
+            info = msg.get("info") or {}
+            raw_usage = info.get("total_token_usage") or info.get("last_token_usage")
+        if isinstance(raw_usage, dict):
+            prompt_tokens = int(raw_usage.get("input_tokens") or raw_usage.get("prompt_tokens") or 0)
+            completion_tokens = int(
+                raw_usage.get("output_tokens") or raw_usage.get("completion_tokens") or 0
+            )
+            usage = {
+                "prompt_tokens": prompt_tokens,
+                "completion_tokens": completion_tokens,
+                "total_tokens": prompt_tokens + completion_tokens,
+            }
+    return message, usage
+
+
+# ---------------------------------------------------------------- transports
+
+
+def _http_post_json(
+    url: str, headers: dict[str, str], payload: dict[str, Any], timeout: float
+) -> dict[str, Any]:
+    """POST JSON, return decoded JSON body. Raises JudgeTransportError."""
+    request = urllib.request.Request(
+        url,
+        data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+        headers={"Content-Type": "application/json", **headers},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        detail = ""
+        try:
+            detail = exc.read().decode("utf-8", errors="replace")[:200]
+        except Exception:
+            pass
+        raise JudgeTransportError(f"http_{exc.code}: {detail}") from exc
+    except (urllib.error.URLError, TimeoutError, OSError, ValueError) as exc:
+        raise JudgeTransportError(f"{type(exc).__name__}: {exc}") from exc
+
+
+_NEUTRAL_CWD: str | None = None
+_NEUTRAL_CWD_LOCK = threading.Lock()
+
+
+def _neutral_cwd() -> str:
+    """Empty directory so CLI agents load no project instructions/context."""
+    global _NEUTRAL_CWD
+    with _NEUTRAL_CWD_LOCK:
+        if _NEUTRAL_CWD is None or not Path(_NEUTRAL_CWD).is_dir():
+            _NEUTRAL_CWD = tempfile.mkdtemp(prefix="m35-gold-judges-")
+        return _NEUTRAL_CWD
+
+
+def _run_cli(cmd: list[str], timeout: float, cwd: str | None = None) -> tuple[int, str, str]:
+    """Run a CLI judge subprocess. Raises JudgeTransportError on timeout."""
+    try:
+        proc = subprocess.run(
+            cmd,
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            cwd=cwd or _neutral_cwd(),
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise JudgeTransportError(f"timeout after {timeout}s") from exc
+    except OSError as exc:
+        raise JudgeTransportError(f"{type(exc).__name__}: {exc}") from exc
+    return proc.returncode, proc.stdout or "", proc.stderr or ""
+
+
+# ---------------------------------------------------------------- adapters
+
+
+def _abstain(reason: str) -> dict[str, Any]:
+    return {
+        "verdict": ABSTAIN_VERDICT,
+        "evidence_span": "",
+        "confidence": 0.0,
+        "abstain_reason": reason,
+    }
+
+
+def _wrap_judge(
+    model_id: str,
+    stats: JudgeStats,
+    call_fn: Callable[[str], tuple[str | None, dict[str, int] | None]],
+) -> JudgeFn:
+    """Shared judge skeleton: prompt -> transport -> parse -> verdict/abstain.
+
+    Successful verdicts are memoized by prompt hash; abstains never are.
+    """
+    cache: dict[str, dict[str, Any]] = {}
+    cache_lock = threading.Lock()
+
+    def judge(point: dict[str, Any], student_answer: str, official_anchor: dict[str, Any]) -> dict[str, Any]:
+        prompt = build_judge_prompt(point, student_answer, official_anchor)
+        cache_key = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
+        with cache_lock:
+            cached = cache.get(cache_key)
+        if cached is not None:
+            stats.record(model_id, abstained=False, cached=True)
+            return dict(cached)
+        try:
+            text, usage = call_fn(prompt)
+        except JudgeTransportError as exc:
+            stats.record(model_id, abstained=True, abstain_reason=str(exc))
+            return _abstain(str(exc))
+        parsed = parse_judge_output(text or "")
+        if parsed is None:
+            stats.record(model_id, abstained=True, usage=usage, abstain_reason="unparseable_output")
+            return _abstain("unparseable_output")
+        stats.record(model_id, abstained=False, usage=usage)
+        with cache_lock:
+            cache[cache_key] = dict(parsed)
+        return dict(parsed)
+
+    return judge
+
+
+def _chat_completions_call(
+    url: str, api_key: str, model: str, prompt: str
+) -> tuple[str | None, dict[str, int] | None]:
+    body = _http_post_json(
+        url,
+        {"Authorization": f"Bearer {api_key}"},
+        {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": 0.0,
+            "max_tokens": 400,
+            "stream": False,
+        },
+        JUDGE_TIMEOUT_SECONDS,
+    )
+    choices = body.get("choices") or []
+    content = None
+    if choices and isinstance(choices[0], dict):
+        content = ((choices[0].get("message") or {}).get("content"))
+    raw_usage = body.get("usage") if isinstance(body.get("usage"), dict) else {}
+    usage = {
+        "prompt_tokens": int(raw_usage.get("prompt_tokens") or 0),
+        "completion_tokens": int(raw_usage.get("completion_tokens") or 0),
+        "total_tokens": int(raw_usage.get("total_tokens") or 0),
+    }
+    return content, usage
+
+
+def make_deepseek_judge(api_key: str, stats: JudgeStats, base_url: str | None = None) -> JudgeFn:
+    url = f"{(base_url or DEEPSEEK_DEFAULT_BASE_URL).rstrip('/')}/chat/completions"
+    return _wrap_judge(
+        "deepseek-chat",
+        stats,
+        lambda prompt: _chat_completions_call(url, api_key, DEEPSEEK_MODEL, prompt),
+    )
+
+
+def make_qwen_judge(api_key: str, stats: JudgeStats, base_url: str | None = None) -> JudgeFn:
+    url = f"{(base_url or DASHSCOPE_DEFAULT_BASE_URL).rstrip('/')}/chat/completions"
+    return _wrap_judge(
+        "qwen-max",
+        stats,
+        lambda prompt: _chat_completions_call(url, api_key, QWEN_MODEL, prompt),
+    )
+
+
+def _codex_call(prompt: str) -> tuple[str | None, dict[str, int] | None]:
+    returncode, stdout, stderr = _run_cli(
+        [
+            "codex",
+            "exec",
+            "--skip-git-repo-check",
+            "--ephemeral",
+            "-s",
+            "read-only",
+            "--json",
+            prompt,
+        ],
+        JUDGE_TIMEOUT_SECONDS,
+    )
+    if returncode != 0:
+        raise JudgeTransportError(f"codex_exit_{returncode}: {stderr[:200]}")
+    return parse_codex_jsonl(stdout)
+
+
+def make_codex_judge(stats: JudgeStats) -> JudgeFn:
+    return _wrap_judge("gpt-codex", stats, _codex_call)
+
+
+def _claude_call(claude_model: str, prompt: str) -> tuple[str | None, dict[str, int] | None]:
+    returncode, stdout, stderr = _run_cli(
+        [
+            "claude",
+            "-p",
+            prompt,
+            "--model",
+            claude_model,
+            "--output-format",
+            "text",
+            "--no-session-persistence",
+            "--strict-mcp-config",
+        ],
+        JUDGE_TIMEOUT_SECONDS,
+    )
+    if returncode != 0:
+        raise JudgeTransportError(f"claude_exit_{returncode}: {stderr[:200]}")
+    # --output-format text exposes no token usage; report none rather than guess.
+    return stdout, None
+
+
+def make_claude_judge(model_id: str, claude_model: str, stats: JudgeStats) -> JudgeFn:
+    return _wrap_judge(model_id, stats, lambda prompt: _claude_call(claude_model, prompt))
+
+
+# ---------------------------------------------------------------- factory
+
+
+def build_live_judges(
+    env: Mapping[str, str] | None = None,
+) -> tuple[dict[str, JudgeFn], JudgeStats]:
+    """Build all five live judges or raise RuntimeError listing what is missing.
+
+    ``env=None`` reads ``os.environ`` with repo ``.env`` as fallback. An
+    explicit ``env`` mapping is treated as the complete environment (hermetic
+    callers must not pick up real keys from ``.env``).
+    """
+    if env is None:
+        import os
+
+        merged: dict[str, str] = {**load_dotenv_file(DOTENV_PATH), **dict(os.environ)}
+    else:
+        merged = dict(env)
+
+    def key_of(name: str) -> str:
+        return str(merged.get(name) or "").strip()
+
+    missing: list[str] = []
+    deepseek_key = key_of("DEEPSEEK_API_KEY")
+    dashscope_key = key_of("DASHSCOPE_API_KEY")
+    if not deepseek_key:
+        missing.append("DEEPSEEK_API_KEY")
+    if not dashscope_key:
+        missing.append("DASHSCOPE_API_KEY")
+    if not shutil.which("codex"):
+        missing.append("codex binary on PATH")
+    if not shutil.which("claude"):
+        missing.append("claude binary on PATH")
+    if missing:
+        raise RuntimeError(
+            "live judges unavailable, missing prerequisites: " + ", ".join(missing)
+        )
+
+    stats = JudgeStats()
+    judge_fns: dict[str, JudgeFn] = {
+        "deepseek-chat": make_deepseek_judge(
+            deepseek_key, stats, base_url=key_of("DEEPSEEK_BASE_URL") or None
+        ),
+        "qwen-max": make_qwen_judge(
+            dashscope_key, stats, base_url=key_of("DASHSCOPE_BASE_URL") or None
+        ),
+        "gpt-codex": make_codex_judge(stats),
+        "opus": make_claude_judge("opus", CLAUDE_MODELS["opus"], stats),
+        "fable": make_claude_judge("fable", CLAUDE_MODELS["fable"], stats),
+    }
+    return judge_fns, stats

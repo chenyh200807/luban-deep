@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""R2 skeleton: multi-model AI-governed gold labeling pipeline (hermetic).
+"""R2: multi-model AI-governed gold labeling pipeline.
 
 Per (student answer x scoring point):
   1. blind panel (>=3 models) judges independently (no cross-visibility);
@@ -13,20 +13,25 @@ Per (student answer x scoring point):
   4. >=5 hard-coded deterministic mutations of the student answer are re-judged
      to verify label stability before a row may claim gold.
 
-Rows that fail any gate are downgraded to the existing
+A judge may abstain (transport failure / timeout / unparseable output):
+an abstention is never an accept, never adjudicates a point, and a point the
+panel+arbiter cannot adjudicate downgrades the whole row instead of inventing
+a verdict. Rows that fail any gate are downgraded to the existing
 ``ai_council_directional`` level (never a new label-authority name). Gold rows
 carry the canonical ``ai_governed_gold`` protocol block and are self-checked
 against ``validate_ai_governed_gold_protocol`` before being written.
 
-This skeleton never performs live LLM or network calls. Judges are injected as
-``judge_fns: dict[model_id, fn(point, student_answer, official_anchor)]``; the
-live adapter is an intentionally unimplemented double-opt-in factory stub.
+This pipeline performs no provider calls by itself. Judges are injected as
+``judge_fns: dict[model_id, fn(point, student_answer, official_anchor)]``;
+the live adapters live in ``scripts/m35_gold_judges.py`` and are only built
+behind the double opt-in (``--live`` AND ``LUBAN_M35_GOLD_LABELING_LIVE=1``).
 """
 
 from __future__ import annotations
 
 import argparse
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor
 import hashlib
 import json
 import os
@@ -55,6 +60,8 @@ KAPPA_STOP_THRESHOLD = 0.6
 MUTATION_PASS_RATE_STOP_THRESHOLD = 0.8
 PARTIAL_CREDIT_RATIO = 0.5
 _CREDIT_RANK = {"miss": 0, "partial": 1, "hit": 2}
+ABSTAIN = "abstain"
+UNADJUDICATED = "unadjudicated"
 LIVE_ENV_FLAG = "LUBAN_M35_GOLD_LABELING_LIVE"
 LIVE_API_KEY_ENVS = (
     "DEEPSEEK_API_KEY",
@@ -135,6 +142,13 @@ def _judge(fn: JudgeFn, point: dict[str, Any], student_answer: str, anchor: dict
     if not isinstance(raw, dict):
         raise ValueError("judge functions must return a dict")
     verdict = str(raw.get("verdict") or "")
+    if verdict == ABSTAIN:
+        return {
+            "verdict": ABSTAIN,
+            "evidence_span": "",
+            "confidence": 0.0,
+            "abstain_reason": str(raw.get("abstain_reason") or ""),
+        }
     if verdict not in _CREDIT_RANK:
         raise ValueError(f"judge returned invalid verdict: {verdict!r}")
     return {
@@ -142,6 +156,22 @@ def _judge(fn: JudgeFn, point: dict[str, Any], student_answer: str, anchor: dict
         "evidence_span": str(raw.get("evidence_span") or ""),
         "confidence": float(raw.get("confidence") or 0.0),
     }
+
+
+def _judge_panel(
+    judge_fns: Mapping[str, JudgeFn],
+    model_ids: list[str],
+    point: dict[str, Any],
+    text: str,
+    anchor: dict[str, Any],
+) -> dict[str, dict[str, Any]]:
+    """Blind panel votes for one point, judged concurrently (no cross-visibility)."""
+    with ThreadPoolExecutor(max_workers=max(1, len(model_ids))) as pool:
+        futures = {
+            model_id: pool.submit(_judge, judge_fns[model_id], point, text, anchor)
+            for model_id in model_ids
+        }
+        return {model_id: future.result() for model_id, future in futures.items()}
 
 
 def _official_anchor(question: dict[str, Any]) -> dict[str, Any]:
@@ -162,30 +192,37 @@ def _reconcile_point(
     roles: dict[str, Any],
 ) -> dict[str, Any]:
     panel_ids: list[str] = roles["blind_panel"]
-    blind_votes = {
-        model_id: _judge(judge_fns[model_id], point, student_answer, anchor)
-        for model_id in panel_ids
-    }
-    counts = Counter(vote["verdict"] for vote in blind_votes.values())
-    top_verdict, top_count = counts.most_common(1)[0]
+    blind_votes = _judge_panel(judge_fns, panel_ids, point, student_answer, anchor)
+    counts = Counter(
+        vote["verdict"] for vote in blind_votes.values() if vote["verdict"] != ABSTAIN
+    )
+    voted_count = sum(counts.values())
+    top_verdict, top_count = counts.most_common(1)[0] if counts else (None, 0)
     panel_size = len(panel_ids)
 
     arbiter_vote: dict[str, Any] | None = None
-    if top_count == panel_size:
+    if voted_count == panel_size and top_count == panel_size:
         route = "unanimous"
         consolidated = top_verdict
     else:
         arbiter_vote = _judge(judge_fns[roles["arbiter"]], point, student_answer, anchor)
+        arbiter_abstained = arbiter_vote["verdict"] == ABSTAIN
         if top_count * 2 > panel_size:
+            # Strict majority of the FULL panel (abstentions count against it).
             consolidated = top_verdict
             route = (
                 "majority_review_confirmed"
                 if arbiter_vote["verdict"] == top_verdict
                 else "majority_review_unconfirmed"
             )
-        else:
+        elif not arbiter_abstained:
             route = "arbitration"
             consolidated = arbiter_vote["verdict"]
+        else:
+            # No majority and the arbiter abstained: nobody may invent a
+            # verdict, so the point stays unadjudicated (row downgrades).
+            route = "arbitration_unresolved"
+            consolidated = UNADJUDICATED
 
     supporting = [
         model_id for model_id in panel_ids if blind_votes[model_id]["verdict"] == consolidated
@@ -207,30 +244,30 @@ def _row_blind_model_votes(
 ) -> list[dict[str, Any]]:
     votes: list[dict[str, Any]] = []
     for model_id in roles["blind_panel"]:
-        accepted = all(
-            result["blind_votes"][model_id]["verdict"] == result["consolidated_verdict"]
-            for result in point_results
-        )
-        votes.append(
-            {
-                "model_id": model_id,
-                "independent": True,
-                "verdict": "accept" if accepted else "dissent",
-            }
-        )
+        verdicts = [result["blind_votes"][model_id]["verdict"] for result in point_results]
+        if ABSTAIN in verdicts:
+            verdict = ABSTAIN  # an abstention is never an accept
+        elif all(
+            verdict == result["consolidated_verdict"]
+            for verdict, result in zip(verdicts, point_results)
+        ):
+            verdict = "accept"
+        else:
+            verdict = "dissent"
+        votes.append({"model_id": model_id, "independent": True, "verdict": verdict})
     arbited = [result for result in point_results if result["arbiter_vote"] is not None]
     if arbited:
-        accepted = all(
-            result["arbiter_vote"]["verdict"] == result["consolidated_verdict"]
-            for result in arbited
-        )
-        votes.append(
-            {
-                "model_id": roles["arbiter"],
-                "independent": True,
-                "verdict": "accept" if accepted else "dissent",
-            }
-        )
+        arbiter_verdicts = [result["arbiter_vote"]["verdict"] for result in arbited]
+        if ABSTAIN in arbiter_verdicts:
+            verdict = ABSTAIN
+        elif all(
+            verdict == result["consolidated_verdict"]
+            for verdict, result in zip(arbiter_verdicts, arbited)
+        ):
+            verdict = "accept"
+        else:
+            verdict = "dissent"
+        votes.append({"model_id": roles["arbiter"], "independent": True, "verdict": verdict})
     return votes
 
 
@@ -253,8 +290,14 @@ def _prosecute(
 ) -> dict[str, Any]:
     prosecutor_id = roles["adversarial_prosecutor"]
     objections: list[dict[str, Any]] = []
+    abstained_point_ids: list[str] = []
     for result in point_results:
         vote = _judge(judge_fns[prosecutor_id], result["point"], student_answer, anchor)
+        if vote["verdict"] == ABSTAIN:
+            # No adversarial scrutiny happened for this point; the row must
+            # not claim gold on the back of a silent prosecutor.
+            abstained_point_ids.append(str(result["point"].get("point_id") or ""))
+            continue
         consolidated_rank = _CREDIT_RANK[result["consolidated_verdict"]]
         prosecutor_rank = _CREDIT_RANK[vote["verdict"]]
         if prosecutor_rank >= consolidated_rank:
@@ -278,6 +321,8 @@ def _prosecute(
         "objection_count": len(objections),
         "resolved_objection_count": len(objections) - unresolved,
         "unresolved_objection_count": unresolved,
+        "abstained_point_count": len(abstained_point_ids),
+        "abstained_point_ids": abstained_point_ids,
         "objections": objections,
     }
 
@@ -314,12 +359,14 @@ def _panel_majority_verdict(
     judge_fns: Mapping[str, JudgeFn],
     panel_ids: list[str],
 ) -> str:
+    votes = _judge_panel(judge_fns, panel_ids, point, text, anchor)
     counts = Counter(
-        _judge(judge_fns[model_id], point, text, anchor)["verdict"] for model_id in panel_ids
+        vote["verdict"] for vote in votes.values() if vote["verdict"] != ABSTAIN
     )
-    top_verdict, top_count = counts.most_common(1)[0]
-    if top_count * 2 > len(panel_ids):
-        return top_verdict
+    if counts:
+        top_verdict, top_count = counts.most_common(1)[0]
+        if top_count * 2 > len(panel_ids):
+            return top_verdict
     return "no_consensus"
 
 
@@ -398,8 +445,6 @@ def _label_single_row(
     question: dict[str, Any],
     judge_fns: Mapping[str, JudgeFn],
     roles: dict[str, Any],
-    kappa_items: list[Counter],
-    mutation_totals: dict[str, int],
 ) -> dict[str, Any]:
     student_answer = str(row.get("student_answer") or "")
     anchor = _official_anchor(question)
@@ -408,14 +453,24 @@ def _label_single_row(
     point_results = [
         _reconcile_point(point, student_answer, anchor, judge_fns, roles) for point in points
     ]
+    # Fleiss kappa requires a constant rater count per item: points where a
+    # panelist abstained are excluded (and counted) instead of being faked.
+    kappa_items: list[Counter] = []
+    kappa_excluded = 0
     for result in point_results:
-        kappa_items.append(Counter(vote["verdict"] for vote in result["blind_votes"].values()))
+        item = Counter(vote["verdict"] for vote in result["blind_votes"].values())
+        if item.get(ABSTAIN, 0) > 0:
+            kappa_excluded += 1
+        else:
+            kappa_items.append(item)
 
     blind_model_votes = _row_blind_model_votes(point_results, roles)
     accept_count = sum(1 for vote in blind_model_votes if vote["verdict"] == "accept")
     source_anchor = _source_anchor(points)
 
     downgrade_reasons: list[str] = []
+    if any(result["consolidated_verdict"] == UNADJUDICATED for result in point_results):
+        downgrade_reasons.append("unadjudicated_point_due_to_abstention")
     if accept_count < MIN_INDEPENDENT_ACCEPTS:
         downgrade_reasons.append("insufficient_independent_blind_accepts")
     if source_anchor["source_ref_count"] <= 0 or not source_anchor["field_level_citations"]:
@@ -426,7 +481,10 @@ def _label_single_row(
         adversarial_review = _prosecute(point_results, student_answer, anchor, judge_fns, roles)
         if adversarial_review["unresolved_objection_count"] > 0:
             downgrade_reasons.append("unresolved_adversarial_objection")
+        if adversarial_review["abstained_point_count"] > 0:
+            downgrade_reasons.append("adversarial_prosecutor_abstained")
 
+    mutation_totals = {"cases": 0, "stable": 0}
     mutation_test: dict[str, Any] | None = None
     if not downgrade_reasons:
         mutation_test = _mutation_test(point_results, student_answer, anchor, judge_fns, roles)
@@ -492,13 +550,18 @@ def _label_single_row(
         }
     )
 
+    outcome = {
+        "kappa_items": kappa_items,
+        "kappa_excluded": kappa_excluded,
+        "mutation_totals": mutation_totals,
+    }
     if downgrade_reasons:
         out_row["downgrade_reasons"] = downgrade_reasons
         if adversarial_review is not None:
             out_row["adversarial_review"] = adversarial_review
         if mutation_test is not None:
             out_row["mutation_test"] = mutation_test
-        return out_row
+        return {**outcome, "row": out_row}
 
     protocol = {
         "protocol_version": PROTOCOL_VERSION,
@@ -527,7 +590,7 @@ def _label_single_row(
             f"{check['blocking_reasons']}"
         )
     out_row["ai_governed_gold"] = protocol
-    return out_row
+    return {**outcome, "row": out_row}
 
 
 def _fleiss_kappa(items: list[Counter]) -> float | None:
@@ -574,9 +637,14 @@ def run_labeling(
     judge_fns: Mapping[str, JudgeFn],
     output_dir: Path,
     limit: int = 0,
+    question_ids: tuple[str, ...] | None = None,
+    row_workers: int = 1,
 ) -> dict[str, Any]:
     roles = assign_roles(judge_fns)
     rows = _read_jsonl(Path(answers_path))
+    if question_ids:
+        wanted = {str(question_id) for question_id in question_ids}
+        rows = [row for row in rows if str(row.get("question_id") or "") in wanted]
     if limit > 0:
         rows = rows[:limit]
     source_manifest = _read_json(Path(manifest_path))
@@ -585,18 +653,35 @@ def run_labeling(
         for question in source_manifest.get("questions") or []
     }
 
-    kappa_items: list[Counter] = []
-    mutation_totals = {"cases": 0, "stable": 0}
-    out_rows: list[dict[str, Any]] = []
+    labelable: list[tuple[dict[str, Any], dict[str, Any]]] = []
     skipped_no_scoring_points: list[str] = []
     for row in rows:
         question = questions_by_id.get(str(row.get("question_id") or ""))
         if not question or not question.get("scoring_points"):
             skipped_no_scoring_points.append(str(row.get("answer_id") or ""))
             continue
-        out_rows.append(
-            _label_single_row(row, question, judge_fns, roles, kappa_items, mutation_totals)
+        labelable.append((row, question))
+
+    # Rows are independent; judge calls dominate wall time, so rows may be
+    # labeled concurrently. Outcomes merge in input order (deterministic).
+    with ThreadPoolExecutor(max_workers=max(1, row_workers)) as pool:
+        outcomes = list(
+            pool.map(
+                lambda pair: _label_single_row(pair[0], pair[1], judge_fns, roles),
+                labelable,
+            )
         )
+
+    kappa_items: list[Counter] = []
+    kappa_excluded = 0
+    mutation_totals = {"cases": 0, "stable": 0}
+    out_rows: list[dict[str, Any]] = []
+    for outcome in outcomes:
+        out_rows.append(outcome["row"])
+        kappa_items.extend(outcome["kappa_items"])
+        kappa_excluded += outcome["kappa_excluded"]
+        mutation_totals["cases"] += outcome["mutation_totals"]["cases"]
+        mutation_totals["stable"] += outcome["mutation_totals"]["stable"]
 
     kappa = _fleiss_kappa(kappa_items)
     mutation_pass_rate = (
@@ -623,6 +708,8 @@ def run_labeling(
         "label_authority_counts": dict(label_authority_counts),
         "downgrade_reason_counts": dict(downgrade_reason_counts),
         "fleiss_kappa": kappa,
+        "kappa_item_count": len(kappa_items),
+        "kappa_items_excluded_for_abstention": kappa_excluded,
         "mutation_pass_rate": mutation_pass_rate,
         "mutation_case_count": mutation_totals["cases"],
         "stop_condition_triggered": stop_condition["triggered"],
@@ -656,24 +743,50 @@ def live_api_key_envs_present(env: Mapping[str, str] | None = None) -> list[str]
 
 def build_live_judge_fns(
     *, cli_live_flag: bool, env: Mapping[str, str] | None = None
-) -> dict[str, JudgeFn]:
-    """Factory stub for live provider judges (intentionally unimplemented).
+) -> tuple[dict[str, JudgeFn], Any]:
+    """Build live provider judges behind the double opt-in.
 
-    Live labeling requires the double opt-in (``--live`` CLI flag AND
-    ``LUBAN_M35_GOLD_LABELING_LIVE=1``). Even then, this R2 skeleton never
-    performs provider calls: it raises ``NotImplementedError`` so callers can
-    only ever report the live arm as not exercised.
+    Live labeling requires both the ``--live`` CLI flag AND
+    ``LUBAN_M35_GOLD_LABELING_LIVE=1``. ``env=None`` reads the process
+    environment (with repo ``.env`` fallback inside the adapter module); an
+    explicit ``env`` mapping is treated as the complete environment so
+    hermetic callers can never pick up real keys. Returns
+    ``(judge_fns, stats)``; raises ``RuntimeError`` when any of the five
+    judge prerequisites is missing.
     """
-    env = os.environ if env is None else env
-    if not cli_live_flag or str(env.get(LIVE_ENV_FLAG) or "") != "1":
+    opt_in_env = os.environ if env is None else env
+    if not cli_live_flag or str(opt_in_env.get(LIVE_ENV_FLAG) or "") != "1":
         raise PermissionError(
             f"live labeling requires both --live and {LIVE_ENV_FLAG}=1 (double opt-in)"
         )
-    present = live_api_key_envs_present(env)
-    raise NotImplementedError(
-        "live judge adapters are not implemented in the R2 skeleton; "
-        f"api_key_envs_present={present}"
-    )
+    from scripts.m35_gold_judges import build_live_judges
+
+    return build_live_judges(env=env)
+
+
+def _self_check_rows(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Re-feed every output row through the canonical protocol validator."""
+    violations: list[str] = []
+    gold_validated = 0
+    downgraded_without_protocol = 0
+    for row in rows:
+        answer_id = str(row.get("answer_id") or "")
+        if row.get("label_authority") == LABEL_AUTHORITY:
+            check = validate_ai_governed_gold_protocol(row.get("ai_governed_gold") or {})
+            if check["valid"] is True:
+                gold_validated += 1
+            else:
+                violations.append(f"{answer_id}: {check['blocking_reasons']}")
+        elif "ai_governed_gold" in row:
+            violations.append(f"{answer_id}: downgraded row carries protocol block")
+        else:
+            downgraded_without_protocol += 1
+    return {
+        "passed": not violations,
+        "gold_rows_validated": gold_validated,
+        "downgraded_rows_without_protocol_block": downgraded_without_protocol,
+        "violations": violations,
+    }
 
 
 def main() -> int:
@@ -682,42 +795,82 @@ def main() -> int:
     parser.add_argument("--manifest", type=Path, default=DEFAULT_FIXTURE_DIR / "manifest.json")
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--limit", type=int, default=0)
+    parser.add_argument("--question-ids", default="", help="comma-separated question_id filter")
+    parser.add_argument("--row-workers", type=int, default=1)
     parser.add_argument("--live", action="store_true")
     args = parser.parse_args()
 
+    output_dir = Path(args.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
     env_enabled = str(os.environ.get(LIVE_ENV_FLAG) or "") == "1"
-    if not (args.live and env_enabled):
-        status = "blocked_live_double_opt_in_required"
-    else:
-        try:
-            build_live_judge_fns(cli_live_flag=args.live)
-            status = "unreachable"
-        except NotImplementedError:
-            status = "not_exercised_live_adapter_not_implemented"
-
-    report = {
+    report: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "labeling_run": False,
         "live": {
             "cli_flag": bool(args.live),
             "env_flag": env_enabled,
             "api_key_envs_present": live_api_key_envs_present(),
-            "status": status,
+            "status": "blocked_live_double_opt_in_required",
         },
         "answers_path": str(args.answers),
         "manifest_path": str(args.manifest),
-        "note": (
-            "hermetic skeleton: labeling runs only with injected judge_fns via "
-            "run_labeling(); no provider/network calls are implemented"
-        ),
     }
-    output_dir = Path(args.output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
-    (output_dir / "live_gate_report.json").write_text(
-        json.dumps(report, ensure_ascii=False, indent=2),
-        encoding="utf-8",
+
+    def write_report() -> None:
+        (output_dir / "live_gate_report.json").write_text(
+            json.dumps(report, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+
+    if not (args.live and env_enabled):
+        write_report()
+        return 0
+
+    try:
+        judge_fns, stats = build_live_judge_fns(cli_live_flag=args.live)
+    except RuntimeError as exc:
+        report["live"]["status"] = "blocked_live_prerequisites_missing"
+        report["live"]["error"] = str(exc)
+        write_report()
+        return 2
+
+    question_ids = tuple(
+        question_id.strip() for question_id in args.question_ids.split(",") if question_id.strip()
     )
-    return 0
+    result = run_labeling(
+        answers_path=args.answers,
+        manifest_path=args.manifest,
+        judge_fns=judge_fns,
+        output_dir=output_dir,
+        limit=args.limit,
+        question_ids=question_ids or None,
+        row_workers=args.row_workers,
+    )
+    manifest = result["manifest"]
+    report["labeling_run"] = True
+    report["live"]["status"] = "live_labeling_completed"
+    report["manifest_summary"] = {
+        key: manifest[key]
+        for key in (
+            "row_count",
+            "gold_row_count",
+            "downgraded_row_count",
+            "downgrade_reason_counts",
+            "fleiss_kappa",
+            "kappa_item_count",
+            "kappa_items_excluded_for_abstention",
+            "mutation_pass_rate",
+            "mutation_case_count",
+            "stop_condition_triggered",
+            "stop_condition",
+            "model_roles",
+        )
+    }
+    report["model_stats"] = stats.snapshot()
+    report["estimated_cost_usd_metered_models"] = stats.total_known_cost_usd()
+    report["self_check"] = _self_check_rows(result["rows"])
+    write_report()
+    return 0 if report["self_check"]["passed"] else 3
 
 
 if __name__ == "__main__":
