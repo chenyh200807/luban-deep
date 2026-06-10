@@ -605,6 +605,7 @@ from deeptutor.api.routers import (
     mobile,
     notebook,
     observability,
+    photo_answer,
     plugins_api,
     question,
     sessions,
@@ -650,6 +651,9 @@ app.include_router(system.router, prefix="/api/v1/system", tags=["system"])
 app.include_router(agent_config.router, prefix="/api/v1/agent-config", tags=["agent-config"])
 app.include_router(tutor_state.router, prefix="/api/v1/tutor-state", tags=["tutor-state"])
 app.include_router(observability.router, prefix="/api/v1/observability", tags=["observability"])
+# Photo-answer OCR input layer — feature-flagged (DEEPTUTOR_PHOTO_ANSWER_ENABLED,
+# default off → endpoints 404). Plan: docs/plan/2026-06-10-luban-photo-answer-*.md
+app.include_router(photo_answer.router, prefix="/api/v1/photo-answer", tags=["photo-answer"])
 app.include_router(mobile.router, prefix="/api/v1", tags=["mobile"])
 app.include_router(attachments.router, prefix="/api/attachments", tags=["attachments"])
 
