@@ -1,7 +1,7 @@
 # 鲁班智考拍照识题 OCR 输入层实施计划
 
 - 日期：2026-06-10
-- 状态：`Proposed v3.2`（经 Codex 对抗审查 20 findings 全裁决 + 一致性收口 + Codex 终审裁决"需小修"、12 项已全部修复；待用户批准后进入 M0）
+- 状态：`Implemented locally (M1+M2 code) / M0 blocked-on-user`（2026-06-10：服务端 photo_answer 包 + REST 六端点 + 小程序 capture/confirm 子包已实现并 81 测全绿、contract guards PASS、feature flag 默认 off；M0 实测需用户开通四家 API key + 组织三分法样本；provenance schema contract 评审与小程序真机回归待办——见 §14 实施落地记录）
 - 类型：Implementation Plan
 - 上游调研：用户提供的两份外部深度调研（拍照识字功能深度调研与落地方案 / 手写试卷识别路线深度研究），已于 2026-06-10 逐条核实厂商现行能力与定价（核实记录见本文 §3）
 - 关联主线：鲁班评分引擎总控（master plan §0.26）、学习事实编译 / Evidence-first Memory、微信小程序、官方 provider 账单对账（2026-06-03）、钱包/会员 authority（产品定价归属）
@@ -312,3 +312,13 @@ Codex（gpt 系，high reasoning，read-only，已读 case_kernel.py / mobile.py
 | 20 | P3 | M4 迁移门只看页量过粗 | **采纳** | TCO+质量+合规三维评估（M4） |
 
 20/20 采纳（#5 分级采纳、#10 并入 #8），无驳回项——v2 的产品方向（题号先行/确认页/成本路由/五件套）未被动摇，被打穿的全部是工程机制层，这正是对抗审查应有的产出形态。
+
+## 14. 实施落地记录（2026-06-10）
+
+代码已合入 main（commits `9bbe6b16` / `49230010` / `ba2f09b7` / `325da335` / `51973e26`），TDD 全程红绿，81 项新增测试全绿，contract guards 全 PASS（websocket-allowlist 确认零新增 ws 路由），`tests/services/construction_grading` 543 测无回归。
+
+**已落地**：`deeptutor/services/photo_answer/`（store 七表 + cost_ledger micros 状态机 + durable jobs + 三引擎客户端 + reconcile 行级风险评分 + paragraphs + stem_fold + lexicon 形近字 + quality 质检 + service 编排）；`/api/v1/photo-answer` 六端点（flag 默认 off、ownership 404、EXIF 剥离、轮询驱动恢复、双通道 retry）；hermetic e2e 证明 grader_payload 直通 `CaseGradingSkillKernel`（内核零修改）；M0 bakeoff 脚本（预注册闸强制）+ 标注规范（docs/qa）；小程序 photoAnswer 子包（capture/confirm）+ api.js 六个封装。
+
+**与计划的两处自觉偏差**：① 未建独立 `routing.py`/`jobs.py` 文件——起步期无自动 L2、job 逻辑在 store/service 内更内聚（Less Is More，§8 文件表按实现为准）；② L1 预算降级测试中 settle 可超 reserve 估算——真实引擎价格稳定，M0 账单回放后校准估算值。
+
+**Blocked-on-user / 待办**：① M0 实测：开通百度/阿里/百炼/腾讯 key + 三分法 200 张样本（腾讯客户端未实现，bakeoff 报告中显式标跳过）；② photo provenance 在 learning_evidence payload 的 canonical schema contract 评审（落定前 photo 路径 `learning_evidence_allowed` 由 C9 fail-closed 控制且无长期证据写入路径）；③ 小程序入口按钮（案例题表面一行 navigateTo，产品定挂载点）与微信开发者工具真机回归（AGENTS §4 要求，flag off 期间无线上风险）；④ test2 部署 + 真实网络 P50 实测（M2 验收口径已定义）。
