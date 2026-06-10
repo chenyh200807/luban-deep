@@ -59,6 +59,7 @@
 | 上游能力吸收 | [2026-05-03-upstream-absorption-status.md](2026-05-03-upstream-absorption-status.md) | HKUDS/DeepTutor 能力吸收状态、适用/不适用判断、验证证据 |
 | 上游产品表面评审 | [2026-05-03-upstream-product-surface-review-intake.md](2026-05-03-upstream-product-surface-review-intake.md) | Book / Space / Co-writer / TutorBot channels 先做产品评审，不直接进入工程吸收队列 |
 | Supabase RAG 检索质量评估与优化 | [2026-05-28-rag-diagnostic-first-prd.md](2026-05-28-rag-diagnostic-first-prd.md) | 基于 70/100 代码级评估 + 战略反思后的「诊断优先 + 免费午餐」2 周计划：P0-1 建 RAG 评估 harness（Recall@K / MRR / NDCG + 60-100 条 golden set）+ P0-2 开 2 个已实现未开的 FF（`provenance_boost_enabled` / `compiled_truth_enabled`）。**不预先承诺 P1**，数据出来用决策树驱动下一步（冻结 RAG / 针对性优化 / 全押 P1）。单一权威 `RAGService`，不触碰 `contracts/rag.md`。 |
+| 拍照识题 OCR 输入层 | [2026-06-10-luban-photo-answer-ocr-input-layer-implementation-plan.md](2026-06-10-luban-photo-answer-ocr-input-layer-implementation-plan.md) | 小程序拍照作答输入层：题号先行单题连拍 → 三级成本路由 OCR（百度标准手写 L0 + qwen-vl-ocr 交叉校验 L1 + 阿里 RecognizeHandwriting 疑难升级 L2 双通道），cost_ledger 代码层强制软顶 0.1 元/题 + 硬顶 0.3 元/题（含用户主动重识别）→ 确认页仅疑点高亮 → `confirmed_text` 送既有批改链路。原图/raw_ocr/确认稿/diff/置信度五件套落盘，OCR 错误与学生真实错误制度性分离；不写 learning_evidence、不改 `CaseGradingSkillKernel`、不新增 ws 路由、不做整卷自动分题。M0 用 200 张三分法冒烟集 + 预注册阈值实测裁决主引擎（provisional 直至真实数据回归），PaddleOCR 自部署仅定触发门（月 5 万页/合规/5k 修订对，TCO+质量+合规三维评估）不排期。状态 Proposed v3.2：Codex 对抗审查 20 findings 全裁决 + 终审 12 项小修全修复。 |
 
 ## 按领域索引
 
@@ -184,6 +185,7 @@
 
 | 文件 | 类型 | 状态 | 说明 |
 | --- | --- | --- | --- |
+| [2026-06-10-luban-photo-answer-ocr-input-layer-implementation-plan.md](2026-06-10-luban-photo-answer-ocr-input-layer-implementation-plan.md) | Implementation Plan | Proposed v3.2 (2026-06-10，Codex 对抗审查 20 findings 全裁决 §13 + 终审"需小修"12 项全修复；待用户批准进 M0) | 拍照识题 OCR 输入层：把纸面手写案例题答案变成既有批改链路可消费的 `confirmed_text`。引擎选型基于 2026-06-10 逐条核实的现行牌价：三级成本路由（百度标准手写 0.0074–0.01 元/页 L0 主识别 + qwen-vl-ocr ~0.002–0.005 元/页 L1 交叉分歧高亮（待 M0 账单回放实证）+ 阿里 0.054–0.225 元/页 L2 疑难升级双通道），cost_ledger（micros、reserve→settle/refund、user/day 限额）在代码层强制软顶 0.1 元/题（自动路由）+ 硬顶 0.3 元/题（含用户主动重识别），典型 0.03–0.07 元。v3 关键机制：durable OCR job + 幂等恢复；photo provenance 在 learning_evidence payload 的 canonical schema 为 M1 Task 0；题干默认折叠不删除；reconcile 行级风险评分（span 坐标 authority 锚 L0）；词典仅形近字提示、禁 rubric 术语；关键疑点 fail-closed 为 provisional 批改不写长期证据。M0=200 张三分法冒烟集（誊抄/限时自由作答/征集真实）+ 阈值预注册实测裁决 L0（含"百度不达标→升阿里→超预算必须回用户重批"换防条款，裁决 provisional 直至上线 30 天真实数据回归）；M1 单题单页纵切（含 provenance schema/隐私基线/存储拍板三前置）；M2 多页+交叉+路由；M3 数据闭环+A/B；M4 仅定 PaddleOCR 私有化触发门（TCO+质量+合规三维）。红线：不做整卷分题、不做无确认直批、通用 VLM 不当主 OCR、OCR 层零写 learning_evidence、`/api/v1/ws` 不动。 |
 | [2026-04-20-luban-adaptive-teaching-intelligence-prd.md](2026-04-20-luban-adaptive-teaching-intelligence-prd.md) | PRD | 未标注 | 因材施教智能体、显性个性化导师、Teaching Policy。 |
 | [2026-04-20-teaching-methods-matrix-prd.md](2026-04-20-teaching-methods-matrix-prd.md) | PRD | Draft v1 | Teaching Methods Matrix，定义“施教层”的方法选择。 |
 | [2026-05-02-luban-assessment-blueprint-prd.md](2026-05-02-luban-assessment-blueprint-prd.md) | PRD | Implemented locally | Assessment Blueprint，定义 Supabase 题库抽样、心理/学习习惯/教学偏好 probes、计分分层与 release gate；P0-P3 代码与定向验证已完成，尚未 push / 部署到线上。 |
@@ -280,6 +282,7 @@
 
 ### Implementation Plan
 
+- [2026-06-10-luban-photo-answer-ocr-input-layer-implementation-plan.md](2026-06-10-luban-photo-answer-ocr-input-layer-implementation-plan.md)
 - [2026-04-19-supabase-wallet-single-authority-implementation-plan.md](2026-04-19-supabase-wallet-single-authority-implementation-plan.md)
 - [2026-05-23-luban-bi-member-growth-backoffice-ui-ux-plan.md](2026-05-23-luban-bi-member-growth-backoffice-ui-ux-plan.md)
 - [2026-05-24-bi-high-risk-actions-safety-contract-plan.md](2026-05-24-bi-high-risk-actions-safety-contract-plan.md)
