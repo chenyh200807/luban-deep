@@ -18,7 +18,10 @@ def _draft(points):
 
 _PUBLISHED = "Q1-NA"  # published, P1 auto_certifiable
 _DRAFT = "QD-SYNTH-DRAFT"  # synthetic: 0 auto-certifiable points, no high_risk -> draft
-_SUM_MISMATCH = "Q20-1A413000"  # declared total != point sum -> blocked by score-sum gate
+_SUM_MISMATCH = "Q18-1A434000"  # declared total != point sum -> blocked by score-sum gate
+# (Q20's total is now officially confirmed at 5.5 and its split repaired — see the
+# golden fixture's official_total_provenance; Q18 stays genuinely mismatched because
+# the 2017 official chunks conflict on its total: compiler work order, not a guess.)
 _BLOCKED = "Q15-NA"  # 0 auto-certifiable + high_risk_review point -> blocked
 
 def _synthetic_draft_artifact(qid: str = "QD-SYNTH-DRAFT") -> dict:
