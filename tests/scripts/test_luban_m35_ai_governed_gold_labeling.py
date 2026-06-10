@@ -503,6 +503,22 @@ def test_prosecutor_abstention_downgrades_row(tmp_path):
     assert manifest["gold_row_count"] == 0
 
 
+def test_manifest_provider_call_patch_uses_uncached_judge_calls():
+    from scripts.run_luban_m35_ai_governed_gold_labeling import (
+        _patch_manifest_provider_calls,
+    )
+
+    manifest = {"safety": {"db_write_count": 0, "remote_write_count": 0, "provider_call_count": 0}}
+    snapshot = {
+        "deepseek-chat": {"calls": 10, "cached_hits": 4},
+        "gpt-codex": {"calls": 5, "cached_hits": 0},
+    }
+    patched = _patch_manifest_provider_calls(manifest, snapshot)
+    assert patched["safety"]["provider_call_count"] == 11
+    # Immutability: the input manifest is never mutated.
+    assert manifest["safety"]["provider_call_count"] == 0
+
+
 def test_question_ids_filter_and_row_workers_parallelism(tmp_path):
     from scripts.run_luban_m35_ai_governed_gold_labeling import run_labeling
 

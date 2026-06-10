@@ -255,6 +255,23 @@ def test_codex_judge_abstains_on_nonzero_exit_timeout_and_missing_message(monkey
     monkeypatch.setattr(judges, "_run_cli", lambda *a, **k: (1, "", "boom"))
     assert make_codex_judge(stats)(POINT, ANSWER, ANCHOR)["verdict"] == "abstain"
 
+    # The real failure cause lives in the stdout JSONL error event (e.g. usage
+    # limits); the abstain reason must surface it, not the stderr noise.
+    quota_stdout = "\n".join(
+        [
+            json.dumps({"type": "turn.started"}),
+            json.dumps({"type": "error", "message": "You've hit your usage limit."}),
+        ]
+    )
+    monkeypatch.setattr(
+        judges,
+        "_run_cli",
+        lambda *a, **k: (1, quota_stdout, "Reading additional input from stdin..."),
+    )
+    vote = make_codex_judge(stats)(POINT, ANSWER, ANCHOR)
+    assert vote["verdict"] == "abstain"
+    assert "usage limit" in vote["abstain_reason"]
+
     monkeypatch.setattr(
         judges, "_run_cli", lambda *a, **k: (_ for _ in ()).throw(JudgeTransportError("timeout after 60s"))
     )
@@ -263,7 +280,7 @@ def test_codex_judge_abstains_on_nonzero_exit_timeout_and_missing_message(monkey
     monkeypatch.setattr(judges, "_run_cli", lambda *a, **k: (0, json.dumps({"type": "turn.started"}), ""))
     assert make_codex_judge(stats)(POINT, ANSWER, ANCHOR)["verdict"] == "abstain"
 
-    assert stats.snapshot()["gpt-codex"]["abstains"] == 3
+    assert stats.snapshot()["gpt-codex"]["abstains"] == 4
 
 
 def test_claude_judge_builds_command_and_parses_text(monkeypatch):

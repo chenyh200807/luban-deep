@@ -764,6 +764,23 @@ def build_live_judge_fns(
     return build_live_judges(env=env)
 
 
+def _patch_manifest_provider_calls(
+    manifest: dict[str, Any], stats_snapshot: Mapping[str, Mapping[str, Any]]
+) -> dict[str, Any]:
+    """Return a manifest copy whose safety block carries real provider calls.
+
+    ``run_labeling`` is judge-agnostic and writes ``provider_call_count: 0``;
+    for live runs the count must reflect actual (uncached) provider calls so
+    the artifact never under-reports what was exercised.
+    """
+    provider_calls = sum(
+        int(entry.get("calls") or 0) - int(entry.get("cached_hits") or 0)
+        for entry in stats_snapshot.values()
+    )
+    safety = {**(manifest.get("safety") or {}), "provider_call_count": provider_calls}
+    return {**manifest, "safety": safety}
+
+
 def _self_check_rows(rows: list[dict[str, Any]]) -> dict[str, Any]:
     """Re-feed every output row through the canonical protocol validator."""
     violations: list[str] = []
@@ -846,7 +863,12 @@ def main() -> int:
         question_ids=question_ids or None,
         row_workers=args.row_workers,
     )
-    manifest = result["manifest"]
+    stats_snapshot = stats.snapshot()
+    manifest = _patch_manifest_provider_calls(result["manifest"], stats_snapshot)
+    (output_dir / "manifest.json").write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
     report["labeling_run"] = True
     report["live"]["status"] = "live_labeling_completed"
     report["manifest_summary"] = {
@@ -866,7 +888,7 @@ def main() -> int:
             "model_roles",
         )
     }
-    report["model_stats"] = stats.snapshot()
+    report["model_stats"] = stats_snapshot
     report["estimated_cost_usd_metered_models"] = stats.total_known_cost_usd()
     report["self_check"] = _self_check_rows(result["rows"])
     write_report()
