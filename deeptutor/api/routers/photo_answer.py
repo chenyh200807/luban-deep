@@ -11,6 +11,7 @@ gets re-enqueued on the next poll (no scheduler needed at this scale).
 
 from __future__ import annotations
 
+import hashlib
 import io
 import json
 import logging
@@ -21,11 +22,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
 
-from fastapi import APIRouter, BackgroundTasks, File, Form, Header, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, Header, HTTPException
 from PIL import Image
 from pydantic import BaseModel, Field
 
 from deeptutor.api.dependencies.auth import resolve_auth_context
+from deeptutor.api.dependencies.rate_limit import route_rate_limit
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.photo_answer.cost_ledger import (
     BudgetExceeded,
@@ -167,12 +169,14 @@ def _strip_exif_reencode(data: bytes) -> bytes:
 
 
 class CreateSessionRequest(BaseModel):
-    question_id: str = Field(min_length=1)
-    question_stem: str = ""
+    question_id: str = Field(min_length=1, max_length=256)
+    # 题干 verbatim 落 SQLite 并进折叠/正则；4000 字够任何真实题干，超长即外部攻击/误用
+    question_stem: str = Field(default="", max_length=4000)
 
 
 class ConfirmRequest(BaseModel):
-    confirmed_text: str
+    # 确认稿 verbatim 落库并送批改器；20000 字够任何真实作答，超长即外部攻击/误用
+    confirmed_text: str = Field(max_length=20000)
     job_version: int
     ack_normal_suspicions: bool = False
     resolved_span_ids: list[str] = Field(default_factory=list)
@@ -188,7 +192,20 @@ class RetryRequest(BaseModel):
 # ---------- endpoints ----------
 
 
-@router.post("/sessions")
+@router.post(
+    "/sessions",
+    dependencies=[
+        # 付费 OCR 入口：每 session 触发三家外部 API（上限 0.30 元）。每日配额挡不住
+        # 短时爆发，叠加一层每用户/每 IP 短窗限流（沿用仓库统一的 route_rate_limit 姿势）。
+        Depends(
+            route_rate_limit(
+                "photo_answer_create_session",
+                default_max_requests=5,
+                default_window_seconds=60.0,
+            )
+        )
+    ],
+)
 async def create_session(
     body: CreateSessionRequest,
     authorization: str | None = Header(default=None),
@@ -229,8 +246,6 @@ async def upload_page(
 
     clean = _strip_exif_reencode(file)
     quality = assess_image_quality(clean)
-    import hashlib
-
     content_hash = hashlib.sha256(clean).hexdigest()
     filename = f"{session_id}-p{int(page_index)}-{uuid.uuid4().hex[:8]}.jpg"
     dest = runtime.images_root / session_id
@@ -295,19 +310,17 @@ async def get_session_status(
     svc = runtime.service()
 
     job = runtime.store.get_latest_job(session_id)
-    # 轮询驱动恢复（plan §5 / Codex C3）：running 但 lease 过期 = 进程重启遗孤
+    # 轮询驱动恢复（plan §5 / Codex C3）：running 但 lease 过期 = 进程重启遗孤。
+    # 恢复逻辑下沉到 store.recover_stale_job（WHERE status='running' 守卫，
+    # 终态 job 永不被重置重派）；只有确实 reset 成功才重新派发。
     if (
         job is not None
         and job["status"] == "running"
         and float(job["lease_until"]) < time.time()
     ):
-        logger.info("photo_answer recovering stale job %s", job["id"])
-        with runtime.store.connect() as conn:
-            conn.execute(
-                "update photo_answer_jobs set status='pending', lease_until=0 where id=?",
-                (str(job["id"]),),
-            )
-        background_tasks.add_task(svc.process_job, str(job["id"]))
+        if runtime.store.recover_stale_job(str(job["id"])):
+            logger.info("photo_answer recovering stale job %s", job["id"])
+            background_tasks.add_task(svc.process_job, str(job["id"]))
 
     out: dict[str, Any] = {"session": runtime.store.get_session(session_id), "job": job}
     if (out["session"] or {}).get("status") in ("awaiting_confirm", "confirmed", "submitted"):

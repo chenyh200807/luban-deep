@@ -423,6 +423,13 @@ async def unified_websocket(ws: WebSocket) -> None:
             try:
                 await ws.send_json(data)
             except Exception:
+                # Transport send failed: the peer is gone. Mark closed so the rest
+                # of the loop stops touching the socket — but log it (never silent),
+                # so a flapping client / send-side bug is observable.
+                logger.warning(
+                    "Unified WS send failed; marking connection closed (event_type=%s)",
+                    data.get("type") if isinstance(data, dict) else None,
+                )
                 closed = True
 
     async def stop_subscription(key: str) -> None:
@@ -540,6 +547,21 @@ async def unified_websocket(ws: WebSocket) -> None:
                 except ValidationError:
                     await safe_send({"type": "error", "content": _public_validation_message("start_turn")})
                     continue
+                except asyncio.CancelledError:
+                    # Cancellation is control flow, not a turn failure — never swallow it.
+                    raise
+                except Exception:
+                    # Boundary contract: a single-turn execution error must NOT tear
+                    # down the receive loop. Emit a turn-level error event and keep
+                    # serving the connection; only transport/protocol errors disconnect.
+                    logger.exception("Unified WS start_turn failed (unhandled)")
+                    await safe_send(
+                        _build_error_event(
+                            content=_public_ws_failure_message("start turn"),
+                            session_id=str(msg.get("session_id") or ""),
+                        )
+                    )
+                    continue
                 await subscribe_turn(turn["id"], after_seq=0)
                 continue
 
@@ -656,7 +678,23 @@ async def unified_websocket(ws: WebSocket) -> None:
                 from deeptutor.services.session import get_turn_runtime_manager
 
                 runtime = get_turn_runtime_manager()
-                cancelled = await runtime.cancel_turn(cancel_message.turn_id)
+                try:
+                    cancelled = await runtime.cancel_turn(cancel_message.turn_id)
+                except asyncio.CancelledError:
+                    # Cancellation is control flow, not a turn failure — never swallow it.
+                    raise
+                except Exception:
+                    # Same boundary contract as start_turn: a single cancel operation
+                    # error must not disconnect the client. Emit a turn-level error
+                    # event and keep serving the connection.
+                    logger.exception("Unified WS cancel_turn failed (unhandled)")
+                    await safe_send(
+                        _build_error_event(
+                            content=_public_ws_failure_message("cancel turn"),
+                            turn_id=cancel_message.turn_id,
+                        )
+                    )
+                    continue
                 if not cancelled:
                     await safe_send(_build_error_event(content="Turn not found", turn_id=cancel_message.turn_id))
                 continue

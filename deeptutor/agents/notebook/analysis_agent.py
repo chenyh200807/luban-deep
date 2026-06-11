@@ -9,7 +9,6 @@ from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.core.trace import build_trace_metadata, derive_trace_metadata, new_call_id
 from deeptutor.services.llm import clean_thinking_tags, get_llm_config, get_token_limit_kwargs
 from deeptutor.services.llm import complete as llm_complete, stream as llm_stream
-from deeptutor.services.llm import stream as llm_stream
 from deeptutor.utils.json_parser import parse_json_response
 
 logger = logging.getLogger(__name__)

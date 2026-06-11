@@ -2,9 +2,9 @@
 
 import asyncio
 import json
-import uuid
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+import uuid
 
 from loguru import logger
 
@@ -14,6 +14,9 @@ from deeptutor.tutorbot.bus.queue import MessageBus
 from deeptutor.tutorbot.config.schema import ExecToolConfig
 from deeptutor.tutorbot.providers.base import LLMProvider
 from deeptutor.tutorbot.utils.helpers import build_assistant_message
+
+if TYPE_CHECKING:
+    from deeptutor.tutorbot.config.schema import WebSearchConfig
 
 
 class SubagentManager:

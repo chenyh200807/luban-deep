@@ -92,6 +92,19 @@ jobs:
           # __init__.py transitively imports modules that use pydantic models.
           pip install "PyYAML>=6.0" "pydantic>=2"
 
+      - name: NameError gate (ruff F821 undefined name + F811 redefinition)
+        # Single-point defense against the whole NameError class (F821) and
+        # silent redefinitions (F811) reaching main. Python has no general lint
+        # gate in CI — ruff only runs in opt-in local pre-commit — so cold-path
+        # NameErrors (missing `import os`/`Path`/`sys`, unresolved annotations)
+        # could land undetected. Scoped to F821,F811 ONLY: the repo carries
+        # ~300 other intentionally-relaxed lint findings (pyproject [tool.ruff]
+        # select=E,F,I but ignores E501/F841/etc.), so a broader gate could not
+        # land. Uses the repo's pyproject [tool.ruff] config automatically.
+        run: |
+          pip install ruff
+          ruff check --select F821,F811 deeptutor deeptutor_cli scripts
+
       - name: Run contract guard
         run: |
           python scripts/check_contract_guard.py --base "$BASE_SHA" --head "$HEAD_SHA"
@@ -229,6 +242,7 @@ jobs:
           pytest -q --import-mode=importlib \
             tests/api \
             tests/cli \
+            tests/services/test_import_smoke.py \
             tests/services/test_app_facade.py \
             tests/services/test_model_catalog.py \
             tests/services/test_path_service.py \

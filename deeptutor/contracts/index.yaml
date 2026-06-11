@@ -82,10 +82,12 @@ domains:
     summary: Unified turn, stream, replay, session, trace boundary, and mobile assessment HTTP bridges.
     runtime_metadata_contracts:
       - general_knowledge_context is a runtime-only TutorBot shadow opt-in. When
-        present in start-turn config, turn runtime must project it into
-        UnifiedContext.metadata for the TutorBot compiled teaching-context service;
-        it must not create a second knowledge authority, mutate canonical learner
-        truth, or open any WebSocket route other than /api/v1/ws.
+        present in start-turn config, or in the mobile HTTP bootstrap top-level
+        compatibility field that is normalized into that config, turn runtime
+        must project it into UnifiedContext.metadata for the TutorBot compiled
+        teaching-context service; it must not create a second knowledge
+        authority, mutate canonical learner truth, or open any WebSocket route
+        other than /api/v1/ws.
     contract_files:
       - CONTRACT.md
       - contracts/turn.md
@@ -205,7 +207,14 @@ domains:
       - deeptutor/capabilities/request_contracts.py
 
   rag:
-    summary: Grounding entry point, retrieval contract, exact-question and authority semantics.
+    summary: Grounding entry point, retrieval contract, exact-question, compiled teaching overlay, and authority semantics.
+    runtime_metadata_contracts:
+      - general_knowledge_context is a runtime-only compiled teaching overlay
+        opt-in for TutorBot / Chat agent execution. Consumers must reuse
+        deeptutor.services.compiled_knowledge.general_knowledge, emit only
+        teaching-tier metadata, fail open on low confidence or active question
+        context, and must not create a second RAG/KB/taxonomy/learner-memory
+        authority or write canonical learner truth.
     contract_files:
       - CONTRACT.md
       - contracts/rag.md
@@ -330,6 +339,7 @@ domains:
       - tests/services/learner_state/test_flusher.py
       - tests/services/learner_state/test_runtime.py
       - tests/services/learner_state/test_attempt_detail_read_model.py
+      - tests/services/learner_state/test_learning_synthesis.py
       - tests/services/learner_state/test_learning_report_read_model.py
       - tests/services/learner_state/test_learning_state_projection.py
       - tests/services/learner_state/test_m32_waterproof_learning_synthesis.py
@@ -353,6 +363,7 @@ domains:
       - tests/services/learner_state/heartbeat/test_service.py
       - tests/services/learner_state/heartbeat/test_scheduler.py
       - tests/services/learner_state/heartbeat/test_arbitration.py
+      - tests/services/member_console/test_directory.py
       - tests/services/member_console/test_service.py
       - tests/web/test_bi_member_admin_surface.py
       - tests/supabase/test_learner_state_rls_migration.py

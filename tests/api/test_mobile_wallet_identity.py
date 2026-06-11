@@ -246,6 +246,7 @@ def test_billing_usage_returns_window_percentages(monkeypatch: pytest.MonkeyPatc
     canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
     now = datetime.now(ZoneInfo("Asia/Shanghai"))
 
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "1")
     monkeypatch.setenv("DEEPTUTOR_BILLING_USAGE_5H_LIMIT_POINTS", "100")
     monkeypatch.setenv("DEEPTUTOR_BILLING_USAGE_WEEKLY_LIMIT_POINTS", "200")
     monkeypatch.setattr(mobile_module, "resolve_wallet_user_id", lambda _authorization: canonical_uid)

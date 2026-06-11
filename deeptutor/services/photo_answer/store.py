@@ -373,6 +373,24 @@ class PhotoAnswerStore:
                 (status, ts, job_id),
             )
 
+    def recover_stale_job(self, job_id: str) -> bool:
+        """Re-enqueue a process-restart orphan: a job still 'running' whose
+        lease expired. Returns True when it was actually reset to 'pending'.
+
+        The WHERE clause hard-gates on status='running' so a terminal job
+        (succeeded/failed) can never be reset and re-dispatched — that guard
+        lives in the store, not the caller, so the state-machine invariant
+        holds regardless of who calls.
+        """
+        with self.connect() as conn:
+            conn.execute("begin immediate")
+            cur = conn.execute(
+                "update photo_answer_jobs set status='pending', lease_until=0 "
+                "where id=? and status='running'",
+                (str(job_id),),
+            )
+            return cur.rowcount > 0
+
     # ---------- OCR results ----------
 
     def save_ocr_result(

@@ -130,9 +130,12 @@ def test_tutorbot_general_knowledge_shadow_opt_in_does_not_attach_with_active_qu
     metadata = {
         "general_knowledge_context": True,
         "active_object": {
-            "type": "question",
-            "question_id": "q_active",
-            "question": "既有题对象",
+            "object_type": "single_question",
+            "object_id": "q_active",
+            "state_snapshot": {
+                "question_id": "q_active",
+                "question": "既有题对象",
+            },
         },
     }
 

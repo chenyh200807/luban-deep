@@ -48,7 +48,10 @@ Page({
           return;
         }
         if (status === "failed") {
-          that.setData({ status: "failed", failText: "识别失败，可重试或改用手动输入" });
+          that.setData({
+            status: "failed",
+            failText: "识别失败，可重试或改用手动输入",
+          });
           return;
         }
         that._pollTries += 1;
@@ -60,8 +63,11 @@ Page({
       },
       function () {
         that._pollTries += 1;
-        that._pollTimer = setTimeout(that._poll.bind(that), POLL_INTERVAL_MS * 2);
-      }
+        that._pollTimer = setTimeout(
+          that._poll.bind(that),
+          POLL_INTERVAL_MS * 2,
+        );
+      },
     );
   },
 
@@ -79,6 +85,7 @@ Page({
         id: s.id,
         source: s.source,
         severity: s.severity,
+        page_index: Number(s.page_index) || 0,
         suggestion: s.suggestion || "",
         spanText: this._spanText(s),
         resolvedLocal: !!s.resolved_by_user,
@@ -91,13 +98,16 @@ Page({
         paragraphs: paragraphs,
         suspicions: suspicions,
       },
-      this._rebuildDraft.bind(this)
+      this._rebuildDraft.bind(this),
     );
   },
 
   _spanText: function (s) {
     try {
-      var span = typeof s.span_json === "string" ? JSON.parse(s.span_json) : s.span_json || {};
+      var span =
+        typeof s.span_json === "string"
+          ? JSON.parse(s.span_json)
+          : s.span_json || {};
       return span.char || span.text || "";
     } catch (e) {
       return "";
@@ -135,8 +145,11 @@ Page({
     var that = this;
     var apply = function () {
       that.setData(
-        { ["paragraphs[" + index + "].included"]: !that.data.paragraphs[index].included },
-        that._rebuildDraft.bind(that)
+        {
+          ["paragraphs[" + index + "].included"]:
+            !that.data.paragraphs[index].included,
+        },
+        that._rebuildDraft.bind(that),
       );
     };
     if (this.data.draftText !== this.data.originalDraft) {
@@ -157,7 +170,7 @@ Page({
     var item = this.data.suspicions[index];
     this.setData(
       { ["suspicions[" + index + "].resolvedLocal"]: !item.resolvedLocal },
-      this._recountSuspicions.bind(this)
+      this._recountSuspicions.bind(this),
     );
   },
 
@@ -173,33 +186,58 @@ Page({
     });
   },
 
+  // 选择升级目标页：取"最高严重度未解决疑点"所在页。
+  // 严重度只有 critical / normal 两档：优先 critical，否则取任一未解决 normal，
+  // 都没有再回落第 0 页。这样多页 session 不会永远只升级第 0 页。
+  _escalatePageIndex: function () {
+    var unresolved = this.data.suspicions.filter(function (s) {
+      return !s.resolvedLocal;
+    });
+    var critical = unresolved.filter(function (s) {
+      return s.severity === "critical";
+    });
+    var pick = critical[0] || unresolved[0];
+    return pick ? Number(pick.page_index) || 0 : 0;
+  },
+
   // 主动升级重识别：每次拍题仅 1 次，花的是最贵引擎（plan §3.3 硬顶通道）
   escalate: function () {
     var that = this;
     if (this.data.escalateUsed) {
       return;
     }
+    var pageIndex = this._escalatePageIndex();
     wx.showModal({
       title: "重新识别",
       content: "将使用更高精度引擎重新识别（每次拍题仅可用一次）。继续？",
       success: function (res) {
         if (!res.confirm) return;
         wx.showLoading({ title: "重新识别中" });
-        api.retryPhotoAnswerSession(that.data.sessionId, { mode: "escalate", page_index: 0 }).then(
-          function () {
-            wx.hideLoading();
-            that.setData({ escalateUsed: true });
-            that._pollTries = 0;
-            api.getPhotoAnswerSession(that.data.sessionId).then(function (res2) {
-              if (res2.view) that._applyView(res2);
-            });
-          },
-          function (err) {
-            wx.hideLoading();
-            that.setData({ escalateUsed: true });
-            wx.showToast({ title: (err && err.message) || "重识别不可用", icon: "none" });
-          }
-        );
+        api
+          .retryPhotoAnswerSession(that.data.sessionId, {
+            mode: "escalate",
+            page_index: pageIndex,
+          })
+          .then(
+            function () {
+              wx.hideLoading();
+              that.setData({ escalateUsed: true });
+              that._pollTries = 0;
+              api
+                .getPhotoAnswerSession(that.data.sessionId)
+                .then(function (res2) {
+                  if (res2.view) that._applyView(res2);
+                });
+            },
+            function (err) {
+              wx.hideLoading();
+              that.setData({ escalateUsed: true });
+              wx.showToast({
+                title: (err && err.message) || "重识别不可用",
+                icon: "none",
+              });
+            },
+          );
       },
     });
   },
@@ -216,8 +254,11 @@ Page({
       },
       function (err) {
         wx.hideLoading();
-        wx.showToast({ title: (err && err.message) || "重试失败", icon: "none" });
-      }
+        wx.showToast({
+          title: (err && err.message) || "重试失败",
+          icon: "none",
+        });
+      },
     );
   },
 
@@ -249,7 +290,9 @@ Page({
         job_version: this.data.jobVersion,
         ack_normal_suspicions: !!ack,
         resolved_span_ids: resolvedIds,
-        edited_char_count: Math.abs(text.length - this.data.originalDraft.length),
+        edited_char_count: Math.abs(
+          text.length - this.data.originalDraft.length,
+        ),
       })
       .then(function (res) {
         that.setData({ confirming: false });
@@ -257,7 +300,9 @@ Page({
           wx.showModal({
             title: "还有疑点未确认",
             content:
-              "有 " + res.unresolved_normal + " 处识别疑点未逐一确认。直接提交可能影响批改准确性，确定提交？",
+              "有 " +
+              res.unresolved_normal +
+              " 处识别疑点未逐一确认。直接提交可能影响批改准确性，确定提交？",
             confirmText: "确定提交",
             success: function (modal) {
               if (modal.confirm) {
@@ -271,7 +316,10 @@ Page({
       })
       .catch(function (err) {
         that.setData({ confirming: false });
-        wx.showToast({ title: (err && err.message) || "确认失败", icon: "none" });
+        wx.showToast({
+          title: (err && err.message) || "确认失败",
+          icon: "none",
+        });
       });
   },
 

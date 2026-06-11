@@ -1,8 +1,9 @@
-"""photo-answer REST router 测试：flag 门 / 全链路 / ownership / EXIF / 升级通道。"""
+"""photo-answer REST router 测试：flag 门 / 全链路 / ownership / EXIF / 升级通道 / 边界校验 / 限流。"""
 
 from __future__ import annotations
 
 import io
+import time
 
 import pytest
 
@@ -12,11 +13,21 @@ TestClient = pytest.importorskip("fastapi.testclient").TestClient
 
 from PIL import Image
 
+from deeptutor.api.dependencies import rate_limit as rate_limit_module
 from deeptutor.api.routers import photo_answer as pa_router
 from deeptutor.services.photo_answer.cost_ledger import CostLedger
 from deeptutor.services.photo_answer.engines.base import EngineResult
 from deeptutor.services.photo_answer.service import PhotoAnswerService
 from deeptutor.services.photo_answer.store import PhotoAnswerStore
+
+
+@pytest.fixture(autouse=True)
+def _clear_rate_limit_state(monkeypatch):
+    # 用内存后端 + 清桶，保证限流用例与既有用例彼此隔离
+    monkeypatch.setenv("DEEPTUTOR_RATE_LIMIT_BACKEND", "memory")
+    rate_limit_module.clear_rate_limit_state()
+    yield
+    rate_limit_module.clear_rate_limit_state()
 
 
 class FakeEngine:
@@ -226,3 +237,137 @@ def test_escalation_endpoint_once_then_409(app_client):
         headers=_auth(),
     )
     assert r2.status_code == 409
+
+
+# ---------- 外部边界：输入上限（根因 1）----------
+
+
+def test_question_stem_over_limit_rejected(app_client):
+    client, *_ = app_client
+    resp = client.post(
+        "/api/v1/photo-answer/sessions",
+        json={"question_id": "Q1", "question_stem": "x" * 4001},
+        headers=_auth(),
+    )
+    assert resp.status_code == 422
+
+
+def test_question_stem_at_limit_accepted(app_client):
+    client, *_ = app_client
+    resp = client.post(
+        "/api/v1/photo-answer/sessions",
+        json={"question_id": "Q1", "question_stem": "x" * 4000},
+        headers=_auth(),
+    )
+    assert resp.status_code == 200, resp.text
+
+
+def test_confirmed_text_over_limit_rejected(app_client):
+    client, *_ = app_client
+    session = _create_session(client)
+    sid = session["id"]
+    resp = client.post(
+        f"/api/v1/photo-answer/sessions/{sid}/confirm",
+        json={"confirmed_text": "x" * 20001, "job_version": 1, "ack_normal_suspicions": True},
+        headers=_auth(),
+    )
+    assert resp.status_code == 422
+
+
+# ---------- 崩溃恢复守卫：仅 running+租约过期可恢复（根因 2）----------
+
+
+def _submit_one_page(client, store):
+    session = _create_session(client)
+    sid = session["id"]
+    client.post(
+        f"/api/v1/photo-answer/sessions/{sid}/pages",
+        files={"file": ("p.jpg", _jpeg_bytes(), "image/jpeg")},
+        data={"page_index": "0"},
+        headers=_auth(),
+    )
+    client.post(f"/api/v1/photo-answer/sessions/{sid}/submit", headers=_auth())
+    return sid
+
+
+@pytest.mark.parametrize("terminal_status", ["succeeded", "failed"])
+def test_crash_recovery_does_not_reset_terminal_job(app_client, terminal_status):
+    client, store, *_ = app_client
+    sid = _submit_one_page(client, store)
+    job = store.get_latest_job(sid)
+    # 把 job 强制成终态 + 租约过期，模拟"已结束但租约已过期"的遗孤
+    store.finish_job(str(job["id"]), terminal_status)
+    with store.connect() as conn:
+        conn.execute(
+            "update photo_answer_jobs set lease_until=? where id=?",
+            (time.time() - 999, str(job["id"])),
+        )
+
+    resp = client.get(f"/api/v1/photo-answer/sessions/{sid}", headers=_auth())
+    assert resp.status_code == 200
+    after = store.get_job(str(job["id"]))
+    # 终态不可被恢复重派
+    assert after["status"] == terminal_status
+
+
+def test_crash_recovery_resets_running_job_with_expired_lease(app_client):
+    client, store, *_ = app_client
+    sid = _submit_one_page(client, store)
+    job = store.get_latest_job(sid)
+    job_id = str(job["id"])
+    # 模拟进程重启遗孤：running + 租约过期
+    with store.connect() as conn:
+        conn.execute(
+            "update photo_answer_jobs set status='running', lease_until=?, finished_at=NULL where id=?",
+            (time.time() - 999, job_id),
+        )
+
+    resp = client.get(f"/api/v1/photo-answer/sessions/{sid}", headers=_auth())
+    assert resp.status_code == 200
+    # 恢复路径会下沉到 store 并由 background task 重新执行 → 终态 succeeded
+    after = store.get_job(job_id)
+    assert after["status"] in ("pending", "running", "succeeded")
+    assert after["status"] != "failed"
+
+
+def test_store_recover_stale_job_guards_running_only(app_client):
+    client, store, *_ = app_client
+    sid = _submit_one_page(client, store)
+    job_id = str(store.get_latest_job(sid)["id"])
+
+    # 终态 succeeded → 不恢复
+    store.finish_job(job_id, "succeeded")
+    assert store.recover_stale_job(job_id) is False
+    assert store.get_job(job_id)["status"] == "succeeded"
+
+    # running → 恢复为 pending 且租约清零
+    with store.connect() as conn:
+        conn.execute(
+            "update photo_answer_jobs set status='running', lease_until=?, finished_at=NULL where id=?",
+            (time.time() + 5, job_id),
+        )
+    assert store.recover_stale_job(job_id) is True
+    recovered = store.get_job(job_id)
+    assert recovered["status"] == "pending"
+    assert float(recovered["lease_until"]) == 0
+
+
+# ---------- 付费 OCR 端点限流（根因 3）----------
+
+
+def test_create_session_rate_limited(app_client, monkeypatch):
+    client, *_ = app_client
+    # 收紧策略到 2/窗口，便于触发；沿用仓库统一的 set_rate_limit_policy 覆盖姿势
+    rate_limit_module.set_rate_limit_policy("photo_answer_create_session", 2, 60.0)
+    rate_limit_module.clear_rate_limit_state()
+    statuses = []
+    for _ in range(4):
+        resp = client.post(
+            "/api/v1/photo-answer/sessions",
+            json={"question_id": "Q1"},
+            headers=_auth(),
+        )
+        statuses.append(resp.status_code)
+    assert 429 in statuses
+    # 限流命中前的请求应成功
+    assert statuses[0] == 200

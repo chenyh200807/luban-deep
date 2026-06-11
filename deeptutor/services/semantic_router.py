@@ -238,13 +238,6 @@ class SemanticRoutingResult:
 
 
 @dataclass
-class QuestionObjectTransition:
-    active_object: dict[str, Any] | None
-    suspended_object_stack: list[dict[str, Any]]
-    question_context: dict[str, Any] | None
-
-
-@dataclass
 class _SemanticCandidate:
     active_object: dict[str, Any]
     question_context: dict[str, Any]
@@ -507,91 +500,6 @@ def build_active_object_from_question_context(
         question_context,
         prior_active_object=previous_active_object,
         source_turn_id=source_turn_id,
-    )
-
-
-def apply_question_object_transition(
-    *,
-    active_object: dict[str, Any] | None,
-    suspended_object_stack: list[dict[str, Any]] | None,
-    turn_semantic_decision: dict[str, Any] | None,
-    candidate_question_context: dict[str, Any] | None = None,
-    candidate_active_object: dict[str, Any] | None = None,
-    source_turn_id: str = "",
-) -> QuestionObjectTransition:
-    current_active = normalize_active_object(active_object)
-    current_stack = normalize_suspended_object_stack(suspended_object_stack)
-    decision = normalize_turn_semantic_decision(turn_semantic_decision, active_object=current_active)
-    normalized_candidate_context = normalize_question_followup_context(candidate_question_context)
-    target_candidate = normalize_active_object(candidate_active_object)
-    if target_candidate is None and normalized_candidate_context is not None:
-        previous_object = _resolve_transition_target(
-            active_object=current_active,
-            suspended_object_stack=current_stack,
-            target_object_ref=(decision or {}).get("target_object_ref"),
-        )
-        target_candidate = build_active_object_from_question_context(
-            normalized_candidate_context,
-            source_turn_id=source_turn_id,
-            previous_active_object=previous_object or current_active,
-        )
-
-    next_active = current_active
-    next_stack = list(current_stack)
-    next_question_context = (
-        normalized_candidate_context
-        or question_context_from_active_object(current_active)
-    )
-
-    target_object = _resolve_transition_target(
-        active_object=current_active,
-        suspended_object_stack=current_stack,
-        target_object_ref=(decision or {}).get("target_object_ref"),
-    )
-    allowed_patch = list((decision or {}).get("allowed_patch") or [])
-
-    if "resume_suspended_object" in allowed_patch and target_object is not None:
-        resumed_active = target_candidate if target_candidate is not None else target_object
-        next_stack = _remove_object_from_stack(current_stack, target_object)
-        if current_active is not None and not _same_active_object(current_active, resumed_active):
-            next_stack = _prepend_stack_object(next_stack, current_active)
-        next_active = resumed_active
-        next_question_context = (
-            normalized_candidate_context
-            or question_context_from_active_object(resumed_active)
-        )
-        return QuestionObjectTransition(
-            active_object=next_active,
-            suspended_object_stack=next_stack,
-            question_context=next_question_context,
-        )
-
-    if target_candidate is not None:
-        next_active = target_candidate
-        next_question_context = (
-            normalized_candidate_context
-            or question_context_from_active_object(target_candidate)
-        )
-        if current_active is not None and not _same_active_object(current_active, target_candidate):
-            if any(
-                patch in allowed_patch
-                for patch in ("set_active_object", "suspend_current_object")
-            ):
-                next_stack = _prepend_stack_object(current_stack, current_active)
-        return QuestionObjectTransition(
-            active_object=next_active,
-            suspended_object_stack=next_stack,
-            question_context=next_question_context,
-        )
-
-    if target_object is not None:
-        next_active = target_object
-        next_question_context = question_context_from_active_object(target_object)
-
-    return QuestionObjectTransition(
-        active_object=next_active,
-        suspended_object_stack=next_stack,
-        question_context=next_question_context,
     )
 
 

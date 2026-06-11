@@ -6,7 +6,7 @@ import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from loguru import logger
 
@@ -20,6 +20,9 @@ from deeptutor.tutorbot.config.schema import ExecToolConfig, WebSearchConfig
 from deeptutor.tutorbot.providers.base import LLMProvider
 from deeptutor.tutorbot.session.manager import Session, SessionManager
 from deeptutor.tutorbot.utils.helpers import ensure_dir, parse_json_from_llm, safe_filename, timestamp
+
+if TYPE_CHECKING:
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry
 
 
 @dataclass

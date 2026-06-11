@@ -1050,7 +1050,7 @@ class AgentLoop:
         scene = str(md.get("question_lifecycle_scene") or "").strip()
         if scene != "case_grading":
             logger.warning("LUBAN_V1 skip: scene={} qid={}", scene or "(none)",
-                           str(md.get("_prefetched_exact_question", {}).get("question_id") or "?")[:12])
+                           str((md.get("_prefetched_exact_question") or {}).get("question_id") or "?")[:12])
             return ""
         # Gate 2 (score authority check) intentionally removed: _grade_one_case_v1 has a three-tier path
         # (compiled_rubric > on_the_fly_reference > derived_from_stem) and returns a non-event marker when
