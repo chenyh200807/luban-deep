@@ -49,6 +49,11 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 _FLAG_ENV = "DEEPTUTOR_PHOTO_ANSWER_ENABLED"
+# Decompression-bomb guard: the 10MB byte cap below limits compressed size, NOT
+# decoded pixels. A small crafted file can claim a huge canvas and blow up to GBs
+# at img.load(). Cap decoded pixels so PIL raises DecompressionBombError (caught as
+# 415) instead of OOMing the worker. 40M px ≈ 6700×6000, ample for an answer photo.
+Image.MAX_IMAGE_PIXELS = 40_000_000
 _MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 _MAX_PAGES_PER_SESSION = 6
 _JPEG_QUALITY = 88

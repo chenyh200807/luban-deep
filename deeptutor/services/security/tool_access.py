@@ -9,7 +9,15 @@ END_USER_TOOL_ALIASES = {
     "code_execute": "code_execution",
     "run_code": "code_execution",
 }
-END_USER_BLOCKED_TOOLS = frozenset({"code_execution", "exec"})
+# Tools never exposed to untrusted end-user (student) chat flows.
+# - code_execution / exec: arbitrary code/command execution (RCE surface).
+# - spawn / team / cron: agent-orchestration tools. spawn has no per-call cap, so a
+#   student prompt can drive many concurrent subagents (LLM-cost / resource DoS
+#   amplification). team and cron are operator-facing, not student features.
+#   Blocking here removes them from the tool definitions the model is shown.
+END_USER_BLOCKED_TOOLS = frozenset(
+    {"code_execution", "exec", "spawn", "team", "cron"}
+)
 
 
 def canonical_end_user_tool_name(tool_name: str) -> str:

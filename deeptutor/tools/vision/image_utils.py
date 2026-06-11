@@ -1,6 +1,8 @@
 """Image processing utilities - URL download and format conversion."""
 
 import base64
+import ipaddress
+import socket
 from urllib.parse import urlparse
 
 import httpx
@@ -8,6 +10,40 @@ import httpx
 from deeptutor.logging import get_logger
 
 logger = get_logger(__name__)
+
+# SSRF guard: networks a fetched image URL must never resolve to. Blocks loopback,
+# RFC-1918 private ranges, link-local + cloud metadata (169.254.0.0/16, incl. Aliyun
+# 100.100.100.200 in 100.64.0.0/10), and IPv6 equivalents.
+_SSRF_BLOCKED_NETWORKS = (
+    ipaddress.ip_network("127.0.0.0/8"),
+    ipaddress.ip_network("10.0.0.0/8"),
+    ipaddress.ip_network("172.16.0.0/12"),
+    ipaddress.ip_network("192.168.0.0/16"),
+    ipaddress.ip_network("169.254.0.0/16"),
+    ipaddress.ip_network("100.64.0.0/10"),
+    ipaddress.ip_network("0.0.0.0/8"),
+    ipaddress.ip_network("::1/128"),
+    ipaddress.ip_network("fc00::/7"),
+    ipaddress.ip_network("fe80::/10"),
+)
+
+
+def _is_ssrf_safe_host(hostname: str) -> bool:
+    """Resolve hostname and reject if any resolved address is private/loopback/metadata."""
+    if not hostname:
+        return False
+    try:
+        infos = socket.getaddrinfo(hostname, None)
+    except socket.gaierror:
+        return False
+    for info in infos:
+        try:
+            addr = ipaddress.ip_address(info[4][0])
+        except ValueError:
+            return False
+        if any(addr in net for net in _SSRF_BLOCKED_NETWORKS):
+            return False
+    return True
 
 # Supported image MIME types
 SUPPORTED_IMAGE_TYPES = {
@@ -74,10 +110,15 @@ async def fetch_image_from_url(url: str) -> tuple[bytes, str]:
     if not is_valid_image_url(url):
         raise ImageError(f"Invalid image URL: {url}")
 
+    # SSRF guard: reject URLs whose host resolves to internal/metadata addresses, and
+    # disable redirect-following so a public URL cannot bounce to an internal target.
+    if not _is_ssrf_safe_host(urlparse(url).hostname or ""):
+        raise ImageError("Refusing to fetch image from a non-public address")
+
     logger.info(f"Fetching image from URL: {url[:100]}...")
 
     try:
-        async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT, follow_redirects=True) as client:
+        async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT, follow_redirects=False) as client:
             response = await client.get(url)
             response.raise_for_status()
 

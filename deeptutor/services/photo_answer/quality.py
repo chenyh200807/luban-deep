@@ -13,6 +13,12 @@ from typing import Any
 
 from PIL import Image, ImageFilter, ImageStat
 
+# Decompression-bomb guard: a small compressed file can claim a huge canvas and
+# blow up to GBs of RAM at img.load(). Cap decoded pixels so PIL raises
+# DecompressionBombError (a subclass of Exception, caught below) instead of OOMing
+# the worker. 40M px ≈ 6700×6000 — far above any real photo of a student answer.
+Image.MAX_IMAGE_PIXELS = 40_000_000
+
 MIN_DIMENSION_PX = 480
 DARK_MEAN_FLOOR = 40.0  # 0-255 grayscale mean below this = severely underexposed
 BLUR_EDGE_STDDEV_FLOOR = 18.0  # edge stddev: 合成清晰文本图 ~49，高斯模糊后 ~13；M0 真实样本再标定
