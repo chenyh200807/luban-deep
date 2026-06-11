@@ -675,6 +675,33 @@ env -u DEEPTUTOR_ATTEMPT_REF_SECRET DEEPTUTOR_ENV=production python3 -c \
 - `redeploy_aliyun_fast.sh` 同步的是**本地工作树**（不是 `origin/main`），且 `--delete` 镜像代码面。`.env*`、`.secrets*`、`data`、`artifacts`、`tmp`、`*.log` 已排除，生产配置 / 数据 / 上传文件安全；但脏 `main` 上 `ALLOW_DIRTY_DEPLOY=1` 会把未提交的无关文件（如别人并发在写的 `docs/`）一并带上生产。优先按 §发布硬护栏 用干净 worktree。
 - GitHub `Deploy Gate` workflow 长期 9–10s 快速失败，且早于本次改动就存在（与代码无关）；判断 main CI 是否因本次改动变红，看 `Tests` workflow 的具体 job，不要被 `Deploy Gate` 误导。
 
+### 12. 2026-06-11 detached HEAD 禁止发布 + 并发发布撞车
+
+这次想用“干净 worktree 发布”避免脏 `main` 把无关改动带上生产（§发布硬护栏 §19），于是 `git worktree add --detach <sha>` 建了一个游离（detached HEAD，只指向某个 commit、不在任何分支上）的 worktree，结果 `sync_to_aliyun.sh` 直接拒绝：
+
+```
+无法识别当前分支；禁止在 detached HEAD 直接发布。
+```
+
+根因不是 bug，而是发布要可追溯：release_id / lineage 需要一个分支名来记录“这次是从哪条线发的”。游离 HEAD 没有分支名，发布记录无法定位来源，所以脚本干脆禁止。
+
+正确做法是从目标 commit 检出一个**具名分支**再发布，而不是游离 HEAD：
+
+```bash
+# 推荐：建 worktree 时直接给一个临时具名分支
+git worktree add /tmp/deploy-snapshot -b deploy-<shortsha> origin/main
+# 或：已经建成 detached worktree，进去补一个分支
+cd /tmp/deploy-snapshot && git checkout -b deploy-<shortsha>
+```
+
+分支名只要不是 `main` 就同时满足两条护栏：detached 护栏（要有分支名）和“禁止从 `main` 直发”护栏（分支名 ≠ `main`）。worktree 是干净的就不用加 `ALLOW_DIRTY_DEPLOY`。用完记得 `git worktree remove <path>` 并删临时分支。
+
+同日还撞到**并发发布**：两个发布进程同时对同一台阿里云发布，一个在发 `d59cd37c`、另一个在发更新的 `be971a14`，期间长时间 docker build 把 SSH 拖断（`Connection reset by peer` / `Broken pipe`，脚本 `EXIT 255`）。教训：
+
+- **同一时间只允许一条发布在跑。** 发布前先确认没有别的发布在进行：看 `data/releases/code/` 里最新 manifest 的时间戳、`docker compose ps` 容器创建时间、`.env` 的 `DEEPTUTOR_GIT_SHA`，确认它们指向你预期的版本。
+- **SSH 在长 build 中途断不会停机。** `up -d --force-recreate` 在 build 之后才跑；build 被打断时旧容器继续服务（本次公网 `front/healthz/readyz` 全程 200），但磁盘可能停在“已同步新代码、容器仍是旧镜像”的半同步状态，需要重新发布对齐。
+- **并发覆盖会自愈但要核对。** 本次一个进程把磁盘 rsync 回了旧 `d59cd37c`，又被另一个进程的 `be971a14` 发布重新同步盖回——靠 manifest 时间戳 + 磁盘 sentinel 文件 md5 才能确认最终落到哪个版本。多人/多 agent 共同发布时，发布后必须用这两样东西核对最终状态，不能假设“我发的就是最后生效的”。
+
 ## 回滚步骤
 
 如果发布后出现问题，先判断是“代码/镜像问题”还是“运行态数据问题”。
