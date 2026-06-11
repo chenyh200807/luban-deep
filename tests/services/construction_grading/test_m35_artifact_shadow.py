@@ -72,3 +72,63 @@ def test_polluted_artifact_short_circuits_shadow(monkeypatch):
 
     assert payload["shadow_status"] == "artifact_blocked"
     assert payload["point_matches"] == []
+
+
+def test_constrained_llm_tier_uses_injected_judge_and_keeps_safety():
+    from deeptutor.services.construction_grading.m35_artifact_shadow import (
+        build_m35_artifact_shadow_payload,
+    )
+
+    captured = {}
+
+    def fake_batch_judge(points, answer):
+        captured["point_ids"] = [p["point_id"] for p in points]
+        return {
+            str(p["point_id"]): {"status": "hit", "confidence": 0.9,
+                                 "evidence_span": str(answer)[:20]}
+            for p in points
+        }
+
+    payload = build_m35_artifact_shadow_payload(
+        question_id="Q1-NA",
+        student_id="qa_user",
+        student_answer="施工总进度计划表(图)、开竣工日期及工期一览表、资源需要量及供应平衡表",
+        judge_tier="constrained_llm",
+        judge_fn=fake_batch_judge,
+    )
+    assert payload["evaluation_tier"] == "constrained_llm_shadow"
+    assert payload["shadow_status"] == "ok"
+    assert payload["point_matches"]
+    for match in payload["point_matches"]:
+        assert "adjudication_route" in match
+    # 安全不变量不因 tier 升级而放松
+    assert payload["official_score_allowed"] is False
+    assert payload["quality_claim_allowed"] is False
+    assert payload["canonical_truth_written"] is False
+    assert payload["writeback_performed"] is False
+
+
+def test_constrained_tier_without_judge_fn_falls_back_to_shape_stub():
+    from deeptutor.services.construction_grading.m35_artifact_shadow import (
+        build_m35_artifact_shadow_payload,
+    )
+
+    payload = build_m35_artifact_shadow_payload(
+        question_id="Q1-NA",
+        student_id="qa_user",
+        student_answer="任意作答",
+        judge_tier="constrained_llm",
+        judge_fn=None,
+    )
+    assert payload["evaluation_tier"] == "shape_stub"   # 缺 judge → fail-safe 回 shape
+
+
+def test_default_call_remains_shape_stub_byte_compatible():
+    from deeptutor.services.construction_grading.m35_artifact_shadow import (
+        build_m35_artifact_shadow_payload,
+    )
+
+    payload = build_m35_artifact_shadow_payload(
+        question_id="Q1-NA", student_id="qa_user", student_answer="x")
+    assert payload["evaluation_tier"] == "shape_stub"
+    assert payload["quality_claim_allowed"] is False

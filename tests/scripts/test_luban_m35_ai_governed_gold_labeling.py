@@ -540,6 +540,12 @@ def test_arbiter_abstention_on_split_yields_unadjudicated_downgrade(tmp_path):
         for match in row["gold_point_matches"]:
             assert match["status"] == "unadjudicated"
             assert match["awarded_score"] == 0.0
+        # 协议账目修复（2026-06-11 WO_GOLD_READJ）：未裁决 ≠ 判 0 分。
+        # 含 unadjudicated 点的行不得输出可用的 score 级标签，否则会系统性
+        # 压低 gold_score 并把正确判分的引擎误判成 fail-open。
+        assert row["gold_score"] is None
+        assert row["label_scope"] == "point_only_unadjudicated_present"
+        assert row["score_label_valid"] is False
     assert manifest["gold_row_count"] == 0
 
 

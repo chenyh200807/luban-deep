@@ -8,12 +8,18 @@ def build_m35_artifact_shadow_payload(
     question_id: str,
     student_id: str,
     student_answer: str,
+    judge_tier: str = "shape_stub",
+    judge_fn: Any = None,
 ) -> dict[str, Any]:
     """Build the M35 scoring-artifact shadow payload.
 
     Shadow only: no DB/RAG/remote reads, no canonical learner truth writes, and
     no official score authority. The artifact service supplies scoring points;
     rubric_grader_v1 owns the point-match projection.
+
+    ``judge_tier="constrained_llm"`` 时使用注入的批式 ``judge_fn``（artifact_first_llm_judge
+    收权约束）产出 point_matches；缺 judge_fn 一律 fail-safe 回 shape_stub。任何 tier 都不
+    放松 official_score_allowed/quality_claim_allowed 安全不变量。
     """
     from deeptutor.services.construction_grading import (
         question_grading_artifacts,
@@ -24,6 +30,7 @@ def build_m35_artifact_shadow_payload(
         m35_runtime_status_from_v0,
     )
 
+    constrained = judge_tier == "constrained_llm" and callable(judge_fn)
     artifact = question_grading_artifacts.build_question_grading_artifact(
         str(question_id or "").strip()
     )
@@ -32,7 +39,7 @@ def build_m35_artifact_shadow_payload(
     base = {
         "authority": "grading_engine_m35_artifact_shadow",
         "shadow_status": "ok",
-        "evaluation_tier": "shape_stub",
+        "evaluation_tier": "constrained_llm_shadow" if constrained else "shape_stub",
         "quality_claim_allowed": False,
         "verdict_ceiling": "NO-GO_OR_SHAPE_ONLY",
         "question_id": str(question_id or "").strip(),
@@ -65,6 +72,38 @@ def build_m35_artifact_shadow_payload(
             "point_matches": [],
             "teacher_review_required": True,
         }
+
+    if constrained:
+        from deeptutor.services.construction_grading.artifact_first_llm_judge import (
+            adjudicate_with_artifact_judge,
+        )
+        from deeptutor.services.construction_grading.judge_point_enrichment import (
+            enrich_scoring_point,
+        )
+
+        points = [
+            enrich_scoring_point(p)
+            for p in rubric_grader_v1.rubric_points_from_artifact(artifact)
+        ]
+        if points:
+            result = adjudicate_with_artifact_judge(
+                question_id=str(question_id or "").strip(),
+                artifact_version=str(artifact.get("version_id") or ""),
+                scoring_points=points,
+                student_answer=str(student_answer or ""),
+                judge_fn=judge_fn,
+                student_id=str(student_id or "").strip(),
+            )
+            return {
+                **base,
+                "point_matches": [dict(m) for m in result["point_matches"]],
+                "awarded_score_shadow": result["awarded_score"],
+                "max_score_shadow": result["max_score"],
+                "high_risk_review": result["high_risk_review"],
+                "judge_called_point_count": len(result["judge_called_point_ids"]),
+                "teacher_review_required": True,
+            }
+        # artifact 无可用采分点 → 与 shape 路径同形 fail-safe
 
     event = rubric_grader_v1.grade_artifact_shadow(
         qid=str(question_id or "").strip(),

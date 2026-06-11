@@ -566,13 +566,20 @@ def _label_single_row(
         for result in point_results
     ]
 
+    # 协议账目修复（2026-06-11 WO_GOLD_READJ）：未裁决 ≠ 判 0 分。含 unadjudicated 点的行
+    # 不得输出 score 级标签（gold_score=None），否则会把正确判分的被评引擎误判成 fail-open。
+    has_unadjudicated = any(
+        result["consolidated_verdict"] == UNADJUDICATED for result in point_results
+    )
     out_row = {key: value for key, value in row.items() if key not in _REPLACED_ROW_FIELDS}
     out_row.update(
         {
             "label_authority": label_authority,
-            "label_scope": "point_and_score",
+            "label_scope": ("point_only_unadjudicated_present" if has_unadjudicated
+                            else "point_and_score"),
             "directionality_flag": label_authority,
-            "gold_score": gold_score,
+            "gold_score": None if has_unadjudicated else gold_score,
+            "score_label_valid": not has_unadjudicated,
             "gold_point_matches": gold_point_matches,
             "point_label_provenance": point_label_provenance,
         }

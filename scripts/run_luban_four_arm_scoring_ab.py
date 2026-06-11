@@ -314,6 +314,10 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     manifest = json.loads(Path(args.manifest).read_text(encoding="utf-8"))
     questions = {str(q.get("question_id")): q for q in manifest.get("questions") or []}
     rows = [r for r in answers if str(r.get("question_id")) in questions]
+    # score 级标签无效（gold_score=None / score_label_valid=False）的行不得参与 MAE/fail_open
+    skipped_no_score_label = [r for r in rows
+                              if r.get("gold_score") is None or r.get("score_label_valid") is False]
+    rows = [r for r in rows if r not in skipped_no_score_label]
     if args.limit > 0 and len(rows) > args.limit:
         # 均匀跨行抽样：避免按序取样只命中前排高分作答（ability/quality 分布偏置）
         stride = len(rows) / args.limit
@@ -465,6 +469,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             "answers_path": str(args.answers),
             "manifest_path": str(args.manifest),
             "label_authority_counts": {label: labels.count(label) for label in sorted(set(labels))},
+            "rows_skipped_no_score_label": len(skipped_no_score_label),
         },
         **ceiling,
         "arm_semantics": {
