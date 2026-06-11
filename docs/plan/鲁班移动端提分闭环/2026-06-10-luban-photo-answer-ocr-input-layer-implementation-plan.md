@@ -8,6 +8,14 @@
 
 ---
 
+## 0.00 P0A Source Tree Warning
+
+本计划的 M1/M2 小程序代码落点包含 `wx_miniprogram/pages/photo-answer/`。鲁班移动端 P0A 的真实微信验收目标是 `devtools_project_root=yousenwebview` + `target_subpackage=packageDeeptutor`。因此：
+
+- OCR 代码若只存在于 `wx_miniprogram`，只能算本地实现或 shadow evidence。
+- 进入 P0A true-entry gate 前，必须提供 `wx_miniprogram -> yousenwebview/packageDeeptutor` 的同步/移植证据，或明确 `wx_miniprogram` 已被产品负责人拍板为开发 source of truth 并有上传源证明。
+- 不允许用 `wx_miniprogram` 的 photo-answer 通过结果，替代 `yousenwebview/packageDeeptutor` 的真实微信入口证据。
+
 ## 0.0 修订记录
 
 - **v3.2（2026-06-10，Codex 终审（清晰度/可执行性镜头）12 项小修全采纳，终审裁决"需小修"→已修）**：

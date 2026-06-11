@@ -4,13 +4,15 @@
 日期：2026-06-09
 范围：首次登录 / 首次使用激活流，不是常驻模块，不是新 Tab，不是第二套学情系统。
 
+2026-06-11 收权说明：本方案已被 [2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md](2026-06-11-luban-mobile-scoring-loop-ui-ux-product-plan.md) 的冷启动 / 首次激活章节吸收。本文只作为首次激活流输入资料，不再单独作为 onboarding、今日任务或学情推荐 authority。若实现与 P0A PRD 冲突，以 P0A PRD 与 ViewModel/event contract 为准。
+
 关联计划与契约：
 
-- [contracts/learner-state.md](../../contracts/learner-state.md)
-- [contracts/learning-report.md](../../contracts/learning-report.md)
-- [2026-05-23-luban-learning-history-evidence-closed-loop-plan.md](2026-05-23-luban-learning-history-evidence-closed-loop-plan.md)
-- [2026-05-26-luban-learner-workspace-notebook-calendar-prd.md](2026-05-26-luban-learner-workspace-notebook-calendar-prd.md)
-- [2026-06-02-luban-product-behavior-intelligence-prd.md](2026-06-02-luban-product-behavior-intelligence-prd.md)
+- [contracts/learner-state.md](../../../contracts/learner-state.md)
+- [contracts/learning-report.md](../../../contracts/learning-report.md)
+- [2026-05-23-luban-learning-history-evidence-closed-loop-plan.md](../学习脑与学员记忆/2026-05-23-luban-learning-history-evidence-closed-loop-plan.md)
+- [2026-05-26-luban-learner-workspace-notebook-calendar-prd.md](../学习脑与学员记忆/2026-05-26-luban-learner-workspace-notebook-calendar-prd.md)
+- [2026-06-02-luban-product-behavior-intelligence-prd.md](../会员钱包计费与经营后台/2026-06-02-luban-product-behavior-intelligence-prd.md)
 
 ## 0. 核心结论
 
