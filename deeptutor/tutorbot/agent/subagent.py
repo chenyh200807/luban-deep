@@ -22,6 +22,9 @@ if TYPE_CHECKING:
 class SubagentManager:
     """Manages background subagent execution."""
 
+    # Hard ceiling on concurrently running subagents per manager (anti-fan-out DoS).
+    _MAX_RUNNING_SUBAGENTS = 8
+
     def __init__(
         self,
         provider: LLMProvider,
@@ -57,6 +60,20 @@ class SubagentManager:
         session_key: str | None = None,
     ) -> str:
         """Spawn a subagent to execute a task in the background."""
+        # Defense-in-depth resource cap: each spawn launches an independent LLM-driven
+        # subagent. Without a ceiling, a single driver (or a compromised prompt on a
+        # trusted bot) can fan out unbounded concurrent subagents — an LLM-cost / CPU /
+        # memory DoS. End-user chat already cannot reach `spawn` (END_USER_BLOCKED_TOOLS);
+        # this bounds the trusted/admin paths too.
+        if len(self._running_tasks) >= self._MAX_RUNNING_SUBAGENTS:
+            logger.warning(
+                "Subagent spawn refused: {} already running (cap {})",
+                len(self._running_tasks), self._MAX_RUNNING_SUBAGENTS,
+            )
+            return (
+                f"Spawn refused: {self._MAX_RUNNING_SUBAGENTS} subagents already running. "
+                "Wait for one to finish before spawning another."
+            )
         task_id = str(uuid.uuid4())[:8]
         display_label = label or task[:30] + ("..." if len(task) > 30 else "")
         origin = {"channel": origin_channel, "chat_id": origin_chat_id}

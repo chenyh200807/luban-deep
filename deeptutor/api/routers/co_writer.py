@@ -365,8 +365,11 @@ async def _stream_react_edit(request: ReactEditRequest) -> AsyncGenerator[str, N
             result_holder = await _run_react_edit(request, language=language, stream=bus)
         except HTTPException as exc:
             error_holder["detail"] = str(exc.detail)
-        except Exception as exc:
-            error_holder["detail"] = str(exc)
+        except Exception:
+            # Don't leak raw exception text (paths/SQL/internal state) to the SSE client;
+            # log server-side and return a generic message. Mirrors the HTTP-error fix.
+            logger.exception("co_writer stream edit failed")
+            error_holder["detail"] = "服务暂时不可用，请稍后再试"
         finally:
             await bus.close()
 

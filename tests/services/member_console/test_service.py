@@ -20,6 +20,14 @@ from deeptutor.services.member_console import external_auth as external_auth_mod
 from deeptutor.services.session.sqlite_store import SQLiteSessionStore, build_user_owner_key
 
 
+def _active_otp(service: MemberConsoleService) -> str:
+    """Read the active OTP from the service store. The code is deliberately NOT returned
+    in send_phone_code's response (account-takeover guard), so tests read it server-side."""
+    codes = service._load().get("phone_codes") or {}
+    assert codes, "no active OTP in store"
+    return str(next(iter(codes.values()))["code"])
+
+
 @pytest.fixture(autouse=True)
 def _enable_demo_seed(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DEEPTUTOR_MEMBER_CONSOLE_ENABLE_DEMO_SEED", "1")
@@ -3261,8 +3269,8 @@ def test_verify_phone_code_bootstraps_clean_new_member_state(
     service = MemberConsoleService()
     service._data_path = tmp_path / "member_console.json"
 
-    send_result = service.send_phone_code("13955556666")
-    result = service.verify_phone_code("13955556666", send_result["debug_code"])
+    service.send_phone_code("13955556666")
+    result = service.verify_phone_code("13955556666", _active_otp(service))
     profile = result["user"]
     today = service.get_today_progress(profile["user_id"])
     external_users = json.loads(users_file.read_text(encoding="utf-8"))
@@ -3288,6 +3296,42 @@ def test_verify_phone_code_rejects_invalid_code(tmp_path: Path) -> None:
         service.verify_phone_code("13955556666", "000000")
 
 
+def test_send_phone_code_does_not_return_otp_in_response(tmp_path: Path) -> None:
+    """The OTP must never appear in send_phone_code's result (account-takeover guard)."""
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    result = service.send_phone_code("13955556666")
+
+    assert "debug_code" not in result
+    assert "code" not in result
+    # the OTP is still generated and stored server-side
+    assert _active_otp(service)
+
+
+def test_verify_phone_code_locks_out_after_max_attempts(tmp_path: Path) -> None:
+    """After _MAX_OTP_ATTEMPTS wrong guesses the OTP is invalidated — no brute force."""
+    from deeptutor.services.member_console.service import _MAX_OTP_ATTEMPTS
+
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    service.send_phone_code("13955556666")
+    real_code = _active_otp(service)
+
+    # exhaust the attempt budget with wrong codes
+    wrong = "000000" if real_code != "000000" else "111111"
+    for _ in range(_MAX_OTP_ATTEMPTS - 1):
+        with pytest.raises(ValueError, match="验证码错误"):
+            service.verify_phone_code("13955556666", wrong)
+    with pytest.raises(ValueError, match="验证码错误次数过多"):
+        service.verify_phone_code("13955556666", wrong)
+
+    # OTP is now invalidated — even the correct code no longer works
+    with pytest.raises(ValueError, match="验证码不存在"):
+        service.verify_phone_code("13955556666", real_code)
+
+
 def test_reset_password_with_phone_code_updates_external_auth_password(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -3302,12 +3346,13 @@ def test_reset_password_with_phone_code_updates_external_auth_password(
         "OldPass123",
         phone="13955556666",
     )
-    send_result = service.send_phone_code("13955556666")
+    service.send_phone_code("13955556666")
+    code = _active_otp(service)
 
     result = service.reset_password_with_phone_code(
         "reset_student",
         "13955556666",
-        send_result["debug_code"],
+        code,
         "NewPass123",
     )
 
@@ -3316,7 +3361,7 @@ def test_reset_password_with_phone_code_updates_external_auth_password(
     assert external_auth_module.verify_external_auth_user("reset_student", "OldPass123") is None
     assert external_auth_module.verify_external_auth_user("reset_student", "NewPass123") is not None
     with pytest.raises(ValueError, match="验证码不存在"):
-        service.verify_phone_code("13955556666", send_result["debug_code"])
+        service.verify_phone_code("13955556666", code)
 
 
 def test_reset_password_rejects_mismatched_phone_without_consuming_code(
@@ -3333,20 +3378,21 @@ def test_reset_password_rejects_mismatched_phone_without_consuming_code(
         "OldPass123",
         phone="13955556666",
     )
-    send_result = service.send_phone_code("13955556666")
+    service.send_phone_code("13955556666")
+    code = _active_otp(service)
 
     with pytest.raises(ValueError, match="账号或手机号不匹配"):
         service.reset_password_with_phone_code(
             "reset_student",
             "13800000000",
-            send_result["debug_code"],
+            code,
             "NewPass123",
         )
 
     service.reset_password_with_phone_code(
         "reset_student",
         "13955556666",
-        send_result["debug_code"],
+        code,
         "NewPass123",
     )
     assert external_auth_module.verify_external_auth_user("reset_student", "NewPass123") is not None
@@ -3366,13 +3412,14 @@ def test_reset_password_rejects_weak_password_without_consuming_code(
         "OldPass123",
         phone="13955556666",
     )
-    send_result = service.send_phone_code("13955556666")
+    service.send_phone_code("13955556666")
+    code = _active_otp(service)
 
     with pytest.raises(ValueError, match="密码必须包含至少一个大写字母"):
         service.reset_password_with_phone_code(
             "reset_student",
             "13955556666",
-            send_result["debug_code"],
+            code,
             "weak123",
         )
 

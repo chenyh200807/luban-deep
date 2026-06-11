@@ -96,6 +96,8 @@ from deeptutor.services.wallet.identity import is_uuid_like
 
 _TZ = timezone(timedelta(hours=8))
 logger = logging.getLogger(__name__)
+# Max wrong OTP guesses before the code is invalidated (brute-force lockout).
+_MAX_OTP_ATTEMPTS = 5
 _HOME_PERSONALIZATION_ENABLED = "DEEPTUTOR_HOME_PERSONALIZATION_ENABLED"
 
 
@@ -551,6 +553,9 @@ AUDIT_IDEMPOTENCY_INDEX_MAX = 10_000
 
 
 class MemberConsoleService:
+    # One-shot guard so the default-auth-secret warning is not logged per token verify.
+    _warned_default_auth_secret = False
+
     def __init__(self, *, member_directory: Any | None = None) -> None:
         self._lock = threading.RLock()
         self._path_service = get_path_service()
@@ -2477,15 +2482,26 @@ class MemberConsoleService:
                 raise RuntimeError("DEEPTUTOR_AUTH_SECRET must be configured in production")
             return secret
 
-        secret = str(
+        configured = str(
             os.getenv("DEEPTUTOR_AUTH_SECRET")
             or os.getenv("MEMBER_CONSOLE_AUTH_SECRET")
             or os.getenv("WECHAT_MP_TOKEN_SECRET")
             or os.getenv("WECHAT_MP_APP_SECRET")
             or os.getenv("WECHAT_MP_APPSECRET")
-            or "deeptutor-dev-member-secret"
+            or ""
         ).strip()
-        return secret
+        if not configured:
+            # Non-production fallback. The literal is public (in source), so any token
+            # signed with it is forgeable — acceptable only on a developer machine, never
+            # on a shared/staging host. Warn once so a misconfigured staging is visible.
+            if not type(self)._warned_default_auth_secret:
+                type(self)._warned_default_auth_secret = True
+                logger.warning(
+                    "Using the public default auth secret — set DEEPTUTOR_AUTH_SECRET. "
+                    "Tokens signed with the default are forgeable; never run staging like this."
+                )
+            return "deeptutor-dev-member-secret"
+        return configured
 
     @staticmethod
     def _extract_access_token(auth_header: str | None) -> str:
@@ -2577,7 +2593,13 @@ class MemberConsoleService:
         if not raw:
             return None
         if raw.startswith("demo-token-"):
+            # Unsigned demo tokens grant any uid without verification — a full account
+            # takeover if ever reachable. Fail closed in production AND require an explicit
+            # opt-in flag elsewhere (default off), so a misconfigured DEEPTUTOR_ENV alone
+            # cannot open this door.
             if is_production_environment():
+                return None
+            if os.getenv("DEEPTUTOR_DEMO_TOKENS_ENABLED", "").strip().lower() not in ("1", "true", "yes"):
                 return None
             value = raw[len("demo-token-") :]
             return {"uid": value.split("-", 1)[0], "provider": "demo"}
@@ -6389,8 +6411,11 @@ class MemberConsoleService:
                 "delivery": delivery,
                 "message": message,
             }
+            # Never return the OTP in the HTTP response — a network-observable code is an
+            # account-takeover primitive if the SMS gateway/env is ever misconfigured.
+            # Surface it server-side only (debug log) for local/test visibility.
             if delivery != "sms":
-                result["debug_code"] = debug_code
+                logger.debug("debug OTP for %s: %s (delivery=%s)", normalized, debug_code, delivery)
             return result
 
         return self._mutate(_apply)
@@ -6455,20 +6480,41 @@ class MemberConsoleService:
             raise ValueError("手机号格式不正确")
         provided_code = str(code or "").strip()
 
-        def _apply(data: dict[str, Any]) -> str:
+        # Brute-force lockout: a 6-digit OTP must not be guessable within its 10-min
+        # TTL. Count wrong attempts per phone and invalidate the OTP after _MAX_OTP_ATTEMPTS,
+        # forcing a fresh code. The counter is persisted via the mutation (we must NOT
+        # raise inside _apply, or the increment rolls back), then we raise outside.
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
             record = (data.get("phone_codes") or {}).get(normalized) or {}
             expected_code = str(record.get("code") or "").strip()
             expires_at = _parse_time(record.get("expires_at"))
             if not expected_code:
-                raise ValueError("验证码不存在，请先获取验证码")
+                return {"status": "missing"}
             if expires_at < _now():
-                raise ValueError("验证码已过期，请重新获取")
+                data.get("phone_codes", {}).pop(normalized, None)
+                return {"status": "expired"}
             if provided_code != expected_code:
-                raise ValueError("验证码错误")
+                attempts = int(record.get("attempts") or 0) + 1
+                if attempts >= _MAX_OTP_ATTEMPTS:
+                    data.get("phone_codes", {}).pop(normalized, None)
+                    return {"status": "locked"}
+                record["attempts"] = attempts
+                data.setdefault("phone_codes", {})[normalized] = record
+                return {"status": "wrong", "remaining": _MAX_OTP_ATTEMPTS - attempts}
             data.get("phone_codes", {}).pop(normalized, None)
-            return normalized
+            return {"status": "ok", "phone": normalized}
 
-        verified_phone = self._mutate(_apply)
+        outcome = self._mutate(_apply)
+        status = str(outcome.get("status"))
+        if status == "missing":
+            raise ValueError("验证码不存在，请先获取验证码")
+        if status == "expired":
+            raise ValueError("验证码已过期，请重新获取")
+        if status == "locked":
+            raise ValueError("验证码错误次数过多，请重新获取验证码")
+        if status != "ok":
+            raise ValueError("验证码错误")
+        verified_phone = str(outcome.get("phone") or normalized)
         external_user = ensure_external_auth_user_for_phone(verified_phone)
         external_username = str(external_user.get("username") or "").strip()
         member = self._ensure_member_for_external_auth(external_username, external_user)
@@ -6503,20 +6549,39 @@ class MemberConsoleService:
 
         provided_code = str(code or "").strip()
 
-        def _consume_verified_code(data: dict[str, Any]) -> bool:
+        # Same brute-force lockout as verify_phone_code: persist the wrong-attempt
+        # counter inside the mutation (no raise), invalidate after _MAX_OTP_ATTEMPTS,
+        # then raise outside.
+        def _consume_verified_code(data: dict[str, Any]) -> dict[str, Any]:
             current = (data.get("phone_codes") or {}).get(normalized_phone) or {}
             expected_code = str(current.get("code") or "").strip()
             expires_at = _parse_time(current.get("expires_at"))
             if not expected_code:
-                raise ValueError("验证码不存在，请先获取验证码")
+                return {"status": "missing"}
             if expires_at < _now():
-                raise ValueError("验证码已过期，请重新获取")
+                data.get("phone_codes", {}).pop(normalized_phone, None)
+                return {"status": "expired"}
             if provided_code != expected_code:
-                raise ValueError("验证码错误")
+                attempts = int(current.get("attempts") or 0) + 1
+                if attempts >= _MAX_OTP_ATTEMPTS:
+                    data.get("phone_codes", {}).pop(normalized_phone, None)
+                    return {"status": "locked"}
+                current["attempts"] = attempts
+                data.setdefault("phone_codes", {})[normalized_phone] = current
+                return {"status": "wrong"}
             data.get("phone_codes", {}).pop(normalized_phone, None)
-            return True
+            return {"status": "ok"}
 
-        self._mutate(_consume_verified_code)
+        outcome = self._mutate(_consume_verified_code)
+        status = str(outcome.get("status"))
+        if status == "missing":
+            raise ValueError("验证码不存在，请先获取验证码")
+        if status == "expired":
+            raise ValueError("验证码已过期，请重新获取")
+        if status == "locked":
+            raise ValueError("验证码错误次数过多，请重新获取验证码")
+        if status != "ok":
+            raise ValueError("验证码错误")
         reset_result = reset_external_auth_password_by_phone(
             normalized_username,
             normalized_phone,
