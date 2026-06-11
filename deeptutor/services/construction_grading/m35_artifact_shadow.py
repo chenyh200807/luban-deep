@@ -122,6 +122,19 @@ def build_m35_artifact_shadow_payload(
     }
 
 
+def make_default_m35_artifact_shadow_judge():
+    """Return the default live constrained judge, or None to keep shape-only shadow.
+
+    Provider construction lives outside the WS wrapper so transport code never
+    becomes a second scoring policy authority.
+    """
+    from deeptutor.services.construction_grading.artifact_first_llm_judge import (
+        make_deepseek_artifact_batch_judge,
+    )
+
+    return make_deepseek_artifact_batch_judge()
+
+
 def _shape_stub_judge(point: dict[str, Any], answer: str) -> dict[str, Any]:
     """Deterministic shape-only judge for shadow payload plumbing.
 

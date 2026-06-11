@@ -2302,6 +2302,17 @@ def _m35_artifact_shadow_flag_enabled(context: UnifiedContext) -> bool:
     )
 
 
+def _m35_artifact_shadow_judge_enabled(context: UnifiedContext) -> bool:
+    """Runtime-only M35 judge tier flag. Default OFF -> shape-only shadow."""
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return bool(
+        metadata.get("grading_engine_m35_artifact_shadow_judge")
+        or context.config_overrides.get("grading_engine_m35_artifact_shadow_judge")
+        or str(context.config_overrides.get("grading_engine_m35_artifact_shadow_tier") or "").strip()
+        == "constrained_llm"
+    )
+
+
 def _m35_artifact_shadow_kill_switch_active() -> bool:
     """``LUBAN_M35_ARTIFACT_SHADOW_ENABLED=false`` force-disables the M35 shadow block."""
     import os
@@ -2359,12 +2370,20 @@ def _maybe_attach_m35_artifact_shadow(
     try:
         from deeptutor.services.construction_grading.m35_artifact_shadow import (
             build_m35_artifact_shadow_payload,
+            make_default_m35_artifact_shadow_judge,
         )
 
+        judge_fn = (
+            make_default_m35_artifact_shadow_judge()
+            if _m35_artifact_shadow_judge_enabled(context)
+            else None
+        )
         result_payload["luban_m35_scoring_artifact_shadow"] = build_m35_artifact_shadow_payload(
             question_id=question_id,
             student_id=student_id,
             student_answer=student_answer,
+            judge_tier="constrained_llm" if callable(judge_fn) else "shape_stub",
+            judge_fn=judge_fn,
         )
     except Exception as exc:  # noqa: BLE001 - shadow must never break legacy grading.
         result_payload["luban_m35_scoring_artifact_shadow"] = {

@@ -127,6 +127,44 @@ def test_ws_flag_on_appends_m35_artifact_shadow(client: TestClient) -> None:
     assert shadow["point_matches"]
 
 
+def test_ws_flag_on_can_route_m35_shadow_through_constrained_judge(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import deeptutor.services.construction_grading.m35_artifact_shadow as shadow_mod
+
+    def _fake_batch_judge(points: list[dict[str, Any]], answer: str) -> dict[str, dict[str, Any]]:
+        return {
+            str(point.get("point_id")): {
+                "status": "hit",
+                "evidence_span": answer[:20],
+                "confidence": 0.95,
+            }
+            for point in points
+        }
+
+    monkeypatch.setattr(
+        shadow_mod,
+        "make_default_m35_artifact_shadow_judge",
+        lambda: _fake_batch_judge,
+    )
+    metadata = _receive_result_with_timeout(
+        client,
+        _frame(True, config_extra={"grading_engine_m35_artifact_shadow_judge": True}),
+    ).get("metadata") or {}
+
+    shadow = metadata.get("luban_m35_scoring_artifact_shadow")
+    assert shadow is not None
+    assert shadow["evaluation_tier"] == "constrained_llm_shadow"
+    assert shadow["official_score_allowed"] is False
+    assert shadow["quality_claim_allowed"] is False
+    assert shadow["production_write_count"] == 0
+    assert shadow["canonical_truth_written"] is False
+    assert shadow["db_write_count"] == 0
+    assert shadow["remote_write_count"] == 0
+    assert shadow["judge_called_point_count"] >= 0
+
+
 def test_ws_legacy_result_never_changes_when_shadow_enabled(client: TestClient) -> None:
     off = _meta(client, flag=False).get("construction_grading_result")
     on = _meta(client, flag=True).get("construction_grading_result")

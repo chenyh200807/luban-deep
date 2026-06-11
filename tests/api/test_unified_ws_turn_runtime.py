@@ -6601,6 +6601,7 @@ async def test_turn_runtime_allows_m35_artifact_shadow_flags_as_runtime_only_con
             "language": "zh",
             "config": {
                 "grading_engine_m35_artifact_shadow": True,
+                "grading_engine_m35_artifact_shadow_judge": True,
             },
         }
     )
@@ -6616,6 +6617,7 @@ async def test_turn_runtime_allows_m35_artifact_shadow_flags_as_runtime_only_con
     assert _event_types_without_progress(events) == ["session", "content", "done"]
     config = captured["config_overrides"]
     assert config["grading_engine_m35_artifact_shadow"] is True
+    assert config["grading_engine_m35_artifact_shadow_judge"] is True
     metadata = captured["metadata"]
     assert metadata["context_route"] == "general_learning_query"
 

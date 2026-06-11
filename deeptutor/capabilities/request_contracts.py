@@ -19,6 +19,9 @@ _RUNTIME_ONLY_KEYS = {
     "_persist_user_message",
     "client_turn_id",
     "followup_question_context",
+    "grading_engine_m35_artifact_shadow",
+    "grading_engine_m35_artifact_shadow_judge",
+    "grading_engine_m35_artifact_shadow_tier",
 }
 
 
