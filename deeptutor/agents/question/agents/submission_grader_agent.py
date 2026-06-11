@@ -101,6 +101,10 @@ class SubmissionGraderAgent(BaseAgent):
 
         question_type = str(question_context.get("question_type") or "").strip().lower()
         is_correct = question_context.get("is_correct")
+        # 开放世界判分（无题库 grading_result authority）时，fallback 模板必须用诚实措辞，
+        # 不得声称服务端 grading_result / grading_key（contracts/capability.md §硬约束 40）。
+        grading_result = question_context.get("construction_grading_result")
+        authority_present = isinstance(grading_result, dict) and bool(grading_result)
         parsed = parse_explanation_sections(
             explanation_text,
             question_type=question_type,
@@ -146,7 +150,11 @@ class SubmissionGraderAgent(BaseAgent):
         if section_miss_after_repair:
             # 仍缺：用模板兜底，保证 capability 拿到的 sections 不会有空段；
             # trace 仍记录原始缺段名单，便于 release gate 计算完整率。
-            repaired = apply_fallback_templates(parsed, missing=section_miss_after_repair)
+            repaired = apply_fallback_templates(
+                parsed,
+                missing=section_miss_after_repair,
+                authority_present=authority_present,
+            )
             parsed = repaired
 
         trace_collector["explanation_section_miss"] = list(section_miss_after_repair)
