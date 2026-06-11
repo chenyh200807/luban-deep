@@ -25,6 +25,7 @@ MINIMUM_RELEASE_BENCHMARK_SUITES = (
     "regression_watch",
     "real_exam_quality_spine",
 )
+REQUIRED_READINESS_CHECKS = ("contract_guard", "playwright", "wechat_devtools")
 
 
 def _gate_entry(
@@ -164,6 +165,18 @@ def _payload_git_sha(payload: dict[str, Any] | None) -> str:
     return str(release.get("git_sha") or "").strip()
 
 
+def _unique_strings(values: list[str]) -> list[str]:
+    seen: set[str] = set()
+    result: list[str] = []
+    for value in values:
+        normalized = str(value or "").strip()
+        if not normalized or normalized in seen:
+            continue
+        seen.add(normalized)
+        result.append(normalized)
+    return result
+
+
 def _stale_input_names(
     *,
     current_release: dict[str, Any],
@@ -206,6 +219,7 @@ def build_release_gate_report(
     oa_payload: dict[str, Any] | None,
     change_impact_payload: dict[str, Any] | None = None,
     plan_completion_payload: dict[str, Any] | None = None,
+    readiness_payload: dict[str, Any] | None = None,
     release: dict[str, Any] | None = None,
     quality_evidence_required: bool = False,
 ) -> dict[str, Any]:
@@ -221,12 +235,39 @@ def build_release_gate_report(
     unified_ws_smoke_ok = om_health.get("unified_ws_smoke_ok")
     ws_main_path_healthy = unified_ws_smoke_ok is not False
     orphaned_turns = int(om_health.get("orphaned_turns") or 0)
+    readiness_rows = (readiness_payload or {}).get("rows") or []
+    readiness_rows_by_check = {
+        str(item.get("check_id") or "").strip(): item
+        for item in readiness_rows
+        if str(item.get("check_id") or "").strip()
+    }
+    readiness_missing_checks = [
+        check_id for check_id in REQUIRED_READINESS_CHECKS if check_id not in readiness_rows_by_check
+    ] if readiness_payload is not None else []
+    readiness_non_pass_rows = [
+        row
+        for check_id, row in readiness_rows_by_check.items()
+        if check_id in REQUIRED_READINESS_CHECKS
+        and bool(row.get("required", True))
+        and str(row.get("status") or "").upper() != _PASS
+    ] if readiness_payload is not None else []
+    readiness_blockers = _unique_strings(
+        [
+            *[
+                blocker
+                for row in readiness_non_pass_rows
+                for blocker in (row.get("blockers") or [f"{row.get('check_id')}_not_pass"])
+            ],
+            *[f"{check_id}_missing" for check_id in readiness_missing_checks],
+        ]
+    )
     p0_ready = (
         om_health.get("ready") is True
         and release_complete
         and not release_dirty
         and ws_main_path_healthy
         and orphaned_turns == 0
+        and not readiness_blockers
     )
     gate_results.append(
         _gate_entry(
@@ -234,19 +275,23 @@ def build_release_gate_report(
             status=_PASS if p0_ready else _FAIL,
             summary="readyz、release lineage 与 ws 主链路可用"
             if p0_ready
-            else "runtime readiness、release lineage 或 ws 主链路异常",
+            else "runtime readiness、release lineage、release readiness 或 ws 主链路异常",
             evidence=[
                 f"ready={om_health.get('ready')}",
                 f"release_complete={release_complete}",
                 f"git_dirty={resolved_release.get('git_dirty')}",
                 f"unified_ws_smoke_ok={unified_ws_smoke_ok}",
                 f"orphaned_turns={orphaned_turns}",
+                f"readiness_required_failures={len(readiness_non_pass_rows) + len(readiness_missing_checks)}",
+                f"readiness_missing_checks={','.join(readiness_missing_checks) if readiness_missing_checks else 'none'}",
+                f"readiness_blockers={','.join(readiness_blockers) if readiness_blockers else 'none'}",
             ],
             blockers=[] if p0_ready else [
                 *([] if om_health.get("ready") is True and release_complete else ["runtime_or_release_lineage_incomplete"]),
                 *(["runtime_release_dirty"] if release_dirty else []),
                 *(["ws_main_path_unhealthy"] if ws_main_path_healthy is False else []),
                 *(["turn_in_flight_without_ws_subscriber"] if orphaned_turns > 0 else []),
+                *readiness_blockers,
             ],
         )
     )
@@ -565,7 +610,14 @@ def build_release_gate_report(
             "oa_run_id": (oa_payload or {}).get("run_id"),
             "change_impact_run_id": (change_impact_payload or {}).get("run_id"),
             "plan_completion_run_id": (plan_completion_payload or {}).get("run_id"),
+            "readiness_run_id": (readiness_payload or {}).get("run_id"),
             "incident_run_id": ((incident_payload or {}).get("run_manifest") or {}).get("run_id"),
+        },
+        "readiness_summary": {
+            "required_checks": list(REQUIRED_READINESS_CHECKS),
+            "missing_checks": readiness_missing_checks,
+            "non_pass_checks": [str(row.get("check_id") or "") for row in readiness_non_pass_rows],
+            "blockers": readiness_blockers,
         },
     }
 

@@ -37,6 +37,7 @@ from deeptutor.services.observability.observer_snapshot import build_observer_sn
 from deeptutor.services.observability.observer_snapshot import write_observer_snapshot_artifacts  # noqa: E402
 from deeptutor.services.observability.plan_completion import build_plan_completion_audit  # noqa: E402
 from deeptutor.services.observability.plan_completion import render_plan_completion_markdown  # noqa: E402
+from deeptutor.services.observability.readiness_matrix import build_current_release_readiness_matrix_payload  # noqa: E402
 from deeptutor.services.observability.release_lineage import get_release_lineage_snapshot  # noqa: E402
 from deeptutor.services.observability.release_gate import build_release_gate_report  # noqa: E402
 from deeptutor.services.observability.run_history import build_observability_run_history_from_dir  # noqa: E402
@@ -418,9 +419,6 @@ def _ensure_surface_readiness_rows(
 ) -> None:
     changed_preview = ", ".join(changed_files[:8]) if changed_files else "none"
     for check_id, label in SURFACE_READINESS_CHECKS:
-        existing = _current_release_payload(store, "readiness_checks", release=release)
-        if isinstance(existing, dict) and str(existing.get("check_id") or "").strip() == check_id:
-            continue
         for record in store.list_runs("readiness_checks", limit=100):
             payload = (record or {}).get("payload")
             if not isinstance(payload, dict):
@@ -702,6 +700,10 @@ def main() -> None:
         base_ref=args.base_ref,
     )
     incident_payload = _current_release_payload(store, "incident_ledger", release=current_release)
+    readiness_payload = build_current_release_readiness_matrix_payload(
+        store=store,
+        release=current_release,
+    )
     gate_payload = build_release_gate_report(
         om_payload=om_payload,
         arr_payload=arr_payload,
@@ -711,6 +713,7 @@ def main() -> None:
         oa_payload=oa_payload,
         change_impact_payload=change_impact_payload,
         plan_completion_payload=plan_completion_payload,
+        readiness_payload=readiness_payload,
         release=current_release,
         quality_evidence_required=True,
     )

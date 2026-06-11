@@ -143,6 +143,72 @@ def test_release_gate_blocks_on_incident_replay_runtime_incident() -> None:
     assert payload["latest_runs"]["incident_run_id"] == "incident-replay-1"
 
 
+def test_release_gate_consumes_same_release_readiness_blockers() -> None:
+    release = {
+        "release_id": "rel-1",
+        "git_sha": "abc",
+        "deployment_environment": "prod",
+        "prompt_version": "p1",
+        "ff_snapshot_hash": "ff1",
+        "git_dirty": "false",
+        "deploy_manifest_hash": "manifest1",
+    }
+    payload = build_release_gate_report(
+        om_payload={
+            "run_id": "om-1",
+            "release": dict(release),
+            "health_summary": {"ready": True, "unified_ws_smoke_ok": True, "orphaned_turns": 0},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload=None,
+        benchmark_payload=_canonical_benchmark_payload(release=release),
+        aae_payload={
+            "run_id": "aae-1",
+            "composite": {"value": 0.92, "coverage_ratio": 0.8},
+            "scorecard": {"paid_student_satisfaction_score": {"is_proxy": True}},
+        },
+        oa_payload={"run_id": "oa-1", "blind_spots": [], "root_causes": []},
+        plan_completion_payload={
+            "run_id": "plan-completion-1",
+            "release": dict(release),
+            "status": "PASS",
+            "summary": {"total": 1, "done": 1, "partial": 0, "not_done": 0, "unverifiable": 0},
+            "warnings": [],
+        },
+        readiness_payload={
+            "run_id": "readiness-matrix-1",
+            "release": dict(release),
+            "rows": [
+                {
+                    "check_id": "contract_guard",
+                    "status": "PASS",
+                    "required": True,
+                    "blockers": [],
+                },
+                {
+                    "check_id": "playwright",
+                    "status": "FAIL",
+                    "required": True,
+                    "blockers": ["playwright_failed"],
+                },
+                {
+                    "check_id": "wechat_devtools",
+                    "status": "WARN",
+                    "required": True,
+                    "blockers": ["wechat_devtools_true_entry_pending"],
+                },
+            ],
+        },
+    )
+
+    p0 = next(item for item in payload["gate_results"] if item["gate"] == "P0 Runtime")
+    assert p0["status"] == "FAIL"
+    assert "playwright_failed" in payload["blockers"]
+    assert "wechat_devtools_true_entry_pending" in payload["blockers"]
+    assert any("readiness_required_failures=2" == item for item in p0["evidence"])
+    assert any("readiness_blockers=playwright_failed,wechat_devtools_true_entry_pending" == item for item in p0["evidence"])
+
+
 def test_release_gate_report_fails_when_unified_ws_smoke_failed() -> None:
     payload = build_release_gate_report(
         om_payload={
@@ -1323,3 +1389,65 @@ def test_release_gate_prefers_explicit_release_override(monkeypatch) -> None:
 
     assert payload["release"] == explicit_release
     assert payload["verdict"] == "STALE"
+
+
+def test_release_gate_blocks_current_release_manual_readiness_failures() -> None:
+    release = {
+        "release_id": "rel-1",
+        "git_sha": "abc",
+        "deployment_environment": "prod",
+        "prompt_version": "p1",
+        "ff_snapshot_hash": "ff1",
+        "git_dirty": "false",
+        "deploy_manifest_hash": "manifest1",
+    }
+    payload = build_release_gate_report(
+        om_payload={
+            "run_id": "om-1",
+            "release": dict(release),
+            "health_summary": {"ready": True, "unified_ws_smoke_ok": True},
+            "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+        },
+        arr_payload=None,
+        benchmark_payload=_canonical_benchmark_payload(release=release),
+        aae_payload=None,
+        oa_payload=None,
+        readiness_payload={
+            "run_id": "readiness-matrix-1",
+            "release": dict(release),
+            "rows": [
+                {
+                    "check_id": "contract_guard",
+                    "label": "Contract Guard",
+                    "status": "PASS",
+                    "required": True,
+                    "summary": "contract guard passed",
+                    "evidence": [],
+                    "blockers": [],
+                },
+                {
+                    "check_id": "playwright",
+                    "label": "Playwright",
+                    "status": "FAIL",
+                    "required": True,
+                    "summary": "Playwright readiness missing",
+                    "evidence": [],
+                    "blockers": ["playwright_failed"],
+                },
+                {
+                    "check_id": "wechat_devtools",
+                    "label": "微信 DevTools",
+                    "status": "FAIL",
+                    "required": True,
+                    "summary": "wechat devtools readiness missing",
+                    "evidence": [],
+                    "blockers": ["wechat_devtools_failed"],
+                },
+            ],
+        },
+    )
+
+    p0 = next(item for item in payload["gate_results"] if item["gate"] == "P0 Runtime")
+    assert p0["status"] == "FAIL"
+    assert "playwright_failed" in payload["blockers"]
+    assert "wechat_devtools_failed" in payload["blockers"]

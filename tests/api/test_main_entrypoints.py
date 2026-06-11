@@ -768,8 +768,9 @@ def test_startup_persists_launch_readiness_to_runtime_observability_store(
     assert store.base_dir == (tmp_path / "data" / "runtime" / "observability" / "control_plane").resolve()
     latest = store.latest_payload("readiness_checks")
     assert latest is not None
-    assert latest["check_id"] == "launch_readiness"
-    assert latest["status"] == "PASS"
+    assert latest["view"] == "current_release_latest_matrix"
+    rows = {row["check_id"]: row for row in latest["rows"]}
+    assert rows["launch_readiness"]["status"] == "PASS"
 
 
 def test_http_request_id_is_echoed_and_bound_to_request_state(

@@ -360,10 +360,11 @@ def test_run_readiness_check_cli_records_command_result(tmp_path) -> None:
     assert proc.returncode == 0, proc.stderr
     latest = json.loads((store_dir / "readiness_checks" / "latest.json").read_text(encoding="utf-8"))
     assert latest["kind"] == "readiness_checks"
-    assert latest["payload"]["check_id"] == "playwright"
-    assert latest["payload"]["status"] == "PASS"
-    assert "playwright smoke passed" in latest["payload"]["summary"]
-    assert any("exit_code=0" in item for item in latest["payload"]["evidence"])
+    assert latest["payload"]["view"] == "current_release_latest_matrix"
+    row = next(item for item in latest["payload"]["rows"] if item["check_id"] == "playwright")
+    assert row["status"] == "PASS"
+    assert "playwright smoke passed" in row["summary"]
+    assert any("exit_code=0" in item for item in row["evidence"])
 
 
 def test_run_readiness_check_default_contract_guard_command() -> None:
@@ -641,7 +642,9 @@ def test_run_observability_daily_cli_writes_end_to_end_control_plane_runs(tmp_pa
     om_latest = json.loads((store_dir / "om_runs" / "latest.json").read_text(encoding="utf-8"))
     assert om_latest["payload"]["run_id"].startswith("om-")
     readiness_latest = json.loads((store_dir / "readiness_checks" / "latest.json").read_text(encoding="utf-8"))
-    assert readiness_latest["payload"]["check_id"] == "contract_guard"
+    assert readiness_latest["payload"]["view"] == "current_release_latest_matrix"
+    readiness_rows = {item["check_id"]: item for item in readiness_latest["payload"]["rows"]}
+    assert readiness_rows["contract_guard"]["status"] in {"PASS", "FAIL"}
     readiness_history = (store_dir / "readiness_checks" / "history.jsonl").read_text(encoding="utf-8").splitlines()
     readiness_payloads = [json.loads(line)["payload"] for line in readiness_history if line.strip()]
     assert any(item["check_id"] == "playwright" for item in readiness_payloads)
@@ -1278,3 +1281,283 @@ def test_run_release_gate_report_only_ignores_non_spine_om_and_writes_scoped_pla
     om_latest = json.loads((store_dir / "om_runs" / "latest.json").read_text(encoding="utf-8"))
     assert om_latest["payload"]["release"]["release_id"] == "rel-eval"
     assert om_latest["payload"]["health_summary"]["unified_ws_smoke_ok"] is None
+
+
+def test_run_observability_daily_passes_manual_readiness_rows_to_release_gate(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    reset_control_plane_store(base_dir=tmp_path / "control_plane")
+    current_release = {
+        "release_id": "rel-head",
+        "git_sha": "head123",
+        "deployment_environment": "local",
+    }
+
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE.argparse.ArgumentParser,
+        "parse_args",
+        lambda _self: DAILY_OBSERVABILITY_MODULE.argparse.Namespace(
+            base_ref="HEAD~1",
+            changed_file=[],
+            metrics_json=None,
+            api_base_url="http://127.0.0.1:8001",
+            unified_ws_smoke_timeout=12.0,
+            event_days=1,
+            output_dir=str(tmp_path / "out"),
+        ),
+    )
+    monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "get_release_lineage_snapshot", lambda: dict(current_release))
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "_ensure_om_payload",
+        lambda **kwargs: {
+            "run_id": "om-1",
+            "metrics_snapshot": {},
+            "health_summary": {},
+            "release": dict(kwargs["release"]),
+        },
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "_ensure_arr_payload",
+        lambda **kwargs: {
+            "run_id": "arr-1",
+            "release": dict(kwargs["release"]),
+            "benchmark_run_manifest": {
+                "run_id": "benchmark-1",
+                "requested_suites": ["pr_gate_core", "regression_watch", "real_exam_quality_spine"],
+            },
+        },
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "_ensure_benchmark_payload",
+        lambda **kwargs: {
+            "run_manifest": {
+                "run_id": "benchmark-1",
+                "requested_suites": ["pr_gate_core", "regression_watch", "real_exam_quality_spine"],
+            },
+            "summary": {"pass_rate": 1.0},
+            "release_spine": dict(kwargs["release"]),
+        },
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "_ensure_aae_payload",
+        lambda **kwargs: {
+            "run_id": "aae-1",
+            "release": dict(kwargs["release"]),
+            "source_arr_run_id": "arr-1",
+        },
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "write_observer_snapshot_artifacts",
+        lambda payload, output_dir: {"json_path": str(output_dir / "observer.json")},
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "build_observer_snapshot",
+        lambda **kwargs: {"run_id": "observer-1", "release": dict(kwargs["release"]), "blind_spots": []},
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "build_change_impact_run",
+        lambda **kwargs: {
+            "run_id": "change-1",
+            "release": dict(kwargs["release"]),
+            "risk_level": "low",
+            "required_gates": [],
+            "blind_spots": [],
+        },
+    )
+    monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "render_change_impact_markdown", lambda payload: "")
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "build_oa_run",
+        lambda **kwargs: {
+            "run_id": "oa-1",
+            "release": dict(kwargs["release"]),
+            "verdict": "TRUSTED",
+            "root_causes": [],
+            "causal_candidates": [],
+            "blind_spots": [],
+        },
+    )
+    monkeypatch.setattr(
+        DAILY_OBSERVABILITY_MODULE,
+        "_ensure_plan_completion_payload",
+        lambda **kwargs: {"run_id": "plan-1", "release": dict(kwargs["release"]), "status": "WARN", "summary": {}},
+    )
+
+    def _build_release_gate_report(**kwargs):
+        manual_checks = {row["check_id"] for row in kwargs["readiness_payload"]["rows"]}
+        assert {"playwright", "wechat_devtools"}.issubset(manual_checks)
+        return {
+            "run_id": "gate-1",
+            "release": dict(kwargs["release"]),
+            "verdict": "TRUSTED",
+            "final_status": "FAIL",
+            "recommendation": "hold",
+            "gate_results": [],
+            "blockers": [],
+        }
+
+    monkeypatch.setattr(DAILY_OBSERVABILITY_MODULE, "build_release_gate_report", _build_release_gate_report)
+
+    DAILY_OBSERVABILITY_MODULE.main()
+
+
+def test_run_release_gate_report_only_consumes_current_release_readiness_history(tmp_path) -> None:
+    store_dir = tmp_path / "control_plane"
+    env = {
+        **os.environ,
+        "DEEPTUTOR_OBSERVABILITY_STORE_DIR": str(store_dir),
+        "DEEPTUTOR_RELEASE_ID": "rel-eval",
+        "DEEPTUTOR_GIT_SHA": "abc123",
+        "DEEPTUTOR_ENV": "eval",
+        "DEEPTUTOR_PROMPT_VERSION": "prompt-eval",
+        "DEEPTUTOR_FF_SNAPSHOT_HASH": "ff-eval",
+        "DEEPTUTOR_GIT_DIRTY": "false",
+        "DEEPTUTOR_DEPLOY_MANIFEST_HASH": "manifest-eval",
+    }
+    release = {
+        "release_id": "rel-eval",
+        "git_sha": "abc123",
+        "deployment_environment": "eval",
+        "prompt_version": "prompt-eval",
+        "ff_snapshot_hash": "ff-eval",
+        "git_dirty": "false",
+        "deploy_manifest_hash": "manifest-eval",
+    }
+    benchmark_dir = store_dir / "benchmark_runs"
+    om_dir = store_dir / "om_runs"
+    readiness_dir = store_dir / "readiness_checks"
+    for directory in (benchmark_dir, om_dir, readiness_dir):
+        directory.mkdir(parents=True, exist_ok=True)
+
+    (benchmark_dir / "latest.json").write_text(
+        json.dumps(
+            {
+                "kind": "benchmark_runs",
+                "run_id": "benchmark-1",
+                "release_id": "rel-eval",
+                "recorded_at": 1,
+                "payload": {
+                    "run_manifest": {
+                        "run_id": "benchmark-1",
+                        "requested_suites": ["pr_gate_core", "regression_watch", "real_exam_quality_spine"],
+                    },
+                    "release_spine": release,
+                    "case_results": [
+                        {
+                            "suite": "pr_gate_core",
+                            "case_id": "case-a",
+                            "status": "PASS",
+                            "gate_eligible": True,
+                            "case_tier": "gate_stable",
+                        }
+                    ],
+                    "summary": {"pass_rate": 1.0},
+                    "baseline_diff": {"regressions": [], "new_failures": []},
+                    "blind_spots": [],
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    (om_dir / "latest.json").write_text(
+        json.dumps(
+            {
+                "kind": "om_runs",
+                "run_id": "om-1",
+                "release_id": "rel-eval",
+                "recorded_at": 1,
+                "payload": {
+                    "run_id": "om-1",
+                    "release": release,
+                    "health_summary": {"ready": True, "unified_ws_smoke_ok": True},
+                    "metrics_snapshot": {"surface_events": {"coverage": [{"surface": "web"}]}},
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    readiness_rows = [
+        {
+            "kind": "readiness_checks",
+            "run_id": "playwright-1",
+            "release_id": "rel-eval",
+            "recorded_at": 1,
+            "payload": {
+                "run_id": "playwright-1",
+                "check_id": "playwright",
+                "label": "Playwright",
+                "status": "FAIL",
+                "required": True,
+                "summary": "Playwright readiness missing",
+                "evidence": [],
+                "blockers": ["playwright_failed"],
+                "release": release,
+            },
+        },
+        {
+            "kind": "readiness_checks",
+            "run_id": "wechat-1",
+            "release_id": "rel-eval",
+            "recorded_at": 2,
+            "payload": {
+                "run_id": "wechat-1",
+                "check_id": "wechat_devtools",
+                "label": "微信 DevTools",
+                "status": "FAIL",
+                "required": True,
+                "summary": "WeChat readiness missing",
+                "evidence": [],
+                "blockers": ["wechat_devtools_failed"],
+                "release": release,
+            },
+        },
+        {
+            "kind": "readiness_checks",
+            "run_id": "contract-1",
+            "release_id": "rel-eval",
+            "recorded_at": 3,
+            "payload": {
+                "run_id": "contract-1",
+                "check_id": "contract_guard",
+                "label": "Contract Guard",
+                "status": "PASS",
+                "required": True,
+                "summary": "contract guard passed",
+                "evidence": [],
+                "blockers": [],
+                "release": release,
+            },
+        },
+    ]
+    (readiness_dir / "latest.json").write_text(json.dumps(readiness_rows[-1]), encoding="utf-8")
+    (readiness_dir / "history.jsonl").write_text(
+        "\n".join(json.dumps(row, ensure_ascii=False) for row in readiness_rows) + "\n",
+        encoding="utf-8",
+    )
+
+    proc = subprocess.run(
+        [
+            sys.executable,
+            str(Path(__file__).resolve().parents[2] / "scripts" / "run_release_gate.py"),
+            "--report-only",
+        ],
+        cwd=Path(__file__).resolve().parents[2],
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+
+    assert proc.returncode == 0, proc.stderr
+    latest = json.loads((store_dir / "release_gate_runs" / "latest.json").read_text(encoding="utf-8"))
+    payload = latest["payload"]
+    assert payload["final_status"] == "FAIL"
+    assert "playwright_failed" in payload["blockers"]
+    assert "wechat_devtools_failed" in payload["blockers"]

@@ -16,6 +16,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from deeptutor.services.observability import get_control_plane_store  # noqa: E402
 from deeptutor.services.observability import get_release_lineage_snapshot  # noqa: E402
 from deeptutor.services.observability.control_plane_store import load_payload_json  # noqa: E402
+from deeptutor.services.observability.readiness_matrix import build_current_release_readiness_matrix_payload  # noqa: E402
 from deeptutor.services.observability.release_gate import build_release_gate_report  # noqa: E402
 
 _RELEASE_SPINE_KEYS = (
@@ -78,9 +79,7 @@ def _should_scope_report_only_inputs(release: dict) -> bool:
         for name in (
             "DEEPTUTOR_RELEASE_ID",
             "RELEASE_ID",
-            "DEEPTUTOR_ENV",
-            "APP_ENV",
-            "ENVIRONMENT",
+            "DEEPTUTOR_GIT_SHA",
         )
     )
 
@@ -254,6 +253,12 @@ def main() -> None:
             existing_payload=plan_completion_payload,
             release=current_release,
         )
+    readiness_payload = build_current_release_readiness_matrix_payload(
+        store=get_control_plane_store(),
+        release=current_release,
+    )
+    if args.report_only and not (readiness_payload.get("rows") or []):
+        readiness_payload = None
     payload = build_release_gate_report(
         om_payload=om_payload,
         arr_payload=arr_payload,
@@ -263,6 +268,7 @@ def main() -> None:
         oa_payload=oa_payload,
         change_impact_payload=change_impact_payload,
         plan_completion_payload=plan_completion_payload,
+        readiness_payload=readiness_payload,
         release=current_release,
         quality_evidence_required=not args.report_only,
     )
