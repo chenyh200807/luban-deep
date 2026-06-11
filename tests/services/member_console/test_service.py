@@ -3826,6 +3826,74 @@ def test_list_members_merges_session_activity_when_member_directory_is_stale(tmp
     assert detail["recent_conversations"][0]["session_id"] == "unified_recent_chat"
 
 
+def test_list_members_supplements_directory_gaps_with_session_active_registered_members(
+    tmp_path: Path,
+) -> None:
+    directory = _FakeMemberDirectory(
+        [
+            {
+                "user_id": "canonical_member_1",
+                "canonical_user_id": "canonical_member_1",
+                "alias_user_ids": ["canonical_member_1"],
+                "display_name": "正式会员 1",
+                "phone": "15558866508",
+                "tier": "sprint",
+                "status": "active",
+                "segment": "general",
+                "risk_level": "low",
+                "auto_renew": False,
+                "created_at": "2026-04-20T10:00:00+08:00",
+                "last_active_at": "2026-05-26T01:03:44+00:00",
+                "expire_at": "9999-12-31T00:00:00+00:00",
+                "points_balance": 260,
+                "review_due": 0,
+                "ledger": [],
+                "notes": [],
+                "member_directory_source": "supabase.phone_identity_aliases+v_members",
+            }
+        ]
+    )
+    service = MemberConsoleService(member_directory=directory)
+    service._data_path = tmp_path / "member_console.json"
+    service._store = SQLiteSessionStore(db_path=tmp_path / "chat_history.db")
+
+    def _seed_local_member(data: dict[str, object]) -> None:
+        member = service._build_default_member("local_missing_from_directory")
+        member["phone"] = "15558866509"
+        member["created_at"] = "2026-04-21T10:00:00+08:00"
+        member["last_active_at"] = "2026-05-20T10:00:00+08:00"
+        data["members"].append(member)
+
+    service._mutate(_seed_local_member)
+    asyncio.run(
+        service._store.create_session(
+            title="目录缺口真实对话",
+            session_id="supplement_recent_chat",
+            owner_key=build_user_owner_key("local_missing_from_directory"),
+            source="wx_miniprogram",
+        )
+    )
+    asyncio.run(service._store.add_message("supplement_recent_chat", "user", "今天继续训练"))
+
+    payload = service.list_members(page=1, page_size=20, sort="last_active_at", order="desc")
+    dashboard = service.get_dashboard()
+    read_model_members = {
+        item["user_id"]: item
+        for item in service.list_members_for_bi()
+    }
+
+    assert payload["authority"]["members"] == "supabase.phone_identity_aliases+v_members"
+    assert payload["total"] == 2
+    assert payload["items"][0]["user_id"] == "local_missing_from_directory"
+    assert payload["items"][0]["last_active_at"] > "2026-06-01T00:00:00"
+    assert payload["items"][1]["user_id"] == "canonical_member_1"
+    assert dashboard["total_count"] == 1
+    assert (
+        read_model_members["local_missing_from_directory"]["member_directory_source"]
+        == "member_console_session_activity_supplement"
+    )
+
+
 def test_dashboard_counts_recent_registered_member_windows(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

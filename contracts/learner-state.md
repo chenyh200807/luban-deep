@@ -141,6 +141,12 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
   canonical member `created_at` 计算；它们是 dashboard read model，不得从前端分页结果、
   行为事件、钱包流水、运营备注或 learner-state projection 反推，也不得写入
   `learner_summaries`、`learner_memory_events`、profile、progress、goals 或 heartbeat。
+- BI 会员列表的 `last_active_at` 可以用 canonical session store 的真实会话更新时间做
+  read-model overlay；当 Supabase 目录暂时缺少一个本地已注册、手机号可信且有 session 活跃
+  证据的会员时，`member_console` 可以把该会员作为
+  `member_console_session_activity_supplement` 补入列表。这个补入只修正运营读模型可见性和排序，
+  不改变 Supabase 会员 eligibility authority，不得写 learner state，也不得作为新增会员窗口指标
+  或钱包/学习事实的 canonical source。
 - 如果某个运营动作需要改变 learner state，必须走 learner-state writeback / promotion
   authority，不能通过 member-console audit helper 旁路写入。
 - 账号凭证事实与 learner-state 分权：`MemberConsoleService` 可以通过 external auth 管理

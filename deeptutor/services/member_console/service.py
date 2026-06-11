@@ -1780,7 +1780,12 @@ class MemberConsoleService:
     def _member_directory_enabled(self) -> bool:
         return self._member_directory_authority() == "supabase.phone_identity_aliases+v_members"
 
-    def _load_member_directory_members_for_bi(self, data: dict[str, Any]) -> list[dict[str, Any]]:
+    def _load_member_directory_members_for_bi(
+        self,
+        data: dict[str, Any],
+        *,
+        include_session_activity_supplements: bool = False,
+    ) -> list[dict[str, Any]]:
         directory = self._member_directory
         if not self._member_directory_enabled() or not bool(getattr(directory, "is_configured", False)):
             members = self._members_for_bi(data)
@@ -1807,6 +1812,26 @@ class MemberConsoleService:
                 continue
             normalized.setdefault("member_directory_source", "supabase.phone_identity_aliases+v_members")
             merged_members.append(normalized)
+        if not include_session_activity_supplements:
+            return merged_members
+        directory_keys = {
+            key
+            for member in merged_members
+            for key in self._canonical_member_keys_for_bi(member)
+        }
+        local_members = self._members_for_bi(data)
+        local_members_with_activity = self._merge_session_activity_for_member_list(
+            [deepcopy(member) for member in local_members]
+        )
+        for original, local_member in zip(local_members, local_members_with_activity, strict=False):
+            local_keys = self._canonical_member_keys_for_bi(local_member)
+            if not local_keys or any(key in directory_keys for key in local_keys):
+                continue
+            if _parse_time(local_member.get("last_active_at")) <= _parse_time(original.get("last_active_at")):
+                continue
+            local_member.setdefault("member_directory_source", "member_console_session_activity_supplement")
+            merged_members.append(local_member)
+            directory_keys.update(local_keys)
         return merged_members
 
     def _merge_session_activity_for_member_list(self, members: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -3309,7 +3334,10 @@ class MemberConsoleService:
     ) -> dict[str, Any]:
         data = self._load()
         members = self._merge_session_activity_for_member_list(
-            self._load_member_directory_members_for_bi(data)
+            self._load_member_directory_members_for_bi(
+                data,
+                include_session_activity_supplements=True,
+            )
         )
         search_text = str(search or "").strip().lower()
         now = _now()
@@ -3430,7 +3458,12 @@ class MemberConsoleService:
 
     def list_members_for_bi(self) -> list[dict[str, Any]]:
         data = self._load()
-        return deepcopy(self._load_member_directory_members_for_bi(data))
+        return deepcopy(
+            self._load_member_directory_members_for_bi(
+                data,
+                include_session_activity_supplements=True,
+            )
+        )
 
     def get_member_360(self, user_id: str) -> dict[str, Any]:
         data = self._load()
@@ -3439,7 +3472,10 @@ class MemberConsoleService:
         except KeyError:
             member = None
             for item in self._merge_session_activity_for_member_list(
-                self._load_member_directory_members_for_bi(data)
+                self._load_member_directory_members_for_bi(
+                    data,
+                    include_session_activity_supplements=True,
+                )
             ):
                 if str(item.get("user_id") or "").strip() == user_id or user_id in set(item.get("alias_user_ids") or []):
                     member = deepcopy(item)
