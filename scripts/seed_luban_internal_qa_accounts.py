@@ -11,7 +11,6 @@ from deeptutor.services.member_console.external_auth import (
 )
 from deeptutor.services.runtime_env import is_production_environment
 
-DEFAULT_PASSWORD = "QaTutorbot2026"
 QA_ACCOUNTS = (
     {"username": "qa_tutorbot_mcq", "phone": "13900001001"},
     {"username": "qa_tutorbot_followup", "phone": "13900001002"},
@@ -32,9 +31,11 @@ def main() -> int:
     if is_production_environment():
         raise SystemExit("refusing to seed internal QA accounts in production")
     _ensure_local_auth_store_defaults()
-    password = os.getenv("DEEPTUTOR_INTERNAL_QA_TEST_PASSWORD", DEFAULT_PASSWORD).strip()
+    # No hardcoded default: a committed literal becomes a permanent credential in git
+    # history. The QA password must be supplied explicitly via env at run time.
+    password = os.getenv("DEEPTUTOR_INTERNAL_QA_TEST_PASSWORD", "").strip()
     if not password:
-        raise SystemExit("DEEPTUTOR_INTERNAL_QA_TEST_PASSWORD cannot be empty")
+        raise SystemExit("DEEPTUTOR_INTERNAL_QA_TEST_PASSWORD must be set (no default)")
 
     seeded: list[dict[str, str]] = []
     for account in QA_ACCOUNTS:

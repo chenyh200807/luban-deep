@@ -404,9 +404,10 @@ async def edit_text(request: EditRequest):
 
         return result
 
-    except Exception as e:
+    except Exception:
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("co_writer endpoint failed")
+        raise HTTPException(status_code=500, detail="服务暂时不可用，请稍后再试")
 
 
 @router.post("/edit_react", response_model=ReactEditResponse)
@@ -415,9 +416,10 @@ async def edit_text_react(request: ReactEditRequest):
         return await _run_react_edit(request, language=_current_language())
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("co_writer endpoint failed")
+        raise HTTPException(status_code=500, detail="服务暂时不可用，请稍后再试")
 
 
 @router.post("/edit_react/stream")
@@ -446,9 +448,10 @@ async def auto_mark_text(request: AutoMarkRequest):
         print_stats()
 
         return result
-    except Exception as e:
+    except Exception:
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("co_writer endpoint failed")
+        raise HTTPException(status_code=500, detail="服务暂时不可用，请稍后再试")
 
 
 @router.get("/history")
@@ -457,8 +460,9 @@ async def get_history():
     try:
         history = load_history()
         return {"history": history, "total": len(history)}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        logger.exception("co_writer endpoint failed")
+        raise HTTPException(status_code=500, detail="服务暂时不可用，请稍后再试")
 
 
 @router.get("/history/{operation_id}")
@@ -472,8 +476,9 @@ async def get_operation(operation_id: str):
         raise HTTPException(status_code=404, detail="Operation not found")
     except HTTPException:
         raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        logger.exception("co_writer endpoint failed")
+        raise HTTPException(status_code=500, detail="服务暂时不可用，请稍后再试")
 
 
 @router.get("/tool_calls/{operation_id}")
@@ -487,8 +492,9 @@ async def get_tool_call(operation_id: str):
         raise HTTPException(status_code=404, detail="Tool call not found")
     except HTTPException:
         raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        logger.exception("co_writer endpoint failed")
+        raise HTTPException(status_code=500, detail="服务暂时不可用，请稍后再试")
 
 
 @router.post("/export/markdown")
@@ -503,5 +509,6 @@ async def export_markdown(content: dict):
             media_type="text/markdown",
             headers={"Content-Disposition": f"attachment; filename={filename}"},
         )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception:
+        logger.exception("co_writer endpoint failed")
+        raise HTTPException(status_code=500, detail="服务暂时不可用，请稍后再试")

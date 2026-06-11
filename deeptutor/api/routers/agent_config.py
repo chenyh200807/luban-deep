@@ -3,9 +3,12 @@
 Agent Configuration API - Provides agent metadata for data-driven UI.
 """
 
-from fastapi import APIRouter
+from deeptutor.api._secure_router import public_router
 
-router = APIRouter()
+# Read-only UI metadata, no secrets. Declared public explicitly so the auth CI gate
+# (every router is secure_router OR public_router) recognizes it instead of flagging
+# a bare APIRouter as an un-audited unauthenticated surface.
+router = public_router(reason="static UI metadata, read-only")
 
 # Agent registry - single source of truth for agent UI metadata
 AGENT_REGISTRY = {

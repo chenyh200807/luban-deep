@@ -567,8 +567,10 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=get_cors_allow_origins(),
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    # With allow_credentials=True, pin methods/headers instead of "*": a wildcard here
+    # turns any future origin misconfig into a full credentialed cross-origin surface.
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Request-ID", "X-Metrics-Token"],
 )
 
 # Mount a filtered view over user outputs.

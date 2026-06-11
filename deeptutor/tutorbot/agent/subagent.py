@@ -32,6 +32,7 @@ class SubagentManager:
         web_proxy: str | None = None,
         exec_config: "ExecToolConfig | None" = None,
         restrict_to_workspace: bool = True,
+        enable_exec: bool = True,
     ):
         from deeptutor.tutorbot.config.schema import ExecToolConfig, WebSearchConfig
 
@@ -43,6 +44,7 @@ class SubagentManager:
         self.web_proxy = web_proxy
         self.exec_config = exec_config or ExecToolConfig()
         self.restrict_to_workspace = restrict_to_workspace
+        self.enable_exec = enable_exec
         self._running_tasks: dict[str, asyncio.Task[None]] = {}
         self._session_tasks: dict[str, set[str]] = {}  # session_key -> {task_id, ...}
 
@@ -97,6 +99,7 @@ class SubagentManager:
                 web_search_config=self.web_search_config,
                 web_proxy=self.web_proxy,
                 restrict_to_workspace=self.restrict_to_workspace,
+                enable_exec=self.enable_exec,
             )
 
             system_prompt = self._build_subagent_prompt()

@@ -625,6 +625,10 @@ class TutorBotManager:
             session_manager=session_adapter,
             shared_memory_dir=None,
             restrict_to_workspace=True,
+            # Student-facing bots run untrusted end-user prompts over /api/v1/ws.
+            # Never expose the shell / arbitrary-code-execution tools on this path —
+            # prompt injection would otherwise reach an RCE surface. (security review C2/H2/H3)
+            enable_exec_tool=False,
             default_session_key=canonical_key,
         )
 

@@ -55,6 +55,7 @@ class TeamManager:
         web_proxy: str | None = None,
         exec_config: ExecToolConfig | None = None,
         restrict_to_workspace: bool = True,
+        enable_exec: bool = True,
         max_workers: int = 5,
         worker_max_iterations: int = 25,
     ):
@@ -70,6 +71,7 @@ class TeamManager:
         self.web_proxy = web_proxy
         self.exec_config = exec_config or ExecToolConfig()
         self.restrict_to_workspace = restrict_to_workspace
+        self.enable_exec = enable_exec
         self.max_workers = max_workers
         self.worker_max_iterations = worker_max_iterations
         self.teams_dir = ensure_dir(workspace / "teams")
@@ -944,6 +946,7 @@ class TeamManager:
             web_search_config=self.web_search_config,
             web_proxy=self.web_proxy,
             restrict_to_workspace=self.restrict_to_workspace,
+            enable_exec=self.enable_exec,
         )
         tools.register(TeamWorkerTool(manager=self, worker_name=mate.name, session_key=runtime.session_key))
         return tools

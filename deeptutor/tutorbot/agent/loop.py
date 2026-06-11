@@ -234,6 +234,7 @@ class AgentLoop:
         channels_config: ChannelsConfig | None = None,
         shared_memory_dir: Path | None = None,
         default_session_key: str | None = None,
+        enable_exec_tool: bool = True,
     ):
         from deeptutor.tutorbot.config.schema import ExecToolConfig, WebSearchConfig
 
@@ -249,6 +250,7 @@ class AgentLoop:
         self.exec_config = exec_config or ExecToolConfig()
         self.cron_service = cron_service
         self.restrict_to_workspace = restrict_to_workspace
+        self.enable_exec_tool = enable_exec_tool
         self._shared_memory_dir = shared_memory_dir
         self._default_session_key = default_session_key
 
@@ -264,6 +266,7 @@ class AgentLoop:
             web_proxy=web_proxy,
             exec_config=self.exec_config,
             restrict_to_workspace=restrict_to_workspace,
+            enable_exec=enable_exec_tool,
         )
         self.team = TeamManager(
             provider=provider,
@@ -278,6 +281,7 @@ class AgentLoop:
             web_proxy=web_proxy,
             exec_config=self.exec_config,
             restrict_to_workspace=restrict_to_workspace,
+            enable_exec=enable_exec_tool,
             max_workers=team_max_workers,
             worker_max_iterations=team_worker_max_iterations,
         )
@@ -309,6 +313,7 @@ class AgentLoop:
             web_search_config=self.web_search_config,
             web_proxy=self.web_proxy,
             restrict_to_workspace=self.restrict_to_workspace,
+            enable_exec=self.enable_exec_tool,
         )
         self.tools.register(MessageTool(send_callback=self.bus.publish_outbound))
         self.tools.register(SpawnTool(manager=self.subagents))
@@ -323,9 +328,14 @@ class AgentLoop:
             RAGAdapterTool,
             ReasonAdapterTool,
         )
-        for tool_cls in (BrainstormAdapterTool, RAGAdapterTool,
-                         CodeExecutionAdapterTool, ReasonAdapterTool,
-                         PaperSearchAdapterTool):
+        # CodeExecutionAdapterTool runs arbitrary Python via subprocess (best-effort
+        # ImportGuard only, bypassable). Gate it with the shell tool: never exposed on
+        # untrusted-student paths. See build_base_tools(enable_exec=...).
+        adapter_classes = [BrainstormAdapterTool, RAGAdapterTool,
+                           ReasonAdapterTool, PaperSearchAdapterTool]
+        if self.enable_exec_tool:
+            adapter_classes.insert(2, CodeExecutionAdapterTool)
+        for tool_cls in adapter_classes:
             self.tools.register(tool_cls())
 
     async def _connect_mcp(self) -> None:

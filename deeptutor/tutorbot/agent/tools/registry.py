@@ -97,8 +97,15 @@ def build_base_tools(
     web_search_config: "WebSearchConfig | None" = None,
     web_proxy: str | None = None,
     restrict_to_workspace: bool = True,
+    enable_exec: bool = True,
 ) -> ToolRegistry:
-    """Build a ToolRegistry pre-loaded with filesystem, shell, and web tools."""
+    """Build a ToolRegistry pre-loaded with filesystem, shell, and web tools.
+
+    ``enable_exec`` gates the shell ``ExecTool``. It MUST be False on any path that runs
+    untrusted end-user (student) prompts: the shell tool is a remote-code-execution surface
+    that prompt injection can drive, and its regex deny-list is best-effort only. Default
+    True preserves dev/CLI/agent-tooling behavior where the operator is trusted.
+    """
     from deeptutor.services.search import is_web_search_runtime_available
     from deeptutor.tutorbot.agent.tools.filesystem import EditFileTool, ListDirTool, ReadFileTool, WriteFileTool
     from deeptutor.tutorbot.agent.tools.shell import ExecTool
@@ -108,12 +115,13 @@ def build_base_tools(
     allowed_dir = workspace if restrict_to_workspace else None
     for cls in (ReadFileTool, WriteFileTool, EditFileTool, ListDirTool):
         tools.register(cls(workspace=workspace, allowed_dir=allowed_dir))
-    tools.register(ExecTool(
-        working_dir=str(workspace),
-        timeout=exec_config.timeout,
-        restrict_to_workspace=restrict_to_workspace,
-        path_append=exec_config.path_append,
-    ))
+    if enable_exec:
+        tools.register(ExecTool(
+            working_dir=str(workspace),
+            timeout=exec_config.timeout,
+            restrict_to_workspace=restrict_to_workspace,
+            path_append=exec_config.path_append,
+        ))
     if is_web_search_runtime_available():
         tools.register(WebSearchTool(config=web_search_config, proxy=web_proxy))
     tools.register(WebFetchTool(proxy=web_proxy))
