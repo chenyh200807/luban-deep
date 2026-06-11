@@ -28,7 +28,19 @@ def _secret() -> bytes:
 
 
 def _log_secret_fingerprint() -> None:
-    digest = hashlib.sha1(_secret()).hexdigest()[:8]
+    # Import-time diagnostic ONLY: never hard-fail module import. The fail-closed
+    # RuntimeError is enforced at first real use in _secret() (signing/verifying an
+    # attempt ref), so a misconfigured production environment still fails — but
+    # merely importing this module (CI import checks, CLI tooling, scripts) must not
+    # crash before the app starts. Prod deployments set the secret, so they still
+    # log the fingerprint normally.
+    try:
+        digest = hashlib.sha1(_secret()).hexdigest()[:8]
+    except RuntimeError:
+        _LOG.warning(
+            "attempt_ref secret not configured at import; enforcement deferred to first use"
+        )
+        return
     _LOG.info("attempt_ref secret fingerprint=%s kid=%s", digest, _KID_V1)
 
 

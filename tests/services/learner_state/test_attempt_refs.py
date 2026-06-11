@@ -55,8 +55,13 @@ def test_prod_runtime_requires_secret(monkeypatch: pytest.MonkeyPatch) -> None:
 
     monkeypatch.setenv("DEEPTUTOR_ENV", "prod")
     monkeypatch.delenv("DEEPTUTOR_ATTEMPT_REF_SECRET", raising=False)
+    # Import/reload must stay safe — CI import checks and CLI tooling import this
+    # module transitively (via unified_ws) with no secret; a missing secret must
+    # not crash module import. The fail-closed RuntimeError is enforced at first
+    # real use instead.
+    importlib.reload(mod)
     with pytest.raises(RuntimeError):
-        importlib.reload(mod)
+        mod._secret()
 
     monkeypatch.setenv("DEEPTUTOR_ENV", "local")
     importlib.reload(mod)

@@ -80,11 +80,15 @@ def test_explicit_production_values(monkeypatch: pytest.MonkeyPatch, value: str)
     assert runtime_env.is_production_environment() is True
 
 
-def test_attempt_refs_requires_secret_when_env_unset(
+def test_attempt_refs_requires_secret_in_production(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # attempt_refs must inherit the shared fail-closed authority: an unset
-    # environment with no configured secret must refuse the dev fallback.
+    # attempt_refs must inherit the shared fail-closed authority: in production
+    # with no configured secret it must refuse the dev fallback. (The unset ->
+    # production mapping itself is covered by test_unset_environment_is_production;
+    # here we force DEEPTUTOR_ENV because importing attempt_refs' dependency chain
+    # triggers a real env_store load that leaks the repo .env's SERVICE_ENV.)
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
     monkeypatch.delenv("DEEPTUTOR_ATTEMPT_REF_SECRET", raising=False)
     attempt_refs = importlib.import_module(
         "deeptutor.services.learner_state.attempt_refs"
@@ -103,5 +107,24 @@ def test_attempt_refs_uses_shared_authority_via_app_env(
     attempt_refs = importlib.import_module(
         "deeptutor.services.learner_state.attempt_refs"
     )
+    with pytest.raises(RuntimeError):
+        attempt_refs._secret()
+
+
+def test_attempt_refs_import_is_safe_when_prod_without_secret(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Fail-closed must enforce at USE, never crash at import. CI import checks and
+    # CLI tooling import this module (transitively via unified_ws) with no env and
+    # no secret; the import-time fingerprint diagnostic must tolerate a missing
+    # secret. Reloading the module re-runs that diagnostic and must NOT raise,
+    # while _secret() still fails closed at first real use. (DEEPTUTOR_ENV is forced
+    # because importing attempt_refs leaks the repo .env's SERVICE_ENV via env_store.)
+    monkeypatch.setenv("DEEPTUTOR_ENV", "production")
+    monkeypatch.delenv("DEEPTUTOR_ATTEMPT_REF_SECRET", raising=False)
+    attempt_refs = importlib.import_module(
+        "deeptutor.services.learner_state.attempt_refs"
+    )
+    importlib.reload(attempt_refs)  # must not raise even though prod + no secret
     with pytest.raises(RuntimeError):
         attempt_refs._secret()
