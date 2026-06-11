@@ -16,7 +16,7 @@
 [![Feishu](https://img.shields.io/badge/Feishu-Group-00D4AA?style=flat-square&logo=feishu&logoColor=white)](./Communication.md)
 [![WeChat](https://img.shields.io/badge/WeChat-Group-07C160?style=flat-square&logo=wechat&logoColor=white)](https://github.com/HKUDS/DeepTutor/issues/78)
 
-[Product Focus](#-product-focus) · [Features](#-key-features) · [Get Started](#-get-started) · [Explore](#-explore-deeptutor) · [TutorBot](#-tutorbot--persistent-ai-tutor-runtime) · [CLI](#%EF%B8%8F-deeptutor-cli--agent-native-interface) · [Community](#-community--ecosystem)
+[Product Focus](#-product-focus) · [AI Architecture](#ai-architecture-reference) · [Features](#-key-features) · [Get Started](#-get-started) · [Explore](#-explore-deeptutor) · [TutorBot](#-tutorbot--persistent-ai-tutor-runtime) · [CLI](#%EF%B8%8F-deeptutor-cli--agent-native-interface) · [Community](#-community--ecosystem)
 
 [🇨🇳 中文](assets/README/README_CN.md) · [🇯🇵 日本語](assets/README/README_JA.md) · [🇪🇸 Español](assets/README/README_ES.md) · [🇫🇷 Français](assets/README/README_FR.md) · [🇸🇦 العربية](assets/README/README_AR.md) · [🇷🇺 Русский](assets/README/README_RU.md) · [🇮🇳 हिन्दी](assets/README/README_HI.md) · [🇵🇹 Português](assets/README/README_PT.md)
 
@@ -47,6 +47,14 @@ Current build priorities:
 - **Learning evidence as the ledger** — grading, attempt detail, mistake book, learning report, and next training must agree on the same learner evidence instead of keeping parallel truth.
 - **Thin wrappers, fat skills** — web, mini program, CLI, and compatibility adapters stay thin; teaching policy, grading rules, scene authority, and learner-state interpretation live in named skills/services.
 - **Mobile-first verification** — `/wechat-harness`, WeChat DevTools, Langfuse, benchmark artifacts, `/healthz`, and `/readyz` are normal acceptance surfaces for product claims.
+
+<a id="ai-architecture-reference"></a>
+
+### 🧭 AI & Architecture Reference
+
+For AI agents and engineers taking over DeepTutor / 鲁班智考 work, start with the [Luban System Technical Introduction for AI](docs/plan/2026-06-11-luban-system-technical-introduction-for-ai.md). It maps the current `assess -> grade -> remember -> train -> retest` spine, the contract control planes, authority boundaries, key services, GO / NO-GO states, and the safest upgrade paths.
+
+This document is a navigation layer, not a new contract. Code and product changes still follow [CONTRACT.md](CONTRACT.md), [contracts/index.yaml](contracts/index.yaml), and the current plan map in [docs/plan/INDEX.md](docs/plan/INDEX.md).
 
 ### 📦 Releases
 

@@ -16,7 +16,7 @@
 [![Feishu](https://img.shields.io/badge/Feishu-Group-00D4AA?style=flat-square&logo=feishu&logoColor=white)](../../Communication.md)
 [![WeChat](https://img.shields.io/badge/WeChat-Group-07C160?style=flat-square&logo=wechat&logoColor=white)](https://github.com/HKUDS/DeepTutor/issues/78)
 
-[产品定位](#product-focus) · [核心亮点](#key-features) · [快速开始](#get-started) · [探索 DeepTutor](#explore-deeptutor) · [TutorBot](#tutorbot) · [CLI](#deeptutor-cli-guide) · [路线图](#roadmap) · [社区](#community)
+[产品定位](#product-focus) · [AI 技术总览](#ai-architecture-reference) · [核心亮点](#key-features) · [快速开始](#get-started) · [探索 DeepTutor](#explore-deeptutor) · [TutorBot](#tutorbot) · [CLI](#deeptutor-cli-guide) · [路线图](#roadmap) · [社区](#community)
 
 [🇬🇧 English](../../README.md) · [🇯🇵 日本語](README_JA.md) · [🇪🇸 Español](README_ES.md) · [🇫🇷 Français](README_FR.md) · [🇸🇦 العربية](README_AR.md) · [🇷🇺 Русский](README_RU.md) · [🇮🇳 हिन्दी](README_HI.md) · [🇵🇹 Português](README_PT.md)
 
@@ -47,6 +47,14 @@ DeepTutor 是 **鲁班智考** 背后的智能体原生学习引擎。当前产�
 - **Learning Evidence 是学习事实账本** — 批改、attempt detail、错题集、学习报告和下一题训练必须读取同一份证据，不各自保存一套真相。
 - **薄 wrapper，胖 skill** — Web、小程序、CLI、兼容 adapter 只做入口适配；教学策略、阅卷规则、scene authority 和学情解释沉到明确的 skill/service。
 - **移动端优先验收** — `/wechat-harness`、微信开发者工具、Langfuse、benchmark artifact、`/healthz`、`/readyz` 都是项目介绍里可以被追问的真实验收面。
+
+<a id="ai-architecture-reference"></a>
+
+### 🧭 AI 与架构总览
+
+后续 AI / 工程 agent 接手 DeepTutor / 鲁班智考升级时，先读 [鲁班系统技术介绍：给 AI 升级工作的架构总览](../../docs/plan/2026-06-11-luban-system-technical-introduction-for-ai.md)。它把当前 `assess -> grade -> remember -> train -> retest` 主链、contract 控制面、authority 边界、关键服务、GO / NO-GO 状态和升级方向放在一张图里。
+
+这份文档只是导航层，不是新的 contract。任何代码和产品改动仍以 [CONTRACT.md](../../CONTRACT.md)、[contracts/index.yaml](../../contracts/index.yaml) 和 [docs/plan/INDEX.md](../../docs/plan/INDEX.md) 为准。
 
 ### 📰 动态
 
