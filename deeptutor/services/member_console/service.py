@@ -12,6 +12,7 @@ import logging
 import os
 import re
 import secrets
+import sqlite3
 import string
 import threading
 import time
@@ -1808,6 +1809,56 @@ class MemberConsoleService:
             merged_members.append(normalized)
         return merged_members
 
+    def _merge_session_activity_for_member_list(self, members: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        if not members:
+            return members
+        owner_to_members: dict[str, list[dict[str, Any]]] = {}
+        for member in members:
+            member_user_id = str(member.get("user_id") or "").strip()
+            for identity in self._member_session_identity_values(member, member_user_id):
+                owner_key = build_user_owner_key(identity)
+                if owner_key:
+                    owner_to_members.setdefault(owner_key, []).append(member)
+        if not owner_to_members:
+            return members
+
+        try:
+            db_path = self._store.db_path
+            latest_by_owner: dict[str, float] = {}
+            owner_keys = list(owner_to_members)
+            with sqlite3.connect(db_path, timeout=2.0) as conn:
+                for start in range(0, len(owner_keys), 500):
+                    chunk = owner_keys[start : start + 500]
+                    placeholders = ",".join("?" for _ in chunk)
+                    rows = conn.execute(
+                        f"""
+                        SELECT owner_key, MAX(updated_at) AS latest_updated_at
+                        FROM sessions
+                        WHERE archived = 0 AND owner_key IN ({placeholders})
+                        GROUP BY owner_key
+                        """,
+                        chunk,
+                    ).fetchall()
+                    for owner_key, latest_updated_at in rows:
+                        try:
+                            latest_by_owner[str(owner_key)] = float(latest_updated_at or 0)
+                        except (TypeError, ValueError):
+                            continue
+        except Exception:
+            logger.warning("Failed to merge session activity into BI member list", exc_info=True)
+            return members
+
+        for owner_key, latest_updated_at in latest_by_owner.items():
+            latest_iso = self._session_time_to_iso(latest_updated_at)
+            if not latest_iso:
+                continue
+            for member in owner_to_members.get(owner_key, []):
+                member["last_active_at"] = self._later_timestamp(
+                    member.get("last_active_at"),
+                    latest_iso,
+                )
+        return members
+
     @staticmethod
     def _normalize_trace_identity(value: Any, *, phone_field: bool = False) -> str:
         raw = str(value or "").strip()
@@ -3133,7 +3184,9 @@ class MemberConsoleService:
 
     def get_dashboard(self, days: int = 30) -> dict[str, Any]:
         data = self._load()
-        members = self._load_member_directory_members_for_bi(data)
+        members = self._merge_session_activity_for_member_list(
+            self._load_member_directory_members_for_bi(data)
+        )
         behavior_summaries = self._load_member_behavior_summaries_for_members(members)
         behavior_health = {
             "learning_report_open_count_7d": sum(
@@ -3255,7 +3308,9 @@ class MemberConsoleService:
         has_overlay_candidates: bool | None = None,
     ) -> dict[str, Any]:
         data = self._load()
-        members = self._load_member_directory_members_for_bi(data)
+        members = self._merge_session_activity_for_member_list(
+            self._load_member_directory_members_for_bi(data)
+        )
         search_text = str(search or "").strip().lower()
         now = _now()
         heartbeat_user_ids: set[str] | None = None
@@ -3383,12 +3438,17 @@ class MemberConsoleService:
             member = deepcopy(self._find_member(data, user_id))
         except KeyError:
             member = None
-            for item in self._load_member_directory_members_for_bi(data):
+            for item in self._merge_session_activity_for_member_list(
+                self._load_member_directory_members_for_bi(data)
+            ):
                 if str(item.get("user_id") or "").strip() == user_id or user_id in set(item.get("alias_user_ids") or []):
                     member = deepcopy(item)
                     break
             if member is None:
                 raise
+        member = self._merge_session_activity_for_member_list([member])[0]
+        member.setdefault("ledger", [])
+        member.setdefault("notes", [])
         member["wallet"] = {
             "balance": member.pop("points_balance"),
             "packages": data["packages"],

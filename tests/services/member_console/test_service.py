@@ -3693,6 +3693,8 @@ def test_list_members_and_dashboard_use_supabase_member_directory_when_configure
                 "expire_at": "9999-12-31T00:00:00+00:00",
                 "points_balance": 260,
                 "review_due": 0,
+                "ledger": [],
+                "notes": [],
                 "member_directory_source": "supabase.phone_identity_aliases+v_members",
             },
             {
@@ -3711,6 +3713,8 @@ def test_list_members_and_dashboard_use_supabase_member_directory_when_configure
                 "expire_at": "9999-12-31T00:00:00+00:00",
                 "points_balance": 0,
                 "review_due": 0,
+                "ledger": [],
+                "notes": [],
                 "member_directory_source": "supabase.phone_identity_aliases+v_members",
             },
         ]
@@ -3734,6 +3738,92 @@ def test_list_members_and_dashboard_use_supabase_member_directory_when_configure
     assert dashboard["total_count"] == 1
     assert dashboard["authority"]["members"] == "supabase.phone_identity_aliases+v_members"
     assert directory.calls
+
+
+def test_list_members_merges_session_activity_when_member_directory_is_stale(tmp_path: Path) -> None:
+    directory = _FakeMemberDirectory(
+        [
+            {
+                "user_id": "canonical_member_1",
+                "canonical_user_id": "canonical_member_1",
+                "alias_user_ids": ["canonical_member_1"],
+                "display_name": "正式会员 1",
+                "phone": "15558866508",
+                "tier": "sprint",
+                "status": "active",
+                "segment": "general",
+                "risk_level": "low",
+                "auto_renew": False,
+                "created_at": "2026-04-20T10:00:00+08:00",
+                "last_active_at": "2026-05-26T01:03:44+00:00",
+                "expire_at": "9999-12-31T00:00:00+00:00",
+                "points_balance": 260,
+                "review_due": 0,
+                "ledger": [],
+                "notes": [],
+                "member_directory_source": "supabase.phone_identity_aliases+v_members",
+            },
+            {
+                "user_id": "canonical_member_2",
+                "canonical_user_id": "canonical_member_2",
+                "alias_user_ids": ["canonical_member_2"],
+                "display_name": "正式会员 2",
+                "phone": "15558866509",
+                "tier": "trial",
+                "status": "active",
+                "segment": "general",
+                "risk_level": "low",
+                "auto_renew": False,
+                "created_at": "2026-04-21T10:00:00+08:00",
+                "last_active_at": "2026-05-27T01:03:44+00:00",
+                "expire_at": "9999-12-31T00:00:00+00:00",
+                "points_balance": 0,
+                "review_due": 0,
+                "ledger": [],
+                "notes": [],
+                "member_directory_source": "supabase.phone_identity_aliases+v_members",
+            },
+        ]
+    )
+    service = MemberConsoleService(member_directory=directory)
+    service._data_path = tmp_path / "member_console.json"
+    service._store = SQLiteSessionStore(db_path=tmp_path / "chat_history.db")
+
+    asyncio.run(
+        service._store.create_session(
+            title="6 月真实对话",
+            session_id="unified_recent_chat",
+            owner_key=build_user_owner_key("canonical_member_1"),
+            source="wx_miniprogram",
+        )
+    )
+    asyncio.run(service._store.add_message("unified_recent_chat", "user", "最近一次训练"))
+
+    payload = service.list_members(page=1, page_size=20, sort="last_active_at", order="desc")
+    dashboard = service.get_dashboard()
+    service._get_learner_state_service = lambda: type(  # type: ignore[method-assign]
+        "LearnerStateService",
+        (),
+        {
+            "read_snapshot": lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("not configured")),
+            "list_heartbeat_jobs": lambda *_args, **_kwargs: [],
+            "list_heartbeat_history": lambda *_args, **_kwargs: [],
+            "list_heartbeat_arbitration_history": lambda *_args, **_kwargs: [],
+            "read_profile": lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("not configured")),
+            "read_summary": lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("not configured")),
+            "read_progress": lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("not configured")),
+            "list_memory_events": lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("not configured")),
+        },
+    )()
+    service._get_overlay_service = lambda: type("OverlayService", (), {"list_user_overlays": lambda *_args, **_kwargs: []})()  # type: ignore[method-assign]
+    detail = service.get_member_360("canonical_member_1")
+
+    assert payload["authority"]["members"] == "supabase.phone_identity_aliases+v_members"
+    assert payload["items"][0]["user_id"] == "canonical_member_1"
+    assert payload["items"][0]["last_active_at"] > "2026-06-01T00:00:00"
+    assert dashboard["authority"]["members"] == "supabase.phone_identity_aliases+v_members"
+    assert detail["last_active_at"] > "2026-06-01T00:00:00"
+    assert detail["recent_conversations"][0]["session_id"] == "unified_recent_chat"
 
 
 def test_dashboard_counts_recent_registered_member_windows(
