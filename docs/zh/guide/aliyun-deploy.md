@@ -22,6 +22,7 @@
   - `ALLOW_DIRTY_DEPLOY=1`
   - `ALLOW_MAIN_BRANCH_DEPLOY=1`
   - 但远端写入根仍必须固定为 `Aliyun-ECS-2:/root/deeptutor`
+- fail-closed 环境硬约束（2026-06-11 起，详见已知坑 #11）：`is_production_environment()` 把未设置 / 拼错 / `staging` 等一律按生产处理；生产 `.env` 必须配 `DEEPTUTOR_AUTH_SECRET` 和 `DEEPTUTOR_ATTEMPT_REF_SECRET`，否则启动或首次使用即失败。`validate_aliyun_release_env.sh` 会校验，但发布前应自行确认远端 `.env` 已含这两项。
 
 建议发布前固定执行：
 
@@ -29,7 +30,9 @@
 git branch --show-current
 git status --short
 git ls-files artifacts/
-python scripts/check_contract_guard.py
+# protected 文件改动必须带本次 commit 的 changed files，否则测不出 domain 关系（见已知坑 #11）
+python scripts/check_contract_guard.py $(git show --pretty= --name-only --first-parent HEAD)
+FAIL_ON_NEW=1 bash scripts/ci/check_secure_routers.sh
 python scripts/verify_runtime_assets.py
 ```
 
@@ -640,6 +643,37 @@ ssh Aliyun-ECS-2 'test ! -e /root/deeptutor/artifacts && echo remote_artifacts_a
 - `git check-ignore artifacts` 只能证明 Git 会忽略它，不能证明发布脚本会忽略它。
 - 如果远端已经出现 `/root/deeptutor/artifacts`，清理命令只能写 `/root/deeptutor` 内；不得为了临时中转或备份写 `/tmp`、`/root/luban`、`/var` 或系统目录。
 - 清理后必须重新发布并确认 Docker build context 回落到合理体量；不要只删远端目录后直接宣布上线完成。
+
+### 11. 2026-06-11 fail-closed 环境 + CI 门连锁（上线前根因加固复盘）
+
+这次上线前根因加固把 `is_production_environment()` 改成 **fail-closed**：只有显式声明为 `local/dev/development/test/testing/ci/eval` 才算非生产；**未设置 / 拼错 / `staging` / 未知值一律按生产处理**，dev 后门默认关闭。配套两条运维硬约束：
+
+- 生产（含任何非上述白名单环境，包括 env 漏设的情况）**必须配置 `DEEPTUTOR_AUTH_SECRET` 和 `DEEPTUTOR_ATTEMPT_REF_SECRET`**。缺 `DEEPTUTOR_AUTH_SECRET` 启动即拒；缺 `DEEPTUTOR_ATTEMPT_REF_SECRET` 在首次签 attempt ref 时拒（不再回落 dev 默认值）。`redeploy_aliyun_fast.sh` 已在重启前跑 `validate_aliyun_release_env.sh`，本次发布日志确认 `SERVICE_ENV=production`、`APP_ENV=production` 且校验通过。
+- 这意味着 fail-closed 把“env 漏设”从“后门敞开”变成“按生产收紧”。代价是：本地 / CI / DevTools QA 必须显式 `export DEEPTUTOR_ENV=local`（pytest 由 `tests/conftest.py` 模块级 `setdefault` 自动钉成 `local`）。
+
+两个直接踩到的坑：
+
+- **import 期副作用 + fail-closed 会炸裸 import。** `attempt_refs.py` 原本在 import 时跑 `_log_secret_fingerprint() -> _secret()`。fail-closed 下未设环境=生产、又没 secret，于是 CI 的 “Import Check”（裸 `python -c "import deeptutor.api.routers.unified_ws"`，无 `.env`、无 secret）在 import 阶段就 `RuntimeError` 崩溃，CLI 工具 / 脚本同样会崩。根因是“import 期可 raise 的副作用”，不是 fail-closed 本身。修法是**把强制延迟到使用时**：import 期诊断容忍缺 secret（只告警），`_secret()` 真正签名 / 校验时仍 fail-closed。本地能蒙混是因为开发机 `.env` 带 `SERVICE_ENV=development`，`env_store.load()` 会把它 `setdefault` 进 `os.environ`，让 `runtime_environment()` 误判非生产——这也是测试里要 `monkeypatch.setenv("DEEPTUTOR_ENV","production")` 才稳的原因。
+- **改 protected 文件会触发一连串 contract-guard / CI 门**，逐个被前一个门遮住，容易打地鼠。这次的连锁是：`contract_guard`（改 `unified_ws.py`/`attempt_refs.py` 这类 protected 文件，commit 必须同时含该 domain 已登记的测试——新测试要先登记进 `contracts/index.yaml` 的 `domains.<域>.test_files`，并 re-mirror 到 `deeptutor/contracts/index.yaml`）→ `Secure router fail-on-new`（新增 import 会移动 bare `APIRouter()` 行号，要刷新 `scripts/ci/baselines/secure_routers_baseline.txt`）→ `Import Check`（见上一条）。
+
+下次改动后端再发布前，按这组顺序本地自检，避免 push 上去才发现 main 变红：
+
+```bash
+# 1) contract-guard 要带本次 commit 的 changed files（不带参数测不出 protected/domain 关系）
+python3 scripts/check_contract_guard.py $(git show --pretty= --name-only --first-parent HEAD)
+# 2) secure-router 基线（加了 import 就可能要刷行号）
+FAIL_ON_NEW=1 bash scripts/ci/check_secure_routers.sh
+# 3) NameError / undefined-name 门
+ruff check --select F821,F811 deeptutor deeptutor_cli scripts
+# 4) Import Check：在 fail-closed 生产口径下裸 import 不能崩
+env -u DEEPTUTOR_ATTEMPT_REF_SECRET DEEPTUTOR_ENV=production python3 -c \
+  "from deeptutor.api.routers.unified_ws import unified_websocket; print('import OK')"
+```
+
+另外两条运维事实记录：
+
+- `redeploy_aliyun_fast.sh` 同步的是**本地工作树**（不是 `origin/main`），且 `--delete` 镜像代码面。`.env*`、`.secrets*`、`data`、`artifacts`、`tmp`、`*.log` 已排除，生产配置 / 数据 / 上传文件安全；但脏 `main` 上 `ALLOW_DIRTY_DEPLOY=1` 会把未提交的无关文件（如别人并发在写的 `docs/`）一并带上生产。优先按 §发布硬护栏 用干净 worktree。
+- GitHub `Deploy Gate` workflow 长期 9–10s 快速失败，且早于本次改动就存在（与代码无关）；判断 main CI 是否因本次改动变红，看 `Tests` workflow 的具体 job，不要被 `Deploy Gate` 误导。
 
 ## 回滚步骤
 
