@@ -8,9 +8,9 @@ from typing import Any
 
 import pytest
 
+from deeptutor.agents.question.agents.submission_grader_agent import SubmissionGraderAgent
 from deeptutor.capabilities import deep_question as deep_question_module
 from deeptutor.capabilities.deep_question import DeepQuestionCapability
-from deeptutor.agents.question.agents.submission_grader_agent import SubmissionGraderAgent
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream import StreamEvent, StreamEventType
 from deeptutor.core.stream_bus import StreamBus
@@ -796,16 +796,37 @@ async def test_deep_question_blocks_unanswered_direct_answer_reveal(
 
 
 @pytest.mark.asyncio
-async def test_deep_question_fail_closed_when_choice_answer_authority_missing(
+async def test_deep_question_open_world_grading_when_choice_answer_authority_missing(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    captured: dict[str, Any] = {}
+
     class FakeCoordinator:
         def __init__(self, **_kwargs: Any) -> None:
             raise AssertionError("Coordinator should not be constructed for grading mode")
 
     class FakeSubmissionGraderAgent:
         def __init__(self, **_kwargs: Any) -> None:
-            raise AssertionError("missing MCQ authority must not fall back to LLM grading")
+            pass
+
+        def set_trace_callback(self, callback: Any) -> None:
+            captured["trace_callback"] = callback
+
+        async def process(self, **kwargs: Any) -> str:
+            captured["grader_kwargs"] = kwargs
+            return (
+                "## 📊 阅卷结论\n依据教材判定：正确答案应为 B（混凝土强度），你选 B，判定正确。\n\n"
+                "## 🧐 解析\n模板拆除以混凝土强度达到规范要求为先决条件。"
+            )
+
+    async def fake_rag_search(query: str, kb_name: str | None = None, **kwargs: Any) -> dict[str, Any]:
+        captured["rag_query"] = query
+        captured["rag_kb_name"] = kb_name
+        captured["rag_kwargs"] = kwargs
+        return {
+            "content": "【教材依据】模板拆除时混凝土强度必须满足规范要求。",
+            "sources": [],
+        }
 
     _install_module(
         monkeypatch,
@@ -822,10 +843,12 @@ async def test_deep_question_fail_closed_when_choice_answer_authority_missing(
         "deeptutor.services.llm.config",
         get_llm_config=lambda: SimpleNamespace(api_key="k", base_url="u", api_version="v1"),
     )
+    monkeypatch.setattr(deep_question_module, "rag_search", fake_rag_search, raising=False)
 
     context = UnifiedContext(
         user_message="我选B",
         language="zh",
+        knowledge_bases=["construction-exam"],
         metadata={
             "conversation_context_text": "用户刚做完一道选择题。",
             "question_followup_context": {
@@ -843,13 +866,22 @@ async def test_deep_question_fail_closed_when_choice_answer_authority_missing(
 
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
     assert result_event.metadata["mode"] == "grading"
-    assert result_event.metadata["grading_blocked"] is True
+    # 开放世界判分：不再以"缺少标准答案"拒答（grading_blocked 字段随死代码一并移除）。
+    assert "grading_blocked" not in result_event.metadata
     assert result_event.metadata["is_correct"] is None
     assert result_event.metadata["grading_kernel"] == "mcq"
     assert result_event.metadata["correct_answer_present"] is False
-    assert result_event.metadata["question_authority_source"] == "missing"
-    assert "缺少标准答案" in result_event.metadata["response"]
+    assert result_event.metadata["question_authority_source"] == "open_world"
+    assert "缺少标准答案" not in result_event.metadata["response"]
+    assert "依据教材判定" in result_event.metadata["response"]
+    # llm_judge 占位结果不得冒充确定性判分 authority。
     assert "construction_grading_result" not in result_event.metadata
+    # 开放世界裁决必须带 RAG grounding（kb 可用时）。
+    assert captured["rag_kb_name"] == "construction-exam"
+    assert captured["rag_kwargs"]["routing_metadata"]["answer_authority"] == "open_world"
+    grader_question_context = captured["grader_kwargs"]["question_context"]
+    assert grader_question_context["is_correct"] is None
+    assert not str(grader_question_context.get("correct_answer") or "").strip()
 
 
 @pytest.mark.asyncio
@@ -1175,16 +1207,28 @@ async def test_deep_question_clears_stale_item_flags_when_recovering_batch_answe
 
 
 @pytest.mark.asyncio
-async def test_deep_question_fail_closed_when_batch_choice_recovery_is_partial(
+async def test_deep_question_open_world_grading_when_batch_choice_recovery_is_partial(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    captured: dict[str, Any] = {}
+
     class FakeCoordinator:
         def __init__(self, **_kwargs: Any) -> None:
             raise AssertionError("Coordinator should not be constructed for grading mode")
 
     class FakeSubmissionGraderAgent:
         def __init__(self, **_kwargs: Any) -> None:
-            raise AssertionError("partial MCQ recovery must not fall back to LLM grading")
+            pass
+
+        def set_trace_callback(self, callback: Any) -> None:
+            captured["trace_callback"] = callback
+
+        async def process(self, **kwargs: Any) -> str:
+            captured["grader_kwargs"] = kwargs
+            return (
+                "## 📊 阅卷结论\n第1题按题库标准答案判定正确；"
+                "第2题无题库标准答案，依据教材判定你选 C（力学性能）正确。"
+            )
 
     _install_module(
         monkeypatch,
@@ -1243,15 +1287,19 @@ async def test_deep_question_fail_closed_when_batch_choice_recovery_is_partial(
     events = await _collect_events(lambda bus: capability.run(context, bus))
 
     result_event = next(event for event in events if event.type == StreamEventType.RESULT)
-    assert result_event.metadata["grading_blocked"] is True
+    assert "grading_blocked" not in result_event.metadata
     assert result_event.metadata["is_correct"] is None
     assert result_event.metadata["correct_answer_present"] is False
-    assert result_event.metadata["question_authority_source"] == "missing"
+    assert result_event.metadata["question_authority_source"] == "open_world"
+    assert "缺少标准答案" not in result_event.metadata["response"]
+    assert "依据教材判定" in result_event.metadata["response"]
+    # 顶层聚合的 llm_judge 占位结果不得冒充确定性判分 authority。
     assert "construction_grading_result" not in result_event.metadata
+    # 已恢复 authority 的第 1 题保留确定性判定；缺 authority 的第 2 题交开放世界裁决。
     assert [
         item.get("is_correct")
         for item in result_event.metadata["question_followup_context"]["items"]
-    ] == [None, None]
+    ] == [True, None]
 
 
 @pytest.mark.asyncio

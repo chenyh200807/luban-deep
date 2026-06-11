@@ -1,3 +1,7 @@
+from deeptutor.tutorbot.response_mode import (
+    build_mode_execution_policy,
+    resolve_requested_response_mode,
+)
 import deeptutor.tutorbot.teaching_modes as teaching_modes_module
 from deeptutor.tutorbot.teaching_modes import (
     build_continuity_anchor_instruction,
@@ -10,10 +14,6 @@ from deeptutor.tutorbot.teaching_modes import (
     looks_like_practice_generation_request,
     normalize_anchor_terms_in_response,
     normalize_teaching_mode,
-)
-from deeptutor.tutorbot.response_mode import (
-    build_mode_execution_policy,
-    resolve_requested_response_mode,
 )
 
 
@@ -322,3 +322,33 @@ def test_learner_state_narration_skills_have_scope_guard_keywords():
                 f"{skill_name}: forbidden SQL token {token!r} found — narration "
                 "skills must stay presentation-only (plan §6.1 v2.1 R6)"
             )
+
+
+def test_build_cross_capability_context_instruction_injects_unconditionally():
+    """跨能力上下文必须无条件注入（不依赖"继续/接着讲"字面匹配）。
+
+    根因：deep_question 轮次只写统一 session store，TutorBot loop 的 bot-side
+    history 看不到；conversation_context_text 原先只在 continuity-request 命中时
+    注入，导致路由切换后 TutorBot 失忆（2026-06-11 生产事故）。
+    """
+    from deeptutor.tutorbot.teaching_modes import build_cross_capability_context_instruction
+
+    text = "用户上一轮在 deep_question 做了一道模板拆除选择题，选了 B。"
+    instruction = build_cross_capability_context_instruction(text)
+    assert text in instruction
+    assert "不得声称" in instruction
+
+
+def test_build_cross_capability_context_instruction_empty_returns_blank():
+    from deeptutor.tutorbot.teaching_modes import build_cross_capability_context_instruction
+
+    assert build_cross_capability_context_instruction("") == ""
+    assert build_cross_capability_context_instruction(None) == ""
+    assert build_cross_capability_context_instruction("   ") == ""
+
+
+def test_build_cross_capability_context_instruction_clips_overlong_text():
+    from deeptutor.tutorbot.teaching_modes import build_cross_capability_context_instruction
+
+    instruction = build_cross_capability_context_instruction("章" * 9000)
+    assert len(instruction) < 9000

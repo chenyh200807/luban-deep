@@ -873,32 +873,39 @@ def _mcq_trace_fields(
     }
 
 
-def _render_missing_mcq_authority_feedback() -> str:
-    return (
-        "当前选择题缺少标准答案，不能稳定判分；我不会让模型猜答案。\n\n"
-        "请重新生成题目，或提交带标准答案的题卡后再批改。"
-    )
+def _apply_open_world_grading_state(graded_context: dict[str, Any]) -> dict[str, Any]:
+    """MCQ authority 缺失时的开放世界判分状态。
 
-
-def _clear_blocked_grading_state(question_context: dict[str, Any]) -> dict[str, Any]:
-    cleared = dict(question_context or {})
-    cleared["is_correct"] = None
-    cleared.pop("construction_grading_result", None)
-    cleared.pop("score", None)
-    cleared["diagnosis"] = "AUTHORITY_MISSING"
-    items = cleared.get("items") if isinstance(cleared.get("items"), list) else []
-    if items:
-        cleared_items: list[dict[str, Any]] = []
-        for item in items:
-            if not isinstance(item, dict):
-                continue
-            cleared_item = dict(item)
-            cleared_item["is_correct"] = None
-            cleared_item.pop("construction_grading_result", None)
-            cleared_item.pop("score", None)
-            cleared_items.append(cleared_item)
-        cleared["items"] = cleared_items
-    return cleared
+    ``grade_mcq_submission`` 在无 authority 时返回 ``grading_source="llm_judge"`` 的
+    占位结果（is_correct=False 是占位值不是判定）。这里把缺标准答案条目的确定性
+    is_correct / score / 占位 construction_grading_result 清空为待裁决状态，最终判定
+    交给 RAG-grounded SubmissionGraderAgent 开放世界裁决；已恢复 authority 的条目
+    保留确定性判定不动。
+    """
+    updated = dict(graded_context or {})
+    raw_items = updated.get("items") if isinstance(updated.get("items"), list) else None
+    any_open_world = False
+    if raw_items:
+        cleared_items: list[Any] = []
+        for item in raw_items:
+            if isinstance(item, dict) and not str(item.get("correct_answer") or "").strip():
+                cleared_item = dict(item)
+                cleared_item["is_correct"] = None
+                cleared_item.pop("score", None)
+                cleared_item.pop("construction_grading_result", None)
+                cleared_items.append(cleared_item)
+                any_open_world = True
+            else:
+                cleared_items.append(item)
+        updated["items"] = cleared_items
+    if not str(updated.get("correct_answer") or "").strip():
+        any_open_world = True
+    if any_open_world:
+        updated["is_correct"] = None
+        updated.pop("score", None)
+        updated.pop("construction_grading_result", None)
+        updated["diagnosis"] = "OPEN_WORLD"
+    return updated
 
 
 def _should_use_deterministic_grading_feedback(
@@ -3306,19 +3313,15 @@ class DeepQuestionCapability(BaseCapability):
                     followup_action,
                 )
             if action_context is not None:
-                prepared = await self._prepare_grading_context_or_emit_blocked(
-                    stream=stream,
+                (
+                    graded_context,
+                    authority_source,
+                    correct_answer_present,
+                ) = await self._prepare_grading_context(
                     action_context=action_context,
                     metadata=context.metadata,
-                    turn_id=turn_id,
-                    active_object=active_object,
-                    suspended_object_stack=suspended_object_stack,
-                    turn_semantic_decision=turn_semantic_decision,
                     raw_user_message=raw_user_message,
                 )
-                if prepared is None:
-                    return
-                graded_context, authority_source, correct_answer_present = prepared
                 await self._emit_grading_result(
                     stream=stream,
                     context=context,
@@ -3394,19 +3397,15 @@ class DeepQuestionCapability(BaseCapability):
                         target_context,
                         self._followup_action_from_submission(submission),
                     )
-                    prepared = await self._prepare_grading_context_or_emit_blocked(
-                        stream=stream,
+                    (
+                        graded_context,
+                        authority_source,
+                        correct_answer_present,
+                    ) = await self._prepare_grading_context(
                         action_context=action_context,
                         metadata=context.metadata,
-                        turn_id=turn_id,
-                        active_object=active_object,
-                        suspended_object_stack=suspended_object_stack,
-                        turn_semantic_decision=turn_semantic_decision,
                         raw_user_message=raw_user_message,
                     )
-                    if prepared is None:
-                        return
-                    graded_context, authority_source, correct_answer_present = prepared
                     await self._emit_grading_result(
                         stream=stream,
                         context=context,
@@ -3860,53 +3859,6 @@ class DeepQuestionCapability(BaseCapability):
                 )
         await stream.result(result_payload, source=self.name)
 
-    async def _emit_missing_mcq_authority_result(
-        self,
-        *,
-        stream: StreamBus,
-        blocked_context: dict[str, Any],
-        turn_id: str,
-        active_object: dict[str, Any] | None,
-        suspended_object_stack: list[dict[str, Any]] | None,
-        turn_semantic_decision: dict[str, Any] | None,
-        user_message: str,
-    ) -> None:
-        answer = _render_missing_mcq_authority_feedback()
-        if not answer_citations_enabled():
-            await stream.content(answer, source=self.name, stage="generation")
-        result_active_object = build_active_object_from_question_context(
-            blocked_context,
-            source_turn_id=turn_id,
-            previous_active_object=active_object,
-        )
-        await self._emit_result_with_citations(
-            stream,
-            {
-                "response": answer,
-                "mode": "grading",
-                "grading_blocked": True,
-                "question_id": blocked_context.get("question_id", ""),
-                "user_answer": blocked_context.get("user_answer", ""),
-                "is_correct": None,
-                "question_followup_context": normalize_question_followup_context(blocked_context)
-                or {},
-                "active_object": result_active_object or {},
-                "suspended_object_stack": suspended_object_stack,
-                "turn_semantic_decision": turn_semantic_decision
-                or self._default_turn_semantic_decision(
-                    next_action="route_to_grading",
-                    active_object=result_active_object or active_object,
-                    question_context=blocked_context,
-                    user_message=user_message,
-                ),
-                **_mcq_trace_fields(
-                    blocked_context,
-                    authority_source="missing",
-                    correct_answer_present=False,
-                ),
-            },
-        )
-
     @staticmethod
     def _followup_action_from_submission(submission: dict[str, Any]) -> dict[str, Any]:
         if submission.get("kind") == "batch":
@@ -3924,18 +3876,13 @@ class DeepQuestionCapability(BaseCapability):
             ],
         }
 
-    async def _prepare_grading_context_or_emit_blocked(
+    async def _prepare_grading_context(
         self,
         *,
-        stream: StreamBus,
         action_context: dict[str, Any],
         metadata: dict[str, Any],
-        turn_id: str,
-        active_object: dict[str, Any] | None,
-        suspended_object_stack: list[dict[str, Any]] | None,
-        turn_semantic_decision: dict[str, Any] | None,
         raw_user_message: str,
-    ) -> tuple[dict[str, Any], str, bool] | None:
+    ) -> tuple[dict[str, Any], str, bool]:
         authority_source = ""
         correct_answer_present = True
         working_context = action_context
@@ -3949,17 +3896,10 @@ class DeepQuestionCapability(BaseCapability):
                 _question_authority_metadata(metadata),
             )
             if not correct_answer_present:
-                blocked_context = _clear_blocked_grading_state(working_context)
-                await self._emit_missing_mcq_authority_result(
-                    stream=stream,
-                    blocked_context=blocked_context,
-                    turn_id=turn_id,
-                    active_object=active_object,
-                    suspended_object_stack=suspended_object_stack,
-                    turn_semantic_decision=turn_semantic_decision,
-                    user_message=raw_user_message,
-                )
-                return None
+                # 开放世界判分：authority 三路兜底（active_object / grading_key /
+                # questions_bank）全部落空时不拒答——判定权交给 RAG-grounded
+                # grader agent，trace 标 open_world，不冒充题库标准答案。
+                authority_source = "open_world"
 
         if (working_context.get("items") or []) and len(working_context.get("items") or []) > 1:
             graded_context = self._build_batch_submission_context(
@@ -3972,6 +3912,8 @@ class DeepQuestionCapability(BaseCapability):
                 str(working_context.get("user_answer") or "").strip(),
                 raw_submission=raw_user_message,
             )
+        if not correct_answer_present:
+            graded_context = _apply_open_world_grading_state(graded_context)
         return graded_context, authority_source, correct_answer_present
 
     async def _emit_grading_result(

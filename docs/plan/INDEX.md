@@ -67,6 +67,7 @@
 
 | 文件 | 类型 | 状态 | 说明 |
 | --- | --- | --- | --- |
+| [2026-06-11-open-world-grading-and-cross-capability-context-continuity.md](2026-06-11-open-world-grading-and-cross-capability-context-continuity.md) | Root-cause Fix Plan | 执行中 (2026-06-11) | 两个生产级根因修复：①选择题答卷被"缺少标准答案"fail-closed 拒判 → 打通 MCQ 内核预留的 `llm_judge` 开放世界路径（RAG grounding + grader agent 裁决，`question_authority_source=open_world`，不冒充题库标准答案，不再拒答）；②deep_question → tutorbot 路由切换丢上下文 → TutorBot loop 无条件注入统一 `conversation_context_text`（原先被"继续/接着讲"字面门控）。出题侧 authority 纪律（硬约束 25/26/35）不变。 |
 | [2026-04-15-unified-ws-full-tutorbot-prd.md](2026-04-15-unified-ws-full-tutorbot-prd.md) | PRD | Done v1 | 统一 `/api/v1/ws` 接入完整 TutorBot，清理轻量 TutorBot 歧义。 |
 | [2026-04-16-tutorbot-context-orchestration-prd.md](2026-04-16-tutorbot-context-orchestration-prd.md) | PRD | Draft v1 | 每轮最小必要上下文包、预算、选择性加载与上下文编排。 |
 | [2026-04-19-tutorbot-mode-policy-unified-authority-prd.md](2026-04-19-tutorbot-mode-policy-unified-authority-prd.md) | PRD | 未标注 | 三种回答模式统一挂载 TutorBot authority，模式只决定表达策略。 |

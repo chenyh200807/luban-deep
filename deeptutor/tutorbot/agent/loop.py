@@ -43,6 +43,7 @@ from deeptutor.services.security.tutorbot_guardrails import (
     guard_tutorbot_output,
     sanitize_untrusted_context,
 )
+from deeptutor.services.security.tool_access import filter_end_user_tools, is_end_user_tool_allowed
 from deeptutor.tutorbot.agent.context import ContextBuilder
 from deeptutor.tutorbot.agent.memory import MemoryConsolidator
 from deeptutor.tutorbot.agent.team import TeamManager
@@ -58,6 +59,7 @@ from deeptutor.tutorbot.providers.base import LLMProvider
 from deeptutor.tutorbot.session.manager import Session, SessionManager
 from deeptutor.tutorbot.teaching_modes import (
     build_continuity_anchor_instruction,
+    build_cross_capability_context_instruction,
     correct_construction_exam_boundary_fact_response,
     get_construction_exam_boundary_fact_instruction,
     get_anchor_preservation_instruction,
@@ -870,19 +872,24 @@ class AgentLoop:
     def _resolve_tool_definitions(self, runtime_metadata: dict[str, Any] | None) -> list[dict[str, Any]]:
         configured = runtime_metadata.get("default_tools") if isinstance(runtime_metadata, dict) else None
         if not isinstance(configured, list):
-            return self.tools.get_definitions()
+            return self.tools.get_definitions(filter_end_user_tools(self.tools.tool_names))
 
         ordered_names: list[str] = []
         seen: set[str] = set()
         for item in configured:
             name = str(item or "").strip()
-            if not name or name in seen or not self.tools.has(name):
+            if (
+                not name
+                or name in seen
+                or not is_end_user_tool_allowed(name)
+                or not self.tools.has(name)
+            ):
                 continue
             ordered_names.append(name)
             seen.add(name)
 
         if not ordered_names:
-            return self.tools.get_definitions()
+            return self.tools.get_definitions(filter_end_user_tools(self.tools.tool_names))
         return self.tools.get_definitions(ordered_names)
 
     @classmethod
@@ -1408,6 +1415,11 @@ class AgentLoop:
                 tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
             elif rag_saturation:
                 tool_defs = self._filter_out_tool_definitions(tool_defs, disabled_names={"rag"})
+            advertised_tool_names = {
+                str(item.get("function", {}).get("name") or "").strip()
+                for item in tool_defs
+                if isinstance(item, dict) and isinstance(item.get("function"), dict)
+            }
 
             response = await self.provider.chat_with_retry(
                 messages=messages,
@@ -1467,6 +1479,15 @@ class AgentLoop:
                 )
 
                 for tool_call in response.tool_calls:
+                    if tool_call.name not in advertised_tool_names:
+                        logger.warning("Ignoring unadvertised tool call: {}", tool_call.name)
+                        messages = self.context.add_tool_result(
+                            messages,
+                            tool_call.id,
+                            tool_call.name,
+                            f"Error: Tool '{tool_call.name}' is not available in this turn.",
+                        )
+                        continue
                     tools_used.append(tool_call.name)
                     preview_args = dict(tool_call.arguments or {})
                     tool = self.tools.get(tool_call.name)
@@ -3243,6 +3264,9 @@ class AgentLoop:
         track_label = exam_track_label(runtime_metadata.get("exam_track"))
         runtime_instruction_parts = [
             get_teaching_mode_instruction(response_mode),
+            build_cross_capability_context_instruction(
+                str(runtime_metadata.get("conversation_context_text") or "").strip(),
+            ),
             get_construction_exam_boundary_fact_instruction(
                 current_message,
                 str(runtime_metadata.get("conversation_context_text") or "").strip(),
