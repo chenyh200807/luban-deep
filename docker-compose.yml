@@ -34,8 +34,10 @@ services:
     container_name: deeptutor
     restart: unless-stopped
     ports:
-      - "${BACKEND_PORT:-8001}:${BACKEND_PORT:-8001}"
-      - "${FRONTEND_PORT:-3782}:${FRONTEND_PORT:-3782}"
+      # Bind host ports to loopback only. Public traffic must enter through
+      # the configured reverse proxy / TLS gateway, not these container ports.
+      - "127.0.0.1:${BACKEND_PORT:-8001}:${BACKEND_PORT:-8001}"
+      - "127.0.0.1:${FRONTEND_PORT:-3782}:${FRONTEND_PORT:-3782}"
 
     # Load environment variables from .env file
     env_file:

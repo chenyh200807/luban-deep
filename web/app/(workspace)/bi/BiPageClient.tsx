@@ -5,7 +5,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Search } from 'lucide-react'
 import {
-  BI_API_TOKEN,
   apiUrl,
   clearStoredBiAdminSession,
   getStoredBiAdminSession,
@@ -190,9 +189,9 @@ export default function BiPageClient() {
   const refreshBi = useCallback(async () => {
     setRefreshing(true)
     try {
-      if (!BI_API_TOKEN && !getStoredBiAdminSession()?.token) {
+      if (!getStoredBiAdminSession()?.token) {
         setWorkbench(null)
-        setIssues(['401 BI 数据 API 尚未授权：请配置只读凭证或登录管理员后台。'])
+        setIssues(['401 BI 数据 API 尚未授权：请登录管理员后台。'])
         setLastUpdatedAt(null)
         return
       }
@@ -974,8 +973,8 @@ export default function BiPageClient() {
                 </p>
                 <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">
                   {readAccessDenied
-                    ? `当前没有可用的只读凭证；进入 ${activeTabLabel} 请先使用管理员用户名和密码登录。`
-                    : `BI 只读凭证已由系统配置；进入 ${activeTabLabel} 只需要管理员用户名和密码。`}
+                    ? `BI 数据 API 尚未授权；进入 ${activeTabLabel} 请先使用管理员用户名和密码登录。`
+                    : `进入 ${activeTabLabel} 需要管理员用户名和密码。`}
                 </p>
               </div>
               {isProtectedTab ? (
@@ -1034,7 +1033,7 @@ export default function BiPageClient() {
                 <p className="mt-2 text-xs leading-5 text-[var(--muted-foreground)]">
                   {readAccessDenied
                     ? '当前页面 shell 可访问，但 BI 数据 API 尚未授权。'
-                    : 'BI 只读凭证已由系统配置，无需手动填写。'}
+                    : '当前为只读预览；需要后台操作时请登录管理员账号。'}
                 </p>
               </div>
               {adminLoginForm}
@@ -1062,8 +1061,8 @@ export default function BiPageClient() {
                 </p>
                 <p className="mt-2 text-sm leading-6 text-white/75">
                   {readAccessDenied
-                    ? '当前没有可用的只读凭证；请输入管理员用户名和密码解锁会员管理能力。'
-                    : 'BI API Token 已由系统配置，无需手动填写；只需要输入管理员用户名和密码即可解锁会员管理能力。'}
+                    ? 'BI 数据 API 尚未授权；请输入管理员用户名和密码解锁会员管理能力。'
+                    : '无需手动填写 API Token；输入管理员用户名和密码即可解锁会员管理能力。'}
                 </p>
                 <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-6 text-white/80">
                   登录后将直接解锁：会员筛选与批量操作、学员 360、Heartbeat / Overlay

@@ -275,6 +275,35 @@ async def test_turn_runtime_demotes_tutorbot_capability_hint_before_lifecycle_au
         await asyncio.wait_for(execution.task, timeout=1)
 
 
+@pytest.mark.asyncio
+async def test_start_turn_filters_end_user_code_execution_tools(monkeypatch, tmp_path) -> None:
+    async def _no_run_turn(self: TurnRuntimeManager, _execution: object) -> None:
+        return None
+
+    monkeypatch.setattr(TurnRuntimeManager, "_run_turn", _no_run_turn)
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "用 Python 帮我算一下",
+            "session_id": None,
+            "capability": "deep_solve",
+            "tools": ["rag", "code_execution", "run_code", "code_execute", "exec", "web_search"],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {},
+        }
+    )
+
+    execution = runtime._executions[turn["id"]]
+    assert execution.payload["tools"] == ["rag", "web_search"]
+    if execution.task is not None:
+        await asyncio.wait_for(execution.task, timeout=1)
+
+
 def test_turn_runtime_result_context_does_not_parse_presentation_read_model() -> None:
     metadata = {
         "response": "第1题\nA. 选项A\nB. 选项B",

@@ -58,6 +58,56 @@ def test_tutorbot_fast_mode_preserves_explicit_web_search_tool() -> None:
     ]
 
 
+def test_chat_capability_does_not_advertise_code_execution_to_end_users() -> None:
+    from deeptutor.agents.chat.agentic_pipeline import AgenticChatPipeline
+
+    context = UnifiedContext(
+        user_message="用 Python 帮我算一下",
+        enabled_tools=["code_execution", "rag"],
+        knowledge_bases=["construction-exam"],
+    )
+
+    assert "code_execution" not in ChatCapability.manifest.tools_used
+    assert AgenticChatPipeline().resolve_enabled_tools(context) == ["rag"]
+
+
+def test_tutorbot_session_default_tools_filters_code_execution() -> None:
+    context = UnifiedContext(
+        user_message="用 Python 帮我算一下",
+        enabled_tools=["code_execution", "rag"],
+        knowledge_bases=["construction-exam"],
+    )
+
+    assert "code_execution" not in TutorBotCapability.manifest.tools_used
+    assert TutorBotCapability._session_default_tools(
+        context,
+        response_mode="deep",
+        runtime_default_tools=["code_execution", "web_search"],
+    ) == ["rag", "web_search"]
+
+
+def test_end_user_tool_policy_filters_code_execution_aliases() -> None:
+    from deeptutor.services.security.tool_access import filter_end_user_tools
+
+    assert filter_end_user_tools(
+        ["rag", "code_execution", "run_code", "code_execute", "exec", "web_search"]
+    ) == ["rag", "web_search"]
+
+
+@pytest.mark.parametrize(
+    "capability",
+    [
+        ChatCapability,
+        TutorBotCapability,
+        DeepSolveCapability,
+        DeepResearchCapability,
+        DeepQuestionCapability,
+    ],
+)
+def test_end_user_capability_manifests_do_not_advertise_code_execution(capability: type) -> None:
+    assert "code_execution" not in capability.manifest.tools_used
+
+
 def test_tutorbot_current_info_required_infers_explicit_web_search_query() -> None:
     context = UnifiedContext(
         user_message="联网查询2026年一级建造师考试时间",
@@ -1185,7 +1235,7 @@ async def test_chat_capability_streams_content_and_geogebra_context(
 @pytest.mark.parametrize(
     ("enabled_tools", "knowledge_bases", "expected_tools", "expected_kb", "expected_disable"),
     [
-        (["rag", "code_execution"], ["algebra"], ["rag", "code_execution"], "algebra", False),
+        (["rag", "code_execution"], ["algebra"], ["rag"], "algebra", False),
         (None, ["algebra"], list(DeepSolveCapability.manifest.tools_used), "algebra", False),
         ([], ["algebra"], [], None, True),
     ],
@@ -6136,6 +6186,119 @@ async def test_tutorbot_process_direct_limits_tool_schemas_to_default_tools(
 
     assert content == "已完成"
     assert captured["tool_names"] == ["rag"]
+
+
+@pytest.mark.asyncio
+async def test_tutorbot_process_direct_ignores_unadvertised_code_execution(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    fake_loguru = types.ModuleType("loguru")
+    fake_loguru.logger = SimpleNamespace(  # type: ignore[attr-defined]
+        info=lambda *args, **kwargs: None,
+        warning=lambda *args, **kwargs: None,
+        error=lambda *args, **kwargs: None,
+        debug=lambda *args, **kwargs: None,
+        exception=lambda *args, **kwargs: None,
+    )
+    monkeypatch.setitem(sys.modules, "loguru", fake_loguru)
+
+    from deeptutor.tutorbot.agent.loop import AgentLoop
+    from deeptutor.tutorbot.agent.tools.base import Tool
+    from deeptutor.tutorbot.agent.tools.registry import ToolRegistry as TutorBotToolRegistry
+    from deeptutor.tutorbot.bus.queue import MessageBus
+    from deeptutor.tutorbot.providers.base import LLMProvider, LLMResponse, ToolCallRequest
+
+    captured: dict[str, Any] = {"tool_name_sets": []}
+
+    class RogueProvider(LLMProvider):
+        def __init__(self) -> None:
+            super().__init__()
+            self.calls = 0
+
+        async def chat(
+            self,
+            messages: list[dict[str, Any]],
+            tools: list[dict[str, Any]] | None = None,
+            model: str | None = None,
+            max_tokens: int = 4096,
+            temperature: float = 0.7,
+            reasoning_effort: str | None = None,
+            tool_choice: str | dict[str, Any] | None = None,
+            on_content_delta=None,
+        ) -> LLMResponse:
+            self.calls += 1
+            captured["tool_name_sets"].append(
+                [
+                    str(item.get("function", {}).get("name") or "")
+                    for item in list(tools or [])
+                ]
+            )
+            if self.calls == 1:
+                return LLMResponse(
+                    content=None,
+                    tool_calls=[
+                        ToolCallRequest(
+                            id="call_unsafe",
+                            name="code_execution",
+                            arguments={"code": "print('unsafe')", "intent": "run code"},
+                        )
+                    ],
+                )
+            return LLMResponse(content="已完成")
+
+        def get_default_model(self) -> str:
+            return "fake-model"
+
+    class NamedTool(Tool):
+        def __init__(self, tool_name: str) -> None:
+            self._tool_name = tool_name
+
+        @property
+        def name(self) -> str:
+            return self._tool_name
+
+        @property
+        def description(self) -> str:
+            return f"{self._tool_name} description"
+
+        @property
+        def parameters(self) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {"query": {"type": "string"}, "code": {"type": "string"}},
+            }
+
+        async def execute(self, **kwargs: Any) -> str:
+            if self._tool_name == "code_execution":
+                raise AssertionError("unadvertised code_execution must not execute")
+            return str(kwargs)
+
+    loop = AgentLoop(
+        bus=MessageBus(),
+        provider=RogueProvider(),
+        workspace=tmp_path,
+        session_manager=SimpleNamespace(
+            get_or_create=lambda key: SimpleNamespace(
+                metadata={},
+                key=key,
+                messages=[],
+                get_history=lambda max_messages=0: [],
+            ),
+            save=lambda session: None,
+        ),
+    )
+    loop.tools = TutorBotToolRegistry()
+    for tool_name in ("rag", "code_execution"):
+        loop.tools.register(NamedTool(tool_name))
+
+    content = await loop.process_direct(
+        "用 Python 帮我算一下",
+        metadata={"default_tools": ["rag", "code_execution"]},
+    )
+
+    assert content == "已完成"
+    assert captured["tool_name_sets"] == [["rag"], ["rag"]]
 
 
 @pytest.mark.asyncio

@@ -41,7 +41,8 @@ def test_build_research_execution_policy_maps_intent_to_internal_settings() -> N
     assert policy["researching"]["enable_rag_hybrid"] is True
     assert policy["researching"]["enable_web_search"] is False
     assert policy["researching"]["enable_paper_search"] is True
-    assert policy["researching"]["enable_run_code"] is True
+    assert policy["researching"]["enable_run_code"] is False
+    assert "code_execution" not in policy["researching"]["enabled_tools"]
     assert policy["reporting"]["style"] == "comparison"
     assert "outline_contract" not in policy["reporting"]
     assert policy["queue"]["max_length"] == 8

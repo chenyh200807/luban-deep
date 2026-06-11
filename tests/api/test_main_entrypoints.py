@@ -304,6 +304,44 @@ def _route_paths(app: FastAPI) -> set[str]:
     return {str(getattr(route, "path", "") or "") for route in app.routes}
 
 
+def test_api_docs_disabled_by_default_in_production(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    module = _reload_main(
+        monkeypatch,
+        env={
+            "DEEPTUTOR_ENV": "production",
+            "DEEPTUTOR_ENABLE_API_DOCS": None,
+        },
+        tmp_path=tmp_path,
+    )
+
+    paths = _route_paths(module.app)
+    assert "/openapi.json" not in paths
+    assert "/docs" not in paths
+    assert "/redoc" not in paths
+
+
+def test_api_docs_can_be_explicitly_enabled_in_production(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    module = _reload_main(
+        monkeypatch,
+        env={
+            "DEEPTUTOR_ENV": "production",
+            "DEEPTUTOR_ENABLE_API_DOCS": "1",
+        },
+        tmp_path=tmp_path,
+    )
+
+    paths = _route_paths(module.app)
+    assert "/openapi.json" in paths
+    assert "/docs" in paths
+    assert "/redoc" in paths
+
+
 def test_cors_defaults_to_safe_origins_in_non_production(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

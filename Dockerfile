@@ -45,7 +45,6 @@ COPY tests/fixtures/ /app/tests/fixtures/
 # Use unique placeholders that can be safely replaced in built assets.
 RUN cat > .env.local <<'EOF'
 NEXT_PUBLIC_API_BASE=__NEXT_PUBLIC_API_BASE_PLACEHOLDER__
-NEXT_PUBLIC_BI_API_TOKEN=__NEXT_PUBLIC_BI_API_TOKEN_PLACEHOLDER__
 EOF
 
 # Build Next.js for production with standalone output
@@ -129,7 +128,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     if [ -n "${PIP_INDEX_URL}" ]; then export PIP_INDEX_URL="${PIP_INDEX_URL}"; fi; \
     if [ -n "${PIP_EXTRA_INDEX_URL}" ]; then export PIP_EXTRA_INDEX_URL="${PIP_EXTRA_INDEX_URL}"; fi; \
     PIP_NO_CACHE_DIR=0 pip install --upgrade pip; \
-    PIP_NO_CACHE_DIR=0 pip install -r requirements.txt
+    PIP_NO_CACHE_DIR=0 pip install --require-hashes -r requirements/runtime.lock
 
 # ============================================
 # Stage 3: Production Image
@@ -331,13 +330,6 @@ else
     echo "[Frontend] 📌 Using local backend API URL: ${API_BASE}"
 fi
 
-BI_API_TOKEN="${NEXT_PUBLIC_BI_API_TOKEN:-}"
-if [ -n "$BI_API_TOKEN" ]; then
-    echo "[Frontend] 📌 BI API Token 已注入只读访问头"
-else
-    echo "[Frontend] 📌 未配置 BI API Token"
-fi
-
 echo "[Frontend] 🚀 Starting Next.js frontend on port ${FRONTEND_PORT}..."
 
 # Replace placeholder in built Next.js files
@@ -346,8 +338,6 @@ find /app/web/.next -type f \( -name "*.js" -o -name "*.json" \) -exec \
     sed -i "s|__NEXT_PUBLIC_API_BASE_PLACEHOLDER__|${API_BASE}|g" {} \; 2>/dev/null || true
 find /app/web/.next -type f \( -name "*.js" -o -name "*.json" \) -exec \
     sed -i "s|http://localhost:${BACKEND_PORT}|${API_BASE}|g" {} \; 2>/dev/null || true
-find /app/web/.next -type f \( -name "*.js" -o -name "*.json" \) -exec \
-    sed -i "s|__NEXT_PUBLIC_BI_API_TOKEN_PLACEHOLDER__|${BI_API_TOKEN}|g" {} \; 2>/dev/null || true
 
 # Start Next.js standalone server
 # The standalone server reads PORT and HOSTNAME from environment variables

@@ -13,6 +13,7 @@ from deeptutor.agents.base_agent import BaseAgent
 from deeptutor.agents.question.models import QAPair, QuestionTemplate
 from deeptutor.core.trace import build_trace_metadata, new_call_id
 from deeptutor.runtime.registry.tool_registry import get_tool_registry
+from deeptutor.services.security.tool_access import is_end_user_tool_allowed
 
 
 class Generator(BaseAgent):
@@ -591,7 +592,7 @@ class Generator(BaseAgent):
             enabled_tools.append("rag")
         if self._is_tool_enabled("web_search"):
             enabled_tools.append("web_search")
-        if self._is_tool_enabled("code_execution"):
+        if is_end_user_tool_allowed("code_execution") and self._is_tool_enabled("code_execution"):
             enabled_tools.append("code_execution")
         return enabled_tools
 

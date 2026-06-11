@@ -25,6 +25,7 @@ from deeptutor.services.question_lifecycle_skills import (
 from deeptutor.services.query_intent import query_requires_current_info
 from deeptutor.services.render_presentation import build_canonical_presentation
 from deeptutor.services.security.tutorbot_guardrails import guard_tutorbot_output
+from deeptutor.services.security.tool_access import filter_end_user_tools
 from deeptutor.services.semantic_router import (
     apply_active_object_transition,
     build_active_object_from_question_context,
@@ -50,7 +51,7 @@ class TutorBotCapability(BaseCapability):
         name="tutorbot",
         description="Full TutorBot runtime bridge backed by TutorBotManager.",
         stages=["responding"],
-        tools_used=["rag", "web_search", "code_execution", "reason", "brainstorm", "paper_search"],
+        tools_used=["rag", "web_search", "reason", "brainstorm", "paper_search"],
         cli_aliases=["tutorbot"],
         request_schema=get_capability_request_schema("chat"),
     )
@@ -826,8 +827,8 @@ class TutorBotCapability(BaseCapability):
         runtime_default_tools: list[str] | None = None,
         effective_knowledge_bases: list[str] | None = None,
     ) -> list[str]:
-        enabled_tools = list(context.enabled_tools or [])
-        runtime_tools = list(runtime_default_tools or [])
+        enabled_tools = filter_end_user_tools(context.enabled_tools or [])
+        runtime_tools = filter_end_user_tools(runtime_default_tools or [])
         knowledge_bases = list(effective_knowledge_bases or [])
         if response_mode == "fast":
             tools: list[str] = []

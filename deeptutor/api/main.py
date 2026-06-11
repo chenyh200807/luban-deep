@@ -43,6 +43,10 @@ from deeptutor.utils.network.circuit_breaker import get_circuit_breaker_snapshot
 logger = get_logger("API")
 
 
+def _api_docs_enabled() -> bool:
+    return env_flag("DEEPTUTOR_ENABLE_API_DOCS", default=not is_production_environment())
+
+
 class _SuppressWsNoise(logging.Filter):
     """Suppress noisy uvicorn logs for WebSocket connection churn."""
 
@@ -460,6 +464,9 @@ app = FastAPI(
     title=get_api_title(),
     version="1.0.0",
     lifespan=lifespan,
+    docs_url="/docs" if _api_docs_enabled() else None,
+    redoc_url="/redoc" if _api_docs_enabled() else None,
+    openapi_url="/openapi.json" if _api_docs_enabled() else None,
     # Disable automatic trailing slash redirects to prevent protocol downgrade issues
     # when deployed behind HTTPS reverse proxies (e.g., nginx).
     # Without this, FastAPI's 307 redirects may change HTTPS to HTTP.

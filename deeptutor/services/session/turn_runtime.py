@@ -65,6 +65,7 @@ from deeptutor.services.question_lifecycle_skills import (
     looks_like_free_text_mcq_grading_request,
     looks_like_free_text_mcq_question_surface,
 )
+from deeptutor.services.security.tool_access import filter_end_user_tools
 from deeptutor.services.semantic_router import (
     build_turn_semantic_decision as build_semantic_turn_decision,
 )
@@ -3801,7 +3802,7 @@ class TurnRuntimeManager:
             **payload,
             "capability": selected_capability,
             "_chat_mode_explicit": effective_chat_mode_explicit,
-            "tools": knowledge_chain_defaults["tools"],
+            "tools": filter_end_user_tools(knowledge_chain_defaults["tools"]),
             "knowledge_bases": knowledge_chain_defaults["knowledge_bases"],
             "config": {
                 **validated_public_config,

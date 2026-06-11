@@ -1,12 +1,9 @@
 deeptutor/api/routers/agent_config.py:8
 deeptutor/api/routers/attachments.py:16
 deeptutor/api/routers/bi.py:67
-deeptutor/api/routers/co_writer.py:30
 deeptutor/api/routers/dashboard.py:10
 deeptutor/api/routers/guide.py
 deeptutor/api/routers/guide.py:23
-deeptutor/api/routers/knowledge.py
-deeptutor/api/routers/knowledge.py:54
 deeptutor/api/routers/learning_brain.py:16
 deeptutor/api/routers/member.py:17
 deeptutor/api/routers/memory.py:14

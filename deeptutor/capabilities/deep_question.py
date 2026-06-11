@@ -52,6 +52,7 @@ from deeptutor.services.semantic_router import (
     normalize_turn_semantic_decision,
     question_context_from_active_object,
 )
+from deeptutor.services.security.tool_access import filter_end_user_tools
 from deeptutor.tools.rag_tool import rag_search
 from deeptutor.tutorbot.response_mode import looks_like_explicit_brevity_request
 from deeptutor.tutorbot.teaching_modes import looks_like_practice_generation_request
@@ -3064,7 +3065,7 @@ class DeepQuestionCapability(BaseCapability):
         name="deep_question",
         description="Fast question generation (Template batches -> Generate).",
         stages=["ideation", "generation"],
-        tools_used=["rag", "web_search", "code_execution"],
+        tools_used=["rag", "web_search"],
         cli_aliases=["quiz"],
         request_schema=get_capability_request_schema("deep_question"),
     )
@@ -3549,9 +3550,11 @@ class DeepQuestionCapability(BaseCapability):
             if part
         ).strip()
         enabled_tools = set(
-            self.manifest.tools_used
-            if context.enabled_tools is None
-            else context.enabled_tools
+            filter_end_user_tools(
+                self.manifest.tools_used
+                if context.enabled_tools is None
+                else context.enabled_tools
+            )
         )
         if lightweight_followup_generation or lightweight_topic_generation:
             tool_flags_override = {

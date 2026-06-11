@@ -14,7 +14,6 @@ import traceback
 from uuid import uuid4
 
 from fastapi import (
-    APIRouter,
     BackgroundTasks,
     Depends,
     File,
@@ -27,6 +26,7 @@ from fastapi import (
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
+from deeptutor.api._secure_router import secure_router, secure_ws_endpoint
 from deeptutor.api.utils.progress_broadcaster import ProgressBroadcaster
 from deeptutor.api.utils.task_id_manager import TaskIDManager
 from deeptutor.api.utils.task_log_stream import capture_task_logs, get_task_stream_manager
@@ -51,7 +51,7 @@ except FileNotFoundError:
 log_dir = config.get("paths", {}).get("user_log_dir") or config.get("logging", {}).get("log_dir")
 logger = get_logger("Knowledge", level="INFO", log_dir=log_dir)
 
-router = APIRouter()
+router = secure_router()
 _KNOWLEDGE_ADMIN_DEPENDENCIES = [Depends(require_admin)]
 
 _ALLOWED_LINK_FOLDER_ROOT_ENV_VARS = (
@@ -1087,7 +1087,14 @@ async def clear_progress(kb_name: str):
 @router.websocket("/{kb_name}/progress/ws")
 async def websocket_progress(websocket: WebSocket, kb_name: str):
     """WebSocket endpoint for real-time progress updates"""
-    await websocket.accept()
+    auth = await secure_ws_endpoint(
+        websocket,
+        rate_limit_scope="knowledge_progress_ws",
+        rate_limit_max=60,
+        rate_limit_window_seconds=60.0,
+    )
+    if auth is None:
+        return
 
     broadcaster = ProgressBroadcaster.get_instance()
 

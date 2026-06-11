@@ -5,7 +5,7 @@ from dataclasses import asdict
 from typing import AsyncGenerator, Literal
 import uuid
 
-from fastapi import APIRouter, HTTPException
+from fastapi import HTTPException
 from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel
 
@@ -23,11 +23,13 @@ from deeptutor.agents.chat.agentic_pipeline import AgenticChatPipeline
 from deeptutor.core.context import UnifiedContext
 from deeptutor.core.stream_bus import StreamBus
 from deeptutor.logging import get_logger
+from deeptutor.api._secure_router import secure_router
 from deeptutor.services.config import PROJECT_ROOT, load_config_with_main
 from deeptutor.services.search import is_web_search_runtime_available
+from deeptutor.services.security.tool_access import filter_end_user_tools
 from deeptutor.services.settings.interface_settings import get_ui_language
 
-router = APIRouter()
+router = secure_router()
 
 # Initialize logger with config
 config = load_config_with_main("main.yaml", PROJECT_ROOT)
@@ -97,13 +99,12 @@ class AutoMarkResponse(BaseModel):
 
 
 def _normalize_react_edit_tools(tools: list[str] | None) -> list[str]:
-    allowed = {
+    allowed = set(filter_end_user_tools({
         "brainstorm",
         "rag",
-        "code_execution",
         "reason",
         "paper_search",
-    }
+    }))
     if is_web_search_runtime_available():
         allowed.add("web_search")
     normalized: list[str] = []

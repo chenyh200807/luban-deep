@@ -1,4 +1,4 @@
-import { BI_API_TOKEN, apiUrl, withAdminAuthorization, withBiApiToken } from '@/lib/api'
+import { apiUrl, withAdminAuthorization } from '@/lib/api'
 
 import { BI_WORKBENCH_TITLE } from "./brand"
 import {
@@ -1381,7 +1381,7 @@ async function fetchBiJson(
 ): Promise<unknown> {
   const response = await fetch(buildBiUrl(path, params), {
     cache: 'no-store',
-    headers: withAdminAuthorization(BI_API_TOKEN ? withBiApiToken() : undefined),
+    headers: withAdminAuthorization(),
   })
   if (!response.ok) {
     throw new Error(`请求失败: ${response.status} ${path}`)

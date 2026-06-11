@@ -41,6 +41,7 @@ from deeptutor.services.llm import (
 )
 from deeptutor.services.llm.exceptions import LLMConfigError
 from deeptutor.services.observability import get_langfuse_observability
+from deeptutor.services.security.tool_access import END_USER_BLOCKED_TOOLS
 from deeptutor.services.exam_track import exam_track_label
 from deeptutor.services.query_intent import (
     build_grounding_decision,
@@ -77,7 +78,7 @@ logger = logging.getLogger(__name__)
 BRAND_NAME = get_brand_name()
 observability = get_langfuse_observability()
 
-CHAT_EXCLUDED_TOOLS = {"geogebra_analysis"}
+CHAT_EXCLUDED_TOOLS = {"geogebra_analysis", *END_USER_BLOCKED_TOOLS}
 # Fast mode is intentionally KB-first and should not fan out to live web retrieval.
 CHAT_FAST_TOOLS = {"rag"}
 CHAT_OPTIONAL_TOOLS = [
