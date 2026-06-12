@@ -2,6 +2,6 @@
   "namespace": "canonical_unified_knowledge",
   "status": "release_candidate",
   "published": false,
-  "expected_content_hash": "dbf338f83a668f427758ad840b6fa1a599894e1e378010385dff3a9d600e1798",
+  "expected_content_hash": "aaff0ff494158db9f22ec54814017e8ab0f651576daba5018dd66ffb38c4d5fa",
   "tier": "teaching_context_not_answer_key"
 }

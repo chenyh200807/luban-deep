@@ -34,19 +34,19 @@ def test_construction_taxonomy_reads_compiled_final_cleaned_authority() -> None:
 
     # single-authority: A recompiled from the canonical 2026 source (identical (code,name) content to
     # the legacy docs/ copy — verified), now projecting concept_registry deprecations.
-    assert source["sha256"] == "d52eb2baf5fc727c1099d05ba72618d245242790da989d137e8342bc6c988095"
+    assert source["sha256"] == "c073124d62d32c6471a1e87934e1c49233431d1e9a9c9ea960bf90b876db2d28"
     assert source["path"].endswith("FINAL_CLEANED_TAXONOMY2026.json")
 
 
 def test_construction_taxonomy_tree_stats_preserve_original_outline_counts() -> None:
     stats = taxonomy_tree_stats()
 
-    # 5th revision 2026-06-12 (132 junk-name leaves merged into siblings; 301 giant-anchor
-    # leaves resplit onto section nodes — moves keep node count): codes unique
-    assert stats["total_nodes"] == 2010
+    # 6th revision 2026-06-12 (ch1 skeleton repair: +4 section nodes 1A4110{2,3,4,5}0 under
+    # 1A411000; 108 stayed leaves moved off 1A411011 — moves keep leaf count): codes unique
+    assert stats["total_nodes"] == 2014
     assert stats["leaf_nodes"] == 1874
-    assert stats["coded_nodes"] == 2010
-    assert stats["unique_codes"] == 2010
+    assert stats["coded_nodes"] == 2014
+    assert stats["unique_codes"] == 2014
     assert stats["duplicate_code_rows"] == 0
 
 
