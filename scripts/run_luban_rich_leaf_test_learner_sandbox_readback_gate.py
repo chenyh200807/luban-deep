@@ -187,7 +187,11 @@ def run_test_learner_sandbox_readback_gate(
 
     sandbox_rows: list[dict[str, Any]] = []
     readback_events: list[LearnerStateEvent] = []
-    synthesis = {"projection": {"observed_candidates": [], "compiled_objects": {}}}
+    # NOTE: synthesize_learning_truth returns the projection dict DIRECTLY
+    # (schema_version / compiled_objects / observed_candidates / ...). The gate
+    # previously read synthesis["projection"], which never exists, so the leak
+    # checks were vacuous. Read the projection shape as returned.
+    projection: dict[str, Any] = {"observed_candidates": [], "compiled_objects": {}, "candidate_observations": []}
     if not blockers:
         sandbox_rows = [_sandbox_row(event, user_id=sandbox_user_id) for event in valid_events]
         if sandbox_events is not None:
@@ -195,15 +199,25 @@ def run_test_learner_sandbox_readback_gate(
             readback_events = _read_sandbox_events(sandbox_events)
         else:
             readback_events = [_event_from_row(row) for row in sandbox_rows]
-        synthesis = synthesize_learning_truth(readback_events, synthesis_status="sandbox_dry_run")
+        projection = synthesize_learning_truth(readback_events, synthesis_status="sandbox_dry_run")
 
-    projection = synthesis.get("projection") if isinstance(synthesis.get("projection"), dict) else {}
     observed = projection.get("observed_candidates") if isinstance(projection.get("observed_candidates"), list) else []
     compiled = projection.get("compiled_objects") if isinstance(projection.get("compiled_objects"), dict) else {}
+    candidate_observations = (
+        projection.get("candidate_observations")
+        if isinstance(projection.get("candidate_observations"), list)
+        else []
+    )
     if observed:
         blockers.append("sandbox_candidate_leaked_into_observed_candidates")
     if compiled:
         blockers.append("sandbox_candidate_leaked_into_compiled_objects")
+    # Candidates must be truly consumed by synthesis (review-only observation
+    # channel), not silently dropped: every readback event must be observed.
+    if readback_events and len(candidate_observations) != len(readback_events):
+        blockers.append(
+            f"synthesis_candidate_observation_mismatch:{len(candidate_observations)}!={len(readback_events)}"
+        )
 
     return {
         "schema": SCHEMA,
@@ -227,6 +241,7 @@ def run_test_learner_sandbox_readback_gate(
             "sandbox_readback_event_count": len(readback_events) if not blockers else 0,
             "synthesis_observed_candidate_count": len(observed),
             "synthesis_compiled_object_count": len(compiled),
+            "synthesis_candidate_observation_count": len(candidate_observations),
             "learner_memory_write_count": 0,
             "production_write_count": 0,
             "provider_call_count": 0,

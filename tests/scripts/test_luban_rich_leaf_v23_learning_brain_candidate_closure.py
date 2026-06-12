@@ -319,3 +319,46 @@ def test_v23_learning_brain_candidate_closure_cli_writes_report(tmp_path: Path) 
     payload = json.loads(output.read_text(encoding="utf-8"))
     assert payload["schema"] == "luban_rich_leaf_v23_learning_brain_candidate_closure.v1"
     assert payload["summary"]["blocker_count"] == 0
+
+
+def test_v23_closure_requires_synthesis_to_observe_all_candidates_when_reported() -> None:
+    from scripts.run_luban_rich_leaf_v23_learning_brain_candidate_closure import (
+        build_v23_learning_brain_candidate_closure,
+    )
+
+    sandbox = _sandbox_gate()
+    sandbox["summary"]["synthesis_candidate_observation_count"] = 0  # silent drop
+
+    report = build_v23_learning_brain_candidate_closure(
+        runtime_token_pack=_runtime_token_pack(),
+        near_live_ab=_near_live_ab(),
+        bridge=_bridge(),
+        projection=_projection(),
+        sandbox_gate=sandbox,
+    )
+
+    assert report["verdict"] == "FAIL_SAFETY_OR_CONTRACT"
+    assert "synthesis_candidate_observation_count_mismatch:0!=1" in report["blockers"]
+
+
+def test_v23_closure_surfaces_candidate_observation_count() -> None:
+    from scripts.run_luban_rich_leaf_v23_learning_brain_candidate_closure import (
+        build_v23_learning_brain_candidate_closure,
+    )
+
+    sandbox = _sandbox_gate()
+    sandbox["summary"]["synthesis_candidate_observation_count"] = 1
+
+    report = build_v23_learning_brain_candidate_closure(
+        runtime_token_pack=_runtime_token_pack(),
+        near_live_ab=_near_live_ab(),
+        bridge=_bridge(),
+        projection=_projection(),
+        sandbox_gate=sandbox,
+    )
+
+    assert report["verdict"] == "WEAK_GO_GRADING_TO_BRAIN_CANDIDATE__NO_GO_CANONICAL_LEARNER_TRUTH"
+    assert report["summary"]["synthesis_candidate_observation_count"] == 1
+    # truth-leak invariants stay intact
+    assert report["summary"]["synthesis_observed_candidate_count"] == 0
+    assert report["summary"]["synthesis_compiled_object_count"] == 0

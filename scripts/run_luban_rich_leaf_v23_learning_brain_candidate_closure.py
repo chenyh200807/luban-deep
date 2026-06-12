@@ -152,6 +152,15 @@ def build_v23_learning_brain_candidate_closure(
         blockers.append("sandbox_candidate_leaked_into_observed_candidates")
     if int(sandbox_summary.get("synthesis_compiled_object_count") or 0) != 0:
         blockers.append("sandbox_candidate_leaked_into_compiled_objects")
+    # Review-only consumption proof: when the sandbox gate reports the candidate
+    # observation channel, every bridged candidate must be observed by synthesis
+    # (silent drop is a closure blocker). Absent key = legacy artifact, no check.
+    raw_observation_count = sandbox_summary.get("synthesis_candidate_observation_count")
+    synthesis_candidate_observation_count = int(raw_observation_count or 0)
+    if raw_observation_count is not None and synthesis_candidate_observation_count != bridge_event_count:
+        blockers.append(
+            f"synthesis_candidate_observation_count_mismatch:{synthesis_candidate_observation_count}!={bridge_event_count}"
+        )
 
     return {
         "schema": SCHEMA,
@@ -192,6 +201,7 @@ def build_v23_learning_brain_candidate_closure(
             "sandbox_readback_event_count": sandbox_readback_count,
             "synthesis_observed_candidate_count": int(sandbox_summary.get("synthesis_observed_candidate_count") or 0),
             "synthesis_compiled_object_count": int(sandbox_summary.get("synthesis_compiled_object_count") or 0),
+            "synthesis_candidate_observation_count": synthesis_candidate_observation_count,
             "learner_memory_write_count": 0,
             "production_write_count": 0,
             "provider_call_count": 0,

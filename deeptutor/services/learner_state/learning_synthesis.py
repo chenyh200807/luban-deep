@@ -49,6 +49,15 @@ def synthesize_learning_truth(
         if _is_learning_evidence(event) and _is_release_eligible_evidence(event)
         for item in _learning_items(event)
     ]
+    # Review-only observation channel: candidate/shadow learning evidence excluded by
+    # the release-eligibility safety net is OBSERVED here instead of silently dropped.
+    # Nothing downstream (weak_points / compiled_objects / PCP) consumes this list —
+    # it carries zero truth or claim authority.
+    candidate_observations = [
+        _candidate_observation(event)
+        for event in ordered_events
+        if _is_candidate_learning_evidence(event)
+    ]
     learning_items = [item for item in learning_items if item is not None]
     manual_events = [_manual_correction(event) for event in ordered_events if _is_manual_correction(event)]
     manual_events = [item for item in manual_events if item is not None]
@@ -122,6 +131,7 @@ def synthesize_learning_truth(
         "compiled_objects": compiled_objects,
         "weak_points": weak_points,
         "observed_candidates": observed_candidates,
+        "candidate_observations": candidate_observations,
         "improvement_signals": improvements,
         "stale_claims": stale_claims,
         "typed_graph": project_learning_graph(ordered_events),
@@ -357,6 +367,37 @@ def _is_release_eligible_evidence(event: LearnerStateEvent) -> bool:
         if quality.get("writeback_eligible") is False:   # explicit False only; absent -> keep
             return False
     return True
+
+
+def _is_candidate_learning_evidence(event: LearnerStateEvent) -> bool:
+    """Learning-evidence-shaped rows excluded by the release-eligibility safety net.
+
+    Broader than _is_learning_evidence on source_feature on purpose: candidate
+    sources (e.g. rich_leaf_shadow_candidate) are not allowed evidence sources,
+    but they must still be visible in the review-only observation channel."""
+    payload = dict(event.payload_json or {})
+    if event.memory_kind != "learning_evidence" or payload.get("event_type") != "learning_evidence":
+        return False
+    return not _is_release_eligible_evidence(event)
+
+
+def _candidate_observation(event: LearnerStateEvent) -> dict[str, Any]:
+    payload = dict(event.payload_json or {})
+    quality = payload.get("quality") if isinstance(payload.get("quality"), dict) else {}
+    trace = payload.get("rich_leaf_trace") if isinstance(payload.get("rich_leaf_trace"), dict) else {}
+    return {
+        "event_id": event.event_id,
+        "source_feature": event.source_feature,
+        "authority": _clean_text(quality.get("authority") or payload.get("authority")),
+        "evidence_level": _clean_text(quality.get("evidence_level")),
+        "leaf_id": _clean_text(trace.get("leaf_id")),
+        "question_id": _clean_text(payload.get("question_id")),
+        "observed_at": event.created_at,
+        "candidate_only": True,
+        "review_only": True,
+        "claim_promotion_allowed": False,
+        "excluded_from_truth_reason": "not_release_eligible",
+    }
 
 
 def _is_manual_correction(event: LearnerStateEvent) -> bool:

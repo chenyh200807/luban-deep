@@ -883,3 +883,76 @@ def test_open_world_grading_repeats_escalate_to_claim_via_canonical_topic() -> N
     ]
     assert weak, f"开放世界重复错误必须聚合成 claim，got weak_points={projection['weak_points']}"
     assert weak[0]["evidence_level"] == "L1_repeated"
+
+
+def _rich_leaf_candidate_event(event_id: str, *, leaf_id: str = "1A435000-B010") -> LearnerStateEvent:
+    # Shape produced by the RichLeaf learning-evidence candidate bridge and replayed
+    # through the artifact-only sandbox readback gate (scripts/run_luban_rich_leaf_*).
+    return LearnerStateEvent(
+        event_id=event_id,
+        user_id="rich_leaf_sandbox_learner",
+        source_feature="rich_leaf_shadow_candidate",
+        source_id=f"case:{event_id}",
+        source_bot_id="construction-exam-sandbox",
+        memory_kind="learning_evidence",
+        dedupe_key=event_id,
+        created_at="2026-06-12T00:00:00+08:00",
+        payload_json={
+            "event_type": "learning_evidence",
+            "candidate_only": True,
+            "preview_only": True,
+            "claim_promotion_allowed": False,
+            "question_id": f"case:{event_id}",
+            "rich_leaf_trace": {"leaf_id": leaf_id, "case_id": f"case:{event_id}"},
+            "quality": {
+                "candidate_only": True,
+                "authority": "rich_leaf_v23_shadow_candidate",
+                "writeback_eligible": False,
+                "progress_countable": False,
+                "truth_eligible": False,
+                "stable_truth_eligible": False,
+                "evidence_level": "preview_needs_retest",
+            },
+        },
+    )
+
+
+def test_candidate_evidence_is_observed_in_review_only_channel() -> None:
+    # The release-eligibility safety net must keep excluding candidates from truth,
+    # but synthesis must still OBSERVE them in a review-only channel instead of
+    # silently dropping them (Grading-to-Brain closure: synthesis must consume
+    # candidates without granting authority).
+    proj = synthesize_learning_truth([
+        _rich_leaf_candidate_event("rl1", leaf_id="1A435000-B010"),
+        _rich_leaf_candidate_event("rl2", leaf_id="1A435000-B022"),
+    ])
+    observations = proj["candidate_observations"]
+    assert len(observations) == 2
+    assert {item["event_id"] for item in observations} == {"rl1", "rl2"}
+    first = next(item for item in observations if item["event_id"] == "rl1")
+    assert first["leaf_id"] == "1A435000-B010"
+    assert first["candidate_only"] is True
+    assert first["review_only"] is True
+    assert first["claim_promotion_allowed"] is False
+    assert first["excluded_from_truth_reason"] == "not_release_eligible"
+    # authority invariants: never truth, never claim, never compiled
+    assert proj["weak_points"] == []
+    assert proj["observed_candidates"] == []
+    assert proj["compiled_objects"] == {}
+
+
+def test_leaked_shadow_evidence_is_observed_but_still_excluded_from_truth() -> None:
+    proj = synthesize_learning_truth([
+        _shadow_authority_event("shadow1"),
+        _shadow_authority_event("shadow2"),
+    ])
+    assert len(proj["candidate_observations"]) == 2
+    assert proj["weak_points"] == []
+    assert proj["observed_candidates"] == []
+    assert "error:1A432000:E02" not in proj["compiled_objects"]
+
+
+def test_release_eligible_evidence_is_not_in_candidate_observations() -> None:
+    proj = synthesize_learning_truth([_learning_event("ok1"), _learning_event("ok2")])
+    assert proj["candidate_observations"] == []
+    assert "error:1A432000:E02" in proj["compiled_objects"]

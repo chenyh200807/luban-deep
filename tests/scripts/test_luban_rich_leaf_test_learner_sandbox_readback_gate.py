@@ -136,6 +136,9 @@ def test_sandbox_gate_writes_artifact_only_events_and_filters_from_synthesis(tmp
     assert report["summary"]["sandbox_readback_event_count"] == 1
     assert report["summary"]["synthesis_observed_candidate_count"] == 0
     assert report["summary"]["synthesis_compiled_object_count"] == 0
+    # synthesis must truly CONSUME the candidates via the review-only observation
+    # channel — silent drop (count 0) is a closure blocker, truth leak stays 0.
+    assert report["summary"]["synthesis_candidate_observation_count"] == 1
     assert report["summary"]["learner_memory_write_count"] == 0
     assert report["classification"]["learner_memory_write_allowed"] is False
     assert report["classification"]["sandbox_write_scope"] == "artifact_only"
