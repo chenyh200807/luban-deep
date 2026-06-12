@@ -1,6 +1,6 @@
 # BI P2 数据治理修复 + P4c 方向 A 前端实现 执行计划
 
-- 状态：`Draft → 执行中（2026-06-12）`
+- 状态：`Done (2026-06-12) · T1-T7 完成并发布 test2（release d1784d2d）；T8 P4c 同批发布；F2 待小程序发版`
 - 上游：spec `2026-06-12-bi-systematic-upgrade-design.md`；取证 `artifacts/bi_reconciliation_20260612/`；方向定稿（用户拍板 A）`2026-06-12-bi-vnext-design-direction-decision.md`
 - 决策依据：root-cause-debugging 调查（2026-06-12，见下）
 
