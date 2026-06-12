@@ -12,6 +12,17 @@
 
 不要把本地 JSON 直接变成第二套线上题库。
 
+## 采分框架 Authority 链（与运行时内核对齐）
+
+运行时案例阅卷内核（`construction_grading/case_kernel.py`）的采分框架优先级，本 Skill 必须与之一致，不另立顺序：
+
+1. `grading_key.scoring_points`：active_object 注入的隐藏采分点，最高 authority → `curated_rubric`（trace `grading_source=grading_key`）。
+2. `questions_bank.grading_rubric`：题库人工/结构化 Rubric → `curated_rubric`（trace `grading_source=questions_bank`）。
+3. 题库既有字段投影（标准答案/解析/关键词/分值）→ `projected_rubric`。
+4. 以上全空 → `open_skill`（trace `grading_source=open_skill_fallback`），开放世界提分诊断，不拒答。
+
+注意线上现状：`questions_bank.grading_rubric` 字段存在但当前非空数为 0，`grading_keywords` 非空 1225 条（case 题 960 条）——所以生产上 `curated_rubric` 主要由 `grading_key` 触达，题库路径大多落在 `projected_rubric`。编译库逐步补全 rubric 是供给侧工作；阅卷侧不得因为 rubric 缺位而拒答或自拼。
+
 ## 本地源数据快照
 
 路径：

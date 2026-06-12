@@ -147,6 +147,15 @@ _SCENE_REFERENCE_FILES: dict[str, dict[str, tuple[str, ...]]] = {
             "references/error-taxonomy.md",
         )
     },
+    "learning_evidence_story": {
+        "construction-learning-evidence-story": ("references/degraded-claims.md",)
+    },
+    "study_assistant": {
+        "construction-study-assistant": ("references/action-selection.md",)
+    },
+    "learning_support": {
+        "construction-learning-support": ("references/support-playbook.md",)
+    },
 }
 
 _LECTURE_TOPIC_REFERENCES = {
