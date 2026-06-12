@@ -67,36 +67,36 @@
   background: #02060f;
 }
 
-/* 三层白环：实白核 → 半透白 → 淡白，构成厚光带 */
+/* 弧光层次（bolt SVG 配方）：白核最薄 → 亮蓝 → 实蓝，渐薄渐淡 */
 .horizon-rim.r1 {
-  top: calc(82vh - 14rpx);
-  width: 2728rpx;
-  height: 2728rpx;
+  top: calc(82vh - 6rpx);
+  width: 2712rpx;
+  height: 2712rpx;
   background: #ffffff;
 }
 
 .horizon-rim.r2 {
-  top: calc(82vh - 36rpx);
-  width: 2772rpx;
-  height: 2772rpx;
-  background: rgba(255, 255, 255, 0.55);
+  top: calc(82vh - 15rpx);
+  width: 2730rpx;
+  height: 2730rpx;
+  background: #75c9ff;
 }
 
 .horizon-rim.r3 {
-  top: calc(82vh - 66rpx);
-  width: 2832rpx;
-  height: 2832rpx;
-  background: rgba(216, 236, 255, 0.26);
+  top: calc(82vh - 28rpx);
+  width: 2756rpx;
+  height: 2756rpx;
+  background: rgba(10, 120, 255, 0.95);
 }
 
-/* 蓝色外晕 */
+/* 蓝色外晕（softBlue/wideBlue 双层） */
 .horizon-glow {
-  top: calc(82vh - 66rpx);
-  width: 2832rpx;
-  height: 2832rpx;
+  top: calc(82vh - 28rpx);
+  width: 2756rpx;
+  height: 2756rpx;
   box-shadow:
-    0 -30rpx 120rpx 20rpx rgba(96, 168, 255, 0.55),
-    0 -90rpx 300rpx 60rpx rgba(56, 120, 235, 0.32);
+    0 -18rpx 70rpx 10rpx rgba(21, 133, 255, 0.6),
+    0 -60rpx 220rpx 40rpx rgba(9, 103, 214, 0.34);
   opacity: 0.7;
   animation: horizonBreathe 4600ms ease-in-out infinite alternate;
 }
@@ -288,7 +288,7 @@
 
 /* 品牌宣言：坐在天际光上 */
 .hook-brand {
-  padding-bottom: 70rpx;
+  padding-bottom: 250rpx;
 }
 
 .hook-brand.fx-pop.on {
