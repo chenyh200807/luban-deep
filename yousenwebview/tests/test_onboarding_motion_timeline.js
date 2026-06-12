@@ -183,3 +183,42 @@ var T1 = [
 })();
 
 console.log("OK test_onboarding_motion_timeline (scheduler)");
+
+// 7. motion-script 契约：六幕、id 顺序、步序时间合法、patch 形状
+var SCENES = require("../packageDeeptutor/pages/onboarding/motion-script");
+
+(function () {
+  assert.strictEqual(SCENES.length, 6);
+  assert.deepStrictEqual(
+    SCENES.map(function (s) {
+      return s.id;
+    }),
+    ["wave", "hook", "diagnosis", "grade", "loop", "cta"],
+  );
+  assert.strictEqual(
+    SCENES[SCENES.length - 1].duration,
+    0,
+    "终幕必须 duration=0",
+  );
+  for (var i = 0; i < SCENES.length; i++) {
+    var s = SCENES[i];
+    assert.ok(s.duration >= 0);
+    var prevAt = -1;
+    var steps = s.steps || [];
+    for (var j = 0; j < steps.length; j++) {
+      var step = steps[j];
+      assert.ok(step.at >= 0 && step.at > prevAt, s.id + " 步序必须严格递增");
+      if (s.duration > 0)
+        assert.ok(step.at <= s.duration, s.id + " 步序不得超出幕长");
+      assert.ok(
+        step.patch &&
+          typeof step.patch === "object" &&
+          Object.keys(step.patch).length > 0,
+        s.id + " patch 必须是非空对象",
+      );
+      prevAt = step.at;
+    }
+  }
+})();
+
+console.log("OK test_onboarding_motion_timeline (script contract)");
