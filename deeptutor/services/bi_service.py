@@ -2718,7 +2718,12 @@ class BIService:
                     provider_name="dashscope",
                     model=model,
                 )
-                billing_scope_system_cost = _safe_float(getattr(cycle_totals, "total_cost", 0.0))
+                cycle_dict = (
+                    cycle_totals.to_dict()
+                    if hasattr(cycle_totals, "to_dict")
+                    else dict(cycle_totals or {})
+                )
+                billing_scope_system_cost = _safe_float(cycle_dict.get("total_cost_usd"))
             else:
                 billing_scope_system_cost = 0.0
                 for event in cycle_context.result_events:
