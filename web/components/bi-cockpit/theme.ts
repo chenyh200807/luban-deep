@@ -22,6 +22,10 @@ export const COCKPIT = {
   textFaint: '#6E5F52',
   /** 网格线 */
   grid: 'rgba(212, 150, 100, 0.09)',
+  /** 高亮数字/图标的提亮陶土橙（大数字、icon 着色） */
+  accentBright: '#F0A878',
+  /** 品牌陶土橙深色态（深色渐变收尾、底部光晕） */
+  brandDeep: '#C35A2C',
 } as const
 
 /** 序列强调色（暖色主导，保留少量低饱和冷色做类别区分） */

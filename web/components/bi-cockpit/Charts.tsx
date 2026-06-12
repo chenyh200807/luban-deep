@@ -26,12 +26,15 @@ export function CockpitDonut({
   centerLabel,
   centerValue,
   height = 220,
+  centerSize = 24,
   onSelect,
 }: {
   data: Datum[]
   centerLabel?: string
   centerValue?: string
   height?: number
+  /** 环中心大数字字号（设计板方向 A 的中心大数字用 28-30） */
+  centerSize?: number
   onSelect?: (d: Datum) => void
 }) {
   const total = data.reduce((s, d) => s + d.value, 0)
@@ -76,9 +79,9 @@ export function CockpitDonut({
             top: '42%',
             style: {
               text: centerValue,
-              fill: COCKPIT.text,
-              fontSize: 24,
-              fontWeight: 800,
+              fill: COCKPIT.accentBright,
+              fontSize: centerSize,
+              fontWeight: 900,
               fontFamily: COCKPIT_FONT,
             },
           },

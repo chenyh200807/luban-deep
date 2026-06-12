@@ -6,6 +6,7 @@
  *
  * 受控组件：窗口状态由数据获取的 owner（BiV2OverviewPanel）持有，
  * 控制条不自建第二套窗口状态。环比对比开关为 P3 占位（disabled）。
+ * 视觉对齐设计板 .ctrlbar：暖橙渐变底 + 高亮描边 + 右侧作用域说明。
  */
 import { CalendarRange } from 'lucide-react'
 import { COCKPIT, SERIES_COLORS, alpha } from './theme'
@@ -25,20 +26,23 @@ export function GlobalControlBar({
 }) {
   return (
     <div
-      className="mb-4 flex flex-wrap items-center gap-2.5 rounded-2xl border px-3 py-2"
-      style={{ borderColor: COCKPIT.border, background: COCKPIT.bgPanel }}
+      className="mb-4 flex flex-wrap items-center gap-2.5 rounded-2xl border px-3.5 py-2.5"
+      style={{
+        borderColor: alpha(SERIES_COLORS[0], 0.3),
+        background: `linear-gradient(90deg, ${alpha(SERIES_COLORS[0], 0.1)}, ${alpha(SERIES_COLORS[0], 0.03)})`,
+      }}
     >
       <span
-        className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide"
-        style={{ color: COCKPIT.textMuted }}
+        className="inline-flex items-center gap-1.5 text-[11px] font-extrabold tracking-wide"
+        style={{ color: SERIES_COLORS[0] }}
       >
         <CalendarRange className="h-3.5 w-3.5" aria-hidden />
-        时间范围
+        全局控制
       </span>
 
       <div
         className="inline-flex overflow-hidden rounded-xl border"
-        style={{ borderColor: COCKPIT.border }}
+        style={{ borderColor: COCKPIT.border, background: alpha(COCKPIT.bgDeep, 0.6) }}
         role="group"
         aria-label="时间范围切换"
       >
@@ -51,24 +55,21 @@ export function GlobalControlBar({
               disabled={busy}
               aria-pressed={active}
               onClick={() => onDaysChange(value)}
-              className="px-3 py-1 text-[11px] font-black tabular-nums transition disabled:cursor-not-allowed disabled:opacity-60"
+              className="px-3 py-1 text-[12px] font-black tabular-nums transition disabled:cursor-not-allowed disabled:opacity-60"
               style={
                 active
-                  ? {
-                      color: '#1a120c',
-                      background: `linear-gradient(135deg, ${SERIES_COLORS[0]}, ${SERIES_COLORS[1]})`,
-                    }
+                  ? { color: SERIES_COLORS[1], background: alpha(SERIES_COLORS[0], 0.22) }
                   : { color: COCKPIT.textMuted, background: 'transparent' }
               }
             >
-              {value} 天
+              近 {value} 天
             </button>
           )
         })}
       </div>
 
       {/* 环比开关：P3 接入前仅占位（title 即 tooltip） */}
-      <span className="ml-auto inline-flex" title="P3 接入">
+      <span className="inline-flex" title="P3 接入">
         <button
           type="button"
           disabled
@@ -76,8 +77,12 @@ export function GlobalControlBar({
           className="cursor-not-allowed rounded-xl border px-2.5 py-1 text-[10px] font-bold opacity-60"
           style={{ color: COCKPIT.textFaint, borderColor: alpha(COCKPIT.textFaint, 0.35) }}
         >
-          环比对比 · P3
+          环比上一周期 · P3
         </button>
+      </span>
+
+      <span className="ml-auto hidden text-[11px] md:inline" style={{ color: COCKPIT.textFaint }}>
+        窗口共用 · overview / active-trend / anomalies 三条读模型
       </span>
     </div>
   )

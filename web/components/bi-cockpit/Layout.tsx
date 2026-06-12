@@ -4,6 +4,7 @@
  * 驾驶舱布局原子：大屏背景、玻璃面板（科技感切角+发光描边）、KPI 大数字、区块标题。
  */
 import type { ReactNode } from 'react'
+import { COCKPIT, SERIES_COLORS, alpha } from './theme'
 
 /* ------------------------------------------------------ 大屏背景（网格+光晕） */
 export function CockpitBg({
@@ -16,17 +17,16 @@ export function CockpitBg({
   return (
     <div
       className={`relative isolate overflow-hidden rounded-3xl ${className}`}
-      style={{ background: '#050b18' }}
+      style={{ background: COCKPIT.bgDeep }}
     >
-      {/* 网格 */}
+      {/* 暖色网格（与设计板 .bg-grid 一致：34px 格 + 顶部椭圆渐隐） */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.5]"
+        className="pointer-events-none absolute inset-0"
         style={{
-          backgroundImage:
-            'linear-gradient(rgba(90,150,220,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(90,150,220,0.06) 1px, transparent 1px)',
-          backgroundSize: '32px 32px',
-          maskImage: 'radial-gradient(ellipse 90% 70% at 50% 0%, #000 40%, transparent 100%)',
+          backgroundImage: `linear-gradient(${COCKPIT.grid} 1px, transparent 1px), linear-gradient(90deg, ${COCKPIT.grid} 1px, transparent 1px)`,
+          backgroundSize: '34px 34px',
+          maskImage: 'radial-gradient(ellipse 90% 55% at 50% 0%, #000 30%, transparent 100%)',
         }}
       />
       {/* 顶部暖光晕 */}
@@ -34,13 +34,15 @@ export function CockpitBg({
         aria-hidden
         className="pointer-events-none absolute -top-40 left-1/2 h-80 w-[120%] -translate-x-1/2"
         style={{
-          background: 'radial-gradient(ellipse at center, rgba(232,145,90,0.18), transparent 60%)',
+          background: `radial-gradient(ellipse at center, ${alpha(SERIES_COLORS[0], 0.16)}, transparent 60%)`,
         }}
       />
       <div
         aria-hidden
         className="pointer-events-none absolute -bottom-32 -right-20 h-72 w-72 rounded-full"
-        style={{ background: 'radial-gradient(circle, rgba(195,90,44,0.14), transparent 60%)' }}
+        style={{
+          background: `radial-gradient(circle, ${alpha(COCKPIT.brandDeep, 0.14)}, transparent 60%)`,
+        }}
       />
       <div className="relative z-10">{children}</div>
     </div>
@@ -86,7 +88,7 @@ export function CockpitPanel({
         <header className="mb-3 flex items-center justify-between gap-2">
           <div className="min-w-0">
             <div className="flex items-center gap-2 text-[13px] font-bold text-slate-100">
-              {icon && <span className="text-[#F0A878]">{icon}</span>}
+              {icon && <span style={{ color: COCKPIT.accentBright }}>{icon}</span>}
               <span className="truncate">{title}</span>
             </div>
             {hint && <p className="mt-0.5 truncate text-[11px] text-slate-500">{hint}</p>}
@@ -185,9 +187,15 @@ export function CockpitKpi({
 export function SectionLabel({ children, icon }: { children: ReactNode; icon?: ReactNode }) {
   return (
     <div className="mb-3 flex items-center gap-2">
-      <span className="h-3.5 w-1 rounded-full bg-gradient-to-b from-cyan-300 to-cyan-500 shadow-[0_0_8px_rgba(56,189,248,0.6)]" />
-      {icon && <span className="text-cyan-300">{icon}</span>}
-      <h3 className="text-sm font-bold tracking-wide text-slate-100">{children}</h3>
+      <span
+        className="h-3.5 w-1 rounded-full"
+        style={{
+          background: `linear-gradient(${SERIES_COLORS[0]}, ${COCKPIT.brandDeep})`,
+          boxShadow: `0 0 8px ${COCKPIT.borderGlow}`,
+        }}
+      />
+      {icon && <span style={{ color: COCKPIT.accentBright }}>{icon}</span>}
+      <h3 className="text-sm font-extrabold tracking-wide text-slate-100">{children}</h3>
     </div>
   )
 }

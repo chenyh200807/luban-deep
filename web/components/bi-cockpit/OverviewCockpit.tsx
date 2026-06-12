@@ -2,26 +2,36 @@
 'use client'
 
 /**
- * 总览情报驾驶舱。数据来自 overview LiveBundle（cards / trend / alerts），
+ * 总览情报驾驶舱（方向 A「指挥舱进化」完整形态）。
+ *
+ * 信息架构对齐设计板 docs/bi-cockpit-preview/2026-06-12-bi-vnext-design-board.html
+ * 的方向 A section：
+ *   hero/控制条 → KPI 徽标卡行 → 主图表区（成本日趋势大图 + 会话入口环形）
+ *   → 双轴趋势 → 增长与质量 → 告警行动队列。
+ *
+ * 数据来自 overview LiveBundle（cards / trend / alerts / overview），
  * 只做真实字段 -> 图表映射；指标卡点击和告警点击通过回调复用面板已有的
  * MetricDetailPanel / AlertDetailPanel 抽屉（不重复造下钻）。
+ * 设计板的「成本三源对账趋势」线上无 Langfuse 序列，按诚实替代原则
+ * 渲染 UsageLedger 单源日成本 + 静态对账事实说明（来自已发布对账报告）。
  */
 import {
   Activity,
   AlertTriangle,
   ArrowRight,
-  Filter,
-  Gauge,
-  HeartPulse,
+  CircleDollarSign,
+  PieChart,
   TrendingUp,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { BiAlertItem, BiMetricCard, BiOverviewData, BiTrendPoint } from '@/lib/bi-api'
-import { CockpitDonut, CockpitGauge, type Datum } from './Charts'
+import { CockpitDonut, type Datum } from './Charts'
 import { EChart } from './EChart'
 import { GlobalControlBar, type CockpitWindowDays } from './GlobalControlBar'
-import { CockpitBg, CockpitKpi, CockpitPanel, SectionLabel } from './Layout'
-import { TrustBadge } from './TrustBadge'
+import { GrowthQualitySection } from './GrowthQualitySection'
+import { KpiTrustCard } from './KpiTrustCard'
+import { CockpitBg, CockpitPanel, SectionLabel } from './Layout'
+import { MeasuredEstimatedBar, TrustPill } from './TrustBadge'
 import {
   COCKPIT,
   COCKPIT_FONT,
@@ -32,20 +42,9 @@ import {
   vGradient,
 } from './theme'
 
-const TONE_BY_CARD: Record<string, string> = {
-  good: 'emerald',
-  warning: 'amber',
-  critical: 'rose',
-  neutral: 'cyan',
-}
-const TONE_CYCLE = ['cyan', 'teal', 'violet', 'amber', 'emerald', 'rose']
 const fmtNum = (n: number) => new Intl.NumberFormat('en-US').format(Math.round(n))
 
-function deltaUp(delta?: string, tone?: string): boolean {
-  if (delta && /^[+↑]|增|升/.test(delta.trim())) return true
-  if (delta && /^[-↓]|降|跌/.test(delta.trim())) return false
-  return tone === 'good'
-}
+const AXIS_LABEL = { color: COCKPIT.textFaint, fontSize: 10, fontFamily: COCKPIT_FONT }
 
 export function OverviewCockpit({
   cards,
@@ -72,144 +71,124 @@ export function OverviewCockpit({
   onAlert?: (alert: BiAlertItem) => void
 }) {
   const kpis = cards.slice(0, 8)
-  const labels = trend.map(p => p.label)
+  const costCard =
+    cards.find(c => c.metricId === 'total_cost_usd') ?? cards.find(c => c.label.includes('成本'))
   const hasTrend = trend.length > 0
-
-  const trendOption = {
-    color: [SEMANTIC.info, SEMANTIC.positive, SEMANTIC.warning],
-    tooltip: { ...COCKPIT_TOOLTIP, trigger: 'axis' as const },
-    legend: {
-      data: ['活跃', '学习成功', '成本($)'],
-      textStyle: { color: COCKPIT.textMuted, fontSize: 11, fontFamily: COCKPIT_FONT },
-      top: 0,
-      itemWidth: 12,
-      itemHeight: 8,
-    },
-    grid: { left: 8, right: 8, top: 34, bottom: 4, containLabel: true },
-    xAxis: {
-      type: 'category' as const,
-      boundaryGap: false,
-      data: labels,
-      axisLine: { lineStyle: { color: COCKPIT.grid } },
-      axisTick: { show: false },
-      axisLabel: { color: COCKPIT.textFaint, fontSize: 10, fontFamily: COCKPIT_FONT },
-    },
-    yAxis: [
-      {
-        type: 'value' as const,
-        name: '人次',
-        nameTextStyle: { color: COCKPIT.textFaint, fontSize: 10 },
-        splitLine: { lineStyle: { color: COCKPIT.grid } },
-        axisLabel: { color: COCKPIT.textFaint, fontSize: 10, fontFamily: COCKPIT_FONT },
-      },
-      {
-        type: 'value' as const,
-        name: '成本$',
-        nameTextStyle: { color: COCKPIT.textFaint, fontSize: 10 },
-        splitLine: { show: false },
-        axisLabel: { color: COCKPIT.textFaint, fontSize: 10, fontFamily: COCKPIT_FONT },
-      },
-    ],
-    series: [
-      {
-        name: '活跃',
-        type: 'line' as const,
-        smooth: true,
-        showSymbol: false,
-        lineStyle: {
-          color: SEMANTIC.info,
-          width: 2.5,
-          shadowBlur: 12,
-          shadowColor: alpha(SEMANTIC.info, 0.5),
-        },
-        areaStyle: { color: vGradient(alpha(SEMANTIC.info, 0.28), alpha(SEMANTIC.info, 0.01)) },
-        data: trend.map(p => p.active),
-      },
-      {
-        name: '学习成功',
-        type: 'line' as const,
-        smooth: true,
-        showSymbol: false,
-        lineStyle: { color: SEMANTIC.positive, width: 2.5 },
-        data: trend.map(p => p.successful),
-      },
-      {
-        name: '成本($)',
-        type: 'line' as const,
-        yAxisIndex: 1,
-        smooth: true,
-        showSymbol: false,
-        lineStyle: { color: SEMANTIC.warning, width: 2, type: 'dashed' as const },
-        data: trend.map(p => p.cost),
-      },
-    ],
-  }
+  const entrypoints: Datum[] = (overview?.entrypoints ?? []).map(item => ({
+    name: item.label,
+    value: Number(item.value) || 0,
+  }))
+  const entryTotal = entrypoints.reduce((s, d) => s + d.value, 0)
 
   return (
-    <CockpitBg className="p-4 md:p-5">
-      <div className="mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#E8915A]/90">
-        <Activity className="h-3.5 w-3.5" />
-        Operations Overview Cockpit
+    <CockpitBg className="p-4 md:p-6">
+      {/* ---------------------------------------------------------- hero 区 */}
+      <div
+        className="flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.22em]"
+        style={{ color: alpha(SERIES_COLORS[0], 0.9) }}
+      >
+        <Activity className="h-3.5 w-3.5" aria-hidden />◢ Operations Overview Cockpit
+      </div>
+      <div className="mb-3 mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <h2 className="text-[24px] font-black leading-tight" style={{ color: COCKPIT.text }}>
+          总览指挥舱
+        </h2>
         {windowLabel ? (
-          <span className="ml-1 normal-case tracking-normal text-slate-500">· {windowLabel}</span>
+          <span className="text-[12px]" style={{ color: COCKPIT.textMuted }}>
+            {windowLabel}
+          </span>
         ) : null}
+        <span className="ml-auto hidden text-[11px] sm:inline" style={{ color: COCKPIT.textFaint }}>
+          每个数字自带身份证 · trust 徽标 hover 可看口径
+        </span>
       </div>
 
       {days != null && onDaysChange ? (
         <GlobalControlBar days={days} onDaysChange={onDaysChange} busy={daysBusy} />
       ) : null}
 
-      {/* KPI 带（来自 overview.cards，点击打开指标详情抽屉） */}
-      <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
+      {/* -------------------------------------------------- KPI 徽标卡行 */}
+      <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {kpis.map((card, i) => (
-          <button
-            key={`${card.label}-${i}`}
-            type="button"
+          <KpiTrustCard
+            key={`${card.metricId ?? card.label}-${i}`}
+            card={card}
             onClick={onMetric ? () => onMetric(card) : undefined}
-            className="text-left"
-          >
-            <CockpitKpi
-              label={card.label}
-              value={card.value as string | number}
-              tone={TONE_BY_CARD[card.tone ?? 'neutral'] ?? TONE_CYCLE[i % TONE_CYCLE.length]}
-              sub={card.hint}
-              delta={
-                card.delta ? { value: card.delta, up: deltaUp(card.delta, card.tone) } : undefined
-              }
-            />
-            {/* 可信度徽标：按 payload metric_id 查注册表；总成本卡附 measured/estimated 微条 */}
-            {card.metricId ? (
-              <span className="mt-1.5 block px-1">
-                <TrustBadge
-                  metricId={card.metricId}
-                  measuredValue={card.measuredValue}
-                  estimatedValue={card.estimatedValue}
-                  provenance={card.provenance}
-                />
-              </span>
-            ) : null}
-          </button>
+          />
         ))}
         {kpis.length === 0 ? <Empty /> : null}
       </div>
 
+      {/* ------------------------------------------------------ 主图表区 */}
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.5fr_1fr]">
         <CockpitPanel
           glow
-          title="活跃 / 学习成功 / 成本 趋势"
-          hint="active-trend API · 按窗口"
-          icon={<TrendingUp className="h-4 w-4" />}
+          title="成本日趋势（UsageLedger 单源）"
+          hint="对账残差 vs Langfuse 16% · P3 持续核对 · measured/estimated 分量见下方微条"
+          icon={<CircleDollarSign className="h-4 w-4" />}
+          action={costCard?.metricId ? <TrustPill metricId={costCard.metricId} /> : undefined}
         >
-          {hasTrend ? <EChart option={trendOption} height={260} /> : <Empty />}
+          {hasTrend ? (
+            <EChart option={buildCostOption(trend)} height={272} />
+          ) : (
+            <Empty height={272} />
+          )}
+          {costCard &&
+          typeof costCard.measuredValue === 'number' &&
+          typeof costCard.estimatedValue === 'number' ? (
+            <div className="mt-2 px-1">
+              <MeasuredEstimatedBar
+                measured={costCard.measuredValue}
+                estimated={costCard.estimatedValue}
+                provenance={costCard.provenance}
+              />
+            </div>
+          ) : null}
         </CockpitPanel>
 
         <CockpitPanel
-          title="今日行动队列"
-          hint="overview.alerts + anomalies"
-          icon={<AlertTriangle className="h-4 w-4" />}
+          title="会话入口构成"
+          hint="overview.entrypoints · 环中心 = 窗口入口会话合计"
+          icon={<PieChart className="h-4 w-4" />}
         >
-          <ul className="space-y-2">
-            {alerts.slice(0, 6).map((alert, idx) => (
+          {entrypoints.length ? (
+            <CockpitDonut
+              data={entrypoints}
+              centerLabel="入口会话"
+              centerValue={fmtNum(entryTotal)}
+              centerSize={28}
+              height={240}
+            />
+          ) : (
+            <Empty height={240} />
+          )}
+        </CockpitPanel>
+      </div>
+
+      {/* ---------------------------------------------------- 双轴趋势 */}
+      <div className="mt-4">
+        <CockpitPanel
+          title="活跃 × 学习成功 双轴趋势"
+          hint="active-trend API · 按窗口 · 环比虚影待 P3 接入后叠加上一周期"
+          icon={<TrendingUp className="h-4 w-4" />}
+        >
+          {hasTrend ? <EChart option={buildDualAxisOption(trend)} height={236} /> : <Empty />}
+        </CockpitPanel>
+      </div>
+
+      {/* ------------------------------------------------ 增长与质量区 */}
+      {overview ? (
+        <div className="mt-5">
+          <GrowthQualitySection overview={overview} />
+        </div>
+      ) : null}
+
+      {/* ---------------------------------------------- 告警行动队列 */}
+      <div className="mt-5">
+        <SectionLabel icon={<AlertTriangle className="h-4 w-4" />}>今日行动队列</SectionLabel>
+        <CockpitPanel hint="overview.alerts + anomalies · 点击进入行动项详情">
+          <ul className="grid grid-cols-1 gap-2 md:grid-cols-2">
+            {alerts.slice(0, 8).map((alert, idx) => (
               <li key={idx}>
                 <button
                   type="button"
@@ -218,7 +197,10 @@ export function OverviewCockpit({
                 >
                   <span
                     className="mt-0.5 h-2 w-2 shrink-0 rounded-full"
-                    style={{ background: LEVEL_COLOR[alert.level] ?? SEMANTIC.neutral }}
+                    style={{
+                      background: LEVEL_COLOR[alert.level] ?? SEMANTIC.neutral,
+                      boxShadow: `0 0 8px ${alpha(LEVEL_COLOR[alert.level] ?? SEMANTIC.neutral, 0.6)}`,
+                    }}
                   />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[13px] font-bold text-slate-100">
@@ -235,122 +217,129 @@ export function OverviewCockpit({
               </li>
             ))}
             {alerts.length === 0 ? (
-              <li className="grid place-items-center rounded-xl border border-dashed border-white/10 px-2 py-8 text-[11px] text-slate-500">
+              <li className="grid place-items-center rounded-xl border border-dashed border-white/10 px-2 py-8 text-[11px] text-slate-500 md:col-span-2">
                 暂无风险项
               </li>
             ) : null}
           </ul>
         </CockpitPanel>
       </div>
-
-      {overview ? <GrowthQualitySection overview={overview} /> : null}
     </CockpitBg>
   )
 }
 
-/* 增长与质量：来自 overview 的 growthFunnel / memberHealth / aiQuality（之前被 reducer 丢弃，现已携带） */
-function GrowthQualitySection({ overview }: { overview: BiOverviewData }) {
-  const funnel: Datum[] = (overview.growthFunnel?.steps ?? []).map(s => ({
-    name: s.label,
-    value: Number(s.value) || 0,
-  }))
-  const health: Datum[] = (overview.memberHealth?.distribution ?? [])
-    .map(b => ({ name: b.label, value: Number(b.count) || 0 }))
-    .filter(d => d.value > 0)
-  const healthScore = Number(overview.memberHealth?.score?.value ?? NaN)
-  const aiRate0 = overview.aiQuality?.engineeringSuccessRate
-  const aiRate =
-    typeof aiRate0 === 'number'
-      ? aiRate0 <= 1
-        ? Math.round(aiRate0 * 100)
-        : Math.round(aiRate0)
-      : null
-
-  if (!funnel.length && !health.length && aiRate == null) return null
-
-  const funnelOption = {
+/* ------------------------------------------------ 成本日趋势（单源诚实版） */
+function buildCostOption(trend: ReadonlyArray<BiTrendPoint>) {
+  return {
     tooltip: {
       ...COCKPIT_TOOLTIP,
-      trigger: 'item' as const,
-      formatter: (p: any) => `${p.name}<br/><b>${fmtNum(p.value)}</b>`,
+      trigger: 'axis' as const,
+      valueFormatter: (v: unknown) => `$${Number(v).toFixed(4)}`,
+    },
+    grid: { left: 8, right: 12, top: 30, bottom: 4, containLabel: true },
+    xAxis: {
+      type: 'category' as const,
+      boundaryGap: false,
+      data: trend.map(p => p.label),
+      axisLine: { lineStyle: { color: alpha(SERIES_COLORS[0], 0.3) } },
+      axisTick: { show: false },
+      axisLabel: AXIS_LABEL,
+    },
+    yAxis: {
+      type: 'value' as const,
+      name: 'USD/日',
+      nameTextStyle: { color: COCKPIT.textFaint, fontSize: 10 },
+      splitLine: { lineStyle: { color: COCKPIT.grid } },
+      axisLabel: AXIS_LABEL,
     },
     series: [
       {
-        type: 'funnel' as const,
-        left: '6%',
-        right: '6%',
-        top: 12,
-        bottom: 8,
-        minSize: '16%',
-        maxSize: '100%',
-        sort: 'descending' as const,
-        gap: 3,
-        color: SERIES_COLORS as unknown as string[],
-        itemStyle: {
-          borderColor: COCKPIT.bgPanelSolid,
-          borderWidth: 2,
-          shadowBlur: 10,
-          shadowColor: 'rgba(0,0,0,0.35)',
+        name: '日成本（UsageLedger）',
+        type: 'line' as const,
+        smooth: true,
+        symbol: 'circle',
+        symbolSize: 6,
+        data: trend.map(p => p.cost),
+        lineStyle: {
+          width: 2.5,
+          color: SERIES_COLORS[1],
+          shadowBlur: 12,
+          shadowColor: alpha(SERIES_COLORS[1], 0.5),
         },
-        label: {
-          show: true,
-          position: 'inside' as const,
-          color: '#1a120c',
-          fontWeight: 700,
-          fontFamily: COCKPIT_FONT,
-          fontSize: 11,
-          formatter: '{b}  {c}',
+        itemStyle: { color: SERIES_COLORS[1], borderColor: COCKPIT.bgDeep, borderWidth: 2 },
+        areaStyle: {
+          color: vGradient(alpha(SERIES_COLORS[1], 0.28), alpha(SERIES_COLORS[1], 0.02)),
         },
-        data: funnel.map(d => ({ name: d.name, value: d.value })),
       },
     ],
   }
+}
 
-  return (
-    <>
-      <SectionLabel icon={<Filter className="h-4 w-4" />}>增长与质量</SectionLabel>
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-        <CockpitPanel
-          glow
-          title="增长漏斗"
-          hint={overview.growthFunnel?.summary || 'growth funnel'}
-          icon={<Filter className="h-4 w-4" />}
-        >
-          {funnel.length ? <EChart option={funnelOption} height={240} /> : <Empty />}
-        </CockpitPanel>
-        <CockpitPanel
-          title="会员健康分布"
-          hint={overview.memberHealth?.score?.note}
-          icon={<HeartPulse className="h-4 w-4" />}
-        >
-          {health.length ? (
-            <CockpitDonut
-              data={health}
-              centerLabel="健康分"
-              centerValue={Number.isFinite(healthScore) ? String(healthScore) : '—'}
-            />
-          ) : (
-            <Empty />
-          )}
-        </CockpitPanel>
-        <CockpitPanel
-          title="AI 工程成功率"
-          hint={overview.aiQuality?.note}
-          icon={<Gauge className="h-4 w-4" />}
-        >
-          {aiRate != null ? (
-            <CockpitGauge
-              value={aiRate}
-              label={`失败 ${fmtNum(Number(overview.aiQuality?.failedTurns ?? 0))}/${fmtNum(Number(overview.aiQuality?.totalTurns ?? 0))}`}
-              color={SEMANTIC.positive}
-            />
-          ) : (
-            <Empty />
-          )}
-        </CockpitPanel>
-      </div>
-    </>
-  )
+/* ------------------------------------------- 活跃 × 学习成功 双轴趋势 */
+function buildDualAxisOption(trend: ReadonlyArray<BiTrendPoint>) {
+  return {
+    tooltip: { ...COCKPIT_TOOLTIP, trigger: 'axis' as const },
+    legend: {
+      top: 0,
+      textStyle: { color: COCKPIT.textMuted, fontSize: 11, fontFamily: COCKPIT_FONT },
+      itemWidth: 12,
+      itemHeight: 8,
+    },
+    grid: { left: 8, right: 8, top: 32, bottom: 4, containLabel: true },
+    xAxis: {
+      type: 'category' as const,
+      data: trend.map(p => p.label),
+      axisLine: { lineStyle: { color: alpha(SERIES_COLORS[0], 0.3) } },
+      axisTick: { show: false },
+      axisLabel: AXIS_LABEL,
+    },
+    yAxis: [
+      {
+        type: 'value' as const,
+        name: '活跃',
+        nameTextStyle: { color: COCKPIT.textFaint, fontSize: 10 },
+        splitLine: { lineStyle: { color: COCKPIT.grid } },
+        axisLabel: AXIS_LABEL,
+      },
+      {
+        type: 'value' as const,
+        name: '学习成功',
+        nameTextStyle: { color: COCKPIT.textFaint, fontSize: 10 },
+        splitLine: { show: false },
+        axisLabel: AXIS_LABEL,
+      },
+    ],
+    series: [
+      {
+        name: '活跃',
+        type: 'line' as const,
+        smooth: true,
+        showSymbol: false,
+        data: trend.map(p => p.active),
+        lineStyle: {
+          width: 2.5,
+          color: SERIES_COLORS[0],
+          shadowBlur: 12,
+          shadowColor: alpha(SERIES_COLORS[0], 0.5),
+        },
+        itemStyle: { color: SERIES_COLORS[0] },
+        areaStyle: {
+          color: vGradient(alpha(SERIES_COLORS[0], 0.25), alpha(SERIES_COLORS[0], 0.02)),
+        },
+      },
+      {
+        name: '学习成功',
+        type: 'bar' as const,
+        yAxisIndex: 1,
+        barWidth: 10,
+        data: trend.map(p => p.successful),
+        itemStyle: {
+          color: vGradient(alpha(SEMANTIC.positive, 0.8), alpha(SEMANTIC.positive, 0.25)),
+          borderRadius: [3, 3, 0, 0] as [number, number, number, number],
+        },
+      },
+    ],
+  }
 }
 
 const LEVEL_COLOR: Record<string, string> = {
@@ -359,9 +348,12 @@ const LEVEL_COLOR: Record<string, string> = {
   critical: SEMANTIC.danger,
 }
 
-function Empty(): ReactNode {
+function Empty({ height = 200 }: { height?: number }): ReactNode {
   return (
-    <div className="grid h-[200px] place-items-center rounded-xl border border-dashed border-white/10 text-[11px] text-slate-500">
+    <div
+      className="grid place-items-center rounded-xl border border-dashed border-white/10 text-[11px] text-slate-500"
+      style={{ height }}
+    >
       暂无数据
     </div>
   )
