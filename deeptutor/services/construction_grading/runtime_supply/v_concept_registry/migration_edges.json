@@ -1,1 +1,114 @@
-[]
+[
+  {
+    "from": "c_0a15bd7ef945e197",
+    "to": "c_f1524e2425913984",
+    "action": "adjudicated_merge",
+    "reviewer": "ai-council-claude-20260612",
+    "reason": "[council 20260612] 建筑信息模型(BIM)软件: 2026教材仅存在一处 3.7 智能建造新技术 (卷9-166, p148-151, PDF绝对页156-159); 两个alias码指向同一段教材正文, 不存在第二处可区分的知识内容"
+  },
+  {
+    "from": "c_a31cf271b73cd070",
+    "to": "c_e0ad20f97060310f",
+    "action": "adjudicated_merge",
+    "reviewer": "ai-council-claude-20260612",
+    "reason": "[council 20260612] 模型创建与使用: 2026教材仅存在一处 3.7 智能建造新技术 (卷9-166, p148-151, PDF绝对页156-159); 两个alias码指向同一段教材正文, 不存在第二处可区分的知识内容"
+  },
+  {
+    "from": "c_2e3ccbdd9cdf5c4a",
+    "to": "c_ebbee7ac8775c40f",
+    "action": "adjudicated_merge",
+    "reviewer": "ai-council-claude-20260612",
+    "reason": "[council 20260612] 施工现场水收集综合利用技术: 2026教材仅存在一处 3.7 智能建造新技术 (卷9-166, p148-151, PDF绝对页156-159); 两个alias码指向同一段教材正文, 不存在第二处可区分的知识内容"
+  },
+  {
+    "from": "c_ffd7d1dedd3da683",
+    "to": "c_8d513b41a5338179",
+    "action": "adjudicated_merge",
+    "reviewer": "ai-council-claude-20260612",
+    "reason": "[council 20260612] 建筑垃圾减量化与资源化利用技术: 2026教材仅存在一处 3.7 智能建造新技术 (卷9-166, p148-151, PDF绝对页156-159); 两个alias码指向同一段教材正文, 不存在第二处可区分的知识内容"
+  },
+  {
+    "from": "c_6e2987642dea5c22",
+    "to": "c_599b45d792b0ebae",
+    "action": "adjudicated_merge",
+    "reviewer": "ai-council-claude-20260612",
+    "reason": "[council 20260612] 施工现场太阳能、空气能利用技术: 2026教材仅存在一处 3.7 智能建造新技术 (卷9-166, p148-151, PDF绝对页156-159); 两个alias码指向同一段教材正文, 不存在第二处可区分的知识内容"
+  },
+  {
+    "from": "c_c3911ecd4e0ba8d0",
+    "to": "c_136f4461e845deea",
+    "action": "adjudicated_merge",
+    "reviewer": "ai-council-claude-20260612",
+    "reason": "[council 20260612] 施工扬尘控制技术: 2026教材仅存在一处 3.7 智能建造新技术 (卷9-166, p148-151, PDF绝对页156-159); 两个alias码指向同一段教材正文, 不存在第二处可区分的知识内容"
+  },
+  {
+    "from": "c_20804c3458e8f885",
+    "to": "c_c43b11200f8dff40",
+    "action": "adjudicated_merge",
+    "reviewer": "ai-council-claude-20260612",
+    "reason": "[council 20260612] 施工噪声控制技术: 2026教材仅存在一处 3.7 智能建造新技术 (卷9-166, p148-151, PDF绝对页156-159); 两个alias码指向同一段教材正文, 不存在第二处可区分的知识内容"
+  },
+  {
+    "from": "c_59a758fa5e02a2c6",
+    "to": "c_8891d0d43aa3a115",
+    "action": "adjudicated_merge",
+    "reviewer": "ai-council-claude-20260612",
+    "reason": "[council 20260612] 工具式定型化临时设施技术: 2026教材仅存在一处 3.7 智能建造新技术 (卷9-166, p148-151, PDF绝对页156-159); 两个alias码指向同一段教材正文, 不存在第二处可区分的知识内容"
+  },
+  {
+    "from": "c_af35c5bf68c15212",
+    "to": "c_2a78e381fdd4f533",
+    "action": "adjudicated_merge",
+    "reviewer": "ai-council-claude-20260612",
+    "reason": "[council 20260612] 垃圾管道垂直运输技术: 2026教材仅存在一处 3.7 智能建造新技术 (卷9-166, p148-151, PDF绝对页156-159); 两个alias码指向同一段教材正文, 不存在第二处可区分的知识内容"
+  },
+  {
+    "from": "c_ec3bf3c647d354b4",
+    "to": "c_6af690f251838b43",
+    "action": "adjudicated_merge",
+    "reviewer": "ai-council-claude-20260612",
+    "reason": "[council 20260612] 现场施工管理信息技术: 2026教材仅存在一处 3.7 智能建造新技术 (卷9-166, p148-151, PDF绝对页156-159); 两个alias码指向同一段教材正文, 不存在第二处可区分的知识内容"
+  },
+  {
+    "from": "c_0c7825e5d8680cd7",
+    "to": "c_5a7ccb1eeb65b00f",
+    "action": "adjudicated_merge",
+    "reviewer": "ai-council-claude-20260612",
+    "reason": "[council 20260612] 项目成本分析与控制信息技术: 2026教材仅存在一处 3.7 智能建造新技术 (卷9-166, p148-151, PDF绝对页156-159); 两个alias码指向同一段教材正文, 不存在第二处可区分的知识内容"
+  },
+  {
+    "from": "c_ee917a66d30c7ee9",
+    "to": "c_67e0c1c27fe62d8f",
+    "action": "adjudicated_merge",
+    "reviewer": "ai-council-claude-20260612",
+    "reason": "[council 20260612] 电子商务采购技术: 2026教材仅存在一处 3.7 智能建造新技术 (卷9-166, p148-151, PDF绝对页156-159); 两个alias码指向同一段教材正文, 不存在第二处可区分的知识内容"
+  },
+  {
+    "from": "c_2b01e7f02b522d0f",
+    "to": "c_66ad6056f5008e30",
+    "action": "adjudicated_merge",
+    "reviewer": "ai-council-claude-20260612",
+    "reason": "[council 20260612] 项目多方协同管理技术: 2026教材仅存在一处 3.7 智能建造新技术 (卷9-166, p148-151, PDF绝对页156-159); 两个alias码指向同一段教材正文, 不存在第二处可区分的知识内容"
+  },
+  {
+    "from": "c_915cbfe93a2f6482",
+    "to": "c_d5f952de55c1f9e3",
+    "action": "adjudicated_merge",
+    "reviewer": "ai-council-claude-20260612",
+    "reason": "[council 20260612] 项目物资全过程监管技术: 2026教材仅存在一处 3.7 智能建造新技术 (卷9-166, p148-151, PDF绝对页156-159); 两个alias码指向同一段教材正文, 不存在第二处可区分的知识内容"
+  },
+  {
+    "from": "c_c7ca2004a45ded17",
+    "to": "c_5740b5bcaa391250",
+    "action": "adjudicated_merge",
+    "reviewer": "ai-council-claude-20260612",
+    "reason": "[council 20260612] 劳务工人信息管理技术: 2026教材仅存在一处 3.7 智能建造新技术 (卷9-166, p148-151, PDF绝对页156-159); 两个alias码指向同一段教材正文, 不存在第二处可区分的知识内容"
+  },
+  {
+    "from": "c_5d7bafca97b79266",
+    "to": "c_0f6f20ce8881d6d9",
+    "action": "adjudicated_merge",
+    "reviewer": "ai-council-claude-20260612",
+    "reason": "[council 20260612] 建筑垃圾监管技术: 2026教材仅存在一处 3.7 智能建造新技术 (卷9-166, p148-151, PDF绝对页156-159); 两个alias码指向同一段教材正文, 不存在第二处可区分的知识内容"
+  }
+]
