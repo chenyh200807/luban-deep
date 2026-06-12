@@ -153,6 +153,36 @@ def test_batch_relink_flags_ambiguous_runner_up(tmp_path: Path) -> None:
     assert relinked["ambiguous_runner_up"] is True
 
 
+def test_batch_relink_accepts_list_corpus_and_respects_exclusions(tmp_path: Path) -> None:
+    book_payload = json.loads(_book(tmp_path).read_text(encoding="utf-8"))
+    lecture = tmp_path / "lecture_page.json"
+    lecture.write_text(json.dumps(book_payload["content_blocks"], ensure_ascii=False), encoding="utf-8")
+
+    report = build_batch_relink_candidates(
+        runtime_token_pack=_pack(),
+        audit=_audit(),
+        taxonomy=_taxonomy(),
+        book_files=[lecture],
+        source_root=tmp_path,
+        min_keyword_overlap=0.6,
+    )
+    assert report["summary"]["relinked_unit_count"] == 1
+
+    blocked = build_batch_relink_candidates(
+        runtime_token_pack=_pack(),
+        audit=_audit(),
+        taxonomy=_taxonomy(),
+        book_files=[lecture],
+        source_root=tmp_path,
+        min_keyword_overlap=0.6,
+        excluded_chunks={"u_bad": {"chunk_stone"}},
+        patched_version="v_custom",
+    )
+    assert blocked["summary"]["relinked_unit_count"] == 0
+    assert blocked["unresolved_work_orders"][0]["unit_id"] in ("u_bad", "u_orphan")
+    assert blocked.get("patched_runtime_token_pack") is None
+
+
 def test_batch_relink_preserves_safety_and_input_pack(tmp_path: Path) -> None:
     pack = _pack()
     report = build_batch_relink_candidates(

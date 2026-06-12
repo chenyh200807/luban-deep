@@ -88,6 +88,15 @@ def _read_json(path: Path) -> dict[str, Any]:
     return payload
 
 
+def _read_corpus_payload(path: Path) -> dict[str, Any]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if isinstance(payload, list):
+        return {"content_blocks": payload}
+    if isinstance(payload, dict):
+        return payload
+    raise ValueError(f"{path} must contain a JSON object or list")
+
+
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -96,7 +105,7 @@ def _write_json(path: Path, payload: dict[str, Any]) -> None:
 def _load_chunks(book_files: list[Path], source_root: Path) -> list[dict[str, Any]]:
     chunks: list[dict[str, Any]] = []
     for path in book_files:
-        payload = _read_json(path)
+        payload = _read_corpus_payload(path)
         file_sha = hashlib.sha256(path.read_bytes()).hexdigest()
         try:
             relative = str(path.relative_to(source_root))
@@ -106,6 +115,8 @@ def _load_chunks(book_files: list[Path], source_root: Path) -> list[dict[str, An
             if not isinstance(block, dict) or not block.get("chunk_id"):
                 continue
             content = str(block.get("content_markdown") or "")
+            if not content.strip():
+                continue
             cards_text = json.dumps(block.get("knowledge_cards") or [], ensure_ascii=False)
             chunks.append(
                 {
@@ -121,11 +132,17 @@ def _load_chunks(book_files: list[Path], source_root: Path) -> list[dict[str, An
     return chunks
 
 
-def _best_chunks(keywords: list[str], chunks: list[dict[str, Any]]) -> tuple[dict[str, Any] | None, float, float]:
+def _best_chunks(
+    keywords: list[str],
+    chunks: list[dict[str, Any]],
+    excluded_chunk_ids: set[str] | None = None,
+) -> tuple[dict[str, Any] | None, float, float]:
     best: dict[str, Any] | None = None
     best_score = 0.0
     runner_up = 0.0
     for entry in chunks:
+        if excluded_chunk_ids and entry["chunk_id"] in excluded_chunk_ids:
+            continue
         score, _ = _keyword_overlap(keywords, entry["search_text"])
         if score > best_score:
             runner_up = best_score
@@ -144,6 +161,8 @@ def build_batch_relink_candidates(
     source_root: Path,
     min_keyword_overlap: float = 0.6,
     tiers: tuple[str, ...] = ("pollution_suspect",),
+    excluded_chunks: dict[str, set[str]] | None = None,
+    patched_version: str = PATCHED_VERSION,
 ) -> dict[str, Any]:
     blockers: list[str] = []
     if runtime_token_pack.get("schema") != RUNTIME_SCHEMA:
@@ -193,7 +212,11 @@ def build_batch_relink_candidates(
                 )
                 continue
 
-            best, best_score, runner_up = _best_chunks(leaf_entry["keywords"], chunks)
+            best, best_score, runner_up = _best_chunks(
+                leaf_entry["keywords"],
+                chunks,
+                (excluded_chunks or {}).get(unit_id),
+            )
             min_hits = min(2, len(leaf_entry["keywords"]))
             hits = [kw for kw in leaf_entry["keywords"] if best is not None and kw in best["search_text"]]
             if best is None or best_score < min_keyword_overlap or len(hits) < min_hits:
@@ -258,7 +281,7 @@ def build_batch_relink_candidates(
     if not blockers and repaired_units:
         patched_pack = {
             **runtime_token_pack,
-            "version": PATCHED_VERSION,
+            "version": patched_version,
             "runtime_token_pack_units": [
                 repaired_units.get(str(u.get("unit_id")), u)
                 for u in runtime_token_pack.get("runtime_token_pack_units") or []
