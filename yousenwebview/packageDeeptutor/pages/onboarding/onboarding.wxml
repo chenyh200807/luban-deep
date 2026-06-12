@@ -4,8 +4,10 @@
   bindtouchend="onPageTouchEnd"
   bindtouchcancel="onPageTouchCancel"
 >
-  <view class="pastel-field"></view>
-  <view class="grid-bg"></view>
+  <view class="aurora a1"></view>
+  <view class="aurora a2"></view>
+  <view class="aurora a3"></view>
+  <view class="grain"></view>
   <view class="wave-overlay {{actId !== 'wave' ? 'recede' : ''}}"></view>
 
   <view class="page-shell" style="padding-top: {{statusBarHeight}}px; padding-bottom: {{safeBottom + 22}}px">
@@ -32,26 +34,33 @@
       ></view>
     </view>
 
-    <!-- 幕 1: 文字 Hook（wave 幕期间预渲染，色浪退潮直接露出） -->
+    <!-- 幕 1: 文字 Hook —— 逐字 mask-rise，第二行关键词金色辉光 -->
     <view
       class="hook-stage {{fx.hookPlay ? 'play' : ''}} {{fx.hookAccent ? 'accent-on' : ''}}"
       wx:if="{{actId === 'wave' || actId === 'hook'}}"
     >
-      <view class="hook-line">
+      <view class="rise-line" wx:for="{{hookLines}}" wx:for-item="line" wx:for-index="li" wx:key="li">
         <text
-          wx:for="{{hookWords}}"
+          wx:for="{{line}}"
           wx:key="index"
-          class="hook-word {{item.accent ? 'is-accent' : ''}}"
-          style="animation-delay: {{index * 110}}ms"
-        >{{item.t}}</text>
+          class="rise-char {{item.accent ? 'is-accent' : ''}}"
+          style="animation-delay: {{item.d}}ms"
+        >{{item.c}}</text>
       </view>
     </view>
 
-    <!-- 幕 2: 判分时刻 —— 一张会动的判分卡，没有别的 -->
+    <!-- 幕 2: 判分时刻 -->
     <view class="act-stage" wx:if="{{actId === 'grade'}}">
-      <view class="story-copy {{fx.copyIn ? '' : 'fx-hold'}}">
-        <text class="scene-kicker">{{activeSlide.kicker}}</text>
-        <text class="scene-title">{{activeSlide.title}}</text>
+      <view class="story-copy {{fx.copyIn ? 'play' : ''}}">
+        <view class="scene-kicker"><text>{{activeSlide.kicker}}</text></view>
+        <view class="rise-line title-line">
+          <text
+            wx:for="{{activeSlide.titleChars}}"
+            wx:key="index"
+            class="rise-char title-char"
+            style="animation-delay: {{item.d}}ms"
+          >{{item.c}}</text>
+        </view>
       </view>
       <view class="product-stage score-stage {{fx.stageIn ? '' : 'fx-hold'}}">
         <view class="product-head">
@@ -80,11 +89,18 @@
       </view>
     </view>
 
-    <!-- 幕 3: 错因闭环 —— 一条会生长的弱项 + 下一题 -->
+    <!-- 幕 3: 错因闭环 -->
     <view class="act-stage" wx:if="{{actId === 'loop'}}">
-      <view class="story-copy {{fx.copyIn ? '' : 'fx-hold'}}">
-        <text class="scene-kicker">{{activeSlide.kicker}}</text>
-        <text class="scene-title">{{activeSlide.title}}</text>
+      <view class="story-copy {{fx.copyIn ? 'play' : ''}}">
+        <view class="scene-kicker"><text>{{activeSlide.kicker}}</text></view>
+        <view class="rise-line title-line">
+          <text
+            wx:for="{{activeSlide.titleChars}}"
+            wx:key="index"
+            class="rise-char title-char"
+            style="animation-delay: {{item.d}}ms"
+          >{{item.c}}</text>
+        </view>
       </view>
       <view class="product-stage train-stage {{fx.stageIn ? '' : 'fx-hold'}}">
         <view class="weak-item">
@@ -99,11 +115,15 @@
     </view>
 
     <!-- 幕 4: CTA 收束 -->
-    <view class="cta-stage" wx:if="{{actId === 'cta'}}">
-      <view class="cta-head fx-pop {{fx.ctaTitle ? 'on' : ''}}">
-        <text class="cta-kicker">先体验导学</text>
-        <text class="cta-title">让每一分</text>
-        <text class="cta-title cta-title-accent">都有据可依</text>
+    <view class="cta-stage {{fx.ctaTitle ? 'play' : ''}}" wx:if="{{actId === 'cta'}}">
+      <view class="scene-kicker cta-kicker"><text>先体验导学</text></view>
+      <view class="rise-line cta-line" wx:for="{{ctaLines}}" wx:for-item="line" wx:for-index="li" wx:key="li">
+        <text
+          wx:for="{{line}}"
+          wx:key="index"
+          class="rise-char cta-char {{item.accent ? 'is-accent' : ''}}"
+          style="animation-delay: {{item.d}}ms"
+        >{{item.c}}</text>
       </view>
     </view>
 

@@ -4,19 +4,46 @@ var runtime = require("../../utils/runtime");
 var motion = require("../../utils/motion-timeline");
 var SCENES = require("./motion-script");
 
-// Less is more：每幕只有 accent 配色 + 一组极简文案，无信息堆叠。
+// 逐字 mask-rise 用：把文案拆成 [{c, accent, d}]，d 为该字的动画延迟(ms)。
+function riseChars(text, accentStart, accentEnd, baseDelay, step) {
+  var arr = [];
+  for (var i = 0; i < text.length; i++) {
+    arr.push({
+      c: text.charAt(i),
+      accent: accentStart != null && i >= accentStart && i < accentEnd,
+      d: (baseDelay || 0) + i * (step || 55),
+    });
+  }
+  return arr;
+}
+
+// Less is more：每幕只有 accent 配色 + 一组极简文案。
 var ACTS = [
   { id: "hook", accent: "blue" },
-  { id: "grade", accent: "green", kicker: "鲁班看你写的每一句", title: "哪句能得分？" },
-  { id: "loop", accent: "gold", kicker: "错题不会白错", title: "错因，变成下一题。" },
+  {
+    id: "grade",
+    accent: "green",
+    kicker: "鲁班看你写的每一句",
+    titleChars: riseChars("哪句能得分？", null, 0, 0, 50),
+  },
+  {
+    id: "loop",
+    accent: "gold",
+    kicker: "错题不会白错",
+    titleChars: riseChars("错因，变成下一题。", null, 0, 0, 50),
+  },
 ];
 
-// 幕 1 文字 Hook（kinetic typography 用，逐词渲染）
-var HOOK_WORDS = [
-  { t: "一建实务案例题，" },
-  { t: "到底" },
-  { t: "怎么拿分", accent: true },
-  { t: "？" },
+// 幕 1 文字 Hook：两行，第二行「怎么拿分」金色高亮。
+var HOOK_LINES = [
+  riseChars("一建实务案例题，", null, 0, 0, 55),
+  riseChars("到底怎么拿分？", 2, 6, 420, 55),
+];
+
+// CTA 收束：第二行整行金色。
+var CTA_LINES = [
+  riseChars("让每一分", null, 0, 0, 60),
+  riseChars("都有据可依", 0, 5, 380, 60),
 ];
 
 // 幕 id → ACTS 下标（决定 accent 配色与文案）
@@ -30,7 +57,8 @@ Page({
   data: {
     statusBarHeight: 44,
     safeBottom: 0,
-    hookWords: HOOK_WORDS,
+    hookLines: HOOK_LINES,
+    ctaLines: CTA_LINES,
     pills: PILL_ACT_IDS,
     actId: "wave",
     actIndex: 0,
