@@ -155,6 +155,130 @@ def test_loader_missing_supply_fails_open(tmp_path: Path, monkeypatch: pytest.Mo
     assert rlr.get_rich_leaf_context("L1") is None
 
 
+# --------------------------- multi-leaf selection ---------------------------
+
+
+def _kw_unit(leaf_id: str, unit_id: str, *, name_path: str, keywords: list[str]) -> dict[str, Any]:
+    unit = _unit(leaf_id, unit_id)
+    unit["leaf_name_path"] = name_path
+    unit["compiled_context"]["exam_patterns"] = [
+        json.dumps({"id": "EP1", "description": "考点？", "grading_keywords": keywords}, ensure_ascii=False)
+    ]
+    return unit
+
+
+def _multi_supply(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    _install_supply(
+        tmp_path,
+        monkeypatch,
+        _pack(
+            [
+                _kw_unit("L-PRIMARY", "u1", name_path="技术 > 防水", keywords=["屋面防水"]),
+                _kw_unit("L-RARE", "u2", name_path="技术 > 脚手架", keywords=["连墙件"]),
+                _kw_unit("L-COMMON-A", "u3", name_path="管理 > 质量甲", keywords=["质量验收"]),
+                _kw_unit("L-COMMON-B", "u4", name_path="管理 > 质量乙", keywords=["质量验收"]),
+                _kw_unit("L-NOHIT", "u5", name_path="法规 > 其他", keywords=["招标投标"]),
+            ],
+            quarantined=[],
+        ),
+    )
+
+
+def test_multi_leaf_primary_first_and_idf_prefers_rare_keyword(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _multi_supply(tmp_path, monkeypatch)
+    terms = ["连墙件", "质量验收"]
+    out = rlr.get_rich_leaf_contexts(terms, ["L-PRIMARY"], top_k=3)
+    ids = [c["leaf_id"] for c in out]
+    # primary first; the rare keyword (df=1) outweighs the common one (df=2)
+    assert ids[0] == "L-PRIMARY"
+    assert ids[1] == "L-RARE"
+    assert len(ids) == 3 and ids[2] in ("L-COMMON-A", "L-COMMON-B")
+    # tie between common leaves breaks deterministically by leaf_id
+    assert ids[2] == "L-COMMON-A"
+    # deterministic across calls
+    assert [c["leaf_id"] for c in rlr.get_rich_leaf_contexts(terms, ["L-PRIMARY"], top_k=3)] == ids
+    # every context keeps the teaching-tier shape
+    assert all(c["official_score_allowed"] is False for c in out)
+
+
+def test_multi_leaf_top_k_truncates_and_no_hit_leaves_excluded(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _multi_supply(tmp_path, monkeypatch)
+    out = rlr.get_rich_leaf_contexts(["连墙件", "质量验收"], ["L-PRIMARY"], top_k=2)
+    assert [c["leaf_id"] for c in out] == ["L-PRIMARY", "L-RARE"]
+    # zero-score leaves never selected even with budget left
+    out_wide = rlr.get_rich_leaf_contexts(["连墙件"], ["L-PRIMARY"], top_k=5)
+    assert [c["leaf_id"] for c in out_wide] == ["L-PRIMARY", "L-RARE"]
+
+
+def test_multi_leaf_primary_miss_and_empty_results(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _multi_supply(tmp_path, monkeypatch)
+    # primary not in bundle -> supplements still selected by terms
+    out = rlr.get_rich_leaf_contexts(["连墙件"], ["ZZ-NOPE"], top_k=3)
+    assert [c["leaf_id"] for c in out] == ["L-RARE"]
+    # no primary hit + no term hit -> empty (caller attaches nothing)
+    assert rlr.get_rich_leaf_contexts(["不存在词"], ["ZZ-NOPE"], top_k=3) == []
+    assert rlr.get_rich_leaf_contexts([], [], top_k=3) == []
+
+
+def test_multi_leaf_single_leaf_backward_compatible(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _multi_supply(tmp_path, monkeypatch)
+    single = rlr.get_rich_leaf_context("L-PRIMARY")
+    assert rlr.get_rich_leaf_contexts([], ["L-PRIMARY"], top_k=1) == [single]
+    assert rlr.get_rich_leaf_contexts(["连墙件"], ["L-PRIMARY"], top_k=1) == [single]
+
+
+def test_multi_leaf_missing_supply_fails_open(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(rlr, "_SUPPLY_DIR", tmp_path / "absent")
+    rlr._load_index.cache_clear()
+    assert rlr.get_rich_leaf_contexts(["连墙件"], ["L-PRIMARY"]) == []
+
+
+# --------------------------- multi-block grounding renderer ---------------------------
+
+
+def test_format_pack_grounding_lines_multi_blocks_primary_always_and_cap_drops_supplements(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _multi_supply(tmp_path, monkeypatch)
+    riches = rlr.get_rich_leaf_contexts(["连墙件", "质量验收"], ["L-PRIMARY"], top_k=3)
+    pack = {"rich_leaf_contexts": riches}
+    lines = rlr.format_rich_leaf_pack_grounding_lines(pack)
+    text = "\n".join(lines)
+    assert text.count("富叶编译上下文") == 3
+    assert text.index("L-PRIMARY") < text.index("L-RARE") < text.index("L-COMMON-A")
+    # a tight cap keeps the primary block whole and drops supplement blocks
+    primary_only = rlr.format_rich_leaf_pack_grounding_lines(pack, max_chars=1)
+    assert "\n".join(primary_only).count("富叶编译上下文") == 1
+    assert "L-PRIMARY" in "\n".join(primary_only)
+    # env override is honored
+    monkeypatch.setenv(rlr.GROUNDING_MAX_CHARS_ENV, "1")
+    assert "\n".join(rlr.format_rich_leaf_pack_grounding_lines(pack)).count("富叶编译上下文") == 1
+
+
+def test_format_pack_grounding_lines_single_key_backward_compatible() -> None:
+    hit = {
+        "leaf_id": "L1",
+        "leaf_name_path": "路径 > L1",
+        "compiled_context": _unit("L1", "u1")["compiled_context"],
+    }
+    # legacy single rich_leaf_context key renders identically to the single-block renderer
+    assert rlr.format_rich_leaf_pack_grounding_lines({"rich_leaf_context": hit}) == (
+        rlr.format_rich_leaf_grounding_lines(hit)
+    )
+    # neither key -> [] (flag-off packs render byte-identically to legacy)
+    assert rlr.format_rich_leaf_pack_grounding_lines({}) == []
+    assert rlr.format_rich_leaf_pack_grounding_lines(None) == []
+    assert rlr.format_rich_leaf_pack_grounding_lines({"rich_leaf_contexts": ["garbage", 42]}) == []
+
+
 # --------------------------- env flag ---------------------------
 
 
@@ -197,6 +321,7 @@ def test_flag_off_resolve_general_knowledge_is_unchanged(
     out = gk.resolve_general_knowledge_context("高层住宅的建筑高度是怎么界定的？")
     assert out is not None
     assert "rich_leaf_context" not in out  # flag off -> no new key, legacy pack shape exactly
+    assert "rich_leaf_contexts" not in out
 
 
 def test_flag_on_attaches_rich_leaf_context_and_grounding_renders_it(
@@ -209,17 +334,21 @@ def test_flag_on_attaches_rich_leaf_context_and_grounding_renders_it(
     assert baseline is not None
     leaf = baseline["classified_leaf"]
 
-    _install_supply(tmp_path, monkeypatch, _pack([_unit(leaf, "u1")], quarantined=[]))
+    supplement = _kw_unit("L-SUPP", "u2", name_path="技术 > 高层住宅补充", keywords=["高层住宅"])
+    _install_supply(tmp_path, monkeypatch, _pack([_unit(leaf, "u1"), supplement], quarantined=[]))
     monkeypatch.setenv(rlr.ENV_FLAG, "true")
     out = gk.resolve_general_knowledge_context("高层住宅的建筑高度是怎么界定的？")
     assert out is not None
-    rich = out.get("rich_leaf_context")
-    assert isinstance(rich, dict) and rich["leaf_id"] == leaf
-    assert rich["official_score_allowed"] is False
+    riches = out.get("rich_leaf_contexts")
+    assert isinstance(riches, list) and riches
+    assert riches[0]["leaf_id"] == leaf  # primary (classified leaf) first
+    assert [r["leaf_id"] for r in riches[1:]] == ["L-SUPP"]  # query-term supplement follows
+    assert all(r["official_score_allowed"] is False for r in riches)
     # rich context renders into the grounding, before the four-source items
     grounding = gk.format_general_knowledge_grounding(out)
     assert "富叶编译上下文" in grounding
     assert grounding.index("富叶编译上下文") < grounding.index("- [教材")
+    assert "L-SUPP" in grounding
     # legacy pack fields are untouched (additive key only)
     for key in ("classified_leaf", "sources", "confidence", "official_score_allowed"):
         assert out[key] == baseline[key]
@@ -236,3 +365,4 @@ def test_flag_on_miss_fails_open_to_legacy_chain(
     out = gk.resolve_general_knowledge_context("高层住宅的建筑高度是怎么界定的？")
     assert out is not None
     assert "rich_leaf_context" not in out
+    assert "rich_leaf_contexts" not in out

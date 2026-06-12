@@ -18,6 +18,7 @@ from __future__ import annotations
 from functools import lru_cache
 import json
 import logging
+import math
 from pathlib import Path
 from typing import Any
 
@@ -166,6 +167,62 @@ def get_rich_leaf_context(leaf_code: str) -> dict[str, Any] | None:
     }
 
 
+def _leaf_match_text(record: dict[str, Any]) -> str:
+    """Matchable text for one bundle record: name path + compiled grading keywords (bundle-internal
+    signals only — no second retrieval authority)."""
+    parts = [str(record.get("leaf_name_path") or "")]
+    compiled = record.get("compiled_context") if isinstance(record.get("compiled_context"), dict) else {}
+    for raw in compiled.get("exam_patterns") or []:
+        item = _parse_item(raw)
+        parts.extend(str(k) for k in (item.get("grading_keywords") or []) if str(k).strip())
+    return " ".join(parts).lower()
+
+
+def get_rich_leaf_contexts(
+    query_terms: list[str], leaf_codes: list[str], *, top_k: int = 3
+) -> list[dict[str, Any]]:
+    """Resolve a multi-leaf TEACHING context list: primary leaves (classification hits, in order)
+    first, then up to ``top_k - len(primaries)`` supplement leaves picked by deterministic
+    IDF-weighted query-term hits against bundle leaf names/keywords (no LLM call). Cross-knowledge
+    case questions get the supplements a single classified leaf cannot cover. Empty list -> fall
+    open (caller attaches nothing). Quarantined units are never in the bundle, so never selected."""
+    index = _load_index()
+    if not index:
+        return []
+    seen: set[str] = set()
+    contexts: list[dict[str, Any]] = []
+    for code in leaf_codes or []:
+        leaf = str(code or "").strip()
+        if not leaf or leaf in seen:
+            continue
+        seen.add(leaf)
+        context = get_rich_leaf_context(leaf)
+        if context is not None:
+            contexts.append(context)
+    budget = max(0, int(top_k) - len(contexts))
+    terms = [t for t in dict.fromkeys(str(t or "").strip().lower() for t in query_terms or []) if t]
+    if budget and terms:
+        texts = {leaf: _leaf_match_text(record) for leaf, record in index.items()}
+        n_leaves = max(1, len(texts))
+        df = {term: sum(1 for text in texts.values() if term in text) for term in terms}
+        # IDF weighting (same idea as canonical_taxonomy._kw_weight): a term hitting many
+        # leaves is a weak signal; a rare term dominates.
+        weights = {term: math.log(1 + n_leaves / count) for term, count in df.items() if count}
+        scored: list[tuple[float, str]] = []
+        for leaf, text in texts.items():
+            if leaf in seen:
+                continue
+            score = sum(weight for term, weight in weights.items() if term in text)
+            if score > 0:
+                scored.append((-score, leaf))
+        scored.sort()
+        for _, leaf in scored[:budget]:
+            context = get_rich_leaf_context(leaf)
+            if context is not None:
+                contexts.append(context)
+    return contexts
+
+
 def _clip(value: Any, *, limit: int = 700) -> str:
     text = str(value or "").strip()
     return text if len(text) <= limit else text[: limit - 1] + "…"
@@ -223,13 +280,62 @@ def format_rich_leaf_grounding_lines(rich: dict[str, Any] | None) -> list[str]:
     return [header, leaf_line, *body]
 
 
+GROUNDING_MAX_CHARS_ENV = "LUBAN_RICH_LEAF_GROUNDING_MAX_CHARS"
+DEFAULT_GROUNDING_MAX_CHARS = 1200
+
+
+def _grounding_max_chars(override: int | None) -> int:
+    if override is not None:
+        return int(override)
+    import os
+
+    raw = os.environ.get(GROUNDING_MAX_CHARS_ENV, "").strip()
+    try:
+        return int(raw) if raw else DEFAULT_GROUNDING_MAX_CHARS
+    except ValueError:
+        return DEFAULT_GROUNDING_MAX_CHARS
+
+
+def format_rich_leaf_pack_grounding_lines(
+    pack: dict[str, Any] | None, *, max_chars: int | None = None
+) -> list[str]:
+    """Render a resolved pack's rich-leaf grounding: multi-leaf ``rich_leaf_contexts`` (primary
+    block first) when present, else the legacy single ``rich_leaf_context`` — the ONE rendering
+    policy seam for both grounding renderers. The first (primary) block always renders whole;
+    each supplement block renders only while the running total stays within ``max_chars``
+    (default 1200, env-overridable) so multi-leaf grounding cannot explode the token budget.
+    Missing/malformed input -> [] (caller output stays byte-identical to legacy rendering)."""
+    if not isinstance(pack, dict):
+        return []
+    riches = pack.get("rich_leaf_contexts")
+    if not isinstance(riches, list) or not riches:
+        return format_rich_leaf_grounding_lines(pack.get("rich_leaf_context"))
+    limit = _grounding_max_chars(max_chars)
+    lines: list[str] = []
+    total = 0
+    for rich in riches:
+        block = format_rich_leaf_grounding_lines(rich if isinstance(rich, dict) else None)
+        if not block:
+            continue
+        block_chars = sum(len(line) + 1 for line in block)
+        if lines and total + block_chars > limit:
+            break
+        lines.extend(block)
+        total += block_chars
+    return lines
+
+
 __all__ = [
     "AUTHORITY",
     "BUNDLE_SCHEMA",
+    "DEFAULT_GROUNDING_MAX_CHARS",
     "ENV_FLAG",
+    "GROUNDING_MAX_CHARS_ENV",
     "PACK_SCHEMA",
     "build_runtime_supply_bundle",
     "format_rich_leaf_grounding_lines",
+    "format_rich_leaf_pack_grounding_lines",
     "get_rich_leaf_context",
+    "get_rich_leaf_contexts",
     "rich_leaf_runtime_enabled",
 ]

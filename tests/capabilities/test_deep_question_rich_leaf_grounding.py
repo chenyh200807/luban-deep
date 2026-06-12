@@ -64,3 +64,24 @@ def test_malformed_rich_key_fails_open_to_legacy_rendering() -> None:
         pack = _legacy_pack()
         pack["rich_leaf_context"] = copy.deepcopy(bad)
         assert dq._format_general_knowledge_grounding(pack) == base
+
+
+def test_rich_leaf_contexts_list_renders_multi_blocks_primary_first() -> None:
+    primary = _rich_block()
+    supplement = copy.deepcopy(_rich_block())
+    supplement["leaf_id"] = "1A411011-B099"
+    supplement["leaf_name_path"] = "建筑工程技术 > 防水工程 > 屋面防水"
+    pack = _legacy_pack()
+    pack["rich_leaf_contexts"] = [primary, supplement]
+    text = dq._format_general_knowledge_grounding(pack)
+    assert text.count("富叶编译上下文") == 2
+    assert text.index("1A411011-B054") < text.index("1A411011-B099")  # primary block first
+    assert text.index("1A411011-B099") < text.index("建筑高度大于27m")  # all rich blocks precede source items
+
+
+def test_malformed_rich_contexts_list_fails_open_to_legacy_rendering() -> None:
+    base = dq._format_general_knowledge_grounding(_legacy_pack())
+    for bad in ("garbage", 42, ["garbage", 42], [{"compiled_context": {}}], []):
+        pack = _legacy_pack()
+        pack["rich_leaf_contexts"] = copy.deepcopy(bad)
+        assert dq._format_general_knowledge_grounding(pack) == base

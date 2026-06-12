@@ -624,9 +624,10 @@ def format_general_knowledge_grounding(pack: dict[str, Any] | None) -> str:
         f"知识点路径：{pack.get('leaf_name_path') or pack.get('resolved_anchor') or ''}",
         f"置信策略：{confidence.get('policy') or CONFIDENCE_POLICY} / {confidence.get('reason') or 'high'}",
     ]
-    # rich-leaf compiled context renders FIRST when present (flag-gated upstream; absent key ->
-    # byte-identical legacy rendering). Rendering policy lives in rich_leaf_runtime (single place).
-    lines.extend(_RLR.format_rich_leaf_grounding_lines(pack.get("rich_leaf_context")))
+    # rich-leaf compiled context renders FIRST when present (flag-gated upstream; absent keys ->
+    # byte-identical legacy rendering). Rendering policy lives in rich_leaf_runtime (single place):
+    # multi-leaf "rich_leaf_contexts" (primary first, char-capped) or legacy single key.
+    lines.extend(_RLR.format_rich_leaf_pack_grounding_lines(pack))
     for source_key in SOURCE_KEYS:
         raw_items = sources.get(source_key) or []
         if not isinstance(raw_items, list):
@@ -731,11 +732,15 @@ def resolve_general_knowledge_context(
                 # ADDITIVE only and flag-gated (default OFF -> the pack above is byte-identical to
                 # legacy); a miss / unavailable supply falls open to the legacy four-source chain.
                 # The existing confidence gate above stays the routing authority — rich leaf only
-                # supplies richer compiled CONTENT for the already-classified leaf.
+                # supplies richer compiled CONTENT: the classified primary leaf first, plus
+                # deterministic query-term supplement leaves for cross-knowledge case questions.
                 if _RLR.rich_leaf_runtime_enabled():
-                    rich = _RLR.get_rich_leaf_context(candidate_code)
-                    if rich is not None:
-                        resolved_pack["rich_leaf_context"] = rich
+                    riches = _RLR.get_rich_leaf_contexts(
+                        [str(term) for term in (query_plan.get("query_terms") or [])],
+                        [candidate_code],
+                    )
+                    if riches:
+                        resolved_pack["rich_leaf_contexts"] = riches
                 return resolved_pack
     return None
 
