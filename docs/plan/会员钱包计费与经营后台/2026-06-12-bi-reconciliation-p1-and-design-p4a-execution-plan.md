@@ -8,7 +8,7 @@
 
 **Tech Stack:** Python 3.11+ / httpx / pytest（fixture 驱动，无网络测试）；设计板为纯静态 HTML + ECharts 6 CDN。
 
-**Status:** `Draft`（执行中逐 task 勾选）
+**Status:** `Done (2026-06-12)`——P1 Tasks 1-8 与 P4a Tasks 9-10 全部完成；live 取证报告见 artifacts/bi_reconciliation_20260612/，方向定稿见 2026-06-12-bi-vnext-design-direction-decision.md
 
 **硬边界（来自 AGENTS.md 与设计 spec）：**
 - harness 全程只读；阿里云上任何写入仅限 `/root/deeptutor` 内（§3.7）。
@@ -59,7 +59,7 @@ docs/plan/会员钱包计费与经营后台/
 - Create: `scripts/bi_reconciliation/mapping.py`
 - Test: `tests/scripts/bi_reconciliation/test_mapping.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/scripts/bi_reconciliation/test_mapping.py
@@ -86,12 +86,12 @@ def test_mapping_by_id_raises_on_unknown():
         mapping_by_id("nonexistent_metric")
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `python -m pytest tests/scripts/bi_reconciliation/test_mapping.py -v`
 Expected: FAIL with `ModuleNotFoundError: No module named 'scripts.bi_reconciliation'`
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 ```python
 # scripts/bi_reconciliation/types.py
@@ -199,12 +199,12 @@ def mapping_by_id(metric_id: str) -> MetricMapping:
 
 > 注意：`bi_api_path` 的具体取值在 Task 2 录制真实 payload 后**必须回校**——以实拍 JSON 结构为准修正路径表达式，本表初值是占位锚点，Task 2 Step 4 有显式回校步骤。
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `python -m pytest tests/scripts/bi_reconciliation/test_mapping.py -v`
 Expected: 3 PASS
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/bi_reconciliation/ tests/scripts/ scripts/__init__.py
@@ -220,7 +220,7 @@ git commit -m "feat(bi-recon): P1 对账 harness 类型与指标映射表（指�
 - Create: `tests/scripts/bi_reconciliation/fixtures/bi_members.json`
 - Test: `tests/scripts/bi_reconciliation/test_bi_api_source.py`
 
-- [ ] **Step 1: 录制真实 payload 作为 fixtures**
+- [x] **Step 1: 录制真实 payload 作为 fixtures**
 
 用 metrics token 实拍 test2（token 从阿里云 `/root/deeptutor/.env` 的 `DEEPTUTOR_METRICS_TOKEN` 读，或本地 `.env` 已有同值）：
 
@@ -234,7 +234,7 @@ done
 
 脱敏：人工检查 fixtures，把任何手机号/姓名字段替换为 `"<redacted>"`（保留结构与数值）。**此步同时回校 Task 1 的 `bi_api_path` 占位锚点**：对照真实 JSON 把 `mapping.py` 路径改为真实字段路径，若某指标在 payload 中根本不存在，把 `bi_api_path` 置空并写 `gap_note`（这本身就是一条 P1 发现）。
 
-- [ ] **Step 2: Write the failing test**
+- [x] **Step 2: Write the failing test**
 
 ```python
 # tests/scripts/bi_reconciliation/test_bi_api_source.py
@@ -276,12 +276,12 @@ def test_unregistered_kpi_labels_are_reported():
     assert isinstance(unknown, list)  # 内容断言在录制后按真实情况补充为精确断言
 ```
 
-- [ ] **Step 3: Run test to verify it fails**
+- [x] **Step 3: Run test to verify it fails**
 
 Run: `python -m pytest tests/scripts/bi_reconciliation/test_bi_api_source.py -v`
 Expected: FAIL（模块不存在）
 
-- [ ] **Step 4: 实现 extractor**
+- [x] **Step 4: 实现 extractor**
 
 `bi_api_source.py` 提供三个函数（实现细节按录制的真实 payload 结构写，原则如下）：
 
@@ -337,7 +337,7 @@ def find_unregistered_labels(payloads: dict[str, Any]) -> list[str]:
 
 `_resolve` / `_collect_kpi_labels` 按真实 payload 结构实现（录制后确定，函数必须对缺字段返回 `(None, reason)` 而不是抛异常——降级也是证据）。
 
-- [ ] **Step 5: Run tests，全部 PASS 后 Commit**
+- [x] **Step 5: Run tests，全部 PASS 后 Commit**
 
 ```bash
 python -m pytest tests/scripts/bi_reconciliation/ -v
@@ -354,7 +354,7 @@ git commit -m "feat(bi-recon): BI API 实拍取数器 + 注册表外标签检测
 
 说明：`langfuse_adapter.py` 只有写入能力，对账走 Langfuse Public API：`GET {host}/api/public/metrics/daily?fromTimestamp=...&toTimestamp=...`（basic auth = public_key:secret_key），返回逐日 `usage`（按 model 的 token/cost）与 `countTraces/countObservations`。
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```python
 # tests/scripts/bi_reconciliation/test_langfuse_source.py
@@ -388,11 +388,11 @@ def test_trace_counts_present():
 
 fixture 先手写最小合法样例（2 天数据，含 `data[].totalCost/countTraces/countObservations/usage[]`），live run 后用真实（脱敏）响应替换并把断言改精确。
 
-- [ ] **Step 2: Run test，确认 FAIL**
+- [x] **Step 2: Run test，确认 FAIL**
 
 Run: `python -m pytest tests/scripts/bi_reconciliation/test_langfuse_source.py -v`
 
-- [ ] **Step 3: 实现**
+- [x] **Step 3: 实现**
 
 ```python
 # scripts/bi_reconciliation/langfuse_source.py
@@ -442,7 +442,7 @@ def readings_from_daily_metrics(daily: dict[str, Any], window_days: int) -> list
 
 注意：`cost_per_effective_learning` / `success_turn_rate` 等**派生指标**在 Langfuse 侧给的是分量（cost、trace 数），engine 对这类指标做"分量级"而非"等值级"比较——见 Task 5 的 `comparison_mode`。若实现时发现等值比较没有意义，在 mapping 中把这些指标的 `langfuse_kind` 改为空 + `gap_note`，宁可显式缺源不可假对齐。
 
-- [ ] **Step 4: PASS 后 Commit**
+- [x] **Step 4: PASS 后 Commit**
 
 ```bash
 git add scripts/bi_reconciliation/langfuse_source.py tests/scripts/bi_reconciliation/
@@ -455,7 +455,7 @@ git commit -m "feat(bi-recon): Langfuse Public API 取数器（daily metrics 聚
 - Create: `scripts/bi_reconciliation/business_source.py`
 - Test: `tests/scripts/bi_reconciliation/test_business_source.py`
 
-- [ ] **Step 1: 先侦察真实表结构（只读）**
+- [x] **Step 1: 先侦察真实表结构（只读）**
 
 ```bash
 grep -rn 'canonical member\|is_test\|member_console' deeptutor/services/member_console*.py | head -20
@@ -465,7 +465,7 @@ sqlite3 data/runtime/product_behavior.db '.tables' 2>/dev/null || ssh aliyun "sq
 
 确认：会员 canonical 口径复用 `member_console` 服务的过滤逻辑（**不要**在 harness 里重新发明"真实会员"定义——直接 import 其过滤常量/函数；若不可 import，在 mapping 的 gap_note 标记口径复制风险）。行为库表名与列以实际 `.schema` 为准。
 
-- [ ] **Step 2: Write the failing test（sqlite fixture 内存库）**
+- [x] **Step 2: Write the failing test（sqlite fixture 内存库）**
 
 ```python
 # tests/scripts/bi_reconciliation/test_business_source.py
@@ -500,7 +500,7 @@ def test_behavior_counts():
 
 （event_type 取值在 Step 1 侦察后改为真实值；测试数据必须模拟真实 shape，参考记忆教训"测试别手搓假形状"——以真实 DDL/事件名为准。）
 
-- [ ] **Step 3: 实现 `business_source.py`**
+- [x] **Step 3: 实现 `business_source.py`**
 
 ```python
 # scripts/bi_reconciliation/business_source.py
@@ -549,7 +549,7 @@ def member_readings_from_supabase(rest_url: str, service_key: str, window_days: 
 
 `<members_table>` 与过滤条件在 Step 1 侦察后回填真实表名/filters（测试用 monkeypatch 替换 httpx 响应，断言 count 解析正确）。
 
-- [ ] **Step 4: PASS 后 Commit**
+- [x] **Step 4: PASS 后 Commit**
 
 ```bash
 git add scripts/bi_reconciliation/business_source.py tests/scripts/bi_reconciliation/
@@ -562,7 +562,7 @@ git commit -m "feat(bi-recon): 业务库取数器（行为 sqlite + Supabase 会
 - Create: `scripts/bi_reconciliation/engine.py`
 - Test: `tests/scripts/bi_reconciliation/test_engine.py`
 
-- [ ] **Step 1: Write the failing tests（verdict 分类规则全覆盖）**
+- [x] **Step 1: Write the failing tests（verdict 分类规则全覆盖）**
 
 ```python
 # tests/scripts/bi_reconciliation/test_engine.py
@@ -617,7 +617,7 @@ def test_none_values_treated_as_missing():
     assert "bi_api" in v.detail
 ```
 
-- [ ] **Step 2: FAIL 确认 → Step 3: 实现**
+- [x] **Step 2: FAIL 确认 → Step 3: 实现**
 
 ```python
 # scripts/bi_reconciliation/engine.py
@@ -657,7 +657,7 @@ def reconcile_metric(mapping: MetricMapping, readings: list[SourceReading]) -> M
 
 （`attribution_error` verdict 由人工在报告复核时从 `definition_mismatch` 升级标注——自动规则无法区分口径与归因，引擎不假装能。）
 
-- [ ] **Step 4: PASS 后 Commit**
+- [x] **Step 4: PASS 后 Commit**
 
 ```bash
 git add scripts/bi_reconciliation/engine.py tests/scripts/bi_reconciliation/test_engine.py
@@ -670,7 +670,7 @@ git commit -m "feat(bi-recon): 对账引擎——五类 verdict 自动分类，�
 - Create: `scripts/bi_reconciliation/report.py`
 - Test: `tests/scripts/bi_reconciliation/test_report.py`
 
-- [ ] **Step 1: failing test**
+- [x] **Step 1: failing test**
 
 ```python
 # tests/scripts/bi_reconciliation/test_report.py
@@ -702,11 +702,11 @@ def test_metric_dictionary_includes_registry_fields():
     assert sample["mapping"]["langfuse_kind"] == "daily_cost"
 ```
 
-- [ ] **Step 2: FAIL → Step 3: 实现**
+- [x] **Step 2: FAIL → Step 3: 实现**
 
 `build_report(verdicts, window_days, generated_at, unregistered_labels)` 返回 dict：`{schema_version: 1, generated_at, window_days, summary: {total, by_verdict}, metrics: [verdict 序列化], unregistered_labels}`。`render_markdown` 输出按 verdict 分组的表格（指标 / BI 值 / 真相值 / diff% / verdict / detail）。`build_metric_dictionary()` 联合 `BI_METRICS` 与 `METRIC_MAPPINGS` 输出字典数组（registry 全字段 + mapping 全字段）。`generated_at` 由调用方传入（不在库内取 `datetime.now`，保持纯函数可测）。
 
-- [ ] **Step 4: PASS 后 Commit**
+- [x] **Step 4: PASS 后 Commit**
 
 ```bash
 git add scripts/bi_reconciliation/report.py tests/scripts/bi_reconciliation/test_report.py
@@ -719,7 +719,7 @@ git commit -m "feat(bi-recon): 差异报告(JSON+MD)与指标字典生成器"
 - Create: `scripts/bi_reconciliation/run.py`
 - Test: `tests/scripts/bi_reconciliation/test_run_offline.py`
 
-- [ ] **Step 1: failing test（离线模式端到端）**
+- [x] **Step 1: failing test（离线模式端到端）**
 
 ```python
 # tests/scripts/bi_reconciliation/test_run_offline.py
@@ -740,12 +740,12 @@ def test_run_offline_produces_report(tmp_path):
     assert (out_dir / "metric_dictionary.json").exists()
 ```
 
-- [ ] **Step 2: FAIL → Step 3: 实现 run.py**
+- [x] **Step 2: FAIL → Step 3: 实现 run.py**
 
 `run_offline(fixtures_dir, out_root, window_days, generated_at)`：读 fixtures → 三源 extract（业务库源在离线模式跳过并记 missing）→ engine → report 落盘 `out_root/bi_reconciliation_<date>/`。
 `main(argv)`：argparse，`--mode live|offline`、`--bi-base-url`、`--window-days`、`--out`；live 模式从环境读 `DEEPTUTOR_METRICS_TOKEN` / `LANGFUSE_BASE_URL|LANGFUSE_HOST` / `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` / `SUPABASE_URL` / `SUPABASE_SERVICE_KEY`（缺哪个就跳过对应源并在报告标 missing_source，**不**硬失败——部分证据好过零证据）。
 
-- [ ] **Step 4: PASS 后 Commit**
+- [x] **Step 4: PASS 后 Commit**
 
 ```bash
 git add scripts/bi_reconciliation/run.py tests/scripts/bi_reconciliation/test_run_offline.py
@@ -757,13 +757,13 @@ git commit -m "feat(bi-recon): CLI 入口（live/offline 双模式）与离线�
 **Files:**
 - Create: `artifacts/bi_reconciliation_20260612/`（运行产物）
 
-- [ ] **Step 1: 全量测试过门**
+- [x] **Step 1: 全量测试过门**
 
 ```bash
 python -m pytest tests/scripts/bi_reconciliation/ -v   # 全 PASS
 ```
 
-- [ ] **Step 2: live run（凭据在阿里云，远端跑或本地带 env 跑）**
+- [x] **Step 2: live run（凭据在阿里云，远端跑或本地带 env 跑）**
 
 优先本地跑（出公网 BI API + Langfuse 若公网可达）；Langfuse 仅内网时把仓库当前分支同步到阿里云 `/root/deeptutor` 内的副本运行，产物写 `/root/deeptutor/artifacts/` 后 `scp` 回本地主 repo `artifacts/`（写边界合规）。
 
@@ -772,11 +772,11 @@ python -m scripts.bi_reconciliation.run --mode live \
   --bi-base-url https://test2.yousenjiaoyu.com --window-days 7 --out artifacts/
 ```
 
-- [ ] **Step 3: 人工复核**
+- [x] **Step 3: 人工复核**
 
 对每条 `definition_mismatch` 判断是否实为 `attribution_error`，在报告 md 的复核栏标注；`unregistered_labels` 列表转为 P2 收口任务清单。
 
-- [ ] **Step 4: Commit artifacts + 回写设计 spec 状态**
+- [x] **Step 4: Commit artifacts + 回写设计 spec 状态**
 
 ```bash
 git add artifacts/bi_reconciliation_20260612/
@@ -794,13 +794,13 @@ git commit -m "docs(bi-recon): P1 三源对账差异报告 + 指标字典 v1（l
 **Files:**
 - Create: `docs/bi-cockpit-preview/2026-06-12-bi-vnext-design-board.html`
 
-- [ ] **Step 1: 写设计简报（板内首屏）**：现状（暖陶土橙深色驾驶舱）、升级主轴四项（全局控制层 / 可信度即 UI / 下钻一致性 / 性能）、对标（Grafana 信息密度、Lightdash 语义层暴露、顶级驾驶舱叙事性）。
-- [ ] **Step 2: 在同一 HTML 内做 3 个方向的 overview tab 高保真静态稿**（ECharts 6 CDN 真图表 + 假数据明确水印"DESIGN MOCK"）：
+- [x] **Step 1: 写设计简报（板内首屏）**：现状（暖陶土橙深色驾驶舱）、升级主轴四项（全局控制层 / 可信度即 UI / 下钻一致性 / 性能）、对标（Grafana 信息密度、Lightdash 语义层暴露、顶级驾驶舱叙事性）。
+- [x] **Step 2: 在同一 HTML 内做 3 个方向的 overview tab 高保真静态稿**（ECharts 6 CDN 真图表 + 假数据明确水印"DESIGN MOCK"）：
   - **方向 A「指挥舱进化」**：保留暖陶土橙，增加全局时间/对比控制条 + 每 KPI 可信度徽标（trust_level/新鲜度/measured-estimated 分量条）+ 统一下钻面包屑。
   - **方向 B「语义层前置」**：冷暖双主题，左侧常驻指标字典抽屉（点任何数字看口径/源/公式），表格密度优先，弱化大屏叙事。
   - **方向 C「混合分层」**：默认 A 的大屏叙事，hover/点击进入 B 的语义层细节；可信度用边框色温编码。
-- [ ] **Step 3: 浏览器自查**（起本地静态服务→截图→立即关，遵守内存护栏；纯静态文件可直接 `file://` 打开，不起 dev server）。
-- [ ] **Step 4: Commit**
+- [x] **Step 3: 浏览器自查**（起本地静态服务→截图→立即关，遵守内存护栏；纯静态文件可直接 `file://` 打开，不起 dev server）。
+- [x] **Step 4: Commit**
 
 ```bash
 git add docs/bi-cockpit-preview/2026-06-12-bi-vnext-design-board.html
@@ -812,9 +812,9 @@ git commit -m "design(bi): vNext 三方向对比板（指挥舱进化/语义层�
 **Files:**
 - Create: `docs/plan/会员钱包计费与经营后台/2026-06-12-bi-vnext-design-direction-decision.md`
 
-- [ ] **Step 1:** 按四条标准打分定稿（数据可信度表达力 / 与指标契约的耦合度 / 实现成本 / 与既有品牌的连续性），写明推荐方向与理由、落选方向保留要素。已获用户全权授权，由执行者定稿；用户可后续否决。
-- [ ] **Step 2:** 在 `docs/plan/INDEX.md` §5.5 表登记两份 P4a 产物。
-- [ ] **Step 3: Commit**
+- [x] **Step 1:** 按四条标准打分定稿（数据可信度表达力 / 与指标契约的耦合度 / 实现成本 / 与既有品牌的连续性），写明推荐方向与理由、落选方向保留要素。已获用户全权授权，由执行者定稿；用户可后续否决。
+- [x] **Step 2:** 在 `docs/plan/INDEX.md` §5.5 表登记两份 P4a 产物。
+- [x] **Step 3: Commit**
 
 ```bash
 git add 'docs/plan/会员钱包计费与经营后台/2026-06-12-bi-vnext-design-direction-decision.md' docs/plan/INDEX.md
