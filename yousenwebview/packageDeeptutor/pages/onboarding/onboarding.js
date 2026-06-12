@@ -11,30 +11,45 @@ function riseChars(text, accentStart, accentEnd, baseDelay, step) {
     arr.push({
       c: text.charAt(i),
       accent: accentStart != null && i >= accentStart && i < accentEnd,
-      d: (baseDelay || 0) + i * (step || 55),
+      d: (baseDelay || 0) + i * (step || 50),
     });
   }
   return arr;
 }
 
-// Less is more：每幕只有 accent 配色 + 一组极简文案。
+// 三页文案（标题两行逐字升起 / 说明两行 / 标签 chips）
 var ACTS = [
-  { id: "hook", accent: "blue" },
+  { id: "hook" },
   {
-    id: "grade",
-    accent: "green",
-    kicker: "鲁班看你写的每一句",
-    titleChars: riseChars("哪句能得分？", null, 0, 0, 50),
+    id: "p1",
+    titleLines: [
+      riseChars("题刷了很多，", null, 0, 0, 50),
+      riseChars("分数却不涨？", null, 0, 340, 50),
+    ],
+    desc: ["你缺的不是更多题，", "而是没人告诉你为什么丢分。"],
+    tags: ["案例题", "丢分诊断"],
   },
   {
-    id: "loop",
-    accent: "gold",
-    kicker: "错题不会白错",
-    titleChars: riseChars("错因，变成下一题。", null, 0, 0, 50),
+    id: "p2",
+    titleLines: [
+      riseChars("你写了一大段，", null, 0, 0, 50),
+      riseChars("哪些话真能得分？", 3, 7, 380, 50),
+    ],
+    desc: ["鲁班按采分点拆解你的答案，", "看清哪里命中、哪里漏分、哪里白写。"],
+    tags: ["采分点", "漏分点", "无效表达"],
+  },
+  {
+    id: "p3",
+    titleLines: [
+      riseChars("别只收藏错题，", null, 0, 0, 50),
+      riseChars("要知道下一步练什么", 3, 6, 380, 50),
+    ],
+    desc: ["鲁班会记住你的错因和薄弱点，", "把每次丢分变成下一次提分训练。"],
+    tags: ["错因画像", "精准训练", "持续提分"],
   },
 ];
 
-// 幕 1 词轮播（视频2 式垂直 roller）：从「盲刷」滚到「提分」收住点亮。
+// 幕 1 词轮播（Fuse 式垂直 roller）：从「盲刷」滚到「提分」收住点亮。
 var ROLL_WORDS = ["盲刷", "判分", "错因", "提分"];
 
 // CTA 收束：第二行整行品牌蓝。
@@ -43,8 +58,8 @@ var CTA_LINES = [
   riseChars("都有据可依", 0, 5, 380, 60),
 ];
 
-// 幕 id → ACTS 下标（决定 accent 配色与文案）
-var ACT_SLIDE = { wave: 0, hook: 0, grade: 1, loop: 2, cta: 2 };
+// 幕 id → ACTS 下标（决定当前页文案）
+var ACT_SLIDE = { wave: 0, hook: 0, p1: 1, p2: 2, p3: 3, cta: 3 };
 
 var PILL_ACT_IDS = SCENES.slice(1).map(function (s) {
   return s.id;
@@ -67,9 +82,7 @@ Page({
   onLoad: function (options) {
     try {
       var info = helpers.getWindowInfo();
-      var safeBottom = info.safeArea
-        ? info.screenHeight - info.safeArea.bottom
-        : 0;
+      var safeBottom = info.safeArea ? info.screenHeight - info.safeArea.bottom : 0;
       this.setData({
         statusBarHeight: info.statusBarHeight || 44,
         safeBottom: safeBottom,
@@ -77,8 +90,7 @@ Page({
     } catch (_) {}
     this.setData({
       entrySource: String(
-        (options &&
-          (options.entry_source || options.entrySource || options.source)) ||
+        (options && (options.entry_source || options.entrySource || options.source)) ||
           "guest_preview",
       ),
     });
@@ -173,8 +185,6 @@ Page({
   },
 
   quickLogin: function () {
-    runtime.redirectToLogin(
-      route.chat({ entry_source: this.data.entrySource, preview: "1" }),
-    );
+    runtime.redirectToLogin(route.chat({ entry_source: this.data.entrySource, preview: "1" }));
   },
 });

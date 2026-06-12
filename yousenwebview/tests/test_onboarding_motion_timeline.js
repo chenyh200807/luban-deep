@@ -188,12 +188,12 @@ console.log("OK test_onboarding_motion_timeline (scheduler)");
 var SCENES = require("../packageDeeptutor/pages/onboarding/motion-script");
 
 (function () {
-  assert.strictEqual(SCENES.length, 5);
+  assert.strictEqual(SCENES.length, 6);
   assert.deepStrictEqual(
     SCENES.map(function (s) {
       return s.id;
     }),
-    ["wave", "hook", "grade", "loop", "cta"],
+    ["wave", "hook", "p1", "p2", "p3", "cta"],
   );
   assert.strictEqual(
     SCENES[SCENES.length - 1].duration,

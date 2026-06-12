@@ -1,12 +1,14 @@
 <view
-  class="onboarding-page slide-{{activeSlide.accent}}"
+  class="onboarding-page act-{{actId}}"
   bindtouchstart="onPageTouchStart"
   bindtouchend="onPageTouchEnd"
   bindtouchcancel="onPageTouchCancel"
 >
-  <view class="aurora a1"></view>
-  <view class="aurora a2"></view>
-  <view class="aurora a3"></view>
+  <!-- 光场层：随幕切换交叉淡入（Fuse 式逐步换色温，全蓝系） -->
+  <view class="glow glow-bottom"></view>
+  <view class="glow glow-sky"></view>
+  <view class="glow glow-teal"></view>
+  <view class="glow glow-violet"></view>
   <view class="grain"></view>
   <view class="wave-overlay {{actId !== 'wave' ? 'recede' : ''}}"></view>
 
@@ -34,7 +36,7 @@
       ></view>
     </view>
 
-    <!-- 幕 1: 词轮播 —— 视频2 式垂直 roller，「提分」收住点亮品牌蓝 -->
+    <!-- 幕 1: 词轮播 -->
     <view
       class="hook-stage {{fx.hookPlay ? 'play' : ''}}"
       wx:if="{{actId === 'wave' || actId === 'hook'}}"
@@ -54,72 +56,70 @@
       </view>
     </view>
 
-    <!-- 幕 2: 判分时刻 -->
-    <view class="act-stage" wx:if="{{actId === 'grade'}}">
-      <view class="story-copy {{fx.copyIn ? 'play' : ''}}">
-        <view class="scene-kicker"><text>{{activeSlide.kicker}}</text></view>
-        <view class="rise-line title-line">
-          <text
-            wx:for="{{activeSlide.titleChars}}"
-            wx:key="index"
-            class="rise-char title-char"
-            style="animation-delay: {{item.d}}ms"
-          >{{item.c}}</text>
+    <!-- 幕 2/3/4: 三页文案（标题逐字升起 + 说明 + 标签，p2/p3 带产品卡） -->
+    <block wx:if="{{actId === 'p1' || actId === 'p2' || actId === 'p3'}}">
+      <view class="act-stage">
+        <view class="story-copy {{fx.copyIn ? 'play' : ''}}">
+          <view class="rise-line title-line" wx:for="{{activeSlide.titleLines}}" wx:for-item="line" wx:for-index="li" wx:key="li">
+            <text
+              wx:for="{{line}}"
+              wx:key="index"
+              class="rise-char title-char {{item.accent ? 'is-accent' : ''}}"
+              style="animation-delay: {{item.d}}ms"
+            >{{item.c}}</text>
+          </view>
         </view>
-      </view>
-      <view class="product-stage score-stage {{fx.stageIn ? '' : 'fx-hold'}}">
-        <view class="product-head">
-          <text class="product-title">AI 批改</text>
-          <text class="score-pill {{fx.scoreOn ? 'pop' : ''}}">{{fx.scoreRoll || 0}} / 20</text>
-        </view>
-        <view class="answer-paper fx-pop {{fx.stageIn ? 'on' : ''}} {{fx.scan ? 'scan' : ''}}">
-          <text>命中 </text>
-          <text class="mark" style="animation-delay: 0ms">专项方案</text>
-          <text> 和 </text>
-          <text class="mark" style="animation-delay: 260ms">技术交底</text>
-          <text>，漏了 </text>
-          <text class="miss" style="animation-delay: 540ms">验收程序</text>
-          <text>。</text>
-        </view>
-        <view class="point-row hit {{fx.rows >= 1 ? '' : 'fx-hold'}}">
-          <text class="point-tag">得</text>
-          <text class="point-text">命中 2 个采分点</text>
-          <text class="point-score">+6</text>
-        </view>
-        <view class="point-row warn {{fx.rows >= 2 ? '' : 'fx-hold'}}">
-          <text class="point-tag">漏</text>
-          <text class="point-text">漏写责任人与验收</text>
-          <text class="point-score">-5</text>
-        </view>
-      </view>
-    </view>
 
-    <!-- 幕 3: 错因闭环 -->
-    <view class="act-stage" wx:if="{{actId === 'loop'}}">
-      <view class="story-copy {{fx.copyIn ? 'play' : ''}}">
-        <view class="scene-kicker"><text>{{activeSlide.kicker}}</text></view>
-        <view class="rise-line title-line">
-          <text
-            wx:for="{{activeSlide.titleChars}}"
-            wx:key="index"
-            class="rise-char title-char"
-            style="animation-delay: {{item.d}}ms"
-          >{{item.c}}</text>
+        <view class="act-desc-wrap fx-pop {{fx.descIn ? 'on' : ''}}">
+          <text class="act-desc" wx:for="{{activeSlide.desc}}" wx:key="*this">{{item}}</text>
         </view>
-      </view>
-      <view class="product-stage train-stage {{fx.stageIn ? '' : 'fx-hold'}}">
-        <view class="weak-item">
-          <text class="weak-title">程序性采分点易漏</text>
-          <view class="weak-bar"><view style="width: 82%"></view></view>
-        </view>
-        <view class="task-box fx-pop {{fx.taskBox ? 'on' : ''}}">
-          <text class="task-label">下一题</text>
-          <text class="task-title">同类案例题 · 验收程序 + 责任人</text>
-        </view>
-      </view>
-    </view>
 
-    <!-- 幕 4: CTA 收束 -->
+        <view class="tag-row {{fx.tags ? 'on' : ''}}">
+          <view class="tag" wx:for="{{activeSlide.tags}}" wx:key="*this" style="animation-delay: {{index * 110}}ms">
+            <text>{{item}}</text>
+          </view>
+        </view>
+
+        <view class="product-stage score-stage {{fx.stageIn ? '' : 'fx-hold'}}" wx:if="{{actId === 'p2'}}">
+          <view class="product-head">
+            <text class="product-title">AI 批改</text>
+            <text class="score-pill {{fx.scoreOn ? 'pop' : ''}}">{{fx.scoreRoll || 0}} / 20</text>
+          </view>
+          <view class="answer-paper fx-pop {{fx.stageIn ? 'on' : ''}} {{fx.scan ? 'scan' : ''}}">
+            <text>命中 </text>
+            <text class="mark" style="animation-delay: 0ms">专项方案</text>
+            <text> 和 </text>
+            <text class="mark" style="animation-delay: 260ms">技术交底</text>
+            <text>，漏了 </text>
+            <text class="miss" style="animation-delay: 540ms">验收程序</text>
+            <text>。</text>
+          </view>
+          <view class="point-row hit {{fx.rows >= 1 ? '' : 'fx-hold'}}">
+            <text class="point-tag">得</text>
+            <text class="point-text">命中 2 个采分点</text>
+            <text class="point-score">+6</text>
+          </view>
+          <view class="point-row warn {{fx.rows >= 2 ? '' : 'fx-hold'}}">
+            <text class="point-tag">漏</text>
+            <text class="point-text">漏写责任人与验收</text>
+            <text class="point-score">-5</text>
+          </view>
+        </view>
+
+        <view class="product-stage train-stage {{fx.stageIn ? '' : 'fx-hold'}}" wx:if="{{actId === 'p3'}}">
+          <view class="weak-item">
+            <text class="weak-title">程序性采分点易漏</text>
+            <view class="weak-bar"><view style="width: 82%"></view></view>
+          </view>
+          <view class="task-box fx-pop {{fx.taskBox ? 'on' : ''}}">
+            <text class="task-label">下一题</text>
+            <text class="task-title">同类案例题 · 验收程序 + 责任人</text>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <!-- 幕 5: CTA 收束 -->
     <view class="cta-stage {{fx.ctaTitle ? 'play' : ''}}" wx:if="{{actId === 'cta'}}">
       <view class="scene-kicker cta-kicker"><text>先体验导学</text></view>
       <view class="rise-line cta-line" wx:for="{{ctaLines}}" wx:for-item="line" wx:for-index="li" wx:key="li">

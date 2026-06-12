@@ -11,53 +11,56 @@
   background: linear-gradient(180deg, #ffffff 0%, #fbfdff 55%, #eef7ff 100%);
 }
 
-/* —— 背景：底部青蓝辉光 + 轻极光 + 颗粒 —— */
-.aurora {
+/* —— 背景：光场系统（Fuse 式逐幕换色温，全蓝系）+ 颗粒 —— */
+.glow {
   position: fixed;
-  pointer-events: none;
-}
-
-.a1 {
-  width: 760rpx;
-  height: 760rpx;
-  top: -300rpx;
-  left: -280rpx;
-  opacity: 0.5;
-  background: radial-gradient(circle, rgba(56, 182, 255, 0.14) 0%, rgba(56, 182, 255, 0.05) 40%, transparent 66%);
-  animation: drift1 18s ease-in-out infinite alternate;
-}
-
-.a2 {
   left: -22%;
   right: -22%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 760ms ease;
+}
+
+.glow-bottom {
   bottom: -34%;
   height: 86%;
-  width: auto;
-  opacity: 0.9;
   background: radial-gradient(ellipse at 50% 100%, rgba(31, 143, 255, 0.5) 0%, rgba(86, 182, 255, 0.3) 36%, rgba(160, 216, 255, 0.14) 58%, transparent 78%);
-  animation: glowBreathe 9s ease-in-out infinite alternate;
 }
 
-.a3 {
-  width: 700rpx;
-  height: 700rpx;
-  top: 30%;
-  right: -360rpx;
-  opacity: 0.4;
-  background: radial-gradient(circle, rgba(31, 143, 255, 0.1) 0%, transparent 62%);
-  animation: drift3 24s ease-in-out infinite alternate;
+.glow-sky {
+  top: -38%;
+  height: 82%;
+  background: radial-gradient(ellipse at 50% 0%, rgba(56, 162, 255, 0.38) 0%, rgba(120, 196, 255, 0.2) 42%, transparent 74%);
 }
 
-@keyframes drift1 {
-  to { transform: translate3d(110rpx, 70rpx, 0) scale(1.12); }
+.glow-teal {
+  top: -38%;
+  height: 82%;
+  background: radial-gradient(ellipse at 50% 0%, rgba(18, 178, 215, 0.36) 0%, rgba(96, 212, 232, 0.18) 42%, transparent 74%);
 }
 
-@keyframes glowBreathe {
-  to { transform: translateY(-40rpx) scale(1.05); opacity: 1; }
+.glow-violet {
+  top: -38%;
+  height: 82%;
+  background: radial-gradient(ellipse at 50% 0%, rgba(122, 118, 255, 0.32) 0%, rgba(160, 156, 255, 0.16) 42%, transparent 74%);
 }
 
-@keyframes drift3 {
-  to { transform: translate3d(-130rpx, 60rpx, 0) scale(1.06); }
+.act-wave .glow-bottom,
+.act-hook .glow-bottom,
+.act-cta .glow-bottom {
+  opacity: 1;
+}
+
+.act-p1 .glow-sky {
+  opacity: 1;
+}
+
+.act-p2 .glow-teal {
+  opacity: 1;
+}
+
+.act-p3 .glow-violet {
+  opacity: 1;
 }
 
 .grain {
@@ -753,4 +756,87 @@
   .product-stage {
     padding: 20rpx;
   }
+}
+
+/* —— 三页文案：说明与标签 —— */
+.act-desc-wrap {
+  margin-top: 30rpx;
+}
+
+.act-desc {
+  display: block;
+  color: rgba(11, 31, 58, 0.56);
+  font-size: 27rpx;
+  line-height: 1.66;
+  font-weight: 500;
+}
+
+.act-desc-wrap.fx-pop.on {
+  animation: softIn 560ms ease both;
+}
+
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14rpx;
+  margin-top: 30rpx;
+}
+
+.tag {
+  opacity: 0;
+  padding: 12rpx 22rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1rpx solid rgba(11, 31, 58, 0.08);
+  box-shadow: 0 8rpx 22rpx rgba(31, 108, 255, 0.08);
+}
+
+.tag-row.on .tag {
+  animation: tagPop 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.tag text {
+  color: rgba(11, 31, 58, 0.62);
+  font-size: 22rpx;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+@keyframes tagPop {
+  from {
+    opacity: 0;
+    transform: translateY(16rpx) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.act-stage .product-stage {
+  margin-top: 32rpx;
+}
+
+/* —— CTA：Fuse 式白胶囊主按钮 + 半透明次按钮（坐在底部光场上） —— */
+.primary-btn {
+  background: #ffffff;
+  box-shadow: 0 24rpx 60rpx rgba(31, 108, 255, 0.28);
+}
+
+.primary-text {
+  color: #0b1f3a;
+}
+
+.login-link {
+  align-self: stretch;
+  height: 88rpx;
+  margin-top: 18rpx;
+  border-radius: 28rpx;
+  background: rgba(255, 255, 255, 0.4);
+  border: 1rpx solid rgba(255, 255, 255, 0.7);
+}
+
+.login-link-text {
+  color: rgba(11, 31, 58, 0.66);
 }

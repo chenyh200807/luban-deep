@@ -1,7 +1,6 @@
 // motion-script.js — 「先体验导学」步序数据（纯数据，无逻辑）
-// Less is more 版：wave(转场) → hook(文字钩子) → grade(判分时刻)
-//                → loop(错因闭环) → cta(收束)，全程 ~11s。
-// patch 的 key 是 onboarding 页 data 路径；全部幂等（手动跳幕会整幕重放）。
+// Fuse 式结构：wave(色浪) → hook(词轮播) → p1/p2/p3(三页文案，光场逐页换色温)
+//             → cta(收束)。patch 的 key 是页 data 路径；全部幂等（手动跳幕整幕重放）。
 "use strict";
 
 module.exports = [
@@ -19,27 +18,41 @@ module.exports = [
   },
 
   {
-    id: "grade",
-    duration: 4600,
+    id: "p1",
+    duration: 4200,
     steps: [
       { at: 200, patch: { "fx.copyIn": true } },
-      { at: 700, patch: { "fx.stageIn": true } },
-      { at: 1300, patch: { "fx.scan": true } },
-      { at: 2000, patch: { "fx.rows": 1 } },
-      { at: 2600, patch: { "fx.rows": 2 } },
-      { at: 3200, patch: { "fx.scoreOn": true, "fx.scoreRoll": 5 } },
-      { at: 3450, patch: { "fx.scoreRoll": 9 } },
-      { at: 3700, patch: { "fx.scoreRoll": 12 } },
+      { at: 1300, patch: { "fx.descIn": true } },
+      { at: 2200, patch: { "fx.tags": true } },
     ],
   },
 
   {
-    id: "loop",
-    duration: 3200,
+    id: "p2",
+    duration: 7000,
     steps: [
       { at: 200, patch: { "fx.copyIn": true } },
-      { at: 800, patch: { "fx.stageIn": true } },
-      { at: 1900, patch: { "fx.taskBox": true } },
+      { at: 1100, patch: { "fx.descIn": true } },
+      { at: 1800, patch: { "fx.tags": true } },
+      { at: 2500, patch: { "fx.stageIn": true } },
+      { at: 3300, patch: { "fx.scan": true } },
+      { at: 4000, patch: { "fx.rows": 1 } },
+      { at: 4500, patch: { "fx.rows": 2 } },
+      { at: 5100, patch: { "fx.scoreOn": true, "fx.scoreRoll": 5 } },
+      { at: 5350, patch: { "fx.scoreRoll": 9 } },
+      { at: 5600, patch: { "fx.scoreRoll": 12 } },
+    ],
+  },
+
+  {
+    id: "p3",
+    duration: 5800,
+    steps: [
+      { at: 200, patch: { "fx.copyIn": true } },
+      { at: 1100, patch: { "fx.descIn": true } },
+      { at: 1800, patch: { "fx.tags": true } },
+      { at: 2500, patch: { "fx.stageIn": true } },
+      { at: 3800, patch: { "fx.taskBox": true } },
     ],
   },
 
