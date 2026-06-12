@@ -1,17 +1,55 @@
+# DeepTutor API reverse proxy with edge rate-limiting, basic WAF, security headers.
+# Requires deeptutor-ratelimit.conf (http-context zones) to be installed too.
 server {
     listen 80;
     server_name api.deeptutor.example.com;
 
-    # 生产观测默认走内网/SSH 抓取；不要把 metrics 公开在公网域名下。
-    location = /metrics {
-        return 404;
+    # Per-IP concurrent connection cap (long-lived WS especially).
+    limit_conn dt_conn 30;
+
+    # Cap request body so a single upload can't exhaust memory/disk. Photo-answer
+    # is 10MB and feedback attachments 20MB at the app layer; 25m leaves headroom.
+    client_max_body_size 25m;
+
+    # ---- Security response headers (defense-in-depth; round-1 finding H3) ----
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    # Enable HSTS only once HTTPS is confirmed working on all subdomains:
+    # add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
+
+    # ---- Basic WAF: drop common scanner / secret-probe paths fast (444 = close
+    # with no response, cheapest). Real paths are /api/..., /healthz, /readyz. ----
+    location ~* (?:^|/)(?:\.env|\.git|\.aws|wp-admin|wp-login|phpmyadmin|xmlrpc\.php) {
+        return 444;
+    }
+    # Block obvious automated attack tooling by User-Agent (conservative list).
+    if ($http_user_agent ~* (sqlmap|nikto|nessus|masscan|zgrab|acunetix)) {
+        return 444;
+    }
+    # Reject exotic HTTP methods the API never uses.
+    if ($request_method !~ ^(GET|POST|PUT|PATCH|DELETE|OPTIONS|HEAD)$) {
+        return 405;
     }
 
-    location = /metrics/prometheus {
-        return 404;
+    # Observability must not be public — scrape over internal/SSH only.
+    location = /metrics            { return 404; }
+    location = /metrics/prometheus { return 404; }
+
+    # ---- Auth endpoints: strictest edge rate limit (brute/spam surface). ----
+    location ~ ^/api/v1/auth/(send-code|verify-code|login|register|reset-password) {
+        limit_req zone=dt_auth burst=5 nodelay;
+        proxy_pass http://127.0.0.1:8001;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
 
+    # ---- Everything else (incl. WebSocket /api/v1/ws). ----
     location / {
+        limit_req zone=dt_api burst=40 nodelay;
         proxy_pass http://127.0.0.1:8001;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
