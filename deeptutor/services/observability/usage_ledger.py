@@ -430,6 +430,51 @@ class UsageLedger:
         totals.billable_turns = len(billable_turn_ids)
         return totals
 
+    def get_window_summary(self, *, start_ts: float, end_ts: float) -> dict[str, Any]:
+        """窗口聚合：totals（measured/estimated 分列）+ by_model + by_usage_source。
+
+        BI 成本读数的唯一权威入口（P2 收权，2026-06-12）。
+        """
+        totals = self.get_totals(start_ts=start_ts, end_ts=end_ts)
+
+        group_sql = """
+            SELECT
+                {column} AS group_key,
+                COUNT(*) AS events,
+                SUM(measured_total_tokens + estimated_total_tokens) AS total_tokens,
+                SUM(measured_total_cost) AS measured_cost,
+                SUM(estimated_total_cost) AS estimated_cost
+            FROM llm_usage_events
+            WHERE created_at >= ? AND created_at <= ?
+            GROUP BY {column}
+            ORDER BY SUM(measured_total_cost + estimated_total_cost) DESC, COUNT(*) DESC
+        """
+        with self._connect() as conn:
+            model_rows = conn.execute(
+                group_sql.format(column="model"), (float(start_ts), float(end_ts))
+            ).fetchall()
+            source_rows = conn.execute(
+                group_sql.format(column="usage_source"), (float(start_ts), float(end_ts))
+            ).fetchall()
+
+        def _group_payload(row: Any, key_name: str) -> dict[str, Any]:
+            measured = _safe_float(row["measured_cost"])
+            estimated = _safe_float(row["estimated_cost"])
+            return {
+                key_name: _as_str(row["group_key"]) or "unknown",
+                "events": _safe_int(row["events"]),
+                "total_tokens": _safe_int(row["total_tokens"]),
+                "measured_total_cost_usd": round(measured, 8),
+                "estimated_total_cost_usd": round(estimated, 8),
+                "total_cost_usd": round(measured + estimated, 8),
+            }
+
+        return {
+            "totals": totals.to_dict(),
+            "by_model": [_group_payload(row, "model") for row in model_rows],
+            "by_usage_source": [_group_payload(row, "usage_source") for row in source_rows],
+        }
+
     def mark_turn_billable(self, *, turn_id: str, billing_capture: dict[str, Any]) -> int:
         resolved_turn_id = _as_str(turn_id)
         if not resolved_turn_id:

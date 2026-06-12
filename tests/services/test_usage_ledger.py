@@ -211,3 +211,56 @@ def test_usage_ledger_respects_created_at_override(tmp_path) -> None:
     assert old_totals.total_tokens == 6
     assert old_totals.coverage_start_ts == 1234.0
     assert new_totals.total_tokens == 0
+
+
+def test_usage_ledger_window_summary_breaks_down_by_model_and_source(tmp_path) -> None:
+    ledger = UsageLedger(db_path=tmp_path / "llm_usage.db")
+    ledger.record_usage_event(
+        usage_source="provider",
+        usage_details={"input": 100.0, "output": 50.0, "total": 150.0},
+        cost_details={"total": 0.10},
+        model="deepseek-v4-flash",
+        metadata={"provider_name": "dashscope"},
+        turn_id="t1",
+    )
+    ledger.record_usage_event(
+        usage_source="provider",
+        usage_details={"input": 200.0, "output": 0.0, "total": 200.0},
+        cost_details={"total": 0.05},
+        model="gte-rerank",
+        metadata={"provider_name": "dashscope"},
+        turn_id="t2",
+    )
+    ledger.record_usage_event(
+        usage_source="tiktoken",
+        usage_details={"input": 30.0, "output": 10.0, "total": 40.0},
+        cost_details={"total": 0.02},
+        model="deepseek-v4-flash",
+        metadata={"provider_name": "dashscope"},
+        turn_id="t1",
+    )
+
+    summary = ledger.get_window_summary(start_ts=0, end_ts=9_999_999_999)
+
+    totals = summary["totals"]
+    assert totals["measured_total_cost_usd"] == 0.15
+    assert totals["estimated_total_cost_usd"] == 0.02
+    assert totals["total_cost_usd"] == 0.17
+    assert totals["total_tokens"] == 390
+
+    by_model = {row["model"]: row for row in summary["by_model"]}
+    assert by_model["deepseek-v4-flash"]["events"] == 2
+    assert by_model["deepseek-v4-flash"]["total_cost_usd"] == 0.12
+    assert by_model["gte-rerank"]["total_cost_usd"] == 0.05
+
+    by_source = {row["usage_source"]: row for row in summary["by_usage_source"]}
+    assert by_source["provider"]["events"] == 2
+    assert by_source["tiktoken"]["events"] == 1
+
+
+def test_usage_ledger_window_summary_empty_window(tmp_path) -> None:
+    ledger = UsageLedger(db_path=tmp_path / "llm_usage.db")
+    summary = ledger.get_window_summary(start_ts=0, end_ts=1)
+    assert summary["totals"]["total_cost_usd"] == 0.0
+    assert summary["by_model"] == []
+    assert summary["by_usage_source"] == []
