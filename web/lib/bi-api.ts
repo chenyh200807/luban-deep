@@ -63,6 +63,8 @@ export interface BiRankItem {
   rate?: number
   hint?: string
   secondary?: string
+  /** 官方账单反推单价校准后的成本（cost models 行携带；原 value 为 UsageLedger 内账原值） */
+  calibratedValue?: number
 }
 
 export interface BiMemberSample {
@@ -342,11 +344,37 @@ export interface BiMemberData {
   samples: BiMemberSample[]
 }
 
+/**
+ * 官方账单为锚（方案3）：official_total 是当月官方真实账单总额（权威锚），
+ * calibrated_total 是用官方账单 model 级金额反推真实单价后校准的内账估算，
+ * calibration_health 为 calibrated/official 比值（越接近 1 越准），
+ * token_coverage_ratio 为内账 token / 官方 token（漏 token 指标）。
+ * 后端 refresh 前可能返回空对象，归一化后字段全为 undefined。
+ */
+export interface BiCostOfficialAnchor {
+  calibratedTotal?: number
+  officialTotal?: number
+  calibrationHealth?: number
+  tokenCoverageRatio?: number
+  internalTotalTokens?: number
+}
+
 export interface BiCostData {
   cards: BiMetricCard[]
   models: BiRankItem[]
   providers: BiRankItem[]
   reconciliation: BiCostReconciliationProvider[]
+  /** 官方账单为锚：refresh 前为空对象，归一化为字段全 undefined 的对象 */
+  officialAnchor: BiCostOfficialAnchor
+  /** 自校准刷新时间（ISO）；从未刷新为 null */
+  calibrationRefreshedAt: string | null
+  /** 校准账期，如 "2026-06"；从未刷新为 null */
+  calibrationBillingCycle: string | null
+}
+
+export interface BiCostCalibrationRefreshResult {
+  refreshedAt: string | null
+  billingCycle: string | null
 }
 
 export interface BiTutorBotData {
@@ -687,7 +715,15 @@ const DEFAULT_DATA: BiWorkbenchData = {
   tools: { items: [], efficiency: [] },
   knowledge: { items: [], topQueries: [], zeroHitRate: undefined },
   members: { cards: [], tiers: [], risks: [], samples: [] },
-  cost: { cards: [], models: [], providers: [], reconciliation: [] },
+  cost: {
+    cards: [],
+    models: [],
+    providers: [],
+    reconciliation: [],
+    officialAnchor: {},
+    calibrationRefreshedAt: null,
+    calibrationBillingCycle: null,
+  },
   tutorbots: { cards: [], ranking: [], statusBreakdown: [], recentActive: [], recentMessages: [] },
   anomalies: { items: [] },
 }
@@ -1805,13 +1841,65 @@ export async function getBiCost(options: BiFetchOptions = {}): Promise<BiCostDat
     cards: firstArray(raw, ['cards', 'metrics', 'kpis']).map((item, index) =>
       normalizeMetricCard(item, `Cost KPI ${index + 1}`)
     ),
-    models: firstArray(raw, ['models', 'model_breakdown', 'providers']).map((item, index) =>
-      normalizeRankItem(item, `Model ${index + 1}`)
-    ),
+    models: firstArray(raw, ['models', 'model_breakdown', 'providers']).map((item, index) => {
+      const rank = normalizeRankItem(item, `Model ${index + 1}`)
+      const calibrated = optionalNumber(asRecord(item).calibrated_value ?? asRecord(item).calibratedValue)
+      return calibrated === undefined ? rank : { ...rank, calibratedValue: calibrated }
+    }),
     providers: firstArray(raw, ['providers', 'sources', 'usage_sources']).map((item, index) =>
       normalizeRankItem(item, `Provider ${index + 1}`)
     ),
     reconciliation: [],
+    officialAnchor: normalizeCostOfficialAnchor(asRecord(raw).official_anchor),
+    calibrationRefreshedAt: nullableIso(asRecord(raw).calibration_refreshed_at),
+    calibrationBillingCycle: nullableString(asRecord(raw).calibration_billing_cycle),
+  }
+}
+
+function normalizeCostOfficialAnchor(raw: unknown): BiCostOfficialAnchor {
+  const record = asRecord(raw)
+  return {
+    calibratedTotal: optionalNumber(record.calibrated_total ?? record.calibratedTotal),
+    officialTotal: optionalNumber(record.official_total ?? record.officialTotal),
+    calibrationHealth: optionalNumber(record.calibration_health ?? record.calibrationHealth),
+    tokenCoverageRatio: optionalNumber(record.token_coverage_ratio ?? record.tokenCoverageRatio),
+    internalTotalTokens: optionalNumber(record.internal_total_tokens ?? record.internalTotalTokens),
+  }
+}
+
+function nullableString(value: unknown): string | null {
+  const text = toString(value, '').trim()
+  return text ? text : null
+}
+
+function nullableIso(value: unknown): string | null {
+  return nullableString(value)
+}
+
+/**
+ * 触发自校准刷新（admin）。POST /api/v1/bi/cost-calibration/refresh。
+ * 拉取百炼官方账单较慢，调用方负责 loading 态。可选 billingCycle 指定账期。
+ */
+export async function refreshBiCostCalibration(
+  billingCycle?: string
+): Promise<BiCostCalibrationRefreshResult> {
+  const response = await fetch(apiUrl('/api/v1/bi/cost-calibration/refresh'), {
+    method: 'POST',
+    cache: 'no-store',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(withAdminAuthorization() ?? {}),
+    },
+    body: JSON.stringify(billingCycle ? { billing_cycle: billingCycle } : {}),
+  })
+  if (!response.ok) {
+    throw new Error(`刷新失败: ${response.status}`)
+  }
+  const raw = unwrapPayload(await response.json())
+  const record = asRecord(raw)
+  return {
+    refreshedAt: nullableIso(record.refreshed_at ?? record.calibration_refreshed_at),
+    billingCycle: nullableString(record.billing_cycle ?? record.calibration_billing_cycle),
   }
 }
 

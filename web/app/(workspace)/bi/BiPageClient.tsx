@@ -503,7 +503,15 @@ export default function BiPageClient() {
   const trend = data?.trend ?? { points: [] }
   const retention = data?.retention ?? { cohorts: [], labels: ['D0', 'D1', 'D7', 'D30'] }
   const members = data?.members ?? { cards: [], tiers: [], risks: [], samples: [] }
-  const cost = data?.cost ?? { cards: [], models: [], providers: [], reconciliation: [] }
+  const cost = data?.cost ?? {
+    cards: [],
+    models: [],
+    providers: [],
+    reconciliation: [],
+    officialAnchor: {},
+    calibrationRefreshedAt: null,
+    calibrationBillingCycle: null,
+  }
 
   const activeFilters = [
     filters.capability ? `capability: ${filters.capability}` : '',
