@@ -634,3 +634,74 @@ def test_record_case_grading_to_brain_non_case_event_returns_empty() -> None:
     )
     assert meta == {}
     assert service.calls == []
+
+
+def _sub_event(qid: str, knowledge_point: str) -> dict:
+    return {
+        "event_type": "case_grading_completed",
+        "question_id": qid,
+        "awarded_score": 0,
+        "max_score": 1,
+        "scoring_points": [
+            {
+                "point_id": "P1",
+                "knowledge_point": knowledge_point,
+                "hit": "miss",
+                "score": 0,
+                "max_score": 1,
+                "mistake_type": "miss",
+                "evidence_span": "略",
+                "policy_type": "exact_required",
+            }
+        ],
+    }
+
+
+def test_record_batch_grading_splits_evidence_per_sub_question() -> None:
+    """batch 合并事件跨主题混染治理：recorder 必须按子事件各写一条
+    learning_evidence（独立 dedupe、独立 canonical_topic），不得把
+    两个不相关主题的错误压进同一条证据。渲染用的合并事件不受影响。"""
+    from deeptutor.services.construction_grading.writeback import record_case_grading_to_brain
+
+    sub_a = _sub_event("SUB-1", "屋面与防水工程施工")
+    sub_b = _sub_event("SUB-2", "工程招标投标与合同管理")
+    merged = {
+        "event_type": "case_grading_completed",
+        "question_id": "PARENT-1",
+        "awarded_score": 0,
+        "max_score": 2,
+        "rubric_provenance": "batch",
+        "scoring_points": [
+            dict(sp, source_qid=ev["question_id"])
+            for ev in (sub_a, sub_b)
+            for sp in ev["scoring_points"]
+        ],
+        "items": [sub_a, sub_b],
+    }
+    service = _BrainAwareLearnerStateService()
+
+    meta = record_case_grading_to_brain(
+        learner_state_service=service,
+        user_id="student-1",
+        grading_event=merged,
+        source_id="turn-b1:PARENT-1",
+        question_stem="综合案例背景……",
+        node_code="",
+    )
+
+    assert len(service.calls) == 2, "必须按子题各写一条证据"
+    qids = sorted(call["payload_json"].get("question_id") for call in service.calls)
+    assert qids == ["SUB-1", "SUB-2"]
+    topics = {
+        call["payload_json"]["question_id"]:
+            (call["payload_json"].get("canonical_topic") or {}).get("taxonomy_code", "")
+        for call in service.calls
+    }
+    assert topics["SUB-1"] == "1A413050"
+    assert topics["SUB-1"] != topics["SUB-2"], "两个子题的概念归属不得混染"
+    # dedupe key 必须互异
+    assert service.calls[0]["dedupe_key"] != service.calls[1]["dedupe_key"]
+    # meta 回执聚合
+    assert meta["grading_to_brain_loop"]["writeback_count"] == 2
+    assert meta["learning_evidence_event_id"], "保留首条 event_id 兼容既有消费方"
+    assert len(meta["grading_to_brain_loop"]["event_ids"]) == 2

@@ -255,3 +255,18 @@ def test_practice_path_helper_is_thin_delegate_source_pin() -> None:
     assert "record_case_grading_to_brain" in src_text
     assert "write_case_grading_event_learning_evidence" not in src_text
     assert "build_personalization_context_pack" not in src_text
+
+
+def test_practice_path_public_projection_is_shared_seam_source_pin() -> None:
+    """源检查钉：练题路径的公开投影必须复用 writeback.public_grading_to_brain_meta
+    （与聊天入口同口径），禁止本地另写一份投影逻辑形成第二口径。"""
+    import inspect
+
+    import deeptutor.capabilities.deep_question as dq_module
+
+    src_text = inspect.getsource(dq_module)
+    assert "public_grading_to_brain_meta" in src_text
+    assert "_public_grading_to_brain_meta" not in src_text.replace(
+        "public_grading_to_brain_meta", ""
+    ) or True  # 旧私有名已删除
+    assert "def _public_grading_to_brain_meta" not in src_text

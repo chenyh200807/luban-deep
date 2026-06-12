@@ -179,6 +179,39 @@ def write_case_grading_event_learning_evidence(
     }
 
 
+def public_grading_to_brain_meta(meta: dict[str, Any]) -> dict[str, Any]:
+    """result_payload 的公开投影：只下发回执 + 展示级 next_best_action。
+
+    聊天与练题两个入口共用此口径。
+
+    personalization_context / learning_training_intent / NBA 的 intent、
+    evidence_refs、training_intent_id 属于服务端内部权威数据，不进客户端
+    metadata（与 wx ws-stream-pure.buildNextBestActionView 的端上投影同口径，
+    在服务端就收口）。PCP 仍在服务端用于渲染个性化反馈，只是不随结果下发。"""
+    if not isinstance(meta, dict) or not meta:
+        return {}
+    public: dict[str, Any] = {}
+    for key in ("grading_to_brain_loop", "learning_evidence_event_id"):
+        if key in meta:
+            public[key] = meta[key]
+    action = meta.get("next_best_action")
+    if isinstance(action, dict) and str(action.get("title") or "").strip():
+        public["next_best_action"] = {
+            "title": str(action.get("title") or "").strip(),
+            "action_type": str(action.get("action_type") or "").strip(),
+            "target": str(action.get("target") or "").strip(),
+            "why_this_now": str(action.get("why_this_now") or "").strip(),
+            "materials": [
+                str(item or "").strip()
+                for item in list(action.get("materials") or [])
+                if str(item or "").strip()
+            ],
+            "success_measure": str(action.get("success_measure") or "").strip(),
+            "prescription_authority": str(action.get("prescription_authority") or "").strip(),
+        }
+    return public
+
+
 def record_case_grading_to_brain(
     *,
     learner_state_service: Any,
@@ -202,32 +235,50 @@ def record_case_grading_to_brain(
     normalized_user_id = str(user_id or "").strip()
     if not normalized_user_id:
         return {}
-    writeback = write_case_grading_event_learning_evidence(
-        learner_state_service=learner_state_service,
-        user_id=normalized_user_id,
-        grading_event=grading_event,
-        source_id=source_id,
-        source_bot_id=source_bot_id,
-        user_answer=user_answer,
-        question_stem=question_stem,
-        node_code=node_code,
-        session_id=session_id,
-    )
-    if not isinstance(writeback, dict) or not int(writeback.get("writeback_count") or 0):
+    # batch 合并事件按子题拆分写入：合并事件只用于渲染同源；证据流必须
+    # 保留每个子题的独立身份（独立 dedupe / canonical_topic），否则两个
+    # 不相关主题的错误会被压进同一条证据，污染长期画像聚合。
+    grading_events = _split_batch_grading_event(grading_event)
+    if not grading_events:
         return {}
-    event_id = str(writeback.get("event_id") or "")
+    writebacks: list[dict[str, Any]] = []
+    for sub_event in grading_events:
+        sub_qid = str(sub_event.get("question_id") or "").strip()
+        sub_source_id = (
+            source_id
+            if len(grading_events) == 1 or not sub_qid
+            else f"{source_id}:{sub_qid}"
+        )
+        writeback = write_case_grading_event_learning_evidence(
+            learner_state_service=learner_state_service,
+            user_id=normalized_user_id,
+            grading_event=sub_event,
+            source_id=sub_source_id,
+            source_bot_id=source_bot_id,
+            user_answer=user_answer,
+            question_stem=question_stem,
+            node_code=node_code if len(grading_events) == 1 else "",
+            session_id=session_id,
+        )
+        if isinstance(writeback, dict) and int(writeback.get("writeback_count") or 0):
+            writebacks.append(writeback)
+    if not writebacks:
+        return {}
+    event_ids = [str(item.get("event_id") or "") for item in writebacks]
+    event_id = event_ids[0]
     meta: dict[str, Any] = {
         "grading_to_brain_loop": {
-            "writeback_count": int(writeback.get("writeback_count") or 0),
+            "writeback_count": len(writebacks),
             "event_id": event_id,
+            "event_ids": event_ids,
             "memory_kind": "learning_evidence",
             "authority": "learner_memory_events.learning_evidence",
         },
         "learning_evidence_event_id": event_id,
     }
     payload = (
-        writeback.get("learning_evidence_payload")
-        if isinstance(writeback.get("learning_evidence_payload"), dict)
+        writebacks[0].get("learning_evidence_payload")
+        if isinstance(writebacks[0].get("learning_evidence_payload"), dict)
         else {}
     )
     intent = _training_intent_from_evidence_payload(
@@ -276,6 +327,24 @@ def record_case_grading_to_brain(
     if isinstance(actions, list) and actions:
         meta["next_best_action"] = dict(actions[0])
     return meta
+
+
+def _split_batch_grading_event(grading_event: dict[str, Any]) -> list[dict[str, Any]]:
+    """合并 batch 事件携带完整子事件（items）时按子题拆分；普通单题事件原样返回。
+    任何形状异常都退回单事件路径（fail-open，不丢证据）。"""
+    if not isinstance(grading_event, dict) or grading_event.get("event_type") != "case_grading_completed":
+        return [grading_event] if isinstance(grading_event, dict) else []
+    items = grading_event.get("items")
+    if not isinstance(items, list) or len(items) < 2:
+        return [grading_event]
+    sub_events = [
+        item
+        for item in items
+        if isinstance(item, dict) and item.get("event_type") == "case_grading_completed"
+    ]
+    if len(sub_events) != len(items):
+        return [grading_event]
+    return sub_events
 
 
 def _training_intent_from_evidence_payload(

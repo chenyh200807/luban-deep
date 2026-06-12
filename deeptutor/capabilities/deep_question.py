@@ -1864,37 +1864,6 @@ def _write_grading_error_events_for_context(
         return 0
 
 
-def _public_grading_to_brain_meta(meta: dict[str, Any]) -> dict[str, Any]:
-    """练题路径 result_payload 的公开投影：只下发回执 + 展示级 next_best_action。
-
-    personalization_context / learning_training_intent / NBA 的 intent、
-    evidence_refs、training_intent_id 属于服务端内部权威数据，不进客户端
-    metadata（与 wx ws-stream-pure.buildNextBestActionView 的端上投影同口径，
-    在服务端就收口）。PCP 仍在服务端用于渲染个性化反馈，只是不随结果下发。"""
-    if not isinstance(meta, dict) or not meta:
-        return {}
-    public: dict[str, Any] = {}
-    for key in ("grading_to_brain_loop", "learning_evidence_event_id"):
-        if key in meta:
-            public[key] = meta[key]
-    action = meta.get("next_best_action")
-    if isinstance(action, dict) and str(action.get("title") or "").strip():
-        public["next_best_action"] = {
-            "title": str(action.get("title") or "").strip(),
-            "action_type": str(action.get("action_type") or "").strip(),
-            "target": str(action.get("target") or "").strip(),
-            "why_this_now": str(action.get("why_this_now") or "").strip(),
-            "materials": [
-                str(item or "").strip()
-                for item in list(action.get("materials") or [])
-                if str(item or "").strip()
-            ],
-            "success_measure": str(action.get("success_measure") or "").strip(),
-            "prescription_authority": str(action.get("prescription_authority") or "").strip(),
-        }
-    return public
-
-
 def _record_v1_grading_to_brain_for_question(
     *,
     context: UnifiedContext,
@@ -4224,7 +4193,11 @@ class DeepQuestionCapability(BaseCapability):
             # Grading-to-Brain：渲染前已录制（同一 recorder seam）。只把公开
             # 投影并入结果——v1_event 有效即合并，不依赖 legacy grading_result
             # 守卫（防"写了证据但客户端无回执"的幽灵写）。
-            result_payload.update(_public_grading_to_brain_meta(_g2b_meta))
+            from deeptutor.services.construction_grading.writeback import (
+                public_grading_to_brain_meta,
+            )
+
+            result_payload.update(public_grading_to_brain_meta(_g2b_meta))
             cost_meta = self._collect_cost_summary("question")
             if cost_meta:
                 result_payload["metadata"] = {"cost_summary": cost_meta}
