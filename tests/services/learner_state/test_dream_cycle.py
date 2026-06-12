@@ -1,0 +1,135 @@
+"""LearningBrainDreamCycle 契约（gbrain 式夜间巩固）。
+
+- 不是第二权威：合成只经 service.synthesize_learning_truth（单一入口），
+  写入门控（G4 cohort）在 service / canonical_truth_policy 内生效；
+  dream cycle 只决定"何时跑、跑哪些用户、汇报结果"。
+- 默认关（env flag fail-closed）；生产环境候选用户受 G4 cohort 限定；
+  单用户失败隔离，不拖垮整轮。
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+import pytest
+
+import deeptutor.services.learner_state.dream_cycle as dream_cycle_module
+from deeptutor.services.learner_state.dream_cycle import (
+    DREAM_CYCLE_ENABLED_FLAG,
+    LearningBrainDreamCycle,
+)
+
+
+class _FakeService:
+    def __init__(self, user_ids: list[str], *, fail_users: set[str] | None = None) -> None:
+        self._user_ids = list(user_ids)
+        self._fail_users = set(fail_users or set())
+        self.synthesize_calls: list[dict[str, Any]] = []
+
+    def list_local_memory_event_user_ids(self) -> list[str]:
+        return list(self._user_ids)
+
+    def synthesize_learning_truth(self, user_id: str, *, dry_run: bool = True, event_limit: int | None = None):
+        self.synthesize_calls.append({"user_id": user_id, "dry_run": dry_run, "event_limit": event_limit})
+        if user_id in self._fail_users:
+            raise RuntimeError("synthesis boom")
+        return {
+            "projection": {"weak_points": []},
+            "summary_md": "## ok",
+            "outbox_item": None,
+            "canonical_truth_promotion": {"allowed": True, "reason": "non_production"},
+        }
+
+
+def test_disabled_flag_means_no_work(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv(DREAM_CYCLE_ENABLED_FLAG, raising=False)
+    service = _FakeService(["stu_1"])
+    cycle = LearningBrainDreamCycle(service)
+
+    report = cycle.run_once(now=1000.0)
+
+    assert report["ran"] is False
+    assert report["reason"] == "disabled"
+    assert service.synthesize_calls == []
+
+
+def test_run_once_consolidates_full_history_for_each_user(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(DREAM_CYCLE_ENABLED_FLAG, "true")
+    service = _FakeService(["stu_1", "stu_2"])
+    cycle = LearningBrainDreamCycle(service)
+
+    report = cycle.run_once(now=1000.0)
+
+    assert report["ran"] is True
+    assert report["user_count"] == 2
+    assert [c["user_id"] for c in service.synthesize_calls] == ["stu_1", "stu_2"]
+    # 全量历史：dry_run=False 且不加 event_limit 窗口
+    assert all(c["dry_run"] is False for c in service.synthesize_calls)
+    assert all(c["event_limit"] is None for c in service.synthesize_calls)
+    assert [item["user_id"] for item in report["consolidated"]] == ["stu_1", "stu_2"]
+
+
+def test_interval_gate_and_force(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(DREAM_CYCLE_ENABLED_FLAG, "true")
+    service = _FakeService(["stu_1"])
+    cycle = LearningBrainDreamCycle(service)
+
+    first = cycle.run_once(now=1000.0)
+    assert first["ran"] is True
+
+    second = cycle.run_once(now=1000.0 + 60.0)
+    assert second["ran"] is False
+    assert second["reason"] == "not_due"
+    assert len(service.synthesize_calls) == 1
+
+    forced = cycle.run_once(now=1000.0 + 60.0, force=True)
+    assert forced["ran"] is True
+    assert len(service.synthesize_calls) == 2
+
+    due_later = cycle.run_once(now=1000.0 + cycle.interval_seconds() + 61.0)
+    assert due_later["ran"] is True
+
+
+def test_production_limits_users_to_canonical_cohort(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(DREAM_CYCLE_ENABLED_FLAG, "true")
+    monkeypatch.setattr(dream_cycle_module, "is_production_environment", lambda: True)
+    monkeypatch.setattr(
+        dream_cycle_module,
+        "canonical_truth_production_write_cohort_allowed",
+        lambda user_id: str(user_id).startswith("qa_"),
+    )
+    service = _FakeService(["qa_alpha", "stu_beta"])
+    cycle = LearningBrainDreamCycle(service)
+
+    report = cycle.run_once(now=1000.0)
+
+    assert [c["user_id"] for c in service.synthesize_calls] == ["qa_alpha"]
+    assert report["skipped"] == [
+        {"user_id": "stu_beta", "reason": "production_cohort_required"}
+    ]
+
+
+def test_single_user_failure_is_isolated(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(DREAM_CYCLE_ENABLED_FLAG, "true")
+    service = _FakeService(["stu_1", "stu_2", "stu_3"], fail_users={"stu_2"})
+    cycle = LearningBrainDreamCycle(service)
+
+    report = cycle.run_once(now=1000.0)
+
+    assert report["ran"] is True
+    assert [item["user_id"] for item in report["consolidated"]] == ["stu_1", "stu_3"]
+    assert len(report["errors"]) == 1
+    assert report["errors"][0]["user_id"] == "stu_2"
+
+
+def test_empty_user_list_is_a_clean_run(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(DREAM_CYCLE_ENABLED_FLAG, "true")
+    service = _FakeService([])
+    cycle = LearningBrainDreamCycle(service)
+
+    report = cycle.run_once(now=1000.0)
+
+    assert report["ran"] is True
+    assert report["user_count"] == 0
+    assert report["consolidated"] == []
+    assert report["errors"] == []

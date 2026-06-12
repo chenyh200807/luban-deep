@@ -103,3 +103,48 @@ def test_personalization_context_derives_next_action_from_confirmed_long_term_cl
     assert nba["prescription_authority"] == "training_intent"
     assert nba["evidence_refs"] == ["teacher_final_evt"]
     assert "防水" in nba["target"]
+
+
+def test_personalization_context_passes_real_graph_chain_to_next_best_action() -> None:
+    """图谱自接线：learning_brain 投影里的 typed_graph 必须作为 graph_chain
+    传给 next_best_action，使 why_this_now 基于真实错因图而非泛化的证据计数。"""
+    intent = build_learning_training_intent(
+        user_id="student_demo",
+        concept_id="1A415000",
+        concept_label="屋面与防水工程施工",
+        error_code="M06",
+        error_label="近义替代原文术语",
+        evidence_refs=["evt_2"],
+        training_mode="case_repair",
+    )
+    pack = build_personalization_context_pack(
+        user_id="student_demo",
+        learning_brain={
+            "compiled_objects": [
+                {
+                    "object_id": "1A415000:M06",
+                    "object_type": "error",
+                    "claim_status": "confirmed",
+                    "concept_id": "1A415000",
+                    "label": "屋面与防水工程施工：近义替代",
+                    "supporting_event_ids": ["evt_2"],
+                    "confidence": 0.8,
+                }
+            ],
+            "typed_graph": {
+                "schema_version": 1,
+                "edges": [
+                    {
+                        "edge_type": "error_points_to_training",
+                        "from": {"type": "error", "id": "1A415000:M06"},
+                        "to": {"type": "training", "id": "training_waterproof_terms"},
+                        "evidence_event_id": "evt_2",
+                    }
+                ],
+            },
+        },
+        active_training_intent=intent,
+    )
+
+    nba = pack["next_best_action_candidates"][0]
+    assert nba["why_this_now"] == "真实错因图已把该薄弱点连接到下一轮训练。"

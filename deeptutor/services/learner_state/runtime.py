@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import asyncio
-import inspect
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+import inspect
 from typing import Any
 
 from deeptutor.logging import get_logger
@@ -26,10 +26,14 @@ class LearnerStateRuntimeConfig:
     heartbeat_interval_seconds: float = 60.0
     outbox_flush_limit: int = 20
     heartbeat_limit: int | None = None
+    # dream cycle 的"是否到点该跑"由 LearningBrainDreamCycle 自己判断
+    # （enabled flag + interval）；runtime 只按这个节奏去敲门。
+    dream_cycle_check_interval_seconds: float = 1800.0
 
 
 class LearnerStateRuntime:
-    """Own the learner-state background loops for outbox flush and heartbeat scheduling."""
+    """Own the learner-state background loops for outbox flush, heartbeat scheduling,
+    and the learning-brain dream cycle (nightly consolidation)."""
 
     def __init__(
         self,
@@ -38,11 +42,13 @@ class LearnerStateRuntime:
         heartbeat_scheduler: LearnerHeartbeatScheduler | None,
         writer: LearnerStateSupabaseWriter | None = None,
         config: LearnerStateRuntimeConfig | None = None,
+        dream_cycle: Any | None = None,
     ) -> None:
         self._flusher = flusher
         self._heartbeat_scheduler = heartbeat_scheduler
         self._writer = writer
         self._config = config or LearnerStateRuntimeConfig()
+        self._dream_cycle = dream_cycle
         self._stop_event: asyncio.Event | None = None
         self._tasks: list[asyncio.Task[Any]] = []
         self._started = False
@@ -65,10 +71,15 @@ class LearnerStateRuntime:
             self._tasks.append(
                 asyncio.create_task(self._run_heartbeat_loop(), name="learner-state-heartbeat-scheduler")
             )
+        if self._dream_cycle is not None:
+            self._tasks.append(
+                asyncio.create_task(self._run_dream_cycle_loop(), name="learner-state-dream-cycle")
+            )
 
         logger.info(
             f"LearnerState runtime started: flusher={self._flusher is not None} "
-            f"heartbeat={self._heartbeat_scheduler is not None}"
+            f"heartbeat={self._heartbeat_scheduler is not None} "
+            f"dream_cycle={self._dream_cycle is not None}"
         )
 
     async def stop(self) -> None:
@@ -112,6 +123,20 @@ class LearnerStateRuntime:
             except Exception as exc:
                 logger.warning(f"LearnerState heartbeat loop failed: {exc}")
             await self._sleep_until_stop(self._config.heartbeat_interval_seconds)
+
+    async def _run_dream_cycle_loop(self) -> None:
+        assert self._stop_event is not None
+        while not self._stop_event.is_set():
+            try:
+                # run_once 是同步纯计算 + 文件/DB IO，放线程池避免阻塞事件循环。
+                report = await asyncio.to_thread(self._dream_cycle.run_once)  # type: ignore[union-attr]
+                if isinstance(report, dict) and report.get("ran"):
+                    logger.info(f"LearnerState dream cycle ran: {report.get('user_count')} user(s)")
+            except asyncio.CancelledError:
+                raise
+            except Exception as exc:
+                logger.warning(f"LearnerState dream cycle loop failed: {exc}")
+            await self._sleep_until_stop(self._config.dream_cycle_check_interval_seconds)
 
     async def _sleep_until_stop(self, timeout_seconds: float) -> None:
         assert self._stop_event is not None
@@ -435,10 +460,15 @@ def create_default_learner_state_runtime(
         executor=LearnerHeartbeatExecutor(learner_state_service=service),
         hint_resolver=_default_heartbeat_hint_resolver(service),
     )
+    from .dream_cycle import LearningBrainDreamCycle
+
     return LearnerStateRuntime(
         flusher=flusher,
         heartbeat_scheduler=heartbeat_scheduler,
         writer=writer if writer.is_configured else None,
+        # 始终挂载；enabled flag 在每个 tick 内由 dream cycle 自检，
+        # 因此线上翻 env 即可启停，无需重启进程。
+        dream_cycle=LearningBrainDreamCycle(service),
     )
 
 

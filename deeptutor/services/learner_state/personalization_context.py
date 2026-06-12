@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from typing import Any
 
+from deeptutor.services.learner_state.learning_trajectory import group_typed_edges
 from deeptutor.services.learner_state.next_best_action import build_next_best_actions
 from deeptutor.services.learner_state.training_intent import build_learning_training_intent
-
 
 _STABLE_CLAIM_STATUSES = {"confirmed", "repeated", "observed"}
 _GAP_CLAIM_STATUSES = {"stale", "superseded", "contradicted", "rejected"}
@@ -26,6 +26,9 @@ def build_personalization_context_pack(
     actions = build_next_best_actions(
         user_id=user_id,
         training_intents=[intent] if intent else [],
+        # 图谱自接线：投影里的真实错因图直通 NBA，why_this_now 优先引用
+        # 真实 error→training 边而非泛化的证据计数。仍是只读视图。
+        graph_chain=group_typed_edges(learning_brain),
         max_actions=1,
     )
     return {

@@ -237,3 +237,34 @@ def test_default_heartbeat_hint_resolver_collects_active_plan_recent_interaction
     assert hints.recently_contacted_until_by_bot_id["bot_alpha"] == datetime(
         2026, 4, 16, 12, 0, tzinfo=timezone.utc
     )
+
+
+class _FakeDreamCycle:
+    def __init__(self) -> None:
+        self.calls: list[bool] = []
+
+    def run_once(self, *, now=None, force: bool = False):
+        self.calls.append(force)
+        return {"ran": False, "reason": "disabled"}
+
+
+def test_runtime_runs_dream_cycle_loop() -> None:
+    """dream cycle 是 runtime 的第三个后台循环；enabled/interval 门在 cycle 内部，
+    runtime 只负责周期性调度 run_once（经 to_thread，不阻塞事件循环）。"""
+    dream = _FakeDreamCycle()
+    runtime = LearnerStateRuntime(
+        flusher=None,
+        heartbeat_scheduler=None,
+        dream_cycle=dream,
+        config=LearnerStateRuntimeConfig(dream_cycle_check_interval_seconds=3600),
+    )
+
+    async def _run() -> None:
+        await runtime.start()
+        await _wait_until(lambda: dream.calls)
+        await runtime.stop()
+
+    asyncio.run(_run())
+
+    assert dream.calls == [False]
+    assert runtime.is_running is False
