@@ -121,7 +121,7 @@
 
     <!-- 幕 5: CTA 收束 -->
     <view class="cta-stage {{fx.ctaTitle ? 'play' : ''}}" wx:if="{{actId === 'cta'}}">
-      <view class="scene-kicker cta-kicker"><text>先体验导学</text></view>
+      <view class="scene-kicker cta-kicker"><text>鲁班智考 · AI 实务教练</text></view>
       <view class="rise-line cta-line" wx:for="{{ctaLines}}" wx:for-item="line" wx:for-index="li" wx:key="li">
         <text
           wx:for="{{line}}"
