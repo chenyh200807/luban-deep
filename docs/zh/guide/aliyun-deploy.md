@@ -728,3 +728,15 @@ bash scripts/deploy_aliyun.sh
 ```
 
 不要把“代码版本回滚”和“运行态数据回滚”混成一步；先判断是哪一层出问题，再分别执行。
+
+### 13. 2026-06-12 prompt 资产发布耗时复盘（两次部署才闭环）
+
+这次只改了 TutorBot skill prompt 资产 + 一处 `_SCENE_REFERENCE_FILES` 注入，本应一次 `redeploy_aliyun_fast.sh` 闭环，实际多花了一倍时间。根因和规则：
+
+| 信号 | 是否阻断 | 根因 | 下次处理 |
+| --- | --- | --- | --- |
+| 脚本拒绝："禁止直接从 main 发布" | 阻断 | 在脏 main 工作区直接跑发布脚本，没有先建干净候选分支 | 发布前第一步就建干净 worktree（`git worktree add /tmp/deeptutor-release-<sha> <sha> -b release/<topic>`），不要先试脏 main 再被脚本打回 |
+| 首次部署后远端 `contract_guard` readiness FAIL | 阻断（required gate） | `question_lifecycle_skills.py` 是 contract-sensitive 文件，commit 集里没有同步更新 contract surface。本地无参跑 `check_contract_guard.py` 通过是**假阴性**：脏工作树里恰好有别的 contracts 改动掩蔽了要求 | 发布前用真实变更集跑：`python scripts/check_contract_guard.py $(git diff --name-only origin/main..HEAD)`。contract-sensitive 文件改动必须与 contract surface 更新在同一个发布集里，否则远端 readiness 必 FAIL，要二次 commit + 二次部署 |
+| 修 contract 文件时工作树同文件有他人脏改动 | 不阻断但易夹带 | 直接 `git add` 会把无关脏 hunk 一起带进发布 | 用 `git show :file` 取 index 版本插入自己的行，`git hash-object -w` + `git update-index --cacheinfo` 只 stage 自己的 hunk；工作树副本另行同步插入保持一致 |
+
+通用结论：**prompt/skill 资产改动如果触碰了任何 contract-sensitive 的注入/路由代码，发布成本就从"快速重启"升级为"contract 闭环 + 快速重启"**。预估工时时按后者算，并在 commit 前就把 contract 条款补齐，避免部署后被远端 readiness gate 打回重来。
