@@ -3,6 +3,7 @@ resolve_general_knowledge_context injection seam (flag off -> byte-identical beh
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -347,7 +348,12 @@ def test_flag_on_attaches_rich_leaf_context_and_grounding_renders_it(
     # rich context renders into the grounding, before the four-source items
     grounding = gk.format_general_knowledge_grounding(out)
     assert "富叶编译上下文" in grounding
-    assert grounding.index("富叶编译上下文") < grounding.index("- [教材")
+    # rich context renders before the first four-source lane item; the lane of that first
+    # item is axis content (taxonomy-frozen revisions may legitimately change it), so pin
+    # the ordering MECHANISM against any four-source lane marker, not a specific lane.
+    first_lane = re.search(r"- \[(教材|规范|真题|讲义)", grounding)
+    assert first_lane is not None
+    assert grounding.index("富叶编译上下文") < first_lane.start()
     assert "L-SUPP" in grounding
     # legacy pack fields are untouched (additive key only)
     for key in ("classified_leaf", "sources", "confidence", "official_score_allowed"):

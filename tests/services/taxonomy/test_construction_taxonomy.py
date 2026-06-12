@@ -34,21 +34,23 @@ def test_construction_taxonomy_reads_compiled_final_cleaned_authority() -> None:
 
     # single-authority: A recompiled from the canonical 2026 source (identical (code,name) content to
     # the legacy docs/ copy — verified), now projecting concept_registry deprecations.
-    # taxonomy-frozen-v1-20260612: canonical sha is pinned by the freeze declaration
+    # taxonomy-frozen-v1.1-20260613: canonical sha is pinned by the freeze declaration
     # (TAXONOMY_FREEZE.md); changes only through the freeze change policy.
-    assert source["sha256"] == "83cb2fab8d9d54462f260a954694098a9bbd516f3624e42a8e9d81648d283a7c"
+    # v1.1 = first weekly-window coverage expansion (+78 E-suffixed exam-axis leaves).
+    assert source["sha256"] == "26dbb542b31601d6b3255d53463d0007c0c7eaea5a24ad9c338b3742baa976c8"
     assert source["path"].endswith("FINAL_CLEANED_TAXONOMY2026.json")
 
 
 def test_construction_taxonomy_tree_stats_preserve_original_outline_counts() -> None:
     stats = taxonomy_tree_stats()
 
-    # 7th revision 2026-06-12 (taxonomy freeze v1 gap-fill: +24 G-suffixed leaves folded from
-    # rich_leaf v2.x taxonomy_gap candidates — 19 textbook-evidenced + 5 lecture-lane): codes unique
-    assert stats["total_nodes"] == 2038
-    assert stats["leaf_nodes"] == 1898
-    assert stats["coded_nodes"] == 2038
-    assert stats["unique_codes"] == 2038
+    # taxonomy-frozen-v1.1-20260613 (first weekly-window coverage expansion: +78 E-suffixed
+    # exam-axis leaves derived from the 2021-2025 real-exam node prefix gap, 77 textbook +
+    # 1 lecture lane, 1 unfilled work order): codes unique
+    assert stats["total_nodes"] == 2116
+    assert stats["leaf_nodes"] == 1976
+    assert stats["coded_nodes"] == 2116
+    assert stats["unique_codes"] == 2116
     assert stats["duplicate_code_rows"] == 0
 
 

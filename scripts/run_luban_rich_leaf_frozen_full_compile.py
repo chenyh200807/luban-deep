@@ -240,6 +240,7 @@ def build_frozen_full_compile(
     book_files: list[Path],
     source_root: Path,
     base_pack: dict[str, Any] | None = None,
+    pack_version: str = PACK_VERSION,
 ) -> dict[str, Any]:
     blockers: list[str] = []
     meta = taxonomy.get("meta") if isinstance(taxonomy.get("meta"), dict) else {}
@@ -358,7 +359,7 @@ def build_frozen_full_compile(
     if not blockers and units:
         pack = {
             "schema": RUNTIME_SCHEMA,
-            "version": PACK_VERSION,
+            "version": pack_version,
             "status": PACK_STATUS,
             "frozen_axis": {
                 "frozen": frozen_tag,
@@ -409,6 +410,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--source-root", type=Path, default=SOURCE_ROOT)
     parser.add_argument("--base-pack", type=Path, default=DEFAULT_BASE_PACK)
     parser.add_argument("--no-base-pack", action="store_true")
+    parser.add_argument("--pack-version", default=PACK_VERSION)
     parser.add_argument("--output-report", type=Path, default=DEFAULT_OUTPUT_DIR / "frozen_full_compile_report.json")
     parser.add_argument("--output-pack", type=Path, default=DEFAULT_OUTPUT_DIR / "runtime_token_pack_v30_frozen_full.json")
     args = parser.parse_args(argv)
@@ -421,6 +423,7 @@ def main(argv: list[str] | None = None) -> int:
         book_files=args.book_files or DEFAULT_BOOK_FILES,
         source_root=args.source_root,
         base_pack=base_pack,
+        pack_version=args.pack_version,
     )
     pack = report.pop("runtime_token_pack", None)
     report["runtime_token_pack_path"] = str(args.output_pack) if pack else None

@@ -90,6 +90,7 @@ def build_frozen_v1_live_residual_work_orders(
     *,
     live_ab: dict[str, Any],
     runtime_token_pack: dict[str, Any],
+    annotated_version: str = ANNOTATED_VERSION,
 ) -> dict[str, Any]:
     blockers: list[str] = []
     if live_ab.get("schema") != LIVE_SCHEMA:
@@ -188,7 +189,7 @@ def build_frozen_v1_live_residual_work_orders(
         ]
         annotated_pack = {
             **runtime_token_pack,
-            "version": ANNOTATED_VERSION,
+            "version": annotated_version,
             "runtime_token_pack_units": annotated_units,
             "quarantine": {
                 "quarantine_candidate_unit_ids": quarantine_ids,
@@ -247,11 +248,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--runtime-token-pack", type=Path, default=DEFAULT_RUNTIME_TOKEN_PACK)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--output-pack", type=Path, default=DEFAULT_OUTPUT_PACK)
+    parser.add_argument("--annotated-version", default=ANNOTATED_VERSION)
     args = parser.parse_args(argv)
 
     report = build_frozen_v1_live_residual_work_orders(
         live_ab=_read_json(args.live_ab),
         runtime_token_pack=_read_json(args.runtime_token_pack),
+        annotated_version=args.annotated_version,
     )
     annotated_pack = report.pop("annotated_runtime_token_pack", None)
     report["annotated_runtime_token_pack_path"] = str(args.output_pack) if annotated_pack else None
