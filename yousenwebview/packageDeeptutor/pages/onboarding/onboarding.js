@@ -36,7 +36,7 @@ var ACTS = [
       riseChars("哪些话能得分？", 3, 6, 420, 50),
     ],
     desc: ["鲁班按采分点批改你的作答，", "拆出命中、漏点和表达问题。"],
-    tags: ["案例批改", "采分点", "漏分点"],
+    tags: ["案例批改", "采分点", "易错点"],
   },
   {
     id: "p3",
@@ -172,7 +172,7 @@ Page({
         });
       }
       that._exiting = false;
-    }, 430);
+    }, 800);
   },
 
   onPageTouchStart: function (event) {

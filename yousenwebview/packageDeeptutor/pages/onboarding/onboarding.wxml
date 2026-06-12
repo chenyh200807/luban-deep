@@ -1,5 +1,5 @@
 <view
-  class="onboarding-page act-{{actId}}"
+  class="onboarding-page act-{{actId}} {{ctaExit ? 'exiting' : ''}}"
   bindtouchstart="onPageTouchStart"
   bindtouchend="onPageTouchEnd"
   bindtouchcancel="onPageTouchCancel"
@@ -9,8 +9,11 @@
   <view class="dawn dawn-p1"></view>
   <view class="dawn dawn-p2"></view>
   <view class="dawn dawn-p3"></view>
-  <view class="horizon-glow"></view>
-  <view class="horizon-body"></view>
+  <view class="horizon horizon-glow"></view>
+  <view class="horizon horizon-rim r3"></view>
+  <view class="horizon horizon-rim r2"></view>
+  <view class="horizon horizon-rim r1"></view>
+  <view class="horizon horizon-body"></view>
   <view class="grain"></view>
   <view class="night-veil {{actId !== 'wave' ? 'lift' : ''}}"></view>
 
@@ -96,19 +99,19 @@
             <text class="mark" style="animation-delay: 0ms">专项方案</text>
             <text> 和 </text>
             <text class="mark" style="animation-delay: 260ms">技术交底</text>
-            <text>，漏了 </text>
+            <text> 等，漏了 </text>
             <text class="miss" style="animation-delay: 540ms">验收程序</text>
             <text>。</text>
           </view>
           <view class="point-row hit {{fx.rows >= 1 ? '' : 'fx-hold'}}">
             <text class="point-tag">得</text>
-            <text class="point-text">命中 2 个采分点</text>
-            <text class="point-score">+6</text>
+            <text class="point-text">命中 4 个采分点</text>
+            <text class="point-score">+12</text>
           </view>
           <view class="point-row warn {{fx.rows >= 2 ? '' : 'fx-hold'}}">
             <text class="point-tag">漏</text>
-            <text class="point-text">漏写责任人与验收</text>
-            <text class="point-score">-5</text>
+            <text class="point-text">漏写验收程序等 2 处</text>
+            <text class="point-score">-8</text>
           </view>
         </view>
 
@@ -146,5 +149,4 @@
   >
     <text>跳过 ›</text>
   </view>
-  <view class="cta-wave {{ctaExit ? 'play' : ''}}"></view>
 </view>
