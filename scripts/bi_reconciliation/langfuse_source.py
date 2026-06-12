@@ -24,7 +24,8 @@ def fetch_daily_metrics(
         "toTimestamp": now.isoformat(),
         "limit": "100",
     }
-    with httpx.Client(auth=(public_key, secret_key), timeout=30) as client:
+    # trust_env=False: 不读系统代理，内网/SSH 隧道地址经代理会 503（同 LANGFUSE_HTTPX_TRUST_ENV 的教训）
+    with httpx.Client(auth=(public_key, secret_key), timeout=30, trust_env=False) as client:
         resp = client.get(f"{host.rstrip('/')}/api/public/metrics/daily", params=params)
         resp.raise_for_status()
         return resp.json()

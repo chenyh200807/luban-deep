@@ -96,9 +96,9 @@ def member_readings_from_supabase(
         "Prefer": "count=exact",
         "Range": "0-0",
     }
-    with httpx.Client(headers=headers, timeout=30) as client:
+    with httpx.Client(headers=headers, timeout=30, trust_env=False) as client:
         resp = client.get(
-            f"{rest_url.rstrip('/')}/rest/v1/v_members", params={"select": "id"}
+            f"{rest_url.rstrip('/')}/rest/v1/v_members", params={"select": "user_id"}
         )
         resp.raise_for_status()
         content_range = resp.headers.get("content-range", "")

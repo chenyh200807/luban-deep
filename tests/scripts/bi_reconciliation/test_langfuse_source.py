@@ -25,10 +25,9 @@ def test_daily_cost_aggregation_matches_fixture_sum():
     assert cost.meta["days"] == 7
 
 
-def test_trace_and_observation_counts():
+def test_trace_counts():
     readings = {r.metric_id: r for r in readings_from_daily_metrics(_daily(), window_days=7)}
     assert readings["active_learning_sessions"].value == 898.0  # daily_traces
-    assert readings["ai_quality_score"].value == 11636.0  # daily_observations（分量级记录）
 
 
 def test_empty_payload_yields_none_values():

@@ -76,9 +76,8 @@ METRIC_MAPPINGS: tuple[MetricMapping, ...] = (
     MetricMapping(
         "ai_quality_score",
         bi_api_path="overview:ai_quality.engineering_success_rate",
-        langfuse_kind="daily_observations",
         tolerance_pct=5.0,
-        gap_note="实拍 ai_quality.value=None，payload 实际承载的是 engineering_success_rate 代理字段——口径与注册定义不一致",
+        gap_note="实拍 ai_quality.value=None，payload 实际承载 engineering_success_rate 代理字段——口径与注册定义不一致；Langfuse observations 总量与质量分不可比，不做等值对账",
     ),
     MetricMapping(
         "cost_per_effective_learning",

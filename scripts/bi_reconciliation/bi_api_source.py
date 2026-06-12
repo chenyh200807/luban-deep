@@ -5,6 +5,7 @@
 """
 from __future__ import annotations
 
+import time
 from typing import Any
 
 import httpx
@@ -16,14 +17,28 @@ from scripts.bi_reconciliation.types import SOURCE_BI_API, SourceReading
 BI_ENDPOINTS = ("overview", "cost", "members", "anomalies")
 
 
+def _get_with_retry(client: httpx.Client, url: str, params: dict[str, Any], attempts: int = 3) -> httpx.Response:
+    """瞬时 5xx 重试（test2 实测偶发 502）；4xx 不重试直接抛。"""
+    last: httpx.Response | None = None
+    for attempt in range(attempts):
+        resp = client.get(url, params=params)
+        if resp.status_code < 500:
+            resp.raise_for_status()
+            return resp
+        last = resp
+        time.sleep(1.5 * (attempt + 1))
+    assert last is not None
+    last.raise_for_status()
+    return last
+
+
 def fetch_bi_payloads(base_url: str, metrics_token: str, window_days: int = 7) -> dict[str, Any]:
     """在线抓取（live run 用）；离线测试不调用此函数。窗口参数名为 days（int）。"""
     headers = {"X-Metrics-Token": metrics_token}
     out: dict[str, Any] = {}
-    with httpx.Client(base_url=base_url, headers=headers, timeout=30) as client:
+    with httpx.Client(base_url=base_url, headers=headers, timeout=30, trust_env=False) as client:
         for ep in BI_ENDPOINTS:
-            resp = client.get(f"/api/v1/bi/{ep}", params={"days": window_days})
-            resp.raise_for_status()
+            resp = _get_with_retry(client, f"/api/v1/bi/{ep}", {"days": window_days})
             out[ep] = resp.json()
     return out
 
