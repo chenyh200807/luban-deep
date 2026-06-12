@@ -34,13 +34,10 @@ var ACTS = [
   },
 ];
 
-// 幕 1 文字 Hook：两行，第二行「怎么拿分」金色高亮。
-var HOOK_LINES = [
-  riseChars("一建实务案例题，", null, 0, 0, 55),
-  riseChars("到底怎么拿分？", 2, 6, 420, 55),
-];
+// 幕 1 词轮播（视频2 式垂直 roller）：从「盲刷」滚到「提分」收住点亮。
+var ROLL_WORDS = ["盲刷", "判分", "错因", "提分"];
 
-// CTA 收束：第二行整行金色。
+// CTA 收束：第二行整行品牌蓝。
 var CTA_LINES = [
   riseChars("让每一分", null, 0, 0, 60),
   riseChars("都有据可依", 0, 5, 380, 60),
@@ -57,7 +54,7 @@ Page({
   data: {
     statusBarHeight: 44,
     safeBottom: 0,
-    hookLines: HOOK_LINES,
+    rollWords: ROLL_WORDS,
     ctaLines: CTA_LINES,
     pills: PILL_ACT_IDS,
     actId: "wave",
@@ -70,7 +67,9 @@ Page({
   onLoad: function (options) {
     try {
       var info = helpers.getWindowInfo();
-      var safeBottom = info.safeArea ? info.screenHeight - info.safeArea.bottom : 0;
+      var safeBottom = info.safeArea
+        ? info.screenHeight - info.safeArea.bottom
+        : 0;
       this.setData({
         statusBarHeight: info.statusBarHeight || 44,
         safeBottom: safeBottom,
@@ -78,7 +77,8 @@ Page({
     } catch (_) {}
     this.setData({
       entrySource: String(
-        (options && (options.entry_source || options.entrySource || options.source)) ||
+        (options &&
+          (options.entry_source || options.entrySource || options.source)) ||
           "guest_preview",
       ),
     });
@@ -173,6 +173,8 @@ Page({
   },
 
   quickLogin: function () {
-    runtime.redirectToLogin(route.chat({ entry_source: this.data.entrySource, preview: "1" }));
+    runtime.redirectToLogin(
+      route.chat({ entry_source: this.data.entrySource, preview: "1" }),
+    );
   },
 });

@@ -9,10 +9,12 @@ module.exports = [
 
   {
     id: "hook",
-    duration: 2600,
+    duration: 3800,
     steps: [
       { at: 120, patch: { "fx.hookPlay": true } },
-      { at: 1500, patch: { "fx.hookAccent": true } },
+      { at: 1000, patch: { "fx.roll": 1 } },
+      { at: 1800, patch: { "fx.roll": 2 } },
+      { at: 2600, patch: { "fx.roll": 3 } },
     ],
   },
 

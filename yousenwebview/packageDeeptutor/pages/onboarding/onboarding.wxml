@@ -34,18 +34,23 @@
       ></view>
     </view>
 
-    <!-- 幕 1: 文字 Hook —— 逐字 mask-rise，第二行关键词金色辉光 -->
+    <!-- 幕 1: 词轮播 —— 视频2 式垂直 roller，「提分」收住点亮品牌蓝 -->
     <view
-      class="hook-stage {{fx.hookPlay ? 'play' : ''}} {{fx.hookAccent ? 'accent-on' : ''}}"
+      class="hook-stage {{fx.hookPlay ? 'play' : ''}}"
       wx:if="{{actId === 'wave' || actId === 'hook'}}"
     >
-      <view class="rise-line" wx:for="{{hookLines}}" wx:for-item="line" wx:for-index="li" wx:key="li">
-        <text
-          wx:for="{{line}}"
-          wx:key="index"
-          class="rise-char {{item.accent ? 'is-accent' : ''}}"
-          style="animation-delay: {{item.d}}ms"
-        >{{item.c}}</text>
+      <view class="roller">
+        <view class="roller-track" style="transform: translateY({{(1 - (fx.roll || 0)) * 150}}rpx)">
+          <view
+            wx:for="{{rollWords}}"
+            wx:key="*this"
+            class="roller-word {{(fx.roll || 0) === index ? 'cur' : ''}} {{index === rollWords.length - 1 && (fx.roll || 0) === index ? 'final' : ''}}"
+          >
+            <text>{{item}}</text>
+          </view>
+        </view>
+        <view class="roller-fade-top"></view>
+        <view class="roller-fade-bottom"></view>
       </view>
     </view>
 

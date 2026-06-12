@@ -1,5 +1,5 @@
-/* onboarding.wxss — 「先体验导学」深夜蓝黑 · 电影感 motion 设计系统
-   语言：aurora 极光慢漂 + 细颗粒 grain + 宋体大字逐字 mask-rise + 金色辉光关键词
+/* onboarding.wxss — 「先体验导学」白昼青蓝 · 电影感 motion 设计系统（视频2 配色同源）
+   语言：白底 + 底部青蓝辉光 + 胶片颗粒 + 垂直词轮播 + 宋体逐字 mask-rise + 品牌蓝点亮
    节奏：文字幕 Apple 式慢而准；判分弹分 Nike 式蓄力爆发
    红线：补间只用 transform/opacity（小面积文字高亮的颜色动画除外） */
 
@@ -7,50 +7,57 @@
   position: relative;
   height: 100vh;
   overflow: hidden;
-  color: #f2f5fb;
-  background: linear-gradient(180deg, #0d1633 0%, #0a1228 42%, #070d1d 100%);
+  color: #0b1f3a;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 55%, #eef7ff 100%);
 }
 
-/* —— 背景：极光 + 颗粒 —— */
+/* —— 背景：底部青蓝辉光 + 轻极光 + 颗粒 —— */
 .aurora {
   position: fixed;
-  width: 920rpx;
-  height: 920rpx;
   pointer-events: none;
-  opacity: 0.6;
 }
 
 .a1 {
-  top: -260rpx;
+  width: 760rpx;
+  height: 760rpx;
+  top: -300rpx;
   left: -280rpx;
-  background: radial-gradient(circle, rgba(58, 110, 255, 0.5) 0%, rgba(58, 110, 255, 0.16) 38%, transparent 66%);
-  animation: drift1 16s ease-in-out infinite alternate;
+  opacity: 0.5;
+  background: radial-gradient(circle, rgba(56, 182, 255, 0.14) 0%, rgba(56, 182, 255, 0.05) 40%, transparent 66%);
+  animation: drift1 18s ease-in-out infinite alternate;
 }
 
 .a2 {
-  bottom: -340rpx;
-  right: -320rpx;
-  background: radial-gradient(circle, rgba(0, 201, 167, 0.34) 0%, rgba(0, 201, 167, 0.1) 40%, transparent 68%);
-  animation: drift2 20s ease-in-out infinite alternate;
+  left: -22%;
+  right: -22%;
+  bottom: -34%;
+  height: 86%;
+  width: auto;
+  opacity: 0.9;
+  background: radial-gradient(ellipse at 50% 100%, rgba(31, 143, 255, 0.5) 0%, rgba(86, 182, 255, 0.3) 36%, rgba(160, 216, 255, 0.14) 58%, transparent 78%);
+  animation: glowBreathe 9s ease-in-out infinite alternate;
 }
 
 .a3 {
+  width: 700rpx;
+  height: 700rpx;
   top: 30%;
-  right: -380rpx;
-  background: radial-gradient(circle, rgba(232, 181, 77, 0.2) 0%, rgba(232, 181, 77, 0.06) 38%, transparent 64%);
+  right: -360rpx;
+  opacity: 0.4;
+  background: radial-gradient(circle, rgba(31, 143, 255, 0.1) 0%, transparent 62%);
   animation: drift3 24s ease-in-out infinite alternate;
 }
 
 @keyframes drift1 {
-  to { transform: translate3d(130rpx, 90rpx, 0) scale(1.18); }
+  to { transform: translate3d(110rpx, 70rpx, 0) scale(1.12); }
 }
 
-@keyframes drift2 {
-  to { transform: translate3d(-110rpx, -120rpx, 0) scale(1.12); }
+@keyframes glowBreathe {
+  to { transform: translateY(-40rpx) scale(1.05); opacity: 1; }
 }
 
 @keyframes drift3 {
-  to { transform: translate3d(-150rpx, 60rpx, 0) scale(1.08); }
+  to { transform: translate3d(-130rpx, 60rpx, 0) scale(1.06); }
 }
 
 .grain {
@@ -60,7 +67,7 @@
   top: 0;
   bottom: 0;
   pointer-events: none;
-  opacity: 0.05;
+  opacity: 0.04;
   background-image: url("data:image/png;base64,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");
   background-size: 110rpx 110rpx;
 }
@@ -95,9 +102,9 @@
   height: 56rpx;
   padding: 10rpx;
   border-radius: 18rpx;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1rpx solid rgba(255, 255, 255, 0.1);
+  background: #0b1f3a;
   box-sizing: border-box;
+  box-shadow: 0 14rpx 30rpx rgba(11, 31, 58, 0.16);
 }
 
 .brand-title {
@@ -105,13 +112,13 @@
   font-size: 28rpx;
   line-height: 1.05;
   font-weight: 800;
-  color: #f2f5fb;
+  color: #0b1f3a;
 }
 
 .brand-sub {
   display: block;
   margin-top: 5rpx;
-  color: rgba(208, 222, 248, 0.5);
+  color: rgba(11, 31, 58, 0.45);
   font-size: 20rpx;
   line-height: 1;
   letter-spacing: 0.08em;
@@ -125,12 +132,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1rpx solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1rpx solid rgba(11, 31, 58, 0.08);
 }
 
 .skip-text {
-  color: rgba(220, 232, 252, 0.62);
+  color: rgba(11, 31, 58, 0.55);
   font-size: 24rpx;
   font-weight: 600;
 }
@@ -147,20 +154,92 @@
   width: 34rpx;
   height: 4rpx;
   border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(11, 31, 58, 0.12);
   transition: width 320ms ease, background 320ms ease;
 }
 
 .progress-pill.on {
-  background: rgba(138, 176, 255, 0.55);
+  background: rgba(31, 143, 255, 0.45);
 }
 
 .progress-pill.current {
   width: 72rpx;
-  background: #e8b54d;
+  background: #1f8fff;
 }
 
-/* —— 逐字 mask-rise（电影标题语言）—— */
+/* —— 幕 1: 垂直词轮播（视频2 语言）—— */
+.hook-stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-bottom: 140rpx;
+}
+
+.roller {
+  position: relative;
+  height: 450rpx;
+  overflow: hidden;
+  opacity: 0;
+}
+
+.hook-stage.play .roller {
+  animation: softIn 620ms ease both;
+}
+
+.roller-track {
+  display: flex;
+  flex-direction: column;
+  transition: transform 540ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.roller-word {
+  height: 150rpx;
+  display: flex;
+  align-items: center;
+}
+
+.roller-word text {
+  font-size: 96rpx;
+  font-weight: 900;
+  line-height: 1;
+  color: rgba(11, 31, 58, 0.12);
+  letter-spacing: 0.02em;
+  transform: scale(0.94);
+  transform-origin: left center;
+  transition: color 440ms ease, transform 440ms cubic-bezier(0.22, 1, 0.36, 1), text-shadow 440ms ease;
+}
+
+.roller-word.cur text {
+  color: #0b1f3a;
+  transform: scale(1);
+}
+
+.roller-word.final text {
+  color: #1f8fff;
+  text-shadow: 0 0 34rpx rgba(31, 143, 255, 0.32);
+}
+
+.roller-fade-top,
+.roller-fade-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 132rpx;
+  pointer-events: none;
+}
+
+.roller-fade-top {
+  top: 0;
+  background: linear-gradient(180deg, #ffffff, rgba(255, 255, 255, 0));
+}
+
+.roller-fade-bottom {
+  bottom: 0;
+  background: linear-gradient(0deg, #ffffff, rgba(255, 255, 255, 0));
+}
+
+/* —— 逐字 mask-rise（幕 2/3 标题与 CTA）—— */
 .rise-line {
   display: flex;
   flex-wrap: wrap;
@@ -175,7 +254,7 @@
   transform: translateY(112%);
   font-family: "Songti SC", "STSong", "Source Han Serif SC", serif;
   font-weight: 900;
-  color: #f2f5fb;
+  color: #0b1f3a;
   font-size: 82rpx;
   line-height: 1.22;
   letter-spacing: 0.01em;
@@ -200,37 +279,8 @@
 }
 
 .rise-char.is-accent {
-  color: #f2f5fb;
-}
-
-/* 关键词点金：升起完成后整词辉光浮起（Nike 式蓄力→爆发的「点睛」） */
-.accent-on .rise-char.is-accent {
-  color: #e8b54d;
-  text-shadow: 0 0 28rpx rgba(232, 181, 77, 0.4);
-  animation: accentGlow 860ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-@keyframes accentGlow {
-  from {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-  45% {
-    transform: translateY(-6rpx) scale(1.1);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1.04);
-  }
-}
-
-/* —— 幕 1: Hook —— */
-.hook-stage {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding-bottom: 140rpx;
+  color: #1f8fff;
+  text-shadow: 0 0 30rpx rgba(31, 143, 255, 0.25);
 }
 
 /* —— 幕 2/3 容器 —— */
@@ -258,11 +308,11 @@
   content: "";
   width: 46rpx;
   height: 2rpx;
-  background: linear-gradient(90deg, #e8b54d, rgba(232, 181, 77, 0));
+  background: linear-gradient(90deg, #1f8fff, rgba(31, 143, 255, 0));
 }
 
 .scene-kicker text {
-  color: rgba(170, 196, 255, 0.66);
+  color: rgba(11, 31, 58, 0.5);
   font-size: 22rpx;
   line-height: 1;
   font-weight: 600;
@@ -289,14 +339,14 @@
   font-size: 64rpx;
 }
 
-/* —— 深色玻璃卡（产品时刻）—— */
+/* —— 白色悬浮卡（产品时刻）—— */
 .product-stage {
   margin-top: 38rpx;
   padding: 26rpx;
   border-radius: 30rpx;
-  background: rgba(255, 255, 255, 0.055);
-  border: 1rpx solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 34rpx 90rpx rgba(2, 6, 18, 0.55);
+  background: #ffffff;
+  border: 1rpx solid rgba(11, 31, 58, 0.06);
+  box-shadow: 0 30rpx 80rpx rgba(31, 108, 255, 0.12);
   animation: stageLand 760ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
@@ -325,7 +375,7 @@
 }
 
 .product-title {
-  color: rgba(228, 238, 252, 0.85);
+  color: #0b1f3a;
   font-size: 28rpx;
   line-height: 1.1;
   font-weight: 800;
@@ -335,9 +385,9 @@
   flex: 0 0 auto;
   padding: 10rpx 16rpx;
   border-radius: 999rpx;
-  background: rgba(0, 201, 167, 0.14);
-  border: 1rpx solid rgba(0, 201, 167, 0.22);
-  color: #6fe3c2;
+  background: rgba(31, 143, 255, 0.1);
+  border: 1rpx solid rgba(31, 143, 255, 0.18);
+  color: #1271d8;
   font-size: 22rpx;
   line-height: 1;
   font-weight: 800;
@@ -351,8 +401,8 @@
 .answer-paper {
   padding: 20rpx;
   border-radius: 20rpx;
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(222, 232, 246, 0.8);
+  background: rgba(11, 31, 58, 0.035);
+  color: rgba(11, 31, 58, 0.78);
   font-size: 26rpx;
   line-height: 1.62;
   font-weight: 500;
@@ -396,15 +446,15 @@
 
 @keyframes markIn {
   to {
-    color: #6fe3c2;
-    background: rgba(0, 201, 167, 0.16);
+    color: #07705c;
+    background: rgba(0, 168, 148, 0.14);
   }
 }
 
 @keyframes missIn {
   to {
-    color: #f0b15c;
-    background: rgba(232, 148, 58, 0.16);
+    color: #94560a;
+    background: rgba(242, 184, 73, 0.22);
   }
 }
 
@@ -417,8 +467,8 @@
   grid-template-columns: 40rpx 1fr auto;
   align-items: center;
   gap: 14rpx;
-  background: rgba(255, 255, 255, 0.045);
-  border: 1rpx solid rgba(255, 255, 255, 0.06);
+  background: #f5faff;
+  border: 1rpx solid rgba(11, 31, 58, 0.05);
   animation: rowIn 540ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
@@ -449,39 +499,37 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #04110d;
-  background: #2bd4ab;
+  color: #ffffff;
+  background: #0fae8d;
   font-size: 20rpx;
   line-height: 1;
   font-weight: 900;
 }
 
 .point-row.warn .point-tag {
-  color: #1d1204;
-  background: #e8a64d;
+  color: #4a2e00;
+  background: #f2b849;
 }
 
 .point-text {
   min-width: 0;
-  color: rgba(226, 235, 248, 0.84);
+  color: rgba(11, 31, 58, 0.82);
   font-size: 24rpx;
   line-height: 1.2;
   font-weight: 600;
 }
 
 .point-score {
-  color: #6fe3c2;
+  color: #0a9c80;
   font-size: 26rpx;
   line-height: 1;
   font-weight: 900;
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 18rpx rgba(43, 212, 171, 0.45);
   animation: scorePop 560ms cubic-bezier(0.16, 1, 0.3, 1) 240ms both;
 }
 
 .point-row.warn .point-score {
-  color: #f0b15c;
-  text-shadow: 0 0 18rpx rgba(232, 166, 77, 0.4);
+  color: #b86a00;
 }
 
 @keyframes scorePop {
@@ -510,13 +558,13 @@
   position: relative;
   padding: 18rpx 18rpx 30rpx;
   border-radius: 20rpx;
-  background: rgba(255, 255, 255, 0.045);
-  border: 1rpx solid rgba(255, 255, 255, 0.06);
+  background: #f5faff;
+  border: 1rpx solid rgba(11, 31, 58, 0.05);
   animation: rowIn 540ms ease both;
 }
 
 .weak-title {
-  color: rgba(226, 235, 248, 0.86);
+  color: rgba(11, 31, 58, 0.84);
   font-size: 25rpx;
   line-height: 1.2;
   font-weight: 700;
@@ -530,13 +578,13 @@
   height: 6rpx;
   border-radius: 999rpx;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(11, 31, 58, 0.08);
 }
 
 .weak-bar view {
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #3a6eff, #00c9a7);
+  background: linear-gradient(90deg, #2f9bff, #38d3c6);
   animation: barGrow 900ms cubic-bezier(0.22, 1, 0.36, 1) 180ms both;
 }
 
@@ -548,8 +596,8 @@
   margin-top: 16rpx;
   padding: 20rpx;
   border-radius: 20rpx;
-  background: linear-gradient(135deg, rgba(58, 110, 255, 0.14), rgba(0, 201, 167, 0.12));
-  border: 1rpx solid rgba(120, 160, 255, 0.16);
+  background: linear-gradient(135deg, rgba(31, 143, 255, 0.1), rgba(56, 211, 198, 0.1));
+  border: 1rpx solid rgba(31, 143, 255, 0.14);
 }
 
 .task-box.fx-pop.on {
@@ -569,7 +617,7 @@
 
 .task-label {
   display: block;
-  color: #8ab0ff;
+  color: #1271d8;
   font-size: 21rpx;
   line-height: 1;
   font-weight: 800;
@@ -579,7 +627,7 @@
 .task-title {
   display: block;
   margin-top: 10rpx;
-  color: #f2f5fb;
+  color: #0b1f3a;
   font-size: 26rpx;
   line-height: 1.35;
   font-weight: 700;
@@ -603,12 +651,7 @@
   line-height: 1.18;
 }
 
-.cta-char.is-accent {
-  color: #e8b54d;
-  text-shadow: 0 0 30rpx rgba(232, 181, 77, 0.35);
-}
-
-/* —— 转场色浪（与登录页 guest-wave 同一渐变语言）—— */
+/* —— 转场色浪（青蓝，视频2 冲刷色）—— */
 .wave-overlay {
   position: fixed;
   left: 0;
@@ -617,7 +660,7 @@
   bottom: -6%;
   z-index: 60;
   pointer-events: none;
-  background: linear-gradient(180deg, #f7c96b 0%, #5aa2ff 38%, #2a63ff 72%, #0b2a66 100%);
+  background: linear-gradient(180deg, #0e63c8 0%, #3aa0ff 32%, #9bd6ff 68%, #eaf7ff 100%);
 }
 
 .wave-overlay.recede {
@@ -644,8 +687,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(100deg, #f2c866 0%, #79b4ff 46%, #2474ff 100%);
-  box-shadow: 0 22rpx 54rpx rgba(36, 116, 255, 0.32);
+  background: linear-gradient(100deg, #5ab2ff 0%, #1f8fff 100%);
+  box-shadow: 0 22rpx 54rpx rgba(31, 143, 255, 0.35);
 }
 
 .primary-btn.fx-pop.on {
@@ -673,7 +716,7 @@
 }
 
 .login-link-text {
-  color: rgba(208, 222, 248, 0.55);
+  color: rgba(11, 31, 58, 0.5);
   font-size: 24rpx;
   font-weight: 600;
 }
@@ -686,6 +729,10 @@
 
 /* —— 小屏适配 —— */
 @media (max-height: 760px) {
+  .roller-word text {
+    font-size: 76rpx;
+  }
+
   .rise-char {
     font-size: 64rpx;
   }
