@@ -2595,11 +2595,32 @@ class BIService:
                     }
                     warnings.append("百炼官方账单查询失败，请检查 AK/SK、BssOpenApi 依赖和权限。")
 
-        token_delta = system_total - _safe_int(bailian_payload.get("total_tokens"))
-        input_delta = system_input - _safe_int(bailian_payload.get("input_tokens"))
-        output_delta = system_output - _safe_int(bailian_payload.get("output_tokens"))
+        # 对账内账以 UsageLedger 全局口径（system_global_bailian，含 RAG/rerank/评分等
+        # 全部 provider 调用）为准，而非仅回合级 turn cost_summary 镜像（system_*，会漏掉
+        # 90%+ 的真实用量，导致 -99% 假差异）。2026-06-12 修复。
+        _recon_ok = (
+            use_dashscope
+            and isinstance(system_global_payload, dict)
+            and system_global_payload.get("status") == "ok"
+        )
+        recon_system_total = (
+            _safe_int(system_global_payload.get("total_tokens")) if _recon_ok else system_total
+        )
+        recon_system_input = (
+            _safe_int(system_global_payload.get("input_tokens")) if _recon_ok else system_input
+        )
+        recon_system_output = (
+            _safe_int(system_global_payload.get("output_tokens")) if _recon_ok else system_output
+        )
+        recon_system_cost = (
+            _safe_float(system_global_payload.get("total_cost_usd")) if _recon_ok else system_cost
+        )
+
+        token_delta = recon_system_total - _safe_int(bailian_payload.get("total_tokens"))
+        input_delta = recon_system_input - _safe_int(bailian_payload.get("input_tokens"))
+        output_delta = recon_system_output - _safe_int(bailian_payload.get("output_tokens"))
         cost_delta = _round(
-            system_cost - _safe_float(bailian_payload.get("estimated_total_cost_usd")),
+            recon_system_cost - _safe_float(bailian_payload.get("estimated_total_cost_usd")),
             8,
         )
         if telemetry_status == "ok" and not effective_apikey_id:
@@ -2626,13 +2647,24 @@ class BIService:
             if cycle_start_ts < window_start:
                 cycle_context = self._apply_filters(await self._load_context_since(cycle_start_ts), filters)
 
-            billing_scope_system_cost = 0.0
-            for event in cycle_context.result_events:
-                event_ts = _safe_float(event.get("created_at"))
-                if event_ts < cycle_start_ts or event_ts >= cycle_end_ts:
-                    continue
-                rollup = self._rollup_cost_summary(event.get("cost_summary") or {})
-                billing_scope_system_cost += rollup.effective_total_cost
+            # 账期内账成本以 UsageLedger 全局口径为准（含全部 provider 调用），
+            # 而非 turn cost_summary 镜像。2026-06-12 修复。
+            if _recon_ok:
+                cycle_totals = self._usage_ledger.get_totals(
+                    start_ts=cycle_start_ts,
+                    end_ts=cycle_end_ts,
+                    provider_name="dashscope",
+                    model=model,
+                )
+                billing_scope_system_cost = _safe_float(getattr(cycle_totals, "total_cost", 0.0))
+            else:
+                billing_scope_system_cost = 0.0
+                for event in cycle_context.result_events:
+                    event_ts = _safe_float(event.get("created_at"))
+                    if event_ts < cycle_start_ts or event_ts >= cycle_end_ts:
+                        continue
+                    rollup = self._rollup_cost_summary(event.get("cost_summary") or {})
+                    billing_scope_system_cost += rollup.effective_total_cost
 
             if billing_status == "ok":
                 billing_cost_delta = _round(
@@ -2795,21 +2827,21 @@ class BIService:
                 "output_token_delta": output_delta,
                 "cost_delta_usd": cost_delta,
                 "token_delta_ratio": self._delta_ratio(
-                    system_total,
+                    recon_system_total,
                     _safe_int(bailian_payload.get("total_tokens")),
                 ),
                 "input_token_delta_ratio": self._delta_ratio(
-                    system_input,
+                    recon_system_input,
                     _safe_int(bailian_payload.get("input_tokens")),
                 ),
                 "output_token_delta_ratio": self._delta_ratio(
-                    system_output,
+                    recon_system_output,
                     _safe_int(bailian_payload.get("output_tokens")),
                 ),
                 "cost_delta_ratio": (
                     _round(
                         (
-                            system_cost - _safe_float(bailian_payload.get("estimated_total_cost_usd"))
+                            recon_system_cost - _safe_float(bailian_payload.get("estimated_total_cost_usd"))
                         )
                         / _safe_float(bailian_payload.get("estimated_total_cost_usd")),
                         6,
