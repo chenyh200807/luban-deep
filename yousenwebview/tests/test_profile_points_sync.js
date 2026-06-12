@@ -22,7 +22,9 @@ async function run(name, fn) {
     await fn();
   } catch (err) {
     fail++;
-    errors.push("ERROR: " + name + " -> " + (err && err.stack ? err.stack : err));
+    errors.push(
+      "ERROR: " + name + " -> " + (err && err.stack ? err.stack : err),
+    );
   }
 }
 
@@ -41,7 +43,12 @@ function loadProfilePage(overrides) {
   var apiMock = Object.assign(
     {
       unwrapResponse: function (raw) {
-        if (raw && typeof raw === "object" && raw.data && typeof raw.data === "object") {
+        if (
+          raw &&
+          typeof raw === "object" &&
+          raw.data &&
+          typeof raw.data === "object"
+        ) {
           return raw.data;
         }
         return raw;
@@ -127,6 +134,15 @@ function loadProfilePage(overrides) {
     clearTimeout: clearTimeout,
     require: function (request) {
       if (request === "../../utils/api") return apiMock;
+      // 2026-06-12 契约演进（paywall）：profile.js 新增 auth 依赖以支持游客态门控。
+      // 测试场景均为已登录用户，isLoggedIn 返回 true。
+      if (request === "../../utils/auth") {
+        return {
+          isLoggedIn: function () {
+            return true;
+          },
+        };
+      }
       if (request === "../../utils/helpers") return helpersMock;
       if (request === "../../utils/runtime") return runtimeMock;
       if (request === "../../utils/route") return routeMock;
@@ -172,60 +188,81 @@ function loadProfilePage(overrides) {
 }
 
 (async function main() {
-  await run("profile should hydrate usage quota from profile-owned usage API", async function () {
-    var loaded = loadProfilePage({
-      api: {
-        getUserInfo: function () {
-          return Promise.resolve({ username: "chenyh2008" });
+  await run(
+    "profile should hydrate usage quota from profile-owned usage API",
+    async function () {
+      var loaded = loadProfilePage({
+        api: {
+          getUserInfo: function () {
+            return Promise.resolve({ username: "chenyh2008" });
+          },
+          getUsage: function () {
+            return Promise.resolve({
+              display: { primary_remaining_percent: 88 },
+              rows: [{ key: "weekly", remaining_percent: 88 }],
+            });
+          },
         },
-        getUsage: function () {
-          return Promise.resolve({
-            display: { primary_remaining_percent: 88 },
-            rows: [{ key: "weekly", remaining_percent: 88 }],
-          });
-        },
-      },
-    });
+      });
 
-    loaded.page.onLoad();
-    loaded.page.onShow();
-    await flushPromises();
-    await flushPromises();
+      loaded.page.onLoad();
+      loaded.page.onShow();
+      await flushPromises();
+      await flushPromises();
 
-    assert(loaded.page.data.usageRows.length === 1, "profile should render usage quota rows");
-    assert(loaded.page.data.usagePrimaryLabel === "剩余 88%", "profile should hydrate primary usage quota");
-  });
+      assert(
+        loaded.page.data.usageRows.length === 1,
+        "profile should render usage quota rows",
+      );
+      assert(
+        loaded.page.data.usagePrimaryLabel === "剩余 88%",
+        "profile should hydrate primary usage quota",
+      );
+    },
+  );
 
-  await run("profile should degrade usage quota without touching legacy points APIs", async function () {
-    var pointsCalls = 0;
-    var loaded = loadProfilePage({
-      api: {
-        getUserInfo: function () {
-          return Promise.resolve({ username: "chenyh2008" });
+  await run(
+    "profile should degrade usage quota without touching legacy points APIs",
+    async function () {
+      var pointsCalls = 0;
+      var loaded = loadProfilePage({
+        api: {
+          getUserInfo: function () {
+            return Promise.resolve({ username: "chenyh2008" });
+          },
+          getWallet: function () {
+            pointsCalls += 1;
+            return Promise.resolve({ balance: 144 });
+          },
+          getPoints: function () {
+            pointsCalls += 1;
+            return Promise.resolve({ points: 52 });
+          },
+          getUsage: function () {
+            return Promise.reject(new Error("usage unavailable"));
+          },
         },
-        getWallet: function () {
-          pointsCalls += 1;
-          return Promise.resolve({ balance: 144 });
-        },
-        getPoints: function () {
-          pointsCalls += 1;
-          return Promise.resolve({ points: 52 });
-        },
-        getUsage: function () {
-          return Promise.reject(new Error("usage unavailable"));
-        },
-      },
-    });
+      });
 
-    loaded.page.onLoad();
-    loaded.page.onShow();
-    await flushPromises();
-    await flushPromises();
+      loaded.page.onLoad();
+      loaded.page.onShow();
+      await flushPromises();
+      await flushPromises();
 
-    assert(pointsCalls === 0, "profile should not read legacy point balances");
-    assert(loaded.page.data.usageRows.length === 0, "profile should clear usage rows on usage failure");
-    assert(loaded.page.data.usageLoading === false, "profile should stop usage loading on usage failure");
-  });
+      assert(
+        pointsCalls === 0,
+        "profile should not read legacy point balances",
+      );
+      assert(
+        loaded.page.data.usageRows.length === 0,
+        "profile should clear usage rows on usage failure",
+      );
+      assert(
+        loaded.page.data.usageLoading === false,
+        "profile should stop usage loading on usage failure",
+      );
+    },
+  );
 
   if (fail) {
     console.error(errors.join("\n"));

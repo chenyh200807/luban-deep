@@ -42,7 +42,11 @@ function parseHttpError(message) {
   if (payloadText) {
     try {
       payload = JSON.parse(payloadText);
-      if (payload && typeof payload === "object" && payload.detail !== undefined) {
+      if (
+        payload &&
+        typeof payload === "object" &&
+        payload.detail !== undefined
+      ) {
         detailText = String(payload.detail || "").trim() || payloadText;
       }
     } catch (_err) {}
@@ -264,7 +268,8 @@ function rawRequest(opts) {
   var noAuth = opts.noAuth || false;
   var retryCount = opts._retryCount || 0;
   var baseIndex = opts._baseIndex || 0;
-  var baseCandidates = opts._baseCandidates ||
+  var baseCandidates =
+    opts._baseCandidates ||
     endpoints.getBaseUrlCandidates(useGateway, opts.baseUrl);
 
   var baseUrl = baseCandidates[baseIndex] || getBaseUrl(useGateway);
@@ -305,7 +310,14 @@ function rawRequest(opts) {
 
         if (res.statusCode === 401) {
           if (noAuth) {
-            reject(createHttpError(401, res.data));
+            // noAuth 401: reject with a sanitized opaque error so the raw backend payload
+            // (e.g. {"detail":"用户名或密码错误"}) is never embedded in the error message
+            // string visible to UI layers. statusCode and payload are available on the
+            // error object for programmatic inspection only. (2026-06-12 security fix)
+            var noAuthErr = new Error("HTTP_401");
+            noAuthErr.statusCode = 401;
+            noAuthErr.payload = res.data || null;
+            reject(noAuthErr);
             return;
           }
           if (opts.suppressAuthRedirect) {
@@ -442,15 +454,18 @@ function rawRequest(opts) {
 
   if (inFlightKey) {
     IN_FLIGHT_REQUESTS[inFlightKey] = pendingPromise;
-    pendingPromise.then(function () {
-      if (IN_FLIGHT_REQUESTS[inFlightKey] === pendingPromise) {
-        delete IN_FLIGHT_REQUESTS[inFlightKey];
-      }
-    }, function () {
-      if (IN_FLIGHT_REQUESTS[inFlightKey] === pendingPromise) {
-        delete IN_FLIGHT_REQUESTS[inFlightKey];
-      }
-    });
+    pendingPromise.then(
+      function () {
+        if (IN_FLIGHT_REQUESTS[inFlightKey] === pendingPromise) {
+          delete IN_FLIGHT_REQUESTS[inFlightKey];
+        }
+      },
+      function () {
+        if (IN_FLIGHT_REQUESTS[inFlightKey] === pendingPromise) {
+          delete IN_FLIGHT_REQUESTS[inFlightKey];
+        }
+      },
+    );
   }
 
   return pendingPromise;
@@ -540,7 +555,8 @@ function getLearningBrainProjection(eventLimit, opts) {
   var limit = Number(eventLimit || 100);
   if (!Number.isFinite(limit) || limit <= 0) limit = 100;
   return requestStateGet(
-    "/api/v1/learning-brain/projection?event_limit=" + Math.min(Math.round(limit), 500),
+    "/api/v1/learning-brain/projection?event_limit=" +
+      Math.min(Math.round(limit), 500),
     opts,
   );
 }
@@ -550,21 +566,21 @@ function getLearningReport(eventLimit, opts) {
   var limit = Number(eventLimit || 100);
   if (!Number.isFinite(limit) || limit <= 0) limit = 100;
   var options = opts && typeof opts === "object" ? opts : {};
-  var schemaVersion = Number(options.schemaVersion || options.schema_version || 1);
+  var schemaVersion = Number(
+    options.schemaVersion || options.schema_version || 1,
+  );
   var query =
     "/api/v1/mobile/learning-report?event_limit=" +
     Math.min(Math.round(limit), 500);
   if (schemaVersion === 2) query += "&schema_version=2";
-  return requestStateGet(
-    query,
-    opts,
-  );
+  return requestStateGet(query, opts);
 }
 
 /** 获取单次作答详情 */
 function getLearningAttemptDetail(attemptRef, opts) {
   return requestStateGet(
-    "/api/v1/mobile/learning-attempts/" + encodeURIComponent(String(attemptRef || "")),
+    "/api/v1/mobile/learning-attempts/" +
+      encodeURIComponent(String(attemptRef || "")),
     opts,
   );
 }
@@ -587,8 +603,10 @@ function saveNotebookCard(payload) {
     source_bot_id: input.source_bot_id || input.sourceBotId || "",
     source_type: input.source_type || input.sourceType || "manual",
     source_ref: input.source_ref || input.sourceRef || {},
-    evidence_event_ids: input.evidence_event_ids || input.evidenceEventIds || [],
-    ai_enhanced_content: input.ai_enhanced_content || input.aiEnhancedContent || {},
+    evidence_event_ids:
+      input.evidence_event_ids || input.evidenceEventIds || [],
+    ai_enhanced_content:
+      input.ai_enhanced_content || input.aiEnhancedContent || {},
   });
   return request({
     url: "/api/v1/notebook/add_record",
@@ -610,12 +628,20 @@ function getMistakeBook(params, opts) {
   var query = [];
   var input = params && typeof params === "object" ? params : {};
   if (input.subject_id || input.subjectId) {
-    query.push("subject_id=" + encodeURIComponent(String(input.subject_id || input.subjectId)));
+    query.push(
+      "subject_id=" +
+        encodeURIComponent(String(input.subject_id || input.subjectId)),
+    );
   }
-  if (input.include_mastered !== undefined || input.includeMastered !== undefined) {
+  if (
+    input.include_mastered !== undefined ||
+    input.includeMastered !== undefined
+  ) {
     query.push(
       "include_mastered=" +
-        encodeURIComponent(String(Boolean(input.include_mastered || input.includeMastered))),
+        encodeURIComponent(
+          String(Boolean(input.include_mastered || input.includeMastered)),
+        ),
     );
   }
   return requestStateGet(
@@ -626,7 +652,9 @@ function getMistakeBook(params, opts) {
 
 function removeMistakeBookItem(attemptRef) {
   return request({
-    url: "/api/v1/mobile/mistake-book/items/" + encodeURIComponent(String(attemptRef || "")),
+    url:
+      "/api/v1/mobile/mistake-book/items/" +
+      encodeURIComponent(String(attemptRef || "")),
     method: "DELETE",
   });
 }
@@ -676,7 +704,9 @@ function startChatTurn(payload) {
 
 /** 获取公开运行时能力 */
 function getRuntimeCapabilities() {
-  return requestStateGet("/api/v1/system/public-capabilities", { noAuth: true });
+  return requestStateGet("/api/v1/system/public-capabilities", {
+    noAuth: true,
+  });
 }
 
 /** 获取对话消息 */
@@ -743,7 +773,9 @@ function submitFeedback(data) {
 /** 上传意见反馈截图/录屏，返回可被 BI 打开的附件 URL */
 function uploadFeedbackAttachment(file) {
   var input = file || {};
-  var filePath = String(input.temp_path || input.tempFilePath || input.path || "").trim();
+  var filePath = String(
+    input.temp_path || input.tempFilePath || input.path || "",
+  ).trim();
   if (!filePath) {
     return Promise.reject(new Error("ATTACHMENT_FILE_REQUIRED"));
   }

@@ -20,7 +20,9 @@ async function run(name, fn) {
     await fn();
   } catch (err) {
     fail++;
-    errors.push("ERROR: " + name + " -> " + (err && err.stack ? err.stack : err));
+    errors.push(
+      "ERROR: " + name + " -> " + (err && err.stack ? err.stack : err),
+    );
   }
 }
 
@@ -41,7 +43,12 @@ function loadProfilePage(overrides) {
   var apiMock = Object.assign(
     {
       unwrapResponse: function (raw) {
-        if (raw && typeof raw === "object" && raw.data && typeof raw.data === "object") {
+        if (
+          raw &&
+          typeof raw === "object" &&
+          raw.data &&
+          typeof raw.data === "object"
+        ) {
           return raw.data;
         }
         return raw;
@@ -125,25 +132,38 @@ function loadProfilePage(overrides) {
       return false;
     },
   };
-  var chooseMediaHandler = (overrides && overrides.chooseMedia) || function (opts) {
-    opts.success({
-      tempFiles: [
-        {
-          tempFilePath: "/tmp/new-avatar.png",
-          size: 128 * 1024,
-        },
-      ],
-    });
-  };
-  var saveFileHandler = (overrides && overrides.saveFile) || function (opts) {
-    opts.success({ savedFilePath: "/local/saved-avatar.png" });
-  };
+  var chooseMediaHandler =
+    (overrides && overrides.chooseMedia) ||
+    function (opts) {
+      opts.success({
+        tempFiles: [
+          {
+            tempFilePath: "/tmp/new-avatar.png",
+            size: 128 * 1024,
+          },
+        ],
+      });
+    };
+  var saveFileHandler =
+    (overrides && overrides.saveFile) ||
+    function (opts) {
+      opts.success({ savedFilePath: "/local/saved-avatar.png" });
+    };
   var sandbox = {
     console: console,
     setTimeout: setTimeout,
     clearTimeout: clearTimeout,
     require: function (request) {
       if (request === "../../utils/api") return apiMock;
+      // 2026-06-12 契约演进（paywall）：profile.js 新增 auth 依赖以支持游客态门控。
+      // 测试场景均为已登录用户，isLoggedIn 返回 true。
+      if (request === "../../utils/auth") {
+        return {
+          isLoggedIn: function () {
+            return true;
+          },
+        };
+      }
       if (request === "../../utils/helpers") return helpersMock;
       if (request === "../../utils/runtime") return runtimeMock;
       if (request === "../../utils/route") return routeMock;
@@ -201,56 +221,64 @@ function loadProfilePage(overrides) {
 }
 
 (async function main() {
-  await run("local avatar cache should take precedence over server avatar_url", async function () {
-    var loaded = loadProfilePage({
-      storageValue: "/local/cached-avatar.png",
-      api: {
-        getUserInfo: function () {
-          return Promise.resolve({
-            username: "chenyh2008",
-            avatar_url: "https://server.example/avatar.png",
-          });
+  await run(
+    "local avatar cache should take precedence over server avatar_url",
+    async function () {
+      var loaded = loadProfilePage({
+        storageValue: "/local/cached-avatar.png",
+        api: {
+          getUserInfo: function () {
+            return Promise.resolve({
+              username: "chenyh2008",
+              avatar_url: "https://server.example/avatar.png",
+            });
+          },
         },
-      },
-    });
+      });
 
-    loaded.page.onLoad();
-    loaded.page.onShow();
-    await flushPromises();
-    await flushPromises();
+      loaded.page.onLoad();
+      loaded.page.onShow();
+      await flushPromises();
+      await flushPromises();
 
-    assert(
-      loaded.page.data.avatarUrl === "/local/cached-avatar.png",
-      "profile should keep local cached avatar on device UI",
-    );
-  });
+      assert(
+        loaded.page.data.avatarUrl === "/local/cached-avatar.png",
+        "profile should keep local cached avatar on device UI",
+      );
+    },
+  );
 
-  await run("avatar selection should not write local file path into profile settings", async function () {
-    var loaded = loadProfilePage();
+  await run(
+    "avatar selection should not write local file path into profile settings",
+    async function () {
+      var loaded = loadProfilePage();
 
-    loaded.page.onLoad();
-    loaded.page.onChangeAvatar();
-    await flushPromises();
-    await flushPromises();
+      loaded.page.onLoad();
+      loaded.page.onChangeAvatar();
+      await flushPromises();
+      await flushPromises();
 
-    assert(
-      loaded.page.data.avatarUrl === "/local/saved-avatar.png",
-      "profile should show the saved local avatar path immediately",
-    );
-    assert(
-      loaded.getStorageValue() === "/local/saved-avatar.png",
-      "local avatar path should be persisted only in device storage",
-    );
-    assert(
-      loaded.getUpdateSettingsCalls().length === 0,
-      "avatar selection should not call updateSettings",
-    );
-  });
+      assert(
+        loaded.page.data.avatarUrl === "/local/saved-avatar.png",
+        "profile should show the saved local avatar path immediately",
+      );
+      assert(
+        loaded.getStorageValue() === "/local/saved-avatar.png",
+        "local avatar path should be persisted only in device storage",
+      );
+      assert(
+        loaded.getUpdateSettingsCalls().length === 0,
+        "avatar selection should not call updateSettings",
+      );
+    },
+  );
 
   if (fail) {
     console.error(errors.join("\n"));
     process.exit(1);
   }
 
-  console.log("PASS test_profile_avatar_authority.js (" + pass + " assertions)");
+  console.log(
+    "PASS test_profile_avatar_authority.js (" + pass + " assertions)",
+  );
 })();

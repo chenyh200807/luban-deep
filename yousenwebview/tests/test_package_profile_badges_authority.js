@@ -19,7 +19,9 @@ function assert(condition, message) {
 }
 
 function flush() {
-  return new Promise(function (resolve) { setTimeout(resolve, 0); });
+  return new Promise(function (resolve) {
+    setTimeout(resolve, 0);
+  });
 }
 
 function loadProfilePage(apiOverrides) {
@@ -29,31 +31,53 @@ function loadProfilePage(apiOverrides) {
   );
   var pageDef = null;
   var getBadgesCalls = 0;
-  var api = Object.assign({
-    unwrapResponse: function (raw) { return raw; },
-    getUserInfo: function () { return Promise.resolve({ username: "chenyh2008", earned_badge_ids: [2] }); },
-    getWallet: function () { return Promise.resolve({ balance: 0 }); },
-    getPoints: function () { return Promise.resolve({ points: 0 }); },
-    getUsage: function () { return Promise.resolve({ windows: [] }); },
-    getBadges: function () {
-      getBadgesCalls += 1;
-      return Promise.resolve({
-        badges: [
-          { id: 1, icon: "A", name: "服务端首徽章", earned: true },
-          { id: 2, icon: "B", name: "服务端次徽章", earned: false },
-        ],
-      });
+  var api = Object.assign(
+    {
+      unwrapResponse: function (raw) {
+        return raw;
+      },
+      getUserInfo: function () {
+        return Promise.resolve({
+          username: "chenyh2008",
+          earned_badge_ids: [2],
+        });
+      },
+      getWallet: function () {
+        return Promise.resolve({ balance: 0 });
+      },
+      getPoints: function () {
+        return Promise.resolve({ points: 0 });
+      },
+      getUsage: function () {
+        return Promise.resolve({ windows: [] });
+      },
+      getBadges: function () {
+        getBadgesCalls += 1;
+        return Promise.resolve({
+          badges: [
+            { id: 1, icon: "A", name: "服务端首徽章", earned: true },
+            { id: 2, icon: "B", name: "服务端次徽章", earned: false },
+          ],
+        });
+      },
+      updateSettings: function () {
+        return Promise.resolve({});
+      },
     },
-    updateSettings: function () { return Promise.resolve({}); },
-  }, apiOverrides || {});
+    apiOverrides || {},
+  );
   var sandbox = {
     console: console,
     setTimeout: setTimeout,
     clearTimeout: clearTimeout,
     wx: {
-      getStorageSync: function () { return ""; },
+      getStorageSync: function () {
+        return "";
+      },
       setStorageSync: function () {},
-      getFileSystemManager: function () { return { saveFile: function () {} }; },
+      getFileSystemManager: function () {
+        return { saveFile: function () {} };
+      },
       chooseMedia: function () {},
       showToast: function () {},
       showModal: function () {},
@@ -62,19 +86,38 @@ function loadProfilePage(apiOverrides) {
     },
     require: function (request) {
       if (request === "../../utils/api") return api;
+      if (request === "../../utils/auth") {
+        // 2026-06-12 契约演进（paywall）：profile.js 新增 auth 依赖以支持游客态门控。
+        // 测试场景均为已登录用户，isLoggedIn 返回 true。
+        return {
+          isLoggedIn: function () {
+            return true;
+          },
+        };
+      }
       if (request === "../../utils/helpers") {
         return {
-          getWindowInfo: function () { return { statusBarHeight: 20 }; },
-          isDark: function () { return true; },
+          getWindowInfo: function () {
+            return { statusBarHeight: 20 };
+          },
+          isDark: function () {
+            return true;
+          },
           syncTabBar: function () {},
           vibrate: function () {},
         };
       }
       if (request === "../../utils/runtime") {
         return {
-          getWorkspaceBack: function () { return null; },
-          checkAuth: function (cb) { cb(); },
-          consumeWorkspaceBack: function () { return null; },
+          getWorkspaceBack: function () {
+            return null;
+          },
+          checkAuth: function (cb) {
+            cb();
+          },
+          consumeWorkspaceBack: function () {
+            return null;
+          },
           setWorkspaceBack: function () {},
           markGoHome: function () {},
           logout: function () {},
@@ -82,36 +125,63 @@ function loadProfilePage(apiOverrides) {
       }
       if (request === "../../utils/route") {
         return {
-          profile: function () { return "/packageDeeptutor/pages/profile/profile"; },
-          billing: function () { return "/packageDeeptutor/pages/billing/billing"; },
-          assessment: function () { return "/packageDeeptutor/pages/assessment/assessment"; },
-          report: function () { return "/packageDeeptutor/pages/report/report"; },
-          terms: function () { return "/packageDeeptutor/pages/legal/terms"; },
-          chat: function () { return "/packageDeeptutor/pages/chat/chat"; },
+          profile: function () {
+            return "/packageDeeptutor/pages/profile/profile";
+          },
+          billing: function () {
+            return "/packageDeeptutor/pages/billing/billing";
+          },
+          assessment: function () {
+            return "/packageDeeptutor/pages/assessment/assessment";
+          },
+          report: function () {
+            return "/packageDeeptutor/pages/report/report";
+          },
+          terms: function () {
+            return "/packageDeeptutor/pages/legal/terms";
+          },
+          chat: function () {
+            return "/packageDeeptutor/pages/chat/chat";
+          },
         };
       }
       if (request === "../../utils/flags") {
         return {
-          getWorkspaceFlags: function () { return {}; },
-          ensureFeatureEnabled: function () { return true; },
-          shouldShowWorkspaceShell: function () { return false; },
+          getWorkspaceFlags: function () {
+            return {};
+          },
+          ensureFeatureEnabled: function () {
+            return true;
+          },
+          shouldShowWorkspaceShell: function () {
+            return false;
+          },
         };
       }
       throw new Error("unexpected require: " + request);
     },
-    Page: function (def) { pageDef = def; },
+    Page: function (def) {
+      pageDef = def;
+    },
   };
   vm.runInNewContext(source, sandbox, {
     filename: "packageDeeptutor/pages/profile/profile.js",
   });
   var page = {
     data: Object.assign({}, pageDef.data),
-    setData: function (patch) { this.data = Object.assign({}, this.data, patch || {}); },
+    setData: function (patch) {
+      this.data = Object.assign({}, this.data, patch || {});
+    },
   };
   Object.keys(pageDef).forEach(function (key) {
     if (key !== "data") page[key] = pageDef[key];
   });
-  return { page: page, getBadgesCalls: function () { return getBadgesCalls; } };
+  return {
+    page: page,
+    getBadgesCalls: function () {
+      return getBadgesCalls;
+    },
+  };
 }
 
 (async function main() {
@@ -121,26 +191,45 @@ function loadProfilePage(apiOverrides) {
   await flush();
   await flush();
 
-  assert(loaded.getBadgesCalls() === 1, "package profile should call canonical badge api");
-  assert(loaded.page.data.badges[0].name === "服务端首徽章", "package profile should use server badge catalog");
-  assert(loaded.page.data.badges[0].earned === true, "package profile should use server earned state");
-  assert(loaded.page.data.badges[0].desc.indexOf("首次") >= 0, "package profile should enrich badge description");
+  assert(
+    loaded.getBadgesCalls() === 1,
+    "package profile should call canonical badge api",
+  );
+  assert(
+    loaded.page.data.badges[0].name === "服务端首徽章",
+    "package profile should use server badge catalog",
+  );
+  assert(
+    loaded.page.data.badges[0].earned === true,
+    "package profile should use server earned state",
+  );
+  assert(
+    loaded.page.data.badges[0].desc.indexOf("首次") >= 0,
+    "package profile should enrich badge description",
+  );
 
   var fallback = loadProfilePage({
-    getBadges: function () { return Promise.reject(new Error("badges unavailable")); },
+    getBadges: function () {
+      return Promise.reject(new Error("badges unavailable"));
+    },
   });
   fallback.page.onLoad();
   fallback.page.onShow();
   await flush();
   await flush();
 
-  assert(fallback.page.data.badges[1].earned === true, "package profile should fallback to earned_badge_ids");
+  assert(
+    fallback.page.data.badges[1].earned === true,
+    "package profile should fallback to earned_badge_ids",
+  );
 
   if (fail) {
     console.error(errors.join("\n"));
     process.exit(1);
   }
-  console.log("PASS test_package_profile_badges_authority.js (" + pass + " assertions)");
+  console.log(
+    "PASS test_package_profile_badges_authority.js (" + pass + " assertions)",
+  );
 })().catch(function (err) {
   console.error(err && err.stack ? err.stack : String(err));
   process.exit(1);
