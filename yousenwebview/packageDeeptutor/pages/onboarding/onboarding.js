@@ -50,7 +50,7 @@ var ACTS = [
 ];
 
 // 幕 1 词轮播（Fuse 式垂直 roller）：从「盲刷」滚到「提分」收住点亮。
-var ROLL_WORDS = ["盲刷", "判分", "错因", "提分"];
+var ROLL_WORDS = ["丢分", "找因", "补弱", "提分"];
 
 // CTA 收束：第二行整行品牌蓝。
 var CTA_LINES = [
@@ -77,6 +77,8 @@ Page({
     activeSlide: ACTS[0],
     fx: {},
     entrySource: "guest_preview",
+    destLogin: false,
+    ctaExit: false,
   },
 
   onLoad: function (options) {
@@ -93,6 +95,7 @@ Page({
         (options && (options.entry_source || options.entrySource || options.source)) ||
           "guest_preview",
       ),
+      destLogin: !!(options && options.dest === "login"),
     });
   },
 
@@ -177,8 +180,21 @@ Page({
     this._touchY = null;
   },
 
-  // —— 出口（行为与改造前一致）——
+  // —— 出口 ——
+  // dest=login（首页「开始答疑」进来）：色浪转深 → 登录页（returnTo=chat）。
+  // 默认（登录页「先体验导学」进来）：游客试用 chat，行为与改造前一致。
   startExperience: function () {
+    if (this._exiting) return;
+    if (this.data.destLogin) {
+      this._exiting = true;
+      var that = this;
+      this.setData({ ctaExit: true });
+      setTimeout(function () {
+        runtime.redirectToLogin(route.chat({ entry_source: that.data.entrySource }));
+        that._exiting = false;
+      }, 430);
+      return;
+    }
     wx.reLaunch({
       url: route.chat({ entry_source: this.data.entrySource, preview: "1" }),
     });

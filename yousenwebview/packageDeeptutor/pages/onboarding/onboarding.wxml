@@ -137,15 +137,15 @@
         class="primary-btn fx-pop {{fx.ctaActions ? 'on' : ''}}"
         bindtap="startExperience"
         aria-role="button"
-        aria-label="开始体验"
+        aria-label="{{destLogin ? '立即开始提分' : '开始体验'}}"
       >
-        <text class="primary-text">开始体验</text>
+        <text class="primary-text">{{destLogin ? '立即开始提分' : '开始体验'}}</text>
       </view>
     </view>
 
     <view
       class="login-link fx-pop {{fx.ctaActions ? 'on' : ''}}"
-      wx:if="{{actId === 'cta'}}"
+      wx:if="{{actId === 'cta' && !destLogin}}"
       bindtap="quickLogin"
       aria-role="button"
       aria-label="快速登录"
@@ -153,4 +153,5 @@
       <text class="login-link-text">已有学习记录？快速登录</text>
     </view>
   </view>
+  <view class="cta-wave {{ctaExit ? 'play' : ''}}"></view>
 </view>

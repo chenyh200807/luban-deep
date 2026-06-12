@@ -542,29 +542,21 @@ Page({
         return;
       }
       const entrySource = 'free_course_inline_entry';
-      const returnTo = '/packageDeeptutor/pages/chat/chat?entry_source=' + entrySource;
       analytics.track('deeptutor_entry_click', {
         entry_source: entrySource,
         entry_title: this.data.deeptutorEntryConfig.title,
         entry_variant: this.data.deeptutorEntryConfig.variant,
       });
-      const app = getApp();
-      if (!app || typeof app.openDeeptutorLogin !== 'function') {
-        wx.showToast({
-          title: '鲁班AI智考暂时无法打开',
-          icon: 'none',
-          duration: 2500
-        });
-        return;
-      }
-      app.openDeeptutorLogin(entrySource, returnTo, {
-        onFail: () => {
+      // 先播先体验导学动效（dest=login：结尾色浪转深落到登录页）
+      wx.navigateTo({
+        url: '/packageDeeptutor/pages/onboarding/onboarding?entry_source=' + entrySource + '&dest=login',
+        fail: () => {
           wx.showToast({
             title: '鲁班AI智考暂时无法打开',
             icon: 'none',
             duration: 2500
           });
-        },
+        }
       })
     }
 })
