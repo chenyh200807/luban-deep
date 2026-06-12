@@ -97,6 +97,16 @@ BI 驾驶舱已于 2026-06-08 完成 ECharts 6 重做（5 个 tab 全部驾驶�
 - 既有文档：`docs/zh/bi/deeptutor-bi-data-blueprint.md`、`docs/zh/bi/deeptutor-bi-prd.md`
 - Contract 控制面：`contracts/index.yaml`（P2 注册 domain 测试）
 
+## 会员口径与上线基准（用户 2026-06-12 决策）
+
+- **会员数用保守口径**：当前 BI 显示 ~98（受信来源 `phone_backfill/phone_verification` + 中国大陆手机号去重），其余 1578 个有手机号记录是导入/未验证名单，**非真实付费用户**，不计入。用户确认此口径正确。
+- **上线基准（待下周实施）**：系统计划 2026-06 下旬上线。上线后，以**上线时间点**为基准，**之后新注册的才算真实用户**。需在 member_console 会员口径增加 `real_user_since` 时间门（env 或配置），上线当天设定。当前不实现，作为上线 checklist 项。
+
+## 历史数据完整性（用户 2026-06-12 要求"全部历史数据"）
+
+- 现状：30 天窗口成本 BI $5.47 vs Langfuse $10.5（48% 残差），会话 857 vs traces 1766——UsageLedger 与 session store 较新全量启用，**30 天前历史不全**；7 天窗口残差仅 16%（正常）。
+- 待办：评估从历史 turn 事件 `cost_summary` / Langfuse 导出 backfill UsageLedger，补齐长窗口成本/token；或在 30 天+视图标注"历史数据自 X 日起完整"。`bi_service.backfill_usage_ledger` 已有雏形可复用。注意：下周上线前数据均为测试数据。
+
 ## 风险与回滚
 
 - 指标切 Langfuse 直连后 Langfuse 故障 → provenance=fallback 回落业务库，UI 显示降级徽标。
