@@ -2,8 +2,5 @@
   "namespace": "case_rubric_scored",
   "status": "release_candidate",
   "published": false,
-  "expected_content_hash": "45addc2741d687bb55f7f13e3c160753d73f386f2432eb7471a7dc51ae64eb10",
-  "content_hash": "45addc2741d687bb55f7f13e3c160753d73f386f2432eb7471a7dc51ae64eb10",
-  "provenance_enriched": true,
-  "published_date": "2026-06-08"
+  "expected_content_hash": "59ddec248fc7958f6d8fd13442f4f180e7c86b3ca300367e8258fe060abef764"
 }

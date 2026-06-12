@@ -21,7 +21,7 @@ from deeptutor.services.taxonomy.textbook_directory import (
     resolve_canonical_option,
 )
 
-_CODE_RE = re.compile(r"1A\d{3,6}(?:-\d{2})?(?:-[a-z])?", re.IGNORECASE)
+_CODE_RE = re.compile(r"1A\d{3,6}(?:-[0-9A-Za-z]+)*", re.IGNORECASE)
 _DEICTIC_TOPIC_RE = re.compile(r"^(?:这|这道|这一|这个|本|该|此|当前)(?:道|个|类)?(?:题|题目|选择题|案例题|真题)$")
 _GENERIC_TOPIC_LABELS = {
     "这题",
@@ -232,13 +232,13 @@ def resolve_learning_topic_from_payload(
             return topic
 
     for code in _taxonomy_code_candidates(payload, evidence_candidates):
-        node = index["nodes_by_code"].get(code)
+        node = index["nodes_by_code"].get(code) or index["nodes_by_code"].get(code.casefold())
         if node:
             return ResolvedLearningTopic(
                 label=str(node.get("name") or code),
                 source="taxonomy_code",
                 confidence="high",
-                taxonomy_code=code,
+                taxonomy_code=str(node.get("code") or code),
                 taxonomy_id=str(node.get("id") or ""),
             )
 

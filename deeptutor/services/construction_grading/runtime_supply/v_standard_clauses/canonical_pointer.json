@@ -1,7 +1,6 @@
 {
   "namespace": "standard_clauses",
   "status": "release_candidate",
-  "published": true,
-  "expected_content_hash": "6b3c3c902c99dcc7760a015d1d8b264f88790ef35cb49266f310b380aca803b8",
-  "published_date": "2026-06-08"
+  "published": false,
+  "expected_content_hash": "6dfaf0322025f95c2f884484cb6023f70f87bb41014cc8ec36275878c7d0c166"
 }

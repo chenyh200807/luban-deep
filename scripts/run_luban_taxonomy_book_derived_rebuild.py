@@ -217,9 +217,13 @@ def build_book_derived_taxonomy_rebuild(
             page = (block.get("source_meta") or {}).get("page_num")
             bucket = leaves_by_anchor.setdefault(anchor_code, {})
             anchor_name = str(anchors[anchor_code].get("name") or "")
+            structural_names = {str(n.get("name") or "") for n in anchors.values()}
             for heading in _extract_headings(content):
                 name = heading["name"]
-                if name == anchor_name:
+                # headings reproducing a structural (L1-L4) node name are the book's own
+                # chapter/section titles (TOC echoes), not knowledge points — and they make
+                # canonical option names ambiguous downstream
+                if name == anchor_name or name in structural_names:
                     continue
                 leaf = bucket.setdefault(
                     name,

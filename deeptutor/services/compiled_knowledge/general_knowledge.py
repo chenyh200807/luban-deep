@@ -464,13 +464,28 @@ def build_general_knowledge_query_plan(question_text: str, *, top_k: int = DEFAU
 
     taxonomy = _taxonomy_candidates(query_terms, limit=max(top_k * 3, 12))
     source = _source_candidates(query_terms, limit=max(top_k * 3, 12))
+    # a strict term only has veto power if at least one candidate can satisfy it
+    # (path or keywords): a term absent from the whole compiled axis cannot
+    # discriminate between candidates and must not veto the correct path.
+    satisfiable_strict_terms = {
+        term
+        for term in critical_path_terms
+        if term in _STRICT_PATH_TERMS
+        and any(
+            term in _matched_terms(str(c.get("leaf_name_path") or ""), [term])
+            or term in (c.get("keyword_hits") or [])
+            for c in [*taxonomy, *source]
+        )
+    }
     for candidate in [*taxonomy, *source]:
         critical_hits = _matched_terms(str(candidate.get("leaf_name_path") or ""), critical_path_terms)
         candidate["critical_path_hits"] = sorted(set(critical_hits))
         missing_strict_terms = sorted(
             term
             for term in critical_path_terms
-            if term in _STRICT_PATH_TERMS and term not in critical_hits
+            if term in satisfiable_strict_terms
+            and term not in critical_hits
+            and term not in (candidate.get("keyword_hits") or [])
         )
         if missing_strict_terms:
             negative = list(candidate.get("negative_evidence") or [])

@@ -41,16 +41,19 @@ def test_top_k_query_plan_reranks_contract_claim_to_claim_path() -> None:
     assert out["confidence"]["status"] == "high"
 
 
-def test_query_plan_rejects_source_polluted_wrong_path_for_total_float() -> None:
+def test_total_float_resolves_to_schedule_leaf_after_pollution_repair() -> None:
+    # the historical 水泥 source pollution this query used to surface was repaired by
+    # the 2026 book-derived rebuild: the query must now resolve to the schedule leaf
+    # and no candidate may carry the 水泥 path at all.
     plan = gkc.build_general_knowledge_query_plan("双代号网络计划总时差怎么算？")
 
     assert plan["intent"] == "calculation"
-    assert any(
-        "source_path_conflict" in candidate.get("negative_evidence", [])
-        for candidate in plan["candidates"]
-        if "水泥" in candidate.get("leaf_name_path", "")
-    )
-    assert gkc.resolve_general_knowledge_context("双代号网络计划总时差怎么算？") is None
+    assert not any("水泥" in candidate.get("leaf_name_path", "") for candidate in plan["candidates"])
+
+    out = gkc.resolve_general_knowledge_context("双代号网络计划总时差怎么算？")
+    assert out is not None
+    assert "时差" in out["leaf_name_path"]
+    assert out["confidence"]["status"] == "high"
 
 
 def test_off_syllabus_text_falls_open_to_none() -> None:

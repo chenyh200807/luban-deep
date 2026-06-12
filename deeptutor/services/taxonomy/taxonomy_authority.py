@@ -13,14 +13,14 @@ _PARENT_CODE_RE = re.compile(r"^1A\d{3}000$", re.IGNORECASE)
 
 
 def normalize_taxonomy_code(value: Any) -> str:
+    # suffix segments keep their case: the 2026 book-derived tree uses uppercase
+    # leaf segments (-B103) while legacy codes used lowercase (-02-a); the
+    # nodes_by_code index resolves casing via casefolded fallback keys.
     text = str(value or "").strip()
     if not text:
         return ""
     parts = text.split("-")
-    normalized = [parts[0].upper()]
-    for part in parts[1:]:
-        normalized.append(part.lower() if part.isalpha() else part)
-    return "-".join(normalized)
+    return "-".join([parts[0].upper(), *parts[1:]])
 
 
 def taxonomy_label(value: Any) -> str:
@@ -29,7 +29,7 @@ def taxonomy_label(value: Any) -> str:
         return ""
     by_code = _nodes_by_code()
     for candidate in _candidate_codes(code):
-        node = by_code.get(candidate)
+        node = by_code.get(candidate) or by_code.get(candidate.casefold())
         if node:
             return str(node.get("name") or "").strip()
     return chapter_prefix_labels().get(code[:5], "") if len(code) >= 5 else ""
@@ -279,6 +279,12 @@ def _nodes_by_code_from_nodes(nodes: list[dict[str, Any]]) -> dict[str, dict[str
         labels = {str(item.get("name") or "").strip() for item in items if str(item.get("name") or "").strip()}
         if len(labels) <= 1:
             result[code] = items[-1]
+    # casefolded fallback keys so lowercased refs (e.g. "1a412010-b103" from
+    # historical learner payloads) still resolve to the canonical-cased node
+    for code, node in list(result.items()):
+        folded = code.casefold()
+        if folded != code and folded not in result:
+            result[folded] = node
     return result
 
 

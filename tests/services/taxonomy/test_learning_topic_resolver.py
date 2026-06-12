@@ -94,17 +94,18 @@ def test_resolver_uses_compiled_taxonomy_code_before_free_text() -> None:
     assert resolved.confidence == "high"
 
 
-def test_resolver_preserves_lowercase_taxonomy_leaf_code_suffix() -> None:
-    resolved = resolve_learning_topic_from_payload({"learning_state_ref": "knowledge:1a411011-02-d"})
+def test_resolver_resolves_lowercased_ref_to_canonical_cased_code() -> None:
+    # historical payloads may lowercase refs; resolution must return the canonical-cased code
+    resolved = resolve_learning_topic_from_payload({"learning_state_ref": "knowledge:1a412010-b103"})
 
     assert resolved is not None
-    assert resolved.label == "建筑高度计算方法"
+    assert resolved.label == "石材"
     assert resolved.source == "taxonomy_code"
-    assert resolved.taxonomy_code == "1A411011-02-d"
+    assert resolved.taxonomy_code == "1A412010-B103"
 
 
-def test_resolver_does_not_resolve_ambiguous_duplicate_taxonomy_code() -> None:
-    resolved = resolve_learning_topic_from_payload({"learning_state_ref": "knowledge:1A411011-01"})
+def test_resolver_does_not_resolve_unknown_taxonomy_code() -> None:
+    resolved = resolve_learning_topic_from_payload({"learning_state_ref": "knowledge:1A411011-99"})
 
     assert resolved is None
 
@@ -147,20 +148,22 @@ def test_resolver_falls_back_to_concept_code_when_focus_is_deictic() -> None:
 
 def test_resolver_does_not_high_confidence_map_ambiguous_text_label() -> None:
     resolved = resolve_learning_topic_from_payload(
-        {"knowledge_points": ["施工成本管理"]},
+        # a name carried by multiple canonical nodes (compiled ambiguous_names)
+        {"knowledge_points": ["《建筑环境通用规范》有关规定"]},
         llm_topic_inferer=None,
     )
 
     assert resolved is None
 
 
-def test_resolver_can_resolve_duplicate_taxonomy_node_by_canonical_id() -> None:
-    resolved = resolve_learning_topic_from_payload({"taxonomy_id": "1A411011-01#1"})
+def test_resolver_can_resolve_taxonomy_node_by_canonical_id() -> None:
+    # "#N" disambiguation ids retired with the 2026 dedup (no duplicate codes remain);
+    # the hermetic compile fixture above still covers the "#N" id shape
+    resolved = resolve_learning_topic_from_payload({"taxonomy_id": "1A413050"})
 
     assert resolved is not None
-    assert resolved.label == "按建筑用途分类"
+    assert resolved.label == "屋面与防水工程施工"
     assert resolved.source == "taxonomy_id"
-    assert resolved.taxonomy_code == "1A411011-01"
 
 
 def test_resolver_rejects_deictic_labels_without_confirmed_topic() -> None:
@@ -182,7 +185,7 @@ def test_resolver_does_not_remap_structured_label_to_coarse_topic_by_keyword() -
 
 
 def test_resolver_does_not_promote_topic_catalog_label_as_taxonomy_authority() -> None:
-    resolved = resolve_learning_topic_from_payload({"knowledge_points": ["防水工程"]})
+    resolved = resolve_learning_topic_from_payload({"knowledge_points": ["防水工程做法"]})
 
     assert resolved is None
 
@@ -210,7 +213,7 @@ def test_resolver_drops_non_canonical_evidence_label() -> None:
     # a raw evidence label that isn't a canonical option ('防水工程') and no classifier hit -> recommend
     # nothing (never fuzzy-guess which 防水 node, never emit off-taxonomy free text).
     resolved = resolve_learning_topic_from_payload(
-        {"knowledge_points": ["防水工程"]},
+        {"knowledge_points": ["防水工程做法"]},
         llm_topic_inferer=lambda _payload, _candidates: "",
     )
 
@@ -233,7 +236,9 @@ def test_normalize_learning_topic_text_filters_noise_but_keeps_real_exam_topics(
 
 def test_canonical_learning_topic_label_is_the_cross_surface_topic_authority() -> None:
     assert canonical_learning_topic_label("流水施工") == "施工进度管理"
-    assert canonical_learning_topic_label("防水工程") == "屋面与防水工程施工"
+    # 防水工程 is itself a canonical book-derived leaf since the 2026 rebuild
+    # (1A438000-B093; placement under review in the governance round)
+    assert canonical_learning_topic_label("防水工程") == "防水工程"
     assert canonical_learning_topic_label("施工现场布置塔吊时应考虑的因素还有哪些？") == ""
     assert canonical_learning_topic_label("专家论证程序") == ""
 

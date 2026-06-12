@@ -15,7 +15,8 @@ def test_construction_taxonomy_labels_known_codes() -> None:
     assert taxonomy_label("1A432000") == "工程招标投标与合同管理"
     assert taxonomy_label("1A432011") == "招标方式与程序"
     assert taxonomy_label("1A412030") == "建筑功能材料"
-    assert taxonomy_label("1A411011-02-d") == "建筑高度计算方法"
+    # book-derived leaf with uppercase segment (2026 rebuild)
+    assert taxonomy_label("1A412010-B103") == "石材"
 
 
 def test_construction_taxonomy_falls_back_to_nearest_parent() -> None:
@@ -33,18 +34,19 @@ def test_construction_taxonomy_reads_compiled_final_cleaned_authority() -> None:
 
     # single-authority: A recompiled from the canonical 2026 source (identical (code,name) content to
     # the legacy docs/ copy — verified), now projecting concept_registry deprecations.
-    assert source["sha256"] == "38249e82e4d7a38c5b50341bb0c75ef12e599850381a11160121a8dbbbd09e81"
+    assert source["sha256"] == "d25a0e39602d29b3a1fa91bdad03f875090594eef6f057879cbe519b57ba6ffb"
     assert source["path"].endswith("FINAL_CLEANED_TAXONOMY2026.json")
 
 
 def test_construction_taxonomy_tree_stats_preserve_original_outline_counts() -> None:
     stats = taxonomy_tree_stats()
 
-    assert stats["total_nodes"] == 3735
-    assert stats["leaf_nodes"] == 2786
-    assert stats["coded_nodes"] == 3733
-    assert stats["unique_codes"] == 1284
-    assert stats["duplicate_code_rows"] == 2449
+    # book-derived rebuild 2026-06-12: every code unique by construction
+    assert stats["total_nodes"] == 2143
+    assert stats["leaf_nodes"] == 2008
+    assert stats["coded_nodes"] == 2143
+    assert stats["unique_codes"] == 2143
+    assert stats["duplicate_code_rows"] == 0
 
 
 def test_wechat_taxonomy_shadow_is_derived_from_backend_prefix_labels() -> None:

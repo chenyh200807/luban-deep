@@ -109,9 +109,25 @@ def test_ledger_invariants_all_separate_no_promotion() -> None:
 
 
 def test_source_path_conflicts_become_compiler_repair_work_orders() -> None:
-    from deeptutor.services.compiled_knowledge import general_knowledge
-
-    plan = general_knowledge.build_general_knowledge_query_plan("双代号网络计划总时差怎么算？")
+    # hermetic pollution sample: the live 水泥/总时差 mis-link this test used to rely on
+    # was repaired by the 2026 book-derived taxonomy rebuild, so the conflict machinery
+    # is now exercised with a synthetic polluted candidate.
+    plan = {
+        "candidates": [
+            {
+                "node_code": "1A412012-B001",
+                "leaf_name_path": "结构工程材料 > 水泥",
+                "negative_evidence": ["source_path_conflict"],
+                "source_hits": ["总时差"],
+            },
+            {
+                "node_code": "1A433000-B041",
+                "leaf_name_path": "施工进度管理 > 网络计划时差、关键工作与关键线路",
+                "negative_evidence": [],
+                "source_hits": ["总时差"],
+            },
+        ]
+    }
 
     entries = cf.work_orders_from_source_path_conflicts(
         query_text="双代号网络计划总时差怎么算？",
