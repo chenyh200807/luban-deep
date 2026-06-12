@@ -154,7 +154,14 @@ async def bi_tutorbots(
 
 
 @router.get("/learner/{user_id}")
-async def bi_learner_detail(user_id: str, days: int = Query(30, ge=1, le=365)):
+async def bi_learner_detail(
+    user_id: str,
+    days: int = Query(30, ge=1, le=365),
+    # Admin-only, like the other learner-data endpoints. Without this, when
+    # DEEPTUTOR_BI_PUBLIC_ENABLED is on, any authenticated student could read ANY
+    # other user's learner detail by substituting user_id (horizontal IDOR).
+    _auth: AuthContext = Depends(require_bi_admin),
+):
     return await get_bi_service().get_learner_detail(user_id=user_id, days=days)
 
 

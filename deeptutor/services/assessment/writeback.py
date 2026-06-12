@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from deeptutor.contracts.error_codes import check_emitted_error_codes
 from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAULTS
 from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
 from deeptutor.services.taxonomy.taxonomy_authority import normalize_taxonomy_code
+
+logger = logging.getLogger(__name__)
 
 
 class AssessmentWritebackService:
@@ -259,4 +262,7 @@ def _write_home_projection(
             projection=projection,
         )
     except Exception:
+        # Best-effort, but never silent: a swallowed failure here degrades the home
+        # personalization with no operational signal. Log so a systemic failure is visible.
+        logger.warning("home personalization projection write failed: user_id=%s", user_id, exc_info=True)
         return

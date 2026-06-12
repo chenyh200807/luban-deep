@@ -48,6 +48,7 @@ class LearnerStateRuntime:
         config: LearnerStateRuntimeConfig | None = None,
         dream_cycle: Any | None = None,
         outbox_flush_lock_path: Any | None = None,
+        heartbeat_lock_path: Any | None = None,
     ) -> None:
         self._flusher = flusher
         self._heartbeat_scheduler = heartbeat_scheduler
@@ -56,6 +57,10 @@ class LearnerStateRuntime:
         self._dream_cycle = dream_cycle
         # 多 worker 时 outbox flush 的跨进程互斥锁；None = 维持旧行为。
         self._outbox_flush_lock_path = outbox_flush_lock_path
+        # 多 worker 时 heartbeat 调度的跨进程互斥锁。每 worker 都跑 _run_heartbeat_loop，
+        # run_once 无内建互斥；不加锁则两 worker 取到同一批 due jobs 各执行一次 → 重复
+        # LLM 调用 + 重复外发消息。None = 维持旧（单 worker）行为。
+        self._heartbeat_lock_path = heartbeat_lock_path
         self._stop_event: asyncio.Event | None = None
         self._tasks: list[asyncio.Task[Any]] = []
         self._started = False
@@ -137,14 +142,26 @@ class LearnerStateRuntime:
         assert self._stop_event is not None
         while not self._stop_event.is_set():
             try:
-                await self._heartbeat_scheduler.run_once(  # type: ignore[union-attr]
-                    limit=self._config.heartbeat_limit
-                )
+                await self._heartbeat_tick_exclusive()
             except asyncio.CancelledError:
                 raise
             except Exception as exc:
                 logger.warning(f"LearnerState heartbeat loop failed: {exc}")
             await self._sleep_until_stop(self._config.heartbeat_interval_seconds)
+
+    async def _heartbeat_tick_exclusive(self) -> None:
+        if self._heartbeat_lock_path is None:
+            await self._heartbeat_scheduler.run_once(limit=self._config.heartbeat_limit)  # type: ignore[union-attr]
+            return
+        # 跨 worker 互斥：锁被占说明另一 worker 正在跑这一 tick，本 worker 跳过
+        # （due jobs 是共享存储,谁跑都一样;避免重复 LLM/外发)。
+        lock_fd = await asyncio.to_thread(try_acquire_exclusive_lock, self._heartbeat_lock_path)
+        if lock_fd is None:
+            return
+        try:
+            await self._heartbeat_scheduler.run_once(limit=self._config.heartbeat_limit)  # type: ignore[union-attr]
+        finally:
+            await asyncio.to_thread(release_exclusive_lock, lock_fd)
 
     async def _run_dream_cycle_loop(self) -> None:
         assert self._stop_event is not None
@@ -495,6 +512,7 @@ def create_default_learner_state_runtime(
         # 的 watermark 文件锁保证只有一个实际执行者。
         dream_cycle=LearningBrainDreamCycle(service, state_dir=learner_root),
         outbox_flush_lock_path=learner_root / ".outbox_flush.lock",
+        heartbeat_lock_path=learner_root / ".heartbeat.lock",
     )
 
 

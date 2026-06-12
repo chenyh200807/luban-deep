@@ -399,6 +399,23 @@ async def lifespan(app: FastAPI):
         logger.error(str(e))
         startup_failures.append(f"required_env: {e}")
 
+    # Billing visibility: if production is serving with billing enforcement OFF, every
+    # turn is free to the user and full-cost to the operator. That may be intentional
+    # (beta), but it must never be a *silent* misconfiguration — emit a loud warning so
+    # ops can see it in logs.
+    try:
+        from deeptutor.services.runtime_env import is_production_environment
+        from deeptutor.services.wallet.service import is_billing_enforcement_enabled
+
+        if is_production_environment() and not is_billing_enforcement_enabled():
+            logger.warning(
+                "BILLING ENFORCEMENT IS DISABLED IN PRODUCTION — every LLM turn is free to "
+                "the user and full-cost to the operator. Set DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED=true "
+                "to charge, or confirm this is an intentional free-beta window."
+            )
+    except Exception:
+        logger.debug("billing enforcement startup check skipped", exc_info=True)
+
     app.state.readiness_ready = bool(app.state.readiness_checks) and all(
         app.state.readiness_checks.values()
     )

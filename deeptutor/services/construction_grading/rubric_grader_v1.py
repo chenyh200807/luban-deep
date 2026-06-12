@@ -709,10 +709,16 @@ async def derive_rubric_from_stem_async(
     scoring points when neither a compiled rubric nor a reference answer exists. This is the
     third-tier path: compiled_rubric > on_the_fly_reference > derived_from_stem.
     Fail-closed -> [] (caller falls back to V0)."""
+    import json as _json
+
     stem = str(question_stem or "").strip()
     if not stem:
         return []
-    prompt = _DERIVE_PROMPT_TMPL.format(stem=stem[:2000])
+    # Embed the stem as a JSON string value (data, not instruction) for the same
+    # injection-resistance as _batch_prompt / _extract_prompt — a tampered question-bank
+    # stem can't break out of the data boundary. (.format only substitutes {stem}; the
+    # substituted JSON value is not re-scanned for braces.)
+    prompt = _DERIVE_PROMPT_TMPL.format(stem=_json.dumps(stem[:2000], ensure_ascii=False))
     try:
         raw = await complete_fn(prompt=prompt, system_prompt=_DERIVE_SYSTEM_PROMPT,
                                 model=model, api_key=api_key, max_retries=1)
