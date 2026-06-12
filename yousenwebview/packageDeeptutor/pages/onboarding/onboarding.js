@@ -1,6 +1,7 @@
 var helpers = require("../../utils/helpers");
 var route = require("../../utils/route");
 var runtime = require("../../utils/runtime");
+var auth = require("../../utils/auth");
 var motion = require("../../utils/motion-timeline");
 var SCENES = require("./motion-script");
 
@@ -55,6 +56,9 @@ var ROLL_WORDS = ["上班太忙", "记了又忘", "写了白写", "这次上岸"
 // 幕 id → ACTS 下标（决定当前页文案）
 var ACT_SLIDE = { wave: 0, hook: 0, p1: 1, p2: 2, p3: 3 };
 
+// 出场等待 = wxss `.exiting .horizon` 的 760ms transition + 40ms 余量；改任一处必须同步另一处。
+var EXIT_MS = 800;
+
 var PILL_ACT_IDS = SCENES.slice(1).map(function (s) {
   return s.id;
 });
@@ -90,6 +94,13 @@ Page({
       ),
       destLogin: !!(options && options.dest === "login"),
     });
+    // 已登录用户不重复看导学+登录：直接进 chat（保持旧 bridge 的无缝再入语义）
+    if (options && options.dest === "login" && auth.isLoggedIn()) {
+      wx.reLaunch({
+        url: route.chat({ entry_source: this.data.entrySource }),
+      });
+      return;
+    }
   },
 
   onReady: function () {
@@ -130,6 +141,10 @@ Page({
 
   onUnload: function () {
     if (this._timeline) this._timeline.destroy();
+    if (this._exitTimer) {
+      clearTimeout(this._exitTimer);
+      this._exitTimer = null;
+    }
   },
 
   // —— 手动导航（一票接管自动播放）——
@@ -163,7 +178,8 @@ Page({
     var that = this;
     if (this._timeline) this._timeline.pause();
     this.setData({ ctaExit: true });
-    setTimeout(function () {
+    this._exitTimer = setTimeout(function () {
+      that._exitTimer = null;
       if (that.data.destLogin) {
         runtime.redirectToLogin(route.chat({ entry_source: that.data.entrySource }));
       } else {
@@ -172,7 +188,7 @@ Page({
         });
       }
       that._exiting = false;
-    }, 800);
+    }, EXIT_MS);
   },
 
   onPageTouchStart: function (event) {

@@ -547,7 +547,13 @@ Page({
         entry_title: this.data.deeptutorEntryConfig.title,
         entry_variant: this.data.deeptutorEntryConfig.variant,
       });
-      // 先播先体验导学动效（dest=login：结尾色浪转深落到登录页）
+      // 防双击：1.5s 内重复点击直接忽略（替代旧 openDeeptutorLogin 的跨首页导航锁）
+      const now = Date.now();
+      if (this._deeptutorNavLockUntil && now < this._deeptutorNavLockUntil) {
+        return;
+      }
+      this._deeptutorNavLockUntil = now + 1500;
+      // 先播先体验导学动效（dest=login：结尾星球转场落到登录页）
       wx.navigateTo({
         url: '/packageDeeptutor/pages/onboarding/onboarding?entry_source=' + entrySource + '&dest=login',
         fail: () => {

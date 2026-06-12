@@ -118,31 +118,9 @@
   max-width: 100%;
 }
 
-.hero-line {
-  display: block;
-  font-weight: 780;
-  letter-spacing: -1.4rpx;
-}
 
-.hero-line-single {
-  display: flex;
-  align-items: baseline;
-  gap: 8rpx;
-  white-space: nowrap;
-}
 
-.hero-line-main-inline {
-  font-size: 68rpx;
-  line-height: 1;
-  color: #ffffff;
-}
 
-.hero-line-accent-inline {
-  font-size: 68rpx;
-  line-height: 1;
-  color: #4d97ff;
-  font-style: italic;
-}
 
 .hero-desc {
   display: block;

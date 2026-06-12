@@ -380,9 +380,14 @@ Page({
     var source = this.data.entrySource || "guest_preview";
     // 登录页通常由导学动效落地而来，「先体验导学」直达游客体验页，避免动效重复
     this.setData({ guestWaveActive: true });
+    // 430ms = login.wxss guestWaveUp 460ms 动画的覆盖临界点；改任一处必须同步另一处。
     setTimeout(function () {
       wx.reLaunch({
         url: route.chat({ entry_source: source, preview: "1" }),
+        fail: function () {
+          // 导航失败时撤掉色浪，避免 fill:forwards 把页面永久罩住
+          that.setData({ guestWaveActive: false });
+        },
         complete: function () {
           that._guestNavigating = false;
         },
