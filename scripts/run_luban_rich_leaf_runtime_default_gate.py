@@ -97,8 +97,26 @@ def run_runtime_default_gate(
         blockers.append(f"streaming_ab_schema_mismatch:{streaming_ab.get('schema')}")
     if streaming_ab.get("runtime_exercised") is not True:
         blockers.append("streaming_ab_not_exercised")
-    if semantic_runtime_live_ab.get("verdict") != "PASS_LIVE_RUNTIME_AB_SHADOW":
-        blockers.append(f"semantic_runtime_live_ab_not_pass:{semantic_runtime_live_ab.get('verdict')}")
+    live_ab_verdict = semantic_runtime_live_ab.get("verdict")
+    if live_ab_verdict == "PASS_LIVE_RUNTIME_AB_SHADOW":
+        pass
+    elif live_ab_verdict == "PASS_FROZEN_V1_LIVE_PROVIDER_SHADOW_AB":
+        # frozen-v1 four-arm live A/B is accepted as equivalent evidence ONLY with
+        # substantive wins proven in the artifact itself (stricter than the legacy
+        # verdict literal): zero failed calls, rich_leaf arm >= 0.9 accuracy AND
+        # beating the current RAG arm.
+        arms = semantic_runtime_live_ab.get("arms") if isinstance(semantic_runtime_live_ab.get("arms"), list) else []
+        rich = _arm(arms, "rich_leaf_context_live")
+        rag = _arm(arms, "current_rag_projection_live")
+        failed_calls = semantic_runtime_live_ab.get("summary", {}).get("failed_call_count")
+        if not isinstance(failed_calls, int) or failed_calls != 0:
+            blockers.append("semantic_runtime_live_ab_failed_calls_nonzero")
+        if float(rich.get("accuracy_rate") or 0.0) < 0.9:
+            blockers.append(f"semantic_runtime_live_ab_rich_leaf_accuracy_below_0.9:{rich.get('accuracy_rate')}")
+        if float(rich.get("accuracy_rate") or 0.0) <= float(rag.get("accuracy_rate") or 1.0):
+            blockers.append("semantic_runtime_live_ab_rich_leaf_does_not_beat_current_rag")
+    else:
+        blockers.append(f"semantic_runtime_live_ab_not_pass:{live_ab_verdict}")
     for name, payload in (
         ("runtime_token_pack", runtime_token_pack),
         ("runtime_supply_regression", runtime_supply_regression),
