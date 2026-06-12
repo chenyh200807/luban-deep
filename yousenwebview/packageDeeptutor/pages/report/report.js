@@ -6,6 +6,7 @@ const helpers = require("../../utils/helpers");
 const runtime = require("../../utils/runtime");
 const route = require("../../utils/route");
 const flags = require("../../utils/flags");
+const auth = require("../../utils/auth");
 const reportViewModel = require("../../utils/learning-report-view-model");
 const taxonomy = require("../../utils/taxonomy");
 
@@ -1361,6 +1362,7 @@ Page({
     degradedSources: [],
     reportFallbackActive: false,
     reportModuleHintVisible: true,
+    isGuestPreview: false,
   },
 
   _radarRenderSeq: 0,
@@ -1440,18 +1442,33 @@ Page({
     helpers.syncTabBar(this, 2, {
       hidden: !flags.shouldShowWorkspaceShell(),
     });
-    runtime.checkAuth(() => {
+    if (!auth.isLoggedIn()) {
       this.setData({
-        radarLoading: true,
-        masteryLoading: true,
-        learningBrainLoading: true,
+        isGuestPreview: true,
+        radarLoading: false,
+        masteryLoading: false,
+        learningBrainLoading: false,
         radarError: false,
         masteryError: false,
         learningBrainError: false,
         learningBrainEmpty: false,
+        degradedHint: "",
+        reportFallbackActive: false,
       });
-      this._loadReportPage();
+      this._syncExperienceSections();
+      return;
+    }
+    this.setData({
+      isGuestPreview: false,
+      radarLoading: true,
+      masteryLoading: true,
+      learningBrainLoading: true,
+      radarError: false,
+      masteryError: false,
+      learningBrainError: false,
+      learningBrainEmpty: false,
     });
+      this._loadReportPage();
   },
 
   async _loadReportSnapshot() {
@@ -1725,7 +1742,19 @@ Page({
     wx.reLaunch({ url: route.chat() });
   },
 
+  goQuickLogin() {
+    this._requireLogin();
+  },
+
+  _requireLogin() {
+    runtime.redirectToLogin(route.report());
+  },
+
   goAssessment() {
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
     if (!flags.ensureFeatureEnabled("assessment")) return;
     helpers.vibrate("light");
     wx.navigateTo({ url: route.assessment() });
@@ -2310,6 +2339,10 @@ Page({
   executeTrainingAction() {
     var action = this.data.trainingExecutionAction || {};
     helpers.vibrate("light");
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
     if (action.type === "assessment") {
       if (!flags.ensureFeatureEnabled("assessment")) return;
       wx.navigateTo({ url: route.assessment() });
@@ -2345,6 +2378,10 @@ Page({
   },
 
   async saveAttemptNotebookCard(event) {
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
     var key =
       event && event.currentTarget && event.currentTarget.dataset
         ? event.currentTarget.dataset.key
@@ -2440,6 +2477,10 @@ Page({
   },
 
   startTodayTask(event) {
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
     var taskId =
       event && event.currentTarget && event.currentTarget.dataset
         ? event.currentTarget.dataset.taskid
@@ -2564,6 +2605,10 @@ Page({
   },
 
   async toggleMistakeBookmark(event) {
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
     var key =
       event && event.currentTarget && event.currentTarget.dataset
         ? event.currentTarget.dataset.key

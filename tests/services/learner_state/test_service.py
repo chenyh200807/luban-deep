@@ -1917,3 +1917,26 @@ def test_canonical_truth_non_production_write_persists_regression(tmp_path) -> N
     service = _make_service(tmp_path)
     service.write_compiled_learning_truth("student_demo", {"subject": "x", "weak_points": []})
     assert (tmp_path / "learner_state" / "student_demo" / "COMPILED_TRUTH.json").exists()
+
+
+def test_list_local_memory_event_user_ids_enumerates_users_with_events(tmp_path) -> None:
+    """dream cycle 候选集枚举：只返回本地有 memory events 文件的用户；
+    只有 seed 状态（无事件）的用户不出现。只读，不创建任何状态。"""
+    service = _make_service(tmp_path)
+    service.append_memory_event(
+        "stu_alpha",
+        source_feature="construction_grading",
+        source_id="turn-1",
+        memory_kind="learning_evidence",
+        payload_json={"event_type": "learning_evidence"},
+    )
+    service.append_memory_event(
+        "stu_beta",
+        source_feature="turn",
+        source_id="turn-2",
+        memory_kind="turn",
+        payload_json={},
+    )
+    service.read_profile("stu_gamma_no_events")
+
+    assert service.list_local_memory_event_user_ids() == ["stu_alpha", "stu_beta"]

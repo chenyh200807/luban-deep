@@ -86,21 +86,31 @@ function buildNextBestActionView(resultMetadata) {
     raw = resultMetadata.metadata.next_best_action;
   }
   if (!raw || typeof raw !== "object") return null;
-  var title = String(raw.title || "").trim();
+  // 展示字段统一净化：去换行/控制符 + 截长。target/title 会被「去练这个」
+  // 自动组装进用户消息，必须在投影层封死注入面（题面→LLM 采分点→NBA 的
+  // 文本链路不可信）。
+  function cleanDisplayText(value, maxLen) {
+    var text = String(value || "")
+      .replace(/[\r\n\t\u0000-\u001f\u2028\u2029]+/g, " ")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+    return text.length > maxLen ? text.slice(0, maxLen) : text;
+  }
+  var title = cleanDisplayText(raw.title, 80);
   if (!title) return null;
   var materials = [];
   var rawMaterials = Array.isArray(raw.materials) ? raw.materials : [];
   for (var i = 0; i < rawMaterials.length; i++) {
-    var material = String(rawMaterials[i] || "").trim();
+    var material = cleanDisplayText(rawMaterials[i], 120);
     if (material) materials.push(material);
   }
   return {
     title: title,
-    target: String(raw.target || "").trim(),
-    whyThisNow: String(raw.why_this_now || "").trim(),
+    target: cleanDisplayText(raw.target, 80),
+    whyThisNow: cleanDisplayText(raw.why_this_now, 160),
     materials: materials,
-    successMeasure: String(raw.success_measure || "").trim(),
-    actionType: String(raw.action_type || "").trim(),
+    successMeasure: cleanDisplayText(raw.success_measure, 120),
+    actionType: cleanDisplayText(raw.action_type, 40),
   };
 }
 

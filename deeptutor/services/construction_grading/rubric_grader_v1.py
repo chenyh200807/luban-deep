@@ -306,19 +306,21 @@ def to_learning_evidence(event: dict[str, Any], *, node_code: str = "") -> dict[
                 "policy_type": sp.get("policy_type"),
                 "lost_score": round(sp.get("max_score", 0) - sp.get("score", 0), 2),
             })
-            if normalized_node_code:
-                error_events.append({
-                    "error_code": error_code,
-                    "mistake_type": mistake_type,
-                    "concept_tag": normalized_node_code,
-                    "rubric_item_id": point_id,
-                    "diagnosis": knowledge_point,
-                    "evidence": evidence_span,
-                    "evidence_span": evidence_span,
-                    "policy_type": sp.get("policy_type"),
-                    "required_terms": required_terms,
-                    "lost_score": round(sp.get("max_score", 0) - sp.get("score", 0), 2),
-                })
+            # 开放世界（无 node_code）也沉淀 error_events：concept_tag 留空、
+            # 不臆造概念；concept 归属由 writer 的 canonical_topic（taxonomy
+            # resolver 命中才写）/ 合成层兜底——评分开放世界 ⇒ 记忆也开放世界。
+            error_events.append({
+                "error_code": error_code,
+                "mistake_type": mistake_type,
+                "concept_tag": normalized_node_code,
+                "rubric_item_id": point_id,
+                "diagnosis": knowledge_point,
+                "evidence": evidence_span,
+                "evidence_span": evidence_span,
+                "policy_type": sp.get("policy_type"),
+                "required_terms": required_terms,
+                "lost_score": round(sp.get("max_score", 0) - sp.get("score", 0), 2),
+            })
 
     next_training_signal: dict[str, Any] = {}
     if normalized_node_code:

@@ -2167,3 +2167,15 @@
   font-size: 12px;
   color: #047857;
 }
+.nba-go {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.95);
+}
+.nba-go-label {
+  font-size: 12px;
+  color: #ffffff;
+  font-weight: 600;
+}

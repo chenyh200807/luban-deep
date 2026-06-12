@@ -41,7 +41,8 @@ function loadBillingPage(usagePayload) {
       },
       requestPayment: function (payload) {
         paymentCalls.push(payload);
-        if (payload && typeof payload.success === "function") payload.success({});
+        if (payload && typeof payload.success === "function")
+          payload.success({});
       },
       previewImage: function () {},
       navigateBack: function () {},
@@ -51,10 +52,20 @@ function loadBillingPage(usagePayload) {
       if (request === "../../utils/api") {
         return {
           getUsage: function () {
-            return Promise.resolve(usagePayload || {
-              display: { primary_label: "剩余 75%", primary_percent: 75 },
-              quota: { rows: [{ key: "weekly", label: "每周使用限额", remaining_percent: 75 }] },
-            });
+            return Promise.resolve(
+              usagePayload || {
+                display: { primary_label: "剩余 75%", primary_percent: 75 },
+                quota: {
+                  rows: [
+                    {
+                      key: "weekly",
+                      label: "每周使用限额",
+                      remaining_percent: 75,
+                    },
+                  ],
+                },
+              },
+            );
           },
           getWallet: function () {
             return Promise.resolve({ balance: 0 });
@@ -78,7 +89,9 @@ function loadBillingPage(usagePayload) {
               },
             });
           },
-          unwrapResponse: function (raw) { return raw; },
+          unwrapResponse: function (raw) {
+            return raw;
+          },
         };
       }
       if (request === "../../utils/helpers") {
@@ -139,15 +152,49 @@ function loadBillingPage(usagePayload) {
   try {
     var loaded = loadBillingPage();
     var page = loaded.page;
-    assert(!("packages" in page.data), "billing page should not expose package list while pricing is hidden");
-    assert(!("selectedPkg" in page.data), "billing page should not default to a package while pricing is hidden");
-    assert(!("selectedPkgPrice" in page.data), "billing page should not expose a default price while pricing is hidden");
-    assert(typeof page.onSelectPkg === "undefined", "billing page should not expose package selection while pricing is hidden");
-    assert(typeof page.onRecharge === "undefined", "billing page should not expose recharge action while pricing is hidden");
-    assert(typeof page.onConfirmPay === "undefined", "billing page should not expose payment action while pricing is hidden");
-    assert(loaded.checkoutCalls.length === 0, "billing should not create checkout order while pricing is hidden");
-    assert(loaded.paymentCalls.length === 0, "billing should not invoke WeChat payment while pricing is hidden");
-    assert(loaded.modalCalls.length === 0, "billing should not show unavailable payment copy while pricing is hidden");
+    // 2026-06-12 契约演进（paywall）：付费墙功能上线后，billing 页面现在公开展示套餐列表、
+    // 选中套餐和支付入口。旧的"pricing is hidden"断言全部更新为 pin 新行为。
+    assert(
+      "packages" in page.data,
+      "billing page should expose package list for paywall selection",
+    );
+    assert(
+      Array.isArray(page.data.packages),
+      "billing page packages should be an array",
+    );
+    assert(
+      !("selectedPkg" in page.data),
+      "billing page uses selectedPackageId/selectedPackage, not legacy selectedPkg",
+    );
+    assert(
+      !("selectedPkgPrice" in page.data),
+      "billing page uses selectedPackage.price, not legacy selectedPkgPrice",
+    );
+    assert(
+      typeof page.selectPackage === "function",
+      "billing page should expose selectPackage for paywall UI",
+    );
+    assert(
+      typeof page.openCheckout === "function",
+      "billing page should expose openCheckout for initiating payment",
+    );
+    assert(
+      typeof page.submitCheckout === "function",
+      "billing page should expose submitCheckout for confirming payment",
+    );
+    // Before _loadUsage() is called, no checkout or payment should have been triggered
+    assert(
+      loaded.checkoutCalls.length === 0,
+      "billing should not create checkout order on initial render before user action",
+    );
+    assert(
+      loaded.paymentCalls.length === 0,
+      "billing should not invoke WeChat payment on initial render before user action",
+    );
+    assert(
+      loaded.modalCalls.length === 0,
+      "billing should not show modal on initial render before user action",
+    );
 
     var degraded = loadBillingPage({
       status: "degraded",

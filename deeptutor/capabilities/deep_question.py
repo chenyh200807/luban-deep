@@ -1869,25 +1869,24 @@ def _record_v1_grading_to_brain_for_question(
     context: UnifiedContext,
     v1_event: dict[str, Any] | None,
     graded_context: dict[str, Any],
-    result_payload: dict[str, Any],
     turn_id: str,
-) -> None:
-    """Grading-to-Brain（练题路径）：把 V1 case GradingEvent 落成一条 append-only
-    learning_evidence 记忆事件。与 TutorBot loop 复用同一个写入 seam
-    （write_case_grading_event_learning_evidence），不产生第二写入权威。
-    Fail-closed：写入失败绝不影响可见批改结果。"""
+) -> dict[str, Any]:
+    """Grading-to-Brain（练题路径）：薄委托到唯一 recorder seam
+    （construction_grading.writeback.record_case_grading_to_brain，与 TutorBot
+    loop 共用），返回 meta（writeback 标记 + personalization_context +
+    next_best_action）。Fail-closed：失败返回 {}，绝不影响可见批改。"""
     if not isinstance(v1_event, dict) or v1_event.get("event_type") != "case_grading_completed":
-        return
+        return {}
     user_id = _learner_user_id_from_context(context)
     if not user_id:
-        return
+        return {}
     try:
         from deeptutor.services.construction_grading.writeback import (
-            write_case_grading_event_learning_evidence,
+            record_case_grading_to_brain,
         )
         from deeptutor.services.learner_state import get_learner_state_service
 
-        writeback = write_case_grading_event_learning_evidence(
+        meta = record_case_grading_to_brain(
             learner_state_service=get_learner_state_service(),
             user_id=user_id,
             grading_event=v1_event,
@@ -1903,18 +1902,10 @@ def _record_v1_grading_to_brain_for_question(
             node_code=str(graded_context.get("node_code") or ""),
             session_id=str(getattr(context, "session_id", "") or ""),
         )
+        return meta if isinstance(meta, dict) else {}
     except Exception:  # noqa: BLE001 — memory write must not break visible grading
         logger.warning("LUBAN_V1 deep_question Grading-to-Brain writeback failed", exc_info=True)
-        return
-    if not isinstance(writeback, dict) or not int(writeback.get("writeback_count") or 0):
-        return
-    result_payload["grading_to_brain_loop"] = {
-        "writeback_count": int(writeback.get("writeback_count") or 0),
-        "event_id": str(writeback.get("event_id") or ""),
-        "memory_kind": "learning_evidence",
-        "authority": "learner_memory_events.learning_evidence",
-    }
-    result_payload["learning_evidence_event_id"] = str(writeback.get("event_id") or "")
+        return {}
 
 
 def _runtime_shadow_flag_enabled(context: UnifiedContext) -> bool:
@@ -4024,6 +4015,14 @@ class DeepQuestionCapability(BaseCapability):
             # When V1 takes over we skip the legacy SubmissionGraderAgent LLM call entirely.
             v1_event = await _grade_case_rubric_v1(context=context, graded_context=graded_context)
             v1_render: str | None = None
+            # Grading-to-Brain：先录制（写证据 + 构建 PCP），再渲染——练题反馈
+            # 与聊天入口同样携带个性化语气（同一 recorder seam）。
+            _g2b_meta = _record_v1_grading_to_brain_for_question(
+                context=context,
+                v1_event=v1_event,
+                graded_context=graded_context,
+                turn_id=turn_id,
+            )
             if isinstance(v1_event, dict) and v1_event.get("event_type") == "case_grading_completed":
                 from deeptutor.services.construction_grading.rubric_grader_v1 import (
                     render_case_rubric_feedback,
@@ -4031,7 +4030,16 @@ class DeepQuestionCapability(BaseCapability):
 
                 _stem = str(graded_context.get("question_stem") or graded_context.get("stem")
                             or graded_context.get("question") or "")
-                v1_render = render_case_rubric_feedback(v1_event, question_stem=_stem)
+                _g2b_pcp = (
+                    _g2b_meta.get("personalization_context")
+                    if isinstance(_g2b_meta.get("personalization_context"), dict)
+                    else None
+                )
+                v1_render = render_case_rubric_feedback(
+                    v1_event,
+                    question_stem=_stem,
+                    personalization_context_pack=_g2b_pcp,
+                )
             if v1_render is not None:
                 answer = v1_render
                 # SAME-SOURCE: when V1 renders the student answer, is_correct/score/diagnosis must come
@@ -4182,6 +4190,14 @@ class DeepQuestionCapability(BaseCapability):
             }
             if grounding_error:
                 result_payload["grading_grounding_error"] = grounding_error[:240]
+            # Grading-to-Brain：渲染前已录制（同一 recorder seam）。只把公开
+            # 投影并入结果——v1_event 有效即合并，不依赖 legacy grading_result
+            # 守卫（防"写了证据但客户端无回执"的幽灵写）。
+            from deeptutor.services.construction_grading.writeback import (
+                public_grading_to_brain_meta,
+            )
+
+            result_payload.update(public_grading_to_brain_meta(_g2b_meta))
             cost_meta = self._collect_cost_summary("question")
             if cost_meta:
                 result_payload["metadata"] = {"cost_summary": cost_meta}
@@ -4209,15 +4225,7 @@ class DeepQuestionCapability(BaseCapability):
                 )
                 if _v1_payload is not None:
                     result_payload["luban_case_rubric_v1"] = _v1_payload
-                # Grading-to-Brain：练题路径与 TutorBot loop 共用同一写入 seam，
-                # 把本次 V1 case 批改沉淀为 learning_evidence（append-only，fail-closed）。
-                _record_v1_grading_to_brain_for_question(
-                    context=context,
-                    v1_event=v1_event,
-                    graded_context=graded_context,
-                    result_payload=result_payload,
-                    turn_id=turn_id,
-                )
+
                 # QA/test-only Luban v1 beta_shadow (default off; flag + env kill switch;
                 # append-only; legacy construction_grading_result untouched above).
                 _maybe_attach_v1_beta_shadow(

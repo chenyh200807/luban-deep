@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 import logging
+import os
 from pathlib import Path
 import re
 from typing import Any, Literal
@@ -428,7 +429,10 @@ class LearnerStateService:
             return extract_learning_brain_projection(payload)
         path = self._path(normalized, "compiled_truth")
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(_json_dump(payload) + "\n", encoding="utf-8")
+        # 原子写：dream cycle 线程与 turn 读线程并发时不能出现撕裂读。
+        tmp_path = path.with_suffix(path.suffix + ".tmp")
+        tmp_path.write_text(_json_dump(payload) + "\n", encoding="utf-8")
+        os.replace(tmp_path, path)
         return extract_learning_brain_projection(payload)
 
     def read_progress(self, user_id: str) -> dict[str, Any]:
@@ -593,6 +597,23 @@ class LearnerStateService:
         except Exception:
             return []
         return events
+
+    def list_local_memory_event_user_ids(self) -> list[str]:
+        """只读枚举本地存在 memory events 文件的用户 ID（dream cycle 候选集）。
+
+        不创建任何状态；只有 seed 文件而无事件的用户不会出现。"""
+        root = self._learner_root
+        if not root.exists():
+            return []
+        user_ids: list[str] = []
+        try:
+            children = sorted(root.iterdir())
+        except OSError:
+            return []
+        for child in children:
+            if child.is_dir() and (child / _FILENAMES["events"]).exists():
+                user_ids.append(child.name)
+        return user_ids
 
     def list_learning_evidence_events(
         self,

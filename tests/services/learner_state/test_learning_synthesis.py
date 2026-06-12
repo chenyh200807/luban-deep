@@ -807,3 +807,79 @@ def test_eligible_evidence_still_consumed_after_safety_filter() -> None:
     # Regression guard: the defensive filter must NOT drop legitimate writeback_eligible evidence.
     proj = synthesize_learning_truth([_learning_event("ok1"), _learning_event("ok2")])
     assert "error:1A432000:E02" in proj["compiled_objects"]
+
+
+def test_open_world_grading_repeats_escalate_to_claim_via_canonical_topic() -> None:
+    """断点修复端到端：开放世界（无 node_code）批改经真实 writer 产出的证据，
+    凭 canonical_topic（taxonomy resolver 命中）聚合——同主题同错因重复两次
+    必须升级为 L1_repeated claim。评分开放世界 ⇒ 记忆也开放世界。"""
+    from deeptutor.services.construction_grading.writeback import (
+        write_case_grading_event_learning_evidence,
+    )
+
+    class _Evt:
+        def __init__(self, event_id: str) -> None:
+            self.event_id = event_id
+
+    class _Svc:
+        def __init__(self) -> None:
+            self.payloads: list[dict] = []
+
+        def append_memory_event(self, user_id: str, **kwargs):
+            self.payloads.append(kwargs["payload_json"])
+            return _Evt(f"evt-open-{len(self.payloads)}")
+
+    svc = _Svc()
+    for attempt in (1, 2):
+        write_case_grading_event_learning_evidence(
+            learner_state_service=svc,
+            user_id="student_demo",
+            grading_event={
+                "event_type": "case_grading_completed",
+                "question_id": f"OPEN-{attempt}",
+                "awarded_score": 0,
+                "max_score": 1,
+                "scoring_points": [
+                    {
+                        "point_id": "P1",
+                        "knowledge_point": "屋面与防水工程施工",
+                        "hit": "miss",
+                        "score": 0,
+                        "max_score": 1,
+                        "mistake_type": "miss",
+                        "evidence_span": "卷材搭接宽度不足",
+                        "policy_type": "exact_required",
+                    }
+                ],
+            },
+            source_id=f"turn-open-{attempt}",
+            question_stem="题库外案例：某屋面工程卷材防水施工……指出不妥之处。",
+            node_code="",
+        )
+
+    for payload in svc.payloads:
+        topic = payload.get("canonical_topic") or {}
+        assert topic.get("taxonomy_code") == "1A413050", "writer 必须先解析出 canonical_topic"
+    events = [
+        LearnerStateEvent(
+            event_id=f"evt-open-{idx}",
+            user_id="student_demo",
+            source_feature="construction_grading",
+            source_id=f"turn-open-{idx}",
+            source_bot_id="construction-exam",
+            memory_kind="learning_evidence",
+            dedupe_key=f"evt-open-{idx}",
+            created_at=f"2026-06-1{idx}T10:00:00+08:00",
+            payload_json=payload,
+        )
+        for idx, payload in enumerate(svc.payloads, 1)
+    ]
+    projection = synthesize_learning_truth(events)
+
+    weak = [
+        item
+        for item in projection["weak_points"]
+        if item.get("concept_id") == "1A413050"
+    ]
+    assert weak, f"开放世界重复错误必须聚合成 claim，got weak_points={projection['weak_points']}"
+    assert weak[0]["evidence_level"] == "L1_repeated"

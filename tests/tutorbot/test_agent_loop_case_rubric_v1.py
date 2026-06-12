@@ -253,3 +253,111 @@ async def test_v1_case_render_writes_grading_to_brain_loop(
     assert md["learning_training_intent"]["source"] == "grading_to_brain_loop"
     assert md["personalization_context"]["source"] == "PersonalizationContextPack"
     assert md["next_best_action"]["source"] == "training_intent"
+
+
+# ---------------------------------------------------------------- Grading-to-Brain cache-first（gbrain daemon 化）
+
+
+class _CacheAwareLearnerStateService(_FakeLearnerStateService):
+    def __init__(self, *, cached_projection: dict | None) -> None:
+        super().__init__()
+        self._cached_projection = cached_projection
+        self.synthesize_calls: list[dict] = []
+
+    def read_compiled_learning_truth(self, user_id: str) -> dict:
+        return dict(self._cached_projection or {})
+
+    def synthesize_learning_truth(self, user_id: str, *, dry_run: bool = True, event_limit: int | None = None):
+        self.synthesize_calls.append({"user_id": user_id, "dry_run": dry_run, "event_limit": event_limit})
+        return {"projection": {"compiled_objects": []}}
+
+
+def _v1_grading_event() -> dict:
+    return {
+        "event_type": "case_grading_completed",
+        "question_id": "CASE-1",
+        "awarded_score": 0,
+        "max_score": 1,
+        "high_risk_review": False,
+        "rubric_provenance": "compiled_rubric",
+        "scoring_points": [
+            {
+                "point_id": "P1",
+                "knowledge_point": "临时用电管理",
+                "hit": "miss",
+                "score": 0,
+                "max_score": 1,
+                "mistake_type": "miss",
+                "evidence_span": "",
+                "policy_type": "exact_required",
+            }
+        ],
+    }
+
+
+def _cached_projection() -> dict:
+    return {
+        "compiled_objects": [
+            {
+                "object_id": "1A415000:M06",
+                "object_type": "error",
+                "claim_status": "confirmed",
+                "concept_id": "1A415000",
+                "label": "屋面与防水工程施工：近义替代",
+                "supporting_event_ids": ["evt_cached"],
+                "confidence": 0.9,
+            }
+        ],
+        "weak_points": [],
+    }
+
+
+def test_record_v1_grading_to_brain_prefers_compiled_cache(monkeypatch) -> None:
+    """gbrain daemon 化：夜间已巩固 → turn 内直接读 compiled 投影缓存，
+    不再在聊天时重跑 synthesize_learning_truth。"""
+    service = _CacheAwareLearnerStateService(cached_projection=_cached_projection())
+    monkeypatch.setattr(
+        "deeptutor.services.learner_state.get_learner_state_service",
+        lambda: service,
+    )
+    md = {"user_id": "qa_loop_v1", "session_id": "sess-1", "turn_id": "turn-1"}
+
+    AgentLoop._record_v1_grading_to_brain(
+        runtime_metadata=md,
+        event=_v1_grading_event(),
+        ctx={"user_answer": "作答", "question_stem": "题干", "question_id": "CASE-1"},
+    )
+
+    assert service.synthesize_calls == []
+    assert md["learning_evidence_event_id"] == "evt_v1_case_1"
+    assert md["personalization_context"]["top_claims"][0]["claim_id"] == "1A415000:M06"
+    assert "next_best_action" in md
+
+
+def test_record_v1_grading_to_brain_falls_back_to_inline_synthesis_on_cache_miss(monkeypatch) -> None:
+    service = _CacheAwareLearnerStateService(cached_projection=None)
+    monkeypatch.setattr(
+        "deeptutor.services.learner_state.get_learner_state_service",
+        lambda: service,
+    )
+    md = {"user_id": "qa_loop_v1", "session_id": "sess-1", "turn_id": "turn-1"}
+
+    AgentLoop._record_v1_grading_to_brain(
+        runtime_metadata=md,
+        event=_v1_grading_event(),
+        ctx={"user_answer": "作答", "question_stem": "题干", "question_id": "CASE-1"},
+    )
+
+    assert len(service.synthesize_calls) == 1
+    assert service.synthesize_calls[0]["dry_run"] is True
+
+
+def test_loop_grading_to_brain_is_thin_delegate_source_pin() -> None:
+    """源检查钉：loop 侧只允许委托唯一 recorder seam（record_case_grading_to_brain），
+    禁止重新内联 writeback/PCP 拼装逻辑——否则与练题入口形成双权威。"""
+    import inspect
+
+    src_text = inspect.getsource(AgentLoop._record_v1_grading_to_brain)
+    assert "record_case_grading_to_brain" in src_text
+    assert "write_case_grading_event_learning_evidence" not in src_text
+    assert "build_personalization_context_pack" not in src_text

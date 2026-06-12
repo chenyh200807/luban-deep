@@ -72,11 +72,14 @@ function loadHistoryPage(rawConversations, initialStorage) {
           readDeletedConversationIds: function () {
             var raw = storage.history_deleted_conversation_ids;
             var tombstones = normalize(raw);
-            if (Array.isArray(raw)) storage.history_deleted_conversation_ids = tombstones;
+            if (Array.isArray(raw))
+              storage.history_deleted_conversation_ids = tombstones;
             return tombstones;
           },
           rememberDeletedConversationIds: function (ids) {
-            var tombstones = normalize(storage.history_deleted_conversation_ids);
+            var tombstones = normalize(
+              storage.history_deleted_conversation_ids,
+            );
             (ids || []).forEach(function (id) {
               if (id) tombstones[id] = Date.now();
             });
@@ -87,6 +90,15 @@ function loadHistoryPage(rawConversations, initialStorage) {
             return (convs || []).filter(function (item) {
               return !tombstones[item.id];
             });
+          },
+        };
+      }
+      if (request === "../../utils/auth") {
+        // 2026-06-12 契约演进（paywall）：history.js 新增 auth 依赖以支持游客态展示。
+        // 测试场景均为已登录用户，isLoggedIn 返回 true。
+        return {
+          isLoggedIn: function () {
+            return true;
           },
         };
       }
@@ -206,7 +218,8 @@ function loadHistoryPage(rawConversations, initialStorage) {
     },
     {
       id: "internal_context_history",
-      title: "## 参考证据\n以下内容是辅助证据，不得覆盖当前用户问题。\n\n## 当前用户问题\n给出一个进度控制题目",
+      title:
+        "## 参考证据\n以下内容是辅助证据，不得覆盖当前用户问题。\n\n## 当前用户问题\n给出一个进度控制题目",
       capability: "chat",
       source: "wx_miniprogram",
       status: "completed",
@@ -224,16 +237,37 @@ function loadHistoryPage(rawConversations, initialStorage) {
   var item = page.data.conversations.filter(function (conv) {
     return conv.id === "tb_history_1";
   })[0];
-  assert(item.modeLabel === "深度", "history card should display response mode instead of TutorBot runtime identity");
-  assert(item.modeLabel !== "智能", "history mode label should never display smart/auto as a final mode");
-  assert(item.capabilityLabel === "智能对话", "capability identity may remain internal but should not drive the visible tag");
-  assert(item.preview.indexOf("------") < 0, "history preview should remove markdown table separator rows");
-  assert(item.preview.indexOf("安装牢固、启闭灵活") >= 0, "history preview should keep visible table content");
+  assert(
+    item.modeLabel === "深度",
+    "history card should display response mode instead of TutorBot runtime identity",
+  );
+  assert(
+    item.modeLabel !== "智能",
+    "history mode label should never display smart/auto as a final mode",
+  );
+  assert(
+    item.capabilityLabel === "智能对话",
+    "capability identity may remain internal but should not drive the visible tag",
+  );
+  assert(
+    item.preview.indexOf("------") < 0,
+    "history preview should remove markdown table separator rows",
+  );
+  assert(
+    item.preview.indexOf("安装牢固、启闭灵活") >= 0,
+    "history preview should keep visible table content",
+  );
   var smartFallbackItem = page.data.conversations.filter(function (conv) {
     return conv.id === "today_ms_authority";
   })[0];
-  assert(smartFallbackItem.modeLabel === "快速", "smart/auto history without selected mode should fall back to a fast/deep label");
-  assert(page.data.stats.weekCount >= 2, "history stats should count today and recent conversations from canonical timestamps");
+  assert(
+    smartFallbackItem.modeLabel === "快速",
+    "smart/auto history without selected mode should fall back to a fast/deep label",
+  );
+  assert(
+    page.data.stats.weekCount >= 2,
+    "history stats should count today and recent conversations from canonical timestamps",
+  );
   var legacySecondsItem = page.data.conversations.filter(function (conv) {
     return conv.id === "legacy_seconds_authority";
   })[0];
@@ -248,17 +282,25 @@ function loadHistoryPage(rawConversations, initialStorage) {
     internalContextItem.title === "给出一个进度控制题目",
     "history title should recover the visible user question from internal context",
   );
-  assert(internalContextItem.preview === "", "history preview should drop pure internal context");
+  assert(
+    internalContextItem.preview === "",
+    "history preview should drop pure internal context",
+  );
   assert(
     JSON.stringify(internalContextItem).indexOf("参考证据") < 0 &&
-      JSON.stringify(internalContextItem).indexOf("Question Follow-up Context") < 0,
+      JSON.stringify(internalContextItem).indexOf(
+        "Question Follow-up Context",
+      ) < 0,
     "history card should not expose internal retrieval or follow-up context",
   );
   assert(
     page.data.groups.some(function (group) {
-      return group.label === "今天" && group.items.some(function (conv) {
-        return conv.id === "today_ms_authority";
-      });
+      return (
+        group.label === "今天" &&
+        group.items.some(function (conv) {
+          return conv.id === "today_ms_authority";
+        })
+      );
     }),
     "today conversation should be grouped under 今天 when updated_at_ms is present",
   );
@@ -297,17 +339,41 @@ function loadHistoryPage(rawConversations, initialStorage) {
   cachedPage._loadWithCache();
 
   var cachedItem = cachedPage.data.conversations[0];
-  assert(cachedItem.modeLabel === "快速", "cached TutorBot label should be replaced by response mode before display");
-  assert(cachedItem.capabilityLabel === "智能对话", "cached TutorBot identity should be migrated away from visible labels");
-  assert(cachedItem.preview.indexOf("------") < 0, "cached preview should be cleaned before display");
-  assert(cachedPage.data.stats.weekCount === 2, "cached rawTime should be migrated into the exact week count");
-  assert(cachedItem.time !== "1/21 21:36", "cached stale card time should be recomputed from canonical rawTime");
-  assert(cachedItem.time === "fmt:" + Math.floor(nowMs / 1000) * 1000, "cached seconds rawTime should be formatted as milliseconds");
+  assert(
+    cachedItem.modeLabel === "快速",
+    "cached TutorBot label should be replaced by response mode before display",
+  );
+  assert(
+    cachedItem.capabilityLabel === "智能对话",
+    "cached TutorBot identity should be migrated away from visible labels",
+  );
+  assert(
+    cachedItem.preview.indexOf("------") < 0,
+    "cached preview should be cleaned before display",
+  );
+  assert(
+    cachedPage.data.stats.weekCount === 2,
+    "cached rawTime should be migrated into the exact week count",
+  );
+  assert(
+    cachedItem.time !== "1/21 21:36",
+    "cached stale card time should be recomputed from canonical rawTime",
+  );
+  assert(
+    cachedItem.time === "fmt:" + Math.floor(nowMs / 1000) * 1000,
+    "cached seconds rawTime should be formatted as milliseconds",
+  );
   var cachedInternal = cachedPage.data.conversations.filter(function (conv) {
     return conv.id === "cached_internal_context";
   })[0];
-  assert(cachedInternal.title === "缓存里的进度题", "cached internal title should be sanitized");
-  assert(cachedInternal.preview === "", "cached pure internal preview should be dropped");
+  assert(
+    cachedInternal.title === "缓存里的进度题",
+    "cached internal title should be sanitized",
+  );
+  assert(
+    cachedInternal.preview === "",
+    "cached pure internal preview should be dropped",
+  );
 
   var deletedPage = loadHistoryPage(
     [
@@ -349,7 +415,8 @@ function loadHistoryPage(rawConversations, initialStorage) {
   );
   assert(
     deletedPage._testStorage.history_cache.conversations.length === 1 &&
-      deletedPage._testStorage.history_cache.conversations[0].id === "visible_after_refresh",
+      deletedPage._testStorage.history_cache.conversations[0].id ===
+        "visible_after_refresh",
     "history cache should also exclude deleted tombstone conversations",
   );
 
@@ -390,8 +457,11 @@ function loadHistoryPage(rawConversations, initialStorage) {
     "package history should migrate legacy array tombstones and still filter deleted conversations",
   );
   assert(
-    !Array.isArray(legacyDeletedPage._testStorage.history_deleted_conversation_ids) &&
-      legacyDeletedPage._testStorage.history_deleted_conversation_ids.legacy_array_deleted,
+    !Array.isArray(
+      legacyDeletedPage._testStorage.history_deleted_conversation_ids,
+    ) &&
+      legacyDeletedPage._testStorage.history_deleted_conversation_ids
+        .legacy_array_deleted,
     "package legacy array tombstones should be rewritten into the canonical object map",
   );
 
@@ -399,5 +469,7 @@ function loadHistoryPage(rawConversations, initialStorage) {
     console.error(errors.join("\n"));
     process.exit(1);
   }
-  console.log("PASS test_history_display_authority.js (" + pass + " assertions)");
+  console.log(
+    "PASS test_history_display_authority.js (" + pass + " assertions)",
+  );
 })();

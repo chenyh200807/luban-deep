@@ -77,22 +77,34 @@ function loadReportPage(stubs) {
     },
     require: function (request) {
       if (request === "../../utils/api") return stubs.api;
-      if (request === "../../utils/auth") return stubs.auth;
+      if (request === "../../utils/auth") {
+        // 2026-06-12 契约演进（paywall）：report.js 新增 auth.isLoggedIn 门控以支持游客态。
+        // 合并默认 isLoggedIn（已登录）到所有 auth stub，避免各调用方逐一补充。
+        return Object.assign(
+          {
+            isLoggedIn: function () {
+              return true;
+            },
+          },
+          stubs.auth || {},
+        );
+      }
       if (request === "../../utils/helpers") return stubs.helpers;
       if (request === "../../utils/runtime") return stubs.runtime;
       if (request === "../../utils/route") return stubs.route;
       if (request === "../../utils/flags") return stubs.flags;
       if (request === "../../utils/learning-report-view-model") {
-        return require(path.join(
-          __dirname,
-          "../packageDeeptutor/utils/learning-report-view-model.js",
-        ));
+        return require(
+          path.join(
+            __dirname,
+            "../packageDeeptutor/utils/learning-report-view-model.js",
+          ),
+        );
       }
       if (request === "../../utils/taxonomy") {
-        return require(path.join(
-          __dirname,
-          "../packageDeeptutor/utils/taxonomy.js",
-        ));
+        return require(
+          path.join(__dirname, "../packageDeeptutor/utils/taxonomy.js"),
+        );
       }
       return {};
     },
@@ -170,128 +182,146 @@ function createPageInstance(pageDef) {
     "yousen report stale-data fallback should cover the full MCQ error taxonomy",
   );
 
-  await run("unsafe study_plan falls back to prescription projection", async function () {
-    var pageDef = loadReportPage({
-      api: {},
-      auth: {},
-      helpers: {},
-      runtime: {},
-      route: {},
-      flags: {},
-    });
-    var page = createPageInstance(pageDef);
-    page.data = Object.assign({}, page.data, {
-      homeStudyPlan: {
-        focus_topic: "那出5道题",
-        priority_task: "先做 5 题",
-        study_method: "我想练习建筑构造相关的题目 请严格围绕以下当前学习锚点出题",
-        coach_note: "training_mode=mixed_rev",
-      },
-      prescriptionTitle: "先来一次起步测评",
-      prescriptionStatus: "degraded",
-      prescriptionReason: "当前证据还不足以生成可靠专项训练，先用一题建立学情基线。",
-      prescriptionTopic: "",
-    });
-    page._syncExperienceSections();
-    assert(
-      page.data.battlePlan.focusTopic === "先来一次起步测评",
-      "unsafe legacy study_plan focus must not leak into training detail",
-    );
-    assert(
-      String(page.data.battlePlan.coachNote || "").indexOf("training_mode") < 0,
-      "unsafe legacy study_plan coach note must not leak internal markers",
-    );
-  });
+  await run(
+    "unsafe study_plan falls back to prescription projection",
+    async function () {
+      var pageDef = loadReportPage({
+        api: {},
+        auth: {},
+        helpers: {},
+        runtime: {},
+        route: {},
+        flags: {},
+      });
+      var page = createPageInstance(pageDef);
+      page.data = Object.assign({}, page.data, {
+        homeStudyPlan: {
+          focus_topic: "那出5道题",
+          priority_task: "先做 5 题",
+          study_method:
+            "我想练习建筑构造相关的题目 请严格围绕以下当前学习锚点出题",
+          coach_note: "training_mode=mixed_rev",
+        },
+        prescriptionTitle: "先来一次起步测评",
+        prescriptionStatus: "degraded",
+        prescriptionReason:
+          "当前证据还不足以生成可靠专项训练，先用一题建立学情基线。",
+        prescriptionTopic: "",
+      });
+      page._syncExperienceSections();
+      assert(
+        page.data.battlePlan.focusTopic === "先来一次起步测评",
+        "unsafe legacy study_plan focus must not leak into training detail",
+      );
+      assert(
+        String(page.data.battlePlan.coachNote || "").indexOf("training_mode") <
+          0,
+        "unsafe legacy study_plan coach note must not leak internal markers",
+      );
+    },
+  );
 
-  await run("assessment wrong-item training action is preserved when executing report training", async function () {
-    var pendingIntent = {
-      source: "assessment_result_wrong_item",
-      learning_signal_type: "assessment_wrong_item_practice",
-      subject_id: "construction_exam",
-      concept_label: "地下防水卷材搭接",
-      error_label: "M02",
-      attempt_ref: "attempt_signed",
-      evidence_refs: ["attempt_signed"],
-      question_count: 3,
-      training_mode: "same_type_repair",
-      prompt: "请围绕我刚才错的“地下防水卷材搭接”，出 3 道同类选择题训练我。",
-      followupQuestionContext: {
-        question_id: "q_wrong_1",
-        question: "地下防水卷材搭接做法正确的是？",
-        question_type: "choice",
-        user_answer: "B",
-      },
-    };
-    var capturedIntent = null;
-    var capturedFollowupContext = null;
-    var capturedQuery = "";
-    var pageDef = loadReportPage({
-      storageSeed: {
-        "deeptutor.report.pendingTrainingAction": pendingIntent,
-      },
-      api: {},
-      auth: {},
-      helpers: {
-        getWindowInfo: function () {
-          return { statusBarHeight: 0 };
+  await run(
+    "assessment wrong-item training action is preserved when executing report training",
+    async function () {
+      var pendingIntent = {
+        source: "assessment_result_wrong_item",
+        learning_signal_type: "assessment_wrong_item_practice",
+        subject_id: "construction_exam",
+        concept_label: "地下防水卷材搭接",
+        error_label: "M02",
+        attempt_ref: "attempt_signed",
+        evidence_refs: ["attempt_signed"],
+        question_count: 3,
+        training_mode: "same_type_repair",
+        prompt: "请围绕我刚才错的“地下防水卷材搭接”，出 3 道同类选择题训练我。",
+        followupQuestionContext: {
+          question_id: "q_wrong_1",
+          question: "地下防水卷材搭接做法正确的是？",
+          question_type: "choice",
+          user_answer: "B",
         },
-        vibrate: function () {},
-      },
-      runtime: {
-        setWorkspaceBack: function () {},
-        setPendingChatIntent: function (query, mode, promptIntent, followupQuestionContext) {
-          capturedQuery = query;
-          capturedIntent = promptIntent;
-          capturedFollowupContext = followupQuestionContext;
+      };
+      var capturedIntent = null;
+      var capturedFollowupContext = null;
+      var capturedQuery = "";
+      var pageDef = loadReportPage({
+        storageSeed: {
+          "deeptutor.report.pendingTrainingAction": pendingIntent,
         },
-      },
-      route: {
-        report: function () {
-          return "/packageDeeptutor/pages/report/report";
+        api: {},
+        auth: {},
+        helpers: {
+          getWindowInfo: function () {
+            return { statusBarHeight: 0 };
+          },
+          vibrate: function () {},
         },
-        chat: function () {
-          return "/packageDeeptutor/pages/chat/chat";
+        runtime: {
+          setWorkspaceBack: function () {},
+          setPendingChatIntent: function (
+            query,
+            mode,
+            promptIntent,
+            followupQuestionContext,
+          ) {
+            capturedQuery = query;
+            capturedIntent = promptIntent;
+            capturedFollowupContext = followupQuestionContext;
+          },
         },
-      },
-      flags: {
-        ensureFeatureEnabled: function () {
-          return true;
+        route: {
+          report: function () {
+            return "/packageDeeptutor/pages/report/report";
+          },
+          chat: function () {
+            return "/packageDeeptutor/pages/chat/chat";
+          },
         },
-        isFeatureEnabled: function () {
-          return true;
+        flags: {
+          ensureFeatureEnabled: function () {
+            return true;
+          },
+          isFeatureEnabled: function () {
+            return true;
+          },
         },
-      },
-    });
-    var page = createPageInstance(pageDef);
-    page.onLoad({ detail: "training" });
-    page._syncExperienceSections();
-    page.executeTrainingAction();
+      });
+      var page = createPageInstance(pageDef);
+      page.onLoad({ detail: "training" });
+      page._syncExperienceSections();
+      page.executeTrainingAction();
 
-    assert(
-      capturedQuery.indexOf("3 道同类选择题") >= 0,
-      "report training execution should use the assessment wrong-item practice prompt",
-    );
-    assert(
-      capturedIntent && capturedIntent.attempt_ref === "attempt_signed",
-      "report training execution should preserve signed assessment attempt_ref",
-    );
-    assert(
-      !capturedIntent.followupQuestionContext && !capturedIntent.followup_question_context,
-      "report training prompt intent should not duplicate question context",
-    );
-    assert(
-      capturedFollowupContext && capturedFollowupContext.question_id === "q_wrong_1",
-      "report training execution should pass followup question context separately",
-    );
-    assert(
-      capturedIntent && capturedIntent.question_count === 3,
-      "report training execution should preserve three-question training count",
-    );
-    assert(
-      capturedIntent && capturedIntent.learning_signal_type === "assessment_wrong_item_practice",
-      "report training execution should preserve assessment practice signal until chat submit marks training_completed",
-    );
-  });
+      assert(
+        capturedQuery.indexOf("3 道同类选择题") >= 0,
+        "report training execution should use the assessment wrong-item practice prompt",
+      );
+      assert(
+        capturedIntent && capturedIntent.attempt_ref === "attempt_signed",
+        "report training execution should preserve signed assessment attempt_ref",
+      );
+      assert(
+        !capturedIntent.followupQuestionContext &&
+          !capturedIntent.followup_question_context,
+        "report training prompt intent should not duplicate question context",
+      );
+      assert(
+        capturedFollowupContext &&
+          capturedFollowupContext.question_id === "q_wrong_1",
+        "report training execution should pass followup question context separately",
+      );
+      assert(
+        capturedIntent && capturedIntent.question_count === 3,
+        "report training execution should preserve three-question training count",
+      );
+      assert(
+        capturedIntent &&
+          capturedIntent.learning_signal_type ===
+            "assessment_wrong_item_practice",
+        "report training execution should preserve assessment practice signal until chat submit marks training_completed",
+      );
+    },
+  );
 
   await run(
     "report onShow should hydrate all state from one snapshot without duplicate assessment reads",
@@ -887,7 +917,8 @@ function createPageInstance(pageDef) {
       assert(
         page.data.learningStateKnowledge[0] &&
           page.data.learningStateKnowledge[0].label === "主体结构" &&
-          page.data.learningStateAbility[0].stateHeadline.indexOf("审题") >= 0 &&
+          page.data.learningStateAbility[0].stateHeadline.indexOf("审题") >=
+            0 &&
           page.data.learningStateBehavior[0].stateHeadline.indexOf("复发") >= 0,
         "evidence detail page should hydrate knowledge/ability/behavior state rows from the unified report",
       );
@@ -917,7 +948,10 @@ function createPageInstance(pageDef) {
         pageDef.__sandbox.storageWrites.length === preStorageWriteCount,
         "toggleMistakeBookmark must not write to wx storage; mistake book authority lives in cloud `learner_mistake_book_items`",
       );
-      assert(counters.saveMistake === 1, "toggleMistakeBookmark must call the cloud mistake-book authority");
+      assert(
+        counters.saveMistake === 1,
+        "toggleMistakeBookmark must call the cloud mistake-book authority",
+      );
       assert(
         counters.savedMistakePayload &&
           counters.savedMistakePayload.attempt_ref === "signed-ref" &&
@@ -1403,159 +1437,190 @@ function createPageInstance(pageDef) {
     },
   );
 
-  await run("cached unified report renders before fresh network response", async function () {
-    var freshDeferred = createDeferred();
-    var counters = { report: 0, today: 0, home: 0, assessment: 0, mastery: 0, brain: 0 };
-    var cachedSnapshot = {
-      report: {
-        schema_version: 2,
-        overview: {
-          today_done: 2,
-          daily_target: 6,
-          streak_days: 1,
-          focus_hint: "缓存学情先显示",
-          learner_level: "beginner",
+  await run(
+    "cached unified report renders before fresh network response",
+    async function () {
+      var freshDeferred = createDeferred();
+      var counters = {
+        report: 0,
+        today: 0,
+        home: 0,
+        assessment: 0,
+        mastery: 0,
+        brain: 0,
+      };
+      var cachedSnapshot = {
+        report: {
+          schema_version: 2,
+          overview: {
+            today_done: 2,
+            daily_target: 6,
+            streak_days: 1,
+            focus_hint: "缓存学情先显示",
+            learner_level: "beginner",
+          },
+          mastery: {
+            overall_mastery: 20,
+            groups: [],
+            hotspots: [],
+            review_summary: {},
+          },
+          radar_dimensions: [{ name: "建筑物的构成与设计要求", value: 0.2 }],
+          learning_brain: {},
+          learner_facing: {},
         },
-        mastery: { overall_mastery: 20, groups: [], hotspots: [], review_summary: {} },
-        radar_dimensions: [{ name: "建筑物的构成与设计要求", value: 0.2 }],
+        degraded: false,
+        degradedSources: [],
+        home: {
+          today: { hint: "缓存学情先显示" },
+          today_focus: { title: "缓存学情先显示" },
+        },
+        assessment: { level: "beginner", chapter_mastery: {} },
+        mastery: {
+          overall_mastery: 20,
+          groups: [],
+          hotspots: [],
+          review_summary: {},
+        },
+        learningBrain: {},
+        learnerFacing: {},
+      };
+      var pageDef = loadReportPage({
+        storageSeed: {
+          "deeptutor.report.unifiedSnapshot.v1": {
+            cachedAt: Date.now(),
+            snapshot: cachedSnapshot,
+          },
+        },
+        api: {
+          unwrapResponse: function (raw) {
+            return raw;
+          },
+          getLearningReport: function () {
+            counters.report += 1;
+            return freshDeferred.promise;
+          },
+          getTodayProgress: function () {
+            counters.today += 1;
+            return Promise.resolve({});
+          },
+          getHomeDashboard: function () {
+            counters.home += 1;
+            return Promise.resolve({});
+          },
+          getAssessmentProfile: function () {
+            counters.assessment += 1;
+            return Promise.resolve({});
+          },
+          getMasteryDashboard: function () {
+            counters.mastery += 1;
+            return Promise.resolve({});
+          },
+          getLearningBrainProjection: function () {
+            counters.brain += 1;
+            return Promise.resolve({});
+          },
+        },
+        auth: {},
+        helpers: {
+          getWindowInfo: function () {
+            return { statusBarHeight: 20, pixelRatio: 2 };
+          },
+          isDark: function () {
+            return false;
+          },
+          syncTabBar: function () {},
+        },
+        runtime: {
+          getWorkspaceBack: function () {
+            return null;
+          },
+          checkAuth: function (cb) {
+            cb();
+          },
+        },
+        route: {
+          report: function () {
+            return "/packageDeeptutor/pages/report/report";
+          },
+          chat: function () {
+            return "/packageDeeptutor/pages/chat/chat";
+          },
+        },
+        flags: {
+          ensureFeatureEnabled: function () {
+            return true;
+          },
+          isFeatureEnabled: function () {
+            return true;
+          },
+          shouldShowWorkspaceShell: function () {
+            return true;
+          },
+        },
+      });
+      var page = createPageInstance(pageDef);
+      var loadPromise = page._loadReportPage();
+      await flushPromises();
+
+      assert(
+        counters.report === 1,
+        "SWR should still start one fresh unified report read",
+      );
+      assert(
+        page.data.focusHint === "缓存学情先显示" &&
+          page.data.degradedHint.indexOf("上次学情快照") >= 0,
+        "cached unified report should render immediately while fresh read is pending",
+      );
+      assert(
+        counters.today === 0 &&
+          counters.home === 0 &&
+          counters.assessment === 0 &&
+          counters.mastery === 0 &&
+          counters.brain === 0,
+        "cached report SWR must not revive legacy report readers",
+      );
+
+      freshDeferred.resolve({
+        ok: true,
+        schema_version: 2,
+        authority: {
+          read_model: "learning-report-read-model",
+          progress_source: "learner_memory_events.learning_evidence",
+          learning_brain_source: "dry_run_learning_evidence",
+          deprecated_page_sources: [],
+        },
+        freshness: {
+          event_count: 3,
+          unknown_date_count: 0,
+          window_truncated: false,
+        },
+        overview: {
+          today_done: 5,
+          daily_target: 8,
+          streak_days: 2,
+          focus_hint: "新鲜学情覆盖缓存",
+          learner_level: "intermediate",
+        },
+        mastery: {
+          overall_mastery: 55,
+          groups: [],
+          hotspots: [],
+          review_summary: {},
+        },
+        radar_dimensions: [{ name: "屋面与防水工程施工", value: 0.55 }],
         learning_brain: {},
         learner_facing: {},
-      },
-      degraded: false,
-      degradedSources: [],
-      home: { today: { hint: "缓存学情先显示" }, today_focus: { title: "缓存学情先显示" } },
-      assessment: { level: "beginner", chapter_mastery: {} },
-      mastery: { overall_mastery: 20, groups: [], hotspots: [], review_summary: {} },
-      learningBrain: {},
-      learnerFacing: {},
-    };
-    var pageDef = loadReportPage({
-      storageSeed: {
-        "deeptutor.report.unifiedSnapshot.v1": {
-          cachedAt: Date.now(),
-          snapshot: cachedSnapshot,
-        },
-      },
-      api: {
-        unwrapResponse: function (raw) {
-          return raw;
-        },
-        getLearningReport: function () {
-          counters.report += 1;
-          return freshDeferred.promise;
-        },
-        getTodayProgress: function () {
-          counters.today += 1;
-          return Promise.resolve({});
-        },
-        getHomeDashboard: function () {
-          counters.home += 1;
-          return Promise.resolve({});
-        },
-        getAssessmentProfile: function () {
-          counters.assessment += 1;
-          return Promise.resolve({});
-        },
-        getMasteryDashboard: function () {
-          counters.mastery += 1;
-          return Promise.resolve({});
-        },
-        getLearningBrainProjection: function () {
-          counters.brain += 1;
-          return Promise.resolve({});
-        },
-      },
-      auth: {},
-      helpers: {
-        getWindowInfo: function () {
-          return { statusBarHeight: 20, pixelRatio: 2 };
-        },
-        isDark: function () {
-          return false;
-        },
-        syncTabBar: function () {},
-      },
-      runtime: {
-        getWorkspaceBack: function () {
-          return null;
-        },
-        checkAuth: function (cb) {
-          cb();
-        },
-      },
-      route: {
-        report: function () {
-          return "/packageDeeptutor/pages/report/report";
-        },
-        chat: function () {
-          return "/packageDeeptutor/pages/chat/chat";
-        },
-      },
-      flags: {
-        ensureFeatureEnabled: function () {
-          return true;
-        },
-        isFeatureEnabled: function () {
-          return true;
-        },
-        shouldShowWorkspaceShell: function () {
-          return true;
-        },
-      },
-    });
-    var page = createPageInstance(pageDef);
-    var loadPromise = page._loadReportPage();
-    await flushPromises();
+      });
+      await loadPromise;
 
-    assert(counters.report === 1, "SWR should still start one fresh unified report read");
-    assert(
-      page.data.focusHint === "缓存学情先显示" &&
-        page.data.degradedHint.indexOf("上次学情快照") >= 0,
-      "cached unified report should render immediately while fresh read is pending",
-    );
-    assert(
-      counters.today === 0 &&
-        counters.home === 0 &&
-        counters.assessment === 0 &&
-        counters.mastery === 0 &&
-        counters.brain === 0,
-      "cached report SWR must not revive legacy report readers",
-    );
-
-    freshDeferred.resolve({
-      ok: true,
-      schema_version: 2,
-      authority: {
-        read_model: "learning-report-read-model",
-        progress_source: "learner_memory_events.learning_evidence",
-        learning_brain_source: "dry_run_learning_evidence",
-        deprecated_page_sources: [],
-      },
-      freshness: {
-        event_count: 3,
-        unknown_date_count: 0,
-        window_truncated: false,
-      },
-      overview: {
-        today_done: 5,
-        daily_target: 8,
-        streak_days: 2,
-        focus_hint: "新鲜学情覆盖缓存",
-        learner_level: "intermediate",
-      },
-      mastery: { overall_mastery: 55, groups: [], hotspots: [], review_summary: {} },
-      radar_dimensions: [{ name: "屋面与防水工程施工", value: 0.55 }],
-      learning_brain: {},
-      learner_facing: {},
-    });
-    await loadPromise;
-
-    assert(
-      page.data.focusHint === "新鲜学情覆盖缓存" &&
-        page.data.degradedHint === "",
-      "fresh unified report should replace stale cached report after it returns",
-    );
-  });
+      assert(
+        page.data.focusHint === "新鲜学情覆盖缓存" &&
+          page.data.degradedHint === "",
+        "fresh unified report should replace stale cached report after it returns",
+      );
+    },
+  );
 
   if (fail) {
     console.error(errors.join("\n"));

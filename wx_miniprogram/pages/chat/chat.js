@@ -2030,6 +2030,21 @@ Page({
     this._send(e.currentTarget.dataset.text);
   },
 
+  // Grading-to-Brain 闭环最后一跳：下一步训练卡片可执行——tap 直接经既有
+  // 发送管线发起定向练题请求（出题权威仍在服务端 TutorBot，端上零新权威）。
+  onNextBestActionTap: function (e) {
+    if (this.data.isStreaming) return;
+    var idx = this._find(e.currentTarget.dataset.msgid);
+    if (idx === -1) return;
+    var nba = this.data.messages[idx] && this.data.messages[idx].nextBestAction;
+    if (!nba || !nba.title) return;
+    helpers.vibrate("light");
+    // 投影层已净化；此处再兜底截长，组装文案对注入面保持惰性。
+    var target = String(nba.target || nba.title || "").slice(0, 80);
+    if (!target) return;
+    this._send("针对我的薄弱点出一道练习题：" + target + "。出题后等我作答再批改。");
+  },
+
   stopStream: function () {
     helpers.vibrate("light");
     this._stop({ cancelTurn: true });

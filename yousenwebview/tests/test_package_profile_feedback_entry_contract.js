@@ -117,6 +117,15 @@ function loadProfilePage(submitFeedback) {
           },
         };
       }
+      if (request === "../../utils/auth") {
+        // 2026-06-12 契约演进（paywall）：profile.js 新增 auth 依赖以支持游客态门控。
+        // 测试场景均为已登录用户，isLoggedIn 返回 true。
+        return {
+          isLoggedIn: function () {
+            return true;
+          },
+        };
+      }
       throw new Error("unexpected require: " + request);
     },
     wx: {
@@ -151,7 +160,12 @@ function loadProfilePage(submitFeedback) {
   Object.keys(pageDef || {}).forEach(function (key) {
     if (key !== "data") page[key] = pageDef[key];
   });
-  return { page: page, toasts: toasts, modals: modals, navigations: navigations };
+  return {
+    page: page,
+    toasts: toasts,
+    modals: modals,
+    navigations: navigations,
+  };
 }
 
 assert(
@@ -184,11 +198,21 @@ assert(
   loaded.page.openLink({ currentTarget: { dataset: { id: "feedback" } } });
   await flush();
 
-  assert(loaded.modals.length === 0, "package feedback row should not open the old editable modal");
-  assert(calls.length === 0, "package profile row should not submit feedback before the dedicated page form");
-  assert(loaded.navigations.length === 1, "package feedback row should navigate once");
   assert(
-    loaded.navigations[0].url === "/packageDeeptutor/pages/feedback/feedback?source=profile",
+    loaded.modals.length === 0,
+    "package feedback row should not open the old editable modal",
+  );
+  assert(
+    calls.length === 0,
+    "package profile row should not submit feedback before the dedicated page form",
+  );
+  assert(
+    loaded.navigations.length === 1,
+    "package feedback row should navigate once",
+  );
+  assert(
+    loaded.navigations[0].url ===
+      "/packageDeeptutor/pages/feedback/feedback?source=profile",
     "package feedback row should open the dedicated feedback page with a source hint",
   );
   console.log("PASS test_package_profile_feedback_entry_contract.js");
