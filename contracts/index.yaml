@@ -127,6 +127,8 @@ domains:
       - tests/api/test_unified_ws_turn_runtime.py
       - tests/api/test_unified_ws_public_redaction.py
       - tests/api/test_unified_ws_answer_citations.py
+      - tests/api/test_rate_limit.py
+      - tests/api/test_unified_ws_connection_cap.py
       - tests/services/citations/test_quality.py
       - tests/api/test_mobile_router.py
       - tests/services/session/test_context_builder.py
@@ -187,6 +189,8 @@ domains:
       - tests/runtime/test_orchestrator_autoroute.py
       - tests/api/test_unified_ws_turn_runtime.py
       - tests/api/test_unified_ws_public_redaction.py
+      - tests/api/test_unified_ws_connection_cap.py
+      - tests/api/test_rate_limit.py
       - tests/api/test_mobile_router.py
       - tests/services/test_question_lifecycle_skills.py
       - tests/services/test_question_lifecycle_scene_derivation.py
@@ -201,6 +205,7 @@ domains:
       - tests/capabilities/test_deep_question_unresolved_switch.py
       - tests/core/test_deep_question_active_object.py
       - tests/capabilities/test_deep_question_learning_evidence_preview.py
+      - tests/capabilities/test_deep_question_grading_to_brain_writeback.py
       - tests/core/test_deep_question_case_rubric_v1.py
       - tests/core/test_deep_question_submission_grading.py
       - tests/services/test_render_presentation.py
@@ -288,9 +293,9 @@ domains:
       - contracts/learner-state.md
       - docs/contracts/error_code_registry.md
       - docs/contracts/learning-state-inference.md
-      - docs/plan/2026-04-15-learner-state-memory-guided-learning-prd.md
-      - docs/plan/2026-04-15-bot-learner-overlay-prd.md
-      - docs/plan/2026-04-24-learner-state-overlay-completion-evidence.md
+      - docs/plan/学习脑与学员记忆/2026-04-15-learner-state-memory-guided-learning-prd.md
+      - docs/plan/学习脑与学员记忆/2026-04-15-bot-learner-overlay-prd.md
+      - docs/plan/学习脑与学员记忆/2026-04-24-learner-state-overlay-completion-evidence.md
       - deeptutor/contracts/error_codes.py
       - deeptutor/contracts/learner_state.py
       - contracts/index.yaml
