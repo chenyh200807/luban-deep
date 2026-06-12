@@ -2238,6 +2238,47 @@ def _format_interaction_hints(hints: dict[str, Any], language: str = "en") -> st
 _MAX_LIVE_SUBSCRIBER_QUEUE_SIZE = 2048
 
 
+# ---- Global turn-concurrency gate (orderly queue + peak shaving) -------------------
+# Each turn runs an expensive LLM/agent task. Without an admission limit, a surge fires
+# N concurrent LLM calls at once — the provider's rate limit becomes the failure point
+# (a cascade of 429s) instead of a graceful queue. This bounds simultaneously in-flight
+# turns PER WORKER: excess turns wait briefly (orderly queue, FIFO via the semaphore),
+# and if no slot frees within the timeout they are shed with a clean "system busy" event
+# rather than piling onto the LLM. Per-worker (not global-cross-worker): with W workers
+# the effective ceiling is W × _MAX_CONCURRENT_TURNS, which still caps each event loop's
+# memory/CPU and the fan-out to the provider. Tune via env.
+_MAX_CONCURRENT_TURNS = max(1, int(os.getenv("DEEPTUTOR_MAX_CONCURRENT_TURNS", "64")))
+_TURN_QUEUE_TIMEOUT_S = max(0.0, float(os.getenv("DEEPTUTOR_TURN_QUEUE_TIMEOUT_SECONDS", "8")))
+_turn_concurrency_semaphore: "asyncio.Semaphore | None" = None
+
+
+def _get_turn_semaphore() -> "asyncio.Semaphore":
+    # Created lazily inside the running loop (asyncio.Semaphore binds to the active loop).
+    global _turn_concurrency_semaphore
+    if _turn_concurrency_semaphore is None:
+        _turn_concurrency_semaphore = asyncio.Semaphore(_MAX_CONCURRENT_TURNS)
+    return _turn_concurrency_semaphore
+
+
+async def _acquire_turn_slot() -> bool:
+    """Acquire an in-flight-turn slot, waiting up to the queue timeout. True if admitted,
+    False if the worker is saturated and the turn should be shed (system busy)."""
+    sem = _get_turn_semaphore()
+    try:
+        await asyncio.wait_for(sem.acquire(), timeout=_TURN_QUEUE_TIMEOUT_S)
+        return True
+    except asyncio.TimeoutError:
+        return False
+
+
+def _release_turn_slot() -> None:
+    sem = _get_turn_semaphore()
+    try:
+        sem.release()
+    except ValueError:  # released more than acquired — defensive, should not happen
+        pass
+
+
 def _offer_to_subscriber(
     queue: "asyncio.Queue[dict[str, Any] | None]",
     item: dict[str, Any] | None,
@@ -4109,6 +4150,7 @@ class TurnRuntimeManager:
         usage_scope_state: Any | None = None
         post_turn_refresh_kwargs: dict[str, Any] | None = None
         terminal_status = "failed"
+        turn_slot_acquired = False
         llm_selection_token = None
         turn_started_at = time.perf_counter()
         latency_stages = _TurnLatencyStages()
@@ -4282,6 +4324,36 @@ class TurnRuntimeManager:
             terminal_status = "completed"
 
         try:
+            # Admission gate: bound concurrent in-flight turns. Wait briefly for a slot
+            # (orderly queue); if the worker is saturated, shed this turn with a clean
+            # "system busy" event instead of firing another LLM call into an overload.
+            turn_slot_acquired = await _acquire_turn_slot()
+            if not turn_slot_acquired:
+                terminal_status = "rejected"
+                busy_text = _public_ws_failure_message("start the turn right now")
+                await self._persist_and_publish(
+                    execution,
+                    StreamEvent(
+                        type=StreamEventType.ERROR,
+                        source=capability_name,
+                        content=busy_text,
+                        metadata={"turn_terminal": True, "status": "rejected", "reason": "server_busy"},
+                    ),
+                )
+                await self._persist_and_publish(
+                    execution,
+                    StreamEvent(
+                        type=StreamEventType.DONE,
+                        source=capability_name,
+                        metadata={"status": "rejected", "reason": "server_busy"},
+                    ),
+                )
+                logger.warning(
+                    "turn shed (server busy): no concurrency slot within %.1fs (cap=%d) turn_id=%s",
+                    _TURN_QUEUE_TIMEOUT_S, _MAX_CONCURRENT_TURNS, turn_id,
+                )
+                return
+
             from deeptutor.agents.notebook import NotebookAnalysisAgent
             from deeptutor.core.context import Attachment, UnifiedContext
             from deeptutor.runtime.orchestrator import ChatOrchestrator
@@ -5556,6 +5628,8 @@ class TurnRuntimeManager:
                 ),
             )
         finally:
+            if turn_slot_acquired:
+                _release_turn_slot()
             if deadline_task is not None:
                 deadline_task.cancel()
                 with contextlib.suppress(asyncio.CancelledError):

@@ -10,6 +10,9 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
+import time
+import uuid
 from typing import Any
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
@@ -43,22 +46,81 @@ _MAX_WS_INBOUND_FRAME_CHARS = 128 * 1024
 # Per-user concurrent WS connection cap (anti fd/memory-exhaustion DoS). The connect
 # rate limit (60/60s) bounds reconnect *rate*, not the number of simultaneously OPEN
 # connections — one account could hold hundreds open, each carrying subscription tasks.
-# This bounds live connections per user. Admins are exempt (ops dashboards).
+# Shared across workers via Redis (valkey) so the cap is a true per-user limit, not
+# per-process (with W workers a per-process counter would allow W × cap). Admins exempt.
 _MAX_WS_CONNECTIONS_PER_USER = 8
+# Redis ZSET members older than this are purged on the next acquire. This self-heals a
+# crashed worker's never-released entries (no permanent lock-out), and makes the limit
+# fail-OPEN (a very-long-idle connection may stop being counted) rather than fail-closed.
+_WS_CONN_TTL_SECONDS = 3600
 _active_ws_connections: dict[str, int] = {}
 _active_ws_connections_lock = asyncio.Lock()
+_ws_conn_redis: "object | None" = None
+_ws_conn_redis_resolved = False
 
 
-async def _try_acquire_ws_slot(user_id: str) -> bool:
+def _get_ws_conn_redis() -> "object | None":
+    """Reuse the rate-limit Redis (valkey) config for a shared connection counter.
+    Returns None when Redis isn't configured/available — callers fall back to the
+    per-process counter."""
+    global _ws_conn_redis, _ws_conn_redis_resolved
+    if _ws_conn_redis_resolved:
+        return _ws_conn_redis
+    _ws_conn_redis_resolved = True
+    backend = str(os.getenv("DEEPTUTOR_RATE_LIMIT_BACKEND", "sqlite")).strip().lower()
+    url = str(os.getenv("DEEPTUTOR_RATE_LIMIT_REDIS_URL") or os.getenv("REDIS_URL") or "").strip()
+    if backend != "redis" or not url:
+        return None
+    try:
+        import redis
+
+        _ws_conn_redis = redis.Redis.from_url(url, decode_responses=True)
+    except Exception:  # noqa: BLE001 — any failure → fall back to per-process
+        logger.warning("WS conn cap: Redis client init failed; using per-process counter", exc_info=True)
+        _ws_conn_redis = None
+    return _ws_conn_redis
+
+
+async def _try_acquire_ws_slot(user_id: str) -> str | None:
+    """Reserve a per-user connection slot. Returns an opaque token (pass to release) or
+    None if the cap is hit. Shared across workers via a self-healing Redis ZSET; falls
+    back to a per-process counter (fail-open) when Redis is unavailable."""
+    token = uuid.uuid4().hex
+    client = _get_ws_conn_redis()
+    if client is not None:
+        key = f"deeptutor:ws-conn:{user_id}"
+        now = time.time()
+        try:
+            pipe = client.pipeline()
+            pipe.zremrangebyscore(key, 0, now - _WS_CONN_TTL_SECONDS)  # purge crashed-worker leftovers
+            pipe.zadd(key, {token: now})
+            pipe.zcard(key)
+            pipe.expire(key, _WS_CONN_TTL_SECONDS)
+            results = pipe.execute()
+            count = int(results[2])
+            if count > _MAX_WS_CONNECTIONS_PER_USER:
+                client.zrem(key, token)  # over cap — undo our reservation
+                return None
+            return f"redis:{token}"
+        except Exception:  # noqa: BLE001 — Redis hiccup → fall through to per-process
+            logger.warning("WS conn cap: Redis acquire failed; using per-process counter", exc_info=True)
     async with _active_ws_connections_lock:
         current = _active_ws_connections.get(user_id, 0)
         if current >= _MAX_WS_CONNECTIONS_PER_USER:
-            return False
+            return None
         _active_ws_connections[user_id] = current + 1
-        return True
+    return "local"
 
 
-async def _release_ws_slot(user_id: str) -> None:
+async def _release_ws_slot(user_id: str, token: str) -> None:
+    if token.startswith("redis:"):
+        client = _get_ws_conn_redis()
+        if client is not None:
+            try:
+                client.zrem(f"deeptutor:ws-conn:{user_id}", token[len("redis:"):])
+            except Exception:  # noqa: BLE001 — entry self-heals via TTL purge
+                logger.warning("WS conn cap: Redis release failed; entry will TTL-expire", exc_info=True)
+        return
     async with _active_ws_connections_lock:
         remaining = _active_ws_connections.get(user_id, 0) - 1
         if remaining > 0:
@@ -438,10 +500,13 @@ async def unified_websocket(ws: WebSocket) -> None:
     # Per-user concurrent connection cap (admins exempt). Acquire before doing any work;
     # release in the finally below. Over-cap → 1013 and return.
     ws_slot_user = None if current_user.is_admin else str(current_user.user_id)
-    if ws_slot_user is not None and not await _try_acquire_ws_slot(ws_slot_user):
-        logger.warning("Unified WS connection cap hit for user=%s", ws_slot_user)
-        await ws.close(code=1013, reason="Too many concurrent connections")
-        return
+    ws_slot_token: str | None = None
+    if ws_slot_user is not None:
+        ws_slot_token = await _try_acquire_ws_slot(ws_slot_user)
+        if ws_slot_token is None:
+            logger.warning("Unified WS connection cap hit for user=%s", ws_slot_user)
+            await ws.close(code=1013, reason="Too many concurrent connections")
+            return
 
     get_turn_runtime_metrics().record_ws_open()
     closed = False
@@ -764,5 +829,5 @@ async def unified_websocket(ws: WebSocket) -> None:
                 await stop_subscription(key)
         finally:
             get_turn_runtime_metrics().record_ws_close()
-            if ws_slot_user is not None:
-                await _release_ws_slot(ws_slot_user)
+            if ws_slot_user is not None and ws_slot_token is not None:
+                await _release_ws_slot(ws_slot_user, ws_slot_token)
