@@ -516,6 +516,20 @@ async def unified_websocket(ws: WebSocket) -> None:
                     closed = True
                     return
 
+                # Per-user DAILY turn budget. The burst limit above (10/60s) stops spikes
+                # but not sustained burn: 10/min for 24h = ~14k turns/day, each a paid LLM
+                # call — an economic DoS on one account. This caps total turns/user/day so a
+                # single account cannot drain the API budget. Generous headroom for real
+                # study; tune via set_rate_limit_policy("ws_start_turn_daily", max, window).
+                if not await enforce_websocket_rate_limit(
+                    ws,
+                    "ws_start_turn_daily",
+                    default_max_requests=500,
+                    default_window_seconds=86400.0,
+                ):
+                    closed = True
+                    return
+
                 from deeptutor.services.session import get_turn_runtime_manager
 
                 runtime = get_turn_runtime_manager()

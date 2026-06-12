@@ -121,6 +121,51 @@ def test_websocket_rate_limit_blocks_repeated_connections(
     assert closed == (1013, "Too many requests")
 
 
+def test_daily_turn_budget_blocks_sustained_burn(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A 24h-window per-user budget caps sustained burn the 60s burst limit can't stop."""
+    monkeypatch.setenv("DEEPTUTOR_RATE_LIMIT_BACKEND", "sqlite")
+    monkeypatch.setenv("DEEPTUTOR_RATE_LIMIT_DB_PATH", str(tmp_path / "rl.db"))
+    rate_limit_module.clear_rate_limit_state()
+
+    class _FakeWebSocket:
+        def __init__(self) -> None:
+            self.client = SimpleNamespace(host="127.0.0.1")
+            self.headers: dict[str, str] = {}
+            self.url = SimpleNamespace(path="/ws")
+            self.scope = {"route": SimpleNamespace(path="/ws")}
+            self.closed: tuple[int, str] | None = None
+
+        async def close(self, code: int = 1000, reason: str = "") -> None:
+            self.closed = (code, reason)
+
+    async def _exercise() -> list[bool]:
+        ws = _FakeWebSocket()
+        results = []
+        for _ in range(3):
+            results.append(
+                await rate_limit_module.enforce_websocket_rate_limit(
+                    ws, "ws_start_turn_daily",
+                    default_max_requests=2, default_window_seconds=86400.0,
+                )
+            )
+        return results
+
+    results = asyncio.run(_exercise())
+    assert results == [True, True, False]  # 3rd within the day window is blocked
+
+
+def test_daily_turn_budget_is_wired_into_chat_entrypoints() -> None:
+    """Both LLM chat entrypoints must reference the daily-budget scope (wiring guard)."""
+    repo = Path(__file__).resolve().parents[2]
+    ws_src = (repo / "deeptutor/api/routers/unified_ws.py").read_text(encoding="utf-8")
+    mobile_src = (repo / "deeptutor/api/routers/mobile.py").read_text(encoding="utf-8")
+    assert "ws_start_turn_daily" in ws_src
+    assert "mobile_chat_start_turn_daily" in mobile_src
+
+
 def test_fallback_in_memory_bucket_accumulates_across_calls(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

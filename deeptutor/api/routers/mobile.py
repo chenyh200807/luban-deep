@@ -81,7 +81,17 @@ _MOBILE_CHAT_START_TURN_DEPENDENCIES = [
             default_max_requests=10,
             default_window_seconds=60.0,
         )
-    )
+    ),
+    # Per-user DAILY turn budget (economic-DoS guard), mirroring the /api/v1/ws
+    # ws_start_turn_daily cap. Burst limit above stops spikes; this stops sustained
+    # burn (10/min for 24h ≈ 14k paid LLM calls/day on one account).
+    Depends(
+        route_rate_limit(
+            "mobile_chat_start_turn_daily",
+            default_max_requests=500,
+            default_window_seconds=86400.0,
+        )
+    ),
 ]
 _MOBILE_TUTORBOT_DESCRIPTION = "微信小程序主聊天默认建筑实务 TutorBot"
 _MOBILE_PLACEHOLDER_TITLES = {"", "new conversation", "新对话"}
