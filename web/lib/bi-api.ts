@@ -306,6 +306,8 @@ export interface BiOverviewData {
   aiQuality?: BiAiQualityPayload
   unitEconomics?: BiUnitEconomicsPayload
   dataTrust?: BiDataTrustPayload
+  /** UsageLedger 逐日成本序列（成本日趋势图单源；reducer 透传，不再依赖 active-trend 的 cost） */
+  dailyCostSeries?: BiBossDailyCostPoint[]
 }
 
 export interface BiTrendData {
@@ -1631,6 +1633,9 @@ function parseBiOverviewBundle(raw: unknown): BiOverviewBundle {
     aiQuality: normalizeAiQualityPayload(raw),
     unitEconomics: normalizeUnitEconomicsPayload(raw),
     dataTrust: normalizeDataTrustPayload(raw),
+    dailyCostSeries:
+      normalizeBossDailyCost(asRecord(firstRecord(raw, ['boss_workbench', 'boss', 'workbench'])))
+        ?.series ?? [],
   }
 
   return {

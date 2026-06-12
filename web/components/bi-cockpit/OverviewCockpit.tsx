@@ -73,6 +73,13 @@ export function OverviewCockpit({
   const kpis = cards.slice(0, 8)
   const costCard =
     cards.find(c => c.metricId === 'total_cost_usd') ?? cards.find(c => c.label.includes('成本'))
+  // 成本日趋势单源 = UsageLedger 逐日（daily_cost.series）；active-trend 的 cost 字段
+  // 在稀疏活动天下恒为 0，不能作为成本图数据源（2026-06-12 修复空图 bug）。
+  const costSeries = (overview?.dailyCostSeries ?? []).map(p => ({
+    label: p.label,
+    cost: Number(p.costUsd) || 0,
+  }))
+  const hasCostSeries = costSeries.some(p => p.cost > 0)
   const hasTrend = trend.length > 0
   const entrypoints: Datum[] = (overview?.entrypoints ?? []).map(item => ({
     name: item.label,
@@ -128,8 +135,8 @@ export function OverviewCockpit({
           icon={<CircleDollarSign className="h-4 w-4" />}
           action={costCard?.metricId ? <TrustPill metricId={costCard.metricId} /> : undefined}
         >
-          {hasTrend ? (
-            <EChart option={buildCostOption(trend)} height={272} />
+          {hasCostSeries ? (
+            <EChart option={buildCostOption(costSeries)} height={272} />
           ) : (
             <Empty height={272} />
           )}
@@ -229,7 +236,7 @@ export function OverviewCockpit({
 }
 
 /* ------------------------------------------------ 成本日趋势（单源诚实版） */
-function buildCostOption(trend: ReadonlyArray<BiTrendPoint>) {
+function buildCostOption(trend: ReadonlyArray<{ label: string; cost: number }>) {
   return {
     tooltip: {
       ...COCKPIT_TOOLTIP,
