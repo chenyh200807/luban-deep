@@ -23,10 +23,15 @@ function buildPresentationEvent(resultMetadata) {
 function extractResultCitations(resultMetadata) {
   if (!resultMetadata || typeof resultMetadata !== "object") return [];
   var bundle = resultMetadata.citation_bundle;
-  if (!bundle && resultMetadata.metadata && typeof resultMetadata.metadata === "object") {
+  if (
+    !bundle &&
+    resultMetadata.metadata &&
+    typeof resultMetadata.metadata === "object"
+  ) {
     bundle = resultMetadata.metadata.citation_bundle;
   }
-  if (bundle && Array.isArray(bundle.refs)) return bundle.refs.map(toDisplayCitation);
+  if (bundle && Array.isArray(bundle.refs))
+    return bundle.refs.map(toDisplayCitation);
   return [];
 }
 
@@ -44,7 +49,9 @@ function toDisplayCitation(ref) {
 
 function copyRuntimeDiagnosticFields(finalEvent, resultMetadata) {
   var nested =
-    resultMetadata && resultMetadata.metadata && typeof resultMetadata.metadata === "object"
+    resultMetadata &&
+    resultMetadata.metadata &&
+    typeof resultMetadata.metadata === "object"
       ? resultMetadata.metadata
       : {};
   var keys = [
@@ -65,10 +72,46 @@ function copyRuntimeDiagnosticFields(finalEvent, resultMetadata) {
   }
 }
 
+// Grading-to-Brain：next_best_action 的端上投影。只投影展示字段；
+// 内部权威数据（intent / evidence_refs / training_intent_id）不出端，
+// 处方权威保持在服务端 training_intent。缺 title 视为不可渲染 → null。
+function buildNextBestActionView(resultMetadata) {
+  if (!resultMetadata || typeof resultMetadata !== "object") return null;
+  var raw = resultMetadata.next_best_action;
+  if (
+    (!raw || typeof raw !== "object") &&
+    resultMetadata.metadata &&
+    typeof resultMetadata.metadata === "object"
+  ) {
+    raw = resultMetadata.metadata.next_best_action;
+  }
+  if (!raw || typeof raw !== "object") return null;
+  var title = String(raw.title || "").trim();
+  if (!title) return null;
+  var materials = [];
+  var rawMaterials = Array.isArray(raw.materials) ? raw.materials : [];
+  for (var i = 0; i < rawMaterials.length; i++) {
+    var material = String(rawMaterials[i] || "").trim();
+    if (material) materials.push(material);
+  }
+  return {
+    title: title,
+    target: String(raw.target || "").trim(),
+    whyThisNow: String(raw.why_this_now || "").trim(),
+    materials: materials,
+    successMeasure: String(raw.success_measure || "").trim(),
+    actionType: String(raw.action_type || "").trim(),
+  };
+}
+
 function buildFinalResponseEvent(resultMetadata) {
   if (!resultMetadata || typeof resultMetadata !== "object") return null;
   var response = resultMetadata.response;
-  if (typeof response !== "string" && resultMetadata.metadata && typeof resultMetadata.metadata === "object") {
+  if (
+    typeof response !== "string" &&
+    resultMetadata.metadata &&
+    typeof resultMetadata.metadata === "object"
+  ) {
     response = resultMetadata.metadata.response;
   }
   if (typeof response !== "string" || !response.trim()) return null;
@@ -80,6 +123,8 @@ function buildFinalResponseEvent(resultMetadata) {
   copyRuntimeDiagnosticFields(finalEvent, resultMetadata);
   var citations = extractResultCitations(resultMetadata);
   if (citations.length) finalEvent.citations = citations;
+  var nextBestAction = buildNextBestActionView(resultMetadata);
+  if (nextBestAction) finalEvent.next_best_action = nextBestAction;
   return finalEvent;
 }
 
@@ -105,7 +150,9 @@ function normalizeErrorMessage(err) {
     return "请求失败，请稍后重试";
   }
   if (
-    /Internal Server Error|provider error|raw provider|DataInspectionFailed|Authentication Fails|api key|read_file|write_file|list_dir|HEARTBEAT|traceback|stack trace|workspace/i.test(raw)
+    /Internal Server Error|provider error|raw provider|DataInspectionFailed|Authentication Fails|api key|read_file|write_file|list_dir|HEARTBEAT|traceback|stack trace|workspace/i.test(
+      raw,
+    )
   ) {
     return "服务暂时不可用，请稍后重试";
   }
@@ -114,10 +161,14 @@ function normalizeErrorMessage(err) {
 
 function resolveEventVisibility(event) {
   if (!event || typeof event !== "object") return "public";
-  var direct = String(event.visibility || "").trim().toLowerCase();
+  var direct = String(event.visibility || "")
+    .trim()
+    .toLowerCase();
   if (direct === "internal") return "internal";
   var metadata = event.metadata || {};
-  var nested = String(metadata.visibility || "").trim().toLowerCase();
+  var nested = String(metadata.visibility || "")
+    .trim()
+    .toLowerCase();
   return nested === "internal" ? "internal" : "public";
 }
 
@@ -150,7 +201,16 @@ function buildTurnSocketPayload(turnId, lastSeq) {
 function buildStatusEvent(event) {
   if (!event || typeof event !== "object") return null;
   var eventType = String(event.type || "").trim();
-  if (["thinking", "progress", "observation", "stage_start", "tool_call", "tool_result"].indexOf(eventType) === -1) {
+  if (
+    [
+      "thinking",
+      "progress",
+      "observation",
+      "stage_start",
+      "tool_call",
+      "tool_result",
+    ].indexOf(eventType) === -1
+  ) {
     return null;
   }
 
@@ -159,8 +219,9 @@ function buildStatusEvent(event) {
   var stage = String(event.stage || "").trim();
   var content = String(event.content || "");
   var toolName =
-    String(event.tool_name || eventMetadata.tool_name || eventMetadata.tool || "").trim() ||
-    (eventType === "tool_call" ? content : "");
+    String(
+      event.tool_name || eventMetadata.tool_name || eventMetadata.tool || "",
+    ).trim() || (eventType === "tool_call" ? content : "");
   var metadata = Object.assign({}, eventMetadata, {
     visibility: visibility,
   });
@@ -169,7 +230,10 @@ function buildStatusEvent(event) {
     return null;
   }
 
-  if (visibility === "internal" && (eventType === "thinking" || eventType === "observation")) {
+  if (
+    visibility === "internal" &&
+    (eventType === "thinking" || eventType === "observation")
+  ) {
     metadata.sanitized_internal = true;
     content = "";
   }

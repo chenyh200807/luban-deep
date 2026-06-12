@@ -1338,6 +1338,10 @@ Page({
         updates["messages[" + idx + "].citations"] =
           citationFormat.formatCitations(d.citations);
       }
+      if (d.next_best_action && d.next_best_action.title) {
+        // Grading-to-Brain：ws-stream-pure 已投影为展示字段（无内部权威数据）
+        updates["messages[" + idx + "].nextBestAction"] = d.next_best_action;
+      }
       if (d.engine) {
         updates["messages[" + idx + "].engine"] = d.engine;
       }

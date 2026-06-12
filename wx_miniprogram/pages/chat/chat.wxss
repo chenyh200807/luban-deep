@@ -2123,3 +2123,47 @@
 .pd-action-label {
   font-size: 12px;
 }
+
+.nba-card {
+  margin: 8px 0;
+  padding: 10px 12px;
+  background: rgba(16, 185, 129, 0.08);
+  border-left: 3px solid rgba(16, 185, 129, 0.72);
+  border-radius: 6px;
+}
+.nba-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  margin-bottom: 6px;
+  border-radius: 999px;
+  font-size: 11px;
+  background: rgba(16, 185, 129, 0.14);
+  color: #047857;
+}
+.nba-title {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+.nba-why {
+  display: block;
+  font-size: 12px;
+  color: #475569;
+  margin-bottom: 6px;
+}
+.nba-materials {
+  margin-bottom: 6px;
+}
+.nba-material {
+  display: block;
+  font-size: 12px;
+  color: #334155;
+  line-height: 1.6;
+}
+.nba-measure {
+  display: block;
+  font-size: 12px;
+  color: #047857;
+}

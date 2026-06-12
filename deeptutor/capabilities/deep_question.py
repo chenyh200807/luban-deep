@@ -1864,6 +1864,59 @@ def _write_grading_error_events_for_context(
         return 0
 
 
+def _record_v1_grading_to_brain_for_question(
+    *,
+    context: UnifiedContext,
+    v1_event: dict[str, Any] | None,
+    graded_context: dict[str, Any],
+    result_payload: dict[str, Any],
+    turn_id: str,
+) -> None:
+    """Grading-to-Brain（练题路径）：把 V1 case GradingEvent 落成一条 append-only
+    learning_evidence 记忆事件。与 TutorBot loop 复用同一个写入 seam
+    （write_case_grading_event_learning_evidence），不产生第二写入权威。
+    Fail-closed：写入失败绝不影响可见批改结果。"""
+    if not isinstance(v1_event, dict) or v1_event.get("event_type") != "case_grading_completed":
+        return
+    user_id = _learner_user_id_from_context(context)
+    if not user_id:
+        return
+    try:
+        from deeptutor.services.construction_grading.writeback import (
+            write_case_grading_event_learning_evidence,
+        )
+        from deeptutor.services.learner_state import get_learner_state_service
+
+        writeback = write_case_grading_event_learning_evidence(
+            learner_state_service=get_learner_state_service(),
+            user_id=user_id,
+            grading_event=v1_event,
+            source_id=f"{turn_id}:{graded_context.get('question_id') or 'grading'}",
+            source_bot_id=_source_bot_id_from_context(context) or None,
+            user_answer=str(graded_context.get("user_answer") or ""),
+            question_stem=str(
+                graded_context.get("question_stem")
+                or graded_context.get("stem")
+                or graded_context.get("question")
+                or ""
+            ),
+            node_code=str(graded_context.get("node_code") or ""),
+            session_id=str(getattr(context, "session_id", "") or ""),
+        )
+    except Exception:  # noqa: BLE001 — memory write must not break visible grading
+        logger.warning("LUBAN_V1 deep_question Grading-to-Brain writeback failed", exc_info=True)
+        return
+    if not isinstance(writeback, dict) or not int(writeback.get("writeback_count") or 0):
+        return
+    result_payload["grading_to_brain_loop"] = {
+        "writeback_count": int(writeback.get("writeback_count") or 0),
+        "event_id": str(writeback.get("event_id") or ""),
+        "memory_kind": "learning_evidence",
+        "authority": "learner_memory_events.learning_evidence",
+    }
+    result_payload["learning_evidence_event_id"] = str(writeback.get("event_id") or "")
+
+
 def _runtime_shadow_flag_enabled(context: UnifiedContext) -> bool:
     """QA/test runtime-shadow flag. Default OFF -> legacy payload byte-identical."""
     metadata = context.metadata if isinstance(context.metadata, dict) else {}
@@ -4156,6 +4209,15 @@ class DeepQuestionCapability(BaseCapability):
                 )
                 if _v1_payload is not None:
                     result_payload["luban_case_rubric_v1"] = _v1_payload
+                # Grading-to-Brain：练题路径与 TutorBot loop 共用同一写入 seam，
+                # 把本次 V1 case 批改沉淀为 learning_evidence（append-only，fail-closed）。
+                _record_v1_grading_to_brain_for_question(
+                    context=context,
+                    v1_event=v1_event,
+                    graded_context=graded_context,
+                    result_payload=result_payload,
+                    turn_id=turn_id,
+                )
                 # QA/test-only Luban v1 beta_shadow (default off; flag + env kill switch;
                 # append-only; legacy construction_grading_result untouched above).
                 _maybe_attach_v1_beta_shadow(

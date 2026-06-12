@@ -417,7 +417,10 @@ assertEqual(
   "[buildFinalResponseEvent] frontend citations must not expose source_id",
 );
 assertEqual(
-  Object.prototype.hasOwnProperty.call(citedFinalEv.citations[0], "source_type"),
+  Object.prototype.hasOwnProperty.call(
+    citedFinalEv.citations[0],
+    "source_type",
+  ),
   false,
   "[buildFinalResponseEvent] frontend citations must not expose source_type",
 );
@@ -465,6 +468,108 @@ assertEqual(
   gradingMetaFinalEv && gradingMetaFinalEv.v1_case_graded,
   false,
   "[buildFinalResponseEvent] exposes v1_case_graded false without dropping it",
+);
+
+// ─────────────────────────────────────────────────────────────
+// Group 7.5: next_best_action 投影 — Grading-to-Brain 个性化下一步
+// 契约：只投影展示字段（title/target/why/materials/successMeasure/actionType），
+// 内部权威数据（intent / evidence_refs / training_intent_id）不出端。
+// ─────────────────────────────────────────────────────────────
+
+var nbaFinalEv = pure.buildFinalResponseEvent({
+  response: "本轮批改诊断",
+  next_best_action: {
+    action_id: "nba_1_ti_abc",
+    training_intent_id: "ti_abc",
+    source: "training_intent",
+    prescription_authority: "training_intent",
+    status: "active",
+    title: "先练钢筋调直工艺：近义替代原文术语",
+    action_type: "retest_or_targeted_practice",
+    target: "钢筋调直工艺 · 近义替代",
+    why_this_now: "该训练意图有 1 条学习证据支持。",
+    materials: ["教材：钢筋调直工艺相关章节", "相似真题", "  "],
+    success_measure: "复测命中目标采分点，且不再重复该错误",
+    evidence_refs: ["evt-1"],
+    intent: { user_id: "stu_1", concept_id: "1A415000" },
+  },
+});
+assertEqual(
+  nbaFinalEv &&
+    nbaFinalEv.next_best_action &&
+    nbaFinalEv.next_best_action.title,
+  "先练钢筋调直工艺：近义替代原文术语",
+  "[next_best_action] title projected",
+);
+assertEqual(
+  nbaFinalEv.next_best_action.whyThisNow,
+  "该训练意图有 1 条学习证据支持。",
+  "[next_best_action] why_this_now projected as whyThisNow",
+);
+assertEqual(
+  nbaFinalEv.next_best_action.materials,
+  ["教材：钢筋调直工艺相关章节", "相似真题"],
+  "[next_best_action] materials filtered (blank dropped)",
+);
+assertEqual(
+  nbaFinalEv.next_best_action.successMeasure,
+  "复测命中目标采分点，且不再重复该错误",
+  "[next_best_action] success_measure projected",
+);
+assertEqual(
+  nbaFinalEv.next_best_action.actionType,
+  "retest_or_targeted_practice",
+  "[next_best_action] action_type projected",
+);
+assertEqual(
+  Object.prototype.hasOwnProperty.call(nbaFinalEv.next_best_action, "intent"),
+  false,
+  "[next_best_action] internal intent must NOT be exposed to client",
+);
+assertEqual(
+  Object.prototype.hasOwnProperty.call(
+    nbaFinalEv.next_best_action,
+    "evidence_refs",
+  ),
+  false,
+  "[next_best_action] internal evidence_refs must NOT be exposed to client",
+);
+assertEqual(
+  Object.prototype.hasOwnProperty.call(
+    nbaFinalEv.next_best_action,
+    "training_intent_id",
+  ),
+  false,
+  "[next_best_action] internal training_intent_id must NOT be exposed to client",
+);
+
+var nbaNestedFinalEv = pure.buildFinalResponseEvent({
+  response: "嵌套 metadata 也要能投影",
+  metadata: { next_best_action: { title: "先补一题可诊断练习" } },
+});
+assertEqual(
+  nbaNestedFinalEv &&
+    nbaNestedFinalEv.next_best_action &&
+    nbaNestedFinalEv.next_best_action.title,
+  "先补一题可诊断练习",
+  "[next_best_action] falls through to metadata.next_best_action",
+);
+
+var nbaMissingTitleEv = pure.buildFinalResponseEvent({
+  response: "无 title 不渲染",
+  next_best_action: { why_this_now: "缺 title" },
+});
+assertEqual(
+  Object.prototype.hasOwnProperty.call(nbaMissingTitleEv, "next_best_action"),
+  false,
+  "[next_best_action] missing title → no next_best_action on final event",
+);
+
+var nbaAbsentEv = pure.buildFinalResponseEvent({ response: "普通回答" });
+assertEqual(
+  Object.prototype.hasOwnProperty.call(nbaAbsentEv, "next_best_action"),
+  false,
+  "[next_best_action] absent stays absent",
 );
 
 // ─────────────────────────────────────────────────────────────

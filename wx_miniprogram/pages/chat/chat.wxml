@@ -292,6 +292,17 @@ module.exports = {
             </view>
           </view>
 
+          <!-- Grading-to-Brain：next_best_action 个性化下一步训练（证据=learner_memory_events，处方权威=training_intent，端上只读展示） -->
+          <view class="nba-card" wx:if="{{item.nextBestAction && item.nextBestAction.title}}">
+            <text class="nba-badge">下一步训练</text>
+            <text class="nba-title" user-select>{{item.nextBestAction.title}}</text>
+            <text class="nba-why" user-select wx:if="{{item.nextBestAction.whyThisNow}}">{{item.nextBestAction.whyThisNow}}</text>
+            <view class="nba-materials" wx:if="{{item.nextBestAction.materials && item.nextBestAction.materials.length}}">
+              <text class="nba-material" wx:for="{{item.nextBestAction.materials}}" wx:for-item="material" wx:for-index="materialIndex" wx:key="materialIndex" user-select>· {{material}}</text>
+            </view>
+            <text class="nba-measure" user-select wx:if="{{item.nextBestAction.successMeasure}}">达成标准：{{item.nextBestAction.successMeasure}}</text>
+          </view>
+
           <!-- 结构化内容的正文说明；MCQ 原文只保留在“查看原文”里 -->
           <text class="ai-text" user-select wx:if="{{item.hasStructuredContent && item.renderableContent && !(item.mcqCards && item.mcqCards.length)}}">{{item.renderableContent}}</text>
 
