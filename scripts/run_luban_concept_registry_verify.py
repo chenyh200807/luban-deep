@@ -27,7 +27,8 @@ os.environ.setdefault("LANGFUSE_ENABLED", "false")
 
 _REPO = Path(__file__).resolve().parents[1]
 REG = _REPO / "deeptutor" / "services" / "construction_grading" / "runtime_supply" / "v_concept_registry" / "concept_registry.json"
-_CODE_RE = re.compile(r"^1A\d{6}(-[0-9a-z]+)*$")
+# keep in sync with concept_registry.py code_ok — book-derived leaves use uppercase suffixes (-B103)
+_CODE_RE = re.compile(r"^1A\d{6}(-[0-9A-Za-z]+)*$")
 
 
 def run() -> tuple[bool, list[tuple[str, bool, str]]]:
