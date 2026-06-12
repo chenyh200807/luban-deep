@@ -1197,8 +1197,23 @@ class AgentLoop:
                     build_personalization_context_pack,
                 )
 
+                # gbrain daemon 化：优先读 dream cycle 夜间巩固的 compiled 投影缓存
+                # （全量历史、已去重老化），turn 内不再重算；cache miss 才回退
+                # 内联 dry-run 合成（最近 50 条窗口，维持旧行为）。
+                # 取舍（有意为之）：命中缓存时 top_claims 是上次巩固的长期画像，
+                # 本 session 新出现的错因要到下次 dream cycle 才进入 top_claims；
+                # 本 turn 的即时信号由 active_training_intent + recent_events 承载，
+                # 新用户（无缓存）仍走内联回退、包含本 turn 事件。
                 learning_brain = None
-                if hasattr(learner_state_service, "synthesize_learning_truth"):
+                read_cached = getattr(learner_state_service, "read_compiled_learning_truth", None)
+                if callable(read_cached):
+                    try:
+                        cached = read_cached(student_id)
+                    except Exception:  # noqa: BLE001 — 缓存读失败必须落到回退路径
+                        cached = None
+                    if isinstance(cached, dict) and cached:
+                        learning_brain = cached
+                if learning_brain is None and hasattr(learner_state_service, "synthesize_learning_truth"):
                     synthesized = learner_state_service.synthesize_learning_truth(
                         student_id,
                         dry_run=True,

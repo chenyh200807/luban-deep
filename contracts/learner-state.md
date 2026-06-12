@@ -39,6 +39,14 @@
 - 自动 synthesis 只允许在显式开关 `LUBAN_LEARNING_EVIDENCE_AUTO_SYNTHESIS_ENABLED=1` 下运行；生产环境还必须受既有 `qa_`/`operator_` canonical cohort gate 约束。broad learner canonical truth 仍由 `canonical_truth_promotion_decision()` 决定，不能因为自动 synthesis 而默认打开。
 - `learning_evidence.payload_json.canonical_topic` 是 taxonomy resolver 对证据的只读投影。Learning report、Learning Brain 和 synthesis 消费它时，不得在 UI/router 层重新猜 topic；若该字段缺失，旧事件继续按兼容路径读取。
 
+### Dream Cycle 夜间巩固与投影缓存（2026-06-12）
+
+- `LearningBrainDreamCycle`（learner_state/dream_cycle.py）是唯一的后台巩固调度器：周期性对有学习证据的用户执行 `synthesize_learning_truth(dry_run=False, event_limit=None)`（全量历史）。它不计算任何新事实，不构成第二合成权威；合成只在 `learning_synthesis` 内，持久化与 canonical 促升门控只在 `canonical_truth_policy` / `write_compiled_learning_truth` 内。
+- 默认关：`LUBAN_LEARNING_BRAIN_DREAM_CYCLE_ENABLED`（fail-closed）；间隔由 `LUBAN_LEARNING_BRAIN_DREAM_CYCLE_INTERVAL_HOURS` 控制（默认 24h）。生产环境候选用户限定既有 `qa_`/`operator_` canonical cohort——dream cycle 不得放宽任何授权门。
+- `read_compiled_learning_truth` 的产物是**可重建的只读投影缓存**（read model），不是第二记忆权威；任何消费方（TutorBot turn、trajectory 查询）必须实现 cache-miss 回退到 dry-run synthesis，不得因缓存缺失而拒绝服务或自造画像。
+- `learning_trajectory.find_learning_trajectory` 是 typed_graph / weak_points / improvement_signals 之上的纯只读多跳组合视图（错因→训练→改善→复测建议）；其 `retest_recommendation` 是建议而非促升，canonical 促升仍只认 teacher-final / real_retest。
+- 多 worker 单执行者：dream cycle 的 watermark（`.dream_cycle_last_run`）与互斥锁（`.dream_cycle.lock`）、outbox flush 的互斥锁（`.outbox_flush.lock`）都落在 learner state root 下，经 `worker_file_lock.try_exclusive_file_lock`（fcntl 非阻塞排他）表达"同一时刻只有一个 worker 实际执行"；锁被占=本 tick 跳过，不排队、不重试、不引入第二调度权威；watermark 跨重启生效，重启不再触发重复巩固；删除 `.dream_cycle_last_run` 是运维强制立即重跑的唯一入口。
+
 ## 2026-06-09 Workspace 撤回与正名决策
 
 撤回旧解释：不得再把“每个会员一个独立 workspace”理解成“每个会员或每个 TutorBot 都有一套独立长期学习记忆系统”。该解释会制造第二套 learner truth，已被本 contract 退役。
