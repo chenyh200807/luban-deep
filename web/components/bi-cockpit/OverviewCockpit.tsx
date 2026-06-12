@@ -19,7 +19,9 @@ import type { ReactNode } from 'react'
 import type { BiAlertItem, BiMetricCard, BiOverviewData, BiTrendPoint } from '@/lib/bi-api'
 import { CockpitDonut, CockpitGauge, type Datum } from './Charts'
 import { EChart } from './EChart'
+import { GlobalControlBar, type CockpitWindowDays } from './GlobalControlBar'
 import { CockpitBg, CockpitKpi, CockpitPanel, SectionLabel } from './Layout'
+import { TrustBadge } from './TrustBadge'
 import {
   COCKPIT,
   COCKPIT_FONT,
@@ -51,6 +53,9 @@ export function OverviewCockpit({
   alerts,
   overview,
   windowLabel,
+  days,
+  onDaysChange,
+  daysBusy,
   onMetric,
   onAlert,
 }: {
@@ -59,6 +64,10 @@ export function OverviewCockpit({
   alerts: ReadonlyArray<BiAlertItem>
   overview?: BiOverviewData | null
   windowLabel?: string
+  /** 时间范围受控状态（由数据获取 owner 持有），两者都传时渲染全局控制条 */
+  days?: CockpitWindowDays
+  onDaysChange?: (days: CockpitWindowDays) => void
+  daysBusy?: boolean
   onMetric?: (card: BiMetricCard) => void
   onAlert?: (alert: BiAlertItem) => void
 }) {
@@ -146,6 +155,10 @@ export function OverviewCockpit({
         ) : null}
       </div>
 
+      {days != null && onDaysChange ? (
+        <GlobalControlBar days={days} onDaysChange={onDaysChange} busy={daysBusy} />
+      ) : null}
+
       {/* KPI 带（来自 overview.cards，点击打开指标详情抽屉） */}
       <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
         {kpis.map((card, i) => (
@@ -164,6 +177,17 @@ export function OverviewCockpit({
                 card.delta ? { value: card.delta, up: deltaUp(card.delta, card.tone) } : undefined
               }
             />
+            {/* 可信度徽标：按 payload metric_id 查注册表；总成本卡附 measured/estimated 微条 */}
+            {card.metricId ? (
+              <span className="mt-1.5 block px-1">
+                <TrustBadge
+                  metricId={card.metricId}
+                  measuredValue={card.measuredValue}
+                  estimatedValue={card.estimatedValue}
+                  provenance={card.provenance}
+                />
+              </span>
+            ) : null}
           </button>
         ))}
         {kpis.length === 0 ? <Empty /> : null}

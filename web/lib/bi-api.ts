@@ -1,6 +1,6 @@
 import { apiUrl, withAdminAuthorization } from '@/lib/api'
 
-import { BI_WORKBENCH_TITLE } from "./brand"
+import { BI_WORKBENCH_TITLE } from './brand'
 import {
   normalizeBiCostReconciliation,
   type BiCostReconciliationProvider,
@@ -20,6 +20,13 @@ export interface BiMetricCard {
   hint?: string
   delta?: string
   tone?: 'neutral' | 'good' | 'warning' | 'critical'
+  /** 后端 BI_METRICS 注册表 id（commit ac999e8e 起每张 overview 卡携带） */
+  metricId?: string
+  /** measured/estimated 成本分量（目前仅总成本卡携带） */
+  measuredValue?: number
+  estimatedValue?: number
+  /** 数据来源声明，如 "usage_ledger" */
+  provenance?: string
 }
 
 export interface BiTrendPoint {
@@ -603,6 +610,8 @@ export interface BiBossKpiItem {
   delta?: string
   tone?: BiMetricCard['tone']
   source?: 'overview' | 'members' | 'cost'
+  /** 注册表 metric_id（boss_workbench「今日成本」等卡携带，供可信度徽标查询） */
+  metricId?: string
 }
 
 export interface BiBossActionItem {
@@ -750,6 +759,8 @@ function normalizeMetricCard(item: unknown, fallbackLabel = ''): BiMetricCard {
   const record = asRecord(item)
   const rawValue =
     record.value ?? record.count ?? record.total ?? record.amount ?? record.rate ?? record.score
+  const metricId = toString(record.metric_id ?? record.metricId, '')
+  const provenance = toString(record.provenance, '')
   return {
     label: toString(record.label ?? record.name ?? record.title, fallbackLabel),
     value:
@@ -765,6 +776,10 @@ function normalizeMetricCard(item: unknown, fallbackLabel = ''): BiMetricCard {
       record.tone === 'good' || record.tone === 'warning' || record.tone === 'critical'
         ? (record.tone as BiMetricCard['tone'])
         : 'neutral',
+    metricId: metricId || undefined,
+    measuredValue: optionalNumber(record.measured_value ?? record.measuredValue),
+    estimatedValue: optionalNumber(record.estimated_value ?? record.estimatedValue),
+    provenance: provenance || undefined,
   }
 }
 
@@ -884,7 +899,9 @@ function normalizeLubanFeedbackResponse(item: unknown): BiLubanFeedbackResponse 
     ease_of_use: toString(record.ease_of_use ?? record.easeOfUse, ''),
     accuracy: toString(record.accuracy, ''),
     speed: toString(record.speed, ''),
-    problems: toArray(record.problems).map(value => toString(value)).filter(Boolean),
+    problems: toArray(record.problems)
+      .map(value => toString(value))
+      .filter(Boolean),
     problems_other: toString(record.problems_other ?? record.problemsOther, ''),
     top_suggestion: toString(record.top_suggestion ?? record.topSuggestion, ''),
     unsolved_pain: toString(record.unsolved_pain ?? record.unsolvedPain, ''),

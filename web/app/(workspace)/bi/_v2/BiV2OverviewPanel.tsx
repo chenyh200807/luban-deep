@@ -31,6 +31,7 @@ import {
 } from '@/lib/bi-api'
 import { findMetricByLabel, type BiV2MetricDef } from '@/lib/bi-v2-metric-registry.generated'
 import { OverviewCockpit } from '@/components/bi-cockpit/OverviewCockpit'
+import type { CockpitWindowDays } from '@/components/bi-cockpit/GlobalControlBar'
 import { reduceOverviewBundle } from './overview-bundle-reducer'
 
 type DataSource = 'mock' | 'live' | 'loading' | 'error'
@@ -245,6 +246,8 @@ function buildOverviewModules({
 export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
   const [bundle, setBundle] = useState<LiveBundle>(MOCK_BUNDLE)
   const [source, setSource] = useState<DataSource>(flagEnabled ? 'loading' : 'mock')
+  // 全局控制条的时间范围：单一窗口状态，三条读模型 GET 共用
+  const [days, setDays] = useState<CockpitWindowDays>(30)
   const [selectedMetric, setSelectedMetric] = useState<MetricSelection | null>(null)
   const [selectedAlert, setSelectedAlert] = useState<AlertSelection | null>(null)
   const inflightRef = useRef<AbortController | null>(null)
@@ -265,9 +268,9 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
     // error isolation. Reducer logic lives in `overview-bundle-reducer.ts` for
     // unit-testability without an `.tsx` loader.
     const [overviewResult, trendResult, anomaliesResult] = await Promise.allSettled([
-      getBiOverview({ days: 30 }),
-      getBiActiveTrend({ days: 30 }),
-      getBiAnomalies({ days: 30 }),
+      getBiOverview({ days }),
+      getBiActiveTrend({ days }),
+      getBiAnomalies({ days }),
     ])
     if (ctrl.signal.aborted) return
     const { bundle: nextBundle, source: nextSource } = reduceOverviewBundle({
@@ -279,7 +282,7 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
     })
     setBundle(nextBundle)
     setSource(nextSource)
-  }, [flagEnabled])
+  }, [flagEnabled, days])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- standard fetch-on-mount pattern; loadLive guards via AbortController
@@ -333,13 +336,16 @@ export function BiV2OverviewPanel({ flagEnabled }: { flagEnabled: boolean }) {
         overview={bundle.overview ?? null}
         windowLabel={
           source === 'live'
-            ? 'active-trend API'
+            ? `近 ${days} 天 · active-trend API`
             : source === 'loading'
               ? '加载中…'
               : source === 'error'
                 ? 'API 不可用'
                 : 'mock'
         }
+        days={days}
+        onDaysChange={setDays}
+        daysBusy={source === 'loading'}
         onMetric={card => {
           const meta = findMetricByLabel(card.label)
           setSelectedMetric({ card, meta, trend: inferTrend(card.delta, card.tone) })

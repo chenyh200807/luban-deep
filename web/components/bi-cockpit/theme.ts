@@ -45,6 +45,17 @@ export const SEMANTIC = {
   neutral: '#A99B8C',
 } as const
 
+/**
+ * 可信度色阶（KPI 徽标用）：A=暖橙（陶土主色）、B=琥珀、C=灰（降级熄火）、
+ * D=警示珊瑚（注册表外指标，元数据不可信）。
+ */
+export const TRUST_LEVEL_COLORS: Record<'A' | 'B' | 'C' | 'D', string> = {
+  A: SERIES_COLORS[0],
+  B: SERIES_COLORS[1],
+  C: COCKPIT.textMuted,
+  D: SEMANTIC.danger,
+} as const
+
 /** 构造竖直渐变（图表填充用） */
 export function vGradient(from: string, to: string) {
   return {
@@ -76,7 +87,8 @@ export const COCKPIT_TOOLTIP: NonNullable<EChartsOption['tooltip']> = {
   borderWidth: 1,
   padding: [8, 12],
   textStyle: { color: COCKPIT.text, fontSize: 12 },
-  extraCssText: 'backdrop-filter: blur(8px); border-radius: 10px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);',
+  extraCssText:
+    'backdrop-filter: blur(8px); border-radius: 10px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);',
 }
 
 /** 字体栈：与小程序/web 一致，数字用 tabular */
