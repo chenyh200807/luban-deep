@@ -25,7 +25,14 @@ DEFAULT_OUTPUT = (
     REPO
     / "artifacts/luban_grading_artifacts/rich_leaf_full2026_release_governance_review_20260612/release_governance_review_packet.json"
 )
+DEFAULT_OPERATOR_SIGNATURE_RECORD = None
 SCHEMA = "luban_rich_leaf_release_governance_review_packet.v1"
+OPERATOR_SIGNATURE_RECORD_SCHEMA = "luban_rich_leaf_operator_signature_record.v1"
+
+try:  # pytest imports this module as scripts.*; CLI runs it with scripts/ on sys.path
+    from scripts.run_luban_rich_leaf_operator_signature_capture import content_hash as _content_hash
+except ImportError:  # pragma: no cover - CLI execution path
+    from run_luban_rich_leaf_operator_signature_capture import content_hash as _content_hash
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -62,11 +69,48 @@ def _safety_violations(name: str, payload: dict[str, Any]) -> list[str]:
     return violations
 
 
+def _operator_signature_invalid_reasons(
+    record: dict[str, Any],
+    controlled_default_authorization: dict[str, Any],
+) -> list[str]:
+    """Validate a typed operator signature record against its bound authorization package."""
+    reasons: list[str] = []
+    if record.get("schema") != OPERATOR_SIGNATURE_RECORD_SCHEMA:
+        reasons.append(f"operator_signature_record_invalid:schema_mismatch:{record.get('schema')}")
+    if record.get("verdict") != "OPERATOR_SIGNATURE_CAPTURED":
+        reasons.append(f"operator_signature_record_invalid:not_captured:{record.get('verdict')}")
+    signature = record.get("signature") if isinstance(record.get("signature"), dict) else {}
+    if signature.get("signature_status") != "signed":
+        reasons.append("operator_signature_record_invalid:not_signed")
+    if not str(signature.get("operator_id") or "").strip():
+        reasons.append("operator_signature_record_invalid:operator_id_missing")
+    if not str(signature.get("statement") or "").strip():
+        reasons.append("operator_signature_record_invalid:statement_missing")
+    binding = record.get("authorization_binding") if isinstance(record.get("authorization_binding"), dict) else {}
+    if binding.get("authorization_package_content_hash") != _content_hash(controlled_default_authorization):
+        reasons.append("operator_signature_record_invalid:content_hash_unbound")
+    scope = record.get("granted_scope") if isinstance(record.get("granted_scope"), dict) else {}
+    if scope.get("controlled_default_operator_signature") is not True:
+        reasons.append("operator_signature_record_invalid:controlled_default_scope_missing")
+    for field in (
+        "runtime_default_install_allowed",
+        "canonical_pointer_write_allowed",
+        "production_db_write_allowed",
+        "remote_write_allowed",
+        "release_truth_allowed",
+    ):
+        if scope.get(field) is not False:
+            reasons.append(f"operator_signature_record_invalid:scope_{field}_true")
+    return reasons
+
+
 def _release_blockers(
     *,
     compiler_status_ledger: dict[str, Any],
     controlled_default_authorization: dict[str, Any],
     writeback_execution_gate: dict[str, Any],
+    operator_signature_valid: bool,
+    operator_signature_invalid_reasons: list[str],
 ) -> list[str]:
     blockers: list[str] = []
     if compiler_status_ledger.get("schema") != "luban_rich_leaf_compiler_status_ledger.v1":
@@ -94,10 +138,14 @@ def _release_blockers(
     )
     if controlled_default_authorization.get("verdict") != "READY_FOR_OPERATOR_SIGNATURE":
         blockers.append(f"controlled_default_authorization_not_ready:{controlled_default_authorization.get('verdict')}")
-    if auth_decision.get("operator_signature_recorded") is not True:
-        blockers.append("operator_signature_missing")
-    if auth_decision.get("controlled_default_authorized") is not True:
-        blockers.append("controlled_default_authorization_missing")
+    blockers.extend(operator_signature_invalid_reasons)
+    if not operator_signature_valid:
+        # without a verified bound signature record these stay derived from the package itself
+        if auth_decision.get("operator_signature_recorded") is not True:
+            blockers.append("operator_signature_missing")
+        if auth_decision.get("controlled_default_authorized") is not True:
+            blockers.append("controlled_default_authorization_missing")
+    # operator signature scope is controlled default only; it never clears release truth
     if auth_decision.get("release_truth_authorized") is not True:
         blockers.append("release_truth_authorization_missing")
 
@@ -116,15 +164,25 @@ def run_release_governance_review_packet(
     compiler_status_ledger: dict[str, Any],
     controlled_default_authorization: dict[str, Any],
     writeback_execution_gate: dict[str, Any],
+    operator_signature_record: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     safety_violations = []
     safety_violations.extend(_safety_violations("compiler_status_ledger", compiler_status_ledger))
     safety_violations.extend(_safety_violations("controlled_default_authorization", controlled_default_authorization))
     safety_violations.extend(_safety_violations("writeback_execution_gate", writeback_execution_gate))
+    signature_invalid_reasons: list[str] = []
+    signature_valid = False
+    if operator_signature_record is not None:
+        signature_invalid_reasons = _operator_signature_invalid_reasons(
+            operator_signature_record, controlled_default_authorization
+        )
+        signature_valid = not signature_invalid_reasons
     release_blockers = _release_blockers(
         compiler_status_ledger=compiler_status_ledger,
         controlled_default_authorization=controlled_default_authorization,
         writeback_execution_gate=writeback_execution_gate,
+        operator_signature_valid=signature_valid,
+        operator_signature_invalid_reasons=signature_invalid_reasons,
     )
     if safety_violations:
         verdict = "NO_GO_SAFETY_INVARIANT"
@@ -146,8 +204,25 @@ def run_release_governance_review_packet(
             "compiler_status_ledger": compiler_status_ledger.get("schema"),
             "controlled_default_authorization": controlled_default_authorization.get("schema"),
             "writeback_execution_gate": writeback_execution_gate.get("schema"),
+            "operator_signature_record": operator_signature_record.get("schema")
+            if operator_signature_record is not None
+            else None,
         },
         "verdict": verdict,
+        "operator_signature": {
+            "recorded": signature_valid,
+            "content_hash_bound": signature_valid,
+            "operator_id": (operator_signature_record.get("signature") or {}).get("operator_id")
+            if isinstance(operator_signature_record, dict) and signature_valid
+            else None,
+            "signed_at": (operator_signature_record.get("signature") or {}).get("signed_at")
+            if isinstance(operator_signature_record, dict) and signature_valid
+            else None,
+            "statement": (operator_signature_record.get("signature") or {}).get("statement")
+            if isinstance(operator_signature_record, dict) and signature_valid
+            else None,
+            "scope": "controlled_default_only",
+        },
         "quality_claim_allowed": False,
         "release_decision": {
             "release_truth_claim_allowed": False,
@@ -205,12 +280,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--compiler-status-ledger", type=Path, default=DEFAULT_COMPILER_STATUS_LEDGER)
     parser.add_argument("--controlled-default-authorization", type=Path, default=DEFAULT_CONTROLLED_DEFAULT_AUTHORIZATION)
     parser.add_argument("--writeback-execution-gate", type=Path, default=DEFAULT_WRITEBACK_EXECUTION_GATE)
+    parser.add_argument("--operator-signature-record", type=Path, default=DEFAULT_OPERATOR_SIGNATURE_RECORD)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     args = parser.parse_args(argv)
     report = run_release_governance_review_packet(
         compiler_status_ledger=_read_json(args.compiler_status_ledger),
         controlled_default_authorization=_read_json(args.controlled_default_authorization),
         writeback_execution_gate=_read_json(args.writeback_execution_gate),
+        operator_signature_record=_read_json(args.operator_signature_record)
+        if args.operator_signature_record is not None
+        else None,
     )
     _write_json(args.output, report)
     print(json.dumps({"out": str(args.output), "verdict": report["verdict"], "summary": report["summary"]}, ensure_ascii=False, sort_keys=True))

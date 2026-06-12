@@ -110,6 +110,93 @@ def test_release_governance_review_packet_blocks_release_truth_until_signoffs() 
     assert report["classification"]["release_truth_claimed"] is False
 
 
+def _operator_signature_record(controlled_default_authorization: dict) -> dict:
+    from scripts.run_luban_rich_leaf_operator_signature_capture import content_hash
+
+    return {
+        "schema": "luban_rich_leaf_operator_signature_record.v1",
+        "verdict": "OPERATOR_SIGNATURE_CAPTURED",
+        "signature": {
+            "template_id": "rich_leaf_controlled_default_operator_signature_v1",
+            "signature_status": "signed",
+            "operator_id": "owner",
+            "statement": "authorized_by_owner_20260613, scope: rich-leaf frozen v1 controlled default",
+            "signed_at": "2026-06-13T00:00:00+08:00",
+        },
+        "authorization_binding": {
+            "authorization_package_schema": "luban_rich_leaf_controlled_default_authorization_package.v1",
+            "authorization_package_verdict": "READY_FOR_OPERATOR_SIGNATURE",
+            "authorization_package_content_hash": content_hash(controlled_default_authorization),
+        },
+        "granted_scope": {
+            "controlled_default_operator_signature": True,
+            "runtime_default_install_allowed": False,
+            "canonical_pointer_write_allowed": False,
+            "production_db_write_allowed": False,
+            "remote_write_allowed": False,
+            "release_truth_allowed": False,
+        },
+        "summary": {"blocker_count": 0, "write_executed": False, "production_write_count": 0},
+        "classification": {"runtime_install_allowed": False, "production_default": False, "release_truth_claimed": False},
+        "safety": {
+            "canonical_truth_written": False,
+            "official_score_allowed": False,
+            "installed_runtime_supply": False,
+            "production_write_count": 0,
+            "release_truth_claimed": False,
+        },
+    }
+
+
+def test_release_governance_review_packet_consumes_valid_operator_signature() -> None:
+    from scripts.run_luban_rich_leaf_release_governance_review_packet import (
+        run_release_governance_review_packet,
+    )
+
+    controlled = _controlled_default_authorization()
+    record = _operator_signature_record(controlled)
+    report = run_release_governance_review_packet(
+        compiler_status_ledger=_compiler_status(),
+        controlled_default_authorization=controlled,
+        writeback_execution_gate=_writeback_execution_gate(),
+        operator_signature_record=record,
+    )
+
+    assert "operator_signature_missing" not in report["release_blockers"]
+    assert "controlled_default_authorization_missing" not in report["release_blockers"]
+    # signature scope is controlled default only: release truth stays blocked
+    assert "release_truth_authorization_missing" in report["release_blockers"]
+    assert "learning_brain_signed_authorization_missing" in report["release_blockers"]
+    assert report["verdict"] == "BLOCKED_FOR_RELEASE_TRUTH"
+    assert report["operator_signature"]["recorded"] is True
+    assert report["operator_signature"]["operator_id"] == "owner"
+    assert report["operator_signature"]["content_hash_bound"] is True
+    # release decision invariants never relax with a signature present
+    assert report["release_decision"]["release_truth_claim_allowed"] is False
+    assert report["release_decision"]["production_default_allowed"] is False
+    assert report["safety"]["production_write_count"] == 0
+
+
+def test_release_governance_review_packet_rejects_unbound_operator_signature() -> None:
+    from scripts.run_luban_rich_leaf_release_governance_review_packet import (
+        run_release_governance_review_packet,
+    )
+
+    controlled = _controlled_default_authorization()
+    record = _operator_signature_record(controlled)
+    record["authorization_binding"]["authorization_package_content_hash"] = "0" * 64
+    report = run_release_governance_review_packet(
+        compiler_status_ledger=_compiler_status(),
+        controlled_default_authorization=controlled,
+        writeback_execution_gate=_writeback_execution_gate(),
+        operator_signature_record=record,
+    )
+
+    assert "operator_signature_record_invalid:content_hash_unbound" in report["release_blockers"]
+    assert "operator_signature_missing" in report["release_blockers"]
+    assert report["operator_signature"]["recorded"] is False
+
+
 def test_release_governance_review_packet_fails_closed_on_safety_drift() -> None:
     from scripts.run_luban_rich_leaf_release_governance_review_packet import (
         run_release_governance_review_packet,
