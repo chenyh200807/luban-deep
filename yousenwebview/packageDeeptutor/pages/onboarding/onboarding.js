@@ -52,14 +52,8 @@ var ACTS = [
 // 幕 1 词轮播（Fuse 式垂直 roller）：从「盲刷」滚到「提分」收住点亮。
 var ROLL_WORDS = ["上班太忙", "记了又忘", "写了白写", "这次上岸"];
 
-// CTA 收束：第二行整行品牌蓝。
-var CTA_LINES = [
-  riseChars("专属于你的", null, 0, 0, 60),
-  riseChars("越用越懂你", 0, 5, 380, 60),
-];
-
 // 幕 id → ACTS 下标（决定当前页文案）
-var ACT_SLIDE = { wave: 0, hook: 0, p1: 1, p2: 2, p3: 3, cta: 3 };
+var ACT_SLIDE = { wave: 0, hook: 0, p1: 1, p2: 2, p3: 3 };
 
 var PILL_ACT_IDS = SCENES.slice(1).map(function (s) {
   return s.id;
@@ -70,7 +64,6 @@ Page({
     statusBarHeight: 44,
     safeBottom: 0,
     rollWords: ROLL_WORDS,
-    ctaLines: CTA_LINES,
     pills: PILL_ACT_IDS,
     actId: "wave",
     actIndex: 0,
@@ -113,6 +106,9 @@ Page({
       },
       onStep: function (patch) {
         that.setData(patch);
+      },
+      onFinish: function () {
+        that._exit();
       },
     });
     this._timeline.start();
@@ -157,7 +153,26 @@ Page({
   },
 
   skipToCta: function () {
-    this._jumpAct(SCENES.length - 1);
+    this._exit();
+  },
+
+  // 色浪转深 → 登录页（dest=login）；游客模式回退到 chat 试用。
+  _exit: function () {
+    if (this._exiting) return;
+    this._exiting = true;
+    var that = this;
+    if (this._timeline) this._timeline.pause();
+    this.setData({ ctaExit: true });
+    setTimeout(function () {
+      if (that.data.destLogin) {
+        runtime.redirectToLogin(route.chat({ entry_source: that.data.entrySource }));
+      } else {
+        wx.reLaunch({
+          url: route.chat({ entry_source: that.data.entrySource, preview: "1" }),
+        });
+      }
+      that._exiting = false;
+    }, 430);
   },
 
   onPageTouchStart: function (event) {
@@ -180,27 +195,7 @@ Page({
     this._touchY = null;
   },
 
-  // —— 出口 ——
-  // dest=login（首页「开始答疑」进来）：色浪转深 → 登录页（returnTo=chat）。
-  // 默认（登录页「先体验导学」进来）：游客试用 chat，行为与改造前一致。
   startExperience: function () {
-    if (this._exiting) return;
-    if (this.data.destLogin) {
-      this._exiting = true;
-      var that = this;
-      this.setData({ ctaExit: true });
-      setTimeout(function () {
-        runtime.redirectToLogin(route.chat({ entry_source: that.data.entrySource }));
-        that._exiting = false;
-      }, 430);
-      return;
-    }
-    wx.reLaunch({
-      url: route.chat({ entry_source: this.data.entrySource, preview: "1" }),
-    });
-  },
-
-  quickLogin: function () {
-    runtime.redirectToLogin(route.chat({ entry_source: this.data.entrySource, preview: "1" }));
+    this._exit();
   },
 });

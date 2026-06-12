@@ -188,17 +188,16 @@ console.log("OK test_onboarding_motion_timeline (scheduler)");
 var SCENES = require("../packageDeeptutor/pages/onboarding/motion-script");
 
 (function () {
-  assert.strictEqual(SCENES.length, 6);
+  assert.strictEqual(SCENES.length, 5);
   assert.deepStrictEqual(
     SCENES.map(function (s) {
       return s.id;
     }),
-    ["wave", "hook", "p1", "p2", "p3", "cta"],
+    ["wave", "hook", "p1", "p2", "p3"],
   );
-  assert.strictEqual(
-    SCENES[SCENES.length - 1].duration,
-    0,
-    "终幕必须 duration=0",
+  assert.ok(
+    SCENES[SCENES.length - 1].duration > 0,
+    "终幕 p3 自动播完触发 onFinish 出场，duration 必须 > 0",
   );
   for (var i = 0; i < SCENES.length; i++) {
     var s = SCENES[i];

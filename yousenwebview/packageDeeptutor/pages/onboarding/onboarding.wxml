@@ -41,18 +41,25 @@
       class="hook-stage {{fx.hookPlay ? 'play' : ''}}"
       wx:if="{{actId === 'wave' || actId === 'hook'}}"
     >
-      <view class="roller">
-        <view class="roller-track" style="transform: translateY({{(1 - (fx.roll || 0)) * 150}}rpx)">
-          <view
-            wx:for="{{rollWords}}"
-            wx:key="*this"
-            class="roller-word {{(fx.roll || 0) === index ? 'cur' : ''}} {{index === rollWords.length - 1 && (fx.roll || 0) === index ? 'final' : ''}}"
-          >
-            <text>{{item}}</text>
+      <view class="roller-zone">
+        <view class="roller">
+          <view class="roller-track" style="transform: translateY({{(1 - (fx.roll || 0)) * 150}}rpx)">
+            <view
+              wx:for="{{rollWords}}"
+              wx:key="*this"
+              class="roller-word {{(fx.roll || 0) === index ? 'cur' : ''}} {{index === rollWords.length - 1 && (fx.roll || 0) === index ? 'final' : ''}}"
+            >
+              <text>{{item}}</text>
+            </view>
           </view>
         </view>
-        <view class="roller-fade-top"></view>
-        <view class="roller-fade-bottom"></view>
+      </view>
+      <view class="hook-brand fx-pop {{fx.brandIn ? 'on' : ''}}">
+        <view class="hook-brand-mark">
+          <image src="../../images/logo-mark-white.png" mode="aspectFit" />
+        </view>
+        <text class="hook-brand-title">鲁班智考 · AI 实务教练</text>
+        <text class="hook-brand-desc">告诉你为什么丢分，下一步该练什么。</text>
       </view>
     </view>
 
@@ -119,20 +126,7 @@
       </view>
     </block>
 
-    <!-- 幕 5: CTA 收束 -->
-    <view class="cta-stage {{fx.ctaTitle ? 'play' : ''}}" wx:if="{{actId === 'cta'}}">
-      <view class="scene-kicker cta-kicker"><text>鲁班智考 · AI 实务教练</text></view>
-      <view class="rise-line cta-line" wx:for="{{ctaLines}}" wx:for-item="line" wx:for-index="li" wx:key="li">
-        <text
-          wx:for="{{line}}"
-          wx:key="index"
-          class="rise-char cta-char {{item.accent ? 'is-accent' : ''}}"
-          style="animation-delay: {{item.d}}ms"
-        >{{item.c}}</text>
-      </view>
-    </view>
-
-    <view class="bottom-actions" wx:if="{{actId === 'cta'}}">
+    <view class="bottom-actions" wx:if="{{actId === 'p3'}}">
       <view
         class="primary-btn fx-pop {{fx.ctaActions ? 'on' : ''}}"
         bindtap="startExperience"
@@ -141,16 +135,6 @@
       >
         <text class="primary-text">{{destLogin ? '立即开始提分' : '开始体验'}}</text>
       </view>
-    </view>
-
-    <view
-      class="login-link fx-pop {{fx.ctaActions ? 'on' : ''}}"
-      wx:if="{{actId === 'cta' && !destLogin}}"
-      bindtap="quickLogin"
-      aria-role="button"
-      aria-label="快速登录"
-    >
-      <text class="login-link-text">已有学习记录？快速登录</text>
     </view>
   </view>
   <view class="cta-wave {{ctaExit ? 'play' : ''}}"></view>

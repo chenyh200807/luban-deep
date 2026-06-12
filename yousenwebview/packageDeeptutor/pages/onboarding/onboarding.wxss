@@ -22,9 +22,9 @@
 }
 
 .glow-bottom {
-  bottom: -34%;
-  height: 86%;
-  background: radial-gradient(ellipse at 50% 100%, rgba(31, 143, 255, 0.5) 0%, rgba(86, 182, 255, 0.3) 36%, rgba(160, 216, 255, 0.14) 58%, transparent 78%);
+  bottom: -26%;
+  height: 104%;
+  background: radial-gradient(ellipse at 50% 100%, rgba(28, 150, 255, 0.72) 0%, rgba(70, 178, 255, 0.46) 30%, rgba(140, 208, 255, 0.22) 52%, transparent 76%);
 }
 
 .glow-sky {
@@ -170,13 +170,61 @@
   background: #1f8fff;
 }
 
-/* —— 幕 1: 垂直词轮播（视频2 语言）—— */
+/* —— 幕 1: 垂直词轮播 → 品牌宣言（Fuse hero 布局）—— */
 .hook-stage {
   flex: 1;
   display: flex;
   flex-direction: column;
+}
+
+.roller-zone {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   justify-content: center;
-  padding-bottom: 140rpx;
+}
+
+/* 品牌宣言：坐在底部辉光上（Fuse hero 下半区） */
+.hook-brand {
+  padding-bottom: 70rpx;
+}
+
+.hook-brand.fx-pop.on {
+  animation: softIn 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hook-brand-mark {
+  width: 76rpx;
+  height: 76rpx;
+  padding: 14rpx;
+  border-radius: 22rpx;
+  background: #0b1f3a;
+  box-sizing: border-box;
+  box-shadow: 0 14rpx 32rpx rgba(11, 31, 58, 0.22);
+}
+
+.hook-brand-mark image {
+  width: 100%;
+  height: 100%;
+}
+
+.hook-brand-title {
+  display: block;
+  margin-top: 24rpx;
+  color: #0b1f3a;
+  font-family: "Songti SC", "STSong", "Source Han Serif SC", serif;
+  font-size: 46rpx;
+  line-height: 1.25;
+  font-weight: 900;
+}
+
+.hook-brand-desc {
+  display: block;
+  margin-top: 14rpx;
+  color: rgba(11, 31, 58, 0.6);
+  font-size: 27rpx;
+  line-height: 1.6;
+  font-weight: 500;
 }
 
 .roller {
@@ -221,25 +269,6 @@
 .roller-word.final text {
   color: #1f8fff;
   text-shadow: 0 0 34rpx rgba(31, 143, 255, 0.32);
-}
-
-.roller-fade-top,
-.roller-fade-bottom {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 132rpx;
-  pointer-events: none;
-}
-
-.roller-fade-top {
-  top: 0;
-  background: linear-gradient(180deg, #ffffff, rgba(255, 255, 255, 0));
-}
-
-.roller-fade-bottom {
-  bottom: 0;
-  background: linear-gradient(0deg, #ffffff, rgba(255, 255, 255, 0));
 }
 
 /* —— 逐字 mask-rise（幕 2/3 标题与 CTA）—— */
