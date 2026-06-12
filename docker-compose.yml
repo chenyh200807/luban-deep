@@ -95,6 +95,15 @@ services:
       - DEEPTUTOR_ENV=${DEEPTUTOR_ENV:-production}
       - DEEPTUTOR_PROMPT_VERSION=${DEEPTUTOR_PROMPT_VERSION:-unset}
       - DEEPTUTOR_FF_SNAPSHOT_HASH=${DEEPTUTOR_FF_SNAPSHOT_HASH:-}
+      # ============================================
+      # Capacity / scaling (see Dockerfile start-backend.sh)
+      # ============================================
+      # Uvicorn workers. Default 1; raise for CPU headroom (bounded by host RAM).
+      - UVICORN_WORKERS=${UVICORN_WORKERS:-1}
+      # Rate-limit backend. Default sqlite (per-process). For multi-worker, set to
+      # 'redis' so per-user quotas/caps are shared and correct across workers.
+      - DEEPTUTOR_RATE_LIMIT_BACKEND=${DEEPTUTOR_RATE_LIMIT_BACKEND:-sqlite}
+      - DEEPTUTOR_RATE_LIMIT_REDIS_URL=${DEEPTUTOR_RATE_LIMIT_REDIS_URL:-}
 
     volumes:
       # Mount local data directory for persistence (read-write)
@@ -111,6 +120,7 @@ services:
 
     depends_on:
       - searxng
+      - valkey
 
     networks:
       - deeptutor-network

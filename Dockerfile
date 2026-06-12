@@ -292,13 +292,19 @@ RUN cat > /app/start-backend.sh <<'EOF'
 set -e
 
 BACKEND_PORT=${BACKEND_PORT:-8001}
+# Uvicorn worker processes. Default 1 (single async event loop — already handles high
+# I/O-bound concurrency since LLM turns are awaited, not CPU-bound). Scale to use more
+# CPU cores under load; each worker reloads the full app so total RAM ≈ workers × footprint.
+# With >1 worker, per-process limit state MUST be shared: set DEEPTUTOR_RATE_LIMIT_BACKEND=redis,
+# otherwise per-user quotas/connection caps multiply by the worker count.
+UVICORN_WORKERS=${UVICORN_WORKERS:-1}
 
-echo "[Backend]  🚀 Starting FastAPI backend on port ${BACKEND_PORT}..."
+echo "[Backend]  🚀 Starting FastAPI backend on port ${BACKEND_PORT} (${UVICORN_WORKERS} worker(s))..."
 
 # Run uvicorn directly - the application's logging system already handles:
 # 1. Console output (visible in docker logs)
 # 2. File logging to data/user/logs/ai_tutor_*.log
-exec python -m uvicorn deeptutor.api.main:app --host 0.0.0.0 --port ${BACKEND_PORT}
+exec python -m uvicorn deeptutor.api.main:app --host 0.0.0.0 --port ${BACKEND_PORT} --workers ${UVICORN_WORKERS}
 EOF
 
 RUN sed -i 's/\r$//' /app/start-backend.sh && chmod +x /app/start-backend.sh
