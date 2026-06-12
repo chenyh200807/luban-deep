@@ -39,6 +39,7 @@ Page({
     pageShellStyle: "",
     entrySource: "",
     returnTo: "",
+    guestWaveActive: false,
     heroMessages: [
       {
         line1: "抓不住重点、越学越乱？",
@@ -371,6 +372,22 @@ Page({
         returnTo: this.data.returnTo,
       }),
     });
+  },
+  handleGuestPreview: function () {
+    if (this._guestNavigating) return;
+    this._guestNavigating = true;
+    var that = this;
+    var source = this.data.entrySource || "guest_preview";
+    // 登录页通常由导学动效落地而来，「先体验导学」直达游客体验页，避免动效重复
+    this.setData({ guestWaveActive: true });
+    setTimeout(function () {
+      wx.reLaunch({
+        url: route.chat({ entry_source: source, preview: "1" }),
+        complete: function () {
+          that._guestNavigating = false;
+        },
+      });
+    }, 430);
   },
   _completeWechatAuth: function (payload) {
     var inner = payload && (payload.data || payload);
