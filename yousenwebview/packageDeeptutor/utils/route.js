@@ -9,6 +9,7 @@ var KNOWN_PACKAGE_PATHS = {
   "pages/login/manual": true,
   "pages/login/reset-password": true,
   "pages/mistake-book/mistake-book": true,
+  "pages/onboarding/onboarding": true,
   "pages/practice/practice": true,
   "pages/feedback/feedback": true,
   "pages/profile/profile": true,
@@ -100,6 +101,9 @@ module.exports = {
   },
   profile: function () {
     return resolve("pages/profile/profile");
+  },
+  onboarding: function (query) {
+    return withQuery("pages/onboarding/onboarding", query);
   },
   billing: function () {
     return resolve("pages/billing/billing");

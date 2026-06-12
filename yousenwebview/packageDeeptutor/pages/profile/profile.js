@@ -5,6 +5,7 @@ var helpers = require("../../utils/helpers");
 var runtime = require("../../utils/runtime");
 var route = require("../../utils/route");
 var flags = require("../../utils/flags");
+var auth = require("../../utils/auth");
 
 // [W5-3] Debounce timer for settings save
 var _saveTimer = null;
@@ -145,6 +146,7 @@ Page({
 
     // 隐藏了"学习计划"（后期开发）
     linkItems: buildLinkItems(flags.getWorkspaceFlags()),
+    isGuestPreview: false,
   },
 
   onLoad: function () {
@@ -173,14 +175,20 @@ Page({
     helpers.syncTabBar(this, 3, {
       hidden: !flags.shouldShowWorkspaceShell(),
     });
-    var self = this;
-    runtime.checkAuth(function () {
-      self._loadUserInfo();
-      self._loadUsage();
-    });
+    if (!auth.isLoggedIn()) {
+      this._showGuestPreview();
+      return;
+    }
+    this.setData({ isGuestPreview: false });
+    this._loadUserInfo();
+    this._loadUsage();
   },
 
   _loadUsage: function () {
+    if (!auth.isLoggedIn()) {
+      this._showGuestPreview();
+      return;
+    }
     var self = this;
     self.setData({ usageLoading: true });
     api
@@ -194,6 +202,10 @@ Page({
   },
 
   openUsageDetail: function () {
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
     if (!this.data.usageRows.length) return;
     this.setData({ usageDetailShow: true });
   },
@@ -203,6 +215,10 @@ Page({
   },
 
   _loadUserInfo: function () {
+    if (!auth.isLoggedIn()) {
+      this._showGuestPreview();
+      return;
+    }
     var self = this;
     api
       .getUserInfo()
@@ -265,6 +281,10 @@ Page({
 
   // ── 修改昵称 ──────────────────────────────────
   onChangeName: function () {
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
     var self = this;
     helpers.vibrate("light");
     wx.showModal({
@@ -288,6 +308,10 @@ Page({
 
   // ── 修改头像 ──────────────────────────────────
   onChangeAvatar: function () {
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
     var self = this;
     helpers.vibrate("light");
     wx.chooseMedia({
@@ -327,11 +351,19 @@ Page({
 
   // ── 设置交互 ──────────────────────────────────
   onExamDateChange: function (e) {
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
     this.setData({ examDate: e.detail.value });
     this._saveSettings({ exam_date: e.detail.value });
   },
 
   setDailyTarget: function (e) {
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
     helpers.vibrate("light");
     var val = e.currentTarget.dataset.val;
     this.setData({ dailyTarget: val });
@@ -339,6 +371,10 @@ Page({
   },
 
   setDifficulty: function (e) {
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
     helpers.vibrate("light");
     var val = e.currentTarget.dataset.val;
     this.setData({ difficultyPref: val });
@@ -346,6 +382,10 @@ Page({
   },
 
   setExplainStyle: function (e) {
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
     helpers.vibrate("light");
     var val = e.currentTarget.dataset.val;
     this.setData({ explainStyle: val });
@@ -353,6 +393,10 @@ Page({
   },
 
   onReminderChange: function (e) {
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
     var val = e.detail.value;
     this.setData({ reviewReminder: val });
     this._saveSettings({ review_reminder: val });
@@ -373,6 +417,10 @@ Page({
   },
 
   _saveSettings: function (patch) {
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
     api.updateSettings(patch).catch(function () {
       wx.showToast({ title: "保存失败，请重试", icon: "none" });
     });
@@ -393,6 +441,34 @@ Page({
     wx.navigateTo({ url: route.billing() });
   },
 
+  goQuickLogin: function () {
+    this._requireLogin();
+  },
+
+  _requireLogin: function () {
+    runtime.redirectToLogin(route.profile());
+  },
+
+  _showGuestPreview: function () {
+    this.setData({
+      isGuestPreview: true,
+      username: "未登录用户",
+      avatarChar: "游",
+      level: 1,
+      xp: 0,
+      usageLoading: false,
+      usagePrimaryLabel: "登录后查看权益",
+      usageRows: [],
+      usageDetailShow: false,
+      examDate: "",
+      dailyTarget: 30,
+      difficultyPref: "medium",
+      explainStyle: "detailed",
+      reviewReminder: false,
+      badges: _normalizeBadges(null, [], this.data.badges),
+    });
+  },
+
   openFeedbackPage: function () {
     helpers.vibrate("light");
     wx.navigateTo({ url: route.feedback({ source: "profile" }) });
@@ -402,6 +478,10 @@ Page({
     var id = e.currentTarget.dataset.id;
     helpers.vibrate("light");
     if (id === "assessment") {
+      if (!auth.isLoggedIn()) {
+        this._requireLogin();
+        return;
+      }
       if (!flags.ensureFeatureEnabled("assessment", { redirect: false })) return;
       wx.navigateTo({ url: route.assessment() });
     } else if (id === "diagnostic") {
@@ -418,6 +498,10 @@ Page({
   },
 
   logout: function () {
+    if (!auth.isLoggedIn()) {
+      this._requireLogin();
+      return;
+    }
     wx.showModal({
       title: "退出登录",
       content: "确定要退出登录吗？",

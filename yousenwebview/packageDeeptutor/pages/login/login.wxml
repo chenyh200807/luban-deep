@@ -4,6 +4,8 @@
   <view class="orb o1" style="{{orbStyle1}}"></view>
   <view class="orb o2" style="{{orbStyle2}}"></view>
   <view class="orb o3" style="{{orbStyle3}}"></view>
+  <view class="login-aurora-gold"></view>
+  <view class="login-grain"></view>
 
   <view class="page-shell" style="{{pageShellStyle}}"
     bindtouchstart="onPageTouchStart" bindtouchmove="onPageTouchMove"
@@ -20,9 +22,18 @@
           </view>
 
           <view class="hero-copy">
-            <view class="hero-line-single">
-              <text class="hero-line hero-line-main-inline">懂你的</text>
-              <text class="hero-line hero-line-accent-inline">智能备考导师</text>
+            <view class="hero-title-line">
+              <text class="hero-char" style="animation-delay: 340ms">懂</text>
+              <text class="hero-char" style="animation-delay: 395ms">你</text>
+              <text class="hero-char" style="animation-delay: 450ms">的</text>
+            </view>
+            <view class="hero-title-line">
+              <text class="hero-char hero-char-accent" style="animation-delay: 560ms">智</text>
+              <text class="hero-char hero-char-accent" style="animation-delay: 615ms">能</text>
+              <text class="hero-char hero-char-accent" style="animation-delay: 670ms">备</text>
+              <text class="hero-char hero-char-accent" style="animation-delay: 725ms">考</text>
+              <text class="hero-char hero-char-accent" style="animation-delay: 780ms">导</text>
+              <text class="hero-char hero-char-accent" style="animation-delay: 835ms">师</text>
             </view>
             <text class="hero-desc">{{heroMessages[activeHeroIndex].line1}}</text>
             <text class="hero-desc hero-desc-sub">{{heroMessages[activeHeroIndex].line2}}</text>
@@ -50,8 +61,13 @@
           bindtap="handleWechatLogin"
           disabled="{{wechatLoading || loading}}"
         >
-          <text class="btn-wechat-primary-txt">{{wechatLoading ? '微信授权中...' : '微信一键登录'}}</text>
+          <text class="btn-wechat-primary-txt">{{wechatLoading ? '登录中...' : '快速登录'}}</text>
         </button>
+      </view>
+
+      <view class="guest-entry" bindtap="handleGuestPreview" aria-role="button" aria-label="先体验导学">
+        <text class="guest-entry-txt">先体验导学</text>
+        <text class="guest-entry-arrow">›</text>
       </view>
 
       <view class="link-row">
@@ -61,4 +77,5 @@
       </view>
     </view>
   </view>
+  <view class="guest-wave {{guestWaveActive ? 'play' : ''}}"></view>
 </view>

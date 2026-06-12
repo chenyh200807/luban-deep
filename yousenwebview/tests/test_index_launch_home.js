@@ -199,9 +199,12 @@ run("freeCourse AI entry should use guarded cross-home navigation", function () 
     "utf8",
   );
 
+  // 2026-06-12 契约演进：入口改为先播先体验导学动效（navigateTo onboarding?dest=login），
+  // 守卫从 app.openDeeptutorLogin 的跨首页锁改为页面级 _deeptutorNavLockUntil 防双击锁。
   assert(
-    freeCourseSource.indexOf("app.openDeeptutorLogin(") >= 0,
-    "freeCourse entry should go through guarded cross-home navigation",
+    freeCourseSource.indexOf("_deeptutorNavLockUntil") >= 0 &&
+      freeCourseSource.indexOf("pages/onboarding/onboarding") >= 0,
+    "freeCourse entry should go through guarded onboarding navigation",
   );
 });
 

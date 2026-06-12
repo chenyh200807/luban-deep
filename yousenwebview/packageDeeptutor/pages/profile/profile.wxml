@@ -45,6 +45,17 @@
         </view>
       </view>
 
+      <view class="guest-profile-card glass-card" wx:if="{{isGuestPreview}}">
+        <view class="guest-profile-copy">
+          <text class="guest-profile-kicker">浏览模式</text>
+          <text class="guest-profile-title">登录后同步你的权益和学习档案</text>
+          <text class="guest-profile-desc">当前可以查看个人中心结构；修改设置、同步额度和保存学习记录时再快速登录。</text>
+        </view>
+        <view class="guest-profile-action" bindtap="goQuickLogin" aria-role="button" aria-label="快速登录">
+          <text class="guest-profile-action-txt">快速登录</text>
+        </view>
+      </view>
+
       <!-- ── 使用情况 ───────────────────────────────── -->
       <view class="usage-card glass-card" bindtap="openUsageDetail" aria-role="button" aria-label="查看使用限额详情">
         <view class="usage-head">
@@ -196,7 +207,7 @@
       </view>
 
       <!-- 退出登录 -->
-      <view class="logout-btn" bindtap="logout">
+      <view class="logout-btn" wx:if="{{!isGuestPreview}}" bindtap="logout">
         <text class="logout-btn-txt">退出登录</text>
       </view>
 

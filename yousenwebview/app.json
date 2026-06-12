@@ -27,6 +27,7 @@
         "pages/attempt-detail/attempt-detail",
         "pages/feedback/feedback",
         "pages/profile/profile",
+        "pages/onboarding/onboarding",
         "pages/login/login",
         "pages/login/manual",
         "pages/login/reset-password",
@@ -58,5 +59,11 @@
   "style": "v2",
   "sitemapLocation": "sitemap.json",
   "lazyCodeLoading": "requiredComponents",
-  "__usePrivacyCheck__": false
+  "__usePrivacyCheck__": false,
+  "preloadRule": {
+    "pages/freeCourse/freeCourse": {
+      "network": "wifi",
+      "packages": ["packageDeeptutor"]
+    }
+  }
 }

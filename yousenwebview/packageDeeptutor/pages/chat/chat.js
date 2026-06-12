@@ -294,6 +294,10 @@ Page({
     workspaceBackVisible: false,
     workspaceBackLabel: "返回",
     profileEnabled: true,
+    isGuestPreview: false,
+    paywallVisible: false,
+    paywallTitle: "",
+    paywallText: "",
 
     // Hero 弹性拖拽
     _heroDragY: 0,
@@ -515,10 +519,11 @@ Page({
     }
     var hasUsableAuth =
       typeof auth.isLoggedIn === "function" ? auth.isLoggedIn() : !!auth.getToken();
-    self._ensureChatReady().catch(function (e) {
-      log.warn("Chat", "chat profile bootstrap degraded: " + ((e && e.message) || e));
-    });
     if (hasUsableAuth) {
+      self.setData({ isGuestPreview: false });
+      self._ensureChatReady().catch(function (e) {
+        log.warn("Chat", "chat profile bootstrap degraded: " + ((e && e.message) || e));
+      });
       if (restoringConversation) {
         runtime.consumePendingChatIntent();
       } else {
@@ -543,6 +548,26 @@ Page({
           );
         }
       }
+    } else {
+      var guestPendingIntent = runtime.consumePendingChatIntent();
+      if (guestPendingIntent.query && !self.data.hasMessages) {
+        self._inputText = guestPendingIntent.query;
+      }
+      self.setData({
+        isGuestPreview: true,
+        userName: "同学",
+        avatarChar: "L",
+        focusTone: "plan",
+        focusTitle: "先看看鲁班智考能怎么帮你提分",
+        focusMeta: "发送真实问题时再登录，付费能力会在动作前提示",
+        focusText: "先看看鲁班智考能怎么帮你提分",
+        focusQuery: "",
+        focusActionType: "",
+        focusPromptIntent: null,
+        recommendedPrompts: [],
+        showStaticExamples: true,
+        inputText: guestPendingIntent.query || self.data.inputText || "",
+      });
     }
     // [FIX] 从后台切回时重建 observer（onHide 中已 teardown）
     if (this.data.hasMessages) {
@@ -1442,6 +1467,12 @@ Page({
       }
       self._onDone();
       self._clearPendingTurn();
+      if (self._isBillingBlockedMessage(m)) {
+        self._showPaywall({
+          title: "需要开通后继续",
+          text: "这一步会消耗 AI 答疑额度。开通或续费后，会回到当前学习路径继续。",
+        });
+      }
       surfaceTelemetry.trackOnce(
         "yousen:surface-render-failed:" + (self._surfaceTurnId || self._sid),
         "surface_render_failed",
@@ -1947,6 +1978,10 @@ Page({
   },
 
   onFocusTap: function () {
+    if (this.data.isGuestPreview) {
+      this._showLoginGate("");
+      return;
+    }
     if (this.data.focusActionType === "assessment") {
       if (!flags.ensureFeatureEnabled("assessment", { redirect: false })) return;
       wx.navigateTo({ url: route.assessment() });
@@ -1964,6 +1999,10 @@ Page({
     var prompt = (this.data.recommendedPrompts || [])[index];
     if (!prompt || !prompt.text) return;
     helpers.vibrate("light");
+    if (this.data.isGuestPreview) {
+      this._showLoginGate(prompt.text, { promptIntent: prompt.promptIntent });
+      return;
+    }
     this._send(prompt.text, { promptIntent: prompt.promptIntent });
   },
 
@@ -2180,6 +2219,10 @@ Page({
   sendExample: function (e) {
     if (this.data.canStopStream) return;
     helpers.vibrate("light");
+    if (this.data.isGuestPreview) {
+      this._showLoginGate(e.currentTarget.dataset.text);
+      return;
+    }
     this._send(e.currentTarget.dataset.text);
   },
 
@@ -2209,7 +2252,7 @@ Page({
     var canSendWithAuth =
       typeof auth.isLoggedIn === "function" ? auth.isLoggedIn() : !!auth.getToken();
     if (!canSendWithAuth) {
-      runtime.checkAuth(function () {});
+      self._showLoginGate(query, extraOpts);
       return;
     }
 
@@ -2912,6 +2955,59 @@ Page({
 
   goRecharge: function () {
     wx.navigateTo({ url: route.billing() });
+  },
+
+  noop: function () {},
+
+  closePaywall: function () {
+    this.setData({ paywallVisible: false });
+  },
+
+  goPaywallBilling: function () {
+    this.setData({ paywallVisible: false });
+    wx.navigateTo({ url: route.billing() });
+  },
+
+  goQuickLogin: function () {
+    runtime.redirectToLogin(route.chat({ preview: "1" }));
+  },
+
+  _showLoginGate: function (query, extraOpts) {
+    var opts = extraOpts && typeof extraOpts === "object" ? extraOpts : {};
+    var text = String(query || "").trim();
+    if (text) {
+      runtime.setPendingChatIntent(
+        text,
+        this.data.answerMode,
+        opts.promptIntent || null,
+        opts.followupQuestionContext || null,
+      );
+    }
+    wx.showModal({
+      title: "快速登录后继续",
+      content: "当前问题已为你保留。登录后可继续答疑、批改和学习记录写回。",
+      confirmText: "快速登录",
+      cancelText: "继续浏览",
+      success: function (res) {
+        if (!res.confirm) return;
+        runtime.redirectToLogin(route.chat({ preview: "1" }));
+      },
+    });
+  },
+
+  _showPaywall: function (payload) {
+    var data = payload && typeof payload === "object" ? payload : {};
+    this.setData({
+      paywallVisible: true,
+      paywallTitle: data.title || "需要开通后继续",
+      paywallText: data.text || "这一步会消耗 AI 学习额度。开通后可以继续当前学习动作。",
+    });
+  },
+
+  _isBillingBlockedMessage: function (message) {
+    return /额度不足|开通|续费|billing_quota_exceeded|wallet balance/i.test(
+      String(message || ""),
+    );
   },
 
   onHeroMoreActions: function () {
