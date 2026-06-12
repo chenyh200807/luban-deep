@@ -187,6 +187,10 @@ Page({
     else if (dy >= 60) this.goPrev();
   },
 
+  onPageTouchCancel: function () {
+    this._touchY = null;
+  },
+
   // —— 出口（行为与改造前一致）——
   startExperience: function () {
     wx.reLaunch({

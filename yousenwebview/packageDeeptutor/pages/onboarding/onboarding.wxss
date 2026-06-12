@@ -943,3 +943,17 @@
 .cta-sub.fx-pop.on {
   animation: copyIn 560ms ease both;
 }
+
+@media (max-height: 760px) {
+  .hook-stage {
+    padding-bottom: 80rpx;
+  }
+
+  .hook-word {
+    font-size: 62rpx;
+  }
+
+  .cta-title {
+    font-size: 64rpx;
+  }
+}

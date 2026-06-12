@@ -2,6 +2,7 @@
   class="onboarding-page slide-{{activeSlide.accent}}"
   bindtouchstart="onPageTouchStart"
   bindtouchend="onPageTouchEnd"
+  bindtouchcancel="onPageTouchCancel"
 >
   <view class="pastel-field"></view>
   <view class="grid-bg"></view>
