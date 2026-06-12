@@ -1,0 +1,44 @@
+{
+ "window_days": 7,
+ "cards": [
+  {
+   "label": "总成本",
+   "value": 0.0198,
+   "hint": "最近 7 天"
+  },
+  {
+   "label": "总 Token",
+   "value": 113628,
+   "hint": "输入 89695 / 输出 23933"
+  },
+  {
+   "label": "平均回合成本",
+   "value": 0.0,
+   "hint": "回合数 513"
+  }
+ ],
+ "models": [
+  {
+   "label": "deepseek-v4-flash",
+   "value": 42
+  },
+  {
+   "label": "text-embedding-v3",
+   "value": 13
+  },
+  {
+   "label": "gte-rerank",
+   "value": 3
+  }
+ ],
+ "providers": [
+  {
+   "label": "provider",
+   "value": 55
+  },
+  {
+   "label": "tiktoken",
+   "value": 3
+  }
+ ]
+}
