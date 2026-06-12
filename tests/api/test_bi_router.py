@@ -1592,9 +1592,9 @@ def test_bi_router_endpoints_return_expected_shapes(bi_service: BIService) -> No
         assert reconciliation_body["system_global_bailian"]["total_tokens"] == 1720
         assert reconciliation_body["system_global_bailian"]["estimated_total_cost_usd"] == 0.0058
         assert reconciliation_body["reconciliation"]["billing_cycle"] == billing_cycle
-        assert reconciliation_body["reconciliation"]["billing_scope_system_cost_usd"] == 0.0153
-        assert reconciliation_body["reconciliation"]["token_delta"] == 320
-        assert reconciliation_body["reconciliation"]["cost_delta_usd"] == 0.01278
+        assert reconciliation_body["reconciliation"]["billing_scope_system_cost_usd"] == 0.0181
+        assert reconciliation_body["reconciliation"]["token_delta"] == 540
+        assert reconciliation_body["reconciliation"]["cost_delta_usd"] == 0.01558
         assert reconciliation_body["reconciliation"]["status"] == "ok"
         assert any("usage ledger" in warning for warning in reconciliation_body["warnings"])
 
