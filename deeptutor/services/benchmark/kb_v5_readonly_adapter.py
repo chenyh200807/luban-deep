@@ -26,6 +26,10 @@ import urllib.request
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional
 
+# Single authority for bounding the lexical (tsquery) side of a kb_v5 query;
+# guards against Postgres "tsquery stack too small" on long/markdown queries.
+from deeptutor.services.rag.pipelines.kbv5 import lexical_query_text
+
 EMBED_DIM = 1024
 EMBED_MODEL_DEFAULT = "text-embedding-v3"
 # default doc types mirror SUPABASE_RAG_SOURCES (standard,textbook,exam) + lecture (function default)
@@ -129,7 +133,7 @@ def retrieve(query: str, *, top_k: int = 5,
             "from public.search_chunks_v2("
             "query_text := %s, query_embedding := %s::vector, "
             "filter_data_version := %s, filter_doc_types := %s, top_k := %s)",
-            (query, vec, data_version, list(doc_types), top_k))
+            (lexical_query_text(query), vec, data_version, list(doc_types), top_k))
         cols = [d[0] for d in cur.description]
         rows = cur.fetchall()
         cur.close()

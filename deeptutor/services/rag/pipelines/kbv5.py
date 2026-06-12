@@ -6,6 +6,7 @@ import asyncio
 import hashlib
 import json
 import os
+import re
 import time
 import urllib.request
 from dataclasses import dataclass
@@ -83,6 +84,40 @@ def _vector_literal(embedding: list[float]) -> str:
     return "[" + ",".join(f"{value:.6f}" for value in embedding) + "]"
 
 
+# Lexical (tsquery) query bounding — single authority for every
+# search_chunks_v2 ``query_text`` this codebase sends.
+_WORD_RUN = re.compile(r"[^\W_]+", re.UNICODE)
+_LEXICAL_MAX_TERMS = 64
+_LEXICAL_MAX_TERM_CHARS = 64
+
+
+def lexical_query_text(query: str, *, max_terms: int = _LEXICAL_MAX_TERMS) -> str:
+    """Bound the lexical channel of a KB v5 query before it reaches Postgres.
+
+    ``search_chunks_v2`` feeds ``query_text`` to ``websearch_to_tsquery``.
+    Punctuation-glued compound tokens — e.g. markdown table ruler rows like
+    ``|------|----------|`` in exam case backgrounds — are decomposed by the
+    tsquery parser into nested phrase trees and blow its fixed parse stack
+    ("tsquery stack too small"), failing the whole retrieval call.
+
+    The embedding channel keeps the full raw query; the lexical channel only
+    needs plain word terms. So: keep word runs (letters/digits, no punctuation),
+    dedupe preserving order, and cap at ``max_terms`` preferring the longest
+    (most discriminative) terms.
+    """
+    terms: list[str] = []
+    seen: set[str] = set()
+    for match in _WORD_RUN.finditer(query):
+        term = match.group(0)[:_LEXICAL_MAX_TERM_CHARS]
+        if term not in seen:
+            seen.add(term)
+            terms.append(term)
+    if len(terms) > max_terms:
+        keep = set(sorted(range(len(terms)), key=lambda i: (-len(terms[i]), i))[:max_terms])
+        terms = [term for index, term in enumerate(terms) if index in keep]
+    return " ".join(terms)
+
+
 def _json_safe(value: Any) -> Any:
     if isinstance(value, Decimal):
         if value == value.to_integral_value():
@@ -125,6 +160,7 @@ def _retrieve_chunks(
     if len(embedding) != EMBED_DIM and embedder is None:
         raise _KbV5Unavailable(f"unexpected embedding dim {len(embedding)} (expected {EMBED_DIM})")
     vector = _vector_literal(embedding)
+    lexical_query = lexical_query_text(query)
 
     started = time.monotonic()
     conn = None
@@ -138,7 +174,7 @@ def _retrieve_chunks(
             "from public.search_chunks_v2("
             "query_text := %s, query_embedding := %s::vector, "
             "filter_data_version := %s, filter_doc_types := %s, top_k := %s)",
-            (query, vector, data_version, list(doc_types), top_k),
+            (lexical_query, vector, data_version, list(doc_types), top_k),
         )
         columns = [item[0] for item in cur.description]
         rows = cur.fetchall()
@@ -354,4 +390,4 @@ class KbV5Pipeline:
             }
 
 
-__all__ = ["KbV5Pipeline"]
+__all__ = ["KbV5Pipeline", "lexical_query_text"]
