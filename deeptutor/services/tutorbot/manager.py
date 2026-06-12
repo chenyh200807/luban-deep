@@ -697,6 +697,10 @@ class TutorBotManager:
             on_execute=_hb_execute,
             on_notify=_hb_notify,
             interval_s=30 * 60,
+            # Cross-worker single-instance: with uvicorn --workers N each worker starts
+            # its own copy of this bot; key the heartbeat window by bot_id so only one
+            # worker's tick runs (no duplicate LLM call / duplicate workspace writes).
+            single_instance_key=bot_id,
         )
         instance.heartbeat = heartbeat
         await heartbeat.start()
