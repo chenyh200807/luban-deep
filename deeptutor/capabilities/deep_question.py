@@ -1018,6 +1018,16 @@ def _format_general_knowledge_grounding(pack: dict[str, Any] | None) -> str:
         "【编译教学上下文 - 仅供讲解，非官方答案，不得作为官方判分依据】",
         f"知识点路径：{pack.get('leaf_name_path') or pack.get('resolved_anchor') or ''}",
     ]
+    # rich-leaf compiled context renders FIRST when present (flag-gated upstream in
+    # compiled_knowledge.general_knowledge; absent key -> byte-identical legacy rendering).
+    try:
+        from deeptutor.services.construction_grading.rich_leaf_runtime import (
+            format_rich_leaf_grounding_lines,
+        )
+
+        lines.extend(format_rich_leaf_grounding_lines(pack.get("rich_leaf_context")))
+    except Exception:  # noqa: BLE001 — rich-leaf grounding must never break legacy rendering
+        pass
     for source_key in ("textbook", "standard", "lecture", "question"):
         raw_items = sources.get(source_key) or []
         if not isinstance(raw_items, list):

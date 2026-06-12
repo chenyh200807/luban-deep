@@ -1,0 +1,9 @@
+{
+  "expected_content_hash": "208d25176ea8f1b9b10fdf49a8247c27a2969fcd52dffd201a5703e17fc337b4",
+  "namespace": "rich_leaf_context",
+  "published": false,
+  "quarantine_excluded_count": 17,
+  "record_count": 1517,
+  "source_pack_version": "v3.0.1_frozen_v1_quarantine_annotated",
+  "status": "release_candidate"
+}

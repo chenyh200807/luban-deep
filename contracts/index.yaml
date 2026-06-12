@@ -202,6 +202,7 @@ domains:
       - tests/capabilities/test_deep_question_reference_feedback.py
       - tests/capabilities/test_deep_question_general_knowledge_context.py
       - tests/capabilities/test_deep_question_general_knowledge_grounding.py
+      - tests/capabilities/test_deep_question_rich_leaf_grounding.py
       - tests/capabilities/test_deep_question_unresolved_switch.py
       - tests/core/test_deep_question_active_object.py
       - tests/capabilities/test_deep_question_learning_evidence_preview.py
@@ -431,3 +432,4 @@ luban_grading_engine:
     - tests/services/construction_grading/test_case_grading_fusion.py
     - tests/services/construction_grading/test_compiled_registry_resolver.py
     - tests/services/construction_grading/test_full_knowledge_compiler_m30.py
+    - tests/services/construction_grading/test_rich_leaf_runtime.py

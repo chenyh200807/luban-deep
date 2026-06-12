@@ -11,6 +11,7 @@ from typing import Any
 
 from deeptutor.services.construction_grading import canonical_resolution as _CR
 from deeptutor.services.construction_grading import canonical_knowledge_runtime as _CKR
+from deeptutor.services.construction_grading import rich_leaf_runtime as _RLR
 
 AUTHORITY = "luban_general_knowledge_context"
 SOURCE_KEYS = ("textbook", "standard", "lecture", "question")
@@ -623,6 +624,9 @@ def format_general_knowledge_grounding(pack: dict[str, Any] | None) -> str:
         f"知识点路径：{pack.get('leaf_name_path') or pack.get('resolved_anchor') or ''}",
         f"置信策略：{confidence.get('policy') or CONFIDENCE_POLICY} / {confidence.get('reason') or 'high'}",
     ]
+    # rich-leaf compiled context renders FIRST when present (flag-gated upstream; absent key ->
+    # byte-identical legacy rendering). Rendering policy lives in rich_leaf_runtime (single place).
+    lines.extend(_RLR.format_rich_leaf_grounding_lines(pack.get("rich_leaf_context")))
     for source_key in SOURCE_KEYS:
         raw_items = sources.get(source_key) or []
         if not isinstance(raw_items, list):
@@ -700,7 +704,7 @@ def resolve_general_knowledge_context(
                 if confidence.get("status") != "high":
                     candidate["confidence"] = confidence
                     continue
-                return {
+                resolved_pack: dict[str, Any] = {
                     "authority": AUTHORITY,
                     "mode": "general_knowledge_teaching_context",
                     "classified_leaf": candidate_code,
@@ -723,6 +727,16 @@ def resolve_general_knowledge_context(
                     "remediation": pack.get("remediation"),
                     "writeback_performed": False,
                 }
+                # Rich-leaf compiled context overlay (frozen v3.0.1 pack, external release pointer).
+                # ADDITIVE only and flag-gated (default OFF -> the pack above is byte-identical to
+                # legacy); a miss / unavailable supply falls open to the legacy four-source chain.
+                # The existing confidence gate above stays the routing authority — rich leaf only
+                # supplies richer compiled CONTENT for the already-classified leaf.
+                if _RLR.rich_leaf_runtime_enabled():
+                    rich = _RLR.get_rich_leaf_context(candidate_code)
+                    if rich is not None:
+                        resolved_pack["rich_leaf_context"] = rich
+                return resolved_pack
     return None
 
 
