@@ -18,6 +18,7 @@ turn 内只读缓存。
 
 from __future__ import annotations
 
+from pathlib import Path
 import time
 from typing import Any
 
@@ -26,11 +27,14 @@ from deeptutor.services.config.env_store import get_env_store
 from deeptutor.services.learner_state.canonical_truth_policy import (
     canonical_truth_production_write_cohort_allowed,
 )
+from deeptutor.services.learner_state.worker_file_lock import try_exclusive_file_lock
 from deeptutor.services.runtime_env import env_flag, is_production_environment
 
 DREAM_CYCLE_ENABLED_FLAG = "LUBAN_LEARNING_BRAIN_DREAM_CYCLE_ENABLED"
 DREAM_CYCLE_INTERVAL_HOURS_ENV = "LUBAN_LEARNING_BRAIN_DREAM_CYCLE_INTERVAL_HOURS"
 DREAM_CYCLE_DEFAULT_INTERVAL_HOURS = 24.0
+DREAM_CYCLE_WATERMARK_FILENAME = ".dream_cycle_last_run"
+DREAM_CYCLE_LOCK_FILENAME = ".dream_cycle.lock"
 
 logger = get_logger("LearningBrainDreamCycle")
 
@@ -38,8 +42,11 @@ logger = get_logger("LearningBrainDreamCycle")
 class LearningBrainDreamCycle:
     """对有学习证据的用户做全量历史合成并持久化投影缓存的夜间巩固器。"""
 
-    def __init__(self, service: Any) -> None:
+    def __init__(self, service: Any, *, state_dir: Path | None = None) -> None:
         self._service = service
+        # state_dir 给定时：watermark 持久化到文件（跨 worker / 跨重启共享），
+        # 并用同目录的文件锁保证多 worker 只有一个实际执行者。
+        self._state_dir = Path(state_dir) if state_dir is not None else None
         self._last_run_at: float | None = None
         self._last_report: dict[str, Any] = {}
 
@@ -64,9 +71,33 @@ class LearningBrainDreamCycle:
         return hours * 3600.0
 
     def due(self, *, now: float) -> bool:
-        if self._last_run_at is None:
+        last_run = self._read_watermark()
+        if last_run is None:
             return True
-        return (now - self._last_run_at) >= self.interval_seconds()
+        return (now - last_run) >= self.interval_seconds()
+
+    def _read_watermark(self) -> float | None:
+        if self._state_dir is None:
+            return self._last_run_at
+        path = self._state_dir / DREAM_CYCLE_WATERMARK_FILENAME
+        try:
+            return float(path.read_text(encoding="utf-8").strip())
+        except (OSError, ValueError):
+            return self._last_run_at
+
+    def _write_watermark(self, now: float) -> None:
+        # 有意先更新内存：文件写失败时本进程退化为内存节流（仍按 interval），
+        # 若反序则持续写失败会变成每个 tick 重跑——比对等降级更糟。
+        self._last_run_at = now
+        if self._state_dir is None:
+            return
+        try:
+            self._state_dir.mkdir(parents=True, exist_ok=True)
+            (self._state_dir / DREAM_CYCLE_WATERMARK_FILENAME).write_text(
+                f"{now}\n", encoding="utf-8"
+            )
+        except OSError:  # watermark 写失败只退化为本进程内存语义，不中断巩固
+            logger.warning("dream cycle watermark write failed", exc_info=True)
 
     def run_once(self, *, now: float | None = None, force: bool = False) -> dict[str, Any]:
         current = time.time() if now is None else float(now)
@@ -74,7 +105,18 @@ class LearningBrainDreamCycle:
             return {"ran": False, "reason": "disabled"}
         if not force and not self.due(now=current):
             return {"ran": False, "reason": "not_due"}
+        if self._state_dir is not None:
+            with try_exclusive_file_lock(self._state_dir / DREAM_CYCLE_LOCK_FILENAME) as acquired:
+                if not acquired:
+                    return {"ran": False, "reason": "lock_held"}
+                # 拿锁后重读 watermark：并发的另一个 worker 可能刚跑完。
+                if not force and not self.due(now=current):
+                    return {"ran": False, "reason": "not_due"}
+                return self._consolidate_all(now=current, force=force)
+        return self._consolidate_all(now=current, force=force)
 
+    def _consolidate_all(self, *, now: float, force: bool) -> dict[str, Any]:
+        # force 在此只用于 report.reason 标注；due/锁判定都在调用方完成。
         user_ids = self._candidate_user_ids()
         consolidated: list[dict[str, Any]] = []
         skipped: list[dict[str, Any]] = []
@@ -103,7 +145,7 @@ class LearningBrainDreamCycle:
                 "promotion_reason": str(promotion.get("reason") or ""),
             })
 
-        self._last_run_at = current
+        self._write_watermark(now)
         report = {
             "ran": True,
             "reason": "due" if not force else "forced",

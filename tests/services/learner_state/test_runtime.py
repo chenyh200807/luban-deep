@@ -268,3 +268,34 @@ def test_runtime_runs_dream_cycle_loop() -> None:
 
     assert dream.calls == [False]
     assert runtime.is_running is False
+
+
+def test_outbox_flush_respects_cross_worker_lock(tmp_path) -> None:
+    """outbox flush 跨 worker 互斥：锁被他人持有时本 tick 跳过；锁空闲时正常 flush。"""
+    import fcntl
+    import os
+
+    lock_path = tmp_path / ".outbox_flush.lock"
+    flusher = _FakeFlusher()
+    runtime = LearnerStateRuntime(
+        flusher=flusher,
+        heartbeat_scheduler=None,
+        config=LearnerStateRuntimeConfig(outbox_flush_interval_seconds=0.001),
+        outbox_flush_lock_path=lock_path,
+    )
+
+    async def _run_blocked() -> None:
+        fd = os.open(str(lock_path), os.O_RDWR | os.O_CREAT, 0o644)
+        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        try:
+            await runtime.start()
+            await asyncio.sleep(0.05)  # 多个 tick 内锁始终被占
+            assert flusher.calls == []
+        finally:
+            fcntl.flock(fd, fcntl.LOCK_UN)
+            os.close(fd)
+        await _wait_until(lambda: flusher.calls)  # 释放后下一 tick 恢复 flush
+        await runtime.stop()
+
+    asyncio.run(_run_blocked())
+    assert flusher.calls

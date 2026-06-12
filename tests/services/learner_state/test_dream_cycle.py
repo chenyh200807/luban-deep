@@ -133,3 +133,68 @@ def test_empty_user_list_is_a_clean_run(monkeypatch: pytest.MonkeyPatch) -> None
     assert report["user_count"] == 0
     assert report["consolidated"] == []
     assert report["errors"] == []
+
+
+# ---------------------------------------------------------------- 文件级 watermark 锁（多 worker 单执行）
+
+import fcntl
+import os
+from pathlib import Path
+
+from deeptutor.services.learner_state.worker_file_lock import try_exclusive_file_lock
+
+
+def test_watermark_persists_across_instances_and_restarts(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """同一 state_dir 的两个实例（≈两个 worker / 一次重启）共享 watermark：
+    第一个跑完后，第二个在 interval 内不再重跑。"""
+    monkeypatch.setenv(DREAM_CYCLE_ENABLED_FLAG, "true")
+    service = _FakeService(["stu_1"])
+
+    first = LearningBrainDreamCycle(service, state_dir=tmp_path)
+    assert first.run_once(now=1000.0)["ran"] is True
+    assert (tmp_path / ".dream_cycle_last_run").exists()
+
+    second = LearningBrainDreamCycle(service, state_dir=tmp_path)
+    report = second.run_once(now=1000.0 + 60.0)
+    assert report["ran"] is False
+    assert report["reason"] == "not_due"
+    assert len(service.synthesize_calls) == 1
+
+    third = LearningBrainDreamCycle(service, state_dir=tmp_path)
+    assert third.run_once(now=1000.0 + third.interval_seconds() + 1.0)["ran"] is True
+
+
+def test_lock_held_by_peer_means_skip(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.setenv(DREAM_CYCLE_ENABLED_FLAG, "true")
+    service = _FakeService(["stu_1"])
+    cycle = LearningBrainDreamCycle(service, state_dir=tmp_path)
+
+    lock_path = tmp_path / ".dream_cycle.lock"
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    fd = os.open(str(lock_path), os.O_RDWR | os.O_CREAT, 0o644)
+    fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    try:
+        report = cycle.run_once(now=1000.0, force=True)
+    finally:
+        fcntl.flock(fd, fcntl.LOCK_UN)
+        os.close(fd)
+
+    assert report["ran"] is False
+    assert report["reason"] == "lock_held"
+    assert service.synthesize_calls == []
+
+    report = cycle.run_once(now=1000.0, force=True)
+    assert report["ran"] is True
+
+
+def test_try_exclusive_file_lock_contract(tmp_path: Path) -> None:
+    lock_path = tmp_path / "x.lock"
+    with try_exclusive_file_lock(lock_path) as got:
+        assert got is True
+        with try_exclusive_file_lock(lock_path) as got_again:
+            # 同进程二次 open+flock 同样被拒（非重入），等价于他进程持有
+            assert got_again is False
+    with try_exclusive_file_lock(lock_path) as got_after_release:
+        assert got_after_release is True
