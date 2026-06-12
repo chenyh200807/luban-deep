@@ -18,6 +18,7 @@ from deeptutor.services.taxonomy.construction_taxonomy import (
     taxonomy_source_metadata,
     taxonomy_tree_stats,
 )
+from deeptutor.services.taxonomy.textbook_directory import textbook_directory
 
 _TZ = timezone(timedelta(hours=8))
 
@@ -825,7 +826,7 @@ def test_multi_concept_evidence_updates_progress_feedback_chapter_focus() -> Non
     assert "主攻主题" in cards_by_label
     assert cards_by_label["主攻主题"]["detail"], "multi-chapter evidence should yield a non-empty focus detail"
     knowledge_summary = model["mastery"]["knowledge_summary"]
-    assert knowledge_summary["total_textbook_chapters"] == 13
+    assert knowledge_summary["total_textbook_chapters"] == len(textbook_directory())
     _assert_knowledge_summary_matches_taxonomy_authority(knowledge_summary)
     assert knowledge_summary["evaluated_topics"] >= 2
     chapters_by_no = {item["chapter_no"]: item for item in knowledge_summary["textbook_chapters"]}
