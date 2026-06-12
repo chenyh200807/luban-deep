@@ -154,6 +154,12 @@ class BIService:
         conn.row_factory = sqlite3.Row
         return conn
 
+    def _usage_window_summary(self, days: int) -> dict[str, Any]:
+        """窗口成本/Token 唯一读数入口：UsageLedger.get_window_summary。"""
+        return self._usage_ledger.get_window_summary(
+            start_ts=self._window_start(days), end_ts=time.time()
+        )
+
     @staticmethod
     def _window_start(days: int) -> float:
         safe_days = max(1, min(int(days or 30), 365))
@@ -482,7 +488,11 @@ class BIService:
         )
 
     @staticmethod
-    def _build_daily_cost_payload(context: _BiContext, *, days: int) -> dict[str, Any]:
+    def _build_daily_cost_payload(
+        context: _BiContext, usage_summary: dict[str, Any], *, days: int
+    ) -> dict[str, Any]:
+        """成本/Token 来自 UsageLedger（唯一成本权威，P2 收权 2026-06-12）；
+        turns 来自会话事实——各归其权威，不再汇总 turn 事件内嵌 cost_summary 镜像。"""
         window_days = max(1, int(days or 1))
         today = datetime.fromtimestamp(time.time())
         start_date = today.date() - timedelta(days=window_days - 1)
@@ -498,18 +508,17 @@ class BIService:
                 "turns": 0,
             }
 
-        for event in context.result_events:
-            cost_summary = event.get("cost_summary") or {}
-            cost = _safe_float(cost_summary.get("total_cost_usd"))
-            tokens = _safe_int(cost_summary.get("total_tokens"))
-            if cost <= 0 and tokens <= 0:
-                continue
-            key = _date_bucket(_safe_float(event.get("created_at")))
+        for row in usage_summary.get("by_day") or []:
+            key = str(row.get("date") or "")
             if key not in buckets:
                 continue
-            buckets[key]["cost_usd"] += cost
-            buckets[key]["tokens"] += tokens
-            buckets[key]["turns"] += 1
+            buckets[key]["cost_usd"] += _safe_float(row.get("total_cost_usd"))
+            buckets[key]["tokens"] += _safe_int(row.get("total_tokens"))
+
+        for turn in context.turns:
+            key = _date_bucket(_safe_float(turn.get("created_at")))
+            if key in buckets:
+                buckets[key]["turns"] += 1
 
         series = [
             {
@@ -528,7 +537,7 @@ class BIService:
             "window_total_usd": _round(window_total, 4),
             "average_daily_usd": _round(window_total / window_days, 4),
             "series": series,
-            "source": "turn_result_cost_summary",
+            "source": "usage_ledger",
         }
 
     @staticmethod
@@ -545,6 +554,7 @@ class BIService:
         cost_tone = "warning" if average_daily_cost > 0 and today_cost > average_daily_cost * 1.5 else "neutral"
         cost_kpi = {
             "label": "今日成本",
+            "metric_id": "today_cost_usd",
             "value": _round(today_cost, 4),
             "hint": f"窗口合计 ${_round(_safe_float(daily_cost.get('window_total_usd')), 4)} · 日均 ${_round(average_daily_cost, 4)}",
             "tone": cost_tone,
@@ -846,6 +856,7 @@ class BIService:
         failed_turns = sum(1 for turn in context.turns if turn.get("status") == "failed")
         return {
             **metric,
+            "value": _safe_float(summary.get("success_turn_rate")),
             "engineering_success_rate": _safe_float(summary.get("success_turn_rate")),
             "failed_turns": failed_turns,
             "total_turns": _safe_int(summary.get("total_turns")),
@@ -875,16 +886,23 @@ class BIService:
         cost_per_effective = window_cost / effective_members if effective_members else 0.0
         return {
             **metric,
+            "value": _round(cost_per_effective, 4),
             "revenue_status": "pending",
             "summary": "收入事实未接入，当前只展示成本侧单位经济模型。",
             "window_total_cost_usd": _round(window_cost, 4),
             "cost_per_effective_learning_usd": _round(cost_per_effective, 4),
-            "source": daily_cost.get("source") or "turn_result_cost_summary",
+            "source": daily_cost.get("source") or "usage_ledger",
         }
 
     @classmethod
     def _build_data_trust_payload(cls, *, context: _BiContext) -> dict[str, Any]:
         degraded_modules = [
+            {
+                "id": "product_behavior",
+                "label": "产品行为事实层",
+                "status": "pending",
+                "detail": "生产 product_behavior_events 无数据流入（客户端埋点未随小程序发版）；behavior.* 指标暂不可用。",
+            },
             {
                 "id": "revenue",
                 "label": "收入 authority",
@@ -909,6 +927,8 @@ class BIService:
             )
         return {
             "status": "ready",
+            "value": None,
+            "value_status": "not_computed_v1",
             "trust_model": "A/B 可用于首页决策；C/D 必须降级或待接入展示。",
             "degraded_modules": degraded_modules,
             "metric_definitions": [asdict(metric) for metric in BI_METRICS],
@@ -1277,14 +1297,10 @@ class BIService:
             self._resolve_entrypoint(session["preferences"]) for session in context.sessions
         )
 
-        total_tokens = sum(
-            _safe_int((event.get("cost_summary") or {}).get("total_tokens"))
-            for event in context.result_events
-        )
-        total_cost = sum(
-            _safe_float((event.get("cost_summary") or {}).get("total_cost_usd"))
-            for event in context.result_events
-        )
+        usage_summary = self._usage_window_summary(days)
+        usage_totals = usage_summary.get("totals") or {}
+        total_tokens = _safe_int(usage_totals.get("total_tokens"))
+        total_cost = _safe_float(usage_totals.get("total_cost_usd"))
         success_turns = sum(1 for turn in context.turns if turn.get("status") == "completed")
         avg_depth = self._average([_safe_int(session.get("message_count")) for session in context.sessions])
         notebook_save_count = len(context.notebook_entries)
@@ -1311,7 +1327,7 @@ class BIService:
             tier=tier,
         )
         member_dashboard = member_stats.get("dashboard", {})
-        daily_cost = self._build_daily_cost_payload(context, days=days)
+        daily_cost = self._build_daily_cost_payload(context, usage_summary, days=days)
 
         risk_alerts = []
         if member_dashboard.get("expiring_soon_count"):
@@ -1333,16 +1349,27 @@ class BIService:
             "notebook_saves": notebook_save_count,
             "total_tokens": total_tokens,
             "total_cost_usd": _round(total_cost, 4),
+            "measured_total_cost_usd": _round(_safe_float(usage_totals.get("measured_total_cost_usd")), 4),
+            "estimated_total_cost_usd": _round(_safe_float(usage_totals.get("estimated_total_cost_usd")), 4),
+            "cost_provenance": "usage_ledger",
             "active_members": member_dashboard.get("active_count", 0),
             "expiring_soon_count": member_dashboard.get("expiring_soon_count", 0),
         }
         cards = [
-            {"label": "活跃学习会话", "value": summary["total_sessions"], "hint": f"{days} 天窗口内更新过的会话"},
-            {"label": "活跃学习者", "value": summary["active_learners"], "hint": "按用户或匿名会话去重"},
-            {"label": "回合成功率", "value": f"{summary['success_turn_rate']}%", "hint": f"总回合 {summary['total_turns']}"},
-            {"label": "平均会话深度", "value": summary["avg_session_depth"], "hint": "每个会话平均消息数"},
-            {"label": "Notebook 保存", "value": summary["notebook_saves"], "hint": "问题笔记沉淀量"},
-            {"label": "总成本", "value": summary["total_cost_usd"], "hint": f"总 Token {summary['total_tokens']}"},
+            {"label": "活跃学习会话", "metric_id": "active_learning_sessions", "value": summary["total_sessions"], "hint": f"{days} 天窗口内更新过的会话"},
+            {"label": "活跃学习者", "metric_id": "activated_members", "value": summary["active_learners"], "hint": "按用户或匿名会话去重"},
+            {"label": "回合成功率", "metric_id": "success_turn_rate", "value": f"{summary['success_turn_rate']}%", "hint": f"总回合 {summary['total_turns']}"},
+            {"label": "平均会话深度", "metric_id": "avg_session_depth", "value": summary["avg_session_depth"], "hint": "每个会话平均消息数"},
+            {"label": "Notebook 保存", "metric_id": "notebook_saves", "value": summary["notebook_saves"], "hint": "问题笔记沉淀量"},
+            {
+                "label": "总成本",
+                "metric_id": "total_cost_usd",
+                "value": summary["total_cost_usd"],
+                "measured_value": summary["measured_total_cost_usd"],
+                "estimated_value": summary["estimated_total_cost_usd"],
+                "provenance": "usage_ledger",
+                "hint": f"总 Token {summary['total_tokens']}",
+            },
         ]
 
         return {
@@ -1806,9 +1833,9 @@ class BIService:
             "window_days": days,
             "dashboard": dashboard,
             "cards": [
-                {"label": "活跃会员", "value": dashboard.get("active_count", 0), "hint": f"总会员 {dashboard.get('total_count', 0)}"},
-                {"label": "7 天内到期", "value": dashboard.get("expiring_soon_count", 0), "hint": "建议跟进续费"},
-                {"label": "流失预警", "value": dashboard.get("churn_risk_count", 0), "hint": f"健康分 {dashboard.get('health_score', 0)}"},
+                {"label": "活跃会员", "metric_id": "member_active_count", "value": dashboard.get("active_count", 0), "hint": f"总会员 {dashboard.get('total_count', 0)}"},
+                {"label": "7 天内到期", "metric_id": "expiring_soon_members", "value": dashboard.get("expiring_soon_count", 0), "hint": "建议跟进续费"},
+                {"label": "流失预警", "metric_id": "renewal_risk_members", "value": dashboard.get("churn_risk_count", 0), "hint": f"健康分 {dashboard.get('health_score', 0)}"},
             ],
             "tiers": [{"tier": key, "count": value, "label": key, "value": value} for key, value in tier_counter.most_common()],
             "risks": [{"risk_level": key, "count": value, "label": key, "value": value} for key, value in risk_counter.most_common()],
@@ -2152,37 +2179,52 @@ class BIService:
         entrypoint: str | None = None,
         tier: str | None = None,
     ) -> dict[str, Any]:
+        # P2 收权（2026-06-12）：成本唯一 authority = UsageLedger；
+        # 不再汇总 turn 事件内嵌 cost_summary 镜像（328x 缺口根因）。
         context = self._apply_filters(
             await self._load_context(days),
             self._normalize_filters(capability, entrypoint, tier),
         )
-        model_counter = Counter()
-        provider_counter = Counter()
-        total_input = 0
-        total_output = 0
-        total_tokens = 0
-        total_cost = 0.0
-
-        for event in context.result_events:
-            cost_summary = event.get("cost_summary") or {}
-            total_input += _safe_int(cost_summary.get("total_input_tokens"))
-            total_output += _safe_int(cost_summary.get("total_output_tokens"))
-            total_tokens += _safe_int(cost_summary.get("total_tokens"))
-            total_cost += _safe_float(cost_summary.get("total_cost_usd"))
-            for name, count in (cost_summary.get("models") or {}).items():
-                model_counter[str(name)] += _safe_int(count)
-            for name, count in (cost_summary.get("usage_sources") or {}).items():
-                provider_counter[str(name)] += _safe_int(count)
+        usage_summary = self._usage_window_summary(days)
+        totals = usage_summary.get("totals") or {}
+        total_cost = _safe_float(totals.get("total_cost_usd"))
+        total_tokens = _safe_int(totals.get("total_tokens"))
+        measured_cost = _safe_float(totals.get("measured_total_cost_usd"))
+        estimated_cost = _safe_float(totals.get("estimated_total_cost_usd"))
 
         cards = [
-            {"label": "总成本", "value": _round(total_cost, 4), "hint": f"最近 {days} 天"},
-            {"label": "总 Token", "value": total_tokens, "hint": f"输入 {total_input} / 输出 {total_output}"},
-            {"label": "平均回合成本", "value": _round(total_cost / max(len(context.turns), 1), 4), "hint": f"回合数 {len(context.turns)}"},
+            {
+                "label": "总成本",
+                "metric_id": "total_cost_usd",
+                "value": _round(total_cost, 4),
+                "measured_value": _round(measured_cost, 4),
+                "estimated_value": _round(estimated_cost, 4),
+                "hint": f"最近 {days} 天 · measured ${_round(measured_cost, 4)} / estimated ${_round(estimated_cost, 4)}",
+            },
+            {
+                "label": "总 Token",
+                "metric_id": "total_tokens",
+                "value": total_tokens,
+                "hint": f"输入 {_safe_int(totals.get('input_tokens'))} / 输出 {_safe_int(totals.get('output_tokens'))}",
+            },
+            {
+                "label": "平均回合成本",
+                "metric_id": "avg_turn_cost_usd",
+                "value": _round(total_cost / max(len(context.turns), 1), 4),
+                "hint": f"回合数 {len(context.turns)} · 分子含非回合内调用",
+            },
         ]
-        models = [{"label": key, "value": value} for key, value in model_counter.most_common()]
-        providers = [{"label": key, "value": value} for key, value in provider_counter.most_common()]
+        models = [
+            {"label": row.get("model") or "unknown", "value": _round(_safe_float(row.get("total_cost_usd")), 4), "events": _safe_int(row.get("events")), "tokens": _safe_int(row.get("total_tokens"))}
+            for row in usage_summary.get("by_model") or []
+        ]
+        providers = [
+            {"label": row.get("usage_source") or "unknown", "value": _round(_safe_float(row.get("total_cost_usd")), 4), "events": _safe_int(row.get("events"))}
+            for row in usage_summary.get("by_usage_source") or []
+        ]
         return {
             "window_days": days,
+            "provenance": "usage_ledger",
             "cards": cards,
             "models": models,
             "providers": providers,

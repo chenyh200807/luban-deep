@@ -528,6 +528,66 @@ def bi_service(tmp_path: Path, monkeypatch) -> BIService:
             )()
 
     class _FakeUsageLedger:
+        def get_window_summary(self, *, start_ts, end_ts):
+            return {
+                "totals": {
+                    "input_tokens": 90000,
+                    "output_tokens": 24000,
+                    "total_tokens": 114000,
+                    "total_cost_usd": 5.46,
+                    "measured_total_cost_usd": 2.44,
+                    "estimated_total_cost_usd": 3.02,
+                    "measured_total_tokens": 100000,
+                    "estimated_total_tokens": 14000,
+                },
+                "by_model": [
+                    {
+                        "model": "deepseek-v4-flash",
+                        "events": 100,
+                        "total_tokens": 90000,
+                        "measured_total_cost_usd": 2.0,
+                        "estimated_total_cost_usd": 3.0,
+                        "total_cost_usd": 5.0,
+                    },
+                    {
+                        "model": "gte-rerank",
+                        "events": 20,
+                        "total_tokens": 24000,
+                        "measured_total_cost_usd": 0.44,
+                        "estimated_total_cost_usd": 0.02,
+                        "total_cost_usd": 0.46,
+                    },
+                ],
+                "by_usage_source": [
+                    {
+                        "usage_source": "provider",
+                        "events": 100,
+                        "total_tokens": 100000,
+                        "measured_total_cost_usd": 2.44,
+                        "estimated_total_cost_usd": 0.0,
+                        "total_cost_usd": 2.44,
+                    },
+                    {
+                        "usage_source": "tiktoken",
+                        "events": 20,
+                        "total_tokens": 14000,
+                        "measured_total_cost_usd": 0.0,
+                        "estimated_total_cost_usd": 3.02,
+                        "total_cost_usd": 3.02,
+                    },
+                ],
+                "by_day": [
+                    {
+                        "date": datetime.now().date().isoformat(),
+                        "events": 120,
+                        "total_tokens": 114000,
+                        "measured_total_cost_usd": 2.44,
+                        "estimated_total_cost_usd": 3.02,
+                        "total_cost_usd": 5.46,
+                    }
+                ],
+            }
+
         def get_totals(self, **kwargs):
             assert kwargs["provider_name"] in {"dashscope", "deepseek"}
             provider_name = kwargs["provider_name"]
@@ -1634,3 +1694,78 @@ def test_bi_overview_keeps_member_snapshot_consistent_under_tier_filter(bi_servi
     assert body["boss_workbench"]["risk_queue"][0]["count"] == 0
     assert body["boss_workbench"]["risk_queue"][1]["count"] == 0
     assert [item["tier"] for item in body["boss_workbench"]["watchlist"]] == ["vip"]
+
+
+def test_bi_cost_stats_reads_usage_ledger_authority(bi_service: BIService) -> None:
+    """P2-F1: 成本唯一 authority = UsageLedger，cards 带血统分量与 metric_id。"""
+    payload = asyncio.run(bi_service.get_cost_stats(days=7))
+    assert payload["provenance"] == "usage_ledger"
+    cards = {card["label"]: card for card in payload["cards"]}
+    total = cards["总成本"]
+    assert total["value"] == 5.46
+    assert total["measured_value"] == 2.44
+    assert total["estimated_value"] == 3.02
+    assert total["metric_id"] == "total_cost_usd"
+    assert cards["总 Token"]["value"] == 114000
+    assert cards["总 Token"]["metric_id"] == "total_tokens"
+    models = {row["label"]: row["value"] for row in payload["models"]}
+    assert models["deepseek-v4-flash"] == 5.0
+    providers = {row["label"]: row["value"] for row in payload["providers"]}
+    assert providers["provider"] == 2.44
+
+
+def test_bi_overview_cost_matches_cost_endpoint_single_authority(bi_service: BIService) -> None:
+    """P2-F1: overview 与 cost 同源——自相矛盾消除。"""
+    overview = asyncio.run(bi_service.get_overview(days=7))
+    cost = asyncio.run(bi_service.get_cost_stats(days=7))
+    cost_total = next(c for c in cost["cards"] if c["label"] == "总成本")["value"]
+    assert overview["summary"]["total_cost_usd"] == cost_total == 5.46
+    assert overview["summary"]["measured_total_cost_usd"] == 2.44
+    assert overview["summary"]["estimated_total_cost_usd"] == 3.02
+    assert overview["summary"]["cost_provenance"] == "usage_ledger"
+    assert overview["summary"]["total_tokens"] == 114000
+    # boss_workbench 今日成本与 ledger by_day 同源
+    kpis = {k["label"]: k for k in overview["boss_workbench"]["kpis"]}
+    assert kpis["今日成本"]["value"] == 5.46
+
+
+def test_bi_overview_wires_unit_economics_and_ai_quality_values(bi_service: BIService) -> None:
+    """P2-F3/F4: 已注册指标必须有 value 承载（可为 null 但键必须在）。"""
+    overview = asyncio.run(bi_service.get_overview(days=7))
+    ue = overview["unit_economics"]
+    assert "value" in ue
+    assert ue["value"] == ue["cost_per_effective_learning_usd"]
+    assert ue["value"] is not None and ue["value"] > 0
+    aiq = overview["ai_quality"]
+    assert aiq["value"] == aiq["engineering_success_rate"]
+    dt = overview["data_trust"]
+    assert "value" in dt  # v1 显式 null + 状态，禁止缺键
+    behavior_modules = [m for m in dt["degraded_modules"] if m["id"] == "product_behavior"]
+    assert behavior_modules and behavior_modules[0]["status"] == "pending"
+
+
+def test_bi_all_emitted_card_labels_resolve_to_registry(bi_service: BIService) -> None:
+    """P2-F5 contract: 任何 payload 卡片标签必须可经注册表 label/alias 解析。"""
+    from deeptutor.services.bi_metrics import BI_METRICS
+
+    known: set[str] = set()
+    for metric in BI_METRICS:
+        known.add(metric.label)
+        known.update(metric.label_aliases)
+
+    overview = asyncio.run(bi_service.get_overview(days=7))
+    cost = asyncio.run(bi_service.get_cost_stats(days=7))
+    members = asyncio.run(bi_service.get_member_stats(days=7))
+    labels: list[str] = []
+    for payload in (overview, cost, members):
+        labels.extend(card.get("label") for card in payload.get("cards") or [])
+    labels.extend(k.get("label") for k in overview["boss_workbench"]["kpis"])
+    unregistered = sorted({label for label in labels if label and label not in known})
+    assert unregistered == [], f"注册表外标签: {unregistered}"
+    # 所有卡片必须携带可解析的 metric_id
+    from deeptutor.services.bi_metrics import metric_by_id
+
+    for payload in (overview, cost, members):
+        for card in payload.get("cards") or []:
+            assert card.get("metric_id"), card
+            metric_by_id(card["metric_id"])

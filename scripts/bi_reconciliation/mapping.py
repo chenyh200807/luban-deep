@@ -108,7 +108,38 @@ METRIC_MAPPINGS: tuple[MetricMapping, ...] = (
     MetricMapping(
         "data_trust_score",
         tolerance_pct=1.0,
-        gap_note="2026-06-12 实拍：data_trust 只有 status/degraded_modules，无数值分——注册指标 data_trust_score 未被 payload 实际承载",
+        gap_note="v1 显式 value=null（registry degraded_note 已声明），数值化列入 P3",
+    ),
+    # P2 注册表补全（F5 收口，2026-06-12）
+    MetricMapping(
+        "total_tokens",
+        bi_api_path="cost:cards[label=总 Token].value",
+        langfuse_kind="daily_observations",
+        tolerance_pct=15.0,
+        gap_note="Langfuse 侧 observations 数量与 token 数不可等值比，仅记录双方分量",
+    ),
+    MetricMapping(
+        "today_cost_usd",
+        tolerance_pct=15.0,
+        gap_note="自然日窗口与对账 harness 的 N 天窗口不同口径，P1 不做等值比，由 P3 日粒度对账覆盖",
+    ),
+    MetricMapping(
+        "avg_turn_cost_usd",
+        bi_api_path="cost:cards[label=平均回合成本].value",
+        tolerance_pct=15.0,
+        gap_note="派生指标（ledger 成本 ÷ 会话回合数），无独立外部真相，仅记录",
+    ),
+    MetricMapping(
+        "member_active_count",
+        bi_api_path="members:dashboard.active_count",
+        tolerance_pct=1.0,
+        gap_note="canonical 口径在 member_console 聚合，外部暂不可独立复算（同 registered_members）",
+    ),
+    MetricMapping(
+        "expiring_soon_members",
+        bi_api_path="members:dashboard.expiring_soon_count",
+        tolerance_pct=1.0,
+        gap_note="到期窗口为 member_console 派生口径，仅记录",
     ),
 )
 

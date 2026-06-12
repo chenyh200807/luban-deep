@@ -456,6 +456,10 @@ class UsageLedger:
             source_rows = conn.execute(
                 group_sql.format(column="usage_source"), (float(start_ts), float(end_ts))
             ).fetchall()
+            day_rows = conn.execute(
+                group_sql.format(column="date(created_at, 'unixepoch', 'localtime')"),
+                (float(start_ts), float(end_ts)),
+            ).fetchall()
 
         def _group_payload(row: Any, key_name: str) -> dict[str, Any]:
             measured = _safe_float(row["measured_cost"])
@@ -469,10 +473,14 @@ class UsageLedger:
                 "total_cost_usd": round(measured + estimated, 8),
             }
 
+        by_day = sorted(
+            (_group_payload(row, "date") for row in day_rows), key=lambda item: item["date"]
+        )
         return {
             "totals": totals.to_dict(),
             "by_model": [_group_payload(row, "model") for row in model_rows],
             "by_usage_source": [_group_payload(row, "usage_source") for row in source_rows],
+            "by_day": by_day,
         }
 
     def mark_turn_billable(self, *, turn_id: str, billing_capture: dict[str, Any]) -> int:

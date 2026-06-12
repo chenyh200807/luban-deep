@@ -53,8 +53,7 @@ def test_total_cost_cross_check_records_overview_summary():
     assert meta["overview_summary_total_cost_usd"] == 0.0
 
 
-def test_unregistered_kpi_labels_are_reported():
+def test_unregistered_kpi_labels_cleared_after_f5_registration():
+    """P2-F5 收口后：2026-06-12 实拍 payload 的全部 KPI 标签都应可解析回注册表。"""
     unknown = find_unregistered_labels(_payloads())
-    assert isinstance(unknown, list)
-    # 实拍 payload 中 boss_workbench kpi「今日成本」不在注册表 label/alias 中
-    assert "今日成本" in unknown
+    assert unknown == []

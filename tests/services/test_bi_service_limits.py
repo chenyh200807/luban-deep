@@ -9,7 +9,23 @@ import pytest
 
 import deeptutor.services.bi_service as bi_service_module
 from deeptutor.services.bi_service import BIService
+from deeptutor.services.observability.usage_ledger import UsageLedger
 from deeptutor.services.session.sqlite_store import SQLiteSessionStore
+
+
+def _seeded_ledger(tmp_path: Path, *costs: float) -> UsageLedger:
+    """P2 收权后成本唯一来源是 UsageLedger；测试显式注入 tmp ledger 保证隔离。"""
+    ledger = UsageLedger(db_path=tmp_path / "llm_usage_test.db")
+    for index, cost in enumerate(costs):
+        ledger.record_usage_event(
+            usage_source="provider",
+            usage_details={"input": 100.0, "output": 50.0, "total": 150.0},
+            cost_details={"total": cost},
+            model="deepseek-v4-flash",
+            metadata={"provider_name": "dashscope"},
+            turn_id=f"ledger_turn_{index}",
+        )
+    return ledger
 
 
 class _QuietMemberService:
@@ -369,10 +385,14 @@ def test_bi_context_loader_caps_each_collection(
     }
 
 
-def test_boss_workbench_exposes_daily_cost_from_result_cost_summary(
-    store: SQLiteSessionStore,
+def test_boss_workbench_exposes_daily_cost_from_usage_ledger(
+    store: SQLiteSessionStore, tmp_path: Path
 ) -> None:
-    service = BIService(session_store=store, member_service=_RegisteredMemberService())
+    service = BIService(
+        session_store=store,
+        member_service=_RegisteredMemberService(),
+        usage_ledger=_seeded_ledger(tmp_path, 0.125),
+    )
 
     async def _seed() -> None:
         session = await store.create_session(title="Cost Session", session_id="cost_session")
@@ -410,14 +430,19 @@ def test_boss_workbench_exposes_daily_cost_from_result_cost_summary(
     assert boss["daily_cost"]["today_usd"] == 0.125
     assert boss["daily_cost"]["window_total_usd"] == 0.125
     assert boss["daily_cost"]["series"][-1]["cost_usd"] == 0.125
-    assert boss["daily_cost"]["source"] == "turn_result_cost_summary"
+    assert boss["daily_cost"]["source"] == "usage_ledger"
     assert any(item["label"] == "今日成本" for item in boss["kpis"])
 
 
 def test_boss_workbench_counts_only_registered_member_activity(
-    store: SQLiteSessionStore,
+    store: SQLiteSessionStore, tmp_path: Path
 ) -> None:
-    service = BIService(session_store=store, member_service=_RegisteredMemberService())
+    # 会话/回合仍按注册会员 scope；平台成本来自 UsageLedger 全量（P2-F1b：成本不是会员子集事实）
+    service = BIService(
+        session_store=store,
+        member_service=_RegisteredMemberService(),
+        usage_ledger=_seeded_ledger(tmp_path, 0.1, 0.2),
+    )
 
     async def _create_session(session_id: str, user_id: str, *, status: str, cost: float) -> None:
         session = await store.create_session(title=session_id, session_id=session_id)
@@ -466,9 +491,13 @@ def test_boss_workbench_counts_only_registered_member_activity(
 
 
 def test_overview_exposes_top_tier_bi_payloads_without_counting_unregistered_activity(
-    store: SQLiteSessionStore,
+    store: SQLiteSessionStore, tmp_path: Path
 ) -> None:
-    service = BIService(session_store=store, member_service=_RegisteredMemberService())
+    service = BIService(
+        session_store=store,
+        member_service=_RegisteredMemberService(),
+        usage_ledger=_seeded_ledger(tmp_path, 0.25),
+    )
 
     async def _create_session(session_id: str, user_id: str, *, status: str, cost: float) -> None:
         session = await store.create_session(title=session_id, session_id=session_id)
@@ -520,6 +549,7 @@ def test_overview_exposes_top_tier_bi_payloads_without_counting_unregistered_act
     assert overview["ai_quality"]["engineering_success_rate"] == 100
     assert overview["unit_economics"]["revenue_status"] == "pending"
     assert overview["unit_economics"]["cost_per_effective_learning_usd"] == 0.25
+    assert overview["unit_economics"]["value"] == 0.25
     assert overview["teaching_effect"]["chapter_progress"][0]["name"] == "地基基础"
     assert overview["teaching_effect"]["chapter_progress"][0]["mastery"] == 58
     assert overview["teaching_effect"]["chapter_progress"][0]["member_count"] == 1

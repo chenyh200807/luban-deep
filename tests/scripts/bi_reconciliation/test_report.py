@@ -41,6 +41,6 @@ def test_metric_dictionary_includes_registry_and_mapping_fields():
 
     assert len(d) == len(BI_METRICS)
     sample = next(x for x in d if x["metric_id"] == "total_cost_usd")
-    assert sample["trust_level"] == "C"
+    assert sample["trust_level"] == "B"
     assert sample["mapping"]["langfuse_kind"] == "daily_cost"
     assert sample["definition"]
