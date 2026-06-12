@@ -104,6 +104,10 @@ services:
       # 'redis' so per-user quotas/caps are shared and correct across workers.
       - DEEPTUTOR_RATE_LIMIT_BACKEND=${DEEPTUTOR_RATE_LIMIT_BACKEND:-sqlite}
       - DEEPTUTOR_RATE_LIMIT_REDIS_URL=${DEEPTUTOR_RATE_LIMIT_REDIS_URL:-}
+      # Behind the edge nginx, trust its X-Real-IP so per-IP rate limits key on the
+      # REAL client, not the docker gateway IP (else all anon users share one bucket).
+      # Safe here: nginx sets X-Real-IP=$remote_addr (overwrites client value).
+      - DEEPTUTOR_TRUST_PROXY_HEADERS=${DEEPTUTOR_TRUST_PROXY_HEADERS:-false}
 
     volumes:
       # Mount local data directory for persistence (read-write)

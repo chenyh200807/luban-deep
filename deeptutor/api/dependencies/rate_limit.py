@@ -340,11 +340,21 @@ def _get_backend() -> _BaseRateLimitBackend:
 
 def _client_ip_from_parts(client_host: str, headers: dict[str, str]) -> str:
     if _trust_proxy_headers():
-        forwarded_for = str(headers.get("x-forwarded-for") or headers.get("x-real-ip") or "").strip()
+        # Spoof-resistant client-IP extraction behind the edge proxy.
+        # Prefer X-Real-IP: the edge nginx sets it to $remote_addr (the real client),
+        # OVERWRITING any client-supplied value, so it cannot be forged. Only if it is
+        # absent fall back to the RIGHTMOST X-Forwarded-For hop — the IP our own nginx
+        # appended via $proxy_add_x_forwarded_for. NEVER the leftmost hop: that is
+        # whatever the client sent and is fully attacker-controlled (a forged leftmost
+        # value would let an attacker rotate the rate-limit key and bypass per-IP limits).
+        real_ip = str(headers.get("x-real-ip") or "").strip()
+        if real_ip:
+            return real_ip
+        forwarded_for = str(headers.get("x-forwarded-for") or "").strip()
         if forwarded_for:
-            first_hop = forwarded_for.split(",", 1)[0].strip()
-            if first_hop:
-                return first_hop
+            last_hop = forwarded_for.rsplit(",", 1)[-1].strip()
+            if last_hop:
+                return last_hop
     return client_host or "unknown"
 
 

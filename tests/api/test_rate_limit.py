@@ -121,6 +121,40 @@ def test_websocket_rate_limit_blocks_repeated_connections(
     assert closed == (1013, "Too many requests")
 
 
+def test_client_ip_prefers_unforgeable_x_real_ip(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Behind the edge proxy, the rate-limit key must use the real client IP, not a
+    forgeable header value — otherwise per-IP limits are trivially bypassed."""
+    monkeypatch.setenv("DEEPTUTOR_TRUST_PROXY_HEADERS", "true")
+
+    # X-Real-IP is set authoritatively by our nginx ($remote_addr) — use it as-is.
+    ip = rate_limit_module._client_ip_from_parts(
+        "172.20.0.1",
+        {"x-real-ip": "203.0.113.9", "x-forwarded-for": "1.2.3.4, 203.0.113.9"},
+    )
+    assert ip == "203.0.113.9"
+
+
+def test_client_ip_ignores_forged_leftmost_xff(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("DEEPTUTOR_TRUST_PROXY_HEADERS", "true")
+    # No X-Real-IP: fall back to the RIGHTMOST hop (appended by our nginx), never the
+    # attacker-controlled leftmost "9.9.9.9".
+    ip = rate_limit_module._client_ip_from_parts(
+        "172.20.0.1",
+        {"x-forwarded-for": "9.9.9.9, 203.0.113.9"},
+    )
+    assert ip == "203.0.113.9"
+
+
+def test_client_ip_falls_back_to_socket_when_proxy_untrusted(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("DEEPTUTOR_TRUST_PROXY_HEADERS", raising=False)
+    ip = rate_limit_module._client_ip_from_parts(
+        "198.51.100.7", {"x-real-ip": "1.2.3.4", "x-forwarded-for": "1.2.3.4"}
+    )
+    assert ip == "198.51.100.7"  # headers ignored when proxy not trusted
+
+
 def test_daily_turn_budget_blocks_sustained_burn(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
