@@ -40,6 +40,32 @@ logger = logging.getLogger(__name__)
 # while killing the amplification vector. Applies to every message type at the entry.
 _MAX_WS_INBOUND_FRAME_CHARS = 128 * 1024
 
+# Per-user concurrent WS connection cap (anti fd/memory-exhaustion DoS). The connect
+# rate limit (60/60s) bounds reconnect *rate*, not the number of simultaneously OPEN
+# connections — one account could hold hundreds open, each carrying subscription tasks.
+# This bounds live connections per user. Admins are exempt (ops dashboards).
+_MAX_WS_CONNECTIONS_PER_USER = 8
+_active_ws_connections: dict[str, int] = {}
+_active_ws_connections_lock = asyncio.Lock()
+
+
+async def _try_acquire_ws_slot(user_id: str) -> bool:
+    async with _active_ws_connections_lock:
+        current = _active_ws_connections.get(user_id, 0)
+        if current >= _MAX_WS_CONNECTIONS_PER_USER:
+            return False
+        _active_ws_connections[user_id] = current + 1
+        return True
+
+
+async def _release_ws_slot(user_id: str) -> None:
+    async with _active_ws_connections_lock:
+        remaining = _active_ws_connections.get(user_id, 0) - 1
+        if remaining > 0:
+            _active_ws_connections[user_id] = remaining
+        else:
+            _active_ws_connections.pop(user_id, None)
+
 
 def _discard_current_subscription_task(
     subscription_tasks: dict[str, asyncio.Task[None]],
@@ -408,6 +434,15 @@ async def unified_websocket(ws: WebSocket) -> None:
     )
     if current_user is None:
         return  # ws already closed (4401 or 1013)
+
+    # Per-user concurrent connection cap (admins exempt). Acquire before doing any work;
+    # release in the finally below. Over-cap → 1013 and return.
+    ws_slot_user = None if current_user.is_admin else str(current_user.user_id)
+    if ws_slot_user is not None and not await _try_acquire_ws_slot(ws_slot_user):
+        logger.warning("Unified WS connection cap hit for user=%s", ws_slot_user)
+        await ws.close(code=1013, reason="Too many concurrent connections")
+        return
+
     get_turn_runtime_metrics().record_ws_open()
     closed = False
     subscription_tasks: dict[str, asyncio.Task[None]] = {}
@@ -729,3 +764,5 @@ async def unified_websocket(ws: WebSocket) -> None:
                 await stop_subscription(key)
         finally:
             get_turn_runtime_metrics().record_ws_close()
+            if ws_slot_user is not None:
+                await _release_ws_slot(ws_slot_user)
