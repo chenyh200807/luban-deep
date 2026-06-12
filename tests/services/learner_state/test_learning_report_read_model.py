@@ -808,10 +808,11 @@ def test_multi_concept_evidence_updates_progress_feedback_chapter_focus() -> Non
     assert cards_by_label["主攻主题"]["detail"], "multi-chapter evidence should yield a non-empty focus detail"
     knowledge_summary = model["mastery"]["knowledge_summary"]
     assert knowledge_summary["total_textbook_chapters"] == 13
-    assert knowledge_summary["total_nodes"] == 3735
-    assert knowledge_summary["leaf_nodes"] == 2786
-    assert knowledge_summary["coded_nodes"] == 3733
-    assert knowledge_summary["unique_codes"] == 1284
+    # book-derived axis (2026-06-12): collision-free codes, unique == coded
+    assert knowledge_summary["total_nodes"] == 2142
+    assert knowledge_summary["leaf_nodes"] == 2007
+    assert knowledge_summary["coded_nodes"] == 2142
+    assert knowledge_summary["unique_codes"] == 2142
     assert knowledge_summary["evaluated_topics"] >= 2
     chapters_by_no = {item["chapter_no"]: item for item in knowledge_summary["textbook_chapters"]}
     assert chapters_by_no[1]["evaluated_topics"] >= 1

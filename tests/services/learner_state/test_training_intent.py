@@ -119,10 +119,10 @@ def test_home_projection_v1_consumer_derives_intent_from_assessment_evidence() -
     )
 
     assert projection is not None
-    # canonical classifier maps "防水工程" → chapter section "屋面与防水工程施工"
-    assert projection["today_focus"]["title"] == "今日焦点：屋面与防水工程施工"
+    # book-derived axis: "防水工程" is itself a canonical node (1A413000-C24)
+    assert projection["today_focus"]["title"] == "今日焦点：防水工程"
     intent = projection["recommended_prompts"][0]["intent"]
-    assert intent["concept_label"] == "屋面与防水工程施工"
+    assert intent["concept_label"] == "防水工程"
     assert intent["error_label"] == "M01"
     assert intent["evidence_refs"] == ["evt_assessment_1", "attempt_ref_1"]
 

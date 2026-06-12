@@ -60,9 +60,10 @@ def test_next_best_action_treats_string_evidence_ref_as_single_ref() -> None:
     )[0]
 
     assert action["evidence_refs"] == ["evt_string"]
-    assert action["title"] == "先练屋面与防水工程施工"
-    assert action["target"] == "屋面与防水工程施工"
-    assert action["materials"][0] == "教材：屋面与防水工程施工相关章节"
+    # book-derived axis: "防水工程" resolves to its own canonical node
+    assert action["title"] == "先练防水工程"
+    assert action["target"] == "防水工程"
+    assert action["materials"][0] == "教材：防水工程相关章节"
 
 
 def test_next_best_action_does_not_surface_unmapped_raw_concept_label() -> None:
