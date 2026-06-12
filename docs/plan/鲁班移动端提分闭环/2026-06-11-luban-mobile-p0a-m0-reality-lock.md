@@ -166,13 +166,17 @@ Rules:
 
 ### 6.2 `mistake_tag`
 
+> 2026-06-12 修订（取证后收权）：错因的 canonical authority **已经存在**——`deeptutor/contracts/error_codes.py` 的 `ERROR_CODE_REGISTRY`（E01-E12 案例题 + M01-M10 选择题，共 23 个受管代码），且 `GradingErrorEvent -> learning_synthesis -> learning_report -> training_intent -> next_best_action` 全链已围绕 `(concept_id, error_code)` 工作。`mistake_tag` **不是新 taxonomy**，是 error_code 在采分点粒度的 qualified reference。禁止建第二套错因码表。
+
 Required schema before long-term write:
 
 ```yaml
 mistake_tag:
-  tag_id: "mt_*"
-  label: ""
-  taxonomy_version: "mistake_tag_taxonomy_v1"
+  error_code: "E01..E12 | M01..M10"   # 唯一 canonical 轴，必须在 ERROR_CODE_REGISTRY 注册
+  scoring_point_id: ""                 # 关联采分点
+  tag_id: "mt_*"                       # 仅作 dedup key = hash(error_code, source, scoring_point_id)
+  label: ""                            # 必须等于 ERROR_CODE_REGISTRY[error_code].label，不得自造
+  taxonomy_version: "error_codes_registry_v1"  # 指向 error_codes.py registry 版本
   source: "rubric_policy | teacher_final | model_candidate | user_selected"
   confidence: 0.0
 ```
@@ -180,8 +184,9 @@ mistake_tag:
 Rules:
 
 - Before contract and readback tests freeze, `mistake_tag` is display-only.
-- Free-text diagnosis such as “漏写采分点：XXX” cannot be the canonical tag.
+- `label` 不允许出现 `ERROR_CODE_REGISTRY` 之外的值；free-text diagnosis such as “漏写采分点：XXX” cannot be the canonical tag（它属于 `GradingErrorEvent.diagnosis` 字段）。
 - Tags must be usable by mistake book, review task and today task with the same `tag_id`.
+- 已知技术债：`learning_report_read_model._ERROR_LABELS` 与 `learning_brain_read_model._ERROR_LABELS` 是 registry 的两份显示层副本，contract 冻结时应收敛为单点查表（M2 任务，不在资产生产范围内顺手修）。
 
 ### 6.3 `mastered`
 

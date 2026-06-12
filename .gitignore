@@ -329,6 +329,10 @@ celerybeat.pid
 
 # Offline compiler outputs; review artifacts must never enter git.
 /artifacts/
+# Exception: case_family assets need version control (owner/reviewer/rollback rely on git history).
+!/artifacts/
+/artifacts/*
+!/artifacts/luban_case_family_assets/
 
 # Official billing exports may contain API-key-level cost details.
 data/user/official_billing/
