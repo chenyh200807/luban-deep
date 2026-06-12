@@ -454,3 +454,38 @@ def test_make_llm_judge_escapes_injection_in_per_point_prompt():
     judge({"text": "x", "required_terms": [], "policy": "qualitative"}, injection)
     assert injection not in captured["prompt"]
     assert json.dumps(injection, ensure_ascii=False) in captured["prompt"]
+
+
+def test_to_learning_evidence_emits_error_events_without_node_code() -> None:
+    """开放世界（无 node_code）也必须沉淀 error_events——concept_tag 留空、
+    error_code 仍走注册表；concept 归属交给 canonical_topic / 合成层兜底。
+    评分开放世界（硬约束）⇒ 记忆也必须开放世界，否则"判了但不记"。"""
+    event = {
+        "event_type": "case_grading_completed",
+        "question_id": "OPEN-1",
+        "awarded_score": 0,
+        "max_score": 1,
+        "scoring_points": [
+            {
+                "point_id": "P1",
+                "knowledge_point": "屋面防水卷材搭接",
+                "hit": "miss",
+                "score": 0,
+                "max_score": 1,
+                "mistake_type": "miss",
+                "evidence_span": "搭接宽度不足",
+                "policy_type": "exact_required",
+            }
+        ],
+    }
+
+    payload = G.to_learning_evidence(event, node_code="")
+
+    errors = payload.get("error_events") or []
+    assert len(errors) == 1
+    assert errors[0]["concept_tag"] == ""
+    assert errors[0]["error_code"]
+    assert errors[0]["rubric_item_id"] == "P1"
+    # 有 node_code 的行为不回归
+    payload_with_node = G.to_learning_evidence(event, node_code="1A415000")
+    assert (payload_with_node.get("error_events") or [])[0]["concept_tag"] == "1A415000"

@@ -95,14 +95,13 @@ def test_v1_case_event_writes_learning_evidence_and_marks_result_payload(
         "deeptutor.services.learner_state.get_learner_state_service",
         lambda: service,
     )
-    result_payload: dict[str, Any] = {}
-
-    _record_v1_grading_to_brain_for_question(
-        context=_context(),
-        v1_event=_v1_event(),
-        graded_context=_graded_context(),
-        result_payload=result_payload,
-        turn_id="turn-1",
+    result_payload: dict[str, Any] = dict(
+        _record_v1_grading_to_brain_for_question(
+            context=_context(),
+            v1_event=_v1_event(),
+            graded_context=_graded_context(),
+            turn_id="turn-1",
+        )
     )
 
     assert len(service.calls) == 1
@@ -133,20 +132,21 @@ def test_non_case_event_writes_nothing(monkeypatch: pytest.MonkeyPatch) -> None:
         lambda: service,
     )
     result_payload: dict[str, Any] = {}
-
-    _record_v1_grading_to_brain_for_question(
-        context=_context(),
-        v1_event={"status": "unavailable"},
-        graded_context=_graded_context(),
-        result_payload=result_payload,
-        turn_id="turn-1",
+    result_payload.update(
+        _record_v1_grading_to_brain_for_question(
+            context=_context(),
+            v1_event={"status": "unavailable"},
+            graded_context=_graded_context(),
+            turn_id="turn-1",
+        )
     )
-    _record_v1_grading_to_brain_for_question(
-        context=_context(),
-        v1_event=None,
-        graded_context=_graded_context(),
-        result_payload=result_payload,
-        turn_id="turn-1",
+    result_payload.update(
+        _record_v1_grading_to_brain_for_question(
+            context=_context(),
+            v1_event=None,
+            graded_context=_graded_context(),
+            turn_id="turn-1",
+        )
     )
 
     assert service.calls == []
@@ -159,14 +159,13 @@ def test_missing_user_id_writes_nothing(monkeypatch: pytest.MonkeyPatch) -> None
         "deeptutor.services.learner_state.get_learner_state_service",
         lambda: service,
     )
-    result_payload: dict[str, Any] = {}
-
-    _record_v1_grading_to_brain_for_question(
-        context=_context(user_id=""),
-        v1_event=_v1_event(),
-        graded_context=_graded_context(),
-        result_payload=result_payload,
-        turn_id="turn-1",
+    result_payload: dict[str, Any] = dict(
+        _record_v1_grading_to_brain_for_question(
+            context=_context(user_id=""),
+            v1_event=_v1_event(),
+            graded_context=_graded_context(),
+            turn_id="turn-1",
+        )
     )
 
     assert service.calls == []
@@ -181,13 +180,78 @@ def test_writer_failure_is_fail_closed_and_never_raises(
         lambda: _ExplodingLearnerStateService(),
     )
     result_payload: dict[str, Any] = {"response": "可见批改结果"}
-
-    _record_v1_grading_to_brain_for_question(
-        context=_context(),
-        v1_event=_v1_event(),
-        graded_context=_graded_context(),
-        result_payload=result_payload,
-        turn_id="turn-1",
+    result_payload.update(
+        _record_v1_grading_to_brain_for_question(
+            context=_context(),
+            v1_event=_v1_event(),
+            graded_context=_graded_context(),
+            turn_id="turn-1",
+        )
     )
 
     assert result_payload == {"response": "可见批改结果"}
+
+
+class _BrainAwareService(_FakeLearnerStateService):
+    def __init__(self, *, cached_projection: dict[str, Any] | None) -> None:
+        super().__init__()
+        self._cached_projection = cached_projection
+
+    def read_compiled_learning_truth(self, user_id: str) -> dict[str, Any]:
+        return dict(self._cached_projection or {})
+
+
+def test_meta_carries_pcp_that_render_consumes_on_practice_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """突变钉（防假绿）：练题路径"录制先于渲染"的全链路——helper 返回的 meta
+    必须带 personalization_context，且 render_case_rubric_feedback 真消费它
+    （输出含画像语气段）。若 _g2b_pcp 被退化为 None，本测试失败。"""
+    service = _BrainAwareService(cached_projection={
+        "compiled_objects": [
+            {
+                "object_id": "1A415000:M06",
+                "object_type": "error",
+                "claim_status": "confirmed",
+                "concept_id": "1A415000",
+                "label": "钢筋调直工艺：近义替代",
+                "supporting_event_ids": ["evt_prev", "evt_prev2"],
+                "confidence": 0.9,
+            }
+        ],
+    })
+    monkeypatch.setattr(
+        "deeptutor.services.learner_state.get_learner_state_service",
+        lambda: service,
+    )
+
+    meta = _record_v1_grading_to_brain_for_question(
+        context=_context(),
+        v1_event=_v1_event(),
+        graded_context=_graded_context(),
+        turn_id="turn-pcp-1",
+    )
+
+    pcp = meta.get("personalization_context")
+    assert isinstance(pcp, dict) and pcp.get("top_claims"), "meta 必须带 PCP 供渲染消费"
+
+    from deeptutor.services.construction_grading.rubric_grader_v1 import (
+        render_case_rubric_feedback,
+    )
+
+    with_pcp = render_case_rubric_feedback(
+        _v1_event(), question_stem="题干", personalization_context_pack=pcp
+    )
+    without_pcp = render_case_rubric_feedback(_v1_event(), question_stem="题干")
+    assert with_pcp != without_pcp, "PCP 必须真实影响渲染输出（个性化语气）"
+
+
+def test_practice_path_helper_is_thin_delegate_source_pin() -> None:
+    """源检查钉：练题 helper 只允许委托唯一 recorder seam，禁止回退为
+    自行拼装 writeback/PCP（防止未来重新内联造成双权威）。"""
+    import inspect
+
+    src_text = inspect.getsource(_record_v1_grading_to_brain_for_question)
+    assert "record_case_grading_to_brain" in src_text
+    assert "write_case_grading_event_learning_evidence" not in src_text
+    assert "build_personalization_context_pack" not in src_text

@@ -350,3 +350,14 @@ def test_record_v1_grading_to_brain_falls_back_to_inline_synthesis_on_cache_miss
 
     assert len(service.synthesize_calls) == 1
     assert service.synthesize_calls[0]["dry_run"] is True
+
+
+def test_loop_grading_to_brain_is_thin_delegate_source_pin() -> None:
+    """源检查钉：loop 侧只允许委托唯一 recorder seam（record_case_grading_to_brain），
+    禁止重新内联 writeback/PCP 拼装逻辑——否则与练题入口形成双权威。"""
+    import inspect
+
+    src_text = inspect.getsource(AgentLoop._record_v1_grading_to_brain)
+    assert "record_case_grading_to_brain" in src_text
+    assert "write_case_grading_event_learning_evidence" not in src_text
+    assert "build_personalization_context_pack" not in src_text

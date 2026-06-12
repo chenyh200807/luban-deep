@@ -5,6 +5,8 @@ from typing import Any
 
 from deeptutor.services.construction_grading.schema import CaseGradingResult, MCQGradingResult
 from deeptutor.services.construction_grading.learning_evidence import (
+    _canonical_topic_from_payload,
+    _canonical_topic_payload,
     build_learning_evidence_dedupe_key,
     build_learning_evidence_payload,
 )
@@ -155,6 +157,7 @@ def write_case_grading_event_learning_evidence(
             "evidence_level": "L0_observed",
         },
     })
+    _attach_canonical_topic(payload_json, question_stem=question_stem, node_code=node_code)
     dedupe_key = build_learning_evidence_dedupe_key(
         user_id=normalized_user_id,
         payload_json=payload_json,
@@ -174,6 +177,173 @@ def write_case_grading_event_learning_evidence(
         "dedupe_key": dedupe_key,
         "learning_evidence_payload": payload_json,
     }
+
+
+def record_case_grading_to_brain(
+    *,
+    learner_state_service: Any,
+    user_id: str,
+    grading_event: dict[str, Any],
+    source_id: str,
+    source_bot_id: str | None = None,
+    user_answer: str = "",
+    question_stem: str = "",
+    node_code: str = "",
+    session_id: str = "",
+) -> dict[str, Any]:
+    """Grading-to-Brain 的唯一 turn 侧 recorder seam。
+
+    组合：learning_evidence writeback + training_intent 派生 + 画像读取
+    （dream cycle compiled 缓存优先，miss 回退最近 50 条 dry-run 合成）+
+    PersonalizationContextPack + next_best_action。聊天（TutorBot loop）与
+    练题（deep_question）两个入口都只消费返回的 meta dict，不得各自再拼装
+    ——单一组合权威。Fail-closed：任何一步失败都不影响可见批改结果。
+    """
+    normalized_user_id = str(user_id or "").strip()
+    if not normalized_user_id:
+        return {}
+    writeback = write_case_grading_event_learning_evidence(
+        learner_state_service=learner_state_service,
+        user_id=normalized_user_id,
+        grading_event=grading_event,
+        source_id=source_id,
+        source_bot_id=source_bot_id,
+        user_answer=user_answer,
+        question_stem=question_stem,
+        node_code=node_code,
+        session_id=session_id,
+    )
+    if not isinstance(writeback, dict) or not int(writeback.get("writeback_count") or 0):
+        return {}
+    event_id = str(writeback.get("event_id") or "")
+    meta: dict[str, Any] = {
+        "grading_to_brain_loop": {
+            "writeback_count": int(writeback.get("writeback_count") or 0),
+            "event_id": event_id,
+            "memory_kind": "learning_evidence",
+            "authority": "learner_memory_events.learning_evidence",
+        },
+        "learning_evidence_event_id": event_id,
+    }
+    payload = (
+        writeback.get("learning_evidence_payload")
+        if isinstance(writeback.get("learning_evidence_payload"), dict)
+        else {}
+    )
+    intent = _training_intent_from_evidence_payload(
+        user_id=normalized_user_id,
+        payload_json=payload,
+        event_id=event_id,
+    )
+    if not intent:
+        return meta
+    try:
+        from deeptutor.services.learner_state.personalization_context import (
+            build_personalization_context_pack,
+        )
+
+        # gbrain daemon 化：优先读 dream cycle 夜间巩固的 compiled 投影缓存；
+        # cache miss 回退内联 dry-run（最近 50 条窗口）。命中缓存时 top_claims
+        # 是上次巩固的长期画像，本 turn 即时信号由 intent/recent_events 承载。
+        learning_brain = None
+        read_cached = getattr(learner_state_service, "read_compiled_learning_truth", None)
+        if callable(read_cached):
+            try:
+                cached = read_cached(normalized_user_id)
+            except Exception:  # noqa: BLE001 — 缓存读失败必须落到回退路径
+                cached = None
+            if isinstance(cached, dict) and cached:
+                learning_brain = cached
+        if learning_brain is None and hasattr(learner_state_service, "synthesize_learning_truth"):
+            synthesized = learner_state_service.synthesize_learning_truth(
+                normalized_user_id,
+                dry_run=True,
+                event_limit=50,
+            )
+            learning_brain = synthesized.get("projection") if isinstance(synthesized, dict) else None
+        pcp = build_personalization_context_pack(
+            user_id=normalized_user_id,
+            learning_brain=learning_brain,
+            active_training_intent=intent,
+            recent_events=[{"event_id": event_id}] if event_id else None,
+        )
+    except Exception:  # noqa: BLE001 — PCP 是投影；构建失败保留 writeback meta
+        logger.warning("grading-to-brain PCP projection failed", exc_info=True)
+        return meta
+    meta["learning_training_intent"] = intent
+    meta["personalization_context"] = pcp
+    actions = pcp.get("next_best_action_candidates") if isinstance(pcp, dict) else []
+    if isinstance(actions, list) and actions:
+        meta["next_best_action"] = dict(actions[0])
+    return meta
+
+
+def _training_intent_from_evidence_payload(
+    *,
+    user_id: str,
+    payload_json: dict[str, Any],
+    event_id: str,
+) -> dict[str, Any]:
+    weak_points = payload_json.get("weak_points") if isinstance(payload_json, dict) else []
+    first = next((item for item in list(weak_points or []) if isinstance(item, dict)), None)
+    if not first:
+        return {}
+    # 开放世界：weak point 的 concept_id 按防污染设计为 None，
+    # 概念归属用 resolver 产出的 canonical_topic 兜底（断点1）。
+    topic = (
+        payload_json.get("canonical_topic")
+        if isinstance(payload_json.get("canonical_topic"), dict)
+        else {}
+    )
+    concept_id = str(first.get("concept_id") or topic.get("taxonomy_code") or "").strip()
+    concept_label = str(first.get("concept_label") or topic.get("label") or "").strip()
+    try:
+        from deeptutor.services.learner_state.training_intent import build_learning_training_intent
+
+        return build_learning_training_intent(
+            user_id=user_id,
+            concept_id=concept_id,
+            concept_label=concept_label,
+            error_code=str(first.get("error_code") or "").strip(),
+            error_label=str(first.get("policy_type") or first.get("error_code") or "").strip(),
+            evidence_refs=[event_id] if event_id else [],
+            training_mode="case_repair",
+            source="grading_to_brain_loop",
+            reason="case_grading_completed -> learner_memory_events.learning_evidence",
+        )
+    except Exception:  # noqa: BLE001
+        logger.warning("grading-to-brain training_intent projection failed", exc_info=True)
+        return {}
+
+
+def _attach_canonical_topic(
+    payload_json: dict[str, Any],
+    *,
+    question_stem: str,
+    node_code: str,
+) -> None:
+    """开放世界沉淀的概念归属：经 taxonomy resolver 解析 canonical_topic
+    （contracts/learner-state.md：canonical_topic 是 resolver 对证据的只读投影）。
+    命中才写、不命中不写（fail-open 留 L0 observed，不臆造概念污染画像）。
+    resolver 是唯一 taxonomy 权威的查询入口，这里不引入第二归属来源。"""
+    if payload_json.get("canonical_topic"):
+        return
+    knowledge_points = [
+        str(item.get("diagnosis") or "").strip()
+        for item in list(payload_json.get("error_events") or [])
+        if isinstance(item, dict) and str(item.get("diagnosis") or "").strip()
+    ]
+    try:
+        topic = _canonical_topic_from_payload({
+            "node_code": str(node_code or "").strip(),
+            "question_stem": str(question_stem or "").strip(),
+            "knowledge_points": knowledge_points,
+        })
+    except Exception:  # noqa: BLE001 — 概念归属失败不能阻断证据写入
+        logger.warning("canonical topic resolution failed for case grading writeback", exc_info=True)
+        return
+    if topic:
+        payload_json["canonical_topic"] = _canonical_topic_payload(topic)
 
 
 def _prescription_result_payload(value: dict[str, Any] | None) -> dict[str, Any]:

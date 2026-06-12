@@ -148,3 +148,103 @@ def test_personalization_context_passes_real_graph_chain_to_next_best_action() -
 
     nba = pack["next_best_action_candidates"][0]
     assert nba["why_this_now"] == "真实错因图已把该薄弱点连接到下一轮训练。"
+
+
+def _claim_with_timeline(observed_at: str) -> dict:
+    return {
+        "object_id": "1A413050:M06",
+        "object_type": "error",
+        "claim_status": "confirmed",
+        "concept_id": "1A413050",
+        "label": "屋面与防水工程施工：采分点遗漏",
+        "supporting_event_ids": ["evt_old"],
+        "confidence": 0.9,
+        "decay_state": "active",
+        "occurrence_timeline": [
+            {"event_id": "evt_old", "observed_at": observed_at, "question_id": "Q1", "turn_id": "t1"}
+        ],
+    }
+
+
+def test_personalization_context_surfaces_review_due_by_time_rule() -> None:
+    """时间维度（遗忘曲线第一步）：active claim 末次证据超过阈值天数即进入
+    review_due 只读视图，并优先成为无显式 intent 时的下一步动作来源。
+    纯时间规则、零 LLM；不改变 claim 本身的任何权威状态。"""
+    pack = build_personalization_context_pack(
+        user_id="student_demo",
+        learning_brain={"compiled_objects": [_claim_with_timeline("2026-05-01T10:00:00+08:00")]},
+        active_training_intent=None,
+        now=1781222400.0,  # 2026-06-12 前后
+    )
+
+    due = pack["review_due"]
+    assert len(due) == 1
+    assert due[0]["claim_id"] == "1A413050:M06"
+    assert due[0]["days_since_last_evidence"] >= 14
+    # 无显式 intent 时，复习项优先驱动下一步动作
+    assert pack["active_training_intent"]["concept_id"] == "1A413050"
+    nba = pack["next_best_action_candidates"][0]
+    assert nba["prescription_authority"] == "training_intent"
+
+
+def test_personalization_context_review_due_empty_for_fresh_claims() -> None:
+    pack = build_personalization_context_pack(
+        user_id="student_demo",
+        learning_brain={"compiled_objects": [_claim_with_timeline("2026-06-11T10:00:00+08:00")]},
+        active_training_intent=None,
+        now=1781222400.0,
+    )
+
+    assert pack["review_due"] == []
+
+
+def test_personalization_context_review_due_skips_improving_claims() -> None:
+    claim = _claim_with_timeline("2026-05-01T10:00:00+08:00")
+    claim["decay_state"] = "improving"
+    pack = build_personalization_context_pack(
+        user_id="student_demo",
+        learning_brain={"compiled_objects": [claim]},
+        active_training_intent=None,
+        now=1781222400.0,
+    )
+
+    assert pack["review_due"] == []
+
+
+def test_review_due_uses_true_last_evidence_not_truncated_timeline() -> None:
+    """回归钉：occurrence_timeline 展示截断为最早 5 条；review_due 必须用完整
+    timeline 的真末次时间——6+ 次出现且昨天刚练过的 claim 不得被误判该复习。"""
+    claim = _claim_with_timeline("2026-05-01T10:00:00+08:00")
+    claim["occurrence_timeline"] = [
+        {"event_id": f"evt_{i}", "observed_at": f"2026-05-0{i}T10:00:00+08:00", "question_id": "Q", "turn_id": "t"}
+        for i in range(1, 7)
+    ] + [
+        {"event_id": "evt_recent", "observed_at": "2026-06-11T10:00:00+08:00", "question_id": "Q", "turn_id": "t"}
+    ]
+    pack = build_personalization_context_pack(
+        user_id="student_demo",
+        learning_brain={"compiled_objects": [claim]},
+        active_training_intent=None,
+        now=1781222400.0,
+    )
+
+    assert pack["review_due"] == []
+    assert pack["top_claims"][0]["last_observed_at"] == "2026-06-11T10:00:00+08:00"
+
+
+def test_review_due_claim_is_preferred_over_fresh_claim_for_intent() -> None:
+    """判别性测试：复习项优先逻辑必须真的在两个 claim 里选中过期那个，
+    而不是退化为 claims[0]。"""
+    fresh = _claim_with_timeline("2026-06-11T10:00:00+08:00")
+    fresh["object_id"] = "1A999999:M01"
+    fresh["concept_id"] = "1A999999"
+    fresh["confidence"] = 0.99  # 排在前面，确保 claims[0]=fresh
+    stale = _claim_with_timeline("2026-05-01T10:00:00+08:00")
+    pack = build_personalization_context_pack(
+        user_id="student_demo",
+        learning_brain={"compiled_objects": [fresh, stale]},
+        active_training_intent=None,
+        now=1781222400.0,
+    )
+
+    assert pack["active_training_intent"]["concept_id"] == "1A413050"

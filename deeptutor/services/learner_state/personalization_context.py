@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
+import time
 from typing import Any
 
 from deeptutor.services.learner_state.learning_trajectory import group_typed_edges
@@ -8,6 +10,8 @@ from deeptutor.services.learner_state.training_intent import build_learning_trai
 
 _STABLE_CLAIM_STATUSES = {"confirmed", "repeated", "observed"}
 _GAP_CLAIM_STATUSES = {"stale", "superseded", "contradicted", "rejected"}
+# 时间规则（遗忘曲线第一步）：active claim 末次证据超过该天数 → 进入 review_due。
+REVIEW_DUE_AFTER_DAYS = 14
 
 
 def build_personalization_context_pack(
@@ -17,12 +21,21 @@ def build_personalization_context_pack(
     active_training_intent: dict[str, Any] | None = None,
     recent_events: list[Any] | None = None,
     max_claims: int = 5,
+    now: float | None = None,
 ) -> dict[str, Any]:
     claims = _claim_views(learning_brain, max_claims=max_claims)
     improvement_signals = _improvement_signals(learning_brain)
+    review_due = _review_due_claims(claims, now=now)
     intent = dict(active_training_intent or {}) if isinstance(active_training_intent, dict) else {}
     if not intent:
-        intent = _training_intent_from_claim(user_id=user_id, claim=claims[0] if claims else {})
+        # 无显式 intent 时复习项优先：时间规则只影响"先练哪个"的视图选择，
+        # 不改变任何 claim 权威状态。
+        review_due_ids = {item["claim_id"] for item in review_due}
+        intent_claim = next(
+            (claim for claim in claims if claim.get("claim_id") in review_due_ids),
+            claims[0] if claims else {},
+        )
+        intent = _training_intent_from_claim(user_id=user_id, claim=intent_claim)
     actions = build_next_best_actions(
         user_id=user_id,
         training_intents=[intent] if intent else [],
@@ -45,6 +58,7 @@ def build_personalization_context_pack(
         "recent_evidence_refs": _recent_evidence_refs(recent_events, claims),
         "active_training_intent": intent,
         "next_best_action_candidates": actions,
+        "review_due": review_due,
         "feedback_guidance": _feedback_guidance(
             claims=claims,
             improvement_signals=improvement_signals,
@@ -52,6 +66,43 @@ def build_personalization_context_pack(
         ),
         "gaps": _claim_gaps(learning_brain),
     }
+
+
+def _review_due_claims(claims: list[dict[str, Any]], *, now: float | None) -> list[dict[str, Any]]:
+    current = time.time() if now is None else float(now)
+    due: list[dict[str, Any]] = []
+    for claim in claims:
+        if str(claim.get("decay_state") or "active") != "active":
+            continue
+        last_observed = str(claim.get("last_observed_at") or "").strip()
+        last_ts = _parse_iso_timestamp(last_observed)
+        if last_ts is None:
+            continue
+        days = (current - last_ts) / 86400.0
+        if days >= REVIEW_DUE_AFTER_DAYS:
+            due.append({
+                "claim_id": str(claim.get("claim_id") or "").strip(),
+                "concept_id": str(claim.get("concept_id") or "").strip(),
+                "label": str(claim.get("label") or "").strip(),
+                "last_observed_at": last_observed,
+                "days_since_last_evidence": int(days),
+                "reason": "time_rule_review_due",
+            })
+    due.sort(key=lambda item: -item["days_since_last_evidence"])
+    return due
+
+
+def _parse_iso_timestamp(value: str) -> float | None:
+    text = str(value or "").strip()
+    if not text:
+        return None
+    try:
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.timestamp()
 
 
 def _claim_views(learning_brain: dict[str, Any] | None, *, max_claims: int) -> list[dict[str, Any]]:
@@ -65,6 +116,8 @@ def _claim_views(learning_brain: dict[str, Any] | None, *, max_claims: int) -> l
             continue
         timeline = _timeline_entries(item.get("occurrence_timeline") or item.get("timeline_refs"))
         occurrence_count = max(len(timeline), len(evidence_refs))
+        # 末次证据时间必须取自完整 timeline（升序），不能用截断后的展示片段。
+        last_observed_at = timeline[-1]["observed_at"] if timeline else ""
         decay_state = str(item.get("decay_state") or "active").strip() or "active"
         views.append({
             "claim_id": str(item.get("object_id") or item.get("claim_id") or "").strip(),
@@ -88,6 +141,7 @@ def _claim_views(learning_brain: dict[str, Any] | None, *, max_claims: int) -> l
             "evidence_refs": evidence_refs[:5],
             "occurrence_count": occurrence_count,
             "occurrence_timeline": timeline[:5],
+            "last_observed_at": last_observed_at,
         })
     views.sort(key=lambda item: (_status_rank(item.get("claim_status")), -float(item.get("confidence") or 0)))
     return views[: max(1, int(max_claims or 5))]

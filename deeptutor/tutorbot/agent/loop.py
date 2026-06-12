@@ -1145,6 +1145,10 @@ class AgentLoop:
         event: dict[str, Any],
         ctx: dict[str, Any],
     ) -> None:
+        """薄委托：Grading-to-Brain 的组合逻辑只活在
+        construction_grading.writeback.record_case_grading_to_brain（单一 seam，
+        与练题入口共用）。本方法只负责取身份/来源字段并把 meta 合回
+        runtime_metadata；fail-closed。"""
         student_id = str(runtime_metadata.get("user_id") or runtime_metadata.get("learner_user_id") or "").strip()
         if not student_id:
             return
@@ -1157,13 +1161,12 @@ class AgentLoop:
         ).strip()
         try:
             from deeptutor.services.construction_grading.writeback import (
-                write_case_grading_event_learning_evidence,
+                record_case_grading_to_brain,
             )
             from deeptutor.services.learner_state import get_learner_state_service
 
-            learner_state_service = get_learner_state_service()
-            writeback = write_case_grading_event_learning_evidence(
-                learner_state_service=learner_state_service,
+            meta = record_case_grading_to_brain(
+                learner_state_service=get_learner_state_service(),
                 user_id=student_id,
                 grading_event=event,
                 source_id=source_id,
@@ -1176,93 +1179,8 @@ class AgentLoop:
         except Exception:  # noqa: BLE001 — memory write must not break visible grading
             logger.warning("LUBAN_V1 tutorbot Grading-to-Brain writeback failed", exc_info=True)
             return
-        if not isinstance(writeback, dict) or not int(writeback.get("writeback_count") or 0):
-            return
-        runtime_metadata["grading_to_brain_loop"] = {
-            "writeback_count": int(writeback.get("writeback_count") or 0),
-            "event_id": str(writeback.get("event_id") or ""),
-            "memory_kind": "learning_evidence",
-            "authority": "learner_memory_events.learning_evidence",
-        }
-        runtime_metadata["learning_evidence_event_id"] = str(writeback.get("event_id") or "")
-        payload = writeback.get("learning_evidence_payload") if isinstance(writeback.get("learning_evidence_payload"), dict) else {}
-        intent = AgentLoop._build_v1_training_intent(
-            user_id=student_id,
-            payload_json=payload,
-            event_id=str(writeback.get("event_id") or ""),
-        )
-        if intent:
-            try:
-                from deeptutor.services.learner_state.personalization_context import (
-                    build_personalization_context_pack,
-                )
-
-                # gbrain daemon 化：优先读 dream cycle 夜间巩固的 compiled 投影缓存
-                # （全量历史、已去重老化），turn 内不再重算；cache miss 才回退
-                # 内联 dry-run 合成（最近 50 条窗口，维持旧行为）。
-                # 取舍（有意为之）：命中缓存时 top_claims 是上次巩固的长期画像，
-                # 本 session 新出现的错因要到下次 dream cycle 才进入 top_claims；
-                # 本 turn 的即时信号由 active_training_intent + recent_events 承载，
-                # 新用户（无缓存）仍走内联回退、包含本 turn 事件。
-                learning_brain = None
-                read_cached = getattr(learner_state_service, "read_compiled_learning_truth", None)
-                if callable(read_cached):
-                    try:
-                        cached = read_cached(student_id)
-                    except Exception:  # noqa: BLE001 — 缓存读失败必须落到回退路径
-                        cached = None
-                    if isinstance(cached, dict) and cached:
-                        learning_brain = cached
-                if learning_brain is None and hasattr(learner_state_service, "synthesize_learning_truth"):
-                    synthesized = learner_state_service.synthesize_learning_truth(
-                        student_id,
-                        dry_run=True,
-                        event_limit=50,
-                    )
-                    learning_brain = synthesized.get("projection") if isinstance(synthesized, dict) else None
-                pcp = build_personalization_context_pack(
-                    user_id=student_id,
-                    learning_brain=learning_brain,
-                    active_training_intent=intent,
-                    recent_events=[{"event_id": str(writeback.get("event_id") or "")}],
-                )
-            except Exception:  # noqa: BLE001 — PCP is a projection; keep writeback even if view fails
-                logger.warning("LUBAN_V1 tutorbot PCP projection failed", exc_info=True)
-                return
-            runtime_metadata["learning_training_intent"] = intent
-            runtime_metadata["personalization_context"] = pcp
-            actions = pcp.get("next_best_action_candidates") if isinstance(pcp, dict) else []
-            if isinstance(actions, list) and actions:
-                runtime_metadata["next_best_action"] = dict(actions[0])
-
-    @staticmethod
-    def _build_v1_training_intent(
-        *,
-        user_id: str,
-        payload_json: dict[str, Any],
-        event_id: str,
-    ) -> dict[str, Any]:
-        weak_points = payload_json.get("weak_points") if isinstance(payload_json, dict) else []
-        first = next((item for item in list(weak_points or []) if isinstance(item, dict)), None)
-        if not first:
-            return {}
-        try:
-            from deeptutor.services.learner_state.training_intent import build_learning_training_intent
-
-            return build_learning_training_intent(
-                user_id=user_id,
-                concept_id=str(first.get("concept_id") or "").strip(),
-                concept_label=str(first.get("concept_label") or "").strip(),
-                error_code=str(first.get("error_code") or "").strip(),
-                error_label=str(first.get("policy_type") or first.get("error_code") or "").strip(),
-                evidence_refs=[event_id] if event_id else [],
-                training_mode="case_repair",
-                source="grading_to_brain_loop",
-                reason="case_grading_completed -> learner_memory_events.learning_evidence",
-            )
-        except Exception:  # noqa: BLE001
-            logger.warning("LUBAN_V1 tutorbot training_intent projection failed", exc_info=True)
-            return {}
+        if isinstance(meta, dict) and meta:
+            runtime_metadata.update(meta)
 
     async def _apply_v1_or_case_fallback(
         self, final_content: str | None, *, runtime_metadata: dict[str, Any] | None, user_message: str
