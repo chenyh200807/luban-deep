@@ -488,7 +488,7 @@ def _topic_waterproof_dev_candidates() -> list[QuestionCandidate]:
                 ),
                 answer=answer,
                 source_type="DEV_FALLBACK",
-                node_code="1A414010",
+                node_code="1A413050",
                 source_meta={
                     "topic": "防水",
                     "semantic_signature": f"dev_waterproof_sig_{index}",

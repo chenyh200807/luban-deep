@@ -65,8 +65,10 @@ class CanonicalTaxonomy:
         self._nodes = nodes
         self._children = children
         self._by_code = by_code
-        # leaves that can be classification targets = L5/L6 nodes carrying keywords.
-        self._leaf_codes = [n.code for n in nodes if n.level in (5, 6) and n.keywords]
+        # leaves that can be classification targets = childless nodes carrying keywords.
+        # (structural rule; the legacy "level in (5, 6)" magic numbers broke on the
+        # book-derived rebuild, whose evidence leaves sit at depths 2-5)
+        self._leaf_codes = [n.code for n in nodes if n.keywords and not children.get(n.code)]
         self._leaf_set = set(self._leaf_codes)
         # keyword specificity weight (IDF): a keyword shared by many leaves (e.g. 结构/管理/要求) is a
         # weak signal and must not turn its leaf into a false-positive magnet; a rare keyword is strong.

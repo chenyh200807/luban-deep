@@ -39,7 +39,7 @@ def _tax(tmp_path):
 def test_load_and_leaves(tmp_path):
     t = _tax(tmp_path)
     leaves = set(t.leaf_codes())
-    assert leaves == {"1A412010-01", "1A412010-01-a", "1A413030-01"}  # only L5/L6 with keywords
+    assert leaves == {"1A412010-01-a", "1A413030-01"}  # childless nodes with keywords; parents are not targets
     assert "水泥" in t.name_path("1A412010-01")
 
 
