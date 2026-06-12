@@ -395,17 +395,16 @@ jobs:
 
       # BLOCKING secret scan. The local pre-commit detect-secrets hook is bypassable
       # (and was bypassed — multiple agents push straight to main), so the only reliable
-      # guard is server-side CI. `scan --baseline` absorbs known/allowlisted findings and
-      # rewrites the baseline in place if it discovers anything new; a changed baseline ⇒
-      # an unregistered secret slipped in ⇒ fail. Catches a committed .env or hardcoded key.
+      # guard is server-side CI. detect-secrets-hook exits non-zero only when a tracked
+      # file contains a secret NOT already allowlisted in .secrets.baseline — it does not
+      # rewrite the baseline, so there is no generated_at churn / false failure. Catches a
+      # committed .env or hardcoded key. The baseline's exclude filters skip artifacts/.
       - name: Secret scan (BLOCKING — fails on any new unregistered secret)
         run: |
-          detect-secrets scan --baseline .secrets.baseline
-          if ! git diff --quiet .secrets.baseline; then
-            echo "::error::detect-secrets found a NEW secret not in .secrets.baseline."
-            echo "Review the finding. If it is a real secret: remove it and rotate the credential."
-            echo "If it is a false positive: run 'detect-secrets scan --baseline .secrets.baseline' locally, audit, and commit the updated baseline."
-            git diff .secrets.baseline | head -60
+          if ! detect-secrets-hook --baseline .secrets.baseline $(git ls-files); then
+            echo "::error::detect-secrets found a secret not in .secrets.baseline."
+            echo "If real: remove it and ROTATE the credential. If false positive: run"
+            echo "'detect-secrets scan --baseline .secrets.baseline', 'detect-secrets audit .secrets.baseline', then commit the updated baseline."
             exit 1
           fi
 
