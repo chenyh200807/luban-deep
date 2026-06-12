@@ -81,3 +81,44 @@ BI 内账成本 ¥5.43 只覆盖阿里云官方账单 ¥29.22 的 **18.6%**。�
 ## 待用户确认/提供
 
 - **DeepSeek 余额疑点**：.env 的 `DEEPSEEK_API_KEY` 拉到 ¥15.72，用户截图 ¥40.79——确认是否同一账户（不同则对账数据错）。迁阿里云后此疑点消失。
+
+---
+
+## P4 执行清单（新对话用——`做 BI 成本治理 P4`）
+
+> 状态：`Pending / 新对话执行`。本清单是 P1-P3 上线后(生产 SHA d52269308 含成本卡官方账单为锚)的剩余工作。P4 改生产聊天的 LLM 调用，**高风险，必须独立对话 + 充分回归**。
+
+### 背景速接（新对话先读）
+- 记忆 `bi-cost-reconciliation-truth` + `bi-systematic-upgrade-program` 有全部上下文。
+- 已完成：P1 定价表 CNY 修正(含 cache 价)、P2 自校准(`cost_calibration.py`，官方账单反推系数)、P3 成本卡官方账单为锚(`BiCostOfficialAnchorCard`)、对账口径修复(reconciliation 用 UsageLedger 全局)、管理员入口。
+- 核心认知：成本要可靠的根因是「成本归属」——官方账单混了 DeepTutor 产品消费 + 共用 `.env` key 的其他项目消费(DeepSeek 后台 6437万token/1309次 vs 内账 14万/309次，差 1000 次非 DeepTutor)。Codex 用 OpenAI、Claude Code 用 Anthropic，都不碰 DeepSeek/阿里云 key——「幽灵消费」是别的项目/脚本共用同一 `.env` 的 DeepSeek/DashScope key。
+
+### 任务 A：DeepTutor 生产配独立 API key（成本归属，最优先）
+- **为什么先做**：不分 key，永远分不清产品成本 vs 个人/其他项目消费，对账健康度永远 < 1。
+- **步骤**：
+  1. 阿里云百炼控制台为 DeepTutor 生产建专属 API key（`DASHSCOPE_API_KEY` / Bailian）；DeepSeek 同理(若不迁阿里云)。
+  2. 阿里云 `/root/deeptutor/.env` 换成专属 key（备份 + recreate）。本机/其他项目 `.env` 保留各自的 key。
+  3. 对账锁定 DeepTutor 的 `apikey_id`（reconciliation 已支持 `apikey_id` 过滤，当前 `2880115`——确认这是不是 DeepTutor 专属）。
+  4. 验收：换 key 后官方账单(按新 key 过滤) ≈ 内账范围，自校准健康度逼近 1.0。
+- **当前 key 指纹**(去后台核对哪个在烧钱)：DEEPSEEK `1d5312a99f50`(…e14a)、DASHSCOPE `cf817c5fa7c9`(…486e)。
+
+### 任务 B：DeepSeek 统一迁阿里云（消除 DeepSeek 直连对账盲区）
+- **为什么**：DeepSeek 官方无账单 API(只能手动 CSV)；阿里云 deepseek-v4 价格与官网一致、可用性 88% vs 42%、质量同模型、成本可自动对账。
+- **改动文件**：`deeptutor/services/llm/factory.py`、`deeptutor/services/provider_registry.py`、`deeptutor/tutorbot/providers/registry.py`(DeepSeek 直连路由 → 阿里云百炼 deepseek-v4-flash/pro)。
+- **硬约束**：
+  1. 加 feature flag + 回滚开关(出问题秒回 DeepSeek 直连)。
+  2. **回归测试聊天 + 评分**：`tests/api/test_unified_ws_*`、评分 jury、construction-grading。确认换 provider 后输出质量/格式不变。
+  3. cache 命中行为可能变(阿里云 vs DeepSeek 直连的 prompt cache 实现)，观察成本。
+  4. 走 `deeptutor-aliyun-release`，回归过了再 flip flag。
+- 迁移后 DeepSeek 直连消费归零，全部经阿里云自动对账。
+
+### 任务 C：查 UsageLedger 漏记根因（健康度 0.73 的真 bug 部分）
+- **现象**：qwen 系列(qwen-plus ¥5.5/qwen-max ¥4.89 官方)内账 token = 0；token 覆盖率 0.625(漏 37.5%)。扣掉任务 A 的「幽灵消费」后，剩余仍漏的才是真 bug。
+- **查**：UsageLedger 写入链(`deeptutor/services/observability/usage_ledger.py` + 调用方)——为什么 qwen/rerank/embedding 等调用没 `record_usage_event`？是 provider 回报缺失，还是写入路径漏挂？
+- **审计点**：RAG rerank(gte-rerank)、embedding(text-embedding-v3)、评分 jury 的多模型调用是否都写 ledger。
+- 修后自校准健康度应逼近 1.0(扣除幽灵消费)。
+
+### P4 验收
+- 任务 A：DeepTutor 专属 key 上线；对账按 key 过滤后健康度 ≥ 0.95。
+- 任务 B：DeepSeek 全走阿里云；聊天/评分回归通过；DeepSeek 直连消费归零；回滚开关验证。
+- 任务 C：ledger 漏记修复；token 覆盖率(扣幽灵消费后) ≥ 0.9。
