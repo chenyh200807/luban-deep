@@ -378,16 +378,46 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install scanners
-        run: pip install "bandit[toml]" pip-audit
+      # BLOCKING: no real dotenv file may ever be tracked. Direct guard against the
+      # ".env with live keys committed" failure mode — .env* is gitignored, but an
+      # agent using `git add -f` / `git add -A` from a dirty tree could force one in.
+      - name: No tracked .env files (BLOCKING)
+        run: |
+          tracked=$(git ls-files | grep -E '(^|/)\.env($|\.)' | grep -vE '\.env\.(example|sample|template)' || true)
+          if [ -n "$tracked" ]; then
+            echo "::error::A dotenv file is tracked by git — it must never be committed:"
+            echo "$tracked"
+            exit 1
+          fi
 
-      # bandit reuses the repo's pyproject [tool.bandit] config (same as the local
-      # pre-commit hook). ADVISORY for now: a full-tree -ll scan surfaces ~41
-      # pre-existing findings (B310 url-open / B324 SHA1 / B608 SQL-string, mostly in
-      # assessment/grading) that the incremental pre-commit hook never gated. Wiring it
-      # report-only first (maturity audit M10) avoids blocking CI on existing debt;
-      # triage the findings (fix real / "# nosec" false positives) then drop
-      # continue-on-error to make it a blocking gate.
+      - name: Install scanners
+        run: pip install "bandit[toml]" pip-audit detect-secrets
+
+      # BLOCKING secret scan. The local pre-commit detect-secrets hook is bypassable
+      # (and was bypassed — multiple agents push straight to main), so the only reliable
+      # guard is server-side CI. `scan --baseline` absorbs known/allowlisted findings and
+      # rewrites the baseline in place if it discovers anything new; a changed baseline ⇒
+      # an unregistered secret slipped in ⇒ fail. Catches a committed .env or hardcoded key.
+      - name: Secret scan (BLOCKING — fails on any new unregistered secret)
+        run: |
+          detect-secrets scan --baseline .secrets.baseline
+          if ! git diff --quiet .secrets.baseline; then
+            echo "::error::detect-secrets found a NEW secret not in .secrets.baseline."
+            echo "Review the finding. If it is a real secret: remove it and rotate the credential."
+            echo "If it is a false positive: run 'detect-secrets scan --baseline .secrets.baseline' locally, audit, and commit the updated baseline."
+            git diff .secrets.baseline | head -60
+            exit 1
+          fi
+
+      # BLOCKING bandit gate for NEW high-severity + high-confidence findings only.
+      # `.bandit-baseline.json` pins the 16 pre-existing high-sev findings (assessment/grading
+      # debt) so this never blocks on existing code, only on newly introduced HIGH issues
+      # (e.g. a fresh os.system / SQL-string / unsafe-deser). Triage the baseline over time
+      # and shrink it. The full -ll advisory scan below still surfaces the medium long tail.
+      - name: Bandit high-severity gate (BLOCKING — new HIGH/HIGH findings only)
+        run: bandit -c pyproject.toml -r deeptutor -lll -iii -b .bandit-baseline.json -q
+
+      # Advisory full-tree -ll scan for the medium-severity long tail (B310/B324/B608).
       - name: Bandit static security scan (advisory)
         continue-on-error: true
         run: bandit -c pyproject.toml -r deeptutor -ll || echo "::warning::bandit surfaced pre-existing findings (advisory until triaged)"
@@ -403,7 +433,7 @@ jobs:
   test-summary:
     name: Test Summary
     runs-on: ubuntu-latest
-    needs: [contract-guard, import-check, smoke-tests, frontend-checks, wx-checks, yousen-checks]
+    needs: [contract-guard, import-check, smoke-tests, frontend-checks, wx-checks, yousen-checks, security-scan]
     if: always()
 
     steps:
@@ -419,7 +449,8 @@ jobs:
           echo "| Frontend checks | ${{ needs.frontend-checks.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| WX checks | ${{ needs.wx-checks.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Yousen checks | ${{ needs.yousen-checks.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security scan | ${{ needs.security-scan.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
 
       - name: Fail if tests failed
-        if: needs.contract-guard.result == 'failure' || needs.import-check.result == 'failure' || needs.smoke-tests.result == 'failure' || needs.frontend-checks.result == 'failure' || needs.wx-checks.result == 'failure' || needs.yousen-checks.result == 'failure'
+        if: needs.contract-guard.result == 'failure' || needs.import-check.result == 'failure' || needs.smoke-tests.result == 'failure' || needs.frontend-checks.result == 'failure' || needs.wx-checks.result == 'failure' || needs.yousen-checks.result == 'failure' || needs.security-scan.result == 'failure'
         run: exit 1
