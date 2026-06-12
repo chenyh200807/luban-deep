@@ -4,13 +4,15 @@
   bindtouchend="onPageTouchEnd"
   bindtouchcancel="onPageTouchCancel"
 >
-  <!-- 光场层：随幕切换交叉淡入（Fuse 式逐步换色温，全蓝系） -->
-  <view class="glow glow-bottom"></view>
-  <view class="glow glow-sky"></view>
-  <view class="glow glow-teal"></view>
-  <view class="glow glow-violet"></view>
+  <!-- 黎明世界观：天际光随幕推进升温，地平线光弧缓缓上升（light is coming） -->
+  <view class="dawn dawn-hook"></view>
+  <view class="dawn dawn-p1"></view>
+  <view class="dawn dawn-p2"></view>
+  <view class="dawn dawn-p3"></view>
+  <view class="horizon-glow"></view>
+  <view class="horizon-body"></view>
   <view class="grain"></view>
-  <view class="wave-overlay {{actId !== 'wave' ? 'recede' : ''}}"></view>
+  <view class="night-veil {{actId !== 'wave' ? 'lift' : ''}}"></view>
 
   <view class="page-shell" style="padding-top: {{statusBarHeight}}px; padding-bottom: {{safeBottom + 22}}px">
     <view class="topbar">
@@ -20,9 +22,6 @@
           <text class="brand-title">鲁班智考</text>
           <text class="brand-sub">先体验导学</text>
         </view>
-      </view>
-      <view class="skip-btn" bindtap="skipToCta" aria-role="button" aria-label="跳过导学">
-        <text class="skip-text">跳过</text>
       </view>
     </view>
 
@@ -136,6 +135,16 @@
         <text class="primary-text">{{destLogin ? '立即开始提分' : '开始体验'}}</text>
       </view>
     </view>
+  </view>
+  <view
+    class="skip-float"
+    wx:if="{{actId !== 'p3' && !ctaExit}}"
+    bindtap="skipToCta"
+    style="bottom: {{safeBottom + 44}}px"
+    aria-role="button"
+    aria-label="跳过导学"
+  >
+    <text>跳过 ›</text>
   </view>
   <view class="cta-wave {{ctaExit ? 'play' : ''}}"></view>
 </view>
