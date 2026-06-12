@@ -380,6 +380,7 @@ def run_near_live_shadow_ab(
             "provider_call_count": 0,
         },
         "effect_table": effect_table,
+        "current_rag_rows": rag_rows,
         "local_adapter_rows": adapter_rows,
         "sample_rows": (rag_rows + adapter_rows)[:30],
         "blockers": blockers,

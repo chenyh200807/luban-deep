@@ -166,6 +166,22 @@ def test_near_live_shadow_ab_local_adapter_rows_keep_traceable_evidence() -> Non
     assert row["answer"]["text"] == "建筑设计一般可分为四个阶段"
 
 
+def test_near_live_shadow_ab_keeps_full_current_rag_rows_for_live_trace() -> None:
+    from scripts.run_luban_rich_leaf_semantic_runtime_near_live_shadow_ab import run_near_live_shadow_ab
+
+    report = run_near_live_shadow_ab(
+        field_promotion_review=_field_promotion_review(),
+        near_live_smoke=_near_live_smoke(),
+        limit=50,
+        top_k=2,
+    )
+
+    assert report["current_rag_rows"]
+    assert len(report["current_rag_rows"]) == report["summary"]["shadow_case_count"]
+    assert report["current_rag_rows"][0]["arm"] == "current_rag_lexical_proxy"
+    assert report["sample_rows"]
+
+
 def test_near_live_shadow_ab_blocks_failed_smoke() -> None:
     from scripts.run_luban_rich_leaf_semantic_runtime_near_live_shadow_ab import run_near_live_shadow_ab
 

@@ -45,6 +45,14 @@ REQUIRED_LIVE_RESULT_METRICS = {
 }
 
 
+def _token_per_answerable(arm: dict[str, Any]) -> float:
+    answerable_rate = float(arm.get("answerable_rate") or 0.0)
+    mean_token_usage = float(arm.get("mean_token_usage") or 0.0)
+    if answerable_rate <= 0.0:
+        return float("inf")
+    return round(mean_token_usage / answerable_rate, 4)
+
+
 def _read_json(path: Path) -> dict[str, Any]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(payload, dict):
@@ -146,7 +154,13 @@ def _live_results_blockers(payload: dict[str, Any] | None) -> list[str]:
     if treatment and current_rag:
         if float(treatment.get("accuracy_rate") or 0.0) < float(current_rag.get("accuracy_rate") or 0.0):
             blockers.append("live_results_treatment_accuracy_below_current_rag")
-        if float(treatment.get("mean_token_usage") or 0.0) > float(current_rag.get("mean_token_usage") or 0.0):
+        treatment_tokens = float(treatment.get("mean_token_usage") or 0.0)
+        current_tokens = float(current_rag.get("mean_token_usage") or 0.0)
+        treatment_answerable = float(treatment.get("answerable_rate") or 0.0)
+        current_answerable = float(current_rag.get("answerable_rate") or 0.0)
+        token_efficiency_ok = _token_per_answerable(treatment) <= _token_per_answerable(current_rag)
+        raw_token_ok = treatment_tokens <= current_tokens
+        if not raw_token_ok and not (treatment_answerable > current_answerable and token_efficiency_ok):
             blockers.append("live_results_treatment_token_regression")
     return blockers
 
@@ -175,6 +189,7 @@ def _live_effect_table(live_results: dict[str, Any] | None) -> list[dict[str, An
             "evidence_citation_rate": float(arm.get("evidence_citation_rate") or 0.0),
             "fail_open_rate": float(arm.get("fail_open_rate") or 0.0),
             "mean_token_usage": float(arm.get("mean_token_usage") or 0.0),
+            "mean_token_per_answerable": _token_per_answerable(arm),
             "mean_latency_ms": float(arm.get("mean_latency_ms") or 0.0),
             "quality_claim_allowed": False,
         }

@@ -219,3 +219,29 @@ def test_live_ab_runner_rejects_incomplete_or_fail_open_live_trace() -> None:
     assert report["quality_claim_allowed"] is False
     assert any("live_results_missing_arm:artifact_first_llm_judge" in blocker for blocker in report["blockers"])
     assert any("live_results_arm_fail_open:current_rag_runtime" in blocker for blocker in report["blockers"])
+
+
+def test_live_ab_runner_does_not_reward_cheap_abstention_as_token_win() -> None:
+    from scripts.run_luban_rich_leaf_semantic_runtime_live_ab import run_live_ab
+
+    live_results = _authorized_live_results()
+    for arm in live_results["arms"]:
+        if arm["arm"] == "current_rag_runtime":
+            arm["answerable_rate"] = 0.5
+            arm["accuracy_rate"] = 0.99
+            arm["mean_token_usage"] = 780
+        if arm["arm"] == "rich_leaf_promoted_context":
+            arm["answerable_rate"] = 1.0
+            arm["accuracy_rate"] = 0.995
+            arm["mean_token_usage"] = 840
+
+    report = run_live_ab(
+        live_ab_preflight=_live_ab_preflight(),
+        allow_provider_calls=True,
+        live_results=live_results,
+    )
+
+    assert report["verdict"] == "PASS_LIVE_RUNTIME_AB_SHADOW"
+    by_arm = {row["arm"]: row for row in report["effect_table"]}
+    assert by_arm["current_rag_runtime"]["mean_token_per_answerable"] == 1560.0
+    assert by_arm["rich_leaf_promoted_context"]["mean_token_per_answerable"] == 840.0
