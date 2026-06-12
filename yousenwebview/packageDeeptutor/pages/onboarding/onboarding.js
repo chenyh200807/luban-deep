@@ -1,6 +1,8 @@
 var helpers = require("../../utils/helpers");
 var route = require("../../utils/route");
 var runtime = require("../../utils/runtime");
+var motion = require("../../utils/motion-timeline");
+var SCENES = require("./motion-script");
 
 var SLIDES = [
   {
@@ -54,21 +56,40 @@ var SLIDES = [
     bullets: ["错因画像", "同类再练", "学情变化"],
     examples: [
       "我最近最常漏哪类采分点？",
-      "只练“法规依据缺失”这类题。",
+      "只练"法规依据缺失"这类题。",
       "根据我的错因，安排下一道题。",
     ],
   },
 ];
 
+// 幕 1 文字 Hook（kinetic typography 用，逐词渲染）
+var HOOK_WORDS = [
+  { t: "一建实务案例题，" },
+  { t: "到底" },
+  { t: "怎么拿分", accent: true },
+  { t: "？" },
+];
+
+// 幕 id → 背景 slide 下标（决定 accent 配色与 stage/example 内容）
+var ACT_SLIDE = { wave: 0, hook: 0, diagnosis: 0, grade: 1, loop: 2, cta: 2 };
+
+var PILL_ACT_IDS = SCENES.slice(1).map(function (s) {
+  return s.id;
+});
+
 Page({
   data: {
     statusBarHeight: 44,
     safeBottom: 0,
+    slides: SLIDES,
+    hookWords: HOOK_WORDS,
+    pills: PILL_ACT_IDS,
+    actId: "wave",
+    actIndex: 0,
     activeIndex: 0,
     activeSlide: SLIDES[0],
-    slides: SLIDES,
+    fx: {},
     entrySource: "guest_preview",
-    motionTick: 0,
   },
 
   onLoad: function (options) {
@@ -88,27 +109,85 @@ Page({
     });
   },
 
-  setActiveIndex: function (index) {
-    if (!Number.isFinite(index) || index < 0 || index >= SLIDES.length) return;
-    this.setData({
-      activeIndex: index,
-      activeSlide: SLIDES[index],
-      motionTick: this.data.motionTick + 1,
+  onReady: function () {
+    var that = this;
+    this._timeline = motion.createTimeline(SCENES, {
+      onSceneStart: function (index, scene) {
+        var slideIndex = ACT_SLIDE[scene.id] || 0;
+        that.setData({
+          actId: scene.id,
+          actIndex: index,
+          fx: {},
+          activeIndex: slideIndex,
+          activeSlide: SLIDES[slideIndex],
+        });
+      },
+      onStep: function (patch) {
+        that.setData(patch);
+      },
     });
+    this._timeline.start();
+  },
+
+  onHide: function () {
+    if (this._timeline) {
+      this._wasPlaying = this._timeline.getState().status === "playing";
+      this._timeline.pause();
+    }
+  },
+
+  onShow: function () {
+    if (this._timeline && this._wasPlaying) {
+      this._wasPlaying = false;
+      this._timeline.resume();
+    }
+  },
+
+  onUnload: function () {
+    if (this._timeline) this._timeline.destroy();
+  },
+
+  // —— 手动导航（一票接管自动播放）——
+  _jumpAct: function (index) {
+    if (!this._timeline) return;
+    var max = SCENES.length - 1;
+    var clamped = Math.max(1, Math.min(max, index)); // 不允许跳回 wave 转场幕
+    this._timeline.jumpTo(clamped);
   },
 
   goNext: function () {
-    this.setActiveIndex(Math.min(SLIDES.length - 1, this.data.activeIndex + 1));
+    this._jumpAct(this.data.actIndex + 1);
   },
 
   goPrev: function () {
-    this.setActiveIndex(Math.max(0, this.data.activeIndex - 1));
+    this._jumpAct(this.data.actIndex - 1);
   },
 
   jumpTo: function (event) {
-    this.setActiveIndex(Number(event.currentTarget.dataset.index));
+    this._jumpAct(Number(event.currentTarget.dataset.index) + 1);
   },
 
+  skipToCta: function () {
+    this._jumpAct(SCENES.length - 1);
+  },
+
+  onPageTouchStart: function (event) {
+    var t = event.touches && event.touches[0];
+    this._touchY = t ? t.clientY : null;
+  },
+
+  onPageTouchEnd: function (event) {
+    if (this._touchY == null) return;
+    var t = event.changedTouches && event.changedTouches[0];
+    var startY = this._touchY;
+    this._touchY = null;
+    if (!t) return;
+    var dy = t.clientY - startY;
+    if (dy <= -60) this.goNext();
+    else if (dy >= 60) this.goPrev();
+  },
+
+  // —— 出口（行为与改造前一致）——
   startExperience: function () {
     wx.reLaunch({
       url: route.chat({ entry_source: this.data.entrySource, preview: "1" }),

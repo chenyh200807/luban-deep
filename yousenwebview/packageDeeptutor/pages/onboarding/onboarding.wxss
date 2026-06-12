@@ -655,3 +655,291 @@
     min-height: 58rpx;
   }
 }
+
+/* ============================================================
+   Motion 升级追加段（六幕自动播放）
+   门控模式约定：
+   - .fx-hold：移除即播——对带既有入场动画的块，hold 期间杀动画并隐藏，
+     class 移除后原动画从头播放。
+   - .fx-pop + .on：添加即播——对新增动画的元素，.on 到位才挂 keyframes。
+   只用 transform/opacity（小面积文字高亮的背景色动画除外）。
+   ============================================================ */
+
+/* —— 通用门控 —— */
+.fx-pop {
+  opacity: 0;
+}
+
+.story-copy.fx-hold .scene-kicker,
+.story-copy.fx-hold .scene-title,
+.story-copy.fx-hold .scene-desc {
+  animation: none;
+  opacity: 0;
+}
+
+.product-stage.fx-hold {
+  animation: none;
+  opacity: 0;
+}
+
+.point-row.fx-hold {
+  animation: none;
+  opacity: 0;
+}
+
+.point-row.fx-hold .point-score {
+  animation: none;
+}
+
+.weak-item.fx-hold {
+  animation: none;
+  opacity: 0;
+}
+
+.weak-item.fx-hold .weak-bar view {
+  animation: none;
+  width: 0 !important;
+}
+
+.example-panel {
+  animation: copyIn 520ms ease both;
+}
+
+.example-panel.fx-hold {
+  animation: none;
+  opacity: 0;
+}
+
+.example-panel.fx-hold .example-item {
+  animation: none;
+  opacity: 0;
+}
+
+/* —— 转场色浪（与登录页 guest-wave 同一渐变语言）—— */
+.wave-overlay {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: -6%;
+  bottom: -6%;
+  z-index: 60;
+  pointer-events: none;
+  background: linear-gradient(180deg, #f7c96b 0%, #5aa2ff 38%, #2a63ff 72%, #0b2a66 100%);
+}
+
+.wave-overlay.recede {
+  animation: waveOff 680ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes waveOff {
+  to {
+    transform: translateY(-112%);
+  }
+}
+
+/* —— 幕 1: 文字 Hook —— */
+.hook-stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-bottom: 140rpx;
+}
+
+.hook-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
+.hook-word {
+  opacity: 0;
+  color: #07192e;
+  font-size: 74rpx;
+  line-height: 1.2;
+  font-weight: 940;
+  letter-spacing: 0.01em;
+}
+
+.hook-stage.play .hook-word {
+  animation: hookWordIn 640ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes hookWordIn {
+  from {
+    opacity: 0;
+    transform: translateY(36rpx) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.hook-word.is-accent {
+  transition: color 420ms ease, transform 420ms ease;
+}
+
+.hook-stage.accent-on .hook-word.is-accent {
+  color: #d78a11;
+  transform: scale(1.04);
+}
+
+.hook-sub {
+  display: block;
+  margin-top: 28rpx;
+  opacity: 0;
+  color: rgba(8, 31, 58, 0.55);
+  font-size: 27rpx;
+  font-weight: 760;
+}
+
+.hook-stage.play .hook-sub {
+  animation: copyIn 560ms ease 1200ms both;
+}
+
+/* —— 幕 2: 诊断对话 —— */
+.chat-bubble.fx-pop.on {
+  animation: bubbleIn 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes bubbleIn {
+  from {
+    opacity: 0;
+    transform: translateY(22rpx) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.ai-line2.fx-pop.on {
+  animation: copyIn 460ms ease both;
+}
+
+.mini-steps.fx-pop view {
+  opacity: 0;
+}
+
+.mini-steps.fx-pop.on {
+  opacity: 1;
+}
+
+.mini-steps.fx-pop.on view {
+  animation: rowIn 460ms ease both;
+}
+
+.mini-steps.fx-pop.on view:nth-child(2) {
+  animation-delay: 110ms;
+}
+
+.mini-steps.fx-pop.on view:nth-child(3) {
+  animation-delay: 220ms;
+}
+
+/* —— 幕 3: 判分揭晓 —— */
+.answer-paper.fx-pop.on {
+  animation: copyIn 480ms ease both;
+}
+
+/* 扫描前采分点/漏分点高亮归零，scan 到位后逐个点亮（inline animation-delay 控节奏） */
+.answer-paper.fx-pop .mark,
+.answer-paper.fx-pop .miss {
+  color: inherit;
+  background: transparent;
+}
+
+.answer-paper.fx-pop.scan .mark {
+  animation: markIn 460ms ease both;
+}
+
+.answer-paper.fx-pop.scan .miss {
+  animation: missIn 460ms ease both;
+}
+
+@keyframes markIn {
+  to {
+    color: #07584e;
+    background: rgba(0, 168, 148, 0.16);
+  }
+}
+
+@keyframes missIn {
+  to {
+    color: #8a3b00;
+    background: rgba(242, 184, 73, 0.24);
+  }
+}
+
+/* 行点亮时分数从行内弹出（飘分） */
+.score-stage .point-row .point-score {
+  animation: scorePop 560ms cubic-bezier(0.16, 1, 0.3, 1) 240ms both;
+}
+
+@keyframes scorePop {
+  from {
+    opacity: 0;
+    transform: translateY(18rpx) scale(1.32);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.score-pill.pop {
+  animation: scorePop 480ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* —— 幕 4: 错因沉淀 —— */
+.task-box.fx-pop.on {
+  animation: bubbleIn 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* —— 幕 5: CTA 收束 —— */
+.cta-stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-bottom: 40rpx;
+}
+
+.cta-head.fx-pop.on {
+  animation: hookWordIn 680ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.cta-kicker {
+  display: block;
+  color: rgba(8, 31, 58, 0.5);
+  font-size: 23rpx;
+  font-weight: 860;
+  letter-spacing: 0.04em;
+}
+
+.cta-title {
+  display: block;
+  margin-top: 14rpx;
+  color: #07192e;
+  font-size: 78rpx;
+  line-height: 1.12;
+  font-weight: 940;
+}
+
+.cta-title-accent {
+  margin-top: 4rpx;
+  color: #d78a11;
+}
+
+.cta-sub {
+  display: block;
+  margin-top: 26rpx;
+  color: rgba(8, 31, 58, 0.58);
+  font-size: 27rpx;
+  font-weight: 760;
+}
+
+.cta-sub.fx-pop.on {
+  animation: copyIn 560ms ease both;
+}
