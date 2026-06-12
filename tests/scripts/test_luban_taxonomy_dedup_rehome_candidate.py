@@ -91,7 +91,7 @@ def test_dedup_rehome_full_pipeline() -> None:
     recoded = {r["name"]: r for r in report["recoded_collisions"]}
     assert "完全不同的叶子" in recoded
     assert recoded["完全不同的叶子"]["old_code"] == "1A413061-01"
-    assert recoded["完全不同的叶子"]["new_code"].startswith("1A413061-01x")
+    assert recoded["完全不同的叶子"]["new_code"].startswith("1A413061-01-x")
 
     # remap table covers both recodes and rehomes
     kinds = {e["kind"] for e in report["remap_table"]}

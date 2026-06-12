@@ -248,7 +248,7 @@ def _recode_collisions(roots: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 holders[code] = name
             elif holders[code] != name:
                 suffix_seq[code] = suffix_seq.get(code, 1) + 1
-                new_code = f"{code}x{suffix_seq[code]}"
+                new_code = f"{code}-x{suffix_seq[code]}"
                 node["code"] = new_code
                 recodes.append({"old_code": code, "new_code": new_code, "name": name, "parent_path": path})
         for child in node.get("children") or []:

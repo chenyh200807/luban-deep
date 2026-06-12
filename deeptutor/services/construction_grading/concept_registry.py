@@ -75,7 +75,9 @@ def compile_registry(nodes: list[dict[str, Any]], *, prior: dict[str, Any] | Non
     for n in nodes:
         name_ok = bool(str(n.get("name") or "").strip())
         code = str(n.get("code") or "")
-        code_ok = bool(re.match(r"^1A\d{6}(-[0-9a-z]+)*$", code))
+        # suffix segments are case-sensitive alnum: the book-derived 2026 rebuild emits
+        # uppercase leaf codes like 1A412010-B103 (legacy lowercase -01/-a still accepted).
+        code_ok = bool(re.match(r"^1A\d{6}(-[0-9A-Za-z]+)*$", code))
         if not name_ok or not code_ok:
             quarantine.append({"code": code, "name": n.get("name"), "name_path": n.get("name_path"),
                                "reason": "empty_name" if not name_ok else "malformed_code"})

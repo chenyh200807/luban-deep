@@ -10,6 +10,7 @@ import time
 from collections import Counter, defaultdict
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 import re
 from typing import Any
 
@@ -2258,7 +2259,8 @@ class BIService:
         }
 
     def _cost_calibration_path(self) -> Path:
-        return self._path_service.user_data_dir / "cost_calibration.json"
+        # session db 与运行时用户数据同目录（data/user）；bind-mount 持久化。
+        return Path(self._store.db_path).resolve().parent / "cost_calibration.json"
 
     async def refresh_cost_calibration(self, *, billing_cycle: str, generated_at: str) -> dict[str, Any]:
         """用官方账单 model 级金额 + 内账 by_model token 反推校准系数并持久化。

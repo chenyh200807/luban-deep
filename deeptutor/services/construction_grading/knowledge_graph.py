@@ -24,7 +24,7 @@ REL_HIERARCHY = "hierarchy"          # parent_of (structural backbone)
 # authored relation types carried verbatim from lecture related_topics (normalized to lowercase)
 _KNOWN_RELS = {"prerequisite", "preceding", "related", "co_occurring", "part_of", "applies_to"}
 
-_CODE_RE = re.compile(r"1A\d{4,}(?:-[0-9a-z]+)*")  # canonical-ish code embedded in a desc string
+_CODE_RE = re.compile(r"1A\d{4,}(?:-[0-9A-Za-z]+)*")  # canonical-ish code embedded in a desc string
 
 
 def map_topic_to_canonical(tax: CanonicalTaxonomy, topic: str, desc: str = "") -> str:

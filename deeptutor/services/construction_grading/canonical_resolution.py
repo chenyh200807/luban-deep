@@ -78,7 +78,7 @@ def _index() -> dict[str, Any] | None:
             "name_path": {lf["code"]: lf.get("name_path", lf["code"]) for lf in leaves}}
 
 
-_CODE_RE = re.compile(r"1A\d{4,}(?:-[0-9a-z]+)*")
+_CODE_RE = re.compile(r"1A\d{4,}(?:-[0-9A-Za-z]+)*")
 
 
 @lru_cache(maxsize=4096)
