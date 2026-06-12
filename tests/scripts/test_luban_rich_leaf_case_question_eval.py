@@ -412,3 +412,94 @@ def test_run_eval_resume_skips_completed_sub(monkeypatch):
     )
     assert len(report["rows"]) == 2
     assert report["judge_rows"][0]["status"] == "completed"
+
+
+# ---------------------------------------------------------------- v3 pack-sourced rich supply
+
+
+def _fake_pack() -> dict:
+    def unit(unit_id: str, leaf_id: str, name_path: str) -> dict:
+        return {
+            "unit_id": unit_id,
+            "leaf_id": leaf_id,
+            "leaf_name_path": name_path,
+            "compiled_context": {
+                "concepts": ["概念A"],
+                "rules": [],
+                "exam_patterns": [],
+                "teaching_cards": [],
+                "scoring_points": [
+                    {
+                        "statement": f"采分点甲-{leaf_id}",
+                        "required_terms": ["术语1"],
+                        "provenance": {"chunk_id": "CK_1A_0001"},
+                    }
+                ],
+            },
+            "confidence": "high",
+            "source_lane": "source_truth",
+            "source_ref": {"chunk_id": "CK_1A_0001"},
+            "relative_path": "p.json",
+        }
+
+    return {
+        "schema": "luban_rich_leaf_runtime_token_pack.v2.3",
+        "version": "v3.2_test",
+        "safety": {
+            "official_score_allowed": False,
+            "canonical_truth_written": False,
+            "release_truth_claimed": False,
+        },
+        "quarantine": {"quarantine_candidate_unit_ids": ["u_quarantined"]},
+        "runtime_token_pack_units": [
+            unit("u_keep", "1A411011-B054", "建筑设计 > 屋面卷材防水层施工"),
+            unit("u_quarantined", "1A999999-X001", "隔离 > 不得供给"),
+        ],
+    }
+
+
+def test_pack_rich_index_validates_and_excludes_quarantine(tmp_path):
+    import json as _json
+
+    path = tmp_path / "pack.json"
+    path.write_text(_json.dumps(_fake_pack(), ensure_ascii=False), encoding="utf-8")
+    index = mod._pack_rich_index(path)
+    assert "1A411011-B054" in index
+    assert "1A999999-X001" not in index  # quarantined units must never be supplied
+    assert index["1A411011-B054"]["compiled_context"]["scoring_points"]
+
+
+def test_rich_resolver_pack_grading_renders_scoring_points_first(tmp_path, monkeypatch):
+    import json as _json
+
+    import deeptutor.services.compiled_knowledge.general_knowledge as gk
+    import deeptutor.services.construction_grading.rich_leaf_runtime as rr
+
+    path = tmp_path / "pack.json"
+    path.write_text(_json.dumps(_fake_pack(), ensure_ascii=False), encoding="utf-8")
+    # register original loader so monkeypatch restores it after the resolver overrides it
+    monkeypatch.setattr(rr, "_load_index", rr._load_index)
+    monkeypatch.setattr(
+        gk,
+        "build_general_knowledge_query_plan",
+        lambda text: {"candidates": [{"node_code": "1A411011-B054"}], "query_terms": ["卷材"]},
+    )
+    resolve = mod._rich_resolver(pack_path=path, grading=True)
+    rich = resolve("背景：屋面工程。", "指出屋面卷材防水的不妥之处？")
+    assert rich["leaf_ids"] == ["1A411011-B054"]
+    grounding = rich["grounding"]
+    assert "【教材要点 L1】" in grounding
+    assert "[采分点] 采分点甲-1A411011-B054" in grounding
+    assert "必含术语：术语1" in grounding
+    assert "〔源:CK_1A_0001〕" in grounding
+    # grading render puts the scoring-point family ahead of the concept family
+    assert grounding.index("[采分点]") < grounding.index("[概念]")
+    assert rich["supply_source"] == str(path)
+
+
+def test_rich_resolver_default_supply_has_no_pack_override():
+    resolve = mod._rich_resolver()
+    assert getattr(resolve, "supply_info", None) == {
+        "source": "tracked_runtime_supply_v_rich_leaf_context",
+        "grading_render": False,
+    }

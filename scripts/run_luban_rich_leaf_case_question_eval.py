@@ -321,11 +321,33 @@ def _kbv5_retriever(top_k: int) -> Callable[[str], dict[str, Any]]:
     return retrieve
 
 
-def _rich_resolver() -> Callable[[str, str], dict[str, Any]]:
+def _pack_rich_index(pack_path: Path) -> dict[str, dict[str, Any]]:
+    """Build an in-process rich-leaf index straight from a frozen runtime token pack file via the
+    production bundle compiler (temporary supply bundle: schema pin + safety invariants validated,
+    quarantined units excluded). The tracked ``runtime_supply/v_rich_leaf_context`` on disk is
+    never touched — this is a candidate/review-only eval supply override."""
+    import sys
+
+    sys.path.insert(0, str(REPO))
+    from deeptutor.services.construction_grading import rich_leaf_runtime as rich_runtime
+
+    bundle, _pointer = rich_runtime.build_runtime_supply_bundle(_read_json(pack_path))
+    return {
+        str(record.get("leaf_id")): record
+        for record in bundle.get("records") or []
+        if isinstance(record, dict) and str(record.get("leaf_id") or "").strip()
+    }
+
+
+def _rich_resolver(*, pack_path: Path | None = None, grading: bool = False) -> Callable[[str, str], dict[str, Any]]:
     """Deployment-shaped two-layer multi-leaf rich resolver: the SUB-QUESTION text supplies the
     focus layer (full-weight terms + primary classified leaf — 小问主导选叶), the case background
     supplies the 0.3x background layer; -> ``get_rich_leaf_contexts`` (top_k=3) -> 1200-char-capped
-    grounding render with citable 【教材要点 Ln】 block labels."""
+    grounding render with citable 【教材要点 Ln】 block labels.
+
+    ``pack_path`` swaps the tracked runtime supply for a pack-file-built index (process-local
+    override of the runtime loader; see ``_pack_rich_index``). ``grading=True`` renders the
+    ``scoring_points`` family first (grading-priority block layout)."""
     import sys
 
     sys.path.insert(0, str(REPO))
@@ -333,6 +355,15 @@ def _rich_resolver() -> Callable[[str, str], dict[str, Any]]:
         build_general_knowledge_query_plan,
     )
     from deeptutor.services.construction_grading import rich_leaf_runtime as rich_runtime
+
+    supply_source = "tracked_runtime_supply_v_rich_leaf_context"
+    if pack_path is not None:
+        index = _pack_rich_index(pack_path)
+        cache_clear = getattr(rich_runtime._load_index, "cache_clear", None)
+        if callable(cache_clear):
+            cache_clear()
+        rich_runtime._load_index = lambda: index  # process-local eval override, never persisted
+        supply_source = str(pack_path)
 
     def _first_candidate(plan: dict[str, Any]) -> str:
         for candidate in plan.get("candidates") or []:
@@ -352,7 +383,7 @@ def _rich_resolver() -> Callable[[str, str], dict[str, Any]]:
             background_terms, primary, focus_terms=focus_terms, top_k=RICH_TOP_K
         )
         lines = rich_runtime.format_rich_leaf_pack_grounding_lines(
-            {"rich_leaf_contexts": contexts}, max_chars=RICH_RENDER_MAX_CHARS
+            {"rich_leaf_contexts": contexts}, max_chars=RICH_RENDER_MAX_CHARS, grading=grading
         )
         return {
             "leaf_ids": [str(ctx.get("leaf_id") or "") for ctx in contexts],
@@ -360,8 +391,10 @@ def _rich_resolver() -> Callable[[str, str], dict[str, Any]]:
             "focus_terms": focus_terms,
             "background_terms": background_terms,
             "grounding": "\n".join(lines),
+            "supply_source": supply_source,
         }
 
+    resolve.supply_info = {"source": supply_source, "grading_render": bool(grading)}  # type: ignore[attr-defined]
     return resolve
 
 
@@ -640,6 +673,7 @@ def build_report(
     provider_configured: bool,
     kbv5_status: dict[str, Any],
     dual_judge: bool = False,
+    rich_supply: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     blockers: list[str] = []
     if not provider_configured:
@@ -671,6 +705,7 @@ def build_report(
         "seed": seed,
         "models": [model] if runtime_exercised else [],
         "kbv5_retrieval": kbv5_status,
+        "rich_supply": rich_supply,
         "case_sample": {
             "case_count": len(cases),
             "sub_question_count": sum(len(c["sub_questions"]) for c in cases),
@@ -736,6 +771,7 @@ def run_eval(
     previous: dict[str, Any] | None = None,
     output_path: Path | None = None,
 ) -> dict[str, Any]:
+    rich_supply = getattr(rich_resolver, "supply_info", None)
     resumed_answers, resumed_judges = _resume_index(previous)
     rows: list[dict[str, Any]] = []
     judge_rows: list[dict[str, Any]] = []
@@ -753,6 +789,7 @@ def run_eval(
             provider_configured=provider_call is not None,
             kbv5_status=kbv5_status,
             dual_judge=dual_judge,
+            rich_supply=rich_supply,
         )
         if output_path is not None:
             _write_json(output_path, report)
@@ -912,6 +949,18 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--no-provider-call", action="store_true")
     parser.add_argument("--resume-from", type=Path, default=None)
     parser.add_argument(
+        "--rich-pack",
+        type=Path,
+        default=None,
+        help="frozen runtime token pack file to use as the D-arm rich supply instead of the "
+        "tracked runtime_supply bundle (temporary in-process supply; quarantine excluded)",
+    )
+    parser.add_argument(
+        "--rich-grading-render",
+        action="store_true",
+        help="render the D-arm rich blocks with grading=True (scoring_points family first)",
+    )
+    parser.add_argument(
         "--dual-judge",
         action="store_true",
         help="judge every sub-question twice (second pass swaps the two arms' positions); "
@@ -927,7 +976,11 @@ def main(argv: list[str] | None = None) -> int:
         cases=cases,
         provider_call=provider_call,
         retriever=_kbv5_retriever(args.kbv5_top_k) if provider_call is not None else None,
-        rich_resolver=_rich_resolver() if provider_call is not None else None,
+        rich_resolver=(
+            _rich_resolver(pack_path=args.rich_pack, grading=args.rich_grading_render)
+            if provider_call is not None
+            else None
+        ),
         model=model,
         seed=args.seed,
         token_budget=args.token_budget,
