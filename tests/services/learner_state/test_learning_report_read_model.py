@@ -14,7 +14,10 @@ from deeptutor.services.construction_grading.writeback import (
     write_case_grading_event_learning_evidence,
     write_grading_error_events,
 )
-from deeptutor.services.taxonomy.construction_taxonomy import taxonomy_tree_stats
+from deeptutor.services.taxonomy.construction_taxonomy import (
+    taxonomy_source_metadata,
+    taxonomy_tree_stats,
+)
 
 _TZ = timezone(timedelta(hours=8))
 
@@ -26,6 +29,20 @@ def _iso(days_ago: int = 0) -> str:
 def _iso_minutes_ago(minutes: int) -> str:
     """Recent timestamp inside the report's recency window, ordered by minutes-ago."""
     return (datetime.now(_TZ) - timedelta(minutes=minutes)).isoformat()
+
+
+def _assert_knowledge_summary_matches_taxonomy_authority(knowledge_summary: dict) -> None:
+    source = taxonomy_source_metadata()
+    assert source["path"].endswith("FINAL_CLEANED_TAXONOMY2026.json")
+    assert source["sha256"], "taxonomy authority source should stay pinned"
+
+    taxonomy_stats = taxonomy_tree_stats()
+    for key in ("total_nodes", "leaf_nodes", "coded_nodes", "unique_codes", "duplicate_code_rows"):
+        assert knowledge_summary[key] == taxonomy_stats[key]
+
+    assert knowledge_summary["total_nodes"] >= knowledge_summary["leaf_nodes"] > 0
+    assert knowledge_summary["coded_nodes"] >= knowledge_summary["unique_codes"] > 0
+    assert knowledge_summary["coded_nodes"] == knowledge_summary["unique_codes"] + knowledge_summary["duplicate_code_rows"]
 
 
 def _learning_event(
@@ -809,11 +826,7 @@ def test_multi_concept_evidence_updates_progress_feedback_chapter_focus() -> Non
     assert cards_by_label["主攻主题"]["detail"], "multi-chapter evidence should yield a non-empty focus detail"
     knowledge_summary = model["mastery"]["knowledge_summary"]
     assert knowledge_summary["total_textbook_chapters"] == 13
-    taxonomy_stats = taxonomy_tree_stats()
-    for key in ("total_nodes", "leaf_nodes", "coded_nodes", "unique_codes", "duplicate_code_rows"):
-        assert knowledge_summary[key] == taxonomy_stats[key]
-    assert knowledge_summary["total_nodes"] >= knowledge_summary["leaf_nodes"] > 0
-    assert knowledge_summary["coded_nodes"] == knowledge_summary["unique_codes"] + knowledge_summary["duplicate_code_rows"]
+    _assert_knowledge_summary_matches_taxonomy_authority(knowledge_summary)
     assert knowledge_summary["evaluated_topics"] >= 2
     chapters_by_no = {item["chapter_no"]: item for item in knowledge_summary["textbook_chapters"]}
     assert chapters_by_no[1]["evaluated_topics"] >= 1
