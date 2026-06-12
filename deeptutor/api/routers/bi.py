@@ -8,6 +8,7 @@ from fastapi import APIRouter, Body, Depends, Header, HTTPException, Query, stat
 from deeptutor.api.dependencies.auth import AuthContext, _has_metrics_token_access, resolve_auth_context
 from deeptutor.services.config import get_env_store
 from deeptutor.services.bi_service import get_bi_service
+from deeptutor.services.member_console.service import get_member_console_service
 
 
 def _bi_public_enabled() -> bool:
@@ -432,3 +433,34 @@ async def bi_luban_feedback_response_update(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Luban feedback response not found") from exc
     except RuntimeError as exc:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+
+
+@router.get("/admins")
+async def bi_list_admins(auth: AuthContext = Depends(require_bi_admin)):
+    """列出 BI 管理员（env 引导 + 运行时增量）。"""
+    return {"admins": get_member_console_service().list_admin_user_ids()}
+
+
+@router.post("/admins")
+async def bi_add_admin(
+    payload: dict[str, Any] | None = Body(default=None),
+    auth: AuthContext = Depends(require_bi_admin),
+):
+    """添加运行时管理员，立即生效，无需重启。接受 user_id（可在会员运营页搜索复制）。"""
+    body = payload or {}
+    raw = str(body.get("user_id") or "").strip()
+    if not raw:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="user_id 必填")
+    try:
+        return {"admins": get_member_console_service().add_admin_user(raw), "added": raw}
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+@router.delete("/admins/{user_id}")
+async def bi_remove_admin(user_id: str, auth: AuthContext = Depends(require_bi_admin)):
+    """移除运行时管理员。env 引导管理员不可移除（防止锁死超管）。"""
+    try:
+        return {"admins": get_member_console_service().remove_admin_user(user_id)}
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc

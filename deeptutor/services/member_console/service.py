@@ -88,6 +88,11 @@ from deeptutor.services.member_console.external_auth import (
     validate_external_auth_password,
     verify_external_auth_user,
 )
+from deeptutor.services.member_console.admin_store import (
+    add_persisted_admin,
+    load_persisted_admins,
+    remove_persisted_admin,
+)
 from deeptutor.services.member_console.directory import get_member_directory_read_model
 from deeptutor.services.path_service import get_path_service
 from deeptutor.services.runtime_env import env_flag, is_production_environment
@@ -2628,9 +2633,47 @@ class MemberConsoleService:
     def verify_access_token(self, token: str) -> dict[str, Any] | None:
         return self._verify_access_token(token)
 
+    def _bi_admins_path(self) -> Path:
+        return self._path_service.user_data_dir / "bi_admins.json"
+
+    def _env_admin_user_ids(self) -> set[str]:
+        """env 引导名单（bootstrap/保底，UI 不可移除）。"""
+        return self._admin_user_ids()
+
     def is_admin_user(self, user_id: str | None) -> bool:
         resolved = str(user_id or "").strip()
-        return bool(resolved) and resolved in self._admin_user_ids()
+        if not resolved:
+            return False
+        if resolved in self._env_admin_user_ids():
+            return True
+        return resolved in load_persisted_admins(self._bi_admins_path())
+
+    def list_admin_user_ids(self) -> list[dict[str, Any]]:
+        """合并 env 引导 + 运行时增量；env 来源标记 removable=False（防锁死）。"""
+        env_ids = self._env_admin_user_ids()
+        file_ids = load_persisted_admins(self._bi_admins_path())
+        out: list[dict[str, Any]] = []
+        for uid in sorted(env_ids):
+            out.append({"user_id": uid, "source": "env", "removable": False})
+        for uid in sorted(file_ids - env_ids):
+            out.append({"user_id": uid, "source": "runtime", "removable": True})
+        return out
+
+    def add_admin_user(self, user_id: str) -> list[dict[str, Any]]:
+        normalized = str(user_id or "").strip()
+        if not normalized:
+            raise ValueError("user_id is required")
+        if normalized in self._env_admin_user_ids():
+            return self.list_admin_user_ids()
+        add_persisted_admin(self._bi_admins_path(), normalized)
+        return self.list_admin_user_ids()
+
+    def remove_admin_user(self, user_id: str) -> list[dict[str, Any]]:
+        normalized = str(user_id or "").strip()
+        if normalized in self._env_admin_user_ids():
+            raise ValueError("env 引导管理员不可通过界面移除（防止锁死超管）")
+        remove_persisted_admin(self._bi_admins_path(), normalized)
+        return self.list_admin_user_ids()
 
     def _get_wechat_mp_credentials(self) -> tuple[str, str]:
         app_id = str(

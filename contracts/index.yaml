@@ -346,6 +346,8 @@ domains:
       - tests/services/learner_state/test_outbox.py
       - tests/services/learner_state/test_flusher.py
       - tests/services/learner_state/test_runtime.py
+      - tests/services/learner_state/test_dream_cycle.py
+      - tests/services/learner_state/test_learning_trajectory.py
       - tests/services/learner_state/test_attempt_detail_read_model.py
       - tests/services/learner_state/test_learning_synthesis.py
       - tests/services/learner_state/test_learning_report_read_model.py
@@ -373,6 +375,8 @@ domains:
       - tests/services/learner_state/heartbeat/test_arbitration.py
       - tests/services/member_console/test_directory.py
       - tests/services/member_console/test_service.py
+      - tests/services/member_console/test_admin_store.py
+      - tests/services/member_console/test_admin_management.py
       - tests/web/test_bi_member_admin_surface.py
       - tests/supabase/test_learner_state_rls_migration.py
       - tests/services/learner_state/test_d_class_occurrence_timeline.py
