@@ -247,6 +247,25 @@ def _resolve_json_file_output(json_file_output: Optional[bool]) -> bool:
     return False
 
 
+def _file_log_level() -> int:
+    """File-handler level: DEEPTUTOR_FILE_LOG_LEVEL overrides; else INFO in
+    production (an unbounded per-day file at DEBUG dumps prompts/student content
+    and grows multi-GB), DEBUG elsewhere to keep local debugging unchanged."""
+    raw = os.getenv("DEEPTUTOR_FILE_LOG_LEVEL", "").strip().upper()
+    if raw:
+        resolved = getattr(logging, raw, None)
+        if isinstance(resolved, int):
+            return resolved
+    try:
+        from deeptutor.services.runtime_env import is_production_environment
+
+        if is_production_environment():
+            return logging.INFO
+    except Exception:
+        pass
+    return logging.DEBUG
+
+
 class Logger:
     """
     Unified logger for DeepTutor.
@@ -329,8 +348,13 @@ class Logger:
             timestamp = datetime.now().strftime("%Y%m%d")
             log_file = log_dir_path / f"deeptutor_{timestamp}.log"
 
+            # Append-mode FileHandler is multi-process safe (O_APPEND); a size-based
+            # RotatingFileHandler is NOT (concurrent rollover from 2 uvicorn workers
+            # truncates each other). Daily files + the 90-day pruner bound retention;
+            # the level below bounds daily volume (the old hardcoded DEBUG dumped
+            # full prompts/student content to disk regardless of configured level).
             file_handler = logging.FileHandler(log_file, encoding="utf-8")
-            file_handler.setLevel(logging.DEBUG)  # Log everything to file
+            file_handler.setLevel(_file_log_level())
             file_handler.setFormatter(
                 JSONFileFormatter() if self.json_file_output else FileFormatter()
             )

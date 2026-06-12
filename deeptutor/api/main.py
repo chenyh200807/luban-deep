@@ -416,6 +416,30 @@ async def lifespan(app: FastAPI):
     except Exception:
         logger.debug("billing enforcement startup check skipped", exc_info=True)
 
+    # Multi-worker safety visibility: the TutorBot heartbeat single-instance lock,
+    # the per-user WS connection cap and cross-worker rate limits all coordinate
+    # through the redis (valkey) backend. With UVICORN_WORKERS>1 and a non-redis
+    # backend those guards silently degrade to per-process behavior (N× duplicate
+    # heartbeats, N× connection caps) — loud warning, same pattern as billing above.
+    try:
+        workers = int(str(os.getenv("UVICORN_WORKERS", "1")).strip() or "1")
+        rate_limit_backend = str(os.getenv("DEEPTUTOR_RATE_LIMIT_BACKEND", "sqlite")).strip().lower()
+        redis_url = str(
+            os.getenv("DEEPTUTOR_RATE_LIMIT_REDIS_URL") or os.getenv("REDIS_URL") or ""
+        ).strip()
+        if workers > 1 and (rate_limit_backend != "redis" or not redis_url):
+            logger.warning(
+                "UVICORN_WORKERS=%s but DEEPTUTOR_RATE_LIMIT_BACKEND=%s (redis url %s) — "
+                "cross-worker guards (heartbeat single-instance lock, per-user WS connection "
+                "cap) are DEGRADED to per-process behavior. Set DEEPTUTOR_RATE_LIMIT_BACKEND=redis "
+                "and DEEPTUTOR_RATE_LIMIT_REDIS_URL=redis://valkey:6379/0 for multi-worker runs.",
+                workers,
+                rate_limit_backend or "unset",
+                "set" if redis_url else "MISSING",
+            )
+    except Exception:
+        logger.debug("multi-worker config consistency check skipped", exc_info=True)
+
     app.state.readiness_ready = bool(app.state.readiness_checks) and all(
         app.state.readiness_checks.values()
     )

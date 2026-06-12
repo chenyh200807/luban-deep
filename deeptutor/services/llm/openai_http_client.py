@@ -108,6 +108,11 @@ def make_openai_client(
 
     Pass ``timeout=httpx.Timeout(...)`` to override per-call; leave unset for
     defaults. ``extra`` is passed through to AsyncOpenAI() unchanged.
+
+    NOTE: every call builds a NEW httpx connection pool that is never closed
+    (the SDK does not own injected http_clients). High-frequency callers must
+    use ``get_pooled_openai_client()`` instead and pass per-call headers via
+    the request-level ``extra_headers=`` kwarg.
     """
     timeout = timeout or default_llm_timeout()
     return AsyncOpenAI(
@@ -118,6 +123,32 @@ def make_openai_client(
         http_client=_shared_httpx_client(timeout=timeout),
         **extra,
     )
+
+
+_pooled_clients: dict[tuple[str, str, bool], AsyncOpenAI] = {}
+_pooled_clients_lock = threading.Lock()
+
+
+def get_pooled_openai_client(
+    api_key: str | None,
+    base_url: str | None = None,
+) -> AsyncOpenAI:
+    """Process-lifetime AsyncOpenAI keyed by (api_key, base_url), sharing one
+    httpx connection pool per upstream — no per-call TLS handshake, no leaked
+    sockets waiting on GC. Uses the project-default timeout; callers needing a
+    custom timeout or client-level headers should fall back to
+    ``make_openai_client()`` and manage the client's lifetime themselves.
+    Per-call headers go on the request: ``...create(..., extra_headers=...)``.
+    """
+    cache_key = (api_key or "no-key", base_url or "", disable_ssl_verify_enabled())
+    client = _pooled_clients.get(cache_key)
+    if client is None:
+        with _pooled_clients_lock:
+            client = _pooled_clients.get(cache_key)
+            if client is None:
+                client = make_openai_client(api_key, base_url=base_url)
+                _pooled_clients[cache_key] = client
+    return client
 
 
 def make_azure_openai_client(

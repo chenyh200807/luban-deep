@@ -265,6 +265,9 @@ command=/bin/bash /app/start-backend.sh
 directory=/app
 autostart=true
 autorestart=true
+; Graceful-shutdown chain: compose stop_grace_period 60s > this 55s > uvicorn
+; --timeout-graceful-shutdown 45s. Default 10s meant SIGKILL mid-stream on deploys.
+stopwaitsecs=55
 stdout_logfile=/dev/fd/1
 stdout_logfile_maxbytes=0
 stderr_logfile=/dev/fd/2
@@ -304,7 +307,12 @@ echo "[Backend]  🚀 Starting FastAPI backend on port ${BACKEND_PORT} (${UVICOR
 # Run uvicorn directly - the application's logging system already handles:
 # 1. Console output (visible in docker logs)
 # 2. File logging to data/user/logs/ai_tutor_*.log
-exec python -m uvicorn deeptutor.api.main:app --host 0.0.0.0 --port ${BACKEND_PORT} --workers ${UVICORN_WORKERS}
+# --timeout-graceful-shutdown: drain in-flight turns on SIGTERM instead of waiting
+#   forever on open WebSockets (supervisord stopwaitsecs=55 / compose 60s sit above).
+# --no-access-log: the app's selective access-log middleware already records
+#   non-200s; uvicorn's full access log double-logs every request + health probe.
+exec python -m uvicorn deeptutor.api.main:app --host 0.0.0.0 --port ${BACKEND_PORT} \
+  --workers ${UVICORN_WORKERS} --timeout-graceful-shutdown 45 --no-access-log
 EOF
 
 RUN sed -i 's/\r$//' /app/start-backend.sh && chmod +x /app/start-backend.sh

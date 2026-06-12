@@ -1496,3 +1496,29 @@ def test_teaching_overlay_falls_back_to_default_skill_without_scene() -> None:
     assert default_instruction
     # The default (no-scene) skill differs from a scene-specific skill stack.
     assert default_instruction != scene_instruction
+
+
+def test_build_openai_client_reuses_pooled_client(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Without client-level overrides (no extra_headers, no ssl bypass) the acting
+    loop must reuse one process-wide pooled client per (api_key, base_url) — the
+    old per-call make_openai_client() leaked an unclosed httpx pool every turn."""
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
+        lambda: SimpleNamespace(
+            binding="openai",
+            model="gpt-test",
+            api_key="pooled-reuse-test-key",
+            base_url="https://pooled-reuse.example.com",
+            api_version=None,
+            extra_headers=None,
+        ),
+    )
+    monkeypatch.setattr(
+        "deeptutor.agents.chat.agentic_pipeline.get_tool_registry", lambda: object()
+    )
+
+    pipeline = AgenticChatPipeline(language="en")
+
+    first = pipeline._build_openai_client()
+    second = pipeline._build_openai_client()
+    assert first is second

@@ -5,8 +5,8 @@ from collections import Counter
 from dataclasses import dataclass
 from functools import lru_cache
 import json
+import logging
 import re
-import threading
 from typing import Any, Callable
 
 from deeptutor.services.taxonomy.taxonomy_authority import (
@@ -307,23 +307,18 @@ def infer_learning_topic_with_llm(payload: dict[str, Any], candidates: list[str]
         except RuntimeError:
             result = asyncio.run(call_llm())
         else:
-            result_holder: dict[str, str] = {}
-            error_holder: dict[str, BaseException] = {}
-
-            def runner() -> None:
-                try:
-                    result_holder["value"] = asyncio.run(call_llm())
-                except BaseException as exc:
-                    error_holder["error"] = exc
-
-            thread = threading.Thread(target=runner, name="learning-topic-llm", daemon=True)
-            thread.start()
-            thread.join(timeout=90.0)  # slightly above LLM_TIMEOUT_TOTAL_S; daemon dies with process
-            if thread.is_alive():
-                return ""  # timed out — treat as LLM miss
-            if error_holder:
-                return ""
-            result = result_holder.get("value", "")
+            # NEVER block the event-loop thread waiting on an LLM call. The old code
+            # spawned a thread and join(90s)-ed it here, which froze every WS stream
+            # and heartbeat on this worker for up to 90s per post-turn refresh.
+            # Async callers must run the whole sync chain via asyncio.to_thread(...)
+            # (see turn_runtime post-turn refresh) — then this branch is never hit.
+            # If it is hit anyway, degrade to an LLM miss: deterministic resolution
+            # has already run, returning "" only skips the optional LLM fallback.
+            logging.getLogger(__name__).warning(
+                "infer_learning_topic_with_llm called on the event-loop thread; "
+                "skipping LLM topic inference (wrap caller in asyncio.to_thread)"
+            )
+            return ""
     except Exception:
         return ""
     return normalize_learning_topic_text(result.splitlines()[0] if result else "")

@@ -2089,7 +2089,11 @@ class BatchConversationRequest(BaseModel):
 )
 async def auth_login(body: LoginRequest) -> dict[str, Any]:
     try:
-        return member_service.login_with_password(body.username, body.password)
+        # bcrypt verify + a deliberate >=100ms constant-time floor (timing-attack
+        # guard) — must run in the threadpool, not on the event loop.
+        return await run_in_threadpool(
+            member_service.login_with_password, body.username, body.password
+        )
     except ValueError as exc:
         raise HTTPException(status_code=401, detail=str(exc)) from exc
 
@@ -2102,7 +2106,10 @@ async def auth_login(body: LoginRequest) -> dict[str, Any]:
 )
 async def auth_register(body: RegisterRequest) -> dict[str, Any]:
     try:
-        result = member_service.register_with_external_auth(body.username, body.password, body.phone)
+        # bcrypt hash — threadpool, same rationale as auth_login.
+        result = await run_in_threadpool(
+            member_service.register_with_external_auth, body.username, body.password, body.phone
+        )
         user = result.get("user") if isinstance(result.get("user"), dict) else {}
         user_id = str(
             result.get("user_id")
@@ -2157,7 +2164,9 @@ async def auth_verify_code(body: VerifyCodeRequest) -> dict[str, Any]:
 )
 async def auth_reset_password(body: PasswordResetRequest) -> dict[str, Any]:
     try:
-        return member_service.reset_password_with_phone_code(
+        # bcrypt re-hash — threadpool, same rationale as auth_login.
+        return await run_in_threadpool(
+            member_service.reset_password_with_phone_code,
             body.username,
             body.phone,
             body.code,
@@ -2470,7 +2479,19 @@ async def mastery_dashboard(authorization: str | None = Header(default=None)) ->
     return member_service.get_mastery_dashboard(_resolve_authenticated_user_id(authorization))
 
 
-@router.get("/learning-brain/projection")
+@router.get(
+    "/learning-brain/projection",
+    # Heavy synthesis pass over the learner's memory events — not free to recompute.
+    dependencies=[
+        Depends(
+            route_rate_limit(
+                "mobile_learning_brain_projection",
+                default_max_requests=20,
+                default_window_seconds=60.0,
+            )
+        )
+    ],
+)
 async def learning_brain_projection(
     authorization: str | None = Header(default=None),
     event_limit: int = Query(default=100, ge=1, le=500),
@@ -2684,7 +2705,27 @@ async def assessment_topics(authorization: str | None = Header(default=None)) ->
     return member_service.get_assessment_topic_catalog(user_id)
 
 
-@router.post("/assessment/create")
+@router.post(
+    "/assessment/create",
+    # LLM-backed quiz assembly — burst + daily budget (economic-DoS guard), same
+    # pattern as _MOBILE_CHAT_START_TURN_DEPENDENCIES.
+    dependencies=[
+        Depends(
+            route_rate_limit(
+                "mobile_assessment_create",
+                default_max_requests=6,
+                default_window_seconds=60.0,
+            )
+        ),
+        Depends(
+            route_rate_limit(
+                "mobile_assessment_create_daily",
+                default_max_requests=60,
+                default_window_seconds=86400.0,
+            )
+        ),
+    ],
+)
 async def assessment_create(
     body: AssessmentCreateRequest,
     authorization: str | None = Header(default=None),
@@ -2737,7 +2778,27 @@ async def assessment_report(
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
-@router.post("/assessment/{quiz_id}/items/{question_id}/explain")
+@router.post(
+    "/assessment/{quiz_id}/items/{question_id}/explain",
+    # Direct LLM generation per call; the balance gate is a no-op while billing
+    # enforcement is off, so the rate limit is the only sustained-burn guard.
+    dependencies=[
+        Depends(
+            route_rate_limit(
+                "mobile_assessment_explain",
+                default_max_requests=10,
+                default_window_seconds=60.0,
+            )
+        ),
+        Depends(
+            route_rate_limit(
+                "mobile_assessment_explain_daily",
+                default_max_requests=200,
+                default_window_seconds=86400.0,
+            )
+        ),
+    ],
+)
 async def assessment_deep_explanation(
     quiz_id: str,
     question_id: str,
@@ -2774,7 +2835,18 @@ async def assessment_submit(
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
-@router.post("/conversations")
+@router.post(
+    "/conversations",
+    dependencies=[
+        Depends(
+            route_rate_limit(
+                "mobile_create_conversation",
+                default_max_requests=20,
+                default_window_seconds=60.0,
+            )
+        )
+    ],
+)
 async def create_conversation(authorization: str | None = Header(default=None)) -> dict[str, Any]:
     resolved_user_id = _resolve_authenticated_user_id(authorization)
     session = await session_store.ensure_session(
@@ -2904,7 +2976,18 @@ async def delete_conversation(
     return {"deleted": True}
 
 
-@router.post("/conversations/batch")
+@router.post(
+    "/conversations/batch",
+    dependencies=[
+        Depends(
+            route_rate_limit(
+                "mobile_conversations_batch",
+                default_max_requests=10,
+                default_window_seconds=60.0,
+            )
+        )
+    ],
+)
 async def batch_conversations(
     body: BatchConversationRequest,
     authorization: str | None = Header(default=None),

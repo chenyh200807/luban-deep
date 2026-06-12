@@ -224,3 +224,55 @@ def test_fallback_in_memory_bucket_accumulates_across_calls(
     # First 3 allowed (None), then the accumulated count trips the limit (retry-after int).
     assert results[:3] == [None, None, None]
     assert all(isinstance(r, int) and r > 0 for r in results[3:])
+
+
+def test_redis_backend_retries_after_degraded_window(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A Redis hiccup must degrade to SQLite only for a bounded window (30s), then
+    retry Redis — the old boolean ``_degraded`` latched until process restart, so a
+    recovered valkey never got cross-worker limits back."""
+
+    calls = {"incr": 0}
+
+    class _FlakyRedisClient:
+        def incr(self, *_args, **_kwargs):
+            calls["incr"] += 1
+            if calls["incr"] == 1:
+                raise ConnectionError("redis down")
+            return 1
+
+        def pexpire(self, *_args, **_kwargs):
+            return None
+
+        def pttl(self, *_args, **_kwargs):
+            return -1
+
+    class _FakeRedisFactory:
+        @staticmethod
+        def from_url(*_args, **_kwargs):
+            return _FlakyRedisClient()
+
+    fake_redis = types.ModuleType("redis")
+    fake_redis.Redis = _FakeRedisFactory
+    monkeypatch.setitem(sys.modules, "redis", fake_redis)
+    monkeypatch.setenv("DEEPTUTOR_RATE_LIMIT_DB_PATH", str(tmp_path / "rate_limit.db"))
+
+    backend = rate_limit_module._RedisRateLimitBackend("redis://test:6379/0", "ns")
+    policy = rate_limit_module.RateLimitPolicy(max_requests=5, window_seconds=60.0)
+
+    # First call: Redis raises -> served by SQLite fallback, degraded window opens.
+    assert backend.consume("scope", "key", policy, 0.0) is None
+    assert calls["incr"] == 1
+    # Inside the window: Redis is NOT touched again.
+    assert backend.consume("scope", "key", policy, 0.0) is None
+    assert calls["incr"] == 1
+
+    # Past the 30s window: Redis is retried and serves again.
+    real_monotonic = rate_limit_module.time.monotonic
+    monkeypatch.setattr(
+        rate_limit_module.time, "monotonic", lambda: real_monotonic() + 31.0
+    )
+    assert backend.consume("scope", "key", policy, 0.0) is None
+    assert calls["incr"] == 2

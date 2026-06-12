@@ -10,6 +10,7 @@ import re
 from typing import Any
 
 from deeptutor.services.llm.openai_http_client import (
+    get_pooled_openai_client,
     make_azure_openai_client,
     make_openai_client,
 )
@@ -1570,6 +1571,14 @@ class AgenticChatPipeline:
                 azure_endpoint=self.base_url,
                 api_version=self.api_version,
                 **client_kwargs,
+            )
+        if not client_kwargs:
+            # Common production path (no client-level header/ssl overrides):
+            # reuse the process-wide pooled client instead of leaking one
+            # unclosed httpx pool per acting turn.
+            return get_pooled_openai_client(
+                self.api_key or "sk-no-key-required",
+                base_url=self.base_url or None,
             )
         return make_openai_client(
             self.api_key or "sk-no-key-required",

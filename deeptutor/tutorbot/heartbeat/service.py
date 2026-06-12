@@ -23,7 +23,13 @@ def _heartbeat_redis() -> "object | None":
     try:
         import redis
 
-        return redis.Redis.from_url(url, decode_responses=True)
+        # Sync client on the event-loop thread — bound the stall if valkey is half-dead.
+        return redis.Redis.from_url(
+            url,
+            decode_responses=True,
+            socket_timeout=1.0,
+            socket_connect_timeout=1.0,
+        )
     except Exception:  # noqa: BLE001 — any failure → no cross-worker lock (fail-open)
         return None
 

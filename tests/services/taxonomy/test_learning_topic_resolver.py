@@ -310,3 +310,24 @@ def test_resolver_branch1_miss_does_not_call_llm_twice() -> None:
     )
     assert result is None
     assert call_count[0] == 1, f"LLM called {call_count[0]} times; expected exactly 1"
+
+
+def test_llm_inference_refuses_to_block_event_loop() -> None:
+    """Calling the sync LLM topic inference from a thread that runs an asyncio
+    event loop must return "" immediately (LLM miss) instead of blocking the loop
+    — the old implementation thread.join(90s)-ed on the event-loop thread, which
+    froze every WS stream on the worker. Async callers go through
+    asyncio.to_thread(...), where no running loop is visible and the LLM path
+    stays available."""
+    import asyncio
+
+    from deeptutor.services.taxonomy.learning_topic_resolver import (
+        infer_learning_topic_with_llm,
+    )
+
+    async def _on_loop() -> str:
+        return infer_learning_topic_with_llm(
+            {"question_stem": "防水卷材施工要求"}, ["防水工程"]
+        )
+
+    assert asyncio.run(_on_loop()) == ""

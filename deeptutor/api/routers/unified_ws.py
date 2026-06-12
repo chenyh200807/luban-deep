@@ -74,7 +74,15 @@ def _get_ws_conn_redis() -> "object | None":
     try:
         import redis
 
-        _ws_conn_redis = redis.Redis.from_url(url, decode_responses=True)
+        # Sync client used on the event-loop thread — short socket timeouts so a
+        # half-dead valkey degrades to the per-process counter instead of stalling
+        # every WS connect/disconnect indefinitely.
+        _ws_conn_redis = redis.Redis.from_url(
+            url,
+            decode_responses=True,
+            socket_timeout=1.0,
+            socket_connect_timeout=1.0,
+        )
     except Exception:  # noqa: BLE001 — any failure → fall back to per-process
         logger.warning("WS conn cap: Redis client init failed; using per-process counter", exc_info=True)
         _ws_conn_redis = None

@@ -9778,6 +9778,13 @@ async def test_turn_runtime_uses_user_scoped_learner_state_when_user_id_is_avail
     async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
         events.append(event)
 
+    # The post-turn refresh is a tracked background task and now contains a real
+    # suspension point (the learning-evidence write runs via asyncio.to_thread so
+    # LLM topic inference never blocks the event loop) — wait for it before
+    # asserting on its side effects.
+    if runtime._background_tasks:
+        await asyncio.gather(*list(runtime._background_tasks))
+
     assert _event_types_without_progress(events) == ["session", "content", "done"]
     assert captured["memory_context"] == "## 学员级长期状态\n### Student Profile\n- user: student_demo"
     assert captured["learner_user_id"] == "student_demo"
@@ -10599,3 +10606,26 @@ async def test_ws_subscription_cleanup_swallows_failed_forward_task_for_contract
 
     assert "turn-contract-test" in caplog.text
     assert "subscriber failed" in caplog.text
+
+
+def test_volatile_question_context_cache_is_bounded(tmp_path) -> None:
+    """The per-session volatile question-context cache used to grow without bound
+    on a long-lived worker (entries were never removed). The bounded setter must
+    evict the oldest entry past the cap while keeping the freshest ones readable."""
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    cap = runtime._VOLATILE_QUESTION_CONTEXT_MAX
+
+    for index in range(cap + 7):
+        runtime._set_volatile_question_context(f"session-{index}", {"question_id": index})
+
+    contexts = runtime._volatile_question_contexts
+    assert len(contexts) == cap
+    # Oldest entries evicted, newest retained.
+    assert "session-0" not in contexts
+    assert "session-6" not in contexts
+    assert contexts[f"session-{cap + 6}"] == {"question_id": cap + 6}
+    # Re-setting an existing session refreshes it instead of duplicating.
+    runtime._set_volatile_question_context(f"session-{cap + 6}", {"question_id": "fresh"})
+    assert len(contexts) == cap
+    assert contexts[f"session-{cap + 6}"] == {"question_id": "fresh"}

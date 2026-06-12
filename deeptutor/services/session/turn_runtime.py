@@ -2327,6 +2327,12 @@ class TurnRuntimeManager:
     _DEFAULT_FAST_TURN_TIMEOUT_SECONDS = 75.0
     _DEFAULT_TURN_TIMEOUT_SECONDS = 180.0
     _DEFAULT_DEEP_TURN_TIMEOUT_SECONDS = 300.0
+    # Upper bound for the per-session volatile question-context cache. Entries were
+    # only ever added, never removed — on a long-lived worker that is an unbounded
+    # leak (one full question payload per session). Insertion-ordered dict + evict
+    # oldest on overflow ≈ LRU on the write side; DB persistence is the authority,
+    # this cache only papers over read-after-write lag, so eviction is safe.
+    _VOLATILE_QUESTION_CONTEXT_MAX = 2048
 
     def __init__(self, store: SQLiteSessionStore | None = None) -> None:
         self.store = store or get_sqlite_session_store()
@@ -2334,6 +2340,13 @@ class TurnRuntimeManager:
         self._executions: dict[str, _TurnExecution] = {}
         self._volatile_question_contexts: dict[str, dict[str, Any]] = {}
         self._background_tasks: set[asyncio.Task[None]] = set()
+
+    def _set_volatile_question_context(self, session_id: str, value: dict[str, Any]) -> None:
+        contexts = self._volatile_question_contexts
+        contexts.pop(session_id, None)  # re-insert at the tail (freshest)
+        contexts[session_id] = value
+        while len(contexts) > self._VOLATILE_QUESTION_CONTEXT_MAX:
+            contexts.pop(next(iter(contexts)), None)
 
     @staticmethod
     def _is_persistence_error(exc: Exception) -> bool:
@@ -2563,7 +2576,13 @@ class TurnRuntimeManager:
                                     write_conversation_learning_evidence_event,
                                 )
 
-                                write_conversation_learning_evidence_event(
+                                # Sync chain that may run a blocking LLM topic inference
+                                # (home_personalization -> infer_learning_topic_with_llm).
+                                # Must NOT run on the event-loop thread: the resolver
+                                # refuses LLM inference there, and any sync I/O inside
+                                # would stall every WS stream on this worker.
+                                await asyncio.to_thread(
+                                    write_conversation_learning_evidence_event,
                                     learner_state_service=learner_state_service,
                                     user_id=user_id,
                                     turn_ref=turn_id,
@@ -4330,7 +4349,11 @@ class TurnRuntimeManager:
             turn_slot_acquired = await _acquire_turn_slot()
             if not turn_slot_acquired:
                 terminal_status = "rejected"
-                busy_text = _public_ws_failure_message("start the turn right now")
+                # Same public phrasing as unified_ws._public_ws_failure_message —
+                # inlined because the runtime must not import from the transport
+                # layer, and the previous bare reference raised NameError here,
+                # turning the clean "server busy" shed into a generic failure.
+                busy_text = "Unable to start the turn right now. Please try again later."
                 await self._persist_and_publish(
                     execution,
                     StreamEvent(
@@ -4572,7 +4595,7 @@ class TurnRuntimeManager:
                 followup_question_action=followup_question_action,
             )
             if followup_question_context:
-                self._volatile_question_contexts[session_id] = dict(followup_question_context)
+                self._set_volatile_question_context(session_id, dict(followup_question_context))
             notebook_context = ""
             history_context = ""
             context_pack: Any | None = None
@@ -5427,7 +5450,11 @@ class TurnRuntimeManager:
                     default=None,
                 )
                 usage_summary = observability.get_current_usage_summary()
-                billing_capture = self._capture_mobile_points(
+                # Wallet capture / usage metering do sync Supabase HTTP + locked file
+                # I/O — keep them off the event-loop thread (turn finalization runs
+                # for every wx_miniprogram turn).
+                billing_capture = await asyncio.to_thread(
+                    self._capture_mobile_points,
                     billing_context,
                     assistant_content,
                     session_id=session_id,
@@ -5442,7 +5469,8 @@ class TurnRuntimeManager:
                         )
                 if billing_capture:
                     trace_metadata["billing_capture"] = billing_capture
-                self._record_mobile_learning(
+                await asyncio.to_thread(
+                    self._record_mobile_learning,
                     billing_context,
                     raw_user_content,
                     assistant_content,
@@ -5733,8 +5761,8 @@ class TurnRuntimeManager:
             if question_followup_context is not None and "question_followup_context" not in metadata:
                 metadata["question_followup_context"] = dict(question_followup_context)
             if active_object is not None:
-                self._volatile_question_contexts[execution.session_id] = dict(
-                    question_followup_context or {}
+                self._set_volatile_question_context(
+                    execution.session_id, dict(question_followup_context or {})
                 )
                 await self._safe_store_call(
                     execution,
@@ -5753,7 +5781,9 @@ class TurnRuntimeManager:
                     default=False,
                 )
             elif question_followup_context is not None:
-                self._volatile_question_contexts[execution.session_id] = dict(question_followup_context)
+                self._set_volatile_question_context(
+                    execution.session_id, dict(question_followup_context)
+                )
                 await self._safe_store_call(
                     execution,
                     "set_active_object_from_question_adapter",
