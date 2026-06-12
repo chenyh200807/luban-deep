@@ -50,53 +50,44 @@
   transform: translateY(0) scale(1);
 }
 
-/* —— 地平线光弧（bolt.new 式）：厚实三层白环带 + 蓝晕 + 黑色星球 —— */
-.horizon {
+/* —— 地平线光弧（bolt SVG 配方，性能版）——
+   2 个元素替代 5 层巨型圆：环带用 box-shadow spread 画在星球盘上，
+   外层 .horizon-clip 视口裁剪把合成纹理压到屏幕大小。 —— */
+.horizon-clip {
   position: fixed;
-  left: 50%;
-  border-radius: 50%;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  overflow: hidden;
   pointer-events: none;
+}
+
+.horizon {
+  position: absolute;
+  left: 50%;
+  top: 82vh;
+  width: 2700rpx;
+  height: 2700rpx;
+  border-radius: 50%;
   transform: translateX(-50%);
   transition: transform 1100ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.horizon-body {
-  top: 82vh;
-  width: 2700rpx;
-  height: 2700rpx;
+/* 星球盘 + 弧光环带：白核(6rpx) → 亮蓝 → 实蓝，渐薄渐淡 */
+.horizon-disc {
   background: #02060f;
-}
-
-/* 弧光层次（bolt SVG 配方）：白核最薄 → 亮蓝 → 实蓝，渐薄渐淡 */
-.horizon-rim.r1 {
-  top: calc(82vh - 6rpx);
-  width: 2712rpx;
-  height: 2712rpx;
-  background: #ffffff;
-}
-
-.horizon-rim.r2 {
-  top: calc(82vh - 15rpx);
-  width: 2730rpx;
-  height: 2730rpx;
-  background: #75c9ff;
-}
-
-.horizon-rim.r3 {
-  top: calc(82vh - 28rpx);
-  width: 2756rpx;
-  height: 2756rpx;
-  background: rgba(10, 120, 255, 0.95);
-}
-
-/* 蓝色外晕（softBlue/wideBlue 双层） */
-.horizon-glow {
-  top: calc(82vh - 28rpx);
-  width: 2756rpx;
-  height: 2756rpx;
   box-shadow:
-    0 -18rpx 70rpx 10rpx rgba(21, 133, 255, 0.6),
-    0 -60rpx 220rpx 40rpx rgba(9, 103, 214, 0.34);
+    0 0 0 6rpx #ffffff,
+    0 0 0 15rpx #75c9ff,
+    0 0 0 28rpx rgba(10, 120, 255, 0.95);
+}
+
+/* 蓝色外晕（softBlue/wideBlue 双层），呼吸明暗 */
+.horizon-halo {
+  box-shadow:
+    0 -18rpx 70rpx 38rpx rgba(21, 133, 255, 0.6),
+    0 -60rpx 220rpx 68rpx rgba(9, 103, 214, 0.34);
   opacity: 0.7;
   animation: horizonBreathe 4600ms ease-in-out infinite alternate;
 }
@@ -786,7 +777,7 @@
   transition: transform 760ms cubic-bezier(0.45, 0, 0.2, 1);
 }
 
-.exiting .horizon-glow {
+.exiting .horizon-halo {
   opacity: 1;
 }
 

@@ -9,11 +9,10 @@
   <view class="dawn dawn-p1"></view>
   <view class="dawn dawn-p2"></view>
   <view class="dawn dawn-p3"></view>
-  <view class="horizon horizon-glow"></view>
-  <view class="horizon horizon-rim r3"></view>
-  <view class="horizon horizon-rim r2"></view>
-  <view class="horizon horizon-rim r1"></view>
-  <view class="horizon horizon-body"></view>
+  <view class="horizon-clip">
+    <view class="horizon horizon-halo"></view>
+    <view class="horizon horizon-disc"></view>
+  </view>
   <view class="grain"></view>
   <view class="night-veil {{actId !== 'wave' ? 'lift' : ''}}"></view>
 
