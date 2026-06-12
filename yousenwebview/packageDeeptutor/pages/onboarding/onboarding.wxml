@@ -120,7 +120,7 @@
         </view>
         <view class="task-box fx-pop {{fx.taskBox ? 'on' : ''}}">
           <text class="task-label">建议现在做</text>
-          <text class="task-title">同类案例题 3 道，先练"验收程序 + 责任人"</text>
+          <text class="task-title">同类案例题 3 道，先练“验收程序 + 责任人”</text>
         </view>
       </view>
     </block>
