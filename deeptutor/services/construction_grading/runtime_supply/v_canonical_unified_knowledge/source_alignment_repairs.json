@@ -7,135 +7,14 @@
     "namespace": "canonical_unified_knowledge.source_alignment_repairs",
     "official_score_allowed": false,
     "production_write_count": 0,
-    "repair_count": 45,
+    "repair_count": 48,
     "schema": "luban_canonical_unified_knowledge_source_alignment_repairs.v1",
-    "source_bundle_content_hash": "7fc8717a2a23ba81d147010903aa7877df88ea8e271294618bc2c3a6366cce99",
+    "source_bundle_content_hash": "f586ba86ce494cbf09fc662eb2aa89d6ad64fa07744c505e448c8606adf50ac1",
     "source_bundle_namespace": "canonical_unified_knowledge",
     "status": "release_candidate",
     "tier": "teaching_context_not_answer_key"
   },
   "repairs": [
-    {
-      "action": "detach_node_from_general_compiled_context",
-      "evidence_queries": [
-        "建筑幕墙防火封堵有什么要求？"
-      ],
-      "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 建筑幕墙分类",
-      "node_code": "1A413061-16",
-      "reanchor_to_node_code": null,
-      "reason": "open_019 still fell back from the polluted leaf to the same 建筑幕墙分类 parent; 防火封堵 has no precise governed re-anchor in this taxonomy.",
-      "runtime_action": "fail_open_to_existing_tutorbot_rag"
-    },
-    {
-      "action": "detach_node_from_general_compiled_context",
-      "evidence_queries": [
-        "建筑幕墙防火封堵有什么要求？"
-      ],
-      "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 建筑幕墙分类 > 按面板材料分类",
-      "node_code": "1A413061-16-a",
-      "reanchor_to_node_code": null,
-      "reason": "open_019 matched 建筑幕墙防火封堵 to a幕墙分类 leaf; no governed precise canonical re-anchor exists in the current taxonomy.",
-      "runtime_action": "fail_open_to_existing_tutorbot_rag"
-    },
-    {
-      "action": "detach_node_from_general_compiled_context",
-      "evidence_queries": [
-        "绿色施工四节一环保分别是什么？"
-      ],
-      "name_path": "主体结构工程施工 > 常用施工脚手架 > 脚手架绿色施工与可持续发展",
-      "node_code": "1A413046-10",
-      "reanchor_to_node_code": null,
-      "reason": "open_020 can drift to a local scaffold green-construction node; 四节一环保 requires a governed general green-construction re-anchor that is absent.",
-      "runtime_action": "fail_open_to_existing_tutorbot_rag"
-    },
-    {
-      "action": "detach_node_from_general_compiled_context",
-      "evidence_queries": [
-        "绿色施工四节一环保分别是什么？"
-      ],
-      "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 绿色施工创新技术",
-      "node_code": "1A413061-10",
-      "reanchor_to_node_code": null,
-      "reason": "open_020 fell from 信息化系统 to another local 绿色施工 leaf, but the query asks 四节一环保 and current taxonomy lacks that governed general green-construction node.",
-      "runtime_action": "fail_open_to_existing_tutorbot_rag"
-    },
-    {
-      "action": "detach_node_from_general_compiled_context",
-      "evidence_queries": [
-        "绿色施工四节一环保分别是什么？"
-      ],
-      "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 绿色施工方案与场地管理",
-      "node_code": "1A413061-12",
-      "reanchor_to_node_code": null,
-      "reason": "open_020 can drift to local green-construction site-layout nodes; these do not answer 四节一环保.",
-      "runtime_action": "fail_open_to_existing_tutorbot_rag"
-    },
-    {
-      "action": "detach_node_from_general_compiled_context",
-      "evidence_queries": [
-        "绿色施工四节一环保分别是什么？"
-      ],
-      "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 绿色施工信息化系统应用 > 项目管理信息系统子系统",
-      "node_code": "1A413061-07-d",
-      "reanchor_to_node_code": null,
-      "reason": "open_020 matched 四节一环保 to an information-system subnode; current taxonomy lacks a precise 四节一环保 canonical leaf.",
-      "runtime_action": "fail_open_to_existing_tutorbot_rag"
-    },
-    {
-      "action": "detach_node_from_general_compiled_context",
-      "evidence_queries": [
-        "地下防水等级一级和二级有什么区别？"
-      ],
-      "name_path": "建筑功能材料 > 建筑防水材料的特性与应用 > 建筑防水材料特性 > 屋面防水等级",
-      "node_code": "1A412031-01-c",
-      "reanchor_to_node_code": null,
-      "reason": "open_036 fell from 种植屋面防水等级 to 屋面防水等级; neither is a governed 地下防水等级 re-anchor.",
-      "runtime_action": "fail_open_to_existing_tutorbot_rag"
-    },
-    {
-      "action": "detach_node_from_general_compiled_context",
-      "evidence_queries": [
-        "地下防水等级一级和二级有什么区别？"
-      ],
-      "name_path": "屋面与防水工程施工 > 保温隔热工程施工 > 种植屋面施工要求 > 种植屋面防水等级",
-      "node_code": "1A413052-04-a",
-      "reanchor_to_node_code": null,
-      "reason": "open_036 matched 地下防水等级 to 种植屋面防水等级; no governed 地下防水等级 re-anchor exists in the current canonical taxonomy.",
-      "runtime_action": "fail_open_to_existing_tutorbot_rag"
-    },
-    {
-      "action": "detach_node_from_general_compiled_context",
-      "evidence_queries": [
-        "施工组织设计谁审批？"
-      ],
-      "name_path": "主体结构工程施工 > 混凝土结构工程施工 > 装配式混凝土结构施工 > 施工组织设计要求",
-      "node_code": "1A413041-12-a",
-      "reanchor_to_node_code": null,
-      "reason": "open_046 matched general 施工组织设计审批 to an 装配式混凝土施工 subnode with cross-chapter management sources.",
-      "runtime_action": "fail_open_to_existing_tutorbot_rag"
-    },
-    {
-      "action": "detach_node_from_general_compiled_context",
-      "evidence_queries": [
-        "冬期施工混凝土养护怎么做？"
-      ],
-      "name_path": "主体结构工程施工 > 混凝土结构工程施工 > 混凝土养护要求 > 养护方式选择",
-      "node_code": "1A413041-05-a",
-      "reanchor_to_node_code": null,
-      "reason": "open_049 fell from general 混凝土养护 to 养护方式选择; neither is precise 冬期施工混凝土养护.",
-      "runtime_action": "fail_open_to_existing_tutorbot_rag"
-    },
-    {
-      "action": "detach_node_from_general_compiled_context",
-      "evidence_queries": [
-        "冬期施工混凝土养护怎么做？"
-      ],
-      "name_path": "主体结构工程施工 > 混凝土结构工程施工 > 混凝土养护要求",
-      "node_code": "1A413041-05",
-      "reanchor_to_node_code": null,
-      "reason": "open_049 matched 冬期施工混凝土养护 to the general 混凝土养护 leaf; current taxonomy has no precise 冬期施工混凝土养护 leaf.",
-      "runtime_action": "fail_open_to_existing_tutorbot_rag"
-    },
     {
       "action": "detach_node_from_general_compiled_context",
       "evidence_queries": [
@@ -186,6 +65,17 @@
     {
       "action": "detach_node_from_general_compiled_context",
       "evidence_queries": [
+        "双代号网络计划总时差怎么算？"
+      ],
+      "name_path": "结构工程材料 > 水泥的性能与应用 > 水泥的分类与代号",
+      "node_code": "1A412012-01",
+      "reanchor_to_node_code": null,
+      "reason": "M34 compiler work order found source/path pollution: candidate source text matched the query terms while canonical path terms did not. No governed re-anchor is minted here, so runtime fails open to existing TutorBot RAG.",
+      "runtime_action": "fail_open_to_existing_tutorbot_rag"
+    },
+    {
+      "action": "detach_node_from_general_compiled_context",
+      "evidence_queries": [
         "建筑耐火等级怎么划分？"
       ],
       "name_path": "结构工程材料 > 水泥的性能与应用 > 水泥的分类与代号 > 水泥代号与强度等级",
@@ -201,6 +91,17 @@
       ],
       "name_path": "结构工程材料 > 水泥的性能与应用 > 水泥的技术要求 > 体积安定性要求",
       "node_code": "1A412012-02-b",
+      "reanchor_to_node_code": null,
+      "reason": "M34 compiler work order found source/path pollution: candidate source text matched the query terms while canonical path terms did not. No governed re-anchor is minted here, so runtime fails open to existing TutorBot RAG.",
+      "runtime_action": "fail_open_to_existing_tutorbot_rag"
+    },
+    {
+      "action": "detach_node_from_general_compiled_context",
+      "evidence_queries": [
+        "双代号网络计划总时差怎么算？"
+      ],
+      "name_path": "结构工程材料 > 混凝土及组成材料的性能与应用 > 混凝土组成材料的技术要求",
+      "node_code": "1A412013-01",
       "reanchor_to_node_code": null,
       "reason": "M34 compiler work order found source/path pollution: candidate source text matched the query terms while canonical path terms did not. No governed re-anchor is minted here, so runtime fails open to existing TutorBot RAG.",
       "runtime_action": "fail_open_to_existing_tutorbot_rag"
@@ -245,6 +146,17 @@
       ],
       "name_path": "装饰装修工程材料 > 饰面板材(砖)和建筑陶瓷的特性与应用 > 天然大理石的特性与应用 > 大理石的物理化学特性",
       "node_code": "1A412021-02-a",
+      "reanchor_to_node_code": null,
+      "reason": "M34 compiler work order found source/path pollution: candidate source text matched the query terms while canonical path terms did not. No governed re-anchor is minted here, so runtime fails open to existing TutorBot RAG.",
+      "runtime_action": "fail_open_to_existing_tutorbot_rag"
+    },
+    {
+      "action": "detach_node_from_general_compiled_context",
+      "evidence_queries": [
+        "建筑耐火等级怎么划分？"
+      ],
+      "name_path": "装饰装修工程材料 > 建筑玻璃的特性与应用 > 建筑玻璃特性与应用",
+      "node_code": "1A412023-01",
       "reanchor_to_node_code": null,
       "reason": "M34 compiler work order found source/path pollution: candidate source text matched the query terms while canonical path terms did not. No governed re-anchor is minted here, so runtime fails open to existing TutorBot RAG.",
       "runtime_action": "fail_open_to_existing_tutorbot_rag"
@@ -318,6 +230,28 @@
     {
       "action": "detach_node_from_general_compiled_context",
       "evidence_queries": [
+        "泥浆护壁灌注桩常见质量问题有哪些？"
+      ],
+      "name_path": "智能建造新技术 > 建筑工程费用构成与计价",
+      "node_code": "1A413000-01",
+      "reanchor_to_node_code": null,
+      "reason": "M34 compiler work order found source/path pollution: candidate source text matched the query terms while canonical path terms did not. No governed re-anchor is minted here, so runtime fails open to existing TutorBot RAG.",
+      "runtime_action": "fail_open_to_existing_tutorbot_rag"
+    },
+    {
+      "action": "detach_node_from_general_compiled_context",
+      "evidence_queries": [
+        "双代号网络计划总时差怎么算？"
+      ],
+      "name_path": "智能建造新技术 > 工程变更、新增工程与索赔 > 工程索赔类型与条件",
+      "node_code": "1A413000-06-b",
+      "reanchor_to_node_code": null,
+      "reason": "M34 compiler work order found source/path pollution: candidate source text matched the query terms while canonical path terms did not. No governed re-anchor is minted here, so runtime fails open to existing TutorBot RAG.",
+      "runtime_action": "fail_open_to_existing_tutorbot_rag"
+    },
+    {
+      "action": "detach_node_from_general_compiled_context",
+      "evidence_queries": [
         "双代号网络计划总时差怎么算？"
       ],
       "name_path": "智能建造新技术 > 流水施工组织方法 > 施工组织方式分类",
@@ -333,6 +267,17 @@
       ],
       "name_path": "智能建造新技术 > 流水施工组织方法 > 流水施工参数",
       "node_code": "1A413000-08-c",
+      "reanchor_to_node_code": null,
+      "reason": "M34 compiler work order found source/path pollution: candidate source text matched the query terms while canonical path terms did not. No governed re-anchor is minted here, so runtime fails open to existing TutorBot RAG.",
+      "runtime_action": "fail_open_to_existing_tutorbot_rag"
+    },
+    {
+      "action": "detach_node_from_general_compiled_context",
+      "evidence_queries": [
+        "泥浆护壁灌注桩常见质量问题有哪些？"
+      ],
+      "name_path": "土石方工程施工 > 岩土的分类和工程性能 > 基坑支护施工要求",
+      "node_code": "1A413021-02",
       "reanchor_to_node_code": null,
       "reason": "M34 compiler work order found source/path pollution: candidate source text matched the query terms while canonical path terms did not. No governed re-anchor is minted here, so runtime fails open to existing TutorBot RAG.",
       "runtime_action": "fail_open_to_existing_tutorbot_rag"
@@ -384,10 +329,43 @@
     {
       "action": "detach_node_from_general_compiled_context",
       "evidence_queries": [
+        "土方回填压实系数怎么控制？"
+      ],
+      "name_path": "土石方工程施工 > 基坑验槽要求 > 基坑验槽要求",
+      "node_code": "1A413025-01",
+      "reanchor_to_node_code": null,
+      "reason": "M34 compiler work order found source/path pollution: candidate source text matched the query terms while canonical path terms did not. No governed re-anchor is minted here, so runtime fails open to existing TutorBot RAG.",
+      "runtime_action": "fail_open_to_existing_tutorbot_rag"
+    },
+    {
+      "action": "detach_node_from_general_compiled_context",
+      "evidence_queries": [
+        "泥浆护壁灌注桩常见质量问题有哪些？"
+      ],
+      "name_path": "地基与基础工程施工 > 常用地基处理方法与施工 > 地基处理施工要求",
+      "node_code": "1A413031-02",
+      "reanchor_to_node_code": null,
+      "reason": "M34 compiler work order found source/path pollution: candidate source text matched the query terms while canonical path terms did not. No governed re-anchor is minted here, so runtime fails open to existing TutorBot RAG.",
+      "runtime_action": "fail_open_to_existing_tutorbot_rag"
+    },
+    {
+      "action": "detach_node_from_general_compiled_context",
+      "evidence_queries": [
         "泥浆护壁灌注桩常见质量问题有哪些？"
       ],
       "name_path": "地基与基础工程施工 > 常用地基处理方法与施工 > 地基处理施工要求 > 验收标准",
       "node_code": "1A413031-02-d",
+      "reanchor_to_node_code": null,
+      "reason": "M34 compiler work order found source/path pollution: candidate source text matched the query terms while canonical path terms did not. No governed re-anchor is minted here, so runtime fails open to existing TutorBot RAG.",
+      "runtime_action": "fail_open_to_existing_tutorbot_rag"
+    },
+    {
+      "action": "detach_node_from_general_compiled_context",
+      "evidence_queries": [
+        "泥浆护壁灌注桩常见质量问题有哪些？"
+      ],
+      "name_path": "地基与基础工程施工 > 桩基础施工 > 桩基础施工类型",
+      "node_code": "1A413032-01",
       "reanchor_to_node_code": null,
       "reason": "M34 compiler work order found source/path pollution: candidate source text matched the query terms while canonical path terms did not. No governed re-anchor is minted here, so runtime fails open to existing TutorBot RAG.",
       "runtime_action": "fail_open_to_existing_tutorbot_rag"
@@ -494,6 +472,39 @@
     {
       "action": "detach_node_from_general_compiled_context",
       "evidence_queries": [
+        "高强螺栓摩擦面处理要点是什么？"
+      ],
+      "name_path": "主体结构工程施工 > 常用施工脚手架 > 脚手架材料与构配件管理",
+      "node_code": "1A413046-04",
+      "reanchor_to_node_code": null,
+      "reason": "M34 compiler work order found source/path pollution: candidate source text matched the query terms while canonical path terms did not. No governed re-anchor is minted here, so runtime fails open to existing TutorBot RAG.",
+      "runtime_action": "fail_open_to_existing_tutorbot_rag"
+    },
+    {
+      "action": "detach_node_from_general_compiled_context",
+      "evidence_queries": [
+        "临边洞口防护怎么做？"
+      ],
+      "name_path": "主体结构工程施工 > 常用施工脚手架 > 特殊环境下的脚手架施工",
+      "node_code": "1A413046-07",
+      "reanchor_to_node_code": null,
+      "reason": "M34 compiler work order found source/path pollution: candidate source text matched the query terms while canonical path terms did not. No governed re-anchor is minted here, so runtime fails open to existing TutorBot RAG.",
+      "runtime_action": "fail_open_to_existing_tutorbot_rag"
+    },
+    {
+      "action": "detach_node_from_general_compiled_context",
+      "evidence_queries": [
+        "临边洞口防护怎么做？"
+      ],
+      "name_path": "主体结构工程施工 > 常用施工脚手架 > 特殊环境下的脚手架施工 > 高处作业安全防护",
+      "node_code": "1A413046-07-a",
+      "reanchor_to_node_code": null,
+      "reason": "M34 compiler work order found source/path pollution: candidate source text matched the query terms while canonical path terms did not. No governed re-anchor is minted here, so runtime fails open to existing TutorBot RAG.",
+      "runtime_action": "fail_open_to_existing_tutorbot_rag"
+    },
+    {
+      "action": "detach_node_from_general_compiled_context",
+      "evidence_queries": [
         "建筑防火分区面积怎么理解？"
       ],
       "name_path": "主体结构工程施工 > 常用施工脚手架 > 脚手架事故预防与应急处置 > 应急响应与救援措施",
@@ -509,6 +520,29 @@
       ],
       "name_path": "屋面与防水工程施工 > 室内与外墙防水工程施工 > 室内防水质量验收 > 闭水试验操作规范",
       "node_code": "1A413054-02-a",
+      "reanchor_to_node_code": null,
+      "reason": "M34 compiler work order found source/path pollution: candidate source text matched the query terms while canonical path terms did not. No governed re-anchor is minted here, so runtime fails open to existing TutorBot RAG.",
+      "runtime_action": "fail_open_to_existing_tutorbot_rag"
+    },
+    {
+      "action": "detach_node_from_general_compiled_context",
+      "evidence_queries": [
+        "双代号网络计划总时差怎么算？"
+      ],
+      "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 劳动力需求计划的编制",
+      "node_code": "1A413061-01",
+      "reanchor_to_node_code": null,
+      "reason": "M34 compiler work order found source/path pollution: candidate source text matched the query terms while canonical path terms did not. No governed re-anchor is minted here, so runtime fails open to existing TutorBot RAG.",
+      "runtime_action": "fail_open_to_existing_tutorbot_rag"
+    },
+    {
+      "action": "detach_node_from_general_compiled_context",
+      "evidence_queries": [
+        "外墙保温施工有哪些质量控制点？",
+        "建筑防火分区面积怎么理解？"
+      ],
+      "name_path": "装饰装修工程施工 > 轻质隔墙工程施工 > 建筑幕墙分类 > 按面板材料分类",
+      "node_code": "1A413061-16-a",
       "reanchor_to_node_code": null,
       "reason": "M34 compiler work order found source/path pollution: candidate source text matched the query terms while canonical path terms did not. No governed re-anchor is minted here, so runtime fails open to existing TutorBot RAG.",
       "runtime_action": "fail_open_to_existing_tutorbot_rag"
