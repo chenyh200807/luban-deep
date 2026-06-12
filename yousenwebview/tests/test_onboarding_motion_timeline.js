@@ -64,7 +64,14 @@ function harness(scenes) {
 }
 
 var T1 = [
-  { id: "a", duration: 100, steps: [{ at: 10, patch: { x: 1 } }, { at: 60, patch: { y: 2 } }] },
+  {
+    id: "a",
+    duration: 100,
+    steps: [
+      { at: 10, patch: { x: 1 } },
+      { at: 60, patch: { y: 2 } },
+    ],
+  },
   { id: "b", duration: 80, steps: [{ at: 20, patch: { z: 3 } }] },
 ];
 
@@ -141,6 +148,38 @@ var T1 = [
   h.timers.tick(1000);
   assert.deepStrictEqual(h.events, ["scene:a"]);
   assert.strictEqual(h.tl.getState().status, "destroyed");
+})();
+
+// 6. at:0 步骤在 start() 与 jumpTo() 都必须触发（resume 边界除外）
+(function () {
+  var T3 = [
+    {
+      id: "a",
+      duration: 50,
+      steps: [
+        { at: 0, patch: { zero: 1 } },
+        { at: 30, patch: { mid: 1 } },
+      ],
+    },
+    { id: "b", duration: 0, steps: [{ at: 0, patch: { bzero: 1 } }] },
+  ];
+  var h = harness(T3);
+  h.tl.start();
+  h.timers.tick(200);
+  assert.deepStrictEqual(h.events, [
+    "scene:a",
+    "step:zero",
+    "step:mid",
+    "scene:b",
+    "step:bzero",
+  ]);
+  h.tl.jumpTo(0);
+  h.timers.tick(100);
+  assert.deepStrictEqual(h.events.slice(5), [
+    "scene:a",
+    "step:zero",
+    "step:mid",
+  ]);
 })();
 
 console.log("OK test_onboarding_motion_timeline (scheduler)");

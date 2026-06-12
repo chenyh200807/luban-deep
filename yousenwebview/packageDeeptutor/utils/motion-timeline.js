@@ -58,7 +58,9 @@ function createTimeline(scenes, hooks, timers) {
     for (var i = 0; i < steps.length; i++) {
       (function (step) {
         var delay = step.at - offsetMs;
-        if (delay <= 0) return; // resume 时已发过或正好到达的步骤不补发
+        // resume(offsetMs>0) 时跳过已发/正好到达边界的步骤；
+        // start/jumpTo(offsetMs=0) 时 at:0 是合法步骤，必须照发。
+        if (offsetMs > 0 && delay <= 0) return;
         pendingIds.push(
           setT(function () {
             if (state.status === "destroyed") return;
