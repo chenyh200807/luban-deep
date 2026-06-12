@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import asyncio
-import inspect
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+import inspect
 from typing import Any
 
 from deeptutor.logging import get_logger
+from deeptutor.services.learner_state.worker_file_lock import (
+    release_exclusive_lock,
+    try_acquire_exclusive_lock,
+)
 from deeptutor.services.path_service import PathService, get_path_service
 from deeptutor.services.tutorbot import get_tutorbot_manager
 
@@ -26,10 +30,14 @@ class LearnerStateRuntimeConfig:
     heartbeat_interval_seconds: float = 60.0
     outbox_flush_limit: int = 20
     heartbeat_limit: int | None = None
+    # dream cycle 的"是否到点该跑"由 LearningBrainDreamCycle 自己判断
+    # （enabled flag + interval）；runtime 只按这个节奏去敲门。
+    dream_cycle_check_interval_seconds: float = 1800.0
 
 
 class LearnerStateRuntime:
-    """Own the learner-state background loops for outbox flush and heartbeat scheduling."""
+    """Own the learner-state background loops for outbox flush, heartbeat scheduling,
+    and the learning-brain dream cycle (nightly consolidation)."""
 
     def __init__(
         self,
@@ -38,11 +46,16 @@ class LearnerStateRuntime:
         heartbeat_scheduler: LearnerHeartbeatScheduler | None,
         writer: LearnerStateSupabaseWriter | None = None,
         config: LearnerStateRuntimeConfig | None = None,
+        dream_cycle: Any | None = None,
+        outbox_flush_lock_path: Any | None = None,
     ) -> None:
         self._flusher = flusher
         self._heartbeat_scheduler = heartbeat_scheduler
         self._writer = writer
         self._config = config or LearnerStateRuntimeConfig()
+        self._dream_cycle = dream_cycle
+        # 多 worker 时 outbox flush 的跨进程互斥锁；None = 维持旧行为。
+        self._outbox_flush_lock_path = outbox_flush_lock_path
         self._stop_event: asyncio.Event | None = None
         self._tasks: list[asyncio.Task[Any]] = []
         self._started = False
@@ -65,10 +78,15 @@ class LearnerStateRuntime:
             self._tasks.append(
                 asyncio.create_task(self._run_heartbeat_loop(), name="learner-state-heartbeat-scheduler")
             )
+        if self._dream_cycle is not None:
+            self._tasks.append(
+                asyncio.create_task(self._run_dream_cycle_loop(), name="learner-state-dream-cycle")
+            )
 
         logger.info(
             f"LearnerState runtime started: flusher={self._flusher is not None} "
-            f"heartbeat={self._heartbeat_scheduler is not None}"
+            f"heartbeat={self._heartbeat_scheduler is not None} "
+            f"dream_cycle={self._dream_cycle is not None}"
         )
 
     async def stop(self) -> None:
@@ -93,12 +111,27 @@ class LearnerStateRuntime:
         assert self._stop_event is not None
         while not self._stop_event.is_set():
             try:
-                await self._flusher.flush_once(limit=self._config.outbox_flush_limit)  # type: ignore[union-attr]
+                await self._flush_once_exclusive()
             except asyncio.CancelledError:
                 raise
             except Exception as exc:
                 logger.warning(f"LearnerState outbox flush loop failed: {exc}")
             await self._sleep_until_stop(self._config.outbox_flush_interval_seconds)
+
+    async def _flush_once_exclusive(self) -> None:
+        if self._outbox_flush_lock_path is None:
+            await self._flusher.flush_once(limit=self._config.outbox_flush_limit)  # type: ignore[union-attr]
+            return
+        # 跨 worker 互斥：锁被占说明另一 worker 正在 flush，本 tick 跳过即可
+        # （outbox 是共享队列，谁 flush 都一样）。open/mkdir/flock 是阻塞
+        # syscall，放线程池，不落在事件循环线程上。
+        lock_fd = await asyncio.to_thread(try_acquire_exclusive_lock, self._outbox_flush_lock_path)
+        if lock_fd is None:
+            return
+        try:
+            await self._flusher.flush_once(limit=self._config.outbox_flush_limit)  # type: ignore[union-attr]
+        finally:
+            await asyncio.to_thread(release_exclusive_lock, lock_fd)
 
     async def _run_heartbeat_loop(self) -> None:
         assert self._stop_event is not None
@@ -112,6 +145,20 @@ class LearnerStateRuntime:
             except Exception as exc:
                 logger.warning(f"LearnerState heartbeat loop failed: {exc}")
             await self._sleep_until_stop(self._config.heartbeat_interval_seconds)
+
+    async def _run_dream_cycle_loop(self) -> None:
+        assert self._stop_event is not None
+        while not self._stop_event.is_set():
+            try:
+                # run_once 是同步纯计算 + 文件/DB IO，放线程池避免阻塞事件循环。
+                report = await asyncio.to_thread(self._dream_cycle.run_once)  # type: ignore[union-attr]
+                if isinstance(report, dict) and report.get("ran"):
+                    logger.info(f"LearnerState dream cycle ran: {report.get('user_count')} user(s)")
+            except asyncio.CancelledError:
+                raise
+            except Exception as exc:
+                logger.warning(f"LearnerState dream cycle loop failed: {exc}")
+            await self._sleep_until_stop(self._config.dream_cycle_check_interval_seconds)
 
     async def _sleep_until_stop(self, timeout_seconds: float) -> None:
         assert self._stop_event is not None
@@ -435,10 +482,19 @@ def create_default_learner_state_runtime(
         executor=LearnerHeartbeatExecutor(learner_state_service=service),
         hint_resolver=_default_heartbeat_hint_resolver(service),
     )
+    from .dream_cycle import LearningBrainDreamCycle
+
+    resolved_path_service = path_service or get_path_service()
+    learner_root = resolved_path_service.get_learner_state_root()
     return LearnerStateRuntime(
         flusher=flusher,
         heartbeat_scheduler=heartbeat_scheduler,
         writer=writer if writer.is_configured else None,
+        # 始终挂载；enabled flag 在每个 tick 内由 dream cycle 自检，
+        # 因此线上翻 env 即可启停，无需重启进程。多 worker 由 state_dir
+        # 的 watermark 文件锁保证只有一个实际执行者。
+        dream_cycle=LearningBrainDreamCycle(service, state_dir=learner_root),
+        outbox_flush_lock_path=learner_root / ".outbox_flush.lock",
     )
 
 

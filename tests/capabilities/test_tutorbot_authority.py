@@ -459,3 +459,51 @@ async def test_tutorbot_regular_result_exports_lifecycle_decision_metadata(
     }
     assert result_payload["business_gate_result"] == "passed"
     assert manager.sent_messages == 1
+
+
+def test_grading_to_brain_result_payload_is_public_projection_source_pin() -> None:
+    """泄漏面契约（与练题入口同口径）：TutorBot result_payload 不得直拷
+    personalization_context / learning_training_intent；next_best_action 必须
+    经 public_grading_to_brain_meta 投影（intent/evidence_refs 不出端）。"""
+    import inspect
+
+    import deeptutor.capabilities.tutorbot as tutorbot_module
+
+    src = inspect.getsource(tutorbot_module)
+    copy_block_start = src.index("grading_to_brain_loop")
+    copy_block = src[copy_block_start: copy_block_start + 2000]
+    assert '"personalization_context",' not in copy_block
+    assert '"learning_training_intent",' not in copy_block
+    assert "public_grading_to_brain_meta" in copy_block
+
+
+def test_public_grading_to_brain_meta_strips_internal_authority_fields() -> None:
+    from deeptutor.services.construction_grading.writeback import public_grading_to_brain_meta
+
+    projected = public_grading_to_brain_meta({
+        "next_best_action": {
+            "title": "先练屋面与防水工程施工",
+            "target": "屋面与防水工程施工 · 采分点遗漏",
+            "why_this_now": "真实错因图已把该薄弱点连接到下一轮训练。",
+            "materials": ["教材：相关章节", ""],
+            "success_measure": "复测命中目标采分点",
+            "action_type": "retest_or_targeted_practice",
+            "prescription_authority": "training_intent",
+            "training_intent_id": "ti_secret",
+            "evidence_refs": ["evt_1"],
+            "intent": {"user_id": "stu_1"},
+        },
+        "personalization_context": {"user_id": "stu_1"},
+        "learning_training_intent": {"training_intent_id": "ti_secret"},
+        "grading_to_brain_loop": {"event_id": "evt_1"},
+        "learning_evidence_event_id": "evt_1",
+    })
+
+    assert "personalization_context" not in projected
+    assert "learning_training_intent" not in projected
+    nba = projected["next_best_action"]
+    assert nba["title"] and nba["target"]
+    assert "intent" not in nba
+    assert "evidence_refs" not in nba
+    assert "training_intent_id" not in nba
+    assert projected["learning_evidence_event_id"] == "evt_1"

@@ -461,3 +461,247 @@ def test_writeback_preserves_m35_point_evidence_without_canonical_truth() -> Non
     assert hit["source_ref_ids"] == ["2026_case_set_x#p2"]
     assert hit["high_risk_review"] is True
     assert payload["canonical_truth_written"] is False
+
+
+def test_writeback_attaches_canonical_topic_for_open_world_grading() -> None:
+    """开放世界批改（无 node_code）：writer seam 必须经 taxonomy resolver
+    产出 canonical_topic（命中才写、不命中留空 fail-open），让合成层能把
+    重复错误聚合成 claim。"""
+    service = _FakeLearnerStateService()
+    grading_event = {
+        "event_type": "case_grading_completed",
+        "question_id": "OPEN-1",
+        "awarded_score": 0,
+        "max_score": 1,
+        "scoring_points": [
+            {
+                "point_id": "P1",
+                "knowledge_point": "屋面与防水工程施工",
+                "hit": "miss",
+                "score": 0,
+                "max_score": 1,
+                "mistake_type": "miss",
+                "evidence_span": "搭接宽度不足",
+                "policy_type": "exact_required",
+            }
+        ],
+    }
+
+    result = write_case_grading_event_learning_evidence(
+        learner_state_service=service,
+        user_id="student-1",
+        grading_event=grading_event,
+        source_id="turn-open-1",
+        question_stem="案例背景：某屋面防水工程采用卷材防水……指出施工不妥之处。",
+        node_code="",
+    )
+
+    assert result["writeback_count"] == 1
+    payload = service.calls[0]["payload_json"]
+    assert payload.get("error_events"), "开放世界也必须有 error_events"
+    topic = payload.get("canonical_topic") or {}
+    assert topic.get("label") == "屋面与防水工程施工", "采分点 knowledge_point 携带 taxonomy 叶子标签时必须命中"
+    assert topic.get("taxonomy_code") == "1A413050"
+
+
+def test_writeback_canonical_topic_fail_open_when_unresolvable() -> None:
+    service = _FakeLearnerStateService()
+    grading_event = {
+        "event_type": "case_grading_completed",
+        "question_id": "OPEN-2",
+        "awarded_score": 0,
+        "max_score": 1,
+        "scoring_points": [
+            {"point_id": "P1", "knowledge_point": "xq", "hit": "miss", "score": 0, "max_score": 1,
+             "mistake_type": "miss", "evidence_span": "", "policy_type": "exact_required"}
+        ],
+    }
+
+    result = write_case_grading_event_learning_evidence(
+        learner_state_service=service,
+        user_id="student-1",
+        grading_event=grading_event,
+        source_id="turn-open-2",
+        question_stem="zz",
+        node_code="",
+    )
+
+    assert result["writeback_count"] == 1
+    assert "canonical_topic" not in service.calls[0]["payload_json"]
+
+
+class _BrainAwareLearnerStateService(_FakeLearnerStateService):
+    def __init__(self, *, cached_projection: dict | None = None) -> None:
+        super().__init__()
+        self._cached_projection = cached_projection
+        self.synthesize_calls: list[dict] = []
+
+    def read_compiled_learning_truth(self, user_id: str) -> dict:
+        return dict(self._cached_projection or {})
+
+    def synthesize_learning_truth(self, user_id: str, *, dry_run: bool = True, event_limit=None):
+        self.synthesize_calls.append({"user_id": user_id, "dry_run": dry_run, "event_limit": event_limit})
+        return {"projection": {"compiled_objects": []}}
+
+
+def _case_event_for_recorder() -> dict:
+    return {
+        "event_type": "case_grading_completed",
+        "question_id": "CASE-R1",
+        "awarded_score": 0,
+        "max_score": 1,
+        "scoring_points": [
+            {
+                "point_id": "P1",
+                "knowledge_point": "屋面与防水工程施工",
+                "hit": "miss",
+                "score": 0,
+                "max_score": 1,
+                "mistake_type": "miss",
+                "evidence_span": "搭接宽度不足",
+                "policy_type": "exact_required",
+            }
+        ],
+    }
+
+
+def test_record_case_grading_to_brain_is_the_single_turn_side_seam() -> None:
+    """recorder = writeback + intent + 画像(缓存优先) + PCP + NBA 的唯一组合 seam；
+    聊天与练题两个入口都只 update 它返回的 meta，不得各自再拼装。"""
+    from deeptutor.services.construction_grading.writeback import record_case_grading_to_brain
+
+    service = _BrainAwareLearnerStateService(cached_projection={
+        "compiled_objects": [
+            {
+                "object_id": "1A413050:M06",
+                "object_type": "error",
+                "claim_status": "confirmed",
+                "concept_id": "1A413050",
+                "label": "屋面与防水工程施工：采分点遗漏",
+                "supporting_event_ids": ["evt_cached"],
+                "confidence": 0.9,
+            }
+        ],
+    })
+
+    meta = record_case_grading_to_brain(
+        learner_state_service=service,
+        user_id="student-1",
+        grading_event=_case_event_for_recorder(),
+        source_id="turn-r1:CASE-R1",
+        question_stem="案例……",
+        user_answer="作答……",
+        node_code="",
+        session_id="sess-1",
+    )
+
+    assert meta["learning_evidence_event_id"] == "evt-1"
+    assert meta["grading_to_brain_loop"]["authority"] == "learner_memory_events.learning_evidence"
+    assert meta["learning_training_intent"]["concept_label"] == "屋面与防水工程施工"
+    # 缓存优先：有 compiled 投影时不内联重算
+    assert service.synthesize_calls == []
+    pcp = meta["personalization_context"]
+    assert pcp["top_claims"][0]["claim_id"] == "1A413050:M06"
+    assert meta["next_best_action"]["prescription_authority"] == "training_intent"
+
+
+def test_record_case_grading_to_brain_falls_back_to_inline_synthesis() -> None:
+    from deeptutor.services.construction_grading.writeback import record_case_grading_to_brain
+
+    service = _BrainAwareLearnerStateService(cached_projection=None)
+
+    meta = record_case_grading_to_brain(
+        learner_state_service=service,
+        user_id="student-1",
+        grading_event=_case_event_for_recorder(),
+        source_id="turn-r2:CASE-R1",
+    )
+
+    assert meta["learning_evidence_event_id"]
+    assert len(service.synthesize_calls) == 1
+    assert service.synthesize_calls[0] == {"user_id": "student-1", "dry_run": True, "event_limit": 50}
+
+
+def test_record_case_grading_to_brain_non_case_event_returns_empty() -> None:
+    from deeptutor.services.construction_grading.writeback import record_case_grading_to_brain
+
+    service = _BrainAwareLearnerStateService()
+    meta = record_case_grading_to_brain(
+        learner_state_service=service,
+        user_id="student-1",
+        grading_event={"status": "unavailable"},
+        source_id="turn-r3",
+    )
+    assert meta == {}
+    assert service.calls == []
+
+
+def _sub_event(qid: str, knowledge_point: str) -> dict:
+    return {
+        "event_type": "case_grading_completed",
+        "question_id": qid,
+        "awarded_score": 0,
+        "max_score": 1,
+        "scoring_points": [
+            {
+                "point_id": "P1",
+                "knowledge_point": knowledge_point,
+                "hit": "miss",
+                "score": 0,
+                "max_score": 1,
+                "mistake_type": "miss",
+                "evidence_span": "略",
+                "policy_type": "exact_required",
+            }
+        ],
+    }
+
+
+def test_record_batch_grading_splits_evidence_per_sub_question() -> None:
+    """batch 合并事件跨主题混染治理：recorder 必须按子事件各写一条
+    learning_evidence（独立 dedupe、独立 canonical_topic），不得把
+    两个不相关主题的错误压进同一条证据。渲染用的合并事件不受影响。"""
+    from deeptutor.services.construction_grading.writeback import record_case_grading_to_brain
+
+    sub_a = _sub_event("SUB-1", "屋面与防水工程施工")
+    sub_b = _sub_event("SUB-2", "工程招标投标与合同管理")
+    merged = {
+        "event_type": "case_grading_completed",
+        "question_id": "PARENT-1",
+        "awarded_score": 0,
+        "max_score": 2,
+        "rubric_provenance": "batch",
+        "scoring_points": [
+            dict(sp, source_qid=ev["question_id"])
+            for ev in (sub_a, sub_b)
+            for sp in ev["scoring_points"]
+        ],
+        "items": [sub_a, sub_b],
+    }
+    service = _BrainAwareLearnerStateService()
+
+    meta = record_case_grading_to_brain(
+        learner_state_service=service,
+        user_id="student-1",
+        grading_event=merged,
+        source_id="turn-b1:PARENT-1",
+        question_stem="综合案例背景……",
+        node_code="",
+    )
+
+    assert len(service.calls) == 2, "必须按子题各写一条证据"
+    qids = sorted(call["payload_json"].get("question_id") for call in service.calls)
+    assert qids == ["SUB-1", "SUB-2"]
+    topics = {
+        call["payload_json"]["question_id"]:
+            (call["payload_json"].get("canonical_topic") or {}).get("taxonomy_code", "")
+        for call in service.calls
+    }
+    assert topics["SUB-1"] == "1A413050"
+    assert topics["SUB-1"] != topics["SUB-2"], "两个子题的概念归属不得混染"
+    # dedupe key 必须互异
+    assert service.calls[0]["dedupe_key"] != service.calls[1]["dedupe_key"]
+    # meta 回执聚合
+    assert meta["grading_to_brain_loop"]["writeback_count"] == 2
+    assert meta["learning_evidence_event_id"], "保留首条 event_id 兼容既有消费方"
+    assert len(meta["grading_to_brain_loop"]["event_ids"]) == 2

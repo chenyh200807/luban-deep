@@ -579,9 +579,6 @@ class TutorBotCapability(BaseCapability):
                 "degraded_mcq_grading_guard_applied",
                 "grading_to_brain_loop",
                 "learning_evidence_event_id",
-                "learning_training_intent",
-                "personalization_context",
-                "next_best_action",
                 "release_id",
                 "git_sha",
                 "deployment_environment",
@@ -595,6 +592,19 @@ class TutorBotCapability(BaseCapability):
             ):
                 if metadata_key in session_metadata:
                     result_payload[metadata_key] = session_metadata[metadata_key]
+            # Grading-to-Brain 公开投影（与练题入口同口径）：PCP/intent 是服务端
+            # 内部权威数据，只在 runtime/session metadata 供渲染与观测，不随
+            # result 下发；next_best_action 只下发展示级字段。
+            if "next_best_action" in session_metadata:
+                from deeptutor.services.construction_grading.writeback import (
+                    public_grading_to_brain_meta,
+                )
+
+                result_payload.update(
+                    public_grading_to_brain_meta(
+                        {"next_best_action": session_metadata.get("next_best_action")}
+                    )
+                )
             # Presentation gating — three orthogonal contracts (regression
             # matrix in tests/core/test_capabilities_runtime.py + tests/
             # capabilities/test_tutorbot_authority.py):
