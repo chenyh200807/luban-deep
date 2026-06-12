@@ -114,9 +114,8 @@ METRIC_MAPPINGS: tuple[MetricMapping, ...] = (
     MetricMapping(
         "total_tokens",
         bi_api_path="cost:cards[label=总 Token].value",
-        langfuse_kind="daily_observations",
         tolerance_pct=15.0,
-        gap_note="Langfuse 侧 observations 数量与 token 数不可等值比，仅记录双方分量",
+        gap_note="UsageLedger measured(provider 回报)+estimated(tiktoken)真实 token；Langfuse daily 的 observations 是调用次数非 token，不可等值对账，仅记录 BI 值",
     ),
     MetricMapping(
         "today_cost_usd",
