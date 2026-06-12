@@ -152,6 +152,129 @@ def test_apply_case_judge_empty_points_degrades():
     assert verdicts[mod.ARM_DEPLOYED]["judge_status"] == "judge_failed"
 
 
+# ---------------------------------------------------------------- dual judge
+
+
+def _verdicts(verdict: str, coverage: float, *, status: str = "completed") -> dict:
+    if status != "completed":
+        return {"judge_status": status, "verdict": None, "point_hits": None, "point_coverage": None}
+    return {"judge_status": "completed", "verdict": verdict, "point_hits": [True], "point_coverage": coverage}
+
+
+def test_merge_dual_judgments_agreement_keeps_verdict_and_means_coverage():
+    merged = mod.merge_dual_judgments(
+        {mod.ARM_DEPLOYED: _verdicts("partial", 0.5)},
+        {mod.ARM_DEPLOYED: _verdicts("partial", 0.75)},
+    )
+    entry = merged[mod.ARM_DEPLOYED]
+    assert entry["judge_status"] == "completed"
+    assert entry["verdict"] == "partial"
+    assert entry["judge_disagreement"] is False
+    assert entry["verdict_score"] == 0.5
+    assert entry["point_coverage"] == 0.625
+
+
+def test_merge_dual_judgments_disagreement_means_scores_and_flags():
+    merged = mod.merge_dual_judgments(
+        {mod.ARM_DEPLOYED: _verdicts("correct", 1.0)},
+        {mod.ARM_DEPLOYED: _verdicts("wrong", 0.0)},
+    )
+    entry = merged[mod.ARM_DEPLOYED]
+    assert entry["judge_disagreement"] is True
+    assert entry["verdict"] == "correct"  # primary pass verdict retained for rate metrics
+    assert entry["verdict_swapped"] == "wrong"
+    assert entry["verdict_score"] == 0.5  # mean of 1.0 and 0.0
+    assert entry["point_coverage"] == 0.5
+
+
+def test_merge_dual_judgments_single_pass_failure_degrades_to_surviving_pass():
+    merged = mod.merge_dual_judgments(
+        {mod.ARM_DEPLOYED: _verdicts("correct", 1.0)},
+        {mod.ARM_DEPLOYED: _verdicts("", 0.0, status="judge_failed")},
+    )
+    entry = merged[mod.ARM_DEPLOYED]
+    assert entry["judge_status"] == "completed"
+    assert entry["verdict"] == "correct"
+    assert entry["verdict_score"] == 1.0
+    assert entry["judge_disagreement"] is None  # cannot compare with a failed pass
+    # both passes failed -> failed
+    both = mod.merge_dual_judgments(
+        {mod.ARM_DEPLOYED: _verdicts("", 0.0, status="judge_failed")},
+        {mod.ARM_DEPLOYED: _verdicts("", 0.0, status="judge_failed")},
+    )
+    assert both[mod.ARM_DEPLOYED]["judge_status"] == "judge_failed"
+
+
+def test_arm_summary_uses_verdict_score_and_reports_disagreement_rate():
+    row_a = _judged_row(mod.ARM_DEPLOYED, "2023:a", "correct", 0.5)
+    row_a.update({"verdict_score": 0.5, "judge_disagreement": True})
+    row_b = _judged_row(mod.ARM_DEPLOYED, "2023:b", "partial", 0.5)
+    row_b.update({"verdict_score": 0.5, "judge_disagreement": False})
+    summary = mod.arm_summary(mod.ARM_DEPLOYED, [row_a, row_b])
+    assert summary["semantic_score"] == 0.5  # mean of verdict_score, not raw verdict
+    assert summary["judge_disagreement_rate"] == 0.5
+
+
+def test_arm_summary_without_dual_judge_has_none_disagreement_rate():
+    summary = mod.arm_summary(mod.ARM_DEPLOYED, [_judged_row(mod.ARM_DEPLOYED, "2023:a", "correct", 1.0)])
+    assert summary["judge_disagreement_rate"] is None
+    assert summary["semantic_score"] == 1.0
+
+
+def test_run_eval_dual_judge_two_judge_calls_with_swapped_order():
+    case = {
+        "case_id": "2023:a",
+        "year": 2023,
+        "background": "背景",
+        "sub_questions": [
+            {"sub_id": "2023:a:q1.0", "sub_no": "1", "text": "问？", "gold_answer": "金", "gold_analysis": "", "score": 5.0, "node_code": ""}
+        ],
+    }
+    calls = {"answer": 0, "judge": []}
+
+    def provider(messages, *, max_tokens=800, **kwargs):
+        import json as _json
+
+        payload = _json.loads(messages[-1]["content"])
+        if "candidates" in payload:  # judge call
+            calls["judge"].append(payload)
+            verdict = "correct" if len(calls["judge"]) == 1 else "partial"
+            content = _json.dumps(
+                {
+                    "scoring_points": ["点一", "点二"],
+                    "candidates": {k: {"verdict": verdict, "point_hits": [True, False]} for k in payload["candidates"]},
+                }
+            )
+        else:
+            calls["answer"] += 1
+            content = _json.dumps({"answer": "答案", "citations": []})
+        return {"model": "m", "content": content, "prompt_tokens": 10, "completion_tokens": 5, "latency_ms": 1.0}
+
+    report = mod.run_eval(
+        cases=[case],
+        provider_call=provider,
+        retriever=None,
+        rich_resolver=None,
+        model="m",
+        seed=1,
+        token_budget=10_000,
+        dual_judge=True,
+    )
+    assert calls["answer"] == 2
+    assert len(calls["judge"]) == 2
+    judge_passes = [r.get("pass") for r in report["judge_rows"]]
+    assert judge_passes == ["primary", "swapped"]
+    rows = [r for r in report["rows"] if r.get("judge_status") == "completed"]
+    assert rows and all(r["judge_disagreement"] is True for r in rows)
+    assert all(r["verdict_score"] == 0.75 for r in rows)  # mean(correct=1.0, partial=0.5)
+    assert report["dual_judge"]["enabled"] is True
+    assert report["dual_judge"]["disagreement_rate"] == 1.0
+    # the swapped pass must present candidates in reversed arm order
+    first_map = report["judge_rows"][0]["mapping"]
+    second_map = report["judge_rows"][1]["mapping"]
+    assert list(first_map.values()) == list(reversed(list(second_map.values())))
+
+
 # ---------------------------------------------------------------- citations
 
 
@@ -169,6 +292,16 @@ def test_classify_citations_three_way_split():
 def test_classify_citations_empty_is_none_rate():
     audit = mod.classify_citations([], chunk_ids=["C1"], rich_leaf_ids=[])
     assert audit["total"] == 0 and audit["grounded_rate"] is None
+
+
+def test_classify_citations_textbook_point_label_maps_to_rich_block():
+    audit = mod.classify_citations(
+        ["【教材要点 L1】", "教材要点 L2", "教材要点 L9"],
+        chunk_ids=["CET_1"],
+        rich_leaf_ids=["1A431000-C1", "1A432000-C2"],
+    )
+    # L1/L2 resolve to existing rich blocks; L9 is out of range -> unknown
+    assert audit["counts"] == {"retrieval_chunk": 0, "rich_block": 2, "unknown": 1}
 
 
 # ---------------------------------------------------------------- summaries / report

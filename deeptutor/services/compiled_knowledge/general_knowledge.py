@@ -734,10 +734,14 @@ def resolve_general_knowledge_context(
                 # The existing confidence gate above stays the routing authority — rich leaf only
                 # supplies richer compiled CONTENT: the classified primary leaf first, plus
                 # deterministic query-term supplement leaves for cross-knowledge case questions.
+                # This caller only has ONE text (the current question) — its terms go to the
+                # focus layer (full weight) and the background layer stays empty; callers that
+                # split 背景/小问 (e.g. case-question runners) pass the background separately.
                 if _RLR.rich_leaf_runtime_enabled():
                     riches = _RLR.get_rich_leaf_contexts(
-                        [str(term) for term in (query_plan.get("query_terms") or [])],
+                        [],
                         [candidate_code],
+                        focus_terms=[str(term) for term in (query_plan.get("query_terms") or [])],
                     )
                     if riches:
                         resolved_pack["rich_leaf_contexts"] = riches

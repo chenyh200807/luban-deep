@@ -242,6 +242,67 @@ def test_multi_leaf_missing_supply_fails_open(tmp_path: Path, monkeypatch: pytes
     assert rlr.get_rich_leaf_contexts(["连墙件"], ["L-PRIMARY"]) == []
 
 
+# --------------------------- two-layer (focus / background) selection ---------------------------
+
+
+def test_focus_terms_hit_outranks_background_only_hit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _multi_supply(tmp_path, monkeypatch)
+    # Background terms alone would rank L-RARE first (rare keyword); a focus hit on the
+    # common keyword must outrank any background-only hit (focus layer dominates).
+    out = rlr.get_rich_leaf_contexts(["连墙件"], [], focus_terms=["质量验收"], top_k=2)
+    ids = [c["leaf_id"] for c in out]
+    # both focus hits (common keyword, df=2) outrank the background-only hit (rare keyword,
+    # higher IDF but 0.3x background weight and zero focus score)
+    assert ids == ["L-COMMON-A", "L-COMMON-B"]
+
+
+def test_focus_terms_only_caller_single_text_compat(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _multi_supply(tmp_path, monkeypatch)
+    # caller with only one text passes it as focus and leaves the background layer empty;
+    # ranking equals the legacy single-layer call with the same terms
+    legacy = [c["leaf_id"] for c in rlr.get_rich_leaf_contexts(["连墙件", "质量验收"], ["L-PRIMARY"], top_k=3)]
+    focused = [c["leaf_id"] for c in rlr.get_rich_leaf_contexts([], ["L-PRIMARY"], focus_terms=["连墙件", "质量验收"], top_k=3)]
+    assert focused == legacy
+
+
+def test_background_terms_alone_keep_legacy_ranking(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _multi_supply(tmp_path, monkeypatch)
+    # no focus terms -> background layer behaves exactly like the legacy single-layer query
+    out = rlr.get_rich_leaf_contexts(["连墙件", "质量验收"], ["L-PRIMARY"], focus_terms=None, top_k=3)
+    assert [c["leaf_id"] for c in out] == ["L-PRIMARY", "L-RARE", "L-COMMON-A"]
+
+
+# --------------------------- citable block labels ---------------------------
+
+
+def test_format_pack_grounding_lines_multi_blocks_carry_citable_labels(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _multi_supply(tmp_path, monkeypatch)
+    riches = rlr.get_rich_leaf_contexts(["连墙件", "质量验收"], ["L-PRIMARY"], top_k=3)
+    text = "\n".join(rlr.format_rich_leaf_pack_grounding_lines({"rich_leaf_contexts": riches}))
+    assert "【教材要点 L1】(L-PRIMARY)" in text
+    assert "【教材要点 L2】(L-RARE)" in text
+    assert "【教材要点 L3】(L-COMMON-A)" in text
+    assert text.index("【教材要点 L1】") < text.index("【教材要点 L2】") < text.index("【教材要点 L3】")
+
+
+def test_format_pack_grounding_lines_single_legacy_key_has_no_label() -> None:
+    hit = {
+        "leaf_id": "L1",
+        "leaf_name_path": "路径 > L1",
+        "compiled_context": _unit("L1", "u1")["compiled_context"],
+    }
+    text = "\n".join(rlr.format_rich_leaf_pack_grounding_lines({"rich_leaf_context": hit}))
+    assert "教材要点" not in text  # legacy single-key rendering stays byte-identical
+
+
 # --------------------------- multi-block grounding renderer ---------------------------
 
 

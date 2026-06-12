@@ -178,14 +178,32 @@ def _leaf_match_text(record: dict[str, Any]) -> str:
     return " ".join(parts).lower()
 
 
+# Background-layer (case background / full text) term weight relative to focus-layer
+# (current sub-question) terms. Background terms still contribute signal but can never
+# outrank a focus-term hit (sub-question dominates leaf selection).
+BACKGROUND_TERM_WEIGHT = 0.3
+
+
+def _dedupe_terms(terms: list[str] | None) -> list[str]:
+    return [t for t in dict.fromkeys(str(t or "").strip().lower() for t in terms or []) if t]
+
+
 def get_rich_leaf_contexts(
-    query_terms: list[str], leaf_codes: list[str], *, top_k: int = 3
+    query_terms: list[str],
+    leaf_codes: list[str],
+    *,
+    focus_terms: list[str] | None = None,
+    top_k: int = 3,
 ) -> list[dict[str, Any]]:
     """Resolve a multi-leaf TEACHING context list: primary leaves (classification hits, in order)
     first, then up to ``top_k - len(primaries)`` supplement leaves picked by deterministic
-    IDF-weighted query-term hits against bundle leaf names/keywords (no LLM call). Cross-knowledge
-    case questions get the supplements a single classified leaf cannot cover. Empty list -> fall
-    open (caller attaches nothing). Quarantined units are never in the bundle, so never selected."""
+    IDF-weighted term hits against bundle leaf names/keywords (no LLM call). Two query layers:
+    ``focus_terms`` (the current sub-question / direct question text) score at full IDF weight
+    and dominate the ordering; ``query_terms`` (case background / full text) score at
+    ``BACKGROUND_TERM_WEIGHT`` (0.3x) and can only break ties below the focus layer. No focus
+    terms -> background-only ranking is identical to the legacy single-layer behavior (uniform
+    scaling never reorders). Empty list -> fall open (caller attaches nothing). Quarantined
+    units are never in the bundle, so never selected."""
     index = _load_index()
     if not index:
         return []
@@ -200,23 +218,30 @@ def get_rich_leaf_contexts(
         if context is not None:
             contexts.append(context)
     budget = max(0, int(top_k) - len(contexts))
-    terms = [t for t in dict.fromkeys(str(t or "").strip().lower() for t in query_terms or []) if t]
-    if budget and terms:
+    focus = _dedupe_terms(focus_terms)
+    focus_set = set(focus)
+    background = [t for t in _dedupe_terms(query_terms) if t not in focus_set]
+    all_terms = focus + background
+    if budget and all_terms:
         texts = {leaf: _leaf_match_text(record) for leaf, record in index.items()}
         n_leaves = max(1, len(texts))
-        df = {term: sum(1 for text in texts.values() if term in text) for term in terms}
+        df = {term: sum(1 for text in texts.values() if term in text) for term in all_terms}
         # IDF weighting (same idea as canonical_taxonomy._kw_weight): a term hitting many
         # leaves is a weak signal; a rare term dominates.
         weights = {term: math.log(1 + n_leaves / count) for term, count in df.items() if count}
-        scored: list[tuple[float, str]] = []
+        scored: list[tuple[float, float, str]] = []
         for leaf, text in texts.items():
             if leaf in seen:
                 continue
-            score = sum(weight for term, weight in weights.items() if term in text)
-            if score > 0:
-                scored.append((-score, leaf))
+            focus_score = sum(weights[term] for term in focus if term in weights and term in text)
+            background_score = BACKGROUND_TERM_WEIGHT * sum(
+                weights[term] for term in background if term in weights and term in text
+            )
+            total = focus_score + background_score
+            if total > 0:
+                scored.append((-focus_score, -total, leaf))
         scored.sort()
-        for _, leaf in scored[:budget]:
+        for _, _, leaf in scored[:budget]:
             context = get_rich_leaf_context(leaf)
             if context is not None:
                 contexts.append(context)
@@ -301,10 +326,12 @@ def format_rich_leaf_pack_grounding_lines(
 ) -> list[str]:
     """Render a resolved pack's rich-leaf grounding: multi-leaf ``rich_leaf_contexts`` (primary
     block first) when present, else the legacy single ``rich_leaf_context`` — the ONE rendering
-    policy seam for both grounding renderers. The first (primary) block always renders whole;
-    each supplement block renders only while the running total stays within ``max_chars``
-    (default 1200, env-overridable) so multi-leaf grounding cannot explode the token budget.
-    Missing/malformed input -> [] (caller output stays byte-identical to legacy rendering)."""
+    policy seam for both grounding renderers. Each multi-leaf block carries a citable label
+    ``【教材要点 Ln】(leaf_code)`` so downstream answers can reference the exact block. The first
+    (primary) block always renders whole; each supplement block renders only while the running
+    total stays within ``max_chars`` (default 1200, env-overridable) so multi-leaf grounding
+    cannot explode the token budget. Missing/malformed input -> [] (caller output stays
+    byte-identical to legacy rendering)."""
     if not isinstance(pack, dict):
         return []
     riches = pack.get("rich_leaf_contexts")
@@ -313,20 +340,26 @@ def format_rich_leaf_pack_grounding_lines(
     limit = _grounding_max_chars(max_chars)
     lines: list[str] = []
     total = 0
+    rendered = 0
     for rich in riches:
         block = format_rich_leaf_grounding_lines(rich if isinstance(rich, dict) else None)
         if not block:
             continue
+        leaf_id = str((rich or {}).get("leaf_id") or "").strip()
+        label = f"【教材要点 L{rendered + 1}】({leaf_id})" if leaf_id else f"【教材要点 L{rendered + 1}】"
+        block = [label, *block]
         block_chars = sum(len(line) + 1 for line in block)
         if lines and total + block_chars > limit:
             break
         lines.extend(block)
         total += block_chars
+        rendered += 1
     return lines
 
 
 __all__ = [
     "AUTHORITY",
+    "BACKGROUND_TERM_WEIGHT",
     "BUNDLE_SCHEMA",
     "DEFAULT_GROUNDING_MAX_CHARS",
     "ENV_FLAG",

@@ -321,9 +321,11 @@ def _kbv5_retriever(top_k: int) -> Callable[[str], dict[str, Any]]:
     return retrieve
 
 
-def _rich_resolver() -> Callable[[str], dict[str, Any]]:
-    """Deployment-shaped multi-leaf rich resolver: query plan terms + classified primary leaf
-    -> ``get_rich_leaf_contexts`` (top_k=3) -> 1200-char-capped grounding render."""
+def _rich_resolver() -> Callable[[str, str], dict[str, Any]]:
+    """Deployment-shaped two-layer multi-leaf rich resolver: the SUB-QUESTION text supplies the
+    focus layer (full-weight terms + primary classified leaf — 小问主导选叶), the case background
+    supplies the 0.3x background layer; -> ``get_rich_leaf_contexts`` (top_k=3) -> 1200-char-capped
+    grounding render with citable 【教材要点 Ln】 block labels."""
     import sys
 
     sys.path.insert(0, str(REPO))
@@ -332,23 +334,31 @@ def _rich_resolver() -> Callable[[str], dict[str, Any]]:
     )
     from deeptutor.services.construction_grading import rich_leaf_runtime as rich_runtime
 
-    def resolve(query: str) -> dict[str, Any]:
-        plan = build_general_knowledge_query_plan(query)
-        query_terms = [str(term) for term in (plan.get("query_terms") or [])]
-        primary: list[str] = []
+    def _first_candidate(plan: dict[str, Any]) -> str:
         for candidate in plan.get("candidates") or []:
             code = str((candidate or {}).get("node_code") or "").strip()
             if code:
-                primary.append(code)
-                break
-        contexts = rich_runtime.get_rich_leaf_contexts(query_terms, primary, top_k=RICH_TOP_K)
+                return code
+        return ""
+
+    def resolve(background: str, sub_text: str) -> dict[str, Any]:
+        focus_plan = build_general_knowledge_query_plan(sub_text)
+        background_plan = build_general_knowledge_query_plan(background)
+        focus_terms = [str(term) for term in (focus_plan.get("query_terms") or [])]
+        background_terms = [str(term) for term in (background_plan.get("query_terms") or [])]
+        primary_code = _first_candidate(focus_plan) or _first_candidate(background_plan)
+        primary = [primary_code] if primary_code else []
+        contexts = rich_runtime.get_rich_leaf_contexts(
+            background_terms, primary, focus_terms=focus_terms, top_k=RICH_TOP_K
+        )
         lines = rich_runtime.format_rich_leaf_pack_grounding_lines(
             {"rich_leaf_contexts": contexts}, max_chars=RICH_RENDER_MAX_CHARS
         )
         return {
             "leaf_ids": [str(ctx.get("leaf_id") or "") for ctx in contexts],
-            "primary_leaf": primary[0] if primary else None,
-            "query_terms": query_terms,
+            "primary_leaf": primary_code or None,
+            "focus_terms": focus_terms,
+            "background_terms": background_terms,
             "grounding": "\n".join(lines),
         }
 
@@ -397,8 +407,10 @@ def answer_messages(*, case: dict[str, Any], sub: dict[str, Any], context: dict[
                 "Answer ONLY the given sub-question using the background, the provided context, and your "
                 "own knowledge; prefer cited context evidence. Cover every asked point concisely (不妥之处+正确做法 / "
                 "列举 / 计算 as required). `citations` must list ONLY evidence identifiers that actually appear "
-                "in the context: retrieval chunk ids verbatim (e.g. 'CET_...'), or 'rich:<leaf_id>' for "
-                "rich-leaf grounding blocks; empty list if none used. Return one JSON object only."
+                "in the context: retrieval chunk ids verbatim (e.g. 'CET_...'), or 'rich:<leaf_id>' / "
+                "'教材要点 Ln' for rich-leaf grounding blocks (labeled 【教材要点 Ln】(leaf_id) in the context); "
+                "如使用教材要点请在 citations 中标注对应【教材要点 Ln】；empty list if none used. "
+                "Return one JSON object only."
             ),
         },
         {"role": "user", "content": json.dumps(payload, ensure_ascii=False, sort_keys=True)},
@@ -469,11 +481,62 @@ def apply_case_judge(parsed: dict[str, Any], mapping: dict[str, str]) -> tuple[l
     return points, verdicts
 
 
+_FAILED_VERDICT = {"judge_status": "judge_failed", "verdict": None, "point_hits": None, "point_coverage": None}
+
+
+def merge_dual_judgments(
+    primary: dict[str, dict[str, Any]], swapped: dict[str, dict[str, Any]]
+) -> dict[str, dict[str, Any]]:
+    """Merge two judge passes (second pass saw the candidates in swapped order) per arm.
+
+    Both completed: verdict mismatch -> ``judge_disagreement`` True; ``verdict_score`` is the
+    MEAN of the two verdict scores and ``point_coverage`` the mean of the two coverages (de-noised
+    position-bias estimate); the primary-pass verdict is retained for correct/partial rate metrics.
+    Exactly one completed: use it (``judge_disagreement`` None — nothing to compare).
+    Neither: judge_failed."""
+    merged: dict[str, dict[str, Any]] = {}
+    for arm in {**primary, **swapped}:
+        a = primary.get(arm) or dict(_FAILED_VERDICT)
+        b = swapped.get(arm) or dict(_FAILED_VERDICT)
+        a_ok = a.get("judge_status") == "completed"
+        b_ok = b.get("judge_status") == "completed"
+        if not a_ok and not b_ok:
+            merged[arm] = {**_FAILED_VERDICT, "verdict_score": None, "judge_disagreement": None}
+            continue
+        if a_ok and b_ok:
+            coverages = [float(v) for v in (a.get("point_coverage"), b.get("point_coverage")) if v is not None]
+            merged[arm] = {
+                "judge_status": "completed",
+                "verdict": a.get("verdict"),
+                "verdict_swapped": b.get("verdict"),
+                "verdict_score": round(
+                    (VERDICT_SCORE.get(str(a.get("verdict")), 0.0) + VERDICT_SCORE.get(str(b.get("verdict")), 0.0)) / 2, 4
+                ),
+                "point_hits": a.get("point_hits"),
+                "point_coverage": round(mean(coverages), 4) if coverages else None,
+                "judge_disagreement": str(a.get("verdict")) != str(b.get("verdict")),
+            }
+            continue
+        survivor = a if a_ok else b
+        merged[arm] = {
+            **survivor,
+            "verdict_score": VERDICT_SCORE.get(str(survivor.get("verdict")), 0.0),
+            "judge_disagreement": None,
+        }
+    return merged
+
+
 # ---------------------------------------------------------------- citations
 
 
+_TEXTBOOK_POINT_LABEL_RE = re.compile(r"教材要点\s*L\s*(\d+)")
+
+
 def classify_citations(citations: list[str], *, chunk_ids: list[str], rich_leaf_ids: list[str]) -> dict[str, Any]:
-    """Programmatic citation source split: retrieval chunk / rich block / unknown (无证据)."""
+    """Programmatic citation source split: retrieval chunk / rich block / unknown (无证据).
+
+    Rich-block citations are recognized either by leaf id ('rich:<leaf_id>') or by the citable
+    block label 【教材要点 Ln】 (ordinal must resolve to an actually-rendered rich block)."""
     chunk_set = [c for c in (str(c).strip() for c in chunk_ids) if c]
     leaf_set = [leaf for leaf in (str(item).strip() for item in rich_leaf_ids) if leaf]
     counts = {"retrieval_chunk": 0, "rich_block": 0, "unknown": 0}
@@ -482,9 +545,12 @@ def classify_citations(citations: list[str], *, chunk_ids: list[str], rich_leaf_
         cite = str(raw or "").strip()
         if not cite:
             continue
+        label_match = _TEXTBOOK_POINT_LABEL_RE.search(cite)
         if any(chunk and (chunk in cite or cite in chunk) for chunk in chunk_set):
             source = "retrieval_chunk"
         elif any(leaf and leaf in cite for leaf in leaf_set):
+            source = "rich_block"
+        elif label_match and 1 <= int(label_match.group(1)) <= len(leaf_set):
             source = "rich_block"
         else:
             source = "unknown"
@@ -502,12 +568,21 @@ def classify_citations(citations: list[str], *, chunk_ids: list[str], rich_leaf_
 # ---------------------------------------------------------------- scoring
 
 
+def _row_verdict_score(row: dict[str, Any]) -> float:
+    """Dual-judge rows carry a mean ``verdict_score``; single-judge rows derive it from verdict."""
+    score = row.get("verdict_score")
+    if score is not None:
+        return float(score)
+    return VERDICT_SCORE.get(str(row.get("verdict")), 0.0)
+
+
 def arm_summary(arm: str, rows: list[dict[str, Any]]) -> dict[str, Any]:
     completed = [row for row in rows if row.get("status") == "completed"]
     judged = [row for row in completed if row.get("judge_status") == "completed"]
     coverages = [float(row["point_coverage"]) for row in judged if row.get("point_coverage") is not None]
     cited = [row for row in completed if (row.get("citation_audit") or {}).get("total")]
     grounded = [float((row["citation_audit"] or {}).get("grounded_rate") or 0.0) for row in cited]
+    dual_compared = [row for row in judged if row.get("judge_disagreement") is not None]
     return {
         "arm": arm,
         "sub_question_count": len(rows),
@@ -516,8 +591,13 @@ def arm_summary(arm: str, rows: list[dict[str, Any]]) -> dict[str, Any]:
         "fail_rate": round((len(rows) - len(completed)) / len(rows), 4) if rows else 0.0,
         "correct_rate": round(mean([1.0 if row.get("verdict") == "correct" else 0.0 for row in judged]), 4) if judged else 0.0,
         "partial_rate": round(mean([1.0 if row.get("verdict") == "partial" else 0.0 for row in judged]), 4) if judged else 0.0,
-        "semantic_score": round(mean([VERDICT_SCORE.get(str(row.get("verdict")), 0.0) for row in judged]), 4) if judged else 0.0,
+        "semantic_score": round(mean([_row_verdict_score(row) for row in judged]), 4) if judged else 0.0,
         "scoring_point_coverage": round(mean(coverages), 4) if coverages else 0.0,
+        "judge_disagreement_rate": (
+            round(mean([1.0 if row.get("judge_disagreement") else 0.0 for row in dual_compared]), 4)
+            if dual_compared
+            else None
+        ),
         "citation_grounded_rate": round(mean(grounded), 4) if grounded else None,
         "citation_source_counts": {
             source: sum(int((row.get("citation_audit") or {}).get("counts", {}).get(source) or 0) for row in completed)
@@ -543,7 +623,7 @@ def case_summaries(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
             coverages = [float(r["point_coverage"]) for r in judged if r.get("point_coverage") is not None]
             entry[arm] = {
                 "judged_count": len(judged),
-                "semantic_score": round(mean([VERDICT_SCORE.get(str(r.get("verdict")), 0.0) for r in judged]), 4) if judged else None,
+                "semantic_score": round(mean([_row_verdict_score(r) for r in judged]), 4) if judged else None,
                 "scoring_point_coverage": round(mean(coverages), 4) if coverages else None,
             }
         summaries.append(entry)
@@ -559,6 +639,7 @@ def build_report(
     seed: int,
     provider_configured: bool,
     kbv5_status: dict[str, Any],
+    dual_judge: bool = False,
 ) -> dict[str, Any]:
     blockers: list[str] = []
     if not provider_configured:
@@ -572,7 +653,18 @@ def build_report(
     prompt_tokens = sum(int(row.get("prompt_tokens") or 0) for row in rows + judge_rows)
     completion_tokens = sum(int(row.get("completion_tokens") or 0) for row in rows + judge_rows)
     runtime_exercised = bool(rows) and not blockers
+    dual_compared = [row for row in rows if row.get("judge_disagreement") is not None]
     return {
+        "dual_judge": {
+            "enabled": dual_judge,
+            "compared_count": len(dual_compared),
+            "disagreed_count": sum(1 for row in dual_compared if row.get("judge_disagreement")),
+            "disagreement_rate": (
+                round(mean([1.0 if row.get("judge_disagreement") else 0.0 for row in dual_compared]), 4)
+                if dual_compared
+                else None
+            ),
+        },
         "schema": SCHEMA,
         "execution_authority": "authorized_live_case_question_eval" if runtime_exercised else "not_exercised",
         "runtime_exercised": runtime_exercised,
@@ -626,7 +718,7 @@ def _resume_index(previous: dict[str, Any] | None) -> tuple[dict[tuple[str, str]
             if isinstance(row, dict) and row.get("status") == "completed" and row.get("judge_status") == "completed":
                 answer_rows[(str(row.get("sub_id")), str(row.get("arm")))] = row
         for row in previous.get("judge_rows") or []:
-            if isinstance(row, dict) and row.get("status") == "completed":
+            if isinstance(row, dict) and row.get("status") == "completed" and row.get("pass") != "swapped":
                 judge_rows[str(row.get("sub_id"))] = row
     return answer_rows, judge_rows
 
@@ -636,10 +728,11 @@ def run_eval(
     cases: list[dict[str, Any]],
     provider_call: ProviderCall | None,
     retriever: Callable[[str], dict[str, Any]] | None,
-    rich_resolver: Callable[[str], dict[str, Any]] | None,
+    rich_resolver: Callable[[str, str], dict[str, Any]] | None,
     model: str,
     seed: int,
     token_budget: int,
+    dual_judge: bool = False,
     previous: dict[str, Any] | None = None,
     output_path: Path | None = None,
 ) -> dict[str, Any]:
@@ -659,6 +752,7 @@ def run_eval(
             seed=seed,
             provider_configured=provider_call is not None,
             kbv5_status=kbv5_status,
+            dual_judge=dual_judge,
         )
         if output_path is not None:
             _write_json(output_path, report)
@@ -687,7 +781,8 @@ def run_eval(
             if retrieval["status"] != "completed":
                 kbv5_status["unavailable_count"] = int(kbv5_status.get("unavailable_count") or 0) + 1
                 kbv5_status["degraded"] = True
-            rich = rich_resolver(query) if rich_resolver else None
+            # two-layer rich query: sub-question text = focus layer, case background = background layer
+            rich = rich_resolver(str(case["background"]), str(sub["text"])) if rich_resolver else None
 
             sub_rows: list[dict[str, Any]] = []
             for arm in PLANNED_ARMS:
@@ -741,27 +836,52 @@ def run_eval(
                 sub_rows.append(row)
 
             completed_rows = [row for row in sub_rows if row.get("status") == "completed"]
-            judge_row: dict[str, Any] = {"sub_id": sub_id, "case_id": case["case_id"], "status": "skipped"}
-            points: list[str] = []
             verdicts: dict[str, dict[str, Any]] = {}
-            if completed_rows:
-                messages, mapping = judge_messages(case=case, sub=sub, arm_rows=completed_rows)
+            sub_judge_rows: list[dict[str, Any]] = []
+
+            def _judge_pass(arm_rows: list[dict[str, Any]], pass_name: str) -> dict[str, dict[str, Any]]:
+                nonlocal spent_tokens
+                messages, mapping = judge_messages(case=case, sub=sub, arm_rows=arm_rows)
                 try:
                     response = provider_call(messages, max_tokens=900)
-                    points, verdicts = apply_case_judge(_parse_json_object(str(response.get("content") or "")), mapping)
-                    judge_row = {
-                        "sub_id": sub_id,
-                        "case_id": case["case_id"],
-                        "status": "completed",
-                        "mapping": mapping,
-                        "scoring_points": points,
-                        "prompt_tokens": int(response.get("prompt_tokens") or 0),
-                        "completion_tokens": int(response.get("completion_tokens") or 0),
-                        "latency_ms": float(response.get("latency_ms") or 0.0),
-                    }
+                    pass_points, pass_verdicts = apply_case_judge(
+                        _parse_json_object(str(response.get("content") or "")), mapping
+                    )
+                    sub_judge_rows.append(
+                        {
+                            "sub_id": sub_id,
+                            "case_id": case["case_id"],
+                            "status": "completed",
+                            "pass": pass_name,
+                            "mapping": mapping,
+                            "scoring_points": pass_points,
+                            "prompt_tokens": int(response.get("prompt_tokens") or 0),
+                            "completion_tokens": int(response.get("completion_tokens") or 0),
+                            "latency_ms": float(response.get("latency_ms") or 0.0),
+                        }
+                    )
                     spent_tokens += int(response.get("prompt_tokens") or 0) + int(response.get("completion_tokens") or 0)
+                    return pass_verdicts
                 except Exception as exc:  # pragma: no cover - live failure path
-                    judge_row = {"sub_id": sub_id, "case_id": case["case_id"], "status": "failed", "error": str(exc)[:240]}
+                    sub_judge_rows.append(
+                        {
+                            "sub_id": sub_id,
+                            "case_id": case["case_id"],
+                            "status": "failed",
+                            "pass": pass_name,
+                            "error": str(exc)[:240],
+                        }
+                    )
+                    return {}
+
+            if completed_rows:
+                verdicts = _judge_pass(completed_rows, "primary")
+                if dual_judge:
+                    # second judge pass with the two arms' positions swapped (position-bias de-noise)
+                    swapped_verdicts = _judge_pass(list(reversed(completed_rows)), "swapped")
+                    verdicts = merge_dual_judgments(verdicts, swapped_verdicts)
+            else:
+                sub_judge_rows.append({"sub_id": sub_id, "case_id": case["case_id"], "status": "skipped"})
             for row in sub_rows:
                 verdict = verdicts.get(str(row["arm"]))
                 if verdict is None:
@@ -769,7 +889,7 @@ def run_eval(
                 else:
                     row.update(verdict)
             rows.extend(sub_rows)
-            judge_rows.append(judge_row)
+            judge_rows.extend(sub_judge_rows)
             _checkpoint()
 
     return _checkpoint()
@@ -791,6 +911,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--timeout-s", type=float, default=60.0)
     parser.add_argument("--no-provider-call", action="store_true")
     parser.add_argument("--resume-from", type=Path, default=None)
+    parser.add_argument(
+        "--dual-judge",
+        action="store_true",
+        help="judge every sub-question twice (second pass swaps the two arms' positions); "
+        "disagreements take the mean score and are flagged judge_disagreement",
+    )
     args = parser.parse_args(argv)
 
     model = args.model or PROVIDER_DEFAULTS[args.provider]["model"]
@@ -805,6 +931,7 @@ def main(argv: list[str] | None = None) -> int:
         model=model,
         seed=args.seed,
         token_budget=args.token_budget,
+        dual_judge=args.dual_judge,
         previous=previous,
         output_path=args.output,
     )
@@ -814,6 +941,7 @@ def main(argv: list[str] | None = None) -> int:
                 "output": str(args.output),
                 "runtime_exercised": report["runtime_exercised"],
                 "provider_usage": report["provider_usage"],
+                "dual_judge": report["dual_judge"],
                 "arms": [
                     {
                         k: arm[k]
@@ -823,6 +951,7 @@ def main(argv: list[str] | None = None) -> int:
                             "fail_rate",
                             "semantic_score",
                             "scoring_point_coverage",
+                            "judge_disagreement_rate",
                             "citation_grounded_rate",
                             "mean_total_tokens",
                         )
