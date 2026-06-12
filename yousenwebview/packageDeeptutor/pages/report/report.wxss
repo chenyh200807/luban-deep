@@ -433,6 +433,64 @@
   color: #fbbf24;
 }
 
+.guest-report-card {
+  padding: 24rpx;
+  border-radius: 24rpx;
+  background:
+    linear-gradient(135deg, rgba(247, 201, 107, 0.12), rgba(96, 165, 250, 0.08)),
+    rgba(255,255,255,0.04);
+  border: 1rpx solid rgba(247, 201, 107, 0.16);
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.guest-report-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.guest-report-kicker {
+  display: block;
+  font-size: 21rpx;
+  font-weight: 760;
+  color: rgba(247, 201, 107, 0.86);
+}
+
+.guest-report-title {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 30rpx;
+  line-height: 1.24;
+  font-weight: 860;
+  color: var(--text-primary);
+}
+
+.guest-report-desc {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 23rpx;
+  line-height: 1.42;
+  color: var(--text-secondary);
+}
+
+.guest-report-action {
+  flex-shrink: 0;
+  height: 64rpx;
+  padding: 0 24rpx;
+  border-radius: 999rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(248, 250, 252, 0.94);
+}
+
+.guest-report-action-txt {
+  font-size: 24rpx;
+  font-weight: 820;
+  color: #0f172a;
+}
+
 .today-task-strip {
   display: flex;
   flex-direction: column;

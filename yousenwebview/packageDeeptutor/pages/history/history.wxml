@@ -74,6 +74,9 @@
         <view class="empty-btn" wx:if="{{emptyState.showStart}}" bindtap="goHome">
           <text class="empty-btn-txt">开始对话</text>
         </view>
+        <view class="empty-btn empty-btn-primary" wx:if="{{emptyState.showLogin}}" bindtap="goQuickLogin">
+          <text class="empty-btn-txt">快速登录</text>
+        </view>
       </view>
 
       <!-- 分组对话列表 -->

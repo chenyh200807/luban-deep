@@ -54,10 +54,19 @@ function parseHttpError(message) {
   };
 }
 
-function createHttpError(statusCode) {
+function createHttpError(statusCode, payload) {
   var status = Number(statusCode) || 0;
-  var err = new Error("HTTP_" + status);
+  var suffix = "";
+  if (payload !== undefined) {
+    try {
+      suffix = ": " + JSON.stringify(payload);
+    } catch (_err) {
+      suffix = "";
+    }
+  }
+  var err = new Error("HTTP_" + status + suffix);
   err.statusCode = status;
+  err.payload = payload || null;
   return err;
 }
 
@@ -296,11 +305,11 @@ function rawRequest(opts) {
 
         if (res.statusCode === 401) {
           if (noAuth) {
-            reject(createHttpError(401));
+            reject(createHttpError(401, res.data));
             return;
           }
           if (opts.suppressAuthRedirect) {
-            reject(createHttpError(401));
+            reject(createHttpError(401, res.data));
             return;
           }
           if (opts.skipAuthRefresh) {
@@ -375,7 +384,7 @@ function rawRequest(opts) {
           return;
         }
 
-        reject(createHttpError(res.statusCode));
+        reject(createHttpError(res.statusCode, res.data));
       },
       fail: function (err) {
         if (err.errMsg && err.errMsg.includes("abort")) {

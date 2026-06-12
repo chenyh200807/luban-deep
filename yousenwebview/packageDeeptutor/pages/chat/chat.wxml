@@ -64,6 +64,15 @@ module.exports = {
       <text class="greeting-time">{{timeGreeting}}</text>
     </view>
     <text class="greeting-sub">你的专属备考专家，已为你待命</text>
+    <view class="guest-tip" wx:if="{{isGuestPreview}}">
+      <view class="guest-tip-copy">
+        <text class="guest-tip-title">先体验导学</text>
+        <text class="guest-tip-desc">浏览示例和学习入口；开始答疑时再登录。</text>
+      </view>
+      <view class="guest-tip-action" bindtap="goQuickLogin" aria-role="button" aria-label="快速登录">
+        <text class="guest-tip-action-txt">快速登录</text>
+      </view>
+    </view>
 
     <!-- 今日焦点 -->
     <view class="focus-bar focus-bar-{{focusTone}} {{enableFocusPulse?'':'no-pulse'}}" wx:if="{{focusTitle || focusText}}" bindtap="onFocusTap">
@@ -679,5 +688,28 @@ module.exports = {
 		  </view>
 
   <workspace-shell id="workspaceShell"></workspace-shell>
+
+  <view class="paywall-mask {{paywallVisible ? 'show' : ''}}" catchtap="closePaywall">
+    <view class="paywall-panel {{paywallVisible ? 'show' : ''}}" catchtap="noop">
+      <view class="paywall-head">
+        <view>
+          <text class="paywall-kicker">鲁班智考权益</text>
+          <text class="paywall-title">{{paywallTitle}}</text>
+        </view>
+        <view class="paywall-close" catchtap="closePaywall" aria-role="button" aria-label="关闭">
+          <text class="paywall-close-icon">×</text>
+        </view>
+      </view>
+      <text class="paywall-text">{{paywallText}}</text>
+      <view class="paywall-actions">
+        <view class="paywall-secondary" catchtap="closePaywall" aria-role="button" aria-label="稍后再说">
+          <text class="paywall-secondary-txt">稍后再说</text>
+        </view>
+        <view class="paywall-primary" catchtap="goPaywallBilling" aria-role="button" aria-label="查看权益">
+          <text class="paywall-primary-txt">查看权益</text>
+        </view>
+      </view>
+    </view>
+  </view>
 
 </view>
