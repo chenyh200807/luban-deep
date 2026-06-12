@@ -263,18 +263,46 @@ def _parse_item(raw: Any) -> dict[str, Any]:
     return parsed if isinstance(parsed, dict) else {}
 
 
-def format_rich_leaf_grounding_lines(rich: dict[str, Any] | None) -> list[str]:
+def _format_scoring_point_lines(compiled: dict[str, Any]) -> list[str]:
+    """Render the ``scoring_points`` family (M35-migrated + chunk-derived candidates) into
+    grading-priority lines. Every rendered point carries its textbook provenance chunk_id;
+    points without a statement degrade silently (无溯源不造点 is enforced at compile time)."""
+    lines: list[str] = []
+    for raw in (compiled.get("scoring_points") or [])[:6]:
+        item = raw if isinstance(raw, dict) else _parse_item(raw)
+        text = _clip(item.get("statement") if isinstance(item, dict) else None, limit=300)
+        if not text:
+            continue
+        terms = "、".join(str(t) for t in (item.get("required_terms") or []) if str(t).strip())
+        provenance = item.get("provenance") if isinstance(item.get("provenance"), dict) else {}
+        chunk_id = str(provenance.get("chunk_id") or "").strip()
+        line = f"- [采分点] {text}"
+        if terms:
+            line += f"（必含术语：{terms}）"
+        if chunk_id:
+            line += f"〔源:{chunk_id}〕"
+        lines.append(line)
+    return lines
+
+
+def format_rich_leaf_grounding_lines(rich: dict[str, Any] | None, *, grading: bool = False) -> list[str]:
     """Render a rich-leaf context block into LLM grounding lines (teaching-tier marker included).
 
     Shared by both grounding renderers (compiled_knowledge.general_knowledge and deep_question's
     local copy) so the rendering policy lives in ONE place. Missing/malformed input -> [] (the
-    caller's output stays byte-identical to the legacy rendering)."""
+    caller's output stays byte-identical to the legacy rendering).
+
+    ``grading=True`` (grading scenarios only) additionally renders the ``scoring_points`` family
+    FIRST, so the judge-granularity points dominate the block; the default (False) never renders
+    scoring_points, keeping every existing caller byte-identical."""
     if not isinstance(rich, dict):
         return []
     compiled = rich.get("compiled_context")
     if not isinstance(compiled, dict):
         return []
     body: list[str] = []
+    if grading:
+        body.extend(_format_scoring_point_lines(compiled))
     for concept in (compiled.get("concepts") or [])[:6]:
         text = _clip(concept)
         if text:
@@ -322,7 +350,7 @@ def _grounding_max_chars(override: int | None) -> int:
 
 
 def format_rich_leaf_pack_grounding_lines(
-    pack: dict[str, Any] | None, *, max_chars: int | None = None
+    pack: dict[str, Any] | None, *, max_chars: int | None = None, grading: bool = False
 ) -> list[str]:
     """Render a resolved pack's rich-leaf grounding: multi-leaf ``rich_leaf_contexts`` (primary
     block first) when present, else the legacy single ``rich_leaf_context`` — the ONE rendering
@@ -331,18 +359,20 @@ def format_rich_leaf_pack_grounding_lines(
     (primary) block always renders whole; each supplement block renders only while the running
     total stays within ``max_chars`` (default 1200, env-overridable) so multi-leaf grounding
     cannot explode the token budget. Missing/malformed input -> [] (caller output stays
-    byte-identical to legacy rendering)."""
+    byte-identical to legacy rendering). ``grading=True`` passes through to the per-block
+    renderer so grading scenarios surface the ``scoring_points`` family first; the default
+    keeps all existing callers byte-identical."""
     if not isinstance(pack, dict):
         return []
     riches = pack.get("rich_leaf_contexts")
     if not isinstance(riches, list) or not riches:
-        return format_rich_leaf_grounding_lines(pack.get("rich_leaf_context"))
+        return format_rich_leaf_grounding_lines(pack.get("rich_leaf_context"), grading=grading)
     limit = _grounding_max_chars(max_chars)
     lines: list[str] = []
     total = 0
     rendered = 0
     for rich in riches:
-        block = format_rich_leaf_grounding_lines(rich if isinstance(rich, dict) else None)
+        block = format_rich_leaf_grounding_lines(rich if isinstance(rich, dict) else None, grading=grading)
         if not block:
             continue
         leaf_id = str((rich or {}).get("leaf_id") or "").strip()

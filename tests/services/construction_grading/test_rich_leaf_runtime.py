@@ -3,8 +3,8 @@ resolve_general_knowledge_context injection seam (flag off -> byte-identical beh
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
+import re
 from typing import Any
 
 import pytest
@@ -369,6 +369,92 @@ def test_format_rich_leaf_grounding_lines_renders_marker_and_fails_open() -> Non
     assert rlr.format_rich_leaf_grounding_lines(None) == []
     assert rlr.format_rich_leaf_grounding_lines({"compiled_context": "garbage"}) == []
     assert rlr.format_rich_leaf_grounding_lines({"compiled_context": {}}) == []
+
+
+# --------------------------- scoring_points grading-mode rendering ---------------------------
+
+
+def _scoring_point_unit_context() -> dict[str, Any]:
+    compiled = dict(_unit("L1", "u1")["compiled_context"])
+    compiled["scoring_points"] = [
+        {
+            "point_id": "m35:Q2-1A436000-罚则:P1",
+            "source": "m35_artifact",
+            "statement": "必须写出规范术语原文。",
+            "max_score": 5,
+            "policy_type": "list_rule",
+            "required_terms": ["施工总进度计划表(图)", "资源需要量及供应平衡表"],
+            "provenance": {
+                "source_authority": "textbook",
+                "chunk_id": "1A433000_059_0089",
+                "quote": "施工总进度计划表（图",
+            },
+        },
+        {
+            "point_id": "ca:1A433000_059_0089",
+            "source": "chunk_assessment",
+            "statement": "施工总进度计划应包含哪些内容？",
+            "required_terms": ["编制说明"],
+            "provenance": {"source_authority": "textbook", "chunk_id": "1A433000_059_0089", "quote": "编制说明…"},
+        },
+    ]
+    return {"leaf_id": "L1", "leaf_name_path": "路径 > L1", "compiled_context": compiled}
+
+
+def test_grading_mode_renders_scoring_points_first_with_terms_and_source() -> None:
+    rich = _scoring_point_unit_context()
+    lines = rlr.format_rich_leaf_grounding_lines(rich, grading=True)
+    text = "\n".join(lines)
+    # scoring points render before the teaching body (concepts/rules/...)
+    sp_idx = next(i for i, ln in enumerate(lines) if ln.startswith("- [采分点]"))
+    concept_idx = next(i for i, ln in enumerate(lines) if ln.startswith("- [概念]"))
+    assert sp_idx < concept_idx
+    assert "必含术语：施工总进度计划表(图)、资源需要量及供应平衡表" in text
+    assert "〔源:1A433000_059_0089〕" in text
+    # teaching-tier authority marker is unchanged
+    assert "不得作为官方判分依据" in text
+
+
+def test_default_mode_ignores_scoring_points_byte_identical() -> None:
+    rich = _scoring_point_unit_context()
+    plain = {
+        "leaf_id": "L1",
+        "leaf_name_path": "路径 > L1",
+        "compiled_context": _unit("L1", "u1")["compiled_context"],
+    }
+    # normal (non-grading) rendering never shows scoring_points and stays byte-identical
+    assert rlr.format_rich_leaf_grounding_lines(rich) == rlr.format_rich_leaf_grounding_lines(plain)
+    assert "采分点" not in "\n".join(rlr.format_rich_leaf_grounding_lines(rich))
+
+
+def test_grading_mode_without_scoring_points_matches_default() -> None:
+    plain = {
+        "leaf_id": "L1",
+        "leaf_name_path": "路径 > L1",
+        "compiled_context": _unit("L1", "u1")["compiled_context"],
+    }
+    assert rlr.format_rich_leaf_grounding_lines(plain, grading=True) == rlr.format_rich_leaf_grounding_lines(plain)
+
+
+def test_grading_mode_malformed_scoring_points_degrade_silently() -> None:
+    compiled = dict(_unit("L1", "u1")["compiled_context"])
+    compiled["scoring_points"] = ["garbage", 42, {"source": "x"}, {"statement": "  "}]
+    rich = {"leaf_id": "L1", "leaf_name_path": "路径 > L1", "compiled_context": compiled}
+    lines = rlr.format_rich_leaf_grounding_lines(rich, grading=True)
+    assert all(not ln.startswith("- [采分点]") for ln in lines)
+    assert "概念正文" in "\n".join(lines)
+
+
+def test_pack_grounding_lines_grading_passthrough() -> None:
+    rich = _scoring_point_unit_context()
+    pack = {"rich_leaf_contexts": [rich]}
+    graded = "\n".join(rlr.format_rich_leaf_pack_grounding_lines(pack, grading=True))
+    normal = "\n".join(rlr.format_rich_leaf_pack_grounding_lines(pack))
+    assert "- [采分点]" in graded
+    assert "- [采分点]" not in normal
+    # legacy single-key path also honors grading
+    single = "\n".join(rlr.format_rich_leaf_pack_grounding_lines({"rich_leaf_context": rich}, grading=True))
+    assert "- [采分点]" in single
 
 
 # --------------------------- injection seam (general knowledge confluence) ---------------------------
