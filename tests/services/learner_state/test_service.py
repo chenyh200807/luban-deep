@@ -388,6 +388,100 @@ def test_list_learning_evidence_events_merges_local_write_ahead_in_production(
     assert events[0].source_feature == "assessment_testset"
 
 
+def test_taxonomy_superseded_events_are_skipped_by_all_readers(tmp_path) -> None:
+    """payload_json.taxonomy_supersede.superseded=true rows are audit-only: no reader sees them."""
+    store = _CoreStoreStub()
+    store.memory_events = [
+        {
+            "event_id": "evt_superseded",
+            "user_id": "student_demo",
+            "source_feature": "construction_grading",
+            "source_id": "turn:old-axis",
+            "source_bot_id": "construction-exam-coach",
+            "memory_kind": "learning_evidence",
+            "payload_json": {
+                "event_type": "learning_evidence",
+                "question_id": "q-old-axis",
+                "taxonomy_supersede": {
+                    "superseded": True,
+                    "reason": "taxonomy_book_derived_rebuild_20260612",
+                },
+            },
+            "dedupe_key": "evt_superseded",
+            "created_at": "2026-06-01T00:00:00+00:00",
+        },
+        {
+            "event_id": "evt_live",
+            "user_id": "student_demo",
+            "source_feature": "construction_grading",
+            "source_id": "turn:new-axis",
+            "source_bot_id": "construction-exam-coach",
+            "memory_kind": "learning_evidence",
+            "payload_json": {
+                "event_type": "learning_evidence",
+                "question_id": "q-new-axis",
+                "taxonomy_supersede": {"superseded": False},
+            },
+            "dedupe_key": "evt_live",
+            "created_at": "2026-06-02T00:00:00+00:00",
+        },
+    ]
+    service = _make_service(tmp_path, core_store=store)
+
+    memory_ids = [event.event_id for event in service.list_memory_events("student_demo", limit=20)]
+    assert "evt_superseded" not in memory_ids
+    assert "evt_live" in memory_ids
+
+    evidence_ids = [
+        event.event_id
+        for event in service.list_learning_evidence_events("student_demo", limit=20)
+    ]
+    assert "evt_superseded" not in evidence_ids
+    assert "evt_live" in evidence_ids
+
+    assert service.read_learning_evidence_event("student_demo", "evt_superseded") is None
+    live = service.read_learning_evidence_event("student_demo", "evt_live")
+    assert live is not None
+    assert live.event_id == "evt_live"
+
+
+def test_taxonomy_superseded_local_events_are_skipped(tmp_path) -> None:
+    service = _make_service(tmp_path)
+    live = service.append_memory_event(
+        "student_demo",
+        source_feature="construction_grading",
+        source_id="turn:new-axis",
+        source_bot_id="construction-exam-coach",
+        memory_kind="learning_evidence",
+        payload_json={"event_type": "learning_evidence", "question_id": "q-new-axis"},
+    )
+    event_path = tmp_path / "learner_state" / "student_demo" / "MEMORY_EVENTS.jsonl"
+    superseded_line = json.dumps(
+        {
+            "event_id": "evt_local_superseded",
+            "user_id": "student_demo",
+            "source_feature": "construction_grading",
+            "source_id": "turn:old-axis",
+            "source_bot_id": "construction-exam-coach",
+            "memory_kind": "learning_evidence",
+            "payload_json": {
+                "event_type": "learning_evidence",
+                "question_id": "q-old-axis",
+                "taxonomy_supersede": {"superseded": True},
+            },
+            "dedupe_key": "evt_local_superseded",
+            "created_at": "2026-06-01T00:00:00+00:00",
+        },
+        ensure_ascii=False,
+    )
+    with event_path.open("a", encoding="utf-8") as handle:
+        handle.write(superseded_line + "\n")
+
+    memory_ids = [event.event_id for event in service.list_memory_events("student_demo", limit=20)]
+    assert "evt_local_superseded" not in memory_ids
+    assert live.event_id in memory_ids
+
+
 def test_read_learning_evidence_event_local_hit_miss_and_cache(tmp_path) -> None:
     service = _make_service(tmp_path)
     saved = service.append_memory_event(

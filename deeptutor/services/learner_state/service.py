@@ -1738,6 +1738,12 @@ class LearnerStateService:
     ) -> LearnerStateEvent | None:
         if not isinstance(data, dict):
             return None
+        if _is_superseded_event_payload(data.get("payload_json")):
+            # Taxonomy-superseded events (payload_json.taxonomy_supersede.superseded=true)
+            # are audit-trail only: they must never reach projections/read models.
+            # This is the single conversion point for all read paths (local + Supabase),
+            # so filtering here keeps every reader consistent.
+            return None
         return LearnerStateEvent(
             event_id=str(data.get("event_id", "") or ""),
             user_id=str(data.get("user_id", "") or default_user_id),
@@ -2581,6 +2587,14 @@ def _iso_unknown_or_gte(value: str | None, minimum: str | None) -> bool:
     except ValueError:
         return True
     return _iso_gte(text, minimum)
+
+
+def _is_superseded_event_payload(payload_json: Any) -> bool:
+    """True when payload_json carries taxonomy_supersede.superseded=true (audit-only rows)."""
+    if not isinstance(payload_json, dict):
+        return False
+    supersede = payload_json.get("taxonomy_supersede")
+    return isinstance(supersede, dict) and bool(supersede.get("superseded"))
 
 
 def _dedupe_events_by_id(events: list[LearnerStateEvent]) -> list[LearnerStateEvent]:
