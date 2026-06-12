@@ -28,6 +28,17 @@ DEFAULT_OUTPUT = (
     REPO / "artifacts/luban_grading_artifacts/rich_leaf_full2026_runtime_default_gate_20260612/runtime_default_gate.json"
 )
 SCHEMA = "luban_rich_leaf_runtime_default_gate.v1"
+# v1 legacy line + frozen-v1 line are the only accepted pack inputs. Frozen-v1
+# packs (v2.3 schema, full-accounted status) carry quarantine accounting that
+# the gate verifies in addition to (never instead of) the v1 safety checks.
+ACCEPTED_RUNTIME_TOKEN_PACK_LINES = {
+    "luban_rich_leaf_runtime_token_pack.v1": "v1_legacy",
+    "luban_rich_leaf_runtime_token_pack.v2.3": "frozen_v1",
+}
+ACCEPTED_RUNTIME_TOKEN_PACK_STATUSES = {
+    "candidate_ready_for_streaming_ab",
+    "candidate_ready_for_shadow_ab_full_accounted",
+}
 
 
 def _read_json(path: Path) -> dict[str, Any]:
@@ -85,10 +96,23 @@ def run_runtime_default_gate(
     semantic_runtime_live_ab: dict[str, Any],
 ) -> dict[str, Any]:
     blockers: list[str] = []
-    if runtime_token_pack.get("schema") != "luban_rich_leaf_runtime_token_pack.v1":
-        blockers.append(f"runtime_token_pack_schema_mismatch:{runtime_token_pack.get('schema')}")
-    if runtime_token_pack.get("status") != "candidate_ready_for_streaming_ab":
+    pack_schema = runtime_token_pack.get("schema")
+    input_line = ACCEPTED_RUNTIME_TOKEN_PACK_LINES.get(str(pack_schema), "unknown")
+    if pack_schema not in ACCEPTED_RUNTIME_TOKEN_PACK_LINES:
+        blockers.append(f"runtime_token_pack_schema_mismatch:{pack_schema}")
+    if runtime_token_pack.get("status") not in ACCEPTED_RUNTIME_TOKEN_PACK_STATUSES:
         blockers.append(f"runtime_token_pack_not_ready:{runtime_token_pack.get('status')}")
+    if input_line == "frozen_v1":
+        # additive frozen-line accounting checks; v1 safety checks below stay intact
+        pack_summary = runtime_token_pack.get("summary") if isinstance(runtime_token_pack.get("summary"), dict) else {}
+        unresolved = int(pack_summary.get("unresolved_count") or 0)
+        if unresolved != 0:
+            blockers.append(f"frozen_pack_unresolved_units:{unresolved}")
+        quarantine = runtime_token_pack.get("quarantine") if isinstance(runtime_token_pack.get("quarantine"), dict) else {}
+        quarantine_ids = quarantine.get("quarantine_candidate_unit_ids")
+        quarantine_id_count = len(quarantine_ids) if isinstance(quarantine_ids, list) else -1
+        if int(quarantine.get("quarantine_candidate_count") or 0) != quarantine_id_count:
+            blockers.append("frozen_pack_quarantine_accounting_mismatch")
     if runtime_supply_regression.get("schema") != "luban_rich_leaf_runtime_supply_regression.v1":
         blockers.append(f"runtime_supply_regression_schema_mismatch:{runtime_supply_regression.get('schema')}")
     if runtime_supply_regression.get("verdict") != "PASS":
@@ -130,6 +154,14 @@ def run_runtime_default_gate(
     verdict = "READY_FOR_CONTROLLED_DEFAULT_REVIEW" if not blockers else "BLOCKED"
     return {
         "schema": SCHEMA,
+        "input_line": input_line,
+        "input_schemas": {
+            "runtime_token_pack": runtime_token_pack.get("schema"),
+            "runtime_token_pack_status": runtime_token_pack.get("status"),
+            "runtime_supply_regression": runtime_supply_regression.get("schema"),
+            "streaming_ab": streaming_ab.get("schema"),
+            "semantic_runtime_live_ab": semantic_runtime_live_ab.get("schema"),
+        },
         "verdict": verdict,
         "quality_claim_allowed": False,
         "runtime_default_decision": {
@@ -141,7 +173,7 @@ def run_runtime_default_gate(
         },
         "summary": {
             "blocker_count": len(blockers),
-            "token_pack_unit_count": int(token_summary.get("token_pack_unit_count") or 0),
+            "token_pack_unit_count": int(token_summary.get("token_pack_unit_count") or token_summary.get("unit_count") or 0),
             "supply_unit_count": int(supply_summary.get("input_supply_unit_count") or 0),
             "streaming_sample_count": int(streaming_summary.get("sample_count") or 0),
             "streaming_provider_call_count": int(streaming_summary.get("provider_call_count") or 0),

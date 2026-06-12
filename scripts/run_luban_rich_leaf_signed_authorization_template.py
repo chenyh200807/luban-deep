@@ -263,6 +263,7 @@ def run_signed_authorization_template(
     release_summary = _summary(release_governance_review)
     return {
         "schema": SCHEMA,
+        "input_line": controlled_default_authorization.get("input_line") or "v1_legacy",
         "input_schemas": {
             "controlled_default_authorization": controlled_default_authorization.get("schema"),
             "test_learner_writeback_authorization": test_learner_writeback_authorization.get("schema"),

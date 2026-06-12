@@ -74,7 +74,15 @@ def run_controlled_default_authorization_package(*, runtime_default_gate: dict[s
     summary = runtime_default_gate.get("summary") if isinstance(runtime_default_gate.get("summary"), dict) else {}
     return {
         "schema": SCHEMA,
-        "input_schemas": {"runtime_default_gate": runtime_default_gate.get("schema")},
+        "input_line": runtime_default_gate.get("input_line") or "v1_legacy",
+        "input_schemas": {
+            "runtime_default_gate": runtime_default_gate.get("schema"),
+            "runtime_token_pack": (
+                runtime_default_gate.get("input_schemas") or {}
+            ).get("runtime_token_pack")
+            if isinstance(runtime_default_gate.get("input_schemas"), dict)
+            else None,
+        },
         "verdict": "BLOCKED" if blockers else "READY_FOR_OPERATOR_SIGNATURE",
         "quality_claim_allowed": False,
         "execution_mode": "authorization_package_only",

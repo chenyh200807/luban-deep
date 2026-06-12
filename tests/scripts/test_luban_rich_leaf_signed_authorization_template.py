@@ -196,6 +196,47 @@ def test_signed_authorization_template_is_unsigned_and_no_write() -> None:
     assert report["safety"]["learner_memory_write_count"] == 0
 
 
+def test_signed_authorization_template_accepts_frozen_v1_line_package() -> None:
+    from scripts.run_luban_rich_leaf_signed_authorization_template import (
+        run_signed_authorization_template,
+    )
+
+    controlled = _controlled_default_authorization()
+    controlled["input_line"] = "frozen_v1"
+    controlled["candidate_scope"]["runtime_token_pack_unit_count"] = 1534
+    controlled["candidate_scope"]["semantic_live_ab_verdict"] = "PASS_FROZEN_V1_LIVE_PROVIDER_SHADOW_AB"
+
+    report = run_signed_authorization_template(
+        controlled_default_authorization=controlled,
+        test_learner_writeback_authorization=_writeback_authorization_package(),
+        release_governance_review=_release_governance_review(),
+    )
+
+    assert report["verdict"] == "READY_FOR_EXTERNAL_SIGNATURE_CAPTURE"
+    assert report["input_line"] == "frozen_v1"
+    runtime_template = report["signature_templates"]["controlled_default_operator"]
+    assert runtime_template["required_evidence"]["runtime_token_pack_unit_count"] == 1534
+    # safety invariants unchanged on the frozen line
+    assert runtime_template["signature_status"] == "unsigned"
+    assert runtime_template["runtime_default_install_allowed"] is False
+    assert report["summary"]["write_executed"] is False
+    assert report["safety"]["production_write_count"] == 0
+
+
+def test_signed_authorization_template_defaults_to_v1_legacy_line() -> None:
+    from scripts.run_luban_rich_leaf_signed_authorization_template import (
+        run_signed_authorization_template,
+    )
+
+    report = run_signed_authorization_template(
+        controlled_default_authorization=_controlled_default_authorization(),
+        test_learner_writeback_authorization=_writeback_authorization_package(),
+        release_governance_review=_release_governance_review(),
+    )
+
+    assert report["input_line"] == "v1_legacy"
+
+
 def test_signed_authorization_template_blocks_on_bad_input_shape() -> None:
     from scripts.run_luban_rich_leaf_signed_authorization_template import (
         run_signed_authorization_template,

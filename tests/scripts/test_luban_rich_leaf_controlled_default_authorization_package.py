@@ -66,6 +66,39 @@ def test_controlled_default_authorization_package_requires_signature_without_ins
     assert report["safety"]["production_write_count"] == 0
 
 
+def test_controlled_default_authorization_package_accepts_frozen_v1_line_gate() -> None:
+    from scripts.run_luban_rich_leaf_controlled_default_authorization_package import (
+        run_controlled_default_authorization_package,
+    )
+
+    gate = _runtime_default_gate()
+    gate["input_line"] = "frozen_v1"
+    gate["input_schemas"] = {"runtime_token_pack": "luban_rich_leaf_runtime_token_pack.v2.3"}
+    gate["summary"]["token_pack_unit_count"] = 1534
+    gate["summary"]["semantic_live_ab_verdict"] = "PASS_FROZEN_V1_LIVE_PROVIDER_SHADOW_AB"
+    report = run_controlled_default_authorization_package(runtime_default_gate=gate)
+
+    assert report["verdict"] == "READY_FOR_OPERATOR_SIGNATURE"
+    assert report["input_line"] == "frozen_v1"
+    assert report["candidate_scope"]["runtime_token_pack_unit_count"] == 1534
+    assert report["candidate_scope"]["semantic_live_ab_verdict"] == "PASS_FROZEN_V1_LIVE_PROVIDER_SHADOW_AB"
+    # safety invariants unchanged on the frozen line
+    assert report["authorization_decision"]["operator_signature_recorded"] is False
+    assert report["authorization_decision"]["default_install_allowed"] is False
+    assert report["summary"]["write_executed"] is False
+    assert report["safety"]["production_write_count"] == 0
+
+
+def test_controlled_default_authorization_package_defaults_to_v1_legacy_line() -> None:
+    from scripts.run_luban_rich_leaf_controlled_default_authorization_package import (
+        run_controlled_default_authorization_package,
+    )
+
+    report = run_controlled_default_authorization_package(runtime_default_gate=_runtime_default_gate())
+
+    assert report["input_line"] == "v1_legacy"
+
+
 def test_controlled_default_authorization_package_blocks_on_gate_not_ready() -> None:
     from scripts.run_luban_rich_leaf_controlled_default_authorization_package import (
         run_controlled_default_authorization_package,
