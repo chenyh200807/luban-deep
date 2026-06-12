@@ -1,0 +1,137 @@
+<view class="onboarding-page slide-{{activeSlide.accent}} motion-{{motionTick}}">
+  <view class="pastel-field"></view>
+  <view class="grid-bg"></view>
+
+  <view class="page-shell" style="padding-top: {{statusBarHeight}}px; padding-bottom: {{safeBottom + 22}}px">
+    <view class="topbar">
+      <view class="brand-lockup">
+        <image class="brand-mark" src="../../images/logo-mark-white.png" mode="aspectFit" />
+        <view>
+          <text class="brand-title">鲁班智考</text>
+          <text class="brand-sub">先体验导学</text>
+        </view>
+      </view>
+      <view class="skip-btn" bindtap="startExperience" aria-role="button" aria-label="跳过导学">
+        <text class="skip-text">跳过</text>
+      </view>
+    </view>
+
+    <view class="progress-row">
+      <view
+        class="progress-pill {{activeIndex >= index ? 'on' : ''}} {{activeIndex === index ? 'current' : ''}}"
+        wx:for="{{slides}}"
+        wx:key="id"
+        data-index="{{index}}"
+        bindtap="jumpTo"
+      ></view>
+      <text class="progress-label">{{activeIndex + 1}} / {{slides.length}}</text>
+    </view>
+
+    <view class="story-copy">
+      <text class="scene-kicker">{{activeSlide.kicker}}</text>
+      <text class="scene-title">{{activeSlide.title}}</text>
+      <text class="scene-desc">{{activeSlide.desc}}</text>
+    </view>
+
+    <view class="product-stage" wx:if="{{activeSlide.id === 'diagnosis'}}">
+      <view class="product-head">
+        <text class="product-title">鲁班正在判断</text>
+        <text class="product-state">导学开始</text>
+      </view>
+      <view class="chat-bubble me">
+        <text>我题刷了不少，建筑实务还是不涨分，先查哪里？</text>
+      </view>
+      <view class="chat-bubble ai">
+        <text>先别继续盲刷。我会先看你卡在考点、题型，还是答案不得分。</text>
+        <text class="typing-caret"></text>
+      </view>
+      <view class="mini-steps">
+        <view wx:for="{{activeSlide.bullets}}" wx:key="*this"><text>{{item}}</text></view>
+      </view>
+      <view class="keyboard-preview">
+        <view></view><view></view><view></view><view></view><view></view><view></view>
+      </view>
+    </view>
+
+    <view class="product-stage score-stage" wx:elif="{{activeSlide.id === 'grade'}}">
+      <view class="product-head">
+        <text class="product-title">AI 批改结果</text>
+        <text class="score-pill">12 / 20</text>
+      </view>
+      <view class="answer-paper">
+        <text>命中 </text>
+        <text class="mark">专项方案</text>
+        <text> 和 </text>
+        <text class="mark">技术交底</text>
+        <text>，漏了 </text>
+        <text class="miss">验收程序</text>
+        <text>，表达过泛。</text>
+      </view>
+      <view class="point-row hit">
+        <text class="point-tag">得</text>
+        <text class="point-text">命中 2 个采分点</text>
+        <text class="point-score">+6</text>
+      </view>
+      <view class="point-row warn">
+        <text class="point-tag">漏</text>
+        <text class="point-text">漏写责任人与验收</text>
+        <text class="point-score">-5</text>
+      </view>
+      <view class="point-row warn">
+        <text class="point-tag">改</text>
+        <text class="point-text">口号改成具体措施</text>
+        <text class="point-score">改写</text>
+      </view>
+    </view>
+
+    <view class="product-stage train-stage" wx:else>
+      <view class="product-head">
+        <text class="product-title">下一步训练</text>
+        <text class="product-state">已生成</text>
+      </view>
+      <view class="weak-item" wx:for="{{activeSlide.weakRows}}" wx:key="title">
+        <text class="weak-title">{{item.title}}</text>
+        <view class="weak-bar"><view style="width: {{item.progress}}%"></view></view>
+      </view>
+      <view class="task-box">
+        <text class="task-label">建议现在做</text>
+        <text class="task-title">同类案例题 3 道，先练“验收程序 + 责任人”</text>
+      </view>
+    </view>
+
+    <view class="example-panel">
+      <view class="example-head">
+        <text class="example-title">你可以直接这样问</text>
+        <text class="example-note">点一下进入对话</text>
+      </view>
+      <view
+        class="example-item"
+        wx:for="{{activeSlide.examples}}"
+        wx:key="*this"
+        data-query="{{item}}"
+        bindtap="tryExample"
+        aria-role="button"
+        aria-label="使用示例问题 {{item}}"
+      >
+        <text class="example-text">{{item}}</text>
+        <text class="example-arrow">›</text>
+      </view>
+    </view>
+
+    <view class="bottom-actions">
+      <view class="back-btn {{activeIndex === 0 ? 'muted' : ''}}" bindtap="goPrev" aria-role="button" aria-label="上一页">
+        <text class="back-text">{{activeIndex === 0 ? '先浏览' : '上一步'}}</text>
+      </view>
+      <view class="primary-btn" wx:if="{{activeIndex < slides.length - 1}}" bindtap="goNext" aria-role="button" aria-label="下一步">
+        <text class="primary-text">下一步</text>
+      </view>
+      <view class="primary-btn" wx:else bindtap="startExperience" aria-role="button" aria-label="开始体验">
+        <text class="primary-text">开始体验</text>
+      </view>
+    </view>
+
+    <view class="login-link" wx:if="{{activeIndex === slides.length - 1}}" bindtap="quickLogin" aria-role="button" aria-label="快速登录">
+      <text class="login-link-text">已有学习记录？快速登录</text>
+    </view>
+  </view>
+</view>
