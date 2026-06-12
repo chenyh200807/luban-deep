@@ -28,6 +28,13 @@ from deeptutor.services.observability import (
     get_product_behavior_store,
     get_usage_ledger,
 )
+from deeptutor.services.observability.cost_calibration import (
+    apply_calibration,
+    compute_calibration,
+    factor_map,
+    load_calibration,
+    save_calibration,
+)
 from deeptutor.services.observability.deepseek_billing import DeepSeekBillingClient
 from deeptutor.services.observability.provider_reconciliation import build_reconciliation_delta
 from deeptutor.services.session import get_sqlite_session_store
@@ -2214,8 +2221,24 @@ class BIService:
                 "hint": f"回合数 {len(context.turns)} · 分子含非回合内调用",
             },
         ]
+        # 自校准（P2）：用已存的 model 级校准系数把内账估算拉向官方真值。
+        calibration = load_calibration(self._cost_calibration_path())
+        factors = factor_map(calibration)
         models = [
-            {"label": row.get("model") or "unknown", "value": _round(_safe_float(row.get("total_cost_usd")), 4), "events": _safe_int(row.get("events")), "tokens": _safe_int(row.get("total_tokens"))}
+            {
+                "label": row.get("model") or "unknown",
+                "value": _round(_safe_float(row.get("total_cost_usd")), 4),
+                "calibrated_value": _round(
+                    apply_calibration(
+                        str(row.get("model") or "unknown"),
+                        _safe_float(row.get("total_cost_usd")),
+                        factors,
+                    ),
+                    4,
+                ),
+                "events": _safe_int(row.get("events")),
+                "tokens": _safe_int(row.get("total_tokens")),
+            }
             for row in usage_summary.get("by_model") or []
         ]
         providers = [
@@ -2228,7 +2251,44 @@ class BIService:
             "cards": cards,
             "models": models,
             "providers": providers,
+            # 官方账单为锚 + 自校准健康度（P3 成本卡用）；refresh 后才有值。
+            "official_anchor": calibration.get("global") or {},
+            "calibration_refreshed_at": calibration.get("refreshed_at"),
+            "calibration_billing_cycle": calibration.get("billing_cycle"),
         }
+
+    def _cost_calibration_path(self) -> Path:
+        return self._path_service.user_data_dir / "cost_calibration.json"
+
+    async def refresh_cost_calibration(self, *, billing_cycle: str, generated_at: str) -> dict[str, Any]:
+        """用官方账单 model 级金额 + 内账 by_model token 反推校准系数并持久化。
+
+        官方账单为锚（权威），自校准让实时内账逼近官方真值。手动/定时触发，
+        不在高频 overview 调用里跑（拉百炼账单 API 慢）。
+        """
+        recon = await self.get_cost_reconciliation(provider="all", billing_cycle=billing_cycle)
+        official_amounts = dict(
+            (recon.get("bailian_billing") or {}).get("model_amounts") or {}
+        )
+        official_total_tokens = _safe_int((recon.get("bailian") or {}).get("total_tokens"))
+        cycle_start_ts, cycle_end_ts = self._billing_cycle_bounds(billing_cycle)
+        cycle_summary = self._usage_ledger.get_window_summary(
+            start_ts=cycle_start_ts, end_ts=cycle_end_ts
+        )
+        internal_by_model = {
+            str(row.get("model") or "unknown"): {
+                "total_tokens": _safe_int(row.get("total_tokens")),
+                "internal_cost": _safe_float(row.get("total_cost_usd")),
+            }
+            for row in cycle_summary.get("by_model") or []
+        }
+        calibration = compute_calibration(
+            official_amounts, internal_by_model, official_total_tokens=official_total_tokens or None
+        )
+        calibration["refreshed_at"] = generated_at
+        calibration["billing_cycle"] = billing_cycle
+        save_calibration(self._cost_calibration_path(), calibration)
+        return calibration
 
     async def backfill_usage_ledger(
         self,

@@ -464,3 +464,31 @@ async def bi_remove_admin(user_id: str, auth: AuthContext = Depends(require_bi_a
         return {"admins": get_member_console_service().remove_admin_user(user_id)}
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+@router.get("/cost-calibration")
+async def bi_cost_calibration_status(_auth: AuthContext = Depends(require_bi_admin)):
+    """读当前自校准状态（系数 + 全局健康度 + 上次刷新时间）。"""
+    from pathlib import Path
+
+    from deeptutor.services.observability.cost_calibration import load_calibration
+
+    service = get_bi_service()
+    path: Path = service._cost_calibration_path()
+    return load_calibration(path)
+
+
+@router.post("/cost-calibration/refresh")
+async def bi_cost_calibration_refresh(
+    payload: dict[str, Any] | None = Body(default=None),
+    _auth: AuthContext = Depends(require_bi_admin),
+):
+    """用官方账单反推真实单价，刷新自校准系数。billing_cycle 默认当月。"""
+    from datetime import datetime, timezone
+
+    body = payload or {}
+    now = datetime.now(timezone.utc)
+    billing_cycle = str(body.get("billing_cycle") or now.strftime("%Y-%m")).strip()
+    return await get_bi_service().refresh_cost_calibration(
+        billing_cycle=billing_cycle, generated_at=now.isoformat()
+    )
