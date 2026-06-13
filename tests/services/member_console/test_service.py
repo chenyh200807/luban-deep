@@ -4,6 +4,7 @@ import asyncio
 import hashlib
 import json
 import logging
+import sys
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -1290,6 +1291,86 @@ def test_register_with_external_auth_creates_external_user_and_member(
     assert result["user"]["username"] == "new_student"
     assert "new_student" in external_users
     assert external_users["new_student"]["phone"] == "+8613812345678"
+
+
+def test_register_with_external_auth_rejects_existing_verified_phone_alias(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    class _FakeAliasStore:
+        is_configured = True
+
+        @staticmethod
+        def resolve_alias(*, alias_type: str, alias_value: str):
+            if alias_type == "phone" and alias_value == "13812345678":
+                return {
+                    "user_id": "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+                    "source": "phone_verification",
+                }
+            return None
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.identity.get_wallet_identity_store",
+        lambda: _FakeAliasStore(),
+    )
+
+    with pytest.raises(ValueError, match="该手机号已被注册"):
+        service.register_with_external_auth("new_student", "StrongPass123", "13812345678")
+
+    assert not users_file.exists()
+
+
+def test_register_with_external_auth_rejects_existing_local_member_phone_without_alias(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    service._mutate(
+        lambda data: data["members"].append(
+            {
+                "user_id": "legacy_member",
+                "display_name": "Legacy Student",
+                "phone": "13812345678",
+            }
+        )
+    )
+
+    with pytest.raises(ValueError, match="该手机号已被注册"):
+        service.register_with_external_auth("new_student", "StrongPass123", "13812345678")
+
+    assert not users_file.exists()
+
+
+def test_register_with_external_auth_persists_new_phone_identity(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    persisted: list[dict[str, str]] = []
+
+    monkeypatch.setattr(
+        service,
+        "_persist_phone_identity",
+        lambda *, phone, canonical_uid: persisted.append({"phone": phone, "canonical_uid": canonical_uid}),
+    )
+
+    result = service.register_with_external_auth("new_student", "StrongPass123", "13812345678")
+    claims = service.verify_access_token(result["token"])
+
+    assert claims is not None
+    assert persisted == [{"phone": "13812345678", "canonical_uid": claims["canonical_uid"]}]
 
 
 def test_register_with_external_auth_does_not_match_existing_display_name(
@@ -3335,6 +3416,152 @@ def test_verify_phone_code_locks_out_after_max_attempts(tmp_path: Path) -> None:
         service.verify_phone_code("13955556666", real_code)
 
 
+def test_verify_phone_code_uses_existing_verified_phone_alias_before_creating_auto_external_user(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
+
+    class _FakeAliasStore:
+        is_configured = True
+
+        @staticmethod
+        def resolve_alias(*, alias_type: str, alias_value: str):
+            if alias_type == "phone" and alias_value == "13955556666":
+                return {"user_id": canonical_uid, "source": "phone_verification"}
+            return None
+
+    def _unexpected_auto_external_user(_phone: str) -> dict[str, object]:
+        raise AssertionError("phone login should use existing canonical phone alias")
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.identity.get_wallet_identity_store",
+        lambda: _FakeAliasStore(),
+    )
+    monkeypatch.setattr(
+        member_service_module,
+        "ensure_external_auth_user_for_phone",
+        _unexpected_auto_external_user,
+    )
+
+    service.send_phone_code("13955556666")
+    result = service.verify_phone_code("13955556666", _active_otp(service))
+
+    claims = service.verify_access_token(result["token"])
+    assert claims is not None
+    assert claims["canonical_uid"] == canonical_uid
+    assert result["user_id"] == canonical_uid
+
+
+def test_verify_phone_code_rejects_conflicting_phone_aliases_without_consuming_code(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    class _FakeAliasStore:
+        is_configured = True
+
+        @staticmethod
+        def resolve_alias(*, alias_type: str, alias_value: str):
+            if alias_type == "phone" and alias_value == "13955556666":
+                return {
+                    "user_id": "2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+                    "source": "phone_verification",
+                }
+            if alias_type == "phone" and alias_value == "+8613955556666":
+                return {
+                    "user_id": "047b7b7f-8316-4f95-8bf7-71973c102be7",
+                    "source": "phone_backfill",
+                }
+            return None
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.identity.get_wallet_identity_store",
+        lambda: _FakeAliasStore(),
+    )
+
+    service.send_phone_code("13955556666")
+    code = _active_otp(service)
+
+    with pytest.raises(ValueError, match="手机号身份冲突"):
+        service.verify_phone_code("13955556666", code)
+
+    assert service._load()["phone_codes"].get("13955556666")
+
+
+def test_verify_phone_code_fails_closed_when_alias_store_lookup_fails_without_consuming_code(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    class _FailingAliasStore:
+        is_configured = True
+
+        @staticmethod
+        def resolve_alias(*, alias_type: str, alias_value: str):
+            raise RuntimeError("alias store unavailable")
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.identity.get_wallet_identity_store",
+        lambda: _FailingAliasStore(),
+    )
+
+    service.send_phone_code("13955556666")
+    code = _active_otp(service)
+
+    with pytest.raises(ValueError, match="手机号身份暂时不可用"):
+        service.verify_phone_code("13955556666", code)
+
+    assert service._load()["phone_codes"].get("13955556666")
+
+
+def test_persist_phone_identity_does_not_overwrite_concurrent_alias_owner(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    monkeypatch.setenv("DB_URL", "postgresql://example.invalid/db")
+    monkeypatch.setattr(service, "_trusted_phone_alias_user_ids", lambda _phone: set())
+    queries: list[str] = []
+
+    class _Cursor:
+        def execute(self, query: str, params: tuple[object, ...]) -> None:
+            queries.append(query)
+
+        @staticmethod
+        def fetchone():
+            return None
+
+    class _Connection:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        @staticmethod
+        def cursor():
+            return _Cursor()
+
+    fake_psycopg = SimpleNamespace(connect=lambda *_args, **_kwargs: _Connection())
+    monkeypatch.setitem(sys.modules, "psycopg", fake_psycopg)
+
+    service._persist_phone_identity(
+        phone="13955556666",
+        canonical_uid="2d9eac15-5d26-4e93-941b-9ec6345ce6d9",
+    )
+
+    assert len(queries) == 1
+    assert "WHERE public.user_identity_aliases.user_id = EXCLUDED.user_id" in queries[0]
+
+
 def test_reset_password_with_phone_code_updates_external_auth_password(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -3365,6 +3592,115 @@ def test_reset_password_with_phone_code_updates_external_auth_password(
     assert external_auth_module.verify_external_auth_user("reset_student", "NewPass123") is not None
     with pytest.raises(ValueError, match="验证码不存在"):
         service.verify_phone_code("13955556666", code)
+
+
+def test_send_password_reset_code_requires_matching_account_phone(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    external_auth_module.create_external_auth_user(
+        "reset_student",
+        "OldPass123",
+        phone="13955556666",
+    )
+
+    with pytest.raises(ValueError, match="账号或手机号不匹配"):
+        service.send_password_reset_code("reset_student", "13800000000")
+
+    assert service._load()["phone_codes"] == {}
+
+
+def test_send_password_reset_code_delegates_to_sms_authority_for_matching_account(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    external_auth_module.create_external_auth_user(
+        "reset_student",
+        "OldPass123",
+        phone="13955556666",
+    )
+
+    result = service.send_password_reset_code("reset_student", "13955556666")
+
+    assert result["sent"] is True
+    assert result["phone"] == "13955556666"
+    assert _active_otp(service)
+
+
+def test_send_password_reset_code_accepts_verified_phone_alias_when_external_auth_phone_is_missing(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    external_user = external_auth_module.create_external_auth_user("reset_student", "OldPass123")
+    canonical_uid = str(external_user["id"])
+
+    class _FakeAliasStore:
+        is_configured = True
+
+        @staticmethod
+        def resolve_alias(*, alias_type: str, alias_value: str):
+            if alias_type == "phone" and alias_value == "13955556666":
+                return {"user_id": canonical_uid, "source": "phone_verification"}
+            return None
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.identity.get_wallet_identity_store",
+        lambda: _FakeAliasStore(),
+    )
+
+    result = service.send_password_reset_code("reset_student", "13955556666")
+
+    assert result["sent"] is True
+    assert result["phone"] == "13955556666"
+    assert _active_otp(service)
+
+
+def test_send_password_reset_code_fails_closed_when_phone_alias_belongs_to_another_user(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    external_user = external_auth_module.create_external_auth_user("reset_student", "OldPass123")
+    canonical_uid = str(external_user["id"])
+    other_uid = "047b7b7f-8316-4f95-8bf7-71973c102be7"
+
+    class _FakeAliasStore:
+        is_configured = True
+
+        @staticmethod
+        def resolve_alias(*, alias_type: str, alias_value: str):
+            if alias_type == "phone" and alias_value == "13955556666":
+                return {"user_id": other_uid, "source": "phone_verification"}
+            if alias_type == "phone" and alias_value == "+8613955556666":
+                return {"user_id": canonical_uid, "source": "public_users_backfill"}
+            return None
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.identity.get_wallet_identity_store",
+        lambda: _FakeAliasStore(),
+    )
+
+    with pytest.raises(ValueError, match="账号或手机号不匹配"):
+        service.send_password_reset_code("reset_student", "13955556666")
+
+    assert service._load()["phone_codes"] == {}
 
 
 def test_reset_password_rejects_mismatched_phone_without_consuming_code(
@@ -3399,6 +3735,43 @@ def test_reset_password_rejects_mismatched_phone_without_consuming_code(
         "NewPass123",
     )
     assert external_auth_module.verify_external_auth_user("reset_student", "NewPass123") is not None
+
+
+def test_reset_password_with_phone_code_accepts_verified_alias_without_external_auth_phone(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    users_file = tmp_path / "users.json"
+    monkeypatch.setenv("DEEPTUTOR_EXTERNAL_AUTH_USERS_FILE", str(users_file))
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    external_user = external_auth_module.create_external_auth_user("reset_student", "OldPass123")
+    canonical_uid = str(external_user["id"])
+
+    class _FakeAliasStore:
+        is_configured = True
+
+        @staticmethod
+        def resolve_alias(*, alias_type: str, alias_value: str):
+            if alias_type == "phone" and alias_value == "13955556666":
+                return {"user_id": canonical_uid, "source": "phone_verification"}
+            return None
+
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.identity.get_wallet_identity_store",
+        lambda: _FakeAliasStore(),
+    )
+
+    service.send_phone_code("13955556666")
+    code = _active_otp(service)
+
+    result = service.reset_password_with_phone_code("reset_student", "13955556666", code, "NewPass123")
+
+    assert result["success"] is True
+    assert external_auth_module.verify_external_auth_user("reset_student", "OldPass123") is None
+    assert external_auth_module.verify_external_auth_user("reset_student", "NewPass123") is not None
+    with pytest.raises(ValueError, match="验证码不存在"):
+        service.verify_phone_code("13955556666", code)
 
 
 def test_reset_password_rejects_weak_password_without_consuming_code(

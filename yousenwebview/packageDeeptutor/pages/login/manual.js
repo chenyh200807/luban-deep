@@ -16,6 +16,29 @@ function canShowDebugCode() {
   return cfg.platform === "devtools" || cfg.envVersion === "develop" || cfg.envVersion === "trial";
 }
 
+function describePhoneCodeAuthError(info) {
+  var detail = String((info && info.detailText) || "").trim();
+  if (info && info.status === 429) {
+    return "操作过于频繁";
+  }
+  if (detail.indexOf("手机号身份冲突") >= 0) {
+    return "手机号身份存在冲突，请联系客服";
+  }
+  if (detail.indexOf("验证码不存在") >= 0) {
+    return "请先获取验证码";
+  }
+  if (detail.indexOf("验证码已过期") >= 0) {
+    return "验证码已过期，请重新获取";
+  }
+  if (detail.indexOf("验证码错误次数过多") >= 0) {
+    return "验证码错误次数过多，请重新获取验证码";
+  }
+  if ((info && info.status === 400) || detail.indexOf("验证码") >= 0) {
+    return "验证码错误，请重新输入";
+  }
+  return "";
+}
+
 Page({
   data: {
     statusBarHeight: 44,
@@ -233,15 +256,7 @@ Page({
       })
       .catch(function (err) {
         var msg = self._describeAuthError(err, "验证失败，请重试", {
-          customMap: function (info) {
-            if (info.status === 400 || info.detailText.indexOf("验证码") >= 0) {
-              return "验证码错误或已过期";
-            }
-            if (info.status === 429) {
-              return "操作过于频繁";
-            }
-            return "";
-          },
+          customMap: describePhoneCodeAuthError,
         });
         self.setData({ errorMsg: msg });
       })

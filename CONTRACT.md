@@ -116,6 +116,7 @@ DeepTutor 必须优先保证：
 
 - 账号密码找回只能由 `MemberConsoleService -> external_auth` 修改账号凭证。
 - `/api/v1/auth/reset-password` 必须校验账号、注册手机号和短信验证码。
+- 短信验证码只能证明手机号控制权，不能单独证明账号所有权；注册、手机号验证码登录和找回密码必须先通过 `MemberConsoleService` 解析可信手机号身份，发现多个 canonical 归属时必须 fail closed。
 - 成功后必须失效旧 external auth session、消费验证码、不返回 token、不自动登录。
 - 该链路不得写 learner-state、turn/session/runtime state 或 capability route/config state。
 

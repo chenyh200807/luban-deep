@@ -27,6 +27,29 @@ function validateRegisterForm(username, phone, password, confirmPassword) {
   return "";
 }
 
+function describeRegisterAuthError(info) {
+  var detail = String((info && info.detailText) || "").trim();
+  if (info && info.status === 429) {
+    return "注册过于频繁，请稍后再试";
+  }
+  if (!info || info.status !== 400) {
+    return "";
+  }
+  if (detail.indexOf("用户名已存在") >= 0) {
+    return "该账号已存在，请直接登录";
+  }
+  if (detail.indexOf("手机号身份冲突") >= 0) {
+    return "手机号身份存在冲突，请联系客服";
+  }
+  if (detail.indexOf("手机号已被注册") >= 0) {
+    return "该手机号已注册，请直接登录或找回密码";
+  }
+  if (detail.indexOf("手机号格式") >= 0) {
+    return "请输入正确的手机号";
+  }
+  return "注册信息填写有误，请检查后重试";
+}
+
 Page({
   data: {
     statusBarHeight: 44,
@@ -183,12 +206,7 @@ Page({
       })
       .catch(function (err) {
         var msg = self._describeAuthError(err, "注册失败，请重试", {
-          customMap: function (info) {
-            if (info.status === 429) {
-              return "注册过于频繁，请稍后再试";
-            }
-            return "";
-          },
+          customMap: describeRegisterAuthError,
         });
         self.setData({ errorMsg: msg });
       })

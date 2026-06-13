@@ -38,6 +38,29 @@ function exists(relativePath) {
   return fs.existsSync(path.join(__dirname, "..", relativePath));
 }
 
+function httpError(status, detail) {
+  var err = new Error("HTTP_" + status + ": " + JSON.stringify({ detail: detail }));
+  err.statusCode = status;
+  err.payload = { detail: detail };
+  return err;
+}
+
+function describeRequestErrorForTest(err, fallbackMsg, opts) {
+  var status = err && err.statusCode ? err.statusCode : 0;
+  var detailText = err && err.payload ? String(err.payload.detail || "") : "";
+  var customMap = opts && opts.customMap;
+  if (typeof customMap === "function") {
+    var customMsg = customMap({
+      status: status,
+      detailText: detailText,
+      payload: err && err.payload,
+      rawMessage: String((err && err.message) || ""),
+    });
+    if (customMsg) return customMsg;
+  }
+  return fallbackMsg;
+}
+
 function createRouteMock() {
   return {
     chat: function () {
@@ -247,6 +270,11 @@ function loadPage(relativePath, options) {
       "reset page should request SMS code through the auth code authority",
     );
     assert(
+      setup.requests[0].data.username === "reset_student" &&
+        setup.requests[0].data.phone === "13955556666",
+      "reset page should bind SMS code request to username and registered phone",
+    );
+    assert(
       setup.requests[1].url === "/api/v1/auth/reset-password",
       "reset page should call the dedicated password reset endpoint",
     );
@@ -272,6 +300,72 @@ function loadPage(relativePath, options) {
       setup.redirectCalls.length === 1 &&
         setup.redirectCalls[0].url.indexOf("/packageDeeptutor/pages/login/manual?loginMode=password") === 0,
       "after confirmation reset page should return to password login mode",
+    );
+  });
+
+  await run("password reset page preserves safe backend reset error semantics", async function () {
+    var cases = [
+      ["账号或手机号不匹配", "账号和手机号不匹配，请确认注册账号和绑定手机号"],
+      ["验证码不存在，请先获取验证码", "请先获取验证码"],
+      ["验证码已过期，请重新获取", "验证码已过期，请重新获取"],
+      ["验证码错误次数过多，请重新获取验证码", "验证码错误次数过多，请重新获取验证码"],
+      ["验证码错误", "验证码错误，请重新输入"],
+      ["其他填写错误", "信息填写有误，请检查后重试"],
+    ];
+    for (var i = 0; i < cases.length; i++) {
+      var setup = loadPage("packageDeeptutor/pages/login/reset-password.js", {
+        api: {
+          describeRequestError: describeRequestErrorForTest,
+          request: function (requestOptions) {
+            if (requestOptions.url === "/api/v1/auth/reset-password") {
+              return Promise.reject(httpError(400, cases[i][0]));
+            }
+            return Promise.resolve({ sent: true, retry_after: 60 });
+          },
+        },
+      });
+      setup.page.setData({
+        username: "reset_student",
+        phone: "13955556666",
+        phoneCode: "123456",
+        password: "NewPass123",
+        confirmPassword: "NewPass123",
+      });
+
+      setup.page.handleResetPassword();
+      await flushPromises();
+      await flushPromises();
+
+      assert(
+        setup.page.data.errorMsg === cases[i][1],
+        "reset error '" + cases[i][0] + "' should map to '" + cases[i][1] + "'",
+      );
+    }
+  });
+
+  await run("password reset send-code preserves account phone mismatch semantics", async function () {
+    var setup = loadPage("packageDeeptutor/pages/login/reset-password.js", {
+      api: {
+        describeRequestError: describeRequestErrorForTest,
+        request: function (requestOptions) {
+          if (requestOptions.url === "/api/v1/auth/send-code") {
+            return Promise.reject(httpError(400, "账号或手机号不匹配"));
+          }
+          return Promise.reject(new Error("unexpected request"));
+        },
+      },
+    });
+    setup.page.setData({
+      username: "reset_student",
+      phone: "13955556666",
+    });
+
+    setup.page.sendCode();
+    await flushPromises();
+
+    assert(
+      setup.page.data.errorMsg === "账号和手机号不匹配，请确认注册账号和绑定手机号",
+      "send-code account phone mismatch should be visible before reset submit",
     );
   });
 
