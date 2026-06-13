@@ -553,16 +553,35 @@ Page({
         return;
       }
       this._deeptutorNavLockUntil = now + 1500;
-      // 先播先体验导学动效（dest=login：结尾星球转场落到登录页）
-      wx.navigateTo({
-        url: '/packageDeeptutor/pages/onboarding/onboarding?entry_source=' + entrySource + '&dest=login',
-        fail: () => {
-          wx.showToast({
-            title: '鲁班AI智考暂时无法打开',
-            icon: 'none',
-            duration: 2500
-          });
-        }
-      })
+      const openOnboarding = () => {
+        // 先播先体验导学动效（dest=login：结尾星球转场落到登录页）
+        wx.navigateTo({
+          url: '/packageDeeptutor/pages/onboarding/onboarding?entry_source=' + entrySource + '&dest=login',
+          fail: () => {
+            this._deeptutorNavLockUntil = 0;
+            wx.showToast({
+              title: '鲁班AI智考暂时无法打开',
+              icon: 'none',
+              duration: 2500
+            });
+          }
+        })
+      };
+      if (typeof wx.loadSubpackage === 'function') {
+        wx.loadSubpackage({
+          name: 'packageDeeptutor',
+          success: openOnboarding,
+          fail: () => {
+            this._deeptutorNavLockUntil = 0;
+            wx.showToast({
+              title: '鲁班AI智考暂时无法打开',
+              icon: 'none',
+              duration: 2500
+            });
+          }
+        });
+      } else {
+        openOnboarding();
+      }
     }
 })

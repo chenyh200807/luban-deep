@@ -348,6 +348,14 @@
   gap: 2rpx;
 }
 
+.pkg-original-price {
+  font-size: 19rpx;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.36);
+  text-decoration: line-through;
+  font-variant-numeric: tabular-nums;
+}
+
 .pkg-yen {
   font-size: 22rpx;
   font-weight: 700;
@@ -722,6 +730,13 @@
 }
 .pay-dock-copy { display: flex; flex-direction: column; gap: 4rpx; min-width: 0; }
 .pay-dock-label { font-size: 26rpx; font-weight: 800; color: #fff; }
+.pay-dock-original {
+  font-size: 20rpx;
+  line-height: 1;
+  color: rgba(255,255,255,0.4);
+  text-decoration: line-through;
+  font-variant-numeric: tabular-nums;
+}
 .pay-dock-meta { font-size: 20rpx; color: rgba(255,255,255,0.46); }
 .pay-dock-action {
   min-width: 218rpx;
@@ -811,7 +826,16 @@
 }
 .checkout-summary-main { display: block; font-size: 28rpx; font-weight: 800; color: #fff; }
 .checkout-summary-sub { margin-top: 8rpx; }
-.checkout-price { display: flex; align-items: baseline; flex-shrink: 0; }
+.checkout-price { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; }
+.checkout-current-price { display: flex; align-items: baseline; }
+.checkout-original {
+  margin-bottom: 4rpx;
+  font-size: 20rpx;
+  line-height: 1;
+  color: rgba(255,255,255,0.38);
+  text-decoration: line-through;
+  font-variant-numeric: tabular-nums;
+}
 .checkout-yen { font-size: 24rpx; font-weight: 800; color: #f6c04f; }
 .checkout-amount { font-size: 52rpx; line-height: 1; font-weight: 900; color: #f6c04f; }
 .pay-channel-list { display: flex; flex-direction: column; gap: 14rpx; margin-top: 24rpx; }
@@ -864,6 +888,9 @@
 .billing-page.light .pay-dock-label { color: #0f172a; }
 .billing-page.light .pay-dock { background: rgba(255,255,255,0.92); border-color: #dbe6f5; }
 .billing-page.light .pay-dock-meta,
+.billing-page.light .pay-dock-original,
+.billing-page.light .pkg-original-price,
+.billing-page.light .checkout-original,
 .billing-page.light .checkout-kicker,
 .billing-page.light .checkout-summary-sub,
 .billing-page.light .pay-channel-desc { color: #64748b; }

@@ -151,7 +151,7 @@ async def test_login_with_wechat_code_promotes_phone_backed_member_to_canonical_
     assert snapshot["external_auth_user_id"] == canonical_uid
     assert snapshot["auth_username"] == "user_1499"
     assert wallet_service.calls[0]["user_id"] == canonical_uid
-    assert wallet_service.calls[0]["opening_points"] == 120
+    assert wallet_service.calls[0]["opening_points"] == 0
 
 
 @pytest.mark.asyncio
@@ -443,12 +443,10 @@ def test_production_bootstrap_starts_without_demo_members(
 
     assert data["members"] == []
     assert data["audit_log"] == []
-    assert {package["id"] for package in data["packages"]} == {
-        "advance",
-        "sprint",
-    }
-    assert [package["price"] for package in data["packages"]] == ["99", "199"]
-    assert [package["points"] for package in data["packages"]] == [4400, 9000]
+    assert [package["id"] for package in data["packages"]] == ["vip", "svip", "supreme_svip"]
+    assert [package["price"] for package in data["packages"]] == ["198", "598", "998"]
+    assert [package["turns"] for package in data["packages"]] == [450, 1400, 2500]
+    assert [package["points"] for package in data["packages"]] == [9000, 28000, 50000]
 
 
 def test_load_replaces_stale_persisted_packages_with_canonical_two_packages(
@@ -484,9 +482,10 @@ def test_load_replaces_stale_persisted_packages_with_canonical_two_packages(
     data = service._load()
     wallet = service.get_wallet("student_demo")
 
-    assert [package["id"] for package in data["packages"]] == ["advance", "sprint"]
-    assert [package["price"] for package in wallet["packages"]] == ["99", "199"]
-    assert [package["points"] for package in wallet["packages"]] == [4400, 9000]
+    assert [package["id"] for package in data["packages"]] == ["vip", "svip", "supreme_svip"]
+    assert [package["price"] for package in wallet["packages"]] == ["198", "598", "998"]
+    assert [package["turns"] for package in wallet["packages"]] == [450, 1400, 2500]
+    assert [package["points"] for package in wallet["packages"]] == [9000, 28000, 50000]
 
 
 def test_non_production_bootstrap_defaults_to_empty_members_without_demo_seed_flag(
@@ -516,7 +515,7 @@ def test_production_bootstrap_can_create_first_real_member_without_seed_template
 
     assert profile["user_id"] == "prod_first_user"
     assert profile["tier"] == "trial"
-    assert profile["points"] == 120
+    assert profile["points"] == 0
 
 
 def test_get_profile_persists_first_real_member(tmp_path: Path) -> None:
@@ -3278,7 +3277,7 @@ def test_verify_phone_code_bootstraps_clean_new_member_state(
 
     assert profile["tier"] == "trial"
     assert result["user_id"] == profile["user_id"]
-    assert profile["points"] == 120
+    assert profile["points"] == 0
     assert profile["level"] == 1
     assert today["today_done"] == 0
     assert today["streak_days"] == 0

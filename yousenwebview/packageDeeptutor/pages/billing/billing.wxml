@@ -82,6 +82,7 @@
               <text class="pkg-desc">{{item.desc}}</text>
             </view>
             <view class="pkg-price-block">
+              <text class="pkg-original-price" wx:if="{{item.originalPrice}}">原价 ¥{{item.originalPrice}}</text>
               <view class="pkg-price-row">
                 <text class="pkg-yen">¥</text>
                 <text class="pkg-price">{{item.price}}</text>
@@ -97,6 +98,7 @@
       <view class="pay-dock" wx:if="{{selectedPackage}}">
         <view class="pay-dock-copy">
           <text class="pay-dock-label">当前选择：{{selectedPackage.name}}</text>
+          <text class="pay-dock-original" wx:if="{{selectedPackage.originalPrice}}">原价 ¥{{selectedPackage.originalPrice}}</text>
           <text class="pay-dock-meta">支付成功后由后端回调写入权益，前端不直接开通。</text>
         </view>
         <view class="pay-dock-action" bindtap="openCheckout" aria-role="button" aria-label="开通权益">
@@ -128,8 +130,11 @@
           <text class="checkout-summary-sub">用于 AI 答疑、深度解析、批改和复测闭环。</text>
         </view>
         <view class="checkout-price">
-          <text class="checkout-yen">¥</text>
-          <text class="checkout-amount">{{selectedPackage.price}}</text>
+          <text class="checkout-original" wx:if="{{selectedPackage.originalPrice}}">原价 ¥{{selectedPackage.originalPrice}}</text>
+          <view class="checkout-current-price">
+            <text class="checkout-yen">¥</text>
+            <text class="checkout-amount">{{selectedPackage.price}}</text>
+          </view>
         </view>
       </view>
       <view class="pay-channel-list">

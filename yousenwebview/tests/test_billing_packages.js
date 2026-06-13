@@ -15,7 +15,7 @@ function assert(condition, message) {
   errors.push("FAIL: " + message);
 }
 
-function loadBillingPage(usagePayload) {
+function loadBillingPage(usagePayload, walletPayload) {
   var source = fs.readFileSync(
     path.join(__dirname, "../packageDeeptutor/pages/billing/billing.js"),
     "utf8",
@@ -68,7 +68,7 @@ function loadBillingPage(usagePayload) {
             );
           },
           getWallet: function () {
-            return Promise.resolve({ balance: 0 });
+            return Promise.resolve(walletPayload || { balance: 0 });
           },
           getLedger: function () {
             return Promise.resolve({ entries: [], has_more: false });
@@ -182,6 +182,18 @@ function loadBillingPage(usagePayload) {
       typeof page.submitCheckout === "function",
       "billing page should expose submitCheckout for confirming payment",
     );
+    var billingWxml = fs.readFileSync(
+      path.join(__dirname, "../packageDeeptutor/pages/billing/billing.wxml"),
+      "utf8",
+    );
+    assert(
+      billingWxml.indexOf("item.originalPrice") >= 0,
+      "billing package cards should render original price",
+    );
+    assert(
+      billingWxml.indexOf("selectedPackage.originalPrice") >= 0,
+      "billing checkout summary should render selected package original price",
+    );
     // Before _loadUsage() is called, no checkout or payment should have been triggered
     assert(
       loaded.checkoutCalls.length === 0,
@@ -194,6 +206,58 @@ function loadBillingPage(usagePayload) {
     assert(
       loaded.modalCalls.length === 0,
       "billing should not show modal on initial render before user action",
+    );
+    await page._loadUsage();
+    assert(
+      page.data.selectedPackageId === "vip",
+      "billing fallback should default to VIP after pricing migration",
+    );
+    assert(
+      page.data.packages.length === 3,
+      "billing fallback should expose all three launch packages",
+    );
+    assert(
+      page.data.packages.map(function (pkg) { return pkg.id; }).join(",") === "vip,svip,supreme_svip",
+      "billing fallback package ids should match backend launch packages",
+    );
+    assert(
+      page.data.packages.map(function (pkg) { return pkg.name; }).join(",") === "VIP,SVIP,至尊SVIP",
+      "billing fallback package names should use public labels",
+    );
+    assert(
+      page.data.packages.map(function (pkg) { return pkg.price; }).join(",") === "198,598,998",
+      "billing fallback prices should match launch pricing",
+    );
+    await page.submitCheckout();
+    assert(
+      loaded.checkoutCalls[0] && loaded.checkoutCalls[0].package_id === "vip",
+      "billing checkout should submit the selected launch package id",
+    );
+    var staleWallet = loadBillingPage(null, {
+      balance: 0,
+      packages: [
+        {
+          id: "advance",
+          name: "精学版",
+          price: "99",
+          points: 4400,
+        },
+        {
+          id: "sprint",
+          name: "通关版",
+          price: "199",
+          points: 9000,
+        },
+      ],
+    });
+    await staleWallet.page._loadUsage();
+    assert(
+      staleWallet.page.data.packages.map(function (pkg) { return pkg.id; }).join(",") === "vip,svip,supreme_svip",
+      "billing should ignore stale backend package ids and keep launch packages",
+    );
+    assert(
+      staleWallet.page.data.packages.map(function (pkg) { return pkg.price; }).join(",") === "198,598,998",
+      "billing should not show stale backend prices",
     );
 
     var degraded = loadBillingPage({

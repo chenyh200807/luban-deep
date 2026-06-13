@@ -1156,23 +1156,32 @@ def test_mobile_chat_start_turn_blocks_when_usage_quota_exhausted(monkeypatch: p
     assert "started" not in captured
 
 
-def test_billing_usage_defaults_follow_two_plan_quota(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_billing_usage_defaults_follow_launch_plan_quota(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("DEEPTUTOR_BILLING_USAGE_5H_LIMIT_POINTS", raising=False)
     monkeypatch.delenv("DEEPTUTOR_BILLING_USAGE_WEEKLY_LIMIT_POINTS", raising=False)
 
-    advance = mobile_module._build_billing_usage_payload([], plan_id="advance")
-    sprint = mobile_module._build_billing_usage_payload([], plan_id="sprint")
+    vip = mobile_module._build_billing_usage_payload([], plan_id="vip")
+    svip = mobile_module._build_billing_usage_payload([], plan_id="svip")
+    supreme = mobile_module._build_billing_usage_payload([], plan_id="supreme_svip")
+    legacy_advance = mobile_module._build_billing_usage_payload([], plan_id="advance")
+    legacy_sprint = mobile_module._build_billing_usage_payload([], plan_id="sprint")
 
-    assert advance["display"]["plan_id"] == "advance"
-    assert sprint["display"]["plan_id"] == "sprint"
-    assert [row["label"] for row in advance["quota"]["rows"]] == ["5 小时保护额度", "本周额度"]
+    assert vip["display"]["plan_id"] == "vip"
+    assert svip["display"]["plan_id"] == "svip"
+    assert supreme["display"]["plan_id"] == "supreme_svip"
+    assert legacy_advance["display"]["plan_id"] == "vip"
+    assert legacy_sprint["display"]["plan_id"] == "svip"
+    assert [row["label"] for row in vip["quota"]["rows"]] == ["5 小时保护额度", "本周额度"]
 
-    advance_rows = {row["key"]: row for row in advance["quota"]["rows"]}
-    sprint_rows = {row["key"]: row for row in sprint["quota"]["rows"]}
-    assert advance_rows["five_hour"]["remaining_percent"] == 100
-    assert sprint_rows["five_hour"]["remaining_percent"] == 100
-    assert mobile_module._billing_usage_limit_for_plan("advance", "weekly") == 4400
-    assert mobile_module._billing_usage_limit_for_plan("sprint", "weekly") == 9000
+    vip_rows = {row["key"]: row for row in vip["quota"]["rows"]}
+    svip_rows = {row["key"]: row for row in svip["quota"]["rows"]}
+    assert vip_rows["five_hour"]["remaining_percent"] == 100
+    assert svip_rows["five_hour"]["remaining_percent"] == 100
+    assert mobile_module._billing_usage_limit_for_plan("vip", "weekly") == 9000
+    assert mobile_module._billing_usage_limit_for_plan("svip", "weekly") == 28000
+    assert mobile_module._billing_usage_limit_for_plan("supreme_svip", "weekly") == 50000
+    assert mobile_module._billing_usage_limit_for_plan("advance", "weekly") == 9000
+    assert mobile_module._billing_usage_limit_for_plan("sprint", "weekly") == 28000
 
 
 def test_mobile_chat_start_turn_skips_quota_gate_when_billing_storage_unavailable(
@@ -1190,6 +1199,17 @@ def test_mobile_chat_start_turn_skips_quota_gate_when_billing_storage_unavailabl
 
     class FailingWalletService:
         is_configured = True
+
+        @staticmethod
+        def get_wallet(user_id: str):
+            return mobile_module.WalletSnapshot(
+                user_id=user_id,
+                balance_micros=100_000_000,
+                frozen_micros=0,
+                plan_id="vip",
+                version=1,
+                created_at=mobile_module.datetime.now(mobile_module._BILLING_USAGE_TZ).isoformat(),
+            )
 
         @staticmethod
         def list_wallet_ledger(user_id: str, *, limit: int = 20, offset: int = 0):
@@ -1259,7 +1279,7 @@ def test_billing_usage_falls_back_to_empty_usage_when_ledger_storage_unavailable
     body = response.json()
     assert body["status"] == "ok"
     assert body["display"]["primary_label"] == "剩余 100%"
-    assert body["display"]["plan_id"] == "advance"
+    assert body["display"]["plan_id"] == "vip"
     assert [row["key"] for row in body["quota"]["rows"]] == ["five_hour", "weekly"]
 
 
@@ -1413,7 +1433,7 @@ def test_billing_checkout_creates_wechat_order_shell_without_gateway(
     with TestClient(_build_app()) as client:
         response = client.post(
             "/api/v1/billing/checkout",
-            json={"package_id": "sprint", "channel": "wechat"},
+            json={"package_id": "vip", "channel": "wechat"},
             headers={"Authorization": "Bearer test-token"},
         )
 
@@ -1422,8 +1442,9 @@ def test_billing_checkout_creates_wechat_order_shell_without_gateway(
     assert body["status"] == "payment_config_missing"
     assert body["channel"] == "wechat"
     assert body["wallet_user_id"] == "wallet_demo"
-    assert body["package"]["id"] == "sprint"
-    assert body["amount_fen"] == 19900
+    assert body["package"]["id"] == "vip"
+    assert body["package"]["points"] == 9000
+    assert body["amount_fen"] == 19800
     assert body["payment"]["type"] == "wechat_mp"
 
 
@@ -5300,11 +5321,67 @@ def test_mobile_chat_start_turn_hard_balance_gate_allows_when_enforced_and_suffi
     assert len(started) == 1
 
 
+def test_mobile_chat_start_turn_hard_balance_gate_rejects_missing_wallet_when_enforced(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    started: list[object] = []
+    _install_start_turn_stubs(monkeypatch, started)
+
+    class MissingWalletService:
+        is_configured = True
+
+        @staticmethod
+        def get_wallet(_user_id: str):
+            return None
+
+    monkeypatch.setattr(mobile_module, "wallet_service", MissingWalletService())
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={"query": "考我一道题", "mode": "AUTO", "language": "zh"},
+        )
+
+    assert response.status_code == 429
+    assert response.json()["detail"]["code"] == "billing_quota_exceeded"
+    assert started == []
+
+
+def test_mobile_chat_start_turn_hard_balance_gate_rejects_unconfigured_wallet_service_when_enforced(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
+    started: list[object] = []
+    _install_start_turn_stubs(monkeypatch, started)
+
+    class UnconfiguredWalletService:
+        is_configured = False
+
+        @staticmethod
+        def get_wallet(_user_id: str):
+            raise AssertionError("unconfigured wallet service should fail before wallet reads")
+
+    monkeypatch.setattr(mobile_module, "wallet_service", UnconfiguredWalletService())
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/chat/start-turn",
+            json={"query": "考我一道题", "mode": "AUTO", "language": "zh"},
+        )
+
+    assert response.status_code == 503
+    detail = response.json()["detail"]
+    assert detail["code"] == "billing_wallet_unavailable"
+    assert detail["limited_by"] == "wallet_service"
+    assert started == []
+
+
 def test_mobile_chat_start_turn_hard_balance_gate_is_off_during_internal_beta(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # Enforcement OFF (default): even an empty wallet must not block start-turn.
-    monkeypatch.delenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", raising=False)
+    # Explicit internal-beta override: even an empty wallet must not block start-turn.
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "false")
     started: list[object] = []
     _install_start_turn_stubs(monkeypatch, started)
     monkeypatch.setattr(

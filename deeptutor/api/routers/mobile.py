@@ -117,22 +117,27 @@ _LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK = "DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJ
 _MISTAKE_BOOK_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_ENABLED"
 _MISTAKE_BOOK_WRITE_ENABLED = "DEEPTUTOR_MISTAKE_BOOK_WRITE_ENABLED"
 _BILLING_PLAN_QUOTA_POINTS = {
-    "advance": {"five_hour": 1600, "weekly": 4400},
-    "sprint": {"five_hour": 3200, "weekly": 9000},
+    "vip": {"five_hour": 3200, "weekly": 9000},
+    "svip": {"five_hour": 10000, "weekly": 28000},
+    "supreme_svip": {"five_hour": 18000, "weekly": 50000},
 }
 _BILLING_PLAN_ALIASES = {
-    "": "advance",
-    "standard": "advance",
-    "starter": "advance",
-    "trial": "advance",
-    "precision": "advance",
-    "jingxue": "advance",
-    "advance": "advance",
-    "pro": "sprint",
-    "pass": "sprint",
-    "tongguan": "sprint",
-    "sprint": "sprint",
-    "ultimate": "sprint",
+    "": "vip",
+    "trial": "vip",
+    "vip": "vip",
+    "standard": "vip",
+    "starter": "vip",
+    "precision": "vip",
+    "jingxue": "vip",
+    "advance": "vip",
+    "svip": "svip",
+    "pro": "svip",
+    "pass": "svip",
+    "tongguan": "svip",
+    "sprint": "svip",
+    "supreme_svip": "supreme_svip",
+    "ultimate": "supreme_svip",
+    "至尊svip": "supreme_svip",
 }
 _BILLING_PAYMENT_CHANNELS = {"wechat", "alipay"}
 _BILLING_PAYMENT_GATEWAY_URL = "DEEPTUTOR_PAYMENT_GATEWAY_URL"
@@ -427,13 +432,13 @@ def _internal_beta_usage_limit_turns() -> int:
 
 def _normalize_billing_plan_id(plan_id: str | None) -> str:
     raw = str(plan_id or "").strip().lower()
-    return _BILLING_PLAN_ALIASES.get(raw, "advance")
+    return _BILLING_PLAN_ALIASES.get(raw, "vip")
 
 
 def _billing_usage_limit_for_plan(plan_id: str | None, window: str) -> int:
     normalized = _normalize_billing_plan_id(plan_id)
-    defaults = _BILLING_PLAN_QUOTA_POINTS.get(normalized) or _BILLING_PLAN_QUOTA_POINTS["advance"]
-    default = int(defaults.get(window) or _BILLING_PLAN_QUOTA_POINTS["advance"][window])
+    defaults = _BILLING_PLAN_QUOTA_POINTS.get(normalized) or _BILLING_PLAN_QUOTA_POINTS["vip"]
+    default = int(defaults.get(window) or _BILLING_PLAN_QUOTA_POINTS["vip"][window])
     env_name = _BILLING_USAGE_FIVE_HOUR_LIMIT_POINTS if window == "five_hour" else _BILLING_USAGE_WEEKLY_LIMIT_POINTS
     return _billing_usage_limit_points(env_name, default)
 
@@ -707,6 +712,8 @@ def _build_local_checkout_payload(
             "label": str(package.get("label") or ""),
             "price": price,
             "points": int(package.get("points") or 0),
+            "turns": int(package.get("turns") or 0),
+            "original_price": str(package.get("original_price") or ""),
         },
         "amount_fen": amount_fen,
         "currency": "CNY",
@@ -746,14 +753,15 @@ def _assert_wallet_balance_available(wallet_user_id: str) -> None:
     billing_quota_exceeded) when the available balance cannot cover this
     turn's minimum charge. Per contracts/turn.md:69 this runs before
     turn_runtime.start_turn, so no pending turn is created and no answer is
-    delivered. Internal beta keeps enforcement OFF, so this is a no-op then.
+    delivered. Explicit internal-beta OFF override keeps this a no-op.
     """
     if not is_billing_enforcement_enabled():
         return
     snapshot = wallet_service.get_wallet(wallet_user_id)
     if snapshot is None:
-        return
-    available_micros = int(snapshot.balance_micros) - int(snapshot.frozen_micros)
+        available_micros = 0
+    else:
+        available_micros = int(snapshot.balance_micros) - int(snapshot.frozen_micros)
     minimum_charge_micros = int(_MINI_PROGRAM_CAPTURE_COST) * 1_000_000
     if available_micros >= minimum_charge_micros:
         return
@@ -812,7 +820,14 @@ def _assert_billing_quota_available(
         return
     normalized_user_id = str(wallet_user_id or "").strip()
     if not normalized_user_id or not getattr(wallet_service, "is_configured", False):
-        return
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "billing_wallet_unavailable",
+                "message": "Billing wallet service is unavailable.",
+                "limited_by": "wallet_service",
+            },
+        )
     _assert_wallet_balance_available(normalized_user_id)
     try:
         usage_payload = _build_billing_usage_payload(

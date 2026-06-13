@@ -14,7 +14,7 @@ Page({
     usagePrimaryPercent: 100,
     usageRows: [],
     packages: [],
-    selectedPackageId: "sprint",
+    selectedPackageId: "vip",
     selectedPackage: null,
     checkoutVisible: false,
     checkoutLoading: false,
@@ -164,39 +164,71 @@ function _normalizeUsage(raw, walletRaw, selectedPackageId) {
 function _normalizePackages(rawPackages) {
   var source = Array.isArray(rawPackages) && rawPackages.length
     ? rawPackages
-    : [
-        {
-          id: "advance",
-          name: "精学版",
-          price: "99",
-          points: 4400,
-          desc: "适合持续复习，覆盖日常答疑、错题讲解和阶段训练。",
-          badge: "",
-        },
-        {
-          id: "sprint",
-          name: "通关版",
-          price: "199",
-          points: 9000,
-          desc: "适合冲刺阶段，高频训练、深度解析和复测闭环更从容。",
-          badge: "推荐",
-        },
-      ];
-  return source.map(function (pkg) {
-    var id = String(pkg.id || pkg.package_id || "").trim();
-    var price = String(pkg.price || pkg.price_yuan || "").trim();
-    var points = Number(pkg.points || pkg.balance || 0) || 0;
-    return {
-      id: id,
-      name: String(pkg.name || pkg.title || id || "学习包").trim(),
-      price: price || "0",
-      points: points,
-      desc: String(pkg.desc || pkg.description || "").trim(),
-      badge: String(pkg.badge || "").trim(),
-    };
-  }).filter(function (pkg) {
-    return !!pkg.id;
+    : _launchPackages();
+  var normalized = source.map(_normalizePackageItem).filter(function (pkg) {
+    return !!pkg.id && _isLaunchPackageId(pkg.id);
   });
+  if (normalized.length) return normalized;
+  return _launchPackages().map(_normalizePackageItem);
+}
+
+function _launchPackages() {
+  return [
+    {
+      id: "vip",
+      name: "VIP",
+      price: "198",
+      original_price: "298",
+      points: 9000,
+      turns: 450,
+      desc: "适合稳定备考，覆盖日常答疑、错题讲解和阶段训练。",
+      badge: "",
+    },
+    {
+      id: "svip",
+      name: "SVIP",
+      price: "598",
+      original_price: "798",
+      points: 28000,
+      turns: 1400,
+      desc: "适合高频训练、深度解析和复测闭环。",
+      badge: "推荐",
+    },
+    {
+      id: "supreme_svip",
+      name: "至尊SVIP",
+      price: "998",
+      original_price: "1298",
+      points: 50000,
+      turns: 2500,
+      desc: "适合长周期强化学习和集中冲刺。",
+      badge: "",
+    },
+  ];
+}
+
+function _isLaunchPackageId(packageId) {
+  return {
+    vip: true,
+    svip: true,
+    supreme_svip: true,
+  }[String(packageId || "").trim()] === true;
+}
+
+function _normalizePackageItem(pkg) {
+  var id = String(pkg.id || pkg.package_id || "").trim();
+  var price = String(pkg.price || pkg.price_yuan || "").trim();
+  var points = Number(pkg.points || pkg.balance || 0) || 0;
+  return {
+    id: id,
+    name: String(pkg.name || pkg.label || pkg.title || id || "学习包").trim(),
+    price: price || "0",
+    originalPrice: String(pkg.original_price || pkg.originalPrice || "").trim(),
+    points: points,
+    turns: Number(pkg.turns || 0) || 0,
+    desc: String(pkg.desc || pkg.description || "").trim(),
+    badge: String(pkg.badge || "").trim(),
+  };
 }
 
 function _selectPackage(packages, packageId) {

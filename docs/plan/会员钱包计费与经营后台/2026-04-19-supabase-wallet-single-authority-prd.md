@@ -87,7 +87,7 @@
 
 ## 3.1 当前已确认事实（2026-04-19）
 
-> **【2026-05-30 plan-vs-code 核验更新】本节是 2026-04-19 的实查快照，已被代码追平。** `wallet_ledger`（原第 2 条）已建表并接 `apply_wallet_mutation` 原子 RPC；`/billing/points`、`/billing/wallet`（原第 6 条）已切到 `wallet_service` 读 Supabase `wallets`。代码已实现，写链 enforcement flag `DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED` 默认 OFF 待 release gate；身份归一化层（WP2，原第 7 条相关）落地情况待确认。下列原始事实保留作历史快照。详见 [2026-05-30-plan-vs-code-reconciliation.md](../观测发布与生产上线/2026-05-30-plan-vs-code-reconciliation.md)。
+> **【2026-06-13 上线口径更新】本节是 2026-04-19 的实查快照，已被代码追平。** `wallet_ledger`（原第 2 条）已建表并接 `apply_wallet_mutation` 原子 RPC；`/billing/points`、`/billing/wallet`（原第 6 条）已切到 `wallet_service` 读 Supabase `wallets`。代码已实现，写链 enforcement flag `DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED` 现在代码默认 ON，只有显式 `0/false/no/off` 才关闭；身份归一化层（WP2，原第 7 条相关）落地情况待确认。下列原始事实保留作历史快照。详见 [2026-05-30-plan-vs-code-reconciliation.md](../观测发布与生产上线/2026-05-30-plan-vs-code-reconciliation.md)。
 
 以下事实已被当前仓库与 Supabase 实查确认（2026-04-19 快照）：
 
