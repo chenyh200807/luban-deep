@@ -56,7 +56,7 @@
 > 算术,**不改判分公式**;(2) 它授权的 **list_rule/penalty_rule 是独立算术决策**(阈值感知 vs 均权 coverage,
 > 超出决策 1A 范围),**不随本候选自动生效**,需 owner 单独拍板;(3) 仍 candidate/review-only,flip 仍受
 > Stage 0/3/4 gate;(4) total_items 降级为 advisory(结构性 `structural_cap_list_items` 为权威)+ 51 题人审队列
-> (顿号启发式上界,荷载符号串会过标)+ 39 数据质量隔离题仍排除。产物:`phase5_factory/full_factory_candidate.json`。
+> (顿号启发式上界,荷载符号串会过标→**已多-AI 对抗团队闭合**:51→33 拆/15 留/3 散文,过标 35%,Codex 逮 5 个便宜模型共识误判 Opus 全采纳;33 拆分已应用,点 1290→1384,must-not-mint 仍 179/179)+ 39 数据质量隔离题仍排除。产物:`phase5_factory/full_factory_candidate.json`。
 
 **Stage 2 — 适配到可判分 runtime 形(单一权威正确)**
 - 建确定性 `PGO 合约 → runtime-points` 适配器(决策 2A:sub_type→policy、required_terms=anchor_verified、score 留 null)。建 verdict-coverage 判分函数(决策 1A:`awarded = official_total × coverage`,`detect_over_credit` 当自洽 gate)。**绝不 `float(score or 0)`**;旧路径 score-sum 硬 gate 不动。
