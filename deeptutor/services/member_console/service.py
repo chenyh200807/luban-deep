@@ -88,10 +88,12 @@ from deeptutor.services.member_console.external_auth import (
     validate_external_auth_password,
     verify_external_auth_user,
 )
+from deeptutor.services.member_console import rbac
 from deeptutor.services.member_console.admin_store import (
-    add_persisted_admin,
-    load_persisted_admins,
-    remove_persisted_admin,
+    load_admins,
+    load_audit,
+    remove_admin,
+    set_admin,
 )
 from deeptutor.services.member_console.directory import get_member_directory_read_model
 from deeptutor.services.path_service import get_path_service
@@ -2661,40 +2663,153 @@ class MemberConsoleService:
         """env 引导名单（bootstrap/保底，UI 不可移除）。"""
         return self._admin_user_ids()
 
-    def is_admin_user(self, user_id: str | None) -> bool:
+    def get_admin_role(self, user_id: str | None) -> str | None:
+        """返回 BI 角色：env 引导→super_admin；文件→其角色；非管理员→None。"""
         resolved = str(user_id or "").strip()
         if not resolved:
-            return False
+            return None
         if resolved in self._env_admin_user_ids():
-            return True
-        return resolved in load_persisted_admins(self._bi_admins_path())
+            return rbac.ROLE_SUPER_ADMIN
+        record = load_admins(self._bi_admins_path()).get(resolved)
+        if not record:
+            return None
+        return rbac.normalize_role(record.get("role"))
+
+    def is_admin_user(self, user_id: str | None) -> bool:
+        """兼容旧布尔门：super_admin / admin 视为完整管理员。"""
+        return rbac.is_full_admin(self.get_admin_role(user_id))
+
+    def can_access(self, user_id: str | None, tab: str, action: str) -> bool:
+        return rbac.can(self.get_admin_role(user_id), tab, action)
+
+    def can_manage_permissions(self, user_id: str | None) -> bool:
+        return rbac.can_manage_permissions(self.get_admin_role(user_id))
+
+    def _safe_member_display_name(self, user_id: str) -> str:
+        try:
+            profile = self.get_profile(user_id)
+            return str(profile.get("display_name") or profile.get("username") or "")
+        except Exception:
+            return ""
 
     def list_admin_user_ids(self) -> list[dict[str, Any]]:
-        """合并 env 引导 + 运行时增量；env 来源标记 removable=False（防锁死）。"""
+        """合并 env 引导(super_admin,不可改/删) + 运行时增量(带角色)。"""
         env_ids = self._env_admin_user_ids()
-        file_ids = load_persisted_admins(self._bi_admins_path())
+        file_admins = load_admins(self._bi_admins_path())
         out: list[dict[str, Any]] = []
         for uid in sorted(env_ids):
-            out.append({"user_id": uid, "source": "env", "removable": False})
-        for uid in sorted(file_ids - env_ids):
-            out.append({"user_id": uid, "source": "runtime", "removable": True})
+            out.append(
+                {
+                    "user_id": uid,
+                    "role": rbac.ROLE_SUPER_ADMIN,
+                    "role_label": rbac.ROLE_LABELS[rbac.ROLE_SUPER_ADMIN],
+                    "display_name": self._safe_member_display_name(uid),
+                    "source": "env",
+                    "removable": False,
+                    "editable": False,
+                    "accessible_tabs": rbac.accessible_tabs(rbac.ROLE_SUPER_ADMIN),
+                }
+            )
+        for uid in sorted(set(file_admins) - env_ids):
+            record = file_admins[uid]
+            role = rbac.normalize_role(record.get("role"))
+            out.append(
+                {
+                    "user_id": uid,
+                    "role": role,
+                    "role_label": rbac.ROLE_LABELS[role],
+                    "display_name": record.get("display_name")
+                    or self._safe_member_display_name(uid),
+                    "granted_by": record.get("granted_by") or "",
+                    "granted_at": record.get("granted_at") or "",
+                    "source": "runtime",
+                    "removable": True,
+                    "editable": True,
+                    "accessible_tabs": rbac.accessible_tabs(role),
+                }
+            )
         return out
 
-    def add_admin_user(self, user_id: str) -> list[dict[str, Any]]:
+    def set_admin_role(
+        self, *, actor: str, user_id: str, role: str, display_name: str = "", at: str = ""
+    ) -> list[dict[str, Any]]:
+        """新增管理员或改其角色（仅 super_admin；调用方先校验权限）。"""
+        normalized = str(user_id or "").strip()
+        if not normalized:
+            raise ValueError("user_id is required")
+        if not rbac.is_valid_role(role):
+            raise ValueError(f"未知角色: {role}")
+        if normalized in self._env_admin_user_ids():
+            raise ValueError("系统引导管理员恒为超级管理员，不可改角色")
+        set_admin(
+            self._bi_admins_path(),
+            normalized,
+            role=role,
+            display_name=display_name,
+            actor=actor,
+            granted_at=at,
+        )
+        return self.list_admin_user_ids()
+
+    def add_admin_user(
+        self, user_id: str, *, actor: str = "", role: str = rbac.ROLE_ADMIN, at: str = ""
+    ) -> list[dict[str, Any]]:
         normalized = str(user_id or "").strip()
         if not normalized:
             raise ValueError("user_id is required")
         if normalized in self._env_admin_user_ids():
             return self.list_admin_user_ids()
-        add_persisted_admin(self._bi_admins_path(), normalized)
-        return self.list_admin_user_ids()
+        return self.set_admin_role(actor=actor, user_id=normalized, role=role, at=at)
 
-    def remove_admin_user(self, user_id: str) -> list[dict[str, Any]]:
+    def remove_admin_user(
+        self, user_id: str, *, actor: str = "", at: str = ""
+    ) -> list[dict[str, Any]]:
         normalized = str(user_id or "").strip()
         if normalized in self._env_admin_user_ids():
-            raise ValueError("env 引导管理员不可通过界面移除（防止锁死超管）")
-        remove_persisted_admin(self._bi_admins_path(), normalized)
+            raise ValueError("系统引导管理员不可通过界面移除（防止锁死超管）")
+        remove_admin(self._bi_admins_path(), normalized, actor=actor, removed_at=at)
         return self.list_admin_user_ids()
+
+    def list_admin_audit(self, limit: int = 200) -> list[dict[str, Any]]:
+        audit = load_audit(self._bi_admins_path())
+        return list(reversed(audit))[: max(1, min(int(limit), 1000))]
+
+    def search_members_for_admin(self, *, q: str, limit: int = 10) -> list[dict[str, Any]]:
+        """按手机号/姓名/user_id 模糊搜真实会员，供添加管理员选人（手机号脱敏）。"""
+        query = str(q or "").strip().lower()
+        directory = self._member_directory
+        try:
+            members = (
+                list(directory.list_members(limit=5000))
+                if bool(getattr(directory, "is_configured", False))
+                else []
+            )
+        except Exception:
+            logger.warning("search_members_for_admin: directory load failed", exc_info=True)
+            members = []
+        results: list[dict[str, Any]] = []
+        for member in members:
+            if not isinstance(member, dict):
+                continue
+            uid = str(member.get("user_id") or "").strip()
+            if not uid:
+                continue
+            name = str(member.get("display_name") or member.get("identifier") or "")
+            phone = str(member.get("phone") or "")
+            if query and query not in f"{uid} {name} {phone}".lower():
+                continue
+            masked = (phone[:3] + "****" + phone[-4:]) if len(phone) >= 7 else phone
+            results.append(
+                {
+                    "user_id": uid,
+                    "display_name": name,
+                    "phone_masked": masked,
+                    "current_role": self.get_admin_role(uid),
+                }
+            )
+            if len(results) >= limit:
+                break
+        return results
 
     def _get_wechat_mp_credentials(self) -> tuple[str, str]:
         app_id = str(

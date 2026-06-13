@@ -49,23 +49,6 @@ mobile_http_read_models:
       - Usage windows are display read models only; they are not capability routing,
         request config, learner-state, or turn authority.
 
-mobile_http_billing_controls:
-  start_turn_gate:
-    path: /api/v1/chat/start-turn
-    authority: WalletService wallet snapshot + DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED
-    semantics:
-      - Billing enforcement defaults on. Only explicit false / 0 / off / no disables
-        the hard balance gate for internal beta or rollback.
-      - When billing enforcement is explicitly disabled, the start-turn gate short-circuits
-        before wallet identity, wallet service availability, wallet snapshot, or usage
-        ledger reads.
-      - When enforcement is enabled, missing wallet identity is treated as zero balance
-        and returns billing_quota_exceeded before turn creation.
-      - When enforcement is enabled and wallet service is unconfigured or unavailable,
-        the adapter returns billing_wallet_unavailable before turn creation.
-      - This commerce gate must not become capability routing, request config,
-        learner-state, or session authority.
-
 mobile_http_auth_controls:
   password_reset:
     path: /api/v1/auth/reset-password
@@ -420,6 +403,7 @@ domains:
       - tests/services/member_console/test_service.py
       - tests/services/member_console/test_admin_store.py
       - tests/services/member_console/test_admin_management.py
+      - tests/services/member_console/test_rbac.py
       - tests/web/test_bi_member_admin_surface.py
       - tests/supabase/test_learner_state_rls_migration.py
       - tests/services/learner_state/test_d_class_occurrence_timeline.py

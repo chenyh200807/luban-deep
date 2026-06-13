@@ -442,33 +442,124 @@ async def bi_luban_feedback_response_update(
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
 
 
+def require_bi_super_admin(auth: AuthContext | None = Depends(require_bi_access)) -> AuthContext:
+    """权限管理端点专用门：仅 super_admin 可增删管理员、改角色。"""
+    if auth is None or not get_member_console_service().can_manage_permissions(auth.user_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="需要超级管理员权限才能管理 BI 权限",
+        )
+    return auth
+
+
+def _now_iso() -> str:
+    from datetime import datetime, timezone
+
+    return datetime.now(timezone.utc).isoformat()
+
+
+@router.get("/rbac/roles")
+async def bi_rbac_roles(_auth: AuthContext = Depends(require_bi_admin)):
+    """角色定义 + 权限矩阵 + tab/操作维度，供权限管理界面渲染。"""
+    from deeptutor.services.member_console import rbac
+
+    return rbac.roles_payload()
+
+
+@router.get("/rbac/me")
+async def bi_rbac_me(auth: AuthContext | None = Depends(require_bi_access)):
+    """当前登录者的角色与可访问 tab（前端导航门控用）。"""
+    from deeptutor.services.member_console import rbac
+
+    uid = auth.user_id if auth else ""
+    role = get_member_console_service().get_admin_role(uid)
+    return {
+        "user_id": uid,
+        "role": role,
+        "role_label": rbac.ROLE_LABELS.get(role or "", ""),
+        "can_manage_permissions": rbac.can_manage_permissions(role),
+        "is_full_admin": rbac.is_full_admin(role),
+        "accessible_tabs": rbac.accessible_tabs(role),
+        "matrix": rbac.role_matrix(role) if role else {},
+    }
+
+
 @router.get("/admins")
-async def bi_list_admins(auth: AuthContext = Depends(require_bi_admin)):
-    """列出 BI 管理员（env 引导 + 运行时增量）。"""
+async def bi_list_admins(_auth: AuthContext = Depends(require_bi_admin)):
+    """列出 BI 管理员（含角色、可访问 tab、来源）。"""
     return {"admins": get_member_console_service().list_admin_user_ids()}
+
+
+@router.get("/admins/audit")
+async def bi_admins_audit(
+    limit: int = Query(200, ge=1, le=1000),
+    _auth: AuthContext = Depends(require_bi_super_admin),
+):
+    """权限变更审计（谁在何时把谁设成什么角色）。"""
+    return {"audit": get_member_console_service().list_admin_audit(limit=limit)}
+
+
+@router.get("/admins/search-members")
+async def bi_admins_search_members(
+    q: str = Query("", min_length=0, max_length=64),
+    limit: int = Query(10, ge=1, le=50),
+    _auth: AuthContext = Depends(require_bi_super_admin),
+):
+    """按手机号/姓名/user_id 搜会员，供添加管理员选人（带回 user_id）。"""
+    return {"members": get_member_console_service().search_members_for_admin(q=q, limit=limit)}
 
 
 @router.post("/admins")
 async def bi_add_admin(
     payload: dict[str, Any] | None = Body(default=None),
-    auth: AuthContext = Depends(require_bi_admin),
+    auth: AuthContext = Depends(require_bi_super_admin),
 ):
-    """添加运行时管理员，立即生效，无需重启。接受 user_id（可在会员运营页搜索复制）。"""
+    """添加管理员并指定角色，立即生效。body: {user_id, role, display_name?}。"""
+    from deeptutor.services.member_console import rbac
+
     body = payload or {}
     raw = str(body.get("user_id") or "").strip()
+    role = str(body.get("role") or rbac.ROLE_ADMIN).strip()
+    display_name = str(body.get("display_name") or "").strip()
     if not raw:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="user_id 必填")
     try:
-        return {"admins": get_member_console_service().add_admin_user(raw), "added": raw}
+        admins = get_member_console_service().set_admin_role(
+            actor=auth.user_id, user_id=raw, role=role, display_name=display_name, at=_now_iso()
+        )
+        return {"admins": admins, "added": raw, "role": role}
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+@router.patch("/admins/{user_id}")
+async def bi_set_admin_role(
+    user_id: str,
+    payload: dict[str, Any] | None = Body(default=None),
+    auth: AuthContext = Depends(require_bi_super_admin),
+):
+    """修改管理员角色。body: {role}。"""
+    body = payload or {}
+    role = str(body.get("role") or "").strip()
+    if not role:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="role 必填")
+    try:
+        admins = get_member_console_service().set_admin_role(
+            actor=auth.user_id, user_id=user_id, role=role, at=_now_iso()
+        )
+        return {"admins": admins, "user_id": user_id, "role": role}
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
 
 @router.delete("/admins/{user_id}")
-async def bi_remove_admin(user_id: str, auth: AuthContext = Depends(require_bi_admin)):
-    """移除运行时管理员。env 引导管理员不可移除（防止锁死超管）。"""
+async def bi_remove_admin(user_id: str, auth: AuthContext = Depends(require_bi_super_admin)):
+    """移除管理员。系统引导管理员不可移除（防止锁死超管）。"""
     try:
-        return {"admins": get_member_console_service().remove_admin_user(user_id)}
+        admins = get_member_console_service().remove_admin_user(
+            user_id, actor=auth.user_id, at=_now_iso()
+        )
+        return {"admins": admins}
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
