@@ -337,6 +337,11 @@ jobs:
           pytest -q --import-mode=importlib \
             tests/api \
             tests/cli \
+            tests/scripts/test_schema_registry.py \
+            tests/scripts/test_db_registry.py \
+            tests/scripts/test_env_registry.py \
+            tests/scripts/test_provider_registry.py \
+            tests/scripts/test_process_registry.py \
             tests/services/test_import_smoke.py \
             tests/services/test_app_facade.py \
             tests/services/test_model_catalog.py \
