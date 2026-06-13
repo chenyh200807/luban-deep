@@ -260,6 +260,7 @@ _FULLSET_NAMESPACE_RE = re.compile(
           | learning_report             # P2: learner-state runtime contract (registry beyond grading)
           | rag_retrieval_plan          # P2: RAG runtime retrieval-plan contract (registry beyond grading)
           | personalization_context_pack # P2: learner-state PCP runtime contract (registry beyond grading)
+          | learning_training_intent     # P2: learner-state prescription authority (registry beyond grading)
           | causal_oa
           | compiled_knowledge_registry
           | case_grading_artifact

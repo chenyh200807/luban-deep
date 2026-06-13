@@ -310,3 +310,22 @@ def test_prioritize_training_intents_caps_active_and_queues_rest() -> None:
     assert [item["status"] for item in ranked].count("active") == 3
     assert [item["status"] for item in ranked].count("queued") == 2
     assert ranked[0]["priority"] >= ranked[-1]["priority"]
+
+
+def test_training_intent_schema_id_is_registered_as_t2() -> None:
+    """The sole prescription authority's canonical SCHEMA_ID must be registered T2 in the
+    schema registry (no unregistered/competing training_intent schema can appear). This is
+    the register-before-use promotion of a previously integer-versioned, closure-invisible
+    cross-domain runtime contract (schema-governance P2, registry beyond grading)."""
+    from pathlib import Path
+
+    import yaml
+
+    from deeptutor.services.learner_state.training_intent import SCHEMA_ID
+
+    assert SCHEMA_ID == "learning_training_intent.v2"
+    registry = yaml.safe_load(
+        (Path(__file__).resolve().parents[3] / "contracts" / "schema_registry.yaml").read_text("utf-8")
+    )
+    t2_names = {e["name"] for e in registry["tier2_canonical_contracts"]}
+    assert SCHEMA_ID in t2_names, f"{SCHEMA_ID} must be a registered T2 runtime-canonical contract"
