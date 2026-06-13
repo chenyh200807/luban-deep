@@ -106,13 +106,17 @@ def retrieve(query: str, *, top_k: int = 5,
     ``embedder`` lets tests inject a deterministic vector (no live DashScope call). The DB
     connection is opened read-only and a SELECT-through-function is the ONLY statement run.
     """
-    url = db_url or os.environ.get("KBV5_DB_URL")
-    if not url:
+    # Resolve via the registry-backed connection factory (fact → KBV5_DB_URL).
+    # Behavior preserved: same db_url-override-then-KBV5_DB_URL precedence, same
+    # hard read-only guard. DbResolutionError (fact/env absent) maps to the same
+    # KbV5Unavailable("KBV5_DB_URL absent") signal the call sites already handle.
+    from deeptutor.services.db.connection_factory import (
+        DbResolutionError,
+        connect_for_fact,
+    )
+
+    if not (db_url or os.environ.get("KBV5_DB_URL")):
         raise KbV5Unavailable("KBV5_DB_URL absent")
-    try:
-        import psycopg2
-    except Exception as exc:  # noqa: BLE001
-        raise KbV5Unavailable(f"psycopg2 unavailable: {exc}") from exc
 
     emb = (embedder or _dashscope_embed)(query)
     if len(emb) != EMBED_DIM:
@@ -124,8 +128,16 @@ def retrieve(query: str, *, top_k: int = 5,
     t0 = time.monotonic()
     conn = None
     try:
-        conn = psycopg2.connect(url, connect_timeout=20)
-        conn.set_session(readonly=True, autocommit=True)  # hard read-only guard
+        try:
+            # readonly=True applies set_session(readonly=True, autocommit=True),
+            # the same hard read-only guard as before; connect_timeout=20 preserved.
+            conn = connect_for_fact(
+                "kb_v5_chunk_retrieval", db_url=db_url, readonly=True, timeout_s=20
+            )
+        except DbResolutionError as exc:
+            raise KbV5Unavailable("KBV5_DB_URL absent") from exc
+        except ImportError as exc:  # neither psycopg nor psycopg2 installed
+            raise KbV5Unavailable(f"psycopg2 unavailable: {exc}") from exc
         cur = conn.cursor()
         cur.execute(
             "select chunk_id, doc_id, doc_type, authority, loc, content, "
