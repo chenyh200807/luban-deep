@@ -1,0 +1,195 @@
+version: 1
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Luban grading typed-object Schema Registry — Policy-as-code single authority.
+#
+# This file is the ONE machine-readable catalog of which grading/scoring typed
+# objects may be used, what their canonical field names are, and which authority
+# values each field may carry. It turns the AGENTS.md §5.7 documentary hard gate
+# ("禁止第三套 schema" / 单一权威) into a real, deterministic CI gate enforced by
+# scripts/check_schema_registry.py.
+#
+# Governing spec:
+#   docs/plan/鲁班knowql/UNIFIED_GRADING_OBJECT_SCHEMA.md  (§1 inventory, §2 canonical)
+#   docs/plan/鲁班knowql/KNOWQL_BUILDOUT_BLUEPRINT.md      (§2 single-authority spine, §4 D2)
+# Code authority (do not duplicate the field list — derive in tests if drift risked):
+#   deeptutor/services/construction_grading/unified_grading_object.py
+#   deeptutor/services/construction_grading/grading_object_adapters.py
+#
+# THIS REGISTRY IS NOT A TRANSPORT, NOT A RELEASE/CANONICAL-WRITE AUTHORITY.
+# It is a deterministic policy filter. It grants no official-score authority.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Scope rule (read before adding — 别官僚) ─────────────────────────────────
+#
+# Only schemas that are BASE / CROSS-CONSUMER / PERSISTED MUST be registered to
+# be usable — i.e. the ones where a single field-name drift would create a
+# SECOND AUTHORITY or crash a cross-agent reader. Concretely a schema MUST be
+# registered when it is any of:
+#   - read by more than one consumer (grader, KnowQL query layer, learner brain), OR
+#   - persisted to an artifact / DB / answer-key release that other runs read, OR
+#   - a grading/scoring/answer-key typed object whose field names other code
+#     binds to by name (max_score / statement / authority_source / span_hash …).
+#
+# Ephemeral, single-function-internal dicts are NOT required to register — a
+# local intermediate dict that never escapes one function is out of scope. The
+# guard only inspects code that emits a `schema = "…"` / `schema_id` /
+# `schema_version` literal OR constructs a grading object with named fields.
+scope_rule:
+  must_register_if_any:
+    - cross_consumer            # read by grader AND/OR query layer AND/OR learner brain
+    - persisted                 # written to artifact / DB / answer-key release others read
+    - named_field_binding       # other code binds to its field names (max_score/statement/…)
+  not_required:
+    - ephemeral_internal_dict   # never escapes one function; no cross-reader contract
+
+# ── Canonical authority vocabulary (single source for the guard) ─────────────
+# Mirrors deeptutor/services/construction_grading/unified_grading_object.py.
+authority_vocabulary:
+  authority_source:             # AUTHORITY_SOURCES (4-value enum, object- and point-level)
+    - official_answer
+    - textbook_cited
+    - owner
+    - pending_calibration
+  span_backed_authorities:      # authorities that MUST carry a span_hash projection proof
+    - official_answer
+    - textbook_cited
+    - owner
+  score_authority:              # per-point score authority (must-not-mint gate)
+    - pending_calibration_not_official
+    - official_answer
+  hit_status:
+    - hit
+    - partial
+    - miss
+    - contradiction
+    - not_evaluated
+
+# ── Canonical drift map (deprecated field name -> canonical field name) ──────
+# When the guard sees a drift name used for a registered grading concept, it
+# fails and points at the canonical name. Source: UNIFIED §1.1 drift table.
+drift_field_map:
+  weight: max_score             # #1 case_artifact per-point split name
+  canonical_answer: statement   # #1 case_artifact statement name
+  label: statement              # #3 scoring_point_assets statement name
+  answer_key: statement         # #4 m31 objective statement name
+  atomic_official_slice: statement  # #8 per_question statement name
+
+schemas:
+  # ── CANONICAL (the one usable grading typed-object schema) ─────────────────
+  - name: luban_grading_object.v1
+    version: v1
+    status: canonical
+    owner: construction_grading
+    module: deeptutor/services/construction_grading/unified_grading_object.py
+    # The approved field names. Using a drift name (see drift_field_map) for any
+    # of these concepts on a grading object is a hard fail.
+    canonical_fields:
+      object_level:
+        - schema_id
+        - object_id
+        - question_type
+        - official_total_score
+        - official_total_score_authority
+        - authority_source
+        - scoring_points
+        - official_score_allowed       # structural const False
+        - canonical_write_allowed      # structural const False
+      point_level:
+        - point_id
+        - statement
+        - authority_source
+        - span_hash
+        - max_score
+        - score_authority
+        - hit_status
+        - required_terms
+        - term_provenance
+    # Per-field authority_source domain (which authority values are valid where).
+    authority_model:
+      authority_source: [official_answer, textbook_cited, owner, pending_calibration]
+      official_total_score_authority: [official_answer]
+      score_authority: [pending_calibration_not_official, official_answer]
+    # Drift field names that must NEVER appear on a v1 object/point.
+    forbidden_drift_fields:
+      - weight
+      - canonical_answer
+      - answer_key
+      - label
+      - atomic_official_slice
+    # A grading point with a span-backed authority MUST carry span_hash; the
+    # guard flags a span-backed point that drops it.
+    span_hash_required_for: [official_answer, textbook_cited, owner]
+    required_tests:
+      - tests/services/construction_grading/test_unified_grading_object.py
+      - tests/scripts/test_schema_registry.py
+
+  # ── DEPRECATED (8 pre-existing shapes — each points at its adapter) ────────
+  # All map INTO luban_grading_object.v1 via grading_object_adapters.py. New code
+  # must emit the canonical schema (directly or via the adapter), not these.
+  - name: case_grading_artifact.v1
+    status: deprecated
+    owner: construction_grading
+    module: scripts/run_luban_student_answer_grading_eval.py
+    adapter: deeptutor/services/construction_grading/grading_object_adapters.py::map_case_grading_artifact
+    canonical_target: luban_grading_object.v1
+    drift_fields: [weight, canonical_answer]   # weight->max_score, canonical_answer->statement
+
+  - name: luban.rich_leaf_artifact.v0
+    status: deprecated
+    owner: construction_grading
+    module: deeptutor/services/construction_grading/rich_leaf_artifacts.py
+    adapter: deeptutor/services/construction_grading/grading_object_adapters.py::map_rich_leaf_unit
+    canonical_target: luban_grading_object.v1
+    drift_fields: []                           # statement already canonical; policy_type->sub_type
+
+  - name: luban_scoring_point_assets.v0.1
+    status: deprecated
+    owner: source_compiler
+    module: deeptutor/services/source_compiler/scoring_point_asset_compiler.py
+    adapter: deeptutor/services/construction_grading/grading_object_adapters.py::map_scoring_point_assets
+    canonical_target: luban_grading_object.v1
+    drift_fields: [label]                      # label->statement
+
+  - name: luban_m31_governed_objective_pointer.v1
+    status: deprecated
+    owner: construction_grading
+    module: deeptutor/services/construction_grading/runtime_supply/v3_objective_records_released_m31
+    adapter: deeptutor/services/construction_grading/grading_object_adapters.py::map_objective_answer_key_record
+    canonical_target: luban_grading_object.v1
+    drift_fields: [answer_key]                 # answer_key->statement
+
+  - name: luban_arbitration_gold_panel.v1
+    status: deprecated
+    owner: construction_grading
+    module: scripts/run_luban_arbitration_gold_panel.py
+    adapter: deeptutor/services/construction_grading/grading_object_adapters.py::map_gold_panel_row
+    canonical_target: luban_grading_object.v1
+    drift_fields: []                           # consensus_verdict->hit_status (state, not a field name)
+
+  - name: m35_ai_governed_gold.v1
+    status: deprecated
+    owner: construction_grading
+    module: deeptutor/services/construction_grading/m35_ai_governed_gold.py
+    # Protocol-level quality gate, not a per-point object. Aligned by const-flag
+    # semantics (official_score_allowed=False, is_release_truth=False) rather than
+    # a point adapter, so it has NO adapter entry — see UNIFIED §3 #6 / §4 R2.
+    adapter: const_flag_aligned
+    canonical_target: luban_grading_object.v1
+    drift_fields: []
+
+  - name: compact_scoring_artifact.v1
+    status: deprecated
+    owner: construction_grading
+    module: scripts/run_luban_student_answer_grading_eval.py
+    adapter: deeptutor/services/construction_grading/grading_object_adapters.py::map_compact_scoring_artifact
+    canonical_target: luban_grading_object.v1
+    drift_fields: []                           # expected_points[]->statement (list->per-point)
+
+  - name: luban_per_question_grading_object.v1
+    status: deprecated
+    owner: construction_grading
+    module: deeptutor/services/construction_grading/per_question_grading_object.py
+    adapter: deeptutor/services/construction_grading/grading_object_adapters.py::map_per_question_grading_object
+    canonical_target: luban_grading_object.v1
+    drift_fields: [atomic_official_slice]      # atomic_official_slice->statement
