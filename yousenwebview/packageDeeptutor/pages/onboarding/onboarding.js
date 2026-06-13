@@ -45,7 +45,10 @@ var ACTS = [
       riseChars("每天刷题，", null, 0, 0, 50),
       riseChars("下一步到底练什么？", 0, 3, 280, 50),
     ],
-    desc: ["鲁班记住你的薄弱考点和丢分原因，", "把错题变成专属训练，越用越懂你。"],
+    desc: [
+      "鲁班记住你的薄弱考点和丢分原因，",
+      "把错题变成专属训练，越用越懂你。",
+    ],
     tags: ["错因画像", "专属训练", "越用越懂你"],
   },
 ];
@@ -81,7 +84,9 @@ Page({
   onLoad: function (options) {
     try {
       var info = helpers.getWindowInfo();
-      var safeBottom = info.safeArea ? info.screenHeight - info.safeArea.bottom : 0;
+      var safeBottom = info.safeArea
+        ? info.screenHeight - info.safeArea.bottom
+        : 0;
       this.setData({
         statusBarHeight: info.statusBarHeight || 44,
         safeBottom: safeBottom,
@@ -89,7 +94,8 @@ Page({
     } catch (_) {}
     this.setData({
       entrySource: String(
-        (options && (options.entry_source || options.entrySource || options.source)) ||
+        (options &&
+          (options.entry_source || options.entrySource || options.source)) ||
           "guest_preview",
       ),
       destLogin: !!(options && options.dest === "login"),
@@ -181,10 +187,15 @@ Page({
     this._exitTimer = setTimeout(function () {
       that._exitTimer = null;
       if (that.data.destLogin) {
-        runtime.redirectToLogin(route.chat({ entry_source: that.data.entrySource }));
+        runtime.redirectToLogin(
+          route.chat({ entry_source: that.data.entrySource }),
+        );
       } else {
         wx.reLaunch({
-          url: route.chat({ entry_source: that.data.entrySource, preview: "1" }),
+          url: route.chat({
+            entry_source: that.data.entrySource,
+            preview: "1",
+          }),
         });
       }
       that._exiting = false;
@@ -205,10 +216,17 @@ Page({
     var dy = t.clientY - startY;
     if (dy <= -60) this.goNext();
     else if (dy >= 60) this.goPrev();
+    // 轻点（dy≈0）不在此处理：tap 事件由 page-shell 的 onTapAccelerate 承接，
+    // 功能控件用 catchtap 阻止 tap 冒泡，从而点控件不会误触发快进。
   },
 
   onPageTouchCancel: function () {
     this._touchY = null;
+  },
+
+  // 轻点页面空白/内容区：快进当前段（保持自动播放）
+  onTapAccelerate: function () {
+    if (this._timeline) this._timeline.skipSceneRest();
   },
 
   startExperience: function () {

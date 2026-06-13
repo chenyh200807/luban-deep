@@ -16,7 +16,7 @@
   <view class="grain"></view>
   <view class="night-veil {{actId !== 'wave' ? 'lift' : ''}}"></view>
 
-  <view class="page-shell" style="padding-top: {{statusBarHeight}}px; padding-bottom: {{safeBottom + 22}}px">
+  <view class="page-shell" bindtap="onTapAccelerate" style="padding-top: {{statusBarHeight}}px; padding-bottom: {{safeBottom + 22}}px">
     <view class="topbar">
       <view class="brand-lockup">
         <image class="brand-mark" src="../../images/logo-mark-white.png" mode="aspectFit" />
@@ -33,7 +33,7 @@
         wx:for="{{pills}}"
         wx:key="*this"
         data-index="{{index}}"
-        bindtap="jumpTo"
+        catchtap="jumpTo"
       ></view>
     </view>
 
@@ -130,7 +130,7 @@
     <view class="bottom-actions" wx:if="{{actId === 'p3'}}">
       <view
         class="primary-btn fx-pop {{fx.ctaActions ? 'on' : ''}}"
-        bindtap="startExperience"
+        catchtap="startExperience"
         aria-role="button"
         aria-label="{{destLogin ? '立即开始提分' : '开始体验'}}"
       >
@@ -141,7 +141,7 @@
   <view
     class="skip-float"
     wx:if="{{actId !== 'p3' && !ctaExit}}"
-    bindtap="skipToCta"
+    catchtap="skipToCta"
     style="bottom: {{safeBottom + 44}}px"
     aria-role="button"
     aria-label="跳过导学"
