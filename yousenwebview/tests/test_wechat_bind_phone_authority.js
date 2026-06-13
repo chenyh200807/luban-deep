@@ -144,39 +144,46 @@ function createSandbox(sourcePath, apiMock, extras) {
       normalHandler: "handleWechatRegister",
       explicitHandler: "handleWechatPhoneNumber",
     },
-    {
-      path: path.join(repoRoot, "wx_miniprogram/pages/login/login.js"),
-      normalHandler: "handleWechatLogin",
-      explicitHandler: "handleWechatPhoneNumber",
-    },
-    {
-      path: path.join(repoRoot, "wx_miniprogram/pages/register/register.js"),
-      normalHandler: "handleWechatRegister",
-      explicitHandler: "handleWechatPhoneNumber",
-    },
   ];
 
-  await run("plain wechat login/register should not implicitly call bindPhone", async function () {
+  await run("primary quick-login button must request phone authorization", async function () {
+    var loginWxml = fs.readFileSync(
+      path.join(repoRoot, "yousenwebview/packageDeeptutor/pages/login/login.wxml"),
+      "utf8",
+    );
+    assert(
+      loginWxml.indexOf('open-type="getPhoneNumber"') >= 0,
+      "primary quick-login button should use getPhoneNumber",
+    );
+    assert(
+      loginWxml.indexOf('bindgetphonenumber="handleWechatPhoneNumber"') >= 0,
+      "primary quick-login button should bind handleWechatPhoneNumber",
+    );
+    assert(
+      loginWxml.indexOf('bindtap="handleWechatLogin"') === -1,
+      "primary quick-login button must not call plain wx.login handler",
+    );
+  });
+
+  await run("plain wechat login/register handlers should not issue tokens", async function () {
     for (var i = 0; i < cases.length; i++) {
-      var bindCalls = [];
+      var loginCalls = [];
       var apiMock = {
-        wxLogin: function () {
-          return Promise.resolve({
-            token: "token_1",
-            user_id: "user_1",
-            user: { user_id: "user_1" },
-          });
+        wxLogin: function (value) {
+          loginCalls.push(value);
+          return Promise.resolve({ token: "token_1" });
         },
-        bindPhone: function (value) {
-          bindCalls.push(value);
-          return Promise.resolve({
-            token: "token_2",
-            user_id: "user_1",
-            user: { user_id: "user_1" },
-          });
+        wxLoginWithPhone: function () {
+          return Promise.resolve({ token: "token_2" });
+        },
+        bindPhone: function () {
+          return Promise.resolve({ token: "token_3" });
         },
         getUserInfo: function () {
           return Promise.resolve({});
+        },
+        describeRequestError: function (_err, fallback) {
+          return fallback;
         },
       };
       var page = createSandbox(cases[i].path, apiMock, {});
@@ -185,17 +192,22 @@ function createSandbox(sourcePath, apiMock, extras) {
       await flushPromises();
       await flushPromises();
       assert(
-        bindCalls.length === 0,
-        cases[i].path + " should keep plain WeChat login separate from bindPhone",
+        loginCalls.length === 0,
+        cases[i].path + " should not issue a token from plain wx.login",
       );
     }
   });
 
-  await run("explicit getPhoneNumber path should remain the only bindPhone writer", async function () {
+  await run("explicit getPhoneNumber path should login with phone_code atomically", async function () {
     for (var i = 0; i < cases.length; i++) {
       var bindCalls = [];
+      var loginCalls = [];
       var apiMock = {
         wxLogin: function () {
+          throw new Error("plain wxLogin must not be called from phone authorization");
+        },
+        wxLoginWithPhone: function (loginCode, phoneCode) {
+          loginCalls.push({ loginCode: loginCode, phoneCode: phoneCode });
           return Promise.resolve({
             token: "token_1",
             user_id: "user_1",
@@ -212,6 +224,12 @@ function createSandbox(sourcePath, apiMock, extras) {
         },
         getUserInfo: function () {
           return Promise.resolve({});
+        },
+        describeRequestError: function (_err, fallback) {
+          return fallback;
+        },
+        shouldRetryWechatLogin: function () {
+          return false;
         },
       };
       var page = createSandbox(cases[i].path, apiMock, {});
@@ -221,8 +239,14 @@ function createSandbox(sourcePath, apiMock, extras) {
       await flushPromises();
       await flushPromises();
       assert(
-        bindCalls.length === 1 && bindCalls[0] === "phone_code_123",
-        cases[i].path + " should only bind phone from explicit getPhoneNumber authorization",
+        loginCalls.length === 1 &&
+          loginCalls[0].loginCode === "wechat_code" &&
+          loginCalls[0].phoneCode === "phone_code_123",
+        cases[i].path + " should exchange wx.login code and phone code together",
+      );
+      assert(
+        bindCalls.length === 0,
+        cases[i].path + " should not mint a token before phone binding",
       );
     }
   });

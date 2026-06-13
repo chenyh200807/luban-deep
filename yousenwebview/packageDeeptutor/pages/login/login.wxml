@@ -58,7 +58,8 @@
       <view class="btn-wechat-stack">
         <button
           class="btn-wechat-primary {{wechatLoading?'off':''}}"
-          bindtap="handleWechatLogin"
+          open-type="getPhoneNumber"
+          bindgetphonenumber="handleWechatPhoneNumber"
           disabled="{{wechatLoading || loading}}"
         >
           <text class="btn-wechat-primary-txt">{{wechatLoading ? '登录中...' : '快速登录'}}</text>

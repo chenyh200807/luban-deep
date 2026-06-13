@@ -3525,6 +3525,44 @@ async def test_bind_phone_for_wechat_accepts_phone_code_exchange(
 
 
 @pytest.mark.asyncio
+async def test_login_with_wechat_phone_exchanges_phone_before_returning_token(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+
+    async def _fake_exchange(_code: str) -> dict[str, str]:
+        return {
+            "openid": "openid_123456789012",
+            "unionid": "unionid_abcdef",
+            "session_key": "session_key_value",
+        }
+
+    async def _fake_exchange_phone_code(_phone_code: str) -> str:
+        return "13911112222"
+
+    monkeypatch.setattr(service, "_exchange_wechat_code", _fake_exchange)
+    monkeypatch.setattr(service, "_exchange_wechat_phone_code", _fake_exchange_phone_code)
+
+    result = await service.login_with_wechat_phone("wx-code", "phone-code-123")
+
+    assert result["bound"] is True
+    assert result["phone"] == "13911112222"
+    assert result["openid"] == "openid_123456789012"
+    assert result["token"].startswith("dtm.")
+
+    claims = service.verify_access_token(result["token"])
+    assert claims is not None
+    assert claims["sub"] == result["user_id"]
+
+    data = service._load()
+    member = service._find_member(data, result["user_id"])
+    assert member["wx_openid"] == "openid_123456789012"
+    assert member["phone"] == "13911112222"
+
+
+@pytest.mark.asyncio
 async def test_bind_phone_for_wechat_accepts_normalized_phone_for_legacy_clients(
     tmp_path: Path,
 ) -> None:

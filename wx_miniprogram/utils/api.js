@@ -347,6 +347,17 @@ function wxLogin(code) {
   });
 }
 
+/** 手机号授权快速登录 */
+function wxLoginWithPhone(code, phoneCode) {
+  return request({
+    url: "/api/v1/wechat/mp/login",
+    method: "POST",
+    data: { code: code, phone_code: phoneCode },
+    useGateway: true,
+    noAuth: true,
+  });
+}
+
 /** 绑定手机号 */
 function bindPhone(phoneCode) {
   return request({
@@ -779,6 +790,7 @@ module.exports = {
   request: request,
   unwrapResponse: unwrapResponse,
   wxLogin: wxLogin,
+  wxLoginWithPhone: wxLoginWithPhone,
   bindPhone: bindPhone,
   getUserInfo: getUserInfo,
   getTodayProgress: getTodayProgress,

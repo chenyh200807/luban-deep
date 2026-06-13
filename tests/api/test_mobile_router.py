@@ -2812,16 +2812,32 @@ def test_get_conversation_messages_rejects_existing_non_mobile_session(
 
 
 def test_wechat_login_route_maps_service_errors(monkeypatch: pytest.MonkeyPatch) -> None:
-    async def _failing_login(_code: str):
+    async def _failing_login(_code: str, _phone_code: str):
         raise RuntimeError("WeChat code2Session failed")
 
-    monkeypatch.setattr(mobile_module.member_service, "login_with_wechat_code", _failing_login)
+    monkeypatch.setattr(mobile_module.member_service, "login_with_wechat_phone", _failing_login)
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/wechat/mp/login",
+            json={"code": "abc", "phone_code": "phone-code"},
+        )
+
+    assert response.status_code == 502
+    assert "code2Session" in response.json()["detail"]
+
+
+def test_wechat_login_route_requires_phone_code(monkeypatch: pytest.MonkeyPatch) -> None:
+    async def _unexpected_login(_code: str, _phone_code: str) -> dict[str, str]:
+        raise AssertionError("login_with_wechat_phone must not be called without phone_code")
+
+    monkeypatch.setattr(mobile_module.member_service, "login_with_wechat_phone", _unexpected_login)
 
     with TestClient(_build_app()) as client:
         response = client.post("/api/v1/wechat/mp/login", json={"code": "abc"})
 
-    assert response.status_code == 502
-    assert "code2Session" in response.json()["detail"]
+    assert response.status_code == 400
+    assert response.json()["detail"] == "phone_code is required"
 
 
 def test_wechat_bind_phone_uses_bound_user(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -4760,14 +4776,20 @@ def test_wechat_login_rate_limits_by_route_and_client_ip(monkeypatch: pytest.Mon
         },
     )
 
-    async def _fake_login(_code: str) -> dict[str, str]:
+    async def _fake_login(_code: str, _phone_code: str) -> dict[str, str]:
         return {"token": "ok"}
 
-    monkeypatch.setattr(mobile_module.member_service, "login_with_wechat_code", _fake_login)
+    monkeypatch.setattr(mobile_module.member_service, "login_with_wechat_phone", _fake_login)
 
     with TestClient(_build_app()) as client:
-        first = client.post("/api/v1/wechat/mp/login", json={"code": "abc"})
-        second = client.post("/api/v1/wechat/mp/login", json={"code": "abc"})
+        first = client.post(
+            "/api/v1/wechat/mp/login",
+            json={"code": "abc", "phone_code": "phone-code"},
+        )
+        second = client.post(
+            "/api/v1/wechat/mp/login",
+            json={"code": "abc", "phone_code": "phone-code"},
+        )
 
     assert first.status_code == 200
     assert second.status_code == 429

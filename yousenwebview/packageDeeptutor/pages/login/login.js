@@ -124,7 +124,7 @@ Page({
     }
     return api.describeRequestError(err, fallbackMsg, options || {});
   },
-  _requestWechatSession: function (attempt) {
+  _requestWechatPhoneSession: function (phoneCode, attempt) {
     var self = this;
     var currentAttempt = Number(attempt) || 0;
     return new Promise(function (resolve, reject) {
@@ -135,7 +135,7 @@ Page({
             return;
           }
           api
-            .wxLogin(loginRes.code)
+            .wxLoginWithPhone(loginRes.code, phoneCode)
             .then(resolve)
             .catch(function (err) {
               if (
@@ -143,7 +143,10 @@ Page({
                 typeof api.shouldRetryWechatLogin === "function" &&
                 api.shouldRetryWechatLogin(err)
               ) {
-                self._requestWechatSession(currentAttempt + 1).then(resolve).catch(reject);
+                self
+                  ._requestWechatPhoneSession(phoneCode, currentAttempt + 1)
+                  .then(resolve)
+                  .catch(reject);
                 return;
               }
               reject(err);
@@ -402,47 +405,8 @@ Page({
     return { token: token };
   },
   handleWechatLogin: function () {
-    var self = this;
-    if (self.data.wechatLoading || self.data.loading) return;
-    self.setData({ wechatLoading: true, errorMsg: "" });
-    self
-      ._requestWechatSession(0)
-      .then(function (resp) {
-        self._completeWechatAuth(resp);
-      })
-      .then(function () {
-        self._trackLoginSuccess("wechat");
-        self._reLaunchAfterAuth();
-      })
-      .catch(function (err) {
-        var msg = self._describeAuthError(err, "微信登录失败，请重试", {
-          context: "wechat_login",
-          customMap: function (info) {
-            if (
-              info.rawMessage.indexOf("credentials") >= 0 ||
-              info.detailText.indexOf("credentials") >= 0
-            ) {
-              return "后端未配置微信小程序密钥";
-            }
-            if (
-              info.rawMessage.indexOf("WX_LOGIN_") >= 0 ||
-              info.detailText.indexOf("WX_LOGIN_") >= 0
-            ) {
-              return "无法获取微信登录凭证";
-            }
-            return "";
-          },
-        });
-        self.setData({ errorMsg: msg });
-      })
-      .then(
-        function () {
-          self.setData({ wechatLoading: false });
-        },
-        function () {
-          self.setData({ wechatLoading: false });
-        },
-      );
+    if (this.data.wechatLoading || this.data.loading) return;
+    this.setData({ errorMsg: "请先完成手机号验证，也可使用手机号验证码登录" });
   },
   handleWechatPhoneNumber: function (e) {
     var self = this;
@@ -452,42 +416,35 @@ Page({
       e.detail &&
       (e.detail.code || e.detail.phoneCode || "");
     if (!phoneCode) {
-      self.setData({ errorMsg: "未获取到微信手机号授权" });
+      self.setData({ errorMsg: "未完成手机号验证，可使用手机号验证码登录" });
       return;
     }
     self.setData({ wechatLoading: true, errorMsg: "" });
     self
-      ._requestWechatSession(0)
+      ._requestWechatPhoneSession(phoneCode, 0)
       .then(function (resp) {
         self._completeWechatAuth(resp);
-        return api.bindPhone(phoneCode);
-      })
-      .then(function (resp) {
-        var inner = resp.data || resp;
-        if (inner && inner.token) {
-          auth.setToken(inner.token, inner.expires_at, inner);
-        }
         self._trackLoginSuccess("wechat_phone");
         self._reLaunchAfterAuth();
       })
       .catch(function (err) {
-        var msg = self._describeAuthError(err, "微信手机号登录失败，请重试", {
+        var msg = self._describeAuthError(err, "快速登录失败，请重试", {
           context: "wechat_login",
           customMap: function (info) {
             if (
               info.rawMessage.indexOf("credentials") >= 0 ||
               info.detailText.indexOf("credentials") >= 0
             ) {
-              return "后端未配置微信小程序密钥";
+              return "后端未配置小程序密钥";
             }
             if (info.detailText.toLowerCase().indexOf("getuserphonenumber") >= 0) {
-              return "微信手机号授权失败";
+              return "手机号验证失败";
             }
             if (
               info.rawMessage.indexOf("WX_LOGIN_") >= 0 ||
               info.detailText.indexOf("WX_LOGIN_") >= 0
             ) {
-              return "无法获取微信登录凭证";
+              return "无法获取登录凭证";
             }
             return "";
           },

@@ -6232,7 +6232,7 @@ class MemberConsoleService:
         )
         return self._build_auth_response(user_id=auth_identity["user_id"], token=token)
 
-    async def login_with_wechat_code(self, code: str) -> dict[str, Any]:
+    async def _resolve_wechat_login_identity(self, code: str) -> dict[str, str]:
         normalized = str(code or "").strip()
         if not normalized:
             raise ValueError("code is required")
@@ -6275,6 +6275,17 @@ class MemberConsoleService:
             return str(target["user_id"])
 
         target_user_id = self._mutate(_apply)
+        return {
+            "user_id": target_user_id,
+            "openid": openid,
+            "unionid": unionid,
+        }
+
+    async def login_with_wechat_code(self, code: str) -> dict[str, Any]:
+        identity = await self._resolve_wechat_login_identity(code)
+        target_user_id = identity["user_id"]
+        openid = identity["openid"]
+        unionid = identity["unionid"]
         auth_identity = self._auth_identity_for_member(target_user_id)
         token = self._issue_access_token(
             user_id=auth_identity["user_id"],
@@ -6288,6 +6299,10 @@ class MemberConsoleService:
             openid=auth_identity["openid"] or openid,
             unionid=auth_identity["unionid"] or unionid,
         )
+
+    async def login_with_wechat_phone(self, code: str, phone_code: str) -> dict[str, Any]:
+        identity = await self._resolve_wechat_login_identity(code)
+        return await self.bind_phone_for_wechat(identity["user_id"], phone_code)
 
     async def bind_phone_for_wechat(self, user_id: str, phone_code: str) -> dict[str, Any]:
         raw_code = str(phone_code or "").strip()

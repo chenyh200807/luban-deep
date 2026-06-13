@@ -2037,6 +2037,7 @@ class RegisterRequest(BaseModel):
 
 class WechatLoginRequest(BaseModel):
     code: str = ""
+    phone_code: str = ""
 
 
 class WechatBindPhoneRequest(BaseModel):
@@ -2283,7 +2284,9 @@ async def auth_profile_settings(
 )
 async def wechat_login(body: WechatLoginRequest) -> dict[str, Any]:
     try:
-        return await member_service.login_with_wechat_code(body.code)
+        if not str(body.phone_code or "").strip():
+            raise ValueError("phone_code is required")
+        return await member_service.login_with_wechat_phone(body.code, body.phone_code)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except RuntimeError as exc:

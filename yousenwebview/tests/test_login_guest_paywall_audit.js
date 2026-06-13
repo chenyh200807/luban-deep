@@ -59,6 +59,12 @@ assert(
   "primary login CTA should use concise audit-safe copy",
 );
 assert(
+  loginWxml.indexOf('open-type="getPhoneNumber"') >= 0 &&
+    loginWxml.indexOf('bindgetphonenumber="handleWechatPhoneNumber"') >= 0 &&
+    loginWxml.indexOf('bindtap="handleWechatLogin"') === -1,
+  "primary quick login must use mini-program phone authorization, not a plain tap",
+);
+assert(
   loginWxml.indexOf("handleGuestPreview") >= 0 && loginWxml.indexOf("先体验导学") >= 0,
   "login page should provide a clear guest preview path",
 );

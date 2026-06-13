@@ -133,7 +133,7 @@ function describeRequestError(err, fallbackMsg, opts) {
   }
   if (info.isTimeout) {
     if (options.context === "wechat_login") {
-      return "微信登录服务响应超时，请稍后重试";
+      return "快速登录服务响应超时，请稍后重试";
     }
     return "请求超时，请稍后重试";
   }
@@ -143,9 +143,9 @@ function describeRequestError(err, fallbackMsg, opts) {
   if (info.status >= 500) {
     if (options.context === "wechat_login") {
       if (info.detailText.toLowerCase().indexOf("getuserphonenumber") >= 0) {
-        return "微信手机号授权服务暂时不可用，请稍后重试";
+        return "手机号验证服务暂时不可用，请稍后重试";
       }
-      return "微信登录服务暂时不稳定，请稍后重试";
+      return "快速登录服务暂时不稳定，请稍后重试";
     }
     return "服务暂时不可用，请稍后重试";
   }
@@ -479,6 +479,17 @@ function wxLogin(code) {
     url: "/api/v1/wechat/mp/login",
     method: "POST",
     data: { code: code },
+    useGateway: true,
+    noAuth: true,
+  });
+}
+
+/** 手机号授权快速登录 */
+function wxLoginWithPhone(code, phoneCode) {
+  return request({
+    url: "/api/v1/wechat/mp/login",
+    method: "POST",
+    data: { code: code, phone_code: phoneCode },
     useGateway: true,
     noAuth: true,
   });
@@ -885,6 +896,7 @@ module.exports = {
   describeRequestError: describeRequestError,
   shouldRetryWechatLogin: shouldRetryWechatLogin,
   wxLogin: wxLogin,
+  wxLoginWithPhone: wxLoginWithPhone,
   bindPhone: bindPhone,
   getUserInfo: getUserInfo,
   getTodayProgress: getTodayProgress,
