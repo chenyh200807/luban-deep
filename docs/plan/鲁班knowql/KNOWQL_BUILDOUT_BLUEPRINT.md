@@ -81,3 +81,18 @@ D1 query executor 不得变第二套判分 policy engine;D2 不得新增第三�
 - **诚实边界**:小样本(10 riskful / 3 trap)、单模型单次、fixtures 由编译方手写标注(ground truth=作者语义判断)。方向跨每个指标每条 fixture 一致,但非大样本证明;external validity 仍需真实学生答案+独立人工 gold(work order)。
 
 **结论**:confound-hardened demo 支持"编译原子合约摁死误给 + 大幅改善校准",且赢过公平结构化 baseline → **解锁 production `_grade_one_case_v1` 接线**(原 gate "待 --live 裁决"已满足),接线仍属生产判分改动需 owner 授权。工件:`artifacts/luban_grading_artifacts/per_question_grading_ab_20260613/per_question_grading_ab_live_llm.json`。
+
+## 9. 加入 RAG 体系对比(五臂,2026-06-13)——直接回答"编译 vs 现有 RAG"
+
+加两个用真实 kb_v5 检索的臂(production 判分 lane 用的 search_chunks_v2 通道):`arm_RAG_only_openworld`(无官方答案,只给 stem+检索知识=不在题库的开放世界)、`arm_RAG_plus_reference`(官方参考答案+检索知识,holistic=复刻生产 reference+RAG grounding)。五臂同 fixtures。
+
+**calibration MAE(最稳指标,越低越好)**:**B 0.035 < A0 0.062 < A1 0.085 < RAG+ref 0.10 < RAG_only 0.18**。编译原子合约最接近真覆盖;RAG_only(无官方答案)最差,差 B 约 5 倍。
+
+**关键诚实发现**:
+- **RAG grounding 反而伤判分**:RAG+ref(0.20 over-credit / 0.10 MAE)比纯 reference 的 A0(0.10/0.062)更差——检索来的教材知识当 distractor 抬分。**复刻 codex 信任崩塌反例**:skip_subq5(学生跳过整个小问5,真 0.75)RAG+ref 给了 **1.0**,而 B 给 0.75(正确)。
+- **B 是唯一三个 over_credit_trap 都精确命中真覆盖的臂**(0.667/0.75/0.75)。
+- **RAG 的家在"答题/知识召回",不在"判分权威"**:有官方答案(题库案例题)时,编译原子 checklist 是对的工具;把 RAG 知识灌进 judge 只会加噪声抬分。与早期"RAG 赢作答 0.825>0.663、但采分点的家在判分链路"一致。
+
+**诚实方差边界(必须说)**:over-credit **率**在 N=10/单次跑下噪声大(B 在两次跑里 0.0↔0.1、A0 0.2↔0.1 来回跳);**calibration MAE 才是跨两次跑稳定favor B 的信号**(0.013 / 0.035)。要给定论排序需重复多次 trial + 更大 fixture 集 + 独立人工 gold(Codex 的 external-validity work order)。
+
+**给 production 的可执行结论**:题库案例题(有官方答案)→ 用编译原子 checklist 判分(B),**不要**把 RAG 知识当判分依据;RAG 留给开放世界答题/召回。`_grade_one_case_v1` 接线方向因此更明确:接编译 checklist,grounding 不参与对错。

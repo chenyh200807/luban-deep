@@ -73,7 +73,13 @@ DEFAULT_OUT_DIR = REPO / "artifacts/luban_grading_artifacts/per_question_grading
 ARM_A0 = "arm_A0_freestyle"
 ARM_A1 = "arm_A1_self_decompose"
 ARM_B = "arm_B_atomic_contract"
-ARMS = (ARM_A0, ARM_A1, ARM_B)
+# RAG-grounded arms (the existing production grading lane uses kb_v5 retrieval):
+#  * RAG_ONLY — open-world, stem + retrieved KB, NO official answer (question not in bank);
+#  * RAG_REF  — production-faithful, official reference + retrieved KB grounding, holistic.
+ARM_RAG_ONLY = "arm_RAG_only_openworld"
+ARM_RAG_REF = "arm_RAG_plus_reference"
+ARMS = (ARM_A0, ARM_A1, ARM_B, ARM_RAG_ONLY, ARM_RAG_REF)
+_RAG_ARMS = frozenset({ARM_RAG_ONLY, ARM_RAG_REF})
 MARGIN_SWEEP = (0.05, 0.1, 0.15, 0.2)
 
 
@@ -175,6 +181,43 @@ def _arm_b_messages(*, contract: dict[str, Any], student_answer: str) -> list[di
     return [{"role": "user", "content": json.dumps(payload, ensure_ascii=False)}]
 
 
+def _rag_chunk_texts(retrieval: dict[str, Any], *, limit: int = 6) -> list[str]:
+    out: list[str] = []
+    for c in (retrieval.get("chunks") or [])[:limit]:
+        if isinstance(c, dict):
+            txt = str(c.get("content") or "").strip()
+            if txt:
+                out.append(txt[:600])
+    return out
+
+
+def _arm_rag_only_messages(*, stem: str, rag_chunks: list[str], student_answer: str) -> list[dict[str, str]]:
+    """Open-world RAG grading: no official answer, only stem + kb_v5-retrieved knowledge —
+    how the RAG lane grades a question that is NOT in the bank."""
+    payload = {
+        "task": "你是一级建造师案例题阅卷官。本题没有标准答案,请依据下面检索到的教材/规范知识给学生作答打分。",
+        "stem": stem,
+        "retrieved_knowledge": rag_chunks,
+        "student_answer": student_answer,
+        "instruction": "依据检索知识判断学生作答覆盖了多少应得要点,只输出 JSON: {\"score_pct\": 0..1, \"reason\": \"简短\"}。",
+    }
+    return [{"role": "user", "content": json.dumps(payload, ensure_ascii=False)}]
+
+
+def _arm_rag_ref_messages(*, stem: str, official_answer: str, rag_chunks: list[str], student_answer: str) -> list[dict[str, str]]:
+    """Production-faithful RAG grading: official reference answer + kb_v5-retrieved grounding,
+    holistic score (mirrors _grade_one_case_v1's reference tier + RAG grounding context)."""
+    payload = {
+        "task": "你是一级建造师案例题阅卷官。对照官方参考答案,并参考检索到的教材/规范知识,给学生作答打分。",
+        "stem": stem,
+        "official_reference_answer": official_answer,
+        "retrieved_knowledge": rag_chunks,
+        "student_answer": student_answer,
+        "instruction": "只输出 JSON: {\"score_pct\": 0..1 的小数, \"reason\": \"简短\"}。",
+    }
+    return [{"role": "user", "content": json.dumps(payload, ensure_ascii=False)}]
+
+
 def _parse_json_block(text: str) -> dict[str, Any]:
     match = re.search(r"\{.*\}", text, re.S)
     if not match:
@@ -201,8 +244,31 @@ def _make_label_oracle(total_by_q: dict[str, int]) -> Callable[..., dict[str, An
     return judge
 
 
-async def _make_llm_judge(model: str | None):
+def _load_kbv5_retriever(top_k: int = 6):
+    """The kb_v5 search_chunks_v2 retriever the production RAG grading lane uses
+    (loaded lazily from the case-question eval module, which configures the channel)."""
+    import importlib.util
+
+    path = REPO / "scripts" / "run_luban_rich_leaf_case_question_eval.py"
+    spec = importlib.util.spec_from_file_location("rl_case_eval_for_ab", path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod._kbv5_retriever(top_k)
+
+
+async def _make_llm_judge(model: str | None, *, with_rag: bool):
     from deeptutor.services.llm import complete  # canonical single-authority LLM path
+
+    retriever = _load_kbv5_retriever() if with_rag else None
+    rag_cache: dict[str, list[str]] = {}
+
+    def _retrieve(qid: str, stem: str) -> list[str]:
+        if retriever is None:
+            return []
+        if qid not in rag_cache:
+            res = retriever(stem[:400])
+            rag_cache[qid] = _rag_chunk_texts(res) if res.get("status") == "completed" else []
+        return rag_cache[qid]
 
     async def judge(*, arm: str, contract: dict[str, Any], answer: dict[str, Any]) -> dict[str, Any]:
         official = _official_answer_text(contract)
@@ -212,9 +278,22 @@ async def _make_llm_judge(model: str | None):
             messages = _arm_a0_messages(stem=stem, official_answer=official, student_answer=student)
         elif arm == ARM_A1:
             messages = _arm_a1_messages(stem=stem, official_answer=official, student_answer=student)
+        elif arm == ARM_RAG_ONLY:
+            chunks = _retrieve(str(contract.get("question_id")), stem)
+            messages = _arm_rag_only_messages(stem=stem, rag_chunks=chunks, student_answer=student)
+        elif arm == ARM_RAG_REF:
+            chunks = _retrieve(str(contract.get("question_id")), stem)
+            messages = _arm_rag_ref_messages(stem=stem, official_answer=official, rag_chunks=chunks, student_answer=student)
         else:
             messages = _arm_b_messages(contract=contract, student_answer=student)
-        text = await complete(messages=messages, model=model) if model else await complete(messages=messages)
+        # The canonical ``complete`` takes a positional ``prompt``; our single user
+        # message's content carries the full JSON payload, so pass it as the prompt.
+        prompt_text = messages[0]["content"]
+        system_prompt = "你是严谨的一级建造师案例题阅卷官。只输出题目要求的 JSON,不要多余文字。"
+        kwargs: dict[str, Any] = {"prompt": prompt_text, "system_prompt": system_prompt}
+        if model:
+            kwargs["model"] = model
+        text = await complete(**kwargs)
         data = _parse_json_block(text if isinstance(text, str) else str(text))
         verdicts = {
             str(v.get("point_id")): str(v.get("verdict"))
@@ -334,6 +413,8 @@ def main() -> int:
     parser.add_argument("--live", action="store_true", help="use the real LLM judge (needs an LLM key)")
     parser.add_argument("--model", default=None)
     parser.add_argument("--margin", type=float, default=OVER_CREDIT_GAP_MARGIN)
+    parser.add_argument("--no-rag", action="store_true",
+                        help="skip the kb_v5 RAG-grounded arms (faster; live only)")
     args = parser.parse_args()
 
     fixtures = json.loads(args.fixtures.read_text(encoding="utf-8")).get("fixtures") or {}
@@ -341,7 +422,7 @@ def main() -> int:
     objects = compile_selected(exam_root=args.exam_root, textbook_chunks=textbook_chunks)
 
     if args.live:
-        judge = asyncio.run(_make_llm_judge(args.model))
+        judge = asyncio.run(_make_llm_judge(args.model, with_rag=not args.no_rag))
         mode = "live_llm"
     else:
         judge = _make_label_oracle({o["question_id"]: o["scoring_point_count"] for o in objects})
