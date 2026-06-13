@@ -419,50 +419,72 @@ def _false_hit_rate(verdicts: dict[str, str], answer: dict[str, Any]) -> float |
     return false_hits / len(unmet)
 
 
-async def _run(objects, fixtures: dict[str, Any], judge, *, gap_margin: float, trials: int) -> dict[str, Any]:
-    rows: list[dict[str, Any]] = []
+async def _run(objects, fixtures: dict[str, Any], judge, *, gap_margin: float, trials: int,
+               concurrency: int = 1) -> dict[str, Any]:
+    contracts: dict[str, dict[str, Any]] = {}
+    for obj in objects:
+        qid = obj["question_id"]
+        contract = build_grading_contract(obj)
+        blockers = validate_grading_contract(contract)
+        if blockers:
+            raise SystemExit(f"contract invalid for {qid}: {blockers}")
+        contracts[qid] = contract
+    work: list[tuple[int, str, dict[str, Any], float, str]] = []
     for trial in range(trials):
         for obj in objects:
             qid = obj["question_id"]
-            contract = build_grading_contract(obj)
-            blockers = validate_grading_contract(contract)
-            if blockers:
-                raise SystemExit(f"contract invalid for {qid}: {blockers}")
-            total = len(contract["scoring_points"])
+            total = len(contracts[qid]["scoring_points"])
             for answer in fixtures.get(qid) or []:
-                _validate_fixture(answer, contract)
+                _validate_fixture(answer, contracts[qid])
                 true_cov = round(_true_coverage(answer, total), 4)
                 for arm in ARMS:
-                    result = judge(arm=arm, contract=contract, answer=answer)
-                    if asyncio.iscoroutine(result):
-                        result = await result
-                    score = round(float(result["score_pct"]), 4)
-                    verdicts = result.get("verdicts") or {}
-                    self_consistency = detect_over_credit(
-                        score_pct=score, point_verdicts=verdicts, contract=contract, gap_margin=gap_margin,
-                    )
-                    rows.append({
-                        "trial": trial,
-                        "question_id": qid,
-                        "answer_label": answer.get("label"),
-                        "answer_type": answer.get("answer_type"),
-                        "arm": arm,
-                        "score_pct": score,
-                        "true_coverage": true_cov,
-                        "score_coverage_gap": round(score - true_cov, 4),
-                        "ground_truth_over_credit": bool(score - true_cov > gap_margin),
-                        "calibration_abs_error": round(abs(score - true_cov), 4),
-                        "false_hit_rate": _false_hit_rate(verdicts, answer),
-                        "verdict_self_inconsistency": self_consistency["over_credit"],
-                        "oracle": result.get("oracle", False),
-                        "parse_error": result.get("parse_error", False),
-                        "prompt_tokens": result.get("prompt_tokens"),
-                        "completion_tokens": result.get("completion_tokens"),
-                        "total_tokens": result.get("total_tokens"),
-                        "latency_ms": result.get("latency_ms"),
-                        "ttft_ms": result.get("ttft_ms"),
-                    })
-    return _summarize(rows, gap_margin=gap_margin, trials=trials)
+                    work.append((trial, qid, answer, true_cov, arm))
+
+    sem = asyncio.Semaphore(max(1, concurrency))
+
+    async def _one(item: tuple[int, str, dict[str, Any], float, str]) -> dict[str, Any]:
+        trial, qid, answer, true_cov, arm = item
+        contract = contracts[qid]
+        async with sem:
+            result = judge(arm=arm, contract=contract, answer=answer)
+            if asyncio.iscoroutine(result):
+                result = await result
+        score = round(float(result["score_pct"]), 4)
+        verdicts = result.get("verdicts") or {}
+        self_consistency = detect_over_credit(
+            score_pct=score, point_verdicts=verdicts, contract=contract, gap_margin=gap_margin,
+        )
+        return {
+            "trial": trial,
+            "question_id": qid,
+            "answer_label": answer.get("label"),
+            "answer_type": answer.get("answer_type"),
+            "arm": arm,
+            "score_pct": score,
+            "true_coverage": true_cov,
+            "score_coverage_gap": round(score - true_cov, 4),
+            "ground_truth_over_credit": bool(score - true_cov > gap_margin),
+            "calibration_abs_error": round(abs(score - true_cov), 4),
+            "false_hit_rate": _false_hit_rate(verdicts, answer),
+            "verdict_self_inconsistency": self_consistency["over_credit"],
+            "oracle": result.get("oracle", False),
+            "parse_error": result.get("parse_error", False),
+            "prompt_tokens": result.get("prompt_tokens"),
+            "completion_tokens": result.get("completion_tokens"),
+            "total_tokens": result.get("total_tokens"),
+            "latency_ms": result.get("latency_ms"),
+            "ttft_ms": result.get("ttft_ms"),
+        }
+
+    rows = list(await asyncio.gather(*[_one(w) for w in work]))
+    report = _summarize(rows, gap_margin=gap_margin, trials=trials)
+    report["concurrency"] = concurrency
+    report["latency_ttft_note"] = (
+        "latency_ms/ttft_ms measured under concurrency>1 are CONTENDED (upper bound); "
+        "run --concurrency 1 for isolated per-call latency"
+        if concurrency > 1 else "latency_ms/ttft_ms are isolated per-call (sequential)"
+    )
+    return report
 
 
 def _rate(rows: list[dict[str, Any]], key: str) -> float | None:
@@ -551,6 +573,8 @@ def main() -> int:
     parser.add_argument("--margin", type=float, default=OVER_CREDIT_GAP_MARGIN)
     parser.add_argument("--trials", type=int, default=1,
                         help="repeat the full pass N times → mean±std on the metrics (crush variance)")
+    parser.add_argument("--concurrency", type=int, default=1,
+                        help="concurrent LLM calls (>1 = throughput; latency/ttft then contended)")
     parser.add_argument("--no-rag", action="store_true",
                         help="skip the kb_v5 RAG-grounded arms (faster; live only)")
     args = parser.parse_args()
@@ -566,7 +590,8 @@ def main() -> int:
         judge = _make_label_oracle({o["question_id"]: o["scoring_point_count"] for o in objects})
         mode = "dry_run_label_oracle"
 
-    report = asyncio.run(_run(objects, fixtures, judge, gap_margin=args.margin, trials=args.trials))
+    report = asyncio.run(_run(objects, fixtures, judge, gap_margin=args.margin,
+                              trials=args.trials, concurrency=args.concurrency))
     report["mode"] = mode
     report["questions_compiled"] = [o["question_id"] for o in objects]
 
