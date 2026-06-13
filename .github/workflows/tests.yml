@@ -157,6 +157,21 @@ jobs:
         run: |
           python scripts/check_provider_registry.py $(git ls-files 'deeptutor/**/*.py' 'scripts/**/*.py')
 
+      - name: process registry guard (no unregistered cron / always-on daemon)
+        # Powers on contracts/process_registry.yaml: a NEW GHA cron schedule in a
+        # .github/workflows/*.yml not listed under scheduled_tasks[] (rule a, 防新
+        # 增未登记定时任务), or a NEW always-on daemon — a create_task whose result
+        # is stored in a persistent holder (self._*task / *.worker_tasks[...]) — at
+        # a file not listed under daemons[] (rule b, 防新增未登记长驻进程) fails CI.
+        # This is the止血 against the 201.6 GB Next-process class: an AI-agent-owned
+        # always-on task that no one registered cannot slip in. Fire-and-forget
+        # per-request create_task (result discarded) is deliberately out of scope
+        # (zero-false-positive boundary). All 4 cron workflows + 8 daemon files are
+        # grandfathered. Full-repo scan exits 0 today. Bundling into
+        # check_contract_guard.py is a later consolidation blocked by its WIP.
+        run: |
+          python scripts/check_process_registry.py $(git ls-files 'deeptutor/**/*.py' 'scripts/**/*.py' '.github/workflows/*.yml')
+
       - name: WebSocket single-control-plane allowlist gate
         # Reflects the live FastAPI app's production WebSocket surface and fails
         # on any WS route not declared in contracts/index.yaml websocket_routes,
@@ -166,6 +181,22 @@ jobs:
         run: |
           pip install -r requirements/server.txt
           python scripts/ci/check_websocket_route_allowlist.py
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+
+      - name: REST route existence allowlist gate
+        # Reflects the live FastAPI app's production HTTP surface and fails on any
+        # router MOUNT PREFIX not declared in contracts/index.yaml http_routes.
+        # Closes the REST existence gap (the WS guard above already守住 WS; REST
+        # only had auth gates + a report-only inventory). Mirrors the WS guard:
+        # reflection-based (include_router chains can't bypass it), MOUNT-PREFIX
+        # grain (the existence unit — not leaf paths, which the inventory already
+        # enumerates for auth), so it does NOT overlap the WS guard or the secure-
+        # router gate. server deps are installed by the WS step above; the contract-
+        # guard light job degrades to a skip-with-note, so this is the load-bearing
+        # enforcement. All 31 production mounts are grandfathered (exits 0 today).
+        run: |
+          python scripts/ci/check_rest_route_allowlist.py
         env:
           PYTHONPATH: ${{ github.workspace }}
 

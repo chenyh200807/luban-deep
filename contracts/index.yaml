@@ -31,6 +31,60 @@ websocket_routes:
     reason: Knowledge-base ingestion progress fan-out. Non-chat; broadcasts build
       progress events only, creates no turn/session state.
 
+# REST route EXISTENCE allowlist (RESOURCE_GOVERNANCE_FIX_PLAN Layer 3 · P2,
+# INFRA_REGISTRATION_COVERAGE_AUDIT §6).
+#
+# WS already has an existence gate (websocket_routes above). REST only had AUTH
+# gates (secure_router) + a report-only runtime_route_inventory — no "a new REST
+# router must be registered" existence闸. This list closes that gap, mirroring
+# the WS allowlist EXACTLY: scripts/ci/check_rest_route_allowlist.py reflects the
+# live FastAPI app's PRODUCTION HTTP surface (legacy routers disabled) and fails
+# CI when a reflected ROUTER MOUNT PREFIX is not listed here.
+#
+# It does NOT overlap the WS guard: the WS guard governs APIWebSocketRoute; this
+# governs APIRoute (HTTP). The grain is the MOUNT PREFIX (leading static path
+# segments — where include_router(prefix=...) mounts), NOT every leaf path: the
+# report-only inventory already enumerates leaves for auth. This gate answers the
+# governance question the inventory does not — "should this router EXIST?".
+#
+# DISCIPLINE: records CURRENT STATE only. Every mount registered today is
+# grandfathered (止血: a NEW include_router at an unlisted prefix fails CI, not a
+# one-shot cleanup). Adding/removing a mount here changes NO behavior — it only
+# makes the existing reflected mount machine-checkable. An entry may be listed
+# but not currently reflected (behind-flag router); that does not fail the gate.
+http_routes:
+  - {prefix: /, reason: "Root liveness redirect / index."}
+  - {prefix: /healthz, reason: "Liveness probe."}
+  - {prefix: /readyz, reason: "Readiness probe."}
+  - {prefix: /metrics, reason: "Prometheus metrics (require_metrics_access)."}
+  - {prefix: /metrics/prometheus, reason: "Prometheus scrape endpoint (require_metrics_access)."}
+  - {prefix: /api/attachments, reason: "Session attachment download."}
+  - {prefix: /api/v1/agent-config, reason: "Agent config read/write."}
+  - {prefix: /api/v1/assessment, reason: "Assessment quiz lifecycle."}
+  - {prefix: /api/v1/auth, reason: "External auth: login / register / code / reset."}
+  - {prefix: /api/v1/bi, reason: "BI cockpit read models + ops actions."}
+  - {prefix: /api/v1/billing, reason: "Wallet / ledger / checkout / usage read models."}
+  - {prefix: /api/v1/chat, reason: "Chat feedback + start-turn HTTP adapters."}
+  - {prefix: /api/v1/conversations, reason: "Conversation / message read models."}
+  - {prefix: /api/v1/homepage, reason: "Homepage dashboard read model."}
+  - {prefix: /api/v1/invite-test, reason: "Invite-test application intake."}
+  - {prefix: /api/v1/knowledge, reason: "Knowledge-base CRUD + ingestion."}
+  - {prefix: /api/v1/learning-brain, reason: "Learning-brain QA (dev-gated)."}
+  - {prefix: /api/v1/member, reason: "Member console: profile / progress / goals / wallet."}
+  - {prefix: /api/v1/memory, reason: "Learner memory read models."}
+  - {prefix: /api/v1/mobile, reason: "Mobile (mini-program) read models + auth adapters."}
+  - {prefix: /api/v1/observability, reason: "Observability read models."}
+  - {prefix: /api/v1/photo-answer, reason: "Photo-answer OCR + solve adapter."}
+  - {prefix: /api/v1/plan, reason: "Plan read model."}
+  - {prefix: /api/v1/practice, reason: "Practice read models."}
+  - {prefix: /api/v1/profile, reason: "Profile read model."}
+  - {prefix: /api/v1/question-notebook, reason: "Question-notebook CRUD."}
+  - {prefix: /api/v1/sessions, reason: "Session read models."}
+  - {prefix: /api/v1/settings, reason: "Settings CRUD."}
+  - {prefix: /api/v1/system, reason: "System status / heartbeat."}
+  - {prefix: /api/v1/tutor-state, reason: "Tutor-state read models."}
+  - {prefix: /api/v1/wechat, reason: "WeChat mini-program login adapters."}
+
 mobile_http_read_models:
   billing_usage:
     path: /api/v1/billing/usage
