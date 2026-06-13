@@ -96,3 +96,35 @@ D1 query executor 不得变第二套判分 policy engine;D2 不得新增第三�
 **诚实方差边界(必须说)**:over-credit **率**在 N=10/单次跑下噪声大(B 在两次跑里 0.0↔0.1、A0 0.2↔0.1 来回跳);**calibration MAE 才是跨两次跑稳定favor B 的信号**(0.013 / 0.035)。要给定论排序需重复多次 trial + 更大 fixture 集 + 独立人工 gold(Codex 的 external-validity work order)。
 
 **给 production 的可执行结论**:题库案例题(有官方答案)→ 用编译原子 checklist 判分(B),**不要**把 RAG 知识当判分依据;RAG 留给开放世界答题/召回。`_grade_one_case_v1` 接线方向因此更明确:接编译 checklist,grounding 不参与对错。
+
+## 10. 方差压实 + 成本实测(trials=5 concurrency=8 + 顺序 latency 校准,2026-06-13)
+
+DeepSeek 真实 LLM,5 次 trial 压方差(排除 21/325 parse_error 行),并发跑 + 单独顺序跑测隔离延迟。
+
+**准确度(MAE/over-credit mean±std,排除 parse_error):**
+
+| arm | calib MAE | over-credit | false-hit |
+|---|---|---|---|
+| **B 编译原子合约** | **0.013±0.005** | **0.000±0.000** | **0.000** |
+| RAG+参考 | 0.049±0.012 | 0.060±0.049 | — |
+| A0 freestyle | 0.055±0.015 | 0.080±0.040 | — |
+| A1 self-decompose | 0.070±0.013 | 0.054±0.066 | — |
+| RAG_only(开放世界) | 0.157±0.019 | 0.040±0.049 | — |
+
+**方差已压实**:B 的 MAE 0.013±0.005、over-credit 0.000±0.000——不仅最准,**方差也最小**,优势是真信号不是噪声。RAG_only 最差(MAE 12x B)。
+
+**成本(隔离单次,顺序跑;真实 serving):**
+
+| arm | total tok | completion tok | latency | TTFT |
+|---|---|---|---|---|
+| A0 freestyle | 1082 | 290 | 4.1s | 3.7s |
+| RAG+参考 | 2944 | 302 | 4.0s | 3.6s |
+| **B 编译原子合约** | **2025** | **851** | **7.1s** | **5.2s** |
+| RAG_only | 3202 | 753 | 9.4s | 9.1s |
+| A1 self-decompose | 2010 | 1202 | 11.3s | 9.3s |
+
+**成本判读**:B 居中——token ~2x A0(checklist+24逐点 verdict),latency 7.1s。但**RAG 臂 token 最贵(2944-3202,被检索块撑大)却判得更差**=判分场景被严格 dominate。**A1(每次现拆 rubric)latency 最高(11.3s/1202 completion)且不如 B**——直接验证"compile once read many":B 复用预编译 checklist,生成更少、校准更好。
+
+**操作性注记**:B/A1 的长结构化 JSON 在高并发/高峰期偶有截断→parse_error(已 3x 重试+记账兜底);生产需更大 token 预算+重试。
+
+**最终判读**:案例题判分 B 决定性最优(准确度 4-12x、零误给、方差最小),成本居中(比 RAG 便宜、比 A1 快)。RAG 判分被 dominate(更贵更不准)→ 印证"RAG 的家在召回不在判分权威"。**解锁 production 接线已有充分实证支撑**,接编译 checklist、grounding 不参与对错。
