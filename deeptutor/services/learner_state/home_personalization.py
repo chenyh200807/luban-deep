@@ -14,6 +14,7 @@ from deeptutor.services.taxonomy.learning_topic_resolver import (
     normalize_learning_topic_text,
     resolve_learning_topic_from_payload,
 )
+from deeptutor.services.taxonomy.textbook_directory import resolve_canonical_option
 
 
 _TZ = timezone(timedelta(hours=8))
@@ -86,10 +87,15 @@ def build_home_personalization_projection_from_learning_signal(
         payload,
         llm_topic_inferer=llm_topic_inferer or infer_learning_topic_with_llm,
     )
-    if topic is None:
-        return None
     explicit_label = _explicit_concept_label(payload)
-    concept_label = explicit_label if explicit_label and topic.confidence == "low" else topic.label
+    fallback_label = _fallback_concept_label_from_payload(payload)
+    if topic is None:
+        concept_label = explicit_label or fallback_label
+        topic_fields: dict[str, str] = {}
+    else:
+        concept_label = explicit_label if explicit_label and topic.confidence == "low" else topic.label
+        topic_fields = topic.intent_fields()
+    concept_label = canonical_home_focus_topic_label(concept_label) or concept_label
     error_label = _first_focus_topic_label(
         error.get("label"),
         _first_error_label(payload),
@@ -107,7 +113,7 @@ def build_home_personalization_projection_from_learning_signal(
         "evidence_refs": _evidence_refs(payload),
         "learning_state_ref": str(payload.get("learning_state_ref") or "").strip(),
         "suggested_mode": str(payload.get("suggested_mode") or payload.get("teaching_mode") or "").strip(),
-        **topic.intent_fields(),
+        **topic_fields,
     }
     prompts = [
         _projection_prompt(
@@ -217,30 +223,68 @@ def _upgrade_legacy_home_projection(projection: dict[str, Any]) -> dict[str, Any
     if not concept_label:
         return None
 
-    generated_at = _parse_time(str(projection.get("generated_at") or ""))
-    upgraded = build_home_personalization_projection_from_learning_signal(
-        {
-            "subject_id": _projection_intent_value(prompts + [focus], "subject_id"),
-            "concept": {
-                "label": concept_label,
-                "taxonomy_code": _projection_intent_value(prompts + [focus], "taxonomy_code"),
-            },
-            "error": {"label": error_label},
-            "training_intent_id": _projection_intent_value(prompts + [focus], "training_intent_id"),
-            "evidence_refs": _projection_evidence_refs(prompts + [focus]),
-            "learning_state_ref": _projection_intent_value(prompts + [focus], "learning_state_ref"),
-            "suggested_mode": _projection_intent_value(prompts + [focus], "suggested_mode"),
-        },
-        generated_at=generated_at,
-    )
-    if not upgraded:
-        return None
+    generated_at = _parse_time(str(projection.get("generated_at") or "")) or datetime.now(tz=_TZ)
+    base_intent = {
+        "concept_label": concept_label,
+        "error_label": error_label or "薄弱点",
+        "subject_id": _projection_intent_value(prompts + [focus], "subject_id"),
+        "training_intent_id": _projection_intent_value(prompts + [focus], "training_intent_id"),
+        "evidence_refs": _projection_evidence_refs(prompts + [focus]),
+        "learning_state_ref": _projection_intent_value(prompts + [focus], "learning_state_ref"),
+        "suggested_mode": _projection_intent_value(prompts + [focus], "suggested_mode"),
+        "taxonomy_code": _projection_intent_value(prompts + [focus], "taxonomy_code"),
+        "taxonomy_id": _projection_intent_value(prompts + [focus], "taxonomy_id"),
+        "topic_id": _projection_intent_value(prompts + [focus], "topic_id"),
+        "topic_source": _projection_intent_value(prompts + [focus], "topic_source"),
+        "topic_confidence": _projection_intent_value(prompts + [focus], "topic_confidence"),
+    }
+    upgraded_prompts = [
+        _projection_prompt(
+            prompt_type="practice_prompt",
+            text=f"用 3 道题训练{concept_label}",
+            intent={**base_intent, "training_mode": "mixed_review", "reason": "home_projection_practice"},
+        ),
+        _projection_prompt(
+            prompt_type="mistake_review",
+            text=f"复盘{concept_label}里的{base_intent['error_label']}",
+            intent={**base_intent, "training_mode": "mistake_repair", "reason": "home_projection_mistake"},
+        ),
+        _projection_prompt(
+            prompt_type="concept_explain",
+            text=f"讲清楚{concept_label}的关键判断",
+            intent={**base_intent, "training_mode": "concept_explain", "reason": "home_projection_concept"},
+        ),
+        _projection_prompt(
+            prompt_type="exam_transfer",
+            text=f"用一道真题场景理解{concept_label}",
+            intent={**base_intent, "training_mode": "case_repair", "reason": "home_projection_exam_transfer"},
+        ),
+        _projection_prompt(
+            prompt_type="knowledge_map",
+            text=f"梳理{concept_label}的高频考点",
+            intent={**base_intent, "training_mode": "rubric_recall", "reason": "home_projection_knowledge_map"},
+        ),
+        _projection_prompt(
+            prompt_type="quick_check",
+            text=f"用 1 个小问题验证{concept_label}是否真会了",
+            intent={**base_intent, "training_mode": "mcq_discrimination", "reason": "home_projection_quick_check"},
+        ),
+    ]
     source_status = dict(projection.get("source_status") or {})
     source_status.setdefault("fallback_used", False)
     source_status.setdefault("learning_report", "projection")
     source_status["upgraded_from"] = "legacy_home_projection"
-    upgraded["source_status"] = source_status
-    return upgraded
+    return {
+        "generated_at": generated_at.isoformat(),
+        "source_status": source_status,
+        "today_focus": {
+            "title": f"今日焦点：{concept_label}",
+            "meta": "来自 learner_state.home_personalization",
+            "prompt": upgraded_prompts[0]["text"],
+            "intent": upgraded_prompts[0]["intent"],
+        },
+        "recommended_prompts": upgraded_prompts,
+    }
 
 
 def _projection_intent_value(items: list[dict[str, Any]], key: str) -> str:
@@ -266,6 +310,20 @@ def _explicit_concept_label(payload: dict[str, Any]) -> str:
         text = normalize_learning_topic_text(value)
         if text:
             return text
+    return ""
+
+
+def _fallback_concept_label_from_payload(payload: dict[str, Any]) -> str:
+    signal = payload.get("next_training_signal") if isinstance(payload.get("next_training_signal"), dict) else {}
+    for value in (
+        _explicit_concept_label(payload),
+        signal.get("focus"),
+        signal.get("concept"),
+        *list(payload.get("knowledge_points") or [])[:3],
+    ):
+        text = _first_focus_topic_label(value)
+        if text:
+            return canonical_home_focus_topic_label(text) or text
     return ""
 
 
@@ -582,6 +640,16 @@ def normalize_home_focus_topic_label(value: Any) -> str:
     return normalize_learning_topic_text(value)
 
 
+def canonical_home_focus_topic_label(value: Any) -> str:
+    text = normalize_home_focus_topic_label(value)
+    if not text:
+        return ""
+    option = resolve_canonical_option(text)
+    if option:
+        return str(option.get("name") or "").strip()
+    return canonical_learning_topic_label(text)
+
+
 def _first_text(*values: Any) -> str:
     for value in values:
         text = str(value or "").strip()
@@ -605,6 +673,7 @@ def _parse_time(value: str) -> datetime | None:
 __all__ = [
     "build_home_dashboard_learning_projection",
     "build_home_personalization_projection_from_learning_signal",
+    "canonical_home_focus_topic_label",
     "normalize_home_focus_topic_label",
     "write_home_personalization_projection",
 ]

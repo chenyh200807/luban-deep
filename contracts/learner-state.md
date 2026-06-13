@@ -399,6 +399,10 @@ Overlay 必须支持：
   （如“本题为”“这题”）、自由文本、旧缓存 topic、frontend 解析结果或未入教材目录的
   短语反推出新的 focus / 推荐；无法映射到 canonical 教材章节或小节时必须丢弃或回退到
   最近有效 `learning_evidence` / starter projection。
+- `member_console` 的首页 focus adapter 只能委托
+  `learner_state.home_personalization.canonical_home_focus_topic_label()`；该 helper
+  对用户可见首页主题先使用教材目录 alias / 章节目 canonical 名，再回退到 taxonomy
+  canonical label，避免 `member_console` 形成第二套 topic 归一化 authority。
 - 生产 Supabase 写入任何 learner-state 外键表（包括 `learner_memory_events`、
   `learner_summaries`、`learning_plans`、`learning_plan_pages`、`heartbeat_jobs` 和
   overlay 表）前，writeback pipeline 必须先确保同一个 canonical `user_id` 已存在于

@@ -9,6 +9,7 @@ import deeptutor.services.learner_state.home_personalization as home_personaliza
 from deeptutor.services.learner_state.home_personalization import (
     build_home_dashboard_learning_projection,
     build_home_personalization_projection_from_learning_signal,
+    canonical_home_focus_topic_label,
     write_home_personalization_projection,
 )
 from deeptutor.services.member_console.service import MemberConsoleService
@@ -135,6 +136,10 @@ def test_learning_signal_projection_makes_today_focus_clickable() -> None:
     assert first_prompt["learning_state_ref"] == "knowledge:1A432000"
     assert first_prompt["suggested_mode"] == "deep"
     assert first_prompt["intent"]["evidence_refs"] == ["evt-home-1", "attempt-ref-1"]
+
+
+def test_home_focus_topic_uses_textbook_section_alias_before_leaf_topic() -> None:
+    assert canonical_home_focus_topic_label("防水工程") == "屋面与防水工程施工"
 
 
 def test_learning_signal_projection_rejects_deictic_focus_labels() -> None:

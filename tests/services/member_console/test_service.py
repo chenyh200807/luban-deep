@@ -70,6 +70,10 @@ class _FakeMemberDirectory:
         return [dict(row) for row in self.rows]
 
 
+def test_member_console_home_focus_uses_textbook_section_alias() -> None:
+    assert MemberConsoleService._normalize_home_focus_topic("防水工程") == "屋面与防水工程施工"
+
+
 @pytest.mark.asyncio
 async def test_login_with_wechat_code_issues_signed_token_and_persists_identity(
     monkeypatch: pytest.MonkeyPatch,

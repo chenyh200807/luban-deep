@@ -92,7 +92,7 @@ TEXTBOOK_CHAPTERS: tuple[dict[str, Any], ...] = (
         "name": "工程招标投标与合同管理",
         "sections": ("工程招标投标", "工程合同管理"),
         "code_prefixes": ("1A432",),
-        "aliases": ("合同索赔", "合同管理", "索赔"),
+        "aliases": ("招投标与合同", "合同索赔", "合同管理", "索赔"),
     },
     {
         "no": 8,

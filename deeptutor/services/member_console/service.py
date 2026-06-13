@@ -77,7 +77,7 @@ from deeptutor.services.learner_state.study_plan import (
     build_study_plan,
     build_study_plan_from_learner_snapshot,
 )
-from deeptutor.services.taxonomy.learning_topic_resolver import canonical_learning_topic_label
+from deeptutor.services.learner_state.home_personalization import canonical_home_focus_topic_label
 from deeptutor.services.internal_qa import internal_qa_billing_bypass_allowed
 from deeptutor.services.member_console.external_auth import (
     create_external_auth_user,
@@ -4966,7 +4966,7 @@ class MemberConsoleService:
 
     @staticmethod
     def _normalize_home_focus_topic(value: Any) -> str:
-        return canonical_learning_topic_label(value)
+        return canonical_home_focus_topic_label(value)
 
     def _pick_home_focus_topic(
         self,
