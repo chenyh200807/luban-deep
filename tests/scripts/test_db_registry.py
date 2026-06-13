@@ -324,3 +324,50 @@ def test_m2_all_flag_is_shell_word_split_safe() -> None:
 
     for p in _git_tracked_in_scope_files():
         assert (Path(REPO_ROOT) / p).is_file(), f"word-split fragment leaked: {p!r}"
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# I3(c) — Codex adversarial round: ``from psycopg import connect`` then bare
+# ``connect(``. The aliased-import fix (I3a) only covered ``import psycopg as X``.
+# A from-import (1) binds the connect callable to a bare name the alias matcher
+# could not see, and (2) the file did not match _PSYCOPG_FILE_RE at all, so the
+# ENTIRE SQL-write scan was skipped for it — a double bypass.
+# ═════════════════════════════════════════════════════════════════════════════
+def test_i3c_from_import_connect_raw_connection_detected() -> None:
+    code = (
+        "from psycopg import connect\n"
+        "import os\n"
+        "conn = connect(os.environ['SHADOW_DB_URL'])\n"
+    )
+    connects = collect_connect_usages([("deeptutor/services/new_store.py", code)])
+    assert connects, "from psycopg import connect; connect(...) must be detected (I3c)"
+    ok, message = evaluate_db_usages(connects, [], [], load_db_registry())
+    assert ok is False
+    assert "unregistered raw DB connection" in message
+
+
+def test_i3c_from_import_connect_aliased_detected() -> None:
+    code = "from psycopg2 import connect as pgc\nconn = pgc(url)\n"
+    connects = collect_connect_usages([("deeptutor/services/new_store.py", code)])
+    assert connects, "aliased from-import connect must be detected (I3c)"
+
+
+def test_i3c_from_import_file_gate_runs_sql_write_scan() -> None:
+    # The deeper half of the bug: a from-import file did NOT match _PSYCOPG_FILE_RE,
+    # so collect_write_usages skipped it whole and the write below was invisible.
+    code = (
+        "from psycopg import connect\n"
+        "cur.execute('insert into public.shadow_table (a) values (%s)')\n"
+    )
+    writes = collect_write_usages([("deeptutor/services/x.py", code)])
+    assert any(
+        w.table == "public.shadow_table" for w in writes
+    ), "write scan must run on from-import psycopg files (I3c)"
+
+
+def test_i3c_bare_connect_without_psycopg_import_not_flagged() -> None:
+    # No-false-positive: a bare ``connect(`` with no psycopg from-import is unrelated
+    # (signal.connect, websocket connect) and must NOT be treated as a raw PG connect.
+    code = "btn_connect = connect('wss://x')\n"
+    connects = collect_connect_usages([("deeptutor/services/x.py", code)])
+    assert connects == []

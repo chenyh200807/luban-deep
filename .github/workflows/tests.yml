@@ -12,6 +12,12 @@ on:
       - "scripts/check_contract_guard.py"
       - "scripts/check_turn_contract_guard.py"
       - "scripts/ci/check_websocket_route_allowlist.py"
+      # Governance scanners (schema/db/env/provider/process/REST registry guards):
+      # glob so a scanner-only PR still triggers the guards, and future scanners are
+      # covered without re-editing this filter. Codex round: the gate must protect
+      # its own scanners, not only the code they govern.
+      - "scripts/check_*.py"
+      - "scripts/ci/**"
       - "requirements/**"
       - "requirements.txt"
       - "pyproject.toml"
@@ -45,6 +51,12 @@ on:
       - "scripts/check_contract_guard.py"
       - "scripts/check_turn_contract_guard.py"
       - "scripts/ci/check_websocket_route_allowlist.py"
+      # Governance scanners (schema/db/env/provider/process/REST registry guards):
+      # glob so a scanner-only PR still triggers the guards, and future scanners are
+      # covered without re-editing this filter. Codex round: the gate must protect
+      # its own scanners, not only the code they govern.
+      - "scripts/check_*.py"
+      - "scripts/ci/**"
       - "requirements/**"
       - "requirements.txt"
       - "pyproject.toml"

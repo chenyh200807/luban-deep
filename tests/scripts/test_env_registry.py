@@ -227,3 +227,43 @@ def test_full_repo_scan_has_zero_false_positives() -> None:
     ok, message = evaluate_env_registry(tracked)
     assert ok is True, message
 
+
+# ═════════════════════════════════════════════════════════════════════════════
+# I4(b) — Codex adversarial round: ``from os import environ`` then bare
+# ``environ['X']`` / ``environ.get('X')``. I4 only covered the ``os.``-prefixed
+# forms and bare ``getenv``; a bare ``environ`` subscript/get escaped entirely.
+# ═════════════════════════════════════════════════════════════════════════════
+def test_i4b_bare_environ_subscript_detected() -> None:
+    code = "from os import environ\nsecret = environ['UNREGISTERED_REDTEAM_SECRET']\n"
+    envs = collect_env_reference_usages([("deeptutor/services/x.py", code)])
+    assert any(
+        e.env_name == "UNREGISTERED_REDTEAM_SECRET" for e in envs
+    ), "bare environ[...] must be detected (I4b)"
+    ok, message = evaluate_env_usages(envs, [], load_env_registry())
+    assert ok is False
+    assert "UNREGISTERED_REDTEAM_SECRET" in message
+
+
+def test_i4b_bare_environ_get_detected() -> None:
+    code = "from os import environ\nx = environ.get('ANOTHER_UNREG_ENV')\n"
+    envs = collect_env_reference_usages([("deeptutor/services/x.py", code)])
+    assert any(e.env_name == "ANOTHER_UNREG_ENV" for e in envs)
+
+
+def test_i4b_os_environ_not_double_counted_by_bare_branch() -> None:
+    # No-false-positive: ``os.environ['X']`` is matched once by the os.-prefixed
+    # branch; the bare-environ lookbehind must not double-count it.
+    code = "x = os.environ['DEEPSEEK_API_KEY']\n"
+    envs = collect_env_reference_usages([("deeptutor/services/x.py", code)])
+    assert (
+        len([e for e in envs if e.env_name == "DEEPSEEK_API_KEY"]) == 1
+    ), "os.environ must be counted exactly once, not twice"
+
+
+def test_i4b_registered_env_via_bare_environ_passes() -> None:
+    # No-false-positive: the bare form reading a REGISTERED env still passes.
+    code = "from os import environ\nk = environ['DEEPSEEK_API_KEY']\n"
+    envs = collect_env_reference_usages([("deeptutor/services/x.py", code)])
+    ok, message = evaluate_env_usages(envs, [], load_env_registry())
+    assert ok is True, message
+

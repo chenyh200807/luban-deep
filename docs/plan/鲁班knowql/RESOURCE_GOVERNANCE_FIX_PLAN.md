@@ -60,3 +60,27 @@
 
 ## 5. 验收
 每道闸:CI 非零退出真生效、对未登记资源 fail、对范围外不误报、与现有 contract-guard 同一 runner。全程 candidate/review-only,不碰生产数据,不夹带并行 WIP。
+
+## 6. 对抗两轮裁决与 scanner 真实边界
+
+**第一轮(Claude 对抗,`b6fe08ef0`)**:6 类假绿/绕过(C1 provider 多行 placebo / I1 `SCHEMA=` marker / I2 closure namespace+tier3 子串 / I3 db aliased-import+COPY+TRUNCATE / I4 env setdefault+pop+裸 getenv / M2 CI 未引号)全部 TDD 治本,28 条对抗回归测试。
+
+**第二轮(Codex gpt-5.5 xhigh, read-only)**:确认 7 个 6 类之外的新绕过 + 3 个系统判断。按"治本子集"裁决落地:
+
+**已治本(3 个"闸根本不生效/极常见写法"的真洞,均 TDD 复现红→修→绿):**
+- **I3(c) db `from psycopg import connect`**:双重绕过——绑定 connect 为裸名(alias 匹配器看不到)+ 文件根本不匹配 `_PSYCOPG_FILE_RE` 导致整个 SQL 写扫描被跳过。修:`_psycopg_connect_bindings` 解析 from-import 绑定名(含 `as` 别名)+ 文件门加 `from psycopg2? import` 支路。
+- **I4(b) env `from os import environ; environ['X']`/`.get`**:`_ENV_REF_RE` 加裸 environ 支路(同 `(?<![\w.])` lookbehind 防双计 `os.environ`)。
+- **CI path filter**:`tests.yml` 只列旧 scanner,scanner-only PR 不触发守卫(改弱一道闸 CI 不跑)。修:加 `scripts/check_*.py` + `scripts/ci/**` glob(pattern 非枚举,未来 scanner 自动覆盖)——**闸必须能保护自己的 scanner**。
+
+**诚实记为 scanner 边界(不打 regex 地鼠):**
+- schema `"schema_id": ("...")` 括号字符串、provider `base_url=("a" "b")` 相邻字符串折叠(Python 常量折叠)、process daemon 字段名不含 `task`、process cron YAML flow `- { cron: ... }`、REST 已登记宽前缀下加叶子路由。
+- 都属"稍懂 Python/YAML 语义即可绕"。**静态 regex scanner 的真实保证 = 常见 literal 直写的止血 + 漂移预防,不是语义闭包。**
+
+**真闭环 = runtime fail-closed(scanner 是 CI tripwire,不是 authority):**
+- DB 只走 `connect_for_fact(fact)`、env/flag 只走 canonical reader、provider client 只走 factory、REST 需 leaf-level inventory 或 router decorator 注册校验。scanner 挡 script-kiddie 直写,runtime fail-closed 挡语义级绕过——两层各司其职,与本计划 §1.5「why deterministic CI gate」一致。
+
+**3 个系统判断(记账,非本轮修):**
+- **registry 是"允许集合"非"双向一致性证明"**:grandfather/stale 条目会变"预批准的洞"(将来复用废弃名被当已登记)。→ work order:registry↔code 反向漂移检测(代码删了 registry 还留)。
+- **G2 不是完整治本**:`assert_supporting_only`/`resolve_grading_point_authority` **0 caller**(codegraph 证实),生产 `_grade_one_case_v1` 不调用 resolver。最小接线点:`_grade_one_case_v1` 解析 points/provenance 后、调 `_G.grade_with_batch_judge_async` 前——rich-leaf 点先过 `resolve_grading_point_authority`,只能进 supporting 不进 `rubric_points`。→ **单列 work order(碰生产学生判分消费路径,需 owner 授权,与 §Layer2 G2 install 降级同批)。**
+
+工件:`artifacts/luban_grading_artifacts/governance_gate_codex_adversarial_20260613/codex_verdict_last_message.md`(Codex 原始裁决全文)。

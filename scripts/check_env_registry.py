@@ -89,10 +89,17 @@ _ENV_NAME = r"([A-Z][A-Z0-9_]+)"
 # (the ``os.`` prefix has a ``.`` immediately before ``getenv``, which the lookbehind
 # excludes). The bare form is its own alternation branch BEFORE ``os.``-prefixed
 # branches so the longest dotted prefix is still preferred where present.
+# I4(b) — Codex adversarial round: ``from os import environ`` then bare
+# ``environ['X']`` / ``environ.get('X')`` / ``environ.setdefault/pop`` escaped the
+# ``os.``-prefixed branches. Same ``(?<![\w.])`` lookbehind keeps the bare
+# ``environ`` branch from double-matching the ``os.environ`` form. The dotted
+# sub-forms come BEFORE bare ``environ`` so the longest accessor wins.
 _ENV_REF_RE = re.compile(
     r"(?:os\.getenv|os\.environ\.setdefault|os\.environ\.pop|os\.environ\.get|os\.environ|"
     r"(?:get_env_store\(\)|env_store)\.get|env_flag|env_str|env_int|env_bool|env_float|"
-    r"(?<![\w.])getenv)"
+    r"(?<![\w.])getenv|"
+    r"(?<![\w.])environ\.setdefault|(?<![\w.])environ\.pop|(?<![\w.])environ\.get|"
+    r"(?<![\w.])environ)"
     rf"\s*[\(\[]\s*[\"']{_ENV_NAME}[\"']"
 )
 

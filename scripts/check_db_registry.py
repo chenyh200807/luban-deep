@@ -85,6 +85,14 @@ _RAW_CONNECT_RE = re.compile(r"\bpsycopg2?\.connect\s*\(")
 # alias bindings and additionally match ``<alias>.connect(`` for every alias found.
 _PSYCOPG_ALIAS_IMPORT_RE = re.compile(r"^\s*import\s+psycopg2?\s+as\s+([A-Za-z_]\w*)", re.MULTILINE)
 
+# I3(c): from-import detection. ``from psycopg import connect`` binds the connect
+# CALLABLE to a bare name (``connect`` or ``connect as <alias>``), after which a
+# bare ``connect(`` is a raw connection neither ``psycopg.connect`` nor the alias
+# matcher could see. We capture the import target list and resolve the bound name(s).
+_PSYCOPG_FROM_IMPORT_RE = re.compile(
+    r"^\s*from\s+psycopg2?\s+import\s+(.+)$", re.MULTILINE
+)
+
 # Direct SQL write statements targeting a table. Captures the table identifier
 # after the verb. Case-insensitive; tolerates schema-qualified names.
 #
@@ -120,10 +128,13 @@ _NON_TABLE_TOKENS = frozenset({"set", "where", "values", "returning", "from", "i
 # The write-rule only governs files that actually open a raw Postgres connection
 # (the registry's scope is RLS-bypassing raw psycopg writes). A SQLite ``DELETE
 # FROM`` or an ORM call in a non-psycopg file is out of scope. A file is a raw-PG
-# file if it imports psycopg (incl. ``import psycopg as X``) or calls
-# psycopg(2).connect. The ``import psycopg2?\b`` prefix already covers the aliased
-# ``import psycopg as pg`` form (I3(a)), so writes in alias-import files are scanned.
-_PSYCOPG_FILE_RE = re.compile(r"\bimport\s+psycopg2?\b|\bpsycopg2?\.connect\s*\(")
+# file if it imports psycopg (incl. ``import psycopg as X`` AND ``from psycopg
+# import …``) or calls psycopg(2).connect. I3(c): the ``from psycopg2? import``
+# alternative is REQUIRED — without it a from-import file failed this gate, so the
+# whole SQL-write scan was skipped for it (the deeper half of the I3c bypass).
+_PSYCOPG_FILE_RE = re.compile(
+    r"\bimport\s+psycopg2?\b|\bfrom\s+psycopg2?\s+import\b|\bpsycopg2?\.connect\s*\("
+)
 
 # DB-url env reference: os.getenv("X_DATABASE_URL") / os.environ["DB_URL"] / etc.
 # Only env NAMES that look like a DB url selector (end in _DB_URL / _DATABASE_URL,
@@ -209,12 +220,35 @@ def _normalize_table(name: str) -> str:
     return name.strip().lower()
 
 
+def _psycopg_connect_bindings(body: str) -> set[str]:
+    """Bound names for psycopg's connect via ``from psycopg import connect[ as X]``.
+
+    A bare ``connect(`` is only a raw connection when the file imported it FROM
+    psycopg; we resolve the bound name(s) so an aliased ``c(url)`` is caught too.
+    This gate is why a bare ``connect(`` does not false-positive on an unrelated
+    function named connect (websocket / signal connect) in files with no such import.
+    """
+    names: set[str] = set()
+    for raw in _PSYCOPG_FROM_IMPORT_RE.findall(body):
+        for target in raw.strip().strip("()").split(","):
+            parts = target.strip().split()
+            if not parts or parts[0] != "connect":
+                continue
+            # ``connect`` or ``connect as <alias>``
+            if len(parts) >= 3 and parts[1] == "as":
+                names.add(parts[2])
+            else:
+                names.add("connect")
+    return names
+
+
 def collect_connect_usages(files: list[tuple[str, str]]) -> list[ConnectUsage]:
     """Scan ``(path, body)`` pairs for raw psycopg.connect calls.
 
-    I3(a): also resolves ``import psycopg as <alias>`` and matches
-    ``<alias>.connect(`` — an aliased import the bare ``psycopg.connect`` regex
-    could not see.
+    I3(a): resolves ``import psycopg as <alias>`` and matches ``<alias>.connect(``.
+    I3(c): resolves ``from psycopg import connect[ as <name>]`` and matches the
+    bare bound call ``<name>(`` — neither of which the bare ``psycopg.connect``
+    regex could see.
     """
     usages: list[ConnectUsage] = []
     for path, body in files:
@@ -227,12 +261,22 @@ def collect_connect_usages(files: list[tuple[str, str]]) -> list[ConnectUsage]:
         if aliases:
             alt = "|".join(re.escape(a) for a in sorted(aliases))
             alias_connect_re = re.compile(rf"\b(?:{alt})\.connect\s*\(")
+        # I3(c): from-import bound names → match the bare bound call ``name(``.
+        # The ``(?<![\w.])`` lookbehind keeps ``self.connect(`` / ``pg.connect(``
+        # (already covered above) from double-matching as a bare call.
+        bound = _psycopg_connect_bindings(body)
+        bound_connect_re: re.Pattern[str] | None = None
+        if bound:
+            balt = "|".join(re.escape(b) for b in sorted(bound))
+            bound_connect_re = re.compile(rf"(?<![\w.])(?:{balt})\s*\(")
         for lineno, line in enumerate(body.splitlines(), start=1):
             stripped = line.strip()
             if stripped.startswith("#"):
                 continue
-            if _RAW_CONNECT_RE.search(line) or (
-                alias_connect_re is not None and alias_connect_re.search(line)
+            if (
+                _RAW_CONNECT_RE.search(line)
+                or (alias_connect_re is not None and alias_connect_re.search(line))
+                or (bound_connect_re is not None and bound_connect_re.search(line))
             ):
                 usages.append(ConnectUsage(path=path, lineno=lineno, snippet=stripped[:120]))
     return usages
