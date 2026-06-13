@@ -61,11 +61,11 @@ scope_rule:
 # honest full set is the UNION across all literal forms = 176. The "152" was an
 # incomplete baseline; 176 is the closed authority this section keys off.
 completeness_closure:
-  full_set_count: 182            # union across all schema-version literal forms (+learning_training_intent.v2, P2)
+  full_set_count: 183            # union across all schema-version literal forms (+grading_error_event.v1, P2)
   primary_grep_baseline: 152     # task's narrow grep; missed SCHEMA_ID=/schema_id: forms
   tier_counts:
     tier1_typed_grading_object: 9    # the `schemas:` list below (1 canonical + 8 deprecated)
-    tier2_runtime_canonical: 25      # tier2_canonical_contracts below (+p0a-v1, +learning_report_read_model.v2, +rag_retrieval_plan.v1, +personalization_context_pack.v1, +learning_training_intent.v2)
+    tier2_runtime_canonical: 26      # tier2_canonical_contracts below (+p0a-v1, +learning_report_read_model.v2, +rag_retrieval_plan.v1, +personalization_context_pack.v1, +learning_training_intent.v2, +grading_error_event.v1)
     tier3_ephemeral_artifact: 148    # covered by tier3_carve_out rule, not enumerated 1:1
                                      # (148 incl. luban_per_question_full_compile.v1, the Stage 1
                                      #  full-bank compile summary artifact added 2026-06-14)
@@ -400,6 +400,15 @@ tier2_canonical_contracts:
     module: deeptutor/services/learner_state/training_intent.py
     consumed_by: deeptutor/services/learner_state/home_personalization.py + learning_report_read_model.py + personalization_context.py + next_best_action.py + scoring_point_map_read_model.py + revalidation_queue.py + deeptutor/services/construction_grading/writeback.py
     needs_field_canonicalization: true   # payload keeps integer intent_version (2) + documented v1 legacy keys
+
+  # — grading error-event (P2: error_events target; cross-domain consumed by learner_state) —
+  - name: grading_error_event.v1
+    status: runtime_canonical
+    owner: construction_grading
+    canonical_for: the canonical grading error event (GradingErrorEvent) — single typed-object producer consumed by the learner_state error_events → claim projection
+    module: deeptutor/services/construction_grading/schema.py
+    consumed_by: deeptutor/services/learner_state/learning_synthesis.py (error_events → explainable claim) + attempt_detail_read_model.py + learning_report_read_model.py
+    needs_field_canonicalization: true   # FIELD TODO: canonical span field is ``evidence``; v1 rubric path still emits parallel ``evidence_span`` for the same fact (P2#9 pinning)
 
   # — canonical knowledge spine (manifest → graph/index/unified/repairs/clauses) —
   - name: luban_canonical_knowledge_manifest.v1
