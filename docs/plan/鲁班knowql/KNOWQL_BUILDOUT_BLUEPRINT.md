@@ -64,3 +64,20 @@ D1 query executor 不得变第二套判分 policy engine;D2 不得新增第三�
   - **摁死误给闸**:`detect_over_credit`(`per_question_grading_judge.py`,commit 8564a7241)= score 实质超出其 verdict 支撑的 coverage(`score - coverage > margin`),**非"高分+任意miss"**(根因纠正:绝对阈值误伤多点题 23/24=0.958 的诚实高分)。
 - **A/B harness**(`run_luban_per_question_grading_ab.py`,review-only):arm_A_freestyle vs arm_B_atomic_contract,controlled 学生作答带精确 ground truth。dry-run oracle 端到端证明 plumbing + arm B 结构 over-credit-safe;**`--live` 真 LLM A/B 待 owner 跑(需 key,billable)**——出 arm A vs arm B over-credit 率对比。
 - **production `_grade_one_case_v1` 接线 = 待 `--live` A/B 裁决后再做**(别在实验证明前改生产判分消费路径)。Codex 给的最小接线点已记 `RESOURCE_GOVERNANCE_FIX_PLAN §6`。
+
+## 8. `--live` A/B 实测结果(2026-06-13, deepseek-v4-flash, 三臂, confound-hardened)
+
+经两轮 Codex 对抗(治理闸 + 实验设计)+ 13 份手写 paraphrase fixtures + 三公平臂,真 LLM 跑出**支持 thesis**的诚实结论:
+
+| 指标(10 个 riskful fixtures) | A0_freestyle | A1_self_decompose | **B_atomic_contract** |
+|---|---|---|---|
+| ground-truth over-credit 率 | 0.20 | 0.10 | **0.00** |
+| calibration MAE(越低越好) | 0.074 | 0.101 | **0.013** |
+| false-hit 率(漏点判hit) | — | — | **0.00** |
+
+- **预测序成立且 B 优于 A1**(不只 A0):B(0) < A1(0.10) < A0(0.20)。Codex 要求的"必须赢公平 A1"达成。
+- **复刻 codex 信任崩塌反例**:over_credit_trap_skip_subq5(学生跳过整个小问5,真覆盖 0.75)——A1 给 **1.0**(误给),A0 给 0.75,**B 给 0.75**(正确);over_credit_trap_miss_enumeration(真 0.667)——A0 给 **1.0**(误给),B 给 0.667。
+- **B 不是保守压分**:9/10 riskful fixture 上 B 的 score 精确等于 true_coverage(MAE 0.013);A0/A1 双向乱(既误给又误扣)。
+- **诚实边界**:小样本(10 riskful / 3 trap)、单模型单次、fixtures 由编译方手写标注(ground truth=作者语义判断)。方向跨每个指标每条 fixture 一致,但非大样本证明;external validity 仍需真实学生答案+独立人工 gold(work order)。
+
+**结论**:confound-hardened demo 支持"编译原子合约摁死误给 + 大幅改善校准",且赢过公平结构化 baseline → **解锁 production `_grade_one_case_v1` 接线**(原 gate "待 --live 裁决"已满足),接线仍属生产判分改动需 owner 授权。工件:`artifacts/luban_grading_artifacts/per_question_grading_ab_20260613/per_question_grading_ab_live_llm.json`。
