@@ -22,13 +22,15 @@ outside this file.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 import threading
 from typing import Any
+import weakref
 
-import httpx
 from anthropic import AsyncAnthropic
+import httpx
 from openai import AsyncAzureOpenAI, AsyncOpenAI
 
 from deeptutor.services.llm.exceptions import LLMConfigError
@@ -125,7 +127,19 @@ def make_openai_client(
     )
 
 
-_pooled_clients: dict[tuple[str, str, bool], AsyncOpenAI] = {}
+# Pool keyed by the RUNNING event loop first, then by upstream. An httpx async
+# connection pool binds to the event loop it is first used on; the AsyncOpenAI
+# client must NOT be shared across loops. Several call sites reach this factory
+# from an ephemeral `asyncio.run(...)` inside a worker thread (post-turn topic
+# inference, cohort-gated grading adjudicator, rubric batch judge, CLI). A single
+# process-global client would either fail in those worker loops or — worse — get
+# cached while bound to a loop that asyncio.run() then closes, poisoning every
+# subsequent main-loop LLM call. Per-loop caching keeps the main-loop reuse win
+# (one pooled client per upstream, no per-call pool leak on the hot path) while
+# giving each ephemeral loop its own client that is GC'd when the loop is.
+_pooled_clients_by_loop: "weakref.WeakKeyDictionary[Any, dict[tuple[str, str, bool], AsyncOpenAI]]" = (
+    weakref.WeakKeyDictionary()
+)
 _pooled_clients_lock = threading.Lock()
 
 
@@ -133,22 +147,32 @@ def get_pooled_openai_client(
     api_key: str | None,
     base_url: str | None = None,
 ) -> AsyncOpenAI:
-    """Process-lifetime AsyncOpenAI keyed by (api_key, base_url), sharing one
-    httpx connection pool per upstream — no per-call TLS handshake, no leaked
-    sockets waiting on GC. Uses the project-default timeout; callers needing a
-    custom timeout or client-level headers should fall back to
+    """Loop-scoped AsyncOpenAI keyed by (api_key, base_url), sharing one httpx
+    connection pool per upstream WITHIN the running event loop — no per-call TLS
+    handshake, no leaked sockets waiting on GC on the hot path. The client is
+    bound to the loop that is running when it is created; callers in an ephemeral
+    ``asyncio.run`` loop transparently get a distinct client for that loop.
+    Callers needing a custom timeout or client-level headers should fall back to
     ``make_openai_client()`` and manage the client's lifetime themselves.
     Per-call headers go on the request: ``...create(..., extra_headers=...)``.
     """
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        # No running loop (rare sync caller) — return a fresh client; the caller
+        # owns its lifetime and there is no loop to scope/reuse against.
+        return make_openai_client(api_key, base_url=base_url)
     cache_key = (api_key or "no-key", base_url or "", disable_ssl_verify_enabled())
-    client = _pooled_clients.get(cache_key)
-    if client is None:
-        with _pooled_clients_lock:
-            client = _pooled_clients.get(cache_key)
-            if client is None:
-                client = make_openai_client(api_key, base_url=base_url)
-                _pooled_clients[cache_key] = client
-    return client
+    with _pooled_clients_lock:
+        loop_cache = _pooled_clients_by_loop.get(loop)
+        if loop_cache is None:
+            loop_cache = {}
+            _pooled_clients_by_loop[loop] = loop_cache
+        client = loop_cache.get(cache_key)
+        if client is None:
+            client = make_openai_client(api_key, base_url=base_url)
+            loop_cache[cache_key] = client
+        return client
 
 
 def make_azure_openai_client(
