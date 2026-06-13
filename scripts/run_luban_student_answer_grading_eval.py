@@ -31,6 +31,7 @@ ARM_KBV5_CLEAN = "kbv5_clean_grader"
 ARM_RUNTIME_SLIM = "runtime_slim_grader"
 ARM_TYPED_RUBRIC = "typed_rubric_grader"
 ARM_COMPACT_SCORING_ARTIFACT = "compact_scoring_artifact_grader"
+ARM_TYPED_CASE_GRADING_ARTIFACT = "typed_case_grading_artifact_grader"
 ARM_KBV5_PLUS_RUNTIME_SLIM = "kbv5_plus_runtime_slim_grader"
 ARM_KBV5_PLUS_TYPED_RUBRIC = "kbv5_plus_typed_rubric_grader"
 ARM_KBV5_PLUS_COMPACT_SCORING_ARTIFACT = "kbv5_plus_compact_scoring_artifact_grader"
@@ -40,6 +41,7 @@ PLANNED_ARMS = [
     ARM_RUNTIME_SLIM,
     ARM_TYPED_RUBRIC,
     ARM_COMPACT_SCORING_ARTIFACT,
+    ARM_TYPED_CASE_GRADING_ARTIFACT,
     ARM_KBV5_PLUS_RUNTIME_SLIM,
     ARM_KBV5_PLUS_TYPED_RUBRIC,
     ARM_KBV5_PLUS_COMPACT_SCORING_ARTIFACT,
@@ -180,6 +182,244 @@ def _reference_text(reference: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def _split_numbered_sections(text: str) -> dict[str, str]:
+    sections: dict[str, str] = {}
+    matches = list(re.finditer(r"(?:^|\n)\s*(?P<no>\d+)[.、．]\s*", str(text or "")))
+    for index, match in enumerate(matches):
+        start = match.end()
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(text)
+        body = str(text or "")[start:end].strip()
+        if body:
+            sections[match.group("no")] = body
+    return sections
+
+
+def _split_atomic_expected_points(answer: str) -> list[str]:
+    text = re.sub(r"\s+", "", str(answer or "").strip(" 。；;"))
+    if not text:
+        return []
+    after_colon = re.split(r"[:：]", text, maxsplit=1)
+    candidate = after_colon[1] if len(after_colon) == 2 else text
+    parts = [
+        part.strip(" 。；;，,、")
+        for part in re.split(r"[；;。]|[、，,](?=[^，,、；;。]{2,18}(?:工程|检|验|法|度|片|筋|厚度|强度|性能|色差|掉角|脱皮|检测|试验|确认|归档))", candidate)
+        if part.strip(" 。；;，,、")
+    ]
+    if len(parts) <= 1:
+        parts = [part.strip(" 。；;") for part in re.split(r"[；;。]+", text) if part.strip(" 。；;")]
+    return parts or [text]
+
+
+def _infer_scoring_intent(question: str, answer: str) -> str:
+    joined = f"{question}\n{answer}"
+    if any(word in joined for word in ("计算", "公式", "费用", "工期", "造价")):
+        return "formula"
+    if any(word in joined for word in ("不妥", "改正", "纠正")):
+        return "flaw_correction"
+    if any(word in joined for word in ("流程", "步骤", "工艺")):
+        return "procedure"
+    if any(word in joined for word in ("条件", "情形", "适用", "要求")):
+        return "condition_check"
+    return "list_items"
+
+
+def build_textbook_provenance_index(pack: dict[str, Any] | None) -> dict[str, list[dict[str, Any]]]:
+    """Index a v3.2 rich-leaf pack by scoring-point term -> textbook source refs.
+
+    Reuses the compiled pack's ``scoring_points`` provenance (chunk_id / quote /
+    source_authority) so an atomic point can be bound to a textbook source_ref
+    by required-term overlap. This never fabricates new truth — it only surfaces
+    provenance the compile axis already verified.
+    """
+    index: dict[str, list[dict[str, Any]]] = {}
+    seen: dict[str, set[str]] = {}
+    units = (pack or {}).get("runtime_token_pack_units") or []
+    for unit in units:
+        compiled = unit.get("compiled_context") if isinstance(unit.get("compiled_context"), dict) else {}
+        for scoring_point in compiled.get("scoring_points") or []:
+            if not isinstance(scoring_point, dict):
+                continue
+            provenance = scoring_point.get("provenance") if isinstance(scoring_point.get("provenance"), dict) else {}
+            source_ref = str(provenance.get("chunk_id") or provenance.get("source_ref") or "").strip()
+            if not source_ref:
+                continue
+            entry = {
+                "source_ref": source_ref,
+                "source_authority": str(provenance.get("source_authority") or "textbook"),
+                "quote": _clip(provenance.get("quote"), limit=160),
+                "leaf_id": str(unit.get("leaf_id") or ""),
+            }
+            terms = list(scoring_point.get("required_terms") or [])
+            for term in terms:
+                key = _normalize_term(term)
+                if not key:
+                    continue
+                bucket = seen.setdefault(key, set())
+                if source_ref in bucket:
+                    continue
+                bucket.add(source_ref)
+                index.setdefault(key, []).append(entry)
+    return index
+
+
+def _load_provenance_index(pack_path: Path | None) -> dict[str, list[dict[str, Any]]] | None:
+    """Load a v3.2 scoring-point pack and index it for textbook provenance.
+
+    Returns ``None`` (no provenance binding, all points marked unsourced) when
+    the pack is absent or unreadable — the eval degrades, it never fabricates.
+    """
+    if not pack_path:
+        return None
+    path = Path(pack_path)
+    if not path.exists():
+        return None
+    try:
+        pack = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not isinstance(pack, dict):
+        return None
+    return build_textbook_provenance_index(pack)
+
+
+def _normalize_term(term: Any) -> str:
+    return re.sub(r"\s+", "", str(term or "")).strip(" 。；;，,、:：")
+
+
+def lookup_textbook_source_refs(text: Any, index: dict[str, list[dict[str, Any]]] | None) -> list[dict[str, Any]]:
+    """Resolve textbook source refs for ``text`` via exact or substring term match."""
+    if not index:
+        return []
+    key = _normalize_term(text)
+    if not key:
+        return []
+    if key in index:
+        return list(index[key])
+    matches: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for term, entries in index.items():
+        if len(term) >= 2 and (term in key or key in term):
+            for entry in entries:
+                ref = str(entry.get("source_ref") or "")
+                if ref and ref not in seen:
+                    seen.add(ref)
+                    matches.append(entry)
+    return matches
+
+
+def _attach_point_provenance(
+    scoring_point: dict[str, Any],
+    *,
+    gold_ref: str,
+    provenance_index: dict[str, list[dict[str, Any]]] | None,
+) -> dict[str, Any]:
+    """Bind every atomic point to a gold ref and, when available, a textbook ref.
+
+    Points with no textbook hit are marked ``sourced=False`` /
+    ``source_authority="unsourced"`` — never silently dropped or fabricated.
+    """
+    candidates: list[Any] = [scoring_point.get("canonical_answer")]
+    candidates.extend(scoring_point.get("required_terms") or [])
+    hits: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for candidate in candidates:
+        for entry in lookup_textbook_source_refs(candidate, provenance_index):
+            ref = str(entry.get("source_ref") or "")
+            if ref and ref not in seen:
+                seen.add(ref)
+                hits.append(entry)
+    if hits:
+        primary = hits[0]
+        provenance = {
+            "gold_ref": gold_ref,
+            "source_ref": primary.get("source_ref"),
+            "source_authority": primary.get("source_authority") or "textbook",
+            "sourced": True,
+            "textbook_quote": primary.get("quote") or "",
+            "all_source_refs": [entry.get("source_ref") for entry in hits[:4]],
+        }
+    else:
+        provenance = {
+            "gold_ref": gold_ref,
+            "source_ref": None,
+            "source_authority": "unsourced",
+            "sourced": False,
+            "textbook_quote": "",
+            "all_source_refs": [],
+        }
+    return {**scoring_point, "provenance": provenance}
+
+
+def build_typed_case_grading_artifact(
+    sample: dict[str, Any],
+    reference: dict[str, Any],
+    *,
+    provenance_index: dict[str, list[dict[str, Any]]] | None = None,
+) -> dict[str, Any]:
+    """Build a minimal Nexus-like point-level scoring contract for shadow eval."""
+    subquestions: list[dict[str, Any]] = []
+    source_chunks = reference.get("source_chunks") or []
+    for point in reference.get("gold_points") or []:
+        question_sections = _split_numbered_sections(str(point.get("question") or ""))
+        answer_sections = _split_numbered_sections(str(point.get("gold_answer") or ""))
+        if not answer_sections:
+            sub_no = str(point.get("sub_no") or "")
+            answer_sections = {sub_no: str(point.get("gold_answer") or "")}
+            question_sections = {sub_no: str(point.get("question") or "")}
+        total_score = float(point.get("score") or 0.0)
+        section_score = total_score / max(len(answer_sections), 1)
+        for sub_no in sorted(answer_sections, key=lambda value: int(value) if value.isdigit() else value):
+            answer_text = answer_sections[sub_no]
+            expected_points = _split_atomic_expected_points(answer_text)
+            weight = section_score / max(len(expected_points), 1)
+            scoring_points = []
+            for index, expected in enumerate(expected_points, start=1):
+                point_id = f"{sample.get('question_id')}-{sub_no}-P{index}"
+                canonical = _clip(expected, limit=140)
+                gold_ref = f"gold:{sample.get('question_id')}:{sub_no}"
+                raw_point = {
+                    "point_id": point_id,
+                    "sub_no": sub_no,
+                    "weight": round(weight, 4),
+                    "canonical_answer": canonical,
+                    "acceptable_variants": [canonical],
+                    "required_terms": [term for term in re.split(r"[、，,；;和及与]", canonical) if 1 < len(term) <= 16][:4],
+                    "miss_tags": ["漏列采分点"],
+                    "source_refs": source_chunks,
+                }
+                scoring_points.append(
+                    _attach_point_provenance(raw_point, gold_ref=gold_ref, provenance_index=provenance_index)
+                )
+            subquestions.append(
+                {
+                    "sub_no": sub_no,
+                    "intent": _infer_scoring_intent(question_sections.get(sub_no, ""), answer_text),
+                    "max_score": round(section_score, 4),
+                    "question": _clip(question_sections.get(sub_no, ""), limit=220),
+                    "scoring_points": scoring_points,
+                    "partial_credit_rules": ["hit=覆盖该point_id核心语义; partial=只覆盖部分关键条件; miss=未答/答非所问/关键术语缺失"],
+                    "common_traps": ["概括性整改表述不能替代明确采分点"],
+                    "next_action_templates": ["围绕漏判point_id回看规范条文并做同类小问列项训练"],
+                }
+            )
+    return {
+        "artifact_schema": "case_grading_artifact.v1",
+        "case_id": sample.get("question_id"),
+        "sample_id": sample.get("sample_id"),
+        "source": "official_reference_answer_restructured_as_point_contract",
+        "source_chunks": source_chunks,
+        "subquestions": subquestions,
+        "score_aggregation": "sum(point.awarded_points) / sum(point.weight) * 100",
+        "output_contract": {
+            "must_emit_one_result_per_point_id": True,
+            "score_must_equal_point_sum": True,
+            "deduction_required_if_any_miss": True,
+            "weakness_required_if_any_miss": True,
+            "basis_ref_must_use_point_id": True,
+        },
+    }
+
+
 def build_compact_scoring_artifact(reference: dict[str, Any]) -> dict[str, Any]:
     """Build a production-shaped compact rubric from official reference points.
 
@@ -225,7 +465,15 @@ def build_compact_scoring_artifact(reference: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def grading_context(arm: str, *, retrieval: dict[str, Any], rich: dict[str, Any] | None, reference: dict[str, Any]) -> dict[str, Any]:
+def grading_context(
+    arm: str,
+    *,
+    sample: dict[str, Any],
+    retrieval: dict[str, Any],
+    rich: dict[str, Any] | None,
+    reference: dict[str, Any],
+    provenance_index: dict[str, list[dict[str, Any]]] | None = None,
+) -> dict[str, Any]:
     context: dict[str, Any] = {"mode": arm}
     if arm in {
         ARM_KBV5_CLEAN,
@@ -249,24 +497,32 @@ def grading_context(arm: str, *, retrieval: dict[str, Any], rich: dict[str, Any]
         context["typed_leaf_ids"] = (rich or {}).get("leaf_ids") or []
     if arm in {ARM_COMPACT_SCORING_ARTIFACT, ARM_KBV5_PLUS_COMPACT_SCORING_ARTIFACT}:
         context["compact_scoring_artifact"] = build_compact_scoring_artifact(reference)
+    if arm == ARM_TYPED_CASE_GRADING_ARTIFACT:
+        context["typed_case_grading_artifact"] = build_typed_case_grading_artifact(
+            sample, reference, provenance_index=provenance_index
+        )
     return context
 
 
 def grading_messages(*, sample: dict[str, Any], reference: dict[str, Any], context: dict[str, Any]) -> list[dict[str, str]]:
+    typed_artifact = context.get("typed_case_grading_artifact") if isinstance(context.get("typed_case_grading_artifact"), dict) else None
     payload = {
         "sample_id": sample["sample_id"],
         "student_id": sample["student_id"],
         "ability_label_hint_for_audit_only": sample.get("ability_label"),
         "question": _clip(sample.get("question"), limit=2600),
         "student_answer": _clip(sample.get("student_answer"), limit=2200),
-        "reference_gold_points": reference.get("gold_points") or [],
+        "reference_gold_points": [] if typed_artifact else reference.get("gold_points") or [],
         "context": context,
         "required_json": {
             "score_pct": "0-100 estimated score for THIS student answer",
             "point_results": [
                 {
+                    "point_id": "required when typed_case_grading_artifact is present",
                     "sub_no": "question number",
                     "status": "hit | partial | miss | contradiction",
+                    "awarded_points": "numeric points awarded for this point_id",
+                    "max_points": "numeric max points for this point_id",
                     "deduction_reason": "specific Chinese reason",
                     "student_evidence_quote": "short quote from student answer",
                     "basis_ref": "gold point id, chunk id, rich leaf id, or typed source ref",
@@ -293,10 +549,13 @@ def grading_messages(*, sample: dict[str, Any], reference: dict[str, Any], conte
             "role": "system",
             "content": (
                 "You are a strict Chinese construction-exam grader. Grade the STUDENT answer, not a model answer. "
-                "Use the reference gold points as rubric authority. Context may help clarify knowledge, but must not "
-                "override the gold points. Return JSON only. Make deduction reasons, misconception_tags, learning_evidence_event, "
-                "and next_review_action specific enough to support a learner profile. If context contains compact_scoring_artifact, "
-                "follow its point-wise output contract and keep each point result concise."
+                "If context contains typed_case_grading_artifact, use it as the rubric authority: emit exactly one point_results "
+                "item for every scoring_points.point_id, include point_id, awarded_points, max_points, student_evidence_quote, "
+                "and basis_ref=point_id, and make score_pct equal the point sum. If any point is miss/partial/contradiction, "
+                "do not give a full score and explain the deduction. Otherwise use the reference gold points as rubric authority. "
+                "Context may help clarify knowledge, but must not override the rubric authority. Return JSON only. Make deduction "
+                "reasons, misconception_tags, learning_evidence_event, and next_review_action specific enough to support a learner profile. "
+                "If context contains compact_scoring_artifact, follow its point-wise output contract and keep each point result concise."
             ),
         },
         {"role": "user", "content": json.dumps(payload, ensure_ascii=False, sort_keys=True)},
@@ -366,6 +625,25 @@ def _mean(values: list[float]) -> float | None:
     return round(mean(values), 4) if values else None
 
 
+def _contract_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Report-level scoring-contract validator outcome across all completed rows."""
+    completed = [row for row in rows if row.get("status") == "completed"]
+    validated = [row for row in completed if row.get("validation_status")]
+    passed = [row for row in validated if row.get("validation_status") == "passed"]
+    invalid = [row for row in validated if row.get("validation_status") == "contract_invalid"]
+    regraded = [row for row in completed if row.get("regrade_attempted")]
+    unsourced_total = sum(int(row.get("unsourced_point_count") or 0) for row in completed)
+    return {
+        "completed_rows": len(completed),
+        "validated_rows": len(validated),
+        "contract_valid_count": len(passed),
+        "contract_invalid_count": len(invalid),
+        "validator_pass_rate": _mean([1.0 if row in passed else 0.0 for row in validated]),
+        "regrade_triggered_count": len(regraded),
+        "unsourced_point_total": unsourced_total,
+    }
+
+
 def _first_present(payload: dict[str, Any], keys: tuple[str, ...]) -> Any:
     for key in keys:
         if key in payload:
@@ -404,6 +682,187 @@ def normalize_grading_payload(payload: dict[str, Any]) -> dict[str, Any]:
         "learning_evidence_event": _grading_dict(payload, "learning_evidence_event", "learning_evidence"),
         "next_review_action": _grading_dict(payload, "next_review_action", "next_action", "review_action"),
         "citations": _grading_list(payload, "citations", "evidence_refs", "basis_refs"),
+    }
+
+
+def _as_float(value: Any) -> float | None:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _negative_marker_present(values: Any) -> bool:
+    text = json.dumps(values, ensure_ascii=False) if not isinstance(values, str) else values
+    return any(marker in text for marker in ("漏", "未", "错", "缺", "不完整", "不准确", "答非所问"))
+
+
+_VALID_POINT_STATUSES = frozenset({"hit", "partial", "miss", "contradiction"})
+
+# Locked per-point output schema. Each typed-artifact point_result must emit
+# exactly these fields with the listed types, or the row is contract_invalid.
+_REQUIRED_POINT_RESULT_FIELDS: dict[str, tuple[type, ...]] = {
+    "sub_no": (str, int),
+    "max_points": (int, float),
+    "required_points": (list,),
+    "accepted_variants": (list,),
+    "student_evidence_quote": (str,),
+    "status": (str,),
+    "awarded_points": (int, float),
+    "deduction_reason": (str,),
+    "misconception_tag": (str,),
+    "next_review_action": (str, dict),
+    "learning_evidence_event": (dict,),
+}
+
+
+def enforce_output_schema(point_results: list[Any]) -> list[str]:
+    """Return contract violations for the locked per-point output schema.
+
+    A point_result must carry every required field with the right type, plus a
+    point identifier (point_id or basis_ref) and a known status value. ``bool``
+    is rejected where a number is required (Python treats bool as int).
+    """
+    errors: list[str] = []
+    for index, item in enumerate(point_results):
+        if not isinstance(item, dict):
+            errors.append(f"point_result_not_object:idx={index}")
+            continue
+        label = str(item.get("point_id") or item.get("basis_ref") or f"idx={index}")
+        if not (str(item.get("point_id") or "").strip() or str(item.get("basis_ref") or "").strip()):
+            errors.append(f"missing_field:point_id_or_basis_ref:{label}")
+        for field, types in _REQUIRED_POINT_RESULT_FIELDS.items():
+            if field not in item:
+                errors.append(f"missing_field:{field}:{label}")
+                continue
+            value = item[field]
+            if isinstance(value, bool) and bool not in types:
+                errors.append(f"type_error:{field}:{label}")
+                continue
+            if not isinstance(value, types):
+                errors.append(f"type_error:{field}:{label}")
+        status = str(item.get("status") or "").lower()
+        if status and status not in _VALID_POINT_STATUSES:
+            errors.append(f"invalid_status:{status}:{label}")
+    return errors
+
+
+def validate_grading_output(context: dict[str, Any], normalized: dict[str, Any]) -> dict[str, Any]:
+    errors: list[str] = []
+    warnings: list[str] = []
+    point_results = normalized.get("point_results") if isinstance(normalized.get("point_results"), list) else []
+    score_pct = _as_float(normalized.get("score_pct"))
+    statuses = [str(item.get("status") or "").lower() for item in point_results if isinstance(item, dict)]
+    has_non_hit = any(status in {"partial", "miss", "contradiction"} for status in statuses)
+    if score_pct is not None and score_pct >= 95 and (
+        has_non_hit
+        or _negative_marker_present(normalized.get("deduction_reasons"))
+        or _negative_marker_present(normalized.get("misconception_tags"))
+        or _negative_marker_present(point_results)
+    ):
+        errors.append("high_score_conflicts_with_miss_or_deduction")
+
+    artifact = context.get("typed_case_grading_artifact") if isinstance(context.get("typed_case_grading_artifact"), dict) else None
+    if not artifact:
+        return {"status": "passed" if not errors else "failed", "errors": errors, "warnings": warnings}
+
+    # Hardening 2: locked per-point output schema. Any missing/typed field makes
+    # the row a contract_invalid that must be regraded once.
+    schema_errors = enforce_output_schema(point_results)
+    errors.extend(schema_errors)
+
+    expected_points: dict[str, float] = {}
+    point_sub_no: dict[str, str] = {}
+    sub_no_points: dict[str, list[str]] = defaultdict(list)
+    unsourced_ids: list[str] = []
+    for subquestion in artifact.get("subquestions") or []:
+        sub_no = str(subquestion.get("sub_no") or "")
+        for point in subquestion.get("scoring_points") or []:
+            point_id = str(point.get("point_id") or "")
+            if not point_id:
+                continue
+            expected_points[point_id] = float(point.get("weight") or 0.0)
+            point_sub_no[point_id] = sub_no
+            sub_no_points[sub_no].append(point_id)
+            provenance = point.get("provenance") if isinstance(point.get("provenance"), dict) else {}
+            if provenance and provenance.get("sourced") is False:
+                unsourced_ids.append(point_id)
+    if unsourced_ids:
+        # Hardening 1: surface compile-axis gaps, never fabricate a source.
+        warnings.append("unsourced_scoring_points:" + ",".join(unsourced_ids[:8]))
+
+    emitted_ids = [str(item.get("point_id") or item.get("basis_ref") or "") for item in point_results if isinstance(item, dict)]
+    missing_ids = sorted(point_id for point_id in expected_points if point_id not in emitted_ids)
+    extra_ids = sorted(point_id for point_id in emitted_ids if point_id and point_id not in expected_points)
+    if missing_ids:
+        errors.append("missing_point_results:" + ",".join(missing_ids[:8]))
+    if extra_ids:
+        warnings.append("unknown_point_results:" + ",".join(extra_ids[:8]))
+
+    # Hardening 3c: every artifact sub_no must have at least one emitted point
+    # result — graders may not collapse the 5 sub-questions (or the 4-point 节能
+    # sub-question) into a single result.
+    emitted_sub_nos: set[str] = set()
+    for item in point_results:
+        if not isinstance(item, dict):
+            continue
+        pid = str(item.get("point_id") or item.get("basis_ref") or "")
+        if pid in point_sub_no:
+            emitted_sub_nos.add(point_sub_no[pid])
+    collapsed_subs = sorted(sub for sub in sub_no_points if sub not in emitted_sub_nos)
+    if collapsed_subs:
+        errors.append("subquestion_without_point_results:" + ",".join(collapsed_subs[:8]))
+
+    awarded_total = 0.0
+    max_total = sum(expected_points.values())
+    saw_awarded = False
+    for item in point_results:
+        if not isinstance(item, dict):
+            continue
+        point_id = str(item.get("point_id") or item.get("basis_ref") or "")
+        if point_id not in expected_points:
+            continue
+        awarded = _as_float(item.get("awarded_points"))
+        max_points = _as_float(item.get("max_points"))
+        status = str(item.get("status") or "").lower()
+        if awarded is None:
+            errors.append(f"missing_awarded_points:{point_id}")
+            continue
+        saw_awarded = True
+        if max_points is not None and abs(max_points - expected_points[point_id]) > 0.05:
+            warnings.append(f"max_points_mismatch:{point_id}")
+        # Hardening 3a (per point): awarded within [0, max].
+        if awarded < -0.001 or awarded - expected_points[point_id] > 0.05:
+            errors.append(f"awarded_points_out_of_range:{point_id}")
+        # Hardening 3b: any miss/partial/contradiction needs a deduction reason.
+        if status in {"partial", "miss", "contradiction"} and not str(item.get("deduction_reason") or "").strip():
+            errors.append(f"missing_deduction_reason:{point_id}")
+        awarded_total += max(0.0, min(awarded, expected_points[point_id]))
+
+    # Hardening 3a (aggregate): Σawarded must not exceed Σmax.
+    raw_awarded_total = sum(
+        _as_float(item.get("awarded_points")) or 0.0
+        for item in point_results
+        if isinstance(item, dict) and str(item.get("point_id") or item.get("basis_ref") or "") in expected_points
+    )
+    if max_total > 0 and raw_awarded_total - max_total > 0.05:
+        errors.append(f"awarded_sum_exceeds_max:awarded={raw_awarded_total:.2f},max={max_total:.2f}")
+
+    recomputed_score_pct = round((awarded_total / max_total * 100.0), 2) if saw_awarded and max_total > 0 else None
+    # Hardening 3d: declared score_pct must be self-consistent with Σawarded/Σmax.
+    if recomputed_score_pct is not None and score_pct is not None and abs(score_pct - recomputed_score_pct) > 2.0:
+        errors.append(f"score_pct_mismatch:model={score_pct:.2f},point_sum={recomputed_score_pct:.2f}")
+
+    status = "contract_invalid" if errors else "passed"
+    return {
+        "status": status,
+        "errors": errors,
+        "warnings": warnings,
+        "should_regrade": status == "contract_invalid",
+        "expected_point_count": len(expected_points),
+        "emitted_point_count": len(emitted_ids),
+        "unsourced_point_count": len(unsourced_ids),
+        "recomputed_score_pct": recomputed_score_pct,
     }
 
 
@@ -449,6 +908,9 @@ def build_report(
                 ),
                 **{key: _mean([float(row.get(key) or 0.0) for row in judged]) for key in quality_keys},
                 "overclaim_rate": _mean([1.0 if row.get("overclaim") else 0.0 for row in judged]),
+                "validation_pass_rate": _mean([1.0 if row.get("validation_status") == "passed" else 0.0 for row in completed]),
+                "contract_invalid_rate": _mean([1.0 if row.get("validation_status") == "contract_invalid" else 0.0 for row in completed]),
+                "regrade_rate": _mean([1.0 if row.get("regrade_attempted") else 0.0 for row in completed]),
                 "mean_total_tokens": _mean([float(row.get("total_tokens") or 0.0) for row in completed]),
             }
         )
@@ -485,6 +947,7 @@ def build_report(
         "arms": arms,
         "rows": rows,
         "judge_rows": judge_rows,
+        "contract_summary": _contract_summary(rows),
         "blockers": blockers,
         "classification": {
             "candidate_only": True,
@@ -517,6 +980,7 @@ def run_eval(
     judge_max_tokens: int = 1200,
     planned_arms: list[str] | None = None,
     output_path: Path | None = None,
+    provenance_index: dict[str, list[dict[str, Any]]] | None = None,
 ) -> dict[str, Any]:
     rows: list[dict[str, Any]] = []
     judge_rows: list[dict[str, Any]] = []
@@ -560,7 +1024,14 @@ def run_eval(
         rich = rich_resolver(str(sample["question"]), str(sample["student_answer"])) if rich_resolver else None
         sample_rows: list[dict[str, Any]] = []
         for arm in active_arms:
-            context = grading_context(arm, retrieval=retrieval, rich=rich, reference=reference)
+            context = grading_context(
+                arm,
+                sample=sample,
+                retrieval=retrieval,
+                rich=rich,
+                reference=reference,
+                provenance_index=provenance_index,
+            )
             row: dict[str, Any] = {
                 "sample_id": sample["sample_id"],
                 "question_id": sample["question_id"],
@@ -572,17 +1043,56 @@ def run_eval(
                 "gold_point_count": len(reference.get("gold_points") or []),
                 "typed_artifact_schema": (context.get("typed_rubric_artifact") or {}).get("artifact_schema")
                 if isinstance(context.get("typed_rubric_artifact"), dict)
+                else (context.get("typed_case_grading_artifact") or {}).get("artifact_schema")
+                if isinstance(context.get("typed_case_grading_artifact"), dict)
                 else None,
                 "rich_leaf_ids": context.get("rich_leaf_ids") or context.get("typed_leaf_ids") or None,
             }
             try:
-                response = provider_call(
-                    grading_messages(sample=sample, reference=reference, context=context),
-                    max_tokens=grading_max_tokens,
-                )
+                base_messages = grading_messages(sample=sample, reference=reference, context=context)
+                response = provider_call(base_messages, max_tokens=grading_max_tokens)
                 content = str(response.get("content") or "")
                 parsed = case_eval._parse_json_object(content)
                 normalized = normalize_grading_payload(parsed)
+                validation = validate_grading_output(context, normalized)
+                prompt_tokens = int(response.get("prompt_tokens") or 0)
+                completion_tokens = int(response.get("completion_tokens") or 0)
+                regrade_attempted = False
+                # Contract enforcement: a contract_invalid output earns exactly one
+                # regrade with the violations fed back. The retry result is kept
+                # only if it is itself contract-valid.
+                if validation.get("should_regrade"):
+                    regrade_attempted = True
+                    retry_messages = base_messages + [
+                        {"role": "assistant", "content": content[:2400]},
+                        {
+                            "role": "user",
+                            "content": (
+                                "你上一次的判分输出违反了评分合约，必须修正后重新输出 JSON。违规清单："
+                                + json.dumps(validation.get("errors") or [], ensure_ascii=False)
+                                + "。要求：每个 point_id 都要有一条结果且锁死字段齐全（sub_no/max_points/required_points/"
+                                "accepted_variants/student_evidence_quote/status/awarded_points/deduction_reason/"
+                                "misconception_tag/next_review_action/learning_evidence_event）；所有小问都要有结果，"
+                                "不得合并小问；Σawarded≤Σmax；任何 miss/partial 必须给出非空 deduction_reason；"
+                                "score_pct 必须与 Σawarded/Σmax 自洽。只返回 JSON。"
+                            ),
+                        },
+                    ]
+                    retry = provider_call(retry_messages, max_tokens=grading_max_tokens)
+                    retry_content = str(retry.get("content") or "")
+                    retry_parsed = case_eval._parse_json_object(retry_content)
+                    retry_normalized = normalize_grading_payload(retry_parsed)
+                    retry_validation = validate_grading_output(context, retry_normalized)
+                    prompt_tokens += int(retry.get("prompt_tokens") or 0)
+                    completion_tokens += int(retry.get("completion_tokens") or 0)
+                    if retry_validation.get("status") != "contract_invalid":
+                        content, parsed, normalized, validation, response = (
+                            retry_content,
+                            retry_parsed,
+                            retry_normalized,
+                            retry_validation,
+                            retry,
+                        )
                 score_pct = normalized.get("score_pct")
                 row.update(
                     {
@@ -598,9 +1108,16 @@ def run_eval(
                         "learning_evidence_event": normalized["learning_evidence_event"],
                         "next_review_action": normalized["next_review_action"],
                         "citations": normalized["citations"],
-                        "prompt_tokens": int(response.get("prompt_tokens") or 0),
-                        "completion_tokens": int(response.get("completion_tokens") or 0),
-                        "total_tokens": int(response.get("prompt_tokens") or 0) + int(response.get("completion_tokens") or 0),
+                        "validation": validation,
+                        "validation_status": validation.get("status"),
+                        "validation_errors": validation.get("errors") or [],
+                        "validation_warnings": validation.get("warnings") or [],
+                        "unsourced_point_count": validation.get("unsourced_point_count"),
+                        "regrade_attempted": regrade_attempted,
+                        "recomputed_score_pct": validation.get("recomputed_score_pct"),
+                        "prompt_tokens": prompt_tokens,
+                        "completion_tokens": completion_tokens,
+                        "total_tokens": prompt_tokens + completion_tokens,
                     }
                 )
             except Exception as exc:  # pragma: no cover - live failure path
@@ -704,6 +1221,7 @@ def main(argv: list[str] | None = None) -> int:
         judge_model = args.judge_model or case_eval.PROVIDER_DEFAULTS[judge_provider]["model"]
         judge_provider_call = case_eval._openai_compat_provider(provider=judge_provider, model=judge_model, timeout_s=args.timeout_s)
     samples = _select_samples(parse_student_answer_md(args.student_md), sample_ids=args.sample_ids, limit=args.limit, seed=args.seed)
+    provenance_index = _load_provenance_index(args.rich_pack) if provider_call is not None else None
     report = run_eval(
         samples=samples,
         provider_call=provider_call,
@@ -720,6 +1238,7 @@ def main(argv: list[str] | None = None) -> int:
         judge_max_tokens=args.judge_max_tokens,
         planned_arms=planned_arms,
         output_path=args.output,
+        provenance_index=provenance_index,
     )
     print(
         json.dumps(
@@ -742,6 +1261,7 @@ def main(argv: list[str] | None = None) -> int:
                             "misconception_tag_quality",
                             "learning_evidence_quality",
                             "next_action_specificity",
+                            "validation_pass_rate",
                             "mean_total_tokens",
                         )
                     }
