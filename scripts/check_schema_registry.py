@@ -125,19 +125,171 @@ def load_schema_registry(path: Path = REGISTRY_PATH) -> dict[str, Any]:
             raise ValueError(f"schema registry entry missing name: {entry!r}")
         by_name[str(entry["name"])] = entry
     drift_field_map = payload.get("drift_field_map") or {}
+    tier2_entries = payload.get("tier2_canonical_contracts") or []
+    tier2_by_name: dict[str, dict[str, Any]] = {}
+    for entry in tier2_entries:
+        if not isinstance(entry, dict) or "name" not in entry:
+            raise ValueError(f"tier2 registry entry missing name: {entry!r}")
+        tier2_by_name[str(entry["name"])] = entry
+    carve_out = payload.get("tier3_carve_out") or {}
     return {
         "by_name": by_name,
+        "tier2_by_name": tier2_by_name,
         "drift_field_map": {str(k): str(v) for k, v in drift_field_map.items()},
         "authority_vocabulary": payload.get("authority_vocabulary") or {},
         "scope_rule": payload.get("scope_rule") or {},
+        "completeness_closure": payload.get("completeness_closure") or {},
+        "tier3_carve_out_patterns": [
+            str(p).lower() for p in (carve_out.get("artifact_name_patterns") or [])
+        ],
     }
 
 
 def _is_grading_schema_name(name: str, registry: dict[str, Any]) -> bool:
-    """A literal is a grading-schema usage if registered or grading-shaped."""
-    if name in registry["by_name"]:
+    """A literal is in-scope if it is a registered T1/T2 contract or grading-shaped.
+
+    T2 (runtime-canonical) names are recognized so the guard never mis-flags a
+    registered runtime contract as "unregistered"; the field-level drift/authority
+    checks still only run for the canonical T1 grading object (see below).
+    """
+    if name in registry["by_name"] or name in registry.get("tier2_by_name", {}):
         return True
     return bool(_GRADING_NAME_HINT_RE.match(name))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Completeness closure — regenerate the AUTHORITATIVE full set and classify it.
+#
+# "Registered-or-you-can't-use" is only honest if every schema identifier has a
+# verdict. The closure below REGENERATES the full set from the source tree (no
+# hand-maintained copy can drift) and proves it equals T1 ∪ T2 ∪ T3.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Schema-version literal forms we union over. The task's starting grep matched
+# only ``SCHEMA = "…"`` / ``"schema": "…"`` / ``schema_version": "…"`` (152), which
+# MISSES the ``SCHEMA_ID = "…"`` / ``schema_id: "…"`` / ``*_SCHEMA = "…"`` /
+# ``artifact_schema: "…"`` / ``kind: "…"`` forms — and 8 of the 9 T1 grading
+# objects live ONLY in those missed forms. So we match any var/key that ENDS in a
+# schema marker (schema / schema_id / schema_version / *_schema / *_SCHEMA[_ID|
+# _VERSION]) plus the ``kind`` key, to recover the honest full set. Both quote
+# styles. The shape filter below drops any non-versioned/unrelated value.
+_FULLSET_LITERAL_RE = re.compile(
+    r"""(?:^|[^\w.])               # word boundary that still allows a leading quote
+        ["']?                       # optional opening quote on the key
+        (?:
+            [A-Za-z_][A-Za-z0-9_]*_SCHEMA(?:_ID|_VERSION)?   # SESSION_SCHEMA_VERSION, PACK_SCHEMA…
+          | SCHEMA(?:_ID|_VERSION)?                          # SCHEMA / SCHEMA_ID / SCHEMA_VERSION
+          | [A-Za-z_][A-Za-z0-9_]*_schema(?:_id|_version)?   # artifact_schema, typed_artifact_schema…
+          | schema(?:_id|_version)?                          # schema / schema_id / schema_version
+          | kind                                             # observability ``kind`` records
+          | PROTOCOL_VERSION
+        )
+        ["']?\s*[:=]\s*["']([A-Za-z0-9_.]+)["']""",
+    re.VERBOSE,
+)
+
+# A typed-object / grading / canonical-contract schema id is versioned and lives in
+# a known namespace. We accept it iff it carries a version suffix (``.vN`` / ``.mNN``
+# / ``_vN``) AND its prefix is one of our typed-object namespaces. This drops bare
+# values like ``public`` (Postgres schema), ``learning_evidence`` (event_type), and
+# plain enum strings that land in a ``kind``/``schema`` field but are not versioned
+# typed-object ids.
+_FULLSET_VERSION_SUFFIX_RE = re.compile(r"(?:\.v[0-9]|\.m[0-9]+|_v[0-9])")
+_FULLSET_NAMESPACE_RE = re.compile(
+    r"""^(?:
+            luban[_.]
+          | assessment_(?:session|p0a)
+          | causal_oa
+          | compiled_knowledge_registry
+          | case_grading_artifact
+          | compact_scoring_artifact
+          | grading_artifact
+          | question_grading_(?:artifact|registry)
+          | rich_leaf_(?:typed_artifact|deep_compile)
+          | m35_ai_governed_gold
+        )""",
+    re.VERBOSE,
+)
+
+
+def _is_fullset_schema_id(name: str) -> bool:
+    """A versioned typed-object/grading/canonical-contract id in a known namespace."""
+    return bool(_FULLSET_NAMESPACE_RE.match(name) and _FULLSET_VERSION_SUFFIX_RE.search(name))
+
+
+_FULLSET_SCAN_DIRS = ("deeptutor", "scripts", "contracts")
+
+
+def collect_all_schema_identifiers(repo_root: Path = REPO_ROOT) -> set[str]:
+    """Regenerate the authoritative FULL SET of schema-version identifiers.
+
+    Pure scan over ``deeptutor/`` / ``scripts/`` / ``contracts/`` source for every
+    schema-version literal form, keeping only versioned typed-object/grading/
+    canonical-contract ids (drops ``public`` and unversioned enum strings). This is
+    the single source of "what exists" the closure test keys off — so the registry
+    cannot silently fall behind a newly minted schema id.
+    """
+    found: set[str] = set()
+    for sub in _FULLSET_SCAN_DIRS:
+        base = repo_root / sub
+        if not base.exists():
+            continue
+        for path in base.rglob("*"):
+            if not path.is_file():
+                continue
+            if path.suffix not in {".py", ".yaml", ".yml", ".json"}:
+                continue
+            try:
+                body = path.read_text(encoding="utf-8")
+            except (OSError, UnicodeDecodeError):
+                continue
+            for match in _FULLSET_LITERAL_RE.finditer(body):
+                name = match.group(1)
+                if _is_fullset_schema_id(name):
+                    found.add(name)
+    return found
+
+
+def classify_identifier(name: str, registry: dict[str, Any]) -> str:
+    """Return the tier of a single schema id: 'tier1' | 'tier2' | 'tier3' | 'orphan'.
+
+    T1 = registered grading typed object; T2 = registered runtime-canonical
+    contract; T3 = matches a tier3 carve-out pattern; 'orphan' = none (a gap the
+    closure test must surface — an unregistered id with no carve-out).
+    """
+    if name in registry["by_name"]:
+        return "tier1"
+    if name in registry["tier2_by_name"]:
+        return "tier2"
+    lowered = name.lower()
+    for pattern in registry["tier3_carve_out_patterns"]:
+        if pattern in lowered:
+            return "tier3"
+    return "orphan"
+
+
+def closure_report(
+    registry: dict[str, Any] | None = None, repo_root: Path = REPO_ROOT
+) -> dict[str, Any]:
+    """Build the closure verdict: full set vs T1/T2/T3, surfacing any orphan.
+
+    Deterministic and pure (file scan only). Returned dict is what both the test
+    and the CLI ``--closure`` mode consume.
+    """
+    registry = registry or load_schema_registry()
+    full_set = collect_all_schema_identifiers(repo_root)
+    buckets: dict[str, list[str]] = {"tier1": [], "tier2": [], "tier3": [], "orphan": []}
+    for name in sorted(full_set):
+        buckets[classify_identifier(name, registry)].append(name)
+    return {
+        "full_set": sorted(full_set),
+        "full_set_count": len(full_set),
+        "tier1": buckets["tier1"],
+        "tier2": buckets["tier2"],
+        "tier3": buckets["tier3"],
+        "orphans": buckets["orphan"],
+        "is_closed": not buckets["orphan"],
+    }
 
 
 def collect_schema_usages(
@@ -257,11 +409,27 @@ def evaluate_schema_usages(usages: list[SchemaUsage], registry: dict[str, Any]) 
         return True, "schema-registry-guard: no grading schema usage in changed files"
 
     by_name: dict[str, dict[str, Any]] = registry["by_name"]
+    tier2_by_name: dict[str, dict[str, Any]] = registry.get("tier2_by_name", {})
     failures: list[str] = []
+    warnings: list[str] = []
     seen_names: set[str] = set()
 
     for usage in usages:
         seen_names.add(usage.schema_name)
+        # T2 runtime-canonical contract: registered, but NOT a per-point grading
+        # object — skip the drift/authority field checks (no fabricated field set).
+        # Emit an OPTIONAL warning when its field contract is not yet pinned, to
+        # nudge eventual field-level canonicalization without failing the build.
+        if usage.schema_name in tier2_by_name:
+            entry = tier2_by_name[usage.schema_name]
+            if entry.get("needs_field_canonicalization"):
+                warnings.append(
+                    f"{usage.path}:{usage.lineno}: runtime-canonical contract "
+                    f"'{usage.schema_name}' is registered (T2) but has "
+                    f"needs_field_canonicalization=true — its field names are not yet "
+                    f"pinned; a drift would not be caught. Consider pinning fields."
+                )
+            continue
         # (a) unregistered grading schema name
         if usage.schema_name not in by_name:
             failures.append(
@@ -276,12 +444,20 @@ def evaluate_schema_usages(usages: list[SchemaUsage], registry: dict[str, Any]) 
         # (c) single-authority field completeness
         failures.extend(_check_single_authority(usage))
 
+    warn_suffix = ""
+    if warnings:
+        warn_suffix = "\nschema-registry-guard: warnings (non-blocking)\n" + "\n".join(
+            dict.fromkeys(warnings)
+        )
+
     if failures:
         # de-dup while preserving order
         unique = list(dict.fromkeys(failures))
-        return False, "schema-registry-guard: failed\n" + "\n".join(unique)
+        return False, "schema-registry-guard: failed\n" + "\n".join(unique) + warn_suffix
     return True, (
-        "schema-registry-guard: passed | grading schemas in scope: " + ", ".join(sorted(seen_names))
+        "schema-registry-guard: passed | schemas in scope: "
+        + ", ".join(sorted(seen_names))
+        + warn_suffix
     )
 
 
@@ -329,6 +505,28 @@ def _git_current_candidate_files() -> list[str]:
     return sorted(files)
 
 
+def _run_closure_cli() -> int:
+    """Print the three-tier closure report; fail if any identifier is an orphan."""
+    report = closure_report()
+    print(
+        "schema-registry-closure: "
+        f"full_set={report['full_set_count']} "
+        f"tier1={len(report['tier1'])} tier2={len(report['tier2'])} "
+        f"tier3={len(report['tier3'])} orphans={len(report['orphans'])}"
+    )
+    if report["orphans"]:
+        print(
+            "schema-registry-closure: FAILED — uncovered schema identifiers "
+            "(registered nowhere, no tier3 carve-out):",
+            file=sys.stderr,
+        )
+        for name in report["orphans"]:
+            print(f"  - {name}", file=sys.stderr)
+        return 1
+    print("schema-registry-closure: CLOSED — every schema id has a tier verdict")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Fail when grading code uses an unregistered/deprecated/incomplete schema."
@@ -336,7 +534,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "files", nargs="*", help="Explicit changed files. If omitted, git diff is used."
     )
+    parser.add_argument(
+        "--closure",
+        action="store_true",
+        help="Regenerate the full schema-id set and verify the three-tier closure "
+        "(T1 ∪ T2 ∪ T3 == full set, no orphan). Ignores changed-files mode.",
+    )
     args = parser.parse_args(argv)
+
+    if args.closure:
+        return _run_closure_cli()
 
     changed = args.files or _git_current_candidate_files()
     ok, message = evaluate_schema_registry(changed)
