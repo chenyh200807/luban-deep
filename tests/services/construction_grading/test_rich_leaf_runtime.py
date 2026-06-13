@@ -519,3 +519,76 @@ def test_flag_on_miss_fails_open_to_legacy_chain(
     assert out is not None
     assert "rich_leaf_context" not in out
     assert "rich_leaf_contexts" not in out
+
+
+# ----------- G2 runtime authority invariant: official_answer > textbook_cited -----------
+# A grading authority-resolution sink can call these to get a STRUCTURAL guarantee that a
+# rich-leaf point (50x the volume of the official key) can never enter the official
+# correctness channel — today that is held only by the accident that no caller wires
+# grading=True / merges rich-leaf points into rubric_points. The invariant makes it
+# deterministic: rich-leaf is structurally supporting (textbook_cited), official always wins.
+
+
+def test_rich_leaf_grading_authority_is_canonical_textbook_cited() -> None:
+    # the structural tier of every rich-leaf point reuses the canonical vocabulary, never a new name
+    from deeptutor.services.construction_grading import unified_grading_object as ugo
+
+    assert rlr.RICH_LEAF_GRADING_AUTHORITY == ugo.AUTH_TEXTBOOK_CITED
+    assert rlr.RICH_LEAF_GRADING_AUTHORITY != ugo.AUTH_OFFICIAL_ANSWER
+
+
+def test_assert_supporting_only_passes_for_real_loader_record(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _install_supply(tmp_path, monkeypatch, _pack([_unit("L1", "u1")], quarantined=[]))
+    record = rlr.get_rich_leaf_context("L1")
+    assert record is not None
+    # the loader's own output is structurally supporting — the invariant accepts it unchanged
+    assert rlr.assert_supporting_only(record) is record
+
+
+def test_assert_supporting_only_rejects_official_self_claim() -> None:
+    # a rich-leaf record that tries to claim official correctness authority is a contract breach
+    for forged in (
+        {"leaf_id": "L1", "official_score_allowed": True},
+        {"leaf_id": "L1", "llm_may_decide_correctness": True},
+        {"leaf_id": "L1", "authority_source": "official_answer"},
+        {"leaf_id": "L1", "tier": "answer_key"},
+    ):
+        with pytest.raises(ValueError, match="rich_leaf"):
+            rlr.assert_supporting_only(forged)
+
+
+def test_resolve_grading_point_authority_official_always_wins() -> None:
+    # official present: rich-leaf points are demoted to supporting and NEVER decide correctness
+    resolved = rlr.resolve_grading_point_authority(
+        official_present=True,
+        rich_leaf_points=[{"point_id": "rl1", "statement": "教材补充点"}],
+    )
+    assert resolved["official_decides_correctness"] is True
+    assert resolved["rich_leaf_role"] == "supporting_citation_only"
+    assert all(p["authority_source"] == rlr.RICH_LEAF_GRADING_AUTHORITY for p in resolved["supporting_points"])
+    assert all(p["official_score_allowed"] is False for p in resolved["supporting_points"])
+    # rich-leaf points are NEVER returned as official scoring points
+    assert "scoring_points" not in resolved
+
+
+def test_resolve_grading_point_authority_official_absent_never_promotes_rich_leaf() -> None:
+    # official ABSENT: rich-leaf must NOT impersonate the official key — it stays supporting,
+    # correctness falls to the open-world official path (RAG-grounded reference), not the 5705 points
+    resolved = rlr.resolve_grading_point_authority(
+        official_present=False,
+        rich_leaf_points=[{"point_id": "rl1", "statement": "教材补充点"}],
+    )
+    assert resolved["official_decides_correctness"] is False
+    assert resolved["rich_leaf_role"] == "supporting_citation_only"
+    # crucially: rich-leaf points are still supporting-only; they do not become scoring points
+    assert "scoring_points" not in resolved
+    assert all(p["authority_source"] == rlr.RICH_LEAF_GRADING_AUTHORITY for p in resolved["supporting_points"])
+
+
+def test_resolve_grading_point_authority_empty_rich_leaf_is_byte_identical_noop() -> None:
+    # no rich-leaf points -> the resolver adds nothing the legacy path didn't have
+    resolved = rlr.resolve_grading_point_authority(official_present=True, rich_leaf_points=[])
+    assert resolved["supporting_points"] == []
+    assert resolved["rich_leaf_role"] == "supporting_citation_only"

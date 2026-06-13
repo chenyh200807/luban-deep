@@ -38,6 +38,12 @@
 ### Layer 1 · P0(最危险,加倍细心,专家进驻)
 - **DB 登记 + 连接收口**:ONE connection factory + contract-guard 下一个 db_registry section(哪个 fact 落哪个库/谁能写),**收掉 17 处 ad-hoc 连接**,扫描器拦"未经 factory 的裸连接 / 未登记的库表写"。**不建 DB 治理新系统。** 今天 Supabase 双项目意外的结构性根因。
 - **G2 官方-key-primary runtime 不变量**:5705 采分点 install 由 release gate 派生,官方 key 优先序写成 runtime 不变量,删掉自报 flag。
+  - **[DONE 2026-06-13]** runtime 优先序不变量已落地(`rich_leaf_runtime.py`):
+    - `RICH_LEAF_GRADING_AUTHORITY = AUTH_TEXTBOOK_CITED`(复用 `unified_grading_object` 的 canonical 词表,不新增 authority 名);官方优先序 `official_answer > textbook_cited` 由 unified_grading_object 单一权威继承,不另立。
+    - `assert_supporting_only(record)`:fail-closed 不变量,rich-leaf 记录一旦自报 `official_score_allowed` / `llm_may_decide_correctness` / `authority_source=official_answer` / answer-key tier 即抛错。
+    - `resolve_grading_point_authority(official_present, rich_leaf_points)`:单一优先序汇点——rich-leaf 点恒被打成 supporting(`textbook_cited` + `official_score_allowed=False`),恒不进 `scoring_points`(官方对错通道);官方缺失时**不提拔** rich-leaf 冒充,correctness 落回既有 open-world 官方路径。
+    - 现状根因证实:判分主链路(`deep_question._grade_one_case_v1`)的 rubric points 唯一来源是 `load_rubric`(compiled exam-reference)→ on-the-fly reference → stem,全是 official-answer-backed;rich-leaf 点从不进入 `rubric_points`。`grading=True` 的采分点渲染在生产从未被调用。"官方优先于 5705"此前仅靠**调用点不存在**这一接线偶然维持——本不变量把它变成结构保证。
+  - **[WORK ORDER 待办]** install 自报降级(env flag `LUBAN_RICH_LEAF_RUNTIME_ENABLED` → release-gate 派生):未做。理由:它改的是学生判分的**运行时消费开关**,把 flag 换成 release-gate attestation 需要改 `_load_index`/`rich_leaf_runtime_enabled` 的消费路径,改动面与风险超出本次"加不变量+收权"的最小 scope。替代(plan §2 允许):先以上述 runtime 优先序不变量+`assert_supporting_only` 断言锁死"官方缺失时 rich-leaf 不冒充",再单列 install 派生化 work order(把 release-gate attestation 接进消费开关、删 self-report flag)。
 
 ### Layer 2 · P1(收权为主)
 - provider:**3 套 registry → 1**,扫 base_url 硬编码旁路。
