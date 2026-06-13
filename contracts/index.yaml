@@ -56,6 +56,9 @@ mobile_http_billing_controls:
     semantics:
       - Billing enforcement defaults on. Only explicit false / 0 / off / no disables
         the hard balance gate for internal beta or rollback.
+      - When billing enforcement is explicitly disabled, the start-turn gate short-circuits
+        before wallet identity, wallet service availability, wallet snapshot, or usage
+        ledger reads.
       - When enforcement is enabled, missing wallet identity is treated as zero balance
         and returns billing_quota_exceeded before turn creation.
       - When enforcement is enabled and wallet service is unconfigured or unavailable,
