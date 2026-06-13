@@ -14,12 +14,15 @@ import pytest
 
 from deeptutor.services.construction_grading.per_question_grading_object import (
     A_OFFICIAL,
+    GRADING_CONTRACT_SCHEMA_ID,
     PENDING_SCORE_AUTHORITY,
     SCHEMA_ID,
+    build_grading_contract,
     classify_sub_type,
     compile_per_question_grading_object,
     render_markdown,
     split_sub_questions,
+    validate_grading_contract,
     validate_per_question_grading_object,
 )
 from deeptutor.services.construction_grading.rich_leaf_artifacts import source_span_hash
@@ -339,3 +342,86 @@ def test_total_score_passthrough_is_official_only(score):
         textbook_chunks=[],
     )
     assert obj["official_total_score"] == score
+
+
+# --- G2 wiring on real data: per-question object -> judge-ready grading contract ---
+
+
+def _flaw_contract_with_textbook():
+    chunk = _textbook_chunk("kb_57", "见证记录应由见证人员填写并制作见证记录")
+    obj = compile_per_question_grading_object(
+        question_id="Q2023-FLAW",
+        stem="见证记录题干",
+        correct_answer=FLAW_ANSWER,
+        official_total_score=7.0,
+        textbook_chunks=[chunk],
+    )
+    return obj, build_grading_contract(obj)
+
+
+def test_contract_scoring_points_are_official_atomic_checklist():
+    obj, contract = _flaw_contract_with_textbook()
+    assert contract["contract_schema"] == GRADING_CONTRACT_SCHEMA_ID
+    assert contract["official_total_score"] == 7.0
+    # every scoring point is an official atomic slice (authority A) with a span_hash
+    assert contract["scoring_points"]
+    assert len(contract["scoring_points"]) == obj["scoring_point_count"]
+    for sp in contract["scoring_points"]:
+        assert sp["authority_source"] == A_OFFICIAL
+        assert sp["span_hash"]
+        assert sp["official_slice"]
+
+
+def test_contract_g2_routes_textbook_citations_to_supporting_only():
+    # G2 on REAL data: verified textbook anchors ride as supporting citations,
+    # stamped official_score_allowed=False, never the correctness channel.
+    _obj, contract = _flaw_contract_with_textbook()
+    assert contract["supporting_citations"], "expected verified textbook citations"
+    assert contract["g2_role"]["official_decides_correctness"] is True
+    assert contract["g2_role"]["rich_leaf_role"] == "supporting_citation_only"
+    for cite in contract["supporting_citations"]:
+        assert cite["official_score_allowed"] is False
+        assert cite["authority_source"] != A_OFFICIAL
+    assert validate_grading_contract(contract) == []
+
+
+def test_contract_empty_textbook_yields_no_op_supporting_but_keeps_checklist():
+    obj = compile_per_question_grading_object(
+        question_id="Q2023-FLAW",
+        stem="x",
+        correct_answer=FLAW_ANSWER,
+        official_total_score=7.0,
+        textbook_chunks=[],  # no anchors -> no supporting citations (G2 no-op)
+    )
+    contract = build_grading_contract(obj)
+    assert contract["supporting_citations"] == []
+    assert contract["scoring_points"], "official atomic checklist still present"
+    assert validate_grading_contract(contract) == []
+
+
+def test_contract_validator_blocks_supporting_citation_claiming_official():
+    # Fail-closed G2 proof: a tampered supporting citation that claims official
+    # authority must be rejected (assert_supporting_only raises -> blocker surfaced).
+    _obj, contract = _flaw_contract_with_textbook()
+    contract["supporting_citations"][0]["official_score_allowed"] = True
+    blockers = validate_grading_contract(contract)
+    assert any("supporting_citation" in b for b in blockers)
+
+
+def test_contract_output_contract_forces_per_point_verdict_and_cite():
+    _obj, contract = _flaw_contract_with_textbook()
+    oc = contract["output_contract"]
+    assert oc["must_emit_one_verdict_per_point_id"] is True
+    assert oc["must_cite_student_evidence_span_for_hit"] is True
+    assert oc["over_credit_invalid_if_high_score_with_any_miss"] is True
+    assert "hit" in oc["verdict_enum"] and "miss" in oc["verdict_enum"]
+
+
+def test_contract_does_not_mint_per_point_scores():
+    _obj, contract = _flaw_contract_with_textbook()
+    # the contract carries the pending (non-official) per-point authority marker and
+    # never assigns a numeric per-point score (per-point scores have no canonical truth).
+    assert contract["per_point_score_authority"] == PENDING_SCORE_AUTHORITY
+    assert contract["official_score_allowed"] is False
+    for sp in contract["scoring_points"]:
+        assert "score" not in sp or sp.get("score") is None

@@ -24,6 +24,10 @@ from typing import Any
 
 from deeptutor.services.construction_grading import compiled_registry_resolver as _R
 from deeptutor.services.construction_grading.full_knowledge_compiler import _sha256_hex
+from deeptutor.services.construction_grading.unified_grading_object import (
+    AUTH_OFFICIAL_ANSWER,
+    AUTH_TEXTBOOK_CITED,
+)
 
 _log = logging.getLogger(__name__)
 
@@ -31,6 +35,14 @@ AUTHORITY = "luban_rich_leaf_context"
 ENV_FLAG = "LUBAN_RICH_LEAF_RUNTIME_ENABLED"
 PACK_SCHEMA = "luban_rich_leaf_runtime_token_pack.v2.3"
 BUNDLE_SCHEMA = "luban_rich_leaf_context_bundle.v1"
+
+# G2 runtime authority invariant — the structural tier of EVERY rich-leaf grading point.
+# It reuses the canonical grading-object vocabulary (textbook_cited) rather than coining a new
+# name, so the single precedence order owned by ``unified_grading_object`` (official_answer >
+# textbook_cited > owner > pending_calibration) applies unchanged. Rich-leaf points are 50x the
+# volume of the official answer key; this constant is the machine fact that they are SUPPORTING,
+# never the official correctness authority.
+RICH_LEAF_GRADING_AUTHORITY = AUTH_TEXTBOOK_CITED
 _NAMESPACE = "rich_leaf_context"
 _SUPPLY_DIR = Path(__file__).parent / "runtime_supply" / "v_rich_leaf_context"
 _BUNDLE_NAME = "rich_leaf_context_bundle.json"
@@ -248,6 +260,68 @@ def get_rich_leaf_contexts(
     return contexts
 
 
+def assert_supporting_only(record: dict[str, Any]) -> dict[str, Any]:
+    """G2 invariant: prove a rich-leaf record is structurally SUPPORTING, never an official key.
+
+    Deterministic and pure. Raises ``ValueError`` if a rich-leaf record ever claims official
+    correctness authority — i.e. ``official_score_allowed`` / ``llm_may_decide_correctness`` is
+    truthy, ``authority_source`` is ``official_answer``, or ``tier`` is an answer-key tier. The
+    loader (``get_rich_leaf_context``) already mints records with these locks False, so this is a
+    fail-closed guard for any future call site (or merge) that would let the 50x-volume rich-leaf
+    points impersonate the official answer key. Returns the record unchanged when it passes, so a
+    grading sink can write ``point = assert_supporting_only(point)`` inline.
+    """
+    if not isinstance(record, dict):
+        raise ValueError("rich_leaf record must be a dict")
+    if record.get("official_score_allowed"):
+        raise ValueError("rich_leaf record must not claim official_score_allowed")
+    if record.get("llm_may_decide_correctness"):
+        raise ValueError("rich_leaf record must not claim llm_may_decide_correctness")
+    if str(record.get("authority_source") or "") == AUTH_OFFICIAL_ANSWER:
+        raise ValueError("rich_leaf record must not claim official_answer authority_source")
+    tier = str(record.get("tier") or "")
+    if tier and "answer_key" in tier and tier != "teaching_context_not_answer_key":
+        raise ValueError(f"rich_leaf record must not claim an answer-key tier: {tier!r}")
+    return record
+
+
+def resolve_grading_point_authority(
+    *, official_present: bool, rich_leaf_points: list[dict[str, Any]]
+) -> dict[str, Any]:
+    """G2 single precedence sink: official_answer always outranks rich-leaf (textbook_cited).
+
+    Deterministic and pure — the one place a grading authority-resolution may fold rich-leaf points
+    into a grading turn. Whatever the official key's presence:
+
+    * Rich-leaf points are ALWAYS returned as ``supporting_points`` stamped
+      ``authority_source = textbook_cited`` + ``official_score_allowed = False``; they are
+      citation/evidence material only and never appear as ``scoring_points`` (the official
+      correctness channel).
+    * ``official_decides_correctness`` mirrors ``official_present``: when the official key is
+      ABSENT, rich-leaf does NOT get promoted to fill the gap — correctness falls to the existing
+      open-world official path (this question's own reference answer / RAG-grounded judgment), per
+      the MCQ/case open-world fallback already in the grader. Rich-leaf can never impersonate the
+      official key.
+
+    Empty ``rich_leaf_points`` -> a no-op shape (``supporting_points == []``) so the legacy path is
+    byte-identical.
+    """
+    supporting: list[dict[str, Any]] = []
+    for raw in rich_leaf_points or []:
+        if not isinstance(raw, dict):
+            continue
+        point = dict(raw)
+        point["authority_source"] = RICH_LEAF_GRADING_AUTHORITY
+        point["official_score_allowed"] = False
+        point["llm_may_decide_correctness"] = False
+        supporting.append(assert_supporting_only(point))
+    return {
+        "official_decides_correctness": bool(official_present),
+        "rich_leaf_role": "supporting_citation_only",
+        "supporting_points": supporting,
+    }
+
+
 def _clip(value: Any, *, limit: int = 700) -> str:
     text = str(value or "").strip()
     return text if len(text) <= limit else text[: limit - 1] + "…"
@@ -395,10 +469,13 @@ __all__ = [
     "ENV_FLAG",
     "GROUNDING_MAX_CHARS_ENV",
     "PACK_SCHEMA",
+    "RICH_LEAF_GRADING_AUTHORITY",
+    "assert_supporting_only",
     "build_runtime_supply_bundle",
     "format_rich_leaf_grounding_lines",
     "format_rich_leaf_pack_grounding_lines",
     "get_rich_leaf_context",
     "get_rich_leaf_contexts",
+    "resolve_grading_point_authority",
     "rich_leaf_runtime_enabled",
 ]

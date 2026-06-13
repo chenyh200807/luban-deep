@@ -43,7 +43,7 @@ scope_rule:
   not_required:
     - ephemeral_internal_dict   # never escapes one function; no cross-reader contract
 
-# ── Completeness closure (152→173 full-set, three-tier, no orphan) ───────────
+# ── Completeness closure (152→176 full-set, three-tier, no orphan) ───────────
 #
 # "Registered-or-you-can't-use" is only honest if EVERY schema identifier in the
 # codebase has an explicit verdict. This section makes the catalog CLOSED: every
@@ -58,15 +58,15 @@ scope_rule:
 # The grep the task started from ("SCHEMA = " + '"schema":' + 'schema_version":')
 # yields 152, but it MISSES the SCHEMA_ID= / schema_id: / *_SCHEMA= literal forms
 # — and 8 of the 9 T1 grading objects live ONLY in those missed forms. So the
-# honest full set is the UNION across all literal forms = 173. The "152" was an
-# incomplete baseline; 173 is the closed authority this section keys off.
+# honest full set is the UNION across all literal forms = 176. The "152" was an
+# incomplete baseline; 176 is the closed authority this section keys off.
 completeness_closure:
-  full_set_count: 173            # union across all schema-version literal forms
+  full_set_count: 176            # union across all schema-version literal forms
   primary_grep_baseline: 152     # task's narrow grep; missed SCHEMA_ID=/schema_id: forms
   tier_counts:
     tier1_typed_grading_object: 9    # the `schemas:` list below (1 canonical + 8 deprecated)
-    tier2_runtime_canonical: 19      # tier2_canonical_contracts below
-    tier3_ephemeral_artifact: 145    # covered by tier3_carve_out rule, not enumerated 1:1
+    tier2_runtime_canonical: 20      # tier2_canonical_contracts below
+    tier3_ephemeral_artifact: 147    # covered by tier3_carve_out rule, not enumerated 1:1
   # Closure invariant (asserted by the test): T1 ∪ T2 ∪ T3 == full_set, with
   # T1, T2 disjoint and exhaustive over the non-T3 remainder; every full-set id
   # not in T1/T2 MUST match a tier3_carve_out pattern (no uncovered identifier).
@@ -467,6 +467,14 @@ tier2_canonical_contracts:
     canonical_for: runtime grading decision packet handed to the LLM adjudicator (point_ids / student_answer / schema_version)
     module: deeptutor/services/construction_grading/runtime_llm_adjudicator.py
     consumed_by: deeptutor/services/construction_grading/runtime_llm_adjudicator.py adjudicator loop + safety validator (runtime grading)
+    needs_field_canonicalization: true
+
+  - name: luban_per_question_grading_contract.v1
+    status: runtime_canonical
+    owner: construction_grading
+    canonical_for: judge-ready per-question scoring contract derived from official answer slices (Phase B atomic checklist)
+    module: deeptutor/services/construction_grading/per_question_grading_object.py
+    consumed_by: deeptutor/services/construction_grading/per_question_grading_object.py::validate_grading_contract + scripts/run_luban_per_question_grading_ab.py (review-only today; production wiring requires owner gate)
     needs_field_canonicalization: true
 
   # — released answer key / runtime grading verdict / gate (grading-path reads) —

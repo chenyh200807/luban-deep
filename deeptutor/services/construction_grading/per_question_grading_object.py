@@ -34,6 +34,10 @@ import re
 from typing import Any
 
 from deeptutor.services.construction_grading.rich_leaf_artifacts import source_span_hash
+from deeptutor.services.construction_grading.rich_leaf_runtime import (
+    assert_supporting_only,
+    resolve_grading_point_authority,
+)
 from deeptutor.services.source_compiler.scoring_point_asset_compiler import (
     _valid_textbook_anchor,
     normalize_for_match,
@@ -41,6 +45,9 @@ from deeptutor.services.source_compiler.scoring_point_asset_compiler import (
 
 SCHEMA_ID = "luban_per_question_grading_object.v1"
 COMPILER = "scripts/run_luban_per_question_grading_object_compile.py"
+
+# The judge-ready scoring CONTRACT derived from a per-question grading object.
+GRADING_CONTRACT_SCHEMA_ID = "luban_per_question_grading_contract.v1"
 
 # authority_source tags (A / B / C / pending)
 A_OFFICIAL = "official_answer_verbatim"
@@ -567,6 +574,115 @@ def validate_per_question_grading_object(obj: dict[str, Any]) -> list[str]:
             for prov in point.get("term_provenance") or []:
                 if prov.get("anchor_verified") is False and prov.get("chunk_id") is not None:
                     blockers.append(f"unsourced_term_must_have_null_chunk:{point.get('point_id')}")
+    return blockers
+
+
+def build_grading_contract(obj: dict[str, Any]) -> dict[str, Any]:
+    """Turn a per-question grading object into a judge-ready scoring CONTRACT (KnowQL Phase B).
+
+    This is where G2 is wired on REAL data: the official atomic slices (authority A)
+    become the checklist the judge MUST adjudicate one verdict per ``point_id``; the
+    textbook ``term_provenance`` entries (authority B) are routed through
+    ``resolve_grading_point_authority`` into ``supporting_citations`` — stamped
+    textbook_cited + ``official_score_allowed=False`` (the single-precedence sink that
+    keeps the 50x-volume rich-leaf/textbook material a citation channel, never the
+    correctness channel). The official total is the only score authority; per-point
+    scores stay un-minted — the over-credit detector uses verdict counts, not minted
+    per-point scores. Pure / deterministic / review-only (no canonical write).
+    """
+    scoring_points: list[dict[str, Any]] = []
+    textbook_citations_raw: list[dict[str, Any]] = []
+    for sub in obj.get("sub_questions") or []:
+        sub_no = sub.get("sub_no")
+        for p in sub.get("scoring_points") or []:
+            sp: dict[str, Any] = {
+                "point_id": p.get("point_id"),
+                "sub_no": sub_no,
+                "sub_type": p.get("sub_type"),
+                "official_slice": p.get("atomic_official_slice"),
+                "authority_source": p.get("authority_source"),  # A_OFFICIAL
+                "span_hash": p.get("span_hash"),
+            }
+            # Deterministic adjudication hints lifted verbatim from the official answer.
+            if p.get("flaw_span") is not None:
+                sp["flaw_span"] = p.get("flaw_span")
+                sp["correction_span"] = p.get("correction_span")
+                sp["pairing"] = p.get("pairing")
+            if p.get("base_rule") is not None:
+                sp["base_rule"] = p.get("base_rule")
+                sp["exception_items"] = p.get("exception_items")
+            if p.get("formula_step") is not None:
+                sp["formula_step"] = p.get("formula_step")
+            scoring_points.append(sp)
+            # Verified textbook anchors → rich-leaf supporting candidates (authority B).
+            for prov in p.get("term_provenance") or []:
+                if prov.get("anchor_verified"):
+                    textbook_citations_raw.append(
+                        {
+                            "point_id": p.get("point_id"),
+                            "term": prov.get("term"),
+                            "chunk_id": prov.get("chunk_id"),
+                            "span_hash": prov.get("span_hash"),
+                        }
+                    )
+    # G2 single-precedence sink — textbook citations become supporting_only, official scores.
+    g2 = resolve_grading_point_authority(
+        official_present=True, rich_leaf_points=textbook_citations_raw
+    )
+    return {
+        "contract_schema": GRADING_CONTRACT_SCHEMA_ID,
+        "source_schema": obj.get("schema_id"),
+        "question_id": obj.get("question_id"),
+        "stem": obj.get("stem"),
+        "official_total_score": obj.get("official_total_score"),
+        "official_total_score_authority": obj.get("official_total_score_authority"),  # A
+        "per_point_score_authority": obj.get("per_point_score_authority"),  # un-minted
+        "scoring_points": scoring_points,  # authority A — the atomic checklist that scores
+        "supporting_citations": g2["supporting_points"],  # authority B — never scores (G2)
+        "g2_role": {
+            "official_decides_correctness": g2["official_decides_correctness"],
+            "rich_leaf_role": g2["rich_leaf_role"],
+        },
+        "official_score_allowed": False,
+        "canonical_write_allowed": False,
+        "output_contract": {
+            "must_emit_one_verdict_per_point_id": True,
+            "verdict_enum": ["hit", "partial", "miss", "contradiction"],
+            "must_cite_student_evidence_span_for_hit": True,
+            "score_pct_must_be_consistent_with_verdicts": True,
+            "over_credit_invalid_if_high_score_with_any_miss": True,
+        },
+    }
+
+
+def validate_grading_contract(contract: dict[str, Any]) -> list[str]:
+    """Return blockers (empty = ok). Enforces G2 single-authority on the contract.
+
+    Scoring points must all carry official authority + a span_hash; supporting
+    citations must be fail-closed SUPPORTING (``assert_supporting_only`` does not raise,
+    ``official_score_allowed`` is False) so textbook material can never score.
+    """
+    blockers: list[str] = []
+    if contract.get("contract_schema") != GRADING_CONTRACT_SCHEMA_ID:
+        blockers.append("contract_schema_mismatch")
+    if contract.get("official_score_allowed") is not False:
+        blockers.append("official_score_allowed_must_be_false")
+    if contract.get("official_total_score_authority") != A_OFFICIAL:
+        blockers.append("total_score_authority_not_official")
+    if not contract.get("scoring_points"):
+        blockers.append("no_scoring_points")
+    for sp in contract.get("scoring_points") or []:
+        if sp.get("authority_source") != A_OFFICIAL:
+            blockers.append(f"scoring_point_not_official:{sp.get('point_id')}")
+        if not sp.get("span_hash"):
+            blockers.append(f"scoring_point_missing_span_hash:{sp.get('point_id')}")
+    for cite in contract.get("supporting_citations") or []:
+        if cite.get("official_score_allowed") is not False:
+            blockers.append("supporting_citation_official_score_allowed_must_be_false")
+        try:
+            assert_supporting_only(cite)
+        except ValueError as exc:  # fail-closed: a citation that claims official authority
+            blockers.append(f"supporting_citation_not_supporting:{exc}")
     return blockers
 
 

@@ -1,0 +1,189 @@
+version: 1
+
+# ─────────────────────────────────────────────────────────────────────────────
+# LLM provider resource registry — "registered-or-you-can't-call" single authority.
+#
+# This file is the ONE machine-readable catalog of which external LLM/embedding
+# providers exist, the canonical api base each is reached at, which env supplies
+# its key, and which OTHER registries are deprecated copies that must converge
+# here — plus the grandfathered存量 list of hardcoded base_url bypass sites.
+#
+# It turns the RESOURCE_GOVERNANCE_FIX_PLAN root-cause business fact —
+#   "每个外部 provider，必须能被机器确认它登记在唯一 canonical 清单里：
+#    canonical base_url 在哪、key env 是哪个；不存在第二份 registry、
+#    不存在散落硬编码 base_url 旁路。"
+# — into a deterministic CI gate enforced by scripts/check_provider_registry.py,
+# wired into the SAME contract-guard runner (NOT a new governance system). It
+# mirrors contracts/db_registry.yaml + contracts/env_registry.yaml one-for-one.
+#
+# DISCIPLINE (mirrors contracts/db_registry.yaml):
+#   - This registry is a deterministic POLICY FILTER, not a transport, not a
+#     credential store, not a client factory. It grants no calling authority.
+#   - It records CURRENT STATE only. Adding an entry does not change any provider
+#     resolution behavior; it makes the existing base_url machine-checkable.
+#   - Single canonical list. No second provider inventory may exist. The two
+#     deprecated sources below are registered ONLY so the guard can forbid adding
+#     a NEW provider to them (re-growing a second authority).
+#
+# Governing spec:
+#   docs/plan/鲁班knowql/RESOURCE_GOVERNANCE_FIX_PLAN.md          (Layer 2 · P1)
+#   docs/plan/鲁班knowql/PROVIDER_INVENTORY.md                    (Step 1 topology + drift)
+#   docs/plan/鲁班knowql/INFRA_REGISTRATION_COVERAGE_AUDIT.md §2  (gap audit)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Scope rule (read before adding — 别官僚) ─────────────────────────────────
+#
+# A call site MUST resolve its base_url from the canonical registry (via
+# provider_runtime / the ProviderSpec it returns) — it must NOT hardcode a
+# provider api endpoint literal at the call site. A hardcoded base_url:
+#   - selects its target endpoint purely from a string literal (no machine check), AND
+#   - drifts independently of the registry — changing a provider's endpoint then
+#     requires editing 4+ scattered sites, and missing one routes half the calls
+#     to the old/wrong endpoint (= cost mis-attribution; deepseek billing先例).
+# The guard therefore governs the hardcoded-base_url surface + the no-second-
+# registry surface.
+#
+# OUT OF SCOPE (not required to register / not flagged):
+#   - The canonical registry file itself (it IS where base_urls live).
+#   - Tests / fixtures (no production calling contract).
+#   - Non-provider URLs (webhooks, docs links, asset CDNs) — only the known
+#     provider api hostnames below are governed literals.
+scope_rule:
+  must_resolve_from_registry_if_any:
+    - llm_chat_completion        # base_url for an LLM chat/completions call
+    - embedding_request          # base_url for an embedding call
+  must_not:
+    - new_hardcoded_provider_base_url   # base_url="https://<provider-api>" at a call site
+    - new_second_provider_registry      # a 4th ProviderSpec catalog / new provider in a deprecated copy
+  not_required:
+    - canonical_registry_file           # this file + the canonical module ARE the source
+    - test_or_fixture_call              # under tests/ ; no production calling contract
+
+# ── Canonical authority (收口目标) ───────────────────────────────────────────
+# The ONE approved source of ProviderSpec + default_api_base. Every provider's
+# base_url is resolved here (or via provider_runtime, which imports it). New
+# hardcoded base_url outside this module, and not in the grandfathered list, is
+# a hard fail — that is the止血 (stop-the-bleed) rule. Modeled on the
+# llm-client-factory precedent (scripts/ci/check_llm_client_factory.sh governs
+# SDK construction; this gate governs base_url drift, the complementary hole).
+canonical_authority:
+  module: deeptutor/services/provider_registry.py
+  symbol: PROVIDERS
+  status: authoritative
+  note: >
+    Imported by services/llm/config.py, api/routers/settings.py,
+    services/benchmark/exam_quality_eval.py, services/config/provider_runtime.py,
+    and tutorbot/providers/deeptutor_adapter.py — the actual LLM resolution
+    chain. find_by_model / find_by_name / find_gateway all derive from here.
+    This is the single ProviderSpec source of truth.
+
+# ── Deprecated provider sources (must converge to canonical; no NEW provider) ─
+# These are the OTHER places that currently declare provider base_urls. They are
+# registered here ONLY to forbid the guard from letting a NEW provider be added
+# to them (which would re-grow a second authority). Migrating them onto the
+# canonical source is a separate batched work order — registering them changes
+# NO behavior, it just freezes the drift surface.
+deprecated_sources:
+  - module: deeptutor/tutorbot/providers/registry.py
+    kind: near_duplicate_copy
+    converge_to: deeptutor/services/provider_registry.py
+    runtime_on_resolution_path: false   # only ProviderSpec type is borrowed (TYPE_CHECKING)
+    note: >
+      A near-duplicate copy of PROVIDERS. Runtime resolution does NOT go through
+      it (openai_compat_provider only imports the ProviderSpec TYPE). Known drift
+      vs canonical: openai default_api_base empty (canonical pins
+      https://api.openai.com/v1); llama_cpp / lm_studio absent. The guard forbids
+      adding a NEW provider here. Removal / re-pointing its imports to canonical
+      is migration work order R2.
+  - module: deeptutor/services/config/provider_runtime.py
+    symbol: EMBEDDING_PROVIDER_DEFAULTS
+    kind: embedding_base_url_table
+    converge_to: deeptutor/services/provider_registry.py
+    runtime_on_resolution_path: true    # embedding resolution consumes it directly
+    note: >
+      A third base_url table, embedding-only. Overlaps canonical on
+      dashscope/openai/ollama but can drift (ollama here is http://localhost:11434
+      WITHOUT the /v1 suffix the LLM table uses). Holds cohere / jina base_urls
+      that exist nowhere else. The guard forbids adding a NEW embedding provider
+      base_url here. Folding embedding onto canonical PROVIDERS (and moving
+      cohere/jina into canonical) is migration work order R3.
+
+# ── Providers (single canonical list: base_url + env_key + status) ───────────
+# Each provider: its canonical api base, the env that supplies its key, mode,
+# and liveness. base_url here is the SAME literal as
+# services/provider_registry.py PROVIDERS[].default_api_base — this YAML mirrors
+# that module so the relationship is machine-checkable from one place. An empty
+# base_url means "SDK default / runtime-supplied" (custom / azure / openai-via-SDK).
+providers:
+  # === Standard providers (LLM chat) ===
+  - {name: anthropic,   canonical_base_url: "https://api.anthropic.com/v1",                          env_key: ANTHROPIC_API_KEY,   mode: standard, liveness: in_use}
+  - {name: openai,      canonical_base_url: "https://api.openai.com/v1",                             env_key: OPENAI_API_KEY,      mode: standard, liveness: in_use}
+  - {name: deepseek,    canonical_base_url: "https://api.deepseek.com",                              env_key: DEEPSEEK_API_KEY,    mode: standard, liveness: in_use}
+  - {name: gemini,      canonical_base_url: "https://generativelanguage.googleapis.com/v1beta/openai/", env_key: GEMINI_API_KEY,   mode: standard, liveness: needs_verification}
+  - {name: zhipu,       canonical_base_url: "https://open.bigmodel.cn/api/paas/v4",                  env_key: ZAI_API_KEY,         mode: standard, liveness: in_use}
+  - {name: dashscope,   canonical_base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1",     env_key: DASHSCOPE_API_KEY,   mode: standard, liveness: in_use}
+  - {name: moonshot,    canonical_base_url: "https://api.moonshot.ai/v1",                            env_key: MOONSHOT_API_KEY,    mode: standard, liveness: needs_verification}
+  - {name: minimax,     canonical_base_url: "https://api.minimax.io/v1",                             env_key: MINIMAX_API_KEY,     mode: standard, liveness: needs_verification}
+  - {name: mistral,     canonical_base_url: "https://api.mistral.ai/v1",                             env_key: MISTRAL_API_KEY,     mode: standard, liveness: needs_verification}
+  - {name: stepfun,     canonical_base_url: "https://api.stepfun.com/v1",                            env_key: STEPFUN_API_KEY,     mode: standard, liveness: needs_verification}
+  - {name: xiaomi_mimo, canonical_base_url: "https://api.xiaomimimo.com/v1",                         env_key: XIAOMIMIMO_API_KEY,  mode: standard, liveness: needs_verification}
+  - {name: groq,        canonical_base_url: "https://api.groq.com/openai/v1",                        env_key: GROQ_API_KEY,        mode: standard, liveness: in_use}
+  - {name: qianfan,     canonical_base_url: "https://qianfan.baidubce.com/v2",                       env_key: QIANFAN_API_KEY,     mode: standard, liveness: needs_verification}
+  # === Gateways (route any model; detected by key/base) ===
+  - {name: openrouter,  canonical_base_url: "https://openrouter.ai/api/v1",                          env_key: OPENROUTER_API_KEY,  mode: gateway,  liveness: in_use}
+  - {name: aihubmix,    canonical_base_url: "https://aihubmix.com/v1",                               env_key: OPENAI_API_KEY,      mode: gateway,  liveness: needs_verification}
+  - {name: siliconflow, canonical_base_url: "https://api.siliconflow.cn/v1",                         env_key: OPENAI_API_KEY,      mode: gateway,  liveness: needs_verification}
+  - {name: volcengine,  canonical_base_url: "https://ark.cn-beijing.volces.com/api/v3",             env_key: OPENAI_API_KEY,      mode: gateway,  liveness: needs_verification}
+  - {name: volcengine_coding_plan, canonical_base_url: "https://ark.cn-beijing.volces.com/api/coding/v3", env_key: OPENAI_API_KEY, mode: gateway, liveness: needs_verification}
+  - {name: byteplus,    canonical_base_url: "https://ark.ap-southeast.bytepluses.com/api/v3",        env_key: OPENAI_API_KEY,      mode: gateway,  liveness: needs_verification}
+  - {name: byteplus_coding_plan, canonical_base_url: "https://ark.ap-southeast.bytepluses.com/api/coding/v3", env_key: OPENAI_API_KEY, mode: gateway, liveness: needs_verification}
+  # === OAuth (no API key) ===
+  - {name: openai_codex,    canonical_base_url: "https://chatgpt.com/backend-api",                   env_key: "",                  mode: oauth,    liveness: needs_verification}
+  - {name: github_copilot,  canonical_base_url: "https://api.githubcopilot.com",                     env_key: "",                  mode: oauth,    liveness: needs_verification}
+  # === Local deployment ===
+  - {name: vllm,        canonical_base_url: "http://localhost:8000/v1",                              env_key: HOSTED_VLLM_API_KEY, mode: local,    liveness: needs_verification}
+  - {name: ollama,      canonical_base_url: "http://localhost:11434/v1",                             env_key: OLLAMA_API_KEY,      mode: local,    liveness: needs_verification}
+  - {name: lm_studio,   canonical_base_url: "http://localhost:1234/v1",                              env_key: "",                  mode: local,    liveness: needs_verification}
+  - {name: llama_cpp,   canonical_base_url: "http://localhost:8080/v1",                              env_key: "",                  mode: local,    liveness: needs_verification}
+  - {name: ovms,        canonical_base_url: "http://localhost:8000/v3",                              env_key: "",                  mode: local,    liveness: needs_verification}
+  # === Direct (user supplies endpoint) ===
+  - {name: custom,        canonical_base_url: "",  env_key: "", mode: direct, liveness: in_use}
+  - {name: azure_openai,  canonical_base_url: "",  env_key: "", mode: direct, liveness: needs_verification}
+  # === Embedding-only providers (currently declared ONLY in deprecated #3) ===
+  # Registered here so a write to them is machine-confirmed; physically still in
+  # EMBEDDING_PROVIDER_DEFAULTS until migration work order R3 folds embedding onto
+  # the canonical module. Marked source: deprecated_embedding_table.
+  - {name: cohere,  canonical_base_url: "https://api.cohere.ai", env_key: COHERE_API_KEY, mode: standard, liveness: needs_verification, source: deprecated_embedding_table}
+  - {name: jina,    canonical_base_url: "https://api.jina.ai/v1", env_key: JINA_API_KEY,  mode: standard, liveness: needs_verification, source: deprecated_embedding_table}
+
+# ── Grandfathered hardcoded base_url sites (存量旁路，scanner 不回溯) ─────────
+# Every EXISTING site that hardcodes a provider api endpoint literal instead of
+# resolving from the registry. The guard grandfathers these (status: existing)
+# and fails only on a NEW hardcoded base_url. Migrating each onto registry
+# resolution is the batched work order (PROVIDER_REGISTRY_MIGRATION_WORK_ORDER.md);
+# the sample migration R1 is the safest single site first.
+#
+# kind: bare_base_url        → a registry base_url (migrate to spec.default_api_base)
+#       full_path_endpoint   → base_url + a path suffix (/embeddings, /chat/completions,
+#                              /audio/transcriptions); migration must preserve the path
+grandfathered_base_url_sites:
+  - {path: deeptutor/capabilities/deep_question.py, provider: deepseek, kind: bare_base_url, status: existing}
+  - {path: deeptutor/services/construction_grading/runtime_llm_adjudicator.py, provider: dashscope, kind: bare_base_url, status: existing}
+  - {path: deeptutor/services/construction_grading/artifact_first_llm_judge.py, provider: deepseek, kind: bare_base_url, status: existing}
+  - {path: deeptutor/services/llm/cloud_provider.py, provider: openai, kind: bare_base_url, status: existing}
+  - {path: deeptutor/services/llm/factory.py, provider: openai, kind: bare_base_url, status: existing}
+  - {path: deeptutor/services/observability/deepseek_billing.py, provider: deepseek, kind: bare_base_url, status: existing}
+  - {path: deeptutor/services/search/providers/openrouter.py, provider: openrouter, kind: bare_base_url, status: existing}
+  - {path: deeptutor/services/search/providers/baidu.py, provider: qianfan, kind: full_path_endpoint, status: existing}
+  - {path: deeptutor/services/rag/pipelines/kbv5.py, provider: dashscope, kind: full_path_endpoint, status: existing}
+  - {path: deeptutor/services/benchmark/kb_v5_readonly_adapter.py, provider: dashscope, kind: full_path_endpoint, status: existing}
+  - {path: deeptutor/services/photo_answer/engines/qwen_vl_ocr.py, provider: dashscope, kind: full_path_endpoint, status: existing}
+  - {path: deeptutor/tutorbot/providers/transcription.py, provider: groq, kind: full_path_endpoint, status: existing}
+
+# ── Provider modes (the closed set of provider kinds) ────────────────────────
+provider_modes:
+  - standard
+  - gateway
+  - oauth
+  - local
+  - direct

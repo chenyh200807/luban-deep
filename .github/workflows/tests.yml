@@ -12,6 +12,12 @@ on:
       - "scripts/check_contract_guard.py"
       - "scripts/check_turn_contract_guard.py"
       - "scripts/ci/check_websocket_route_allowlist.py"
+      # Governance scanners (schema/db/env/provider/process/REST registry guards):
+      # glob so a scanner-only PR still triggers the guards, and future scanners are
+      # covered without re-editing this filter. Codex round: the gate must protect
+      # its own scanners, not only the code they govern.
+      - "scripts/check_*.py"
+      - "scripts/ci/**"
       - "requirements/**"
       - "requirements.txt"
       - "pyproject.toml"
@@ -45,6 +51,12 @@ on:
       - "scripts/check_contract_guard.py"
       - "scripts/check_turn_contract_guard.py"
       - "scripts/ci/check_websocket_route_allowlist.py"
+      # Governance scanners (schema/db/env/provider/process/REST registry guards):
+      # glob so a scanner-only PR still triggers the guards, and future scanners are
+      # covered without re-editing this filter. Codex round: the gate must protect
+      # its own scanners, not only the code they govern.
+      - "scripts/check_*.py"
+      - "scripts/ci/**"
       - "requirements/**"
       - "requirements.txt"
       - "pyproject.toml"
@@ -112,6 +124,73 @@ jobs:
           BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
           HEAD_SHA: ${{ github.sha }}
 
+      - name: Schema registry guard (register-before-use closure)
+        # Powers on contracts/schema_registry.yaml: every schema-version id in the
+        # codebase must be registered (T1 grading typed object / T2 runtime-consumed
+        # contract) or match the T3 ephemeral carve-out. --closure regenerates the
+        # full id set and fails on any orphan, so no agent can introduce an
+        # unregistered schema without updating the single canonical registry.
+        # (Bundling into check_contract_guard.py main() is a later consolidation,
+        # blocked only by that file's in-flight WIP; this step makes the gate live now.)
+        run: |
+          python scripts/check_schema_registry.py --closure
+
+      - name: DB registry guard (no unregistered DB connection / write / url)
+        # Powers on contracts/db_registry.yaml: a raw psycopg connection, a write
+        # to a table, or a *_DB_URL env not declared in the registry fails CI —
+        # stops the bleeding on the ad-hoc-connection class that caused the
+        # two-Supabase-project surprise (all 15 existing sites are grandfathered).
+        # Full-repo scan (scanner self-scopes to psycopg files). ``--all`` runs the
+        # scanner's OWN git ls-files internally (M2: no unquoted $(…) word-split on a
+        # spaced path). Bundling into check_contract_guard.py is a later consolidation
+        # blocked by its WIP.
+        run: |
+          python scripts/check_db_registry.py --all
+
+      - name: env / flag / credential registry guard (no unregistered env / 假灰度)
+        # Powers on contracts/env_registry.yaml: a NEW env referenced via
+        # os.getenv/os.environ/env_store.get/env_flag that the registry does not
+        # list fails CI (rule a, 防新增裸 env), and a NEW env_flag() read of an
+        # unregistered name fails CI (rule b, 防假灰度 — a misspelled gray-release
+        # flag silently returns env_flag's default, so KB v5 / LUBAN_V1 rollouts
+        # would look live but never take effect). All 284 existing references are
+        # grandfathered. Full-repo scan. ``--all`` runs the scanner's OWN git ls-files
+        # internally (M2: no unquoted $(…) word-split on a spaced path). Bundling into
+        # check_contract_guard.py is a later consolidation blocked by its WIP.
+        run: |
+          python scripts/check_env_registry.py --all
+
+      - name: provider registry guard (no unregistered provider base_url / 第二权威)
+        # Powers on contracts/provider_registry.yaml: a NEW hardcoded provider
+        # base_url literal at a call site that does not resolve from the canonical
+        # registry fails CI (rule a, 防新增旁路 — a scattered endpoint drifts and
+        # mis-attributes cost, the deepseek-billing先例), and a NEW provider added
+        # to a deprecated registry copy fails CI (rule b, 防第二权威再生 —三套
+        # registry 收成一套). All 12 existing bypass sites + the two deprecated
+        # copies are grandfathered. Full-repo scan exits 0 today. ``--all`` runs the
+        # scanner's OWN git ls-files internally (M2: no unquoted $(…) word-split on a
+        # spaced path). Bundling into check_contract_guard.py is a later consolidation
+        # blocked by its WIP.
+        run: |
+          python scripts/check_provider_registry.py --all
+
+      - name: process registry guard (no unregistered cron / always-on daemon)
+        # Powers on contracts/process_registry.yaml: a NEW GHA cron schedule in a
+        # .github/workflows/*.yml not listed under scheduled_tasks[] (rule a, 防新
+        # 增未登记定时任务), or a NEW always-on daemon — a create_task whose result
+        # is stored in a persistent holder (self._*task / *.worker_tasks[...]) — at
+        # a file not listed under daemons[] (rule b, 防新增未登记长驻进程) fails CI.
+        # This is the止血 against the 201.6 GB Next-process class: an AI-agent-owned
+        # always-on task that no one registered cannot slip in. Fire-and-forget
+        # per-request create_task (result discarded) is deliberately out of scope
+        # (zero-false-positive boundary). All 4 cron workflows + 8 daemon files are
+        # grandfathered. Full-repo scan exits 0 today. ``--all`` runs the scanner's
+        # OWN git ls-files internally over code + workflows (M2: no unquoted $(…)
+        # word-split on a spaced path). Bundling into check_contract_guard.py is a
+        # later consolidation blocked by its WIP.
+        run: |
+          python scripts/check_process_registry.py --all
+
       - name: WebSocket single-control-plane allowlist gate
         # Reflects the live FastAPI app's production WebSocket surface and fails
         # on any WS route not declared in contracts/index.yaml websocket_routes,
@@ -121,6 +200,22 @@ jobs:
         run: |
           pip install -r requirements/server.txt
           python scripts/ci/check_websocket_route_allowlist.py
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+
+      - name: REST route existence allowlist gate
+        # Reflects the live FastAPI app's production HTTP surface and fails on any
+        # router MOUNT PREFIX not declared in contracts/index.yaml http_routes.
+        # Closes the REST existence gap (the WS guard above already守住 WS; REST
+        # only had auth gates + a report-only inventory). Mirrors the WS guard:
+        # reflection-based (include_router chains can't bypass it), MOUNT-PREFIX
+        # grain (the existence unit — not leaf paths, which the inventory already
+        # enumerates for auth), so it does NOT overlap the WS guard or the secure-
+        # router gate. server deps are installed by the WS step above; the contract-
+        # guard light job degrades to a skip-with-note, so this is the load-bearing
+        # enforcement. All 31 production mounts are grandfathered (exits 0 today).
+        run: |
+          python scripts/ci/check_rest_route_allowlist.py
         env:
           PYTHONPATH: ${{ github.workspace }}
 
