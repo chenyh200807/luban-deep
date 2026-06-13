@@ -55,3 +55,12 @@ D1 query executor 不得变第二套判分 policy engine;D2 不得新增第三�
 
 ## 6. 下一步
 **先做 Phase A**(确定性收敛 schema,无 LLM,低风险,消掉最大第二权威 R1)。Phase B/C 待 Phase A 落地 + owner 审蓝图后逐阶段推进。
+
+## 7. 进展(2026-06-13:Phase B 上线 + G2 接真实数据流)
+
+- **Phase A 已落地**:`luban_per_question_grading_object.v1`(`per_question_grading_object.py`)——每题编译对象,采分点 = 官方答案逐字原子切片(authority A)+ span_hash + 教材 term_provenance(B)/honest unsourced,逐点分 null+pending,validator 锁单一权威。
+- **Phase B 上线(G2 接线落地处)**:`build_grading_contract(obj)`(commit 96ed81a78)把编译对象变 judge-ready 合约——官方原子切片 = 评分 checklist;教材引证经 **`resolve_grading_point_authority` 汇成 supporting_citations**(textbook_cited + official_score_allowed=False,永不进对错通道)。**这是 G2 在真实编译数据上的接线**(不是 gate 空列表),`validate_grading_contract` fail-closed。
+  - **③ 输出合约**:judge 必须逐 point_id 裁决 + 命中也要 cite 学生证据 span。
+  - **摁死误给闸**:`detect_over_credit`(`per_question_grading_judge.py`,commit 8564a7241)= score 实质超出其 verdict 支撑的 coverage(`score - coverage > margin`),**非"高分+任意miss"**(根因纠正:绝对阈值误伤多点题 23/24=0.958 的诚实高分)。
+- **A/B harness**(`run_luban_per_question_grading_ab.py`,review-only):arm_A_freestyle vs arm_B_atomic_contract,controlled 学生作答带精确 ground truth。dry-run oracle 端到端证明 plumbing + arm B 结构 over-credit-safe;**`--live` 真 LLM A/B 待 owner 跑(需 key,billable)**——出 arm A vs arm B over-credit 率对比。
+- **production `_grade_one_case_v1` 接线 = 待 `--live` A/B 裁决后再做**(别在实验证明前改生产判分消费路径)。Codex 给的最小接线点已记 `RESOURCE_GOVERNANCE_FIX_PLAN §6`。
