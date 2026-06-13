@@ -9,6 +9,10 @@
 
 我们把 Nexus 的 `compile → deterministic-retrieve` 做成了 `compile → stuff-context → model-freestyle`——**后半段塌回了 RAG**。而鲁班判分(重复查询、单一权威、教材字段级溯源)恰好落在 **Nexus 赢面**,我们却用了那条输的路径。
 
+## 0.5 North Star(本蓝图服务的产品目标)
+
+`评分知识结构化 → 采分点判断更准 → 错因标签更稳定 → 学情画像更可信 → 学习建议更具体 → 用户感觉"它真的懂我" → 留存与付费 → 鲁班专用教育知识资产持续复利`。落到:批改更准 / 采分点不漏 / 扣分原因清楚 / 学情画像有证据 / 复习建议可执行 / **模型替换成本更低** / 数据资产复利。本蓝图(原子采分点判分)是这条链被 §8/§9 live A/B 实测**赢 RAG** 的第一环。北极星正文 + LLM-judge rubric 外部循证(分项 vs holistic 条件、二元 MET/UNMET、去相关 RRD、聚合超敏、κ≥0.6 门槛)见 `grading_to_brain_north_star_and_external_evidence.md`。
+
 ## 1. Nexus 精髓 5 机制(带出处,推断项已标)与我们的差距
 
 | 机制 | Nexus 精髓(文档证实) | 我们现状 | 差距 |
