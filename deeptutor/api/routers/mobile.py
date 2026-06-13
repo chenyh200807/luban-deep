@@ -808,6 +808,8 @@ def _assert_billing_quota_available(
     wallet_user_id: str,
     authenticated_user_id: str = "",
 ) -> None:
+    if not is_billing_enforcement_enabled():
+        return
     identity_candidates = [
         authenticated_user_id,
         wallet_user_id,

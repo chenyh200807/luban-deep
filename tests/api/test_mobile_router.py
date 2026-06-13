@@ -52,8 +52,9 @@ def test_serialize_mobile_message_projects_engine_turn_id_from_message_metadata(
 
 
 @pytest.fixture(autouse=True)
-def _clear_rate_limit_state() -> None:
+def _clear_rate_limit_state(monkeypatch: pytest.MonkeyPatch) -> None:
     PathService.get_instance()._user_data_dir = _TEST_USER_DATA_DIR
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "false")
     rate_limit_module.clear_rate_limit_state()
     yield
     rate_limit_module.clear_rate_limit_state()
@@ -1122,6 +1123,7 @@ def test_mobile_chat_start_turn_blocks_when_usage_quota_exhausted(monkeypatch: p
                 )
             ]
 
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "true")
     monkeypatch.setenv("DEEPTUTOR_BILLING_USAGE_5H_LIMIT_POINTS", "20")
     monkeypatch.setenv("DEEPTUTOR_BILLING_USAGE_WEEKLY_LIMIT_POINTS", "20")
     monkeypatch.setattr(mobile_module, "turn_runtime", FakeTurnRuntime())
@@ -1349,7 +1351,7 @@ def test_billing_usage_reads_member_usage_meter_when_billing_enforcement_off(
     assert "primary_used_uses" not in body["display"]
     assert "primary_limit_uses" not in body["display"]
     assert "primary_remaining_uses" not in body["display"]
-    assert body["display"]["plan_id"] == "sprint"
+    assert body["display"]["plan_id"] == "svip"
 
 
 def test_billing_usage_returns_degraded_payload_when_wallet_storage_unavailable(
