@@ -320,11 +320,12 @@ def test_full_set_scan_is_deterministic_and_versioned() -> None:
     """The regenerated full set is stable and contains only versioned ids."""
     full = collect_all_schema_identifiers()
     assert collect_all_schema_identifiers() == full  # pure / deterministic
-    # every id carries a version suffix (.vN / .mNN / _vN) — no bare 'public' etc.
-    import re as _re
+    # every id carries a version suffix (.vN / .mNN / _vN / -vN) — no bare 'public' etc.
+    # Use the PRODUCTION suffix regex (single source) so this test cannot drift from it
+    # (P0#2 added the dash form for the persisted p0a-v1 report schema version).
+    from scripts.check_schema_registry import _FULLSET_VERSION_SUFFIX_RE
 
-    suffix = _re.compile(r"(?:\.v[0-9]|\.m[0-9]+|_v[0-9])")
-    assert all(suffix.search(name) for name in full)
+    assert all(_FULLSET_VERSION_SUFFIX_RE.search(name) for name in full)
     assert "public" not in full
     assert "learning_evidence" not in full
 

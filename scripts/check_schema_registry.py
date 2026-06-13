@@ -236,7 +236,7 @@ _FULLSET_LITERAL_RE = re.compile(
           | kind                                             # observability ``kind`` records
           | PROTOCOL_VERSION
         )
-        ["']?\s*[:=]\s*["']([A-Za-z0-9_.]+)["']""",
+        ["']?\s*[:=]\s*["']([A-Za-z0-9_.-]+)["']""",   # value allows '-' (dash schema ids e.g. p0a-v1)
     re.VERBOSE,
 )
 
@@ -246,11 +246,17 @@ _FULLSET_LITERAL_RE = re.compile(
 # values like ``public`` (Postgres schema), ``learning_evidence`` (event_type), and
 # plain enum strings that land in a ``kind``/``schema`` field but are not versioned
 # typed-object ids.
-_FULLSET_VERSION_SUFFIX_RE = re.compile(r"(?:\.v[0-9]|\.m[0-9]+|_v[0-9])")
+# P0#2: also accept a DASH version (``-v[0-9]``, e.g. the persisted report schema
+# ``p0a-v1``). Safe despite model names like ``deepseek-v4-flash`` because the suffix is
+# only one of two ANDed conditions — the name must ALSO match a grading-name hint or the
+# typed-object namespace below, which a bare model string does not (and the literal must
+# already sit behind a schema/schema_id/schema_version marker to be collected at all).
+_FULLSET_VERSION_SUFFIX_RE = re.compile(r"(?:\.v[0-9]|\.m[0-9]+|_v[0-9]|-v[0-9])")
 _FULLSET_NAMESPACE_RE = re.compile(
     r"""^(?:
             luban[_.]
           | assessment_(?:session|p0a)
+          | p0a-v                       # bare persisted report schema version (p0a-v1)
           | causal_oa
           | compiled_knowledge_registry
           | case_grading_artifact

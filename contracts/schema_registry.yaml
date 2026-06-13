@@ -61,11 +61,11 @@ scope_rule:
 # honest full set is the UNION across all literal forms = 176. The "152" was an
 # incomplete baseline; 176 is the closed authority this section keys off.
 completeness_closure:
-  full_set_count: 177            # union across all schema-version literal forms
+  full_set_count: 178            # union across all schema-version literal forms (+p0a-v1, P0#2)
   primary_grep_baseline: 152     # task's narrow grep; missed SCHEMA_ID=/schema_id: forms
   tier_counts:
     tier1_typed_grading_object: 9    # the `schemas:` list below (1 canonical + 8 deprecated)
-    tier2_runtime_canonical: 20      # tier2_canonical_contracts below
+    tier2_runtime_canonical: 21      # tier2_canonical_contracts below (+p0a-v1 assessment report)
     tier3_ephemeral_artifact: 148    # covered by tier3_carve_out rule, not enumerated 1:1
                                      # (148 incl. luban_per_question_full_compile.v1, the Stage 1
                                      #  full-bank compile summary artifact added 2026-06-14)
@@ -356,6 +356,15 @@ schemas:
 # warning if a T2 file is touched while marked needs_field_canonicalization, to
 # nudge eventual field-level pinning. T2 grants no official-score / write authority.
 tier2_canonical_contracts:
+  # — assessment report read-model (persisted schema_version, gates DB read-back) —
+  - name: p0a-v1
+    status: runtime_canonical
+    owner: assessment
+    canonical_for: assessment report read-model schema version (persisted; gates session report DB read-back)
+    module: deeptutor/services/assessment/session_repository.py
+    consumed_by: deeptutor/services/assessment/report_read_model.py (REPORT_SCHEMA_VERSION read-back)
+    needs_field_canonicalization: true   # dash-format id (P0#2): collector now sees it via the namespace + dash-suffix
+
   # — canonical knowledge spine (manifest → graph/index/unified/repairs/clauses) —
   - name: luban_canonical_knowledge_manifest.v1
     status: runtime_canonical
