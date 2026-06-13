@@ -52,7 +52,7 @@
 ## 3. 收口计划(P0→P3,全程复用同一套 contract-guard runner,不建第二套治理系统)
 
 **P0(最高杠杆 + 最便宜,先做)** — 执行状态见每条末尾。
-1. **接 PENDING HUNK**:把 `evaluate_schema_registry()` 接进 `check_contract_guard.py main()`,让 `schema_ok` 进返回布尔(line 416)——判分闸从"只抓 orphan ID"变成全 register-before-use(per-PR 漂移+权威完整性),**零新系统**。逻辑已写好已测,只差 3 行接线。【HELD:`check_contract_guard.py` 正被并行线改(上游吸收守卫 WIP),等其落地后我独占在其基线上接 schema_ok,避免两条线撞中央 guard。】
+1. **接 PENDING HUNK**:把 `evaluate_schema_registry()` 接进 `check_contract_guard.py main()`,让 `schema_ok` 进返回布尔(line 416)——判分闸从"只抓 orphan ID"变成全 register-before-use(per-PR 漂移+权威完整性),**零新系统**。逻辑已写好已测,只差 3 行接线。**【DONE 2026-06-14, commit 46c9379e9】** 在并行线上游吸收守卫 WIP 落地后,独占基线接 schema_ok(同时纳入其 upstream 守卫),`schema-registry-guard` 现进中央 runner 返回布尔,per-PR in-scope 判分 schema 漂移/权威/register-before-use 全 PR-blocking。
 2. ~~修 dash 盲点:`_FULLSET_VERSION_SUFFIX_RE` 加 `-v[0-9]`~~ **【CORRECTED 2026-06-14】blanket 加 `-vN` 不安全**:dash 也是 model 名写法(`deepseek-v4-flash`/`embed-v4`/`handwriting-v1`)+ 文件名(`bi-v2-*.generated.ts`),会把它们误收成 schema id → 大量假 orphan。p0a-v1 必须**targeted 注册**(只在 schema_version/schema_id 赋值上下文匹配,或显式 known-id),不能靠 blanket 正则。待 P0#1 接线时一并 targeted 处理。
 3. **点亮治理测试**:把 register-before-use 闸自己的 regression 测试接进 CI。**【DONE 2026-06-14, commit 15e6492e5(部分)】** 修 stale 计数(schema_registry.yaml 176→177 / tier3 147→148,对齐 live)+ smoke allowlist 加 `test_schema_registry/db/env/provider/process_registry`(109 测试,含 I1/I2/I3/I4 pin + closure 计数测试)。**故意不加 `test_contract_guard.py`**(并行线改 check_contract_guard.py,WIP-coupled)——待 P0#1 时一并接。`tests/contracts/test_index_consistency` 仍待点亮(P1#5)。
 
@@ -63,7 +63,13 @@
 
 **P2**
 7. BI 指标 drift 守卫接 CI(一行)。
-8. 把真·跨消费非判分 schema 升进 schema_registry 的 T2/新 runtime_contract 段(复用同一 closure scanner):learning-report(v1+v2)、RAG retrieval_plan/evidence_bundle、learner-state PCP/training_intent/error_events——前置:先给每个一个 typed id 字面量让 scanner 看得到。
+8. 把真·跨消费非判分 schema 升进 schema_registry 的 T2/新 runtime_contract 段(复用同一 closure scanner):learning-report(v1+v2)、RAG retrieval_plan/evidence_bundle、learner-state PCP/training_intent/error_events——前置:先给每个一个 typed id 字面量让 scanner 看得到。**【6 个命名目标 5/6 DONE 2026-06-14】** 每个都用"加 module-level SCHEMA_ID 常量(行为保持,整数版本不动)+ namespace 正则 tight 分支(实测 delta 恰好新 id)+ T2 注册 needs_field_canonicalization:true + producer↔registry 域测试"的同一 recipe,闭包逐步 CLOSED 178→183(tier2 21→26):
+   - learning_report_read_model.v2(commit 405121cfa)
+   - rag_retrieval_plan.v1(commit 8cfe52bddbfd)
+   - personalization_context_pack.v1(commit ab9244fda)
+   - learning_training_intent.v2(commit 13ee7d64d)
+   - grading_error_event.v1(commit 7a4745279;error_events 目标。注=可见性,evidence vs v1-rubric evidence_span 字段 reconciliation 是 P2#9 pinning,不在注册内改生产形状)
+   - **剩 RAG evidence_bundle**:三站点形状各异组装(kbv5 内联 / supabase `_build_evidence_bundle`+额外键 / service.py fallback),无单一权威——诚实注册须先 consolidation 成一个 builder+一种形状=RAG 生产级重构,**非行为保持**。强行挂 SCHEMA_ID 到任一站点是假单一权威(违反"修法不造第二权威")。待 owner 决策:先 consolidate 再注册,还是接受当前三形先记 TODO。
 9. 增量钉 T2 字段:高频契约(context_pack.v1/rich_leaf_context_bundle.v1)`needs_field_canonicalization=false` + canonical 字段表,字段漂移变 BLOCKING(在 schema_ok 接好后)。
 
 **P3**
