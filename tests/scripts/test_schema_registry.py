@@ -14,6 +14,8 @@ from __future__ import annotations
 
 from scripts.check_schema_registry import (
     SchemaUsage,
+    _is_fullset_schema_id,
+    _tier3_pattern_matches,
     classify_identifier,
     closure_report,
     collect_all_schema_identifiers,
@@ -21,6 +23,94 @@ from scripts.check_schema_registry import (
     evaluate_schema_usages,
     load_schema_registry,
 )
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# I1 — schema-marker set covers the bare ``SCHEMA =`` / ``*_SCHEMA =`` forms
+# ═════════════════════════════════════════════════════════════════════════════
+def test_i1_bare_SCHEMA_marker_triggers_drift_check() -> None:
+    # I1 regression: the canonical grading object declared via a bare ``SCHEMA = "…"``
+    # (not schema_id/schema_version) was NOT recognized by the marker regex, so the
+    # drift/authority checks never fired — a grading object could carry ``weight``
+    # instead of ``max_score`` undetected.
+    code = (
+        'SCHEMA = "luban_grading_object.v1"\n'
+        '    point = {"point_id": "p1", "weight": 2.0, "statement": "s"}\n'
+    )
+    usages = collect_schema_usages([("deeptutor/services/construction_grading/x.py", code)])
+    assert usages, "bare SCHEMA= must be recognized as a grading-schema marker (I1)"
+    ok, message = evaluate_schema_usages(usages, load_schema_registry())
+    assert ok is False
+    assert "drift field" in message and "weight" in message
+
+
+def test_i1_PACK_SCHEMA_and_underscore_SCHEMA_markers_recognized() -> None:
+    # I1: the ``*_SCHEMA`` / ``*_SCHEMA_VERSION`` forms (PACK_SCHEMA, GRADING_SCHEMA_VERSION)
+    # were missed entirely. They must now collect a usage when the literal is a
+    # grading-shaped name.
+    for marker in ("PACK_SCHEMA", "GRADING_SCHEMA_VERSION", "TYPED_SCHEMA_ID"):
+        code = f'{marker} = "luban_grading_object.v1"\n'
+        usages = collect_schema_usages([("deeptutor/services/construction_grading/x.py", code)])
+        assert any(u.schema_name == "luban_grading_object.v1" for u in usages), marker
+
+
+def test_i1_bare_SCHEMA_non_grading_value_still_ignored() -> None:
+    # I1 no-false-positive: widening the marker set must NOT pull in unrelated bare
+    # ``SCHEMA = "public"`` literals — the grading-name hint filter still gates them.
+    code = 'SCHEMA = "public"\nDB_SCHEMA = "compiled_knowledge_registry.v2"\n'
+    usages = collect_schema_usages([("deeptutor/services/construction_grading/x.py", code)])
+    ok, _ = evaluate_schema_usages(usages, load_schema_registry())
+    assert ok is True
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# I2(a) — grading-named versioned id cannot escape the closure full set
+# ═════════════════════════════════════════════════════════════════════════════
+def test_i2a_grading_named_id_outside_namespace_allowlist_enters_fullset() -> None:
+    # I2(a) regression: a grading-named versioned id whose prefix is NOT on the
+    # namespace allow-list (``mygrading_object.v1`` / ``shadow_scoring_point.v2``)
+    # previously escaped the full set, so the closure could never flag it an orphan.
+    for name in ("mygrading_object.v1", "shadow_scoring_point.v2", "rogue_grading_object.v1"):
+        assert _is_fullset_schema_id(name) is True, name
+
+
+def test_i2a_escaped_grading_id_surfaces_as_orphan_not_silently_dropped() -> None:
+    # I2(a) end-to-end: an unregistered grading-named id is an orphan (a real gap),
+    # never silently absent from the closure.
+    registry = load_schema_registry()
+    assert classify_identifier("rogue_grading_object.v1", registry) == "orphan"
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# I2(b) — tier3 substring swallow: grading-shaped veto + bounded segment match
+# ═════════════════════════════════════════════════════════════════════════════
+def test_i2b_base_grading_object_with_embedded_tier3_word_is_not_ephemeral() -> None:
+    # I2(b) regression: a BASE grading object whose name embeds a tier3 substring
+    # (``audit_grading_object.v1`` ⊃ ``_audit``; ``eval_scoring_point.v2`` ⊃ ``_eval``)
+    # must NOT be swallowed into T3 — a grading typed object is never ephemeral. It
+    # is an orphan (must be registered), not a silent carve-out.
+    registry = load_schema_registry()
+    assert classify_identifier("audit_grading_object.v1", registry) == "orphan"
+    assert classify_identifier("eval_scoring_point.v2", registry) == "orphan"
+
+
+def test_i2b_tier3_pattern_no_midword_substring_swallow() -> None:
+    # I2(b): a ``_word`` pattern ending in a letter must match only as a bounded
+    # SEGMENT — ``_eval`` matches ``_eval_run`` / ``_eval`` (end) but NOT ``_evaluation``.
+    assert _tier3_pattern_matches("_eval", "x_eval_run.v1") is True
+    assert _tier3_pattern_matches("_eval", "x_eval") is True
+    assert _tier3_pattern_matches("_eval", "x_evaluation_run.v1") is False
+    assert _tier3_pattern_matches("_audit", "x_auditor.v1") is False
+    assert _tier3_pattern_matches("_gate", "x_gateway.v1") is False
+
+
+def test_i2b_self_bounded_and_dotted_patterns_keep_substring_semantics() -> None:
+    # I2(b) no-false-positive: patterns that already end in a boundary (``_ab_``) or
+    # carry a '.' (``_compile.v``, ``grading_artifact.v1``) keep plain-substring match,
+    # so existing T3 carve-outs are preserved.
+    assert _tier3_pattern_matches("_ab_", "x_ab_results.v1") is True
+    assert _tier3_pattern_matches("_ab.", "luban_m35_scoring_artifact_ab.v1") is True
+    assert _tier3_pattern_matches("grading_artifact.v1", "question_grading_artifact.v1_beta") is True
 
 
 # ── Registry loads and exposes the canonical authority ───────────────────────

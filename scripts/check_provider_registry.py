@@ -88,9 +88,18 @@ REGISTRY_PATH = REPO_ROOT / "contracts" / "provider_registry.yaml"
 # link / webhook / asset CDN is never a governed literal.
 _URL_LITERAL_RE = re.compile(r"""["'](https?://[^"'\s]+)["']""")
 
-# A ProviderSpec(name="X", …) construction — the machine signal "a provider
-# entry is being declared here". Captures the provider name in group 1.
-_PROVIDER_SPEC_RE = re.compile(r"""ProviderSpec\s*\(\s*name\s*=\s*["']([^"']+)["']""")
+# A ProviderSpec(…) construction — the machine signal "a provider entry is being
+# declared here". Real ProviderSpec(...) literals are MULTI-LINE with arbitrary
+# kwarg order (``name=`` is rarely on the same line as the opening paren), so a
+# line-by-line ``ProviderSpec(name=…)`` regex matched ZERO of the existing 27 and
+# was a placebo (C1). We instead locate every ``ProviderSpec(`` opener over the
+# WHOLE file body, walk its balanced-paren argument block, and find ``name=`` ANY-
+# where inside it. This tolerates newlines and any kwarg ordering.
+_PROVIDER_SPEC_OPEN_RE = re.compile(r"\bProviderSpec\s*\(")
+# ``name = "X"`` inside an argument block — quote style + surrounding whitespace
+# tolerant. Anchored to a ``name`` keyword arg (preceded by ``(``/``,``/whitespace
+# so we never match a substring like ``display_name=``).
+_PROVIDER_SPEC_NAME_RE = re.compile(r"""(?:^|[(,\s])name\s*=\s*["']([^"']+)["']""")
 
 # Restrict to production source. Tests, fixtures, and the registry YAML itself
 # are out of scope. Scripts/ are in scope (maintenance scripts call providers).
@@ -208,21 +217,89 @@ def collect_base_url_usages(files: list[tuple[str, str]]) -> list[BaseUrlUsage]:
     return usages
 
 
+def _strip_line_comments(body: str) -> str:
+    """Blank out ``#`` line-comment tails so a commented ProviderSpec is invisible.
+
+    We replace the comment portion with spaces (preserving length / line offsets,
+    so reported ``lineno`` stays correct). This is deliberately conservative: a
+    ``#`` inside a string literal would also be stripped, but ProviderSpec arg
+    values never legitimately contain a ``#`` for our purposes, and over-stripping
+    only ever HIDES a candidate (never invents one) — it cannot cause a false
+    positive. A fully commented-out ``ProviderSpec(`` block therefore yields no
+    opener (its ``(`` is blanked), so it is never collected.
+    """
+    out: list[str] = []
+    for line in body.splitlines(keepends=True):
+        newline = "\n" if line.endswith("\n") else ""
+        core = line[:-1] if newline else line
+        idx = core.find("#")
+        if idx != -1:
+            core = core[:idx] + " " * (len(core) - idx)
+        out.append(core + newline)
+    return "".join(out)
+
+
 def collect_provider_spec_usages(files: list[tuple[str, str]]) -> list[ProviderSpecUsage]:
-    """Scan ``(path, body)`` pairs for ProviderSpec(name=…) constructions."""
+    """Scan ``(path, body)`` pairs for ProviderSpec(…) constructions (multi-line).
+
+    Real ProviderSpec literals span many lines with ``name=`` not on the opener
+    line, so we cannot scan line-by-line. For each ``ProviderSpec(`` opener we walk
+    the BALANCED-PAREN argument block over the whole (comment-stripped) body and
+    extract ``name=`` from inside it — tolerant of newlines and any kwarg order.
+    """
     usages: list[ProviderSpecUsage] = []
     for path, body in files:
         if not body:
             continue
-        for lineno, line in enumerate(body.splitlines(), start=1):
-            stripped = line.strip()
-            if stripped.startswith("#"):
-                continue
-            for match in _PROVIDER_SPEC_RE.finditer(line):
-                usages.append(
-                    ProviderSpecUsage(path=path, lineno=lineno, provider_name=match.group(1))
+        cleaned = _strip_line_comments(body)
+        for opener in _PROVIDER_SPEC_OPEN_RE.finditer(cleaned):
+            block, end = _balanced_paren_block(cleaned, opener.end() - 1)
+            if block is None:
+                continue  # unbalanced / truncated — skip rather than mis-read
+            name_match = _PROVIDER_SPEC_NAME_RE.search(block)
+            if not name_match:
+                continue  # a ProviderSpec(...) with no literal name= (dynamic) — skip
+            lineno = cleaned.count("\n", 0, opener.start()) + 1
+            usages.append(
+                ProviderSpecUsage(
+                    path=path, lineno=lineno, provider_name=name_match.group(1)
                 )
+            )
     return usages
+
+
+def _balanced_paren_block(text: str, open_paren_idx: int) -> tuple[str | None, int]:
+    """Return the substring inside the balanced parens starting at ``open_paren_idx``.
+
+    ``text[open_paren_idx]`` must be ``(``. Returns ``(inner, close_idx)`` where
+    ``inner`` is the content between the matching parens, or ``(None, -1)`` if the
+    parens never balance (truncated input). Quote-aware so a ``)`` inside a string
+    literal does not prematurely close the block.
+    """
+    depth = 0
+    i = open_paren_idx
+    n = len(text)
+    quote: str | None = None
+    while i < n:
+        ch = text[i]
+        if quote is not None:
+            if ch == "\\":
+                i += 2
+                continue
+            if ch == quote:
+                quote = None
+            i += 1
+            continue
+        if ch in ("'", '"'):
+            quote = ch
+        elif ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth -= 1
+            if depth == 0:
+                return text[open_paren_idx + 1 : i], i
+        i += 1
+    return None, -1
 
 
 def _check_new_hardcoded_base_urls(
@@ -371,6 +448,28 @@ def _git_current_candidate_files() -> list[str]:
     return sorted(files)
 
 
+# M2: scan-all glob set, run INSIDE the scanner via subprocess (a list arg, never
+# shell-word-split). The CI used ``$(git ls-files …)`` unquoted, so a tracked path
+# containing a space would be split into two bogus arguments. ``--all`` lets CI call
+# the scanner with no shell expansion (``python check_provider_registry.py --all``).
+_SCAN_ALL_GLOBS = ("deeptutor/**/*.py", "scripts/**/*.py")
+
+
+def _git_tracked_in_scope_files() -> list[str]:
+    """Return tracked in-scope files via the scanner's own ``git ls-files``.
+
+    Uses a subprocess LIST argument (no shell), so a path with a space stays one
+    argument — closing the M2 unquoted-``$(git ls-files)`` word-split hole.
+    """
+    result = subprocess.run(
+        ["git", "ls-files", "-z", *_SCAN_ALL_GLOBS],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return [p for p in result.stdout.split("\0") if p]
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Fail when code hardcodes a new provider base_url / adds a new "
@@ -379,9 +478,18 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "files", nargs="*", help="Explicit changed files. If omitted, git diff is used."
     )
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Scan ALL tracked in-scope files via the scanner's own git ls-files "
+        "(no shell word-splitting on spaced paths — the CI-safe full-repo mode).",
+    )
     args = parser.parse_args(argv)
 
-    changed = args.files or _git_current_candidate_files()
+    if args.all:
+        changed = _git_tracked_in_scope_files()
+    else:
+        changed = args.files or _git_current_candidate_files()
     ok, message = evaluate_provider_registry(changed)
     stream = sys.stdout if ok else sys.stderr
     print(message, file=stream)

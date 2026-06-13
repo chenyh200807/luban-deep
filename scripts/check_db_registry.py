@@ -79,6 +79,12 @@ REGISTRY_PATH = REPO_ROOT / "contracts" / "db_registry.yaml"
 # RLS-bypassing surface the registry governs. (Supabase REST is out of scope.)
 _RAW_CONNECT_RE = re.compile(r"\bpsycopg2?\.connect\s*\(")
 
+# I3(a): aliased import detection. ``import psycopg as pg`` / ``import psycopg2 as db``
+# rebinds the module to an arbitrary name, after which ``pg.connect(`` is a raw
+# connection the un-aliased regex above could not see. We scan each file for these
+# alias bindings and additionally match ``<alias>.connect(`` for every alias found.
+_PSYCOPG_ALIAS_IMPORT_RE = re.compile(r"^\s*import\s+psycopg2?\s+as\s+([A-Za-z_]\w*)", re.MULTILINE)
+
 # Direct SQL write statements targeting a table. Captures the table identifier
 # after the verb. Case-insensitive; tolerates schema-qualified names.
 #
@@ -89,6 +95,11 @@ _RAW_CONNECT_RE = re.compile(r"\bpsycopg2?\.connect\s*\(")
 #   delete from <table> where|;|"|'|)|\n   -> WHERE clause or end of statement
 #   update <table> set           -> the SET clause (also excludes ON CONFLICT … DO
 #                                   UPDATE SET via the (?<!do\s) lookbehind)
+#   I3(b):
+#   copy <table> from            -> bulk ingest (copy_expert / COPY … FROM STDIN);
+#                                   a write surface the original rule entirely missed
+#   truncate [table] <table>     -> destructive table-empty; the (?:table\s+)? makes
+#                                   the TABLE keyword optional (both PG forms)
 # This keeps the rule a precise SQL detector, not a prose matcher.
 _TABLE = r"([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*)"
 _WRITE_STMT_RE = re.compile(
@@ -96,6 +107,8 @@ _WRITE_STMT_RE = re.compile(
     rf"insert\s+into\s+{_TABLE}\s*[(\"']"
     rf"|delete\s+from\s+{_TABLE}\s*(?:where\b|using\b|[;\"')]|$)"
     rf"|(?<!do\s)update\s+{_TABLE}\s+set\b"
+    rf"|copy\s+{_TABLE}\s*(?:\([^)]*\)\s*)?from\s+(?:stdin\b|program\b|['\"(])"
+    rf"|truncate\s+(?:table\s+)?{_TABLE}\s*(?:cascade\b|restart\b|continue\b|[;\"')]|$)"
     r")",
     re.IGNORECASE,
 )
@@ -107,7 +120,9 @@ _NON_TABLE_TOKENS = frozenset({"set", "where", "values", "returning", "from", "i
 # The write-rule only governs files that actually open a raw Postgres connection
 # (the registry's scope is RLS-bypassing raw psycopg writes). A SQLite ``DELETE
 # FROM`` or an ORM call in a non-psycopg file is out of scope. A file is a raw-PG
-# file if it imports psycopg or calls psycopg(2).connect.
+# file if it imports psycopg (incl. ``import psycopg as X``) or calls
+# psycopg(2).connect. The ``import psycopg2?\b`` prefix already covers the aliased
+# ``import psycopg as pg`` form (I3(a)), so writes in alias-import files are scanned.
 _PSYCOPG_FILE_RE = re.compile(r"\bimport\s+psycopg2?\b|\bpsycopg2?\.connect\s*\(")
 
 # DB-url env reference: os.getenv("X_DATABASE_URL") / os.environ["DB_URL"] / etc.
@@ -195,16 +210,30 @@ def _normalize_table(name: str) -> str:
 
 
 def collect_connect_usages(files: list[tuple[str, str]]) -> list[ConnectUsage]:
-    """Scan ``(path, body)`` pairs for raw psycopg.connect calls."""
+    """Scan ``(path, body)`` pairs for raw psycopg.connect calls.
+
+    I3(a): also resolves ``import psycopg as <alias>`` and matches
+    ``<alias>.connect(`` — an aliased import the bare ``psycopg.connect`` regex
+    could not see.
+    """
     usages: list[ConnectUsage] = []
     for path, body in files:
         if not body:
             continue
+        # Build the per-file alias table (e.g. {"pg", "db"}) and an alias-aware
+        # connect matcher so ``pg.connect(`` is detected as a raw connection.
+        aliases = set(_PSYCOPG_ALIAS_IMPORT_RE.findall(body))
+        alias_connect_re: re.Pattern[str] | None = None
+        if aliases:
+            alt = "|".join(re.escape(a) for a in sorted(aliases))
+            alias_connect_re = re.compile(rf"\b(?:{alt})\.connect\s*\(")
         for lineno, line in enumerate(body.splitlines(), start=1):
             stripped = line.strip()
             if stripped.startswith("#"):
                 continue
-            if _RAW_CONNECT_RE.search(line):
+            if _RAW_CONNECT_RE.search(line) or (
+                alias_connect_re is not None and alias_connect_re.search(line)
+            ):
                 usages.append(ConnectUsage(path=path, lineno=lineno, snippet=stripped[:120]))
     return usages
 
@@ -224,8 +253,15 @@ def collect_write_usages(files: list[tuple[str, str]]) -> list[WriteUsage]:
             if stripped.startswith("#"):
                 continue
             for match in _WRITE_STMT_RE.finditer(line):
-                # exactly one of the three alternation groups captured the table.
-                raw_table = match.group(1) or match.group(2) or match.group(3)
+                # exactly one of the five alternation groups captured the table
+                # (insert / delete / update / copy / truncate).
+                raw_table = (
+                    match.group(1)
+                    or match.group(2)
+                    or match.group(3)
+                    or match.group(4)
+                    or match.group(5)
+                )
                 table = _normalize_table(raw_table)
                 if table in _NON_TABLE_TOKENS:
                     continue
@@ -391,6 +427,28 @@ def _git_current_candidate_files() -> list[str]:
     return sorted(files)
 
 
+# M2: scan-all glob set, run INSIDE the scanner via subprocess (a list arg, never
+# shell-word-split). The CI used ``$(git ls-files …)`` unquoted, so a tracked path
+# containing a space would be split into two bogus arguments. ``--all`` lets CI call
+# the scanner with no shell expansion (``python check_db_registry.py --all``).
+_SCAN_ALL_GLOBS = ("deeptutor/**/*.py", "scripts/**/*.py")
+
+
+def _git_tracked_in_scope_files() -> list[str]:
+    """Return tracked in-scope files via the scanner's own ``git ls-files``.
+
+    Uses a subprocess LIST argument (no shell), so a path with a space stays one
+    argument — closing the M2 unquoted-``$(git ls-files)`` word-split hole.
+    """
+    result = subprocess.run(
+        ["git", "ls-files", "-z", *_SCAN_ALL_GLOBS],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return [p for p in result.stdout.split("\0") if p]
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Fail when code opens an unregistered raw DB connection / writes an "
@@ -399,9 +457,18 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "files", nargs="*", help="Explicit changed files. If omitted, git diff is used."
     )
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Scan ALL tracked in-scope files via the scanner's own git ls-files "
+        "(no shell word-splitting on spaced paths — the CI-safe full-repo mode).",
+    )
     args = parser.parse_args(argv)
 
-    changed = args.files or _git_current_candidate_files()
+    if args.all:
+        changed = _git_tracked_in_scope_files()
+    else:
+        changed = args.files or _git_current_candidate_files()
     ok, message = evaluate_db_registry(changed)
     stream = sys.stdout if ok else sys.stderr
     print(message, file=stream)

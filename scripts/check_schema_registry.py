@@ -72,9 +72,21 @@ REGISTRY_PATH = REPO_ROOT / "contracts" / "schema_registry.yaml"
 # only treat literals that LOOK like grading typed-object schemas as in-scope so
 # we never collide with the many unrelated ``schema_version`` literals in the
 # codebase (compiled_knowledge_registry.v2, concept_registry, …).
+#
+# I1: the marker set is aligned with ``_FULLSET_LITERAL_RE`` below — the original
+# set missed the bare ``SCHEMA = "…"`` and ``*_SCHEMA[_ID|_VERSION] = "…"`` forms
+# (e.g. ``PACK_SCHEMA``, ``GRADING_SCHEMA``), so a canonical grading object declared
+# via ``SCHEMA = "luban_grading_object.v1"`` never triggered the drift/authority
+# checks. The grading-name hint filter (``_is_grading_schema_name``) still gates
+# which literals count, so widening the marker set adds no false positive (a bare
+# ``SCHEMA = "public"`` is dropped by the hint filter, same as before).
 _SCHEMA_MARKER_RE = re.compile(
-    r"""(?:schema_id|schema_version|SCHEMA_ID|SCHEMA_VERSION|PROTOCOL_VERSION
-        |GRADING_SCHEMA|SOURCE_SCHEMA|schema)\s*[:=]\s*["']([^"']+)["']""",
+    r"""(?:
+            [A-Za-z_]*_SCHEMA(?:_ID|_VERSION)?   # PACK_SCHEMA, GRADING_SCHEMA, SOURCE_SCHEMA…
+          | SCHEMA(?:_ID|_VERSION)?              # SCHEMA / SCHEMA_ID / SCHEMA_VERSION
+          | schema(?:_id|_version)?              # schema / schema_id / schema_version
+          | PROTOCOL_VERSION
+        )\s*[:=]\s*["']([^"']+)["']""",
     re.VERBOSE,
 )
 
@@ -87,6 +99,46 @@ _GRADING_NAME_HINT_RE = re.compile(
     r"|case_grading_artifact|luban\.rich_leaf|m35_ai_governed_gold"
     r"|luban_m31_governed_objective|luban_arbitration_gold_panel)",
 )
+
+# I2: a "grading-shaped" identifier is a per-point grading TYPED OBJECT — the kind
+# whose field-name drift creates a second authority. It is NEVER an ephemeral T3
+# artifact. We key the closure's two I2 fixes off this:
+#   (a) namespace escape — a grading-shaped versioned id is ALWAYS pulled into the
+#       authoritative full set, even if its prefix is not on the namespace allow-
+#       list, so an unregistered ``mygrading_object.v1`` cannot escape the closure
+#       (it surfaces as an orphan instead of vanishing). 宁多收不逃逸.
+#   (b) tier3 substring swallow — a grading-shaped id is one-票否决 for T3: even if
+#       its name happens to contain a tier3 substring (``luban_eval_official_key.v1``
+#       contains ``_eval``; ``..._audit_key.v1`` contains ``_audit``), it can never be
+#       classified ephemeral. A grading typed object that is not registered must be
+#       an orphan, never silently carved out.
+# Deliberately TIGHT — this is the no-false-positive boundary for I2. A grading-
+# shaped id is a BASE grading TYPED OBJECT: the per-point object stem
+# (``grading_object`` / ``scoring_point``) IMMEDIATELY followed by its version suffix
+# (``.vN`` / ``_vN``) — i.e. the stem is the TERMINAL semantic unit, the object itself.
+#
+# It deliberately does NOT include the ``*_artifact`` stems. The word "artifact" denotes
+# a DERIVED, ephemeral product (a compiled / staged / audited output of grading), which
+# is exactly the T3 carve-out class — ``grading_artifact.v1``,
+# ``question_grading_artifact.v1_candidate_dry_run``, ``luban_m35_scoring_artifact_ab.v1``
+# are all legitimate T3. Vetoing those would re-flag existing carve-outs (a false
+# positive). Only the bare per-point typed object (``grading_object.v1``,
+# ``scoring_point.v2``) is one-票否决 for T3.
+_GRADING_SHAPED_RE = re.compile(
+    r"(?:^|[_.])(?:grading_object|scoring_point)(?:\.v[0-9]|_v[0-9])",
+)
+
+
+def _is_grading_shaped(name: str) -> bool:
+    """True for a BASE per-point grading TYPED OBJECT id (never ephemeral; I2 anchor).
+
+    Tight by design: matches only ``<object_stem>.vN`` / ``<object_stem>_vN`` where the
+    grading OBJECT stem is the terminal unit — not a derived ``*_artifact`` (which is
+    by definition ephemeral T3) and not a further-derived object
+    (``scoring_point_assets_backfill.v1``). See ``_GRADING_SHAPED_RE`` for the
+    no-false-positive rationale.
+    """
+    return bool(_GRADING_SHAPED_RE.search(name))
 
 # Restrict the whole guard to grading/scoring source paths. The drift-field and
 # missing-authority checks are inherently grading-specific; scanning unrelated
@@ -213,8 +265,23 @@ _FULLSET_NAMESPACE_RE = re.compile(
 
 
 def _is_fullset_schema_id(name: str) -> bool:
-    """A versioned typed-object/grading/canonical-contract id in a known namespace."""
-    return bool(_FULLSET_NAMESPACE_RE.match(name) and _FULLSET_VERSION_SUFFIX_RE.search(name))
+    """A versioned typed-object/grading/canonical-contract id in a known namespace.
+
+    I2(a): a GRADING-NAMED versioned id is ALWAYS in the full set even when its
+    prefix is not on the namespace allow-list — otherwise a rogue
+    ``mygrading_object.v1`` / ``shadow_scoring_point.v2`` would never enter the closure
+    and could never be flagged an orphan (a silent namespace escape). 宁多收不逃逸: a
+    grading-named object must always be accounted for. We use the BROAD grading-name
+    hint here (any ``*grading_object`` / ``*scoring_point`` / ``*scoring_artifact``
+    prefix) so the closure over-collects rather than lets one escape; the tight
+    ``_is_grading_shaped`` veto (T3 one-票否决) is applied separately in
+    ``classify_identifier``.
+    """
+    if not _FULLSET_VERSION_SUFFIX_RE.search(name):
+        return False
+    if _GRADING_NAME_HINT_RE.match(name):
+        return True
+    return bool(_FULLSET_NAMESPACE_RE.match(name))
 
 
 _FULLSET_SCAN_DIRS = ("deeptutor", "scripts", "contracts")
@@ -256,16 +323,56 @@ def classify_identifier(name: str, registry: dict[str, Any]) -> str:
     T1 = registered grading typed object; T2 = registered runtime-canonical
     contract; T3 = matches a tier3 carve-out pattern; 'orphan' = none (a gap the
     closure test must surface — an unregistered id with no carve-out).
+
+    I2(b): a grading-SHAPED id is one-票否决 for T3 — a per-point grading typed
+    object can never be an ephemeral artifact, even when its name happens to contain
+    a tier3 substring (``luban_eval_official_key.v1`` ⊃ ``_eval``; ``..._audit_key.v1``
+    ⊃ ``_audit``). So registration (T1/T2) is checked FIRST, then the grading-shaped
+    veto, and only THEN the carve-out patterns. An unregistered grading-shaped id is
+    therefore an orphan (a real gap), never silently swallowed.
     """
     if name in registry["by_name"]:
         return "tier1"
     if name in registry["tier2_by_name"]:
         return "tier2"
+    # I2(b) veto: grading-shaped → never ephemeral. If it is not registered above,
+    # it is an orphan that the closure must surface, NOT a T3 carve-out.
+    if _is_grading_shaped(name):
+        return "orphan"
     lowered = name.lower()
     for pattern in registry["tier3_carve_out_patterns"]:
-        if pattern in lowered:
+        if _tier3_pattern_matches(pattern, lowered):
             return "tier3"
     return "orphan"
+
+
+def _tier3_pattern_matches(pattern: str, lowered_name: str) -> bool:
+    """Match a tier3 carve-out pattern against a (lower-cased) schema id.
+
+    I2(b): a ``_word`` segment pattern that ENDS in an alphanumeric char (``_eval`` /
+    ``_audit`` / ``_gate`` …) must be a bounded SEGMENT — the char after the matched
+    substring must be a segment boundary (``_`` / ``.`` / end), not a word continuation
+    — so ``_eval`` does not swallow ``_evaluation_xyz`` mid-word. Patterns that already
+    end in their own boundary (``_ab_`` / ``_ab.``), carry a ``.`` (dotted / versioned:
+    ``_compile.v``, ``grading_artifact.v1``), or are explicit full names keep plain-
+    substring semantics — they are already self-bounding. This preserves every existing
+    T3 classification while closing the mid-word substring-swallow.
+    """
+    idx = lowered_name.find(pattern)
+    if idx == -1:
+        return False
+    # Self-bounding patterns keep plain-substring semantics:
+    #   - already end in a boundary char (``_ab_``, ``_ab.``)
+    #   - carry a '.' (dotted / version-bearing, e.g. ``_compile.v``, ``grading_artifact.v1``)
+    #   - are not a leading-underscore word pattern (explicit full names)
+    if "." in pattern or not pattern.startswith("_") or not pattern[-1].isalnum():
+        return True
+    # Bounded-segment rule for a leading-underscore word pattern ending in a letter/
+    # digit: require a segment boundary immediately AFTER the matched substring.
+    tail_idx = idx + len(pattern)
+    if tail_idx >= len(lowered_name):
+        return True  # pattern is a suffix → bounded by end-of-string
+    return lowered_name[tail_idx] in ("_", ".")
 
 
 def closure_report(

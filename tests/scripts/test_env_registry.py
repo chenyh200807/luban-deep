@@ -151,6 +151,59 @@ def test_lowercase_or_local_variable_not_mistaken_for_env() -> None:
     assert ok is True
 
 
+# ═════════════════════════════════════════════════════════════════════════════
+# I4 — env read entry points: setdefault / pop / bare getenv
+# ═════════════════════════════════════════════════════════════════════════════
+def test_i4_os_environ_setdefault_detected() -> None:
+    # I4 regression: ``os.environ.setdefault("X", …)`` is an env read entry point
+    # the original regex missed — a new bare env could slip in behind it.
+    code = "os.environ.setdefault('SHADOW_NEW_ENV_X', 'v')\n"
+    envs = collect_env_reference_usages([("deeptutor/services/x.py", code)])
+    assert any(e.env_name == "SHADOW_NEW_ENV_X" for e in envs)
+    ok, message = evaluate_env_usages(envs, [], load_env_registry())
+    assert ok is False
+    assert "SHADOW_NEW_ENV_X" in message
+
+
+def test_i4_os_environ_pop_detected() -> None:
+    # I4 regression: ``os.environ.pop("X", …)`` is an env reference too.
+    code = "os.environ.pop('SHADOW_NEW_ENV_Y', None)\n"
+    envs = collect_env_reference_usages([("deeptutor/services/x.py", code)])
+    assert any(e.env_name == "SHADOW_NEW_ENV_Y" for e in envs)
+    ok, message = evaluate_env_usages(envs, [], load_env_registry())
+    assert ok is False
+    assert "SHADOW_NEW_ENV_Y" in message
+
+
+def test_i4_bare_getenv_detected() -> None:
+    # I4 regression: ``from os import getenv; getenv("X")`` is a bare-form read.
+    code = "from os import getenv\nv = getenv('SHADOW_NEW_ENV_Z')\n"
+    envs = collect_env_reference_usages([("deeptutor/services/x.py", code)])
+    assert any(e.env_name == "SHADOW_NEW_ENV_Z" for e in envs)
+    ok, message = evaluate_env_usages(envs, [], load_env_registry())
+    assert ok is False
+    assert "SHADOW_NEW_ENV_Z" in message
+
+
+def test_i4_os_getenv_not_double_counted_by_bare_getenv_branch() -> None:
+    # I4 no-false-positive: the bare ``getenv`` branch must NOT double-match the
+    # ``os.getenv`` form (the ``(?<![\w.])`` lookbehind excludes the ``.`` prefix).
+    code = "v = os.getenv('DATABASE_URL')\n"
+    envs = collect_env_reference_usages([("deeptutor/services/x.py", code)])
+    assert len(envs) == 1, "os.getenv must be counted exactly once, not twice"
+
+
+def test_i4_registered_env_via_new_forms_passes() -> None:
+    # I4 no-false-positive: the new forms reading a REGISTERED env still pass.
+    code = (
+        "os.environ.setdefault('LANGFUSE_ENABLED', 'false')\n"
+        "os.environ.pop('SUPABASE_URL', None)\n"
+    )
+    envs = collect_env_reference_usages([("deeptutor/services/x.py", code)])
+    ok, message = evaluate_env_usages(envs, [], load_env_registry())
+    assert ok is True, message
+
+
 def test_full_repo_scan_has_zero_false_positives() -> None:
     """The whole-repo scan over real production source must be GREEN.
 

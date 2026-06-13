@@ -134,6 +134,78 @@ def test_pass_existing_provider_in_deprecated_copy_not_flagged() -> None:
     assert "passed" in message
 
 
+def test_fail_new_provider_added_to_deprecated_copy_MULTILINE() -> None:
+    # C1 regression: the REAL ProviderSpec shape is multi-line — ``name=`` is on a
+    # different line from ``ProviderSpec(``. The original line-by-line regex matched
+    # ZERO of the 27 existing real specs (a placebo), so a new provider could be
+    # added multi-line to the deprecated copy and the guard would never see it.
+    code = (
+        "PROVIDERS = (\n"
+        "    ProviderSpec(\n"
+        '        name="brandnewmultiline",\n'
+        "        keywords=(),\n"
+        "        env_key=\"\",\n"
+        '        default_api_base="https://api.brandnew.example/v1",\n'
+        "    ),\n"
+        ")\n"
+    )
+    specs = collect_provider_spec_usages([("deeptutor/tutorbot/providers/registry.py", code)])
+    assert specs, "multi-line ProviderSpec must be collected (C1: was a 0-hit placebo)"
+    ok, message = evaluate_provider_usages([], specs, load_provider_registry())
+    assert ok is False
+    assert "deprecated" in message.lower()
+    assert "brandnewmultiline" in message
+
+
+def test_multiline_provider_spec_kwarg_order_tolerant() -> None:
+    # C1: ``name=`` need not be the first kwarg — match it anywhere in the block.
+    code = (
+        "ProviderSpec(\n"
+        '    display_name="Brand New",\n'
+        '    backend="openai_compat",\n'
+        '    name="anotherbrandnew",\n'
+        ")\n"
+    )
+    specs = collect_provider_spec_usages([("deeptutor/tutorbot/providers/registry.py", code)])
+    assert any(s.provider_name == "anotherbrandnew" for s in specs)
+    # display_name must NOT be mis-captured as the provider name
+    assert all(s.provider_name != "Brand New" for s in specs)
+    ok, message = evaluate_provider_usages([], specs, load_provider_registry())
+    assert ok is False
+    assert "anotherbrandnew" in message
+
+
+def test_multiline_commented_provider_spec_not_flagged() -> None:
+    # C1 no-false-positive: a fully commented-out multi-line ProviderSpec block is
+    # invisible (its ``(`` is in a comment), so it is never collected.
+    code = (
+        "# PROVIDERS = (\n"
+        "#     ProviderSpec(\n"
+        '#         name="commentednew",\n'
+        "#     ),\n"
+        "# )\n"
+    )
+    specs = collect_provider_spec_usages([("deeptutor/tutorbot/providers/registry.py", code)])
+    ok, _ = evaluate_provider_usages([], specs, load_provider_registry())
+    assert ok is True
+
+
+def test_existing_multiline_specs_in_deprecated_copy_all_registered() -> None:
+    # C1 no-false-positive over the REAL deprecated copy: now that the scanner sees
+    # multi-line specs, the 27 existing names must all be registered → pass. A
+    # regression that drops a name from the canonical registry would surface here.
+    from pathlib import Path
+
+    from scripts.check_provider_registry import REPO_ROOT
+
+    real = Path(REPO_ROOT) / "deeptutor/tutorbot/providers/registry.py"
+    body = real.read_text(encoding="utf-8")
+    specs = collect_provider_spec_usages([("deeptutor/tutorbot/providers/registry.py", body)])
+    assert len(specs) >= 27, "the deprecated copy's real multi-line specs must be seen"
+    ok, message = evaluate_provider_usages([], specs, load_provider_registry())
+    assert ok is True, message
+
+
 def test_pass_new_provider_in_canonical_is_allowed() -> None:
     # Adding a provider to the CANONICAL registry is the sanctioned way to add a
     # provider; it must NOT fail (the spec usage is in the canonical module).
@@ -183,3 +255,26 @@ def test_provider_spec_in_non_registry_file_not_flagged() -> None:
     specs = collect_provider_spec_usages([("deeptutor/services/x.py", code)])
     ok, _ = evaluate_provider_usages([], specs, load_provider_registry())
     assert ok is True
+
+
+def test_full_repo_scan_has_zero_false_positives() -> None:
+    """The whole-repo scan over real production source must be GREEN (C1 fix安全网).
+
+    After the C1 fix the scanner finally SEES multi-line ProviderSpec literals; this
+    test pins that the clean tree still exits 0 — every existing provider name in the
+    deprecated copy is registered and no existing base_url is a new bypass. A failure
+    means either a real new bypass slipped in or the registry under-covers存量.
+    """
+    import subprocess
+
+    from scripts.check_provider_registry import REPO_ROOT
+
+    tracked = subprocess.run(
+        ["git", "ls-files", "deeptutor/**/*.py", "scripts/**/*.py"],
+        check=True,
+        capture_output=True,
+        text=True,
+        cwd=REPO_ROOT,
+    ).stdout.split()
+    ok, message = evaluate_provider_registry(tracked)
+    assert ok is True, message

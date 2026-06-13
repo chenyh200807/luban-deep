@@ -128,10 +128,12 @@ jobs:
         # to a table, or a *_DB_URL env not declared in the registry fails CI —
         # stops the bleeding on the ad-hoc-connection class that caused the
         # two-Supabase-project surprise (all 15 existing sites are grandfathered).
-        # Full-repo scan (scanner self-scopes to psycopg files). Bundling into
-        # check_contract_guard.py is a later consolidation blocked by its WIP.
+        # Full-repo scan (scanner self-scopes to psycopg files). ``--all`` runs the
+        # scanner's OWN git ls-files internally (M2: no unquoted $(…) word-split on a
+        # spaced path). Bundling into check_contract_guard.py is a later consolidation
+        # blocked by its WIP.
         run: |
-          python scripts/check_db_registry.py $(git ls-files 'deeptutor/**/*.py' 'scripts/**/*.py')
+          python scripts/check_db_registry.py --all
 
       - name: env / flag / credential registry guard (no unregistered env / 假灰度)
         # Powers on contracts/env_registry.yaml: a NEW env referenced via
@@ -140,10 +142,11 @@ jobs:
         # unregistered name fails CI (rule b, 防假灰度 — a misspelled gray-release
         # flag silently returns env_flag's default, so KB v5 / LUBAN_V1 rollouts
         # would look live but never take effect). All 284 existing references are
-        # grandfathered. Full-repo scan. Bundling into check_contract_guard.py is a
-        # later consolidation blocked by its WIP.
+        # grandfathered. Full-repo scan. ``--all`` runs the scanner's OWN git ls-files
+        # internally (M2: no unquoted $(…) word-split on a spaced path). Bundling into
+        # check_contract_guard.py is a later consolidation blocked by its WIP.
         run: |
-          python scripts/check_env_registry.py $(git ls-files 'deeptutor/**/*.py' 'scripts/**/*.py')
+          python scripts/check_env_registry.py --all
 
       - name: provider registry guard (no unregistered provider base_url / 第二权威)
         # Powers on contracts/provider_registry.yaml: a NEW hardcoded provider
@@ -152,10 +155,12 @@ jobs:
         # mis-attributes cost, the deepseek-billing先例), and a NEW provider added
         # to a deprecated registry copy fails CI (rule b, 防第二权威再生 —三套
         # registry 收成一套). All 12 existing bypass sites + the two deprecated
-        # copies are grandfathered. Full-repo scan exits 0 today. Bundling into
-        # check_contract_guard.py is a later consolidation blocked by its WIP.
+        # copies are grandfathered. Full-repo scan exits 0 today. ``--all`` runs the
+        # scanner's OWN git ls-files internally (M2: no unquoted $(…) word-split on a
+        # spaced path). Bundling into check_contract_guard.py is a later consolidation
+        # blocked by its WIP.
         run: |
-          python scripts/check_provider_registry.py $(git ls-files 'deeptutor/**/*.py' 'scripts/**/*.py')
+          python scripts/check_provider_registry.py --all
 
       - name: process registry guard (no unregistered cron / always-on daemon)
         # Powers on contracts/process_registry.yaml: a NEW GHA cron schedule in a
@@ -167,10 +172,12 @@ jobs:
         # always-on task that no one registered cannot slip in. Fire-and-forget
         # per-request create_task (result discarded) is deliberately out of scope
         # (zero-false-positive boundary). All 4 cron workflows + 8 daemon files are
-        # grandfathered. Full-repo scan exits 0 today. Bundling into
-        # check_contract_guard.py is a later consolidation blocked by its WIP.
+        # grandfathered. Full-repo scan exits 0 today. ``--all`` runs the scanner's
+        # OWN git ls-files internally over code + workflows (M2: no unquoted $(…)
+        # word-split on a spaced path). Bundling into check_contract_guard.py is a
+        # later consolidation blocked by its WIP.
         run: |
-          python scripts/check_process_registry.py $(git ls-files 'deeptutor/**/*.py' 'scripts/**/*.py' '.github/workflows/*.yml')
+          python scripts/check_process_registry.py --all
 
       - name: WebSocket single-control-plane allowlist gate
         # Reflects the live FastAPI app's production WebSocket surface and fails

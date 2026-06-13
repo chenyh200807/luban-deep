@@ -183,3 +183,144 @@ def test_comment_lines_not_flagged() -> None:
     writes = collect_write_usages([("deeptutor/services/x.py", code)])
     ok, _ = evaluate_db_usages(connects, writes, [], load_db_registry())
     assert ok is True
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# I3(a) — aliased import: ``import psycopg as pg`` then ``pg.connect(``
+# ═════════════════════════════════════════════════════════════════════════════
+def test_i3a_aliased_import_raw_connection_detected() -> None:
+    # I3(a) regression: the un-aliased ``psycopg.connect`` regex missed
+    # ``import psycopg as pg; pg.connect(...)`` entirely — a new ad-hoc raw
+    # connection could slip in behind the alias.
+    code = "import psycopg as pg\nconn = pg.connect(os.getenv('SOME_DB_URL'))\n"
+    connects = collect_connect_usages([("deeptutor/services/new_store.py", code)])
+    assert connects, "aliased pg.connect must be detected (I3a)"
+    ok, message = evaluate_db_usages(connects, [], [], load_db_registry())
+    assert ok is False
+    assert "unregistered raw DB connection" in message
+
+
+def test_i3a_aliased_connect_at_grandfathered_site_passes() -> None:
+    # I3(a) no-false-positive: an aliased connect at a grandfathered site still passes.
+    code = "import psycopg2 as db\nconn = db.connect(self._database_url)\n"
+    connects = collect_connect_usages(
+        [("deeptutor/services/member_console/service.py", code)]
+    )
+    assert connects
+    ok, _ = evaluate_db_usages(connects, [], [], load_db_registry())
+    assert ok is True
+
+
+def test_i3a_unrelated_dot_connect_not_an_alias() -> None:
+    # I3(a) no-false-positive: a ``something.connect(`` with no psycopg alias import
+    # in the file is NOT a raw psycopg connection (e.g. a websocket / socket connect).
+    code = "ws = client.connect('wss://x')\n"
+    connects = collect_connect_usages([("deeptutor/services/x.py", code)])
+    assert connects == []
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# I3(b) — COPY … FROM and TRUNCATE are write surfaces
+# ═════════════════════════════════════════════════════════════════════════════
+def test_i3b_copy_from_stdin_to_unregistered_table_flagged() -> None:
+    # I3(b) regression: COPY (bulk ingest via copy_expert / COPY … FROM STDIN) is a
+    # write surface the original rule missed entirely.
+    code = _PG + "cur.copy_expert('copy public.shadow_scores from stdin', f)\n"
+    writes = collect_write_usages([("deeptutor/services/x.py", code)])
+    assert any(w.table == "public.shadow_scores" for w in writes)
+    ok, message = evaluate_db_usages([], writes, [], load_db_registry())
+    assert ok is False
+    assert "public.shadow_scores" in message
+
+
+def test_i3b_truncate_unregistered_table_flagged() -> None:
+    # I3(b) regression: TRUNCATE (destructive table-empty) is a write surface.
+    code = _PG + "cur.execute('truncate table public.shadow_scores')\n"
+    writes = collect_write_usages([("deeptutor/services/x.py", code)])
+    assert any(w.table == "public.shadow_scores" for w in writes)
+    ok, message = evaluate_db_usages([], writes, [], load_db_registry())
+    assert ok is False
+    assert "public.shadow_scores" in message
+
+
+def test_i3b_copy_and_truncate_to_registered_table_pass() -> None:
+    # I3(b) no-false-positive: COPY / TRUNCATE against a registered table passes.
+    code = (
+        _PG
+        + "cur.copy_expert('copy public.user_identity_aliases from stdin', f)\n"
+        + "cur.execute('truncate table public.user_identity_aliases')\n"
+    )
+    writes = collect_write_usages([("deeptutor/services/member_console/service.py", code)])
+    ok, _ = evaluate_db_usages([], writes, [], load_db_registry())
+    assert ok is True
+
+
+def test_i3b_copy_and_truncate_prose_not_flagged() -> None:
+    # I3(b) no-false-positive: English prose / log strings ("Copy data from the
+    # buffer", "truncate the string") must never be mistaken for SQL COPY/TRUNCATE.
+    code = (
+        _PG
+        + '"""Copy data from the upstream buffer into memory."""\n'
+        + 'logger.info("truncate the string to 100 chars")\n'
+    )
+    writes = collect_write_usages([("deeptutor/services/x.py", code)])
+    ok, message = evaluate_db_usages([], writes, [], load_db_registry())
+    assert ok is True, message
+
+
+def test_full_repo_db_scan_has_zero_false_positives() -> None:
+    """Whole-repo DB scan over real production source must be GREEN (I3 fix安全网)."""
+    import subprocess
+
+    from scripts.check_db_registry import REPO_ROOT, evaluate_db_registry
+
+    tracked = subprocess.run(
+        ["git", "ls-files", "deeptutor/**/*.py", "scripts/**/*.py"],
+        check=True,
+        capture_output=True,
+        text=True,
+        cwd=REPO_ROOT,
+    ).stdout.split()
+    ok, message = evaluate_db_registry(tracked)
+    assert ok is True, message
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# M2 — ``--all`` self-scans via the scanner's own git ls-files (no shell split)
+# ═════════════════════════════════════════════════════════════════════════════
+def test_m2_all_flag_self_scans_and_matches_explicit_file_mode() -> None:
+    # M2 regression: ``--all`` (the CI-safe mode) returns 0 and the scanner's own
+    # tracked-file collection equals the explicit ``git ls-files`` set, so swapping
+    # the unquoted $(…) for --all in CI cannot change the verdict.
+    import subprocess
+
+    from scripts.check_db_registry import (
+        REPO_ROOT,
+        _git_tracked_in_scope_files,
+        main,
+    )
+
+    explicit = set(
+        subprocess.run(
+            ["git", "ls-files", "deeptutor/**/*.py", "scripts/**/*.py"],
+            check=True,
+            capture_output=True,
+            text=True,
+            cwd=REPO_ROOT,
+        ).stdout.split()
+    )
+    assert set(_git_tracked_in_scope_files()) == explicit
+    assert main(["--all"]) == 0
+
+
+def test_m2_all_flag_is_shell_word_split_safe() -> None:
+    # M2: ``_git_tracked_in_scope_files`` uses ``git ls-files -z`` + NUL split, so a
+    # path containing a space stays ONE entry (the unquoted $(…) bug would split it).
+    # We assert no entry is a fragment of a spaced path (no bare token that is half
+    # of a real file). Direct proof: every returned path exists as a single file.
+    from pathlib import Path
+
+    from scripts.check_db_registry import REPO_ROOT, _git_tracked_in_scope_files
+
+    for p in _git_tracked_in_scope_files():
+        assert (Path(REPO_ROOT) / p).is_file(), f"word-split fragment leaked: {p!r}"

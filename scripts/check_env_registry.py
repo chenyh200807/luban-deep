@@ -81,11 +81,18 @@ _ENV_NAME = r"([A-Z][A-Z0-9_]+)"
 
 # Env-reference read entry points. Each captures the env name in group 1.
 #   os.getenv("X") / os.environ.get("X") / os.environ["X"]
+#   os.environ.setdefault("X", …) / os.environ.pop("X", …)   (I4)
 #   env_store.get("X") / get_env_store().get("X")
 #   env_flag("X")  (also matched separately as a flag below)
+# I4 also adds a BARE ``getenv("X")`` form (``from os import getenv``), guarded by a
+# ``(?<![\w.])`` lookbehind so it does NOT double-match the ``os.getenv`` form above
+# (the ``os.`` prefix has a ``.`` immediately before ``getenv``, which the lookbehind
+# excludes). The bare form is its own alternation branch BEFORE ``os.``-prefixed
+# branches so the longest dotted prefix is still preferred where present.
 _ENV_REF_RE = re.compile(
-    r"(?:os\.getenv|os\.environ\.get|os\.environ|"
-    r"(?:get_env_store\(\)|env_store)\.get|env_flag|env_str|env_int|env_bool|env_float)"
+    r"(?:os\.getenv|os\.environ\.setdefault|os\.environ\.pop|os\.environ\.get|os\.environ|"
+    r"(?:get_env_store\(\)|env_store)\.get|env_flag|env_str|env_int|env_bool|env_float|"
+    r"(?<![\w.])getenv)"
     rf"\s*[\(\[]\s*[\"']{_ENV_NAME}[\"']"
 )
 
@@ -307,6 +314,28 @@ def _git_current_candidate_files() -> list[str]:
     return sorted(files)
 
 
+# M2: scan-all glob set, run INSIDE the scanner via subprocess (a list arg, never
+# shell-word-split). The CI used ``$(git ls-files …)`` unquoted, so a tracked path
+# containing a space would be split into two bogus arguments. ``--all`` lets CI call
+# the scanner with no shell expansion (``python check_env_registry.py --all``).
+_SCAN_ALL_GLOBS = ("deeptutor/**/*.py", "scripts/**/*.py")
+
+
+def _git_tracked_in_scope_files() -> list[str]:
+    """Return tracked in-scope files via the scanner's own ``git ls-files``.
+
+    Uses a subprocess LIST argument (no shell), so a path with a space stays one
+    argument — closing the M2 unquoted-``$(git ls-files)`` word-split hole.
+    """
+    result = subprocess.run(
+        ["git", "ls-files", "-z", *_SCAN_ALL_GLOBS],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return [p for p in result.stdout.split("\0") if p]
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Fail when code references an unregistered env / reads an "
@@ -315,9 +344,18 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "files", nargs="*", help="Explicit changed files. If omitted, git diff is used."
     )
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Scan ALL tracked in-scope files via the scanner's own git ls-files "
+        "(no shell word-splitting on spaced paths — the CI-safe full-repo mode).",
+    )
     args = parser.parse_args(argv)
 
-    changed = args.files or _git_current_candidate_files()
+    if args.all:
+        changed = _git_tracked_in_scope_files()
+    else:
+        changed = args.files or _git_current_candidate_files()
     ok, message = evaluate_env_registry(changed)
     stream = sys.stdout if ok else sys.stderr
     print(message, file=stream)
