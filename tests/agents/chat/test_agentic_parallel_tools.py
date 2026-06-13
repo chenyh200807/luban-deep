@@ -1498,10 +1498,15 @@ def test_teaching_overlay_falls_back_to_default_skill_without_scene() -> None:
     assert default_instruction != scene_instruction
 
 
-def test_build_openai_client_reuses_pooled_client(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Without client-level overrides (no extra_headers, no ssl bypass) the acting
-    loop must reuse one process-wide pooled client per (api_key, base_url) — the
-    old per-call make_openai_client() leaked an unclosed httpx pool every turn."""
+@pytest.mark.asyncio
+async def test_build_openai_client_reuses_pooled_client_within_loop(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Within one running event loop (the production acting-loop case) and without
+    client-level overrides, the pipeline must reuse one pooled client per
+    (api_key, base_url) — the old per-call make_openai_client() leaked an unclosed
+    httpx pool every turn. Pooling is loop-scoped, so this must be asserted inside
+    a running loop, not synchronously."""
     monkeypatch.setattr(
         "deeptutor.agents.chat.agentic_pipeline.get_llm_config",
         lambda: SimpleNamespace(
