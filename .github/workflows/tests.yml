@@ -372,6 +372,7 @@ jobs:
             tests/services/test_import_smoke.py \
             tests/services/test_app_facade.py \
             tests/services/test_model_catalog.py \
+            tests/services/test_bi_metrics.py \
             tests/services/test_path_service.py \
             tests/runtime/test_orchestrator_autoroute.py \
             tests/capabilities/test_deep_question_question_review.py \
