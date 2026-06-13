@@ -257,6 +257,7 @@ _FULLSET_NAMESPACE_RE = re.compile(
             luban[_.]
           | assessment_(?:session|p0a)
           | p0a-v                       # bare persisted report schema version (p0a-v1)
+          | learning_report             # P2: learner-state runtime contract (registry beyond grading)
           | causal_oa
           | compiled_knowledge_registry
           | case_grading_artifact

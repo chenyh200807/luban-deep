@@ -2259,3 +2259,24 @@ def test_learning_report_today_tasks_are_read_only_from_note_assets_and_capped()
     assert len(model["today_tasks"]) == 3
     assert all(item["source"] == "note_assets" for item in model["today_tasks"])
     assert [item["note_id"] for item in model["today_tasks"]] == ["note_0", "note_1", "note_2"]
+
+
+# ── schema-governance P2: learning-report read model is registered (register-before-use) ──
+
+
+def test_learning_report_schema_id_is_registered_as_t2() -> None:
+    """The single producer's canonical SCHEMA_ID must be registered T2 in the schema
+    registry (no unregistered/competing learning-report schema can appear). This is the
+    register-before-use promotion of a previously doc-only, integer-versioned read model."""
+    from pathlib import Path
+
+    import yaml
+
+    from deeptutor.services.learner_state.learning_report_read_model import SCHEMA_ID
+
+    assert SCHEMA_ID == "learning_report_read_model.v2"
+    registry = yaml.safe_load(
+        (Path(__file__).resolve().parents[3] / "contracts" / "schema_registry.yaml").read_text("utf-8")
+    )
+    t2_names = {e["name"] for e in registry["tier2_canonical_contracts"]}
+    assert SCHEMA_ID in t2_names, f"{SCHEMA_ID} must be a registered T2 runtime-canonical contract"
