@@ -9,7 +9,7 @@
 import { Activity, BarChart3, FileDown, PieChart, ShieldCheck } from 'lucide-react'
 import type { AuditLogEntry, ExportJob, SystemOpsTile } from '@/app/(workspace)/bi/_v2/ops/data'
 import { CockpitBar, CockpitDonut, type Datum } from './Charts'
-import { AdminManager } from './AdminManager'
+import { BiAdminConsole } from '@/app/(workspace)/bi/_components/BiAdminConsole'
 import { CockpitBg, CockpitKpi, CockpitPanel, SectionLabel } from './Layout'
 import { SEMANTIC, SERIES_COLORS } from './theme'
 
@@ -183,7 +183,7 @@ export function OpsCockpit({
       </div>
 
       <SectionLabel icon={<ShieldCheck className="h-4 w-4" />}>权限管理</SectionLabel>
-      <AdminManager />
+      <BiAdminConsole />
     </CockpitBg>
   )
 }

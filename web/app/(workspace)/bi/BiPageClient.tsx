@@ -48,6 +48,7 @@ import {
   type MemberDetail,
   type MemberListItem,
 } from '@/lib/member-api'
+import { BiAdminConsole } from './_components/BiAdminConsole'
 import { BiBossHeader } from './_components/BiBossHeader'
 import { BiCommandDeckTabs } from './_components/BiCommandDeckTabs'
 import { BiAuditTab } from './_components/BiAuditTab'
@@ -181,7 +182,8 @@ export default function BiPageClient() {
     activeTab === 'invite-test' ||
     activeTab === 'luban-feedback' ||
     activeTab === 'learner-360' ||
-    activeTab === 'audit'
+    activeTab === 'audit' ||
+    activeTab === 'permissions'
   const readAccessDenied = issues.some(issue =>
     /(^|\s)401(\s|$)|Authentication required/i.test(issue)
   )
@@ -1269,6 +1271,10 @@ export default function BiPageClient() {
               filters={auditFilters}
               onFilterChange={updateAuditFilter}
             />
+          )
+        ) : activeTab === 'permissions' ? (
+          biReadOnly ? null : (
+            <BiAdminConsole />
           )
         ) : (
           <BiTabShell title={activeTabMeta.label} summary={activeTabMeta.summary} />
