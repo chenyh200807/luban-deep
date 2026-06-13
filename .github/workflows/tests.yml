@@ -123,6 +123,16 @@ jobs:
         run: |
           python scripts/check_schema_registry.py --closure
 
+      - name: DB registry guard (no unregistered DB connection / write / url)
+        # Powers on contracts/db_registry.yaml: a raw psycopg connection, a write
+        # to a table, or a *_DB_URL env not declared in the registry fails CI —
+        # stops the bleeding on the ad-hoc-connection class that caused the
+        # two-Supabase-project surprise (all 15 existing sites are grandfathered).
+        # Full-repo scan (scanner self-scopes to psycopg files). Bundling into
+        # check_contract_guard.py is a later consolidation blocked by its WIP.
+        run: |
+          python scripts/check_db_registry.py $(git ls-files 'deeptutor/**/*.py' 'scripts/**/*.py')
+
       - name: WebSocket single-control-plane allowlist gate
         # Reflects the live FastAPI app's production WebSocket surface and fails
         # on any WS route not declared in contracts/index.yaml websocket_routes,
