@@ -295,7 +295,9 @@ def test_tier2_canonical_contracts_loaded() -> None:
     """The runtime-canonical contracts (T2) load and each has the closure fields."""
     registry = load_schema_registry()
     t2 = registry["tier2_by_name"]
-    assert len(t2) == 19
+    assert len(t2) == registry["completeness_closure"]["tier_counts"][
+        "tier2_runtime_canonical"
+    ]
     for name, entry in t2.items():
         # canonical_for (what fact) + consumed_by (the cross-consumer reader proof)
         assert entry.get("canonical_for"), f"{name} missing canonical_for"
