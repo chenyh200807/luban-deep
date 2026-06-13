@@ -2017,6 +2017,7 @@ class LoginRequest(BaseModel):
 
 class PhoneRequest(BaseModel):
     phone: str
+    username: str = ""
 
 
 class VerifyCodeRequest(BaseModel):
@@ -2154,6 +2155,8 @@ async def auth_register(body: RegisterRequest) -> dict[str, Any]:
 )
 async def auth_send_code(body: PhoneRequest) -> dict[str, Any]:
     try:
+        if body.username.strip():
+            return member_service.send_password_reset_code(body.username, body.phone)
         return member_service.send_phone_code(body.phone)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

@@ -84,7 +84,7 @@ from deeptutor.services.member_console.external_auth import (
     ensure_external_auth_user_for_phone,
     get_external_auth_user,
     load_external_auth_users,
-    reset_external_auth_password_by_phone,
+    reset_external_auth_password,
     validate_external_auth_password,
     verify_external_auth_user,
 )
@@ -106,6 +106,13 @@ logger = logging.getLogger(__name__)
 # Max wrong OTP guesses before the code is invalidated (brute-force lockout).
 _MAX_OTP_ATTEMPTS = 5
 _HOME_PERSONALIZATION_ENABLED = "DEEPTUTOR_HOME_PERSONALIZATION_ENABLED"
+_TRUSTED_PHONE_ALIAS_SOURCES = frozenset(
+    {
+        "phone_backfill",
+        "member_console_backfill",
+        "phone_verification",
+    }
+)
 
 
 def _assessment_writeback_worker_count() -> int:
@@ -6338,6 +6345,17 @@ class MemberConsoleService:
         return self._build_auth_response(user_id=auth_identity["user_id"], token=token)
 
     def register_with_external_auth(self, username: str, password: str, phone: str) -> dict[str, Any]:
+        normalized_phone = _normalize_phone_input(phone)
+        if not normalized_phone:
+            raise ValueError("手机号格式不正确")
+        try:
+            existing_alias_ids = self._trusted_phone_alias_user_ids(normalized_phone)
+        except ValueError as exc:
+            raise ValueError("手机号身份冲突，请联系客服") from exc
+        if existing_alias_ids:
+            raise ValueError("该手机号已被注册，请直接登录或找回密码")
+        if self._local_member_user_ids_for_phone(normalized_phone):
+            raise ValueError("该手机号已被注册，请直接登录或找回密码")
         external_user = create_external_auth_user(username, password, phone=phone)
         member = self._ensure_member_for_external_auth(username, external_user)
         auth_identity = self._auth_identity_for_member(str(member.get("user_id") or "").strip())
@@ -6345,7 +6363,134 @@ class MemberConsoleService:
             user_id=auth_identity["user_id"],
             canonical_uid=auth_identity["canonical_uid"],
         )
+        self._persist_phone_identity(
+            phone=normalized_phone,
+            canonical_uid=str(auth_identity.get("canonical_uid") or "").strip(),
+        )
         return self._build_auth_response(user_id=auth_identity["user_id"], token=token)
+
+    @staticmethod
+    def _phone_alias_values(phone: str) -> list[str]:
+        normalized = _normalize_phone_input(phone)
+        if not normalized:
+            return []
+        return [normalized, f"+86{normalized}"]
+
+    def _trusted_phone_alias_user_ids(self, phone: str) -> set[str]:
+        values = self._phone_alias_values(phone)
+        if not values:
+            return set()
+        try:
+            from deeptutor.services.wallet.identity import get_wallet_identity_store
+
+            store = get_wallet_identity_store()
+        except Exception as exc:
+            logger.warning("phone alias store unavailable for phone=%s: %s", phone[-4:], exc)
+            raise ValueError("手机号身份暂时不可用，请稍后重试") from exc
+        if not getattr(store, "is_configured", False):
+            return set()
+        resolved: set[str] = set()
+        for alias_value in values:
+            try:
+                row = store.resolve_alias(alias_type="phone", alias_value=alias_value)
+            except Exception as exc:
+                logger.warning("phone alias lookup failed for phone=%s: %s", phone[-4:], exc)
+                raise ValueError("手机号身份暂时不可用，请稍后重试") from exc
+            if not isinstance(row, dict):
+                continue
+            source = str(row.get("source") or "").strip()
+            user_id = str(row.get("user_id") or "").strip()
+            if source not in _TRUSTED_PHONE_ALIAS_SOURCES or not is_uuid_like(user_id):
+                continue
+            resolved.add(user_id)
+        if len(resolved) > 1:
+            raise ValueError("手机号身份冲突，请联系客服")
+        return resolved
+
+    def _local_member_user_ids_for_phone(self, phone: str) -> set[str]:
+        normalized_phone = _normalize_phone_input(phone)
+        if not normalized_phone:
+            return set()
+        found: set[str] = set()
+        data = self._load()
+        for member in data.get("members") or []:
+            if not isinstance(member, dict):
+                continue
+            if _slugify_phone(str(member.get("phone") or "")) != normalized_phone:
+                continue
+            for key in ("user_id", "external_auth_user_id", "merged_into"):
+                candidate = str(member.get(key) or "").strip()
+                if candidate:
+                    found.add(candidate)
+        return found
+
+    def _linked_member_phone_matches_account(
+        self,
+        *,
+        external_user: dict[str, Any],
+        username: str,
+        phone: str,
+    ) -> tuple[bool, set[str]]:
+        external_user_id = str(external_user.get("id") or "").strip()
+        account_ids = {external_user_id} if is_uuid_like(external_user_id) else set()
+        linked_phone_match = False
+        data = self._load()
+        for member in data.get("members") or []:
+            if not isinstance(member, dict):
+                continue
+            linked = str(member.get("auth_username") or "").strip() == username
+            if external_user_id and str(member.get("external_auth_user_id") or "").strip() == external_user_id:
+                linked = True
+            if not linked:
+                continue
+            for key in ("user_id", "external_auth_user_id", "merged_into"):
+                candidate = str(member.get(key) or "").strip()
+                if is_uuid_like(candidate):
+                    account_ids.add(candidate)
+            if _slugify_phone(str(member.get("phone") or "")) == phone:
+                linked_phone_match = True
+        return linked_phone_match, account_ids
+
+    def _resolve_password_reset_account(self, username: str, phone: str) -> dict[str, Any]:
+        normalized_phone = _normalize_phone_input(phone)
+        if not normalized_phone:
+            raise ValueError("手机号格式不正确")
+        normalized_username = str(username or "").strip()
+        external_user = get_external_auth_user(normalized_username)
+        if not external_user:
+            raise ValueError("账号或手机号不匹配")
+        linked_phone_match, account_ids = self._linked_member_phone_matches_account(
+            external_user=external_user,
+            username=normalized_username,
+            phone=normalized_phone,
+        )
+        external_phone_match = _slugify_phone(str(external_user.get("phone") or "")) == normalized_phone
+        try:
+            phone_alias_ids = self._trusted_phone_alias_user_ids(normalized_phone)
+        except ValueError as exc:
+            logger.warning(
+                "password reset phone alias conflict: username=%s phone=%s error=%s",
+                normalized_username,
+                normalized_phone[-4:],
+                exc,
+            )
+            raise ValueError("账号或手机号不匹配") from exc
+        if phone_alias_ids and account_ids.isdisjoint(phone_alias_ids):
+            raise ValueError("账号或手机号不匹配")
+        if external_phone_match or linked_phone_match or (phone_alias_ids and not account_ids.isdisjoint(phone_alias_ids)):
+            return {
+                "username": normalized_username,
+                "phone": normalized_phone,
+                "external_user": external_user,
+                "account_ids": sorted(account_ids),
+            }
+        raise ValueError("账号或手机号不匹配")
+
+    def _resolve_verified_phone_canonical_uid(self, phone: str) -> str:
+        alias_ids = self._trusted_phone_alias_user_ids(phone)
+        if not alias_ids:
+            return ""
+        return next(iter(alias_ids))
 
     async def _resolve_wechat_login_identity(self, code: str) -> dict[str, str]:
         normalized = str(code or "").strip()
@@ -6614,9 +6759,31 @@ class MemberConsoleService:
 
         return self._mutate(_apply)
 
+    def send_password_reset_code(self, username: str, phone: str) -> dict[str, Any]:
+        resolved = self._resolve_password_reset_account(username, phone)
+        return self.send_phone_code(str(resolved["phone"]))
+
     def _persist_phone_identity(self, *, phone: str, canonical_uid: str) -> None:
         """把手机号持久化到 user_identity_aliases 和 users.phone，best-effort 不阻塞认证流程。"""
         if not phone or not canonical_uid or not is_uuid_like(canonical_uid):
+            return
+        try:
+            existing_alias_ids = self._trusted_phone_alias_user_ids(phone)
+        except ValueError as exc:
+            logger.warning(
+                "phone identity persist skipped due to conflicting phone aliases: phone=%s canonical_uid=%s error=%s",
+                phone[-4:] if len(phone) >= 4 else "****",
+                canonical_uid,
+                exc,
+            )
+            return
+        if existing_alias_ids and canonical_uid not in existing_alias_ids:
+            logger.warning(
+                "phone identity persist skipped: phone=%s existing_canonical=%s requested_canonical=%s",
+                phone[-4:] if len(phone) >= 4 else "****",
+                ",".join(sorted(existing_alias_ids)),
+                canonical_uid,
+            )
             return
         db_url = str(os.getenv("DB_URL") or os.getenv("DATABASE_URL") or "").strip()
         if not db_url:
@@ -6636,8 +6803,8 @@ class MemberConsoleService:
 
             with conn_ctx as conn:
                 cur = conn.cursor()
-                # ON CONFLICT 采用 last-writer-wins：同一手机号永远指向最近一次经过
-                # OTP/微信绑定验证的 canonical UUID，无需额外时间戳守卫。
+                # 仅创建缺失 alias 或刷新同一 canonical UUID 的已验证时间；
+                # 并发冲突时不覆盖 owner。
                 # user_identity_aliases.user_id 是 uuid 类型；users.id 是 text 类型，
                 # 两者均存同一 UUID 字符串，psycopg 驱动会做隐式转换。
                 cur.execute(
@@ -6646,13 +6813,22 @@ class MemberConsoleService:
                         (alias_type, alias_value, user_id, source, confidence, verified_at)
                     VALUES (%s, %s, %s::uuid, %s, %s, now())
                     ON CONFLICT (alias_type, alias_value) DO UPDATE SET
-                        user_id     = EXCLUDED.user_id,
                         confidence  = EXCLUDED.confidence,
                         verified_at = EXCLUDED.verified_at,
                         updated_at  = now()
+                    WHERE public.user_identity_aliases.user_id = EXCLUDED.user_id
+                    RETURNING user_id
                     """,
                     ("phone", phone, canonical_uid, "phone_verification", 1.0),
                 )
+                persisted = cur.fetchone()
+                if not persisted:
+                    logger.warning(
+                        "phone identity persist skipped after concurrent owner conflict: phone=%s canonical_uid=%s",
+                        phone[-4:] if len(phone) >= 4 else "****",
+                        canonical_uid,
+                    )
+                    return
                 # users.phone 只在空时写入，避免覆盖已有值
                 cur.execute(
                     "UPDATE public.users SET phone = %s WHERE id = %s AND (phone IS NULL OR phone = '')",
@@ -6673,6 +6849,7 @@ class MemberConsoleService:
         if not normalized:
             raise ValueError("手机号格式不正确")
         provided_code = str(code or "").strip()
+        canonical_uid = self._resolve_verified_phone_canonical_uid(normalized)
 
         # Brute-force lockout: a 6-digit OTP must not be guessable within its 10-min
         # TTL. Count wrong attempts per phone and invalidate the OTP after _MAX_OTP_ATTEMPTS,
@@ -6709,20 +6886,36 @@ class MemberConsoleService:
         if status != "ok":
             raise ValueError("验证码错误")
         verified_phone = str(outcome.get("phone") or normalized)
-        external_user = ensure_external_auth_user_for_phone(verified_phone)
-        external_username = str(external_user.get("username") or "").strip()
-        member = self._ensure_member_for_external_auth(external_username, external_user)
-        auth_identity = self._auth_identity_for_member(str(member.get("user_id") or "").strip())
-        token = self._issue_access_token(
-            user_id=auth_identity["user_id"],
-            canonical_uid=auth_identity["canonical_uid"],
-        )
-        # 手机号持久化到 Supabase（不影响认证主流程）
-        self._persist_phone_identity(
-            phone=verified_phone,
-            canonical_uid=str(auth_identity.get("canonical_uid") or "").strip(),
-        )
-        return self._build_auth_response(user_id=auth_identity["user_id"], token=token)
+        if canonical_uid:
+            def _apply_verified_alias(data: dict[str, Any]) -> dict[str, Any]:
+                member = self._ensure_member(data, canonical_uid)
+                if not _normalize_phone_input(str(member.get("phone") or "")):
+                    member["phone"] = verified_phone
+                member["last_active_at"] = _iso()
+                return deepcopy(member)
+
+            member = self._mutate(_apply_verified_alias)
+            auth_identity = self._auth_identity_for_member(str(member.get("user_id") or "").strip())
+            token = self._issue_access_token(
+                user_id=auth_identity["user_id"],
+                canonical_uid=auth_identity["canonical_uid"],
+            )
+            return self._build_auth_response(user_id=auth_identity["user_id"], token=token)
+        else:
+            external_user = ensure_external_auth_user_for_phone(verified_phone)
+            external_username = str(external_user.get("username") or "").strip()
+            member = self._ensure_member_for_external_auth(external_username, external_user)
+            auth_identity = self._auth_identity_for_member(str(member.get("user_id") or "").strip())
+            token = self._issue_access_token(
+                user_id=auth_identity["user_id"],
+                canonical_uid=auth_identity["canonical_uid"],
+            )
+            # 手机号持久化到 Supabase（不影响认证主流程）
+            self._persist_phone_identity(
+                phone=verified_phone,
+                canonical_uid=str(auth_identity.get("canonical_uid") or "").strip(),
+            )
+            return self._build_auth_response(user_id=auth_identity["user_id"], token=token)
 
     def reset_password_with_phone_code(
         self,
@@ -6731,13 +6924,9 @@ class MemberConsoleService:
         code: str,
         password: str,
     ) -> dict[str, Any]:
-        normalized_phone = _normalize_phone_input(phone)
-        if not normalized_phone:
-            raise ValueError("手机号格式不正确")
-        normalized_username = str(username or "").strip()
-        external_user = get_external_auth_user(normalized_username)
-        if not external_user or _slugify_phone(str(external_user.get("phone") or "")) != normalized_phone:
-            raise ValueError("账号或手机号不匹配")
+        resolved_account = self._resolve_password_reset_account(username, phone)
+        normalized_phone = str(resolved_account["phone"])
+        normalized_username = str(resolved_account["username"])
         normalized_password = str(password or "")
         validate_external_auth_password(normalized_password)
 
@@ -6776,9 +6965,8 @@ class MemberConsoleService:
             raise ValueError("验证码错误次数过多，请重新获取验证码")
         if status != "ok":
             raise ValueError("验证码错误")
-        reset_result = reset_external_auth_password_by_phone(
+        reset_result = reset_external_auth_password(
             normalized_username,
-            normalized_phone,
             normalized_password,
         )
         return {

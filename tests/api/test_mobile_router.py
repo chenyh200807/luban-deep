@@ -3098,6 +3098,33 @@ def test_auth_reset_password_maps_validation_error_to_400(
     assert response.json()["detail"] == "账号或手机号不匹配"
 
 
+def test_auth_send_code_uses_password_reset_authority_when_username_is_present(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, str] = {}
+
+    def _send_password_reset_code(username: str, phone: str) -> dict[str, object]:
+        captured.update({"username": username, "phone": phone})
+        return {"sent": True, "retry_after": 60, "phone": phone, "delivery": "sms"}
+
+    monkeypatch.setattr(
+        mobile_module.member_service,
+        "send_password_reset_code",
+        _send_password_reset_code,
+        raising=False,
+    )
+
+    with TestClient(_build_app()) as client:
+        response = client.post(
+            "/api/v1/auth/send-code",
+            json={"username": "reset_student", "phone": "13955556666"},
+        )
+
+    assert response.status_code == 200
+    assert response.json()["sent"] is True
+    assert captured == {"username": "reset_student", "phone": "13955556666"}
+
+
 def test_auth_profile_settings_syncs_learner_profile_and_goals(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

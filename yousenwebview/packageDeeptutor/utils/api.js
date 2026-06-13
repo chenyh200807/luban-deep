@@ -361,9 +361,7 @@ function rawRequest(opts) {
         }
 
         if (res.statusCode === 503) {
-          var e503 = new Error("FEATURE_DISABLED");
-          e503.code = "FEATURE_DISABLED";
-          reject(e503);
+          reject(createHttpError(503, res.data));
           return;
         }
 

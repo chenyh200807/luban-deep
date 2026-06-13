@@ -407,6 +407,24 @@ def reset_external_auth_password_by_phone(username: str, phone: str, new_passwor
     return {"success": True, "sessions_invalidated": deleted}
 
 
+def reset_external_auth_password(username: str, new_password: str) -> dict[str, Any]:
+    normalized_username = _normalize_username(username)
+    _validate_password(new_password)
+    users_file = _resolve_users_file_for_write()
+
+    with _STORE_LOCK:
+        users = _load_json_mapping(users_file)
+        user = users.get(normalized_username)
+        if not isinstance(user, dict):
+            raise ValueError("账号或手机号不匹配")
+        user["password_hash"] = _hash_password(new_password)
+        user["updated_at"] = datetime.now(timezone.utc).isoformat()
+        users[normalized_username] = user
+        _write_json_mapping(users_file, users)
+    deleted = delete_external_auth_sessions(str(user.get("id") or ""))
+    return {"success": True, "sessions_invalidated": deleted}
+
+
 def delete_external_auth_sessions(user_id: str) -> int:
     normalized_user_id = str(user_id or "").strip()
     if not normalized_user_id:

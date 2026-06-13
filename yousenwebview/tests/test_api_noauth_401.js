@@ -21,7 +21,8 @@ function flushPromises() {
   });
 }
 
-function loadApiModule() {
+function loadApiModule(config) {
+  var settings = config || {};
   var source = fs.readFileSync(
     path.join(__dirname, "../packageDeeptutor/utils/api.js"),
     "utf8",
@@ -72,6 +73,9 @@ function loadApiModule() {
     wx: {
       request: function (options) {
         requestOptions = options;
+        if (typeof settings.requestHandler === "function") {
+          settings.requestHandler(options);
+        }
       },
     },
     module: { exports: {} },
@@ -133,6 +137,39 @@ function loadApiModule() {
   assert(
     loaded.getRelaunchCount() === 0,
     "noAuth 401 should not relaunch the login page",
+  );
+
+  var unavailableLoaded = loadApiModule({
+    requestHandler: function (options) {
+      options.success({
+        statusCode: 503,
+        data: { detail: "短信服务未配置，生产环境已禁止调试验证码" },
+      });
+    },
+  });
+  var unavailableMessage = "";
+  var unavailableStatus = 0;
+  unavailableLoaded.api
+    .request({
+      url: "/api/v1/auth/send-code",
+      method: "POST",
+      data: { phone: "13800000000" },
+      noAuth: true,
+    })
+    .catch(function (err) {
+      unavailableMessage = String((err && err.message) || "");
+      unavailableStatus = err && err.statusCode;
+    });
+  await flushPromises();
+  await flushPromises();
+
+  assert(
+    unavailableStatus === 503,
+    "noAuth 503 should preserve the HTTP status for UI error mapping",
+  );
+  assert(
+    unavailableMessage.indexOf("短信服务未配置") >= 0,
+    "noAuth 503 should preserve backend detail instead of opaque FEATURE_DISABLED",
   );
 
   if (fail) {

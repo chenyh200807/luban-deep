@@ -30,6 +30,29 @@ function flushPromises() {
   });
 }
 
+function httpError(status, detail) {
+  var err = new Error("HTTP_" + status + ": " + JSON.stringify({ detail: detail }));
+  err.statusCode = status;
+  err.payload = { detail: detail };
+  return err;
+}
+
+function describeRequestErrorForTest(err, fallbackMsg, opts) {
+  var status = err && err.statusCode ? err.statusCode : 0;
+  var detailText = err && err.payload ? String(err.payload.detail || "") : "";
+  var customMap = opts && opts.customMap;
+  if (typeof customMap === "function") {
+    var customMsg = customMap({
+      status: status,
+      detailText: detailText,
+      payload: err && err.payload,
+      rawMessage: String((err && err.message) || ""),
+    });
+    if (customMsg) return customMsg;
+  }
+  return fallbackMsg;
+}
+
 function loadPage(relativePath, overrides) {
   var source = fs.readFileSync(path.join(__dirname, "..", relativePath), "utf8");
   var pageDef = null;
@@ -46,6 +69,7 @@ function loadPage(relativePath, overrides) {
           message: "验证码发送成功",
         });
       },
+      describeRequestError: describeRequestErrorForTest,
     },
     (overrides && overrides.api) || {},
   );
@@ -171,6 +195,31 @@ function loadPage(relativePath, overrides) {
         setup.toastCalls.length === 1 &&
           setup.toastCalls[0].title === "验证码发送成功",
         pageFiles[i] + " should keep normal sms feedback without exposing debug_code",
+      );
+    }
+  });
+
+  await run("phone-code login should preserve identity conflict errors", async function () {
+    for (var i = 0; i < pageFiles.length; i++) {
+      var setup = loadPage(pageFiles[i], {
+        api: {
+          request: function (requestOptions) {
+            if (requestOptions.url === "/api/v1/auth/verify-code") {
+              return Promise.reject(httpError(400, "手机号身份冲突，请联系客服"));
+            }
+            return Promise.resolve({ sent: true, retry_after: 60 });
+          },
+        },
+      });
+      setup.page.setData({ username: "18688888431", phoneCode: "123456" });
+
+      setup.page.verifyCode();
+      await flushPromises();
+      await flushPromises();
+
+      assert(
+        setup.page.data.errorMsg === "手机号身份存在冲突，请联系客服",
+        pageFiles[i] + " should not describe identity conflicts as OTP mistakes",
       );
     }
   });

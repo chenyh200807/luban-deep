@@ -36,6 +36,35 @@ function validateResetForm(username, phone, code, password, confirmPassword) {
   return "";
 }
 
+function describeResetAuthError(info) {
+  var detail = String((info && info.detailText) || "").trim();
+  if (info && info.status === 429) {
+    return "操作过于频繁，请稍后再试";
+  }
+  if (!info || info.status !== 400) {
+    return "";
+  }
+  if (detail.indexOf("账号或手机号不匹配") >= 0) {
+    return "账号和手机号不匹配，请确认注册账号和绑定手机号";
+  }
+  if (detail.indexOf("验证码不存在") >= 0) {
+    return "请先获取验证码";
+  }
+  if (detail.indexOf("验证码已过期") >= 0) {
+    return "验证码已过期，请重新获取";
+  }
+  if (detail.indexOf("验证码错误次数过多") >= 0) {
+    return "验证码错误次数过多，请重新获取验证码";
+  }
+  if (detail.indexOf("验证码错误") >= 0) {
+    return "验证码错误，请重新输入";
+  }
+  if (detail.indexOf("手机号格式不正确") >= 0) {
+    return "请输入正确的手机号";
+  }
+  return "信息填写有误，请检查后重试";
+}
+
 Page({
   data: {
     statusBarHeight: 44,
@@ -139,7 +168,20 @@ Page({
   sendCode: function () {
     var self = this;
     if (self.data.codeCountdown > 0 || self.data.loading) return;
+    var username = (self.data.username || "").trim();
     var phone = (self.data.phone || "").trim();
+    if (!username) {
+      self.setData({ errorMsg: "请输入用户名或邮箱" });
+      return;
+    }
+    if (username.length < 2) {
+      self.setData({ errorMsg: "账号至少需要 2 个字符" });
+      return;
+    }
+    if (username.length > 50) {
+      self.setData({ errorMsg: "账号不能超过 50 个字符" });
+      return;
+    }
     if (!CN_MOBILE_RE.test(phone)) {
       self.setData({ errorMsg: "请输入正确的手机号" });
       return;
@@ -149,7 +191,7 @@ Page({
       .request({
         url: "/api/v1/auth/send-code",
         method: "POST",
-        data: { phone: phone },
+        data: { username: username, phone: phone },
         noAuth: true,
       })
       .then(function (resp) {
@@ -187,12 +229,7 @@ Page({
       })
       .catch(function (err) {
         var msg = self._describeAuthError(err, "发送失败，请重试", {
-          customMap: function (info) {
-            if (info.status === 429) {
-              return "发送过于频繁，请稍后再试";
-            }
-            return "";
-          },
+          customMap: describeResetAuthError,
         });
         self.setData({ errorMsg: msg, loading: false });
       });
@@ -254,15 +291,7 @@ Page({
       })
       .catch(function (err) {
         var msg = self._describeAuthError(err, "重置失败，请重试", {
-          customMap: function (info) {
-            if (info.status === 400) {
-              return "账号、手机号或验证码不匹配";
-            }
-            if (info.status === 429) {
-              return "操作过于频繁";
-            }
-            return "";
-          },
+          customMap: describeResetAuthError,
         });
         self.setData({ errorMsg: msg });
       })
