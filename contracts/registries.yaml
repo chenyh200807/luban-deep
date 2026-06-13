@@ -1,0 +1,116 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Governance meta-registry — the SINGLE roll-up of every register-before-use gate.
+#
+# The audit (docs/plan/SCHEMA_GOVERNANCE_COVERAGE_AUDIT_AND_PLAN.md) found the
+# "foundation of the foundation" ungoverned: there are 20+ governance scanners but
+# no machine-readable catalog of them, and no check that each is actually wired
+# into CI — which is exactly how check_harness_authority / check_model_authority
+# and the schema-registry unit tests silently ran in ZERO workflows.
+#
+# This file is that catalog. scripts/check_registries_meta.py enforces, in CI:
+#   (1) every scripts/check_*.py + scripts/ci/check_* governance scanner is listed
+#       here (register-before-use for the GATES THEMSELVES — a new scanner cannot be
+#       added dead/uncataloged), and
+#   (2) every scanner whose enforcement == pr_gate actually appears as an executed
+#       step in .github/workflows/tests.yml (no PR-blocking gate may go dark).
+#
+# It does NOT introduce a second schema/resource authority — it only governs the
+# completeness + wiring of the existing one-runner gate set (less-is-more).
+#
+# enforcement classes:
+#   pr_gate        — must run as a step in tests.yml on every PR (blocking).
+#   release_gate   — runs in a deploy/release workflow, not per-PR.
+#   other_workflow — runs in a non-tests GHA workflow (named in runs_in).
+#   operational    — dev/local/on-demand tool, NOT a CI gate.
+# ──────────────────────────────────────────────────────────────────────────────
+meta:
+  governing_script: scripts/check_registries_meta.py
+  ci_workflow: .github/workflows/tests.yml
+  doc: docs/plan/SCHEMA_GOVERNANCE_COVERAGE_AUDIT_AND_PLAN.md
+
+scanners:
+  # ── register-before-use resource registries (each has a contracts/*.yaml) ──
+  - script: scripts/check_schema_registry.py
+    governs: grading typed-object schema ids (contracts/schema_registry.yaml)
+    enforcement: pr_gate
+  - script: scripts/check_db_registry.py
+    governs: DB connections / table writes / *_DB_URL (contracts/db_registry.yaml)
+    enforcement: pr_gate
+  - script: scripts/check_env_registry.py
+    governs: env vars / feature flags / credentials (contracts/env_registry.yaml)
+    enforcement: pr_gate
+  - script: scripts/check_provider_registry.py
+    governs: LLM provider base_urls (contracts/provider_registry.yaml)
+    enforcement: pr_gate
+  - script: scripts/check_process_registry.py
+    governs: cron schedules / always-on daemons (contracts/process_registry.yaml)
+    enforcement: pr_gate
+  # ── contract-index driven guards ──
+  - script: scripts/check_contract_guard.py
+    governs: protected-file domains + error codes + node ids + lifecycle + upstream + ws (contracts/index.yaml)
+    enforcement: pr_gate
+  - script: scripts/check_turn_contract_guard.py
+    governs: unified turn/session/stream contract (CONTRACT.md + contracts/turn.md)
+    enforcement: pr_gate
+  - script: scripts/ci/check_rest_route_allowlist.py
+    governs: REST route mount-prefix existence allowlist (contracts/index.yaml http_routes)
+    enforcement: pr_gate
+  - script: scripts/ci/check_websocket_route_allowlist.py
+    governs: single chat WS control-plane (/api/v1/ws) allowlist
+    enforcement: pr_gate
+  # ── single-authority guards (AGENTS §5.7) ──
+  - script: scripts/check_harness_authority.py
+    governs: single SCENE_COMPOSITION / grounding-decision / force-exact authority
+    enforcement: pr_gate
+  - script: scripts/check_model_authority.py
+    governs: single DEFAULT_LLM_MODEL / DEFAULT_LLM_PROVIDER authority
+    enforcement: pr_gate
+  # ── shell CI gates ──
+  - script: scripts/ci/check_secure_routers.sh
+    governs: routers must use the secure auth dependency (fail-on-new)
+    enforcement: pr_gate
+  - script: scripts/ci/check_rls_on_create_table.sh
+    governs: new Postgres tables must enable RLS (fail-on-new)
+    enforcement: pr_gate
+  - script: scripts/ci/check_live_rls_regression.sh
+    governs: live RLS regression
+    enforcement: pr_gate
+  - script: scripts/ci/check_rate_limit_single_authority.sh
+    governs: single rate-limit authority
+    enforcement: pr_gate
+  - script: scripts/ci/check_llm_client_factory.sh
+    governs: LLM clients must go through the one factory
+    enforcement: pr_gate
+  - script: scripts/ci/check_runtime_safety_usage.sh
+    governs: runtime safety wiring
+    enforcement: pr_gate
+  - script: scripts/ci/check_migration_uniqueness.sh
+    governs: unique migration numbers
+    enforcement: pr_gate
+  # ── meta (self) ──
+  - script: scripts/check_registries_meta.py
+    governs: this catalog — every scanner cataloged + every pr_gate wired into CI
+    enforcement: pr_gate
+  # ── release-gate (deploy workflow, not per-PR) ──
+  - script: scripts/check_2026_source_compiler_release_gates.py
+    governs: 2026 source-compiler release Go/No-Go gates
+    enforcement: release_gate
+    runs_in: on-demand / release runbook
+  # ── other workflow ──
+  - script: scripts/check_hermes_upstream.py
+    governs: upstream (HKUDS) sync drift
+    enforcement: other_workflow
+    runs_in: .github/workflows/hermes-upstream.yml
+  # ── operational / local / on-demand (NOT CI gates) ──
+  - script: scripts/check_git_worktree.py
+    governs: git worktree discipline (dev tool)
+    enforcement: operational
+  - script: scripts/check_install.py
+    governs: install/environment sanity (dev tool)
+    enforcement: operational
+  - script: scripts/check_local_env.py
+    governs: local env sanity (dev tool)
+    enforcement: operational
+  - script: scripts/check_secret_envs.py
+    governs: secret-in-env scan (pre-commit / on-demand)
+    enforcement: operational
