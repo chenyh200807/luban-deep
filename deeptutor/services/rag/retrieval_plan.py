@@ -28,6 +28,16 @@ class RetrievalSourceGroup:
         }
 
 
+# Canonical schema id for register-before-use (schema-governance P2: this module is the
+# single producer + single schema authority for the deterministic retrieval plan consumed
+# across the RAG pipelines — service.py / pipelines/kbv5.py / pipelines/supabase.py). The
+# wire payload keeps the integer ``schema_version`` (1) for consumer compatibility; this
+# string id makes the schema VISIBLE to the schema-registry closure so a competing
+# retrieval-plan schema can never appear unregistered. Registered as T2 runtime-canonical
+# in contracts/schema_registry.yaml.
+SCHEMA_ID = "rag_retrieval_plan.v1"
+
+
 @dataclass(frozen=True, slots=True)
 class RetrievalPlan:
     schema_version: int
