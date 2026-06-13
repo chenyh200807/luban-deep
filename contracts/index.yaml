@@ -156,7 +156,7 @@ mobile_http_auth_controls:
         keep audit-safe copy that does not expose WeChat wording in the UI.
 
 bi_admin_rbac:
-  authority: deeptutor/services/member_console/rbac.py + admin_store.py (data/user/bi_admins.json)
+  authority: deeptutor/services/member_console/rbac.py + admin_store.py (data/user/bi_admins.json) + service.can_access (端点 enforce)
   semantics:
     - BI 后台权限的唯一定义来源是 rbac.py 的角色权限矩阵；端点与前端都从这里派生，
       不得各自硬编码权限判断。
@@ -165,8 +165,15 @@ bi_admin_rbac:
       env 引导管理员 (DEEPTUTOR_ADMIN_USER_IDS) 恒为 super_admin，防止超管锁死自己。
     - 超管可编辑非锁定角色的权限矩阵 (角色级，影响所有该角色管理员)，并可对单个管理员
       设置 per-user 权限覆盖 (精确到人)。生效权限 = 角色权限[可编辑] 叠加 per-user 覆盖。
-    - 所有权限变更 (增删管理员、改角色、编辑角色权限、个人覆盖) 写入 bi_admins.json 的
-      审计记录；管理端点要求 super_admin (can_manage_permissions)。
+    - 端点 enforce：BI 数据端点按 service.can_access 逐 (tab, action) 裁决 (require_bi_permission)，
+      唯一授权依据是生效权限矩阵，不用 is_admin 布尔旁路；管理端点要求 super_admin
+      (can_manage_permissions)。super_admin/admin 默认全权，admin 被收权后端点立即拒绝。
+    - 授权 fail-closed：持久化中出现非法/被篡改 role 时视为非管理员 (不回落 admin)；
+      service 写方法 (set_admin_role/set_role_permissions/set_user_permission_overrides/
+      remove_admin_user) 自校验 actor 为 super_admin (PermissionError)，是 HTTP gate 之外的纵深。
+    - 所有权限变更 (增删管理员、改角色、编辑角色权限、个人覆盖) 写入【独立 append-only
+      审计文件 bi_admin_audit.jsonl】(O_APPEND 原子追加、永不重写历史，防止被刷掉)；
+      bi_admins.json 内 legacy 审计仍合并读取。
     - 权限存储是文件持久化 (bind-mount)，非 turn/session/capability/learner-state authority。
 
 domains:

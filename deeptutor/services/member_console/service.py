@@ -2676,7 +2676,15 @@ class MemberConsoleService:
         record = load_admins(self._bi_admins_path()).get(resolved)
         if not record:
             return None
-        return rbac.normalize_role(record.get("role"))
+        # fail-closed：持久化中出现非法/被篡改的 role 不再回落 admin（normalize 默认会提权），
+        # 而是视为非管理员并告警。授权权威必须在坏数据面前关闭，而非开放。
+        raw = str(record.get("role") or "").strip()
+        if not rbac.is_valid_role(raw):
+            logger.warning(
+                "bi_admins.json 含非法角色 %r (user=%s)，fail-closed 视为非管理员", raw, resolved
+            )
+            return None
+        return raw
 
     def is_admin_user(self, user_id: str | None) -> bool:
         """兼容旧布尔门：super_admin / admin 视为完整管理员。"""
@@ -2720,6 +2728,8 @@ class MemberConsoleService:
         self, *, actor: str, role: str, matrix: dict[str, Any], at: str = ""
     ) -> dict[str, Any]:
         """超管编辑某角色权限矩阵（super_admin 角色锁定不可编辑，防锁死）。"""
+        if not self.can_manage_permissions(actor):
+            raise PermissionError("仅超级管理员可编辑 BI 角色权限")
         if not rbac.is_valid_role(role):
             raise ValueError(f"未知角色: {role}")
         if not rbac.is_role_editable(role):
@@ -2732,6 +2742,8 @@ class MemberConsoleService:
         self, *, actor: str, user_id: str, overrides: dict[str, Any], at: str = ""
     ) -> list[dict[str, Any]]:
         """精确到人：给某管理员设个人权限覆盖（env 超管 + super_admin 角色不可覆盖）。"""
+        if not self.can_manage_permissions(actor):
+            raise PermissionError("仅超级管理员可设置个人权限覆盖")
         normalized = str(user_id or "").strip()
         if normalized in self._env_admin_user_ids():
             raise ValueError("系统引导超级管理员恒为全权，不可设置个人权限覆盖")
@@ -2777,7 +2789,12 @@ class MemberConsoleService:
             )
         for uid in sorted(set(file_admins) - env_ids):
             record = file_admins[uid]
-            role = rbac.normalize_role(record.get("role"))
+            raw_role = str(record.get("role") or "").strip()
+            if not rbac.is_valid_role(raw_role):
+                # fail-closed：非法角色条目不在管理员列表里展示成正常 admin
+                logger.warning("跳过 bi_admins.json 中非法角色条目 %r (user=%s)", raw_role, uid)
+                continue
+            role = raw_role
             overrides = record.get("permission_overrides")
             overrides = overrides if isinstance(overrides, dict) else {}
             eff = rbac.resolve_effective_permissions(role, role_store, overrides)
@@ -2806,7 +2823,9 @@ class MemberConsoleService:
     def set_admin_role(
         self, *, actor: str, user_id: str, role: str, display_name: str = "", at: str = ""
     ) -> list[dict[str, Any]]:
-        """新增管理员或改其角色（仅 super_admin；调用方先校验权限）。"""
+        """新增管理员或改其角色（仅 super_admin）。service 层自校验 actor，纵深防御。"""
+        if not self.can_manage_permissions(actor):
+            raise PermissionError("仅超级管理员可分配 BI 管理员角色")
         normalized = str(user_id or "").strip()
         if not normalized:
             raise ValueError("user_id is required")
@@ -2837,6 +2856,8 @@ class MemberConsoleService:
     def remove_admin_user(
         self, user_id: str, *, actor: str = "", at: str = ""
     ) -> list[dict[str, Any]]:
+        if not self.can_manage_permissions(actor):
+            raise PermissionError("仅超级管理员可移除 BI 管理员")
         normalized = str(user_id or "").strip()
         if normalized in self._env_admin_user_ids():
             raise ValueError("系统引导管理员不可通过界面移除（防止锁死超管）")
