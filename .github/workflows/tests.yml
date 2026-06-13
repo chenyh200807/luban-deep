@@ -133,6 +133,18 @@ jobs:
         run: |
           python scripts/check_db_registry.py $(git ls-files 'deeptutor/**/*.py' 'scripts/**/*.py')
 
+      - name: env / flag / credential registry guard (no unregistered env / 假灰度)
+        # Powers on contracts/env_registry.yaml: a NEW env referenced via
+        # os.getenv/os.environ/env_store.get/env_flag that the registry does not
+        # list fails CI (rule a, 防新增裸 env), and a NEW env_flag() read of an
+        # unregistered name fails CI (rule b, 防假灰度 — a misspelled gray-release
+        # flag silently returns env_flag's default, so KB v5 / LUBAN_V1 rollouts
+        # would look live but never take effect). All 284 existing references are
+        # grandfathered. Full-repo scan. Bundling into check_contract_guard.py is a
+        # later consolidation blocked by its WIP.
+        run: |
+          python scripts/check_env_registry.py $(git ls-files 'deeptutor/**/*.py' 'scripts/**/*.py')
+
       - name: WebSocket single-control-plane allowlist gate
         # Reflects the live FastAPI app's production WebSocket surface and fails
         # on any WS route not declared in contracts/index.yaml websocket_routes,
