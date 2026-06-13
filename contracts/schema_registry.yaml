@@ -61,11 +61,11 @@ scope_rule:
 # honest full set is the UNION across all literal forms = 176. The "152" was an
 # incomplete baseline; 176 is the closed authority this section keys off.
 completeness_closure:
-  full_set_count: 180            # union across all schema-version literal forms (+rag_retrieval_plan.v1, P2)
+  full_set_count: 181            # union across all schema-version literal forms (+personalization_context_pack.v1, P2)
   primary_grep_baseline: 152     # task's narrow grep; missed SCHEMA_ID=/schema_id: forms
   tier_counts:
     tier1_typed_grading_object: 9    # the `schemas:` list below (1 canonical + 8 deprecated)
-    tier2_runtime_canonical: 23      # tier2_canonical_contracts below (+p0a-v1, +learning_report_read_model.v2, +rag_retrieval_plan.v1)
+    tier2_runtime_canonical: 24      # tier2_canonical_contracts below (+p0a-v1, +learning_report_read_model.v2, +rag_retrieval_plan.v1, +personalization_context_pack.v1)
     tier3_ephemeral_artifact: 148    # covered by tier3_carve_out rule, not enumerated 1:1
                                      # (148 incl. luban_per_question_full_compile.v1, the Stage 1
                                      #  full-bank compile summary artifact added 2026-06-14)
@@ -382,6 +382,15 @@ tier2_canonical_contracts:
     module: deeptutor/services/rag/retrieval_plan.py
     consumed_by: deeptutor/services/rag/service.py + deeptutor/services/rag/pipelines/kbv5.py + deeptutor/services/rag/pipelines/supabase.py (build_retrieval_plan across all retrieval lanes)
     needs_field_canonicalization: true   # wire payload (to_dict) keeps integer schema_version (1)
+
+  # — learner-state PersonalizationContextPack (P2: registry beyond grading) —
+  - name: personalization_context_pack.v1
+    status: runtime_canonical
+    owner: learner_state
+    canonical_for: the PersonalizationContextPack — single producer + single schema authority (contracts/learner-state.md)
+    module: deeptutor/services/learner_state/personalization_context.py
+    consumed_by: deeptutor/capabilities/deep_question.py + deeptutor/services/construction_grading/runtime_llm_adjudicator.py + deeptutor/services/construction_grading/writeback.py + deeptutor/services/rag/compiled_truth_source.py (cross-domain PCP readers)
+    needs_field_canonicalization: true   # pack payload keeps integer schema_version (1) + source tag
 
   # — canonical knowledge spine (manifest → graph/index/unified/repairs/clauses) —
   - name: luban_canonical_knowledge_manifest.v1

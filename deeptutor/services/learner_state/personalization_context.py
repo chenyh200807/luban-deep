@@ -13,6 +13,15 @@ _GAP_CLAIM_STATUSES = {"stale", "superseded", "contradicted", "rejected"}
 # 时间规则（遗忘曲线第一步）：active claim 末次证据超过该天数 → 进入 review_due。
 REVIEW_DUE_AFTER_DAYS = 14
 
+# Canonical schema id for register-before-use (schema-governance P2: this module is the
+# single producer + single schema authority for the PersonalizationContextPack consumed
+# across learner_state → capabilities/deep_question → construction_grading (adjudicator/
+# writeback) → rag). The pack payload keeps the integer ``schema_version`` (1) + the
+# ``source: "PersonalizationContextPack"`` tag for consumer compatibility; this string id
+# makes the schema VISIBLE to the schema-registry closure so a competing PCP schema can
+# never appear unregistered. Registered as T2 runtime-canonical in contracts/schema_registry.yaml.
+SCHEMA_ID = "personalization_context_pack.v1"
+
 
 def build_personalization_context_pack(
     *,
