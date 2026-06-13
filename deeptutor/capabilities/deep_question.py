@@ -2110,6 +2110,13 @@ async def _grade_one_case_v1(
     )
     if not points:
         return {"status": "unavailable", "reason": "no_scoring_points"}
+    # G2 single-authority guard (load-bearing on the live scoring path): only official-answer-backed
+    # points enter the correctness channel; any rich-leaf / textbook-cited point is demoted to
+    # supporting and never scores — the 50x-volume rich-leaf points cannot impersonate the official
+    # key. Behaviour-preserving for the current official-derived sources (compiled / reference / stem).
+    points = _G.enforce_official_scoring_authority(points, provenance=provenance)
+    if not points:
+        return {"status": "unavailable", "reason": "no_official_scoring_points"}
     event = await _G.grade_with_batch_judge_async(
         qid=qid or "open_world", student_answer=answer, rubric_points=points,
         complete_fn=complete, api_key=key, student_id=student_id, model=_v1_model)

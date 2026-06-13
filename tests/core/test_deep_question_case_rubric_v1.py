@@ -362,3 +362,33 @@ def test_batch_judge_async_parses_and_fails_closed() -> None:
     assert verdicts["P1"]["status"] == "hit" and verdicts["P2"]["status"] == "miss"
     # failure -> empty dict -> grade_with_rubric treats every point as miss+low_conf
     assert asyncio.run(G.batch_judge_async(_RUBRIC, "ans", _boom_complete, "k")) == {}
+
+
+@pytest.mark.asyncio
+async def test_case_rubric_v1_g2_guard_demotes_rich_leaf_point(monkeypatch: pytest.MonkeyPatch) -> None:
+    # G2 single-authority WIRED on the live scoring path: if a rich-leaf / textbook-cited point ever
+    # appears in the rubric, it is demoted to supporting BEFORE the judge sees it and NEVER scores —
+    # only official-answer-backed points do. The 50x-volume rich-leaf points cannot impersonate the key.
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    rubric_with_rich_leaf = _RUBRIC + [
+        {"point_id": "RL1", "text": "教材引证(supporting)", "score": 5.0, "policy": "list",
+         "required_terms": [], "authority_source": "textbook_cited"},
+    ]
+    monkeypatch.setattr(G, "load_rubric", lambda qid: rubric_with_rich_leaf if qid == "case-9006" else [])
+
+    seen: dict[str, Any] = {}
+
+    async def _fake_batch_async(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        seen["ids"] = [p.get("point_id") for p in points]
+        return {p.get("point_id"): {"status": G.HIT} for p in points}
+
+    monkeypatch.setattr(G, "batch_judge_async", _fake_batch_async)
+    result = await _run_case(monkeypatch, _case_context(rubric_v1=True))
+    v1 = result["luban_case_rubric_v1"]
+    # the rich-leaf point never reached the judge (demoted by the G2 guard) and never scored
+    assert "RL1" not in seen["ids"]
+    assert set(seen["ids"]) == {"P1", "P2", "P3"}
+    graded_ids = {p["point_id"] for p in v1["grading_event"]["scoring_points"]}
+    assert "RL1" not in graded_ids
+    # max_score reflects only the 3 official points (3.0), NOT the 5.0 rich-leaf point
+    assert v1["grading_event"]["max_score"] == 3.0
