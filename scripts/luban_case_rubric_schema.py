@@ -6,7 +6,7 @@ anchor. It does NOT compile a registry, touch runtime, or fabricate sources — 
 defines + validates the shape, with the verify-on-write rule as the single gate for
 ``auto_certifiable``.
 
-Schema entities (see docs/plan/2026-06-04-luban-case-rubric-data-schema-v0.md):
+Schema entities (see docs/plan/评分引擎与金标工件/2026-06-04-luban-case-rubric-data-schema-v0.md):
   CaseRubricSourceRecord  -> the raw question (text/official_answer/node_code/source_exam)
   RubricCandidate         -> a model/answer-derived scoring point candidate (NOT authority)
   TextbookAnchorEvidence  -> {source_type, chunk_id, textbook_quote, verified, match_method}

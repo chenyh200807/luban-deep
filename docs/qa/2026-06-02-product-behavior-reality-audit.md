@@ -1,8 +1,8 @@
 # Product Behavior Reality Audit
 
 - Date: 2026-06-02
-- Source PRD: `docs/plan/2026-06-02-luban-product-behavior-intelligence-prd.md`
-- Execution plan: `docs/plan/2026-06-02-luban-product-behavior-intelligence-execution-plan.md`
+- Source PRD: `docs/plan/会员钱包计费与经营后台/2026-06-02-luban-product-behavior-intelligence-prd.md`
+- Execution plan: `docs/plan/会员钱包计费与经营后台/2026-06-02-luban-product-behavior-intelligence-execution-plan.md`
 - Decision: P0 proceeds only if all hard gates below pass.
 
 ## 1. Telemetry Authority

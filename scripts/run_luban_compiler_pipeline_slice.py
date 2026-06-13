@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Living LLM Artifact Compiler — first vertical slice runner (machine_spec lane).
 
-Design: docs/plan/2026-06-06-luban-living-llm-artifact-compiler-design.md §8.
+Design: docs/plan/知识编译与检索/2026-06-06-luban-living-llm-artifact-compiler-design.md §8.
 
 Proves the WHOLE loop end-to-end on ONE lane (case-rubric machine_spec) with REAL evidence:
   real M2 audit-packet scoring points -> S2 worker (DeepSeek live-gated, default deterministic) ->

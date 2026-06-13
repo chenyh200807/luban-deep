@@ -11,7 +11,7 @@ from scripts.build_luban_deepseek_exact_required_fallback_eval import fallback_f
 REPO = Path(__file__).resolve().parents[2]
 PREP = REPO / "artifacts/luban_consensus_gold/deepseek_shadow_v0_485_prep_20260603"
 DIST = REPO / "artifacts/luban_consensus_gold/expanded_4model_deepseek_distillation_20260603"
-PLAN = REPO / "docs/plan/2026-06-03-luban-deepseek-production-shadow-v0-plan.md"
+PLAN = REPO / "docs/plan/评分引擎与金标工件/2026-06-03-luban-deepseek-production-shadow-v0-plan.md"
 
 
 # ---- inventory identifies missing predictions and never fakes readiness ----

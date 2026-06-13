@@ -2,8 +2,8 @@
 
 | 字段 | 值 |
 |---|---|
-| **Plan** | [docs/plan/2026-05-20-luban-lightweight-practice-deep-grading-execution-plan.md](../plan/2026-05-20-luban-lightweight-practice-deep-grading-execution-plan.md) §7.7 |
-| **回归矩阵** | [docs/plan/2026-05-13-luban-grading-chain-regression-matrix.md](../plan/2026-05-13-luban-grading-chain-regression-matrix.md) G1-G9 |
+| **Plan** | [docs/plan/题目生命周期与助教运行时/2026-05-20-luban-lightweight-practice-deep-grading-execution-plan.md](../plan/2026-05-20-luban-lightweight-practice-deep-grading-execution-plan.md) §7.7 |
+| **回归矩阵** | [docs/plan/题目生命周期与助教运行时/2026-05-13-luban-grading-chain-regression-matrix.md](../plan/2026-05-13-luban-grading-chain-regression-matrix.md) G1-G9 |
 | **承接 HEAD** | `862f80fa fix: redact public ws grading authority` |
 | **本地后端** | `scripts/start_local_learning_brain.sh start --no-web` → `http://127.0.0.1:8001` |
 | **预计耗时** | 4 × 5 min = 20 min |

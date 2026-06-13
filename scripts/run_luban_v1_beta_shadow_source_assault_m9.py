@@ -42,7 +42,7 @@ OUT_DIR = AR / "v1_beta_shadow_source_assault_m9_20260604"
 SUB_DIR = OUT_DIR / "subagents"
 BOOK_DIR = Path("/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/2026教材/第二次加强")
 ENV_FILES = [REPO / ".env", Path("/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/.env")]
-PLAN_FILE = REPO / "docs/plan/2026-06-04-luban-grading-engine-master-control-plan.md"
+PLAN_FILE = REPO / "docs/plan/总控入口与当前作战图/2026-06-04-luban-grading-engine-master-control-plan.md"
 INDEX_FILE = REPO / "docs/plan/INDEX.md"
 
 MIN_ANCHOR_LEN = 4          # absolute floor for any anchor

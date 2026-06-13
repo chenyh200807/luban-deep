@@ -50,6 +50,10 @@ always: false
 3. 三路恢复全部落空 → **开放世界裁决**（trace `authority_source=open_world`）：基于 RAG 证据（教材 `kb_chunks`、`standard_articles`）裁决每个选项，明确告知用户“本次按教材依据裁决，非题库标准答案”。禁止拒答。
 4. 无 authority 时确定性内核返回 `grading_source=llm_judge` 的占位结果——`is_correct=false`、`score=0` 是占位值不是判定，进入开放裁决前必须清空（runtime 中间态把 `is_correct` 置空、去掉 score 和占位 grading result；最终结果里 `is_correct` 必须是开放裁决的真实结论），禁止把占位值当“答错”输出给用户。
 
+### 编译资产边界
+
+MCQ 判分内核（`construction_grading/mcq.py`）**不消费 case 编译采分点库**。MCQ 的 authority 链就是上面的 `grading_key → questions_bank → open_world` 三级，不经过 `v_case_rubric_scored`、`rubric_provenance` 三级链、`list_spec` / `calculation_spec` 等案例题编译判定字段——那些属于 `construction-case-grading` 的编译链路。禁止把 case 采分点库错用到选择题（例如用案例采分点给选项“踩点给分”）。未来 MCQ 编译资产（如 `option_reasoning` 编译回填）接入时另行扩展本节，当前不得假装存在。
+
 ## Forbidden Authority
 
 - 不直接写 `LearnerStateService`、错题本、学习报告或长期学习画像。

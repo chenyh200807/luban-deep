@@ -10,7 +10,7 @@ const auth = require("../../utils/auth");
 const reportViewModel = require("../../utils/learning-report-view-model");
 const taxonomy = require("../../utils/taxonomy");
 
-const REPORT_UNIFIED_READ_TIMEOUT_MS = 8000;
+const REPORT_UNIFIED_READ_TIMEOUT_MS = 15000;
 const REPORT_SNAPSHOT_CACHE_KEY = "deeptutor.report.unifiedSnapshot.v1";
 const REPORT_SNAPSHOT_CACHE_MAX_AGE_MS = 30 * 60 * 1000;
 const REPORT_MODULE_HINT_STORAGE_KEY = "deeptutor.report.moduleHint.v1";

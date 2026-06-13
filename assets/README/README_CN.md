@@ -52,7 +52,7 @@ DeepTutor 是 **鲁班智考** 背后的智能体原生学习引擎。当前产�
 
 ### 🧭 AI 与架构总览
 
-后续 AI / 工程 agent 接手 DeepTutor / 鲁班智考升级时，先读 [鲁班系统技术介绍：给 AI 升级工作的架构总览](../../docs/plan/2026-06-11-luban-system-technical-introduction-for-ai.md)。它把当前 `assess -> grade -> remember -> train -> retest` 主链、contract 控制面、authority 边界、关键服务、GO / NO-GO 状态和升级方向放在一张图里。
+后续 AI / 工程 agent 接手 DeepTutor / 鲁班智考升级时，先读 [鲁班系统技术介绍：给 AI 升级工作的架构总览](../../docs/plan/总控入口与当前作战图/2026-06-11-luban-system-technical-introduction-for-ai.md)。它把当前 `assess -> grade -> remember -> train -> retest` 主链、contract 控制面、authority 边界、关键服务、GO / NO-GO 状态和升级方向放在一张图里。
 
 这份文档只是导航层，不是新的 contract。任何代码和产品改动仍以 [CONTRACT.md](../../CONTRACT.md)、[contracts/index.yaml](../../contracts/index.yaml) 和 [docs/plan/INDEX.md](../../docs/plan/INDEX.md) 为准。
 

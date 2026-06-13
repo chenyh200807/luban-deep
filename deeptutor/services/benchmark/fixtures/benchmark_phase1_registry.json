@@ -86,7 +86,7 @@
       ],
       "source_fixture": "tests/fixtures/answer_citation_eval_cases.json",
       "origin_type": "execution_plan",
-      "origin_ref": "docs/plan/2026-06-01-luban-paper-style-answer-citations-execution-plan.md",
+      "origin_ref": "docs/plan/评分引擎与金标工件/2026-06-01-luban-paper-style-answer-citations-execution-plan.md",
       "promotion_status": "candidate",
       "promoted_from_case_id": ""
     },
@@ -102,7 +102,7 @@
       "failure_taxonomy_scope": [],
       "source_fixture": "deeptutor/services/benchmark/fixtures/luban_case_grading_golden_v1.json",
       "origin_type": "manual",
-      "origin_ref": "docs/plan/2026-05-31-luban-grading-truth-golden-eval-campaign-v2-2.md",
+      "origin_ref": "docs/plan/评分引擎与金标工件/2026-05-31-luban-grading-truth-golden-eval-campaign-v2-2.md",
       "promotion_status": "candidate",
       "promoted_from_case_id": ""
     },
@@ -125,9 +125,9 @@
         "FAIL_WRAPPER_POLICY_DRIFT",
         "FAIL_CANONICAL_TRUTH_WRITE"
       ],
-      "source_fixture": "docs/plan/2026-06-06-luban-m26-compiled-context-open-world-execution-plan.md",
+      "source_fixture": "docs/plan/总控入口与当前作战图/2026-06-06-luban-m26-compiled-context-open-world-execution-plan.md",
       "origin_type": "execution_plan",
-      "origin_ref": "docs/plan/2026-06-06-luban-m26-compiled-context-open-world-execution-plan.md",
+      "origin_ref": "docs/plan/总控入口与当前作战图/2026-06-06-luban-m26-compiled-context-open-world-execution-plan.md",
       "promotion_status": "candidate",
       "promoted_from_case_id": ""
     },
@@ -147,9 +147,9 @@
         "FAIL_SOURCE_LAUNDERING",
         "FAIL_CANONICAL_TRUTH_WRITE"
       ],
-      "source_fixture": "docs/plan/2026-06-06-luban-m26-compiled-context-open-world-execution-plan.md",
+      "source_fixture": "docs/plan/总控入口与当前作战图/2026-06-06-luban-m26-compiled-context-open-world-execution-plan.md",
       "origin_type": "execution_plan",
-      "origin_ref": "docs/plan/2026-06-06-luban-m26-compiled-context-open-world-execution-plan.md",
+      "origin_ref": "docs/plan/总控入口与当前作战图/2026-06-06-luban-m26-compiled-context-open-world-execution-plan.md",
       "promotion_status": "candidate",
       "promoted_from_case_id": ""
     },
@@ -168,9 +168,9 @@
         "FAIL_LB_UNSAFE_PROMOTION",
         "FAIL_CANONICAL_TRUTH_WRITE"
       ],
-      "source_fixture": "docs/plan/2026-06-06-luban-m26-compiled-context-open-world-execution-plan.md",
+      "source_fixture": "docs/plan/总控入口与当前作战图/2026-06-06-luban-m26-compiled-context-open-world-execution-plan.md",
       "origin_type": "execution_plan",
-      "origin_ref": "docs/plan/2026-06-06-luban-m26-compiled-context-open-world-execution-plan.md",
+      "origin_ref": "docs/plan/总控入口与当前作战图/2026-06-06-luban-m26-compiled-context-open-world-execution-plan.md",
       "promotion_status": "candidate",
       "promoted_from_case_id": ""
     },

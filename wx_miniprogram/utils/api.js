@@ -657,7 +657,7 @@ function uploadFeedbackAttachment(file) {
 
 // ── 拍照识题（photo-answer OCR 输入层）────────────────────
 // 后端 feature flag DEEPTUTOR_PHOTO_ANSWER_ENABLED 默认关闭（404）。
-// 计划：docs/plan/2026-06-10-luban-photo-answer-ocr-input-layer-implementation-plan.md
+// 计划：docs/plan/鲁班移动端提分闭环/2026-06-10-luban-photo-answer-ocr-input-layer-implementation-plan.md
 
 /** 拍照识题 — 创建拍题会话（绑定题号；换题需新建会话） */
 function createPhotoAnswerSession(questionId, questionStem) {

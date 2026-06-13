@@ -88,6 +88,20 @@ Authority guard：不得仅凭模型常识、普通 RAG 知识、相似题经验
 4. 连投影资产也不足 → `open_skill`（trace `grading_source=open_skill_fallback`）；声明“本次按提分诊断处理”“本次不硬估标准分”。开放档仍按开放世界口径抽采分点做诊断——这是 V1 的设计形态，不是失败状态。
 5. 任何一档都不许拒答；任何一档都不许冒充上一档的口径或精度。
 
+## 编译资料链路（Nexus-like 引擎 V1）
+
+与上面 kernel 降级阶梯**并行存在第二条链**：V1 评分引擎（`construction_grading/rubric_grader_v1.py`）。两条链谁先谁后、trace 字段对照（`grading_source` vs `rubric_provenance`）见 `references/data-authority.md`。
+
+- **何时命中编译库**：当前题 `question_id` 在编译采分点库 `v_case_rubric_scored`（来源=考试参考答案，manifest `answer_key_authority=exam_reference_answer`）中有签名记录时，按编译采分点逐点裁决。编译库是弹药不是门槛：未命中绝不拒答，逐级走开放世界。
+- **`rubric_provenance` 三级链**（逐级如实声明，不许冒充上一级）：
+  1. `compiled_rubric`：编译库命中，治理级采分点。
+  2. `on_the_fly_reference`：库未命中但本题有参考答案 → 现场把参考答案拆成原子采分点（开放世界口径，不是 173 题查表）。
+  3. `derived_from_stem`：连参考答案都没有 → 仅凭题干用专业知识推导采分点。
+- **content_hash 验签**：编译库每进程加载一次并整库验签；hash 与 manifest 不匹配 = **整库拒用**，所有题走开放世界。此时必须如实按 `on_the_fly_reference` / `derived_from_stem` 口径输出，不得假装编译库仍然生效。
+- **逐点裁决与计分**：LLM 只判每个采分点 hit / partial / miss（语义匹配，近义可接受）；得分 = 确定性逐点求和，绝不让 LLM 猜整题总分。`exact_required` 点（规范术语/法条号/精确数值）**全对或零分**，无 partial；`partial_ratio` 只适用于列举（list）和定性（qualitative）点。
+- **high_risk**：任何低置信裁决或得分贴近分界 → `high_risk_review=true`，进人工复核，不当正式成绩输出。
+- **degraded 回落**：批量裁决未覆盖全部采分点 = degraded，整题回落 legacy 诊断链，**禁止把 0 分/满分当 authority 输出**；多子题批量场景任一子题 degraded → 整批回落——半批改的“完整分”比低分更误导。
+
 ## 阅卷流程
 
 1. **绑定题目**：优先当前 active question / `questions_bank` 行；用户粘贴完整题干则用用户题干；只有答案没题干时说明无法精确阅卷并请补题干，可先给表达诊断但不硬打分。
@@ -125,15 +139,6 @@ Authority guard：不得仅凭模型常识、普通 RAG 知识、相似题经验
   "score_awarded": 1.0,
   "max_score": 4.0,
   "rubric_items": [
-    {
-      "criterion": "超过一定规模的危大工程应组织专家论证",
-      "max_score": 2.0,
-      "awarded_score": 0.0,
-      "status": "miss",
-      "keywords": ["专家论证"],
-      "evidence_text": "",
-      "source_fields": ["correct_answer", "analysis"]
-    },
     {
       "criterion": "施工单位应编制专项施工方案",
       "max_score": 2.0,
@@ -182,7 +187,7 @@ Authority guard：不得仅凭模型常识、普通 RAG 知识、相似题经验
 
 ## 参考文件
 
-- `references/data-authority.md`：现有本地源题库字段、case 题覆盖情况、Supabase 对账要求、采分框架 authority 链。
-- `references/source-grounding.md`：2026 教材、讲义、标准文件、taxonomy 如何进入阅卷动作；采分点教材溯源硬规则。
-- `references/grading-protocol.md`：评分动作、输出 schema、批量/逐项裁决协议、边界与疑难场景。
+- `references/data-authority.md`：现有本地源题库字段、case 题覆盖情况、Supabase 对账要求、采分框架 authority 链、kernel 四级链与 V1 编译链对照表。
+- `references/source-grounding.md`：2026 教材、讲义、标准文件、taxonomy 如何进入阅卷动作；采分点教材溯源硬规则；编译库命中时的溯源表达与验签。
+- `references/grading-protocol.md`：评分动作、输出 schema、批量/逐项裁决协议、`list_spec` / `calculation_spec` 编译判定字段、边界与疑难场景。
 - `references/error-taxonomy.md`：canonical E 系列错因分类和写回规则。

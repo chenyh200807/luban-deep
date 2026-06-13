@@ -1,6 +1,6 @@
 // pages/photo-answer/capture.js — 拍照作答：连拍多页 → 上传 → 触发 OCR
 // 入口参数：question_id（必填）、stem（encodeURIComponent 后的题干，可选，用于题干折叠）
-// 计划：docs/plan/2026-06-10-luban-photo-answer-ocr-input-layer-implementation-plan.md
+// 计划：docs/plan/鲁班移动端提分闭环/2026-06-10-luban-photo-answer-ocr-input-layer-implementation-plan.md
 
 var api = require("../../utils/api");
 

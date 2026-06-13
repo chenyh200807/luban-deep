@@ -13,7 +13,7 @@ DEFAULT_OUT = (
     / "artifacts/luban_grading_artifacts/grading_to_brain_current_gap_audit_20260608"
 )
 
-MASTER_PLAN = "docs/plan/2026-06-04-luban-grading-engine-master-control-plan.md"
+MASTER_PLAN = "docs/plan/总控入口与当前作战图/2026-06-04-luban-grading-engine-master-control-plan.md"
 G1_M19C_GO = (
     "artifacts/luban_grading_artifacts/limited_default_flip_m19c_20260605/"
     "go_no_go_m19c.json"

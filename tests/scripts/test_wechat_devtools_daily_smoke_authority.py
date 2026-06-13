@@ -21,6 +21,7 @@ class _Args:
     project_path = str(PROJECT_ROOT / "yousenwebview")
     timeout_seconds = 1.0
     auto_port = 0
+    page_wait_ms = 12000
     skip_runtime_contract = False
 
 
@@ -88,9 +89,13 @@ def test_devtools_smoke_can_record_page_automation_pass_without_promoting_projec
     assert payload["trace_source"] == "devtools_cli_auto_page"
     assert payload["page_automation"]["current_page"] == "/packageDeeptutor/pages/report/report"
     assert payload["devtools_project_root"] == "yousenwebview"
-    assert "--auto-port" not in commands["devtools_auto_port"]
-    assert commands["devtools_auto_port"][-2:] == ["--port", "9420"]
-    assert commands["devtools_page_automation"][-2:] == ["--base-url", "http://127.0.0.1:8001"]
+    assert commands["devtools_auto_port"][-2:] == ["--auto-port", "9420"]
+    assert commands["devtools_page_automation"][-4:] == [
+        "--base-url",
+        "http://127.0.0.1:8001",
+        "--wait-ms",
+        "12000",
+    ]
 
 
 def test_devtools_smoke_records_login_redirect_as_auth_blocked_evidence(monkeypatch) -> None:

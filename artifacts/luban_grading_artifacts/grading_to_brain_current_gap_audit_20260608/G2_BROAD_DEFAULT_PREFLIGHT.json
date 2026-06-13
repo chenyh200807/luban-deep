@@ -19,7 +19,7 @@
   "execution_mode": "read_only_no_broad_flip",
   "gate_id": "G2_broad_production_default",
   "generated_by": "audit_luban_grading_to_brain_current_gap",
-  "master_plan": "docs/plan/2026-06-04-luban-grading-engine-master-control-plan.md",
+  "master_plan": "docs/plan/总控入口与当前作战图/2026-06-04-luban-grading-engine-master-control-plan.md",
   "missing_evidence_refs": [],
   "preconditions": {
     "g1_ready_for_authorization": true,

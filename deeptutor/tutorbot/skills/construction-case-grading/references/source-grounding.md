@@ -105,6 +105,25 @@
 4. 相似题经验、用户题面暗示、模型记忆都不构成投影 authority——这是 SKILL.md Authority guard 的资料层落地。
 5. `open_skill` 档抽出的“可能漏点”也应尽量给出处；完全无出处的诊断要在表述上保持为方向性建议，不写成确定漏分。
 
+## 编译库命中时的溯源表达
+
+V1 编译采分点库 `v_case_rubric_scored` 命中时（`rubric_provenance=compiled_rubric`），溯源表达要区分**两种不同的权威**，不可混写：
+
+1. **分值/采分结构的权威 = 考试参考答案**。编译库 manifest 标注 `answer_key_authority=exam_reference_answer`：每个采分点的分值、拆点方式、policy 来自历年考试参考答案，**不是教材原文逐字**。向用户解释“为什么这点 2 分”时引用的是阅卷参考答案口径，不要说成“教材规定 2 分”。
+2. **术语/条文表述的溯源 = 教材原文**。采分点携带的 `source_refs` / `source_fields`（教材/讲义/规范出处字段）才是 required_terms、条文号、关键数字的 textbook provenance——上节硬规则在编译链上同样生效。解释“为什么必须写‘专家论证’这个词”时引 source_refs 指向的教材/规范原文。
+
+两条不混的写法：✅“该采分点按考试参考答案口径计 2 分；得分关键词‘专家论证’依据《危大工程管理规定》（source_refs）”；❌“教材原文规定本点 2 分”/ ❌ 用参考答案权威替代术语的教材溯源。
+
+### 编译知识 pack 的检索与验签
+
+编译知识的运行时检索面是 `compiled_registry_resolver.py`：
+
+- `resolve_question(qid)`：从签名 case-rubric bundle 解析一道题的编译采分点（含 `required_terms` / `source_refs`）。
+- `resolve_node(node_code)`：从签名教材 bundle 解析知识节点卡片，可按本轮题面 query 做相关性聚焦。
+- `build_pack_for_question(...)`：解析 + 构建 LubanContextPack；release 级权威只由服务端 `grant_release` 决定，bundle 自身永远不铸权。
+
+任何 bundle 必须先过 `verify_bundle`（lane 签名 + status 门 + pinned content_hash + namespace 四道确定性闸）才可用；验签失败 fall open 到开放世界诊断，不拒答、不带病使用。Skill 侧含义：引用编译采分点/编译知识卡时，它们一定来自已验签 bundle——验签失败时不存在“编译证据”，溯源只能引题库/RAG 检索原文。
+
 ## 典型资料到阅卷动作的映射
 
 | 字段 | 阅卷动作 |

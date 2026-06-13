@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Living LLM Artifact Compiler — Textbook Verbatim Lane (增量①): FULL 2026-textbook compile.
 
-Design: docs/plan/2026-06-06-luban-textbook-verbatim-lane-design.md.
+Design: docs/plan/知识编译与检索/2026-06-06-luban-textbook-verbatim-lane-design.md.
 
 Runs ALL ~650 content_blocks of the 2026 教材 through the living compiler pipeline (lane="textbook")
 → the FIRST full-book signed textbook knowledge pack + an HONEST coverage report. Every card is

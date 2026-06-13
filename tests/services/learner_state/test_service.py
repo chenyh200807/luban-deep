@@ -826,6 +826,59 @@ def test_learner_state_local_projection_fallback_reads_local_events_before_remot
     assert [event.source_id for event in events] == ["local-turn"]
 
 
+def test_learner_state_local_projection_fallback_does_not_touch_remote_projection_reads(
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK", "1")
+
+    class CountingCoreStore(_CoreStoreStub):
+        def __init__(self) -> None:
+            super().__init__()
+            self.calls: list[str] = []
+
+        def read_profile(self, user_id: str):
+            self.calls.append(f"read_profile:{user_id}")
+            return super().read_profile(user_id)
+
+        def write_profile(self, user_id: str, profile: dict[str, object]):
+            self.calls.append(f"write_profile:{user_id}")
+            return super().write_profile(user_id, profile)
+
+        def read_progress(self, user_id: str):
+            self.calls.append(f"read_progress:{user_id}")
+            return super().read_progress(user_id)
+
+        def write_progress(self, user_id: str, progress: dict[str, object]):
+            self.calls.append(f"write_progress:{user_id}")
+            return super().write_progress(user_id, progress)
+
+        def read_memory_events(self, user_id: str, limit: int | None = 20):
+            self.calls.append(f"read_memory_events:{user_id}")
+            return super().read_memory_events(user_id, limit=limit)
+
+        def read_learning_evidence_events(
+            self,
+            user_id: str,
+            limit: int | None = 100,
+            since: str | None = None,
+        ):
+            self.calls.append(f"read_learning_evidence_events:{user_id}")
+            return super().read_learning_evidence_events(user_id, limit=limit, since=since)
+
+    core_store = CountingCoreStore()
+    service = _make_service(tmp_path, core_store=core_store)
+
+    snapshot = service.read_snapshot("student_demo")
+    events = service.list_memory_events("student_demo", limit=20)
+    evidence_events = service.list_learning_evidence_events("student_demo", limit=20)
+
+    assert snapshot.profile["display_name"] == "陈同学"
+    assert events == []
+    assert evidence_events == []
+    assert core_store.calls == []
+
+
 def test_learner_state_non_production_falls_back_to_local_memory_events_when_remote_empty(tmp_path) -> None:
     core_store = _CoreStoreStub()
     service = _make_service(tmp_path, core_store=core_store)

@@ -177,7 +177,7 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
 
 实现设计见：
 
-- [2026-04-15-bot-learner-overlay-service-design.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/docs/plan/2026-04-15-bot-learner-overlay-service-design.md)
+- [2026-04-15-bot-learner-overlay-service-design.md](/Users/yehongchen/Documents/CYH_2/Markzuo/deeptutor/docs/plan/学习脑与学员记忆/2026-04-15-bot-learner-overlay-service-design.md)
 
 但必须满足以下硬约束：
 
@@ -757,7 +757,7 @@ conversation view-audit 等）必须遵守的横切契约。所有 `member_conso
 
 ### 关联文档
 
-- 计划：`docs/plan/2026-05-23-luban-bi-member-growth-backoffice-ui-ux-plan.md`
+- 计划：`docs/plan/会员钱包计费与经营后台/2026-05-23-luban-bi-member-growth-backoffice-ui-ux-plan.md`
 - 灰度 runbook：`docs/zh/bi/bi-backoffice-v2-rollout-runbook.md`
 - 阿里云部署 + 手动测试：`docs/zh/bi/bi-backoffice-v2-aliyun-deploy.md`
 - WRITE_ENDPOINTS 注册表：`deeptutor/contracts/bi_v2_write_endpoints.py`

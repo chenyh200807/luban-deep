@@ -1,6 +1,6 @@
 # Grading-to-Brain Current Gap Audit
 
-- Master plan: `docs/plan/2026-06-04-luban-grading-engine-master-control-plan.md`
+- Master plan: `docs/plan/总控入口与当前作战图/2026-06-04-luban-grading-engine-master-control-plan.md`
 - Scope: `read_only_current_gap_audit`
 - This audit is read-only: it does not write production state, DB rows, or canonical mastery.
 

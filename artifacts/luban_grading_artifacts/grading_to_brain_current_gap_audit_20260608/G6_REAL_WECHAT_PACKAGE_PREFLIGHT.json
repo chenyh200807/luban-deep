@@ -24,7 +24,7 @@
   "execution_mode": "read_only_no_devtools_launch",
   "gate_id": "G6_real_wechat_package_page_automation",
   "generated_by": "audit_luban_grading_to_brain_current_gap",
-  "master_plan": "docs/plan/2026-06-04-luban-grading-engine-master-control-plan.md",
+  "master_plan": "docs/plan/总控入口与当前作战图/2026-06-04-luban-grading-engine-master-control-plan.md",
   "missing_evidence_refs": [],
   "preconditions": {
     "devtools_e2e_script_present": true,

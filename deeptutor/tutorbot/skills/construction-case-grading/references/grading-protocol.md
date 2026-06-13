@@ -57,6 +57,16 @@ OCR / 手写答案的切分补充：
 3. 每个回填裁决必须带用户原文证据片段；无证据的 full/partial 一律拒收降为 miss 待复核。
 4. 裁决结果回填后仍由确定性规则做最终聚合（分数求和、penalty rule），LLM 不直接产出总分。
 
+## 编译判定字段：list_spec / calculation_spec
+
+编译层（`judge_point_enrichment.py`）为采分点预编译结构化判定字段，把运行时反复 prompt 推理前移到编译期。命中编译采分点时按这些 spec 判，不要现场重新发明判定规则：
+
+- **`list_spec`（列举题踩点规格）**：形状 `{"denominator": N, "provenance": {...}}`。列举类采分点按 spec 的分母踩点计数给部分分：命中项数 / denominator → `partial_ratio`。denominator 的 provenance 两档：`list_rule_text`（从 list_rule 原文“应得分项为 N 项”解析，置信 0.95）或 `required_terms`（按关键词条数兜底，置信 0.8）。不得自行扩大或缩小分母。
+- **`calculation_spec`（计算题规格）**：形状 `{"expected_value": "...", "provenance": {...}}`。计算类采分点按 `expected_value` 核结果，provenance 两档：`artifact_calculation_spec`（artifact 直传，置信 1.0）或 `criterion_number_parse`（从 criterion 文本末位数字解析，置信 0.6）。核分时**先核过程量（工期、时差、费率）再对最终数**，与边界场景表的计算题规则一致；`criterion_number_parse` 置信偏低，结果存疑时记 high_risk 复核而不是硬判。
+- **`compile_judge_aliases`（语义别名/反证）**：编译出的 `aliases` / `negative_evidence` 只供 judge 理解上下文，`official_scoring_authority=false`——**不是可得分项**，不得把 alias 命中当成新的得分关键词写进采分框架。
+
+受 compiled artifact 约束的单次低成本 judge（`artifact_first_llm_judge.py`，trace `grading_source=artifact_first_llm_judge`）遵守同样的收权规则：只判给定 point_id，不得新增采分点、不得改 rubric、不得引用学生作答之外的证据；hit/partial 必须给出出现在学生作答原文中的 evidence_span；置信低或与确定性校验冲突时 `high_risk_review=true`，不 fail-open 发分。
+
 ## 产品话术
 
 不要说：

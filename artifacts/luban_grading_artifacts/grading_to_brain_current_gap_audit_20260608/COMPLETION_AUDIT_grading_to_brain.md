@@ -1,6 +1,6 @@
 # Grading-to-Brain Completion Audit
 
-- Master plan: `docs/plan/2026-06-04-luban-grading-engine-master-control-plan.md`
+- Master plan: `docs/plan/总控入口与当前作战图/2026-06-04-luban-grading-engine-master-control-plan.md`
 - Scope: `explicit_objective_completion_audit`
 - This audit maps the objective's seven explicit loop requirements to evidence.
 

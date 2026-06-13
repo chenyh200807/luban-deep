@@ -385,7 +385,7 @@ def looks_like_practice_generation_request(user_message: str | None) -> bool:
 # plan §Phase 1 Step 1.1 (A2) — 单一规约函数：判断本轮练题生成走 lightweight 还是 heavy。
 # 调用方契约：orchestrator._prepare_practice_request_context 唯一消费点，
 # coordinator 仅读 config_overrides["lightweight_generation"]，不自行判断。
-# 详见 docs/plan/2026-05-20-luban-lightweight-practice-deep-grading-execution-plan.md §1.1。
+# 详见 docs/plan/题目生命周期与助教运行时/2026-05-20-luban-lightweight-practice-deep-grading-execution-plan.md §1.1。
 _HEAVY_KEYWORDS: tuple[str, ...] = (
     r"详细解析|逐题解析|每题解析|完整解析",
     r"命题依据|押题分析|押题预测|考点预测",

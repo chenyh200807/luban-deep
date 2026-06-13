@@ -13,6 +13,10 @@ from typing import Any, Literal
 import uuid
 
 from deeptutor.contracts.bot_runtime_defaults import CONSTRUCTION_EXAM_BOT_DEFAULTS
+from deeptutor.services.learner_state.canonical_truth_policy import (
+    canonical_truth_production_write_cohort_allowed,
+    canonical_truth_promotion_decision,
+)
 from deeptutor.services.learner_state.heartbeat import (
     LearnerHeartbeatJob,
     LearnerHeartbeatJobService,
@@ -22,10 +26,6 @@ from deeptutor.services.learner_state.heartbeat.store import _coerce_datetime
 from deeptutor.services.learner_state.learning_brain_read_model import (
     extract_learning_brain_projection,
     wrap_learning_brain_projection,
-)
-from deeptutor.services.learner_state.canonical_truth_policy import (
-    canonical_truth_production_write_cohort_allowed,
-    canonical_truth_promotion_decision,
 )
 from deeptutor.services.learner_state.outbox import (
     LearnerStateOutbox as LearnerStateOutboxService,
@@ -188,6 +188,12 @@ class LearnerStateService:
     def _safe_lock(self, user_id: str) -> asyncio.Lock:
         return self._locks.setdefault(user_id, asyncio.Lock())
 
+    def _local_projection_fallback_enabled(self) -> bool:
+        return (
+            not is_production_environment()
+            and env_flag("DEEPTUTOR_LEARNING_BRAIN_LOCAL_PROJECTION_FALLBACK", default=False)
+        )
+
     @property
     def outbox_service(self) -> LearnerStateOutboxService:
         return self._outbox_service
@@ -262,7 +268,19 @@ class LearnerStateService:
             progress["chapters"] = []
         return progress
 
+    def _read_profile_local_raw(self, user_id: str) -> dict[str, Any]:
+        path = self._path(user_id, "profile")
+        if not path.exists():
+            return {}
+        try:
+            content = path.read_text(encoding="utf-8").strip()
+            return dict(json.loads(content)) if content else {}
+        except Exception:
+            return {}
+
     def _read_profile_raw(self, user_id: str) -> dict[str, Any]:
+        if self._local_projection_fallback_enabled():
+            return self._read_profile_local_raw(user_id)
         if bool(getattr(self._core_store, "is_configured", False)):
             try:
                 remote = self._core_store.read_profile(user_id)
@@ -270,7 +288,10 @@ class LearnerStateService:
                 remote = None
             if remote:
                 return dict(remote)
-        path = self._path(user_id, "profile")
+        return self._read_profile_local_raw(user_id)
+
+    def _read_progress_local_raw(self, user_id: str) -> dict[str, Any]:
+        path = self._path(user_id, "progress")
         if not path.exists():
             return {}
         try:
@@ -289,6 +310,8 @@ class LearnerStateService:
             return ""
 
     def _read_progress_raw(self, user_id: str) -> dict[str, Any]:
+        if self._local_projection_fallback_enabled():
+            return self._read_progress_local_raw(user_id)
         if bool(getattr(self._core_store, "is_configured", False)):
             try:
                 remote = self._core_store.read_progress(user_id)
@@ -296,14 +319,7 @@ class LearnerStateService:
                 remote = None
             if remote:
                 return dict(remote)
-        path = self._path(user_id, "progress")
-        if not path.exists():
-            return {}
-        try:
-            content = path.read_text(encoding="utf-8").strip()
-            return dict(json.loads(content)) if content else {}
-        except Exception:
-            return {}
+        return self._read_progress_local_raw(user_id)
 
     def _ensure_seed_state(self, user_id: str) -> None:
         profile_path = self._path(user_id, "profile")
@@ -349,7 +365,7 @@ class LearnerStateService:
     def write_profile(self, user_id: str, profile: dict[str, Any]) -> dict[str, Any]:
         normalized = _normalize_user_id(user_id)
         remote_profile = dict(profile or {})
-        if bool(getattr(self._core_store, "is_configured", False)):
+        if bool(getattr(self._core_store, "is_configured", False)) and not self._local_projection_fallback_enabled():
             try:
                 remote_profile = dict(self._core_store.write_profile(normalized, profile) or remote_profile)
             except Exception:
@@ -449,7 +465,7 @@ class LearnerStateService:
     def write_progress(self, user_id: str, progress: dict[str, Any]) -> dict[str, Any]:
         normalized = _normalize_user_id(user_id)
         remote_progress = dict(progress or {})
-        if bool(getattr(self._core_store, "is_configured", False)):
+        if bool(getattr(self._core_store, "is_configured", False)) and not self._local_projection_fallback_enabled():
             try:
                 remote_progress = dict(self._core_store.write_progress(normalized, progress) or remote_progress)
             except Exception:
@@ -538,6 +554,10 @@ class LearnerStateService:
         normalized = _normalize_user_id(user_id)
         self._ensure_seed_state(normalized)
         local_events = self._list_local_memory_events(normalized)
+        if self._local_projection_fallback_enabled():
+            if limit is None or limit < 0:
+                return local_events
+            return local_events[-max(int(limit), 0):]
         if (
             local_events
             and not is_production_environment()
@@ -634,6 +654,10 @@ class LearnerStateService:
             )
             and _iso_unknown_or_gte(event.created_at, since)
         ]
+        if self._local_projection_fallback_enabled():
+            if limit is None or limit < 0:
+                return local_events
+            return local_events[-max(int(limit), 0):]
         if local_events and not is_production_environment():
             if limit is None or limit < 0:
                 return local_events

@@ -264,7 +264,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                     "auto",
                     "--project",
                     str(project_path),
-                    "--port",
+                    "--auto-port",
                     str(int(args.auto_port)),
                 ],
                 timeout_seconds=args.timeout_seconds,
@@ -282,6 +282,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                     TARGET_PAGE,
                     "--base-url",
                     qa_base_url,
+                    "--wait-ms",
+                    str(int(args.page_wait_ms)),
                 ],
                 timeout_seconds=args.timeout_seconds,
             )
@@ -358,6 +360,7 @@ def main() -> int:
         default=0,
         help="Optionally enable DevTools automation on this port after opening the project.",
     )
+    parser.add_argument("--page-wait-ms", type=int, default=12000)
     parser.add_argument("--skip-runtime-contract", action="store_true")
     args = parser.parse_args()
 

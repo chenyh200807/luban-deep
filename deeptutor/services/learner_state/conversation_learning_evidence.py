@@ -454,7 +454,7 @@ def _normalize_concept_phrase(value: str) -> str:
     return text.strip(" ，,。？?：:")
 
 
-def _write_home_projection(*, learner_state_service: Any, user_id: str, payload: dict[str, Any]) -> None:
+def _write_home_projection(*, learner_state_service: Any, user_id: str, payload: dict[str, Any]) -> bool:
     try:
         from deeptutor.services.learner_state.home_personalization import (
             build_home_personalization_projection_from_learning_signal,
@@ -462,13 +462,13 @@ def _write_home_projection(*, learner_state_service: Any, user_id: str, payload:
         )
 
         projection = build_home_personalization_projection_from_learning_signal(payload)
-        write_home_personalization_projection(
+        return write_home_personalization_projection(
             learner_state_service,
             user_id=user_id,
             projection=projection,
         )
     except Exception:
-        return
+        return False
 
 
 def _dedupe_key(*, user_id: str, turn_ref: str, payload: dict[str, Any]) -> str:

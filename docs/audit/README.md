@@ -9,7 +9,7 @@
 
 - 看产品风险：先读本 README 的 finding 和后续 PR 依赖关系。
 - 看机器可比对数据：读 `route_inventory.json` 与 `rls_audit.json`。
-- 做修复：回到 `docs/plan/2026-05-25-prelaunch-readiness-checklist.md`，不要在本目录直接补 migration 或业务逻辑。
+- 做修复：回到 `docs/plan/观测发布与生产上线/2026-05-25-prelaunch-readiness-checklist.md`，不要在本目录直接补 migration 或业务逻辑。
 
 ## 两份 baseline
 

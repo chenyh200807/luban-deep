@@ -40,7 +40,7 @@
       "evidence_refs": [
         "artifacts/luban_grading_artifacts/limited_default_soak_monitoring_m19d_20260605/soak_metrics_m19d.json",
         "artifacts/luban_grading_artifacts/remote_deployment_authorization_package_m19e_20260605/m19c_m19d_evidence_ledger_m19e.json",
-        "docs/plan/2026-06-04-luban-grading-engine-master-control-plan.md"
+        "docs/plan/总控入口与当前作战图/2026-06-04-luban-grading-engine-master-control-plan.md"
       ],
       "flip_mechanism": "progressive cohort expansion after G1 evidence review",
       "missing_evidence_refs": [],
@@ -151,7 +151,7 @@
     }
   },
   "generated_by": "audit_luban_grading_to_brain_current_gap",
-  "master_plan": "docs/plan/2026-06-04-luban-grading-engine-master-control-plan.md",
+  "master_plan": "docs/plan/总控入口与当前作战图/2026-06-04-luban-grading-engine-master-control-plan.md",
   "missing_evidence": {},
   "production_write_count": 0,
   "published_registry_executed": false,

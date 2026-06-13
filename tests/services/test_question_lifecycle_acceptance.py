@@ -7,7 +7,7 @@ this file is the cross-cutting check that the Task 3 wire + Task 2.5 shim
 together satisfy the Task 4 (follow-up + grading) and Task 5 (TutorBot scene
 sync) acceptance criteria.
 
-Plan: docs/plan/2026-05-24-deeptutor-question-lifecycle-skill-authority-execution-plan.md
+Plan: docs/plan/题目生命周期与助教运行时/2026-05-24-deeptutor-question-lifecycle-skill-authority-execution-plan.md
 """
 
 from __future__ import annotations

@@ -89,7 +89,7 @@ skills:
     scene: mcq_grading
     runtime_scope: production
     authority_scope: grading_policy
-    token_budget_estimate: 3000
+    token_budget_estimate: 3300
     export_eligible: internal
     required_authorities:
       - active_question
@@ -115,7 +115,7 @@ skills:
     scene: case_grading
     runtime_scope: production
     authority_scope: grading_policy
-    token_budget_estimate: 3900
+    token_budget_estimate: 4900
     export_eligible: internal
     required_authorities:
       - active_question

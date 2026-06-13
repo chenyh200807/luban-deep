@@ -19,6 +19,8 @@
 
 无法归因时使用注册表的 `unknown_error`（未归因错误，review_execution），不要硬套最接近的 E 码。
 
+V1 编译链（`rubric_grader_v1`）的 mistake_type 与 E 码的固定映射（代码 `_registered_learning_error_code`，不要另行发挥）：`wrong_content` → E07；`omitted` / `near_synonym_not_exact` / `list_incomplete` → E02。
+
 ## 标签选择指引
 
 - 每条 error event 绑定一个最主要错因；同一采分点同时缺关键词又顺序乱时，选对纠正动作最有指导意义的那个。

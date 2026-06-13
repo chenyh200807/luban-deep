@@ -31,7 +31,7 @@ from typing import Any
 REPO = Path(__file__).resolve().parents[1]
 AR = REPO / "artifacts/luban_grading_artifacts"
 OUT = AR / "production_default_decision_synthesis_m19b_20260605"
-PLAN = REPO / "docs/plan/2026-06-04-luban-grading-engine-master-control-plan.md"
+PLAN = REPO / "docs/plan/总控入口与当前作战图/2026-06-04-luban-grading-engine-master-control-plan.md"
 INDEX = REPO / "docs/plan/INDEX.md"
 
 import deeptutor.api._secure_router as secure_router_mod

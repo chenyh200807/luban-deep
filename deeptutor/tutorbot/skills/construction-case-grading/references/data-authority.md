@@ -23,6 +23,23 @@
 
 注意线上现状：`questions_bank.grading_rubric` 字段存在但当前非空数为 0，`grading_keywords` 非空 1225 条（case 题 960 条）——所以生产上 `curated_rubric` 主要由 `grading_key` 触达，题库路径大多落在 `projected_rubric`。编译库逐步补全 rubric 是供给侧工作；阅卷侧不得因为 rubric 缺位而拒答或自拼。
 
+## 两条链对照：kernel 四级链 vs V1 编译链
+
+案例阅卷存在两条平行的 authority 链，**不要混淆**。kernel 链是确定性关键词内核（V0 spine）；V1 编译链是 Nexus-like 逐采分点 LLM 裁决引擎（`rubric_grader_v1.py`）。
+
+| 维度 | kernel 四级链（`case_kernel.grade`） | V1 编译链（`rubric_grader_v1` + `_grade_one_case_v1`） |
+| --- | --- | --- |
+| 定位 | 确定性关键词匹配内核，legacy 主链 | 编译采分点库 + LLM 逐点语义裁决，灰度评分引擎 |
+| 层级 | `grading_key.scoring_points` > `questions_bank.grading_rubric` > 题库字段投影（projected）> `open_skill_fallback` | `compiled_rubric` > `on_the_fly_reference` > `derived_from_stem` |
+| trace 字段 | `next_training_signal.grading_source`：`grading_key \| questions_bank \| open_skill_fallback` | `rubric_provenance`：三级链取值；事件级 `grading_source=rubric_scored_v1` |
+| 采分点来源 | 题库行字段 / active_object 注入 | 编译库 `v_case_rubric_scored`（签名+content_hash 验签），未命中时现场从参考答案/题干抽取 |
+| 答案权威 | `questions_bank` 行（标准答案/解析/分值） | manifest `answer_key_authority=exam_reference_answer`（考试参考答案，非教材原文逐字） |
+| 判分方式 | 确定性关键词命中 full/miss | LLM 逐点 hit/partial/miss + 确定性求和；`exact_required` 全或零 |
+| 谁先谁后 | V1 失败时的回落目标 | case 题先尝试 V1；degraded / 异常 / 无采分点时回落 kernel legacy 链 |
+| 失效语义 | 全空 → `open_skill` 提分诊断，不拒答 | content_hash 验签失败 → 整库拒用，全部走开放世界；batch 裁决不全覆盖 → degraded 回落 legacy |
+
+两条链共享同一硬约束：任何一档/任何一级都不拒答、不冒充上一级口径、不让 LLM 直接产出整题总分。V1 事件还带 `official_score_allowed=false`——V1 结果是候选证据，正式成绩须经教师/治理门控提升。
+
 ## 本地源数据快照
 
 路径：

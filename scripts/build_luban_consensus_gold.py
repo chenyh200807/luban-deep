@@ -6,7 +6,7 @@ list_rule k/n scorer that fixes the panel's only systematic blind spot (rounding
 list answers up to hit), and (3) flagging the small split frontier for a thin human/official-key
 calibration screw. NOT runtime — this builds the OFFLINE gold/regression set.
 
-Method doc: docs/plan/2026-06-03-luban-consensus-gold-protocol.md
+Method doc: docs/plan/评分引擎与金标工件/2026-06-03-luban-consensus-gold-protocol.md
 """
 from __future__ import annotations
 

@@ -19,14 +19,18 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from scripts.run_luban_p1_strong_go_gate import build_p1_strong_go_package  # noqa: E402
+from scripts.run_luban_p2_live_readback_gate import build_p2_live_readback_package  # noqa: E402
+from scripts.run_luban_p3_api_readback_gate import build_p3_api_readback_package  # noqa: E402
+from scripts.run_luban_p4_ws_readback_gate import build_p4_ws_readback_package  # noqa: E402
+
 DEFAULT_OUTPUT = ROOT / "artifacts/luban_grading_artifacts/nexus_compilation_decision_20260611"
-FOUR_ARM = ROOT / "artifacts/luban_grading_artifacts/four_arm_ab_20260611/live_full_162_v3_final/report.json"
+FOUR_ARM_DIR = ROOT / "artifacts/luban_grading_artifacts/four_arm_ab_20260611/live_full_162_v5_patched_gold"
+FOUR_ARM = FOUR_ARM_DIR / "report.json"
 FOUR_ARM_CLEAN = (
     ROOT / "artifacts/luban_grading_artifacts/four_arm_ab_20260611/live_full_162_v3_final/clean_subset_analysis.json"
 )
-FOUR_ARM_FREEZE = (
-    ROOT / "artifacts/luban_grading_artifacts/four_arm_ab_20260611/live_full_162_v3_final/freeze_manifest.json"
-)
+FOUR_ARM_FREEZE = FOUR_ARM_DIR / "freeze_manifest.json"
 GOLD_WORK_ORDER = ROOT / "artifacts/luban_grading_artifacts/four_arm_ab_20260611/gold_readjudication_work_order.json"
 M34_GO_NO_GO = ROOT / "artifacts/luban_grading_artifacts/general_knowledge_dividend_m34_20260609/go_no_go_m34.json"
 M34_WORK_ORDERS = (
@@ -126,6 +130,112 @@ def _m34_track(m34: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _p2_live_readback_track(p2_package: dict[str, Any]) -> dict[str, Any]:
+    p2 = dict(p2_package.get("p2_live_readback") or {})
+    chain = dict(p2_package.get("chain") or {})
+    safety = dict(p2_package.get("safety") or {})
+    strong = p2.get("verdict") == "STRONG-GO"
+    return {
+        "status": "local_live_readback_passed" if strong else "local_live_readback_not_passed",
+        "phase2_loop_verdict": "STRONG-GO" if strong else "NO-GO",
+        "live_readback_exercised": True,
+        "live_readback_required_for_go": True,
+        "required_readbacks_present": bool(p2.get("required_readbacks_present")),
+        "readback_ids": dict(p2.get("readback_ids") or {}),
+        "artifact_version": chain.get("artifact_version"),
+        "learner_memory_event_ids": list(chain.get("learner_memory_event_ids") or []),
+        "weakness_projection_id": chain.get("weakness_projection_id"),
+        "next_action_id": chain.get("next_action_id"),
+        "shadow_writeback_blocked": bool(p2.get("shadow_writeback_blocked")),
+        "release_truth_written": bool(safety.get("canonical_truth_written")),
+        "scope": "local_live_readback_not_release_truth",
+        "blockers": list(p2.get("blockers") or []),
+        "not_release_reasons": [
+            "production_write_not_authorized",
+            "canonical_truth_write_not_authorized",
+            "published_registry_write_not_authorized",
+            "real_wechat_package_readback_not_exercised",
+        ],
+    }
+
+
+def _p3_api_readback_track(p3_package: dict[str, Any]) -> dict[str, Any]:
+    p3 = dict(p3_package.get("p3_api_readback") or {})
+    return {
+        "verdict": p3.get("verdict"),
+        "mode": p3.get("mode"),
+        "api_readback_exercised": bool(p3.get("api_readback_exercised")),
+        "required_readbacks_present": bool(p3.get("required_readbacks_present")),
+        "projection_hash_match": bool(p3.get("projection_hash_match")),
+        "readback_ids": dict(p3.get("readback_ids") or {}),
+        "api_readbacks": dict(p3_package.get("api_readbacks") or {}),
+        "blockers": list(p3.get("blockers") or []),
+        "not_release_reasons": [
+            "production_write_not_authorized",
+            "canonical_truth_write_not_authorized",
+            "published_registry_write_not_authorized",
+            "real_wechat_package_readback_not_exercised",
+            "real_ws_turn_not_exercised",
+        ],
+    }
+
+
+def _p4_ws_readback_track(p4_package: dict[str, Any]) -> dict[str, Any]:
+    p4 = dict(p4_package.get("p4_ws_readback") or {})
+    ws_turn = dict(p4_package.get("ws_turn") or {})
+    return {
+        "verdict": p4.get("verdict"),
+        "mode": p4.get("mode"),
+        "ws_turn_exercised": bool(p4.get("ws_turn_exercised")),
+        "required_readbacks_present": bool(p4.get("required_readbacks_present")),
+        "projection_hash_match": bool(p4.get("projection_hash_match")),
+        "readback_ids": dict(p4.get("readback_ids") or {}),
+        "ws_turn": {
+            "path": ws_turn.get("path"),
+            "turn_id": ws_turn.get("turn_id"),
+            "result_event_seen": bool(ws_turn.get("result_event_seen")),
+            "construction_grading_result_present": bool(
+                ws_turn.get("construction_grading_result_present")
+            ),
+            "learner_memory_event_ids": list(ws_turn.get("learner_memory_event_ids") or []),
+        },
+        "api_readbacks": dict(p4_package.get("api_readbacks") or {}),
+        "blockers": list(p4.get("blockers") or []),
+        "not_release_reasons": [
+            "production_write_not_authorized",
+            "canonical_truth_write_not_authorized",
+            "published_registry_write_not_authorized",
+            "real_wechat_package_readback_not_exercised",
+            "remote_or_production_ws_turn_not_exercised",
+        ],
+    }
+
+
+def _p5_real_wechat_track(p5_package: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not p5_package:
+        return None
+    p5 = dict(p5_package.get("p5_real_wechat_package_readback") or {})
+    return {
+        "verdict": p5.get("verdict"),
+        "mode": p5.get("mode"),
+        "real_wechat_package_readback_exercised": bool(
+            p5.get("real_wechat_package_readback_exercised")
+        ),
+        "page_grading_to_brain_loop_present": bool(p5.get("page_grading_to_brain_loop_present")),
+        "p4_chain_linked": bool(p5.get("p4_chain_linked")),
+        "real_wechat_package": dict(p5_package.get("real_wechat_package") or {}),
+        "readback_ids": dict(p5_package.get("readback_ids") or {}),
+        "blockers": list(p5.get("blockers") or []),
+        "not_release_reasons": [
+            "production_write_not_authorized",
+            "canonical_truth_write_not_authorized",
+            "published_registry_write_not_authorized",
+            "remote_or_production_ws_turn_not_exercised",
+            "human_or_governance_release_signature_missing",
+        ],
+    }
+
+
 def _trace_track(trace: dict[str, Any]) -> dict[str, Any]:
     shadow = trace.get("shadow_gate_proof") or {}
     eligible = trace.get("eligible_arm") or {}
@@ -134,6 +244,11 @@ def _trace_track(trace: dict[str, Any]) -> dict[str, Any]:
         "status": "hermetic_trace_passed"
         if shadow.get("shadow_blocked") is True and eligible.get("next_action_present") is True
         else "not_passed",
+        "phase2_loop_verdict": "WEAK-GO"
+        if shadow.get("shadow_blocked") is True and eligible.get("next_action_present") is True
+        else "NO-GO",
+        "live_readback_exercised": False,
+        "live_readback_required_for_go": True,
         "artifact_version": chain.get("artifact_version"),
         "learner_memory_event_ids": chain.get("learner_memory_event_ids", []),
         "claim_count": eligible.get("claims_count", 0),
@@ -141,6 +256,11 @@ def _trace_track(trace: dict[str, Any]) -> dict[str, Any]:
         "shadow_writeback_blocked": bool(shadow.get("shadow_blocked")),
         "release_truth_written": bool(eligible.get("is_release_truth")),
         "scope": "hermetic_local_real_services_not_production_write",
+        "not_go_reasons": [
+            "live_readback_not_exercised",
+            "production_write_not_authorized",
+            "canonical_truth_write_not_authorized",
+        ],
     }
 
 
@@ -174,50 +294,130 @@ def _flywheel_track(gold_work_order: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def build_decision_package(*, output_dir: str | Path = DEFAULT_OUTPUT) -> dict[str, Any]:
+def build_decision_package(
+    *,
+    output_dir: str | Path = DEFAULT_OUTPUT,
+    p5_package_path: str | Path | None = None,
+) -> dict[str, Any]:
+    out = Path(output_dir)
     report = _read_json(FOUR_ARM)
     clean = _read_json(FOUR_ARM_CLEAN)
     freeze = _read_json(FOUR_ARM_FREEZE)
     m34 = _read_json(M34_GO_NO_GO)
     trace = _read_json(TRACE)
     gold_work_order = _read_json(GOLD_WORK_ORDER)
+    p1_package = build_p1_strong_go_package(output_dir=out / "p1_strong_go_gate")
+    p2_package = build_p2_live_readback_package(output_dir=out / "p2_live_readback_gate")
+    p3_package = build_p3_api_readback_package(output_dir=out / "p3_api_readback_gate")
+    p4_package = build_p4_ws_readback_package(output_dir=out / "p4_ws_readback_gate")
+    p5_package = _read_json(Path(p5_package_path)) if p5_package_path else None
 
     m35_track = _m35_track(report, clean, freeze)
     m34_track = _m34_track(m34)
-    trace_track = _trace_track(trace)
+    hermetic_trace_track = _trace_track(trace)
+    p2_track = _p2_live_readback_track(p2_package)
+    p3_track = _p3_api_readback_track(p3_package)
+    p4_track = _p4_ws_readback_track(p4_package)
+    p5_track = _p5_real_wechat_track(p5_package)
     flywheel_track = _flywheel_track(gold_work_order)
     phase1_passed = m35_track["status"] == "phase1_shadow_effectiveness_passed"
+    p1_strong = (p1_package.get("p1_governed_subset") or {}).get("verdict") == "STRONG-GO"
+    p2_strong = (p2_package.get("p2_live_readback") or {}).get("verdict") == "STRONG-GO"
+    p3_strong = (p3_package.get("p3_api_readback") or {}).get("verdict") == "STRONG-GO"
+    p4_strong = (p4_package.get("p4_ws_readback") or {}).get("verdict") == "STRONG-GO"
+    p5_strong = bool(p5_track and p5_track.get("verdict") == "STRONG-GO")
+    not_exercised = [
+        "production_db_write",
+        "canonical_learner_truth_write",
+        "published_registry_write",
+        "remote_or_aliyun_write",
+        "system_wide_m34_default_flip",
+        "real_wechat_package_readback",
+        "remote_or_production_ws_turn",
+        "gpt55_or_claude_api_runtime_arm",
+        "human_or_governance_release_signature",
+    ]
+    if p5_strong:
+        not_exercised.remove("real_wechat_package_readback")
 
     package = {
         "schema_version": "luban_nexus_compilation_decision.v1",
-        "generated_at": "2026-06-11",
+        "generated_at": "2026-06-12",
         "overall": {
+            "phase1_nexus_like_scoring": "STRONG-GO" if p1_strong else ("WEAK-GO" if phase1_passed else "NO-GO"),
+            "phase1_scope": "governed_subset" if p1_strong else "full_shadow",
+            "phase1_full_set_verdict": (p1_package.get("p1_full_set") or {}).get("verdict", "UNKNOWN"),
             "phase1_shadow_verdict": "WEAK-GO" if phase1_passed else "NO-GO",
+            "phase2_grading_to_brain_loop": "STRONG-GO" if p2_strong else hermetic_trace_track["phase2_loop_verdict"],
+            "phase2_scope": "local_live_readback" if p2_strong else "hermetic_trace",
+            "phase3_api_readback": "STRONG-GO" if p3_strong else "NO-GO",
+            "phase3_scope": "local_testclient_api_readback" if p3_strong else "not_passed",
+            "phase4_ws_readback": "STRONG-GO" if p4_strong else "NO-GO",
+            "phase4_scope": "local_testclient_ws_readback" if p4_strong else "not_passed",
+            "phase5_real_wechat_package_readback": "STRONG-GO" if p5_strong else (
+                "NO-GO" if p5_track else "NOT-RUN"
+            ),
+            "phase5_scope": "devtools_real_package_page_readback" if p5_strong else (
+                "not_passed" if p5_track else "not_run"
+            ),
             "release_verdict": "NO-GO",
             "quality_claim_allowed": False,
             "production_default_allowed": False,
             "official_score_allowed": False,
             "is_release_truth": False,
             "reason": (
-                "case scoring effect is directionally strong in shadow, but labels are not release truth "
-                "and compiler/governance/default gates remain open"
+                "P1 governed scoring, P2 local live-readback, P3 local API readback, and P4 local "
+                "TestClient /api/v1/ws readback pass, but full-set release labels, canonical truth, "
+                "production writes, published registry, real WeChat entry, and default gates remain closed"
             ),
         },
         "tracks": {
+            "p1_strong_go": {
+                "verdict": (p1_package.get("p1_governed_subset") or {}).get("verdict"),
+                "sample_count": (p1_package.get("p1_governed_subset") or {}).get("sample_count"),
+                "quality_claim_allowed": (p1_package.get("p1_governed_subset") or {}).get("quality_claim_allowed"),
+                "label_authority": (p1_package.get("p1_governed_subset") or {}).get("label_authority"),
+                "blockers": (p1_package.get("p1_governed_subset") or {}).get("blockers", []),
+                "full_set_verdict": (p1_package.get("p1_full_set") or {}).get("verdict"),
+                "full_set_blockers": (p1_package.get("p1_full_set") or {}).get("blockers", []),
+                "artifact_path": str((out / "p1_strong_go_gate" / "p1_strong_go_package.json").relative_to(ROOT))
+                if (out / "p1_strong_go_gate").is_relative_to(ROOT)
+                else str(out / "p1_strong_go_gate" / "p1_strong_go_package.json"),
+            },
             "m35_case_scoring": m35_track,
             "m34_general_knowledge": m34_track,
-            "grading_to_brain": trace_track,
+            "grading_to_brain": p2_track,
+            "p2_live_readback": {
+                "verdict": (p2_package.get("p2_live_readback") or {}).get("verdict"),
+                "mode": (p2_package.get("p2_live_readback") or {}).get("mode"),
+                "convergence_claim_allowed": (p2_package.get("p2_live_readback") or {}).get(
+                    "convergence_claim_allowed"
+                ),
+                "required_readbacks_present": (p2_package.get("p2_live_readback") or {}).get(
+                    "required_readbacks_present"
+                ),
+                "readback_ids": (p2_package.get("p2_live_readback") or {}).get("readback_ids"),
+                "blockers": (p2_package.get("p2_live_readback") or {}).get("blockers", []),
+                "artifact_path": str((out / "p2_live_readback_gate" / "p2_live_readback_package.json").relative_to(ROOT))
+                if (out / "p2_live_readback_gate").is_relative_to(ROOT)
+                else str(out / "p2_live_readback_gate" / "p2_live_readback_package.json"),
+            },
+            "p3_api_readback": {
+                **p3_track,
+                "artifact_path": str((out / "p3_api_readback_gate" / "p3_api_readback_package.json").relative_to(ROOT))
+                if (out / "p3_api_readback_gate").is_relative_to(ROOT)
+                else str(out / "p3_api_readback_gate" / "p3_api_readback_package.json"),
+            },
+            "p4_ws_readback": {
+                **p4_track,
+                "artifact_path": str((out / "p4_ws_readback_gate" / "p4_ws_readback_package.json").relative_to(ROOT))
+                if (out / "p4_ws_readback_gate").is_relative_to(ROOT)
+                else str(out / "p4_ws_readback_gate" / "p4_ws_readback_package.json"),
+            },
+            "grading_to_brain_hermetic_source": hermetic_trace_track,
             "compiler_feedback_flywheel": flywheel_track,
         },
-        "not_exercised": [
-            "production_db_write",
-            "canonical_learner_truth_write",
-            "published_registry_write",
-            "remote_or_aliyun_write",
-            "system_wide_m34_default_flip",
-            "gpt55_or_claude_api_runtime_arm",
-            "human_or_governance_release_signature",
-        ],
+        "not_exercised": not_exercised,
         "safety": {
             "production_write_count": 0,
             "db_write_count": 0,
@@ -228,8 +428,9 @@ def build_decision_package(*, output_dir: str | Path = DEFAULT_OUTPUT) -> dict[s
             "is_release_truth": False,
         },
     }
+    if p5_track:
+        package["tracks"]["p5_real_wechat_package_readback"] = p5_track
 
-    out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
     (out / "decision_package.json").write_text(
         json.dumps(package, ensure_ascii=False, indent=2) + "\n",
@@ -241,8 +442,12 @@ def build_decision_package(*, output_dir: str | Path = DEFAULT_OUTPUT) -> dict[s
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output-dir", default=str(DEFAULT_OUTPUT))
+    parser.add_argument("--p5-package-path", default="")
     args = parser.parse_args()
-    package = build_decision_package(output_dir=args.output_dir)
+    package = build_decision_package(
+        output_dir=args.output_dir,
+        p5_package_path=args.p5_package_path or None,
+    )
     print(json.dumps(package, ensure_ascii=False, indent=2))
     return 0
 

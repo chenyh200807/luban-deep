@@ -160,6 +160,48 @@ async function seedAuthStorage(miniProgram, authPayload) {
   });
 }
 
+async function readLearningReportViaRuntime(miniProgram, baseUrl) {
+  const normalized = String(baseUrl || "").trim().replace(/\/$/, "");
+  if (!normalized) return { attempted: false, reason: "missing_base_url" };
+  return await miniProgram.evaluate(function (url) {
+    return new Promise(function (resolve) {
+      var token = wx.getStorageSync("auth_token");
+      wx.request({
+        url: url,
+        method: "GET",
+        header: {
+          Authorization: token ? "Bearer " + token : "",
+          "Content-Type": "application/json",
+        },
+        timeout: 20000,
+        success: function (res) {
+          var body = res && res.data && typeof res.data === "object" ? res.data : {};
+          var loop = body.grading_to_brain_loop && typeof body.grading_to_brain_loop === "object"
+            ? body.grading_to_brain_loop
+            : {};
+          resolve({
+            attempted: true,
+            status_code: res && res.statusCode,
+            body_keys: Object.keys(body).sort().slice(0, 80),
+            has_grading_to_brain_loop: Object.prototype.hasOwnProperty.call(body, "grading_to_brain_loop"),
+            loop_status: String(loop.status || ""),
+            loop_next_required_action: String(loop.next_required_action || loop.nextRequiredAction || ""),
+            loop_evidence_ref_count: Array.isArray(loop.evidence_refs) ? loop.evidence_refs.length : 0,
+            loop_stage_count: Array.isArray(loop.stages) ? loop.stages.length : 0,
+          });
+        },
+        fail: function (err) {
+          resolve({
+            attempted: true,
+            status_code: 0,
+            error: String(err && err.errMsg ? err.errMsg : err),
+          });
+        },
+      });
+    });
+  }, normalized + "/api/v1/mobile/learning-report?event_limit=100&schema_version=2");
+}
+
 async function waitForCurrentPage(miniProgram, targetPage, timeoutMs) {
   const startedAt = Date.now();
   let lastSnapshot = await currentPageSnapshot(miniProgram);
@@ -223,6 +265,7 @@ async function loginWithPasswordIfAvailable(miniProgram, targetPage) {
     }
     await page.waitFor(Math.max(0, Number(args.waitMs || 800)));
     let snapshot = await currentPageSnapshot(miniProgram);
+    const runtimeReportProbe = await readLearningReportViaRuntime(miniProgram, qaBaseUrl);
     let auth = {
       attempted: httpAuth.attempted,
       credential_source: httpAuth.credential_source,
@@ -244,6 +287,69 @@ async function loginWithPasswordIfAvailable(miniProgram, targetPage) {
       note_assets_count: Array.isArray((pageData || {}).noteAssets) ? pageData.noteAssets.length : -1,
       today_tasks_count: Array.isArray((pageData || {}).todayTasks) ? pageData.todayTasks.length : -1,
       has_save_attempt_method: Boolean(snapshot.current && typeof snapshot.current.callMethod === "function"),
+    };
+    const gradingToBrainLoop =
+      pageData && pageData.gradingToBrainLoop && typeof pageData.gradingToBrainLoop === "object"
+        ? pageData.gradingToBrainLoop
+        : {};
+    const flatGradingLoop = {
+      status: String((pageData || {}).gradingLoopStatus || ""),
+      nextRequiredAction: String((pageData || {}).gradingLoopNextRequiredAction || ""),
+      evidenceRefs: Array.isArray((pageData || {}).gradingLoopEvidenceRefs)
+        ? (pageData || {}).gradingLoopEvidenceRefs
+        : [],
+      stages: Array.isArray((pageData || {}).gradingLoopStages) ? (pageData || {}).gradingLoopStages : [],
+      currentAction:
+        (pageData || {}).gradingLoopCurrentAction && typeof (pageData || {}).gradingLoopCurrentAction === "object"
+          ? (pageData || {}).gradingLoopCurrentAction
+          : {},
+      latestOutcome:
+        (pageData || {}).gradingLoopLatestOutcome && typeof (pageData || {}).gradingLoopLatestOutcome === "object"
+          ? (pageData || {}).gradingLoopLatestOutcome
+          : {},
+      authority:
+        (pageData || {}).gradingLoopAuthority && typeof (pageData || {}).gradingLoopAuthority === "object"
+          ? (pageData || {}).gradingLoopAuthority
+          : {},
+      sourceStatus:
+        (pageData || {}).gradingLoopSourceStatus && typeof (pageData || {}).gradingLoopSourceStatus === "object"
+          ? (pageData || {}).gradingLoopSourceStatus
+          : {},
+    };
+    const loopEvidenceRefs = Array.isArray(gradingToBrainLoop.evidenceRefs)
+      ? gradingToBrainLoop.evidenceRefs
+      : flatGradingLoop.evidenceRefs;
+    const loopStages = Array.isArray(gradingToBrainLoop.stages)
+      ? gradingToBrainLoop.stages
+      : flatGradingLoop.stages;
+    const loopCurrentAction =
+      gradingToBrainLoop.currentAction && typeof gradingToBrainLoop.currentAction === "object"
+        ? gradingToBrainLoop.currentAction
+        : flatGradingLoop.currentAction;
+    const loopLatestOutcome =
+      gradingToBrainLoop.latestOutcome && typeof gradingToBrainLoop.latestOutcome === "object"
+        ? gradingToBrainLoop.latestOutcome
+        : flatGradingLoop.latestOutcome;
+    const gradingToBrainProbe = {
+      has_grading_to_brain_loop:
+        Object.prototype.hasOwnProperty.call(pageData || {}, "gradingToBrainLoop") ||
+        Object.prototype.hasOwnProperty.call(pageData || {}, "gradingLoopStatus"),
+      status: String(gradingToBrainLoop.status || flatGradingLoop.status || ""),
+      next_required_action: String(gradingToBrainLoop.nextRequiredAction || flatGradingLoop.nextRequiredAction || ""),
+      evidence_ref_count: loopEvidenceRefs.length,
+      stage_count: loopStages.length,
+      current_action_title:
+        loopCurrentAction && typeof loopCurrentAction === "object" ? String(loopCurrentAction.title || "") : "",
+      latest_outcome_status:
+        loopLatestOutcome && typeof loopLatestOutcome === "object" ? String(loopLatestOutcome.status || "") : "",
+      authority:
+        gradingToBrainLoop.authority && typeof gradingToBrainLoop.authority === "object"
+          ? gradingToBrainLoop.authority
+          : flatGradingLoop.authority,
+      source_status:
+        gradingToBrainLoop.sourceStatus && typeof gradingToBrainLoop.sourceStatus === "object"
+          ? gradingToBrainLoop.sourceStatus
+          : flatGradingLoop.sourceStatus,
     };
     emit(
       {
@@ -269,6 +375,8 @@ async function loginWithPasswordIfAvailable(miniProgram, targetPage) {
         login_error_message: auth.login_error_message,
         current_page: currentPage,
         p0a_probe: p0aProbe,
+        grading_to_brain_probe: gradingToBrainProbe,
+        runtime_report_probe: runtimeReportProbe,
         page_data_keys: Object.keys(pageData || {}).sort().slice(0, 80),
       },
       reachedTarget ? 0 : 1,

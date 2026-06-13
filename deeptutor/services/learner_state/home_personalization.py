@@ -39,8 +39,9 @@ def build_home_dashboard_learning_projection(
 ) -> dict[str, Any]:
     del weak_nodes
     current_time = now or datetime.now(tz=_TZ)
-    if _is_fresh_projection(projection, now=current_time):
-        return _normalize_projection(projection)
+    normalized_projection = _normalize_projection(projection) if isinstance(projection, dict) else None
+    if _is_fresh_projection(normalized_projection, now=current_time):
+        return normalized_projection
     reason = "stale" if isinstance(projection, dict) else "missing"
     recovered_projection = _projection_from_recent_learning_events(
         conversation_events,

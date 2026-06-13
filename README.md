@@ -52,7 +52,7 @@ Current build priorities:
 
 ### 🧭 AI & Architecture Reference
 
-For AI agents and engineers taking over DeepTutor / 鲁班智考 work, start with the [Luban System Technical Introduction for AI](docs/plan/2026-06-11-luban-system-technical-introduction-for-ai.md). It maps the current `assess -> grade -> remember -> train -> retest` spine, the contract control planes, authority boundaries, key services, GO / NO-GO states, and the safest upgrade paths.
+For AI agents and engineers taking over DeepTutor / 鲁班智考 work, start with the [Luban System Technical Introduction for AI](docs/plan/总控入口与当前作战图/2026-06-11-luban-system-technical-introduction-for-ai.md). It maps the current `assess -> grade -> remember -> train -> retest` spine, the contract control planes, authority boundaries, key services, GO / NO-GO states, and the safest upgrade paths.
 
 This document is a navigation layer, not a new contract. Code and product changes still follow [CONTRACT.md](CONTRACT.md), [contracts/index.yaml](contracts/index.yaml), and the current plan map in [docs/plan/INDEX.md](docs/plan/INDEX.md).
 

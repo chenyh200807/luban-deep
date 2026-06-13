@@ -44,7 +44,11 @@ from deeptutor.services.learner_state.training_intent import (  # noqa: E402
     build_learning_training_intent,
 )
 
-DEFAULT_PER_ROW = ROOT / "artifacts/luban_grading_artifacts/four_arm_ab_20260611/live_full_162/per_row.jsonl"
+DEFAULT_PER_ROW = (
+    ROOT
+    / "artifacts/luban_grading_artifacts/four_arm_ab_20260611"
+    / "live_full_162_v5_patched_gold/per_row.jsonl"
+)
 DEFAULT_MANIFEST = ROOT / "tests/fixtures/luban_m35_fastapi_case_subquestions_20q_100a/manifest.json"
 USER = "qa_judge_loop"
 BOT = "construction-exam"
