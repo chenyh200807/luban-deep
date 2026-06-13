@@ -51,10 +51,10 @@
 
 ## 3. 收口计划(P0→P3,全程复用同一套 contract-guard runner,不建第二套治理系统)
 
-**P0(最高杠杆 + 最便宜,先做)**
-1. **接 PENDING HUNK**:把 `evaluate_schema_registry()` 接进 `check_contract_guard.py main()`,让 `schema_ok` 进返回布尔(line 416)——判分闸从"只抓 orphan ID"变成全 register-before-use(per-PR 漂移+权威完整性),**零新系统**。逻辑已写好已测,只差 3 行接线。
-2. **修 dash 盲点**:`_FULLSET_VERSION_SUFFIX_RE` 加 `-v[0-9]`,把 p0a-v1 注册为 T2。一行正则 + 一条 YAML。
-3. **点亮治理测试**:把 `tests/scripts/` + `tests/contracts/` 加进 CI smoke allowlist(或独立 step),至少接 `test_closure_counts_match_registry_declaration` + 5 个 scanner regression-pin。stale 计数绿 ship 就是因为这些 dark。
+**P0(最高杠杆 + 最便宜,先做)** — 执行状态见每条末尾。
+1. **接 PENDING HUNK**:把 `evaluate_schema_registry()` 接进 `check_contract_guard.py main()`,让 `schema_ok` 进返回布尔(line 416)——判分闸从"只抓 orphan ID"变成全 register-before-use(per-PR 漂移+权威完整性),**零新系统**。逻辑已写好已测,只差 3 行接线。【HELD:`check_contract_guard.py` 正被并行线改(上游吸收守卫 WIP),等其落地后我独占在其基线上接 schema_ok,避免两条线撞中央 guard。】
+2. ~~修 dash 盲点:`_FULLSET_VERSION_SUFFIX_RE` 加 `-v[0-9]`~~ **【CORRECTED 2026-06-14】blanket 加 `-vN` 不安全**:dash 也是 model 名写法(`deepseek-v4-flash`/`embed-v4`/`handwriting-v1`)+ 文件名(`bi-v2-*.generated.ts`),会把它们误收成 schema id → 大量假 orphan。p0a-v1 必须**targeted 注册**(只在 schema_version/schema_id 赋值上下文匹配,或显式 known-id),不能靠 blanket 正则。待 P0#1 接线时一并 targeted 处理。
+3. **点亮治理测试**:把 register-before-use 闸自己的 regression 测试接进 CI。**【DONE 2026-06-14, commit 15e6492e5(部分)】** 修 stale 计数(schema_registry.yaml 176→177 / tier3 147→148,对齐 live)+ smoke allowlist 加 `test_schema_registry/db/env/provider/process_registry`(109 测试,含 I1/I2/I3/I4 pin + closure 计数测试)。**故意不加 `test_contract_guard.py`**(并行线改 check_contract_guard.py,WIP-coupled)——待 P0#1 时一并接。`tests/contracts/test_index_consistency` 仍待点亮(P1#5)。
 
 **P1**
 4. tests.yml 加两行 run:跑 `check_harness_authority.py` + `check_model_authority.py`(脚本已存在/AST 级/抓过 regression,只缺 PR 接线)。
