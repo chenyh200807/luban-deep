@@ -145,6 +145,18 @@ jobs:
         run: |
           python scripts/check_env_registry.py $(git ls-files 'deeptutor/**/*.py' 'scripts/**/*.py')
 
+      - name: provider registry guard (no unregistered provider base_url / 第二权威)
+        # Powers on contracts/provider_registry.yaml: a NEW hardcoded provider
+        # base_url literal at a call site that does not resolve from the canonical
+        # registry fails CI (rule a, 防新增旁路 — a scattered endpoint drifts and
+        # mis-attributes cost, the deepseek-billing先例), and a NEW provider added
+        # to a deprecated registry copy fails CI (rule b, 防第二权威再生 —三套
+        # registry 收成一套). All 12 existing bypass sites + the two deprecated
+        # copies are grandfathered. Full-repo scan exits 0 today. Bundling into
+        # check_contract_guard.py is a later consolidation blocked by its WIP.
+        run: |
+          python scripts/check_provider_registry.py $(git ls-files 'deeptutor/**/*.py' 'scripts/**/*.py')
+
       - name: WebSocket single-control-plane allowlist gate
         # Reflects the live FastAPI app's production WebSocket surface and fails
         # on any WS route not declared in contracts/index.yaml websocket_routes,
