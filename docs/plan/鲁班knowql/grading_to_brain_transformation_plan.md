@@ -18,6 +18,11 @@
 - **产物 = 可执行的 `accepted_variants / key_defect / weight_policy / human_review_route`**(不是学生答案 gold)。
 - **key 缺陷裁决协议**:专家 gold 与官方 key 冲突时谁赢必须先定义,否则 atomic checklist 会**稳定地误判合理等价答案**。
 
+> **实施进展(2026-06-13/14)**:Gate −1 仪器已建并跑 + **编译器 bug 已 root-cause 修复并验证**。
+> **(a) 重大修正——我先前报的 79% 是错的**:多路由架构师专家 + 确定性重测三方独立证明,panel 的 79% 把"分解失败(splitter bug)"与"裁决开放性"**混了**;编译器 per-point `score=None`(官方 key 只给整题总分)→"列举部分分"= atomic_checklist+计数聚合(确定性,**非单独路由**)。**真实"天生 non-checklist"率 ≈ 20%(15-25%),约 55-60% 的 79% 是 splitter bug 伪影**(开放列举"还有哪些"/无 key/判断题理由半部分才真非 checklist)。路由 taxonomy 见 `route_taxonomy.json`。
+> **(b) 编译器 SEV-1 bug 已 root-cause 修复**(`per_question_grading_object.py`,TDD,10 新测 + 既有 32 must-not-mint 全绿,713 域测零回归):根因=`split_sub_questions`/`_ascending_segments` 格式模型过窄(`^`锚漏前缀 `1、`、严格从1连续递增遇漏号塌缩、字面 `\n` 未 de-escape)+ 无 must-not-drop 守卫。修法(对抗专家审查后)=**单一规范化汇点**(de-escape `\\n`+剥前缀标签+剥【选项分析】boilerplate,**绝不剥【解析】**=会删10%真答案)+ 收紧头识别(禁小数当头)+ **覆盖守卫 fail-closed**(段不覆盖内容就回退单 blob,结构性保证 must-not-drop)+ `错误之N` flaw 词表 + term 去【】垃圾。原始 Q2018 bug:1子问/3点(437字巨点)→ **4子问/8点**;全152:≤1点 48%→45%、must-not-mint 零违反、must-not-drop 零真违反。**不是"修对每种格式"(打地鼠),是"有把握就切、没把握 fail-closed"(有界)**。
+> **(c) 仍待人工 gate**:603 accepted_variants 候选需人工剔错入库;真实非 checklist 率(~20%)需在修复后的编译器上重测确认;**人工批准才是 Gate −1 PASS**。
+
 ## 0.5 Gate 0 — 题型普查 + 真实外部验证(Gate −1 通过后)
 
 **单一最高杠杆动作,不是任何一个环**(eval-design "先评设计再花钱" + 红队一致结论):

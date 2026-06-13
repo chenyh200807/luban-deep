@@ -85,7 +85,41 @@ PER_QUESTION_GRADING_OBJECT_V1_SCHEMA: dict[str, Any] = {
 }
 
 # Sub-question splitting: the answer's own "问题N" or leading "N." numbering.
-_QUESTION_HEADER_RE = re.compile(r"(?m)^\s*(?:问题)?(\d{1,2})\s*[.．、:：)）]")
+# Line-anchored (^ matches string start + after \n, so a normalized inline-prefixed
+# "1、" lands at string start) and the separator class drops ）/) — those belong to the
+# nested （1）（2） atomic layer, not the top level. A non-digit lookahead after the
+# separator rejects decimals/dimensions (27.2 / 1.88) that would otherwise be read as a
+# header and silently drop the leading content before them.
+_QUESTION_HEADER_RE = re.compile(r"(?m)^\s*(?:问题)?(\d{1,2})\s*[.．、:：](?!\d)")
+# flaw-enumeration markers: 错误之一/二…, 第N处错误 — split like an enumeration so each
+# flaw-correction pair becomes its own atomic point (current _FLAW_RE only saw 不妥之处).
+_CN_NUM = "一二三四五六七八九十"
+_FLAW_ENUM_RE = re.compile(rf"(?:错误之[{_CN_NUM}]+|第[{_CN_NUM}\d]+处(?:错误|不妥))\s*[：:]")
+# known boilerplate framing that is NOT scoring content. 【选项分析】 is template noise for
+# case questions (verified 0/152 carry real content). 【解析】 is NOT stripped — it is
+# frequently the answer body itself (verified ~10% of the bank), so removing it drops
+# real scoring points. Leading answer label is prefix-only and safe to drop.
+_ANSWER_LABEL_RE = re.compile(r"^\s*【?\s*(?:参考答案|答案)\s*】?\s*[:：]?\s*")
+_OPTION_ANALYSIS_RE = re.compile(r"\n*【\s*选项分析\s*】.*$", re.S)
+
+
+def _normalize_official_answer(raw: str) -> str:
+    """Single canonical cleaning of the official answer before any structural split.
+
+    Authority-safe: only de-escapes literal newlines and strips known *framing*
+    (leading answer label + trailing 【选项分析】 boilerplate). It never touches scoring
+    content, so every downstream slice stays a verbatim substring of this returned text
+    (which is then threaded everywhere as the canonical answer for the verbatim gate)."""
+    text = str(raw or "").replace("\\r\\n", "\n").replace("\\n", "\n").replace("\\r", "\n")
+    text = _ANSWER_LABEL_RE.sub("", text)
+    text = _OPTION_ANALYSIS_RE.sub("", text)
+    return text.strip()
+
+
+def _content_chars(text: str) -> str:
+    """Hanzi + alphanumerics of ``text`` — the must-not-drop coverage unit (markers/
+    punctuation/whitespace excluded, since splitting legitimately drops those)."""
+    return "".join(re.findall(r"[0-9A-Za-z一-鿿]", text))
 # Atomic point markers inside one sub-question answer.
 _CIRCLED = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮"
 _PAREN_RE = re.compile(r"[（(](\d{1,2})[）)]")
@@ -135,6 +169,9 @@ def split_sub_questions(correct_answer: str) -> list[tuple[int, str]]:
     Each body is a verbatim (stripped) substring of the answer. If the answer has no
     ascending top-level numbering, the whole answer is one implicit sub-question.
     """
+    # idempotent: split always operates on the normalized answer, so it is correct even
+    # when a caller passes raw text with framing/literal-\n (compile already normalizes).
+    correct_answer = _normalize_official_answer(correct_answer)
     headers = [(m.start(), int(m.group(1))) for m in _QUESTION_HEADER_RE.finditer(correct_answer)]
     starts: list[tuple[int, int]] = []
     expected = 1
@@ -149,6 +186,12 @@ def split_sub_questions(correct_answer: str) -> list[tuple[int, str]]:
         end = starts[idx + 1][0] if idx + 1 < len(starts) else len(correct_answer)
         body = correct_answer[pos:end].strip()
         out.append((num, body))
+    # must-not-DROP coverage guard: the first chosen header starts mid-text whenever a
+    # spurious run was picked, silently dropping the leading content before it. If the
+    # split does not cover the answer's content chars, FAIL CLOSED to one blob (the old
+    # safe behaviour) rather than emit a split that lost a scoring point.
+    if _content_chars("".join(b for _, b in out)) != _content_chars(correct_answer):
+        return [(1, correct_answer.strip())]
     return out
 
 
@@ -193,6 +236,19 @@ def _split_atomic_segments(body: str) -> list[str]:
         ]
         segs = _ascending_segments(head, circled)
     if segs is None:
+        # flaw-enumeration: 错误之一：…正确做法：…错误之二：… — one segment per flaw marker
+        flaw_marks = [m.start() for m in _FLAW_ENUM_RE.finditer(head)]
+        if len(flaw_marks) >= 2:
+            segs = [
+                head[pos : (flaw_marks[i + 1] if i + 1 < len(flaw_marks) else len(head))].strip()
+                for i, pos in enumerate(flaw_marks)
+            ]
+    if segs is None:
+        segs = [head] if head else []
+    # must-not-DROP: a marker-anchored split starts at the first marker, dropping any
+    # content before it. If the segments do not cover head's content chars, fail closed
+    # to the whole head rather than lose a point.
+    if _content_chars("".join(segs)) != _content_chars(head):
         segs = [head] if head else []
     if enum_tail:
         segs.append(enum_tail)
@@ -210,8 +266,11 @@ def _ascending_segments(text: str, positions: list[tuple[int, int]]) -> list[str
         return None
     segments: list[str] = []
     for idx, start in enumerate(starts):
+        # fold any leading content before the first marker INTO the first segment
+        # (must-not-drop: never lose the pre-marker text; never emit a label-only point).
+        seg_start = 0 if idx == 0 else start
         end = starts[idx + 1] if idx + 1 < len(starts) else len(text)
-        segments.append(text[start:end].strip())
+        segments.append(text[seg_start:end].strip())
     return segments
 
 
@@ -238,6 +297,10 @@ def _distinctive_terms(text: str) -> list[str]:
     terms: list[str] = []
     seen: set[str] = set()
     for piece in pieces:
+        # drop markup-framing artifacts (【…】, bare newline tokens) but keep legitimate
+        # digit-leading dimension terms (10.5mm / 900mm / 27.2) — those are real anchors.
+        if "【" in piece or "】" in piece or piece in {"\\n", "\\r"}:
+            continue
         norm = normalize_for_match(piece)
         if len(norm) < 2 or len(norm) > _MAX_TERM_LEN or piece in _TERM_STOP:
             continue
@@ -507,13 +570,17 @@ def compile_per_question_grading_object(
     ``correct_answer`` (A), textbook terms are supporting citations (B) or honestly
     ``unsourced``, per-point scores are null + pending, total is the official number.
     """
-    sub_bodies = split_sub_questions(correct_answer)
+    # Normalize ONCE (de-escape literal \n, strip leading label + 【选项分析】 boilerplate),
+    # then thread the normalized text everywhere: every slice + the verbatim gate run
+    # against the SAME canonical string, so must-not-mint holds for de-escaped answers.
+    answer = _normalize_official_answer(correct_answer)
+    sub_bodies = split_sub_questions(answer)
     sub_objects = [
         compile_sub_question(
             question_id=question_id,
             sub_no=sub_no,
             body=body,
-            full_answer=correct_answer,
+            full_answer=answer,
             textbook_chunks=textbook_chunks,
         )
         for sub_no, body in sub_bodies
