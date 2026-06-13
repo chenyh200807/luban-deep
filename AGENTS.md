@@ -194,6 +194,7 @@ pkill -KILL -f 'next-server|/web/\.next/dev/build/postcss\.js|next/dist/bin/next
 - 当用户要求“合并到 main”时，除了在干净 worktree 里完成 merge / push / 部署验证，还必须把当前 Codex 本地工作区的可见分支状态一并收口到 `main`。
 - 如果当前工作区存在未提交改动，禁止强行切换到 `main`；必须先明确说明哪些脏改动阻塞切换，并让用户决定是提交、暂存、丢弃还是保留在当前分支。
 - 合并到 `main` 后的最终汇报必须分别说明：远端 `origin/main` 的 commit、部署状态、当前本地工作区是否已经切回 `main`，以及如果没切回的具体原因。
+- 改动了 contract-guard 的 protected 文件（`deeptutor/contracts/index.yaml` 里登记的源文件，如 `deep_question.py`、`rubric_grader_v1.py`）时，必须同步更新该 domain 登记的某个 `test_files`（新增/修改一个覆盖本次改动的测试），否则 contract-guard 的 required gate 会失败。合并/push 前先本地跑 `python scripts/check_contract_guard.py <changed files>` 确认 `contract-guard: passed` 再走后续流程。
 
 ### 3.6 Branch and Worktree Discipline
 
@@ -204,6 +205,7 @@ pkill -KILL -f 'next-server|/web/\.next/dev/build/postcss\.js|next/dist/bin/next
 - 创建 worktree 前必须说明：新 worktree 路径、基线分支、目标分支名、该 worktree 负责的任务范围；创建后该 Codex 会话只在对应 worktree 内工作。
 - 如果当前工作区有未提交改动，禁止为了切分支而强行 stash、reset、checkout 或移动用户改动；必须先说明冲突文件，并让用户决定如何处理。
 - 只有在用户明确要求提交时才提交；提交时必须保持 scope narrow，只 stage 本次任务直接相关文件，不把并行任务、生成产物或无关脏改动混进同一个 commit。
+- 脏分支上有并行 agent 在动文件时，用 `git commit --only -- <本次文件…>`（或精确 `git add <文件>` 后 `git commit`）逐文件提交，**绝不用 `git add -A` / `git add .`**：前者会把并行 WIP 扫进你的 commit，后者还会被其它并行提交者反向扫走你“还没想提交”的工作。提交后复核 `git show --stat HEAD` 确认只含本次文件、并行 WIP 仍 dirty。切忌在诊断/合并命令里夹带 `git stash`（会扫走冲突解析并清掉 `MERGE_HEAD`）。
 
 ### 3.7 Aliyun SSH Write Boundary
 
