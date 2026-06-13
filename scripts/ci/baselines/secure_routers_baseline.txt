@@ -1,6 +1,6 @@
 deeptutor/api/routers/agent_config.py:8
 deeptutor/api/routers/attachments.py:16
-deeptutor/api/routers/bi.py:68
+deeptutor/api/routers/bi.py:110
 deeptutor/api/routers/dashboard.py:10
 deeptutor/api/routers/guide.py
 deeptutor/api/routers/guide.py:23
