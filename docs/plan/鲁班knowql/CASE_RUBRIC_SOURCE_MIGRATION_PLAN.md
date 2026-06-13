@@ -47,6 +47,17 @@
 - 风险:**结构 valid 不等于语义 valid**(分析文本被切成官方 slice;20pt 4 问编成 1 点)——flip 这些会回归真实判分却通过所有 validator。
 - gate:included set 零 hard blocker;隔离名单逐条有原因;included qid 覆盖 vs live 174 对比暴露任何掉题。
 
+> **多-AI 类型条件化编译候选(2026-06-14,接本 Stage "结构 valid≠语义 valid" 残留)**:确定性 Stage 1
+> 把 91/179 已编译题塌成 ≤1 点(散文/顿号列表 fail-closed,正是上方风险行的"20pt→1 点")。多-AI 工厂
+> (`artifacts/luban_grading_artifacts/multi_ai_anchored_grading_20260614/_drivers/`,见其 README)用**类型条件化
+> 切分+授权**救回:mean 2.69→7.21、塌 91→4,**179/179 must-not-mint 零违反**(三 lane:81 consensus+10 确定性
+> tie-break+88 Opus 仲裁;确定性逐字重验)。非循环验证:授权 precision/recall 1.0、切分 pilot must-not-mint 12/12+Opus 仲裁。
+> **接法边界(诚实,避免越权改判分)**:(1) 它只增强**切分粒度**→喂 Stage 2 同一个 `official_total×coverage`
+> 算术,**不改判分公式**;(2) 它授权的 **list_rule/penalty_rule 是独立算术决策**(阈值感知 vs 均权 coverage,
+> 超出决策 1A 范围),**不随本候选自动生效**,需 owner 单独拍板;(3) 仍 candidate/review-only,flip 仍受
+> Stage 0/3/4 gate;(4) total_items 降级为 advisory(结构性 `structural_cap_list_items` 为权威)+ 51 题人审队列
+> (顿号启发式上界,荷载符号串会过标)+ 39 数据质量隔离题仍排除。产物:`phase5_factory/full_factory_candidate.json`。
+
 **Stage 2 — 适配到可判分 runtime 形(单一权威正确)**
 - 建确定性 `PGO 合约 → runtime-points` 适配器(决策 2A:sub_type→policy、required_terms=anchor_verified、score 留 null)。建 verdict-coverage 判分函数(决策 1A:`awarded = official_total × coverage`,`detect_over_credit` 当自洽 gate)。**绝不 `float(score or 0)`**;旧路径 score-sum 硬 gate 不动。
 - gate:单测——null-score 点不会意外判 0(coverage 路径已验);policy 映射覆盖全部 5 个 sub_type;required_terms 绝不提拔 anchor_verified=False(伪源守卫);over-credit gate 在 score_pct>coverage+margin 触发。
