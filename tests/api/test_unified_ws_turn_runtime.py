@@ -8091,7 +8091,7 @@ def test_turn_runtime_meters_mini_program_usage_without_charging_when_enforcemen
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
 ) -> None:
-    monkeypatch.delenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", raising=False)
+    monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "false")
     runtime = TurnRuntimeManager(SQLiteSessionStore(tmp_path / "chat_history.db"))
     meter_calls: list[dict[str, object]] = []
 

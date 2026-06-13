@@ -49,19 +49,22 @@ mobile_http_read_models:
       - Usage windows are display read models only; they are not capability routing,
         request config, learner-state, or turn authority.
 
-mobile_http_auth_controls:
-  password_reset:
-    path: /api/v1/auth/reset-password
-    authority: MemberConsoleService -> external_auth
+mobile_http_billing_controls:
+  start_turn_gate:
+    path: /api/v1/chat/start-turn
+    authority: WalletService wallet snapshot + DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED
     semantics:
-      - Account recovery is a public, rate-limited HTTP auth adapter, not a
-        turn/session/capability entrypoint.
-      - Request must prove username, registered phone, and SMS code before changing
-        the external auth password.
-      - Successful reset invalidates existing external auth sessions, consumes the
-        SMS code, returns no token, and never auto-logs in.
-      - Reset must not write learner summaries, learner memory events, profile,
-        progress, goals, wallet, capability route state, or turn/session state.
+      - Billing enforcement defaults on. Only explicit false / 0 / off / no disables
+        the hard balance gate for internal beta or rollback.
+      - When billing enforcement is explicitly disabled, the start-turn gate short-circuits
+        before wallet identity, wallet service availability, wallet snapshot, or usage
+        ledger reads.
+      - When enforcement is enabled, missing wallet identity is treated as zero balance
+        and returns billing_quota_exceeded before turn creation.
+      - When enforcement is enabled and wallet service is unconfigured or unavailable,
+        the adapter returns billing_wallet_unavailable before turn creation.
+      - This commerce gate must not become capability routing, request config,
+        learner-state, or session authority.
 
 mobile_http_auth_controls:
   password_reset:
@@ -76,6 +79,44 @@ mobile_http_auth_controls:
         SMS code, returns no token, and never auto-logs in.
       - Reset must not write learner summaries, learner memory events, profile,
         progress, goals, wallet, capability route state, or turn/session state.
+  wechat_phone_login:
+    path: /api/v1/wechat/mp/login
+    authority: MemberConsoleService.login_with_wechat_phone
+    semantics:
+      - Quick login is a public, rate-limited HTTP auth adapter that requires both
+        wx.login code and getPhoneNumber phone_code.
+      - The route must fail closed when phone_code is absent; wx.login code alone
+        must not issue a full learner token.
+      - The returned token is minted only after WeChat phone authorization has
+        been exchanged and bound to the canonical member identity.
+      - The mini-program primary quick-login button must use getPhoneNumber and
+        keep audit-safe copy that does not expose WeChat wording in the UI.
+
+mobile_http_auth_controls:
+  password_reset:
+    path: /api/v1/auth/reset-password
+    authority: MemberConsoleService -> external_auth
+    semantics:
+      - Account recovery is a public, rate-limited HTTP auth adapter, not a
+        turn/session/capability entrypoint.
+      - Request must prove username, registered phone, and SMS code before changing
+        the external auth password.
+      - Successful reset invalidates existing external auth sessions, consumes the
+        SMS code, returns no token, and never auto-logs in.
+      - Reset must not write learner summaries, learner memory events, profile,
+        progress, goals, wallet, capability route state, or turn/session state.
+  wechat_phone_login:
+    path: /api/v1/wechat/mp/login
+    authority: MemberConsoleService.login_with_wechat_phone
+    semantics:
+      - Quick login is a public, rate-limited HTTP auth adapter that requires both
+        wx.login code and getPhoneNumber phone_code.
+      - The route must fail closed when phone_code is absent; wx.login code alone
+        must not issue a full learner token.
+      - The returned token is minted only after WeChat phone authorization has
+        been exchanged and bound to the canonical member identity.
+      - The mini-program primary quick-login button must use getPhoneNumber and
+        keep audit-safe copy that does not expose WeChat wording in the UI.
 
 domains:
   turn:
@@ -127,6 +168,8 @@ domains:
       - tests/api/test_unified_ws_turn_runtime.py
       - tests/api/test_unified_ws_public_redaction.py
       - tests/api/test_unified_ws_answer_citations.py
+      - tests/api/test_rate_limit.py
+      - tests/api/test_unified_ws_connection_cap.py
       - tests/services/citations/test_quality.py
       - tests/api/test_mobile_router.py
       - tests/services/session/test_context_builder.py
@@ -187,6 +230,8 @@ domains:
       - tests/runtime/test_orchestrator_autoroute.py
       - tests/api/test_unified_ws_turn_runtime.py
       - tests/api/test_unified_ws_public_redaction.py
+      - tests/api/test_unified_ws_connection_cap.py
+      - tests/api/test_rate_limit.py
       - tests/api/test_mobile_router.py
       - tests/services/test_question_lifecycle_skills.py
       - tests/services/test_question_lifecycle_scene_derivation.py
@@ -198,10 +243,13 @@ domains:
       - tests/capabilities/test_deep_question_reference_feedback.py
       - tests/capabilities/test_deep_question_general_knowledge_context.py
       - tests/capabilities/test_deep_question_general_knowledge_grounding.py
+      - tests/capabilities/test_deep_question_rich_leaf_grounding.py
       - tests/capabilities/test_deep_question_unresolved_switch.py
       - tests/core/test_deep_question_active_object.py
       - tests/capabilities/test_deep_question_learning_evidence_preview.py
+      - tests/capabilities/test_deep_question_grading_to_brain_writeback.py
       - tests/core/test_deep_question_case_rubric_v1.py
+      - tests/core/test_deep_question_submission_grading.py
       - tests/services/test_render_presentation.py
       - wx_miniprogram/tests/test_ai_message_state.js
       - yousenwebview/tests/test_question_review_readonly_mcq.js
@@ -236,6 +284,7 @@ domains:
       - deeptutor/services/exam_track.py
     test_files:
       - tests/services/rag/test_rag_pipelines.py
+      - tests/services/rag/test_kbv5_pipeline.py
       - tests/services/rag/test_historical_question_resolver.py
       - tests/services/rag/test_index_versioning.py
       - tests/services/rag/test_supabase_strategy.py
@@ -340,6 +389,8 @@ domains:
       - tests/services/learner_state/test_outbox.py
       - tests/services/learner_state/test_flusher.py
       - tests/services/learner_state/test_runtime.py
+      - tests/services/learner_state/test_dream_cycle.py
+      - tests/services/learner_state/test_learning_trajectory.py
       - tests/services/learner_state/test_attempt_detail_read_model.py
       - tests/services/learner_state/test_learning_synthesis.py
       - tests/services/learner_state/test_learning_report_read_model.py
@@ -367,6 +418,8 @@ domains:
       - tests/services/learner_state/heartbeat/test_arbitration.py
       - tests/services/member_console/test_directory.py
       - tests/services/member_console/test_service.py
+      - tests/services/member_console/test_admin_store.py
+      - tests/services/member_console/test_admin_management.py
       - tests/web/test_bi_member_admin_surface.py
       - tests/supabase/test_learner_state_rls_migration.py
       - tests/services/learner_state/test_d_class_occurrence_timeline.py
@@ -421,3 +474,4 @@ luban_grading_engine:
     - tests/services/construction_grading/test_case_grading_fusion.py
     - tests/services/construction_grading/test_compiled_registry_resolver.py
     - tests/services/construction_grading/test_full_knowledge_compiler_m30.py
+    - tests/services/construction_grading/test_rich_leaf_runtime.py
