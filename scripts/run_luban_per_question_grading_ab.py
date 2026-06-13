@@ -4,24 +4,30 @@
 Thin CLI over the fat skills
 ``deeptutor.services.construction_grading.per_question_grading_object`` (compile +
 ``build_grading_contract``, where G2 is wired on real data) and
-``...per_question_grading_judge`` (controlled answers + over-credit gate).
+``...per_question_grading_judge`` (over-credit gate).
 
 The thesis (KnowQL Phase B): forcing the judge to adjudicate every atomic OFFICIAL point
 separately reduces the measured ~20% over-credit (a high score while an official point is
-missed), vs a freestyle judge that scores holistically.
+missed). This harness was redesigned after a Codex adversarial review of the experiment
+DESIGN found three fatal confounds; the fixes are baked in here:
 
-Two arms, same student answer:
-  * arm_A_freestyle      — judge sees the official reference answer, returns a 0-1 score.
-  * arm_B_atomic_contract — judge sees the atomic official checklist, MUST return one
-    verdict per point_id (+ evidence cite) and score = fraction hit.
+* No exact-slice leakage — student answers are HAND-AUTHORED PARAPHRASES (no verbatim
+  official slices) with semantic coverage labels (the fixtures file), so an arm cannot win
+  by literal substring match.
+* Fair arms — THREE arms, not two: ``arm_A0_freestyle`` (holistic), ``arm_A1_self_decompose``
+  (same structured rigor: model decomposes the reference itself, per-point verdict + cite +
+  coverage score), ``arm_B_atomic_contract`` (the PRE-COMPILED official checklist). The
+  thesis is proven only if B beats A1 — not merely A0 — else the win is just "structured
+  prompt beats freestyle".
+* Honest metrics — PRIMARY over-credit = ``score − true_coverage > margin`` against the
+  KNOWN label (not the verdict self-consistency gate, which is ~0 by construction for B);
+  plus per-point false-hit rate (arm B), calibration MAE, per-answer-type strata, and a
+  margin sensitivity sweep.
 
-Measurement uses CONTROLLED student answers with EXACT ground truth (atomic slices kept or
-dropped), so over-credit = (score ≥ 0.95 AND the student actually omitted an official
-point) needs no human labelling.
-
-``--dry-run`` (default when no LLM key) runs a perfect-judge ORACLE end-to-end: it proves
-the plumbing and that arm B is over-credit-safe BY CONSTRUCTION. ``--live`` runs the real
-LLM judge for both arms (needs an LLM key) and reports each arm's over-credit rate.
+``--dry-run`` (default; no LLM key) runs a LABEL ORACLE end-to-end (honest score =
+true_coverage) to validate plumbing — it cannot show the thesis (the oracle never
+over-credits; an LLM freestyle judge is what does). ``--live`` runs the real LLM judge for
+all three arms (needs an LLM key, billable) and reports each arm's over-credit rate.
 
 Nothing here writes canonical truth, official scores, a DB, or a production default.
 """
@@ -39,6 +45,8 @@ from typing import Any, Callable
 REPO = Path(__file__).resolve().parents[1]
 if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
+if str(REPO / "scripts") not in sys.path:
+    sys.path.insert(0, str(REPO / "scripts"))
 
 from run_luban_per_question_grading_object_compile import (  # noqa: E402  (sys.path set above)
     DEFAULT_BOOK_DIR,
@@ -47,32 +55,98 @@ from run_luban_per_question_grading_object_compile import (  # noqa: E402  (sys.
     compile_selected,
 )
 
-from deeptutor.services.construction_grading.per_question_grading_judge import (
+from deeptutor.services.construction_grading.per_question_grading_judge import (  # noqa: E402
+    CONTRADICTION,
+    HIT,
+    MISS,
     OVER_CREDIT_GAP_MARGIN,
-    OVER_CREDIT_HIGH_THRESHOLD,
-    ControlledAnswer,
-    candidate_coverage_score,
+    PARTIAL,
     detect_over_credit,
-    make_controlled_student_answers,
-    oracle_verdicts,
 )
-from deeptutor.services.construction_grading.per_question_grading_object import (
+from deeptutor.services.construction_grading.per_question_grading_object import (  # noqa: E402
     build_grading_contract,
     validate_grading_contract,
 )
 
+DEFAULT_FIXTURES = REPO / "deeptutor/services/construction_grading/fixtures/per_question_grading_ab_fixtures.json"
 DEFAULT_OUT_DIR = REPO / "artifacts/luban_grading_artifacts/per_question_grading_ab_20260613"
-ARM_A = "arm_A_freestyle"
+ARM_A0 = "arm_A0_freestyle"
+ARM_A1 = "arm_A1_self_decompose"
 ARM_B = "arm_B_atomic_contract"
+ARMS = (ARM_A0, ARM_A1, ARM_B)
+MARGIN_SWEEP = (0.05, 0.1, 0.15, 0.2)
 
 
-def _arm_a_messages(*, stem: str, official_answer: str, student_answer: str) -> list[dict[str, str]]:
+# ── ground truth from hand-authored labels ───────────────────────────────────
+
+
+def _true_coverage(answer: dict[str, Any], total: int) -> float:
+    """Honest target score: covered points + half credit for partial, over total."""
+    if total == 0:
+        return 0.0
+    covered = len(answer.get("covered_point_ids") or [])
+    partial = len(answer.get("partial_point_ids") or [])
+    return (covered + 0.5 * partial) / total
+
+
+def _labeled_verdicts(answer: dict[str, Any]) -> dict[str, str]:
+    verdicts: dict[str, str] = {}
+    for pid in answer.get("covered_point_ids") or []:
+        verdicts[pid] = HIT
+    for pid in answer.get("partial_point_ids") or []:
+        verdicts[pid] = PARTIAL
+    for pid in answer.get("missing_point_ids") or []:
+        verdicts[pid] = MISS
+    for pid in answer.get("contradiction_point_ids") or []:
+        verdicts[pid] = CONTRADICTION
+    return verdicts
+
+
+def _validate_fixture(answer: dict[str, Any], contract: dict[str, Any]) -> None:
+    """Fail closed on an authoring error: labels must partition the contract exactly."""
+    cpts = {sp["point_id"] for sp in contract["scoring_points"]}
+    buckets = [answer.get(k) or [] for k in
+               ("covered_point_ids", "missing_point_ids", "partial_point_ids", "contradiction_point_ids")]
+    flat = [p for b in buckets for p in b]
+    labeled = set(flat)
+    if len(flat) != len(labeled):
+        raise SystemExit(f"fixture {answer.get('label')}: duplicate point_id across buckets")
+    if labeled - cpts:
+        raise SystemExit(f"fixture {answer.get('label')}: unknown point_ids {labeled - cpts}")
+    if cpts - labeled:
+        raise SystemExit(f"fixture {answer.get('label')}: unlabeled point_ids {cpts - labeled}")
+
+
+# ── judge prompts (the three arms) ────────────────────────────────────────────
+
+
+def _arm_a0_messages(*, stem: str, official_answer: str, student_answer: str) -> list[dict[str, str]]:
     payload = {
         "task": "你是一级建造师案例题阅卷官。对照官方参考答案给学生作答打分。",
         "stem": stem,
         "official_reference_answer": official_answer,
         "student_answer": student_answer,
         "instruction": "只输出 JSON: {\"score_pct\": 0..1 的小数, \"reason\": \"简短\"}。",
+    }
+    return [{"role": "user", "content": json.dumps(payload, ensure_ascii=False)}]
+
+
+def _arm_a1_messages(*, stem: str, official_answer: str, student_answer: str) -> list[dict[str, str]]:
+    """Fair structured baseline: same rigor as B (per-requirement verdict + cite + coverage
+    score), but the model decomposes the OFFICIAL REFERENCE ANSWER itself rather than being
+    handed the pre-compiled checklist. Isolates 'compiled checklist' from 'be structured'."""
+    payload = {
+        "task": "你是一级建造师案例题阅卷官。",
+        "stem": stem,
+        "official_reference_answer": official_answer,
+        "student_answer": student_answer,
+        "instruction": (
+            "请你自己把官方参考答案拆成若干采分要点(requirement);对每个要点判断学生是否答到"
+            "verdict∈{hit,partial,miss,contradiction},命中(hit)必须在 evidence_span 引用学生作答里的逐字证据。"
+            "教材知识只供你理解题意,不能当判分依据。score_pct = 命中(hit)要点 / 总要点。"
+            "只输出 JSON: {\"requirements\":[{\"requirement\":\"..\",\"verdict\":\"..\",\"evidence_span\":\"..\"}],"
+            "\"score_pct\":0..1}。"
+        ),
     }
     return [{"role": "user", "content": json.dumps(payload, ensure_ascii=False)}]
 
@@ -92,7 +166,7 @@ def _arm_b_messages(*, contract: dict[str, Any], student_answer: str) -> list[di
         "output_contract": contract["output_contract"],
         "instruction": (
             "你必须对每个 point_id 逐一裁决 verdict∈{hit,partial,miss,contradiction};"
-            "命中(hit)必须在 evidence_span 引用学生作答里的逐字证据。"
+            "命中(hit)必须在 evidence_span 引用学生作答里的逐字证据(学生用同义改写也算 hit,但必须真的答到该点语义)。"
             "score_pct = 命中(hit)点数 / 总点数。"
             "只输出 JSON: {\"verdicts\":[{\"point_id\":\"..\",\"verdict\":\"..\",\"evidence_span\":\"..\"}],"
             "\"score_pct\":0..1}。"
@@ -108,27 +182,21 @@ def _parse_json_block(text: str) -> dict[str, Any]:
     return json.loads(match.group(0))
 
 
-def _ground_truth_over_credit(
-    score_pct: float, answer: ControlledAnswer, *, gap_margin: float
-) -> bool:
-    """The honest over-credit measure: the score MATERIALLY exceeds the student's true
-    coverage (covered / total atomic official points), known by construction. A score
-    that tracks coverage — even a high one for 23/24 — is honest, not over-credit."""
-    total = len(answer.covered_point_ids) + len(answer.missing_point_ids)
-    if total == 0:
-        return False
-    coverage = len(answer.covered_point_ids) / total
-    return bool(score_pct - coverage > gap_margin)
+# ── judges: label oracle (dry-run) and the real LLM ───────────────────────────
 
 
-def _make_oracle_judge() -> Callable[..., dict[str, Any]]:
-    """Perfect-judge oracle for dry-run: arm B HITs covered points (so its score honestly
-    equals coverage). Arm A is given the same coverage-honest score — the oracle cannot
-    over-credit, which is exactly why dry-run proves PLUMBING, not the thesis (an LLM
-    freestyle judge is what over-credits)."""
-    def judge(*, arm: str, contract: dict[str, Any], answer: ControlledAnswer) -> dict[str, Any]:
-        verdicts = oracle_verdicts(contract, answer)
-        score = candidate_coverage_score(verdicts, contract)
+def _official_answer_text(contract: dict[str, Any]) -> str:
+    return "\n".join(sp.get("official_slice") or "" for sp in contract["scoring_points"])
+
+
+def _make_label_oracle(total_by_q: dict[str, int]) -> Callable[..., dict[str, Any]]:
+    """Honest oracle for dry-run: score = true_coverage; arm B emits the labeled verdicts.
+    Cannot over-credit — proves PLUMBING, not the thesis (an LLM freestyle judge is what
+    over-credits)."""
+    def judge(*, arm: str, contract: dict[str, Any], answer: dict[str, Any]) -> dict[str, Any]:
+        total = len(contract["scoring_points"])
+        verdicts = _labeled_verdicts(answer) if arm == ARM_B else {}
+        score = _true_coverage(answer, total)
         return {"score_pct": score, "verdicts": verdicts, "oracle": True}
     return judge
 
@@ -136,78 +204,122 @@ def _make_oracle_judge() -> Callable[..., dict[str, Any]]:
 async def _make_llm_judge(model: str | None):
     from deeptutor.services.llm import complete  # canonical single-authority LLM path
 
-    async def judge(*, arm: str, contract: dict[str, Any], answer: ControlledAnswer) -> dict[str, Any]:
-        if arm == ARM_A:
-            messages = _arm_a_messages(
-                stem=str(contract.get("stem") or ""),
-                official_answer="\n".join(sp.get("official_slice") or "" for sp in contract["scoring_points"]),
-                student_answer=answer.student_answer,
-            )
+    async def judge(*, arm: str, contract: dict[str, Any], answer: dict[str, Any]) -> dict[str, Any]:
+        official = _official_answer_text(contract)
+        stem = str(contract.get("stem") or "")
+        student = str(answer.get("student_answer") or "")
+        if arm == ARM_A0:
+            messages = _arm_a0_messages(stem=stem, official_answer=official, student_answer=student)
+        elif arm == ARM_A1:
+            messages = _arm_a1_messages(stem=stem, official_answer=official, student_answer=student)
         else:
-            messages = _arm_b_messages(contract=contract, student_answer=answer.student_answer)
+            messages = _arm_b_messages(contract=contract, student_answer=student)
         text = await complete(messages=messages, model=model) if model else await complete(messages=messages)
         data = _parse_json_block(text if isinstance(text, str) else str(text))
         verdicts = {
             str(v.get("point_id")): str(v.get("verdict"))
             for v in (data.get("verdicts") or [])
+            if v.get("point_id")
         }
         return {"score_pct": float(data.get("score_pct") or 0.0), "verdicts": verdicts, "oracle": False}
     return judge
 
 
-async def _run(
-    objects: list[dict[str, Any]], judge, *, threshold: float, gap_margin: float
-) -> dict[str, Any]:
+# ── run + metrics ─────────────────────────────────────────────────────────────
+
+
+def _false_hit_rate(verdicts: dict[str, str], answer: dict[str, Any]) -> float | None:
+    """Arm-B diagnostic: fraction of truly missing/contradicted points the arm judged HIT.
+    None when the arm reports no per-point verdicts on our point_ids (A0/A1)."""
+    if not verdicts:
+        return None
+    unmet = set(answer.get("missing_point_ids") or []) | set(answer.get("contradiction_point_ids") or [])
+    if not unmet:
+        return None
+    false_hits = sum(1 for pid in unmet if verdicts.get(pid) == HIT)
+    return false_hits / len(unmet)
+
+
+async def _run(objects, fixtures: dict[str, Any], judge, *, gap_margin: float) -> dict[str, Any]:
+    total_by_q = {o["question_id"]: o["scoring_point_count"] for o in objects}
     rows: list[dict[str, Any]] = []
     for obj in objects:
+        qid = obj["question_id"]
         contract = build_grading_contract(obj)
         blockers = validate_grading_contract(contract)
         if blockers:
-            raise SystemExit(f"contract invalid for {obj['question_id']}: {blockers}")
-        for answer in make_controlled_student_answers(obj):
-            for arm in (ARM_A, ARM_B):
+            raise SystemExit(f"contract invalid for {qid}: {blockers}")
+        total = len(contract["scoring_points"])
+        for answer in fixtures.get(qid) or []:
+            _validate_fixture(answer, contract)
+            true_cov = round(_true_coverage(answer, total), 4)
+            for arm in ARMS:
                 result = judge(arm=arm, contract=contract, answer=answer)
                 if asyncio.iscoroutine(result):
                     result = await result
-                score = float(result["score_pct"])
-                gate = detect_over_credit(
-                    score_pct=score, point_verdicts=result.get("verdicts") or {},
-                    contract=contract, high_threshold=threshold, gap_margin=gap_margin,
+                score = round(float(result["score_pct"]), 4)
+                verdicts = result.get("verdicts") or {}
+                self_consistency = detect_over_credit(
+                    score_pct=score, point_verdicts=verdicts, contract=contract, gap_margin=gap_margin,
                 )
                 rows.append({
-                    "question_id": obj["question_id"],
-                    "answer_label": answer.label,
+                    "question_id": qid,
+                    "answer_label": answer.get("label"),
+                    "answer_type": answer.get("answer_type"),
                     "arm": arm,
-                    "score_pct": round(score, 4),
-                    "ground_truth_missing": list(answer.missing_point_ids),
-                    "ground_truth_over_credit": _ground_truth_over_credit(
-                        score, answer, gap_margin=gap_margin
-                    ),
-                    "verdict_based_over_credit": gate["over_credit"],
-                    "score_coverage_gap": gate["score_coverage_gap"],
+                    "score_pct": score,
+                    "true_coverage": true_cov,
+                    "score_coverage_gap": round(score - true_cov, 4),
+                    "ground_truth_over_credit": bool(score - true_cov > gap_margin),
+                    "calibration_abs_error": round(abs(score - true_cov), 4),
+                    "false_hit_rate": _false_hit_rate(verdicts, answer),
+                    "verdict_self_inconsistency": self_consistency["over_credit"],
                     "oracle": result.get("oracle", False),
                 })
-    return _summarize(rows, threshold=threshold)
+    return _summarize(rows, gap_margin=gap_margin)
 
 
-def _summarize(rows: list[dict[str, Any]], *, threshold: float) -> dict[str, Any]:
-    by_arm: dict[str, dict[str, Any]] = {}
-    for arm in (ARM_A, ARM_B):
+def _rate(rows: list[dict[str, Any]], key: str) -> float | None:
+    vals = [r for r in rows if r.get(key) is not None]
+    return round(sum(1 for r in vals if r[key]) / len(vals), 4) if vals else None
+
+
+def _mean(rows: list[dict[str, Any]], key: str) -> float | None:
+    vals = [r[key] for r in rows if r.get(key) is not None]
+    return round(sum(vals) / len(vals), 4) if vals else None
+
+
+def _summarize(rows: list[dict[str, Any]], *, gap_margin: float) -> dict[str, Any]:
+    by_arm: dict[str, Any] = {}
+    answer_types = sorted({r["answer_type"] for r in rows})
+    for arm in ARMS:
         arm_rows = [r for r in rows if r["arm"] == arm]
-        partial = [r for r in arm_rows if r["ground_truth_missing"]]
-        gt_over = [r for r in partial if r["ground_truth_over_credit"]]
+        # over-credit only meaningful where the student actually missed something
+        riskful = [r for r in arm_rows if r["true_coverage"] < 1.0]
+        margin_sweep = {
+            f"margin_{m}": _rate(
+                [{"oc": (r["score_pct"] - r["true_coverage"] > m)} for r in riskful], "oc"
+            )
+            for m in MARGIN_SWEEP
+        }
         by_arm[arm] = {
             "rows": len(arm_rows),
-            "partial_answer_rows": len(partial),
-            "ground_truth_over_credit_count": len(gt_over),
-            "ground_truth_over_credit_rate": (len(gt_over) / len(partial)) if partial else None,
-            "mean_score_pct": round(sum(r["score_pct"] for r in arm_rows) / len(arm_rows), 4) if arm_rows else None,
+            "riskful_rows": len(riskful),
+            "ground_truth_over_credit_rate": _rate(riskful, "ground_truth_over_credit"),
+            "calibration_mae": _mean(arm_rows, "calibration_abs_error"),
+            "false_hit_rate_mean": _mean(arm_rows, "false_hit_rate"),
+            "over_credit_rate_by_answer_type": {
+                t: _rate([r for r in riskful if r["answer_type"] == t], "ground_truth_over_credit")
+                for t in answer_types
+            },
+            "over_credit_margin_sweep": margin_sweep,
         }
     return {
-        "schema": "luban_per_question_grading_ab.v1",
+        "schema": "luban_per_question_grading_ab.v2",
         "review_only": True,
-        "over_credit_high_threshold": threshold,
-        "thesis": "arm_B_atomic_contract 的 over-credit 率应 ≤ arm_A_freestyle",
+        "primary_metric": "ground_truth_over_credit_rate (score - true_coverage > margin)",
+        "default_margin": gap_margin,
+        "thesis": "arm_B_atomic_contract 的 over-credit 率应 < arm_A1_self_decompose < arm_A0_freestyle",
         "by_arm": by_arm,
         "rows": rows,
     }
@@ -217,12 +329,14 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--exam-root", type=Path, default=DEFAULT_EXAM_ROOT)
     parser.add_argument("--book-dir", type=Path, default=DEFAULT_BOOK_DIR)
+    parser.add_argument("--fixtures", type=Path, default=DEFAULT_FIXTURES)
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT_DIR)
     parser.add_argument("--live", action="store_true", help="use the real LLM judge (needs an LLM key)")
     parser.add_argument("--model", default=None)
-    parser.add_argument("--threshold", type=float, default=OVER_CREDIT_HIGH_THRESHOLD)
+    parser.add_argument("--margin", type=float, default=OVER_CREDIT_GAP_MARGIN)
     args = parser.parse_args()
 
+    fixtures = json.loads(args.fixtures.read_text(encoding="utf-8")).get("fixtures") or {}
     textbook_chunks = _load_textbook_chunks(args.book_dir)
     objects = compile_selected(exam_root=args.exam_root, textbook_chunks=textbook_chunks)
 
@@ -230,12 +344,10 @@ def main() -> int:
         judge = asyncio.run(_make_llm_judge(args.model))
         mode = "live_llm"
     else:
-        judge = _make_oracle_judge()
-        mode = "dry_run_oracle"
+        judge = _make_label_oracle({o["question_id"]: o["scoring_point_count"] for o in objects})
+        mode = "dry_run_label_oracle"
 
-    report = asyncio.run(
-        _run(objects, judge, threshold=args.threshold, gap_margin=OVER_CREDIT_GAP_MARGIN)
-    )
+    report = asyncio.run(_run(objects, fixtures, judge, gap_margin=args.margin))
     report["mode"] = mode
     report["questions_compiled"] = [o["question_id"] for o in objects]
 
