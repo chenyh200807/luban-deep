@@ -5,6 +5,7 @@ reference comparison, honest degradation, safety invariants). No network.
 """
 from __future__ import annotations
 
+from collections import Counter
 import json
 from pathlib import Path
 
@@ -107,6 +108,65 @@ def test_reference_label_lookup():
     assert panel._reference_label(ledger, "P1") == "hit"
     assert panel._reference_label(ledger, "P2") == "miss"
     assert panel._reference_label(ledger, "P9") is None
+
+
+# ---------------------------------------------------------------- fleiss kappa
+
+
+def test_fleiss_kappa_perfect_agreement_is_one():
+    # every item: all 3 raters pick "hit" (constant rater count) -> kappa 1.0
+    items = [Counter({"hit": 3}) for _ in range(5)]
+    assert panel._fleiss_kappa(items) == 1.0
+
+
+def test_fleiss_kappa_below_chance_can_go_negative():
+    # maximal within-item disagreement across a balanced category mix -> kappa<=0
+    items = [Counter({"hit": 1, "partial": 1, "miss": 1}) for _ in range(6)]
+    kappa = panel._fleiss_kappa(items)
+    assert kappa is not None and kappa <= 0.0
+
+
+def test_slice_fleiss_kappa_excludes_abstention_rows():
+    panel_ids = ["a", "b", "c"]
+    rows = [
+        {"blind_votes": {"a": "hit", "b": "hit", "c": "hit"}},        # scored
+        {"blind_votes": {"a": "hit", "b": panel.ABSTAIN, "c": "hit"}},  # excluded (abstain)
+        {"blind_votes": {"a": "miss", "b": "miss", "c": "miss"}},     # scored
+    ]
+    block = panel._slice_fleiss_kappa(rows, panel_ids)
+    assert block["scored_item_count"] == 2
+    assert block["excluded_for_abstention"] == 1
+    assert block["rater_count"] == 3
+    # two unanimous items -> kappa 1.0 -> quality claim allowed
+    assert block["fleiss_kappa"] == 1.0
+    assert block["quality_claim_allowed"] is True
+    assert block["label_authority"] == "ai_arbitration_panel_candidate"
+
+
+def test_slice_fleiss_kappa_low_agreement_blocks_quality_claim():
+    panel_ids = ["a", "b", "c"]
+    rows = [{"blind_votes": {"a": "hit", "b": "partial", "c": "miss"}} for _ in range(6)]
+    block = panel._slice_fleiss_kappa(rows, panel_ids)
+    assert block["fleiss_kappa"] is not None and block["fleiss_kappa"] < 0.6
+    assert block["quality_claim_allowed"] is False
+    assert block["label_authority"] == "ai_council_directional"
+
+
+def test_shape_report_exposes_kappa_trust_gate(tmp_path: Path):
+    rc = panel.main([
+        "--cases", "Q2-1A436000-罚则",
+        "--tier", "shape",
+        "--max-students", "3",
+        "--output", str(tmp_path / "out.json"),
+    ])
+    assert rc == 0
+    report = json.loads((tmp_path / "out.json").read_text(encoding="utf-8"))
+    # top-level trust gate is always present and consistent with the aggregate block
+    assert "quality_claim_allowed" in report
+    assert report["gold_label_authority"] == report["label_authority"]
+    kappa_block = report["aggregate"]["panel_fleiss_kappa"]
+    assert kappa_block["threshold"] == 0.6
+    assert report["quality_claim_allowed"] == kappa_block["quality_claim_allowed"]
 
 
 # ---------------------------------------------------------------- degradation

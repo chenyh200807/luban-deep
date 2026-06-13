@@ -290,6 +290,73 @@ def _pairwise_agreement(verdicts: list[str]) -> float | None:
     return round(agree / total, 4) if total else None
 
 
+# Inter-rater reliability gate. Below this, the panel consensus is treated as a
+# directional signal, NOT a trustworthy gold label (quality_claim_allowed=false).
+FLEISS_KAPPA_TRUST_THRESHOLD = 0.6
+
+
+def _fleiss_kappa(items: list[Counter]) -> float | None:
+    """Fleiss' kappa over items that share a constant rater count.
+
+    Same estimator as ``run_luban_m35_ai_governed_gold_labeling._fleiss_kappa``:
+    each item is a Counter of category->rater_count for the SAME number of
+    raters. Items with fewer raters (panel abstentions) must be excluded by the
+    caller, since Fleiss' kappa is undefined for a varying rater count.
+    """
+    if not items:
+        return None
+    rater_count = sum(items[0].values())
+    if rater_count < 2:
+        return None
+    item_count = len(items)
+    categories = sorted({category for item in items for category in item})
+    category_share = {
+        category: sum(item.get(category, 0) for item in items) / (item_count * rater_count)
+        for category in categories
+    }
+    mean_agreement = sum(
+        (sum(count**2 for count in item.values()) - rater_count)
+        / (rater_count * (rater_count - 1))
+        for item in items
+    ) / item_count
+    expected_agreement = sum(share**2 for share in category_share.values())
+    if 1 - expected_agreement == 0:
+        return 1.0
+    return round((mean_agreement - expected_agreement) / (1 - expected_agreement), 6)
+
+
+def _slice_fleiss_kappa(rows: list[dict[str, Any]], panel_ids: list[str]) -> dict[str, Any]:
+    """Fleiss' kappa over the blind panel votes across the whole slice.
+
+    Only rows where every panel model returned a non-abstain verdict are scored
+    (constant rater count == len(panel_ids)); rows with any abstention are
+    excluded and counted honestly. ``quality_claim_allowed`` is the trust gate:
+    below ``FLEISS_KAPPA_TRUST_THRESHOLD`` the gold is ai_council_directional.
+    """
+    full = len(panel_ids)
+    counters: list[Counter] = []
+    excluded = 0
+    for row in rows:
+        votes = [row["blind_votes"].get(mid, ABSTAIN) for mid in panel_ids]
+        if any(v == ABSTAIN for v in votes) or len(votes) != full:
+            excluded += 1
+            continue
+        counters.append(Counter(votes))
+    kappa = _fleiss_kappa(counters)
+    allowed = kappa is not None and kappa >= FLEISS_KAPPA_TRUST_THRESHOLD
+    return {
+        "fleiss_kappa": kappa,
+        "scored_item_count": len(counters),
+        "excluded_for_abstention": excluded,
+        "rater_count": full,
+        "threshold": FLEISS_KAPPA_TRUST_THRESHOLD,
+        "quality_claim_allowed": allowed,
+        "label_authority": (
+            "ai_arbitration_panel_candidate" if allowed else "ai_council_directional"
+        ),
+    }
+
+
 def _reference_label(ledger: dict[str, Any], point_id: str) -> str | None:
     for ph in ledger.get("point_hits") or []:
         if str(ph.get("point_id")) == point_id:
@@ -380,10 +447,10 @@ def run_panel(
                         else rec["consensus_verdict"] == ref
                     ),
                 })
-    return _aggregate(per_point_rows)
+    return _aggregate(per_point_rows, panel_ids)
 
 
-def _aggregate(rows: list[dict[str, Any]]) -> dict[str, Any]:
+def _aggregate(rows: list[dict[str, Any]], panel_ids: list[str]) -> dict[str, Any]:
     n = len(rows)
     unanimous = sum(1 for r in rows if r["panel_unanimous"])
     routes = Counter(r["route"] for r in rows)
@@ -406,6 +473,7 @@ def _aggregate(rows: list[dict[str, Any]]) -> dict[str, Any]:
         "per_point_count": n,
         "panel_unanimity_rate": round(unanimous / n, 4) if n else None,
         "mean_pairwise_agreement": round(sum(pair_vals) / len(pair_vals), 4) if pair_vals else None,
+        "panel_fleiss_kappa": _slice_fleiss_kappa(rows, panel_ids),
         "route_counts": dict(routes),
         "reference_checkable_count": len(ref_checkable),
         "consensus_vs_reference_agreement": round(ref_match / len(ref_checkable), 4) if ref_checkable else None,
@@ -455,11 +523,16 @@ def main(argv: list[str] | None = None) -> int:
     arbiter_id = roster.get("arbiter")
 
     result = run_panel(cases, judge_fns, panel_ids, arbiter_id)
+    kappa_block = result["panel_fleiss_kappa"]
     report = {
         "schema_version": SCHEMA_VERSION,
         "classification": "candidate_only",
         "review_status": "review_only",
         "production_write_count": 0,
+        # Trust gate promoted to top level: when Fleiss' kappa < threshold the gold
+        # is directional only and must not be cited as a quality claim.
+        "quality_claim_allowed": kappa_block["quality_claim_allowed"],
+        "gold_label_authority": kappa_block["label_authority"],
         "safety": {
             "production_db_write": False,
             "canonical_truth_write": False,
@@ -471,7 +544,7 @@ def main(argv: list[str] | None = None) -> int:
         "golden_fixture": str(GOLDEN_FIXTURE.relative_to(REPO)),
         "cases": wanted,
         "panel_roster": roster,
-        "label_authority": "ai_arbitration_panel_candidate",
+        "label_authority": kappa_block["label_authority"],
         "label_scope": "offline_measurement_not_runtime",
         "model_stats": stats.snapshot(),
         "aggregate": {k: v for k, v in result.items() if k != "rows"},
@@ -483,6 +556,8 @@ def main(argv: list[str] | None = None) -> int:
     agg = report["aggregate"]
     print(f"tier={args.tier} live={live_ok} points={agg['per_point_count']} "
           f"unanimity={agg['panel_unanimity_rate']} pairwise={agg['mean_pairwise_agreement']} "
+          f"fleiss_kappa={agg['panel_fleiss_kappa']['fleiss_kappa']} "
+          f"quality_claim_allowed={agg['panel_fleiss_kappa']['quality_claim_allowed']} "
           f"consensus_vs_reference={agg['consensus_vs_reference_agreement']} "
           f"split_frontier={agg['split_frontier_count']}")
     print(f"wrote {out_path}")
