@@ -57,7 +57,7 @@
 3. **点亮治理测试**:把 register-before-use 闸自己的 regression 测试接进 CI。**【DONE 2026-06-14, commit 15e6492e5(部分)】** 修 stale 计数(schema_registry.yaml 176→177 / tier3 147→148,对齐 live)+ smoke allowlist 加 `test_schema_registry/db/env/provider/process_registry`(109 测试,含 I1/I2/I3/I4 pin + closure 计数测试)。**故意不加 `test_contract_guard.py`**(并行线改 check_contract_guard.py,WIP-coupled)——待 P0#1 时一并接。`tests/contracts/test_index_consistency` 仍待点亮(P1#5)。
 
 **P1**
-4. tests.yml 加两行 run:跑 `check_harness_authority.py` + `check_model_authority.py`(脚本已存在/AST 级/抓过 regression,只缺 PR 接线)。
+4. **【DONE 2026-06-14, commit 5dcc1c498】** tests.yml 接进 `check_harness_authority.py` + `check_model_authority.py`(两 guard 现 green,以前 PR-blind,现 PR-blocking)。
 5. 一个手术 PR 修 index.yaml 结构 bug:删 duplicate `mobile_http_auth_controls`、把 package copy 补 http_routes+test_rbac、加 CI step(或点亮 test_index_consistency)断言两份一致。
 6. **脱敏 blocklist 单源化**(安全相关):contracts/ 定义一次 frozenset,三处 import,JS 副本 codegen(复用 bi_v2_write_endpoints 模式),加 drift 测进 CI。
 
@@ -68,7 +68,7 @@
 
 **P3**
 10. 去重 5 个路由 pydantic 类 + 建统一响应 envelope,把 api/router schema 面纳入 contract-guard 域。
-11. **建一个元 registry**(`contracts/registries.yaml`)枚举 5 registry+2 index+各自 check 脚本+资源类 scope,加元测断言:(a) 每个 `scripts/check_*.py` 都在 tests.yml 有执行 step,(b) 不加元条目不能加 registry。AGENTS.md + index.yaml 写明判分-only scope 边界。
+11. **【DONE 2026-06-14, commit 5dcc1c498】建了元 registry** `contracts/registries.yaml`(25 个治理 scanner 单一目录,按 enforcement 分类)+ `check_registries_meta.py` 元闸:CI 失败若(a)有治理 scanner 未登记(register-before-use 也管闸自己),或(b)pr_gate-class 没真接 CI(无 dark pr_gate)。复用同一 runner 不加第二套权威。TDD 4 条 + 进 CI。剩:AGENTS.md 写明判分-only scope 边界(待 P0#1 一并)。
 12. 修 dead `test_prompt_parity`(重指 deeptutor/agents/)或加 prompt 输出字段 vs 消费 pydantic 的 diff scanner。
 
 ## 4. 注意事项(执行时)
