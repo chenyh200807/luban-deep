@@ -92,8 +92,11 @@ from deeptutor.services.member_console import rbac
 from deeptutor.services.member_console.admin_store import (
     load_admins,
     load_audit,
+    load_role_permissions,
     remove_admin,
     set_admin,
+    set_role_permissions,
+    set_user_overrides,
 )
 from deeptutor.services.member_console.directory import get_member_directory_read_model
 from deeptutor.services.path_service import get_path_service
@@ -2679,11 +2682,69 @@ class MemberConsoleService:
         """兼容旧布尔门：super_admin / admin 视为完整管理员。"""
         return rbac.is_full_admin(self.get_admin_role(user_id))
 
+    def _role_permissions_store(self) -> dict[str, Any]:
+        return load_role_permissions(self._bi_admins_path())
+
+    def _user_overrides(self, user_id: str) -> dict[str, Any]:
+        record = load_admins(self._bi_admins_path()).get(str(user_id or "").strip()) or {}
+        ov = record.get("permission_overrides")
+        return ov if isinstance(ov, dict) else {}
+
+    def get_effective_permissions(self, user_id: str | None) -> dict[str, list[str]]:
+        """某管理员的最终生效权限矩阵（角色权限[可被编辑] 叠加 per-user 覆盖）。"""
+        role = self.get_admin_role(user_id)
+        if role is None:
+            return {tab: [] for tab in rbac.TABS}
+        effective = rbac.resolve_effective_permissions(
+            role, self._role_permissions_store(), self._user_overrides(str(user_id or "").strip())
+        )
+        return rbac.matrix_to_lists(effective)
+
     def can_access(self, user_id: str | None, tab: str, action: str) -> bool:
-        return rbac.can(self.get_admin_role(user_id), tab, action)
+        role = self.get_admin_role(user_id)
+        if role is None:
+            return False
+        effective = rbac.resolve_effective_permissions(
+            role, self._role_permissions_store(), self._user_overrides(str(user_id or "").strip())
+        )
+        return rbac.can_resolved(effective, tab, action)
 
     def can_manage_permissions(self, user_id: str | None) -> bool:
         return rbac.can_manage_permissions(self.get_admin_role(user_id))
+
+    def roles_payload(self) -> dict[str, Any]:
+        """角色定义 + 生效权限矩阵（含超管已编辑）+ 可编辑标记。"""
+        return rbac.roles_payload(self._role_permissions_store())
+
+    def set_role_permissions(
+        self, *, actor: str, role: str, matrix: dict[str, Any], at: str = ""
+    ) -> dict[str, Any]:
+        """超管编辑某角色权限矩阵（super_admin 角色锁定不可编辑，防锁死）。"""
+        if not rbac.is_valid_role(role):
+            raise ValueError(f"未知角色: {role}")
+        if not rbac.is_role_editable(role):
+            raise ValueError("超级管理员角色恒为全权，不可编辑")
+        normalized = rbac.normalize_matrix(matrix)
+        set_role_permissions(self._bi_admins_path(), role, normalized, actor=actor, at=at)
+        return self.roles_payload()
+
+    def set_user_permission_overrides(
+        self, *, actor: str, user_id: str, overrides: dict[str, Any], at: str = ""
+    ) -> list[dict[str, Any]]:
+        """精确到人：给某管理员设个人权限覆盖（env 超管 + super_admin 角色不可覆盖）。"""
+        normalized = str(user_id or "").strip()
+        if normalized in self._env_admin_user_ids():
+            raise ValueError("系统引导超级管理员恒为全权，不可设置个人权限覆盖")
+        role = self.get_admin_role(normalized)
+        if role is None:
+            raise ValueError("该用户不是管理员")
+        if role in rbac.LOCKED_ROLES:
+            raise ValueError("超级管理员恒为全权，不可设置个人权限覆盖")
+        norm = rbac.normalize_matrix(overrides)
+        # 只保留调用方明确提交的 tab（未提交的 tab 不写 override，回落角色默认）
+        submitted = {tab: norm[tab] for tab in overrides.keys() if tab in rbac.TABS}
+        set_user_overrides(self._bi_admins_path(), normalized, submitted, actor=actor, at=at)
+        return self.list_admin_user_ids()
 
     def _safe_member_display_name(self, user_id: str) -> str:
         try:
@@ -2693,10 +2754,12 @@ class MemberConsoleService:
             return ""
 
     def list_admin_user_ids(self) -> list[dict[str, Any]]:
-        """合并 env 引导(super_admin,不可改/删) + 运行时增量(带角色)。"""
+        """合并 env 引导(super_admin,不可改/删) + 运行时增量(带角色+生效权限+个人覆盖)。"""
         env_ids = self._env_admin_user_ids()
         file_admins = load_admins(self._bi_admins_path())
+        role_store = self._role_permissions_store()
         out: list[dict[str, Any]] = []
+        super_eff = rbac.resolve_role_permissions(rbac.ROLE_SUPER_ADMIN, role_store)
         for uid in sorted(env_ids):
             out.append(
                 {
@@ -2707,12 +2770,17 @@ class MemberConsoleService:
                     "source": "env",
                     "removable": False,
                     "editable": False,
-                    "accessible_tabs": rbac.accessible_tabs(rbac.ROLE_SUPER_ADMIN),
+                    "has_overrides": False,
+                    "accessible_tabs": rbac.accessible_tabs_resolved(super_eff),
+                    "effective_matrix": rbac.matrix_to_lists(super_eff),
                 }
             )
         for uid in sorted(set(file_admins) - env_ids):
             record = file_admins[uid]
             role = rbac.normalize_role(record.get("role"))
+            overrides = record.get("permission_overrides")
+            overrides = overrides if isinstance(overrides, dict) else {}
+            eff = rbac.resolve_effective_permissions(role, role_store, overrides)
             out.append(
                 {
                     "user_id": uid,
@@ -2725,7 +2793,12 @@ class MemberConsoleService:
                     "source": "runtime",
                     "removable": True,
                     "editable": True,
-                    "accessible_tabs": rbac.accessible_tabs(role),
+                    "has_overrides": bool(overrides),
+                    "permission_overrides": rbac.normalize_matrix(overrides)
+                    if overrides
+                    else {},
+                    "accessible_tabs": rbac.accessible_tabs_resolved(eff),
+                    "effective_matrix": rbac.matrix_to_lists(eff),
                 }
             )
         return out

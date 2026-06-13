@@ -155,6 +155,20 @@ mobile_http_auth_controls:
       - The mini-program primary quick-login button must use getPhoneNumber and
         keep audit-safe copy that does not expose WeChat wording in the UI.
 
+bi_admin_rbac:
+  authority: deeptutor/services/member_console/rbac.py + admin_store.py (data/user/bi_admins.json)
+  semantics:
+    - BI 后台权限的唯一定义来源是 rbac.py 的角色权限矩阵；端点与前端都从这里派生，
+      不得各自硬编码权限判断。
+    - 4 个角色 (super_admin/admin/operator/analyst) × 5 tab × 4 操作 (view/export/write/high_risk)。
+    - super_admin 角色恒为全权且可管理权限 (LOCKED_ROLES)，不可被编辑/降级/移除，
+      env 引导管理员 (DEEPTUTOR_ADMIN_USER_IDS) 恒为 super_admin，防止超管锁死自己。
+    - 超管可编辑非锁定角色的权限矩阵 (角色级，影响所有该角色管理员)，并可对单个管理员
+      设置 per-user 权限覆盖 (精确到人)。生效权限 = 角色权限[可编辑] 叠加 per-user 覆盖。
+    - 所有权限变更 (增删管理员、改角色、编辑角色权限、个人覆盖) 写入 bi_admins.json 的
+      审计记录；管理端点要求 super_admin (can_manage_permissions)。
+    - 权限存储是文件持久化 (bind-mount)，非 turn/session/capability/learner-state authority。
+
 domains:
   turn:
     summary: Unified turn, stream, replay, session, trace boundary, and mobile assessment HTTP bridges.

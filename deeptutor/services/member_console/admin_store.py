@@ -27,7 +27,7 @@ _AUDIT_MAX = 1000
 
 
 def _empty() -> dict[str, Any]:
-    return {"schema_version": 2, "admins": {}, "audit": []}
+    return {"schema_version": 2, "admins": {}, "audit": [], "role_permissions": {}}
 
 
 def _read(path: Path) -> dict[str, Any]:
@@ -52,14 +52,22 @@ def _read(path: Path) -> dict[str, Any]:
             for uid in raw["user_ids"]
             if str(uid).strip()
         }
-        return {"schema_version": 2, "admins": admins, "audit": []}
+        return {"schema_version": 2, "admins": admins, "audit": [], "role_permissions": {}}
     admins = raw.get("admins")
     if not isinstance(admins, dict):
         admins = {}
     audit = raw.get("audit")
     if not isinstance(audit, list):
         audit = []
-    return {"schema_version": 2, "admins": admins, "audit": audit}
+    role_permissions = raw.get("role_permissions")
+    if not isinstance(role_permissions, dict):
+        role_permissions = {}
+    return {
+        "schema_version": 2,
+        "admins": admins,
+        "audit": audit,
+        "role_permissions": role_permissions,
+    }
 
 
 def _write(path: Path, data: dict[str, Any]) -> None:
@@ -69,12 +77,80 @@ def _write(path: Path, data: dict[str, Any]) -> None:
 
 
 def load_admins(path: Path) -> dict[str, dict[str, Any]]:
-    """运行时增量管理员（不含 env 引导名单）。返回 {user_id: {role, display_name, ...}}。"""
+    """运行时增量管理员（不含 env 引导名单）。返回 {user_id: {role, display_name, permission_overrides, ...}}。"""
     return dict(_read(path)["admins"])
 
 
 def load_audit(path: Path) -> list[dict[str, Any]]:
     return list(_read(path)["audit"])
+
+
+def load_role_permissions(path: Path) -> dict[str, Any]:
+    """超管编辑过的角色权限矩阵 {role: {tab: [actions]}}（未编辑的角色不在此）。"""
+    return dict(_read(path)["role_permissions"])
+
+
+def set_role_permissions(
+    path: Path,
+    role: str,
+    matrix: dict[str, list[str]],
+    *,
+    actor: str = "",
+    at: str = "",
+) -> dict[str, Any]:
+    """超管编辑某角色的权限矩阵（整体覆盖该角色），并写审计。"""
+    normalized = str(role or "").strip()
+    if not normalized:
+        raise ValueError("role is required")
+    with _LOCK:
+        data = _read(path)
+        data["role_permissions"][normalized] = matrix
+        data["audit"].append(
+            {
+                "ts": at,
+                "actor": actor,
+                "action": "set_role_permissions",
+                "target": normalized,
+                "from_role": "",
+                "to_role": "",
+                "detail": "role_matrix",
+            }
+        )
+        _write(path, data)
+        return dict(data["role_permissions"])
+
+
+def set_user_overrides(
+    path: Path,
+    user_id: str,
+    overrides: dict[str, list[str]],
+    *,
+    actor: str = "",
+    at: str = "",
+) -> dict[str, dict[str, Any]]:
+    """给某个已存在的运行时管理员设置 per-user 权限覆盖（精确到人），并写审计。"""
+    normalized = str(user_id or "").strip()
+    if not normalized:
+        raise ValueError("user_id is required")
+    with _LOCK:
+        data = _read(path)
+        record = data["admins"].get(normalized)
+        if record is None:
+            raise ValueError("该用户不是运行时管理员，无法设置个人权限覆盖")
+        record["permission_overrides"] = overrides
+        data["audit"].append(
+            {
+                "ts": at,
+                "actor": actor,
+                "action": "set_user_overrides",
+                "target": normalized,
+                "from_role": str(record.get("role") or ""),
+                "to_role": "",
+                "detail": ",".join(sorted(overrides.keys())) if overrides else "cleared",
+            }
+        )
+        _write(path, data)
+        return dict(data["admins"])
 
 
 def set_admin(
@@ -99,6 +175,7 @@ def set_admin(
             "display_name": display_name or prev.get("display_name") or "",
             "granted_by": actor or prev.get("granted_by") or "",
             "granted_at": granted_at or prev.get("granted_at") or "",
+            "permission_overrides": prev.get("permission_overrides") or {},
         }
         data["audit"].append(
             {

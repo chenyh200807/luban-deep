@@ -69,10 +69,14 @@ ROLE_PERMISSIONS: dict[str, dict[str, set[str]]] = {
     ROLE_ANALYST: {tab: set(_READ_ONLY) for tab in TABS},
 }
 
-# 只有这些角色能管理权限（增删管理员、改角色）。
+# 只有这些角色能管理权限（增删管理员、改角色、编辑权限）。
 _MANAGE_PERMISSION_ROLES = {ROLE_SUPER_ADMIN}
 # is_admin（兼容旧的布尔 admin 门）= 这些角色。
 _FULL_ADMIN_ROLES = {ROLE_SUPER_ADMIN, ROLE_ADMIN}
+# 恒全权、不可被编辑/覆盖的角色（防止超管把自己锁死）。
+LOCKED_ROLES = {ROLE_SUPER_ADMIN}
+# 代码默认权限矩阵（首次/未编辑时的初始值）。
+DEFAULT_ROLE_PERMISSIONS = ROLE_PERMISSIONS
 
 
 def is_valid_role(role: str | None) -> bool:
@@ -107,13 +111,77 @@ def accessible_tabs(role: str | None) -> list[str]:
 
 
 def role_matrix(role: str) -> dict[str, list[str]]:
-    """单个角色的权限矩阵（tab -> 有序 action 列表），给 UI 渲染。"""
+    """单个角色的【默认】权限矩阵（tab -> 有序 action 列表）。"""
     perms = ROLE_PERMISSIONS.get(role, {})
     return {tab: [a for a in ACTIONS if a in perms.get(tab, set())] for tab in TABS}
 
 
-def roles_payload() -> dict[str, Any]:
-    """全部角色定义 + 权限矩阵 + 维度标签，供前端一次性渲染权限管理界面。"""
+def is_role_editable(role: str | None) -> bool:
+    """角色权限是否可被超管编辑。super_admin 恒全权,不可编辑(防锁死)。"""
+    r = str(role or "")
+    return r in ROLE_PERMISSIONS and r not in LOCKED_ROLES
+
+
+def normalize_matrix(matrix: dict[str, Any] | None) -> dict[str, list[str]]:
+    """把任意输入规范化成合法的 {tab: [有序合法 action]}（丢弃未知 tab/action）。"""
+    matrix = matrix or {}
+    out: dict[str, list[str]] = {}
+    for tab in TABS:
+        raw = matrix.get(tab) or []
+        chosen = set(str(a) for a in raw) if isinstance(raw, (list, tuple, set)) else set()
+        out[tab] = [a for a in ACTIONS if a in chosen]
+    return out
+
+
+def resolve_role_permissions(
+    role: str | None, stored: dict[str, Any] | None = None
+) -> dict[str, set[str]]:
+    """角色的生效权限：locked 角色恒全权；否则 已编辑(stored) ?? 代码默认。"""
+    r = str(role or "")
+    if r in LOCKED_ROLES:
+        return {tab: set(_ALL_ACTIONS) for tab in TABS}
+    if stored and isinstance(stored.get(r), dict):
+        norm = normalize_matrix(stored[r])
+        return {tab: set(norm.get(tab, [])) for tab in TABS}
+    base = ROLE_PERMISSIONS.get(r, {})
+    return {tab: set(base.get(tab, set())) for tab in TABS}
+
+
+def resolve_effective_permissions(
+    role: str | None,
+    stored_role_perms: dict[str, Any] | None = None,
+    user_overrides: dict[str, Any] | None = None,
+) -> dict[str, set[str]]:
+    """某个管理员的最终生效权限 = 角色权限(可能被编辑) 叠加 per-user 覆盖。
+
+    locked 角色(super_admin)忽略一切覆盖,恒全权。per-user override 按 tab 整列覆盖。
+    """
+    r = str(role or "")
+    base = resolve_role_permissions(r, stored_role_perms)
+    if r in LOCKED_ROLES or not user_overrides:
+        return base
+    norm = normalize_matrix(user_overrides)
+    for tab in TABS:
+        if tab in (user_overrides or {}):
+            base[tab] = set(norm.get(tab, []))
+    return base
+
+
+def can_resolved(effective: dict[str, set[str]], tab: str, action: str) -> bool:
+    return action in effective.get(tab, set())
+
+
+def accessible_tabs_resolved(effective: dict[str, set[str]]) -> list[str]:
+    return [tab for tab in TABS if "view" in effective.get(tab, set())]
+
+
+def matrix_to_lists(effective: dict[str, set[str]]) -> dict[str, list[str]]:
+    """{tab: set} → {tab: 有序 list}，给 JSON/前端。"""
+    return {tab: [a for a in ACTIONS if a in effective.get(tab, set())] for tab in TABS}
+
+
+def roles_payload(stored_role_perms: dict[str, Any] | None = None) -> dict[str, Any]:
+    """全部角色定义 + 【生效】权限矩阵(含已编辑) + 维度标签 + 可编辑标记。"""
     return {
         "tabs": [{"key": t, "label": TAB_LABELS[t]} for t in TABS],
         "actions": [{"key": a, "label": ACTION_LABELS[a]} for a in ACTIONS],
@@ -124,7 +192,9 @@ def roles_payload() -> dict[str, Any]:
                 "description": ROLE_DESCRIPTIONS[role],
                 "can_manage_permissions": can_manage_permissions(role),
                 "is_full_admin": is_full_admin(role),
-                "matrix": role_matrix(role),
+                "editable": is_role_editable(role),
+                "matrix": matrix_to_lists(resolve_role_permissions(role, stored_role_perms)),
+                "default_matrix": role_matrix(role),
             }
             for role in ROLE_ORDER
         ],

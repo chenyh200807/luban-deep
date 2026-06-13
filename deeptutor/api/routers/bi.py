@@ -460,27 +460,75 @@ def _now_iso() -> str:
 
 @router.get("/rbac/roles")
 async def bi_rbac_roles(_auth: AuthContext = Depends(require_bi_admin)):
-    """角色定义 + 权限矩阵 + tab/操作维度，供权限管理界面渲染。"""
-    from deeptutor.services.member_console import rbac
+    """角色定义 + 【生效】权限矩阵(含超管已编辑) + tab/操作维度 + 可编辑标记。"""
+    return get_member_console_service().roles_payload()
 
-    return rbac.roles_payload()
+
+@router.put("/rbac/roles/{role}/permissions")
+async def bi_set_role_permissions(
+    role: str,
+    payload: dict[str, Any] | None = Body(default=None),
+    auth: AuthContext = Depends(require_bi_super_admin),
+):
+    """编辑某角色的权限矩阵(角色级,影响所有该角色管理员)。body: {matrix:{tab:[actions]}}。"""
+    body = payload or {}
+    matrix = body.get("matrix") if isinstance(body.get("matrix"), dict) else body
+    try:
+        return get_member_console_service().set_role_permissions(
+            actor=auth.user_id, role=role, matrix=matrix, at=_now_iso()
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+@router.put("/admins/{user_id}/permissions")
+async def bi_set_user_permissions(
+    user_id: str,
+    payload: dict[str, Any] | None = Body(default=None),
+    auth: AuthContext = Depends(require_bi_super_admin),
+):
+    """精确到人:给某管理员设个人权限覆盖。body: {overrides:{tab:[actions]}}(只提交的 tab 覆盖)。"""
+    body = payload or {}
+    overrides = body.get("overrides") if isinstance(body.get("overrides"), dict) else {}
+    try:
+        admins = get_member_console_service().set_user_permission_overrides(
+            actor=auth.user_id, user_id=user_id, overrides=overrides, at=_now_iso()
+        )
+        return {"admins": admins, "user_id": user_id}
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+@router.get("/admins/{user_id}/effective-permissions")
+async def bi_user_effective_permissions(
+    user_id: str, _auth: AuthContext = Depends(require_bi_admin)
+):
+    """某管理员的最终生效权限矩阵(角色权限叠加个人覆盖)。"""
+    svc = get_member_console_service()
+    return {
+        "user_id": user_id,
+        "role": svc.get_admin_role(user_id),
+        "effective_matrix": svc.get_effective_permissions(user_id),
+    }
 
 
 @router.get("/rbac/me")
 async def bi_rbac_me(auth: AuthContext | None = Depends(require_bi_access)):
-    """当前登录者的角色与可访问 tab（前端导航门控用）。"""
+    """当前登录者的角色与生效权限(前端导航门控用)。"""
     from deeptutor.services.member_console import rbac
 
     uid = auth.user_id if auth else ""
-    role = get_member_console_service().get_admin_role(uid)
+    svc = get_member_console_service()
+    role = svc.get_admin_role(uid)
+    effective = svc.get_effective_permissions(uid) if role else {}
     return {
         "user_id": uid,
         "role": role,
         "role_label": rbac.ROLE_LABELS.get(role or "", ""),
         "can_manage_permissions": rbac.can_manage_permissions(role),
         "is_full_admin": rbac.is_full_admin(role),
-        "accessible_tabs": rbac.accessible_tabs(role),
-        "matrix": rbac.role_matrix(role) if role else {},
+        "accessible_tabs": [t for t in rbac.TABS if "view" in (effective.get(t) or [])],
+        "matrix": effective,
     }
 
 
