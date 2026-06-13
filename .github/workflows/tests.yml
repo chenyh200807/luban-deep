@@ -112,6 +112,17 @@ jobs:
           BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
           HEAD_SHA: ${{ github.sha }}
 
+      - name: Schema registry guard (register-before-use closure)
+        # Powers on contracts/schema_registry.yaml: every schema-version id in the
+        # codebase must be registered (T1 grading typed object / T2 runtime-consumed
+        # contract) or match the T3 ephemeral carve-out. --closure regenerates the
+        # full id set and fails on any orphan, so no agent can introduce an
+        # unregistered schema without updating the single canonical registry.
+        # (Bundling into check_contract_guard.py main() is a later consolidation,
+        # blocked only by that file's in-flight WIP; this step makes the gate live now.)
+        run: |
+          python scripts/check_schema_registry.py --closure
+
       - name: WebSocket single-control-plane allowlist gate
         # Reflects the live FastAPI app's production WebSocket surface and fails
         # on any WS route not declared in contracts/index.yaml websocket_routes,
