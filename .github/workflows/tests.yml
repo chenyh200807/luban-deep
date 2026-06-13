@@ -368,6 +368,7 @@ jobs:
             tests/scripts/test_provider_registry.py \
             tests/scripts/test_process_registry.py \
             tests/scripts/test_registries_meta.py \
+            tests/scripts/test_contract_guard.py \
             tests/services/test_import_smoke.py \
             tests/services/test_app_facade.py \
             tests/services/test_model_catalog.py \
