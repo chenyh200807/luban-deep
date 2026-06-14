@@ -6,7 +6,10 @@ partial credit, high-risk flag, and learning-evidence projection.
 from __future__ import annotations
 
 import asyncio
+import json
+from pathlib import Path
 
+from deeptutor.services.construction_grading.full_knowledge_compiler import _sha256_hex
 from deeptutor.services.construction_grading import rubric_grader_v1 as G
 
 
@@ -346,6 +349,172 @@ def test_load_rubric_bank_is_cached_process_wide() -> None:
     info = G._rubric_bank.cache_info()
     assert info.misses == 1 and info.hits == 4
     G._rubric_bank.cache_clear()
+
+
+def _write_test_rubric_bank(
+    root: Path,
+    slot_dir: str,
+    bank_name: str,
+    records: list[dict],
+    *,
+    pointer_hash: str | None = None,
+) -> str:
+    content_hash = _sha256_hex(records)
+    bank_dir = root / "runtime_supply" / slot_dir
+    bank_dir.mkdir(parents=True)
+    (bank_dir / bank_name).write_text(
+        json.dumps({"manifest": {"content_hash": content_hash}, "records": records}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+    (bank_dir / "canonical_pointer.json").write_text(
+        json.dumps(
+            {
+                "status": "release_candidate",
+                "published": False,
+                "expected_content_hash": pointer_hash or content_hash,
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    return content_hash
+
+
+def test_rubric_bank_slot_defaults_to_legacy(tmp_path: Path, monkeypatch) -> None:
+    records = [
+        {
+            "qid": "Q-legacy",
+            "point_id": "L1",
+            "text": "legacy point",
+            "score": 1.0,
+            "policy": "list",
+            "required_terms": ["legacy"],
+        }
+    ]
+    _write_test_rubric_bank(tmp_path, "v_case_rubric_scored", "case_rubric_scored.json", records)
+    monkeypatch.setattr(G, "__file__", str(tmp_path / "rubric_grader_v1.py"))
+    monkeypatch.delenv("LUBAN_CASE_RUBRIC_BANK_SLOT", raising=False)
+    G._rubric_bank.cache_clear()
+
+    try:
+        assert G.load_rubric("Q-legacy")[0]["point_id"] == "L1"
+    finally:
+        G._rubric_bank.cache_clear()
+
+
+def test_rubric_bank_pgo_slot_missing_fails_closed_without_legacy_fallback(tmp_path: Path, monkeypatch) -> None:
+    records = [
+        {
+            "qid": "Q-overlap",
+            "point_id": "L1",
+            "text": "legacy point",
+            "score": 1.0,
+            "policy": "list",
+            "required_terms": ["legacy"],
+        }
+    ]
+    _write_test_rubric_bank(tmp_path, "v_case_rubric_scored", "case_rubric_scored.json", records)
+    monkeypatch.setattr(G, "__file__", str(tmp_path / "rubric_grader_v1.py"))
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_BANK_SLOT", "pgo")
+    G._rubric_bank.cache_clear()
+
+    try:
+        assert G.load_rubric("Q-overlap") == []
+    finally:
+        G._rubric_bank.cache_clear()
+
+
+def test_rubric_bank_unknown_slot_fails_closed_without_legacy_fallback(tmp_path: Path, monkeypatch) -> None:
+    records = [
+        {
+            "qid": "Q-overlap",
+            "point_id": "L1",
+            "text": "legacy point",
+            "score": 1.0,
+            "policy": "list",
+            "required_terms": ["legacy"],
+        }
+    ]
+    _write_test_rubric_bank(tmp_path, "v_case_rubric_scored", "case_rubric_scored.json", records)
+    monkeypatch.setattr(G, "__file__", str(tmp_path / "rubric_grader_v1.py"))
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_BANK_SLOT", "pg0")
+    G._rubric_bank.cache_clear()
+
+    try:
+        assert G.load_rubric("Q-overlap") == []
+    finally:
+        G._rubric_bank.cache_clear()
+
+
+def test_rubric_bank_pgo_slot_loads_independent_bank_when_hash_pinned(tmp_path: Path, monkeypatch) -> None:
+    _write_test_rubric_bank(
+        tmp_path,
+        "v_case_rubric_scored",
+        "case_rubric_scored.json",
+        [
+            {
+                "qid": "Q-shared",
+                "point_id": "L1",
+                "text": "legacy point",
+                "score": 1.0,
+                "policy": "list",
+                "required_terms": ["legacy"],
+            }
+        ],
+    )
+    _write_test_rubric_bank(
+        tmp_path,
+        "v_case_rubric_scored_pgo",
+        "case_rubric_scored_pgo.json",
+        [
+            {
+                "qid": "Q-shared",
+                "point_id": "PGO1",
+                "text": "pgo point",
+                "score": 2.0,
+                "policy": "qualitative",
+                "required_terms": ["pgo"],
+            }
+        ],
+    )
+    monkeypatch.setattr(G, "__file__", str(tmp_path / "rubric_grader_v1.py"))
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_BANK_SLOT", "pgo")
+    G._rubric_bank.cache_clear()
+
+    try:
+        loaded = G.load_rubric("Q-shared")
+        assert [p["point_id"] for p in loaded] == ["PGO1"]
+        assert loaded[0]["score"] == 2.0
+    finally:
+        G._rubric_bank.cache_clear()
+
+
+def test_rubric_bank_refuses_pointer_hash_mismatch(tmp_path: Path, monkeypatch) -> None:
+    records = [
+        {
+            "qid": "Q-pgo",
+            "point_id": "PGO1",
+            "text": "pgo point",
+            "score": 2.0,
+            "policy": "qualitative",
+            "required_terms": ["pgo"],
+        }
+    ]
+    _write_test_rubric_bank(
+        tmp_path,
+        "v_case_rubric_scored_pgo",
+        "case_rubric_scored_pgo.json",
+        records,
+        pointer_hash="not-the-bank-hash",
+    )
+    monkeypatch.setattr(G, "__file__", str(tmp_path / "rubric_grader_v1.py"))
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_BANK_SLOT", "pgo")
+    G._rubric_bank.cache_clear()
+
+    try:
+        assert G.load_rubric("Q-pgo") == []
+    finally:
+        G._rubric_bank.cache_clear()
 
 
 def test_derive_rubric_from_stem_returns_empty_on_empty_stem() -> None:

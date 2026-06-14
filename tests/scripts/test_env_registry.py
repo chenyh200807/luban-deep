@@ -43,6 +43,7 @@ def test_registry_loads_envs_flags_and_grandfathered() -> None:
     # feature flags are a distinct indexed set (the env_flag() universe)
     assert "KBV5_RAG_ENABLED" in registry["registered_flags"]
     assert "LUBAN_V1_CONTROLLED_RUNTIME_ENABLED" in registry["registered_flags"]
+    assert "LUBAN_CASE_RUBRIC_BANK_SLOT" in registry["registered_envs"]
     # a flag is also a registered env (so rule (a) never double-fires on it)
     assert "KBV5_RAG_ENABLED" in registry["registered_envs"]
     # secret-kind credentials are in the same registry (not a separate store)
@@ -204,6 +205,7 @@ def test_i4_registered_env_via_new_forms_passes() -> None:
     assert ok is True, message
 
 
+
 def test_full_repo_scan_has_zero_false_positives() -> None:
     """The whole-repo scan over real production source must be GREEN.
 
@@ -266,4 +268,3 @@ def test_i4b_registered_env_via_bare_environ_passes() -> None:
     envs = collect_env_reference_usages([("deeptutor/services/x.py", code)])
     ok, message = evaluate_env_usages(envs, [], load_env_registry())
     assert ok is True, message
-
