@@ -32,6 +32,21 @@ CONTRADICTION = "contradiction"
 _CREDITED = frozenset({HIT})
 _UNMET = frozenset({MISS, CONTRADICTION})
 
+_PGO_SUB_TYPE_TO_POLICY = {
+    "flaw_correction": "qualitative",
+    "exceptions": "qualitative",
+    "calculation": "calculation",
+    "enumeration": "list",
+    "free_text_point": "qualitative",
+}
+
+_VERDICT_CREDIT = {
+    HIT: 1.0,
+    PARTIAL: 0.5,
+    MISS: 0.0,
+    CONTRADICTION: 0.0,
+}
+
 # A score at/above this fraction is "high" — used to describe the trust-collapse failure
 # (near-full marks despite a missed sub-question) in human terms.
 OVER_CREDIT_HIGH_THRESHOLD = 0.95
@@ -124,6 +139,124 @@ def candidate_coverage_score(
     return credited / len(points)
 
 
+def _supporting_terms_by_point(contract: dict[str, Any]) -> dict[str, list[str]]:
+    terms_by_point: dict[str, list[str]] = {}
+    for cite in contract.get("supporting_citations") or []:
+        if not isinstance(cite, dict):
+            continue
+        if cite.get("official_score_allowed") is not False:
+            continue
+        if cite.get("anchor_verified") is False:
+            continue
+        if not cite.get("chunk_id"):
+            continue
+        point_id = str(cite.get("point_id") or "")
+        term = str(cite.get("term") or "").strip()
+        if not point_id or not term:
+            continue
+        terms_by_point.setdefault(point_id, [])
+        if term not in terms_by_point[point_id]:
+            terms_by_point[point_id].append(term)
+    return terms_by_point
+
+
+def runtime_points_from_grading_contract(
+    contract: dict[str, Any]
+) -> list[dict[str, Any]]:
+    """Adapt the PGO contract into the runtime point shape without minting scores.
+
+    The official total remains the only numeric score authority. These points are
+    adjudication instructions: official slice + coarse policy + verified supporting
+    terms. Per-point ``score``/``max_score`` stay null by construction.
+    """
+    supporting_terms = _supporting_terms_by_point(contract)
+    runtime_points: list[dict[str, Any]] = []
+    for sp in contract.get("scoring_points") or []:
+        point_id = str(sp.get("point_id") or "")
+        sub_type = str(sp.get("sub_type") or "free_text_point")
+        required_terms = supporting_terms.get(point_id, [])
+        policy_type = _PGO_SUB_TYPE_TO_POLICY.get(sub_type, "qualitative")
+        if required_terms and policy_type == "qualitative":
+            policy_type = "exact_required"
+        runtime_points.append(
+            {
+                "point_id": point_id,
+                "official_slice": sp.get("official_slice") or "",
+                "knowledge_point": sp.get("official_slice") or "",
+                "policy_type": policy_type,
+                "sub_type": sub_type,
+                "required_terms": list(required_terms),
+                "term_authority": (
+                    "textbook_cited_supporting_only"
+                    if required_terms
+                    else "none"
+                ),
+                "score": None,
+                "max_score": None,
+            }
+        )
+    return runtime_points
+
+
+def verdict_coverage_awarded_score(
+    point_verdicts: dict[str, str],
+    contract: dict[str, Any],
+    *,
+    partial_ratio: float = 0.5,
+) -> dict[str, Any]:
+    """Award ``official_total_score * verdict coverage`` for null-score PGO points.
+
+    This is the Stage 2 single-authority arithmetic: one official numeric total,
+    verdict-count coverage for distribution, and no per-point score summation.
+    """
+    total = contract.get("official_total_score")
+    if not isinstance(total, int | float):
+        return {
+            "awarded_score": 0.0,
+            "max_score": 0.0,
+            "coverage": 0.0,
+            "credited_points": 0.0,
+            "total_points": len(contract.get("scoring_points") or []),
+            "score_authority": "official_total_x_verdict_coverage",
+            "official_score_allowed": False,
+            "canonical_write_allowed": False,
+            "blockers": ["missing_official_total_score"],
+        }
+    points = contract.get("scoring_points") or []
+    if not points:
+        return {
+            "awarded_score": 0.0,
+            "max_score": float(total),
+            "coverage": 0.0,
+            "credited_points": 0.0,
+            "total_points": 0,
+            "score_authority": "official_total_x_verdict_coverage",
+            "official_score_allowed": False,
+            "canonical_write_allowed": False,
+            "blockers": ["no_scoring_points"],
+        }
+
+    credit_weights = dict(_VERDICT_CREDIT)
+    credit_weights[PARTIAL] = float(partial_ratio)
+    credited = sum(
+        credit_weights.get(point_verdicts.get(str(sp.get("point_id"))), 0.0)
+        for sp in points
+    )
+    coverage = credited / len(points)
+    awarded = float(total) * coverage
+    return {
+        "awarded_score": round(awarded, 4),
+        "max_score": float(total),
+        "coverage": round(coverage, 4),
+        "credited_points": round(credited, 4),
+        "total_points": len(points),
+        "score_authority": "official_total_x_verdict_coverage",
+        "official_score_allowed": False,
+        "canonical_write_allowed": False,
+        "blockers": [],
+    }
+
+
 def detect_over_credit(
     *,
     score_pct: float,
@@ -174,5 +307,7 @@ __all__ = [
     "make_controlled_student_answers",
     "oracle_verdicts",
     "candidate_coverage_score",
+    "runtime_points_from_grading_contract",
+    "verdict_coverage_awarded_score",
     "detect_over_credit",
 ]
