@@ -204,6 +204,7 @@ def test_i4_registered_env_via_new_forms_passes() -> None:
     ok, message = evaluate_env_usages(envs, [], load_env_registry())
     assert ok is True, message
 
+
 def test_full_repo_scan_has_zero_false_positives() -> None:
     """The whole-repo scan over real production source must be GREEN.
 
