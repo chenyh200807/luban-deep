@@ -1,7 +1,14 @@
 /* eslint-disable i18n/no-literal-ui-text */
 'use client'
 
-import { LayoutDashboard, Users, ShoppingBag, MessageSquareWarning, Wrench } from 'lucide-react'
+import {
+  LayoutDashboard,
+  Users,
+  ShoppingBag,
+  MessageSquareWarning,
+  Wrench,
+  ShieldCheck,
+} from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { BiAppShell, BiSideNav, BiTopBar, type BiSideNavItem } from '@/components/bi-v2'
 import type { BiFlagSnapshot } from '@/lib/bi-feature-flags'
@@ -10,11 +17,18 @@ import { BiV2MemberOpsPanel } from './member-ops/BiV2MemberOpsPanel'
 import { BiV2CommercePanel } from './commerce/BiV2CommercePanel'
 import { BiV2FeedbackPanel } from './feedback/BiV2FeedbackPanel'
 import { BiV2OpsPanel } from './ops/BiV2OpsPanel'
+import { BiAdminConsole } from '../_components/BiAdminConsole'
 import { RequireBiAdmin } from './RequireBiAdmin'
 import { describeGlobalSearchActor, routeForGlobalSearch } from './global-search-route'
 import type { BiAdminIdentity } from './useBiAdminIdentity'
 
-export type BiV2Section = 'overview' | 'member-ops' | 'commerce' | 'feedback' | 'ops'
+export type BiV2Section =
+  | 'overview'
+  | 'member-ops'
+  | 'commerce'
+  | 'feedback'
+  | 'ops'
+  | 'permissions'
 
 const SECTIONS: BiSideNavItem<BiV2Section>[] = [
   {
@@ -47,6 +61,12 @@ const SECTIONS: BiSideNavItem<BiV2Section>[] = [
     summary: '成本质量、数据可信、操作审计、权限审计、上线面板。',
     icon: Wrench,
   },
+  {
+    key: 'permissions',
+    label: '权限管理',
+    summary: '后台管理员、角色与权限矩阵；超级管理员可增删改，其余角色只读。',
+    icon: ShieldCheck,
+  },
 ]
 
 function isSectionEnabled(section: BiV2Section, flags: BiFlagSnapshot) {
@@ -54,6 +74,8 @@ function isSectionEnabled(section: BiV2Section, flags: BiFlagSnapshot) {
   if (section === 'member-ops') return flags.BI_CRM_V2_ENABLED
   if (section === 'commerce') return flags.BI_COMMERCE_V2_ENABLED
   if (section === 'feedback') return flags.BI_FEEDBACK_V2_ENABLED
+  // 权限管理是基础治理能力，始终可用（不受单 tab 灰度 flag 控制）。
+  if (section === 'permissions') return true
   return flags.BI_SYSTEM_OPS_V2_ENABLED
 }
 
@@ -195,6 +217,8 @@ function BiV2AuthenticatedSurface({
     panel = <BiV2FeedbackPanel flagEnabled={flags.BI_FEEDBACK_V2_ENABLED} />
   } else if (section === 'ops') {
     panel = <BiV2OpsPanel flagEnabled={flags.BI_SYSTEM_OPS_V2_ENABLED} />
+  } else if (section === 'permissions') {
+    panel = <BiAdminConsole />
   }
 
   return (

@@ -45,7 +45,10 @@ var ACTS = [
       riseChars("每天刷题，", null, 0, 0, 50),
       riseChars("下一步到底练什么？", 0, 3, 280, 50),
     ],
-    desc: ["鲁班记住你的薄弱考点和丢分原因，", "把错题变成专属训练，越用越懂你。"],
+    desc: [
+      "鲁班记住你的薄弱考点和丢分原因，",
+      "把错题变成专属训练，越用越懂你。",
+    ],
     tags: ["错因画像", "专属训练", "越用越懂你"],
   },
 ];
@@ -58,6 +61,10 @@ var ACT_SLIDE = { wave: 0, hook: 0, p1: 1, p2: 2, p3: 3 };
 
 // 出场等待 = wxss `.exiting .horizon` 的 760ms transition + 40ms 余量；改任一处必须同步另一处。
 var EXIT_MS = 800;
+
+// 「下次不再显示导学」本地标记；freeCourse 首页入口读同一 key 决定是否跳过动效。
+// 注意：此字符串必须与 pages/freeCourse/freeCourse.js 中的 key 保持一致。
+var DISMISS_KEY = "deeptutor_onboarding_dismissed";
 
 var PILL_ACT_IDS = SCENES.slice(1).map(function (s) {
   return s.id;
@@ -81,7 +88,9 @@ Page({
   onLoad: function (options) {
     try {
       var info = helpers.getWindowInfo();
-      var safeBottom = info.safeArea ? info.screenHeight - info.safeArea.bottom : 0;
+      var safeBottom = info.safeArea
+        ? info.screenHeight - info.safeArea.bottom
+        : 0;
       this.setData({
         statusBarHeight: info.statusBarHeight || 44,
         safeBottom: safeBottom,
@@ -89,7 +98,8 @@ Page({
     } catch (_) {}
     this.setData({
       entrySource: String(
-        (options && (options.entry_source || options.entrySource || options.source)) ||
+        (options &&
+          (options.entry_source || options.entrySource || options.source)) ||
           "guest_preview",
       ),
       destLogin: !!(options && options.dest === "login"),
@@ -155,20 +165,31 @@ Page({
     this._timeline.jumpTo(clamped);
   },
 
-  goNext: function () {
-    this._jumpAct(this.data.actIndex + 1);
-  },
-
-  goPrev: function () {
-    this._jumpAct(this.data.actIndex - 1);
-  },
-
   jumpTo: function (event) {
     this._jumpAct(Number(event.currentTarget.dataset.index) + 1);
   },
 
+  // 右下角「跳过」：先问要不要以后不再显示，再出场。
   skipToCta: function () {
-    this._exit();
+    var that = this;
+    if (this._timeline) this._timeline.pause(); // 定住背景再弹窗
+    wx.showModal({
+      title: "已跳过导学",
+      content: "下次进入还需要显示这段导学动画吗？",
+      confirmText: "不再显示",
+      cancelText: "继续显示",
+      success: function (res) {
+        if (res && res.confirm) {
+          try {
+            wx.setStorageSync(DISMISS_KEY, true);
+          } catch (e) {}
+        }
+        that._exit();
+      },
+      fail: function () {
+        that._exit();
+      },
+    });
   },
 
   // 色浪转深 → 登录页（dest=login）；游客模式回退到 chat 试用。
@@ -181,10 +202,15 @@ Page({
     this._exitTimer = setTimeout(function () {
       that._exitTimer = null;
       if (that.data.destLogin) {
-        runtime.redirectToLogin(route.chat({ entry_source: that.data.entrySource }));
+        runtime.redirectToLogin(
+          route.chat({ entry_source: that.data.entrySource }),
+        );
       } else {
         wx.reLaunch({
-          url: route.chat({ entry_source: that.data.entrySource, preview: "1" }),
+          url: route.chat({
+            entry_source: that.data.entrySource,
+            preview: "1",
+          }),
         });
       }
       that._exiting = false;
@@ -203,12 +229,19 @@ Page({
     this._touchY = null;
     if (!t) return;
     var dy = t.clientY - startY;
-    if (dy <= -60) this.goNext();
-    else if (dy >= 60) this.goPrev();
+    // 明显滑动（上滑/下滑都算）→ 加速当前段；轻点(dy≈0)由 page-shell 的
+    // onTapAccelerate 承接，功能控件用 catchtap 阻止冒泡，不会误触发。
+    // 精确回看某幕仍可点顶部进度点（含回退）。
+    if (Math.abs(dy) >= 60 && this._timeline) this._timeline.skipSceneRest();
   },
 
   onPageTouchCancel: function () {
     this._touchY = null;
+  },
+
+  // 轻点页面空白/内容区：快进当前段（保持自动播放）
+  onTapAccelerate: function () {
+    if (this._timeline) this._timeline.skipSceneRest();
   },
 
   startExperience: function () {

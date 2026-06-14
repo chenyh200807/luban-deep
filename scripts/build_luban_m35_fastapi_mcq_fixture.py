@@ -34,7 +34,15 @@ def _answer_variants(correct: list[str], options: list[dict[str, Any]]) -> list[
     empty = ""
     return [
         ("correct", "".join(correct), max_score),
-        ("missing_one", missing, max_score / 2 if missing and missing != "".join(correct) else max_score),
+        (
+            "missing_one",
+            missing,
+            # official proportional rule: each correct option is worth
+            # max_score/len(correct); dropping one keeps (n-1)/n of the score
+            max_score * (len(correct) - 1) / len(correct)
+            if missing and missing != "".join(correct)
+            else max_score,
+        ),
         ("wrong_only", wrong_only, 0.0),
         ("overselect", overselect, 0.0 if wrong else max_score),
         ("blank", empty, 0.0),

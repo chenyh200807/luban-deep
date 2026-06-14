@@ -2683,7 +2683,15 @@ class MemberConsoleService:
         record = load_admins(self._bi_admins_path()).get(resolved)
         if not record:
             return None
-        return rbac.normalize_role(record.get("role"))
+        # fail-closed：持久化中出现非法/被篡改的 role 不再回落 admin（normalize 默认会提权），
+        # 而是视为非管理员并告警。授权权威必须在坏数据面前关闭，而非开放。
+        raw = str(record.get("role") or "").strip()
+        if not rbac.is_valid_role(raw):
+            logger.warning(
+                "bi_admins.json 含非法角色 %r (user=%s)，fail-closed 视为非管理员", raw, resolved
+            )
+            return None
+        return raw
 
     def is_admin_user(self, user_id: str | None) -> bool:
         """兼容旧布尔门：super_admin / admin 视为完整管理员。"""
@@ -2727,6 +2735,8 @@ class MemberConsoleService:
         self, *, actor: str, role: str, matrix: dict[str, Any], at: str = ""
     ) -> dict[str, Any]:
         """权限管理员编辑某角色权限矩阵（super_admin 角色锁定不可编辑，防锁死）。"""
+        if not self.can_manage_permissions(actor):
+            raise PermissionError("仅权限管理员可编辑 BI 角色权限")
         if not rbac.is_valid_role(role):
             raise ValueError(f"未知角色: {role}")
         if not rbac.is_role_editable(role):
@@ -2739,6 +2749,8 @@ class MemberConsoleService:
         self, *, actor: str, user_id: str, overrides: dict[str, Any], at: str = ""
     ) -> list[dict[str, Any]]:
         """精确到人：给某管理员设个人权限覆盖（env 超管 + super_admin 角色不可覆盖）。"""
+        if not self.can_manage_permissions(actor):
+            raise PermissionError("仅权限管理员可设置个人权限覆盖")
         normalized = str(user_id or "").strip()
         if normalized in self._env_admin_user_ids():
             raise ValueError("系统引导超级管理员恒为全权，不可设置个人权限覆盖")
@@ -2784,7 +2796,12 @@ class MemberConsoleService:
             )
         for uid in sorted(set(file_admins) - env_ids):
             record = file_admins[uid]
-            role = rbac.normalize_role(record.get("role"))
+            raw_role = str(record.get("role") or "").strip()
+            if not rbac.is_valid_role(raw_role):
+                # fail-closed：非法角色条目不在管理员列表里展示成正常 admin
+                logger.warning("跳过 bi_admins.json 中非法角色条目 %r (user=%s)", raw_role, uid)
+                continue
+            role = raw_role
             overrides = record.get("permission_overrides")
             overrides = overrides if isinstance(overrides, dict) else {}
             eff = rbac.resolve_effective_permissions(role, role_store, overrides)
@@ -2813,7 +2830,9 @@ class MemberConsoleService:
     def set_admin_role(
         self, *, actor: str, user_id: str, role: str, display_name: str = "", at: str = ""
     ) -> list[dict[str, Any]]:
-        """新增管理员或改其角色（调用方先校验 can_manage_permissions）。"""
+        """新增管理员或改其角色（service 层自校验 actor，纵深防御）。"""
+        if not self.can_manage_permissions(actor):
+            raise PermissionError("仅权限管理员可分配 BI 管理员角色")
         normalized = str(user_id or "").strip()
         if not normalized:
             raise ValueError("user_id is required")
@@ -2844,6 +2863,8 @@ class MemberConsoleService:
     def remove_admin_user(
         self, user_id: str, *, actor: str = "", at: str = ""
     ) -> list[dict[str, Any]]:
+        if not self.can_manage_permissions(actor):
+            raise PermissionError("仅权限管理员可移除 BI 管理员")
         normalized = str(user_id or "").strip()
         if normalized in self._env_admin_user_ids():
             raise ValueError("系统引导管理员不可通过界面移除（防止锁死超管）")
@@ -4629,6 +4650,229 @@ class MemberConsoleService:
             return member
 
         return self._mutate(_apply)
+
+    def _resolve_membership_package(
+        self,
+        data: dict[str, Any],
+        package_id: str,
+    ) -> dict[str, Any]:
+        normalized_package_id = str(package_id or "").strip()
+        if not normalized_package_id:
+            raise ValueError("package_id is required")
+        for item in list(data.get("packages") or self._default_packages()):
+            if not isinstance(item, dict):
+                continue
+            if str(item.get("id") or "").strip() == normalized_package_id:
+                return dict(item)
+        raise ValueError(f"Unknown membership package: {normalized_package_id}")
+
+    @staticmethod
+    def _package_amount_cny(package: dict[str, Any], override: float | int | str | None = None) -> float:
+        value = override if override is not None else package.get("price_cny", package.get("price", 0))
+        try:
+            amount = float(value or 0)
+        except (TypeError, ValueError):
+            amount = 0.0
+        if amount < 0:
+            raise ValueError("amount_cny must be non-negative")
+        return int(amount) if amount.is_integer() else amount
+
+    def manual_membership_purchase(
+        self,
+        *,
+        user_id: str,
+        package_id: str,
+        days: int,
+        operator: str = "admin",
+        reason: str = "",
+        idempotency_key: str,
+        phone: str = "",
+        display_name: str = "",
+        amount_cny: float | int | str | None = None,
+    ) -> dict[str, Any]:
+        normalized_user_id = str(user_id or "").strip()
+        normalized_operator = str(operator or "").strip() or "admin"
+        normalized_key = str(idempotency_key or "").strip()
+        if not normalized_user_id:
+            raise ValueError("user_id is required")
+        if not normalized_key:
+            raise ValueError("idempotency_key is required")
+        safe_days = max(1, min(int(days or 0), 3650))
+
+        def _load_purchase_inputs(data: dict[str, Any]) -> dict[str, Any]:
+            existing_audit_id = self._find_audit_id_by_idempotency_key(
+                data,
+                "manual_membership_purchase",
+                normalized_key,
+                operator=normalized_operator,
+            )
+            member = self._ensure_member(data, normalized_user_id)
+            package = self._resolve_membership_package(data, package_id)
+            if existing_audit_id is not None:
+                return {
+                    "deduped": True,
+                    "audit_id": existing_audit_id,
+                    "member": deepcopy(member),
+                    "package": package,
+                }
+            return {
+                "deduped": False,
+                "member": deepcopy(member),
+                "package": package,
+            }
+
+        purchase_inputs = self._mutate(_load_purchase_inputs)
+        package = dict(purchase_inputs["package"])
+        if purchase_inputs.get("deduped"):
+            return {
+                "member": purchase_inputs["member"],
+                "package": package,
+                "amount_cny": self._package_amount_cny(package, amount_cny),
+                "points": int(package.get("points") or 0),
+                "purchase_id": "",
+                "ledger_event_id": "",
+                "audit_id": purchase_inputs.get("audit_id", ""),
+                "deduped": True,
+            }
+
+        points = max(0, int(package.get("points") or 0))
+        if points <= 0:
+            raise ValueError("package points must be positive")
+        amount = self._package_amount_cny(package, amount_cny)
+        package_tier = str(package.get("tier") or package.get("id") or "").strip()
+        package_label = str(package.get("label") or package.get("name") or package.get("id") or "").strip()
+        purchase_id = f"manual_membership_{uuid.uuid4().hex[:12]}"
+
+        if phone or display_name:
+            def _persist_manual_identity(data: dict[str, Any]) -> None:
+                member = self._ensure_member(data, normalized_user_id)
+                if phone:
+                    member["phone"] = _normalize_phone_input(phone) or str(phone).strip()
+                if display_name:
+                    member["display_name"] = str(display_name).strip()
+
+            self._mutate(_persist_manual_identity)
+        wallet_identity = self._auth_identity_for_member(normalized_user_id)
+        wallet_user_id = str(wallet_identity.get("canonical_uid") or normalized_user_id).strip()
+
+        wallet_service = self._get_wallet_service()
+        if not getattr(wallet_service, "is_configured", False):
+            raise RuntimeError("wallet_service_not_configured")
+        if hasattr(wallet_service, "ensure_wallet_seeded"):
+            wallet_service.ensure_wallet_seeded(
+                user_id=wallet_user_id,
+                opening_points=0,
+                plan_id=package_tier,
+                reference_type="manual_membership_purchase",
+                reference_id=purchase_id,
+                idempotency_key=f"wallet_seed:manual_membership:{normalized_key}",
+                metadata={
+                    "source": "bi_manual_membership",
+                    "operator_id": normalized_operator,
+                    "legacy_user_id": normalized_user_id,
+                    "wallet_user_id": wallet_user_id,
+                },
+            )
+        metadata = {
+            "source": "bi_manual_membership",
+            "channel": "manual_membership",
+            "package_id": str(package.get("id") or "").strip(),
+            "package_label": package_label,
+            "tier": package_tier,
+            "amount_cny": amount,
+            "operator_id": normalized_operator,
+            "legacy_user_id": normalized_user_id,
+            "wallet_user_id": wallet_user_id,
+            "days": safe_days,
+            "reason": str(reason or "").strip(),
+        }
+        mutation = wallet_service.grant_points(
+            user_id=wallet_user_id,
+            amount_micros=points * 1_000_000,
+            reference_type="purchase",
+            reference_id=purchase_id,
+            idempotency_key=f"purchase:manual_membership:{normalized_key}",
+            reason="manual_membership_purchase",
+            metadata=metadata,
+            operator_type="admin",
+            operator_id=normalized_operator,
+        )
+        ledger_event_id = str(getattr(mutation, "ledger_event_id", "") or "")
+        created_at = str(getattr(mutation, "created_at", "") or _iso())
+
+        def _apply_entitlement(data: dict[str, Any]) -> dict[str, Any]:
+            existing_audit_id = self._find_audit_id_by_idempotency_key(
+                data,
+                "manual_membership_purchase",
+                normalized_key,
+                operator=normalized_operator,
+            )
+            member = self._ensure_member(data, normalized_user_id)
+            if existing_audit_id is not None:
+                return {
+                    "member": deepcopy(member),
+                    "audit_id": existing_audit_id,
+                    "deduped": True,
+                }
+            before = deepcopy(member)
+            if phone:
+                member["phone"] = _normalize_phone_input(phone) or str(phone).strip()
+            if display_name:
+                member["display_name"] = str(display_name).strip()
+            base = max(_parse_time(member.get("expire_at")), _now())
+            member["tier"] = package_tier
+            member["status"] = "active"
+            member["expire_at"] = _iso(base + timedelta(days=safe_days))
+            member["points_balance"] = int(member.get("points_balance") or 0) + points
+            ledger_entry = {
+                "id": ledger_event_id or purchase_id,
+                "delta": points,
+                "reason": "manual_membership_purchase",
+                "created_at": created_at,
+                "metadata": metadata,
+            }
+            member.setdefault("ledger", []).insert(0, ledger_entry)
+            after = deepcopy(member)
+            audit = self._append_audit(
+                data,
+                action="manual_membership_purchase",
+                target_user=normalized_user_id,
+                reason=str(reason or "").strip() or "manual_membership_purchase",
+                before=before,
+                after={
+                    "member": after,
+                    "package_id": str(package.get("id") or "").strip(),
+                    "purchase_id": purchase_id,
+                    "ledger_event_id": ledger_event_id,
+                    "amount_cny": amount,
+                    "points": points,
+                },
+                operator=normalized_operator,
+            )
+            self._remember_idempotency_key(
+                data,
+                "manual_membership_purchase",
+                normalized_key,
+                audit["id"],
+                operator=normalized_operator,
+            )
+            return {
+                "member": after,
+                "audit_id": audit["id"],
+                "deduped": False,
+            }
+
+        entitlement = self._mutate(_apply_entitlement)
+        return {
+            "member": entitlement["member"],
+            "package": package,
+            "amount_cny": amount,
+            "points": points,
+            "purchase_id": purchase_id,
+            "ledger_event_id": ledger_event_id,
+            "audit_id": entitlement.get("audit_id", ""),
+            "deduped": bool(entitlement.get("deduped", False)),
+        }
 
     def update_subscription(
         self,

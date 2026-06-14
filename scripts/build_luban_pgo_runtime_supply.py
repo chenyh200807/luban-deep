@@ -109,7 +109,9 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         paths = write_pgo_runtime_supply(bundle, args.out_dir)
     except Exception as exc:  # noqa: BLE001
-        print(json.dumps({"status": "error", "error": str(exc)}, ensure_ascii=False), file=sys.stderr)
+        print(
+            json.dumps({"status": "error", "error": str(exc)}, ensure_ascii=False), file=sys.stderr
+        )
         return 1
 
     print(

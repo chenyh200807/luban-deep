@@ -13,7 +13,7 @@
  *  - 权限变更审计时间线
  *
  * 数据 / token 单一来源：lib/bi-rbac.ts（getStoredBiAdminSession 的 bearer token）。
- * 门控：仅 can_manage_permissions 能看到增删改；否则只读视图。
+ * 门控：仅 can_manage_permissions（super_admin）能看到增删改；否则只读视图。
  * 配色：components/bi-cockpit/theme.ts 暖陶土橙板 + CockpitBg/CockpitPanel 大屏壳。
  */
 
@@ -212,7 +212,7 @@ export function BiAdminConsole() {
       setMe(meResult)
       setRoles(rolesResult)
       setAdmins(adminsResult)
-      // 审计只对 can_manage_permissions 开放，单独兜底不阻塞主视图。
+      // 审计只对 super_admin 开放，普通 admin 读会 403，单独兜底不阻塞主视图。
       if (meResult.can_manage_permissions) {
         try {
           setAudit(await listAdminAudit(200))
@@ -389,7 +389,7 @@ export function BiAdminConsole() {
             }}
           >
             <Lock className="h-3 w-3" />
-            只读视图 · 仅权限管理员可增删改
+            只读视图 · 仅超级管理员可增删改
           </span>
         ) : null}
       </div>
@@ -429,7 +429,7 @@ export function BiAdminConsole() {
         </div>
       ) : null}
 
-      {/* 添加管理员（仅 can_manage_permissions） */}
+      {/* 添加管理员（仅 super_admin） */}
       {canManage ? (
         <CockpitPanel
           glow

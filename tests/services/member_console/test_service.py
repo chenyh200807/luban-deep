@@ -55,6 +55,7 @@ class _FakeWalletBootstrapService:
 
     def __init__(self) -> None:
         self.calls: list[dict[str, object]] = []
+        self.grants: list[dict[str, object]] = []
         self.snapshots: dict[str, SimpleNamespace] = {}
 
     def ensure_wallet_seeded(self, **kwargs):
@@ -73,6 +74,22 @@ class _FakeWalletBootstrapService:
             )
             self.snapshots[user_id] = snapshot
         return snapshot
+
+    def grant_points(self, **kwargs):
+        self.grants.append(dict(kwargs))
+        return SimpleNamespace(
+            ledger_event_id="ledger_manual_1",
+            user_id=str(kwargs["user_id"]),
+            event_type="grant",
+            delta_micros=int(kwargs["amount_micros"]),
+            balance_micros=int(kwargs["amount_micros"]),
+            frozen_micros=0,
+            version=1,
+            idempotency_key=str(kwargs["idempotency_key"]),
+            reference_type=str(kwargs["reference_type"]),
+            reference_id=str(kwargs["reference_id"]),
+            created_at="2026-06-14T10:00:00+08:00",
+        )
 
 
 class _FakeMemberDirectory:
@@ -4524,6 +4541,68 @@ def test_batch_update_members_returns_success_and_failure_buckets(tmp_path: Path
     assert result["success_count"] == 2
     assert result["failure_count"] == 1
     assert result["failed"][0]["user_id"] == "missing"
+
+
+def test_manual_membership_purchase_records_wallet_revenue_and_entitlement(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: wallet_service)
+
+    result = service.manual_membership_purchase(
+        user_id="manual_user_1",
+        package_id="vip",
+        days=365,
+        operator="admin_demo",
+        reason="线下收款",
+        idempotency_key="manual-purchase-1",
+        phone="13800138000",
+        display_name="张同学",
+    )
+
+    assert result["member"]["tier"] == "vip"
+    assert result["member"]["status"] == "active"
+    assert result["member"]["phone"] == "13800138000"
+    assert result["member"]["display_name"] == "张同学"
+    assert result["package"]["id"] == "vip"
+    assert result["amount_cny"] == 198
+    assert result["points"] == 9000
+    assert result["ledger_event_id"] == "ledger_manual_1"
+    assert wallet_service.grants == [
+        {
+            "user_id": "manual_user_1",
+            "amount_micros": 9_000_000_000,
+            "reference_type": "purchase",
+            "reference_id": result["purchase_id"],
+            "idempotency_key": "purchase:manual_membership:manual-purchase-1",
+            "reason": "manual_membership_purchase",
+            "metadata": {
+                "source": "bi_manual_membership",
+                "channel": "manual_membership",
+                "package_id": "vip",
+                "package_label": "VIP",
+                "tier": "vip",
+                "amount_cny": 198,
+                "operator_id": "admin_demo",
+                "legacy_user_id": "manual_user_1",
+                "wallet_user_id": "manual_user_1",
+                "days": 365,
+                "reason": "线下收款",
+            },
+            "operator_type": "admin",
+            "operator_id": "admin_demo",
+        }
+    ]
+
+    ledger = service.get_ledger("manual_user_1", limit=1, offset=0)["entries"][0]
+    assert ledger["reason"] == "manual_membership_purchase"
+    assert ledger["delta"] == 9000
+    assert ledger["metadata"]["amount_cny"] == 198
+    audit = service.get_audit_log(action="manual_membership_purchase")["items"][0]
+    assert audit["target_user"] == "manual_user_1"
+    assert audit["after"]["ledger_event_id"] == "ledger_manual_1"
 
 
 def test_list_audit_log_supports_target_user_and_action_filters(tmp_path: Path) -> None:

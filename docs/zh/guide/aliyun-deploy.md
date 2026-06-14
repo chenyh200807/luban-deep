@@ -740,3 +740,27 @@ bash scripts/deploy_aliyun.sh
 | 修 contract 文件时工作树同文件有他人脏改动 | 不阻断但易夹带 | 直接 `git add` 会把无关脏 hunk 一起带进发布 | 用 `git show :file` 取 index 版本插入自己的行，`git hash-object -w` + `git update-index --cacheinfo` 只 stage 自己的 hunk；工作树副本另行同步插入保持一致 |
 
 通用结论：**prompt/skill 资产改动如果触碰了任何 contract-sensitive 的注入/路由代码，发布成本就从"快速重启"升级为"contract 闭环 + 快速重启"**。预估工时时按后者算，并在 commit 前就把 contract 条款补齐，避免部署后被远端 readiness gate 打回重来。
+
+### 14. 2026-06-14 SSH 断开先三查别盲目重跑 + 并行进程把超集 push 到 origin/main
+
+§12 讲了并发发布撞车 + SSH 长 build 断开会留下半同步态。这次补两个 §12 没覆盖的角度，核心是：**SSH 断开 ≠ 你的部署失败，盲目重跑才是真危险**。
+
+1. **SSH 断开后先三查，再决定动不动。** 远端 Next.js build ~6.5min，静默期连接常被 reset（`Connection reset by peer`/`Broken pipe`）。不要立刻重跑发布脚本——重跑会与在飞的并行 build 撞同一容器 = 损坏。先查：
+   - 远端构建进程：`ssh Aliyun-ECS-2 "ps aux | grep -E 'next build|up -d --build|buildkit/executor' | grep -v grep"`
+   - `origin/main` SHA：`git fetch origin main && git rev-parse origin/main`——并行进程可能在你 push 后又把超集推过你。
+   - 容器 SHA + 容器内代码：`docker inspect deeptutor --format '{{range .Config.Env}}{{println .}}{{end}}' | grep DEEPTUTOR_GIT_SHA`，再 `docker compose -f /root/deeptutor/docker-compose.yml exec -T deeptutor grep -c '<你的新符号>' <改动文件>`。
+
+2. **并行进程可能把"你的 main + 别的分支"合成超集 push 到 origin/main 并部署。** 本次：我 push 了我的 release（`e61b8fa37`），SSH 在远端 build 断开；排查发现另一进程把它 + feat 分支 + member-permission 合成 `08a697030`，push 到 origin/main 并部署。我的代码随它上线，`origin/main == host .env == container == 08a697030` 四层对齐——这是 **closed release，不是 drift**。判据：容器内你的新符号出现且**仅 1 次**（cherry-pick + merge 无重复）。
+
+3. **等并行 build 落定用后台 `until` 轮询，不要前台 sleep、也不要重连重跑：**
+
+   ```bash
+   for i in $(seq 1 40); do
+     P=$(ssh Aliyun-ECS-2 "ps aux|grep -E 'next build|up -d --build|buildkit/executor'|grep -v grep|wc -l"|tr -d ' ')
+     [ "${P:-1}" = 0 ] && { ssh Aliyun-ECS-2 "docker inspect deeptutor --format '{{.Created}}'; docker inspect deeptutor --format '{{range .Config.Env}}{{println .}}{{end}}'|grep DEEPTUTOR_GIT_SHA"; break; }
+     sleep 20
+   done
+   ```
+   落定后跑正常 post-deploy 验证（host .env / container / 公网端点 / 可观测性四层）。
+
+4. **要把生产 pin 到恰好你的 push（而非超集）= 回退并行 actor 的工作——先上报用户，绝不静默 undo 不属于你的部署。**

@@ -29,6 +29,7 @@ from collections import OrderedDict, defaultdict
 from typing import Any, Iterable
 
 from deeptutor.services.learner_state.service import LearnerStateEvent
+from deeptutor.services.learner_state.subjective_focus import subjective_focus_projection
 from deeptutor.services.learner_state.training_intent import (
     PRESCRIPTION_AUTHORITY,
     build_learning_training_intent,
@@ -152,7 +153,12 @@ def build_scoring_point_map_read_projection(
         row.pop("evidence_seen", None)
         row["next_action"] = _next_action(row, user_id=user_id)
         items.append(row)
-    _apply_training_intent_priority(items)
+    # 关注线（G3 surgical 落点）：subjective_focus 事件 → concept 权重，喂进唯一消费
+    # prioritize_training_intents 的这一处。无 subjective_focus 事件时 inert（写入侧=🟡）。
+    _apply_training_intent_priority(
+        items,
+        focus_weights=subjective_focus_projection(events, now_iso=now_iso),
+    )
 
     scoring_point_items = sum(1 for item in items if item["granularity"] == "scoring_point")
     keyword_only_items = sum(1 for item in items if item["granularity"] == "keyword_only")
@@ -286,11 +292,20 @@ def _next_action(row: dict[str, Any], *, user_id: str) -> dict[str, Any]:
     return {"kind": kind, "intent": intent}
 
 
-def _apply_training_intent_priority(items: list[dict[str, Any]]) -> None:
-    intents = [
-        _safe_dict(_safe_dict(item.get("next_action")).get("intent"))
-        for item in items
-    ]
+def _apply_training_intent_priority(
+    items: list[dict[str, Any]],
+    focus_weights: dict[str, float] | None = None,
+) -> None:
+    weights = focus_weights or {}
+    intents: list[dict[str, Any]] = []
+    for item in items:
+        intent = _safe_dict(_safe_dict(item.get("next_action")).get("intent"))
+        concept_id = str(intent.get("concept_id") or "").strip()
+        if concept_id and concept_id in weights:
+            # 关注线（A 层）：打 subjective_focus_weight，_intent_priority 的 α=0.5
+            # 上限随即生效——关注重排同档采分点，但盖不过证据关键弱点。不进掌握。
+            intent = {**intent, "subjective_focus_weight": weights[concept_id]}
+        intents.append(intent)
     prioritized = prioritize_training_intents(intents, max_active=3)
     by_id = {
         str(intent.get("training_intent_id") or ""): intent

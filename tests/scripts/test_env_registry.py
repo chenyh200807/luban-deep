@@ -202,13 +202,11 @@ def test_i4_os_getenv_not_double_counted_by_bare_getenv_branch() -> None:
 def test_i4_registered_env_via_new_forms_passes() -> None:
     # I4 no-false-positive: the new forms reading a REGISTERED env still pass.
     code = (
-        "os.environ.setdefault('LANGFUSE_ENABLED', 'false')\n"
-        "os.environ.pop('SUPABASE_URL', None)\n"
+        "os.environ.setdefault('LANGFUSE_ENABLED', 'false')\nos.environ.pop('SUPABASE_URL', None)\n"
     )
     envs = collect_env_reference_usages([("deeptutor/services/x.py", code)])
     ok, message = evaluate_env_usages(envs, [], load_env_registry())
     assert ok is True, message
-
 
 
 def test_full_repo_scan_has_zero_false_positives() -> None:
@@ -243,9 +241,9 @@ def test_full_repo_scan_has_zero_false_positives() -> None:
 def test_i4b_bare_environ_subscript_detected() -> None:
     code = "from os import environ\nsecret = environ['UNREGISTERED_REDTEAM_SECRET']\n"
     envs = collect_env_reference_usages([("deeptutor/services/x.py", code)])
-    assert any(
-        e.env_name == "UNREGISTERED_REDTEAM_SECRET" for e in envs
-    ), "bare environ[...] must be detected (I4b)"
+    assert any(e.env_name == "UNREGISTERED_REDTEAM_SECRET" for e in envs), (
+        "bare environ[...] must be detected (I4b)"
+    )
     ok, message = evaluate_env_usages(envs, [], load_env_registry())
     assert ok is False
     assert "UNREGISTERED_REDTEAM_SECRET" in message
@@ -262,9 +260,9 @@ def test_i4b_os_environ_not_double_counted_by_bare_branch() -> None:
     # branch; the bare-environ lookbehind must not double-count it.
     code = "x = os.environ['DEEPSEEK_API_KEY']\n"
     envs = collect_env_reference_usages([("deeptutor/services/x.py", code)])
-    assert (
-        len([e for e in envs if e.env_name == "DEEPSEEK_API_KEY"]) == 1
-    ), "os.environ must be counted exactly once, not twice"
+    assert len([e for e in envs if e.env_name == "DEEPSEEK_API_KEY"]) == 1, (
+        "os.environ must be counted exactly once, not twice"
+    )
 
 
 def test_i4b_registered_env_via_bare_environ_passes() -> None:

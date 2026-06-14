@@ -39,7 +39,14 @@ def require_bi_access(
     metrics_token: str | None = Header(default=None, alias="X-Metrics-Token"),
 ) -> AuthContext | None:
     current_user = resolve_auth_context(authorization)
-    if current_user is not None and current_user.is_admin:
+    # router 级闸：任何 BI 角色成员（super_admin/admin/operator/analyst）都放行进入
+    # router；细粒度 tab/action 由端点级 require_bi_permission 按权限矩阵裁决。
+    # 收权到这一层只用 get_admin_role(成员判定)，不用 is_admin(full-admin 布尔)，
+    # 否则 operator/analyst 会被 router 直接挡在外面，端点矩阵永远没机会生效。
+    if (
+        current_user is not None
+        and get_member_console_service().get_admin_role(current_user.user_id) is not None
+    ):
         return current_user
     if _bi_public_enabled():
         return current_user
@@ -65,6 +72,41 @@ def require_bi_admin(auth: AuthContext | None = Depends(require_bi_access)) -> A
     )
 
 
+def require_bi_permission(tab: str, action: str, *, public_ok: bool = False):
+    """端点级 RBAC 强制门：按【生效权限矩阵】can_access 裁决某 (tab, action)。
+
+    单一 authority：授权唯一依据是 member_console.can_access(= 角色矩阵[可被超管编辑]
+    叠加 per-user 覆盖)，不再用 is_admin 布尔旁路。super_admin/admin 默认全权矩阵，
+    被超管收权后 can_access 立即生效；operator/analyst 按各自矩阵细分。
+
+    public_ok=True 的聚合非 PII 端点沿用历史 public/metrics-token 放行语义
+    (require_bi_access 返回 None 即匿名只读放行)；public_ok=False 的 PII/写端点
+    必须有真实 BI 身份。
+    """
+
+    def _dep(auth: AuthContext | None = Depends(require_bi_access)) -> AuthContext | None:
+        if auth is None:
+            # require_bi_access 已放行（metrics-token 校验通过，或 public 模式无身份）。
+            # 聚合非 PII 端点允许匿名只读；PII/写端点要求真实身份。
+            if public_ok:
+                return None
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Admin access required",
+            )
+        if get_member_console_service().can_access(auth.user_id, tab, action):
+            return auth
+        from deeptutor.services.member_console import rbac
+
+        label = f"{rbac.TAB_LABELS.get(tab, tab)}/{rbac.ACTION_LABELS.get(action, action)}"
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"需要「{label}」权限",
+        )
+
+    return _dep
+
+
 router = APIRouter(dependencies=[Depends(require_bi_access)])
 
 
@@ -74,6 +116,7 @@ async def bi_overview(
     capability: str | None = Query(None),
     entrypoint: str | None = Query(None),
     tier: str | None = Query(None),
+    _auth: AuthContext | None = Depends(require_bi_permission("overview", "view", public_ok=True)),
 ):
     return await get_bi_service().get_overview(days=days, capability=capability, entrypoint=entrypoint, tier=tier)
 
@@ -84,6 +127,7 @@ async def bi_active_trend(
     capability: str | None = Query(None),
     entrypoint: str | None = Query(None),
     tier: str | None = Query(None),
+    _auth: AuthContext | None = Depends(require_bi_permission("overview", "view", public_ok=True)),
 ):
     return await get_bi_service().get_active_trend(days=days, capability=capability, entrypoint=entrypoint, tier=tier)
 
@@ -94,6 +138,7 @@ async def bi_retention(
     capability: str | None = Query(None),
     entrypoint: str | None = Query(None),
     tier: str | None = Query(None),
+    _auth: AuthContext | None = Depends(require_bi_permission("overview", "view", public_ok=True)),
 ):
     return await get_bi_service().get_retention(days=days, capability=capability, entrypoint=entrypoint, tier=tier)
 
@@ -104,6 +149,7 @@ async def bi_capabilities(
     capability: str | None = Query(None),
     entrypoint: str | None = Query(None),
     tier: str | None = Query(None),
+    _auth: AuthContext | None = Depends(require_bi_permission("overview", "view", public_ok=True)),
 ):
     return await get_bi_service().get_capability_stats(days=days, capability=capability, entrypoint=entrypoint, tier=tier)
 
@@ -114,6 +160,7 @@ async def bi_tools(
     capability: str | None = Query(None),
     entrypoint: str | None = Query(None),
     tier: str | None = Query(None),
+    _auth: AuthContext | None = Depends(require_bi_permission("overview", "view", public_ok=True)),
 ):
     return await get_bi_service().get_tool_stats(days=days, capability=capability, entrypoint=entrypoint, tier=tier)
 
@@ -124,6 +171,7 @@ async def bi_knowledge(
     capability: str | None = Query(None),
     entrypoint: str | None = Query(None),
     tier: str | None = Query(None),
+    _auth: AuthContext | None = Depends(require_bi_permission("overview", "view", public_ok=True)),
 ):
     return await get_bi_service().get_knowledge_stats(days=days, capability=capability, entrypoint=entrypoint, tier=tier)
 
@@ -134,6 +182,7 @@ async def bi_members(
     capability: str | None = Query(None),
     entrypoint: str | None = Query(None),
     tier: str | None = Query(None),
+    _auth: AuthContext | None = Depends(require_bi_permission("overview", "view", public_ok=True)),
 ):
     return await get_bi_service().get_member_stats(days=days, capability=capability, entrypoint=entrypoint, tier=tier)
 
@@ -144,6 +193,7 @@ async def bi_tutorbots(
     capability: str | None = Query(None),
     entrypoint: str | None = Query(None),
     tier: str | None = Query(None),
+    _auth: AuthContext | None = Depends(require_bi_permission("overview", "view", public_ok=True)),
 ):
     return await get_bi_service().get_tutorbot_stats(
         days=days,
@@ -160,7 +210,7 @@ async def bi_learner_detail(
     # Admin-only, like the other learner-data endpoints. Without this, when
     # DEEPTUTOR_BI_PUBLIC_ENABLED is on, any authenticated student could read ANY
     # other user's learner detail by substituting user_id (horizontal IDOR).
-    _auth: AuthContext = Depends(require_bi_admin),
+    _auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
 ):
     return await get_bi_service().get_learner_detail(user_id=user_id, days=days)
 
@@ -171,13 +221,14 @@ async def bi_cost(
     capability: str | None = Query(None),
     entrypoint: str | None = Query(None),
     tier: str | None = Query(None),
+    _auth: AuthContext | None = Depends(require_bi_permission("commerce", "view", public_ok=True)),
 ):
     return await get_bi_service().get_cost_stats(days=days, capability=capability, entrypoint=entrypoint, tier=tier)
 
 
 @router.get("/cost/reconciliation")
 async def bi_cost_reconciliation(
-    _auth: AuthContext = Depends(require_bi_admin),
+    _auth: AuthContext = Depends(require_bi_permission("commerce", "view")),
     provider: str = Query("dashscope"),
     days: int = Query(30, ge=1, le=365),
     capability: str | None = Query(None),
@@ -214,7 +265,7 @@ async def bi_cost_reconciliation(
 @router.get("/commerce")
 async def bi_commerce(
     limit: int = Query(100, ge=1, le=500),
-    _auth: AuthContext = Depends(require_bi_admin),
+    _auth: AuthContext = Depends(require_bi_permission("commerce", "view")),
 ):
     return await get_bi_service().get_commerce(limit=limit)
 
@@ -226,6 +277,7 @@ async def bi_anomalies(
     capability: str | None = Query(None),
     entrypoint: str | None = Query(None),
     tier: str | None = Query(None),
+    _auth: AuthContext | None = Depends(require_bi_permission("overview", "view", public_ok=True)),
 ):
     return await get_bi_service().get_anomalies(
         days=days,
@@ -240,7 +292,7 @@ async def bi_anomalies(
 async def bi_feedback(
     days: int = Query(30, ge=1, le=365),
     limit: int = Query(20, ge=1, le=100),
-    _auth: AuthContext = Depends(require_bi_admin),
+    _auth: AuthContext = Depends(require_bi_permission("feedback", "view")),
 ):
     return await get_bi_service().get_feedback(days=days, limit=limit)
 
@@ -250,7 +302,7 @@ async def bi_feedback_triage(
     feedback_id: str,
     payload: dict[str, Any] | None = Body(default=None),
     idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
-    auth: AuthContext = Depends(require_bi_admin),
+    auth: AuthContext = Depends(require_bi_permission("feedback", "write")),
 ):
     key = _validate_idempotency_key(idempotency_key)
     body = payload or {}
@@ -275,7 +327,7 @@ async def bi_member_ops_action(
     user_id: str,
     payload: dict[str, Any] | None = Body(default=None),
     idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
-    auth: AuthContext = Depends(require_bi_admin),
+    auth: AuthContext = Depends(require_bi_permission("member_ops", "write")),
 ):
     key = _validate_idempotency_key(idempotency_key)
     body = payload or {}
@@ -301,7 +353,7 @@ async def bi_member_ops_action(
 async def bi_export_request(
     payload: dict[str, Any] | None = Body(default=None),
     idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
-    auth: AuthContext = Depends(require_bi_admin),
+    auth: AuthContext = Depends(require_bi_permission("member_ops", "export")),
 ):
     key = _validate_idempotency_key(idempotency_key)
     body = payload or {}
@@ -326,7 +378,7 @@ async def bi_invite_test_applications(
     status_filter: str | None = Query(None, alias="status"),
     source_page: str | None = Query(None),
     q: str | None = Query(None, max_length=120),
-    auth: AuthContext = Depends(require_bi_admin),
+    auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
 ):
     return await get_bi_service().get_invite_test_applications(
         days=days,
@@ -343,7 +395,7 @@ async def bi_invite_test_application_update(
     application_id: str,
     payload: dict[str, Any] | None = Body(default=None),
     idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
-    auth: AuthContext = Depends(require_bi_admin),
+    auth: AuthContext = Depends(require_bi_permission("member_ops", "write")),
 ):
     key = _validate_idempotency_key(idempotency_key)
     try:
@@ -366,7 +418,7 @@ async def bi_invite_test_application_delete(
     application_id: str,
     payload: dict[str, Any] | None = Body(default=None),
     idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
-    auth: AuthContext = Depends(require_bi_admin),
+    auth: AuthContext = Depends(require_bi_permission("member_ops", "high_risk")),
 ):
     key = _validate_idempotency_key(idempotency_key)
     try:
@@ -387,7 +439,7 @@ async def bi_invite_test_application_delete(
 @router.get("/invite-test/stats")
 async def bi_invite_test_stats(
     days: int = Query(365, ge=1, le=3650),
-    _auth: AuthContext = Depends(require_bi_admin),
+    _auth: AuthContext = Depends(require_bi_permission("member_ops", "view")),
 ):
     return await get_bi_service().get_invite_test_stats(days=days)
 
@@ -399,7 +451,7 @@ async def bi_luban_feedback_responses(
     status_filter: str | None = Query(None, alias="status"),
     source_page: str | None = Query(None),
     q: str | None = Query(None, max_length=120),
-    auth: AuthContext = Depends(require_bi_admin),
+    auth: AuthContext = Depends(require_bi_permission("feedback", "view")),
 ):
     return await get_bi_service().get_luban_feedback_responses(
         days=days,
@@ -414,7 +466,7 @@ async def bi_luban_feedback_responses(
 @router.get("/luban-feedback/stats")
 async def bi_luban_feedback_stats(
     days: int = Query(365, ge=1, le=3650),
-    _auth: AuthContext = Depends(require_bi_admin),
+    _auth: AuthContext = Depends(require_bi_permission("feedback", "view")),
 ):
     return await get_bi_service().get_luban_feedback_stats(days=days)
 
@@ -424,7 +476,7 @@ async def bi_luban_feedback_response_update(
     response_id: str,
     payload: dict[str, Any] | None = Body(default=None),
     idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
-    auth: AuthContext = Depends(require_bi_admin),
+    auth: AuthContext = Depends(require_bi_permission("feedback", "write")),
 ):
     key = _validate_idempotency_key(idempotency_key)
     try:
@@ -465,30 +517,8 @@ def _now_iso() -> str:
 
 @router.get("/rbac/roles")
 async def bi_rbac_roles(_auth: AuthContext = Depends(require_bi_admin)):
-    """角色定义 + 权限矩阵 + tab/操作维度，供权限管理界面渲染。"""
+    """角色定义 + 【生效】权限矩阵(含管理员已编辑) + tab/操作维度 + 可编辑标记。"""
     return get_member_console_service().roles_payload()
-
-
-@router.get("/rbac/me")
-async def bi_rbac_me(auth: AuthContext | None = Depends(require_bi_access)):
-    """当前登录者的角色与可访问 tab（前端导航门控用）。"""
-    from deeptutor.services.member_console import rbac
-
-    uid = auth.user_id if auth else ""
-    service = get_member_console_service()
-    role = service.get_admin_role(uid)
-    matrix = service.get_effective_permissions(uid) if role else {}
-    return {
-        "user_id": uid,
-        "role": role,
-        "role_label": rbac.ROLE_LABELS.get(role or "", ""),
-        "can_manage_permissions": service.can_manage_permissions(uid),
-        "is_full_admin": rbac.is_full_admin(role),
-        "accessible_tabs": [
-            tab for tab in rbac.TABS if "view" in set(matrix.get(tab, []))
-        ],
-        "matrix": matrix,
-    }
 
 
 @router.put("/rbac/roles/{role}/permissions")
@@ -497,22 +527,66 @@ async def bi_set_role_permissions(
     payload: dict[str, Any] | None = Body(default=None),
     auth: AuthContext = Depends(require_bi_permission_manager),
 ):
-    """编辑某个角色的权限矩阵，影响该角色下所有管理员。"""
+    """编辑某角色的权限矩阵(角色级,影响所有该角色管理员)。body: {matrix:{tab:[actions]}}。"""
     body = payload or {}
-    matrix = body.get("matrix")
-    if matrix is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="matrix 必填")
-    if not isinstance(matrix, dict):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="matrix 必须是对象")
+    matrix = body.get("matrix") if isinstance(body.get("matrix"), dict) else body
     try:
         return get_member_console_service().set_role_permissions(
-            actor=auth.user_id,
-            role=role,
-            matrix=matrix,
-            at=_now_iso(),
+            actor=auth.user_id, role=role, matrix=matrix, at=_now_iso()
         )
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+@router.put("/admins/{user_id}/permissions")
+async def bi_set_user_permissions(
+    user_id: str,
+    payload: dict[str, Any] | None = Body(default=None),
+    auth: AuthContext = Depends(require_bi_permission_manager),
+):
+    """精确到人:给某管理员设个人权限覆盖。body: {overrides:{tab:[actions]}}(只提交的 tab 覆盖)。"""
+    body = payload or {}
+    overrides = body.get("overrides") if isinstance(body.get("overrides"), dict) else {}
+    try:
+        admins = get_member_console_service().set_user_permission_overrides(
+            actor=auth.user_id, user_id=user_id, overrides=overrides, at=_now_iso()
+        )
+        return {"admins": admins, "user_id": user_id}
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+@router.get("/admins/{user_id}/effective-permissions")
+async def bi_user_effective_permissions(
+    user_id: str, _auth: AuthContext = Depends(require_bi_admin)
+):
+    """某管理员的最终生效权限矩阵(角色权限叠加个人覆盖)。"""
+    svc = get_member_console_service()
+    return {
+        "user_id": user_id,
+        "role": svc.get_admin_role(user_id),
+        "effective_matrix": svc.get_effective_permissions(user_id),
+    }
+
+
+@router.get("/rbac/me")
+async def bi_rbac_me(auth: AuthContext | None = Depends(require_bi_access)):
+    """当前登录者的角色与生效权限(前端导航门控用)。"""
+    from deeptutor.services.member_console import rbac
+
+    uid = auth.user_id if auth else ""
+    svc = get_member_console_service()
+    role = svc.get_admin_role(uid)
+    effective = svc.get_effective_permissions(uid) if role else {}
+    return {
+        "user_id": uid,
+        "role": role,
+        "role_label": rbac.ROLE_LABELS.get(role or "", ""),
+        "can_manage_permissions": svc.can_manage_permissions(uid),
+        "is_full_admin": rbac.is_full_admin(role),
+        "accessible_tabs": [t for t in rbac.TABS if "view" in (effective.get(t) or [])],
+        "matrix": effective,
+    }
 
 
 @router.get("/admins")
@@ -583,45 +657,6 @@ async def bi_set_admin_role(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
 
-@router.put("/admins/{user_id}/permissions")
-async def bi_set_user_permissions(
-    user_id: str,
-    payload: dict[str, Any] | None = Body(default=None),
-    auth: AuthContext = Depends(require_bi_permission_manager),
-):
-    """精确到人设置权限覆盖；提交空对象可清除全部个人覆盖。"""
-    body = payload or {}
-    overrides = body.get("overrides")
-    if overrides is None:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="overrides 必填")
-    if not isinstance(overrides, dict):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="overrides 必须是对象")
-    try:
-        admins = get_member_console_service().set_user_permission_overrides(
-            actor=auth.user_id,
-            user_id=user_id,
-            overrides=overrides,
-            at=_now_iso(),
-        )
-        return {"admins": admins}
-    except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-
-
-@router.get("/admins/{user_id}/effective-permissions")
-async def bi_get_effective_permissions(
-    user_id: str,
-    _auth: AuthContext = Depends(require_bi_admin),
-):
-    """读取某个管理员最终生效权限矩阵。"""
-    service = get_member_console_service()
-    return {
-        "user_id": user_id,
-        "role": service.get_admin_role(user_id),
-        "effective_matrix": service.get_effective_permissions(user_id),
-    }
-
-
 @router.delete("/admins/{user_id}")
 async def bi_remove_admin(
     user_id: str,
@@ -638,7 +673,7 @@ async def bi_remove_admin(
 
 
 @router.get("/cost-calibration")
-async def bi_cost_calibration_status(_auth: AuthContext = Depends(require_bi_admin)):
+async def bi_cost_calibration_status(_auth: AuthContext = Depends(require_bi_permission("commerce", "view"))):
     """读当前自校准状态（系数 + 全局健康度 + 上次刷新时间）。"""
     from pathlib import Path
 
@@ -652,7 +687,7 @@ async def bi_cost_calibration_status(_auth: AuthContext = Depends(require_bi_adm
 @router.post("/cost-calibration/refresh")
 async def bi_cost_calibration_refresh(
     payload: dict[str, Any] | None = Body(default=None),
-    _auth: AuthContext = Depends(require_bi_admin),
+    _auth: AuthContext = Depends(require_bi_permission("commerce", "write")),
 ):
     """用官方账单反推真实单价，刷新自校准系数。billing_cycle 默认当月。"""
     from datetime import datetime, timezone

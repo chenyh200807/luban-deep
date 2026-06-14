@@ -166,8 +166,23 @@ tables:
     canonical_for_fact: invite_test_application
     writable_by: [invite_test_applications]
     rls_required: true
-  # canonical_knowledge_catalog: maintenance-script DDL+refresh (concept_taxonomy_* /
-  # catalog tables). Registered as ops_script-only; not part of the request hot path.
+  # canonical_knowledge_catalog: maintenance-script DDL+full refresh projection.
+  # Registered as ops_script-only; not part of the request hot path.
+  - name: public.luban_canonical_taxonomy
+    database: app_primary
+    canonical_for_fact: canonical_knowledge_catalog
+    writable_by: [ops_script]
+    rls_required: false
+  - name: public.luban_canonical_knowledge_catalog
+    database: app_primary
+    canonical_for_fact: canonical_knowledge_catalog
+    writable_by: [ops_script]
+    rls_required: false
+  - name: public.luban_canonical_knowledge_edges
+    database: app_primary
+    canonical_for_fact: canonical_knowledge_catalog
+    writable_by: [ops_script]
+    rls_required: false
   - name: concept_taxonomy_registry
     database: app_primary
     canonical_for_fact: canonical_knowledge_catalog

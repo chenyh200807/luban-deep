@@ -204,8 +204,7 @@ def test_question_lifecycle_guard_rejects_competing_attach_call(tmp_path) -> Non
     offender = tmp_path / "deeptutor" / "capabilities" / "deep_question.py"
     offender.parent.mkdir(parents=True)
     offender.write_text(
-        "def run(ctx):\n"
-        "    attach_question_lifecycle_scene_to_context(ctx)\n",
+        "def run(ctx):\n    attach_question_lifecycle_scene_to_context(ctx)\n",
         encoding="utf-8",
     )
 
@@ -220,8 +219,7 @@ def test_question_lifecycle_guard_rejects_loop_scene_writer(tmp_path) -> None:
     offender = tmp_path / "deeptutor" / "tutorbot" / "agent" / "loop.py"
     offender.parent.mkdir(parents=True)
     offender.write_text(
-        "def run(metadata):\n"
-        "    metadata['question_lifecycle_scene'] = 'question_review'\n",
+        "def run(metadata):\n    metadata['question_lifecycle_scene'] = 'question_review'\n",
         encoding="utf-8",
     )
 
@@ -251,8 +249,7 @@ def test_question_lifecycle_guard_allows_approved_projection_points(tmp_path) ->
         encoding="utf-8",
     )
     observer.write_text(
-        "def summarize(summary):\n"
-        "    summary['question_lifecycle_scene'] = 'question_review'\n",
+        "def summarize(summary):\n    summary['question_lifecycle_scene'] = 'question_review'\n",
         encoding="utf-8",
     )
 
@@ -267,8 +264,12 @@ def test_route_model_uniqueness_guard_rejects_same_name_in_two_routers(tmp_path)
     # silent OpenAPI collision — the guard must fail and name both files.
     routers = tmp_path / "deeptutor" / "api" / "routers"
     routers.mkdir(parents=True)
-    (routers / "alpha.py").write_text("class CreateSessionRequest(BaseModel):\n    a: int\n", encoding="utf-8")
-    (routers / "beta.py").write_text("class CreateSessionRequest(BaseModel):\n    b: str\n", encoding="utf-8")
+    (routers / "alpha.py").write_text(
+        "class CreateSessionRequest(BaseModel):\n    a: int\n", encoding="utf-8"
+    )
+    (routers / "beta.py").write_text(
+        "class CreateSessionRequest(BaseModel):\n    b: str\n", encoding="utf-8"
+    )
 
     ok, message = evaluate_route_model_uniqueness(tmp_path)
 
@@ -281,7 +282,9 @@ def test_route_model_uniqueness_guard_allows_unique_names(tmp_path) -> None:
     # A model defined once (or imported, not re-defined) in each router passes.
     routers = tmp_path / "deeptutor" / "api" / "routers"
     routers.mkdir(parents=True)
-    (routers / "alpha.py").write_text("class AlphaRequest(BaseModel):\n    a: int\n", encoding="utf-8")
+    (routers / "alpha.py").write_text(
+        "class AlphaRequest(BaseModel):\n    a: int\n", encoding="utf-8"
+    )
     (routers / "beta.py").write_text(
         "from deeptutor.api.routers.alpha import AlphaRequest\nclass BetaRequest(BaseModel):\n    b: str\n",
         encoding="utf-8",
@@ -423,7 +426,9 @@ def test_resolve_changed_files_defaults_to_current_candidate(monkeypatch) -> Non
             ("git", "diff", "--name-only"): "unstaged.py\nshared.py\n",
             ("git", "ls-files", "--others", "--exclude-standard"): "untracked.py\n",
         }
-        return subprocess.CompletedProcess(command, 0, stdout=stdout_by_command[tuple(command)], stderr="")
+        return subprocess.CompletedProcess(
+            command, 0, stdout=stdout_by_command[tuple(command)], stderr=""
+        )
 
     monkeypatch.setattr(subprocess, "run", fake_run)
 
@@ -451,7 +456,11 @@ def test_resolve_changed_files_keeps_explicit_refs_authoritative(monkeypatch) ->
 
 
 def test_resolve_changed_files_keeps_explicit_files_authoritative(monkeypatch) -> None:
-    monkeypatch.setattr(subprocess, "run", lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("git not expected")))
+    monkeypatch.setattr(
+        subprocess,
+        "run",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("git not expected")),
+    )
 
     assert resolve_changed_files([" explicit.py ", ""], base=None, head=None) == [" explicit.py "]
 
@@ -476,8 +485,17 @@ def test_main_return_includes_schema_ok(monkeypatch) -> None:
     import scripts.check_contract_guard as G
 
     monkeypatch.setattr(G, "resolve_changed_files", lambda *_a, **_k: ["README.md"])
-    monkeypatch.setattr(G, "evaluate_schema_registry", lambda _f: (False, "schema-registry-guard: failed (test)"))
+    monkeypatch.setattr(
+        G,
+        "evaluate_websocket_route_allowlist",
+        lambda: (True, "websocket-allowlist-guard: passed"),
+    )
+    monkeypatch.setattr(
+        G, "evaluate_schema_registry", lambda _f: (False, "schema-registry-guard: failed (test)")
+    )
     assert G.main(["--base", "x", "--head", "y"]) == 1
     # and when it passes, the runner can still pass (other guards permitting on a doc-only change)
-    monkeypatch.setattr(G, "evaluate_schema_registry", lambda _f: (True, "schema-registry-guard: passed"))
+    monkeypatch.setattr(
+        G, "evaluate_schema_registry", lambda _f: (True, "schema-registry-guard: passed")
+    )
     assert G.main(["--base", "x", "--head", "y"]) == 0

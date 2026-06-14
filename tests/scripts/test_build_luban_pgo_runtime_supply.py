@@ -87,7 +87,9 @@ def test_build_luban_pgo_runtime_supply_cli_writes_bank_and_pointer(tmp_path: Pa
 
     contracts_path = tmp_path / "contracts.json"
     out_dir = tmp_path / "v_case_rubric_scored_pgo"
-    contracts_path.write_text(json.dumps({"contracts": [_contract()]}, ensure_ascii=False), encoding="utf-8")
+    contracts_path.write_text(
+        json.dumps({"contracts": [_contract()]}, ensure_ascii=False), encoding="utf-8"
+    )
 
     code = main(["--contracts", str(contracts_path), "--out-dir", str(out_dir)])
 

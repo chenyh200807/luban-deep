@@ -54,9 +54,9 @@ def test_analyst_read_only(svc):
 
 def test_cannot_change_or_remove_env_admin(svc):
     with pytest.raises(ValueError):
-        svc.set_admin_role(actor="x", user_id="env-super", role=rbac.ROLE_ANALYST)
+        svc.set_admin_role(actor="env-super", user_id="env-super", role=rbac.ROLE_ANALYST)
     with pytest.raises(ValueError):
-        svc.remove_admin_user("env-super", actor="x")
+        svc.remove_admin_user("env-super", actor="env-super")
     assert svc.get_admin_role("env-super") == rbac.ROLE_SUPER_ADMIN
 
 
@@ -128,7 +128,7 @@ def test_effective_permissions_payload(svc):
 def test_cannot_override_env_super_admin(svc):
     with pytest.raises(ValueError):
         svc.set_user_permission_overrides(
-            actor="x", user_id="env-super", overrides={"commerce": []}
+            actor="env-super", user_id="env-super", overrides={"commerce": []}
         )
 
 
@@ -144,3 +144,60 @@ def test_role_edit_persists_in_list_and_payload(svc):
     # 列表里该 operator 的可访问 tab 含 commerce
     entry = next(e for e in svc.list_admin_user_ids() if e["user_id"] == "u-op")
     assert "commerce" in entry["accessible_tabs"]
+
+
+# ---- P2 防御纵深 ----
+
+def test_permission_admin_actor_can_mutate(svc):
+    """service 层自校验 actor：admin 也是权限管理员。"""
+    svc.set_admin_role(actor="env-super", user_id="u-ad", role=rbac.ROLE_ADMIN, at="t1")
+    svc.set_admin_role(actor="u-ad", user_id="u-op", role=rbac.ROLE_OPERATOR, at="t2")
+    svc.set_role_permissions(
+        actor="u-ad",
+        role=rbac.ROLE_OPERATOR,
+        matrix={"member_ops": list(rbac.ACTIONS), "commerce": ["view"]},
+    )
+    svc.set_user_permission_overrides(
+        actor="u-ad", user_id="u-op", overrides={"ops": ["view"]}
+    )
+    svc.remove_admin_user("u-op", actor="u-ad")
+    assert svc.get_admin_role("u-op") is None
+
+
+def test_operator_actor_cannot_mutate(svc):
+    """service 层自校验 actor：operator 不能管理权限（纵深，独立于 HTTP gate）。"""
+    svc.set_admin_role(actor="env-super", user_id="u-op", role=rbac.ROLE_OPERATOR, at="t1")
+    with pytest.raises(PermissionError):
+        svc.set_admin_role(actor="u-op", user_id="u-new", role=rbac.ROLE_ANALYST)
+    with pytest.raises(PermissionError):
+        svc.set_role_permissions(actor="u-op", role=rbac.ROLE_OPERATOR, matrix={})
+    with pytest.raises(PermissionError):
+        svc.set_user_permission_overrides(actor="u-op", user_id="u-op", overrides={"commerce": ["view"]})
+    with pytest.raises(PermissionError):
+        svc.remove_admin_user("u-op", actor="u-op")
+
+
+def test_blank_actor_rejected(svc):
+    with pytest.raises(PermissionError):
+        svc.set_admin_role(actor="", user_id="u-x", role=rbac.ROLE_ADMIN)
+
+
+def test_corrupt_persisted_role_fails_closed(svc, tmp_path):
+    """持久化中出现非法 role 时 fail-closed：视为非管理员、不回落 admin、列表跳过。"""
+    import json
+
+    (tmp_path / "bi_admins.json").write_text(
+        json.dumps(
+            {
+                "schema_version": 2,
+                "admins": {"u-bad": {"role": "ghost"}},
+                "audit": [],
+                "role_permissions": {},
+            }
+        ),
+        encoding="utf-8",
+    )
+    assert svc.get_admin_role("u-bad") is None
+    assert svc.is_admin_user("u-bad") is False
+    assert svc.can_access("u-bad", "overview", "view") is False
+    assert all(e["user_id"] != "u-bad" for e in svc.list_admin_user_ids())

@@ -92,7 +92,9 @@ def _factory_sub_type(case: dict[str, Any], segment: dict[str, Any]) -> str:
 
 def _factory_classification_is_review_only(factory: dict[str, Any]) -> bool:
     classification = (factory.get("summary") or {}).get("classification") or {}
-    return classification.get("candidate_only") is True and classification.get("review_only") is True
+    return (
+        classification.get("candidate_only") is True and classification.get("review_only") is True
+    )
 
 
 def build_grading_contracts_from_factory_candidate(
@@ -116,9 +118,7 @@ def build_grading_contracts_from_factory_candidate(
     if summary.get("schema") != FACTORY_CANDIDATE_SCHEMA:
         return {
             "contracts": [],
-            "rejected": [
-                {"question_id": "", "blockers": ["factory_schema_mismatch"]}
-            ],
+            "rejected": [{"question_id": "", "blockers": ["factory_schema_mismatch"]}],
             "summary": {
                 "source_schema": summary.get("schema"),
                 "accepted_count": 0,
@@ -128,9 +128,7 @@ def build_grading_contracts_from_factory_candidate(
     if not _factory_classification_is_review_only(factory):
         return {
             "contracts": [],
-            "rejected": [
-                {"question_id": "", "blockers": ["factory_candidate_not_review_only"]}
-            ],
+            "rejected": [{"question_id": "", "blockers": ["factory_candidate_not_review_only"]}],
             "summary": {
                 "source_schema": FACTORY_CANDIDATE_SCHEMA,
                 "accepted_count": 0,
@@ -260,9 +258,11 @@ def _record_from_runtime_point(contract: dict[str, Any], point: dict[str, Any]) 
         "required_terms": list(point.get("required_terms") or []),
         "term_authority": point.get("term_authority") or "none",
         "official_total_score": float(contract.get("official_total_score") or 0.0),
-        "official_total_score_authority": contract.get("official_total_score_authority") or A_OFFICIAL,
+        "official_total_score_authority": contract.get("official_total_score_authority")
+        or A_OFFICIAL,
         "score_authority": SCORE_AUTHORITY,
-        "per_point_score_authority": contract.get("per_point_score_authority") or PENDING_SCORE_AUTHORITY,
+        "per_point_score_authority": contract.get("per_point_score_authority")
+        or PENDING_SCORE_AUTHORITY,
         "answer_key_authority": "exam_reference_answer",
         "official_score_allowed": False,
         "canonical_write_allowed": False,
@@ -298,7 +298,9 @@ def build_pgo_runtime_supply(contracts: list[dict[str, Any]]) -> dict[str, Any]:
         for point in runtime_points_from_grading_contract(contract):
             rec = _record_from_runtime_point(contract, point)
             if not rec["qid"] or not rec["point_id"] or not rec["text"]:
-                rejected.append({"question_id": qid, "blockers": ["record_missing_identity_or_text"]})
+                rejected.append(
+                    {"question_id": qid, "blockers": ["record_missing_identity_or_text"]}
+                )
                 continue
             source_point = source_points_by_id.get(str(rec["point_id"]) or "") or {}
             for key in (

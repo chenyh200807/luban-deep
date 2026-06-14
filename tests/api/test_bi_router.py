@@ -769,6 +769,25 @@ def bi_service(tmp_path: Path, monkeypatch) -> BIService:
             return [{"role": "assistant", "content": "hello"} for _ in range(min(limit, 3))]
 
     monkeypatch.setattr("deeptutor.services.tutorbot.get_tutorbot_manager", lambda: _FakeTutorBotManager())
+
+    # 端点级 RBAC 接线后，require_bi_permission 用 can_access 裁决。这些功能/审计测试
+    # 注入 is_admin=True 的假 auth，因此 member_console 在此 fixture 中给全权（等价
+    # super_admin），让现有断言聚焦端点行为而非权限矩阵；RBAC enforcement 本身由
+    # tests/api/test_bi_rbac_enforcement.py 用真实角色矩阵专门覆盖。
+    class _FullAccessMemberService:
+        def can_access(self, *_args, **_kwargs) -> bool:
+            return True
+
+        def get_admin_role(self, *_args, **_kwargs) -> str:
+            return "super_admin"
+
+        def can_manage_permissions(self, *_args, **_kwargs) -> bool:
+            return True
+
+    monkeypatch.setattr(
+        "deeptutor.api.routers.bi.get_member_console_service",
+        lambda: _FullAccessMemberService(),
+    )
     return service
 
 
@@ -811,6 +830,11 @@ def test_bi_rbac_permission_management_endpoints_allow_admin(
     monkeypatch.setattr(member_service, "_bi_admins_path", lambda: tmp_path / "bi_admins.json")
     monkeypatch.setattr(member_service, "_env_admin_user_ids", lambda: {"env-super"})
     monkeypatch.setattr(member_service, "_safe_member_display_name", lambda uid: f"name-{uid}")
+    monkeypatch.setattr(
+        bi_router_module,
+        "get_member_console_service",
+        lambda: member_service,
+    )
     member_service.set_admin_role(
         actor="env-super", user_id="u-admin", role=rbac.ROLE_ADMIN, at="t1"
     )
@@ -866,7 +890,7 @@ def test_bi_cost_reconciliation_supports_deepseek_provider(
     bi_service: BIService,
 ) -> None:
     app = _build_app(bi_service)
-    app.dependency_overrides[bi_router_module.require_bi_access] = lambda: SimpleNamespace(is_admin=True)
+    app.dependency_overrides[bi_router_module.require_bi_access] = lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
     app.dependency_overrides[bi_router_module.require_bi_admin] = lambda: SimpleNamespace(is_admin=True)
 
     with TestClient(app) as client:
@@ -944,7 +968,7 @@ def test_bi_cost_reconciliation_all_returns_provider_neutral_official_usage(
     bi_service: BIService,
 ) -> None:
     app = _build_app(bi_service)
-    app.dependency_overrides[bi_router_module.require_bi_access] = lambda: SimpleNamespace(is_admin=True)
+    app.dependency_overrides[bi_router_module.require_bi_access] = lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
     app.dependency_overrides[bi_router_module.require_bi_admin] = lambda: SimpleNamespace(is_admin=True)
 
     with TestClient(app) as client:
@@ -1556,8 +1580,8 @@ def test_bi_router_rejects_invalid_metrics_token_in_production(
 
 def test_bi_router_endpoints_return_expected_shapes(bi_service: BIService) -> None:
     app = _build_app(bi_service)
-    app.dependency_overrides[bi_router_module.require_bi_access] = lambda: None
-    app.dependency_overrides[bi_router_module.require_bi_admin] = lambda: SimpleNamespace(is_admin=True)
+    app.dependency_overrides[bi_router_module.require_bi_access] = lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
+    app.dependency_overrides[bi_router_module.require_bi_admin] = lambda: SimpleNamespace(user_id="admin_test", is_admin=True)
 
     with TestClient(app) as client:
         overview = client.get("/api/v1/bi/overview?days=30")

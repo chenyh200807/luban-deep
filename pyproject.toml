@@ -229,6 +229,7 @@ testpaths = ["tests"]
 pythonpath = ["."]
 markers = [
     "asyncio: mark async tests that require pytest-asyncio",
+    "unit: mark unit-level tests with no external service dependency",
 ]
 asyncio_default_fixture_loop_scope = "function"
 addopts = [

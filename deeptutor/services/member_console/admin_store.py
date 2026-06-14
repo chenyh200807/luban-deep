@@ -9,8 +9,13 @@ Authority 收敛：BI 管理员 = env 引导名单 (DEEPTUTOR_ADMIN_USER_IDS, �
 文件格式 v2：
   {"schema_version": 2,
    "admins": {"<user_id>": {"role","display_name","granted_by","granted_at"}},
-   "audit": [{"ts","actor","action","target","from_role","to_role","detail"}]}
+   "audit": [...legacy...]}
 向后兼容 v1：{"user_ids": [...]} 读取时迁移为 role=admin。
+
+审计（防纵深 P2）：权限变更审计写入【独立 append-only 文件】 bi_admin_audit.jsonl
+（与 bi_admins.json 同目录），每条一行 JSON，以 O_APPEND 原子追加、永不重写历史。
+这杜绝了“恶意 super_admin 通过反复写操作把 bi_admins.json 内嵌 audit 数组截断刷掉
+旧记录”的篡改路径。bi_admins.json 内已有的 legacy audit 仍被读取合并（不丢历史）。
 """
 from __future__ import annotations
 
@@ -23,7 +28,7 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 _LOCK = threading.Lock()
-_AUDIT_MAX = 1000
+_AUDIT_FILENAME = "bi_admin_audit.jsonl"
 
 
 def _empty() -> dict[str, Any]:
@@ -71,9 +76,26 @@ def _read(path: Path) -> dict[str, Any]:
 
 
 def _write(path: Path, data: dict[str, Any]) -> None:
+    """写回 admins/role_permissions。
+
+    不再截断/重写 audit：新审计走独立 append-only 文件（见 _append_audit），
+    bi_admins.json 内的 legacy audit 原样保留（只读，不增长），避免历史被覆写丢失。
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
-    data["audit"] = list(data.get("audit") or [])[-_AUDIT_MAX:]
+    data["audit"] = list(data.get("audit") or [])
     path.write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
+
+
+def _audit_path(bi_admins_path: Path) -> Path:
+    return bi_admins_path.parent / _AUDIT_FILENAME
+
+
+def _append_audit(bi_admins_path: Path, entry: dict[str, Any]) -> None:
+    """以 append-only 方式追加一条审计（O_APPEND 原子追加，绝不重写历史）。"""
+    audit_path = _audit_path(bi_admins_path)
+    audit_path.parent.mkdir(parents=True, exist_ok=True)
+    with audit_path.open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
 
 def load_admins(path: Path) -> dict[str, dict[str, Any]]:
@@ -82,7 +104,26 @@ def load_admins(path: Path) -> dict[str, dict[str, Any]]:
 
 
 def load_audit(path: Path) -> list[dict[str, Any]]:
-    return list(_read(path)["audit"])
+    """合并 legacy 内嵌审计（旧）+ append-only 文件审计（新），按写入顺序（旧→新）返回。"""
+    legacy = list(_read(path)["audit"])
+    appended: list[dict[str, Any]] = []
+    audit_path = _audit_path(path)
+    try:
+        text = audit_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        text = ""
+    except OSError:
+        logger.warning("bi_admin_audit.jsonl unreadable: %s", audit_path)
+        text = ""
+    for line in text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            appended.append(json.loads(line))
+        except json.JSONDecodeError:
+            logger.warning("skipping corrupt audit line in %s", audit_path)
+    return legacy + appended
 
 
 def load_role_permissions(path: Path) -> dict[str, Any]:
@@ -105,7 +146,9 @@ def set_role_permissions(
     with _LOCK:
         data = _read(path)
         data["role_permissions"][normalized] = matrix
-        data["audit"].append(
+        _write(path, data)
+        _append_audit(
+            path,
             {
                 "ts": at,
                 "actor": actor,
@@ -114,9 +157,8 @@ def set_role_permissions(
                 "from_role": "",
                 "to_role": "",
                 "detail": "role_matrix",
-            }
+            },
         )
-        _write(path, data)
         return dict(data["role_permissions"])
 
 
@@ -138,7 +180,9 @@ def set_user_overrides(
         if record is None:
             raise ValueError("该用户不是运行时管理员，无法设置个人权限覆盖")
         record["permission_overrides"] = overrides
-        data["audit"].append(
+        _write(path, data)
+        _append_audit(
+            path,
             {
                 "ts": at,
                 "actor": actor,
@@ -147,9 +191,8 @@ def set_user_overrides(
                 "from_role": str(record.get("role") or ""),
                 "to_role": "",
                 "detail": ",".join(sorted(overrides.keys())) if overrides else "cleared",
-            }
+            },
         )
-        _write(path, data)
         return dict(data["admins"])
 
 
@@ -177,7 +220,9 @@ def set_admin(
             "granted_at": granted_at or prev.get("granted_at") or "",
             "permission_overrides": prev.get("permission_overrides") or {},
         }
-        data["audit"].append(
+        _write(path, data)
+        _append_audit(
+            path,
             {
                 "ts": granted_at,
                 "actor": actor,
@@ -186,9 +231,8 @@ def set_admin(
                 "from_role": from_role,
                 "to_role": role,
                 "detail": display_name,
-            }
+            },
         )
-        _write(path, data)
         return dict(data["admins"])
 
 
@@ -199,8 +243,10 @@ def remove_admin(
     with _LOCK:
         data = _read(path)
         prev = data["admins"].pop(normalized, None)
+        _write(path, data)
         if prev is not None:
-            data["audit"].append(
+            _append_audit(
+                path,
                 {
                     "ts": removed_at,
                     "actor": actor,
@@ -209,7 +255,6 @@ def remove_admin(
                     "from_role": str(prev.get("role") or ""),
                     "to_role": "",
                     "detail": "",
-                }
+                },
             )
-        _write(path, data)
         return dict(data["admins"])

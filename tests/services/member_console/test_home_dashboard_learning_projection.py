@@ -361,8 +361,10 @@ def test_fresh_projection_with_deictic_focus_recovers_from_learning_evidence() -
         now=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
     )
 
-    # Structured learning evidence already resolved to a taxonomy node; the home
-    # projection must not let a textbook-section display alias override it.
+    # Structured learning evidence already resolved to a taxonomy node ("防水工程" is
+    # canonical node 1A413000-C24); the home projection must NOT let the textbook-section
+    # display alias override it. (Merge: branch's "don't override resolved node" fix survives
+    # auto-merge over origin/main 79c1f610a's free-text→section mapping — different code paths.)
     assert dashboard["today_focus"]["title"] == "今日焦点：防水工程"
     assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练防水工程"
     assert "这题" not in json.dumps(dashboard, ensure_ascii=False)

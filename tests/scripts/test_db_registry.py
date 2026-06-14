@@ -43,6 +43,12 @@ def test_registry_loads_databases_facts_and_grandfathered_sites() -> None:
         assert env in registry["declared_url_envs"], env
     # writer registered tables include the user-identity write target
     assert "public.user_identity_aliases" in registry["registered_tables"]
+    for table in (
+        "public.luban_canonical_taxonomy",
+        "public.luban_canonical_knowledge_catalog",
+        "public.luban_canonical_knowledge_edges",
+    ):
+        assert table in registry["registered_tables"]
 
 
 # ── FAIL RULE (a): unregistered raw connection (止血 — new ad-hoc) ────────────
@@ -108,6 +114,21 @@ def test_pass_write_to_registered_table_bare_name() -> None:
     writes = collect_write_usages([("deeptutor/services/luban_feedback_store.py", code)])
     ok, _ = evaluate_db_usages([], writes, [], load_db_registry())
     assert ok is True
+
+
+def test_export_canonical_knowledge_full_refresh_writes_are_registered() -> None:
+    from scripts.check_db_registry import REPO_ROOT
+
+    script = REPO_ROOT / "scripts" / "export_canonical_knowledge_to_supabase.py"
+    code = script.read_text(encoding="utf-8")
+    writes = collect_write_usages([("scripts/export_canonical_knowledge_to_supabase.py", code)])
+    tables = {w.table for w in writes}
+
+    assert "public.luban_canonical_taxonomy" in tables
+    assert "public.luban_canonical_knowledge_catalog" in tables
+    assert "public.luban_canonical_knowledge_edges" in tables
+    ok, message = evaluate_db_usages([], writes, [], load_db_registry())
+    assert ok is True, message
 
 
 def test_on_conflict_do_update_set_not_mistaken_for_table_write() -> None:

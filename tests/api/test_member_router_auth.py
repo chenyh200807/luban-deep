@@ -304,6 +304,67 @@ def test_member_router_exposes_batch_and_audit_endpoints(monkeypatch: pytest.Mon
     assert exported.headers["content-type"].startswith("text/csv")
 
 
+def test_member_router_manual_purchase_requires_idempotency_and_forwards_operator(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    app = _build_app()
+    app.dependency_overrides[get_current_user] = lambda: _ctx("admin_demo", is_admin=True)
+    calls: list[dict[str, object]] = []
+
+    def _manual_membership_purchase(**kwargs: object) -> dict[str, object]:
+        calls.append(dict(kwargs))
+        return {
+            "member": {"user_id": kwargs["user_id"], "tier": "vip"},
+            "package": {"id": kwargs["package_id"], "label": "VIP"},
+            "amount_cny": 198,
+            "points": 9000,
+            "purchase_id": "manual_membership_1",
+            "ledger_event_id": "ledger_manual_1",
+            "audit_id": "audit_manual_1",
+            "deduped": False,
+        }
+
+    monkeypatch.setattr(
+        "deeptutor.api.routers.member.service",
+        type("FakeMemberService", (), {"manual_membership_purchase": staticmethod(_manual_membership_purchase)})(),
+    )
+
+    with TestClient(app) as client:
+        missing_key = client.post(
+            "/api/v1/member/manual-purchase",
+            json={"user_id": "u1", "package_id": "vip", "days": 365},
+        )
+        created = client.post(
+            "/api/v1/member/manual-purchase",
+            headers={"X-Idempotency-Key": "manual-purchase-1"},
+            json={
+                "user_id": "u1",
+                "package_id": "vip",
+                "days": 365,
+                "reason": "线下收款",
+                "phone": "13800138000",
+                "display_name": "张同学",
+            },
+        )
+
+    assert missing_key.status_code == 400
+    assert created.status_code == 200
+    assert created.json()["ledger_event_id"] == "ledger_manual_1"
+    assert calls == [
+        {
+            "user_id": "u1",
+            "package_id": "vip",
+            "days": 365,
+            "operator": "admin_demo",
+            "reason": "线下收款",
+            "idempotency_key": "manual-purchase-1",
+            "phone": "13800138000",
+            "display_name": "张同学",
+            "amount_cny": None,
+        }
+    ]
+
+
 def test_member_router_records_ops_action_result(monkeypatch: pytest.MonkeyPatch) -> None:
     app = _build_app()
     app.dependency_overrides[get_current_user] = lambda: _ctx("admin_demo", is_admin=True)

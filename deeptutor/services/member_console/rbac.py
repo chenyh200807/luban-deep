@@ -5,7 +5,7 @@
 设计：
 - 5 个 BI tab × 4 类操作 构成权限矩阵。
 - 4 个预定义角色，每个角色对每个 tab 有一组允许的操作。
-- super_admin / admin 能管理权限（分配角色、增删管理员、编辑权限矩阵）。
+- 只有 super_admin 能管理权限（分配角色、增删管理员）。
 - env 引导管理员（DEEPTUTOR_ADMIN_USER_IDS）恒为 super_admin 且不可降级/移除（防锁死）。
 
 单一 authority：本模块是 BI 权限的唯一定义来源；端点与前端都从这里派生，

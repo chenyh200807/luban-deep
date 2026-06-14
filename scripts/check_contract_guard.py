@@ -312,6 +312,135 @@ def _iter_question_lifecycle_python_files(repo_root: Path) -> list[Path]:
     return sorted(path for path in source_root.rglob("*.py") if path.is_file())
 
 
+# G4: evidence_source emit-site register-before-use.
+# learner_memory ``learning_evidence`` events may only carry an evidence_source from
+# ``contracts/index.yaml:learning_state_inference.allowed_evidence_sources``. An
+# unregistered hard-coded evidence_source literal makes ``learning_synthesis`` (which
+# filters by source) SILENTLY DROP that evidence. No literal found is a passing
+# condition — production reads the value from data, not constants; the guard becomes
+# load-bearing the moment someone hard-codes an unrecognized source.
+_EVIDENCE_SOURCE_SCAN_DIRS: tuple[str, ...] = (
+    "deeptutor/services/learner_state",
+    "deeptutor/services/construction_grading",
+)
+_EVIDENCE_SOURCE_EMIT_RE = re.compile(r'"evidence_source"\s*:\s*"([a-z_]+)"')
+
+
+def _allowed_evidence_sources(repo_root: Path = REPO_ROOT) -> set[str]:
+    """Read the canonical allowed set from contracts/index.yaml (repo_root scoped)."""
+    index_path = repo_root / "contracts" / "index.yaml"
+    payload = yaml.safe_load(index_path.read_text(encoding="utf-8")) or {}
+    lsi = payload.get("learning_state_inference") or {}
+    return {str(item) for item in (lsi.get("allowed_evidence_sources") or [])}
+
+
+def collect_emitted_evidence_sources(repo_root: Path = REPO_ROOT) -> dict[str, list[str]]:
+    """Map each hard-coded ``"evidence_source": "<literal>"`` value -> emit-site locations.
+
+    The regex matches only the dict-emit form, so reader comparisons
+    (``payload.get("evidence_source") == ...``) and source_feature pass-throughs
+    (``"evidence_source": str(...)``) are intentionally NOT captured.
+    """
+    found: dict[str, list[str]] = {}
+    for rel_dir in _EVIDENCE_SOURCE_SCAN_DIRS:
+        base = repo_root / rel_dir
+        if not base.exists():
+            continue
+        for path in sorted(base.rglob("*.py")):
+            if "test" in path.name:
+                continue
+            text = path.read_text(encoding="utf-8", errors="ignore")
+            for lineno, line in enumerate(text.splitlines(), start=1):
+                for match in _EVIDENCE_SOURCE_EMIT_RE.finditer(line):
+                    location = f"{path.relative_to(repo_root).as_posix()}:{lineno}"
+                    found.setdefault(match.group(1), []).append(location)
+    return found
+
+
+def evaluate_emitted_evidence_sources(repo_root: Path = REPO_ROOT) -> tuple[bool, str]:
+    """Cross-check every hard-coded evidence_source literal against the
+    contracts/index.yaml allowed set (G4 register-before-use).
+
+    No literal found is a passing condition. Fails closed if the allowed set is
+    unreadable/empty so a missing registry cannot silently disable the gate.
+    """
+    emitted = collect_emitted_evidence_sources(repo_root)
+    if not emitted:
+        return True, "evidence-source-guard: no hard-coded evidence_source literals found"
+    allowed = _allowed_evidence_sources(repo_root)
+    if not allowed:
+        return False, (
+            "evidence-source-guard: failed — contracts/index.yaml "
+            "learning_state_inference.allowed_evidence_sources is empty or unreadable"
+        )
+    unknown = {value: locs for value, locs in emitted.items() if value not in allowed}
+    if unknown:
+        detail = "; ".join(
+            f"{value} @ {', '.join(sorted(locs))}" for value, locs in sorted(unknown.items())
+        )
+        return False, (
+            "evidence-source-guard: failed\n"
+            f"unregistered evidence_source literal(s): {detail} — add to contracts/index.yaml "
+            "learning_state_inference.allowed_evidence_sources or remove the emit-site literal."
+        )
+    return True, (
+        f"evidence-source-guard: passed | evidence_sources={', '.join(sorted(emitted))}"
+    )
+
+
+# G3: mistake_type emit-site register-before-use (static layer).
+# mistake_type labels carried into learner evidence must be a registered code from
+# deeptutor/contracts/mistake_codes.py (mirror of contracts/mistake_code_registry.yaml).
+# This scans hard-coded literals in the grading emit modules; LLM-produced mistake_type
+# at runtime must be normalized at the judge boundary (audit G3 layer 2, separate).
+_MISTAKE_TYPE_SCAN_PATHS: tuple[str, ...] = (
+    "deeptutor/services/construction_grading/rubric_grader_v1.py",
+    "deeptutor/services/construction_grading/artifact_first_llm_judge.py",
+    "deeptutor/services/construction_grading/case_grading_fusion.py",
+    "deeptutor/services/construction_grading/m35_artifact_shadow.py",
+)
+_MISTAKE_TYPE_EMIT_RE = re.compile(
+    r'(?:"mistake_type"|mistake_type|MISTAKE_[A-Z_]+)\s*[=:]\s*"([a-z_]+)"'
+)
+
+
+def evaluate_emitted_mistake_types(repo_root: Path = REPO_ROOT) -> tuple[bool, str]:
+    """Cross-check every hard-coded mistake_type literal against the registry.
+
+    The regex matches dict-emit / kwarg / MISTAKE_* constant forms; reader
+    comparisons (``verdict.get("mistake_type")``) and ``= str(...)`` pass-throughs
+    are not captured. No literal found is a passing condition.
+    """
+    found: dict[str, list[str]] = {}
+    for relative in _MISTAKE_TYPE_SCAN_PATHS:
+        path = repo_root / relative
+        if not path.exists():
+            continue
+        for lineno, line in enumerate(
+            path.read_text(encoding="utf-8", errors="ignore").splitlines(), start=1
+        ):
+            for match in _MISTAKE_TYPE_EMIT_RE.finditer(line):
+                found.setdefault(match.group(1), []).append(f"{relative}:{lineno}")
+    if not found:
+        return True, "mistake-type-guard: no hard-coded mistake_type literals found"
+    try:
+        from deeptutor.contracts.mistake_codes import is_known_mistake_code
+    except Exception as exc:  # pragma: no cover - defensive
+        return False, f"mistake-type-guard: registry import failed: {exc}"
+    unknown = {v: locs for v, locs in found.items() if not is_known_mistake_code(v)}
+    if unknown:
+        detail = "; ".join(
+            f"{v} @ {', '.join(sorted(locs))}" for v, locs in sorted(unknown.items())
+        )
+        return False, (
+            "mistake-type-guard: failed\n"
+            f"unregistered mistake_type literal(s): {detail} — add to "
+            "contracts/mistake_code_registry.yaml + deeptutor/contracts/mistake_codes.py "
+            "or remove the emit-site literal."
+        )
+    return True, f"mistake-type-guard: passed | mistake_types={', '.join(sorted(found))}"
+
+
 def evaluate_question_lifecycle_authority(repo_root: Path = REPO_ROOT) -> tuple[bool, str]:
     """Fail when production code introduces a competing lifecycle authority."""
 
@@ -467,8 +596,17 @@ def main(argv: list[str] | None = None) -> int:
     route_model_stream = sys.stdout if route_model_ok else sys.stderr
     print(route_model_message, file=route_model_stream)
 
+    evidence_ok, evidence_message = evaluate_emitted_evidence_sources()
+    evidence_stream = sys.stdout if evidence_ok else sys.stderr
+    print(evidence_message, file=evidence_stream)
+
+    mistake_ok, mistake_message = evaluate_emitted_mistake_types()
+    mistake_stream = sys.stdout if mistake_ok else sys.stderr
+    print(mistake_message, file=mistake_stream)
+
     return 0 if (ok and code_ok and node_ok and lifecycle_ok
-                 and upstream_ok and ws_ok and schema_ok and route_model_ok) else 1
+                 and upstream_ok and ws_ok and schema_ok and route_model_ok
+                 and evidence_ok and mistake_ok) else 1
 
 
 if __name__ == "__main__":

@@ -140,7 +140,7 @@ export async function listAdmins(): Promise<BiAdminRecord[]> {
   )
 }
 
-/** GET /admins/audit — 权限变更审计，最新在前（can_manage_permissions）。 */
+/** GET /admins/audit — 权限变更审计，最新在前（super_admin）。 */
 export async function listAdminAudit(limit = 200): Promise<BiAdminAuditEntry[]> {
   const data = await readJson<{ audit?: BiAdminAuditEntry[] }>(
     await fetch(apiUrl(`/api/v1/bi/admins/audit?limit=${encodeURIComponent(String(limit))}`), {
@@ -151,7 +151,7 @@ export async function listAdminAudit(limit = 200): Promise<BiAdminAuditEntry[]> 
   return data.audit ?? []
 }
 
-/** GET /admins/search-members — 按手机号 / 姓名 / user_id 搜会员选人（can_manage_permissions）。 */
+/** GET /admins/search-members — 按手机号 / 姓名 / user_id 搜会员选人（super_admin）。 */
 export async function searchMembers(q: string, limit = 10): Promise<BiMemberSearchResult[]> {
   const query = q.trim()
   if (!query) return []

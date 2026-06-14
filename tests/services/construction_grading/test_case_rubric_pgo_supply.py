@@ -168,9 +168,7 @@ def test_build_grading_contracts_from_factory_candidate_uses_verbatim_segments_o
         validate_pgo_runtime_supply,
     )
 
-    result = build_grading_contracts_from_factory_candidate(
-        _factory_candidate(), [_pgo_object()]
-    )
+    result = build_grading_contracts_from_factory_candidate(_factory_candidate(), [_pgo_object()])
 
     assert result["rejected"] == []
     contract = result["contracts"][0]
@@ -216,15 +214,17 @@ def test_build_grading_contracts_from_factory_candidate_rejects_minted_segment()
     assert "segment_not_verbatim:1" in result["rejected"][0]["blockers"]
 
 
-def test_build_grading_contracts_from_factory_candidate_canonicalizes_to_official_substring() -> None:
+def test_build_grading_contracts_from_factory_candidate_canonicalizes_to_official_substring() -> (
+    None
+):
     from deeptutor.services.construction_grading.case_rubric_pgo_supply import (
         build_grading_contracts_from_factory_candidate,
     )
 
     obj = _pgo_object()
-    obj["sub_questions"][0][
-        "official_sub_answer_verbatim"
-    ] = "分期( 分批) 实施工程的开、\n竣工日期及工期一览表"
+    obj["sub_questions"][0]["official_sub_answer_verbatim"] = (
+        "分期( 分批) 实施工程的开、\n竣工日期及工期一览表"
+    )
     factory = _factory_candidate()
     factory["cases"][0]["segments"] = [
         {

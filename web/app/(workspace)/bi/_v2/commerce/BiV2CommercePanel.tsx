@@ -1,7 +1,8 @@
 /* eslint-disable i18n/no-literal-ui-text */
 'use client'
 
-import { Calendar, RefreshCw } from 'lucide-react'
+import { Calendar, RefreshCw, UserPlus } from 'lucide-react'
+import type { FormEvent } from 'react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   BiButton,
@@ -26,6 +27,7 @@ import {
   type BiCommercePackage,
   type BiCommerceRechargeRecord,
 } from '@/lib/bi-api'
+import { manualPurchaseMembership } from '@/lib/member-api'
 import { CommerceCockpit } from '@/components/bi-cockpit/CommerceCockpit'
 
 type Tab = 'recharges' | 'ledger' | 'packages'
@@ -332,6 +334,14 @@ export function BiV2CommercePanel({ flagEnabled, globalQuery = '' }: BiV2Commerc
 
       <CommerceCockpit data={data} />
 
+      <ManualMembershipPurchasePanel
+        packages={packageRows}
+        onCreated={async () => {
+          setTab('recharges')
+          await load()
+        }}
+      />
+
       <div className="flex items-center gap-2 border-b border-white/10">
         <TabBtn
           active={tab === 'recharges'}
@@ -443,6 +453,187 @@ export function BiV2CommercePanel({ flagEnabled, globalQuery = '' }: BiV2Commerc
         <PackageGrid packages={filteredPackages} loading={loading} error={error} />
       ) : null}
     </section>
+  )
+}
+
+function ManualMembershipPurchasePanel({
+  packages,
+  onCreated,
+}: {
+  packages: ReadonlyArray<BiCommercePackage>
+  onCreated: () => Promise<void> | void
+}) {
+  const [userId, setUserId] = useState('')
+  const [displayName, setDisplayName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [packageId, setPackageId] = useState('')
+  const [days, setDays] = useState('365')
+  const [amountCny, setAmountCny] = useState('')
+  const [reason, setReason] = useState('线下收款')
+  const [submitting, setSubmitting] = useState(false)
+  const [notice, setNotice] = useState('')
+  const [error, setError] = useState('')
+
+  const selectedPackage = useMemo(
+    () => packages.find(item => item.id === packageId) ?? packages[0],
+    [packageId, packages]
+  )
+
+  useEffect(() => {
+    if (!selectedPackage) return
+    if (!packageId) setPackageId(selectedPackage.id)
+    if (!amountCny) setAmountCny(String(selectedPackage.priceCny || ''))
+  }, [amountCny, packageId, selectedPackage])
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const parsedDays = Number(days)
+    const parsedAmount = amountCny.trim() ? Number(amountCny) : undefined
+    if (!userId.trim() || !selectedPackage || !Number.isFinite(parsedDays) || parsedDays <= 0) {
+      setError('请填写会员 ID、套餐和有效天数')
+      return
+    }
+    if (parsedAmount !== undefined && (!Number.isFinite(parsedAmount) || parsedAmount < 0)) {
+      setError('实收金额必须是非负数字')
+      return
+    }
+    setSubmitting(true)
+    setError('')
+    setNotice('')
+    try {
+      const result = await manualPurchaseMembership({
+        user_id: userId.trim(),
+        package_id: selectedPackage.id,
+        days: Math.floor(parsedDays),
+        reason: reason.trim(),
+        phone: phone.trim() || undefined,
+        display_name: displayName.trim() || undefined,
+        amount_cny: parsedAmount,
+      })
+      setNotice(`已开通 ${result.member.tier}，收入流水 ${result.ledger_event_id || result.purchase_id}`)
+      setUserId('')
+      setDisplayName('')
+      setPhone('')
+      await Promise.resolve(onCreated())
+    } catch (exc) {
+      setError(exc instanceof Error ? exc.message : '人工开通失败')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <form
+      onSubmit={submit}
+      className="rounded-2xl border border-cyan-300/20 bg-cyan-300/[0.06] p-4 text-xs shadow-lg shadow-black/10"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h3 className="flex items-center gap-2 text-sm font-black text-white">
+            <UserPlus className="h-4 w-4 text-cyan-200" aria-hidden />
+            人工开通会员
+          </h3>
+        </div>
+        <BiButton
+          type="submit"
+          variant="primary"
+          size="xs"
+          disabled={submitting || packages.length === 0}
+          aria-label="提交人工开通会员"
+        >
+          {submitting ? '写入中' : '开通'}
+        </BiButton>
+      </div>
+
+      <div className="mt-3 grid grid-cols-1 gap-2 md:grid-cols-3 xl:grid-cols-6">
+        <label className="space-y-1">
+          <span className="text-[11px] text-slate-400">会员 ID</span>
+          <input
+            value={userId}
+            onChange={event => setUserId(event.target.value)}
+            className="h-9 w-full rounded-lg border border-white/10 bg-[#0e1624] px-3 text-xs text-white outline-none focus:border-cyan-300/60"
+            placeholder="user_id / 手机号"
+          />
+        </label>
+        <label className="space-y-1">
+          <span className="text-[11px] text-slate-400">姓名</span>
+          <input
+            value={displayName}
+            onChange={event => setDisplayName(event.target.value)}
+            className="h-9 w-full rounded-lg border border-white/10 bg-[#0e1624] px-3 text-xs text-white outline-none focus:border-cyan-300/60"
+            placeholder="选填"
+          />
+        </label>
+        <label className="space-y-1">
+          <span className="text-[11px] text-slate-400">手机号</span>
+          <input
+            value={phone}
+            onChange={event => setPhone(event.target.value)}
+            className="h-9 w-full rounded-lg border border-white/10 bg-[#0e1624] px-3 text-xs text-white outline-none focus:border-cyan-300/60"
+            placeholder="选填"
+          />
+        </label>
+        <label className="space-y-1">
+          <span className="text-[11px] text-slate-400">套餐</span>
+          <BiSelect
+            value={selectedPackage?.id ?? ''}
+            onChange={event => {
+              const next = packages.find(item => item.id === event.target.value)
+              setPackageId(event.target.value)
+              setAmountCny(next ? String(next.priceCny || '') : '')
+            }}
+            aria-label="选择人工开通套餐"
+          >
+            {packages.map(item => (
+              <option key={item.id} value={item.id}>
+                {item.name} · {item.points}点
+              </option>
+            ))}
+          </BiSelect>
+        </label>
+        <label className="space-y-1">
+          <span className="text-[11px] text-slate-400">有效天数</span>
+          <input
+            type="number"
+            min={1}
+            max={3650}
+            value={days}
+            onChange={event => setDays(event.target.value)}
+            className="h-9 w-full rounded-lg border border-white/10 bg-[#0e1624] px-3 text-xs text-white outline-none focus:border-cyan-300/60"
+          />
+        </label>
+        <label className="space-y-1">
+          <span className="text-[11px] text-slate-400">实收 ¥</span>
+          <input
+            type="number"
+            min={0}
+            step="0.01"
+            value={amountCny}
+            onChange={event => setAmountCny(event.target.value)}
+            className="h-9 w-full rounded-lg border border-white/10 bg-[#0e1624] px-3 text-xs text-white outline-none focus:border-cyan-300/60"
+          />
+        </label>
+      </div>
+
+      <label className="mt-2 block space-y-1">
+        <span className="text-[11px] text-slate-400">备注</span>
+        <input
+          value={reason}
+          onChange={event => setReason(event.target.value)}
+          className="h-9 w-full rounded-lg border border-white/10 bg-[#0e1624] px-3 text-xs text-white outline-none focus:border-cyan-300/60"
+          placeholder="线下收款、补录、企业转账"
+        />
+      </label>
+
+      {selectedPackage ? (
+        <p className="mt-2 text-[11px] text-slate-400">
+          当前套餐：{selectedPackage.name} · {selectedPackage.points} 点 · ¥
+          {selectedPackage.priceCny}
+        </p>
+      ) : null}
+      {notice ? <BiNotice tone="emerald">{notice}</BiNotice> : null}
+      {error ? <BiNotice tone="rose">{error}</BiNotice> : null}
+    </form>
   )
 }
 
