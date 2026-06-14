@@ -159,6 +159,9 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
   `member_console_session_activity_supplement` 补入列表。这个补入只修正运营读模型可见性和排序，
   不改变 Supabase 会员 eligibility authority，不得写 learner state，也不得作为新增会员窗口指标
   或钱包/学习事实的 canonical source。
+- `member_console` 的角色权限矩阵与 per-user 权限覆盖只属于 BI/admin 控制面访问控制。它们可以决定
+  管理员能看哪些运营 tab、执行哪些运营动作，但不得改变 learner profile、progress、goals、
+  learner_memory_events、wallet ledger、turn/session state 或任何学习事实 authority。
 - 如果某个运营动作需要改变 learner state，必须走 learner-state writeback / promotion
   authority，不能通过 member-console audit helper 旁路写入。
 - 账号凭证事实与 learner-state 分权：`MemberConsoleService` 可以通过 external auth 管理

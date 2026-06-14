@@ -95,7 +95,7 @@ def build_home_personalization_projection_from_learning_signal(
     else:
         concept_label = explicit_label if explicit_label and topic.confidence == "low" else topic.label
         topic_fields = topic.intent_fields()
-    concept_label = canonical_home_focus_topic_label(concept_label) or concept_label
+    concept_label = _canonicalize_projection_topic_label(concept_label, topic=topic) or concept_label
     error_label = _first_focus_topic_label(
         error.get("label"),
         _first_error_label(payload),
@@ -648,6 +648,17 @@ def canonical_home_focus_topic_label(value: Any) -> str:
     if option:
         return str(option.get("name") or "").strip()
     return canonical_learning_topic_label(text)
+
+
+def _canonicalize_projection_topic_label(
+    value: Any, *, topic: ResolvedLearningTopic | None = None
+) -> str:
+    text = normalize_home_focus_topic_label(value)
+    if not text:
+        return ""
+    if topic and topic.source == "taxonomy_label" and topic.taxonomy_id:
+        return text
+    return canonical_home_focus_topic_label(text)
 
 
 def _first_text(*values: Any) -> str:
