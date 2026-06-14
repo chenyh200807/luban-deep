@@ -489,3 +489,38 @@ def test_to_learning_evidence_emits_error_events_without_node_code() -> None:
     # 有 node_code 的行为不回归
     payload_with_node = G.to_learning_evidence(event, node_code="1A415000")
     assert (payload_with_node.get("error_events") or [])[0]["concept_tag"] == "1A415000"
+
+
+# ── G2 single-authority guard: only official-backed points may score ──────────
+
+
+def test_g2_guard_keeps_official_and_untagged_points_unchanged():
+    # behaviour-preserving: current production points (no authority_source) pass through as-is.
+    pts = _rubric()
+    kept = G.enforce_official_scoring_authority(pts, provenance="compiled_rubric")
+    assert kept == pts
+
+
+def test_g2_guard_demotes_textbook_cited_point_out_of_scoring():
+    # a rich-leaf / textbook-cited point must NEVER enter the scoring channel.
+    pts = _rubric() + [
+        {"point_id": "RL1", "text": "教材引证(supporting)", "score": 5.0,
+         "authority_source": "textbook_cited"},
+    ]
+    kept = G.enforce_official_scoring_authority(pts, provenance="compiled_rubric")
+    assert all(p.get("authority_source") != "textbook_cited" for p in kept)
+    assert len(kept) == len(_rubric())
+    assert sum(float(p.get("score") or 0) for p in kept) == 6.0  # rich-leaf 5.0 excluded
+
+
+def test_g2_guard_all_rich_leaf_yields_empty_so_caller_falls_back():
+    pts = [{"point_id": "RL", "text": "x", "score": 9.0, "authority_source": "textbook_cited"}]
+    assert G.enforce_official_scoring_authority(pts, provenance="compiled_rubric") == []
+
+
+def test_g2_guard_official_answer_verbatim_authority_still_scores():
+    # the per-question compiled object tags scoring points official_answer_verbatim — those score.
+    pts = [{"point_id": "O1", "text": "官方原子点", "score": 2.0,
+            "authority_source": "official_answer_verbatim"}]
+    kept = G.enforce_official_scoring_authority(pts, provenance="compiled_rubric")
+    assert kept == pts

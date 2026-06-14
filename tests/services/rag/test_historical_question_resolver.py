@@ -309,7 +309,8 @@ async def test_rag_service_returns_historical_exact_question_when_provider_fails
     assert result["retrieval_degraded"] is True
     assert result["retrieval_status"] == "provider_failed_exact_question_resolved"
     assert result["evidence_bundle"]["exact_question"]["correct_answer"] == "CDE"
-    assert result["evidence_bundle"]["canonical_question_context"]["answer_key"] == "CDE"
+    # historical-question diagnostics now in the canonical bundle's ``trace`` bucket (consolidation)
+    assert result["evidence_bundle"]["trace"]["canonical_question_context"]["answer_key"] == "CDE"
     assert result["evidence_bundle"]["retrieval_degraded"] is True
     assert result["evidence_bundle"]["retrieval_status"] == "provider_failed_exact_question_resolved"
     assert "题库原题" in result["content"]

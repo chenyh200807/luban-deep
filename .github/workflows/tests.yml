@@ -191,6 +191,31 @@ jobs:
         run: |
           python scripts/check_process_registry.py --all
 
+      - name: harness authority guard (single SCENE_COMPOSITION / grounding / force-exact)
+        # AGENTS §5.7 single-authority: the eval harness scene-composition / grounding /
+        # force-exact decision must have ONE definition. AST-level + alias-proof; it has
+        # caught real regressions but ran only locally (eval/gates.yaml) until now — a
+        # second authority definition used to land on main with no CI failure.
+        run: |
+          python scripts/check_harness_authority.py
+
+      - name: model authority guard (single DEFAULT_LLM_MODEL / PROVIDER)
+        # AGENTS §5.7 single-authority: DEFAULT_LLM_MODEL / DEFAULT_LLM_PROVIDER must have
+        # ONE definition; a second model-default landing on main now fails CI (was PR-blind).
+        run: |
+          python scripts/check_model_authority.py
+
+      - name: governance registry meta-gate (every scanner cataloged + every pr_gate wired)
+        # The roll-up the schema-governance audit found missing: contracts/registries.yaml
+        # is the single catalog of every governance scanner + its resource class + where it
+        # runs. This gate fails CI if (a) a scripts/check_*.py governance scanner is not
+        # cataloged (register-before-use for the gates themselves), or (b) a pr_gate-class
+        # scanner is not actually an executed step in this workflow. It is what would have
+        # auto-caught harness/model authority + the schema-registry unit tests being dark.
+        # Governs the GATE SET without adding a second schema authority (less-is-more).
+        run: |
+          python scripts/check_registries_meta.py
+
       - name: WebSocket single-control-plane allowlist gate
         # Reflects the live FastAPI app's production WebSocket surface and fails
         # on any WS route not declared in contracts/index.yaml websocket_routes,
@@ -337,9 +362,17 @@ jobs:
           pytest -q --import-mode=importlib \
             tests/api \
             tests/cli \
+            tests/scripts/test_schema_registry.py \
+            tests/scripts/test_db_registry.py \
+            tests/scripts/test_env_registry.py \
+            tests/scripts/test_provider_registry.py \
+            tests/scripts/test_process_registry.py \
+            tests/scripts/test_registries_meta.py \
+            tests/scripts/test_contract_guard.py \
             tests/services/test_import_smoke.py \
             tests/services/test_app_facade.py \
             tests/services/test_model_catalog.py \
+            tests/services/test_bi_metrics.py \
             tests/services/test_path_service.py \
             tests/runtime/test_orchestrator_autoroute.py \
             tests/capabilities/test_deep_question_question_review.py \

@@ -497,10 +497,11 @@ async def test_learning_fact_search_records_stage_timings_and_skips_heavy_steps(
         query="根据我的薄弱点安排下一道训练题，不要讲通用知识。",
     )
 
-    timings = result["evidence_bundle"]["stage_timings_ms"]
+    # supabase lane diagnostics moved into the canonical bundle's ``trace`` bucket (consolidation)
+    timings = result["evidence_bundle"]["trace"]["stage_timings_ms"]
     assert timings["total"] >= 0
     assert "primary_plan" in timings
-    assert result["evidence_bundle"]["performance_policy"] == {
+    assert result["evidence_bundle"]["trace"]["performance_policy"] == {
         "intent_fast_path": True,
         "compiled_only_fast_path": True,
         "rerank_enabled": False,
@@ -1231,7 +1232,7 @@ async def test_supabase_search_emits_evidence_bundle_and_respects_routing_metada
 
     assert result["evidence_bundle"]["kb_name"] == "construction-exam"
     assert result["evidence_bundle"]["retrieval_empty"] is False
-    assert result["evidence_bundle"]["source_plan"]["search_questions_bank"] is True
+    assert result["evidence_bundle"]["trace"]["source_plan"]["search_questions_bank"] is True
     assert result["evidence_bundle"]["sources"][0]["chunk_id"] == "question-q-fuzzy"
     assert result["evidence_bundle"]["sources"][0]["source_id"] == "question_2026_roof_001"
     assert result["evidence_bundle"]["sources"][0]["source_table"] == "questions_bank"

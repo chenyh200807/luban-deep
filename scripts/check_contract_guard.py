@@ -24,6 +24,12 @@ from scripts.ci.check_websocket_route_allowlist import (  # noqa: E402
     evaluate_websocket_route_allowlist,
 )
 
+# Schema-registry register-before-use, wired into the ONE runner (P0#1 of the schema-
+# governance closure). The standalone `--closure` CI step catches orphan IDs full-tree;
+# this changed-files entry adds per-PR drift-field + authority-completeness enforcement so
+# a grading schema can't drift its fields / lose authority_source in a touched file.
+from scripts.check_schema_registry import evaluate_schema_registry  # noqa: E402
+
 # Phase -1.B: error-code emit-site cross-check.
 # Scan these source paths for hard-coded error_code literals that look like
 # E0X / M0X codes and validate them against ERROR_CODE_REGISTRY. The list is
@@ -73,6 +79,51 @@ _QUESTION_LIFECYCLE_FORBIDDEN_CALLS: tuple[str, ...] = (
     "attach_question_lifecycle_scene_to_context",
     "derive_question_lifecycle_scene",
 )
+
+# Upstream absorption guard. HKUDS/DeepTutor v1.4.3 introduces useful
+# implementation patterns, but these upstream product concepts are not allowed
+# to become production authorities in this fork without an explicit contract
+# redesign:
+# - Partners must not replace or sit beside TutorBot as the business identity.
+# - /api/v1/partners must not become a chat/control-plane route; chat remains
+#   under /api/v1/ws.
+# - upstream's standalone deeptutor.learning runtime must not become a second
+#   Learning Brain / learner-memory authority.
+_UPSTREAM_FORBIDDEN_PATHS: tuple[tuple[str, str], ...] = (
+    (
+        "deeptutor/partners",
+        "deeptutor/partners is forbidden in production code: TutorBot remains the business identity.",
+    ),
+    (
+        "deeptutor/partners.py",
+        "deeptutor/partners.py is forbidden in production code: TutorBot remains the business identity.",
+    ),
+    (
+        "deeptutor/services/partners",
+        "deeptutor/services/partners is forbidden in production code: keep partner-like channels as TutorBot adapters.",
+    ),
+    (
+        "deeptutor/services/partners.py",
+        "deeptutor/services/partners.py is forbidden in production code: keep partner-like channels as TutorBot adapters.",
+    ),
+    (
+        "deeptutor/api/routers/partners",
+        "deeptutor/api/routers/partners is forbidden: do not add /api/v1/partners beside /api/v1/ws.",
+    ),
+    (
+        "deeptutor/api/routers/partners.py",
+        "deeptutor/api/routers/partners.py is forbidden: do not add /api/v1/partners beside /api/v1/ws.",
+    ),
+    (
+        "deeptutor/learning",
+        "deeptutor/learning is forbidden as a standalone runtime: use Learning Brain / learner_state authority.",
+    ),
+    (
+        "deeptutor/learning.py",
+        "deeptutor/learning.py is forbidden as a standalone runtime: use Learning Brain / learner_state authority.",
+    ),
+)
+_UPSTREAM_FORBIDDEN_ROUTE_RE = re.compile(r"['\"]\/api\/v1\/partners(?:\/|\b)")
 
 
 def load_contract_index() -> dict[str, Any]:
@@ -299,6 +350,36 @@ def evaluate_question_lifecycle_authority(repo_root: Path = REPO_ROOT) -> tuple[
     )
 
 
+def evaluate_upstream_authority_absorption(repo_root: Path = REPO_ROOT) -> tuple[bool, str]:
+    """Fail when upstream v1.4.x concepts are copied in as new authorities.
+
+    The scan is deliberately limited to production code under ``deeptutor/``.
+    Plans and docs may discuss upstream names; runtime code must keep those
+    concepts demoted to patterns, candidates, or TutorBot adapters.
+    """
+
+    failures: list[str] = []
+    for relative, message in _UPSTREAM_FORBIDDEN_PATHS:
+        path = repo_root / relative
+        if path.exists():
+            failures.append(f"{relative}: {message}")
+
+    source_root = repo_root / "deeptutor"
+    if source_root.exists():
+        for path in sorted(source_root.rglob("*.py")):
+            relative = path.relative_to(repo_root).as_posix()
+            text = path.read_text(encoding="utf-8", errors="ignore")
+            for lineno, line in enumerate(text.splitlines(), start=1):
+                if _UPSTREAM_FORBIDDEN_ROUTE_RE.search(line):
+                    failures.append(
+                        f"{relative}:{lineno}: /api/v1/partners must not become a production route; chat/control-plane traffic stays on /api/v1/ws."
+                    )
+
+    if failures:
+        return False, "upstream-authority-absorption-guard: failed\n" + "\n".join(failures)
+    return True, "upstream-authority-absorption-guard: passed"
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Fail CI when protected contract boundaries change without docs/tests coverage."
@@ -330,11 +411,22 @@ def main(argv: list[str] | None = None) -> int:
     lifecycle_stream = sys.stdout if lifecycle_ok else sys.stderr
     print(lifecycle_message, file=lifecycle_stream)
 
+    upstream_ok, upstream_message = evaluate_upstream_authority_absorption()
+    upstream_stream = sys.stdout if upstream_ok else sys.stderr
+    print(upstream_message, file=upstream_stream)
+
     ws_ok, ws_message = evaluate_websocket_route_allowlist()
     ws_stream = sys.stdout if ws_ok else sys.stderr
     print(ws_message, file=ws_stream)
 
-    return 0 if (ok and code_ok and node_ok and lifecycle_ok and ws_ok) else 1
+    # Schema-registry register-before-use on the changed files (P0#1): per-PR drift +
+    # authority enforcement now lives in the one runner, not only the full-tree --closure step.
+    schema_ok, schema_message = evaluate_schema_registry(changed_files)
+    schema_stream = sys.stdout if schema_ok else sys.stderr
+    print(schema_message, file=schema_stream)
+
+    return 0 if (ok and code_ok and node_ok and lifecycle_ok
+                 and upstream_ok and ws_ok and schema_ok) else 1
 
 
 if __name__ == "__main__":

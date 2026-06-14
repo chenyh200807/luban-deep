@@ -94,6 +94,18 @@ def test_i2b_base_grading_object_with_embedded_tier3_word_is_not_ephemeral() -> 
     assert classify_identifier("eval_scoring_point.v2", registry) == "orphan"
 
 
+def test_i2b_dash_namespaced_grading_shaped_id_keeps_orphan_veto() -> None:
+    # I2(b) regression for the dash-namespace widening (2026-06-14): once
+    # ``_FULLSET_NAMESPACE_RE`` admits ``luban-`` (dash), the grading-shaped one-票否决
+    # boundary class must ALSO include '-' — else a DASH grading-shaped id that happens to
+    # match a dash carve-out family (``luban-consensus-grading_object.v1`` ⊃ the
+    # ``luban-consensus`` T3 family) would be silently swallowed into T3, defeating the veto
+    # whose whole job is "a grading typed object is never ephemeral". It must stay an orphan.
+    registry = load_schema_registry()
+    assert classify_identifier("luban-consensus-grading_object.v1", registry) == "orphan"
+    assert classify_identifier("luban-x-scoring_point.v2", registry) == "orphan"
+
+
 def test_i2b_tier3_pattern_no_midword_substring_swallow() -> None:
     # I2(b): a ``_word`` pattern ending in a letter must match only as a bounded
     # SEGMENT — ``_eval`` matches ``_eval_run`` / ``_eval`` (end) but NOT ``_evaluation``.
@@ -320,13 +332,40 @@ def test_full_set_scan_is_deterministic_and_versioned() -> None:
     """The regenerated full set is stable and contains only versioned ids."""
     full = collect_all_schema_identifiers()
     assert collect_all_schema_identifiers() == full  # pure / deterministic
-    # every id carries a version suffix (.vN / .mNN / _vN) — no bare 'public' etc.
-    import re as _re
+    # every id carries a version suffix (.vN / .mNN / _vN / -vN) — no bare 'public' etc.
+    # Use the PRODUCTION suffix regex (single source) so this test cannot drift from it
+    # (P0#2 added the dash form for the persisted p0a-v1 report schema version).
+    from scripts.check_schema_registry import _FULLSET_VERSION_SUFFIX_RE
 
-    suffix = _re.compile(r"(?:\.v[0-9]|\.m[0-9]+|_v[0-9])")
-    assert all(suffix.search(name) for name in full)
+    assert all(_FULLSET_VERSION_SUFFIX_RE.search(name) for name in full)
     assert "public" not in full
     assert "learning_evidence" not in full
+
+
+def test_dash_namespaced_schema_versions_are_collected_not_escaped() -> None:
+    """Regression pin for the closure-honesty fix (2026-06-14): persisted
+    ``schema_version: "luban-…"`` (DASH-namespaced) artifact tags must ENTER the full
+    set, not silently escape it. Before the fix, ``_FULLSET_NAMESPACE_RE`` only matched
+    ``luban[_.]`` (underscore/dot), so 11 dash-named one-off script result-envelopes +
+    1 ``artifact_version=`` judge-trace label vanished from the full set — and because
+    the closure test only asserts ``orphans == []`` over WHATEVER is in the set, a silent
+    escape would NOT be caught by it (the id just disappears, it never becomes an orphan).
+    This test pins the escape closed at the collection layer so reverting ``luban[-_.]``
+    or dropping the ``artifact_version`` marker is caught here, not lost. They are
+    script-persistence artifacts → classified T3 (never orphan, never registered)."""
+    full = collect_all_schema_identifiers()
+    registry = load_schema_registry()
+    for dash_id in (
+        "luban-consensus-gold-shadow.v0.1",
+        "luban-multimodel-jury-gold.v0.1",
+        "luban-agentic-model-bakeoff-v2",
+    ):
+        assert dash_id in full, f"{dash_id} escaped the full set (dash-namespace regression)"
+        assert classify_identifier(dash_id, registry) == "tier3"
+    # the artifact_version-carried id (marker-key gap) must also be collected
+    artifact_id = "luban_m35_fastapi_case_subquestions_20q_100a.v1"
+    assert artifact_id in full, f"{artifact_id} escaped (artifact_version marker regression)"
+    assert classify_identifier(artifact_id, registry) == "tier3"
 
 
 def test_full_set_is_closed_three_tier() -> None:
@@ -382,9 +421,11 @@ def test_guard_tier2_contract_is_recognized_not_unregistered() -> None:
 
     It also must NOT trigger the grading drift/authority checks (it is not a
     per-point grading object), and it emits a non-blocking field-canonicalization
-    warning while its fields remain unpinned.
+    warning while its fields remain unpinned. Uses a STILL-UNPINNED T2 contract
+    (``luban_canonical_knowledge_manifest.v1``) — context_pack/bundle were field-pinned
+    in P2#9 (needs_field_canonicalization=false), so they no longer emit this nudge.
     """
-    code = 'SCHEMA_VERSION = "luban_context_pack.v1"\n'
+    code = 'SCHEMA_VERSION = "luban_canonical_knowledge_manifest.v1"\n'
     usages = collect_schema_usages([("deeptutor/services/construction_grading/x.py", code)])
     ok, message = evaluate_schema_usages(usages, load_schema_registry())
     assert ok is True  # registered T2 -> pass (not "unregistered")
@@ -393,13 +434,97 @@ def test_guard_tier2_contract_is_recognized_not_unregistered() -> None:
 
 
 def test_guard_tier2_drift_word_not_failed() -> None:
-    """A drift-shaped word in a T2 file is not failed (T2 has no canonical field set)."""
+    """A drift-shaped word in a T2 file is not failed: the guard never runs the per-point
+    grading field checks on a T2 contract (field parity for pinned T2 is enforced by the
+    introspection tests below, not by the text-scanning guard)."""
     code = (
         "def build():\n"
-        '    SCHEMA_VERSION = "luban_context_pack.v1"\n'
-        '    row = {"weight": 1.0}  # not a grading point; T2 has no pinned field set\n'
+        '    SCHEMA_VERSION = "luban_canonical_knowledge_manifest.v1"\n'
+        '    row = {"weight": 1.0}  # not a grading point; guard never field-checks a T2 contract\n'
         "    return row\n"
     )
     usages = collect_schema_usages([("deeptutor/services/construction_grading/x.py", code)])
     ok, _ = evaluate_schema_usages(usages, load_schema_registry())
     assert ok is True
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# P2#9 — field-level pinning for high-traffic T2 contracts (drift is BLOCKING)
+#
+# Two high-traffic runtime contracts are field-pinned: their registry ``canonical_fields``
+# must equal the producer's DECLARED field set (dataclass fields / the per-record tuple).
+# These are CONTRACT tests, not link tests — a producer that adds/renames a field without
+# updating the registry (or vice versa) fails here, in the CI smoke subset → BLOCKING. The
+# parity is verified by INTROSPECTING the producer (robust), never by scanning text (fragile).
+# ─────────────────────────────────────────────────────────────────────────────
+def _t2_entry(name: str) -> dict:
+    entry = load_schema_registry()["tier2_by_name"].get(name)
+    assert entry is not None, f"{name} must be a registered T2 contract"
+    return entry
+
+
+def test_context_pack_v1_fields_pinned_match_producer() -> None:
+    """``luban_context_pack.v1`` canonical_fields == LubanContextPack dataclass fields."""
+    from deeptutor.services.construction_grading.compiled_context import LubanContextPack
+
+    entry = _t2_entry("luban_context_pack.v1")
+    assert entry.get("needs_field_canonicalization") is False, "must be PINNED (false) for P2#9"
+    pinned = set(entry.get("canonical_fields") or [])
+    declared = set(LubanContextPack.__dataclass_fields__.keys())
+    assert pinned == declared, (
+        "luban_context_pack.v1 field drift — registry canonical_fields vs LubanContextPack "
+        f"dataclass.\n  only in registry: {sorted(pinned - declared)}\n  only in producer: "
+        f"{sorted(declared - pinned)}\nUpdate contracts/schema_registry.yaml canonical_fields "
+        "to match the producer (or revert the producer field change)."
+    )
+
+
+def test_rich_leaf_context_bundle_v1_record_fields_pinned_match_producer() -> None:
+    """``luban_rich_leaf_context_bundle.v1`` canonical_fields == ``_RECORD_FIELDS`` tuple."""
+    from deeptutor.services.construction_grading.rich_leaf_runtime import _RECORD_FIELDS
+
+    entry = _t2_entry("luban_rich_leaf_context_bundle.v1")
+    assert entry.get("needs_field_canonicalization") is False, "must be PINNED (false) for P2#9"
+    pinned = set(entry.get("canonical_fields") or [])
+    declared = set(_RECORD_FIELDS)
+    assert pinned == declared, (
+        "luban_rich_leaf_context_bundle.v1 per-record field drift — registry canonical_fields "
+        f"vs _RECORD_FIELDS.\n  only in registry: {sorted(pinned - declared)}\n  only in "
+        f"producer: {sorted(declared - pinned)}\nUpdate the registry canonical_fields to match "
+        "_RECORD_FIELDS (or revert the producer field change)."
+    )
+
+
+def test_rag_evidence_bundle_v1_fields_pinned_match_producer() -> None:
+    """``rag_evidence_bundle.v1`` canonical_fields == EvidenceBundle dataclass fields.
+
+    The evidence bundle was consolidated from 4 drifting inline assembly sites into one
+    single-authority builder (``build_evidence_bundle``); this pins its canonical shape so a
+    field drift (a lane adds a top-level key, or the dataclass changes) fails here → BLOCKING.
+    Lane-specific diagnostics live under the single ``trace`` key, not as top-level fields."""
+    from deeptutor.services.rag.evidence_bundle import SCHEMA_ID, EvidenceBundle
+
+    assert SCHEMA_ID == "rag_evidence_bundle.v1"
+    entry = _t2_entry("rag_evidence_bundle.v1")
+    assert entry.get("needs_field_canonicalization") is False, "must be PINNED (false)"
+    pinned = set(entry.get("canonical_fields") or [])
+    declared = set(EvidenceBundle.__dataclass_fields__.keys())
+    assert pinned == declared, (
+        "rag_evidence_bundle.v1 field drift — registry canonical_fields vs EvidenceBundle "
+        f"dataclass.\n  only in registry: {sorted(pinned - declared)}\n  only in producer: "
+        f"{sorted(declared - pinned)}"
+    )
+
+
+def test_pinned_t2_contracts_must_list_canonical_fields() -> None:
+    """Registry-consistency: a T2 marked PINNED (needs_field_canonicalization=false) MUST
+    carry a non-empty ``canonical_fields`` — otherwise it claims field enforcement with no
+    field list (a silent unpinned hole). An unpinned T2 (true) must NOT list canonical_fields
+    (the list only has meaning once pinned)."""
+    for name, entry in load_schema_registry()["tier2_by_name"].items():
+        pinned = entry.get("needs_field_canonicalization") is False
+        has_fields = bool(entry.get("canonical_fields"))
+        if pinned:
+            assert has_fields, f"{name} is PINNED but lists no canonical_fields"
+        else:
+            assert not has_fields, f"{name} is unpinned but lists canonical_fields (ambiguous)"

@@ -81,6 +81,7 @@
 
 **3 个系统判断(记账,非本轮修):**
 - **registry 是"允许集合"非"双向一致性证明"**:grandfather/stale 条目会变"预批准的洞"(将来复用废弃名被当已登记)。→ work order:registry↔code 反向漂移检测(代码删了 registry 还留)。
-- **G2 不是完整治本**:`assert_supporting_only`/`resolve_grading_point_authority` **0 caller**(codegraph 证实),生产 `_grade_one_case_v1` 不调用 resolver。最小接线点:`_grade_one_case_v1` 解析 points/provenance 后、调 `_G.grade_with_batch_judge_async` 前——rich-leaf 点先过 `resolve_grading_point_authority`,只能进 supporting 不进 `rubric_points`。→ **单列 work order(碰生产学生判分消费路径,需 owner 授权,与 §Layer2 G2 install 降级同批)。**
+- **[DONE 2026-06-13, fa5e6b3d4] G2 已接进生产判分** —— owner 授权后,经 §8-10 live A/B 实证(B 编译合约 MAE 0.013、over-credit 0、赢公平 A1、dominate RAG)解锁接线:`rubric_grader_v1.enforce_official_scoring_authority(points, provenance)` 在 `_grade_one_case_v1` 解析 points 后、调 `grade_with_batch_judge_async` 前执行——官方背书点进对错通道,任何 `authority_source==textbook_cited` 的 rich-leaf 点经 `resolve_grading_point_authority` 降级 supporting 并排除评分。**"官方 key > 5705 采分点"从"靠没有调用点偶然维持"变成结构保证。** 当前三源(compiled/reference/stem)无该标记→行为不变;TDD 4+1 条、contract-guard passed、review-only(`official_score_allowed=False` 不动)。
+  - 残留:`assert_supporting_only` 仍 0 直接 caller(它由 `resolve_grading_point_authority` 内部调用,已 load-bearing);install 自报 flag→release-gate 派生仍未做(消费开关改造,与本接线解耦)。
 
 工件:`artifacts/luban_grading_artifacts/governance_gate_codex_adversarial_20260613/codex_verdict_last_message.md`(Codex 原始裁决全文)。

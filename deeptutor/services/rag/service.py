@@ -17,6 +17,7 @@ from .factory import (
     list_pipelines,
     normalize_provider_name,
 )
+from .evidence_bundle import build_evidence_bundle
 from .exceptions import RAGError, wrap_rag_error
 from .provenance import build_ranking_trace
 from .retrieval_plan import build_retrieval_plan
@@ -200,22 +201,20 @@ class RAGService:
                     ),
                 )
                 fallback_sources = list(result.get("sources") or [])
-                evidence_bundle = {
-                    "bundle_id": "",
-                    "query": result["query"],
-                    "provider": result.get("provider") or provider,
-                    "kb_name": result["kb_name"],
-                    "content_blocks": [result.get("content") or result.get("answer") or ""],
-                    "sources": fallback_sources,
-                    "exact_question": (
+                evidence_bundle = build_evidence_bundle(
+                    query=result["query"],
+                    provider=result.get("provider") or provider,
+                    kb_name=result["kb_name"],
+                    content_blocks=[result.get("content") or result.get("answer") or ""],
+                    sources=fallback_sources,
+                    exact_question=(
                         result.get("exact_question")
                         if isinstance(result.get("exact_question"), dict)
                         else {}
                     ),
-                    "retrieval_plan": fallback_retrieval_plan.to_dict(),
-                    "ranking_trace": build_ranking_trace(fallback_sources),
-                    "retrieval_empty": not bool(result.get("sources")),
-                }
+                    retrieval_plan=fallback_retrieval_plan.to_dict(),
+                    ranking_trace=build_ranking_trace(fallback_sources),
+                )
             result["evidence_bundle"] = evidence_bundle
             result["provider"] = normalize_provider_name(result.get("provider") or provider)
             self._apply_historical_question_context(result)
@@ -278,7 +277,6 @@ class RAGService:
         if not isinstance(evidence_bundle, dict):
             return
         evidence_bundle["exact_question"] = exact_question
-        evidence_bundle["canonical_question_context"] = context
         bundle_sources = evidence_bundle.get("sources")
         if not isinstance(bundle_sources, list) or not bundle_sources:
             evidence_bundle["sources"] = [source]
@@ -286,7 +284,10 @@ class RAGService:
         if not isinstance(content_blocks, list) or not any(str(item or "").strip() for item in content_blocks):
             evidence_bundle["content_blocks"] = [rendered]
         evidence_bundle["retrieval_empty"] = False
-        evidence_bundle["historical_question_resolved"] = True
+        # historical-question diagnostics live in the canonical bundle's ``trace`` bucket
+        bundle_trace = evidence_bundle.setdefault("trace", {})
+        bundle_trace["canonical_question_context"] = context
+        bundle_trace["historical_question_resolved"] = True
 
     def _build_historical_question_result(
         self,
@@ -328,25 +329,24 @@ class RAGService:
             if retrieval_error is not None
             else None
         )
-        evidence_bundle: dict[str, Any] = {
-            "bundle_id": "",
-            "query": query,
-            "provider": provider,
-            "kb_name": kb_name,
-            "content_blocks": [rendered],
-            "sources": [source],
-            "exact_question": exact_question,
-            "canonical_question_context": context,
-            "retrieval_plan": retrieval_plan.to_dict(),
-            "ranking_trace": build_ranking_trace([source]),
-            "retrieval_empty": False,
-            "historical_question_resolved": True,
-            "retrieval_degraded": bool(retrieval_error),
-            "retrieval_status": status,
-            "warning_count": 1 if warning else 0,
-        }
-        if warning:
-            evidence_bundle["warnings"] = [warning]
+        evidence_bundle = build_evidence_bundle(
+            query=query,
+            provider=provider,
+            kb_name=kb_name,
+            content_blocks=[rendered],
+            sources=[source],
+            exact_question=exact_question,
+            retrieval_plan=retrieval_plan.to_dict(),
+            ranking_trace=build_ranking_trace([source]),
+            retrieval_warnings=[warning] if warning else [],
+            retrieval_status=status,
+            retrieval_empty=False,
+            trace={
+                "canonical_question_context": context,
+                "historical_question_resolved": True,
+                **({"warnings": [warning]} if warning else {}),
+            },
+        )
         payload: dict[str, Any] = {
             "query": query,
             "answer": rendered,

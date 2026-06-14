@@ -34,6 +34,22 @@ def _enable_demo_seed(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DEEPTUTOR_MEMBER_CONSOLE_ENABLE_DEMO_SEED", "1")
 
 
+class _EmptyAliasStore:
+    is_configured = True
+
+    @staticmethod
+    def resolve_alias(*, alias_type: str, alias_value: str):
+        return None
+
+
+@pytest.fixture(autouse=True)
+def _isolate_wallet_identity_alias_store(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "deeptutor.services.wallet.identity.get_wallet_identity_store",
+        lambda: _EmptyAliasStore(),
+    )
+
+
 class _FakeWalletBootstrapService:
     is_configured = True
 

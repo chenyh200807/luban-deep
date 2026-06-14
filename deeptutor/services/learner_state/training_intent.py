@@ -35,6 +35,16 @@ _ABILITY_DIMENSIONS = frozenset({
 _FULL_PHASES = ("repair_root", "expression_drill", "transfer_case", "verification_probe")
 PRESCRIPTION_AUTHORITY = "training_intent"
 
+# Canonical schema id for register-before-use (schema-governance P2: this module is the
+# sole prescription authority + single schema producer for the training_intent consumed
+# across learner_state (home_personalization / learning_report / personalization_context /
+# next_best_action / scoring_point_map / revalidation_queue) → construction_grading/writeback.
+# The payload keeps the integer ``intent_version`` (2) + the documented v1 legacy keys for
+# consumer compatibility; this string id makes the schema VISIBLE to the schema-registry
+# closure so a competing training_intent schema can never appear unregistered. Registered as
+# T2 runtime-canonical in contracts/schema_registry.yaml.
+SCHEMA_ID = "learning_training_intent.v2"
+
 
 def build_learning_training_intent(
     *,

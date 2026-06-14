@@ -92,3 +92,25 @@ def test_append_only_dedupe_key_stable_for_payload_without_new_fields() -> None:
     assert key == build_learning_evidence_dedupe_key(user_id="u1", payload_json=payload)
     # the new point-level fields are absent on a legacy hit -> no scoring_point_hits keys leak
     assert payload["rubric"]["scoring_point_hits"] == []
+
+
+def test_grading_error_event_schema_id_is_registered_as_t2() -> None:
+    """The canonical grading error-event (GradingErrorEvent) producer's SCHEMA_ID must be
+    registered T2 in the schema registry (no unregistered/competing error-event shape can
+    appear). Register-before-use VISIBILITY promotion (schema-governance P2, error_events
+    target). The ``evidence`` vs v1-rubric ``evidence_span`` field drift is a separate
+    field-canonicalization follow-up (needs_field_canonicalization: true), not this test."""
+    from pathlib import Path
+
+    import yaml
+
+    from deeptutor.services.construction_grading.schema import GRADING_ERROR_EVENT_SCHEMA_ID
+
+    assert GRADING_ERROR_EVENT_SCHEMA_ID == "grading_error_event.v1"
+    registry = yaml.safe_load(
+        (Path(__file__).resolve().parents[3] / "contracts" / "schema_registry.yaml").read_text("utf-8")
+    )
+    t2_names = {e["name"] for e in registry["tier2_canonical_contracts"]}
+    assert GRADING_ERROR_EVENT_SCHEMA_ID in t2_names, (
+        f"{GRADING_ERROR_EVENT_SCHEMA_ID} must be a registered T2 runtime-canonical contract"
+    )

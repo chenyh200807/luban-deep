@@ -68,6 +68,13 @@ def _build_prescription_outcomes_from(*, events: list[Any]) -> list[dict[str, An
 
 
 _TZ = timezone(timedelta(hours=8))
+# Canonical schema id for register-before-use (schema-governance P2: this read model is
+# this module's single schema authority — contracts/learning-report.md). The wire payload
+# keeps the integer ``schema_version`` (1 default / 2 opt-in) for client compatibility; this
+# string id makes the schema VISIBLE to the schema-registry closure so a competing
+# learning-report schema can never appear unregistered. Registered as T2 runtime-canonical
+# in contracts/schema_registry.yaml.
+SCHEMA_ID = "learning_report_read_model.v2"
 _SCHEMA_VERSION = 1
 _ERROR_MESSAGE_LIMIT = 200
 _LEGACY_SOURCE_TIMEOUT_S = 0.5

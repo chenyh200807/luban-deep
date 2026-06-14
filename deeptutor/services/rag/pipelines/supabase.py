@@ -20,6 +20,7 @@ from deeptutor.services.config import get_kb_config_service
 from deeptutor.services.embedding import get_embedding_client
 from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.rag.compiled_truth_source import materialize_compiled_truth_documents
+from deeptutor.services.rag.evidence_bundle import build_evidence_bundle
 from deeptutor.services.rag.exceptions import RAGError, RAGSearchError, wrap_rag_error
 from deeptutor.services.rag.provenance import apply_provenance_ranking, build_ranking_trace
 from deeptutor.services.rag.retrieval_plan import build_retrieval_plan
@@ -470,37 +471,37 @@ def _build_evidence_bundle(
     query_shape: str,
     rewritten,
     second_pass_queries: list[str],
+    retrieval_warnings: list[Any] | None = None,
 ) -> dict[str, Any]:
-    return {
-        "bundle_id": hashlib.sha256(f"{kb_name}:{query}".encode("utf-8")).hexdigest()[:16],
-        "query": query,
-        "provider": provider,
-        "kb_name": kb_name,
-        "query_shape": query_shape,
-        "retrieval_query": str(rewritten.primary_query or query).strip(),
-        "query_rewrite": {
-            "normalized_query": str(rewritten.normalized_query or "").strip(),
-            "keywords": list(rewritten.keywords or []),
-            "standard_codes": list(rewritten.standard_codes or []),
-            "reasons": list(rewritten.reasons or []),
-            "second_pass_queries": list(second_pass_queries or []),
+    # Thin adapter over the single-authority builder: maps the supabase lane's inputs to the
+    # canonical contract + packs supabase-specific diagnostics (query rewrite / source plan)
+    # into the bundle's ``trace`` bucket. retrieval_degraded/status/warning_count are derived
+    # by the builder from ``retrieval_warnings`` (no post-mutation needed).
+    return build_evidence_bundle(
+        query=query,
+        provider=provider,
+        kb_name=kb_name,
+        content_blocks=content_blocks,
+        sources=sources,
+        exact_question=exact_question,
+        retrieval_plan=(retrieval_plan.to_dict() if hasattr(retrieval_plan, "to_dict") else {}),
+        ranking_trace=ranking_trace,
+        query_shape=query_shape,
+        retrieval_warnings=retrieval_warnings,
+        trace={
+            "retrieval_query": str(rewritten.primary_query or query).strip(),
+            "query_rewrite": {
+                "normalized_query": str(rewritten.normalized_query or "").strip(),
+                "keywords": list(rewritten.keywords or []),
+                "standard_codes": list(rewritten.standard_codes or []),
+                "reasons": list(rewritten.reasons or []),
+                "second_pass_queries": list(second_pass_queries or []),
+            },
+            "source_plan": (
+                source_plan.to_trace_dict() if hasattr(source_plan, "to_trace_dict") else {}
+            ),
         },
-        "source_plan": (
-            source_plan.to_trace_dict()
-            if hasattr(source_plan, "to_trace_dict")
-            else {}
-        ),
-        "retrieval_plan": (
-            retrieval_plan.to_dict()
-            if hasattr(retrieval_plan, "to_dict")
-            else {}
-        ),
-        "ranking_trace": dict(ranking_trace or {}),
-        "content_blocks": list(content_blocks or []),
-        "sources": list(sources or []),
-        "exact_question": dict(exact_question or {}),
-        "retrieval_empty": not bool(sources),
-    }
+    )
 
 
 def _weighted_rrf_fusion(
@@ -1177,6 +1178,8 @@ class SupabasePipeline:
             query_shape=query_shape,
             rewritten=rewritten,
             second_pass_queries=second_pass_queries,
+            # builder derives retrieval_degraded/status/warning_count from this (fully populated here)
+            retrieval_warnings=retrieval_warnings,
         )
         stage_timings_ms["total"] = round((time.perf_counter() - total_started_at) * 1000, 1)
         performance_policy = {
@@ -1186,8 +1189,9 @@ class SupabasePipeline:
             "second_pass_enabled": bool(effective_second_pass_enabled),
             "primary_query_count": len(primary_queries),
         }
-        evidence_bundle["stage_timings_ms"] = dict(stage_timings_ms)
-        evidence_bundle["performance_policy"] = dict(performance_policy)
+        # post-build diagnostics (total timing is only knowable after the bundle) → trace bucket
+        evidence_bundle["trace"]["stage_timings_ms"] = dict(stage_timings_ms)
+        evidence_bundle["trace"]["performance_policy"] = dict(performance_policy)
 
         payload = {
             "query": query,
@@ -1200,12 +1204,9 @@ class SupabasePipeline:
             "retrieval_degraded": bool(retrieval_warnings),
             "retrieval_status": "partial" if retrieval_warnings else "ok",
         }
-        payload["evidence_bundle"]["retrieval_degraded"] = bool(retrieval_warnings)
-        payload["evidence_bundle"]["retrieval_status"] = str(payload["retrieval_status"])
-        payload["evidence_bundle"]["warning_count"] = len(retrieval_warnings)
         if retrieval_warnings:
             payload["warnings"] = list(retrieval_warnings)
-            payload["evidence_bundle"]["warnings"] = list(retrieval_warnings)
+            payload["evidence_bundle"]["trace"]["warnings"] = list(retrieval_warnings)
         if exact_question:
             payload["exact_question"] = exact_question
         trace_metadata = {

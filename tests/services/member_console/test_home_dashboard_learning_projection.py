@@ -138,7 +138,7 @@ def test_learning_signal_projection_makes_today_focus_clickable() -> None:
     assert first_prompt["intent"]["evidence_refs"] == ["evt-home-1", "attempt-ref-1"]
 
 
-def test_home_focus_topic_uses_textbook_section_alias_before_leaf_topic() -> None:
+def test_home_focus_topic_alias_helper_keeps_free_text_on_textbook_section() -> None:
     assert canonical_home_focus_topic_label("防水工程") == "屋面与防水工程施工"
 
 
@@ -361,9 +361,10 @@ def test_fresh_projection_with_deictic_focus_recovers_from_learning_evidence() -
         now=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
     )
 
-    # canonical classifier maps "防水工程" → section "屋面与防水工程施工"
-    assert dashboard["today_focus"]["title"] == "今日焦点：屋面与防水工程施工"
-    assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练屋面与防水工程施工"
+    # Structured learning evidence already resolved to a taxonomy node; the home
+    # projection must not let a textbook-section display alias override it.
+    assert dashboard["today_focus"]["title"] == "今日焦点：防水工程"
+    assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练防水工程"
     assert "这题" not in json.dumps(dashboard, ensure_ascii=False)
     assert dashboard["source_status"]["recovered_from"] == "learner_memory_events.learning_evidence"
 
@@ -513,10 +514,9 @@ def test_missing_projection_recovers_from_assessment_learning_evidence() -> None
         now=datetime(2026, 5, 21, 10, 0, tzinfo=_TZ),
     )
 
-    # canonical classifier maps "防水工程" → section "屋面与防水工程施工"
-    assert dashboard["today_focus"]["title"] == "今日焦点：屋面与防水工程施工"
+    assert dashboard["today_focus"]["title"] == "今日焦点：防水工程"
     assert dashboard["today_focus"]["meta"] == "来自 learner_state.home_personalization"
-    assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练屋面与防水工程施工"
+    assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练防水工程"
     assert dashboard["recommended_prompts"][0]["intent"]["evidence_refs"] == [
         "evt_assessment_1",
         "attempt-ref-1",
@@ -730,9 +730,8 @@ def test_dashboard_recovers_projection_from_assessment_learning_evidence(
 
     dashboard = service.get_home_dashboard("assessment_projection_user")
 
-    # canonical classifier maps "防水工程" → section "屋面与防水工程施工"
-    assert dashboard["today_focus"]["title"] == "今日焦点：屋面与防水工程施工"
-    assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练屋面与防水工程施工"
+    assert dashboard["today_focus"]["title"] == "今日焦点：防水工程"
+    assert dashboard["recommended_prompts"][0]["text"] == "用 3 道题训练防水工程"
     assert dashboard["recommended_prompts"][0]["prompt_type"] == "practice_prompt"
     assert dashboard["home_projection"]["source_status"]["recovered_from"] == "learner_memory_events.learning_evidence"
 

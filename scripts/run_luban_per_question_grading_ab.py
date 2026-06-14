@@ -39,8 +39,12 @@ import asyncio
 import json
 from pathlib import Path
 import re
+import statistics
 import sys
+import time
 from typing import Any, Callable
+import urllib.error
+import urllib.request
 
 REPO = Path(__file__).resolve().parents[1]
 if str(REPO) not in sys.path:
@@ -256,8 +260,78 @@ def _load_kbv5_retriever(top_k: int = 6):
     return mod._kbv5_retriever(top_k)
 
 
+_JUDGE_SYSTEM_PROMPT = "你是严谨的一级建造师案例题阅卷官。只输出题目要求的 JSON,不要多余文字。"
+
+
+def _stream_chat(*, base_url: str, api_key: str, model: str, messages: list[dict[str, str]],
+                 max_tokens: int = 2200, temperature: float = 0.0, timeout_s: float = 120.0) -> dict[str, Any]:
+    """One streaming chat call → content + token usage + total latency + TTFT.
+
+    Uses the OpenAI-compatible streaming SSE with ``stream_options.include_usage`` so the
+    final chunk carries the token usage. TTFT = time from request to the FIRST content
+    token; latency = time to the full completion. (Sequential calls only — no concurrency
+    contention — so the latency/TTFT numbers are clean.)"""
+    body = json.dumps({
+        "model": model,
+        "messages": messages,
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+        "stream": True,
+        "stream_options": {"include_usage": True},
+        # Force strict JSON (the 24-point arm B verdict list must not be decorated/truncated).
+        "response_format": {"type": "json_object"},
+    }, ensure_ascii=False).encode("utf-8")
+    request = urllib.request.Request(
+        f"{base_url.rstrip('/')}/chat/completions",
+        data=body,
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+        method="POST",
+    )
+    started = time.monotonic()
+    ttft_ms: float | None = None
+    parts: list[str] = []
+    usage: dict[str, Any] = {}
+    with urllib.request.urlopen(request, timeout=timeout_s) as response:
+        for raw in response:
+            line = raw.decode("utf-8", errors="replace").strip()
+            if not line.startswith("data:"):
+                continue
+            data = line[len("data:"):].strip()
+            if data == "[DONE]":
+                break
+            try:
+                chunk = json.loads(data)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(chunk.get("usage"), dict):
+                usage = chunk["usage"]
+            choices = chunk.get("choices") or []
+            if choices:
+                delta = (choices[0].get("delta") or {}).get("content") or ""
+                if delta:
+                    if ttft_ms is None:
+                        ttft_ms = round((time.monotonic() - started) * 1000, 2)
+                    parts.append(delta)
+    latency_ms = round((time.monotonic() - started) * 1000, 2)
+    return {
+        "content": "".join(parts),
+        "prompt_tokens": int(usage.get("prompt_tokens") or 0),
+        "completion_tokens": int(usage.get("completion_tokens") or 0),
+        "total_tokens": int(usage.get("total_tokens") or 0),
+        "latency_ms": latency_ms,
+        "ttft_ms": ttft_ms if ttft_ms is not None else latency_ms,
+    }
+
+
 async def _make_llm_judge(model: str | None, *, with_rag: bool):
-    from deeptutor.services.llm import complete  # canonical single-authority LLM path
+    from deeptutor.services.llm import get_llm_config  # canonical single-authority LLM config
+
+    cfg = get_llm_config()
+    base_url = str(getattr(cfg, "base_url", "") or "")
+    api_key = str(getattr(cfg, "api_key", "") or "")
+    use_model = model or str(getattr(cfg, "model", "") or "")
+    if not (base_url and api_key and use_model):
+        raise SystemExit("LLM config incomplete (need base_url/api_key/model) — cannot run --live")
 
     retriever = _load_kbv5_retriever() if with_rag else None
     rag_cache: dict[str, list[str]] = {}
@@ -286,21 +360,47 @@ async def _make_llm_judge(model: str | None, *, with_rag: bool):
             messages = _arm_rag_ref_messages(stem=stem, official_answer=official, rag_chunks=chunks, student_answer=student)
         else:
             messages = _arm_b_messages(contract=contract, student_answer=student)
-        # The canonical ``complete`` takes a positional ``prompt``; our single user
-        # message's content carries the full JSON payload, so pass it as the prompt.
-        prompt_text = messages[0]["content"]
-        system_prompt = "你是严谨的一级建造师案例题阅卷官。只输出题目要求的 JSON,不要多余文字。"
-        kwargs: dict[str, Any] = {"prompt": prompt_text, "system_prompt": system_prompt}
-        if model:
-            kwargs["model"] = model
-        text = await complete(**kwargs)
-        data = _parse_json_block(text if isinstance(text, str) else str(text))
+        full_messages = [{"role": "system", "content": _JUDGE_SYSTEM_PROMPT}, *messages]
+        # Resilient: neither a malformed JSON response NOR a transient network/stream stall
+        # may kill a 300-call run. Retry up to 3×, then record a parse_error row (score 0,
+        # no verdicts) so the run completes honestly. A stalled stream is bounded by the
+        # short per-call socket timeout, not the 120s default.
+        last_call: dict[str, Any] = {}
+        data: dict[str, Any] | None = None
+        for _attempt in range(3):
+            try:
+                last_call = await asyncio.to_thread(
+                    _stream_chat, base_url=base_url, api_key=api_key, model=use_model,
+                    messages=full_messages, timeout_s=60.0,
+                )
+                data = _parse_json_block(last_call["content"])
+                break
+            except (TimeoutError, OSError, urllib.error.URLError, ValueError, json.JSONDecodeError):
+                data = None
+        if data is None:
+            return {
+                "score_pct": 0.0, "verdicts": {}, "oracle": False, "parse_error": True,
+                "prompt_tokens": last_call.get("prompt_tokens"),
+                "completion_tokens": last_call.get("completion_tokens"),
+                "total_tokens": last_call.get("total_tokens"),
+                "latency_ms": last_call.get("latency_ms"),
+                "ttft_ms": last_call.get("ttft_ms"),
+            }
         verdicts = {
             str(v.get("point_id")): str(v.get("verdict"))
             for v in (data.get("verdicts") or [])
             if v.get("point_id")
         }
-        return {"score_pct": float(data.get("score_pct") or 0.0), "verdicts": verdicts, "oracle": False}
+        return {
+            "score_pct": float(data.get("score_pct") or 0.0),
+            "verdicts": verdicts,
+            "oracle": False,
+            "prompt_tokens": last_call["prompt_tokens"],
+            "completion_tokens": last_call["completion_tokens"],
+            "total_tokens": last_call["total_tokens"],
+            "latency_ms": last_call["latency_ms"],
+            "ttft_ms": last_call["ttft_ms"],
+        }
     return judge
 
 
@@ -319,43 +419,72 @@ def _false_hit_rate(verdicts: dict[str, str], answer: dict[str, Any]) -> float |
     return false_hits / len(unmet)
 
 
-async def _run(objects, fixtures: dict[str, Any], judge, *, gap_margin: float) -> dict[str, Any]:
-    total_by_q = {o["question_id"]: o["scoring_point_count"] for o in objects}
-    rows: list[dict[str, Any]] = []
+async def _run(objects, fixtures: dict[str, Any], judge, *, gap_margin: float, trials: int,
+               concurrency: int = 1) -> dict[str, Any]:
+    contracts: dict[str, dict[str, Any]] = {}
     for obj in objects:
         qid = obj["question_id"]
         contract = build_grading_contract(obj)
         blockers = validate_grading_contract(contract)
         if blockers:
             raise SystemExit(f"contract invalid for {qid}: {blockers}")
-        total = len(contract["scoring_points"])
-        for answer in fixtures.get(qid) or []:
-            _validate_fixture(answer, contract)
-            true_cov = round(_true_coverage(answer, total), 4)
-            for arm in ARMS:
-                result = judge(arm=arm, contract=contract, answer=answer)
-                if asyncio.iscoroutine(result):
-                    result = await result
-                score = round(float(result["score_pct"]), 4)
-                verdicts = result.get("verdicts") or {}
-                self_consistency = detect_over_credit(
-                    score_pct=score, point_verdicts=verdicts, contract=contract, gap_margin=gap_margin,
-                )
-                rows.append({
-                    "question_id": qid,
-                    "answer_label": answer.get("label"),
-                    "answer_type": answer.get("answer_type"),
-                    "arm": arm,
-                    "score_pct": score,
-                    "true_coverage": true_cov,
-                    "score_coverage_gap": round(score - true_cov, 4),
-                    "ground_truth_over_credit": bool(score - true_cov > gap_margin),
-                    "calibration_abs_error": round(abs(score - true_cov), 4),
-                    "false_hit_rate": _false_hit_rate(verdicts, answer),
-                    "verdict_self_inconsistency": self_consistency["over_credit"],
-                    "oracle": result.get("oracle", False),
-                })
-    return _summarize(rows, gap_margin=gap_margin)
+        contracts[qid] = contract
+    work: list[tuple[int, str, dict[str, Any], float, str]] = []
+    for trial in range(trials):
+        for obj in objects:
+            qid = obj["question_id"]
+            total = len(contracts[qid]["scoring_points"])
+            for answer in fixtures.get(qid) or []:
+                _validate_fixture(answer, contracts[qid])
+                true_cov = round(_true_coverage(answer, total), 4)
+                for arm in ARMS:
+                    work.append((trial, qid, answer, true_cov, arm))
+
+    sem = asyncio.Semaphore(max(1, concurrency))
+
+    async def _one(item: tuple[int, str, dict[str, Any], float, str]) -> dict[str, Any]:
+        trial, qid, answer, true_cov, arm = item
+        contract = contracts[qid]
+        async with sem:
+            result = judge(arm=arm, contract=contract, answer=answer)
+            if asyncio.iscoroutine(result):
+                result = await result
+        score = round(float(result["score_pct"]), 4)
+        verdicts = result.get("verdicts") or {}
+        self_consistency = detect_over_credit(
+            score_pct=score, point_verdicts=verdicts, contract=contract, gap_margin=gap_margin,
+        )
+        return {
+            "trial": trial,
+            "question_id": qid,
+            "answer_label": answer.get("label"),
+            "answer_type": answer.get("answer_type"),
+            "arm": arm,
+            "score_pct": score,
+            "true_coverage": true_cov,
+            "score_coverage_gap": round(score - true_cov, 4),
+            "ground_truth_over_credit": bool(score - true_cov > gap_margin),
+            "calibration_abs_error": round(abs(score - true_cov), 4),
+            "false_hit_rate": _false_hit_rate(verdicts, answer),
+            "verdict_self_inconsistency": self_consistency["over_credit"],
+            "oracle": result.get("oracle", False),
+            "parse_error": result.get("parse_error", False),
+            "prompt_tokens": result.get("prompt_tokens"),
+            "completion_tokens": result.get("completion_tokens"),
+            "total_tokens": result.get("total_tokens"),
+            "latency_ms": result.get("latency_ms"),
+            "ttft_ms": result.get("ttft_ms"),
+        }
+
+    rows = list(await asyncio.gather(*[_one(w) for w in work]))
+    report = _summarize(rows, gap_margin=gap_margin, trials=trials)
+    report["concurrency"] = concurrency
+    report["latency_ttft_note"] = (
+        "latency_ms/ttft_ms measured under concurrency>1 are CONTENDED (upper bound); "
+        "run --concurrency 1 for isolated per-call latency"
+        if concurrency > 1 else "latency_ms/ttft_ms are isolated per-call (sequential)"
+    )
+    return report
 
 
 def _rate(rows: list[dict[str, Any]], key: str) -> float | None:
@@ -368,37 +497,66 @@ def _mean(rows: list[dict[str, Any]], key: str) -> float | None:
     return round(sum(vals) / len(vals), 4) if vals else None
 
 
-def _summarize(rows: list[dict[str, Any]], *, gap_margin: float) -> dict[str, Any]:
+def _dist(rows: list[dict[str, Any]], key: str) -> dict[str, Any] | None:
+    """mean / p50 / p95 / max of a per-call cost metric (None entries skipped)."""
+    vals = sorted(float(r[key]) for r in rows if r.get(key) is not None)
+    if not vals:
+        return None
+    def _pct(p: float) -> float:
+        idx = min(len(vals) - 1, int(round(p * (len(vals) - 1))))
+        return round(vals[idx], 2)
+    return {"mean": round(sum(vals) / len(vals), 2), "p50": _pct(0.5), "p95": _pct(0.95),
+            "max": round(vals[-1], 2), "n": len(vals)}
+
+
+def _mean_std(values: list[float]) -> dict[str, float | None]:
+    if not values:
+        return {"mean": None, "std": None}
+    return {"mean": round(statistics.fmean(values), 4),
+            "std": round(statistics.pstdev(values), 4) if len(values) > 1 else 0.0}
+
+
+def _summarize(rows: list[dict[str, Any]], *, gap_margin: float, trials: int) -> dict[str, Any]:
     by_arm: dict[str, Any] = {}
     answer_types = sorted({r["answer_type"] for r in rows})
+    trial_ids = sorted({r["trial"] for r in rows})
     for arm in ARMS:
         arm_rows = [r for r in rows if r["arm"] == arm]
-        # over-credit only meaningful where the student actually missed something
         riskful = [r for r in arm_rows if r["true_coverage"] < 1.0]
-        margin_sweep = {
-            f"margin_{m}": _rate(
-                [{"oc": (r["score_pct"] - r["true_coverage"] > m)} for r in riskful], "oc"
-            )
-            for m in MARGIN_SWEEP
-        }
+        # per-trial metric → mean ± std across trials (the variance the user asked to crush)
+        oc_per_trial = [
+            _rate([r for r in riskful if r["trial"] == t], "ground_truth_over_credit")
+            for t in trial_ids
+        ]
+        mae_per_trial = [
+            _mean([r for r in arm_rows if r["trial"] == t], "calibration_abs_error")
+            for t in trial_ids
+        ]
         by_arm[arm] = {
             "rows": len(arm_rows),
-            "riskful_rows": len(riskful),
-            "ground_truth_over_credit_rate": _rate(riskful, "ground_truth_over_credit"),
-            "calibration_mae": _mean(arm_rows, "calibration_abs_error"),
+            "riskful_rows_per_trial": len(riskful) // max(len(trial_ids), 1),
+            "over_credit_rate": _mean_std([v for v in oc_per_trial if v is not None]),
+            "calibration_mae": _mean_std([v for v in mae_per_trial if v is not None]),
             "false_hit_rate_mean": _mean(arm_rows, "false_hit_rate"),
             "over_credit_rate_by_answer_type": {
                 t: _rate([r for r in riskful if r["answer_type"] == t], "ground_truth_over_credit")
                 for t in answer_types
             },
-            "over_credit_margin_sweep": margin_sweep,
+            "cost": {
+                "total_tokens": _dist(arm_rows, "total_tokens"),
+                "prompt_tokens": _dist(arm_rows, "prompt_tokens"),
+                "completion_tokens": _dist(arm_rows, "completion_tokens"),
+                "latency_ms": _dist(arm_rows, "latency_ms"),
+                "ttft_ms": _dist(arm_rows, "ttft_ms"),
+            },
         }
     return {
-        "schema": "luban_per_question_grading_ab.v2",
+        "schema": "luban_per_question_grading_ab.v3",
         "review_only": True,
-        "primary_metric": "ground_truth_over_credit_rate (score - true_coverage > margin)",
+        "trials": trials,
+        "primary_metric": "calibration_mae (mean±std across trials) — most stable; over_credit_rate noisy at small N",
         "default_margin": gap_margin,
-        "thesis": "arm_B_atomic_contract 的 over-credit 率应 < arm_A1_self_decompose < arm_A0_freestyle",
+        "thesis": "arm_B_atomic_contract 校准最优 (calibration_mae 最低),over-credit 不高于 baseline",
         "by_arm": by_arm,
         "rows": rows,
     }
@@ -413,6 +571,10 @@ def main() -> int:
     parser.add_argument("--live", action="store_true", help="use the real LLM judge (needs an LLM key)")
     parser.add_argument("--model", default=None)
     parser.add_argument("--margin", type=float, default=OVER_CREDIT_GAP_MARGIN)
+    parser.add_argument("--trials", type=int, default=1,
+                        help="repeat the full pass N times → mean±std on the metrics (crush variance)")
+    parser.add_argument("--concurrency", type=int, default=1,
+                        help="concurrent LLM calls (>1 = throughput; latency/ttft then contended)")
     parser.add_argument("--no-rag", action="store_true",
                         help="skip the kb_v5 RAG-grounded arms (faster; live only)")
     args = parser.parse_args()
@@ -428,7 +590,8 @@ def main() -> int:
         judge = _make_label_oracle({o["question_id"]: o["scoring_point_count"] for o in objects})
         mode = "dry_run_label_oracle"
 
-    report = asyncio.run(_run(objects, fixtures, judge, gap_margin=args.margin))
+    report = asyncio.run(_run(objects, fixtures, judge, gap_margin=args.margin,
+                              trials=args.trials, concurrency=args.concurrency))
     report["mode"] = mode
     report["questions_compiled"] = [o["question_id"] for o in objects]
 

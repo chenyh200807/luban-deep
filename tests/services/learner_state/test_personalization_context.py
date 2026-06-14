@@ -248,3 +248,22 @@ def test_review_due_claim_is_preferred_over_fresh_claim_for_intent() -> None:
     )
 
     assert pack["active_training_intent"]["concept_id"] == "1A413050"
+
+
+def test_personalization_context_pack_schema_id_is_registered_as_t2() -> None:
+    """The single producer's canonical SCHEMA_ID must be registered T2 in the schema
+    registry (no unregistered/competing PCP schema can appear). This is the
+    register-before-use promotion of a previously integer-versioned, closure-invisible
+    cross-domain runtime contract (schema-governance P2, registry beyond grading)."""
+    from pathlib import Path
+
+    import yaml
+
+    from deeptutor.services.learner_state.personalization_context import SCHEMA_ID
+
+    assert SCHEMA_ID == "personalization_context_pack.v1"
+    registry = yaml.safe_load(
+        (Path(__file__).resolve().parents[3] / "contracts" / "schema_registry.yaml").read_text("utf-8")
+    )
+    t2_names = {e["name"] for e in registry["tier2_canonical_contracts"]}
+    assert SCHEMA_ID in t2_names, f"{SCHEMA_ID} must be a registered T2 runtime-canonical contract"

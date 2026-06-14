@@ -15,6 +15,7 @@ from typing import Any, Callable
 
 from deeptutor.logging import get_logger
 from deeptutor.services.observability import get_langfuse_observability
+from deeptutor.services.rag.evidence_bundle import build_evidence_bundle
 from deeptutor.services.rag.exceptions import RAGSearchError, wrap_rag_error
 from deeptutor.services.rag.provenance import build_ranking_trace
 from deeptutor.services.rag.retrieval_plan import build_retrieval_plan
@@ -351,22 +352,21 @@ class KbV5Pipeline:
             sources = [_source_from_chunk(chunk) for chunk in result.chunks]
             content = _render_context(sources)
             ranking_trace = build_ranking_trace(sources)
-            evidence_bundle = {
-                "bundle_id": hashlib.sha256(f"{kb_name}:{query}:kbv5".encode("utf-8")).hexdigest()[:16],
-                "query": query,
-                "provider": "kbv5",
-                "kb_name": kb_name,
-                "content_blocks": [content],
-                "sources": sources,
-                "exact_question": {},
-                "retrieval_plan": retrieval_plan.to_dict(),
-                "ranking_trace": ranking_trace,
-                "retrieval_empty": not bool(sources),
-                "transport": "direct_postgres_readonly",
-                "doc_types": list(result.doc_types),
-                "embed_dim": result.embed_dim,
-                "latency_ms": result.latency_ms,
-            }
+            evidence_bundle = build_evidence_bundle(
+                query=query,
+                provider="kbv5",
+                kb_name=kb_name,
+                content_blocks=[content],
+                sources=sources,
+                retrieval_plan=retrieval_plan.to_dict(),
+                ranking_trace=ranking_trace,
+                trace={
+                    "transport": "direct_postgres_readonly",
+                    "doc_types": list(result.doc_types),
+                    "embed_dim": result.embed_dim,
+                    "latency_ms": result.latency_ms,
+                },
+            )
             observability.update_observation(
                 observation,
                 output_payload={"source_count": len(sources)},

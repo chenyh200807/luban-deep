@@ -29,27 +29,14 @@ Deterministic and pure: no LLM, no network, no DB. It reads files and applies re
 mirroring scripts/check_contract_guard.py.
 
 ────────────────────────────────────────────────────────────────────────────────────────
-PENDING HUNK — wiring into scripts/check_contract_guard.py
+WIRED (P0#1, 2026-06-14, commit 46c9379e9) into scripts/check_contract_guard.py main()
 ────────────────────────────────────────────────────────────────────────────────────────
-scripts/check_contract_guard.py currently has UNCOMMITTED parallel WIP, so this guard is
-NOT wired into its main() here (no dirty-file dependency / no carrying of parallel work).
-Apply the hunk below when that file is clean (or fold it into the next contract-guard
-commit). It is intentionally additive and order-independent:
-
-  # add near the other guard imports at top of scripts/check_contract_guard.py:
-  from scripts.check_schema_registry import evaluate_schema_registry  # noqa: E402
-
-  # inside main(), after the upstream/ws guard prints, before the final return:
-  schema_ok, schema_message = evaluate_schema_registry(changed_files)
-  schema_stream = sys.stdout if schema_ok else sys.stderr
-  print(schema_message, file=schema_stream)
-
-  # and extend the final boolean:
-  return 0 if (ok and code_ok and node_ok and lifecycle_ok
-               and upstream_ok and ws_ok and schema_ok) else 1
-
-``evaluate_schema_registry(changed_files)`` is the changed-files entry point provided
-below for exactly this wiring (reads each changed file, runs collect+evaluate).
+``evaluate_schema_registry(changed_files)`` (the changed-files entry point below) is the
+seam the central runner consumes: ``check_contract_guard.py`` imports it and folds
+``schema_ok`` into its final return boolean, so per-PR register-before-use / drift /
+authority for in-scope grading schema is PR-blocking. Earlier this was a PENDING HUNK held
+back while ``check_contract_guard.py`` carried parallel WIP; that line landed, the hunk was
+applied, and the wiring is live — do not re-add a "not wired" note.
 ────────────────────────────────────────────────────────────────────────────────────────
 """
 
@@ -125,7 +112,11 @@ _GRADING_NAME_HINT_RE = re.compile(
 # positive). Only the bare per-point typed object (``grading_object.v1``,
 # ``scoring_point.v2``) is one-票否决 for T3.
 _GRADING_SHAPED_RE = re.compile(
-    r"(?:^|[_.])(?:grading_object|scoring_point)(?:\.v[0-9]|_v[0-9])",
+    # Boundary class includes '-' so the I2(b) grading-shaped veto covers the DASH
+    # namespace admitted by ``_FULLSET_NAMESPACE_RE`` (luban[-_.]). Without it, a dash
+    # grading-shaped id (``luban-x-grading_object.v1``) escapes the one-票否决 and can be
+    # swallowed into T3 by a dash carve-out family — the one thing this veto must prevent.
+    r"(?:^|[-_.])(?:grading_object|scoring_point)(?:\.v[0-9]|_v[0-9])",
 )
 
 
@@ -233,10 +224,11 @@ _FULLSET_LITERAL_RE = re.compile(
           | SCHEMA(?:_ID|_VERSION)?                          # SCHEMA / SCHEMA_ID / SCHEMA_VERSION
           | [A-Za-z_][A-Za-z0-9_]*_schema(?:_id|_version)?   # artifact_schema, typed_artifact_schema…
           | schema(?:_id|_version)?                          # schema / schema_id / schema_version
+          | [A-Za-z_]*artifact_version                       # persisted artifact schema tag (artifact_version=)
           | kind                                             # observability ``kind`` records
           | PROTOCOL_VERSION
         )
-        ["']?\s*[:=]\s*["']([A-Za-z0-9_.]+)["']""",
+        ["']?\s*[:=]\s*["']([A-Za-z0-9_.-]+)["']""",   # value allows '-' (dash schema ids e.g. p0a-v1)
     re.VERBOSE,
 )
 
@@ -246,11 +238,23 @@ _FULLSET_LITERAL_RE = re.compile(
 # values like ``public`` (Postgres schema), ``learning_evidence`` (event_type), and
 # plain enum strings that land in a ``kind``/``schema`` field but are not versioned
 # typed-object ids.
-_FULLSET_VERSION_SUFFIX_RE = re.compile(r"(?:\.v[0-9]|\.m[0-9]+|_v[0-9])")
+# P0#2: also accept a DASH version (``-v[0-9]``, e.g. the persisted report schema
+# ``p0a-v1``). Safe despite model names like ``deepseek-v4-flash`` because the suffix is
+# only one of two ANDed conditions — the name must ALSO match a grading-name hint or the
+# typed-object namespace below, which a bare model string does not (and the literal must
+# already sit behind a schema/schema_id/schema_version marker to be collected at all).
+_FULLSET_VERSION_SUFFIX_RE = re.compile(r"(?:\.v[0-9]|\.m[0-9]+|_v[0-9]|-v[0-9])")
 _FULLSET_NAMESPACE_RE = re.compile(
     r"""^(?:
-            luban[_.]
+            luban[-_.]                    # underscore/dot AND dash (luban-consensus-gold-shadow.v0.1 …)
           | assessment_(?:session|p0a)
+          | p0a-v                       # bare persisted report schema version (p0a-v1)
+          | learning_report             # P2: learner-state runtime contract (registry beyond grading)
+          | rag_retrieval_plan          # P2: RAG runtime retrieval-plan contract (registry beyond grading)
+          | rag_evidence_bundle         # P2: RAG evidence bundle (single-authority builder, consolidated)
+          | personalization_context_pack # P2: learner-state PCP runtime contract (registry beyond grading)
+          | learning_training_intent     # P2: learner-state prescription authority (registry beyond grading)
+          | grading_error_event          # P2: grading error-event, cross-domain consumed by learner_state
           | causal_oa
           | compiled_knowledge_registry
           | case_grading_artifact
