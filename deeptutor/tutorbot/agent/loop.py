@@ -1041,8 +1041,10 @@ class AgentLoop:
         # one message, so using it as a Tier-3 stem would have DeepSeek derive a rubric from the
         # student's own phrasing and trivially produce a near-perfect fabricated score.
         question_stem = str(eq.get("stem") or eq.get("question") or fc.get("question_stem") or "")
+        node_code = str(eq.get("node_code") or fc.get("node_code") or md.get("node_code") or "")
         return {
             "question_id": str(eq.get("question_id") or eq.get("qid") or fc.get("question_id") or ""),
+            "node_code": node_code,
             "user_answer": str(fc.get("user_answer") or user_message or ""),
             "correct_answer": ref,
             "question_stem": question_stem,
@@ -1103,6 +1105,8 @@ class AgentLoop:
             from deeptutor.services.llm.factory import complete
 
             ctx = self._build_v1_case_ctx(md, user_message)
+            if ctx.get("node_code"):
+                md.setdefault("node_code", ctx.get("node_code"))
             event = await _grade_one_case_v1(ctx, student_id=student_id, complete=complete, key=key, _G=_G)
             if not (isinstance(event, dict) and event.get("event_type") == "case_grading_completed"):
                 return ""
@@ -1173,7 +1177,7 @@ class AgentLoop:
                 source_bot_id=str(runtime_metadata.get("bot_id") or "").strip() or None,
                 user_answer=str(ctx.get("user_answer") or ""),
                 question_stem=str(ctx.get("question_stem") or ""),
-                node_code=str(runtime_metadata.get("node_code") or ""),
+                node_code=str(ctx.get("node_code") or runtime_metadata.get("node_code") or ""),
                 session_id=str(runtime_metadata.get("session_id") or ""),
             )
         except Exception:  # noqa: BLE001 — memory write must not break visible grading

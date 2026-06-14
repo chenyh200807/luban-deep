@@ -370,7 +370,21 @@ def _normalize_unmatched_answer_refs(raw: Any) -> list[dict[str, Any]]:
     return refs
 
 
-_PUBLIC_REDACTED_KEYS = ("grading_key", "correct_answer", "explanation", "scoring_points")
+_PUBLIC_REDACTED_KEYS = (
+    "grading_key",
+    "correct_answer",
+    "explanation",
+    "scoring_points",
+    "official_slice",
+    "atomic_official_slice",
+    "official_sub_answer_verbatim",
+    "official_analysis",
+    "term_provenance",
+    "flaw_span",
+    "correction_span",
+    "base_rule",
+    "exception_items",
+)
 
 # plan §Phase 3 Step 3.2 — evidence-style entries describe which source field
 # produced the evidence value. If the named field is a hidden authority
@@ -379,10 +393,14 @@ _PUBLIC_REDACTED_KEYS = ("grading_key", "correct_answer", "explanation", "scorin
 _EVIDENCE_FIELD_KEYS = ("field", "source_field", "source_key", "name")
 
 
+def _is_public_redacted_key(value: str) -> bool:
+    return any(part in _PUBLIC_REDACTED_KEYS for part in value.split("."))
+
+
 def _is_hidden_evidence_entry(value: dict[str, Any]) -> bool:
     for key in _EVIDENCE_FIELD_KEYS:
         sibling = value.get(key)
-        if isinstance(sibling, str) and sibling in _PUBLIC_REDACTED_KEYS:
+        if isinstance(sibling, str) and _is_public_redacted_key(sibling):
             return True
     return False
 
@@ -420,7 +438,7 @@ def _drop_hidden_value(value: Any) -> Any:
                 kept = [
                     item
                     for item in sub
-                    if not (isinstance(item, str) and item in _PUBLIC_REDACTED_KEYS)
+                    if not (isinstance(item, str) and _is_public_redacted_key(item))
                 ]
                 if not kept:
                     continue

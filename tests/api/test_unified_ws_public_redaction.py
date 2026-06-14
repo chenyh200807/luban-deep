@@ -279,6 +279,57 @@ def test_redact_metadata_filters_source_fields_list() -> None:
     assert items[1]["criterion"] == "考点 B"
 
 
+def test_redact_metadata_drops_pgo_official_answer_fields() -> None:
+    event = {
+        "type": "result",
+        "metadata": {
+            "pgo_shadow_result": {
+                "question_id": "case_1",
+                "official_slice": "应由见证人员记录其取样、现场检测情况",
+                "atomic_official_slice": "应由见证人员记录其取样、现场检测情况",
+                "official_sub_answer_verbatim": "参考答案逐字片段",
+                "official_analysis": "官方解析逐字文本",
+                "term_provenance": [{"term": "见证记录", "chunk_id": "c1"}],
+                "flaw_span": "试验员如实记录了其取样",
+                "correction_span": "应由见证人员记录其取样",
+                "base_rule": "见证记录应由见证人员制作",
+                "exception_items": ["例外逐字文本"],
+                "evidence_refs": [
+                    {"source": "pgo", "field": "official_slice", "value": "应由见证人员记录其取样"},
+                    {"source": "pgo", "source_field": "pgo.atomic_official_slice", "content": "官方切片路径泄露"},
+                    {"source": "student", "field": "student_evidence_span", "value": "学生写了见证人员记录"},
+                ],
+                "source_fields": ["pgo.atomic_official_slice", "stem"],
+                "student_evidence_span": "学生写了见证人员记录",
+            }
+        },
+    }
+
+    redacted = _redact_event_for_public(event)
+    blob = json.dumps(redacted, ensure_ascii=False)
+
+    for forbidden in (
+        "official_slice",
+        "atomic_official_slice",
+        "official_sub_answer_verbatim",
+        "official_analysis",
+        "term_provenance",
+        "flaw_span",
+        "correction_span",
+        "base_rule",
+        "exception_items",
+        "参考答案逐字片段",
+        "官方解析逐字文本",
+        "试验员如实记录",
+        "官方切片路径泄露",
+    ):
+        assert forbidden not in blob, f"public WS leaked PGO authority field {forbidden}"
+    refs = redacted["metadata"]["pgo_shadow_result"]["evidence_refs"]
+    assert refs == [{"source": "student", "field": "student_evidence_span", "value": "学生写了见证人员记录"}]
+    assert redacted["metadata"]["pgo_shadow_result"]["source_fields"] == ["stem"]
+    assert redacted["metadata"]["pgo_shadow_result"]["student_evidence_span"] == "学生写了见证人员记录"
+
+
 def test_redact_metadata_drops_evidence_inside_question_followup_context() -> None:
     """Nested evidence within ``metadata.question_followup_context`` (handled by
     its own canonical redactor in services.question_followup) must also drop

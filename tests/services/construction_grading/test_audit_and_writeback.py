@@ -178,6 +178,8 @@ def test_v1_case_grading_event_writeback_uses_learning_evidence_stream() -> None
     assert payload["claim_promotion_allowed"] is False
     assert payload["canonical_truth_written"] is False
     assert payload["memory_lifecycle_stage"] == "short_term_learning_memory"
+    assert payload["rubric"]["rubric_id"] == "case_rubric_scored_v1"
+    assert payload["rubric"]["artifact_version"] == "rubric_scored_v1"
     assert payload["score_awarded"] == 0.0
     assert payload["awarded_score"] == 0.0
     assert payload["next_training_signal"]["concept"] == "1A413050"
@@ -196,6 +198,64 @@ def test_v1_case_grading_event_writeback_uses_learning_evidence_stream() -> None
     assert hit["required_terms"] == ["数控钢筋调直切断机"]
     assert payload["weak_points"][0]["concept_label"] == "钢筋调直工艺"
     assert payload["weak_points"][0]["concept_id"] is None
+
+
+def test_v1_case_grading_writeback_dedupe_uses_rubric_identity_not_outcome() -> None:
+    service = _FakeLearnerStateService()
+    base_event = {
+        "event_type": "case_grading_completed",
+        "student_id": "student-1",
+        "question_id": "Q10",
+        "awarded_score": 0.0,
+        "max_score": 1.0,
+        "high_risk_review": True,
+        "scoring_points": [
+            {
+                "point_id": "P4",
+                "knowledge_point": "钢筋调直工艺",
+                "policy_type": "exact_required",
+                "hit": "miss",
+                "score": 0.0,
+                "max_score": 1.0,
+                "mistake_type": "near_synonym_not_exact",
+                "evidence_span": "普通钢筋调直机",
+                "required_terms": ["数控钢筋调直切断机"],
+            }
+        ],
+    }
+
+    first = write_case_grading_event_learning_evidence(
+        learner_state_service=service,
+        user_id="student-1",
+        source_id="turn-case-v1",
+        user_answer="普通钢筋调直机",
+        question_stem="指出钢筋调直设备的不妥之处。",
+        node_code="1A413050",
+        grading_event=base_event,
+    )
+    rescored_event = {
+        **base_event,
+        "awarded_score": 1.0,
+        "scoring_points": [
+            {
+                **base_event["scoring_points"][0],
+                "hit": "hit",
+                "score": 1.0,
+                "mistake_type": "",
+            }
+        ],
+    }
+    second = write_case_grading_event_learning_evidence(
+        learner_state_service=service,
+        user_id="student-1",
+        source_id="turn-case-v1",
+        user_answer="普通钢筋调直机",
+        question_stem="指出钢筋调直设备的不妥之处。",
+        node_code="1A413050",
+        grading_event=rescored_event,
+    )
+
+    assert first["dedupe_key"] == second["dedupe_key"]
 
 
 def test_writeback_auto_saves_wrong_attempt_to_mistake_book() -> None:

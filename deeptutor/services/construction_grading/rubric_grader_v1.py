@@ -346,6 +346,14 @@ def to_learning_evidence(event: dict[str, Any], *, node_code: str = "") -> dict[
             "next_training_signal": next_training_signal,
             "grading_mode": "curated_rubric",
             "rubric": {
+                "rubric_id": "case_rubric_scored_v1",
+                "artifact_version": str(
+                    event.get("rubric_content_hash")
+                    or event.get("content_hash")
+                    or event.get("artifact_version")
+                    or event.get("rubric_provenance")
+                    or "rubric_scored_v1"
+                ).strip(),
                 "rubric_mode": "curated_rubric",
                 "scoring_points": scoring_specs,
                 "scoring_point_hits": scoring_hits,

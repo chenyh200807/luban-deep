@@ -38,7 +38,7 @@
 - (b) **WS 脱敏 blocklist**:把 PGO 字段名(official_slice/atomic_official_slice/official_sub_answer_verbatim/official_analysis/term_provenance/flaw_span/correction_span/base_rule/exception_items)加进 `unified_ws.py _HIDDEN_PAYLOAD_KEYS` 和 `question_followup.py _PUBLIC_REDACTED_KEYS`——官方答案逐字文本绝不能到微信端。
 - (c) **dedupe-key 漂移**:`build_learning_evidence_dedupe_key` 用了 raw score_awarded/max_score;flip 后重判会插幻影重复 learner_memory_events。换成 artifact_version/rubric_id 身份字段(且改法要保持同轮同答 idempotent,加版本前缀不重算旧 key)。
 - (d) **TutorBot node_code 丢失**:`_build_v1_case_ctx`(loop.py)要把 `_prefetched_exact_question` 的 node_code 传进 runtime_metadata,否则 loop 路径判分写 node_code='',brain 丢概念归属。
-- (e) **point_id 命名空间**:旧 bank `qid::SPn` vs PGO `sp_<hash>`,选一个 canonical,免得 `scoring_point_map_read_model` 跨 epoch 重复计同一逻辑点。
+- (e) **point_id 命名空间**:旧 bank `qid::SPn` vs PGO `sp_<hash>`,选一个 canonical,免得 `scoring_point_map_read_model` 跨 epoch 重复计同一逻辑点。**Stage 0 决策**:canonical runtime point_id = PGO `sp_<hash>`(由 `question_id|sub_no|point_ord|official_slice` 派生,绑定官方切片);旧 `qid::SPn` 只能作为 `legacy_point_id/source_point_id` 审计 alias,不得在 learner-state/read-model 里靠文本相似或 ordinal 自动合并。没有 deterministic alias 表时,跨 epoch 保持 namespace 分离并报告 duplicate risk,禁止 flip learner-state canonicalization。
 - gate:check_contract_guard 对这三文件真触发;脱敏单测断言所有 PGO 字段不出现在 public WS;dedupe-key 改动有 migration-version 测试;node_code 传播有测试;point_id 方案文档钉死。
 
 **Stage 1 — 全量编译 + 数据质量隔离**

@@ -28,6 +28,7 @@ def _case_md() -> dict:
         "_prefetched_exact_question": {
             "answer_kind": "case_study",
             "question_id": "CASE-1",
+            "node_code": "1A432000",
             "stem": "指出事件二中临时用电管理的不妥之处。",
             "covered_subquestions": [
                 {"authoritative_answer": "共用一个开关箱不妥，应采用专用开关箱"},
@@ -58,6 +59,7 @@ def test_build_v1_case_ctx_extracts_reference_from_covered_subquestions() -> Non
     assert "共用一个开关箱" in ctx["correct_answer"]
     assert "应编制临时用电施工组织设计" in ctx["correct_answer"]
     assert ctx["user_answer"].startswith("我的作答")
+    assert ctx["node_code"] == "1A432000"
 
 
 @pytest.mark.asyncio
@@ -248,6 +250,8 @@ async def test_v1_case_render_writes_grading_to_brain_loop(
     assert call["user_id"] == "qa_loop_v1"
     assert call["memory_kind"] == "learning_evidence"
     assert call["payload_json"]["legacy_event_type"] == "case_grading_completed"
+    assert call["payload_json"]["question_node_code"] == "1A432000"
+    assert call["payload_json"]["projection_taxonomy_code"] == "1A432000"
     assert md["grading_to_brain_loop"]["writeback_count"] == 1
     assert md["learning_evidence_event_id"] == "evt_v1_case_1"
     assert md["learning_training_intent"]["source"] == "grading_to_brain_loop"
