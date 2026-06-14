@@ -118,6 +118,23 @@ def test_guard_accepts_luban_pgo_verify_script_change_with_domain_tests() -> Non
     assert "[luban_grading_engine] passed" in message
 
 
+def test_guard_rejects_luban_stage5_canary_gate_change_without_domain_tests() -> None:
+    ok, message = evaluate_changed_files(["scripts/run_luban_pgo_stage5_canary_gate.py"])
+    assert ok is False
+    assert "[luban_grading_engine] protected files changed" in message
+
+
+def test_guard_accepts_luban_stage5_canary_gate_change_with_domain_tests() -> None:
+    ok, message = evaluate_changed_files(
+        [
+            "scripts/run_luban_pgo_stage5_canary_gate.py",
+            "tests/scripts/test_luban_pgo_stage5_canary_gate.py",
+        ]
+    )
+    assert ok is True
+    assert "[luban_grading_engine] passed" in message
+
+
 def test_guard_rejects_luban_stage0_runtime_change_without_domain_tests() -> None:
     ok, message = evaluate_changed_files(["deeptutor/tutorbot/agent/loop.py"])
     assert ok is False
