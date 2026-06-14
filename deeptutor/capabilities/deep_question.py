@@ -2362,6 +2362,78 @@ def _maybe_attach_v1_beta_shadow(
         }
 
 
+def _pgo_shadow_flag_enabled(context: UnifiedContext) -> bool:
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return bool(
+        metadata.get("grading_engine_pgo_shadow")
+        or context.config_overrides.get("grading_engine_pgo_shadow")
+    )
+
+
+def _pgo_shadow_env_enabled() -> bool:
+    import os
+
+    return os.environ.get("LUBAN_CASE_RUBRIC_PGO_SHADOW_ENABLED", "").strip().lower() in (
+        "true", "1", "on", "yes",
+    )
+
+
+def _pgo_shadow_cohort_member(student_id: str) -> bool:
+    return str(student_id).startswith(("qa_", "test_", "operator_"))
+
+
+def _maybe_attach_pgo_shadow(
+    *,
+    context: UnifiedContext,
+    graded_context: dict[str, Any],
+    result_payload: dict[str, Any],
+) -> None:
+    """Append-only PGO coverage shadow path.
+
+    Thin wrapper only: it gates by request/env/cohort and delegates all PGO
+    adapter/scoring semantics to ``per_question_grading_judge``. It never mutates
+    ``construction_grading_result`` and never writes learner/brain state.
+    """
+    if not _pgo_shadow_flag_enabled(context):
+        return
+    key = "luban_case_rubric_pgo_shadow"
+    if not _pgo_shadow_env_enabled():
+        result_payload[key] = {
+            "authority": key,
+            "shadow_status": "killed_by_switch",
+            "not_production_grade": True,
+            "official_score_allowed": False,
+            "canonical_write_allowed": False,
+            "writeback_performed": False,
+        }
+        return
+    student_id = _learner_user_id_from_context(context)
+    if not _pgo_shadow_cohort_member(student_id):
+        return
+    try:
+        from deeptutor.services.construction_grading.per_question_grading_judge import (
+            build_pgo_shadow_payload,
+        )
+
+        result_payload[key] = build_pgo_shadow_payload(
+            contract=graded_context.get("pgo_grading_contract"),
+            point_verdicts=graded_context.get("pgo_point_verdicts"),
+            question_id=str(graded_context.get("question_id") or ""),
+            student_id=student_id,
+        )
+    except Exception as exc:  # noqa: BLE001 — shadow must never break legacy
+        result_payload[key] = {
+            "authority": key,
+            "shadow_status": "engine_unavailable",
+            "unavailable_reason": str(exc)[:200],
+            "not_production_grade": True,
+            "official_score_allowed": False,
+            "canonical_write_allowed": False,
+            "writeback_performed": False,
+            "teacher_review_required": True,
+        }
+
+
 def _m35_artifact_shadow_flag_enabled(context: UnifiedContext) -> bool:
     """M35 scoring-artifact shadow flag. Default OFF -> legacy payload byte-identical."""
     metadata = context.metadata if isinstance(context.metadata, dict) else {}
@@ -4251,6 +4323,13 @@ class DeepQuestionCapability(BaseCapability):
                 if _v1_payload is not None:
                     result_payload["luban_case_rubric_v1"] = _v1_payload
 
+                # PGO coverage shadow (default off; env kill switch + cohort; append-only;
+                # missing live PGO supply fails closed instead of inferring from legacy score).
+                _maybe_attach_pgo_shadow(
+                    context=context,
+                    graded_context=graded_context,
+                    result_payload=result_payload,
+                )
                 # QA/test-only Luban v1 beta_shadow (default off; flag + env kill switch;
                 # append-only; legacy construction_grading_result untouched above).
                 _maybe_attach_v1_beta_shadow(

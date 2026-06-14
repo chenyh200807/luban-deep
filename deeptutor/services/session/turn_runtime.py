@@ -3642,6 +3642,7 @@ class TurnRuntimeManager:
             "grading_engine_m35_artifact_shadow",
             "grading_engine_m35_artifact_shadow_judge",
             "grading_engine_m35_artifact_shadow_tier",
+            "grading_engine_pgo_shadow",
             "grading_engine_v1_controlled_runtime",
             "grading_engine_v1_llm_adjudication",
             "grading_engine_objective_candidate",

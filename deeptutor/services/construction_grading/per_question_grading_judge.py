@@ -257,6 +257,62 @@ def verdict_coverage_awarded_score(
     }
 
 
+def build_pgo_shadow_payload(
+    *,
+    contract: dict[str, Any] | None,
+    point_verdicts: dict[str, str] | None,
+    question_id: str = "",
+    student_id: str = "",
+) -> dict[str, Any]:
+    """Build the append-only PGO coverage shadow payload.
+
+    Missing PGO supply is reported as a blocker, never inferred from legacy
+    scores. This keeps the shadow path honest until live PGO contracts exist.
+    """
+    base = {
+        "authority": "luban_case_rubric_pgo_shadow",
+        "question_id": question_id,
+        "student_id": student_id,
+        "not_production_grade": True,
+        "official_score_allowed": False,
+        "canonical_write_allowed": False,
+        "writeback_performed": False,
+    }
+    if not isinstance(contract, dict) or not contract:
+        return {
+            **base,
+            "shadow_status": "pgo_contract_missing",
+            "runtime_points": [],
+            "score": {
+                "awarded_score": 0.0,
+                "max_score": 0.0,
+                "coverage": 0.0,
+                "blockers": ["pgo_contract_missing"],
+            },
+        }
+    if not isinstance(point_verdicts, dict):
+        return {
+            **base,
+            "shadow_status": "pgo_verdicts_missing",
+            "runtime_points": runtime_points_from_grading_contract(contract),
+            "score": {
+                "awarded_score": 0.0,
+                "max_score": 0.0,
+                "coverage": 0.0,
+                "blockers": ["pgo_verdicts_missing"],
+            },
+        }
+
+    score = verdict_coverage_awarded_score(point_verdicts, contract)
+    return {
+        **base,
+        "shadow_status": "ok" if not score.get("blockers") else "blocked",
+        "runtime_points": runtime_points_from_grading_contract(contract),
+        "point_verdicts": dict(point_verdicts),
+        "score": score,
+    }
+
+
 def detect_over_credit(
     *,
     score_pct: float,
@@ -309,5 +365,6 @@ __all__ = [
     "candidate_coverage_score",
     "runtime_points_from_grading_contract",
     "verdict_coverage_awarded_score",
+    "build_pgo_shadow_payload",
     "detect_over_credit",
 ]

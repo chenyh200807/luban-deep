@@ -125,6 +125,7 @@ feature_flags:
   - {name: LUBAN_V1_LLM_ADJUDICATOR_LIMITED_DEFAULT_ENABLED, default: false, kind: rollout, read: hand_rolled}
   - {name: LUBAN_V1_LLM_ADJUDICATOR_DEV_FORCE_ON, default: false, kind: dev, read: hand_rolled}
   - {name: LUBAN_V1_BETA_SHADOW_ENABLED, default: false, kind: shadow, read: hand_rolled}
+  - {name: LUBAN_CASE_RUBRIC_PGO_SHADOW_ENABLED, default: false, kind: shadow, read: hand_rolled}
   - {name: LUBAN_M31_GOVERNED_OBJECTIVE_ENABLED, default: false, kind: rollout, read: hand_rolled}
   - {name: LUBAN_M35_ARTIFACT_SHADOW_ENABLED, default: false, kind: shadow, read: hand_rolled}
   - {name: LUBAN_TEXTBOOK_KNOWLEDGE_ENABLED, default: false, kind: rollout, read: hand_rolled}
@@ -368,6 +369,7 @@ grandfathered_envs:
   - LLM_USAGE_COST_CENTER
   - LLM_USAGE_RUNTIME_ENVIRONMENT
   - LUBAN_2026_SOURCE_ROOT
+  - LUBAN_CASE_RUBRIC_PGO_SHADOW_ENABLED
   - LUBAN_CASE_RUBRIC_V1_ENABLED
   - LUBAN_DATA_DIR
   - LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT

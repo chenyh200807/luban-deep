@@ -22,6 +22,7 @@ _RUNTIME_ONLY_KEYS = {
     "grading_engine_m35_artifact_shadow",
     "grading_engine_m35_artifact_shadow_judge",
     "grading_engine_m35_artifact_shadow_tier",
+    "grading_engine_pgo_shadow",
 }
 
 
