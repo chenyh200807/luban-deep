@@ -57,15 +57,17 @@ test('member ops exposes a visible VIP upgrade action', async () => {
   const panel = await readWeb('app/(workspace)/bi/_v2/member-ops/BiV2MemberOpsPanel.tsx')
   const drawer = await readWeb('app/(workspace)/bi/_v2/member-ops/Member360Drawer.tsx')
 
-  assert.ok(panel.includes('grantMembership'))
+  assert.ok(panel.includes('manualPurchaseMembership'))
   assert.ok(panel.includes('upgradeMemberToVip'))
-  assert.ok(panel.includes('aria-label={`将 ${row.user_id} 升级为 VIP`}'))
-  assert.ok(panel.includes('升VIP'))
+  assert.ok(panel.includes('findPackageForTier(membershipPackages, \'vip\')'))
+  assert.ok(panel.includes('aria-label={`按 VIP 套餐为 ${row.user_id} 付费开通并入账`}'))
+  assert.ok(panel.includes('开VIP'))
+  assert.ok(!panel.includes('grantMembership'))
   assert.ok(drawer.includes('onUpgradeToVip'))
   assert.ok(drawer.includes('aria-label="将当前会员升级为 VIP"'))
 })
 
-test('member ops exposes a cashier-grade membership settings console', async () => {
+test('member ops exposes package-led cashier membership settings', async () => {
   const panel = await readWeb('app/(workspace)/bi/_v2/member-ops/BiV2MemberOpsPanel.tsx')
 
   assert.ok(panel.includes('getBiCommerce'))
@@ -74,13 +76,18 @@ test('member ops exposes a cashier-grade membership settings console', async () 
   assert.ok(panel.includes('revokeMembership'))
   assert.ok(panel.includes('data-testid="bi-member-membership-settings"'))
   assert.ok(panel.includes('会员设置'))
-  assert.ok(panel.includes('体验'))
   assert.ok(panel.includes('VIP'))
   assert.ok(panel.includes('SVIP'))
+  assert.ok(panel.includes('至尊SVIP'))
+  assert.ok(panel.includes('套餐是唯一选择；等级、点数、次数和默认收入都从套餐派生。'))
+  assert.ok(panel.includes('不改金额时按套餐价入账；填 0 即 0 元开通，填其他数字即按人工实收金额入账。'))
   assert.ok(panel.includes('有效期'))
   assert.ok(panel.includes('付费开通并入账'))
-  assert.ok(panel.includes('保存等级/有效期'))
+  assert.ok(panel.includes('收款开通'))
+  assert.ok(panel.includes('保存有效期'))
   assert.ok(panel.includes('取消会员'))
+  assert.equal(panel.includes('aria-label="选择会员等级"'), false)
+  assert.equal(panel.includes('运营授予权益'), false)
 })
 
 test('BiDataTable supports row-level click without stealing checkbox/action clicks', async () => {

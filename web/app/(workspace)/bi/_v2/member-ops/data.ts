@@ -1,7 +1,7 @@
 export type MemberRow = {
   user_id: string
   phone_masked: string
-  tier: 'trial' | 'vip' | 'svip'
+  tier: 'trial' | 'vip' | 'svip' | 'supreme_svip'
   status: 'active' | 'expiring' | 'expired' | 'paused'
   risk: number
   last_active: string
@@ -78,7 +78,7 @@ export const DEFAULT_COLUMNS: MemberColumnKey[] = [
 ]
 
 export type MemberFilters = {
-  tier: '' | 'trial' | 'vip' | 'svip'
+  tier: '' | 'trial' | 'vip' | 'svip' | 'supreme_svip'
   status: '' | 'active' | 'expiring' | 'expired' | 'paused'
   riskMin: number
   expiringDays: number // 0 = 不限
