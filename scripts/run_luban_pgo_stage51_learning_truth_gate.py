@@ -222,9 +222,11 @@ def _pgo_grading_event(question_id: str) -> dict[str, Any]:
 def _stable_truth_promotion(
     out_dir: Path,
     *,
+    user_id: str = USER_ID,
     use_core_store: bool = False,
     learner_state_service_factory: Any | None = None,
 ) -> dict[str, Any]:
+    normalized_user_id = str(user_id or USER_ID).strip() or USER_ID
     runtime_root = out_dir / "learner_runtime"
     if callable(learner_state_service_factory):
         service = learner_state_service_factory(runtime_root)
@@ -244,8 +246,11 @@ def _stable_truth_promotion(
         writebacks.append(
             write_case_grading_event_learning_evidence(
                 learner_state_service=service,
-                user_id=USER_ID,
-                grading_event=_pgo_grading_event(f"STAGE51-PGO-{attempt}"),
+                user_id=normalized_user_id,
+                grading_event={
+                    **_pgo_grading_event(f"STAGE51-PGO-{attempt}"),
+                    "student_id": normalized_user_id,
+                },
                 source_id=f"stage51-turn-{attempt}:STAGE51-PGO-{attempt}",
                 source_bot_id=BOT_ID,
                 user_answer="卷材搭接宽度不足。",
@@ -254,9 +259,9 @@ def _stable_truth_promotion(
                 session_id="stage51-session",
             )
         )
-    synthesis = service.synthesize_learning_truth(USER_ID, dry_run=False, event_limit=None)
+    synthesis = service.synthesize_learning_truth(normalized_user_id, dry_run=False, event_limit=None)
     projection = dict(synthesis.get("projection") or {})
-    readback = service.read_compiled_learning_truth(USER_ID)
+    readback = service.read_compiled_learning_truth(normalized_user_id)
     weak_points = list(readback.get("weak_points") or [])
     weak = weak_points[0] if weak_points else {}
     return {
@@ -274,7 +279,8 @@ def _stable_truth_promotion(
         "weak_point_concept_id": str(weak.get("concept_id") or ""),
         "weak_point_error_code": str(weak.get("error_code") or ""),
         "weak_point_evidence_level": str(weak.get("evidence_level") or ""),
-        "compiled_truth_path": str(runtime_root / "learner_state" / USER_ID / "COMPILED_TRUTH.json"),
+        "user_id": normalized_user_id,
+        "compiled_truth_path": str(runtime_root / "learner_state" / normalized_user_id / "COMPILED_TRUTH.json"),
         "output_projection_hash": str(dict(readback.get("synthesis_run") or {}).get("output_projection_hash") or ""),
         "dry_run_projection_hash": str(dict(projection.get("synthesis_run") or {}).get("output_projection_hash") or ""),
     }
@@ -286,6 +292,7 @@ def run_stage51_gate(
     live_ws_events_path: str | Path | None = None,
     mnemonic_samples: list[dict[str, Any]] | None = None,
     out_dir: str | Path = DEFAULT_OUT,
+    user_id: str = USER_ID,
     use_core_store: bool = False,
     learner_state_service_factory: Any | None = None,
 ) -> dict[str, Any]:
@@ -299,6 +306,7 @@ def run_stage51_gate(
     content_report = _evaluate_mnemonic_content(samples)
     promotion_report = _stable_truth_promotion(
         out,
+        user_id=user_id,
         use_core_store=use_core_store,
         learner_state_service_factory=learner_state_service_factory,
     )
@@ -343,6 +351,7 @@ def main() -> int:
     parser.add_argument("--live-ws-events", type=Path, default=DEFAULT_LIVE_WS_EVENTS)
     parser.add_argument("--mnemonic-samples", type=Path, default=None)
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT)
+    parser.add_argument("--user-id", default=USER_ID)
     parser.add_argument(
         "--use-core-store",
         action="store_true",
@@ -354,6 +363,7 @@ def main() -> int:
         live_ws_events_path=args.live_ws_events,
         mnemonic_samples=samples,
         out_dir=args.out_dir,
+        user_id=args.user_id,
         use_core_store=args.use_core_store,
     )
     print(json.dumps(result["go_no_go"], ensure_ascii=False, indent=2, sort_keys=True))

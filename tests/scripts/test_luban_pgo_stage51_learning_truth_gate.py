@@ -130,9 +130,11 @@ def test_stage51_gate_can_use_supplied_core_store_service(tmp_path: Path) -> Non
     class _Service:
         def __init__(self) -> None:
             self.append_count = 0
+            self.user_ids: list[str] = []
 
-        def append_memory_event(self, *_args, **_kwargs):
+        def append_memory_event(self, user_id, **_kwargs):
             self.append_count += 1
+            self.user_ids.append(user_id)
             return _Event(f"evt-{self.append_count}")
 
         def synthesize_learning_truth(self, *_args, **_kwargs):
@@ -161,9 +163,11 @@ def test_stage51_gate_can_use_supplied_core_store_service(tmp_path: Path) -> Non
             }
         ],
         out_dir=tmp_path,
+        user_id="qa_existing_stage51",
         learner_state_service_factory=lambda _runtime_root: service,
     )
 
     assert service.append_count == 2
+    assert service.user_ids == ["qa_existing_stage51", "qa_existing_stage51"]
     assert result["go_no_go"]["status"] == "STAGE51_GO"
     assert result["stable_truth_promotion"]["output_projection_hash"] == "sha256:core"
