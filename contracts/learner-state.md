@@ -149,6 +149,10 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
   0 点；充值到账、扣费、冻结余额和钱包存在性仍只属于 `WalletService` / wallet ledger
   authority。套餐展示中的原价、现价、点数和可用轮次只是 commerce read model，不得写入 learner
   profile、learner summary 或 learner memory。
+- BI / member-console 可以提供传统会员管理式的人工开通 / 续费入口，但该入口必须同时满足三条边界：
+  权益变更写 `member_console` 审计，点数 / 收入事实写 `WalletService.grant_points()` 产生的
+  `wallet_ledger` purchase 流水，前端和 BI commerce 不得自造收入表或把人工开通写成 learner-state
+  事实。若 wallet service 不可用，人工付费开通必须 fail-closed，不能只改会员到期时间。
 - BI 会员运营新增窗口指标（例如今日、近 7 天、近 30 天新增）只能在上述可信会员目录内按
   canonical member `created_at` 计算；它们是 dashboard read model，不得从前端分页结果、
   行为事件、钱包流水、运营备注或 learner-state projection 反推，也不得写入

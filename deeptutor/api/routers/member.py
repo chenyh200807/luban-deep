@@ -48,6 +48,16 @@ class GrantRequest(BaseModel):
     reason: str = ""
 
 
+class ManualPurchaseRequest(BaseModel):
+    user_id: str = Field(..., min_length=1, max_length=200)
+    package_id: str = Field(..., min_length=1, max_length=80)
+    days: int = Field(..., gt=0, le=3650)
+    reason: str = Field(default="", max_length=200)
+    phone: str = Field(default="", max_length=40)
+    display_name: str = Field(default="", max_length=100)
+    amount_cny: float | None = Field(default=None, ge=0)
+
+
 class UpdateRequest(BaseModel):
     user_id: str
     tier: str | None = None
@@ -523,6 +533,41 @@ async def grant_membership(
         reason=body.reason,
         operator=current_user.user_id,
     )
+
+
+@router.post("/manual-purchase")
+async def manual_purchase_membership(
+    body: ManualPurchaseRequest,
+    idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
+    current_user: AuthContext = Depends(require_admin),
+) -> dict[str, Any]:
+    normalized_key = str(idempotency_key or "").strip()
+    if not normalized_key:
+        raise HTTPException(
+            status_code=400,
+            detail="X-Idempotency-Key header is required for audited writes",
+        )
+    if len(normalized_key) > 128 or not _IDEMPOTENCY_KEY_PATTERN.fullmatch(normalized_key):
+        raise HTTPException(
+            status_code=400,
+            detail="X-Idempotency-Key must be ≤ 128 chars of [a-zA-Z0-9_-]",
+        )
+    try:
+        return service.manual_membership_purchase(
+            user_id=body.user_id,
+            package_id=body.package_id,
+            days=body.days,
+            operator=current_user.user_id,
+            reason=body.reason,
+            idempotency_key=normalized_key,
+            phone=body.phone,
+            display_name=body.display_name,
+            amount_cny=body.amount_cny,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @router.post("/update")

@@ -151,6 +151,17 @@ export interface MemberBatchActionResult {
   failed: Array<{ user_id: string; detail: string }>
 }
 
+export interface ManualMembershipPurchaseResult {
+  member: MemberDetail
+  package: Record<string, unknown>
+  amount_cny: number
+  points: number
+  purchase_id: string
+  ledger_event_id: string
+  audit_id: string
+  deduped: boolean
+}
+
 export interface MemberAuditLogItem {
   id: string
   operator?: string
@@ -444,6 +455,26 @@ export async function grantMembership(payload: {
     body: JSON.stringify(payload),
   })
   return expectJson<MemberDetail>(response)
+}
+
+export async function manualPurchaseMembership(payload: {
+  user_id: string
+  package_id: string
+  days: number
+  reason?: string
+  phone?: string
+  display_name?: string
+  amount_cny?: number
+}): Promise<ManualMembershipPurchaseResult> {
+  const response = await fetch(apiUrl('/api/v1/member/manual-purchase'), {
+    method: 'POST',
+    headers: adminHeaders({
+      'Content-Type': 'application/json',
+      'X-Idempotency-Key': makeIdempotencyKey(),
+    }),
+    body: JSON.stringify(payload),
+  })
+  return expectJson<ManualMembershipPurchaseResult>(response)
 }
 
 export async function updateMembership(payload: {
