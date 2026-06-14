@@ -495,6 +495,27 @@ def test_rich_leaf_context_bundle_v1_record_fields_pinned_match_producer() -> No
     )
 
 
+def test_rag_evidence_bundle_v1_fields_pinned_match_producer() -> None:
+    """``rag_evidence_bundle.v1`` canonical_fields == EvidenceBundle dataclass fields.
+
+    The evidence bundle was consolidated from 4 drifting inline assembly sites into one
+    single-authority builder (``build_evidence_bundle``); this pins its canonical shape so a
+    field drift (a lane adds a top-level key, or the dataclass changes) fails here → BLOCKING.
+    Lane-specific diagnostics live under the single ``trace`` key, not as top-level fields."""
+    from deeptutor.services.rag.evidence_bundle import SCHEMA_ID, EvidenceBundle
+
+    assert SCHEMA_ID == "rag_evidence_bundle.v1"
+    entry = _t2_entry("rag_evidence_bundle.v1")
+    assert entry.get("needs_field_canonicalization") is False, "must be PINNED (false)"
+    pinned = set(entry.get("canonical_fields") or [])
+    declared = set(EvidenceBundle.__dataclass_fields__.keys())
+    assert pinned == declared, (
+        "rag_evidence_bundle.v1 field drift — registry canonical_fields vs EvidenceBundle "
+        f"dataclass.\n  only in registry: {sorted(pinned - declared)}\n  only in producer: "
+        f"{sorted(declared - pinned)}"
+    )
+
+
 def test_pinned_t2_contracts_must_list_canonical_fields() -> None:
     """Registry-consistency: a T2 marked PINNED (needs_field_canonicalization=false) MUST
     carry a non-empty ``canonical_fields`` — otherwise it claims field enforcement with no

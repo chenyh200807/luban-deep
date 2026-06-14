@@ -334,6 +334,7 @@ domains:
       - tests/services/rag/test_learning_fact_retrieval_pipeline.py
       - tests/services/rag/test_maintenance.py
       - tests/services/rag/test_retrieval_plan.py
+      - tests/services/rag/test_evidence_bundle.py
       - tests/services/citations/test_normalizer.py
       - tests/services/citations/test_quality.py
     schema_files:

@@ -73,7 +73,8 @@ async def test_kbv5_pipeline_projects_readonly_chunks(monkeypatch: pytest.Monkey
     assert result["sources"][0]["score"] == 0.9
     assert "结构体系、围护体系和设备体系" in result["content"]
     assert result["evidence_bundle"]["provider"] == "kbv5"
-    assert result["evidence_bundle"]["transport"] == "direct_postgres_readonly"
+    # kbv5 lane diagnostics moved into the canonical bundle's ``trace`` bucket (consolidation)
+    assert result["evidence_bundle"]["trace"]["transport"] == "direct_postgres_readonly"
     json.dumps(result, ensure_ascii=False)
 
 

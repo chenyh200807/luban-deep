@@ -251,6 +251,7 @@ _FULLSET_NAMESPACE_RE = re.compile(
           | p0a-v                       # bare persisted report schema version (p0a-v1)
           | learning_report             # P2: learner-state runtime contract (registry beyond grading)
           | rag_retrieval_plan          # P2: RAG runtime retrieval-plan contract (registry beyond grading)
+          | rag_evidence_bundle         # P2: RAG evidence bundle (single-authority builder, consolidated)
           | personalization_context_pack # P2: learner-state PCP runtime contract (registry beyond grading)
           | learning_training_intent     # P2: learner-state prescription authority (registry beyond grading)
           | grading_error_event          # P2: grading error-event, cross-domain consumed by learner_state
