@@ -41,7 +41,12 @@ When testing `deeptutor.api.main` route mounting:
    again. Do not casually clear every router module: some router schemas rely
    on module-local forward-reference rebuild state, and broad cache eviction can
    create smoke failures unrelated to route mounting.
-5. Keep production code unchanged unless the same route set fails in a fresh
+5. For assertions that define production/local route-mount contracts, prefer a
+   fresh Python subprocess probe over an in-process reload. The subprocess must
+   set a test-local `DEEPTUTOR_USER_DATA_DIR`, empty env file, and scenario env
+   before importing `deeptutor.api.main`. This matches CI cold-start semantics
+   and avoids turning pytest module-cache pollution into a product fallback.
+6. Keep production code unchanged unless the same route set fails in a fresh
    process with the same env.
 
 For mobile billing quota tests, patch the imported router binding when the test

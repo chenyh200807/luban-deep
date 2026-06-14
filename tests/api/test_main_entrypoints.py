@@ -3,7 +3,9 @@ from __future__ import annotations
 import asyncio
 import importlib
 import json
+import os
 from pathlib import Path
+import subprocess
 import sys
 from types import SimpleNamespace
 
@@ -331,6 +333,68 @@ def _route_paths(app: FastAPI) -> set[str]:
     return {str(getattr(route, "path", "") or "") for route in app.routes}
 
 
+def _fresh_main_probe(
+    *,
+    env: dict[str, str | None],
+    tmp_path: Path,
+    get_path: str | None = None,
+) -> dict[str, object]:
+    user_root = tmp_path / "fresh-main"
+    settings_dir = user_root / "settings"
+    settings_dir.mkdir(parents=True, exist_ok=True)
+    (settings_dir / "main.yaml").write_text("{}\n", encoding="utf-8")
+    env_file = settings_dir / ".env"
+    env_file.write_text("", encoding="utf-8")
+
+    child_env = os.environ.copy()
+    for key in _MAIN_ENTRYPOINT_ENV_KEYS:
+        child_env.pop(key, None)
+    for key, value in env.items():
+        if value is None:
+            child_env.pop(key, None)
+        else:
+            child_env[key] = value
+    child_env["DEEPTUTOR_USER_DATA_DIR"] = str(user_root)
+    child_env["DEEPTUTOR_ENV_FILE"] = str(env_file)
+    child_env["DEEPTUTOR_ENV_PATH"] = str(env_file)
+    child_env["PYTHONPATH"] = os.getcwd()
+
+    script = r"""
+import json
+import os
+
+import deeptutor.services.setup as setup
+
+setup.init_user_directories = lambda *_args, **_kwargs: None
+
+import deeptutor.api.main as main
+
+payload = {
+    "paths": sorted(str(getattr(route, "path", "") or "") for route in main.app.routes),
+}
+get_path = os.environ.get("_DEEPTUTOR_TEST_GET_PATH", "")
+if get_path:
+    from fastapi.testclient import TestClient
+
+    with TestClient(main.app) as client:
+        response = client.get(get_path)
+    payload["response_status"] = response.status_code
+    payload["response_text"] = response.text
+print(json.dumps(payload, ensure_ascii=False))
+"""
+    if get_path:
+        child_env["_DEEPTUTOR_TEST_GET_PATH"] = get_path
+    result = subprocess.run(
+        [sys.executable, "-c", script],
+        check=True,
+        env=child_env,
+        text=True,
+        capture_output=True,
+        cwd=os.getcwd(),
+    )
+    return json.loads(result.stdout.strip().splitlines()[-1])
+
+
 def test_api_docs_disabled_by_default_in_production(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -463,8 +527,8 @@ def test_production_disables_legacy_router_mounts_by_default(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    module = _reload_main(
-        monkeypatch,
+    del monkeypatch
+    probe = _fresh_main_probe(
         env={
             "DEEPTUTOR_ENV": "production",
             "DEEPTUTOR_ENABLE_LEGACY_ROUTERS": None,
@@ -472,7 +536,7 @@ def test_production_disables_legacy_router_mounts_by_default(
         tmp_path=tmp_path,
     )
 
-    paths = _route_paths(module.app)
+    paths = set(probe["paths"])
     assert "/api/v1/ws" in paths
     assert "/api/v1/sessions" in paths
     assert "/api/v1/invite-test/applications" in paths
@@ -500,8 +564,7 @@ def test_main_reload_clears_previous_entrypoint_env_before_mounting_routes(
     monkeypatch.setenv("SERVICE_ENV", "local")
     monkeypatch.setenv("DEEPTUTOR_ENABLE_PUBLIC_OUTPUTS", "1")
 
-    module = _reload_main(
-        monkeypatch,
+    probe = _fresh_main_probe(
         env={
             "DEEPTUTOR_ENV": "production",
             "DEEPTUTOR_ENABLE_LEGACY_ROUTERS": None,
@@ -510,7 +573,7 @@ def test_main_reload_clears_previous_entrypoint_env_before_mounting_routes(
         tmp_path=tmp_path,
     )
 
-    paths = _route_paths(module.app)
+    paths = set(probe["paths"])
     assert "/api/v1/ws" in paths
     assert "/api/v1/sessions" in paths
     assert "/api/outputs" not in paths
@@ -537,24 +600,22 @@ def test_learning_brain_qa_router_requires_local_explicit_flag(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    module = _reload_main(
-        monkeypatch,
+    del monkeypatch
+    probe = _fresh_main_probe(
         env={
             "DEEPTUTOR_ENV": "local",
             "DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA": "1",
         },
         tmp_path=tmp_path,
+        get_path="/wechat-harness",
     )
 
-    assert "/api/v1/learning-brain/harness-case-grading" in _route_paths(module.app)
-    assert "/wechat-harness" in _route_paths(module.app)
-
-    with TestClient(module.app) as client:
-        response = client.get("/wechat-harness")
-
-    assert response.status_code == 200
-    assert "学习大脑" in response.text
-    assert "当前可信结论" in response.text
+    paths = set(probe["paths"])
+    assert "/api/v1/learning-brain/harness-case-grading" in paths
+    assert "/wechat-harness" in paths
+    assert probe["response_status"] == 200
+    assert "学习大脑" in str(probe["response_text"])
+    assert "当前可信结论" in str(probe["response_text"])
 
 
 def test_learning_brain_qa_router_not_mounted_in_production_even_with_flag(
@@ -595,8 +656,8 @@ def test_legacy_router_flag_explicitly_reenables_compatibility_mounts(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    module = _reload_main(
-        monkeypatch,
+    del monkeypatch
+    probe = _fresh_main_probe(
         env={
             "DEEPTUTOR_ENV": "production",
             "DEEPTUTOR_ENABLE_LEGACY_ROUTERS": "1",
@@ -604,7 +665,7 @@ def test_legacy_router_flag_explicitly_reenables_compatibility_mounts(
         tmp_path=tmp_path,
     )
 
-    paths = _route_paths(module.app)
+    paths = set(probe["paths"])
     assert "/api/v1/solve" in paths
     assert "/api/v1/chat" not in paths
     assert "/api/v1/question/mimic" in paths
