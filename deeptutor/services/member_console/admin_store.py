@@ -196,6 +196,74 @@ def set_user_overrides(
         return dict(data["admins"])
 
 
+def load_role_permissions(path: Path) -> dict[str, Any]:
+    """超管编辑过的角色权限矩阵 {role: {tab: [actions]}}（未编辑的角色不在此）。"""
+    return dict(_read(path)["role_permissions"])
+
+
+def set_role_permissions(
+    path: Path,
+    role: str,
+    matrix: dict[str, list[str]],
+    *,
+    actor: str = "",
+    at: str = "",
+) -> dict[str, Any]:
+    """超管编辑某角色的权限矩阵（整体覆盖该角色），并写审计。"""
+    normalized = str(role or "").strip()
+    if not normalized:
+        raise ValueError("role is required")
+    with _LOCK:
+        data = _read(path)
+        data["role_permissions"][normalized] = matrix
+        data["audit"].append(
+            {
+                "ts": at,
+                "actor": actor,
+                "action": "set_role_permissions",
+                "target": normalized,
+                "from_role": "",
+                "to_role": "",
+                "detail": "role_matrix",
+            }
+        )
+        _write(path, data)
+        return dict(data["role_permissions"])
+
+
+def set_user_overrides(
+    path: Path,
+    user_id: str,
+    overrides: dict[str, list[str]],
+    *,
+    actor: str = "",
+    at: str = "",
+) -> dict[str, dict[str, Any]]:
+    """给某个已存在的运行时管理员设置 per-user 权限覆盖（精确到人），并写审计。"""
+    normalized = str(user_id or "").strip()
+    if not normalized:
+        raise ValueError("user_id is required")
+    with _LOCK:
+        data = _read(path)
+        record = data["admins"].get(normalized)
+        if record is None:
+            raise ValueError("该用户不是运行时管理员，无法设置个人权限覆盖")
+        record["permission_overrides"] = overrides
+        data["audit"].append(
+            {
+                "ts": at,
+                "actor": actor,
+                "action": "set_user_overrides",
+                "target": normalized,
+                "from_role": str(record.get("role") or ""),
+                "to_role": "",
+                "detail": ",".join(sorted(overrides.keys())) if overrides else "cleared",
+            }
+        )
+        _write(path, data)
+        return dict(data["admins"])
+
+
 def set_admin(
     path: Path,
     user_id: str,

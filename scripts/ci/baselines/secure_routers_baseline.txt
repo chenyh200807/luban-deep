@@ -5,7 +5,7 @@ deeptutor/api/routers/dashboard.py:10
 deeptutor/api/routers/guide.py
 deeptutor/api/routers/guide.py:23
 deeptutor/api/routers/learning_brain.py:16
-deeptutor/api/routers/member.py:17
+deeptutor/api/routers/member.py:22
 deeptutor/api/routers/memory.py:14
 deeptutor/api/routers/mobile.py:66
 deeptutor/api/routers/notebook.py:19

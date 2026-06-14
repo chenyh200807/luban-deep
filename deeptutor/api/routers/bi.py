@@ -494,14 +494,19 @@ async def bi_luban_feedback_response_update(
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
 
 
-def require_bi_super_admin(auth: AuthContext | None = Depends(require_bi_access)) -> AuthContext:
-    """权限管理端点专用门：仅 super_admin 可增删管理员、改角色。"""
+def require_bi_permission_manager(
+    auth: AuthContext | None = Depends(require_bi_access),
+) -> AuthContext:
+    """权限管理端点专用门：允许 can_manage_permissions 的管理员变更权限。"""
     if auth is None or not get_member_console_service().can_manage_permissions(auth.user_id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="需要超级管理员权限才能管理 BI 权限",
+            detail="需要管理员权限才能管理 BI 权限",
         )
     return auth
+
+
+require_bi_super_admin = require_bi_permission_manager
 
 
 def _now_iso() -> str:
@@ -512,7 +517,7 @@ def _now_iso() -> str:
 
 @router.get("/rbac/roles")
 async def bi_rbac_roles(_auth: AuthContext = Depends(require_bi_admin)):
-    """角色定义 + 【生效】权限矩阵(含超管已编辑) + tab/操作维度 + 可编辑标记。"""
+    """角色定义 + 【生效】权限矩阵(含管理员已编辑) + tab/操作维度 + 可编辑标记。"""
     return get_member_console_service().roles_payload()
 
 
@@ -520,7 +525,7 @@ async def bi_rbac_roles(_auth: AuthContext = Depends(require_bi_admin)):
 async def bi_set_role_permissions(
     role: str,
     payload: dict[str, Any] | None = Body(default=None),
-    auth: AuthContext = Depends(require_bi_super_admin),
+    auth: AuthContext = Depends(require_bi_permission_manager),
 ):
     """编辑某角色的权限矩阵(角色级,影响所有该角色管理员)。body: {matrix:{tab:[actions]}}。"""
     body = payload or {}
@@ -537,7 +542,7 @@ async def bi_set_role_permissions(
 async def bi_set_user_permissions(
     user_id: str,
     payload: dict[str, Any] | None = Body(default=None),
-    auth: AuthContext = Depends(require_bi_super_admin),
+    auth: AuthContext = Depends(require_bi_permission_manager),
 ):
     """精确到人:给某管理员设个人权限覆盖。body: {overrides:{tab:[actions]}}(只提交的 tab 覆盖)。"""
     body = payload or {}
@@ -577,7 +582,7 @@ async def bi_rbac_me(auth: AuthContext | None = Depends(require_bi_access)):
         "user_id": uid,
         "role": role,
         "role_label": rbac.ROLE_LABELS.get(role or "", ""),
-        "can_manage_permissions": rbac.can_manage_permissions(role),
+        "can_manage_permissions": svc.can_manage_permissions(uid),
         "is_full_admin": rbac.is_full_admin(role),
         "accessible_tabs": [t for t in rbac.TABS if "view" in (effective.get(t) or [])],
         "matrix": effective,
@@ -593,7 +598,7 @@ async def bi_list_admins(_auth: AuthContext = Depends(require_bi_admin)):
 @router.get("/admins/audit")
 async def bi_admins_audit(
     limit: int = Query(200, ge=1, le=1000),
-    _auth: AuthContext = Depends(require_bi_super_admin),
+    _auth: AuthContext = Depends(require_bi_permission_manager),
 ):
     """权限变更审计（谁在何时把谁设成什么角色）。"""
     return {"audit": get_member_console_service().list_admin_audit(limit=limit)}
@@ -603,7 +608,7 @@ async def bi_admins_audit(
 async def bi_admins_search_members(
     q: str = Query("", min_length=0, max_length=64),
     limit: int = Query(10, ge=1, le=50),
-    _auth: AuthContext = Depends(require_bi_super_admin),
+    _auth: AuthContext = Depends(require_bi_permission_manager),
 ):
     """按手机号/姓名/user_id 搜会员，供添加管理员选人（带回 user_id）。"""
     return {"members": get_member_console_service().search_members_for_admin(q=q, limit=limit)}
@@ -612,7 +617,7 @@ async def bi_admins_search_members(
 @router.post("/admins")
 async def bi_add_admin(
     payload: dict[str, Any] | None = Body(default=None),
-    auth: AuthContext = Depends(require_bi_super_admin),
+    auth: AuthContext = Depends(require_bi_permission_manager),
 ):
     """添加管理员并指定角色，立即生效。body: {user_id, role, display_name?}。"""
     from deeptutor.services.member_console import rbac
@@ -636,7 +641,7 @@ async def bi_add_admin(
 async def bi_set_admin_role(
     user_id: str,
     payload: dict[str, Any] | None = Body(default=None),
-    auth: AuthContext = Depends(require_bi_super_admin),
+    auth: AuthContext = Depends(require_bi_permission_manager),
 ):
     """修改管理员角色。body: {role}。"""
     body = payload or {}
@@ -653,7 +658,10 @@ async def bi_set_admin_role(
 
 
 @router.delete("/admins/{user_id}")
-async def bi_remove_admin(user_id: str, auth: AuthContext = Depends(require_bi_super_admin)):
+async def bi_remove_admin(
+    user_id: str,
+    auth: AuthContext = Depends(require_bi_permission_manager),
+):
     """移除管理员。系统引导管理员不可移除（防止锁死超管）。"""
     try:
         admins = get_member_console_service().remove_admin_user(

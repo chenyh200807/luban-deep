@@ -4,7 +4,7 @@ import { apiUrl, getStoredBiAdminSession } from '@/lib/api'
  * BI RBAC API 层 — 对接后端 /api/v1/bi/ RBAC 端点（SHA 236af02）。
  *
  * 单一 token 来源：getStoredBiAdminSession()?.token。
- * 写操作（POST/PATCH/DELETE）+ audit/search 需要 super_admin 角色，否则后端 403。
+ * 写操作（POST/PATCH/DELETE）+ audit/search 需要 can_manage_permissions，否则后端 403。
  * 列表/矩阵/me 为只读，普通 admin 也能读。
  *
  * 不可变约束：所有解析返回新对象/数组，调用方不得就地修改后端 payload。
@@ -27,7 +27,7 @@ export interface BiRoleDefinition {
   description: string
   can_manage_permissions: boolean
   is_full_admin: boolean
-  /** 生效权限矩阵（含超管已编辑的角色级覆盖）。 */
+  /** 生效权限矩阵（含管理员已编辑的角色级覆盖）。 */
   matrix: BiRoleMatrix
   /** 该角色权限是否可编辑（super_admin 角色锁定，恒 false）。 */
   editable: boolean

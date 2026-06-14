@@ -380,6 +380,7 @@ async def test_case_rubric_v1_g2_guard_demotes_rich_leaf_point(monkeypatch: pyte
 
     async def _fake_batch_async(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
         seen["ids"] = [p.get("point_id") for p in points]
+        seen["points"] = [dict(p) for p in points]
         return {p.get("point_id"): {"status": G.HIT} for p in points}
 
     monkeypatch.setattr(G, "batch_judge_async", _fake_batch_async)
@@ -392,3 +393,7 @@ async def test_case_rubric_v1_g2_guard_demotes_rich_leaf_point(monkeypatch: pyte
     assert "RL1" not in graded_ids
     # max_score reflects only the 3 official points (3.0), NOT the 5.0 rich-leaf point
     assert v1["grading_event"]["max_score"] == 3.0
+    # canonical typed object is WIRED onto the live path: canonicalize_rubric_points stamped the
+    # canonical authority_source on every official point BEFORE G2 (that stamp is what armed the G2
+    # demotion above — the foundation is genuinely live, not a no-op).
+    assert all(p.get("authority_source") for p in seen["points"])

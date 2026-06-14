@@ -7,7 +7,11 @@ from typing import Any, Iterable
 import yaml
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-AGENTS_DIR = PROJECT_ROOT / "src" / "agents"
+# The real prompt templates live under deeptutor/agents/<agent>/prompts/{en,zh,cn}; the old
+# ``src/agents`` path holds only an empty package stub, so this parity gate used to no-op
+# (0 module dirs with prompts/en → trivially green). Point it at the live tree so the en↔zh
+# key + placeholder parity is actually enforced (schema-governance P3#12).
+AGENTS_DIR = PROJECT_ROOT / "deeptutor" / "agents"
 
 # Template placeholders are expected to be like {topic}, {knowledge_title}, etc.
 # Avoid false positives from LaTeX (\frac{1}{3}) and Mermaid (B{{Processing}}).

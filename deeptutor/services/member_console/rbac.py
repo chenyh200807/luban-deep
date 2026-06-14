@@ -48,9 +48,9 @@ ROLE_LABELS = {
     ROLE_ANALYST: "分析师",
 }
 ROLE_DESCRIPTIONS = {
-    ROLE_SUPER_ADMIN: "全部 tab + 全部操作 + 管理权限（唯一能增删管理员、改角色）。",
-    ROLE_ADMIN: "全部 tab + 全部操作（含高危），但不能管理权限。",
-    ROLE_OPERATOR: "会员运营 + 反馈中心，可查看/导出/写操作，不能高危操作，看不到成本与系统运维。",
+    ROLE_SUPER_ADMIN: "全部 tab + 全部操作 + 管理权限，系统引导超管不可降级/移除。",
+    ROLE_ADMIN: "全部 tab + 全部操作（含高危）+ 管理权限，可增删管理员、改角色和编辑权限。",
+    ROLE_OPERATOR: "会员运营全量操作（含套餐能力发放/删除等高危操作）+ 反馈中心常规写操作，看不到成本与系统运维。",
     ROLE_ANALYST: "全部 tab 只读（查看 + 导出），不能任何写操作。",
 }
 
@@ -63,14 +63,14 @@ ROLE_PERMISSIONS: dict[str, dict[str, set[str]]] = {
     ROLE_SUPER_ADMIN: {tab: set(_ALL_ACTIONS) for tab in TABS},
     ROLE_ADMIN: {tab: set(_ALL_ACTIONS) for tab in TABS},
     ROLE_OPERATOR: {
-        "member_ops": set(_NO_HIGH_RISK),
+        "member_ops": set(_ALL_ACTIONS),
         "feedback": set(_NO_HIGH_RISK),
     },
     ROLE_ANALYST: {tab: set(_READ_ONLY) for tab in TABS},
 }
 
 # 只有这些角色能管理权限（增删管理员、改角色、编辑权限）。
-_MANAGE_PERMISSION_ROLES = {ROLE_SUPER_ADMIN}
+_MANAGE_PERMISSION_ROLES = {ROLE_SUPER_ADMIN, ROLE_ADMIN}
 # is_admin（兼容旧的布尔 admin 门）= 这些角色。
 _FULL_ADMIN_ROLES = {ROLE_SUPER_ADMIN, ROLE_ADMIN}
 # 恒全权、不可被编辑/覆盖的角色（防止超管把自己锁死）。

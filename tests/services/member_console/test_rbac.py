@@ -11,19 +11,21 @@ def test_super_admin_can_everything_and_manage():
     assert rbac.is_full_admin(rbac.ROLE_SUPER_ADMIN)
 
 
-def test_admin_full_but_cannot_manage_permissions():
+def test_admin_full_and_can_manage_permissions():
     for tab in rbac.TABS:
         for action in rbac.ACTIONS:
             assert rbac.can(rbac.ROLE_ADMIN, tab, action)
-    assert not rbac.can_manage_permissions(rbac.ROLE_ADMIN)
+    assert rbac.can_manage_permissions(rbac.ROLE_ADMIN)
     assert rbac.is_full_admin(rbac.ROLE_ADMIN)
 
 
-def test_operator_scoped_no_high_risk_no_cost():
-    # 能在会员运营/反馈写，但不能高危
+def test_operator_full_member_ops_no_cost():
+    # 能做会员运营全量操作，包含套餐能力发放/删除等高危动作
     assert rbac.can(rbac.ROLE_OPERATOR, "member_ops", "write")
+    assert rbac.can(rbac.ROLE_OPERATOR, "member_ops", "high_risk")
+    # 反馈中心仍是常规写操作，不给高危
     assert rbac.can(rbac.ROLE_OPERATOR, "feedback", "write")
-    assert not rbac.can(rbac.ROLE_OPERATOR, "member_ops", "high_risk")
+    assert not rbac.can(rbac.ROLE_OPERATOR, "feedback", "high_risk")
     # 看不到成本/系统运维/总览
     assert not rbac.can(rbac.ROLE_OPERATOR, "commerce", "view")
     assert not rbac.can(rbac.ROLE_OPERATOR, "ops", "view")
@@ -64,8 +66,10 @@ def test_roles_payload_shape():
     super_role = next(r for r in p["roles"] if r["key"] == "super_admin")
     assert super_role["can_manage_permissions"] is True
     assert super_role["matrix"]["commerce"] == list(rbac.ACTIONS)
+    admin = next(r for r in p["roles"] if r["key"] == "admin")
+    assert admin["can_manage_permissions"] is True
     operator = next(r for r in p["roles"] if r["key"] == "operator")
-    assert operator["matrix"]["member_ops"] == ["view", "export", "write"]
+    assert operator["matrix"]["member_ops"] == list(rbac.ACTIONS)
     assert operator["matrix"]["commerce"] == []
 
 
@@ -89,7 +93,7 @@ def test_resolve_role_permissions_uses_stored_over_default():
 
 def test_resolve_role_falls_back_to_default_when_no_stored():
     perms = rbac.resolve_role_permissions("operator", None)
-    assert perms["member_ops"] == {"view", "export", "write"}
+    assert perms["member_ops"] == set(rbac.ACTIONS)
     assert perms["commerce"] == set()
 
 
@@ -106,7 +110,7 @@ def test_per_user_override_overrides_role():
     )
     assert eff["commerce"] == {"view", "export"}
     # 未覆盖的 tab 保持角色默认
-    assert eff["member_ops"] == {"view", "export", "write"}
+    assert eff["member_ops"] == set(rbac.ACTIONS)
 
 
 def test_per_user_override_can_revoke():

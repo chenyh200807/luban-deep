@@ -2728,15 +2728,15 @@ class MemberConsoleService:
         return rbac.can_manage_permissions(self.get_admin_role(user_id))
 
     def roles_payload(self) -> dict[str, Any]:
-        """角色定义 + 生效权限矩阵（含超管已编辑）+ 可编辑标记。"""
+        """角色定义 + 生效权限矩阵（含管理员已编辑）+ 可编辑标记。"""
         return rbac.roles_payload(self._role_permissions_store())
 
     def set_role_permissions(
         self, *, actor: str, role: str, matrix: dict[str, Any], at: str = ""
     ) -> dict[str, Any]:
-        """超管编辑某角色权限矩阵（super_admin 角色锁定不可编辑，防锁死）。"""
+        """权限管理员编辑某角色权限矩阵（super_admin 角色锁定不可编辑，防锁死）。"""
         if not self.can_manage_permissions(actor):
-            raise PermissionError("仅超级管理员可编辑 BI 角色权限")
+            raise PermissionError("仅权限管理员可编辑 BI 角色权限")
         if not rbac.is_valid_role(role):
             raise ValueError(f"未知角色: {role}")
         if not rbac.is_role_editable(role):
@@ -2750,7 +2750,7 @@ class MemberConsoleService:
     ) -> list[dict[str, Any]]:
         """精确到人：给某管理员设个人权限覆盖（env 超管 + super_admin 角色不可覆盖）。"""
         if not self.can_manage_permissions(actor):
-            raise PermissionError("仅超级管理员可设置个人权限覆盖")
+            raise PermissionError("仅权限管理员可设置个人权限覆盖")
         normalized = str(user_id or "").strip()
         if normalized in self._env_admin_user_ids():
             raise ValueError("系统引导超级管理员恒为全权，不可设置个人权限覆盖")
@@ -2830,9 +2830,9 @@ class MemberConsoleService:
     def set_admin_role(
         self, *, actor: str, user_id: str, role: str, display_name: str = "", at: str = ""
     ) -> list[dict[str, Any]]:
-        """新增管理员或改其角色（仅 super_admin）。service 层自校验 actor，纵深防御。"""
+        """新增管理员或改其角色（service 层自校验 actor，纵深防御）。"""
         if not self.can_manage_permissions(actor):
-            raise PermissionError("仅超级管理员可分配 BI 管理员角色")
+            raise PermissionError("仅权限管理员可分配 BI 管理员角色")
         normalized = str(user_id or "").strip()
         if not normalized:
             raise ValueError("user_id is required")
@@ -2864,7 +2864,7 @@ class MemberConsoleService:
         self, user_id: str, *, actor: str = "", at: str = ""
     ) -> list[dict[str, Any]]:
         if not self.can_manage_permissions(actor):
-            raise PermissionError("仅超级管理员可移除 BI 管理员")
+            raise PermissionError("仅权限管理员可移除 BI 管理员")
         normalized = str(user_id or "").strip()
         if normalized in self._env_admin_user_ids():
             raise ValueError("系统引导管理员不可通过界面移除（防止锁死超管）")

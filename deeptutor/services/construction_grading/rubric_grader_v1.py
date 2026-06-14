@@ -332,7 +332,9 @@ def to_learning_evidence(event: dict[str, Any], *, node_code: str = "") -> dict[
             "grading_source": "rubric_scored_v1",
         }
 
-    from deeptutor.services.construction_grading.learning_evidence import build_learning_evidence_payload
+    from deeptutor.services.construction_grading.learning_evidence import (
+        build_learning_evidence_payload,
+    )
 
     payload = build_learning_evidence_payload(
         grading_result={
@@ -483,6 +485,114 @@ def load_rubric(qid: str) -> list[dict[str, Any]]:
     """Load a question's compiled scoring-point rubric from the tracked supply (empty if not in bank ->
     caller does open-world on-the-fly extraction). Verify-gated, cached process-wide via ``_rubric_bank``."""
     return _rubric_bank().get(str(qid), [])
+
+
+def to_canonical_grading_object(
+    rubric_points: list[dict[str, Any]],
+    *,
+    qid: str = "",
+    authority_source: str = "official_answer",
+) -> dict[str, Any]:
+    """Project a production rubric (text/score/policy points) into a canonical
+    ``luban_grading_object.v1`` dict — the SINGLE typed-object authority.
+
+    Makes the typed object a LIVE production reader (it was a defined-but-unconsumed island). Each
+    point keeps its canonical facts (statement←text, max_score←score, authority_source, span_hash,
+    required_terms); the runtime-only ``policy`` is a grading concern, not modelled here. An OFFICIAL
+    point carries its per-point score; a non-official (textbook_cited rich-leaf) point NEVER mints a
+    per-point official score (max_score=None / pending) — the audited R1/D3 must-not-mint invariant,
+    enforced downstream by ``validate_grading_object``. Reusable by KnowQL ② (one shape to query)."""
+    from deeptutor.services.construction_grading.unified_grading_object import (
+        AUTH_OFFICIAL_ANSWER,
+        PENDING_SCORE_AUTHORITY,
+        TYPE_CASE,
+        GradingObject,
+        GradingPoint,
+        span_hash,
+    )
+
+    points: list[dict[str, Any]] = []
+    for p in rubric_points or []:
+        if not isinstance(p, dict):
+            continue
+        statement = str(p.get("text") or p.get("statement") or "").strip()
+        if not statement:
+            continue
+        auth = str(p.get("authority_source") or authority_source)
+        raw_score = p.get("score")
+        if auth == AUTH_OFFICIAL_ANSWER and raw_score is not None:
+            try:
+                max_score: float | None = float(raw_score)
+                score_auth = AUTH_OFFICIAL_ANSWER
+            except (TypeError, ValueError):
+                max_score, score_auth = None, PENDING_SCORE_AUTHORITY
+        else:
+            # non-official (rich-leaf / textbook_cited) never mints a per-point official score (R1/D3)
+            max_score, score_auth = None, PENDING_SCORE_AUTHORITY
+        points.append(
+            GradingPoint(
+                point_id=str(p.get("point_id") or ""),
+                statement=statement,
+                authority_source=auth,
+                span_hash=span_hash(statement),
+                max_score=max_score,
+                score_authority=score_auth,
+                required_terms=[str(t) for t in (p.get("required_terms") or [])],
+            ).to_dict()
+        )
+    return GradingObject(
+        object_id=qid or "open_world",
+        question_type=TYPE_CASE,
+        official_total_score=None,
+        scoring_points=points,
+        authority_source=AUTH_OFFICIAL_ANSWER,
+    ).to_dict()
+
+
+def canonicalize_rubric_points(
+    rubric_points: list[dict[str, Any]],
+    *,
+    qid: str = "",
+    provenance: str = "",
+    authority_source: str = "official_answer",
+) -> list[dict[str, Any]]:
+    """Wire the canonical typed object onto the LIVE scoring path (the foundation goes live).
+
+    Two effects, both behaviour-preserving:
+      1. Stamp the canonical ``authority_source`` on each production rubric point — this ARMS the G2
+         gate (``enforce_official_scoring_authority`` keys on ``authority_source``; the 3 official-
+         derived sources were previously unstamped, so G2 was a no-op). Default ``official_answer``:
+         the open-world stem-derived rubric IS the scoring authority when no official key exists; the
+         honest source distinction stays in ``provenance``.
+      2. Build + ``validate_grading_object`` the canonical ``luban_grading_object.v1`` so the typed
+         object is genuinely CONSUMED in production (no longer a defined-but-unread island).
+
+    Runtime grading fields (text/score/policy/required_terms) are untouched — ``grade_with_rubric`` is
+    unchanged, so awarded scores do not move. Validation is NON-BLOCKING (logged) so an edge-case
+    rubric never breaks live grading on this first wiring."""
+    from deeptutor.services.construction_grading.unified_grading_object import (
+        validate_grading_object,
+    )
+
+    stamped: list[dict[str, Any]] = []
+    for p in rubric_points or []:
+        if not isinstance(p, dict):
+            continue
+        runtime = dict(p)
+        runtime.setdefault("authority_source", authority_source)
+        stamped.append(runtime)
+    blockers = validate_grading_object(
+        to_canonical_grading_object(stamped, qid=qid, authority_source=authority_source)
+    )
+    if blockers:
+        logger.warning(
+            "canonicalize_rubric_points: production rubric not canonical-valid "
+            "(non-blocking, provenance=%s qid=%s): %s",
+            provenance,
+            qid or "?",
+            blockers[:6],
+        )
+    return stamped
 
 
 def enforce_official_scoring_authority(

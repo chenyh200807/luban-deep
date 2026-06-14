@@ -921,7 +921,7 @@ function ActionToggle({
 /**
  * 角色 × tab × action 可编辑矩阵：行=角色，列=tab，单元格内 action 开关。
  * super_admin（editable=false）整行锁定灰显「恒全权·锁定」。
- * 非 super_admin（canManage=false）整表只读。
+ * canManage=false 时整表只读。
  */
 function RoleMatrix({
   roles,
