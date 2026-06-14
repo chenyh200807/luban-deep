@@ -162,6 +162,35 @@ export interface ManualMembershipPurchaseResult {
   deduped: boolean
 }
 
+export interface MembershipPackagePayload {
+  label: string
+  tier: string
+  points: number
+  turns: number
+  price: string
+  original_price?: string
+  badge?: string
+  per?: string
+  desc?: string
+  status?: 'active' | 'draft' | 'archived'
+  reason?: string
+}
+
+export interface MembershipPackageResult {
+  id: string
+  label: string
+  tier: string
+  points: number
+  turns: number
+  price: string
+  original_price?: string
+  badge?: string
+  per?: string
+  desc?: string
+  status: 'active' | 'draft' | 'archived' | string
+  reason?: string
+}
+
 export interface MemberAuditLogItem {
   id: string
   operator?: string
@@ -475,6 +504,38 @@ export async function manualPurchaseMembership(payload: {
     body: JSON.stringify(payload),
   })
   return expectJson<ManualMembershipPurchaseResult>(response)
+}
+
+export async function upsertMembershipPackage(
+  packageId: string,
+  payload: MembershipPackagePayload
+): Promise<MembershipPackageResult> {
+  const response = await fetch(apiUrl(`/api/v1/member/packages/${encodeURIComponent(packageId)}`), {
+    method: 'PUT',
+    headers: adminHeaders({
+      'Content-Type': 'application/json',
+      'X-Idempotency-Key': makeIdempotencyKey(),
+    }),
+    body: JSON.stringify(payload),
+  })
+  return expectJson<MembershipPackageResult>(response)
+}
+
+export async function deleteMembershipPackage(
+  packageId: string,
+  reason = ''
+): Promise<MembershipPackageResult> {
+  const suffix = reason ? `?reason=${encodeURIComponent(reason)}` : ''
+  const response = await fetch(
+    apiUrl(`/api/v1/member/packages/${encodeURIComponent(packageId)}${suffix}`),
+    {
+      method: 'DELETE',
+      headers: adminHeaders({
+        'X-Idempotency-Key': makeIdempotencyKey(),
+      }),
+    }
+  )
+  return expectJson<MembershipPackageResult>(response)
 }
 
 export async function updateMembership(payload: {

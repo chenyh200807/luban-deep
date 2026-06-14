@@ -3109,8 +3109,11 @@ class BIService:
 
     def _load_commerce_packages(self, members: list[dict[str, Any]]) -> tuple[str, list[dict[str, Any]]]:
         packages: list[dict[str, Any]] = []
+        list_packages = getattr(self._member_service, "list_membership_packages", None)
+        if callable(list_packages):
+            packages = [dict(item) for item in list_packages() if isinstance(item, dict)]
         get_wallet = getattr(self._member_service, "get_wallet", None)
-        if callable(get_wallet):
+        if not packages and callable(get_wallet):
             for member in members[:10]:
                 for member_id in self._commerce_member_ids(member)[:2]:
                     try:
@@ -3137,7 +3140,12 @@ class BIService:
                     "name": str(item.get("name") or item.get("label") or package_id or "未命名套餐"),
                     "tier": str(item.get("tier") or self._commerce_package_tier(package_id)),
                     "points": _safe_int(item.get("points")),
+                    "turns": _safe_int(item.get("turns")),
                     "price_cny": _safe_float(price_value),
+                    "original_price": str(item.get("original_price") or ""),
+                    "badge": str(item.get("badge") or ""),
+                    "per": str(item.get("per") or ""),
+                    "desc": str(item.get("desc") or ""),
                     "features": [
                         str(value)
                         for value in (item.get("features") or [item.get("per"), item.get("desc"), item.get("badge")])

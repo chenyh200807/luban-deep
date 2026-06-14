@@ -58,6 +58,20 @@ class ManualPurchaseRequest(BaseModel):
     amount_cny: float | None = Field(default=None, ge=0)
 
 
+class MembershipPackageRequest(BaseModel):
+    label: str = Field(..., min_length=1, max_length=80)
+    tier: str = Field(..., min_length=1, max_length=40)
+    points: int = Field(..., gt=0, le=10_000_000)
+    turns: int = Field(..., gt=0, le=1_000_000)
+    price: str = Field(..., min_length=1, max_length=40)
+    original_price: str = Field(default="", max_length=40)
+    badge: str = Field(default="", max_length=40)
+    per: str = Field(default="", max_length=80)
+    desc: str = Field(default="", max_length=400)
+    status: str = Field(default="active", pattern=r"^(active|draft|archived)$")
+    reason: str = Field(default="", max_length=200)
+
+
 class UpdateRequest(BaseModel):
     user_id: str
     tier: str | None = None
@@ -130,6 +144,74 @@ async def member_list(
         has_heartbeat_job=has_heartbeat_job,
         has_overlay_candidates=has_overlay_candidates,
     )
+
+
+def _require_idempotency_key(value: str | None) -> str:
+    normalized_key = str(value or "").strip()
+    if not normalized_key:
+        raise HTTPException(
+            status_code=400,
+            detail="X-Idempotency-Key header is required for audited writes",
+        )
+    if len(normalized_key) > 128 or not _IDEMPOTENCY_KEY_PATTERN.fullmatch(normalized_key):
+        raise HTTPException(
+            status_code=400,
+            detail="X-Idempotency-Key must be ≤ 128 chars of [a-zA-Z0-9_-]",
+        )
+    return normalized_key
+
+
+@router.get("/packages")
+async def list_membership_packages(
+    current_user: AuthContext = Depends(require_admin),
+) -> dict[str, Any]:
+    return {"items": service.list_membership_packages(), "operator": current_user.user_id}
+
+
+@router.put("/packages/{package_id}")
+async def upsert_membership_package(
+    package_id: str,
+    body: MembershipPackageRequest,
+    idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
+    current_user: AuthContext = Depends(require_admin),
+) -> dict[str, Any]:
+    try:
+        return service.upsert_membership_package(
+            package_id=package_id,
+            label=body.label,
+            tier=body.tier,
+            points=body.points,
+            turns=body.turns,
+            price=body.price,
+            original_price=body.original_price,
+            badge=body.badge,
+            per=body.per,
+            desc=body.desc,
+            status=body.status,
+            operator=current_user.user_id,
+            reason=body.reason,
+            idempotency_key=_require_idempotency_key(idempotency_key),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.delete("/packages/{package_id}")
+async def delete_membership_package(
+    package_id: str,
+    reason: str = Query(default="", max_length=200),
+    idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
+    current_user: AuthContext = Depends(require_admin),
+) -> dict[str, Any]:
+    try:
+        return service.remove_membership_package(
+            package_id,
+            operator=current_user.user_id,
+            reason=reason,
+            idempotency_key=_require_idempotency_key(idempotency_key),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.get("/{user_id}/360")

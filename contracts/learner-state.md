@@ -149,6 +149,9 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
   0 点；充值到账、扣费、冻结余额和钱包存在性仍只属于 `WalletService` / wallet ledger
   authority。套餐展示中的原价、现价、点数和可用轮次只是 commerce read model，不得写入 learner
   profile、learner summary 或 learner memory。
+- 会员套餐目录可以通过 audited admin endpoint 增删改，并由 `member_console.packages` 作为 BI
+  commerce 的套餐目录 authority；这只改变后续可售 / 可人工开通的套餐配置，不回写历史购买流水，
+  不改变 wallet ledger 的收入事实，也不得成为 learner-state 或会员余额的第二套 authority。
 - BI / member-console 可以提供传统会员管理式的人工开通 / 续费入口，但该入口必须同时满足三条边界：
   权益变更写 `member_console` 审计，点数 / 收入事实写 `WalletService.grant_points()` 产生的
   `wallet_ledger` purchase 流水，前端和 BI commerce 不得自造收入表或把人工开通写成 learner-state

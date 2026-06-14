@@ -308,6 +308,44 @@ def test_commerce_does_not_count_wallet_signup_bonus_as_recharge(store: SQLiteSe
     assert any("不计入充值记录" in warning for warning in payload["warnings"])
 
 
+def test_commerce_uses_managed_membership_packages(store: SQLiteSessionStore) -> None:
+    class _ManagedPackageMemberService(_CommerceMemberService):
+        @staticmethod
+        def list_membership_packages() -> list[dict[str, object]]:
+            return [
+                {
+                    "id": "svip_plus",
+                    "label": "SVIP Plus",
+                    "tier": "svip",
+                    "points": 36000,
+                    "turns": 1800,
+                    "price": "698",
+                    "original_price": "898",
+                    "badge": "高频答疑",
+                    "per": "1800 次 AI 学习额度",
+                    "desc": "AI答疑、案例批改、错因专训、班主任督学服务",
+                    "status": "active",
+                }
+            ]
+
+        @staticmethod
+        def get_wallet(_user_id: str) -> dict[str, object]:
+            return {"packages": [{"id": "wallet_legacy", "label": "旧投影", "points": 1, "price": "1"}]}
+
+    service = BIService(
+        session_store=store,
+        member_service=_ManagedPackageMemberService(),
+        wallet_service=_UnconfiguredWalletService(),
+    )
+
+    payload = asyncio.run(service.get_commerce(limit=10))
+
+    assert payload["authority"]["packages"] == "member_console.packages"
+    assert payload["packages"][0]["id"] == "svip_plus"
+    assert payload["packages"][0]["turns"] == 1800
+    assert payload["packages"][0]["badge"] == "高频答疑"
+
+
 def test_commerce_sanitizes_wallet_reader_errors(store: SQLiteSessionStore) -> None:
     service = BIService(
         session_store=store,

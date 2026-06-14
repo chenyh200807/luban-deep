@@ -487,7 +487,7 @@ def test_production_bootstrap_starts_without_demo_members(
     assert [package["points"] for package in data["packages"]] == [9000, 28000, 50000]
 
 
-def test_load_replaces_stale_persisted_packages_with_canonical_two_packages(
+def test_load_preserves_persisted_packages_and_backfills_canonical_defaults(
     tmp_path: Path,
 ) -> None:
     service = MemberConsoleService()
@@ -520,10 +520,20 @@ def test_load_replaces_stale_persisted_packages_with_canonical_two_packages(
     data = service._load()
     wallet = service.get_wallet("student_demo")
 
-    assert [package["id"] for package in data["packages"]] == ["vip", "svip", "supreme_svip"]
-    assert [package["price"] for package in wallet["packages"]] == ["198", "598", "998"]
-    assert [package["turns"] for package in wallet["packages"]] == [450, 1400, 2500]
-    assert [package["points"] for package in wallet["packages"]] == [9000, 28000, 50000]
+    assert [package["id"] for package in data["packages"]] == [
+        "starter",
+        "standard",
+        "pro",
+        "ultimate",
+        "vip",
+        "svip",
+        "supreme_svip",
+    ]
+    assert wallet["packages"][0]["id"] == "starter"
+    assert wallet["packages"][0]["status"] == "active"
+    assert wallet["packages"][0]["price"] == "9.9"
+    assert wallet["packages"][-1]["id"] == "supreme_svip"
+    assert wallet["packages"][-1]["turns"] == 2500
 
 
 def test_non_production_bootstrap_defaults_to_empty_members_without_demo_seed_flag(
@@ -4603,6 +4613,76 @@ def test_manual_membership_purchase_records_wallet_revenue_and_entitlement(
     audit = service.get_audit_log(action="manual_membership_purchase")["items"][0]
     assert audit["target_user"] == "manual_user_1"
     assert audit["after"]["ledger_event_id"] == "ledger_manual_1"
+
+
+def test_managed_membership_package_persists_and_can_be_purchased(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: wallet_service)
+
+    package = service.upsert_membership_package(
+        package_id="svip_plus",
+        label="SVIP Plus",
+        tier="svip",
+        points=36000,
+        turns=1800,
+        price="698",
+        original_price="898",
+        badge="高频答疑",
+        per="1800 次 AI 学习额度",
+        desc="AI答疑、案例批改、错因专训、班主任督学服务",
+        status="active",
+        operator="admin_demo",
+        reason="新增高阶套餐",
+        idempotency_key="package-upsert-1",
+    )
+
+    reloaded = MemberConsoleService()
+    reloaded._data_path = service._data_path
+    monkeypatch.setattr(reloaded, "_get_wallet_service", lambda: wallet_service)
+
+    assert package["id"] == "svip_plus"
+    assert package["label"] == "SVIP Plus"
+    assert [item["id"] for item in reloaded.list_membership_packages()][-1] == "svip_plus"
+
+    result = reloaded.manual_membership_purchase(
+        user_id="manual_user_svip_plus",
+        package_id="svip_plus",
+        days=365,
+        operator="admin_demo",
+        reason="企业转账",
+        idempotency_key="manual-svip-plus-1",
+    )
+
+    assert result["package"]["id"] == "svip_plus"
+    assert result["member"]["tier"] == "svip"
+    assert result["amount_cny"] == 698
+    assert result["points"] == 36000
+    assert wallet_service.grants[0]["metadata"]["package_id"] == "svip_plus"
+    assert wallet_service.grants[0]["metadata"]["amount_cny"] == 698
+
+    removed = reloaded.remove_membership_package(
+        "svip_plus",
+        operator="admin_demo",
+        reason="下架高阶套餐",
+        idempotency_key="package-delete-1",
+    )
+
+    assert removed["id"] == "svip_plus"
+    repeated = reloaded.remove_membership_package(
+        "svip_plus",
+        operator="admin_demo",
+        reason="重复请求",
+        idempotency_key="package-delete-1",
+    )
+    assert repeated["id"] == "svip_plus"
+    assert "svip_plus" not in [item["id"] for item in reloaded.list_membership_packages()]
+    audit_actions = [item["action"] for item in reloaded.get_audit_log(page_size=20)["items"]]
+    assert audit_actions.count("membership_package_delete") == 1
+    assert "membership_package_upsert" in audit_actions
 
 
 def test_list_audit_log_supports_target_user_and_action_filters(tmp_path: Path) -> None:

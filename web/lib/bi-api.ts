@@ -534,7 +534,12 @@ export interface BiCommercePackage {
   name: string
   tier: string
   points: number
+  turns: number
   priceCny: number
+  originalPriceCny: number
+  badge: string
+  per: string
+  desc: string
   features: string[]
   status: string
   authority: string
@@ -962,7 +967,12 @@ function normalizeCommercePackage(item: unknown): BiCommercePackage {
     name: toString(record.name ?? record.label, '未命名套餐'),
     tier: toString(record.tier ?? record.plan ?? record.level, ''),
     points: toNumber(record.points, 0),
+    turns: toNumber(record.turns, 0),
     priceCny: toNumber(record.price_cny ?? record.priceCny ?? record.price, 0),
+    originalPriceCny: toNumber(record.original_price ?? record.originalPrice, 0),
+    badge: toString(record.badge, ''),
+    per: toString(record.per, ''),
+    desc: toString(record.desc ?? record.description, ''),
     features: toArray(record.features)
       .map(value => toString(value))
       .filter(Boolean),

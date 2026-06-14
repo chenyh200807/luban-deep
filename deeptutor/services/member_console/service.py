@@ -811,6 +811,73 @@ class MemberConsoleService:
         ]
 
     @staticmethod
+    def _normalize_membership_package(item: dict[str, Any]) -> dict[str, Any]:
+        package_id = str(item.get("id") or item.get("package_id") or "").strip()
+        label = str(item.get("label") or item.get("name") or package_id).strip()
+        tier = str(item.get("tier") or item.get("plan") or package_id).strip()
+        if not package_id:
+            raise ValueError("package id is required")
+        try:
+            points = int(item.get("points") or 0)
+        except (TypeError, ValueError):
+            points = 0
+        try:
+            turns = int(item.get("turns") or 0)
+        except (TypeError, ValueError):
+            turns = 0
+        price = str(item.get("price") or item.get("price_cny") or item.get("priceCny") or "0").strip()
+        status = str(item.get("status") or item.get("state") or "active").strip() or "active"
+        if status not in {"active", "draft", "archived"}:
+            status = "active"
+        package = {
+            "id": package_id,
+            "label": label or package_id,
+            "tier": tier or package_id,
+            "points": max(0, points),
+            "turns": max(0, turns),
+            "price": price or "0",
+            "original_price": str(item.get("original_price") or item.get("originalPrice") or "").strip(),
+            "badge": str(item.get("badge") or "").strip(),
+            "per": str(item.get("per") or "").strip(),
+            "per_turn_price": str(item.get("per_turn_price") or item.get("perTurnPrice") or "").strip(),
+            "audience": str(item.get("audience") or "").strip(),
+            "desc": str(item.get("desc") or item.get("description") or "").strip(),
+            "status": status,
+        }
+        if not package["per"] and package["turns"] > 0:
+            package["per"] = f"{package['turns']} 次 AI 学习额度"
+        if not package["per_turn_price"] and package["turns"] > 0:
+            try:
+                per_turn_price = float(package["price"]) / package["turns"]
+                package["per_turn_price"] = f"{per_turn_price:.3f}".rstrip("0").rstrip(".")
+            except (TypeError, ValueError, ZeroDivisionError):
+                package["per_turn_price"] = ""
+        return package
+
+    @classmethod
+    def _normalize_package_catalog(cls, packages: Any) -> list[dict[str, Any]]:
+        defaults = [cls._normalize_membership_package(item) for item in cls._default_packages()]
+        if not isinstance(packages, list) or not packages:
+            return defaults
+        normalized: list[dict[str, Any]] = []
+        seen: set[str] = set()
+        for item in packages:
+            if not isinstance(item, dict):
+                continue
+            try:
+                package = cls._normalize_membership_package(item)
+            except ValueError:
+                continue
+            if package["id"] in seen:
+                continue
+            normalized.append(package)
+            seen.add(package["id"])
+        for package in defaults:
+            if package["id"] not in seen:
+                normalized.append(package)
+        return normalized or defaults
+
+    @staticmethod
     def _empty_data() -> dict[str, Any]:
         return {
             "members": [],
@@ -1518,13 +1585,15 @@ class MemberConsoleService:
             return data
         data = json.loads(self._data_path.read_text(encoding="utf-8"))
         data.setdefault("members", [])
-        data["packages"] = self._default_packages()
+        normalized_packages = self._normalize_package_catalog(data.get("packages"))
+        packages_changed = normalized_packages != data.get("packages")
+        data["packages"] = normalized_packages
         data.setdefault("audit_log", [])
         data.setdefault("assessment_sessions", {})
         data.setdefault("phone_codes", {})
         # Round 4 S1: idempotency dedup index — key = f"{action}:{idempotency_key}", value = audit_id.
         data.setdefault("audit_idempotency_keys", {})
-        if self._apply_legacy_chat_learning_migration(data):
+        if self._apply_legacy_chat_learning_migration(data) or packages_changed:
             self._save_unlocked(data)
         return data
 
@@ -4651,6 +4720,146 @@ class MemberConsoleService:
 
         return self._mutate(_apply)
 
+    def list_membership_packages(self) -> list[dict[str, Any]]:
+        return deepcopy(self._load().get("packages") or self._default_packages())
+
+    def upsert_membership_package(
+        self,
+        *,
+        package_id: str,
+        label: str,
+        tier: str,
+        points: int,
+        turns: int = 0,
+        price: str,
+        original_price: str = "",
+        badge: str = "",
+        per: str = "",
+        desc: str = "",
+        status: str = "active",
+        operator: str = "admin",
+        reason: str = "",
+        idempotency_key: str = "",
+    ) -> dict[str, Any]:
+        normalized_operator = str(operator or "").strip() or "admin"
+        normalized_key = str(idempotency_key or "").strip()
+        draft = self._normalize_membership_package(
+            {
+                "id": package_id,
+                "label": label,
+                "tier": tier,
+                "points": points,
+                "turns": turns,
+                "price": price,
+                "original_price": original_price,
+                "badge": badge,
+                "per": per,
+                "desc": desc,
+                "status": status,
+            }
+        )
+        if not re.fullmatch(r"[A-Za-z0-9_:-]{1,80}", draft["id"]):
+            raise ValueError("package_id must be 1-80 chars of [a-zA-Z0-9_:-]")
+        if draft["points"] <= 0:
+            raise ValueError("package points must be positive")
+        if draft["turns"] <= 0:
+            raise ValueError("package turns must be positive")
+        amount = self._package_amount_cny(draft)
+        draft["price"] = str(int(amount) if float(amount).is_integer() else amount)
+
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            if self._find_audit_id_by_idempotency_key(
+                data,
+                "membership_package_upsert",
+                normalized_key,
+                operator=normalized_operator,
+            ):
+                for existing in data.get("packages") or []:
+                    if str(existing.get("id") or "").strip() == draft["id"]:
+                        return deepcopy(existing)
+            packages = data.setdefault("packages", self._default_packages())
+            index = next(
+                (idx for idx, item in enumerate(packages) if str(item.get("id") or "").strip() == draft["id"]),
+                None,
+            )
+            before = deepcopy(packages[index]) if index is not None else {}
+            if index is None:
+                packages.append(deepcopy(draft))
+            else:
+                packages[index] = deepcopy(draft)
+            audit = self._append_audit(
+                data,
+                action="membership_package_upsert",
+                target_user=draft["id"],
+                reason=reason or "membership_package_upsert",
+                before=before,
+                after=draft,
+                operator=normalized_operator,
+            )
+            self._remember_idempotency_key(
+                data,
+                "membership_package_upsert",
+                normalized_key,
+                audit["id"],
+                operator=normalized_operator,
+            )
+            return deepcopy(draft)
+
+        return self._mutate(_apply)
+
+    def remove_membership_package(
+        self,
+        package_id: str,
+        *,
+        operator: str = "admin",
+        reason: str = "",
+        idempotency_key: str = "",
+    ) -> dict[str, Any]:
+        normalized_package_id = str(package_id or "").strip()
+        normalized_operator = str(operator or "").strip() or "admin"
+        normalized_key = str(idempotency_key or "").strip()
+        if not normalized_package_id:
+            raise ValueError("package_id is required")
+
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            existing_audit_id = self._find_audit_id_by_idempotency_key(
+                data,
+                "membership_package_delete",
+                normalized_key,
+                operator=normalized_operator,
+            )
+            packages = data.setdefault("packages", self._default_packages())
+            index = next(
+                (idx for idx, item in enumerate(packages) if str(item.get("id") or "").strip() == normalized_package_id),
+                None,
+            )
+            if existing_audit_id:
+                if index is None:
+                    return {"id": normalized_package_id}
+                return deepcopy(packages[index])
+            if index is None:
+                raise ValueError(f"Unknown membership package: {normalized_package_id}")
+            removed = deepcopy(packages.pop(index))
+            audit = self._append_audit(
+                data,
+                action="membership_package_delete",
+                target_user=normalized_package_id,
+                reason=reason or "membership_package_delete",
+                before=removed,
+                after={},
+                operator=normalized_operator,
+            )
+            self._remember_idempotency_key(
+                data,
+                "membership_package_delete",
+                normalized_key,
+                audit["id"],
+                operator=normalized_operator,
+            )
+            return removed
+
+        return self._mutate(_apply)
+
     def _resolve_membership_package(
         self,
         data: dict[str, Any],
@@ -4663,6 +4872,8 @@ class MemberConsoleService:
             if not isinstance(item, dict):
                 continue
             if str(item.get("id") or "").strip() == normalized_package_id:
+                if str(item.get("status") or "active").strip() != "active":
+                    raise ValueError(f"Membership package is not active: {normalized_package_id}")
                 return dict(item)
         raise ValueError(f"Unknown membership package: {normalized_package_id}")
 
