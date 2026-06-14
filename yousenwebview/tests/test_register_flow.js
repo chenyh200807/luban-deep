@@ -158,8 +158,8 @@ function loadPage(options) {
       setup.page.setData({
         username: "new_student",
         phone: "13812345678",
-        password: "StrongPass123",
-        confirmPassword: "StrongPass123",
+        password: "StrongPass123", // pragma: allowlist secret
+        confirmPassword: "StrongPass123", // pragma: allowlist secret
       });
 
       setup.page.handleRegister();

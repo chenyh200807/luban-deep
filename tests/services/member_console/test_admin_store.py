@@ -9,6 +9,8 @@ from deeptutor.services.member_console.admin_store import (
     load_audit,
     remove_admin,
     set_admin,
+    set_role_permissions,
+    set_user_overrides,
 )
 
 
@@ -81,6 +83,35 @@ def test_audit_written_to_separate_append_only_file(tmp_path):
     assert len(lines) == 1
     main = json.loads(p.read_text(encoding="utf-8"))
     assert main.get("audit") == []
+
+
+def test_role_permissions_and_user_overrides_keep_audit_append_only(tmp_path):
+    p = tmp_path / "bi_admins.json"
+    set_admin(p, "u-a", role="admin", actor="super", granted_at="t1")
+    set_role_permissions(
+        p,
+        "admin",
+        {"commerce": ["view"]},
+        actor="super",
+        at="t2",
+    )
+    set_user_overrides(
+        p,
+        "u-a",
+        {"commerce": ["view", "write"]},
+        actor="super",
+        at="t3",
+    )
+
+    main = json.loads(p.read_text(encoding="utf-8"))
+    assert main.get("audit") == []
+    assert main["role_permissions"]["admin"] == {"commerce": ["view"]}
+    assert main["admins"]["u-a"]["permission_overrides"] == {"commerce": ["view", "write"]}
+    assert [entry["action"] for entry in load_audit(p)] == [
+        "add_admin",
+        "set_role_permissions",
+        "set_user_overrides",
+    ]
 
 
 def test_audit_is_append_only_not_truncated(tmp_path):
