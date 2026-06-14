@@ -156,6 +156,7 @@ def build_scoring_point_map_read_projection(
 
     scoring_point_items = sum(1 for item in items if item["granularity"] == "scoring_point")
     keyword_only_items = sum(1 for item in items if item["granularity"] == "keyword_only")
+    point_id_namespace_duplicate_risks = _point_id_namespace_duplicate_risks(items)
 
     empty_state = _resolve_empty_state(
         items=items,
@@ -177,6 +178,7 @@ def build_scoring_point_map_read_projection(
             ),
             "scoring_point_items": scoring_point_items,
             "keyword_only_items": keyword_only_items,
+            "point_id_namespace_duplicate_risks": point_id_namespace_duplicate_risks,
         },
     }
 
@@ -240,6 +242,29 @@ def _resolve_empty_state(
     # knows the map intentionally has nothing to show, rather than the
     # backend failing.
     return "rubric_pending"
+
+
+def _point_id_namespace_duplicate_risks(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    by_label: dict[tuple[str, str], set[str]] = defaultdict(set)
+    for item in items:
+        label = str(item.get("label") or "").strip()
+        granularity = str(item.get("granularity") or "").strip()
+        point_id = str(item.get("point_id") or "").strip()
+        if label and granularity and point_id:
+            by_label[(label, granularity)].add(point_id)
+    risks: list[dict[str, Any]] = []
+    for (label, granularity), point_ids in sorted(by_label.items()):
+        if len(point_ids) <= 1:
+            continue
+        risks.append(
+            {
+                "label": label,
+                "granularity": granularity,
+                "point_ids": sorted(point_ids),
+                "risk": "cross_epoch_point_id_namespace_not_merged",
+            }
+        )
+    return risks
 
 
 def _next_action(row: dict[str, Any], *, user_id: str) -> dict[str, Any]:

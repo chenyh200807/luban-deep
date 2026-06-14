@@ -70,7 +70,7 @@
 
 | 字段 | 类型 | 必填 | 含义 | **authority 列** |
 |---|---|---|---|---|
-| `point_id` | str | ✓ | 稳定点 id | — |
+| `point_id` | str | ✓ | 稳定点 id；canonical runtime namespace 使用 PGO `sp_<hash>`，由 `question_id|sub_no|point_ord|official_slice` 派生。旧 bank `qid::SPn` 只能作为 `legacy_point_id/source_point_id` 审计 alias，不能直接成为新 canonical id。 | — |
 | `statement` | str | ✓ | **唯一**采分点陈述（消 `canonical_answer`/`label`/`answer_key`/`atomic_official_slice`） | — |
 | `authority_source` | enum{`official_answer`,`textbook_cited`,`owner`,`pending_calibration`} | ✓ | 该点权威来源 | **本字段** |
 | `span_hash` | str\|null | ✓ | 投影证明：span-backed 权威 = sha256(statement)；`pending_calibration` = null | 绑定 authority |

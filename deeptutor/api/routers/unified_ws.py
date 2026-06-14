@@ -316,6 +316,15 @@ _HIDDEN_PAYLOAD_KEYS: tuple[str, ...] = (
     "minimal_rationale",
     "correct_answer",
     "official_answer",
+    "official_slice",
+    "atomic_official_slice",
+    "official_sub_answer_verbatim",
+    "official_analysis",
+    "term_provenance",
+    "flaw_span",
+    "correction_span",
+    "base_rule",
+    "exception_items",
     "explanation",
 )
 
@@ -327,10 +336,14 @@ _HIDDEN_PAYLOAD_KEYS: tuple[str, ...] = (
 _EVIDENCE_FIELD_KEYS: tuple[str, ...] = ("field", "source_field", "source_key", "name")
 
 
+def _is_hidden_payload_key(value: str) -> bool:
+    return any(part in _HIDDEN_PAYLOAD_KEYS for part in value.split("."))
+
+
 def _is_hidden_evidence_entry(value: dict[str, Any]) -> bool:
     for key in _EVIDENCE_FIELD_KEYS:
         sibling = value.get(key)
-        if isinstance(sibling, str) and sibling in _HIDDEN_PAYLOAD_KEYS:
+        if isinstance(sibling, str) and _is_hidden_payload_key(sibling):
             return True
     return False
 
@@ -384,7 +397,7 @@ def _redact_dict_for_public(payload: dict[str, Any]) -> dict[str, Any] | None:
             kept = [
                 item
                 for item in value
-                if not (isinstance(item, str) and item in _HIDDEN_PAYLOAD_KEYS)
+                if not (isinstance(item, str) and _is_hidden_payload_key(item))
             ]
             if not kept:
                 continue

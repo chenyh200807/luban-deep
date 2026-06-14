@@ -2044,3 +2044,69 @@ def test_redact_question_followup_context_for_public_drops_evidence_entry_with_h
     assert rubrics[0]["source_fields"] == ["stem"]
     assert "source_fields" not in rubrics[1]
     assert rubrics[1]["criterion"] == "C2"
+
+
+def test_redact_question_followup_context_for_public_drops_pgo_official_answer_fields() -> None:
+    """PGO shadow/contract payloads contain official answer verbatim slices.
+
+    Those fields are internal grading authority and must not be projected into
+    public question follow-up context, even when nested under a shadow result.
+    """
+
+    from deeptutor.services.question_followup import (
+        redact_question_followup_context_for_public,
+    )
+
+    ctx = {
+        "question_id": "case_1",
+        "items": [
+            {
+                "question_id": "case_1_sub1",
+                "pgo_shadow_result": {
+                    "official_slice": "应由见证人员记录其取样、现场检测情况",
+                    "atomic_official_slice": "应由见证人员记录其取样、现场检测情况",
+                    "official_sub_answer_verbatim": "参考答案逐字片段",
+                    "official_analysis": "官方解析逐字文本",
+                    "term_provenance": [{"term": "见证记录", "chunk_id": "c1"}],
+                    "flaw_span": "试验员如实记录了其取样",
+                    "correction_span": "应由见证人员记录其取样",
+                    "base_rule": "见证记录应由见证人员制作",
+                    "exception_items": ["例外逐字文本"],
+                    "evidence_refs": [
+                        {"source": "pgo", "field": "official_slice", "value": "应由见证人员记录其取样"},
+                        {"source": "pgo", "source_field": "pgo.atomic_official_slice", "content": "官方切片路径泄露"},
+                        {"source": "student", "field": "student_evidence_span", "value": "学生写了见证人员记录"},
+                    ],
+                    "source_fields": ["pgo.atomic_official_slice", "stem"],
+                    "student_evidence_span": "学生写了见证人员记录",
+                },
+            }
+        ],
+    }
+
+    public = redact_question_followup_context_for_public(ctx)
+    assert public is not None
+    blob = json.dumps(public, ensure_ascii=False)
+
+    for forbidden in (
+        "official_slice",
+        "atomic_official_slice",
+        "official_sub_answer_verbatim",
+        "official_analysis",
+        "term_provenance",
+        "flaw_span",
+        "correction_span",
+        "base_rule",
+        "exception_items",
+        "参考答案逐字片段",
+        "官方解析逐字文本",
+        "试验员如实记录",
+        "官方切片路径泄露",
+    ):
+        assert forbidden not in blob, f"public followup leaked PGO authority field {forbidden}"
+    result = public["items"][0]["pgo_shadow_result"]
+    assert result["evidence_refs"] == [
+        {"source": "student", "field": "student_evidence_span", "value": "学生写了见证人员记录"}
+    ]
+    assert result["source_fields"] == ["stem"]
+    assert result["student_evidence_span"] == "学生写了见证人员记录"

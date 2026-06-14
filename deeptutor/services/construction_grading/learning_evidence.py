@@ -249,6 +249,29 @@ def build_learning_evidence_from_context_pack(
 
 
 def build_learning_evidence_dedupe_key(*, user_id: str, payload_json: dict[str, Any]) -> str:
+    raw_rubric = payload_json.get("rubric") if isinstance(payload_json.get("rubric"), dict) else {}
+    rubric_id = _clean_text(raw_rubric.get("rubric_id"))
+    artifact_version = _clean_text(raw_rubric.get("artifact_version") or raw_rubric.get("version_id"))
+    if rubric_id or artifact_version:
+        raw = json.dumps(
+            {
+                "key_version": "learning_evidence:v2",
+                "user_id": _clean_text(user_id),
+                "memory_kind": "learning_evidence",
+                "turn_id": payload_json.get("turn_id"),
+                "session_id": payload_json.get("session_id"),
+                "question_type": payload_json.get("question_type"),
+                "question_id": payload_json.get("question_id"),
+                "user_answer": payload_json.get("user_answer"),
+                "rubric_id": rubric_id,
+                "artifact_version": artifact_version,
+            },
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        return hashlib.sha1(raw.encode("utf-8")).hexdigest()
+
     raw = json.dumps(
         {
             "user_id": _clean_text(user_id),

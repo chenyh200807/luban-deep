@@ -474,6 +474,30 @@ domains:
       - supabase/migrations/20260419000100_learner_state_rls.sql
       - supabase/migrations/20260531000100_learner_notebook_cards.sql
 
+  # Luban grading engine — compiled rubric, registry resolver, knowledge compiler.
+  # I-5: These test files were added during M7/M32 but not registered in contract guard.
+  luban_grading_engine:
+    summary: Luban grading object compiler, rubric grader, and grading-to-brain evidence payload authority.
+    authority: construction_grading -> v1_case_rubric_scored -> rubric_grader_v1 -> learning_evidence
+    protected_patterns:
+      - deeptutor/services/construction_grading/per_question_grading_object.py
+      - deeptutor/services/construction_grading/rubric_grader_v1.py
+      - deeptutor/services/construction_grading/learning_evidence.py
+      - deeptutor/services/question_followup.py
+      - deeptutor/tutorbot/agent/loop.py
+    test_files:
+      - tests/services/construction_grading/test_per_question_grading_object.py
+      - tests/services/construction_grading/test_rubric_grader_v1.py
+      - tests/services/construction_grading/test_learning_evidence.py
+      - tests/services/test_question_followup.py
+      - tests/tutorbot/test_agent_loop_case_rubric_v1.py
+      - tests/services/construction_grading/test_m32_grading_event_learning_evidence.py
+      - tests/services/construction_grading/test_case_grading_fusion.py
+      - tests/services/construction_grading/test_compiled_registry_resolver.py
+      - tests/services/construction_grading/test_full_knowledge_compiler_m30.py
+      - tests/services/construction_grading/test_rich_leaf_runtime.py
+    schema_files: []
+
 # Batch A Task 1 — layered addendum on top of the learner_state and turn
 # domains. Records authority / allowed event types / projection grammar /
 # explicit forbidden anti-patterns introduced by the
@@ -504,14 +528,3 @@ learning_state_inference:
     - unregistered error_code in payload outside docs/contracts/error_code_registry.md
     - keyword-only rubric items rendered as "采分点" instead of "审题要点"
     - write-back into questions_bank.grading_rubric
-
-# Luban grading engine — compiled rubric, registry resolver, knowledge compiler.
-# I-5: These test files were added during M7/M32 but not registered in contract guard.
-luban_grading_engine:
-  authority: construction_grading -> v1_case_rubric_scored -> rubric_grader_v1 -> learning_evidence
-  test_files:
-    - tests/services/construction_grading/test_rubric_grader_v1.py
-    - tests/services/construction_grading/test_case_grading_fusion.py
-    - tests/services/construction_grading/test_compiled_registry_resolver.py
-    - tests/services/construction_grading/test_full_knowledge_compiler_m30.py
-    - tests/services/construction_grading/test_rich_leaf_runtime.py

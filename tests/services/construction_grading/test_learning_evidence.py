@@ -101,6 +101,81 @@ def test_learning_evidence_dedupe_key_keeps_distinct_attempts() -> None:
     assert first != second
 
 
+def test_learning_evidence_dedupe_key_uses_rubric_identity_not_score_when_available() -> None:
+    payload = {
+        "turn_id": "turn-1",
+        "session_id": "session-1",
+        "question_id": "q-1",
+        "question_type": "case",
+        "user_answer": "应组织专家论证。",
+        "error_events": [{"error_code": "E02"}],
+        "score_awarded": 0.0,
+        "max_score": 10.0,
+        "rubric": {
+            "rubric_id": "case_rubric_scored_pgo",
+            "artifact_version": "pgo-20260614",
+        },
+    }
+
+    first = build_learning_evidence_dedupe_key(
+        user_id="student-1",
+        payload_json=payload,
+    )
+    rescored_payload = dict(payload)
+    rescored_payload["score_awarded"] = 8.0
+    rescored_payload["max_score"] = 12.0
+    rescored_payload["error_events"] = [{"error_code": "E04"}]
+    second = build_learning_evidence_dedupe_key(
+        user_id="student-1",
+        payload_json=rescored_payload,
+    )
+
+    assert first == second
+
+
+def test_learning_evidence_dedupe_key_changes_when_rubric_identity_changes() -> None:
+    payload = {
+        "turn_id": "turn-1",
+        "session_id": "session-1",
+        "question_id": "q-1",
+        "question_type": "case",
+        "user_answer": "应组织专家论证。",
+        "error_events": [{"error_code": "E02"}],
+        "score_awarded": 0.0,
+        "max_score": 10.0,
+        "rubric": {
+            "rubric_id": "case_rubric_scored_pgo",
+            "artifact_version": "pgo-20260614",
+        },
+    }
+
+    first = build_learning_evidence_dedupe_key(
+        user_id="student-1",
+        payload_json=payload,
+    )
+    next_artifact = dict(payload)
+    next_artifact["rubric"] = {
+        "rubric_id": "case_rubric_scored_pgo",
+        "artifact_version": "pgo-20260615",
+    }
+    second = build_learning_evidence_dedupe_key(
+        user_id="student-1",
+        payload_json=next_artifact,
+    )
+    next_rubric = dict(payload)
+    next_rubric["rubric"] = {
+        "rubric_id": "case_rubric_scored_legacy",
+        "artifact_version": "pgo-20260614",
+    }
+    third = build_learning_evidence_dedupe_key(
+        user_id="student-1",
+        payload_json=next_rubric,
+    )
+
+    assert first != second
+    assert first != third
+
+
 def test_learning_evidence_removes_reasoning_blocks_from_payload() -> None:
     payload = build_learning_evidence_payload(
         grading_result={

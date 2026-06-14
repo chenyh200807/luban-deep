@@ -27,6 +27,42 @@ def test_guard_rejects_turn_change_without_turn_tests() -> None:
     assert "[turn] protected files changed" in message
 
 
+def test_guard_rejects_luban_grading_engine_change_without_domain_tests() -> None:
+    ok, message = evaluate_changed_files(
+        ["deeptutor/services/construction_grading/per_question_grading_object.py"]
+    )
+    assert ok is False
+    assert "[luban_grading_engine] protected files changed" in message
+
+
+def test_guard_accepts_luban_grading_engine_change_with_domain_tests() -> None:
+    ok, message = evaluate_changed_files(
+        [
+            "deeptutor/services/construction_grading/per_question_grading_object.py",
+            "tests/services/construction_grading/test_per_question_grading_object.py",
+        ]
+    )
+    assert ok is True
+    assert "[luban_grading_engine] passed" in message
+
+
+def test_guard_rejects_luban_stage0_runtime_change_without_domain_tests() -> None:
+    ok, message = evaluate_changed_files(["deeptutor/tutorbot/agent/loop.py"])
+    assert ok is False
+    assert "[luban_grading_engine] protected files changed" in message
+
+
+def test_guard_accepts_luban_stage0_runtime_change_with_domain_tests() -> None:
+    ok, message = evaluate_changed_files(
+        [
+            "deeptutor/tutorbot/agent/loop.py",
+            "tests/tutorbot/test_agent_loop_case_rubric_v1.py",
+        ]
+    )
+    assert ok is True
+    assert "[luban_grading_engine] passed" in message
+
+
 def test_guard_rejects_capability_sensitive_change_without_contract_surface() -> None:
     ok, message = evaluate_changed_files(
         [

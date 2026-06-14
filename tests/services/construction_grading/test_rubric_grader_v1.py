@@ -147,6 +147,8 @@ def test_learning_evidence_projection_lists_missed_points():
     # concept, so it is NEVER stamped as concept_id (fail-safe against profile pollution).
     assert all(w["concept_id"] is None for w in le["weak_points"])
     assert all(w["concept_provenance"] == "question_level_node_code" for w in le["weak_points"])
+    assert le["rubric"]["rubric_id"] == "case_rubric_scored_v1"
+    assert le["rubric"]["artifact_version"] == "rubric_scored_v1"
     assert le["writeback_performed"] is False
 
 

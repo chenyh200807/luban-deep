@@ -31,6 +31,60 @@ websocket_routes:
     reason: Knowledge-base ingestion progress fan-out. Non-chat; broadcasts build
       progress events only, creates no turn/session state.
 
+# REST route EXISTENCE allowlist (RESOURCE_GOVERNANCE_FIX_PLAN Layer 3 · P2,
+# INFRA_REGISTRATION_COVERAGE_AUDIT §6).
+#
+# WS already has an existence gate (websocket_routes above). REST only had AUTH
+# gates (secure_router) + a report-only runtime_route_inventory — no "a new REST
+# router must be registered" existence闸. This list closes that gap, mirroring
+# the WS allowlist EXACTLY: scripts/ci/check_rest_route_allowlist.py reflects the
+# live FastAPI app's PRODUCTION HTTP surface (legacy routers disabled) and fails
+# CI when a reflected ROUTER MOUNT PREFIX is not listed here.
+#
+# It does NOT overlap the WS guard: the WS guard governs APIWebSocketRoute; this
+# governs APIRoute (HTTP). The grain is the MOUNT PREFIX (leading static path
+# segments — where include_router(prefix=...) mounts), NOT every leaf path: the
+# report-only inventory already enumerates leaves for auth. This gate answers the
+# governance question the inventory does not — "should this router EXIST?".
+#
+# DISCIPLINE: records CURRENT STATE only. Every mount registered today is
+# grandfathered (止血: a NEW include_router at an unlisted prefix fails CI, not a
+# one-shot cleanup). Adding/removing a mount here changes NO behavior — it only
+# makes the existing reflected mount machine-checkable. An entry may be listed
+# but not currently reflected (behind-flag router); that does not fail the gate.
+http_routes:
+  - {prefix: /, reason: "Root liveness redirect / index."}
+  - {prefix: /healthz, reason: "Liveness probe."}
+  - {prefix: /readyz, reason: "Readiness probe."}
+  - {prefix: /metrics, reason: "Prometheus metrics (require_metrics_access)."}
+  - {prefix: /metrics/prometheus, reason: "Prometheus scrape endpoint (require_metrics_access)."}
+  - {prefix: /api/attachments, reason: "Session attachment download."}
+  - {prefix: /api/v1/agent-config, reason: "Agent config read/write."}
+  - {prefix: /api/v1/assessment, reason: "Assessment quiz lifecycle."}
+  - {prefix: /api/v1/auth, reason: "External auth: login / register / code / reset."}
+  - {prefix: /api/v1/bi, reason: "BI cockpit read models + ops actions."}
+  - {prefix: /api/v1/billing, reason: "Wallet / ledger / checkout / usage read models."}
+  - {prefix: /api/v1/chat, reason: "Chat feedback + start-turn HTTP adapters."}
+  - {prefix: /api/v1/conversations, reason: "Conversation / message read models."}
+  - {prefix: /api/v1/homepage, reason: "Homepage dashboard read model."}
+  - {prefix: /api/v1/invite-test, reason: "Invite-test application intake."}
+  - {prefix: /api/v1/knowledge, reason: "Knowledge-base CRUD + ingestion."}
+  - {prefix: /api/v1/learning-brain, reason: "Learning-brain QA (dev-gated)."}
+  - {prefix: /api/v1/member, reason: "Member console: profile / progress / goals / wallet."}
+  - {prefix: /api/v1/memory, reason: "Learner memory read models."}
+  - {prefix: /api/v1/mobile, reason: "Mobile (mini-program) read models + auth adapters."}
+  - {prefix: /api/v1/observability, reason: "Observability read models."}
+  - {prefix: /api/v1/photo-answer, reason: "Photo-answer OCR + solve adapter."}
+  - {prefix: /api/v1/plan, reason: "Plan read model."}
+  - {prefix: /api/v1/practice, reason: "Practice read models."}
+  - {prefix: /api/v1/profile, reason: "Profile read model."}
+  - {prefix: /api/v1/question-notebook, reason: "Question-notebook CRUD."}
+  - {prefix: /api/v1/sessions, reason: "Session read models."}
+  - {prefix: /api/v1/settings, reason: "Settings CRUD."}
+  - {prefix: /api/v1/system, reason: "System status / heartbeat."}
+  - {prefix: /api/v1/tutor-state, reason: "Tutor-state read models."}
+  - {prefix: /api/v1/wechat, reason: "WeChat mini-program login adapters."}
+
 mobile_http_read_models:
   billing_usage:
     path: /api/v1/billing/usage
@@ -48,23 +102,6 @@ mobile_http_read_models:
         public display labels remain percentage-based rather than exposing remaining turn counts.
       - Usage windows are display read models only; they are not capability routing,
         request config, learner-state, or turn authority.
-
-mobile_http_billing_controls:
-  start_turn_gate:
-    path: /api/v1/chat/start-turn
-    authority: WalletService wallet snapshot + DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED
-    semantics:
-      - Billing enforcement defaults on. Only explicit false / 0 / off / no disables
-        the hard balance gate for internal beta or rollback.
-      - When billing enforcement is explicitly disabled, the start-turn gate short-circuits
-        before wallet identity, wallet service availability, wallet snapshot, or usage
-        ledger reads.
-      - When enforcement is enabled, missing wallet identity is treated as zero balance
-        and returns billing_quota_exceeded before turn creation.
-      - When enforcement is enabled and wallet service is unconfigured or unavailable,
-        the adapter returns billing_wallet_unavailable before turn creation.
-      - This commerce gate must not become capability routing, request config,
-        learner-state, or session authority.
 
 mobile_http_auth_controls:
   password_reset:
@@ -297,6 +334,7 @@ domains:
       - tests/services/rag/test_learning_fact_retrieval_pipeline.py
       - tests/services/rag/test_maintenance.py
       - tests/services/rag/test_retrieval_plan.py
+      - tests/services/rag/test_evidence_bundle.py
       - tests/services/citations/test_normalizer.py
       - tests/services/citations/test_quality.py
     schema_files:
@@ -436,6 +474,30 @@ domains:
       - supabase/migrations/20260419000100_learner_state_rls.sql
       - supabase/migrations/20260531000100_learner_notebook_cards.sql
 
+  # Luban grading engine — compiled rubric, registry resolver, knowledge compiler.
+  # I-5: These test files were added during M7/M32 but not registered in contract guard.
+  luban_grading_engine:
+    summary: Luban grading object compiler, rubric grader, and grading-to-brain evidence payload authority.
+    authority: construction_grading -> v1_case_rubric_scored -> rubric_grader_v1 -> learning_evidence
+    protected_patterns:
+      - deeptutor/services/construction_grading/per_question_grading_object.py
+      - deeptutor/services/construction_grading/rubric_grader_v1.py
+      - deeptutor/services/construction_grading/learning_evidence.py
+      - deeptutor/services/question_followup.py
+      - deeptutor/tutorbot/agent/loop.py
+    test_files:
+      - tests/services/construction_grading/test_per_question_grading_object.py
+      - tests/services/construction_grading/test_rubric_grader_v1.py
+      - tests/services/construction_grading/test_learning_evidence.py
+      - tests/services/test_question_followup.py
+      - tests/tutorbot/test_agent_loop_case_rubric_v1.py
+      - tests/services/construction_grading/test_m32_grading_event_learning_evidence.py
+      - tests/services/construction_grading/test_case_grading_fusion.py
+      - tests/services/construction_grading/test_compiled_registry_resolver.py
+      - tests/services/construction_grading/test_full_knowledge_compiler_m30.py
+      - tests/services/construction_grading/test_rich_leaf_runtime.py
+    schema_files: []
+
 # Batch A Task 1 — layered addendum on top of the learner_state and turn
 # domains. Records authority / allowed event types / projection grammar /
 # explicit forbidden anti-patterns introduced by the
@@ -466,14 +528,3 @@ learning_state_inference:
     - unregistered error_code in payload outside docs/contracts/error_code_registry.md
     - keyword-only rubric items rendered as "采分点" instead of "审题要点"
     - write-back into questions_bank.grading_rubric
-
-# Luban grading engine — compiled rubric, registry resolver, knowledge compiler.
-# I-5: These test files were added during M7/M32 but not registered in contract guard.
-luban_grading_engine:
-  authority: construction_grading -> v1_case_rubric_scored -> rubric_grader_v1 -> learning_evidence
-  test_files:
-    - tests/services/construction_grading/test_rubric_grader_v1.py
-    - tests/services/construction_grading/test_case_grading_fusion.py
-    - tests/services/construction_grading/test_compiled_registry_resolver.py
-    - tests/services/construction_grading/test_full_knowledge_compiler_m30.py
-    - tests/services/construction_grading/test_rich_leaf_runtime.py
