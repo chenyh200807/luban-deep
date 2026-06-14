@@ -94,6 +94,18 @@ def test_i2b_base_grading_object_with_embedded_tier3_word_is_not_ephemeral() -> 
     assert classify_identifier("eval_scoring_point.v2", registry) == "orphan"
 
 
+def test_i2b_dash_namespaced_grading_shaped_id_keeps_orphan_veto() -> None:
+    # I2(b) regression for the dash-namespace widening (2026-06-14): once
+    # ``_FULLSET_NAMESPACE_RE`` admits ``luban-`` (dash), the grading-shaped one-票否决
+    # boundary class must ALSO include '-' — else a DASH grading-shaped id that happens to
+    # match a dash carve-out family (``luban-consensus-grading_object.v1`` ⊃ the
+    # ``luban-consensus`` T3 family) would be silently swallowed into T3, defeating the veto
+    # whose whole job is "a grading typed object is never ephemeral". It must stay an orphan.
+    registry = load_schema_registry()
+    assert classify_identifier("luban-consensus-grading_object.v1", registry) == "orphan"
+    assert classify_identifier("luban-x-scoring_point.v2", registry) == "orphan"
+
+
 def test_i2b_tier3_pattern_no_midword_substring_swallow() -> None:
     # I2(b): a ``_word`` pattern ending in a letter must match only as a bounded
     # SEGMENT — ``_eval`` matches ``_eval_run`` / ``_eval`` (end) but NOT ``_evaluation``.

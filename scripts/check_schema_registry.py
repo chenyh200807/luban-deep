@@ -29,27 +29,14 @@ Deterministic and pure: no LLM, no network, no DB. It reads files and applies re
 mirroring scripts/check_contract_guard.py.
 
 ────────────────────────────────────────────────────────────────────────────────────────
-PENDING HUNK — wiring into scripts/check_contract_guard.py
+WIRED (P0#1, 2026-06-14, commit 46c9379e9) into scripts/check_contract_guard.py main()
 ────────────────────────────────────────────────────────────────────────────────────────
-scripts/check_contract_guard.py currently has UNCOMMITTED parallel WIP, so this guard is
-NOT wired into its main() here (no dirty-file dependency / no carrying of parallel work).
-Apply the hunk below when that file is clean (or fold it into the next contract-guard
-commit). It is intentionally additive and order-independent:
-
-  # add near the other guard imports at top of scripts/check_contract_guard.py:
-  from scripts.check_schema_registry import evaluate_schema_registry  # noqa: E402
-
-  # inside main(), after the upstream/ws guard prints, before the final return:
-  schema_ok, schema_message = evaluate_schema_registry(changed_files)
-  schema_stream = sys.stdout if schema_ok else sys.stderr
-  print(schema_message, file=schema_stream)
-
-  # and extend the final boolean:
-  return 0 if (ok and code_ok and node_ok and lifecycle_ok
-               and upstream_ok and ws_ok and schema_ok) else 1
-
-``evaluate_schema_registry(changed_files)`` is the changed-files entry point provided
-below for exactly this wiring (reads each changed file, runs collect+evaluate).
+``evaluate_schema_registry(changed_files)`` (the changed-files entry point below) is the
+seam the central runner consumes: ``check_contract_guard.py`` imports it and folds
+``schema_ok`` into its final return boolean, so per-PR register-before-use / drift /
+authority for in-scope grading schema is PR-blocking. Earlier this was a PENDING HUNK held
+back while ``check_contract_guard.py`` carried parallel WIP; that line landed, the hunk was
+applied, and the wiring is live — do not re-add a "not wired" note.
 ────────────────────────────────────────────────────────────────────────────────────────
 """
 
@@ -125,7 +112,11 @@ _GRADING_NAME_HINT_RE = re.compile(
 # positive). Only the bare per-point typed object (``grading_object.v1``,
 # ``scoring_point.v2``) is one-票否决 for T3.
 _GRADING_SHAPED_RE = re.compile(
-    r"(?:^|[_.])(?:grading_object|scoring_point)(?:\.v[0-9]|_v[0-9])",
+    # Boundary class includes '-' so the I2(b) grading-shaped veto covers the DASH
+    # namespace admitted by ``_FULLSET_NAMESPACE_RE`` (luban[-_.]). Without it, a dash
+    # grading-shaped id (``luban-x-grading_object.v1``) escapes the one-票否决 and can be
+    # swallowed into T3 by a dash carve-out family — the one thing this veto must prevent.
+    r"(?:^|[-_.])(?:grading_object|scoring_point)(?:\.v[0-9]|_v[0-9])",
 )
 
 

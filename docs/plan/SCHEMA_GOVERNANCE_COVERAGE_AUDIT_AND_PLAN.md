@@ -85,8 +85,12 @@
 
 12 个全是 would-be orphan,因 dash vs underscore 字符串巧合静默逃逸 → 闭包测试(只对集内断言 orphans=[])抓不到这种"消失式"漏。**已治本修复**(纯治理工具,核心分类逻辑零改动):namespace `luban[-_.]`(tight,实测不误收 model 名) + marker 加 `artifact_version` + 8 个 tight 脚本族 T3 carve-out + 回归钉子测试。闭包重新诚实 CLOSED **195=9+26+160**。
 
+**代码审查补修(2026-06-14, commit 后述)**:
+- **[已修] grading-shaped 一票否决边界同步放宽**:闭包诚实化把 namespace 放宽到 `luban[-_.]`(认连字符),但 `_GRADING_SHAPED_RE` 的边界类 `[_.]` 当时没同步——导致 dash grading-shaped id(`luban-consensus-grading_object.v1`,⊃ `luban-consensus` T3 族)会绕过 veto 被吞进 T3(veto 的唯一职责"判分 typed 对象永不 ephemeral"被破)。已把边界改 `[-_.]` + 加回归测试。当前树无此 id,但放宽 namespace 必须同步放宽 veto(越核心越细心)。
+- **[已修] 陈旧 docstring**:`check_schema_registry.py` 顶部"PENDING HUNK / NOT wired into main()"在 P0#1(46c9379e9)接线后已成活谎言,改为 WIRED 说明。
+
 **残留弱点(对抗审查记录,诚实不提前解决)**:
-- T3 carve-out 对**非判分** runtime 契约偏宽:一个未注册的 `luban_xxx_decision.v1`/`_report`/`_feedback` 假想契约会被通用词 pattern 静默判 T3 而非 orphan(grading-shaped 一票否决只护 `grading_object`/`scoring_point`)。当前树上**无**此类 id 被误吞,故不提前加 T2-veto 机制(避免为明天的问题过度设计);若未来出现非判分 runtime 契约,需给它一个 namespace 分支或在 carve-out 前加 T2-shaped veto。
+- T3 carve-out 对**非判分** runtime 契约偏宽:一个未注册的 `luban_xxx_decision.v1`/`_report`/`_feedback` 假想契约会被通用词 pattern 静默判 T3 而非 orphan(grading-shaped 一票否决只护 `grading_object`/`scoring_point`;上面那条修复让它也护 dash 形,但仍只护判分 typed 对象,**非判分**契约无保护)。当前树上**无**此类 id 被误吞,故不提前加 T2-veto 机制(避免为明天的问题过度设计);若未来出现非判分 runtime 契约,需给它一个 namespace 分支或在 carve-out 前加 T2-shaped veto。
 - `luban_grading_engine_v1_*` / `luban_case_rubric_v1` 是 **engine-authority 枚举**(非 schema-version),deep_question 写、beta_shadow_loader/adjudicator 读做 grading `authority`。**不是闭包 gap,不可注册**(否则误报洪水)。若要治理 engine-authority 词表,是独立 T2-style 决策。
 
 ## 4. 注意事项(执行时)
