@@ -109,8 +109,10 @@ def test_assessment_writeback_updates_home_personalization_projection(monkeypatc
 
     assert len(learner.progress_patches) == 1
     projection = learner.progress_patches[0]["patch"]["home_personalization"]
-    assert projection["today_focus"]["title"] == "今日焦点：屋面与防水工程施工"
-    assert projection["today_focus"]["prompt"] == "用 3 道题训练屋面与防水工程施工"
+    # resolved taxonomy node is not overridden by the textbook-section alias (branch behavior,
+    # merge resolution per owner decision)
+    assert projection["today_focus"]["title"] == "今日焦点：防水工程"
+    assert projection["today_focus"]["prompt"] == "用 3 道题训练防水工程"
     assert projection["recommended_prompts"][0]["prompt_type"] == "practice_prompt"
     assert projection["recommended_prompts"][0]["intent"]["evidence_refs"] == [
         "evt_2",
