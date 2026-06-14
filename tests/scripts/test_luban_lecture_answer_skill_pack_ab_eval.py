@@ -90,6 +90,14 @@ def test_ab_eval_scores_skill_pack_above_raw_baseline(tmp_path: Path) -> None:
     assert (out / "AB_FINDING.md").exists()
 
 
+def test_ab_eval_accepts_installed_runtime_supply_root(tmp_path: Path) -> None:
+    pack = _write_pack(tmp_path)
+
+    units = lecture_ab.load_answer_units(pack / "runtime_supply")
+
+    assert [unit["unit_id"] for unit in units] == ["lecture.test.0001", "lecture.test.0002"]
+
+
 def test_ab_eval_fails_if_ads_leak_into_answer(tmp_path: Path) -> None:
     unit = {
         "unit_id": "lecture.test.0003",

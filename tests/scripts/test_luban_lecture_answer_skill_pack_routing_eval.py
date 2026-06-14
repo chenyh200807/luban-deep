@@ -104,6 +104,15 @@ def test_exam_question_has_high_activation_and_quality(tmp_path: Path) -> None:
     assert result["source_grounded"] is True
 
 
+def test_routing_eval_accepts_installed_runtime_supply_root(tmp_path: Path) -> None:
+    pack = _write_pack(tmp_path)
+
+    index = lecture_routing_eval.build_routing_index(pack / "runtime_supply")
+
+    assert index["runtime_supply_root"].endswith("/runtime_supply")
+    assert index["lecture_counts"]["主体结构"] == 2
+
+
 def test_off_syllabus_query_does_not_activate(tmp_path: Path) -> None:
     pack = _write_pack(tmp_path)
     index = lecture_routing_eval.build_routing_index(pack)

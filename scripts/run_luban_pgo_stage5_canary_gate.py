@@ -253,7 +253,11 @@ def build_canary_gate_report(
     if Path(slot_dir).resolve() == DEFAULT_SLOT_DIR.resolve() and runtime_loader.get("status") != "ok":
         blockers.append("worker_restart_slot_loader_failed")
 
-    scaled_gate = _load_json(scaled_double_gate_path)
+    if scaled_double_gate_path.exists():
+        scaled_gate = _load_json(scaled_double_gate_path)
+    else:
+        scaled_gate = {}
+        blockers.append("scaled_double_gate_missing")
     summary = scaled_gate.get("summary") if isinstance(scaled_gate, dict) else {}
     records = scaled_gate.get("records") if isinstance(scaled_gate, dict) else []
     if not isinstance(summary, dict):

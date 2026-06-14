@@ -23,7 +23,10 @@ from typing import Any
 
 
 REPO = Path(__file__).resolve().parents[1]
-DEFAULT_PACK_ROOT = REPO / "artifacts" / "luban_grading_artifacts" / "lecture_answer_skill_pack_all8_20260614"
+DEFAULT_PACK_ROOT = (
+    REPO
+    / "deeptutor/services/construction_grading/runtime_supply/v_lecture_answer_skill_pack_all8"
+)
 DEFAULT_OUT_DIR = REPO / "artifacts" / "luban_grading_artifacts" / (
     "lecture_answer_skill_pack_routing_eval_" + date.today().strftime("%Y%m%d")
 )
@@ -85,10 +88,11 @@ def _tokenize_unit(unit: dict[str, Any]) -> list[str]:
 
 
 def build_routing_index(pack_root: Path) -> dict[str, Any]:
-    manifest = _load_json(pack_root / "runtime_supply" / "manifest.json")
+    supply_root = lecture_ab.runtime_supply_root(pack_root)
+    manifest = _load_json(supply_root / "manifest.json")
     units: list[dict[str, Any]] = []
     for shard in manifest.get("shards") or []:
-        doc = _load_json(pack_root / "runtime_supply" / shard["path"])
+        doc = _load_json(supply_root / shard["path"])
         for unit in doc.get("answer_units") or []:
             unit = dict(unit)
             source = unit.get("source_ref") or {}
@@ -101,6 +105,7 @@ def build_routing_index(pack_root: Path) -> dict[str, Any]:
             units.append(unit)
     return {
         "pack_root": str(pack_root),
+        "runtime_supply_root": str(supply_root),
         "manifest": manifest,
         "units": units,
         "lecture_counts": dict(Counter(str(u.get("lecture")) for u in units)),

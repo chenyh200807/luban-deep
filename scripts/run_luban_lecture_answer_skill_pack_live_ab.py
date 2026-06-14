@@ -31,7 +31,10 @@ from typing import Any, Callable
 
 
 REPO = Path(__file__).resolve().parents[1]
-DEFAULT_PACK_ROOT = REPO / "artifacts" / "luban_grading_artifacts" / "lecture_answer_skill_pack_v1_20260614"
+DEFAULT_PACK_ROOT = (
+    REPO
+    / "deeptutor/services/construction_grading/runtime_supply/v_lecture_answer_skill_pack_all8"
+)
 DEFAULT_OUT_DIR = REPO / "artifacts" / "luban_grading_artifacts" / (
     "lecture_answer_skill_pack_live_ab_" + date.today().strftime("%Y%m%d")
 )

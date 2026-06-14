@@ -18,7 +18,10 @@ from typing import Any
 
 
 REPO = Path(__file__).resolve().parents[1]
-DEFAULT_PACK_ROOT = REPO / "artifacts" / "luban_grading_artifacts" / "lecture_answer_skill_pack_v1_20260614"
+DEFAULT_PACK_ROOT = (
+    REPO
+    / "deeptutor/services/construction_grading/runtime_supply/v_lecture_answer_skill_pack_all8"
+)
 DEFAULT_OUT_DIR = REPO / "artifacts" / "luban_grading_artifacts" / (
     "lecture_answer_skill_pack_ab_eval_" + date.today().strftime("%Y%m%d")
 )
@@ -49,12 +52,21 @@ def _contains(answer: str, phrase: str) -> bool:
     return compact_phrase in compact_answer
 
 
+def runtime_supply_root(pack_root: Path) -> Path:
+    root = Path(pack_root)
+    nested = root / "runtime_supply"
+    if (nested / "manifest.json").exists():
+        return nested
+    return root
+
+
 def load_answer_units(pack_root: Path) -> list[dict[str, Any]]:
-    manifest_path = pack_root / "runtime_supply" / "manifest.json"
+    supply_root = runtime_supply_root(pack_root)
+    manifest_path = supply_root / "manifest.json"
     manifest = _load_json(manifest_path)
     units: list[dict[str, Any]] = []
     for shard in manifest.get("shards") or []:
-        shard_path = pack_root / "runtime_supply" / str(shard["path"])
+        shard_path = supply_root / str(shard["path"])
         doc = _load_json(shard_path)
         units.extend(doc.get("answer_units") or [])
     return units

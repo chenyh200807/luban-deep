@@ -117,3 +117,16 @@ def test_pgo_stage5_canary_gate_blocks_non_canary_cohort(tmp_path: Path) -> None
 
     assert report["status"] == "blocked"
     assert "cohort_not_limited_to_qa_operator" in report["blockers"]
+
+
+def test_pgo_stage5_canary_gate_blocks_missing_scaled_gate_without_traceback(tmp_path: Path) -> None:
+    from scripts.run_luban_pgo_stage5_canary_gate import build_canary_gate_report
+
+    report = build_canary_gate_report(
+        slot_dir=_write_slot(tmp_path),
+        scaled_double_gate_path=tmp_path / "missing_scaled_double_gate.json",
+        cohort_ids=["qa_stage5"],
+    )
+
+    assert report["status"] == "blocked"
+    assert "scaled_double_gate_missing" in report["blockers"]
