@@ -195,6 +195,8 @@ domains:
       - tests/services/observability/test_turn_runtime_observer_event.py
       - tests/api/test_unified_ws_error_boundary.py
       - tests/services/test_runtime_env_fail_closed.py
+      - tests/services/learner_state/test_subjective_focus_priority.py
+      - tests/services/learner_state/test_dispute_revalidation_readside.py
     schema_files:
       - deeptutor/contracts/unified_turn.py
       - deeptutor/contracts/bot_runtime_defaults.py
@@ -427,6 +429,10 @@ domains:
       - tests/services/notebook_card/test_service.py
       - tests/api/test_notebook_card_routing.py
       - tests/services/test_runtime_env_fail_closed.py
+      - tests/services/learner_state/test_learner_signal_lightup.py
+      - tests/services/learner_state/test_subjective_focus_projection.py
+      - tests/services/learner_state/test_scoring_point_focus.py
+      - tests/api/test_learner_signal_endpoint.py
     schema_files:
       - deeptutor/contracts/learner_state.py
       - supabase/migrations/20260415000100_learner_state_core.sql

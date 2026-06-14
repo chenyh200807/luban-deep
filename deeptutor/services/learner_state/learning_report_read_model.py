@@ -30,6 +30,7 @@ from deeptutor.services.learner_state.prescription_outcome_read_model import (
 from deeptutor.services.learner_state.progress_feedback import build_progress_feedback
 from deeptutor.services.learner_state.revalidation_queue import (
     build_revalidation_queue_projection,
+    dispute_candidates_from_events,
 )
 from deeptutor.services.learner_state.scoring_point_map_read_model import (
     build_scoring_point_map_read_projection,
@@ -337,6 +338,7 @@ def build_learning_report_read_model(
             user_id=normalized_user,
             events=events,
             scoring_point_map=scoring_point_map,
+            dispute_candidates=dispute_candidates_from_events(events),
             prescription_outcomes=prescription_outcomes,
         )
         if flag_state["verification"]
