@@ -330,7 +330,34 @@ def test_assessment_form_prewarm_logging_does_not_fail_startup_task(
 
 
 def _route_paths(app: FastAPI) -> set[str]:
-    return {str(getattr(route, "path", "") or "") for route in app.routes}
+    return _collect_route_paths(app.routes)
+
+
+def _join_route_path(prefix: str, path: str) -> str:
+    if not prefix:
+        return path
+    if not path or path == "/":
+        return prefix
+    return f"{prefix.rstrip('/')}/{path.lstrip('/')}"
+
+
+def _collect_route_paths(routes: object, *, prefix: str = "") -> set[str]:
+    paths: set[str] = set()
+    for route in routes or []:
+        route_path = getattr(route, "path", None)
+        if route_path is not None:
+            paths.add(_join_route_path(prefix, str(route_path)))
+        original_router = getattr(route, "original_router", None)
+        include_context = getattr(route, "include_context", None)
+        if original_router is not None:
+            include_prefix = str(getattr(include_context, "prefix", "") or "")
+            paths.update(
+                _collect_route_paths(
+                    getattr(original_router, "routes", ()),
+                    prefix=_join_route_path(prefix, include_prefix),
+                )
+            )
+    return paths
 
 
 def _fresh_main_probe(
@@ -369,8 +396,33 @@ setup.init_user_directories = lambda *_args, **_kwargs: None
 
 import deeptutor.api.main as main
 
+def _join_route_path(prefix, path):
+    if not prefix:
+        return path
+    if not path or path == "/":
+        return prefix
+    return f"{prefix.rstrip('/')}/{path.lstrip('/')}"
+
+def _collect_route_paths(routes, prefix=""):
+    paths = set()
+    for route in routes or []:
+        route_path = getattr(route, "path", None)
+        if route_path is not None:
+            paths.add(_join_route_path(prefix, str(route_path)))
+        original_router = getattr(route, "original_router", None)
+        include_context = getattr(route, "include_context", None)
+        if original_router is not None:
+            include_prefix = str(getattr(include_context, "prefix", "") or "")
+            paths.update(
+                _collect_route_paths(
+                    getattr(original_router, "routes", ()),
+                    _join_route_path(prefix, include_prefix),
+                )
+            )
+    return paths
+
 payload = {
-    "paths": sorted(str(getattr(route, "path", "") or "") for route in main.app.routes),
+    "paths": sorted(_collect_route_paths(main.app.routes)),
 }
 get_path = os.environ.get("_DEEPTUTOR_TEST_GET_PATH", "")
 if get_path:

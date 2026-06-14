@@ -46,7 +46,12 @@ When testing `deeptutor.api.main` route mounting:
    set a test-local `DEEPTUTOR_USER_DATA_DIR`, empty env file, and scenario env
    before importing `deeptutor.api.main`. This matches CI cold-start semantics
    and avoids turning pytest module-cache pollution into a product fallback.
-6. Keep production code unchanged unless the same route set fails in a fresh
+6. Collect route paths through a helper that understands both eagerly-expanded
+   `APIRoute.path` entries and FastAPI's deferred `_IncludedRouter`
+   representation. FastAPI 0.137 can keep included routers as wrapper entries
+   with `path=None`; a raw `{route.path for route in app.routes}` check will
+   report only base probes even though routers are mounted.
+7. Keep production code unchanged unless the same route set fails in a fresh
    process with the same env.
 
 For mobile billing quota tests, patch the imported router binding when the test
