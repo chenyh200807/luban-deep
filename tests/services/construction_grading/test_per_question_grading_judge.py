@@ -13,10 +13,13 @@ from deeptutor.services.construction_grading.per_question_grading_judge import (
     HIT,
     MISS,
     OVER_CREDIT_HIGH_THRESHOLD,
+    PARTIAL,
     candidate_coverage_score,
     detect_over_credit,
     make_controlled_student_answers,
     oracle_verdicts,
+    runtime_points_from_grading_contract,
+    verdict_coverage_awarded_score,
 )
 from deeptutor.services.construction_grading.per_question_grading_object import (
     build_grading_contract,
@@ -142,3 +145,124 @@ def test_over_credit_gate_complete_high_score_is_fine():
     assert result["over_credit"] is False
     assert result["miss_count"] == 0
     assert OVER_CREDIT_HIGH_THRESHOLD <= 1.0
+
+
+def _stage2_contract():
+    return {
+        "contract_schema": "luban_per_question_grading_contract.v1",
+        "question_id": "Q-STAGE2",
+        "official_total_score": 10.0,
+        "official_total_score_authority": "official_answer_verbatim",
+        "official_score_allowed": False,
+        "canonical_write_allowed": False,
+        "scoring_points": [
+            {
+                "point_id": "sp_flaw",
+                "sub_type": "flaw_correction",
+                "official_slice": "不妥之处：x。正确做法：y。",
+                "score": None,
+            },
+            {
+                "point_id": "sp_exception",
+                "sub_type": "exceptions",
+                "official_slice": "主体结构不得分包，钢结构工程除外。",
+                "score": None,
+            },
+            {
+                "point_id": "sp_calc",
+                "sub_type": "calculation",
+                "official_slice": "措施项目费：6100×10%=610万元。",
+                "score": None,
+            },
+            {
+                "point_id": "sp_enum",
+                "sub_type": "enumeration",
+                "official_slice": "记录内容还包括取样、制样、标识。",
+                "score": None,
+            },
+            {
+                "point_id": "sp_free",
+                "sub_type": "free_text_point",
+                "official_slice": "建设单位应及时支付检测费用。",
+                "score": None,
+            },
+        ],
+        "supporting_citations": [
+            {
+                "point_id": "sp_enum",
+                "term": "取样",
+                "chunk_id": "kb_1",
+                "official_score_allowed": False,
+            },
+            {
+                "point_id": "sp_enum",
+                "term": "未验证术语",
+                "chunk_id": None,
+                "anchor_verified": False,
+                "official_score_allowed": False,
+            },
+            {
+                "point_id": "sp_enum",
+                "term": "越权术语",
+                "chunk_id": "kb_2",
+                "anchor_verified": True,
+                "official_score_allowed": True,
+            },
+        ],
+    }
+
+
+def test_runtime_points_adapter_maps_all_stage2_sub_types_without_minting_score():
+    runtime_points = runtime_points_from_grading_contract(_stage2_contract())
+    by_id = {p["point_id"]: p for p in runtime_points}
+
+    assert by_id["sp_flaw"]["policy_type"] == "qualitative"
+    assert by_id["sp_exception"]["policy_type"] == "qualitative"
+    assert by_id["sp_calc"]["policy_type"] == "calculation"
+    assert by_id["sp_enum"]["policy_type"] == "list"
+    assert by_id["sp_free"]["policy_type"] == "qualitative"
+    assert {p["score"] for p in runtime_points} == {None}
+    assert {p["max_score"] for p in runtime_points} == {None}
+
+
+def test_runtime_points_required_terms_only_use_verified_supporting_citations():
+    runtime_points = runtime_points_from_grading_contract(_stage2_contract())
+    enum_point = next(p for p in runtime_points if p["point_id"] == "sp_enum")
+
+    assert enum_point["required_terms"] == ["取样"]
+    assert "未验证术语" not in enum_point["required_terms"]
+    assert "越权术语" not in enum_point["required_terms"]
+    assert enum_point["term_authority"] == "textbook_cited_supporting_only"
+
+
+def test_verdict_coverage_score_uses_official_total_not_null_point_scores():
+    contract = _stage2_contract()
+    verdicts = {
+        "sp_flaw": HIT,
+        "sp_exception": PARTIAL,
+        "sp_calc": MISS,
+        "sp_enum": HIT,
+        "sp_free": MISS,
+    }
+
+    result = verdict_coverage_awarded_score(verdicts, contract)
+
+    # (1 + 0.5 + 0 + 1 + 0) / 5 * official total 10 = 5.
+    assert result["coverage"] == 0.5
+    assert result["awarded_score"] == 5.0
+    assert result["max_score"] == 10.0
+    assert result["score_authority"] == "official_total_x_verdict_coverage"
+    assert result["official_score_allowed"] is False
+    assert result["canonical_write_allowed"] is False
+
+
+def test_verdict_coverage_score_fails_closed_without_official_total():
+    contract = _stage2_contract()
+    contract["official_total_score"] = None
+
+    result = verdict_coverage_awarded_score({"sp_flaw": HIT}, contract)
+
+    assert result["awarded_score"] == 0.0
+    assert result["max_score"] == 0.0
+    assert result["coverage"] == 0.0
+    assert result["blockers"] == ["missing_official_total_score"]
