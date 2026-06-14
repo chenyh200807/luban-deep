@@ -28,18 +28,31 @@ When testing `deeptutor.api.main` route mounting:
 
 1. Clear all runtime-env authority keys before setting the scenario:
    `DEEPTUTOR_ENV`, `DEEPTUTOR_RUNTIME_ENV`, `APP_ENV`, `ENV`, `ENVIRONMENT`,
-   and `SERVICE_ENV`.
+   `SERVICE_ENV`, `DEEPTUTOR_ENV_FILE`, and `DEEPTUTOR_ENV_PATH`.
 2. Clear route-feature env keys before each scenario:
    `DEEPTUTOR_ENABLE_API_DOCS`, `DEEPTUTOR_ENABLE_LEGACY_ROUTERS`,
    `DEEPTUTOR_ENABLE_PUBLIC_OUTPUTS`, and
    `DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA`.
-3. Remove `deeptutor.api.main` from `sys.modules` before importing the app
+3. Point `deeptutor.services.config.env_store._env_store` at a test-local
+   `EnvStore(path=..., fallback_paths=())`. `runtime_env` and `main.py` read
+   through env-store authority; clearing only `os.environ` is not enough when a
+   previous test or a developer worktree `.env` has initialized the store.
+4. Remove `deeptutor.api.main` from `sys.modules` before importing the app
    again. Do not casually clear every router module: some router schemas rely
    on module-local forward-reference rebuild state, and broad cache eviction can
    create smoke failures unrelated to route mounting.
-4. Keep production code unchanged unless the same route set fails in a fresh
+5. Keep production code unchanged unless the same route set fails in a fresh
    process with the same env.
 
+For mobile billing quota tests, patch the imported router binding when the test
+needs a deterministic billing-enforcement branch:
+`monkeypatch.setattr(mobile_module, "is_billing_enforcement_enabled", ...)`.
+The router imports that function at module import time, so setting only
+`DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED` can leave full-smoke order dependent.
+Also freeze `mobile_module.datetime.now()` for quota-window tests: weekly
+windows reset at Asia/Shanghai Monday 00:00, so relative timestamps like
+`datetime.now() - timedelta(hours=1)` can cross into the previous week during
+Sunday/Monday CI runs.
 ## Secret Baseline Discipline
 
 If `detect-secrets-hook --baseline .secrets.baseline $(git ls-files)` reports

@@ -244,11 +244,18 @@ def test_billing_points_and_ledger_use_wallet_service(monkeypatch: pytest.Monkey
 
 def test_billing_usage_returns_window_percentages(monkeypatch: pytest.MonkeyPatch) -> None:
     canonical_uid = "2d9eac15-5d26-4e93-941b-9ec6345ce6d9"
-    now = datetime.now(ZoneInfo("Asia/Shanghai"))
+    now = datetime(2026, 4, 21, 12, 0, tzinfo=ZoneInfo("Asia/Shanghai"))
+
+    class _FixedDateTime(datetime):
+        @classmethod
+        def now(cls, tz=None):  # type: ignore[override]
+            return now if tz is None else now.astimezone(tz)
 
     monkeypatch.setenv("DEEPTUTOR_BILLING_ENFORCEMENT_ENABLED", "1")
     monkeypatch.setenv("DEEPTUTOR_BILLING_USAGE_5H_LIMIT_POINTS", "100")
     monkeypatch.setenv("DEEPTUTOR_BILLING_USAGE_WEEKLY_LIMIT_POINTS", "200")
+    monkeypatch.setattr(mobile_module, "datetime", _FixedDateTime)
+    monkeypatch.setattr(mobile_module, "is_billing_enforcement_enabled", lambda: True)
     monkeypatch.setattr(mobile_module, "resolve_wallet_user_id", lambda _authorization: canonical_uid)
     monkeypatch.setattr(mobile_module, "_load_legacy_wallet_ledger_entries", lambda *args, **kwargs: [])
 

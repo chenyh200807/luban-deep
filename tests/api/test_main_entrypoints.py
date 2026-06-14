@@ -24,6 +24,8 @@ _MAIN_ENTRYPOINT_ENV_KEYS = (
     "ENV",
     "ENVIRONMENT",
     "SERVICE_ENV",
+    "DEEPTUTOR_ENV_FILE",
+    "DEEPTUTOR_ENV_PATH",
     "DEEPTUTOR_ENABLE_API_DOCS",
     "DEEPTUTOR_ENABLE_LEGACY_ROUTERS",
     "DEEPTUTOR_ENABLE_PUBLIC_OUTPUTS",
@@ -193,10 +195,18 @@ def _reload_main(
     settings_dir = tmp_path / "settings"
     settings_dir.mkdir(parents=True, exist_ok=True)
     (settings_dir / "main.yaml").write_text("{}\n", encoding="utf-8")
+    env_file = settings_dir / ".env"
+    env_file.write_text("", encoding="utf-8")
     path_service_module = importlib.import_module("deeptutor.services.path_service")
+    env_store_module = importlib.import_module("deeptutor.services.config.env_store")
     setup_module = importlib.import_module("deeptutor.services.setup")
     sqlite_store_module = importlib.import_module("deeptutor.services.session.sqlite_store")
     monkeypatch.setattr(path_service_module, "get_path_service", lambda: fake_path_service)
+    monkeypatch.setattr(
+        env_store_module,
+        "_env_store",
+        env_store_module.EnvStore(path=env_file, fallback_paths=()),
+    )
     monkeypatch.setattr(setup_module, "init_user_directories", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(sqlite_store_module, "get_path_service", lambda: fake_path_service)
     for key in _MAIN_ENTRYPOINT_ENV_KEYS:
