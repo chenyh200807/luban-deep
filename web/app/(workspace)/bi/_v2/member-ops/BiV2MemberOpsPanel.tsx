@@ -1,13 +1,33 @@
 /* eslint-disable i18n/no-literal-ui-text */
 'use client'
 
-import { Crown, Filter, MessageSquareText, RefreshCw, Save, Settings2 } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import {
+  CreditCard,
+  Crown,
+  Filter,
+  MessageSquareText,
+  RefreshCw,
+  Save,
+  Settings2,
+  ShieldOff,
+  UserCog,
+} from 'lucide-react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type FormEvent,
+} from 'react'
 import {
   BiButton,
   BiDataTable,
   BiMoneyCell,
   BiNotice,
+  BiSelect,
+  BiSidePanel,
   BiStatusPill,
   BiV2DataSourceBanner,
   BI_STATUS_PILL_TONE,
@@ -20,10 +40,14 @@ import {
   getMemberDashboard,
   getMemberDetail,
   listMembers,
+  manualPurchaseMembership,
+  revokeMembership,
+  updateMembership,
   type MemberDashboard,
   type MemberDetail,
   type MemberListItem,
 } from '@/lib/member-api'
+import { getBiCommerce, type BiCommercePackage } from '@/lib/bi-api'
 import { MemberOpsCockpit } from '@/components/bi-cockpit/MemberOpsCockpit'
 import {
   ALL_COLUMNS,
@@ -72,6 +96,9 @@ const BEHAVIOR_COHORT_TONE = {
 const SAVED_VIEWS_STORAGE_KEY = 'bi-v2-saved-views-v1'
 const SAVED_VIEWS_EVENT = 'bi-v2-saved-views-changed'
 const EMPTY_VIEWS: SavedView[] = []
+const EMPTY_PACKAGES: BiCommercePackage[] = []
+const MEMBERSHIP_INPUT_CLASS =
+  'h-9 w-full rounded-lg border border-white/10 bg-[#0e1624] px-3 text-xs text-white outline-none focus:border-cyan-300/60'
 let savedViewsRawSnapshot: string | null = null
 let savedViewsSnapshot: SavedView[] = EMPTY_VIEWS
 
@@ -206,6 +233,33 @@ function canUpgradeToVip(member: MemberRow): boolean {
   return member.tier !== 'vip' && member.tier !== 'svip'
 }
 
+function normalizeMembershipTier(value: string): MemberRow['tier'] {
+  if (value === 'vip' || value === 'svip' || value === 'trial') return value
+  return 'trial'
+}
+
+function tierLabel(value: string): string {
+  if (value === 'trial') return '体验'
+  if (value === 'vip') return 'VIP'
+  if (value === 'svip') return 'SVIP'
+  return value || '未知'
+}
+
+function statusLabel(status: string): string {
+  if (status === 'active') return '有效'
+  if (status === 'expiring') return '即将到期'
+  if (status === 'expired') return '已过期'
+  if (status === 'paused') return '已取消'
+  return status || '未知'
+}
+
+function toDateInputValue(value?: string | null): string {
+  if (!value) return ''
+  const parsed = Date.parse(value)
+  if (Number.isNaN(parsed)) return ''
+  return new Date(parsed).toISOString().slice(0, 10)
+}
+
 export function BiV2MemberOpsPanel({
   flagEnabled,
   globalQuery,
@@ -234,13 +288,17 @@ export function BiV2MemberOpsPanel({
   const [selectedDetail, setSelectedDetail] = useState<MemberDetail | null>(null)
   const [detailLoading, setDetailLoading] = useState(false)
   const [detailError, setDetailError] = useState('')
-  const [drawer, setDrawer] = useState<'none' | 'member360' | 'conversation'>('none')
+  const [drawer, setDrawer] = useState<'none' | 'member360' | 'conversation' | 'membershipSettings'>(
+    'none'
+  )
   const [conversationReturnTo, setConversationReturnTo] = useState<'none' | 'member360'>(
     'member360'
   )
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set())
   const [liveRows, setLiveRows] = useState<MemberRow[]>([])
   const [dashboard, setDashboard] = useState<MemberDashboard | null>(null)
+  const [membershipPackages, setMembershipPackages] =
+    useState<BiCommercePackage[]>(EMPTY_PACKAGES)
   const [totalRows, setTotalRows] = useState(0)
   const [loading, setLoading] = useState(flagEnabled)
   const [error, setError] = useState('')
@@ -257,6 +315,7 @@ export function BiV2MemberOpsPanel({
     if (!flagEnabled) {
       setLiveRows([])
       setDashboard(null)
+      setMembershipPackages(EMPTY_PACKAGES)
       setTotalRows(0)
       setLoading(false)
       setError('')
@@ -265,7 +324,7 @@ export function BiV2MemberOpsPanel({
     try {
       setLoading(true)
       setError('')
-      const [nextDashboard, list] = await Promise.all([
+      const [nextDashboard, list, commerce] = await Promise.all([
         getMemberDashboard(),
         listMembers({
           page: 1,
@@ -278,9 +337,15 @@ export function BiV2MemberOpsPanel({
           expire_within_days: filters.expiringDays || undefined,
           risk_level: filters.riskMin >= 0.7 ? 'high' : undefined,
         }),
+        getBiCommerce({ limit: 50 }).catch(() => null),
       ])
       const nextRows = list.items.map(toMemberRow)
       setDashboard(nextDashboard)
+      if (commerce) {
+        setMembershipPackages(
+          commerce.packages.filter(pkg => (pkg.status || 'active') !== 'archived')
+        )
+      }
       setLiveRows(nextRows)
       setTotalRows(list.total)
       setSelectedRows(
@@ -404,6 +469,66 @@ export function BiV2MemberOpsPanel({
     setDrawer('conversation')
   }
 
+  const openMembershipSettings = useCallback(
+    async (row?: MemberRow) => {
+      const member = row ?? selectedMember
+      if (!member) return
+      setSelectedMember(member)
+      setSelectedDetail(null)
+      setDetailError('')
+      setDrawer('membershipSettings')
+      if (!flagEnabled) return
+      try {
+        setDetailLoading(true)
+        setSelectedDetail(await getMemberDetail(member.user_id))
+      } catch (err) {
+        setDetailError(err instanceof Error ? err.message : '会员详情加载失败')
+      } finally {
+        setDetailLoading(false)
+      }
+    },
+    [flagEnabled, selectedMember]
+  )
+
+  function syncMembershipResult(member: MemberRow, detail: MemberDetail) {
+    setSelectedDetail(prev =>
+      prev?.user_id === member.user_id || selectedMember?.user_id === member.user_id
+        ? detail
+        : prev
+    )
+    setSelectedMember(prev =>
+      prev?.user_id === member.user_id
+        ? {
+            ...prev,
+            tier: normalizeMembershipTier(detail.tier),
+            status: normalizeStatus(detail.status),
+            expires_at: shortDate(detail.expire_at),
+          }
+        : prev
+    )
+  }
+
+  async function writeMembershipChange(
+    member: MemberRow,
+    operation: () => Promise<MemberDetail>,
+    notice: (detail: MemberDetail) => string
+  ) {
+    if (!flagEnabled || membershipActionWriting) return
+    setOpsActionNotice('')
+    setMembershipActionError('')
+    try {
+      setMembershipActionWriting(true)
+      const detail = await operation()
+      syncMembershipResult(member, detail)
+      setOpsActionNotice(notice(detail))
+      await loadMembers()
+    } catch (err) {
+      setMembershipActionError(err instanceof Error ? err.message : '会员设置写入失败')
+    } finally {
+      setMembershipActionWriting(false)
+    }
+  }
+
   async function executeMemberOpsAction(
     userId: string,
     payload: {
@@ -456,41 +581,85 @@ export function BiV2MemberOpsPanel({
   }
 
   async function upgradeMemberToVip(member: MemberRow) {
-    if (!flagEnabled || membershipActionWriting || !canUpgradeToVip(member)) return
-    setOpsActionNotice('')
-    setMembershipActionError('')
-    try {
-      setMembershipActionWriting(true)
-      const detail = await grantMembership({
-        user_id: member.user_id,
-        tier: 'vip',
-        days: 365,
-        reason: 'BI 会员运营手动升 VIP',
-      })
-      setOpsActionNotice(
-        `已将 ${member.phone_masked} 升为 VIP，有效期至 ${shortDate(detail.expire_at)}`
-      )
-      setSelectedDetail(prev =>
-        prev?.user_id === member.user_id || selectedMember?.user_id === member.user_id
-          ? detail
-          : prev
-      )
-      setSelectedMember(prev =>
-        prev?.user_id === member.user_id
-          ? {
-              ...prev,
-              tier: 'vip',
-              status: normalizeStatus(detail.status),
-              expires_at: shortDate(detail.expire_at),
-            }
-          : prev
-      )
-      await loadMembers()
-    } catch (err) {
-      setMembershipActionError(err instanceof Error ? err.message : '升 VIP 失败')
-    } finally {
-      setMembershipActionWriting(false)
-    }
+    if (!canUpgradeToVip(member)) return
+    await writeMembershipChange(
+      member,
+      () =>
+        grantMembership({
+          user_id: member.user_id,
+          tier: 'vip',
+          days: 365,
+          reason: 'BI 会员运营手动升 VIP',
+        }),
+      detail => `已将 ${member.phone_masked} 升为 VIP，有效期至 ${shortDate(detail.expire_at)}`
+    )
+  }
+
+  async function grantMemberEntitlement(member: MemberRow, payload: { tier: string; days: number; reason: string }) {
+    await writeMembershipChange(
+      member,
+      () =>
+        grantMembership({
+          user_id: member.user_id,
+          tier: payload.tier,
+          days: payload.days,
+          reason: payload.reason,
+        }),
+      detail =>
+        `已授予 ${member.phone_masked} ${tierLabel(detail.tier)}，有效期至 ${shortDate(detail.expire_at)}`
+    )
+  }
+
+  async function paidOpenMembership(
+    member: MemberRow,
+    payload: { packageId: string; days: number; amountCny?: number; reason: string }
+  ) {
+    await writeMembershipChange(
+      member,
+      async () => {
+        const result = await manualPurchaseMembership({
+          user_id: member.user_id,
+          package_id: payload.packageId,
+          days: payload.days,
+          amount_cny: payload.amountCny,
+          reason: payload.reason,
+        })
+        return result.member
+      },
+      detail =>
+        `已为 ${member.phone_masked} 付费开通 ${tierLabel(detail.tier)}，有效期至 ${shortDate(detail.expire_at)}`
+    )
+  }
+
+  async function saveMembershipSettings(
+    member: MemberRow,
+    payload: { tier: string; days?: number; expireAt?: string; reason: string }
+  ) {
+    await writeMembershipChange(
+      member,
+      () =>
+        updateMembership({
+          user_id: member.user_id,
+          tier: payload.tier,
+          days: payload.days,
+          expire_at: payload.expireAt,
+          reason: payload.reason,
+        }),
+      detail =>
+        `已更新 ${member.phone_masked} 为 ${tierLabel(detail.tier)}，有效期至 ${shortDate(detail.expire_at)}`
+    )
+  }
+
+  async function cancelMembership(member: MemberRow, reason: string) {
+    await writeMembershipChange(
+      member,
+      () =>
+        revokeMembership({
+          user_id: member.user_id,
+          reason,
+        }),
+      detail => `已取消 ${member.phone_masked} 会员，当前状态 ${statusLabel(normalizeStatus(detail.status))}`
+    )
   }
 
   async function runBulkAction(kind: 'contacted' | 'follow_up') {
@@ -664,6 +833,16 @@ export function BiV2MemberOpsPanel({
         rowAriaLabel={row => `打开 ${row.phone_masked} 学员 360`}
         rowAction={row => (
           <div className="flex justify-end gap-1.5">
+            <BiButton
+              onClick={() => void openMembershipSettings(row)}
+              variant="secondary"
+              size="xs"
+              aria-label={`打开 ${row.user_id} 会员设置`}
+              title="设置套餐、等级、有效期和取消会员"
+            >
+              <UserCog className="h-3 w-3" aria-hidden />
+              会员设置
+            </BiButton>
             {canUpgradeToVip(row) ? (
               <BiButton
                 onClick={() => void upgradeMemberToVip(row)}
@@ -722,6 +901,27 @@ export function BiV2MemberOpsPanel({
         opsActionWriting={opsActionWriting}
         onUpgradeToVip={upgradeMemberToVip}
         membershipActionWriting={membershipActionWriting}
+        onOpenMembershipSettings={() => void openMembershipSettings()}
+      />
+      <MembershipSettingsPanel
+        key={[
+          selectedMember?.user_id ?? 'none',
+          selectedDetail?.tier ?? '',
+          selectedDetail?.expire_at ?? '',
+          membershipPackages.map(pkg => pkg.id).join('|'),
+        ].join(':')}
+        open={drawer === 'membershipSettings'}
+        member={selectedMember}
+        detail={selectedDetail}
+        packages={membershipPackages}
+        loading={detailLoading}
+        error={detailError || membershipActionError}
+        writing={membershipActionWriting}
+        onClose={() => setDrawer('none')}
+        onGrant={grantMemberEntitlement}
+        onPaidOpen={paidOpenMembership}
+        onUpdate={saveMembershipSettings}
+        onRevoke={cancelMembership}
       />
       <ConversationReviewDrawer
         open={drawer === 'conversation'}
@@ -730,6 +930,335 @@ export function BiV2MemberOpsPanel({
         onClose={() => setDrawer(conversationReturnTo)}
       />
     </section>
+  )
+}
+
+function MembershipSettingsPanel({
+  open,
+  member,
+  detail,
+  packages,
+  loading,
+  error,
+  writing,
+  onClose,
+  onGrant,
+  onPaidOpen,
+  onUpdate,
+  onRevoke,
+}: {
+  open: boolean
+  member: MemberRow | null
+  detail: MemberDetail | null
+  packages: ReadonlyArray<BiCommercePackage>
+  loading: boolean
+  error: string
+  writing: boolean
+  onClose: () => void
+  onGrant: (member: MemberRow, payload: { tier: string; days: number; reason: string }) => Promise<void> | void
+  onPaidOpen: (
+    member: MemberRow,
+    payload: { packageId: string; days: number; amountCny?: number; reason: string }
+  ) => Promise<void> | void
+  onUpdate: (
+    member: MemberRow,
+    payload: { tier: string; days?: number; expireAt?: string; reason: string }
+  ) => Promise<void> | void
+  onRevoke: (member: MemberRow, reason: string) => Promise<void> | void
+}) {
+  const activePackages = useMemo(
+    () => packages.filter(pkg => (pkg.status || 'active') === 'active'),
+    [packages]
+  )
+  const initialTier = normalizeMembershipTier(detail?.tier ?? member?.tier ?? 'vip')
+  const initialPackage =
+    activePackages.find(pkg => normalizeMembershipTier(pkg.tier) === initialTier) ??
+    activePackages[0]
+  const [tier, setTier] = useState<MemberRow['tier']>(initialTier)
+  const [packageId, setPackageId] = useState(initialPackage?.id ?? '')
+  const [days, setDays] = useState('365')
+  const [expireAt, setExpireAt] = useState(toDateInputValue(detail?.expire_at))
+  const [amountCny, setAmountCny] = useState(initialPackage ? String(initialPackage.priceCny || '') : '')
+  const [reason, setReason] = useState('BI 会员设置')
+  const [formError, setFormError] = useState('')
+  const selectedPackage = activePackages.find(pkg => pkg.id === packageId) ?? activePackages[0]
+
+  if (!member) return null
+  const activeMember = member
+
+  function applyPackage(nextPackageId: string) {
+    const next = activePackages.find(pkg => pkg.id === nextPackageId)
+    setPackageId(nextPackageId)
+    if (next) {
+      setTier(normalizeMembershipTier(next.tier))
+      setAmountCny(String(next.priceCny || ''))
+    }
+  }
+
+  function parseDays(): number | null {
+    const parsed = Number(days)
+    if (!Number.isFinite(parsed) || parsed <= 0 || parsed > 3650) return null
+    return Math.floor(parsed)
+  }
+
+  function parseAmount(): number | undefined | null {
+    const trimmed = amountCny.trim()
+    if (!trimmed) return undefined
+    const parsed = Number(trimmed)
+    if (!Number.isFinite(parsed) || parsed < 0) return null
+    return parsed
+  }
+
+  async function submitGrant() {
+    const parsedDays = parseDays()
+    if (!parsedDays) {
+      setFormError('有效天数必须在 1-3650 之间')
+      return
+    }
+    setFormError('')
+    await onGrant(activeMember, {
+      tier,
+      days: parsedDays,
+      reason: reason.trim() || 'BI 会员设置：运营授予权益',
+    })
+  }
+
+  async function submitPaidOpen() {
+    const parsedDays = parseDays()
+    const parsedAmount = parseAmount()
+    if (!selectedPackage || !parsedDays) {
+      setFormError('请选择套餐并填写有效天数')
+      return
+    }
+    if (parsedAmount === null) {
+      setFormError('实收金额必须是非负数字')
+      return
+    }
+    setFormError('')
+    await onPaidOpen(activeMember, {
+      packageId: selectedPackage.id,
+      days: parsedDays,
+      amountCny: parsedAmount,
+      reason: reason.trim() || 'BI 会员设置：付费开通并入账',
+    })
+  }
+
+  async function submitUpdate(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const parsedDays = parseDays()
+    if (!expireAt && !parsedDays) {
+      setFormError('请填写有效期或有效天数')
+      return
+    }
+    setFormError('')
+    await onUpdate(activeMember, {
+      tier,
+      days: expireAt ? undefined : parsedDays ?? undefined,
+      expireAt: expireAt || undefined,
+      reason: reason.trim() || 'BI 会员设置：保存等级/有效期',
+    })
+  }
+
+  async function submitRevoke() {
+    if (!window.confirm(`取消 ${activeMember.phone_masked} 的会员权益？`)) return
+    setFormError('')
+    await onRevoke(activeMember, reason.trim() || 'BI 会员设置：取消会员')
+  }
+
+  return (
+    <BiSidePanel
+      open={open}
+      onClose={onClose}
+      title="会员设置"
+      subtitle={`${member.phone_masked} · ${member.user_id}`}
+      width="lg"
+      footer={
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <BiButton
+            onClick={() => void submitRevoke()}
+            disabled={writing}
+            variant="danger"
+            size="sm"
+            aria-label="取消会员"
+            title="撤销当前会员权益，不删除历史流水"
+          >
+            <ShieldOff className="h-3.5 w-3.5" aria-hidden />
+            取消会员
+          </BiButton>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <BiButton
+              onClick={() => void submitGrant()}
+              disabled={writing}
+              variant="secondary"
+              size="sm"
+              aria-label="运营授予权益"
+            >
+              <Crown className="h-3.5 w-3.5" aria-hidden />
+              运营授予权益
+            </BiButton>
+            <BiButton
+              onClick={() => void submitPaidOpen()}
+              disabled={writing || activePackages.length === 0}
+              variant="primary"
+              size="sm"
+              aria-label="付费开通并入账"
+            >
+              <CreditCard className="h-3.5 w-3.5" aria-hidden />
+              付费开通并入账
+            </BiButton>
+          </div>
+        </div>
+      }
+    >
+      <form
+        data-testid="bi-member-membership-settings"
+        onSubmit={submitUpdate}
+        className="space-y-4"
+      >
+        {loading ? <BiNotice tone="sky">正在加载会员状态...</BiNotice> : null}
+        {error ? <BiNotice tone="rose">会员设置加载失败：{error}</BiNotice> : null}
+        {formError ? <BiNotice tone="rose">{formError}</BiNotice> : null}
+
+        <section className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <StatusTile label="当前等级" value={tierLabel(detail?.tier ?? member.tier)} tone={TIER_TONE[normalizeMembershipTier(detail?.tier ?? member.tier)]} />
+          <StatusTile label="当前状态" value={statusLabel(normalizeStatus(detail?.status ?? member.status))} tone={STATUS_TONE[normalizeStatus(detail?.status ?? member.status)]} />
+          <StatusTile label="当前有效期" value={toDateInputValue(detail?.expire_at) || member.expires_at || '—'} tone="sky" />
+        </section>
+
+        <section className="rounded-2xl border border-white/10 bg-white/[0.035] p-3">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 className="text-sm font-black text-white">套餐与权益</h3>
+              <p className="mt-0.5 text-xs text-slate-400">
+                套餐来自商品账务，付费开通会自动计入收入流水。
+              </p>
+            </div>
+            <BiStatusPill tone="sky" label={`${activePackages.length} 个可用套餐`} size="sm" />
+          </div>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <label className="space-y-1">
+              <span className="text-[11px] text-slate-400">套餐</span>
+              <BiSelect
+                value={selectedPackage?.id ?? ''}
+                onChange={event => applyPackage(event.target.value)}
+                wrapperClassName="w-full"
+                aria-label="选择会员套餐"
+              >
+                {activePackages.map(pkg => (
+                  <option key={pkg.id} value={pkg.id}>
+                    {pkg.name} · {tierLabel(pkg.tier)} · {pkg.points}点
+                  </option>
+                ))}
+                {activePackages.length === 0 ? <option value="">暂无可用套餐</option> : null}
+              </BiSelect>
+            </label>
+            <label className="space-y-1">
+              <span className="text-[11px] text-slate-400">等级</span>
+              <BiSelect
+                value={tier}
+                onChange={event => setTier(normalizeMembershipTier(event.target.value))}
+                wrapperClassName="w-full"
+                aria-label="选择会员等级"
+              >
+                <option value="trial">体验</option>
+                <option value="vip">VIP</option>
+                <option value="svip">SVIP</option>
+              </BiSelect>
+            </label>
+          </div>
+          {selectedPackage ? (
+            <div className="mt-3 grid grid-cols-2 gap-2 text-xs md:grid-cols-4">
+              <PackageMetric label="套餐价" value={`¥${selectedPackage.priceCny}`} />
+              <PackageMetric label="点数" value={`${selectedPackage.points}`} />
+              <PackageMetric label="次数" value={`${selectedPackage.turns}`} />
+              <PackageMetric label="状态" value={selectedPackage.status || 'active'} />
+            </div>
+          ) : null}
+        </section>
+
+        <section className="rounded-2xl border border-white/10 bg-white/[0.035] p-3">
+          <h3 className="text-sm font-black text-white">有效期与收款</h3>
+          <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-3">
+            <label className="space-y-1">
+              <span className="text-[11px] text-slate-400">有效天数</span>
+              <input
+                type="number"
+                min={1}
+                max={3650}
+                value={days}
+                onChange={event => setDays(event.target.value)}
+                className={MEMBERSHIP_INPUT_CLASS}
+                aria-label="设置有效天数"
+              />
+            </label>
+            <label className="space-y-1">
+              <span className="text-[11px] text-slate-400">有效期</span>
+              <input
+                type="date"
+                value={expireAt}
+                onChange={event => setExpireAt(event.target.value)}
+                className={MEMBERSHIP_INPUT_CLASS}
+                aria-label="设置会员有效期"
+              />
+            </label>
+            <label className="space-y-1">
+              <span className="text-[11px] text-slate-400">实收 ¥</span>
+              <input
+                inputMode="decimal"
+                value={amountCny}
+                onChange={event => setAmountCny(event.target.value)}
+                className={MEMBERSHIP_INPUT_CLASS}
+                aria-label="设置实收金额"
+              />
+            </label>
+          </div>
+          <label className="mt-3 block space-y-1">
+            <span className="text-[11px] text-slate-400">原因 / 备注</span>
+            <input
+              value={reason}
+              onChange={event => setReason(event.target.value)}
+              className={MEMBERSHIP_INPUT_CLASS}
+              aria-label="设置会员变更原因"
+            />
+          </label>
+        </section>
+
+        <div className="flex justify-end">
+          <BiButton type="submit" disabled={writing} variant="secondary" size="sm">
+            <Save className="h-3.5 w-3.5" aria-hidden />
+            保存等级/有效期
+          </BiButton>
+        </div>
+      </form>
+    </BiSidePanel>
+  )
+}
+
+function StatusTile({
+  label,
+  value,
+  tone,
+}: {
+  label: string
+  value: string
+  tone: 'sky' | 'amber' | 'emerald' | 'rose' | 'slate'
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.045] p-3">
+      <div className="text-[11px] font-bold text-slate-400">{label}</div>
+      <div className="mt-2">
+        <BiStatusPill tone={tone} label={value} size="md" />
+      </div>
+    </div>
+  )
+}
+
+function PackageMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-slate-950/25 px-3 py-2">
+      <div className="text-[11px] text-slate-500">{label}</div>
+      <div className="mt-1 truncate text-sm font-black text-slate-100">{value}</div>
+    </div>
   )
 }
 

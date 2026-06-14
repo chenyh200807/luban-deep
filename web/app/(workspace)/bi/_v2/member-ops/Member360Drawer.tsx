@@ -2,7 +2,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Crown } from 'lucide-react'
+import { Crown, UserCog } from 'lucide-react'
 import {
   BiButton,
   BiMoneyCell,
@@ -32,6 +32,7 @@ export type Member360DrawerProps = {
   opsActionWriting?: boolean
   onUpgradeToVip: (member: MemberRow) => Promise<void> | void
   membershipActionWriting?: boolean
+  onOpenMembershipSettings: () => void
 }
 
 export function Member360Drawer({
@@ -48,6 +49,7 @@ export function Member360Drawer({
   opsActionWriting = false,
   onUpgradeToVip,
   membershipActionWriting = false,
+  onOpenMembershipSettings,
 }: Member360DrawerProps) {
   const [noteDraft, setNoteDraft] = useState('')
   if (!member) return null
@@ -87,6 +89,16 @@ export function Member360Drawer({
       width="lg"
       footer={
         <div className="flex flex-wrap items-center justify-end gap-2">
+          <BiButton
+            onClick={onOpenMembershipSettings}
+            variant="secondary"
+            size="sm"
+            aria-label="打开当前会员设置"
+            title="设置套餐、等级、有效期和取消会员"
+          >
+            <UserCog className="h-3.5 w-3.5" aria-hidden />
+            会员设置
+          </BiButton>
           {canUpgradeToVip ? (
             <BiButton
               disabled={membershipActionWriting}

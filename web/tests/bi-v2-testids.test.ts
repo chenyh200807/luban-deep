@@ -65,6 +65,24 @@ test('member ops exposes a visible VIP upgrade action', async () => {
   assert.ok(drawer.includes('aria-label="将当前会员升级为 VIP"'))
 })
 
+test('member ops exposes a cashier-grade membership settings console', async () => {
+  const panel = await readWeb('app/(workspace)/bi/_v2/member-ops/BiV2MemberOpsPanel.tsx')
+
+  assert.ok(panel.includes('getBiCommerce'))
+  assert.ok(panel.includes('manualPurchaseMembership'))
+  assert.ok(panel.includes('updateMembership'))
+  assert.ok(panel.includes('revokeMembership'))
+  assert.ok(panel.includes('data-testid="bi-member-membership-settings"'))
+  assert.ok(panel.includes('会员设置'))
+  assert.ok(panel.includes('体验'))
+  assert.ok(panel.includes('VIP'))
+  assert.ok(panel.includes('SVIP'))
+  assert.ok(panel.includes('有效期'))
+  assert.ok(panel.includes('付费开通并入账'))
+  assert.ok(panel.includes('保存等级/有效期'))
+  assert.ok(panel.includes('取消会员'))
+})
+
 test('BiDataTable supports row-level click without stealing checkbox/action clicks', async () => {
   const table = await readWeb('components/bi-v2/BiDataTable.tsx')
 
