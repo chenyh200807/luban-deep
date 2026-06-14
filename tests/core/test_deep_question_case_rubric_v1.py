@@ -364,6 +364,108 @@ def test_batch_judge_async_parses_and_fails_closed() -> None:
     assert asyncio.run(G.batch_judge_async(_RUBRIC, "ans", _boom_complete, "k")) == {}
 
 
+def _pgo_ctx(*, flag: bool = True, user_id: str = "qa_pgo_shadow") -> UnifiedContext:
+    metadata: dict[str, Any] = {"user_id": user_id}
+    if flag:
+        metadata["grading_engine_pgo_shadow"] = True
+    return UnifiedContext(session_id="s", user_message="m", metadata=metadata)
+
+
+def _pgo_contract() -> dict[str, Any]:
+    return {
+        "question_id": "case-pgo",
+        "official_total_score": 10.0,
+        "official_score_allowed": False,
+        "canonical_write_allowed": False,
+        "scoring_points": [
+            {"point_id": "p1", "sub_type": "free_text_point", "official_slice": "点1", "score": None},
+            {"point_id": "p2", "sub_type": "free_text_point", "official_slice": "点2", "score": None},
+        ],
+        "supporting_citations": [],
+    }
+
+
+def test_pgo_shadow_flag_off_is_byte_identical(monkeypatch: pytest.MonkeyPatch) -> None:
+    from deeptutor.capabilities import deep_question as dq
+
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_PGO_SHADOW_ENABLED", "true")
+    payload = {"construction_grading_result": {"score_awarded": 7.0, "max_score": 10.0}}
+    before = dict(payload)
+
+    dq._maybe_attach_pgo_shadow(
+        context=_pgo_ctx(flag=False),
+        graded_context={"pgo_grading_contract": _pgo_contract(), "pgo_point_verdicts": {"p1": "hit"}},
+        result_payload=payload,
+    )
+
+    assert payload == before
+
+
+def test_pgo_shadow_env_default_off_kills_even_with_request_flag(monkeypatch: pytest.MonkeyPatch) -> None:
+    from deeptutor.capabilities import deep_question as dq
+
+    monkeypatch.delenv("LUBAN_CASE_RUBRIC_PGO_SHADOW_ENABLED", raising=False)
+    payload = {"construction_grading_result": {"score_awarded": 7.0, "max_score": 10.0}}
+
+    dq._maybe_attach_pgo_shadow(
+        context=_pgo_ctx(flag=True),
+        graded_context={"pgo_grading_contract": _pgo_contract(), "pgo_point_verdicts": {"p1": "hit"}},
+        result_payload=payload,
+    )
+
+    shadow = payload["luban_case_rubric_pgo_shadow"]
+    assert shadow["shadow_status"] == "killed_by_switch"
+    assert shadow["writeback_performed"] is False
+    assert payload["construction_grading_result"]["score_awarded"] == 7.0
+
+
+def test_pgo_shadow_append_only_uses_official_total_coverage(monkeypatch: pytest.MonkeyPatch) -> None:
+    from deeptutor.capabilities import deep_question as dq
+
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_PGO_SHADOW_ENABLED", "true")
+    legacy = {"score_awarded": 7.0, "max_score": 10.0, "authority": "construction_grading"}
+    payload = {"construction_grading_result": dict(legacy)}
+
+    dq._maybe_attach_pgo_shadow(
+        context=_pgo_ctx(flag=True, user_id="operator_pgo"),
+        graded_context={
+            "question_id": "case-pgo",
+            "pgo_grading_contract": _pgo_contract(),
+            "pgo_point_verdicts": {"p1": "hit", "p2": "partial"},
+        },
+        result_payload=payload,
+    )
+
+    shadow = payload["luban_case_rubric_pgo_shadow"]
+    assert payload["construction_grading_result"] == legacy
+    assert shadow["authority"] == "luban_case_rubric_pgo_shadow"
+    assert shadow["shadow_status"] == "ok"
+    assert shadow["score"]["awarded_score"] == 7.5
+    assert shadow["score"]["max_score"] == 10.0
+    assert shadow["official_score_allowed"] is False
+    assert shadow["canonical_write_allowed"] is False
+    assert shadow["writeback_performed"] is False
+    assert shadow["runtime_points"][0]["score"] is None
+
+
+def test_pgo_shadow_missing_contract_fails_closed_without_inference(monkeypatch: pytest.MonkeyPatch) -> None:
+    from deeptutor.capabilities import deep_question as dq
+
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_PGO_SHADOW_ENABLED", "true")
+    payload = {"construction_grading_result": {"score_awarded": 7.0, "max_score": 10.0}}
+
+    dq._maybe_attach_pgo_shadow(
+        context=_pgo_ctx(flag=True),
+        graded_context={"pgo_point_verdicts": {"p1": "hit"}},
+        result_payload=payload,
+    )
+
+    shadow = payload["luban_case_rubric_pgo_shadow"]
+    assert shadow["shadow_status"] == "pgo_contract_missing"
+    assert shadow["writeback_performed"] is False
+    assert shadow["runtime_points"] == []
+
+
 @pytest.mark.asyncio
 async def test_case_rubric_v1_g2_guard_demotes_rich_leaf_point(monkeypatch: pytest.MonkeyPatch) -> None:
     # G2 single-authority WIRED on the live scoring path: if a rich-leaf / textbook-cited point ever

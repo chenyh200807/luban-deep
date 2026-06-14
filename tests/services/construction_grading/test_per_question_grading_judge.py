@@ -15,6 +15,7 @@ from deeptutor.services.construction_grading.per_question_grading_judge import (
     OVER_CREDIT_HIGH_THRESHOLD,
     PARTIAL,
     candidate_coverage_score,
+    build_pgo_shadow_payload,
     detect_over_credit,
     make_controlled_student_answers,
     oracle_verdicts,
@@ -266,3 +267,41 @@ def test_verdict_coverage_score_fails_closed_without_official_total():
     assert result["max_score"] == 0.0
     assert result["coverage"] == 0.0
     assert result["blockers"] == ["missing_official_total_score"]
+
+
+def test_pgo_shadow_payload_is_non_authoritative_and_append_only_shape():
+    payload = build_pgo_shadow_payload(
+        contract=_stage2_contract(),
+        point_verdicts={
+            "sp_flaw": HIT,
+            "sp_exception": PARTIAL,
+            "sp_calc": MISS,
+            "sp_enum": HIT,
+            "sp_free": MISS,
+        },
+        question_id="Q-STAGE2",
+        student_id="qa_pgo",
+    )
+
+    assert payload["authority"] == "luban_case_rubric_pgo_shadow"
+    assert payload["shadow_status"] == "ok"
+    assert payload["score"]["awarded_score"] == 5.0
+    assert payload["score"]["score_authority"] == "official_total_x_verdict_coverage"
+    assert payload["official_score_allowed"] is False
+    assert payload["canonical_write_allowed"] is False
+    assert payload["writeback_performed"] is False
+    assert payload["runtime_points"][0]["score"] is None
+
+
+def test_pgo_shadow_payload_missing_contract_does_not_infer_from_legacy_score():
+    payload = build_pgo_shadow_payload(
+        contract=None,
+        point_verdicts={"sp_flaw": HIT},
+        question_id="Q-STAGE2",
+        student_id="qa_pgo",
+    )
+
+    assert payload["shadow_status"] == "pgo_contract_missing"
+    assert payload["score"]["awarded_score"] == 0.0
+    assert payload["score"]["blockers"] == ["pgo_contract_missing"]
+    assert payload["runtime_points"] == []

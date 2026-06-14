@@ -1232,6 +1232,75 @@ async def test_start_turn_projects_general_knowledge_shadow_flag_to_tutorbot_met
 
 
 @pytest.mark.asyncio
+async def test_start_turn_passes_pgo_shadow_flag_to_config_overrides(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path,
+) -> None:
+    store = SQLiteSessionStore(tmp_path / "chat_history.db")
+    runtime = TurnRuntimeManager(store)
+    captured: dict[str, object] = {}
+
+    class FakeContextBuilder:
+        def __init__(self, *_args, **_kwargs) -> None:
+            pass
+
+        async def build(self, **_kwargs):
+            return SimpleNamespace(
+                conversation_history=[],
+                conversation_summary="",
+                context_text="",
+                token_count=0,
+                budget=0,
+            )
+
+    class FakeOrchestrator:
+        async def _select_capability(self, context):
+            return "deep_question"
+
+        async def handle(self, context):
+            captured["config_overrides"] = dict(context.config_overrides)
+            yield StreamEvent(
+                type=StreamEventType.RESULT,
+                source="deep_question",
+                metadata={"response": "graded"},
+            )
+            yield StreamEvent(type=StreamEventType.DONE, source="deep_question")
+
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: SimpleNamespace())
+    monkeypatch.setattr("deeptutor.services.session.context_builder.ContextBuilder", FakeContextBuilder)
+    monkeypatch.setattr("deeptutor.runtime.orchestrator.ChatOrchestrator", FakeOrchestrator)
+    monkeypatch.setattr(
+        "deeptutor.services.memory.get_memory_service",
+        lambda: SimpleNamespace(
+            build_memory_context=lambda: "",
+            refresh_from_turn=_noop_refresh,
+        ),
+    )
+
+    _session, turn = await runtime.start_turn(
+        {
+            "type": "start_turn",
+            "content": "提交案例题答案",
+            "session_id": "session_pgo_shadow_flag",
+            "capability": "deep_question",
+            "tools": [],
+            "knowledge_bases": [],
+            "attachments": [],
+            "language": "zh",
+            "config": {
+                "grading_engine_pgo_shadow": True,
+            },
+        }
+    )
+
+    async for event in runtime.subscribe_turn(turn["id"], after_seq=0):
+        if event["type"] == "done":
+            break
+
+    assert captured["config_overrides"]["grading_engine_pgo_shadow"] is True
+
+
+@pytest.mark.asyncio
 async def test_start_turn_does_not_coerce_string_general_knowledge_flag_to_true(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path,
