@@ -61,8 +61,8 @@
 5. 一个手术 PR 修 index.yaml 结构 bug:删 duplicate `mobile_http_auth_controls`、把 package copy 补 http_routes+test_rbac、加 CI step(或点亮 test_index_consistency)断言两份一致。
 6. **脱敏 blocklist 单源化**(安全相关):contracts/ 定义一次 frozenset,三处 import,JS 副本 codegen(复用 bi_v2_write_endpoints 模式),加 drift 测进 CI。
 
-**P2**
-7. BI 指标 drift 守卫接 CI(一行)。
+**P2** — 收口状态:P2#7 ✓ / P2#8 5/6 ✓(evidence_bundle 单列待 owner 决策)/ P2#9 ✓。除 evidence_bundle 外全部落地。
+7. BI 指标 drift 守卫接 CI(一行)。**【DONE 2026-06-14, commit 41e47cddc】** `test_bi_metrics.py`(含 `test_metric_registry_ts_in_sync`: `gen_bi_metrics_ts --check` 检测 generated.ts 与 BI_METRICS 漂移 + 8 个 metric_id 契约测试)进 CI smoke allowlist,从 PR-blind 变 PR-blocking。smoke-safe(仅 import bi_metrics)。
 8. 把真·跨消费非判分 schema 升进 schema_registry 的 T2/新 runtime_contract 段(复用同一 closure scanner):learning-report(v1+v2)、RAG retrieval_plan/evidence_bundle、learner-state PCP/training_intent/error_events——前置:先给每个一个 typed id 字面量让 scanner 看得到。**【6 个命名目标 5/6 DONE 2026-06-14】** 每个都用"加 module-level SCHEMA_ID 常量(行为保持,整数版本不动)+ namespace 正则 tight 分支(实测 delta 恰好新 id)+ T2 注册 needs_field_canonicalization:true + producer↔registry 域测试"的同一 recipe,闭包逐步 CLOSED 178→183(tier2 21→26):
    - learning_report_read_model.v2(commit 405121cfa)
    - rag_retrieval_plan.v1(commit 8cfe52bddbfd)
@@ -70,7 +70,7 @@
    - learning_training_intent.v2(commit 13ee7d64d)
    - grading_error_event.v1(commit 7a4745279;error_events 目标。注=可见性,evidence vs v1-rubric evidence_span 字段 reconciliation 是 P2#9 pinning,不在注册内改生产形状)
    - **剩 RAG evidence_bundle**:三站点形状各异组装(kbv5 内联 / supabase `_build_evidence_bundle`+额外键 / service.py fallback),无单一权威——诚实注册须先 consolidation 成一个 builder+一种形状=RAG 生产级重构,**非行为保持**。强行挂 SCHEMA_ID 到任一站点是假单一权威(违反"修法不造第二权威")。待 owner 决策:先 consolidate 再注册,还是接受当前三形先记 TODO。
-9. 增量钉 T2 字段:高频契约(context_pack.v1/rich_leaf_context_bundle.v1)`needs_field_canonicalization=false` + canonical 字段表,字段漂移变 BLOCKING(在 schema_ok 接好后)。
+9. 增量钉 T2 字段:高频契约(context_pack.v1/rich_leaf_context_bundle.v1)`needs_field_canonicalization=false` + canonical 字段表,字段漂移变 BLOCKING(在 schema_ok 接好后)。**【DONE 2026-06-14, commit 9cab6d5ac】** 两条 T2 加 canonical_fields + flip false:context_pack.v1=LubanContextPack 9 dataclass 字段、rich_leaf_context_bundle.v1=`_RECORD_FIELDS` 8 per-record 字段。加 **robust 内省对账测试**(producer `__dataclass_fields__`/`_RECORD_FIELDS` == registry canonical_fields,非脆弱 regex)进 test_schema_registry.py(smoke-allowlisted,CI BLOCKING;已验判别力非假绿)+ registry 一致性测试(PINNED 必列字段表/unpinned 不得列)。零新 guard 机制。
 
 **P3**
 10. 去重 5 个路由 pydantic 类 + 建统一响应 envelope,把 api/router schema 面纳入 contract-guard 域。
