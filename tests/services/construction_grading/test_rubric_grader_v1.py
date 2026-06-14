@@ -521,6 +521,9 @@ def test_rubric_bank_pgo_slot_loads_independent_bank_when_hash_pinned(tmp_path: 
                 "official_total_score": 10.0,
                 "score_authority": "official_total_x_verdict_coverage",
                 "per_point_score_authority": "pending_calibration_not_official",
+                "source_schema": "luban_per_question_grading_object.v1",
+                "factory_resolution_lane": "A_consensus",
+                "factory_point_type": "list",
             }
         ],
     )
@@ -534,6 +537,9 @@ def test_rubric_bank_pgo_slot_loads_independent_bank_when_hash_pinned(tmp_path: 
         assert loaded[0]["score"] is None
         assert loaded[0]["official_total_score"] == 10.0
         assert loaded[0]["score_authority"] == "official_total_x_verdict_coverage"
+        assert loaded[0]["source_schema"] == "luban_per_question_grading_object.v1"
+        assert loaded[0]["factory_resolution_lane"] == "A_consensus"
+        assert loaded[0]["factory_point_type"] == "list"
     finally:
         G._rubric_bank.cache_clear()
 

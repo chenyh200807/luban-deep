@@ -622,6 +622,11 @@ def _rubric_bank() -> dict[str, list[dict[str, Any]]]:
             "per_point_score_authority",
             "term_authority",
             "sub_type",
+            "source_schema",
+            "exact_term_required",
+            "factory_resolution",
+            "factory_resolution_lane",
+            "factory_point_type",
         ):
             if key in r:
                 point[key] = r.get(key)

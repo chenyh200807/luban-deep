@@ -249,6 +249,7 @@ def _record_from_runtime_point(contract: dict[str, Any], point: dict[str, Any]) 
     return {
         "qid": str(contract.get("question_id") or ""),
         "point_id": str(point.get("point_id") or ""),
+        "source_schema": contract.get("source_schema"),
         "text": text,
         "official_slice": text,
         "score": None,
@@ -278,17 +279,39 @@ def build_pgo_runtime_supply(contracts: list[dict[str, Any]]) -> dict[str, Any]:
     records: list[dict[str, Any]] = []
     rejected: list[dict[str, Any]] = []
     by_policy: dict[str, int] = {}
+    source_schemas: set[str] = set()
+    factory_resolution_lanes: set[str] = set()
     for contract in contracts:
         qid = str(contract.get("question_id") or "")
         blockers = validate_grading_contract(contract)
         if blockers:
             rejected.append({"question_id": qid, "blockers": blockers})
             continue
+        source_schema = str(contract.get("source_schema") or "").strip()
+        if source_schema:
+            source_schemas.add(source_schema)
+        source_points_by_id = {
+            str(sp.get("point_id") or ""): sp
+            for sp in contract.get("scoring_points") or []
+            if isinstance(sp, dict)
+        }
         for point in runtime_points_from_grading_contract(contract):
             rec = _record_from_runtime_point(contract, point)
             if not rec["qid"] or not rec["point_id"] or not rec["text"]:
                 rejected.append({"question_id": qid, "blockers": ["record_missing_identity_or_text"]})
                 continue
+            source_point = source_points_by_id.get(str(rec["point_id"]) or "") or {}
+            for key in (
+                "exact_term_required",
+                "factory_resolution",
+                "factory_resolution_lane",
+                "factory_point_type",
+            ):
+                if key in source_point and source_point.get(key) is not None:
+                    rec[key] = source_point.get(key)
+            lane = str(source_point.get("factory_resolution_lane") or "").strip()
+            if lane:
+                factory_resolution_lanes.add(lane)
             by_policy[rec["policy"]] = by_policy.get(rec["policy"], 0) + 1
             records.append(rec)
     records.sort(key=lambda r: (r["qid"], r["point_id"]))
@@ -304,6 +327,8 @@ def build_pgo_runtime_supply(contracts: list[dict[str, Any]]) -> dict[str, Any]:
         "scoring_point_count": len(records),
         "by_policy": dict(sorted(by_policy.items())),
         "rejected_count": len(rejected),
+        "source_schemas": sorted(source_schemas),
+        "factory_resolution_lanes": sorted(factory_resolution_lanes),
         "answer_key_authority": "exam_reference_answer",
         "official_total_score_authority": A_OFFICIAL,
         "score_authority": SCORE_AUTHORITY,

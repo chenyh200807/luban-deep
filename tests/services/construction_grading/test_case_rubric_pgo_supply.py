@@ -194,6 +194,11 @@ def test_build_grading_contracts_from_factory_candidate_uses_verbatim_segments_o
     assert validate_pgo_runtime_supply(bundle) == []
     assert bundle["manifest"]["question_count"] == 1
     assert bundle["manifest"]["scoring_point_count"] == 2
+    assert bundle["manifest"]["source_schemas"] == [SCHEMA_ID]
+    assert bundle["manifest"]["factory_resolution_lanes"] == ["A_consensus"]
+    assert bundle["records"][0]["source_schema"] == SCHEMA_ID
+    assert bundle["records"][0]["factory_resolution_lane"] == "A_consensus"
+    assert bundle["records"][0]["factory_point_type"] == "list"
 
 
 def test_build_grading_contracts_from_factory_candidate_rejects_minted_segment() -> None:
