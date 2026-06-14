@@ -16,6 +16,14 @@ from deeptutor.services.learner_state.attempt_refs import sign_attempt_ref
 
 logger = logging.getLogger(__name__)
 
+_PGO_SCORE_AUTHORITY = "official_total_x_verdict_coverage"
+_STABLE_TRUTH_BLOCKING_CAP_REASONS = {
+    "missing_question_id",
+    "rag_degraded",
+    "missing_rag_evidence",
+    "conversation_signal_not_grading_truth",
+}
+
 
 def write_grading_error_events(
     *,
@@ -132,7 +140,12 @@ def write_case_grading_event_learning_evidence(
     try:
         from deeptutor.services.construction_grading import rubric_grader_v1 as _G
 
-        payload_json = _G.to_learning_evidence(grading_event, node_code=node_code)
+        payload_json = _G.to_learning_evidence(
+            grading_event,
+            node_code=node_code,
+            question_stem=question_stem,
+            user_answer=user_answer,
+        )
     except Exception as exc:  # noqa: BLE001 — writeback must fail closed
         logger.warning("case grading event learning-evidence projection failed: %s", exc, exc_info=True)
         return {"writeback_count": 0, "reason": "projection_failed"}
@@ -146,18 +159,29 @@ def write_case_grading_event_learning_evidence(
         "user_answer": str(user_answer or "").strip(),
         "question_stem": str(question_stem or "").strip(),
         "grading_event": dict(grading_event),
-        "preview_only": True,
-        "claim_promotion_allowed": False,
         "mastery_raised": False,
         "canonical_truth_written": False,
         "memory_lifecycle_stage": LIFECYCLE_STAGE_SHORT_TERM,
-        "quality": {
-            "writeback_eligible": True,
-            "writeback_reason": "case_grading_completed_v1",
-            "evidence_level": "L0_observed",
-        },
     })
     _attach_canonical_topic(payload_json, question_stem=question_stem, node_code=node_code)
+    claim_promotion_allowed = _case_grading_claim_promotion_allowed(
+        grading_event=grading_event,
+        payload_json=payload_json,
+    )
+    quality = dict(payload_json.get("quality") or {})
+    quality["writeback_eligible"] = bool(payload_json.get("error_events")) or (
+        claim_promotion_allowed and _case_grading_success_signal(payload_json)
+    )
+    quality["writeback_reason"] = (
+        "case_grading_completed_v1_pgo_quality_gate"
+        if claim_promotion_allowed
+        else "case_grading_completed_v1_preview"
+    )
+    quality.setdefault("evidence_level", "L0_observed")
+    quality.setdefault("stable_truth_eligible", False)
+    payload_json["quality"] = quality
+    payload_json["preview_only"] = not claim_promotion_allowed
+    payload_json["claim_promotion_allowed"] = claim_promotion_allowed
     dedupe_key = build_learning_evidence_dedupe_key(
         user_id=normalized_user_id,
         payload_json=payload_json,
@@ -345,6 +369,53 @@ def _split_batch_grading_event(grading_event: dict[str, Any]) -> list[dict[str, 
     if len(sub_events) != len(items):
         return [grading_event]
     return sub_events
+
+
+def _case_grading_claim_promotion_allowed(
+    *,
+    grading_event: dict[str, Any],
+    payload_json: dict[str, Any],
+) -> bool:
+    if str(grading_event.get("rubric_bank_slot") or "").strip() != "pgo":
+        return False
+    if str(grading_event.get("grading_source") or "").strip() != "rubric_scored_pgo":
+        return False
+    if str(grading_event.get("score_authority") or "").strip() != _PGO_SCORE_AUTHORITY:
+        return False
+    if grading_event.get("official_score_allowed") is not False:
+        return False
+    if grading_event.get("high_risk_review") is True or grading_event.get("degraded") is True:
+        return False
+    quality = payload_json.get("quality") if isinstance(payload_json.get("quality"), dict) else {}
+    if not quality.get("detail_ready") or not quality.get("truth_eligible"):
+        return False
+    cap_reasons = {
+        str(item or "").strip()
+        for item in list(quality.get("evidence_cap_reasons") or [])
+        if str(item or "").strip()
+    }
+    if cap_reasons.intersection(_STABLE_TRUTH_BLOCKING_CAP_REASONS):
+        return False
+    topic = payload_json.get("canonical_topic") if isinstance(payload_json.get("canonical_topic"), dict) else {}
+    signal = (
+        payload_json.get("next_training_signal")
+        if isinstance(payload_json.get("next_training_signal"), dict)
+        else {}
+    )
+    if not str(topic.get("taxonomy_code") or signal.get("concept") or "").strip():
+        return False
+    return bool(payload_json.get("error_events")) or _case_grading_success_signal(payload_json)
+
+
+def _case_grading_success_signal(payload_json: dict[str, Any]) -> bool:
+    if payload_json.get("error_events"):
+        return False
+    try:
+        max_score = float(payload_json.get("max_score") or 0)
+        score = float(payload_json.get("score_awarded") or 0)
+    except (TypeError, ValueError):
+        return False
+    return max_score > 0 and score >= max_score
 
 
 def _training_intent_from_evidence_payload(

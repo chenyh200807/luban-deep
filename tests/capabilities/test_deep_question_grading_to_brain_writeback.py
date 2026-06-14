@@ -116,7 +116,11 @@ def test_v1_case_event_writes_learning_evidence_and_marks_result_payload(
     assert payload["legacy_event_type"] == "case_grading_completed"
     assert payload["session_id"] == "sess-1"
     assert payload["canonical_truth_written"] is False
+    assert payload["preview_only"] is True
     assert payload["claim_promotion_allowed"] is False
+    assert payload["question_stem"] == "简述钢筋调直应选用的机械。"
+    assert payload["quality"]["detail_ready"] is True
+    assert payload["quality"]["truth_eligible"] is True
 
     loop_meta = result_payload["grading_to_brain_loop"]
     assert loop_meta["writeback_count"] == 1

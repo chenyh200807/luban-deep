@@ -244,6 +244,31 @@ def test_learning_evidence_projection_lists_missed_points():
     assert le["writeback_performed"] is False
 
 
+def test_learning_evidence_projection_preserves_question_context_and_answer_key_quality():
+    judge = _judge({"P1": {"status": G.MISS, "evidence_span": "普通钢筋调直机"}, "P2": {"status": G.HIT}, "P3": {"status": G.HIT}})
+    ev = G.grade_with_rubric(
+        qid="Q1",
+        student_answer="普通钢筋调直机。",
+        rubric_points=_rubric(),
+        judge_fn=judge,
+        student_id="u1",
+    )
+    ev["answer_key_authority"] = "exam_reference_answer"
+    le = G.to_learning_evidence(
+        ev,
+        node_code="1A413040",
+        question_stem="简述钢筋调直应选用的机械。",
+        user_answer="普通钢筋调直机。",
+    )
+
+    assert le["question_stem"] == "简述钢筋调直应选用的机械。"
+    assert le["user_answer"] == "普通钢筋调直机。"
+    assert le["quality"]["detail_ready"] is True
+    assert le["quality"]["truth_eligible"] is True
+    assert "missing_rag_evidence" not in le["quality"]["evidence_cap_reasons"]
+    assert le["explanation"]["source"] == "rubric_grader_v1_same_source_scoring_points"
+
+
 def test_normalize_points_to_nominal_scales_to_max_score():
     # 3 open-world points raw_total=6.0, nominal (V0 max_score)=2.0 -> sum scaled to 2.0
     pts = [

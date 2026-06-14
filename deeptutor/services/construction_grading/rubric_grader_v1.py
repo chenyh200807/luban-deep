@@ -358,7 +358,13 @@ def _artifact_policy_to_rubric_policy(policy_type: Any) -> str:
     return policy or "qualitative"
 
 
-def to_learning_evidence(event: dict[str, Any], *, node_code: str = "") -> dict[str, Any]:
+def to_learning_evidence(
+    event: dict[str, Any],
+    *,
+    node_code: str = "",
+    question_stem: str = "",
+    user_answer: str = "",
+) -> dict[str, Any]:
     """Project a GradingEvent into a learner_state learning_evidence payload (weak points = missed
     scoring points). Append-only producer; never writes learner truth itself."""
     normalized_node_code = str(node_code or "").strip()
@@ -468,9 +474,21 @@ def to_learning_evidence(event: dict[str, Any], *, node_code: str = "") -> dict[
         grading_result={
             "type": "case",
             "question_id": event.get("question_id"),
+            "question_stem": str(
+                question_stem
+                or event.get("question_stem")
+                or event.get("stem")
+                or event.get("question")
+                or ""
+            ).strip(),
+            "user_answer": str(user_answer or event.get("user_answer") or "").strip(),
             "score_awarded": event.get("awarded_score"),
             "max_score": event.get("max_score"),
+            "answer_key_authority": event.get("answer_key_authority"),
+            "score_authority": event.get("score_authority"),
+            "explanation": event.get("explanation") or _learning_evidence_explanation(scoring_points),
             "error_events": error_events,
+            "evidence_refs": _learning_evidence_refs(event, scoring_points=scoring_points),
             "next_training_signal": next_training_signal,
             "grading_mode": "curated_rubric",
             "rubric": {
@@ -502,6 +520,48 @@ def to_learning_evidence(event: dict[str, Any], *, node_code: str = "") -> dict[
         }
     )
     return payload
+
+
+def _learning_evidence_explanation(scoring_points: list[dict[str, Any]]) -> dict[str, Any]:
+    missed = [
+        point
+        for point in scoring_points
+        if isinstance(point, dict) and point.get("hit") != HIT
+    ]
+    if not missed:
+        return {"summary": "本次作答已命中当前结构化采分点。"}
+    fragments = []
+    for point in missed[:3]:
+        label = str(point.get("knowledge_point") or point.get("point_id") or "").strip()
+        mistake = str(point.get("mistake_type") or MISTAKE_MISS).strip()
+        evidence = str(point.get("evidence_span") or "").strip()
+        if evidence:
+            fragments.append(f"{label}：{mistake}，作答证据「{evidence}」。")
+        else:
+            fragments.append(f"{label}：{mistake}。")
+    return {
+        "summary": "；".join(fragment for fragment in fragments if fragment),
+        "source": "rubric_grader_v1_same_source_scoring_points",
+    }
+
+
+def _learning_evidence_refs(
+    event: dict[str, Any],
+    *,
+    scoring_points: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    refs: list[dict[str, Any]] = []
+    qid = str(event.get("question_id") or "").strip()
+    authority = str(event.get("answer_key_authority") or "").strip()
+    if qid and authority:
+        refs.append({"source": "grading_result", "field": authority, "id": qid})
+    for point in scoring_points:
+        if not isinstance(point, dict):
+            continue
+        for ref in list(point.get("source_refs") or []):
+            if isinstance(ref, dict):
+                refs.append(dict(ref))
+    return refs
 
 
 def _registered_learning_error_code(mistake_type: str) -> str:

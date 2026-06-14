@@ -6,6 +6,8 @@ from deeptutor.services.construction_grading.writeback import (
     write_case_grading_event_learning_evidence,
     write_grading_error_events,
 )
+from deeptutor.services.learner_state.learning_synthesis import synthesize_learning_truth
+from deeptutor.services.learner_state.service import LearnerStateEvent
 
 
 class _FakeEvent:
@@ -198,6 +200,83 @@ def test_v1_case_grading_event_writeback_uses_learning_evidence_stream() -> None
     assert hit["required_terms"] == ["数控钢筋调直切断机"]
     assert payload["weak_points"][0]["concept_label"] == "钢筋调直工艺"
     assert payload["weak_points"][0]["concept_id"] is None
+
+
+def test_pgo_case_grading_writeback_promotes_only_via_learning_brain_synthesis() -> None:
+    service = _FakeLearnerStateService()
+    base_event = {
+        "event_type": "case_grading_completed",
+        "student_id": "student-1",
+        "question_id": "Q-PGO-1",
+        "awarded_score": 0.0,
+        "max_score": 5.0,
+        "coverage": 0.0,
+        "high_risk_review": False,
+        "degraded": False,
+        "grading_source": "rubric_scored_pgo",
+        "rubric_bank_slot": "pgo",
+        "score_authority": "official_total_x_verdict_coverage",
+        "answer_key_authority": "exam_reference_answer",
+        "official_score_allowed": False,
+        "scoring_points": [
+            {
+                "point_id": "P1",
+                "knowledge_point": "屋面与防水工程施工",
+                "policy_type": "exact_required",
+                "hit": "miss",
+                "score": 0.0,
+                "max_score": 5.0,
+                "mistake_type": "omitted",
+                "evidence_span": "卷材搭接宽度不足",
+                "required_terms": ["卷材搭接宽度"],
+            }
+        ],
+    }
+    payloads: list[dict[str, object]] = []
+    for attempt in (1, 2):
+        result = write_case_grading_event_learning_evidence(
+            learner_state_service=service,
+            user_id="student-1",
+            source_id=f"turn-pgo-{attempt}:Q-PGO-1",
+            source_bot_id="construction-exam-coach",
+            user_answer="卷材搭接宽度不足。",
+            question_stem="题库内案例：某屋面工程卷材防水施工，指出施工做法的不妥之处。",
+            node_code="1A413050",
+            grading_event={**base_event, "question_id": f"Q-PGO-{attempt}"},
+        )
+        payloads.append(result["learning_evidence_payload"])
+
+    first = payloads[0]
+    quality = first["quality"]
+    assert first["preview_only"] is False
+    assert first["claim_promotion_allowed"] is True
+    assert first["canonical_truth_written"] is False
+    assert quality["writeback_eligible"] is True
+    assert quality["detail_ready"] is True
+    assert quality["truth_eligible"] is True
+    assert "missing_rag_evidence" not in quality["evidence_cap_reasons"]
+    assert first["canonical_topic"]["taxonomy_code"] == "1A413050"
+
+    events = [
+        LearnerStateEvent(
+            event_id=f"evt-pgo-{idx}",
+            user_id="student-1",
+            source_feature="construction_grading",
+            source_id=f"turn-pgo-{idx}:Q-PGO-{idx}",
+            source_bot_id="construction-exam-coach",
+            memory_kind="learning_evidence",
+            dedupe_key=f"evt-pgo-{idx}",
+            created_at=f"2026-06-1{idx}T10:00:00+08:00",
+            payload_json=payload,
+        )
+        for idx, payload in enumerate(payloads, 1)
+    ]
+    projection = synthesize_learning_truth(events)
+    weak = projection["weak_points"][0]
+    assert weak["concept_id"] == "1A413050"
+    assert weak["error_code"] == "E02"
+    assert weak["evidence_level"] == "L1_repeated"
+    assert weak["memory_lifecycle_stage"] == "stable_learner_claim"
 
 
 def test_v1_case_grading_writeback_dedupe_uses_rubric_identity_not_outcome() -> None:

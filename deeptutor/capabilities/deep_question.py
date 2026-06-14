@@ -2244,7 +2244,11 @@ async def _grade_case_batch_v1(
 
 
 def _case_rubric_v1_payload_from_event(
-    event: dict[str, Any] | None, *, node_code: str = ""
+    event: dict[str, Any] | None,
+    *,
+    node_code: str = "",
+    question_stem: str = "",
+    user_answer: str = "",
 ) -> dict[str, Any] | None:
     """Pure: shape the structured ``luban_case_rubric_v1`` payload from a GradingEvent / marker (no LLM,
     no I/O). Appended alongside (never replacing) ``construction_grading_result``."""
@@ -2255,7 +2259,12 @@ def _case_rubric_v1_payload_from_event(
         return {
             "authority": "luban_case_rubric_v1", "status": "ok",
             "grading_event": event,
-            "learning_evidence": _G.to_learning_evidence(event, node_code=node_code),
+            "learning_evidence": _G.to_learning_evidence(
+                event,
+                node_code=node_code,
+                question_stem=question_stem,
+                user_answer=user_answer,
+            ),
             "official_score_allowed": False,
         }
     # marker dict (no_rubric_open_world / unavailable)
@@ -4373,6 +4382,13 @@ class DeepQuestionCapability(BaseCapability):
                     v1_event,
                     node_code=str(graded_context.get("node_code")
                                   or (grading_result or {}).get("node_code") or ""),
+                    question_stem=str(
+                        graded_context.get("question_stem")
+                        or graded_context.get("stem")
+                        or graded_context.get("question")
+                        or ""
+                    ),
+                    user_answer=str(graded_context.get("user_answer") or ""),
                 )
                 if _v1_payload is not None:
                     result_payload["luban_case_rubric_v1"] = _v1_payload

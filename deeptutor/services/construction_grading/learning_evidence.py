@@ -650,7 +650,11 @@ def compute_quality_signals(payload: dict[str, Any]) -> dict[str, Any]:
         cap_reasons.append("missing_question_id")
     if any(str(ref.get("retrieval_status") or "").lower() == "degraded" for ref in evidence_refs):
         cap_reasons.append("rag_degraded")
-    if errors and not any(ref.get("source_type") == "rag_evidence" for ref in evidence_refs):
+    if (
+        errors
+        and not any(ref.get("source_type") == "rag_evidence" for ref in evidence_refs)
+        and not _has_grading_answer_key_evidence(payload)
+    ):
         cap_reasons.append("missing_rag_evidence")
     if grading_mode == "open_skill":
         cap_reasons.append("open_skill_requires_repetition_or_manual_confirmation")
@@ -761,6 +765,26 @@ def compute_quality_signals(payload: dict[str, Any]) -> dict[str, Any]:
             if key != "eligible"
         }
     return quality
+
+
+def _has_grading_answer_key_evidence(payload: dict[str, Any]) -> bool:
+    """Return True when the grading result itself is the answer-key evidence authority.
+
+    PGO/compiled-rubric case scoring is not a free-form RAG explanation; it is a
+    per-question grading object derived from the exam reference answer. Those
+    rows should not carry the ``missing_rag_evidence`` cap solely because the
+    source is a grading key rather than a retrieval chunk.
+    """
+    authority = _clean_text(payload.get("answer_key_authority")).lower()
+    score_authority = _clean_text(payload.get("score_authority")).lower()
+    rubric = payload.get("rubric") if isinstance(payload.get("rubric"), dict) else {}
+    rubric_mode = _clean_text(rubric.get("rubric_mode")).lower()
+    has_scoring_rubric = bool(rubric.get("scoring_points") or rubric.get("scoring_point_hits"))
+    if authority in {"exam_reference_answer", "official_answer_verbatim"} and (
+        has_scoring_rubric or rubric_mode in {"curated_rubric", "grading_key"}
+    ):
+        return True
+    return score_authority == "official_total_x_verdict_coverage"
 
 
 def _quality_from_payload(
