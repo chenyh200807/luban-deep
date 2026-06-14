@@ -206,6 +206,7 @@ function BiV2AuthenticatedSurface({
       <BiV2MemberOpsPanel
         flagEnabled={flags.BI_CRM_V2_ENABLED}
         globalQuery={submittedQuery}
+        onSubmitSearch={submitGlobalSearch}
         identity={identity}
       />
     )

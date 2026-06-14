@@ -53,6 +53,21 @@ test('member ops exposes product behavior UI anchors', async () => {
   assert.ok(drawer.includes('data-testid="bi-member-360-summary"'))
 })
 
+test('member ops exposes member search by phone or account', async () => {
+  const panel = await readWeb('app/(workspace)/bi/_v2/member-ops/BiV2MemberOpsPanel.tsx')
+  const surface = await readWeb('app/(workspace)/bi/_v2/BiV2Surface.tsx')
+  const api = await readWeb('lib/member-api.ts')
+
+  assert.ok(panel.includes('data-testid="bi-member-search-form"'))
+  assert.ok(panel.includes('data-testid="bi-member-search-input"'))
+  assert.ok(panel.includes('placeholder="搜索手机号 / 账号 / user_id"'))
+  assert.ok(panel.includes('aria-label="搜索会员手机号或账号"'))
+  assert.ok(panel.includes('onSubmitSearch?.(memberSearchDraft.trim())'))
+  assert.ok(panel.includes('search: globalQuery.trim() || undefined'))
+  assert.ok(surface.includes('onSubmitSearch={submitGlobalSearch}'))
+  assert.ok(api.includes('/api/v1/member/list?'))
+})
+
 test('member ops exposes membership settings as the visible row action', async () => {
   const panel = await readWeb('app/(workspace)/bi/_v2/member-ops/BiV2MemberOpsPanel.tsx')
   const drawer = await readWeb('app/(workspace)/bi/_v2/member-ops/Member360Drawer.tsx')

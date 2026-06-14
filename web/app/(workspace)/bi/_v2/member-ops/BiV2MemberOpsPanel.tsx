@@ -7,6 +7,7 @@ import {
   MessageSquareText,
   RefreshCw,
   Save,
+  Search,
   Settings2,
   ShieldOff,
   UserCog,
@@ -151,6 +152,7 @@ import type { BiAdminIdentity } from '../useBiAdminIdentity'
 export type BiV2MemberOpsPanelProps = {
   flagEnabled: boolean
   globalQuery: string
+  onSubmitSearch?: (value: string) => void
   identity: BiAdminIdentity
 }
 
@@ -276,9 +278,11 @@ function toDateInputValue(value?: string | null): string {
 export function BiV2MemberOpsPanel({
   flagEnabled,
   globalQuery,
+  onSubmitSearch,
   identity,
 }: BiV2MemberOpsPanelProps) {
   const [filters, setFilters] = useState<MemberFilters>(DEFAULT_FILTERS)
+  const [memberSearchDraft, setMemberSearchDraft] = useState(globalQuery)
   const [sortKey, setSortKey] = useState<MemberSortKey>('expires_at')
   const [sortDir, setSortDir] = useState<MemberSortDir>('asc')
   const [behaviorCohort, setBehaviorCohort] = useState('')
@@ -323,6 +327,11 @@ export function BiV2MemberOpsPanel({
   const opsActionWriting = memberOpsAction.state.phase === 'writing'
   const opsActionError =
     memberOpsAction.state.phase === 'denied' ? (memberOpsAction.state.result.error ?? '') : ''
+  const activeMemberSearchQuery = globalQuery.trim()
+
+  useEffect(() => {
+    setMemberSearchDraft(globalQuery)
+  }, [globalQuery])
 
   const loadMembers = useCallback(async () => {
     if (!flagEnabled) {
@@ -393,6 +402,25 @@ export function BiV2MemberOpsPanel({
       : filtered
     return sortMembers(cohortRows, sortKey, sortDir)
   }, [behaviorCohort, filters, flagEnabled, globalQuery, sortDir, sortKey, sourceRows])
+  const hasActiveMemberSearch = Boolean(activeMemberSearchQuery)
+  const hasActiveTableFilters =
+    hasActiveMemberSearch ||
+    Boolean(filters.tier) ||
+    Boolean(filters.status) ||
+    filters.riskMin > 0 ||
+    filters.expiringDays > 0 ||
+    filters.notPaid ||
+    Boolean(behaviorCohort)
+
+  function submitMemberSearch(event?: FormEvent<HTMLFormElement>) {
+    event?.preventDefault()
+    onSubmitSearch?.(memberSearchDraft.trim())
+  }
+
+  function clearMemberSearch() {
+    setMemberSearchDraft('')
+    onSubmitSearch?.('')
+  }
 
   function handleSort(key: string) {
     const nextKey = key as MemberSortKey
@@ -756,6 +784,58 @@ export function BiV2MemberOpsPanel({
         onSave={saveView}
       />
 
+      <form
+        data-testid="bi-member-search-form"
+        onSubmit={submitMemberSearch}
+        className="rounded-2xl border border-white/10 bg-white/[0.045] p-3"
+      >
+        <div className="flex flex-col gap-2 md:flex-row md:items-center">
+          <label className="flex min-h-10 flex-1 items-center gap-2 rounded-xl border border-white/10 bg-[#101622] px-3 focus-within:border-cyan-300/45 focus-within:ring-2 focus-within:ring-cyan-300/15">
+            <Search className="h-4 w-4 shrink-0 text-cyan-100/70" aria-hidden />
+            <input
+              data-testid="bi-member-search-input"
+              value={memberSearchDraft}
+              onChange={event => setMemberSearchDraft(event.target.value)}
+              placeholder="搜索手机号 / 账号 / user_id"
+              aria-label="搜索会员手机号或账号"
+              className="min-w-0 flex-1 bg-transparent text-sm font-bold text-slate-100 outline-none placeholder:text-slate-500"
+              onKeyDown={event => {
+                if (event.key === 'Escape') {
+                  event.preventDefault()
+                  clearMemberSearch()
+                }
+              }}
+            />
+          </label>
+          <div className="flex shrink-0 items-center gap-2">
+            <BiButton type="submit" variant="primary" size="sm" aria-label="搜索会员">
+              搜索
+            </BiButton>
+            <BiButton
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={clearMemberSearch}
+              disabled={!memberSearchDraft && !activeMemberSearchQuery}
+              aria-label="清空会员搜索"
+            >
+              清空
+            </BiButton>
+          </div>
+        </div>
+        <div className="mt-2 text-[11px] leading-5 text-slate-400">
+          {activeMemberSearchQuery ? (
+            <>
+              当前搜索：<span className="font-mono text-cyan-100">{activeMemberSearchQuery}</span>
+              <span className="mx-2 text-slate-600">·</span>
+              已按手机号、账号或 user_id 查询会员。
+            </>
+          ) : (
+            '可输入完整手机号、手机号片段、账号或 user_id；回车后刷新会员列表。'
+          )}
+        </div>
+      </form>
+
       <CommonFilters filters={filters} onChange={setFilters} />
 
       <section className="flex flex-wrap items-center justify-between gap-3 rounded-[26px] border border-cyan-300/20 bg-cyan-300/[0.08] px-4 py-3 text-sm text-cyan-50 shadow-lg shadow-black/10">
@@ -806,7 +886,7 @@ export function BiV2MemberOpsPanel({
             : error
               ? 'error'
               : rows.length === 0
-                ? flagEnabled
+                ? flagEnabled && !hasActiveTableFilters
                   ? 'empty'
                   : 'no-results'
                 : 'ok'
@@ -814,7 +894,11 @@ export function BiV2MemberOpsPanel({
         errorMessage={error}
         emptyTitle="暂无会员"
         emptyHint="当前会员服务没有返回符合条件的会员。"
-        noResultsHint="当前筛选未命中任何会员。尝试放宽 tier / risk / expiring 条件。"
+        noResultsHint={
+          activeMemberSearchQuery
+            ? `当前搜索「${activeMemberSearchQuery}」未命中会员。可换手机号、账号或 user_id 重试。`
+            : '当前筛选未命中任何会员。尝试放宽 tier / risk / expiring 条件。'
+        }
         selectable
         selectedKeys={selectedRows}
         onToggleRow={key => {
