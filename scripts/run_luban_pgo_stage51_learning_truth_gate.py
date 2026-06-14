@@ -219,13 +219,26 @@ def _pgo_grading_event(question_id: str) -> dict[str, Any]:
     }
 
 
-def _stable_truth_promotion(out_dir: Path) -> dict[str, Any]:
+def _stable_truth_promotion(
+    out_dir: Path,
+    *,
+    use_core_store: bool = False,
+    learner_state_service_factory: Any | None = None,
+) -> dict[str, Any]:
     runtime_root = out_dir / "learner_runtime"
-    service = LearnerStateService(
-        path_service=_PathServiceStub(runtime_root),
-        member_service=_MemberServiceStub(),
-        core_store=_LocalOnlyCoreStoreStub(),
-    )
+    if callable(learner_state_service_factory):
+        service = learner_state_service_factory(runtime_root)
+    elif use_core_store:
+        service = LearnerStateService(
+            path_service=_PathServiceStub(runtime_root),
+            member_service=_MemberServiceStub(),
+        )
+    else:
+        service = LearnerStateService(
+            path_service=_PathServiceStub(runtime_root),
+            member_service=_MemberServiceStub(),
+            core_store=_LocalOnlyCoreStoreStub(),
+        )
     writebacks: list[dict[str, Any]] = []
     for attempt in (1, 2):
         writebacks.append(
@@ -273,6 +286,8 @@ def run_stage51_gate(
     live_ws_events_path: str | Path | None = None,
     mnemonic_samples: list[dict[str, Any]] | None = None,
     out_dir: str | Path = DEFAULT_OUT,
+    use_core_store: bool = False,
+    learner_state_service_factory: Any | None = None,
 ) -> dict[str, Any]:
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -282,7 +297,11 @@ def run_stage51_gate(
     samples = list(mnemonic_samples if mnemonic_samples is not None else DEFAULT_MNEMONIC_SAMPLES)
     action_report = _evaluate_live_mnemonic_actions(live_ws_events)
     content_report = _evaluate_mnemonic_content(samples)
-    promotion_report = _stable_truth_promotion(out)
+    promotion_report = _stable_truth_promotion(
+        out,
+        use_core_store=use_core_store,
+        learner_state_service_factory=learner_state_service_factory,
+    )
 
     blockers: list[str] = []
     if action_report["status"] != "PASS":
@@ -324,12 +343,18 @@ def main() -> int:
     parser.add_argument("--live-ws-events", type=Path, default=DEFAULT_LIVE_WS_EVENTS)
     parser.add_argument("--mnemonic-samples", type=Path, default=None)
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT)
+    parser.add_argument(
+        "--use-core-store",
+        action="store_true",
+        help="Use the configured LearnerState core store for persisted readback instead of local-only files.",
+    )
     args = parser.parse_args()
     samples = _load_json(args.mnemonic_samples) if args.mnemonic_samples else None
     result = run_stage51_gate(
         live_ws_events_path=args.live_ws_events,
         mnemonic_samples=samples,
         out_dir=args.out_dir,
+        use_core_store=args.use_core_store,
     )
     print(json.dumps(result["go_no_go"], ensure_ascii=False, indent=2, sort_keys=True))
     return 0 if result["go_no_go"]["status"] == "STAGE51_GO" else 1

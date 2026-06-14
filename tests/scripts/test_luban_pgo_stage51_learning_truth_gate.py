@@ -118,3 +118,52 @@ def test_stage51_gate_blocks_bad_mnemonic_content(tmp_path: Path) -> None:
 
     assert result["go_no_go"]["status"] == "STAGE51_BLOCKED"
     assert "mnemonic_content_quality_failed" in result["go_no_go"]["blockers"]
+
+
+def test_stage51_gate_can_use_supplied_core_store_service(tmp_path: Path) -> None:
+    from scripts.run_luban_pgo_stage51_learning_truth_gate import run_stage51_gate
+
+    class _Event:
+        def __init__(self, event_id: str) -> None:
+            self.event_id = event_id
+
+    class _Service:
+        def __init__(self) -> None:
+            self.append_count = 0
+
+        def append_memory_event(self, *_args, **_kwargs):
+            self.append_count += 1
+            return _Event(f"evt-{self.append_count}")
+
+        def synthesize_learning_truth(self, *_args, **_kwargs):
+            return {"projection": {"synthesis_run": {"output_projection_hash": "sha256:core"}}}
+
+        def read_compiled_learning_truth(self, *_args, **_kwargs):
+            return {
+                "synthesis_run": {"output_projection_hash": "sha256:core"},
+                "weak_points": [
+                    {
+                        "concept_id": "1A413050",
+                        "error_code": "E02",
+                        "evidence_level": "L1_repeated",
+                    }
+                ],
+            }
+
+    service = _Service()
+    result = run_stage51_gate(
+        live_ws_events={"qa": [_turn(sample_id="partial", awarded=2.0)]},
+        mnemonic_samples=[
+            {
+                "sample_id": "deployment_plan_four_items",
+                "text": "总进度、分期开竣工、资源平衡、施工准备，部署计划四项别漏。",
+                "required_terms": ["总进度", "分期", "资源", "施工准备"],
+            }
+        ],
+        out_dir=tmp_path,
+        learner_state_service_factory=lambda _runtime_root: service,
+    )
+
+    assert service.append_count == 2
+    assert result["go_no_go"]["status"] == "STAGE51_GO"
+    assert result["stable_truth_promotion"]["output_projection_hash"] == "sha256:core"
