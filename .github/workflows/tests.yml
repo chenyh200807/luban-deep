@@ -378,6 +378,7 @@ jobs:
             tests/capabilities/test_deep_question_question_review.py \
             tests/capabilities/test_deep_question_lightweight_generation.py \
             tests/services/test_render_presentation.py \
+            tests/core/test_prompt_parity.py \
             tests/services/memory \
             tests/services/session \
             tests/security \
