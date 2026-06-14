@@ -197,3 +197,56 @@ async def test_live_traffic_canary_blocks_missing_operator_auth(tmp_path: Path) 
     assert result["go_no_go"]["status"] == "LIVE_QA_OPERATOR_CANARY_BLOCKED"
     assert "operator_auth_material_missing" in result["go_no_go"]["blockers"]
     assert result["live_canary"]["required_roles_passed"] == {"qa": True, "operator": False}
+
+
+@pytest.mark.asyncio
+async def test_live_traffic_canary_does_not_count_spoofed_qa_username_as_role_pass(
+    tmp_path: Path,
+) -> None:
+    from scripts.run_luban_pgo_stage5_live_traffic_canary import run_live_traffic_canary
+
+    captured: dict[str, Any] = {}
+    responses = {
+        ("GET", "/api/v1/auth/profile"): [
+            _FakeResponse(
+                200,
+                {
+                    "user_id": "004727f5-3b4d-4110-b153-7cb7d08671c8",
+                    "id": "004727f5-3b4d-4110-b153-7cb7d08671c8",
+                    "username": "qa_stage5_pgo_live",
+                },
+            ),
+            _FakeResponse(200, {"user_id": "operator_stage5_pgo_live", "id": "operator_stage5_pgo_live"}),
+            _FakeResponse(200, {"user_id": "student_stage5_pgo_live", "id": "student_stage5_pgo_live"}),
+        ],
+    }
+    ws_batches = [
+        _result_event(slot="legacy", source="rubric_scored_v1", awarded=4.0),
+        _result_event(slot="legacy", source="rubric_scored_v1", awarded=2.0),
+        _result_event(slot="pgo", source="rubric_scored_pgo", awarded=5.0),
+        _result_event(slot="pgo", source="rubric_scored_pgo", awarded=2.5),
+        _result_event(slot="legacy", source="rubric_scored_v1", awarded=4.0),
+        _result_event(slot="legacy", source="rubric_scored_v1", awarded=2.0),
+    ]
+
+    def _client_factory(**kwargs: Any):
+        return _FakeAsyncClient(responses, captured, **kwargs)
+
+    def _connector_factory(_url: str, *, additional_headers=None):
+        return _FakeWebSocket(ws_batches.pop(0), captured)
+
+    result = await run_live_traffic_canary(
+        api_base_url="https://test2.example.com",
+        out_dir=tmp_path / "spoofed_qa",
+        qa_auth_token="qa-token",
+        operator_auth_token="operator-token",
+        noncohort_auth_token="student-token",
+        client_factory=_client_factory,
+        connector_factory=_connector_factory,
+        timeout_seconds=10.0,
+    )
+
+    assert result["go_no_go"]["status"] == "LIVE_QA_OPERATOR_CANARY_BLOCKED"
+    assert "qa_authenticated_user_not_canary" in result["go_no_go"]["blockers"]
+    assert result["live_canary"]["required_roles_passed"] == {"qa": False, "operator": True}
+    assert result["live_canary"]["auth"]["qa"]["role_identity_ok"] is False

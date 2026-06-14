@@ -405,10 +405,14 @@ async def run_live_traffic_canary(
                 blockers.append(f"{role}_authenticated_user_not_canary")
             if role == "noncohort" and expected_slot != "legacy":
                 blockers.append("noncohort_authenticated_user_is_canary")
+            role_identity_ok = (
+                expected_slot == "pgo" if role in {"qa", "operator"} else expected_slot == "legacy"
+            )
             auth_results[role] = {
                 "ok": True,
                 "authenticated_user_id": user_id,
                 "expected_slot": expected_slot,
+                "role_identity_ok": role_identity_ok,
                 "created_user": bool(auth.get("created_user")),
                 "identity_candidates": list(auth.get("identity_candidates") or []),
             }
@@ -438,9 +442,17 @@ async def run_live_traffic_canary(
     role_passed: dict[str, bool] = {}
     for role in ("qa", "operator"):
         scoped = [record for record in records if record.get("role") == role]
-        role_passed[role] = bool(scoped) and all(record.get("slot_ok") is True for record in scoped)
+        role_passed[role] = (
+            bool(auth_results.get(role, {}).get("role_identity_ok"))
+            and bool(scoped)
+            and all(record.get("slot_ok") is True for record in scoped)
+        )
     control_scoped = [record for record in records if record.get("role") == "noncohort"]
-    noncohort_control_passed = bool(control_scoped) and all(record.get("slot_ok") is True for record in control_scoped)
+    noncohort_control_passed = (
+        bool(auth_results.get("noncohort", {}).get("role_identity_ok"))
+        and bool(control_scoped)
+        and all(record.get("slot_ok") is True for record in control_scoped)
+    )
     if not noncohort_control_passed:
         blockers.append("noncohort_control_not_verified")
 
