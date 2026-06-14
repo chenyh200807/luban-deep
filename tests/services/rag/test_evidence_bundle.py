@@ -84,6 +84,35 @@ def test_retrieval_status_override_is_honored() -> None:
     assert bundle["warning_count"] == 1
 
 
+def test_status_override_ok_with_warnings_is_reconciled_not_contradictory() -> None:
+    # Self-defending contract: a bundle with warnings is degraded, so an explicit "ok" status
+    # override is incoherent and must be reconciled to "partial" — never emit status="ok" while
+    # retrieval_degraded=True (guards a future override caller from a self-contradictory bundle).
+    bundle = build_evidence_bundle(
+        query="q",
+        provider="p",
+        kb_name="k",
+        content_blocks=[],
+        sources=[],
+        retrieval_status="ok",
+        retrieval_warnings=[{"phase": "provider"}],
+    )
+    assert bundle["retrieval_degraded"] is True
+    assert bundle["retrieval_status"] == "partial"  # reconciled, not the contradictory "ok"
+    # a non-healthy override (e.g. the historical status) is preserved as-is alongside warnings
+    historical = build_evidence_bundle(
+        query="q",
+        provider="p",
+        kb_name="k",
+        content_blocks=[],
+        sources=[{"id": "1"}],
+        retrieval_status="provider_failed_exact_question_resolved",
+        retrieval_warnings=[{"phase": "provider"}],
+    )
+    assert historical["retrieval_status"] == "provider_failed_exact_question_resolved"
+    assert historical["retrieval_degraded"] is True
+
+
 def test_retrieval_empty_derives_from_sources_and_can_be_overridden() -> None:
     empty = build_evidence_bundle(query="q", provider="kbv5", kb_name="kb", content_blocks=[], sources=[])
     assert empty["retrieval_empty"] is True

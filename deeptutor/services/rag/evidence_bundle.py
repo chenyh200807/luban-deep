@@ -22,6 +22,14 @@ Shape (register-before-use, schema-governance):
     instead of as scattered, drifting top-level keys. Collapsing the divergence into ``trace``
     preserves every diagnostic (no data loss) while keeping the contract clean and pinnable.
 
+Lane coverage (single authority): the kbv5, supabase and historical-question lanes each call
+:func:`build_evidence_bundle` directly. The llamaindex lane (and the supabase empty-query
+early return) emit a result with NO bundle on purpose — ``RAGService.search`` then synthesizes
+one through this same builder (the fallback path). So every result that reaches a consumer
+carries a builder-produced bundle; the service fallback IS llamaindex's bundle builder. (We do
+NOT add a separate builder call inside the llamaindex pipeline: it would duplicate the fallback
+for no live caller — ``pipeline.search`` is only reached via ``RAGService.search``.)
+
 Deterministic and pure: no LLM, no network, no DB.
 """
 
@@ -121,7 +129,18 @@ def build_evidence_bundle(
     """
     warnings = list(retrieval_warnings or [])
     src = list(sources or [])
-    status = retrieval_status if retrieval_status is not None else ("partial" if warnings else "ok")
+    degraded = bool(warnings)
+    if retrieval_status is not None:
+        status = str(retrieval_status)
+    elif warnings:
+        status = "partial"
+    else:
+        status = "ok"
+    # Self-defending contract: a bundle carrying warnings IS degraded, so a "healthy" ``ok``
+    # status is incoherent with it. Reconcile rather than emit a self-contradictory bundle
+    # (guards against a future override caller passing status="ok" alongside warnings).
+    if degraded and status == "ok":
+        status = "partial"
     empty = (not bool(src)) if retrieval_empty is None else bool(retrieval_empty)
     return EvidenceBundle(
         bundle_id=(bundle_id if bundle_id is not None else evidence_bundle_id(provider, kb_name, query)),
@@ -135,8 +154,8 @@ def build_evidence_bundle(
         ranking_trace=dict(ranking_trace or {}),
         retrieval_empty=empty,
         query_shape=str(query_shape or ""),
-        retrieval_status=str(status),
-        retrieval_degraded=bool(warnings),
+        retrieval_status=status,
+        retrieval_degraded=degraded,
         warning_count=len(warnings),
         trace=dict(trace or {}),
     ).to_dict()
