@@ -7,6 +7,7 @@ from deeptutor.services.learner_state.training_intent import (
 )
 from deeptutor.services.learner_state.home_personalization import (
     build_home_personalization_projection_from_learning_signal,
+    write_home_personalization_projection,
 )
 
 
@@ -119,12 +120,39 @@ def test_home_projection_v1_consumer_derives_intent_from_assessment_evidence() -
     )
 
     assert projection is not None
-    # book-derived axis: "防水工程" is itself a canonical node (1A413000-C24)
-    assert projection["today_focus"]["title"] == "今日焦点：防水工程"
+    assert projection["today_focus"]["title"] == "今日焦点：屋面与防水工程施工"
     intent = projection["recommended_prompts"][0]["intent"]
-    assert intent["concept_label"] == "防水工程"
+    assert intent["concept_label"] == "屋面与防水工程施工"
     assert intent["error_label"] == "M01"
     assert intent["evidence_refs"] == ["evt_assessment_1", "attempt_ref_1"]
+    written: dict[str, object] = {}
+
+    class _FakeLearnerStateService:
+        def merge_progress(self, user_id: str, patch: dict[str, object]) -> None:
+            written["user_id"] = user_id
+            written["patch"] = patch
+
+    assert write_home_personalization_projection(
+        _FakeLearnerStateService(), user_id="u_assessment", projection=projection
+    )
+    assert written["patch"] == {"home_personalization": projection}
+
+
+def test_home_projection_still_canonicalizes_free_text_alias_to_textbook_section() -> None:
+    projection = build_home_personalization_projection_from_learning_signal(
+        {
+            "event_type": "learning_evidence",
+            "knowledge_points": ["主体结构"],
+            "error_codes": ["M01"],
+            "event_id": "evt_subjective_alias",
+            "attempt_ref": "attempt_ref_alias",
+            "subject_id": "construction_exam_1",
+        }
+    )
+
+    assert projection is not None
+    assert projection["today_focus"]["title"] == "今日焦点：主体结构工程施工"
+    assert projection["recommended_prompts"][0]["intent"]["concept_label"] == "主体结构工程施工"
 
 
 def test_home_projection_surfaces_six_distinct_next_learning_actions() -> None:

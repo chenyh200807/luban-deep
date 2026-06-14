@@ -106,6 +106,7 @@ def build_home_personalization_projection_from_learning_signal(
     prompt_concept = concept_label
     prompt_error = error_label or "薄弱点"
     base_intent = {
+        **topic_fields,
         "concept_label": prompt_concept,
         "error_label": prompt_error,
         "subject_id": str(payload.get("subject_id") or "").strip(),
@@ -113,7 +114,6 @@ def build_home_personalization_projection_from_learning_signal(
         "evidence_refs": _evidence_refs(payload),
         "learning_state_ref": str(payload.get("learning_state_ref") or "").strip(),
         "suggested_mode": str(payload.get("suggested_mode") or payload.get("teaching_mode") or "").strip(),
-        **topic_fields,
     }
     prompts = [
         _projection_prompt(

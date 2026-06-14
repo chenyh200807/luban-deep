@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 from contextlib import contextmanager
+import hashlib
 import json
 import os
 import subprocess
@@ -355,6 +356,11 @@ def _learning_report_path(event_limit: int) -> str:
     return f"/api/v1/mobile/learning-report?event_limit={event_limit}&schema_version=2"
 
 
+def _local_qa_phone_code(run_id: str) -> str:
+    digest = hashlib.sha256(str(run_id or "learning-report-e2e").encode("utf-8")).hexdigest()
+    return "139" + str(int(digest[:10], 16) % 100_000_000).zfill(8)
+
+
 def run(args: argparse.Namespace) -> dict[str, Any]:
     _apply_local_qa_env(user_data_dir=args.user_data_dir)
     _prepare_local_user_data_dir(args.user_data_dir)
@@ -364,7 +370,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         method="POST",
         base_url=args.base_url,
         path="/api/v1/wechat/mp/login",
-        body={"code": run_id},
+        body={"code": run_id, "phone_code": _local_qa_phone_code(run_id)},
     )
     token = str(login.get("token") or "").strip()
     user_id = str(login.get("user_id") or "").strip()
