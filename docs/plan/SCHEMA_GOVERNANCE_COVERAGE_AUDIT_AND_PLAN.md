@@ -61,7 +61,7 @@
 5. 一个手术 PR 修 index.yaml 结构 bug:删 duplicate `mobile_http_auth_controls`、把 package copy 补 http_routes+test_rbac、加 CI step(或点亮 test_index_consistency)断言两份一致。
 6. **脱敏 blocklist 单源化**(安全相关):contracts/ 定义一次 frozenset,三处 import,JS 副本 codegen(复用 bi_v2_write_endpoints 模式),加 drift 测进 CI。
 
-**P2** — 收口状态:P2#7 ✓ / P2#8 5/6 ✓(evidence_bundle 单列待 owner 决策)/ P2#9 ✓。除 evidence_bundle 外全部落地。
+**P2** — 收口状态:P2#7 ✓ / P2#8 **6/6 ✓**(evidence_bundle consolidation 2026-06-14 完成)/ P2#9 ✓。**P2 全部落地。**
 7. BI 指标 drift 守卫接 CI(一行)。**【DONE 2026-06-14, commit 41e47cddc】** `test_bi_metrics.py`(含 `test_metric_registry_ts_in_sync`: `gen_bi_metrics_ts --check` 检测 generated.ts 与 BI_METRICS 漂移 + 8 个 metric_id 契约测试)进 CI smoke allowlist,从 PR-blind 变 PR-blocking。smoke-safe(仅 import bi_metrics)。
 8. 把真·跨消费非判分 schema 升进 schema_registry 的 T2/新 runtime_contract 段(复用同一 closure scanner):learning-report(v1+v2)、RAG retrieval_plan/evidence_bundle、learner-state PCP/training_intent/error_events——前置:先给每个一个 typed id 字面量让 scanner 看得到。**【6 个命名目标 5/6 DONE 2026-06-14】** 每个都用"加 module-level SCHEMA_ID 常量(行为保持,整数版本不动)+ namespace 正则 tight 分支(实测 delta 恰好新 id)+ T2 注册 needs_field_canonicalization:true + producer↔registry 域测试"的同一 recipe,闭包逐步 CLOSED 178→183(tier2 21→26):
    - learning_report_read_model.v2(commit 405121cfa)
@@ -69,7 +69,7 @@
    - personalization_context_pack.v1(commit ab9244fda)
    - learning_training_intent.v2(commit 13ee7d64d)
    - grading_error_event.v1(commit 7a4745279;error_events 目标。注=可见性,evidence vs v1-rubric evidence_span 字段 reconciliation 是 P2#9 pinning,不在注册内改生产形状)
-   - **剩 RAG evidence_bundle**:三站点形状各异组装(kbv5 内联 / supabase `_build_evidence_bundle`+额外键 / service.py fallback),无单一权威——诚实注册须先 consolidation 成一个 builder+一种形状=RAG 生产级重构,**非行为保持**。强行挂 SCHEMA_ID 到任一站点是假单一权威(违反"修法不造第二权威")。待 owner 决策:先 consolidate 再注册,还是接受当前三形先记 TODO。
+   - rag_evidence_bundle.v1(commit 8802f24ca + 967acf9ca)**【DONE 2026-06-14: consolidation 重构】** 此前 4 站点内联组装、形状各异(kbv5 14 / supabase 14+6后置 / fallback 10 / historical 16),无单一权威。治本(非治标):新建 `deeptutor/services/rag/evidence_bundle.py` 的 `EvidenceBundle` dataclass + `build_evidence_bundle()` 单一 builder,4 站点全改调它;跨消费者契约=顶层 14 字段,lane 专属诊断收进 1 个 `trace` 桶(非删除=零诊断损失);bundle_id 统一确定性算法;~10 死字段移 trace。注册 T2 **PINNED**(canonical_fields=15 dataclass 字段)+ robust 内省对账 + test_evidence_bundle.py 单元测试。**调查**:2 个独立专家穷举消费者×字段矩阵+控制流(lane 互斥/fallback 是 llamaindex 默认 builder)。**对抗审查**:2 专家证伪——无悄悄字段 break(每个移走字段从 trace/独立源读)、单一权威生产路径完整(全树 1 处 EvidenceBundle 构造、无 live 绕过 service.search);修 1 个 latent(B2:status/degraded 自卫,防未来 override 矛盾)。**不确定性**:bundle_id 外部 Langfuse/BI join(Python 树外未审计)。
 9. 增量钉 T2 字段:高频契约(context_pack.v1/rich_leaf_context_bundle.v1)`needs_field_canonicalization=false` + canonical 字段表,字段漂移变 BLOCKING(在 schema_ok 接好后)。**【DONE 2026-06-14, commit 9cab6d5ac】** 两条 T2 加 canonical_fields + flip false:context_pack.v1=LubanContextPack 9 dataclass 字段、rich_leaf_context_bundle.v1=`_RECORD_FIELDS` 8 per-record 字段。加 **robust 内省对账测试**(producer `__dataclass_fields__`/`_RECORD_FIELDS` == registry canonical_fields,非脆弱 regex)进 test_schema_registry.py(smoke-allowlisted,CI BLOCKING;已验判别力非假绿)+ registry 一致性测试(PINNED 必列字段表/unpinned 不得列)。零新 guard 机制。
 
 **P3**
