@@ -553,6 +553,28 @@ Page({
         return;
       }
       this._deeptutorNavLockUntil = now + 1500;
+      // 用户选过「不再显示导学」：跳过动效，直接走原登录/已登录直达 chat 桥接。
+      // key 必须与 packageDeeptutor/pages/onboarding/onboarding.js 的 DISMISS_KEY 一致。
+      let onboardingDismissed = false;
+      try {
+        onboardingDismissed = wx.getStorageSync('deeptutor_onboarding_dismissed') === true;
+      } catch (err) {
+        onboardingDismissed = false;
+      }
+      const app = getApp();
+      if (onboardingDismissed && app && typeof app.openDeeptutorLogin === 'function') {
+        const returnTo = '/packageDeeptutor/pages/chat/chat?entry_source=' + entrySource;
+        app.openDeeptutorLogin(entrySource, returnTo, {
+          onFail: () => {
+            wx.showToast({
+              title: '鲁班AI智考暂时无法打开',
+              icon: 'none',
+              duration: 2500
+            });
+          }
+        });
+        return;
+      }
       // 先播先体验导学动效（dest=login：结尾星球转场落到登录页）
       wx.navigateTo({
         url: '/packageDeeptutor/pages/onboarding/onboarding?entry_source=' + entrySource + '&dest=login',

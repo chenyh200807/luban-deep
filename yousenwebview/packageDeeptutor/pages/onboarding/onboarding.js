@@ -62,6 +62,10 @@ var ACT_SLIDE = { wave: 0, hook: 0, p1: 1, p2: 2, p3: 3 };
 // 出场等待 = wxss `.exiting .horizon` 的 760ms transition + 40ms 余量；改任一处必须同步另一处。
 var EXIT_MS = 800;
 
+// 「下次不再显示导学」本地标记；freeCourse 首页入口读同一 key 决定是否跳过动效。
+// 注意：此字符串必须与 pages/freeCourse/freeCourse.js 中的 key 保持一致。
+var DISMISS_KEY = "deeptutor_onboarding_dismissed";
+
 var PILL_ACT_IDS = SCENES.slice(1).map(function (s) {
   return s.id;
 });
@@ -161,20 +165,31 @@ Page({
     this._timeline.jumpTo(clamped);
   },
 
-  goNext: function () {
-    this._jumpAct(this.data.actIndex + 1);
-  },
-
-  goPrev: function () {
-    this._jumpAct(this.data.actIndex - 1);
-  },
-
   jumpTo: function (event) {
     this._jumpAct(Number(event.currentTarget.dataset.index) + 1);
   },
 
+  // 右下角「跳过」：先问要不要以后不再显示，再出场。
   skipToCta: function () {
-    this._exit();
+    var that = this;
+    if (this._timeline) this._timeline.pause(); // 定住背景再弹窗
+    wx.showModal({
+      title: "已跳过导学",
+      content: "下次进入还需要显示这段导学动画吗？",
+      confirmText: "不再显示",
+      cancelText: "继续显示",
+      success: function (res) {
+        if (res && res.confirm) {
+          try {
+            wx.setStorageSync(DISMISS_KEY, true);
+          } catch (e) {}
+        }
+        that._exit();
+      },
+      fail: function () {
+        that._exit();
+      },
+    });
   },
 
   // 色浪转深 → 登录页（dest=login）；游客模式回退到 chat 试用。
@@ -214,10 +229,10 @@ Page({
     this._touchY = null;
     if (!t) return;
     var dy = t.clientY - startY;
-    if (dy <= -60) this.goNext();
-    else if (dy >= 60) this.goPrev();
-    // 轻点（dy≈0）不在此处理：tap 事件由 page-shell 的 onTapAccelerate 承接，
-    // 功能控件用 catchtap 阻止 tap 冒泡，从而点控件不会误触发快进。
+    // 明显滑动（上滑/下滑都算）→ 加速当前段；轻点(dy≈0)由 page-shell 的
+    // onTapAccelerate 承接，功能控件用 catchtap 阻止冒泡，不会误触发。
+    // 精确回看某幕仍可点顶部进度点（含回退）。
+    if (Math.abs(dy) >= 60 && this._timeline) this._timeline.skipSceneRest();
   },
 
   onPageTouchCancel: function () {

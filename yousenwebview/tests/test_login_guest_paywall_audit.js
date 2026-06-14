@@ -59,7 +59,8 @@ assert(
   "primary login CTA should use concise audit-safe copy",
 );
 assert(
-  loginWxml.indexOf("handleGuestPreview") >= 0 && loginWxml.indexOf("先体验导学") >= 0,
+  loginWxml.indexOf("handleGuestPreview") >= 0 &&
+    loginWxml.indexOf("先体验导学") >= 0,
   "login page should provide a clear guest preview path",
 );
 // 2026-06-12 契约更新（产品决策）：登录页「先体验导学」直达游客 chat（不再二进导学动效，
@@ -91,12 +92,7 @@ assert(
     "onboarding should include copy: " + text,
   );
 });
-[
-  "案例批改",
-  "采分点",
-  "易错点",
-  "错因画像",
-].forEach(function (tag) {
+["案例批改", "采分点", "易错点", "错因画像"].forEach(function (tag) {
   assert(
     onboardingJs.indexOf(tag) >= 0,
     "onboarding should include feature tag: " + tag,
@@ -123,7 +119,7 @@ assert(
   "exit timer must be cleared on unload to avoid ghost navigation",
 );
 assert(
-  onboardingWxml.indexOf("open-type=\"getPhoneNumber\"") === -1 &&
+  onboardingWxml.indexOf('open-type="getPhoneNumber"') === -1 &&
     onboardingWxml.indexOf("bindgetphonenumber") === -1,
   "onboarding must not request phone authorization",
 );
@@ -136,11 +132,13 @@ assert(
 );
 assert(
   chatJs.indexOf("isGuestPreview: false") >= 0 &&
-    chatJs.indexOf("self._ensureChatReady().catch") > chatJs.indexOf("if (hasUsableAuth)"),
+    chatJs.indexOf("self._ensureChatReady().catch") >
+      chatJs.indexOf("if (hasUsableAuth)"),
   "chat page should not redirect guest preview during profile bootstrap",
 );
 assert(
-  chatJs.indexOf("_showLoginGate") >= 0 && chatJs.indexOf("runtime.setPendingChatIntent") >= 0,
+  chatJs.indexOf("_showLoginGate") >= 0 &&
+    chatJs.indexOf("runtime.setPendingChatIntent") >= 0,
   "guest send should preserve the intended query before redirecting to login",
 );
 assert(
@@ -154,7 +152,8 @@ assert(
   "guest preview should expose a direct quick-login action from chat",
 );
 assert(
-  chatWxml.indexOf("paywallVisible") >= 0 && chatJs.indexOf("_isBillingBlockedMessage") >= 0,
+  chatWxml.indexOf("paywallVisible") >= 0 &&
+    chatJs.indexOf("_isBillingBlockedMessage") >= 0,
   "billing quota errors should surface a paywall instead of a generic error",
 );
 assert(
@@ -163,12 +162,13 @@ assert(
   "start-turn billing quota errors should normalize to user-facing paywall copy",
 );
 assert(
-  billingWxml.indexOf("开通学习权益") >= 0 && billingWxml.indexOf("小程序支付") >= 0,
+  billingWxml.indexOf("开通学习权益") >= 0 &&
+    billingWxml.indexOf("小程序支付") >= 0,
   "billing page should expose a mini-program-native entitlement package flow",
 );
 assert(
   billingJs.indexOf("api.createBillingCheckout") >= 0 &&
-    billingJs.indexOf("channel: \"wechat\"") >= 0,
+    billingJs.indexOf('channel: "wechat"') >= 0,
   "billing checkout should use the backend checkout authority with a WeChat channel",
 );
 assert(
@@ -205,15 +205,38 @@ assert(
   );
   assert(
     page.js.indexOf("isGuestPreview") >= 0 &&
-      (page.js.indexOf(page.marker) >= 0 || page.wxml.indexOf(page.marker) >= 0) &&
+      (page.js.indexOf(page.marker) >= 0 ||
+        page.wxml.indexOf(page.marker) >= 0) &&
       page.wxml.indexOf(page.wxmlMarker) >= 0,
     page.name + " page should expose a guest preview state",
   );
   assert(
-    page.js.indexOf("_requireLogin") >= 0 && page.js.indexOf("route." + page.name) >= 0,
+    page.js.indexOf("_requireLogin") >= 0 &&
+      page.js.indexOf("route." + page.name) >= 0,
     page.name + " page formal actions should still route through quick login",
   );
 });
+
+// 2026-06-14 轻点/滑动加速 + 「下次不再显示导学」契约
+var freeCourseJs = read("pages/freeCourse/freeCourse.js");
+assert(
+  onboardingJs.indexOf("skipSceneRest") >= 0 &&
+    onboardingJs.indexOf("onTapAccelerate") >= 0 &&
+    onboardingJs.indexOf("Math.abs(dy)") >= 0,
+  "onboarding 轻点与上下滑动都应触发 skipSceneRest 加速",
+);
+assert(
+  onboardingJs.indexOf("wx.showModal") >= 0 &&
+    onboardingJs.indexOf("wx.setStorageSync") >= 0 &&
+    onboardingJs.indexOf("deeptutor_onboarding_dismissed") >= 0,
+  "点跳过应弹确认并可写入「不再显示」本地标记",
+);
+assert(
+  freeCourseJs.indexOf("deeptutor_onboarding_dismissed") >= 0 &&
+    freeCourseJs.indexOf("getStorageSync") >= 0 &&
+    freeCourseJs.indexOf("openDeeptutorLogin") >= 0,
+  "首页入口读同一标记，已 dismiss 时跳过动效直接走原登录桥接",
+);
 
 if (fail) {
   console.error(errors.join("\n"));
