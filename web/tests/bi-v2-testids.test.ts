@@ -90,6 +90,17 @@ test('member ops exposes package-led cashier membership settings', async () => {
   assert.equal(panel.includes('运营授予权益'), false)
 })
 
+test('member ops row actions stay readable in the sticky action column', async () => {
+  const panel = await readWeb('app/(workspace)/bi/_v2/member-ops/BiV2MemberOpsPanel.tsx')
+  const table = await readWeb('components/bi-v2/BiDataTable.tsx')
+
+  assert.ok(table.includes('min-w-[13.5rem]'))
+  assert.ok(panel.includes('flex flex-nowrap justify-end gap-1.5'))
+  assert.ok(panel.includes('min-w-[4.75rem] whitespace-nowrap'))
+  assert.ok(panel.includes('min-w-[4rem] whitespace-nowrap'))
+  assert.ok(panel.includes('min-w-[3.5rem] whitespace-nowrap'))
+})
+
 test('BiDataTable supports row-level click without stealing checkbox/action clicks', async () => {
   const table = await readWeb('components/bi-v2/BiDataTable.tsx')
 

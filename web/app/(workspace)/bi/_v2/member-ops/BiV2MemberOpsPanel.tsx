@@ -838,11 +838,12 @@ export function BiV2MemberOpsPanel({
         }}
         rowAriaLabel={row => `打开 ${row.phone_masked} 学员 360`}
         rowAction={row => (
-          <div className="flex justify-end gap-1.5">
+          <div className="flex flex-nowrap justify-end gap-1.5">
             <BiButton
               onClick={() => void openMembershipSettings(row)}
               variant="secondary"
               size="xs"
+              className="min-w-[4.75rem] whitespace-nowrap"
               aria-label={`打开 ${row.user_id} 会员设置`}
               title="选择套餐、实收金额、有效期和取消会员"
             >
@@ -855,6 +856,7 @@ export function BiV2MemberOpsPanel({
                 disabled={membershipActionWriting}
                 variant="secondary"
                 size="xs"
+                className="min-w-[4rem] whitespace-nowrap"
                 aria-label={`按 VIP 套餐为 ${row.user_id} 付费开通并入账`}
                 title="默认按 VIP 套餐价入账；0 元或自定义金额请进会员设置"
               >
@@ -866,6 +868,7 @@ export function BiV2MemberOpsPanel({
               onClick={() => openConversation(row)}
               variant="primary"
               size="xs"
+              className="min-w-[3.5rem] whitespace-nowrap"
               aria-label={`打开 ${row.user_id} 会员对话工作台`}
             >
               <MessageSquareText className="h-3 w-3" aria-hidden />

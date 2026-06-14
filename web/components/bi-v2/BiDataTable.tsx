@@ -203,7 +203,7 @@ export function BiDataTable<T>({
                 )
               })}
               {rowAction ? (
-                <th className="sticky right-0 top-0 z-[2] border-b border-l border-white/10 bg-[#151d2b] px-3 py-2 text-right font-bold">
+                <th className="sticky right-0 top-0 z-[2] min-w-[13.5rem] border-b border-l border-white/10 bg-[#151d2b] px-3 py-2 text-right font-bold">
                   动作
                 </th>
               ) : null}
@@ -287,7 +287,7 @@ export function BiDataTable<T>({
                     ))}
                     {rowAction ? (
                       <td
-                        className="sticky right-0 border-b border-l border-white/10 bg-[#101622] px-3 py-2 text-right align-top group-hover:bg-[#102035]"
+                        className="sticky right-0 min-w-[13.5rem] border-b border-l border-white/10 bg-[#101622] px-3 py-2 text-right align-top group-hover:bg-[#102035]"
                         onClick={event => event.stopPropagation()}
                       >
                         {rowAction(row)}
