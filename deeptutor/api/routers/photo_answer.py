@@ -173,7 +173,7 @@ def _strip_exif_reencode(data: bytes) -> bytes:
 # ---------- request models ----------
 
 
-class CreateSessionRequest(BaseModel):
+class PhotoAnswerCreateSessionRequest(BaseModel):
     question_id: str = Field(min_length=1, max_length=256)
     # 题干 verbatim 落 SQLite 并进折叠/正则；4000 字够任何真实题干，超长即外部攻击/误用
     question_stem: str = Field(default="", max_length=4000)
@@ -212,7 +212,7 @@ class RetryRequest(BaseModel):
     ],
 )
 async def create_session(
-    body: CreateSessionRequest,
+    body: PhotoAnswerCreateSessionRequest,
     authorization: str | None = Header(default=None),
 ) -> dict[str, Any]:
     _ensure_enabled()

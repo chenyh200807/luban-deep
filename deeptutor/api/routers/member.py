@@ -12,6 +12,11 @@ _IDEMPOTENCY_KEY_PATTERN = re.compile(r"^[A-Za-z0-9_-]{1,128}$")
 from pydantic import BaseModel, Field
 
 from deeptutor.api.dependencies import AuthContext, require_admin
+from deeptutor.api.routers.tutor_state import (
+    OverlayPatchRequest,
+    OverlayPromotionApplyRequest,
+    OverlayPromotionDecisionRequest,
+)
 from deeptutor.services.member_console import get_member_console_service
 
 router = APIRouter(dependencies=[Depends(require_admin)])
@@ -67,18 +72,9 @@ class BatchActionRequest(BaseModel):
     reason: str = ""
 
 
-class OverlayPatchRequest(BaseModel):
-    operations: list[dict[str, Any]] = Field(default_factory=list)
-
-
-class OverlayPromotionApplyRequest(BaseModel):
-    min_confidence: float = Field(default=0.7, ge=0.0, le=1.0)
-    max_candidates: int = Field(default=10, ge=1, le=100)
-
-
-class OverlayPromotionDecisionRequest(BaseModel):
-    candidate_ids: list[str] = Field(default_factory=list)
-    reason: str = ""
+# Overlay request models are owned by the tutor_state router (single authority); imported
+# above so member-console overlay endpoints share one definition instead of a copy-paste
+# duplicate (schema-governance P3#10: no same-name route model defined in two routers).
 
 
 @router.get("/health")

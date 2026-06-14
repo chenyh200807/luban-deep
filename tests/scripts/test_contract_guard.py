@@ -5,6 +5,7 @@ import subprocess
 from scripts.check_contract_guard import (
     evaluate_changed_files,
     evaluate_question_lifecycle_authority,
+    evaluate_route_model_uniqueness,
     evaluate_upstream_authority_absorption,
     resolve_changed_files,
 )
@@ -134,6 +135,43 @@ def test_question_lifecycle_guard_allows_approved_projection_points(tmp_path) ->
 
     assert ok is True
     assert "question-lifecycle-authority-guard: passed" in message
+
+
+def test_route_model_uniqueness_guard_rejects_same_name_in_two_routers(tmp_path) -> None:
+    # P3#10: two routers defining a same-named pydantic model (with different shapes) is a
+    # silent OpenAPI collision — the guard must fail and name both files.
+    routers = tmp_path / "deeptutor" / "api" / "routers"
+    routers.mkdir(parents=True)
+    (routers / "alpha.py").write_text("class CreateSessionRequest(BaseModel):\n    a: int\n", encoding="utf-8")
+    (routers / "beta.py").write_text("class CreateSessionRequest(BaseModel):\n    b: str\n", encoding="utf-8")
+
+    ok, message = evaluate_route_model_uniqueness(tmp_path)
+
+    assert ok is False
+    assert "CreateSessionRequest" in message
+    assert "alpha.py" in message and "beta.py" in message
+
+
+def test_route_model_uniqueness_guard_allows_unique_names(tmp_path) -> None:
+    # A model defined once (or imported, not re-defined) in each router passes.
+    routers = tmp_path / "deeptutor" / "api" / "routers"
+    routers.mkdir(parents=True)
+    (routers / "alpha.py").write_text("class AlphaRequest(BaseModel):\n    a: int\n", encoding="utf-8")
+    (routers / "beta.py").write_text(
+        "from deeptutor.api.routers.alpha import AlphaRequest\nclass BetaRequest(BaseModel):\n    b: str\n",
+        encoding="utf-8",
+    )
+
+    ok, message = evaluate_route_model_uniqueness(tmp_path)
+
+    assert ok is True
+    assert "all names unique" in message
+
+
+def test_route_model_uniqueness_guard_passes_on_live_tree() -> None:
+    # The live routers tree must stay clean (after the P3#10 dedup of the 5 colliding models).
+    ok, message = evaluate_route_model_uniqueness()
+    assert ok is True, message
 
 
 def test_upstream_authority_guard_rejects_partners_runtime_package(tmp_path) -> None:

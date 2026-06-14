@@ -380,6 +380,44 @@ def evaluate_upstream_authority_absorption(repo_root: Path = REPO_ROOT) -> tuple
     return True, "upstream-authority-absorption-guard: passed"
 
 
+_ROUTE_MODEL_CLASS_RE = re.compile(r"^class ([A-Za-z_][A-Za-z0-9_]*)\([^)]*BaseModel")
+
+
+def evaluate_route_model_uniqueness(repo_root: Path = REPO_ROOT) -> tuple[bool, str]:
+    """Fail when an API route pydantic model NAME is defined in more than one router.
+
+    Two routers defining a same-named ``BaseModel`` (e.g. two ``CreateSessionRequest`` with
+    DIFFERENT field shapes) is a silent collision: FastAPI auto-suffixes them in the OpenAPI
+    components and a reader/tool cannot tell which shape a name denotes. Each route-model name
+    must map to ONE definition — import one shared owner, or rename to disambiguate. This brings
+    the api/router schema surface (the largest previously-ungoverned schema class) into the one
+    contract-guard runner, no second system (schema-governance P3#10).
+    """
+    routers_root = repo_root / "deeptutor" / "api" / "routers"
+    if not routers_root.exists():
+        return True, "route-model-uniqueness-guard: no routers dir"
+    by_name: dict[str, list[str]] = {}
+    for path in sorted(routers_root.rglob("*.py")):
+        relative = path.relative_to(repo_root).as_posix()
+        text = path.read_text(encoding="utf-8", errors="ignore")
+        for line in text.splitlines():
+            match = _ROUTE_MODEL_CLASS_RE.match(line)
+            if match:
+                by_name.setdefault(match.group(1), []).append(relative)
+    dupes = {name: files for name, files in by_name.items() if len(files) > 1}
+    if dupes:
+        detail = "\n".join(
+            f"  '{name}' defined in: {', '.join(files)}" for name, files in sorted(dupes.items())
+        )
+        return False, (
+            "route-model-uniqueness-guard: failed — same-named route pydantic model defined in "
+            "≥2 routers (rename to disambiguate, or import one shared definition):\n" + detail
+        )
+    return True, (
+        f"route-model-uniqueness-guard: passed | {len(by_name)} route models, all names unique"
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Fail CI when protected contract boundaries change without docs/tests coverage."
@@ -425,8 +463,12 @@ def main(argv: list[str] | None = None) -> int:
     schema_stream = sys.stdout if schema_ok else sys.stderr
     print(schema_message, file=schema_stream)
 
+    route_model_ok, route_model_message = evaluate_route_model_uniqueness()
+    route_model_stream = sys.stdout if route_model_ok else sys.stderr
+    print(route_model_message, file=route_model_stream)
+
     return 0 if (ok and code_ok and node_ok and lifecycle_ok
-                 and upstream_ok and ws_ok and schema_ok) else 1
+                 and upstream_ok and ws_ok and schema_ok and route_model_ok) else 1
 
 
 if __name__ == "__main__":
