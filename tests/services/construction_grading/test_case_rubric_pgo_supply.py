@@ -11,6 +11,8 @@ from deeptutor.services.construction_grading.full_knowledge_compiler import _sha
 from deeptutor.services.construction_grading.per_question_grading_object import (
     A_OFFICIAL,
     GRADING_CONTRACT_SCHEMA_ID,
+    PENDING_SCORE_AUTHORITY,
+    SCHEMA_ID,
 )
 
 
@@ -64,6 +66,66 @@ def _contract(question_id: str = "Q-PGO") -> dict:
     }
 
 
+def _pgo_object(question_id: str = "Q-FACTORY") -> dict:
+    answer = "施工总进度计划表( 图)\n资源需要量及供应平衡表"
+    return {
+        "schema_id": SCHEMA_ID,
+        "question_id": question_id,
+        "stem": "案例题",
+        "official_total_score": 8.0,
+        "official_total_score_authority": A_OFFICIAL,
+        "official_score_allowed": False,
+        "canonical_write_allowed": False,
+        "per_point_score_authority": PENDING_SCORE_AUTHORITY,
+        "sub_questions": [
+            {
+                "sub_no": 1,
+                "sub_type": "free_text_point",
+                "official_sub_answer_verbatim": answer,
+                "scoring_points": [],
+            }
+        ],
+    }
+
+
+def _factory_candidate(question_id: str = "Q-FACTORY") -> dict:
+    return {
+        "summary": {
+            "schema": "luban_full_factory_candidate.v1",
+            "classification": {
+                "candidate_only": True,
+                "review_only": True,
+                "production_gated_by": "migration plan stages",
+            },
+            "final_must_not_mint_clean": "1/1",
+        },
+        "cases": [
+            {
+                "question_id": question_id,
+                "case_file": "Q-FACTORY.json",
+                "point_type": "list",
+                "resolution": "consensus",
+                "resolution_lane": "A_consensus",
+                "final_mnm_ok": True,
+                "segments": [
+                    {
+                        "text": "施工总进度计划表( 图)",
+                        "is_list_item": True,
+                        "exact_term_required": True,
+                    },
+                    {
+                        "text": "资源需要量及供应平衡表",
+                        "is_list_item": True,
+                        "exact_term_required": True,
+                    },
+                ],
+                "list_rule": {"applies": True, "total_items": 2},
+                "penalty_rule": {"exists": False, "scope": None, "text": None},
+            }
+        ],
+    }
+
+
 def test_build_pgo_runtime_supply_keeps_null_scores_and_hash_pins_pointer() -> None:
     from deeptutor.services.construction_grading.case_rubric_pgo_supply import (
         build_pgo_runtime_supply,
@@ -97,6 +159,81 @@ def test_build_pgo_runtime_supply_keeps_null_scores_and_hash_pins_pointer() -> N
     assert records[1]["policy"] == "exact_required"
     assert records[1]["required_terms"] == ["专项施工方案"]
     assert validate_pgo_runtime_supply(bundle) == []
+
+
+def test_build_grading_contracts_from_factory_candidate_uses_verbatim_segments_only() -> None:
+    from deeptutor.services.construction_grading.case_rubric_pgo_supply import (
+        build_grading_contracts_from_factory_candidate,
+        build_pgo_runtime_supply,
+        validate_pgo_runtime_supply,
+    )
+
+    result = build_grading_contracts_from_factory_candidate(
+        _factory_candidate(), [_pgo_object()]
+    )
+
+    assert result["rejected"] == []
+    contract = result["contracts"][0]
+    assert contract["contract_schema"] == GRADING_CONTRACT_SCHEMA_ID
+    assert contract["question_id"] == "Q-FACTORY"
+    assert contract["official_total_score"] == 8.0
+    assert contract["per_point_score_authority"] == PENDING_SCORE_AUTHORITY
+    assert contract["official_score_allowed"] is False
+    assert contract["canonical_write_allowed"] is False
+    assert [p["official_slice"] for p in contract["scoring_points"]] == [
+        "施工总进度计划表( 图)",
+        "资源需要量及供应平衡表",
+    ]
+    assert all(p["score"] is None for p in contract["scoring_points"])
+    assert all(p["authority_source"] == A_OFFICIAL for p in contract["scoring_points"])
+    assert all(str(p["point_id"]).startswith("sp_") for p in contract["scoring_points"])
+    assert contract["factory_provenance"]["resolution_lanes"] == ["A_consensus"]
+
+    bundle = build_pgo_runtime_supply(result["contracts"])
+
+    assert validate_pgo_runtime_supply(bundle) == []
+    assert bundle["manifest"]["question_count"] == 1
+    assert bundle["manifest"]["scoring_point_count"] == 2
+
+
+def test_build_grading_contracts_from_factory_candidate_rejects_minted_segment() -> None:
+    from deeptutor.services.construction_grading.case_rubric_pgo_supply import (
+        build_grading_contracts_from_factory_candidate,
+    )
+
+    factory = _factory_candidate()
+    factory["cases"][0]["segments"][0]["text"] = "施工总进度计划表和横道图"
+
+    result = build_grading_contracts_from_factory_candidate(factory, [_pgo_object()])
+
+    assert result["contracts"] == []
+    assert result["rejected"][0]["question_id"] == "Q-FACTORY"
+    assert "segment_not_verbatim:1" in result["rejected"][0]["blockers"]
+
+
+def test_build_grading_contracts_from_factory_candidate_canonicalizes_to_official_substring() -> None:
+    from deeptutor.services.construction_grading.case_rubric_pgo_supply import (
+        build_grading_contracts_from_factory_candidate,
+    )
+
+    obj = _pgo_object()
+    obj["sub_questions"][0][
+        "official_sub_answer_verbatim"
+    ] = "分期( 分批) 实施工程的开、\n竣工日期及工期一览表"
+    factory = _factory_candidate()
+    factory["cases"][0]["segments"] = [
+        {
+            "text": "分期( 分批) 实施工程的开、竣工日期及工期一览表",
+            "is_list_item": True,
+        }
+    ]
+
+    result = build_grading_contracts_from_factory_candidate(factory, [obj])
+
+    assert result["rejected"] == []
+    assert result["contracts"][0]["scoring_points"][0]["official_slice"] == (
+        "分期( 分批) 实施工程的开、\n竣工日期及工期一览表"
+    )
 
 
 def test_build_pgo_runtime_supply_rejects_invalid_contract_without_laundering() -> None:
