@@ -482,14 +482,18 @@ domains:
     protected_patterns:
       - deeptutor/services/construction_grading/per_question_grading_object.py
       - deeptutor/services/construction_grading/per_question_grading_judge.py
+      - deeptutor/services/construction_grading/case_rubric_pgo_supply.py
       - deeptutor/services/construction_grading/rubric_grader_v1.py
       - deeptutor/services/construction_grading/learning_evidence.py
+      - scripts/build_luban_pgo_runtime_supply.py
       - deeptutor/services/question_followup.py
       - deeptutor/tutorbot/agent/loop.py
     test_files:
       - tests/services/construction_grading/test_per_question_grading_object.py
       - tests/services/construction_grading/test_per_question_grading_judge.py
+      - tests/services/construction_grading/test_case_rubric_pgo_supply.py
       - tests/services/construction_grading/test_rubric_grader_v1.py
+      - tests/scripts/test_build_luban_pgo_runtime_supply.py
       - tests/services/construction_grading/test_learning_evidence.py
       - tests/services/test_question_followup.py
       - tests/tutorbot/test_agent_loop_case_rubric_v1.py

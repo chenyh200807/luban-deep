@@ -47,6 +47,49 @@ def test_deterministic_sum_and_exact_required_binary():
     assert ev["official_score_allowed"] is False
 
 
+def test_null_score_pgo_points_use_official_total_coverage_not_score_sum() -> None:
+    pgo_points = [
+        {
+            "point_id": "sp_a",
+            "text": "写明项目经理应组织检查",
+            "score": None,
+            "max_score": None,
+            "policy": "list",
+            "required_terms": [],
+            "official_total_score": 10.0,
+            "score_authority": "official_total_x_verdict_coverage",
+            "per_point_score_authority": "pending_calibration_not_official",
+        },
+        {
+            "point_id": "sp_b",
+            "text": "写明应编制专项施工方案",
+            "score": None,
+            "max_score": None,
+            "policy": "exact_required",
+            "required_terms": ["专项施工方案"],
+            "official_total_score": 10.0,
+            "score_authority": "official_total_x_verdict_coverage",
+            "per_point_score_authority": "pending_calibration_not_official",
+        },
+    ]
+    judge = _judge({
+        "sp_a": {"status": G.HIT},
+        "sp_b": {"status": G.PARTIAL, "partial_ratio": 0.8},
+    })
+
+    ev = G.grade_with_rubric(qid="Q-PGO", student_answer="x", rubric_points=pgo_points, judge_fn=judge)
+
+    assert ev["grading_source"] == "rubric_scored_pgo"
+    assert ev["score_authority"] == "official_total_x_verdict_coverage"
+    assert ev["awarded_score"] == 5.0
+    assert ev["max_score"] == 10.0
+    assert ev["official_score_allowed"] is False
+    assert ev["scoring_points"][0]["score_authority"] == "display_allocated_from_official_total_coverage"
+    assert ev["scoring_points"][0]["per_point_score_authority"] == "pending_calibration_not_official"
+    assert ev["scoring_points"][1]["hit"] == G.MISS
+    assert ev["scoring_points"][1]["score"] == 0.0
+
+
 def test_grade_artifact_shadow_emits_point_matches_and_stays_non_official() -> None:
     artifact = {
         "version_id": "qga_v0_20260604",
@@ -471,9 +514,13 @@ def test_rubric_bank_pgo_slot_loads_independent_bank_when_hash_pinned(tmp_path: 
                 "qid": "Q-shared",
                 "point_id": "PGO1",
                 "text": "pgo point",
-                "score": 2.0,
+                "score": None,
+                "max_score": None,
                 "policy": "qualitative",
                 "required_terms": ["pgo"],
+                "official_total_score": 10.0,
+                "score_authority": "official_total_x_verdict_coverage",
+                "per_point_score_authority": "pending_calibration_not_official",
             }
         ],
     )
@@ -484,7 +531,9 @@ def test_rubric_bank_pgo_slot_loads_independent_bank_when_hash_pinned(tmp_path: 
     try:
         loaded = G.load_rubric("Q-shared")
         assert [p["point_id"] for p in loaded] == ["PGO1"]
-        assert loaded[0]["score"] == 2.0
+        assert loaded[0]["score"] is None
+        assert loaded[0]["official_total_score"] == 10.0
+        assert loaded[0]["score_authority"] == "official_total_x_verdict_coverage"
     finally:
         G._rubric_bank.cache_clear()
 
