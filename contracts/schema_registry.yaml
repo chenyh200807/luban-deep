@@ -61,12 +61,12 @@ scope_rule:
 # honest full set is the UNION across all literal forms = 176. The "152" was an
 # incomplete baseline; 176 is the closed authority this section keys off.
 completeness_closure:
-  full_set_count: 196            # union across all schema-version literal forms (+rag_evidence_bundle.v1, P2#8 consolidation)
+  full_set_count: 197            # union across all schema-version literal forms (+rag_evidence_bundle.v1, P2#8 consolidation; +1 from origin/main merge — luban-gold/m35 ephemeral artifact schema)
   primary_grep_baseline: 152     # task's narrow grep; missed SCHEMA_ID=/schema_id: forms
   tier_counts:
     tier1_typed_grading_object: 9    # the `schemas:` list below (1 canonical + 8 deprecated)
     tier2_runtime_canonical: 27      # tier2_canonical_contracts below (+p0a-v1, +learning_report_read_model.v2, +rag_retrieval_plan.v1, +personalization_context_pack.v1, +learning_training_intent.v2, +grading_error_event.v1, +rag_evidence_bundle.v1)
-    tier3_ephemeral_artifact: 160    # covered by tier3_carve_out rule (+12: 11 luban- dash script result-envelopes + 1 artifact_version judge-trace label, surfaced by the dash-namespace + artifact_version-marker closure-honesty fix)
+    tier3_ephemeral_artifact: 161    # covered by tier3_carve_out rule (+12: 11 luban- dash script result-envelopes + 1 artifact_version judge-trace label, surfaced by the dash-namespace + artifact_version-marker closure-honesty fix; +1 from origin/main merge — luban-gold/m35 eval artifact schema, carve-out covered, invariant still closed orphans=0)
                                      # (148 incl. luban_per_question_full_compile.v1, the Stage 1
                                      #  full-bank compile summary artifact added 2026-06-14)
   # Closure invariant (asserted by the test): T1 ∪ T2 ∪ T3 == full_set, with
