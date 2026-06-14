@@ -44,6 +44,11 @@ def test_registry_loads_envs_flags_and_grandfathered() -> None:
     assert "KBV5_RAG_ENABLED" in registry["registered_flags"]
     assert "LUBAN_V1_CONTROLLED_RUNTIME_ENABLED" in registry["registered_flags"]
     assert "LUBAN_CASE_RUBRIC_BANK_SLOT" in registry["registered_envs"]
+    assert "LUBAN_CASE_RUBRIC_BANK_SLOT_CANARY_ENABLED" in registry["registered_flags"]
+    assert "LUBAN_CASE_RUBRIC_BANK_SLOT_CANARY_COHORT" in registry["registered_envs"]
+    assert "DEEPTUTOR_TEST2_QA_AUTH_TOKEN" in registry["registered_envs"]
+    assert "DEEPTUTOR_TEST2_OPERATOR_AUTH_TOKEN" in registry["registered_envs"]
+    assert "DEEPTUTOR_TEST2_NONCOHORT_AUTH_TOKEN" in registry["registered_envs"]
     # a flag is also a registered env (so rule (a) never double-fires on it)
     assert "KBV5_RAG_ENABLED" in registry["registered_envs"]
     # secret-kind credentials are in the same registry (not a separate store)

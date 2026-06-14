@@ -1841,6 +1841,42 @@ def _learner_user_id_from_context(context: UnifiedContext) -> str:
     ).strip()
 
 
+def _authenticated_user_id_from_context(context: UnifiedContext) -> str:
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    return str(metadata.get("authenticated_user_id") or "").strip()
+
+
+def _case_rubric_bank_slot_canary_enabled() -> bool:
+    import os
+
+    return os.environ.get("LUBAN_CASE_RUBRIC_BANK_SLOT_CANARY_ENABLED", "").strip().lower() in (
+        "true", "1", "on", "yes",
+    )
+
+
+def _case_rubric_bank_slot_canary_prefixes() -> tuple[str, ...]:
+    import os
+
+    raw = os.environ.get("LUBAN_CASE_RUBRIC_BANK_SLOT_CANARY_COHORT", "qa_,operator_")
+    prefixes = tuple(prefix.strip() for prefix in raw.split(",") if prefix.strip())
+    return prefixes or ("qa_", "operator_")
+
+
+def _case_rubric_bank_slot_for_context(context: UnifiedContext) -> str | None:
+    """Return an explicit rubric bank slot for Stage 5 PGO canary traffic.
+
+    The canary decision reads only the server-authenticated user id. Billing
+    context, display user id, and request config remain business context and
+    cannot self-authorize the PGO slot.
+    """
+    if not _case_rubric_bank_slot_canary_enabled():
+        return None
+    user_id = _authenticated_user_id_from_context(context)
+    if user_id.startswith(_case_rubric_bank_slot_canary_prefixes()):
+        return "pgo"
+    return "legacy"
+
+
 def _source_bot_id_from_context(context: UnifiedContext) -> str:
     metadata = context.metadata if isinstance(context.metadata, dict) else {}
     config_overrides = getattr(context, "config_overrides", {}) or {}
@@ -2020,22 +2056,25 @@ async def _grade_case_rubric_v1(
             base_url="https://api.deepseek.com",
             binding="deepseek",
         )
+        rubric_slot = _case_rubric_bank_slot_for_context(context)
 
         if cg_type == "batch":
             event = await _grade_case_batch_v1(
-                graded_context, student_id=student_id, complete=_complete_v1, key=key, _G=_G)
+                graded_context, student_id=student_id, complete=_complete_v1, key=key, _G=_G,
+                rubric_slot=rubric_slot)
         else:
             event = await _grade_one_case_v1(
-                graded_context, student_id=student_id, complete=_complete_v1, key=key, _G=_G)
+                graded_context, student_id=student_id, complete=_complete_v1, key=key, _G=_G,
+                rubric_slot=rubric_slot)
         # Gray-rollout observability: did V1 actually grade, with what provenance/score?
         _qid = graded_context.get("question_id") or (cg or {}).get("question_id")
         if isinstance(event, dict) and event.get("event_type") == "case_grading_completed":
             _aw, _mx = event.get("awarded_score"), event.get("max_score")
             logger.info("LUBAN_V1 GRADED: provenance=%s score=%s/%s points=%d high_risk=%s "
-                        "student=%s qid=%s cg_type=%s",
+                        "student=%s qid=%s cg_type=%s rubric_slot=%s",
                         event.get("rubric_provenance"), _aw, _mx,
                         len(event.get("scoring_points") or []), event.get("high_risk_review"),
-                        student_id, _qid, cg_type)
+                        student_id, _qid, cg_type, event.get("rubric_bank_slot") or "(default)")
             _record_v1_langfuse(event=event, student_id=student_id, qid=_qid, cg_type=cg_type)
         else:
             logger.info("LUBAN_V1 no-grade: %s student=%s qid=%s",
@@ -2050,7 +2089,8 @@ async def _grade_case_rubric_v1(
 
 
 async def _grade_one_case_v1(
-    ctx: dict[str, Any], *, student_id: str, complete: Any, key: str, _G: Any
+    ctx: dict[str, Any], *, student_id: str, complete: Any, key: str, _G: Any,
+    rubric_slot: str | None = None,
 ) -> dict[str, Any] | None:
     """Grade ONE subjective question context with V1 (compiled rubric -> open-world reference). Reused by
     both the single-question and per-batch-item paths so there is exactly one grading core (no second
@@ -2067,11 +2107,14 @@ async def _grade_one_case_v1(
     if not answer:
         return None
     # 1) governed compiled rubric (best ammunition) if in the bank
-    points = _G.load_rubric(qid) if qid else []
+    if qid and rubric_slot:
+        points = _G.load_rubric(qid, slot=rubric_slot)
+    else:
+        points = _G.load_rubric(qid) if qid else []
     provenance = "compiled_rubric"
     logger.warning(
-        "LUBAN_DIAG _grade_one_case_v1: tier1 qid=%s compiled_rubric_points=%d",
-        qid or "(none)", len(points),
+        "LUBAN_DIAG _grade_one_case_v1: tier1 qid=%s compiled_rubric_points=%d rubric_slot=%s",
+        qid or "(none)", len(points), rubric_slot or "(default)",
     )
     # 2) OPEN WORLD: no compiled rubric -> extract atomic scoring points on-the-fly from THIS question's
     #    own reference answer (Nexus-like, not a 173-question lookup); never falls back to V0 keywords.
@@ -2133,11 +2176,14 @@ async def _grade_one_case_v1(
         logger.info("LUBAN_V1 degraded (no trustworthy verdict); falling back to legacy qid=%s", qid)
         return {"status": "degraded", "reason": "no_verdict", "question_id": qid}
     event["rubric_provenance"] = provenance
+    if rubric_slot:
+        event["rubric_bank_slot"] = rubric_slot
     return event
 
 
 async def _grade_case_batch_v1(
-    graded_context: dict[str, Any], *, student_id: str, complete: Any, key: str, _G: Any
+    graded_context: dict[str, Any], *, student_id: str, complete: Any, key: str, _G: Any,
+    rubric_slot: str | None = None,
 ) -> dict[str, Any] | None:
     """Multi-item turns (type=="batch"): grade each subjective sub-item with the SAME V1 core and merge
     into one case_grading_completed event (deterministic sums), so render + same-source outcome work
@@ -2155,7 +2201,8 @@ async def _grade_case_batch_v1(
     ]
     sub_events: list[dict[str, Any]] = []
     for item in case_items:
-        ev = await _grade_one_case_v1(item, student_id=student_id, complete=complete, key=key, _G=_G)
+        ev = await _grade_one_case_v1(
+            item, student_id=student_id, complete=complete, key=key, _G=_G, rubric_slot=rubric_slot)
         if isinstance(ev, dict) and ev.get("event_type") == "case_grading_completed":
             sub_events.append(ev)
     # No gradable case sub-item, OR a partial batch (some sub-item degraded) -> legacy, never a merged
@@ -2185,6 +2232,7 @@ async def _grade_case_batch_v1(
         "llm_adjudicated": True,
         "official_score_allowed": False,
         "rubric_provenance": "batch",
+        "rubric_bank_slot": rubric_slot or "",
         "items": sub_events,
     }
 

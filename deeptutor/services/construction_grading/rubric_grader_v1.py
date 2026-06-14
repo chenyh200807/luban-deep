@@ -560,26 +560,31 @@ def _personalized_feedback_note(personalization_context_pack: dict[str, Any] | N
     return f"【长期画像提示】你之前也出现过同类问题：{label}。这个提示只用于调整讲评侧重点，不会改变本次采分点得分。"
 
 
-@lru_cache(maxsize=1)
-def _rubric_bank() -> dict[str, list[dict[str, Any]]]:
-    """Load + verify-gate the active scoring-point bank ONCE per process.
+def _normalize_rubric_bank_slot(raw_slot: str | None) -> str:
+    return str(raw_slot or "legacy").strip().lower() or "legacy"
 
-    ``LUBAN_CASE_RUBRIC_BANK_SLOT`` selects the bank slot (default ``legacy``). The cache is deliberately
-    process-wide: flipping the slot requires a worker restart, which keeps rollback explicit and avoids
-    mid-process mixed authority.
+
+@lru_cache(maxsize=len(_RUBRIC_BANK_SLOTS))
+def _rubric_bank_for_slot(
+    slot: str,
+    runtime_supply_root: str | None = None,
+) -> dict[str, list[dict[str, Any]]]:
+    """Load + verify-gate a named scoring-point bank slot.
+
+    Slot-specific caching lets a controlled canary read the PGO slot explicitly
+    while non-cohort traffic still reads legacy in the same worker process.
     """
     import json
-    import os
     from pathlib import Path
 
-    raw_slot = os.getenv("LUBAN_CASE_RUBRIC_BANK_SLOT", "legacy")
-    slot = str(raw_slot or "legacy").strip().lower() or "legacy"
+    slot = _normalize_rubric_bank_slot(slot)
     slot_spec = _RUBRIC_BANK_SLOTS.get(slot)
     if slot_spec is None:
         logger.warning("rubric_grader_v1: unknown rubric bank slot %r; refusing bank", slot)
         return {}
     slot_dir, bank_name = slot_spec
-    p = Path(__file__).parent / "runtime_supply" / slot_dir / bank_name
+    supply_root = Path(runtime_supply_root) if runtime_supply_root else Path(__file__).parent / "runtime_supply"
+    p = supply_root / slot_dir / bank_name
     if not p.exists():
         logger.warning("rubric_grader_v1: rubric bank slot %s missing at %s; refusing bank", slot, p)
         return {}
@@ -634,10 +639,33 @@ def _rubric_bank() -> dict[str, list[dict[str, Any]]]:
     return by_q
 
 
-def load_rubric(qid: str) -> list[dict[str, Any]]:
+@lru_cache(maxsize=1)
+def _rubric_bank() -> dict[str, list[dict[str, Any]]]:
+    """Load + verify-gate the active scoring-point bank ONCE per process.
+
+    ``LUBAN_CASE_RUBRIC_BANK_SLOT`` selects the default bank slot (default
+    ``legacy``). The cache remains process-wide for broad flips: changing this
+    env still requires a worker restart.
+    """
+    import os
+    from pathlib import Path
+
+    return _rubric_bank_for_slot(
+        os.getenv("LUBAN_CASE_RUBRIC_BANK_SLOT", "legacy"),
+        str(Path(__file__).parent / "runtime_supply"),
+    )
+
+
+def load_rubric(qid: str, *, slot: str | None = None) -> list[dict[str, Any]]:
     """Load a question's compiled scoring-point rubric from the tracked supply (empty if not in bank ->
-    caller does open-world on-the-fly extraction). Verify-gated, cached process-wide via ``_rubric_bank``."""
-    return _rubric_bank().get(str(qid), [])
+    caller does open-world on-the-fly extraction). Verify-gated, cached per slot."""
+    if slot is None:
+        bank = _rubric_bank()
+    else:
+        from pathlib import Path
+
+        bank = _rubric_bank_for_slot(slot, str(Path(__file__).parent / "runtime_supply"))
+    return bank.get(str(qid), [])
 
 
 def to_canonical_grading_object(

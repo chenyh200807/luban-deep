@@ -544,6 +544,56 @@ def test_rubric_bank_pgo_slot_loads_independent_bank_when_hash_pinned(tmp_path: 
         G._rubric_bank.cache_clear()
 
 
+def test_load_rubric_explicit_slot_canaries_pgo_without_global_flip(tmp_path: Path, monkeypatch) -> None:
+    _write_test_rubric_bank(
+        tmp_path,
+        "v_case_rubric_scored",
+        "case_rubric_scored.json",
+        [
+            {
+                "qid": "Q-canary",
+                "point_id": "L1",
+                "text": "legacy point",
+                "score": 1.0,
+                "policy": "list",
+                "required_terms": [],
+            }
+        ],
+    )
+    _write_test_rubric_bank(
+        tmp_path,
+        "v_case_rubric_scored_pgo",
+        "case_rubric_scored_pgo.json",
+        [
+            {
+                "qid": "Q-canary",
+                "point_id": "PGO1",
+                "text": "pgo point",
+                "score": None,
+                "max_score": None,
+                "policy": "qualitative",
+                "required_terms": [],
+                "official_total_score": 10.0,
+                "score_authority": "official_total_x_verdict_coverage",
+                "per_point_score_authority": "pending_calibration_not_official",
+            }
+        ],
+    )
+    monkeypatch.setattr(G, "__file__", str(tmp_path / "rubric_grader_v1.py"))
+    monkeypatch.delenv("LUBAN_CASE_RUBRIC_BANK_SLOT", raising=False)
+    G._rubric_bank.cache_clear()
+    G._rubric_bank_for_slot.cache_clear()
+
+    try:
+        assert G.load_rubric("Q-canary")[0]["point_id"] == "L1"
+        pgo_points = G.load_rubric("Q-canary", slot="pgo")
+        assert [point["point_id"] for point in pgo_points] == ["PGO1"]
+        assert G.load_rubric("Q-canary")[0]["point_id"] == "L1"
+    finally:
+        G._rubric_bank.cache_clear()
+        G._rubric_bank_for_slot.cache_clear()
+
+
 def test_rubric_bank_refuses_pointer_hash_mismatch(tmp_path: Path, monkeypatch) -> None:
     records = [
         {

@@ -121,6 +121,7 @@ feature_flags:
   # via rule (a) (registered env) rather than rule (b) (env_flag).
   - {name: LUBAN_V1_CONTROLLED_RUNTIME_ENABLED, default: true, kind: killswitch, read: hand_rolled}
   - {name: LUBAN_CASE_RUBRIC_V1_ENABLED, default: true, kind: killswitch, read: hand_rolled}
+  - {name: LUBAN_CASE_RUBRIC_BANK_SLOT_CANARY_ENABLED, default: false, kind: rollout, read: hand_rolled}
   - {name: LUBAN_V1_LLM_ADJUDICATOR_ENABLED, default: false, kind: rollout, read: hand_rolled}
   - {name: LUBAN_V1_LLM_ADJUDICATOR_LIMITED_DEFAULT_ENABLED, default: false, kind: rollout, read: hand_rolled}
   - {name: LUBAN_V1_LLM_ADJUDICATOR_DEV_FORCE_ON, default: false, kind: dev, read: hand_rolled}
@@ -181,6 +182,18 @@ credentials:
   - {name: DEEPTUTOR_UNIFIED_WS_SMOKE_TOKEN, owner: ops_smoke}
   - {name: DEEPTUTOR_TEST2_COHORT_AUTH_TOKEN, owner: test2_cohort}
   - {name: DEEPTUTOR_TEST2_COHORT_PASSWORD, owner: test2_cohort}
+  - {name: DEEPTUTOR_TEST2_QA_AUTH_TOKEN, owner: test2_pgo_canary}
+  - {name: DEEPTUTOR_TEST2_QA_USERNAME, owner: test2_pgo_canary}
+  - {name: DEEPTUTOR_TEST2_QA_PASSWORD, owner: test2_pgo_canary}
+  - {name: DEEPTUTOR_TEST2_QA_PHONE, owner: test2_pgo_canary}
+  - {name: DEEPTUTOR_TEST2_OPERATOR_AUTH_TOKEN, owner: test2_pgo_canary}
+  - {name: DEEPTUTOR_TEST2_OPERATOR_USERNAME, owner: test2_pgo_canary}
+  - {name: DEEPTUTOR_TEST2_OPERATOR_PASSWORD, owner: test2_pgo_canary}
+  - {name: DEEPTUTOR_TEST2_OPERATOR_PHONE, owner: test2_pgo_canary}
+  - {name: DEEPTUTOR_TEST2_NONCOHORT_AUTH_TOKEN, owner: test2_pgo_canary}
+  - {name: DEEPTUTOR_TEST2_NONCOHORT_USERNAME, owner: test2_pgo_canary}
+  - {name: DEEPTUTOR_TEST2_NONCOHORT_PASSWORD, owner: test2_pgo_canary}
+  - {name: DEEPTUTOR_TEST2_NONCOHORT_PHONE, owner: test2_pgo_canary}
   - {name: DEEPTUTOR_INTERNAL_QA_TEST_PASSWORD, owner: qa}
   - {name: GITHUB_TOKEN, owner: ci}
 
@@ -370,6 +383,8 @@ grandfathered_envs:
   - LLM_USAGE_RUNTIME_ENVIRONMENT
   - LUBAN_2026_SOURCE_ROOT
   - LUBAN_CASE_RUBRIC_BANK_SLOT
+  - LUBAN_CASE_RUBRIC_BANK_SLOT_CANARY_COHORT
+  - LUBAN_CASE_RUBRIC_BANK_SLOT_CANARY_ENABLED
   - LUBAN_CASE_RUBRIC_PGO_SHADOW_ENABLED
   - LUBAN_CASE_RUBRIC_V1_ENABLED
   - LUBAN_DATA_DIR

@@ -242,6 +242,7 @@ domains:
     summary: Capability routing, request config schema, orchestrator ownership.
     contract_files:
       - CONTRACT.md
+      - contracts/turn.md
       - contracts/capability.md
       - contracts/index.yaml
       - deeptutor/capabilities/request_contracts.py
