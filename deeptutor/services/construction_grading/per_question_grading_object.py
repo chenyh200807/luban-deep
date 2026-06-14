@@ -100,6 +100,7 @@ _FLAW_ENUM_RE = re.compile(rf"(?:错误之[{_CN_NUM}]+|第[{_CN_NUM}\d]+处(?:�
 # frequently the answer body itself (verified ~10% of the bank), so removing it drops
 # real scoring points. Leading answer label is prefix-only and safe to drop.
 _ANSWER_LABEL_RE = re.compile(r"^\s*【?\s*(?:参考答案|答案)\s*】?\s*[:：]?\s*")
+_ANSWER_MARKDOWN_HEADING_RE = re.compile(r"^\s{0,3}#{1,6}\s*(?:案例解答|参考答案|答案)\s*\n+")
 _OPTION_ANALYSIS_RE = re.compile(r"\n*【\s*选项分析\s*】.*$", re.S)
 
 
@@ -112,6 +113,7 @@ def _normalize_official_answer(raw: str) -> str:
     (which is then threaded everywhere as the canonical answer for the verbatim gate)."""
     text = str(raw or "").replace("\\r\\n", "\n").replace("\\n", "\n").replace("\\r", "\n")
     text = _ANSWER_LABEL_RE.sub("", text)
+    text = _ANSWER_MARKDOWN_HEADING_RE.sub("", text)
     text = _OPTION_ANALYSIS_RE.sub("", text)
     return text.strip()
 

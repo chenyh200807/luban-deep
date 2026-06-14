@@ -163,26 +163,72 @@ def _arm_a1_messages(*, stem: str, official_answer: str, student_answer: str) ->
 
 def _arm_b_messages(*, contract: dict[str, Any], student_answer: str) -> list[dict[str, str]]:
     checklist = [
-        {"point_id": sp["point_id"], "official_slice": sp.get("official_slice"),
-         "sub_type": sp.get("sub_type")}
-        for sp in contract["scoring_points"]
+        {"i": idx, "s": sp.get("official_slice"), "t": sp.get("sub_type")}
+        for idx, sp in enumerate(contract["scoring_points"], 1)
     ]
     payload = {
         "task": "你是一级建造师案例题阅卷官。下面是该题官方采分点清单(每个都是官方答案逐字原子点)。",
         "stem": contract.get("stem"),
         "scoring_points": checklist,
-        "supporting_citations_note": "教材引证仅供理解,不能当官方对错依据(G2: 引证通道,非评分通道)。",
+        "supporting_citations_note": "教材引证只辅助理解,不得替代官方采分点。",
         "student_answer": student_answer,
-        "output_contract": contract["output_contract"],
         "instruction": (
-            "你必须对每个 point_id 逐一裁决 verdict∈{hit,partial,miss,contradiction};"
-            "命中(hit)必须在 evidence_span 引用学生作答里的逐字证据(学生用同义改写也算 hit,但必须真的答到该点语义)。"
-            "score_pct = 命中(hit)点数 / 总点数。"
-            "只输出 JSON: {\"verdicts\":[{\"point_id\":\"..\",\"verdict\":\"..\",\"evidence_span\":\"..\"}],"
-            "\"score_pct\":0..1}。"
+            "对每个 i 逐一裁决,不可遗漏。verdict code: h=hit,p=partial,m=miss,c=contradiction。"
+            "hit/partial 必须在第三列引用学生作答原句片段; miss/contradiction 第三列可为空。"
+            "score_pct=hit点数/总点数。"
+            '只输出紧凑JSON: {"v":[[1,"h","学生原句"]],"score_pct":0..1}。'
         ),
     }
     return [{"role": "user", "content": json.dumps(payload, ensure_ascii=False)}]
+
+
+_ARM_B_VERDICT_CODES = {
+    "h": HIT,
+    "hit": HIT,
+    "p": PARTIAL,
+    "partial": PARTIAL,
+    "m": MISS,
+    "miss": MISS,
+    "c": CONTRADICTION,
+    "contradiction": CONTRADICTION,
+}
+
+
+def _arm_b_verdicts(data: dict[str, Any], contract: dict[str, Any]) -> dict[str, str]:
+    """Parse compact B-arm verdicts, mapping short idx back to real point_id.
+
+    The live prompt asks for compact ``v`` rows to reduce completion tokens. Keep the
+    legacy verbose shape compatible so older artifacts and models still parse.
+    """
+    points = list(contract.get("scoring_points") or [])
+    out: dict[str, str] = {}
+    for row in list(data.get("v") or []):
+        if not isinstance(row, list) or len(row) < 2:
+            continue
+        raw_idx = row[0]
+        if isinstance(raw_idx, bool):
+            continue
+        if isinstance(raw_idx, int):
+            idx = raw_idx
+        elif isinstance(raw_idx, str) and raw_idx.strip().isdigit():
+            idx = int(raw_idx.strip())
+        else:
+            continue
+        if not (1 <= idx <= len(points)):
+            continue
+        verdict = _ARM_B_VERDICT_CODES.get(str(row[1]).strip().lower())
+        if verdict:
+            out[str(points[idx - 1].get("point_id"))] = verdict
+    if out:
+        return out
+    return {
+        str(v.get("point_id")): _ARM_B_VERDICT_CODES.get(
+            str(v.get("verdict")).strip().lower(),
+            str(v.get("verdict")),
+        )
+        for v in (data.get("verdicts") or [])
+        if isinstance(v, dict) and v.get("point_id")
+    }
 
 
 def _rag_chunk_texts(retrieval: dict[str, Any], *, limit: int = 6) -> list[str]:
@@ -386,7 +432,7 @@ async def _make_llm_judge(model: str | None, *, with_rag: bool):
                 "latency_ms": last_call.get("latency_ms"),
                 "ttft_ms": last_call.get("ttft_ms"),
             }
-        verdicts = {
+        verdicts = _arm_b_verdicts(data, contract) if arm == ARM_B else {
             str(v.get("point_id")): str(v.get("verdict"))
             for v in (data.get("verdicts") or [])
             if v.get("point_id")

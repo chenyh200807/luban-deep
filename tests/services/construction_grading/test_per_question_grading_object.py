@@ -50,6 +50,45 @@ CALC_ANSWER = (
     "（6）结算价：6100+610+480+144+660=7994万元。"
 )
 
+Q2024_MULTI_PART_ANSWER = """### 案例解答
+
+1. 工程量清单的强制性内容包括：
+   （1）工程量计算规则；
+   （2）工程量清单编制方法；
+   （3）计价方式；
+   （4）风险处理；
+   （5）费用竞争。
+
+2. 投标单位对招标文件要求作出实质性响应的内容包括：
+   （1）工期；
+   （2）招标范围；
+   （3）安全标准；
+   （4）法律法规；
+   （5）权利义务；
+   （6）报价编制。
+
+3. 中标单位应避免的违法分包行为包括：
+   （1）将工程分包给不具备相应资质单位的；
+   （2）将主体结构的施工分包给其他单位的，钢结构工程除外；
+   （3）专业工程中非劳务作业部分再分包的；
+   （4）将其承包的劳务再分包的；
+   （5）专业承包人除计取劳务作业费外，还计取主要材料款和大中型施工机械设备、主要周转材料费用的。
+
+4. 目标成本=7222.22×（1-10%）=6500万元。
+   专项施工成本分析内容还包括：
+   （1）成本盈亏异常分析；
+   （2）质量成本分析；
+   （3）资金成本分析；
+   （4）其他有利因素和不利因素分析。
+
+5. 结算造价计算如下：
+   （1）分部分项工程费：6000+100=6100万元。
+   （2）措施项目费：6100×10%=610万元。
+   （3）其他项目费：268+119+90=480万元。
+   （4）规费：（6100+610+480）×2%=144万元。
+   （5）税金：（6100+610+480+144）×9%=660万元。
+   （6）结算价：6100+610+480+144+660=7994万元。"""
+
 
 def _textbook_chunk(chunk_id: str, content: str) -> dict:
     return {"chunk_id": chunk_id, "content_markdown": content}
@@ -308,6 +347,20 @@ def test_split_sub_questions_uses_answer_own_numbering():
     assert [n for n, _ in subs] == [1, 2, 3]
     for _, body in subs:
         assert body in answer
+
+
+def test_markdown_answer_heading_does_not_collapse_q2024_sub_questions():
+    obj = compile_per_question_grading_object(
+        question_id="Q2024-MULTI",
+        stem="x",
+        correct_answer=Q2024_MULTI_PART_ANSWER,
+        official_total_score=22.0,
+        textbook_chunks=[],
+    )
+    points = [p for s in obj["sub_questions"] for p in s["scoring_points"]]
+    assert [s["sub_no"] for s in obj["sub_questions"]] == [1, 2, 3, 4, 5]
+    assert len(points) == 24
+    assert validate_per_question_grading_object(obj) == []
 
 
 def test_classify_sub_type_is_deterministic():

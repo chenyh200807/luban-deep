@@ -94,7 +94,7 @@
         "label": "complete_paraphrase",
         "answer_type": "complete",
         "student_answer": "问题一，工程量清单的强制性内容有这些：工程量怎么算的规则、清单是怎么编出来的方法、采用哪种计价方式、风险怎么分担处理、以及费用上的竞争。问题二，投标方要对招标文件作实质性响应的有：工期、招标范围、安全方面的标准、相关法律法规、双方的权利义务、还有报价是怎么编的。问题三，中标后要避免的违法分包有：分包给没有相应资质的单位、把主体结构施工分出去（钢结构除外）、专业工程里非劳务部分再次分包、把承包的劳务再转分包、以及专业承包人除了劳务费还去收主材款和大中型机械、周转材料费。问题四，目标成本等于7222.22乘以一减百分之十，得6500万元；专项成本分析还要包括成本盈亏异常、质量成本、资金成本，以及其他有利和不利因素的分析。问题五，分部分项费6000加100是6100万，措施费6100乘百分之十是610万，其他项目费268加119加90是480万，规费按6100加610加480再乘百分之二是144万，税金按前面合计加144再乘百分之九是660万，最后结算价把这些加起来是7994万元。",
-        "covered_point_ids": ["sp_e8e9e86f3cf679e75627","sp_ad53146ff87b124e8725","sp_aadb41fd6c5fff01b9d5","sp_b0ff526732488de04919","sp_394cfd9a34d6e2882f76","sp_e70f81eb51201d486fd1","sp_20199adf6e55341a1c89","sp_c0fb04f5010c14a7c74a","sp_3225ef75afd12334dce5","sp_bd1f9899050f70fca764","sp_a6ac2a1e64e941381554","sp_e6185df195786a66aea7","sp_7da89cd6fb66d487d9dc","sp_bf0773b1f55ba3f4a983","sp_d42ac7ffe050a51ad981","sp_347249b36b8118e7d228","sp_062e6ea26826c8645a03","sp_71b8d5fd91b74e56f244","sp_5139a59d787cce84d925","sp_6b0a2974cbf485b092c0","sp_bc5f8534f08fa5e6083b","sp_70ca1de6f9008d5c356e","sp_266dd732cdaf03b142cd","sp_58053d9473c5a641bead"],
+        "covered_point_ids": ["sp_2d1bc5bfcdcc1aa2d6ce","sp_ad53146ff87b124e8725","sp_aadb41fd6c5fff01b9d5","sp_b0ff526732488de04919","sp_394cfd9a34d6e2882f76","sp_dea1c4327b54f832bf92","sp_20199adf6e55341a1c89","sp_c0fb04f5010c14a7c74a","sp_3225ef75afd12334dce5","sp_bd1f9899050f70fca764","sp_a6ac2a1e64e941381554","sp_84f18ee1e642ffc7871f","sp_7da89cd6fb66d487d9dc","sp_bf0773b1f55ba3f4a983","sp_d42ac7ffe050a51ad981","sp_347249b36b8118e7d228","sp_062e6ea26826c8645a03","sp_71b8d5fd91b74e56f244","sp_cc1af99c484af3aa1e18","sp_6b0a2974cbf485b092c0","sp_bc5f8534f08fa5e6083b","sp_70ca1de6f9008d5c356e","sp_266dd732cdaf03b142cd","sp_58053d9473c5a641bead"],
         "missing_point_ids": [],
         "partial_point_ids": [],
         "contradiction_point_ids": []
@@ -103,8 +103,8 @@
         "label": "over_credit_trap_skip_subq5",
         "answer_type": "over_credit_trap",
         "student_answer": "问题一，清单强制性内容包括工程量计算规则、清单编制方法、计价方式、风险处理和费用竞争。问题二，实质性响应包括工期、招标范围、安全标准、法律法规、权利义务和报价编制。问题三，违法分包要避免：分包给无资质单位、主体结构施工外包（钢结构除外）、专业工程非劳务部分再分包、劳务再分包、专业承包人多收主材和大中型机械周转材料费。问题四，目标成本是7222.22乘以一减百分之十等于6500万元，专项成本分析还包括成本盈亏异常分析、质量成本分析、资金成本分析和其他有利不利因素分析。整套分析做得比较完整。",
-        "covered_point_ids": ["sp_e8e9e86f3cf679e75627","sp_ad53146ff87b124e8725","sp_aadb41fd6c5fff01b9d5","sp_b0ff526732488de04919","sp_394cfd9a34d6e2882f76","sp_e70f81eb51201d486fd1","sp_20199adf6e55341a1c89","sp_c0fb04f5010c14a7c74a","sp_3225ef75afd12334dce5","sp_bd1f9899050f70fca764","sp_a6ac2a1e64e941381554","sp_e6185df195786a66aea7","sp_7da89cd6fb66d487d9dc","sp_bf0773b1f55ba3f4a983","sp_d42ac7ffe050a51ad981","sp_347249b36b8118e7d228","sp_062e6ea26826c8645a03","sp_71b8d5fd91b74e56f244"],
-        "missing_point_ids": ["sp_5139a59d787cce84d925","sp_6b0a2974cbf485b092c0","sp_bc5f8534f08fa5e6083b","sp_70ca1de6f9008d5c356e","sp_266dd732cdaf03b142cd","sp_58053d9473c5a641bead"],
+        "covered_point_ids": ["sp_2d1bc5bfcdcc1aa2d6ce","sp_ad53146ff87b124e8725","sp_aadb41fd6c5fff01b9d5","sp_b0ff526732488de04919","sp_394cfd9a34d6e2882f76","sp_dea1c4327b54f832bf92","sp_20199adf6e55341a1c89","sp_c0fb04f5010c14a7c74a","sp_3225ef75afd12334dce5","sp_bd1f9899050f70fca764","sp_a6ac2a1e64e941381554","sp_84f18ee1e642ffc7871f","sp_7da89cd6fb66d487d9dc","sp_bf0773b1f55ba3f4a983","sp_d42ac7ffe050a51ad981","sp_347249b36b8118e7d228","sp_062e6ea26826c8645a03","sp_71b8d5fd91b74e56f244"],
+        "missing_point_ids": ["sp_cc1af99c484af3aa1e18","sp_6b0a2974cbf485b092c0","sp_bc5f8534f08fa5e6083b","sp_70ca1de6f9008d5c356e","sp_266dd732cdaf03b142cd","sp_58053d9473c5a641bead"],
         "partial_point_ids": [],
         "contradiction_point_ids": []
       },
@@ -112,8 +112,8 @@
         "label": "partial_enumerations_incomplete",
         "answer_type": "partial",
         "student_answer": "问题一，强制性内容我能想到工程量计算规则、清单编制方法和计价方式这几条。问题二，实质性响应大概是工期、招标范围和报价编制。问题三，违法分包包括分包给没资质的单位、把主体结构分包出去（钢结构可以除外）。问题四问题五的结算计算我没来得及做。",
-        "covered_point_ids": ["sp_e8e9e86f3cf679e75627","sp_ad53146ff87b124e8725","sp_aadb41fd6c5fff01b9d5","sp_e70f81eb51201d486fd1","sp_20199adf6e55341a1c89","sp_a6ac2a1e64e941381554","sp_e6185df195786a66aea7","sp_7da89cd6fb66d487d9dc"],
-        "missing_point_ids": ["sp_b0ff526732488de04919","sp_394cfd9a34d6e2882f76","sp_c0fb04f5010c14a7c74a","sp_3225ef75afd12334dce5","sp_bd1f9899050f70fca764","sp_bf0773b1f55ba3f4a983","sp_d42ac7ffe050a51ad981","sp_347249b36b8118e7d228","sp_062e6ea26826c8645a03","sp_71b8d5fd91b74e56f244","sp_5139a59d787cce84d925","sp_6b0a2974cbf485b092c0","sp_bc5f8534f08fa5e6083b","sp_70ca1de6f9008d5c356e","sp_266dd732cdaf03b142cd","sp_58053d9473c5a641bead"],
+        "covered_point_ids": ["sp_2d1bc5bfcdcc1aa2d6ce","sp_ad53146ff87b124e8725","sp_aadb41fd6c5fff01b9d5","sp_dea1c4327b54f832bf92","sp_20199adf6e55341a1c89","sp_a6ac2a1e64e941381554","sp_84f18ee1e642ffc7871f","sp_7da89cd6fb66d487d9dc"],
+        "missing_point_ids": ["sp_b0ff526732488de04919","sp_394cfd9a34d6e2882f76","sp_c0fb04f5010c14a7c74a","sp_3225ef75afd12334dce5","sp_bd1f9899050f70fca764","sp_bf0773b1f55ba3f4a983","sp_d42ac7ffe050a51ad981","sp_347249b36b8118e7d228","sp_062e6ea26826c8645a03","sp_71b8d5fd91b74e56f244","sp_cc1af99c484af3aa1e18","sp_6b0a2974cbf485b092c0","sp_bc5f8534f08fa5e6083b","sp_70ca1de6f9008d5c356e","sp_266dd732cdaf03b142cd","sp_58053d9473c5a641bead"],
         "partial_point_ids": [],
         "contradiction_point_ids": []
       },
@@ -122,9 +122,9 @@
         "answer_type": "contradiction",
         "student_answer": "问题四，目标成本我算的是7222.22乘以百分之十，等于722万元。问题五结算造价：分部分项费还是6000万不调整，措施费按6000乘百分之八是480万，规费和税金合并按百分之十算，最后结算价大概是7000万元出头。",
         "covered_point_ids": [],
-        "missing_point_ids": ["sp_e8e9e86f3cf679e75627","sp_ad53146ff87b124e8725","sp_aadb41fd6c5fff01b9d5","sp_b0ff526732488de04919","sp_394cfd9a34d6e2882f76","sp_e70f81eb51201d486fd1","sp_20199adf6e55341a1c89","sp_c0fb04f5010c14a7c74a","sp_3225ef75afd12334dce5","sp_bd1f9899050f70fca764","sp_a6ac2a1e64e941381554","sp_e6185df195786a66aea7","sp_7da89cd6fb66d487d9dc","sp_bf0773b1f55ba3f4a983","sp_d42ac7ffe050a51ad981","sp_347249b36b8118e7d228","sp_71b8d5fd91b74e56f244"],
+        "missing_point_ids": ["sp_2d1bc5bfcdcc1aa2d6ce","sp_ad53146ff87b124e8725","sp_aadb41fd6c5fff01b9d5","sp_b0ff526732488de04919","sp_394cfd9a34d6e2882f76","sp_dea1c4327b54f832bf92","sp_20199adf6e55341a1c89","sp_c0fb04f5010c14a7c74a","sp_3225ef75afd12334dce5","sp_bd1f9899050f70fca764","sp_a6ac2a1e64e941381554","sp_84f18ee1e642ffc7871f","sp_7da89cd6fb66d487d9dc","sp_bf0773b1f55ba3f4a983","sp_d42ac7ffe050a51ad981","sp_347249b36b8118e7d228","sp_71b8d5fd91b74e56f244"],
         "partial_point_ids": [],
-        "contradiction_point_ids": ["sp_062e6ea26826c8645a03","sp_5139a59d787cce84d925","sp_6b0a2974cbf485b092c0","sp_bc5f8534f08fa5e6083b","sp_70ca1de6f9008d5c356e","sp_266dd732cdaf03b142cd","sp_58053d9473c5a641bead"]
+        "contradiction_point_ids": ["sp_062e6ea26826c8645a03","sp_cc1af99c484af3aa1e18","sp_6b0a2974cbf485b092c0","sp_bc5f8534f08fa5e6083b","sp_70ca1de6f9008d5c356e","sp_266dd732cdaf03b142cd","sp_58053d9473c5a641bead"]
       }
     ]
   }

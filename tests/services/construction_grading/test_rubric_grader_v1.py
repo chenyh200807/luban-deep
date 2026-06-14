@@ -481,6 +481,25 @@ def test_batch_prompt_hides_long_pointids_and_uses_idx() -> None:
     assert '"idx":1' in prompt.replace(" ", "")  # short stable ordinal used
 
 
+def test_batch_prompt_requests_compact_verdict_rows() -> None:
+    prompt = G._batch_prompt(
+        [
+            {
+                "point_id": "EXAM::Q1-1",
+                "text": "采分点甲",
+                "score": 1.0,
+                "policy": "list",
+                "required_terms": [],
+            }
+        ],
+        "学生作答",
+    )
+
+    assert '[[1,"h",1,"命中原句",""]]' in prompt
+    assert '"evidence_span"' not in prompt
+    assert '"mistake_type"' not in prompt
+
+
 def test_parse_batch_verdicts_maps_idx_to_real_pointid() -> None:
     pts = [
         {
@@ -509,6 +528,51 @@ def test_parse_batch_verdicts_maps_idx_to_real_pointid() -> None:
     assert sv["EXAM::Q1-1"]["status"] == "hit" and sv["EXAM::Q1-2"]["status"] == "miss"
     # bool is NOT a valid idx (json true coerces to 1 in python int check) — must be rejected
     assert G._parse_batch_verdicts('[{"idx":true,"status":"hit"}]', pts) == {}
+
+
+def test_parse_batch_verdicts_accepts_compact_rows() -> None:
+    pts = [
+        {
+            "point_id": "EXAM::Q1-1",
+            "text": "a",
+            "score": 1.0,
+            "policy": "list",
+            "required_terms": [],
+        },
+        {
+            "point_id": "EXAM::Q1-2",
+            "text": "b",
+            "score": 1.0,
+            "policy": "list",
+            "required_terms": [],
+        },
+        {
+            "point_id": "EXAM::Q1-3",
+            "text": "c",
+            "score": 1.0,
+            "policy": "list",
+            "required_terms": [],
+        },
+    ]
+
+    verdicts = G._parse_batch_verdicts(
+        '[[1,"h",1,"甲",""],["2","p",0.5,"乙","list_incomplete"],[3,"m",0,"","omitted"]]',
+        pts,
+    )
+
+    assert verdicts["EXAM::Q1-1"] == {
+        "idx": 1,
+        "status": "hit",
+        "partial_ratio": 1.0,
+        "evidence_span": "甲",
+        "mistake_type": "",
+    }
+    assert verdicts["EXAM::Q1-2"]["status"] == "partial"
+    assert verdicts["EXAM::Q1-2"]["partial_ratio"] == 0.5
+    assert verdicts["EXAM::Q1-2"]["mistake_type"] == "list_incomplete"
+    assert verdicts["EXAM::Q1-3"]["status"] == "miss"
+    assert verdicts["EXAM::Q1-3"]["mistake_type"] == "omitted"
+    assert G._parse_batch_verdicts('[[true,"h",1,"",""]]', pts) == {}
 
 
 def test_partial_coverage_is_degraded() -> None:
