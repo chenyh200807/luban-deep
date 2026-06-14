@@ -4,7 +4,7 @@ import { apiUrl, getStoredBiAdminSession } from '@/lib/api'
  * BI RBAC API 层 — 对接后端 /api/v1/bi/ RBAC 端点（SHA 236af02）。
  *
  * 单一 token 来源：getStoredBiAdminSession()?.token。
- * 写操作（POST/PATCH/DELETE）+ audit/search 需要 super_admin 角色，否则后端 403。
+ * 写操作（POST/PATCH/DELETE）+ audit/search 需要 can_manage_permissions，否则后端 403。
  * 列表/矩阵/me 为只读，普通 admin 也能读。
  *
  * 不可变约束：所有解析返回新对象/数组，调用方不得就地修改后端 payload。
@@ -27,7 +27,12 @@ export interface BiRoleDefinition {
   description: string
   can_manage_permissions: boolean
   is_full_admin: boolean
+  /** 生效权限矩阵（含管理员已编辑的角色级覆盖）。 */
   matrix: BiRoleMatrix
+  /** 该角色权限是否可编辑（super_admin 角色锁定，恒 false）。 */
+  editable: boolean
+  /** 代码默认权限矩阵，用于「重置为默认」对比。 */
+  default_matrix: BiRoleMatrix
 }
 
 export interface BiRbacRoles {
@@ -57,6 +62,18 @@ export interface BiAdminRecord {
   removable: boolean
   editable: boolean
   accessible_tabs: string[]
+  /** 该管理员的生效权限矩阵（角色默认 ⊕ 个人覆盖）。 */
+  effective_matrix: BiRoleMatrix
+  /** 是否设置了个人权限覆盖。 */
+  has_overrides: boolean
+  /** 已设置的个人覆盖（仅含被覆盖的 tab）。 */
+  permission_overrides: BiRoleMatrix
+}
+
+export interface BiEffectivePermissions {
+  user_id: string
+  role: BiRoleKey
+  effective_matrix: BiRoleMatrix
 }
 
 export type BiAdminAuditAction = 'add_admin' | 'set_role' | 'remove_admin'
@@ -123,7 +140,7 @@ export async function listAdmins(): Promise<BiAdminRecord[]> {
   )
 }
 
-/** GET /admins/audit — 权限变更审计，最新在前（super_admin）。 */
+/** GET /admins/audit — 权限变更审计，最新在前（can_manage_permissions）。 */
 export async function listAdminAudit(limit = 200): Promise<BiAdminAuditEntry[]> {
   const data = await readJson<{ audit?: BiAdminAuditEntry[] }>(
     await fetch(apiUrl(`/api/v1/bi/admins/audit?limit=${encodeURIComponent(String(limit))}`), {
@@ -134,7 +151,7 @@ export async function listAdminAudit(limit = 200): Promise<BiAdminAuditEntry[]> 
   return data.audit ?? []
 }
 
-/** GET /admins/search-members — 按手机号 / 姓名 / user_id 搜会员选人（super_admin）。 */
+/** GET /admins/search-members — 按手机号 / 姓名 / user_id 搜会员选人（can_manage_permissions）。 */
 export async function searchMembers(q: string, limit = 10): Promise<BiMemberSearchResult[]> {
   const query = q.trim()
   if (!query) return []
@@ -179,6 +196,60 @@ export async function removeAdmin(userId: string): Promise<BiAdminRecord[]> {
   return parseAdmins(
     await fetch(apiUrl(`/api/v1/bi/admins/${encodeURIComponent(userId)}`), {
       method: 'DELETE',
+      headers: authHeaders(),
+    })
+  )
+}
+
+async function parseRoles(response: Response): Promise<BiRbacRoles> {
+  const data = await readJson<Partial<BiRbacRoles>>(response)
+  return {
+    tabs: data.tabs ?? [],
+    actions: data.actions ?? [],
+    roles: data.roles ?? [],
+  }
+}
+
+/**
+ * PUT /rbac/roles/{role}/permissions — 编辑某角色权限矩阵（角色级，影响所有该角色管理员）。
+ * super_admin 角色锁定，后端返回 400。返回最新角色 payload。
+ */
+export async function setRolePermissions(
+  role: BiRoleKey,
+  matrix: BiRoleMatrix
+): Promise<BiRbacRoles> {
+  return parseRoles(
+    await fetch(apiUrl(`/api/v1/bi/rbac/roles/${encodeURIComponent(role)}/permissions`), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ matrix }),
+    })
+  )
+}
+
+/**
+ * PUT /admins/{user_id}/permissions — 精确到人设置个人权限覆盖。
+ * 只提交的 tab 会覆盖角色默认，未提交的 tab 回落角色默认；传 {} 即清除全部覆盖。
+ * env 超管 / super_admin 角色锁定，后端返回 400。返回最新清单。
+ */
+export async function setUserPermissions(
+  userId: string,
+  overrides: BiRoleMatrix
+): Promise<BiAdminRecord[]> {
+  return parseAdmins(
+    await fetch(apiUrl(`/api/v1/bi/admins/${encodeURIComponent(userId)}/permissions`), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ overrides }),
+    })
+  )
+}
+
+/** GET /admins/{user_id}/effective-permissions — 某人最终生效权限矩阵（只读）。 */
+export async function getEffectivePermissions(userId: string): Promise<BiEffectivePermissions> {
+  return readJson<BiEffectivePermissions>(
+    await fetch(apiUrl(`/api/v1/bi/admins/${encodeURIComponent(userId)}/effective-permissions`), {
+      cache: 'no-store',
       headers: authHeaders(),
     })
   )

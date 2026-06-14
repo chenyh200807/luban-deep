@@ -442,14 +442,19 @@ async def bi_luban_feedback_response_update(
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
 
 
-def require_bi_super_admin(auth: AuthContext | None = Depends(require_bi_access)) -> AuthContext:
-    """权限管理端点专用门：仅 super_admin 可增删管理员、改角色。"""
+def require_bi_permission_manager(
+    auth: AuthContext | None = Depends(require_bi_access),
+) -> AuthContext:
+    """权限管理端点专用门：允许 can_manage_permissions 的管理员变更权限。"""
     if auth is None or not get_member_console_service().can_manage_permissions(auth.user_id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="需要超级管理员权限才能管理 BI 权限",
+            detail="需要管理员权限才能管理 BI 权限",
         )
     return auth
+
+
+require_bi_super_admin = require_bi_permission_manager
 
 
 def _now_iso() -> str:
@@ -461,9 +466,7 @@ def _now_iso() -> str:
 @router.get("/rbac/roles")
 async def bi_rbac_roles(_auth: AuthContext = Depends(require_bi_admin)):
     """角色定义 + 权限矩阵 + tab/操作维度，供权限管理界面渲染。"""
-    from deeptutor.services.member_console import rbac
-
-    return rbac.roles_payload()
+    return get_member_console_service().roles_payload()
 
 
 @router.get("/rbac/me")
@@ -472,16 +475,44 @@ async def bi_rbac_me(auth: AuthContext | None = Depends(require_bi_access)):
     from deeptutor.services.member_console import rbac
 
     uid = auth.user_id if auth else ""
-    role = get_member_console_service().get_admin_role(uid)
+    service = get_member_console_service()
+    role = service.get_admin_role(uid)
+    matrix = service.get_effective_permissions(uid) if role else {}
     return {
         "user_id": uid,
         "role": role,
         "role_label": rbac.ROLE_LABELS.get(role or "", ""),
-        "can_manage_permissions": rbac.can_manage_permissions(role),
+        "can_manage_permissions": service.can_manage_permissions(uid),
         "is_full_admin": rbac.is_full_admin(role),
-        "accessible_tabs": rbac.accessible_tabs(role),
-        "matrix": rbac.role_matrix(role) if role else {},
+        "accessible_tabs": [
+            tab for tab in rbac.TABS if "view" in set(matrix.get(tab, []))
+        ],
+        "matrix": matrix,
     }
+
+
+@router.put("/rbac/roles/{role}/permissions")
+async def bi_set_role_permissions(
+    role: str,
+    payload: dict[str, Any] | None = Body(default=None),
+    auth: AuthContext = Depends(require_bi_permission_manager),
+):
+    """编辑某个角色的权限矩阵，影响该角色下所有管理员。"""
+    body = payload or {}
+    matrix = body.get("matrix")
+    if matrix is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="matrix 必填")
+    if not isinstance(matrix, dict):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="matrix 必须是对象")
+    try:
+        return get_member_console_service().set_role_permissions(
+            actor=auth.user_id,
+            role=role,
+            matrix=matrix,
+            at=_now_iso(),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
 
 @router.get("/admins")
@@ -493,7 +524,7 @@ async def bi_list_admins(_auth: AuthContext = Depends(require_bi_admin)):
 @router.get("/admins/audit")
 async def bi_admins_audit(
     limit: int = Query(200, ge=1, le=1000),
-    _auth: AuthContext = Depends(require_bi_super_admin),
+    _auth: AuthContext = Depends(require_bi_permission_manager),
 ):
     """权限变更审计（谁在何时把谁设成什么角色）。"""
     return {"audit": get_member_console_service().list_admin_audit(limit=limit)}
@@ -503,7 +534,7 @@ async def bi_admins_audit(
 async def bi_admins_search_members(
     q: str = Query("", min_length=0, max_length=64),
     limit: int = Query(10, ge=1, le=50),
-    _auth: AuthContext = Depends(require_bi_super_admin),
+    _auth: AuthContext = Depends(require_bi_permission_manager),
 ):
     """按手机号/姓名/user_id 搜会员，供添加管理员选人（带回 user_id）。"""
     return {"members": get_member_console_service().search_members_for_admin(q=q, limit=limit)}
@@ -512,7 +543,7 @@ async def bi_admins_search_members(
 @router.post("/admins")
 async def bi_add_admin(
     payload: dict[str, Any] | None = Body(default=None),
-    auth: AuthContext = Depends(require_bi_super_admin),
+    auth: AuthContext = Depends(require_bi_permission_manager),
 ):
     """添加管理员并指定角色，立即生效。body: {user_id, role, display_name?}。"""
     from deeptutor.services.member_console import rbac
@@ -536,7 +567,7 @@ async def bi_add_admin(
 async def bi_set_admin_role(
     user_id: str,
     payload: dict[str, Any] | None = Body(default=None),
-    auth: AuthContext = Depends(require_bi_super_admin),
+    auth: AuthContext = Depends(require_bi_permission_manager),
 ):
     """修改管理员角色。body: {role}。"""
     body = payload or {}
@@ -552,8 +583,50 @@ async def bi_set_admin_role(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
 
+@router.put("/admins/{user_id}/permissions")
+async def bi_set_user_permissions(
+    user_id: str,
+    payload: dict[str, Any] | None = Body(default=None),
+    auth: AuthContext = Depends(require_bi_permission_manager),
+):
+    """精确到人设置权限覆盖；提交空对象可清除全部个人覆盖。"""
+    body = payload or {}
+    overrides = body.get("overrides")
+    if overrides is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="overrides 必填")
+    if not isinstance(overrides, dict):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="overrides 必须是对象")
+    try:
+        admins = get_member_console_service().set_user_permission_overrides(
+            actor=auth.user_id,
+            user_id=user_id,
+            overrides=overrides,
+            at=_now_iso(),
+        )
+        return {"admins": admins}
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+@router.get("/admins/{user_id}/effective-permissions")
+async def bi_get_effective_permissions(
+    user_id: str,
+    _auth: AuthContext = Depends(require_bi_admin),
+):
+    """读取某个管理员最终生效权限矩阵。"""
+    service = get_member_console_service()
+    return {
+        "user_id": user_id,
+        "role": service.get_admin_role(user_id),
+        "effective_matrix": service.get_effective_permissions(user_id),
+    }
+
+
 @router.delete("/admins/{user_id}")
-async def bi_remove_admin(user_id: str, auth: AuthContext = Depends(require_bi_super_admin)):
+async def bi_remove_admin(
+    user_id: str,
+    auth: AuthContext = Depends(require_bi_permission_manager),
+):
     """移除管理员。系统引导管理员不可移除（防止锁死超管）。"""
     try:
         admins = get_member_console_service().remove_admin_user(

@@ -20,6 +20,8 @@ bi_router = bi_router_module.router
 
 from deeptutor.services.bi_service import BIService
 from deeptutor.services.feedback_service import build_mobile_feedback_row
+from deeptutor.services.member_console import rbac
+from deeptutor.services.member_console.service import get_member_console_service
 from deeptutor.services.session.sqlite_store import SQLiteSessionStore
 
 
@@ -800,6 +802,64 @@ def test_bi_router_rejects_non_admin_even_with_authenticated_context(bi_service:
         response = client.get("/api/v1/bi/overview?days=30")
         assert response.status_code == 403
         assert response.json()["detail"] == "Admin access required"
+
+
+def test_bi_rbac_permission_management_endpoints_allow_admin(
+    bi_service: BIService, tmp_path: Path, monkeypatch
+) -> None:
+    member_service = get_member_console_service()
+    monkeypatch.setattr(member_service, "_bi_admins_path", lambda: tmp_path / "bi_admins.json")
+    monkeypatch.setattr(member_service, "_env_admin_user_ids", lambda: {"env-super"})
+    monkeypatch.setattr(member_service, "_safe_member_display_name", lambda uid: f"name-{uid}")
+    member_service.set_admin_role(
+        actor="env-super", user_id="u-admin", role=rbac.ROLE_ADMIN, at="t1"
+    )
+    member_service.set_admin_role(
+        actor="env-super", user_id="u-op", role=rbac.ROLE_OPERATOR, at="t1"
+    )
+
+    app = _build_app(bi_service)
+    app.dependency_overrides[bi_router_module.require_bi_access] = lambda: SimpleNamespace(
+        user_id="u-admin", is_admin=True
+    )
+    app.dependency_overrides[bi_router_module.require_bi_admin] = lambda: SimpleNamespace(
+        user_id="u-admin", is_admin=True
+    )
+
+    matrix = {tab: [] for tab in rbac.TABS}
+    matrix["member_ops"] = list(rbac.ACTIONS)
+    matrix["feedback"] = ["view"]
+    matrix["commerce"] = ["view"]
+
+    with TestClient(app) as client:
+        me = client.get("/api/v1/bi/rbac/me")
+        assert me.status_code == 200
+        assert me.json()["can_manage_permissions"] is True
+
+        roles = client.get("/api/v1/bi/rbac/roles")
+        assert roles.status_code == 200
+        operator = next(r for r in roles.json()["roles"] if r["key"] == "operator")
+        assert operator["matrix"]["member_ops"] == list(rbac.ACTIONS)
+
+        updated_roles = client.put(
+            "/api/v1/bi/rbac/roles/operator/permissions",
+            json={"matrix": matrix},
+        )
+        assert updated_roles.status_code == 200
+        updated_operator = next(r for r in updated_roles.json()["roles"] if r["key"] == "operator")
+        assert updated_operator["matrix"]["commerce"] == ["view"]
+
+        admins = client.put(
+            "/api/v1/bi/admins/u-op/permissions",
+            json={"overrides": {"ops": ["view"]}},
+        )
+        assert admins.status_code == 200
+        operator_row = next(a for a in admins.json()["admins"] if a["user_id"] == "u-op")
+        assert operator_row["effective_matrix"]["ops"] == ["view"]
+
+        effective = client.get("/api/v1/bi/admins/u-op/effective-permissions")
+        assert effective.status_code == 200
+        assert effective.json()["effective_matrix"]["member_ops"] == list(rbac.ACTIONS)
 
 
 def test_bi_cost_reconciliation_supports_deepseek_provider(

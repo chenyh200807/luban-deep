@@ -31,9 +31,9 @@ def test_add_admin_with_role_takes_effect(svc):
     assert svc.get_admin_role("u-new") == rbac.ROLE_OPERATOR
     # operator 不是 full admin
     assert svc.is_admin_user("u-new") is False
-    # operator 能写会员运营，不能高危，看不到成本
+    # operator 能做会员运营全量操作（含套餐能力发放/删除等高危），看不到成本
     assert svc.can_access("u-new", "member_ops", "write") is True
-    assert svc.can_access("u-new", "member_ops", "high_risk") is False
+    assert svc.can_access("u-new", "member_ops", "high_risk") is True
     assert svc.can_access("u-new", "commerce", "view") is False
 
 
@@ -42,6 +42,7 @@ def test_change_role(svc):
     svc.set_admin_role(actor="env-super", user_id="u-x", role=rbac.ROLE_ADMIN, at="t2")
     assert svc.get_admin_role("u-x") == rbac.ROLE_ADMIN
     assert svc.is_admin_user("u-x") is True
+    assert svc.can_manage_permissions("u-x") is True
 
 
 def test_analyst_read_only(svc):
@@ -79,3 +80,67 @@ def test_audit_trail(svc):
     assert audit[0]["action"] == "remove_admin"
     actions = [a["action"] for a in audit]
     assert "add_admin" in actions and "set_role" in actions
+
+
+# ---- 角色权限编辑 + per-user 覆盖（精确到人）----
+
+def test_edit_role_permissions_takes_effect(svc):
+    """超管把 operator 改成能看成本(commerce view)，所有 operator 生效。"""
+    svc.set_admin_role(actor="env-super", user_id="u-op", role=rbac.ROLE_OPERATOR, at="t1")
+    assert svc.can_access("u-op", "commerce", "view") is False  # 默认看不到
+    svc.set_role_permissions(
+        actor="env-super",
+        role=rbac.ROLE_OPERATOR,
+        matrix={"member_ops": ["view", "export", "write"], "feedback": ["view"], "commerce": ["view"]},
+        at="t2",
+    )
+    assert svc.can_access("u-op", "commerce", "view") is True
+    assert svc.can_access("u-op", "commerce", "write") is False
+
+
+def test_cannot_edit_super_admin_role(svc):
+    with pytest.raises(ValueError):
+        svc.set_role_permissions(actor="env-super", role=rbac.ROLE_SUPER_ADMIN, matrix={})
+
+
+def test_per_user_override_precise_to_person(svc):
+    """精确到人:给某个 analyst 单独开 commerce 写权限,不影响其他 analyst。"""
+    svc.set_admin_role(actor="env-super", user_id="u-a1", role=rbac.ROLE_ANALYST, at="t1")
+    svc.set_admin_role(actor="env-super", user_id="u-a2", role=rbac.ROLE_ANALYST, at="t1")
+    assert svc.can_access("u-a1", "commerce", "write") is False
+    svc.set_user_permission_overrides(
+        actor="env-super", user_id="u-a1", overrides={"commerce": ["view", "export", "write"]}, at="t2"
+    )
+    assert svc.can_access("u-a1", "commerce", "write") is True   # 这个人开了
+    assert svc.can_access("u-a2", "commerce", "write") is False  # 另一个人不受影响
+
+
+def test_effective_permissions_payload(svc):
+    svc.set_admin_role(actor="env-super", user_id="u-op", role=rbac.ROLE_OPERATOR, at="t1")
+    svc.set_user_permission_overrides(
+        actor="env-super", user_id="u-op", overrides={"ops": ["view"]}, at="t2"
+    )
+    eff = svc.get_effective_permissions("u-op")
+    assert eff["ops"] == ["view"]              # 个人覆盖加了 ops view
+    assert eff["member_ops"] == list(rbac.ACTIONS)  # 角色默认保留
+
+
+def test_cannot_override_env_super_admin(svc):
+    with pytest.raises(ValueError):
+        svc.set_user_permission_overrides(
+            actor="x", user_id="env-super", overrides={"commerce": []}
+        )
+
+
+def test_role_edit_persists_in_list_and_payload(svc):
+    svc.set_admin_role(actor="env-super", user_id="u-op", role=rbac.ROLE_OPERATOR, at="t1")
+    svc.set_role_permissions(
+        actor="env-super", role=rbac.ROLE_OPERATOR,
+        matrix={"member_ops": ["view"], "commerce": ["view"]}, at="t2"
+    )
+    payload = svc.roles_payload()
+    op = next(r for r in payload["roles"] if r["key"] == "operator")
+    assert op["matrix"]["commerce"] == ["view"]
+    # 列表里该 operator 的可访问 tab 含 commerce
+    entry = next(e for e in svc.list_admin_user_ids() if e["user_id"] == "u-op")
+    assert "commerce" in entry["accessible_tabs"]
