@@ -53,15 +53,16 @@ test('member ops exposes product behavior UI anchors', async () => {
   assert.ok(drawer.includes('data-testid="bi-member-360-summary"'))
 })
 
-test('member ops exposes a visible VIP upgrade action', async () => {
+test('member ops exposes membership settings as the visible row action', async () => {
   const panel = await readWeb('app/(workspace)/bi/_v2/member-ops/BiV2MemberOpsPanel.tsx')
   const drawer = await readWeb('app/(workspace)/bi/_v2/member-ops/Member360Drawer.tsx')
 
   assert.ok(panel.includes('manualPurchaseMembership'))
   assert.ok(panel.includes('upgradeMemberToVip'))
   assert.ok(panel.includes('findPackageForTier(membershipPackages, \'vip\')'))
-  assert.ok(panel.includes('aria-label={`按 VIP 套餐为 ${row.user_id} 付费开通并入账`}'))
-  assert.ok(panel.includes('开VIP'))
+  assert.ok(panel.includes('aria-label={`打开 ${row.user_id} 会员设置`}'))
+  assert.ok(panel.includes('选择套餐、实收金额、有效期和取消会员'))
+  assert.ok(panel.includes('variant="primary"'))
   assert.ok(!panel.includes('grantMembership'))
   assert.ok(drawer.includes('onUpgradeToVip'))
   assert.ok(drawer.includes('aria-label="将当前会员升级为 VIP"'))
@@ -94,10 +95,9 @@ test('member ops row actions stay readable in the sticky action column', async (
   const panel = await readWeb('app/(workspace)/bi/_v2/member-ops/BiV2MemberOpsPanel.tsx')
   const table = await readWeb('components/bi-v2/BiDataTable.tsx')
 
-  assert.ok(table.includes('min-w-[13.5rem]'))
+  assert.ok(table.includes('min-w-[9.25rem]'))
   assert.ok(panel.includes('flex flex-nowrap justify-end gap-1.5'))
   assert.ok(panel.includes('min-w-[4.75rem] whitespace-nowrap'))
-  assert.ok(panel.includes('min-w-[4rem] whitespace-nowrap'))
   assert.ok(panel.includes('min-w-[3.5rem] whitespace-nowrap'))
 })
 
