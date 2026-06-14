@@ -388,6 +388,59 @@ def evaluate_emitted_evidence_sources(repo_root: Path = REPO_ROOT) -> tuple[bool
     )
 
 
+# G3: mistake_type emit-site register-before-use (static layer).
+# mistake_type labels carried into learner evidence must be a registered code from
+# deeptutor/contracts/mistake_codes.py (mirror of contracts/mistake_code_registry.yaml).
+# This scans hard-coded literals in the grading emit modules; LLM-produced mistake_type
+# at runtime must be normalized at the judge boundary (audit G3 layer 2, separate).
+_MISTAKE_TYPE_SCAN_PATHS: tuple[str, ...] = (
+    "deeptutor/services/construction_grading/rubric_grader_v1.py",
+    "deeptutor/services/construction_grading/artifact_first_llm_judge.py",
+    "deeptutor/services/construction_grading/case_grading_fusion.py",
+    "deeptutor/services/construction_grading/m35_artifact_shadow.py",
+)
+_MISTAKE_TYPE_EMIT_RE = re.compile(
+    r'(?:"mistake_type"|mistake_type|MISTAKE_[A-Z_]+)\s*[=:]\s*"([a-z_]+)"'
+)
+
+
+def evaluate_emitted_mistake_types(repo_root: Path = REPO_ROOT) -> tuple[bool, str]:
+    """Cross-check every hard-coded mistake_type literal against the registry.
+
+    The regex matches dict-emit / kwarg / MISTAKE_* constant forms; reader
+    comparisons (``verdict.get("mistake_type")``) and ``= str(...)`` pass-throughs
+    are not captured. No literal found is a passing condition.
+    """
+    found: dict[str, list[str]] = {}
+    for relative in _MISTAKE_TYPE_SCAN_PATHS:
+        path = repo_root / relative
+        if not path.exists():
+            continue
+        for lineno, line in enumerate(
+            path.read_text(encoding="utf-8", errors="ignore").splitlines(), start=1
+        ):
+            for match in _MISTAKE_TYPE_EMIT_RE.finditer(line):
+                found.setdefault(match.group(1), []).append(f"{relative}:{lineno}")
+    if not found:
+        return True, "mistake-type-guard: no hard-coded mistake_type literals found"
+    try:
+        from deeptutor.contracts.mistake_codes import is_known_mistake_code
+    except Exception as exc:  # pragma: no cover - defensive
+        return False, f"mistake-type-guard: registry import failed: {exc}"
+    unknown = {v: locs for v, locs in found.items() if not is_known_mistake_code(v)}
+    if unknown:
+        detail = "; ".join(
+            f"{v} @ {', '.join(sorted(locs))}" for v, locs in sorted(unknown.items())
+        )
+        return False, (
+            "mistake-type-guard: failed\n"
+            f"unregistered mistake_type literal(s): {detail} — add to "
+            "contracts/mistake_code_registry.yaml + deeptutor/contracts/mistake_codes.py "
+            "or remove the emit-site literal."
+        )
+    return True, f"mistake-type-guard: passed | mistake_types={', '.join(sorted(found))}"
+
+
 def evaluate_question_lifecycle_authority(repo_root: Path = REPO_ROOT) -> tuple[bool, str]:
     """Fail when production code introduces a competing lifecycle authority."""
 
@@ -547,9 +600,13 @@ def main(argv: list[str] | None = None) -> int:
     evidence_stream = sys.stdout if evidence_ok else sys.stderr
     print(evidence_message, file=evidence_stream)
 
+    mistake_ok, mistake_message = evaluate_emitted_mistake_types()
+    mistake_stream = sys.stdout if mistake_ok else sys.stderr
+    print(mistake_message, file=mistake_stream)
+
     return 0 if (ok and code_ok and node_ok and lifecycle_ok
                  and upstream_ok and ws_ok and schema_ok and route_model_ok
-                 and evidence_ok) else 1
+                 and evidence_ok and mistake_ok) else 1
 
 
 if __name__ == "__main__":
