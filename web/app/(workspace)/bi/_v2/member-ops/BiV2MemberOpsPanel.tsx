@@ -414,7 +414,11 @@ export function BiV2MemberOpsPanel({
 
   function submitMemberSearch(event?: FormEvent<HTMLFormElement>) {
     event?.preventDefault()
-    onSubmitSearch?.(memberSearchDraft.trim())
+    submitMemberSearchValue(memberSearchDraft)
+  }
+
+  function submitMemberSearchValue(value: string) {
+    onSubmitSearch?.(value.trim())
   }
 
   function clearMemberSearch() {
@@ -800,6 +804,10 @@ export function BiV2MemberOpsPanel({
               aria-label="搜索会员手机号或账号"
               className="min-w-0 flex-1 bg-transparent text-sm font-bold text-slate-100 outline-none placeholder:text-slate-500"
               onKeyDown={event => {
+                if (event.key === 'Enter') {
+                  event.preventDefault()
+                  submitMemberSearchValue(event.currentTarget.value)
+                }
                 if (event.key === 'Escape') {
                   event.preventDefault()
                   clearMemberSearch()
