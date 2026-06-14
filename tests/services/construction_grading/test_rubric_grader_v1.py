@@ -524,3 +524,69 @@ def test_g2_guard_official_answer_verbatim_authority_still_scores():
             "authority_source": "official_answer_verbatim"}]
     kept = G.enforce_official_scoring_authority(pts, provenance="compiled_rubric")
     assert kept == pts
+
+
+# ── canonical typed object wired into the LIVE production scoring path (foundation goes live) ──
+
+
+def test_to_canonical_grading_object_makes_typed_object_a_live_valid_consumer() -> None:
+    """EFFECT 1: the production rubric is built as a canonical luban_grading_object.v1 and PASSES
+    validate_grading_object — the typed object (a defined-but-unconsumed island) is now genuinely
+    consumed on the production grading path."""
+    from deeptutor.services.construction_grading.unified_grading_object import (
+        validate_grading_object,
+    )
+
+    obj = G.to_canonical_grading_object(_rubric(), qid="Q1")
+    assert obj["schema_id"] == "luban_grading_object.v1"
+    assert validate_grading_object(obj) == []
+    # the divergent runtime field names (text/score) were regularized to canonical (statement/max_score)
+    sp = obj["scoring_points"][0]
+    assert sp["statement"] and "text" not in sp
+    assert "max_score" in sp and "score" not in sp
+
+
+def test_canonicalize_arms_g2_and_demotes_textbook_cited_without_score_impact() -> None:
+    """EFFECT 2 (the load-bearing D3 invariant, now LIVE not a no-op): a rich-leaf / textbook_cited
+    point fed onto the scoring path is stamped, then DEMOTED by G2 and never scores — the official
+    answer key stays primary; the 50x-volume AI points cannot impersonate it."""
+    rubric = _rubric() + [
+        {"point_id": "RL1", "text": "AI 派生 rich-leaf 采分点", "score": 5.0,
+         "policy": "qualitative", "authority_source": "textbook_cited"},
+    ]
+    stamped = G.canonicalize_rubric_points(rubric, qid="Q1", provenance="compiled_rubric")
+    # every original (official-derived) point now carries the canonical authority → arms G2
+    assert all(p.get("authority_source") for p in stamped)
+    official_only = G.enforce_official_scoring_authority(stamped, provenance="compiled_rubric")
+    # the textbook_cited point is demoted out of the scoring set; the 3 official points remain
+    assert {p["point_id"] for p in official_only} == {"P1", "P2", "P3"}
+    assert all(p["authority_source"] != "textbook_cited" for p in official_only)
+    # and it never reaches the awarded score: grade the official set, RL1's 5.0 is absent from max
+    judge = _judge({"P1": {"status": G.HIT}, "P2": {"status": G.HIT}, "P3": {"status": G.HIT}})
+    ev = G.grade_with_rubric(qid="Q1", student_answer="x", rubric_points=official_only, judge_fn=judge)
+    assert ev["max_score"] == 6.0  # 1+3+2, NOT 11.0 — RL1's 5.0 never minted a score (R1/D3)
+
+
+def test_canonicalize_is_zero_regression_on_awarded_score() -> None:
+    """EFFECT 3 (zero regression): wiring canonical is behaviour-preserving — the runtime grading
+    fields are untouched, so the SAME rubric scores IDENTICALLY with or without the canonicalize step."""
+    judge = _judge({"P1": {"status": G.HIT}, "P2": {"status": G.PARTIAL, "partial_ratio": 0.5},
+                    "P3": {"status": G.MISS}})
+    before = G.grade_with_rubric(qid="Q1", student_answer="x", rubric_points=_rubric(), judge_fn=judge)
+    after = G.grade_with_rubric(
+        qid="Q1", student_answer="x",
+        rubric_points=G.canonicalize_rubric_points(_rubric(), qid="Q1", provenance="compiled_rubric"),
+        judge_fn=judge,
+    )
+    assert before["awarded_score"] == after["awarded_score"]
+    assert before["max_score"] == after["max_score"]
+
+
+def test_to_canonical_non_official_point_does_not_mint_official_score() -> None:
+    """R1/D3 must-not-mint: a non-official (textbook_cited) point projected to canonical carries NO
+    per-point official score (max_score=None / pending) — only the official answer key mints scores."""
+    pts = [{"point_id": "RL1", "text": "rich-leaf 点", "score": 3.0, "authority_source": "textbook_cited"}]
+    obj = G.to_canonical_grading_object(pts)
+    sp = obj["scoring_points"][0]
+    assert sp["authority_source"] == "textbook_cited"
+    assert sp["max_score"] is None  # never minted a per-point official score

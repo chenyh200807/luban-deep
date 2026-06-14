@@ -2110,6 +2110,12 @@ async def _grade_one_case_v1(
     )
     if not points:
         return {"status": "unavailable", "reason": "no_scoring_points"}
+    # Wire the canonical typed object onto the live scoring path (foundation goes live): stamp the
+    # canonical authority_source on each rubric point and build+validate the canonical
+    # luban_grading_object.v1. This ARMS the G2 gate below (which keys on authority_source) — the
+    # 3 official-derived sources were previously unstamped, so G2 was a no-op. Behaviour-preserving:
+    # runtime grading fields (text/score/policy) are untouched, awarded scores do not move.
+    points = _G.canonicalize_rubric_points(points, qid=qid, provenance=provenance)
     # G2 single-authority guard (load-bearing on the live scoring path): only official-answer-backed
     # points enter the correctness channel; any rich-leaf / textbook-cited point is demoted to
     # supporting and never scores — the 50x-volume rich-leaf points cannot impersonate the official
