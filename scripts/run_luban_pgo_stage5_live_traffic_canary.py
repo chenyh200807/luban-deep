@@ -51,10 +51,47 @@ DEFAULT_SAMPLES = (
             "应包括施工总进度计划表图，分期分批实施工程的开工、竣工日期及工期一览表，"
             "资源需要量及供应平衡表，以及施工准备工作计划。"
         ),
+        "expected_score_min": 4.5,
+        "expected_score_max": 5.0,
     },
     {
         "sample_id": "partial",
         "answer": "包括施工总进度计划表和资源需要量及供应平衡表。",
+        "expected_score_min": 2.0,
+        "expected_score_max": 3.5,
+    },
+    {
+        "sample_id": "high_partial",
+        "answer": "包括施工总进度计划表，分期分批工程的开竣工日期和工期一览表，以及施工准备工作计划。",
+        "expected_score_min": 3.0,
+        "expected_score_max": 4.5,
+    },
+    {
+        "sample_id": "low_partial",
+        "answer": "主要列施工总进度计划。",
+        "expected_score_min": 0.8,
+        "expected_score_max": 2.0,
+    },
+    {
+        "sample_id": "wrong_related",
+        "answer": "应列出质量保证体系、安全文明施工制度、成品保护措施和竣工验收安排。",
+        "expected_score_min": 0.0,
+        "expected_score_max": 1.2,
+    },
+    {
+        "sample_id": "irrelevant",
+        "answer": "混凝土冬期施工应控制入模温度并加强测温养护。",
+        "expected_score_min": 0.0,
+        "expected_score_max": 0.5,
+    },
+    {
+        "sample_id": "overclaim_mixed",
+        "answer": (
+            "包括施工总进度计划、资源需要量及供应平衡表、施工准备工作计划，"
+            "还包括劳务分包资质审批、消防验收报告和物业移交计划。"
+        ),
+        "expected_score_min": 2.5,
+        "expected_score_max": 4.0,
     },
 )
 
@@ -206,7 +243,9 @@ def _shadow_delta(records: list[dict[str, Any]]) -> dict[str, Any]:
         sample_id = str(record.get("sample_id") or "")
         slot = str(record.get("observed_slot") or "")
         if sample_id and slot in {"pgo", "legacy"} and record.get("awarded_score") is not None:
-            by_sample.setdefault(sample_id, {}).setdefault(slot, []).append(float(record["awarded_score"]))
+            by_sample.setdefault(sample_id, {}).setdefault(slot, []).append(
+                float(record["awarded_score"])
+            )
     pairs: list[dict[str, Any]] = []
     for sample_id, grouped in sorted(by_sample.items()):
         pgo_scores = grouped.get("pgo") or []
@@ -223,12 +262,128 @@ def _shadow_delta(records: list[dict[str, Any]]) -> dict[str, Any]:
                 "pgo_minus_legacy": _round(pgo_mean - legacy_mean),
             }
         )
-    deltas = [float(pair["pgo_minus_legacy"]) for pair in pairs if pair.get("pgo_minus_legacy") is not None]
+    deltas = [
+        float(pair["pgo_minus_legacy"])
+        for pair in pairs
+        if pair.get("pgo_minus_legacy") is not None
+    ]
     return {
         "sample_count": len(pairs),
         "mean_abs_pgo_legacy_delta": _mean([abs(delta) for delta in deltas]),
         "mean_signed_pgo_legacy_delta": _mean(deltas),
         "max_abs_pgo_legacy_delta": _round(max(abs(delta) for delta in deltas)) if deltas else None,
+        "pairs": pairs,
+    }
+
+
+def _band_distance(score: float, lower: float, upper: float) -> float:
+    if score < lower:
+        return lower - score
+    if score > upper:
+        return score - upper
+    return 0.0
+
+
+def _score_calibration(records: list[dict[str, Any]]) -> dict[str, Any]:
+    report: dict[str, dict[str, Any]] = {}
+    for slot in ("pgo", "legacy"):
+        scoped = [
+            record
+            for record in records
+            if record.get("observed_slot") == slot
+            and record.get("awarded_score") is not None
+            and record.get("expected_score_min") is not None
+            and record.get("expected_score_max") is not None
+        ]
+        band_errors: list[float] = []
+        target_errors: list[float] = []
+        in_band_count = 0
+        below_band_count = 0
+        above_band_count = 0
+        for record in scoped:
+            score = float(record["awarded_score"])
+            lower = float(record["expected_score_min"])
+            upper = float(record["expected_score_max"])
+            target = (lower + upper) / 2
+            band_error = _band_distance(score, lower, upper)
+            target_errors.append(abs(score - target))
+            band_errors.append(band_error)
+            if band_error == 0:
+                in_band_count += 1
+            elif score < lower:
+                below_band_count += 1
+            else:
+                above_band_count += 1
+        report[slot] = {
+            "count": len(scoped),
+            "in_band_count": in_band_count,
+            "band_violation_count": len(scoped) - in_band_count,
+            "below_band_count": below_band_count,
+            "above_band_count": above_band_count,
+            "mean_abs_band_error": _mean(band_errors),
+            "mean_abs_target_error": _mean(target_errors),
+        }
+    return report
+
+
+def _quality_delta(records: list[dict[str, Any]]) -> dict[str, Any]:
+    by_sample: dict[str, dict[str, list[dict[str, Any]]]] = {}
+    for record in records:
+        sample_id = str(record.get("sample_id") or "")
+        slot = str(record.get("observed_slot") or "")
+        if not sample_id or slot not in {"pgo", "legacy"} or record.get("awarded_score") is None:
+            continue
+        by_sample.setdefault(sample_id, {}).setdefault(slot, []).append(record)
+
+    pairs: list[dict[str, Any]] = []
+    for sample_id, grouped in sorted(by_sample.items()):
+        pgo_records = grouped.get("pgo") or []
+        legacy_records = grouped.get("legacy") or []
+        if not pgo_records or not legacy_records:
+            continue
+        template = pgo_records[0] if pgo_records else legacy_records[0]
+        lower = template.get("expected_score_min")
+        upper = template.get("expected_score_max")
+        if lower is None or upper is None:
+            continue
+        target = (float(lower) + float(upper)) / 2
+        pgo_mean = sum(float(record["awarded_score"]) for record in pgo_records) / len(pgo_records)
+        legacy_mean = sum(float(record["awarded_score"]) for record in legacy_records) / len(
+            legacy_records
+        )
+        pgo_target_error = abs(pgo_mean - target)
+        legacy_target_error = abs(legacy_mean - target)
+        if abs(pgo_target_error - legacy_target_error) < 1e-9:
+            winner = "tie"
+        elif pgo_target_error < legacy_target_error:
+            winner = "pgo"
+        else:
+            winner = "legacy"
+        pairs.append(
+            {
+                "sample_id": sample_id,
+                "expected_score_min": _round(float(lower)),
+                "expected_score_max": _round(float(upper)),
+                "expected_score_target": _round(target),
+                "pgo_mean": _round(pgo_mean),
+                "legacy_mean": _round(legacy_mean),
+                "pgo_target_error": _round(pgo_target_error),
+                "legacy_target_error": _round(legacy_target_error),
+                "pgo_error_minus_legacy_error": _round(pgo_target_error - legacy_target_error),
+                "winner": winner,
+            }
+        )
+    error_deltas = [
+        float(pair["pgo_error_minus_legacy_error"])
+        for pair in pairs
+        if pair.get("pgo_error_minus_legacy_error") is not None
+    ]
+    return {
+        "sample_count": len(pairs),
+        "pgo_better_count": sum(1 for pair in pairs if pair.get("winner") == "pgo"),
+        "legacy_better_count": sum(1 for pair in pairs if pair.get("winner") == "legacy"),
+        "tie_count": sum(1 for pair in pairs if pair.get("winner") == "tie"),
+        "mean_pgo_error_minus_legacy_error": _mean(error_deltas),
         "pairs": pairs,
     }
 
@@ -246,8 +401,12 @@ def _over_credit(records: list[dict[str, Any]]) -> dict[str, Any]:
                 and record.get("max_score") is not None
                 and float(record["awarded_score"]) > float(record["max_score"])
             ),
-            "official_score_allowed_true_count": sum(1 for record in scoped if record.get("official_score_allowed") is True),
-            "high_risk_review_count": sum(1 for record in scoped if record.get("high_risk_review") is True),
+            "official_score_allowed_true_count": sum(
+                1 for record in scoped if record.get("official_score_allowed") is True
+            ),
+            "high_risk_review_count": sum(
+                1 for record in scoped if record.get("high_risk_review") is True
+            ),
         }
     return report
 
@@ -257,6 +416,7 @@ def _record_from_turn(
     role: str,
     user_id: str,
     expected_slot: str,
+    sample: dict[str, Any],
     turn: dict[str, Any],
 ) -> dict[str, Any]:
     event = _case_event(dict(turn.get("result_event") or {}))
@@ -285,6 +445,12 @@ def _record_from_turn(
         "role": role,
         "authenticated_user_id": user_id,
         "sample_id": str(turn.get("sample_id") or ""),
+        "expected_score_min": _round(float(sample["expected_score_min"]))
+        if sample.get("expected_score_min") is not None
+        else None,
+        "expected_score_max": _round(float(sample["expected_score_max"]))
+        if sample.get("expected_score_max") is not None
+        else None,
         "question_id": str(event.get("question_id") or DEFAULT_QUESTION_ID),
         "expected_slot": expected_slot,
         "observed_slot": observed_slot,
@@ -296,7 +462,9 @@ def _record_from_turn(
         "max_score": _round(float(maximum)) if maximum is not None else None,
         "high_risk_review": event.get("high_risk_review"),
         "terminal_type": str(terminal.get("type") or ""),
-        "terminal_status": str((terminal.get("metadata") or {}).get("status") or "") if isinstance(terminal, dict) else "",
+        "terminal_status": str((terminal.get("metadata") or {}).get("status") or "")
+        if isinstance(terminal, dict)
+        else "",
         "case_event_present": bool(event),
     }
 
@@ -307,8 +475,12 @@ async def _authenticate_role(
     role: str,
     spec: dict[str, Any],
 ) -> dict[str, Any]:
-    if spec.get("register") and (not spec.get("username") or not spec.get("password") or not spec.get("phone")):
-        username, password, phone = _generated_credentials(str(spec.get("username_prefix") or f"{role}_stage5_pgo_live"))
+    if spec.get("register") and (
+        not spec.get("username") or not spec.get("password") or not spec.get("phone")
+    ):
+        username, password, phone = _generated_credentials(
+            str(spec.get("username_prefix") or f"{role}_stage5_pgo_live")
+        )
         spec["username"] = username
         spec["password"] = password
         spec["phone"] = phone
@@ -388,7 +560,9 @@ async def run_live_traffic_canary(
     ws_events: dict[str, list[dict[str, Any]]] = {}
     client_builder = client_factory or httpx.AsyncClient
 
-    async with client_builder(base_url=normalized_base, timeout=timeout_seconds, trust_env=False) as client:
+    async with client_builder(
+        base_url=normalized_base, timeout=timeout_seconds, trust_env=False
+    ) as client:
         for role, spec in specs.items():
             if not _has_auth_material(spec):
                 blockers.append(f"{role}_auth_material_missing")
@@ -430,6 +604,7 @@ async def run_live_traffic_canary(
                     role=role,
                     user_id=user_id,
                     expected_slot=expected_slot,
+                    sample=sample,
                     turn=turn,
                 )
                 records.append(record)
@@ -467,7 +642,14 @@ async def run_live_traffic_canary(
         "entry": "remote /api/v1/ws authenticated qa/operator PGO bank-slot canary",
         "question_id": DEFAULT_QUESTION_ID,
         "canary_prefixes": list(CANARY_PREFIXES),
-        "samples": [{"sample_id": item["sample_id"]} for item in DEFAULT_SAMPLES],
+        "samples": [
+            {
+                "sample_id": item["sample_id"],
+                "expected_score_min": item.get("expected_score_min"),
+                "expected_score_max": item.get("expected_score_max"),
+            }
+            for item in DEFAULT_SAMPLES
+        ],
     }
     live_canary = {
         "status": status,
@@ -483,10 +665,14 @@ async def run_live_traffic_canary(
         "manifest": manifest,
         "live_canary": live_canary,
         "shadow_delta": _shadow_delta(records),
+        "quality_delta": _quality_delta(records),
+        "score_calibration": _score_calibration(records),
         "over_credit": _over_credit(records),
         "score_distribution": _score_distribution(records),
         "safety": {
-            "official_score_allowed_true_count": sum(1 for record in records if record.get("official_score_allowed") is True),
+            "official_score_allowed_true_count": sum(
+                1 for record in records if record.get("official_score_allowed") is True
+            ),
             "canonical_write_allowed": False,
             "production_default_flip_allowed": False,
             "global_slot_flip_required": False,
@@ -505,27 +691,71 @@ async def run_live_traffic_canary(
     _write_json(out / "live_ws_events.json", ws_events)
     _write_json(out / "live_canary_report.json", report)
     _write_json(out / "go_no_go.json", go_no_go)
-    return {"out_dir": str(out), "manifest": manifest, "live_canary": live_canary, "go_no_go": go_no_go, **report}
+    return {
+        "out_dir": str(out),
+        "manifest": manifest,
+        "live_canary": live_canary,
+        "go_no_go": go_no_go,
+        **report,
+    }
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--api-base-url", default=os.getenv("TEST2_BASE_URL") or "https://test2.yousenjiaoyu.com")
+    parser.add_argument(
+        "--api-base-url", default=os.getenv("TEST2_BASE_URL") or "https://test2.yousenjiaoyu.com"
+    )
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUTPUT)
-    parser.add_argument("--qa-auth-token", default=os.getenv("DEEPTUTOR_TEST2_QA_AUTH_TOKEN") or os.getenv("DEEPTUTOR_TEST2_COHORT_AUTH_TOKEN") or "")
-    parser.add_argument("--qa-username", default=os.getenv("DEEPTUTOR_TEST2_QA_USERNAME") or os.getenv("DEEPTUTOR_TEST2_COHORT_USERNAME") or "")
-    parser.add_argument("--qa-password", default=os.getenv("DEEPTUTOR_TEST2_QA_PASSWORD") or os.getenv("DEEPTUTOR_TEST2_COHORT_PASSWORD") or "")
-    parser.add_argument("--qa-phone", default=os.getenv("DEEPTUTOR_TEST2_QA_PHONE") or os.getenv("DEEPTUTOR_TEST2_COHORT_PHONE") or "")
+    parser.add_argument(
+        "--qa-auth-token",
+        default=os.getenv("DEEPTUTOR_TEST2_QA_AUTH_TOKEN")
+        or os.getenv("DEEPTUTOR_TEST2_COHORT_AUTH_TOKEN")
+        or "",
+    )
+    parser.add_argument(
+        "--qa-username",
+        default=os.getenv("DEEPTUTOR_TEST2_QA_USERNAME")
+        or os.getenv("DEEPTUTOR_TEST2_COHORT_USERNAME")
+        or "",
+    )
+    parser.add_argument(
+        "--qa-password",
+        default=os.getenv("DEEPTUTOR_TEST2_QA_PASSWORD")
+        or os.getenv("DEEPTUTOR_TEST2_COHORT_PASSWORD")
+        or "",
+    )
+    parser.add_argument(
+        "--qa-phone",
+        default=os.getenv("DEEPTUTOR_TEST2_QA_PHONE")
+        or os.getenv("DEEPTUTOR_TEST2_COHORT_PHONE")
+        or "",
+    )
     parser.add_argument("--register-qa", action="store_true")
-    parser.add_argument("--operator-auth-token", default=os.getenv("DEEPTUTOR_TEST2_OPERATOR_AUTH_TOKEN") or "")
-    parser.add_argument("--operator-username", default=os.getenv("DEEPTUTOR_TEST2_OPERATOR_USERNAME") or "")
-    parser.add_argument("--operator-password", default=os.getenv("DEEPTUTOR_TEST2_OPERATOR_PASSWORD") or "")
-    parser.add_argument("--operator-phone", default=os.getenv("DEEPTUTOR_TEST2_OPERATOR_PHONE") or "")
+    parser.add_argument(
+        "--operator-auth-token", default=os.getenv("DEEPTUTOR_TEST2_OPERATOR_AUTH_TOKEN") or ""
+    )
+    parser.add_argument(
+        "--operator-username", default=os.getenv("DEEPTUTOR_TEST2_OPERATOR_USERNAME") or ""
+    )
+    parser.add_argument(
+        "--operator-password", default=os.getenv("DEEPTUTOR_TEST2_OPERATOR_PASSWORD") or ""
+    )
+    parser.add_argument(
+        "--operator-phone", default=os.getenv("DEEPTUTOR_TEST2_OPERATOR_PHONE") or ""
+    )
     parser.add_argument("--register-operator", action="store_true")
-    parser.add_argument("--noncohort-auth-token", default=os.getenv("DEEPTUTOR_TEST2_NONCOHORT_AUTH_TOKEN") or "")
-    parser.add_argument("--noncohort-username", default=os.getenv("DEEPTUTOR_TEST2_NONCOHORT_USERNAME") or "")
-    parser.add_argument("--noncohort-password", default=os.getenv("DEEPTUTOR_TEST2_NONCOHORT_PASSWORD") or "")
-    parser.add_argument("--noncohort-phone", default=os.getenv("DEEPTUTOR_TEST2_NONCOHORT_PHONE") or "")
+    parser.add_argument(
+        "--noncohort-auth-token", default=os.getenv("DEEPTUTOR_TEST2_NONCOHORT_AUTH_TOKEN") or ""
+    )
+    parser.add_argument(
+        "--noncohort-username", default=os.getenv("DEEPTUTOR_TEST2_NONCOHORT_USERNAME") or ""
+    )
+    parser.add_argument(
+        "--noncohort-password", default=os.getenv("DEEPTUTOR_TEST2_NONCOHORT_PASSWORD") or ""
+    )
+    parser.add_argument(
+        "--noncohort-phone", default=os.getenv("DEEPTUTOR_TEST2_NONCOHORT_PHONE") or ""
+    )
     parser.add_argument("--register-noncohort", action="store_true")
     parser.add_argument("--timeout-seconds", type=float, default=90.0)
     args = parser.parse_args()

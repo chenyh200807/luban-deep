@@ -72,12 +72,18 @@ class _FakeWebSocket:
         return self._events.pop(0)
 
 
-def _result_event(*, slot: str, source: str, awarded: float, maximum: float = 5.0) -> list[dict[str, Any]]:
+def _result_event(
+    *, slot: str, source: str, awarded: float, maximum: float = 5.0
+) -> list[dict[str, Any]]:
     return [
         {
             "type": "result",
             "metadata": {
-                "construction_grading_result": {"type": "case", "score_awarded": awarded, "max_score": maximum},
+                "construction_grading_result": {
+                    "type": "case",
+                    "score_awarded": awarded,
+                    "max_score": maximum,
+                },
                 "luban_case_rubric_v1": {
                     "authority": "luban_case_rubric_v1",
                     "status": "ok",
@@ -104,29 +110,45 @@ def _result_event(*, slot: str, source: str, awarded: float, maximum: float = 5.
     ]
 
 
+def _ws_batches_for_slots(
+    *, pgo_score: float = 2.5, legacy_score: float = 1.0
+) -> list[list[dict[str, Any]]]:
+    from scripts.run_luban_pgo_stage5_live_traffic_canary import DEFAULT_SAMPLES
+
+    batches: list[list[dict[str, Any]]] = []
+    for _role in ("qa", "operator"):
+        for sample in DEFAULT_SAMPLES:
+            awarded = 5.0 if sample["sample_id"] == "full" else pgo_score
+            batches.append(_result_event(slot="pgo", source="rubric_scored_pgo", awarded=awarded))
+    for sample in DEFAULT_SAMPLES:
+        awarded = 4.0 if sample["sample_id"] == "full" else legacy_score
+        batches.append(_result_event(slot="legacy", source="rubric_scored_v1", awarded=awarded))
+    return batches
+
+
 @pytest.mark.asyncio
 async def test_live_traffic_canary_reports_pgo_for_qa_operator_and_legacy_control(
     tmp_path: Path,
 ) -> None:
-    from scripts.run_luban_pgo_stage5_live_traffic_canary import run_live_traffic_canary
+    from scripts.run_luban_pgo_stage5_live_traffic_canary import (
+        DEFAULT_SAMPLES,
+        run_live_traffic_canary,
+    )
 
     out = tmp_path / "live_canary"
     captured: dict[str, Any] = {}
     responses = {
         ("GET", "/api/v1/auth/profile"): [
             _FakeResponse(200, {"user_id": "qa_stage5_pgo_live", "id": "qa_stage5_pgo_live"}),
-            _FakeResponse(200, {"user_id": "operator_stage5_pgo_live", "id": "operator_stage5_pgo_live"}),
-            _FakeResponse(200, {"user_id": "student_stage5_pgo_live", "id": "student_stage5_pgo_live"}),
+            _FakeResponse(
+                200, {"user_id": "operator_stage5_pgo_live", "id": "operator_stage5_pgo_live"}
+            ),
+            _FakeResponse(
+                200, {"user_id": "student_stage5_pgo_live", "id": "student_stage5_pgo_live"}
+            ),
         ],
     }
-    ws_batches = [
-        _result_event(slot="pgo", source="rubric_scored_pgo", awarded=5.0),
-        _result_event(slot="pgo", source="rubric_scored_pgo", awarded=2.5),
-        _result_event(slot="pgo", source="rubric_scored_pgo", awarded=5.0),
-        _result_event(slot="pgo", source="rubric_scored_pgo", awarded=2.5),
-        _result_event(slot="legacy", source="rubric_scored_v1", awarded=4.0),
-        _result_event(slot="legacy", source="rubric_scored_v1", awarded=1.0),
-    ]
+    ws_batches = _ws_batches_for_slots(pgo_score=2.5, legacy_score=1.0)
 
     def _client_factory(**kwargs: Any):
         return _FakeAsyncClient(responses, captured, **kwargs)
@@ -149,9 +171,11 @@ async def test_live_traffic_canary_reports_pgo_for_qa_operator_and_legacy_contro
     assert result["go_no_go"]["blockers"] == []
     assert result["live_canary"]["required_roles_passed"] == {"qa": True, "operator": True}
     assert result["live_canary"]["noncohort_control_passed"] is True
-    assert result["shadow_delta"]["sample_count"] == 2
-    assert result["score_distribution"]["pgo"]["count"] == 4
-    assert result["score_distribution"]["legacy"]["count"] == 2
+    assert result["shadow_delta"]["sample_count"] == len(DEFAULT_SAMPLES)
+    assert result["quality_delta"]["sample_count"] == len(DEFAULT_SAMPLES)
+    assert result["score_calibration"]["pgo"]["count"] == len(DEFAULT_SAMPLES) * 2
+    assert result["score_distribution"]["pgo"]["count"] == len(DEFAULT_SAMPLES) * 2
+    assert result["score_distribution"]["legacy"]["count"] == len(DEFAULT_SAMPLES)
     assert result["over_credit"]["pgo"]["awarded_gt_max_count"] == 0
     assert captured["ws_payloads"][0]["config"]["followup_question_context"]["question_id"] == (
         "2015::EXAM_XW2015_CASE_1::E0"
@@ -162,21 +186,27 @@ async def test_live_traffic_canary_reports_pgo_for_qa_operator_and_legacy_contro
 
 @pytest.mark.asyncio
 async def test_live_traffic_canary_blocks_missing_operator_auth(tmp_path: Path) -> None:
-    from scripts.run_luban_pgo_stage5_live_traffic_canary import run_live_traffic_canary
+    from scripts.run_luban_pgo_stage5_live_traffic_canary import (
+        DEFAULT_SAMPLES,
+        run_live_traffic_canary,
+    )
 
     captured: dict[str, Any] = {}
     responses = {
         ("GET", "/api/v1/auth/profile"): [
             _FakeResponse(200, {"user_id": "qa_stage5_pgo_live", "id": "qa_stage5_pgo_live"}),
-            _FakeResponse(200, {"user_id": "student_stage5_pgo_live", "id": "student_stage5_pgo_live"}),
+            _FakeResponse(
+                200, {"user_id": "student_stage5_pgo_live", "id": "student_stage5_pgo_live"}
+            ),
         ],
     }
-    ws_batches = [
-        _result_event(slot="pgo", source="rubric_scored_pgo", awarded=5.0),
-        _result_event(slot="pgo", source="rubric_scored_pgo", awarded=2.5),
-        _result_event(slot="legacy", source="rubric_scored_v1", awarded=4.0),
-        _result_event(slot="legacy", source="rubric_scored_v1", awarded=1.0),
-    ]
+    ws_batches = []
+    for sample in DEFAULT_SAMPLES:
+        awarded = 5.0 if sample["sample_id"] == "full" else 2.5
+        ws_batches.append(_result_event(slot="pgo", source="rubric_scored_pgo", awarded=awarded))
+    for sample in DEFAULT_SAMPLES:
+        awarded = 4.0 if sample["sample_id"] == "full" else 1.0
+        ws_batches.append(_result_event(slot="legacy", source="rubric_scored_v1", awarded=awarded))
 
     def _client_factory(**kwargs: Any):
         return _FakeAsyncClient(responses, captured, **kwargs)
@@ -203,7 +233,10 @@ async def test_live_traffic_canary_blocks_missing_operator_auth(tmp_path: Path) 
 async def test_live_traffic_canary_does_not_count_spoofed_qa_username_as_role_pass(
     tmp_path: Path,
 ) -> None:
-    from scripts.run_luban_pgo_stage5_live_traffic_canary import run_live_traffic_canary
+    from scripts.run_luban_pgo_stage5_live_traffic_canary import (
+        DEFAULT_SAMPLES,
+        run_live_traffic_canary,
+    )
 
     captured: dict[str, Any] = {}
     responses = {
@@ -216,18 +249,24 @@ async def test_live_traffic_canary_does_not_count_spoofed_qa_username_as_role_pa
                     "username": "qa_stage5_pgo_live",
                 },
             ),
-            _FakeResponse(200, {"user_id": "operator_stage5_pgo_live", "id": "operator_stage5_pgo_live"}),
-            _FakeResponse(200, {"user_id": "student_stage5_pgo_live", "id": "student_stage5_pgo_live"}),
+            _FakeResponse(
+                200, {"user_id": "operator_stage5_pgo_live", "id": "operator_stage5_pgo_live"}
+            ),
+            _FakeResponse(
+                200, {"user_id": "student_stage5_pgo_live", "id": "student_stage5_pgo_live"}
+            ),
         ],
     }
-    ws_batches = [
-        _result_event(slot="legacy", source="rubric_scored_v1", awarded=4.0),
-        _result_event(slot="legacy", source="rubric_scored_v1", awarded=2.0),
-        _result_event(slot="pgo", source="rubric_scored_pgo", awarded=5.0),
-        _result_event(slot="pgo", source="rubric_scored_pgo", awarded=2.5),
-        _result_event(slot="legacy", source="rubric_scored_v1", awarded=4.0),
-        _result_event(slot="legacy", source="rubric_scored_v1", awarded=2.0),
-    ]
+    ws_batches = []
+    for sample in DEFAULT_SAMPLES:
+        awarded = 4.0 if sample["sample_id"] == "full" else 2.0
+        ws_batches.append(_result_event(slot="legacy", source="rubric_scored_v1", awarded=awarded))
+    for sample in DEFAULT_SAMPLES:
+        awarded = 5.0 if sample["sample_id"] == "full" else 2.5
+        ws_batches.append(_result_event(slot="pgo", source="rubric_scored_pgo", awarded=awarded))
+    for sample in DEFAULT_SAMPLES:
+        awarded = 4.0 if sample["sample_id"] == "full" else 2.0
+        ws_batches.append(_result_event(slot="legacy", source="rubric_scored_v1", awarded=awarded))
 
     def _client_factory(**kwargs: Any):
         return _FakeAsyncClient(responses, captured, **kwargs)
