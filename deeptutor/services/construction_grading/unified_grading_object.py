@@ -333,3 +333,60 @@ def validate_grading_object(obj: Any) -> list[str]:
             blockers.extend(_validate_point(point, index=index))
 
     return blockers
+
+
+# ── Per-point grading OUTPUT shape contract (KnowQL ③: the artifact enforces its own shape) ──
+# The canonical object above defines the rubric POINT shape (validate_grading_object). It is ALSO
+# the single authority for the shape of a grading RESULT against those points. Lifted verbatim
+# from the eval harness (scripts/run_luban_student_answer_grading_eval.py) so the SAME typed
+# object that defines the shape enforces it — closing the "artifact defines shape → same artifact
+# enforces shape" loop, instead of a parallel eval-only validator.
+GRADING_RESULT_STATUSES = frozenset({"hit", "partial", "miss", "contradiction"})
+
+# Locked per-point output schema. Each typed-artifact point_result must emit exactly these fields
+# with the listed types, or the row is contract_invalid.
+REQUIRED_POINT_RESULT_FIELDS: dict[str, tuple[type, ...]] = {
+    "sub_no": (str, int),
+    "max_points": (int, float),
+    "required_points": (list,),
+    "accepted_variants": (list,),
+    "student_evidence_quote": (str,),
+    "status": (str,),
+    "awarded_points": (int, float),
+    "deduction_reason": (str,),
+    "misconception_tag": (str,),
+    "next_review_action": (str, dict),
+    "learning_evidence_event": (dict,),
+}
+
+
+def enforce_grading_output_schema(point_results: list[Any]) -> list[str]:
+    """Return contract violations for the locked per-point grading-output schema.
+
+    A point_result must carry every ``REQUIRED_POINT_RESULT_FIELDS`` entry with the right type,
+    plus a point identifier (``point_id`` or ``basis_ref``) and a known ``GRADING_RESULT_STATUSES``
+    value. ``bool`` is rejected where a number is required (Python treats bool as int). This is the
+    single authority for the grading-RESULT shape, co-located with the rubric authority (③ closure).
+    """
+    errors: list[str] = []
+    for index, item in enumerate(point_results):
+        if not isinstance(item, dict):
+            errors.append(f"point_result_not_object:idx={index}")
+            continue
+        label = str(item.get("point_id") or item.get("basis_ref") or f"idx={index}")
+        if not (str(item.get("point_id") or "").strip() or str(item.get("basis_ref") or "").strip()):
+            errors.append(f"missing_field:point_id_or_basis_ref:{label}")
+        for field, types in REQUIRED_POINT_RESULT_FIELDS.items():
+            if field not in item:
+                errors.append(f"missing_field:{field}:{label}")
+                continue
+            value = item[field]
+            if isinstance(value, bool) and bool not in types:
+                errors.append(f"type_error:{field}:{label}")
+                continue
+            if not isinstance(value, types):
+                errors.append(f"type_error:{field}:{label}")
+        status = str(item.get("status") or "").lower()
+        if status and status not in GRADING_RESULT_STATUSES:
+            errors.append(f"invalid_status:{status}:{label}")
+    return errors

@@ -26,10 +26,12 @@ from deeptutor.services.construction_grading.unified_grading_object import (
     AUTH_TEXTBOOK_CITED,
     CORE_POINT_FIELDS,
     PENDING_SCORE_AUTHORITY,
+    REQUIRED_POINT_RESULT_FIELDS,
     SCHEMA_ID,
     TYPE_CASE,
     TYPE_OBJECTIVE,
     GradingObject,
+    enforce_grading_output_schema,
     span_hash,
     validate_grading_object,
 )
@@ -288,6 +290,52 @@ def test_dual_schema_converges_to_single_canonical_authority() -> None:
     # 4) the canonical names are identical regardless of which divergent input produced them
     assert point_a["statement"] and point_b["statement"]  # statement (never canonical_answer)
     assert "max_score" in point_a and "max_score" in point_b  # max_score (never weight)
+
+
+# ── KnowQL ③: the typed object owns its grading-OUTPUT shape contract ──────────────
+
+
+def _valid_point_result() -> dict:
+    return {
+        "point_id": "Q1-1-P1",
+        "sub_no": "1",
+        "max_points": 2.0,
+        "required_points": [],
+        "accepted_variants": [],
+        "student_evidence_quote": "见证记录由见证人员填写",
+        "status": "hit",
+        "awarded_points": 2.0,
+        "deduction_reason": "",
+        "misconception_tag": "",
+        "next_review_action": "",
+        "learning_evidence_event": {},
+    }
+
+
+def test_enforce_grading_output_schema_lifted_to_typed_object_accepts_valid_result() -> None:
+    """③: the canonical typed object (not the eval harness) is the single authority for the
+    per-point grading-OUTPUT shape. A complete, correctly-typed result passes."""
+    assert enforce_grading_output_schema([_valid_point_result()]) == []
+    assert len(REQUIRED_POINT_RESULT_FIELDS) == 11
+
+
+def test_enforce_grading_output_schema_flags_missing_field_type_and_status() -> None:
+    # missing a required field
+    missing = _valid_point_result()
+    del missing["awarded_points"]
+    assert any(e.startswith("missing_field:awarded_points") for e in enforce_grading_output_schema([missing]))
+    # wrong type (and bool rejected where a number is required — bool is int in Python)
+    wrong_type = _valid_point_result()
+    wrong_type["awarded_points"] = True
+    assert any(e.startswith("type_error:awarded_points") for e in enforce_grading_output_schema([wrong_type]))
+    # unknown status (not_evaluated is a rubric state, never a RESULT status)
+    bad_status = _valid_point_result()
+    bad_status["status"] = "not_evaluated"
+    assert any(e.startswith("invalid_status:not_evaluated") for e in enforce_grading_output_schema([bad_status]))
+    # missing point identifier
+    no_id = _valid_point_result()
+    no_id["point_id"] = ""
+    assert any("point_id_or_basis_ref" in e for e in enforce_grading_output_schema([no_id]))
 
 
 def test_map_scoring_point_assets() -> None:

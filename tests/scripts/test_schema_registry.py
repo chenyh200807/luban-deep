@@ -159,6 +159,31 @@ def test_pass_registered_canonical_schema_name() -> None:
     assert "passed" in message
 
 
+def test_grading_named_t3_ephemeral_schema_is_not_flagged_unregistered() -> None:
+    # Per-PR guard ↔ closure consistency: a grading-NAMED (not grading-SHAPED) literal that the
+    # closure carves out as a T3 ephemeral script/eval artifact (e.g. the eval-result envelope
+    # ``luban_student_answer_grading_shadow_eval.v1``) is registered-enough — it is NOT an
+    # unregistered rubric. Without this, lifting code that touches such a file false-fails CI.
+    registry = load_schema_registry()
+    assert classify_identifier("luban_student_answer_grading_shadow_eval.v1", registry) == "tier3"
+    code = 'SCHEMA = "luban_student_answer_grading_shadow_eval.v1"\n'
+    usages = collect_schema_usages([("scripts/run_luban_student_answer_grading_eval.py", code)])
+    ok, message = evaluate_schema_usages(usages, registry)
+    assert ok is True, message
+    assert "unregistered" not in message
+
+
+def test_grading_shaped_orphan_still_flagged_despite_t3_recognition() -> None:
+    # The T3 recognition above must NOT weaken the rubric gate: a grading-SHAPED object stem
+    # (``grading_object`` / ``scoring_point``) is one-票否决 for T3 — it stays an orphan and is
+    # still flagged unregistered even though it is grading-named.
+    code = 'SCHEMA_ID = "rogue_grading_object.v1"\n'
+    usages = collect_schema_usages([("deeptutor/services/x.py", code)])
+    ok, message = evaluate_schema_usages(usages, load_schema_registry())
+    assert ok is False
+    assert "unregistered grading schema" in message
+
+
 # ── FAIL RULE (b): drift field name for a registered grading concept ─────────
 def test_fail_drift_field_name() -> None:
     # `weight` is the deprecated per-point split name; canonical is `max_score`.

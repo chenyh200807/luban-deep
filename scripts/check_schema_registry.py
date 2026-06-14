@@ -541,8 +541,15 @@ def evaluate_schema_usages(usages: list[SchemaUsage], registry: dict[str, Any]) 
                     f"pinned; a drift would not be caught. Consider pinning fields."
                 )
             continue
-        # (a) unregistered grading schema name
+        # (a) unregistered grading schema name — but stay CONSISTENT with the closure tiering:
+        #     a grading-NAMED (not grading-SHAPED) literal that is a legitimate T3 ephemeral
+        #     artifact (script/eval-result envelope carved out in the closure, e.g.
+        #     ``luban_student_answer_grading_shadow_eval.v1``) is registered-enough. Only a true
+        #     orphan — no tier at all — is the unregistered-rubric failure. (A grading-SHAPED
+        #     object can never be T3: the I2(b) veto keeps it an orphan, so real rubrics still fail.)
         if usage.schema_name not in by_name:
+            if classify_identifier(usage.schema_name, registry) == "tier3":
+                continue
             failures.append(
                 f"{usage.path}:{usage.lineno}: unregistered grading schema "
                 f"'{usage.schema_name}'. The canonical grading typed object is "
