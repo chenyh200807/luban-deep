@@ -108,6 +108,8 @@ test('member ops exposes package-led cashier membership settings', async () => {
   assert.ok(panel.includes('保存有效期'))
   assert.ok(panel.includes('取消会员'))
   assert.ok(panel.includes('撤回至尊SVIP'))
+  assert.ok(panel.includes('改为0元'))
+  assert.ok(panel.includes('convertSupremeMembershipToFree'))
   assert.ok(panel.includes('manual_membership_reversal'))
   assert.ok(api.includes('/api/v1/member/manual-purchase/reverse'))
   assert.ok(api.includes('reverseManualMembershipPurchase'))

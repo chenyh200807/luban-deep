@@ -728,6 +728,33 @@ export function BiV2MemberOpsPanel({
     )
   }
 
+  async function convertSupremeMembershipToFree(
+    member: MemberRow,
+    payload: { packageId: string; days: number; reversalAmountCny?: number; reason: string }
+  ) {
+    await writeMembershipChange(
+      member,
+      async () => {
+        await reverseManualMembershipPurchase({
+          user_id: member.user_id,
+          amount_cny: payload.reversalAmountCny,
+          reason: `${payload.reason}：manual_membership_reversal 冲销误录收入`,
+        })
+        const result = await manualPurchaseMembership({
+          user_id: member.user_id,
+          package_id: payload.packageId,
+          days: payload.days,
+          amount_cny: 0,
+          reason: `${payload.reason}：0 元重新开通至尊SVIP`,
+        })
+        notifyCommerceMutated({ userId: member.user_id, packageId: payload.packageId })
+        return result.member
+      },
+      detail =>
+        `已将 ${member.phone_masked} 至尊SVIP改为0元，权益有效期至 ${shortDate(detail.expire_at)}`
+    )
+  }
+
   async function runBulkAction(kind: 'contacted' | 'follow_up') {
     const selectedIds = [...selectedRows].slice(0, kind === 'contacted' ? 50 : 100)
     if (selectedIds.length === 0 || opsActionWriting) return
@@ -1037,6 +1064,7 @@ export function BiV2MemberOpsPanel({
         onUpdate={saveMembershipSettings}
         onRevoke={cancelMembership}
         onReverseSupreme={reverseSupremeMembership}
+        onConvertSupremeToFree={convertSupremeMembershipToFree}
       />
       <ConversationReviewDrawer
         open={drawer === 'conversation'}
@@ -1061,6 +1089,7 @@ function MembershipSettingsPanel({
   onUpdate,
   onRevoke,
   onReverseSupreme,
+  onConvertSupremeToFree,
 }: {
   open: boolean
   member: MemberRow | null
@@ -1082,6 +1111,10 @@ function MembershipSettingsPanel({
   onReverseSupreme: (
     member: MemberRow,
     payload: { amountCny?: number; reason: string }
+  ) => Promise<void> | void
+  onConvertSupremeToFree: (
+    member: MemberRow,
+    payload: { packageId: string; days: number; reversalAmountCny?: number; reason: string }
   ) => Promise<void> | void
 }) {
   const activePackages = useMemo(
@@ -1105,6 +1138,7 @@ function MembershipSettingsPanel({
   const selectedTier = normalizeMembershipTier(selectedPackage?.tier ?? detail?.tier ?? member.tier)
   const currentTier = normalizeMembershipTier(detail?.tier ?? member.tier)
   const canReverseSupreme = currentTier === 'supreme_svip'
+  const supremePackage = activePackages.find(pkg => normalizeMembershipTier(pkg.tier) === 'supreme_svip')
   const selectedPackagePrice = selectedPackage ? `¥${selectedPackage.priceCny}` : '—'
 
   function applyPackage(nextPackageId: string) {
@@ -1199,6 +1233,42 @@ function MembershipSettingsPanel({
     })
   }
 
+  async function submitSupremeFreeCorrection() {
+    if (!canReverseSupreme) {
+      setFormError('只有当前为至尊SVIP的会员可以改为0元')
+      return
+    }
+    const parsedDays = parseDays()
+    const parsedAmount = parseAmount()
+    if (!supremePackage || !parsedDays) {
+      setFormError('需要有效的至尊SVIP套餐和有效天数')
+      return
+    }
+    if (parsedAmount === null) {
+      setFormError('冲销金额必须是非负数字')
+      return
+    }
+    if (parsedAmount !== undefined && parsedAmount <= 0) {
+      setFormError('冲销金额需大于 0；如果要按最近一笔至尊SVIP购买金额冲销，请留空')
+      return
+    }
+    const displayAmount = parsedAmount ?? supremePackage.priceCny ?? '最近一笔'
+    if (
+      !window.confirm(
+        `把 ${activeMember.phone_masked} 的至尊SVIP改为0元？系统会先冲销 ¥${displayAmount}，再以 0 元重新开通。`
+      )
+    ) {
+      return
+    }
+    setFormError('')
+    await onConvertSupremeToFree(activeMember, {
+      packageId: supremePackage.id,
+      days: parsedDays,
+      reversalAmountCny: parsedAmount,
+      reason: reason.trim() || 'BI 会员设置：改为0元',
+    })
+  }
+
   return (
     <BiSidePanel
       open={open}
@@ -1222,18 +1292,32 @@ function MembershipSettingsPanel({
               取消会员
             </BiButton>
             {canReverseSupreme ? (
-              <BiButton
-                onClick={() => void submitSupremeReversal()}
-                disabled={writing}
-                variant="danger"
-                size="sm"
-                className="min-w-[7.5rem] whitespace-nowrap"
-                aria-label="撤回至尊SVIP"
-                title="只允许撤回至尊SVIP；会生成负向账务流水冲销收入"
-              >
-                <RotateCcw className="h-3.5 w-3.5" aria-hidden />
-                撤回至尊SVIP
-              </BiButton>
+              <>
+                <BiButton
+                  onClick={() => void submitSupremeFreeCorrection()}
+                  disabled={writing || !supremePackage}
+                  variant="secondary"
+                  size="sm"
+                  className="min-w-[6rem] whitespace-nowrap"
+                  aria-label="将至尊SVIP改为0元"
+                  title="先冲销误录收入，再以0元重新开通至尊SVIP"
+                >
+                  <CreditCard className="h-3.5 w-3.5" aria-hidden />
+                  改为0元
+                </BiButton>
+                <BiButton
+                  onClick={() => void submitSupremeReversal()}
+                  disabled={writing}
+                  variant="danger"
+                  size="sm"
+                  className="min-w-[7.5rem] whitespace-nowrap"
+                  aria-label="撤回至尊SVIP"
+                  title="只允许撤回至尊SVIP；会生成负向账务流水冲销收入"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" aria-hidden />
+                  撤回至尊SVIP
+                </BiButton>
+              </>
             ) : null}
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
@@ -1345,6 +1429,7 @@ function MembershipSettingsPanel({
           <p className="mt-2 text-[11px] leading-5 text-slate-400">
             不改金额时按套餐价入账；填 0 即 0 元开通，填其他数字即按人工实收金额入账。
             当前为至尊SVIP时，“撤回至尊SVIP”会按这里的金额生成负向冲销；留空则后端按最近一笔至尊SVIP购买金额推断。
+            “改为0元”会先冲销误录收入，再立即以 0 元重新开通至尊SVIP。
           </p>
           <label className="mt-3 block space-y-1">
             <span className="text-[11px] text-slate-400">原因 / 备注</span>
