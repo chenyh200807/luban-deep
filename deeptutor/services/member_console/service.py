@@ -5057,6 +5057,7 @@ class MemberConsoleService:
                     "ledger_event_id": ledger_event_id,
                     "amount_cny": amount,
                     "points": points,
+                    "days": safe_days,
                 },
                 operator=normalized_operator,
             )
@@ -5080,6 +5081,254 @@ class MemberConsoleService:
             "amount_cny": amount,
             "points": points,
             "purchase_id": purchase_id,
+            "ledger_event_id": ledger_event_id,
+            "audit_id": entitlement.get("audit_id", ""),
+            "deduped": bool(entitlement.get("deduped", False)),
+        }
+
+    def _find_latest_manual_membership_purchase_audit(
+        self,
+        data: dict[str, Any],
+        *,
+        user_id: str,
+        purchase_id: str = "",
+    ) -> dict[str, Any] | None:
+        normalized_purchase_id = str(purchase_id or "").strip()
+        candidates = []
+        for item in data.get("audit_log") or []:
+            if not isinstance(item, dict):
+                continue
+            if str(item.get("action") or "") != "manual_membership_purchase":
+                continue
+            if str(item.get("target_user") or "").strip() != user_id:
+                continue
+            after = item.get("after") if isinstance(item.get("after"), dict) else {}
+            candidate_purchase_id = str(after.get("purchase_id") or "").strip()
+            if normalized_purchase_id and candidate_purchase_id != normalized_purchase_id:
+                continue
+            candidates.append(item)
+        if not candidates:
+            return None
+        return max(candidates, key=lambda item: _parse_time(item.get("created_at")))
+
+    def _has_manual_membership_reversal(
+        self,
+        data: dict[str, Any],
+        *,
+        user_id: str,
+        purchase_id: str,
+    ) -> bool:
+        normalized_purchase_id = str(purchase_id or "").strip()
+        for item in data.get("audit_log") or []:
+            if not isinstance(item, dict):
+                continue
+            if str(item.get("action") or "") != "manual_membership_reversal":
+                continue
+            if str(item.get("target_user") or "").strip() != user_id:
+                continue
+            after = item.get("after") if isinstance(item.get("after"), dict) else {}
+            if str(after.get("reversal_of_purchase_id") or "").strip() == normalized_purchase_id:
+                return True
+        return False
+
+    def reverse_manual_membership_purchase(
+        self,
+        *,
+        user_id: str,
+        purchase_id: str = "",
+        amount_cny: float | int | str | None = None,
+        operator: str = "admin",
+        reason: str = "",
+        idempotency_key: str,
+    ) -> dict[str, Any]:
+        normalized_user_id = str(user_id or "").strip()
+        normalized_operator = str(operator or "").strip() or "admin"
+        normalized_key = str(idempotency_key or "").strip()
+        if not normalized_user_id:
+            raise ValueError("user_id is required")
+        if not normalized_key:
+            raise ValueError("idempotency_key is required")
+
+        def _load_reversal_inputs(data: dict[str, Any]) -> dict[str, Any]:
+            existing_audit_id = self._find_audit_id_by_idempotency_key(
+                data,
+                "manual_membership_reversal",
+                normalized_key,
+                operator=normalized_operator,
+            )
+            member = self._find_member(data, normalized_user_id)
+            purchase_audit = self._find_latest_manual_membership_purchase_audit(
+                data,
+                user_id=normalized_user_id,
+                purchase_id=purchase_id,
+            )
+            if purchase_audit is None:
+                raise ValueError("manual membership purchase was not found")
+            purchase_after = purchase_audit.get("after") if isinstance(purchase_audit.get("after"), dict) else {}
+            resolved_purchase_id = str(purchase_after.get("purchase_id") or "").strip()
+            if not resolved_purchase_id:
+                raise ValueError("manual membership purchase has no purchase_id")
+            if existing_audit_id is not None:
+                return {
+                    "deduped": True,
+                    "audit_id": existing_audit_id,
+                    "member": deepcopy(member),
+                    "purchase_after": dict(purchase_after),
+                }
+            if self._has_manual_membership_reversal(
+                data,
+                user_id=normalized_user_id,
+                purchase_id=resolved_purchase_id,
+            ):
+                raise ValueError("manual membership purchase was already reversed")
+            return {
+                "deduped": False,
+                "member": deepcopy(member),
+                "purchase_after": dict(purchase_after),
+            }
+
+        reversal_inputs = self._mutate(_load_reversal_inputs)
+        purchase_after = dict(reversal_inputs["purchase_after"])
+        resolved_purchase_id = str(purchase_after.get("purchase_id") or purchase_id or "").strip()
+        package_id = str(purchase_after.get("package_id") or "").strip()
+        if package_id != "supreme_svip":
+            raise ValueError("Only supreme_svip manual membership purchases can be reversed")
+        if reversal_inputs.get("deduped"):
+            original_amount = self._package_amount_cny({"price": purchase_after.get("amount_cny", 0)}, amount_cny)
+            return {
+                "member": reversal_inputs["member"],
+                "amount_cny": -abs(original_amount),
+                "points": -abs(int(purchase_after.get("points") or 0)),
+                "purchase_id": resolved_purchase_id,
+                "ledger_event_id": "",
+                "audit_id": reversal_inputs.get("audit_id", ""),
+                "deduped": True,
+            }
+
+        package = {
+            "id": package_id,
+            "label": "至尊SVIP",
+            "points": purchase_after.get("points", 0),
+            "price": purchase_after.get("amount_cny", 0),
+        }
+        for item in [*(self._load().get("packages") or []), *self._default_packages()]:
+            if isinstance(item, dict) and str(item.get("id") or "").strip() == package_id:
+                package = dict(item)
+                break
+        package_label = str(package.get("label") or package.get("name") or package_id).strip()
+        points = abs(int(purchase_after.get("points") or package.get("points") or 0))
+        if points <= 0:
+            raise ValueError("reversal points must be positive")
+        original_amount = self._package_amount_cny(package, amount_cny if amount_cny is not None else purchase_after.get("amount_cny"))
+        if original_amount <= 0:
+            raise ValueError("reversal amount_cny must be positive")
+        reversal_amount = -abs(original_amount)
+        wallet_identity = self._auth_identity_for_member(normalized_user_id)
+        wallet_user_id = str(wallet_identity.get("canonical_uid") or normalized_user_id).strip()
+        wallet_service = self._get_wallet_service()
+        if not getattr(wallet_service, "is_configured", False):
+            raise RuntimeError("wallet_service_not_configured")
+        refund_points = getattr(wallet_service, "refund_points", None)
+        if not callable(refund_points):
+            raise RuntimeError("wallet_refund_not_supported")
+        days = int(purchase_after.get("days") or 0)
+        metadata = {
+            "source": "bi_manual_membership_reversal",
+            "channel": "manual_membership_reversal",
+            "package_id": package_id,
+            "package_label": package_label,
+            "tier": "supreme_svip",
+            "amount_cny": reversal_amount,
+            "operator_id": normalized_operator,
+            "legacy_user_id": normalized_user_id,
+            "wallet_user_id": wallet_user_id,
+            "days": days,
+            "reason": str(reason or "").strip(),
+            "reversal_of_purchase_id": resolved_purchase_id,
+        }
+        mutation = refund_points(
+            user_id=wallet_user_id,
+            amount_micros=points * 1_000_000,
+            reference_type="refund",
+            reference_id=resolved_purchase_id,
+            idempotency_key=f"refund:manual_membership:{normalized_key}",
+            reason="manual_membership_reversal",
+            metadata=metadata,
+            operator_type="admin",
+            operator_id=normalized_operator,
+        )
+        ledger_event_id = str(getattr(mutation, "ledger_event_id", "") or "")
+        created_at = str(getattr(mutation, "created_at", "") or _iso())
+
+        def _apply_reversal(data: dict[str, Any]) -> dict[str, Any]:
+            existing_audit_id = self._find_audit_id_by_idempotency_key(
+                data,
+                "manual_membership_reversal",
+                normalized_key,
+                operator=normalized_operator,
+            )
+            member = self._find_member(data, normalized_user_id)
+            if existing_audit_id is not None:
+                return {
+                    "member": deepcopy(member),
+                    "audit_id": existing_audit_id,
+                    "deduped": True,
+                }
+            if self._has_manual_membership_reversal(
+                data,
+                user_id=normalized_user_id,
+                purchase_id=resolved_purchase_id,
+            ):
+                raise ValueError("manual membership purchase was already reversed")
+            before = deepcopy(member)
+            member["status"] = "revoked"
+            member["auto_renew"] = False
+            member["expire_at"] = _iso(_now())
+            member["points_balance"] = max(0, int(member.get("points_balance") or 0) - points)
+            ledger_entry = {
+                "id": ledger_event_id or f"reversal_{resolved_purchase_id}",
+                "delta": -points,
+                "reason": "manual_membership_reversal",
+                "created_at": created_at,
+                "metadata": metadata,
+            }
+            member.setdefault("ledger", []).insert(0, ledger_entry)
+            after = deepcopy(member)
+            audit = self._append_audit(
+                data,
+                action="manual_membership_reversal",
+                target_user=normalized_user_id,
+                reason=str(reason or "").strip() or "manual_membership_reversal",
+                before=before,
+                after={
+                    "member": after,
+                    "package_id": package_id,
+                    "reversal_of_purchase_id": resolved_purchase_id,
+                    "ledger_event_id": ledger_event_id,
+                    "amount_cny": reversal_amount,
+                    "points": -points,
+                },
+                operator=normalized_operator,
+            )
+            self._remember_idempotency_key(
+                data,
+                "manual_membership_reversal",
+                normalized_key,
+                audit["id"],
+                operator=normalized_operator,
+            )
+            return {
+                "member": after,
+                "audit_id": audit["id"],
+                "deduped": False,
+            }
+
+        entitlement = self._mutate(_apply_reversal)
+        return {
+            "member": entitlement["member"],
+            "amount_cny": reversal_amount,
+            "points": -points,
+            "purchase_id": resolved_purchase_id,
             "ledger_event_id": ledger_event_id,
             "audit_id": entitlement.get("audit_id", ""),
             "deduped": bool(entitlement.get("deduped", False)),

@@ -411,6 +411,53 @@ def test_commerce_today_revenue_uses_china_business_day() -> None:
     assert summary["today_revenue_cny"] == 198
 
 
+def test_commerce_reversal_offsets_manual_membership_revenue() -> None:
+    china_tz = timezone(timedelta(hours=8))
+    purchase_at = datetime(2026, 6, 14, 9, 0, tzinfo=china_tz)
+    reversal_at = datetime(2026, 6, 14, 9, 5, tzinfo=china_tz)
+
+    summary = BIService._build_commerce_revenue_summary(
+        [
+            {
+                "id": "ledger_supreme_purchase",
+                "user_id": "member_supreme",
+                "amount": 50000,
+                "event_type": "grant",
+                "reference_type": "purchase",
+                "reference_id": "manual_membership_supreme",
+                "idempotency_key": "purchase:manual_membership:supreme",
+                "effective_at": purchase_at.isoformat(),
+                "metadata": {"amount_cny": 998, "tier": "supreme_svip"},
+            },
+            {
+                "id": "ledger_supreme_reversal",
+                "user_id": "member_supreme",
+                "amount": -50000,
+                "event_type": "refund",
+                "reference_type": "refund",
+                "reference_id": "manual_membership_supreme",
+                "idempotency_key": "refund:manual_membership:reversal",
+                "effective_at": reversal_at.isoformat(),
+                "metadata": {
+                    "amount_cny": -998,
+                    "tier": "supreme_svip",
+                    "channel": "manual_membership_reversal",
+                },
+            },
+        ],
+        now=datetime(2026, 6, 14, 12, 0, tzinfo=china_tz),
+    )
+
+    assert summary["revenue_cny"] == 0
+    assert summary["today_revenue_cny"] == 0
+    assert summary["recent_revenue_cny"] == 0
+    assert summary["latest_revenue_amount_cny"] == -998
+    assert summary["latest_revenue_member_id"] == "member_supreme"
+    assert summary["latest_revenue_at"] == reversal_at.isoformat()
+    assert summary["revenue_count"] == 2
+    assert summary["reversal_count"] == 1
+
+
 def test_commerce_uses_managed_membership_packages(store: SQLiteSessionStore) -> None:
     class _ManagedPackageMemberService(_CommerceMemberService):
         @staticmethod

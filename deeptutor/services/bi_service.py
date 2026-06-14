@@ -3188,6 +3188,23 @@ class BIService:
         )
 
     @staticmethod
+    def _is_commerce_reversal_row(row: dict[str, Any]) -> bool:
+        metadata = row.get("metadata") if isinstance(row.get("metadata"), dict) else {}
+        amount_cny = _safe_float(metadata.get("amount_cny"))
+        if amount_cny >= 0:
+            return False
+        event_type = str(row.get("event_type") or "").strip().lower()
+        reference_type = str(row.get("reference_type") or "").strip().lower()
+        idempotency_key = str(row.get("idempotency_key") or "").strip().lower()
+        channel = str(metadata.get("channel") or metadata.get("source") or "").strip().lower()
+        return (
+            event_type == "refund"
+            or reference_type == "refund"
+            or idempotency_key.startswith("refund:")
+            or channel == "manual_membership_reversal"
+        )
+
+    @staticmethod
     def _parse_commerce_datetime(value: Any) -> datetime | None:
         text = str(value or "").strip()
         if not text:
@@ -3202,10 +3219,12 @@ class BIService:
 
     @staticmethod
     def _commerce_revenue_cny(row: dict[str, Any]) -> float:
-        if not BIService._is_commerce_recharge_row(row):
-            return 0.0
         metadata = row.get("metadata") if isinstance(row.get("metadata"), dict) else {}
-        return max(_safe_float(metadata.get("amount_cny")), 0.0)
+        if BIService._is_commerce_recharge_row(row):
+            return max(_safe_float(metadata.get("amount_cny")), 0.0)
+        if BIService._is_commerce_reversal_row(row):
+            return -abs(_safe_float(metadata.get("amount_cny")))
+        return 0.0
 
     @classmethod
     def _build_commerce_revenue_summary(
@@ -3219,7 +3238,7 @@ class BIService:
         revenue_rows: list[tuple[dict[str, Any], float, datetime | None]] = []
         for row in recharge_rows:
             amount_cny = cls._commerce_revenue_cny(row)
-            if amount_cny <= 0:
+            if amount_cny == 0:
                 continue
             revenue_rows.append((row, amount_cny, cls._parse_commerce_datetime(row.get("effective_at"))))
 
@@ -3244,6 +3263,7 @@ class BIService:
             "latest_revenue_member_id": str(latest_row[0].get("user_id") or "") if latest_row else "",
             "latest_revenue_at": str(latest_row[0].get("effective_at") or "") if latest_row else "",
             "revenue_count": len(revenue_rows),
+            "reversal_count": sum(1 for _row, amount, _effective_at in revenue_rows if amount < 0),
         }
 
     def _build_commerce_anomalies(
@@ -3342,7 +3362,8 @@ class BIService:
         ledger_rows = sorted(deduped.values(), key=self._commerce_ledger_sort_key, reverse=True)[:safe_limit]
         recharge_rows = [row for row in ledger_rows if self._is_commerce_recharge_row(row)][:safe_limit]
         recharge_records = [self._commerce_recharge_record(row) for row in recharge_rows]
-        revenue_summary = self._build_commerce_revenue_summary(recharge_rows)
+        revenue_event_rows = [row for row in ledger_rows if self._commerce_revenue_cny(row) != 0][:safe_limit]
+        revenue_summary = self._build_commerce_revenue_summary(revenue_event_rows)
         paid_member_ids = {
             user_id
             for row in recharge_rows

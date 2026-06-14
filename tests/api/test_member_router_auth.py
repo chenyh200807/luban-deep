@@ -365,6 +365,65 @@ def test_member_router_manual_purchase_requires_idempotency_and_forwards_operato
     ]
 
 
+def test_member_router_manual_purchase_reversal_requires_idempotency_and_forwards_operator(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    app = _build_app()
+    app.dependency_overrides[get_current_user] = lambda: _ctx("admin_demo", is_admin=True)
+    calls: list[dict[str, object]] = []
+
+    def _reverse_manual_membership_purchase(**kwargs: object) -> dict[str, object]:
+        calls.append(dict(kwargs))
+        return {
+            "member": {"user_id": kwargs["user_id"], "tier": "supreme_svip", "status": "revoked"},
+            "amount_cny": -998,
+            "points": -50000,
+            "purchase_id": kwargs["purchase_id"],
+            "ledger_event_id": "ledger_refund_1",
+            "audit_id": "audit_reversal_1",
+            "deduped": False,
+        }
+
+    monkeypatch.setattr(
+        "deeptutor.api.routers.member.service",
+        type(
+            "FakeMemberService",
+            (),
+            {"reverse_manual_membership_purchase": staticmethod(_reverse_manual_membership_purchase)},
+        )(),
+    )
+
+    with TestClient(app) as client:
+        missing_key = client.post(
+            "/api/v1/member/manual-purchase/reverse",
+            json={"user_id": "u1", "purchase_id": "manual_membership_1", "amount_cny": 998},
+        )
+        reversed_purchase = client.post(
+            "/api/v1/member/manual-purchase/reverse",
+            headers={"X-Idempotency-Key": "manual-reverse-1"},
+            json={
+                "user_id": "u1",
+                "purchase_id": "manual_membership_1",
+                "amount_cny": 998,
+                "reason": "本应 0 元开通，冲销误录 998 元",
+            },
+        )
+
+    assert missing_key.status_code == 400
+    assert reversed_purchase.status_code == 200
+    assert reversed_purchase.json()["ledger_event_id"] == "ledger_refund_1"
+    assert calls == [
+        {
+            "user_id": "u1",
+            "purchase_id": "manual_membership_1",
+            "amount_cny": 998,
+            "operator": "admin_demo",
+            "reason": "本应 0 元开通，冲销误录 998 元",
+            "idempotency_key": "manual-reverse-1",
+        }
+    ]
+
+
 def test_member_router_package_management_requires_idempotency_and_forwards_operator(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

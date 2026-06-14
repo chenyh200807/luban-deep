@@ -86,6 +86,16 @@ http_routes:
   - {prefix: /api/v1/tutor-state, reason: "Tutor-state read models."}
   - {prefix: /api/v1/wechat, reason: "WeChat mini-program login adapters."}
 
+member_console_controls:
+  manual_membership_reversal:
+    path: /api/v1/member/manual-purchase/reverse
+    authority: MemberConsoleService -> wallet_ledger
+    semantics:
+      - Manual membership reversal is append-only; it must not delete or mutate the original purchase ledger row.
+      - Only supreme_svip manual membership purchases can be reversed through this control.
+      - The reversal writes a wallet refund ledger event with negative metadata.amount_cny so BI commerce revenue is netted by wallet_ledger.
+      - The control is an audited admin write and requires X-Idempotency-Key.
+
 mobile_http_read_models:
   billing_usage:
     path: /api/v1/billing/usage

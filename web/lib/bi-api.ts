@@ -606,6 +606,7 @@ export interface BiCommerceData {
     latestRevenueMemberId: string
     latestRevenueAt: string
     revenueCount: number
+    reversalCount: number
   }
   authority: Record<string, string>
   packages: BiCommercePackage[]
@@ -2014,6 +2015,7 @@ export async function getBiCommerce(options: { limit?: number } = {}): Promise<B
       ),
       latestRevenueAt: toString(summary.latest_revenue_at ?? summary.latestRevenueAt, ''),
       revenueCount: toNumber(summary.revenue_count ?? summary.revenueCount, 0),
+      reversalCount: toNumber(summary.reversal_count ?? summary.reversalCount, 0),
     },
     authority: Object.fromEntries(
       Object.entries(authority).map(([key, value]) => [key, toString(value, '')])

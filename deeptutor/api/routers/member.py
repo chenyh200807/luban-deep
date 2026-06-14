@@ -58,6 +58,13 @@ class ManualPurchaseRequest(BaseModel):
     amount_cny: float | None = Field(default=None, ge=0)
 
 
+class ManualPurchaseReversalRequest(BaseModel):
+    user_id: str = Field(..., min_length=1, max_length=200)
+    purchase_id: str = Field(default="", max_length=120)
+    amount_cny: float | None = Field(default=None, ge=0)
+    reason: str = Field(default="", max_length=200)
+
+
 class MembershipPackageRequest(BaseModel):
     label: str = Field(..., min_length=1, max_length=80)
     tier: str = Field(..., min_length=1, max_length=40)
@@ -645,6 +652,38 @@ async def manual_purchase_membership(
             phone=body.phone,
             display_name=body.display_name,
             amount_cny=body.amount_cny,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@router.post("/manual-purchase/reverse")
+async def reverse_manual_purchase_membership(
+    body: ManualPurchaseReversalRequest,
+    idempotency_key: str | None = Header(default=None, alias="X-Idempotency-Key"),
+    current_user: AuthContext = Depends(require_admin),
+) -> dict[str, Any]:
+    normalized_key = str(idempotency_key or "").strip()
+    if not normalized_key:
+        raise HTTPException(
+            status_code=400,
+            detail="X-Idempotency-Key header is required for audited writes",
+        )
+    if len(normalized_key) > 128 or not _IDEMPOTENCY_KEY_PATTERN.fullmatch(normalized_key):
+        raise HTTPException(
+            status_code=400,
+            detail="X-Idempotency-Key must be ≤ 128 chars of [a-zA-Z0-9_-]",
+        )
+    try:
+        return service.reverse_manual_membership_purchase(
+            user_id=body.user_id,
+            purchase_id=body.purchase_id,
+            amount_cny=body.amount_cny,
+            operator=current_user.user_id,
+            reason=body.reason,
+            idempotency_key=normalized_key,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

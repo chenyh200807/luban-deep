@@ -126,7 +126,7 @@ export function CommerceCockpit({ data }: { data: BiCommerceData | null }) {
         />
         <CockpitKpi label="钱包流水" value={fmt(num(s?.ledgerCount))} tone="teal" />
         <CockpitKpi label="入账积分" value={fmt(num(s?.creditPoints))} tone="gold" />
-        <CockpitKpi label="扣减积分" value={fmt(num(s?.debitPoints))} tone="amber" />
+        <CockpitKpi label="冲销笔数" value={fmt(num(s?.reversalCount))} tone="rose" />
         <CockpitKpi
           label="账务异常"
           value={fmt(num(s?.anomalyCount))}

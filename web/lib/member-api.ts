@@ -162,6 +162,16 @@ export interface ManualMembershipPurchaseResult {
   deduped: boolean
 }
 
+export interface ManualMembershipReversalResult {
+  member: MemberDetail
+  amount_cny: number
+  points: number
+  purchase_id: string
+  ledger_event_id: string
+  audit_id: string
+  deduped: boolean
+}
+
 export interface MembershipPackagePayload {
   label: string
   tier: string
@@ -504,6 +514,23 @@ export async function manualPurchaseMembership(payload: {
     body: JSON.stringify(payload),
   })
   return expectJson<ManualMembershipPurchaseResult>(response)
+}
+
+export async function reverseManualMembershipPurchase(payload: {
+  user_id: string
+  purchase_id?: string
+  amount_cny?: number
+  reason?: string
+}): Promise<ManualMembershipReversalResult> {
+  const response = await fetch(apiUrl('/api/v1/member/manual-purchase/reverse'), {
+    method: 'POST',
+    headers: adminHeaders({
+      'Content-Type': 'application/json',
+      'X-Idempotency-Key': makeIdempotencyKey(),
+    }),
+    body: JSON.stringify(payload),
+  })
+  return expectJson<ManualMembershipReversalResult>(response)
 }
 
 export async function upsertMembershipPackage(

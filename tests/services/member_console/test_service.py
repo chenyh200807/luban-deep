@@ -91,6 +91,22 @@ class _FakeWalletBootstrapService:
             created_at="2026-06-14T10:00:00+08:00",
         )
 
+    def refund_points(self, **kwargs):
+        self.grants.append({"refund": True, **dict(kwargs)})
+        return SimpleNamespace(
+            ledger_event_id="ledger_refund_1",
+            user_id=str(kwargs["user_id"]),
+            event_type="refund",
+            delta_micros=-int(kwargs["amount_micros"]),
+            balance_micros=0,
+            frozen_micros=0,
+            version=2,
+            idempotency_key=str(kwargs["idempotency_key"]),
+            reference_type=str(kwargs["reference_type"]),
+            reference_id=str(kwargs["reference_id"]),
+            created_at="2026-06-14T10:05:00+08:00",
+        )
+
 
 class _FakeMemberDirectory:
     is_configured = True
@@ -4683,6 +4699,98 @@ def test_managed_membership_package_persists_and_can_be_purchased(
     audit_actions = [item["action"] for item in reloaded.get_audit_log(page_size=20)["items"]]
     assert audit_actions.count("membership_package_delete") == 1
     assert "membership_package_upsert" in audit_actions
+
+
+def test_supreme_membership_purchase_can_be_reversed_with_negative_revenue(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: wallet_service)
+
+    purchase = service.manual_membership_purchase(
+        user_id="manual_user_supreme",
+        package_id="supreme_svip",
+        days=365,
+        operator="admin_demo",
+        reason="误点套餐价",
+        idempotency_key="manual-supreme-1",
+    )
+
+    result = service.reverse_manual_membership_purchase(
+        user_id="manual_user_supreme",
+        purchase_id=purchase["purchase_id"],
+        amount_cny=998,
+        operator="admin_demo",
+        reason="本应 0 元开通，冲销误录 998 元",
+        idempotency_key="reverse-supreme-1",
+    )
+
+    assert result["member"]["tier"] == "supreme_svip"
+    assert result["member"]["status"] == "revoked"
+    assert result["amount_cny"] == -998
+    assert result["points"] == -50000
+    assert result["ledger_event_id"] == "ledger_refund_1"
+    assert wallet_service.grants[-1] == {
+        "refund": True,
+        "user_id": "manual_user_supreme",
+        "amount_micros": 50_000_000_000,
+        "reference_type": "refund",
+        "reference_id": purchase["purchase_id"],
+        "idempotency_key": "refund:manual_membership:reverse-supreme-1",
+        "reason": "manual_membership_reversal",
+        "metadata": {
+            "source": "bi_manual_membership_reversal",
+            "channel": "manual_membership_reversal",
+            "package_id": "supreme_svip",
+            "package_label": "至尊SVIP",
+            "tier": "supreme_svip",
+            "amount_cny": -998,
+            "operator_id": "admin_demo",
+            "legacy_user_id": "manual_user_supreme",
+            "wallet_user_id": "manual_user_supreme",
+            "days": 365,
+            "reason": "本应 0 元开通，冲销误录 998 元",
+            "reversal_of_purchase_id": purchase["purchase_id"],
+        },
+        "operator_type": "admin",
+        "operator_id": "admin_demo",
+    }
+    ledger = service.get_ledger("manual_user_supreme", limit=1, offset=0)["entries"][0]
+    assert ledger["reason"] == "manual_membership_reversal"
+    assert ledger["metadata"]["amount_cny"] == -998
+    audit = service.get_audit_log(action="manual_membership_reversal")["items"][0]
+    assert audit["target_user"] == "manual_user_supreme"
+    assert audit["after"]["reversal_of_purchase_id"] == purchase["purchase_id"]
+
+
+def test_non_supreme_membership_purchase_cannot_be_reversed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    service = MemberConsoleService()
+    service._data_path = tmp_path / "member_console.json"
+    wallet_service = _FakeWalletBootstrapService()
+    monkeypatch.setattr(service, "_get_wallet_service", lambda: wallet_service)
+
+    purchase = service.manual_membership_purchase(
+        user_id="manual_user_vip",
+        package_id="vip",
+        days=365,
+        operator="admin_demo",
+        reason="VIP 收款",
+        idempotency_key="manual-vip-1",
+    )
+
+    with pytest.raises(ValueError, match="Only supreme_svip"):
+        service.reverse_manual_membership_purchase(
+            user_id="manual_user_vip",
+            purchase_id=purchase["purchase_id"],
+            amount_cny=198,
+            operator="admin_demo",
+            reason="不允许冲销普通会员",
+            idempotency_key="reverse-vip-1",
+        )
 
 
 def test_list_audit_log_supports_target_user_and_action_filters(tmp_path: Path) -> None:

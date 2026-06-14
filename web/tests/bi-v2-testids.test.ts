@@ -88,9 +88,11 @@ test('member ops exposes membership settings as the visible row action', async (
 
 test('member ops exposes package-led cashier membership settings', async () => {
   const panel = await readWeb('app/(workspace)/bi/_v2/member-ops/BiV2MemberOpsPanel.tsx')
+  const api = await readWeb('lib/member-api.ts')
 
   assert.ok(panel.includes('getBiCommerce'))
   assert.ok(panel.includes('manualPurchaseMembership'))
+  assert.ok(panel.includes('reverseManualMembershipPurchase'))
   assert.ok(panel.includes('updateMembership'))
   assert.ok(panel.includes('revokeMembership'))
   assert.ok(panel.includes('data-testid="bi-member-membership-settings"'))
@@ -105,6 +107,10 @@ test('member ops exposes package-led cashier membership settings', async () => {
   assert.ok(panel.includes('收款开通'))
   assert.ok(panel.includes('保存有效期'))
   assert.ok(panel.includes('取消会员'))
+  assert.ok(panel.includes('撤回至尊SVIP'))
+  assert.ok(panel.includes('manual_membership_reversal'))
+  assert.ok(api.includes('/api/v1/member/manual-purchase/reverse'))
+  assert.ok(api.includes('reverseManualMembershipPurchase'))
   assert.equal(panel.includes('aria-label="选择会员等级"'), false)
   assert.equal(panel.includes('运营授予权益'), false)
 })
@@ -119,12 +125,14 @@ test('commerce cockpit exposes yuan revenue summary from wallet ledger', async (
   assert.ok(api.includes('recentRevenueCny: number'))
   assert.ok(api.includes('latestRevenueAmountCny: number'))
   assert.ok(api.includes('latestRevenueMemberId: string'))
+  assert.ok(api.includes('reversalCount: number'))
   assert.ok(cockpit.includes('最近收入'))
   assert.ok(cockpit.includes('今日收入'))
   assert.ok(cockpit.includes('最新一笔'))
   assert.ok(cockpit.includes('¥'))
   assert.ok(service.includes('"revenue_cny"'))
   assert.ok(service.includes('"latest_revenue_amount_cny"'))
+  assert.ok(service.includes('"reversal_count"'))
 })
 
 test('membership purchase broadcasts commerce reload event', async () => {
