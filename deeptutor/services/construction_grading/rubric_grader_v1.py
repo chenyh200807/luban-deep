@@ -39,6 +39,11 @@ JudgeFn = Callable[[dict[str, Any], str], dict[str, Any]]
 # judge_fn(scoring_point, student_answer) -> {"status": hit|partial|miss, "evidence_span": str,
 #                                             "mistake_type": str, "partial_ratio": float}
 
+_RUBRIC_BANK_SLOTS = {
+    "legacy": ("v_case_rubric_scored", "case_rubric_scored.json"),
+    "pgo": ("v_case_rubric_scored_pgo", "case_rubric_scored_pgo.json"),
+}
+
 
 def grade_with_rubric(
     *,
@@ -459,30 +464,54 @@ def _personalized_feedback_note(personalization_context_pack: dict[str, Any] | N
 
 @lru_cache(maxsize=1)
 def _rubric_bank() -> dict[str, list[dict[str, Any]]]:
-    """Load + verify-gate the compiled scoring-point bank ONCE per process (content_hash must match the
-    manifest, else empty -> every question goes open-world). Module-level so ``lru_cache`` actually
-    persists across ``load_rubric`` calls — a closure redefined inside ``load_rubric`` would rebuild the
-    cache on every call (cache never hits)."""
+    """Load + verify-gate the active scoring-point bank ONCE per process.
+
+    ``LUBAN_CASE_RUBRIC_BANK_SLOT`` selects the bank slot (default ``legacy``). The cache is deliberately
+    process-wide: flipping the slot requires a worker restart, which keeps rollback explicit and avoids
+    mid-process mixed authority.
+    """
     import json
+    import os
     from pathlib import Path
 
-    p = Path(__file__).parent / "runtime_supply" / "v_case_rubric_scored" / "case_rubric_scored.json"
+    raw_slot = os.getenv("LUBAN_CASE_RUBRIC_BANK_SLOT", "legacy")
+    slot = str(raw_slot or "legacy").strip().lower() or "legacy"
+    slot_spec = _RUBRIC_BANK_SLOTS.get(slot)
+    if slot_spec is None:
+        logger.warning("rubric_grader_v1: unknown rubric bank slot %r; refusing bank", slot)
+        return {}
+    slot_dir, bank_name = slot_spec
+    p = Path(__file__).parent / "runtime_supply" / slot_dir / bank_name
     if not p.exists():
+        logger.warning("rubric_grader_v1: rubric bank slot %s missing at %s; refusing bank", slot, p)
         return {}
     try:
         b = json.loads(p.read_text("utf-8"))
     except Exception:  # noqa: BLE001 — unreadable/corrupt bank -> empty -> open-world (fail-safe)
-        logger.warning("rubric_grader_v1: compiled rubric bank unreadable; all questions go open-world",
-                       exc_info=True)
+        logger.warning("rubric_grader_v1: rubric bank slot %s unreadable; refusing bank", slot, exc_info=True)
         return {}
     from deeptutor.services.construction_grading.full_knowledge_compiler import _sha256_hex
     m = b.get("manifest") or {}
-    if _sha256_hex(b.get("records") or []) != m.get("content_hash"):
-        logger.warning("rubric_grader_v1: compiled rubric bank content_hash mismatch; refusing bank "
-                       "(open-world only) — re-sign the bank to restore compiled grading")
+    records = b.get("records") or []
+    actual_hash = _sha256_hex(records)
+    manifest_hash = str(m.get("content_hash") or "")
+    if actual_hash != manifest_hash:
+        logger.warning("rubric_grader_v1: rubric bank slot %s content_hash mismatch; refusing bank", slot)
+        return {}
+    pointer_path = p.parent / "canonical_pointer.json"
+    try:
+        pointer = json.loads(pointer_path.read_text("utf-8"))
+    except Exception:  # noqa: BLE001 — missing/corrupt pointer -> empty -> open-world (fail-safe)
+        logger.warning("rubric_grader_v1: rubric bank slot %s canonical_pointer unreadable; refusing bank",
+                       slot, exc_info=True)
+        return {}
+    expected_hash = str(pointer.get("expected_content_hash") or pointer.get("content_hash") or "")
+    if expected_hash != actual_hash:
+        logger.warning("rubric_grader_v1: rubric bank slot %s canonical_pointer hash mismatch; refusing bank",
+                       slot)
         return {}
     by_q: dict[str, list[dict[str, Any]]] = {}
-    for r in b.get("records") or []:
+    for r in records:
         by_q.setdefault(str(r.get("qid")), []).append({
             "point_id": r.get("point_id"), "text": r.get("text"), "score": r.get("score"),
             "policy": r.get("policy"), "required_terms": r.get("required_terms") or []})
