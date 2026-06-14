@@ -77,8 +77,21 @@
 11. **【DONE 2026-06-14, commit 5dcc1c498】建了元 registry** `contracts/registries.yaml`(25 个治理 scanner 单一目录,按 enforcement 分类)+ `check_registries_meta.py` 元闸:CI 失败若(a)有治理 scanner 未登记(register-before-use 也管闸自己),或(b)pr_gate-class 没真接 CI(无 dark pr_gate)。复用同一 runner 不加第二套权威。TDD 4 条 + 进 CI。剩:AGENTS.md 写明判分-only scope 边界(待 P0#1 一并)。
 12. 修 dead `test_prompt_parity`(重指 deeptutor/agents/)或加 prompt 输出字段 vs 消费 pydantic 的 diff scanner。
 
+## 3b. 对抗审查暴露的闭包诚实化(2026-06-14, commit 7416a04d9)
+
+放出 5 个独立对抗专家复审本会话工作。3 个视角证伪指控(行为保持 ✓ / 无第二权威 ✓ / 5 个 T2 真跨消费无 fig-leaf ✓ / 6 commit 零并行 WIP 污染 ✓)。**但闭包/计数专家打破了"CLOSED 183"前提**:全集靠字符串巧合省略了两类真持久化 schema id —
+- **Leak A**: 11 个 `luban-`(连字符)`schema_version` 逃逸 namespace(首支 `luban[_.]` 不认连字符);
+- **Leak B**: 1 个 `artifact_version=` 键不在 marker 集。
+
+12 个全是 would-be orphan,因 dash vs underscore 字符串巧合静默逃逸 → 闭包测试(只对集内断言 orphans=[])抓不到这种"消失式"漏。**已治本修复**(纯治理工具,核心分类逻辑零改动):namespace `luban[-_.]`(tight,实测不误收 model 名) + marker 加 `artifact_version` + 8 个 tight 脚本族 T3 carve-out + 回归钉子测试。闭包重新诚实 CLOSED **195=9+26+160**。
+
+**残留弱点(对抗审查记录,诚实不提前解决)**:
+- T3 carve-out 对**非判分** runtime 契约偏宽:一个未注册的 `luban_xxx_decision.v1`/`_report`/`_feedback` 假想契约会被通用词 pattern 静默判 T3 而非 orphan(grading-shaped 一票否决只护 `grading_object`/`scoring_point`)。当前树上**无**此类 id 被误吞,故不提前加 T2-veto 机制(避免为明天的问题过度设计);若未来出现非判分 runtime 契约,需给它一个 namespace 分支或在 carve-out 前加 T2-shaped veto。
+- `luban_grading_engine_v1_*` / `luban_case_rubric_v1` 是 **engine-authority 枚举**(非 schema-version),deep_question 写、beta_shadow_loader/adjudicator 读做 grading `authority`。**不是闭包 gap,不可注册**(否则误报洪水)。若要治理 engine-authority 词表,是独立 T2-style 决策。
+
 ## 4. 注意事项(执行时)
 
 - 多个 P0/P1 目标文件正被并行 agent 改(`check_contract_guard.py`、`tests.yml`、`contracts/index.yaml` 当前 dirty WIP)——接线前必须查 `git status`,用 `--only`/path-limited 提交,别扫并行 WIP(AGENTS §3.6)。
 - P0#1 改的是中央 guard,`check_contract_guard.py` 是 protected——改它要同步更新 domain test(AGENTS §3.5),合并前跑 `check_contract_guard.py`。
 - 全程 review-only 不碰生产判分;这是治理基础设施,不是判分逻辑。
+- **闭包"CLOSED"的诚实性取决于收集层无逃逸**:任何新 schema-id 命名方案(新 namespace 前缀 / 新承载 key)出现时,必须确认 `_FULLSET_NAMESPACE_RE` + `_FULLSET_LITERAL_RE` 收得到,否则 CLOSED 是省略出来的假象(见 §3b)。
