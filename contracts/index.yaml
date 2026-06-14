@@ -69,6 +69,7 @@ http_routes:
   - {prefix: /api/v1/homepage, reason: "Homepage dashboard read model."}
   - {prefix: /api/v1/invite-test, reason: "Invite-test application intake."}
   - {prefix: /api/v1/knowledge, reason: "Knowledge-base CRUD + ingestion."}
+  - {prefix: /api/v1/learner-signal, reason: "Learner subjective signal write adapter; records learning_evidence with source_feature=learner_signal and does not enter compiler truth."}
   - {prefix: /api/v1/learning-brain, reason: "Learning-brain QA (dev-gated)."}
   - {prefix: /api/v1/member, reason: "Member console: profile / progress / goals / wallet."}
   - {prefix: /api/v1/memory, reason: "Learner memory read models."}

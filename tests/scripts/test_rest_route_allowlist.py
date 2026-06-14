@@ -44,6 +44,7 @@ def test_registry_loads_http_route_prefixes() -> None:
     assert "/api/v1/bi" in allow
     assert "/api/v1/member" in allow
     assert "/api/v1/knowledge" in allow
+    assert "/api/v1/learner-signal" in allow
     assert "/healthz" in allow
 
 
