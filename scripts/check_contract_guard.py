@@ -312,6 +312,82 @@ def _iter_question_lifecycle_python_files(repo_root: Path) -> list[Path]:
     return sorted(path for path in source_root.rglob("*.py") if path.is_file())
 
 
+# G4: evidence_source emit-site register-before-use.
+# learner_memory ``learning_evidence`` events may only carry an evidence_source from
+# ``contracts/index.yaml:learning_state_inference.allowed_evidence_sources``. An
+# unregistered hard-coded evidence_source literal makes ``learning_synthesis`` (which
+# filters by source) SILENTLY DROP that evidence. No literal found is a passing
+# condition — production reads the value from data, not constants; the guard becomes
+# load-bearing the moment someone hard-codes an unrecognized source.
+_EVIDENCE_SOURCE_SCAN_DIRS: tuple[str, ...] = (
+    "deeptutor/services/learner_state",
+    "deeptutor/services/construction_grading",
+)
+_EVIDENCE_SOURCE_EMIT_RE = re.compile(r'"evidence_source"\s*:\s*"([a-z_]+)"')
+
+
+def _allowed_evidence_sources(repo_root: Path = REPO_ROOT) -> set[str]:
+    """Read the canonical allowed set from contracts/index.yaml (repo_root scoped)."""
+    index_path = repo_root / "contracts" / "index.yaml"
+    payload = yaml.safe_load(index_path.read_text(encoding="utf-8")) or {}
+    lsi = payload.get("learning_state_inference") or {}
+    return {str(item) for item in (lsi.get("allowed_evidence_sources") or [])}
+
+
+def collect_emitted_evidence_sources(repo_root: Path = REPO_ROOT) -> dict[str, list[str]]:
+    """Map each hard-coded ``"evidence_source": "<literal>"`` value -> emit-site locations.
+
+    The regex matches only the dict-emit form, so reader comparisons
+    (``payload.get("evidence_source") == ...``) and source_feature pass-throughs
+    (``"evidence_source": str(...)``) are intentionally NOT captured.
+    """
+    found: dict[str, list[str]] = {}
+    for rel_dir in _EVIDENCE_SOURCE_SCAN_DIRS:
+        base = repo_root / rel_dir
+        if not base.exists():
+            continue
+        for path in sorted(base.rglob("*.py")):
+            if "test" in path.name:
+                continue
+            text = path.read_text(encoding="utf-8", errors="ignore")
+            for lineno, line in enumerate(text.splitlines(), start=1):
+                for match in _EVIDENCE_SOURCE_EMIT_RE.finditer(line):
+                    location = f"{path.relative_to(repo_root).as_posix()}:{lineno}"
+                    found.setdefault(match.group(1), []).append(location)
+    return found
+
+
+def evaluate_emitted_evidence_sources(repo_root: Path = REPO_ROOT) -> tuple[bool, str]:
+    """Cross-check every hard-coded evidence_source literal against the
+    contracts/index.yaml allowed set (G4 register-before-use).
+
+    No literal found is a passing condition. Fails closed if the allowed set is
+    unreadable/empty so a missing registry cannot silently disable the gate.
+    """
+    emitted = collect_emitted_evidence_sources(repo_root)
+    if not emitted:
+        return True, "evidence-source-guard: no hard-coded evidence_source literals found"
+    allowed = _allowed_evidence_sources(repo_root)
+    if not allowed:
+        return False, (
+            "evidence-source-guard: failed — contracts/index.yaml "
+            "learning_state_inference.allowed_evidence_sources is empty or unreadable"
+        )
+    unknown = {value: locs for value, locs in emitted.items() if value not in allowed}
+    if unknown:
+        detail = "; ".join(
+            f"{value} @ {', '.join(sorted(locs))}" for value, locs in sorted(unknown.items())
+        )
+        return False, (
+            "evidence-source-guard: failed\n"
+            f"unregistered evidence_source literal(s): {detail} — add to contracts/index.yaml "
+            "learning_state_inference.allowed_evidence_sources or remove the emit-site literal."
+        )
+    return True, (
+        f"evidence-source-guard: passed | evidence_sources={', '.join(sorted(emitted))}"
+    )
+
+
 def evaluate_question_lifecycle_authority(repo_root: Path = REPO_ROOT) -> tuple[bool, str]:
     """Fail when production code introduces a competing lifecycle authority."""
 
@@ -467,8 +543,13 @@ def main(argv: list[str] | None = None) -> int:
     route_model_stream = sys.stdout if route_model_ok else sys.stderr
     print(route_model_message, file=route_model_stream)
 
+    evidence_ok, evidence_message = evaluate_emitted_evidence_sources()
+    evidence_stream = sys.stdout if evidence_ok else sys.stderr
+    print(evidence_message, file=evidence_stream)
+
     return 0 if (ok and code_ok and node_ok and lifecycle_ok
-                 and upstream_ok and ws_ok and schema_ok and route_model_ok) else 1
+                 and upstream_ok and ws_ok and schema_ok and route_model_ok
+                 and evidence_ok) else 1
 
 
 if __name__ == "__main__":
