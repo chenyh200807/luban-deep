@@ -53,6 +53,18 @@ test('member ops exposes product behavior UI anchors', async () => {
   assert.ok(drawer.includes('data-testid="bi-member-360-summary"'))
 })
 
+test('member ops exposes a visible VIP upgrade action', async () => {
+  const panel = await readWeb('app/(workspace)/bi/_v2/member-ops/BiV2MemberOpsPanel.tsx')
+  const drawer = await readWeb('app/(workspace)/bi/_v2/member-ops/Member360Drawer.tsx')
+
+  assert.ok(panel.includes('grantMembership'))
+  assert.ok(panel.includes('upgradeMemberToVip'))
+  assert.ok(panel.includes('aria-label={`将 ${row.user_id} 升级为 VIP`}'))
+  assert.ok(panel.includes('升VIP'))
+  assert.ok(drawer.includes('onUpgradeToVip'))
+  assert.ok(drawer.includes('aria-label="将当前会员升级为 VIP"'))
+})
+
 test('BiDataTable supports row-level click without stealing checkbox/action clicks', async () => {
   const table = await readWeb('components/bi-v2/BiDataTable.tsx')
 

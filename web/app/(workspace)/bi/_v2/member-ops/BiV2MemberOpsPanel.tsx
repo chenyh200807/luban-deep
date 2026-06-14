@@ -1,7 +1,7 @@
 /* eslint-disable i18n/no-literal-ui-text */
 'use client'
 
-import { Filter, MessageSquareText, RefreshCw, Save, Settings2 } from 'lucide-react'
+import { Crown, Filter, MessageSquareText, RefreshCw, Save, Settings2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import {
   BiButton,
@@ -16,6 +16,7 @@ import {
 import { Member360Drawer } from './Member360Drawer'
 import { ConversationReviewDrawer } from './ConversationReviewDrawer'
 import {
+  grantMembership,
   getMemberDashboard,
   getMemberDetail,
   listMembers,
@@ -201,6 +202,10 @@ function toMemberRow(item: MemberListItem): MemberRow {
   }
 }
 
+function canUpgradeToVip(member: MemberRow): boolean {
+  return member.tier !== 'vip' && member.tier !== 'svip'
+}
+
 export function BiV2MemberOpsPanel({
   flagEnabled,
   globalQuery,
@@ -240,6 +245,8 @@ export function BiV2MemberOpsPanel({
   const [loading, setLoading] = useState(flagEnabled)
   const [error, setError] = useState('')
   const [opsActionNotice, setOpsActionNotice] = useState('')
+  const [membershipActionWriting, setMembershipActionWriting] = useState(false)
+  const [membershipActionError, setMembershipActionError] = useState('')
   const lastAutoOpenedQueryRef = useRef('')
   const memberOpsAction = useAuditedAction({ actionType: 'member.ops_action.record' })
   const opsActionWriting = memberOpsAction.state.phase === 'writing'
@@ -448,6 +455,44 @@ export function BiV2MemberOpsPanel({
     if (ok) setOpsActionNotice(`已给 ${member.phone_masked} 添加备注`)
   }
 
+  async function upgradeMemberToVip(member: MemberRow) {
+    if (!flagEnabled || membershipActionWriting || !canUpgradeToVip(member)) return
+    setOpsActionNotice('')
+    setMembershipActionError('')
+    try {
+      setMembershipActionWriting(true)
+      const detail = await grantMembership({
+        user_id: member.user_id,
+        tier: 'vip',
+        days: 365,
+        reason: 'BI 会员运营手动升 VIP',
+      })
+      setOpsActionNotice(
+        `已将 ${member.phone_masked} 升为 VIP，有效期至 ${shortDate(detail.expire_at)}`
+      )
+      setSelectedDetail(prev =>
+        prev?.user_id === member.user_id || selectedMember?.user_id === member.user_id
+          ? detail
+          : prev
+      )
+      setSelectedMember(prev =>
+        prev?.user_id === member.user_id
+          ? {
+              ...prev,
+              tier: 'vip',
+              status: normalizeStatus(detail.status),
+              expires_at: shortDate(detail.expire_at),
+            }
+          : prev
+      )
+      await loadMembers()
+    } catch (err) {
+      setMembershipActionError(err instanceof Error ? err.message : '升 VIP 失败')
+    } finally {
+      setMembershipActionWriting(false)
+    }
+  }
+
   async function runBulkAction(kind: 'contacted' | 'follow_up') {
     const selectedIds = [...selectedRows].slice(0, kind === 'contacted' ? 50 : 100)
     if (selectedIds.length === 0 || opsActionWriting) return
@@ -516,9 +561,16 @@ export function BiV2MemberOpsPanel({
           会员运营动作未写入：{opsActionError}
         </BiNotice>
       ) : null}
+      {membershipActionError ? (
+        <BiNotice tone="rose" role="alert">
+          会员升级未写入：{membershipActionError}
+        </BiNotice>
+      ) : null}
       {opsActionNotice ? <BiNotice tone="emerald">{opsActionNotice}</BiNotice> : null}
 
-      <MemberOpsCockpit dashboard={dashboard} />
+      <div data-testid="bi-member-behavior-health-strip">
+        <MemberOpsCockpit dashboard={dashboard} />
+      </div>
 
       <BehaviorCohortTabs active={behaviorCohort} onChange={setBehaviorCohort} />
 
@@ -612,6 +664,19 @@ export function BiV2MemberOpsPanel({
         rowAriaLabel={row => `打开 ${row.phone_masked} 学员 360`}
         rowAction={row => (
           <div className="flex justify-end gap-1.5">
+            {canUpgradeToVip(row) ? (
+              <BiButton
+                onClick={() => void upgradeMemberToVip(row)}
+                disabled={membershipActionWriting}
+                variant="secondary"
+                size="xs"
+                aria-label={`将 ${row.user_id} 升级为 VIP`}
+                title="运营授予 VIP；付费补录请使用商品账务"
+              >
+                <Crown className="h-3 w-3" aria-hidden />
+                升VIP
+              </BiButton>
+            ) : null}
             <BiButton
               onClick={() => openConversation(row)}
               variant="primary"
@@ -655,6 +720,8 @@ export function BiV2MemberOpsPanel({
         onJoinFollowUp={joinFollowUp}
         onAddNote={addOpsNote}
         opsActionWriting={opsActionWriting}
+        onUpgradeToVip={upgradeMemberToVip}
+        membershipActionWriting={membershipActionWriting}
       />
       <ConversationReviewDrawer
         open={drawer === 'conversation'}

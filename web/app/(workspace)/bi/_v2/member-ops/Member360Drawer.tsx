@@ -2,6 +2,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Crown } from 'lucide-react'
 import {
   BiButton,
   BiMoneyCell,
@@ -29,6 +30,8 @@ export type Member360DrawerProps = {
   onJoinFollowUp: (member: MemberRow) => Promise<void> | void
   onAddNote: (member: MemberRow, note: string) => Promise<void> | void
   opsActionWriting?: boolean
+  onUpgradeToVip: (member: MemberRow) => Promise<void> | void
+  membershipActionWriting?: boolean
 }
 
 export function Member360Drawer({
@@ -43,6 +46,8 @@ export function Member360Drawer({
   onJoinFollowUp,
   onAddNote,
   opsActionWriting = false,
+  onUpgradeToVip,
+  membershipActionWriting = false,
 }: Member360DrawerProps) {
   const [noteDraft, setNoteDraft] = useState('')
   if (!member) return null
@@ -63,6 +68,7 @@ export function Member360Drawer({
   const eventCount = behaviorSummary?.event_count_7d ?? member.behavior_event_count_7d ?? 0
   const notes = detail?.recent_notes ?? []
   const ledger = detail?.recent_ledger ?? []
+  const canUpgradeToVip = tier !== 'VIP' && tier !== 'SVIP'
 
   async function submitNote() {
     if (!member) return
@@ -81,6 +87,19 @@ export function Member360Drawer({
       width="lg"
       footer={
         <div className="flex flex-wrap items-center justify-end gap-2">
+          {canUpgradeToVip ? (
+            <BiButton
+              disabled={membershipActionWriting}
+              onClick={() => void onUpgradeToVip(member)}
+              variant="secondary"
+              size="sm"
+              aria-label="将当前会员升级为 VIP"
+              title="运营授予 VIP；付费补录请使用商品账务"
+            >
+              <Crown className="h-3.5 w-3.5" aria-hidden />
+              升VIP
+            </BiButton>
+          ) : null}
           <BiButton
             disabled={opsActionWriting}
             onClick={() => void onMarkContacted(member)}
