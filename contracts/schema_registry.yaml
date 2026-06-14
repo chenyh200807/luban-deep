@@ -504,7 +504,20 @@ tier2_canonical_contracts:
     canonical_for: cross-consumer compiled teaching/grading context pack (single authority for all surfaces)
     module: deeptutor/services/construction_grading/compiled_context.py
     consumed_by: capabilities/deep_question.py + compiled_registry_resolver.py + deep_question_adapter.py + objective_runtime_adapter.py + open_world_diagnostic.py (runtime serving)
-    needs_field_canonicalization: true
+    needs_field_canonicalization: false   # P2#9 PINNED: fields canonicalized below; drift is BLOCKING
+    # canonical field set = LubanContextPack dataclass fields (compiled_context.py). A drift
+    # (producer adds/renames a field without updating this list, or vice versa) fails
+    # tests/scripts/test_schema_registry.py::test_context_pack_v1_fields_pinned_match_producer.
+    canonical_fields:
+      - question_context
+      - source_context
+      - rubric_context
+      - learner_context
+      - diagnostic_policy
+      - budget_policy
+      - provenance
+      - schema_version
+      - surfaces_supported
 
   - name: luban.compiled_context_pack.rich_leaf.v0
     status: runtime_canonical
@@ -528,7 +541,19 @@ tier2_canonical_contracts:
     canonical_for: runtime context bundle derived from the token pack (the serving lookup index)
     module: deeptutor/services/construction_grading/rich_leaf_runtime.py
     consumed_by: deeptutor/services/construction_grading/rich_leaf_runtime.py::BUNDLE_SCHEMA + _load_index (runtime serving via deep_question.py)
-    needs_field_canonicalization: true
+    needs_field_canonicalization: false   # P2#9 PINNED: per-record field set canonicalized below; drift is BLOCKING
+    # canonical field set = ``_RECORD_FIELDS`` (rich_leaf_runtime.py) — the per-record contract
+    # carried into the runtime bundle (lifecycle flags deliberately excluded; see producer comment).
+    # A drift fails test_rich_leaf_context_bundle_v1_record_fields_pinned_match_producer.
+    canonical_fields:
+      - unit_id
+      - leaf_id
+      - leaf_name_path
+      - compiled_context
+      - confidence
+      - source_lane
+      - source_ref
+      - relative_path
 
   - name: luban_runtime_grading_packet.v1
     status: runtime_canonical

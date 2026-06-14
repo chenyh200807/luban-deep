@@ -421,9 +421,11 @@ def test_guard_tier2_contract_is_recognized_not_unregistered() -> None:
 
     It also must NOT trigger the grading drift/authority checks (it is not a
     per-point grading object), and it emits a non-blocking field-canonicalization
-    warning while its fields remain unpinned.
+    warning while its fields remain unpinned. Uses a STILL-UNPINNED T2 contract
+    (``luban_canonical_knowledge_manifest.v1``) — context_pack/bundle were field-pinned
+    in P2#9 (needs_field_canonicalization=false), so they no longer emit this nudge.
     """
-    code = 'SCHEMA_VERSION = "luban_context_pack.v1"\n'
+    code = 'SCHEMA_VERSION = "luban_canonical_knowledge_manifest.v1"\n'
     usages = collect_schema_usages([("deeptutor/services/construction_grading/x.py", code)])
     ok, message = evaluate_schema_usages(usages, load_schema_registry())
     assert ok is True  # registered T2 -> pass (not "unregistered")
@@ -432,13 +434,76 @@ def test_guard_tier2_contract_is_recognized_not_unregistered() -> None:
 
 
 def test_guard_tier2_drift_word_not_failed() -> None:
-    """A drift-shaped word in a T2 file is not failed (T2 has no canonical field set)."""
+    """A drift-shaped word in a T2 file is not failed: the guard never runs the per-point
+    grading field checks on a T2 contract (field parity for pinned T2 is enforced by the
+    introspection tests below, not by the text-scanning guard)."""
     code = (
         "def build():\n"
-        '    SCHEMA_VERSION = "luban_context_pack.v1"\n'
-        '    row = {"weight": 1.0}  # not a grading point; T2 has no pinned field set\n'
+        '    SCHEMA_VERSION = "luban_canonical_knowledge_manifest.v1"\n'
+        '    row = {"weight": 1.0}  # not a grading point; guard never field-checks a T2 contract\n'
         "    return row\n"
     )
     usages = collect_schema_usages([("deeptutor/services/construction_grading/x.py", code)])
     ok, _ = evaluate_schema_usages(usages, load_schema_registry())
     assert ok is True
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# P2#9 — field-level pinning for high-traffic T2 contracts (drift is BLOCKING)
+#
+# Two high-traffic runtime contracts are field-pinned: their registry ``canonical_fields``
+# must equal the producer's DECLARED field set (dataclass fields / the per-record tuple).
+# These are CONTRACT tests, not link tests — a producer that adds/renames a field without
+# updating the registry (or vice versa) fails here, in the CI smoke subset → BLOCKING. The
+# parity is verified by INTROSPECTING the producer (robust), never by scanning text (fragile).
+# ─────────────────────────────────────────────────────────────────────────────
+def _t2_entry(name: str) -> dict:
+    entry = load_schema_registry()["tier2_by_name"].get(name)
+    assert entry is not None, f"{name} must be a registered T2 contract"
+    return entry
+
+
+def test_context_pack_v1_fields_pinned_match_producer() -> None:
+    """``luban_context_pack.v1`` canonical_fields == LubanContextPack dataclass fields."""
+    from deeptutor.services.construction_grading.compiled_context import LubanContextPack
+
+    entry = _t2_entry("luban_context_pack.v1")
+    assert entry.get("needs_field_canonicalization") is False, "must be PINNED (false) for P2#9"
+    pinned = set(entry.get("canonical_fields") or [])
+    declared = set(LubanContextPack.__dataclass_fields__.keys())
+    assert pinned == declared, (
+        "luban_context_pack.v1 field drift — registry canonical_fields vs LubanContextPack "
+        f"dataclass.\n  only in registry: {sorted(pinned - declared)}\n  only in producer: "
+        f"{sorted(declared - pinned)}\nUpdate contracts/schema_registry.yaml canonical_fields "
+        "to match the producer (or revert the producer field change)."
+    )
+
+
+def test_rich_leaf_context_bundle_v1_record_fields_pinned_match_producer() -> None:
+    """``luban_rich_leaf_context_bundle.v1`` canonical_fields == ``_RECORD_FIELDS`` tuple."""
+    from deeptutor.services.construction_grading.rich_leaf_runtime import _RECORD_FIELDS
+
+    entry = _t2_entry("luban_rich_leaf_context_bundle.v1")
+    assert entry.get("needs_field_canonicalization") is False, "must be PINNED (false) for P2#9"
+    pinned = set(entry.get("canonical_fields") or [])
+    declared = set(_RECORD_FIELDS)
+    assert pinned == declared, (
+        "luban_rich_leaf_context_bundle.v1 per-record field drift — registry canonical_fields "
+        f"vs _RECORD_FIELDS.\n  only in registry: {sorted(pinned - declared)}\n  only in "
+        f"producer: {sorted(declared - pinned)}\nUpdate the registry canonical_fields to match "
+        "_RECORD_FIELDS (or revert the producer field change)."
+    )
+
+
+def test_pinned_t2_contracts_must_list_canonical_fields() -> None:
+    """Registry-consistency: a T2 marked PINNED (needs_field_canonicalization=false) MUST
+    carry a non-empty ``canonical_fields`` — otherwise it claims field enforcement with no
+    field list (a silent unpinned hole). An unpinned T2 (true) must NOT list canonical_fields
+    (the list only has meaning once pinned)."""
+    for name, entry in load_schema_registry()["tier2_by_name"].items():
+        pinned = entry.get("needs_field_canonicalization") is False
+        has_fields = bool(entry.get("canonical_fields"))
+        if pinned:
+            assert has_fields, f"{name} is PINNED but lists no canonical_fields"
+        else:
+            assert not has_fields, f"{name} is unpinned but lists canonical_fields (ambiguous)"
