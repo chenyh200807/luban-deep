@@ -71,3 +71,12 @@ baseline entry for those files, sample the surrounding JSON and confirm the
 value is a generated artifact hash, not a credential or token. New high-entropy
 strings in application config, source code, env examples, or user-authored docs
 still require removal and credential rotation, not baseline registration.
+
+## Contract Index Copy Discipline
+
+`contracts/index.yaml` is the repo authority, and
+`deeptutor/contracts/index.yaml` is the packaged runtime copy. Any change to the
+repo authority must be mirrored into the packaged copy in the same commit. The
+smoke suite intentionally fails `tests/services/test_app_facade.py` when these
+two files drift, because a packaged install would otherwise load stale contract
+metadata.
