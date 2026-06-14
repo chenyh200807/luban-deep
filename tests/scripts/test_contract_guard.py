@@ -351,6 +351,11 @@ def test_main_return_includes_schema_ok(monkeypatch) -> None:
     import scripts.check_contract_guard as G
 
     monkeypatch.setattr(G, "resolve_changed_files", lambda *_a, **_k: ["README.md"])
+    monkeypatch.setattr(
+        G,
+        "evaluate_websocket_route_allowlist",
+        lambda: (True, "websocket-allowlist-guard: passed"),
+    )
     monkeypatch.setattr(G, "evaluate_schema_registry", lambda _f: (False, "schema-registry-guard: failed (test)"))
     assert G.main(["--base", "x", "--head", "y"]) == 1
     # and when it passes, the runner can still pass (other guards permitting on a doc-only change)
