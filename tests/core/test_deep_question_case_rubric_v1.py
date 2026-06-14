@@ -255,6 +255,58 @@ async def test_case_rubric_v1_stage5_canary_passes_pgo_slot_for_authenticated_qa
 
 
 @pytest.mark.asyncio
+async def test_case_rubric_v1_global_pgo_default_emits_slot_for_noncohort(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_BANK_SLOT", "pgo")
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_BANK_SLOT_CANARY_ENABLED", "false")
+    captured_slots: list[str | None] = []
+    pgo_rubric = [
+        {
+            "point_id": "PGO1",
+            "text": "共用一个开关箱不妥",
+            "score": None,
+            "policy": "qualitative",
+            "required_terms": [],
+            "official_total_score": 10.0,
+            "score_authority": "official_total_x_verdict_coverage",
+        },
+        {
+            "point_id": "PGO2",
+            "text": "应采用专用开关箱",
+            "score": None,
+            "policy": "qualitative",
+            "required_terms": [],
+            "official_total_score": 10.0,
+            "score_authority": "official_total_x_verdict_coverage",
+        },
+    ]
+
+    def _fake_load_rubric(qid: str, *, slot: str | None = None) -> list[dict[str, Any]]:
+        captured_slots.append(slot)
+        return pgo_rubric if qid == "case-9006" else []
+
+    async def _fake_batch_async(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {"PGO1": {"status": G.HIT}, "PGO2": {"status": G.MISS}}
+
+    monkeypatch.setattr(G, "load_rubric", _fake_load_rubric)
+    monkeypatch.setattr(G, "batch_judge_async", _fake_batch_async)
+    context = _case_context(user_id="student_global_pgo", rubric_v1=False)
+    context.metadata["authenticated_user_id"] = "student_global_pgo"
+
+    result = await _run_case(monkeypatch, context)
+
+    event = result["luban_case_rubric_v1"]["grading_event"]
+    assert captured_slots == [None]
+    assert event["rubric_bank_slot"] == "pgo"
+    assert event["grading_source"] == "rubric_scored_pgo"
+    assert event["score_authority"] == "official_total_x_verdict_coverage"
+    assert event["awarded_score"] == 5.0
+    assert event["max_score"] == 10.0
+
+
+@pytest.mark.asyncio
 async def test_case_rubric_v1_all_users_default_on(monkeypatch: pytest.MonkeyPatch) -> None:
     # full rollout (not gray): even a non-qa student, with NO per-turn flag, gets V1 by default.
     monkeypatch.setenv("DEEPSEEK_API_KEY", "k")

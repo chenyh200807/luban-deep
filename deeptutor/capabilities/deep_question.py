@@ -1862,6 +1862,12 @@ def _case_rubric_bank_slot_canary_prefixes() -> tuple[str, ...]:
     return prefixes or ("qa_", "operator_")
 
 
+def _case_rubric_bank_default_slot() -> str:
+    import os
+
+    return str(os.environ.get("LUBAN_CASE_RUBRIC_BANK_SLOT", "legacy") or "legacy").strip().lower() or "legacy"
+
+
 def _case_rubric_bank_slot_for_context(context: UnifiedContext) -> str | None:
     """Return an explicit rubric bank slot for Stage 5 PGO canary traffic.
 
@@ -2106,6 +2112,7 @@ async def _grade_one_case_v1(
     )
     if not answer:
         return None
+    effective_rubric_slot = rubric_slot or _case_rubric_bank_default_slot()
     # 1) governed compiled rubric (best ammunition) if in the bank
     if qid and rubric_slot:
         points = _G.load_rubric(qid, slot=rubric_slot)
@@ -2176,8 +2183,7 @@ async def _grade_one_case_v1(
         logger.info("LUBAN_V1 degraded (no trustworthy verdict); falling back to legacy qid=%s", qid)
         return {"status": "degraded", "reason": "no_verdict", "question_id": qid}
     event["rubric_provenance"] = provenance
-    if rubric_slot:
-        event["rubric_bank_slot"] = rubric_slot
+    event["rubric_bank_slot"] = effective_rubric_slot
     return event
 
 
@@ -2232,7 +2238,7 @@ async def _grade_case_batch_v1(
         "llm_adjudicated": True,
         "official_score_allowed": False,
         "rubric_provenance": "batch",
-        "rubric_bank_slot": rubric_slot or "",
+        "rubric_bank_slot": rubric_slot or _case_rubric_bank_default_slot(),
         "items": sub_events,
     }
 
