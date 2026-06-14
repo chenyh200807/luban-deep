@@ -24,6 +24,15 @@ DEFAULT_STUDENT_MD = SOURCE_ROOT / "题库/近三年案例题_按学生答卷排
 DEFAULT_OUTPUT = REPO / "artifacts/luban_grading_artifacts/student_answer_grading_eval_20260613/student_answer_grading_eval.json"
 DEFAULT_RICH_PACK = REPO / "artifacts/luban_grading_artifacts/rich_leaf_v32_scoring_point_compile_20260613/runtime_token_pack_v32_scoring_points.json"
 
+# KnowQL ③: the per-point grading-output shape contract is owned by the canonical typed object
+# (the artifact that defines the shape enforces it), not by this eval harness. Imported under the
+# original name so the local validate_grading_output + the eval tests keep calling it unchanged.
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
+from deeptutor.services.construction_grading.unified_grading_object import (  # noqa: E402
+    enforce_grading_output_schema as enforce_output_schema,
+)
+
 SCHEMA = "luban_student_answer_grading_shadow_eval.v1"
 
 ARM_REFERENCE_ONLY = "reference_only_grader"
@@ -697,54 +706,10 @@ def _negative_marker_present(values: Any) -> bool:
     return any(marker in text for marker in ("漏", "未", "错", "缺", "不完整", "不准确", "答非所问"))
 
 
-_VALID_POINT_STATUSES = frozenset({"hit", "partial", "miss", "contradiction"})
-
-# Locked per-point output schema. Each typed-artifact point_result must emit
-# exactly these fields with the listed types, or the row is contract_invalid.
-_REQUIRED_POINT_RESULT_FIELDS: dict[str, tuple[type, ...]] = {
-    "sub_no": (str, int),
-    "max_points": (int, float),
-    "required_points": (list,),
-    "accepted_variants": (list,),
-    "student_evidence_quote": (str,),
-    "status": (str,),
-    "awarded_points": (int, float),
-    "deduction_reason": (str,),
-    "misconception_tag": (str,),
-    "next_review_action": (str, dict),
-    "learning_evidence_event": (dict,),
-}
-
-
-def enforce_output_schema(point_results: list[Any]) -> list[str]:
-    """Return contract violations for the locked per-point output schema.
-
-    A point_result must carry every required field with the right type, plus a
-    point identifier (point_id or basis_ref) and a known status value. ``bool``
-    is rejected where a number is required (Python treats bool as int).
-    """
-    errors: list[str] = []
-    for index, item in enumerate(point_results):
-        if not isinstance(item, dict):
-            errors.append(f"point_result_not_object:idx={index}")
-            continue
-        label = str(item.get("point_id") or item.get("basis_ref") or f"idx={index}")
-        if not (str(item.get("point_id") or "").strip() or str(item.get("basis_ref") or "").strip()):
-            errors.append(f"missing_field:point_id_or_basis_ref:{label}")
-        for field, types in _REQUIRED_POINT_RESULT_FIELDS.items():
-            if field not in item:
-                errors.append(f"missing_field:{field}:{label}")
-                continue
-            value = item[field]
-            if isinstance(value, bool) and bool not in types:
-                errors.append(f"type_error:{field}:{label}")
-                continue
-            if not isinstance(value, types):
-                errors.append(f"type_error:{field}:{label}")
-        status = str(item.get("status") or "").lower()
-        if status and status not in _VALID_POINT_STATUSES:
-            errors.append(f"invalid_status:{status}:{label}")
-    return errors
+# ``enforce_output_schema`` / ``_REQUIRED_POINT_RESULT_FIELDS`` / valid statuses are lifted to the
+# canonical typed object (deeptutor.services.construction_grading.unified_grading_object,
+# ``enforce_grading_output_schema`` — imported at the top under the original name). KnowQL ③:
+# the artifact that defines the rubric shape now also owns the grading-output shape it enforces.
 
 
 def validate_grading_output(context: dict[str, Any], normalized: dict[str, Any]) -> dict[str, Any]:
