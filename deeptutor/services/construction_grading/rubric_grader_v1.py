@@ -44,6 +44,9 @@ _RUBRIC_BANK_SLOTS = {
     "pgo": ("v_case_rubric_scored_pgo", "case_rubric_scored_pgo.json"),
 }
 
+_PGO_COVERAGE_SCORE_AUTHORITY = "official_total_x_verdict_coverage"
+_PGO_POINT_DISPLAY_SCORE_AUTHORITY = "display_allocated_from_official_total_coverage"
+
 
 def grade_with_rubric(
     *,
@@ -60,6 +63,15 @@ def grade_with_rubric(
     per point; partial awards score*partial_ratio (for list/qualitative); exact_required awards full or
     zero (a term is right or wrong). Sum is deterministic. high_risk flags low-confidence/near-miss
     grading for human review (the high-risk fallback)."""
+    if _uses_pgo_coverage_scoring(rubric_points):
+        return _grade_with_pgo_coverage(
+            qid=qid,
+            student_answer=student_answer,
+            rubric_points=rubric_points,
+            judge_fn=judge_fn,
+            student_id=student_id,
+            high_risk_margin=high_risk_margin,
+        )
     answer = str(student_answer or "")
     points_out: list[dict[str, Any]] = []
     awarded_total = 0.0
@@ -119,6 +131,92 @@ def grade_with_rubric(
         "answer_key_authority": "exam_reference_answer",
         "llm_adjudicated": True,
         "official_score_allowed": False,   # v1 is candidate evidence; teacher/governed gate promotes
+    }
+
+
+def _uses_pgo_coverage_scoring(rubric_points: list[dict[str, Any]]) -> bool:
+    if not rubric_points:
+        return False
+    return all(
+        p.get("score") is None
+        and str(p.get("score_authority") or "") == _PGO_COVERAGE_SCORE_AUTHORITY
+        and p.get("official_total_score") is not None
+        for p in rubric_points
+    )
+
+
+def _pgo_credit(policy: str, status: str, ratio: float) -> tuple[str, float]:
+    if policy == "exact_required":
+        return (HIT, 1.0) if status == HIT else (MISS, 0.0)
+    if status == HIT:
+        return HIT, 1.0
+    if status == PARTIAL:
+        return PARTIAL, max(0.0, min(1.0, ratio))
+    return MISS, 0.0
+
+
+def _grade_with_pgo_coverage(
+    *,
+    qid: str,
+    student_answer: str,
+    rubric_points: list[dict[str, Any]],
+    judge_fn: JudgeFn,
+    student_id: str = "",
+    high_risk_margin: float = 0.15,
+) -> dict[str, Any]:
+    answer = str(student_answer or "")
+    official_total = float(rubric_points[0].get("official_total_score") or 0.0)
+    display_max = official_total / len(rubric_points) if rubric_points else 0.0
+    points_out: list[dict[str, Any]] = []
+    credited = 0.0
+    low_conf = 0
+    for p in rubric_points:
+        policy = str(p.get("policy") or "qualitative")
+        verdict = judge_fn(p, answer) or {}
+        raw_status = str(verdict.get("status") or MISS)
+        ratio = float(verdict.get("partial_ratio") or (1.0 if raw_status == HIT else 0.5))
+        status, credit = _pgo_credit(policy, raw_status, ratio)
+        credited += credit
+        if verdict.get("low_confidence"):
+            low_conf += 1
+        mistake = None
+        if status != HIT:
+            mistake = (MISTAKE_NEAR_SYNONYM if policy == "exact_required"
+                       else MISTAKE_PARTIAL_LIST if status == PARTIAL
+                       else str(verdict.get("mistake_type") or MISTAKE_MISS))
+        point_out = {
+            "point_id": p.get("point_id"),
+            "knowledge_point": p.get("text"),
+            "policy_type": policy,
+            "hit": status,
+            "score": round(display_max * credit, 2),
+            "max_score": round(display_max, 2),
+            "mistake_type": mistake,
+            "evidence_span": str(verdict.get("evidence_span") or ""),
+            "required_terms": list(p.get("required_terms") or []),
+            "score_authority": _PGO_POINT_DISPLAY_SCORE_AUTHORITY,
+            "per_point_score_authority": p.get("per_point_score_authority"),
+            "official_total_score": official_total,
+        }
+        _attach_shadow_point_provenance(point_out, p)
+        points_out.append(point_out)
+    coverage = credited / len(rubric_points) if rubric_points else 0.0
+    awarded_total = round(official_total * coverage, 2)
+    near_boundary = bool(official_total) and (0 < abs(awarded_total - round(awarded_total)) < high_risk_margin)
+    return {
+        "event_type": "case_grading_completed",
+        "student_id": student_id,
+        "question_id": qid,
+        "scoring_points": points_out,
+        "awarded_score": awarded_total,
+        "max_score": round(official_total, 2),
+        "coverage": round(coverage, 4),
+        "score_authority": _PGO_COVERAGE_SCORE_AUTHORITY,
+        "high_risk_review": low_conf > 0 or near_boundary,
+        "grading_source": "rubric_scored_pgo",
+        "answer_key_authority": "exam_reference_answer",
+        "llm_adjudicated": True,
+        "official_score_allowed": False,
     }
 
 
@@ -512,9 +610,22 @@ def _rubric_bank() -> dict[str, list[dict[str, Any]]]:
         return {}
     by_q: dict[str, list[dict[str, Any]]] = {}
     for r in records:
-        by_q.setdefault(str(r.get("qid")), []).append({
+        point = {
             "point_id": r.get("point_id"), "text": r.get("text"), "score": r.get("score"),
-            "policy": r.get("policy"), "required_terms": r.get("required_terms") or []})
+            "policy": r.get("policy"), "required_terms": r.get("required_terms") or []}
+        for key in (
+            "max_score",
+            "official_slice",
+            "official_total_score",
+            "official_total_score_authority",
+            "score_authority",
+            "per_point_score_authority",
+            "term_authority",
+            "sub_type",
+        ):
+            if key in r:
+                point[key] = r.get(key)
+        by_q.setdefault(str(r.get("qid")), []).append(point)
     return by_q
 
 
