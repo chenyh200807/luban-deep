@@ -233,6 +233,7 @@ _FULLSET_LITERAL_RE = re.compile(
           | SCHEMA(?:_ID|_VERSION)?                          # SCHEMA / SCHEMA_ID / SCHEMA_VERSION
           | [A-Za-z_][A-Za-z0-9_]*_schema(?:_id|_version)?   # artifact_schema, typed_artifact_schema…
           | schema(?:_id|_version)?                          # schema / schema_id / schema_version
+          | [A-Za-z_]*artifact_version                       # persisted artifact schema tag (artifact_version=)
           | kind                                             # observability ``kind`` records
           | PROTOCOL_VERSION
         )
@@ -254,7 +255,7 @@ _FULLSET_LITERAL_RE = re.compile(
 _FULLSET_VERSION_SUFFIX_RE = re.compile(r"(?:\.v[0-9]|\.m[0-9]+|_v[0-9]|-v[0-9])")
 _FULLSET_NAMESPACE_RE = re.compile(
     r"""^(?:
-            luban[_.]
+            luban[-_.]                    # underscore/dot AND dash (luban-consensus-gold-shadow.v0.1 …)
           | assessment_(?:session|p0a)
           | p0a-v                       # bare persisted report schema version (p0a-v1)
           | learning_report             # P2: learner-state runtime contract (registry beyond grading)

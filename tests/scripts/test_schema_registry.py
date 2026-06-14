@@ -330,6 +330,32 @@ def test_full_set_scan_is_deterministic_and_versioned() -> None:
     assert "learning_evidence" not in full
 
 
+def test_dash_namespaced_schema_versions_are_collected_not_escaped() -> None:
+    """Regression pin for the closure-honesty fix (2026-06-14): persisted
+    ``schema_version: "luban-…"`` (DASH-namespaced) artifact tags must ENTER the full
+    set, not silently escape it. Before the fix, ``_FULLSET_NAMESPACE_RE`` only matched
+    ``luban[_.]`` (underscore/dot), so 11 dash-named one-off script result-envelopes +
+    1 ``artifact_version=`` judge-trace label vanished from the full set — and because
+    the closure test only asserts ``orphans == []`` over WHATEVER is in the set, a silent
+    escape would NOT be caught by it (the id just disappears, it never becomes an orphan).
+    This test pins the escape closed at the collection layer so reverting ``luban[-_.]``
+    or dropping the ``artifact_version`` marker is caught here, not lost. They are
+    script-persistence artifacts → classified T3 (never orphan, never registered)."""
+    full = collect_all_schema_identifiers()
+    registry = load_schema_registry()
+    for dash_id in (
+        "luban-consensus-gold-shadow.v0.1",
+        "luban-multimodel-jury-gold.v0.1",
+        "luban-agentic-model-bakeoff-v2",
+    ):
+        assert dash_id in full, f"{dash_id} escaped the full set (dash-namespace regression)"
+        assert classify_identifier(dash_id, registry) == "tier3"
+    # the artifact_version-carried id (marker-key gap) must also be collected
+    artifact_id = "luban_m35_fastapi_case_subquestions_20q_100a.v1"
+    assert artifact_id in full, f"{artifact_id} escaped (artifact_version marker regression)"
+    assert classify_identifier(artifact_id, registry) == "tier3"
+
+
 def test_full_set_is_closed_three_tier() -> None:
     """THE closure invariant: full set == T1 ∪ T2 ∪ T3, no orphan, no overlap.
 
