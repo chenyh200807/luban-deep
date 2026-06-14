@@ -998,6 +998,8 @@ class AgentLoop:
         runtime_metadata: dict[str, Any] | None,
     ) -> str:
         metadata = runtime_metadata if isinstance(runtime_metadata, dict) else {}
+        if str(metadata.get("question_lifecycle_scene") or "").strip() == "case_grading":
+            return ""
         exact_question = metadata.get("_prefetched_exact_question")
         if not isinstance(exact_question, dict):
             return ""
@@ -1266,6 +1268,8 @@ class AgentLoop:
         if not isinstance(exact_question, dict) or not exact_question:
             return None
         if str(metadata.get("exact_question_blocked_reason") or "").strip():
+            return None
+        if str(metadata.get("question_lifecycle_scene") or "").strip() == "case_grading":
             return None
         if cls._is_question_review_scene(metadata):
             return None

@@ -151,6 +151,32 @@ def test_no_authority_fallback_respects_v1_graded_marker() -> None:
         "得分：3分（满分5分），采分点1命中…", runtime_metadata=md, user_message="x") == ""
 
 
+def test_case_grading_never_replaced_by_exact_standard_answer() -> None:
+    md = {
+        "question_lifecycle_scene": "case_grading",
+        "_prefetched_exact_question": {
+            "answer_kind": "case_study",
+            "coverage_ratio": 1.0,
+            "missing_subquestions": [],
+            "covered_subquestions": [
+                {
+                    "subquestion_number": "5",
+                    "stem": "计算施工单位结算造价。",
+                    "authoritative_answer": "施工单位结算造价为8050.00万元。",
+                }
+            ],
+        },
+    }
+
+    assert (
+        _loop()._case_exact_authority_fallback(
+            "逐采分点点评：结算造价计算式不完整，本小问漏计设备暂估价调整。",
+            runtime_metadata=md,
+        )
+        == ""
+    )
+
+
 @pytest.mark.asyncio
 async def test_apply_v1_or_case_fallback_falls_back_to_legacy_when_v1_off(
     monkeypatch: pytest.MonkeyPatch,

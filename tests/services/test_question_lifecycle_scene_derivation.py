@@ -151,6 +151,38 @@ def test_free_text_case_colon_answer_review_returns_case_grading():
     assert derive_question_lifecycle_scene(ctx) == "case_grading"
 
 
+def test_full_case_question_with_answer_layout_returns_case_grading_without_review_phrase():
+    ctx = _FakeContext(
+        user_message=(
+            "建设单位编制了投资兴建某工程的招标文件，部分要求有："
+            "承包模式为施工总承包，报价采用工程量清单计价。\n"
+            "某施工单位工程中标造价为7782.60万元。\n"
+            "【问题】\n"
+            "1. 工程量清单的强制性内容还有哪些？\n"
+            "2. 投标单位对招标文件要求作出实质性响应的内容还有哪些？\n"
+            "回答\n"
+            "作答：\n"
+            "1. 工程量计算规则、清单编制方法、计价方式、风险处理。\n"
+            "2. 工期、招标范围、安全标准、权利义务。"
+        )
+    )
+
+    assert derive_question_lifecycle_scene(ctx) == "case_grading"
+
+
+def test_full_case_question_without_answer_layout_does_not_return_case_grading():
+    ctx = _FakeContext(
+        user_message=(
+            "建设单位编制了投资兴建某工程的招标文件。\n"
+            "【问题】\n"
+            "1. 工程量清单的强制性内容还有哪些？\n"
+            "2. 投标单位对招标文件要求作出实质性响应的内容还有哪些？"
+        )
+    )
+
+    assert derive_question_lifecycle_scene(ctx) != "case_grading"
+
+
 def test_free_text_mcq_answer_review_returns_mcq_grading():
     ctx = _FakeContext(user_message="这道单选题我选B，对吗？题干：施工现场临时用电组织设计应由谁编制？")
     assert derive_question_lifecycle_scene(ctx) == "mcq_grading"

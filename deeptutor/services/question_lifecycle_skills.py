@@ -813,6 +813,15 @@ _FREE_TEXT_GRADING_ACTION_MARKERS: tuple[str, ...] = (
     "漏掉",
     "采分点",
 )
+_FREE_TEXT_CASE_QUESTION_SURFACE_MARKERS: tuple[str, ...] = (
+    "【问题】",
+    "【问题",
+    "问题】",
+)
+_FREE_TEXT_CASE_ANSWER_SURFACE_RE = re.compile(
+    r"(?:^|[\r\n])\s*(?:回答\s*)?(?:作答|我的答案|答案)\s*[：:]",
+    re.IGNORECASE,
+)
 _FREE_TEXT_MCQ_GRADING_CONTEXT_MARKERS: tuple[str, ...] = (
     "单选题",
     "多选题",
@@ -1251,9 +1260,17 @@ def _active_question_context_from_metadata(metadata: Any) -> dict[str, Any]:
 
 
 def _looks_like_free_text_case_grading(user_message: str) -> bool:
+    if _looks_like_full_case_answer_submission(user_message):
+        return True
     return any(marker in user_message for marker in _FREE_TEXT_CASE_GRADING_CONTEXT_MARKERS) and any(
         marker in user_message for marker in _FREE_TEXT_GRADING_ACTION_MARKERS
     )
+
+
+def _looks_like_full_case_answer_submission(user_message: str) -> bool:
+    if not any(marker in user_message for marker in _FREE_TEXT_CASE_QUESTION_SURFACE_MARKERS):
+        return False
+    return _FREE_TEXT_CASE_ANSWER_SURFACE_RE.search(user_message) is not None
 
 
 def _looks_like_free_text_mcq_grading(user_message: str) -> bool:
