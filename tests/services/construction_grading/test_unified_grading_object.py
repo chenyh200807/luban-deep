@@ -24,6 +24,7 @@ from deeptutor.services.construction_grading.unified_grading_object import (
     AUTH_OFFICIAL_ANSWER,
     AUTH_PENDING_CALIBRATION,
     AUTH_TEXTBOOK_CITED,
+    CORE_POINT_FIELDS,
     PENDING_SCORE_AUTHORITY,
     SCHEMA_ID,
     TYPE_CASE,
@@ -200,6 +201,93 @@ def test_map_rich_leaf_unit() -> None:
     assert validate_grading_object(obj) == []
     assert obj["scoring_points"][0]["statement"] == "建筑物的三大构成体系是什么？"
     assert obj["scoring_points"][0]["authority_source"] == AUTH_TEXTBOOK_CITED
+
+
+def test_dual_schema_converges_to_single_canonical_authority() -> None:
+    """KnowQL pillar ① convergence proof (single-authority invariant).
+
+    The audit names two divergent grading typed shapes:
+      A. ``case_grading_artifact.v1`` (eval-inline) — drift field NAMES ``weight`` / ``canonical_answer``;
+      B. ``luban_rich_leaf_scoring_point_compile.v1`` (rich-leaf compile units) — already the
+         canonical ``statement`` / ``max_score`` names; its ``runtime_token_pack_unit`` shape is
+         exactly what ``map_rich_leaf_unit`` consumes (so it converges through the SAME adapter
+         registered for ``luban.rich_leaf_artifact.v0`` — no second adapter, no third schema).
+
+    This pins the invariant that both deterministically map to ONE typed object authority
+    (``luban_grading_object.v1``) with the SAME canonical point field set and ZERO drift names.
+    KnowQL ②③④ build on this single shape; without this proof they'd have to support two.
+    """
+    # ── shape A: case_grading_artifact.v1 (weight / canonical_answer drift names) ──
+    case_artifact = {
+        "artifact_schema": "case_grading_artifact.v1",
+        "case_id": "Q1",
+        "subquestions": [
+            {
+                "sub_no": "1",
+                "max_score": 2.0,
+                "scoring_points": [
+                    {
+                        "point_id": "Q1-1-P1",
+                        "weight": 2.0,  # drift name → max_score
+                        "canonical_answer": "见证记录应由见证人员填写",  # drift name → statement
+                        "required_terms": ["见证人员"],
+                        "provenance": {
+                            "sourced": True,
+                            "source_ref": "kb:1",
+                            "source_authority": "textbook",
+                            "textbook_quote": "见证记录应由见证人员填写",
+                        },
+                    }
+                ],
+            }
+        ],
+    }
+    # ── shape B: a luban_rich_leaf_scoring_point_compile.v1 runtime_token_pack_unit ──
+    # (verbatim shape produced by scripts/run_luban_rich_leaf_scoring_point_compile.py:
+    #  compiled_context.scoring_points[] with point_id/statement/max_score/policy_type/
+    #  required_terms/provenance — already canonical field names)
+    compile_unit = {
+        "leaf_id": "1A411011_002",
+        "compiled_context": {
+            "scoring_points": [
+                {
+                    "point_id": "ca:1A411011_002_0005",
+                    "statement": "建筑物由结构体系、围护体系和设备体系组成",
+                    "max_score": None,
+                    "policy_type": "semantic_allowed",
+                    "required_terms": ["结构体系", "围护体系", "设备体系"],
+                    "source": "chunk_assessment",
+                    "provenance": {
+                        "chunk_id": "1A411011_002_0005",
+                        "quote": "建筑物由结构体系、围护体系和设备体系组成。",
+                        "quote_verified": True,
+                        "source_authority": "textbook",
+                    },
+                }
+            ]
+        },
+    }
+
+    canonical_a = map_case_grading_artifact(case_artifact)
+    canonical_b = map_rich_leaf_unit(compile_unit)
+
+    # 1) both are VALID luban_grading_object.v1 — the one authority covers both divergent shapes
+    assert validate_grading_object(canonical_a) == []
+    assert validate_grading_object(canonical_b) == []
+    assert canonical_a["schema_id"] == SCHEMA_ID == canonical_b["schema_id"]
+
+    point_a = canonical_a["scoring_points"][0]
+    point_b = canonical_b["scoring_points"][0]
+    # 2) both carry the SAME canonical core field set (convergence to one shape)
+    for field in CORE_POINT_FIELDS:
+        assert field in point_a, f"shape A missing canonical field {field}"
+        assert field in point_b, f"shape B missing canonical field {field}"
+    # 3) ZERO drift names survive in EITHER converged object (single canonical vocabulary)
+    for drift in ("weight", "canonical_answer", "answer_key", "label"):
+        assert drift not in point_a and drift not in point_b
+    # 4) the canonical names are identical regardless of which divergent input produced them
+    assert point_a["statement"] and point_b["statement"]  # statement (never canonical_answer)
+    assert "max_score" in point_a and "max_score" in point_b  # max_score (never weight)
 
 
 def test_map_scoring_point_assets() -> None:

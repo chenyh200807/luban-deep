@@ -143,7 +143,15 @@ def map_rich_leaf_scoring_point(sp: dict[str, Any], *, object_id: str) -> dict[s
 
 
 def map_rich_leaf_unit(unit: dict[str, Any]) -> dict[str, Any]:
-    """A rich-leaf v3.2 ``runtime_token_pack_unit`` -> a case unified grading object."""
+    """A rich-leaf v3.2 ``runtime_token_pack_unit`` -> a case unified grading object.
+
+    Also the single canonical converter for ``luban_rich_leaf_scoring_point_compile.v1`` units:
+    that compile artifact's ``runtime_token_pack_units`` carry the same
+    ``compiled_context.scoring_points`` shape, so they converge to ``luban_grading_object.v1``
+    through THIS adapter — one of the two divergent schemas of KnowQL pillar ① (the other is
+    ``case_grading_artifact.v1`` via ``map_case_grading_artifact``). Convergence is pinned by
+    ``test_dual_schema_converges_to_single_canonical_authority``; no second adapter is minted.
+    """
     compiled = (
         unit.get("compiled_context") if isinstance(unit.get("compiled_context"), dict) else {}
     )

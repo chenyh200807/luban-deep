@@ -180,7 +180,11 @@ tier3_carve_out:
     # (each confirmed by reading its producer + finding no runtime/cross-consumer reader)
     - _authorization_package    # controlled_default / test_learner_writeback authorization (governance, one-shot)
     - _full_compile             # rich_leaf_frozen_full_compile (build artifact; runtime pins the .v2.3 pack, not this)
-    - _compile.v               # rich_leaf_scoring_point_compile.v1 (compile-step artifact)
+    - _compile.v               # rich_leaf_scoring_point_compile.v1 (compile-step artifact). Its
+                               # runtime_token_pack_units converge to the single typed-object
+                               # authority luban_grading_object.v1 via grading_object_adapters
+                               # .map_rich_leaf_unit (KnowQL ① convergence; proven by
+                               # test_dual_schema_converges_to_single_canonical_authority).
     - runtime_token_pack.v1     # superseded pack version (runtime pins luban_rich_leaf_runtime_token_pack.v2.3 only)
     - runtime_token_pack.v2     # superseded pack version (NOT .v2.3, which is the T2 runtime-pinned pack)
     - runtime_supply_bundle     # luban_runtime_supply_bundle.v1 = M21 one-shot interim, no runtime reader
