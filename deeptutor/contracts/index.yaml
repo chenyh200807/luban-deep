@@ -486,6 +486,7 @@ domains:
       - deeptutor/services/construction_grading/rubric_grader_v1.py
       - deeptutor/services/construction_grading/learning_evidence.py
       - scripts/build_luban_pgo_runtime_supply.py
+      - scripts/verify_luban_pgo_runtime_supply.py
       - deeptutor/services/question_followup.py
       - deeptutor/tutorbot/agent/loop.py
     test_files:
@@ -494,6 +495,7 @@ domains:
       - tests/services/construction_grading/test_case_rubric_pgo_supply.py
       - tests/services/construction_grading/test_rubric_grader_v1.py
       - tests/scripts/test_build_luban_pgo_runtime_supply.py
+      - tests/scripts/test_verify_luban_pgo_runtime_supply.py
       - tests/services/construction_grading/test_learning_evidence.py
       - tests/services/test_question_followup.py
       - tests/tutorbot/test_agent_loop_case_rubric_v1.py
