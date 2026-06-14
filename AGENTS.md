@@ -390,13 +390,37 @@ $WX_DEVTOOLS_CLI auto --project /Users/yehongchen/Documents/CYH_2/Markzuo/deeptu
 - 是否至少有一个反例验证没有过拟合某个 marker phrase 或 QA 样例
 - 是否证明 visible terminal answer、hidden answer authority、runtime state / active object 三者一致
 
-项目级 agent workflow skills 放在 [agent-skills/](./agent-skills/)；它们是开发与 QA 工作法，不是 TutorBot runtime skills，不得移动到 `deeptutor/tutorbot/skills/`。优先使用：
+项目级 agent workflow skills 放在 [agent-skills/](./agent-skills/)；它们是开发与 QA 工作法，不是 TutorBot runtime skills，不得移动到 `deeptutor/tutorbot/skills/`。
 
+默认调用合同：
+
+- 除只读一行查询、简单翻译、纯解释外，任何非平凡实现、修复、审查、计划、文档、测试、发布任务，都先读 [deeptutor-engineering-lifecycle-gate](./agent-skills/deeptutor-engineering-lifecycle-gate/SKILL.md)，再按任务面选择 1 个或多个窄 skill。
+- 触发比例目标不是“所有消息 100%”，而是“所有有工程风险的任务近乎必触发”。如果一个任务会改文件、判断状态、发布、验证、审查、接外部资料、跑前端/微信/阿里云，就应该有对应 skill。
+- 新增、删除或改名 `agent-skills/*/SKILL.md` 后，必须运行 `python agent-skills/scripts/validate_agent_skills.py`，确保 frontmatter、README、AGENTS 索引和链接一致。
+
+优先使用：
+
+- [deeptutor-engineering-lifecycle-gate](./agent-skills/deeptutor-engineering-lifecycle-gate/SKILL.md)：非平凡实现、修复、审查、文档/计划、发布准备、或吸收外部 agent skill pack 时的 DeepTutor 本地调度入口。
+- [deeptutor-spec-plan-gate](./agent-skills/deeptutor-spec-plan-gate/SKILL.md)：PRD / roadmap / implementation plan / capability status 的本地 spec-plan 门槛。
+- [deeptutor-source-grounded-change](./agent-skills/deeptutor-source-grounded-change/SKILL.md)：框架、库、API、外部文档依赖类改动的 source-driven 工作流。
+- [deeptutor-incremental-implementation](./agent-skills/deeptutor-incremental-implementation/SKILL.md)：多文件改动的小步垂直切片实现工作流。
+- [deeptutor-test-verification-gate](./agent-skills/deeptutor-test-verification-gate/SKILL.md)：行为变更、bug 修复、文档/skill 变更的测试与证据门槛。
+- [deeptutor-api-contract-design](./agent-skills/deeptutor-api-contract-design/SKILL.md)：REST / WebSocket / trace / session / schema 边界的 contract-first 设计工作流。
+- [deeptutor-schema-authority-gate](./agent-skills/deeptutor-schema-authority-gate/SKILL.md)：稳定 schema、schema registry、typed object、ViewModel/event payload 的单一权威和机器校验门槛。
+- [deeptutor-resource-registry-gate](./agent-skills/deeptutor-resource-registry-gate/SKILL.md)：DB、env/flag/secret、provider、process/cron、route、model/harness、governance scanner 等基础资源的 register-before-use 门槛。
+- [deeptutor-web-bi-frontend-gate](./agent-skills/deeptutor-web-bi-frontend-gate/SKILL.md)：Web / BI / frontend / browser 检查的内存 preflight 与安全执行工作流。
 - [deeptutor-authority-debugging](./agent-skills/deeptutor-authority-debugging/SKILL.md)：状态丢失、拒答、上下文断裂、follow-up 误路由、authority drift。
 - [wechat-tutorbot-real-entry-qa](./agent-skills/wechat-tutorbot-real-entry-qa/SKILL.md)：真实微信 TutorBot 链路、DevTools、near-real / shadow 证据分级、客户满意度 QA。
 - [compiled-knowledge-shadow-eval](./agent-skills/compiled-knowledge-shadow-eval/SKILL.md)：Nexus-like / RAG+compiled 一般知识对话、TutorBot online shadow、source pollution 回流 compiler、system-wide default 裁决。
 - [luban-rich-leaf-compiler](./agent-skills/luban-rich-leaf-compiler/SKILL.md)：RichLeafArtifact / 2026 全量深编译 / source-evidence agent / semantic review queue / runtime supply candidate / Grading-to-Brain dry-run。
 - [anti-overfit-repair-review](./agent-skills/anti-overfit-repair-review/SKILL.md)：regex / fallback / special-case 修复后的过拟合复审、局部撤回或收敛。
+- [deeptutor-review-quality-gate](./agent-skills/deeptutor-review-quality-gate/SKILL.md)：自审、agent code review、merge 前五轴质量审查。
+- [deeptutor-code-simplification](./agent-skills/deeptutor-code-simplification/SKILL.md)：行为不变的简化、减复杂度、去无谓抽象工作流。
+- [deeptutor-security-hardening-gate](./agent-skills/deeptutor-security-hardening-gate/SKILL.md)：认证、鉴权、外部输入、secret、第三方集成、生产边界的安全门槛。
+- [deeptutor-observability-gate](./agent-skills/deeptutor-observability-gate/SKILL.md)：日志、metrics、trace、release gate、线上证据闭环工作流。
+- [deeptutor-docs-adr-gate](./agent-skills/deeptutor-docs-adr-gate/SKILL.md)：文档、ADR、计划索引、authority 文档同步工作流。
+- [deeptutor-git-workflow-gate](./agent-skills/deeptutor-git-workflow-gate/SKILL.md)：branch、worktree、dirty files、stage、commit、merge 的窄范围版本控制门槛。
+- [deeptutor-release-launch-gate](./agent-skills/deeptutor-release-launch-gate/SKILL.md)：合并 main、push、Aliyun 发布、回滚和发布后验收工作流。
 
 ## Architecture
 
