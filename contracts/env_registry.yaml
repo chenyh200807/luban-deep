@@ -130,6 +130,7 @@ feature_flags:
   - {name: LUBAN_M35_ARTIFACT_SHADOW_ENABLED, default: false, kind: shadow, read: hand_rolled}
   - {name: LUBAN_TEXTBOOK_KNOWLEDGE_ENABLED, default: false, kind: rollout, read: hand_rolled}
   - {name: LUBAN_GENERAL_KNOWLEDGE_CONTEXT_ENABLED, default: false, kind: rollout, read: hand_rolled}
+  - {name: LUBAN_LECTURE_ANSWER_METHOD_CONTEXT_ENABLED, default: true, kind: killswitch, read: hand_rolled}
   - {name: LUBAN_LEARNING_EVIDENCE_PREVIEW_DISABLED, default: false, kind: killswitch, read: hand_rolled}
   - {name: DEEPTUTOR_DEMO_TOKENS_ENABLED, default: false, kind: dev, read: hand_rolled}
 
@@ -377,6 +378,7 @@ grandfathered_envs:
   - LUBAN_GENERAL_KNOWLEDGE_CONTEXT_ENABLED
   - LUBAN_LEARNING_EVIDENCE_AUTO_SYNTHESIS_ENABLED
   - LUBAN_LEARNING_EVIDENCE_PREVIEW_DISABLED
+  - LUBAN_LECTURE_ANSWER_METHOD_CONTEXT_ENABLED
   - LUBAN_M31_GOVERNED_OBJECTIVE_COHORT
   - LUBAN_M31_GOVERNED_OBJECTIVE_ENABLED
   - LUBAN_M35_ARTIFACT_JUDGE_MODEL

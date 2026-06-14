@@ -1,0 +1,5347 @@
+{
+  "answer_units": [
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "| 年份 | 2024 | 2023 | 2022 | 2021 | 2020 |",
+          "| **选择题** | 4 | 4 | 4 / 8 | 11 | 3 |",
+          "| **案例题** | 14 | 8 | 21.5 / 18 | 12 | 23 |",
+          "| **总分值** | 18 | 12 | 25.5 / 26 | 23 | 26 |",
+          "1. **考点一、混凝土结构概述**",
+          "2. **考点二、模板工程**"
+        ],
+        "mnemonics": [
+          "模钢砼季，全过程管理"
+        ],
+        "must_mentions": [
+          "模板安全拆除",
+          "钢筋代换",
+          "混凝土养护",
+          "施工缝",
+          "通病防治"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分不同年份的分值波动，2022年存在两个批次（25.5分/26分），表明该章节在多批次考试中均为重点。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "exam_point",
+      "intent": [
+        "exam_point",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:章节考情与大纲"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "第四章 主体结构",
+        "主体结构工程",
+        "章节考情与大纲",
+        "主体结构工程施工",
+        "模板安全拆除",
+        "钢筋代换",
+        "混凝土养护",
+        "施工缝",
+        "通病防治"
+      ],
+      "source_excerpt": "### 第四章 主体结构\n\n#### 近五年分值排布\n| 年份 | 2024 | 2023 | 2022 | 2021 | 2020 |\n| :--- | :---: | :---: | :---: | :---: | :---: |\n| **选择题** | 4 | 4 | 4 / 8 | 11 | 3 |\n| **案例题** | 14 | 8 | 21.5 / 18 | 12 | 23 |\n| **总分值** | 18 | 12 | 25.5 / 26 | 23 | 26 |\n\n#### 第一节 现浇混凝土结构\n1. **考点一、混凝土结构概述**\n   - 混凝土结构特点\n2. **考点二、模板工程**\n   - 设计原则\n   - 模板安装\n   - 安全拆除\n3. **考点三、钢筋工程**\n   - 钢筋下料\n   - 钢筋代换\n   - 钢筋加工\n   - 钢筋安装\n   - 钢筋验收\n4. **考点四、混凝土工程**\n   - 混凝土配比\n   - 混凝土设备\n   - 混凝土泵送\n   - 混凝土浇筑\n   - 混凝土养护\n   - 混凝土施工缝\n   - 混凝土通病防治与处理\n5. **考点五、季节性施工**\n   - 高温施工\n   - 冬期施工\n   - 雨季施工\n\n#### 第二节 混凝土基础\n（本页仅含标题）",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0001_001",
+        "json_page_num": 1,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0001_001__2-第四章-主体结构"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "章节考情与大纲"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "章节考情与大纲",
+      "unit_id": "lecture.main-structure.0002"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. 基础类别",
+          "2. 钢筋工程",
+          "3. 混凝土工程",
+          "4. 单独基础",
+          "1. 方案管理",
+          "2. 配比管理"
+        ],
+        "mnemonics": [],
+        "must_mentions": [
+          "大体积混凝土",
+          "配比管理",
+          "装配式设计",
+          "预制构件安装",
+          "焊接工艺评定"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分混凝土基础与大体积混凝土基础在管理上的差异（如配比、温控）；装配式结构中“灌浆连接”是常考隐蔽工程。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "exam_point",
+      "intent": [
+        "exam_point",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:章节考点分布大纲"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "第二节 混凝土基础",
+        "主体结构工程考点体系",
+        "章节考点分布大纲",
+        "主体结构工程施工",
+        "大体积混凝土",
+        "配比管理",
+        "装配式设计",
+        "预制构件安装",
+        "焊接工艺评定"
+      ],
+      "source_excerpt": "### 第二节 混凝土基础\n\n#### 考点一、混凝土基础施工\n1. 基础类别\n2. 钢筋工程\n3. 混凝土工程\n4. 单独基础\n\n#### 考点二、大体积混凝土基础\n1. 方案管理\n2. 配比管理\n3. 施工管理\n4. 抽样检验\n\n### 第三节 装配式混凝土结构\n\n#### 考点一、装配式设计\n1. 装配式混凝土\n2. 装配式钢结构\n3. 装配式装修\n\n#### 考点二、十大新技术\n\n#### 考点三、施工准备管理\n1. 专项方案主要内容\n2. 构件安装准备工作\n3. 施工现场准备工作\n\n#### 考点四、施工过程管理\n1. 预制构件安装\n2. 预制构件连接\n\n#### 考点五、施工质量验收\n1. 结构构件\n2. 外围护部品\n\n### 第四节 钢结构工程\n\n#### 考点一、钢结构准备阶段\n1. 钢构件加工前的准备工作\n2. 高层钢结构安装前准备工作\n\n#### 考点二、钢结构焊接管理\n1. 焊接工艺评定",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0002_001",
+        "json_page_num": 2,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0002_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "章节考点分布大纲"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "章节考点分布大纲",
+      "unit_id": "lecture.main-structure.0003"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. 普通螺栓连接",
+          "2. 高强螺栓连接",
+          "1. 钢结构涂装要点",
+          "2. 防火涂装构造",
+          "3. 防火涂装管理",
+          "1. 水泥"
+        ],
+        "mnemonics": [],
+        "must_mentions": [
+          "钢结构",
+          "砌体结构",
+          "焊缝",
+          "螺栓",
+          "涂装",
+          "水泥",
+          "砂浆"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "本页为目录大纲，需注意后续章节中关于'高强螺栓连接'的初拧/复拧/终拧顺序，以及砌体'砂浆饱满度'的具体数值要求。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "exam_point",
+      "intent": [
+        "exam_point",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:课程考点大纲"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "第四节 钢结构工程（续）",
+        "主体结构工程施工大纲",
+        "课程考点大纲",
+        "主体结构工程施工",
+        "钢结构",
+        "砌体结构",
+        "焊缝",
+        "螺栓",
+        "涂装",
+        "水泥"
+      ],
+      "source_excerpt": "### 第四节 钢结构工程（续）\n\n**考点二、钢材焊缝等级及外观缺陷**\n\n**考点三、钢结构螺栓连接管理**\n1. 普通螺栓连接\n2. 高强螺栓连接\n\n**考点四、钢结构涂装管理**\n1. 钢结构涂装要点\n2. 防火涂装构造\n3. 防火涂装管理\n\n---\n\n### 第五节 砌体结构工程\n\n**考点一、结构材料选型**\n1. 水泥\n2. 砂浆\n\n**考点二、材料抽样检验**\n1. 养护标准\n2. 抽样标准\n3. 单组试块强度确定\n4. 抽样检验合格标准\n\n**考点三、砌体结构施工**\n1. 砌体基础\n2. 填充墙施工\n3. 砌体结构水平灰缝及砂浆饱满度",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0003_001",
+        "json_page_num": 3,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0003_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "课程考点大纲"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "课程考点大纲",
+      "unit_id": "lecture.main-structure.0004"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "#### 1. 管理要求",
+          "#### 2. 常见模板体系对比",
+          "| **组合钢模板** | 1.支撑件<br>2.钢模板<br>3.连接件 | **轻便灵活**、**拆装方便**<br>**通用性强**、**周转率高** | **接缝多**，**严密性差** |",
+          "| **大模板** | 1.操作平台<br>2.支撑系统<br>3.附件<br>4.板面结构 | **整体性好**<br>**抗震性强**<br>**无拼缝** | **特点**: 以建筑物的**开间**、**进深**、**层高**作为大模板尺寸 |",
+          "| **钢框架胶合板** | 1.钢框架<br>2.胶合板<br>3.钢肋 | **用钢量少**、**拼缝少**<br>**自重轻**、**维修方便**<br>面积大 | /",
+          "#### 3. 视觉构造解析"
+        ],
+        "mnemonics": [
+          "原则实安经，阶段设制安拆；钢模通灵缝多，大模整抗无缝，钢框钢少轻便"
+        ],
+        "must_mentions": [
+          "实用性",
+          "安全性",
+          "经济性",
+          "设计",
+          "制作",
+          "安装",
+          "拆除",
+          "通用性强",
+          "接缝多",
+          "整体性好",
+          "无拼缝",
+          "开间",
+          "进深",
+          "层高",
+          "用钢量少",
+          "自重轻"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分'组合钢模板'(接缝多)与'大模板'(无拼缝)的密封性差异；注意大模板尺寸的三个依据(开间/进深/层高)。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "exam_point",
+      "intent": [
+        "exam_point",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:模板工程分类与管理"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "模板工程管理与分类",
+        "模板工程",
+        "模板工程分类与管理",
+        "主体结构工程施工",
+        "实用性",
+        "安全性",
+        "经济性",
+        "设计",
+        "制作",
+        "安装"
+      ],
+      "source_excerpt": "### 模板工程管理与分类\n\n#### 1. 管理要求\n- **质量控制阶段**: **设计**、**制作**、**安装**、**拆除**\n- **设计三大原则**: **实用性**、**安全性**、**经济性**\n\n#### 2. 常见模板体系对比\n\n| 类型 | 组成部件 (图示解析) | 优点 (高亮考点) | 缺点/特点 |\n| :--- | :--- | :--- | :--- |\n| **组合钢模板** | 1.支撑件<br>2.钢模板<br>3.连接件 | **轻便灵活**、**拆装方便**<br>**通用性强**、**周转率高** | **接缝多**，**严密性差** |\n| **大模板** | 1.操作平台<br>2.支撑系统<br>3.附件<br>4.板面结构 | **整体性好**<br>**抗震性强**<br>**无拼缝** | **特点**: 以建筑物的**开间**、**进深**、**层高**作为大模板尺寸 |\n| **钢框架胶合板** | 1.钢框架<br>2.胶合板<br>3.钢肋 | **用钢量少**、**拼缝少**<br>**自重轻**、**维修方便**<br>面积大 | /\n\n#### 3. 视觉构造解析\n- **组合钢模板**: 图示显示为小块钢模拼装，通过U型卡等连接件固定，支撑件辅助定位。\n- **大模板**: 图示为整面墙体大小的钢制模板，自带操作平台和斜支撑系统，适用于剪力墙结构。\n- **钢框架胶合板**: 图示显示黑色钢框内嵌木质胶合板，背面有钢肋加强，兼具钢模强度与木模轻便。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0004_001",
+        "json_page_num": 4,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0004_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "模板工程分类与管理"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "模板工程分类与管理",
+      "unit_id": "lecture.main-structure.0005"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. **组成**: **端板**、**主次肋**、**带肋面板**",
+          "2. **优点**: **重量小**",
+          "3. **缺点**: **成本高**"
+        ],
+        "mnemonics": [
+          "铝模轻快严早拆"
+        ],
+        "must_mentions": [
+          "端板",
+          "主次肋",
+          "带肋面板",
+          "早拆"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意铝合金模板与钢模板的优缺点对比，特别是强度和成本方面。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:模板工程"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "组合铝合金模板",
+        "模板工程",
+        "主体结构工程施工",
+        "端板",
+        "主次肋",
+        "带肋面板",
+        "早拆"
+      ],
+      "source_excerpt": "### 组合铝合金模板\n\n1. **组成**: **端板**、**主次肋**、**带肋面板**。\n2. **优点**: **重量小**；**拼缝严**；**周转快**；成型误差小；**利于早拆模板体系**。\n3. **缺点**: **成本高**；**强度不如钢模板**；产品规格少。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0005_001",
+        "json_page_num": 5,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0005_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "模板工程"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "模板工程",
+      "unit_id": "lecture.main-structure.0006"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **起拱要求**: 对**跨度≥4m**的现浇钢筋混凝土梁、板，其模板应按设计要求起拱",
+          "当设计无具体要求时，起拱高度应为跨度的**1/1000~3/1000**",
+          "2. **支架要求**:",
+          "3. **钢筋与模板顺序**: 柱、墙模板以及梁柱节点的模板，宜在**钢筋安装后**安装",
+          "4. **混凝土浇筑前准备** (★):"
+        ],
+        "mnemonics": [
+          "四米起拱千一三"
+        ],
+        "must_mentions": [
+          "起拱",
+          "独立设置",
+          "不得混用",
+          "隔离剂"
+        ],
+        "red_lines": [
+          "支架立柱不得混用"
+        ],
+        "trap_alerts": [
+          "注意起拱的起算跨度是4m，不是2m或8m；木模板要润湿但不能有积水。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:模板安装"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "模板安装核心要求",
+        "模板安装要求",
+        "模板安装",
+        "主体结构工程施工",
+        "起拱",
+        "独立设置",
+        "不得混用",
+        "隔离剂"
+      ],
+      "source_excerpt": "### 模板安装核心要求\n\n1. **起拱要求**: 对**跨度≥4m**的现浇钢筋混凝土梁、板，其模板应按设计要求起拱；当设计无具体要求时，起拱高度应为跨度的**1/1000~3/1000**。\n2. **支架要求**:\n   - 模板支架必须有足够的**支承面积**，底座必须有足够的**承载力**。\n   - 模板的木杆、钢管、门架等支架立柱**不得混用**。\n   - **后浇带**的模板及支架应**独立设置**。\n3. **钢筋与模板顺序**: 柱、墙模板以及梁柱节点的模板，宜在**钢筋安装后**安装。\n4. **混凝土浇筑前准备** (★):\n   - 木模板应**浇水润湿**，但模板内**不应有积水**。\n   - 模板与混凝土接触面应清理干净，并涂刷**隔离剂**。\n   - 浇筑混凝土前，模板内的**杂物**应清理干净。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0005_002",
+        "json_page_num": 5,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0005_002"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "模板安装"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "模板安装",
+      "unit_id": "lecture.main-structure.0007"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **拆模申请**: 必须填写《拆模申请》，经**项目技术负责人**批准后方可拆模",
+          "2. **底模拆除强度条件** (标准养护试块强度):",
+          "- 跨度 ≤ 2m: 强度 ≥ **50%**",
+          "- 2m < 跨度 ≤ 8m: 强度 ≥ **75%**",
+          "- 跨度 > 8m: 强度 ≥ **100%**",
+          "- 跨度 ≤ 8m: 强度 ≥ **75%**"
+        ],
+        "mnemonics": [
+          "板二五零八七五，梁八七五悬臂百"
+        ],
+        "must_mentions": [
+          "项目技术负责人",
+          "50%",
+          "75%",
+          "100%",
+          "先支后拆",
+          "张拉前",
+          "张拉后"
+        ],
+        "red_lines": [
+          "拆模下方不能有人",
+          "严禁猛撬"
+        ],
+        "trap_alerts": [
+          "悬臂构件一律100%；快拆体系按2m跨度算；拆模申请需项目技术负责人批准。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:模板拆除"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "模板拆除管理",
+        "模板拆除条件与顺序",
+        "模板拆除",
+        "主体结构工程施工",
+        "项目技术负责人",
+        "50%",
+        "75%",
+        "100%",
+        "先支后拆",
+        "张拉前"
+      ],
+      "source_excerpt": "### 模板拆除管理\n\n1. **拆模申请**: 必须填写《拆模申请》，经**项目技术负责人**批准后方可拆模。\n2. **底模拆除强度条件** (标准养护试块强度):\n   - **板**:\n     - 跨度 ≤ 2m: 强度 ≥ **50%**\n     - 2m < 跨度 ≤ 8m: 强度 ≥ **75%**\n     - 跨度 > 8m: 强度 ≥ **100%**\n   - **梁、拱、壳**:\n     - 跨度 ≤ 8m: 强度 ≥ **75%**\n     - 跨度 > 8m: 强度 ≥ **100%**\n   - **悬臂构件**: 无论跨度大小，强度 ≥ **100%**\n3. **快拆体系**: 支架立柱间距**不超过2m**；拆模时应保留立柱并顶托承重模板；拆模时的混凝土强度可取**跨度为2m**时的规定（即50%）。\n4. **侧模拆除**: 混凝土强度能保证其表面及棱角不受损伤，墙体大模板混凝土强度达到**1MPa**即可拆除。\n5. **拆模顺序**:\n   - 原则: **先支后拆**、**后支先拆**、**先拆非承重**、**后拆承重**。\n   - **后张法**预应力结构: 侧模在**张拉前**拆除；底模在**张拉后**拆除。\n6. **安全与文明施工**:\n   - 拆模时下方**不能有人**，应设**警戒线**。\n   - 严禁采取猛撬以致**大片塌落**的方法。\n   - 木模板拆除后应**拔除铁钉**，分类堆放。\n   - 木模板露天堆放时，底部应垫高**100mm**，顶面遮盖**防雨篷布**。\n   - 钢模板运输不宜超出车栏杆，少量高出部分必须**栓牢**。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0005_003",
+        "json_page_num": 5,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0005_003"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "模板拆除"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "模板拆除",
+      "unit_id": "lecture.main-structure.0008"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. **接缝**：模板的接缝应严密",
+          "2. **杂物**：模板内不应有杂物、积水或冰雪等",
+          "3. **表面**：模板与混凝土的接触面应平整、清洁",
+          "4. **地坪/胎膜**：用作模板的地坪、胎膜应整洁，不应有影响构件质量的下沉、裂缝、起砂或起鼓",
+          "5. **装饰混凝土**：对清水混凝土及装饰混凝土构件，应使用能达到设计效果的模板"
+        ],
+        "mnemonics": [
+          "缝杂面，地胎饰"
+        ],
+        "must_mentions": [
+          "接缝严密",
+          "无杂物",
+          "平整清洁"
+        ],
+        "red_lines": [
+          "模板内积水未清理"
+        ],
+        "trap_alerts": [
+          "注意区分普通模板与清水混凝土模板的要求差异"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "error_correction",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:模板工程施工技术"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "模板安装质量验收标准",
+        "模板工程验收标准",
+        "模板工程施工技术",
+        "主体结构工程施工",
+        "接缝严密",
+        "无杂物",
+        "平整清洁"
+      ],
+      "source_excerpt": "### 模板安装质量验收标准\n模板安装质量应符合下列规定：\n1. **接缝**：模板的接缝应严密；\n2. **杂物**：模板内不应有杂物、积水或冰雪等；\n3. **表面**：模板与混凝土的接触面应平整、清洁；\n4. **地坪/胎膜**：用作模板的地坪、胎膜应整洁，不应有影响构件质量的下沉、裂缝、起砂或起鼓；\n5. **装饰混凝土**：对清水混凝土及装饰混凝土构件，应使用能达到设计效果的模板。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0006_001",
+        "json_page_num": 6,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0006_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "模板工程施工技术"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "模板工程施工技术",
+      "unit_id": "lecture.main-structure.0009"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "| **落地作业脚手架** | 搭设高度 ≤ 40m | 搭设高度 > 40m |",
+          "| **悬挑脚手架** | 搭设高度 ≤ 20m | 搭设高度 > 20m |",
+          "| **满堂支撑脚手架** | 搭设高度 ≤ 16m | 搭设高度 > 16m |",
+          "| **支撑脚手架** | 搭设高度 ≤ 8m <br>且 荷载满足以下**所有**条件：<br>1. 面荷载 ≤ 15kN/m²<br>2. 线荷载 ≤ 20kN/m<br>3. 集中荷载 ≤ 7kN/点 | 搭设高度 > 8m <br>或 荷载满足以下**任一**条件：<br>1. 面荷载 > 15kN/m²<br",
+          "1. **支撑脚手架**：搭设高度、荷载中**任一项**不满足安全等级为II级的条件时，其安全等级应划分为I级",
+          "2. **附着式升降脚手架**：安全等级均为 **I级**"
+        ],
+        "mnemonics": [
+          "落地40悬挑20，满堂16支撑8；爬架I级竹木II"
+        ],
+        "must_mentions": [
+          "40m",
+          "20m",
+          "16m",
+          "8m",
+          "15kN/m²",
+          "20kN/m",
+          "7kN"
+        ],
+        "red_lines": [
+          "支撑脚手架任一指标超限即为I级"
+        ],
+        "trap_alerts": [
+          "支撑脚手架是'或'的关系（任一超标即I级），其他多为单一高度指标。附着式升降脚手架恒为I级。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "exam_point",
+      "intent": [
+        "error_correction",
+        "exam_point",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:脚手架安全等级划分"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "考点二、常见施工脚手架安全等级",
+        "脚手架安全等级",
+        "脚手架安全等级划分",
+        "主体结构工程相关规定",
+        "40m",
+        "20m",
+        "16m",
+        "8m",
+        "15kN/m²",
+        "20kN/m"
+      ],
+      "source_excerpt": "### 考点二、常见施工脚手架安全等级\n\n| 脚手架类型 | 安全等级 II级 (低风险) | 安全等级 I级 (高风险) |\n| :--- | :--- | :--- |\n| **落地作业脚手架** | 搭设高度 ≤ 40m | 搭设高度 > 40m |\n| **悬挑脚手架** | 搭设高度 ≤ 20m | 搭设高度 > 20m |\n| **满堂支撑脚手架** | 搭设高度 ≤ 16m | 搭设高度 > 16m |\n| **支撑脚手架** | 搭设高度 ≤ 8m <br>且 荷载满足以下**所有**条件：<br>1. 面荷载 ≤ 15kN/m²<br>2. 线荷载 ≤ 20kN/m<br>3. 集中荷载 ≤ 7kN/点 | 搭设高度 > 8m <br>或 荷载满足以下**任一**条件：<br>1. 面荷载 > 15kN/m²<br>2. 线荷载 > 20kN/m<br>3. 集中荷载 > 7kN/点 |\n\n**特殊规定**：\n1. **支撑脚手架**：搭设高度、荷载中**任一项**不满足安全等级为II级的条件时，其安全等级应划分为I级。\n2. **附着式升降脚手架**：安全等级均为 **I级**。\n3. **竹、木脚手架**：搭设高度在其现行行业规范限值内，其安全等级均为 **II级**。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A422030_P0006_002",
+        "json_page_num": 6,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A422030_P0006_002"
+      },
+      "taxonomy": {
+        "node_code": "1A422030",
+        "node_name": "主体结构工程相关规定",
+        "topic": "脚手架安全等级划分"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "脚手架安全等级划分",
+      "unit_id": "lecture.main-structure.0010"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给口诀，再展开每个字对应的得分点。",
+        "formula_or_thresholds": [
+          "1. **性能要求**：",
+          "2. **计算原则**：",
+          "3. **计算单元选取原则（定量）** - 助记口诀：**“大变弱”**"
+        ],
+        "mnemonics": [
+          "计算选材：大变弱"
+        ],
+        "must_mentions": [
+          "最不利截面",
+          "最不利工况",
+          "强度",
+          "刚度",
+          "稳定性"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "计算不仅要算强度，还要算刚度和稳定性"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "mnemonic",
+      "intent": [
+        "grading_keywords",
+        "memorize",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:脚手架计算原则"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "施工脚手架性能与计算要求",
+        "施工脚手架计算与性能",
+        "脚手架计算原则",
+        "主体结构工程施工",
+        "最不利截面",
+        "最不利工况",
+        "强度",
+        "刚度",
+        "稳定性"
+      ],
+      "source_excerpt": "### 施工脚手架性能与计算要求\n\n1. **性能要求**：\n   - 满足承载力设计要求；\n   - 不应发生影响正常使用的变形；\n   - 满足使用要求，具有安全防护功能；\n   - 附着或支承在结构上的脚手架，不应使结构受到损害。\n\n2. **计算原则**：\n   - 脚手架计算应选择“架体计算最不利，刚度强度稳定性”；\n   - 选取具有代表性的最不利截面和最不利工况作为计算条件；\n   - 结果应满足脚手架强度、刚度、稳定性要求。\n\n3. **计算单元选取原则（定量）** - 助记口诀：**“大变弱”**\n   - ① 应选取受力**大**的杆件、构配件；\n   - ② 应选取跨距、间距**变**化和几何形状、承力特性**改**变部位的杆件、构配件；\n   - ③ 应选取架体构造**变**化处或**薄弱**处的杆件、构配件；\n   - ④ 架体有集中荷载时，集中荷载作用范围内受力**最**大的杆件、构配件。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0006_003",
+        "json_page_num": 6,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0006_003"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "脚手架计算原则"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "脚手架计算原则",
+      "unit_id": "lecture.main-structure.0011"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **验算内容**：必须验算结构**强度**、**变形性**，不满足时需上加固措施",
+          "2. **施工荷载标准**：",
+          "- 一般工况：**2.5kN/m²**",
+          "- 设置泵管：**≥4.0kN/m²**",
+          "3. **计算原则**：支撑层数按**最不利工况**计算",
+          "4. **稳定性要求**：模板支撑脚手架独立架体**高宽比应≤3.0**"
+        ],
+        "mnemonics": [
+          "铝模：一般2.5，泵管4.0，高宽比3.0"
+        ],
+        "must_mentions": [
+          "强度",
+          "变形性",
+          "最不利工况"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分一般工况(2.5)与设泵管工况(4.0)的荷载取值差异。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:模板与脚手架设计参数"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "组合铝合金模板",
+        "组合铝合金模板及支撑",
+        "模板与脚手架设计参数",
+        "主体结构工程施工",
+        "强度",
+        "变形性",
+        "最不利工况"
+      ],
+      "source_excerpt": "### 组合铝合金模板\n\n1. **验算内容**：必须验算结构**强度**、**变形性**，不满足时需上加固措施。\n2. **施工荷载标准**：\n   - 一般工况：**2.5kN/m²**\n   - 设置泵管：**≥4.0kN/m²**\n3. **计算原则**：支撑层数按**最不利工况**计算。\n4. **稳定性要求**：模板支撑脚手架独立架体**高宽比应≤3.0**。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0007_001",
+        "json_page_num": 7,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0007_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "模板与脚手架设计参数"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "模板与脚手架设计参数",
+      "unit_id": "lecture.main-structure.0012"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "| **永久荷载** | (1) 脚手架**结构构件自重**<br>(2) **脚手板、安全网、栏杆**等附件的自重<br>(3) 支撑脚手架所支撑的**物体自重** |",
+          "| **可变荷载** | (1) **施工荷载**",
+          "(2) **风荷载**",
+          "(3) **其他**可变荷载 |",
+          "| 1 | **砌筑**工程作业 | **3.0** |",
+          "| 2 | 其他**主体结构**工程作业 | **2.0** |"
+        ],
+        "mnemonics": [
+          "砌3结2装2防1，超2层总5"
+        ],
+        "must_mentions": [
+          "永久荷载",
+          "可变荷载",
+          "施工荷载",
+          "风荷载"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "易混淆点：主体结构与装饰装修均为2.0，砌筑为3.0（因为砖重）。注意多层作业是'超过2个'才触发总和≥5.0的限制。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:脚手架荷载分类与取值"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "脚手架的荷载类别",
+        "脚手架荷载",
+        "脚手架荷载分类与取值",
+        "主体结构工程施工",
+        "永久荷载",
+        "可变荷载",
+        "施工荷载",
+        "风荷载"
+      ],
+      "source_excerpt": "### 脚手架的荷载类别\n\n| 荷载类别 | 内容 |\n| :--- | :--- |\n| **永久荷载** | (1) 脚手架**结构构件自重**<br>(2) **脚手板、安全网、栏杆**等附件的自重<br>(3) 支撑脚手架所支撑的**物体自重** |\n| **可变荷载** | (1) **施工荷载**；(2) **风荷载**；(3) **其他**可变荷载 |\n\n### 作业脚手架施工（可变）荷载标准值\n\n| 序号 | 作业脚手架用途 | 施工荷载标准值 (kN/m²) |\n| :--- | :--- | :--- |\n| 1 | **砌筑**工程作业 | **3.0** |\n| 2 | 其他**主体结构**工程作业 | **2.0** |\n| 3 | **装饰装修**作业 | **2.0** |\n| 4 | **防护**作业 | **1.0** |\n\n**注**：作业脚手架上**超过2个**作业层同时作业，同一跨距内各操作层的**施工荷载标准值总和应≥5.0kN/m²**。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0007_002",
+        "json_page_num": 7,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0007_002"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "脚手架荷载分类与取值"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "脚手架荷载分类与取值",
+      "unit_id": "lecture.main-structure.0013"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **构件性质**：应采用能承受**压力**和**拉力**的**刚性构件**，并与工程结构和架体连接牢固",
+          "2. **间距要求**：",
+          "- 水平间距应 **≤3跨**",
+          "- 竖向间距应 **≤3步**",
+          "- 示意图显示竖向间距 **≤4000mm**",
+          "3. **悬臂限制**：架体的悬臂高度应 **≤2步**"
+        ],
+        "mnemonics": [
+          "连墙：三步三跨，悬臂2步，端部4米，偏心300"
+        ],
+        "must_mentions": [
+          "刚性构件",
+          "压力和拉力",
+          "主节点"
+        ],
+        "red_lines": [
+          "连墙件使用柔性构件",
+          "偏离主节点>300mm"
+        ],
+        "trap_alerts": [
+          "注意连墙件必须是'刚性'构件（严禁使用柔性）。端部/转角处竖向间距有双重限制（层高和4m取小值）。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:连墙件设置规范"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "连墙件设置要求",
+        "连墙件",
+        "连墙件设置规范",
+        "主体结构工程施工",
+        "刚性构件",
+        "压力和拉力",
+        "主节点"
+      ],
+      "source_excerpt": "### 连墙件设置要求\n\n1. **构件性质**：应采用能承受**压力**和**拉力**的**刚性构件**，并与工程结构和架体连接牢固。\n2. **间距要求**：\n   - 水平间距应 **≤3跨**\n   - 竖向间距应 **≤3步**\n   - 示意图显示竖向间距 **≤4000mm**\n3. **悬臂限制**：架体的悬臂高度应 **≤2步**。\n4. **特殊部位**：\n   - 在架体的**转角处**、**开口型**作业脚手架端部应增设连墙件。\n   - 连墙件竖向间距应 **≤建筑物层高**，且应 **≤4m**。\n5. **节点位置**：连墙件应靠近主节点设置，偏离主节点应 **≤300mm**。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0007_003",
+        "json_page_num": 7,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0007_003"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "连墙件设置规范"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "连墙件设置规范",
+      "unit_id": "lecture.main-structure.0014"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [],
+        "mnemonics": [],
+        "must_mentions": [],
+        "red_lines": [],
+        "trap_alerts": []
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "unknown",
+      "intent": [
+        "exam_point"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:unknown"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "剪刀撑"
+      ],
+      "source_excerpt": "",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_Unknown_P0007_004",
+        "json_page_num": 7,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_Unknown_P0007_004"
+      },
+      "taxonomy": {
+        "node_code": null,
+        "node_name": null,
+        "topic": null
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "",
+      "unit_id": "lecture.main-structure.0015"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1.  **高度在 24m 以下**的单、双排脚手架：",
+          "*   必须在**外侧两端**、**转角**及**中间不超过 15m** 的立面上，各设置一道剪刀撑",
+          "2.  **高度在 24m 及以上**的双排脚手架：",
+          "3.  **特殊类型脚手架**（悬挑脚手架、附着式升降脚手架）：",
+          "*   **<24m 布置**：两端+转角+中间（间距≤15m），形成若干连续的“X”形带",
+          "*   **≥24m 布置**：满铺“X”形带，无空隙"
+        ],
+        "mnemonics": [
+          "24分界：下间15上全连；悬挑爬架全满铺"
+        ],
+        "must_mentions": [
+          "24m",
+          "15m",
+          "全立面",
+          "连续设置"
+        ],
+        "red_lines": [
+          "剪刀撑不连续"
+        ],
+        "trap_alerts": [
+          "注意区分24m以下是'间断布置但垂直连续'，24m以上是'全立面满布'。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:脚手架剪刀撑设置要求"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "剪刀撑设置要求（二）",
+        "脚手架剪刀撑",
+        "脚手架剪刀撑设置要求",
+        "主体结构工程施工",
+        "24m",
+        "15m",
+        "全立面",
+        "连续设置"
+      ],
+      "source_excerpt": "### 剪刀撑设置要求（二）\n\n1.  **高度在 24m 以下**的单、双排脚手架：\n    *   必须在**外侧两端**、**转角**及**中间不超过 15m** 的立面上，各设置一道剪刀撑。\n    *   应**由底至顶连续设置**。\n2.  **高度在 24m 及以上**的双排脚手架：\n    *   应在**外侧全立面连续设置**剪刀撑。\n3.  **特殊类型脚手架**（悬挑脚手架、附着式升降脚手架）：\n    *   应在**全外侧立面上**，**由底至顶连续设置**。\n\n#### 构造图示解析\n*   **<24m 布置**：两端+转角+中间（间距≤15m），形成若干连续的“X”形带。\n*   **≥24m 布置**：满铺“X”形带，无空隙。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0009_001",
+        "json_page_num": 9,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0009_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "脚手架剪刀撑设置要求"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "脚手架剪刀撑设置要求",
+      "unit_id": "lecture.main-structure.0016"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1.  **插入深度**：模板支架可调底座和可调顶托撑调节螺杆插入立杆内的长度应 **≥ 150mm**",
+          "2.  **伸出长度**：调节螺杆伸出长度应经计算确定，并符合下列规定：",
+          "*   插入的立杆直径为 **42mm**，伸出长度 **≤ 200mm**",
+          "*   插入的立杆直径 **≥ 48.3mm**，伸出长度 **≤ 500mm**",
+          "3.  **配合间隙**：可调底座和可调托撑螺杆插入脚手架立杆钢管内的间隙 **不应大于 2.5mm**",
+          "*   **红线参数**：插入≥150mm是底线，伸出长度受立杆直径限制（细杆短伸，粗杆长伸）"
+        ],
+        "mnemonics": [
+          "插150，隙2.5；细伸2，粗伸5"
+        ],
+        "must_mentions": [
+          "插入150",
+          "伸出200",
+          "伸出500",
+          "间隙2.5"
+        ],
+        "red_lines": [
+          "插入<150mm"
+        ],
+        "trap_alerts": [
+          "注意题目给出的立杆直径，直径不同，允许伸出长度不同（200 vs 500）。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:可调托撑与底座构造参数"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "可调顶托 & 可调底座构造要求",
+        "可调托撑（顶托/底座）",
+        "可调托撑与底座构造参数",
+        "主体结构工程施工",
+        "插入150",
+        "伸出200",
+        "伸出500",
+        "间隙2.5"
+      ],
+      "source_excerpt": "### 可调顶托 & 可调底座构造要求\n\n1.  **插入深度**：模板支架可调底座和可调顶托撑调节螺杆插入立杆内的长度应 **≥ 150mm**。\n2.  **伸出长度**：调节螺杆伸出长度应经计算确定，并符合下列规定：\n    *   插入的立杆直径为 **42mm**，伸出长度 **≤ 200mm**。\n    *   插入的立杆直径 **≥ 48.3mm**，伸出长度 **≤ 500mm**。\n3.  **配合间隙**：可调底座和可调托撑螺杆插入脚手架立杆钢管内的间隙 **不应大于 2.5mm**。\n\n#### 图示重点\n*   **红线参数**：插入≥150mm是底线，伸出长度受立杆直径限制（细杆短伸，粗杆长伸）。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0009_002",
+        "json_page_num": 9,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0009_002"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "可调托撑与底座构造参数"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "可调托撑与底座构造参数",
+      "unit_id": "lecture.main-structure.0017"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1.  **悬挑脚手架**：",
+          "2.  **支撑脚手架**：",
+          "*   支撑脚手架独立架体**高宽比不应大于 3.0**",
+          "*   支撑架若高宽比过大（瘦高型），极易失稳，必须限制在3.0以内"
+        ],
+        "mnemonics": [
+          "支撑高宽限3.0"
+        ],
+        "must_mentions": [
+          "纵向扫地杆",
+          "高宽比3.0"
+        ],
+        "red_lines": [
+          "高宽比>3.0"
+        ],
+        "trap_alerts": [
+          "悬挑架底部设'纵向'扫地杆；支撑架高宽比限值3.0。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:悬挑与支撑脚手架构造"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "悬挑脚手架 & 支撑脚手架构造",
+        "悬挑与支撑脚手架",
+        "悬挑与支撑脚手架构造",
+        "主体结构工程施工",
+        "纵向扫地杆",
+        "高宽比3.0"
+      ],
+      "source_excerpt": "### 悬挑脚手架 & 支撑脚手架构造\n\n1.  **悬挑脚手架**：\n    *   立杆底部应与支承结构**可靠连接**。\n    *   应在立杆底部设**纵向扫地杆**。\n    *   应**间断设置**水平剪刀撑或水平斜撑杆。\n2.  **支撑脚手架**：\n    *   支撑脚手架独立架体**高宽比不应大于 3.0**。\n\n#### 视觉隐患提示\n*   图示悬挑架底部必须有扫地杆，且型钢悬挑梁需固定牢靠。\n*   支撑架若高宽比过大（瘦高型），极易失稳，必须限制在3.0以内。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0009_003",
+        "json_page_num": 9,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0009_003"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "悬挑与支撑脚手架构造"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "悬挑与支撑脚手架构造",
+      "unit_id": "lecture.main-structure.0018"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1.  **箍筋**: 箍筋周长 + 箍筋调整值",
+          "2.  **直钢筋**: 构件长度 - 保护层厚度 + 弯钩长度",
+          "3.  **弯起钢筋**: 直段长度 + 斜段长度 - 弯曲调整值 + 弯钩增加长度",
+          "4.  **搭接**: 如需搭接，还要增加钢筋搭接长度",
+          "混凝土结构构件可以采用并筋施工，但需满足以下直径与数量限制：",
+          "*   **直径 ≤ 28mm**: 并筋数量 **≤ 3根**"
+        ],
+        "mnemonics": [
+          "下料计算：外包尺寸+调整；并筋：28三，32二，36停"
+        ],
+        "must_mentions": [
+          "箍筋周长",
+          "调整值",
+          "保护层厚度",
+          "并筋数量"
+        ],
+        "red_lines": [
+          "直径≥36mm钢筋并筋"
+        ],
+        "trap_alerts": [
+          "易混淆并筋的直径临界点：28mm(含)以下3根，32mm(特指)2根，36mm(含)以上禁止。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:钢筋下料长度计算"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "钢筋下料长度计算",
+        "钢筋",
+        "主体结构工程施工",
+        "箍筋周长",
+        "调整值",
+        "保护层厚度",
+        "并筋数量"
+      ],
+      "source_excerpt": "### 钢筋下料长度计算\n\n1.  **箍筋**: 箍筋周长 + 箍筋调整值\n2.  **直钢筋**: 构件长度 - 保护层厚度 + 弯钩长度\n3.  **弯起钢筋**: 直段长度 + 斜段长度 - 弯曲调整值 + 弯钩增加长度\n4.  **搭接**: 如需搭接，还要增加钢筋搭接长度\n\n### 钢筋并筋要求\n\n混凝土结构构件可以采用并筋施工，但需满足以下直径与数量限制：\n\n*   **直径 ≤ 28mm**: 并筋数量 **≤ 3根**\n*   **直径 = 32mm**: 并筋数量 **= 2根**\n*   **直径 ≥ 36mm**: **不得采用并筋**",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0009_001",
+        "json_page_num": 9,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0009_001__2-钢筋下料长度计算"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "钢筋下料长度计算"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "钢筋下料长度计算",
+      "unit_id": "lecture.main-structure.0019"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1.  **加工条件**: 宜在**常温**状态下进行，**禁止**加热钢筋",
+          "2.  **切断**: 不得有**马蹄形**或**起弯**现象",
+          "3.  **弯曲**: 应一次完成，**不得反复弯折**",
+          "4.  **调直**:",
+          "*   冷拉率控制: **光圆钢筋 ≤ 4%**，**带肋钢筋 ≤ 1%**",
+          "5.  **除锈**: 调直除锈、机械除锈、喷砂除锈、酸洗除锈、手工除锈"
+        ],
+        "mnemonics": [
+          "调直光4肋1；绑扎拉25压28；轴拉小偏动不扎"
+        ],
+        "must_mentions": [
+          "常温状态",
+          "马蹄形",
+          "一次完成",
+          "冷拉率",
+          "轴心受拉",
+          "小偏心受拉"
+        ],
+        "red_lines": [
+          "加热加工",
+          "反复弯折",
+          "轴心受拉构件绑扎连接"
+        ],
+        "trap_alerts": [
+          "冷拉率光圆4%带肋1%易记反；受拉受压不宜绑扎的直径界限(25/28)易混淆。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:钢筋加工与连接"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "钢筋加工要求",
+        "钢筋加工",
+        "钢筋加工与连接",
+        "主体结构工程施工",
+        "常温状态",
+        "马蹄形",
+        "一次完成",
+        "冷拉率",
+        "轴心受拉",
+        "小偏心受拉"
+      ],
+      "source_excerpt": "### 钢筋加工要求\n\n1.  **加工条件**: 宜在**常温**状态下进行，**禁止**加热钢筋。\n2.  **切断**: 不得有**马蹄形**或**起弯**现象。\n3.  **弯曲**: 应一次完成，**不得反复弯折**。\n4.  **调直**: \n    *   宜采用无延伸功能的机械进行调直，也可采用“冷拉调直”。\n    *   冷拉率控制: **光圆钢筋 ≤ 4%**，**带肋钢筋 ≤ 1%**。\n5.  **除锈**: 调直除锈、机械除锈、喷砂除锈、酸洗除锈、手工除锈。\n\n### 钢筋连接方法\n\n包括焊接、机械连接、绑扎连接。\n\n#### 1. 机械连接 (钢筋挤压、直螺纹)\n*   **受拉接头**: 宜 **≤ 50%**。\n*   **受压接头**: **不受限制**。\n*   **直接承受动力荷载**结构: 不应超过 **50%**。\n\n#### 2. 绑扎连接\n*   **接头位置**: 宜设置在受力较小处。\n*   **错开距离**: 同一纵筋不宜设置两个以上接头；接头末端至弯起点距离应 **≥ 10倍钢筋直径**。\n*   **不宜绑扎**: 受拉钢筋直径 **> 25mm**，受压钢筋直径 **> 28mm**。\n*   **不得绑扎**: **轴心受拉**及**小偏心受拉**杆件纵筋；直接承受**动力荷载**结构中的纵筋。\n\n#### 3. 焊接连接\n*   **不宜焊接**: 直接承受动力荷载的构件，纵向钢筋不宜焊接。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0009_002",
+        "json_page_num": 9,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0009_002__2-钢筋加工要求"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "钢筋加工与连接"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "钢筋加工与连接",
+      "unit_id": "lecture.main-structure.0020"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "当柱纵向受力筋直径 **> 25mm** 时，搭接接头两个端面外 **100mm** 范围内，应各设 **2个** 箍筋，间距 **50mm**"
+        ],
+        "mnemonics": [
+          "柱筋过二五，端头百毫米，两箍五十距"
+        ],
+        "must_mentions": [
+          "直径>25mm",
+          "100mm",
+          "2个箍筋",
+          "间距50mm"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意前提条件是直径>25mm，且是搭接接头两端各设。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:柱钢筋构造要求"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "“柱”钢筋构造要求 (二)",
+        "柱钢筋",
+        "柱钢筋构造要求",
+        "主体结构工程施工",
+        "直径>25mm",
+        "100mm",
+        "2个箍筋",
+        "间距50mm"
+      ],
+      "source_excerpt": "### “柱”钢筋构造要求 (二)\n\n当柱纵向受力筋直径 **> 25mm** 时，搭接接头两个端面外 **100mm** 范围内，应各设 **2个** 箍筋，间距 **50mm**。\n\n*(注：此规则针对大直径钢筋搭接处的加强措施)*",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0009_003",
+        "json_page_num": 9,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0009_003__2-“柱”钢筋构造要求-(二)"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "柱钢筋构造要求"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "柱钢筋构造要求",
+      "unit_id": "lecture.main-structure.0021"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **绑扎时机**：柱钢筋绑扎应在**柱模板安装前**进行",
+          "2. **接头位置**：每层柱首个接头位置距楼地面高度宜取以下三者的**较大值**：",
+          "- **≥500mm**",
+          "- **柱高的1/6**",
+          "3. **节点位置**：框架梁、牛腿、柱帽等钢筋应放在柱子纵向钢筋**内侧**（即【柱包梁】）",
+          "4. **箍筋构造**："
+        ],
+        "mnemonics": [
+          "柱包梁，角45中90，接头避让三取大"
+        ],
+        "must_mentions": [
+          "柱模板安装前",
+          "500mm",
+          "柱高的1/6",
+          "柱长边",
+          "内侧",
+          "45°",
+          "90°",
+          "八字形"
+        ],
+        "red_lines": [
+          "梁筋外置"
+        ],
+        "trap_alerts": [
+          "注意区分柱箍筋弯钩角度（角部45° vs 中间90°），以及接头位置的三个控制值取最大值。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:柱钢筋构造要求"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "“柱”钢筋构造要求",
+        "柱钢筋",
+        "柱钢筋构造要求",
+        "主体结构工程施工",
+        "柱模板安装前",
+        "500mm",
+        "柱高的1/6",
+        "柱长边",
+        "内侧",
+        "45°"
+      ],
+      "source_excerpt": "### “柱”钢筋构造要求\n\n1. **绑扎时机**：柱钢筋绑扎应在**柱模板安装前**进行。\n2. **接头位置**：每层柱首个接头位置距楼地面高度宜取以下三者的**较大值**：\n   - **≥500mm**\n   - **柱高的1/6**\n   - **柱长边（或直径）**\n3. **节点位置**：框架梁、牛腿、柱帽等钢筋应放在柱子纵向钢筋**内侧**（即【柱包梁】）。\n4. **箍筋构造**：\n   - **角部钢筋**：弯钩与模板成**45°**。\n   - **中间钢筋**：弯钩与模板成**90°**。\n   - **接头布置**：箍筋接头应**交错布置**在四角纵向钢筋上。\n   - **绑扎要求**：箍筋转角与纵向钢筋交叉点应**全点扎牢**，绑扎箍筋时绑扣相互间应成**八字形**。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0010_001",
+        "json_page_num": 10,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0010_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "柱钢筋构造要求"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "柱钢筋构造要求",
+      "unit_id": "lecture.main-structure.0022"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **绑扎顺序**：墙钢筋的绑扎也应在**模板安装前**进行",
+          "2. **弯钩朝向**：墙钢筋的弯钩应朝向**混凝土内**",
+          "3. **钢筋长度控制**（利于绑扎）：",
+          "- 直径 ≤ 12mm：每段长度 **≤ 4m**",
+          "- 直径 > 12mm：每段长度 **≤ 6m**",
+          "- **水平钢筋**：每段长度不宜超过 **8m**"
+        ],
+        "mnemonics": [
+          "垂12分界，小4大6，水平8"
+        ],
+        "must_mentions": [
+          "模板安装前",
+          "混凝土内",
+          "4m",
+          "6m",
+          "8m",
+          "撑铁"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意垂直钢筋根据直径12mm划分不同的长度限制（4m/6m），水平钢筋统一限制8m。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:墙钢筋构造要求"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "“墙”钢筋构造要求",
+        "墙钢筋",
+        "墙钢筋构造要求",
+        "主体结构工程施工",
+        "模板安装前",
+        "混凝土内",
+        "4m",
+        "6m",
+        "8m",
+        "撑铁"
+      ],
+      "source_excerpt": "### “墙”钢筋构造要求\n\n1. **绑扎顺序**：墙钢筋的绑扎也应在**模板安装前**进行。\n2. **弯钩朝向**：墙钢筋的弯钩应朝向**混凝土内**。\n3. **钢筋长度控制**（利于绑扎）：\n   - **垂直钢筋**：\n     - 直径 ≤ 12mm：每段长度 **≤ 4m**\n     - 直径 > 12mm：每段长度 **≤ 6m**\n   - **水平钢筋**：每段长度不宜超过 **8m**\n4. **双层网控制**：双层钢筋网时，在两层钢筋间应设置**撑铁**或**绑扎架**，以固定钢筋间距。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0010_002",
+        "json_page_num": 10,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0010_002"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "墙钢筋构造要求"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "墙钢筋构造要求",
+      "unit_id": "lecture.main-structure.0023"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. **绑扎方式**：",
+          "2. **双层网控制**：上层钢筋网下设**撑脚**（马凳筋）",
+          "3. **绑扣形式**：相邻绑扎点的钢丝扣成**八字形**"
+        ],
+        "mnemonics": [
+          "单向四周全扎中间花，双向全部都要扎"
+        ],
+        "must_mentions": [
+          "每点扎牢",
+          "相隔交错",
+          "全部钢筋相交点",
+          "撑脚",
+          "八字形"
+        ],
+        "red_lines": [
+          "双向主筋交错绑扎"
+        ],
+        "trap_alerts": [
+          "双向主筋钢筋网必须全部扎牢，不可交错绑扎。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "error_correction",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:板钢筋构造要求"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "“板”钢筋构造要求",
+        "板钢筋",
+        "板钢筋构造要求",
+        "主体结构工程施工",
+        "每点扎牢",
+        "相隔交错",
+        "全部钢筋相交点",
+        "撑脚",
+        "八字形"
+      ],
+      "source_excerpt": "### “板”钢筋构造要求\n\n1. **绑扎方式**：\n   - **四周两行**：钢筋交叉点**每点扎牢**。\n   - **中间部分**：可**相隔交错扎牢**（梅花绑扎）。\n   - **双向主筋**：必须将**全部钢筋相交点扎牢**。\n2. **双层网控制**：上层钢筋网下设**撑脚**（马凳筋）。\n3. **绑扣形式**：相邻绑扎点的钢丝扣成**八字形**。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0010_003",
+        "json_page_num": 10,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0010_003"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "板钢筋构造要求"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "板钢筋构造要求",
+      "unit_id": "lecture.main-structure.0024"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给口诀，再展开每个字对应的得分点。",
+        "formula_or_thresholds": [
+          "1. **多层排列**：梁纵纹钢筋双层排列时，两排钢筋间应垫**直径≥25mm**的短钢筋",
+          "2. **交叉节点排布**（**重点**）：板、次梁与主梁交叉处，钢筋上下位置关系为："
+        ],
+        "mnemonics": [
+          "板上、次中、主下"
+        ],
+        "must_mentions": [
+          "25mm",
+          "板钢筋在上",
+          "次梁钢筋居中",
+          "主梁钢筋在下"
+        ],
+        "red_lines": [
+          "主梁压次梁"
+        ],
+        "trap_alerts": [
+          "梁板交叉处钢筋位置是极高频考点，务必记住“板上、次中、主下”。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "mnemonic",
+      "intent": [
+        "error_correction",
+        "grading_keywords",
+        "memorize",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:梁钢筋构造要求"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "“梁”钢筋构造要求",
+        "梁钢筋",
+        "梁钢筋构造要求",
+        "主体结构工程施工",
+        "25mm",
+        "板钢筋在上",
+        "次梁钢筋居中",
+        "主梁钢筋在下"
+      ],
+      "source_excerpt": "### “梁”钢筋构造要求\n\n1. **多层排列**：梁纵纹钢筋双层排列时，两排钢筋间应垫**直径≥25mm**的短钢筋。\n2. **交叉节点排布**（**重点**）：板、次梁与主梁交叉处，钢筋上下位置关系为：\n   - **板钢筋在上**\n   - **次梁钢筋居中**\n   - **主梁钢筋在下**\n   - （助记：**板上、次中、主下**）",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0010_004",
+        "json_page_num": 10,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0010_004"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "梁钢筋构造要求"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "梁钢筋构造要求",
+      "unit_id": "lecture.main-structure.0025"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. **框架梁**：",
+          "- **上部接头**：设在跨中 **1/3** 范围",
+          "- **下部接头**：设在梁端 **1/3** 范围",
+          "2. **板**：",
+          "- **上部接头**：设在跨中 **1/2** 范围内",
+          "- **下部接头**：设在梁端 **1/4** 范围内"
+        ],
+        "mnemonics": [
+          "梁：上中下端各三分；板：上中一半下四分"
+        ],
+        "must_mentions": [
+          "跨中1/3",
+          "梁端1/3",
+          "跨中1/2",
+          "梁端1/4"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分梁与板的接头位置比例差异，特别是下部接头：梁是1/3，板是1/4。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:钢筋接头位置要求"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "“梁、板”钢筋接头位置",
+        "钢筋接头位置",
+        "钢筋接头位置要求",
+        "主体结构工程施工",
+        "跨中1/3",
+        "梁端1/3",
+        "跨中1/2",
+        "梁端1/4"
+      ],
+      "source_excerpt": "### “梁、板”钢筋接头位置\n\n根据构造示意图及规范要求：\n\n1. **框架梁**：\n   - **上部接头**：设在跨中 **1/3** 范围。\n   - **下部接头**：设在梁端 **1/3** 范围。\n\n2. **板**：\n   - **上部接头**：设在跨中 **1/2** 范围内。\n   - **下部接头**：设在梁端 **1/4** 范围内。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0011_001",
+        "json_page_num": 11,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0011_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "钢筋接头位置要求"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "钢筋接头位置要求",
+      "unit_id": "lecture.main-structure.0026"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给口诀，再展开每个字对应的得分点。",
+        "formula_or_thresholds": [
+          "1. **全部钢筋**：",
+          "2. **纵向钢筋**：",
+          "3. **横向钢筋**：",
+          "4. **箍筋**：",
+          "5. **预埋件**："
+        ],
+        "mnemonics": [
+          "三头两锚一连搭，品数规位(加间距/两弯距)，预埋规位数"
+        ],
+        "must_mentions": [
+          "牌号",
+          "规格",
+          "数量",
+          "位置",
+          "间距",
+          "接头",
+          "锚固"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "箍筋验收不仅有间距，还有弯钩的两个参数（角度、长度）。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "mnemonic",
+      "intent": [
+        "grading_keywords",
+        "memorize",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:钢筋隐蔽验收"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "钢筋隐蔽验收内容",
+        "钢筋隐蔽验收",
+        "主体结构工程施工",
+        "牌号",
+        "规格",
+        "数量",
+        "位置",
+        "间距",
+        "接头"
+      ],
+      "source_excerpt": "### 钢筋隐蔽验收内容\n\n1. **全部钢筋**：\n   - **口诀**：三头两锚一连搭\n   - **内容**：接头位置、接头质量、接头面积百分率（三头）；锚固长度、锚固方式（两锚）；连接方式（一连）；搭接长度（搭）。\n\n2. **纵向钢筋**：\n   - **口诀**：品数规位\n   - **内容**：牌号、数量、规格、位置。\n\n3. **横向钢筋**：\n   - **口诀**：品数规位和间距\n   - **内容**：牌号、数量、规格、位置、间距。\n\n4. **箍筋**：\n   - **口诀**：品数规位两弯距\n   - **内容**：牌号、数量、规格、位置、间距、弯钩弯折角度、弯钩平直长度。\n\n5. **预埋件**：\n   - **口诀**：规位数\n   - **内容**：规格、位置、数量。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0011_002",
+        "json_page_num": 11,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0011_002"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "钢筋隐蔽验收"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "钢筋隐蔽验收",
+      "unit_id": "lecture.main-structure.0027"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给口诀，再展开每个字对应的得分点。",
+        "formula_or_thresholds": [
+          "#### 1. 砼设备",
+          "#### 2. 配合比设计",
+          "#### 3. 水泥选型"
+        ],
+        "mnemonics": [
+          "推翻搅拌车，双泵双吊电梯井，起重布料推汽车"
+        ],
+        "must_mentions": [
+          "重量比",
+          "有资质的试验室",
+          "中低热硅酸盐水泥",
+          "普通水泥"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "配合比必须是重量比，不是体积比。抗渗混凝土专指普通水泥。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "mnemonic",
+      "intent": [
+        "grading_keywords",
+        "memorize",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:混凝土设备与材料选型"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "混凝土工程",
+        "混凝土设备与材料选型",
+        "主体结构工程施工",
+        "重量比",
+        "有资质的试验室",
+        "中低热硅酸盐水泥",
+        "普通水泥"
+      ],
+      "source_excerpt": "### 混凝土工程\n\n#### 1. 砼设备\n- **水平运输**：手推车、机动翻斗车、混凝土搅拌输送车。\n  - **口诀**：推翻搅拌车\n- **垂直运输**：井架、施工电梯、汽车吊、塔式起重机、固定泵、混凝土汽车泵（移动泵）。\n  - **口诀**：双泵双吊电梯井\n- **布料设备**：手推车、布料机、布料杆、塔式起重机、混凝土汽车泵。\n  - **口诀**：起重布料推汽车\n\n#### 2. 配合比设计\n- **计算主体**：由有资质的试验室进行计算。\n- **计量方式**：混凝土配合比应为**重量比**。\n- **坍落度要求**：应满足混凝土配合比设计强度、其他力学性能、拌合物性能、长期性能和耐久性。\n\n#### 3. 水泥选型\n- **泵送混凝土**：硅酸盐水泥、普通水泥、矿渣水泥、粉煤灰水泥。\n- **大体积混凝土**：中、低热硅酸盐水泥；低热矿渣水泥。\n- **高强/抗冻混凝土**：硅酸盐水泥、普通水泥。\n- **抗渗混凝土**：普通水泥。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0011_003",
+        "json_page_num": 11,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0011_003"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "混凝土设备与材料选型"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "混凝土设备与材料选型",
+      "unit_id": "lecture.main-structure.0028"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **胶凝材料用量**：每立方米混凝土中的胶凝材料用量**不宜小于 320kg**",
+          "2. **砂率**：宜为 **35% ~ 45%**",
+          "| **0.60** | 250 | 280 | 300 |",
+          "| **0.55** | 280 | 300 | 300 |",
+          "| **0.50** | - | 320 | - |",
+          "| **≤0.45** | - | 330 | - |"
+        ],
+        "mnemonics": [],
+        "must_mentions": [],
+        "red_lines": [],
+        "trap_alerts": []
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "numeric_rule"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:抗渗混凝土配合比要求"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "抗渗混凝土配合比要求",
+        "抗渗混凝土配合比",
+        "主体结构工程施工"
+      ],
+      "source_excerpt": "### 抗渗混凝土配合比要求\n\n1. **胶凝材料用量**：每立方米混凝土中的胶凝材料用量**不宜小于 320kg**。\n2. **砂率**：宜为 **35% ~ 45%**。\n\n### 普通混凝土的最小胶凝材料用量 (kg/m³)\n\n| 最大水胶比 | 素混凝土 | 钢筋混凝土 | 预应力混凝土 |\n| :---: | :---: | :---: | :---: |\n| **0.60** | 250 | 280 | 300 |\n| **0.55** | 280 | 300 | 300 |\n| **0.50** | - | 320 | - |\n| **≤0.45** | - | 330 | - |",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0011_004",
+        "json_page_num": 11,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0011_004"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "抗渗混凝土配合比要求"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "抗渗混凝土配合比要求",
+      "unit_id": "lecture.main-structure.0029"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "#### 1. 浇筑前准备",
+          "混凝土强度达到 **70%** 后方可进行后续施工",
+          "- **柱墙**: 应在底部填 **≤30mm** 厚的同成分水泥砂浆",
+          "温度 **>35℃** 时，对金属模板洒水降温，不得有积水",
+          "#### 2. 泵送要求",
+          "- 石子 **≤25mm**: 采用内径 **≥125mm** 的泵管"
+        ],
+        "mnemonics": [
+          "25配125，40配150；小石6米，大石3米；柱顶100，墙顶300，底下50"
+        ],
+        "must_mentions": [
+          "同成分水泥砂浆",
+          "由远至近",
+          "次梁方向",
+          "1~1.5h",
+          "0~100mm",
+          "0~300mm"
+        ],
+        "red_lines": [
+          "垫层强度未达70%进行后续施工",
+          "金属模板温度>35℃未降温",
+          "泵送由近至远（错误，应由远至近）"
+        ],
+        "trap_alerts": [
+          "注意区分泵管内径选择的两个档位（25/125, 40/150）；注意柱和墙施工缝留置高度的区别（柱100mm，墙300mm）。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:混凝土浇筑与施工缝"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "混凝土工程施工要点",
+        "混凝土结构施工",
+        "混凝土浇筑与施工缝",
+        "混凝土结构工程施工",
+        "同成分水泥砂浆",
+        "由远至近",
+        "次梁方向",
+        "1~1.5h",
+        "0~100mm",
+        "0~300mm"
+      ],
+      "source_excerpt": "### 混凝土工程施工要点\n\n#### 1. 浇筑前准备\n- **垫层**: 混凝土应在基础验槽后立即浇筑；混凝土强度达到 **70%** 后方可进行后续施工。\n- **基础**: 应先清除垫层上的杂物；且应洒水湿润，但不得有积水。\n- **柱墙**: 应在底部填 **≤30mm** 厚的同成分水泥砂浆。\n- **主体**: 先清除模板上的杂物；温度 **>35℃** 时，对金属模板洒水降温，不得有积水。\n\n#### 2. 泵送要求\n- **场地**: 泵车设置处，应场地平整、坚实，具有通车行走条件。\n- **泵送**: 泵送砼的水平运输和垂直运输应一次完成；浇筑时由 **远至近** 进行；混凝土供应要保证泵能连续工作。\n- **泵管**: 输送管线宜直，转弯宜缓，接头应严密。\n  - 石子 **≤25mm**: 采用内径 **≥125mm** 的泵管\n  - 石子 **≤40mm**: 采用内径 **≥150mm** 的泵管\n\n#### 3. 浇筑过程中\n- **方向**:\n  - 单向板宜沿着板的 **长边** 方向浇筑\n  - 高度 **>1m** 的梁可以单独浇筑\n  - 有主次梁的楼板，宜顺着 **次梁** 方向浇筑\n- **高度** (柱、墙浇筑高度):\n  - 石子 **<25mm** 时，高度 **≤6m**\n  - 石子 **>25mm** 时，高度 **≤3m**\n  - 若不能满足上述要求，应设置串筒、溜槽或溜管\n- **要点**: 砼宜分层浇筑、分层振捣。浇筑与柱、墙连成整体的梁、板时，柱、墙浇完后停 **1~1.5h** 再继续浇筑。\n\n#### 4. 施工缝留置原则与位置\n- **原则**: 留置在结构受剪力较小且便于施工的位置；特殊结构部位应征得设计单位同意。\n- **位置细则**:\n  - **柱、墙**: 水平施工缝留在基础、楼层顶面。\n  - **柱**: 施工缝与结构上表面宜为 **0~100mm**。\n  - **墙**: 施工缝与结构上表面宜为 **0~300mm**。\n  - **柱、墙**: 水平施工缝也可留设在楼层底面，与",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413041_P0012_001",
+        "json_page_num": 12,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413041_P0012_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413041",
+        "node_name": "混凝土结构工程施工",
+        "topic": "混凝土浇筑与施工缝"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "混凝土浇筑与施工缝",
+      "unit_id": "lecture.main-structure.0030"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1.  **特殊构件**：",
+          "*   **有主次梁的楼板**：垂直施工缝应留在**次梁跨度中间的1/3范围内**",
+          "2.  **墙体垂直施工缝**：宜设置在门洞口过梁跨中**1/3范围内**，也可留在纵横墙交接处",
+          "3.  **单向板**：留在平行于板短边的任何位置",
+          "4.  **楼梯梯段**：留在梯段板**跨度端部的1/3范围内**",
+          "1.  已浇筑的混凝土，其抗压强度**不应小于1.2N/mm²**"
+        ],
+        "mnemonics": [
+          "次梁跨中楼梯端，三分之一记心间；硅普矿七余十四，高强六零后浇带。"
+        ],
+        "must_mentions": [
+          "次梁跨度中间1/3",
+          "端部1/3",
+          "1.2N/mm²",
+          "不得积水",
+          "硅普矿",
+          "14d"
+        ],
+        "red_lines": [
+          "施工缝处不得积水",
+          "强度未达1.2N/mm²不得继续浇筑"
+        ],
+        "trap_alerts": [
+          "注意区分楼梯（端部1/3）与梁板（跨中1/3）的区别；注意高强混凝土指≥C60。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:混凝土施工缝留置与养护"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "施工缝留置位置",
+        "混凝土施工缝与养护",
+        "混凝土施工缝留置与养护",
+        "主体结构工程施工",
+        "次梁跨度中间1/3",
+        "端部1/3",
+        "1.2N/mm²",
+        "不得积水",
+        "硅普矿",
+        "14d"
+      ],
+      "source_excerpt": "### 施工缝留置位置\n\n1.  **特殊构件**：\n    *   **高度/厚度较大的柱、墙、基础**：可在中部留水平施工缝；必要时可调整配筋，并应征得设计单位认可。\n    *   **有主次梁的楼板**：垂直施工缝应留在**次梁跨度中间的1/3范围内**。\n2.  **墙体垂直施工缝**：宜设置在门洞口过梁跨中**1/3范围内**，也可留在纵横墙交接处。\n3.  **单向板**：留在平行于板短边的任何位置。\n4.  **楼梯梯段**：留在梯段板**跨度端部的1/3范围内**。\n\n### 施工缝“继续浇筑”的前提条件\n\n在施工缝处继续浇筑混凝土时，应符合下列规定：\n1.  已浇筑的混凝土，其抗压强度**不应小于1.2N/mm²**。\n2.  清除表面浮浆、松动石子及软弱砼层，充分湿润和冲洗干净，且**不得积水**。\n3.  浇筑前，先在施工缝处刷一层水泥浆（可掺适量界面剂）或铺一层与混凝土内成分相同的**水泥砂浆**。\n4.  混凝土应细致捣实，使新旧混凝土紧密结合。\n\n### 混凝土养护\n\n*   **开始时间**：混凝土浇筑后应**及时**保湿养护。\n*   **方法**：洒水、覆盖、喷涂养护剂等。\n*   **养护周期（最低时长）**：\n    *   **≥7d**：硅酸盐水泥、普通硅酸盐水泥、矿渣硅酸盐水泥（简称“硅、普、矿”）。\n    *   **≥14d**：\n        *   掺缓凝型外加剂、掺矿物掺合料的混凝土。\n        *   抗渗混凝土、强度**≥C60**（高强度）混凝土。\n        *   后浇带混凝土。\n    *   **适当增加**：地下室底层墙、柱和上部结构首层墙、柱。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0013_001",
+        "json_page_num": 13,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0013_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "混凝土施工缝留置与养护"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "混凝土施工缝留置与养护",
+      "unit_id": "lecture.main-structure.0031"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "#### 1. 钢筋错位",
+          "#### 2. 混凝土表面缺陷",
+          "#### 3. 混凝土收缩裂缝"
+        ],
+        "mnemonics": [
+          "收缩裂缝原因：材料工艺两路走"
+        ],
+        "must_mentions": [
+          "避让关系",
+          "专人检查",
+          "接缝严密",
+          "隔离剂",
+          "二次抹压",
+          "初凝前",
+          "含泥量",
+          "水胶比"
+        ],
+        "red_lines": [
+          "未按设计加工",
+          "漏振",
+          "拆模过早"
+        ],
+        "trap_alerts": [
+          "注意区分'表面缺陷'与'收缩裂缝'的成因：表面缺陷多与模板、振捣有关；收缩裂缝多与材料配比、养护、抹压有关。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "exam_point",
+      "intent": [
+        "error_correction",
+        "exam_point",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:混凝土结构通病防治"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "考点五、混凝土结构通病防治",
+        "混凝土结构通病",
+        "混凝土结构通病防治",
+        "主体结构工程施工",
+        "避让关系",
+        "专人检查",
+        "接缝严密",
+        "隔离剂",
+        "二次抹压",
+        "初凝前"
+      ],
+      "source_excerpt": "### 考点五、混凝土结构通病防治\n\n#### 1. 钢筋错位\n**原因**：\n- 未按设计或翻样尺寸加工安装；\n- 翻样时，未合理考虑**主筋位置及避让关系**；\n- 砼浇筑中，**碰撞钢筋**，未及时校正；\n- **保护层垫块**尺寸或安装位置不正确。\n\n**措施**：\n- 严格按照设计和翻样尺寸加工安装；\n- 合理考虑钢筋之间的**避让关系**；\n- **钢筋绑扎、焊接**必须牢固；\n- 垫块沿主筋方向摆放，**位置、数量应准确**；\n- 砼浇筑时，**派专人检查钢筋位置**，并及时校正。\n\n#### 2. 混凝土表面缺陷\n**原因**：\n- 模板表面不光滑，污染物未清除；\n- 模板安装质量差，接缝不严密；\n- 木模板未充分湿润，钢模板**隔离剂涂刷不均匀**；\n- 局部配筋、铁件过密，阻碍砼下料，振捣困难；\n- 砼**漏振**或振捣不实；\n- 砼**坍落度、和易性**不好；\n- 砼浇筑方法、浇筑顺序不当；\n- 砼浇筑高度不符合要求，且未采取防**离析**措施；\n- 砼拆模过早。\n\n**措施**：\n- 模板使用前应**清理干净表面**；\n- 模板安装应**接缝严密**；\n- 浇筑砼前，应充分湿润模板或均匀**涂刷隔离剂**；\n- 钢筋、铁件过密处应制定措施，确保砼**浇筑密实**。\n\n#### 3. 混凝土收缩裂缝\n**表现**：塑态、沉陷、干燥、碳化、凝结收缩等。裂缝多出现在**新浇筑并暴露于空气中**的结构构件表面。\n\n**★ 总结：材料工艺两路走**\n\n**原因**：\n- 混凝土原材料质量不合格，如**骨料含泥量大**等；\n- 水泥或掺合料用量**超出规范规定**；\n- 混凝土**水胶比、坍落度偏大**，和易性差；\n- 混凝土浇筑**振捣差**，养护不及时或**养护差**。\n\n**措施**：\n- 选用合格的**原材料**；\n- 有资质的试验室进行混凝土配合比，并确保搅拌质量；\n- 确保混凝土浇筑振捣密实，并在**初凝前进行二次抹压**；\n- 确保混凝土**及时养护**，并保证养护质量满足要求。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0014_001",
+        "json_page_num": 14,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0014_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "混凝土结构通病防治"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "混凝土结构通病防治",
+      "unit_id": "lecture.main-structure.0032"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "#### 1. 原因分析",
+          "#### 2. 防治措施"
+        ],
+        "mnemonics": [],
+        "must_mentions": [
+          "法定检测机构",
+          "机械搅拌",
+          "初凝前"
+        ],
+        "red_lines": [
+          "无法定配比报告",
+          "人工搅拌"
+        ],
+        "trap_alerts": [
+          "注意投料顺序中水泥的位置，是在粗骨料之后、细骨料之前。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "error_correction",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:混凝土结构工程施工质量管理"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "混凝土强度等级偏低防治",
+        "混凝土强度等级偏低",
+        "混凝土结构工程施工质量管理",
+        "主体结构工程施工",
+        "法定检测机构",
+        "机械搅拌",
+        "初凝前"
+      ],
+      "source_excerpt": "### 混凝土强度等级偏低防治\n\n#### 1. 原因分析\n- 原材料材质不符合国家标准规定。\n- 拌制混凝土时，投料计量有误。\n- 无法定检测机构提供的混凝土配比报告。\n- 未严格按混凝土配合比进行规范操作。\n- 混凝土搅拌、运输、浇筑、养护不符合规范要求。\n\n#### 2. 防治措施\n- **原材料控制**：砂石水泥外加剂必须合格。\n- **配合比执行**：必须按法定检测机构提供的配合比报告配制。\n- **计量控制**：计量投料且计量要准确。\n- **搅拌工艺**：必须采用**机械搅拌**。投料顺序：**粗骨料 → 水泥 → 细骨料 → 水**，并严格控制搅拌时间。\n- **时效控制**：运输和浇筑必须在混凝土**初凝前**进行。\n- **过程控制**：控制好浇筑和振捣质量，以及养护工作。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0015_001",
+        "json_page_num": 15,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0015_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "混凝土结构工程施工质量管理"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "混凝土结构工程施工质量管理",
+      "unit_id": "lecture.main-structure.0033"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "#### 1. 施工温度控制",
+          "- **出机温度**：混凝土出机温度 `≥10℃`",
+          "- **入模温度**：混凝土入模温度 `≥5℃`",
+          "- **预拌混凝土**：出机温度 `≥15℃`",
+          "#### 2. 养护与拆模",
+          "- **拆模要求**：砼表面与环境温差 `>20℃` 时，应及时覆盖，缓慢冷却"
+        ],
+        "mnemonics": [
+          "硅普30矿40，抗渗50高强30"
+        ],
+        "must_mentions": [
+          "出机温度",
+          "入模温度",
+          "受冻临界强度",
+          "负温养护"
+        ],
+        "red_lines": [
+          "负温下浇水养护"
+        ],
+        "trap_alerts": [
+          "C50及以上混凝土的临界强度是30%，不要误以为高强度混凝土要求更高比例；抗渗混凝土要求最高(50%)。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "exam_point",
+      "intent": [
+        "error_correction",
+        "exam_point",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:冬季施工技术"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "冬季施工技术要点",
+        "冬季施工混凝土",
+        "冬季施工技术",
+        "季节性施工技术",
+        "出机温度",
+        "入模温度",
+        "受冻临界强度",
+        "负温养护"
+      ],
+      "source_excerpt": "### 冬季施工技术要点\n\n#### 1. 施工温度控制\n- **出机温度**：混凝土出机温度 `≥10℃`。\n- **入模温度**：混凝土入模温度 `≥5℃`。\n- **预拌混凝土**：出机温度 `≥15℃`。\n\n#### 2. 养护与拆模\n- **养护要求**：进行保温、保湿、防风；**负温下不得直接浇水养护砼**。\n- **拆模要求**：砼表面与环境温差 `>20℃` 时，应及时覆盖，缓慢冷却。\n\n#### 3. 混凝土受冻临界强度 (核心考点)\n| 水泥/工况 | 临界强度要求 |\n| :--- | :--- |\n| **硅酸盐水泥、普通硅酸盐水泥** | ≥设计强度值的 **30%** |\n| **矿渣、粉煤灰、火山灰、复合水泥** | ≥设计强度值的 **40%** |\n| **气温不低于 -15℃** (综合蓄热/负温养护) | 强度 **≥4MPa** |\n| **气温不低于 -30℃** (负温养护) | 强度 **≥5MPa** |\n| **C50及以上** 混凝土 | ≥设计强度值的 **30%** |\n| **抗渗混凝土** | ≥设计强度值的 **50%** |",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413080_P0015_002",
+        "json_page_num": 15,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413080_P0015_002"
+      },
+      "taxonomy": {
+        "node_code": "1A413080",
+        "node_name": "季节性施工技术",
+        "topic": "冬季施工技术"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "冬季施工技术",
+      "unit_id": "lecture.main-structure.0034"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给口诀，再展开每个字对应的得分点。",
+        "formula_or_thresholds": [
+          "| **蓄热法或综合蓄热法** | 受冻临界强度前，每 **4~6h** 测量一次 |",
+          "| **负温养护法** | 受冻临界强度前，每 **2h** 测量一次 |",
+          "| **加热养护法** | 升温和降温阶段每 **1h** 测一次，恒温阶段每 **2h** 测一次 |",
+          "**助记口诀**：**4621蓄负加【4621徐福家】**"
+        ],
+        "mnemonics": [],
+        "must_mentions": [],
+        "red_lines": [],
+        "trap_alerts": []
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "mnemonic",
+      "intent": [
+        "memorize"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:冬季施工测温要求"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "混凝土养护期间的温度测量要求",
+        "冬期施工测温",
+        "冬季施工测温要求",
+        "季节性施工技术"
+      ],
+      "source_excerpt": "### 混凝土养护期间的温度测量要求\n\n| 养护方法 | 测温周期 |\n| :--- | :--- |\n| **蓄热法或综合蓄热法** | 受冻临界强度前，每 **4~6h** 测量一次 |\n| **负温养护法** | 受冻临界强度前，每 **2h** 测量一次 |\n| **加热养护法** | 升温和降温阶段每 **1h** 测一次，恒温阶段每 **2h** 测一次 |\n\n**停止测温条件**：混凝土在**达到受冻临界强度后**，可停止测温。\n\n**助记口诀**：**4621蓄负加【4621徐福家】**",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413080_P0015_003",
+        "json_page_num": 15,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413080_P0015_003"
+      },
+      "taxonomy": {
+        "node_code": "1A413080",
+        "node_name": "季节性施工技术",
+        "topic": "冬季施工测温要求"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "冬季施工测温要求",
+      "unit_id": "lecture.main-structure.0035"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "- 混凝土浇筑温度不超过30℃，必要时可采取降温措施",
+          "- 混凝土入模温度不超过35℃"
+        ],
+        "mnemonics": [
+          "高温施工，浇筑30，入模35，降温必备"
+        ],
+        "must_mentions": [
+          "高温施工",
+          "30℃",
+          "35℃"
+        ],
+        "red_lines": [
+          "温度超标"
+        ],
+        "trap_alerts": [
+          "高温施工时，温度控制是关键，忽视可能导致质量问题。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:高温季节施工"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "高温季节施工要求",
+        "高温季节施工",
+        "主体结构工程施工",
+        "高温施工",
+        "30℃",
+        "35℃"
+      ],
+      "source_excerpt": "### 高温季节施工要求\n\n- 混凝土浇筑温度不超过30℃，必要时可采取降温措施。\n- 混凝土入模温度不超过35℃。\n- 混凝土拌合物的初凝时间应在施工完成前。\n- 施工工具和设备应有降温措施。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0017_001",
+        "json_page_num": 17,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0017_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "高温季节施工"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "高温季节施工",
+      "unit_id": "lecture.main-structure.0036"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **柱钢筋锚固**：柱的锚固钢筋下端应采用 **90°弯钩** 与基础钢筋绑扎牢固",
+          "2. **独立柱基础钢筋位置**：当独立柱基础为双向钢筋时，其底面**短边**的钢筋应放在**长边**钢筋的**上面**",
+          "3. **双层钢筋网支撑**：底板采用双层钢筋网时，在上层钢筋网下面应设置**钢筋撑脚**（马凳筋）以保证位置准确",
+          "针对设计使用年限达到 **100年** 的地下结构和构件：",
+          "- 迎水面钢筋保护层厚度：**≥50mm**",
+          "- 当**无垫层**时：**≥70mm**"
+        ],
+        "mnemonics": [
+          "独基钢筋：长下短上；保护层：有垫50无垫70"
+        ],
+        "must_mentions": [
+          "90°弯钩",
+          "短边在上面",
+          "钢筋撑脚",
+          "50mm",
+          "70mm"
+        ],
+        "red_lines": [
+          "无垫层保护层<70mm"
+        ],
+        "trap_alerts": [
+          "注意区分基础底板（长下短上）与楼板（短下长上）的钢筋位置差异；注意无垫层时保护层厚度增加至70mm。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:基础钢筋绑扎与保护层"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "基础钢筋施工技术要求",
+        "混凝土基础钢筋工程",
+        "基础钢筋绑扎与保护层",
+        "地基与基础工程施工",
+        "90°弯钩",
+        "短边在上面",
+        "钢筋撑脚",
+        "50mm",
+        "70mm"
+      ],
+      "source_excerpt": "### 基础钢筋施工技术要求\n\n1. **柱钢筋锚固**：柱的锚固钢筋下端应采用 **90°弯钩** 与基础钢筋绑扎牢固。\n2. **独立柱基础钢筋位置**：当独立柱基础为双向钢筋时，其底面**短边**的钢筋应放在**长边**钢筋的**上面**。\n3. **双层钢筋网支撑**：底板采用双层钢筋网时，在上层钢筋网下面应设置**钢筋撑脚**（马凳筋）以保证位置准确。\n\n### 基础保护层厚度要求\n针对设计使用年限达到 **100年** 的地下结构和构件：\n- 迎水面钢筋保护层厚度：**≥50mm**\n- 当**无垫层**时：**≥70mm**",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413030_P0017_001",
+        "json_page_num": 17,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413030_P0017_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413030",
+        "node_name": "地基与基础工程施工",
+        "topic": "基础钢筋绑扎与保护层"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "基础钢筋绑扎与保护层",
+      "unit_id": "lecture.main-structure.0037"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **浇筑顺序**：",
+          "2. **芯模拆除**：",
+          "- 杯口上部间隙：**75mm**",
+          "- 杯口下部间隙：**50mm**",
+          "- 杯底厚度：**50mm**"
+        ],
+        "mnemonics": [
+          "杯型基础：底实稍停浇四周，初凝终凝拔芯模"
+        ],
+        "must_mentions": [
+          "稍停沉实",
+          "对称浇筑",
+          "初凝后终凝前",
+          "杯壁凿毛"
+        ],
+        "red_lines": [
+          "芯模偏移"
+        ],
+        "trap_alerts": [
+          "芯模拔出时间必须严格控制在'初凝后、终凝前'。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:杯型基础施工工艺"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "杯型独立基础施工要点",
+        "杯型独立基础",
+        "杯型基础施工工艺",
+        "地基与基础工程施工",
+        "稍停沉实",
+        "对称浇筑",
+        "初凝后终凝前",
+        "杯壁凿毛"
+      ],
+      "source_excerpt": "### 杯型独立基础施工要点\n\n1. **浇筑顺序**：\n   - 先将**杯口底**混凝土振实，并**稍停沉实**。\n   - 再浇筑和振捣**杯口模四周**混凝土。\n   - 必须**两侧对称浇筑**，防止芯模位移。\n\n2. **芯模拆除**：\n   - 时间窗口：在混凝土**初凝后、终凝前**。\n   - 动作：将芯模拔出，并对**杯壁凿毛**。\n\n### 构造参数（图示）\n- 杯口上部间隙：**75mm**\n- 杯口下部间隙：**50mm**\n- 杯底厚度：**50mm**",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413030_P0017_002",
+        "json_page_num": 17,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413030_P0017_002"
+      },
+      "taxonomy": {
+        "node_code": "1A413030",
+        "node_name": "地基与基础工程施工",
+        "topic": "杯型基础施工工艺"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "杯型基础施工工艺",
+      "unit_id": "lecture.main-structure.0038"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **浇筑方式**：混凝土宜按台阶**分层连续浇筑**完成",
+          "2. **层间间歇**：每个台阶作为一个浇捣层，每浇完一个台阶稍停 **0.5~1.0h**，待其初步沉实后再浇筑上层",
+          "3. **插筋处理**：基础上有插筋埋件时，应固定其位置，防止浇筑时位移"
+        ],
+        "mnemonics": [
+          "台阶分层浇，间歇半小时"
+        ],
+        "must_mentions": [
+          "分层连续",
+          "0.5~1.0h",
+          "初步沉实"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意台阶式基础不是一次性浇筑到顶，中间有沉实过程。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:独立基础施工"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "台阶式独立基础施工要点",
+        "台阶式独立基础",
+        "独立基础施工",
+        "地基与基础工程施工",
+        "分层连续",
+        "0.5~1.0h",
+        "初步沉实"
+      ],
+      "source_excerpt": "### 台阶式独立基础施工要点\n\n1. **浇筑方式**：混凝土宜按台阶**分层连续浇筑**完成。\n2. **层间间歇**：每个台阶作为一个浇捣层，每浇完一个台阶稍停 **0.5~1.0h**，待其初步沉实后再浇筑上层。\n3. **插筋处理**：基础上有插筋埋件时，应固定其位置，防止浇筑时位移。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413030_P0018_001",
+        "json_page_num": 18,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413030_P0018_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413030",
+        "node_name": "地基与基础工程施工",
+        "topic": "独立基础施工"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "独立基础施工",
+      "unit_id": "lecture.main-structure.0039"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **设置条件**：高层建筑筏形基础和箱形基础长度 **> 40m** 时，宜设置贯通的后浇带",
+          "2. **尺寸要求**：后浇带宽度宜 **≥ 800mm**",
+          "3. **钢筋处理**：在后浇带处，**钢筋必须贯通**（严禁断开）",
+          "4. **模板要求**：",
+          "5. **浇筑材料**：可采用**微膨胀混凝土**，强度等级比原结构强度**提高一级**",
+          "6. **养护要求**：保持至少 **14d** 的湿润养护"
+        ],
+        "mnemonics": [
+          "后浇带：40长800宽，独立支模，微膨高一，养护14"
+        ],
+        "must_mentions": [
+          "独立设置",
+          "微膨胀",
+          "提高一级",
+          "14d",
+          "贯通"
+        ],
+        "red_lines": [
+          "钢筋必须贯通",
+          "模板独立设置"
+        ],
+        "trap_alerts": [
+          "后浇带模板必须独立支设，不能与主体模板系统相连，否则主体拆模时会导致后浇带悬空部位坍塌或开裂。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:后浇带施工"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "后浇带混凝土施工",
+        "后浇带",
+        "后浇带施工",
+        "地基与基础工程施工",
+        "独立设置",
+        "微膨胀",
+        "提高一级",
+        "14d",
+        "贯通"
+      ],
+      "source_excerpt": "### 后浇带混凝土施工\n\n1. **设置条件**：高层建筑筏形基础和箱形基础长度 **> 40m** 时，宜设置贯通的后浇带。\n2. **尺寸要求**：后浇带宽度宜 **≥ 800mm**。\n3. **钢筋处理**：在后浇带处，**钢筋必须贯通**（严禁断开）。\n4. **模板要求**：\n   - 侧模宜采用快易收口网、钢板网、铁丝网或小木板。\n   - 后浇带混凝土浇筑前应拆除侧模，清理界面。\n   - **重点**：箱形基础后浇带模板**独立支设**；后浇带的模板及支架应**独立设置**。\n5. **浇筑材料**：可采用**微膨胀混凝土**，强度等级比原结构强度**提高一级**。\n6. **养护要求**：保持至少 **14d** 的湿润养护。\n7. **接缝处理**：按施工缝要求处理。\n\n#### 视觉构造解析\n- **图示构造**：后浇带上方设置**盖板**保护，两侧设置**砌筑挡水坎**防止污水流入，内部采用**木方**支撑，宽度标注**≥800mm**。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413030_P0018_002",
+        "json_page_num": 18,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413030_P0018_002"
+      },
+      "taxonomy": {
+        "node_code": "1A413030",
+        "node_name": "地基与基础工程施工",
+        "topic": "后浇带施工"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "后浇带施工",
+      "unit_id": "lecture.main-structure.0040"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. **材料选择**：",
+          "2. **配合比参数**（**高频考点**）：",
+          "- **强度等级**：设计强度等级为 C25~C50",
+          "- **验收依据**：以 **60d 或 90d** 强度作为砼配比、强度等级评定及验收依据",
+          "- **坍落度**：宜 **≤ 180mm**",
+          "- **用水量**：宜 **≤ 170kg/m³**"
+        ],
+        "mnemonics": [],
+        "must_mentions": [],
+        "red_lines": [],
+        "trap_alerts": []
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "exam_point",
+      "intent": [
+        "exam_point"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:大体积混凝土配合比"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "大体积混凝土基础设计配比",
+        "大体积混凝土",
+        "大体积混凝土配合比",
+        "地基与基础工程施工"
+      ],
+      "source_excerpt": "### 大体积混凝土基础设计配比\n\n1. **材料选择**：\n   - **钢筋**：配置温度和收缩构造钢筋。\n   - **水泥**：宜选用**中、低热**硅酸盐水泥或**低热矿渣**水泥。\n   - **外加剂**：宜掺入**缓凝剂**、**减水剂**、**微膨胀剂**。\n\n2. **配合比参数**（**高频考点**）：\n   - **强度等级**：设计强度等级为 C25~C50。\n   - **验收依据**：以 **60d 或 90d** 强度作为砼配比、强度等级评定及验收依据。\n   - **坍落度**：宜 **≤ 180mm**。\n   - **用水量**：宜 **≤ 170kg/m³**。\n   - **水胶比**：宜 **≤ 0.45**。\n   - **砂率**：宜 **38% ~ 45%**。\n   - **掺合料用量**：\n     - 粉煤灰掺量：宜 ≤ 胶凝材料用量的 **50%**。\n     - 矿渣粉掺量：宜 ≤ 胶凝材料用量的 **40%**。\n     - 粉煤灰+矿渣粉总量：宜 ≤ 胶凝材料用量的 **50%**。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413030_P0018_003",
+        "json_page_num": 18,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413030_P0018_003"
+      },
+      "taxonomy": {
+        "node_code": "1A413030",
+        "node_name": "地基与基础工程施工",
+        "topic": "大体积混凝土配合比"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "大体积混凝土配合比",
+      "unit_id": "lecture.main-structure.0041"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给口诀，再展开每个字对应的得分点。",
+        "formula_or_thresholds": [
+          "装配式混凝土结构施工专项方案应包含以下内容：",
+          "1. **工程概况**",
+          "2. **编制依据**",
+          "3. **进度计划**",
+          "4. **安全管理**",
+          "5. **质量管理**"
+        ],
+        "mnemonics": [
+          "工编计划四管理，绿色场地装放运"
+        ],
+        "must_mentions": [
+          "工程概况",
+          "编制依据",
+          "进度计划",
+          "安全管理",
+          "质量管理",
+          "信息化管理",
+          "应急预案管理",
+          "绿色施工",
+          "施工场地布置",
+          "安装与连接施工",
+          "构件运输与存放"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "容易漏掉'信息化管理'和'应急预案管理'，注意'四管理'的具体指代。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "mnemonic",
+      "intent": [
+        "grading_keywords",
+        "memorize",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:装配式混凝土结构施工管理"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "专项方案主要内容",
+        "装配式混凝土结构施工专项方案",
+        "装配式混凝土结构施工管理",
+        "主体结构工程施工",
+        "工程概况",
+        "编制依据",
+        "进度计划",
+        "安全管理",
+        "质量管理",
+        "信息化管理"
+      ],
+      "source_excerpt": "### 专项方案主要内容\n\n装配式混凝土结构施工专项方案应包含以下内容：\n1. **工程概况**\n2. **编制依据**\n3. **进度计划**\n4. **安全管理**\n5. **质量管理**\n6. **信息化管理**\n7. **应急预案管理**\n8. **绿色施工**\n9. **施工场地布置**\n10. **安装与连接施工**\n11. **构件运输与存放**\n\n### 记忆口诀\n**“工编计划四管理，绿色场地装放运”**\n- **工**: 工程概况\n- **编**: 编制依据\n- **计划**: 进度计划\n- **四管理**: 安全、质量、信息化、应急预案\n- **绿色**: 绿色施工\n- **场地**: 施工场地布置\n- **装**: 安装与连接施工\n- **放运**: 构件运输与存放",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0020_001",
+        "json_page_num": 20,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0020_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "装配式混凝土结构施工管理"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "装配式混凝土结构施工管理",
+      "unit_id": "lecture.main-structure.0042"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给口诀，再展开每个字对应的得分点。",
+        "formula_or_thresholds": [
+          "1. 检查**吊装设备及吊具**是否安全",
+          "2. 核实**现场环境、天气、道路状况**",
+          "3. 合理**规划**构件运输通道、临时堆场、成品保护措施",
+          "4. 进行测量放线、设置构件安装**定位**标识",
+          "5. **核对**已完结构砼强度、外观质量、尺寸偏差",
+          "6. **核对**预制构件砼强度、型号、规格、数量"
+        ],
+        "mnemonics": [
+          "吊环规位三核对"
+        ],
+        "must_mentions": [
+          "吊装设备",
+          "现场环境",
+          "运输通道",
+          "测量放线",
+          "已完结构",
+          "预制构件",
+          "安装位置"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意'三核对'的具体内容：既要核对已完结构（基础），也要核对进场构件（材料），还要核对安装节点（工艺）。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "mnemonic",
+      "intent": [
+        "grading_keywords",
+        "memorize",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:装配式构件安装准备"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "构件安装准备工作",
+        "装配式构件安装准备",
+        "主体结构工程施工",
+        "吊装设备",
+        "现场环境",
+        "运输通道",
+        "测量放线",
+        "已完结构",
+        "预制构件"
+      ],
+      "source_excerpt": "### 构件安装准备工作\n\n1. 检查**吊装设备及吊具**是否安全\n2. 核实**现场环境、天气、道路状况**\n3. 合理**规划**构件运输通道、临时堆场、成品保护措施\n4. 进行测量放线、设置构件安装**定位**标识\n5. **核对**已完结构砼强度、外观质量、尺寸偏差\n6. **核对**预制构件砼强度、型号、规格、数量\n7. **核对**构件安装位置、节点连接构造、临时支撑方案\n\n### 记忆口诀\n**“吊环规位三核对”**\n- **吊**: 吊装设备\n- **环**: 环境/天气/道路\n- **规**: 规划通道/堆场\n- **位**: 定位标识\n- **三核对**: 核对已完结构、核对预制构件、核对安装位置/节点",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0020_002",
+        "json_page_num": 20,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0020_002"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "装配式构件安装准备"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "装配式构件安装准备",
+      "unit_id": "lecture.main-structure.0043"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **夹角要求**：起吊的吊索水平夹角**不宜小于60°**，**不应小于45°**",
+          "2. **操作方法**：起吊应**慢起、稳升、缓放**，严禁构件长期悬空",
+          "3. **加固措施**：吊装时，**大型、薄壁、形状复杂**构件应采取加固措施"
+        ],
+        "mnemonics": [
+          "起吊夹角：宜60，限45"
+        ],
+        "must_mentions": [
+          "60°",
+          "45°",
+          "慢起",
+          "稳升",
+          "缓放",
+          "加固"
+        ],
+        "red_lines": [
+          "严禁构件长期悬空"
+        ],
+        "trap_alerts": [
+          "考试常考数值选择题，必须记住45度是底线，60度是推荐。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:预制构件起吊要求"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "起吊要求",
+        "预制构件起吊",
+        "预制构件起吊要求",
+        "主体结构工程施工",
+        "60°",
+        "45°",
+        "慢起",
+        "稳升",
+        "缓放",
+        "加固"
+      ],
+      "source_excerpt": "### 起吊要求\n\n1. **夹角要求**：起吊的吊索水平夹角**不宜小于60°**，**不应小于45°**。\n2. **操作方法**：起吊应**慢起、稳升、缓放**，严禁构件长期悬空。\n3. **加固措施**：吊装时，**大型、薄壁、形状复杂**构件应采取加固措施。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0020_003",
+        "json_page_num": 20,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0020_003"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "预制构件起吊要求"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "预制构件起吊要求",
+      "unit_id": "lecture.main-structure.0044"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **基本原则**：做好“安全与成品保护”",
+          "2. **运输方式**：",
+          "3. **靠放架要求**：",
+          "- 采用靠放架运输时，构件与地面倾角应 **> 80°**",
+          "- 采用靠放架立式运输时，每层**不大于2层**",
+          "4. **插放架要求**：应防止构件倾斜，构件间设置隔离垫块"
+        ],
+        "mnemonics": [
+          "立运靠放超80，层数不过2；梁柱叠3板叠6"
+        ],
+        "must_mentions": [
+          "立式运输",
+          "外饰面朝外",
+          ">80°",
+          "对称靠放",
+          "2层",
+          "3层",
+          "6层"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "外墙板必须立式运输且饰面朝外；靠放架必须对称；层数限制：靠放2，梁柱3，板6。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:预制构件运输与堆放规则"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "运输与存放要求",
+        "预制构件运输与存放",
+        "预制构件运输与堆放规则",
+        "主体结构工程施工",
+        "立式运输",
+        "外饰面朝外",
+        ">80°",
+        "对称靠放",
+        "2层",
+        "3层"
+      ],
+      "source_excerpt": "### 运输与存放要求\n\n1. **基本原则**：做好“安全与成品保护”；大型构件应制定专项质量、安全保证措施。\n2. **运输方式**：\n   - **外墙板**：宜**立式运输**，且外饰面层应朝外。\n   - **水平构件**（梁、板、楼梯、阳台）：宜**水平运输**。\n3. **靠放架要求**：\n   - 采用靠放架运输时，构件与地面倾角应 **> 80°**。\n   - 应**对称靠放**。\n   - 采用靠放架立式运输时，每层**不大于2层**。\n4. **插放架要求**：应防止构件倾斜，构件间设置隔离垫块。\n5. **叠放层数限制**：\n   - **预制梁、柱**：叠放宜 **≤ 3层**。\n   - **板类构件**：叠放宜 **≤ 6层**。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0020_004",
+        "json_page_num": 20,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0020_004"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "预制构件运输与堆放规则"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "预制构件运输与堆放规则",
+      "unit_id": "lecture.main-structure.0045"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给口诀，再展开每个字对应的得分点。",
+        "formula_or_thresholds": [
+          "#### 1. 专项方案主要内容",
+          "#### 2. 构件安装准备工作"
+        ],
+        "mnemonics": [
+          "方案：工编计划四管理，绿色场地装放运；准备：吊环规位三核对"
+        ],
+        "must_mentions": [
+          "工程概况",
+          "编制依据",
+          "进度计划",
+          "安全管理",
+          "质量管理",
+          "信息化管理",
+          "应急预案",
+          "吊装设备",
+          "测量放线"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分'专项方案内容'与'安装准备工作'的条目，考试常考多选题混淆。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "mnemonic",
+      "intent": [
+        "grading_keywords",
+        "memorize",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:装配式结构施工管理"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "结构施工管理",
+        "装配式混凝土结构施工管理",
+        "装配式结构施工管理",
+        "主体结构工程施工",
+        "工程概况",
+        "编制依据",
+        "进度计划",
+        "安全管理",
+        "质量管理",
+        "信息化管理"
+      ],
+      "source_excerpt": "### 结构施工管理\n\n#### 1. 专项方案主要内容\n- **工程概况**\n- **编制依据**\n- **进度计划**\n- **安全管理**\n- **质量管理**\n- **信息化管理**\n- **应急预案管理**\n- **安装与连接施工**\n- **构件运输与存放**\n- **施工场地布置**\n- **绿色施工**\n\n> **助记口诀**：工编计划四管理，绿色场地装放运\n\n#### 2. 构件安装准备工作\n- ① 检查吊装设备及吊具是否安全\n- ② 核实现场环境、天气、道路状况\n- ③ 合理规划构件运输通道、临时堆场、成品保护措施\n- ④ 进行测量放线、设置构件安装定位标识\n- ⑤ 核对已完结构混凝土强度、外观质量、尺寸偏差\n- ⑥ 核对预制构件混凝土强度、型号、规格、数量\n- ⑦ 核对构件安装位置、节点连接构造、临时支撑方案\n\n> **助记口诀**：吊环规位三核对",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0020_001",
+        "json_page_num": 20,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0020_001__2-结构施工管理"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "装配式结构施工管理"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "装配式结构施工管理",
+      "unit_id": "lecture.main-structure.0046"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **夹角要求**",
+          "- 起吊的吊索水平夹角：**不宜小于 60°**，**不应小于 45°**",
+          "2. **操作方法**",
+          "3. **加固措施**",
+          "![起吊示意图](visual_ref:page_0021_lifting_diagram)"
+        ],
+        "mnemonics": [
+          "起吊夹角：宜六应四五"
+        ],
+        "must_mentions": [
+          "水平夹角",
+          "60°",
+          "45°",
+          "慢起",
+          "稳升",
+          "缓放",
+          "加固措施"
+        ],
+        "red_lines": [
+          "严禁构件长期悬空",
+          "吊索水平夹角小于45°"
+        ],
+        "trap_alerts": [
+          "注意区分'宜'和'应'：宜≥60°，应≥45°。考试常将两者混淆或修改数值。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:预制构件起吊技术"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "起吊技术要求",
+        "预制构件起吊",
+        "预制构件起吊技术",
+        "主体结构工程施工",
+        "水平夹角",
+        "60°",
+        "45°",
+        "慢起",
+        "稳升",
+        "缓放"
+      ],
+      "source_excerpt": "### 起吊技术要求\n\n1. **夹角要求**\n   - 起吊的吊索水平夹角：**不宜小于 60°**，**不应小于 45°**。\n2. **操作方法**\n   - 起吊应**慢起、稳升、缓放**，严禁构件长期悬空。\n3. **加固措施**\n   - 吊装时，**大型、薄壁、形状复杂**构件应采取加固措施。\n\n![起吊示意图](visual_ref:page_0021_lifting_diagram)",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0020_002",
+        "json_page_num": 20,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0020_002__2-起吊技术要求"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "预制构件起吊技术"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "预制构件起吊技术",
+      "unit_id": "lecture.main-structure.0047"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **基本原则**",
+          "2. **运输方式与姿态**",
+          "- **靠放架运输**：构件与地面倾斜角度 **> 80°**，且**对称靠放**",
+          "3. **堆放层数限制**",
+          "- **靠放架运输**：每层 **不大于 2 层**",
+          "- 预制梁、柱构件叠放 **宜≤ 3 层**"
+        ],
+        "mnemonics": [
+          "运输层数：靠二梁三板六"
+        ],
+        "must_mentions": [
+          "立式运输",
+          "水平运输",
+          "80°",
+          "对称靠放",
+          "2层",
+          "3层",
+          "6层"
+        ],
+        "red_lines": [
+          "外墙板平放运输（应立式）",
+          "靠放角度小于80°"
+        ],
+        "trap_alerts": [
+          "重点记忆层数限制：靠放2层，梁柱3层，板6层。易混淆点：外墙板必须立式运输且饰面朝外。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:预制构件运输与堆放"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "运输技术要求",
+        "预制构件运输",
+        "预制构件运输与堆放",
+        "主体结构工程施工",
+        "立式运输",
+        "水平运输",
+        "80°",
+        "对称靠放",
+        "2层",
+        "3层"
+      ],
+      "source_excerpt": "### 运输技术要求\n\n1. **基本原则**\n   - 应做好“安全与成品保护”。\n   - 大型构件运输、存放应制定专项质量、安全保证措施。\n\n2. **运输方式与姿态**\n   - **外墙板**：宜**立式运输**，且**外饰面层应朝外**。\n   - **水平构件**（梁、板、楼梯、阳台）：宜**水平运输**。\n   - **靠放架运输**：构件与地面倾斜角度 **> 80°**，且**对称靠放**。\n   - **插放架运输**：应防止构件倾斜，构件间设置隔离垫块。\n\n3. **堆放层数限制**\n   - **靠放架运输**：每层 **不大于 2 层**。\n   - **水平运输**：\n     - 预制梁、柱构件叠放 **宜≤ 3 层**。\n     - 板类构件叠放 **宜≤ 6 层**。\n\n![运输示意图](visual_ref:page_0021_transport_truck)",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0020_003",
+        "json_page_num": 20,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0020_003__2-运输技术要求"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "预制构件运输与堆放"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "预制构件运输与堆放",
+      "unit_id": "lecture.main-structure.0048"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "#### 1. 场地与标识要求",
+          "#### 2. 堆放方式与限值 (高频考点)",
+          "- **层数限制**: 层数**宜≤6层**",
+          "#### 3. 成品保护"
+        ],
+        "mnemonics": [
+          "板六梁柱二，墙板立着放"
+        ],
+        "must_mentions": [
+          "平整坚实",
+          "排水措施",
+          "≤6层",
+          "两条垫木",
+          "直立存放",
+          "临时加固"
+        ],
+        "red_lines": [
+          "垫块未上下对齐",
+          "墙板平放"
+        ],
+        "trap_alerts": [
+          "注意区分'平放'与'直立'的构件类型；特别是叠合板（薄、面积大）必须平放且限制层数；墙板（高、易折）必须直立。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "exam_point",
+      "intent": [
+        "error_correction",
+        "exam_point",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:装配式混凝土结构施工"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "预制构件存放管理",
+        "预制构件存放",
+        "装配式混凝土结构施工",
+        "主体结构工程施工",
+        "平整坚实",
+        "排水措施",
+        "≤6层",
+        "两条垫木",
+        "直立存放",
+        "临时加固"
+      ],
+      "source_excerpt": "### 预制构件存放管理\n\n#### 1. 场地与标识要求\n- **场地**: 存放场地应**平整坚实**，并有**排水措施**。\n- **保护**: 与清水混凝土面接触的垫块应采取**防污染措施**。\n- **管理**: 实行**分区管理**和信息化台账管理。\n- **分类**: 按产品品种、规格型号、检验状态分类存放。\n- **标识**: 产品标识应明显耐久，**预埋吊件朝上**，**标示向外**。\n- **支点**: 合理设置支点位置，宜与**起吊点位置一致**。\n\n#### 2. 堆放方式与限值 (高频考点)\n- **对齐**: 预制构件多层叠放时，每层垫块**上下对齐**。\n- **水平存放 (平放)**:\n  - **适用构件**: 预制板、叠合板、阳台板、空调板。\n  - **层数限制**: 层数**宜≤6层**。\n  - **梁柱要求**: 预制柱、梁等应平放，且用**两条垫木**支撑。\n- **竖向存放 (直立)**:\n  - **适用构件**: 预制内外墙板、挂板。\n  - **设施**: 宜采用**专用支架**直立存放。\n\n#### 3. 成品保护\n- **加固**: 构件**薄弱部位**和**门窗洞口**应采取防止变形开裂的**临时加固措施**。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0021_001",
+        "json_page_num": 21,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0021_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "装配式混凝土结构施工"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "装配式混凝土结构施工",
+      "unit_id": "lecture.main-structure.0049"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. **临时支撑设置要求**：",
+          "- 数量：竖向构件临时支撑**不宜少于2道**",
+          "- 推荐值（宜）：**≥构件高度的2/3**",
+          "- 强制值（应）：**≥构件高度的1/2**",
+          "2. **视觉重点解析**："
+        ],
+        "mnemonics": [
+          "支撑：2道，宜2/3，应1/2"
+        ],
+        "must_mentions": [
+          "2道",
+          "2/3",
+          "1/2"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分'宜'（2/3）和'应'（1/2）的区别，考试中常混淆这两个比例。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:装配式混凝土结构施工"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "竖向构件安装与临时支撑",
+        "预制竖向构件",
+        "装配式混凝土结构施工",
+        "主体结构工程施工",
+        "2道",
+        "2/3",
+        "1/2"
+      ],
+      "source_excerpt": "### 竖向构件安装与临时支撑\n\n1. **临时支撑设置要求**：\n   - 数量：竖向构件临时支撑**不宜少于2道**。\n   - 支撑点高度：\n     - 推荐值（宜）：**≥构件高度的2/3**\n     - 强制值（应）：**≥构件高度的1/2**\n\n2. **视觉重点解析**：\n   - 图示显示斜支撑（斜撑）连接在预制墙板上部，底部固定在楼板上。\n   - 支撑系统需具备调节功能，用于校正构件垂直度。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0022_001",
+        "json_page_num": 22,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0022_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "装配式混凝土结构施工"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "装配式混凝土结构施工",
+      "unit_id": "lecture.main-structure.0050"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **安装顺序**：",
+          "2. **就位前准备**：",
+          "3. **接缝处理**：",
+          "- 多层剪力墙坐浆：材料应均匀铺设，厚度**宜≤20mm**",
+          "图示明确标注“多层剪力墙的坐浆材料厚度宜≤20mm”，并展示了墙底的坐浆料铺设情况"
+        ],
+        "mnemonics": [
+          "墙体：先连现浇，坐浆20"
+        ],
+        "must_mentions": [
+          "与现浇部分连接",
+          "调平装置",
+          "≤20mm"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "坐浆厚度是≤20mm，注意不要记成其他数值（如30mm）。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:装配式混凝土结构施工"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "墙体安装工艺",
+        "预制剪力墙",
+        "装配式混凝土结构施工",
+        "主体结构工程施工",
+        "与现浇部分连接",
+        "调平装置",
+        "≤20mm"
+      ],
+      "source_excerpt": "### 墙体安装工艺\n\n1. **安装顺序**：\n   - 应**先吊装与现浇部分连接**的剪力墙板。\n2. **就位前准备**：\n   - 剪力墙板就位前，先在墙体底部设置**调平装置**。\n3. **接缝处理**：\n   - 夹芯保温外墙板：采用**弹性密封材料**封堵。\n   - 多层剪力墙坐浆：材料应均匀铺设，厚度**宜≤20mm**。\n\n**视觉重点**：\n图示明确标注“多层剪力墙的坐浆材料厚度宜≤20mm”，并展示了墙底的坐浆料铺设情况。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0022_002",
+        "json_page_num": 22,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0022_002"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "装配式混凝土结构施工"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "装配式混凝土结构施工",
+      "unit_id": "lecture.main-structure.0051"
+    },
+    {
+      "answer_method": {
+        "answer_style": "按施工或管理顺序分点作答，不跳步。",
+        "formula_or_thresholds": [
+          "1. **安装顺序**：",
+          "2. **位置控制线**："
+        ],
+        "mnemonics": [
+          "柱序：角边中；边角：外轮廓"
+        ],
+        "must_mentions": [
+          "角柱→边柱→中柱",
+          "外轮廓线"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "边柱和角柱只以外轮廓线控制，不要选轴线。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "process_flow",
+      "intent": [
+        "grading_keywords",
+        "process_answer",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:装配式混凝土结构施工"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "柱子安装顺序与控制",
+        "预制柱",
+        "装配式混凝土结构施工",
+        "主体结构工程施工",
+        "角柱→边柱→中柱",
+        "外轮廓线"
+      ],
+      "source_excerpt": "### 柱子安装顺序与控制\n\n1. **安装顺序**：\n   - 总体流程：**角柱 → 边柱 → 中柱**。\n   - 优先原则：**与现浇部分连接的柱子先行安装**。\n\n2. **位置控制线**：\n   - 一般预制柱：以**轴线**和**外轮廓线**为控制线。\n   - 边柱和角柱：以**外轮廓线**控制为准（确保外立面平整）。\n\n**视觉重点解析**：\n平面示意图清晰展示了安装路径：从四角（角柱）开始，向周边（边柱）延伸，最后安装内部（中柱）。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0022_003",
+        "json_page_num": 22,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0022_003"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "装配式混凝土结构施工"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "装配式混凝土结构施工",
+      "unit_id": "lecture.main-structure.0052"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "预制构件钢筋可采用以下连接方式：",
+          "1. **钢筋套筒灌浆连接**（图示重点）",
+          "2. **钢筋浆锚搭接连接**",
+          "3. **焊接**",
+          "4. **螺栓连接**",
+          "5. **钢筋机械连接**"
+        ],
+        "mnemonics": [
+          "连接五法：套浆焊螺机"
+        ],
+        "must_mentions": [
+          "套筒灌浆",
+          "浆锚搭接"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分套筒灌浆和浆锚搭接的应用场景。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:装配式混凝土结构施工"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "预制构件钢筋连接方式",
+        "预制构件钢筋连接",
+        "装配式混凝土结构施工",
+        "主体结构工程施工",
+        "套筒灌浆",
+        "浆锚搭接"
+      ],
+      "source_excerpt": "### 预制构件钢筋连接方式\n\n预制构件钢筋可采用以下连接方式：\n1. **钢筋套筒灌浆连接**（图示重点）\n2. **钢筋浆锚搭接连接**\n3. **焊接**\n4. **螺栓连接**\n5. **钢筋机械连接**\n\n**视觉重点**：\n底部图片展示了“半灌浆套筒”和“全灌浆套筒”的示意图，以及工人进行焊接作业的场景。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0022_004",
+        "json_page_num": 22,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0022_004"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "装配式混凝土结构施工"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "装配式混凝土结构施工",
+      "unit_id": "lecture.main-structure.0053"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "#### 1. 灌浆方式选择",
+          "#### 2. 连通腔灌浆区域划分与构造",
+          "- 连通灌浆区域内任意2个灌浆孔套筒宜**≤1.5m**",
+          "- 连通腔内部与下方已完结构上表面最小间隙**≥10mm**",
+          "#### 3. 灌浆料温度控制要求 (关键考点)",
+          "**(1) 测温要求**"
+        ],
+        "mnemonics": [
+          "灌浆温控：常温五三零下禁，低温十下零负五；分仓一米五，底部一公分。"
+        ],
+        "must_mentions": [
+          "连通腔灌浆",
+          "1.5m",
+          "10mm",
+          "先快后慢",
+          "5~30°C",
+          "24h",
+          "2d"
+        ],
+        "red_lines": [
+          "灌浆施工过程气温<0°C时不得采用常温型灌浆料",
+          "水平连接时灌浆套筒应各自独立灌浆"
+        ],
+        "trap_alerts": [
+          "注意区分常温型灌浆料在<5°C时的养护要求（24h≥5°C）与低温型灌浆料的养护要求（环境≥0°C, 部位≥-5°C）。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "exam_point",
+      "intent": [
+        "error_correction",
+        "exam_point",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:装配式混凝土结构施工"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "钢筋套筒灌浆连接施工技术",
+        "钢筋套筒灌浆连接",
+        "装配式混凝土结构施工",
+        "主体结构工程施工",
+        "连通腔灌浆",
+        "1.5m",
+        "10mm",
+        "先快后慢",
+        "5~30°C",
+        "24h"
+      ],
+      "source_excerpt": "### 钢筋套筒灌浆连接施工技术\n\n#### 1. 灌浆方式选择\n- 据施工条件、操作经验选择**连通腔灌浆施工**或**坐浆法施工**。\n- **高层建筑**装配混凝土剪力墙宜采用**连通腔灌浆施工**。\n- 当有可靠经验时也可采用坐浆法施工。\n\n#### 2. 连通腔灌浆区域划分与构造\n- 竖向构件采用连通腔灌浆施工时，应**合理划分连通灌浆区域**。\n- 每个区域除预留**灌浆孔**、**出浆孔**与**排气孔**外，应形成**密闭空腔**，**不应漏浆**。\n- 连通灌浆区域内任意2个灌浆孔套筒宜**≤1.5m**。\n- 连通腔内部与下方已完结构上表面最小间隙**≥10mm**。\n\n#### 3. 灌浆料温度控制要求 (关键考点)\n\n**(1) 测温要求**\n- 日平均气温 > 25°C：测量施工环境温度、灌浆料拌合物温度。\n- 日最高气温 < 10°C：测量施工环境温度、灌浆料拌合物温度、灌浆部位温度。\n\n**(2) 温控措施 (常温型)**\n- **拌合物温度**：任何情况下应**≥5°C**，宜**≤30°C** (5~30°C)。\n- **低温施工** (施工前气温、施工环境温度 < 5°C)：\n  - 采取**加热**、**封闭保温**措施。\n  - 确保从灌浆起**24h**内施工环境温度、灌浆部位温度**≥5°C**。\n  - 之后宜继续封闭保温**2d**。\n- **严禁情况**：当灌浆施工过程的气温 **< 0°C** 时，**不得采用常温型灌浆料**施工。\n\n**(3) 低温型灌浆料使用**\n- **适用条件**：连续3d施工环境温度、灌浆部位温度的最高值均 **< 10°C**，可采用低温型灌浆料及封浆料。\n- **施工限制**：低温型灌浆料灌浆施工过程中的施工环境温度、灌浆部位温度应 **≤ 10°C**。\n- **养护要求**：采取封闭保温措施，确保灌浆施工环境温度**不低于0°C**；确保从灌浆开始**24h内**灌浆部位温度 **≥ -5°C**；必要时采取加热措施。\n- **恢复常温型**：当连续3d平均气温 **> 5°C** ",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0023_001",
+        "json_page_num": 23,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0023_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "装配式混凝土结构施工"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "装配式混凝土结构施工",
+      "unit_id": "lecture.main-structure.0054"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. **灌浆方式**：竖向钢筋套筒灌浆采用**连通腔灌浆**时，应采用**一点灌浆**",
+          "2. **灌浆点变换处理**：",
+          "1. 打开各灌浆套筒已封堵的**下部灌浆孔**和**上部出浆孔**",
+          "2. 待灌浆料拌合物再次**平稳流出**",
+          "3. 进行封堵"
+        ],
+        "mnemonics": [],
+        "must_mentions": [
+          "一点灌浆",
+          "连通腔"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意竖向构件连通腔灌浆必须是'一点灌浆'，而非多点同时灌浆。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:装配式混凝土结构施工"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "钢筋套筒灌浆连接工艺要求",
+        "钢筋套筒灌浆连接",
+        "装配式混凝土结构施工",
+        "主体结构工程施工",
+        "一点灌浆",
+        "连通腔"
+      ],
+      "source_excerpt": "### 钢筋套筒灌浆连接工艺要求\n\n1. **灌浆方式**：竖向钢筋套筒灌浆采用**连通腔灌浆**时，应采用**一点灌浆**。\n2. **灌浆点变换处理**：\n   - 当一点灌浆遇到问题需改变灌浆点时，操作流程如下：\n     1. 打开各灌浆套筒已封堵的**下部灌浆孔**和**上部出浆孔**；\n     2. 待灌浆料拌合物再次**平稳流出**；\n     3. 进行封堵。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0024_001",
+        "json_page_num": 24,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0024_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "装配式混凝土结构施工"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "装配式混凝土结构施工",
+      "unit_id": "lecture.main-structure.0055"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. **临时支撑**: 临时支撑与施工荷载应满足设计和施工方案要求",
+          "2. **浇筑前检查**: 应检查结合面粗糙度及预制构件外露钢筋",
+          "3. **支撑拆除**: 构件在后浇混凝土强度达到设计要求后，方可拆除临时支撑"
+        ],
+        "mnemonics": [],
+        "must_mentions": [
+          "结合面粗糙度",
+          "外露钢筋",
+          "设计要求"
+        ],
+        "red_lines": [
+          "未达设计强度拆除支撑"
+        ],
+        "trap_alerts": [
+          "注意拆模条件的表述，必须是“后浇混凝土”强度达到“设计要求”。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "error_correction",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:装配式混凝土结构施工"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "预制构件-受弯叠合构件施工要求",
+        "预制受弯叠合构件",
+        "装配式混凝土结构施工",
+        "主体结构工程施工",
+        "结合面粗糙度",
+        "外露钢筋",
+        "设计要求"
+      ],
+      "source_excerpt": "### 预制构件-受弯叠合构件施工要求\n\n1. **临时支撑**: 临时支撑与施工荷载应满足设计和施工方案要求。\n2. **浇筑前检查**: 应检查结合面粗糙度及预制构件外露钢筋。\n3. **支撑拆除**: 构件在后浇混凝土强度达到设计要求后，方可拆除临时支撑。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0025_001",
+        "json_page_num": 25,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0025_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "装配式混凝土结构施工"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "装配式混凝土结构施工",
+      "unit_id": "lecture.main-structure.0056"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "#### 1. 构件进场验收原则",
+          "#### 2. 进场证明文件",
+          "#### 3. 免检条件",
+          "#### 4. 连接节点及叠合构件隐蔽工程验收"
+        ],
+        "mnemonics": [
+          "驻厂免检：筋砼两项"
+        ],
+        "must_mentions": [
+          "驻厂监督",
+          "合并验收",
+          "隐蔽工程"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意免检的前提是“驻厂监督”，且免检项目仅限钢筋配置和混凝土强度。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "table_data",
+      "intent": [
+        "grading_keywords",
+        "table_lookup",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:装配式结构质量验收"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "装配式结构施工质量验收",
+        "装配式结构质量验收",
+        "主体结构工程施工",
+        "驻厂监督",
+        "合并验收",
+        "隐蔽工程"
+      ],
+      "source_excerpt": "### 装配式结构施工质量验收\n\n#### 1. 构件进场验收原则\n- **合并验收**: 同厂家生产的材料、部品，属同一项目同期施工的多个单位工程，可合并验收。\n- **效力共享**: 多个工程共同委托同类型预制构件的性能检验，其检验结果对多个工程均有效。\n\n#### 2. 进场证明文件\n部品部件进场应提供：①产品标准、②出厂合格证、③质量保证书、④使用说明书。\n\n#### 3. 免检条件\n- **条件**: 施工单位或监理单位代表**驻厂监督**生产过程。\n- **免检项**: 可不检测构件的**钢筋数量、规格、间距、保护层厚度**及**混凝土强度**。\n- **否则**: 必须进行上述项目的检测。\n\n#### 4. 连接节点及叠合构件隐蔽工程验收\n| 项目 | 验收内容 |\n|---|---|\n| **混凝土** | 粗糙面的质量，键槽的尺寸、数量、位置 |\n| **钢筋** | ①连接方式、接头位置、接头数量、接头面积百分率、搭接长度、锚固方式及长度<br>②钢筋牌号、规格、数量、位置、间距<br>③箍筋弯钩的弯折角度及平直段长度 |\n| **预埋件** | 预埋件、预留管线的规格、数量、位置 |\n| **接缝** | 预制混凝土构件接缝处防水、防火等构造做法 |\n| **其他** | 保温及其节点施工 |",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0025_002",
+        "json_page_num": 25,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0025_002"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "装配式结构质量验收"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "装配式结构质量验收",
+      "unit_id": "lecture.main-structure.0057"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "#### 1. 灌浆料（套筒灌浆）",
+          "- **试件制作**: 每班应制作 **1组**，且每层应 **≥3组**",
+          "- **试件尺寸**: **40mm × 40mm × 160mm** 的长方体试件",
+          "- **养护条件**: 标养 **28d** 后进行**抗压强度**试验",
+          "#### 2. 坐浆料（底部接缝）",
+          "- **试件制作**: 每班同配比应制作 **1组**，且每层应 **≥3组**"
+        ],
+        "mnemonics": [
+          "灌浆细长坐浆方，每层三组验强度；千平抽一淋十平，十字接缝看渗漏"
+        ],
+        "must_mentions": [
+          "40mm×40mm×160mm",
+          "70.7mm",
+          "每层≥3组",
+          "十字接缝",
+          "1000m²"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "灌浆料试件是棱柱体(40x40x160)，坐浆料是立方体(70.7)；淋水试验必须包含十字接缝。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "exam_point",
+      "intent": [
+        "exam_point",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:装配式连接材料检测"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "装配式连接材料及现场检测（必考参数）",
+        "装配式关键材料检测",
+        "装配式连接材料检测",
+        "主体结构工程施工",
+        "40mm×40mm×160mm",
+        "70.7mm",
+        "每层≥3组",
+        "十字接缝",
+        "1000m²"
+      ],
+      "source_excerpt": "### 装配式连接材料及现场检测（必考参数）\n\n#### 1. 灌浆料（套筒灌浆）\n- **试件制作**: 每班应制作 **1组**，且每层应 **≥3组**。\n- **试件尺寸**: **40mm × 40mm × 160mm** 的长方体试件。\n- **养护条件**: 标养 **28d** 后进行**抗压强度**试验。\n\n#### 2. 坐浆料（底部接缝）\n- **试件制作**: 每班同配比应制作 **1组**，且每层应 **≥3组**。\n- **试件尺寸**: 边长为 **70.7mm** 的立方体试件。\n- **养护条件**: 标养 **28d** 后进行**抗压强度**试验。\n\n#### 3. 外墙淋水试验\n- **检验批划分**: 每 **1000m²** 外墙（含窗）为一个检验批，不足1000m²也划分为一个检验批。\n- **抽检数量**: 每个检验批至少抽检 **1处**。\n- **抽检部位**: 相邻两层四块墙板形成的**水平和竖向十字接缝**区域。\n- **试验面积**: 面积 **≥10m²**。\n- **检测方法**: 进行现场淋水试验。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0025_003",
+        "json_page_num": 25,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0025_003"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "装配式连接材料检测"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "装配式连接材料检测",
+      "unit_id": "lecture.main-structure.0058"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "#### 1. 验收之前必试项（实验室+现场）",
+          "1.  抗压性能",
+          "2.  层间变形性能",
+          "3.  耐撞击性能",
+          "4.  耐火极限",
+          "5.  连接件材性检测"
+        ],
+        "mnemonics": [
+          "必试：三性连接拔火罐；可选：水热声粘四可选；隐蔽：雷火预埋三节点"
+        ],
+        "must_mentions": [
+          "抗压性能",
+          "耐火极限",
+          "锚栓拉拔",
+          "淋水试验"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分'必试项'与'可选项'，锚栓拉拔属于必试项，而淋水试验属于可选项。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:外围护部品验收"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "外围护部品验收体系",
+        "外围护部品",
+        "外围护部品验收",
+        "主体结构工程施工",
+        "抗压性能",
+        "耐火极限",
+        "锚栓拉拔",
+        "淋水试验"
+      ],
+      "source_excerpt": "### 外围护部品验收体系\n\n#### 1. 验收之前必试项（实验室+现场）\n*   **实验室检测**：\n    1.  抗压性能\n    2.  层间变形性能\n    3.  耐撞击性能\n    4.  耐火极限\n*   **现场检测**：\n    5.  连接件材性检测\n    6.  锚栓拉拔强度检测\n\n#### 2. 现场验收可选项（现场）\n1.  墙板接缝及外门窗现场淋水试验\n2.  现场传热系数测试\n3.  现场隔声测试\n4.  饰面板（砖）的粘接强度\n\n#### 3. 隐蔽工程验收项（现场）\n1.  防雷装置\n2.  防火构造\n3.  预埋件\n4.  与主体结构的连接节点\n5.  与主体结构之间的封堵构造节点\n6.  变形缝及墙面转角处的构造节点",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0026_001",
+        "json_page_num": 26,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0026_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "外围护部品验收"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "外围护部品验收",
+      "unit_id": "lecture.main-structure.0059"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "#### 1. 连接方式与接头类别",
+          "#### 2. 焊接环境专项方案编制要求（★重点）",
+          "钢结构焊接时，若环境超出以下范围，**必须编制专项方案**：",
+          "*   **温度**：作业环境温度不应低于 **-10℃**",
+          "*   **湿度**：焊接作业区的相对湿度不应大于 **90%**",
+          "*   手工电弧焊和自保护药芯焊丝电弧焊：最大风速 **≤8m/s**"
+        ],
+        "mnemonics": [
+          "十九八二温湿风"
+        ],
+        "must_mentions": [
+          "-10℃",
+          "90%",
+          "8m/s",
+          "2m/s",
+          "专项方案"
+        ],
+        "red_lines": [
+          "环境超标未编方案"
+        ],
+        "trap_alerts": [
+          "气体保护焊的风速限制(2m/s)远严于手工电弧焊(8m/s)，考试常互换数值挖坑。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:钢结构焊接环境要求"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "钢结构焊接管理",
+        "钢结构焊接",
+        "钢结构焊接环境要求",
+        "主体结构工程施工",
+        "-10℃",
+        "90%",
+        "8m/s",
+        "2m/s",
+        "专项方案"
+      ],
+      "source_excerpt": "### 钢结构焊接管理\n\n#### 1. 连接方式与接头类别\n*   **三种连接方式**：螺栓连接、铆钉连接、焊缝连接。\n*   **焊接接头类别**：槽焊、塞焊（穿孔）、全熔透/部分熔透焊接、栓钉焊、角焊缝接头、电渣焊。\n\n#### 2. 焊接环境专项方案编制要求（★重点）\n钢结构焊接时，若环境超出以下范围，**必须编制专项方案**：\n*   **温度**：作业环境温度不应低于 **-10℃**。\n*   **湿度**：焊接作业区的相对湿度不应大于 **90%**。\n*   **风速**：\n    *   手工电弧焊和自保护药芯焊丝电弧焊：最大风速 **≤8m/s**。\n    *   气体保护电弧焊：最大风速 **≤2m/s**。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0026_002",
+        "json_page_num": 26,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0026_002"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "钢结构焊接环境要求"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "钢结构焊接环境要求",
+      "unit_id": "lecture.main-structure.0060"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. **垫圈放置要求**",
+          "- **数量限制**：螺栓头垫圈应 $\\le 2$ 个，螺母垫圈应 $\\le 1$ 个",
+          "2. **紧固与验收**",
+          "- **外露丝扣**：螺栓拧紧后，外露丝扣不应少于 **2扣**"
+        ],
+        "mnemonics": [
+          "普螺：头2母1露2扣，动弹斜斜锤击查"
+        ],
+        "must_mentions": [
+          "弹簧垫圈",
+          "斜垫圈",
+          "锤击法",
+          "从中间开始",
+          "对称向两边"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分普通螺栓（锤击法）与高强螺栓的检查方法；注意垫圈数量限制是头2母1。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:钢结构普通螺栓连接要求"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "普通螺栓连接管理",
+        "普通螺栓连接",
+        "钢结构普通螺栓连接要求",
+        "主体结构工程施工",
+        "弹簧垫圈",
+        "斜垫圈",
+        "锤击法",
+        "从中间开始",
+        "对称向两边"
+      ],
+      "source_excerpt": "### 普通螺栓连接管理\n\n1. **垫圈放置要求**\n   - 螺栓和螺母应与结构件的表面及垫圈密贴。\n   - **数量限制**：螺栓头垫圈应 $\\le 2$ 个，螺母垫圈应 $\\le 1$ 个。\n   - **特殊工况**：动荷载或重要部位螺栓连接，必须在螺母一侧设置**弹簧垫圈**。\n   - **斜面连接**：工字钢、槽钢等有斜面螺栓连接，必须使用**斜垫圈**。\n\n2. **紧固与验收**\n   - **外露丝扣**：螺栓拧紧后，外露丝扣不应少于 **2扣**。\n   - **紧固顺序**：从中间开始，对称向两边进行（图示：由中央向四周扩散）。\n   - **大型接头**：应采用复拧，即两次紧固方法。\n   - **检查方法**：永久性普通螺栓采用**锤击法**检查其紧固质量。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0027_001",
+        "json_page_num": 27,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0027_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "钢结构普通螺栓连接要求"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "钢结构普通螺栓连接要求",
+      "unit_id": "lecture.main-structure.0061"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **连接形式**：摩擦连接、张拉连接、承压连接",
+          "2. **穿孔要求**",
+          "- **扩孔限制**：扩孔数量应征得设计同意，扩孔后孔径 $\\le 1.2$ 倍螺栓直径",
+          "3. **紧固工艺**",
+          "- **外露丝扣**：终拧后外露 **2~3 丝扣**为标准",
+          "- **时效**：初拧、复拧、终拧应在 **24h** 内完成"
+        ],
+        "mnemonics": [
+          "高螺：1323不兼做，24小时拧完活，扩孔1.2禁气割"
+        ],
+        "must_mentions": [
+          "自由穿入",
+          "气割扩孔",
+          "1.2倍",
+          "24h",
+          "1/3",
+          "30%",
+          "不兼做"
+        ],
+        "red_lines": [
+          "不得气割扩孔",
+          "不得兼做安装螺栓"
+        ],
+        "trap_alerts": [
+          "冲钉比例基数是'安装螺栓数量'；高强螺栓不可兼做临时螺栓；扩孔径是1.2倍螺栓直径。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:钢结构高强螺栓连接要求"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "高强螺栓连接管理",
+        "高强度螺栓连接",
+        "钢结构高强螺栓连接要求",
+        "主体结构工程施工",
+        "自由穿入",
+        "气割扩孔",
+        "1.2倍",
+        "24h",
+        "1/3",
+        "30%"
+      ],
+      "source_excerpt": "### 高强螺栓连接管理\n\n1. **连接形式**：摩擦连接、张拉连接、承压连接。\n2. **穿孔要求**\n   - 高强螺栓应**自由穿入**螺栓孔，**不得强行穿入**（如锤击）。\n   - **扩孔规定**：可用铰刀或锉刀修整，**不得气割扩孔**。\n   - **扩孔限制**：扩孔数量应征得设计同意，扩孔后孔径 $\\le 1.2$ 倍螺栓直径。\n   - **废弃处理**：超扩孔应废弃更换，废弃螺栓**不得重复使用**。\n\n3. **紧固工艺**\n   - **外露丝扣**：终拧后外露 **2~3 丝扣**为标准。\n   - **方法**：高强大六角头螺栓采用**扭矩法**或**转角法**。\n   - **时效**：初拧、复拧、终拧应在 **24h** 内完成。\n   - **顺序**：由刚度较大的部位向约束较小的方向；**螺栓群中央向四周**。\n\n4. **安装临时固定（1323原则）**\n   - 使用安装螺栓和冲钉应满足：\n     - 总数 $\\ge$ 安装孔总数的 **1/3**；\n     - 安装螺栓 $\\ge$ **2个**；\n     - 冲钉穿入数量 $\\le$ 安装螺栓数量的 **30%**。\n   - **红线**：不得用高强度螺栓兼做安装螺栓。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0027_002",
+        "json_page_num": 27,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0027_002"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "钢结构高强螺栓连接要求"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "钢结构高强螺栓连接要求",
+      "unit_id": "lecture.main-structure.0062"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **120mm厚墙**、清水墙、料石墙、独立柱和附墙柱",
+          "2. 过梁上部与过梁成**60°角**的三角形范围及过梁净跨度**1/2**的高度范围内",
+          "3. 宽度小于**1m**的窗间墙",
+          "4. 门窗洞口两侧石砌体**300mm**，其他砌体**200mm**范围内",
+          "转角处石砌体**600mm**，其他砌体**450mm**范围内",
+          "5. 梁或梁垫下及其左右**500mm**范围内"
+        ],
+        "mnemonics": [
+          "120清水独立柱，60度角过梁处；1米窗间梁垫5，洞口32转角645"
+        ],
+        "must_mentions": [
+          "120mm",
+          "60°",
+          "1m",
+          "500mm",
+          "轻质墙体",
+          "夹心复合墙"
+        ],
+        "red_lines": [
+          "设计不允许部位",
+          "轻质墙体",
+          "夹心复合墙外叶墙"
+        ],
+        "trap_alerts": [
+          "注意区分'石砌体'与'其他砌体'的距离要求：洞口旁石300/他200，转角处石600/他450。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:砌体结构脚手眼设置禁忌"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "脚手眼设置禁忌",
+        "脚手眼",
+        "砌体结构脚手眼设置禁忌",
+        "主体结构工程施工",
+        "120mm",
+        "60°",
+        "1m",
+        "500mm",
+        "轻质墙体",
+        "夹心复合墙"
+      ],
+      "source_excerpt": "### 脚手眼设置禁忌\n\n在砌体结构施工中，**不得**在下列墙体或部位设置脚手眼：\n\n1. **120mm厚墙**、清水墙、料石墙、独立柱和附墙柱。\n2. 过梁上部与过梁成**60°角**的三角形范围及过梁净跨度**1/2**的高度范围内。\n3. 宽度小于**1m**的窗间墙。\n4. 门窗洞口两侧石砌体**300mm**，其他砌体**200mm**范围内；转角处石砌体**600mm**，其他砌体**450mm**范围内。\n5. 梁或梁垫下及其左右**500mm**范围内。\n6. 轻质墙体。\n7. 夹心复合墙外叶墙。\n8. 设计不允许设置脚手眼的部位。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0029_001",
+        "json_page_num": 29,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0029_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "砌体结构脚手眼设置禁忌"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "砌体结构脚手眼设置禁忌",
+      "unit_id": "lecture.main-structure.0063"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "在**厨房、卫生间、浴室**等处采用**轻骨料混凝土小型空心砌块**、**蒸压加气混凝土砌块**砌筑墙体时，墙体底部宜现浇混凝土坎台，其高度宜为**150mm**",
+          "> **图示解析**：图中展示了现浇砼坎台的实物，并用黄色箭头明确标注高度为**150mm**，旨在防止根部积水渗漏"
+        ],
+        "mnemonics": [
+          "厨卫坎台150"
+        ],
+        "must_mentions": [
+          "现浇混凝土坎台",
+          "150mm",
+          "厨房卫生间"
+        ],
+        "red_lines": [
+          "直接在楼板上砌筑加气块"
+        ],
+        "trap_alerts": [
+          "注意适用范围是'轻骨料'和'加气混凝土'等多孔材料；高度是150mm不是200mm。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:厨卫间墙体坎台构造"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "现浇混凝土坎台",
+        "厨卫间墙体坎台构造",
+        "主体结构工程施工",
+        "150mm",
+        "厨房卫生间"
+      ],
+      "source_excerpt": "### 现浇混凝土坎台\n\n在**厨房、卫生间、浴室**等处采用**轻骨料混凝土小型空心砌块**、**蒸压加气混凝土砌块**砌筑墙体时，墙体底部宜现浇混凝土坎台，其高度宜为**150mm**。\n\n> **图示解析**：图中展示了现浇砼坎台的实物，并用黄色箭头明确标注高度为**150mm**，旨在防止根部积水渗漏。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0029_002",
+        "json_page_num": 29,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0029_002"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "厨卫间墙体坎台构造"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "厨卫间墙体坎台构造",
+      "unit_id": "lecture.main-structure.0064"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "在砌体结构施工中，以下部位**不得设置脚手眼**：",
+          "1. **120mm厚墙**、清水墙、料石墙、独立柱和附墙柱",
+          "2. 过梁上部与过梁成 **60°角** 的三角形范围及过梁净跨度 **1/2** 的高度范围内",
+          "3. 宽度小于 **1m** 的窗间墙",
+          "4. 门窗洞口两侧石砌体 **300mm**，其他砌体 **200mm** 范围内",
+          "转角处石砌体 **600mm**，其他砌体 **450mm** 范围内"
+        ],
+        "mnemonics": [
+          "120清水独附，过梁60三角半，窗间1米，洞口石3他2，转角石6他4半，梁下500，轻质夹心禁。"
+        ],
+        "must_mentions": [
+          "120mm",
+          "60°",
+          "1m",
+          "500mm",
+          "轻质墙体"
+        ],
+        "red_lines": [
+          "轻质墙体严禁留设脚手眼",
+          "夹心复合墙外叶墙严禁留设脚手眼"
+        ],
+        "trap_alerts": [
+          "注意区分'石砌体'与'其他砌体'在洞口和转角处的距离区别（300/600 vs 200/450）。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:砌体结构脚手眼设置限制"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "脚手眼的设置限制",
+        "脚手眼",
+        "砌体结构脚手眼设置限制",
+        "主体结构工程施工",
+        "120mm",
+        "60°",
+        "1m",
+        "500mm",
+        "轻质墙体"
+      ],
+      "source_excerpt": "### 脚手眼的设置限制\n\n在砌体结构施工中，以下部位**不得设置脚手眼**：\n\n1. **120mm厚墙**、清水墙、料石墙、独立柱和附墙柱。\n2. 过梁上部与过梁成 **60°角** 的三角形范围及过梁净跨度 **1/2** 的高度范围内。\n3. 宽度小于 **1m** 的窗间墙。\n4. 门窗洞口两侧石砌体 **300mm**，其他砌体 **200mm** 范围内；转角处石砌体 **600mm**，其他砌体 **450mm** 范围内。\n5. 梁或梁垫下及其左右 **500mm** 范围内。\n6. 轻质墙体。\n7. 夹心复合墙外叶墙。\n8. 设计不允许设置脚手眼的部位。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0029_001",
+        "json_page_num": 29,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0029_001__2-脚手眼的设置限制"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "砌体结构脚手眼设置限制"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "砌体结构脚手眼设置限制",
+      "unit_id": "lecture.main-structure.0065"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "在**厨房、卫生间、浴室**等处采用**轻骨料混凝土小型空心砌块**、**蒸压加气混凝土砌块**砌筑墙体时，墙体底部宜现浇混凝土坎台，其高度宜为 **150mm**"
+        ],
+        "mnemonics": [
+          "厨卫加气块，底浇150。"
+        ],
+        "must_mentions": [
+          "现浇",
+          "150mm",
+          "厨房卫生间"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意适用范围是'轻骨料'和'加气混凝土'等轻质砌块，普通烧结砖通常不需要此坎台（但实务中多水房间一般都做）。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:轻质砌块墙体底部构造"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "现浇混凝土坎台",
+        "轻质砌块墙体底部构造",
+        "主体结构工程施工",
+        "现浇",
+        "150mm",
+        "厨房卫生间"
+      ],
+      "source_excerpt": "### 现浇混凝土坎台\n\n在**厨房、卫生间、浴室**等处采用**轻骨料混凝土小型空心砌块**、**蒸压加气混凝土砌块**砌筑墙体时，墙体底部宜现浇混凝土坎台，其高度宜为 **150mm**。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0029_002",
+        "json_page_num": 29,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0029_002__2-现浇混凝土坎台"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "轻质砌块墙体底部构造"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "轻质砌块墙体底部构造",
+      "unit_id": "lecture.main-structure.0066"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1.  **尺寸与位置限制**：",
+          "*   墙体上留置临时施工洞口，其侧边离交接处墙面不应小于 **500mm**",
+          "*   洞口净宽不应超过 **1m**",
+          "2.  **顶部构造**：",
+          "3.  **抗震与特殊限制**：",
+          "*   **抗震设防烈度为9度及以上**地震区，临时洞口位置应会同设计单位确定"
+        ],
+        "mnemonics": [
+          "洞口一米宽，离角半米远"
+        ],
+        "must_mentions": [
+          "净宽≤1m",
+          "侧边距≥500mm",
+          "9度",
+          "墙梁构件"
+        ],
+        "red_lines": [
+          "墙梁构件墙体未咨询设计留洞"
+        ],
+        "trap_alerts": [
+          "注意区分临时洞口(1m)与脚手眼(不可设置区域)的区别；注意9度区不是禁止，而是需设计确认。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:砌体结构工程施工"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "临时施工洞口构造及尺寸要求",
+        "砌体墙临时施工洞口",
+        "砌体结构工程施工",
+        "主体结构工程施工",
+        "净宽≤1m",
+        "侧边距≥500mm",
+        "9度",
+        "墙梁构件"
+      ],
+      "source_excerpt": "### 临时施工洞口构造及尺寸要求\n\n1.  **尺寸与位置限制**：\n    *   墙体上留置临时施工洞口，其侧边离交接处墙面不应小于 **500mm**。\n    *   洞口净宽不应超过 **1m**。\n2.  **顶部构造**：\n    *   临时洞口顶部宜设置**过梁**。\n    *   也可在洞口上部采取**逐层挑砖封口**，并预埋水平拉结筋。\n3.  **抗震与特殊限制**：\n    *   **抗震设防烈度为9度及以上**地震区，临时洞口位置应会同设计单位确定。\n    *   **墙梁构件的墙体**不宜留临时洞口；当需留置时，应会同设计单位确定。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0030_001",
+        "json_page_num": 30,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0030_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "砌体结构工程施工"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "砌体结构工程施工",
+      "unit_id": "lecture.main-structure.0067"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1.  **施工顺序**：",
+          "2.  **马牙槎构造**：",
+          "*   尺寸要求：沿高 **≤300mm**，凹凸尺寸宜为 **60mm**",
+          "3.  **砌筑高度控制**：",
+          "*   正常条件下，砖砌体每日砌筑高度宜控制在 **1.5m** 或 **一步脚手架高度**内"
+        ],
+        "mnemonics": [
+          "先绑后砌再浇筑，马牙槎口退进出"
+        ],
+        "must_mentions": [
+          "先绑扎钢筋",
+          "后砌砖墙",
+          "先退后进",
+          "300mm",
+          "60mm"
+        ],
+        "red_lines": [
+          "构造柱施工顺序颠倒"
+        ],
+        "trap_alerts": [
+          "马牙槎必须'先退后进'，否则混凝土无法有效嵌固；每日砌筑高度雨天需降至1.2m(结合其他章节)。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:设有构造柱的砌体施工"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "砖墙与构造柱施工顺序及要求",
+        "构造柱与砖墙组合",
+        "设有构造柱的砌体施工",
+        "主体结构工程施工",
+        "先绑扎钢筋",
+        "后砌砖墙",
+        "先退后进",
+        "300mm",
+        "60mm"
+      ],
+      "source_excerpt": "### 砖墙与构造柱施工顺序及要求\n\n1.  **施工顺序**：\n    *   设有构造柱的砌体，应**先绑扎钢筋**，**后砌砖墙**，**最后浇筑混凝土**。\n2.  **马牙槎构造**：\n    *   与构造柱相邻部位应砌成**马牙槎**。\n    *   砌筑形式：**先退后进**。\n    *   尺寸要求：沿高 **≤300mm**，凹凸尺寸宜为 **60mm**。\n3.  **砌筑高度控制**：\n    *   正常条件下，砖砌体每日砌筑高度宜控制在 **1.5m** 或 **一步脚手架高度**内。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0030_002",
+        "json_page_num": 30,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0030_002"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "设有构造柱的砌体施工"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "设有构造柱的砌体施工",
+      "unit_id": "lecture.main-structure.0068"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1.  **留槎限制**：",
+          "*   砌体转角处、交接处对 **6度、7度** 地区临时间断处**不能留斜槎**时，除转角外，可留**直槎**且留**凸槎**",
+          "2.  **拉结筋设置要求**：",
+          "*   **数量**：每 **120mm** 墙厚设置 **1φ6** 拉结筋",
+          "**120mm** 厚墙设 **2φ6** 拉结筋",
+          "*   **间距**：拉结筋间距沿墙高应 **≤500mm**，且竖向间距偏差应 **≤100mm**"
+        ],
+        "mnemonics": [],
+        "must_mentions": [],
+        "red_lines": [],
+        "trap_alerts": [
+          "转角处严禁留直槎；120mm墙厚虽然按比例是"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:砌体抗震构造措施"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "砖砌体抗震地区拉结筋构造",
+        "砌体拉结筋",
+        "砌体抗震构造措施",
+        "主体结构工程施工"
+      ],
+      "source_excerpt": "### 砖砌体抗震地区拉结筋构造\n\n1.  **留槎限制**：\n    *   砌体转角处、交接处对 **6度、7度** 地区临时间断处**不能留斜槎**时，除转角外，可留**直槎**且留**凸槎**。\n2.  **拉结筋设置要求**：\n    *   **数量**：每 **120mm** 墙厚设置 **1φ6** 拉结筋；**120mm** 厚墙设 **2φ6** 拉结筋。\n    *   **间距**：拉结筋间距沿墙高应 **≤500mm**，且竖向间距偏差应 **≤100mm**。\n    *   **埋入长度**：从留槎处算起，**6度、7度** 地区应 **≥1000mm**；末端应设 **90°** 弯钩。\n3.  **图示补充参数**：\n    *   圈梁设置高度：**3m** 处设 C20 砼圈梁。\n    *   拉结筋规格标注：**φ6×1000@500**。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0030_003",
+        "json_page_num": 30,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0030_003"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "砌体抗震构造措施"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "砌体抗震构造措施",
+      "unit_id": "lecture.main-structure.0069"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. **受力方向**: 多孔砖的孔洞应**垂直于受压面**砌筑",
+          "2. **禁忌环境**: **水池、水箱**和有**冻胀环境**的地面以下**不得用多孔砖**"
+        ],
+        "mnemonics": [],
+        "must_mentions": [
+          "垂直于受压面",
+          "不得用多孔砖"
+        ],
+        "red_lines": [
+          "多孔砖用于水池/水箱"
+        ],
+        "trap_alerts": [
+          "注意多孔砖孔洞方向必须垂直于受压面，而非平行。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "error_correction",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:砌体结构工程施工"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "多孔砖砖墙砌筑要求",
+        "多孔砖砌体",
+        "砌体结构工程施工",
+        "主体结构工程施工",
+        "垂直于受压面",
+        "不得用多孔砖"
+      ],
+      "source_excerpt": "### 多孔砖砖墙砌筑要求\n\n1. **受力方向**: 多孔砖的孔洞应**垂直于受压面**砌筑。\n2. **禁忌环境**: **水池、水箱**和有**冻胀环境**的地面以下**不得用多孔砖**。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0031_001",
+        "json_page_num": 31,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0031_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "砌体结构工程施工"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "砌体结构工程施工",
+      "unit_id": "lecture.main-structure.0070"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **搭砌要求**:",
+          "- **单排孔**小砌块: 搭接长度应为块体长度的 **1/2**",
+          "- **多排孔**小砌块: 搭接长度宜 **≥ 块体长度的 1/3**",
+          "2. **网片加固**: 不满足搭砌要求时，应在水平灰缝中设置 **φ4** 钢筋网片，网片两端与竖缝距离 **≥ 400mm** 或采用配块",
+          "3. **通缝控制**: 墙体竖向通缝应 **≤ 2皮** 小砌块，**独立柱不得有竖向通缝**"
+        ],
+        "mnemonics": [
+          "单二多三，不足加网"
+        ],
+        "must_mentions": [
+          "1/2",
+          "1/3",
+          "φ4",
+          "400mm",
+          "2皮"
+        ],
+        "red_lines": [
+          "独立柱通缝"
+        ],
+        "trap_alerts": [
+          "区分单排孔(1/2)与多排孔(1/3)的要求；注意独立柱绝对禁止通缝。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:混凝土小砌块砌体工程"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "混凝土小砌块砌筑要点",
+        "混凝土小砌块",
+        "混凝土小砌块砌体工程",
+        "主体结构工程施工",
+        "1/2",
+        "1/3",
+        "φ4",
+        "400mm",
+        "2皮"
+      ],
+      "source_excerpt": "### 混凝土小砌块砌筑要点\n\n1. **搭砌要求**:\n   - **单排孔**小砌块: 搭接长度应为块体长度的 **1/2**。\n   - **多排孔**小砌块: 搭接长度宜 **≥ 块体长度的 1/3**。\n2. **网片加固**: 不满足搭砌要求时，应在水平灰缝中设置 **φ4** 钢筋网片，网片两端与竖缝距离 **≥ 400mm** 或采用配块。\n3. **通缝控制**: 墙体竖向通缝应 **≤ 2皮** 小砌块，**独立柱不得有竖向通缝**。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0031_002",
+        "json_page_num": 31,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0031_002"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "混凝土小砌块砌体工程"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "混凝土小砌块砌体工程",
+      "unit_id": "lecture.main-structure.0071"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **龄期要求**: 砌筑墙体时，小砌块产品龄期应 **≥ 28d**",
+          "2. **砌筑方向**: 小砌块应将生产时的**底面朝上反砌**于墙上（盲孔朝上，便于铺浆）",
+          "3. **材料混合**: 小砌块**不得**与其他材料混砌",
+          "局部嵌砌时，采用 **≥ C20** 的预制混凝土砌块",
+          "4. **铺浆要求**:",
+          "- 未采用专用铺灰器时，一次铺灰长度 **不宜大于 2块** 主规格块体的长度"
+        ],
+        "mnemonics": [
+          "28天龄期底朝上"
+        ],
+        "must_mentions": [
+          "28d",
+          "底面朝上",
+          "反砌",
+          "C20"
+        ],
+        "red_lines": [
+          "混砌其他材料"
+        ],
+        "trap_alerts": [
+          "特别注意'底面朝上反砌'这一特殊工艺，是小砌块特有的。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:混凝土小砌块施工工艺"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "混凝土小砌块施工构造要求",
+        "混凝土小砌块",
+        "混凝土小砌块施工工艺",
+        "主体结构工程施工",
+        "28d",
+        "底面朝上",
+        "反砌",
+        "C20"
+      ],
+      "source_excerpt": "### 混凝土小砌块施工构造要求\n\n1. **龄期要求**: 砌筑墙体时，小砌块产品龄期应 **≥ 28d**。\n2. **砌筑方向**: 小砌块应将生产时的**底面朝上反砌**于墙上（盲孔朝上，便于铺浆）。\n3. **材料混合**: 小砌块**不得**与其他材料混砌；局部嵌砌时，采用 **≥ C20** 的预制混凝土砌块。\n4. **铺浆要求**:\n   - 宜使用专用铺灰器，**随铺随砌**。\n   - 未采用专用铺灰器时，一次铺灰长度 **不宜大于 2块** 主规格块体的长度。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0031_003",
+        "json_page_num": 31,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0031_003"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "混凝土小砌块施工工艺"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "混凝土小砌块施工工艺",
+      "unit_id": "lecture.main-structure.0072"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **同步砌筑**: 墙体转角处和纵横交接处应**同时砌筑**",
+          "2. **日砌高度**:",
+          "- 正常情况: 宜 **1.4m** 或 **一步脚手架高度**内",
+          "- 冬季和雨季: 砌筑高度 **≤ 1.2m**",
+          "3. **临时断处**:",
+          "- 应砌成**斜槎**，斜槎水平投影长度应 **≥ 斜槎高度**"
+        ],
+        "mnemonics": [],
+        "must_mentions": [],
+        "red_lines": [],
+        "trap_alerts": []
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "numeric_rule"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:砌体施工工艺参数"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "墙体砌筑过程控制",
+        "砌体施工过程",
+        "砌体施工工艺参数",
+        "主体结构工程施工"
+      ],
+      "source_excerpt": "### 墙体砌筑过程控制\n\n1. **同步砌筑**: 墙体转角处和纵横交接处应**同时砌筑**。\n2. **日砌高度**:\n   - 正常情况: 宜 **1.4m** 或 **一步脚手架高度**内。\n   - 冬季和雨季: 砌筑高度 **≤ 1.2m**。\n3. **临时断处**:\n   - 应砌成**斜槎**，斜槎水平投影长度应 **≥ 斜槎高度**。\n   - 临时施工洞口可预留直槎，但在直槎搭砌孔洞内，用 **Cb20 或 C20** 的混凝土灌实。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0031_004",
+        "json_page_num": 31,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0031_004"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "砌体施工工艺参数"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "砌体施工工艺参数",
+      "unit_id": "lecture.main-structure.0073"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **灰缝宽度**",
+          "- **标准宽度**: 8~12mm",
+          "- **蒸压加气块 (专用粘结砂浆)**: 2~4mm",
+          "- **蒸压加气混凝土砌体 (普通砂浆)**: 15mm",
+          "2. **砂浆饱满度 (烧结普通砖砌体)**",
+          "- **砖墙**: 水平灰缝砂浆饱满度 ≥80%"
+        ],
+        "mnemonics": [
+          "灰缝：标准8-12，例外15、2-4；饱满度：墙80柱90"
+        ],
+        "must_mentions": [
+          "8~12mm",
+          "2~4mm",
+          "15mm",
+          "80%",
+          "90%"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "注意区分加气块使用'粘结砂浆'(2-4mm)与'普通砂浆'(15mm)的区别；砖柱要求比砖墙高(90% vs 80%)且包含竖缝。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:砌体结构技术指标"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "砌体结构灰缝宽度与饱满度标准",
+        "砌体灰缝与饱满度",
+        "砌体结构技术指标",
+        "主体结构工程施工",
+        "8~12mm",
+        "2~4mm",
+        "15mm",
+        "80%",
+        "90%"
+      ],
+      "source_excerpt": "### 砌体结构灰缝宽度与饱满度标准\n\n1. **灰缝宽度**\n   - **标准宽度**: 8~12mm。\n   - **蒸压加气块 (专用粘结砂浆)**: 2~4mm。\n   - **蒸压加气混凝土砌体 (普通砂浆)**: 15mm。\n\n2. **砂浆饱满度 (烧结普通砖砌体)**\n   - **砖墙**: 水平灰缝砂浆饱满度 ≥80%。\n   - **砖柱**: 水平灰缝和竖向灰缝饱满度 ≥90%。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0033_001",
+        "json_page_num": 33,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0033_001"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "砌体结构技术指标"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "砌体结构技术指标",
+      "unit_id": "lecture.main-structure.0074"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **混凝土坎台 (防水)**",
+          "- **要求**: 墙体底部宜现浇混凝土坎台，高度 **150mm**",
+          "2. **施工管理红线**"
+        ],
+        "mnemonics": [],
+        "must_mentions": [
+          "150mm",
+          "专用工具",
+          "不得任意剔凿"
+        ],
+        "red_lines": [
+          "不得随意改变连接构造",
+          "不得砌筑后剔凿"
+        ],
+        "trap_alerts": [
+          "坎台高度固定为150mm；严禁砌筑后剔凿开槽。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "error_correction",
+        "grading_keywords",
+        "numeric_rule",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:填充墙细部构造"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "填充墙施工管理与细部构造",
+        "填充墙构造与管理",
+        "填充墙细部构造",
+        "主体结构工程施工",
+        "150mm",
+        "专用工具",
+        "不得任意剔凿"
+      ],
+      "source_excerpt": "### 填充墙施工管理与细部构造\n\n1. **混凝土坎台 (防水)**\n   - **位置**: 厨房、卫生间、浴室等处。\n   - **对象**: 轻骨料小砌块、蒸压加气混凝土砌筑墙体。\n   - **要求**: 墙体底部宜现浇混凝土坎台，高度 **150mm**。\n\n2. **施工管理红线**\n   - **连接构造**: 必须符合设计要求，未经设计同意，**不得随意改变**。\n   - **开槽打孔**: 填充墙上钻孔、镂槽、切锯应使用**专用工具**，**不得任意剔凿**。\n   - **预留预埋**: 各种预留洞、预埋件、预埋管应按设计要求设置，**不得砌筑后剔凿**。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0033_002",
+        "json_page_num": 33,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0033_002"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "填充墙细部构造"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "填充墙细部构造",
+      "unit_id": "lecture.main-structure.0075"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先给直接结论，再列采分关键词和讲义出处。",
+        "formula_or_thresholds": [
+          "1. **孔洞填充 (保温/隔声)**",
+          "2. **接槎构造**",
+          "- **参数**: 斜槎水平投影长度 **≥ 高度的2/3**"
+        ],
+        "mnemonics": [],
+        "must_mentions": [
+          "砌一皮填一皮",
+          "高度的2/3"
+        ],
+        "red_lines": [],
+        "trap_alerts": [
+          "填充材料时'不得捣实'；斜槎长度要求是高度的2/3。"
+        ]
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "definition",
+      "intent": [
+        "define",
+        "explain",
+        "grading_keywords",
+        "trap_detection"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:轻骨料小砌块施工工艺"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "轻骨料混凝土小砌块砌体施工要求",
+        "轻骨料小砌块施工",
+        "轻骨料小砌块施工工艺",
+        "主体结构工程施工",
+        "砌一皮填一皮",
+        "高度的2/3"
+      ],
+      "source_excerpt": "### 轻骨料混凝土小砌块砌体施工要求\n\n1. **孔洞填充 (保温/隔声)**\n   - **工艺**: 应**砌一皮填充一皮**，且应填满，不得捣实。\n   - **目的**: 确保隔热、隔声材料填充密实且不破坏砌块。\n\n2. **接槎构造**\n   - **原则**: 纵横墙交接处及转角处应**同时砌筑**。\n   - **例外**: 不能同时砌筑时，应留成**斜槎**。\n   - **参数**: 斜槎水平投影长度 **≥ 高度的2/3**。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0033_003",
+        "json_page_num": 33,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0033_003"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "轻骨料小砌块施工工艺"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "轻骨料小砌块施工工艺",
+      "unit_id": "lecture.main-structure.0076"
+    },
+    {
+      "answer_method": {
+        "answer_style": "先写适用条件，再写阈值/数值，最后提醒易错边界。",
+        "formula_or_thresholds": [
+          "1. **搭接要求 (错缝砌筑)**",
+          "- **原则**: 上下错缝，搭接长度不宜小于砌块长度的 **1/3**，且不应小于 **150mm**",
+          "- **加强构造**: 压入2φ6钢筋或φ4钢筋网片 (图示长度700mm)",
+          "2. **薄层砂浆砌筑法 (专用工艺)**",
+          "- **灰缝厚度**: 宜为 **2~4mm**",
+          "- **平整度**: 砌筑时，水平面和垂直面上 **>2mm** 错边量时，采用钢齿磨板和磨砂板磨平，方可进行下道工序"
+        ],
+        "mnemonics": [],
+        "must_mentions": [],
+        "red_lines": [],
+        "trap_alerts": []
+      },
+      "authority": "lecture_json_primary",
+      "confidence": "json_exam_matrix_enriched",
+      "content_type": "rule_numeric",
+      "intent": [
+        "case_judgement",
+        "numeric_rule"
+      ],
+      "learning_mapping": {
+        "weakness_tags": [
+          "lecture:main-structure",
+          "topic:蒸压加气混凝土施工工艺"
+        ]
+      },
+      "lecture": "主体结构",
+      "lecture_slug": "main-structure",
+      "official_score_allowed": false,
+      "question_patterns": [
+        "蒸压加气混凝土砌块施工要求",
+        "蒸压加气混凝土砌块",
+        "蒸压加气混凝土施工工艺",
+        "主体结构工程施工"
+      ],
+      "source_excerpt": "### 蒸压加气混凝土砌块施工要求\n\n1. **搭接要求 (错缝砌筑)**\n   - **原则**: 上下错缝，搭接长度不宜小于砌块长度的 **1/3**，且不应小于 **150mm**。\n   - **补救措施**: 当不能满足上述要求时，应设置**钢筋加强**。\n   - **加强构造**: 压入2φ6钢筋或φ4钢筋网片 (图示长度700mm)。\n\n2. **薄层砂浆砌筑法 (专用工艺)**\n   - **材料**: 应采用**专用粘结砂浆**。\n   - **含水率控制**: 砌块**不得用水浇湿**。\n   - **灰缝厚度**: 宜为 **2~4mm**。\n   - **连接**: 砌块表面开设凹槽，钢筋置于凹槽砂浆内。\n   - **平整度**: 砌筑时，水平面和垂直面上 **>2mm** 错边量时，采用钢齿磨板和磨砂板磨平，方可进行下道工序。",
+      "source_ref": {
+        "aggregate_json": "/Users/yehongchen/Documents/CYH_2/Markzuo/FastAPI20251222/docs/2026/讲义/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究_v8.json",
+        "base_chunk_id": "LEC_1A413040_P0033_004",
+        "json_page_num": 33,
+        "pdf_path": "/Users/yehongchen/Documents/CYH_2/Markzuo/PDF清洗工厂/learning_marterial/@input/2025.6.7佑森教育闫力齐授课一建建筑实务《主体结构》专用讲义，版权所有，侵权必究.pdf",
+        "source_chunk_id": "LEC_1A413040_P0033_004"
+      },
+      "taxonomy": {
+        "node_code": "1A413040",
+        "node_name": "主体结构工程施工",
+        "topic": "蒸压加气混凝土施工工艺"
+      },
+      "tier": "teaching_answer_method_not_answer_key",
+      "topic": "蒸压加气混凝土施工工艺",
+      "unit_id": "lecture.main-structure.0077"
+    }
+  ],
+  "manifest": {
+    "answer_unit_count": 76,
+    "content_hash": "9eb9c79c09ac7bd94a54db8211fbd58cce3f136dfcc9ddd31793204d3cf4f921",
+    "coverage_status": "needs_visual_audit",
+    "lecture": "主体结构",
+    "lecture_slug": "main-structure",
+    "missing_internal_pages": [
+      8,
+      16,
+      19,
+      28,
+      32
+    ],
+    "namespace": "lecture_answer_method.main-structure",
+    "non_exam_exclusion_count": 2,
+    "official_score_allowed": false,
+    "published": false,
+    "schema_version": "luban_lecture_answer_method_shard.v1",
+    "signature": "0c8e615789b486348b3680addb757ee65639cbf0874cad271853ff3f49551646",
+    "source_aggregate_sha256": "08492e7955ba4db4452f33bf86434f3c1f81e261791e884ccdbd8ae8f8722f68",
+    "status": "release_candidate",
+    "tier": "teaching_answer_method_not_answer_key"
+  },
+  "non_exam_exclusions": [
+    {
+      "action": "exclude_from_answer_units_and_routing",
+      "base_chunk_id": "LEC_1A413040_P0001_001",
+      "json_page_num": 1,
+      "reason": "cover/meta course page; invalid for exam answers",
+      "source_chunk_id": "LEC_1A413040_P0001_001"
+    },
+    {
+      "action": "exclude_from_answer_units_and_routing",
+      "base_chunk_id": "LEC_RESOURCE_P0034_001",
+      "json_page_num": 34,
+      "reason": "advertising/resource QR codes; invalid for exam answers",
+      "source_chunk_id": "LEC_RESOURCE_P0034_001"
+    }
+  ]
+}

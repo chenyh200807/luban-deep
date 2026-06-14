@@ -27,6 +27,10 @@ from deeptutor.services.compiled_knowledge.general_knowledge import (
     format_general_knowledge_grounding,
     resolve_general_knowledge_context,
 )
+from deeptutor.services.compiled_knowledge.lecture_answer_methods import (
+    format_lecture_answer_method_grounding,
+    resolve_lecture_answer_method_context,
+)
 from deeptutor.services.observability import get_langfuse_observability
 from deeptutor.services.observability.identity_bridge import enrich_trace_metadata_with_bi_identity
 from deeptutor.services.user_visible_output import coerce_user_visible_answer
@@ -119,6 +123,60 @@ def _general_knowledge_cohort_member(student_id: str) -> bool:
 def _general_knowledge_cohort_configured() -> bool:
     raw = os.environ.get("LUBAN_GENERAL_KNOWLEDGE_CONTEXT_COHORT", "")
     return any(prefix.strip() for prefix in raw.split(","))
+
+
+def _lecture_answer_method_env_disabled() -> bool:
+    return os.environ.get("LUBAN_LECTURE_ANSWER_METHOD_CONTEXT_ENABLED", "").strip().lower() in {
+        "false",
+        "0",
+        "off",
+        "no",
+    }
+
+
+def _attach_lecture_answer_method_context(
+    *,
+    content: str,
+    runtime_metadata: dict[str, Any],
+) -> None:
+    if _has_active_question_context(runtime_metadata):
+        return
+    if (
+        runtime_metadata.get("disable_luban_lecture_answer_method_context") is True
+        or runtime_metadata.get("lecture_answer_method_context") is False
+    ):
+        runtime_metadata["luban_lecture_answer_method_context_status"] = "disabled_by_request"
+        return
+    if _lecture_answer_method_env_disabled():
+        runtime_metadata["luban_lecture_answer_method_context_status"] = "killed_by_switch"
+        return
+
+    learner_context = {
+        "question_text": content,
+        "student_id": str(
+            runtime_metadata.get("user_id") or runtime_metadata.get("learner_user_id") or ""
+        ).strip(),
+        "source": str(runtime_metadata.get("source") or "tutorbot").strip(),
+        "bot_id": str(runtime_metadata.get("bot_id") or "").strip(),
+        "conversation_id": str(runtime_metadata.get("conversation_id") or "").strip(),
+    }
+    pack = resolve_lecture_answer_method_context(
+        content,
+        learner_context=learner_context,
+    )
+    if not pack:
+        runtime_metadata["luban_lecture_answer_method_context_status"] = "not_applicable"
+        return
+    grounding = format_lecture_answer_method_grounding(pack)
+    if not grounding:
+        runtime_metadata["luban_lecture_answer_method_context_status"] = "empty_grounding"
+        return
+    runtime_metadata["luban_lecture_answer_method_context"] = pack
+    runtime_metadata["luban_lecture_answer_method_context_status"] = "attached"
+    runtime_metadata["conversation_context_text"] = _append_conversation_context(
+        runtime_metadata.get("conversation_context_text"),
+        grounding,
+    )
 
 
 def _attach_general_knowledge_context(
@@ -1047,6 +1105,10 @@ class TutorBotManager:
         runtime_metadata["effective_response_mode"] = (
             str(merged_metadata.get("effective_response_mode") or mode).strip() or mode
         )
+        _attach_lecture_answer_method_context(
+            content=content,
+            runtime_metadata=runtime_metadata,
+        )
         _attach_general_knowledge_context(
             content=content,
             runtime_metadata=runtime_metadata,
@@ -1255,6 +1317,8 @@ class TutorBotManager:
                             "v1_case_graded",
                             "score_authority",
                             "grading_rubric_provenance",
+                            "luban_lecture_answer_method_context",
+                            "luban_lecture_answer_method_context_status",
                             "luban_general_knowledge_context",
                             "luban_general_knowledge_context_status",
                             "llm_stream_telemetry",

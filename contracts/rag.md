@@ -76,6 +76,7 @@
     exact question、标准条文、教材或 hidden grading authority。
 40. 案例题评分的可见分数、满分、给分/扣分、官方采分点批改，必须来自当前 active case、`questions_bank` / exact case retrieval、结构化 `case_bundle/grading_key/covered_subquestions` 或明确题库证据。普通 RAG 知识、模型常识、相似题经验、用户题面暗示只能支持 `open_skill` 提分诊断，不得生成 `projected_rubric`、标准分或官方阅卷语气；无评分 authority 时学生端必须 fail-open 为“本次不硬估标准分”。
 41. `general_knowledge_context` 是 TutorBot / Chat agent runtime 的只读 compiled teaching overlay，只能显式 opt-in 或受控 cohort 启用；执行壳必须复用 `deeptutor.services.compiled_knowledge.general_knowledge` 生成 pack/grounding，不得新建第二套 RAG、KB registry、taxonomy、learner memory 或 context schema。该 overlay 只能作为 LLM 教学上下文和 compact result metadata，不得写 canonical learner truth、不得成为 official grading key、不得覆盖 `RAGService` citations / exact-question / 标准条文 authority；低置信、域外或 active question 场景必须 fail-open 回原 RAG / grading 链路。
+42. `lecture_answer_method_context` / `luban_lecture_answer_method_context` 是 TutorBot runtime 的只读讲义答题方法 overlay，默认可对一建建筑实务高命中考试问答启用；执行壳必须复用 `deeptutor.services.compiled_knowledge.lecture_answer_methods` 从 tracked all8 `runtime_supply` manifest 生成 pack/grounding，不得扫散乱 artifacts、不得新建第二套 RAG/KB/taxonomy/learner-memory authority。该 overlay 只能提供采分关键词、陷阱/红线、口诀、公式/适用条件和 source-bounded 联想；不得成为 official answer key、不得给标准分、不得写 canonical learner truth；域外、低置信或 active question / exact-question / grading 场景必须 fail-open 回原 authority。
 
 ## 当前统一语义
 
@@ -107,6 +108,8 @@
 - `exact_question_blocked_reason`
 - `general_knowledge_context`
 - `luban_general_knowledge_context`
+- `lecture_answer_method_context`
+- `luban_lecture_answer_method_context`
 - `evidence_bundle.sources[].source_id`
 - `evidence_bundle.sources[].source_span`
 - `evidence_bundle.sources[].content_hash`
