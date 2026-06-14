@@ -109,6 +109,33 @@ test('member ops exposes package-led cashier membership settings', async () => {
   assert.equal(panel.includes('运营授予权益'), false)
 })
 
+test('commerce cockpit exposes yuan revenue summary from wallet ledger', async () => {
+  const cockpit = await readWeb('components/bi-cockpit/CommerceCockpit.tsx')
+  const api = await readWeb('lib/bi-api.ts')
+  const service = await readWeb('../deeptutor/services/bi_service.py')
+
+  assert.ok(api.includes('revenueCny: number'))
+  assert.ok(api.includes('todayRevenueCny: number'))
+  assert.ok(api.includes('recentRevenueCny: number'))
+  assert.ok(api.includes('latestRevenueAmountCny: number'))
+  assert.ok(api.includes('latestRevenueMemberId: string'))
+  assert.ok(cockpit.includes('最近收入'))
+  assert.ok(cockpit.includes('今日收入'))
+  assert.ok(cockpit.includes('最新一笔'))
+  assert.ok(cockpit.includes('¥'))
+  assert.ok(service.includes('"revenue_cny"'))
+  assert.ok(service.includes('"latest_revenue_amount_cny"'))
+})
+
+test('membership purchase broadcasts commerce reload event', async () => {
+  const memberOps = await readWeb('app/(workspace)/bi/_v2/member-ops/BiV2MemberOpsPanel.tsx')
+  const commerce = await readWeb('app/(workspace)/bi/_v2/commerce/BiV2CommercePanel.tsx')
+
+  assert.ok(memberOps.includes("window.dispatchEvent(new CustomEvent('bi:commerce-mutated'"))
+  assert.ok(commerce.includes("window.addEventListener('bi:commerce-mutated'"))
+  assert.ok(commerce.includes("window.removeEventListener('bi:commerce-mutated'"))
+})
+
 test('member ops row actions stay readable in the sticky action column', async () => {
   const panel = await readWeb('app/(workspace)/bi/_v2/member-ops/BiV2MemberOpsPanel.tsx')
   const table = await readWeb('components/bi-v2/BiDataTable.tsx')

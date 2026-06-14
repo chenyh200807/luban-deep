@@ -599,6 +599,13 @@ export interface BiCommerceData {
     anomalyCount: number
     creditPoints: number
     debitPoints: number
+    revenueCny: number
+    todayRevenueCny: number
+    recentRevenueCny: number
+    latestRevenueAmountCny: number
+    latestRevenueMemberId: string
+    latestRevenueAt: string
+    revenueCount: number
   }
   authority: Record<string, string>
   packages: BiCommercePackage[]
@@ -1994,6 +2001,19 @@ export async function getBiCommerce(options: { limit?: number } = {}): Promise<B
       anomalyCount: toNumber(summary.anomaly_count ?? summary.anomalyCount, 0),
       creditPoints: toNumber(summary.credit_points ?? summary.creditPoints, 0),
       debitPoints: toNumber(summary.debit_points ?? summary.debitPoints, 0),
+      revenueCny: toNumber(summary.revenue_cny ?? summary.revenueCny, 0),
+      todayRevenueCny: toNumber(summary.today_revenue_cny ?? summary.todayRevenueCny, 0),
+      recentRevenueCny: toNumber(summary.recent_revenue_cny ?? summary.recentRevenueCny, 0),
+      latestRevenueAmountCny: toNumber(
+        summary.latest_revenue_amount_cny ?? summary.latestRevenueAmountCny,
+        0
+      ),
+      latestRevenueMemberId: toString(
+        summary.latest_revenue_member_id ?? summary.latestRevenueMemberId,
+        ''
+      ),
+      latestRevenueAt: toString(summary.latest_revenue_at ?? summary.latestRevenueAt, ''),
+      revenueCount: toNumber(summary.revenue_count ?? summary.revenueCount, 0),
     },
     authority: Object.fromEntries(
       Object.entries(authority).map(([key, value]) => [key, toString(value, '')])

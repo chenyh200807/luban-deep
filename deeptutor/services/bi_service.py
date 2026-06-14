@@ -3187,6 +3187,65 @@ class BIService:
             ("order:", "purchase:", "recharge:")
         )
 
+    @staticmethod
+    def _parse_commerce_datetime(value: Any) -> datetime | None:
+        text = str(value or "").strip()
+        if not text:
+            return None
+        try:
+            parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+        if parsed.tzinfo is None:
+            return parsed.replace(tzinfo=timezone.utc)
+        return parsed
+
+    @staticmethod
+    def _commerce_revenue_cny(row: dict[str, Any]) -> float:
+        if not BIService._is_commerce_recharge_row(row):
+            return 0.0
+        metadata = row.get("metadata") if isinstance(row.get("metadata"), dict) else {}
+        return max(_safe_float(metadata.get("amount_cny")), 0.0)
+
+    @classmethod
+    def _build_commerce_revenue_summary(
+        cls,
+        recharge_rows: list[dict[str, Any]],
+        *,
+        now: datetime | None = None,
+    ) -> dict[str, Any]:
+        business_tz = timezone(timedelta(hours=8))
+        business_now = (now or datetime.now(business_tz)).astimezone(business_tz)
+        revenue_rows: list[tuple[dict[str, Any], float, datetime | None]] = []
+        for row in recharge_rows:
+            amount_cny = cls._commerce_revenue_cny(row)
+            if amount_cny <= 0:
+                continue
+            revenue_rows.append((row, amount_cny, cls._parse_commerce_datetime(row.get("effective_at"))))
+
+        latest_row = max(
+            revenue_rows,
+            key=lambda item: (
+                item[2] or datetime.min.replace(tzinfo=timezone.utc),
+                str(item[0].get("id") or ""),
+            ),
+            default=None,
+        )
+        today_revenue = sum(
+            amount
+            for _row, amount, effective_at in revenue_rows
+            if effective_at is not None and effective_at.astimezone(business_tz).date() == business_now.date()
+        )
+        return {
+            "revenue_cny": _round(sum(amount for _row, amount, _effective_at in revenue_rows), 2),
+            "today_revenue_cny": _round(today_revenue, 2),
+            "recent_revenue_cny": _round(sum(amount for _row, amount, _effective_at in revenue_rows), 2),
+            "latest_revenue_amount_cny": _round(latest_row[1], 2) if latest_row else 0,
+            "latest_revenue_member_id": str(latest_row[0].get("user_id") or "") if latest_row else "",
+            "latest_revenue_at": str(latest_row[0].get("effective_at") or "") if latest_row else "",
+            "revenue_count": len(revenue_rows),
+        }
+
     def _build_commerce_anomalies(
         self,
         *,
@@ -3283,6 +3342,7 @@ class BIService:
         ledger_rows = sorted(deduped.values(), key=self._commerce_ledger_sort_key, reverse=True)[:safe_limit]
         recharge_rows = [row for row in ledger_rows if self._is_commerce_recharge_row(row)][:safe_limit]
         recharge_records = [self._commerce_recharge_record(row) for row in recharge_rows]
+        revenue_summary = self._build_commerce_revenue_summary(recharge_rows)
         paid_member_ids = {
             user_id
             for row in recharge_rows
@@ -3325,6 +3385,7 @@ class BIService:
                 "anomaly_count": len(anomalies),
                 "credit_points": _round(credit_points, 2),
                 "debit_points": _round(debit_points, 2),
+                **revenue_summary,
             },
             "authority": {
                 "packages": package_authority,

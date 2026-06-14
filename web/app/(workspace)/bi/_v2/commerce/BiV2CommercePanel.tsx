@@ -141,6 +141,13 @@ export function BiV2CommercePanel({ flagEnabled, globalQuery = '' }: BiV2Commerc
     void load()
   }, [flagEnabled, load])
 
+  useEffect(() => {
+    if (!flagEnabled || typeof window === 'undefined') return
+    const reloadCommerce = () => void load()
+    window.addEventListener('bi:commerce-mutated', reloadCommerce)
+    return () => window.removeEventListener('bi:commerce-mutated', reloadCommerce)
+  }, [flagEnabled, load])
+
   const rechargeRows = useMemo(
     () => data?.rechargeRecords ?? EMPTY_RECHARGES,
     [data?.rechargeRecords]

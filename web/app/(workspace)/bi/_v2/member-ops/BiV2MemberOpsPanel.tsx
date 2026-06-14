@@ -147,6 +147,11 @@ function writeSavedViews(next: SavedView[]) {
   window.dispatchEvent(new CustomEvent(SAVED_VIEWS_EVENT))
 }
 
+function notifyCommerceMutated(detail: { userId: string; packageId: string }) {
+  if (typeof window === 'undefined') return
+  window.dispatchEvent(new CustomEvent('bi:commerce-mutated', { detail }))
+}
+
 import type { BiAdminIdentity } from '../useBiAdminIdentity'
 
 export type BiV2MemberOpsPanelProps = {
@@ -642,6 +647,7 @@ export function BiV2MemberOpsPanel({
           days: 365,
           reason: 'BI 会员运营快捷开通 VIP：按套餐价入账',
         })
+        notifyCommerceMutated({ userId: member.user_id, packageId: vipPackage.id })
         return result.member
       },
       detail => `已将 ${member.phone_masked} 升为 VIP，有效期至 ${shortDate(detail.expire_at)}`
@@ -662,6 +668,7 @@ export function BiV2MemberOpsPanel({
           amount_cny: payload.amountCny,
           reason: payload.reason,
         })
+        notifyCommerceMutated({ userId: member.user_id, packageId: payload.packageId })
         return result.member
       },
       detail =>

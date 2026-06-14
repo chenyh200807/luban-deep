@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -266,6 +266,65 @@ class _ErrorWalletService:
         raise RuntimeError("raw wallet URL should not be shown: https://example.invalid/rest/v1/wallet_ledger")
 
 
+class _ManualMembershipRevenueWalletService:
+    is_configured = True
+
+    def list_recent_wallet_ledger(self, *, limit: int = 100, offset: int = 0):
+        now = datetime.now().astimezone()
+        rows = [
+            SimpleNamespace(
+                id="ledger_manual_membership_today",
+                user_id="member_paid_today",
+                event_type="grant",
+                delta_micros=9_000_000_000,
+                balance_after_micros=9_000_000_000,
+                frozen_after_micros=0,
+                reference_type="purchase",
+                reference_id="manual_membership_today",
+                idempotency_key="purchase:manual_membership:today",
+                metadata={
+                    "channel": "manual_membership",
+                    "amount_cny": 198,
+                    "package_id": "vip",
+                    "tier": "vip",
+                },
+                created_at=now.isoformat(),
+            ),
+            SimpleNamespace(
+                id="ledger_manual_membership_old",
+                user_id="member_paid_old",
+                event_type="grant",
+                delta_micros=28_000_000_000,
+                balance_after_micros=28_000_000_000,
+                frozen_after_micros=0,
+                reference_type="purchase",
+                reference_id="manual_membership_old",
+                idempotency_key="purchase:manual_membership:old",
+                metadata={
+                    "channel": "manual_membership",
+                    "amount_cny": 598,
+                    "package_id": "svip",
+                    "tier": "svip",
+                },
+                created_at=(now - timedelta(days=3)).isoformat(),
+            ),
+            SimpleNamespace(
+                id="ledger_signup_bonus_no_revenue",
+                user_id="member_paid_today",
+                event_type="grant",
+                delta_micros=120_000_000,
+                balance_after_micros=9_120_000_000,
+                frozen_after_micros=0,
+                reference_type="signup_bonus",
+                reference_id="member_paid_today",
+                idempotency_key="signup_bonus:member_paid_today",
+                metadata={"amount_cny": 999},
+                created_at=now.isoformat(),
+            ),
+        ]
+        return rows[offset : offset + limit]
+
+
 @pytest.fixture
 def store(tmp_path: Path) -> SQLiteSessionStore:
     return SQLiteSessionStore(db_path=tmp_path / "bi-limits.db")
@@ -306,6 +365,50 @@ def test_commerce_does_not_count_wallet_signup_bonus_as_recharge(store: SQLiteSe
     assert payload["summary"]["recharge_count"] == 0
     assert payload["recharge_records"] == []
     assert any("不计入充值记录" in warning for warning in payload["warnings"])
+
+
+def test_commerce_summarizes_manual_membership_revenue_from_wallet_ledger(
+    store: SQLiteSessionStore,
+) -> None:
+    service = BIService(
+        session_store=store,
+        member_service=_CommerceMemberService(),
+        wallet_service=_ManualMembershipRevenueWalletService(),
+    )
+
+    payload = asyncio.run(service.get_commerce(limit=10))
+
+    assert payload["authority"]["wallet_ledger"] == "wallet_ledger"
+    assert payload["summary"]["recharge_count"] == 2
+    assert payload["summary"]["revenue_cny"] == 796
+    assert payload["summary"]["today_revenue_cny"] == 198
+    assert payload["summary"]["recent_revenue_cny"] == 796
+    assert payload["summary"]["latest_revenue_amount_cny"] == 198
+    assert payload["summary"]["latest_revenue_member_id"] == "member_paid_today"
+    assert payload["summary"]["latest_revenue_at"]
+    assert payload["summary"]["revenue_count"] == 2
+
+
+def test_commerce_today_revenue_uses_china_business_day() -> None:
+    china_tz = timezone(timedelta(hours=8))
+    effective_at = datetime(2026, 6, 14, 0, 30, tzinfo=china_tz)
+
+    summary = BIService._build_commerce_revenue_summary(
+        [
+            {
+                "id": "ledger_china_today",
+                "user_id": "member_china_today",
+                "amount": 9000,
+                "reference_type": "purchase",
+                "idempotency_key": "purchase:manual_membership:china_today",
+                "effective_at": effective_at.isoformat(),
+                "metadata": {"amount_cny": 198},
+            }
+        ],
+        now=datetime(2026, 6, 14, 12, 0, tzinfo=timezone.utc),
+    )
+
+    assert summary["today_revenue_cny"] == 198
 
 
 def test_commerce_uses_managed_membership_packages(store: SQLiteSessionStore) -> None:

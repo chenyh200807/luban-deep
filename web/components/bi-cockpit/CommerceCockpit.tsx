@@ -26,6 +26,7 @@ import { SEMANTIC, SERIES_COLORS } from './theme'
 
 const num = (n: number | null | undefined) => (typeof n === 'number' && isFinite(n) ? n : 0)
 const fmt = (n: number) => num(n).toLocaleString()
+const money = (n: number) => `¥${num(n).toLocaleString('zh-CN', { maximumFractionDigits: 2 })}`
 const top = (arr: Datum[], n: number) => [...arr].sort((a, b) => b.value - a.value).slice(0, n)
 
 function countBy<T>(rows: ReadonlyArray<T>, pick: (r: T) => string | undefined | null): Datum[] {
@@ -79,6 +80,29 @@ export function CommerceCockpit({ data }: { data: BiCommerceData | null }) {
       <div className="mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#E8915A]/90">
         <Activity className="h-3.5 w-3.5" />
         Commerce &amp; Wallet Cockpit
+      </div>
+
+      <div className="mb-3 grid grid-cols-1 gap-3 md:grid-cols-3">
+        <CockpitKpi
+          label="最近收入"
+          value={money(num(s?.recentRevenueCny))}
+          tone="emerald"
+          icon={<CreditCard className="h-4 w-4" />}
+          sub={`${fmt(num(s?.revenueCount))} 笔已入账`}
+        />
+        <CockpitKpi
+          label="今日收入"
+          value={money(num(s?.todayRevenueCny))}
+          tone="cyan"
+          icon={<Wallet className="h-4 w-4" />}
+        />
+        <CockpitKpi
+          label="最新一笔"
+          value={money(num(s?.latestRevenueAmountCny))}
+          tone="gold"
+          icon={<CreditCard className="h-4 w-4" />}
+          sub={s?.latestRevenueMemberId ? `会员 ${s.latestRevenueMemberId}` : '暂无收入'}
+        />
       </div>
 
       <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-7">
