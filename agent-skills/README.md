@@ -80,6 +80,22 @@ Run this after adding, renaming, or editing skill routing:
 python agent-skills/scripts/validate_agent_skills.py
 ```
 
+`catalog.yaml` is the machine-checkable inventory for these workflow skills. It
+is deliberately not a loader and not an authority for descriptions; `SKILL.md`
+frontmatter remains the trigger source, while `AGENTS.md` remains the hard-gate
+index.
+
+To audit whether skills were actually invoked in recent Codex work, run:
+
+```bash
+python agent-skills/scripts/audit_skill_usage.py --hours 1
+python agent-skills/scripts/audit_skill_usage.py --hours 1 --repo-only
+```
+
+The usage audit only proves that `SKILL.md` files were read through recorded
+tool calls. It cannot prove that every instruction was followed; use review and
+verification evidence for that stronger claim.
+
 ## Lifecycle Map
 
 The upstream `addyosmani/agent-skills` lifecycle is absorbed as this local map:
@@ -90,7 +106,8 @@ The upstream `addyosmani/agent-skills` lifecycle is absorbed as this local map:
   `deeptutor-api-contract-design`, `deeptutor-schema-authority-gate`,
   `deeptutor-resource-registry-gate`, `deeptutor-web-bi-frontend-gate`
 - Verify: `deeptutor-test-verification-gate`,
-  `wechat-tutorbot-real-entry-qa`, `compiled-knowledge-shadow-eval`
+  `wechat-tutorbot-real-entry-qa`, `compiled-knowledge-shadow-eval`,
+  `luban-rich-leaf-compiler`
 - Debug and repair: `deeptutor-authority-debugging`,
   `anti-overfit-repair-review`
 - Review and simplify: `deeptutor-review-quality-gate`,

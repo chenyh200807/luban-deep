@@ -110,7 +110,7 @@ This document is a navigation layer, not a new contract. Code and product change
 - **Learner Memory & Overlay** — DeepTutor records learning summaries, profiles, progress, goals, memory events, and bot-specific overlay signals so later explanations can react to the learner's actual weaknesses.
 - **Mobile-First Delivery** — The WeChat mini program and Yousen package are first-class product surfaces for 鲁班智考; web and CLI remain operational surfaces for admin, testing, automation, and agent workflows.
 - **Observability & Release Gates** — Langfuse traces, benchmark runs, observer snapshots, ARR/AAE/OA gates, and release scripts are part of the system contract, because tutoring quality must be verified with real sessions.
-- **Agent-Native CLI** — Every capability, knowledge base, session, and TutorBot is one command away. Rich terminal output is for humans; structured JSON is for AI agents and pipelines. Hand DeepTutor a [`SKILL.md`](SKILL.md) and agents can operate it autonomously.
+- **Agent-Native CLI** — Every capability, knowledge base, session, and TutorBot is one command away. Rich terminal output is for humans; structured JSON is for AI agents and pipelines. Hand DeepTutor a [`SKILL.md`](SKILL.md) and agents can operate it autonomously. Repo-local [`agent-skills/`](agent-skills/) are developer-agent workflows, not TutorBot runtime skills.
 
 ---
 
