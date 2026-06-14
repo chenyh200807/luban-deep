@@ -28,7 +28,7 @@ def test_registry_uses_version_and_cases_mapping() -> None:
     assert not isinstance(registry.suites, dict)
     with pytest.raises(TypeError):
         registry.cases["new_case"] = registry.cases["routing.semantic_router.case_set"]  # type: ignore[index]
-    assert len(registry.cases) == 13
+    assert len(registry.cases) == 14
     assert set(registry.suites) == {
         "pr_gate_core",
         "regression_watch",
@@ -168,6 +168,10 @@ def test_luban_case_grading_shadow_case_uses_canonical_vocab() -> None:
     registry = _load_registry()
     case = registry.cases["grading.luban_case_golden.v0"]
 
+    assert registry.suites["luban_case_grading_shadow"].case_ids == (
+        "grading.luban_case_golden.v0",
+        "grading.luban_case_golden_no_human.v1_5",
+    )
     assert case.dataset_id == "benchmark_phase1"
     assert case.dataset_version == "phase1.0"
     assert case.case_id == "grading.luban_case_golden.v0"
@@ -176,10 +180,41 @@ def test_luban_case_grading_shadow_case_uses_canonical_vocab() -> None:
     assert case.execution_kind == "case_grading_eval"
     assert case.surface == "backend"
     assert case.source_fixture == "deeptutor/services/benchmark/fixtures/luban_case_grading_golden_v1.json"
-    assert case.expected_contract == "luban_case_grading_v0_directional_shadow"
+    assert case.expected_contract == "luban_case_grading_v0_directional_shadow_not_production_gate"
     assert case.failure_taxonomy_scope == ()
     assert case.origin_type == "manual"
     assert case.promotion_status == "candidate"
+
+
+def test_luban_case_grading_no_human_shadow_case_is_registered_but_not_production_gate() -> None:
+    registry = _load_registry()
+    case = registry.cases["grading.luban_case_golden_no_human.v1_5"]
+
+    assert case.dataset_id == "benchmark_phase1"
+    assert case.dataset_version == "phase1.0"
+    assert case.case_id == "grading.luban_case_golden_no_human.v1_5"
+    assert case.contract_domain == "grading_quality_contract"
+    assert case.case_tier == "exploratory"
+    assert case.execution_kind == "case_grading_eval"
+    assert case.surface == "backend"
+    assert case.source_fixture == "deeptutor/services/benchmark/fixtures/luban_case_grading_golden_no_human_v1_5.json"
+    assert case.expected_contract == "luban_case_grading_no_human_v1_5_shadow_not_production_gate"
+    assert case.failure_taxonomy_scope == ()
+    assert case.origin_type == "manual"
+    assert case.promotion_status == "candidate"
+
+
+def test_luban_case_grading_shadow_fixtures_self_declare_non_production_gate() -> None:
+    repo = Path(__file__).resolve().parents[3]
+    for source_fixture in (
+        "deeptutor/services/benchmark/fixtures/luban_case_grading_golden_v1.json",
+        "deeptutor/services/benchmark/fixtures/luban_case_grading_golden_no_human_v1_5.json",
+    ):
+        payload = json.loads((repo / source_fixture).read_text(encoding="utf-8"))
+        redline = str(payload.get("redline") or "")
+        status = str(payload.get("status") or "")
+        assert "非生产门" in redline
+        assert "PO_signoff_pending" in status or "no_human" in status
 
 
 def test_answer_citation_shadow_case_uses_canonical_vocab() -> None:
@@ -242,6 +277,7 @@ def test_all_case_ids_exist() -> None:
         "answer.citation.paper_style.v0",
         "quality.real_exam_bank.docs_2026.mcq",
         "grading.luban_case_golden.v0",
+        "grading.luban_case_golden_no_human.v1_5",
         "grading.compiled_context.safety_contract",
         "grading.open_world_diagnostic.safety_contract",
         "learning_brain.evidence_loop.safety_contract",

@@ -33,7 +33,8 @@
     },
     "luban_case_grading_shadow": {
       "case_ids": [
-        "grading.luban_case_golden.v0"
+        "grading.luban_case_golden.v0",
+        "grading.luban_case_golden_no_human.v1_5"
       ]
     },
     "answer_citation_shadow": {
@@ -98,11 +99,27 @@
       "case_tier": "exploratory",
       "execution_kind": "case_grading_eval",
       "surface": "backend",
-      "expected_contract": "luban_case_grading_v0_directional_shadow",
+      "expected_contract": "luban_case_grading_v0_directional_shadow_not_production_gate",
       "failure_taxonomy_scope": [],
       "source_fixture": "deeptutor/services/benchmark/fixtures/luban_case_grading_golden_v1.json",
       "origin_type": "manual",
       "origin_ref": "docs/plan/评分引擎与金标工件/2026-05-31-luban-grading-truth-golden-eval-campaign-v2-2.md",
+      "promotion_status": "candidate",
+      "promoted_from_case_id": ""
+    },
+    "grading.luban_case_golden_no_human.v1_5": {
+      "dataset_id": "benchmark_phase1",
+      "dataset_version": "phase1.0",
+      "case_id": "grading.luban_case_golden_no_human.v1_5",
+      "contract_domain": "grading_quality_contract",
+      "case_tier": "exploratory",
+      "execution_kind": "case_grading_eval",
+      "surface": "backend",
+      "expected_contract": "luban_case_grading_no_human_v1_5_shadow_not_production_gate",
+      "failure_taxonomy_scope": [],
+      "source_fixture": "deeptutor/services/benchmark/fixtures/luban_case_grading_golden_no_human_v1_5.json",
+      "origin_type": "manual",
+      "origin_ref": "docs/plan/鲁班knowql/CASE_RUBRIC_SOURCE_MIGRATION_PLAN.md#stage-4",
       "promotion_status": "candidate",
       "promoted_from_case_id": ""
     },
