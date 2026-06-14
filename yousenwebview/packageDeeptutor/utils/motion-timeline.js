@@ -1,7 +1,7 @@
 // motion-timeline.js — onboarding motion 纯函数时间轴调度器
 // 与 wx API 解耦：定时器/时钟可注入，Node 单测直接跑。
 //
-// createTimeline(scenes, hooks, timers) → {start, pause, resume, jumpTo, destroy, getState}
+// createTimeline(scenes, hooks, timers) → {start, pause, resume, jumpTo, skipSceneRest, destroy, getState}
 //   scenes: [{ id, duration, steps: [{ at, patch }] }]
 //     duration <= 0 表示终幕：步骤照常调度，但不自动推进、不触发 onFinish。
 //   hooks: { onSceneStart(index, scene), onStep(patch, ctx), onFinish() }
@@ -9,6 +9,8 @@
 //
 // 手动接管语义：jumpTo() 之后 autoAdvance 永久关闭（手动一票接管），
 // 目标幕步骤从头重放（patch 必须幂等）。
+// 轻点快进语义：skipSceneRest() 把当前幕未触发的 step 立即补到终态，短停留后
+// 推进（保持 autoAdvance 原值）；当前幕已冲刷过则再次调用立即进下一幕。
 "use strict";
 
 function createTimeline(scenes, hooks, timers) {
@@ -36,6 +38,7 @@ function createTimeline(scenes, hooks, timers) {
   var pendingIds = [];
   var sceneStartedAt = 0;
   var currentSceneElapsed = 0;
+  var sceneFlushed = false; // 当前幕是否已被 skipSceneRest 冲刷到终态
 
   function clearPending() {
     for (var i = 0; i < pendingIds.length; i++) clearT(pendingIds[i]);
@@ -49,6 +52,7 @@ function createTimeline(scenes, hooks, timers) {
     state.status = "playing";
     currentSceneElapsed = offsetMs;
     sceneStartedAt = now();
+    sceneFlushed = false;
 
     if (offsetMs === 0 && hooks && hooks.onSceneStart) {
       hooks.onSceneStart(index, scene);
@@ -114,6 +118,43 @@ function createTimeline(scenes, hooks, timers) {
       state.autoAdvance = false; // 手动一票接管
       clearPending();
       scheduleScene(index, 0);
+    },
+    skipSceneRest: function (shortEndMs) {
+      // 轻点快进：把当前幕未触发的 step 立即补到终态；当前幕已冲刷过则直接进下一幕。
+      if (state.status !== "playing") return;
+      var scene = scenes[state.sceneIndex];
+      if (!scene) return;
+      if (sceneFlushed) {
+        advance();
+        return;
+      }
+      var elapsedNow = currentSceneElapsed + (now() - sceneStartedAt);
+      clearPending();
+      // 把当前幕所有未触发 step 合并成一次 onStep——轻点瞬间只过一次 bridge，
+      // 而非连发多次 setData（patch 幂等，合并后即该幕终态）。
+      var steps = scene.steps || [];
+      var merged = {};
+      var hasMerged = false;
+      for (var i = 0; i < steps.length; i++) {
+        if (steps[i].at > elapsedNow) {
+          var patch = steps[i].patch;
+          for (var k in patch) {
+            if (Object.prototype.hasOwnProperty.call(patch, k)) {
+              merged[k] = patch[k];
+              hasMerged = true;
+            }
+          }
+        }
+      }
+      if (hasMerged && hooks && hooks.onStep) {
+        hooks.onStep(merged, { sceneIndex: state.sceneIndex });
+      }
+      sceneFlushed = true;
+      currentSceneElapsed = scene.duration > 0 ? scene.duration : elapsedNow;
+      sceneStartedAt = now();
+      var endMs =
+        typeof shortEndMs === "number" && shortEndMs >= 0 ? shortEndMs : 450;
+      pendingIds.push(setT(advance, endMs));
     },
     destroy: function () {
       clearPending();

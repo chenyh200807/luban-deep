@@ -182,6 +182,57 @@ var T1 = [
   ]);
 })();
 
+// 7. skipSceneRest：轻点快进——未发 step 立即补到终态 + 短停留后自动进下一幕（保持 autoAdvance）
+(function () {
+  var h = harness(T1);
+  h.tl.start();
+  h.timers.tick(15); // scene:a, step:x（at10 已发，at60/y 未发）
+  h.tl.skipSceneRest(40);
+  assert.deepStrictEqual(
+    h.events,
+    ["scene:a", "step:x", "step:y"],
+    "skipSceneRest 应立即补发未触发的 step:y，不再等 at60",
+  );
+  h.timers.tick(40);
+  assert.strictEqual(
+    h.events[h.events.length - 1],
+    "scene:b",
+    "短停留后应保持 autoAdvance 自动进入下一幕",
+  );
+})();
+
+// 8. skipSceneRest 二次调用（当前幕已冲刷到终态）→ 立即推进，不再等停留计时
+(function () {
+  var h = harness(T1);
+  h.tl.start();
+  h.timers.tick(15);
+  h.tl.skipSceneRest(5000); // 故意给超长停留
+  assert.deepStrictEqual(h.events, ["scene:a", "step:x", "step:y"]);
+  h.tl.skipSceneRest(5000); // 已 flush，应立即 advance
+  assert.strictEqual(
+    h.events[h.events.length - 1],
+    "scene:b",
+    "已冲刷的幕再次轻点应立即进下一幕，不等 5000ms",
+  );
+})();
+
+// 9. skipSceneRest 在手动接管(jumpTo, autoAdvance=false)后：只冲刷当前幕，不自动推进
+(function () {
+  var h = harness(T1);
+  h.tl.start();
+  h.tl.jumpTo(0); // autoAdvance=false，重放 scene:a
+  h.tl.skipSceneRest(20);
+  h.timers.tick(500);
+  assert.strictEqual(h.tl.getState().autoAdvance, false);
+  assert.strictEqual(
+    h.events.filter(function (e) {
+      return e === "scene:b";
+    }).length,
+    0,
+    "手动接管后 skip 当前幕不应自动跳到下一幕",
+  );
+})();
+
 console.log("OK test_onboarding_motion_timeline (scheduler)");
 
 // 7. motion-script 契约：六幕、id 顺序、步序时间合法、patch 形状
