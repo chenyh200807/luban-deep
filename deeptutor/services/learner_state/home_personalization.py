@@ -8,6 +8,7 @@ from typing import Any
 
 from deeptutor.services.learner_state.training_intent import build_learning_training_intent
 from deeptutor.services.taxonomy.learning_topic_resolver import (
+    ResolvedLearningTopic,
     TopicInferer,
     canonical_learning_topic_label,
     infer_learning_topic_with_llm,
