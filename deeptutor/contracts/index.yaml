@@ -327,6 +327,14 @@ domains:
         teaching-tier metadata, fail open on low confidence or active question
         context, and must not create a second RAG/KB/taxonomy/learner-memory
         authority or write canonical learner truth.
+      - lecture_answer_method_context / luban_lecture_answer_method_context is
+        a runtime-only lecture answer-method teaching overlay for high-fit
+        construction-exam TutorBot questions. Consumers must reuse
+        deeptutor.services.compiled_knowledge.lecture_answer_methods and the
+        tracked all8 runtime_supply manifest, emit only teaching-tier metadata,
+        fail open on low confidence/off-syllabus/active-question contexts, and
+        must not create an answer-key, official-score, second RAG/KB/taxonomy,
+        learner-memory authority, or canonical learner-truth write.
     contract_files:
       - CONTRACT.md
       - contracts/rag.md

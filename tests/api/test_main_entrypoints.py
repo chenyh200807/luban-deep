@@ -4,6 +4,7 @@ import asyncio
 import importlib
 import json
 from pathlib import Path
+import sys
 from types import SimpleNamespace
 
 import pytest
@@ -15,6 +16,20 @@ pytest.importorskip("fastapi")
 
 FastAPI = pytest.importorskip("fastapi").FastAPI
 CORSMiddleware = pytest.importorskip("fastapi.middleware.cors").CORSMiddleware
+
+_MAIN_ENTRYPOINT_ENV_KEYS = (
+    "DEEPTUTOR_ENV",
+    "DEEPTUTOR_RUNTIME_ENV",
+    "APP_ENV",
+    "ENV",
+    "ENVIRONMENT",
+    "SERVICE_ENV",
+    "DEEPTUTOR_ENABLE_API_DOCS",
+    "DEEPTUTOR_ENABLE_LEGACY_ROUTERS",
+    "DEEPTUTOR_ENABLE_PUBLIC_OUTPUTS",
+    "DEEPTUTOR_ENABLE_LEARNING_BRAIN_QA",
+    "DEEPTUTOR_USER_DATA_DIR",
+)
 
 
 class _FakePathService:
@@ -184,14 +199,16 @@ def _reload_main(
     monkeypatch.setattr(path_service_module, "get_path_service", lambda: fake_path_service)
     monkeypatch.setattr(setup_module, "init_user_directories", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(sqlite_store_module, "get_path_service", lambda: fake_path_service)
+    for key in _MAIN_ENTRYPOINT_ENV_KEYS:
+        monkeypatch.delenv(key, raising=False)
     for key, value in env.items():
         if value is None:
             monkeypatch.delenv(key, raising=False)
         else:
             monkeypatch.setenv(key, value)
     monkeypatch.setenv("DEEPTUTOR_USER_DATA_DIR", str(tmp_path))
-    module = importlib.import_module("deeptutor.api.main")
-    return importlib.reload(module)
+    sys.modules.pop("deeptutor.api.main", None)
+    return importlib.import_module("deeptutor.api.main")
 
 
 def _install_fake_startup_dependencies(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -464,6 +481,30 @@ def test_production_disables_legacy_router_mounts_by_default(
     # contract violation; the REST analyze endpoint shared the same retired router).
     assert "/api/v1/vision/solve" not in paths
     assert "/api/v1/vision/analyze" not in paths
+
+
+def test_main_reload_clears_previous_entrypoint_env_before_mounting_routes(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setenv("SERVICE_ENV", "local")
+    monkeypatch.setenv("DEEPTUTOR_ENABLE_PUBLIC_OUTPUTS", "1")
+
+    module = _reload_main(
+        monkeypatch,
+        env={
+            "DEEPTUTOR_ENV": "production",
+            "DEEPTUTOR_ENABLE_LEGACY_ROUTERS": None,
+            "DEEPTUTOR_ENABLE_PUBLIC_OUTPUTS": None,
+        },
+        tmp_path=tmp_path,
+    )
+
+    paths = _route_paths(module.app)
+    assert "/api/v1/ws" in paths
+    assert "/api/v1/sessions" in paths
+    assert "/api/outputs" not in paths
+    assert "/api/v1/solve" not in paths
 
 
 def test_learning_brain_qa_router_is_not_mounted_by_default(
