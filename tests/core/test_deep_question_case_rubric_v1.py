@@ -195,8 +195,17 @@ async def test_case_rubric_v1_open_world_extracts_and_grades(monkeypatch: pytest
 
     captured_ref = {}
 
-    async def _fake_extract(reference, stem, complete_fn, api_key, *, model="deepseek-chat"):
+    async def _fake_extract(
+        reference,
+        stem,
+        complete_fn,
+        api_key,
+        *,
+        model="deepseek-chat",
+        provider_authority="",
+    ):
         captured_ref["reference"] = reference
+        captured_ref["provider_authority"] = provider_authority
         return [{"point_id": "P1", "text": "应采用专用开关箱", "score": 1.0, "policy": "list",
                  "required_terms": []},
                 {"point_id": "P2", "text": "应编制临时用电方案", "score": 1.0, "policy": "list",
@@ -217,6 +226,7 @@ async def test_case_rubric_v1_open_world_extracts_and_grades(monkeypatch: pytest
     # of the nominal scale the open-world weights were normalized to.
     assert ev["max_score"] > 0 and abs(ev["awarded_score"] - ev["max_score"] / 2) < 0.01
     assert "共用一个开关箱" in captured_ref["reference"]                  # extracted from THIS question's ref
+    assert captured_ref["provider_authority"] == "deepseek:https://api.deepseek.com"
     assert "## 采分点明细" in result["response"]                          # student sees V1, not V0
 
 

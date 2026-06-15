@@ -9,6 +9,7 @@ extracts the case reference from covered_subquestions[].authoritative_answer, an
 from __future__ import annotations
 
 import asyncio
+import threading
 
 import pytest
 
@@ -300,6 +301,10 @@ async def test_v1_case_render_writes_grading_to_brain_loop(
         "智能体自由答复：我先不打分。", runtime_metadata=md, user_message="普通施工方案")
 
     assert "## 采分点明细" in out
+    for _ in range(50):
+        if fake_service.calls and md.get("personalization_context"):
+            break
+        await asyncio.sleep(0.01)
     assert len(fake_service.calls) == 1
     call = fake_service.calls[0]
     assert call["user_id"] == "qa_loop_v1"
@@ -310,8 +315,63 @@ async def test_v1_case_render_writes_grading_to_brain_loop(
     assert md["grading_to_brain_loop"]["writeback_count"] == 1
     assert md["learning_evidence_event_id"] == "evt_v1_case_1"
     assert md["learning_training_intent"]["source"] == "grading_to_brain_loop"
+    assert md["grading_to_brain_projection"]["status"] == "succeeded"
     assert md["personalization_context"]["source"] == "PersonalizationContextPack"
     assert md["next_best_action"]["source"] == "training_intent"
+
+
+@pytest.mark.asyncio
+async def test_v1_case_render_does_not_wait_for_personalization_projection(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_V1_ENABLED", "true")
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda _qid: [
+        {
+            "point_id": "P1",
+            "text": "应编制临时用电施工组织设计",
+            "score": 1.0,
+            "policy": "qualitative",
+            "required_terms": [],
+        }
+    ])
+
+    async def _fake_batch_async(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        _ = points, answer, complete_fn, api_key, model
+        return {"P1": {"status": G.MISS, "evidence_span": ""}}
+
+    release = threading.Event()
+    fake_service = _FakeLearnerStateService()
+
+    def _slow_projection(**kwargs):
+        _ = kwargs
+        release.wait(timeout=1.0)
+
+    monkeypatch.setattr(G, "batch_judge_async", _fake_batch_async)
+    monkeypatch.setattr(
+        "deeptutor.services.learner_state.get_learner_state_service",
+        lambda: fake_service,
+    )
+    monkeypatch.setattr(AgentLoop, "_record_v1_grading_personalization", staticmethod(_slow_projection))
+
+    md = _case_md()
+    out = await asyncio.wait_for(
+        _loop()._apply_v1_or_case_fallback(
+            "智能体自由答复：我先不打分。", runtime_metadata=md, user_message="临时用电施工组织设计"
+        ),
+        timeout=0.2,
+    )
+    release.set()
+    await asyncio.sleep(0.01)
+
+    assert "## 采分点明细" in out
+    assert md["learning_evidence_event_id"] == "evt_v1_case_1"
+    assert md["learning_training_intent"]["source"] == "grading_to_brain_loop"
+    assert md["grading_to_brain_projection"] == {
+        "status": "scheduled",
+        "authority": "personalization_context_pack",
+        "event_id": "evt_v1_case_1",
+    }
 
 
 # ---------------------------------------------------------------- Grading-to-Brain cache-first（gbrain daemon 化）
@@ -420,3 +480,27 @@ def test_loop_grading_to_brain_is_thin_delegate_source_pin() -> None:
     assert "record_case_grading_to_brain" in src_text
     assert "write_case_grading_event_learning_evidence" not in src_text
     assert "build_personalization_context_pack" not in src_text
+
+
+def test_case_grading_metadata_export_includes_g2b_projection_receipt() -> None:
+    target = {"message_id": "msg-1"}
+    AgentLoop._export_case_grading_metadata(
+        {
+            "v1_case_graded": True,
+            "score_authority": "rubric_scored_v1",
+            "grading_rubric_provenance": "on_the_fly_reference",
+            "learning_evidence_event_id": "evt-1",
+            "grading_to_brain_projection": {
+                "status": "scheduled",
+                "authority": "personalization_context_pack",
+                "event_id": "evt-1",
+            },
+        },
+        target,
+    )
+
+    assert target["message_id"] == "msg-1"
+    assert target["v1_case_graded"] is True
+    assert target["score_authority"] == "rubric_scored_v1"
+    assert target["learning_evidence_event_id"] == "evt-1"
+    assert target["grading_to_brain_projection"]["status"] == "scheduled"

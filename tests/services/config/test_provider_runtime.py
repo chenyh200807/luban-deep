@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from deeptutor.services.llm import traffic_control
+from deeptutor.services.llm.config import LLMConfig
 from deeptutor.services.config.env_store import EnvStore
 from deeptutor.services.config.provider_runtime import (
     resolve_llm_runtime_config,
@@ -150,6 +152,27 @@ def test_llm_explicit_binding_and_headers(tmp_path: Path) -> None:
     assert resolved.provider_mode == "standard"
     assert resolved.effective_url == "https://dashscope.aliyuncs.com/compatible-mode/v1"
     assert resolved.extra_headers == {"APP-Code": "abc"}
+
+
+def test_llm_factory_traffic_controller_uses_runtime_limits(monkeypatch) -> None:
+    cfg = LLMConfig(
+        model="deepseek-v4-flash",
+        api_key="k",
+        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+        binding="dashscope",
+        provider_name="dashscope",
+        provider_mode="standard",
+        max_concurrency=7,
+        requests_per_minute=123,
+    )
+    traffic_control._PROVIDER_TRAFFIC_CONTROLLERS.clear()
+    monkeypatch.delenv("DEEPTUTOR_LLM_MAX_CONCURRENCY", raising=False)
+    monkeypatch.delenv("DEEPTUTOR_LLM_REQUESTS_PER_MINUTE", raising=False)
+
+    controller = traffic_control.get_provider_traffic_controller(provider_name="dashscope", config=cfg)
+
+    assert controller.max_concurrency == 7
+    assert controller.rpm == 123
 
 
 def test_llm_resolves_dashscope_fallback_model_from_env(tmp_path: Path) -> None:

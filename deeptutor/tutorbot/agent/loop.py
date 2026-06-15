@@ -475,6 +475,25 @@ class AgentLoop:
             target_metadata["llm_stream_telemetry"] = telemetry
 
     @staticmethod
+    def _export_case_grading_metadata(
+        runtime_metadata: dict[str, Any],
+        target_metadata: dict[str, Any] | None,
+    ) -> None:
+        if not isinstance(runtime_metadata, dict) or not isinstance(target_metadata, dict):
+            return
+        for key in (
+            "v1_case_graded",
+            "score_authority",
+            "grading_rubric_provenance",
+            "grading_to_brain_loop",
+            "learning_evidence_event_id",
+            "learning_training_intent",
+            "grading_to_brain_projection",
+        ):
+            if key in runtime_metadata:
+                target_metadata[key] = runtime_metadata[key]
+
+    @staticmethod
     def _strip_think(text: str | None) -> str | None:
         """Remove <think>…</think> blocks that some models embed in content."""
         if not text:
@@ -1154,12 +1173,30 @@ class AgentLoop:
                 md["score_authority"] = "v1_provider_unavailable"
                 logger.warning("LUBAN_V1 skip: no LLM key for binding={}", _binding or "openai")
                 return ""
+            provider_authority = _binding or "configured"
+            try:
+                from deeptutor.services.llm.config import get_llm_config
+
+                llm_config = get_llm_config()
+                provider_authority = (
+                    f"{getattr(llm_config, 'provider_name', None) or getattr(llm_config, 'binding', None) or provider_authority}:"
+                    f"{getattr(llm_config, 'effective_url', None) or getattr(llm_config, 'base_url', None) or ''}"
+                )
+            except Exception:  # noqa: BLE001 — cache authority label is best-effort; grading must not fail here
+                pass
             from deeptutor.services.llm.factory import complete
 
             ctx = self._build_v1_case_ctx(md, user_message)
             if ctx.get("node_code"):
                 md.setdefault("node_code", ctx.get("node_code"))
-            event = await _grade_one_case_v1(ctx, student_id=student_id, complete=complete, key=key, _G=_G)
+            event = await _grade_one_case_v1(
+                ctx,
+                student_id=student_id,
+                complete=complete,
+                key=key,
+                _G=_G,
+                provider_authority=provider_authority,
+            )
             if not (isinstance(event, dict) and event.get("event_type") == "case_grading_completed"):
                 return ""
             md["_v1_case_graded"] = True  # defensive: downstream demote must not override
@@ -1182,7 +1219,13 @@ class AgentLoop:
             logger.info("LUBAN_V1 GRADED (tutorbot): provenance={} score={}/{} student={} qid={}",
                         event.get("rubric_provenance"), event.get("awarded_score"),
                         event.get("max_score"), student_id, ctx.get("question_id"))
-            self._record_v1_grading_to_brain(runtime_metadata=md, event=event, ctx=ctx)
+            self._record_v1_grading_to_brain(
+                runtime_metadata=md,
+                event=event,
+                ctx=ctx,
+                include_personalization_projection=False,
+            )
+            self._schedule_v1_grading_personalization(runtime_metadata=md)
             pcp = md.get("personalization_context") if isinstance(md.get("personalization_context"), dict) else None
             return _G.render_case_rubric_feedback(
                 event,
@@ -1195,19 +1238,62 @@ class AgentLoop:
             return ""
 
     @staticmethod
+    def _schedule_v1_grading_personalization(
+        *,
+        runtime_metadata: dict[str, Any],
+    ) -> None:
+        """Build expensive learner-profile projection off the visible-answer path.
+
+        The durable learning_evidence write happens synchronously before render. This background task
+        only computes personalization projection metadata from that evidence.
+        """
+        student_id = str(runtime_metadata.get("user_id") or runtime_metadata.get("learner_user_id") or "").strip()
+        intent = runtime_metadata.get("learning_training_intent")
+        event_id = str(runtime_metadata.get("learning_evidence_event_id") or "").strip()
+        if not student_id or not isinstance(intent, dict) or not event_id:
+            return
+        runtime_metadata["grading_to_brain_projection"] = {
+            "status": "scheduled",
+            "authority": "personalization_context_pack",
+            "event_id": event_id,
+        }
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            AgentLoop._record_v1_grading_personalization(runtime_metadata=runtime_metadata)
+            return
+
+        async def _run() -> None:
+            await asyncio.to_thread(
+                AgentLoop._record_v1_grading_personalization,
+                runtime_metadata=runtime_metadata,
+            )
+
+        task = loop.create_task(_run(), name="luban_v1_grading_personalization")
+
+        def _done(done_task: asyncio.Task[None]) -> None:
+            try:
+                done_task.result()
+            except Exception:  # noqa: BLE001 — background memory write must not break grading
+                logger.warning("LUBAN_V1 tutorbot background Grading-to-Brain writeback failed", exc_info=True)
+
+        task.add_done_callback(_done)
+
+    @staticmethod
     def _record_v1_grading_to_brain(
         *,
         runtime_metadata: dict[str, Any],
         event: dict[str, Any],
         ctx: dict[str, Any],
-    ) -> None:
+        include_personalization_projection: bool = True,
+    ) -> dict[str, Any]:
         """薄委托：Grading-to-Brain 的组合逻辑只活在
         construction_grading.writeback.record_case_grading_to_brain（单一 seam，
         与练题入口共用）。本方法只负责取身份/来源字段并把 meta 合回
         runtime_metadata；fail-closed。"""
         student_id = str(runtime_metadata.get("user_id") or runtime_metadata.get("learner_user_id") or "").strip()
         if not student_id:
-            return
+            return {}
         source_id = str(
             runtime_metadata.get("turn_id")
             or runtime_metadata.get("message_id")
@@ -1231,12 +1317,66 @@ class AgentLoop:
                 question_stem=str(ctx.get("question_stem") or ""),
                 node_code=str(ctx.get("node_code") or runtime_metadata.get("node_code") or ""),
                 session_id=str(runtime_metadata.get("session_id") or ""),
+                include_personalization_projection=include_personalization_projection,
             )
         except Exception:  # noqa: BLE001 — memory write must not break visible grading
             logger.warning("LUBAN_V1 tutorbot Grading-to-Brain writeback failed", exc_info=True)
-            return
+            return {}
         if isinstance(meta, dict) and meta:
             runtime_metadata.update(meta)
+            return meta
+        return {}
+
+    @staticmethod
+    def _record_v1_grading_personalization(*, runtime_metadata: dict[str, Any]) -> dict[str, Any]:
+        student_id = str(runtime_metadata.get("user_id") or runtime_metadata.get("learner_user_id") or "").strip()
+        intent = runtime_metadata.get("learning_training_intent")
+        event_id = str(runtime_metadata.get("learning_evidence_event_id") or "").strip()
+        if not student_id or not isinstance(intent, dict) or not event_id:
+            runtime_metadata["grading_to_brain_projection"] = {
+                "status": "skipped",
+                "authority": "personalization_context_pack",
+                "event_id": event_id,
+            }
+            return {}
+        try:
+            from deeptutor.services.construction_grading.writeback import (
+                build_case_grading_personalization_meta,
+            )
+            from deeptutor.services.learner_state import get_learner_state_service
+
+            meta = build_case_grading_personalization_meta(
+                learner_state_service=get_learner_state_service(),
+                user_id=student_id,
+                learning_training_intent=intent,
+                event_id=event_id,
+            )
+        except Exception:  # noqa: BLE001 — projection must not break visible grading
+            logger.warning("LUBAN_V1 tutorbot Grading-to-Brain personalization failed", exc_info=True)
+            runtime_metadata["grading_to_brain_projection"] = {
+                "status": "failed",
+                "authority": "personalization_context_pack",
+                "event_id": event_id,
+            }
+            return {}
+        if isinstance(meta, dict) and meta:
+            runtime_metadata.update(meta)
+            runtime_metadata["grading_to_brain_projection"] = {
+                "status": "succeeded",
+                "authority": "personalization_context_pack",
+                "event_id": event_id,
+                "has_personalization_context": isinstance(
+                    runtime_metadata.get("personalization_context"),
+                    dict,
+                ),
+            }
+            return meta
+        runtime_metadata["grading_to_brain_projection"] = {
+            "status": "empty",
+            "authority": "personalization_context_pack",
+            "event_id": event_id,
+        }
+        return {}
 
     async def _apply_v1_or_case_fallback(
         self, final_content: str | None, *, runtime_metadata: dict[str, Any] | None, user_message: str
@@ -3508,12 +3648,14 @@ class AgentLoop:
             await self.memory_consolidator.maybe_consolidate_by_tokens(session)
             preview = final_content[:120] + "..." if len(final_content) > 120 else final_content
             logger.info("Fast policy response to {}:{}: {}", msg.channel, msg.sender_id, preview)
-            self._export_llm_stream_telemetry(runtime_metadata, msg.metadata)
+            response_metadata = dict(msg.metadata or {})
+            self._export_llm_stream_telemetry(runtime_metadata, response_metadata)
+            self._export_case_grading_metadata(runtime_metadata, response_metadata)
             return OutboundMessage(
                 channel=msg.channel,
                 chat_id=msg.chat_id,
                 content=final_content,
-                metadata=msg.metadata or {},
+                metadata=response_metadata,
             )
 
         suppress_agent_stream = self._should_suppress_stream_for_degraded_answer(
@@ -3595,10 +3737,12 @@ class AgentLoop:
 
         preview = final_content[:120] + "..." if len(final_content) > 120 else final_content
         logger.info("Response to {}:{}: {}", msg.channel, msg.sender_id, preview)
-        self._export_llm_stream_telemetry(runtime_metadata, msg.metadata)
+        response_metadata = dict(msg.metadata or {})
+        self._export_llm_stream_telemetry(runtime_metadata, response_metadata)
+        self._export_case_grading_metadata(runtime_metadata, response_metadata)
         return OutboundMessage(
             channel=msg.channel, chat_id=msg.chat_id, content=final_content,
-            metadata=msg.metadata or {},
+            metadata=response_metadata,
         )
 
     def _save_turn(self, session: Session, messages: list[dict], skip: int) -> None:

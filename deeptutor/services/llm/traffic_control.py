@@ -3,12 +3,65 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import time
 from types import TracebackType
+from typing import Any
 
 from deeptutor.logging import get_logger
 
 logger = get_logger(__name__)
+_PROVIDER_TRAFFIC_CONTROLLERS: dict[tuple[int, str, int, int, float], "TrafficController"] = {}
+
+
+def _env_int(name: str, default: int) -> int:
+    raw = str(os.environ.get(name) or "").strip()
+    if not raw:
+        return default
+    try:
+        value = int(raw)
+    except ValueError:
+        return default
+    return max(1, value)
+
+
+def _env_float(name: str, default: float) -> float:
+    raw = str(os.environ.get(name) or "").strip()
+    if not raw:
+        return default
+    try:
+        value = float(raw)
+    except ValueError:
+        return default
+    return max(0.1, value)
+
+
+def get_provider_traffic_controller(
+    *,
+    provider_name: str,
+    config: Any | None = None,
+) -> "TrafficController":
+    """Return the process-local provider bulkhead for both factory and TutorBot providers."""
+    configured_concurrency = int(getattr(config, "max_concurrency", 20) or 20)
+    configured_rpm = int(getattr(config, "requests_per_minute", 600) or 600)
+    max_concurrency = _env_int("DEEPTUTOR_LLM_MAX_CONCURRENCY", configured_concurrency)
+    rpm = _env_int("DEEPTUTOR_LLM_REQUESTS_PER_MINUTE", configured_rpm)
+    timeout = _env_float("DEEPTUTOR_LLM_ACQUIRE_TIMEOUT_SECONDS", 30.0)
+    try:
+        loop_id = id(asyncio.get_running_loop())
+    except RuntimeError:
+        loop_id = 0
+    key = (loop_id, provider_name or "unknown", max_concurrency, rpm, timeout)
+    controller = _PROVIDER_TRAFFIC_CONTROLLERS.get(key)
+    if controller is None:
+        controller = TrafficController(
+            provider_name=provider_name or "unknown",
+            max_concurrency=max_concurrency,
+            requests_per_minute=rpm,
+            acquisition_timeout=timeout,
+        )
+        _PROVIDER_TRAFFIC_CONTROLLERS[key] = controller
+    return controller
 
 
 class TrafficController:
@@ -101,7 +154,7 @@ class TrafficController:
         # prevents queue jumping.
         try:
             await self._wait_for_token()
-        except Exception:
+        except BaseException:
             # If rate limiter fails/cancels, release semaphore
             self._semaphore.release()
             raise
@@ -123,4 +176,4 @@ class TrafficController:
         return None
 
 
-__all__ = ["TrafficController"]
+__all__ = ["TrafficController", "get_provider_traffic_controller"]

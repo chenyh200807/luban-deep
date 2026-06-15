@@ -568,6 +568,7 @@ class OpenAICompatProvider(LLMProvider):
         )
         model_name = str(kwargs.get("model") or model or self.default_model)
         provider_metadata = self._provider_metadata(streaming=False, model=model_name)
+        provider_name = str(provider_metadata.get("provider_name") or "openai_compatible").strip()
         with observability.start_observation(
             name="tutorbot.llm.chat",
             as_type="generation",
@@ -583,7 +584,8 @@ class OpenAICompatProvider(LLMProvider):
             },
         ) as observation:
             try:
-                parsed = self._parse(await self._client.chat.completions.create(**kwargs))
+                async with self._provider_traffic_controller(provider_name):
+                    parsed = self._parse(await self._client.chat.completions.create(**kwargs))
             except Exception as e:
                 observability.update_observation(
                     observation,
@@ -670,42 +672,43 @@ class OpenAICompatProvider(LLMProvider):
             },
         ) as observation:
             try:
-                create_started_at = time.perf_counter()
-                stream = await self._client.chat.completions.create(**kwargs)
-                stream_created_at = time.perf_counter()
-                stage_timings_ms["provider_stream_create"] = (
-                    stream_created_at - create_started_at
-                ) * 1000
-                chunks: list[Any] = []
-                stream_iter = stream.__aiter__()
-                while True:
-                    try:
-                        chunk = await asyncio.wait_for(
-                            stream_iter.__anext__(),
-                            timeout=idle_timeout_s,
-                        )
-                    except StopAsyncIteration:
-                        break
-                    chunk_received_at = time.perf_counter()
-                    if stream_chunk_count == 0:
-                        stage_timings_ms["provider_first_chunk"] = (
-                            chunk_received_at - call_started_at
-                        ) * 1000
-                    stream_chunk_count += 1
-                    chunks.append(chunk)
-                    if chunk.choices:
-                        text = getattr(chunk.choices[0].delta, "content", None)
-                        if text:
-                            stream_content_chunk_count += 1
-                            if "provider_first_content_delta" not in stage_timings_ms:
-                                stage_timings_ms["provider_first_content_delta"] = (
-                                    time.perf_counter() - call_started_at
-                                ) * 1000
-                            if on_content_delta:
-                                await on_content_delta(text)
-                stage_timings_ms["provider_stream_read"] = (
-                    time.perf_counter() - stream_created_at
-                ) * 1000
+                async with self._provider_traffic_controller(provider_name or "openai_compatible"):
+                    create_started_at = time.perf_counter()
+                    stream = await self._client.chat.completions.create(**kwargs)
+                    stream_created_at = time.perf_counter()
+                    stage_timings_ms["provider_stream_create"] = (
+                        stream_created_at - create_started_at
+                    ) * 1000
+                    chunks: list[Any] = []
+                    stream_iter = stream.__aiter__()
+                    while True:
+                        try:
+                            chunk = await asyncio.wait_for(
+                                stream_iter.__anext__(),
+                                timeout=idle_timeout_s,
+                            )
+                        except StopAsyncIteration:
+                            break
+                        chunk_received_at = time.perf_counter()
+                        if stream_chunk_count == 0:
+                            stage_timings_ms["provider_first_chunk"] = (
+                                chunk_received_at - call_started_at
+                            ) * 1000
+                        stream_chunk_count += 1
+                        chunks.append(chunk)
+                        if chunk.choices:
+                            text = getattr(chunk.choices[0].delta, "content", None)
+                            if text:
+                                stream_content_chunk_count += 1
+                                if "provider_first_content_delta" not in stage_timings_ms:
+                                    stage_timings_ms["provider_first_content_delta"] = (
+                                        time.perf_counter() - call_started_at
+                                    ) * 1000
+                                if on_content_delta:
+                                    await on_content_delta(text)
+                    stage_timings_ms["provider_stream_read"] = (
+                        time.perf_counter() - stream_created_at
+                    ) * 1000
                 parsed = self._parse_chunks(chunks)
                 parsed.telemetry = _stream_telemetry()
             except asyncio.TimeoutError:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import sys
 from types import SimpleNamespace
 from types import ModuleType
@@ -440,6 +441,86 @@ async def test_anthropic_provider_records_provider_usage(monkeypatch: pytest.Mon
         "output": 4.0,
         "total": 22.0,
     }
+
+
+@pytest.mark.asyncio
+async def test_openai_compat_provider_uses_shared_traffic_controller(monkeypatch: pytest.MonkeyPatch) -> None:
+    from deeptutor.services.llm import traffic_control
+
+    fake_observability = _FakeObservability()
+    monkeypatch.setattr(
+        "deeptutor.tutorbot.providers.openai_compat_provider.observability",
+        fake_observability,
+    )
+    monkeypatch.setenv("DEEPTUTOR_LLM_MAX_CONCURRENCY", "1")
+    traffic_control._PROVIDER_TRAFFIC_CONTROLLERS.clear()
+    active = 0
+    max_active = 0
+
+    async def _create(**_kwargs):
+        nonlocal active, max_active
+        active += 1
+        max_active = max(max_active, active)
+        await asyncio.sleep(0.01)
+        active -= 1
+        return SimpleNamespace(
+            choices=[
+                SimpleNamespace(
+                    message=SimpleNamespace(content="ok", tool_calls=[]),
+                    finish_reason="stop",
+                )
+            ],
+            usage=SimpleNamespace(prompt_tokens=1, completion_tokens=1, total_tokens=2),
+        )
+
+    provider = OpenAICompatProvider.__new__(OpenAICompatProvider)
+    LLMProvider.__init__(provider, api_key="sk-test", api_base="https://dashscope.aliyuncs.com/compatible-mode/v1")
+    provider.default_model = "deepseek-v4-flash"
+    provider.extra_headers = {}
+    provider._spec = SimpleNamespace(
+        name="dashscope",
+        supports_prompt_caching=False,
+        strip_model_prefix=False,
+        supports_max_completion_tokens=False,
+        model_overrides=(),
+    )
+    provider._provider_name = "dashscope"
+    provider._client = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=_create)))
+
+    await asyncio.gather(
+        provider.chat(messages=[{"role": "user", "content": "a"}]),
+        provider.chat(messages=[{"role": "user", "content": "b"}]),
+    )
+
+    assert max_active == 1
+
+
+def test_tutorbot_provider_traffic_controller_uses_runtime_llm_config(monkeypatch: pytest.MonkeyPatch) -> None:
+    from deeptutor.services.llm import traffic_control
+    from deeptutor.services.llm.config import LLMConfig
+
+    cfg = LLMConfig(
+        model="deepseek-v4-flash",
+        api_key="deep-key",
+        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+        binding="dashscope",
+        provider_name="dashscope",
+        provider_mode="standard",
+        max_concurrency=3,
+        requests_per_minute=77,
+    )
+    traffic_control._PROVIDER_TRAFFIC_CONTROLLERS.clear()
+    monkeypatch.delenv("DEEPTUTOR_LLM_MAX_CONCURRENCY", raising=False)
+    monkeypatch.delenv("DEEPTUTOR_LLM_REQUESTS_PER_MINUTE", raising=False)
+    monkeypatch.setattr("deeptutor.services.llm.config.get_llm_config", lambda: cfg)
+
+    provider = OpenAICompatProvider.__new__(OpenAICompatProvider)
+    LLMProvider.__init__(provider, api_key="sk-test", api_base="https://dashscope.aliyuncs.com/compatible-mode/v1")
+
+    controller = provider._provider_traffic_controller("dashscope")
+
+    assert controller.max_concurrency == 3
+    assert controller.rpm == 77
 
 
 def _async_return(value):

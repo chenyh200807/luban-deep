@@ -2023,10 +2023,22 @@ async def _grade_case_rubric_v1(
 
         if cg_type == "batch":
             event = await _grade_case_batch_v1(
-                graded_context, student_id=student_id, complete=_complete_v1, key=key, _G=_G)
+                graded_context,
+                student_id=student_id,
+                complete=_complete_v1,
+                key=key,
+                _G=_G,
+                provider_authority="deepseek:https://api.deepseek.com",
+            )
         else:
             event = await _grade_one_case_v1(
-                graded_context, student_id=student_id, complete=_complete_v1, key=key, _G=_G)
+                graded_context,
+                student_id=student_id,
+                complete=_complete_v1,
+                key=key,
+                _G=_G,
+                provider_authority="deepseek:https://api.deepseek.com",
+            )
         # Gray-rollout observability: did V1 actually grade, with what provenance/score?
         _qid = graded_context.get("question_id") or (cg or {}).get("question_id")
         if isinstance(event, dict) and event.get("event_type") == "case_grading_completed":
@@ -2050,7 +2062,8 @@ async def _grade_case_rubric_v1(
 
 
 async def _grade_one_case_v1(
-    ctx: dict[str, Any], *, student_id: str, complete: Any, key: str, _G: Any
+    ctx: dict[str, Any], *, student_id: str, complete: Any, key: str, _G: Any,
+    provider_authority: str = "",
 ) -> dict[str, Any] | None:
     """Grade ONE subjective question context with V1 (compiled rubric -> open-world reference). Reused by
     both the single-question and per-batch-item paths so there is exactly one grading core (no second
@@ -2091,7 +2104,14 @@ async def _grade_one_case_v1(
             bool(reference), len(reference), bool(stem), len(stem),
         )
         if reference:
-            points = await _G.extract_rubric_from_reference_async(reference, stem, complete, key, model=_v1_model)
+            points = await _G.extract_rubric_from_reference_async(
+                reference,
+                stem,
+                complete,
+                key,
+                model=_v1_model,
+                provider_authority=provider_authority,
+            )
             points = _G.normalize_points_to_nominal(
                 points, nominal_total=float((cg or {}).get("max_score") or 0))
             provenance = "on_the_fly_reference"
@@ -2099,7 +2119,13 @@ async def _grade_one_case_v1(
             # 3) STEM-ONLY: no reference answer at all — derive rubric from question stem via LLM
             #    domain knowledge (construction supervision / 一建). Third-tier path so V1 covers
             #    every case grading turn regardless of whether the question is in the bank.
-            points = await _G.derive_rubric_from_stem_async(stem, complete, key, model=_v1_model)
+            points = await _G.derive_rubric_from_stem_async(
+                stem,
+                complete,
+                key,
+                model=_v1_model,
+                provider_authority=provider_authority,
+            )
             points = _G.normalize_points_to_nominal(
                 points, nominal_total=float((cg or {}).get("max_score") or 0))
             provenance = "derived_from_stem"
@@ -2139,7 +2165,8 @@ async def _grade_one_case_v1(
 
 
 async def _grade_case_batch_v1(
-    graded_context: dict[str, Any], *, student_id: str, complete: Any, key: str, _G: Any
+    graded_context: dict[str, Any], *, student_id: str, complete: Any, key: str, _G: Any,
+    provider_authority: str = "",
 ) -> dict[str, Any] | None:
     """Multi-item turns (type=="batch"): grade each subjective sub-item with the SAME V1 core and merge
     into one case_grading_completed event (deterministic sums), so render + same-source outcome work
@@ -2157,7 +2184,14 @@ async def _grade_case_batch_v1(
     ]
     sub_events: list[dict[str, Any]] = []
     for item in case_items:
-        ev = await _grade_one_case_v1(item, student_id=student_id, complete=complete, key=key, _G=_G)
+        ev = await _grade_one_case_v1(
+            item,
+            student_id=student_id,
+            complete=complete,
+            key=key,
+            _G=_G,
+            provider_authority=provider_authority,
+        )
         if isinstance(ev, dict) and ev.get("event_type") == "case_grading_completed":
             sub_events.append(ev)
     # No gradable case sub-item, OR a partial batch (some sub-item degraded) -> legacy, never a merged

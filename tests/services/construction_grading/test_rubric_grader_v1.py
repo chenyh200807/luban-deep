@@ -688,6 +688,101 @@ def test_derive_rubric_from_stem_parses_valid_llm_response() -> None:
     assert points[1]["required_terms"] == ["资质"]
 
 
+def test_derive_rubric_from_stem_uses_process_cache(monkeypatch) -> None:
+    G._RUBRIC_EXTRACTION_CACHE.clear()
+    monkeypatch.setenv("LUBAN_RUBRIC_EXTRACTION_CACHE_TTL_SECONDS", "60")
+    calls = 0
+
+    async def stub_complete(**kw):
+        nonlocal calls
+        calls += 1
+        _ = kw
+        return '[{"text":"指出不妥","score":1,"policy":"qualitative","required_terms":[]}]'
+
+    first = asyncio.run(G.derive_rubric_from_stem_async("题干A", stub_complete, api_key="x"))
+    second = asyncio.run(G.derive_rubric_from_stem_async("题干A", stub_complete, api_key="x"))
+    second[0]["text"] = "mutated"
+    third = asyncio.run(G.derive_rubric_from_stem_async("题干A", stub_complete, api_key="x"))
+
+    assert calls == 1
+    assert first[0]["text"] == "指出不妥"
+    assert third[0]["text"] == "指出不妥"
+    G._RUBRIC_EXTRACTION_CACHE.clear()
+
+
+def test_extract_rubric_from_reference_uses_process_cache(monkeypatch) -> None:
+    G._RUBRIC_EXTRACTION_CACHE.clear()
+    monkeypatch.setenv("LUBAN_RUBRIC_EXTRACTION_CACHE_TTL_SECONDS", "60")
+    calls = 0
+
+    async def stub_complete(**kw):
+        nonlocal calls
+        calls += 1
+        _ = kw
+        return '[{"text":"命中强制性内容","score":1,"policy":"qualitative","required_terms":[]}]'
+
+    first = asyncio.run(G.extract_rubric_from_reference_async("参考答案A", "题干A", stub_complete, api_key="x"))
+    second = asyncio.run(G.extract_rubric_from_reference_async("参考答案A", "题干A", stub_complete, api_key="x"))
+
+    assert calls == 1
+    assert first == second
+    G._RUBRIC_EXTRACTION_CACHE.clear()
+
+
+def test_extracted_rubric_cache_key_includes_model(monkeypatch) -> None:
+    G._RUBRIC_EXTRACTION_CACHE.clear()
+    monkeypatch.setenv("LUBAN_RUBRIC_EXTRACTION_CACHE_TTL_SECONDS", "60")
+    calls = 0
+
+    async def stub_complete(**kw):
+        nonlocal calls
+        calls += 1
+        _ = kw
+        return '[{"text":"命中强制性内容","score":1,"policy":"qualitative","required_terms":[]}]'
+
+    asyncio.run(G.extract_rubric_from_reference_async(
+        "参考答案A", "题干A", stub_complete, api_key="x", model="deepseek-v4-flash",
+    ))
+    asyncio.run(G.extract_rubric_from_reference_async(
+        "参考答案A", "题干A", stub_complete, api_key="x", model="qwen3.6-flash",
+    ))
+
+    assert calls == 2
+    G._RUBRIC_EXTRACTION_CACHE.clear()
+
+
+def test_extracted_rubric_cache_key_includes_provider_authority(monkeypatch) -> None:
+    G._RUBRIC_EXTRACTION_CACHE.clear()
+    monkeypatch.setenv("LUBAN_RUBRIC_EXTRACTION_CACHE_TTL_SECONDS", "60")
+    calls = 0
+
+    async def stub_complete(**kw):
+        nonlocal calls
+        calls += 1
+        _ = kw
+        return '[{"text":"命中强制性内容","score":1,"policy":"qualitative","required_terms":[]}]'
+
+    asyncio.run(G.extract_rubric_from_reference_async(
+        "参考答案A",
+        "题干A",
+        stub_complete,
+        api_key="x",
+        model="deepseek-chat",
+        provider_authority="deepseek:https://api.deepseek.com",
+    ))
+    asyncio.run(G.extract_rubric_from_reference_async(
+        "参考答案A",
+        "题干A",
+        stub_complete,
+        api_key="x",
+        model="deepseek-chat",
+        provider_authority="dashscope:https://dashscope.aliyuncs.com/compatible-mode/v1",
+    ))
+
+    assert calls == 2
+    G._RUBRIC_EXTRACTION_CACHE.clear()
+
+
 def test_extracted_rubric_preserves_question_number_for_rendering() -> None:
     raw = (
         '[{"question_no":1,"text":"工程量清单强制性内容","score":2,'
@@ -894,6 +989,28 @@ def test_canonicalize_arms_g2_and_demotes_textbook_cited_without_score_impact() 
     judge = _judge({"P1": {"status": G.HIT}, "P2": {"status": G.HIT}, "P3": {"status": G.HIT}})
     ev = G.grade_with_rubric(qid="Q1", student_answer="x", rubric_points=official_only, judge_fn=judge)
     assert ev["max_score"] == 6.0  # 1+3+2, NOT 11.0 — RL1's 5.0 never minted a score (R1/D3)
+
+
+def test_canonicalize_marks_runtime_stem_derived_as_pending_calibration() -> None:
+    stamped = G.canonicalize_rubric_points(
+        [{"point_id": "P1", "text": "运行时推导点", "score": 1.0, "policy": "qualitative"}],
+        qid="open_world",
+        provenance="derived_from_stem",
+    )
+
+    assert stamped[0]["authority_source"] == "pending_calibration"
+    assert stamped[0]["rubric_provenance"] == "derived_from_stem"
+
+
+def test_canonicalize_keeps_runtime_reference_authority_distinct() -> None:
+    stamped = G.canonicalize_rubric_points(
+        [{"point_id": "P1", "text": "参考答案拆点", "score": 1.0, "policy": "qualitative"}],
+        qid="open_world",
+        provenance="on_the_fly_reference",
+    )
+
+    assert stamped[0]["authority_source"] == "official_answer"
+    assert stamped[0]["rubric_provenance"] == "on_the_fly_reference"
 
 
 def test_canonicalize_is_zero_regression_on_awarded_score() -> None:

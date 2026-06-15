@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from loguru import logger
+from deeptutor.services.llm.traffic_control import get_provider_traffic_controller
 
 
 @dataclass
@@ -98,6 +99,15 @@ class LLMProvider(ABC):
         self.api_key = api_key
         self.api_base = api_base
         self.generation: GenerationSettings = GenerationSettings()
+
+    def _provider_traffic_controller(self, provider_name: str):
+        try:
+            from deeptutor.services.llm.config import get_llm_config
+
+            config = get_llm_config()
+        except Exception:  # noqa: BLE001 — provider calls must not fail because config metrics are unavailable
+            config = None
+        return get_provider_traffic_controller(provider_name=provider_name, config=config)
 
     @staticmethod
     def _sanitize_empty_content(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:

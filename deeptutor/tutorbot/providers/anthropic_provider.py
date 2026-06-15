@@ -446,7 +446,8 @@ class AnthropicProvider(LLMProvider):
             },
         ) as observation:
             try:
-                response = await self._client.messages.create(**kwargs)
+                async with self._provider_traffic_controller("anthropic"):
+                    response = await self._client.messages.create(**kwargs)
                 parsed = self._parse_response(response)
             except Exception as e:
                 observability.update_observation(
@@ -526,42 +527,43 @@ class AnthropicProvider(LLMProvider):
             },
         ) as observation:
             try:
-                create_started_at = time.perf_counter()
-                async with self._client.messages.stream(**kwargs) as stream:
-                    stream_created_at = time.perf_counter()
-                    stage_timings_ms["provider_stream_create"] = (
-                        stream_created_at - create_started_at
-                    ) * 1000
-                    if on_content_delta:
-                        stream_iter = stream.text_stream.__aiter__()
-                        while True:
-                            try:
-                                text = await asyncio.wait_for(
-                                    stream_iter.__anext__(),
-                                    timeout=idle_timeout_s,
-                                )
-                            except StopAsyncIteration:
-                                break
-                            chunk_received_at = time.perf_counter()
-                            if stream_chunk_count == 0:
-                                stage_timings_ms["provider_first_chunk"] = (
-                                    chunk_received_at - call_started_at
-                                ) * 1000
-                            stream_chunk_count += 1
-                            if text:
-                                stream_content_chunk_count += 1
-                                if "provider_first_content_delta" not in stage_timings_ms:
-                                    stage_timings_ms["provider_first_content_delta"] = (
-                                        time.perf_counter() - call_started_at
+                async with self._provider_traffic_controller("anthropic"):
+                    create_started_at = time.perf_counter()
+                    async with self._client.messages.stream(**kwargs) as stream:
+                        stream_created_at = time.perf_counter()
+                        stage_timings_ms["provider_stream_create"] = (
+                            stream_created_at - create_started_at
+                        ) * 1000
+                        if on_content_delta:
+                            stream_iter = stream.text_stream.__aiter__()
+                            while True:
+                                try:
+                                    text = await asyncio.wait_for(
+                                        stream_iter.__anext__(),
+                                        timeout=idle_timeout_s,
+                                    )
+                                except StopAsyncIteration:
+                                    break
+                                chunk_received_at = time.perf_counter()
+                                if stream_chunk_count == 0:
+                                    stage_timings_ms["provider_first_chunk"] = (
+                                        chunk_received_at - call_started_at
                                     ) * 1000
-                            await on_content_delta(text)
-                    stage_timings_ms["provider_stream_read"] = (
-                        time.perf_counter() - stream_created_at
-                    ) * 1000
-                    response = await asyncio.wait_for(
-                        stream.get_final_message(),
-                        timeout=idle_timeout_s,
-                    )
+                                stream_chunk_count += 1
+                                if text:
+                                    stream_content_chunk_count += 1
+                                    if "provider_first_content_delta" not in stage_timings_ms:
+                                        stage_timings_ms["provider_first_content_delta"] = (
+                                            time.perf_counter() - call_started_at
+                                        ) * 1000
+                                await on_content_delta(text)
+                        stage_timings_ms["provider_stream_read"] = (
+                            time.perf_counter() - stream_created_at
+                        ) * 1000
+                        response = await asyncio.wait_for(
+                            stream.get_final_message(),
+                            timeout=idle_timeout_s,
+                        )
                 parsed = self._parse_response(response)
                 parsed.telemetry = _stream_telemetry()
             except asyncio.TimeoutError:

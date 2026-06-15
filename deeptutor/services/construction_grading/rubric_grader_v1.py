@@ -18,9 +18,13 @@ This module is the DETERMINISTIC spine + event shaping; the per-point hit judgme
 from __future__ import annotations
 
 from collections.abc import Callable
+import copy
 from functools import lru_cache
+import hashlib
 import logging
+import os
 import re
+import time
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -47,6 +51,69 @@ _RUBRIC_BANK_SLOTS = {
 
 _PGO_COVERAGE_SCORE_AUTHORITY = "official_total_x_verdict_coverage"
 _PGO_POINT_DISPLAY_SCORE_AUTHORITY = "display_allocated_from_official_total_coverage"
+_RUBRIC_EXTRACTION_PROMPT_VERSION = "rubric_extraction_prompt.v2"
+_RUBRIC_EXTRACTION_CACHE: dict[str, tuple[float, list[dict[str, Any]]]] = {}
+
+
+def _rubric_cache_ttl_seconds() -> float:
+    raw = str(os.environ.get("LUBAN_RUBRIC_EXTRACTION_CACHE_TTL_SECONDS") or "").strip()
+    if not raw:
+        return 3600.0
+    try:
+        return max(0.0, float(raw))
+    except ValueError:
+        return 3600.0
+
+
+def _rubric_cache_max_entries() -> int:
+    raw = str(os.environ.get("LUBAN_RUBRIC_EXTRACTION_CACHE_MAX_ENTRIES") or "").strip()
+    if not raw:
+        return 512
+    try:
+        return max(1, int(raw))
+    except ValueError:
+        return 512
+
+
+def _rubric_cache_key(
+    kind: str,
+    *,
+    reference_answer: str = "",
+    question_stem: str = "",
+    model: str = "",
+    provider_authority: str = "",
+) -> str:
+    payload = (
+        f"{_RUBRIC_EXTRACTION_PROMPT_VERSION}\n{kind}\nmodel={model.strip()}\n"
+        f"provider={provider_authority.strip()}\n"
+        f"{reference_answer.strip()}\n---stem---\n{question_stem.strip()}"
+    )
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def _get_cached_rubric_points(cache_key: str) -> list[dict[str, Any]] | None:
+    ttl = _rubric_cache_ttl_seconds()
+    if ttl <= 0:
+        return None
+    item = _RUBRIC_EXTRACTION_CACHE.get(cache_key)
+    if item is None:
+        return None
+    created, points = item
+    if time.monotonic() - created > ttl:
+        _RUBRIC_EXTRACTION_CACHE.pop(cache_key, None)
+        return None
+    return copy.deepcopy(points)
+
+
+def _set_cached_rubric_points(cache_key: str, points: list[dict[str, Any]]) -> None:
+    ttl = _rubric_cache_ttl_seconds()
+    if ttl <= 0 or not points:
+        return
+    max_entries = _rubric_cache_max_entries()
+    if len(_RUBRIC_EXTRACTION_CACHE) >= max_entries:
+        oldest_key = min(_RUBRIC_EXTRACTION_CACHE, key=lambda key: _RUBRIC_EXTRACTION_CACHE[key][0])
+        _RUBRIC_EXTRACTION_CACHE.pop(oldest_key, None)
+    _RUBRIC_EXTRACTION_CACHE[cache_key] = (time.monotonic(), copy.deepcopy(points))
 
 
 def grade_with_rubric(
@@ -782,10 +849,9 @@ def canonicalize_rubric_points(
 
     Two effects, both behaviour-preserving:
       1. Stamp the canonical ``authority_source`` on each production rubric point — this ARMS the G2
-         gate (``enforce_official_scoring_authority`` keys on ``authority_source``; the 3 official-
-         derived sources were previously unstamped, so G2 was a no-op). Default ``official_answer``:
-         the open-world stem-derived rubric IS the scoring authority when no official key exists; the
-         honest source distinction stays in ``provenance``.
+         gate (``enforce_official_scoring_authority`` keys on ``authority_source``). The source tier is
+         stamped too, so runtime stem-derived rubrics cannot masquerade as governed compiled/reference
+         authority downstream.
       2. Build + ``validate_grading_object`` the canonical ``luban_grading_object.v1`` so the typed
          object is genuinely CONSUMED in production (no longer a defined-but-unread island).
 
@@ -796,15 +862,20 @@ def canonicalize_rubric_points(
         validate_grading_object,
     )
 
+    if provenance == "derived_from_stem":
+        default_authority = "pending_calibration"
+    else:
+        default_authority = authority_source
     stamped: list[dict[str, Any]] = []
     for p in rubric_points or []:
         if not isinstance(p, dict):
             continue
         runtime = dict(p)
-        runtime.setdefault("authority_source", authority_source)
+        runtime.setdefault("authority_source", default_authority)
+        runtime["rubric_provenance"] = str(provenance or "").strip()
         stamped.append(runtime)
     blockers = validate_grading_object(
-        to_canonical_grading_object(stamped, qid=qid, authority_source=authority_source)
+        to_canonical_grading_object(stamped, qid=qid, authority_source=default_authority)
     )
     if blockers:
         logger.warning(
@@ -1051,6 +1122,7 @@ def _positive_int_or_none(value: Any, *, max_value: int | None = None) -> int | 
 async def extract_rubric_from_reference_async(
     reference_answer: str, question_stem: str,
     complete_fn: Callable[..., Any], api_key: str, *, model: str = "deepseek-chat",
+    provider_authority: str = "",
 ) -> list[dict[str, Any]]:
     """OPEN-WORLD rubric: when a question has no compiled (governed) rubric, extract scoring points
     on-the-fly from its own reference answer — ONE awaited LLM call — so V1 grades EVERY case question,
@@ -1058,6 +1130,16 @@ async def extract_rubric_from_reference_async(
     NOT drop the system back to the deterministic-keyword V0 path. Fail-closed -> [] (caller decides)."""
     if not str(reference_answer or "").strip():
         return []
+    cache_key = _rubric_cache_key(
+        "reference",
+        reference_answer=reference_answer,
+        question_stem=question_stem,
+        model=model,
+        provider_authority=provider_authority,
+    )
+    cached = _get_cached_rubric_points(cache_key)
+    if cached is not None:
+        return cached
     prompt = _extract_prompt(reference_answer, question_stem)
     try:
         raw = await complete_fn(prompt=prompt, system_prompt=_EXTRACT_SYSTEM_PROMPT,
@@ -1065,7 +1147,9 @@ async def extract_rubric_from_reference_async(
     except Exception:  # noqa: BLE001 — extraction failure -> [] (caller falls back to legacy)
         logger.warning("rubric_grader_v1: open-world rubric extraction LLM call failed", exc_info=True)
         return []
-    return _parse_extracted_points(raw)
+    points = _parse_extracted_points(raw)
+    _set_cached_rubric_points(cache_key, points)
+    return points
 
 
 _DERIVE_SYSTEM_PROMPT = "你是一建案例题命题/阅卷专家。根据题干用专业知识推导采分点，输出JSON数组。"
@@ -1096,6 +1180,7 @@ _DERIVE_PROMPT_TMPL = (
 async def derive_rubric_from_stem_async(
     question_stem: str,
     complete_fn: Callable[..., Any], api_key: str, *, model: str = "deepseek-chat",
+    provider_authority: str = "",
 ) -> list[dict[str, Any]]:
     """OPEN-WORLD rubric derivation from question stem alone (no reference answer available).
     Uses LLM domain knowledge about construction supervision / 一建 exam content to derive
@@ -1107,6 +1192,15 @@ async def derive_rubric_from_stem_async(
     stem = str(question_stem or "").strip()
     if not stem:
         return []
+    cache_key = _rubric_cache_key(
+        "stem",
+        question_stem=stem,
+        model=model,
+        provider_authority=provider_authority,
+    )
+    cached = _get_cached_rubric_points(cache_key)
+    if cached is not None:
+        return cached
     # Embed the stem as a JSON string value (data, not instruction) for the same
     # injection-resistance as _batch_prompt / _extract_prompt — a tampered question-bank
     # stem can't break out of the data boundary. (.format only substitutes {stem}; the
@@ -1118,7 +1212,9 @@ async def derive_rubric_from_stem_async(
     except Exception:  # noqa: BLE001 — derivation failure -> [] (caller falls back to legacy)
         logger.warning("rubric_grader_v1: stem-based rubric derivation LLM call failed", exc_info=True)
         return []
-    return _parse_extracted_points(raw)
+    points = _parse_extracted_points(raw)
+    _set_cached_rubric_points(cache_key, points)
+    return points
 
 
 def normalize_points_to_nominal(

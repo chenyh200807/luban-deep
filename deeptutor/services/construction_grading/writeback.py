@@ -223,6 +223,7 @@ def record_case_grading_to_brain(
     question_stem: str = "",
     node_code: str = "",
     session_id: str = "",
+    include_personalization_projection: bool = True,
 ) -> dict[str, Any]:
     """Grading-to-Brain 的唯一 turn 侧 recorder seam。
 
@@ -288,6 +289,34 @@ def record_case_grading_to_brain(
     )
     if not intent:
         return meta
+    meta["learning_training_intent"] = intent
+    if not include_personalization_projection:
+        return meta
+    meta.update(build_case_grading_personalization_meta(
+        learner_state_service=learner_state_service,
+        user_id=normalized_user_id,
+        learning_training_intent=intent,
+        event_id=event_id,
+    ))
+    return meta
+
+
+def build_case_grading_personalization_meta(
+    *,
+    learner_state_service: Any,
+    user_id: str,
+    learning_training_intent: dict[str, Any],
+    event_id: str = "",
+) -> dict[str, Any]:
+    """Build the expensive display projection for a recorded case-grading evidence event.
+
+    The append-only learning_evidence event is the durable authority. This helper only reads compiled
+    learner truth / dry-run synthesis to produce PCP and next-best-action presentation metadata.
+    """
+    normalized_user_id = str(user_id or "").strip()
+    intent = learning_training_intent if isinstance(learning_training_intent, dict) else {}
+    if not normalized_user_id or not intent:
+        return {}
     try:
         from deeptutor.services.learner_state.personalization_context import (
             build_personalization_context_pack,
@@ -320,9 +349,8 @@ def record_case_grading_to_brain(
         )
     except Exception:  # noqa: BLE001 — PCP 是投影；构建失败保留 writeback meta
         logger.warning("grading-to-brain PCP projection failed", exc_info=True)
-        return meta
-    meta["learning_training_intent"] = intent
-    meta["personalization_context"] = pcp
+        return {}
+    meta: dict[str, Any] = {"personalization_context": pcp}
     actions = pcp.get("next_best_action_candidates") if isinstance(pcp, dict) else []
     if isinstance(actions, list) and actions:
         meta["next_best_action"] = dict(actions[0])

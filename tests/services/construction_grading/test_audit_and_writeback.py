@@ -682,6 +682,26 @@ def test_record_case_grading_to_brain_falls_back_to_inline_synthesis() -> None:
     assert service.synthesize_calls[0] == {"user_id": "student-1", "dry_run": True, "event_limit": 50}
 
 
+def test_record_case_grading_to_brain_can_skip_expensive_personalization_projection() -> None:
+    from deeptutor.services.construction_grading.writeback import record_case_grading_to_brain
+
+    service = _BrainAwareLearnerStateService(cached_projection=None)
+
+    meta = record_case_grading_to_brain(
+        learner_state_service=service,
+        user_id="student-1",
+        grading_event=_case_event_for_recorder(),
+        source_id="turn-r2:CASE-R1",
+        include_personalization_projection=False,
+    )
+
+    assert meta["learning_evidence_event_id"]
+    assert meta["learning_training_intent"]["source"] == "grading_to_brain_loop"
+    assert "personalization_context" not in meta
+    assert "next_best_action" not in meta
+    assert service.synthesize_calls == []
+
+
 def test_record_case_grading_to_brain_non_case_event_returns_empty() -> None:
     from deeptutor.services.construction_grading.writeback import record_case_grading_to_brain
 
