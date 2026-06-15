@@ -65,6 +65,7 @@ D1 query executor 不得变第二套判分 policy engine;D2 不得新增第三�
 3. L2 前后仍必须 `canonical_truth_written=false` / `official_score_written=false`;canonical learner truth、published registry、production default 另走授权包。
 4. Ground gate 是评分硬门槛:评分点必须有 `authority_source/span_hash`;无来源点只能解释,不能给分/扣分,也不能进入 PGO GBrain writeback。
 5. Learner truth promotion 只能由同一采分点错因的复测验证触发候选;正式 canonical learner truth 仍需单独授权。
+6. Runtime shape gate 是 Stage5 硬门槛:案例题罚则/列表形态必须进入实际 PGO coverage scorer,不能只存在于 artifact metadata、report repair 或 L4 解释层。
 
 ## 7. 进展(2026-06-13:Phase B 上线 + G2 接真实数据流)
 
@@ -303,3 +304,103 @@ Current production blockers:
 Allowed after L4:claim that the integrated Nexus/KnowQL/GBrain/NBA loop has qa/operator `/api/v1/ws` live-readback evidence and is ready for a production authorization review.
 
 Not allowed after L4:real-student efficacy claim, broad production default, official score, published registry, canonical learner truth write, remote write, or a bundled one-switch rollout. Each authority must stay separate: real-student cohort/consent/sample-size, published registry, official score, learner truth promotion, rollback/kill-switch, and observability gates.
+
+## 15. L4.1 hardening + L5 blocked gates(2026-06-15,no-write BLOCKED)
+
+L4.1 turns the readiness package into an evidence-locked review packet. It adds no runtime capability and performs no production action.
+
+- runner:`scripts/run_luban_knowql_nexus_l4_authorization_readiness.py`
+- L5 production default gate:`scripts/run_luban_knowql_nexus_l5_production_default_gate.py`
+- L5 canonical truth gate:`scripts/run_luban_knowql_nexus_l5_canonical_truth_gate.py`
+- Stage5 human-boundary hardening:`scripts/run_luban_pgo_stage5_canary_gate.py`
+- L5 unsigned signed-authorization package:`scripts/run_luban_knowql_nexus_l5_signed_authorization_package.py`
+- tests:`tests/scripts/test_luban_knowql_nexus_l4_authorization_readiness.py`, `tests/scripts/test_luban_knowql_nexus_l5_blocked_gates.py`
+- artifact:`artifacts/luban_grading_artifacts/knowql_nexus_l4_1_authorization_readiness_20260615T152027Z`
+
+L4.1 consumed:
+
+1. L1/L2/L3 final summaries.
+2. PGO runtime supply verification.
+3. Stage5 PGO canary report.
+4. G4 canonical truth policy verification.
+5. Current test2 deployment lineage: host SHA = container SHA = `bda905590831c697df74ec1d97c80729f7350606`; `/healthz` 200; `/readyz` ready.
+6. L2/L3 negative run summaries, preserved into `negative_evidence.jsonl`.
+
+Current L4.1 output:
+
+| Gate | Status |
+|---|---|
+| L1/L2/L3 live-readback gates | 3/3 passed |
+| hardening gates | 3/4 passed |
+| failing hardening gate | `stage5_canary` |
+| preserved blocker | `stage5_human_gold_over_credit_blocker` |
+| verdict | `BLOCKED_FOR_PRODUCTION_AUTHORIZATION` |
+| canonical / official / production / unsafe writes | `0 / 0 / 0 / 0` |
+
+L5 outputs:
+
+| Gate | Verdict | Writes allowed |
+|---|---|---|
+| production default | `BLOCKED_PENDING_SIGNED_AUTHORIZATION` | production default/env mutation/published registry/official score/remote write all false |
+| canonical learner truth | `BLOCKED_PENDING_SIGNED_AUTHORIZATION` | canonical truth / learner memory event / read-model / remote write all false |
+
+Interpretation: L4.1 improved auditability and preserved the negative evidence that matters. It also makes the next real blocker sharper: before any production default discussion, Stage5 human-gold over-credit must be resolved in addition to signatures/rollback/published-registry authorization. Before any canonical learner truth discussion, signed canonical authorization, same-point real retest proof, stable learner claim, and teacher-final/certified policy proof are all required.
+
+## 16. Stage5 human-boundary execution + unsigned L5 package(2026-06-15,no-write BLOCKED)
+
+This loop executes the Stage5 blocker instead of bypassing it.
+
+Changes:
+
+- Stage5 canary gate now fails at source when human-boundary over-credit is present. It no longer reports `qa_operator_canary_go` while hiding the blocker for L4 to rediscover.
+- Stage5 can optionally consume `luban_pgo_stage5_human_boundary_repair.v1`; only resolved repair evidence covering every original blocking pair can clear `stage5_human_gold_over_credit_blocker`.
+- PGO supply now preserves `case_shape_constraints` (`list_rule`, `penalty_rule`, `structural_cap_list_items`) from factory candidates into runtime records. This is metadata plumbing only; it does not authorize official score and does not yet make the runtime scorer consume those constraints.
+- L5 signed authorization package builder now prepares production-default and canonical-truth authorization forms, but all forms are unsigned and every write/publish/env/remote flag remains false.
+
+Artifact:
+
+| Artifact | Status |
+|---|---|
+| `knowql_nexus_stage5_human_boundary_repair_20260615T154400Z/stage5_canary_gate_report.json` | `blocked` |
+| `knowql_nexus_stage5_human_boundary_repair_20260615T154400Z/authorization_readiness.json` | `BLOCKED_FOR_PRODUCTION_AUTHORIZATION`; live-readback ready; hardening 3/4 |
+| `knowql_nexus_stage5_human_boundary_repair_20260615T154400Z/l5_production_default_gate.json` | `BLOCKED_PENDING_SIGNED_AUTHORIZATION` |
+| `knowql_nexus_stage5_human_boundary_repair_20260615T154400Z/l5_canonical_truth_gate.json` | `BLOCKED_PENDING_SIGNED_AUTHORIZATION` |
+| `knowql_nexus_stage5_human_boundary_repair_20260615T154400Z/signed_authorization_package.json` | `BLOCKED_BEFORE_SIGNATURE` |
+
+Current blocker details:
+
+- `Q4-1A434000-罚则/S5`: `new_uniform=1.167`, human gold `0.0`, legacy `0.0`.
+- `Q4-1A434000-罚则/S4`: `new_uniform=7.0`, human gold `3.0`, legacy `0.0`.
+- Root cause: the human-gold packet has a case-level "2 不妥，多答不得分" shape constraint. The current PGO runtime supply can now carry that shape, but runtime scoring still needs deterministic penalty/list-shape consumption before Stage5 can resolve.
+
+Exit criteria before signature capture:
+
+1. Human-boundary repair evidence must cover every original over-credit pair.
+2. Repaired human-boundary over-credit must satisfy `new <= legacy`.
+3. Runtime scoring must consume case-level penalty/list shape without official-score writes.
+4. Stage5 canary status must return `qa_operator_canary_go` with `production_default_flip_allowed=false`, `canonical_write_allowed=false`, `remote_write_allowed=false`.
+
+## 17. Runtime penalty/list-shape consumption repair(2026-06-16,no-write GO for Stage5)
+
+This loop closes the Stage5 blocker by making the actual PGO coverage scorer consume the Q4 penalty/list shape. It does not sign or authorize production.
+
+Changes:
+
+- PGO runtime supply regenerated: `case_rubric_scored_pgo.json` content hash `7e403e05c56c3afc25d02d23c3db66888522ad7b859f81c1c7d051c2090f22f0`; Q4 runtime qid `2023::EXAM_1A434000_P0010_02::E0` has 10 records with `case_shape_constraints.penalty_rule.type=multi_answer_no_score`, trigger `max_answered_items=2`, pattern `不妥`, and list total_items=6.
+- `rubric_grader_v1._grade_with_pgo_coverage` now consumes `case_shape_constraints`: penalty-scoped flaw/correction points are forced to miss when the student over-answers, and list-shape weights prevent enumeration points from being over-inflated.
+- `scripts/run_luban_pgo_stage5_human_boundary_repair.py` now consumes the tracked runtime supply bank plus pointer/content hash and then calls the real scorer. Fixture fallback remains only for tests or missing bank.
+
+Artifact:
+
+| Artifact | Status |
+|---|---|
+| `knowql_nexus_runtime_penalty_list_shape_repair_20260615T164013Z/human_boundary_repair.json` | `resolved`; `tracked_runtime_supply=true`; S4 `7.0 -> 3.0`; S5 `1.167 -> 0.0` |
+| `knowql_nexus_runtime_penalty_list_shape_repair_20260615T164013Z/stage5_canary_gate_report.json` | `qa_operator_canary_go`; blockers `[]`; original human-boundary blocker recorded and repair gate resolved |
+| `knowql_nexus_runtime_penalty_list_shape_repair_20260615T164013Z/authorization_readiness.json` | `BLOCKED_FOR_PRODUCTION_AUTHORIZATION`; live-readback ready; hardening 4/4; safety violations 0 |
+| `knowql_nexus_runtime_penalty_list_shape_repair_20260615T164013Z/l5_production_default_gate.json` | `BLOCKED_PENDING_SIGNED_AUTHORIZATION` |
+| `knowql_nexus_runtime_penalty_list_shape_repair_20260615T164013Z/l5_canonical_truth_gate.json` | `BLOCKED_PENDING_SIGNED_AUTHORIZATION` |
+| `knowql_nexus_runtime_penalty_list_shape_repair_20260615T164013Z/signed_authorization_package.json` | `READY_FOR_HUMAN_SIGNATURE` draft only; still unsigned/no-write |
+
+Allowed claim after this loop: QA/operator Stage5 canary is credible again because the repair is sourced from tracked PGO runtime supply and actual coverage scoring.
+
+Still forbidden: broad production default, official score, published registry, real-student efficacy claim, canonical learner truth promotion, learner memory write, DB/remote write.

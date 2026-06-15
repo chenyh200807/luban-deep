@@ -2,6 +2,6 @@
   "namespace": "case_rubric_scored_pgo",
   "status": "release_candidate",
   "published": false,
-  "expected_content_hash": "939ed659c85e1f33880151f9cb755493fb49abb29c1d8317163b6b02675c34da",
+  "expected_content_hash": "7e403e05c56c3afc25d02d23c3db66888522ad7b859f81c1c7d051c2090f22f0",
   "rollback_pointer": "LUBAN_CASE_RUBRIC_BANK_SLOT=legacy"
 }

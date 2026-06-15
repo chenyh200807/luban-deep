@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import re
 from typing import Any
 
 from deeptutor.services.construction_grading.full_knowledge_compiler import _sha256_hex
@@ -87,12 +88,87 @@ def _factory_sub_type(case: dict[str, Any], segment: dict[str, Any]) -> str:
         return point_type
     if point_type == "list" or segment.get("is_list_item") is True:
         return "enumeration"
+    if point_type == "mixed" and _segment_is_flaw_correction(segment):
+        return "flaw_correction"
     return "free_text_point"
+
+
+def _segment_is_flaw_correction(segment: dict[str, Any]) -> bool:
+    text = str(segment.get("text") or "")
+    return any(marker in text for marker in ("不妥", "不当", "错误", "正确做法", "改正", "理由"))
 
 
 def _factory_classification_is_review_only(factory: dict[str, Any]) -> bool:
     classification = (factory.get("summary") or {}).get("classification") or {}
     return classification.get("candidate_only") is True and classification.get("review_only") is True
+
+
+def _extract_max_answered_items(text: str) -> int | None:
+    match = re.search(r"(\d+)\s*项[^，。；;]*多答不得分", text)
+    if not match:
+        match = re.search(r"本问题\s*(\d+)\s*项", text)
+    if not match:
+        return None
+    try:
+        value = int(match.group(1))
+    except ValueError:
+        return None
+    return value if value > 0 else None
+
+
+def _compiled_penalty_rule(penalty_rule: dict[str, Any]) -> dict[str, Any]:
+    text = str(penalty_rule.get("text") or "").strip()
+    scope = str(penalty_rule.get("scope") or "").strip()
+    combined = "，".join(part for part in (scope, text) if part)
+    compiled = {
+        "exists": penalty_rule.get("exists") is True,
+        "scope": penalty_rule.get("scope"),
+        "text": penalty_rule.get("text"),
+    }
+    if compiled["exists"] is not True or "多答不得分" not in combined:
+        return compiled
+    max_answered = _extract_max_answered_items(combined)
+    if max_answered is None:
+        return compiled
+    pattern = "不妥" if "不妥" in combined else ""
+    if not pattern:
+        return compiled
+    compiled.update(
+        {
+            "type": "multi_answer_no_score",
+            "trigger": {"max_answered_items": max_answered, "pattern": pattern},
+            "applies_to_sub_types": ["flaw_correction"],
+        }
+    )
+    return compiled
+
+
+def _case_shape_constraints(case: dict[str, Any]) -> dict[str, Any]:
+    constraints: dict[str, Any] = {}
+    list_rule = case.get("list_rule") if isinstance(case.get("list_rule"), dict) else {}
+    if list_rule:
+        constraints["list_rule"] = {
+            "applies": list_rule.get("applies") is True,
+            "total_items": list_rule.get("total_items"),
+        }
+    penalty_rule = case.get("penalty_rule") if isinstance(case.get("penalty_rule"), dict) else {}
+    if penalty_rule:
+        constraints["penalty_rule"] = _compiled_penalty_rule(penalty_rule)
+    if case.get("structural_cap_list_items") is not None:
+        constraints["structural_cap_list_items"] = case.get("structural_cap_list_items")
+    return constraints
+
+
+def _segment_penalty_scoped(case_shape_constraints: dict[str, Any], sub_type: str) -> bool:
+    penalty_rule = case_shape_constraints.get("penalty_rule")
+    if not isinstance(penalty_rule, dict) or penalty_rule.get("type") != "multi_answer_no_score":
+        return False
+    applies_to = {
+        str(item or "").strip()
+        for item in list(penalty_rule.get("applies_to_sub_types") or [])
+        if str(item or "").strip()
+    }
+    return bool(applies_to) and sub_type in applies_to
 
 
 def build_grading_contracts_from_factory_candidate(
@@ -160,6 +236,7 @@ def build_grading_contracts_from_factory_candidate(
 
         assert obj is not None  # narrowed by blockers above
         official_answer = _official_answer_from_pgo_object(obj)
+        case_shape_constraints = _case_shape_constraints(case)
         scoring_points: list[dict[str, Any]] = []
         for ordinal, segment in enumerate(segments, start=1):
             raw_text = str(segment.get("text") or "").strip()
@@ -173,17 +250,20 @@ def build_grading_contracts_from_factory_candidate(
             if text not in official_answer:
                 blockers.append(f"segment_not_verbatim:{ordinal}")
                 continue
+            sub_type = _factory_sub_type(case, segment)
             scoring_points.append(
                 {
                     "point_id": _factory_point_id(qid, ordinal, text),
                     "sub_no": 1,
-                    "sub_type": _factory_sub_type(case, segment),
+                    "sub_type": sub_type,
                     "official_slice": text,
                     "authority_source": A_OFFICIAL,
                     "span_hash": source_span_hash(text),
                     "score": None,
                     "score_authority": PENDING_SCORE_AUTHORITY,
                     "exact_term_required": segment.get("exact_term_required") is True,
+                    "case_shape_role": sub_type,
+                    "penalty_scoped": _segment_penalty_scoped(case_shape_constraints, sub_type),
                     "factory_resolution": case.get("resolution"),
                     "factory_resolution_lane": case.get("resolution_lane"),
                     "factory_point_type": case.get("point_type"),
@@ -220,6 +300,7 @@ def build_grading_contracts_from_factory_candidate(
                 "resolution_lanes": [lane] if lane else [],
                 "point_type": case.get("point_type"),
             },
+            "case_shape_constraints": case_shape_constraints,
             "output_contract": {
                 "must_emit_one_verdict_per_point_id": True,
                 "verdict_enum": ["hit", "partial", "miss", "contradiction"],
@@ -246,7 +327,7 @@ def build_grading_contracts_from_factory_candidate(
 
 def _record_from_runtime_point(contract: dict[str, Any], point: dict[str, Any]) -> dict[str, Any]:
     text = str(point.get("official_slice") or point.get("knowledge_point") or "")
-    return {
+    record = {
         "qid": str(contract.get("question_id") or ""),
         "point_id": str(point.get("point_id") or ""),
         "source_schema": contract.get("source_schema"),
@@ -269,6 +350,10 @@ def _record_from_runtime_point(contract: dict[str, Any], point: dict[str, Any]) 
         "official_score_allowed": False,
         "canonical_write_allowed": False,
     }
+    constraints = contract.get("case_shape_constraints")
+    if isinstance(constraints, dict) and constraints:
+        record["case_shape_constraints"] = constraints
+    return record
 
 
 def build_pgo_runtime_supply(contracts: list[dict[str, Any]]) -> dict[str, Any]:
@@ -283,6 +368,7 @@ def build_pgo_runtime_supply(contracts: list[dict[str, Any]]) -> dict[str, Any]:
     by_policy: dict[str, int] = {}
     source_schemas: set[str] = set()
     factory_resolution_lanes: set[str] = set()
+    case_shape_constraint_qids: set[str] = set()
     for contract in contracts:
         qid = str(contract.get("question_id") or "")
         blockers = validate_grading_contract(contract)
@@ -302,9 +388,13 @@ def build_pgo_runtime_supply(contracts: list[dict[str, Any]]) -> dict[str, Any]:
             if not rec["qid"] or not rec["point_id"] or not rec["text"]:
                 rejected.append({"question_id": qid, "blockers": ["record_missing_identity_or_text"]})
                 continue
+            if rec.get("case_shape_constraints"):
+                case_shape_constraint_qids.add(qid)
             source_point = source_points_by_id.get(str(rec["point_id"]) or "") or {}
             for key in (
                 "exact_term_required",
+                "case_shape_role",
+                "penalty_scoped",
                 "factory_resolution",
                 "factory_resolution_lane",
                 "factory_point_type",
@@ -331,6 +421,7 @@ def build_pgo_runtime_supply(contracts: list[dict[str, Any]]) -> dict[str, Any]:
         "rejected_count": len(rejected),
         "source_schemas": sorted(source_schemas),
         "factory_resolution_lanes": sorted(factory_resolution_lanes),
+        "case_shape_constraint_count": len(case_shape_constraint_qids),
         "answer_key_authority": "exam_reference_answer",
         "official_total_score_authority": A_OFFICIAL,
         "score_authority": SCORE_AUTHORITY,

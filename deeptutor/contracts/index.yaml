@@ -536,7 +536,11 @@ domains:
       - scripts/build_luban_pgo_runtime_supply.py
       - scripts/verify_luban_pgo_runtime_supply.py
       - scripts/run_luban_pgo_stage5_canary_gate.py
+      - scripts/run_luban_pgo_stage5_human_boundary_repair.py
       - scripts/run_luban_knowql_nexus_l4_authorization_readiness.py
+      - scripts/run_luban_knowql_nexus_l5_production_default_gate.py
+      - scripts/run_luban_knowql_nexus_l5_canonical_truth_gate.py
+      - scripts/run_luban_knowql_nexus_l5_signed_authorization_package.py
       - deeptutor/services/question_followup.py
       - deeptutor/tutorbot/agent/loop.py
     test_files:
@@ -548,6 +552,8 @@ domains:
       - tests/scripts/test_verify_luban_pgo_runtime_supply.py
       - tests/scripts/test_luban_pgo_stage5_canary_gate.py
       - tests/scripts/test_luban_knowql_nexus_l4_authorization_readiness.py
+      - tests/scripts/test_luban_knowql_nexus_l5_blocked_gates.py
+      - tests/scripts/test_luban_knowql_nexus_l5_signed_authorization_package.py
       - tests/services/construction_grading/test_learning_evidence.py
       - tests/services/test_question_followup.py
       - tests/tutorbot/test_agent_loop_case_rubric_v1.py

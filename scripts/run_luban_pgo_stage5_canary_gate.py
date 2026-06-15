@@ -37,9 +37,12 @@ DEFAULT_HUMAN_BOUNDARY_GATE = (
     / "artifacts/luban_grading_artifacts/multi_ai_anchored_grading_20260614"
     / "phase5_factory/legacy_arm_regression.json"
 )
+DEFAULT_HUMAN_BOUNDARY_REPAIR: Path | None = None
 DEFAULT_COHORT_IDS = ("qa_stage5_pgo_canary", "operator_stage5_pgo_canary")
 SCHEMA = "luban_pgo_stage5_canary_gate.v1"
 ALLOWED_COHORT_PREFIXES = ("qa_", "operator_")
+HUMAN_BOUNDARY_REPAIR_SCHEMA = "luban_pgo_stage5_human_boundary_repair.v1"
+HUMAN_BOUNDARY_BLOCKER = "stage5_human_gold_over_credit_blocker"
 
 
 def _load_json(path: Path) -> Any:
@@ -194,7 +197,102 @@ def _shadow_delta(records: list[dict[str, Any]], summary: dict[str, Any]) -> dic
     }
 
 
-def _over_credit(summary: dict[str, Any], human_boundary_path: Path) -> dict[str, Any]:
+def _human_boundary_blocking_pairs(human_payload: dict[str, Any]) -> list[dict[str, Any]]:
+    pairs: list[dict[str, Any]] = []
+    for record in human_payload.get("records") or []:
+        if not isinstance(record, dict):
+            continue
+        try:
+            new_awarded = float(record.get("new_uniform") or 0.0)
+            human_awarded = float(record.get("human_awarded") or 0.0)
+            legacy_awarded = float(record.get("legacy_awarded") or 0.0)
+        except (TypeError, ValueError):
+            continue
+        if new_awarded - human_awarded > 1.0 and legacy_awarded - human_awarded <= 1.0:
+            pairs.append(
+                {
+                    "case": str(record.get("case") or ""),
+                    "student": str(record.get("student") or ""),
+                    "new_uniform": new_awarded,
+                    "legacy_awarded": legacy_awarded,
+                    "human_awarded": human_awarded,
+                    "delta_vs_human": round(new_awarded - human_awarded, 4),
+                }
+            )
+    return pairs
+
+
+def _human_boundary_repair_gate(
+    *,
+    repair_path: Path | None,
+    human_payload: dict[str, Any],
+    original_blocker: bool,
+) -> dict[str, Any]:
+    if not original_blocker:
+        return {"status": "not_required", "blockers": [], "resolved": False}
+    if repair_path is None:
+        return {"status": "missing", "blockers": ["human_boundary_repair_missing"], "resolved": False}
+    if not repair_path.exists():
+        return {
+            "status": "missing",
+            "path": str(repair_path),
+            "blockers": ["human_boundary_repair_missing"],
+            "resolved": False,
+        }
+    repair = _load_json(repair_path)
+    blockers: list[str] = []
+    if repair.get("schema") != HUMAN_BOUNDARY_REPAIR_SCHEMA:
+        blockers.append(f"human_boundary_repair_schema_mismatch:{repair.get('schema')}")
+    if repair.get("status") != "resolved":
+        blockers.append(f"human_boundary_repair_status_not_resolved:{repair.get('status')}")
+    if HUMAN_BOUNDARY_BLOCKER not in list(repair.get("resolved_blockers") or []):
+        blockers.append("human_boundary_repair_missing_resolved_blocker")
+    after = repair.get("human_boundary_after_repair") if isinstance(repair.get("human_boundary_after_repair"), dict) else {}
+    over_after = after.get("over_credit_pairs") if isinstance(after.get("over_credit_pairs"), dict) else {}
+    try:
+        new_after = int(over_after.get("new") or 0)
+        legacy_after = int(over_after.get("legacy") or 0)
+    except (TypeError, ValueError):
+        new_after = 1
+        legacy_after = 0
+        blockers.append("human_boundary_repair_over_credit_pairs_invalid")
+    if new_after > legacy_after:
+        blockers.append("human_boundary_repair_new_over_credit_gt_legacy")
+    blocking_pairs = _human_boundary_blocking_pairs(human_payload)
+    covered = {
+        (str(pair.get("case") or ""), str(pair.get("student") or ""))
+        for pair in list(after.get("covered_over_credit_pairs") or [])
+        if isinstance(pair, dict)
+    }
+    missing_pairs = [
+        {"case": pair["case"], "student": pair["student"]}
+        for pair in blocking_pairs
+        if (pair["case"], pair["student"]) not in covered
+    ]
+    if missing_pairs:
+        blockers.append("human_boundary_repair_missing_original_pair_coverage")
+    safety = repair.get("safety") if isinstance(repair.get("safety"), dict) else {}
+    for key in ("production_default_flip_allowed", "official_score_allowed", "canonical_write_allowed", "remote_write_allowed"):
+        if safety.get(key) is not False:
+            blockers.append(f"human_boundary_repair_{key}_not_false")
+    return {
+        "status": "resolved" if not blockers else "blocked",
+        "path": str(repair_path),
+        "schema": repair.get("schema"),
+        "blockers": blockers,
+        "resolved": not blockers,
+        "after_over_credit_pairs": {"new": new_after, "legacy": legacy_after},
+        "covered_original_pair_count": len(blocking_pairs) - len(missing_pairs),
+        "original_blocking_pair_count": len(blocking_pairs),
+        "missing_original_pairs": missing_pairs,
+    }
+
+
+def _over_credit(
+    summary: dict[str, Any],
+    human_boundary_path: Path,
+    human_boundary_repair_path: Path | None = DEFAULT_HUMAN_BOUNDARY_REPAIR,
+) -> dict[str, Any]:
     scaled_over_credit = summary.get("over_credit") or {}
     report = {
         "scaled_gate_new": scaled_over_credit.get("new"),
@@ -205,20 +303,34 @@ def _over_credit(summary: dict[str, Any], human_boundary_path: Path) -> dict[str
         human_payload = _load_json(human_boundary_path)
         human_summary = human_payload.get("summary") if isinstance(human_payload, dict) else {}
         human_over_credit = (human_summary or {}).get("over_credit_pairs") or {}
+        original_blocker = (
+            human_over_credit.get("new") is not None
+            and human_over_credit.get("legacy") is not None
+            and human_over_credit.get("new") > human_over_credit.get("legacy")
+        )
+        repair_gate = _human_boundary_repair_gate(
+            repair_path=human_boundary_repair_path,
+            human_payload=human_payload if isinstance(human_payload, dict) else {},
+            original_blocker=bool(original_blocker),
+        )
         report["human_boundary"] = {
             "path": str(human_boundary_path),
             "gold": (human_summary or {}).get("gold"),
             "new": human_over_credit.get("new"),
             "legacy": human_over_credit.get("legacy"),
-            "broad_flip_blocker": (
-                human_over_credit.get("new") is not None
-                and human_over_credit.get("legacy") is not None
-                and human_over_credit.get("new") > human_over_credit.get("legacy")
-            ),
+            "original_broad_flip_blocker": bool(original_blocker),
+            "broad_flip_blocker": bool(original_blocker) and repair_gate.get("resolved") is not True,
+            "repair_status": repair_gate.get("status"),
+            "repair_gate": repair_gate,
+            "blocking_pairs": _human_boundary_blocking_pairs(human_payload if isinstance(human_payload, dict) else {}),
             "honest_boundary": (human_summary or {}).get("honest_boundary"),
         }
     else:
-        report["human_boundary"] = {"available": False, "path": str(human_boundary_path)}
+        report["human_boundary"] = {
+            "available": False,
+            "path": str(human_boundary_path),
+            "repair_status": "not_applicable",
+        }
     return report
 
 
@@ -236,6 +348,7 @@ def build_canary_gate_report(
     scaled_double_gate_path: Path = DEFAULT_SCALED_DOUBLE_GATE,
     cohort_ids: list[str] | None = None,
     human_boundary_path: Path = DEFAULT_HUMAN_BOUNDARY_GATE,
+    human_boundary_repair_path: Path | None = DEFAULT_HUMAN_BOUNDARY_REPAIR,
 ) -> dict[str, Any]:
     slot_dir = Path(slot_dir)
     cohort_ids = list(cohort_ids or DEFAULT_COHORT_IDS)
@@ -275,6 +388,11 @@ def build_canary_gate_report(
     if not cohort_report["allowed"]:
         blockers.append("cohort_not_limited_to_qa_operator")
 
+    over_credit_report = _over_credit(summary, human_boundary_path, human_boundary_repair_path)
+    human_boundary = over_credit_report.get("human_boundary") if isinstance(over_credit_report.get("human_boundary"), dict) else {}
+    if human_boundary.get("broad_flip_blocker") is True:
+        blockers.append(HUMAN_BOUNDARY_BLOCKER)
+
     return {
         "schema": SCHEMA,
         "status": "qa_operator_canary_go" if not blockers else "blocked",
@@ -295,12 +413,13 @@ def build_canary_gate_report(
         },
         "runtime_supply": verifier_report,
         "shadow_delta": _shadow_delta(records, summary),
-        "over_credit": _over_credit(summary, human_boundary_path),
+        "over_credit": over_credit_report,
         "score_distribution": _score_distribution(records),
         "inputs": {
             "slot_dir": str(slot_dir),
             "scaled_double_gate_path": str(scaled_double_gate_path),
             "human_boundary_path": str(human_boundary_path),
+            "human_boundary_repair_path": str(human_boundary_repair_path) if human_boundary_repair_path is not None else None,
         },
     }
 
@@ -310,6 +429,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--slot-dir", type=Path, default=DEFAULT_SLOT_DIR)
     parser.add_argument("--scaled-double-gate", type=Path, default=DEFAULT_SCALED_DOUBLE_GATE)
     parser.add_argument("--human-boundary-gate", type=Path, default=DEFAULT_HUMAN_BOUNDARY_GATE)
+    parser.add_argument("--human-boundary-repair", type=Path, default=DEFAULT_HUMAN_BOUNDARY_REPAIR)
     parser.add_argument("--cohort-id", action="append", dest="cohort_ids")
     parser.add_argument("--out", type=Path)
     args = parser.parse_args(argv)
@@ -319,6 +439,7 @@ def main(argv: list[str] | None = None) -> int:
         scaled_double_gate_path=args.scaled_double_gate,
         cohort_ids=args.cohort_ids,
         human_boundary_path=args.human_boundary_gate,
+        human_boundary_repair_path=args.human_boundary_repair,
     )
     payload = json.dumps(report, ensure_ascii=False, indent=2)
     print(payload)

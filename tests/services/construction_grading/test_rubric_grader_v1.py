@@ -94,6 +94,113 @@ def test_null_score_pgo_points_use_official_total_coverage_not_score_sum() -> No
     assert ev["scoring_points"][1]["score"] == 0.0
 
 
+def _q4_like_pgo_points() -> list[dict]:
+    shape = {
+        "penalty_rule": {
+            "exists": True,
+            "type": "multi_answer_no_score",
+            "trigger": {"max_answered_items": 2, "pattern": "不妥"},
+            "applies_to_sub_types": ["flaw_correction"],
+            "text": "本问题2项不妥，多答不得分",
+        },
+        "list_rule": {"applies": True, "total_items": 6},
+    }
+    flaw_points = [
+        ("F1", "不妥之处：试验员制作见证记录"),
+        ("F2", "正确做法：应由见证人员制作见证记录"),
+        ("F3", "不妥之处：总包支付检测费"),
+        ("F4", "正确做法：建设单位单独列支并及时支付检测费"),
+    ]
+    list_points = [("L1", "取样"), ("L2", "制样"), ("L3", "标识"), ("L4", "封志"), ("L5", "送检"), ("L6", "现场检测")]
+    points = []
+    for point_id, text in flaw_points:
+        points.append(
+            {
+                "point_id": point_id,
+                "text": text,
+                "official_slice": text,
+                "score": None,
+                "max_score": None,
+                "policy": "exact_required",
+                "required_terms": [text],
+                "official_total_score": 7.0,
+                "score_authority": "official_total_x_verdict_coverage",
+                "per_point_score_authority": "pending_calibration_not_official",
+                "authority_source": "official_answer_verbatim",
+                "span_hash": f"sha256:{point_id}",
+                "sub_type": "flaw_correction",
+                "case_shape_role": "flaw_correction",
+                "penalty_scoped": True,
+                "case_shape_constraints": shape,
+            }
+        )
+    for point_id, text in list_points:
+        points.append(
+            {
+                "point_id": point_id,
+                "text": text,
+                "official_slice": text,
+                "score": None,
+                "max_score": None,
+                "policy": "exact_required",
+                "required_terms": [text],
+                "official_total_score": 7.0,
+                "score_authority": "official_total_x_verdict_coverage",
+                "per_point_score_authority": "pending_calibration_not_official",
+                "authority_source": "official_answer_verbatim",
+                "span_hash": f"sha256:{point_id}",
+                "sub_type": "enumeration",
+                "case_shape_role": "enumeration",
+                "penalty_scoped": False,
+                "case_shape_constraints": shape,
+            }
+        )
+    return points
+
+
+def test_pgo_coverage_consumes_multi_answer_penalty_and_list_shape_weights() -> None:
+    points = _q4_like_pgo_points()
+    judge = _judge({point["point_id"]: {"status": G.HIT, "evidence_span": point["text"]} for point in points})
+
+    ev = G.grade_with_rubric(
+        qid="Q4-1A434000-罚则",
+        student_answer=(
+            "不妥:试验员制作见证记录;不妥:总包支付检测费;"
+            "不妥:检测委托单由试验员填报。"
+            "见证记录包括取样、制样、标识、封志、送检、现场检测。"
+        ),
+        rubric_points=points,
+        judge_fn=judge,
+    )
+
+    by_id = {point["point_id"]: point for point in ev["scoring_points"]}
+    assert ev["awarded_score"] == 3.0
+    assert ev["max_score"] == 7.0
+    assert ev["coverage"] == round(3.0 / 7.0, 4)
+    assert ev["penalty_rules_applied"] == ["multi_answer_no_score"]
+    assert all(by_id[point_id]["score"] == 0.0 for point_id in ("F1", "F2", "F3", "F4"))
+    assert all(by_id[point_id]["hit"] == G.MISS for point_id in ("F1", "F2", "F3", "F4"))
+    assert all(by_id[point_id]["score"] == 0.5 for point_id in ("L1", "L2", "L3", "L4", "L5", "L6"))
+    assert by_id["F1"]["penalty_rule_applied"] == "multi_answer_no_score"
+    assert by_id["L1"].get("penalty_rule_applied") is None
+
+
+def test_pgo_coverage_exact_term_required_partial_gets_no_credit() -> None:
+    points = _q4_like_pgo_points()
+    judge = _judge({"L1": {"status": G.PARTIAL, "partial_ratio": 0.8, "evidence_span": "取检"}})
+
+    ev = G.grade_with_rubric(
+        qid="Q4-1A434000-罚则",
+        student_answer="取检。",
+        rubric_points=[points[4]],
+        judge_fn=judge,
+    )
+
+    assert ev["awarded_score"] == 0.0
+    assert ev["scoring_points"][0]["hit"] == G.MISS
+    assert ev["scoring_points"][0]["mistake_type"] == G.MISTAKE_NEAR_SYNONYM
+
+
 def test_grade_artifact_shadow_emits_point_matches_and_stays_non_official() -> None:
     artifact = {
         "version_id": "qga_v0_20260604",

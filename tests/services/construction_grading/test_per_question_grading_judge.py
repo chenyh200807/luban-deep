@@ -239,6 +239,37 @@ def test_runtime_points_adapter_maps_all_stage2_sub_types_without_minting_score(
     assert {p["max_score"] for p in runtime_points} == {None}
 
 
+def test_runtime_points_adapter_preserves_case_shape_constraints_and_exact_terms():
+    contract = _stage2_contract()
+    contract["case_shape_constraints"] = {
+        "penalty_rule": {
+            "exists": True,
+            "type": "multi_answer_no_score",
+            "trigger": {"max_answered_items": 2, "pattern": "不妥"},
+            "applies_to_sub_types": ["flaw_correction"],
+            "text": "本问题2项不妥，多答不得分",
+        },
+        "list_rule": {"applies": True, "total_items": 6},
+    }
+    contract["scoring_points"][0]["exact_term_required"] = True
+    contract["scoring_points"][0]["case_shape_role"] = "flaw_correction"
+    contract["scoring_points"][0]["penalty_scoped"] = True
+    contract["scoring_points"][3]["exact_term_required"] = True
+    contract["scoring_points"][3]["case_shape_role"] = "enumeration"
+    contract["scoring_points"][3]["penalty_scoped"] = False
+
+    runtime_points = runtime_points_from_grading_contract(contract)
+    by_id = {p["point_id"]: p for p in runtime_points}
+
+    assert by_id["sp_flaw"]["policy_type"] == "exact_required"
+    assert by_id["sp_flaw"]["case_shape_role"] == "flaw_correction"
+    assert by_id["sp_flaw"]["penalty_scoped"] is True
+    assert by_id["sp_flaw"]["case_shape_constraints"]["penalty_rule"]["type"] == "multi_answer_no_score"
+    assert by_id["sp_enum"]["policy_type"] == "exact_required"
+    assert by_id["sp_enum"]["case_shape_role"] == "enumeration"
+    assert by_id["sp_enum"]["penalty_scoped"] is False
+
+
 def test_runtime_points_required_terms_only_use_verified_supporting_citations():
     runtime_points = runtime_points_from_grading_contract(_stage2_contract())
     enum_point = next(p for p in runtime_points if p["point_id"] == "sp_enum")

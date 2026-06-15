@@ -222,40 +222,51 @@ def runtime_points_from_grading_contract(
     terms. Per-point ``score``/``max_score`` stay null by construction.
     """
     supporting_terms = _supporting_terms_by_point(contract)
+    case_shape_constraints = (
+        contract.get("case_shape_constraints")
+        if isinstance(contract.get("case_shape_constraints"), dict)
+        else {}
+    )
     runtime_points: list[dict[str, Any]] = []
     for sp in contract.get("scoring_points") or []:
         point_id = str(sp.get("point_id") or "")
         sub_type = str(sp.get("sub_type") or "free_text_point")
         required_terms = supporting_terms.get(point_id, [])
         policy_type = _PGO_SUB_TYPE_TO_POLICY.get(sub_type, "qualitative")
-        if required_terms and policy_type == "qualitative":
+        if sp.get("exact_term_required") is True:
+            policy_type = "exact_required"
+        elif required_terms and policy_type == "qualitative":
             policy_type = "exact_required"
         ground_blockers = _score_ground_blockers(sp)
         authority_source = _ground_value(sp, "authority_source")
         span_hash = _ground_value(sp, "span_hash")
-        runtime_points.append(
-            {
-                "point_id": point_id,
-                "official_slice": sp.get("official_slice") or "",
-                "knowledge_point": sp.get("official_slice") or "",
-                "authority_source": authority_source,
-                "span_hash": span_hash,
-                "policy_type": policy_type,
-                "sub_type": sub_type,
-                "required_terms": list(required_terms),
-                "term_authority": (
-                    "textbook_cited_supporting_only"
-                    if required_terms
-                    else "none"
-                ),
-                "score": None,
-                "max_score": None,
-                "score_bearing": not ground_blockers,
-                "explanation_only": bool(ground_blockers),
-                "ground_status": "blocked" if ground_blockers else "ok",
-                "ground_blockers": ground_blockers,
-            }
-        )
+        runtime_point = {
+            "point_id": point_id,
+            "official_slice": sp.get("official_slice") or "",
+            "knowledge_point": sp.get("official_slice") or "",
+            "authority_source": authority_source,
+            "span_hash": span_hash,
+            "policy_type": policy_type,
+            "sub_type": sub_type,
+            "required_terms": list(required_terms),
+            "term_authority": (
+                "textbook_cited_supporting_only"
+                if required_terms
+                else "none"
+            ),
+            "score": None,
+            "max_score": None,
+            "score_bearing": not ground_blockers,
+            "explanation_only": bool(ground_blockers),
+            "ground_status": "blocked" if ground_blockers else "ok",
+            "ground_blockers": ground_blockers,
+        }
+        for key in ("exact_term_required", "case_shape_role", "penalty_scoped"):
+            if key in sp:
+                runtime_point[key] = sp.get(key)
+        if case_shape_constraints:
+            runtime_point["case_shape_constraints"] = case_shape_constraints
+        runtime_points.append(runtime_point)
     return runtime_points
 
 

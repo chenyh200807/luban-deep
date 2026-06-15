@@ -138,6 +138,123 @@ def test_l4_readiness_cli_writes_json_and_markdown(tmp_path: Path) -> None:
     assert "canonical_truth_write_allowed=false" in markdown
 
 
+def test_l41_hardening_consumes_auxiliary_gates_and_preserves_claim_ceiling() -> None:
+    report = knowql_nexus_l4_readiness.build_l4_authorization_readiness(
+        l1_summary=_l1_go_summary(),
+        l2_summary=_l2_go_summary(),
+        l3_summary=_l3_go_summary(),
+        pgo_supply_verification=_pgo_supply_ok(),
+        stage5_canary_report=_stage5_canary_ok(),
+        canonical_truth_policy_matrix=_canonical_truth_policy_matrix_ok(),
+        deployment_probe=_deployment_probe_ok(),
+        negative_summaries=[
+            {
+                "source_path": "artifacts/luban_grading_artifacts/knowql_nexus_l2_learning_ab_bad/summary.json",
+                "decision": {"status": "L2_LEARNING_AB_NO_GO", "reasons": ["b2_g3_preview_missing"]},
+            },
+            {
+                "source_path": "artifacts/luban_grading_artifacts/knowql_nexus_l3_cohort_ab_bad/summary.json",
+                "decision": {"status": "L3_COHORT_AB_NO_GO", "reasons": ["duplicate_learner_detected"]},
+            },
+        ],
+    )
+
+    assert report["gates"]["pgo_supply_verification"]["passed"] is True
+    assert report["gates"]["stage5_canary"]["passed"] is True
+    assert report["gates"]["canonical_truth_policy_matrix"]["passed"] is True
+    assert report["gates"]["deployment_lineage"]["passed"] is True
+    assert report["source_manifest"]["inputs"]["pgo_supply_verification"]["schema"] == "luban_pgo_runtime_supply_verification.v1"
+    assert report["deployment_probe"]["host_sha"] == "16dbb13dcc2be1ed5ac40feec7682283fd098620"
+    assert report["deployment_probe"]["container_sha"] == "16dbb13dcc2be1ed5ac40feec7682283fd098620"
+    assert any(item["kind"] == "historical_negative_run" and item["code"] == "L2_LEARNING_AB_NO_GO" for item in report["negative_evidence"])
+    assert any(item["kind"] == "historical_negative_run" and item["code"] == "L3_COHORT_AB_NO_GO" for item in report["negative_evidence"])
+    assert report["decisions"]["production_default_allowed"] is False
+    assert report["decisions"]["canonical_truth_write_allowed"] is False
+    assert report["production_authorization_status"] == "L4_PRODUCTION_AUTHORIZATION_BLOCKED"
+
+
+def test_l41_stage5_human_boundary_blocker_blocks_production_authorization() -> None:
+    stage5 = _stage5_canary_ok()
+    stage5["over_credit"]["human_boundary"]["broad_flip_blocker"] = True
+
+    report = knowql_nexus_l4_readiness.build_l4_authorization_readiness(
+        l1_summary=_l1_go_summary(),
+        l2_summary=_l2_go_summary(),
+        l3_summary=_l3_go_summary(),
+        pgo_supply_verification=_pgo_supply_ok(),
+        stage5_canary_report=stage5,
+        canonical_truth_policy_matrix=_canonical_truth_policy_matrix_ok(),
+        deployment_probe=_deployment_probe_ok(),
+    )
+
+    assert report["gates"]["stage5_canary"]["passed"] is False
+    assert "stage5_human_gold_over_credit_blocker" in report["production_blockers"]
+    assert any(
+        item["kind"] == "gate_not_passed" and item["code"] == "stage5_canary"
+        for item in report["negative_evidence"]
+    )
+
+
+def test_l41_cli_writes_source_manifest_and_deployment_probe(tmp_path: Path) -> None:
+    l1_path = tmp_path / "l1_summary.json"
+    l2_path = tmp_path / "l2_summary.json"
+    l3_path = tmp_path / "l3_summary.json"
+    pgo_supply_path = tmp_path / "pgo_supply_verification.json"
+    stage5_path = tmp_path / "stage5_canary.json"
+    canonical_policy_path = tmp_path / "canonical_truth_policy_matrix.json"
+    deployment_probe_path = tmp_path / "deployment_probe_input.json"
+    negative_path = tmp_path / "negative_summary.json"
+    output_path = tmp_path / "authorization_readiness.json"
+    source_manifest_path = tmp_path / "source_manifest.json"
+    deployment_probe_output_path = tmp_path / "deployment_probe.json"
+    l1_path.write_text(json.dumps(_l1_go_summary(), ensure_ascii=False), encoding="utf-8")
+    l2_path.write_text(json.dumps(_l2_go_summary(), ensure_ascii=False), encoding="utf-8")
+    l3_path.write_text(json.dumps(_l3_go_summary(), ensure_ascii=False), encoding="utf-8")
+    pgo_supply_path.write_text(json.dumps(_pgo_supply_ok(), ensure_ascii=False), encoding="utf-8")
+    stage5_path.write_text(json.dumps(_stage5_canary_ok(), ensure_ascii=False), encoding="utf-8")
+    canonical_policy_path.write_text(json.dumps(_canonical_truth_policy_matrix_ok(), ensure_ascii=False), encoding="utf-8")
+    deployment_probe_path.write_text(json.dumps(_deployment_probe_ok(), ensure_ascii=False), encoding="utf-8")
+    negative_path.write_text(
+        json.dumps({"decision": {"status": "L2_SAFETY_NO_GO", "reasons": ["transport_error"]}}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+    exit_code = knowql_nexus_l4_readiness.main(
+        [
+            "--l1-summary",
+            str(l1_path),
+            "--l2-summary",
+            str(l2_path),
+            "--l3-summary",
+            str(l3_path),
+            "--pgo-supply-verification",
+            str(pgo_supply_path),
+            "--stage5-canary-report",
+            str(stage5_path),
+            "--canonical-truth-policy-matrix",
+            str(canonical_policy_path),
+            "--deployment-probe",
+            str(deployment_probe_path),
+            "--negative-summary",
+            str(negative_path),
+            "--output",
+            str(output_path),
+            "--source-manifest-output",
+            str(source_manifest_path),
+            "--deployment-probe-output",
+            str(deployment_probe_output_path),
+        ]
+    )
+
+    assert exit_code == 0
+    payload = json.loads(output_path.read_text("utf-8"))
+    source_manifest = json.loads(source_manifest_path.read_text("utf-8"))
+    deployment_probe = json.loads(deployment_probe_output_path.read_text("utf-8"))
+    assert payload["gates"]["deployment_lineage"]["passed"] is True
+    assert source_manifest["inputs"]["stage5_canary_report"]["sha256"]
+    assert deployment_probe["public_endpoints"]["healthz"]["status_code"] == 200
+
+
 def _l1_go_summary() -> dict[str, object]:
     return {
         "decision": {
@@ -159,6 +276,78 @@ def _l1_go_summary() -> dict[str, object]:
             "canonical_truth_write_count": 0,
             "official_score_write_count": 0,
             "unsafe_write_signal_count": 0,
+        },
+    }
+
+
+def _pgo_supply_ok() -> dict[str, object]:
+    return {
+        "schema": "luban_pgo_runtime_supply_verification.v1",
+        "status": "ok",
+        "blockers": [],
+        "checks": {
+            "content_hash_match": True,
+            "canonical_pointer_match": True,
+            "production_default_off": True,
+            "published_false": True,
+            "no_minted_scores": True,
+        },
+        "manifest": {
+            "namespace": "case_rubric_scored_pgo",
+            "status": "release_candidate",
+            "published": False,
+            "production_default": "off",
+            "content_hash": "sha256:test",
+        },
+    }
+
+
+def _stage5_canary_ok() -> dict[str, object]:
+    return {
+        "schema": "luban_pgo_stage5_canary_gate.v1",
+        "status": "qa_operator_canary_go",
+        "blockers": [],
+        "production_default_flip_allowed": False,
+        "canonical_write_allowed": False,
+        "remote_write_allowed": False,
+        "cohort_gate": {"allowed": True, "invalid_cohort_ids": []},
+        "runtime_supply": {"status": "ok"},
+        "worker_restart_probe": {
+            "fresh_process_verifier": {"status": "ok"},
+            "runtime_loader": {"status": "ok"},
+        },
+        "over_credit": {
+            "gate_overcredit_new_le_legacy": True,
+            "human_boundary": {"broad_flip_blocker": False},
+        },
+    }
+
+
+def _canonical_truth_policy_matrix_ok() -> dict[str, object]:
+    return {
+        "schema": "luban_canonical_truth_policy_matrix.v1",
+        "status": "ok",
+        "policy_source": "deeptutor/services/learner_state/canonical_truth_policy.py:canonical_truth_promotion_decision",
+        "cases": {
+            "trusted_stable_teacher_final": {"allowed": True, "reason": "trusted_adjudication_authorized"},
+            "preview_candidate": {"allowed": False, "reason": "stable_learner_claim_required"},
+            "no_adjudication": {"allowed": False, "reason": "trusted_adjudication_required"},
+        },
+        "canonical_write_allowed": False,
+    }
+
+
+def _deployment_probe_ok() -> dict[str, object]:
+    return {
+        "schema": "knowql_nexus_deployment_probe.v1",
+        "status": "ok",
+        "public_base_url": "https://test2.yousenjiaoyu.com",
+        "host_sha": "16dbb13dcc2be1ed5ac40feec7682283fd098620",
+        "container_sha": "16dbb13dcc2be1ed5ac40feec7682283fd098620",
+        "sha_match": True,
+        "public_endpoints": {
+            "healthz": {"status_code": 200},
+            "readyz": {"status_code": 200, "ready": True},
         },
     }
 

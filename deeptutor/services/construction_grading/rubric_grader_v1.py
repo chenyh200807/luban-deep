@@ -226,6 +226,77 @@ def _pgo_credit(policy: str, status: str, ratio: float) -> tuple[str, float]:
     return MISS, 0.0
 
 
+def _pgo_case_shape_constraints(rubric_points: list[dict[str, Any]]) -> dict[str, Any]:
+    for point in rubric_points:
+        constraints = point.get("case_shape_constraints")
+        if isinstance(constraints, dict) and constraints:
+            return constraints
+    return {}
+
+
+def _pgo_multi_answer_penalty_applies(answer: str, constraints: dict[str, Any]) -> str | None:
+    penalty_rule = constraints.get("penalty_rule") if isinstance(constraints.get("penalty_rule"), dict) else {}
+    if penalty_rule.get("type") != "multi_answer_no_score":
+        return None
+    trigger = penalty_rule.get("trigger") if isinstance(penalty_rule.get("trigger"), dict) else {}
+    pattern = str(trigger.get("pattern") or "").strip()
+    try:
+        max_answered = int(trigger.get("max_answered_items") or 0)
+    except (TypeError, ValueError):
+        return None
+    if not pattern or max_answered <= 0:
+        return None
+    if len(re.findall(re.escape(pattern), answer)) <= max_answered:
+        return None
+    return "multi_answer_no_score"
+
+
+def _pgo_point_in_penalty_scope(point: dict[str, Any], constraints: dict[str, Any]) -> bool:
+    if point.get("penalty_scoped") is True:
+        return True
+    penalty_rule = constraints.get("penalty_rule") if isinstance(constraints.get("penalty_rule"), dict) else {}
+    applies_to = {
+        str(item or "").strip()
+        for item in list(penalty_rule.get("applies_to_sub_types") or [])
+        if str(item or "").strip()
+    }
+    if not applies_to:
+        return False
+    sub_type = str(point.get("case_shape_role") or point.get("sub_type") or "").strip()
+    return sub_type in applies_to
+
+
+def _pgo_shape_weights(rubric_points: list[dict[str, Any]], official_total: float) -> list[float]:
+    if not rubric_points:
+        return []
+    constraints = _pgo_case_shape_constraints(rubric_points)
+    list_rule = constraints.get("list_rule") if isinstance(constraints.get("list_rule"), dict) else {}
+    penalty_rule = constraints.get("penalty_rule") if isinstance(constraints.get("penalty_rule"), dict) else {}
+    if list_rule.get("applies") is not True or penalty_rule.get("type") != "multi_answer_no_score":
+        return [1.0 for _ in rubric_points]
+
+    enum_indices = [
+        idx
+        for idx, point in enumerate(rubric_points)
+        if str(point.get("case_shape_role") or point.get("sub_type") or "") == "enumeration"
+    ]
+    if not enum_indices:
+        return [1.0 for _ in rubric_points]
+
+    non_enum_count = len(rubric_points) - len(enum_indices)
+    remaining = official_total - float(non_enum_count)
+    if remaining <= 0:
+        return [1.0 for _ in rubric_points]
+
+    enum_weight = remaining / len(enum_indices)
+    weights = [1.0 for _ in rubric_points]
+    for idx in enum_indices:
+        weights[idx] = enum_weight
+    if sum(weights) <= 0:
+        return [1.0 for _ in rubric_points]
+    return weights
+
+
 def _grade_with_pgo_coverage(
     *,
     qid: str,
@@ -278,22 +349,39 @@ def _grade_with_pgo_coverage(
             "ground_blockers": list(ground.get("blockers") or []),
         }
     points_out: list[dict[str, Any]] = []
-    credited = 0.0
+    shape_constraints = _pgo_case_shape_constraints(rubric_points)
+    shape_weights = _pgo_shape_weights(rubric_points, official_total)
+    total_weight = sum(shape_weights) if shape_weights else float(len(rubric_points) or 0)
+    penalty_rule_applied = _pgo_multi_answer_penalty_applies(answer, shape_constraints)
+    credited_weight = 0.0
     low_conf = 0
-    for p in rubric_points:
+    for idx, p in enumerate(rubric_points):
         policy = str(p.get("policy") or "qualitative")
         verdict = judge_fn(p, answer) or {}
         raw_status = str(verdict.get("status") or MISS)
         ratio = float(verdict.get("partial_ratio") or (1.0 if raw_status == HIT else 0.5))
         status, credit = _pgo_credit(policy, raw_status, ratio)
-        credited += credit
+        point_penalty_applied = (
+            penalty_rule_applied
+            if penalty_rule_applied and _pgo_point_in_penalty_scope(p, shape_constraints)
+            else None
+        )
+        if point_penalty_applied:
+            status = MISS
+            credit = 0.0
+        weight = shape_weights[idx] if idx < len(shape_weights) else 1.0
+        credited_weight += weight * credit
         if verdict.get("low_confidence"):
             low_conf += 1
         mistake = None
         if status != HIT:
-            mistake = (MISTAKE_NEAR_SYNONYM if policy == "exact_required"
-                       else MISTAKE_PARTIAL_LIST if status == PARTIAL
-                       else str(verdict.get("mistake_type") or MISTAKE_MISS))
+            if point_penalty_applied:
+                mistake = "penalty_rule_multi_answer_no_score"
+            else:
+                mistake = (MISTAKE_NEAR_SYNONYM if policy == "exact_required"
+                           else MISTAKE_PARTIAL_LIST if status == PARTIAL
+                           else str(verdict.get("mistake_type") or MISTAKE_MISS))
+        display_max = official_total * (weight / total_weight) if total_weight else 0.0
         point_out = {
             "point_id": p.get("point_id"),
             "knowledge_point": p.get("text"),
@@ -307,13 +395,16 @@ def _grade_with_pgo_coverage(
             "score_authority": _PGO_POINT_DISPLAY_SCORE_AUTHORITY,
             "per_point_score_authority": p.get("per_point_score_authority"),
             "official_total_score": official_total,
+            "coverage_weight": round(weight, 6),
         }
+        if point_penalty_applied:
+            point_out["penalty_rule_applied"] = point_penalty_applied
         _attach_shadow_point_provenance(point_out, p)
         points_out.append(point_out)
-    coverage = credited / len(rubric_points) if rubric_points else 0.0
+    coverage = credited_weight / total_weight if total_weight else 0.0
     awarded_total = round(official_total * coverage, 2)
     near_boundary = bool(official_total) and (0 < abs(awarded_total - round(awarded_total)) < high_risk_margin)
-    return {
+    event = {
         "event_type": "case_grading_completed",
         "student_id": student_id,
         "question_id": qid,
@@ -328,6 +419,11 @@ def _grade_with_pgo_coverage(
         "llm_adjudicated": True,
         "official_score_allowed": False,
     }
+    if shape_constraints:
+        event["case_shape_constraints_consumed"] = shape_constraints
+    if penalty_rule_applied:
+        event["penalty_rules_applied"] = [penalty_rule_applied]
+    return event
 
 
 def rubric_points_from_artifact(artifact: dict[str, Any]) -> list[dict[str, Any]]:
@@ -408,6 +504,10 @@ def _attach_shadow_point_provenance(
         "list_rule",
         "calculation_spec",
         "penalty_rule",
+        "exact_term_required",
+        "case_shape_role",
+        "penalty_scoped",
+        "case_shape_constraints",
     ):
         value = rubric_point.get(key)
         if value:
@@ -1068,6 +1168,9 @@ def _rubric_bank() -> dict[str, list[dict[str, Any]]]:
             "factory_resolution",
             "factory_resolution_lane",
             "factory_point_type",
+            "case_shape_role",
+            "penalty_scoped",
+            "case_shape_constraints",
         ):
             if key in r:
                 point[key] = r.get(key)
