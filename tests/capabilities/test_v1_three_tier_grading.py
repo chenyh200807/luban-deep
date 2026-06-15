@@ -100,6 +100,50 @@ def test_tier2_on_the_fly_reference_when_no_compiled_rubric() -> None:
     G.derive_rubric_from_stem_async.assert_not_called()
 
 
+def test_open_world_ignores_analysis_as_scoring_reference() -> None:
+    """`analysis` may be RAG/explanation text, not the current question's answer key.
+
+    In open-world pasted cases, using it as rubric authority can grade the learner
+    against a similar-but-wrong case. Without an explicit answer key, V1 must derive
+    from the current stem instead of extracting from analysis.
+    """
+    wrong_analysis_points = [{
+        "point_id": "P1",
+        "text": "采用固定价格应注意明确包死价的种类",
+        "score": 1.0,
+        "policy": "qualitative",
+        "required_terms": [],
+    }]
+    derived = [{
+        "point_id": "P1",
+        "text": "工程量清单强制性内容",
+        "score": 2.0,
+        "policy": "qualitative",
+        "required_terms": [],
+    }]
+    G = _stubbed_G(rubric_points=[], extract_points=wrong_analysis_points, derive_points=derived)
+    G.grade_with_batch_judge_async = AsyncMock(return_value=_make_event(derived))
+
+    ctx = {
+        "question_id": "",
+        "user_answer": "工程量计算规则、工程量清单编制方法。",
+        "correct_answer": "",
+        "reference_answer": "",
+        "analysis": "采用固定价格应注意明确包死价的种类，签约合同价12345万元。",
+        "question_stem": "【问题】1. 工程量清单的强制性内容还有哪些？",
+        "construction_grading_result": {"type": "case", "max_score": 2.0},
+    }
+    event = asyncio.run(_grade_one_case_v1(ctx, student_id="s2", complete=_stub_complete,
+                                            key="k", _G=G))
+
+    assert event is not None
+    assert event.get("event_type") == "case_grading_completed"
+    assert event["rubric_provenance"] == "derived_from_stem"
+    assert event["scoring_points"][0]["knowledge_point"] == "工程量清单强制性内容"
+    G.extract_rubric_from_reference_async.assert_not_called()
+    G.derive_rubric_from_stem_async.assert_called_once()
+
+
 # ---------------------------------------------------------------------------
 # Tier 3: stem-only derivation (no compiled rubric, no reference, but stem present)
 # ---------------------------------------------------------------------------

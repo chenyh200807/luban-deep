@@ -257,7 +257,7 @@ def test_render_case_rubric_feedback_same_source_and_reasons():
     assert "某案例题。建设单位编制招标文件。" not in text
     assert "## 结论" in text
     assert "## 采分点明细" in text
-    assert "| 采分点 | 判定 | 得分 | 依据/扣分原因 |" in text
+    assert "| 题号 | 采分点 | 判定 | 得分 | 你的作答证据 | 扣分原因 |" in text
     assert f"本次得分：{ev['awarded_score']} / {ev['max_score']} 分" in text  # same source as the score
     assert "✅" in text                                    # P1 hit
     assert "⚠️" in text and "部分命中" in text          # P2 partial (list)
@@ -268,6 +268,75 @@ def test_render_case_rubric_feedback_same_source_and_reasons():
     assert "## 记忆口诀" in text
     assert "## 建议" in text
     assert "## 下一步练什么" in text
+
+
+def test_render_case_rubric_feedback_maps_points_to_question_numbers_and_evidence() -> None:
+    event = {
+        "event_type": "case_grading_completed",
+        "awarded_score": 1.0,
+        "max_score": 3.0,
+        "scoring_points": [
+            {
+                "point_id": "Q1-P1",
+                "source_qid": "Q1",
+                "knowledge_point": "工程量清单强制性内容",
+                "hit": G.HIT,
+                "score": 1.0,
+                "max_score": 1.0,
+                "evidence_span": "工程量计算规则",
+            },
+            {
+                "point_id": "Q2-P1",
+                "question_no": 2,
+                "knowledge_point": "实质性响应工期要求",
+                "hit": G.MISS,
+                "score": 0.0,
+                "max_score": 1.0,
+                "mistake_type": G.MISTAKE_MISS,
+                "evidence_span": "",
+            },
+            {
+                "point_id": "Q3-P1",
+                "subquestion_index": 3,
+                "knowledge_point": "不得将主体结构分包给其他单位",
+                "hit": G.PARTIAL,
+                "score": 0.0,
+                "max_score": 1.0,
+                "mistake_type": G.MISTAKE_PARTIAL_LIST,
+                "evidence_span": "主体结构的施工分包给其他单位",
+            },
+        ],
+    }
+
+    text = G.render_case_rubric_feedback(event)
+
+    assert "| 题号 | 采分点 | 判定 | 得分 | 你的作答证据 | 扣分原因 |" in text
+    assert "| 问题1 | 工程量清单强制性内容 | ✅ 命中 | 1.0/1.0 | 工程量计算规则 | 命中 |" in text
+    assert "| 问题2 | 实质性响应工期要求 | ❌ 漏写 | 0.0/1.0 | - | 未作答 / 漏写本采分点 |" in text
+    assert "| 问题3 | 不得将主体结构分包给其他单位 | ⚠️ 部分命中 | 0.0/1.0 | 主体结构的施工分包给其他单位 | 本采分点要点未答全，还差关键内容 |" in text
+
+
+def test_render_case_rubric_feedback_does_not_treat_year_qid_as_question_number() -> None:
+    event = {
+        "event_type": "case_grading_completed",
+        "awarded_score": 0.0,
+        "max_score": 1.0,
+        "scoring_points": [
+            {
+                "point_id": "Q2024-03__S05_skip_subq5::P1",
+                "knowledge_point": "施工单位结算造价",
+                "hit": G.MISS,
+                "score": 0.0,
+                "max_score": 1.0,
+                "mistake_type": G.MISTAKE_MISS,
+            }
+        ],
+    }
+
+    text = G.render_case_rubric_feedback(event)
+
+    assert "问题2024" not in text
+    assert "| 整题 | 施工单位结算造价 | ❌ 漏写 | 0.0/1.0 | - | 未作答 / 漏写本采分点 |" in text
 
 
 def test_render_case_rubric_feedback_uses_long_term_profile_for_tone_only() -> None:
@@ -617,6 +686,30 @@ def test_derive_rubric_from_stem_parses_valid_llm_response() -> None:
     assert points[0]["point_id"] == "P1"
     assert points[1]["policy"] == "exact_required"
     assert points[1]["required_terms"] == ["资质"]
+
+
+def test_extracted_rubric_preserves_question_number_for_rendering() -> None:
+    raw = (
+        '[{"question_no":1,"text":"工程量清单强制性内容","score":2,'
+        '"policy":"qualitative","required_terms":[]},'
+        '{"question_no":"2","text":"实质性响应工期要求","score":1,'
+        '"policy":"qualitative","required_terms":[]}]'
+    )
+
+    points = G._parse_extracted_points(raw)
+
+    assert points[0]["question_no"] == 1
+    assert points[1]["question_no"] == 2
+
+
+def test_rubric_extraction_prompt_requests_question_number_when_present() -> None:
+    prompt = G._extract_prompt(
+        "1. 应写明工程量清单强制性内容。",
+        "【问题】\n1. 工程量清单的强制性内容还有哪些？\n2. 实质性响应内容有哪些？",
+    )
+
+    assert "question_no" in prompt
+    assert "题号" in prompt
 
 
 def test_grade_artifact_shadow_refuses_blocked_artifact():

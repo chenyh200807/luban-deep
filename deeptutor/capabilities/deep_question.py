@@ -2076,11 +2076,13 @@ async def _grade_one_case_v1(
     # 2) OPEN WORLD: no compiled rubric -> extract atomic scoring points on-the-fly from THIS question's
     #    own reference answer (Nexus-like, not a 173-question lookup); never falls back to V0 keywords.
     if not points:
+        # Only explicit answer-key fields may become scoring authority. ``analysis`` is often RAG/
+        # explanation text and can belong to a similar-but-different retrieved question; using it here
+        # lets RAG become a hidden rubric authority. Without an explicit key, derive from THIS stem.
         reference = str(
             ctx.get("correct_answer")
             or (cg or {}).get("correct_answer")
             or ctx.get("reference_answer")
-            or ctx.get("analysis")
             or ""
         ).strip()
         stem = str(ctx.get("question_stem") or ctx.get("stem") or ctx.get("question") or "")
