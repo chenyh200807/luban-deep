@@ -38,6 +38,11 @@ async def _rag(_q):
     return "教材依据：JGJ46 临时用电安全技术规范…"
 
 
+def _assert_score_block(render: str, awarded: float, maximum: float) -> None:
+    assert "## 结论" in render
+    assert f"本次得分：{awarded} / {maximum} 分" in render
+
+
 def test_fusion_score_from_v1_only_teaching_added():
     out = asyncio.run(build_fused_case_feedback(
         _event(), question_stem="某案例", student_answer="我的作答",
@@ -46,7 +51,7 @@ def test_fusion_score_from_v1_only_teaching_added():
     assert out["awarded_score"] == 2.0 and out["max_score"] == 3.0
     assert out["official_score_allowed"] is False
     # score block (V1) + teaching block present
-    assert "【得分】2.0 / 3.0 分" in out["render"]
+    _assert_score_block(out["render"], 2.0, 3.0)
     assert "老师讲解" in out["render"] and "记忆口诀" in out["render"]
     assert out["teaching"]
     assert out["evidence_used"] is False
@@ -66,7 +71,7 @@ def test_fusion_teaching_failure_keeps_authoritative_score():
         _event(), question_stem="某案例", student_answer="x",
         complete_fn=_boom_complete, api_key="k", rag_fn=None))
     assert out["teaching"] == ""
-    assert "【得分】2.0 / 3.0 分" in out["render"]   # authoritative score unaffected
+    _assert_score_block(out["render"], 2.0, 3.0)  # authoritative score unaffected
     assert "老师讲解" not in out["render"]            # no teaching block when teaching failed
     assert out["official_score_allowed"] is False
 
@@ -78,4 +83,4 @@ def test_fusion_all_hit_no_teaching():
     out = asyncio.run(build_fused_case_feedback(
         ev, question_stem="q", student_answer="x", complete_fn=_boom_complete, api_key="k"))
     assert out["teaching"] == ""                      # nothing missed -> no teaching needed
-    assert "【得分】3.0 / 3.0 分" in out["render"]
+    _assert_score_block(out["render"], 3.0, 3.0)
