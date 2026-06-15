@@ -58,7 +58,11 @@ D1 query executor 不得变第二套判分 policy engine;D2 不得新增第三�
 对官方 key(单一权威)测:误给率↓(目标从 20%→个位数)、采分点漏点率、validator 合约通过率、错因标签稳定性、字段 schema 合规率、逐点 MAE;quality_claim 维持 false 直到 owner 裁定 key 复核候选。
 
 ## 6. 下一步
-**先做 Phase A**(确定性收敛 schema,无 LLM,低风险,消掉最大第二权威 R1)。Phase B/C 待 Phase A 落地 + owner 审蓝图后逐阶段推进。
+当前已从 Phase A/B 的离线与本地 shadow 推进到 Phase C 的窄版 `retrieve_rubric` runtime-consumed + test2 true-entry live-readback。下一步不再是"再写大计划",而是按 `IMPLEMENTATION_LEDGER.md` 推进:
+
+1. 保持 L1 shadow 默认在 qa/operator cohort,禁止 broad production default。
+2. 在 #21 retest delta 完成后做 L2 learning-efficiency A/B:PGO weakness -> NextBestAction -> retest delta。
+3. L2 前后仍必须 `canonical_truth_written=false` / `official_score_written=false`;canonical learner truth、published registry、production default 另走授权包。
 
 ## 7. 进展(2026-06-13:Phase B 上线 + G2 接真实数据流)
 
@@ -132,3 +136,25 @@ DeepSeek 真实 LLM,5 次 trial 压方差(排除 21/325 parse_error 行),并发�
 **操作性注记**:B/A1 的长结构化 JSON 在高并发/高峰期偶有截断→parse_error(已 3x 重试+记账兜底);生产需更大 token 预算+重试。
 
 **最终判读**:案例题判分 B 决定性最优(准确度 4-12x、零误给、方差最小),成本居中(比 RAG 便宜、比 A1 快)。RAG 判分被 dominate(更贵更不准)→ 印证"RAG 的家在召回不在判分权威"。**解锁 production 接线已有充分实证支撑**,接编译 checklist、grounding 不参与对错。
+
+## 11. L1 live shadow performance A/B(2026-06-15,test2 `/api/v1/ws`)
+
+本轮把 Phase C 的窄版 KnowQL executor 接到真实 `/api/v1/ws` shadow readback,并补齐 PGO same-attempt Grading-to-Brain preview readback。最终有效证据见 `artifacts/luban_grading_artifacts/pgo_l1_live_shadow_ab_20260615T095041Z` 与 `IMPLEMENTATION_LEDGER.md`。
+
+**最终有效跑法**:`connection_mode=per-turn`, `inter_turn_delay_seconds=8`, `pairs=30`, `order_mode=alternating`, `seed=20260615`。此前无节流和 single-connection 长跑均被线上 1013 / WS close 污染,已在 ledger 保留为负证据。
+
+| Metric | A legacy | B PGO shadow |
+|---|---:|---:|
+| count / ok | 30 / 30 | 30 / 30 |
+| success rate | 1.0 | 1.0 |
+| p95 latency | 3698.064 ms | 3775.009 ms |
+| p95 delta | — | +76.945 ms / +2.0807% |
+| avg payload bytes | 23445 | 26175 |
+| B fail-open rate | — | 0.0 |
+| B PGO shadow effective | — | 30/30 |
+| B KnowQL runtime consumed | — | 30/30 |
+| PGO G3 preview readback | — | 30/30 |
+| canonical truth writes | 0 | 0 |
+| official score writes | 0 | 0 |
+
+**Decision**:`L1_SHADOW_AB_GO` for qa/operator live shadow performance only. It proves B arm can run through real entry without significant p95 degradation and without canonical/official writes. It does **not** authorize broad production default, published registry, official scoring, or canonical learner truth.

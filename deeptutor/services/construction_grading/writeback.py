@@ -191,7 +191,7 @@ def public_grading_to_brain_meta(meta: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(meta, dict) or not meta:
         return {}
     public: dict[str, Any] = {}
-    for key in ("grading_to_brain_loop", "learning_evidence_event_id"):
+    for key in ("grading_to_brain_loop", "learning_evidence_event_id", "pgo_grading_to_brain"):
         if key in meta:
             public[key] = meta[key]
     action = meta.get("next_best_action")
@@ -210,6 +210,122 @@ def public_grading_to_brain_meta(meta: dict[str, Any]) -> dict[str, Any]:
             "prescription_authority": str(action.get("prescription_authority") or "").strip(),
         }
     return public
+
+
+def record_pgo_shadow_to_brain(
+    *,
+    learner_state_service: Any,
+    user_id: str,
+    shadow_payload: dict[str, Any],
+    source_id: str,
+    source_bot_id: str | None = None,
+    session_id: str = "",
+) -> dict[str, Any]:
+    """Record review-only PGO point verdicts into the existing learning-evidence stream.
+
+    This is the PGO same-attempt readback path: artifact_version -> point verdict ->
+    learning_evidence -> scoring-point read model -> NextBestAction. It deliberately
+    does not promote canonical learner truth and does not mint official scores.
+    """
+    normalized_user_id = str(user_id or "").strip()
+    if not normalized_user_id:
+        return {}
+    if not isinstance(shadow_payload, dict) or shadow_payload.get("shadow_status") != "ok":
+        return {}
+    point_verdicts = shadow_payload.get("point_verdicts")
+    runtime_points = shadow_payload.get("runtime_points")
+    if not isinstance(point_verdicts, dict) or not isinstance(runtime_points, list):
+        return {}
+    scoring_points = _pgo_scoring_points(runtime_points)
+    if not scoring_points:
+        return {}
+    scoring_point_hits = _pgo_scoring_point_hits(scoring_points, point_verdicts=point_verdicts)
+    if not scoring_point_hits:
+        return {}
+    knowql_query = shadow_payload.get("knowql_query") if isinstance(shadow_payload.get("knowql_query"), dict) else {}
+    artifact_version = str(
+        knowql_query.get("artifact_version")
+        or shadow_payload.get("artifact_version")
+        or "case_rubric_scored_pgo"
+    ).strip()
+    question_id = str(shadow_payload.get("question_id") or "").strip()
+    score = shadow_payload.get("score") if isinstance(shadow_payload.get("score"), dict) else {}
+    payload_json: dict[str, Any] = {
+        "schema_version": 1,
+        "event_type": "learning_evidence",
+        "legacy_event_type": "pgo_case_rubric_shadow",
+        "source": "construction_grading",
+        "evidence_source": "construction_grading",
+        "learning_signal_type": "pgo_case_rubric_shadow",
+        "turn_id": str(source_id or "").strip(),
+        "session_id": str(session_id or "").strip(),
+        "question_id": question_id,
+        "question_type": "case",
+        "student_id": str(shadow_payload.get("student_id") or "").strip(),
+        "score_awarded": score.get("awarded_score"),
+        "max_score": score.get("max_score"),
+        "score_ratio": score.get("coverage"),
+        "preview_only": True,
+        "claim_promotion_allowed": False,
+        "mastery_raised": False,
+        "canonical_truth_written": False,
+        "memory_lifecycle_stage": LIFECYCLE_STAGE_SHORT_TERM,
+        "quality": {
+            "writeback_eligible": True,
+            "writeback_reason": "pgo_shadow_same_attempt",
+            "evidence_level": "L0_observed",
+        },
+        "rubric": {
+            "rubric_id": "case_rubric_scored_pgo",
+            "artifact_version": artifact_version,
+            "rubric_mode": "curated_rubric",
+            "scoring_points": scoring_points,
+            "scoring_point_hits": scoring_point_hits,
+        },
+        "pgo_shadow": {
+            "authority": "luban_case_rubric_pgo_shadow",
+            "artifact_version": artifact_version,
+            "score_authority": str(score.get("score_authority") or "").strip(),
+            "official_score_allowed": False,
+            "canonical_write_allowed": False,
+            "not_production_grade": True,
+        },
+    }
+    dedupe_key = build_learning_evidence_dedupe_key(
+        user_id=normalized_user_id,
+        payload_json=payload_json,
+    )
+    event = learner_state_service.append_memory_event(
+        normalized_user_id,
+        source_feature="construction_grading",
+        source_id=source_id,
+        source_bot_id=source_bot_id,
+        memory_kind="learning_evidence",
+        payload_json=payload_json,
+        dedupe_key=dedupe_key,
+    )
+    event_id = str(getattr(event, "event_id", "") or "")
+    readback = _pgo_readback_projection(
+        learner_state_service=learner_state_service,
+        user_id=normalized_user_id,
+    )
+    meta: dict[str, Any] = {
+        "pgo_grading_to_brain": {
+            "writeback_count": 1,
+            "event_id": event_id,
+            "memory_kind": "learning_evidence",
+            "authority": "learner_memory_events.learning_evidence",
+            "artifact_version": artifact_version,
+            "canonical_truth_written": False,
+            "claim_promotion_allowed": False,
+            "scoring_point_map_readback": readback.get("scoring_point_map_readback") or {},
+        },
+        "pgo_learning_evidence_event_id": event_id,
+    }
+    next_best_action = readback.get("next_best_action")
+    if isinstance(next_best_action, dict) and next_best_action:
+        meta["pgo_grading_to_brain"]["next_best_action"] = next_best_action
+    return meta
 
 
 def record_case_grading_to_brain(
@@ -355,6 +471,101 @@ def build_case_grading_personalization_meta(
     if isinstance(actions, list) and actions:
         meta["next_best_action"] = dict(actions[0])
     return meta
+
+
+def _pgo_scoring_points(runtime_points: list[Any]) -> list[dict[str, Any]]:
+    scoring_points: list[dict[str, Any]] = []
+    for point in runtime_points:
+        if not isinstance(point, dict):
+            continue
+        point_id = str(point.get("point_id") or "").strip()
+        if not point_id:
+            continue
+        scoring_points.append({
+            "point_id": point_id,
+            "label": point_id,
+            "knowledge_node_id": "",
+            "ability_dimension": str(point.get("sub_type") or "pgo_case_rubric").strip(),
+        })
+    return scoring_points
+
+
+def _pgo_scoring_point_hits(
+    scoring_points: list[dict[str, Any]],
+    *,
+    point_verdicts: dict[str, Any],
+) -> list[dict[str, Any]]:
+    hits: list[dict[str, Any]] = []
+    for point in scoring_points:
+        point_id = str(point.get("point_id") or "").strip()
+        verdict = str(point_verdicts.get(point_id) or "").strip().lower()
+        if not verdict:
+            continue
+        is_hit = verdict == "hit"
+        hits.append({
+            "point_id": point_id,
+            "hit": is_hit,
+            "awarded_score": None,
+            "error_code": "" if is_hit else "E02",
+            "mistake_type": "" if is_hit else verdict,
+            "miss_reason": "" if is_hit else verdict,
+        })
+    return hits
+
+
+def _pgo_readback_projection(
+    *,
+    learner_state_service: Any,
+    user_id: str,
+) -> dict[str, Any]:
+    try:
+        from deeptutor.services.learner_state.next_best_action import build_next_best_actions
+        from deeptutor.services.learner_state.scoring_point_map_read_model import (
+            build_scoring_point_map_read_projection,
+        )
+
+        events = learner_state_service.list_memory_events(user_id)
+        point_map = build_scoring_point_map_read_projection(events=events, user_id=user_id)
+        items = list(point_map.get("items") or [])
+        intents = [
+            (item.get("next_action") or {}).get("intent")
+            for item in items
+            if isinstance((item.get("next_action") or {}).get("intent"), dict)
+        ]
+        actions = build_next_best_actions(user_id=user_id, training_intents=intents, max_actions=1)
+        readback: dict[str, Any] = {
+            "scoring_point_map_readback": {
+                "authority": (point_map.get("source_status") or {}).get("authority"),
+                "prescription_authority": (point_map.get("source_status") or {}).get("prescription_authority"),
+                "items_count": len(items),
+                "empty_state": point_map.get("empty_state") or "",
+            }
+        }
+        if actions:
+            action = dict(actions[0])
+            readback["next_best_action"] = {
+                "title": str(action.get("title") or "").strip(),
+                "action_type": str(action.get("action_type") or "").strip(),
+                "target": str(action.get("target") or "").strip(),
+                "why_this_now": str(action.get("why_this_now") or "").strip(),
+                "materials": [
+                    str(item or "").strip()
+                    for item in list(action.get("materials") or [])
+                    if str(item or "").strip()
+                ],
+                "success_measure": str(action.get("success_measure") or "").strip(),
+                "prescription_authority": str(action.get("prescription_authority") or "").strip(),
+            }
+        return readback
+    except Exception:  # noqa: BLE001 — readback is projection-only; evidence write is enough
+        logger.warning("PGO grading-to-brain readback projection failed", exc_info=True)
+        return {
+            "scoring_point_map_readback": {
+                "authority": "learner_memory_events.learning_evidence",
+                "items_count": 0,
+                "empty_state": "projection_failed",
+            }
+        }
 
 
 def _split_batch_grading_event(grading_event: dict[str, Any]) -> list[dict[str, Any]]:

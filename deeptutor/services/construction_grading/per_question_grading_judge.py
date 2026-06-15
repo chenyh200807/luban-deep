@@ -198,6 +198,106 @@ def runtime_points_from_grading_contract(
     return runtime_points
 
 
+def pgo_contract_from_knowql_rubric_result(
+    result: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    """Adapt the KnowQL rubric projection into the PGO scoring contract shape.
+
+    The query executor remains read-only; this adapter only reshapes already
+    hash-pinned PGO supply for the review-only shadow scorer. If the query failed
+    open or has no scoring points, callers should keep the shadow blocked.
+    """
+    if not isinstance(result, dict):
+        return None
+    if result.get("fail_open") is True or not result.get("found"):
+        return None
+    raw_points = result.get("scoring_points")
+    if not isinstance(raw_points, list) or not raw_points:
+        return None
+
+    scoring_points: list[dict[str, Any]] = []
+    official_total_score: float | None = None
+    for raw in raw_points:
+        if not isinstance(raw, dict):
+            continue
+        point_id = str(raw.get("point_id") or "").strip()
+        if not point_id:
+            continue
+        if official_total_score is None and isinstance(raw.get("official_total_score"), int | float):
+            official_total_score = float(raw["official_total_score"])
+        scoring_points.append(
+            {
+                "point_id": point_id,
+                "official_slice": str(raw.get("official_slice") or ""),
+                "sub_type": str(raw.get("sub_type") or "free_text_point"),
+                "policy": raw.get("policy"),
+                "policy_type": raw.get("policy_type"),
+                "required_terms": list(raw.get("required_terms") or []),
+                "official_score_allowed": False,
+                "canonical_write_allowed": False,
+                "score": None,
+                "max_score": None,
+            }
+        )
+    if not scoring_points:
+        return None
+
+    return {
+        "question_id": str(result.get("question_id") or "").strip(),
+        "artifact_version": result.get("artifact_version"),
+        "official_total_score": official_total_score,
+        "official_score_allowed": False,
+        "canonical_write_allowed": False,
+        "scoring_points": scoring_points,
+        "supporting_citations": [],
+    }
+
+
+def pgo_point_verdicts_from_scoring_point_hits(
+    scoring_point_hits: Any,
+) -> dict[str, str] | None:
+    """Project same-attempt rubric hit records into PGO verdicts."""
+    if not isinstance(scoring_point_hits, list):
+        return None
+    verdicts: dict[str, str] = {}
+    for hit in scoring_point_hits:
+        if not isinstance(hit, dict):
+            continue
+        point_id = str(hit.get("point_id") or "").strip()
+        if not point_id:
+            continue
+        status = str(hit.get("match_status") or hit.get("status") or "").strip().lower()
+        if status in {HIT, PARTIAL, MISS, CONTRADICTION}:
+            verdicts[point_id] = status
+            continue
+        if hit.get("hit") is True:
+            verdicts[point_id] = HIT
+        elif hit.get("hit") is False:
+            verdicts[point_id] = MISS
+    return verdicts or None
+
+
+def pgo_point_verdicts_from_luban_case_rubric_payload(
+    payload: Any,
+) -> dict[str, str] | None:
+    """Extract PGO verdicts from the same-attempt rubric-v1 payload."""
+    if not isinstance(payload, dict):
+        return None
+    learning_evidence = payload.get("learning_evidence")
+    if isinstance(learning_evidence, dict):
+        rubric = learning_evidence.get("rubric")
+        if isinstance(rubric, dict):
+            verdicts = pgo_point_verdicts_from_scoring_point_hits(
+                rubric.get("scoring_point_hits")
+            )
+            if verdicts:
+                return verdicts
+    rubric = payload.get("rubric")
+    if isinstance(rubric, dict):
+        return pgo_point_verdicts_from_scoring_point_hits(rubric.get("scoring_point_hits"))
+    return None
+
+
 def verdict_coverage_awarded_score(
     point_verdicts: dict[str, str],
     contract: dict[str, Any],
@@ -364,6 +464,9 @@ __all__ = [
     "oracle_verdicts",
     "candidate_coverage_score",
     "runtime_points_from_grading_contract",
+    "pgo_contract_from_knowql_rubric_result",
+    "pgo_point_verdicts_from_scoring_point_hits",
+    "pgo_point_verdicts_from_luban_case_rubric_payload",
     "verdict_coverage_awarded_score",
     "build_pgo_shadow_payload",
     "detect_over_credit",

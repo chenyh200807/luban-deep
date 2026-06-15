@@ -38,6 +38,11 @@
 - `dedupe_key` 命中时必须返回既有事件，不得再次写入 `MEMORY_EVENTS.jsonl`，也不得再次触发 compiled-truth synthesis；读模型可以按同一 `dedupe_key`/内容 fingerprint 折叠 local+remote replay，但不得折叠 dedupe 不同的真实复练/复测。
 - 自动 synthesis 只允许在显式开关 `LUBAN_LEARNING_EVIDENCE_AUTO_SYNTHESIS_ENABLED=1` 下运行；生产环境还必须受既有 `qa_`/`operator_` canonical cohort gate 约束。broad learner canonical truth 仍由 `canonical_truth_promotion_decision()` 决定，不能因为自动 synthesis 而默认打开。
 - `learning_evidence.payload_json.canonical_topic` 是 taxonomy resolver 对证据的只读投影。Learning report、Learning Brain 和 synthesis 消费它时，不得在 UI/router 层重新猜 topic；若该字段缺失，旧事件继续按兼容路径读取。
+- PGO shadow same-attempt evidence 只能作为 `learning_signal_type="pgo_case_rubric_shadow"` 的
+  preview-only `learning_evidence` 写入同一个 `learner_memory_events` ledger。该事件只允许携带
+  `artifact_version`、`point_id`、verdict、score coverage 摘要和 read-model 所需字段，不得持久化
+  逐字 `official_slice`，不得写 official score，不得促升 mastery，且必须保持
+  `claim_promotion_allowed=false` 与 `canonical_truth_written=false`。
 
 ### Dream Cycle 夜间巩固与投影缓存（2026-06-12）
 

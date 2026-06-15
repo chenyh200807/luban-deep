@@ -1920,6 +1920,45 @@ def _record_v1_grading_to_brain_for_question(
         return {}
 
 
+def _record_pgo_shadow_to_brain_for_question(
+    *,
+    context: UnifiedContext,
+    shadow_payload: dict[str, Any],
+    graded_context: dict[str, Any],
+    turn_id: str,
+) -> dict[str, Any]:
+    """Record PGO shadow point verdicts as preview-only learning evidence.
+
+    The recorder is the single construction-grading writeback authority. This
+    wrapper only passes the same-attempt payload through and never promotes
+    canonical learner truth.
+    """
+    if not turn_id:
+        return {}
+    user_id = _learner_user_id_from_context(context)
+    if not user_id:
+        return {}
+    try:
+        from deeptutor.services.construction_grading.writeback import (
+            record_pgo_shadow_to_brain,
+        )
+        from deeptutor.services.learner_state import get_learner_state_service
+
+        question_id = str(graded_context.get("question_id") or shadow_payload.get("question_id") or "pgo")
+        meta = record_pgo_shadow_to_brain(
+            learner_state_service=get_learner_state_service(),
+            user_id=user_id,
+            shadow_payload=shadow_payload,
+            source_id=f"{turn_id}:{question_id}:pgo",
+            source_bot_id=_source_bot_id_from_context(context) or None,
+            session_id=str(getattr(context, "session_id", "") or ""),
+        )
+        return meta if isinstance(meta, dict) else {}
+    except Exception:  # noqa: BLE001 — PGO preview writeback must not break visible grading
+        logger.warning("PGO shadow Grading-to-Brain readback failed", exc_info=True)
+        return {}
+
+
 def _runtime_shadow_flag_enabled(context: UnifiedContext) -> bool:
     """QA/test runtime-shadow flag. Default OFF -> legacy payload byte-identical."""
     metadata = context.metadata if isinstance(context.metadata, dict) else {}
@@ -2418,17 +2457,109 @@ def _pgo_shadow_cohort_member(student_id: str) -> bool:
     return str(student_id).startswith(("qa_", "test_", "operator_"))
 
 
+def _pgo_shadow_cohort_member_for_context(context: UnifiedContext, student_id: str) -> bool:
+    candidates = [str(student_id or "").strip()]
+    metadata = context.metadata if isinstance(context.metadata, dict) else {}
+    billing_context = metadata.get("billing_context") if isinstance(metadata.get("billing_context"), dict) else {}
+    for container in (metadata, billing_context):
+        for key in (
+            "user_id",
+            "learner_user_id",
+            "username",
+            "auth_username",
+            "display_name",
+            "external_auth_user_id",
+        ):
+            value = str(container.get(key) or "").strip()
+            if value:
+                candidates.append(value)
+    if student_id and not _pgo_shadow_cohort_member(student_id):
+        try:
+            from deeptutor.services.member_console import get_member_console_service
+
+            profile = get_member_console_service().get_profile(str(student_id).strip())
+            if isinstance(profile, dict):
+                for key in ("auth_username", "username", "display_name", "identifier"):
+                    value = str(profile.get(key) or "").strip()
+                    if value:
+                        candidates.append(value)
+        except Exception:
+            pass
+    return any(_pgo_shadow_cohort_member(candidate) for candidate in candidates)
+
+
+def _summarize_pgo_query_result(result: Any) -> dict[str, Any]:
+    summary: dict[str, Any] = {
+        "executor": "retrieve_rubric",
+        "runtime_consumed": False,
+        "found": False,
+    }
+    if not isinstance(result, dict):
+        summary["reason"] = "invalid_query_result"
+        return summary
+
+    scoring_points = result.get("scoring_points")
+    if isinstance(scoring_points, list):
+        summary["scoring_point_count"] = len(scoring_points)
+    summary.update(
+        {
+            "runtime_consumed": True,
+            "found": bool(result.get("found")),
+            "question_id": result.get("question_id"),
+            "artifact_version": result.get("artifact_version"),
+            "purpose": result.get("purpose"),
+            "shape": result.get("shape"),
+            "budget": result.get("budget"),
+            "ground": result.get("ground"),
+            "confidence": result.get("confidence"),
+        }
+    )
+    if "fail_open" in result:
+        summary["fail_open"] = bool(result.get("fail_open"))
+    if result.get("reason"):
+        summary["reason"] = result.get("reason")
+    if result.get("blockers"):
+        summary["blockers"] = list(result.get("blockers") or [])
+    return summary
+
+
+_PGO_SHADOW_CLIENT_HIDDEN_KEYS = {
+    "official_slice",
+    "atomic_official_slice",
+    "official_answer",
+    "answer_key",
+    "knowledge_point",
+    "official_total_score_authority",
+    "score_authority",
+    "per_point_score_authority",
+    "answer_key_authority",
+}
+
+
+def _redact_pgo_shadow_for_result_payload(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {
+            key: _redact_pgo_shadow_for_result_payload(item)
+            for key, item in value.items()
+            if key not in _PGO_SHADOW_CLIENT_HIDDEN_KEYS
+        }
+    if isinstance(value, list):
+        return [_redact_pgo_shadow_for_result_payload(item) for item in value]
+    return value
+
+
 def _maybe_attach_pgo_shadow(
     *,
     context: UnifiedContext,
     graded_context: dict[str, Any],
     result_payload: dict[str, Any],
+    turn_id: str = "",
 ) -> None:
     """Append-only PGO coverage shadow path.
 
     Thin wrapper only: it gates by request/env/cohort and delegates all PGO
     adapter/scoring semantics to ``per_question_grading_judge``. It never mutates
-    ``construction_grading_result`` and never writes learner/brain state.
+    ``construction_grading_result`` and never writes canonical learner truth.
     """
     if not _pgo_shadow_flag_enabled(context):
         return
@@ -2444,19 +2575,58 @@ def _maybe_attach_pgo_shadow(
         }
         return
     student_id = _learner_user_id_from_context(context)
-    if not _pgo_shadow_cohort_member(student_id):
+    if not _pgo_shadow_cohort_member_for_context(context, student_id):
         return
     try:
+        from deeptutor.services.construction_grading.m35_artifact_query import (
+            M35ArtifactQuery,
+            retrieve_rubric,
+        )
         from deeptutor.services.construction_grading.per_question_grading_judge import (
             build_pgo_shadow_payload,
+            pgo_contract_from_knowql_rubric_result,
+            pgo_point_verdicts_from_luban_case_rubric_payload,
         )
 
-        result_payload[key] = build_pgo_shadow_payload(
-            contract=graded_context.get("pgo_grading_contract"),
-            point_verdicts=graded_context.get("pgo_point_verdicts"),
-            question_id=str(graded_context.get("question_id") or ""),
+        question_id = str(graded_context.get("question_id") or "")
+        query_result = retrieve_rubric(
+            M35ArtifactQuery(
+                question_id=question_id,
+                purpose="grading",
+                shape="rubric_table",
+                citation_required=True,
+                budget_tier="low",
+            )
+        )
+        contract = graded_context.get("pgo_grading_contract")
+        if not isinstance(contract, dict):
+            contract = pgo_contract_from_knowql_rubric_result(query_result)
+        point_verdicts = graded_context.get("pgo_point_verdicts")
+        if not isinstance(point_verdicts, dict):
+            point_verdicts = pgo_point_verdicts_from_luban_case_rubric_payload(
+                result_payload.get("luban_case_rubric_v1")
+            )
+        shadow_payload = build_pgo_shadow_payload(
+            contract=contract,
+            point_verdicts=point_verdicts,
+            question_id=question_id,
             student_id=student_id,
         )
+        shadow_payload["knowql_query"] = _summarize_pgo_query_result(query_result)
+        if shadow_payload.get("shadow_status") == "ok":
+            from deeptutor.services.construction_grading.writeback import (
+                public_grading_to_brain_meta,
+            )
+
+            result_payload.update(public_grading_to_brain_meta(
+                _record_pgo_shadow_to_brain_for_question(
+                    context=context,
+                    shadow_payload=shadow_payload,
+                    graded_context=graded_context,
+                    turn_id=turn_id,
+                )
+            ))
+        result_payload[key] = _redact_pgo_shadow_for_result_payload(shadow_payload)
     except Exception as exc:  # noqa: BLE001 — shadow must never break legacy
         result_payload[key] = {
             "authority": key,
@@ -4365,6 +4535,7 @@ class DeepQuestionCapability(BaseCapability):
                     context=context,
                     graded_context=graded_context,
                     result_payload=result_payload,
+                    turn_id=turn_id,
                 )
                 # QA/test-only Luban v1 beta_shadow (default off; flag + env kill switch;
                 # append-only; legacy construction_grading_result untouched above).

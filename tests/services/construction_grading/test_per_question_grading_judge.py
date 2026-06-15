@@ -19,6 +19,8 @@ from deeptutor.services.construction_grading.per_question_grading_judge import (
     detect_over_credit,
     make_controlled_student_answers,
     oracle_verdicts,
+    pgo_contract_from_knowql_rubric_result,
+    pgo_point_verdicts_from_luban_case_rubric_payload,
     runtime_points_from_grading_contract,
     verdict_coverage_awarded_score,
 )
@@ -305,3 +307,73 @@ def test_pgo_shadow_payload_missing_contract_does_not_infer_from_legacy_score():
     assert payload["score"]["awarded_score"] == 0.0
     assert payload["score"]["blockers"] == ["pgo_contract_missing"]
     assert payload["runtime_points"] == []
+
+
+def test_pgo_contract_from_knowql_rubric_result_adapts_read_only_projection():
+    result = {
+        "found": True,
+        "question_id": "Q-PGO",
+        "artifact_version": "case_rubric_scored_pgo",
+        "scoring_points": [
+            {
+                "point_id": "P1",
+                "official_slice": "施工总进度计划表",
+                "sub_type": "free_text_point",
+                "official_total_score": 5.0,
+                "official_score_allowed": False,
+                "canonical_write_allowed": False,
+            },
+            {
+                "point_id": "P2",
+                "official_slice": "资源需要量及供应平衡表",
+                "sub_type": "enumeration",
+                "official_total_score": 5.0,
+                "official_score_allowed": False,
+                "canonical_write_allowed": False,
+            },
+        ],
+    }
+
+    contract = pgo_contract_from_knowql_rubric_result(result)
+
+    assert contract is not None
+    assert contract["question_id"] == "Q-PGO"
+    assert contract["artifact_version"] == "case_rubric_scored_pgo"
+    assert contract["official_total_score"] == 5.0
+    assert contract["official_score_allowed"] is False
+    assert contract["canonical_write_allowed"] is False
+    assert [point["point_id"] for point in contract["scoring_points"]] == ["P1", "P2"]
+    assert contract["scoring_points"][0]["score"] is None
+
+
+def test_pgo_contract_from_knowql_rubric_result_keeps_fail_open_blocked():
+    contract = pgo_contract_from_knowql_rubric_result(
+        {
+            "found": False,
+            "fail_open": True,
+            "reason": "runtime_supply_unavailable",
+            "scoring_points": [{"point_id": "P1"}],
+        }
+    )
+
+    assert contract is None
+
+
+def test_pgo_point_verdicts_from_luban_case_rubric_payload_reads_same_attempt_hits():
+    verdicts = pgo_point_verdicts_from_luban_case_rubric_payload(
+        {
+            "authority": "luban_case_rubric_v1",
+            "status": "ok",
+            "learning_evidence": {
+                "rubric": {
+                    "scoring_point_hits": [
+                        {"point_id": "P1", "hit": True, "match_status": "hit"},
+                        {"point_id": "P2", "hit": False, "match_status": "miss"},
+                        {"point_id": "P3", "match_status": "partial"},
+                    ]
+                }
+            },
+        }
+    )
+
+    assert verdicts == {"P1": HIT, "P2": MISS, "P3": PARTIAL}
