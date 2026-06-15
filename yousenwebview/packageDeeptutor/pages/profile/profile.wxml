@@ -206,9 +206,9 @@
         </block>
       </view>
 
-      <!-- 退出登录 -->
-      <view class="logout-btn" wx:if="{{!isGuestPreview}}" bindtap="logout">
-        <text class="logout-btn-txt">退出登录</text>
+      <!-- 退出登录 / 退出体验 -->
+      <view class="logout-btn" bindtap="logout" aria-role="button" aria-label="{{isGuestPreview ? '退出体验' : '退出登录'}}">
+        <text class="logout-btn-txt">{{isGuestPreview ? '退出体验' : '退出登录'}}</text>
       </view>
 
       <view style="height: 240rpx"></view>

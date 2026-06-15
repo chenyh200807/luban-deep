@@ -498,8 +498,17 @@ Page({
   },
 
   logout: function () {
-    if (!auth.isLoggedIn()) {
-      this._requireLogin();
+    if (this.data.isGuestPreview || !auth.isLoggedIn()) {
+      wx.showModal({
+        title: "退出体验",
+        content: "确定要退出先体验导学吗？",
+        confirmColor: "#ef4444",
+        success: function (res) {
+          if (res.confirm) {
+            runtime.logout();
+          }
+        },
+      });
       return;
     }
     wx.showModal({
