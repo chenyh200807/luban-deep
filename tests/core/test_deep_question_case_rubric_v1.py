@@ -163,8 +163,8 @@ async def test_case_rubric_v1_grades_for_qa_flag(monkeypatch: pytest.MonkeyPatch
     assert v1["learning_evidence"]["writeback_performed"] is False
     # SAME-SOURCE: the student-facing response is rendered from this very event (not the V0 agent)
     resp = result["response"]
-    assert "## 采分点明细" in resp and "本次得分：2.0 / 3.0 分" in resp
-    assert "| 题号 | 采分点 | 判定 | 得分 | 你的作答证据 | 扣分原因 |" in resp
+    assert "## 整体评价" in resp and "得分预估：** 2 / 3 分" in resp
+    assert "**采分点：**" in resp
     assert resp != "得分：1分（满分3分）。"                        # V1 took over the answer
     # SAME-SOURCE outcome: is_correct derived from the V1 event (2/3 partial -> not full -> not correct),
     # so recent_outcomes / projection record what the student actually read.
@@ -183,7 +183,7 @@ async def test_case_rubric_v1_all_users_default_on(monkeypatch: pytest.MonkeyPat
     monkeypatch.setattr(G, "batch_judge_async", _fake)
     result = await _run_case(monkeypatch, _case_context(user_id="real_student_1", rubric_v1=False))
     assert result["luban_case_rubric_v1"]["status"] == "ok"     # non-qa, no flag -> still graded
-    assert "## 采分点明细" in result["response"]
+    assert "## 整体评价" in result["response"]
 
 
 @pytest.mark.asyncio
@@ -227,7 +227,7 @@ async def test_case_rubric_v1_open_world_extracts_and_grades(monkeypatch: pytest
     assert ev["max_score"] > 0 and abs(ev["awarded_score"] - ev["max_score"] / 2) < 0.01
     assert "共用一个开关箱" in captured_ref["reference"]                  # extracted from THIS question's ref
     assert captured_ref["provider_authority"] == "deepseek:https://api.deepseek.com"
-    assert "## 采分点明细" in result["response"]                          # student sees V1, not V0
+    assert "## 整体评价" in result["response"]                          # student sees V1, not V0
 
 
 @pytest.mark.asyncio

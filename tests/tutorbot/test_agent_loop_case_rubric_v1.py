@@ -92,6 +92,45 @@ def test_build_v1_case_ctx_splits_full_case_submission_and_blocks_mismatched_exa
     assert md["exact_question_blocked_reason"] == "case_exact_mismatch"
 
 
+def test_build_v1_case_ctx_blocks_exact_reference_when_subquestions_do_not_match_current_submission() -> None:
+    md = _case_md()
+    md["_prefetched_exact_question"] = {
+        "answer_kind": "case_study",
+        "question_id": "",
+        "stem": "建设单位编制了投资兴建某工程的招标文件，报价采用工程量清单计价。",
+        "covered_subquestions": [
+            {
+                "question": "采用固定价格应注意明确哪些事项？",
+                "authoritative_answer": "应明确包死价种类、风险范围、风险费用计算方法和违约条款。",
+            },
+            {
+                "question": "计算措施费、安全文明施工费和签约合同价。",
+                "authoritative_answer": "措施费1488万元，安全文明施工费558万元，签约合同价12345万元。",
+            },
+        ],
+        "max_score": 10,
+    }
+    message = (
+        "建设单位编制了投资兴建某工程的招标文件，报价采用工程量清单计价。\n"
+        "【问题】\n"
+        "1. 工程量清单的强制性内容还有哪些？\n"
+        "2. 投标单位对招标文件要求作出实质性响应的内容还有哪些？\n"
+        "3. 中标单位还应避免哪些违法分包行为？\n"
+        "回答\n"
+        "作答：\n"
+        "1. 工程量计算规则；工程量清单编制方法。\n"
+        "2. 工期；质量标准；投标有效期。\n"
+        "3. 不得分包给不具备资质单位。"
+    )
+
+    ctx = AgentLoop._build_v1_case_ctx(md, message)
+
+    assert ctx["question_id"] == ""
+    assert ctx["correct_answer"] == ""
+    assert "固定价格" not in ctx["correct_answer"]
+    assert md["exact_question_blocked_reason"] == "case_exact_mismatch"
+
+
 def test_build_v1_case_ctx_full_submission_blocks_stale_followup_reference() -> None:
     md = {
         "question_lifecycle_scene": "case_grading",
@@ -300,7 +339,7 @@ async def test_v1_case_render_grades_when_authority_and_flag(monkeypatch: pytest
     monkeypatch.setattr(G, "batch_judge_async", _fake_batch_async)
 
     render = await _loop()._v1_case_render(runtime_metadata=_case_md(), user_message="共用一个开关箱不妥")
-    assert "## 采分点明细" in render and "本次得分：" in render          # V1 render, not the agent's free text
+    assert "## 整体评价" in render and "得分预估：" in render          # V1 render, not the agent's free text
     assert "应编制临时用电施工组织设计" in render                      # the missed point surfaced
 
 
@@ -343,7 +382,7 @@ async def test_v1_case_render_default_on_for_non_qa_user(monkeypatch: pytest.Mon
     md = _case_md()
     md["user_id"] = "real_user_123"               # not qa_/test_ -> still graded (no cohort gate anymore)
     render = await _loop()._v1_case_render(runtime_metadata=md, user_message="共用一个开关箱不妥")
-    assert "## 采分点明细" in render
+    assert "## 整体评价" in render
 
 
 @pytest.mark.asyncio
@@ -425,7 +464,7 @@ async def test_apply_v1_or_case_fallback_prefers_v1(monkeypatch: pytest.MonkeyPa
     md = _case_md()
     out = await _loop()._apply_v1_or_case_fallback(
         "智能体自由答复：你写得不错，继续保持。", runtime_metadata=md, user_message="点1")
-    assert "## 采分点明细" in out                                      # V1 took over (not the agent text)
+    assert "## 整体评价" in out                                      # V1 took over (not the agent text)
     assert md.get("_v1_case_graded") is True
 
 
@@ -491,7 +530,7 @@ async def test_v1_case_render_writes_grading_to_brain_loop(
     out = await _loop()._apply_v1_or_case_fallback(
         "智能体自由答复：我先不打分。", runtime_metadata=md, user_message="普通施工方案")
 
-    assert "## 采分点明细" in out
+    assert "## 整体评价" in out
     for _ in range(50):
         if fake_service.calls and md.get("personalization_context"):
             break
@@ -555,7 +594,7 @@ async def test_v1_case_render_does_not_wait_for_personalization_projection(
     release.set()
     await asyncio.sleep(0.01)
 
-    assert "## 采分点明细" in out
+    assert "## 整体评价" in out
     assert md["learning_evidence_event_id"] == "evt_v1_case_1"
     assert md["learning_training_intent"]["source"] == "grading_to_brain_loop"
     assert md["grading_to_brain_projection"] == {

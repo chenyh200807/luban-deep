@@ -730,14 +730,23 @@ def render_case_rubric_feedback(
     else:
         verdict = "核心采分点缺失较多，需要先按标准采分点重建答案。"
 
+    def _fmt_score(value: Any) -> str:
+        try:
+            number = float(value or 0)
+        except (TypeError, ValueError):
+            return "0"
+        if number.is_integer():
+            return str(int(number))
+        return f"{number:.2f}".rstrip("0").rstrip(".")
+
     def _question_heading(label: str) -> str:
         match = re.fullmatch(r"问题(\d+)", label)
         if match:
             idx = int(match.group(1))
             title = question_titles.get(idx, "").strip()
             if title:
-                return f"第{idx}问：{title}"
-            return f"第{idx}问"
+                return f"问题{idx}：{title}"
+            return f"问题{idx}"
         return label
 
     def _group_verdict(points: list[dict[str, Any]]) -> str:
@@ -764,21 +773,43 @@ def render_case_rubric_feedback(
             if p.get("hit") != HIT and str(p.get("knowledge_point") or "").strip()
         ]
         if evidence_items and missing_items:
-            return f"已看到「{evidence_items[0]}」，但还要补「{missing_items[0]}」。"
+            return f"已看到「{evidence_items[0]}」，但还要补充「{missing_items[0]}」。"
         if evidence_items:
-            return f"能直接命中的表述包括「{evidence_items[0]}」。"
-        if missing_items:
-            return f"从作答中暂未看到「{missing_items[0]}」这一类可直接得分的表述。"
-        return "本问按下方采分点逐项核对。"
+            return f"能直接给分的表述包括「{evidence_items[0]}」。"
+        return "这一问暂未看到能直接给分的原文证据。"
+
+    def _rewrite_point_sentence(text: str) -> str:
+        item = str(text or "").strip().rstrip("。；;，,")
+        if not item:
+            return ""
+        if item.startswith("采用固定价格应注意"):
+            tail = item.removeprefix("采用固定价格应注意").strip("，,：:")
+            return f"采用固定价格时，应{tail}。"
+        if item.startswith("采用固定价格必须"):
+            tail = item.removeprefix("采用固定价格必须").strip("，,：:")
+            return f"采用固定价格时，必须{tail}。"
+        if item.startswith("应当"):
+            return f"应{item.removeprefix('应当')}。"
+        if item.startswith(("应", "需", "不得", "计算", "明确", "写明")):
+            return f"{item}。"
+        return f"{item}。"
 
     def _group_rewrite_hint(points: list[dict[str, Any]]) -> str:
-        missing_items = [
+        rewrite_items = [
             str(p.get("knowledge_point") or "").strip()
             for p in points
             if p.get("hit") != HIT and str(p.get("knowledge_point") or "").strip()
         ]
-        if missing_items:
-            return f"答题时把「{missing_items[0]}」补成一句完整答案，再按表格漏点补齐。"
+        if not rewrite_items:
+            rewrite_items = [
+                str(p.get("knowledge_point") or "").strip()
+                for p in points
+                if str(p.get("knowledge_point") or "").strip()
+            ]
+        sentences = [_rewrite_point_sentence(item) for item in rewrite_items[:6]]
+        sentences = [sentence for sentence in sentences if sentence]
+        if sentences:
+            return " ".join(sentences)
         return "当前要点基本可保留，考试书写时继续使用教材/规范术语。"
 
     def _group_mistake_hint(points: list[dict[str, Any]]) -> str:
@@ -802,8 +833,29 @@ def render_case_rubric_feedback(
         if partial_items:
             return f"本问容易只答到一半，「{partial_items[0]}」要写完整。"
         if missing_items:
-            return f"本问容易漏「{missing_items[0]}」，复盘时先补这个关键词。"
+            if len(missing_items) >= 2:
+                return f"本问主要漏「{missing_items[0]}」和「{missing_items[1]}」，复盘时要写成可判分的完整短句。"
+            return f"本问主要漏「{missing_items[0]}」，复盘时要写成可判分的完整短句。"
         return "本问没有明显漏点，保持分条和规范术语即可。"
+
+    def _point_status_label(point: dict[str, Any]) -> tuple[str, str, str]:
+        status, evidence, why = _status_evidence_reason(point)
+        if status == "✅ 命中":
+            status = "✅ 已命中"
+        elif status == "❌ 漏写":
+            status = "❌ 漏点"
+        why = why.replace("未作答 / 漏写本采分点", "你的作答没有覆盖这个得分含义")
+        why = why.replace("本采分点要点未答全，还差关键内容", "意思碰到了一部分，但关键内容还没写完整")
+        return status, evidence, why
+
+    def _mnemonic_from_weak(items: list[str]) -> str:
+        cleaned = [re.sub(r"[，,。；;：:].*$", "", item).strip() for item in items if item.strip()]
+        cleaned = [item for item in cleaned if item]
+        if not cleaned:
+            return ""
+        if len(cleaned) == 1:
+            return f"抓住「{cleaned[0]}」这一关键词，先写判断，再补具体做法。"
+        return "、".join(cleaned[:4])
 
     grouped: list[tuple[str, list[dict[str, Any]]]] = []
     by_label: dict[str, list[dict[str, Any]]] = {}
@@ -819,45 +871,44 @@ def render_case_rubric_feedback(
 
     lines: list[str] = []
     if numbered_count:
-        lines.append(f"铁，这道题我按 {numbered_count} 个问题逐一批改，先给总分，再拆采分点、漏分点和扣分原因。")
+        lines.append(f"铁，这道题我按 {numbered_count} 个问题逐一点评，先说整体情况，再把每问的命中点、漏点和可直接写进试卷的答案拆清楚。")
     else:
-        lines.append("铁，这道题我按采分点逐项批改，先给结论，再拆命中点、漏点和下一步练法。")
+        lines.append("铁，这道题我先给整体判断，再拆命中点、漏点和可直接写进试卷的答案。")
     lines.append("")
-    lines.append("## 结论")
-    lines.append(f"本次得分：{awarded} / {total} 分。{verdict}")
+    lines.append("## 整体评价")
+    lines.append(f"**得分预估：** {_fmt_score(awarded)} / {_fmt_score(total)} 分。{verdict}")
     lines.append("")
-    lines.append("## 采分点明细")
     for label, points in grouped:
+        lines.append("---")
+        lines.append("")
         if numbered_count or len(grouped) > 1:
-            lines.append(f"### {_question_heading(label)}")
-            lines.append(f"**判定：** {_group_verdict(points)}")
+            lines.append(f"## {_question_heading(label)}")
             lines.append(f"**你写的：** {_group_answer_summary(points)}")
             lines.append("")
-        lines.append("| 题号 | 采分点 | 判定 | 得分 | 你的作答证据 | 扣分原因 |")
-        lines.append("|---|---|---|---:|---|---|")
+            lines.append(f"**判定：** {_group_verdict(points)}")
+            lines.append("")
+        lines.append("**采分点：**")
         for i, p in enumerate(points, 1):
             kp = str(p.get("knowledge_point") or "")
-            s = p.get("score", 0)
-            m = p.get("max_score", 0)
             point = p if isinstance(p, dict) else {}
-            status, evidence, why = _status_evidence_reason(point)
-            evidence_cell = _cell(evidence) or "-"
-            lines.append(
-                f"| {_cell(label)} | {_cell(kp) or f'采分点{i}'} | {status} | {s}/{m} | "
-                f"{evidence_cell} | {_cell(why)} |"
-            )
-        if numbered_count or len(grouped) > 1:
-            lines.append("")
-            lines.append(f"**易错点：** {_group_mistake_hint(points)}")
-            lines.append(f"**得分表达改写：** {_group_rewrite_hint(points)}")
-            lines.append("")
+            status, evidence, why = _point_status_label(point)
+            item = _cell(kp) or f"采分点{i}"
+            if evidence:
+                lines.append(f"- {status}：{item}（你写了：{_cell(evidence)}；{_cell(why)}）")
+            else:
+                lines.append(f"- {status}：{item}（{_cell(why)}）")
+        lines.append("")
+        lines.append(f"**易错点：** {_group_mistake_hint(points)}")
+        lines.append("")
+        lines.append("**得分表达改写：**")
+        lines.append(f"> {_group_rewrite_hint(points)}")
+        lines.append("")
     lines.append("")
-    lines.append("## 易错点")
+    lines.append("## 总体评价")
     if weak:
-        for item in weak[:5]:
-            lines.append(f"- {item}")
+        lines.append(f"**主要问题：** 漏掉 {miss_count} 个采分点，优先补「{weak[0]}」。")
     else:
-        lines.append("- 本轮没有明显漏点，重点保持答题结构和关键词准确。")
+        lines.append("**主要问题：** 本轮没有明显漏点，重点保持答题结构和关键词准确。")
     lines.append("")
     lines.append("## 判分")
     lines.append(f"- 命中 {hit_count} 个，部分命中 {partial_count} 个，漏/错 {miss_count} 个。")
@@ -866,25 +917,20 @@ def render_case_rubric_feedback(
     lines.append(f"- {note}")
     lines.append("")
     lines.append("## 记忆口诀")
-    if weak:
-        lines.append("先列采分点，再补关键词；漏点优先背，错点要改法。")
+    mnemonic = _mnemonic_from_weak(weak)
+    if mnemonic:
+        lines.append(mnemonic)
     else:
-        lines.append("先定点，再展开；关键词准，分数稳。")
+        lines.append("按问法分条作答，关键词前置，少写空话。")
     lines.append("")
-    lines.append("## 建议")
+    lines.append("## 下一步建议")
     profile_note = _personalized_feedback_note(personalization_context_pack)
     if profile_note:
         lines.append(profile_note)
     if weak:
-        lines.append("把上表 ❌ / ⚠️ 的采分点各改写成一句可直接写进试卷的答案。")
+        lines.append(f"先把「{weak[0]}」按上面的改写句背熟，再练同考点变式题。")
     else:
         lines.append("继续保持按采分点分条作答，注意不要漏掉规范术语。")
-    lines.append("")
-    lines.append("## 下一步练什么")
-    if weak:
-        lines.append(f"优先练同考点变式题：{weak[0]}。做完后只对照采分点复盘，不先看长解析。")
-    else:
-        lines.append("练一道同章节综合案例题，目标是继续保持采分点完整率。")
     return "\n".join(lines)
 
 

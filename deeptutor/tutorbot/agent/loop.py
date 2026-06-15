@@ -1049,6 +1049,17 @@ class AgentLoop:
         def _compact(value: Any) -> str:
             return re.sub(r"[^0-9A-Za-z\u4e00-\u9fff]+", "", str(value or "")).lower()
 
+        def _has_current_question_anchor(value: Any) -> bool:
+            text = str(value or "")
+            return bool(
+                "【问题" in text
+                or "问题】" in text
+                or re.search(r"问题\s*[：:]", text)
+                or re.search(r"(?:^|\n)\s*\d+\s*[.．、]", text)
+                or "？" in text
+                or "?" in text
+            )
+
         user = _compact(user_stem)
         if not user:
             return True
@@ -1061,6 +1072,14 @@ class AgentLoop:
             for item in covered:
                 if isinstance(item, dict):
                     parts.append(str(item.get("stem") or item.get("question") or ""))
+        if _has_current_question_anchor(user_stem):
+            anchored_parts = [part for part in parts if _has_current_question_anchor(part)]
+            if anchored_parts:
+                return any(
+                    len(_compact(part)) >= 8 and (_compact(part) in user or user in _compact(part))
+                    for part in anchored_parts
+                )
+            return False
         exact = _compact("\n".join(part for part in parts if part))
         if not exact:
             return False
@@ -1095,6 +1114,11 @@ class AgentLoop:
         def _reference_values(context: dict[str, Any]):
             for key in ("stem", "question", "question_stem"):
                 yield context.get(key)
+            for item in context.get("covered_subquestions") or []:
+                if not isinstance(item, dict):
+                    continue
+                for key in ("stem", "question", "question_stem"):
+                    yield item.get(key)
             for item in context.get("items") or []:
                 if not isinstance(item, dict):
                     continue
@@ -1142,6 +1166,15 @@ class AgentLoop:
             identity = _compact(value)
             return len(identity) >= 8 and (identity in user or user in identity)
 
+        def _answer_from_item(item: dict[str, Any]) -> str:
+            return str(
+                item.get("authoritative_answer")
+                or item.get("correct_answer")
+                or ((item.get("grading_key") or {}).get("correct_answer") if isinstance(item.get("grading_key"), dict) else "")
+                or ((item.get("construction_grading_result") or {}).get("correct_answer") if isinstance(item.get("construction_grading_result"), dict) else "")
+                or ""
+            ).strip()
+
         for key in ("question", "question_stem", "stem"):
             if _matches_current(reference_context.get(key)):
                 return {
@@ -1151,17 +1184,13 @@ class AgentLoop:
 
         answers: list[str] = []
         matched_question_ids: list[str] = []
-        for item in reference_context.get("items") or []:
+        candidates = list(reference_context.get("covered_subquestions") or []) + list(reference_context.get("items") or [])
+        for item in candidates:
             if not isinstance(item, dict):
                 continue
             if not any(_matches_current(item.get(key)) for key in ("question", "question_stem", "stem")):
                 continue
-            answer = str(
-                item.get("correct_answer")
-                or ((item.get("grading_key") or {}).get("correct_answer") if isinstance(item.get("grading_key"), dict) else "")
-                or ((item.get("construction_grading_result") or {}).get("correct_answer") if isinstance(item.get("construction_grading_result"), dict) else "")
-                or ""
-            ).strip()
+            answer = _answer_from_item(item)
             if answer:
                 answers.append(answer)
                 qid = str(item.get("question_id") or "").strip()
@@ -1208,10 +1237,19 @@ class AgentLoop:
         if user_stem and fc and not str(fc_current.get("reference") or "").strip() and str(fc.get("correct_answer") or "").strip():
             md["case_reference_blocked_reason"] = "full_submission_without_current_reference_answer"
         covered = eq.get("covered_subquestions") or []
-        ref = "\n".join(
-            str(s.get("authoritative_answer") or "") for s in covered if isinstance(s, dict)
-        ).strip()
-        ref = ref or str(fc_current.get("reference") or eq.get("correct_answer") or eq.get("analysis") or "")
+        if user_stem and eq:
+            eq_current = AgentLoop._current_case_reference_from_context(eq, user_stem)
+            ref = str(eq_current.get("reference") or "").strip()
+            if covered and not ref and any(
+                str(s.get("authoritative_answer") or s.get("correct_answer") or "").strip()
+                for s in covered if isinstance(s, dict)
+            ):
+                md["case_reference_blocked_reason"] = "full_submission_without_current_reference_answer"
+        else:
+            ref = "\n".join(
+                str(s.get("authoritative_answer") or "") for s in covered if isinstance(s, dict)
+            ).strip()
+        ref = ref or str(fc_current.get("reference") or ("" if user_stem else eq.get("correct_answer") or eq.get("analysis")) or "")
         try:
             nominal = float(eq.get("max_score") or fc.get("max_score") or 0)
         except (TypeError, ValueError):

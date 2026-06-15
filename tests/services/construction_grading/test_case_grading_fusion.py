@@ -39,8 +39,11 @@ async def _rag(_q):
 
 
 def _assert_score_block(render: str, awarded: float, maximum: float) -> None:
-    assert "## 结论" in render
-    assert f"本次得分：{awarded} / {maximum} 分" in render
+    def _fmt(value: float) -> str:
+        return str(int(value)) if float(value).is_integer() else str(value)
+
+    assert "## 整体评价" in render
+    assert f"得分预估：** {_fmt(awarded)} / {_fmt(maximum)} 分" in render
 
 
 def test_fusion_score_from_v1_only_teaching_added():

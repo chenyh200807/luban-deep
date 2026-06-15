@@ -287,19 +287,17 @@ def test_render_case_rubric_feedback_same_source_and_reasons():
     text = G.render_case_rubric_feedback(ev, question_stem=long_stem)
     assert "【题目】" not in text
     assert "某案例题。建设单位编制招标文件。" not in text
-    assert "## 结论" in text
-    assert "## 采分点明细" in text
-    assert "| 题号 | 采分点 | 判定 | 得分 | 你的作答证据 | 扣分原因 |" in text
-    assert f"本次得分：{ev['awarded_score']} / {ev['max_score']} 分" in text  # same source as the score
+    assert "## 整体评价" in text
+    assert "## 采分点明细" not in text
+    assert "得分预估：** 2.5 / 6 分" in text  # same source as the score, display-normalized
     assert "✅" in text                                    # P1 hit
     assert "⚠️" in text and "部分命中" in text          # P2 partial (list)
     assert "❌" in text
     assert "答错：你写的「塔吊」" in text                   # P3 wrong-content, NOT "漏写"
-    assert "## 易错点" in text and "列举6项检验" in text       # P2 (partial) is a weak point
+    assert "**易错点：**" in text and "列举6项检验" in text       # P2 (partial) is a weak point
     assert "## 判分" in text
     assert "## 记忆口诀" in text
-    assert "## 建议" in text
-    assert "## 下一步练什么" in text
+    assert "## 下一步建议" in text
 
 
 def test_render_case_rubric_feedback_maps_points_to_question_numbers_and_evidence() -> None:
@@ -342,10 +340,12 @@ def test_render_case_rubric_feedback_maps_points_to_question_numbers_and_evidenc
 
     text = G.render_case_rubric_feedback(event)
 
-    assert "| 题号 | 采分点 | 判定 | 得分 | 你的作答证据 | 扣分原因 |" in text
-    assert "| 问题1 | 工程量清单强制性内容 | ✅ 命中 | 1.0/1.0 | 工程量计算规则 | 命中 |" in text
-    assert "| 问题2 | 实质性响应工期要求 | ❌ 漏写 | 0.0/1.0 | - | 未作答 / 漏写本采分点 |" in text
-    assert "| 问题3 | 不得将主体结构分包给其他单位 | ⚠️ 部分命中 | 0.0/1.0 | 主体结构的施工分包给其他单位 | 本采分点要点未答全，还差关键内容 |" in text
+    assert "## 问题1" in text
+    assert "✅ 已命中：工程量清单强制性内容（你写了：工程量计算规则；命中）" in text
+    assert "## 问题2" in text
+    assert "❌ 漏点：实质性响应工期要求（你的作答没有覆盖这个得分含义）" in text
+    assert "## 问题3" in text
+    assert "⚠️ 部分命中：不得将主体结构分包给其他单位（你写了：主体结构的施工分包给其他单位；意思碰到了一部分，但关键内容还没写完整）" in text
 
 
 def test_render_case_rubric_feedback_uses_question_titles_without_repeating_stem() -> None:
@@ -385,13 +385,55 @@ def test_render_case_rubric_feedback_uses_question_titles_without_repeating_stem
     text = G.render_case_rubric_feedback(event, question_stem=stem)
 
     assert "建设单位编制了投资兴建某工程" not in text
-    assert "### 第1问：工程量清单的强制性内容还有哪些？" in text
-    assert "### 第2问：投标单位对招标文件要求作出实质性响应的内容还有哪些？" in text
-    assert text.index("## 结论") < text.index("### 第1问：")
+    assert "## 问题1：工程量清单的强制性内容还有哪些？" in text
+    assert "## 问题2：投标单位对招标文件要求作出实质性响应的内容还有哪些？" in text
+    assert text.index("## 整体评价") < text.index("## 问题1：")
     assert "**判定：**" in text
     assert "**你写的：**" in text
-    assert "**易错点：** 本问容易漏「实质性响应投标有效期」" in text
+    assert "**易错点：** 本问主要漏「实质性响应投标有效期」" in text
     assert "**得分表达改写：**" in text
+
+
+def test_render_case_rubric_feedback_uses_student_friendly_question_sections_without_raw_point_weights() -> None:
+    event = {
+        "event_type": "case_grading_completed",
+        "awarded_score": 0.0,
+        "max_score": 10.0,
+        "scoring_points": [
+            {
+                "point_id": "P1",
+                "question_no": 1,
+                "knowledge_point": "采用固定价格应注意明确包死价的种类",
+                "hit": G.MISS,
+                "score": 0.0,
+                "max_score": 0.87,
+                "mistake_type": G.MISTAKE_MISS,
+            },
+            {
+                "point_id": "P2",
+                "question_no": 1,
+                "knowledge_point": "采用固定价格必须把风险范围约定清楚",
+                "hit": G.MISS,
+                "score": 0.0,
+                "max_score": 0.83,
+                "mistake_type": G.MISTAKE_MISS,
+            },
+        ],
+    }
+    stem = "【问题】\n1. 工程量清单的强制性内容还有哪些？"
+
+    text = G.render_case_rubric_feedback(event, question_stem=stem)
+
+    assert "## 采分点明细" not in text
+    assert "## 问题1：工程量清单的强制性内容还有哪些？" in text
+    assert "0.0/0.87" not in text
+    assert "0.0/0.83" not in text
+    assert "漏写本采分点" not in text
+    assert "把上表 ❌ / ⚠️" not in text
+    assert "再按表格漏点补齐" not in text
+    assert "**得分表达改写：**" in text
+    assert "应明确包死价的种类" in text
+    assert "风险范围" in text
 
 
 def test_render_case_rubric_feedback_can_infer_question_title_from_point_text() -> None:
@@ -426,8 +468,8 @@ def test_render_case_rubric_feedback_can_infer_question_title_from_point_text() 
 
     text = G.render_case_rubric_feedback(event, question_stem=stem)
 
-    assert "### 第1问：工程量清单的强制性内容还有哪些？" in text
-    assert "### 第2问：投标单位对招标文件要求作出实质性响应的内容还有哪些？" in text
+    assert "## 问题1：工程量清单的强制性内容还有哪些？" in text
+    assert "## 问题2：投标单位对招标文件要求作出实质性响应的内容还有哪些？" in text
     assert "| 整题 |" not in text
 
 
@@ -460,8 +502,8 @@ def test_grade_with_rubric_preserves_question_number_for_rendering() -> None:
     assert event["scoring_points"][0]["question_no"] == 1
     assert event["scoring_points"][1]["question_no"] == 2
     text = G.render_case_rubric_feedback(event)
-    assert "### 第1问" in text
-    assert "### 第2问" in text
+    assert "## 问题1" in text
+    assert "## 问题2" in text
     assert "整题" not in text
 
 
@@ -498,8 +540,8 @@ def test_pgo_coverage_grading_preserves_subquestion_number_for_rendering() -> No
     assert event["scoring_points"][0]["sub_no"] == 1
     assert event["scoring_points"][1]["sub_no"] == 2
     text = G.render_case_rubric_feedback(event)
-    assert "### 第1问" in text
-    assert "### 第2问" in text
+    assert "## 问题1" in text
+    assert "## 问题2" in text
     assert "整题" not in text
 
 
@@ -570,7 +612,7 @@ def test_render_case_rubric_feedback_does_not_treat_year_qid_as_question_number(
     text = G.render_case_rubric_feedback(event)
 
     assert "问题2024" not in text
-    assert "| 整题 | 施工单位结算造价 | ❌ 漏写 | 0.0/1.0 | - | 未作答 / 漏写本采分点 |" in text
+    assert "❌ 漏点：施工单位结算造价（你的作答没有覆盖这个得分含义）" in text
 
 
 def test_render_case_rubric_feedback_reads_exam_subquestion_from_e_qid() -> None:
@@ -593,8 +635,8 @@ def test_render_case_rubric_feedback_reads_exam_subquestion_from_e_qid() -> None
 
     text = G.render_case_rubric_feedback(event)
 
-    assert "### 第2问" in text
-    assert "| 问题2 | 实质性响应投标有效期 | ❌ 漏写 | 0.0/1.0 | - | 未作答 / 漏写本采分点 |" in text
+    assert "## 问题2" in text
+    assert "❌ 漏点：实质性响应投标有效期（你的作答没有覆盖这个得分含义）" in text
 
 
 def test_render_case_rubric_feedback_uses_long_term_profile_for_tone_only() -> None:
@@ -620,7 +662,7 @@ def test_render_case_rubric_feedback_uses_long_term_profile_for_tone_only() -> N
         },
     )
 
-    assert f"本次得分：{ev['awarded_score']} / {ev['max_score']} 分" in text
+    assert "得分预估：** 5 / 6 分" in text
     assert "长期画像提示" in text
     assert "exact_required" in text
     assert "不会改变本次采分点得分" in text
