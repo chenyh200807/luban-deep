@@ -216,6 +216,24 @@ pkill -KILL -f 'next-server|/web/\.next/dev/build/postcss\.js|next/dist/bin/next
 - 如果某个修复看似必须改 `/root/deeptutor` 之外的文件，必须停止执行，先向用户说明原因、目标路径、风险和替代方案；未获得用户新的明确授权前，一律不改。
 - 所有阿里云发布脚本和运维 runbook 必须把 `/root/deeptutor` 作为唯一写入根目录；不要通过临时目录绕开这条边界。
 
+### 3.8 CI Runtime Failure Discipline
+
+凡是用户给出 GitHub Actions、`Tests`、`Smoke Tests`、`Security Scan`、`Deploy Gate`、CI 失败链接，或要求“继续修 action / 还有 fail 吗 / 修运行错误”，必须先使用：
+
+- [agent-skills/deeptutor-ci-runtime-fix-gate/SKILL.md](/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/agent-skills/deeptutor-ci-runtime-fix-gate/SKILL.md)
+- [docs/runbook/ci-runtime-smoke-guardrails.md](/Users/yehongchen/Developer/CYH_2/Markzuo/deeptutor/docs/runbook/ci-runtime-smoke-guardrails.md)
+
+硬规则：
+
+- 先按同一 commit / 同一 workflow run 归因，不要把旧红灯、新红灯、advisory、Deploy Gate 派生失败混在一起。
+- 先分类再修：真实代码 bug、测试隔离 bug、CI/本地依赖漂移、contract mirror 漂移、secret baseline 元数据漂移、外部 runner advisory，不能用同一种补丁处理。
+- 本地复现优先使用干净 worktree 和 CI-like venv，按 `requirements/server.txt` 安装后运行失败 job 的最小 pytest 子集；本机全局依赖绿灯不能证明 GitHub Actions 会绿。
+- 涉及 FastAPI route smoke 时，测试 helper 必须兼容 eager `APIRoute.path` 和 FastAPI deferred `_IncludedRouter`；禁止只用 `{route.path for route in app.routes}` 得出“路由缺失”结论。
+- 修改 `contracts/index.yaml` 时必须同步 `deeptutor/contracts/index.yaml`；后者是 packaged runtime copy，漂移会让 smoke 或 packaged install 加载 stale contract authority。
+- `detect-secrets-hook` 失败时先看日志和 `.secrets.baseline` diff：只有既有 false positive 的行号 / 生成时间漂移可以刷新 baseline；新高熵字符串、配置、token、env 示例必须移除并按 secret 处理。
+- 不能把单个 job 绿灯写成“全修完”。最终结论必须同时核对最新 `Tests` run 和同一 SHA 触发的 `Deploy Gate`，并明确区分 blocking failure 与 advisory。
+- 如果同类失败第二次复发，除修代码外必须补 `docs/runbook/ci-runtime-smoke-guardrails.md`；如果第三次复发，必须同步升级 `agent-skills/deeptutor-ci-runtime-fix-gate/SKILL.md` 或本节规则。
+
 ### 4. Goal-Driven Execution
 
 - 开始前先把任务改写成可验证目标，而不是“差不多能用”。

@@ -5,6 +5,15 @@
 This runbook covers failures where GitHub Actions `Smoke Tests (Python 3.11)`
 reports missing FastAPI routes even though focused route tests pass locally.
 
+Agents must reach this runbook through
+`agent-skills/deeptutor-ci-runtime-fix-gate/SKILL.md` whenever repairing
+GitHub Actions, `Tests`, `Smoke Tests`, `Security Scan`, `Deploy Gate`,
+contract-guard CI, secret baseline, route smoke, or CI/local runtime mismatch
+failures.
+
+This file is the failure catalog. `AGENTS.md` and the skill are the activation
+surface.
+
 ## Failure Signature
 
 - `tests/api/test_main_entrypoints.py` fails inside the full smoke suite.

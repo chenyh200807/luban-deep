@@ -16,6 +16,7 @@ Use this skill to make completion evidence-based.
    - HTTP+WS smoke for chat control-plane behavior;
    - WeChat DevTools or real device for real package UI closure;
    - script/frontmatter/link validation for docs and skills;
+   - GitHub Actions `Tests` plus same-SHA `Deploy Gate` for CI green claims;
    - release payload and public endpoints for deployment truth.
 3. For bugs, write or identify a reproducer before fixing when practical.
 4. Include at least one counterexample when the fix touches regex, fallback,
@@ -31,6 +32,7 @@ Do not report PASS when:
 - DevTools `islogin` or `open --project` ran without a page scenario;
 - near-real HTTP+WS is being substituted for real WeChat package closure;
 - an observability runner succeeded but payload says `ready=false`;
+- a `Tests` job passed but the same-SHA `Deploy Gate` failed or has not run;
 - a doc or skill change was not validated for frontmatter and links.
 
 ## Verification

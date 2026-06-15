@@ -56,6 +56,10 @@ Use the narrowest matching local workflow:
 - Multi-file implementation: use `deeptutor-incremental-implementation`.
 - Behavior changes, bug fixes, or skill/doc validations: use
   `deeptutor-test-verification-gate`.
+- GitHub Actions, `Tests`, `Smoke Tests`, `Security Scan`, `Deploy Gate`,
+  contract-guard CI, route smoke, secret baseline, or CI/local runtime mismatch
+  failures: use `deeptutor-ci-runtime-fix-gate`; tie every conclusion to one
+  workflow run and one SHA.
 - API, control-plane, stream, trace, or contract boundary changes: use
   `deeptutor-api-contract-design`; read `CONTRACT.md` and
   `contracts/index.yaml`; keep wrappers thin and put policy in the existing
