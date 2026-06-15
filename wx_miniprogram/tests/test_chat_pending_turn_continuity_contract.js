@@ -82,6 +82,10 @@ assert(
   "non-cancelling local stream aborts must not erase the durable pending turn",
 );
 assert(
+  /_onDone:\s*function\s*\(options\)[\s\S]*?var wasRecoveringTurn = !!this\._recoveringTurn;[\s\S]*?var renderedAnswer = false;[\s\S]*?!skipHistoryRecovery && !renderedAnswer[\s\S]*?_recoverTurnFromHistory\(/.test(source),
+  "terminal done without a visible answer should preserve pending identity and recover from canonical history",
+);
+assert(
   /stopStream:\s*function[\s\S]*?_stop\(\{\s*cancelTurn:\s*true\s*\}\)/.test(source),
   "only the explicit stop button should request server-side turn cancellation",
 );

@@ -1341,13 +1341,14 @@ Page({
     this.setData(update);
   },
 
-  _onDone: function () {
+  _onDone: function (options) {
+    var wasRecoveringTurn = !!this._recoveringTurn;
+    var skipHistoryRecovery = !!(options && options.skipHistoryRecovery);
+    var renderedAnswer = false;
     if (this._timer) {
       clearInterval(this._timer);
       this._timer = null;
     }
-    this._pendingTurn = null;
-    this._recoveringTurn = false;
     this._abort = null;
     if (this._buf) this._flush();
 
@@ -1366,11 +1367,12 @@ Page({
       var state = normalized.state;
       var u = normalized.updates;
       u["messages[" + idx + "].streaming"] = false;
-      if (
+      renderedAnswer = !!(
         state.renderableContent ||
         (state.blocks && state.blocks.length) ||
         (state.mcqCards && state.mcqCards.length)
-      ) {
+      );
+      if (renderedAnswer) {
         u["messages[" + idx + "].thinkingStatus"] = "";
         u["messages[" + idx + "].thinkingBadge"] = "";
         u["messages[" + idx + "].thinkingSub"] = "";
@@ -1419,9 +1421,27 @@ Page({
     }
     this._streamId = null;
     this._abort = null;
-    if (!this._recoveringTurn) {
-      this._clearPendingTurn();
+    if (wasRecoveringTurn) {
+      this._recoveringTurn = true;
+      return;
     }
+    if (!skipHistoryRecovery && !renderedAnswer && (this._pendingTurn || this._loadPendingTurn())) {
+      var recoverySelf = this;
+      this._recoveringTurn = true;
+      this._pendingRecoveryActive = true;
+      this._recoverTurnFromHistory({
+        maxAttempts: 4,
+        unlockOnExhausted: true,
+      }).then(function (recovered) {
+        recoverySelf._pendingRecoveryActive = false;
+        if (!recovered) {
+          recoverySelf._recoveringTurn = false;
+        }
+      });
+      return;
+    }
+    this._recoveringTurn = false;
+    this._clearPendingTurn();
   },
 
   _onError: function (m) {
@@ -1465,7 +1485,7 @@ Page({
         );
         self._setWorkflowState(failedIdx, failedState, false);
       }
-      self._onDone();
+      self._onDone({ skipHistoryRecovery: true });
       self._clearPendingTurn();
       if (self._isBillingBlockedMessage(m)) {
         self._showPaywall({

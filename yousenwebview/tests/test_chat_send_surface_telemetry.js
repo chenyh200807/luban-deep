@@ -15,6 +15,12 @@ function assert(condition, message) {
   errors.push("FAIL: " + message);
 }
 
+function flushPromises() {
+  return Promise.resolve().then(function () {
+    return Promise.resolve();
+  });
+}
+
 async function run(name, fn) {
   try {
     await fn();
@@ -341,6 +347,158 @@ function loadChatPage() {
       loaded.streamCalls[1].persistUserMessage === false,
       "retry should still avoid duplicating the persisted user message",
     );
+  });
+
+  await run("done callback during recovery should not erase pending turn identity", async function () {
+    var loaded = loadChatPage();
+    var pending = {
+      conversationId: "tb_conv_recover",
+      baselineCount: 0,
+      query: "你是谁",
+      clientTurnId: "client_recover_1",
+      turnId: "turn_recover_1",
+      createdAt: Date.now(),
+    };
+
+    loaded.page._pendingTurn = pending;
+    loaded.page._recoveringTurn = true;
+    loaded.page._streamId = "missing-stream-message";
+    loaded.page.setData({
+      messages: [],
+      isStreaming: true,
+      canStopStream: true,
+    });
+
+    loaded.page._onDone();
+
+    assert(
+      loaded.page._pendingTurn &&
+        loaded.page._pendingTurn.clientTurnId === "client_recover_1",
+      "transport done after an error must not erase the pending turn before history recovery can use it",
+    );
+    assert(
+      loaded.page._recoveringTurn === true,
+      "transport done after an error must not mark recovery as finished",
+    );
+  });
+
+  await run("done without visible answer should recover from canonical history", async function () {
+    var loaded = loadChatPage();
+    var pending = {
+      conversationId: "tb_conv_done_empty",
+      baselineCount: 0,
+      query: "你能做什么",
+      clientTurnId: "client_done_empty_1",
+      turnId: "turn_done_empty_1",
+      createdAt: Date.now(),
+    };
+    var recoveryCalls = [];
+    var cleared = false;
+
+    loaded.page._pendingTurn = pending;
+    loaded.page._recoveringTurn = false;
+    loaded.page._streamId = "a-empty";
+    loaded.page._find = function (id) {
+      return id === "a-empty" ? 0 : -1;
+    };
+    loaded.page._buildAiMessageUpdates = function () {
+      return {
+        state: {
+          renderableContent: "",
+          blocks: [],
+          mcqCards: [],
+        },
+        updates: {},
+      };
+    };
+    loaded.page._recoverTurnFromHistory = function (options) {
+      recoveryCalls.push(options || {});
+      return Promise.resolve(true);
+    };
+    loaded.page._clearPendingTurn = function () {
+      cleared = true;
+      this._pendingTurn = null;
+    };
+    loaded.page.setData({
+      messages: [{ id: "a-empty", role: "ai", content: "", streaming: true }],
+      isStreaming: true,
+      canStopStream: true,
+    });
+
+    loaded.page._onDone();
+
+    assert(
+      recoveryCalls.length === 1,
+      "terminal done with no rendered answer should trigger history recovery",
+    );
+    assert(
+      recoveryCalls.length === 1 && recoveryCalls[0].unlockOnExhausted === true,
+      "empty terminal recovery should unlock the composer if history still has no answer",
+    );
+    assert(
+      loaded.page._pendingTurn &&
+        loaded.page._pendingTurn.clientTurnId === "client_done_empty_1",
+      "empty terminal recovery should keep pending identity until recovery finishes",
+    );
+    assert(!cleared, "empty terminal recovery should not clear pending synchronously");
+  });
+
+  await run("error recovery exhaustion should not start a second terminal recovery", async function () {
+    var loaded = loadChatPage();
+    var pending = {
+      conversationId: "tb_conv_error_exhausted",
+      baselineCount: 0,
+      query: "你是谁",
+      clientTurnId: "client_error_exhausted_1",
+      turnId: "turn_error_exhausted_1",
+      createdAt: Date.now(),
+    };
+    var recoveryCalls = [];
+    var cleared = false;
+
+    loaded.page._pendingTurn = pending;
+    loaded.page._recoveringTurn = false;
+    loaded.page._streamId = "a-error-empty";
+    loaded.page._find = function (id) {
+      return id === "a-error-empty" ? 0 : -1;
+    };
+    loaded.page._buildWorkflowState = function () {
+      return {};
+    };
+    loaded.page._setWorkflowState = function () {};
+    loaded.page._buildAiMessageUpdates = function () {
+      return {
+        state: {
+          renderableContent: "",
+          blocks: [],
+          mcqCards: [],
+        },
+        updates: {},
+      };
+    };
+    loaded.page._recoverTurnFromHistory = function (options) {
+      recoveryCalls.push(options || {});
+      return Promise.resolve(false);
+    };
+    loaded.page._clearPendingTurn = function () {
+      cleared = true;
+      this._pendingTurn = null;
+    };
+    loaded.page.setData({
+      messages: [{ id: "a-error-empty", role: "ai", content: "", streaming: true }],
+      isStreaming: true,
+      canStopStream: true,
+    });
+
+    loaded.page._onError("连接失败");
+    await flushPromises();
+
+    assert(
+      recoveryCalls.length === 1,
+      "once error recovery is exhausted, terminal cleanup should not start a second history recovery",
+    );
+    assert(cleared, "exhausted error recovery should clear pending so the composer unlocks");
+    assert(loaded.page.data.isStreaming === false, "exhausted error recovery should stop streaming UI");
   });
 
   if (fail) {
