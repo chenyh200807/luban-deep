@@ -164,7 +164,7 @@ assert(
 );
 assert(
   chatJs.indexOf("返回佑森首页") >= 0 &&
-    chatJs.indexOf("额度中心") >= 0 &&
+    chatJs.indexOf("权益中心") >= 0 &&
     chatJs.indexOf("个人中心") >= 0,
   "more menu should preserve the previous secondary destinations",
 );

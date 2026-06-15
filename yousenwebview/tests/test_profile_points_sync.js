@@ -65,6 +65,9 @@ function loadProfilePage(overrides) {
       getUsage: function () {
         return Promise.resolve({ windows: [] });
       },
+      getLedger: function () {
+        return Promise.resolve({ entries: [] });
+      },
       updateSettings: function () {
         return Promise.resolve({});
       },
@@ -202,6 +205,11 @@ function loadProfilePage(overrides) {
               rows: [{ key: "weekly", remaining_percent: 88 }],
             });
           },
+          getLedger: function () {
+            return Promise.resolve({
+              entries: [{ delta: 100 }],
+            });
+          },
         },
       });
 
@@ -211,8 +219,10 @@ function loadProfilePage(overrides) {
       await flushPromises();
 
       assert(
-        loaded.page.data.usageRows.length === 1,
-        "profile should render usage quota rows",
+        loaded.page.data.usageRows.some(function (row) {
+          return row.key === "wallet_percent";
+        }),
+        "profile should render wallet usage rows",
       );
       assert(
         loaded.page.data.usagePrimaryLabel === "剩余 88%",
@@ -224,18 +234,17 @@ function loadProfilePage(overrides) {
   await run(
     "profile should degrade usage quota without touching legacy points APIs",
     async function () {
-      var pointsCalls = 0;
+      var legacyPointsCalls = 0;
       var loaded = loadProfilePage({
         api: {
           getUserInfo: function () {
             return Promise.resolve({ username: "chenyh2008" });
           },
           getWallet: function () {
-            pointsCalls += 1;
             return Promise.resolve({ balance: 144 });
           },
           getPoints: function () {
-            pointsCalls += 1;
+            legacyPointsCalls += 1;
             return Promise.resolve({ points: 52 });
           },
           getUsage: function () {
@@ -250,12 +259,12 @@ function loadProfilePage(overrides) {
       await flushPromises();
 
       assert(
-        pointsCalls === 0,
+        legacyPointsCalls === 0,
         "profile should not read legacy point balances",
       );
       assert(
-        loaded.page.data.usageRows.length === 0,
-        "profile should clear usage rows on usage failure",
+        loaded.page.data.usageRows.length === 1,
+        "profile should still render wallet usage when usage fallback fails",
       );
       assert(
         loaded.page.data.usageLoading === false,

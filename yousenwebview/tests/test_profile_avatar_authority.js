@@ -68,6 +68,9 @@ function loadProfilePage(overrides) {
       getUsage: function () {
         return Promise.resolve({ windows: [] });
       },
+      getLedger: function () {
+        return Promise.resolve({ entries: [] });
+      },
       updateSettings: function (patch) {
         updateSettingsCalls.push(patch);
         return Promise.resolve({});

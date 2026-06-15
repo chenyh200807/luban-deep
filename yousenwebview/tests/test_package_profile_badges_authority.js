@@ -51,6 +51,9 @@ function loadProfilePage(apiOverrides) {
       getUsage: function () {
         return Promise.resolve({ windows: [] });
       },
+      getLedger: function () {
+        return Promise.resolve({ entries: [] });
+      },
       getBadges: function () {
         getBadgesCalls += 1;
         return Promise.resolve({
