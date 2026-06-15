@@ -161,9 +161,9 @@ DeepSeek 真实 LLM,5 次 trial 压方差(排除 21/325 parse_error 行),并发�
 
 **Decision**:`L1_SHADOW_AB_GO` for qa/operator live shadow performance only. It proves B arm can run through real entry without significant p95 degradation and without canonical/official writes. It does **not** authorize broad production default, published registry, official scoring, or canonical learner truth.
 
-## 12. L2 learning-efficiency A/B runner(2026-06-15, v3 prereg landed-local)
+## 12. L2 learning-efficiency A/B runner(2026-06-15, v3 formal live-readback GO)
 
-L2 的目标不是再测 KnowQL 单点,而是测 Nexus/KnowQL/GBrain 一体化闭环对复测 delta 的影响。旧 smoke 已证明链路能跑通;当前前置已从“B2 接线是否读回”推进到“固定 prereg 指标后扩大样本与 loops 跑正式 L2”。不能再把 one-loop smoke 或 B3 microbenchmark 写成学习效率结论。
+L2 的目标不是再测 KnowQL 单点,而是测 Nexus/KnowQL/GBrain 一体化闭环对复测 delta 的影响。旧 smoke 已证明链路能跑通;当前已完成固定 prereg 指标后的正式 live run。不能把 B3 microbenchmark 写成学习效率结论,也不能把本次 qa/operator scripted retest 直接等同真实学员 cohort A/B。
 
 - `scripts/run_luban_knowql_nexus_l2_learning_ab.py`
 - `tests/scripts/test_luban_knowql_nexus_l2_learning_ab.py`
@@ -199,6 +199,7 @@ v2 live smoke artifacts:
 | `knowql_nexus_l2_learning_ab_20260615T113916Z` | NO-GO / not evaluable | A0 succeeded 2/2, but explicit `grading_engine_case_rubric_v1` caused B1/B2 start failures. A0 already returned V1 score-first, so current test2 cannot isolate pure RAG/ref baseline. |
 | `knowql_nexus_l2_learning_ab_20260615T114120Z` | NO-GO / B2 closure missing | A0/B1/B2 true-entry WS all succeeded 2/2; B3 5/5; canonical/official/unsafe writes 0; TTFT/streaming/score-first captured. B2 did not emit PGO shadow / KnowQL runtime consumption / PGO-G3 preview, so Nexus+KnowQL+GBrain loop was not exercised live. |
 | `knowql_nexus_l2_learning_ab_20260615T122930Z` | NO-GO / safety GO / effect neutral | B2 PGO shadow effective 2/2, KnowQL runtime consumed 2/2, PGO-G3 preview 2/2, NBA intervention 1/1, canonical/official/unsafe writes 0. This closes the B2 wiring/readback concern, but it is one-loop smoke and showed no positive delta, so it is not L2 learning-efficiency evidence. |
+| `knowql_nexus_l2_learning_ab_20260615T125634Z` | **GO / safety GO / effect positive** | Formal prereg run: 5 fixed PGO-backed scenarios, loops 10, min_loops 10, 60 WS learning rows, B3 30 rows, sample_manifest_hash `7db591e1f0bd499b832b4fd3feeef77b7f9d4abbd13d19c811c15b4ea544304a`. B2 PGO/KnowQL/G3 readback 20/20, NBA intervention 10/10, canonical/official/unsafe writes 0. Primary effect `b2_outcome_miss_reduction_lift_vs_b1=5.0` met threshold 1.0; B2 retest delta lift vs B1/A0 `+0.746112`; B2 p95 latency +49.752505% vs B1 and payload +10.001534%, both within guardrail; B3 p95 11.117 ms. |
 
 | Metric | A0 | B1 | B2 | B3 |
 |---|---:|---:|---:|---:|
@@ -212,7 +213,7 @@ v2 live smoke artifacts:
 | B3 query p95 | n/a | n/a | n/a | 10.853 ms |
 | canonical / official / unsafe writes | 0 | 0 | 0 | 0 |
 
-Old smoke decision:`L2_LEARNING_AB_GO` at smoke scope, because safety passed and B1 reduced PGO miss count by +1 vs B2 under the old arm mapping. Current reliable interpretation: B2 true-entry PGO/KnowQL/G3 readback has been observed safely, but one-loop smoke produced neutral effect. Therefore the correct next move is formal preregistered L2 with larger samples/loops, not more B2 wiring work and not production authorization.
+Old smoke decision:`L2_LEARNING_AB_GO` at smoke scope, because safety passed and B1 reduced PGO miss count by +1 vs B2 under the old arm mapping. Current reliable interpretation: formal preregistered L2 qa/operator run is positive for the integrated Nexus/KnowQL/GBrain/NBA loop under scripted same-session retest conditions. It authorizes the next evaluation stage, not broad production default, official score writes, published registry, or canonical learner truth.
 
 硬边界:
 
@@ -221,9 +222,9 @@ Old smoke decision:`L2_LEARNING_AB_GO` at smoke scope, because safety passed and
 - `summary.json` 必须分开 `safety_status` 和 `effect_status`;安全 NO-GO 时效果不可评价。
 - 任何 canonical learner truth、official score、production write、A0 PGO contamination、B1 PGO contamination 都是 NO-GO。
 
-正式 L2 执行门:
+后续执行门:
 
-1. 先使用 v3 runner 固定 prereg manifest、主效应、guardrail、缺失值/安全 NO-GO 规则。
-2. 然后在 test2 真实 `/api/v1/ws` 跑 `loops>=10`, `min_loops>=10`, `b3_iterations>=30`, `connection_mode=per-turn`, `inter_turn_delay_seconds>=8`。
-3. 通过标准:B2 safety GO;B2 PGO/KnowQL/G3/NBA 读回全满足;canonical truth writes=0;official score writes=0;unsafe writes=0;B3 p95 低于 prereg guardrail;B2 p95 latency/payload 相对 B1 不越线;主效应 `b2_outcome_miss_reduction_lift_vs_b1` 达阈值。
-4. 若正式 L2 仍 neutral/negative,先诊断 deterministic query 质量、ground enforcement 严格度、NBA actionability、retest 题同构性或 learner truth promotion 门槛;不得把 B3 latency 或 self-reported server score 写成学习效率提升。
+1. 保持 `canonical_truth_written=false` / `official_score_written=false`,把本次 GO 只升级为 L2 qa/operator shadow evidence。
+2. 下一阶段若要走真实 learner cohort A/B,必须重新 prereg:真实学生或授权 QA cohort、随机化、同构复测题、独立 outcome gold、no-peeking 分析、最小样本量、stop condition、隐私与写权边界。
+3. 若要升级 learner truth promotion,必须证明同一采分点错因经过复测验证后稳定改善;promotion 仍走单独 canonical learner truth 授权包。
+4. compiler feedback loop 可消费本次 common-miss work orders,但只能产出下一版 artifact candidate/review work order,不得自动 publish。
