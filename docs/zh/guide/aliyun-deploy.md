@@ -297,6 +297,34 @@ ssh Aliyun-ECS-2 'test ! -e /root/deeptutor/artifacts && echo remote_artifacts_a
   - 最慢，但最完整
   - 适合依赖、Dockerfile、前端构建相关改动
 
+### 2026-06-15 快速发布性能教训：源码同步快，不代表镜像重建快
+
+本次只改 Python 后端逻辑（Nexus 案例题输出与评分 ctx），第二次同步日志已经显示
+`Number of files transferred: 0`，说明源码没有重复全量上传；真正耗时来自
+`redeploy_aliyun_fast.sh` 仍会执行 `docker compose ... build deeptutor`。只要 Docker
+缓存没有完整命中，`python-base` / `production` 层就可能重新下载 Debian、Rust、Python
+runtime.lock 依赖，看起来像“又全部重新下”。
+
+现有结论：
+
+- `sync_to_aliyun.sh` 负责代码面，通常很快；不要把 `rsync` 日志里的文件列表误读成全量上传。
+- `redeploy_aliyun_fast.sh` 是“受控重建 + 重启”的快路径，不是“只替换 Python 文件”的热更新路径。
+- SSH 断开（`Connection reset by peer` / `Broken pipe`）不等于远端 build 停止。必须先只读检查
+  `docker compose --progress plain ... build`、`buildkit/executor`、容器 SHA 和 `/root/deeptutor/.env`
+  SHA，再决定是否重跑。
+- 多个本地窗口/agent 同时同步或部署同一台阿里云，会共享 Docker build cache、镜像 tag、容器名
+  `deeptutor`，可能互相拖慢或最后由后完成的一路覆盖前一路。发布前先查远端是否已有 build/deploy
+  进程；发现已有进程时只轮询等待，不要启动第二个 deploy。
+
+后续优化方向（需要单独实现成正式脚本和 runbook，不得临时手工热补丁）：
+
+- 增加一个“纯 Python 源码轻量发布”路径：仅当 `requirements*`、`Dockerfile`、Web/Node 构建面、
+  runtime assets 均未变化时，执行 `rsync` + release lineage 校验 + 容器内受控代码刷新/进程重启。
+- 轻量路径必须保留 `/root/deeptutor` 代码快照、runtime 备份、host/container SHA 对齐、公网
+  `/healthz` `/readyz`、observability 验收；不能绕开 release truth。
+- 增加远端发布锁：在 `/root/deeptutor/data/ops/` 下记录当前 deploy pid、目标 SHA、开始时间和
+  owner。锁存在且进程仍活跃时，新发布默认拒绝或进入只读等待模式。
+
 ### 代码回滚
 
 如果这次发布需要回滚代码，而不是只恢复 `data/user` 运行态数据：
