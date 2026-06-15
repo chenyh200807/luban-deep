@@ -59,6 +59,8 @@ def test_null_score_pgo_points_use_official_total_coverage_not_score_sum() -> No
             "official_total_score": 10.0,
             "score_authority": "official_total_x_verdict_coverage",
             "per_point_score_authority": "pending_calibration_not_official",
+            "authority_source": "official_answer_verbatim",
+            "span_hash": "sha256:sp_a",
         },
         {
             "point_id": "sp_b",
@@ -70,6 +72,8 @@ def test_null_score_pgo_points_use_official_total_coverage_not_score_sum() -> No
             "official_total_score": 10.0,
             "score_authority": "official_total_x_verdict_coverage",
             "per_point_score_authority": "pending_calibration_not_official",
+            "authority_source": "official_answer_verbatim",
+            "span_hash": "sha256:sp_b",
         },
     ]
     judge = _judge({
@@ -518,6 +522,8 @@ def test_pgo_coverage_grading_preserves_subquestion_number_for_rendering() -> No
             "required_terms": [],
             "score_authority": "official_total_x_verdict_coverage",
             "official_total_score": 2.0,
+            "authority_source": "official_answer_verbatim",
+            "span_hash": "sha256:P1",
         },
         {
             "point_id": "P2",
@@ -528,6 +534,8 @@ def test_pgo_coverage_grading_preserves_subquestion_number_for_rendering() -> No
             "required_terms": [],
             "score_authority": "official_total_x_verdict_coverage",
             "official_total_score": 2.0,
+            "authority_source": "official_answer_verbatim",
+            "span_hash": "sha256:P2",
         },
     ]
     event = G.grade_with_rubric(

@@ -61,8 +61,10 @@ D1 query executor 不得变第二套判分 policy engine;D2 不得新增第三�
 当前已从 Phase A/B 的离线与本地 shadow 推进到 Phase C 的窄版 `retrieve_rubric` runtime-consumed + test2 true-entry live-readback。下一步不再是"再写大计划",而是按 `IMPLEMENTATION_LEDGER.md` 推进:
 
 1. 保持 L1 shadow 默认在 qa/operator cohort,禁止 broad production default。
-2. 在 #21 retest delta 完成后做 L2 learning-efficiency A/B:PGO weakness -> NextBestAction -> retest delta。
+2. 使用 `scripts/run_luban_knowql_nexus_l2_learning_ab.py` 做 L2 v2 多臂实验:A0 baseline / B1 Nexus V1 without KnowQL / B2 Nexus V1 + KnowQL/PGO + Grading-to-Brain + NBA / B3 KnowQL microbenchmark。
 3. L2 前后仍必须 `canonical_truth_written=false` / `official_score_written=false`;canonical learner truth、published registry、production default 另走授权包。
+4. Ground gate 是评分硬门槛:评分点必须有 `authority_source/span_hash`;无来源点只能解释,不能给分/扣分,也不能进入 PGO GBrain writeback。
+5. Learner truth promotion 只能由同一采分点错因的复测验证触发候选;正式 canonical learner truth 仍需单独授权。
 
 ## 7. 进展(2026-06-13:Phase B 上线 + G2 接真实数据流)
 
@@ -158,3 +160,65 @@ DeepSeek 真实 LLM,5 次 trial 压方差(排除 21/325 parse_error 行),并发�
 | official score writes | 0 | 0 |
 
 **Decision**:`L1_SHADOW_AB_GO` for qa/operator live shadow performance only. It proves B arm can run through real entry without significant p95 degradation and without canonical/official writes. It does **not** authorize broad production default, published registry, official scoring, or canonical learner truth.
+
+## 12. L2 learning-efficiency A/B runner(2026-06-15, v2 landed-local)
+
+L2 的目标不是再测 KnowQL 单点,而是测 Nexus/KnowQL/GBrain 一体化闭环对复测 delta 的影响。旧 smoke 已证明链路能跑通,但 arm 定义已按当前目标升级为 v2;v2 真实入口 live run 仍 pending。
+
+- `scripts/run_luban_knowql_nexus_l2_learning_ab.py`
+- `tests/scripts/test_luban_knowql_nexus_l2_learning_ab.py`
+
+四臂定义:
+
+| Arm | 定义 | 指标用途 |
+|---|---|---|
+| A0 | 原 RAG/ref baseline `/api/v1/ws` deep_question grading path | 学习效果 baseline |
+| B1 | Nexus V1 case-rubric score-first shape,不带 KnowQL/PGO/GBrain | shape isolation:只测 Nexus V1 基础收益与成本 |
+| B2 | Nexus V1 + deterministic KnowQL/PGO + Grading-to-Brain preview + NBA targeted retest | 一体化闭环主实验 |
+| B3 | 直接调用 `retrieve_rubric` | 仅 query latency/payload,不参与学习效果 |
+
+v2 runner 新增观测:
+
+- TTFT、first result latency、streaming observed rate、payload bytes、总耗时。
+- `sealed_block_status`:当前真实 `/api/v1/ws` 没有独立 sealed score block 事件,所以如实记录 `not_exercised`,不伪造 pass。
+- `grading_shape.score_first`:先暴露分数、命中/漏点;解释、口诀、建议先标 `same_result`,后续可异步化。
+- `learner_truth_promotion_preview`:同一采分点 initial miss -> retest resolved 才生成稳定画像候选,且 `canonical_truth_written=false`。
+- `compiler_feedback_loop`:高争议点、低置信点、教师修正、学生常漏点只生成下一版 artifact work order,不自动发布。
+
+旧 test2 smoke artifact:`artifacts/luban_grading_artifacts/knowql_nexus_l2_learning_ab_20260615T104707Z`。该 evidence 属于 v1 arm 定义(B1/B2 都带 PGO),只证明旧链路可跑通,不再作为 v2 效果结论。
+
+v2 live smoke artifacts:
+
+| Artifact | Result | Finding |
+|---|---|---|
+| `knowql_nexus_l2_learning_ab_20260615T113738Z` | NO-GO / not evaluable | Runner sent non-allowlisted `ab_arm/runtime_mode`; all WS turns failed fast; B3 5/5. |
+| `knowql_nexus_l2_learning_ab_20260615T113916Z` | NO-GO / not evaluable | A0 succeeded 2/2, but explicit `grading_engine_case_rubric_v1` caused B1/B2 start failures. A0 already returned V1 score-first, so current test2 cannot isolate pure RAG/ref baseline. |
+| `knowql_nexus_l2_learning_ab_20260615T114120Z` | NO-GO / B2 closure missing | A0/B1/B2 true-entry WS all succeeded 2/2; B3 5/5; canonical/official/unsafe writes 0; TTFT/streaming/score-first captured. B2 did not emit PGO shadow / KnowQL runtime consumption / PGO-G3 preview, so Nexus+KnowQL+GBrain loop was not exercised live. |
+
+| Metric | A0 | B1 | B2 | B3 |
+|---|---:|---:|---:|---:|
+| WS turns ok | 2/2 | 2/2 | 2/2 | n/a |
+| completed loops | 1 | 1 | 1 | n/a |
+| legacy score retest delta | 0.0 | 0.0 | 0.0 | n/a |
+| PGO miss reduction | n/a | 1.0 | 0.0 | n/a |
+| PGO shadow effective | n/a | 2/2 | 2/2 | n/a |
+| KnowQL runtime consumed | n/a | 2/2 | 2/2 | 5/5 direct |
+| G3 preview readback | n/a | 2/2 | 2/2 | n/a |
+| B3 query p95 | n/a | n/a | n/a | 10.853 ms |
+| canonical / official / unsafe writes | 0 | 0 | 0 | 0 |
+
+Old smoke decision:`L2_LEARNING_AB_GO` at smoke scope, because safety passed and B1 reduced PGO miss count by +1 vs B2 under the old arm mapping. Current v2 live decision:`L2_LEARNING_AB_NO_GO` because B2 did not consume PGO/KnowQL/G3 on test2. This is a deployment/config/readback gap, not evidence that the integrated learning loop is ineffective.
+
+硬边界:
+
+- B3 不能参与学习效果结论。
+- B1 不得出现 PGO/KnowQL/G3;B2 必须出现 PGO/KnowQL/G3 才能评价闭环。
+- `summary.json` 必须分开 `safety_status` 和 `effect_status`;安全 NO-GO 时效果不可评价。
+- 任何 canonical learner truth、official score、production write、A0 PGO contamination、B1 PGO contamination 都是 NO-GO。
+
+下一步:
+
+1. 先让 test2 真实消费 B2 PGO/KnowQL/G3:确认远端部署包含 `_maybe_attach_pgo_shadow`, env `LUBAN_CASE_RUBRIC_PGO_SHADOW_ENABLED=true`, cohort/user identity 命中,且 `grading_engine_pgo_shadow` 仍在 `/api/v1/ws` config allowlist。
+2. 再重跑 v2 true-entry paced smoke:A0/B1/B2/B3,确认 TTFT、streaming、sealed block、score-first、B2 PGO shadow/KnowQL/G3、canonical/official write=0。
+3. 之后才把 L2 从 smoke 扩到预注册样本量:至少多题、多 learner、多轮,并分层看 score delta、PGO miss reduction、二次答题正确率、完成时间和 B2 vs B1 增量。
+4. 若 B2 对 A0/B1 的 retest delta 有稳定 lift,再讨论真实 learner cohort A/B;若没有 lift,先诊断 deterministic query 质量、ground enforcement 严格度、NBA actionability、retest 题同构性或 learner truth promotion 门槛。

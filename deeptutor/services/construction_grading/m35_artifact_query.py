@@ -108,7 +108,7 @@ def retrieve_rubric(
             "reason": "artifact_missing",
         }
 
-    source_ref_count = sum(1 for record in records if record.get("official_slice"))
+    source_ref_count = sum(1 for record in records if _record_ground_ok(record))
     if query.citation_required and source_ref_count == 0:
         return {
             "found": True,
@@ -186,6 +186,7 @@ def _load_pgo_supply(slot_dir: Path) -> dict[str, Any]:
             blockers.append("official_score_allowed_record_present")
         if record.get("canonical_write_allowed") is True:
             blockers.append("canonical_write_allowed_record_present")
+        blockers.extend(_record_ground_blockers(record))
 
     return {
         "status": "blocked" if blockers else "ok",
@@ -210,12 +211,19 @@ def _project_pgo_record(
         "exact_term_required": bool(record.get("exact_term_required")),
         "source_schema": record.get("source_schema"),
         "source_qid": record.get("qid"),
+        "authority_source": record.get("authority_source"),
+        "span_hash": record.get("span_hash"),
         "official_score_allowed": record.get("official_score_allowed") is True,
         "canonical_write_allowed": record.get("canonical_write_allowed") is True,
+        "ground": {
+            "score_eligible": _record_ground_ok(record),
+            "official_answer_backed": bool(record.get("official_slice")),
+            "authority_source": record.get("authority_source"),
+            "span_hash": record.get("span_hash"),
+        },
     }
     if not include_teacher_fields:
         projection["teacher_only_fields_redacted"] = True
-        projection["ground"] = {"official_answer_backed": bool(record.get("official_slice"))}
         return projection
 
     projection.update(
@@ -230,6 +238,28 @@ def _project_pgo_record(
         }
     )
     return projection
+
+
+def _record_ground_ok(record: dict[str, Any]) -> bool:
+    return bool(
+        str(record.get("official_slice") or "").strip()
+        and str(record.get("authority_source") or "").strip()
+        and str(record.get("span_hash") or "").strip()
+    )
+
+
+def _record_ground_blockers(record: dict[str, Any]) -> list[str]:
+    qid = str(record.get("qid") or "").strip()
+    point_id = str(record.get("point_id") or "").strip()
+    suffix = f"{qid}:{point_id}"
+    blockers: list[str] = []
+    if not str(record.get("official_slice") or "").strip():
+        blockers.append(f"record_missing_official_slice:{suffix}")
+    if not str(record.get("authority_source") or "").strip():
+        blockers.append(f"record_missing_authority_source:{suffix}")
+    if not str(record.get("span_hash") or "").strip():
+        blockers.append(f"record_missing_span_hash:{suffix}")
+    return blockers
 
 
 def _as_float(value: Any) -> float:

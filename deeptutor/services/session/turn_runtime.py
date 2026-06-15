@@ -5247,6 +5247,11 @@ class TurnRuntimeManager:
                         "chat_mode_explicit": bool(payload.get("_chat_mode_explicit", False)),
                         "turn_id": turn_id,
                         "authenticated_user_id": str(payload.get("_authenticated_user_id") or "").strip(),
+                        **(
+                            {"auth_identity": dict(payload.get("_authenticated_user_identity"))}
+                            if isinstance(payload.get("_authenticated_user_identity"), dict)
+                            else {}
+                        ),
                         **get_release_lineage_metadata(),
                         "bot_id": str(request_config.get("bot_id", "") or "").strip(),
                         "billing_context": billing_context or {},

@@ -1424,6 +1424,7 @@ async def test_start_turn_passes_pgo_shadow_flag_to_config_overrides(
 
         async def handle(self, context):
             captured["config_overrides"] = dict(context.config_overrides)
+            captured["metadata"] = dict(context.metadata)
             yield StreamEvent(
                 type=StreamEventType.RESULT,
                 source="deep_question",
@@ -1452,6 +1453,10 @@ async def test_start_turn_passes_pgo_shadow_flag_to_config_overrides(
             "knowledge_bases": [],
             "attachments": [],
             "language": "zh",
+            "_authenticated_user_identity": {
+                "user_id": "4a9b2f0c-0000-4000-9000-000000000001",
+                "auth_username": "qa_pgo_l2_runtime",
+            },
             "config": {
                 "grading_engine_pgo_shadow": True,
             },
@@ -1463,6 +1468,8 @@ async def test_start_turn_passes_pgo_shadow_flag_to_config_overrides(
             break
 
     assert captured["config_overrides"]["grading_engine_pgo_shadow"] is True
+    assert "auth_identity" not in captured["config_overrides"]
+    assert captured["metadata"]["auth_identity"]["auth_username"] == "qa_pgo_l2_runtime"
 
 
 @pytest.mark.asyncio

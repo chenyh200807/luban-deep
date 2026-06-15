@@ -181,6 +181,11 @@ owner-scoped 用户资产，不是 learner truth。生产持久化表为
   writeback。`/api/v1/auth/reset-password` 成功后只能更新 external auth 密码、消费验证码并
   失效旧 auth session，不得写 `learner_summaries`、`learner_memory_events`、profile、
   progress、goals、heartbeat 或 assessment / turn state，也不得返回登录 token。
+- `MemberConsoleService.get_auth_identity_projection()` 只允许暴露服务端可信的账户身份只读投影
+  （如 `auth_username`、`external_auth_user_id`、alias ids），用于 `/api/v1/ws` 认证绑定、
+  BI 对账或受控 shadow cohort gate。它不是 learner-state read/write API，不得写
+  `learner_summaries`、`learner_memory_events`、profile、progress、goals、heartbeat、
+  assessment score 或 compiled learner truth，也不得被前端 config 覆盖。
 - Assessment TestSet session durability belongs to the assessment authority. In production,
   if Supabase `assessment_sessions` is required but not configured, member-console
   initialization and non-assessment auth/admin paths may still load, but assessment

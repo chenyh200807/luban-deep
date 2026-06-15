@@ -172,6 +172,30 @@ async def test_case_rubric_v1_grades_for_qa_flag(monkeypatch: pytest.MonkeyPatch
 
 
 @pytest.mark.asyncio
+async def test_case_rubric_v1_result_shape_is_score_first_then_explanation(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
+    monkeypatch.setattr(G, "load_rubric", lambda qid: _RUBRIC if qid == "case-9006" else [])
+
+    async def _fake_batch_async(points, answer, complete_fn, api_key, *, model="deepseek-chat"):
+        return {"P1": {"status": G.HIT}, "P2": {"status": G.MISS}, "P3": {"status": G.MISS}}
+
+    monkeypatch.setattr(G, "batch_judge_async", _fake_batch_async)
+
+    result = await _run_case(monkeypatch, _case_context(rubric_v1=True))
+
+    shape = result["grading_shape"]
+    assert shape["shape_version"] == "score_first.v1"
+    assert shape["authority"] == "luban_case_rubric_v1"
+    assert shape["block_order"] == ["score_first", "explanation", "advice"]
+    assert shape["score_first"]["sealed"] is True
+    assert shape["score_first"]["score"] == {"awarded_score": 1.0, "max_score": 3.0, "score_ratio": 0.3333}
+    assert [point["point_id"] for point in shape["score_first"]["point_verdicts"]] == ["P1", "P2", "P3"]
+    assert "response" not in shape["score_first"]
+    assert shape["explanation"]["async_status"] == "same_result"
+    assert shape["advice"]["async_status"] == "same_result"
+
+
+@pytest.mark.asyncio
 async def test_case_rubric_v1_all_users_default_on(monkeypatch: pytest.MonkeyPatch) -> None:
     # full rollout (not gray): even a non-qa student, with NO per-turn flag, gets V1 by default.
     monkeypatch.setenv("DEEPSEEK_API_KEY", "k")
@@ -389,8 +413,22 @@ def _pgo_contract() -> dict[str, Any]:
         "official_score_allowed": False,
         "canonical_write_allowed": False,
         "scoring_points": [
-            {"point_id": "p1", "sub_type": "free_text_point", "official_slice": "点1", "score": None},
-            {"point_id": "p2", "sub_type": "free_text_point", "official_slice": "点2", "score": None},
+            {
+                "point_id": "p1",
+                "sub_type": "free_text_point",
+                "official_slice": "点1",
+                "authority_source": "official_answer_verbatim",
+                "span_hash": "sha256:p1",
+                "score": None,
+            },
+            {
+                "point_id": "p2",
+                "sub_type": "free_text_point",
+                "official_slice": "点2",
+                "authority_source": "official_answer_verbatim",
+                "span_hash": "sha256:p2",
+                "score": None,
+            },
         ],
         "supporting_citations": [],
     }
@@ -480,6 +518,35 @@ def test_pgo_shadow_cohort_can_use_server_profile_auth_username(
 
     dq._maybe_attach_pgo_shadow(
         context=_pgo_ctx(flag=True, user_id="auth_live_ab_user"),
+        graded_context={
+            "question_id": "case-pgo",
+            "pgo_grading_contract": _pgo_contract(),
+            "pgo_point_verdicts": {"p1": "hit", "p2": "partial"},
+        },
+        result_payload=payload,
+    )
+
+    assert payload["luban_case_rubric_pgo_shadow"]["shadow_status"] == "ok"
+
+
+def test_pgo_shadow_cohort_can_use_server_auth_identity_projection(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from deeptutor.capabilities import deep_question as dq
+
+    monkeypatch.setenv("LUBAN_CASE_RUBRIC_PGO_SHADOW_ENABLED", "true")
+    context = _pgo_ctx(
+        flag=True,
+        user_id="4a9b2f0c-0000-4000-9000-000000000001",
+    )
+    context.metadata["auth_identity"] = {
+        "user_id": "4a9b2f0c-0000-4000-9000-000000000001",
+        "auth_username": "qa_pgo_l2_live",
+    }
+    payload = {"construction_grading_result": {"score_awarded": 7.0, "max_score": 10.0}}
+
+    dq._maybe_attach_pgo_shadow(
+        context=context,
         graded_context={
             "question_id": "case-pgo",
             "pgo_grading_contract": _pgo_contract(),

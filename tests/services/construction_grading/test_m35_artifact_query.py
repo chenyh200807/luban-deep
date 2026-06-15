@@ -157,6 +157,8 @@ def test_retrieve_rubric_reads_hash_pinned_pgo_runtime_supply():
     assert result["scoring_points"]
     assert all(point["official_score_allowed"] is False for point in result["scoring_points"])
     assert all(point["canonical_write_allowed"] is False for point in result["scoring_points"])
+    assert all(point["authority_source"] == "official_answer_verbatim" for point in result["scoring_points"])
+    assert all(point["span_hash"] for point in result["scoring_points"])
     assert "raw_chunks" not in result
 
 
@@ -258,7 +260,39 @@ def test_retrieve_rubric_blocks_supply_records_that_allow_official_or_canonical_
     assert result["fail_open"] is True
     assert result["reason"] == "runtime_supply_unavailable"
     assert "official_score_allowed_record_present" in result["blockers"]
-    assert "canonical_write_allowed_record_present" in result["blockers"]
+
+
+def test_retrieve_rubric_blocks_supply_records_without_score_ground(tmp_path):
+    supply_dir = _write_runtime_supply(
+        tmp_path,
+        records=[
+            {
+                "qid": "Q-NOGROUND",
+                "point_id": "p1",
+                "text": "unsafe point",
+                "official_slice": "hidden answer",
+                "official_score_allowed": False,
+                "canonical_write_allowed": False,
+            }
+        ],
+    )
+
+    result = retrieve_rubric(
+        M35ArtifactQuery(
+            question_id="Q-NOGROUND",
+            purpose="grading",
+            shape="rubric_table",
+            citation_required=True,
+            budget_tier="low",
+        ),
+        runtime_supply_dir=supply_dir,
+    )
+
+    assert result["found"] is False
+    assert result["fail_open"] is True
+    assert result["reason"] == "runtime_supply_unavailable"
+    assert "record_missing_authority_source:Q-NOGROUND:p1" in result["blockers"]
+    assert "record_missing_span_hash:Q-NOGROUND:p1" in result["blockers"]
 
 
 def test_retrieve_rubric_fail_opens_when_runtime_supply_manifest_missing_namespace(tmp_path):

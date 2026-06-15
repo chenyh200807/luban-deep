@@ -236,6 +236,8 @@ def record_pgo_shadow_to_brain(
     runtime_points = shadow_payload.get("runtime_points")
     if not isinstance(point_verdicts, dict) or not isinstance(runtime_points, list):
         return {}
+    if not _pgo_shadow_score_grounded(shadow_payload):
+        return {}
     scoring_points = _pgo_scoring_points(runtime_points)
     if not scoring_points:
         return {}
@@ -326,6 +328,29 @@ def record_pgo_shadow_to_brain(
     if isinstance(next_best_action, dict) and next_best_action:
         meta["pgo_grading_to_brain"]["next_best_action"] = next_best_action
     return meta
+
+
+def _pgo_shadow_score_grounded(shadow_payload: dict[str, Any]) -> bool:
+    score = shadow_payload.get("score") if isinstance(shadow_payload.get("score"), dict) else {}
+    if score.get("blockers"):
+        return False
+    runtime_points = shadow_payload.get("runtime_points")
+    if not isinstance(runtime_points, list) or not runtime_points:
+        return False
+    for point in runtime_points:
+        if not isinstance(point, dict):
+            return False
+        if point.get("score_bearing") is not True:
+            return False
+        if point.get("explanation_only") is True:
+            return False
+        if str(point.get("ground_status") or "").strip() != "ok":
+            return False
+        if not str(point.get("authority_source") or "").strip():
+            return False
+        if not str(point.get("span_hash") or "").strip():
+            return False
+    return True
 
 
 def record_case_grading_to_brain(

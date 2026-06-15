@@ -238,6 +238,45 @@ def _grade_with_pgo_coverage(
     answer = str(student_answer or "")
     official_total = float(rubric_points[0].get("official_total_score") or 0.0)
     display_max = official_total / len(rubric_points) if rubric_points else 0.0
+    ground_contract = {
+        "official_total_score": official_total,
+        "scoring_points": [
+            {
+                "point_id": point.get("point_id"),
+                "official_slice": point.get("official_slice") or point.get("text") or "",
+                "authority_source": point.get("authority_source") or "",
+                "span_hash": point.get("span_hash") or "",
+            }
+            for point in rubric_points
+            if isinstance(point, dict)
+        ],
+    }
+    try:
+        from deeptutor.services.construction_grading.per_question_grading_judge import (
+            ground_gate_contract_for_scoring,
+        )
+
+        ground = ground_gate_contract_for_scoring(ground_contract)
+    except Exception:  # noqa: BLE001 - score gate must fail closed.
+        ground = {"ok": False, "blockers": ["ground_gate_unavailable"], "runtime_points": []}
+    if not ground.get("ok"):
+        return {
+            "event_type": "case_grading_completed",
+            "student_id": student_id,
+            "question_id": qid,
+            "scoring_points": list(ground.get("runtime_points") or []),
+            "awarded_score": 0.0,
+            "max_score": round(official_total, 2),
+            "coverage": 0.0,
+            "score_authority": _PGO_COVERAGE_SCORE_AUTHORITY,
+            "high_risk_review": True,
+            "grading_source": "rubric_scored_pgo",
+            "answer_key_authority": "exam_reference_answer",
+            "llm_adjudicated": True,
+            "official_score_allowed": False,
+            "ground_status": "blocked",
+            "ground_blockers": list(ground.get("blockers") or []),
+        }
     points_out: list[dict[str, Any]] = []
     credited = 0.0
     low_conf = 0
@@ -362,6 +401,8 @@ def _attach_shadow_point_provenance(
         "question_index",
         "source_qid",
         "source_status",
+        "authority_source",
+        "span_hash",
         "knowledge_point_refs",
         "negative_evidence",
         "list_rule",

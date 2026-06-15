@@ -47,12 +47,22 @@ def _shadow_payload() -> dict[str, object]:
             {
                 "point_id": "P1",
                 "official_slice": "施工总进度计划表",
+                "authority_source": "official_answer_verbatim",
+                "span_hash": "sha256:P1",
                 "sub_type": "free_text_point",
+                "score_bearing": True,
+                "explanation_only": False,
+                "ground_status": "ok",
             },
             {
                 "point_id": "P2",
                 "official_slice": "开竣工日期及工期一览表",
+                "authority_source": "official_answer_verbatim",
+                "span_hash": "sha256:P2",
                 "sub_type": "free_text_point",
+                "score_bearing": True,
+                "explanation_only": False,
+                "ground_status": "ok",
             },
         ],
         "point_verdicts": {"P1": "hit", "P2": "miss"},
@@ -113,3 +123,28 @@ def test_record_pgo_shadow_to_brain_reads_back_point_map_and_next_action() -> No
         training_intents=[point_map["items"][0]["next_action"]["intent"]],
     )
     assert actions[0]["prescription_authority"] == "training_intent"
+
+
+def test_record_pgo_shadow_to_brain_refuses_blocked_or_ungrounded_shadow() -> None:
+    service = _FakeLearnerStateService()
+    blocked = _shadow_payload()
+    blocked["score"] = {
+        "awarded_score": 0.0,
+        "max_score": 10.0,
+        "coverage": 0.0,
+        "blockers": ["scoring_point_missing_span_hash:P1"],
+    }
+    blocked["runtime_points"][0]["score_bearing"] = False
+    blocked["runtime_points"][0]["explanation_only"] = True
+
+    meta = record_pgo_shadow_to_brain(
+        learner_state_service=service,
+        user_id="qa-pgo",
+        shadow_payload=blocked,
+        source_id="turn-g3:blocked",
+        source_bot_id="construction-exam",
+        session_id="sess-g3",
+    )
+
+    assert meta == {}
+    assert service.calls == []

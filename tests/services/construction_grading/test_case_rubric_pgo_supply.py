@@ -155,6 +155,8 @@ def test_build_pgo_runtime_supply_keeps_null_scores_and_hash_pins_pointer() -> N
     assert records[0]["official_total_score"] == 10.0
     assert records[0]["score_authority"] == "official_total_x_verdict_coverage"
     assert records[0]["per_point_score_authority"] == "pending_calibration_not_official"
+    assert records[0]["authority_source"] == A_OFFICIAL
+    assert records[0]["span_hash"] == "sha256:a"
     assert records[0]["policy"] == "list"
     assert records[1]["policy"] == "exact_required"
     assert records[1]["required_terms"] == ["专项施工方案"]
@@ -271,3 +273,19 @@ def test_validate_pgo_runtime_supply_blocks_minted_or_tampered_bundle() -> None:
 
     assert "record_minted_score:sp_a" in blockers
     assert "content_hash_mismatch" in blockers
+
+
+def test_validate_pgo_runtime_supply_blocks_records_missing_ground() -> None:
+    from deeptutor.services.construction_grading.case_rubric_pgo_supply import (
+        build_pgo_runtime_supply,
+        validate_pgo_runtime_supply,
+    )
+
+    bundle = build_pgo_runtime_supply([_contract()])
+    bundle["records"][0].pop("authority_source", None)
+    bundle["records"][1]["span_hash"] = ""
+
+    blockers = validate_pgo_runtime_supply(bundle)
+
+    assert "record_missing_authority_source:Q-PGO:sp_a" in blockers
+    assert "record_missing_span_hash:Q-PGO:sp_b" in blockers

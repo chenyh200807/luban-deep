@@ -5473,6 +5473,24 @@ class MemberConsoleService:
             "expire_at": member["expire_at"],
         }
 
+    def get_auth_identity_projection(self, user_id: str) -> dict[str, Any]:
+        member = self._load_member_snapshot(user_id)["member"]
+        projection: dict[str, Any] = {
+            "user_id": str(member.get("user_id") or "").strip(),
+            "display_name": str(member.get("display_name") or "").strip(),
+            "auth_username": str(member.get("auth_username") or "").strip(),
+            "external_auth_user_id": str(member.get("external_auth_user_id") or "").strip(),
+            "external_auth_provider": str(member.get("external_auth_provider") or "").strip(),
+        }
+        aliases = [
+            str(value or "").strip()
+            for value in list(member.get("alias_user_ids") or [])
+            if str(value or "").strip()
+        ]
+        if aliases:
+            projection["alias_user_ids"] = aliases[:20]
+        return {key: value for key, value in projection.items() if value}
+
     def update_profile(self, user_id: str, patch: dict[str, Any]) -> dict[str, Any]:
         def _apply(data: dict[str, Any]) -> None:
             member = self._ensure_member(data, user_id)

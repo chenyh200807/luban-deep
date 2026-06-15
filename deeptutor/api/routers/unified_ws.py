@@ -254,6 +254,55 @@ async def _get_active_turn_id_for_session(session_id: str) -> str:
     return str(active_turn.get("id") or "").strip()
 
 
+_AUTH_IDENTITY_KEYS: tuple[str, ...] = (
+    "user_id",
+    "uid",
+    "sub",
+    "canonical_uid",
+    "provider",
+    "username",
+    "auth_username",
+    "display_name",
+    "external_auth_user_id",
+    "external_auth_provider",
+)
+
+
+def _authenticated_user_identity_projection(current_user: AuthContext) -> dict[str, Any]:
+    projection: dict[str, Any] = {
+        "user_id": str(current_user.user_id or "").strip(),
+        "provider": str(current_user.provider or "").strip(),
+    }
+
+    def _merge_value(key: str, value: Any) -> None:
+        if key == "alias_user_ids":
+            aliases = [
+                str(item or "").strip()
+                for item in list(value or [])
+                if str(item or "").strip()
+            ]
+            if aliases:
+                projection[key] = aliases[:20]
+            return
+        text = str(value or "").strip()
+        if text:
+            projection[key] = text
+
+    for key in _AUTH_IDENTITY_KEYS:
+        _merge_value(key, (current_user.claims or {}).get(key))
+
+    try:
+        from deeptutor.services.member_console import get_member_console_service
+
+        member_projection = get_member_console_service().get_auth_identity_projection(current_user.user_id)
+    except Exception:
+        member_projection = {}
+    if isinstance(member_projection, dict):
+        for key in (*_AUTH_IDENTITY_KEYS, "alias_user_ids"):
+            _merge_value(key, member_projection.get(key))
+    return {key: value for key, value in projection.items() if value}
+
+
 def _bind_authenticated_user(
     payload: dict[str, Any],
     current_user: AuthContext | None,
@@ -293,6 +342,7 @@ def _bind_authenticated_user(
     billing_context = config.get("billing_context")
     if not isinstance(billing_context, dict):
         billing_context = {}
+    config.pop("auth_identity", None)
 
     requested_user_id = str(billing_context.get("user_id") or "").strip()
     if requested_user_id and requested_user_id != current_user.user_id and not current_user.is_admin:
@@ -303,7 +353,12 @@ def _bind_authenticated_user(
         "source": str(billing_context.get("source") or "authenticated_ws").strip() or "authenticated_ws",
         "user_id": requested_user_id or current_user.user_id,
     }
-    return {**payload, "config": config, "_authenticated_user_id": current_user.user_id}
+    return {
+        **payload,
+        "config": config,
+        "_authenticated_user_id": current_user.user_id,
+        "_authenticated_user_identity": _authenticated_user_identity_projection(current_user),
+    }
 
 
 # plan §Phase 3 Step 3.2 / Batch C Gap 3 — public payload redaction at the

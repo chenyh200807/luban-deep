@@ -219,11 +219,15 @@ def test_ws_pgo_same_attempt_grading_to_brain_readback(monkeypatch, tmp_path) ->
                 {
                     "point_id": "P1",
                     "official_slice": "施工总进度计划表",
+                    "authority_source": "official_answer_verbatim",
+                    "span_hash": "sha256:P1",
                     "sub_type": "free_text_point",
                 },
                 {
                     "point_id": "P2",
                     "official_slice": "开竣工日期及工期一览表",
+                    "authority_source": "official_answer_verbatim",
+                    "span_hash": "sha256:P2",
                     "sub_type": "free_text_point",
                 },
             ],

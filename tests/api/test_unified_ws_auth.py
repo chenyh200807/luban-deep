@@ -23,12 +23,12 @@ def _build_app() -> FastAPI:
     return app
 
 
-def _ctx(user_id: str, *, is_admin: bool = False) -> AuthContext:
+def _ctx(user_id: str, *, is_admin: bool = False, claims: dict | None = None) -> AuthContext:
     return AuthContext(
         user_id=user_id,
         provider="test",
         token="test-token",
-        claims={"uid": user_id},
+        claims={"uid": user_id, **(claims or {})},
         is_admin=is_admin,
     )
 
@@ -241,6 +241,56 @@ def test_ws_start_turn_binds_authenticated_user_into_billing_context(
     billing_context = fake_runtime.started_payload["config"]["billing_context"]
     assert billing_context["user_id"] == "student_demo"
     assert billing_context["source"] == "authenticated_ws"
+    assert message["type"] == "done"
+
+
+def test_ws_start_turn_adds_server_auth_identity_projection(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake_runtime = _FakeRuntime()
+
+    class _MemberService:
+        def get_auth_identity_projection(self, user_id: str) -> dict:
+            assert user_id == "4a9b2f0c-0000-4000-9000-000000000001"
+            return {
+                "user_id": "4a9b2f0c-0000-4000-9000-000000000001",
+                "auth_username": "qa_pgo_l2_live",
+                "display_name": "QA PGO L2",
+                "external_auth_user_id": "4a9b2f0c-0000-4000-9000-000000000001",
+            }
+
+    monkeypatch.setattr(
+        secure_router_mod,
+        "resolve_auth_context",
+        lambda _authorization: _ctx(
+            "4a9b2f0c-0000-4000-9000-000000000001",
+            claims={"canonical_uid": "4a9b2f0c-0000-4000-9000-000000000001"},
+        ),
+    )
+    monkeypatch.setattr(
+        "deeptutor.services.member_console.get_member_console_service",
+        lambda: _MemberService(),
+    )
+    monkeypatch.setattr("deeptutor.services.session.get_turn_runtime_manager", lambda: fake_runtime)
+
+    with TestClient(_build_app()) as client:
+        with client.websocket_connect("/api/v1/ws") as websocket:
+            websocket.send_json(
+                {
+                    "type": "start_turn",
+                    "content": "hello",
+                    "config": {"auth_identity": {"auth_username": "operator_client_spoof"}},
+                }
+            )
+            message = websocket.receive_json()
+
+    config = fake_runtime.started_payload["config"]
+    auth_identity = fake_runtime.started_payload["_authenticated_user_identity"]
+    assert config["billing_context"]["user_id"] == "4a9b2f0c-0000-4000-9000-000000000001"
+    assert "auth_identity" not in config
+    assert auth_identity["auth_username"] == "qa_pgo_l2_live"
+    assert auth_identity["external_auth_user_id"] == "4a9b2f0c-0000-4000-9000-000000000001"
+    assert "operator_client_spoof" not in str(auth_identity)
     assert message["type"] == "done"
 
 

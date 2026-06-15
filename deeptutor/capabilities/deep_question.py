@@ -2283,6 +2283,61 @@ def _case_rubric_v1_payload_from_event(
     return {"authority": "luban_case_rubric_v1", **event, "official_score_allowed": False}
 
 
+def _score_first_grading_shape_from_event(
+    event: dict[str, Any] | None,
+    *,
+    response: str,
+    next_best_action_present: bool = False,
+) -> dict[str, Any] | None:
+    if not isinstance(event, dict) or event.get("event_type") != "case_grading_completed":
+        return None
+    try:
+        awarded = float(event.get("awarded_score") or 0.0)
+        max_score = float(event.get("max_score") or 0.0)
+    except (TypeError, ValueError):
+        awarded = 0.0
+        max_score = 0.0
+    point_verdicts: list[dict[str, Any]] = []
+    for point in list(event.get("scoring_points") or []):
+        if not isinstance(point, dict):
+            continue
+        item = {
+            "point_id": str(point.get("point_id") or "").strip(),
+            "hit": point.get("hit"),
+            "score": point.get("score"),
+            "max_score": point.get("max_score"),
+            "mistake_type": point.get("mistake_type"),
+        }
+        for key in ("score_bearing", "ground_status", "authority_source", "span_hash"):
+            if key in point:
+                item[key] = point.get(key)
+        point_verdicts.append(item)
+    return {
+        "shape_version": "score_first.v1",
+        "authority": "luban_case_rubric_v1",
+        "block_order": ["score_first", "explanation", "advice"],
+        "score_first": {
+            "sealed": True,
+            "score": {
+                "awarded_score": round(awarded, 4),
+                "max_score": round(max_score, 4),
+                "score_ratio": round(awarded / max_score, 4) if max_score else 0.0,
+            },
+            "point_verdicts": point_verdicts,
+            "official_score_allowed": False,
+            "canonical_write_allowed": False,
+        },
+        "explanation": {
+            "async_status": "same_result" if str(response or "").strip() else "pending",
+            "response_char_count": len(str(response or "")),
+        },
+        "advice": {
+            "async_status": "same_result",
+            "next_best_action_present": bool(next_best_action_present),
+        },
+    }
+
+
 def _runtime_shadow_engine(context: UnifiedContext) -> str:
     metadata = context.metadata if isinstance(context.metadata, dict) else {}
     return str(
@@ -2461,9 +2516,14 @@ def _pgo_shadow_cohort_member_for_context(context: UnifiedContext, student_id: s
     candidates = [str(student_id or "").strip()]
     metadata = context.metadata if isinstance(context.metadata, dict) else {}
     billing_context = metadata.get("billing_context") if isinstance(metadata.get("billing_context"), dict) else {}
-    for container in (metadata, billing_context):
+    auth_identity = metadata.get("auth_identity") if isinstance(metadata.get("auth_identity"), dict) else {}
+    for container in (metadata, billing_context, auth_identity):
         for key in (
+            "id",
             "user_id",
+            "uid",
+            "sub",
+            "canonical_uid",
             "learner_user_id",
             "username",
             "auth_username",
@@ -2473,16 +2533,29 @@ def _pgo_shadow_cohort_member_for_context(context: UnifiedContext, student_id: s
             value = str(container.get(key) or "").strip()
             if value:
                 candidates.append(value)
+        for value in list(container.get("alias_user_ids") or []):
+            text = str(value or "").strip()
+            if text:
+                candidates.append(text)
     if student_id and not _pgo_shadow_cohort_member(student_id):
         try:
             from deeptutor.services.member_console import get_member_console_service
 
-            profile = get_member_console_service().get_profile(str(student_id).strip())
+            service = get_member_console_service()
+            profile_reader = getattr(service, "get_auth_identity_projection", None)
+            if callable(profile_reader):
+                profile = profile_reader(str(student_id).strip())
+            else:
+                profile = service.get_profile(str(student_id).strip())
             if isinstance(profile, dict):
                 for key in ("auth_username", "username", "display_name", "identifier"):
                     value = str(profile.get(key) or "").strip()
                     if value:
                         candidates.append(value)
+                for value in list(profile.get("alias_user_ids") or []):
+                    text = str(value or "").strip()
+                    if text:
+                        candidates.append(text)
         except Exception:
             pass
     return any(_pgo_shadow_cohort_member(candidate) for candidate in candidates)
@@ -4528,6 +4601,15 @@ class DeepQuestionCapability(BaseCapability):
                 )
                 if _v1_payload is not None:
                     result_payload["luban_case_rubric_v1"] = _v1_payload
+                _grading_shape = _score_first_grading_shape_from_event(
+                    v1_event,
+                    response=str(result_payload.get("response") or ""),
+                    next_best_action_present=isinstance(
+                        result_payload.get("next_best_action"), dict
+                    ),
+                )
+                if _grading_shape is not None:
+                    result_payload["grading_shape"] = _grading_shape
 
                 # PGO coverage shadow (default off; env kill switch + cohort; append-only;
                 # missing live PGO supply fails closed instead of inferring from legacy score).

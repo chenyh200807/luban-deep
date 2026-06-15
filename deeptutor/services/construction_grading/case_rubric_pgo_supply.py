@@ -252,6 +252,8 @@ def _record_from_runtime_point(contract: dict[str, Any], point: dict[str, Any]) 
         "source_schema": contract.get("source_schema"),
         "text": text,
         "official_slice": text,
+        "authority_source": point.get("authority_source") or "",
+        "span_hash": point.get("span_hash") or "",
         "score": None,
         "max_score": None,
         "policy": point.get("policy_type") or "qualitative",
@@ -383,6 +385,11 @@ def validate_pgo_runtime_supply(bundle: dict[str, Any]) -> list[str]:
             blockers.append(f"record_canonical_write_allowed:{point_id}")
         if not record.get("official_total_score"):
             blockers.append(f"record_missing_official_total_score:{point_id}")
+        qid = str(record.get("qid") or "")
+        if not str(record.get("authority_source") or "").strip():
+            blockers.append(f"record_missing_authority_source:{qid}:{point_id}")
+        if not str(record.get("span_hash") or "").strip():
+            blockers.append(f"record_missing_span_hash:{qid}:{point_id}")
     return blockers
 
 

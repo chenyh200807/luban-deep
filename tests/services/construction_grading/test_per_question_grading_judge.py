@@ -16,6 +16,7 @@ from deeptutor.services.construction_grading.per_question_grading_judge import (
     PARTIAL,
     candidate_coverage_score,
     build_pgo_shadow_payload,
+    ground_gate_contract_for_scoring,
     detect_over_credit,
     make_controlled_student_answers,
     oracle_verdicts,
@@ -163,30 +164,40 @@ def _stage2_contract():
                 "point_id": "sp_flaw",
                 "sub_type": "flaw_correction",
                 "official_slice": "不妥之处：x。正确做法：y。",
+                "authority_source": "official_answer_verbatim",
+                "span_hash": "sha256:sp_flaw",
                 "score": None,
             },
             {
                 "point_id": "sp_exception",
                 "sub_type": "exceptions",
                 "official_slice": "主体结构不得分包，钢结构工程除外。",
+                "authority_source": "official_answer_verbatim",
+                "span_hash": "sha256:sp_exception",
                 "score": None,
             },
             {
                 "point_id": "sp_calc",
                 "sub_type": "calculation",
                 "official_slice": "措施项目费：6100×10%=610万元。",
+                "authority_source": "official_answer_verbatim",
+                "span_hash": "sha256:sp_calc",
                 "score": None,
             },
             {
                 "point_id": "sp_enum",
                 "sub_type": "enumeration",
                 "official_slice": "记录内容还包括取样、制样、标识。",
+                "authority_source": "official_answer_verbatim",
+                "span_hash": "sha256:sp_enum",
                 "score": None,
             },
             {
                 "point_id": "sp_free",
                 "sub_type": "free_text_point",
                 "official_slice": "建设单位应及时支付检测费用。",
+                "authority_source": "official_answer_verbatim",
+                "span_hash": "sha256:sp_free",
                 "score": None,
             },
         ],
@@ -293,6 +304,43 @@ def test_pgo_shadow_payload_is_non_authoritative_and_append_only_shape():
     assert payload["canonical_write_allowed"] is False
     assert payload["writeback_performed"] is False
     assert payload["runtime_points"][0]["score"] is None
+
+
+def test_pgo_shadow_payload_blocks_ungrounded_points_from_score_bearing_verdicts():
+    contract = _stage2_contract()
+    del contract["scoring_points"][0]["authority_source"]
+    del contract["scoring_points"][0]["span_hash"]
+
+    payload = build_pgo_shadow_payload(
+        contract=contract,
+        point_verdicts={
+            "sp_flaw": HIT,
+            "sp_exception": HIT,
+            "sp_calc": HIT,
+            "sp_enum": HIT,
+            "sp_free": HIT,
+        },
+        question_id="Q-STAGE2",
+        student_id="qa_pgo",
+    )
+
+    assert payload["shadow_status"] == "blocked"
+    assert payload["score"]["awarded_score"] == 0.0
+    assert "scoring_point_missing_authority_source:sp_flaw" in payload["score"]["blockers"]
+    assert "scoring_point_missing_span_hash:sp_flaw" in payload["score"]["blockers"]
+    blocked = [point for point in payload["runtime_points"] if point["point_id"] == "sp_flaw"][0]
+    assert blocked["score_bearing"] is False
+    assert blocked["explanation_only"] is True
+    assert blocked["ground_status"] == "blocked"
+
+
+def test_ground_gate_contract_for_scoring_marks_all_points_score_bearing_when_grounded():
+    gated = ground_gate_contract_for_scoring(_stage2_contract())
+
+    assert gated["ok"] is True
+    assert gated["blockers"] == []
+    assert all(point["score_bearing"] is True for point in gated["runtime_points"])
+    assert all(point["explanation_only"] is False for point in gated["runtime_points"])
 
 
 def test_pgo_shadow_payload_missing_contract_does_not_infer_from_legacy_score():

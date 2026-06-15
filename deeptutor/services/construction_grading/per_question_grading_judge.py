@@ -160,6 +160,58 @@ def _supporting_terms_by_point(contract: dict[str, Any]) -> dict[str, list[str]]
     return terms_by_point
 
 
+def _ground_value(point: dict[str, Any], key: str) -> str:
+    value = point.get(key)
+    if not value and isinstance(point.get("ground"), dict):
+        value = point["ground"].get(key)
+    return str(value or "").strip()
+
+
+def _score_ground_blockers(point: dict[str, Any]) -> list[str]:
+    point_id = str(point.get("point_id") or "").strip() or "unknown"
+    blockers: list[str] = []
+    if not str(point.get("official_slice") or point.get("text") or "").strip():
+        blockers.append(f"scoring_point_missing_official_slice:{point_id}")
+    if not _ground_value(point, "authority_source"):
+        blockers.append(f"scoring_point_missing_authority_source:{point_id}")
+    if not _ground_value(point, "span_hash"):
+        blockers.append(f"scoring_point_missing_span_hash:{point_id}")
+    return blockers
+
+
+def ground_gate_contract_for_scoring(contract: dict[str, Any]) -> dict[str, Any]:
+    """Score-bearing gate for PGO/KnowQL contracts.
+
+    A point without official-answer provenance may still be displayed as an
+    explanation hint, but it must not contribute to score arithmetic.
+    """
+    if not isinstance(contract, dict):
+        return {
+            "ok": False,
+            "blockers": ["pgo_contract_missing"],
+            "runtime_points": [],
+        }
+    points = contract.get("scoring_points") or []
+    if not points:
+        return {
+            "ok": False,
+            "blockers": ["no_scoring_points"],
+            "runtime_points": [],
+        }
+    blockers: list[str] = []
+    for point in points:
+        if not isinstance(point, dict):
+            blockers.append("scoring_point_not_dict")
+            continue
+        blockers.extend(_score_ground_blockers(point))
+    runtime_points = runtime_points_from_grading_contract(contract)
+    return {
+        "ok": not blockers,
+        "blockers": sorted(set(blockers)),
+        "runtime_points": runtime_points,
+    }
+
+
 def runtime_points_from_grading_contract(
     contract: dict[str, Any]
 ) -> list[dict[str, Any]]:
@@ -178,11 +230,16 @@ def runtime_points_from_grading_contract(
         policy_type = _PGO_SUB_TYPE_TO_POLICY.get(sub_type, "qualitative")
         if required_terms and policy_type == "qualitative":
             policy_type = "exact_required"
+        ground_blockers = _score_ground_blockers(sp)
+        authority_source = _ground_value(sp, "authority_source")
+        span_hash = _ground_value(sp, "span_hash")
         runtime_points.append(
             {
                 "point_id": point_id,
                 "official_slice": sp.get("official_slice") or "",
                 "knowledge_point": sp.get("official_slice") or "",
+                "authority_source": authority_source,
+                "span_hash": span_hash,
                 "policy_type": policy_type,
                 "sub_type": sub_type,
                 "required_terms": list(required_terms),
@@ -193,6 +250,10 @@ def runtime_points_from_grading_contract(
                 ),
                 "score": None,
                 "max_score": None,
+                "score_bearing": not ground_blockers,
+                "explanation_only": bool(ground_blockers),
+                "ground_status": "blocked" if ground_blockers else "ok",
+                "ground_blockers": ground_blockers,
             }
         )
     return runtime_points
@@ -229,6 +290,8 @@ def pgo_contract_from_knowql_rubric_result(
             {
                 "point_id": point_id,
                 "official_slice": str(raw.get("official_slice") or ""),
+                "authority_source": str(raw.get("authority_source") or ""),
+                "span_hash": str(raw.get("span_hash") or ""),
                 "sub_type": str(raw.get("sub_type") or "free_text_point"),
                 "policy": raw.get("policy"),
                 "policy_type": raw.get("policy_type"),
@@ -335,6 +398,19 @@ def verdict_coverage_awarded_score(
             "canonical_write_allowed": False,
             "blockers": ["no_scoring_points"],
         }
+    ground = ground_gate_contract_for_scoring(contract)
+    if not ground.get("ok"):
+        return {
+            "awarded_score": 0.0,
+            "max_score": float(total),
+            "coverage": 0.0,
+            "credited_points": 0.0,
+            "total_points": len(points),
+            "score_authority": "official_total_x_verdict_coverage",
+            "official_score_allowed": False,
+            "canonical_write_allowed": False,
+            "blockers": list(ground.get("blockers") or []),
+        }
 
     credit_weights = dict(_VERDICT_CREDIT)
     credit_weights[PARTIAL] = float(partial_ratio)
@@ -391,23 +467,25 @@ def build_pgo_shadow_payload(
             },
         }
     if not isinstance(point_verdicts, dict):
+        ground = ground_gate_contract_for_scoring(contract)
         return {
             **base,
             "shadow_status": "pgo_verdicts_missing",
-            "runtime_points": runtime_points_from_grading_contract(contract),
+            "runtime_points": ground.get("runtime_points") or runtime_points_from_grading_contract(contract),
             "score": {
                 "awarded_score": 0.0,
                 "max_score": 0.0,
                 "coverage": 0.0,
-                "blockers": ["pgo_verdicts_missing"],
+                "blockers": ["pgo_verdicts_missing", *list(ground.get("blockers") or [])],
             },
         }
 
     score = verdict_coverage_awarded_score(point_verdicts, contract)
+    ground = ground_gate_contract_for_scoring(contract)
     return {
         **base,
         "shadow_status": "ok" if not score.get("blockers") else "blocked",
-        "runtime_points": runtime_points_from_grading_contract(contract),
+        "runtime_points": ground.get("runtime_points") or runtime_points_from_grading_contract(contract),
         "point_verdicts": dict(point_verdicts),
         "score": score,
     }
@@ -463,6 +541,7 @@ __all__ = [
     "make_controlled_student_answers",
     "oracle_verdicts",
     "candidate_coverage_score",
+    "ground_gate_contract_for_scoring",
     "runtime_points_from_grading_contract",
     "pgo_contract_from_knowql_rubric_result",
     "pgo_point_verdicts_from_scoring_point_hits",
